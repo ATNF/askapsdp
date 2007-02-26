@@ -15,41 +15,42 @@ install_lib = ~/lib/python
 install_scripts = ~/bin
 <<< End on previous line
 
+cd ~
 mkdir -p lib/python
 mkdir -p bin
 
 Add ~/bin to $PATH
 Add ~/lib/python to $PYTHONPATH
 
-The above steps make installs go to the specified directories instead of
-site-packages which do not require root permission.
+The above steps make installs go to the specified directories which do
+not require root permission.
 
 Installing setuptools (http://peak.telecommunity.com/DevCenter/setuptools)
 =====================
-Python needs to be configured work with setuptools. To do this go to
-ThirdPartyLibraries/Python/setuptools and run the following command:
-cd Tools/Dev/setuptools
+Python needs to be configured to work with setuptools. To do this,
+execute the following commands:
+cd svnCONRAD/Tools/Dev/setuptools
 python ez_setup.py
 
 Installing recursivebuild
 =========================
-cd Tools/Dev/recursivebuild
+cd svnCONRAD/Tools/Dev/recursivebuild
 python setup.py install
 
-This will install the tiny module in the standard python path so that it can be
-in the many setup.py scripts to hierarchically build the repository.
+This will install this tiny module in the standard python path, so that it can
+hierarchically build the repository in the many setup.py scripts.
 
 Installing Tools
 ================
-cd Tools
+cd svnCONRAD/Tools
 python setup.py -q install
 
 Installing ThirdPartyLibraries
 ==============================
-cd ThirdPartyLibraries
+cd svnCONRAD/ThirdPartyLibraries
 python setup.py -q install
 
-Additional repositories
+Additional repositories (eg svnComputing/AutoBuild)
 =======================
 Build first Tools, then ThirdPartyLibraries and finally the Code directory. In
 each case the command is:
