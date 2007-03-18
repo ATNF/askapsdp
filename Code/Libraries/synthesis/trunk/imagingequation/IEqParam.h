@@ -1,6 +1,6 @@
 /// @file
 ///
-/// IEqParam: represent a single parameter for imaging equation. A parameter
+/// IEqParam: represent a parameter for imaging equation. A parameter
 /// can be a single real number, a vector of numbers, or an image of numbers.
 /// The first two derivatives may optionally be included.
 /// 

@@ -1,6 +1,6 @@
 /// @file
 ///
-/// IEqParams: represent a set of parameters for imaging equation.
+/// IEqParams: represent a set of parameters for an imaging equation.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -52,7 +52,7 @@ public:
 	
 	~IEqParams();
 	
-private:
+protected:
 	casa::String itsNames;
 	casa::Vector<IEqParam> itsParams;
 };

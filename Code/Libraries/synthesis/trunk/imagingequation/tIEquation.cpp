@@ -28,8 +28,6 @@ typedef IEqSolver ImageIEqSolver;
 // The following example makes a continuum mosaic and a 
 // spectral line cube.
 int main() {
-
-using namespace conrad;
 	
 	// Open the existing images and the global sky model
 	casa::PagedImage<float> cmosaicImage("cmosaic.image");
@@ -46,7 +44,6 @@ using namespace conrad;
 	IEqParams gsmparams;
 //	gsmparams.add(casa::String("gsm.cl"));
 	GSMIEquation gsm(casa::String("Global Sky Model Equation"), gsmparams);
-
 	
 	// The peeling equation allows one real gain for the array, 
 	// chunked in scans and first order in frequency. These are 

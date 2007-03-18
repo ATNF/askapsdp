@@ -15,7 +15,7 @@ INCDIRS   = -I. $(CASAINC)
 LIBDIRS   = $(CASALIB)
 
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
-CXXFLAGS  = -ansi -O2 -DAIPS_DARWIN
+CXXFLAGS  = -ansi -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
 OBJECTS   = IEqDataAccessor.o IEqDataSource.o IEqParam.o IEqParams.o IEqSolver.o
 HEADERS   = IEqDataAccessor.h IEqDataSource.h IEqParam.h IEqParams.h IEqSolver.h IEquation.h
@@ -32,7 +32,7 @@ $(TARGET):  $(OBJECTS) $(TARGET).cpp
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(TARGET).o $(LIBDIRS)
 
 
-all: lib tIEquation
+all: tIEquation
 
 clean:
 	-rm -f $(OBJECTS) *.a

@@ -1,3 +1,11 @@
+/// @file
+///
+/// IEqSolver: Base class for solvers of parametrized imaging
+/// equations.
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Tim Cornwell <tim.cornwell@csiro.au>
+///
 #ifndef IEQSOLVER_H_
 #define IEQSOLVER_H_
 
@@ -18,7 +26,7 @@ public:
 	
 	virtual ~IEqSolver() {};
 	
-	// Initialize
+	// Initialize this solver
 	virtual void init() {
 		cout << "Stubbed Initialization of solver in " << itsName << endl;
 	};
@@ -31,11 +39,12 @@ public:
 	// Return current values of params
 	virtual IEqParams& parameters() {return itsParams;};
 	
-	// Add in value and derivatives
+	// Add in a new parameter
 	virtual bool add(IEqParams& ip) {
 		cout << "Stubbed adding derivatives in " << itsName << endl;
 	}
 	
+	/// Solve for parameters, updating the values kept internally
 	virtual bool solve() {
 		cout << "Stubbed solver in " << itsName << endl;
 	}
