@@ -3,8 +3,6 @@
 
 #include <casa/aips.h>
 
-// forwards
-
 namespace conrad { 
 
 class IEqDataAccessor;
@@ -28,42 +26,43 @@ public:
 		LOWDYNAMICRANGE=1,		
 	};
 
-  IEquation();
-  
-  // Destructor
-  virtual ~IEquation()=0;
+	/// Constructor
+	/// @param name Name of equation
+	/// @param ip Equation parameters
+    IEquation(const casa::String& name, IEqParams& ip) : itsName(name), itsParams(ip) {};
+    
+    /// Overwrite the parameters
+    /// @param ip New parameters
+    void setParameters(IEqParams& ip) {itsParams=ip;};
+    
+    /// Return the parameters
+    IEqParams& parameters() {return itsParams;}; 
 
-  // Predict for a given set of ImagingParams
-  virtual void predict(IEqDataAccessor& ida, const IEqParams& ip)=0;
-  
-  // Transpose
-  virtual IEqParams& transpose(IEqDataAccessor& ida, const IEqParams& ip)=0;
-
-  // Predict and differentiate
-  virtual IEqParams& prediffer(IEqDataAccessor& ida, const IEqParams& ip)=0;
-
+	/// Predict model visibility
+	/// @param ida data accessor
+	virtual void predict(IEqDataAccessor& ida) {
+		cout << "predict in " << itsName << endl;
+	}
+	/// Transpose back to parameter space
+	/// @param ida data accessor
+	virtual IEqParams& transpose(IEqDataAccessor& ida) {
+		cout << "transpose in " << itsName << endl;
+		return itsParams;
+	}
+	/// Predict and then transpose back to parameter space
+	/// @param ida data accessor
+	/// @param ip imaging params
+	virtual IEqParams& prediffer(IEqDataAccessor& ida) {
+		cout << "prediffer in " << itsName << endl;
+		return itsParams;
+	}
+	virtual ~IEquation() {};
+		
  protected:
+ private:
+ 	casa::String itsName;
+ 	IEqParams itsParams;
 };
-
-class StubbedIEquation : public IEquation {
-	public:
-		virtual ~StubbedIEquation() {};
-		StubbedIEquation(casa::String name) {itsName=name;};
-		virtual void predict(IEqDataAccessor& ida, IEqParams& ip) {
-			cout << "predict in " << itsName << endl;
-		}
-		virtual IEqParams& transpose(IEqDataAccessor& ida, IEqParams& ip) {
-			cout << "transpose in " << itsName << endl;
-			return ip;
-		}
-		virtual IEqParams& prediffer(IEqDataAccessor& ida, IEqParams& ip) {
-			cout << "prediffer in " << itsName << endl;
-			return ip;
-		}
-	protected:
-		casa::String itsName;
-};
-
 
 }
 

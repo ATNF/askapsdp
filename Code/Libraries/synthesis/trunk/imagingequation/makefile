@@ -1,4 +1,4 @@
-TARGET    = tImagingEquation
+TARGET    = tIEquation
 
 
 AIPSROOT=/opt/aips++
@@ -15,9 +15,9 @@ INCDIRS   = -I. $(CASAINC)
 LIBDIRS   = $(CASALIB)
 
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
-CXXFLAGS  = -ansi -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
+CXXFLAGS  = -ansi -O2 -DAIPS_DARWIN
 
-OBJECTS   = IEqDataAccessor.o IEqDataSource.o IEqParam.o IEqParams.o IEqSolver.o IEquation.o 
+OBJECTS   = IEqDataAccessor.o IEqDataSource.o IEqParam.o IEqParams.o IEqSolver.o
 HEADERS   = IEqDataAccessor.h IEqDataSource.h IEqParam.h IEqParams.h IEqSolver.h IEquation.h
 
 .SUFFIXES: .c .o .cpp .cc .cxx
@@ -25,25 +25,17 @@ HEADERS   = IEqDataAccessor.h IEqDataSource.h IEqParam.h IEqParams.h IEqSolver.h
 .cpp.o:
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $@ $<
 
-.cc.o:
-	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $@ $<
-
-.cxx.o: 
-	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $@ $<
+$(OBJECTS): $(HEADERS)
 
 $(TARGET):  $(OBJECTS) $(TARGET).cpp
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $(TARGET).o $(TARGET).cpp
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(TARGET).o $(LIBDIRS)
 
-$(OBJECTS): $(HEADERS)
-	
-lib: $(OBJECTS)
 
 all: lib tIEquation
 
-
 clean:
-	-rm -f $(OBJECTS)
+	-rm -f $(OBJECTS) *.a
 
 realclean: clean
 	-rm -f $(TARGET)

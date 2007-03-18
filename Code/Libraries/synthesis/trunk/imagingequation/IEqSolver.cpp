@@ -3,12 +3,4 @@
 namespace conrad
 {
 
-IEqSolver::IEqSolver()
-{
-}
-
-IEqSolver::~IEqSolver()
-{
-}
-
 }
