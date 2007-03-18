@@ -26,20 +26,22 @@ public:
 	
 	virtual ~IEqSolver() {};
 	
-	// Initialize this solver
+	/// Initialize this solver
 	virtual void init() {
-		cout << "Stubbed Initialization of solver in " << itsName << endl;
+		cout << "Stubbed initialization of solver in " << itsName << endl;
 	};
 	
-	// Set the params
+	/// Set the parameters
+	/// @param ip Parameters
 	virtual bool setParameters(IEqParams& ip) {
 		itsParams=ip;
 	}
 	
-	// Return current values of params
+	/// Return current values of params
 	virtual IEqParams& parameters() {return itsParams;};
 	
-	// Add in a new parameter
+	/// Add in a new parameter
+	/// @param ip New parameter to set
 	virtual bool add(IEqParams& ip) {
 		cout << "Stubbed adding derivatives in " << itsName << endl;
 	}

@@ -23,7 +23,7 @@ public:
 	/// Create from a table
 	/// @param parmtable Name of parameter table
 	IEqParams(casa::String& parmtable);
-	
+		
 	/// Empty constructor
 	IEqParams();
 	

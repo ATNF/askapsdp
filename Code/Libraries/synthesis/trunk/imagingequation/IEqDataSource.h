@@ -27,10 +27,13 @@ public:
 	/// @arg selection TaQL selection string
 	void init(casa::String& selection);
 	
+	/// Initialize iteration with accessor
+	void init();
+	
 	/// Return the data accessor
 	IEqDataAccessor& ida();
 	
-	/// Is there any more?
+	/// Are there any more data?
 	bool next();
 	
 protected:
