@@ -3,17 +3,15 @@
 namespace conrad
 {
 
-IEqParams::IEqParams()
-{
+IEqParams::IEqParams(const string& parmtable) {
 }
 
-IEqParams::IEqParams(string& parmtable)
-{
+// Store as a table
+void IEqParams::saveAsTable(const string& parmtable) const {
 }
 
-IEqParams::~IEqParams()
-{
+void IEqParams::add(const string& key, const IEqParam& param) {
+	insert(make_pair(key, param));
 }
 
-void IEqParams::add(const string& name, const IEqParam& ip) {
 }

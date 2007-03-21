@@ -18,25 +18,12 @@ using std::map;
 
 namespace conrad {
 
-class IEqParams {
+class IEqParams : public map<string, IEqParam> {
 public:
 	/// Create from a table
 	/// @param parmtable Name of parameter table
-	IEqParams(string& parmtable);
+	IEqParams(const string& parmtable);
 		
-	/// Empty constructor
-	IEqParams();
-	
-	/// Assignment operator
-	IEqParams& operator=(const IEqParams& other);
-	
-	/// Copy constructor
-	IEqParams(const IEqParams& other);
-
-	/// Copy constructor with select
-	/// @param regex Regular expression for names
-	IEqParams(const IEqParams& other, const string& regex);
-	
 	/// Add an ImagingParam
 	/// @param ip IEqParam to be added
 	void add(const string& name, const IEqParam& ip);
@@ -45,10 +32,7 @@ public:
 	/// @param parmtable Name of table to be saved
 	void saveAsTable(const string& parmtable) const;
 	
-	~IEqParams();
-	
 private:
-	map<string, IEqParam> itsParams;
 };
 
 }

@@ -45,7 +45,9 @@ public:
 	/// Constructor
 	/// @param name Name of equation
 	/// @param ip Equation parameters
-    IEquation(const string& name, IEqParams& ip) : itsName(name), itsParams(ip) {};
+    IEquation(const string& name, IEqParams& ip) : itsName(name), itsParams(ip) {
+		cout << "Stubbed creation of " << itsName << endl;
+    };
     
     /// Overwrite the parameters
     /// @param ip New parameters
@@ -74,7 +76,9 @@ public:
 		cout << "Stubbed prediffer in " << itsName << endl;
 		return itsParams;
 	}
-	virtual ~IEquation() {};
+	virtual ~IEquation() {
+		cout << "Stubbed destruction of " << itsName << endl;
+	};
 		
  protected:
  	string itsName;

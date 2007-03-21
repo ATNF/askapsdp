@@ -38,6 +38,8 @@ public:
 	
 protected:
 	casa::String itsName;
+private:
+	IEqDataAccessor itsIda;
 };
 }
 #endif /*IEQDATASOURCE_H_*/

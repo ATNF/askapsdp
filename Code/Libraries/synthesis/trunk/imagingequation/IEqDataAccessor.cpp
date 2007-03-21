@@ -10,4 +10,7 @@ IEqDataAccessor::~IEqDataAccessor()
 {
 }
 
+void IEqDataAccessor::initmodel() {
+}
+
 }
