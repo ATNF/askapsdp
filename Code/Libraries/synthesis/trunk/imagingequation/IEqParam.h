@@ -5,6 +5,7 @@
 /// The first two derivatives may optionally be included.
 /// 
 /// TODO: use basis functions iso derivatives?
+/// TODO: Template instead on double, Image<Float>, Componentlist, etc.?
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -29,14 +30,14 @@ public:
 	/// Copy constructor
 	IEqParam(const IEqParam& other);
 	
-	/// Single parameter
+	/// Single parameter - a parameter has a name, value and
+	/// first and second derivatives. 
 	/// @param name Name of param
 	/// @param value value of param
 	/// @param deriv first derivative of param
 	/// @param deriv2 second derivative of param
-	IEqParam(const casa::String& name, const double value);
-	IEqParam(const casa::String& name, const double value, const double deriv);
-	IEqParam(const casa::String& name, const double value, const double deriv, const double deriv2);
+	IEqParam(const casa::String& name, const double value=0.0, 
+		const double deriv=0.0, const double deriv2=0.0);
 	
 	/// Return name of param
 	casa::String& name() {return itsName;};
@@ -53,8 +54,8 @@ public:
 	void fix() {itsFree=casa::True;};
 	void free() {itsFree=casa::False;};
 	
-	bool fixed() {return !itsFree;};
-	bool freed() {return itsFree;};
+	const bool fixed() const {return !itsFree;};
+	const bool freed() const {return itsFree;};
 		
 	// Destructor
 	virtual ~IEqParam() {};

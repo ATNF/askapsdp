@@ -1,11 +1,11 @@
 /// @file
 ///
-/// IEquation: Represent an imaging equation. An IEquation is constructed
-/// with a name (informative only) and a set of parameters. The parameters
+/// IEquation: Represent a parametrized imaging equation. An IEquation 
+/// is constructed with a name and a set of parameters. The parameters
 /// can be updated subsequently. The IEquation can do two principal things
 ///    - calculate data (passed via a data accessor)
 ///    - transpose residual data back to the parameter space
-/// This two things can be combined in a prediffer step to allow calculation
+/// These two things can be combined in a prediffer step to allow calculation
 /// of gradients for parameters. The parameters may then be solved for by
 /// an IEqSolver class.
 ///
@@ -25,6 +25,7 @@ class IEqParams;
 class IEquation {
 public:
 
+	/// Not sure that these enum's are useful
 	/// List of mutually exclusive policies
 	enum Policy {
 		CAUTIOUS=0
@@ -50,10 +51,10 @@ public:
     
     /// Overwrite the parameters
     /// @param ip New parameters
-    void setParameters(IEqParams& ip) {itsParams=ip;};
+    void setParameters(const IEqParams& ip) {itsParams=ip;};
     
     /// Return the parameters
-    IEqParams& parameters() {return itsParams;}; 
+    const IEqParams& parameters() const {return itsParams;}; 
 
 	/// Predict model visibility
 	/// @param ida data accessor

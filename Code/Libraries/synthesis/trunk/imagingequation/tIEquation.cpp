@@ -42,6 +42,7 @@ int main() {
 	// the global sky model including everything we know. This has 
 	// no free parameters.
 	IEqParams gsmparams;
+	// Here we add the Global Sky Model to the list of parameters.
 //	gsmparams.add(casa::String("gsm.cl"));
 	GSMIEquation gsm(casa::String("Global Sky Model Equation"), gsmparams);
 	
@@ -80,6 +81,7 @@ int main() {
 		
 		// These while loops need not be sequential and may run 
 		// in different threads or processes
+		// First we will solve for the gain toward Centaurus A
 		msds.init();
 		while (msds.next()) {
 			msds.ida().initmodel();

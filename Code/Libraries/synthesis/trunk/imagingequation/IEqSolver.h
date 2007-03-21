@@ -22,9 +22,11 @@ namespace conrad
 class IEqSolver
 {
 public:
-	IEqSolver(casa::String name, IEqParams& ip) : itsName(name), itsParams(ip) {};
+	IEqSolver(const casa::String& name, const IEqParams& ip) : itsName(name), itsParams(ip) {};
 	
-	virtual ~IEqSolver() {};
+	virtual ~IEqSolver() {
+		cout << "Stubbed destruction of solver in " << itsName << endl;
+	};
 	
 	/// Initialize this solver
 	virtual void init() {
@@ -33,17 +35,17 @@ public:
 	
 	/// Set the parameters
 	/// @param ip Parameters
-	virtual bool setParameters(IEqParams& ip) {
+	virtual void setParameters(const IEqParams& ip) {
 		itsParams=ip;
 	}
 	
 	/// Return current values of params
-	virtual IEqParams& parameters() {return itsParams;};
+	const virtual IEqParams& parameters() const {return itsParams;};
 	
-	/// Add in a new parameter
-	/// @param ip New parameter to set
-	virtual bool add(IEqParams& ip) {
-		cout << "Stubbed adding derivatives in " << itsName << endl;
+	/// Add in values for derivatives
+	/// @param ip Parameter to set derivatives for
+	virtual bool add(const IEqParams& ip) {
+		cout << "Stubbed adding values and derivatives in " << itsName << endl;
 	}
 	
 	/// Solve for parameters, updating the values kept internally

@@ -27,33 +27,31 @@ public:
 	/// Empty constructor
 	IEqParams();
 	
+	/// Assignment operator
+	IEqParams& operator=(const IEqParams& other);
+	
+	/// Copy constructor
+	IEqParams(const IEqParams& other);
+
+	/// Copy constructor with select
+	/// @param regex Regular expression for names
+	IEqParams(const IEqParams& other, const casa::Regex& regex);
+	
 	/// Return names of parameters
-	casa::Vector<casa::String> names();
+	const casa::Vector<casa::String> names() const;
 	
 	/// Add an ImagingParam
 	/// @param ip IEqParam to be added
-	void add(IEqParam ip);
-	
-	/// Does this contain the named param?
-	/// @param name Name of single IEqParam
-	bool contains(const casa::String& name) const;
-	
-	/// Get the named parameter - an exception is thrown for multiple matches
-	/// @param name Name of single IEqParam to be returned
-	IEqParam& operator()(const casa::String& name);
-	
-	/// Get the named parameters
-	/// @param regex Regular expression for names
-	casa::Vector<IEqParam>& operator()(const casa::Regex& regex);
-	
+	void add(const IEqParam& ip);
+		
 	/// Store as a table
 	/// @param parmtable Name of table to be saved
-	void saveAsTable(casa::String parmtable);
+	void saveAsTable(casa::String parmtable) const;
 	
 	~IEqParams();
 	
 protected:
-	casa::String itsNames;
+	casa::Vector<casa::String> itsNames;
 	casa::Vector<IEqParam> itsParams;
 };
 
