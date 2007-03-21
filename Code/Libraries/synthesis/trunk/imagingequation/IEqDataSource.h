@@ -10,7 +10,9 @@
 #ifndef IEQDATASOURCE_H_
 #define IEQDATASOURCE_H_
 
-#include <casa/BasicSL/String.h>
+#include <string>
+
+using std::string;
 
 #include "IEqDataAccessor.h"
 
@@ -19,13 +21,13 @@ class IEqDataSource
 {
 public:
 	/// Construct a data source with the specified name
-	IEqDataSource(casa::String name) : itsName(name) {};
+	IEqDataSource(const string& name) : itsName(name) {};
 	
 	virtual ~IEqDataSource();
 	
 	/// Initialize iteration with accessor
 	/// @arg selection TaQL selection string
-	void init(casa::String& selection);
+	void init(const string& selection);
 	
 	/// Initialize iteration with accessor
 	void init();
@@ -34,10 +36,10 @@ public:
 	IEqDataAccessor& ida();
 	
 	/// Are there any more data?
-	bool next();
+	bool next() const;
 	
 protected:
-	casa::String itsName;
+	string itsName;
 private:
 	IEqDataAccessor itsIda;
 };

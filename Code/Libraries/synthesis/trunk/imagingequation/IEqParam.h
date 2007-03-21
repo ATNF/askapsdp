@@ -14,13 +14,10 @@
 #ifndef IEQPARAM_H
 #define IEQPARAM_H
 
-//#include <images/Images/ImageInterface.h>
-
 namespace conrad { 
 	
 class IEqParam {
 public:
-//	enum Type {DIRECT, IMAGE};
 
 	/// Assignment operator
 	IEqParam& operator=(const IEqParam& other);

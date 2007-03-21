@@ -8,7 +8,7 @@ IEqDataSource::~IEqDataSource()
 void IEqDataSource::init() {
 }
 
-bool IEqDataSource::next() {
+bool IEqDataSource::next() const {
 	return false;
 }
 
