@@ -7,13 +7,13 @@ IEqParams::IEqParams()
 {
 }
 
-IEqParams::IEqParams(casa::String& parmtable)
+IEqParams::IEqParams(string& parmtable)
 {
 }
 
 IEqParams::~IEqParams()
 {
-	itsParams.resize(0);
 }
 
+void IEqParams::add(const string& name, const IEqParam& ip) {
 }

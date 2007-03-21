@@ -9,9 +9,6 @@
 #ifndef IEQSOLVER_H_
 #define IEQSOLVER_H_
 
-#include <casa/aips.h>
-#include <casa/BasicSL/String.h>
-
 #include "IEqParams.h"
 
 #include <iostream.h>
@@ -22,7 +19,7 @@ namespace conrad
 class IEqSolver
 {
 public:
-	IEqSolver(const casa::String& name, const IEqParams& ip) : itsName(name), itsParams(ip) {};
+	IEqSolver(const string& name, const IEqParams& ip) : itsName(name), itsParams(ip) {};
 	
 	virtual ~IEqSolver() {
 		cout << "Stubbed destruction of solver in " << itsName << endl;
@@ -54,7 +51,7 @@ public:
 	}
 
 protected:
-	casa::String itsName;
+	string itsName;
 	IEqParams itsParams;
 };
 

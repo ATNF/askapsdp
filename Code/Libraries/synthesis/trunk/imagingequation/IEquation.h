@@ -15,8 +15,6 @@
 #ifndef IEQUATION_H
 #define IEQUATION_H
 
-#include <casa/aips.h>
-
 namespace conrad { 
 
 class IEqDataAccessor;
@@ -47,7 +45,7 @@ public:
 	/// Constructor
 	/// @param name Name of equation
 	/// @param ip Equation parameters
-    IEquation(const casa::String& name, IEqParams& ip) : itsName(name), itsParams(ip) {};
+    IEquation(const string& name, IEqParams& ip) : itsName(name), itsParams(ip) {};
     
     /// Overwrite the parameters
     /// @param ip New parameters
@@ -79,7 +77,7 @@ public:
 	virtual ~IEquation() {};
 		
  protected:
- 	casa::String itsName;
+ 	string itsName;
  	IEqParams itsParams;
 };
 

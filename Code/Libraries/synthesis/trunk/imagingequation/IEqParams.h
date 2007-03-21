@@ -8,11 +8,11 @@
 #ifndef IEQPARAMS_H_
 #define IEQPARAMS_H_
 
-#include <casa/aips.h>
-#include <casa/BasicSL/String.h>
-#include <casa/Utilities/Regex.h>
-#include <casa/Arrays/Vector.h>
-#include <tables/Tables/Table.h>
+#include <map>
+#include <string>
+
+using std::string;
+using std::map;
 
 #include "IEqParam.h"
 
@@ -22,7 +22,7 @@ class IEqParams {
 public:
 	/// Create from a table
 	/// @param parmtable Name of parameter table
-	IEqParams(casa::String& parmtable);
+	IEqParams(string& parmtable);
 		
 	/// Empty constructor
 	IEqParams();
@@ -35,24 +35,20 @@ public:
 
 	/// Copy constructor with select
 	/// @param regex Regular expression for names
-	IEqParams(const IEqParams& other, const casa::Regex& regex);
-	
-	/// Return names of parameters
-	const casa::Vector<casa::String> names() const;
+	IEqParams(const IEqParams& other, const string& regex);
 	
 	/// Add an ImagingParam
 	/// @param ip IEqParam to be added
-	void add(const IEqParam& ip);
+	void add(const string& name, const IEqParam& ip);
 		
 	/// Store as a table
 	/// @param parmtable Name of table to be saved
-	void saveAsTable(casa::String parmtable) const;
+	void saveAsTable(const string& parmtable) const;
 	
 	~IEqParams();
 	
-protected:
-	casa::Vector<casa::String> itsNames;
-	casa::Vector<IEqParam> itsParams;
+private:
+	map<string, IEqParam> itsParams;
 };
 
 }

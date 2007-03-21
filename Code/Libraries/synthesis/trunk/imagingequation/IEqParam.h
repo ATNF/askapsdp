@@ -14,8 +14,6 @@
 #ifndef IEQPARAM_H
 #define IEQPARAM_H
 
-#include <casa/aips.h>
-#include <casa/BasicSL/String.h>
 //#include <images/Images/ImageInterface.h>
 
 namespace conrad { 
@@ -30,17 +28,13 @@ public:
 	/// Copy constructor
 	IEqParam(const IEqParam& other);
 	
-	/// Single parameter - a parameter has a name, value and
+	/// Single parameter - a parameter has a value and
 	/// first and second derivatives. 
-	/// @param name Name of param
 	/// @param value value of param
 	/// @param deriv first derivative of param
 	/// @param deriv2 second derivative of param
-	IEqParam(const casa::String& name, const double value=0.0, 
+	IEqParam(const double value=0.0, 
 		const double deriv=0.0, const double deriv2=0.0);
-	
-	/// Return name of param
-	casa::String& name() {return itsName;};
 	
 	/// Return value of param
 	double& value() {return itsValue;};
@@ -51,8 +45,8 @@ public:
 	/// Return second derivative of param
 	double& deriv2() {return itsDeriv2;};
 	
-	void fix() {itsFree=casa::True;};
-	void free() {itsFree=casa::False;};
+	void fix() {itsFree=true;};
+	void free() {itsFree=false;};
 	
 	const bool fixed() const {return !itsFree;};
 	const bool freed() const {return itsFree;};
@@ -61,8 +55,6 @@ public:
 	virtual ~IEqParam() {};
 	
 protected:
-//	IEqParam::Type itsType;
-	casa::String itsName;
 	double itsValue;
 	double itsDeriv;
 	double itsDeriv2;
