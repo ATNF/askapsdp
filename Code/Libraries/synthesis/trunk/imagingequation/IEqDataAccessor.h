@@ -1,12 +1,12 @@
-/// @file
+/// @file IEqDataAccessor.h
 ///
-/// IEqDataAccessor: Access to buffered visibility data
+/// IEqDataAccessor: Interface class to access buffered visibility data
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef IEQDATAACCESSOR_H_
-#define IEQDATAACCESSOR_H_
+#ifndef IEQ_DATA_ACCESSOR_H
+#define IEQ_DATA_ACCESSOR_H
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -16,18 +16,19 @@
 
 namespace conrad {
 
+/// IEqDataAccessor: an interface class to access buffered visibility data
+/// working instances include a chunk of streamed data or a portion
+/// of the disk-based table. A reference to this type is supposed to be
+/// returned by a DataSource object, which determines the actual source
+/// of data as follows from its name, and provides some selection and
+/// on-the-fly frame conversions
 class IEqDataAccessor
 {
 public:
-	/// Construct
-	IEqDataAccessor();
 	
 	/// Destruct
 	virtual ~IEqDataAccessor();
-	
-	/// Initialize model column
-	virtual void initmodel();
-
+		
 	/// The number of rows in this chunk
 	/// @return the number of rows in this chunk
 	virtual casa::uInt nRow() const throw() = 0;
@@ -98,8 +99,30 @@ public:
 	/// packed into a 3-D rigid vector
 	virtual const casa::Vector<casa::RigidVector<casa::Double, 3> >&
 	        uvw() const = 0;
+
+        /// Noise level required for a proper weighting
+	/// It is assumed at this stage that the same figure is valid for
+	/// all spectral channels, although there could be a difference
+	/// between different polarizations (hence CStokesVector)
+	/// @return a vector (one element for each row) of CStokesVectors
+	///         with resulting noise figure for each polarization
+	///         (polarization conversion is taken into account)
+	virtual const casa::Vector<casa::CStokesVector>& noise() const = 0;
+
+	/// Timestamp for each row
+	/// @return a reference to vector containing timestamps for each
+	///         row (as Doubles, the frame/units are specified by the
+	///         DataSource object)
+	virtual const casa::Vector<casa::Double>& time() const = 0;
+
+	/// Frequency for each channel
+	/// @return a reference to vector containing frequencies for each
+	///         spectral channel (vector size is nChannel). Frequencies
+	///         are given as Doubles, the frame/units are specified by
+	///         the DataSource object
+	virtual const casa::Vector<casa::Double>& frequency() const = 0;
 };
 
 } // end of namespace conrad
 
-#endif /*IEQDATAACCESSOR_H_*/
+#endif /*IEQ_DATA_ACCESSOR_H*/
