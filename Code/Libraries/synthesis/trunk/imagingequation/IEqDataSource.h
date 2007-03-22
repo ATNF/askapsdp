@@ -14,7 +14,7 @@
 
 using std::string;
 
-#include "IEqDataAccessor.h"
+#include "IEqTableDataAccessor.h"
 
 namespace conrad {
 class IEqDataSource
@@ -41,7 +41,7 @@ public:
 protected:
 	string itsName;
 private:
-	IEqDataAccessor itsIda;
+	IEqTableDataAccessor itsIda;
 };
 }
 #endif /*IEQDATASOURCE_H_*/

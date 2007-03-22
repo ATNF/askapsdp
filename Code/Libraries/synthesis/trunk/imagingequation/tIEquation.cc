@@ -75,7 +75,8 @@ int main() {
 			// First we will solve for the gain toward Centaurus A
 			msds.init();
 			while (msds.next()) {
-				msds.ida().initmodel();
+				// we need to think how to handle writable columns. A separate buffer?
+				//msds.ida().initmodel();
 				gsm.predict(msds.ida());
 				cmosaic.predict(msds.ida());
 				cena.predict(msds.ida());
@@ -91,7 +92,8 @@ int main() {
 			cis.init();
 			msds.init();
 			while (msds.next()) {
-				msds.ida().initmodel();
+				// we need to think how to deal with writable stuff
+				//msds.ida().initmodel();
 				gsm.predict(msds.ida());
 				cmosaic.predict(msds.ida());
 				cena.predict(msds.ida());
@@ -108,7 +110,8 @@ int main() {
 			sis.init();
 			msds.init();
 			while (msds.next()) {
-				msds.ida().initmodel();
+				// we need to think how to be with writable columns
+				//msds.ida().initmodel();
 				gsm.predict(msds.ida());
 				cena.predict(msds.ida());
 				cmosaic.predict(msds.ida());
