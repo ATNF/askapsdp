@@ -11,9 +11,9 @@
 using namespace conrad;
 
 // Trivial solver to find peak flux
-class ComponentIEqSolver : public IEqSolver {
+class IEqComponentSolver : public IEqSolver {
 public:
-	ComponentIEqSolver(const IEqParams& ip) {itsParams=ip;};
+	IEqComponentSolver(const IEqParams& ip) {itsParams=ip;};
 	virtual void addDerivatives(IEqParams& ip) {
 		itsParams.addDerivatives(ip);
 	}
@@ -21,7 +21,11 @@ public:
 		itsParams.initDerivatives();
 	}
 	virtual bool solve() {
-		itsParams["Flux.I"].value()=itsParams["Flux.I"].deriv()/itsParams["Flux.I"].deriv2();
+		for (IEqParams::iterator iter=itsParams.begin();iter!=itsParams.end();iter++) {
+			if((*iter).second.freed()) {
+				(*iter).second.value()=itsParams[(*iter).first].deriv()/itsParams[(*iter).first].deriv2();
+			}
+		}
 	};
 };
 
@@ -30,18 +34,20 @@ int main() {
 	try {
 		// Initialize the parameters
 		IEqParams ip;
-		ip.add("RA", IEqParam(0.0));
-		ip.add("DEC", IEqParam(0.0));
-		ip.add("Flux.I", IEqParam(0.0));
-		ip.add("Flux.Q", IEqParam(0.0));
-		ip.add("Flux.U", IEqParam(0.0));
-		ip.add("Flux.V", IEqParam(0.0));
+		ip.add("RA");
+		ip.add("DEC");
+		ip.add("Flux.I");
+		ip.add("Flux.Q");ip["Flux.Q"].fix();
+		ip.add("Flux.U");ip["Flux.U"].fix();
+		ip.add("Flux.V");ip["Flux.V"].fix();
+		
+		cout << "Initial parameters: " << endl << ip << endl;
 		
 		// The data source
 		IEqDataSource msds;
 		IEqComponentEquation cie(ip);
 		
-		ComponentIEqSolver is(ip);
+		IEqComponentSolver is(ip);
 		is.init();
 		msds.init();
 		// Loop through data, adding equations
@@ -53,6 +59,11 @@ int main() {
 			cout << "Solution succeeded" << endl;
 			ip=is.parameters();
 		}
+		else {
+			cout << "Solution failed" << endl;
+		}
+		cout << "Final parameters: " << endl << is.parameters() << endl;
+		
 		
     } catch (casa::AipsError x) {
         cout << "Caught an exception: " << x.getMesg() << endl;

@@ -16,11 +16,12 @@ IEqParam::IEqParam(const IEqParam& other)
 		itsValue=other.itsValue;
 		itsDeriv=other.itsDeriv;
 		itsDeriv2=other.itsDeriv2;
+		itsFree=other.itsFree;
 	}
 };
 
 IEqParam::IEqParam(const double value, const double deriv, 
-	const double deriv2) : itsValue(value), itsDeriv(deriv), itsDeriv2(deriv2)
+	const double deriv2, const bool free) : itsValue(value), itsDeriv(deriv), itsDeriv2(deriv2), itsFree(free)
 {};
 	
 }

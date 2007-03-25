@@ -14,6 +14,8 @@
 #ifndef IEQPARAM_H
 #define IEQPARAM_H
 
+#include <ostream>
+
 namespace conrad { 
 	
 class IEqParam {
@@ -31,7 +33,7 @@ public:
 	/// @param deriv first derivative of param
 	/// @param deriv2 second derivative of param
 	IEqParam(const double value=0.0, 
-		const double deriv=0.0, const double deriv2=0.0);
+		const double deriv=0.0, const double deriv2=0.0, const bool free=true);
 	
 	/// Return value of param
 	double& value() {return itsValue;};
@@ -45,14 +47,26 @@ public:
 	double& deriv2() {return itsDeriv2;};
 	const double& deriv2() const {return itsDeriv2;};
 	
-	void fix() {itsFree=true;};
-	void free() {itsFree=false;};
+	void fix() {itsFree=false;};
+	void free() {itsFree=true;};
 	
 	const bool fixed() const {return !itsFree;};
 	const bool freed() const {return itsFree;};
 		
 	// Destructor
 	virtual ~IEqParam() {};
+
+	// Write out an IEqParam
+	friend std::ostream& operator<<(std::ostream& os, const IEqParam& ip) {
+	  os << "value: " << ip.value() << " derivatives: " << ip.deriv() << " " << ip.deriv2();
+	  if (ip.freed()) {
+	    os << " (Free)";
+	  }
+	  else {
+	    os << " (Fixed)";
+	  }
+	  return os;
+	}
 	
 protected:
 	double itsValue;
@@ -62,6 +76,7 @@ protected:
 private:
 
 };
+
 
 };
 
