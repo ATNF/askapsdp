@@ -6,11 +6,11 @@
 namespace conrad
 {
 
-class ComponentIEquation : public conrad::IEquation
+class IEqComponentEquation : public conrad::IEquation
 {
 public:
-	ComponentIEquation(IEqParams& ip);
-	virtual ~ComponentIEquation();
+	IEqComponentEquation(IEqParams& ip);
+	virtual ~IEqComponentEquation();
 	virtual void predict(IEqDataAccessor& ida);
 	/// Transpose back to parameter space
 	/// @param ida data accessor

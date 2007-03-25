@@ -5,7 +5,7 @@
 
 #include "IEqSolver.h"
 #include "IEqDataSource.h"
-#include "ComponentIEquation.h"
+#include "IEqComponentEquation.h"
 #include "IEqParams.h"
 
 using namespace conrad;
@@ -39,7 +39,7 @@ int main() {
 		
 		// The data source
 		IEqDataSource msds;
-		ComponentIEquation cie(ip);
+		IEqComponentEquation cie(ip);
 		
 		ComponentIEqSolver is(ip);
 		is.init();

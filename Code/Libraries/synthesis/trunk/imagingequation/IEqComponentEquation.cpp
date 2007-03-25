@@ -1,4 +1,4 @@
-#include "ComponentIEquation.h"
+#include "IEqComponentEquation.h"
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
@@ -8,23 +8,23 @@
 namespace conrad
 {
 
-ComponentIEquation::ComponentIEquation(IEqParams& ip) 
+IEqComponentEquation::IEqComponentEquation(IEqParams& ip) 
 {
 	itsParams=ip;
 }
 
-ComponentIEquation::~ComponentIEquation()
+IEqComponentEquation::~IEqComponentEquation()
 {
 }
 
-casa::Vector<casa::Double> ComponentIEquation::calcDelay(double ra, double dec, 
+casa::Vector<casa::Double> IEqComponentEquation::calcDelay(double ra, double dec, 
 	casa::Vector<casa::RigidVector<casa::Double, 3> > uvw) {
 	casa::Vector<casa::Double> delay(uvw.nelements());
 	delay=0.0;
 	return delay;
 }
 
-void ComponentIEquation::predict(IEqDataAccessor& ida) {
+void IEqComponentEquation::predict(IEqDataAccessor& ida) {
 	double& ra=itsParams["RA"].value();
 	double& dec=itsParams["DEC"].value();
 	double& iflux=itsParams["Flux.I"].value();
@@ -51,7 +51,7 @@ void ComponentIEquation::predict(IEqDataAccessor& ida) {
 	}
 }
 
-IEqParams& ComponentIEquation::transpose(IEqDataAccessor& ida) {
+IEqParams& IEqComponentEquation::transpose(IEqDataAccessor& ida) {
 	
 	casa::StokesVector flux(0.0);
 	double cfluxWeight=0.0;
@@ -92,7 +92,7 @@ IEqParams& ComponentIEquation::transpose(IEqDataAccessor& ida) {
 	return itsParams;
 }
 
-IEqParams& ComponentIEquation::prediffer(IEqDataAccessor& ida) {
+IEqParams& IEqComponentEquation::prediffer(IEqDataAccessor& ida) {
 }
 
 }
