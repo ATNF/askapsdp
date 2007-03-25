@@ -20,6 +20,9 @@ namespace conrad {
 
 class IEqParams : public map<string, IEqParam> {
 public:
+
+	IEqParams() {};
+	
 	/// Create from a table
 	/// @param parmtable Name of parameter table
 	IEqParams(const string& parmtable);
@@ -31,6 +34,12 @@ public:
 	/// Store as a table
 	/// @param parmtable Name of table to be saved
 	void saveAsTable(const string& parmtable) const;
+	
+	/// Initialize derivatives
+	void initDerivatives();
+	
+	/// Add derivatives
+	void addDerivatives(IEqParams& ip);
 	
 private:
 };

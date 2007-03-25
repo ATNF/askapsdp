@@ -35,12 +35,15 @@ public:
 	
 	/// Return value of param
 	double& value() {return itsValue;};
+	const double& value() const {return itsValue;};
 	
 	/// Return derivative of param
 	double& deriv() {return itsDeriv;};
+	const double& deriv() const {return itsDeriv;};
 	
 	/// Return second derivative of param
 	double& deriv2() {return itsDeriv2;};
+	const double& deriv2() const {return itsDeriv2;};
 	
 	void fix() {itsFree=true;};
 	void free() {itsFree=false;};

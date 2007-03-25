@@ -20,8 +20,8 @@ namespace conrad {
 class IEqDataSource
 {
 public:
-	/// Construct a data source with the specified name
-	IEqDataSource(const string& name) : itsName(name) {};
+	/// Construct a data source
+	IEqDataSource() {};
 	
 	virtual ~IEqDataSource();
 	
@@ -39,7 +39,6 @@ public:
 	bool next() const;
 	
 protected:
-	string itsName;
 private:
 	IEqTableDataAccessor itsIda;
 };

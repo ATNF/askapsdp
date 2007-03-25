@@ -15,39 +15,20 @@
 #ifndef IEQUATION_H
 #define IEQUATION_H
 
-namespace conrad { 
+#include "IEqParams.h"
+#include "IEqDataAccessor.h"
 
-class IEqDataAccessor;
-class IEqParams;
+//class IEqDataAccessor;
+
+namespace conrad { 
 
 class IEquation {
 public:
 
-	/// Not sure that these enum's are useful
-	/// List of mutually exclusive policies
-	enum Policy {
-		CAUTIOUS=0
-	};
-
-	/// List of mutually exclusive optimizations	
-	enum Optimization {
-		MEMORY=0,
-		IO=1,
-		CPU=2
-	};
-	
-	/// List of mutually exclusive contexts
-	enum Context {
-		HIGHDYNAMICRANGE=0,
-		LOWDYNAMICRANGE=1,		
-	};
-
 	/// Constructor
 	/// @param name Name of equation
 	/// @param ip Equation parameters
-    IEquation(const string& name, IEqParams& ip) : itsName(name), itsParams(ip) {
-		cout << "Stubbed creation of " << itsName << endl;
-    };
+    /// IEquation(IEqParams& ip);
     
     /// Overwrite the parameters
     /// @param ip New parameters
@@ -58,30 +39,18 @@ public:
 
 	/// Predict model visibility
 	/// @param ida data accessor
-	virtual void predict(IEqDataAccessor& ida) {
-		cout << "Stubbed predict in " << itsName << endl;
-	}
+	virtual void predict(IEqDataAccessor& ida) =0;
 	
 	/// Transpose back to parameter space
 	/// @param ida data accessor
-	virtual IEqParams& transpose(IEqDataAccessor& ida) {
-		cout << "Stubbed transpose in " << itsName << endl;
-		return itsParams;
-	}
+	virtual IEqParams& transpose(IEqDataAccessor& ida) = 0;
 	
 	/// Predict and then transpose back to parameter space
 	/// @param ida data accessor
 	/// @param ip imaging params
-	virtual IEqParams& prediffer(IEqDataAccessor& ida) {
-		cout << "Stubbed prediffer in " << itsName << endl;
-		return itsParams;
-	}
-	virtual ~IEquation() {
-		cout << "Stubbed destruction of " << itsName << endl;
-	};
+	virtual IEqParams& prediffer(IEqDataAccessor& ida) =0;
 		
  protected:
- 	string itsName;
  	IEqParams itsParams;
 };
 
