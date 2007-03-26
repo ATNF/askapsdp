@@ -50,8 +50,8 @@ public:
 	void fix() {itsFree=false;};
 	void free() {itsFree=true;};
 	
-	const bool fixed() const {return !itsFree;};
-	const bool freed() const {return itsFree;};
+	const bool isFixed() const {return !itsFree;};
+	const bool isFree() const {return itsFree;};
 		
 	// Destructor
 	virtual ~IEqParam() {};
@@ -59,7 +59,7 @@ public:
 	// Write out an IEqParam
 	friend std::ostream& operator<<(std::ostream& os, const IEqParam& ip) {
 	  os << "value: " << ip.value() << " derivatives: " << ip.deriv() << " " << ip.deriv2();
-	  if (ip.freed()) {
+	  if (ip.isFree()) {
 	    os << " (Free)";
 	  }
 	  else {

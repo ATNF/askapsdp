@@ -12,14 +12,17 @@ public:
 	IEqComponentEquation(IEqParams& ip);
 	virtual ~IEqComponentEquation();
 	virtual void predict(IEqDataAccessor& ida);
+
 	/// Transpose back to parameter space
 	/// @param ida data accessor
 	virtual IEqParams& transpose(IEqDataAccessor& ida);
+	virtual IEqImageParams& transposeImage(IEqDataAccessor& ida);
 	
 	/// Predict and then transpose back to parameter space
 	/// @param ida data accessor
 	/// @param ip imaging params
 	virtual IEqParams& prediffer(IEqDataAccessor& ida);
+	virtual IEqImageParams& predifferImage(IEqDataAccessor& ida);
 	
 	
 private:

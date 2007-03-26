@@ -10,10 +10,13 @@
 
 using namespace conrad;
 
-// Trivial solver to find peak flux
-class IEqComponentSolver : public IEqSolver {
+// Trivial solver
+class IEqTrivialSolver : public IEqSolver {
 public:
-	IEqComponentSolver(const IEqParams& ip) {itsParams=ip;};
+	IEqTrivialSolver(const IEqParams& ip, const double gain=1.0) {
+		itsParams=ip;
+		itsGain=gain;
+	};
 	virtual void addDerivatives(IEqParams& ip) {
 		itsParams.addDerivatives(ip);
 	}
@@ -22,11 +25,17 @@ public:
 	}
 	virtual bool solve() {
 		for (IEqParams::iterator iter=itsParams.begin();iter!=itsParams.end();iter++) {
-			if((*iter).second.freed()) {
-				(*iter).second.setValue(itsParams[(*iter).first].deriv()/itsParams[(*iter).first].deriv2());
+			if((*iter).second.isFree()) {
+				double delta, value;
+				value=(*iter).second.value();
+				delta=(*iter).second.deriv()/(*iter).second.deriv2();
+				(*iter).second.setValue(value+itsGain*delta);
 			}
 		}
+		return true;
 	};
+private:
+	double itsGain;
 };
 
 int main() {
@@ -34,30 +43,37 @@ int main() {
 	try {
 		// Initialize the parameters
 		IEqParams ip;
-		ip.add("RA");
-		ip.add("DEC");
+
+		ip.add("Direction.RA");
+		ip["Direction.RA"].fix();
+
+		ip.add("Direction.DEC");
+		ip["Direction.DEC"].fix();
+
 		ip.add("Flux.I");
-		ip.add("Flux.Q");ip["Flux.Q"].fix();
-		ip.add("Flux.U");ip["Flux.U"].fix();
-		ip.add("Flux.V");ip["Flux.V"].fix();
+		ip.add("Flux.Q");
+		ip.add("Flux.U");
+		ip.add("Flux.V");
 		
 		cout << "Initial parameters: " << endl << ip << endl;
 		
-		// The data source
-		IEqDataSource msds;
+		// The equation
 		IEqComponentEquation cie(ip);
 		
-		IEqComponentSolver is(ip);
+		// The solver
+		IEqTrivialSolver is(ip);
 		is.init();
+
+		// Loop through data, adding equations to the solver
+		IEqDataSource msds;
 		msds.init();
-		// Loop through data, adding equations
 		while (msds.next()) {
 			is.addDerivatives(cie.prediffer(msds.ida()));
 		}
+
 		// Now we can do solution
 		if(is.solve()) {
 			cout << "Solution succeeded" << endl;
-			ip=is.parameters();
 		}
 		else {
 			cout << "Solution failed" << endl;

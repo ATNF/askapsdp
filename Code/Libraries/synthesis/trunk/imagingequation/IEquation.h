@@ -16,6 +16,7 @@
 #define IEQUATION_H
 
 #include "IEqParams.h"
+#include "IEqImageParams.h"
 #include "IEqDataAccessor.h"
 
 //class IEqDataAccessor;
@@ -32,10 +33,22 @@ public:
     
     /// Overwrite the parameters
     /// @param ip New parameters
-    void setParameters(const IEqParams& ip) {itsParams=ip;};
+    void setParameters(const IEqParams& ip, const IEqImageParams& iip) {
+    	itsParams=ip;
+    	itsImageParams=iip;
+	};
+    
+    void setParameters(const IEqParams& ip) {
+    	itsParams=ip;
+	};
+    
+    void setParameters(const IEqImageParams& iip) {
+    	itsImageParams=iip;
+	};
     
     /// Return the parameters
     const IEqParams& parameters() const {return itsParams;}; 
+    const IEqImageParams& imageParameters() const {return itsImageParams;}; 
 
 	/// Predict model visibility
 	/// @param ida data accessor
@@ -44,14 +57,18 @@ public:
 	/// Transpose back to parameter space
 	/// @param ida data accessor
 	virtual IEqParams& transpose(IEqDataAccessor& ida) = 0;
-	
+	virtual IEqImageParams& transposeImage(IEqDataAccessor& ida) =0;
+		
 	/// Predict and then transpose back to parameter space
 	/// @param ida data accessor
 	/// @param ip imaging params
 	virtual IEqParams& prediffer(IEqDataAccessor& ida) =0;
-		
+	virtual IEqImageParams& predifferImage(IEqDataAccessor& ida) = 0;
+	
+			
  protected:
  	IEqParams itsParams;
+	IEqImageParams itsImageParams;
 };
 
 }

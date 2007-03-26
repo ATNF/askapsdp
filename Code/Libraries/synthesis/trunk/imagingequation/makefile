@@ -17,9 +17,9 @@ CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -ansi -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
 OBJECTS   = IEqDataAccessor.o IEqDataSource.o IEqParam.o IEqParams.o IEqSolver.o \
-            IEqTableDataAccessor.o IEqComponentEquation.o
+            IEqTableDataAccessor.o IEqComponentEquation.o IEqImageParam.o IEqImageParams.o
 HEADERS   = IEqDataAccessor.h IEqDataSource.h IEqParam.h IEqParams.h IEqSolver.h IEquation.h \
-            IEqTableDataAccessor.h IEqComponentEquation.h
+            IEqTableDataAccessor.h IEqComponentEquation.h IEqImageParam.h IEqImageParams.h
 
 .SUFFIXES: .c .o .cc
 

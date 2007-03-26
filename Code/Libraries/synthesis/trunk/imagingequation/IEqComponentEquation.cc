@@ -20,13 +20,14 @@ IEqComponentEquation::~IEqComponentEquation()
 casa::Vector<casa::Double> IEqComponentEquation::calcDelay(double ra, double dec, 
 	casa::Vector<casa::RigidVector<casa::Double, 3> > uvw) {
 	casa::Vector<casa::Double> delay(uvw.nelements());
+	// TODO: Insert correct equation for delay
 	delay=0.0;
 	return delay;
 }
 
 void IEqComponentEquation::predict(IEqDataAccessor& ida) {
-	const double& ra=itsParams["RA"].value();
-	const double& dec=itsParams["DEC"].value();
+	const double& ra=itsParams["Direction.RA"].value();
+	const double& dec=itsParams["Direction.DEC"].value();
 	const double& iflux=itsParams["Flux.I"].value();
 	const double& qflux=itsParams["Flux.Q"].value();
 	const double& uflux=itsParams["Flux.U"].value();
@@ -56,10 +57,10 @@ IEqParams& IEqComponentEquation::transpose(IEqDataAccessor& ida) {
 	casa::StokesVector flux(0.0);
 	double cfluxWeight=0.0;
 	
-	const double& rav=itsParams["RA"].value();
-	const double& decv=itsParams["DEC"].value();
+	const double& rav=itsParams["Direction.RA"].value();
+	const double& decv=itsParams["Direction.DEC"].value();
 
-	casa::Vector<casa::Double> delay=calcDelay(rav, decv,ida.uvw());
+	casa::Vector<casa::Double> delay=calcDelay(rav, decv, ida.uvw());
 	const casa::Vector<casa::Double>& frequency=ida.frequency();
 	
 	IEqParam ra, dec, iflux, qflux, uflux, vflux;
@@ -92,7 +93,16 @@ IEqParams& IEqComponentEquation::transpose(IEqDataAccessor& ida) {
 	return itsParams;
 }
 
+IEqImageParams& IEqComponentEquation::transposeImage(IEqDataAccessor& ida) {
+	return itsImageParams;
+}
+
 IEqParams& IEqComponentEquation::prediffer(IEqDataAccessor& ida) {
+	return itsParams;
+}
+
+IEqImageParams& IEqComponentEquation::predifferImage(IEqDataAccessor& ida) {
+	return itsImageParams;
 }
 
 }
