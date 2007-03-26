@@ -42,12 +42,12 @@ public:
 	void initDerivatives();
 	
 	/// Add derivatives
-	void addDerivatives(IEqParams& ip);
+	void addDerivatives(const IEqParams& ip);
 	
 	// Write out IEqParams
-	friend std::ostream& operator<<(std::ostream& os, IEqParams& ip) {
-	  for (IEqParams::iterator iter=ip.begin();iter!=ip.end();iter++) {
-		  os << (*iter).first << " " << ip[(*iter).first] << std::endl;
+	friend std::ostream& operator<<(std::ostream& os, const IEqParams& ip) {
+	  for (IEqParams::const_iterator iter=ip.begin();iter!=ip.end();iter++) {
+		  os << (*iter).first << " " << (*iter).second << std::endl;
 	  }
 	  return os;
 	}

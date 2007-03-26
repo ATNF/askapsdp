@@ -23,7 +23,7 @@ public:
 	virtual bool solve() {
 		for (IEqParams::iterator iter=itsParams.begin();iter!=itsParams.end();iter++) {
 			if((*iter).second.freed()) {
-				(*iter).second.value()=itsParams[(*iter).first].deriv()/itsParams[(*iter).first].deriv2();
+				(*iter).second.setValue(itsParams[(*iter).first].deriv()/itsParams[(*iter).first].deriv2());
 			}
 		}
 	};

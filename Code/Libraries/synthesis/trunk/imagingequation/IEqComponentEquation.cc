@@ -25,12 +25,12 @@ casa::Vector<casa::Double> IEqComponentEquation::calcDelay(double ra, double dec
 }
 
 void IEqComponentEquation::predict(IEqDataAccessor& ida) {
-	double& ra=itsParams["RA"].value();
-	double& dec=itsParams["DEC"].value();
-	double& iflux=itsParams["Flux.I"].value();
-	double& qflux=itsParams["Flux.Q"].value();
-	double& uflux=itsParams["Flux.U"].value();
-	double& vflux=itsParams["Flux.V"].value();
+	const double& ra=itsParams["RA"].value();
+	const double& dec=itsParams["DEC"].value();
+	const double& iflux=itsParams["Flux.I"].value();
+	const double& qflux=itsParams["Flux.Q"].value();
+	const double& uflux=itsParams["Flux.U"].value();
+	const double& vflux=itsParams["Flux.V"].value();
 	casa::CStokesVector cflux(iflux, qflux, uflux, vflux);
 	cflux.applyScirc();
 	
@@ -56,8 +56,8 @@ IEqParams& IEqComponentEquation::transpose(IEqDataAccessor& ida) {
 	casa::StokesVector flux(0.0);
 	double cfluxWeight=0.0;
 	
-	double& rav=itsParams["RA"].value();
-	double& decv=itsParams["DEC"].value();
+	const double& rav=itsParams["RA"].value();
+	const double& decv=itsParams["DEC"].value();
 
 	casa::Vector<casa::Double> delay=calcDelay(rav, decv,ida.uvw());
 	const casa::Vector<casa::Double>& frequency=ida.frequency();
@@ -79,15 +79,15 @@ IEqParams& IEqComponentEquation::transpose(IEqDataAccessor& ida) {
 		}
 	}
 	
-	itsParams["Flux.I"].deriv()=flux(0);
-	itsParams["Flux.Q"].deriv()=flux(1);
-	itsParams["Flux.U"].deriv()=flux(2);
-	itsParams["Flux.V"].deriv()=flux(3);
+	itsParams["Flux.I"].setDeriv(flux(0));
+	itsParams["Flux.Q"].setDeriv(flux(1));
+	itsParams["Flux.U"].setDeriv(flux(2));
+	itsParams["Flux.V"].setDeriv(flux(3));
 	
-	itsParams["Flux.I"].deriv2()=cfluxWeight;
-	itsParams["Flux.Q"].deriv2()=cfluxWeight;
-	itsParams["Flux.U"].deriv2()=cfluxWeight;
-	itsParams["Flux.V"].deriv2()=cfluxWeight;
+	itsParams["Flux.I"].setDeriv2(cfluxWeight);
+	itsParams["Flux.Q"].setDeriv2(cfluxWeight);
+	itsParams["Flux.U"].setDeriv2(cfluxWeight);
+	itsParams["Flux.V"].setDeriv2(cfluxWeight);
 
 	return itsParams;
 }

@@ -36,15 +36,15 @@ public:
 		const double deriv=0.0, const double deriv2=0.0, const bool free=true);
 	
 	/// Return value of param
-	double& value() {return itsValue;};
+	void setValue(const double& value=0.0) {itsValue=value;};
 	const double& value() const {return itsValue;};
 	
 	/// Return derivative of param
-	double& deriv() {return itsDeriv;};
+	void setDeriv(const double& deriv=0.0) {itsDeriv=deriv;};
 	const double& deriv() const {return itsDeriv;};
 	
 	/// Return second derivative of param
-	double& deriv2() {return itsDeriv2;};
+	void setDeriv2(const double& deriv2=0.0) {itsDeriv2=deriv2;};
 	const double& deriv2() const {return itsDeriv2;};
 	
 	void fix() {itsFree=false;};
