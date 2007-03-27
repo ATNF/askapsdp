@@ -23,20 +23,12 @@ class IEqImageParams : public map<string, IEqImageParam> {
 public:
 
 	IEqImageParams() {};
-	
-	/// Create from a table
-	/// @param parmtable Name of parameter table
-	IEqImageParams(const string& parmtable);
-		
+			
 	/// Add an ImagingParam
 	/// @param name Name of param to be added
 	/// @param ip IEqImageParam to be added
 	void add(const string& name, const IEqImageParam& ip);
-		
-	/// Store as a table
-	/// @param parmtable Name of table to be saved
-	void saveAsTable(const string& parmtable) const;
-	
+			
 	/// Initialize derivatives
 	void initDerivatives();
 	

@@ -5,13 +5,6 @@
 namespace conrad
 {
 
-IEqImageParams::IEqImageParams(const string& parmtable) {
-}
-
-// Store as a table
-void IEqImageParams::saveAsTable(const string& parmtable) const {
-}
-
 void IEqImageParams::add(const string& key, const IEqImageParam& param) {
 	insert(make_pair(key, param));
 }

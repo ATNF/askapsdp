@@ -8,9 +8,6 @@
 namespace conrad
 {
 
-IEqComponentEquation::IEqComponentEquation(const IEqParams& ip) : IEquation(ip)
-{
-}
 
 IEqComponentEquation::~IEqComponentEquation()
 {
@@ -24,13 +21,13 @@ casa::Vector<casa::Double> IEqComponentEquation::calcDelay(double ra, double dec
 	return delay;
 }
 
-void IEqComponentEquation::predict(IEqDataAccessor& ida) {
-	const double& ra=itsParams["Direction.RA"].value();
-	const double& dec=itsParams["Direction.DEC"].value();
-	const double& iflux=itsParams["Flux.I"].value();
-	const double& qflux=itsParams["Flux.Q"].value();
-	const double& uflux=itsParams["Flux.U"].value();
-	const double& vflux=itsParams["Flux.V"].value();
+void IEqComponentEquation::predict(const IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida) {
+	const double& ra=ip("Direction.RA").value();
+	const double& dec=ip("Direction.DEC").value();
+	const double& iflux=ip("Flux.I").value();
+	const double& qflux=ip("Flux.Q").value();
+	const double& uflux=ip("Flux.U").value();
+	const double& vflux=ip("Flux.V").value();
 	casa::CStokesVector cflux(iflux, qflux, uflux, vflux);
 	cflux.applyScirc();
 	
@@ -51,19 +48,18 @@ void IEqComponentEquation::predict(IEqDataAccessor& ida) {
 	}
 }
 
-IEqParams& IEqComponentEquation::transpose(IEqDataAccessor& ida) {
-	
+void IEqComponentEquation::transpose(IEqParams& ip, const IEqImageParams& iip,
+	IEqDataAccessor& ida) {
+
 	casa::StokesVector flux(0.0);
 	double cfluxWeight=0.0;
 	
-	const double& rav=itsParams["Direction.RA"].value();
-	const double& decv=itsParams["Direction.DEC"].value();
+	const double& rav=ip("Direction.RA").value();
+	const double& decv=ip("Direction.DEC").value();
 
 	casa::Vector<casa::Double> delay=calcDelay(rav, decv, ida.uvw());
 	const casa::Vector<casa::Double>& frequency=ida.frequency();
 	
-	IEqParam ra, dec, iflux, qflux, uflux, vflux;
-
 	casa::uInt nChan, nRow;
 	nRow=ida.nRow();
 	nChan=frequency.nelements();
@@ -79,29 +75,25 @@ IEqParams& IEqComponentEquation::transpose(IEqDataAccessor& ida) {
 		}
 	}
 	
-	itsParams["Flux.I"].setDeriv(flux(0));
-	itsParams["Flux.Q"].setDeriv(flux(1));
-	itsParams["Flux.U"].setDeriv(flux(2));
-	itsParams["Flux.V"].setDeriv(flux(3));
+	ip("Flux.I").setDeriv(flux(0));
+	ip("Flux.Q").setDeriv(flux(1));
+	ip("Flux.U").setDeriv(flux(2));
+	ip("Flux.V").setDeriv(flux(3));
 	
-	itsParams["Flux.I"].setDeriv2(cfluxWeight);
-	itsParams["Flux.Q"].setDeriv2(cfluxWeight);
-	itsParams["Flux.U"].setDeriv2(cfluxWeight);
-	itsParams["Flux.V"].setDeriv2(cfluxWeight);
+	ip("Flux.I").setDeriv2(cfluxWeight);
+	ip("Flux.Q").setDeriv2(cfluxWeight);
+	ip("Flux.U").setDeriv2(cfluxWeight);
+	ip("Flux.V").setDeriv2(cfluxWeight);
 
-	return itsParams;
 }
 
-IEqImageParams& IEqComponentEquation::transposeImage(IEqDataAccessor& ida) {
-	return itsImageParams;
+void IEqComponentEquation::transposeImage(const IEqParams& ip, IEqImageParams& iip, IEqDataAccessor& ida) {
 }
 
-IEqParams& IEqComponentEquation::prediffer(IEqDataAccessor& ida) {
-	return itsParams;
+void IEqComponentEquation::prediffer(IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida) {
 }
 
-IEqImageParams& IEqComponentEquation::predifferImage(IEqDataAccessor& ida) {
-	return itsImageParams;
+void IEqComponentEquation::predifferImage(const IEqParams& ip, IEqImageParams& iip, IEqDataAccessor& ida) {
 }
 
 }

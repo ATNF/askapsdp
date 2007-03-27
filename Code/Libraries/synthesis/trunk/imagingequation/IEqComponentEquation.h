@@ -9,20 +9,27 @@ namespace conrad
 class IEqComponentEquation : public conrad::IEquation
 {
 public:
-	IEqComponentEquation(const IEqParams& ip);
+	IEqComponentEquation() {};
 	virtual ~IEqComponentEquation();
-	virtual void predict(IEqDataAccessor& ida);
-
+	/// Predict model visibility
+	/// @param ip Regular parameters
+	/// @param iip Image parameters
+	/// @param ida data accessor
+	virtual void predict(const IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida);
+	
 	/// Transpose back to parameter space
+	/// @param ip Regular parameters
+	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual IEqParams& transpose(IEqDataAccessor& ida);
-	virtual IEqImageParams& transposeImage(IEqDataAccessor& ida);
-	
+	virtual void transpose(IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida);
+	virtual void transposeImage(const IEqParams& ip, IEqImageParams& iip, IEqDataAccessor& ida);
+		
 	/// Predict and then transpose back to parameter space
+	/// @param ip Regular parameters
+	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual IEqParams& prediffer(IEqDataAccessor& ida);
-	virtual IEqImageParams& predifferImage(IEqDataAccessor& ida);
-	
+	virtual void prediffer(IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida);
+	virtual void predifferImage(const IEqParams& ip, IEqImageParams& iip, IEqDataAccessor& ida);
 	
 private:
 	casa::Vector<casa::Double> calcDelay(double ra, double dec, 

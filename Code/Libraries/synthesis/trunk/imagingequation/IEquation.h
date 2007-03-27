@@ -36,50 +36,28 @@ class IEquation {
 public:
 
 	/// Constructor
-	/// @param name Name of equation
-	/// @param ip Equation parameters
-    IEquation(const IEqParams& ip) : itsParams(ip) {};
-    IEquation(const IEqImageParams& iip) : itsImageParams(iip) {};
-    IEquation(const IEqParams& ip, const IEqImageParams& iip) : itsParams(ip), itsImageParams(iip) {};
-    
-    /// Overwrite the parameters
-    /// @param ip New parameters
-    void setParameters(const IEqParams& ip, const IEqImageParams& iip) {
-    	itsParams=ip;
-    	itsImageParams=iip;
-	};
-    
-    void setParameters(const IEqParams& ip) {
-    	itsParams=ip;
-	};
-    
-    void setParameters(const IEqImageParams& iip) {
-    	itsImageParams=iip;
-	};
-    
-    /// Return the parameters
-    const IEqParams& getParameters() const {return itsParams;}; 
-    const IEqImageParams& getImageParameters() const {return itsImageParams;}; 
+    IEquation() {};
 
 	/// Predict model visibility
+	/// @param ip Regular parameters
+	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual void predict(IEqDataAccessor& ida) =0;
+	virtual void predict(const IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida) =0;
 	
 	/// Transpose back to parameter space
+	/// @param ip Regular parameters
+	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual IEqParams& transpose(IEqDataAccessor& ida) = 0;
-	virtual IEqImageParams& transposeImage(IEqDataAccessor& ida) =0;
+	virtual void transpose(IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida) = 0;
+	virtual void transposeImage(const IEqParams& ip, IEqImageParams& iip, IEqDataAccessor& ida) =0;
 		
 	/// Predict and then transpose back to parameter space
+	/// @param ip Regular parameters
+	/// @param iip Image parameters
 	/// @param ida data accessor
-	/// @param ip imaging params
-	virtual IEqParams& prediffer(IEqDataAccessor& ida) =0;
-	virtual IEqImageParams& predifferImage(IEqDataAccessor& ida) = 0;
+	virtual void prediffer(IEqParams& ip, const IEqImageParams& iip, IEqDataAccessor& ida) =0;
+	virtual void predifferImage(const IEqParams& ip, IEqImageParams& iip, IEqDataAccessor& ida) = 0;
 	
-			
- protected:
- 	IEqParams itsParams;
-	IEqImageParams itsImageParams;
 };
 
 }

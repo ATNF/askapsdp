@@ -7,6 +7,8 @@
 #include "IEqDataSource.h"
 #include "IEqComponentEquation.h"
 #include "IEqParams.h"
+#include "IEqParamsTable.h"
+#include "IEqDomain.h"
 
 using namespace conrad;
 
@@ -60,8 +62,10 @@ int main() {
 		
 		cout << "Initial parameters: " << endl << ip << endl;
 		
+		IEqImageParams iip;
+		
 		// The equation
-		IEqComponentEquation cie(ip);
+		IEqComponentEquation cie;
 		
 		// The solver
 		IEqTrivialSolver is(ip);
@@ -71,12 +75,16 @@ int main() {
 		IEqDataSource msds;
 		msds.init();
 		while (msds.next()) {
-			is.addDerivatives(cie.prediffer(msds.ida()));
+			cie.prediffer(ip, iip, msds.ida());
+			is.addDerivatives(ip);
 		}
 
 		// Now we can do solution
 		if(is.solve()) {
 			cout << "Solution succeeded" << endl;
+			IEqParamsTable iptab;
+			IEqDomain everything;
+			iptab.setParameters(is.getParameters(), everything);
 		}
 		else {
 			cout << "Solution failed" << endl;

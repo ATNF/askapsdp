@@ -19,25 +19,27 @@ using std::map;
 
 namespace conrad {
 
-class IEqParams : public map<string, IEqParam> {
+class IEqParams : public map<string, IEqParam>{
 public:
 
 	IEqParams() {};
-	
-	/// Create from a table
-	/// @param parmtable Name of parameter table
-	IEqParams(const string& parmtable);
-		
+			
 	/// Add an ImagingParam
 	/// @param name Name of param to be added
 	/// @param ip IEqParam to be added
 	void add(const string& name);
 	void add(const string& name, const IEqParam& ip);
-		
-	/// Store as a table
-	/// @param parmtable Name of table to be saved
-	void saveAsTable(const string& parmtable) const;
 	
+	const IEqParam& operator()(const string& name) const {
+		IEqParams::const_iterator iter=(*this).find(name);
+		return iter->second;
+	};
+		
+	IEqParam& operator()(const string& name) {
+		IEqParams::iterator iter=(*this).find(name);
+		return iter->second;
+	};
+		
 	/// Initialize derivatives
 	void initDerivatives();
 	
