@@ -1,11 +1,7 @@
 /// @file
 ///
 /// IEqParam: represent a parameter for imaging equation. A parameter
-/// can be a single real number, a vector of numbers, or an image of numbers.
-/// The first two derivatives may optionally be included.
-/// 
-/// TODO: use basis functions iso derivatives?
-/// TODO: Template instead on double, Image<Float>, Componentlist, etc.?
+/// can be a single real number. The first two derivatives are also included.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>

@@ -1,22 +1,22 @@
 /// @file
 ///
-/// IEqSolver: Base class for solvers of parametrized imaging
+/// IEqImageSolver: Base class for solvers of parametrized imaging
 /// equations.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQSOLVER_H_
-#define IEQSOLVER_H_
+#ifndef IEQIMAGESOLVER_H_
+#define IEQIMAGESOLVER_H_
 
-#include "IEqParams.h"
+#include "IEqImageParams.h"
 
 #include <iostream.h>
 
 namespace conrad
 {
 
-class IEqSolver
+class IEqImageSolver
 {
 public:	
 	
@@ -25,24 +25,24 @@ public:
 	
 	/// Set the parameters
 	/// @param ip Parameters
-	void setParameters(const IEqParams& ip) {
-		itsParams=ip;
+	void setParameters(const IEqImageParams& ip) {
+		itsImageParams=ip;
 	}
 	
 	/// Return current values of params
-	const IEqParams& getParameters() const {return itsParams;};
+	const IEqImageParams& getParameters() const {return itsImageParams;};
 	
-	IEqParams& getParameters() {return itsParams;};
+	IEqImageParams& parameters() {return itsImageParams;};
 	
 	/// Add in values for derivatives
 	/// @param ip Parameter to set derivatives for
-	virtual void addDerivatives(IEqParams& ip) = 0;
+	virtual void addDerivatives(IEqImageParams& ip) = 0;
 	
 	/// Solve for parameters, updating the values kept internally
 	virtual bool solve() = 0;
 	
 protected:
-	IEqParams itsParams;
+	IEqImageParams itsImageParams;
 };
 
 }

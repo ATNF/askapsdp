@@ -9,7 +9,7 @@ namespace conrad
 class IEqComponentEquation : public conrad::IEquation
 {
 public:
-	IEqComponentEquation(IEqParams& ip);
+	IEqComponentEquation(const IEqParams& ip);
 	virtual ~IEqComponentEquation();
 	virtual void predict(IEqDataAccessor& ida);
 
@@ -20,7 +20,6 @@ public:
 	
 	/// Predict and then transpose back to parameter space
 	/// @param ida data accessor
-	/// @param ip imaging params
 	virtual IEqParams& prediffer(IEqDataAccessor& ida);
 	virtual IEqImageParams& predifferImage(IEqDataAccessor& ida);
 	

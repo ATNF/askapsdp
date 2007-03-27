@@ -1,13 +1,22 @@
 /// @file
 ///
 /// IEquation: Represent a parametrized imaging equation. An IEquation 
-/// is constructed with a name and a set of parameters. The parameters
+/// is constructed with two sets of parameters. The parameters
 /// can be updated subsequently. The IEquation can do two principal things
 ///    - calculate data (passed via a data accessor)
 ///    - transpose residual data back to the parameter space
+///
 /// These two things can be combined in a prediffer step to allow calculation
 /// of gradients for parameters. The parameters may then be solved for by
 /// an IEqSolver class.
+/// 
+/// There are two classes of parameters - regular parameters which are single values
+/// (IEqParam - doubles), and image parameters (IEqImageParam - usually an image of 
+///  floats with coordinates). The image pixels are treated homogeneously
+/// so that a derivative of chi-squared with respect to the image is itself an image.
+/// Note that this split is an optimization - logically one could define a regular
+/// parameter for each pixel of an image. However, this would be extremely tedious
+/// AND inefficient.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -29,7 +38,9 @@ public:
 	/// Constructor
 	/// @param name Name of equation
 	/// @param ip Equation parameters
-    /// IEquation(IEqParams& ip);
+    IEquation(const IEqParams& ip) : itsParams(ip) {};
+    IEquation(const IEqImageParams& iip) : itsImageParams(iip) {};
+    IEquation(const IEqParams& ip, const IEqImageParams& iip) : itsParams(ip), itsImageParams(iip) {};
     
     /// Overwrite the parameters
     /// @param ip New parameters
@@ -47,8 +58,8 @@ public:
 	};
     
     /// Return the parameters
-    const IEqParams& parameters() const {return itsParams;}; 
-    const IEqImageParams& imageParameters() const {return itsImageParams;}; 
+    const IEqParams& getParameters() const {return itsParams;}; 
+    const IEqImageParams& getImageParameters() const {return itsImageParams;}; 
 
 	/// Predict model visibility
 	/// @param ida data accessor

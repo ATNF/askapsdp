@@ -1,11 +1,10 @@
 /// @file
 ///
-/// IEqImageParam: represent a parameter for imaging equation. A parameter
-/// can be a single real number, a vector of numbers, or an image of numbers.
-/// The first two derivatives may optionally be included.
+/// IEqImageParam: represent an image parameter for imaging equation. 
+/// An image can have derivatives (first and second). Only the 
+/// diagonal elements of the second derivative are present. An estimate
+/// of the off-diagonal elements is present in the PSF.
 /// 
-/// TODO: use basis functions iso derivatives?
-/// TODO: Template instead on IEqImage, Image<Float>, Componentlist, etc.?
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -16,9 +15,7 @@
 
 #include <ostream>
 
-#include <images/Images/TempImage.h>
-
-typedef casa::TempImage<casa::Float> IEqImage;
+#include "IEqImage.h"
 
 namespace conrad { 
 	
@@ -51,13 +48,18 @@ public:
 	
 	/// Return derivative of param
 	void setDeriv(const IEqImage& deriv) {itsDeriv=deriv;};
-	void setDeriv(const float& deriv=0.0) {itsDeriv.set(deriv);};
+	void setDeriv(const IEqImagePixelType deriv=0.0) {itsDeriv.set(deriv);};
 	const IEqImage& deriv() const {return itsDeriv;};
 	
 	/// Return second derivative of param
 	void setDeriv2(const IEqImage& deriv2) {itsDeriv2=deriv2;};
-	void setDeriv2(const float& deriv2=0.0) {itsDeriv2.set(deriv2);};
+	void setDeriv2(const IEqImagePixelType deriv2=0.0) {itsDeriv2.set(deriv2);};
 	const IEqImage& deriv2() const {return itsDeriv2;};
+	
+	/// Return psf of param
+	void setPSF(const IEqImage& psf) {itsPSF=psf;};
+	void setPSF(const IEqImagePixelType psf=0.0) {itsPSF.set(psf);};
+	const IEqImage& psf() const {return itsPSF;};
 	
 	void fix() {itsFree=false;};
 	void free() {itsFree=true;};
@@ -84,6 +86,7 @@ protected:
 	IEqImage itsValue;
 	IEqImage itsDeriv;
 	IEqImage itsDeriv2;
+	IEqImage itsPSF;
 	bool itsFree;
 private:
 

@@ -8,9 +8,8 @@
 namespace conrad
 {
 
-IEqComponentEquation::IEqComponentEquation(IEqParams& ip) 
+IEqComponentEquation::IEqComponentEquation(const IEqParams& ip) : IEquation(ip)
 {
-	itsParams=ip;
 }
 
 IEqComponentEquation::~IEqComponentEquation()

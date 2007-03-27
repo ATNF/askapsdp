@@ -38,6 +38,9 @@ private:
 	double itsGain;
 };
 
+// Someone needs these templates - I don't know who!
+casa::Matrix<casa::String> mt;
+
 int main() {
 	
 	try {
@@ -78,7 +81,7 @@ int main() {
 		else {
 			cout << "Solution failed" << endl;
 		}
-		cout << "Final parameters: " << endl << is.parameters() << endl;
+		cout << "Final parameters: " << endl << is.getParameters() << endl;
 		
 		
     } catch (casa::AipsError x) {
