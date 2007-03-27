@@ -30,20 +30,27 @@ public:
 	
 	/// Return the data accessor (current chunk) in various ways
 	
-	/// operator* delivers a reference
+	/// operator* delivers a reference to data accessor (current chunk)
+	/// @return a reference to the current chunk
 	virtual const IEqDataAccessor& operator*() const = 0;
 	
-	/// operator-> delivers a pointer. Default implementation works
-	/// via operator*, however to avoid an extra function call it also
+	/// operator-> delivers a pointer. 
+	/// @return a pointer to the current chunk
+	/// Allows the syntax like it->visibility()
+	/// The default implementation works via operator*, however to 
+	/// avoid an additional function call, the method
 	/// can be specialized in the derived classes
 	virtual const IEqDataAccessor* operator->() const;
 
-	/// True if there is more data available
+	/// Checks whether there are more data available.
+	/// @return True if there are more data available
 	virtual casa::Bool hasMore() const throw() = 0;
 
-        /// True if the iterator reached the end. Default implementation is
-	/// via hasMore(), however one can override the method in a
-	/// derived class to avoid this (slight) overhead
+	/// Checks whether the iterator reached an end.
+        /// @return True if the iterator has reached an end. 
+	/// The Default implementation works via hasMore(), however 
+	/// one can override the method in a derived class to avoid 
+	/// this (slight) overhead
 	virtual casa::Bool atEnd() const throw();
 
 	/// advance the iterator one step further 
