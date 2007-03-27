@@ -8,45 +8,16 @@
 #ifndef IEQIMAGEPARAMS_H_
 #define IEQIMAGEPARAMS_H_
 
-#include <map>
-#include <string>
-#include <ostream>
-
-using std::string;
-using std::map;
-
+#include "IEqParamsBase.h"
 #include "IEqImageParam.h"
 
 namespace conrad {
 
-class IEqImageParams : public map<string, IEqImageParam> {
+class IEqImageParams : public IEqParamsBase<IEqImageParam> {
 public:
-
-	IEqImageParams() {};
-			
-	/// Add an ImagingParam
-	/// @param name Name of param to be added
-	/// @param ip IEqImageParam to be added
-	void add(const string& name, const IEqImageParam& ip);
-			
-	/// Initialize derivatives
-	void initDerivatives();
-	
-	/// Add derivatives
-	void addDerivatives(const IEqImageParams& ip);
-	
-	// Write out IEqImageParams
-	friend std::ostream& operator<<(std::ostream& os, const IEqImageParams& ip) {
-	  for (IEqImageParams::const_iterator iter=ip.begin();iter!=ip.end();iter++) {
-		  os << (*iter).first << " " << (*iter).second << std::endl;
-	  }
-	  return os;
-	}
-
-	
 private:
 };
 
 }
 
-#endif /*IEQPARAMS_H_*/
+#endif /*IEQIMAGEPARAMS_H_*/

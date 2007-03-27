@@ -16,9 +16,11 @@ LIBDIRS   = $(CASALIB)
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -ansi -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
-OBJECTS   = IEqImage.o IEqDataAccessor.o IEqDataSource.o IEqParam.o IEqParams.o IEqSolver.o IEqImageSolver.o \
-            IEqTableDataAccessor.o IEqComponentEquation.o IEqImageParam.o IEqImageParams.o IEqDomain.o IEqParamsTable.o
-HEADERS   = IEqImage.h IEqDataAccessor.h IEqDataSource.h IEqParam.h IEqParams.h IEqSolver.h IEqImageSolver.h IEquation.h \
+OBJECTS   = IEqImage.o IEqDataAccessor.o IEqDataSource.o IEqParamBase.o IEqParamsBase.o \
+			IEqSolver.o IEqImageSolver.o \
+            IEqTableDataAccessor.o IEqComponentEquation.o IEqDomain.o IEqParamsTable.o
+HEADERS   = IEqImage.h IEqDataAccessor.h IEqDataSource.h IEqParamBase.h IEqParam.h IEqParamsBase.h \
+			IEqParams.h IEqSolver.h IEqImageSolver.h IEquation.h \
             IEqTableDataAccessor.h IEqComponentEquation.h IEqImageParam.h IEqImageParams.h IEqDomain.h IEqParamsTable.h
 
 .SUFFIXES: .c .o .cc

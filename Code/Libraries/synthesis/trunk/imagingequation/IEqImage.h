@@ -9,6 +9,8 @@
 #ifndef IEQIMAGE_H_
 #define IEQIMAGE_H_
 
+#include <iostream.h>
+
 #include <images/Images/TempImage.h>
 
 namespace conrad

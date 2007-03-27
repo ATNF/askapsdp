@@ -59,9 +59,7 @@ int main() {
 		ip.add("Flux.Q");
 		ip.add("Flux.U");
 		ip.add("Flux.V");
-		
-		cout << "Initial parameters: " << endl << ip << endl;
-		
+				
 		IEqImageParams iip;
 		
 		// The equation
@@ -89,7 +87,6 @@ int main() {
 		else {
 			cout << "Solution failed" << endl;
 		}
-		cout << "Final parameters: " << endl << is.getParameters() << endl;
 		
 		
     } catch (casa::AipsError x) {

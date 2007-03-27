@@ -10,69 +10,14 @@
 #ifndef IEQPARAM_H
 #define IEQPARAM_H
 
-#include <ostream>
+#include "IEqParamBase.h"
 
-namespace conrad { 
+namespace conrad {
 	
-class IEqParam {
+class IEqParam : public IEqParamBase<double> {
 public:
-
-	/// Assignment operator
-	IEqParam& operator=(const IEqParam& other);
-	
-	/// Copy constructor
-	IEqParam(const IEqParam& other);
-	
-	/// Single parameter - a parameter has a value and
-	/// first and second derivatives. 
-	/// @param value value of param
-	/// @param deriv first derivative of param
-	/// @param deriv2 second derivative of param
-	IEqParam(const double value=0.0, 
-		const double deriv=0.0, const double deriv2=0.0, const bool free=true);
-	
-	/// Return value of param
-	void setValue(const double& value=0.0) {itsValue=value;};
-	const double& value() const {return itsValue;};
-	
-	/// Return derivative of param
-	void setDeriv(const double& deriv=0.0) {itsDeriv=deriv;};
-	const double& deriv() const {return itsDeriv;};
-	
-	/// Return second derivative of param
-	void setDeriv2(const double& deriv2=0.0) {itsDeriv2=deriv2;};
-	const double& deriv2() const {return itsDeriv2;};
-	
-	void fix() {itsFree=false;};
-	void free() {itsFree=true;};
-	
-	const bool isFixed() const {return !itsFree;};
-	const bool isFree() const {return itsFree;};
-		
-	// Destructor
-	virtual ~IEqParam() {};
-
-	// Write out an IEqParam
-	friend std::ostream& operator<<(std::ostream& os, const IEqParam& ip) {
-	  os << "value: " << ip.value() << " derivatives: " << ip.deriv() << " " << ip.deriv2();
-	  if (ip.isFree()) {
-	    os << " (Free)";
-	  }
-	  else {
-	    os << " (Fixed)";
-	  }
-	  return os;
-	}
-	
-protected:
-	double itsValue;
-	double itsDeriv;
-	double itsDeriv2;
-	bool itsFree;
-private:
-
+	IEqParam() {};
 };
-
 
 };
 

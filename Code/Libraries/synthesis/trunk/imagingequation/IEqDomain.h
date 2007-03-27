@@ -59,8 +59,6 @@ public:
   { return itsOffsetX == that.itsOffsetX  &&  itsScaleX == that.itsScaleX
        &&  itsOffsetY == that.itsOffsetY  &&  itsScaleY == that.itsScaleY; }
 
-  friend std::ostream& operator<< (std::ostream&, const IEqDomain&);
-
 private:
   double itsOffsetX;
   double itsScaleX;
