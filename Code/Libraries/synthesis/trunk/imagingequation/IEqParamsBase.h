@@ -26,20 +26,19 @@ public:
 	/// Add an ImagingParam
 	/// @param name Name of param to be added
 	/// @param ip IEqParam to be added
-	void add(const string& name);
-	void add(const string& name, const T& ip);
+	virtual void add(const string& name);
+	virtual void add(const string& name, const T& ip);
 	
 	/// Return the parameter with this name
 	/// @param name Name of param to be added
-	const T& operator()(const string& name) const;
-		
-	T& operator()(const string& name);
+	virtual const T& operator()(const string& name) const;		
+	virtual T& operator()(const string& name);
 		
 	/// Initialize derivatives
-	void initDerivatives();
+	virtual void initDerivatives();
 	
 	/// Add derivatives
-	void addDerivatives(const IEqParamsBase& ip);
+	virtual void addDerivatives(const IEqParamsBase& ip);
 		
 private:
 };

@@ -21,11 +21,21 @@ namespace conrad {
 class IEqImageParam : public IEqParamBase<IEqImage> {
 public:
 	IEqImageParam() {};
-
+	IEqImageParam(const IEqImageParam&);
+	IEqImageParam& operator=(const IEqImageParam&);
+	
+	// Override definitions for sets to do something sensible for images
 	void setValue(const double value) {itsValue.set(value);};
 	void setDeriv(const double deriv) {itsDeriv.set(deriv);};
 	void setDeriv2(const double deriv2) {itsDeriv2.set(deriv2);};
 	
+	/// Set and return second derivative of param
+	void setPSF(const IEqImage& psf) {itsPSF=psf;};
+	const IEqImage& PSF() const {return itsPSF;};
+	void setPSF(const double psf) {itsPSF.set(psf);};
+	
+protected:
+	IEqImage itsPSF;
 };
 
 };

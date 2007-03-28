@@ -28,8 +28,6 @@
 #include "IEqImageParams.h"
 #include "IEqDataAccessor.h"
 
-//class IEqDataAccessor;
-
 namespace conrad { 
 
 class IEquation {

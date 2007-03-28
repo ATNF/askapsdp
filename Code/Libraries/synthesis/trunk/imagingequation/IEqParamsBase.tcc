@@ -28,7 +28,7 @@ void IEqParamsBase<T>::initDerivatives()
 
 /// Add derivatives
 template <class T>
-void IEqParamsBase<T>::addDerivatives(const IEqParamsBase& ip)
+void IEqParamsBase<T>::addDerivatives(const IEqParamsBase<T>& ip)
 {
 };
 

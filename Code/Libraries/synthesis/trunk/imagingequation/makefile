@@ -14,12 +14,13 @@ INCDIRS   = -I. $(CASAINC)
 LIBDIRS   = $(CASALIB)
 
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
-CXXFLAGS  = -ansi -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
+CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
 OBJECTS   = IEqImage.o IEqDataAccessor.o IEqDataSource.o IEqParamBase.o IEqParamsBase.o \
 			IEqSolver.o IEqImageSolver.o \
             IEqTableDataAccessor.o IEqComponentEquation.o IEqDomain.o IEqParamsTable.o
-HEADERS   = IEqImage.h IEqDataAccessor.h IEqDataSource.h IEqParamBase.h IEqParam.h IEqParamsBase.h \
+HEADERS   = IEqImage.h IEqDataAccessor.h IEqDataSource.h IEqParamBase.h IEqParamBase.tcc \
+			IEqParamsBase.tcc IEqParam.h IEqParamsBase.h \
 			IEqParams.h IEqSolver.h IEqImageSolver.h IEquation.h \
             IEqTableDataAccessor.h IEqComponentEquation.h IEqImageParam.h IEqImageParams.h IEqDomain.h IEqParamsTable.h
 
@@ -28,7 +29,7 @@ HEADERS   = IEqImage.h IEqDataAccessor.h IEqDataSource.h IEqParamBase.h IEqParam
 .cc.o:
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $@ $<
 
-$(OBJECTS): $(HEADERS)
+#$(OBJECTS): $(HEADERS)
 
 $(TARGET):  $(OBJECTS) $(TARGET).cc
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $(TARGET).o $(TARGET).cc

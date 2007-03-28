@@ -2,7 +2,7 @@
 
 namespace conrad
 {
-
+	
 // Assignment operator
 template<class T>
 IEqParamBase<T>& IEqParamBase<T>::operator=(const IEqParamBase<T>& other)

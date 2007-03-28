@@ -41,7 +41,9 @@ private:
 };
 
 // Someone needs these templates - I don't know who!
-casa::Matrix<casa::String> mt;
+casa::Matrix<casa::String> c0;
+IEqParamBase<double> c1;
+IEqParamsBase<IEqParam> c2;
 
 int main() {
 	
