@@ -19,7 +19,8 @@ template<class T>
 class IEqParamBase {
 public:
 
-	IEqParamBase() {};
+	IEqParamBase() : itsFree(true) {};
+	IEqParamBase(const bool free) : itsFree(free) {};
 
 	/// Assignment operator
 	virtual IEqParamBase& operator=(const IEqParamBase& other);
@@ -34,10 +35,8 @@ public:
 	/// @param deriv2 second derivative of param
 	//IEqParamBase(const bool free=true);
 	IEqParamBase(const T& value, const bool free=true);
-	IEqParamBase(const T& value, 
-		const T& deriv, const bool free=true);
-	IEqParamBase(const T& value, 
-		const T& deriv, const T& deriv2, const bool free=true);
+	IEqParamBase(const T& value, const T& deriv, const bool free=true);
+	IEqParamBase(const T& value, const T& deriv, const T& deriv2, const bool free=true);
 	
 	/// Set and return value of param
 	virtual void setValue(const T& value) {itsValue=value;};

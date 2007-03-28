@@ -3,8 +3,6 @@
 namespace conrad
 {
 	
-IEqImageParam::IEqImageParam(const bool free) : itsFree(free) {};
-
 // Assignment operator
 IEqImageParam& IEqImageParam::operator=(const IEqImageParam& other)
 {
@@ -12,6 +10,7 @@ IEqImageParam& IEqImageParam::operator=(const IEqImageParam& other)
 		itsValue=other.itsValue;
 		itsDeriv=other.itsDeriv;
 		itsDeriv2=other.itsDeriv2;
+		itsPSF=other.itsPSF;
 		itsFree=other.itsFree;
 	}
 };
@@ -22,3 +21,4 @@ IEqImageParam::IEqImageParam(const IEqImageParam& other)
 	operator=(other);
 };
 
+}
