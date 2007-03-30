@@ -8,8 +8,8 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef IEQPARAMBASE_H
-#define IEQPARAMBASE_H
+#ifndef MEPARAMBASE_H
+#define MEPARAMBASE_H
 
 #include <ostream>
 

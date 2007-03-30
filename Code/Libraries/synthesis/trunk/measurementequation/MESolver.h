@@ -6,8 +6,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQSOLVER_H_
-#define IEQSOLVER_H_
+#ifndef MESOLVER_H_
+#define MESOLVER_H_
 
 #include "MEParams.h"
 
@@ -47,4 +47,4 @@ protected:
 
 }
 
-#endif /*IEQSOLVER_H_*/
+#endif /*MESOLVER_H_*/

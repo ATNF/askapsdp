@@ -1,5 +1,5 @@
-#ifndef COMPONENTIEQUATION_H_
-#define COMPONENTIEQUATION_H_
+#ifndef COMPONENTMEUATION_H_
+#define COMPONENTMEUATION_H_
 
 #include "MEuation.h"
 
@@ -50,4 +50,4 @@ private:
 
 }
 
-#endif /*COMPONENTIEQUATION_H_*/
+#endif /*COMPONENTMEUATION_H_*/

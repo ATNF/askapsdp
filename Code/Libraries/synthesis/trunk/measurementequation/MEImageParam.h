@@ -10,8 +10,8 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef IEQIMAGEPARAM_H
-#define IEQIMAGEPARAM_H
+#ifndef MEIMAGEPARAM_H
+#define MEIMAGEPARAM_H
 
 #include "MEImage.h"
 #include "MEParamBase.h"

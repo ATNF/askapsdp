@@ -21,8 +21,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQUATION_H
-#define IEQUATION_H
+#ifndef MEUATION_H
+#define MEUATION_H
 
 #include "MEParams.h"
 #include "MEImageParams.h"

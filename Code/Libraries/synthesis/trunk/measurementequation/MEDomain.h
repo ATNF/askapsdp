@@ -6,8 +6,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQDOMAIN_H_
-#define IEQDOMAIN_H_
+#ifndef MEDOMAIN_H_
+#define MEDOMAIN_H_
 
 #include <iostream>
 
@@ -67,4 +67,4 @@ private:
   
 };
 };
-#endif /*IEQDOMAIN_H_*/
+#endif /*MEDOMAIN_H_*/

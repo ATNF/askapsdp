@@ -5,8 +5,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQIMAGEPARAMS_H_
-#define IEQIMAGEPARAMS_H_
+#ifndef MEIMAGEPARAMS_H_
+#define MEIMAGEPARAMS_H_
 
 #include "MEParamsBase.h"
 #include "MEImageParam.h"
@@ -20,4 +20,4 @@ private:
 
 }
 
-#endif /*IEQIMAGEPARAMS_H_*/
+#endif /*MEIMAGEPARAMS_H_*/

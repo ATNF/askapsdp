@@ -6,8 +6,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQIMAGE_H_
-#define IEQIMAGE_H_
+#ifndef MEIMAGE_H_
+#define MEIMAGE_H_
 
 #include <iostream.h>
 
@@ -27,4 +27,4 @@ public:
 
 }
 
-#endif /*IEQIMAGE_H_*/
+#endif /*MEIMAGE_H_*/

@@ -5,8 +5,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef IEQ_TABLE_DATA_ACCESSOR_H
-#define IEQ_TABLE_DATA_ACCESSOR_H
+#ifndef ME_TABLE_DATA_ACCESSOR_H
+#define ME_TABLE_DATA_ACCESSOR_H
 
 #include "MEDataAccessor.h"
 
@@ -130,7 +130,7 @@ private:
 
 } // namespace conrad
 
-#endif // #ifndef IEQ_TABLE_DATA_ACCESSOR_H
+#endif // #ifndef ME_TABLE_DATA_ACCESSOR_H
 
 
 

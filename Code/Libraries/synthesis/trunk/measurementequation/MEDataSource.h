@@ -7,8 +7,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef IEQDATASOURCE_H_
-#define IEQDATASOURCE_H_
+#ifndef MEDATASOURCE_H_
+#define MEDATASOURCE_H_
 
 #include <string>
 
@@ -43,4 +43,4 @@ private:
 	METableDataAccessor itsIda;
 };
 }
-#endif /*IEQDATASOURCE_H_*/
+#endif /*MEDATASOURCE_H_*/

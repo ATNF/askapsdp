@@ -5,8 +5,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQPARAMS_H_
-#define IEQPARAMS_H_
+#ifndef MEPARAMS_H_
+#define MEPARAMS_H_
 
 #include "MEParamsBase.h"
 #include "MEParam.h"
@@ -20,4 +20,4 @@ private:
 
 }
 
-#endif /*IEQPARAMS_H_*/
+#endif /*MEPARAMS_H_*/

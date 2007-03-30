@@ -5,8 +5,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQPARAMSBASE_H_
-#define IEQPARAMSBASE_H_
+#ifndef MEPARAMSBASE_H_
+#define MEPARAMSBASE_H_
 
 #include <map>
 #include <string>
@@ -46,4 +46,4 @@ private:
 
 }
 
-#endif /*IEQPARAMSBASE_H_*/
+#endif /*MEPARAMSBASE_H_*/

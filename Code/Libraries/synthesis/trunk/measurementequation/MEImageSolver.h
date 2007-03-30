@@ -6,8 +6,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IEQIMAGESOLVER_H_
-#define IEQIMAGESOLVER_H_
+#ifndef MEIMAGESOLVER_H_
+#define MEIMAGESOLVER_H_
 
 #include "MEImageParams.h"
 
@@ -47,4 +47,4 @@ protected:
 
 }
 
-#endif /*IEQSOLVER_H_*/
+#endif /*MESOLVER_H_*/

@@ -13,8 +13,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef IEQDATAITERATOR_H_
-#define IEQDATAITERATOR_H_
+#ifndef MEDATAITERATOR_H_
+#define MEDATAITERATOR_H_
 
 #include "MEDataAccessor.h"
 
@@ -66,4 +66,4 @@ public:
 	virtual MEDataIterator& operator++(int);
 };
 }
-#endif /*IEQDATAITERATOR_H_*/
+#endif /*MEDATAITERATOR_H_*/

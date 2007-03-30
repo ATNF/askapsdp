@@ -7,8 +7,8 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef IEQPARAM_H
-#define IEQPARAM_H
+#ifndef MEPARAM_H
+#define MEPARAM_H
 
 #include "MEParamBase.h"
 

@@ -5,8 +5,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef IEQ_DATA_ACCESSOR_H
-#define IEQ_DATA_ACCESSOR_H
+#ifndef ME_DATA_ACCESSOR_H
+#define ME_DATA_ACCESSOR_H
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -125,4 +125,4 @@ public:
 
 } // end of namespace conrad
 
-#endif /*IEQ_DATA_ACCESSOR_H*/
+#endif /*ME_DATA_ACCESSOR_H*/
