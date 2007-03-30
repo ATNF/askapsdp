@@ -1,4 +1,4 @@
-TARGET    = tIEquation
+TARGET    = tMEuation
 
 AIPSROOT := $(word 1, $(AIPSPATH))
 AIPSARCH := $(word 2, $(AIPSPATH))
@@ -16,13 +16,13 @@ LIBDIRS   = $(CASALIB)
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
-OBJECTS   = IEqImage.o IEqDataAccessor.o IEqDataSource.o IEqParamBase.o IEqParamsBase.o \
-			IEqImageParam.o IEqSolver.o IEqImageSolver.o \
-            IEqTableDataAccessor.o IEqComponentEquation.o IEqDomain.o IEqParamsTable.o
-HEADERS   = IEqImage.h IEqDataAccessor.h IEqDataSource.h IEqParamBase.h IEqParamBase.tcc \
-			IEqParamsBase.tcc IEqParam.h IEqParamsBase.h \
-			IEqParams.h IEqSolver.h IEqImageSolver.h IEquation.h \
-            IEqTableDataAccessor.h IEqComponentEquation.h IEqImageParam.h IEqImageParams.h IEqDomain.h IEqParamsTable.h
+OBJECTS   = MEImage.o MEDataAccessor.o MEDataSource.o MEParamBase.o MEParamsBase.o \
+			MEImageParam.o MESolver.o MEImageSolver.o \
+            METableDataAccessor.o MEComponentEquation.o MEDomain.o MEParamsTable.o
+HEADERS   = MEImage.h MEDataAccessor.h MEDataSource.h MEParamBase.h MEParamBase.tcc \
+			MEParamsBase.tcc MEParam.h MEParamsBase.h \
+			MEParams.h MESolver.h MEImageSolver.h MEuation.h \
+            METableDataAccessor.h MEComponentEquation.h MEImageParam.h MEImageParams.h MEDomain.h MEParamsTable.h
 
 .SUFFIXES: .c .o .cc
 
@@ -36,7 +36,7 @@ $(TARGET):  $(OBJECTS) $(TARGET).cc
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(TARGET).o $(LIBDIRS)
 
 
-all: tIEquation
+all: tMEuation
 
 clean:
 	-rm -f $(OBJECTS) *.a
