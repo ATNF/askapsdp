@@ -1,6 +1,5 @@
 #include "MEComponentEquation.h"
 #include "MESolver.h"
-#include "MEImageSolver.h"
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
@@ -51,17 +50,9 @@ void MEComponentEquation::predict(const MEParams& ip, const MEImageParams& iip,
 	}
 }
 
-void MEComponentEquation::prediffer(MEParams& ip, const MEImageParams& iip,
+void MEComponentEquation::calcDerivatives(MEParams& ip, MEImageParams& iip,
 	MEDataAccessor& ida, MESolver& is) 
 {
-	predict(ip, iip, ida);
-	transpose(ip, iip, ida, is);
-}
-
-
-void MEComponentEquation::transpose(MEParams& ip, const MEImageParams& iip,
-	MEDataAccessor& ida, MESolver& is) {
-
 	casa::StokesVector flux(0.0);
 	double cfluxWeight=0.0;
 	

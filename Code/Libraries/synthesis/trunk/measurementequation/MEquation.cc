@@ -73,7 +73,7 @@ int main() {
 		MEDataSource msds;
 		msds.init();
 		while (msds.next()) {
-			cie.prediffer(ip, iip, msds.ida(), is);
+			cie.calcDerivatives(ip, iip, msds.ida(), is);
 		}
 
 		// Now we can do solution

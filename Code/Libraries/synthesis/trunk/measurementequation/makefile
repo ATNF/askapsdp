@@ -17,11 +17,11 @@ CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
 OBJECTS   = MEImage.o MEDataAccessor.o MEDataSource.o MEParamBase.o MEParamsBase.o \
-			MEImageParam.o MESolver.o MEImageSolver.o \
+			MEImageParam.o MESolver.o \
             METableDataAccessor.o MEComponentEquation.o MEDomain.o MEParamsTable.o
-HEADERS   = MEImage.h MEDataAccessor.h MEDataSource.h MEParamBase.h MEParamBase.tcc \
+HEADERS   = Iterative.h MEImage.h MEDataAccessor.h MEDataSource.h MEParamBase.h MEParamBase.tcc \
 			MEParamsBase.tcc MEParam.h MEParamsBase.h \
-			MEParams.h MESolver.h MEImageSolver.h MEuation.h \
+			MEParams.h MESolver.h MEquation.h \
             METableDataAccessor.h MEComponentEquation.h MEImageParam.h MEImageParams.h MEDomain.h MEParamsTable.h
 
 .SUFFIXES: .c .o .cc

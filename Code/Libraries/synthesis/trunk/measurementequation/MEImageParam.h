@@ -13,6 +13,8 @@
 #ifndef MEIMAGEPARAM_H
 #define MEIMAGEPARAM_H
 
+#include <lattices/Lattices/LatticeExprNode.h>
+
 #include "MEImage.h"
 #include "MEParamBase.h"
 
@@ -25,14 +27,18 @@ public:
 	MEImageParam& operator=(const MEImageParam&);
 	
 	// Override definitions for sets to do something sensible for images
-	void setValue(const double value) {itsValue.set(value);};
-	void setDeriv(const double deriv) {itsDeriv.set(deriv);};
-	void setDeriv2(const double deriv2) {itsDeriv2.set(deriv2);};
+	virtual void setValue(const MEImage& value) {itsValue.copyData(value);};
+	virtual void setDeriv(const MEImage& deriv) {itsDeriv.copyData(deriv);};
+	virtual void setDeriv2(const MEImage& deriv2) {itsDeriv2.copyData(deriv2);};
+	virtual void setPSF(const MEImage& psf) {itsPSF.copyData(psf);};
+	
+	virtual void setValue(const double value) {itsValue.set(value);};
+	virtual void setDeriv(const double deriv) {itsDeriv.set(deriv);};
+	virtual void setDeriv2(const double deriv2) {itsDeriv2.set(deriv2);};
+	virtual void setPSF(const double psf) {itsPSF.set(psf);};
 	
 	/// Set and return second derivative of param
-	void setPSF(const MEImage& psf) {itsPSF=psf;};
-	const MEImage& PSF() const {return itsPSF;};
-	void setPSF(const double psf) {itsPSF.set(psf);};
+	virtual const MEImage& PSF() const {return itsPSF;};
 	
 protected:
 	MEImage itsPSF;

@@ -6,7 +6,7 @@
 ///    - calculate data (passed via a data accessor)
 ///    - transpose residual data back to the parameter space
 ///
-/// These two things can be combined in a prediffer step to allow calculation
+/// These two things can be combined in a calcDerivatives step to allow calculation
 /// of gradients for parameters. The parameters may then be solved for by
 /// an MESolver class.
 /// 
@@ -31,7 +31,6 @@
 namespace conrad { 
 	
 	class MESolver;
-	class MEImageSolver;
 
 class MEquation {
 public:
@@ -45,29 +44,12 @@ public:
 	/// @param ida data accessor
 	virtual void predict(const MEParams& ip, const MEImageParams& iip, MEDataAccessor& ida) =0;
 	
-	/// Transpose back to parameter space
-	/// @param ip Regular parameters
-	/// @param iip Image parameters
-	/// @param ida Data accessor
-	/// @param is Solver
-	/// @param iis Image solver
-	virtual void transpose(MEParams& ip, const MEImageParams& iip, MEDataAccessor& ida,
-		MESolver& is) = 0;
-	virtual void transpose(const MEParams& ip, MEImageParams& iip, MEDataAccessor& ida, 
-		MEImageSolver& iis) = 0;
-	virtual void transpose(MEParams& ip, MEImageParams& iip, MEDataAccessor& ida, 
-		MESolver& is, MEImageSolver& iis) = 0;
-				
 	/// Predict and then transpose back to parameter space
 	/// @param ip Regular parameters
 	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual void prediffer(MEParams& ip, const MEImageParams& iip, MEDataAccessor& ida,
+	virtual void calcDerivatives(MEParams& ip, MEImageParams& iip, MEDataAccessor& ida,
 		MESolver& is) = 0;
-	virtual void prediffer(const MEParams& ip, MEImageParams& iip, MEDataAccessor& ida,
-		MEImageSolver& iis) = 0;
-	virtual void prediffer(MEParams& ip, MEImageParams& iip, MEDataAccessor& ida,
-		MESolver& is, MEImageSolver& iis) = 0;
 	
 };
 
