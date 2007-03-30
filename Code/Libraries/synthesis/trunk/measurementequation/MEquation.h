@@ -21,8 +21,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef MEUATION_H
-#define MEUATION_H
+#ifndef MEQUATION_H
+#define MEQUATION_H
 
 #include "MEParams.h"
 #include "MEImageParams.h"
@@ -33,11 +33,11 @@ namespace conrad {
 	class MESolver;
 	class MEImageSolver;
 
-class MEuation {
+class MEquation {
 public:
 
 	/// Constructor
-    MEuation() {};
+    MEquation() {};
 
 	/// Predict model visibility
 	/// @param ip Regular parameters

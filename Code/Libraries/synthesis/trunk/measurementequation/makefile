@@ -1,4 +1,4 @@
-TARGET    = tMEuation
+TARGET    = tMEquation
 
 AIPSROOT := $(word 1, $(AIPSPATH))
 AIPSARCH := $(word 2, $(AIPSPATH))
@@ -36,7 +36,7 @@ $(TARGET):  $(OBJECTS) $(TARGET).cc
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(TARGET).o $(LIBDIRS)
 
 
-all: tMEuation
+all: tMEquation
 
 clean:
 	-rm -f $(OBJECTS) *.a

@@ -1,12 +1,12 @@
 #ifndef COMPONENTMEUATION_H_
 #define COMPONENTMEUATION_H_
 
-#include "MEuation.h"
+#include "MEquation.h"
 
 namespace conrad
 {
 
-class MEComponentEquation : public conrad::MEuation
+class MEComponentEquation : public MEquation
 {
 public:
 	MEComponentEquation() {};
