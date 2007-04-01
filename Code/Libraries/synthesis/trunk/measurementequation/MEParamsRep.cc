@@ -1,7 +1,7 @@
-#include "MEParamsRep.tcc"
-#include "MEParamsRep.h"
+#include <measurementequation/MEParamsRep.tcc>
+#include <measurementequation/MEParamsRep.h>
 
-#include "MEimage.h"
+#include <measurementequation/MEimage.h>
 
 #include <vector>
 

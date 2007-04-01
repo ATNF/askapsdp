@@ -8,8 +8,8 @@
 #ifndef MEPARAMSTABLE_H_
 #define MEPARAMSTABLE_H_
 
-#include "MEParams.h"
-#include "MEDomain.h"
+#include <measurementequation/MEParams.h>
+#include <measurementequation/MEDomain.h>
 
 
 namespace conrad

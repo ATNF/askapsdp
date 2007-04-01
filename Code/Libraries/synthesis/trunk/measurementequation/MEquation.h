@@ -24,7 +24,7 @@
 #ifndef MEQUATION_H
 #define MEQUATION_H
 
-#include "MEParams.h"
+#include <measurementequation/MEParams.h>
 
 namespace conrad { 
 	

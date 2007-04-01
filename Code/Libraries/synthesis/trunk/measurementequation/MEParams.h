@@ -8,8 +8,8 @@
 #ifndef MEPARAMS_H_
 #define MEPARAMS_H_
 
-#include "MEParamsRep.h"
-#include "MEImage.h"
+#include <measurementequation/MEParamsRep.h>
+#include <measurementequation/MEImage.h>
 
 namespace conrad {
 

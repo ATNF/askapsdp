@@ -1,4 +1,4 @@
-#include "MESimpleSolver.h"
+#include <measurementequation/MESimpleSolver.h>
 
 #include <iostream>
 

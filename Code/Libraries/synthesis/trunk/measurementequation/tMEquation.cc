@@ -6,13 +6,13 @@
 
 #include <iostream.h>
 
-#include "MESimpleSolver.h"
-#include "MEDataSource.h"
-#include "MEComponentEquation.h"
-#include "MEParams.h"
-#include "MEParamsTable.h"
-#include "MEDomain.h"
-#include "MEQuality.h"
+#include <dataaccess/MEDataSource.h>
+#include <measurementequation/MESimpleSolver.h>
+#include <measurementequation/MEComponentEquation.h>
+#include <measurementequation/MEParams.h>
+#include <measurementequation/MEParamsTable.h>
+#include <measurementequation/MEDomain.h>>
+#include <measurementequation/MEQuality.h>
 
 using namespace conrad;
  

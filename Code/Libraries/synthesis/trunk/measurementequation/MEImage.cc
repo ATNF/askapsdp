@@ -1,4 +1,4 @@
-#include "MEImage.h"
+#include <measurementequation/MEImage.h>
 
 namespace conrad
 {

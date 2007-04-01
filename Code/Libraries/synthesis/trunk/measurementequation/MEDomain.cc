@@ -1,4 +1,4 @@
-#include "MEDomain.h"
+#include <measurementequation/MEDomain.h>
 
 namespace conrad
 {

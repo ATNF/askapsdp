@@ -1,7 +1,7 @@
-#ifndef COMPONENTMEUATION_H_
-#define COMPONENTMEUATION_H_
+#ifndef COMPONENTMEQUATION_H_
+#define COMPONENTMEQUATION_H_
 
-#include "MEquation.h"
+#include <measurementequation/MEquation.h>
 
 namespace conrad
 {

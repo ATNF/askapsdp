@@ -1,4 +1,4 @@
-#include "MEParamsTable.h"
+#include <measurementequation/MEParamsTable.h>
 
 namespace conrad
 {

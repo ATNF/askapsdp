@@ -15,9 +15,9 @@
 
 #include <scimath/Fitting/LSQFit.h>
 
-#include "MEParams.h"
-#include "MEIterative.h"
-#include "MEQuality.h"
+#include <measurementequation/MEParams.h>
+#include <measurementequation/MEIterative.h>
+#include <measurementequation/MEQuality.h>
 
 namespace conrad
 {

@@ -1,4 +1,4 @@
-#include "MEQuality.h"
+#include <measurementequation/MEQuality.h>
 
 namespace conrad
 {

@@ -1,4 +1,4 @@
-#include "MESolver.h"
+#include <measurementequation/MESolver.h>
 #include <casa/aips.h>
 #include <scimath/Fitting/LSQFit.h>
 #include <iostream>
