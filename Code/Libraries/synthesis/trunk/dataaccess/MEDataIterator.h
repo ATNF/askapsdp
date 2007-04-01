@@ -23,7 +23,7 @@ class MEDataIterator
 {
 public:
 	/// an empty virtual destructor to make the compiler happy
-	virtual ~MEDataSource();
+	virtual ~MEDataIterator();
 	
 	/// Restart the iteration from the beginning
 	virtual void init() = 0;
