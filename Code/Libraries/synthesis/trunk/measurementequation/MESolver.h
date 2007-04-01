@@ -3,15 +3,21 @@
 /// MESolver: Base class for solvers of parametrized imaging
 /// equations.
 ///
+/// The base solver does something sensible and can be used as-is.
+/// For simple parameters, a least squares solution is calculated,
+/// and for image parameters, a steepest descent algorithm is used.
+///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef MESOLVER_H_
 #define MESOLVER_H_
 
+#include <scimath/Fitting/LSQFit.h>
+
 #include "MEParams.h"
-#include "MEImageParams.h"
 #include "Iterative.h"
+#include "MEQuality.h"
 
 namespace conrad
 {
@@ -20,12 +26,12 @@ class MESolver : public Iterative
 {
 public:	
 
-	MESolver(const MEParams& ip, const MEImageParams& iip);
+	MESolver(const MEParams& ip);
 
 	MESolver() {};
 	
 	/// Initialize this solver
-	virtual void init();
+	virtual void init() = 0;
 	
 	/// Set the parameters
 	/// @param ip Parameters
@@ -43,14 +49,13 @@ public:
 	MEParams& getParameters() {return itsParams;};
 	MEImageParams& getImageParameters() {return itsImageParams;};
 	
-	/// Add in values for derivatives
-	/// @param ip Parameter to set derivatives for
-	virtual void addDerivatives(MEParams& ip);
-	virtual void addDerivatives(MEImageParams& iip);
+	/// Add in normal equations
+	/// @param fitter containing normal equations
+	virtual void addEquations(const casa::LSQFit& fitter) = 0;
 	
 	/// Solve for parameters, updating the values kept internally
-	virtual bool solve();
-	virtual bool solveImage();
+	virtual bool solve(MEQuality& q) = 0;
+	virtual bool solveImage(MEQuality& q) = 0;
 	
 protected:
 	MEParams itsParams;

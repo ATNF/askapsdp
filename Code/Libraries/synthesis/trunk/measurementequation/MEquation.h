@@ -25,12 +25,11 @@
 #define MEQUATION_H
 
 #include "MEParams.h"
-#include "MEImageParams.h"
 #include "MEDataAccessor.h"
 
 namespace conrad { 
 	
-	class MESolver;
+class MESolver;
 
 class MEquation {
 public:
@@ -40,15 +39,13 @@ public:
 
 	/// Predict model visibility
 	/// @param ip Regular parameters
-	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual void predict(const MEParams& ip, const MEImageParams& iip, MEDataAccessor& ida) =0;
+	virtual void predict(const MEParams& ip, MEDataAccessor& ida) = 0;
 	
 	/// Predict and then transpose back to parameter space
 	/// @param ip Regular parameters
-	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual void calcDerivatives(MEParams& ip, MEImageParams& iip, MEDataAccessor& ida,
+	virtual void calcDerivatives(MEParams& ip, MEDataAccessor& ida,
 		MESolver& is) = 0;
 	
 };

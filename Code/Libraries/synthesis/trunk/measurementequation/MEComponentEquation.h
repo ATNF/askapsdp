@@ -13,15 +13,14 @@ public:
 	virtual ~MEComponentEquation();
 	/// Predict model visibility
 	/// @param ip Regular parameters
-	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual void predict(const MEParams& ip, const MEImageParams& iip, MEDataAccessor& ida);
+	virtual void predict(const MEParams& ip, MEDataAccessor& ida);
 	
 	/// Predict and then transpose back to parameter space
 	/// @param ip Regular parameters
-	/// @param iip Image parameters
 	/// @param ida data accessor
-	virtual void calcDerivatives(MEParams& ip, MEImageParams& iip, MEDataAccessor& ida,
+	/// @param ip solver to send results to
+	virtual void calcDerivatives(MEParams& ip, MEDataAccessor& ida,
 		MESolver& is);
 	
 	

@@ -16,13 +16,16 @@ LIBDIRS   = $(CASALIB)
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
-OBJECTS   = MEImage.o MEDataAccessor.o MEDataSource.o MEParamBase.o MEParamsBase.o \
-			MEImageParam.o MESolver.o \
-            METableDataAccessor.o MEComponentEquation.o MEDomain.o MEParamsTable.o
-HEADERS   = Iterative.h MEImage.h MEDataAccessor.h MEDataSource.h MEParamBase.h MEParamBase.tcc \
-			MEParamsBase.tcc MEParam.h MEParamsBase.h \
-			MEParams.h MESolver.h MEquation.h \
-            METableDataAccessor.h MEComponentEquation.h MEImageParam.h MEImageParams.h MEDomain.h MEParamsTable.h
+OBJECTS   = MEImage.o MEDataAccessor.o MEDataSource.o METableDataAccessor.o \
+			MESolver.o MESimpleSolver.o MEQuality.o \
+            MEComponentEquation.o MEDomain.o MEParamsTable.o \
+            MEParamsRep.o
+HEADERS   = Iterative.h \
+			MEImage.h MEDataAccessor.h MEDataSource.h METableDataAccessor.h \
+			MESolver.h MESimpleSolver.h MEQuality.h \
+			MEParams.h MEquation.h \
+            MEComponentEquation.h MEDomain.h MEParamsTable.h \
+            MEParamsRep.h MEParamsRep.tcc
 
 .SUFFIXES: .c .o .cc
 

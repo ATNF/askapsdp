@@ -8,14 +8,33 @@
 #ifndef MEPARAMS_H_
 #define MEPARAMS_H_
 
-#include "MEParamsBase.h"
-#include "MEParam.h"
+#include "MEParamsRep.h"
+#include "MEImage.h"
 
 namespace conrad {
 
-class MEParams : public MEParamsBase<MEParam> {
+typedef MEParamsRep<MEImage> MEImageParams; 
+typedef MEParamsRep<double> MERegularParams;
+
+class MEParams {
 public:
+
+	void add(const string& name) {itsRegular.add(name, 0.0);};
+	void add(const string& name, const double value) {itsRegular.add(name, value);};
+	void add(const string& name, const MEImage& value) {itsImage.add(name, value);};
+	void addImage(const string& name, const MEImage& value) {itsImage.add(name, value);};
+	
+	/// Return the regular parameters
+	const MERegularParams& regular() const {return itsRegular;};
+	MERegularParams& regular()  {return itsRegular;};
+
+    /// Return the image parameters
+	const MEImageParams& image() const {return itsImage;};
+	MEImageParams& image() {return itsImage;};
+	
 private:
+	MERegularParams itsRegular;
+	MEImageParams itsImage;
 };
 
 }
