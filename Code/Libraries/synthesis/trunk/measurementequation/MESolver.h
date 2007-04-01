@@ -16,13 +16,13 @@
 #include <scimath/Fitting/LSQFit.h>
 
 #include "MEParams.h"
-#include "Iterative.h"
+#include "MEIterative.h"
 #include "MEQuality.h"
 
 namespace conrad
 {
 
-class MESolver : public Iterative
+class MESolver : public MEIterative
 {
 public:	
 

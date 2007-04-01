@@ -25,9 +25,10 @@
 #define MEQUATION_H
 
 #include "MEParams.h"
-#include "MEDataAccessor.h"
 
 namespace conrad { 
+	
+class MEDataAccessor;
 	
 class MESolver;
 

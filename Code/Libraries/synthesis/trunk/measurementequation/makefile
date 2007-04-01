@@ -16,12 +16,12 @@ LIBDIRS   = $(CASALIB)
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
-OBJECTS   = MEImage.o MEDataAccessor.o MEDataSource.o METableDataAccessor.o \
+OBJECTS   = MEImage.o \
 			MESolver.o MESimpleSolver.o MEQuality.o \
             MEComponentEquation.o MEDomain.o MEParamsTable.o \
             MEParamsRep.o
 HEADERS   = Iterative.h \
-			MEImage.h MEDataAccessor.h MEDataSource.h METableDataAccessor.h \
+			MEImage.h  \
 			MESolver.h MESimpleSolver.h MEQuality.h \
 			MEParams.h MEquation.h \
             MEComponentEquation.h MEDomain.h MEParamsTable.h \
@@ -42,7 +42,7 @@ $(TARGET):  $(OBJECTS) $(TARGET).cc
 all: tMEquation
 
 clean:
-	-rm -f $(OBJECTS) *.a
+	-rm -f $(OBJECTS) *.a tMEquation tMEquation.o
 
 realclean: clean
 	-rm -f $(TARGET)

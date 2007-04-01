@@ -1,15 +1,15 @@
-#ifndef ITERATIVE_H_
-#define ITERATIVE_H_
+#ifndef MEITERATIVE_H_
+#define MEITERATIVE_H_
 
 namespace conrad
 {
 
-class Iterative
+class MEIterative
 {
 public:
-	Iterative(const double gain=0.1, const int niter=100, const double tol=1e-6) : itsGain(gain),
+	MEIterative(const double gain=0.1, const int niter=100, const double tol=1e-6) : itsGain(gain),
 		itsNiter(niter), itsTol(tol) {};
-	virtual ~Iterative() {};
+	virtual ~MEIterative() {};
 	double gain() {return itsGain;}
 	void setGain(const double gain=0.1) {itsGain=gain;};
 	
