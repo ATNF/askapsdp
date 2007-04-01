@@ -1,5 +1,6 @@
-#include "MEComponentEquation.h"
-#include "MESolver.h"
+#include <dataaccess/MEDataAccessor.h>
+#include <measurementequation/MEComponentEquation.h>
+#include <measurementequation/MESolver.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>

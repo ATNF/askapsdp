@@ -10,7 +10,7 @@ CASALIB = -L$(AIPSLIB) $(AIPSLIB)/version.o -limages -llattices -lcoordinates -l
 LINK      = /usr/bin/g++
 LFLAGS    = 
 
-INCDIRS   = -I. $(CASAINC)
+INCDIRS   = -I. $(CASAINC) -I..
 LIBDIRS   = $(CASALIB)
 
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)

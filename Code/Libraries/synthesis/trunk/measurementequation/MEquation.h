@@ -29,7 +29,6 @@
 namespace conrad { 
 	
 class MEDataAccessor;
-	
 class MESolver;
 
 class MEquation {
