@@ -1,4 +1,4 @@
-TARGET    = tMEquation
+TARGET    = tDataAccess
 
 AIPSROOT := $(word 1, $(AIPSPATH))
 AIPSARCH := $(word 2, $(AIPSPATH))
@@ -16,16 +16,8 @@ LIBDIRS   = $(CASALIB)
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
-OBJECTS   = MEImage.o MEDataAccessor.o MEDataSource.o METableDataAccessor.o \
-			MESolver.o MESimpleSolver.o MEQuality.o \
-            MEComponentEquation.o MEDomain.o MEParamsTable.o \
-            MEParamsRep.o
-HEADERS   = Iterative.h \
-			MEImage.h MEDataAccessor.h MEDataSource.h METableDataAccessor.h \
-			MESolver.h MESimpleSolver.h MEQuality.h \
-			MEParams.h MEquation.h \
-            MEComponentEquation.h MEDomain.h MEParamsTable.h \
-            MEParamsRep.h MEParamsRep.tcc
+OBJECTS   = MEDataAccessor.o MEDataSource.o METableDataAccessor.o 
+HEADERS   = MEDataAccessor.h MEDataSource.h METableDataAccessor.h 
 
 .SUFFIXES: .c .o .cc
 
