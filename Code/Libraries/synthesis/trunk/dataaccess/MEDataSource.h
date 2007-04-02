@@ -10,7 +10,19 @@
 #ifndef MEDATASOURCE_H_
 #define MEDATASOURCE_H_
 
+// STL includes
 #include <string>
+
+// boost includes
+#include <boost/shared_ptr.hpp>
+
+// CASA includes
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MFrequency.h>
+#include <measures/Measures/MRadialVelocity.h>
+
+// own includes
+#include "MEDataIterator.h"
 
 using std::string;
 
@@ -23,7 +35,30 @@ public:
 	/// Construct a data source
 	MEDataSource() {};
 	
+	/// empty virtual destructor to make the compiler happy
 	virtual ~MEDataSource();
+
+	/// set the reference frame for any time epochs 
+	/// (e.g. time-based selection, visibility timestamp)
+	/// @param ref a reference frame to be used with all time epochs
+	/// Default is UTC.
+	virtual void setEpochFrame(const casa::MEpoch::Ref &ref) = 0;
+
+	/// set the reference frame for any frequency
+	/// (e.g. in the frequency-based selection or spectral labelling)
+	/// @param ref a reference frame to be used with all frequencies
+	/// Default is LSRK
+	virtual void setFrequencyFrame(const casa::MFrequency::Ref &ref) = 0;
+
+	/// set the reference frame for any velocity
+	/// (e.g. in the velocity-based selection or spectral labelling)
+	/// @param ref a reference frame to be used with all velocities
+	/// Default is LSRK
+	virtual void setVelocityFrame(const casa::MRadialVelocity::Ref &ref) = 0;
+	
+	/// get iterator over the whole dataset represented by this DataSource
+	/// object
+	virtual boost::shared_ptr<MEDataIterator> getIterator() const = 0;
 	
 	/// Initialize iteration with accessor
 	/// @arg selection TaQL selection string

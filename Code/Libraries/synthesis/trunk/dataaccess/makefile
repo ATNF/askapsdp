@@ -19,7 +19,7 @@ CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 OBJECTS   = MEDataAccessor.o MEDataSource.o METableDataAccessor.o \
             MEDataIterator.o
 HEADERS   = MEDataAccessor.h MEDataSource.h METableDataAccessor.h \
-            MEDataIterator.h
+            MEDataIterator.h IDataSelector.h
 
 .SUFFIXES: .c .o .cc
 

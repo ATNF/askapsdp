@@ -11,6 +11,9 @@
 
 #include <casa/aips.h>
 #include <casa/Quanta/MVFrequency.h>
+#include <casa/Quanta/MVRadialVelocity.h>
+#include <casa/Quanta/MVEpoch.h>
+#include <casa/BasicSL/String.h>
 //#include <casa/Quanta/MVDirection.h>
 
 namespace conrad {
@@ -70,6 +73,22 @@ public:
 	/// Choose a single spectral window (also known as IF).
 	/// @param spWinID the ID of the spectral window to choose
 	virtual void chooseSpectralWindow(casa::uInt spWinID) = 0;
+
+	/// Choose a time range. The behavior for streams needs thinking.
+	/// Probably the iterator should just ignore all data before the
+	/// start time range and flags the end as soon as the time passed
+	/// the stop time. Both start and stop times are given via
+	/// casa::MVEpoch object. The reference frame is specified by
+	/// the DataSource object.
+	/// @param start the beginning of the chosen time interval
+	/// @param stop  the end of the chosen time interval
+	virtual void chooseTimeRange(const casa::MVEpoch &start,
+	          const casa::MVEpoch &stop) = 0;
+
+	/// Choose polarization. 
+	/// @param stokes a string describing the wanted polarization 
+	/// in the output. Allowed values are: I, "IQUV","XXYY","RRLL"
+	virtual void chooseStokes(const casa::String &stokes) = 0;
        
 };
 
