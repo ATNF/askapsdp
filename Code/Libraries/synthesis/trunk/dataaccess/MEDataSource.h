@@ -41,21 +41,39 @@ public:
 
 	/// set the reference frame for any time epochs 
 	/// (e.g. time-based selection, visibility timestamp)
-	/// @param ref a reference frame to be used with all time epochs
-	/// Default is UTC.
-	virtual void setEpochFrame(const casa::MEpoch::Ref &ref) = 0;
+	/// The value of the specified measure is the origin epoch. 
+	/// All visibility timestamps will be given as offsets from
+	/// it. The units of these offsets are given by the second
+	/// parameter
+	/// @param origin a zero-point for the visibility timestamps 
+	///        (they are given as time offsets with respect to 
+	///        this origin). A reference frame of this measure is
+	///        used all time epochs (e.g. selection)
+	/// @param unit a required time unit for timestamps
+	///
+	/// Class defaults to MJD 0 UTC, timestamp in seconds
+	virtual void setEpochFrame(const casa::MEpoch &ref,
+		   const casa::Unit &unit) = 0;
 
 	/// set the reference frame for any frequency
 	/// (e.g. in the frequency-based selection or spectral labelling)
 	/// @param ref a reference frame to be used with all frequencies
-	/// Default is LSRK
-	virtual void setFrequencyFrame(const casa::MFrequency::Ref &ref) = 0;
+	/// @param unit frequency units to use (frequencies will be returned
+	///             as Doubles)
+	///
+	/// Class defaults to LSRK, GHz
+	virtual void setFrequencyFrame(const casa::MFrequency::Ref &ref,
+		   const casa::Unit &unit) = 0;
 
 	/// set the reference frame for any velocity
 	/// (e.g. in the velocity-based selection or spectral labelling)
 	/// @param ref a reference frame to be used with all velocities
-	/// Default is LSRK
-	virtual void setVelocityFrame(const casa::MRadialVelocity::Ref &ref) = 0;
+	/// @param unit velocity units to use (velocities will be returned
+	///             as Doubles)
+	///  
+	/// Class defaults to LSRK, km/s
+	virtual void setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
+			const casa::Unit &unit) = 0;
 	
 	/// get iterator over the whole dataset represented by this DataSource
 	/// object

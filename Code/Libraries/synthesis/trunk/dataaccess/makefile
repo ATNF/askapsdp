@@ -28,7 +28,7 @@ HEADERS   = MEDataAccessor.h MEDataSource.h METableDataAccessor.h \
 
 #$(OBJECTS): $(HEADERS)
 
-$(TARGET):  $(OBJECTS) $(TARGET).cc
+$(TARGET):  $(OBJECTS) $(HEADERS) $(TARGET).cc
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $(TARGET).o $(TARGET).cc
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(TARGET).o $(LIBDIRS)
 

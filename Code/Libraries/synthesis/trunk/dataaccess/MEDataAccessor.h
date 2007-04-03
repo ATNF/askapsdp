@@ -14,6 +14,7 @@
 #include <scimath/Mathematics/RigidVector.h>
 #include <msvis/MSVis/StokesVector.h>
 
+
 namespace conrad {
 
 /// MEDataAccessor: an interface class to access buffered visibility data
@@ -111,8 +112,8 @@ public:
 
 	/// Timestamp for each row
 	/// @return a reference to vector containing timestamps for each
-	///         row (as Doubles, the frame/units are specified by the
-	///         DataSource object)
+	///         row (as Double w.r.t. the origin specified by the 
+	///         DataSource object along with the reference frame)  
 	virtual const casa::Vector<casa::Double>& time() const = 0;
 
 	/// Frequency for each channel

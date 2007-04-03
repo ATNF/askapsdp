@@ -98,7 +98,7 @@ class METableDataAccessor : public MEDataAccessor
      
      /// Timestamp for each row
      /// @return a reference to vector containing timestamps for each
-     ///         row (as Doubles, the frame/units are specified by the
+     ///         row (as Double, the frame/origin/units are specified by the
      ///         DataSource object)
      virtual const casa::Vector<casa::Double>& time() const;
      
