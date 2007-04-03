@@ -41,8 +41,9 @@ public:
 	/// @param nChan a number of spectral channels wanted in the output
 	/// @param start the number of the first spectral channel to choose
 	/// @param nAvg a number of adjacent spectral channels to average
+	///             default is no averaging
 	virtual void chooseChannels(casa::uInt nChan,
-	         casa::uInt start, casa::uInt nAvg) = 0;
+	         casa::uInt start, casa::uInt nAvg = 1) = 0;
 
 	/// Choose a subset of frequencies. The reference frame is
 	/// defined by the DataSource object

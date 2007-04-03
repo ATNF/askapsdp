@@ -23,6 +23,7 @@
 
 // own includes
 #include "MEDataIterator.h"
+#include "IDataSelector.h"
 
 using std::string;
 
@@ -58,24 +59,23 @@ public:
 	
 	/// get iterator over the whole dataset represented by this DataSource
 	/// object
-	virtual boost::shared_ptr<MEDataIterator> getIterator() const = 0;
-	
-	/// Initialize iteration with accessor
-	/// @arg selection TaQL selection string
-	void init(const string& selection);
-	
-	/// Initialize iteration with accessor
-	void init();
-	
-	/// Return the data accessor
-	MEDataAccessor& ida();
-	
-	/// Are there any more data?
-	bool next() const;
-	
-protected:
-private:
-	METableDataAccessor itsIda;
+	/// @return a shared pointer to DataIterator object
+	virtual boost::shared_ptr<MEDataIterator> createIterator() const = 0;
+
+	/// get iterator over a selected part of the dataset represented
+	/// by this DataSource object
+	/// @param[in] sel a shared pointer to the selector object defining 
+	///            which subset of data is used
+	/// @return a shared pointer to DataIterator object
+	virtual boost::shared_ptr<MEDataIterator> createIterator(const
+	           boost::shared_ptr<IDataSelector const> &sel) const = 0;
+
+	/// create a selector object corresponding to this type of the
+	/// DataSource
+	/// @return a shared pointer to the DataSelector corresponding to
+	/// this type of DataSource. DataSource acts as a factory and
+	/// creates a selector object of the appropriate type
+	virtual boost::shared_ptr<IDataSelector> createSelector() const = 0;
 };
 }
 #endif /*MEDATASOURCE_H_*/
