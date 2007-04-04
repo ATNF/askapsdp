@@ -86,6 +86,15 @@ public:
 	virtual void chooseTimeRange(const casa::MVEpoch &start,
 	          const casa::MVEpoch &stop) = 0;
 
+	/// Choose time range. This method accepts a time range with 
+	/// respect to the origin defined by the DataSource object.
+	/// Both start and stop times are given as Doubles.
+	/// The reference frame is the same as for the version accepting
+	/// MVEpoch and is specified via the DataSource object.
+	/// @param start the beginning of the chosen time interval
+	/// @param stop the end of the chosen time interval
+	virtual void chooseTimeRange(casa::Double start,casa::Double stop) = 0;
+
 	/// Choose polarization. 
 	/// @param stokes a string describing the wanted polarization 
 	/// in the output. Allowed values are: I, "IQUV","XXYY","RRLL"

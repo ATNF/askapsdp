@@ -10,9 +10,6 @@
 #ifndef MEDATASOURCE_H_
 #define MEDATASOURCE_H_
 
-// STL includes
-#include <string>
-
 // boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -24,75 +21,150 @@
 // own includes
 #include "MEDataIterator.h"
 #include "IDataSelector.h"
+#include "IDataConverter.h"
 
-using std::string;
-
-#include "METableDataAccessor.h"
+//#include "METableDataAccessor.h"
 
 namespace conrad {
 class MEDataSource
 {
 public:
-	/// Construct a data source
-	MEDataSource() {};
 	
-	/// empty virtual destructor to make the compiler happy
+	/// an empty virtual destructor to make the compiler happy
 	virtual ~MEDataSource();
 
-	/// set the reference frame for any time epochs 
-	/// (e.g. time-based selection, visibility timestamp)
-	/// The value of the specified measure is the origin epoch. 
-	/// All visibility timestamps will be given as offsets from
-	/// it. The units of these offsets are given by the second
-	/// parameter
-	/// @param origin a zero-point for the visibility timestamps 
-	///        (they are given as time offsets with respect to 
-	///        this origin). A reference frame of this measure is
-	///        used all time epochs (e.g. selection)
-	/// @param unit a required time unit for timestamps
+	/// create a converter object corresponding to this type of the
+	/// DataSource. The user can change converting policies (units,
+	/// reference frames) by appropriate calls to this converter object
+	/// and pass it back to createIterator(...). The data returned by
+	/// the iteratsr will automatically be in the requested frame/units
 	///
-	/// Class defaults to MJD 0 UTC, timestamp in seconds
-	virtual void setEpochFrame(const casa::MEpoch &ref,
-		   const casa::Unit &unit) = 0;
-
-	/// set the reference frame for any frequency
-	/// (e.g. in the frequency-based selection or spectral labelling)
-	/// @param ref a reference frame to be used with all frequencies
-	/// @param unit frequency units to use (frequencies will be returned
-	///             as Doubles)
+	/// @return a shared pointer to a new DataConverter object
 	///
-	/// Class defaults to LSRK, GHz
-	virtual void setFrequencyFrame(const casa::MFrequency::Ref &ref,
-		   const casa::Unit &unit) = 0;
+	/// The method acts as a factory by creating a new DataConverter.
+	/// The lifetime of this converter is the same as the lifetime of the
+	/// DataSource object. Therefore, it can be reused multiple times,
+	/// if necessary. However, the behavior of iterators created
+	/// with a particular DataConverter is undefined, if you change
+	/// the DataConverter after the creation of an iterator, unless you
+	/// call init() of the iterator (and start a new iteration loop).
+	virtual boost::shared_ptr<IDataConverter> createConverter() const = 0;
 
-	/// set the reference frame for any velocity
-	/// (e.g. in the velocity-based selection or spectral labelling)
-	/// @param ref a reference frame to be used with all velocities
-	/// @param unit velocity units to use (velocities will be returned
-	///             as Doubles)
-	///  
-	/// Class defaults to LSRK, km/s
-	virtual void setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
-			const casa::Unit &unit) = 0;
-	
 	/// get iterator over the whole dataset represented by this DataSource
-	/// object
+	/// object. Default data conversion policies will be used, see
+	/// IDataConverter.h for default values. Default implementation is
+	/// via the most general createIterator(...) call, override it in 
+	/// derived classes, if a (bit) higher performance is required
+	///
 	/// @return a shared pointer to DataIterator object
-	virtual boost::shared_ptr<MEDataIterator> createIterator() const = 0;
+	///
+	/// The method acts as a factory by creating a new DataIterator.
+	/// The lifetime of this iterator is the same as the lifetime of
+	/// the DataSource object. Therefore, it can be reused multiple times,
+	/// if necessary. 
+	virtual boost::shared_ptr<MEDataIterator> createIterator() const;
+
+	/// get iterator over the whole dataset with explicitly specified
+	/// conversion policies. Default implementation is via the most 
+	/// general createIterator(...) call, override it in the derived
+	/// classes, if a (bit) higer performance is required
+	///
+	/// @param[in] conv a shared pointer to the converter object defining
+	///            reference frames and units to be used
+	/// @return a shared pointer to DataIterator object
+	///
+	/// The method acts as a factory by creating a new DataIterator.
+	/// The lifetime of this iterator is the same as the lifetime of
+	/// the DataSource object. Therefore, it can be reused multiple times,
+	/// if necessary. 
+	virtual boost::shared_ptr<MEDataIterator> createIterator(const
+                    boost::shared_ptr<IDataConverter const> &conv) const;
+	
+	
+	/// this variant of createIterator is defined to force the type
+	/// conversion between the non-const and const smart pointers 
+	/// explicitly. Otherwise, method overloading doesn't work because
+	/// the compiler tries to build a template for interconversion
+	/// between IDataConverter and IDataSelector
+	/// 
+	/// This version just calls the appropriate virtual function and
+	/// shouldn't add any overheads, provided the compiler can optimize
+	/// inline methods properly
+	inline boost::shared_ptr<MEDataIterator> createIterator(const
+		    boost::shared_ptr<IDataConverter> &conv) const { 
+            return createIterator(static_cast<const 
+	            boost::shared_ptr<IDataConverter const>&>(conv)); 
+        }
 
 	/// get iterator over a selected part of the dataset represented
-	/// by this DataSource object
+	/// by this DataSource object. Default data conversion policies
+	/// will be used, see IDataConverter.h for default values.
+	/// The default implementation is via the most general 
+	/// createIterator(...) call, override it in derived classes, 
+	/// if a (bit) higher performance is required
+	///
 	/// @param[in] sel a shared pointer to the selector object defining 
-	///            which subset of data is used
+	///            which subset of the data is used
 	/// @return a shared pointer to DataIterator object
+	///
+	/// The method acts as a factory by creating a new DataIterator.
+	/// The lifetime of this iterator is the same as the lifetime of
+	/// the DataSource object. Therefore, it can be reused multiple times,
+	/// if necessary. 
 	virtual boost::shared_ptr<MEDataIterator> createIterator(const
-	           boost::shared_ptr<IDataSelector const> &sel) const = 0;
+	           boost::shared_ptr<IDataSelector const> &sel) const;
+
+	/// this variant of createIterator is defined to force the type
+	/// conversion between the non-const and const smart pointers 
+	/// explicitly. Otherwise, method overloading doesn't work because
+	/// the compiler tries to build a template for interconversion
+	/// between IDataConverter and IDataSelector
+	/// 
+	/// This version just calls the appropriate virtual function and
+	/// shouldn't add any overheads, provided the compiler can optimize
+	/// inline methods properly
+	inline boost::shared_ptr<MEDataIterator> createIterator(const
+		    boost::shared_ptr<IDataSelector> &sel) const { 
+            return createIterator(static_cast<const 
+                    boost::shared_ptr<IDataSelector const>&>(sel)); 
+        }
+
+	/// get iterator over a selected part of the dataset represented
+	/// by this DataSource object with an explicitly specified conversion
+	/// policy. This is the most general createIterator(...) call, which
+	/// is used as a default implementation for all less general cases
+	/// (although they can be overriden in the derived classes, if it 
+	//  will be necessary because of the performance issues)
+	///
+	/// @param[in] sel a shared pointer to the selector object defining 
+	///            which subset of the data is used
+	/// @param[in] conv a shared pointer to the converter object defining
+	///            reference frames and units to be used
+	/// @return a shared pointer to DataIterator object
+	///
+	/// The method acts as a factory by creating a new DataIterator.
+	/// The lifetime of this iterator is the same as the lifetime of
+	/// the DataSource object. Therefore, it can be reused multiple times,
+	/// if necessary. Call init() to rewind the iterator.
+	virtual boost::shared_ptr<MEDataIterator> createIterator(const
+	           boost::shared_ptr<IDataSelector const> &sel, const
+		   boost::shared_ptr<IDataConverter const> &conv) const = 0;
 
 	/// create a selector object corresponding to this type of the
 	/// DataSource
+	///
 	/// @return a shared pointer to the DataSelector corresponding to
 	/// this type of DataSource. DataSource acts as a factory and
 	/// creates a selector object of the appropriate type
+	///
+	/// This method acts as a factory by creating a new DataSelector
+	/// appropriate to the given DataSource. The lifetime of the
+	/// DataSelector is the same as the lifetime of the DataSource 
+	/// object. Therefore, it can be reused multiple times,
+	/// if necessary. However, the behavior of iterators already obtained
+	/// with this DataSelector is undefined, if one changes the selection
+	/// unless the init method is called for the iterator (and the new
+	/// iteration loop is started).
 	virtual boost::shared_ptr<IDataSelector> createSelector() const = 0;
 };
 }
