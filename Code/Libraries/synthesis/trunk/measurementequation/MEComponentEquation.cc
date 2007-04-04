@@ -1,122 +1,87 @@
 #include <dataaccess/MEDataAccessor.h>
+#include <measurementequation/MEParams.h>
 #include <measurementequation/MEComponentEquation.h>
-#include <measurementequation/MESolver.h>
+#include <measurementequation/MENormalEquations.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
 #include <casa/BasicSL/Constants.h>
 #include <casa/BasicSL/Complex.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/ArrayMath.h>
+#include <scimath/Mathematics/AutoDiff.h>
+#include <scimath/Mathematics/AutoDiffMath.h>
+
+
 
 namespace conrad
 {
-
 
 MEComponentEquation::~MEComponentEquation()
 {
 }
 
-casa::Vector<casa::Double> MEComponentEquation::calcDelay(double ra, double dec, 
-	casa::Vector<casa::RigidVector<casa::Double, 3> > uvw) {
-	casa::Vector<casa::Double> delay(uvw.nelements());
-	// TODO: Insert correct equation for delay
-	delay=0.0;
-	return delay;
-}
-
-void MEComponentEquation::predict(const MEParams& ip, MEDataAccessor& ida) {
-
-	const double& ra=ip.regular().value("Direction.RA");
-	const double& dec=ip.regular().value("Direction.DEC");
-	const double& iflux=ip.regular().value("Flux.I");
-	const double& qflux=ip.regular().value("Flux.Q");
-	const double& uflux=ip.regular().value("Flux.U");
-	const double& vflux=ip.regular().value("Flux.V");
-	
-	casa::CStokesVector cflux(iflux, qflux, uflux, vflux);
-	cflux.applyScirc();
-	
-	casa::Vector<casa::Double> delay=calcDelay(ra,dec,ida.uvw());
-	const casa::Vector<casa::Double>& frequency=ida.frequency();
-	
-	uint nChan, nRow;
-	nRow=ida.nRow();
-	nChan=frequency.nelements();
-	
-	for (int row=0;row<nRow;row++) {
-		for (int chan=0;chan<nChan;chan++) {
-			double phase=casa::C::pi*delay[row]*frequency[chan];
-			casa::Complex phasor(cos(phase), sin(phase));
-			// TODO: Need non-const version here!
-//			ida.modelVisibility()(row,chan)=cflux*phasor;
-		}
-	}
-}
-
-void MEComponentEquation::calcDerivatives(MEParams& ip, MEDataAccessor& ida, MESolver& is) 
+void MEComponentEquation::predict(const MEParams& ip, MEDataAccessor& ida) 
 {
-	uint nParam(ip.regular().nelements());	
-	casa::LSQFit fitter(nParam);
+	// Get the data from the accessor
+	casa::Vector<double> vreal;
+	casa::Vector<double> vimag;
+	// ...
 	
-	const double& ra=ip.regular().value("Direction.RA");
-	const double& dec=ip.regular().value("Direction.DEC");
-	const double& iflux=ip.regular().value("Flux.I");
-	const double& qflux=ip.regular().value("Flux.Q");
-	const double& uflux=ip.regular().value("Flux.U");
-	const double& vflux=ip.regular().value("Flux.V");
+	// Calculate values and derivatives
+	this->calc<double>(ida, ip, vreal, vimag);
 	
-	uint iRa=ip.regular()["Direction.RA"];
-	uint iDec=ip.regular()["Direction.DEC"];
-	uint iIflux=ip.regular()["Flux.I"];
-	uint iQflux=ip.regular()["Flux.Q"];
-	uint iUflux=ip.regular()["Flux.U"];
-	uint iVflux=ip.regular()["Flux.V"];
+	// Put the values back into the accessor
+	// ...
+}
+
+void MEComponentEquation::calcNormalEquations(MEParams& ip, MEDataAccessor& ida, 
+	MENormalEquations& normeq) 
+{
+	// Get the data from the accessor
+	casa::Vector<casa::AutoDiff<double> > vreal;
+	casa::Vector<casa::AutoDiff<double> > vimag;
+	// ...
 	
-	casa::Vector<casa::Double> delay=calcDelay(ra, dec, ida.uvw());
-	const casa::Vector<casa::Double>& frequency=ida.frequency();
+	// Calculate values and derivatives
+	this->calc<casa::AutoDiff<double> >(ida, ip, vreal, vimag);
 	
-	casa::uInt nChan, nRow;
-	nRow=ida.nRow();
-	nChan=frequency.nelements();
+	// Put the values back into the accessor
+	// ...
 	
-	for (int row=0;row<nRow;row++) {
-		vector<double> equations(2*nChan*nParam);
-		vector<double> values(2*nChan);
-		uint iEq=0;
-		for (int chan=0;chan<nChan;chan++) {
+	// Put the derivatives into the normal equations
+	// ...
+}
 
-			double phase=casa::C::pi*delay[row]*frequency[chan];
-			double phasor[2];
-			phasor[0]=cos(phase);
-			phasor[1]=-sin(phase);
+template<class T>
+void MEComponentEquation::calc(const MEDataAccessor& ida, const MEParams& ip, 
+	casa::Vector<T>& vreal, casa::Vector<T>& vimag) {
+	
+	const T& ra=ip.regular().value("DIRECTION.RA");
+	const T& dec=ip.regular().value("DIRECTION.DEC");
+	const T& flux=ip.regular().value("FLUX.I");
 
-			// TODO: Pack this more robustly
-//			casa::CStokesVector& rflux(ida.residualVisibility()(row,chan));
-			const casa::CStokesVector& rflux(ida.visibility()(row,chan));
-
-			equations[iEq+iIflux]=0.5*phasor[0];
-			equations[iEq+iQflux]=0.5*phasor[0];
-			values[iEq]=real(rflux(0));
-			iEq++;
-
-			equations[iEq+iIflux]=0.5*phasor[1];
-			equations[iEq+iQflux]=0.5*phasor[1];
-			values[iEq]=imag(rflux(0));
-			iEq++;
-
-			equations[iEq+iIflux]=0.5*phasor[0];
-			equations[iEq+iQflux]=-0.5*phasor[0];
-			values[iEq]=real(rflux(3));
-			iEq++;
-
-			equations[iEq+iIflux]=0.5*phasor[1];
-			equations[iEq+iQflux]=-0.5*phasor[1];
-			values[iEq]=imag(rflux(3));
-			iEq++;
+	const casa::Vector<double>& freq=ida.frequency();	
+	
+	for (uint row=0;row<ida.nRow();row++) {
+		const double& u=ida.uvw()(row)(0);
+		const double& v=ida.uvw()(row)(1);
+		T  delay;
+		delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
+		casa::Vector<T> phase(freq.nelements());
+		for (uint i=0;i<freq.nelements();i++) {
+			phase(i) = delay * freq(i);
 		}
-//		fitter.makeNorm(&equations, 1.0, &values);
+		vreal=flux*cos(phase);
+		vimag=flux*sin(phase);
 	}
-	is.addEquations(fitter);
+};
 
 }
+// Declare necessary templates
+#include <casa/Arrays/ArrayMath.cc>
+template casa::Array<casa::AutoDiff<double> > casa::cos<casa::AutoDiff<double> >(casa::Array<casa::AutoDiff<double> > const&);
+template casa::Array<casa::AutoDiff<double> > casa::sin<casa::AutoDiff<double> >(casa::Array<casa::AutoDiff<double> > const&);
+template casa::Array<casa::AutoDiff<double> > casa::operator*<casa::AutoDiff<double> >(casa::AutoDiff<double> const&, casa::Array<casa::AutoDiff<double> > const&);
 
-}

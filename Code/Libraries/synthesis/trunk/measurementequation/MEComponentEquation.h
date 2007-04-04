@@ -9,6 +9,7 @@ namespace conrad
 class MEComponentEquation : public MEquation
 {
 public:
+
 	MEComponentEquation() {};
 	virtual ~MEComponentEquation();
 	/// Predict model visibility
@@ -16,20 +17,21 @@ public:
 	/// @param ida data accessor
 	virtual void predict(const MEParams& ip, MEDataAccessor& ida);
 	
-	/// Predict and then transpose back to parameter space
+	/// Calculate the normal equations
 	/// @param ip Regular parameters
 	/// @param ida data accessor
-	/// @param ip solver to send results to
-	virtual void calcDerivatives(MEParams& ip, MEDataAccessor& ida,
-		MESolver& is);
-	
+	/// @param normeq Normal equations
+	virtual void calcNormalEquations(MEParams& ip, MEDataAccessor& ida,
+		MENormalEquations& normeq);
 	
 private:
-	casa::Vector<casa::Double> calcDelay(double ra, double dec, 
-		casa::Vector<casa::RigidVector<casa::Double, 3> > uvw);
+	/// Templated function to do the calculation of value and derivatives.
+	template<class T>
+	void calc(const MEDataAccessor& ida, const MEParams& ip, 
+		casa::Vector<T>& vreal, casa::Vector<T>& vimag);
 
 };
 
 }
 
-#endif /*COMPONENTMEUATION_H_*/
+#endif

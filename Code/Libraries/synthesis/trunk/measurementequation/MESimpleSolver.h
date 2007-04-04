@@ -11,8 +11,7 @@
 #define MESIMPLESOLVER_H_
 
 #include <measurementequation/MESolver.h>
-#include <casa/aips.h>
-#include <scimath/Fitting/LSQFit.h>
+#include <measurementequation/MENormalEquations.h>
 
 namespace conrad
 {
@@ -27,15 +26,15 @@ public:
 	virtual void init();
 	
 	/// Add in normal equations
-	/// @param fitter containing normal equations
-	virtual void addEquations(const casa::LSQFit& fitter);
+	/// @param normeq Normal Equations
+	virtual void addEquations(const MENormalEquations& normeq);
 	
 	/// Solve for parameters, updating the values kept internally
 	virtual bool solve(MEQuality& q);
 	virtual bool solveImage(MEQuality& q);
 	
 protected:
-	casa::LSQFit itsFitter;
+	MENormalEquations itsEquations;
 };
 
 }

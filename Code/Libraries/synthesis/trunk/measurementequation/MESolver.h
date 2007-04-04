@@ -16,6 +16,7 @@
 #include <scimath/Fitting/LSQFit.h>
 
 #include <measurementequation/MEParams.h>
+#include <measurementequation/MENormalEquations.h>
 #include <measurementequation/MEIterative.h>
 #include <measurementequation/MEQuality.h>
 
@@ -50,8 +51,8 @@ public:
 	MEImageParams& getImageParameters() {return itsImageParams;};
 	
 	/// Add in normal equations
-	/// @param fitter containing normal equations
-	virtual void addEquations(const casa::LSQFit& fitter) = 0;
+	/// @param normeq Normal Equations
+	virtual void addEquations(const MENormalEquations& normeq) = 0;
 	
 	/// Solve for parameters, updating the values kept internally
 	virtual bool solve(MEQuality& q) = 0;

@@ -1,4 +1,5 @@
 TARGET    = tMEquation
+SYNLIB	  = ../libsynthesis.a
 
 AIPSROOT := $(word 1, $(AIPSPATH))
 AIPSARCH := $(word 2, $(AIPSPATH))
@@ -19,13 +20,14 @@ CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 OBJECTS   = MEImage.o \
 			MESolver.o MESimpleSolver.o MEQuality.o \
             MEComponentEquation.o MEDomain.o MEParamsTable.o \
-            MEParamsRep.o
+            MEParamsRep.o MENormalEquations.o
 HEADERS   = Iterative.h \
 			MEImage.h  \
 			MESolver.h MESimpleSolver.h MEQuality.h \
 			MEParams.h MEquation.h \
             MEComponentEquation.h MEDomain.h MEParamsTable.h \
-            MEParamsRep.h MEParamsRep.tcc
+            MEParamsRep.h MEParamsRep.tcc MENormalEquations.h
+
 
 .SUFFIXES: .c .o .cc
 
@@ -34,15 +36,17 @@ HEADERS   = Iterative.h \
 
 #$(OBJECTS): $(HEADERS)
 
-$(TARGET):  $(OBJECTS) $(TARGET).cc
+$(TARGET):  $(OBJECTS) $(TARGET).cc $(SYNLIB)
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $(TARGET).o $(TARGET).cc
-	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(TARGET).o $(LIBDIRS)
+	$(LINK) $(LFLAGS) -o $(TARGET) $(TARGET).o $(SYNLIB) $(LIBDIRS)
 
+$(SYNLIB): $(OBJECTS)
+	ar r $(SYNLIB) $(OBJECTS) ../dataaccess/*.o
 
 all: tMEquation
 
 clean:
-	-rm -f $(OBJECTS) *.a tMEquation tMEquation.o
+	-rm -f $(OBJECTS) $(SYNLIB) tMEquation tMEquation.o
 
 realclean: clean
-	-rm -f $(TARGET)
+	-rm -f $(TARGET) $(SYNLIB)

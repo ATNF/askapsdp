@@ -11,13 +11,13 @@ MESimpleSolver::MESimpleSolver(const MEParams& ip)
 };
 	
 
-void MESimpleSolver::addEquations(const casa::LSQFit& fitter) {
-	itsFitter.merge(fitter);
+void MESimpleSolver::addEquations(const MENormalEquations& normeq) {
+	itsEquations.merge(normeq);
 }
 
 void MESimpleSolver::init() {
-	itsFitter.set(static_cast<uint>(itsParams.regular().nelements()));
-	itsFitter.reset();
+//	itsEquations.set(static_cast<uint>(itsParams.regular().nelements()));
+	itsEquations.reset();
 }
 bool MESimpleSolver::solve(MEQuality& quality) {
 	  uint rank;
@@ -48,6 +48,3 @@ bool MESimpleSolver::solveImage(MEQuality& q) {
 };
 
 }
-
-//#include <scimath/Fitting/LSQFit2.cc>
-//template void casa::LSQFit::makeNorm<double, double>(double const&, double const&, double const&, bool, bool)
