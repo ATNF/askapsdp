@@ -4,15 +4,13 @@
 
 namespace conrad
 {
-	
-MESimpleSolver::MESimpleSolver(const MEParams& ip) 
-{
-	init();
-};
-	
 
 void MESimpleSolver::addEquations(const MENormalEquations& normeq) {
 	itsEquations.merge(normeq);
+}
+
+void MESimpleSolver::setDesignMatrix(const MEDesignMatrix& designmatrix) {
+	itsMatrix=designmatrix;
 }
 
 void MESimpleSolver::init() {

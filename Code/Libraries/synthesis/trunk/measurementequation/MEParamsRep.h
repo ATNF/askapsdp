@@ -45,7 +45,7 @@ public:
 	vector<T>& values();
 	
 	// Return number of values
-	const uint nelements() const;
+	const uint nElements() const;
 	
 	/// Return the parameter with this name
 	/// @param name Name of param

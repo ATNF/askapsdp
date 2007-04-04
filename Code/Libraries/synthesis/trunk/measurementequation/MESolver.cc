@@ -1,14 +1,18 @@
 #include <measurementequation/MESolver.h>
-#include <casa/aips.h>
-#include <scimath/Fitting/LSQFit.h>
-#include <iostream>
 
 namespace conrad
 {
 
-MESolver::MESolver(const MEParams& ip) {
-	itsParams=ip;
+MESolver::MESolver(const MEParams& ip) : itsParams(ip) {
 };
 
+void MESolver::setParameters(const MEParams& ip) {
+	itsParams=ip;
+}
+/// Return current values of params
+const MEParams& MESolver::getParameters() const {
+	return itsParams;
+};
+	
 
 }

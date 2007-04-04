@@ -11,6 +11,7 @@ class MEComponentEquation : public MEquation
 public:
 
 	MEComponentEquation() {};
+	
 	virtual ~MEComponentEquation();
 	/// Predict model visibility
 	/// @param ip Regular parameters
@@ -23,6 +24,15 @@ public:
 	/// @param normeq Normal equations
 	virtual void calcNormalEquations(MEParams& ip, MEDataAccessor& ida,
 		MENormalEquations& normeq);
+		
+	/// Calculate the design matrix
+	/// @param ip Regular parameters
+	/// @param ida data accessor
+	/// @param design matrix
+	virtual void calcDesignMatrix(MEParams& ip, MEDataAccessor& ida,
+		MEDesignMatrix& designmatrix);
+	
+
 	
 private:
 	/// Templated function to do the calculation of value and derivatives.

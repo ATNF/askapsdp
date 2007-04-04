@@ -12,6 +12,7 @@
 
 #include <measurementequation/MESolver.h>
 #include <measurementequation/MENormalEquations.h>
+#include <measurementequation/MEDesignMatrix.h>
 
 namespace conrad
 {
@@ -20,7 +21,7 @@ class MESimpleSolver : public MESolver
 {
 public:	
 
-	MESimpleSolver(const MEParams& ip);
+	MESimpleSolver(const MEParams& ip) : MESolver(ip) {};
 	
 	/// Initialize this solver
 	virtual void init();
@@ -29,12 +30,17 @@ public:
 	/// @param normeq Normal Equations
 	virtual void addEquations(const MENormalEquations& normeq);
 	
-	/// Solve for parameters, updating the values kept internally
+	/// Set the design matrix
+	/// @param designmatrix Design Matrix
+	virtual void setDesignMatrix(const MEDesignMatrix& designmatrix);
+	
+	/// Solve for parameters
 	virtual bool solve(MEQuality& q);
 	virtual bool solveImage(MEQuality& q);
 	
 protected:
 	MENormalEquations itsEquations;
+	MEDesignMatrix itsMatrix;
 };
 
 }

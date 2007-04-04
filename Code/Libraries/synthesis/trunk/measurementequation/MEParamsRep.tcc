@@ -39,7 +39,7 @@ namespace conrad {
 	}
 	
 	template<class T>
-	const uint MEParamsRep<T>::nelements() 
+	const uint MEParamsRep<T>::nElements() const
 	{
 		return static_cast<uint>(itsIndices.max_size());
 	}

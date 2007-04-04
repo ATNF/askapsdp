@@ -29,6 +29,7 @@ namespace conrad {
 class MEParams;
 class MEDataAccessor;
 class MENormalEquations;
+class MEDesignMatrix;
 
 class MEquation {
 public:	
@@ -46,6 +47,13 @@ public:
 	/// @param normeq Normal equations
 	virtual void calcNormalEquations(MEParams& ip, MEDataAccessor& ida,
 		MENormalEquations& normeq) = 0;
+	
+	/// Calculate the design matrix
+	/// @param ip Regular parameters
+	/// @param ida data accessor
+	/// @param design matrix
+	virtual void calcDesignMatrix(MEParams& ip, MEDataAccessor& ida,
+		MEDesignMatrix& designmatrix) = 0;
 	
 };
 

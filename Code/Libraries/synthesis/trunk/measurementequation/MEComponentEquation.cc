@@ -2,6 +2,7 @@
 #include <measurementequation/MEParams.h>
 #include <measurementequation/MEComponentEquation.h>
 #include <measurementequation/MENormalEquations.h>
+#include <measurementequation/MEDesignMatrix.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
@@ -38,6 +39,24 @@ void MEComponentEquation::predict(const MEParams& ip, MEDataAccessor& ida)
 
 void MEComponentEquation::calcNormalEquations(MEParams& ip, MEDataAccessor& ida, 
 	MENormalEquations& normeq) 
+{
+	// Get the data from the accessor
+	casa::Vector<casa::AutoDiff<double> > vreal;
+	casa::Vector<casa::AutoDiff<double> > vimag;
+	// ...
+	
+	// Calculate values and derivatives
+	this->calc<casa::AutoDiff<double> >(ida, ip, vreal, vimag);
+	
+	// Put the values back into the accessor
+	// ...
+	
+	// Put the derivatives into the normal equations
+	// ...
+}
+
+void MEComponentEquation::calcDesignMatrix(MEParams& ip, MEDataAccessor& ida, 
+	MEDesignMatrix& designmatrix) 
 {
 	// Get the data from the accessor
 	casa::Vector<casa::AutoDiff<double> > vreal;

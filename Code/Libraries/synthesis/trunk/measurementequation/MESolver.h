@@ -17,6 +17,7 @@
 
 #include <measurementequation/MEParams.h>
 #include <measurementequation/MENormalEquations.h>
+#include <measurementequation/MEDesignMatrix.h>
 #include <measurementequation/MEIterative.h>
 #include <measurementequation/MEQuality.h>
 
@@ -29,38 +30,31 @@ public:
 
 	MESolver(const MEParams& ip);
 
-	MESolver() {};
+	virtual ~MESolver() {};
 	
 	/// Initialize this solver
 	virtual void init() = 0;
 	
 	/// Set the parameters
 	/// @param ip Parameters
-	void setParameters(const MEParams& ip) {
-		itsParams=ip;
-	}
-	void setParameters(const MEImageParams& iip) {
-		itsImageParams=iip;
-	}
-	
+	void setParameters(const MEParams& ip);
+
 	/// Return current values of params
-	const MEParams& getParameters() const {return itsParams;};
-	const MEImageParams& getImageParameters() const {return itsImageParams;};
-	
-	MEParams& getParameters() {return itsParams;};
-	MEImageParams& getImageParameters() {return itsImageParams;};
+	const MEParams& getParameters() const;
 	
 	/// Add in normal equations
 	/// @param normeq Normal Equations
 	virtual void addEquations(const MENormalEquations& normeq) = 0;
 	
+	/// Set the design matrix
+	/// @param designmatrix Design Matrix
+	virtual void setDesignMatrix(const MEDesignMatrix& designmatrix) = 0;
+	
 	/// Solve for parameters, updating the values kept internally
 	virtual bool solve(MEQuality& q) = 0;
-	virtual bool solveImage(MEQuality& q) = 0;
 	
 protected:
 	MEParams itsParams;
-	MEImageParams itsImageParams;
 };
 
 }
