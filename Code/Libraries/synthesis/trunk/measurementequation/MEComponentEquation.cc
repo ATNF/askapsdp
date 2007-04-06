@@ -84,6 +84,7 @@ void MEComponentEquation::calc(const MEDataAccessor& ida, const MEParams& ip,
 	const T& flux=ip.regular().value("FLUX.I");
 
 	const casa::Vector<double>& freq=ida.frequency();	
+	const casa::Vector<double>& time=ida.time();	
 	
 	for (uint row=0;row<ida.nRow();row++) {
 		const double& u=ida.uvw()(row)(0);

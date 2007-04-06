@@ -41,6 +41,18 @@ namespace synthesis
 	}
 	
 	template<class T>
+	const vector<casa::Matrix<T> >& MEParamsRep<T>::GridValues() const 
+	{
+		return itsGridValues;
+	}
+
+	template<class T>
+	vector<casa::Matrix<T> >& MEParamsRep<T>::GridValues()
+	{
+		return itsGridValues;
+	}
+
+	template<class T>
 	const uint MEParamsRep<T>::nElements() const
 	{
 		return static_cast<uint>(itsIndices.max_size());
@@ -57,6 +69,18 @@ namespace synthesis
 	{
 		return itsValues[itsIndices[name]];
 	}
+
+	template<class T>
+	const casa::Matrix<T>& MEParamsRep<T>::gridValue(const string& name) const 
+	{
+		return itsGridValues[itsIndices[name]];
+	}		
+
+	template<class T>
+	casa::Matrix<T>& MEParamsRep<T>::gridValue(const string& name)
+	{
+		return itsGridValues[itsIndices[name]];
+	}		
 
 	template<class T>
 	const uint MEParamsRep<T>::operator[](const string& name) const 
