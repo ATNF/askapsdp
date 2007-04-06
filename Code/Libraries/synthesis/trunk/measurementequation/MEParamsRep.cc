@@ -8,7 +8,10 @@
 using std::vector;
 
 namespace conrad {
+namespace synthesis
+{
 	template class MEParamsRep<double>;
 	template class MEParamsRep<MEImage>;
 	
+}
 }

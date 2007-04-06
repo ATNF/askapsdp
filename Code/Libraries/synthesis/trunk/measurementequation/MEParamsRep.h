@@ -18,6 +18,8 @@ using std::map;
 using std::vector;
 
 namespace conrad {
+namespace synthesis
+{
 
 /// TODO: Make this a scoped_ptr
 template <class T>
@@ -63,6 +65,7 @@ private:
 	bool ok();
 };
 
+}
 }
 
 #endif /*MEPARAMSBASE_H_*/

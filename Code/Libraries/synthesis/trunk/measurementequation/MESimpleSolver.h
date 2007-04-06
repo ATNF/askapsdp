@@ -16,6 +16,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 class MESimpleSolver : public MESolver
 {
@@ -43,6 +45,7 @@ protected:
 	MEDesignMatrix itsMatrix;
 };
 
+}
 }
 
 #endif /*MESOLVER_H_*/

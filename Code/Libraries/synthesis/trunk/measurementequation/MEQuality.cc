@@ -2,7 +2,9 @@
 
 namespace conrad
 {
-
+namespace synthesis
+{
+	
 MEQuality::MEQuality()
 {
 }
@@ -11,4 +13,5 @@ MEQuality::~MEQuality()
 {
 }
 
+}
 }

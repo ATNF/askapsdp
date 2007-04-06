@@ -2,6 +2,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 MESolver::MESolver(const MEParams& ip) : itsParams(ip) {
 };
@@ -15,4 +17,5 @@ const MEParams& MESolver::getParameters() const {
 };
 	
 
+}
 }

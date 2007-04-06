@@ -2,6 +2,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 MEImage::MEImage()
 {
@@ -11,4 +13,5 @@ MEImage::~MEImage()
 {
 }
 
+}
 }

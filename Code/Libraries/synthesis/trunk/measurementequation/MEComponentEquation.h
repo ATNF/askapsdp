@@ -1,9 +1,11 @@
-#ifndef COMPONENTMEQUATION_H_
-#define COMPONENTMEQUATION_H_
+#ifndef MECOMPONENTEQUATION_H_
+#define MECOMPONENTEQUATION_H_
 
 #include <measurementequation/MEquation.h>
 
 namespace conrad
+{
+namespace synthesis
 {
 
 class MEComponentEquation : public MEquation
@@ -41,6 +43,8 @@ private:
 		casa::Vector<T>& vreal, casa::Vector<T>& vimag);
 
 };
+
+}
 
 }
 

@@ -18,7 +18,7 @@
 #include <measurementequation/MEDomain.h>>
 #include <measurementequation/MEQuality.h>
 
-using namespace conrad;
+using namespace conrad::synthesis;
  
 // Someone needs these templates - I don't know who!
 casa::Matrix<casa::String> c0;

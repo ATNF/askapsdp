@@ -2,6 +2,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 MEParamsTable::MEParamsTable()
 {
@@ -19,5 +21,5 @@ bool MEParamsTable::getParameters(MEParams& ip, const MEDomain& domain) const
 bool MEParamsTable::setParameters(const MEParams& ip, const MEDomain& domain) {
 	return false;
 }
-
+}
 }

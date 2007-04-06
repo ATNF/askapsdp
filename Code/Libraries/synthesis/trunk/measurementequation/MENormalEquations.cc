@@ -2,6 +2,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 MENormalEquations::MENormalEquations()
 {
@@ -19,4 +21,5 @@ void MENormalEquations::reset()
 {
 }
 
+}
 }

@@ -18,6 +18,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 MEComponentEquation::~MEComponentEquation()
 {
@@ -96,6 +98,7 @@ void MEComponentEquation::calc(const MEDataAccessor& ida, const MEParams& ip,
 		vimag=flux*sin(phase);
 	}
 };
+}
 
 }
 // Declare necessary templates

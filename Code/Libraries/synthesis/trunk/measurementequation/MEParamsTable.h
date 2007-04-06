@@ -14,6 +14,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 class MEParamsTable
 {
@@ -33,6 +35,7 @@ public:
 	virtual bool setParameters (const MEParams& ip, const MEDomain& domain);
 };
 
+}
 }
 
 #endif /*MEPARAMSTABLE_H_*/

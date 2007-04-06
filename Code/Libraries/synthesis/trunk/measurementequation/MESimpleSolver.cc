@@ -4,6 +4,9 @@
 
 namespace conrad
 {
+namespace synthesis
+{
+
 
 void MESimpleSolver::addEquations(const MENormalEquations& normeq) {
 	itsEquations.merge(normeq);
@@ -45,4 +48,5 @@ bool MESimpleSolver::solveImage(MEQuality& q) {
 	return true;
 };
 
+}
 }

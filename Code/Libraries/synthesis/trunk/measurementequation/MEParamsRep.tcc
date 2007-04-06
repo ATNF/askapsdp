@@ -1,6 +1,8 @@
 #include <measurementequation/MEParamsRep.h>
 
 namespace conrad {
+namespace synthesis
+{
 	
 	template<class T>
 	bool MEParamsRep<T>::isFree(const string& name) {
@@ -61,5 +63,5 @@ namespace conrad {
 	{
 		return itsIndices[name];
 	}	
-
+}
 }

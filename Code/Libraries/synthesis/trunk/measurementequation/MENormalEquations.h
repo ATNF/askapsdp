@@ -10,6 +10,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 class MENormalEquations
 {
@@ -21,5 +23,5 @@ public:
 };
 
 }
-
+}
 #endif /*MENORMALEQUATIONS_H_*/

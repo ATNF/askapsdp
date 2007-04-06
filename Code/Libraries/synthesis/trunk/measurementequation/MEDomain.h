@@ -14,6 +14,9 @@
 namespace conrad
 {
 	
+namespace synthesis
+{
+
 class MEDomain
 {
 public:
@@ -65,6 +68,7 @@ private:
   double itsOffsetY;
   double itsScaleY;
   
+};
 };
 };
 #endif /*MEDOMAIN_H_*/

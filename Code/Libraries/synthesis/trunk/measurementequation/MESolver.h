@@ -23,6 +23,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 class MESolver : public MEIterative
 {
@@ -57,6 +59,7 @@ protected:
 	MEParams itsParams;
 };
 
+}
 }
 
 #endif /*MESOLVER_H_*/

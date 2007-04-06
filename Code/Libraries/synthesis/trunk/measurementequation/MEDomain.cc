@@ -2,6 +2,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 MEDomain::MEDomain()
 {
@@ -12,3 +14,4 @@ MEDomain::~MEDomain()
 }
 
 };
+}

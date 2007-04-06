@@ -2,6 +2,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 MEDesignMatrix::MEDesignMatrix()
 {
@@ -19,4 +21,5 @@ void MEDesignMatrix::reset()
 {
 }
 
+}
 }

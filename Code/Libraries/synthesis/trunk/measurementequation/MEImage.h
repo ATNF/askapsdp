@@ -9,11 +9,11 @@
 #ifndef MEIMAGE_H_
 #define MEIMAGE_H_
 
-#include <iostream.h>
-
 #include <images/Images/TempImage.h>
 
 namespace conrad
+{
+namespace synthesis
 {
 
 typedef casa::Float MEImagePixelType ;
@@ -25,6 +25,7 @@ public:
 	virtual ~MEImage();
 };
 
+}
 }
 
 #endif /*MEIMAGE_H_*/

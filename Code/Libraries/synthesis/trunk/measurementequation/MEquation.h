@@ -25,9 +25,12 @@
 #define MEQUATION_H
 
 namespace conrad { 
+class MEDataAccessor;
+namespace synthesis
+{
 
 class MEParams;
-class MEDataAccessor;
+//class MEDataAccessor;
 class MENormalEquations;
 class MEDesignMatrix;
 
@@ -58,7 +61,7 @@ public:
 };
 
 }
-
+}
 #endif
 
 

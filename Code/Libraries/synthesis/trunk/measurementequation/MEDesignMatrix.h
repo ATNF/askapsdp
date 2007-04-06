@@ -10,6 +10,9 @@
 
 namespace conrad
 {
+	namespace synthesis
+{
+	
 
 class MEDesignMatrix
 {
@@ -20,6 +23,7 @@ public:
 	void reset();
 };
 
+}
 }
 
 #endif /*MENORMALEQUATIONS_H_*/

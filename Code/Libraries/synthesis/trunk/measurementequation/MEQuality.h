@@ -3,6 +3,8 @@
 
 namespace conrad
 {
+namespace synthesis
+{
 
 class MEQuality
 {
@@ -12,5 +14,5 @@ public:
 };
 
 }
-
+}
 #endif /*MEQUALITY_H_*/

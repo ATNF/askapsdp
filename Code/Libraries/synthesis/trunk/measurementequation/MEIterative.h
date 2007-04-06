@@ -3,6 +3,9 @@
 
 namespace conrad
 {
+namespace synthesis
+{
+	
 
 class MEIterative
 {
@@ -25,6 +28,7 @@ private:
 	double itsTol;
 };
 
+}
 }
 
 #endif /*ITERATIVE_H_*/

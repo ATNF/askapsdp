@@ -12,6 +12,8 @@
 #include <measurementequation/MEImage.h>
 
 namespace conrad {
+namespace synthesis
+{
 
 typedef MEParamsRep<MEImage> MEImageParams; 
 typedef MEParamsRep<double> MERegularParams;
@@ -37,6 +39,7 @@ private:
 	MEImageParams itsImage;
 };
 
+}
 }
 
 #endif /*MEPARAMS_H_*/
