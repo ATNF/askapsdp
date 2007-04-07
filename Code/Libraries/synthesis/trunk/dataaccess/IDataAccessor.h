@@ -1,6 +1,6 @@
 /// @file IDataAccessor.h
 ///
-/// IDataAccessor: Interface class to access buffered visibility data
+/// IDataAccessor: Interface class to access visibility data
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -10,21 +10,20 @@
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Cube.h>
 #include <casa/Quanta/MVDirection.h>
 #include <scimath/Mathematics/RigidVector.h>
-#include <msvis/MSVis/StokesVector.h>
 
 
 namespace conrad {
 
 namespace synthesis {
 
-/// MEDataAccessor: an interface class to access buffered visibility data
+/// IDataAccessor: an interface class to access buffered visibility data
 /// working instances include a chunk of streamed data or a portion
 /// of the disk-based table. A reference to this type is supposed to be
-/// returned by a DataSource object, which determines the actual source
-/// of data as follows from its name, and provides some selection and
-/// on-the-fly frame conversions
+/// returned by a DataIterator object
 class IDataAccessor
 {
 public:
@@ -41,6 +40,10 @@ public:
 	/// The number of spectral channels (equal for all rows)
 	/// @return the number of spectral channels
 	virtual casa::uInt nChannel() const throw() = 0;
+
+	/// The number of polarization products (equal for all rows)
+	/// @return the number of polarization products (can be 1,2 or 4)
+	virtual casa::uInt nPol() const throw() = 0;
 
 	/// First antenna IDs for all rows
 	/// @return a vector with IDs of the first antenna corresponding
@@ -84,18 +87,18 @@ public:
 	/// visibility/row
 	virtual const casa::Vector<casa::MVDirection>& pointingDir2() const = 0;
 
-        /// Visibilities (a matrix is nRow x nChannel; each element is
-	/// a stokes vector)
-	/// @return a reference to nRow x nChannel matrix, containing
+        /// Visibilities (a cube is nRow x nChannel x nPol; each element is
+	/// a complex visibility)
+	/// @return a reference to nRow x nChannel x nPol cube, containing
 	/// all visibility data
 	/// TODO:
 	///     a non-const version to be able to subtract the model
-	virtual const casa::Matrix<casa::CStokesVector>& visibility() const = 0;
+	virtual const casa::Cube<casa::Complex>& visibility() const = 0;
 
-	/// Matrix of flags
-	/// @return a reference to nRow x nChannel matrix with flag information
-	/// if True, the corresponding element is flagged.
-	virtual const casa::Matrix<casa::Bool>& flag() const = 0;
+	/// Cube of flags corresponding to the output of visibility() 
+	/// @return a reference to nRow x nChannel x nPol cube with flag 
+	///         information. If True, the corresponding element is flagged.
+	virtual const casa::Cube<casa::Bool>& flag() const = 0;
 
 	/// UVW
 	/// @return a reference to vector containing uvw-coordinates
@@ -106,11 +109,12 @@ public:
         /// Noise level required for a proper weighting
 	/// It is assumed at this stage that the same figure is valid for
 	/// all spectral channels, although there could be a difference
-	/// between different polarizations (hence CStokesVector)
-	/// @return a vector (one element for each row) of CStokesVectors
-	///         with resulting noise figure for each polarization
-	///         (polarization conversion is taken into account)
-	virtual const casa::Vector<casa::CStokesVector>& noise() const = 0;
+	/// between different polarizations (hence a Matrix)
+	/// @return a Matrix of complex noise estimates, rows correspond to
+	///         the rows in this buffer, columns correspond to 
+	///         polarizations (polarization conversion and selection
+	///         are taken into account)
+	virtual const casa::Matrix<casa::Complex>& noise() const = 0;
 
 	/// Timestamp for each row
 	/// @return a reference to vector containing timestamps for each
@@ -130,4 +134,4 @@ public:
 
 } // end of namespace conrad
 
-#endif /*ME_DATA_ACCESSOR_H*/
+#endif // #ifndef _I_DATA_ACCESSOR_H
