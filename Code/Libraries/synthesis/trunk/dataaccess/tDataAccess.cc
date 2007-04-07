@@ -6,20 +6,20 @@
 
 #include <boost/shared_ptr.hpp>
 
-//#include <METableDataAccessor.h>
 #include "IDataSelector.h"
-#include "MEDataIterator.h"
-#include "MEDataSource.h"
+#include "IDataIterator.h"
+#include "IDataSource.h"
 
 using namespace conrad;
 using namespace boost;
 using namespace casa;
+using namespace synthesis;
 
 /// We don't yet have a valid implementation of the interfaces.
 /// Therefore all operations have been collected inside a function 
 /// (we can use just the interface here to check whether it compiles)
 
-void doTest(const shared_ptr<MEDataSource> &ds) {
+void doTest(const shared_ptr<IDataSource> &ds) {
      AlwaysAssert((Bool)ds,AipsError);
      
      // obtain and configure data selector
@@ -28,13 +28,13 @@ void doTest(const shared_ptr<MEDataSource> &ds) {
      sel->chooseStokes("IQUV");
 
      // get the iterator
-     shared_ptr<MEDataIterator> it=ds->createIterator(sel);
+     shared_ptr<IDataIterator> it=ds->createIterator(sel);
 
      // don't need it->init() the first time, although it won't do any harm
      for (;it->hasMore();it->next()) {
          cout<<"Block has "<<(*it)->nRow()<<" rows"<<endl; 
 	 // an alternative way of access
-	 const MEDataAccessor &da=*(*it);
+	 const IDataAccessor &da=*(*it);
 	 cout<<"Number of channels: "<<da.nChannel()<<endl; // should be 100
      }
 }

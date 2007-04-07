@@ -1,29 +1,32 @@
 /// @file
 ///
-/// MEDataIterator: Allow iteration across preselected data. Each 
-/// iteration step is represented by the MEDataAccessor interface.
-/// The idea is that an iterator object will be obtained via MEDataSource
+/// IDataIterator: Allow iteration across preselected data. Each 
+/// iteration step is represented by the IDataAccessor interface.
+/// The idea is that an iterator object will be obtained via IDataSource
 /// which will take care of the actual method to access the data and the
 /// source (a MeasurementSet or a stream). Any class controlling data selection
 /// is likely to be held by a real implementation of the iterator. However,
-/// it will be set up via the MEDataSource object and IS NOT a part of this
+/// it will be set up via the IDataSource object and IS NOT a part of this
 /// interface.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef MEDATAITERATOR_H_
-#define MEDATAITERATOR_H_
+#ifndef I_DATA_ITERATOR_H
+#define I_DATA_ITERATOR_H
 
-#include "MEDataAccessor.h"
+#include "IDataAccessor.h"
 
 namespace conrad {
-class MEDataIterator
+
+namespace synthesis {
+
+class IDataIterator
 {
 public:
 	/// an empty virtual destructor to make the compiler happy
-	virtual ~MEDataIterator();
+	virtual ~IDataIterator();
 	
 	/// Restart the iteration from the beginning
 	virtual void init() = 0;
@@ -32,7 +35,7 @@ public:
 	
 	/// operator* delivers a reference to data accessor (current chunk)
 	/// @return a reference to the current chunk
-	virtual const MEDataAccessor& operator*() const = 0;
+	virtual const IDataAccessor& operator*() const = 0;
 	
 	/// operator-> delivers a pointer. 
 	/// @return a pointer to the current chunk
@@ -40,7 +43,7 @@ public:
 	/// The default implementation works via operator*, however to 
 	/// avoid an additional function call, the method
 	/// can be specialized in the derived classes
-	virtual const MEDataAccessor* operator->() const;
+	virtual const IDataAccessor* operator->() const;
 
 	/// Checks whether there are more data available.
 	/// @return True if there are more data available
@@ -63,7 +66,10 @@ public:
 	/// The default implementation is via next(), however one can
 	/// override this method in a derived class to avoid this (slight)
 	/// overhead
-	virtual MEDataIterator& operator++(int);
+	virtual IDataIterator& operator++(int);
 };
-}
-#endif /*MEDATAITERATOR_H_*/
+
+} // end of namespace synthesis
+
+} // end of namespace conrad
+#endif // #ifndef I_DATA_ITERATOR_H

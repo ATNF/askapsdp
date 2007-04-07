@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MEDataIterator: Allow iteration across preselected data. Each 
+/// IDataIterator: Allow iteration across preselected data. Each 
 /// iteration step is represented by the MEDataAccessor interface.
 /// The idea is that an iterator object will be obtained via MEDataSource
 /// which will take care of the actual method to access the data and the
@@ -13,16 +13,18 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include "MEDataIterator.h"
-#include "MEDataAccessor.h"
+#include "IDataIterator.h"
+#include "IDataAccessor.h"
 
 namespace conrad {
 
-/// MEDataIterator is an abstract class defining the interface
+namespace synthesis {
+
+/// IDataIterator is an abstract class defining the interface
 /// Only some trivial methods are defined here
 
 /// an empty virtual destructor to make the compiler happy
-MEDataIterator::~MEDataIterator()
+IDataIterator::~IDataIterator()
 {
 }
 	
@@ -32,7 +34,7 @@ MEDataIterator::~MEDataIterator()
 /// The default implementation works via operator*, however to 
 /// avoid an additional function call, the method
 /// can be specialized in the derived classes
-const MEDataAccessor* MEDataIterator::operator->() const
+const IDataAccessor* IDataIterator::operator->() const
 {
   return &(operator*());
 }
@@ -42,7 +44,7 @@ const MEDataAccessor* MEDataIterator::operator->() const
 /// The Default implementation works via hasMore(), however 
 /// one can override the method in a derived class to avoid 
 /// this (slight) overhead
-casa::Bool MEDataIterator::atEnd() const throw()
+casa::Bool IDataIterator::atEnd() const throw()
 { 
   return !hasMore();
 }
@@ -52,10 +54,12 @@ casa::Bool MEDataIterator::atEnd() const throw()
 /// The default implementation is via next(), however one can
 /// override this method in a derived class to avoid this (slight)
 /// overhead
-MEDataIterator& MEDataIterator::operator++(int)
+IDataIterator& IDataIterator::operator++(int)
 {
   next();
   return *this;
 }
 
-} // namespace conrad
+} // end of namespace synthesis
+
+} // end of namespace conrad

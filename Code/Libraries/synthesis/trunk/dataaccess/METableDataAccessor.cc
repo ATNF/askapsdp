@@ -10,6 +10,7 @@
 
 using namespace conrad;
 using namespace casa;
+using namespace synthesis;
 
 /// The number of rows in this chunk
 /// @return the number of rows in this chunk

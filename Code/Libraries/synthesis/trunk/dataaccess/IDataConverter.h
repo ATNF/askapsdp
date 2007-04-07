@@ -24,6 +24,9 @@
 #include <measures/Measures/MRadialVelocity.h>
 
 namespace conrad {
+
+namespace synthesis {
+	
 class IDataConverter
 {
 public:
@@ -67,5 +70,8 @@ public:
 	virtual void setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
 			const casa::Unit &unit = "km/s") = 0;
 };
-}
+
+} // namespace synthesis
+
+} // namespace conrad
 #endif // I_DATA_CONVERTER_H

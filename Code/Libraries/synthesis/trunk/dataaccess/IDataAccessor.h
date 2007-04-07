@@ -1,12 +1,12 @@
-/// @file MEDataAccessor.h
+/// @file IDataAccessor.h
 ///
-/// MEDataAccessor: Interface class to access buffered visibility data
+/// IDataAccessor: Interface class to access buffered visibility data
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef ME_DATA_ACCESSOR_H
-#define ME_DATA_ACCESSOR_H
+#ifndef I_DATA_ACCESSOR_H
+#define I_DATA_ACCESSOR_H
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -17,18 +17,20 @@
 
 namespace conrad {
 
+namespace synthesis {
+
 /// MEDataAccessor: an interface class to access buffered visibility data
 /// working instances include a chunk of streamed data or a portion
 /// of the disk-based table. A reference to this type is supposed to be
 /// returned by a DataSource object, which determines the actual source
 /// of data as follows from its name, and provides some selection and
 /// on-the-fly frame conversions
-class MEDataAccessor
+class IDataAccessor
 {
 public:
 	
 	/// Destruct
-	virtual ~MEDataAccessor();
+	virtual ~IDataAccessor();
 		
 	/// The number of rows in this chunk
 	/// @return the number of rows in this chunk
@@ -123,6 +125,8 @@ public:
 	///         the DataSource object
 	virtual const casa::Vector<casa::Double>& frequency() const = 0;
 };
+
+} // end of namespace synthesis
 
 } // end of namespace conrad
 

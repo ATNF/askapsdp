@@ -8,13 +8,17 @@
 #ifndef ME_TABLE_DATA_ACCESSOR_H
 #define ME_TABLE_DATA_ACCESSOR_H
 
-#include "MEDataAccessor.h"
+#include "IDataAccessor.h"
 
 namespace conrad {
+	
+
+namespace synthesis {
+
 /// METableDataAccessor: one of possible implementations of the
 /// class to access buffered visibility data.
 /// stubbed behavior at this stage
-class METableDataAccessor : public MEDataAccessor
+class METableDataAccessor : public IDataAccessor
 {
      /// The number of rows in this chunk
      /// @return the number of rows in this chunk
@@ -127,6 +131,8 @@ private:
      mutable casa::Vector<casa::Double> mFrequency;
 };
 
+
+} // namespace synthesis
 
 } // namespace conrad
 

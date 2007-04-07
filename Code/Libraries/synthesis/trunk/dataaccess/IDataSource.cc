@@ -1,9 +1,11 @@
-#include "MEDataSource.h"
+#include "IDataSource.h"
 
 namespace conrad {
 
+namespace synthesis {
+
 // an empty virtual destructor to make the compiler happy
-MEDataSource::~MEDataSource()
+IDataSource::~IDataSource()
 {
 }
 
@@ -22,7 +24,7 @@ MEDataSource::~MEDataSource()
 /// The lifetime of this iterator is the same as the lifetime of
 /// the DataSource object. Therefore, it can be reused multiple times,
 /// if necessary.
-boost::shared_ptr<MEDataIterator> MEDataSource::createIterator(const
+boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
             boost::shared_ptr<IDataSelector const> &sel) const {
     // create a new default converter just for this new iterator
     return createIterator(sel,createConverter());
@@ -40,7 +42,7 @@ boost::shared_ptr<MEDataIterator> MEDataSource::createIterator(const
 /// The lifetime of this iterator is the same as the lifetime of
 /// the DataSource object. Therefore, it can be reused multiple times,
 /// if necessary.
-boost::shared_ptr<MEDataIterator> MEDataSource::createIterator() const {
+boost::shared_ptr<IDataIterator> IDataSource::createIterator() const {
     // create new default selector and converter just for this new iterator
     return createIterator(createSelector(),createConverter());
 }
@@ -58,10 +60,11 @@ boost::shared_ptr<MEDataIterator> MEDataSource::createIterator() const {
 /// The lifetime of this iterator is the same as the lifetime of
 /// the DataSource object. Therefore, it can be reused multiple times,
 /// if necessary.
-boost::shared_ptr<MEDataIterator> MEDataSource::createIterator(const
-	boost::shared_ptr<IDataConverter> &conv) const {
+boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
+	boost::shared_ptr<IDataConverter const> &conv) const {
     return createIterator(createSelector(),conv);
 }
 
-}
+} // end of namespace synthesis
 
+} // end of namespace conrad

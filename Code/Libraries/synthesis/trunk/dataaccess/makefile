@@ -16,10 +16,10 @@ LIBDIRS   = $(CASALIB)
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
-OBJECTS   = MEDataAccessor.o MEDataSource.o METableDataAccessor.o \
-            MEDataIterator.o IDataConverter.o
-HEADERS   = MEDataAccessor.h MEDataSource.h METableDataAccessor.h \
-            MEDataIterator.h IDataSelector.h IDataConverter.h
+OBJECTS   = IDataAccessor.o IDataSource.o METableDataAccessor.o \
+            IDataIterator.o IDataConverter.o
+HEADERS   = IDataAccessor.h IDataSource.h METableDataAccessor.h \
+            IDataIterator.h IDataSelector.h IDataConverter.h
 
 .SUFFIXES: .c .o .cc
 

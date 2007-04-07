@@ -18,6 +18,8 @@
 
 namespace conrad {
 
+namespace synthesis {
+	
 // A derivative from this class is passed to a DataSource object in the
 // request for an iterator. The iterator obtained that way runs through
 // the selected part of the dataset (doesn't matter disk or stream based).
@@ -101,6 +103,8 @@ public:
 	virtual void chooseStokes(const casa::String &stokes) = 0;
        
 };
+
+} // end of namespace synthesis
 
 } // end of namespace conrad
 

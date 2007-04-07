@@ -7,8 +7,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef MEDATASOURCE_H_
-#define MEDATASOURCE_H_
+#ifndef I_DATA_SOURCE_H
+#define I_DATA_SOURCE_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -19,19 +19,21 @@
 #include <measures/Measures/MRadialVelocity.h>
 
 // own includes
-#include "MEDataIterator.h"
+#include "IDataIterator.h"
 #include "IDataSelector.h"
 #include "IDataConverter.h"
 
-//#include "METableDataAccessor.h"
 
 namespace conrad {
-class MEDataSource
+
+namespace synthesis {
+
+class IDataSource
 {
 public:
 	
 	/// an empty virtual destructor to make the compiler happy
-	virtual ~MEDataSource();
+	virtual ~IDataSource();
 
 	/// create a converter object corresponding to this type of the
 	/// DataSource. The user can change converting policies (units,
@@ -62,7 +64,7 @@ public:
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
-	virtual boost::shared_ptr<MEDataIterator> createIterator() const;
+	virtual boost::shared_ptr<IDataIterator> createIterator() const;
 
 	/// get iterator over the whole dataset with explicitly specified
 	/// conversion policies. Default implementation is via the most 
@@ -77,7 +79,7 @@ public:
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
-	virtual boost::shared_ptr<MEDataIterator> createIterator(const
+	virtual boost::shared_ptr<IDataIterator> createIterator(const
                     boost::shared_ptr<IDataConverter const> &conv) const;
 	
 	
@@ -90,7 +92,7 @@ public:
 	/// This version just calls the appropriate virtual function and
 	/// shouldn't add any overheads, provided the compiler can optimize
 	/// inline methods properly
-	inline boost::shared_ptr<MEDataIterator> createIterator(const
+	inline boost::shared_ptr<IDataIterator> createIterator(const
 		    boost::shared_ptr<IDataConverter> &conv) const { 
             return createIterator(static_cast<const 
 	            boost::shared_ptr<IDataConverter const>&>(conv)); 
@@ -111,7 +113,7 @@ public:
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
-	virtual boost::shared_ptr<MEDataIterator> createIterator(const
+	virtual boost::shared_ptr<IDataIterator> createIterator(const
 	           boost::shared_ptr<IDataSelector const> &sel) const;
 
 	/// this variant of createIterator is defined to force the type
@@ -123,7 +125,7 @@ public:
 	/// This version just calls the appropriate virtual function and
 	/// shouldn't add any overheads, provided the compiler can optimize
 	/// inline methods properly
-	inline boost::shared_ptr<MEDataIterator> createIterator(const
+	inline boost::shared_ptr<IDataIterator> createIterator(const
 		    boost::shared_ptr<IDataSelector> &sel) const { 
             return createIterator(static_cast<const 
                     boost::shared_ptr<IDataSelector const>&>(sel)); 
@@ -146,7 +148,7 @@ public:
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. Call init() to rewind the iterator.
-	virtual boost::shared_ptr<MEDataIterator> createIterator(const
+	virtual boost::shared_ptr<IDataIterator> createIterator(const
 	           boost::shared_ptr<IDataSelector const> &sel, const
 		   boost::shared_ptr<IDataConverter const> &conv) const = 0;
 
@@ -167,5 +169,6 @@ public:
 	/// iteration loop is started).
 	virtual boost::shared_ptr<IDataSelector> createSelector() const = 0;
 };
-}
-#endif /*MEDATASOURCE_H_*/
+} // end of namespace synthesis
+} // end of namespace conrad
+#endif // I_DATA_SOURCE_H
