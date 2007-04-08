@@ -42,7 +42,7 @@ public:
 	/// @return a reference to nRow x nChannel x nPol cube, containing
 	/// all visibility data
 	///
-	virtual const casa::Cube<casa::Complex>& visibility() = 0;
+	virtual casa::Cube<casa::Complex>& visibility() = 0;
 };
 
 } // end of namespace synthesis

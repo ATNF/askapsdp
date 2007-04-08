@@ -1,14 +1,14 @@
 /// @file
 ///
-/// IDataSource: Allow access to a source of visibility data, probably
+/// IConstDataSource: Allow access to a source of visibility data, probably
 /// either a MeasurementSet or a stream.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_DATA_SOURCE_H
-#define I_DATA_SOURCE_H
+#ifndef I_CONST_DATA_SOURCE_H
+#define I_CONST_DATA_SOURCE_H
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -28,12 +28,12 @@ namespace conrad {
 
 namespace synthesis {
 
-class IDataSource
+class IConstDataSource
 {
 public:
 	
 	/// an empty virtual destructor to make the compiler happy
-	virtual ~IDataSource();
+	virtual ~IConstDataSource();
 
 	/// create a converter object corresponding to this type of the
 	/// DataSource. The user can change converting policies (units,
@@ -55,31 +55,32 @@ public:
 	/// get iterator over the whole dataset represented by this DataSource
 	/// object. Default data conversion policies will be used, see
 	/// IDataConverter.h for default values. Default implementation is
-	/// via the most general createIterator(...) call, override it in 
+	/// via the most general createConstIterator(...) call, override it in 
 	/// derived classes, if a (bit) higher performance is required
 	///
-	/// @return a shared pointer to DataIterator object
+	/// @return a shared pointer to ConstDataIterator object
 	///
 	/// The method acts as a factory by creating a new ConstDataIterator.
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
-	virtual boost::shared_ptr<IConstDataIterator> createIterator() const;
+	virtual boost::shared_ptr<IConstDataIterator> 
+		                  createConstIterator() const;
 
 	/// get iterator over the whole dataset with explicitly specified
 	/// conversion policies. Default implementation is via the most 
-	/// general createIterator(...) call, override it in the derived
+	/// general createConstIterator(...) call, override it in the derived
 	/// classes, if a (bit) higer performance is required
 	///
 	/// @param[in] conv a shared pointer to the converter object defining
 	///            reference frames and units to be used
-	/// @return a shared pointer to DataIterator object
+	/// @return a shared pointer to ConstDataIterator object
 	///
 	/// The method acts as a factory by creating a new ConstDataIterator.
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
-	virtual boost::shared_ptr<IConstDataIterator> createIterator(const
+	virtual boost::shared_ptr<IConstDataIterator> createConstIterator(const
                     boost::shared_ptr<IDataConverter const> &conv) const;
 	
 	
@@ -92,9 +93,9 @@ public:
 	/// This version just calls the appropriate virtual function and
 	/// shouldn't add any overheads, provided the compiler can optimize
 	/// inline methods properly
-	inline boost::shared_ptr<IConstDataIterator> createIterator(const
+	inline boost::shared_ptr<IConstDataIterator> createConstIterator(const
 		    boost::shared_ptr<IDataConverter> &conv) const { 
-            return createIterator(static_cast<const 
+            return createConstIterator(static_cast<const 
 	            boost::shared_ptr<IDataConverter const>&>(conv)); 
         }
 
@@ -102,7 +103,7 @@ public:
 	/// by this DataSource object. Default data conversion policies
 	/// will be used, see IDataConverter.h for default values.
 	/// The default implementation is via the most general 
-	/// createIterator(...) call, override it in derived classes, 
+	/// createConstIterator(...) call, override it in derived classes, 
 	/// if a (bit) higher performance is required
 	///
 	/// @param[in] sel a shared pointer to the selector object defining 
@@ -113,10 +114,10 @@ public:
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
-	virtual boost::shared_ptr<IConstDataIterator> createIterator(const
+	virtual boost::shared_ptr<IConstDataIterator> createConstIterator(const
 	           boost::shared_ptr<IDataSelector const> &sel) const;
 
-	/// this variant of createIterator is defined to force the type
+	/// this variant of createConstIterator is defined to force the type
 	/// conversion between the non-const and const smart pointers 
 	/// explicitly. Otherwise, method overloading doesn't work because
 	/// the compiler tries to build a template for interconversion
@@ -125,9 +126,9 @@ public:
 	/// This version just calls the appropriate virtual function and
 	/// shouldn't add any overheads, provided the compiler can optimize
 	/// inline methods properly
-	inline boost::shared_ptr<IConstDataIterator> createIterator(const
+	inline boost::shared_ptr<IConstDataIterator> createConstIterator(const
 		    boost::shared_ptr<IDataSelector> &sel) const { 
-            return createIterator(static_cast<const 
+            return createConstIterator(static_cast<const 
                     boost::shared_ptr<IDataSelector const>&>(sel)); 
         }
 
@@ -148,7 +149,7 @@ public:
 	/// The lifetime of this iterator is the same as the lifetime of
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. Call init() to rewind the iterator.
-	virtual boost::shared_ptr<IConstDataIterator> createIterator(const
+	virtual boost::shared_ptr<IConstDataIterator> createConstIterator(const
 	           boost::shared_ptr<IDataSelector const> &sel, const
 		   boost::shared_ptr<IDataConverter const> &conv) const = 0;
 
@@ -171,4 +172,4 @@ public:
 };
 } // end of namespace synthesis
 } // end of namespace conrad
-#endif // I_DATA_SOURCE_H
+#endif // I_CONST_DATA_SOURCE_H
