@@ -55,7 +55,7 @@ public:
 	/// @return a reference to writable data accessor to the
 	///         buffer requested
 	///
-	virtual IConstWritableAccessor& buffer(casa::uInt bufferID) const = 0;
+	virtual IConstDataAccessor& buffer(casa::uInt bufferID) const = 0;
 
 	/// advance the iterator one step further
 	///

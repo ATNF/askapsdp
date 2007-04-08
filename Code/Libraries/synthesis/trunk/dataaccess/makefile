@@ -16,11 +16,11 @@ LIBDIRS   = $(CASALIB)
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
-OBJECTS   = IDataAccessor.o IDataSource.o \
-            IDataIterator.o IDataConverter.o IBufferIterator.o
-HEADERS   = IDataAccessor.h IDataSource.h  IWritableAccessor.h \
-            IDataIterator.h IDataSelector.h IDataConverter.h \
-	    IBufferIterator.h
+OBJECTS   = IConstDataAccessor.o IDataSource.o \
+            IDataIterator.o IDataConverter.o IConstDataIterator.o
+HEADERS   = IDataAccessor.h IDataSource.h  IConstDataAccessor.h \
+            IConstDataIterator.h IDataSelector.h IDataConverter.h \
+	    IDataIterator.h 
 
 .SUFFIXES: .c .o .cc
 
