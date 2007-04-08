@@ -23,7 +23,7 @@ class MESimpleSolver : public MESolver
 {
 public:	
 
-	MESimpleSolver(const MEParams& ip) : MESolver(ip) {};
+	MESimpleSolver(const MEParams& ip) : MESolver(ip), itsEquations(ip), itsMatrix(ip) {};
 	
 	/// Initialize this solver
 	virtual void init();

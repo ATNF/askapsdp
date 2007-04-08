@@ -12,35 +12,31 @@ class MEComponentEquation : public MEquation
 {
 public:
 
-	MEComponentEquation() {};
+	MEComponentEquation() : MEquation() {};
+	MEComponentEquation(const MEParams& ip) : MEquation(ip) {};
 	
 	virtual ~MEComponentEquation();
 	/// Predict model visibility
-	/// @param ip Regular parameters
 	/// @param ida data accessor
-	virtual void predict(const MEParams& ip, MEDataAccessor& ida);
+	virtual void predict(IDataAccessor& ida);
 	
 	/// Calculate the normal equations
-	/// @param ip Regular parameters
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcNormalEquations(MEParams& ip, MEDataAccessor& ida,
+	virtual void calcNormalEquations(IDataAccessor& ida,
 		MENormalEquations& normeq);
 		
 	/// Calculate the design matrix
 	/// @param ip Regular parameters
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcDesignMatrix(MEParams& ip, MEDataAccessor& ida,
+	virtual void calcDesignMatrix(IDataAccessor& ida,
 		MEDesignMatrix& designmatrix);
-	
-
 	
 private:
 	/// Templated function to do the calculation of value and derivatives.
 	template<class T>
-	void calc(const MEDataAccessor& ida, const MEParams& ip, 
-		casa::Vector<T>& vreal, casa::Vector<T>& vimag);
+	void calc(const IDataAccessor& ida, casa::Vector<T>& vreal, casa::Vector<T>& vimag);
 
 };
 

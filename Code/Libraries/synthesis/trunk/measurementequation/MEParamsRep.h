@@ -21,12 +21,15 @@ namespace conrad {
 namespace synthesis
 {
 
-/// TODO: Make this a scoped_ptr
 template <class T>
 class MEParamsRep {
 public:
 
 	MEParamsRep() {};
+	
+	MEParamsRep operator=(const MEParamsRep& other);
+	
+	MEParamsRep(const MEParamsRep& other);
 			
 	/// Add an Parameter
 	/// @param name Name of param to be added
@@ -47,16 +50,22 @@ public:
 	vector<T>& values();
 	
 	// Return number of values
-	const uint nElements() const;
+	const uint size() const;
 	
 	/// Return the parameter with this name
 	/// @param name Name of param
 	const T& value(const string& name) const;		
 	T& value(const string& name);
+	
+	bool has(const string& name) const;
 
 	/// Return the index with this name
 	/// @param name Name of param
 	const uint operator[](const string& name) const;		
+
+	/// Is this set congruent with another?
+	bool isCongruent(const MEParamsRep& other) const;
+
 
 private:
 	mutable map<string, uint> itsIndices;

@@ -12,14 +12,16 @@ namespace conrad
 {
 namespace synthesis
 {
+	
+class MEParams;
 
 class MENormalEquations
 {
 public:
-	MENormalEquations();
+	MENormalEquations(const MEParams& ip);
 	virtual ~MENormalEquations();
-	void merge(const MENormalEquations& other);
-	void reset();
+	virtual void merge(const MENormalEquations& other);
+	virtual void reset();
 };
 
 }

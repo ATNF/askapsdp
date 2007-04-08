@@ -1,11 +1,12 @@
 #include <measurementequation/MENormalEquations.h>
+#include <measurementequation/MEParams.h>
 
 namespace conrad
 {
 namespace synthesis
 {
 
-MENormalEquations::MENormalEquations()
+MENormalEquations::MENormalEquations(const MEParams& ip)
 {
 }
 

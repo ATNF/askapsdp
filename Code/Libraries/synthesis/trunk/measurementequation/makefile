@@ -28,6 +28,7 @@ HEADERS   = Iterative.h \
             MEComponentEquation.h MEDomain.h MEParamsTable.h \
             MEParamsRep.h MEParamsRep.tcc MENormalEquations.h MEDesignMatrix.h
 
+.tcc.cc:
 
 .SUFFIXES: .c .o .cc
 

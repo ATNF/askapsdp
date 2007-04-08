@@ -1,6 +1,7 @@
 #include <casa/aips.h>
 #include <casa/Exceptions.h>
 #include <casa/Utilities/Assert.h>
+#include <casa/BasicSL/String.h>
 
 #include <iostream.h>
 
@@ -9,8 +10,10 @@
 
 #include <iostream.h>
 
-#include <dataaccess/MEDataSource.h>
+#include <dataaccess/IDataSource.h>
 #include <dataaccess/IDataSelector.h>
+#include <dataaccess/IDataAccessor.h>
+#include <dataaccess/IDataIterator.h>
 #include <measurementequation/MESimpleSolver.h>
 #include <measurementequation/MEComponentEquation.h>
 #include <measurementequation/MEParams.h>
@@ -19,30 +22,21 @@
 #include <measurementequation/MEQuality.h>
 
 using namespace conrad::synthesis;
+using namespace conrad;
  
 // Someone needs these templates - I don't know who!
 casa::Matrix<casa::String> c0;
 
-void doTest(const boost::shared_ptr<MEDataSource> &ds) {
+void doTest(const boost::shared_ptr<IDataSource> &ds) {
     AlwaysAssert((bool)ds,casa::AipsError);
      
-	// Initialize the parameters
-	MEParams ip;
-	ip.add("Direction.RA");
-	ip.add("Direction.DEC");
-	ip.add("Flux.I");
-	
-	MEParamsTable iptab;
-	MEDomain everything;
-	if(!iptab.getParameters(ip, everything)) {
-		cout << "Failed to retrieve old values of parameters" << endl;
-	};
-		
-	// The equation
+	// Declare the equation with no parameters so we can get the
+	// default values.
 	MEComponentEquation cie;
-		
+	MEParams ip(cie.defaultParameters());
+	
 	// Use the simple solver
-	MENormalEquations normeq;
+	MENormalEquations normeq(ip);
 	MESimpleSolver is(ip);
 	is.init();
 
@@ -52,17 +46,19 @@ void doTest(const boost::shared_ptr<MEDataSource> &ds) {
     sel->chooseStokes("IQUV");
 
     // get the iterator
-    boost::shared_ptr<MEDataIterator> it=ds->createIterator(sel);
+    boost::shared_ptr<IDataIterator> it=ds->createIterator(sel);
 	// Loop through data, adding equations to the solver
 	for (;it->hasMore();it->next()) {
 		// Won't compile until we have a writable accessor
-//		cie.calcNormalEquations(ip, *(*it), normeq);
+//		cie.calcNormalEquations(*(*it), normeq);
 		is.addEquations(normeq);
 	}
 
 	// Now we can do solution
 	MEQuality quality;
 	if(is.solve(quality)) {
+		MEParamsTable iptab;
+		MEDomain everything;
 		cout << "Solution succeeded" << endl;
 		iptab.setParameters(is.getParameters(), everything);
 	}

@@ -25,9 +25,11 @@
 #define MEQUATION_H
 
 namespace conrad { 
-class MEDataAccessor;
+
 namespace synthesis
 {
+
+class IDataAccessor;
 
 class MEParams;
 //class MEDataAccessor;
@@ -37,27 +39,49 @@ class MEDesignMatrix;
 class MEquation {
 public:	
 	/// Constructor
-    MEquation() {};
+	/// Using default parameters
+    MEquation() : itsParams(MEParams()), itsDefaultParams(MEParams()) {};
+    
+    /// Using specified parameters
+    MEquation(const MEParams& ip) : itsParams(ip) , itsDefaultParams(MEParams()) {};
+    
+    virtual ~MEquation(){};
+
+	/// Access the parameters
+	const MEParams& parameters() const {return itsParams;};
+	MEParams& parameters() {return itsParams;};
+	
+	/// Set the parameters to new values
+	/// @param ip Parameters
+	virtual void setParameters(const MEParams& ip) {itsParams=ip;};
+	
+	/// Check if set of parameters is valid for this equation
+	/// @param ip Parameters
+	virtual bool complete(const MEParams& ip) {return ip.isCongruent(itsDefaultParams);};
+	
+	/// Return a default set of parameters
+	/// @param ip Parameters
+	const MEParams& defaultParameters() const {return itsDefaultParams;};
 
 	/// Predict model visibility
-	/// @param ip Regular parameters
 	/// @param ida data accessor
-	virtual void predict(const MEParams& ip, MEDataAccessor& ida) = 0;
+	virtual void predict(IDataAccessor& ida) = 0;
 	
 	/// Calculate the normal equations
-	/// @param ip Regular parameters
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcNormalEquations(MEParams& ip, MEDataAccessor& ida,
+	virtual void calcNormalEquations(IDataAccessor& ida,
 		MENormalEquations& normeq) = 0;
 	
 	/// Calculate the design matrix
-	/// @param ip Regular parameters
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcDesignMatrix(MEParams& ip, MEDataAccessor& ida,
+	virtual void calcDesignMatrix(IDataAccessor& ida,
 		MEDesignMatrix& designmatrix) = 0;
-	
+
+private:
+	MEParams itsParams;
+	MEParams itsDefaultParams;
 };
 
 }

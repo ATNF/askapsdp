@@ -13,11 +13,12 @@ namespace conrad
 	namespace synthesis
 {
 	
+class MEParams;
 
 class MEDesignMatrix
 {
 public:
-	MEDesignMatrix();
+	MEDesignMatrix(const MEParams& ip);
 	virtual ~MEDesignMatrix();
 	void merge(const MEDesignMatrix& other);
 	void reset();

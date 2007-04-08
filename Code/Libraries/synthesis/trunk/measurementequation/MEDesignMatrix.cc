@@ -1,11 +1,12 @@
 #include <measurementequation/MEDesignMatrix.h>
+#include <measurementequation/MEParams.h>
 
 namespace conrad
 {
 namespace synthesis
 {
 
-MEDesignMatrix::MEDesignMatrix()
+MEDesignMatrix::MEDesignMatrix(const MEParams& ip)
 {
 }
 

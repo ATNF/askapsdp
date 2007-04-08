@@ -1,4 +1,4 @@
-#include <dataaccess/MEDataAccessor.h>
+#include <dataaccess/IDataAccessor.h>
 #include <measurementequation/MEParams.h>
 #include <measurementequation/MEComponentEquation.h>
 #include <measurementequation/MENormalEquations.h>
@@ -25,7 +25,7 @@ MEComponentEquation::~MEComponentEquation()
 {
 }
 
-void MEComponentEquation::predict(const MEParams& ip, MEDataAccessor& ida) 
+void MEComponentEquation::predict(IDataAccessor& ida) 
 {
 	// Get the data from the accessor
 	casa::Vector<double> vreal;
@@ -33,13 +33,13 @@ void MEComponentEquation::predict(const MEParams& ip, MEDataAccessor& ida)
 	// ...
 	
 	// Calculate values and derivatives
-	this->calc<double>(ida, ip, vreal, vimag);
+	this->calc<double>(ida, vreal, vimag);
 	
 	// Put the values back into the accessor
 	// ...
 }
 
-void MEComponentEquation::calcNormalEquations(MEParams& ip, MEDataAccessor& ida, 
+void MEComponentEquation::calcNormalEquations(IDataAccessor& ida, 
 	MENormalEquations& normeq) 
 {
 	// Get the data from the accessor
@@ -48,7 +48,7 @@ void MEComponentEquation::calcNormalEquations(MEParams& ip, MEDataAccessor& ida,
 	// ...
 	
 	// Calculate values and derivatives
-	this->calc<casa::AutoDiff<double> >(ida, ip, vreal, vimag);
+	this->calc<casa::AutoDiff<double> >(ida, vreal, vimag);
 	
 	// Put the values back into the accessor
 	// ...
@@ -57,7 +57,7 @@ void MEComponentEquation::calcNormalEquations(MEParams& ip, MEDataAccessor& ida,
 	// ...
 }
 
-void MEComponentEquation::calcDesignMatrix(MEParams& ip, MEDataAccessor& ida, 
+void MEComponentEquation::calcDesignMatrix(IDataAccessor& ida, 
 	MEDesignMatrix& designmatrix) 
 {
 	// Get the data from the accessor
@@ -66,7 +66,7 @@ void MEComponentEquation::calcDesignMatrix(MEParams& ip, MEDataAccessor& ida,
 	// ...
 	
 	// Calculate values and derivatives
-	this->calc<casa::AutoDiff<double> >(ida, ip, vreal, vimag);
+	this->calc<casa::AutoDiff<double> >(ida, vreal, vimag);
 	
 	// Put the values back into the accessor
 	// ...
@@ -76,12 +76,12 @@ void MEComponentEquation::calcDesignMatrix(MEParams& ip, MEDataAccessor& ida,
 }
 
 template<class T>
-void MEComponentEquation::calc(const MEDataAccessor& ida, const MEParams& ip, 
+void MEComponentEquation::calc(const IDataAccessor& ida, 
 	casa::Vector<T>& vreal, casa::Vector<T>& vimag) {
 	
-	const T& ra=ip.regular().value("DIRECTION.RA");
-	const T& dec=ip.regular().value("DIRECTION.DEC");
-	const T& flux=ip.regular().value("FLUX.I");
+	const T& ra=parameters().regular().value("DIRECTION.RA");
+	const T& dec=parameters().regular().value("DIRECTION.DEC");
+	const T& flux=parameters().regular().value("FLUX.I");
 
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	

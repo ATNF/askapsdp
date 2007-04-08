@@ -34,6 +34,13 @@ public:
 	const MEImageParams& image() const {return itsImage;};
 	MEImageParams& image() {return itsImage;};
 	
+	const uint size() const {return itsRegular.size()+itsImage.size();};
+
+	/// Is this set of parameters congruent with another?	
+	bool isCongruent(const MEParams& other) const {
+		return itsRegular.isCongruent(other.regular()) && itsImage.isCongruent(other.image());
+	};
+	
 private:
 	MERegularParams itsRegular;
 	MEImageParams itsImage;
