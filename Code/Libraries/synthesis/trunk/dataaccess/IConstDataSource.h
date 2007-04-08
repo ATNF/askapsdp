@@ -38,7 +38,7 @@ public:
 	/// create a converter object corresponding to this type of the
 	/// DataSource. The user can change converting policies (units,
 	/// reference frames) by appropriate calls to this converter object
-	/// and pass it back to createIterator(...). The data returned by
+	/// and pass it back to createConstIterator(...). The data returned by
 	/// the iteratsr will automatically be in the requested frame/units
 	///
 	/// @return a shared pointer to a new DataConverter object
@@ -84,7 +84,7 @@ public:
                     boost::shared_ptr<IDataConverter const> &conv) const;
 	
 	
-	/// this variant of createIterator is defined to force the type
+	/// this variant of createConstIterator is defined to force the type
 	/// conversion between the non-const and const smart pointers 
 	/// explicitly. Otherwise, method overloading doesn't work because
 	/// the compiler tries to build a template for interconversion
@@ -134,10 +134,10 @@ public:
 
 	/// get iterator over a selected part of the dataset represented
 	/// by this DataSource object with an explicitly specified conversion
-	/// policy. This is the most general createIterator(...) call, which
-	/// is used as a default implementation for all less general cases
-	/// (although they can be overriden in the derived classes, if it 
-	//  will be necessary because of the performance issues)
+	/// policy. This is the most general createConstIterator(...) call, 
+	/// which is used as a default implementation for all less general 
+	/// cases (although they can be overriden in the derived classes, if it 
+	/// will be necessary because of the performance issues)
 	///
 	/// @param[in] sel a shared pointer to the selector object defining 
 	///            which subset of the data is used
