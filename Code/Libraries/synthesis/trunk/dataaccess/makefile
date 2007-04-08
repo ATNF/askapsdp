@@ -17,9 +17,10 @@ CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
 OBJECTS   = IDataAccessor.o IDataSource.o \
-            IDataIterator.o IDataConverter.o
-HEADERS   = IDataAccessor.h IDataSource.h  \
-            IDataIterator.h IDataSelector.h IDataConverter.h
+            IDataIterator.o IDataConverter.o IBufferIterator.o
+HEADERS   = IDataAccessor.h IDataSource.h  IWritableAccessor.h \
+            IDataIterator.h IDataSelector.h IDataConverter.h \
+	    IBufferIterator.h
 
 .SUFFIXES: .c .o .cc
 

@@ -24,7 +24,7 @@ IDataSource::~IDataSource()
 /// The lifetime of this iterator is the same as the lifetime of
 /// the DataSource object. Therefore, it can be reused multiple times,
 /// if necessary.
-boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
+boost::shared_ptr<IConstDataIterator> IDataSource::createIterator(const
             boost::shared_ptr<IDataSelector const> &sel) const {
     // create a new default converter just for this new iterator
     return createIterator(sel,createConverter());
@@ -42,7 +42,7 @@ boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
 /// The lifetime of this iterator is the same as the lifetime of
 /// the DataSource object. Therefore, it can be reused multiple times,
 /// if necessary.
-boost::shared_ptr<IDataIterator> IDataSource::createIterator() const {
+boost::shared_ptr<IConstDataIterator> IDataSource::createIterator() const {
     // create new default selector and converter just for this new iterator
     return createIterator(createSelector(),createConverter());
 }
@@ -60,7 +60,7 @@ boost::shared_ptr<IDataIterator> IDataSource::createIterator() const {
 /// The lifetime of this iterator is the same as the lifetime of
 /// the DataSource object. Therefore, it can be reused multiple times,
 /// if necessary.
-boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
+boost::shared_ptr<IConstDataIterator> IDataSource::createIterator(const
 	boost::shared_ptr<IDataConverter const> &conv) const {
     return createIterator(createSelector(),conv);
 }

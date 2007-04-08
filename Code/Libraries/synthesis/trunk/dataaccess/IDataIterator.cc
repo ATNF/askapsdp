@@ -13,8 +13,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include "IDataIterator.h"
-#include "IDataAccessor.h"
+#include "IConstDataIterator.h"
+#include "IConstDataAccessor.h"
 
 namespace conrad {
 
@@ -24,7 +24,7 @@ namespace synthesis {
 /// Only some trivial methods are defined here
 
 /// an empty virtual destructor to make the compiler happy
-IDataIterator::~IDataIterator()
+IConstDataIterator::~IConstDataIterator()
 {
 }
 	
@@ -34,7 +34,7 @@ IDataIterator::~IDataIterator()
 /// The default implementation works via operator*, however to 
 /// avoid an additional function call, the method
 /// can be specialized in the derived classes
-const IDataAccessor* IDataIterator::operator->() const
+const IConstDataAccessor* IConstDataIterator::operator->() const
 {
   return &(operator*());
 }
@@ -44,7 +44,7 @@ const IDataAccessor* IDataIterator::operator->() const
 /// The Default implementation works via hasMore(), however 
 /// one can override the method in a derived class to avoid 
 /// this (slight) overhead
-casa::Bool IDataIterator::atEnd() const throw()
+casa::Bool IConstDataIterator::atEnd() const throw()
 { 
   return !hasMore();
 }
@@ -54,7 +54,7 @@ casa::Bool IDataIterator::atEnd() const throw()
 /// The default implementation is via next(), however one can
 /// override this method in a derived class to avoid this (slight)
 /// overhead
-IDataIterator& IDataIterator::operator++(int)
+IConstDataIterator& IConstDataIterator::operator++(int)
 {
   next();
   return *this;

@@ -7,7 +7,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "IDataSelector.h"
-#include "IDataIterator.h"
+#include "IConstDataIterator.h"
 #include "IDataSource.h"
 
 using namespace conrad;
@@ -28,13 +28,13 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      sel->chooseStokes("IQUV");
 
      // get the iterator
-     shared_ptr<IDataIterator> it=ds->createIterator(sel);
+     shared_ptr<IConstDataIterator> it=ds->createIterator(sel);
 
      // don't need it->init() the first time, although it won't do any harm
      for (;it->hasMore();it->next()) {
          cout<<"Block has "<<(*it)->nRow()<<" rows"<<endl; 
 	 // an alternative way of access
-	 const IDataAccessor &da=*(*it);
+	 const IConstDataAccessor &da=*(*it);
 	 cout<<"Number of channels: "<<da.nChannel()<<endl; // should be 100
      }
 }

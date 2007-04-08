@@ -1,12 +1,12 @@
 /// @file IDataAccessor.h
 ///
-/// IDataAccessor: Interface class to access visibility data
+/// IDataAccessor: Interface class for read-only access to visibility data
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef I_DATA_ACCESSOR_H
-#define I_DATA_ACCESSOR_H
+#ifndef I_CONST_DATA_ACCESSOR_H
+#define I_CONST_DATA_ACCESSOR_H
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -20,16 +20,17 @@ namespace conrad {
 
 namespace synthesis {
 
-/// IDataAccessor: an interface class to access buffered visibility data
-/// working instances include a chunk of streamed data or a portion
-/// of the disk-based table. A reference to this type is supposed to be
-/// returned by a DataIterator object
-class IDataAccessor
+/// IConstDataAccessor: an interface class for read-only 
+/// access to buffered visibility data. Working instances include 
+/// a chunk of streamed data or a portion of the disk-based table. 
+/// A reference to this type is supposed to be
+/// returned by a ConstDataIterator object and its derivatives
+class IConstDataAccessor
 {
 public:
 	
 	/// Destruct
-	virtual ~IDataAccessor();
+	virtual ~IConstDataAccessor();
 		
 	/// The number of rows in this chunk
 	/// @return the number of rows in this chunk
@@ -134,4 +135,4 @@ public:
 
 } // end of namespace conrad
 
-#endif // #ifndef _I_DATA_ACCESSOR_H
+#endif // #ifndef I_CONST_DATA_ACCESSOR_H
