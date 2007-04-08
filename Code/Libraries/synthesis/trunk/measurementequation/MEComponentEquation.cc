@@ -25,6 +25,14 @@ MEComponentEquation::~MEComponentEquation()
 {
 }
 
+void MEComponentEquation::init()
+{
+	itsDefaultParams.reset();
+	itsDefaultParams.add("flux.i");
+	itsDefaultParams.add("direction.ra");
+	itsDefaultParams.add("direction.dec");
+}
+
 void MEComponentEquation::predict(IDataAccessor& ida) 
 {
 	// Get the data from the accessor

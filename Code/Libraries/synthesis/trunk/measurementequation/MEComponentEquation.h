@@ -34,6 +34,7 @@ public:
 		MEDesignMatrix& designmatrix);
 	
 private:
+	void init();
 	/// Templated function to do the calculation of value and derivatives.
 	template<class T>
 	void calc(const IDataAccessor& ida, casa::Vector<T>& vreal, casa::Vector<T>& vimag);

@@ -6,6 +6,10 @@ namespace synthesis
 {
 	
 	template<class T>
+	MEParamsRep<T>::MEParamsRep() {
+	}
+	
+	template<class T>
 	MEParamsRep<T>::MEParamsRep(const MEParamsRep& other) {
 		operator=(other);
 	}
@@ -35,15 +39,15 @@ namespace synthesis
 	}
 	
 	template<class T>
-	void MEParamsRep<T>::add(const string& name, const T& ip) 
+	void MEParamsRep<T>::add(const string& name, const T ip) 
 	{
 		if(has(name)) {
 			throw(casa::DuplError("Parameter " + name + " already exists"));
 		}
 		else {
-			itsValues.push_back(ip);
 			uint ind=itsValues.size();
 			itsIndices.insert(make_pair(name, ind));
+			itsValues.push_back(ip);
 			itsFree.push_back(true);
 		}
 	}
@@ -77,7 +81,7 @@ namespace synthesis
 	{
 		return itsValues[itsIndices[name]];
 	}		
-
+	
 	template<class T>
 	T& MEParamsRep<T>::value(const string& name) 
 	{
@@ -90,10 +94,21 @@ namespace synthesis
 		return itsIndices[name];
 	}	
 	
+	// Test for congruence - to avoid indexing problems, we require that
+	// the indices are the same, not just that the same name occurs in
+	// both
 	template<class T>
 	bool MEParamsRep<T>::isCongruent(const MEParamsRep<T>& other) const
 	{
 		return (itsIndices==other.itsIndices);
+	}
+
+	template<class T>
+	void MEParamsRep<T>::reset()
+	{
+		itsValues.clear();
+		itsIndices.clear();
+		itsFree.clear();
 	}
 }
 }

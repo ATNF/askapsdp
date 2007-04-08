@@ -40,10 +40,10 @@ class MEquation {
 public:	
 	/// Constructor
 	/// Using default parameters
-    MEquation() : itsParams(MEParams()), itsDefaultParams(MEParams()) {};
+    MEquation() {};
     
     /// Using specified parameters
-    MEquation(const MEParams& ip) : itsParams(ip) , itsDefaultParams(MEParams()) {};
+    MEquation(const MEParams& ip) : itsParams(ip) {};
     
     virtual ~MEquation(){};
 
@@ -79,7 +79,7 @@ public:
 	virtual void calcDesignMatrix(IDataAccessor& ida,
 		MEDesignMatrix& designmatrix) = 0;
 
-private:
+protected:
 	MEParams itsParams;
 	MEParams itsDefaultParams;
 };

@@ -17,7 +17,7 @@ INCDIRS   = -I. $(CASAINC) $(CPPUNITINC) -I.. -I../..
 LIBDIRS   = $(CASALIB) $(CPPUNITLIB)
 
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
-CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
+CXXFLAGS  = -g -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 
 .SUFFIXES: .c .o .cc
 
@@ -28,7 +28,10 @@ $(TARGET):  $(TARGET).cc $(SYNLIB)
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $(TARGET).o $(TARGET).cc
 	$(LINK) $(LFLAGS) -o $(TARGET) $(TARGET).o $(SYNLIB) $(LIBDIRS)
 
-all: $(TARGET)
+$(SYNLIB):
+	(cd ..;make all)
+	
+all: $(TARGET) $(SYNLIB)
 
 clean:
 	-rm -f $(TARGET)

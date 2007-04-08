@@ -6,6 +6,8 @@
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <iostream>
+
 using namespace conrad::synthesis;
 
 namespace conrad {
@@ -13,14 +15,18 @@ namespace synthesis {
 	
 class MEParamsTest : public CppUnit::TestFixture  {
 
-	CPPUNIT_TEST_SUITE( MEParamsTest );
-	CPPUNIT_TEST( testIndices );
-	CPPUNIT_TEST( testAddition );
-	CPPUNIT_TEST( testCongruent );
-	CPPUNIT_TEST_EXCEPTION( testDuplError, casa::DuplError);
+	CPPUNIT_TEST_SUITE(MEParamsTest);
+	CPPUNIT_TEST(testIndices);
+	CPPUNIT_TEST(testAddition);
+	CPPUNIT_TEST(testValues);
+	CPPUNIT_TEST(testCongruent);
+	CPPUNIT_TEST_EXCEPTION(testDuplError, casa::DuplError);
+	CPPUNIT_TEST(testCopy);
 	CPPUNIT_TEST_SUITE_END();
+	
 private:
 	MEParams *p1, *p2, *p3, *pempty;
+	
 public:
   void setUp()
   {
@@ -39,10 +45,35 @@ public:
   }
   
   void testDuplError()
+  // Should throw DuplError
   {
 	p1->add("Add0");
 	p1->add("Add0");
   }
+
+  void testCopy() 
+  {
+	CPPUNIT_ASSERT( p1->size()==0);
+	p1->add("Copy0");
+  	CPPUNIT_ASSERT(p1->regular().has("Copy0"));
+	p1->add("Copy1", 1.5);
+//	MEParams pnew(*p1);
+	CPPUNIT_ASSERT(p1);
+	MEParams& pnew=*p1;
+	CPPUNIT_ASSERT(pnew.size()==2);
+  	CPPUNIT_ASSERT(pnew.regular().has("Copy0"));
+  	CPPUNIT_ASSERT(pnew.regular().has("Copy1"));
+	CPPUNIT_ASSERT(pnew.regular().value("Copy1")==1.5);
+  }
+
+  void testValues()
+  {
+	p1->add("Value0", 1.5);
+//	std::cerr << p1->regular().value("Value0") << std::endl;
+	CPPUNIT_ASSERT(p1->regular().value("Value0")==1.5);
+	MEImage im("Cena.image");
+	p1->add("Value1", im);
+  }  
   
   void testIndices()
   {

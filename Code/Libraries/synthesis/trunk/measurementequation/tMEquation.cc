@@ -46,7 +46,7 @@ void doTest(const boost::shared_ptr<IDataSource> &ds) {
     sel->chooseStokes("IQUV");
 
     // get the iterator
-    boost::shared_ptr<IDataIterator> it=ds->createIterator(sel);
+    boost::shared_ptr<IConstDataIterator> it=ds->createIterator(sel);
 	// Loop through data, adding equations to the solver
 	for (;it->hasMore();it->next()) {
 		// Won't compile until we have a writable accessor

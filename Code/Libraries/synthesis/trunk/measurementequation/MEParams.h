@@ -21,25 +21,45 @@ typedef MEParamsRep<double> MERegularParams;
 class MEParams {
 public:
 
-	void add(const string& name) {itsRegular.add(name, 0.0);};
-	void add(const string& name, const double value) {itsRegular.add(name, value);};
-	void add(const string& name, const MEImage& value) {itsImage.add(name, value);};
-	void addImage(const string& name, const MEImage& value) {itsImage.add(name, value);};
+	/// Default constructor
+	MEParams();
 	
+	/// Copy constructor
+	MEParams(const MEParams& other);
+	
+	/// Assignment operator
+	MEParams operator=(const MEParams& other);
+
+	/// Add a (regular) parameter, default to zero
+	/// @param name Name of the parameter
+	void add(const string& name);
+
+	/// Add a (regular) parameter with a specific value
+	/// @param name Name of the parameter
+	/// @param value Value of the parameter
+	void add(const string& name, const double value);
+
+	/// Add an image parameter
+	/// @param name Name of the parameter
+	/// @param value MEImage
+	void add(const string& name, const MEImage& value);
+
 	/// Return the regular parameters
-	const MERegularParams& regular() const {return itsRegular;};
-	MERegularParams& regular()  {return itsRegular;};
+	const MERegularParams& regular() const;
+	MERegularParams& regular();
 
     /// Return the image parameters
-	const MEImageParams& image() const {return itsImage;};
-	MEImageParams& image() {return itsImage;};
+	const MEImageParams& image() const;
+	MEImageParams& image();
 	
-	const uint size() const {return itsRegular.size()+itsImage.size();};
+	/// Return the total number of parameters
+	const uint size() const;
+	
+	/// Reset to empty
+	void reset();
 
 	/// Is this set of parameters congruent with another?	
-	bool isCongruent(const MEParams& other) const {
-		return itsRegular.isCongruent(other.regular()) && itsImage.isCongruent(other.image());
-	};
+	bool isCongruent(const MEParams& other) const;
 	
 private:
 	MERegularParams itsRegular;

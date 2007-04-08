@@ -11,18 +11,23 @@
 
 #include <images/Images/TempImage.h>
 
-namespace conrad
-{
-namespace synthesis
-{
+namespace conrad {
+namespace synthesis {
 
 typedef casa::Float MEImagePixelType ;
 
-class MEImage : public casa::TempImage<MEImagePixelType>
-{
+class MEImage {
+
 public:
-	MEImage();
+	MEImage(const string& name);
+	MEImage(const MEImage& other);
+	MEImage operator=(const MEImage& other);
 	virtual ~MEImage();
+	bool operator==(const MEImage& other);
+	
+private:
+	string itsName;
+	casa::TempImage<MEImagePixelType> itsCache;
 };
 
 }

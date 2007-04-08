@@ -25,7 +25,7 @@ template <class T>
 class MEParamsRep {
 public:
 
-	MEParamsRep() {};
+	MEParamsRep();
 	
 	MEParamsRep operator=(const MEParamsRep& other);
 	
@@ -34,7 +34,7 @@ public:
 	/// Add an Parameter
 	/// @param name Name of param to be added
 	/// @param ip Param to be added
-	void add(const string& name, const T& ip);
+	void add(const string& name, const T ip);
 	
 	/// Fix a parameter
 	void fix(const string& name);
@@ -65,13 +65,15 @@ public:
 
 	/// Is this set congruent with another?
 	bool isCongruent(const MEParamsRep& other) const;
+	
+	/// Reset to empty
+	void reset();
 
 
 private:
 	mutable map<string, uint> itsIndices;
 	vector<T> itsValues;
 	vector<bool> itsFree;
-	bool ok();
 };
 
 }
