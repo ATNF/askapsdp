@@ -19,15 +19,16 @@ typedef casa::Float MEImagePixelType ;
 class MEImage {
 
 public:
+	MEImage();
 	MEImage(const string& name);
 	MEImage(const MEImage& other);
-	MEImage operator=(const MEImage& other);
+	MEImage& operator=(const MEImage& other);
 	virtual ~MEImage();
 	bool operator==(const MEImage& other);
 	
 private:
 	string itsName;
-	casa::TempImage<MEImagePixelType> itsCache;
+//	casa::TempImage<MEImagePixelType> itsCache;
 };
 
 }

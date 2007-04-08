@@ -28,7 +28,7 @@ public:
 	MEParams(const MEParams& other);
 	
 	/// Assignment operator
-	MEParams operator=(const MEParams& other);
+	MEParams& operator=(const MEParams& other);
 
 	/// Add a (regular) parameter, default to zero
 	/// @param name Name of the parameter
@@ -37,12 +37,22 @@ public:
 	/// Add a (regular) parameter with a specific value
 	/// @param name Name of the parameter
 	/// @param value Value of the parameter
-	void add(const string& name, const double value);
+	void add(const string& name, const double& value);
 
 	/// Add an image parameter
 	/// @param name Name of the parameter
 	/// @param value MEImage
 	void add(const string& name, const MEImage& value);
+
+	/// Update a (regular) parameter with a specific value
+	/// @param name Name of the parameter
+	/// @param value Value of the parameter
+	void update(const string& name, const double& value);
+
+	/// Update an image parameter
+	/// @param name Name of the parameter
+	/// @param value MEImage
+	void update(const string& name, const MEImage& value);
 
 	/// Return the regular parameters
 	const MERegularParams& regular() const;

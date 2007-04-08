@@ -27,14 +27,19 @@ public:
 
 	MEParamsRep();
 	
-	MEParamsRep operator=(const MEParamsRep& other);
+	MEParamsRep& operator=(const MEParamsRep& other);
 	
 	MEParamsRep(const MEParamsRep& other);
 			
 	/// Add an Parameter
 	/// @param name Name of param to be added
 	/// @param ip Param to be added
-	void add(const string& name, const T ip);
+	void add(const string& name, const T& ip);
+
+	/// Update an Parameter
+	/// @param name Name of param to be updated
+	/// @param ip Param to be updated
+	void update(const string& name, const T& ip);
 	
 	/// Fix a parameter
 	void fix(const string& name);
@@ -44,10 +49,6 @@ public:
 
     /// Is this parameter free?
 	bool isFree(const string& name);
-	
-	// Return the current values
-	const vector<T>& values() const;
-	vector<T>& values();
 	
 	// Return number of values
 	const uint size() const;
@@ -72,8 +73,8 @@ public:
 
 private:
 	mutable map<string, uint> itsIndices;
-	vector<T> itsValues;
-	vector<bool> itsFree;
+	mutable map<string, T> itsValues;
+	mutable map<string, bool> itsFree;
 };
 
 }

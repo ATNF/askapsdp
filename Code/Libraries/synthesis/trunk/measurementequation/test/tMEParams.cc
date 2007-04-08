@@ -57,9 +57,8 @@ public:
 	p1->add("Copy0");
   	CPPUNIT_ASSERT(p1->regular().has("Copy0"));
 	p1->add("Copy1", 1.5);
-//	MEParams pnew(*p1);
 	CPPUNIT_ASSERT(p1);
-	MEParams& pnew=*p1;
+	MEParams pnew(*p1);
 	CPPUNIT_ASSERT(pnew.size()==2);
   	CPPUNIT_ASSERT(pnew.regular().has("Copy0"));
   	CPPUNIT_ASSERT(pnew.regular().has("Copy1"));
@@ -69,9 +68,9 @@ public:
   void testValues()
   {
 	p1->add("Value0", 1.5);
-//	std::cerr << p1->regular().value("Value0") << std::endl;
 	CPPUNIT_ASSERT(p1->regular().value("Value0")==1.5);
 	MEImage im("Cena.image");
+	MEImage im2(im);
 	p1->add("Value1", im);
   }  
   
@@ -80,8 +79,9 @@ public:
 	CPPUNIT_ASSERT( p1->size()==0);
 	p1->add("Ind0");
   	CPPUNIT_ASSERT(p1->regular().has("Ind0"));
+  	CPPUNIT_ASSERT(p1->regular()["Ind0"]==0);
 	p1->add("Ind1");
-  	CPPUNIT_ASSERT(p1->regular()["Ind1"]==2);
+  	CPPUNIT_ASSERT(p1->regular()["Ind1"]==1);
   	CPPUNIT_ASSERT(!pempty->regular().has("Null"));
   }
 

@@ -15,53 +15,53 @@ namespace synthesis
 	}
 	
 	template<class T>
-	MEParamsRep<T> MEParamsRep<T>::operator=(const MEParamsRep& other) {
+	MEParamsRep<T>& MEParamsRep<T>::operator=(const MEParamsRep& other) {
 		if(this!=&other) {
 			itsIndices=other.itsIndices;
 			itsValues=other.itsValues;
 			itsFree=other.itsFree;
 		}
+		return *this;
 	}
 	
 	template<class T>
 	bool MEParamsRep<T>::isFree(const string& name) {
-		return itsFree[itsIndices[name]];
+		return itsFree[name];
 	}
 	
 	template<class T>
 	void MEParamsRep<T>::free(const string& name) {
-		itsFree[itsIndices[name]]=true;
+		itsFree[name]=true;
 	}
 	
 	template<class T>
 	void MEParamsRep<T>::fix(const string& name) {
-		itsFree[itsIndices[name]]=false;
+		itsFree[name]=false;
 	}
 	
 	template<class T>
-	void MEParamsRep<T>::add(const string& name, const T ip) 
+	void MEParamsRep<T>::add(const string& name, const T& ip) 
 	{
 		if(has(name)) {
 			throw(casa::DuplError("Parameter " + name + " already exists"));
 		}
 		else {
 			uint ind=itsValues.size();
-			itsIndices.insert(make_pair(name, ind));
-			itsValues.push_back(ip);
-			itsFree.push_back(true);
+			itsIndices[name]=ind;
+			itsValues[name]=ip;
+			itsFree[name]=true;
 		}
 	}
 	
 	template<class T>
-	const vector<T>& MEParamsRep<T>::values() const 
+	void MEParamsRep<T>::update(const string& name, const T& ip) 
 	{
-		return itsValues;
-	}
-
-	template<class T>
-	vector<T>& MEParamsRep<T>::values()
-	{
-		return itsValues;
+		if(!has(name)) {
+			throw(casa::DuplError("Parameter " + name + " does not already exist"));
+		}
+		else {
+			itsValues[name]=ip;
+		}
 	}
 	
 	template<class T>
@@ -79,13 +79,13 @@ namespace synthesis
 	template<class T>
 		const T& MEParamsRep<T>::value(const string& name) const 
 	{
-		return itsValues[itsIndices[name]];
+		return itsValues[name];
 	}		
 	
 	template<class T>
 	T& MEParamsRep<T>::value(const string& name) 
 	{
-		return itsValues[itsIndices[name]];
+		return itsValues[name];
 	}
 
 	template<class T>

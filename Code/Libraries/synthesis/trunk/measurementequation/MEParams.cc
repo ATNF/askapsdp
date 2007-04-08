@@ -15,21 +15,28 @@ namespace synthesis
 	}
 	
 	/// Assignment operator
-	MEParams MEParams::operator=(const MEParams& other) {
+	MEParams& MEParams::operator=(const MEParams& other) {
 		if(this!=&other) {
 			itsImage=other.itsImage;
 			itsRegular=other.itsRegular;
 		}
+		return *this;
 	}
 
 	void MEParams::add(const string& name) {
 		itsRegular.add(name, 0.0);
 	};
-	void MEParams::add(const string& name, const double value) {
+	void MEParams::add(const string& name, const double& value) {
 		itsRegular.add(name, value);
 	};
 	void MEParams::add(const string& name, const MEImage& value) {
 		itsImage.add(name, value);
+	};
+	void MEParams::update(const string& name, const double& value) {
+		itsRegular.update(name, value);
+	};
+	void MEParams::update(const string& name, const MEImage& value) {
+		itsImage.update(name, value);
 	};
 	/// Return the regular parameters
 	const MERegularParams& MEParams::regular() const {return itsRegular;};
