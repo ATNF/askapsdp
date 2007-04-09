@@ -100,7 +100,11 @@ void doTest(const shared_ptr<IDataSource> &ds) {
 
      // demonstration of STL, doesn't work yet
      it->init();
-     //for_each(*it,*it,TestTransformClass(1e-4,1e-5));
+     //for_each(..,..,TestTransformClass(1e-4,1e-5));
+     // the same thing without STL
+     TestTransformClass ttc(1e-4,1e-5);
+     for (;it->hasMore();it->next())
+	  ttc(*(*it));
 }
  
 int main() {
