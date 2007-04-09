@@ -20,16 +20,20 @@ CXXFLAGS  = -g -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
 OBJECTS   = MEImage.o \
 			MESolver.o MESimpleSolver.o MEQuality.o \
             MEParams.o MEComponentEquation.o MEDomain.o MEParamsTable.o \
-            MEParamsRep.o MENormalEquations.o MEDesignMatrix.o
+            MEParamsRep.o MENormalEquations.o MEDesignMatrixRep.o MEDesignMatrix.o
 HEADERS   = MEIterative.h \
 			MEImage.h  \
 			MESolver.h MESimpleSolver.h MEQuality.h \
 			MEParams.h MEquation.h \
             MEComponentEquation.h MEDomain.h MEParamsTable.h \
-            MEParamsRep.h MEParamsRep.tcc MENormalEquations.h MEDesignMatrix.h
+            MEParamsRep.h MEParamsRep.tcc MENormalEquations.h \
+            MEDesignMatrixRep.h MEDesignMatrixRep.tcc
 
-MEParamsRep.cc: MEParamsRep.tcc
+MEParamsRep.cc: MEParamsRep.tcc MEParamsRep.h
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o MEParamsRep.o MEParamsRep.cc
+
+MEDesignMatrixRep.cc: MEDesignMatrixRep.tcc MEDesignMatrixRep.h
+	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o MEDesignMatrixRep.o MEDesignMatrixRep.cc
 
 .SUFFIXES: .c .o .cc
 

@@ -105,6 +105,39 @@ namespace synthesis
 	}
 
 	template<class T>
+		vector<string> MEParamsRep<T>::names() const
+	{
+		vector<string> names;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			names.push_back(iter->first);
+		}
+		return names;
+	}
+
+	template<class T>
+		vector<string> MEParamsRep<T>::freeNames() const
+	{
+		vector<string> names;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(itsFree[iter->first]) names.push_back(iter->first);
+		}
+		return names;
+	}
+
+	template<class T>
+		vector<string> MEParamsRep<T>::fixedNames() const
+	{
+		vector<string> names;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(!itsFree[iter->first]) names.push_back(iter->first);
+		}
+		return names;
+	}
+
+	template<class T>
 	void MEParamsRep<T>::reset()
 	{
 		itsValues.clear();

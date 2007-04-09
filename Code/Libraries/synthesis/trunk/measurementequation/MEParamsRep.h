@@ -9,10 +9,12 @@
 #define MEPARAMSREP_H_
 
 #include <map>
+#include <vector>
 #include <string>
 #include <ostream>
 
 using std::string;
+using std::vector;
 using std::map;
 
 namespace conrad {
@@ -55,6 +57,15 @@ public:
 	/// @param name Name of param
 	const T& value(const string& name) const;		
 	T& value(const string& name);
+	
+	/// Return the key names
+	vector<string> names() const;
+
+	/// Return the key names of free items
+	vector<string> freeNames() const;
+	
+	/// Return the key names of fixed items
+	vector<string> fixedNames() const;
 	
 	bool has(const string& name) const;
 
