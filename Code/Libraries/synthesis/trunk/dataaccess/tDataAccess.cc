@@ -8,6 +8,7 @@
 
 #include "IDataSelector.h"
 #include "IConstDataIterator.h"
+#include "IFlagDataAccessor.h"
 #include "IDataSource.h"
 
 using namespace conrad;
