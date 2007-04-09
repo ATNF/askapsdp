@@ -79,9 +79,7 @@ public:
 	CPPUNIT_ASSERT( p1->size()==0);
 	p1->add("Ind0");
   	CPPUNIT_ASSERT(p1->regular().has("Ind0"));
-  	CPPUNIT_ASSERT(p1->regular()["Ind0"]==0);
 	p1->add("Ind1");
-  	CPPUNIT_ASSERT(p1->regular()["Ind1"]==1);
   	CPPUNIT_ASSERT(!pempty->regular().has("Null"));
   }
 
@@ -94,6 +92,8 @@ public:
 	CPPUNIT_ASSERT( p1->regular().size()==1);
 	p1->add("Add1");
 	CPPUNIT_ASSERT( p1->size()==2);
+	p1->update("Add1", 2.6);
+	CPPUNIT_ASSERT( p1->regular().value("Add1")==2.6);
   }
 
   void testCongruent()
@@ -102,10 +102,8 @@ public:
 	p1->add("foo");
 	CPPUNIT_ASSERT( p1->size()==1);
     CPPUNIT_ASSERT( !(p1->isCongruent(*p2)));
-	
 	p2->add("bar");
 	CPPUNIT_ASSERT( !(p1->isCongruent(*p2)));
-
 	p3->add("foo");
 	CPPUNIT_ASSERT( p1->isCongruent(*p3));
   }

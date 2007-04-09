@@ -11,11 +11,9 @@
 #include <map>
 #include <string>
 #include <ostream>
-#include <vector>
 
 using std::string;
 using std::map;
-using std::vector;
 
 namespace conrad {
 namespace synthesis
@@ -60,19 +58,12 @@ public:
 	
 	bool has(const string& name) const;
 
-	/// Return the index with this name
-	/// @param name Name of param
-	const uint operator[](const string& name) const;		
-
 	/// Is this set congruent with another?
 	bool isCongruent(const MEParamsRep& other) const;
 	
 	/// Reset to empty
 	void reset();
-
-
 private:
-	mutable map<string, uint> itsIndices;
 	mutable map<string, T> itsValues;
 	mutable map<string, bool> itsFree;
 };

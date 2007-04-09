@@ -1,6 +1,11 @@
 #include <measurementequation/MEParamsRep.h>
 #include <casa/Exceptions/Error.h>
 
+#include <map>
+#include <string>
+using std::map;
+using std::string;
+
 namespace conrad {
 namespace synthesis
 {
@@ -17,7 +22,6 @@ namespace synthesis
 	template<class T>
 	MEParamsRep<T>& MEParamsRep<T>::operator=(const MEParamsRep& other) {
 		if(this!=&other) {
-			itsIndices=other.itsIndices;
 			itsValues=other.itsValues;
 			itsFree=other.itsFree;
 		}
@@ -47,7 +51,6 @@ namespace synthesis
 		}
 		else {
 			uint ind=itsValues.size();
-			itsIndices[name]=ind;
 			itsValues[name]=ip;
 			itsFree[name]=true;
 		}
@@ -67,13 +70,13 @@ namespace synthesis
 	template<class T>
 	const uint MEParamsRep<T>::size() const
 	{
-		return static_cast<uint>(itsIndices.size());
+		return static_cast<uint>(itsValues.size());
 	}
 	
 	template<class T>
 		bool MEParamsRep<T>::has(const string& name) const 
 	{
-		return itsIndices.count(name)>0;
+		return itsValues.count(name)>0;
 	}		
 
 	template<class T>
@@ -83,31 +86,28 @@ namespace synthesis
 	}		
 	
 	template<class T>
-	T& MEParamsRep<T>::value(const string& name) 
+		T& MEParamsRep<T>::value(const string& name) 
 	{
 		return itsValues[name];
 	}
 
 	template<class T>
-	const uint MEParamsRep<T>::operator[](const string& name) const 
+		bool MEParamsRep<T>::isCongruent(const MEParamsRep& other) const
 	{
-		return itsIndices[name];
-	}	
-	
-	// Test for congruence - to avoid indexing problems, we require that
-	// the indices are the same, not just that the same name occurs in
-	// both
-	template<class T>
-	bool MEParamsRep<T>::isCongruent(const MEParamsRep<T>& other) const
-	{
-		return (itsIndices==other.itsIndices);
+		if(size()!=other.size()) return false;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(other.itsFree.count(iter->first)==0) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	template<class T>
 	void MEParamsRep<T>::reset()
 	{
 		itsValues.clear();
-		itsIndices.clear();
 		itsFree.clear();
 	}
 }

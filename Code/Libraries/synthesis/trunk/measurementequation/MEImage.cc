@@ -26,6 +26,11 @@ MEImage& MEImage::operator=(const MEImage& other)
 	return *this;
 }
 
+bool MEImage::operator==(const MEImage& other) 
+{
+	return itsName==other.itsName;
+}
+
 MEImage::~MEImage()
 {
 }
