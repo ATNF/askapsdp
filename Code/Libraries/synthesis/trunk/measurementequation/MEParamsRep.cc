@@ -12,6 +12,5 @@ namespace synthesis
 {
 	template class MEParamsRep<double>;
 	template class MEParamsRep<MEImage>;
-	
 }
 }

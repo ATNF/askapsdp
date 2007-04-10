@@ -13,8 +13,6 @@
 #ifndef MESOLVER_H_
 #define MESOLVER_H_
 
-#include <scimath/Fitting/LSQFit.h>
-
 #include <measurementequation/MEParams.h>
 #include <measurementequation/MENormalEquations.h>
 #include <measurementequation/MEDesignMatrix.h>

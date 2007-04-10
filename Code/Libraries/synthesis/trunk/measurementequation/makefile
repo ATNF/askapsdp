@@ -12,7 +12,7 @@ LINK      = /usr/bin/g++
 LFLAGS    = 
 
 INCDIRS   = -I. $(CASAINC) -I..
-LIBDIRS   = $(CASALIB)
+LIBDIRS   = $(SYNLIB) $(CASALIB)
 
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -g -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
@@ -42,7 +42,7 @@ MEDesignMatrixRep.cc: MEDesignMatrixRep.tcc MEDesignMatrixRep.h
 
 $(TARGET):  $(OBJECTS) $(TARGET).cc $(SYNLIB)
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $(TARGET).o $(TARGET).cc
-	$(LINK) $(LFLAGS) -o $(TARGET) $(TARGET).o $(SYNLIB) $(LIBDIRS)
+	$(LINK) $(LFLAGS) -o $(TARGET) $(TARGET).o $(LIBDIRS)
 
 $(SYNLIB): $(OBJECTS) $(HEADERS)
 	ar r $(SYNLIB) $(OBJECTS) ../dataaccess/*.o

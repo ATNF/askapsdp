@@ -23,21 +23,29 @@ public:
 	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcNormalEquations(IDataAccessor& ida,
+	virtual void calcEquations(IDataAccessor& ida,
 		MENormalEquations& normeq);
 		
-	/// Calculate the design matrix
-	/// @param ip Regular parameters
+	/// Calculate the design matrix and normal equations
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcDesignMatrix(IDataAccessor& ida,
+	/// @param normeq Normal equations
+	virtual void calcEquations(IDataAccessor& ida,
+		MEDesignMatrix& designmatrix, MENormalEquations& normeq);
+
+	/// Calculate the design matrix
+	/// @param ida data accessor
+	/// @param design matrix
+	virtual void calcEquations(IDataAccessor& ida,
 		MEDesignMatrix& designmatrix);
 	
 private:
 	void init();
 	/// Templated function to do the calculation of value and derivatives.
 	template<class T>
-	void calc(const IDataAccessor& ida, casa::Vector<T>& vreal, casa::Vector<T>& vimag);
+	void calcVis(const T& ra, const T& dec, const T& flux, 
+		const casa::Vector<double>& freq, const double u, const double v, 
+		casa::Vector<T>& vreal, casa::Vector<T>& vimag);
 
 };
 

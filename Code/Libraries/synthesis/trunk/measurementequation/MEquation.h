@@ -70,13 +70,20 @@ public:
 	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcNormalEquations(IDataAccessor& ida,
+	virtual void calcEquations(IDataAccessor& ida,
 		MENormalEquations& normeq) = 0;
 	
+	/// Calculate the design matrix and normal equations
+	/// @param ida data accessor
+	/// @param design matrix
+	/// @param normeq Normal equations
+	virtual void calcEquations(IDataAccessor& ida,
+		MEDesignMatrix& designmatrix, MENormalEquations& normeq) = 0;
+
 	/// Calculate the design matrix
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcDesignMatrix(IDataAccessor& ida,
+	virtual void calcEquations(IDataAccessor& ida,
 		MEDesignMatrix& designmatrix) = 0;
 
 protected:

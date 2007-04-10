@@ -52,7 +52,8 @@ namespace synthesis
 
 	/// Is this set of parameters congruent with another?	
 	bool MEParams::isCongruent(const MEParams& other) const {
-		return itsRegular.isCongruent(other.regular()) && itsImage.isCongruent(other.image());
+		return itsRegular.isCongruent(other.regular()) && 
+			itsImage.isCongruent(other.image());
 	};
 
 }

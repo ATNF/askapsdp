@@ -58,6 +58,10 @@ public:
 	const T& value(const string& name) const;		
 	T& value(const string& name);
 	
+	/// Return all the completions for this name
+	/// @param match Match e.g. "flux.i.*"
+	vector<string> completions(const string& match) const;
+	
 	/// Return the key names
 	vector<string> names() const;
 

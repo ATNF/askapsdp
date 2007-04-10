@@ -22,10 +22,9 @@
 #include <measurementequation/MEQuality.h>
 
 using namespace conrad::synthesis;
-using namespace conrad;
  
 // Someone needs these templates - I don't know who!
-casa::Matrix<casa::String> c0;
+casa::Matrix<casa::String> s0;
 
 void doTest(const boost::shared_ptr<IDataSource> &ds) {
     AlwaysAssert((bool)ds,casa::AipsError);
@@ -37,6 +36,7 @@ void doTest(const boost::shared_ptr<IDataSource> &ds) {
 	
 	// Use the simple solver
 	MENormalEquations normeq(ip);
+	MEDesignMatrix designmatrix(ip);
 	MESimpleSolver is(ip);
 	is.init();
 
@@ -46,11 +46,10 @@ void doTest(const boost::shared_ptr<IDataSource> &ds) {
     sel->chooseStokes("IQUV");
 
     // get the iterator
-    boost::shared_ptr<IConstDataIterator> it=ds->createIterator(sel);
+    boost::shared_ptr<IDataIterator> it=ds->createIterator(sel);
 	// Loop through data, adding equations to the solver
 	for (;it->hasMore();it->next()) {
-		// Won't compile until we have a writable accessor
-//		cie.calcNormalEquations(*(*it), normeq);
+		cie.calcEquations(*(*it), designmatrix, normeq);
 		is.addEquations(normeq);
 	}
 

@@ -13,6 +13,7 @@ using std::map;
 
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Vector.h>
 
 #include <measurementequation/MEParamsRep.h>
 
@@ -45,9 +46,15 @@ public:
 	/// @param other Other design matrix
 	void merge(const MEDesignMatrixRep& other);
 	
+	/// Add the derivative with respect to the named parameter
+	/// @param name Name of parameter
+	/// @param deriv Derivative
+	void addDerivative(const string& name, const casa::Vector<T>& deriv);
+	
 	/// Reset to empty
 	void reset();
 private:
+	uint itsDataLength;
 	map<string, int> itsIndices;
 	casa::Matrix<T> itsDesignMatrix;
 };

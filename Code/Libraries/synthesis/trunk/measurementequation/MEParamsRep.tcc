@@ -1,4 +1,6 @@
 #include <measurementequation/MEParamsRep.h>
+#include <casa/aips.h>
+#include <casa/Utilities/Regex.h>
 #include <casa/Exceptions/Error.h>
 
 #include <map>
@@ -135,6 +137,18 @@ namespace synthesis
 			if(!itsFree[iter->first]) names.push_back(iter->first);
 		}
 		return names;
+	}
+	
+	template<class T>
+		vector<string> MEParamsRep<T>::completions(const string& pattern) const
+	{
+		casa::Regex regex(casa::Regex::fromPattern(pattern));
+		vector<string> completions;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(casa::String(iter->first).contains(regex)) completions.push_back(iter->first);
+		}
+		return completions;
 	}
 
 	template<class T>

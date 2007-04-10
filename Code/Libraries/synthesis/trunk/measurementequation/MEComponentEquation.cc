@@ -10,6 +10,7 @@
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Cube.h>
 #include <casa/Arrays/ArrayMath.h>
 #include <scimath/Mathematics/AutoDiff.h>
 #include <scimath/Mathematics/AutoDiffMath.h>
@@ -28,91 +29,109 @@ MEComponentEquation::~MEComponentEquation()
 void MEComponentEquation::init()
 {
 	itsDefaultParams.reset();
-	itsDefaultParams.add("flux.i");
-	itsDefaultParams.add("direction.ra");
-	itsDefaultParams.add("direction.dec");
+	itsDefaultParams.add("flux.i.*");
+	itsDefaultParams.add("direction.ra.*");
+	itsDefaultParams.add("direction.dec.*");
 }
 
-void MEComponentEquation::predict(IDataAccessor& ida) 
-{
-	// Get the data from the accessor
-	casa::Vector<double> vreal;
-	casa::Vector<double> vimag;
-	// ...
-	
-	// Calculate values and derivatives
-	this->calc<double>(ida, vreal, vimag);
-	
-	// Put the values back into the accessor
-	// ...
-}
-
-void MEComponentEquation::calcNormalEquations(IDataAccessor& ida, 
+void MEComponentEquation::calcEquations(IDataAccessor& ida, 
 	MENormalEquations& normeq) 
 {
-	// Get the data from the accessor
-	casa::Vector<casa::AutoDiff<double> > vreal;
-	casa::Vector<casa::AutoDiff<double> > vimag;
-	// ...
-	
-	// Calculate values and derivatives
-	this->calc<casa::AutoDiff<double> >(ida, vreal, vimag);
-	
-	// Put the values back into the accessor
-	// ...
-	
+	MEDesignMatrix designmatrix;
+	calcEquations(ida, designmatrix, normeq);	
+}
+
+void MEComponentEquation::calcEquations(IDataAccessor& ida, 
+	MEDesignMatrix& designmatrix, MENormalEquations& normeq) 
+{
+	calcEquations(ida, designmatrix);	
 	// Put the derivatives into the normal equations
 	// ...
 }
 
-void MEComponentEquation::calcDesignMatrix(IDataAccessor& ida, 
+void MEComponentEquation::calcEquations(IDataAccessor& ida, 
 	MEDesignMatrix& designmatrix) 
 {
-	// Get the data from the accessor
-	casa::Vector<casa::AutoDiff<double> > vreal;
-	casa::Vector<casa::AutoDiff<double> > vimag;
-	// ...
-	
-	// Calculate values and derivatives
-	this->calc<casa::AutoDiff<double> >(ida, vreal, vimag);
-	
-	// Put the values back into the accessor
-	// ...
-	
-	// Put the derivatives into the normal equations
-	// ...
-}
-
-template<class T>
-void MEComponentEquation::calc(const IDataAccessor& ida, 
-	casa::Vector<T>& vreal, casa::Vector<T>& vimag) {
-	
-	const T& ra=parameters().regular().value("DIRECTION.RA");
-	const T& dec=parameters().regular().value("DIRECTION.DEC");
-	const T& flux=parameters().regular().value("FLUX.I");
-
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	
-	
+	vector<string> completions(parameters().regular().completions("flux.i.*"));
+	vector<string>::iterator it;
+		
 	for (uint row=0;row<ida.nRow();row++) {
-		const double& u=ida.uvw()(row)(0);
-		const double& v=ida.uvw()(row)(1);
-		T  delay;
-		delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
-		casa::Vector<T> phase(freq.nelements());
-		for (uint i=0;i<freq.nelements();i++) {
-			phase(i) = delay * freq(i);
+
+		// The loop has to be this order so that we get the derivatives with respect
+		// to all parameters
+		for (it=completions.begin();it!=completions.end();it++) {
+	
+			const double& ra=parameters().regular().value("direction.ra."+(*it));
+			const double& dec=parameters().regular().value("direction.dec."+(*it));
+			const double& flux=parameters().regular().value("flux.i."+(*it));
+
+			const double& u=ida.uvw()(row)(0);
+			const double& v=ida.uvw()(row)(1);
+			casa::Vector<float> vreal(freq.nelements());
+			casa::Vector<float> vimag(freq.nelements());
+			this->calcVis<float>(ra, dec, flux, freq, u, v, vreal, vimag);
+			for (uint i=0;i<freq.nelements();i++) {
+				real(ida.visibility()(row,i,0)) += vreal(i);
+				imag(ida.visibility()(row,i,0)) += vimag(i);
+			}
 		}
-		vreal=flux*cos(phase);
-		vimag=flux*sin(phase);
 	}
 };
+
+void MEComponentEquation::predict(IDataAccessor& ida) 
+{ 
+	const casa::Vector<double>& freq=ida.frequency();	
+	const casa::Vector<double>& time=ida.time();	
+	vector<string> completions(parameters().regular().completions("flux.i.*"));
+	vector<string>::iterator it;
+		
+	for (uint row=0;row<ida.nRow();row++) {
+
+		// The loop has to be this order so that we get the derivatives with respect
+		// to all parameters
+		for (it=completions.begin();it!=completions.end();it++) {
+	
+			const double& ra=parameters().regular().value("direction.ra."+(*it));
+			const double& dec=parameters().regular().value("direction.dec."+(*it));
+			const double& flux=parameters().regular().value("flux.i."+(*it));
+
+			const double& u=ida.uvw()(row)(0);
+			const double& v=ida.uvw()(row)(1);
+			casa::Vector<float> vreal(freq.nelements());
+			casa::Vector<float> vimag(freq.nelements());
+			this->calcVis<float>(ra, dec, flux, freq, u, v, vreal, vimag);
+
+			for (uint i=0;i<freq.nelements();i++) {
+				real(ida.visibility()(row,i,0)) += vreal(i);
+				imag(ida.visibility()(row,i,0)) += vimag(i);
+			}
+		}
+	}
+};
+
+template<class T>
+void MEComponentEquation::calcVis(const T& ra, const T& dec, const T& flux, 
+	const casa::Vector<double>& freq, const double u, const double v, 
+	casa::Vector<T>& vreal, casa::Vector<T>& vimag) 
+{
+	T  delay;
+	delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
+	T phase;
+	for (uint i=0;i<freq.nelements();i++) {
+		phase = delay * freq(i);
+		vreal(i) = flux * cos(phase);
+		vimag(i) = flux * sin(phase);
+	}
+}
+
 }
 
 }
 // Declare necessary templates
 #include <casa/Arrays/ArrayMath.cc>
-template casa::Array<casa::AutoDiff<double> > casa::cos<casa::AutoDiff<double> >(casa::Array<casa::AutoDiff<double> > const&);
-template casa::Array<casa::AutoDiff<double> > casa::sin<casa::AutoDiff<double> >(casa::Array<casa::AutoDiff<double> > const&);
-template casa::Array<casa::AutoDiff<double> > casa::operator*<casa::AutoDiff<double> >(casa::AutoDiff<double> const&, casa::Array<casa::AutoDiff<double> > const&);
+template casa::Array<casa::AutoDiff<float> > casa::cos<casa::AutoDiff<float> >(casa::Array<casa::AutoDiff<float> > const&);
+template casa::Array<casa::AutoDiff<float> > casa::sin<casa::AutoDiff<float> >(casa::Array<casa::AutoDiff<float> > const&);
+template casa::Array<casa::AutoDiff<float> > casa::operator*<casa::AutoDiff<float> >(casa::AutoDiff<float> const&, casa::Array<casa::AutoDiff<float> > const&);
 

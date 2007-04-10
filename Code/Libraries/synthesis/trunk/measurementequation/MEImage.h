@@ -28,7 +28,7 @@ public:
 	
 private:
 	string itsName;
-//	casa::TempImage<MEImagePixelType> itsCache;
+	casa::TempImage<MEImagePixelType> itsCache;
 };
 
 }
