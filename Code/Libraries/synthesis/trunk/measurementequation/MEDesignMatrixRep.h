@@ -54,8 +54,11 @@ public:
 	/// Reset to empty
 	void reset();
 private:
+    // Another possibility would be to use a map<string, vector> but evidently items
+    // in STL containers get moved a bit so this would be inefficient.
 	uint itsDataLength;
 	map<string, int> itsIndices;
+	// Axes are (index, data)
 	casa::Matrix<T> itsDesignMatrix;
 };
 

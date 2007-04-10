@@ -26,8 +26,9 @@ using namespace conrad::synthesis;
 // Someone needs these templates - I don't know who!
 casa::Matrix<casa::String> s0;
 
-void doTest(const boost::shared_ptr<IDataSource> &ds) {
-    AlwaysAssert((bool)ds,casa::AipsError);
+void doTest(const boost::shared_ptr<IDataSource> &ds) 
+{
+//    casa::AlwaysAssert((bool)ds,casa::AipsError);
      
 	// Declare the equation with no parameters so we can get the
 	// default values.
@@ -35,8 +36,8 @@ void doTest(const boost::shared_ptr<IDataSource> &ds) {
 	MEParams ip(cie.defaultParameters());
 	
 	// Use the simple solver
-	MENormalEquations normeq(ip);
-	MEDesignMatrix designmatrix(ip);
+	MERegularNormalEquations normeq(ip.regular());
+	MERegularDesignMatrix designmatrix(ip.regular());
 	MESimpleSolver is(ip);
 	is.init();
 
@@ -49,7 +50,7 @@ void doTest(const boost::shared_ptr<IDataSource> &ds) {
     boost::shared_ptr<IDataIterator> it=ds->createIterator(sel);
 	// Loop through data, adding equations to the solver
 	for (;it->hasMore();it->next()) {
-		cie.calcEquations(*(*it), designmatrix, normeq);
+		cie.calcEquations(*(*it), normeq);
 		is.addEquations(normeq);
 	}
 

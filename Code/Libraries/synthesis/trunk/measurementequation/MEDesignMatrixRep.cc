@@ -17,8 +17,6 @@ namespace synthesis
 }
 }
 
-#include <casa/Arrays/Array.cc>
-#include <casa/Arrays/ArrayMath.cc>
 namespace casa {
 	template class Matrix<conrad::synthesis::MEImage>;
 }

@@ -32,9 +32,9 @@ namespace synthesis
 class IDataAccessor;
 
 class MEParams;
-//class MEDataAccessor;
-class MENormalEquations;
-class MEDesignMatrix;
+class MERegularNormalEquations;
+class MEImageNormalEquations;
+class MERegularDesignMatrix;
 
 class MEquation {
 public:	
@@ -57,7 +57,7 @@ public:
 	
 	/// Check if set of parameters is valid for this equation
 	/// @param ip Parameters
-	virtual bool complete(const MEParams& ip) {return ip.isCongruent(itsDefaultParams);};
+	virtual bool complete(const MEParams& ip) {return itsDefaultParams.isCongruent(ip);};
 	
 	/// Return a default set of parameters
 	/// @param ip Parameters
@@ -67,24 +67,28 @@ public:
 	/// @param ida data accessor
 	virtual void predict(IDataAccessor& ida) = 0;
 	
-	/// Calculate the normal equations
+	/// Calculate the image normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida,
-		MENormalEquations& normeq) = 0;
+	virtual void calcEquations(IDataAccessor& ida, MEImageNormalEquations& normeq) = 0;
 	
-	/// Calculate the design matrix and normal equations
+	/// Calculate the regular normal equations
+	/// @param ida data accessor
+	/// @param normeq Normal equations
+	virtual void calcEquations(IDataAccessor& ida, MERegularNormalEquations& normeq) = 0;
+	
+	/// Calculate the regular design matrix and normal equations
 	/// @param ida data accessor
 	/// @param design matrix
 	/// @param normeq Normal equations
 	virtual void calcEquations(IDataAccessor& ida,
-		MEDesignMatrix& designmatrix, MENormalEquations& normeq) = 0;
+		MERegularDesignMatrix& designmatrix, MERegularNormalEquations& normeq) = 0;
 
-	/// Calculate the design matrix
+	/// Calculate the regular design matrix
 	/// @param ida data accessor
 	/// @param design matrix
 	virtual void calcEquations(IDataAccessor& ida,
-		MEDesignMatrix& designmatrix) = 0;
+		MERegularDesignMatrix& designmatrix) = 0;
 
 protected:
 	MEParams itsParams;

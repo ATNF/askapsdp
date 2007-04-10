@@ -44,11 +44,15 @@ public:
 	
 	/// Add in normal equations
 	/// @param normeq Normal Equations
-	virtual void addEquations(const MENormalEquations& normeq) = 0;
+	virtual void addEquations(const MERegularNormalEquations& normeq) = 0;
 	
+	/// Add in normal equations
+	/// @param normeq Normal Equations
+	virtual void addEquations(const MEImageNormalEquations& normeq) = 0;
+		
 	/// Set the design matrix
 	/// @param designmatrix Design Matrix
-	virtual void setDesignMatrix(const MEDesignMatrix& designmatrix) = 0;
+	virtual void setDesignMatrix(const MERegularDesignMatrix& designmatrix) = 0;
 	
 	/// Solve for parameters, updating the values kept internally
 	virtual bool solve(MEQuality& q) = 0;

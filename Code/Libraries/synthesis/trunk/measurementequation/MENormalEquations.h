@@ -8,19 +8,29 @@
 #ifndef MENORMALEQUATIONS_H_
 #define MENORMALEQUATIONS_H_
 
+#include <measurementequation/MEParams.h>
+
+
 namespace conrad
 {
 namespace synthesis
 {
 	
-class MEParams;
-
-class MENormalEquations
+class MERegularNormalEquations
 {
 public:
-	MENormalEquations(const MEParams& ip);
-	virtual ~MENormalEquations();
-	virtual void merge(const MENormalEquations& other);
+	MERegularNormalEquations(const MERegularParams& ip);
+	virtual ~MERegularNormalEquations();
+	virtual void merge(const MERegularNormalEquations& other);
+	virtual void reset();
+};
+
+class MEImageNormalEquations
+{
+public:
+	MEImageNormalEquations(const MEImageParams& ip);
+	virtual ~MEImageNormalEquations();
+	virtual void merge(const MEImageNormalEquations& other);
 	virtual void reset();
 };
 

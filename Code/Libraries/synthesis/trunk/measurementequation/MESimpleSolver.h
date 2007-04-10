@@ -13,6 +13,7 @@
 #include <measurementequation/MESolver.h>
 #include <measurementequation/MENormalEquations.h>
 #include <measurementequation/MEDesignMatrix.h>
+#include <measurementequation/MEParams.h>
 
 namespace conrad
 {
@@ -23,26 +24,40 @@ class MESimpleSolver : public MESolver
 {
 public:	
 
-	MESimpleSolver(const MEParams& ip) : MESolver(ip), itsEquations(ip), itsMatrix(ip) {};
+	MESimpleSolver(const MEParams& ip) : MESolver(ip), 
+		itsRegularEquations(ip.regular()),  itsImageEquations(ip.image()), 
+		itsMatrix(ip.regular()) {};
 	
 	/// Initialize this solver
 	virtual void init();
 	
+	/// Set the parameters
+	/// @param ip Parameters
+	void setParameters(const MEParams& ip);
+
+	/// Return current values of params
+	const MEParams& getParameters() const;
+	
 	/// Add in normal equations
 	/// @param normeq Normal Equations
-	virtual void addEquations(const MENormalEquations& normeq);
+	virtual void addEquations(const MEImageNormalEquations& normeq);
+	
+	/// Add in normal equations
+	/// @param normeq Normal Equations
+	virtual void addEquations(const MERegularNormalEquations& normeq);
 	
 	/// Set the design matrix
 	/// @param designmatrix Design Matrix
-	virtual void setDesignMatrix(const MEDesignMatrix& designmatrix);
+	virtual void setDesignMatrix(const MERegularDesignMatrix& designmatrix);
 	
 	/// Solve for parameters
 	virtual bool solve(MEQuality& q);
 	virtual bool solveImage(MEQuality& q);
 	
 protected:
-	MENormalEquations itsEquations;
-	MEDesignMatrix itsMatrix;
+	MERegularNormalEquations itsRegularEquations;
+	MEImageNormalEquations itsImageEquations;
+	MERegularDesignMatrix itsMatrix;
 };
 
 }

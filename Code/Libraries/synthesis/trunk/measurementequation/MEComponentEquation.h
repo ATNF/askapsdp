@@ -20,24 +20,27 @@ public:
 	/// @param ida data accessor
 	virtual void predict(IDataAccessor& ida);
 	
-	/// Calculate the normal equations
+	/// Calculate the image normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida,
-		MENormalEquations& normeq);
-		
-	/// Calculate the design matrix and normal equations
+	virtual void calcEquations(IDataAccessor& ida, MEImageNormalEquations& normeq);
+	
+	/// Calculate the regular normal equations
+	/// @param ida data accessor
+	/// @param normeq Normal equations
+	virtual void calcEquations(IDataAccessor& ida, MERegularNormalEquations& normeq);
+	
+	/// Calculate the regular design matrix and normal equations
 	/// @param ida data accessor
 	/// @param design matrix
 	/// @param normeq Normal equations
 	virtual void calcEquations(IDataAccessor& ida,
-		MEDesignMatrix& designmatrix, MENormalEquations& normeq);
+		MERegularDesignMatrix& designmatrix, MERegularNormalEquations& normeq);
 
-	/// Calculate the design matrix
+	/// Calculate the regular design matrix
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida,
-		MEDesignMatrix& designmatrix);
+	virtual void calcEquations(IDataAccessor& ida, MERegularDesignMatrix& designmatrix);
 	
 private:
 	void init();

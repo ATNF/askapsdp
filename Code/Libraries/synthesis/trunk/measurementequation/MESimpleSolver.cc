@@ -8,17 +8,22 @@ namespace synthesis
 {
 
 
-void MESimpleSolver::addEquations(const MENormalEquations& normeq) {
-	itsEquations.merge(normeq);
+void MESimpleSolver::addEquations(const MERegularNormalEquations& normeq) {
+	itsRegularEquations.merge(normeq);
 }
 
-void MESimpleSolver::setDesignMatrix(const MEDesignMatrix& designmatrix) {
+void MESimpleSolver::addEquations(const MEImageNormalEquations& normeq) {
+	itsImageEquations.merge(normeq);
+}
+
+void MESimpleSolver::setDesignMatrix(const MERegularDesignMatrix& designmatrix) 
+{
 	itsMatrix=designmatrix;
 }
 
 void MESimpleSolver::init() {
-//	itsEquations.set(static_cast<uint>(itsParams.regular().nelements()));
-	itsEquations.reset();
+	itsRegularEquations.reset();
+	itsImageEquations.reset();
 }
 bool MESimpleSolver::solve(MEQuality& quality) {
 	  uint rank;

@@ -96,7 +96,6 @@ namespace synthesis
 	template<class T>
 		bool MEParamsRep<T>::isCongruent(const MEParamsRep& other) const
 	{
-		if(size()!=other.size()) return false;
 		std::map<string,bool>::iterator iter;
 		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
 			if(other.itsFree.count(iter->first)==0) {

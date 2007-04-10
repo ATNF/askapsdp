@@ -1,26 +1,24 @@
 TARGET    = tMEquation
 SYNLIB	  = ../libsynthesis.a
 
-AIPSROOT := $(word 1, $(AIPSPATH))
-AIPSARCH := $(word 2, $(AIPSPATH))
-AIPSLIB := $(AIPSROOT)/$(AIPSARCH)/lib
-
-CASAINC = -I$(AIPSROOT)/code/include -I$(AIPSROOT)/code/casa
-CASALIB = -L$(AIPSLIB) $(AIPSLIB)/version.o -limages -llattices -lcoordinates -lcomponents -lmsvis -lmsfits -lms -lmeasures -lmeasures_f -ltables -lscimath -lscimath_f -lcasa -lfits -lcfitsio -lblas -llapack -lstdc++ -lwcs
-
+CASAROOT = $(CONRAD_PROJECT_ROOT)/ThirdPartyLibraries/casacore/tags/casacore-0.1.0/
+CASAINC  = -I$(CASAROOT)/include/casacore -I$(CASAROOT)/include/casacore/casacore-0.1.0
+CASALIB  = -L$(CASAROOT)/lib -limages -llattices -lcoordinates -lcomponents -lmsvis -lmsfits -lms -lmeasures -lmeasures_f -ltables -lscimath -lscimath_f -lcasa -lfits -lcfitsio -lblas -llapack -lstdc++ -lwcs
+WCSROOT  = $(CONRAD_PROJECT_ROOT)/ThirdPartyLibraries//wcslib/tags/wcslib-4.2/
+WCSINC   = -I$(WCSROOT)/include/
 LINK      = /usr/bin/g++
 LFLAGS    = 
 
-INCDIRS   = -I. $(CASAINC) -I..
+INCDIRS   = -I. $(CASAINC) $(WCSINC) -I..
 LIBDIRS   = $(SYNLIB) $(CASALIB)
 
 CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
-CXXFLAGS  = -g -DAIPS_DARWIN -DAIPS_NO_TEMPLATE_SRC
+CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_STDLIB
 
 OBJECTS   = MEImage.o \
 			MESolver.o MESimpleSolver.o MEQuality.o \
             MEParams.o MEComponentEquation.o MEDomain.o MEParamsTable.o \
-            MEParamsRep.o MENormalEquations.o MEDesignMatrixRep.o MEDesignMatrix.o
+            MEParamsRep.o MENormalEquations.o MEDesignMatrixRep.o
 HEADERS   = MEIterative.h \
 			MEImage.h  \
 			MESolver.h MESimpleSolver.h MEQuality.h \

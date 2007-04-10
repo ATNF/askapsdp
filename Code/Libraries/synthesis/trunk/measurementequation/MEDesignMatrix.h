@@ -16,39 +16,11 @@ namespace conrad {
 namespace synthesis
 {
 
-typedef MEDesignMatrixRep<MEImage> MEImageDesignMatrix; 
-typedef MEDesignMatrixRep<double> MERegularDesignMatrix;
-
-class MEDesignMatrix {
+class MERegularDesignMatrix : public MEDesignMatrixRep<double> {
 public:
-
-	/// Default constructor
-	MEDesignMatrix();
-
-	/// Constructor from parameters
-	MEDesignMatrix(const MEParams& ip);
-	
-	/// Copy constructor
-	MEDesignMatrix(const MEDesignMatrix& other);
-	
-	/// Assignment operator
-	MEDesignMatrix& operator=(const MEDesignMatrix& other);
-
-	/// Return the regular parameters
-	const MERegularDesignMatrix& regular() const;
-	MERegularDesignMatrix& regular();
-
-    /// Return the image parameters
-	const MEImageDesignMatrix& image() const;
-	MEImageDesignMatrix& image();
-	
-	/// Reset to empty
-	void reset();
-
-private:
-	MERegularDesignMatrix itsRegular;
-	MEImageDesignMatrix itsImage;
+	MERegularDesignMatrix(const MERegularParams& ip) {};
 };
+
 
 }
 }
