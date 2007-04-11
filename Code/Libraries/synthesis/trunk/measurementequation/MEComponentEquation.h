@@ -23,7 +23,7 @@ public:
 	/// Calculate the image normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MEImageNormalEquations& normeq);
+	virtual void calcEquations(IDataAccessor& ida, MEImageNormalEquations& normeq) {};
 	
 	/// Calculate the regular normal equations
 	/// @param ida data accessor
