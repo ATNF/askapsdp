@@ -16,12 +16,12 @@ CXX     := /usr/bin/g++ -Wno-deprecated $(INCDIRS)
 CXXFLAGS  = -O2 -DAIPS_DARWIN -DAIPS_STDLIB
 
 OBJECTS   = MEImage.o \
-			MESolver.o MESimpleSolver.o MEQuality.o \
+			MERegularSolver.o MEImageSolver.o MESimpleSolver.o MEQuality.o \
             MEParams.o MEComponentEquation.o MEDomain.o MEParamsTable.o \
             MEParamsRep.o MENormalEquations.o MEDesignMatrixRep.o
 HEADERS   = MEIterative.h \
 			MEImage.h  \
-			MESolver.h MESimpleSolver.h MEQuality.h \
+			MERegularSolver.h MEImageSolver.h MESimpleSolver.h MEQuality.h \
 			MEParams.h MEquation.h \
             MEComponentEquation.h MEDomain.h MEParamsTable.h \
             MEParamsRep.h MEParamsRep.tcc MENormalEquations.h \

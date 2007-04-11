@@ -38,7 +38,7 @@ void doTest(const boost::shared_ptr<IDataSource> &ds)
 	// Use the simple solver
 	MERegularNormalEquations normeq(ip.regular());
 	MERegularDesignMatrix designmatrix(ip.regular());
-	MESimpleSolver is(ip);
+	MESimpleSolver is(ip.regular());
 	is.init();
 
     // obtain and configure data selector
@@ -51,16 +51,16 @@ void doTest(const boost::shared_ptr<IDataSource> &ds)
 	// Loop through data, adding equations to the solver
 	for (;it->hasMore();it->next()) {
 		cie.calcEquations(*(*it), normeq);
-		is.addEquations(normeq);
+		is.addNormalEquations(normeq);
 	}
 
 	// Now we can do solution
 	MEQuality quality;
-	if(is.solve(quality)) {
+	if(is.solveNormalEquations(quality)) {
 		MEParamsTable iptab;
 		MEDomain everything;
 		cout << "Solution succeeded" << endl;
-		iptab.setParameters(is.getParameters(), everything);
+//		iptab.setParameters(is.getParameters(), everything);
 	}
 	else {
 		cout << "Solution failed" << endl;

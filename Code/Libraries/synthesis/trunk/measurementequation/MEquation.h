@@ -67,16 +67,11 @@ public:
 	/// @param ida data accessor
 	virtual void predict(IDataAccessor& ida) = 0;
 	
-	/// Calculate the image normal equations
+	/// Calculate the regular design matrix only
 	/// @param ida data accessor
-	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MEImageNormalEquations& normeq) = 0;
-	
-	/// Calculate the regular normal equations
-	/// @param ida data accessor
-	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MERegularNormalEquations& normeq) = 0;
-	
+	/// @param design matrix
+	virtual void calcEquations(IDataAccessor& ida, MERegularDesignMatrix& designmatrix) = 0;
+
 	/// Calculate the regular design matrix and normal equations
 	/// @param ida data accessor
 	/// @param design matrix
@@ -84,12 +79,16 @@ public:
 	virtual void calcEquations(IDataAccessor& ida,
 		MERegularDesignMatrix& designmatrix, MERegularNormalEquations& normeq) = 0;
 
-	/// Calculate the regular design matrix
+	/// Calculate the regular normal equations
 	/// @param ida data accessor
-	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida,
-		MERegularDesignMatrix& designmatrix) = 0;
-
+	/// @param normeq Normal equations
+	virtual void calcEquations(IDataAccessor& ida, MERegularNormalEquations& normeq) = 0;
+	
+	/// Calculate the image normal equations
+	/// @param ida data accessor
+	/// @param normeq Normal equations
+	virtual void calcEquations(IDataAccessor& ida, MEImageNormalEquations& normeq) = 0;
+	
 protected:
 	MEParams itsParams;
 	MEParams itsDefaultParams;

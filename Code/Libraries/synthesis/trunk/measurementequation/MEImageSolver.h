@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MESolver: Base class for solvers of parametrized imaging
+/// MEImageSolver: Base class for solvers of parametrized imaging
 /// equations.
 ///
 /// The base solver does something sensible and can be used as-is.
@@ -10,8 +10,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef MESOLVER_H_
-#define MESOLVER_H_
+#ifndef MEIMAGESOLVER_H_
+#define MEIMAGESOLVER_H_
 
 #include <measurementequation/MEParams.h>
 #include <measurementequation/MENormalEquations.h>
@@ -24,44 +24,37 @@ namespace conrad
 namespace synthesis
 {
 
-class MESolver : public MEIterative
+class MEImageSolver : public MEIterative
 {
 public:	
 
-	MESolver(const MEParams& ip);
+	MEImageSolver(const MEImageParams& ip);
 
-	virtual ~MESolver() {};
+	virtual ~MEImageSolver() {};
 	
 	/// Initialize this solver
 	virtual void init() = 0;
 	
 	/// Set the parameters
 	/// @param ip Parameters
-	void setParameters(const MEParams& ip);
+	void setParameters(const MEImageParams& ip);
 
 	/// Return current values of params
-	const MEParams& getParameters() const;
+	const MEImageParams& getParameters() const;
 	
 	/// Add in normal equations
 	/// @param normeq Normal Equations
-	virtual void addEquations(const MERegularNormalEquations& normeq) = 0;
-	
-	/// Add in normal equations
-	/// @param normeq Normal Equations
-	virtual void addEquations(const MEImageNormalEquations& normeq) = 0;
-		
-	/// Set the design matrix
-	/// @param designmatrix Design Matrix
-	virtual void setDesignMatrix(const MERegularDesignMatrix& designmatrix) = 0;
+	virtual void addNormalEquations(const MEImageNormalEquations& normeq);
 	
 	/// Solve for parameters, updating the values kept internally
-	virtual bool solve(MEQuality& q) = 0;
+	virtual bool solveNormalEquations(MEQuality& q) = 0;
 	
 protected:
-	MEParams itsParams;
+	MEImageParams itsParams;
+	MEImageNormalEquations itsNormalEquations;
 };
 
 }
 }
 
-#endif /*MESOLVER_H_*/
+#endif
