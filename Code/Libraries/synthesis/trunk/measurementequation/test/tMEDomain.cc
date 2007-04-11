@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+using std::ostream;
+
 using namespace conrad::synthesis;
 
 namespace conrad {
@@ -75,6 +77,8 @@ public:
 	p1->add("Time", 0.0, 1.0, 128);
   	CPPUNIT_ASSERT(p1->has("Time"));
 	p1->add("Freq", 0.7e9, 1.7e9, 16384);
+	
+	std::cout << (*p1);
 
   	CPPUNIT_ASSERT(p1->has("Time"));
 	CPPUNIT_ASSERT(p1->start("Time")==0.0);

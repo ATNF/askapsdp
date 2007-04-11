@@ -60,6 +60,8 @@ public:
 	/// @param name Name of axis
 	int cells(const std::string& name) const;
 	
+	friend std::ostream& operator<<(std::ostream& os, const MEDomain& domain);
+	
 private:
 	mutable std::map<std::string, double> itsStart;
 	mutable std::map<std::string, double> itsEnd;

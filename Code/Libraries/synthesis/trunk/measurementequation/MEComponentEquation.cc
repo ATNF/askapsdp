@@ -87,24 +87,32 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MERegularDesignMatri
 	vector<string> completions(parameters().regular().completions("flux.i.*"));
 	vector<string>::iterator it;
 		
+	casa::Vector<casa::AutoDiff<double> > avreal(freq.nelements());
+	casa::Vector<casa::AutoDiff<double> > avimag(freq.nelements());
+	for (uint i=0;i<freq.nelements();i++) {
+		avreal[i]=casa::AutoDiff<double>(0.0, 3);
+		avimag[i]=casa::AutoDiff<double>(0.0, 3);
+	}
+
 	for (uint row=0;row<ida.nRow();row++) {
 
-		// The loop has to be this order so that we get the derivatives with respect
-		// to all parameters
+		const double& u=ida.uvw()(row)(0);
+		const double& v=ida.uvw()(row)(1);
+			
 		for (it=completions.begin();it!=completions.end();it++) {
 	
 			const double& ra=parameters().regular().value("direction.ra."+(*it));
 			const double& dec=parameters().regular().value("direction.dec."+(*it));
 			const double& flux=parameters().regular().value("flux.i."+(*it));
+			
+			casa::AutoDiff<double> ara(ra, 3, 0);
+			casa::AutoDiff<double> adec(dec, 3, 1);
+			casa::AutoDiff<double> aflux(flux, 3, 2);
 
-			const double& u=ida.uvw()(row)(0);
-			const double& v=ida.uvw()(row)(1);
-			casa::Vector<float> vreal(freq.nelements());
-			casa::Vector<float> vimag(freq.nelements());
-			this->calcVis<float>(ra, dec, flux, freq, u, v, vreal, vimag);
+			this->calcVis<casa::AutoDiff<double> >(ara, adec, aflux, freq, u, v, avreal, avimag);
 			for (uint i=0;i<freq.nelements();i++) {
-				real(ida.visibility()(row,i,0)) += vreal(i);
-				imag(ida.visibility()(row,i,0)) += vimag(i);
+				real(ida.visibility()(row,i,0)) += avreal[i].value();
+				imag(ida.visibility()(row,i,0)) += avimag[i].value();
 			}
 		}
 	}

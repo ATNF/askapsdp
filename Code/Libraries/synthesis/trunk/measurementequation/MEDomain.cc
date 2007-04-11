@@ -4,7 +4,9 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
+using std::ostream;
 using std::string;
 using std::vector;
 
@@ -91,6 +93,18 @@ namespace synthesis
 	{
 		return itsCells[name];
 	}
+
+	ostream& operator<<(ostream& os, const MEDomain& domain) {
+
+		vector<string> names(domain.names());
+		vector<string>::iterator it;
+		for(it = names.begin(); it != names.end(); it++) {
+			os << *it << " from " << domain.start(*it) << " to " << domain.end(*it)
+				<< " in " << domain.cells(*it) << " cells" << std::endl;
+		}
+		return os;
+	}
+
 
 }
 
