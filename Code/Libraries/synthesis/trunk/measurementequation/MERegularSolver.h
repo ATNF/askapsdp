@@ -48,7 +48,7 @@ public:
 	
 	/// Add the design matrix
 	/// @param designmatrix Design Matrix
-	virtual void addDesignMatrix(const MERegularDesignMatrix& designmatrix);
+	virtual void addDesignMatrix(const MEDesignMatrix& designmatrix);
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the normal equations
@@ -61,7 +61,7 @@ public:
 protected:
 	MERegularParams itsParams;
 	MERegularNormalEquations itsNormalEquations;
-	MERegularDesignMatrix itsDesignMatrix;
+	MEDesignMatrix itsDesignMatrix;
 };
 
 }

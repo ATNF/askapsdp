@@ -1,5 +1,5 @@
-#include <measurementequation/MEDesignMatrixRep.h>
-#include <measurementequation/MEParamsRep.h>
+#include <measurementequation/MEDesignMatrix.h>
+#include <measurementequation/MEParams.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
 #include <casa/Exceptions/Error.h>
@@ -16,7 +16,7 @@ namespace conrad
 namespace synthesis
 {
 
-MEDesignMatrixRep<double>::MEDesignMatrixRep(const MEParamsRep<double>& ip)
+MEDesignMatrix::MEDesignMatrix(const MERegularParams& ip)
 {
 	vector<string> names=ip.freeNames();
 	vector<string>::iterator iter;
@@ -26,12 +26,12 @@ MEDesignMatrixRep<double>::MEDesignMatrixRep(const MEParamsRep<double>& ip)
 	itsDataLength=0;
 }
 
-MEDesignMatrixRep<double>::MEDesignMatrixRep(const MEDesignMatrixRep& other) 
+MEDesignMatrix::MEDesignMatrix(const MEDesignMatrix& other) 
 {
 	operator=(other);
 }
 
-MEDesignMatrixRep<double>& MEDesignMatrixRep<double>::operator=(const MEDesignMatrixRep& other)
+MEDesignMatrix& MEDesignMatrix::operator=(const MEDesignMatrix& other)
 {
 	if(this!=&other) {
 		itsDataLength=other.itsDataLength;
@@ -39,16 +39,16 @@ MEDesignMatrixRep<double>& MEDesignMatrixRep<double>::operator=(const MEDesignMa
 	}
 }
 
-MEDesignMatrixRep<double>::~MEDesignMatrixRep()
+MEDesignMatrix::~MEDesignMatrix()
 {
 	reset();
 }
 
-void MEDesignMatrixRep<double>::merge(const MEDesignMatrixRep& other) 
+void MEDesignMatrix::merge(const MEDesignMatrix& other) 
 {
 }
 
-void MEDesignMatrixRep<double>::addDerivative(const string& name, const casa::Vector<double>& deriv)
+void MEDesignMatrix::addDerivative(const string& name, const casa::Vector<double>& deriv)
 {
 	if(itsDataLength==0) {
 		itsDataLength=deriv.nelements();
@@ -60,7 +60,7 @@ void MEDesignMatrixRep<double>::addDerivative(const string& name, const casa::Ve
 }
 
 
-void MEDesignMatrixRep<double>::reset()
+void MEDesignMatrix::reset()
 {
 	std::map<std::string, casa::Vector<double> >::iterator iter;
 	for (iter=itsDesignMatrix.begin();iter!=itsDesignMatrix.end();++iter) {

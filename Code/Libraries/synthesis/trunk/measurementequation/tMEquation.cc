@@ -23,9 +23,6 @@
 
 using namespace conrad::synthesis;
  
-// Someone needs these templates - I don't know who!
-casa::Matrix<casa::String> s0;
-
 void doTest(const boost::shared_ptr<IDataSource> &ds) 
 {
 //    casa::AlwaysAssert((bool)ds,casa::AipsError);
@@ -37,7 +34,7 @@ void doTest(const boost::shared_ptr<IDataSource> &ds)
 	
 	// Use the simple solver
 	MERegularNormalEquations normeq(ip.regular());
-	MERegularDesignMatrix designmatrix(ip.regular());
+	MEDesignMatrix designmatrix(ip.regular());
 	MESimpleSolver is(ip.regular());
 	is.init();
 

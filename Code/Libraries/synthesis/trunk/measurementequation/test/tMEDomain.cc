@@ -78,7 +78,7 @@ public:
   	CPPUNIT_ASSERT(p1->has("Time"));
 	p1->add("Freq", 0.7e9, 1.7e9, 16384);
 	
-	std::cout << (*p1);
+//	std::cout << (*p1);
 
   	CPPUNIT_ASSERT(p1->has("Time"));
 	CPPUNIT_ASSERT(p1->start("Time")==0.0);
