@@ -35,12 +35,12 @@ public:
 	/// @param design matrix
 	/// @param normeq Normal equations
 	virtual void calcEquations(IDataAccessor& ida,
-		MERegularDesignMatrix& designmatrix, MERegularNormalEquations& normeq);
+		MEDesignMatrix& designmatrix, MERegularNormalEquations& normeq);
 
 	/// Calculate the regular design matrix
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, MERegularDesignMatrix& designmatrix);
+	virtual void calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix);
 	
 private:
 	void init();
@@ -48,7 +48,7 @@ private:
 	template<class T>
 	void calcVis(const T& ra, const T& dec, const T& flux, 
 		const casa::Vector<double>& freq, const double u, const double v, 
-		casa::Vector<T>& vreal, casa::Vector<T>& vimag);
+		casa::Vector<T>& vis);
 
 };
 

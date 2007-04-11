@@ -3,12 +3,13 @@
 #include <casa/Utilities/Assert.h>
 #include <casa/BasicSL/String.h>
 
-#include <iostream.h>
+#include <iostream>
+
+using std::cout;
+using std::endl;
 
 #include <boost/shared_ptr.hpp>
 #include <casa/Exceptions.h>
-
-#include <iostream.h>
 
 #include <dataaccess/IDataSource.h>
 #include <dataaccess/IDataSelector.h>

@@ -22,7 +22,7 @@ void MERegularSolver::addNormalEquations(const MERegularNormalEquations& normeq)
 	itsNormalEquations.merge(normeq);
 }
 
-void MERegularSolver::addDesignMatrix(const MERegularDesignMatrix& designmatrix) 
+void MERegularSolver::addDesignMatrix(const MEDesignMatrix& designmatrix) 
 {
 	itsDesignMatrix.merge(designmatrix);
 }

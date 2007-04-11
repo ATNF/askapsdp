@@ -34,7 +34,7 @@ class IDataAccessor;
 class MEParams;
 class MERegularNormalEquations;
 class MEImageNormalEquations;
-class MERegularDesignMatrix;
+class MEDesignMatrix;
 
 class MEquation {
 public:	
@@ -70,14 +70,14 @@ public:
 	/// Calculate the regular design matrix only
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, MERegularDesignMatrix& designmatrix) = 0;
+	virtual void calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix) = 0;
 
 	/// Calculate the regular design matrix and normal equations
 	/// @param ida data accessor
 	/// @param design matrix
 	/// @param normeq Normal equations
 	virtual void calcEquations(IDataAccessor& ida,
-		MERegularDesignMatrix& designmatrix, MERegularNormalEquations& normeq) = 0;
+		MEDesignMatrix& designmatrix, MERegularNormalEquations& normeq) = 0;
 
 	/// Calculate the regular normal equations
 	/// @param ida data accessor
