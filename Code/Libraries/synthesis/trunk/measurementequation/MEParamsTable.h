@@ -29,10 +29,30 @@ public:
 	/// @param domain Domain of validity of parameters
 	virtual bool getParameters(MEParams& ip, const MEDomain& domain) const;
 
+	/// Get the parameters for a specified domain
+	/// @param ip Template of parameters - must match
+	/// @param domain Domain of validity of parameters
+	virtual bool getParameters(MERegularParams& ip, const MEDomain& domain) const;
+
+	/// Get the parameters for a specified domain
+	/// @param ip Template of parameters - must match
+	/// @param domain Domain of validity of parameters
+	virtual bool getParameters(MEImageParams& ip, const MEDomain& domain) const;
+
 	/// Set the parameters for a given domain
 	/// @param ip Parameters to set
 	/// @param domain Domain of validity for parameters
 	virtual bool setParameters (const MEParams& ip, const MEDomain& domain);
+
+	/// Set the parameters for a given domain
+	/// @param ip Parameters to set
+	/// @param domain Domain of validity for parameters
+	virtual bool setParameters (const MERegularParams& ip, const MEDomain& domain);
+	
+	/// Set the parameters for a given domain
+	/// @param ip Parameters to set
+	/// @param domain Domain of validity for parameters
+	virtual bool setParameters (const MEImageParams& ip, const MEDomain& domain);
 };
 
 }

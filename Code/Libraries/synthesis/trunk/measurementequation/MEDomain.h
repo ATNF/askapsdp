@@ -10,6 +10,9 @@
 #define MEDOMAIN_H_
 
 #include <iostream>
+#include <vector>
+#include <map>
+#include <string>
 
 namespace conrad
 {
@@ -20,55 +23,49 @@ namespace synthesis
 class MEDomain
 {
 public:
-  // Create an  x,y default domain of -1:1,-1:1..
-  MEDomain();
+	/// Make an empty domain
+	MEDomain();
+	
+	/// Assignment operator
+	MEDomain& operator=(const MEDomain& other);
+	
+	/// Copy constructor
+	MEDomain(const MEDomain& other);
 
-  // Create an x,y domain.
-  MEDomain (double startX, double endX, double startY, double endY);
-  
-  ~MEDomain();
+	~MEDomain();
+	
+	/// Add an axis 
+	/// @param name Name of axis
+	/// @param start Start value
+	/// @param end End value
+	/// @param cells Optional number of cells	
+	void add(const std::string& name, const double start, const double end, const int cells=1);
+	
+	/// Has this axis?
+	/// @param name Name of axis
+	bool has(const std::string& name) const;
+	
+	/// Return the possible axis names
+	std::vector<std::string> names() const;
 
-  // Get offset and scale value.
-  double offsetX() const
-    { return itsOffsetX; }
-  double scaleX() const
-    { return itsScaleX; }
-  double offsetY() const
-    { return itsOffsetY; }
-  double scaleY() const
-    { return itsScaleY; }
+	/// Return start value	
+	/// @param name Name of axis
+	double start(const std::string& name) const;
+	
+	/// Return end value	
+	/// @param name Name of axis
+	double end(const std::string& name) const;
 
-  // Transform a value to its normalized value.
-  double normalizeX (double value) const
-    { return (value - itsOffsetX) / itsScaleX; }
-  double normalizeY (double value) const
-    { return (value - itsOffsetY) / itsScaleY; }
-
-  // Get the start, end, and step of the domain.
-  double startX() const
-    { return itsOffsetX - itsScaleX; }
-  double endX() const
-    { return itsOffsetX + itsScaleX; }
-  double sizeX() const
-    { return 2*itsScaleX; }
-  double startY() const
-    { return itsOffsetY - itsScaleY; }
-  double endY() const
-    { return itsOffsetY + itsScaleY; }
-  double sizeY() const
-    { return 2*itsScaleY; }
-
-  bool operator== (const MEDomain& that) const
-  { return itsOffsetX == that.itsOffsetX  &&  itsScaleX == that.itsScaleX
-       &&  itsOffsetY == that.itsOffsetY  &&  itsScaleY == that.itsScaleY; }
-
+	/// Return number of cells
+	/// @param name Name of axis
+	int cells(const std::string& name) const;
+	
 private:
-  double itsOffsetX;
-  double itsScaleX;
-  double itsOffsetY;
-  double itsScaleY;
-  
+	mutable std::map<std::string, double> itsStart;
+	mutable std::map<std::string, double> itsEnd;
+	mutable std::map<std::string, int> itsCells;
 };
+
 };
 };
 #endif /*MEDOMAIN_H_*/

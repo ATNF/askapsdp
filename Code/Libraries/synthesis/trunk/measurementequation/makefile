@@ -33,10 +33,10 @@ HEADERS   = MEIterative.h \
             MEParamsRep.h MEParamsRep.tcc MENormalEquations.h \
             MEDesignMatrixRep.h MEDesignMatrixRep.tcc
 
-MEParamsRep.cc: MEParamsRep.tcc MEParamsRep.h
+MEParamsRep.o: MEParamsRep.tcc MEParamsRep.h
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o MEParamsRep.o MEParamsRep.cc
 
-MEDesignMatrixRep.cc: MEDesignMatrixRep.tcc MEDesignMatrixRep.h
+MEDesignMatrixRep.o: MEDesignMatrixRep.tcc MEDesignMatrixRep.h
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o MEDesignMatrixRep.o MEDesignMatrixRep.cc
 
 .SUFFIXES: .c .o .cc

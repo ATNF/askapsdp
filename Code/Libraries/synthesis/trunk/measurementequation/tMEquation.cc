@@ -60,7 +60,7 @@ void doTest(const boost::shared_ptr<IDataSource> &ds)
 		MEParamsTable iptab;
 		MEDomain everything;
 		cout << "Solution succeeded" << endl;
-//		iptab.setParameters(is.getParameters(), everything);
+		iptab.setParameters(is.getParameters(), everything);
 	}
 	else {
 		cout << "Solution failed" << endl;
