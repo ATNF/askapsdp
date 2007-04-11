@@ -28,6 +28,8 @@ namespace synthesis {
 class IDataIterator : public IConstDataIterator
 {
 public:
+	/// the type of the value pointed by this iterator
+	typedef IDataAccessor& value_type;
 	
 	/// Return the data accessor (current chunk) in various ways
 	
@@ -99,7 +101,7 @@ public:
 	/// override this method in a derived class to avoid this (slight)
 	/// overhead. This method overrides the the method of the base
 	/// class to return the correct type 
-	virtual IDataIterator& operator++(int);
+	virtual IDataIterator& operator++();
 };
 
 } // end of namespace synthesis

@@ -28,6 +28,13 @@ namespace synthesis {
 class IConstDataIterator
 {
 public:
+	/// the type of the value pointed by this iterator
+	typedef const IConstDataAccessor& value_type;
+
+	/// the type of the pointer returned by operator->
+	/// We can't generally just use value_type * because 
+	typedef const IConstDataAccessor* pointer_type;
+
 	/// an empty virtual destructor to make the compiler happy
 	virtual ~IConstDataIterator();
 	
@@ -65,11 +72,11 @@ public:
 	virtual casa::Bool next() = 0;
 
 	/// advance the iterator one step further
-	/// @return A reference to itself (to allow ++++it synthax)
+	/// @return A reference to itself (to allow ++++it syntax)
 	/// The default implementation is via next(), however one can
 	/// override this method in a derived class to avoid this (slight)
 	/// overhead
-	virtual IConstDataIterator& operator++(int);
+	virtual IConstDataIterator& operator++();
 };
 
 } // end of namespace synthesis

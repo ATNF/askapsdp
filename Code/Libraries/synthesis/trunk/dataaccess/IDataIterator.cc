@@ -41,7 +41,7 @@ IDataAccessor* IDataIterator::operator->() const
 /// override this method in a derived class to avoid this (slight)
 /// overhead. This method overrides the the method of the base
 /// class to return the correct type 
-IDataIterator& IDataIterator::operator++(int)
+IDataIterator& IDataIterator::operator++()
 {
   next();
   return *this;

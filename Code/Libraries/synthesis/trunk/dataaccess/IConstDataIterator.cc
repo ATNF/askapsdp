@@ -54,7 +54,7 @@ casa::Bool IConstDataIterator::atEnd() const throw()
 /// The default implementation is via next(), however one can
 /// override this method in a derived class to avoid this (slight)
 /// overhead
-IConstDataIterator& IConstDataIterator::operator++(int)
+IConstDataIterator& IConstDataIterator::operator++()
 {
   next();
   return *this;

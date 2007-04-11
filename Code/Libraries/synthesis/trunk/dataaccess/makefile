@@ -21,7 +21,8 @@ OBJECTS   = IConstDataAccessor.o \
 	    IConstDataSource.o IDataSource.o
 HEADERS   = IDataAccessor.h IDataSource.h  IConstDataAccessor.h \
             IConstDataIterator.h IDataSelector.h IDataConverter.h \
-	    IDataIterator.h IConstDataSource.h IFlagDataAccessor.h
+	    IDataIterator.h IConstDataSource.h IFlagDataAccessor.h \
+	    SharedIter.h
 
 .SUFFIXES: .c .o .cc
 

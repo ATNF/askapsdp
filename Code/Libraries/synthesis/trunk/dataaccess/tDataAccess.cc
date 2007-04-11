@@ -16,13 +16,16 @@
 #include "IFlagDataAccessor.h"
 #include "IDataSource.h"
 
+#include "SharedIter.h"
+
 using namespace conrad;
 using namespace boost;
 using namespace casa;
 using namespace synthesis;
 using namespace std;
 
-/// Some example object-function
+/// Some example object-function, requires read-write access to
+/// visibility() (original visibility or a buffer)
 struct TestTransformClass {
    TestTransformClass(casa::Double il, casa::Double im) : l(il), m(im){}
    
@@ -45,17 +48,24 @@ private:
 
 
 /// We don't yet have a valid implementation of the interfaces.
-/// Therefore all operations have been collected inside a function 
+/// Therefore all operations have been collected inside functions 
 /// (we can use just the interface here to check whether it compiles
 /// and demonstrate how it is supposed to be used)
 
 
 /// demonstration of flagging from the given iterator position until the
 /// end of the block pointed by the iterator
-void flaggingRoutine(shared_ptr<IDataIterator> &di) {
+void flaggingRoutine(const SharedIter<IDataIterator> &di) {
     try {
-       IFlagDataAccessor &fda=dynamic_cast<IFlagDataAccessor&>(*(*di));
-       for (;di->hasMore();di->next()) {
+       // this command can be put inside the loop for clarity, but
+       // will work as it is, because the data accessor is always
+       // the same for any given iterator unless chooseBuffer/chooseOriginal
+       // methods are called
+       IFlagDataAccessor &fda=dynamic_cast<IFlagDataAccessor&>(*di);
+
+       // ++di and di.next() are equivalent
+       // di.hasMore() and di!=di.end() are equivalent
+       for (;di!=di.end();++di) {
 	    fda.flag()=False; // reset all flags
 	    fda.flag().xyPlane(0)=True; // flag the first polarization,
 	                                // whatever it is
@@ -67,12 +77,11 @@ void flaggingRoutine(shared_ptr<IDataIterator> &di) {
 }
 
 /// demonstration of the read-only access
-void readOnlyRoutine(shared_ptr<IConstDataIterator> &cdi) {
+void readOnlyRoutine(const SharedIter<IConstDataIterator> &cdi) {
     // in this loop, start iteration from the scratch
-    for (cdi->init();cdi->hasMore();cdi->next()) {
-
-	 cout<<"UVW for row 0 ="<<(*cdi)->uvw()[0]<<" vis="<<
-		 (*cdi)->visibility()(0,0,0)<<endl;
+    for (cdi.init();cdi.hasMore();cdi.next()) {
+	 cout<<"UVW for row 0 ="<<cdi->uvw()[0]<<" vis="<<
+		 cdi->visibility()(0,0,0)<<endl;
     }
 }
 
@@ -88,23 +97,47 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      sel->chooseStokes("IQUV"); // full Stokes
 
      // get the iterator
-     shared_ptr<IDataIterator> it=ds->createIterator(sel);
+     SharedIter<IDataIterator> it=ds->createIterator(sel);     
 
-     // don't need it->init() the first time, although it won't do any harm
-     for (;it->hasMore();it->next()) {
-         cout<<"Block has "<<(*it)->nRow()<<" rows"<<endl; 
+     // don't need it.init() the first time, although it won't do any harm
+     for (;it.hasMore();it.next()) {
+         cout<<"Block has "<<it->nRow()<<" rows"<<endl; 
 	 // an alternative way of access
-	 const IConstDataAccessor &da=*(*it);
+	 const IConstDataAccessor &da=*it;
 	 cout<<"Number of channels: "<<da.nChannel()<<endl; // should be 100
      }
 
-     // demonstration of STL, doesn't work yet
-     it->init();
-     //for_each(..,..,TestTransformClass(1e-4,1e-5));
-     // the same thing without STL
-     TestTransformClass ttc(1e-4,1e-5);
-     for (;it->hasMore();it->next())
-	  ttc(*(*it));
+     // SharedIter is just a kind of shared_ptr. It can be copied.     
+     SharedIter<IConstDataIterator> const_it=it;
+     readOnlyRoutine(const_it);
+     
+     // the same would work with an implicit conversion
+     readOnlyRoutine(it);
+
+     const_it.reset(); // force to release the iterator
+                       // it is not required in this context and
+		       // will be done automatically when the object
+		       // goes out of scope
+
+     // Note that 'const_it' and 'it' use the same object!
+     // calling ++it or it.init() would change const_it too!
+
+     // an alternative way of iteration     
+     for (it.init();it!=it.end();++it) {
+          cout<<"Block has "<<it->nRow()<<" rows"<<endl; 
+     }
+
+     // demonstration of STL: init can be called inline in the algorithms
+     it.chooseBuffer(0); // select the first r/w buffer (e.g. a model column)
+     for_each(it.init(),it.end(),TestTransformClass(1e-4,1e-5));
+     it.chooseOriginal(); // revert to original visibilities
+
+     // a more complicated example: a transform result of the observed
+     // visibilities is stored in one of the buffers
+     SharedIter<IConstDataIterator> input_iter=ds->createConstIterator(sel);
+     SharedIter<IDataIterator> output_iter=ds->createIterator(sel);
+     //transform(input_iter,input_iter.end(),output_iter,
+       //        TestTransformClass(1e-4,1e-5));
 }
  
 int main() {
