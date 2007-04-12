@@ -72,18 +72,6 @@ public:
 	/// @param design matrix
 	virtual void calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix) = 0;
 
-	/// Calculate the regular design matrix and normal equations
-	/// @param ida data accessor
-	/// @param design matrix
-	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida,
-		MEDesignMatrix& designmatrix, MERegularNormalEquations& normeq) = 0;
-
-	/// Calculate the regular normal equations
-	/// @param ida data accessor
-	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MERegularNormalEquations& normeq) = 0;
-	
 	/// Calculate the image normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations

@@ -15,7 +15,6 @@
 
 #include <measurementequation/MEParams.h>
 #include <measurementequation/MENormalEquations.h>
-#include <measurementequation/MEDesignMatrix.h>
 #include <measurementequation/MEIterative.h>
 #include <measurementequation/MEQuality.h>
 

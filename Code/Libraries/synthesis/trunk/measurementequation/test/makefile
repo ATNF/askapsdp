@@ -1,5 +1,5 @@
 TARGET    = tMEDomain
-SYNLIB	  = ../../libsynthesis.a
+SYNLIB	  = ../lib/libsynthesis.a
 
 CASAROOT = $(CONRAD_PROJECT_ROOT)/ThirdPartyLibraries/casacore/tags/casacore-0.1.0/
 CASAINC  = -I$(CASAROOT)/include/casacore -I$(CASAROOT)/include/casacore/casacore-0.1.0
@@ -35,9 +35,6 @@ $(TARGET):  $(TARGET).cc $(SYNLIB)
 	$(CXX) -c $(CXXFLAGS) $(INCDIRS) -o $(TARGET).o $(TARGET).cc
 	$(LINK) $(LFLAGS) -o $(TARGET) $(TARGET).o $(SYNLIB) $(LIBDIRS)
 
-$(SYNLIB):
-	(cd ..;make all)
-	
 all: $(TARGET) $(SYNLIB)
 
 clean:

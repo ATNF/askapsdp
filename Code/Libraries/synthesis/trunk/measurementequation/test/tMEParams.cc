@@ -1,12 +1,22 @@
 #include <measurementequation/MEParams.h>
 
-#include <casa/Arrays/Matrix.h>
+#include <casa/aips.h>
 #include <casa/Exceptions/Error.h>
 
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <string>
+#include <vector>
+
+using std::vector;
+using std::string;
+
 #include <iostream>
+
+using std::ostream;
+using std::cout;
+using std::endl;
 
 using namespace conrad::synthesis;
 
@@ -20,6 +30,7 @@ class MEParamsTest : public CppUnit::TestFixture  {
 	CPPUNIT_TEST(testAddition);
 	CPPUNIT_TEST(testValues);
 	CPPUNIT_TEST(testCongruent);
+	CPPUNIT_TEST(testCompletions);
 	CPPUNIT_TEST_EXCEPTION(testDuplError, casa::DuplError);
 	CPPUNIT_TEST(testCopy);
 	CPPUNIT_TEST_SUITE_END();
@@ -49,6 +60,22 @@ public:
   {
 	p1->add("Add0");
 	p1->add("Add0");
+  }
+
+  void testCompletions() 
+  {
+	CPPUNIT_ASSERT( p1->size()==0);
+	for (uint i=0;i<10;i++) {
+  		p1->add("Root."+casa::String(i));
+  		p1->add(casa::String(i)+".Root");
+	}
+	CPPUNIT_ASSERT(p1->regular().names().size()==20);
+	CPPUNIT_ASSERT(p1->regular().completions("Roo*").size()==10);
+	CPPUNIT_ASSERT(p1->regular().completions("Roo*9").size()==1);
+	CPPUNIT_ASSERT(p1->regular().completions("*Root").size()==10);
+	CPPUNIT_ASSERT(p1->regular().completions("*oo*").size()==20);
+	CPPUNIT_ASSERT(p1->regular().completions("*2*").size()==2);
+	CPPUNIT_ASSERT(p1->regular().completions("Nothing").size()==0);
   }
 
   void testCopy() 
@@ -108,9 +135,6 @@ public:
 	CPPUNIT_ASSERT( p1->isCongruent(*p3));
   }
 };
-
-// Someone needs these templates - I don't know who!
-casa::Matrix<casa::String> c0;
 
 }
 }

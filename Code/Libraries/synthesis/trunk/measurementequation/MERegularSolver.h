@@ -41,11 +41,7 @@ public:
 
 	/// Return current values of params
 	const MERegularParams& getParameters() const;
-	
-	/// Add in normal equations
-	/// @param normeq Normal Equations
-	virtual void addNormalEquations(const MERegularNormalEquations& normeq);
-	
+		
 	/// Add the design matrix
 	/// @param designmatrix Design Matrix
 	virtual void addDesignMatrix(const MEDesignMatrix& designmatrix);
