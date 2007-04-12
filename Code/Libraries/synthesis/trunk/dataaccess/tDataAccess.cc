@@ -135,7 +135,7 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      // a more complicated example: a transform result of the observed
      // visibilities is stored in one of the buffers
      SharedIter<IConstDataIterator> input_iter=ds->createConstIterator(sel);
-     SharedIter<IDataIterator> output_iter=ds->createIterator(sel);
+     SharedIter<IDataIterator> output_iter=ds->createIterator(sel);     
      //transform(input_iter,input_iter.end(),output_iter,
        //        TestTransformClass(1e-4,1e-5));
 }
