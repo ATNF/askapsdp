@@ -17,6 +17,7 @@
 #include "IDataSource.h"
 
 #include "SharedIter.h"
+#include "DataAdapter.h"
 
 using namespace conrad;
 using namespace boost;
@@ -26,8 +27,8 @@ using namespace std;
 
 /// Some example object-function, requires read-write access to
 /// visibility() (original visibility or a buffer)
-struct TestTransformClass {
-   TestTransformClass(casa::Double il, casa::Double im) : l(il), m(im){}
+struct TestInSituTransform {
+   TestInSituTransform(casa::Double il, casa::Double im) : l(il), m(im){}
    
    // some transform
    void operator()(IDataAccessor &da) const {
@@ -46,6 +47,12 @@ private:
    casa::Double l,m;   // offsets in radians divided by wavelength (m^-1)
 };
 
+struct TestTransform {
+  /// some transform, e.g. subtracting a model
+  const Cube<Complex>& operator()(const IConstDataAccessor &da) const {
+     da.visibility();
+  }
+};
 
 /// We don't yet have a valid implementation of the interfaces.
 /// Therefore all operations have been collected inside functions 
@@ -129,15 +136,17 @@ void doTest(const shared_ptr<IDataSource> &ds) {
 
      // demonstration of STL: init can be called inline in the algorithms
      it.chooseBuffer(0); // select the first r/w buffer (e.g. a model column)
-     for_each(it.init(),it.end(),TestTransformClass(1e-4,1e-5));
+     for_each(it.init(),it.end(),TestInSituTransform(1e-4,1e-5));
      it.chooseOriginal(); // revert to original visibilities
 
      // a more complicated example: a transform result of the observed
      // visibilities is stored in one of the buffers
      SharedIter<IConstDataIterator> input_iter=ds->createConstIterator(sel);
      SharedIter<IDataIterator> output_iter=ds->createIterator(sel);     
-     //transform(input_iter,input_iter.end(),output_iter,
-       //        TestTransformClass(1e-4,1e-5));
+     transform(input_iter,input_iter.end(),
+     DataAdapter<SharedIter<IDataIterator>, VisibilitySelector, Incremented>(output_iter),
+               TestTransform());
+     
 }
  
 int main() {

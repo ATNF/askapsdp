@@ -31,6 +31,10 @@ public:
 	/// the type of the value pointed by this iterator
 	typedef IDataAccessor& value_type;
 	
+        /// the type of the pointer returned by operator->
+        /// We can't generally just use value_type * because
+        typedef IDataAccessor* pointer_type;
+	
 	/// Return the data accessor (current chunk) in various ways
 	
 	/// operator* delivers a reference to data accessor (current chunk)
