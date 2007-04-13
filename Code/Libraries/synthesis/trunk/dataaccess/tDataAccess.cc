@@ -144,8 +144,9 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      SharedIter<IConstDataIterator> input_iter=ds->createConstIterator(sel);
      SharedIter<IDataIterator> output_iter=ds->createIterator(sel);     
      transform(input_iter,input_iter.end(),
-     DataAdapter<SharedIter<IDataIterator>, VisibilitySelector, Incremented>(output_iter),
-               TestTransform());
+        //VisAdapter(output_iter),
+	BufferAdapter<2>(output_iter),
+	TestTransform());     
      
 }
  

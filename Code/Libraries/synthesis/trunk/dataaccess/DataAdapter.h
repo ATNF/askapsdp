@@ -95,9 +95,89 @@ template<int N> struct BufferSelector {
      template<typename Iter>
      inline value_type operator()(const Iter &iter) const
      {
-       return iter->visibility();
+       return iter.buffer(N).visibility();
      }
   };
+
+/// helper functions to construct a desired adapter without specifying
+/// lots of template type arguments
+
+/// VisAdapter - write access to the visibility data (use VisibilitySelector
+///              described above)
+///
+/// template arguments:
+/// @param Iter a type of the iterator (autodetected)
+/// @param Inc  a type of the incrementor (autodetected)
+/// method parameters:
+/// @param iter a valid SharedIter (with a permission to write)
+/// @param dummy an incrementor object. It is used for type identification
+///              only. An object of this type constructed with a default
+///              constructor will be  used for actual increment of the
+///              iterator passed in the first parameter.
+///
+/// Usage example:
+///     transform(output_iter,output_iter.end(),
+///          VisAdapter(output_iter,NoIncrement()));
+///
+template<typename Iter, typename Inc>
+DataAdapter<Iter, VisibilitySelector, Inc> VisAdapter(Iter iter,
+const Inc &) {
+  return DataAdapter<Iter, VisibilitySelector, Inc>(iter);
+}
+
+/// the same as the previous function, but with a fixed incrementor
+/// (which just calls the increment operator of the iterator).
+/// To be used as a default version of the method (as the default
+/// template parameters are not allowed for functions).
+///
+/// Usage example:
+///     transform(input_iter,input_iter.end(),
+///               VisAdapter(output_iter));
+///
+template<typename Iter>
+DataAdapter<Iter, VisibilitySelector, Incremented> VisAdapter(Iter iter)
+{
+  return DataAdapter<Iter, VisibilitySelector, Incremented>(iter);
+}
+
+/// BufferAdapter - write access to a buffer, which number is known at
+/// the compilation stage
+
+/// template arguments:
+/// @param N the number of the buffer to work with
+/// @param Iter a type of the iterator (autodetected)
+/// @param Inc  a type of the incrementor (autodetected)
+/// method parameters:
+/// @param iter a valid SharedIter (with a permission to write)
+/// @param dummy an incrementor object. It is used for type identification
+///              only. An object of this type constructed with a default
+///              constructor will be  used for actual increment of the
+///              iterator passed in the first parameter.
+///
+/// Usage example:
+///     transform(output_iter,output_iter.end(),
+///          BufferAdapter<2>(output_iter,NoIncrement()));
+///
+template<int N, typename Iter, typename Inc>
+DataAdapter<Iter, BufferSelector<N>, Inc> BufferAdapter(Iter iter,
+const Inc &) {
+  return DataAdapter<Iter, BufferSelector<N>, Inc>(iter);
+}
+
+/// the same as the previous function, but with a fixed incrementor
+/// (which just calls the increment operator of the iterator).
+/// To be used as a default version of the method (as the default
+/// template parameters are not allowed for functions).
+///
+/// Usage example:
+///     transform(input_iter,input_iter.end(),
+///               BufferAdapter<2>(output_iter));
+///
+template<int N, typename Iter>
+DataAdapter<Iter, BufferSelector<N>, Incremented> BufferAdapter(Iter iter)
+{
+  return DataAdapter<Iter, BufferSelector<N>, Incremented>(iter);
+}
 
 
 } // namespace synthesis
