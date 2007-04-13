@@ -10,7 +10,7 @@
 #ifndef MESIMPLESOLVER_H_
 #define MESIMPLESOLVER_H_
 
-#include <measurementequation/MERegularSolver.h>
+#include <measurementequation/MESolver.h>
 #include <measurementequation/MENormalEquations.h>
 #include <measurementequation/MEDesignMatrix.h>
 #include <measurementequation/MEParams.h>
@@ -20,11 +20,11 @@ namespace conrad
 namespace synthesis
 {
 
-class MESimpleSolver : public MERegularSolver
+class MESimpleSolver : public MESolver
 {
 public:	
 
-	MESimpleSolver(const MERegularParams& ip) : MERegularSolver(ip) {};
+	MESimpleSolver(const MEParams& ip) : MESolver(ip) {};
 	
 	/// Initialize this solver
 	virtual void init();

@@ -16,21 +16,12 @@ namespace conrad
 namespace synthesis
 {
 	
-class MERegularNormalEquations
+class MENormalEquations
 {
 public:
-	MERegularNormalEquations(const MERegularParams& ip);
-	virtual ~MERegularNormalEquations();
-	virtual void merge(const MERegularNormalEquations& other);
-	virtual void reset();
-};
-
-class MEImageNormalEquations
-{
-public:
-	MEImageNormalEquations(const MEImageParams& ip);
-	virtual ~MEImageNormalEquations();
-	virtual void merge(const MEImageNormalEquations& other);
+	MENormalEquations(const MEParams& ip);
+	virtual ~MENormalEquations();
+	virtual void merge(const MENormalEquations& other);
 	virtual void reset();
 };
 

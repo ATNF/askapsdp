@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MEParams: represent a set of parameters for an imaging equation.
+/// MEParams: represent a set of parameters for a measurement equation.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -8,75 +8,97 @@
 #ifndef MEPARAMS_H_
 #define MEPARAMS_H_
 
-#include <measurementequation/MEParamsRep.h>
-#include <measurementequation/MEImage.h>
+#include <measurementequation/MERange.h>
+
+#include <casa/aips.h>
+#include <casa/Arrays/Array.h>
+
+#include <map>
+#include <vector>
+#include <string>
+#include <ostream>
+
+using std::string;
+using std::vector;
+using std::map;
 
 namespace conrad {
 namespace synthesis
 {
 
-typedef MEParamsRep<MEImage> MEImageParams; 
-typedef MEParamsRep<double> MERegularParams;
-
 class MEParams {
 public:
 
-	/// Default constructor
 	MEParams();
 	
-	/// Copy constructor
-	MEParams(const MEParams& other);
-	
-	/// Assignment operator
 	MEParams& operator=(const MEParams& other);
-
-	/// Add a (regular) parameter, default to zero
-	/// @param name Name of the parameter
+	
+	MEParams(const MEParams& other);
+			
+	/// Add an Parameter
+	/// @param name Name of param to be added
 	void add(const string& name);
 
-	/// Add a (regular) parameter with a specific value
-	/// @param name Name of the parameter
-	/// @param value Value of the parameter
-	void add(const string& name, const double& value);
+	/// Add an Parameter
+	/// @param name Name of param to be added
+	/// @param ip Param to be added
+	void add(const string& name, const casa::Array<double>& ip);
 
-	/// Add an image parameter
-	/// @param name Name of the parameter
-	/// @param value MEImage
-	void add(const string& name, const MEImage& value);
+	/// Add an Parameter
+	/// @param name Name of param to be added
+	/// @param ip Param to be added
+	void add(const string& name, const casa::Array<double>& ip,
+		const MERange& range);
 
-	/// Update a (regular) parameter with a specific value
-	/// @param name Name of the parameter
-	/// @param value Value of the parameter
-	void update(const string& name, const double& value);
-
-	/// Update an image parameter
-	/// @param name Name of the parameter
-	/// @param value MEImage
-	void update(const string& name, const MEImage& value);
-
-	/// Return the regular parameters
-	const MERegularParams& regular() const;
-	MERegularParams& regular();
-
-    /// Return the image parameters
-	const MEImageParams& image() const;
-	MEImageParams& image();
+	/// Update an Parameter
+	/// @param name Name of param to be updated
+	/// @param ip Param to be updated
+	void update(const string& name, const casa::Array<double>& ip);
 	
-	/// Return the total number of parameters
+	/// Fix a parameter
+	void fix(const string& name);
+
+	/// Free a parameter
+	void free(const string& name);
+
+    /// Is this parameter free?
+	bool isFree(const string& name);
+	
+	// Return number of values
 	const uint size() const;
+	
+	/// Return the parameter with this name
+	/// @param name Name of param
+	const casa::Array<double>& value(const string& name) const;		
+	casa::Array<double>& value(const string& name);
+	
+	/// Return all the completions for this name
+	/// @param match Match e.g. "flux.i.*"
+	vector<string> completions(const string& match) const;
+	
+	/// Return the key names
+	vector<string> names() const;
+
+	/// Return the key names of free items
+	vector<string> freeNames() const;
+	
+	/// Return the key names of fixed items
+	vector<string> fixedNames() const;
+	
+	bool has(const string& name) const;
+
+	/// Is this set congruent with another?
+	bool isCongruent(const MEParams& other) const;
 	
 	/// Reset to empty
 	void reset();
-
-	/// Is this set of parameters congruent with another?	
-	bool isCongruent(const MEParams& other) const;
-	
 private:
-	MERegularParams itsRegular;
-	MEImageParams itsImage;
+	mutable map<string, casa::Array<double> > itsArrays;
+	mutable map<string, MERange> itsRanges;
+	mutable map<string, bool> itsFree;
 };
 
 }
 }
 
-#endif /*MEPARAMS_H_*/
+#endif /*MEPARAMSBASE_H_*/

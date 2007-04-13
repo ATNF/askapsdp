@@ -1,60 +1,159 @@
 #include <measurementequation/MEParams.h>
-#include <iostream>
+#include <measurementequation/MERange.h>
+#include <casa/aips.h>
+#include <casa/Utilities/Regex.h>
+#include <casa/Exceptions/Error.h>
+
+#include <map>
+#include <string>
+using std::map;
+using std::string;
 
 namespace conrad {
 namespace synthesis
 {
 	
-	/// Default constructor
 	MEParams::MEParams() {
 	}
 	
-	/// Copy constructor
 	MEParams::MEParams(const MEParams& other) {
 		operator=(other);
 	}
 	
-	/// Assignment operator
 	MEParams& MEParams::operator=(const MEParams& other) {
 		if(this!=&other) {
-			itsImage=other.itsImage;
-			itsRegular=other.itsRegular;
+			itsArrays=other.itsArrays;
+			itsRanges=other.itsRanges;
+			itsFree=other.itsFree;
 		}
 		return *this;
 	}
-
-	void MEParams::add(const string& name) {
-		itsRegular.add(name, 0.0);
-	};
-	void MEParams::add(const string& name, const double& value) {
-		itsRegular.add(name, value);
-	};
-	void MEParams::add(const string& name, const MEImage& value) {
-		itsImage.add(name, value);
-	};
-	void MEParams::update(const string& name, const double& value) {
-		itsRegular.update(name, value);
-	};
-	void MEParams::update(const string& name, const MEImage& value) {
-		itsImage.update(name, value);
-	};
-	/// Return the regular parameters
-	const MERegularParams& MEParams::regular() const {return itsRegular;};
-	MERegularParams& MEParams::regular()  {return itsRegular;};
-
-    /// Return the image parameters
-	const MEImageParams& MEParams::image() const {return itsImage;};
-	MEImageParams& MEParams::image() {return itsImage;};
 	
-	const uint MEParams::size() const {return itsRegular.size()+itsImage.size();};
+	bool MEParams::isFree(const string& name) {
+		return itsFree[name];
+	}
 	
-	void MEParams::reset() {regular().reset();image().reset();};
+	void MEParams::free(const string& name) {
+		itsFree[name]=true;
+	}
+	
+	void MEParams::fix(const string& name) {
+		itsFree[name]=false;
+	}
+	
+	void MEParams::add(const string& name, const casa::Array<double>& ip) 
+	{
+		if(has(name)) {
+			throw(casa::DuplError("Parameter " + name + " already exists"));
+		}
+		else {
+			itsArrays[name]=ip;
+			itsFree[name]=true;
+			itsRanges[name]=MERange();
+		}
+	}
+	
+	void MEParams::add(const string& name, const casa::Array<double>& ip,
+		const MERange& range)
+	{
+		if(has(name)) {
+			throw(casa::DuplError("Parameter " + name + " already exists"));
+		}
+		else {
+			itsArrays[name]=ip;
+			itsFree[name]=true;
+			itsRanges[name]=range;
+		}
+	}
+	
+	void MEParams::update(const string& name, const casa::Array<double>& ip) 
+	{
+		if(!has(name)) {
+			throw(casa::DuplError("Parameter " + name + " does not already exist"));
+		}
+		else {
+			itsArrays[name]=ip;
+			itsFree[name]=true;
+			itsRanges[name]=MERange();
+		}
+	}
+	
+	const uint MEParams::size() const
+	{
+		return static_cast<uint>(itsFree.size());
+	}
+	
+	bool MEParams::has(const string& name) const 
+	{
+		return itsFree.count(name)>0;
+	}		
 
-	/// Is this set of parameters congruent with another?	
-	bool MEParams::isCongruent(const MEParams& other) const {
-		return itsRegular.isCongruent(other.regular()) && 
-			itsImage.isCongruent(other.image());
-	};
+	const casa::Array<double>& MEParams::value(const string& name) const 
+	{
+		return itsArrays[name];
+	}		
+	
+	casa::Array<double>& MEParams::value(const string& name) 
+	{
+		return itsArrays[name];
+	}		
+	
+		bool MEParams::isCongruent(const MEParams& other) const
+	{
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(other.itsFree.count(iter->first)==0) {
+				return false;
+			}
+		}
+		return true;
+	}
 
+		vector<string> MEParams::names() const
+	{
+		vector<string> names;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			names.push_back(iter->first);
+		}
+		return names;
+	}
+
+		vector<string> MEParams::freeNames() const
+	{
+		vector<string> names;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(itsFree[iter->first]) names.push_back(iter->first);
+		}
+		return names;
+	}
+
+		vector<string> MEParams::fixedNames() const
+	{
+		vector<string> names;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(!itsFree[iter->first]) names.push_back(iter->first);
+		}
+		return names;
+	}
+	
+		vector<string> MEParams::completions(const string& pattern) const
+	{
+		casa::Regex regex(casa::Regex::fromPattern(pattern));
+		vector<string> completions;
+		std::map<string,bool>::iterator iter;
+		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
+			if(casa::String(iter->first).contains(regex)) completions.push_back(iter->first);
+		}
+		return completions;
+	}
+
+	void MEParams::reset()
+	{
+		itsArrays.clear();
+		itsFree.clear();
+	}
 }
 }

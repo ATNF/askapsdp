@@ -16,7 +16,7 @@ namespace conrad
 namespace synthesis
 {
 
-MEDesignMatrix::MEDesignMatrix(const MERegularParams& ip)
+MEDesignMatrix::MEDesignMatrix(const MEParams& ip)
 {
 	vector<string> names=ip.freeNames();
 	vector<string>::iterator iter;

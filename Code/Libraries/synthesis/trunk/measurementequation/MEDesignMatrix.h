@@ -29,7 +29,7 @@ public:
 	
 	/// Define a design matrix
 	/// @param ip Parameters
-	MEDesignMatrix(const MERegularParams& ip);
+	MEDesignMatrix(const MEParams& ip);
 	
 	/// Copy constructor
 	MEDesignMatrix(const MEDesignMatrix& dm);

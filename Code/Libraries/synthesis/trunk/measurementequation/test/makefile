@@ -1,5 +1,5 @@
 TARGET    = tMEDomain
-SYNLIB	  = ../lib/libsynthesis.a
+SYNLIB	  = ../../lib/libsynthesis.a
 
 CASAROOT = $(CONRAD_PROJECT_ROOT)/ThirdPartyLibraries/casacore/tags/casacore-0.1.0/
 CASAINC  = -I$(CASAROOT)/include/casacore -I$(CASAROOT)/include/casacore/casacore-0.1.0

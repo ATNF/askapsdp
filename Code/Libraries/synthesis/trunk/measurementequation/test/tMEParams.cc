@@ -28,7 +28,7 @@ class MEParamsTest : public CppUnit::TestFixture  {
 	CPPUNIT_TEST_SUITE(MEParamsTest);
 	CPPUNIT_TEST(testIndices);
 	CPPUNIT_TEST(testAddition);
-	CPPUNIT_TEST(testValues);
+//	CPPUNIT_TEST(testValues);
 	CPPUNIT_TEST(testCongruent);
 	CPPUNIT_TEST(testCompletions);
 	CPPUNIT_TEST_EXCEPTION(testDuplError, casa::DuplError);
@@ -69,45 +69,45 @@ public:
   		p1->add("Root."+casa::String(i));
   		p1->add(casa::String(i)+".Root");
 	}
-	CPPUNIT_ASSERT(p1->regular().names().size()==20);
-	CPPUNIT_ASSERT(p1->regular().completions("Roo*").size()==10);
-	CPPUNIT_ASSERT(p1->regular().completions("Roo*9").size()==1);
-	CPPUNIT_ASSERT(p1->regular().completions("*Root").size()==10);
-	CPPUNIT_ASSERT(p1->regular().completions("*oo*").size()==20);
-	CPPUNIT_ASSERT(p1->regular().completions("*2*").size()==2);
-	CPPUNIT_ASSERT(p1->regular().completions("Nothing").size()==0);
+	CPPUNIT_ASSERT(p1->names().size()==20);
+	CPPUNIT_ASSERT(p1->completions("Roo*").size()==10);
+	CPPUNIT_ASSERT(p1->completions("Roo*9").size()==1);
+	CPPUNIT_ASSERT(p1->completions("*Root").size()==10);
+	CPPUNIT_ASSERT(p1->completions("*oo*").size()==20);
+	CPPUNIT_ASSERT(p1->completions("*2*").size()==2);
+	CPPUNIT_ASSERT(p1->completions("Nothing").size()==0);
   }
 
   void testCopy() 
   {
 	CPPUNIT_ASSERT( p1->size()==0);
 	p1->add("Copy0");
-  	CPPUNIT_ASSERT(p1->regular().has("Copy0"));
-	p1->add("Copy1", 1.5);
+  	CPPUNIT_ASSERT(p1->has("Copy0"));
+	p1->add("Copy1");
 	CPPUNIT_ASSERT(p1);
 	MEParams pnew(*p1);
 	CPPUNIT_ASSERT(pnew.size()==2);
-  	CPPUNIT_ASSERT(pnew.regular().has("Copy0"));
-  	CPPUNIT_ASSERT(pnew.regular().has("Copy1"));
-	CPPUNIT_ASSERT(pnew.regular().value("Copy1")==1.5);
+  	CPPUNIT_ASSERT(pnew.has("Copy0"));
+  	CPPUNIT_ASSERT(pnew.has("Copy1"));
+//	CPPUNIT_ASSERT(pnew.value("Copy1")==1.5);
   }
 
-  void testValues()
-  {
-	p1->add("Value0", 1.5);
-	CPPUNIT_ASSERT(p1->regular().value("Value0")==1.5);
-	MEImage im("Cena.image");
-	MEImage im2(im);
-	p1->add("Value1", im);
-  }  
-  
+//  void testValues()
+//  {
+//	p1->add("Value0", 1.5);
+//	CPPUNIT_ASSERT(p1->value("Value0")==1.5);
+//	MEImage im("Cena.image");
+//	MEImage im2(im);
+//	p1->add("Value1", im);
+//  }  
+//  
   void testIndices()
   {
 	CPPUNIT_ASSERT( p1->size()==0);
 	p1->add("Ind0");
-  	CPPUNIT_ASSERT(p1->regular().has("Ind0"));
+  	CPPUNIT_ASSERT(p1->has("Ind0"));
 	p1->add("Ind1");
-  	CPPUNIT_ASSERT(!pempty->regular().has("Null"));
+  	CPPUNIT_ASSERT(!pempty->has("Null"));
   }
 
   void testAddition()
@@ -115,12 +115,10 @@ public:
 	CPPUNIT_ASSERT( p1->size()==0);
 	p1->add("Add0");
 	CPPUNIT_ASSERT( p1->size()==1);
-	CPPUNIT_ASSERT( p1->image().size()==0);
-	CPPUNIT_ASSERT( p1->regular().size()==1);
 	p1->add("Add1");
 	CPPUNIT_ASSERT( p1->size()==2);
-	p1->update("Add1", 2.6);
-	CPPUNIT_ASSERT( p1->regular().value("Add1")==2.6);
+//	p1->update("Add1", 2.6);
+//	CPPUNIT_ASSERT( p1->value("Add1")==2.6);
   }
 
   void testCongruent()

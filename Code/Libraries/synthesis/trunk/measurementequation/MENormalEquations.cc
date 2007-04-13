@@ -6,36 +6,20 @@ namespace conrad
 namespace synthesis
 {
 
-MERegularNormalEquations::MERegularNormalEquations(const MERegularParams& ip)
+MENormalEquations::MENormalEquations(const MEParams& ip)
 {
 }
 
-MERegularNormalEquations::~MERegularNormalEquations()
+MENormalEquations::~MENormalEquations()
 {
 }
 
-void MERegularNormalEquations::merge(const MERegularNormalEquations& other) 
+void MENormalEquations::merge(const MENormalEquations& other) 
 {
 }
 
-void MERegularNormalEquations::reset()
+void MENormalEquations::reset()
 {
 }
-MEImageNormalEquations::MEImageNormalEquations(const MEImageParams& ip)
-{
-}
-
-MEImageNormalEquations::~MEImageNormalEquations()
-{
-}
-
-void MEImageNormalEquations::merge(const MEImageNormalEquations& other) 
-{
-}
-
-void MEImageNormalEquations::reset()
-{
-}
-
 }
 }

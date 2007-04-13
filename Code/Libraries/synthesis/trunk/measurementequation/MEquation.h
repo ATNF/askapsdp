@@ -32,8 +32,8 @@ namespace synthesis
 class IDataAccessor;
 
 class MEParams;
-class MERegularNormalEquations;
-class MEImageNormalEquations;
+class MENormalEquations;
+class MENormalEquations;
 class MEDesignMatrix;
 
 class MEquation {
@@ -67,15 +67,15 @@ public:
 	/// @param ida data accessor
 	virtual void predict(IDataAccessor& ida) = 0;
 	
-	/// Calculate the regular design matrix only
+	/// Calculate the design matrix only
 	/// @param ida data accessor
 	/// @param design matrix
 	virtual void calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix) = 0;
 
-	/// Calculate the image normal equations
+	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MEImageNormalEquations& normeq) = 0;
+	virtual void calcEquations(IDataAccessor& ida, MENormalEquations& normeq) = 0;
 	
 protected:
 	MEParams itsParams;
