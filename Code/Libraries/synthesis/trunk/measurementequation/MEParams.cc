@@ -40,7 +40,10 @@ namespace synthesis
 	void MEParams::fix(const string& name) {
 		itsFree[name]=false;
 	}
-	
+
+        void MEParams::add(const string& name) {
+        }	
+
 	void MEParams::add(const string& name, const casa::Array<double>& ip) 
 	{
 		if(has(name)) {
