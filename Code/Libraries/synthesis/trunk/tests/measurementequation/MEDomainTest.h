@@ -5,10 +5,6 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-//#include <iostream>
-
-//using std::ostream;
-
 namespace conrad {
 namespace synthesis {
 	

@@ -5,18 +5,6 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-//#include <string>
-//#include <vector>
-
-//using std::vector;
-//using std::string;
-
-//#include <iostream>
-
-//using std::ostream;
-//using std::cout;
-//using std::endl;
-
 namespace conrad {
 namespace synthesis {
 	
@@ -63,12 +51,21 @@ namespace synthesis {
     {
       CPPUNIT_ASSERT( p1->size()==0);
       for (uint i=0;i<10;i++) {
-	p1->add("Root."+casa::String(i));
-	p1->add(casa::String(i)+".Root");
+      	casa::String name;
+		{
+      		std::ostringstream s;
+      		s<<"Root." << i;
+			p1->add(s.str());
+		}
+		{
+      		std::ostringstream s;
+	      	s<<i<<".Root";
+			p1->add(s.str());
+		}
       }
       CPPUNIT_ASSERT(p1->names().size()==20);
-      CPPUNIT_ASSERT(p1->completions("Roo*").size()==10);
       CPPUNIT_ASSERT(p1->completions("Roo*9").size()==1);
+      CPPUNIT_ASSERT(p1->completions("Root.*").size()==10);
       CPPUNIT_ASSERT(p1->completions("*Root").size()==10);
       CPPUNIT_ASSERT(p1->completions("*oo*").size()==20);
       CPPUNIT_ASSERT(p1->completions("*2*").size()==2);
