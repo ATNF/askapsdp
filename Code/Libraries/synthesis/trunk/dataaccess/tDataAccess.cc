@@ -37,7 +37,7 @@ struct TestInSituTransform {
 	     for (uInt chan=0;chan<da.nChannel();++chan) {
 		  for (uInt pol=0;pol<da.nPol();++pol) {
                        da.visibility()(row,chan,pol)*=
-		            exp(-2.*M_PI*Complex<Double>(0,1)*
+		            exp(-2.*M_PI*DComplex(0,1)*
 	             (l*Double(da.uvw()[row](0))+m*Double(da.uvw()[row](1))));
 		  }
 	     }	  
