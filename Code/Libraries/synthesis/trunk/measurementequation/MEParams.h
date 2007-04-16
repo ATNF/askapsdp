@@ -8,7 +8,7 @@
 #ifndef MEPARAMS_H_
 #define MEPARAMS_H_
 
-#include <measurementequation/MERange.h>
+#include <measurementequation/MEDomain.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -48,7 +48,7 @@ public:
 	/// @param name Name of param to be added
 	/// @param ip Param to be added
 	void add(const string& name, const casa::Array<double>& ip,
-		const MERange& range);
+		const MEDomain& domain);
 
 	/// Update an Parameter
 	/// @param name Name of param to be updated
@@ -94,11 +94,11 @@ public:
 	void reset();
 private:
 	mutable map<string, casa::Array<double> > itsArrays;
-	mutable map<string, MERange> itsRanges;
+	mutable map<string, MEDomain> itsDomains;
 	mutable map<string, bool> itsFree;
 };
 
 }
 }
 
-#endif /*MEPARAMSBASE_H_*/
+#endif

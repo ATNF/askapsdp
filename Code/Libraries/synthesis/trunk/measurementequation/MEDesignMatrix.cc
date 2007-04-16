@@ -21,9 +21,10 @@ MEDesignMatrix::MEDesignMatrix(const MEParams& ip)
 	vector<string> names=ip.freeNames();
 	vector<string>::iterator iter;
 	for (iter=names.begin();iter!=names.end();++iter) {
-		itsDesignMatrix[*iter]=casa::Vector<double>(0);
+		itsDesignMatrix[*iter]=casa::Array<double>(casa::IPosition(0));
 	}
-	itsDataLength=0;
+	itsResiduals.resize(casa::IPosition(0));
+	itsWeights.resize(casa::IPosition(0));
 }
 
 MEDesignMatrix::MEDesignMatrix(const MEDesignMatrix& other) 
@@ -34,8 +35,9 @@ MEDesignMatrix::MEDesignMatrix(const MEDesignMatrix& other)
 MEDesignMatrix& MEDesignMatrix::operator=(const MEDesignMatrix& other)
 {
 	if(this!=&other) {
-		itsDataLength=other.itsDataLength;
 		itsDesignMatrix=other.itsDesignMatrix;
+		itsResiduals=other.itsResiduals;
+		itsWeights=other.itsWeights;
 	}
 }
 
@@ -48,26 +50,35 @@ void MEDesignMatrix::merge(const MEDesignMatrix& other)
 {
 }
 
-void MEDesignMatrix::addDerivative(const string& name, const casa::Vector<double>& deriv)
+void MEDesignMatrix::addDerivative(const string& name, const casa::Array<double>& deriv,
+	const casa::Vector<double>& residual, const casa::Vector<double>& weights)
 {
-	if(itsDataLength==0) {
-		itsDataLength=deriv.nelements();
-	}
-	if(itsDataLength!=deriv.nelements()) {
-		throw(casa::IndexError("Data size incompatible with shape of design matrix"));
-	}
+	// These should be appends!
 	itsDesignMatrix[name]=deriv;
+	itsResiduals=residual;
+	itsWeights=weights;
 }
 
 
+vector<string> MEDesignMatrix::names() const
+{
+	vector<string> names;
+	std::map<std::string, casa::Array<double> >::iterator iter;
+	for (iter=itsDesignMatrix.begin();iter!=itsDesignMatrix.end();++iter) {
+		names.push_back(iter->first);
+	}
+	return names;
+}
+
 void MEDesignMatrix::reset()
 {
-	std::map<std::string, casa::Vector<double> >::iterator iter;
+	std::map<std::string, casa::Array<double> >::iterator iter;
 	for (iter=itsDesignMatrix.begin();iter!=itsDesignMatrix.end();++iter) {
-		iter->second.resize(0);
+		iter->second.resize(casa::IPosition(0));
 	}
 	itsDesignMatrix.clear();
-	itsDataLength=0;
+	itsResiduals.resize(0);
+	itsWeights.resize(0);
 }
 
 }

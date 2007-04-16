@@ -11,15 +11,15 @@
 #include <map>
 
 #include <casa/aips.h>
-#include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
 
 #include <measurementequation/MEParams.h>
 
-namespace conrad
-{
-	namespace synthesis
-{
+namespace conrad {
+namespace synthesis {
+	
+class MENormalEquations;
 	
 class MEDesignMatrix
 {
@@ -47,14 +47,23 @@ public:
 	/// Add the derivative with respect to the named parameter
 	/// @param name Name of parameter
 	/// @param deriv Derivative
-	void addDerivative(const string& name, const casa::Vector<double>& deriv);
+	void addDerivative(const string& name, const casa::Array<double>& deriv,
+		const casa::Vector<double>& residual, const casa::Vector<double>& weights);
 	
 	/// Reset to empty
 	void reset();
+	
+	/// Return names of parameters
+	vector<string> names() const;
+	
+	friend class MENormalEquations;
+	
 private:
-	uint itsDataLength;
-	std::map<string, casa::Vector<double> > itsDesignMatrix;
-	std::map<string, casa::Vector<double> >::iterator itsIter;
+	// Design Matrix = number of parameters x number of data points
+	mutable std::map<string, casa::Array<double> > itsDesignMatrix;
+	// Residual matrix = number of data points
+	mutable casa::Vector<double> itsResiduals;
+	mutable casa::Vector<double> itsWeights;
 };
 
 }

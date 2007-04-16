@@ -1,5 +1,5 @@
 #include <measurementequation/MEParams.h>
-#include <measurementequation/MERange.h>
+#include <measurementequation/MEDomain.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
 #include <casa/Exceptions/Error.h>
@@ -23,7 +23,7 @@ namespace synthesis
 	MEParams& MEParams::operator=(const MEParams& other) {
 		if(this!=&other) {
 			itsArrays=other.itsArrays;
-			itsRanges=other.itsRanges;
+			itsDomains=other.itsDomains;
 			itsFree=other.itsFree;
 		}
 		return *this;
@@ -52,12 +52,12 @@ namespace synthesis
 		else {
 			itsArrays[name]=ip;
 			itsFree[name]=true;
-			itsRanges[name]=MERange();
+			itsDomains[name]=MEDomain();
 		}
 	}
 	
 	void MEParams::add(const string& name, const casa::Array<double>& ip,
-		const MERange& range)
+		const MEDomain& domain)
 	{
 		if(has(name)) {
 			throw(casa::DuplError("Parameter " + name + " already exists"));
@@ -65,7 +65,7 @@ namespace synthesis
 		else {
 			itsArrays[name]=ip;
 			itsFree[name]=true;
-			itsRanges[name]=range;
+			itsDomains[name]=domain;
 		}
 	}
 	
@@ -77,7 +77,7 @@ namespace synthesis
 		else {
 			itsArrays[name]=ip;
 			itsFree[name]=true;
-			itsRanges[name]=MERange();
+			itsDomains[name]=MEDomain();
 		}
 	}
 	
@@ -156,6 +156,7 @@ namespace synthesis
 	void MEParams::reset()
 	{
 		itsArrays.clear();
+		itsDomains.clear();
 		itsFree.clear();
 	}
 }

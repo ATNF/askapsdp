@@ -49,18 +49,18 @@ void MEComponentEquation::predict(IDataAccessor& ida)
 		// consistent 
 		for (it=completions.begin();it!=completions.end();it++) {
 		
-//			const double ra=parameters().value("direction.ra."+(*it));
-//			const double dec=parameters().value("direction.dec."+(*it));
-//			const double fluxi=parameters().value("flux.i."+(*it));
-//
-//			for (uint row=0;row<ida.nRow();row++) {
-//			
-//				this->calcRegularVis<float>(ra, dec, fluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), vis);
-//
-//				for (uint i=0;i<freq.nelements();i++) {
-//					ida.visibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
-//				}
-//			}
+			const double ra=parameters().value("direction.ra."+(*it))(casa::IPosition(0));
+			const double dec=parameters().value("direction.dec."+(*it))(casa::IPosition(0));
+			const double fluxi=parameters().value("flux.i."+(*it))(casa::IPosition(0));
+
+			for (uint row=0;row<ida.nRow();row++) {
+			
+				this->calcRegularVis<float>(ra, dec, fluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), vis);
+
+				for (uint i=0;i<freq.nelements();i++) {
+					ida.visibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
+				}
+			}
 		}
 	}
 };
@@ -85,6 +85,8 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 	casa::Vector<double> raDeriv(nDeriv);
 	casa::Vector<double> decDeriv(nDeriv);
 	casa::Vector<double> fluxiDeriv(nDeriv);
+	casa::Vector<double> residual(nDeriv);
+	casa::Vector<double> weights(nDeriv);
 	
 		
 	uint offset=0;
@@ -94,29 +96,32 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 		string decName("direction.dec."+(*it));
 		string fluxName("flux.i."+(*it));
 
-//		casa::AutoDiff<double> ara(parameters().value(raName), nParameters, 0);
-//		casa::AutoDiff<double> adec(parameters().value(decName), nParameters, 1);
-//		casa::AutoDiff<double> afluxi(parameters().value(fluxName), nParameters, 2);
-//			
-//		for (uint row=0;row<ida.nRow();row++) {
-//
-//			this->calcRegularVis<casa::AutoDiff<double> >(ara, adec, afluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), av);
-//
-//			for (uint i=0;i<freq.nelements();i++) {
+		casa::AutoDiff<double> ara(parameters().value(raName)(casa::IPosition(0)), nParameters, 0);
+		casa::AutoDiff<double> adec(parameters().value(decName)(casa::IPosition(0)), nParameters, 1);
+		casa::AutoDiff<double> afluxi(parameters().value(fluxName)(casa::IPosition(0)), nParameters, 2);
+			
+		for (uint row=0;row<ida.nRow();row++) {
+
+			this->calcRegularVis<casa::AutoDiff<double> >(ara, adec, afluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), av);
+
+			for (uint i=0;i<freq.nelements();i++) {
 //				ida.visibility()(row,i,0) += casa::Complex(av(2*i).value(), av(2*i+1).value());
-//			}
-//
-//			for (uint i=0;i<2*freq.nelements();i++) {
-//				raDeriv(i+offset)=av[i].derivative(0);	
-//				decDeriv(i+offset)=av[i].derivative(1);	
-//				fluxiDeriv(i+offset)=av[i].derivative(2);	
-//			}
-//			offset+=2*freq.nelements();
-//		}
+				residual(2*i)=av(2*i).value()-real(ida.visibility()(row,i,0));
+				residual(2*i+1)=av(2*i+1).value()-imag(ida.visibility()(row,i,0));
+			}
+
+			for (uint i=0;i<2*freq.nelements();i++) {
+				raDeriv(i+offset)=av[i].derivative(0);	
+				decDeriv(i+offset)=av[i].derivative(1);	
+				fluxiDeriv(i+offset)=av[i].derivative(2);
+				weights(i+offset)=1.0;	
+			}
+			offset+=2*freq.nelements();
+		}
 		
-		if(parameters().isFree(raName)) designmatrix.addDerivative(raName, raDeriv);
-		if(parameters().isFree(decName)) designmatrix.addDerivative(decName, decDeriv);
-		if(parameters().isFree(fluxName)) designmatrix.addDerivative(fluxName, fluxiDeriv);
+		if(parameters().isFree(raName)) designmatrix.addDerivative(raName, raDeriv, residual, weights);
+		if(parameters().isFree(decName)) designmatrix.addDerivative(decName, decDeriv, residual, weights);
+		if(parameters().isFree(fluxName)) designmatrix.addDerivative(fluxName, fluxiDeriv, residual, weights);
 	}
 };
 
