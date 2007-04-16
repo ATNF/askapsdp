@@ -41,8 +41,16 @@ namespace synthesis
 		itsFree[name]=false;
 	}
 
-        void MEParams::add(const string& name) {
-        }	
+    void MEParams::add(const string& name) {
+		if(has(name)) {
+			throw(casa::DuplError("Parameter " + name + " already exists"));
+		}
+		else {
+			itsArrays[name]=casa::Array<double>(casa::IPosition(0));
+			itsFree[name]=true;
+			itsDomains[name]=MEDomain();
+		}
+    }	
 
 	void MEParams::add(const string& name, const casa::Array<double>& ip) 
 	{
@@ -88,7 +96,7 @@ namespace synthesis
 	
 	bool MEParams::has(const string& name) const 
 	{
-		return itsFree.count(name)>0;
+		return itsArrays.count(name)>0;
 	}		
 
 	const casa::Array<double>& MEParams::value(const string& name) const 
@@ -122,7 +130,7 @@ namespace synthesis
 		return names;
 	}
 
-		vector<string> MEParams::freeNames() const
+	vector<string> MEParams::freeNames() const
 	{
 		vector<string> names;
 		std::map<string,bool>::iterator iter;
@@ -132,7 +140,7 @@ namespace synthesis
 		return names;
 	}
 
-		vector<string> MEParams::fixedNames() const
+	vector<string> MEParams::fixedNames() const
 	{
 		vector<string> names;
 		std::map<string,bool>::iterator iter;
@@ -142,13 +150,17 @@ namespace synthesis
 		return names;
 	}
 	
-		vector<string> MEParams::completions(const string& pattern) const
+	vector<string> MEParams::completions(const string& pattern) const
 	{
 		casa::Regex regex(casa::Regex::fromPattern(pattern));
 		vector<string> completions;
 		std::map<string,bool>::iterator iter;
+		uint ncomplete=0;
 		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
-			if(casa::String(iter->first).contains(regex)) completions.push_back(iter->first);
+			if(casa::String(iter->first).matches(regex)) {
+				completions.push_back(iter->first);
+				ncomplete++;
+			}
 		}
 		return completions;
 	}

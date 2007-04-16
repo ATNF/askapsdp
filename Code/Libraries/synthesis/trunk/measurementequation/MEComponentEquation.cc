@@ -49,9 +49,13 @@ void MEComponentEquation::predict(IDataAccessor& ida)
 		// consistent 
 		for (it=completions.begin();it!=completions.end();it++) {
 		
-			const double ra=parameters().value("direction.ra."+(*it))(casa::IPosition(0));
-			const double dec=parameters().value("direction.dec."+(*it))(casa::IPosition(0));
-			const double fluxi=parameters().value("flux.i."+(*it))(casa::IPosition(0));
+			string raName("direction.ra."+(*it));
+			string decName("direction.dec."+(*it));
+			string fluxName("flux.i."+(*it));
+
+			const double ra=parameters().value(raName)(casa::IPosition(0));
+			const double dec=parameters().value(decName)(casa::IPosition(0));
+			const double fluxi=parameters().value(fluxName)(casa::IPosition(0));
 
 			for (uint row=0;row<ida.nRow();row++) {
 			
@@ -69,33 +73,35 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 {
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	
-	vector<string> completions(parameters().completions("flux.i.*"));
-	vector<string>::iterator it;
 		
 	const uint nParameters=3;
 	
+	// Define AutoDiff's for the output visibilities.
 	casa::Vector<casa::AutoDiff<double> > av(2*freq.nelements());
 	for (uint i=0;i<2*freq.nelements();i++) {
 		av[i]=casa::AutoDiff<double>(0.0, nParameters);
 	}
 
+	// Set up arrays to hold the output values
 	// Two values (complex) per row, channel, pol
-	uint nDeriv=ida.nRow()*freq.nelements()*2*2;
+	uint nData=ida.nRow()*freq.nelements()*2*2;
+	casa::Vector<double> raDeriv(nData);
+	casa::Vector<double> decDeriv(nData);
+	casa::Vector<double> fluxiDeriv(nData);
+	casa::Vector<double> residual(nData);
+	casa::Vector<double> weights(nData);
 	
-	casa::Vector<double> raDeriv(nDeriv);
-	casa::Vector<double> decDeriv(nDeriv);
-	casa::Vector<double> fluxiDeriv(nDeriv);
-	casa::Vector<double> residual(nDeriv);
-	casa::Vector<double> weights(nDeriv);
-	
-		
 	uint offset=0;
+	// Loop over all completions i.e. all sources
+	vector<string> completions(parameters().completions("flux.i.*"));
+	vector<string>::iterator it;
 	for (it=completions.begin();it!=completions.end();it++) {
 	
 		string raName("direction.ra."+(*it));
 		string decName("direction.dec."+(*it));
 		string fluxName("flux.i."+(*it));
 
+		// Define AutoDiff's for the three unknown parameters
 		casa::AutoDiff<double> ara(parameters().value(raName)(casa::IPosition(0)), nParameters, 0);
 		casa::AutoDiff<double> adec(parameters().value(decName)(casa::IPosition(0)), nParameters, 1);
 		casa::AutoDiff<double> afluxi(parameters().value(fluxName)(casa::IPosition(0)), nParameters, 2);
@@ -118,7 +124,7 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 			}
 			offset+=2*freq.nelements();
 		}
-		
+		// Now we can add the design matrix, residual, and weights
 		if(parameters().isFree(raName)) designmatrix.addDerivative(raName, raDeriv, residual, weights);
 		if(parameters().isFree(decName)) designmatrix.addDerivative(decName, decDeriv, residual, weights);
 		if(parameters().isFree(fluxName)) designmatrix.addDerivative(fluxName, fluxiDeriv, residual, weights);
