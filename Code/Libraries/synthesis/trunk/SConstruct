@@ -23,7 +23,6 @@ pkg = env.ConradPackage("synthesis")
 pkg.AddSubPackage("measurementequation")
 pkg.AddSubPackage("dataaccess")
 
-# @todo Add unit test build
-
 # run the build process
 pkg()
+
