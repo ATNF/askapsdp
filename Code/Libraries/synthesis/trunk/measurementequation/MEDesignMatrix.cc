@@ -16,9 +16,9 @@ namespace conrad
 namespace synthesis
 {
 
-MEDesignMatrix::MEDesignMatrix(const MEParams& ip)
+MEDesignMatrix::MEDesignMatrix(const MEParams& ip) : itsParams(ip)
 {
-	vector<string> names=ip.freeNames();
+	vector<string> names=itsParams.freeNames();
 	vector<string>::iterator iter;
 	for (iter=names.begin();iter!=names.end();++iter) {
 		itsDesignMatrix[*iter]=casa::Array<double>(casa::IPosition(0));
@@ -35,6 +35,7 @@ MEDesignMatrix::MEDesignMatrix(const MEDesignMatrix& other)
 MEDesignMatrix& MEDesignMatrix::operator=(const MEDesignMatrix& other)
 {
 	if(this!=&other) {
+		itsParams=other.itsParams;
 		itsDesignMatrix=other.itsDesignMatrix;
 		itsResiduals=other.itsResiduals;
 		itsWeights=other.itsWeights;
@@ -50,24 +51,22 @@ void MEDesignMatrix::merge(const MEDesignMatrix& other)
 {
 }
 
-void MEDesignMatrix::addDerivative(const string& name, const casa::Array<double>& deriv,
-	const casa::Vector<double>& residual, const casa::Vector<double>& weights)
+void MEDesignMatrix::addDerivative(const string& name, const casa::Array<double>& deriv)
+{
+	// This should be append!
+	itsDesignMatrix[name]=deriv;
+}
+
+void MEDesignMatrix::addResidual(const casa::Vector<double>& residual, const casa::Vector<double>& weights)
 {
 	// These should be appends!
-	itsDesignMatrix[name]=deriv;
 	itsResiduals=residual;
 	itsWeights=weights;
 }
 
-
 vector<string> MEDesignMatrix::names() const
 {
-	vector<string> names;
-	std::map<std::string, casa::Array<double> >::iterator iter;
-	for (iter=itsDesignMatrix.begin();iter!=itsDesignMatrix.end();++iter) {
-		names.push_back(iter->first);
-	}
-	return names;
+	return itsParams.names();
 }
 
 void MEDesignMatrix::reset()

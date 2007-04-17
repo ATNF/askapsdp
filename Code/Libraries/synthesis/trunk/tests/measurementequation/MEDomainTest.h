@@ -1,9 +1,8 @@
 #include <measurementequation/MEDomain.h>
 
-#include <casa/aips.h>
-#include <casa/Exceptions/Error.h>
-
 #include <cppunit/extensions/HelperMacros.h>
+
+#include <stdexcept>
 
 namespace conrad {
 namespace synthesis {
@@ -13,7 +12,7 @@ class MEDomainTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(MEDomainTest);
     CPPUNIT_TEST(testIndices);
     CPPUNIT_TEST(testValues);
-    CPPUNIT_TEST_EXCEPTION(testDuplError, casa::DuplError);
+    CPPUNIT_TEST_EXCEPTION(testDuplError, std::invalid_argument);
     CPPUNIT_TEST(testCopy);
     CPPUNIT_TEST_SUITE_END();
 	
@@ -38,7 +37,7 @@ class MEDomainTest : public CppUnit::TestFixture  {
     }
     
     void testDuplError()
-    // Should throw DuplError
+    // Should throw Invalid argument
     {
       p1->add("Time", 0.0, 1.0, 128);
       p1->add("Time", 0.0, 1.0, 128);

@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <stdexcept>
 
 using std::ostream;
 using std::string;
@@ -46,7 +47,7 @@ namespace synthesis
 	void MEDomain::add(const string& name, const double start, const double end, const int cells)
 	{
 		if(has(name)) {
-			throw(casa::DuplError("Axis " + name + " already exists"));
+			throw(std::invalid_argument("Axis " + name + " already exists"));
 		}
 		else {
 			itsStart[name]=start;

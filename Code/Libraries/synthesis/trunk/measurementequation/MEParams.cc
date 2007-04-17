@@ -2,10 +2,10 @@
 #include <measurementequation/MEDomain.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
-#include <casa/Exceptions/Error.h>
 
 #include <map>
 #include <string>
+#include <stdexcept>
 using std::map;
 using std::string;
 
@@ -29,7 +29,7 @@ namespace synthesis
 		return *this;
 	}
 	
-	bool MEParams::isFree(const string& name) {
+	bool MEParams::isFree(const string& name) const {
 		return itsFree[name];
 	}
 	
@@ -39,26 +39,29 @@ namespace synthesis
 	
 	void MEParams::fix(const string& name) {
 		itsFree[name]=false;
-	}
+	}	
 
-    void MEParams::add(const string& name) {
+	void MEParams::add(const string& name, const double ip) 
+	{
 		if(has(name)) {
-			throw(casa::DuplError("Parameter " + name + " already exists"));
+			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			itsArrays[name]=casa::Array<double>(casa::IPosition(0));
+			casa::Array<double> ipArray(casa::IPosition(1,1));
+			ipArray(casa::IPosition(1,0))=ip;
+			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=MEDomain();
 		}
-    }	
-
+	}
+	
 	void MEParams::add(const string& name, const casa::Array<double>& ip) 
 	{
 		if(has(name)) {
-			throw(casa::DuplError("Parameter " + name + " already exists"));
+			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			itsArrays[name]=ip;
+			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=MEDomain();
 		}
@@ -68,10 +71,24 @@ namespace synthesis
 		const MEDomain& domain)
 	{
 		if(has(name)) {
-			throw(casa::DuplError("Parameter " + name + " already exists"));
+			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			itsArrays[name]=ip;
+			itsArrays[name]=ip.copy();
+			itsFree[name]=true;
+			itsDomains[name]=domain;
+		}
+	}
+	
+	void MEParams::add(const string& name, const double ip, const MEDomain& domain) 
+	{
+		if(has(name)) {
+			throw(std::invalid_argument("Parameter " + name + " already exists"));
+		}
+		else {
+			casa::Array<double> ipArray(casa::IPosition(1,1));
+			ipArray(casa::IPosition(1,0))=ip;
+			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=domain;
 		}
@@ -80,10 +97,24 @@ namespace synthesis
 	void MEParams::update(const string& name, const casa::Array<double>& ip) 
 	{
 		if(!has(name)) {
-			throw(casa::DuplError("Parameter " + name + " does not already exist"));
+			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
 		}
 		else {
-			itsArrays[name]=ip;
+			itsArrays[name]=ip.copy();
+			itsFree[name]=true;
+			itsDomains[name]=MEDomain();
+		}
+	}
+	
+	void MEParams::update(const string& name, const double ip) 
+	{
+		if(!has(name)) {
+			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
+		}
+		else {
+			casa::Array<double> ipArray(casa::IPosition(1,1));
+			ipArray(casa::IPosition(1,0))=ip;
+			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=MEDomain();
 		}
@@ -99,6 +130,11 @@ namespace synthesis
 		return itsArrays.count(name)>0;
 	}		
 
+	bool MEParams::isScalar(const string& name) const 
+	{
+		return itsArrays[name].shape().isEqual(casa::IPosition(1,1));
+	}		
+
 	const casa::Array<double>& MEParams::value(const string& name) const 
 	{
 		return itsArrays[name];
@@ -109,7 +145,17 @@ namespace synthesis
 		return itsArrays[name];
 	}		
 	
-		bool MEParams::isCongruent(const MEParams& other) const
+	const MEDomain& MEParams::domain(const string& name) const 
+	{
+		return itsDomains[name];
+	}		
+	
+	MEDomain& MEParams::domain(const string& name) 
+	{
+		return itsDomains[name];
+	}		
+	
+	bool MEParams::isCongruent(const MEParams& other) const
 	{
 		std::map<string,bool>::iterator iter;
 		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
@@ -120,7 +166,7 @@ namespace synthesis
 		return true;
 	}
 
-		vector<string> MEParams::names() const
+	vector<string> MEParams::names() const
 	{
 		vector<string> names;
 		std::map<string,bool>::iterator iter;

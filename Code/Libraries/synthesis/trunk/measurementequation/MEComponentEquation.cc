@@ -108,7 +108,8 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 			
 		for (uint row=0;row<ida.nRow();row++) {
 
-			this->calcRegularVis<casa::AutoDiff<double> >(ara, adec, afluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), av);
+			this->calcRegularVis<casa::AutoDiff<double> >(ara, adec, afluxi, freq, 
+				ida.uvw()(row)(0), ida.uvw()(row)(1), av);
 
 			for (uint i=0;i<freq.nelements();i++) {
 //				ida.visibility()(row,i,0) += casa::Complex(av(2*i).value(), av(2*i+1).value());
@@ -125,19 +126,26 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 			offset+=2*freq.nelements();
 		}
 		// Now we can add the design matrix, residual, and weights
-		if(parameters().isFree(raName)) designmatrix.addDerivative(raName, raDeriv, residual, weights);
-		if(parameters().isFree(decName)) designmatrix.addDerivative(decName, decDeriv, residual, weights);
-		if(parameters().isFree(fluxName)) designmatrix.addDerivative(fluxName, fluxiDeriv, residual, weights);
+		designmatrix.addDerivative(raName, raDeriv);
+		designmatrix.addDerivative(decName, decDeriv);
+		designmatrix.addDerivative(fluxName, fluxiDeriv);
+		designmatrix.addResidual(residual, weights);
 	}
 };
 
 void MEComponentEquation::calcEquations(IDataAccessor& ida, MENormalEquations& normeq) 
 {
+	// We can only make a relatively poor approximation to the normal equations
+	normeq.setType(MENormalEquations::DIAGONAL_PSF);
+	
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	
 	vector<string> completions(parameters().completions("image.*"));
 	vector<string>::iterator it;
 		
+	// We loop over all images, producing the residual images and
+	// PSFs for each image. We ignore the cross terms between the images.
+	// We also only keep one plane of the PSF for each image
 	for (it=completions.begin();it!=completions.end();it++) {
 	
 		string imageName("image."+(*it));
@@ -148,7 +156,9 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MENormalEquations& n
 		
 	}
 };
-
+// This can be done easily by hand (and we should do for production) but I'm leaving
+// it in this form for the moment to show how the differentiation is done using
+// casa::AutoDiff
 template<class T>
 void MEComponentEquation::calcRegularVis(const T& ra, const T& dec, const T& flux, 
 	const casa::Vector<double>& freq, const double u, const double v, 

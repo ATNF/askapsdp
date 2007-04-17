@@ -1,7 +1,6 @@
 #include <measurementequation/MEParams.h>
 
-#include <casa/aips.h>
-#include <casa/Exceptions/Error.h>
+#include <stdexcept>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -13,10 +12,10 @@ namespace synthesis {
     CPPUNIT_TEST_SUITE(MEParamsTest);
     CPPUNIT_TEST(testIndices);
     CPPUNIT_TEST(testAddition);
-    //	CPPUNIT_TEST(testValues);
+   	CPPUNIT_TEST(testValues);
     CPPUNIT_TEST(testCongruent);
     CPPUNIT_TEST(testCompletions);
-    CPPUNIT_TEST_EXCEPTION(testDuplError, casa::DuplError);
+    CPPUNIT_TEST_EXCEPTION(testDuplError, std::invalid_argument);
     CPPUNIT_TEST(testCopy);
     CPPUNIT_TEST_SUITE_END();
     
@@ -41,7 +40,7 @@ namespace synthesis {
     }
     
     void testDuplError()
-    // Should throw DuplError
+    // Should throw invalid_argument
     {
       p1->add("Add0");
       p1->add("Add0");
@@ -77,24 +76,33 @@ namespace synthesis {
       CPPUNIT_ASSERT( p1->size()==0);
       p1->add("Copy0");
       CPPUNIT_ASSERT(p1->has("Copy0"));
-      p1->add("Copy1");
+      CPPUNIT_ASSERT(p1->isScalar("Copy0"));
+      p1->add("Copy1", 1.5);
+      CPPUNIT_ASSERT(p1->value("Copy1")(casa::IPosition(1,0))==1.5);
       CPPUNIT_ASSERT(p1);
       MEParams pnew(*p1);
       CPPUNIT_ASSERT(pnew.size()==2);
       CPPUNIT_ASSERT(pnew.has("Copy0"));
       CPPUNIT_ASSERT(pnew.has("Copy1"));
-      // CPPUNIT_ASSERT(pnew.value("Copy1")==1.5);
+      CPPUNIT_ASSERT(pnew.value("Copy1")(casa::IPosition(1,0))==1.5);
     }
     
-    //  void testValues()
-    //  {
-    //	p1->add("Value0", 1.5);
-    //	CPPUNIT_ASSERT(p1->value("Value0")==1.5);
-    //	MEImage im("Cena.image");
-    //	MEImage im2(im);
-    //	p1->add("Value1", im);
-    //  }  
-    //  
+  	void testValues()
+  	{
+		p1->add("Value0", 1.5);
+        CPPUNIT_ASSERT(p1->has("Value0"));
+		casa::Array<double> im(casa::IPosition(2, 10, 10));
+		im.set(3.0);
+		p1->add("Value1", im);
+        CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==3.0);
+        CPPUNIT_ASSERT(p1->has("Value1"));
+	    CPPUNIT_ASSERT(!p1->isScalar("Value1"));
+        CPPUNIT_ASSERT(p1->value("Value1").shape()==casa::IPosition(2,10,10));
+        CPPUNIT_ASSERT(p1->value("Value1").shape()!=casa::IPosition(2,20,5));
+        p1->value("Value1").set(4.0);
+        CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==4.0);
+  	}  
+  
     void testIndices()
     {
       CPPUNIT_ASSERT( p1->size()==0);
@@ -109,10 +117,11 @@ namespace synthesis {
       CPPUNIT_ASSERT( p1->size()==0);
       p1->add("Add0");
       CPPUNIT_ASSERT( p1->size()==1);
-      p1->add("Add1");
+      p1->add("Add1", 1.4);
+      CPPUNIT_ASSERT( p1->value("Add1")(casa::IPosition(1,0))==1.4);
       CPPUNIT_ASSERT( p1->size()==2);
-      //	p1->update("Add1", 2.6);
-      //	CPPUNIT_ASSERT( p1->value("Add1")==2.6);
+      p1->update("Add1", 2.6);
+      CPPUNIT_ASSERT( p1->value("Add1")(casa::IPosition(1,0))==2.6);
     }
     
     void testCongruent()

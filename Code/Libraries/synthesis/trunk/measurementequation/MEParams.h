@@ -37,7 +37,7 @@ public:
 			
 	/// Add an Parameter
 	/// @param name Name of param to be added
-	void add(const string& name);
+	void add(const string& name, const double ip=0.0);
 
 	/// Add an Parameter
 	/// @param name Name of param to be added
@@ -49,12 +49,18 @@ public:
 	/// @param ip Param to be added
 	void add(const string& name, const casa::Array<double>& ip,
 		const MEDomain& domain);
+	void add(const string& name, const double ip,
+		const MEDomain& domain);
 
 	/// Update an Parameter
 	/// @param name Name of param to be updated
 	/// @param ip Param to be updated
 	void update(const string& name, const casa::Array<double>& ip);
-	
+	void update(const string& name, const double ip);
+
+    /// Is this parameter a scalar?
+	bool isScalar(const string& name) const;
+		
 	/// Fix a parameter
 	void fix(const string& name);
 
@@ -62,15 +68,20 @@ public:
 	void free(const string& name);
 
     /// Is this parameter free?
-	bool isFree(const string& name);
+	bool isFree(const string& name) const;
 	
 	// Return number of values
 	const uint size() const;
 	
-	/// Return the parameter with this name
+	/// Return the value for the parameter with this name
 	/// @param name Name of param
 	const casa::Array<double>& value(const string& name) const;		
 	casa::Array<double>& value(const string& name);
+
+	/// Return the domain for the parameter with this name
+	/// @param name Name of param
+	const MEDomain& domain(const string& name) const;		
+	MEDomain& domain(const string& name);
 	
 	/// Return all the completions for this name
 	/// @param match Match e.g. "flux.i.*"
