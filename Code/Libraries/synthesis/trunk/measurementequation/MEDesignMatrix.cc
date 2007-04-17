@@ -93,6 +93,9 @@ const casa::Array<double>& MEDesignMatrix::derivative(const string& name) const
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
 	}
+	if(itsDesignMatrix.count(name)==0) {
+		throw(std::invalid_argument("Parameter "+name+" does not exist in the assigned values"));
+	}
 	return itsDesignMatrix[name];
 }
 

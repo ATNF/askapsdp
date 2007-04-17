@@ -40,30 +40,27 @@ void MEComponentEquation::predict(IDataAccessor& ida)
 	const casa::Vector<double>& time=ida.time();	
 	casa::Vector<float> vis(2*freq.nelements());
 
-	// First do the regular parameters	
-	{
-		vector<string> completions(parameters().completions("flux.i.*"));
-		vector<string>::iterator it;
-		// This outer loop is over all strings that complete the flux.i.* pattern 
-		// correctly. An exception will be throw if the parameters are not
-		// consistent 
-		for (it=completions.begin();it!=completions.end();it++) {
+	vector<string> completions(parameters().completions("flux.i.*"));
+	vector<string>::iterator it;
+	// This outer loop is over all strings that complete the flux.i.* pattern 
+	// correctly. An exception will be throw if the parameters are not
+	// consistent 
+	for (it=completions.begin();it!=completions.end();it++) {
+	
+		string raName("direction.ra."+(*it));
+		string decName("direction.dec."+(*it));
+		string fluxName("flux.i."+(*it));
+
+		const double ra=parameters().scalarValue(raName);
+		const double dec=parameters().scalarValue(decName);
+		const double fluxi=parameters().scalarValue(fluxName);
+
+		for (uint row=0;row<ida.nRow();row++) {
 		
-			string raName("direction.ra."+(*it));
-			string decName("direction.dec."+(*it));
-			string fluxName("flux.i."+(*it));
+			this->calcRegularVis<float>(ra, dec, fluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), vis);
 
-			const double ra=parameters().value(raName)(casa::IPosition(0));
-			const double dec=parameters().value(decName)(casa::IPosition(0));
-			const double fluxi=parameters().value(fluxName)(casa::IPosition(0));
-
-			for (uint row=0;row<ida.nRow();row++) {
-			
-				this->calcRegularVis<float>(ra, dec, fluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), vis);
-
-				for (uint i=0;i<freq.nelements();i++) {
-					ida.visibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
-				}
+			for (uint i=0;i<freq.nelements();i++) {
+				ida.visibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
 			}
 		}
 	}
@@ -102,9 +99,9 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 		string fluxName("flux.i."+(*it));
 
 		// Define AutoDiff's for the three unknown parameters
-		casa::AutoDiff<double> ara(parameters().value(raName)(casa::IPosition(0)), nParameters, 0);
-		casa::AutoDiff<double> adec(parameters().value(decName)(casa::IPosition(0)), nParameters, 1);
-		casa::AutoDiff<double> afluxi(parameters().value(fluxName)(casa::IPosition(0)), nParameters, 2);
+		casa::AutoDiff<double> ara(parameters().scalarValue(raName), nParameters, 0);
+		casa::AutoDiff<double> adec(parameters().scalarValue(decName), nParameters, 1);
+		casa::AutoDiff<double> afluxi(parameters().scalarValue(fluxName), nParameters, 2);
 			
 		for (uint row=0;row<ida.nRow();row++) {
 

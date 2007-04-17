@@ -145,6 +145,22 @@ namespace synthesis
 		return itsArrays[name];
 	}		
 	
+	const double MEParams::scalarValue(const string& name) const
+	{
+		if(!isScalar(name)) {
+			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
+		}
+		return itsArrays[name](casa::IPosition(1,0));
+	}		
+	
+	double MEParams::scalarValue(const string& name) 
+	{
+		if(!isScalar(name)) {
+			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
+		}
+		return itsArrays[name](casa::IPosition(1,0));
+	}		
+	
 	const MEDomain& MEParams::domain(const string& name) const 
 	{
 		return itsDomains[name];

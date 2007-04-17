@@ -15,8 +15,9 @@ namespace synthesis {
    	CPPUNIT_TEST(testValues);
     CPPUNIT_TEST(testCongruent);
     CPPUNIT_TEST(testCompletions);
-    CPPUNIT_TEST_EXCEPTION(testDuplError, std::invalid_argument);
     CPPUNIT_TEST(testCopy);
+    CPPUNIT_TEST_EXCEPTION(testDuplicate, std::invalid_argument);
+    CPPUNIT_TEST_EXCEPTION(testNotScalar, std::invalid_argument);
     CPPUNIT_TEST_SUITE_END();
     
   private:
@@ -39,11 +40,18 @@ namespace synthesis {
       delete pempty;
     }
     
-    void testDuplError()
+    void testDuplicate()
     // Should throw invalid_argument
     {
-      p1->add("Add0");
-      p1->add("Add0");
+      p1->add("Dup0");
+      p1->add("Dup0");
+    }
+    
+    void testNotScalar()
+    // Should throw invalid_argument
+    {
+      p1->add("NS0", casa::Array<double>(casa::IPosition(2,10,10)));
+      double result=p1->scalarValue("NS0");
     }
     
     void testCompletions() 
@@ -78,13 +86,13 @@ namespace synthesis {
       CPPUNIT_ASSERT(p1->has("Copy0"));
       CPPUNIT_ASSERT(p1->isScalar("Copy0"));
       p1->add("Copy1", 1.5);
-      CPPUNIT_ASSERT(p1->value("Copy1")(casa::IPosition(1,0))==1.5);
+      CPPUNIT_ASSERT(p1->scalarValue("Copy1")==1.5);
       CPPUNIT_ASSERT(p1);
       MEParams pnew(*p1);
       CPPUNIT_ASSERT(pnew.size()==2);
       CPPUNIT_ASSERT(pnew.has("Copy0"));
       CPPUNIT_ASSERT(pnew.has("Copy1"));
-      CPPUNIT_ASSERT(pnew.value("Copy1")(casa::IPosition(1,0))==1.5);
+      CPPUNIT_ASSERT(pnew.scalarValue("Copy1")==1.5);
     }
     
   	void testValues()

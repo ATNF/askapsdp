@@ -78,6 +78,12 @@ public:
 	const casa::Array<double>& value(const string& name) const;		
 	casa::Array<double>& value(const string& name);
 
+	/// Return the value for the scalar parameter with this name
+	/// Throws invalid_argument if non-scalar
+	/// @param name Name of param
+	const double scalarValue(const string& name) const;		
+	double scalarValue(const string& name);		
+
 	/// Return the domain for the parameter with this name
 	/// @param name Name of param
 	const MEDomain& domain(const string& name) const;		
