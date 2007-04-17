@@ -5,9 +5,9 @@
 namespace conrad {
 namespace synthesis {
 
-MENormalEquations::MENormalEquations(const MEParams& ip)
+MENormalEquations::MENormalEquations(const MEParams& ip) : 	itsParams(ip)
 {
-	itsType=MENormalEquations::COMPLETE;
+	itsApprox=MENormalEquations::COMPLETE;
 	vector<string> names=ip.freeNames();
 	vector<string>::iterator iterRow;
 	vector<string>::iterator iterCol;
@@ -27,22 +27,26 @@ MENormalEquations::MENormalEquations(const MENormalEquations& other)
 MENormalEquations& MENormalEquations::operator=(const MENormalEquations& other)
 {
 	if(this!=&other) {
-		itsType=other.itsType;
+		itsParams=other.itsParams;
+		itsApprox=other.itsApprox;
 		itsConstraintMatrix=other.itsConstraintMatrix;
 		itsDataVector=other.itsDataVector;
 	}
 }
 
-MENormalEquations::MENormalEquations(const MEDesignMatrix& dm, const MENormalEquations::Type type)
+MENormalEquations::MENormalEquations(const MEDesignMatrix& dm, 
+	const MENormalEquations::Approximation approx)
 {
-	itsType=type;
+	itsParams=dm.parameters();
+	itsApprox=approx;
 	vector<string> names=dm.names();
 	vector<string>::iterator iterRow;
 	vector<string>::iterator iterCol;
-	switch(type) {
+	switch(approx) {
 		case MENormalEquations::COMPLETE:
-		case MENormalEquations::DIAGONAL:
-		case MENormalEquations::DIAGONAL_PSF:
+		case MENormalEquations::DIAGONAL_COMPLETE:
+		case MENormalEquations::DIAGONAL_SLICE:
+		case MENormalEquations::DIAGONAL_DIAGONAL:
 			// TODO: To fill in correctly!	
 			for (iterRow=names.begin();iterRow!=names.end();++iterRow) {
 				itsDataVector[*iterRow]=casa::Array<double>(casa::IPosition(0));
@@ -59,9 +63,19 @@ MENormalEquations::~MENormalEquations()
 	reset();
 }
 
-void MENormalEquations::setType(const MENormalEquations::Type type)
+const MEParams& MENormalEquations::parameters() const
 {
-	itsType=type;
+	return itsParams;
+}
+
+MEParams& MENormalEquations::parameters() 
+{
+	return itsParams;
+}
+
+void MENormalEquations::setApproximation(const MENormalEquations::Approximation approx)
+{
+	itsApprox=approx;
 }
 
 void MENormalEquations::merge(const MENormalEquations& other) 

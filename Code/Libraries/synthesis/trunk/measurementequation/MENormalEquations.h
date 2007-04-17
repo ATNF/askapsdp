@@ -23,11 +23,12 @@ class MENormalEquations
 public:
 
 	// Enumerate the types of approximations used in holding the
-	// normal equations
-	enum Type {
+	// normal equations for non-scalar parameters
+	enum Approximation {
 		COMPLETE=0,  // All cross terms (inter and intra) are retained
-		DIAGONAL,    // No inter-parameter or intra-parameter cross terms are retained
-		DIAGONAL_PSF // No inter-parameter cross terms and single plane (PSF) intra-parameter
+		DIAGONAL_COMPLETE, // No inter-parameter are retained
+		DIAGONAL_SLICE, // No inter-parameter cross terms and single plane (PSF) intra-parameter
+		DIAGONAL_DIAGONAL // Only diagonal terms are kept
 	};
 	
 	MENormalEquations() {};
@@ -38,19 +39,23 @@ public:
 	
 	/// Copy constructor
 	MENormalEquations(const MENormalEquations& normeq);
-	
+
+	/// Return the specified parameters
+	const MEParams& parameters() const;
+	MEParams& parameters();
+		
 	/// Construct the normal equations from the design matrix
 	/// @param dm Design matrix
-	/// @param type Type of approximation to be used
-	MENormalEquations(const MEDesignMatrix& dm, const MENormalEquations::Type type);
+	/// @param approx Type of approximation to be used
+	MENormalEquations(const MEDesignMatrix& dm, const MENormalEquations::Approximation approx);
 	
 	/// Assignment operator
 	MENormalEquations& operator=(const MENormalEquations& normeq);
 	
 	virtual ~MENormalEquations();
 	
-	// Set the type
-	void setType(const MENormalEquations::Type type);
+	// Set the approximation
+	void setApproximation(const MENormalEquations::Approximation approx);
 	
 	/// Merge this design matrix with another - means that we just
 	/// need to append on the data axis
@@ -60,7 +65,8 @@ public:
 	/// Reset to empty
 	void reset();
 private:
-	MENormalEquations::Type itsType;
+	MEParams itsParams;
+	MENormalEquations::Approximation itsApprox;
 	// Note that this is a very flexible format - it allows any of the
 	// enumerated approximations to be used
 	std::map<string, std::map<string, casa::Array<double> > > itsConstraintMatrix;

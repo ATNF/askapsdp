@@ -133,7 +133,7 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 void MEComponentEquation::calcEquations(IDataAccessor& ida, MENormalEquations& normeq) 
 {
 	// We can only make a relatively poor approximation to the normal equations
-	normeq.setType(MENormalEquations::DIAGONAL_PSF);
+	normeq.setApproximation(MENormalEquations::DIAGONAL_SLICE);
 	
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	
