@@ -51,12 +51,28 @@ public:
 	
 	/// Add the residual constraint
 	/// @param residual Residual vector
-	/// @param weights Weight vector
-	void addResidual(const casa::Vector<double>& residual, const casa::Vector<double>& weights);
+	/// @param weight Weight vector
+	void addResidual(const casa::Vector<double>& residual, const casa::Vector<double>& weight);
 	
 	/// Reset to empty
 	void reset();
+
+	/// Return the specified parameters
+	const MEParams& parameters() const;
+	MEParams& parameters();
+		
+	/// Return the design matrix
+	const std::map<string, casa::Array<double> >& designMatrix() const;
 	
+	/// Return the named design matrix term	
+	const casa::Array<double>& derivative(const string& name) const;
+
+	/// Return the residual vector
+	const casa::Vector<double>& residual() const;
+
+	/// Return the weight vector
+	const casa::Vector<double>& weight() const;
+
 	/// Return names of parameters
 	vector<string> names() const;
 	
@@ -68,8 +84,8 @@ private:
 	// The number of dof of parameters can vary from parameter to parameter
 	mutable std::map<string, casa::Array<double> > itsDesignMatrix;
 	// Residual matrix = number of data points
-	mutable casa::Vector<double> itsResiduals;
-	mutable casa::Vector<double> itsWeights;
+	mutable casa::Vector<double> itsResidual;
+	mutable casa::Vector<double> itsWeight;
 };
 
 }

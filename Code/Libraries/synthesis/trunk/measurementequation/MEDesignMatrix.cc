@@ -2,8 +2,9 @@
 #include <measurementequation/MEParams.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
-#include <casa/Exceptions/Error.h>
 
+#include <stdexcept>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
@@ -23,8 +24,8 @@ MEDesignMatrix::MEDesignMatrix(const MEParams& ip) : itsParams(ip)
 	for (iter=names.begin();iter!=names.end();++iter) {
 		itsDesignMatrix[*iter]=casa::Array<double>(casa::IPosition(0));
 	}
-	itsResiduals.resize(casa::IPosition(0));
-	itsWeights.resize(casa::IPosition(0));
+	itsResidual.resize(0);
+	itsWeight.resize(0);
 }
 
 MEDesignMatrix::MEDesignMatrix(const MEDesignMatrix& other) 
@@ -37,8 +38,8 @@ MEDesignMatrix& MEDesignMatrix::operator=(const MEDesignMatrix& other)
 	if(this!=&other) {
 		itsParams=other.itsParams;
 		itsDesignMatrix=other.itsDesignMatrix;
-		itsResiduals=other.itsResiduals;
-		itsWeights=other.itsWeights;
+		itsResidual=other.itsResidual;
+		itsWeight=other.itsWeight;
 	}
 }
 
@@ -54,19 +55,55 @@ void MEDesignMatrix::merge(const MEDesignMatrix& other)
 void MEDesignMatrix::addDerivative(const string& name, const casa::Array<double>& deriv)
 {
 	// This should be append!
-	itsDesignMatrix[name]=deriv;
+	if(!itsParams.has(name)) {
+		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
+	}
+	itsDesignMatrix[name]=deriv.copy();
 }
 
-void MEDesignMatrix::addResidual(const casa::Vector<double>& residual, const casa::Vector<double>& weights)
+void MEDesignMatrix::addResidual(const casa::Vector<double>& residual, const casa::Vector<double>& weight)
 {
 	// These should be appends!
-	itsResiduals=residual;
-	itsWeights=weights;
+	itsResidual=residual.copy();
+	itsWeight=weight.copy();
 }
 
 vector<string> MEDesignMatrix::names() const
 {
 	return itsParams.names();
+}
+
+const MEParams& MEDesignMatrix::parameters() const
+{
+	return itsParams;
+}
+
+MEParams& MEDesignMatrix::parameters() 
+{
+	return itsParams;
+}
+
+const std::map<string, casa::Array<double> >& MEDesignMatrix::designMatrix() const
+{
+	return itsDesignMatrix;
+}
+
+const casa::Array<double>& MEDesignMatrix::derivative(const string& name) const
+{
+	if(!itsParams.has(name)) {
+		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
+	}
+	return itsDesignMatrix[name];
+}
+
+const casa::Vector<double>& MEDesignMatrix::residual() const
+{
+	return itsResidual;
+}
+
+const casa::Vector<double>& MEDesignMatrix::weight() const
+{
+	return itsWeight;
 }
 
 void MEDesignMatrix::reset()
@@ -76,8 +113,8 @@ void MEDesignMatrix::reset()
 		iter->second.resize(casa::IPosition(0));
 	}
 	itsDesignMatrix.clear();
-	itsResiduals.resize(0);
-	itsWeights.resize(0);
+	itsResidual.resize(0);
+	itsWeight.resize(0);
 }
 
 }
