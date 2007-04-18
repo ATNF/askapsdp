@@ -1,0 +1,183 @@
+#!/bin/bash
+# Script to create PBS jobscript to run ParallelIO measurements
+# The way to invoke is
+#   runParallelIO [-l] [-f filesize] [-b bufsize] [-p path] [-o output] node-list...
+#      -l         Modifies default Lustre stripes
+#      filesize   Size of file to write/read (in MB)
+#      bufsize    Size of program buffer (in MB)
+#      output     Name of output file
+#      node list  Number of nodes to be measured 1 2 4 8 16 32 64 [64 is maximum]
+
+# Default values
+FILESIZE_DEFAULT=1024 # 1 GB
+OUTFILE_DEFAULT=pio.out
+PATH_DEFAULT=$HOME
+BUFSIZE_DEFAULT=1 # 1 MB
+FILEPREFIX=pio
+PROGNAME=ParallelIO
+JOBSCRIPT=runPio
+modlustre=no
+
+# Process options
+while [ -n "$(echo $1 | grep '-')" ]; do
+    case $1 in
+	-l )
+	    modlustre=yes ;;
+	-f ) 
+	    filesize=$2 
+	    shift ;;
+	-o )
+	    outfile=$2
+	    shift ;;
+	-b )
+	    bufsize=$2
+	    shift ;;
+	-p )
+	    pathname=$2
+	    shift ;;
+	*) echo 'usage: runParallelIO [-l] [-f filesize] [-b bufsize] [-p path] [-o output] node-list...'
+	    exit 1
+    esac
+    shift
+done
+
+# Get list of number of nodes
+nodelist=$*
+if [ -z "$nodelist" ]; then
+    nodelist='1'
+    maxnodes=1
+fi
+
+# If options does not exist apply defaults
+if [ -z $filesize ]; then
+    filesize=$FILESIZE_DEFAULT
+fi
+if [ -z $outfile ]; then
+    outfile=$OUTFILE_DEFAULT
+fi
+
+if [ -z $pathname ]; then
+    pathname=$PATH_DEFAULT
+fi 
+
+if [ -z $bufsize ]; then
+    bufsize=$BUFSIZE_DEFAULT
+fi
+
+# Set some values that are hardware dependant
+if [ -e /etc/xthostname ]; then
+    # It's the Cray XT3
+    platform="xt3"
+    cmd=yod
+    sizeopt="-sz"
+    opts="-strace"
+    maxosts=16
+else
+    platform=$(uname)
+    if [ $platform = "Darwin" ]; then
+	# For testing purposes, I enable the script execution in the Mac
+	cmd=yod
+	sizeopt="-sz"
+	opts="-strace"
+	maxosts=16
+    else
+	echo "Unknown platform. Script terminated."
+	exit 1
+    fi
+fi
+
+# Obtain the full path of the binary
+cd ../bin
+pathbin=$(pwd)
+cd ../scripts
+
+echo "runParallelIO - Date $(date)"
+echo "Options used:"
+echo "  Platform             : $platform"
+echo "  Modify lustre stripes: $modlustre"
+echo "  File size            : $filesize MB"
+echo "  Buffer size          : $bufsize MB"
+echo "  Output path          : $pathname"
+echo "  Output file          : $outfile"
+echo "  Bin path             : $pathbin"
+echo "  Program name         : $PROGNAME"
+echo "  Number of nodes      : ${nodelist}"
+echo "  PBS Jobscript        : $JOBSCRIPT"
+
+# Remove temporary files
+if [ -e "${pathname}/${FILEPREFIX}.0" ]; then
+    echo "rm -f ${pathname}/${FILEPREFIX}.*"
+    rm -f ${pathname}/${FILEPREFIX}.*
+fi
+echo "rm -f ${JOBSCRIPT}.pbs"
+rm -f ${JOBSCRIPT}.pbs
+
+# Creates the jobscript depending on number of nodes
+progargs="${pathbin}/$PROGNAME $pathname $FILEPREFIX $outfile $filesize $bufsize"
+for node in $nodelist; do
+    case $node in
+	1 ) 
+	    prog1="$cmd $sizeopt 1 $opts $progargs" 
+	    maxnodes=1 ;;
+	2 )
+	    prog2="$cmd $sizeopt 2 $opts $progargs"
+	    maxnodes=2 ;;
+	4 )
+	    prog4="$cmd $sizeopt 4 $opts $progargs"
+	    maxnodes=4 ;;
+	8 )
+	    prog8="$cmd $sizeopt 8 $opts $progargs"
+	    maxnodes=8 ;;
+	16 )
+	    prog16="$cmd $sizeopt 16 $opts $progargs"
+	    maxnodes=16 ;;
+	32 )
+	    prog32="$cmd $sizeopt 32 $opts $progargs"
+	    maxnodes=32 ;;
+	64 )
+	    prog64="$cmd $sizeopt 64 $opts $progargs"
+	    maxnodes=64 ;;
+    esac
+done
+
+# Set Lustre stripes if lustre is available
+if [ $modlustre = yes ]; then
+    let count=0
+    let ost=1
+    stripesize=$(( $bufsize*1048576 )) # convert to bytes
+    while [ $count -lt $maxnodes ]; do
+	if [ $platform != "Darwin" ]; then
+	    lfs setstripe ${pathname}/${FILEPREFIX}.$count $stripesize $ost 1
+	else
+	    echo "lfs setstripe ${pathname}/${FILEPREFIX}.$count $stripesize $ost 1"
+	fi
+	let count=count+1
+	let ost=ost+1
+	if [ $ost -gt $maxosts ]; then
+	    let ost=1
+	fi
+    done
+fi
+
+# Create PBS jobscript
+cat > ${JOBSCRIPT}.pbs <<EOF
+#!/bin/csh
+#PBS -N ${JOBSCRIPT}
+#PBS -l size=$maxnodes
+
+${prog1}
+${prog2}
+${prog4}
+${prog8}
+${prog16}
+${prog32}
+${prog64}
+rm -f ${pathname}/${FILEPREFIX}.*
+EOF
+
+# Place the jobscript in the queue
+if [ $platform != "Darwin" ]; then
+    qsub ./${JOBSCRIPT}.pbs
+else
+    echo "qsub ./${JOBSCRIPT}.pbs"
+fi

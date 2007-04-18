@@ -22,6 +22,7 @@ char    ** av;
   int     hflag = 0;
   int     ierr, rank, nproc;
   unsigned long dataCnt;
+  int     argSize;
 
   ierr = MPI_Init(&ac, &av);
   ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -35,7 +36,9 @@ char    ** av;
     MPI_Abort( MPI_COMM_WORLD, 1 );
     exit(1);
   }
-  file = (char *) malloc(sizeof(av[0])+5);
+  // jcg: strlen() used instead of sizeof() to prevent segmentation fault
+  argSize = strlen(av[0]);
+  file = (char *) malloc(argSize + 6);
   sprintf(file, "%s.%d", av[0], rank);
   
   fsiz = stob(av[1]);

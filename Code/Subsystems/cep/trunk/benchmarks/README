@@ -1,0 +1,13 @@
+Benchmarks for Central Processor
+--------------------------------
+
+On Cray XT3 at WASP (marron):
+----------------------------
+To compile:
+  cd src
+  make MAKE_CRAY=on all
+
+To run:
+  cd ../scripts
+  ./runParallelIO -l -f <filesize> -b <bufsize> -p <lustre_path> <number nodes list>
+
