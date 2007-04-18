@@ -4,6 +4,7 @@
 #include <MEParamsTest.h>
 #include <MEDesignMatrixTest.h>
 #include <MENormalEquationsTest.h>
+#include <MEComponentEquationTest.h>
 
 
 int main( int argc, char **argv)
@@ -13,6 +14,7 @@ int main( int argc, char **argv)
   runner.addTest( conrad::synthesis::MEParamsTest::suite() );
   runner.addTest( conrad::synthesis::MEDesignMatrixTest::suite() );
   runner.addTest( conrad::synthesis::MENormalEquationsTest::suite() );
+  runner.addTest( conrad::synthesis::MEComponentEquationTest::suite() );
   runner.run();
   return 0;
 }

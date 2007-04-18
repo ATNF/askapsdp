@@ -57,9 +57,8 @@ public:
 	// Set the approximation
 	void setApproximation(const MENormalEquations::Approximation approx);
 	
-	/// Merge this design matrix with another - means that we just
-	/// need to append on the data axis
-	/// @param other Other design matrix
+	/// Merge these normal equations with another - means that we just add
+	/// @param other Other normal equations
 	void merge(const MENormalEquations& other);
 	
 	/// Reset to empty

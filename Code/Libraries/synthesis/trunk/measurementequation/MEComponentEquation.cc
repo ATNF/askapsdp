@@ -15,6 +15,8 @@
 #include <scimath/Mathematics/AutoDiff.h>
 #include <scimath/Mathematics/AutoDiffMath.h>
 
+#include <stdexcept>
+
 namespace conrad
 {
 namespace synthesis
@@ -29,27 +31,31 @@ void MEComponentEquation::init()
 	// The default parameters serve as a holder for the patterns to match the actual
 	// parameters. Shell pattern matching rules apply.
 	itsDefaultParams.reset();
-	itsDefaultParams.add("flux.i.*");
-	itsDefaultParams.add("direction.ra.*");
-	itsDefaultParams.add("direction.dec.*");
+	itsDefaultParams.add("flux.i");
+	itsDefaultParams.add("direction.ra");
+	itsDefaultParams.add("direction.dec");
 }
 
 void MEComponentEquation::predict(IDataAccessor& ida) 
-{ 
+{
+	if(parameters().isCongruent(itsDefaultParams))
+	{
+		throw std::invalid_argument("Parameters not consistent with this equation");
+	}
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	
 	casa::Vector<float> vis(2*freq.nelements());
 
-	vector<string> completions(parameters().completions("flux.i.*"));
+	vector<string> completions(parameters().completions("flux.i"));
 	vector<string>::iterator it;
 	// This outer loop is over all strings that complete the flux.i.* pattern 
 	// correctly. An exception will be throw if the parameters are not
 	// consistent 
 	for (it=completions.begin();it!=completions.end();it++) {
 	
-		string raName("direction.ra."+(*it));
-		string decName("direction.dec."+(*it));
-		string fluxName("flux.i."+(*it));
+		string fluxName("flux.i"+(*it));
+		string raName("direction.ra"+(*it));
+		string decName("direction.dec"+(*it));
 
 		const double ra=parameters().scalarValue(raName);
 		const double dec=parameters().scalarValue(decName);
@@ -68,6 +74,11 @@ void MEComponentEquation::predict(IDataAccessor& ida)
 
 void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix) 
 {
+	if(parameters().isCongruent(itsDefaultParams))
+	{
+		throw std::invalid_argument("Parameters not consistent with this equation");
+	}
+
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	
 		
@@ -90,13 +101,13 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 	
 	uint offset=0;
 	// Loop over all completions i.e. all sources
-	vector<string> completions(parameters().completions("flux.i.*"));
+	vector<string> completions(parameters().completions("flux.i"));
 	vector<string>::iterator it;
 	for (it=completions.begin();it!=completions.end();it++) {
 	
-		string raName("direction.ra."+(*it));
-		string decName("direction.dec."+(*it));
-		string fluxName("flux.i."+(*it));
+		string raName("direction.ra"+(*it));
+		string decName("direction.dec"+(*it));
+		string fluxName("flux.i"+(*it));
 
 		// Define AutoDiff's for the three unknown parameters
 		casa::AutoDiff<double> ara(parameters().scalarValue(raName), nParameters, 0);
@@ -137,7 +148,7 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MENormalEquations& n
 	
 	const casa::Vector<double>& freq=ida.frequency();	
 	const casa::Vector<double>& time=ida.time();	
-	vector<string> completions(parameters().completions("image.*"));
+	vector<string> completions(parameters().completions("image"));
 	vector<string>::iterator it;
 		
 	// We loop over all images, producing the residual images and
@@ -145,7 +156,7 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MENormalEquations& n
 	// We also only keep one plane of the PSF for each image
 	for (it=completions.begin();it!=completions.end();it++) {
 	
-		string imageName("image."+(*it));
+		string imageName("image"+(*it));
 			
 		for (uint row=0;row<ida.nRow();row++) {
 

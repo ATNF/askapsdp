@@ -73,10 +73,7 @@ namespace synthesis {
       CPPUNIT_ASSERT(p1->names().size()==20);
       CPPUNIT_ASSERT(p1->completions("Roo*9").size()==1);
       CPPUNIT_ASSERT(p1->completions("Root.*").size()==10);
-      CPPUNIT_ASSERT(p1->completions("*Root").size()==10);
-      CPPUNIT_ASSERT(p1->completions("*oo*").size()==20);
-      CPPUNIT_ASSERT(p1->completions("*2*").size()==2);
-      CPPUNIT_ASSERT(p1->completions("Nothing").size()==0);
+       CPPUNIT_ASSERT(p1->completions("Nothing").size()==0);
     }
     
     void testCopy() 

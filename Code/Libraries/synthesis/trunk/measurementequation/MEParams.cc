@@ -2,6 +2,7 @@
 #include <measurementequation/MEDomain.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
+#include <casa/BasicSL/String.h>
 
 #include <map>
 #include <string>
@@ -214,13 +215,16 @@ namespace synthesis
 	
 	vector<string> MEParams::completions(const string& pattern) const
 	{
-		casa::Regex regex(casa::Regex::fromPattern(pattern));
+		casa::Regex regex(casa::Regex::fromPattern(pattern+"*"));
+		casa::Regex sub(casa::Regex::fromPattern(pattern));
 		vector<string> completions;
 		std::map<string,bool>::iterator iter;
 		uint ncomplete=0;
 		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
 			if(casa::String(iter->first).matches(regex)) {
-				completions.push_back(iter->first);
+				casa::String complete(iter->first);
+				complete.gsub(sub, "");
+				completions.push_back(complete);
 				ncomplete++;
 			}
 		}
