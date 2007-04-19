@@ -5,7 +5,7 @@ On Cray XT3 at WASP (marron):
 ----------------------------
 To compile:
   cd src
-  make MAKE_CRAY=on all
+  make clean all
 
 To run:
   cd ../scripts
