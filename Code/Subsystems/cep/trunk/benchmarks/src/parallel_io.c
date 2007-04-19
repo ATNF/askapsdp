@@ -36,7 +36,7 @@ char    ** av;
     MPI_Abort( MPI_COMM_WORLD, 1 );
     exit(1);
   }
-  // jcg: strlen() used instead of sizeof() to prevent segmentation fault
+  /* jcg: strlen() used instead of sizeof() to prevent segmentation fault */
   argSize = strlen(av[0]);
   file = (char *) malloc(argSize + 6);
   sprintf(file, "%s.%d", av[0], rank);
