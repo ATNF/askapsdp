@@ -3,6 +3,10 @@
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
 
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/ArrayMath.h>
+
 #include <stdexcept>
 #include <iostream>
 #include <string>
@@ -118,6 +122,17 @@ void MEDesignMatrix::reset()
 	itsDesignMatrix.clear();
 	itsResidual.resize(0);
 	itsWeight.resize(0);
+}
+
+double MEDesignMatrix::fit() const
+{
+	double sumwt=casa::sum(itsWeight);
+	if(sumwt>0.0) {
+		return sqrt(casa::sum(itsResidual*itsResidual*itsWeight)/sumwt);
+	}
+	else {
+		return 0.0;
+	}
 }
 
 }

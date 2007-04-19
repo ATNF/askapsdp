@@ -76,6 +76,9 @@ public:
 	/// Return names of parameters
 	vector<string> names() const;
 	
+	/// Return value of fit
+	double fit() const;
+	
 	friend class MENormalEquations;
 	
 private:

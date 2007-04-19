@@ -92,18 +92,18 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 
 	// Set up arrays to hold the output values
 	// Two values (complex) per row, channel, pol
-	uint nData=ida.nRow()*freq.nelements()*2*2;
+	uint nData=ida.nRow()*freq.nelements()*2;
 	casa::Vector<double> raDeriv(nData);
 	casa::Vector<double> decDeriv(nData);
 	casa::Vector<double> fluxiDeriv(nData);
 	casa::Vector<double> residual(nData);
 	casa::Vector<double> weights(nData);
 	
-	uint offset=0;
 	// Loop over all completions i.e. all sources
 	vector<string> completions(parameters().completions("flux.i"));
 	vector<string>::iterator it;
 	for (it=completions.begin();it!=completions.end();it++) {
+		uint offset=0;
 	
 		string raName("direction.ra"+(*it));
 		string decName("direction.dec"+(*it));
@@ -121,8 +121,8 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 
 			for (uint i=0;i<freq.nelements();i++) {
 //				ida.visibility()(row,i,0) += casa::Complex(av(2*i).value(), av(2*i+1).value());
-				residual(2*i)=av(2*i).value()-real(ida.visibility()(row,i,0));
-				residual(2*i+1)=av(2*i+1).value()-imag(ida.visibility()(row,i,0));
+				residual(2*i+offset)=av(2*i).value()-real(ida.visibility()(row,i,0));
+				residual(2*i+1+offset)=av(2*i+1).value()-imag(ida.visibility()(row,i,0));
 			}
 
 			for (uint i=0;i<2*freq.nelements();i++) {
