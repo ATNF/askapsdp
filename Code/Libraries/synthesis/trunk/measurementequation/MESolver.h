@@ -40,7 +40,7 @@ public:
 	void setParameters(const MEParams& ip);
 
 	/// Return current values of params
-	const MEParams& getParameters() const;
+	const MEParams& parameters() const;
 		
 	/// Add the design matrix
 	/// @param designmatrix Design Matrix

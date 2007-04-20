@@ -14,17 +14,18 @@ void MESolver::setParameters(const MEParams& ip) {
 	itsParams=ip;
 }
 /// Return current values of params
-const MEParams& MESolver::getParameters() const {
+const MEParams& MESolver::parameters() const {
 	return itsParams;
 };
 
 void MESolver::addNormalEquations(const MENormalEquations& normeq) {
-	itsNormalEquations.merge(normeq);
+//	itsNormalEquations.merge(normeq);
+	itsNormalEquations=normeq;
 }
 
 void MESolver::addDesignMatrix(const MEDesignMatrix& designmatrix) 
 {
-	itsDesignMatrix.merge(designmatrix);
+	itsDesignMatrix=designmatrix;
 }
 
 }

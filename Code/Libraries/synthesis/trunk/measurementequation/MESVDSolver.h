@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MESimpleSolver: This simple solver does something sensible and simple.
+/// MESVDSolver: This simple solver does something sensible and simple.
 /// For real parameters, a least squares solution is calculated,
 /// and for image parameters, a steepest descent algorithm is used.
 ///
@@ -20,11 +20,11 @@ namespace conrad
 namespace synthesis
 {
 
-class MESimpleSolver : public MESolver
+class MESVDSolver : public MESolver
 {
 public:	
 
-	MESimpleSolver(const MEParams& ip) : MESolver(ip) {};
+	MESVDSolver(const MEParams& ip) : MESolver(ip) {};
 	
 	/// Initialize this solver
 	virtual void init();

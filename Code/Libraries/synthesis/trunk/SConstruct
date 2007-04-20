@@ -10,9 +10,10 @@ from conradenv import env
 
 # Add casacore package from tag 0.1.1
 # This will pull in all packages it depends on
+env.AddConradPackage("gsl", "ThirdPartyLibraries/gsl/tags/gsl-1.9")
 env.AddConradPackage("casacore", 
-		     "ThirdPartyLibraries/casacore/tags/casacore-0.1.1"
-		     )
+		     "ThirdPartyLibraries/casacore/tags/casacore-0.1.1")
+		     
 # add the casacore build tool, this will pull in all casacore specific
 # build flags
 env.Tool('casa')
