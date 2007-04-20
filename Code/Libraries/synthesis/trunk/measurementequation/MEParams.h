@@ -109,6 +109,9 @@ public:
 	
 	/// Reset to empty
 	void reset();
+
+	friend std::ostream& operator<<(std::ostream& os, const MEParams& params);
+	
 private:
 	mutable map<string, casa::Array<double> > itsArrays;
 	mutable map<string, MEDomain> itsDomains;

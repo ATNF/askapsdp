@@ -4,6 +4,7 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
 
+#define _HAVE_GSL 1
 #if _HAVE_GSL
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
@@ -75,6 +76,7 @@ bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
 	
 	for (indit=indices.begin();indit!=indices.end();indit++) {
 		double value=gsl_vector_get(x, indit->second);
+		value+=itsParams.scalarValue(indit->first);
 		itsParams.update(indit->first, value);
 	}
 #endif

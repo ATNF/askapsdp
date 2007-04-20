@@ -4,11 +4,13 @@
 #include <casa/Utilities/Regex.h>
 #include <casa/BasicSL/String.h>
 
+#include <iostream>
 #include <map>
 #include <string>
 #include <stdexcept>
 using std::map;
 using std::string;
+using std::ostream;
 
 namespace conrad {
 namespace synthesis
@@ -237,5 +239,29 @@ namespace synthesis
 		itsDomains.clear();
 		itsFree.clear();
 	}
+	
+	ostream& operator<<(ostream& os, const MEParams& params) {
+
+		vector<string> names(params.names());
+		vector<string>::iterator it;
+		for(it = names.begin(); it != names.end(); it++) {
+			os << *it << " : ";
+			if(params.isScalar(*it)) {
+				os << " (scalar) " << params.scalarValue(*it);
+			}
+			else {
+				os << " (array : shape " << params.value(*it).shape() << ") ";
+			}
+			if(params.isFree(*it)) {
+				os << " (free)" << std::endl;
+			}
+			else {
+				os << " (fixed)" << std::endl;
+			}
+		}
+		return os;
+	}
+
+	
 }
 }

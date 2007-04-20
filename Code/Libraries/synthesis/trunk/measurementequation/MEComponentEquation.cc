@@ -121,8 +121,8 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 
 			for (uint i=0;i<freq.nelements();i++) {
 //				ida.visibility()(row,i,0) += casa::Complex(av(2*i).value(), av(2*i+1).value());
-				residual(2*i+offset)=av(2*i).value()-real(ida.visibility()(row,i,0));
-				residual(2*i+1+offset)=av(2*i+1).value()-imag(ida.visibility()(row,i,0));
+				residual(2*i+offset)=real(ida.visibility()(row,i,0))-av(2*i).value();
+				residual(2*i+1+offset)=imag(ida.visibility()(row,i,0))-av(2*i+1).value();
 			}
 
 			for (uint i=0;i<2*freq.nelements();i++) {
