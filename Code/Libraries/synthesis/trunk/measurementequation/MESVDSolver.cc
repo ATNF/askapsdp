@@ -4,12 +4,9 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
 
-#define _HAVE_GSL 1
-#if _HAVE_GSL
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_linalg.h>
-#endif
 
 #include <iostream>
 
@@ -48,7 +45,6 @@ bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
 		}
 	}
 
-#if _HAVE_GSL
     // Convert the design matrix to gsl format
 	gsl_matrix * A = gsl_matrix_alloc (nData, nParameters);
 	map<string, uint>::iterator indit;
@@ -79,11 +75,26 @@ bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
 		value+=itsParams.scalarValue(indit->first);
 		itsParams.update(indit->first, value);
 	}
-#endif
-	// Fill in quality information  
-//	quality.setRank(dmSVD.rank());
-//	quality.setCond(dmSVD.cond());
-	
+	uint rank=0;
+	double smin=1e50;
+	double smax=0.0;
+	for (uint i=0;i<nParameters;i++) {
+		double sValue=abs(gsl_vector_get(S, i));
+		if(sValue>0.0) 
+		{
+			rank++;
+			if(sValue>smax) smax=sValue;
+			if(sValue<smin) smin=sValue;
+		}
+	}
+	quality.setRank(rank);
+	quality.setCond(smax/smin);
+	gsl_vector_free(S);
+	gsl_vector_free(work);
+	gsl_matrix_free(V);
+	gsl_matrix_free(A);
+	quality.setInfo("SVD decomposition");
+
 	return true;
 };
 
