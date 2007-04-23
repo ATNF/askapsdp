@@ -156,13 +156,13 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 	{
 		MEDesignMatrix dm1(*params1);
 		p1->calcEquations(*ida, dm1);
-		CPPUNIT_ASSERT(abs(dm1.fit()-100.0/sqrt(2))<0.01);
+		CPPUNIT_ASSERT(abs(dm1.fit()-100.0)<0.01);
 		p1->predict(*ida);
 		p1->calcEquations(*ida, dm1);
-		CPPUNIT_ASSERT(dm1.fit()<0.025);
+		CPPUNIT_ASSERT(dm1.fit()<0.03);
 		MEDesignMatrix dm2(*params2);
 		p2->calcEquations(*ida, dm2);
-		CPPUNIT_ASSERT(abs(dm2.fit()-5.22484)<0.0001);
+		CPPUNIT_ASSERT(abs(dm2.fit()-6.61609)<0.0001);
 	}
 	
 	void testAssembly() {

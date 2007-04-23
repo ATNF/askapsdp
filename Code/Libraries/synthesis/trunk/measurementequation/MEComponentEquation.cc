@@ -93,10 +93,10 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 	// Set up arrays to hold the output values
 	// Two values (complex) per row, channel, pol
 	uint nData=ida.nRow()*freq.nelements()*2;
-	casa::Vector<double> raDeriv(nData);
-	casa::Vector<double> decDeriv(nData);
-	casa::Vector<double> fluxiDeriv(nData);
-	casa::Vector<double> residual(nData);
+	casa::Vector<casa::Complex> raDeriv(nData);
+	casa::Vector<casa::Complex> decDeriv(nData);
+	casa::Vector<casa::Complex> fluxiDeriv(nData);
+	casa::Vector<casa::Complex> residual(nData);
 	casa::Vector<double> weights(nData);
 	
 	// Loop over all completions i.e. all sources
@@ -120,18 +120,15 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 				ida.uvw()(row)(0), ida.uvw()(row)(1), av);
 
 			for (uint i=0;i<freq.nelements();i++) {
-//				ida.visibility()(row,i,0) += casa::Complex(av(2*i).value(), av(2*i+1).value());
-				residual(2*i+offset)=real(ida.visibility()(row,i,0))-av(2*i).value();
-				residual(2*i+1+offset)=imag(ida.visibility()(row,i,0))-av(2*i+1).value();
-			}
-
-			for (uint i=0;i<2*freq.nelements();i++) {
-				raDeriv(i+offset)=av[i].derivative(0);	
-				decDeriv(i+offset)=av[i].derivative(1);	
-				fluxiDeriv(i+offset)=av[i].derivative(2);
+				residual(i+offset)=(ida.visibility()(row,i,0))
+					-casa::Complex(av(2*i).value(), av(2*i+1).value());
+				raDeriv(i+offset)=casa::Complex(av[2*i].derivative(0), av(2*i+1).derivative(0)); 	
+				decDeriv(i+offset)=casa::Complex(av[2*i].derivative(1), av(2*i+1).derivative(1)); 	
+				fluxiDeriv(i+offset)=casa::Complex(av[2*i].derivative(2), av(2*i+1).derivative(2)); 	
 				weights(i+offset)=1.0;	
 			}
-			offset+=2*freq.nelements();
+
+			offset+=freq.nelements();
 		}
 		// Now we can add the design matrix, residual, and weights
 		designmatrix.addDerivative(raName, raDeriv);
@@ -143,26 +140,6 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 
 void MEComponentEquation::calcEquations(IDataAccessor& ida, MENormalEquations& normeq) 
 {
-	// We can only make a relatively poor approximation to the normal equations
-	normeq.setApproximation(MENormalEquations::DIAGONAL_SLICE);
-	
-	const casa::Vector<double>& freq=ida.frequency();	
-	const casa::Vector<double>& time=ida.time();	
-	vector<string> completions(parameters().completions("image"));
-	vector<string>::iterator it;
-		
-	// We loop over all images, producing the residual images and
-	// PSFs for each image. We ignore the cross terms between the images.
-	// We also only keep one plane of the PSF for each image
-	for (it=completions.begin();it!=completions.end();it++) {
-	
-		string imageName("image"+(*it));
-			
-		for (uint row=0;row<ida.nRow();row++) {
-
-		}
-		
-	}
 };
 // This can be done easily by hand (and we should do for production) but I'm leaving
 // it in this form for the moment to show how the differentiation is done using

@@ -52,14 +52,15 @@ bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
 	}
 
     // Convert the design matrix to gsl format
-	gsl_matrix * A = gsl_matrix_alloc (nData, nParameters);
+	gsl_matrix * A = gsl_matrix_alloc (2*nData, nParameters);
 	map<string, uint>::iterator indit;
 	for (indit=indices.begin();indit!=indices.end();indit++) {
 		// Axes are data, dof for each parameter
-		const casa::Matrix<double>& deriv(itsDesignMatrix.derivative(indit->first));
-		for (uint row=0;row<deriv.nrow();row++) {
+		const casa::Matrix<casa::Complex>& deriv(itsDesignMatrix.derivative(indit->first));
+		for (uint i=0;i<nData;i++) {
 			for (uint col=0;col<deriv.ncolumn();col++) {
-				gsl_matrix_set(A, row, col+indit->second, deriv(row,col));
+				gsl_matrix_set(A, 2*i, col+indit->second, real(deriv(i,col)));
+				gsl_matrix_set(A, 2*i+1, col+indit->second, imag(deriv(i,col)));
 			}
 		}
 	}
@@ -71,9 +72,10 @@ bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
 	gsl_linalg_SV_decomp (A, V, S, work);
 
 	// Now find the solution for the residual vector
-	gsl_vector * res = gsl_vector_alloc(nData);
+	gsl_vector * res = gsl_vector_alloc(2*nData);
 	for (uint i=0;i<nData;i++) {
-		gsl_vector_set(res, i, itsDesignMatrix.residual()[i]);
+		gsl_vector_set(res, 2*i, real(itsDesignMatrix.residual()[i]));
+		gsl_vector_set(res, 2*i+1, imag(itsDesignMatrix.residual()[i]));
 	}
 	gsl_vector * x = gsl_vector_alloc(nParameters);
 	gsl_linalg_SV_solve (A, V, S, res, x); 

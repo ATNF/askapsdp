@@ -150,13 +150,13 @@ class MEImageEquationTest : public CppUnit::TestFixture  {
 	{
 		MEDesignMatrix dm1(*params1);
 		p1->calcEquations(*ida, dm1);
-		CPPUNIT_ASSERT(abs(dm1.fit()-0.858525)<0.01);
+		CPPUNIT_ASSERT(abs(dm1.fit()-0.860064)<0.01);
 		p1->predict(*ida);
 		p1->calcEquations(*ida, dm1);
 		CPPUNIT_ASSERT(dm1.fit()<0.0001);
 		MEDesignMatrix dm2(*params2);
 		p2->calcEquations(*ida, dm2);
-		CPPUNIT_ASSERT(abs(dm2.fit()-0.0794146)<0.0001);
+		CPPUNIT_ASSERT(abs(dm2.fit()-0.0792956)<0.0001);
 	}
 	
 	void testSVD() {
