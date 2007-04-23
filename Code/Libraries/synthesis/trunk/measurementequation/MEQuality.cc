@@ -15,7 +15,7 @@ MEQuality::~MEQuality()
 
 std::ostream& operator<<(std::ostream& os, const MEQuality& q)
 {
-	os << "Solution quality:" << q.info() << " condition number = " 
+	os << "Quality : " << q.info() << " : condition number = " 
 		<< q.cond() << ", rank = " << q.rank() << std::endl;
 }
 	

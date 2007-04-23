@@ -10,6 +10,7 @@ namespace synthesis {
  class MEParamsTest : public CppUnit::TestFixture  {
     
     CPPUNIT_TEST_SUITE(MEParamsTest);
+    CPPUNIT_TEST(testEmpty);
     CPPUNIT_TEST(testIndices);
     CPPUNIT_TEST(testAddition);
    	CPPUNIT_TEST(testValues);
@@ -40,6 +41,11 @@ namespace synthesis {
       delete pempty;
     }
     
+    void testEmpty()
+    {
+      CPPUNIT_ASSERT(p1->names().size()==0);
+      CPPUNIT_ASSERT(p1->freeNames().size()==0);
+    }
     void testDuplicate()
     // Should throw invalid_argument
     {
@@ -50,7 +56,7 @@ namespace synthesis {
     void testNotScalar()
     // Should throw invalid_argument
     {
-      p1->add("NS0", casa::Array<double>(casa::IPosition(2,10,10)));
+      p1->add("NS0", casa::Vector<double>(100));
       double result=p1->scalarValue("NS0");
     }
     
@@ -73,7 +79,7 @@ namespace synthesis {
       CPPUNIT_ASSERT(p1->names().size()==20);
       CPPUNIT_ASSERT(p1->completions("Roo*9").size()==1);
       CPPUNIT_ASSERT(p1->completions("Root.*").size()==10);
-       CPPUNIT_ASSERT(p1->completions("Nothing").size()==0);
+      CPPUNIT_ASSERT(p1->completions("Nothing").size()==0);
     }
     
     void testCopy() 
@@ -96,16 +102,15 @@ namespace synthesis {
   	{
 		p1->add("Value0", 1.5);
         CPPUNIT_ASSERT(p1->has("Value0"));
-		casa::Array<double> im(casa::IPosition(2, 10, 10));
+		casa::Vector<double> im(100);
 		im.set(3.0);
 		p1->add("Value1", im);
-        CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==3.0);
+        CPPUNIT_ASSERT(p1->value("Value1")(50)==3.0);
         CPPUNIT_ASSERT(p1->has("Value1"));
 	    CPPUNIT_ASSERT(!p1->isScalar("Value1"));
-        CPPUNIT_ASSERT(p1->value("Value1").shape()==casa::IPosition(2,10,10));
-        CPPUNIT_ASSERT(p1->value("Value1").shape()!=casa::IPosition(2,20,5));
+        CPPUNIT_ASSERT(p1->value("Value1").nelements()==100);
         p1->value("Value1").set(4.0);
-        CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==4.0);
+        CPPUNIT_ASSERT(p1->value("Value1")(10)==4.0);
   	}  
   
     void testIndices()
@@ -123,10 +128,10 @@ namespace synthesis {
       p1->add("Add0");
       CPPUNIT_ASSERT( p1->size()==1);
       p1->add("Add1", 1.4);
-      CPPUNIT_ASSERT( p1->value("Add1")(casa::IPosition(1,0))==1.4);
+      CPPUNIT_ASSERT( p1->value("Add1")(0)==1.4);
       CPPUNIT_ASSERT( p1->size()==2);
       p1->update("Add1", 2.6);
-      CPPUNIT_ASSERT( p1->value("Add1")(casa::IPosition(1,0))==2.6);
+      CPPUNIT_ASSERT( p1->value("Add1")(0)==2.6);
     }
     
     void testCongruent()

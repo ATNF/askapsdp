@@ -5,6 +5,8 @@
 #include <MEDesignMatrixTest.h>
 #include <MENormalEquationsTest.h>
 #include <MEComponentEquationTest.h>
+#include <MEImageEquationTest.h>
+#include <MESVDSolverTest.h>
 
 
 int main( int argc, char **argv)
@@ -15,6 +17,8 @@ int main( int argc, char **argv)
   runner.addTest( conrad::synthesis::MEDesignMatrixTest::suite() );
   runner.addTest( conrad::synthesis::MENormalEquationsTest::suite() );
   runner.addTest( conrad::synthesis::MEComponentEquationTest::suite() );
+  runner.addTest( conrad::synthesis::MEImageEquationTest::suite() );
+  runner.addTest( conrad::synthesis::MESVDSolverTest::suite() );
   runner.run();
   return 0;
 }

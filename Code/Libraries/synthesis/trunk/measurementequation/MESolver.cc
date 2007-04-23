@@ -18,6 +18,11 @@ const MEParams& MESolver::parameters() const {
 	return itsParams;
 };
 
+/// Return current values of params
+MEParams& MESolver::parameters() {
+	return itsParams;
+};
+
 void MESolver::addNormalEquations(const MENormalEquations& normeq) {
 //	itsNormalEquations.merge(normeq);
 	itsNormalEquations=normeq;

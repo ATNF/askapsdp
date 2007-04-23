@@ -41,6 +41,7 @@ public:
 
 	/// Return current values of params
 	const MEParams& parameters() const;
+	MEParams& parameters();
 		
 	/// Add the design matrix
 	/// @param designmatrix Design Matrix

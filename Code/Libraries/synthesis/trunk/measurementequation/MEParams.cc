@@ -25,7 +25,7 @@ namespace synthesis
 	
 	MEParams& MEParams::operator=(const MEParams& other) {
 		if(this!=&other) {
-			itsArrays=other.itsArrays;
+			itsVectors=other.itsVectors;
 			itsDomains=other.itsDomains;
 			itsFree=other.itsFree;
 		}
@@ -50,34 +50,34 @@ namespace synthesis
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			casa::Array<double> ipArray(casa::IPosition(1,1));
-			ipArray(casa::IPosition(1,0))=ip;
-			itsArrays[name]=ipArray.copy();
+			casa::Vector<double> ipVector(1);
+			ipVector(0)=ip;
+			itsVectors[name]=ipVector.copy();
 			itsFree[name]=true;
 			itsDomains[name]=MEDomain();
 		}
 	}
 	
-	void MEParams::add(const string& name, const casa::Array<double>& ip) 
+	void MEParams::add(const string& name, const casa::Vector<double>& ip) 
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			itsArrays[name]=ip.copy();
+			itsVectors[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=MEDomain();
 		}
 	}
 	
-	void MEParams::add(const string& name, const casa::Array<double>& ip,
+	void MEParams::add(const string& name, const casa::Vector<double>& ip,
 		const MEDomain& domain)
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			itsArrays[name]=ip.copy();
+			itsVectors[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=domain;
 		}
@@ -89,21 +89,21 @@ namespace synthesis
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			casa::Array<double> ipArray(casa::IPosition(1,1));
-			ipArray(casa::IPosition(1,0))=ip;
-			itsArrays[name]=ipArray.copy();
+			casa::Vector<double> ipVector(1);
+			ipVector(0)=ip;
+			itsVectors[name]=ipVector.copy();
 			itsFree[name]=true;
 			itsDomains[name]=domain;
 		}
 	}
 	
-	void MEParams::update(const string& name, const casa::Array<double>& ip) 
+	void MEParams::update(const string& name, const casa::Vector<double>& ip) 
 	{
 		if(!has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
 		}
 		else {
-			itsArrays[name]=ip.copy();
+			itsVectors[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=MEDomain();
 		}
@@ -115,9 +115,9 @@ namespace synthesis
 			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
 		}
 		else {
-			casa::Array<double> ipArray(casa::IPosition(1,1));
-			ipArray(casa::IPosition(1,0))=ip;
-			itsArrays[name]=ipArray.copy();
+			casa::Vector<double> ipVector(1);
+			ipVector(0)=ip;
+			itsVectors[name]=ipVector.copy();
 			itsFree[name]=true;
 			itsDomains[name]=MEDomain();
 		}
@@ -130,22 +130,22 @@ namespace synthesis
 	
 	bool MEParams::has(const string& name) const 
 	{
-		return itsArrays.count(name)>0;
+		return itsVectors.count(name)>0;
 	}		
 
 	bool MEParams::isScalar(const string& name) const 
 	{
-		return itsArrays[name].shape().isEqual(casa::IPosition(1,1));
+		return itsVectors[name].nelements()==1;
 	}		
 
-	const casa::Array<double>& MEParams::value(const string& name) const 
+	const casa::Vector<double>& MEParams::value(const string& name) const 
 	{
-		return itsArrays[name];
+		return itsVectors[name];
 	}		
 	
-	casa::Array<double>& MEParams::value(const string& name) 
+	casa::Vector<double>& MEParams::value(const string& name) 
 	{
-		return itsArrays[name];
+		return itsVectors[name];
 	}		
 	
 	const double MEParams::scalarValue(const string& name) const
@@ -153,7 +153,7 @@ namespace synthesis
 		if(!isScalar(name)) {
 			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
 		}
-		return itsArrays[name](casa::IPosition(1,0));
+		return itsVectors[name](0);
 	}		
 	
 	double MEParams::scalarValue(const string& name) 
@@ -161,7 +161,7 @@ namespace synthesis
 		if(!isScalar(name)) {
 			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
 		}
-		return itsArrays[name](casa::IPosition(1,0));
+		return itsVectors[name](0);
 	}		
 	
 	const MEDomain& MEParams::domain(const string& name) const 
@@ -235,7 +235,7 @@ namespace synthesis
 
 	void MEParams::reset()
 	{
-		itsArrays.clear();
+		itsVectors.clear();
 		itsDomains.clear();
 		itsFree.clear();
 	}

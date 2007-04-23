@@ -1,8 +1,7 @@
 /// @file
 ///
-/// MESVDSolver: This simple solver does something sensible and simple.
-/// For real parameters, a least squares solution is calculated,
-/// and for image parameters, a steepest descent algorithm is used.
+/// MESVDSolver: This solver uses SVD to solve the design matrix
+/// equations.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -43,4 +42,4 @@ protected:
 }
 }
 
-#endif /*MESOLVER_H_*/
+#endif

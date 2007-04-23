@@ -11,8 +11,8 @@
 #include <map>
 
 #include <casa/aips.h>
-#include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
 
 #include <measurementequation/MEParams.h>
 
@@ -44,10 +44,10 @@ public:
 	/// @param other Other design matrix
 	void merge(const MEDesignMatrix& other);
 	
-	/// Add the derivative of the data with respect to the named parameter
+	/// Add the derivative of the data with respect to dof of the named parameter
 	/// @param name Name of parameter
 	/// @param deriv Derivative
-	void addDerivative(const string& name, const casa::Array<double>& deriv);
+	void addDerivative(const string& name, const casa::Matrix<double>& deriv);
 	
 	/// Add the residual constraint
 	/// @param residual Residual vector
@@ -62,10 +62,10 @@ public:
 	MEParams& parameters();
 		
 	/// Return the design matrix
-	const std::map<string, casa::Array<double> >& designMatrix() const;
+	const std::map<string, casa::Matrix<double> >& designMatrix() const;
 	
 	/// Return the named design matrix term	
-	const casa::Array<double>& derivative(const string& name) const;
+	const casa::Matrix<double>& derivative(const string& name) const;
 
 	/// Return the residual vector
 	const casa::Vector<double>& residual() const;
@@ -83,9 +83,9 @@ public:
 	
 private:
 	MEParams itsParams;
-	// Design Matrix = number of parameters x number of data points
+	// Design Matrix = number of parameters x number of dof/parameter x number of data points
 	// The number of dof of parameters can vary from parameter to parameter
-	mutable std::map<string, casa::Array<double> > itsDesignMatrix;
+	mutable std::map<string, casa::Matrix<double> > itsDesignMatrix;
 	// Residual matrix = number of data points
 	mutable casa::Vector<double> itsResidual;
 	mutable casa::Vector<double> itsWeight;

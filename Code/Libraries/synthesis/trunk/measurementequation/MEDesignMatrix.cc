@@ -3,8 +3,9 @@
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
 
-#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/MatrixMath.h>
 #include <casa/Arrays/ArrayMath.h>
 
 #include <stdexcept>
@@ -26,7 +27,7 @@ MEDesignMatrix::MEDesignMatrix(const MEParams& ip) : itsParams(ip)
 	vector<string> names=itsParams.freeNames();
 	vector<string>::iterator iter;
 	for (iter=names.begin();iter!=names.end();++iter) {
-		itsDesignMatrix[*iter]=casa::Array<double>(casa::IPosition(0));
+		itsDesignMatrix[*iter]=casa::Matrix<double>(0,0);
 	}
 	itsResidual.resize(0);
 	itsWeight.resize(0);
@@ -56,7 +57,7 @@ void MEDesignMatrix::merge(const MEDesignMatrix& other)
 {
 }
 
-void MEDesignMatrix::addDerivative(const string& name, const casa::Array<double>& deriv)
+void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<double>& deriv)
 {
 	// This should be append!
 	if(!itsParams.has(name)) {
@@ -87,12 +88,12 @@ MEParams& MEDesignMatrix::parameters()
 	return itsParams;
 }
 
-const std::map<string, casa::Array<double> >& MEDesignMatrix::designMatrix() const
+const std::map<string, casa::Matrix<double> >& MEDesignMatrix::designMatrix() const
 {
 	return itsDesignMatrix;
 }
 
-const casa::Array<double>& MEDesignMatrix::derivative(const string& name) const
+const casa::Matrix<double>& MEDesignMatrix::derivative(const string& name) const
 {
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
@@ -115,9 +116,9 @@ const casa::Vector<double>& MEDesignMatrix::weight() const
 
 void MEDesignMatrix::reset()
 {
-	std::map<std::string, casa::Array<double> >::iterator iter;
+	std::map<std::string, casa::Matrix<double> >::iterator iter;
 	for (iter=itsDesignMatrix.begin();iter!=itsDesignMatrix.end();++iter) {
-		iter->second.resize(casa::IPosition(0));
+		iter->second.resize(0,0);
 	}
 	itsDesignMatrix.clear();
 	itsResidual.resize(0);
@@ -131,7 +132,7 @@ double MEDesignMatrix::fit() const
 		return sqrt(casa::sum(itsResidual*itsResidual*itsWeight)/sumwt);
 	}
 	else {
-		return 0.0;
+		throw(std::invalid_argument("Sum of weights is zero"));
 	}
 }
 

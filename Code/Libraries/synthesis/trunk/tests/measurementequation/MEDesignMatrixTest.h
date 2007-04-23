@@ -71,19 +71,19 @@ class MEDesignMatrixTest : public CppUnit::TestFixture  {
 		MEParams ip;
 		ip.add("Value0");
 		ip.add("Value1", 1.5);
-		casa::IPosition imsize(2,10,10);
-		casa::Array<double> im(imsize);
+		uint imsize=100;
+		casa::Vector<double> im(imsize);
 		im.set(3.0);
 		ip.add("Image2", im);
 
 		delete p1;
 		p1 = new MEDesignMatrix(ip);
-		casa::IPosition gradsize(3,10,10,100);
+		uint gradsize=10*10*100;
 		p1->addDerivative("Value0", casa::Vector<double>(100, 0.0));
 		p1->addDerivative("Value1", casa::Vector<double>(100, 0.0));
-		p1->addDerivative("Image2", casa::Array<double>(gradsize, 0.0));
+		p1->addDerivative("Image2", casa::Vector<double>(gradsize, 0.0));
 		p1->addResidual(casa::Vector<double>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
-		CPPUNIT_ASSERT(p1->derivative("Image2").shape().isEqual(gradsize));
+		CPPUNIT_ASSERT(p1->derivative("Image2").nelements()==gradsize);
 		CPPUNIT_ASSERT(p1->residual().nelements()==100);
     }  
     
