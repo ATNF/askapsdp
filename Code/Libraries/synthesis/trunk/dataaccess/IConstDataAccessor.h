@@ -78,13 +78,13 @@ public:
 
 	/// Return pointing centre directions of the first antenna/feed
 	/// @return a vector with direction measures (coordinate system
-	/// is determined by the data accessor), one direction for each
+	/// is set via IDataConverter), one direction for each
 	/// visibility/row
 	virtual const casa::Vector<casa::MVDirection>& pointingDir1() const = 0;
 
         /// Pointing centre directions of the second antenna/feed
 	/// @return a vector with direction measures (coordinate system
-	/// is determined by the data accessor), one direction for each
+	/// is is set via IDataConverter), one direction for each
 	/// visibility/row
 	virtual const casa::Vector<casa::MVDirection>& pointingDir2() const = 0;
 
@@ -129,6 +129,13 @@ public:
 	///         are given as Doubles, the frame/units are specified by
 	///         the DataSource object
 	virtual const casa::Vector<casa::Double>& frequency() const = 0;
+
+	/// Velocity for each channel
+	/// @return a reference to vector containing velocities for each
+	///         spectral channel (vector size is nChannel). Velocities
+	///         are given as Doubles, the frame/units are specified by
+	///         the DataSource object (via IDataConverter).
+	virtual const casa::Vector<casa::Double>& velocity() const = 0;
 };
 
 } // end of namespace synthesis

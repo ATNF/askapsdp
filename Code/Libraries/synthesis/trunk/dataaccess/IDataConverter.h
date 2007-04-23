@@ -20,6 +20,7 @@
 
 // CASA includes
 #include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MDirection.h>
 #include <measures/Measures/MFrequency.h>
 #include <measures/Measures/MRadialVelocity.h>
 
@@ -46,8 +47,19 @@ public:
 	/// @param unit a required time unit for timestamps
 	///
 	/// Class defaults to MJD 0 UTC, timestamp in seconds
-	virtual void setEpochFrame(const casa::MEpoch &ref = casa::MEpoch(),
+	virtual void setEpochFrame(const casa::MEpoch &origin = casa::MEpoch(),
 		   const casa::Unit &unit = "s") = 0;
+
+	/// set the reference frame for directions. At this moment we
+	/// have only pointing direction accessible via DataAccessor.
+	/// In the future, selection based on the direction observed can
+	/// be added.
+	/// @param ref a reference frame to be used for all directions
+	///            (default is J2000).
+	/// @param unit units for all direction offsets. Unused at the
+	///             moment. Default units are radians.
+	virtual void setDirectionFrame(const casa::MDirection::Ref &ref,
+	               const casa::Unit &unit = "rad") = 0;
 
 	/// set the reference frame for any frequency
 	/// (e.g. in the frequency-based selection or frequency to channel

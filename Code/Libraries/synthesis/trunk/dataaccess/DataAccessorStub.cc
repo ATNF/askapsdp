@@ -179,3 +179,14 @@ const casa::Vector<casa::Double>& DataAccessorStub::frequency() const
 {
   return mFrequency;
 }
+
+
+/// Velocity for each channel
+/// @return a reference to vector containing velocities for each
+///         spectral channel (vector size is nChannel). Velocities
+///         are given as Doubles, the frame/units are specified by
+///         the DataSource object (via IDataConverter).
+const casa::Vector<casa::Double>& DataAccessorStub::velocity() const
+{
+  return mVelocity;
+}
