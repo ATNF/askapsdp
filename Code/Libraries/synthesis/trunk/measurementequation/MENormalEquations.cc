@@ -14,7 +14,7 @@ MENormalEquations::MENormalEquations(const MEParams& ip) : 	itsParams(ip)
 	for (iterRow=names.begin();iterRow!=names.end();++iterRow) {
 		itsDataVector[*iterRow]=casa::Array<double>(casa::IPosition(0));
 		for (iterCol=names.begin();iterCol!=names.end();++iterCol) {
-			itsConstraintMatrix[*iterRow][*iterCol]=casa::Array<double>(casa::IPosition(0));
+			itsNormalMatrix[*iterRow][*iterCol]=casa::Array<double>(casa::IPosition(0));
 		}
 	}
 }
@@ -29,7 +29,7 @@ MENormalEquations& MENormalEquations::operator=(const MENormalEquations& other)
 	if(this!=&other) {
 		itsParams=other.itsParams;
 		itsApprox=other.itsApprox;
-		itsConstraintMatrix=other.itsConstraintMatrix;
+		itsNormalMatrix=other.itsNormalMatrix;
 		itsDataVector=other.itsDataVector;
 	}
 }
@@ -44,17 +44,18 @@ MENormalEquations::MENormalEquations(const MEDesignMatrix& dm,
 	vector<string>::iterator iterCol;
 	switch(approx) {
 		case MENormalEquations::COMPLETE:
-		case MENormalEquations::DIAGONAL_COMPLETE:
-		case MENormalEquations::DIAGONAL_SLICE:
-		case MENormalEquations::DIAGONAL_DIAGONAL:
 			// TODO: To fill in correctly!	
 			for (iterRow=names.begin();iterRow!=names.end();++iterRow) {
 				itsDataVector[*iterRow]=casa::Array<double>(casa::IPosition(0));
 				for (iterCol=names.begin();iterCol!=names.end();++iterCol) {
-					itsConstraintMatrix[*iterRow][*iterCol]=casa::Array<double>(casa::IPosition(0));
+					itsNormalMatrix[*iterRow][*iterCol]=casa::Array<double>(casa::IPosition(0));
 			}
-		}
-		break;
+			break;
+		case MENormalEquations::DIAGONAL_COMPLETE:
+		case MENormalEquations::DIAGONAL_SLICE:
+		case MENormalEquations::DIAGONAL_DIAGONAL:
+		default:
+			break;
 	}
 }
 
@@ -88,11 +89,11 @@ void MENormalEquations::reset()
 	map<string, casa::Array<double> >::iterator iterCol;
 	for (iterRow=itsDataVector.begin();iterRow!=itsDataVector.end();++iterRow) {
 		itsDataVector[iterRow->first].resize();
-		for (iterCol=itsConstraintMatrix[iterRow->first].begin();iterCol!=itsConstraintMatrix[iterRow->first].end();++iterCol) {
-			itsConstraintMatrix[iterRow->first][iterCol->first].resize();
+		for (iterCol=itsNormalMatrix[iterRow->first].begin();iterCol!=itsNormalMatrix[iterRow->first].end();++iterCol) {
+			itsNormalMatrix[iterRow->first][iterCol->first].resize();
 		}
 	}
-	itsConstraintMatrix.clear();
+	itsNormalMatrix.clear();
 	itsDataVector.clear();
 }
 }

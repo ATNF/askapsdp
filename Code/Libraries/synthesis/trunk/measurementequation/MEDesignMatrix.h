@@ -85,9 +85,9 @@ private:
 	MEParams itsParams;
 	// Design Matrix = number of parameters x number of dof/parameter x number of data points
 	// The number of dof of parameters can vary from parameter to parameter
-	mutable std::map<string, casa::Matrix<casa::Complex> > itsDesignMatrix;
+	mutable std::map<string, casa::Matrix<casa::Complex> > itsAMatrix;
 	// Residual matrix = number of data points
-	mutable casa::Vector<casa::Complex> itsResidual;
+	mutable casa::Vector<casa::Complex> itsBVector;
 	mutable casa::Vector<double> itsWeight;
 };
 

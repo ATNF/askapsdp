@@ -68,7 +68,7 @@ private:
 	MENormalEquations::Approximation itsApprox;
 	// Note that this is a very flexible format - it allows any of the
 	// enumerated approximations to be used
-	std::map<string, std::map<string, casa::Array<double> > > itsConstraintMatrix;
+	std::map<string, std::map<string, casa::Array<double> > > itsNormalMatrix;
 	std::map<string, casa::Array<double> > itsDataVector;
 };
 

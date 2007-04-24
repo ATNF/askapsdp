@@ -27,9 +27,9 @@ MEDesignMatrix::MEDesignMatrix(const MEParams& ip) : itsParams(ip)
 	vector<string> names=itsParams.freeNames();
 	vector<string>::iterator iter;
 	for (iter=names.begin();iter!=names.end();++iter) {
-		itsDesignMatrix[*iter]=casa::Matrix<casa::Complex>(0,0);
+		itsAMatrix[*iter]=casa::Matrix<casa::Complex>(0,0);
 	}
-	itsResidual.resize(0);
+	itsBVector.resize(0);
 	itsWeight.resize(0);
 }
 
@@ -42,8 +42,8 @@ MEDesignMatrix& MEDesignMatrix::operator=(const MEDesignMatrix& other)
 {
 	if(this!=&other) {
 		itsParams=other.itsParams;
-		itsDesignMatrix=other.itsDesignMatrix;
-		itsResidual=other.itsResidual;
+		itsAMatrix=other.itsAMatrix;
+		itsBVector=other.itsBVector;
 		itsWeight=other.itsWeight;
 	}
 }
@@ -63,13 +63,13 @@ void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
 	}
-	itsDesignMatrix[name]=deriv.copy();
+	itsAMatrix[name]=deriv.copy();
 }
 
 void MEDesignMatrix::addResidual(const casa::Vector<casa::Complex>& residual, const casa::Vector<double>& weight)
 {
 	// These should be appends!
-	itsResidual=residual.copy();
+	itsBVector=residual.copy();
 	itsWeight=weight.copy();
 }
 
@@ -90,7 +90,7 @@ MEParams& MEDesignMatrix::parameters()
 
 const std::map<string, casa::Matrix<casa::Complex> >& MEDesignMatrix::designMatrix() const
 {
-	return itsDesignMatrix;
+	return itsAMatrix;
 }
 
 const casa::Matrix<casa::Complex>& MEDesignMatrix::derivative(const string& name) const
@@ -98,15 +98,15 @@ const casa::Matrix<casa::Complex>& MEDesignMatrix::derivative(const string& name
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
 	}
-	if(itsDesignMatrix.count(name)==0) {
+	if(itsAMatrix.count(name)==0) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the assigned values"));
 	}
-	return itsDesignMatrix[name];
+	return itsAMatrix[name];
 }
 
 const casa::Vector<casa::Complex>& MEDesignMatrix::residual() const
 {
-	return itsResidual;
+	return itsBVector;
 }
 
 const casa::Vector<double>& MEDesignMatrix::weight() const
@@ -117,11 +117,11 @@ const casa::Vector<double>& MEDesignMatrix::weight() const
 void MEDesignMatrix::reset()
 {
 	std::map<std::string, casa::Matrix<casa::Complex> >::iterator iter;
-	for (iter=itsDesignMatrix.begin();iter!=itsDesignMatrix.end();++iter) {
+	for (iter=itsAMatrix.begin();iter!=itsAMatrix.end();++iter) {
 		iter->second.resize(0,0);
 	}
-	itsDesignMatrix.clear();
-	itsResidual.resize(0);
+	itsAMatrix.clear();
+	itsBVector.resize(0);
 	itsWeight.resize(0);
 }
 
@@ -129,7 +129,7 @@ double MEDesignMatrix::fit() const
 {
 	double sumwt=casa::sum(itsWeight);
 	if(sumwt>0.0) {
-		return sqrt(casa::sum(real(itsResidual*conj(itsResidual)))/sumwt);
+		return sqrt(casa::sum(real(itsBVector*conj(itsBVector)))/sumwt);
 	}
 	else {
 		throw(std::invalid_argument("Sum of weights is zero"));

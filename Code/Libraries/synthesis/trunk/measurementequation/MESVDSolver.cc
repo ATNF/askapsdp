@@ -29,14 +29,14 @@ bool MESVDSolver::solveNormalEquations(MEQuality& quality) {
 	return false;
 };
 
-// Solve for scalar parameters from the designmatrix
+// Solve for parameters from the designmatrix
 bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
 
 	uint nParameters=0;
 	uint nData=0;
 	nData=itsDesignMatrix.residual().nelements();
 	
-	// Find all the scalar, free parameters
+	// Find all the free parameters
 	const vector<string> names(itsParams.freeNames());
 	if(names.size()<1) {
 		throw(std::domain_error("No free parameters"));
