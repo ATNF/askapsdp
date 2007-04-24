@@ -61,6 +61,12 @@ public:
 	/// @param other Other normal equations
 	void merge(const MENormalEquations& other);
 	
+	/// Return normal equations
+	std::map<string, std::map<string, casa::Matrix<double> > > normalMatrix() const;
+	
+	/// Return data vector
+	std::map<string, casa::Vector<double> > dataVector() const;
+	
 	/// Reset to empty
 	void reset();
 private:
@@ -68,8 +74,8 @@ private:
 	MENormalEquations::Approximation itsApprox;
 	// Note that this is a very flexible format - it allows any of the
 	// enumerated approximations to be used
-	std::map<string, std::map<string, casa::Array<double> > > itsNormalMatrix;
-	std::map<string, casa::Array<double> > itsDataVector;
+	std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix;
+	std::map<string, casa::Vector<double> > itsDataVector;
 };
 
 }

@@ -26,7 +26,74 @@ void MESVDSolver::init() {
 }
 
 bool MESVDSolver::solveNormalEquations(MEQuality& quality) {
-	return false;
+	
+	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
+	uint nParameters=0;
+		
+	// Find all the free parameters
+	const vector<string> names(itsParams.freeNames());
+	if(names.size()<1) {
+		throw(std::domain_error("No free parameters"));
+	}
+	vector<string>::const_iterator it;
+	map<string, uint> indices;
+	for (it=names.begin();it!=names.end();it++) {
+		indices[*it]=nParameters;
+		nParameters+=itsParams.value(*it).nelements();
+	}
+	if(nParameters<1) {
+		throw(std::domain_error("No free parameters"));
+	}
+
+    // Convert the normal equations to gsl format
+    // Note that A is complex but hermitean so it has the
+    // right number of independent terms (nParameter*nParameter)
+    // although the matrix is bigger. It might be worth
+    // packing to a purely real format.
+	gsl_matrix * A = gsl_matrix_alloc (nParameters, nParameters);
+	gsl_vector * B = gsl_vector_alloc (nParameters);
+	gsl_vector * X = gsl_vector_alloc (nParameters);
+
+	map<string, uint>::iterator indit1;
+	map<string, uint>::iterator indit2;
+	for (indit2=indices.begin();indit2!=indices.end();indit2++) {
+		for (indit1=indices.begin();indit1!=indices.end();indit1++) {
+		// Axes are dof, dof for each parameter
+			const casa::Matrix<double>& nm(itsNormalEquations.normalMatrix()[indit1->first][indit2->first]);
+			for (uint row=0;row<nm.nrow();row++) {
+				for (uint col=0;col<nm.ncolumn();col++) {
+					gsl_matrix_set(A, row+(indit1->second), col+(indit2->second), nm(row,col));
+				}
+			}
+		}
+	}
+	for (indit1=indices.begin();indit1!=indices.end();indit1++) {
+		const casa::Vector<double>& dv(itsNormalEquations.dataVector()[indit1->first]);
+		for (uint row=0;row<dv.nelements();row++) {
+			gsl_vector_set(B, row+(indit1->second), dv(row));
+		}
+	}
+	
+	gsl_linalg_cholesky_decomp(A);
+	gsl_linalg_cholesky_solve(A, B, X);
+	
+	// Update the parameters for the calculated changes
+	map<string, uint>::iterator indit;
+	for (indit=indices.begin();indit!=indices.end();indit++) {
+		casa::Vector<double>& value(itsParams.value(indit->first));
+		for (uint i=0;i<value.nelements();i++) {
+			value(i)+=gsl_vector_get(X, indit->second+i);
+		}
+		itsParams.update(indit->first, value);
+	}
+	quality.setInfo("LU decomposition rank complete");
+
+	// Free up gsl storage
+	gsl_vector_free(B);
+	gsl_matrix_free(A);
+	gsl_vector_free(X);
+
+	return true;
 };
 
 // Solve for parameters from the designmatrix
@@ -56,7 +123,7 @@ bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
 	map<string, uint>::iterator indit;
 	for (indit=indices.begin();indit!=indices.end();indit++) {
 		// Axes are data, dof for each parameter
-		const casa::Matrix<casa::Complex>& deriv(itsDesignMatrix.derivative(indit->first));
+		const casa::Matrix<casa::DComplex>& deriv(itsDesignMatrix.derivative(indit->first));
 		for (uint i=0;i<nData;i++) {
 			for (uint col=0;col<deriv.ncolumn();col++) {
 				gsl_matrix_set(A, 2*i, col+indit->second, real(deriv(i,col)));

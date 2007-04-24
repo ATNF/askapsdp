@@ -45,7 +45,7 @@ private:
 		const double decStart, const double decEnd, const int decCells, 
 		const casa::Vector<double>& freq, 
 		const casa::Vector<casa::RigidVector<double, 3> >& uvw, 
-		casa::Matrix<casa::Complex>& vis, bool doderiv, casa::Matrix<casa::Complex>& imageDeriv); 
+		casa::Matrix<casa::DComplex>& vis, bool doderiv, casa::Matrix<casa::DComplex>& imageDeriv); 
 };
 
 }

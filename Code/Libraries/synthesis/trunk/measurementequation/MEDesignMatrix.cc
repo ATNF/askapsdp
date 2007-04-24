@@ -27,7 +27,7 @@ MEDesignMatrix::MEDesignMatrix(const MEParams& ip) : itsParams(ip)
 	vector<string> names=itsParams.freeNames();
 	vector<string>::iterator iter;
 	for (iter=names.begin();iter!=names.end();++iter) {
-		itsAMatrix[*iter]=casa::Matrix<casa::Complex>(0,0);
+		itsAMatrix[*iter]=casa::Matrix<casa::DComplex>(0,0);
 	}
 	itsBVector.resize(0);
 	itsWeight.resize(0);
@@ -57,7 +57,7 @@ void MEDesignMatrix::merge(const MEDesignMatrix& other)
 {
 }
 
-void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::Complex>& deriv)
+void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv)
 {
 	// This should be append!
 	if(!itsParams.has(name)) {
@@ -66,7 +66,7 @@ void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::
 	itsAMatrix[name]=deriv.copy();
 }
 
-void MEDesignMatrix::addResidual(const casa::Vector<casa::Complex>& residual, const casa::Vector<double>& weight)
+void MEDesignMatrix::addResidual(const casa::Vector<casa::DComplex>& residual, const casa::Vector<double>& weight)
 {
 	// These should be appends!
 	itsBVector=residual.copy();
@@ -88,12 +88,12 @@ MEParams& MEDesignMatrix::parameters()
 	return itsParams;
 }
 
-const std::map<string, casa::Matrix<casa::Complex> >& MEDesignMatrix::designMatrix() const
+const std::map<string, casa::Matrix<casa::DComplex> >& MEDesignMatrix::designMatrix() const
 {
 	return itsAMatrix;
 }
 
-const casa::Matrix<casa::Complex>& MEDesignMatrix::derivative(const string& name) const
+const casa::Matrix<casa::DComplex>& MEDesignMatrix::derivative(const string& name) const
 {
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
@@ -104,7 +104,7 @@ const casa::Matrix<casa::Complex>& MEDesignMatrix::derivative(const string& name
 	return itsAMatrix[name];
 }
 
-const casa::Vector<casa::Complex>& MEDesignMatrix::residual() const
+const casa::Vector<casa::DComplex>& MEDesignMatrix::residual() const
 {
 	return itsBVector;
 }
@@ -116,7 +116,7 @@ const casa::Vector<double>& MEDesignMatrix::weight() const
 
 void MEDesignMatrix::reset()
 {
-	std::map<std::string, casa::Matrix<casa::Complex> >::iterator iter;
+	std::map<std::string, casa::Matrix<casa::DComplex> >::iterator iter;
 	for (iter=itsAMatrix.begin();iter!=itsAMatrix.end();++iter) {
 		iter->second.resize(0,0);
 	}

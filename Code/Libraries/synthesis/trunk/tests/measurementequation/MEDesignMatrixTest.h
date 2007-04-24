@@ -79,10 +79,10 @@ class MEDesignMatrixTest : public CppUnit::TestFixture  {
 		delete p1;
 		p1 = new MEDesignMatrix(ip);
 		uint gradsize=10*10*100;
-		p1->addDerivative("Value0", casa::Vector<casa::Complex>(100, 0.0));
-		p1->addDerivative("Value1", casa::Vector<casa::Complex>(100, 0.0));
-		p1->addDerivative("Image2", casa::Vector<casa::Complex>(gradsize, 0.0));
-		p1->addResidual(casa::Vector<casa::Complex>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
+		p1->addDerivative("Value0", casa::Vector<casa::DComplex>(100, 0.0));
+		p1->addDerivative("Value1", casa::Vector<casa::DComplex>(100, 0.0));
+		p1->addDerivative("Image2", casa::Vector<casa::DComplex>(gradsize, 0.0));
+		p1->addResidual(casa::Vector<casa::DComplex>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
 		CPPUNIT_ASSERT(p1->derivative("Image2").nelements()==gradsize);
 		CPPUNIT_ASSERT(p1->residual().nelements()==100);
     }  
@@ -94,7 +94,7 @@ class MEDesignMatrixTest : public CppUnit::TestFixture  {
 		delete p1;
 		p1 = new MEDesignMatrix(ip);
 		// Will throw std::invalid_argument
-		p1->addDerivative("FooBar", casa::Vector<casa::Complex>(100, 0.0));
+		p1->addDerivative("FooBar", casa::Vector<casa::DComplex>(100, 0.0));
     }
     
   };

@@ -47,12 +47,12 @@ public:
 	/// Add the derivative of the data with respect to dof of the named parameter
 	/// @param name Name of parameter
 	/// @param deriv Derivative
-	void addDerivative(const string& name, const casa::Matrix<casa::Complex>& deriv);
+	void addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv);
 	
 	/// Add the residual constraint
 	/// @param residual Residual vector
 	/// @param weight Weight vector
-	void addResidual(const casa::Vector<casa::Complex>& residual, const casa::Vector<double>& weight);
+	void addResidual(const casa::Vector<casa::DComplex>& residual, const casa::Vector<double>& weight);
 	
 	/// Reset to empty
 	void reset();
@@ -62,13 +62,13 @@ public:
 	MEParams& parameters();
 		
 	/// Return the design matrix
-	const std::map<string, casa::Matrix<casa::Complex> >& designMatrix() const;
+	const std::map<string, casa::Matrix<casa::DComplex> >& designMatrix() const;
 	
 	/// Return the named design matrix term	
-	const casa::Matrix<casa::Complex>& derivative(const string& name) const;
+	const casa::Matrix<casa::DComplex>& derivative(const string& name) const;
 
 	/// Return the residual vector
-	const casa::Vector<casa::Complex>& residual() const;
+	const casa::Vector<casa::DComplex>& residual() const;
 
 	/// Return the weight vector
 	const casa::Vector<double>& weight() const;
@@ -85,9 +85,9 @@ private:
 	MEParams itsParams;
 	// Design Matrix = number of parameters x number of dof/parameter x number of data points
 	// The number of dof of parameters can vary from parameter to parameter
-	mutable std::map<string, casa::Matrix<casa::Complex> > itsAMatrix;
+	mutable std::map<string, casa::Matrix<casa::DComplex> > itsAMatrix;
 	// Residual matrix = number of data points
-	mutable casa::Vector<casa::Complex> itsBVector;
+	mutable casa::Vector<casa::DComplex> itsBVector;
 	mutable casa::Vector<double> itsWeight;
 };
 

@@ -42,8 +42,8 @@ void MEImageEquation::predict(IDataAccessor& ida)
 	const casa::Vector<double>& time=ida.time();	
 	const uint nChan=freq.nelements();
 	const uint nRow=ida.nRow();
-	casa::Matrix<casa::Complex> vis(nRow,nChan);
-	casa::Matrix<casa::Complex> noDeriv(0,0);
+	casa::Matrix<casa::DComplex> vis(nRow,nChan);
+	casa::Matrix<casa::DComplex> noDeriv(0,0);
 
 	vector<string> completions(parameters().completions("image.i"));
 	vector<string>::iterator it;
@@ -70,7 +70,7 @@ void MEImageEquation::predict(IDataAccessor& ida)
 
 		for (uint row=0;row<nRow;row++) {
 			for (uint i=0;i<nChan;i++) {
-				ida.visibility()(row,i,0) += vis(row,i);
+				ida.visibility()(row,i,0) += casa::Complex(vis(row,i));
 			}
 		}
 	}
@@ -90,10 +90,10 @@ void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designma
 		
 	// Set up arrays to hold the output values
 	// Row, Two values (complex) per channel, single pol
-	casa::Vector<casa::Complex> residual(nRow*nChan);
+	casa::Vector<casa::DComplex> residual(nRow*nChan);
 	casa::Vector<double> weights(nRow*2*nChan);
 	weights.set(1.0);
-	casa::Matrix<casa::Complex> vis(nRow,2*nChan);
+	casa::Matrix<casa::DComplex> vis(nRow,2*nChan);
 
 	// Loop over all completions i.e. all sources
 	vector<string> completions(parameters().completions("image.i"));
@@ -112,7 +112,7 @@ void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designma
 
 		const casa::Vector<double> imagePixels=parameters().value(imageName);
 		const uint nPixels=imagePixels.nelements();
-		casa::Matrix<casa::Complex> imageDeriv(nRow*2*nChan,nPixels);
+		casa::Matrix<casa::DComplex> imageDeriv(nRow*2*nChan,nPixels);
 		
 		this->calcVis(imagePixels, raStart, raEnd, raCells, 
 			decStart, decEnd, decCells, freq, ida.uvw(),
@@ -120,7 +120,7 @@ void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designma
 
 		for (uint row=0;row<ida.nRow();row++) {
 			for (uint i=0;i<freq.nelements();i++) {
-				residual(nChan*row+i)=ida.visibility()(row,i,0)-vis(row,i);
+				residual(nChan*row+i)=casa::DComplex(ida.visibility()(row,i,0))-vis(row,i);
 			}
 		}
 
@@ -141,7 +141,7 @@ void MEImageEquation::calcVis(const casa::Vector<double>& imagePixels,
 	const double decStart, const double decEnd, const int decCells, 
 	const casa::Vector<double>& freq,  
 	const casa::Vector<casa::RigidVector<double, 3> >& uvw,
-	casa::Matrix<casa::Complex>& vis, bool doDeriv, casa::Matrix<casa::Complex>& imageDeriv) 
+	casa::Matrix<casa::DComplex>& vis, bool doDeriv, casa::Matrix<casa::DComplex>& imageDeriv) 
 {
 	double raInc=(raStart-raEnd)/double(raCells);
 	double decInc=(decStart-decEnd)/double(decCells);

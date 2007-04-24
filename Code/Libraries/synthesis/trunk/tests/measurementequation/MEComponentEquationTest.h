@@ -23,6 +23,8 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST(testDesignMatrix);
     CPPUNIT_TEST(testAssembly);
     CPPUNIT_TEST(testSVD);
+    CPPUNIT_TEST(testConstructNormalEquations);
+    CPPUNIT_TEST(testSolveNormalEquations);
     CPPUNIT_TEST_EXCEPTION(testNoFree, std::domain_error);
     CPPUNIT_TEST_SUITE_END();
 	
@@ -196,6 +198,32 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 		solver1.solveDesignMatrix(q);
 		CPPUNIT_ASSERT(q.rank()==1);
 		CPPUNIT_ASSERT(abs(q.cond()-1.000000)<0.0001);
+	}
+
+	void testConstructNormalEquations() {
+		// Predict with the "perfect" parameters"
+		MEDesignMatrix dm1(*params1);
+		p1->predict(*ida);
+		// Calculate gradients using "imperfect" parameters" 
+		p2->calcEquations(*ida, dm1);
+		MEQuality q;
+		MESVDSolver solver1(*params2);
+		solver1.addDesignMatrix(dm1);
+		MENormalEquations normeq(dm1, MENormalEquations::COMPLETE);
+	}
+
+	void testSolveNormalEquations() {
+		// Predict with the "perfect" parameters"
+		MEDesignMatrix dm1(*params1);
+		p1->predict(*ida);
+		// Calculate gradients using "imperfect" parameters" 
+		p2->calcEquations(*ida, dm1);
+		MEQuality q;
+		MESVDSolver solver1(*params2);
+		solver1.addDesignMatrix(dm1);
+		MENormalEquations normeq(dm1, MENormalEquations::COMPLETE);
+		solver1.addNormalEquations(normeq);
+		solver1.solveNormalEquations(q);
 	}
 
 	void testNoFree() {

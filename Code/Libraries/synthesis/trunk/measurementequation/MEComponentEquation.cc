@@ -93,10 +93,10 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 	// Set up arrays to hold the output values
 	// Two values (complex) per row, channel, pol
 	uint nData=ida.nRow()*freq.nelements()*2;
-	casa::Vector<casa::Complex> raDeriv(nData);
-	casa::Vector<casa::Complex> decDeriv(nData);
-	casa::Vector<casa::Complex> fluxiDeriv(nData);
-	casa::Vector<casa::Complex> residual(nData);
+	casa::Vector<casa::DComplex> raDeriv(nData);
+	casa::Vector<casa::DComplex> decDeriv(nData);
+	casa::Vector<casa::DComplex> fluxiDeriv(nData);
+	casa::Vector<casa::DComplex> residual(nData);
 	casa::Vector<double> weights(nData);
 	
 	// Loop over all completions i.e. all sources
@@ -122,9 +122,9 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 			for (uint i=0;i<freq.nelements();i++) {
 				residual(i+offset)=(ida.visibility()(row,i,0))
 					-casa::Complex(av(2*i).value(), av(2*i+1).value());
-				raDeriv(i+offset)=casa::Complex(av[2*i].derivative(0), av(2*i+1).derivative(0)); 	
-				decDeriv(i+offset)=casa::Complex(av[2*i].derivative(1), av(2*i+1).derivative(1)); 	
-				fluxiDeriv(i+offset)=casa::Complex(av[2*i].derivative(2), av(2*i+1).derivative(2)); 	
+				raDeriv(i+offset)=casa::DComplex(av[2*i].derivative(0), av(2*i+1).derivative(0)); 	
+				decDeriv(i+offset)=casa::DComplex(av[2*i].derivative(1), av(2*i+1).derivative(1)); 	
+				fluxiDeriv(i+offset)=casa::DComplex(av[2*i].derivative(2), av(2*i+1).derivative(2)); 	
 				weights(i+offset)=1.0;	
 			}
 
