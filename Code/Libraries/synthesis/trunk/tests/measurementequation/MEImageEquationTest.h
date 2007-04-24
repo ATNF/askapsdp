@@ -1,5 +1,5 @@
 #include <measurementequation/MEImageEquation.h>
-#include <measurementequation/MESVDSolver.h>
+#include <measurementequation/MELinearSolver.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
@@ -166,7 +166,7 @@ class MEImageEquationTest : public CppUnit::TestFixture  {
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
 		MEQuality q;
-		MESVDSolver solver1(*params2);
+		MELinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 		solver1.solveDesignMatrix(q);
 		casa::Vector<double> improved=solver1.parameters().value("image.i.cena");
@@ -180,7 +180,7 @@ class MEImageEquationTest : public CppUnit::TestFixture  {
 		p1->predict(*ida);
 		p2->calcEquations(*ida, dm1);
 		MEQuality q;
-		MESVDSolver solver1(*params2);
+		MELinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 		// Should throw exception: domain_error
 	    solver1.parameters().fix("image.i.cena");

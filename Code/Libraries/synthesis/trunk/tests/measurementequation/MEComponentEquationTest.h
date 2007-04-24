@@ -1,5 +1,5 @@
 #include <measurementequation/MEComponentEquation.h>
-#include <measurementequation/MESVDSolver.h>
+#include <measurementequation/MELinearSolver.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
@@ -174,7 +174,7 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
 		MEQuality q;
-		MESVDSolver solver1(*params2);
+		MELinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 	}
 
@@ -185,7 +185,7 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
 		MEQuality q;
-		MESVDSolver solver1(*params2);
+		MELinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 		solver1.solveDesignMatrix(q);
 		CPPUNIT_ASSERT(q.rank()==3);
@@ -207,7 +207,7 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
 		MEQuality q;
-		MESVDSolver solver1(*params2);
+		MELinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 		MENormalEquations normeq(dm1, MENormalEquations::COMPLETE);
 	}
@@ -219,7 +219,7 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
 		MEQuality q;
-		MESVDSolver solver1(*params2);
+		MELinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 		MENormalEquations normeq(dm1, MENormalEquations::COMPLETE);
 		solver1.addNormalEquations(normeq);
@@ -231,7 +231,7 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 		p1->predict(*ida);
 		p2->calcEquations(*ida, dm1);
 		MEQuality q;
-		MESVDSolver solver1(*params2);
+		MELinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
   	    solver1.parameters().fix("flux.i.cena");
 	    solver1.parameters().fix("direction.ra.cena");

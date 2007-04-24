@@ -1,13 +1,13 @@
 /// @file
 ///
-/// MESVDSolver: This solver uses SVD to solve the design matrix
+/// MELinearSolver: This solver uses SVD to solve the design matrix
 /// equations.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef MESIMPLESOLVER_H_
-#define MESIMPLESOLVER_H_
+#ifndef MELINEARSOLVER_H_
+#define MELINEARSOLVER_H_
 
 #include <measurementequation/MESolver.h>
 #include <measurementequation/MENormalEquations.h>
@@ -19,11 +19,11 @@ namespace conrad
 namespace synthesis
 {
 
-class MESVDSolver : public MESolver
+class MELinearSolver : public MESolver
 {
 public:	
 
-	MESVDSolver(const MEParams& ip) : MESolver(ip) {};
+	MELinearSolver(const MEParams& ip) : MESolver(ip) {};
 	
 	/// Initialize this solver
 	virtual void init();

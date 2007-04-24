@@ -1,4 +1,4 @@
-#include <measurementequation/MESVDSolver.h>
+#include <measurementequation/MELinearSolver.h>
 
 #include <stdexcept>
 
@@ -20,12 +20,12 @@ namespace synthesis
 {
 
 
-void MESVDSolver::init() {
+void MELinearSolver::init() {
 	itsNormalEquations.reset();
 	itsDesignMatrix.reset();
 }
 
-bool MESVDSolver::solveNormalEquations(MEQuality& quality) {
+bool MELinearSolver::solveNormalEquations(MEQuality& quality) {
 	
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
 	uint nParameters=0;
@@ -97,7 +97,7 @@ bool MESVDSolver::solveNormalEquations(MEQuality& quality) {
 };
 
 // Solve for parameters from the designmatrix
-bool MESVDSolver::solveDesignMatrix(MEQuality& quality) {
+bool MELinearSolver::solveDesignMatrix(MEQuality& quality) {
 
 	uint nParameters=0;
 	uint nData=0;
