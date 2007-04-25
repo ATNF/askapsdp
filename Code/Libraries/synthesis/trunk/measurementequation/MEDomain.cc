@@ -25,6 +25,7 @@ namespace synthesis
 	MEDomain& MEDomain::operator=(const MEDomain& other)
 	{
 		if(this!=&other) {
+			itsNames=other.itsNames;
 			itsStart=other.itsStart;
 			itsEnd=other.itsEnd;
 			itsCells=other.itsCells;
@@ -39,6 +40,7 @@ namespace synthesis
 
 	MEDomain::~MEDomain() 
 	{
+		itsNames.clear();
 		itsStart.clear();
 		itsEnd.clear();
 		itsCells.clear();
@@ -50,9 +52,10 @@ namespace synthesis
 			throw(std::invalid_argument("Axis " + name + " already exists"));
 		}
 		else {
-			itsStart[name]=start;
-			itsEnd[name]=end;
-			itsCells[name]=cells;
+			itsNames.push_back(name);
+			itsStart.push_back(start);
+			itsEnd.push_back(end);
+			itsCells.push_back(cells);
 		}
 	}
 	
@@ -60,39 +63,49 @@ namespace synthesis
 	/// @param name Name of axis
 	bool MEDomain::has(const string& name) const
 	{
-		return itsStart.count(name)>0;
+		for (uint i=0;i<itsNames.size();i++) {
+			if(itsNames[i]==name) return true;
+		}
+		return false;
 	}
 	
-	/// Return the possible axis names
-	std::vector<string> MEDomain::names() const
+	int MEDomain::order(const string& name) const
 	{
-		vector<string> names;
-		std::map<string,double>::iterator iter;
-		for(iter = itsStart.begin(); iter != itsStart.end(); iter++) {
-			names.push_back(iter->first);
+		for (uint i=0;i<itsNames.size();i++) {
+			if(itsNames[i]==name) return i;
 		}
-		return names;
+		throw(std::invalid_argument("Axis " + name + " does not exist"));
+	}
+	
+	const std::vector<string>& MEDomain::names() const
+	{
+		return itsNames;
+	}
+	
+	const std::vector<int>& MEDomain::shape() const
+	{
+		return itsCells;
 	}
 
 	/// Return start value	
 	/// @param name Name of axis
 	double MEDomain::start(const string& name) const
 	{
-		return itsStart[name];
+		return itsStart[order(name)];
 	}
 	
 	/// Return end value	
 	/// @param name Name of axis
 	double MEDomain::end(const string& name) const
 	{
-		return itsEnd[name];
+		return itsEnd[order(name)];
 	}
 
 	/// Return number of cells
 	/// @param name Name of axis
 	int MEDomain::cells(const string& name) const
 	{
-		return itsCells[name];
+		return itsCells[order(name)];
 	}
 
 	ostream& operator<<(ostream& os, const MEDomain& domain) {

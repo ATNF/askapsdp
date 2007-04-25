@@ -25,6 +25,8 @@ void MELinearSolver::init() {
 	itsDesignMatrix.reset();
 }
 
+// Fully general solver for the normal equations for any shape 
+// parameters.
 bool MELinearSolver::solveNormalEquations(MEQuality& quality) {
 	
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
@@ -86,7 +88,7 @@ bool MELinearSolver::solveNormalEquations(MEQuality& quality) {
 		}
 		itsParams.update(indit->first, value);
 	}
-	quality.setInfo("LU decomposition rank complete");
+	quality.setInfo("Cholesky decomposition");
 
 	// Free up gsl storage
 	gsl_vector_free(B);
@@ -96,7 +98,7 @@ bool MELinearSolver::solveNormalEquations(MEQuality& quality) {
 	return true;
 };
 
-// Solve for parameters from the designmatrix
+// Fully general solver from the design matrix
 bool MELinearSolver::solveDesignMatrix(MEQuality& quality) {
 
 	uint nParameters=0;

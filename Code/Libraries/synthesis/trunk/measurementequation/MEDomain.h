@@ -44,9 +44,16 @@ public:
 	/// Has this axis?
 	/// @param name Name of axis
 	bool has(const std::string& name) const;
-	
+
+	/// Order of this axis
+	/// @param name Name of axis
+	int order(const std::string& name) const;
+		
 	/// Return the possible axis names
-	std::vector<std::string> names() const;
+	const std::vector<std::string>& names() const;
+
+	/// Return the shape
+	const std::vector<int>& shape() const;
 
 	/// Return start value	
 	/// @param name Name of axis
@@ -63,9 +70,10 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const MEDomain& domain);
 	
 private:
-	mutable std::map<std::string, double> itsStart;
-	mutable std::map<std::string, double> itsEnd;
-	mutable std::map<std::string, int> itsCells;
+	mutable std::vector<std::string> itsNames;
+	mutable std::vector<double> itsStart;
+	mutable std::vector<double> itsEnd;
+	mutable std::vector<int> itsCells;
 };
 
 };
