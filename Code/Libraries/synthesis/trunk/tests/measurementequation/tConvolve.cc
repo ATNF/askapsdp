@@ -3,15 +3,25 @@
 #include <ctime>
 #include <complex>
 
-using std::cerr;
+using std::cout;
 using std::endl;
 using std::complex;
 
+// Typedefs for easy testing
 typedef double Coord;
-typedef double Real;
+typedef float Real;
 typedef std::complex<Real> Value;
 
 // Perform standard data independent gridding
+//
+// u,v,w - components of spatial frequency
+// data - values to be gridded
+// nSamples - number of visibility samples
+// freq - temporal frequency (inverse wavelengths)
+// cellSize - size of one grid cell in wavelengths
+// support - Total width of convolution function=2*support+1
+// overSample - Oversampling factor for the convolution function
+// 
 int standard(const Coord* u, const Coord* v, const Value* data,
 					const int nSamples, 
 					const Coord* freq, const int nChan,
@@ -25,24 +35,24 @@ int standard(const Coord* u, const Coord* v, const Value* data,
 	// We take this to be the product of two Gaussian. More often it 
 	// is the product of two prolate spheroidal wave functions
 	int cSize=(support+1)*overSample;
-	Real C[cSize][cSize];
+
+	Real* C=new Real[cSize*cSize];
+	
 	for (int i=0;i<cSize;i++) {
 		double i2=std::pow(double(i)/double(overSample), 2);
 		for (int j=0;j<cSize;j++) {
 			double r2=i2+std::pow(double(j)/double(overSample), 2);
-			C[i][j]=std::exp(-r2);
+			C[i+cSize*j]=std::exp(-r2);
 		}
 	}
 
 	// Grid
-	Value grid[gSize][gSize];
-	for (int j=0;j<gSize;j++) {
-		for (int i=0;i<gSize;i++) {
-			grid[j][i]=0.0;
-		}
+	Value* grid=new Value[gSize*gSize];
+	for (int j=0;j<gSize*gSize;j++) {
+		grid[j]=0.0;
 	}
 
-	cerr << "Filling grid" << endl;
+	cout << "Filling grid" << endl;
 	
 	clock_t start,finish;
 	double time;
@@ -50,6 +60,12 @@ int standard(const Coord* u, const Coord* v, const Value* data,
 	Real sumwt=0.0;
 	
 	start = clock();
+	// Loop over all samples adding them to the grid
+	// First scale to the correct pixel location
+	// Then find the fraction of a pixel to the nearest pixel
+	// Loop over the entire support, calculating weights from
+	// the convolution function and adding the scaled
+	// visibility to the grid.
 	for (int i=0;i<nSamples;i++) {
 		for (int chan=0;chan<nChan;chan++) {
 			
@@ -63,31 +79,52 @@ int standard(const Coord* u, const Coord* v, const Value* data,
 			int fracv=int(overSample*(vScaled-Coord(iv)));
 			iv+=gSize/2;
 
-			for (int suppu=-support;suppu<+support;suppu++) {
-				for (int suppv=-support;suppv<+support;suppv++) {
-					Real wt=C[abs(fracu+suppu)][abs(fracv+suppv)];
-					grid[iu+suppu][iv+suppv]+=wt*data[i];
-					sumwt+=wt;
+			if((iu<support)||(iu>gSize-support)||(iv<support)||(iv>gSize-support)){
+				if(chan==0) {
+					cout << "Row " << i << " is off grid - change scaling" << endl;
 				}
+			}
+			else {
+				for (int suppu=-support;suppu<+support;suppu++) {
+					for (int suppv=-support;suppv<+support;suppv++) {
+						Real wt=C[abs(fracu+suppu)+cSize*abs(fracv+suppv)];
+						grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
+						sumwt+=wt;
+					}	
+				}	
 			}
 		}
 	}
 	finish = clock();
-	cerr << "Total weight = " << sumwt << endl;
+	cout << "Total weight = " << sumwt << endl;
 	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
-	cerr << "Time " << time << " (s) " << endl;
-	cerr << "Time per visibility sample " << 1e6*time/double(nSamples) 
+	cout << "Time " << time << " (s) " << endl;
+	cout << "Time per visibility sample " << 1e6*time/double(nSamples) 
 		<< " (us) " << endl;
-	cerr << "Time per visibility spectral sample " 
+	cout << "Time per visibility spectral sample " 
 		<< 1e6*time/double(nSamples*nChan) << " (us) " << endl;
-	cerr << "Time per grid-addition " 
+	cout << "Time per grid-addition " 
 		<< 1e9*time/double(nSamples*nChan*(2*support)*(2*support+1)) 
 		<< " (ns) " << endl;
+	
+	delete[] C;
+	delete[] grid;
 	
 	return 0;
 }
 
 // Perform w projection (data dependent) gridding
+//
+// u,v,w - components of spatial frequency
+// data - values to be gridded
+// nSamples - number of visibility samples
+// freq - temporal frequency (inverse wavelengths)
+// cellSize - size of one grid cell in wavelengths
+// gSize - size of grid in pixels (per axis)
+// support - Total width of convolution function=2*support+1
+// overSample - Oversampling factor for the convolution function
+// wCellSize - size of one w grid cell in wavelengths
+// wSize - Size of lookup table in w 
 int wprojection(const Coord* u, const Coord* v, const Coord* w, 
 					const Value* data,
 					const int nSamples, 
@@ -99,13 +136,15 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 					const Coord wCellSize,
 					const int wSize) {
 
-	// Convolution function
-	// In practice, we calculate this by Fourier transformation. Here we
-	// take an approximation
+	// Convolution function. This should be the convolution of the
+	// w projection kernel (the Fresnel term) with the convolution
+	// function used in the standard case. The latter is needed to
+	// suppress aliasing. In practice, we calculate entire function
+	// by Fourier transformation. Here we take an approximation that
+	// is good enough.
 	int cSize=(support+1)*overSample;
 	
-	Real* C;
-	C=(Real*)malloc(cSize*cSize*wSize*sizeof(Real));
+	Real* C=new Real[cSize*cSize*wSize];
 	
 	for (int k=0;k<wSize;k++) {
 		if(k!=wSize/2) {
@@ -133,14 +172,12 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 	}
 		
 	// Grid
-	Value grid[gSize][gSize];
-	for (int j=0;j<gSize;j++) {
-		for (int i=0;i<gSize;i++) {
-			grid[j][i]=0.0;
-		}
+	Value* grid=new Value[gSize*gSize];
+	for (int j=0;j<gSize*gSize;j++) {
+		grid[j]=0.0;
 	}
 
-	cerr << "Filling grid" << endl;
+	cout << "Filling grid" << endl;
 	
 	clock_t start,finish;
 	double time;
@@ -148,8 +185,17 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 	Real sumwt=0.0;
 	
 	start = clock();
+	// Loop over all samples adding them to the grid
+	// First scale to the correct pixel location
+	// Then find the fraction of a pixel to the nearest pixel
+	// Loop over the entire support, calculating weights from
+	// the convolution function and adding the scaled
+	// visibility to the grid.
 	for (int i=0;i<nSamples;i++) {
 		for (int chan=0;chan<nChan;chan++) {
+
+			Coord wScaled=freq[chan]*w[i]/wCellSize;		
+			int k=wSize/2+int(wScaled);
 
 			Coord uScaled=freq[chan]*u[i]/cellSize;
 			int iu=int(uScaled);
@@ -161,52 +207,61 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 			int fracv=int(overSample*(vScaled-Coord(iv)));
 			iv+=gSize/2;
 
-			Coord wScaled=freq[chan]*w[i]/wCellSize;		
-			int k=wSize/2+int(wScaled);
-
-			for (int suppu=-support;suppu<+support;suppu++) {
-				for (int suppv=-support;suppv<+support;suppv++) {
-					long int cind=abs(fracu+suppu) + 
-						cSize*(abs(fracv+suppv)+cSize*k);
-					Real wt=C[cind];
-					grid[iu+suppu][iv+suppv]+=wt*data[i];
-					sumwt+=wt;
+			if((iu<support)||(iu>gSize-support)||(iv<support)||(iv>gSize-support)||
+				(k<0)||(k>=wSize)){
+				if(chan==0) {
+					cout << "Row " << i << " is off grid - change scaling" << endl;
 				}
+			}
+			else {
+				for (int suppu=-support;suppu<+support;suppu++) {
+					for (int suppv=-support;suppv<+support;suppv++) {
+						long int cind=abs(fracu+suppu) + 
+							cSize*(abs(fracv+suppv)+cSize*k);
+						Real wt=C[cind];
+						grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
+						sumwt+=wt;
+					}
+				}					
 			}
 		}
 	}
 	finish = clock();
-	cerr << "Total weight = " << sumwt << endl;
+	// Report on timings
+	cout << "Total weight = " << sumwt << endl;
 	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
-	cerr << "Time " << time << " (s) " << endl;
-	cerr << "Time per visibility sample " << 1e6*time/double(nSamples) 
+	cout << "Time " << time << " (s) " << endl;
+	cout << "Time per visibility sample " << 1e6*time/double(nSamples) 
 		<< " (us) " << endl;
-	cerr << "Time per visibility spectral sample " 
+	cout << "Time per visibility spectral sample " 
 		<< 1e6*time/double(nSamples*nChan) << " (us) " << endl;
-	cerr << "Time per grid-addition " 
+	cout << "Time per grid-addition " 
 		<< 1e9*time/double(nSamples*nChan*(2*support)*(2*support+1)) 
 		<< " (ns) " << endl;
 
+	delete[] C;
+	delete[] grid;
+	
 	return 0;
 }
 int main() {
 	const int baseline=2000;    // Maximum baseline in meters
-	const int nSamples=100000;	// Number of data samples
+	const int nSamples=10000;	// Number of data samples
 	const int gSize=512;		// Size of output grid in pixels
 	const Coord cellSize=50;	// Cellsize of output grid in wavelengths
 	const int overSample=100;	// Oversampling factor of gridding function
 	const Coord wCellSize=500;	// Cellsize in w in wavelengths
-	const int wSize=64;			// Number of lookup planes in w projection
-	const int nChan=1;		// Number of spectral channels
+	const int wSize=64;		// Number of lookup planes in w projection
+	const int nChan=16;		// Number of spectral channels
 
 	// Initialize the data to be gridded
 	Coord *u, *v, *w;
 	Value *data;
 
-	u = (Coord*) malloc(nSamples*sizeof(Coord));
-	v = (Coord*) malloc(nSamples*sizeof(Coord));
-	w = (Coord*) malloc(nSamples*sizeof(Coord));
-	data = (Value*) malloc(nSamples*sizeof(Value));
+	u = new Coord[nSamples];
+	v = new Coord[nSamples];
+	w = new Coord[nSamples];
+	data = new Value[nSamples];
 		
 	for (int i=0;i<nSamples;i++) {
 		u[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
@@ -222,20 +277,21 @@ int main() {
 	}
 
 	int support=3;		// Support for gridding function in pixels
-	cerr << "*** Standard gridding ***" << endl;
-	cerr << "Support = " << support << " pixels" << endl;
+	cout << "*** Standard gridding ***" << endl;
+	cout << "Support = " << support << " pixels" << endl;
 	standard(u, v, data, nSamples, freq, nChan, cellSize, gSize, 
 		support, overSample);
 
-	cerr << "*** W projection gridding ***" << endl;
+	cout << "*** W projection gridding ***" << endl;
 	int wsupport=3*sqrt(abs(baseline)*cellSize*freq[0])/cellSize; 
+	int wOverSample=8;
 		// Support including Fresnel term
-	cerr << "Support = " << wsupport << " pixels" << endl;
-	cerr << "Predict " << (wsupport/support)*(wsupport/support) 
-		<< " times slower than standard" << endl;
+	cout << "Support = " << wsupport << " pixels" << endl;
 	wprojection(u, v, w, data, nSamples, freq, nChan, cellSize, 
-		gSize, wsupport, overSample, wCellSize, wSize);
+		gSize, wsupport, wOverSample, wCellSize, wSize);
 	
-	cerr << "Done" << endl;
+	cout << "Done" << endl;
+	
+	delete[] u,v,w,data;
 	return 0;
 }
