@@ -91,9 +91,9 @@ void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designma
 	// Set up arrays to hold the output values
 	// Row, Two values (complex) per channel, single pol
 	casa::Vector<casa::DComplex> residual(nRow*nChan);
-	casa::Vector<double> weights(nRow*2*nChan);
+	casa::Vector<double> weights(nRow*nChan);
 	weights.set(1.0);
-	casa::Matrix<casa::DComplex> vis(nRow,2*nChan);
+	casa::Matrix<casa::DComplex> vis(nRow,nChan);
 
 	// Loop over all completions i.e. all sources
 	vector<string> completions(parameters().completions("image.i"));
@@ -112,7 +112,7 @@ void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designma
 
 		const casa::Vector<double> imagePixels=parameters().value(imageName);
 		const uint nPixels=imagePixels.nelements();
-		casa::Matrix<casa::DComplex> imageDeriv(nRow*2*nChan,nPixels);
+		casa::Matrix<casa::DComplex> imageDeriv(nRow*nChan,nPixels);
 		
 		this->calcVis(imagePixels, raStart, raEnd, raCells, 
 			decStart, decEnd, decCells, freq, ida.uvw(),

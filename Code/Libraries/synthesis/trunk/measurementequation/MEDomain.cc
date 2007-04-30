@@ -63,6 +63,7 @@ namespace synthesis
 	/// @param name Name of axis
 	bool MEDomain::has(const string& name) const
 	{
+		if(itsNames.size()==0) return false;
 		for (uint i=0;i<itsNames.size();i++) {
 			if(itsNames[i]==name) return true;
 		}

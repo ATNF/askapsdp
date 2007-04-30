@@ -103,7 +103,10 @@ bool MELinearSolver::solveDesignMatrix(MEQuality& quality) {
 
 	uint nParameters=0;
 	uint nData=0;
-	nData=itsDesignMatrix.residual().nelements();
+	DMBVector::iterator bIt;
+	for (bIt=itsDesignMatrix.residual().begin();bIt!=itsDesignMatrix.residual().end();bIt++) {
+		nData+=bIt->nelements();
+	}
 	
 	// Find all the free parameters
 	const vector<string> names(itsParams.freeNames());
@@ -123,14 +126,24 @@ bool MELinearSolver::solveDesignMatrix(MEQuality& quality) {
     // Convert the design matrix to gsl format
 	gsl_matrix * A = gsl_matrix_alloc (2*nData, nParameters);
 	map<string, uint>::iterator indit;
+	DMAMatrix::iterator AIt;
+	// Outer loop is over the names of parameters. Each parameter
+	// should have the same number of data points
 	for (indit=indices.begin();indit!=indices.end();indit++) {
 		// Axes are data, dof for each parameter
-		const casa::Matrix<casa::DComplex>& deriv(itsDesignMatrix.derivative(indit->first));
-		for (uint i=0;i<nData;i++) {
-			for (uint col=0;col<deriv.ncolumn();col++) {
-				gsl_matrix_set(A, 2*i, col+indit->second, real(deriv(i,col)));
-				gsl_matrix_set(A, 2*i+1, col+indit->second, imag(deriv(i,col)));
+		// First find  the number of lists
+		uint nA=itsDesignMatrix.derivative(indit->first).size();
+		uint iA;
+		uint outerRow=0;
+		for (AIt=itsDesignMatrix.derivative(indit->first).begin(),iA=0;
+			iA<nA;iA++,AIt++) {
+			for (uint row=0;row<AIt->nrow();row++) {
+				for (uint col=0;col<AIt->ncolumn();col++) {
+					gsl_matrix_set(A, outerRow+2*row, col+indit->second, real((*AIt)(row,col)));
+					gsl_matrix_set(A, outerRow+2*row+1, col+indit->second, imag((*AIt)(row,col)));
+				}
 			}
+			outerRow+=2*AIt->nrow();
 		}
 	}
 	
@@ -142,9 +155,15 @@ bool MELinearSolver::solveDesignMatrix(MEQuality& quality) {
 
 	// Now find the solution for the residual vector
 	gsl_vector * res = gsl_vector_alloc(2*nData);
-	for (uint i=0;i<nData;i++) {
-		gsl_vector_set(res, 2*i, real(itsDesignMatrix.residual()[i]));
-		gsl_vector_set(res, 2*i+1, imag(itsDesignMatrix.residual()[i]));
+	
+	DMBVector::iterator BIt;
+	for (BIt=itsDesignMatrix.residual().begin();
+			BIt!=itsDesignMatrix.residual().end();BIt++) {
+		uint outerRow=0;
+		for (uint row=0;row<BIt->nelements();row++) {
+			gsl_vector_set(res, outerRow++, real((*BIt)[row]));
+			gsl_vector_set(res, outerRow++, imag((*BIt)[row]));
+		}
 	}
 	gsl_vector * x = gsl_vector_alloc(nParameters);
 	gsl_linalg_SV_solve (A, V, S, res, x); 

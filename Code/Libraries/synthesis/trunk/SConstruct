@@ -8,6 +8,10 @@
 # Always import this
 from conradenv import env
 
+env.Append(CCFLAGS=['-g'])
+#env.Append(CCFLAGS=['-D_GLIBCXX_DEBUG'])
+
+
 # Add casacore package from tag 0.1.1
 # This will pull in all packages it depends on
 env.AddConradPackage("gsl", "ThirdPartyLibraries/gsl/tags/gsl-1.9")

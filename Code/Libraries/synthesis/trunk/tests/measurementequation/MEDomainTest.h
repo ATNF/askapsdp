@@ -88,7 +88,7 @@ class MEDomainTest : public CppUnit::TestFixture  {
     
     void testIndices()
     {
-      CPPUNIT_ASSERT( !p1->has("Time"));
+      CPPUNIT_ASSERT(!p1->has("Time"));
       p1->add("Time", 0.0, 1.0, 128);
       CPPUNIT_ASSERT(p1->has("Time"));
       p1->add("Freq", 0.7e9, 1.7e9, 16384);

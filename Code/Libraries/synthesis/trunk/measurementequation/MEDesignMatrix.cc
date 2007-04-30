@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 using std::string;
 using std::vector;
 using std::map;
@@ -24,13 +25,9 @@ namespace synthesis
 
 MEDesignMatrix::MEDesignMatrix(const MEParams& ip) : itsParams(ip)
 {
-	vector<string> names=itsParams.freeNames();
-	vector<string>::iterator iter;
-	for (iter=names.begin();iter!=names.end();++iter) {
-		itsAMatrix[*iter]=casa::Matrix<casa::DComplex>(0,0);
-	}
-	itsBVector.resize(0);
-	itsWeight.resize(0);
+	itsAMatrix.clear();
+	itsBVector.clear();
+	itsWeight.clear();
 }
 
 MEDesignMatrix::MEDesignMatrix(const MEDesignMatrix& other) 
@@ -55,22 +52,28 @@ MEDesignMatrix::~MEDesignMatrix()
 
 void MEDesignMatrix::merge(const MEDesignMatrix& other) 
 {
+	std::map<string, DMAMatrix>::iterator AIt, OtherAIt;
+	for (AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++) {
+		std::copy(other.itsAMatrix[AIt->first].begin(), other.itsAMatrix[AIt->first].end(), 
+			itsAMatrix[AIt->first].end());
+	}
+	
+	std::copy(other.itsBVector.begin(), other.itsBVector.end(), itsBVector.end());
+	std::copy(other.itsWeight.begin(), other.itsWeight.end(), itsWeight.end());
 }
 
 void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv)
 {
-	// This should be append!
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
 	}
-	itsAMatrix[name]=deriv.copy();
+	itsAMatrix[name].push_back(deriv.copy());
 }
 
 void MEDesignMatrix::addResidual(const casa::Vector<casa::DComplex>& residual, const casa::Vector<double>& weight)
 {
-	// These should be appends!
-	itsBVector=residual.copy();
-	itsWeight=weight.copy();
+	itsBVector.push_back(residual.copy());
+	itsWeight.push_back(weight.copy());
 }
 
 vector<string> MEDesignMatrix::names() const
@@ -88,12 +91,7 @@ MEParams& MEDesignMatrix::parameters()
 	return itsParams;
 }
 
-const std::map<string, casa::Matrix<casa::DComplex> >& MEDesignMatrix::designMatrix() const
-{
-	return itsAMatrix;
-}
-
-const casa::Matrix<casa::DComplex>& MEDesignMatrix::derivative(const string& name) const
+DMAMatrix MEDesignMatrix::derivative(const string& name) const
 {
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
@@ -104,36 +102,66 @@ const casa::Matrix<casa::DComplex>& MEDesignMatrix::derivative(const string& nam
 	return itsAMatrix[name];
 }
 
-const casa::Vector<casa::DComplex>& MEDesignMatrix::residual() const
+DMBVector MEDesignMatrix::residual() const
 {
 	return itsBVector;
 }
 
-const casa::Vector<double>& MEDesignMatrix::weight() const
+DMWeight MEDesignMatrix::weight() const
 {
 	return itsWeight;
 }
 
 void MEDesignMatrix::reset()
 {
-	std::map<std::string, casa::Matrix<casa::DComplex> >::iterator iter;
-	for (iter=itsAMatrix.begin();iter!=itsAMatrix.end();++iter) {
-		iter->second.resize(0,0);
-	}
 	itsAMatrix.clear();
-	itsBVector.resize(0);
-	itsWeight.resize(0);
+	itsBVector.clear();
+	itsWeight.clear();
 }
 
 double MEDesignMatrix::fit() const
 {
-	double sumwt=casa::sum(itsWeight);
+	double sumwt=0.0;
+	double sum=0.0;
+	DMBVector::iterator bIt;
+	DMWeight::iterator wIt;
+	for (bIt=itsBVector.begin(),wIt=itsWeight.begin();
+		(bIt!=itsBVector.end())&&(wIt!=itsWeight.end());bIt++, wIt++) {
+		sumwt+=casa::sum(*wIt);
+		sum+=casa::sum((*wIt)*real((*bIt)*conj(*bIt)));
+	}
 	if(sumwt>0.0) {
-		return sqrt(casa::sum(real(itsBVector*conj(itsBVector)))/sumwt);
+		return sqrt(sum/sumwt);
 	}
 	else {
 		throw(std::invalid_argument("Sum of weights is zero"));
 	}
+}
+
+uint MEDesignMatrix::nData() const
+{
+	uint nData=0;
+	std::map<string, DMAMatrix>::iterator AIt;
+	for (AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++) {
+		DMAMatrix::iterator it;
+		for (it=AIt->second.begin();it!=AIt->second.end();it++) {
+			nData+=it->nrow();
+		}
+	}
+	return nData;
+}
+
+uint MEDesignMatrix::nParameters() const
+{
+	uint nParameters=0;
+	std::map<string, DMAMatrix>::iterator AIt;
+	for (AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++) {
+		DMAMatrix::iterator it;
+		for (it=AIt->second.begin();it!=AIt->second.end();it++) {
+			nParameters+=it->ncolumn();
+		}
+	}
+	return nParameters;
 }
 
 }

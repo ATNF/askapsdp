@@ -24,8 +24,8 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST(testAssembly);
     CPPUNIT_TEST(testSVD);
     CPPUNIT_TEST(testConstructNormalEquations);
-    CPPUNIT_TEST(testSolveNormalEquations);
-    CPPUNIT_TEST_EXCEPTION(testNoFree, std::domain_error);
+//	CPPUNIT_TEST(testSolveNormalEquations);
+	CPPUNIT_TEST_EXCEPTION(testNoFree, std::domain_error);
     CPPUNIT_TEST_SUITE_END();
 	
   private:
@@ -160,6 +160,7 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 		p1->calcEquations(*ida, dm1);
 		CPPUNIT_ASSERT(abs(dm1.fit()-100.0)<0.01);
 		p1->predict(*ida);
+		dm1.reset();
 		p1->calcEquations(*ida, dm1);
 		CPPUNIT_ASSERT(dm1.fit()<0.03);
 		MEDesignMatrix dm2(*params2);
@@ -201,15 +202,18 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 	}
 
 	void testConstructNormalEquations() {
-		// Predict with the "perfect" parameters"
 		MEDesignMatrix dm1(*params1);
-		p1->predict(*ida);
-		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
-		MEQuality q;
-		MELinearSolver solver1(*params2);
-		solver1.addDesignMatrix(dm1);
 		MENormalEquations normeq(dm1, MENormalEquations::COMPLETE);
+		std::map<string, std::map<string, casa::Matrix<double> > > nm(normeq.normalMatrix());
+		vector<string> names(params1->names());
+		for (uint row=0;row<names.size();row++) {
+			for (uint col=0;col<names.size();col++) {
+				casa::IPosition ip(nm[names[row]][names[col]].shape());
+				CPPUNIT_ASSERT(ip(0)==1);
+				CPPUNIT_ASSERT(ip(1)==1);
+			}
+		}
 	}
 
 	void testSolveNormalEquations() {

@@ -9,6 +9,7 @@
 #define MEDESIGNMATRIX_H
 
 #include <map>
+#include <vector>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -21,6 +22,10 @@ namespace synthesis {
 	
 class MENormalEquations;
 	
+typedef std::vector<casa::Matrix<casa::DComplex> > DMAMatrix;
+typedef std::vector<casa::Vector<casa::DComplex> > DMBVector;
+typedef std::vector<casa::Vector<casa::Double> > DMWeight;
+
 class MEDesignMatrix
 {
 public:
@@ -61,17 +66,14 @@ public:
 	const MEParams& parameters() const;
 	MEParams& parameters();
 		
-	/// Return the design matrix
-	const std::map<string, casa::Matrix<casa::DComplex> >& designMatrix() const;
-	
-	/// Return the named design matrix term	
-	const casa::Matrix<casa::DComplex>& derivative(const string& name) const;
+	/// Return the list of named design matrix terms
+	DMAMatrix derivative(const string& name) const;
 
-	/// Return the residual vector
-	const casa::Vector<casa::DComplex>& residual() const;
+	/// Return list of the residual vectors
+	DMBVector residual() const;
 
-	/// Return the weight vector
-	const casa::Vector<double>& weight() const;
+	/// Return lists of the weight vector
+	DMWeight weight() const;
 
 	/// Return names of parameters
 	vector<string> names() const;
@@ -79,16 +81,22 @@ public:
 	/// Return value of fit
 	double fit() const;
 	
+	// Return number of data constraints
+	uint nData() const;
+	
+	// Return number of parameters
+	uint nParameters() const;
+	
 	friend class MENormalEquations;
 	
 private:
 	MEParams itsParams;
 	// Design Matrix = number of parameters x number of dof/parameter x number of data points
 	// The number of dof of parameters can vary from parameter to parameter
-	mutable std::map<string, casa::Matrix<casa::DComplex> > itsAMatrix;
+	mutable std::map<string, DMAMatrix > itsAMatrix;
 	// Residual matrix = number of data points
-	mutable casa::Vector<casa::DComplex> itsBVector;
-	mutable casa::Vector<double> itsWeight;
+	mutable DMBVector itsBVector;
+	mutable DMWeight itsWeight;
 };
 
 }

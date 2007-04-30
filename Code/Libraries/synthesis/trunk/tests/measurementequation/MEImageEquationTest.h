@@ -152,6 +152,7 @@ class MEImageEquationTest : public CppUnit::TestFixture  {
 		p1->calcEquations(*ida, dm1);
 		CPPUNIT_ASSERT(abs(dm1.fit()-0.860064)<0.01);
 		p1->predict(*ida);
+		dm1.reset();
 		p1->calcEquations(*ida, dm1);
 		CPPUNIT_ASSERT(dm1.fit()<0.0001);
 		MEDesignMatrix dm2(*params2);
