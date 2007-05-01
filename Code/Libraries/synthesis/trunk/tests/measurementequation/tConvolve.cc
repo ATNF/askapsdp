@@ -1,3 +1,16 @@
+//   This C++ program has been written to demonstrate the 
+// convolutional resampling algorithm used in radio
+// interferometry. It should compile with:
+// 	g++ -O2 tConvolve.cc -o tConvolve
+// Compiler option -O3 will optimize away the gridding!
+//
+// The challenge is to minimize the run time - specifically
+// the time per grid addition. On a MacBookPro and an Opteron
+// this is about 12ns.
+//
+//   For further details contact Tim.Cornwell@csiro.au
+// May 1, 2007
+
 #include <iostream>
 #include <cmath>
 #include <ctime>
@@ -19,6 +32,7 @@ typedef std::complex<Real> Value;
 // nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
 // cellSize - size of one grid cell in wavelengths
+// gSize - size of grid in pixels (per axis)
 // support - Total width of convolution function=2*support+1
 // overSample - Oversampling factor for the convolution function
 // 
@@ -79,18 +93,11 @@ int standard(const Coord* u, const Coord* v, const Value* data,
 			int fracv=int(overSample*(vScaled-Coord(iv)));
 			iv+=gSize/2;
 
-			if((iu<support)||(iu>gSize-support)||(iv<support)||(iv>gSize-support)){
-				if(chan==0) {
-					cout << "Row " << i << " is off grid - change scaling" << endl;
-				}
-			}
-			else {
-				for (int suppu=-support;suppu<+support;suppu++) {
-					for (int suppv=-support;suppv<+support;suppv++) {
-						Real wt=C[abs(fracu+suppu)+cSize*abs(fracv+suppv)];
-						grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
-						sumwt+=wt;
-					}	
+			for (int suppu=-support;suppu<+support;suppu++) {
+				for (int suppv=-support;suppv<+support;suppv++) {
+					Real wt=C[abs(fracu+suppu)+cSize*abs(fracv+suppv)];
+					grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
+					sumwt+=wt;
 				}	
 			}
 		}
@@ -207,21 +214,13 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 			int fracv=int(overSample*(vScaled-Coord(iv)));
 			iv+=gSize/2;
 
-			if((iu<support)||(iu>gSize-support)||(iv<support)||(iv>gSize-support)||
-				(k<0)||(k>=wSize)){
-				if(chan==0) {
-					cout << "Row " << i << " is off grid - change scaling" << endl;
-				}
-			}
-			else {
-				for (int suppu=-support;suppu<+support;suppu++) {
-					for (int suppv=-support;suppv<+support;suppv++) {
-						long int cind=abs(fracu+suppu) + 
-							cSize*(abs(fracv+suppv)+cSize*k);
-						Real wt=C[cind];
-						grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
-						sumwt+=wt;
-					}
+			for (int suppu=-support;suppu<+support;suppu++) {
+				for (int suppv=-support;suppv<+support;suppv++) {
+					long int cind=abs(fracu+suppu) + 
+						cSize*(abs(fracv+suppv)+cSize*k);
+					Real wt=C[cind];
+					grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
+					sumwt+=wt;
 				}					
 			}
 		}
