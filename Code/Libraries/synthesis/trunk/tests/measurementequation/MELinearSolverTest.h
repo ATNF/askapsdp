@@ -17,7 +17,8 @@ namespace synthesis {
 class MELinearSolverTest : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(MELinearSolverTest);
-    CPPUNIT_TEST_EXCEPTION(testSVD, std::domain_error);
+    CPPUNIT_TEST(testSVD);
+    CPPUNIT_TEST_EXCEPTION(testFixed, std::domain_error);
     CPPUNIT_TEST_SUITE_END();
 	
   private:
@@ -145,6 +146,18 @@ class MELinearSolverTest : public CppUnit::TestFixture  {
 		solver1.solveDesignMatrix(q);
 		CPPUNIT_ASSERT(q.rank()==1);
 		CPPUNIT_ASSERT(abs(q.cond()-1.000000)<0.0001);
+	}
+	void testFixed() {
+		// Predict with the "perfect" parameters"
+		MEDesignMatrix dm1(*params1);
+		p1->predict(*ida);
+		// Calculate gradients using "imperfect" parameters" 
+		p2->calcEquations(*ida, dm1);
+		MEQuality q;
+		MELinearSolver solver1(*params2);
+		solver1.addDesignMatrix(dm1);
+	    solver1.parameters().fix("direction.dec.cena");
+	    solver1.parameters().fix("direction.ra.cena");
   	    solver1.parameters().fix("flux.i.cena");
 		// Should throw exception: domain_error since all parameters
 		// are fixed

@@ -24,7 +24,7 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST(testAssembly);
     CPPUNIT_TEST(testSVD);
     CPPUNIT_TEST(testConstructNormalEquations);
-//	CPPUNIT_TEST(testSolveNormalEquations);
+	CPPUNIT_TEST(testSolveNormalEquations);
 	CPPUNIT_TEST_EXCEPTION(testNoFree, std::domain_error);
     CPPUNIT_TEST_SUITE_END();
 	
