@@ -33,7 +33,7 @@ public:
 	/// Non-const access to the cube of flags.
         /// @return a reference to nRow x nChannel x nPol cube with the flag
         ///         information. If True, the corresponding element is flagged.
-        virtual casa::Cube<casa::Bool>& flag() = 0;
+        virtual casa::Cube<casa::Bool>& rwFlag() = 0;
 };
 
 } // end of namespace synthesis

@@ -36,7 +36,7 @@ struct TestInSituTransform {
 	     // this probably can use slices instead
 	     for (uInt chan=0;chan<da.nChannel();++chan) {
 		  for (uInt pol=0;pol<da.nPol();++pol) {
-                       da.visibility()(row,chan,pol)*=
+                       da.rwVisibility()(row,chan,pol)*=
 		            exp(-2.*M_PI*DComplex(0,1)*
 	             (l*Double(da.uvw()[row](0))+m*Double(da.uvw()[row](1))));
 		  }
@@ -73,8 +73,8 @@ void flaggingRoutine(const SharedIter<IDataIterator> &di) {
        // ++di and di.next() are equivalent
        // di.hasMore() and di!=di.end() are equivalent
        for (;di!=di.end();++di) {
-	    fda.flag()=False; // reset all flags
-	    fda.flag().xyPlane(0)=True; // flag the first polarization,
+	    fda.rwFlag()=False; // reset all flags
+	    fda.rwFlag().xyPlane(0)=True; // flag the first polarization,
 	                                // whatever it is
        }
     }

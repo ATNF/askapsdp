@@ -88,7 +88,7 @@ struct DataAccessorStub : public IFlagDataAccessor
      /// @return a reference to nRow x nChannel x nPol cube, containing
      /// all visibility data
      ///
-     virtual casa::Cube<casa::Complex>& visibility();
+     virtual casa::Cube<casa::Complex>& rwVisibility();
 
 
      /// Cube of flags corresponding to the output of visibility() 
@@ -99,7 +99,7 @@ struct DataAccessorStub : public IFlagDataAccessor
      /// Non-const access to the cube of flags.
      /// @return a reference to nRow x nChannel x nPol cube with the flag
      ///         information. If True, the corresponding element is flagged.
-     virtual casa::Cube<casa::Bool>& flag();
+     virtual casa::Cube<casa::Bool>& rwFlag();
 
      
      /// Noise level required for a proper weighting

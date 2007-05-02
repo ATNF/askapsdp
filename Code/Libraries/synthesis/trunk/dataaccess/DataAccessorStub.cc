@@ -118,7 +118,7 @@ const casa::Cube<casa::Complex>& DataAccessorStub::visibility() const
 /// @return a reference to nRow x nChannel x nPol cube, containing
 /// all visibility data
 ///
-casa::Cube<casa::Complex>& DataAccessorStub::visibility()
+casa::Cube<casa::Complex>& DataAccessorStub::rwVisibility()
 {
   return mVisibility;
 }
@@ -134,7 +134,7 @@ const casa::Cube<casa::Bool>& DataAccessorStub::flag() const
 /// Non-const access to the cube of flags.
 /// @return a reference to nRow x nChannel x nPol cube with the flag
 ///         information. If True, the corresponding element is flagged.
-casa::Cube<casa::Bool>& DataAccessorStub::flag()
+casa::Cube<casa::Bool>& DataAccessorStub::rwFlag()
 {
   return mFlag;
 }

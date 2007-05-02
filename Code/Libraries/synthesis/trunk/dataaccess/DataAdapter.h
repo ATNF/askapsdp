@@ -86,7 +86,7 @@ struct VisibilitySelector {
    template<typename Iter>
    inline value_type operator()(const Iter &iter) const
    {
-     return iter->visibility();
+     return iter->rwVisibility();
    }
 };
 
@@ -95,7 +95,7 @@ template<int N> struct BufferSelector {
      template<typename Iter>
      inline value_type operator()(const Iter &iter) const
      {
-       return iter.buffer(N).visibility();
+       return iter.buffer(N).rwVisibility();
      }
   };
 
