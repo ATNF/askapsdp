@@ -18,7 +18,7 @@
 #ifndef TABLEVISGRIDDER_H_
 #define TABLEVISGRIDDER_H_
 
-#include <synthesis/gridding/IVisGridder.h>
+#include <gridding/IVisGridder.h>
 
 namespace conrad
 {
@@ -28,7 +28,23 @@ namespace synthesis
 class TableVisGridder : public IVisGridder
 {
 public:
+
+	// Types of convolution function
+	enum Type {
+		STANDARD=0,
+		WPROJECTION,
+		ILLUMINATION
+	};
+	
+	// Standard two dimensional gridding
 	TableVisGridder();
+	
+	// W projection gridding
+	TableVisGridder(const int wPlanes, const float maxBaseline);
+	
+	// Illumination pattern
+	TableVisGridder(const float diameter, const float blockage);
+
 	virtual ~TableVisGridder();
 	
 	/// Grid the visibility data onto the grid using multifrequency
@@ -41,7 +57,7 @@ public:
 	/// @param grid Output weights: vector: pol
 	virtual void forward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 			const casa::Cube<casa::Float>& visibility,
-			const casa::Cube<casa::Float>& weight,
+			const casa::Cube<casa::Float>& visweight,
 			const casa::Vector<casa::Double>& frequency,
 			const casa::Vector<casa::Double>& cellSize,
 			casa::Cube<casa::Complex>& grid,
@@ -57,7 +73,7 @@ public:
 	/// @param grid Output weights: vector: chan,pol
 	virtual void forward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 			const casa::Cube<casa::Float>& visibility,
-			const casa::Cube<casa::Float>& weight,
+			const casa::Cube<casa::Float>& visweight,
 			const casa::Vector<casa::Double>& frequency,
 			const casa::Vector<casa::Double>& cellSize,
 			casa::Array<casa::Complex>& grid,
@@ -93,7 +109,28 @@ public:
 			casa::Cube<casa::Float>& weight);
 			
 private:
-	void generic
+	void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+					const casa::Cube<casa::Complex>& visibility,
+					const casa::Cube<casa::Float>& visweight,
+					const casa::Vector<casa::Double>& freq,
+					const casa::Vector<double>& cellSize,
+					const casa::Cube<casa::Float>& C,
+					const int support,
+					const int overSample,
+					const casa::Matrix<casa::uInt>& cOffset,
+					casa::Cube<casa::Complex>& grid,
+					casa::Vector<float>& sumwt);
+					
+	void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+					casa::Cube<casa::Complex>& visibility,
+					casa::Cube<casa::Float>& visweight,
+					const casa::Vector<casa::Double>& freq,
+					const casa::Vector<double>& cellSize,
+					const casa::Cube<casa::Float>& C,
+					const int support,
+					const int overSample,
+					const casa::Matrix<casa::uInt>& cOffset,
+					const casa::Cube<casa::Complex>& grid);
 };
 
 }
