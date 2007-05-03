@@ -6,9 +6,10 @@ coverage: tConvolve.cc
 	
 perf: tConvolve.cc
 	g++ -pg tConvolve.cc -o tConvolve
+	./tConvolve
 
 debug: tConvolve.cc
-	g++ -g tConvolve.cc -o tConvolve
+	g++ -O2 -g tConvolve.cc -o tConvolve
 
 test: tConvolve
 	./tConvolve
