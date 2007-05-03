@@ -70,7 +70,7 @@ void MEImageEquation::predict(IDataAccessor& ida)
 
 		for (uint row=0;row<nRow;row++) {
 			for (uint i=0;i<nChan;i++) {
-				ida.visibility()(row,i,0) += casa::Complex(vis(row,i));
+				ida.rwVisibility()(row,i,0) += casa::Complex(vis(row,i));
 			}
 		}
 	}

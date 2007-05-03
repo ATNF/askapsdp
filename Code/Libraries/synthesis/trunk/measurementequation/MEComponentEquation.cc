@@ -66,7 +66,7 @@ void MEComponentEquation::predict(IDataAccessor& ida)
 			this->calcRegularVis<float>(ra, dec, fluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), vis);
 
 			for (uint i=0;i<freq.nelements();i++) {
-				ida.visibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
+				ida.rwVisibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
 			}
 		}
 	}
