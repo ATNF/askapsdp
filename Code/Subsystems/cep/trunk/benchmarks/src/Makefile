@@ -17,6 +17,15 @@ ifeq ($(HOSTTYPE),x86_64-linux)
 	LFLAGS   = -llustre -lm -Mlarge_arrays
 endif
 
+ifeq ($(HOSTTYPE),i686)
+	# IBM PC Blades using MPI wrappers and Intel compilers
+	CC       = mpicc -cc=icc
+	CCFLAGS  = -fast
+	CXX      = mpicxx -cxx=icpc
+	CXXFLAGS = -fast -DMPICH_IGNORE_CXX_SEEK -DHAVE_MPI
+	LFLAGS   =
+endif
+
 all: ParallelIO parallel_io
 	mv $^ ../bin
 

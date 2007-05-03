@@ -65,6 +65,18 @@ if [ -z $bufsize ]; then
 fi
 
 # Set some values that are hardware dependant
+platform=$(uname)
+if [ $platform = "Darwin" ]; then
+    # For testing purposes, I enable the script execution in the Mac
+    cmd=yod
+    sizeopt="-sz"
+    opts="-strace"
+    maxosts=16
+else
+    platform=""
+fi
+
+
 if [ -e /etc/xthostname ]; then
     # It's the Cray XT3
     platform="xt3"
@@ -72,18 +84,19 @@ if [ -e /etc/xthostname ]; then
     sizeopt="-sz"
     opts="-strace"
     maxosts=16
-else
-    platform=$(uname)
-    if [ $platform = "Darwin" ]; then
-	# For testing purposes, I enable the script execution in the Mac
-	cmd=yod
-	sizeopt="-sz"
-	opts="-strace"
-	maxosts=16
-    else
-	echo "Unknown platform. Script terminated."
-	exit 1
-    fi
+fi
+
+if [ $(hostname) = "burnet" ]; then
+    platform="ibm-blades"
+    cmd=mpiexec
+    sizeopt="-n"
+    opts=""
+    modlustre=no
+fi
+
+if [ -z $platform ]; then
+    echo "Unknown platform. Script terminated."
+    exit 1
 fi
 
 # Obtain the full path of the binary
@@ -160,6 +173,25 @@ if [ $modlustre = yes ]; then
 fi
 
 # Create PBS jobscript
+if [ $platform = "ibm-blades" ]; then
+cat > ${JOBSCRIPT}.pbs <<EOF
+#/bin/sh
+#PBS -N ${JOBSCRIPT}
+#PBS -l nodes=$maxnodes,walltime=600
+
+module load mpich2
+mpdboot -n $maxnodes -f \$PBS_NODEFILE
+${prog1}
+${prog2}
+${prog4}
+${prog8}
+${prog16}
+${prog32}
+${prog64}
+mpdallexit
+rm -f ${pathname}/${FILEPREFIX}.*
+EOF
+else
 cat > ${JOBSCRIPT}.pbs <<EOF
 #!/bin/csh
 #PBS -N ${JOBSCRIPT}
@@ -174,6 +206,7 @@ ${prog32}
 ${prog64}
 rm -f ${pathname}/${FILEPREFIX}.*
 EOF
+fi
 
 # Place the jobscript in the queue
 if [ $platform != "Darwin" ]; then
