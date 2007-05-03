@@ -9,7 +9,7 @@
 // this is about 12ns.
 //
 //   For further details contact Tim.Cornwell@csiro.au
-// May 1, 2007
+// May 3, 2007
 
 #include <iostream>
 #include <cmath>
@@ -21,8 +21,10 @@ using std::endl;
 using std::complex;
 
 // Typedefs for easy testing
+// Cost of using double for Coord is low, cost for 
+// double for Real is also low
 typedef double Coord;
-typedef float Real;
+typedef double Real;
 typedef std::complex<Real> Value;
 
 // Perform standard data independent gridding
@@ -36,37 +38,34 @@ typedef std::complex<Real> Value;
 // support - Total width of convolution function=2*support+1
 // overSample - Oversampling factor for the convolution function
 // 
-int standard(const Coord* u, const Coord* v, const Value* data,
+int generic(const Coord* u, const Coord* v, const Coord* w, 
+					Value* data,
 					const int nSamples, 
 					const Coord* freq, const int nChan,
 					const Coord cellSize,
 					const int gSize, 
+					const Real* C,
 					const int support,
-					const int overSample) {
+					const int overSample,
+					const uint* cOffset,
+					Value* grid) {
 
-		
-	// Convolution function
-	// We take this to be the product of two Gaussian. More often it 
-	// is the product of two prolate spheroidal wave functions
-	int cSize=(support+1)*overSample;
+	// Convolution function. This should be the convolution of the
+	// w projection kernel (the Fresnel term) with the convolution
+	// function used in the standard case. The latter is needed to
+	// suppress aliasing. In practice, we calculate entire function
+	// by Fourier transformation. Here we take an approximation that
+	// is good enough.
+	int cSize=2*(support+1)*overSample+1;
 
-	Real* C=new Real[cSize*cSize];
+	int cCenter=(cSize-1)/2;
 	
-	for (int i=0;i<cSize;i++) {
-		double i2=std::pow(double(i)/double(overSample), 2);
-		for (int j=0;j<cSize;j++) {
-			double r2=i2+std::pow(double(j)/double(overSample), 2);
-			C[i+cSize*j]=std::exp(-r2);
-		}
-	}
-
 	// Grid
-	Value* grid=new Value[gSize*gSize];
 	for (int j=0;j<gSize*gSize;j++) {
 		grid[j]=0.0;
 	}
 
-	cout << "Filling grid" << endl;
+	cout << "+++++ Forward processing +++++" << endl;
 	
 	clock_t start,finish;
 	double time;
@@ -82,6 +81,10 @@ int standard(const Coord* u, const Coord* v, const Value* data,
 	// visibility to the grid.
 	for (int i=0;i<nSamples;i++) {
 		for (int chan=0;chan<nChan;chan++) {
+
+			int find=i*nChan+chan;
+
+			int coff=cOffset[find];
 			
 			Coord uScaled=freq[chan]*u[i]/cellSize;
 			int iu=int(uScaled);
@@ -93,31 +96,114 @@ int standard(const Coord* u, const Coord* v, const Value* data,
 			int fracv=int(overSample*(vScaled-Coord(iv)));
 			iv+=gSize/2;
 
-			for (int suppu=-support;suppu<+support;suppu++) {
-				for (int suppv=-support;suppv<+support;suppv++) {
-					Real wt=C[abs(fracu+suppu)+cSize*abs(fracv+suppv)];
-					grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
+			for (int suppv=-support;suppv<+support;suppv++) {
+				int vind=cSize*(fracv+suppv+cCenter)+fracu+cCenter+coff;
+				int gind=iu+gSize*(iv+suppv);
+				for (int suppu=-support;suppu<+support;suppu++) {
+					Real wt=C[vind+suppu];
+					grid[gind+suppu]+=wt*data[find];
 					sumwt+=wt;
-				}	
+				}					
 			}
 		}
 	}
 	finish = clock();
-	cout << "Total weight = " << sumwt << endl;
+	// Report on timings
+	cout << "    Central point = " << grid[gSize/2, gSize/2] << endl;
+	cout << "    Total weight = " << sumwt << endl;
 	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
-	cout << "Time " << time << " (s) " << endl;
-	cout << "Time per visibility sample " << 1e6*time/double(nSamples) 
+	cout << "    Time " << time << " (s) " << endl;
+	cout << "    Time per visibility sample " << 1e6*time/double(nSamples) 
 		<< " (us) " << endl;
-	cout << "Time per visibility spectral sample " 
+	cout << "    Time per visibility spectral sample " 
 		<< 1e6*time/double(nSamples*nChan) << " (us) " << endl;
-	cout << "Time per grid-addition " 
+	cout << "    Time per grid-addition " 
 		<< 1e9*time/double(nSamples*nChan*(2*support)*(2*support+1)) 
 		<< " (ns) " << endl;
+		
+	cout << "+++++ Reverse processing +++++" << endl;
 	
+	start = clock();
+	for (int i=0;i<nSamples;i++) {
+		for (int chan=0;chan<nChan;chan++) {
+			
+			double sumviswt=0.0;
+
+			int find=i*nChan+chan;
+
+			int coff=cOffset[find];
+
+			Coord uScaled=freq[chan]*u[i]/cellSize;
+			int iu=int(uScaled);
+			int fracu=int(overSample*(uScaled-Coord(iu)));
+			iu+=gSize/2;
+
+			Coord vScaled=freq[chan]*v[i]/cellSize;
+			int iv=int(vScaled);
+			int fracv=int(overSample*(vScaled-Coord(iv)));
+			iv+=gSize/2;
+
+			for (int suppv=-support;suppv<+support;suppv++) {
+				int vind=cSize*(fracv+suppv+cCenter)+fracu+cCenter+coff;
+				int gind=iu+gSize*(iv+suppv);
+				for (int suppu=-support;suppu<+support;suppu++) {
+					Real wt=C[vind+suppu];
+					data[find]=data[find]+wt*grid[gind+suppu];
+					sumviswt+=wt;
+				}
+			}
+			data[find]=data[find]/sumviswt;
+		}
+	}
+	finish = clock();
+	// Report on timings
+	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
+	cout << "    Time " << time << " (s) " << endl;
+	cout << "    Time per visibility sample " << 1e6*time/double(nSamples) 
+		<< " (us) " << endl;
+	cout << "    Time per visibility spectral sample " 
+		<< 1e6*time/double(nSamples*nChan) << " (us) " << endl;
+	cout << "    Time per grid-addition " 
+		<< 1e9*time/double(nSamples*nChan*(2*support)*(2*support+1)) 
+		<< " (ns) " << endl;
+
 	delete[] C;
-	delete[] grid;
 	
 	return 0;
+}
+
+int standard(const Coord* u, const Coord* v, const Coord* w, Value* data,
+					const int nSamples, 
+					const Coord* freq, const int nChan,
+					const Coord cellSize,
+					const int gSize, 
+					const int support,
+					const int overSample,
+					Value grid[]) {
+
+		
+	// Convolution function
+	// We take this to be the product of two Gaussian. More often it 
+	// is the product of two prolate spheroidal wave functions
+	int cSize=2*(support+1)*overSample+1;
+
+	Real* C=new Real[cSize*cSize];
+	
+	int cCenter=(cSize-1)/2;
+	
+	// Keep this symmetrically to streamline index handling later....
+	for (int i=0;i<cSize;i++) {
+		double i2=std::pow(double(i-cCenter)/double(overSample), 2);
+		for (int j=0;j<cSize;j++) {
+			double r2=i2+std::pow(double(j-cCenter)/double(overSample), 2);
+			C[i+cSize*j]=std::exp(-r2);
+		}
+	}
+
+	uint* cOffset=new uint[nSamples*nChan];
+	for (uint i=0;i<nSamples*nChan;i++) cOffset[i]=0.0;
+	
+	return generic(u, v, w, data, nSamples, freq, nChan, cellSize, gSize, C, support, overSample, cOffset, grid); 
 }
 
 // Perform w projection (data dependent) gridding
@@ -133,7 +219,7 @@ int standard(const Coord* u, const Coord* v, const Value* data,
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w 
 int wprojection(const Coord* u, const Coord* v, const Coord* w, 
-					const Value* data,
+					Value* data,
 					const int nSamples, 
 					const Coord* freq, const int nChan,
 					const Coord cellSize,
@@ -141,7 +227,8 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 					const int support,
 					const int overSample,
 					const Coord wCellSize,
-					const int wSize) {
+					const int wSize,
+					Value grid[]) {
 
 	// Convolution function. This should be the convolution of the
 	// w projection kernel (the Fresnel term) with the convolution
@@ -149,7 +236,9 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 	// suppress aliasing. In practice, we calculate entire function
 	// by Fourier transformation. Here we take an approximation that
 	// is good enough.
-	int cSize=(support+1)*overSample;
+	int cSize=2*(support+1)*overSample+1;
+
+	int cCenter=(cSize-1)/2;
 	
 	Real* C=new Real[cSize*cSize*wSize];
 	
@@ -158,9 +247,9 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 			double w=double(k-wSize/2);
 			double fScale=sqrt(abs(w)*wCellSize*freq[0])/cellSize;
 			for (int j=0;j<cSize;j++) {
-				double j2=std::pow(double(j)/double(overSample), 2);
+				double j2=std::pow(double(j-cCenter)/double(overSample), 2);
 				for (int i=0;i<cSize;i++) {
-					double r2=j2+std::pow(double(i)/double(overSample), 2);
+					double r2=j2+std::pow(double(i-cCenter)/double(overSample), 2);
 					long int cind=i+cSize*(j+cSize*k);
 					C[cind]=std::cos(r2/(w*fScale));
 				}
@@ -168,90 +257,46 @@ int wprojection(const Coord* u, const Coord* v, const Coord* w,
 		}
 		else {
 			for (int j=0;j<cSize;j++) {
-				double j2=std::pow(double(j)/double(overSample), 2);
+				double j2=std::pow(double(j-cCenter)/double(overSample), 2);
 				for (int i=0;i<cSize;i++) {
-					double r2=j2+std::pow(double(i)/double(overSample), 2);
-					long int cind=i+cSize*(j+cSize*k);
+					double r2=j2+std::pow(double(i-cCenter)/double(overSample), 2);
+					long int cind=i+cCenter+cSize*(j+cCenter+cSize*k);
 					C[cind]=std::exp(-r2);
 				}
 			}
 		}
 	}
-		
-	// Grid
-	Value* grid=new Value[gSize*gSize];
-	for (int j=0;j<gSize*gSize;j++) {
-		grid[j]=0.0;
-	}
 
-	cout << "Filling grid" << endl;
-	
-	clock_t start,finish;
-	double time;
-
-	Real sumwt=0.0;
-	
-	start = clock();
-	// Loop over all samples adding them to the grid
-	// First scale to the correct pixel location
-	// Then find the fraction of a pixel to the nearest pixel
-	// Loop over the entire support, calculating weights from
-	// the convolution function and adding the scaled
-	// visibility to the grid.
+	uint* cOffset=new uint[nSamples*nChan];
 	for (int i=0;i<nSamples;i++) {
 		for (int chan=0;chan<nChan;chan++) {
 
+			int find=i*nChan+chan;
+
 			Coord wScaled=freq[chan]*w[i]/wCellSize;		
-			int k=wSize/2+int(wScaled);
-
-			Coord uScaled=freq[chan]*u[i]/cellSize;
-			int iu=int(uScaled);
-			int fracu=int(overSample*(uScaled-Coord(iu)));
-			iu+=gSize/2;
-
-			Coord vScaled=freq[chan]*v[i]/cellSize;
-			int iv=int(vScaled);
-			int fracv=int(overSample*(vScaled-Coord(iv)));
-			iv+=gSize/2;
-
-			for (int suppu=-support;suppu<+support;suppu++) {
-				for (int suppv=-support;suppv<+support;suppv++) {
-					long int cind=abs(fracu+suppu) + 
-						cSize*(abs(fracv+suppv)+cSize*k);
-					Real wt=C[cind];
-					grid[(iu+suppu)+gSize*(iv+suppv)]+=wt*data[i];
-					sumwt+=wt;
-				}					
-			}
+			cOffset[find]=wSize/2+int(wScaled);
 		}
 	}
-	finish = clock();
-	// Report on timings
-	cout << "Total weight = " << sumwt << endl;
-	time = (double(finish)-double(start))/CLOCKS_PER_SEC;
-	cout << "Time " << time << " (s) " << endl;
-	cout << "Time per visibility sample " << 1e6*time/double(nSamples) 
-		<< " (us) " << endl;
-	cout << "Time per visibility spectral sample " 
-		<< 1e6*time/double(nSamples*nChan) << " (us) " << endl;
-	cout << "Time per grid-addition " 
-		<< 1e9*time/double(nSamples*nChan*(2*support)*(2*support+1)) 
-		<< " (ns) " << endl;
 
-	delete[] C;
-	delete[] grid;
-	
-	return 0;
+		
+	return generic(u, v, w, data, nSamples, freq, nChan, cellSize, gSize, C, support, overSample, cOffset, grid);
 }
+
 int main() {
 	const int baseline=2000;    // Maximum baseline in meters
-	const int nSamples=10000;	// Number of data samples
+	const int nSamples=1000000;	// Number of data samples
 	const int gSize=512;		// Size of output grid in pixels
 	const Coord cellSize=50;	// Cellsize of output grid in wavelengths
 	const int overSample=100;	// Oversampling factor of gridding function
 	const Coord wCellSize=500;	// Cellsize in w in wavelengths
 	const int wSize=64;		// Number of lookup planes in w projection
 	const int nChan=16;		// Number of spectral channels
+	
+	// Initialize grid
+	Value* grid=new Value[gSize*gSize];
+	for (int j=0;j<gSize*gSize;j++) {
+		grid[j]=0.0;
+	}
 
 	// Initialize the data to be gridded
 	Coord *u, *v, *w;
@@ -260,13 +305,15 @@ int main() {
 	u = new Coord[nSamples];
 	v = new Coord[nSamples];
 	w = new Coord[nSamples];
-	data = new Value[nSamples];
+	data = new Value[nSamples*nChan];
 		
 	for (int i=0;i<nSamples;i++) {
 		u[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
 		v[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
 		w[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-		data[i]=Coord(rand())/Coord(RAND_MAX);
+		for (int chan=0;chan<nChan;chan++) {
+			data[i*nChan+chan]=Coord(rand())/Coord(RAND_MAX);
+		}
 	}
 
 	// Measure frequency in inverse wavelengths
@@ -276,21 +323,29 @@ int main() {
 	}
 
 	int support=3;		// Support for gridding function in pixels
-	cout << "*** Standard gridding ***" << endl;
+	cout << "*************************** Standard gridding ***********************" << endl;
 	cout << "Support = " << support << " pixels" << endl;
-	standard(u, v, data, nSamples, freq, nChan, cellSize, gSize, 
-		support, overSample);
+	standard(u, v, w, data, nSamples, freq, nChan, cellSize, gSize, 
+		support, overSample, grid);
 
-	cout << "*** W projection gridding ***" << endl;
+	cout << "************************* W projection gridding *********************" << endl;
+	for (int j=0;j<gSize*gSize;j++) {
+		grid[j]=0.0;
+	}
 	int wsupport=3*sqrt(abs(baseline)*cellSize*freq[0])/cellSize; 
 	int wOverSample=8;
 		// Support including Fresnel term
 	cout << "Support = " << wsupport << " pixels" << endl;
-	wprojection(u, v, w, data, nSamples, freq, nChan, cellSize, 
-		gSize, wsupport, wOverSample, wCellSize, wSize);
+	wprojection(u, v, w, data, nSamples/100, freq, nChan, cellSize, 
+		gSize, wsupport, wOverSample, wCellSize, wSize, grid);
 	
 	cout << "Done" << endl;
 	
-	delete[] u,v,w,data;
+	delete[] u;
+	delete[] v;
+	delete[] w;
+	delete[] data;
+	delete[] grid;
+
 	return 0;
 }
