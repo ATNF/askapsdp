@@ -121,7 +121,7 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      // the same would work with an implicit conversion
      readOnlyRoutine(it);
 
-     const_it.reset(); // force to release the iterator
+     const_it.release(); // force to release the iterator
                        // it is not required in this context and
 		       // will be done automatically when the object
 		       // goes out of scope

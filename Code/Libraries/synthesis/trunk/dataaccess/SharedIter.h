@@ -2,7 +2,7 @@
 ///
 /// SharedIter: a helper template to be used with iterators created by
 ///        factories, which are expected to be handled via a boost's smart
-///        pointer. It allows to avoid ugly syntax like *(*it), etc.
+///        pointer. It allows to avoid an ugly syntax like *(*it), etc.
 ///        
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
@@ -24,53 +24,47 @@ namespace synthesis {
 
 // a template to handle iterators via a pointer stored in the shared_ptr,
 // provides a basic iterator interface
-template<typename T> class SharedIter : public boost::shared_ptr<T> 
+template<typename T> class SharedIter
 {
-public:
+public:    
     /// constructors generally just call the same type of the constructor
     /// from boost::shared_ptr<T>
 
     /// an empty constructor has a special meaning for SharedIter - it is
     /// the end of iteration recognized by comparison operators
-    SharedIter() : boost::shared_ptr<T>() {}; // never throws
+    SharedIter() : itsSharedPtr() {}; // never throws
 
     /// constructors from a raw pointer
     template<typename Y> explicit SharedIter(Y *p) : 
-	           boost::shared_ptr<T>(p) {};    		   
-    template<typename Y, typename D> SharedIter(Y *p, D d) :
-	           boost::shared_ptr<T>(p,d) {};
-
+	           itsSharedPtr(p) {};    		   
+    
     /// constructors from a shared pointer, call the same constructor
-    /// of the base type
+    /// of the shared pointer object, this class owns
     SharedIter(boost::shared_ptr<T> const &r) :
-	     boost::shared_ptr<T>(r) {}; // never throws
+	     itsSharedPtr(r) {}; // never throws
     template<typename Y> SharedIter(boost::shared_ptr<Y> const &r) :
-             boost::shared_ptr<T>(r) {}; // never throws
-    template<typename Y> explicit SharedIter(boost::weak_ptr<Y> const &r) :
-             boost::shared_ptr<T>(r) {};
-
+             itsSharedPtr(r) {}; // never throws
+    
     /// constructors from SharedIter, need templates to allow automatic
     /// type cast
     SharedIter(SharedIter<T> const &r) :
-             boost::shared_ptr<T>(static_cast<boost::shared_ptr<T> const&>(r))
-	        {}; // never throws
+             itsSharedPtr(r.itsSharedPtr) {}; // never throws
     template<typename Y> SharedIter(SharedIter<Y> const &r) :
-             boost::shared_ptr<T>(static_cast<boost::shared_ptr<Y> const&>(r))
-	        {}; // never throws
+             itsSharedPtr(static_cast<boost::shared_ptr<Y> const&>(r)) {}; // never throws
         
     
     /// access via operator* uses typedef value_type defined in each
     /// iterator which can be used in conjunction with this class
     inline typename T::value_type operator*() const {
        DebugAssert(*this,casa::AipsError);
-       return *(boost::shared_ptr<T>::operator*());
+       return *(*itsSharedPtr);
     }
 
     /// access via operator-> uses typedef pointer_type defined in each
     /// iterator which can be used in conjunction with this class
     inline typename T::pointer_type operator->() const {
        DebugAssert(*this,casa::AipsError);
-       return (boost::shared_ptr<T>::operator*()).operator->();
+       return (*itsSharedPtr).operator->();
     }
 
     /// shortcuts to various iterator methods
@@ -85,16 +79,16 @@ public:
     /// highlight that it does an initialization of existing object.
     inline const SharedIter<T>& init() const
     {
-      DebugAssert(*this,casa::AipsError);
-      (boost::shared_ptr<T>::operator*()).init();
+      DebugAssert(itsSharedPtr,casa::AipsError);
+      itsSharedPtr->init();
       return *this;
     }
     
     /// @return  True if the are more data to iterate
     inline bool hasMore() const throw()
     {      
-      if (*this) {
-          return (boost::shared_ptr<T>::operator*()).hasMore();
+      if (itsSharedPtr) {
+          return itsSharedPtr->hasMore();
       }
       return false;
     }
@@ -104,8 +98,8 @@ public:
     ///         while (it.next()) {} are possible)
     inline bool next() const
     {
-      DebugAssert(*this,casa::AipsError);
-      return (boost::shared_ptr<T>::operator*()).next();      
+      DebugAssert(itsSharedPtr,casa::AipsError);
+      return itsSharedPtr->next();      
     }
 
     /// increment operator (only prefix operator is used. Postfix
@@ -114,7 +108,7 @@ public:
     ///
     /// @return a reference to itself to allow ++++it syntax
     inline const SharedIter<T>& operator++() const
-    {
+    {      
       next();
       return *this;
     }
@@ -128,16 +122,16 @@ public:
     ///
     inline void chooseBuffer(const std::string &bufferID) const
     {
-      DebugAssert(*this,casa::AipsError);
-      (boost::shared_ptr<T>::operator*()).chooseBuffer(bufferID);
+      DebugAssert(itsSharedPtr,casa::AipsError);
+      itsSharedPtr->chooseBuffer(bufferID);
     }
 
     /// restore the original link between the accessor returned
     /// by this iterator and the original visibilities
     /// (see IDataIterator::chooseOriginal() for more details)
     inline void chooseOriginal() const {
-      DebugAssert(*this,casa::AipsError);
-      (boost::shared_ptr<T>::operator*()).chooseOriginal(); 
+      DebugAssert(itsSharedPtr,casa::AipsError);
+      itsSharedPtr->chooseOriginal(); 
     }
 
     /// Access to a given buffer bypassing operator* and 
@@ -150,8 +144,8 @@ public:
     ///         buffer requested
     ///
     inline typename T::value_type buffer(const std::string &bufferID) const {
-       DebugAssert(*this,casa::AipsError);
-       return (boost::shared_ptr<T>::operator*()).buffer(bufferID);
+       DebugAssert(itsSharedPtr,casa::AipsError);
+       return itsSharedPtr->buffer(bufferID);
     }
     
 
@@ -165,19 +159,19 @@ public:
     ///         end of iteration, False otherwise
     ///
     inline bool operator==(const SharedIter<T> &cmp) const {
-         if (cmp) {
-	     // the second operand should hold a real iterator
-	     DebugAssert(*this, casa::AipsError);
-	     return atEnd(); // == the empty object means that
-	                     // it is at the end
-	 } else if (*this) {
-	     // the second operand should hold a real iterator
-	     DebugAssert(cmp, casa::AipsError);
-	     return cmp.atEnd(); // == the empty object means that
-	                           // it is at the end
+         if (cmp.itsSharedPtr) {
+	     // this class should be null
+	     if (itsSharedPtr)
+	         throw casa::AipsError("A comparison of SharedIter has only been implemented "
+	                  "for the case where one of the objects is empty.");	     
+	     return !cmp.hasMore(); // == the empty object means that
+	                           // it is at the end	     
+	 } else if (itsSharedPtr) {
+	     return !hasMore(); // == the empty object means that
+	                        // it is at the end
 	 } 
 	 throw casa::AipsError("A comparison of SharedIter has only been implemented " 
-	                 "for the case where one of the objects is empty.");
+	                 "for the case where one of the objects is not empty.");
 	 return false; 
     }
 
@@ -186,20 +180,20 @@ public:
     ///         end of iteration, False otherwise
     ///
     inline bool operator!=(const SharedIter<T> &cmp) const {
-         if (cmp) {
-	     // the second operand should hold a real iterator
-	     DebugAssert(*this, casa::AipsError);
-	     return hasMore(); // != the empty object means that
-	                             // it is not at the end
-	 } else if (*this) {
-	     // the second operand should hold a real iterator
-	     DebugAssert(cmp, casa::AipsError);
-	     return cmp.hasMore();  // == the empty object means that
-	                             // it is not at the end
+         if (cmp.itsSharedPtr) {
+	     // this class should be null
+	     if (itsSharedPtr)
+	         throw casa::AipsError("A comparison of SharedIter has only been implemented "
+	                  "for the case where one of the objects is empty.");	     
+	     return cmp.hasMore(); // != the empty object means that
+	                           // it is not at the end	     
+	 } else if (itsSharedPtr) {
+	     return hasMore(); // == the empty object means that
+	                        // it is not at the end
 	 } 
-	 throw casa::AipsError("A comparison of SharedIter has only been implemented"
-	                       "for the case where one of the objects is empty.");
-	 return true; 
+	 throw casa::AipsError("A comparison of SharedIter has only been implemented " 
+	                 "for the case where one of the objects is not empty.");
+	 return true;
     }
 
     /// return an empty SharedIter of the same type as the current object
@@ -210,7 +204,34 @@ public:
     {
        return SharedIter<T>();
     }
+
+    /// call reset method of the shared pointer (i.e. force a release of
+    /// this particular reference on the iterator, before the wrapping object
+    /// goes out of scope). Effectively this call makes the iterator an
+    /// end mark, until a new assignment has been made. The method is named
+    /// 'release' in contrast to 'reset' for the shared pointer to avoid
+    /// incorrect associations with rewinding of the iterator.
+    inline void release() throw()
+    {
+       itsSharedPtr.reset();
+    }
+
+    /// type conversion operator to be able to get the shared pointer
+    /// const and non-const versions
     
+    /// @return a const reference to the wrapped shared pointer
+    inline operator const boost::shared_ptr<T>&() const throw()
+    {
+       return itsSharedPtr;
+    }
+    /// @return a non-const reference to the wrapped shared pointer
+    inline operator boost::shared_ptr<T>&() throw()
+    {
+       return itsSharedPtr;
+    }
+private:
+   // actual shared pointer to the iterator
+   boost::shared_ptr<T> itsSharedPtr;
 };
 
 } // end of namespace synthesis
