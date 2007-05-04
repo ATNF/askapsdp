@@ -234,6 +234,12 @@ private:
    boost::shared_ptr<T> itsSharedPtr;
 };
 
+class IDataIterator;
+class IConstDataIterator;
+
+typedef SharedIter<IDataIterator> IDataSharedIter;
+typedef SharedIter<IConstDataIterator> IConstDataSharedIter;
+
 } // end of namespace synthesis
 
 } // end of namespace conrad

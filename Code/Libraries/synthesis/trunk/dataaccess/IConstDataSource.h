@@ -27,6 +27,10 @@
 namespace conrad {
 
 namespace synthesis {
+	
+/// short cut typedefs for Selector and Converter
+typedef boost::shared_ptr<IDataSelector> IDataSelectorPtr;
+typedef boost::shared_ptr<IDataConverter> IDataConverterPtr;
 
 class IConstDataSource
 {
@@ -50,7 +54,7 @@ public:
 	/// with a particular DataConverter is undefined, if you change
 	/// the DataConverter after the creation of an iterator, unless you
 	/// call init() of the iterator (and start a new iteration loop).
-	virtual boost::shared_ptr<IDataConverter> createConverter() const = 0;
+	virtual IDataConverterPtr createConverter() const = 0;
 
 	/// get iterator over the whole dataset represented by this DataSource
 	/// object. Default data conversion policies will be used, see
@@ -168,8 +172,9 @@ public:
 	/// with this DataSelector is undefined, if one changes the selection
 	/// unless the init method is called for the iterator (and the new
 	/// iteration loop is started).
-	virtual boost::shared_ptr<IDataSelector> createSelector() const = 0;
+	virtual IDataSelectorPtr createSelector() const = 0;
 };
+
 } // end of namespace synthesis
 } // end of namespace conrad
 #endif // I_CONST_DATA_SOURCE_H

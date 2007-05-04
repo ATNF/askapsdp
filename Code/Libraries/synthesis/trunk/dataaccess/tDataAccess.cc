@@ -62,7 +62,7 @@ struct TestTransform {
 
 /// demonstration of flagging from the given iterator position until the
 /// end of the block pointed by the iterator
-void flaggingRoutine(const SharedIter<IDataIterator> &di) {
+void flaggingRoutine(const IDataSharedIter &di) {
     try {
        // this command can be put inside the loop for clarity, but
        // will work as it is, because the data accessor is always
@@ -84,7 +84,7 @@ void flaggingRoutine(const SharedIter<IDataIterator> &di) {
 }
 
 /// demonstration of the read-only access
-void readOnlyRoutine(const SharedIter<IConstDataIterator> &cdi) {
+void readOnlyRoutine(const IConstDataSharedIter &cdi) {
     // in this loop, start iteration from the scratch
     for (cdi.init();cdi.hasMore();cdi.next()) {
 	 cout<<"UVW for row 0 ="<<cdi->uvw()[0]<<" vis="<<
@@ -99,12 +99,12 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      AlwaysAssert((Bool)ds,AipsError);
 
      // obtain and configure data selector
-     shared_ptr<IDataSelector> sel=ds->createSelector();   
+     IDataSelectorPtr sel=ds->createSelector();   
      sel->chooseChannels(100,150); // 100 channels starting from 150
      sel->chooseStokes("IQUV"); // full Stokes
 
      // get the iterator
-     SharedIter<IDataIterator> it=ds->createIterator(sel);     
+     IDataSharedIter it=ds->createIterator(sel);     
 
      // don't need it.init() the first time, although it won't do any harm
      for (;it.hasMore();it.next()) {
@@ -115,7 +115,7 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      }
 
      // SharedIter is just a kind of shared_ptr. It can be copied.     
-     SharedIter<IConstDataIterator> const_it=it;
+     IConstDataSharedIter const_it=it;
      readOnlyRoutine(const_it);
      
      // the same would work with an implicit conversion
@@ -141,8 +141,8 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      
      // a more complicated example: a transform result of the observed
      // visibilities is stored in one of the buffers
-     SharedIter<IConstDataIterator> input_iter=ds->createConstIterator(sel);
-     SharedIter<IDataIterator> output_iter=ds->createIterator(sel);     
+     IConstDataSharedIter input_iter=ds->createConstIterator(sel);
+     IDataSharedIter output_iter=ds->createIterator(sel);     
      transform(input_iter,input_iter.end(),
         //VisAdapter(output_iter),
 	BufferAdapter("MODEL_DATA",output_iter),
