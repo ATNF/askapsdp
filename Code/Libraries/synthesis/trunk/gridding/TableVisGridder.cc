@@ -13,15 +13,41 @@ TableVisGridder::~TableVisGridder()
 {
 }
 
-void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+void TableVisGridder::forward(const IDataAccessor& ida,
+		const casa::Vector<double>& cellSize,
+		casa::Cube<casa::Complex>& grid,
+		casa::Vector<float>& weights)
+{
+}
+		
+void TableVisGridder::forward(const IDataAccessor& ida,
+		const casa::Vector<double>& cellSize,
+		casa::Array<casa::Complex>& grid,
+		casa::Matrix<float>& weights)
+{
+}
+		
+void TableVisGridder::reverse(IDataAccessor& ida, 
+		const casa::Cube<casa::Complex>& grid, 
+		const casa::Vector<double>& cellSize)
+{
+}
+
+void TableVisGridder::reverse(IDataAccessor& ida, 
+		const casa::Array<casa::Complex>& grid, 
+		const casa::Vector<double>& cellSize)
+{
+}
+
+void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
 					const casa::Cube<casa::Complex>& visibility,
-					const casa::Cube<casa::Float>& visweight,
-					const casa::Vector<casa::Double>& freq,
-					const casa::Vector<casa::Double>& cellSize,
-					const casa::Cube<casa::Float>& C,
+					const casa::Cube<float>& visweight,
+					const casa::Vector<double>& freq,
+					const casa::Vector<double>& cellSize,
+					const casa::Cube<float>& C,
 					const int support,
 					const int overSample,
-					const casa::Matrix<casa::uInt>& cOffset,
+					const casa::Matrix<uint>& cOffset,
 					casa::Cube<casa::Complex>& grid,
 					casa::Vector<float>& sumwt)
 {
@@ -71,15 +97,15 @@ void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<casa::
 	}
 }
 
-void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
 					casa::Cube<casa::Complex>& visibility,
-					casa::Cube<casa::Float>& visweight,
-					const casa::Vector<casa::Double>& freq,
-					const casa::Vector<casa::Double>& cellSize,
-					const casa::Cube<casa::Float>& C,
+					casa::Cube<float>& visweight,
+					const casa::Vector<double>& freq,
+					const casa::Vector<double>& cellSize,
+					const casa::Cube<float>& C,
 					const int support,
 					const int overSample,
-					const casa::Matrix<casa::uInt>& cOffset,
+					const casa::Matrix<uint>& cOffset,
 					const casa::Cube<casa::Complex>& grid)
 {
 

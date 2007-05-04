@@ -1,11 +1,13 @@
 #include <gridding/TableVisGridder.h>
-#include <measurementequation/TableVisGridderTest.h>
+#include <measurementequation/MEParams.h>
+#include <measurementequation/MEComponentEquation.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
 #include <measures/Measures/MPosition.h>
 #include <casa/Quanta/Quantum.h>
 #include <casa/Quanta/MVPosition.h>
+#include <casa/BasicSL/Constants.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -119,8 +121,9 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
       pempty = new TableVisGridder();
 
       cellSize=new casa::Vector<double>(2);
-      (*cellSize)(0)=10.0*arcsec;
-      (*cellSize)(1)=10.0*arcsec;
+
+      (*cellSize)(0)=10.0*casa::C::arcsec;
+      (*cellSize)(1)=10.0*casa::C::arcsec;
       
       grid=new casa::Cube<casa::Complex>(512,512,1);
       grid->set(0.0);
@@ -148,7 +151,7 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 	}    
 	void testReverse()
 	{
-		p1->reverse(*ida, grid, *cellSize, *grid);
+		p1->reverse(*ida, *grid, *cellSize);
 	}    
   };
   

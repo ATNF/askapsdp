@@ -18,12 +18,12 @@
 #ifndef IVISGRIDDER_H_
 #define IVISGRIDDER_H_
 
+#include <dataaccess/IDataAccessor.h>
+
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Cube.h>
-#include <casa/Quanta/MVDirection.h>
-#include <scimath/Mathematics/RigidVector.h>
 
 namespace conrad
 {
@@ -38,64 +38,42 @@ public:
 	
 	/// Grid the visibility data onto the grid using multifrequency
 	/// synthesis. Note that the weights allow complete flexibility
-	/// @param uvw Input uvw locations of sample points
-	/// @param visibility Input visibility samples
-	/// @param frequency Input frequencies of the channels
+	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,pol
-	/// @param grid Output weights: vector: pol
-	virtual void forward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
-			const casa::Cube<casa::Float>& visibility,
-			const casa::Cube<casa::Float>& weight,
-			const casa::Vector<casa::Double>& frequency,
-			const casa::Vector<casa::Double>& cellSize,
+	/// @param weights Output weights: vector: pol
+	virtual void forward(const IDataAccessor& ida,
+			const casa::Vector<double>& cellSize,
 			casa::Cube<casa::Complex>& grid,
-			casa::Vector<casa::Float>& weights) = 0;
+			casa::Vector<float>& weights) = 0;
 			
 	/// Grid the spectral visibility data onto the grid
 	/// Note that the weights allow complete flexibility
-	/// @param uvw Input uvw locations of sample points
-	/// @param visibility Input visibility samples
-	/// @param frequency Input frequencies of the channels
+	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,chan,pol
-	/// @param grid Output weights: vector: chan,pol
-	virtual void forward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
-			const casa::Cube<casa::Float>& visibility,
-			const casa::Cube<casa::Float>& weight,
-			const casa::Vector<casa::Double>& frequency,
-			const casa::Vector<casa::Double>& cellSize,
+	/// @param weights Output weights: vector: pol
+	virtual void forward(const IDataAccessor& ida,
+			const casa::Vector<double>& cellSize,
 			casa::Array<casa::Complex>& grid,
-			casa::Matrix<casa::Float>& weights) = 0;
+			casa::Matrix<float>& weights) = 0;
 			
 	/// Estimate visibility data from the grid using multifrequency
 	/// synthesis. 
-	/// @param uvw Input uvw locations of sample points
-	/// @param frequency Input frequencies of the channels
+	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Input grid: cube: u,v,pol
-	/// @param visibility Output visibility samples
-	/// @param grid Output weights: cube of same shape as visibility
-	virtual void reverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
-			const casa::Cube<casa::Float>& grid, 
-			const casa::Vector<casa::Double>& frequency,
-			const casa::Vector<casa::Double>& cellSize,
-			casa::Cube<casa::Float>& visibility,
-			casa::Cube<casa::Float>& weight) = 0;
+	virtual void reverse(IDataAccessor& ida, 
+			const casa::Cube<casa::Complex>& grid, 
+			const casa::Vector<double>& cellSize) = 0;
 
 	/// Estimate spectral visibility data from the grid
-	/// @param uvw Input uvw locations of sample points
-	/// @param frequency Input frequencies of the channels
+	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
-	/// @param grid Input grid: cube: u,v,chan,pol
-	/// @param visibility Output visibility samples
 	/// @param grid Output weights: cube of same shape as visibility
-	virtual void reverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
-			const casa::Array<casa::Float>& grid, 
-			const casa::Vector<casa::Double>& frequency,
-			const casa::Vector<casa::Double>& cellSize,
-			casa::Cube<casa::Float>& visibility,
-			casa::Cube<casa::Float>& weight) = 0;
+	virtual void reverse(IDataAccessor& ida, 
+			const casa::Array<casa::Complex>& grid, 
+			const casa::Vector<double>& cellSize) = 0;
 };
 
 }
