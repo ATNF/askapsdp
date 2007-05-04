@@ -23,6 +23,7 @@
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/MFrequency.h>
 #include <measures/Measures/MRadialVelocity.h>
+#include <casa/Quanta/MVFrequency.h>
 
 namespace conrad {
 
@@ -81,6 +82,17 @@ public:
 	/// Class defaults to LSRK, km/s
 	virtual void setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
 			const casa::Unit &unit = "km/s") = 0;
+
+        /// set the rest frequency required to do the frequency to velocity
+	/// conversion for most types of DataSources. Systems which
+	/// produce velocities directly (i.e. with a hardware Doppler
+	/// tracking) will require this if an operation with frequencies is
+	/// requested.
+	///
+	/// @param restFreq a rest frequency to be used for interconversions
+	///                 between frequencies and velocities
+	///
+	virtual void setRestFrequency(const casa::MVFrequency &restFreq) = 0;
 };
 
 } // namespace synthesis

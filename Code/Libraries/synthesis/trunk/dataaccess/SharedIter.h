@@ -51,7 +51,21 @@ public:
              itsSharedPtr(r.itsSharedPtr) {}; // never throws
     template<typename Y> SharedIter(SharedIter<Y> const &r) :
              itsSharedPtr(static_cast<boost::shared_ptr<Y> const&>(r)) {}; // never throws
-        
+
+    /// assignment operators. Check for self-assignment is done in shared_ptr,
+    /// no need to repeat it here.
+    inline SharedIter<T>& operator=(SharedIter<T> const &r) throw()
+    {
+      itsSharedPtr=r.itsSharedPtr;
+      return *this;
+    }
+
+    template<typename Y>inline SharedIter<T>& operator=(SharedIter<Y> const &r) throw()
+    {
+      itsSharedPtr=static_cast<boost::shared_ptr<Y> const&>(r);
+      return *this;
+    }
+            
     
     /// access via operator* uses typedef value_type defined in each
     /// iterator which can be used in conjunction with this class
