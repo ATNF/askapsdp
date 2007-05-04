@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MEParamsTable: Base class for storing and retrieving MEParams by 
+/// ParamsTable: Base class for storing and retrieving Params by 
 /// domain specification.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
@@ -13,29 +13,29 @@ namespace conrad
 namespace synthesis
 {
 
-class MEParams;
-class MEDomain;
+class Params;
+class Domain;
 
-class MEParamsTable
+class ParamsTable
 {
 public:
-	MEParamsTable();
+	ParamsTable();
 	
-	virtual ~MEParamsTable();
+	virtual ~ParamsTable();
 	
 	/// Get the parameters for a specified domain
 	/// @param ip Template of parameters - must match
 	/// @param domain Domain of validity of parameters
-	virtual bool getParameters(MEParams& ip, const MEDomain& domain) const;
+	virtual bool getParameters(Params& ip, const Domain& domain) const;
 
 	/// Set the parameters for a given domain
 	/// @param ip Parameters to set
 	/// @param domain Domain of validity for parameters
-	virtual bool setParameters (const MEParams& ip, const MEDomain& domain);
+	virtual bool setParameters (const Params& ip, const Domain& domain);
 
 };
 
 }
 }
 
-#endif /*MEPARAMSTABLE_H_*/
+#endif /*PARAMSTABLE_H_*/

@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MEParams: represent a set of parameters for a measurement equation.
+/// Params: represent a set of parameters for a measurement equation.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -8,7 +8,7 @@
 #ifndef SYNPARAMS_H_
 #define SYNPARAMS_H_
 
-#include <measurementequation/MEDomain.h>
+#include <fitting/Domain.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -26,14 +26,14 @@ namespace conrad {
 namespace synthesis
 {
 
-class MEParams {
+class Params {
 public:
 
-	MEParams();
+	Params();
 	
-	MEParams& operator=(const MEParams& other);
+	Params& operator=(const Params& other);
 	
-	MEParams(const MEParams& other);
+	Params(const Params& other);
 			
 	/// Add an Parameter
 	/// @param name Name of param to be added
@@ -48,9 +48,9 @@ public:
 	/// @param name Name of param to be added
 	/// @param ip Param to be added
 	void add(const string& name, const casa::Vector<double>& ip,
-		const MEDomain& domain);
+		const Domain& domain);
 	void add(const string& name, const double ip,
-		const MEDomain& domain);
+		const Domain& domain);
 
 	/// Update an Parameter
 	/// @param name Name of param to be updated
@@ -86,8 +86,8 @@ public:
 
 	/// Return the domain for the parameter with this name
 	/// @param name Name of param
-	const MEDomain& domain(const string& name) const;		
-	MEDomain& domain(const string& name);
+	const Domain& domain(const string& name) const;		
+	Domain& domain(const string& name);
 	
 	/// Return all the completions for this name
 	/// @param match Match e.g. "flux.i.*"
@@ -105,19 +105,19 @@ public:
 	bool has(const string& name) const;
 
 	/// Is this set congruent with another?
-	bool isCongruent(const MEParams& other) const;
+	bool isCongruent(const Params& other) const;
 
 	/// Merge parameters from other into this set
-	void merge(const MEParams& other);
+	void merge(const Params& other);
 		
 	/// Reset to empty
 	void reset();
 
-	friend std::ostream& operator<<(std::ostream& os, const MEParams& params);
+	friend std::ostream& operator<<(std::ostream& os, const Params& params);
 	
 private:
 	mutable map<string, casa::Vector<double> > itsVectors;
-	mutable map<string, MEDomain> itsDomains;
+	mutable map<string, Domain> itsDomains;
 	mutable map<string, bool> itsFree;
 };
 

@@ -1,21 +1,16 @@
-#ifndef MECOMPONENTEQUATION_H_
-#define MECOMPONENTEQUATION_H_
+#ifndef SYNCOMPONENTEQUATION_H_
+#define SYNCOMPONENTEQUATION_H_
 
-#include <measurementequation/MEquation.h>
+#include <measurementequation/SynEquation.h>
 
 namespace conrad
 {
 namespace synthesis
 {
 
-class MEComponentEquation : public MEquation
+class ComponentEquation : public SynEquation
 {
 public:
-
-	MEComponentEquation() : MEquation() {};
-	MEComponentEquation(const MEParams& ip) : MEquation(ip) {};
-	
-	virtual ~MEComponentEquation();
 	
 	/// Predict model visibility
 	/// @param ida data accessor
@@ -24,12 +19,12 @@ public:
 	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MENormalEquations& normeq);
+	virtual void calcEquations(IDataAccessor& ida, NormalEquations& normeq);
 	
 	/// Calculate the regular design matrix
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix);
+	virtual void calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix);
 	
 private:
 	void init();

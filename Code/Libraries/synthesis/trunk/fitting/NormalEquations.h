@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MENormalEquations: Hold the normal equations for parameters
+/// NormalEquations: Hold the normal equations for parameters
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -8,7 +8,7 @@
 #ifndef SYNNORMALEQUATIONS_H_
 #define SYNNORMALEQUATIONS_H_
 
-#include <measurementequation/MEParams.h>
+#include <fitting/Params.h>
 
 
 namespace conrad
@@ -16,9 +16,9 @@ namespace conrad
 namespace synthesis
 {
 	
-class MEDesignMatrix;
+class DesignMatrix;
 	
-class MENormalEquations
+class NormalEquations
 {
 public:
 
@@ -31,35 +31,35 @@ public:
 		DIAGONAL_DIAGONAL // Only diagonal terms are kept
 	};
 	
-	MENormalEquations() {};
+	NormalEquations() {};
 	
 	/// Define the normal equations
 	/// @param ip Parameters
-	MENormalEquations(const MEParams& ip);
+	NormalEquations(const Params& ip);
 	
 	/// Copy constructor
-	MENormalEquations(const MENormalEquations& normeq);
+	NormalEquations(const NormalEquations& normeq);
 
 	/// Return the specified parameters
-	const MEParams& parameters() const;
-	MEParams& parameters();
+	const Params& parameters() const;
+	Params& parameters();
 		
 	/// Construct the normal equations from the design matrix
 	/// @param dm Design matrix
 	/// @param approx Type of approximation to be used
-	MENormalEquations(const MEDesignMatrix& dm, const MENormalEquations::Approximation approx);
+	NormalEquations(const DesignMatrix& dm, const NormalEquations::Approximation approx);
 	
 	/// Assignment operator
-	MENormalEquations& operator=(const MENormalEquations& normeq);
+	NormalEquations& operator=(const NormalEquations& normeq);
 	
-	virtual ~MENormalEquations();
+	virtual ~NormalEquations();
 	
 	// Set the approximation
-	void setApproximation(const MENormalEquations::Approximation approx);
+	void setApproximation(const NormalEquations::Approximation approx);
 	
 	/// Merge these normal equations with another - means that we just add
 	/// @param other Other normal equations
-	void merge(const MENormalEquations& other);
+	void merge(const NormalEquations& other);
 	
 	/// Return normal equations
 	std::map<string, std::map<string, casa::Matrix<double> > > normalMatrix() const;
@@ -70,8 +70,8 @@ public:
 	/// Reset to empty
 	void reset();
 private:
-	MEParams itsParams;
-	MENormalEquations::Approximation itsApprox;
+	Params itsParams;
+	NormalEquations::Approximation itsApprox;
 	// Note that this is a very flexible format - it allows any of the
 	// enumerated approximations to be used
 	mutable std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix;
@@ -80,4 +80,4 @@ private:
 
 }
 }
-#endif /*MENORMALEQUATIONS_H_*/
+#endif /*NORMALEQUATIONS_H_*/

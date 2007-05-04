@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MEDomain: Represent a domain for imaging equation purposes.
+/// Domain: Represent a domain for imaging equation purposes.
 /// 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
@@ -20,19 +20,19 @@ namespace conrad
 namespace synthesis
 {
 
-class MEDomain
+class Domain
 {
 public:
 	/// Make an empty domain
-	MEDomain();
+	Domain();
 	
 	/// Assignment operator
-	MEDomain& operator=(const MEDomain& other);
+	Domain& operator=(const Domain& other);
 	
 	/// Copy constructor
-	MEDomain(const MEDomain& other);
+	Domain(const Domain& other);
 
-	~MEDomain();
+	~Domain();
 	
 	/// Add an axis 
 	/// @param name Name of axis
@@ -67,7 +67,7 @@ public:
 	/// @param name Name of axis
 	int cells(const std::string& name) const;
 	
-	friend std::ostream& operator<<(std::ostream& os, const MEDomain& domain);
+	friend std::ostream& operator<<(std::ostream& os, const Domain& domain);
 	
 private:
 	mutable std::vector<std::string> itsNames;
@@ -78,4 +78,4 @@ private:
 
 };
 };
-#endif /*MEDOMAIN_H_*/
+#endif /*DOMAIN_H_*/

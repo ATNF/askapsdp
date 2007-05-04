@@ -1,4 +1,4 @@
-#include <measurementequation/MEDomain.h>
+#include <fitting/Domain.h>
 #include <casa/aips.h>
 #include <casa/Exceptions/Error.h>
 
@@ -17,12 +17,12 @@ namespace synthesis
 {
 
 	/// Make an empty domain
-	MEDomain::MEDomain()
+	Domain::Domain()
 	{
 	}
 	
 	/// Assignment operator
-	MEDomain& MEDomain::operator=(const MEDomain& other)
+	Domain& Domain::operator=(const Domain& other)
 	{
 		if(this!=&other) {
 			itsNames=other.itsNames;
@@ -33,12 +33,12 @@ namespace synthesis
 	}
 	
 	/// Copy constructor
-	MEDomain::MEDomain(const MEDomain& other)
+	Domain::Domain(const Domain& other)
 	{
 		operator=(other);
 	}
 
-	MEDomain::~MEDomain() 
+	Domain::~Domain() 
 	{
 		itsNames.clear();
 		itsStart.clear();
@@ -46,7 +46,7 @@ namespace synthesis
 		itsCells.clear();
 	}
 	
-	void MEDomain::add(const string& name, const double start, const double end, const int cells)
+	void Domain::add(const string& name, const double start, const double end, const int cells)
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Axis " + name + " already exists"));
@@ -61,7 +61,7 @@ namespace synthesis
 	
 	/// Has this axis?
 	/// @param name Name of axis
-	bool MEDomain::has(const string& name) const
+	bool Domain::has(const string& name) const
 	{
 		if(itsNames.size()==0) return false;
 		for (uint i=0;i<itsNames.size();i++) {
@@ -70,7 +70,7 @@ namespace synthesis
 		return false;
 	}
 	
-	int MEDomain::order(const string& name) const
+	int Domain::order(const string& name) const
 	{
 		for (uint i=0;i<itsNames.size();i++) {
 			if(itsNames[i]==name) return i;
@@ -78,38 +78,38 @@ namespace synthesis
 		throw(std::invalid_argument("Axis " + name + " does not exist"));
 	}
 	
-	const std::vector<string>& MEDomain::names() const
+	const std::vector<string>& Domain::names() const
 	{
 		return itsNames;
 	}
 	
-	const std::vector<int>& MEDomain::shape() const
+	const std::vector<int>& Domain::shape() const
 	{
 		return itsCells;
 	}
 
 	/// Return start value	
 	/// @param name Name of axis
-	double MEDomain::start(const string& name) const
+	double Domain::start(const string& name) const
 	{
 		return itsStart[order(name)];
 	}
 	
 	/// Return end value	
 	/// @param name Name of axis
-	double MEDomain::end(const string& name) const
+	double Domain::end(const string& name) const
 	{
 		return itsEnd[order(name)];
 	}
 
 	/// Return number of cells
 	/// @param name Name of axis
-	int MEDomain::cells(const string& name) const
+	int Domain::cells(const string& name) const
 	{
 		return itsCells[order(name)];
 	}
 
-	ostream& operator<<(ostream& os, const MEDomain& domain) {
+	ostream& operator<<(ostream& os, const Domain& domain) {
 
 		vector<string> names(domain.names());
 		vector<string>::iterator it;

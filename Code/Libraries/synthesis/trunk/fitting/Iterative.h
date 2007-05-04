@@ -7,15 +7,15 @@ namespace synthesis
 {
 	
 
-class MEIterative
+class Iterative
 {
 public:
-	MEIterative(const double gain=0.1, const int niter=100, const double tol=1e-6, const string algorithm=string(""),
+	Iterative(const double gain=0.1, const int niter=100, const double tol=1e-6, const string algorithm=string(""),
 		const string subalgorithm=string("")) : itsGain(gain), itsNiter(niter), itsTol(tol),
 		itsAlgorithm(algorithm), itsSubAlgorithm(subalgorithm) 
 		{
 		};
-	virtual ~MEIterative() {};
+	virtual ~Iterative() {};
 	double gain() {return itsGain;}
 	void setGain(const double gain=0.1) {itsGain=gain;};
 	

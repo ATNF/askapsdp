@@ -9,11 +9,11 @@ namespace conrad
 namespace synthesis
 {
 
-class MEQuality
+class Quality
 {
 public:
-	MEQuality();
-	virtual ~MEQuality();
+	Quality();
+	virtual ~Quality();
 	void setRank(const unsigned int rank) {itsRank=rank;};
 	const unsigned int rank() const {return itsRank;};
 	void setCond(const double cond) {itsCond=cond;};
@@ -21,7 +21,7 @@ public:
 	void setInfo(const std::string info) {itsInfo=info;}
 	const std::string& info() const {return itsInfo;};
 	
-	friend std::ostream& operator<<(std::ostream& os, const MEQuality& q);
+	friend std::ostream& operator<<(std::ostream& os, const Quality& q);
 	
 private:
 	double itsCond;
@@ -31,4 +31,4 @@ private:
 
 }
 }
-#endif /*MEQUALITY_H_*/
+#endif /*QUALITY_H_*/

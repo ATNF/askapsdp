@@ -1,19 +1,19 @@
-#include <measurementequation/MEQuality.h>
+#include <fitting/Quality.h>
 
 namespace conrad
 {
 namespace synthesis
 {
 	
-MEQuality::MEQuality() : itsCond(0.0), itsRank(0), itsInfo("")
+Quality::Quality() : itsCond(0.0), itsRank(0), itsInfo("")
 {
 }
 
-MEQuality::~MEQuality()
+Quality::~Quality()
 {
 }
 
-std::ostream& operator<<(std::ostream& os, const MEQuality& q)
+std::ostream& operator<<(std::ostream& os, const Quality& q)
 {
 	os << "Quality : " << q.info() << " : condition number = " 
 		<< q.cond() << ", rank = " << q.rank() << std::endl;

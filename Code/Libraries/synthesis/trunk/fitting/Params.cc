@@ -1,5 +1,5 @@
-#include <measurementequation/MEParams.h>
-#include <measurementequation/MEDomain.h>
+#include <fitting/Params.h>
+#include <fitting/Domain.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
 #include <casa/BasicSL/String.h>
@@ -16,14 +16,14 @@ namespace conrad {
 namespace synthesis
 {
 	
-	MEParams::MEParams() {
+	Params::Params() {
 	}
 	
-	MEParams::MEParams(const MEParams& other) {
+	Params::Params(const Params& other) {
 		operator=(other);
 	}
 	
-	MEParams& MEParams::operator=(const MEParams& other) {
+	Params& Params::operator=(const Params& other) {
 		if(this!=&other) {
 			itsVectors=other.itsVectors;
 			itsDomains=other.itsDomains;
@@ -32,19 +32,19 @@ namespace synthesis
 		return *this;
 	}
 	
-	bool MEParams::isFree(const string& name) const {
+	bool Params::isFree(const string& name) const {
 		return itsFree[name];
 	}
 	
-	void MEParams::free(const string& name) {
+	void Params::free(const string& name) {
 		itsFree[name]=true;
 	}
 	
-	void MEParams::fix(const string& name) {
+	void Params::fix(const string& name) {
 		itsFree[name]=false;
 	}	
 
-	void MEParams::add(const string& name, const double ip) 
+	void Params::add(const string& name, const double ip) 
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
@@ -54,11 +54,11 @@ namespace synthesis
 			ipVector(0)=ip;
 			itsVectors[name]=ipVector.copy();
 			itsFree[name]=true;
-			itsDomains[name]=MEDomain();
+			itsDomains[name]=Domain();
 		}
 	}
 	
-	void MEParams::add(const string& name, const casa::Vector<double>& ip) 
+	void Params::add(const string& name, const casa::Vector<double>& ip) 
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
@@ -66,12 +66,12 @@ namespace synthesis
 		else {
 			itsVectors[name]=ip.copy();
 			itsFree[name]=true;
-			itsDomains[name]=MEDomain();
+			itsDomains[name]=Domain();
 		}
 	}
 	
-	void MEParams::add(const string& name, const casa::Vector<double>& ip,
-		const MEDomain& domain)
+	void Params::add(const string& name, const casa::Vector<double>& ip,
+		const Domain& domain)
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
@@ -83,7 +83,7 @@ namespace synthesis
 		}
 	}
 	
-	void MEParams::add(const string& name, const double ip, const MEDomain& domain) 
+	void Params::add(const string& name, const double ip, const Domain& domain) 
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
@@ -97,7 +97,7 @@ namespace synthesis
 		}
 	}
 	
-	void MEParams::update(const string& name, const casa::Vector<double>& ip) 
+	void Params::update(const string& name, const casa::Vector<double>& ip) 
 	{
 		if(!has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
@@ -105,11 +105,11 @@ namespace synthesis
 		else {
 			itsVectors[name]=ip.copy();
 			itsFree[name]=true;
-			itsDomains[name]=MEDomain();
+			itsDomains[name]=Domain();
 		}
 	}
 	
-	void MEParams::update(const string& name, const double ip) 
+	void Params::update(const string& name, const double ip) 
 	{
 		if(!has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
@@ -119,36 +119,36 @@ namespace synthesis
 			ipVector(0)=ip;
 			itsVectors[name]=ipVector.copy();
 			itsFree[name]=true;
-			itsDomains[name]=MEDomain();
+			itsDomains[name]=Domain();
 		}
 	}
 	
-	const uint MEParams::size() const
+	const uint Params::size() const
 	{
 		return static_cast<uint>(itsFree.size());
 	}
 	
-	bool MEParams::has(const string& name) const 
+	bool Params::has(const string& name) const 
 	{
 		return itsVectors.count(name)>0;
 	}		
 
-	bool MEParams::isScalar(const string& name) const 
+	bool Params::isScalar(const string& name) const 
 	{
 		return itsVectors[name].nelements()==1;
 	}		
 
-	const casa::Vector<double>& MEParams::value(const string& name) const 
+	const casa::Vector<double>& Params::value(const string& name) const 
 	{
 		return itsVectors[name];
 	}		
 	
-	casa::Vector<double>& MEParams::value(const string& name) 
+	casa::Vector<double>& Params::value(const string& name) 
 	{
 		return itsVectors[name];
 	}		
 	
-	const double MEParams::scalarValue(const string& name) const
+	const double Params::scalarValue(const string& name) const
 	{
 		if(!isScalar(name)) {
 			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
@@ -156,7 +156,7 @@ namespace synthesis
 		return itsVectors[name](0);
 	}		
 	
-	double MEParams::scalarValue(const string& name) 
+	double Params::scalarValue(const string& name) 
 	{
 		if(!isScalar(name)) {
 			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
@@ -164,17 +164,17 @@ namespace synthesis
 		return itsVectors[name](0);
 	}		
 	
-	const MEDomain& MEParams::domain(const string& name) const 
+	const Domain& Params::domain(const string& name) const 
 	{
 		return itsDomains[name];
 	}		
 	
-	MEDomain& MEParams::domain(const string& name) 
+	Domain& Params::domain(const string& name) 
 	{
 		return itsDomains[name];
 	}		
 	
-	bool MEParams::isCongruent(const MEParams& other) const
+	bool Params::isCongruent(const Params& other) const
 	{
 		std::map<string,bool>::iterator iter;
 		for(iter = itsFree.begin(); iter != itsFree.end(); iter++) {
@@ -185,7 +185,7 @@ namespace synthesis
 		return true;
 	}
 
-	void MEParams::merge(const MEParams& other)
+	void Params::merge(const Params& other)
 	{
 		std::vector<string> names(other.names());
 		std::vector<string>::iterator iter;
@@ -198,7 +198,7 @@ namespace synthesis
 		}
 	}
 
-	vector<string> MEParams::names() const
+	vector<string> Params::names() const
 	{
 		vector<string> names;
 		std::map<string,bool>::iterator iter;
@@ -208,7 +208,7 @@ namespace synthesis
 		return names;
 	}
 
-	vector<string> MEParams::freeNames() const
+	vector<string> Params::freeNames() const
 	{
 		vector<string> names;
 		std::map<string,bool>::iterator iter;
@@ -218,7 +218,7 @@ namespace synthesis
 		return names;
 	}
 
-	vector<string> MEParams::fixedNames() const
+	vector<string> Params::fixedNames() const
 	{
 		vector<string> names;
 		std::map<string,bool>::iterator iter;
@@ -228,7 +228,7 @@ namespace synthesis
 		return names;
 	}
 	
-	vector<string> MEParams::completions(const string& pattern) const
+	vector<string> Params::completions(const string& pattern) const
 	{
 		casa::Regex regex(casa::Regex::fromPattern(pattern+"*"));
 		casa::Regex sub(casa::Regex::fromPattern(pattern));
@@ -246,14 +246,14 @@ namespace synthesis
 		return completions;
 	}
 
-	void MEParams::reset()
+	void Params::reset()
 	{
 		itsVectors.clear();
 		itsDomains.clear();
 		itsFree.clear();
 	}
 	
-	ostream& operator<<(ostream& os, const MEParams& params) {
+	ostream& operator<<(ostream& os, const Params& params) {
 
 		vector<string> names(params.names());
 		vector<string>::iterator it;

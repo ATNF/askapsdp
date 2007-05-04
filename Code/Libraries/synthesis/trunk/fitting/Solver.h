@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MESolver: Base class for solvers of parametrized imaging
+/// Solver: Base class for solvers of parametrized imaging
 /// equations.
 ///
 /// The base solver does something sensible and can be used as-is.
@@ -13,59 +13,59 @@
 #ifndef SYNSOLVER_H_
 #define SYNSOLVER_H_
 
-#include <measurementequation/MEParams.h>
-#include <measurementequation/MENormalEquations.h>
-#include <measurementequation/MEDesignMatrix.h>
-#include <measurementequation/MEIterative.h>
-#include <measurementequation/MEQuality.h>
+#include <fitting/Params.h>
+#include <fitting/NormalEquations.h>
+#include <fitting/DesignMatrix.h>
+#include <fitting/Iterative.h>
+#include <fitting/Quality.h>
 
 namespace conrad
 {
 namespace synthesis
 {
 
-class MESolver : public MEIterative
+class Solver : public Iterative
 {
 public:	
 
-	MESolver(const MEParams& ip);
+	Solver(const Params& ip);
 
-	virtual ~MESolver() {};
+	virtual ~Solver() {};
 	
 	/// Initialize this solver
 	virtual void init() = 0;
 	
 	/// Set the parameters
 	/// @param ip Parameters
-	void setParameters(const MEParams& ip);
+	void setParameters(const Params& ip);
 
 	/// Return current values of params
-	const MEParams& parameters() const;
-	MEParams& parameters();
+	const Params& parameters() const;
+	Params& parameters();
 		
 	/// Add the design matrix
 	/// @param designmatrix Design Matrix
-	virtual void addDesignMatrix(const MEDesignMatrix& designmatrix);
+	virtual void addDesignMatrix(const DesignMatrix& designmatrix);
 	
 	/// Add the normal equations
 	/// @param normeq Normal Equations
-	virtual void addNormalEquations(const MENormalEquations& normeq);
+	virtual void addNormalEquations(const NormalEquations& normeq);
 
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the normal equations
-	virtual bool solveNormalEquations(MEQuality& q) = 0;
+	virtual bool solveNormalEquations(Quality& q) = 0;
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the design matrix
-	virtual bool solveDesignMatrix(MEQuality& q) = 0;
+	virtual bool solveDesignMatrix(Quality& q) = 0;
 	
 protected:
-	MEParams itsParams;
-	MENormalEquations itsNormalEquations;
-	MEDesignMatrix itsDesignMatrix;
+	Params itsParams;
+	NormalEquations itsNormalEquations;
+	DesignMatrix itsDesignMatrix;
 };
 
 }
 }
 
-#endif /*MESOLVER_H_*/
+#endif /*SOLVER_H_*/

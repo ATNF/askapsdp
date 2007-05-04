@@ -1,9 +1,9 @@
 #include <dataaccess/IDataAccessor.h>
-#include <measurementequation/MEParams.h>
-#include <measurementequation/MEImageEquation.h>
-#include <measurementequation/MENormalEquations.h>
-#include <measurementequation/MEDesignMatrix.h>
-#include <measurementequation/MEDomain.h>
+#include <fitting/Params.h>
+#include <measurementequation/ImageEquation.h>
+#include <fitting/NormalEquations.h>
+#include <fitting/DesignMatrix.h>
+#include <fitting/Domain.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
@@ -20,11 +20,11 @@ namespace conrad
 namespace synthesis
 {
 
-MEImageEquation::~MEImageEquation()
+ImageEquation::~ImageEquation()
 {
 }
 
-void MEImageEquation::init()
+void ImageEquation::init()
 {
 	// The default parameters serve as a holder for the patterns to match the actual
 	// parameters. Shell pattern matching rules apply.
@@ -32,7 +32,7 @@ void MEImageEquation::init()
 	itsDefaultParams.add("image.i");
 }
 
-void MEImageEquation::predict(IDataAccessor& ida) 
+void ImageEquation::predict(IDataAccessor& ida) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
@@ -50,7 +50,7 @@ void MEImageEquation::predict(IDataAccessor& ida)
 	for (it=completions.begin();it!=completions.end();it++) {
 	
 		string imageName("image.i"+(*it));
-		MEDomain domain(parameters().domain(imageName));
+		Domain domain(parameters().domain(imageName));
 		if(!domain.has("RA")||!domain.has("DEC")) {
 			throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
 		}
@@ -76,7 +76,7 @@ void MEImageEquation::predict(IDataAccessor& ida)
 	}
 };
 
-void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix) 
+void ImageEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
@@ -100,7 +100,7 @@ void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designma
 	vector<string>::iterator it;
 	for (it=completions.begin();it!=completions.end();it++) {
 		string imageName("image.i"+(*it));
-		MEDomain domain(parameters().domain(imageName));
+		Domain domain(parameters().domain(imageName));
 
 		double raStart=domain.start("RA");
 		double raEnd=domain.end("RA");
@@ -130,13 +130,13 @@ void MEImageEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designma
 	}
 };
 
-void MEImageEquation::calcEquations(IDataAccessor& ida, MENormalEquations& normeq) 
+void ImageEquation::calcEquations(IDataAccessor& ida, NormalEquations& normeq) 
 {
 	// We can only make a relatively poor approximation to the normal equations
-	normeq.setApproximation(MENormalEquations::DIAGONAL_SLICE);
+	normeq.setApproximation(NormalEquations::DIAGONAL_SLICE);
 };
 
-void MEImageEquation::calcVis(const casa::Vector<double>& imagePixels, 
+void ImageEquation::calcVis(const casa::Vector<double>& imagePixels, 
 	const double raStart, const double raEnd, const int raCells, 
 	const double decStart, const double decEnd, const int decCells, 
 	const casa::Vector<double>& freq,  

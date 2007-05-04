@@ -1,6 +1,6 @@
-#include <measurementequation/MEDesignMatrix.h>
-#include <measurementequation/MENormalEquations.h>
-#include <measurementequation/MEParams.h>
+#include <fitting/DesignMatrix.h>
+#include <fitting/NormalEquations.h>
+#include <fitting/Params.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -12,9 +12,9 @@
 namespace conrad {
 namespace synthesis {
 
-MENormalEquations::MENormalEquations(const MEParams& ip) : 	itsParams(ip)
+NormalEquations::NormalEquations(const Params& ip) : 	itsParams(ip)
 {
-	itsApprox=MENormalEquations::COMPLETE;
+	itsApprox=NormalEquations::COMPLETE;
 	vector<string> names=ip.freeNames();
 	vector<string>::iterator iterRow;
 	vector<string>::iterator iterCol;
@@ -26,12 +26,12 @@ MENormalEquations::MENormalEquations(const MEParams& ip) : 	itsParams(ip)
 	}
 }
 
-MENormalEquations::MENormalEquations(const MENormalEquations& other) 
+NormalEquations::NormalEquations(const NormalEquations& other) 
 {
 	operator=(other);
 }
 
-MENormalEquations& MENormalEquations::operator=(const MENormalEquations& other)
+NormalEquations& NormalEquations::operator=(const NormalEquations& other)
 {
 	if(this!=&other) {
 		itsParams=other.itsParams;
@@ -41,8 +41,8 @@ MENormalEquations& MENormalEquations::operator=(const MENormalEquations& other)
 	}
 }
 
-MENormalEquations::MENormalEquations(const MEDesignMatrix& dm, 
-	const MENormalEquations::Approximation approx)
+NormalEquations::NormalEquations(const DesignMatrix& dm, 
+	const NormalEquations::Approximation approx)
 {
 	itsParams=dm.parameters();
 	itsApprox=approx;
@@ -52,7 +52,7 @@ MENormalEquations::MENormalEquations(const MEDesignMatrix& dm,
 	const uint nDataSet=dm.residual().size();
 	
 	switch(approx) {
-		case MENormalEquations::COMPLETE:
+		case NormalEquations::COMPLETE:
 			// This looks hairy but it's all just linear algebra!
 			for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
 				bool first=true;
@@ -114,38 +114,38 @@ MENormalEquations::MENormalEquations(const MEDesignMatrix& dm,
 				}
 			}
 			break;
-//		case MENormalEquations::DIAGONAL_COMPLETE:
+//		case NormalEquations::DIAGONAL_COMPLETE:
 //			throw(std::invalid_argument("Normal Equation approximation DIAGONAL_COMPLETE not yet implemented"));
-//		case MENormalEquations::DIAGONAL_SLICE:
+//		case NormalEquations::DIAGONAL_SLICE:
 //			throw(std::invalid_argument("Normal Equation approximation DIAGONAL_SLICE not yet implemented"));
-//		case MENormalEquations::DIAGONAL_DIAGONAL:
+//		case NormalEquations::DIAGONAL_DIAGONAL:
 //			throw(std::invalid_argument("Normal Equation approximation DIAGONAL_DIAGONAL not yet implemented"));
 //		default:
 //			throw(std::invalid_argument("Unknown Normal Equation approximation"));
 	}
 }
 
-MENormalEquations::~MENormalEquations()
+NormalEquations::~NormalEquations()
 {
 	reset();
 }
 
-const MEParams& MENormalEquations::parameters() const
+const Params& NormalEquations::parameters() const
 {
 	return itsParams;
 }
 
-MEParams& MENormalEquations::parameters() 
+Params& NormalEquations::parameters() 
 {
 	return itsParams;
 }
 
-void MENormalEquations::setApproximation(const MENormalEquations::Approximation approx)
+void NormalEquations::setApproximation(const NormalEquations::Approximation approx)
 {
 	itsApprox=approx;
 }
 
-void MENormalEquations::merge(const MENormalEquations& other) 
+void NormalEquations::merge(const NormalEquations& other) 
 {
 	if(itsApprox!=other.itsApprox) {
 		throw(std::invalid_argument("Normal equation approximations are different and cannot be merged"));
@@ -174,19 +174,19 @@ void MENormalEquations::merge(const MENormalEquations& other)
 }
 
 	/// Return normal equations
-std::map<string, std::map<string, casa::Matrix<double> > > MENormalEquations::normalMatrix() const
+std::map<string, std::map<string, casa::Matrix<double> > > NormalEquations::normalMatrix() const
 {
 	return itsNormalMatrix;
 }
 
 	/// Return data vector
-std::map<string, casa::Vector<double> > MENormalEquations::dataVector() const
+std::map<string, casa::Vector<double> > NormalEquations::dataVector() const
 {
 	return itsDataVector;
 }
 
 
-void MENormalEquations::reset()
+void NormalEquations::reset()
 {
 	map<string, casa::Vector<double> >::iterator iterRow;
 	map<string, casa::Matrix<double> >::iterator iterCol;

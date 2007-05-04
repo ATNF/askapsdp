@@ -1,7 +1,7 @@
-#ifndef MEIMAGEEQUATION_H_
-#define MEIMAGEEQUATION_H_
+#ifndef IMAGEEQUATION_H_
+#define IMAGEEQUATION_H_
 
-#include <measurementequation/MEquation.h>
+#include <measurementequation/SynEquation.h>
 #include <dataaccess/IDataAccessor.h>
 
 #include <casa/aips.h>
@@ -15,14 +15,9 @@ namespace conrad
 namespace synthesis
 {
 
-class MEImageEquation : public MEquation
+class ImageEquation : public SynEquation
 {
 public:
-
-	MEImageEquation() : MEquation() {};
-	MEImageEquation(const MEParams& ip) : MEquation(ip) {};
-	
-	virtual ~MEImageEquation();
 	
 	/// Predict model visibility
 	/// @param ida data accessor
@@ -31,12 +26,12 @@ public:
 	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MENormalEquations& normeq);
+	virtual void calcEquations(IDataAccessor& ida, NormalEquations& normeq);
 	
 	/// Calculate the regular design matrix
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix);
+	virtual void calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix);
 	
 private:
 	void init();

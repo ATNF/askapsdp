@@ -1,14 +1,14 @@
 /// @file
 ///
-/// MEquation: Represent a parametrized imaging equation. An MEquation 
+/// quation: Represent a parametrized imaging equation. An quation 
 /// is constructed with two sets of parameters. The parameters
-/// can be updated subsequently. The MEquation can do two principal things
+/// can be updated subsequently. The quation can do two principal things
 ///    - calculate data (passed via a data accessor)
 ///    - transpose residual data back to the parameter space
 ///
 /// These two things can be combined in a calcDerivatives step to allow calculation
 /// of gradients for parameters. The parameters may then be solved for by
-/// an MESolver class.
+/// an Solver class.
 /// 
 /// There are two classes of parameters - regular parameters which are single values
 /// doubles andd image parameters (usually a TempImage of 
@@ -31,37 +31,37 @@ namespace synthesis
 
 class IDataAccessor;
 
-class MEParams;
-class MENormalEquations;
-class MENormalEquations;
-class MEDesignMatrix;
+class Params;
+class NormalEquations;
+class NormalEquations;
+class DesignMatrix;
 
-class MEquation {
+class quation {
 public:	
 	/// Constructor
 	/// Using default parameters
-    MEquation() {};
+    quation() {};
     
     /// Using specified parameters
-    MEquation(const MEParams& ip) : itsParams(ip) {};
+    quation(const Params& ip) : itsParams(ip) {};
     
-    virtual ~MEquation(){};
+    virtual ~quation(){};
 
 	/// Access the parameters
-	const MEParams& parameters() const {return itsParams;};
-	MEParams& parameters() {return itsParams;};
+	const Params& parameters() const {return itsParams;};
+	Params& parameters() {return itsParams;};
 	
 	/// Set the parameters to new values
 	/// @param ip Parameters
-	virtual void setParameters(const MEParams& ip) {itsParams=ip;};
+	virtual void setParameters(const Params& ip) {itsParams=ip;};
 	
 	/// Check if set of parameters is valid for this equation
 	/// @param ip Parameters
-	virtual bool complete(const MEParams& ip) {return itsDefaultParams.isCongruent(ip);};
+	virtual bool complete(const Params& ip) {return itsDefaultParams.isCongruent(ip);};
 	
 	/// Return a default set of parameters
 	/// @param ip Parameters
-	const MEParams& defaultParameters() const {return itsDefaultParams;};
+	const Params& defaultParameters() const {return itsDefaultParams;};
 
 	/// Predict model visibility
 	/// @param ida data accessor
@@ -70,16 +70,16 @@ public:
 	/// Calculate the design matrix only
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix) = 0;
+	virtual void calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix) = 0;
 
 	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, MENormalEquations& normeq) = 0;
+	virtual void calcEquations(IDataAccessor& ida, NormalEquations& normeq) = 0;
 	
 protected:
-	MEParams itsParams;
-	MEParams itsDefaultParams;
+	Params itsParams;
+	Params itsDefaultParams;
 };
 
 }

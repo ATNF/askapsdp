@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MELinearSolver: This solver uses SVD to solve the design matrix
+/// LinearSolver: This solver uses SVD to solve the design matrix
 /// equations.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
@@ -9,32 +9,32 @@
 #ifndef SYNLINEARSOLVER_H_
 #define SYNLINEARSOLVER_H_
 
-#include <measurementequation/MESolver.h>
-#include <measurementequation/MENormalEquations.h>
-#include <measurementequation/MEDesignMatrix.h>
-#include <measurementequation/MEParams.h>
+#include <fitting/Solver.h>
+#include <fitting/NormalEquations.h>
+#include <fitting/DesignMatrix.h>
+#include <fitting/Params.h>
 
 namespace conrad
 {
 namespace synthesis
 {
 
-class MELinearSolver : public MESolver
+class LinearSolver : public Solver
 {
 public:	
 
-	MELinearSolver(const MEParams& ip) : MESolver(ip) {};
+	LinearSolver(const Params& ip) : Solver(ip) {};
 	
 	/// Initialize this solver
 	virtual void init();
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the normal equations
-	virtual bool solveNormalEquations(MEQuality& q);
+	virtual bool solveNormalEquations(Quality& q);
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the design matrix
-	virtual bool solveDesignMatrix(MEQuality& q);
+	virtual bool solveDesignMatrix(Quality& q);
 	
 protected:
 };

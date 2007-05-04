@@ -1,5 +1,5 @@
-#include <measurementequation/MEDesignMatrix.h>
-#include <measurementequation/MEParams.h>
+#include <fitting/DesignMatrix.h>
+#include <fitting/Params.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
 
@@ -23,19 +23,19 @@ namespace conrad
 namespace synthesis
 {
 
-MEDesignMatrix::MEDesignMatrix(const MEParams& ip) : itsParams(ip)
+DesignMatrix::DesignMatrix(const Params& ip) : itsParams(ip)
 {
 	itsAMatrix.clear();
 	itsBVector.clear();
 	itsWeight.clear();
 }
 
-MEDesignMatrix::MEDesignMatrix(const MEDesignMatrix& other) 
+DesignMatrix::DesignMatrix(const DesignMatrix& other) 
 {
 	operator=(other);
 }
 
-MEDesignMatrix& MEDesignMatrix::operator=(const MEDesignMatrix& other)
+DesignMatrix& DesignMatrix::operator=(const DesignMatrix& other)
 {
 	if(this!=&other) {
 		itsParams=other.itsParams;
@@ -45,12 +45,12 @@ MEDesignMatrix& MEDesignMatrix::operator=(const MEDesignMatrix& other)
 	}
 }
 
-MEDesignMatrix::~MEDesignMatrix()
+DesignMatrix::~DesignMatrix()
 {
 	reset();
 }
 
-void MEDesignMatrix::merge(const MEDesignMatrix& other) 
+void DesignMatrix::merge(const DesignMatrix& other) 
 {
 	if(itsAMatrix.size()==0) {
 		itsParams=other.itsParams;
@@ -70,7 +70,7 @@ void MEDesignMatrix::merge(const MEDesignMatrix& other)
 	}
 }
 
-void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv)
+void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv)
 {
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
@@ -78,28 +78,28 @@ void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::
 	itsAMatrix[name].push_back(deriv.copy());
 }
 
-void MEDesignMatrix::addResidual(const casa::Vector<casa::DComplex>& residual, const casa::Vector<double>& weight)
+void DesignMatrix::addResidual(const casa::Vector<casa::DComplex>& residual, const casa::Vector<double>& weight)
 {
 	itsBVector.push_back(residual.copy());
 	itsWeight.push_back(weight.copy());
 }
 
-vector<string> MEDesignMatrix::names() const
+vector<string> DesignMatrix::names() const
 {
 	return itsParams.names();
 }
 
-const MEParams& MEDesignMatrix::parameters() const
+const Params& DesignMatrix::parameters() const
 {
 	return itsParams;
 }
 
-MEParams& MEDesignMatrix::parameters() 
+Params& DesignMatrix::parameters() 
 {
 	return itsParams;
 }
 
-DMAMatrix MEDesignMatrix::derivative(const string& name) const
+DMAMatrix DesignMatrix::derivative(const string& name) const
 {
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
@@ -110,24 +110,24 @@ DMAMatrix MEDesignMatrix::derivative(const string& name) const
 	return itsAMatrix[name];
 }
 
-DMBVector MEDesignMatrix::residual() const
+DMBVector DesignMatrix::residual() const
 {
 	return itsBVector;
 }
 
-DMWeight MEDesignMatrix::weight() const
+DMWeight DesignMatrix::weight() const
 {
 	return itsWeight;
 }
 
-void MEDesignMatrix::reset()
+void DesignMatrix::reset()
 {
 	itsAMatrix.clear();
 	itsBVector.clear();
 	itsWeight.clear();
 }
 
-double MEDesignMatrix::fit() const
+double DesignMatrix::fit() const
 {
 	double sumwt=0.0;
 	double sum=0.0;
@@ -146,7 +146,7 @@ double MEDesignMatrix::fit() const
 	}
 }
 
-uint MEDesignMatrix::nData() const
+uint DesignMatrix::nData() const
 {
 	uint nData=0;
 	std::map<string, DMAMatrix>::iterator AIt;
@@ -159,7 +159,7 @@ uint MEDesignMatrix::nData() const
 	return nData;
 }
 
-uint MEDesignMatrix::nParameters() const
+uint DesignMatrix::nParameters() const
 {
 	uint nParameters=0;
 	std::map<string, DMAMatrix>::iterator AIt;

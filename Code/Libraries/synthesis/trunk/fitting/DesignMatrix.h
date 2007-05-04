@@ -1,6 +1,6 @@
 /// @file
 ///
-/// MEDesignMatrix: Hold the design matrix for parameters
+/// DesignMatrix: Hold the design matrix for parameters
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -15,39 +15,39 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
 
-#include <fitting/MEParams.h>
+#include <fitting/Params.h>
 
 namespace conrad {
 namespace synthesis {
 	
-class MENormalEquations;
+class NormalEquations;
 	
 typedef std::vector<casa::Matrix<casa::DComplex> > DMAMatrix;
 typedef std::vector<casa::Vector<casa::DComplex> > DMBVector;
 typedef std::vector<casa::Vector<casa::Double> > DMWeight;
 
-class MEDesignMatrix
+class DesignMatrix
 {
 public:
 
-	MEDesignMatrix() {};
+	DesignMatrix() {};
 	
 	/// Define a design matrix
 	/// @param ip Parameters
-	MEDesignMatrix(const MEParams& ip);
+	DesignMatrix(const Params& ip);
 	
 	/// Copy constructor
-	MEDesignMatrix(const MEDesignMatrix& dm);
+	DesignMatrix(const DesignMatrix& dm);
 	
 	/// Assignment operator
-	MEDesignMatrix& operator=(const MEDesignMatrix& dm);
+	DesignMatrix& operator=(const DesignMatrix& dm);
 	
-	virtual ~MEDesignMatrix();
+	virtual ~DesignMatrix();
 	
 	/// Merge this design matrix with another - means that we just
 	/// need to append on the data axis
 	/// @param other Other design matrix
-	void merge(const MEDesignMatrix& other);
+	void merge(const DesignMatrix& other);
 	
 	/// Add the derivative of the data with respect to dof of the named parameter
 	/// @param name Name of parameter
@@ -63,8 +63,8 @@ public:
 	void reset();
 
 	/// Return the specified parameters
-	const MEParams& parameters() const;
-	MEParams& parameters();
+	const Params& parameters() const;
+	Params& parameters();
 		
 	/// Return the list of named design matrix terms
 	DMAMatrix derivative(const string& name) const;
@@ -87,10 +87,10 @@ public:
 	// Return number of parameters
 	uint nParameters() const;
 	
-	friend class MENormalEquations;
+	friend class NormalEquations;
 	
 private:
-	MEParams itsParams;
+	Params itsParams;
 	// Design Matrix = number of parameters x number of dof/parameter x number of data points
 	// The number of dof of parameters can vary from parameter to parameter
 	mutable std::map<string, DMAMatrix > itsAMatrix;

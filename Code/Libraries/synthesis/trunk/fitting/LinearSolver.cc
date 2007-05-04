@@ -1,4 +1,4 @@
-#include <measurementequation/MELinearSolver.h>
+#include <fitting/LinearSolver.h>
 
 #include <stdexcept>
 
@@ -20,14 +20,14 @@ namespace synthesis
 {
 
 
-void MELinearSolver::init() {
+void LinearSolver::init() {
 	itsNormalEquations.reset();
 	itsDesignMatrix.reset();
 }
 
 // Fully general solver for the normal equations for any shape 
 // parameters.
-bool MELinearSolver::solveNormalEquations(MEQuality& quality) {
+bool LinearSolver::solveNormalEquations(Quality& quality) {
 	
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
 	uint nParameters=0;
@@ -99,7 +99,7 @@ bool MELinearSolver::solveNormalEquations(MEQuality& quality) {
 };
 
 // Fully general solver from the design matrix
-bool MELinearSolver::solveDesignMatrix(MEQuality& quality) {
+bool LinearSolver::solveDesignMatrix(Quality& quality) {
 
 	uint nParameters=0;
 	uint nData=0;

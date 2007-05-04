@@ -1,8 +1,8 @@
 #include <dataaccess/IDataAccessor.h>
-#include <measurementequation/MEParams.h>
-#include <measurementequation/MEComponentEquation.h>
-#include <measurementequation/MENormalEquations.h>
-#include <measurementequation/MEDesignMatrix.h>
+#include <fitting/Params.h>
+#include <measurementequation/ComponentEquation.h>
+#include <fitting/NormalEquations.h>
+#include <fitting/DesignMatrix.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
@@ -22,11 +22,11 @@ namespace conrad
 namespace synthesis
 {
 
-MEComponentEquation::~MEComponentEquation()
+ComponentEquation::~ComponentEquation()
 {
 }
 
-void MEComponentEquation::init()
+void ComponentEquation::init()
 {
 	// The default parameters serve as a holder for the patterns to match the actual
 	// parameters. Shell pattern matching rules apply.
@@ -36,7 +36,7 @@ void MEComponentEquation::init()
 	itsDefaultParams.add("direction.dec");
 }
 
-void MEComponentEquation::predict(IDataAccessor& ida) 
+void ComponentEquation::predict(IDataAccessor& ida) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
@@ -72,7 +72,7 @@ void MEComponentEquation::predict(IDataAccessor& ida)
 	}
 };
 
-void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& designmatrix) 
+void ComponentEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
@@ -138,14 +138,14 @@ void MEComponentEquation::calcEquations(IDataAccessor& ida, MEDesignMatrix& desi
 	}
 };
 
-void MEComponentEquation::calcEquations(IDataAccessor& ida, MENormalEquations& normeq) 
+void ComponentEquation::calcEquations(IDataAccessor& ida, NormalEquations& normeq) 
 {
 };
 // This can be done easily by hand (and we should do for production) but I'm leaving
 // it in this form for the moment to show how the differentiation is done using
 // casa::AutoDiff
 template<class T>
-void MEComponentEquation::calcRegularVis(const T& ra, const T& dec, const T& flux, 
+void ComponentEquation::calcRegularVis(const T& ra, const T& dec, const T& flux, 
 	const casa::Vector<double>& freq, const double u, const double v, 
 	casa::Vector<T>& vis) 
 {

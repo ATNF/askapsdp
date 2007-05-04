@@ -1,5 +1,5 @@
-#include <measurementequation/MEComponentEquation.h>
-#include <measurementequation/MELinearSolver.h>
+#include <measurementequation/ComponentEquation.h>
+#include <fitting/LinearSolver.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
@@ -14,9 +14,9 @@
 namespace conrad {
 namespace synthesis {
 	
-class MEComponentEquationTest : public CppUnit::TestFixture  {
+class ComponentEquationTest : public CppUnit::TestFixture  {
 
-    CPPUNIT_TEST_SUITE(MEComponentEquationTest);
+    CPPUNIT_TEST_SUITE(ComponentEquationTest);
     CPPUNIT_TEST(testCopy);
     CPPUNIT_TEST_EXCEPTION(testParameters, std::invalid_argument);
     CPPUNIT_TEST(testPredict);
@@ -29,8 +29,8 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    MEComponentEquation *p1, *p2, *p3, *pempty;
-	MEParams *params1, *params2, *params3;
+    ComponentEquation *p1, *p2, *p3, *pempty;
+	Params *params1, *params2, *params3;
     DataAccessorStub *ida;
 
   public:
@@ -38,22 +38,22 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
     {
       ida = new DataAccessorStub(true);
       
-	  params1 = new MEParams;
+	  params1 = new Params;
 	  params1->add("flux.i.cena", 100.0);
 	  params1->add("direction.ra.cena", 0.5);
 	  params1->add("direction.dec.cena", -0.3);
 
-      p1 = new MEComponentEquation(*params1);
+      p1 = new ComponentEquation(*params1);
 
-	  params2 = new MEParams;
+	  params2 = new Params;
 	  params2->add("flux.i.cena", 100.0);
 	  params2->add("direction.ra.cena", 0.500005);
 	  params2->add("direction.dec.cena", -0.300003);
 	  	  
-      p2 = new MEComponentEquation(*params2);
+      p2 = new ComponentEquation(*params2);
       
-      p3 = new MEComponentEquation();
-      pempty = new MEComponentEquation();
+      p3 = new ComponentEquation();
+      pempty = new ComponentEquation();
     }
     
     void tearDown() 
@@ -67,14 +67,14 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
     
     void testCopy() 
     {
-		MEParams ip;
+		Params ip;
 		ip.add("Value0");
 		ip.add("Value1");
 		ip.add("Value2");
 		delete p1;
-		p1 = new MEComponentEquation(ip);
+		p1 = new ComponentEquation(ip);
 		delete p2;
-		p2 = new MEComponentEquation(*p1);
+		p2 = new ComponentEquation(*p1);
 		CPPUNIT_ASSERT(p2->parameters().names().size()==3);
 		CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
 		CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
@@ -88,37 +88,37 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 	
 	void testDesignMatrix()
 	{
-		MEDesignMatrix dm1(*params1);
+		DesignMatrix dm1(*params1);
 		p1->calcEquations(*ida, dm1);
 		CPPUNIT_ASSERT(abs(dm1.fit()-100.0)<0.01);
 		p1->predict(*ida);
 		dm1.reset();
 		p1->calcEquations(*ida, dm1);
 		CPPUNIT_ASSERT(dm1.fit()<0.03);
-		MEDesignMatrix dm2(*params2);
+		DesignMatrix dm2(*params2);
 		p2->calcEquations(*ida, dm2);
 		CPPUNIT_ASSERT(abs(dm2.fit()-7.02399)<0.0001);
 	}
 	
 	void testAssembly() {
 		// Predict with the "perfect" parameters"
-		MEDesignMatrix dm1(*params1);
+		DesignMatrix dm1(*params1);
 		p1->predict(*ida);
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
-		MEQuality q;
-		MELinearSolver solver1(*params2);
+		Quality q;
+		LinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 	}
 
 	void testSVD() {
 		// Predict with the "perfect" parameters"
-		MEDesignMatrix dm1(*params1);
+		DesignMatrix dm1(*params1);
 		p1->predict(*ida);
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
-		MEQuality q;
-		MELinearSolver solver1(*params2);
+		Quality q;
+		LinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
 		solver1.solveDesignMatrix(q);
 		CPPUNIT_ASSERT(q.rank()==3);
@@ -134,9 +134,9 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 	}
 
 	void testConstructNormalEquations() {
-		MEDesignMatrix dm1(*params1);
+		DesignMatrix dm1(*params1);
 		p2->calcEquations(*ida, dm1);
-		MENormalEquations normeq(dm1, MENormalEquations::COMPLETE);
+		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
 		std::map<string, std::map<string, casa::Matrix<double> > > nm(normeq.normalMatrix());
 		vector<string> names(params1->names());
 		for (uint row=0;row<names.size();row++) {
@@ -150,23 +150,23 @@ class MEComponentEquationTest : public CppUnit::TestFixture  {
 
 	void testSolveNormalEquations() {
 		// Predict with the "perfect" parameters"
-		MEDesignMatrix dm1(*params1);
+		DesignMatrix dm1(*params1);
 		p1->predict(*ida);
 		// Calculate gradients using "imperfect" parameters" 
 		p2->calcEquations(*ida, dm1);
-		MEQuality q;
-		MELinearSolver solver1(*params2);
-		MENormalEquations normeq(dm1, MENormalEquations::COMPLETE);
+		Quality q;
+		LinearSolver solver1(*params2);
+		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
 		solver1.addNormalEquations(normeq);
 		solver1.solveNormalEquations(q);
 	}
 
 	void testNoFree() {
-		MEDesignMatrix dm1(*params1);
+		DesignMatrix dm1(*params1);
 		p1->predict(*ida);
 		p2->calcEquations(*ida, dm1);
-		MEQuality q;
-		MELinearSolver solver1(*params2);
+		Quality q;
+		LinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
   	    solver1.parameters().fix("flux.i.cena");
 	    solver1.parameters().fix("direction.ra.cena");
