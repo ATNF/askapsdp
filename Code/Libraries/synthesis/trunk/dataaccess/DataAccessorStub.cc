@@ -15,7 +15,7 @@ using namespace synthesis;
 /// @return the number of rows in this chunk
 casa::uInt DataAccessorStub::nRow() const throw()
 {
-  return mVisibility.nrow();
+  return itsVisibility.nrow();
 }
 
 // The following methods implement metadata access
@@ -24,14 +24,14 @@ casa::uInt DataAccessorStub::nRow() const throw()
 /// @return the number of spectral channels
 casa::uInt DataAccessorStub::nChannel() const throw()
 {
-  return mVisibility.ncolumn();
+  return itsVisibility.ncolumn();
 }
 
 /// The number of polarization products (equal for all rows)
 /// @return the number of polarization products (can be 1,2 or 4)
 casa::uInt DataAccessorStub::nPol() const throw()
 {
- return mVisibility.nplane();
+ return itsVisibility.nplane();
 }
 
 
@@ -40,7 +40,7 @@ casa::uInt DataAccessorStub::nPol() const throw()
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& DataAccessorStub::antenna1() const
 {
-  return mAntenna1;
+  return itsAntenna1;
 }
 
 /// Second antenna IDs for all rows
@@ -48,7 +48,7 @@ const casa::Vector<casa::uInt>& DataAccessorStub::antenna1() const
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& DataAccessorStub::antenna2() const
 {
-  return mAntenna2;
+  return itsAntenna2;
 }
    
 /// First feed IDs for all rows
@@ -56,7 +56,7 @@ const casa::Vector<casa::uInt>& DataAccessorStub::antenna2() const
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& DataAccessorStub::feed1() const
 {
-  return mFeed1;
+  return itsFeed1;
 }
 
 /// Second feed IDs for all rows
@@ -64,7 +64,7 @@ const casa::Vector<casa::uInt>& DataAccessorStub::feed1() const
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& DataAccessorStub::feed2() const
 {
-  return mFeed2;
+  return itsFeed2;
 }
 
 /// Position angles of the first feed for all rows
@@ -72,7 +72,7 @@ const casa::Vector<casa::uInt>& DataAccessorStub::feed2() const
 /// first feed corresponding to each visibility
 const casa::Vector<casa::Float>& DataAccessorStub::feed1PA() const
 {
-  return mFeed1PA;
+  return itsFeed1PA;
 }
 
 /// Position angles of the second feed for all rows
@@ -80,7 +80,7 @@ const casa::Vector<casa::Float>& DataAccessorStub::feed1PA() const
 /// second feed corresponding to each visibility
 const casa::Vector<casa::Float>& DataAccessorStub::feed2PA() const
 {
-  return mFeed2PA;
+  return itsFeed2PA;
 }
 
 /// Return pointing centre directions of the first antenna/feed
@@ -89,7 +89,7 @@ const casa::Vector<casa::Float>& DataAccessorStub::feed2PA() const
 /// visibility/row
 const casa::Vector<casa::MVDirection>& DataAccessorStub::pointingDir1() const
 {
-  return mPointingDir1;
+  return itsPointingDir1;
 }
 
 /// Pointing centre directions of the second antenna/feed
@@ -98,7 +98,7 @@ const casa::Vector<casa::MVDirection>& DataAccessorStub::pointingDir1() const
 /// visibility/row
 const casa::Vector<casa::MVDirection>& DataAccessorStub::pointingDir2() const
 {
-  return mPointingDir2;
+  return itsPointingDir2;
 }
 
 /// Visibilities (a cube is nRow x nChannel x nPol; each element is
@@ -109,7 +109,7 @@ const casa::Vector<casa::MVDirection>& DataAccessorStub::pointingDir2() const
 ///     a non-const version to be able to subtract the model
 const casa::Cube<casa::Complex>& DataAccessorStub::visibility() const
 {
-  return mVisibility;
+  return itsVisibility;
 }
 
 /// Read-write visibilities (a cube is nRow x nChannel x nPol; 
@@ -120,7 +120,7 @@ const casa::Cube<casa::Complex>& DataAccessorStub::visibility() const
 ///
 casa::Cube<casa::Complex>& DataAccessorStub::rwVisibility()
 {
-  return mVisibility;
+  return itsVisibility;
 }
 
 /// Cube of flags corresponding to the output of visibility() 
@@ -128,7 +128,7 @@ casa::Cube<casa::Complex>& DataAccessorStub::rwVisibility()
 ///         information. If True, the corresponding element is flagged.
 const casa::Cube<casa::Bool>& DataAccessorStub::flag() const
 {
-  return mFlag;
+  return itsFlag;
 }
 
 /// Non-const access to the cube of flags.
@@ -136,7 +136,7 @@ const casa::Cube<casa::Bool>& DataAccessorStub::flag() const
 ///         information. If True, the corresponding element is flagged.
 casa::Cube<casa::Bool>& DataAccessorStub::rwFlag()
 {
-  return mFlag;
+  return itsFlag;
 }
 
 /// UVW
@@ -145,20 +145,15 @@ casa::Cube<casa::Bool>& DataAccessorStub::rwFlag()
 const casa::Vector<casa::RigidVector<casa::Double, 3> >&
              DataAccessorStub::uvw() const
 {
-  return mUVW;
+  return itsUVW;
 }
 
 /// Noise level required for a proper weighting
-/// It is assumed at this stage that the same figure is valid for
-/// all spectral channels, although there could be a difference
-/// between different polarizations (hence a Matrix)
-/// @return a Matrix of complex noise estimates, rows correspond to
-///         the rows in this buffer, columns correspond to 
-///         polarizations (polarization conversion and selection
-///         are taken into account)
-const casa::Matrix<casa::Complex>& DataAccessorStub::noise() const
+/// @return a reference to nRow x nChannel x nPol cube with
+///         complex noise estimates
+const casa::Cube<casa::Complex>& DataAccessorStub::noise() const
 {
-  return mNoise;
+  return itsNoise;
 }
 
 /// Timestamp for each row
@@ -167,7 +162,7 @@ const casa::Matrix<casa::Complex>& DataAccessorStub::noise() const
 ///         DataSource object)
 const casa::Vector<casa::Double>& DataAccessorStub::time() const
 {
-  return mTime;
+  return itsTime;
 }
 
 /// Frequency for each channel
@@ -177,7 +172,7 @@ const casa::Vector<casa::Double>& DataAccessorStub::time() const
 ///         the DataSource object
 const casa::Vector<casa::Double>& DataAccessorStub::frequency() const
 {
-  return mFrequency;
+  return itsFrequency;
 }
 
 
@@ -188,5 +183,5 @@ const casa::Vector<casa::Double>& DataAccessorStub::frequency() const
 ///         the DataSource object (via IDataConverter).
 const casa::Vector<casa::Double>& DataAccessorStub::velocity() const
 {
-  return mVelocity;
+  return itsVelocity;
 }

@@ -8,8 +8,9 @@
 /// when the iterator goes out of scope. All iterators created from the same
 /// DataSource object work with the same buffers. The user is responsible
 /// for synchronization, if a simultanous access to the same buffer is
-/// implemented in a parallel environment.
-///
+/// implemented in a parallel environment. The user should also take care
+/// in the situation when the iterators with different selection access
+/// the same buffer (this behavior is still TBD).
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -17,6 +18,8 @@
 
 #ifndef I_DATA_ITERATOR_H
 #define I_DATA_ITERATOR_H
+
+#include <string>
 
 #include "IConstDataIterator.h"
 #include "IDataAccessor.h"
@@ -73,9 +76,9 @@ public:
 	/// is executed to revert operators to their default meaning
 	/// (to refer to the primary visibility data).
 	///
-	/// @param[in] bufferID  the number of the buffer to choose
+	/// @param[in] bufferID  the name of the buffer to choose
 	///
-	virtual void chooseBuffer(casa::uInt bufferID) = 0;
+	virtual void chooseBuffer(const std::string &bufferID) = 0;
 
 	/// Switch the output of operator* and operator-> to the original
 	/// state (present after the iterator is just constructed) 
@@ -88,14 +91,14 @@ public:
 	/// buffer is identified by its bufferID. The method 
 	/// ignores a chooseBuffer/chooseOriginal setting.
 	/// 
-	/// @param[in] bufferID the number of the buffer requested
+	/// @param[in] bufferID the name of the buffer requested
 	/// @return a reference to writable data accessor to the
 	///         buffer requested
 	///
 	/// Because IDataAccessor has both const and non-const visibility()
 	/// methods defined separately, it is possible to detect when a
 	/// write operation took place and implement a delayed writing
-	virtual IDataAccessor& buffer(casa::uInt bufferID) const = 0;
+	virtual IDataAccessor& buffer(const std::string &bufferID) const = 0;
 
 	/// advance the iterator one step further
 	///

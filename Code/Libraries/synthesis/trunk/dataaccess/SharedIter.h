@@ -11,11 +11,12 @@
 #ifndef I_SHARED_ITER_H
 #define I_SHARED_ITER_H
 
+#include <string>
+#include <boost/shared_ptr.hpp>
+
 #include <casa/aips.h>
 #include <casa/Exceptions/Error.h>
 #include <casa/Utilities/Assert.h>
-
-#include <boost/shared_ptr.hpp>
 
 namespace conrad {
 
@@ -97,15 +98,7 @@ public:
       }
       return false;
     }
-
-    /// @return true if there are no more data to iterate
-    inline bool atEnd() const throw()
-    {
-      if (*this) {
-          return (boost::shared_ptr<T>::operator*()).atEnd();
-      }
-      return true;
-    }
+    
 
     /// @return true if there are more data (so constructions like
     ///         while (it.next()) {} are possible)
@@ -131,12 +124,12 @@ public:
     /// IDataIterator call). The method is valid for types
     /// derived from IDataIterator only.
     ///
-    /// @param bufferID the number of buffer to choose
+    /// @param bufferID the name of buffer to choose
     ///
-    inline void chooseBuffer(casa::uInt bufferID) const
+    inline void chooseBuffer(const std::string &bufferID) const
     {
       DebugAssert(*this,casa::AipsError);
-      (boost::shared_ptr<T>::operator*()).chooseBuffer(bufferID); 
+      (boost::shared_ptr<T>::operator*()).chooseBuffer(bufferID);
     }
 
     /// restore the original link between the accessor returned
@@ -152,11 +145,11 @@ public:
     /// The call is translated to the appropriate IDataIterator call
     /// (which should be provided by the underlying iterator class)
     ///
-    /// @param bufferID the number of buffer to return
+    /// @param bufferID the name of the buffer to return
     /// @return a reference to the data accessor corresponding to the
     ///         buffer requested
     ///
-    inline typename T::value_type buffer(casa::uInt bufferID) const {
+    inline typename T::value_type buffer(const std::string &bufferID) const {
        DebugAssert(*this,casa::AipsError);
        return (boost::shared_ptr<T>::operator*()).buffer(bufferID);
     }

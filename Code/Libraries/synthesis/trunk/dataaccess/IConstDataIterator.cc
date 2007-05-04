@@ -39,16 +39,6 @@ const IConstDataAccessor* IConstDataIterator::operator->() const
   return &(operator*());
 }
 
-/// Checks whether the iterator reached an end.
-/// @return True if the iterator has reached an end. 
-/// The Default implementation works via hasMore(), however 
-/// one can override the method in a derived class to avoid 
-/// this (slight) overhead
-casa::Bool IConstDataIterator::atEnd() const throw()
-{ 
-  return !hasMore();
-}
-
 /// advance the iterator one step further
 /// @return A reference to itself (to allow ++++it synthax)
 /// The default implementation is via next(), however one can

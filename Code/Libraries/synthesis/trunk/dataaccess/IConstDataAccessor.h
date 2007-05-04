@@ -108,14 +108,10 @@ public:
 	        uvw() const = 0;
 
         /// Noise level required for a proper weighting
-	/// It is assumed at this stage that the same figure is valid for
-	/// all spectral channels, although there could be a difference
-	/// between different polarizations (hence a Matrix)
-	/// @return a Matrix of complex noise estimates, rows correspond to
-	///         the rows in this buffer, columns correspond to 
-	///         polarizations (polarization conversion and selection
-	///         are taken into account)
-	virtual const casa::Matrix<casa::Complex>& noise() const = 0;
+	/// @return a reference to nRow x nChannel x nPol cube with
+	///         complex noise estimates. Elements correspond to the
+	///         visibilities in the data cube.
+	virtual const casa::Cube<casa::Complex>& noise() const = 0;
 
 	/// Timestamp for each row
 	/// @return a reference to vector containing timestamps for each

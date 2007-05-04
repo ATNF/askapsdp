@@ -103,14 +103,9 @@ struct DataAccessorStub : public IFlagDataAccessor
 
      
      /// Noise level required for a proper weighting
-     /// It is assumed at this stage that the same figure is valid for
-     /// all spectral channels, although there could be a difference
-     /// between different polarizations (hence a Matrix)
-     /// @return a Matrix of complex noise estimates, rows correspond to
-     ///         the rows in this buffer, columns correspond to 
-     ///         polarizations (polarization conversion and selection
-     ///         are taken into account)
-     virtual const casa::Matrix<casa::Complex>& noise() const;
+     /// @return a reference to nRow x nChannel x nPol cube with
+     ///         complex noise estimates
+     virtual const casa::Cube<casa::Complex>& noise() const;
 
      /// UVW
      /// @return a reference to vector containing uvw-coordinates
@@ -142,21 +137,21 @@ struct DataAccessorStub : public IFlagDataAccessor
 //private: // to be able to change stubbed data directly, if necessary
      /// cached results which are filled from an appropriate table
      /// when necessary (they probably have to be moved to DataSource)
-     mutable casa::Vector<casa::uInt> mAntenna1;
-     mutable casa::Vector<casa::uInt> mAntenna2;
-     mutable casa::Vector<casa::uInt> mFeed1;
-     mutable casa::Vector<casa::uInt> mFeed2;
-     mutable casa::Vector<casa::Float> mFeed1PA;
-     mutable casa::Vector<casa::Float> mFeed2PA;
-     mutable casa::Vector<casa::MVDirection> mPointingDir1;
-     mutable casa::Vector<casa::MVDirection> mPointingDir2;
-     mutable casa::Cube<casa::Complex> mVisibility;
-     mutable casa::Cube<casa::Bool> mFlag;
-     mutable casa::Vector<casa::RigidVector<casa::Double, 3> > mUVW;
-     mutable casa::Matrix<casa::Complex> mNoise;
-     mutable casa::Vector<casa::Double> mTime;
-     mutable casa::Vector<casa::Double> mFrequency;
-     mutable casa::Vector<casa::Double> mVelocity;
+     mutable casa::Vector<casa::uInt> itsAntenna1;
+     mutable casa::Vector<casa::uInt> itsAntenna2;
+     mutable casa::Vector<casa::uInt> itsFeed1;
+     mutable casa::Vector<casa::uInt> itsFeed2;
+     mutable casa::Vector<casa::Float> itsFeed1PA;
+     mutable casa::Vector<casa::Float> itsFeed2PA;
+     mutable casa::Vector<casa::MVDirection> itsPointingDir1;
+     mutable casa::Vector<casa::MVDirection> itsPointingDir2;
+     mutable casa::Cube<casa::Complex> itsVisibility;
+     mutable casa::Cube<casa::Bool> itsFlag;
+     mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
+     mutable casa::Cube<casa::Complex> itsNoise;
+     mutable casa::Vector<casa::Double> itsTime;
+     mutable casa::Vector<casa::Double> itsFrequency;
+     mutable casa::Vector<casa::Double> itsVelocity;
 };
 
 

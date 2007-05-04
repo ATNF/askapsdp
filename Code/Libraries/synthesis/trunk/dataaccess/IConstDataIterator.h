@@ -58,14 +58,7 @@ public:
 	/// Checks whether there are more data available.
 	/// @return True if there are more data available
 	virtual casa::Bool hasMore() const throw() = 0;
-
-	/// Checks whether the iterator reached an end.
-        /// @return True if the iterator has reached an end. 
-	/// The Default implementation works via hasMore(), however 
-	/// one can override the method in a derived class to avoid 
-	/// this (slight) overhead
-	virtual casa::Bool atEnd() const throw();
-
+	
 	/// advance the iterator one step further 
 	/// @return True if there are more data (so constructions like 
 	///         while(it.next()) {} are possible)

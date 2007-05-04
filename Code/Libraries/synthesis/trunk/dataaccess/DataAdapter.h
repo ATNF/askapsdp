@@ -16,6 +16,7 @@
 #define I_DATA_ADAPTER_H
 
 #include <casa/Arrays/Cube.h>
+#include <string>
 
 namespace conrad {
 
@@ -29,7 +30,8 @@ public:
   /// 
   /// @param[in] iter a const reference to the iterator to work with
   ///
-  explicit DataAdapter(const Iter &iter) : mIter(iter) {}
+  explicit DataAdapter(const Iter &iter, const Sel &selector = Sel()) :
+                itsIter(iter), itsSelector(selector) {}
   
   /// a default copy constructor is sufficient in this case
   
@@ -39,24 +41,24 @@ public:
   /// @return the data requested (the type is determined by the selector)
   ///
   inline typename Sel::value_type operator*() const {
-     return selector(mIter);
+     return itsSelector(itsIter);
   }
   
   inline void operator++() const {
-     incrementor(mIter);
+     itsIncrementor(itsIter);
   }
   
 private:  
-  Iter mIter;  /// SharedIter to work with. In fact, anything which can
+  Iter itsIter;/// SharedIter to work with. In fact, anything which can
                /// be passed to Inc::operator() (the default action is
 	       /// to call the operator++) and whose operator* returns a
 	       /// type accepted by Sel::operator(), which in turn returns
 	       /// a DataAccessor. Comparison operators should also be
 	       /// defined.
-  Sel selector; /// the operator() of this object is called with the
+  Sel itsSelector; /// the operator() of this object is called with the
                 /// underlying iterator passed as a parameter in the
 		/// access operator. It must return Sel::value_type
-  Inc incrementor; /// the operator() of this object is called with the
+  Inc itsIncrementor; /// the operator() of this object is called with the
                  /// underlying iterator passed as a parameter in the
 		 /// increment operator. Return type doesn't matter (and
 		 /// can be void).
@@ -90,14 +92,19 @@ struct VisibilitySelector {
    }
 };
 
-template<int N> struct BufferSelector {
-     typedef casa::Cube<casa::Complex>& value_type;
-     template<typename Iter>
-     inline value_type operator()(const Iter &iter) const
-     {
-       return iter.buffer(N).rwVisibility();
-     }
-  };
+struct BufferSelector {
+  BufferSelector(const std::string &buffer) : itsBufferName(buffer) {}
+ 
+  typedef casa::Cube<casa::Complex>& value_type;
+  
+  template<typename Iter>
+  inline value_type operator()(const Iter &iter) const
+  {
+    return iter.buffer(itsBufferName).rwVisibility();
+  }  
+private:
+  const std::string itsBufferName;
+};
 
 /// helper functions to construct a desired adapter without specifying
 /// lots of template type arguments
@@ -140,14 +147,14 @@ DataAdapter<Iter, VisibilitySelector, Incremented> VisAdapter(Iter iter)
   return DataAdapter<Iter, VisibilitySelector, Incremented>(iter);
 }
 
-/// BufferAdapter - write access to a buffer, which number is known at
+/// BufferAdapter - write access to a buffer, which name is known at
 /// the compilation stage
 
 /// template arguments:
-/// @param N the number of the buffer to work with
 /// @param Iter a type of the iterator (autodetected)
 /// @param Inc  a type of the incrementor (autodetected)
 /// method parameters:
+/// @param buffer a name of the buffer to use
 /// @param iter a valid SharedIter (with a permission to write)
 /// @param dummy an incrementor object. It is used for type identification
 ///              only. An object of this type constructed with a default
@@ -156,12 +163,12 @@ DataAdapter<Iter, VisibilitySelector, Incremented> VisAdapter(Iter iter)
 ///
 /// Usage example:
 ///     transform(output_iter,output_iter.end(),
-///          BufferAdapter<2>(output_iter,NoIncrement()));
+///          BufferAdapter("MODEL_DATA",output_iter,NoIncrement()));
 ///
 template<int N, typename Iter, typename Inc>
-DataAdapter<Iter, BufferSelector<N>, Inc> BufferAdapter(Iter iter,
-const Inc &) {
-  return DataAdapter<Iter, BufferSelector<N>, Inc>(iter);
+DataAdapter<Iter, BufferSelector, Inc> BufferAdapter(const std::string &buffer,
+                       Iter iter, const Inc &) {
+  return DataAdapter<Iter, BufferSelector, Inc>(iter,BufferSelector(buffer));
 }
 
 /// the same as the previous function, but with a fixed incrementor
@@ -171,14 +178,15 @@ const Inc &) {
 ///
 /// Usage example:
 ///     transform(input_iter,input_iter.end(),
-///               BufferAdapter<2>(output_iter));
+///               BufferAdapter("MODEL_DATA",output_iter));
 ///
-template<int N, typename Iter>
-DataAdapter<Iter, BufferSelector<N>, Incremented> BufferAdapter(Iter iter)
+template<typename Iter>
+DataAdapter<Iter, BufferSelector, Incremented>
+            BufferAdapter(const std::string &buffer, Iter iter)
 {
-  return DataAdapter<Iter, BufferSelector<N>, Incremented>(iter);
+  return DataAdapter<Iter, BufferSelector, Incremented>(iter,
+                           BufferSelector(buffer));
 }
-
 
 } // namespace synthesis
 

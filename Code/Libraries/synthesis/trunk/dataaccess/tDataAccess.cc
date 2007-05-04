@@ -135,17 +135,17 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      }
 
      // demonstration of STL: init can be called inline in the algorithms
-     it.chooseBuffer(0); // select the first r/w buffer (e.g. a model column)
+     it.chooseBuffer("MODEL_DATA"); // select a r/w buffer (e.g. a model column)
      for_each(it.init(),it.end(),TestInSituTransform(1e-4,1e-5));
      it.chooseOriginal(); // revert to original visibilities
-
+     
      // a more complicated example: a transform result of the observed
      // visibilities is stored in one of the buffers
      SharedIter<IConstDataIterator> input_iter=ds->createConstIterator(sel);
      SharedIter<IDataIterator> output_iter=ds->createIterator(sel);     
      transform(input_iter,input_iter.end(),
         //VisAdapter(output_iter),
-	BufferAdapter<2>(output_iter),
+	BufferAdapter("MODEL_DATA",output_iter),
 	TestTransform());     
      
 }
