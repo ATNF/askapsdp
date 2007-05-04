@@ -14,6 +14,7 @@ env.Append(CCFLAGS=['-g'])
 
 # Add casacore package from tag 0.1.1
 # This will pull in all packages it depends on
+env.AddConradPackage("boost", "ThirdPartyLibraries/boost/tags/boost-1.33.1")
 env.AddConradPackage("gsl", "ThirdPartyLibraries/gsl/tags/gsl-1.9")
 env.AddConradPackage("casacore", 
 		     "ThirdPartyLibraries/casacore/tags/casacore-0.1.1")
