@@ -18,7 +18,6 @@ namespace synthesis {
 class ImageEquationTest : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(ImageEquationTest);
-    CPPUNIT_TEST_EXCEPTION(testParameters, std::invalid_argument);
     CPPUNIT_TEST(testPredict);
     CPPUNIT_TEST(testDesignMatrix);
     CPPUNIT_TEST(testSVD);
@@ -26,7 +25,7 @@ class ImageEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    ImageEquation *p1, *p2, *p3, *pempty;
+    ImageEquation *p1, *p2;
 	Params *params1, *params2, *params3;
     DataAccessorStub *ida;
 
@@ -59,9 +58,6 @@ class ImageEquationTest : public CppUnit::TestFixture  {
 	  	  
       p2 = new ImageEquation(*params2);
       
-      p3 = new ImageEquation();
-      pempty = new ImageEquation();
-      
     }
     
     void tearDown() 
@@ -69,9 +65,7 @@ class ImageEquationTest : public CppUnit::TestFixture  {
       delete ida;
       delete p1;
       delete p2;
-      delete p3;
-      delete pempty;
-    }
+  	}
         
 	void testPredict()
 	{
@@ -119,13 +113,7 @@ class ImageEquationTest : public CppUnit::TestFixture  {
 	    solver1.parameters().fix("image.i.cena");
 		solver1.solveDesignMatrix(q);
 	}
-	
-	void testParameters()
-	// Should throw invalid_argument because of the lack of parameters
-	{
-		pempty->predict(*ida);
-	}
-  };
+};
   
 }
 }

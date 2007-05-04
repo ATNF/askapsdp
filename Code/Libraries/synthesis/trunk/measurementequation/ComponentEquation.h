@@ -11,6 +11,8 @@ namespace synthesis
 class ComponentEquation : public SynEquation
 {
 public:
+
+	ComponentEquation(const Params& ip) : SynEquation(ip) {};
 	
 	/// Predict model visibility
 	/// @param ida data accessor

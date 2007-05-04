@@ -22,10 +22,6 @@ namespace conrad
 namespace synthesis
 {
 
-ComponentEquation::~ComponentEquation()
-{
-}
-
 void ComponentEquation::init()
 {
 	// The default parameters serve as a holder for the patterns to match the actual

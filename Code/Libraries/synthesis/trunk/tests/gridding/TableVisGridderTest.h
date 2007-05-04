@@ -1,6 +1,6 @@
 #include <gridding/TableVisGridder.h>
-#include <measurementequation/MEParams.h>
-#include <measurementequation/MEComponentEquation.h>
+#include <fitting/Params.h>
+#include <measurementequation/ComponentEquation.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
@@ -36,12 +36,12 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
     {
       ida = new DataAccessorStub(true);
       
-	  MEParams ip;
+	  Params ip;
 	  ip.add("flux.i.cena", 100.0);
 	  ip.add("direction.ra.cena", 0.5);
 	  ip.add("direction.dec.cena", -0.3);
 	  
-	  MEComponentEquation ce(ip);
+	  ComponentEquation ce(ip);
 	  ce.predict(*ida);
 
       p1 = new TableVisGridder();

@@ -18,7 +18,6 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(ComponentEquationTest);
     CPPUNIT_TEST(testCopy);
-    CPPUNIT_TEST_EXCEPTION(testParameters, std::invalid_argument);
     CPPUNIT_TEST(testPredict);
     CPPUNIT_TEST(testDesignMatrix);
     CPPUNIT_TEST(testAssembly);
@@ -29,7 +28,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    ComponentEquation *p1, *p2, *p3, *pempty;
+    ComponentEquation *p1, *p2;
 	Params *params1, *params2, *params3;
     DataAccessorStub *ida;
 
@@ -52,8 +51,6 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 	  	  
       p2 = new ComponentEquation(*params2);
       
-      p3 = new ComponentEquation();
-      pempty = new ComponentEquation();
     }
     
     void tearDown() 
@@ -61,8 +58,6 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
       delete ida;
       delete p1;
       delete p2;
-      delete p3;
-      delete pempty;
     }
     
     void testCopy() 
@@ -175,11 +170,6 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		solver1.solveDesignMatrix(q);
 	}
 	
-	void testParameters()
-	// Should throw invalid_argument because of the lack of parameters
-	{
-		pempty->predict(*ida);
-	}
   };
   
 }

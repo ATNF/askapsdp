@@ -1,4 +1,4 @@
-#include <measurementequation/MENormalEquations.h>
+#include <fitting/NormalEquations.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -7,23 +7,23 @@
 namespace conrad {
 namespace synthesis {
 	
-class MENormalEquationsTest : public CppUnit::TestFixture  {
+class NormalEquationsTest : public CppUnit::TestFixture  {
 
-    CPPUNIT_TEST_SUITE(MENormalEquationsTest);
+    CPPUNIT_TEST_SUITE(NormalEquationsTest);
     CPPUNIT_TEST(testConstructors);
     CPPUNIT_TEST(testCopy);
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    MENormalEquations *p1, *p2, *p3, *pempty;
+    NormalEquations *p1, *p2, *p3, *pempty;
     
   public:
     void setUp()
     {
-      p1 = new MENormalEquations();
-      p2 = new MENormalEquations();
-      p3 = new MENormalEquations();
-      pempty = new MENormalEquations();
+      p1 = new NormalEquations();
+      p2 = new NormalEquations();
+      p3 = new NormalEquations();
+      pempty = new NormalEquations();
     }
     
     void tearDown() 
@@ -36,12 +36,12 @@ class MENormalEquationsTest : public CppUnit::TestFixture  {
     
     void testConstructors()
     {
-		MEParams ip;
+		Params ip;
 		ip.add("Value0");
 		ip.add("Value1");
 		ip.add("Value2");
 		delete p1;
-		p1 = new MENormalEquations(ip);
+		p1 = new NormalEquations(ip);
 		CPPUNIT_ASSERT(p1->parameters().names().size()==3);
 		CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
 		CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
@@ -50,14 +50,14 @@ class MENormalEquationsTest : public CppUnit::TestFixture  {
     
     void testCopy() 
     {
-		MEParams ip;
+		Params ip;
 		ip.add("Value0");
 		ip.add("Value1");
 		ip.add("Value2");
 		delete p1;
-		p1 = new MENormalEquations(ip);
+		p1 = new NormalEquations(ip);
 		delete p2;
-		p2 = new MENormalEquations(*p1);
+		p2 = new NormalEquations(*p1);
 		CPPUNIT_ASSERT(p2->parameters().names().size()==3);
 		CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
 		CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");

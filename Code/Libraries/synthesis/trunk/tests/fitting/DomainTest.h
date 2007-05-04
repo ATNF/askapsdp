@@ -1,4 +1,4 @@
-#include <measurementequation/MEDomain.h>
+#include <fitting/Domain.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -8,9 +8,9 @@
 namespace conrad {
 namespace synthesis {
 	
-class MEDomainTest : public CppUnit::TestFixture  {
+class DomainTest : public CppUnit::TestFixture  {
 
-    CPPUNIT_TEST_SUITE(MEDomainTest);
+    CPPUNIT_TEST_SUITE(DomainTest);
     CPPUNIT_TEST(testIndices);
     CPPUNIT_TEST(testValues);
     CPPUNIT_TEST_EXCEPTION(testDuplError, std::invalid_argument);
@@ -18,15 +18,15 @@ class MEDomainTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    MEDomain *p1, *p2, *p3, *pempty;
+    Domain *p1, *p2, *p3, *pempty;
     
   public:
     void setUp()
     {
-      p1 = new MEDomain();
-      p2 = new MEDomain();
-      p3 = new MEDomain();
-      pempty = new MEDomain();
+      p1 = new Domain();
+      p2 = new Domain();
+      p3 = new Domain();
+      pempty = new Domain();
     }
     
     void tearDown() 
@@ -50,7 +50,7 @@ class MEDomainTest : public CppUnit::TestFixture  {
       p1->add("Time", 0.0, 1.0, 128);
       CPPUNIT_ASSERT(p1->has("Time"));
       p1->add("Freq", 0.7e9, 1.7e9, 16384);
-      MEDomain pnew(*p1);
+      Domain pnew(*p1);
       std::vector<int> shape(p1->shape());
       CPPUNIT_ASSERT(shape[0]==128);
       CPPUNIT_ASSERT(shape[1]==16384);

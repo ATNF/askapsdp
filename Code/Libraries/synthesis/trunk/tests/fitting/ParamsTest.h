@@ -1,4 +1,4 @@
-#include <measurementequation/MEParams.h>
+#include <fitting/Params.h>
 
 #include <stdexcept>
 
@@ -7,9 +7,9 @@
 namespace conrad {
 namespace synthesis {
 	
- class MEParamsTest : public CppUnit::TestFixture  {
+ class ParamsTest : public CppUnit::TestFixture  {
     
-    CPPUNIT_TEST_SUITE(MEParamsTest);
+    CPPUNIT_TEST_SUITE(ParamsTest);
     CPPUNIT_TEST(testEmpty);
     CPPUNIT_TEST(testIndices);
     CPPUNIT_TEST(testAddition);
@@ -22,15 +22,15 @@ namespace synthesis {
     CPPUNIT_TEST_SUITE_END();
     
   private:
-    MEParams *p1, *p2, *p3, *pempty;
+    Params *p1, *p2, *p3, *pempty;
     
   public:
     void setUp()
     {
-      p1 = new MEParams();
-      p2 = new MEParams();
-      p3 = new MEParams();
-      pempty = new MEParams();
+      p1 = new Params();
+      p2 = new Params();
+      p3 = new Params();
+      pempty = new Params();
     }
     
     void tearDown() 
@@ -91,7 +91,7 @@ namespace synthesis {
       p1->add("Copy1", 1.5);
       CPPUNIT_ASSERT(p1->scalarValue("Copy1")==1.5);
       CPPUNIT_ASSERT(p1);
-      MEParams pnew(*p1);
+      Params pnew(*p1);
       CPPUNIT_ASSERT(pnew.size()==2);
       CPPUNIT_ASSERT(pnew.has("Copy0"));
       CPPUNIT_ASSERT(pnew.has("Copy1"));

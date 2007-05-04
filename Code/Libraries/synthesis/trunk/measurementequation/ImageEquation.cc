@@ -20,10 +20,6 @@ namespace conrad
 namespace synthesis
 {
 
-ImageEquation::~ImageEquation()
-{
-}
-
 void ImageEquation::init()
 {
 	// The default parameters serve as a holder for the patterns to match the actual

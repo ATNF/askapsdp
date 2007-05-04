@@ -1,6 +1,7 @@
 #ifndef IMAGEEQUATION_H_
 #define IMAGEEQUATION_H_
 
+#include <fitting/Params.h>
 #include <measurementequation/SynEquation.h>
 #include <dataaccess/IDataAccessor.h>
 
@@ -18,6 +19,8 @@ namespace synthesis
 class ImageEquation : public SynEquation
 {
 public:
+
+	ImageEquation(const Params& ip) : SynEquation(ip) {};
 	
 	/// Predict model visibility
 	/// @param ida data accessor

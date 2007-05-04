@@ -24,28 +24,26 @@
 #ifndef SYNEQUATION_H
 #define SYNEQUATION_H
 
+#include <fitting/Params.h>
+
 namespace conrad { 
 
 namespace synthesis
 {
 
-class IDataAccessor;
-
-class Params;
-class NormalEquations;
 class NormalEquations;
 class DesignMatrix;
 
-class quation {
+class Equation {
 public:	
 	/// Constructor
 	/// Using default parameters
-    quation() {};
+    Equation() {};
     
     /// Using specified parameters
-    quation(const Params& ip) : itsParams(ip) {};
+    Equation(const Params& ip) : itsParams(ip) {};
     
-    virtual ~quation(){};
+    virtual ~Equation(){};
 
 	/// Access the parameters
 	const Params& parameters() const {return itsParams;};
@@ -63,20 +61,6 @@ public:
 	/// @param ip Parameters
 	const Params& defaultParameters() const {return itsDefaultParams;};
 
-	/// Predict model visibility
-	/// @param ida data accessor
-	virtual void predict(IDataAccessor& ida) = 0;
-	
-	/// Calculate the design matrix only
-	/// @param ida data accessor
-	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix) = 0;
-
-	/// Calculate the normal equations
-	/// @param ida data accessor
-	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, NormalEquations& normeq) = 0;
-	
 protected:
 	Params itsParams;
 	Params itsDefaultParams;
