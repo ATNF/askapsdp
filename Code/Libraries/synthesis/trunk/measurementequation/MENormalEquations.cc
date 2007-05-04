@@ -147,6 +147,30 @@ void MENormalEquations::setApproximation(const MENormalEquations::Approximation 
 
 void MENormalEquations::merge(const MENormalEquations& other) 
 {
+	if(itsApprox!=other.itsApprox) {
+		throw(std::invalid_argument("Normal equation approximations are different and cannot be merged"));
+	} 
+	itsParams.merge(other.itsParams);
+	vector<string> names=itsParams.names();
+	vector<string>::iterator iterRow;
+	vector<string>::iterator iterCol;
+	
+	for (iterCol=names.begin();iterCol!=names.end();iterCol++) {
+		if(itsDataVector.size()==0) {
+			itsDataVector[*iterCol]=other.itsDataVector[*iterCol];
+		}
+		else {
+			itsDataVector[*iterCol]+=other.itsDataVector[*iterCol];
+		}
+		for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
+			if(itsNormalMatrix[*iterCol][*iterRow].nelements()==0) {
+				itsNormalMatrix[*iterCol][*iterRow]=other.itsNormalMatrix[*iterCol][*iterRow];
+			}
+			else {
+				itsNormalMatrix[*iterCol][*iterRow]+=other.itsNormalMatrix[*iterCol][*iterRow];
+			}
+		}
+	}
 }
 
 	/// Return normal equations

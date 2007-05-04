@@ -52,14 +52,22 @@ MEDesignMatrix::~MEDesignMatrix()
 
 void MEDesignMatrix::merge(const MEDesignMatrix& other) 
 {
-	std::map<string, DMAMatrix>::iterator AIt, OtherAIt;
-	for (AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++) {
-		std::copy(other.itsAMatrix[AIt->first].begin(), other.itsAMatrix[AIt->first].end(), 
-			itsAMatrix[AIt->first].end());
+	if(itsAMatrix.size()==0) {
+		itsParams=other.itsParams;
+		itsAMatrix=other.itsAMatrix;
+		itsBVector=other.itsBVector;
+		itsWeight=other.itsWeight;
 	}
+	else {
+		std::map<string, DMAMatrix>::iterator AIt, OtherAIt;
+		for (AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++) {
+			std::copy(other.itsAMatrix[AIt->first].begin(), other.itsAMatrix[AIt->first].end(), 
+				itsAMatrix[AIt->first].end());
+		}
 	
-	std::copy(other.itsBVector.begin(), other.itsBVector.end(), itsBVector.end());
-	std::copy(other.itsWeight.begin(), other.itsWeight.end(), itsWeight.end());
+		std::copy(other.itsBVector.begin(), other.itsBVector.end(), itsBVector.end());
+		std::copy(other.itsWeight.begin(), other.itsWeight.end(), itsWeight.end());
+	}
 }
 
 void MEDesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv)

@@ -106,7 +106,10 @@ public:
 
 	/// Is this set congruent with another?
 	bool isCongruent(const MEParams& other) const;
-	
+
+	/// Merge parameters from other into this set
+	void merge(const MEParams& other);
+		
 	/// Reset to empty
 	void reset();
 

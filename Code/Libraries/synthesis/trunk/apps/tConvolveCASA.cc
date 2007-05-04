@@ -171,6 +171,7 @@ int generic(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 	return 0;
 }
 
+
 int standard(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 					casa::Cube<casa::Complex>& data,
 					const casa::Vector<casa::Double>& freq,
@@ -201,7 +202,10 @@ int standard(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 		}
 	}
 
-	casa::Matrix<uint> cOffset(data.shape());
+	const int nSamples = uvw.size();
+	const int nChan = freq.size();
+
+	casa::Matrix<uint> cOffset(nSamples, nChan);
 	cOffset.set(0);
 	
 	return generic(uvw, data, freq, cellSize, C, support, overSample, cOffset, grid); 

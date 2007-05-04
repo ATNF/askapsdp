@@ -24,13 +24,12 @@ MEParams& MESolver::parameters() {
 };
 
 void MESolver::addNormalEquations(const MENormalEquations& normeq) {
-//	itsNormalEquations.merge(normeq);
-	itsNormalEquations=normeq;
+	itsNormalEquations.merge(normeq);
 }
 
 void MESolver::addDesignMatrix(const MEDesignMatrix& designmatrix) 
 {
-	itsDesignMatrix=designmatrix;
+	itsDesignMatrix.merge(designmatrix);
 }
 
 }

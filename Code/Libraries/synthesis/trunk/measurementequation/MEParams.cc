@@ -185,6 +185,19 @@ namespace synthesis
 		return true;
 	}
 
+	void MEParams::merge(const MEParams& other)
+	{
+		std::vector<string> names(other.names());
+		std::vector<string>::iterator iter;
+		for(iter = names.begin(); iter != names.end(); iter++) {
+			if(!has(*iter)) {
+				itsVectors[*iter]=other.itsVectors[*iter];
+				itsFree[*iter]=other.itsFree[*iter];
+				itsDomains[*iter]=other.itsDomains[*iter];
+			}
+		}
+	}
+
 	vector<string> MEParams::names() const
 	{
 		vector<string> names;
