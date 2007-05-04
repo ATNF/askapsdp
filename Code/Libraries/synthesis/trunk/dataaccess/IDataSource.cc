@@ -21,7 +21,7 @@ namespace synthesis {
 /// if necessary.
 boost::shared_ptr<IDataIterator> 
     IDataSource::createIterator(const
-            boost::shared_ptr<IDataSelector const> &sel) const {
+            IDataSelectorConstPtr &sel) const {
     // create a new default converter just for this new iterator
     return createIterator(sel,createConverter());
 }
@@ -57,7 +57,7 @@ boost::shared_ptr<IDataIterator> IDataSource::createIterator() const {
 /// the DataSource object. Therefore, it can be reused multiple times,
 /// if necessary.
 boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
-	boost::shared_ptr<IDataConverter const> &conv) const {
+	IDataConverterConstPtr &conv) const {
     return createIterator(createSelector(),conv);
 }
 

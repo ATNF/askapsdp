@@ -26,7 +26,7 @@ IConstDataSource::~IConstDataSource()
 /// if necessary.
 boost::shared_ptr<IConstDataIterator> 
     IConstDataSource::createConstIterator(const
-            boost::shared_ptr<IDataSelector const> &sel) const {
+            IDataSelectorConstPtr &sel) const {
     // create a new default converter just for this new iterator
     return createConstIterator(sel,createConverter());
 }
@@ -64,7 +64,7 @@ boost::shared_ptr<IConstDataIterator>
 /// if necessary.
 boost::shared_ptr<IConstDataIterator> 
     IConstDataSource::createConstIterator(const
-	boost::shared_ptr<IDataConverter const> &conv) const {
+	IDataConverterConstPtr &conv) const {
     return createConstIterator(createSelector(),conv);
 }
 

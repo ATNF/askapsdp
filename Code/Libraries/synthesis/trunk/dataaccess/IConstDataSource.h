@@ -31,6 +31,8 @@ namespace synthesis {
 /// short cut typedefs for Selector and Converter
 typedef boost::shared_ptr<IDataSelector> IDataSelectorPtr;
 typedef boost::shared_ptr<IDataConverter> IDataConverterPtr;
+typedef boost::shared_ptr<IDataSelector const> IDataSelectorConstPtr;
+typedef boost::shared_ptr<IDataConverter const> IDataConverterConstPtr;
 
 class IConstDataSource
 {
@@ -85,7 +87,7 @@ public:
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
 	virtual boost::shared_ptr<IConstDataIterator> createConstIterator(const
-                    boost::shared_ptr<IDataConverter const> &conv) const;
+                    IDataConverterConstPtr &conv) const;
 	
 	
 	/// this variant of createConstIterator is defined to force the type
@@ -98,9 +100,9 @@ public:
 	/// shouldn't add any overheads, provided the compiler can optimize
 	/// inline methods properly
 	inline boost::shared_ptr<IConstDataIterator> createConstIterator(const
-		    boost::shared_ptr<IDataConverter> &conv) const { 
+		    IDataConverterPtr &conv) const { 
             return createConstIterator(static_cast<const 
-	            boost::shared_ptr<IDataConverter const>&>(conv)); 
+	            IDataConverterConstPtr&>(conv)); 
         }
 
 	/// get iterator over a selected part of the dataset represented
@@ -119,7 +121,7 @@ public:
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. 
 	virtual boost::shared_ptr<IConstDataIterator> createConstIterator(const
-	           boost::shared_ptr<IDataSelector const> &sel) const;
+	           IDataSelectorConstPtr &sel) const;
 
 	/// this variant of createConstIterator is defined to force the type
 	/// conversion between the non-const and const smart pointers 
@@ -131,9 +133,9 @@ public:
 	/// shouldn't add any overheads, provided the compiler can optimize
 	/// inline methods properly
 	inline boost::shared_ptr<IConstDataIterator> createConstIterator(const
-		    boost::shared_ptr<IDataSelector> &sel) const { 
+		    IDataSelectorPtr &sel) const { 
             return createConstIterator(static_cast<const 
-                    boost::shared_ptr<IDataSelector const>&>(sel)); 
+                    IDataSelectorConstPtr&>(sel)); 
         }
 
 	/// get iterator over a selected part of the dataset represented
@@ -154,8 +156,8 @@ public:
 	/// the DataSource object. Therefore, it can be reused multiple times,
 	/// if necessary. Call init() to rewind the iterator.
 	virtual boost::shared_ptr<IConstDataIterator> createConstIterator(const
-	           boost::shared_ptr<IDataSelector const> &sel, const
-		   boost::shared_ptr<IDataConverter const> &conv) const = 0;
+	           IDataSelectorConstPtr &sel, const
+		   IDataConverterConstPtr &conv) const = 0;
 
 	/// create a selector object corresponding to this type of the
 	/// DataSource
