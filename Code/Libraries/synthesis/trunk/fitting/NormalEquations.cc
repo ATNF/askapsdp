@@ -85,9 +85,9 @@ NormalEquations::NormalEquations(const DesignMatrix& dm,
 				// Inside loops are over lists of derivatives
 				for (uint iACol=0;(iACol<nACol);iACol++) {
 					for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
+						bool first=true;
 						const uint nARow=dm.derivative(*iterRow).size();
 						for (uint iARow=0;(iARow<nARow);iARow++) {
-							bool first=true;
 							if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1)) {
 								const casa::Vector<casa::DComplex>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
 								const casa::Vector<casa::DComplex>& aColV(dm.derivative(*iterCol)[iACol].column(0));
@@ -156,14 +156,14 @@ void NormalEquations::merge(const NormalEquations& other)
 	vector<string>::iterator iterCol;
 	
 	for (iterCol=names.begin();iterCol!=names.end();iterCol++) {
-		if(itsDataVector.size()==0) {
+		if(itsDataVector[*iterCol].size()!=other.itsDataVector[*iterCol].size()) {
 			itsDataVector[*iterCol]=other.itsDataVector[*iterCol];
 		}
 		else {
 			itsDataVector[*iterCol]+=other.itsDataVector[*iterCol];
 		}
 		for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
-			if(itsNormalMatrix[*iterCol][*iterRow].nelements()==0) {
+			if(itsNormalMatrix[*iterCol][*iterRow].shape()!=other.itsNormalMatrix[*iterCol][*iterRow].shape()) {
 				itsNormalMatrix[*iterCol][*iterRow]=other.itsNormalMatrix[*iterCol][*iterRow];
 			}
 			else {

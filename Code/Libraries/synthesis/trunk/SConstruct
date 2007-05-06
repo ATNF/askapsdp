@@ -17,6 +17,7 @@ env.Append(CCFLAGS=['-ftree-vectorize'])
 # This will pull in all packages it depends on
 env.AddConradPackage("boost", "ThirdPartyLibraries/boost/tags/boost-1.33.1")
 env.AddConradPackage("gsl", "ThirdPartyLibraries/gsl/tags/gsl-1.9")
+env.AddConradPackage("plplot", "ThirdPartyLibraries/plplot/tags/plplot-5.7.3")
 env.AddConradPackage("casacore", 
 		     "ThirdPartyLibraries/casacore/tags/casacore-0.1.1")
 		     

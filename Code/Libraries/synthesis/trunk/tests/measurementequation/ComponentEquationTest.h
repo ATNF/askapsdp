@@ -108,9 +108,9 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 
 	void testSVD() {
 		// Predict with the "perfect" parameters"
-		DesignMatrix dm1(*params1);
 		p1->predict(*ida);
 		// Calculate gradients using "imperfect" parameters" 
+		DesignMatrix dm1(*params1);
 		p2->calcEquations(*ida, dm1);
 		Quality q;
 		LinearSolver solver1(*params2);
@@ -145,9 +145,9 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 
 	void testSolveNormalEquations() {
 		// Predict with the "perfect" parameters"
-		DesignMatrix dm1(*params1);
 		p1->predict(*ida);
 		// Calculate gradients using "imperfect" parameters" 
+		DesignMatrix dm1(*params1);
 		p2->calcEquations(*ida, dm1);
 		Quality q;
 		LinearSolver solver1(*params2);

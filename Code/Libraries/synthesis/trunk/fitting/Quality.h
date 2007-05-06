@@ -20,12 +20,15 @@ public:
 	const double cond() const {return itsCond;};
 	void setInfo(const std::string info) {itsInfo=info;}
 	const std::string& info() const {return itsInfo;};
+	void setDOF(const unsigned int DOF) {itsDOF=DOF;};
+	const unsigned int DOF() const {return itsDOF;};
 	
 	friend std::ostream& operator<<(std::ostream& os, const Quality& q);
 	
 private:
 	double itsCond;
 	unsigned int itsRank;
+	unsigned int itsDOF;
 	std::string itsInfo;
 };
 

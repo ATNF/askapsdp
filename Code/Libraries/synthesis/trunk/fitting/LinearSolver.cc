@@ -189,6 +189,7 @@ bool LinearSolver::solveDesignMatrix(Quality& quality) {
 			if(sValue<smin) smin=sValue;
 		}
 	}
+	quality.setDOF(nParameters);
 	quality.setRank(rank);
 	quality.setCond(smax/smin);
 	if(rank==nParameters) {
