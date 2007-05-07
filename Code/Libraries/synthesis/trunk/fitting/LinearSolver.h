@@ -30,7 +30,9 @@ public:
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the normal equations
-	virtual bool solveNormalEquations(Quality& q);
+	/// @param q Quality information
+	/// @param useSVD use SVD instead of Cholesky decomposition
+	virtual bool solveNormalEquations(Quality& q, const bool useSVD=false);
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the design matrix

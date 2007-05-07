@@ -27,7 +27,7 @@ void LinearSolver::init() {
 
 // Fully general solver for the normal equations for any shape 
 // parameters.
-bool LinearSolver::solveNormalEquations(Quality& quality) {
+bool LinearSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
 	
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
 	uint nParameters=0;
@@ -76,8 +76,45 @@ bool LinearSolver::solveNormalEquations(Quality& quality) {
 		}
 	}
 	
-	gsl_linalg_cholesky_decomp(A);
-	gsl_linalg_cholesky_solve(A, B, X);
+	if(useSVD) {
+		gsl_matrix * V = gsl_matrix_alloc (nParameters, nParameters);
+		gsl_vector * S = gsl_vector_alloc (nParameters);
+		gsl_vector * work = gsl_vector_alloc (nParameters);
+		gsl_linalg_SV_decomp (A, V, S, work);
+
+		gsl_vector * X = gsl_vector_alloc(nParameters);
+		gsl_linalg_SV_solve (A, V, S, B, X);
+		// Now find the statistics for the decomposition
+		uint rank=0;
+		double smin=1e50;
+		double smax=0.0;
+		for (uint i=0;i<nParameters;i++) {
+			double sValue=abs(gsl_vector_get(S, i));
+			if(sValue>0.0) 
+			{
+				rank++;
+				if(sValue>smax) smax=sValue;
+				if(sValue<smin) smin=sValue;
+			}
+		}
+		quality.setDOF(nParameters);
+		quality.setRank(rank);
+		quality.setCond(smax/smin);
+		if(rank==nParameters) {
+			quality.setInfo("SVD decomposition rank complete");
+		}
+		else {
+			quality.setInfo("SVD decomposition rank deficient");
+		}
+		gsl_vector_free(S);
+		gsl_vector_free(work);
+		gsl_matrix_free(V);
+	}
+	else { 
+		quality.setInfo("Cholesky decomposition");
+		gsl_linalg_cholesky_decomp(A);
+		gsl_linalg_cholesky_solve(A, B, X);
+	}
 	
 	// Update the parameters for the calculated changes
 	map<string, uint>::iterator indit;
@@ -88,7 +125,6 @@ bool LinearSolver::solveNormalEquations(Quality& quality) {
 		}
 		itsParams.update(indit->first, value);
 	}
-	quality.setInfo("Cholesky decomposition");
 
 	// Free up gsl storage
 	gsl_vector_free(B);

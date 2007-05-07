@@ -24,6 +24,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST(testSVD);
     CPPUNIT_TEST(testConstructNormalEquations);
 	CPPUNIT_TEST(testSolveNormalEquations);
+	CPPUNIT_TEST(testSolveNormalEquationsSVD);
 	CPPUNIT_TEST_EXCEPTION(testNoFree, std::domain_error);
     CPPUNIT_TEST_SUITE_END();
 	
@@ -154,6 +155,19 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
 		solver1.addNormalEquations(normeq);
 		solver1.solveNormalEquations(q);
+	}
+
+	void testSolveNormalEquationsSVD() {
+		// Predict with the "perfect" parameters"
+		p1->predict(*ida);
+		// Calculate gradients using "imperfect" parameters" 
+		DesignMatrix dm1(*params1);
+		p2->calcEquations(*ida, dm1);
+		Quality q;
+		LinearSolver solver1(*params2);
+		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
+		solver1.addNormalEquations(normeq);
+		solver1.solveNormalEquations(q, true);
 	}
 
 	void testNoFree() {

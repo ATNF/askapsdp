@@ -53,7 +53,7 @@ public:
 
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the normal equations
-	virtual bool solveNormalEquations(Quality& q) = 0;
+	virtual bool solveNormalEquations(Quality& q, const bool useSVD=false) = 0;
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the design matrix
