@@ -15,6 +15,12 @@
 
 #include <stdexcept>
 
+using conrad::scimath::Params;
+using conrad::scimath::Domain;
+using conrad::scimath::NormalEquations;
+using conrad::scimath::DesignMatrix;
+
+
 namespace conrad
 {
 namespace synthesis

@@ -18,6 +18,9 @@
 
 #include <stdexcept>
 
+using conrad::scimath::NormalEquations;
+using conrad::scimath::DesignMatrix;
+
 namespace conrad
 {
 namespace synthesis

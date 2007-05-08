@@ -20,7 +20,7 @@ class ImageEquation : public SynEquation
 {
 public:
 
-	ImageEquation(const Params& ip) : SynEquation(ip) {};
+	ImageEquation(const conrad::scimath::Params& ip) : SynEquation(ip) {};
 	
 	/// Predict model visibility
 	/// @param ida data accessor
@@ -29,12 +29,12 @@ public:
 	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, NormalEquations& normeq);
+	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::NormalEquations& normeq);
 	
 	/// Calculate the regular design matrix
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix);
+	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::DesignMatrix& designmatrix);
 	
 private:
 	void init();

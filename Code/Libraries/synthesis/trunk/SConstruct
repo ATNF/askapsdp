@@ -16,8 +16,7 @@ env.Append(CCFLAGS=['-ftree-vectorize'])
 # Add casacore package from tag 0.1.1
 # This will pull in all packages it depends on
 env.AddConradPackage("boost", "ThirdPartyLibraries/boost/tags/boost-1.33.1")
-env.AddConradPackage("fitting", "Code/Libraries/scimath/trunk/")
-#env.AddConradPackage("plplot", "ThirdPartyLibraries/plplot/tags/plplot-5.7.3")
+env.AddConradPackage("scimath", "Code/Libraries/scimath/trunk")
 env.AddConradPackage("casacore", 
 		     "ThirdPartyLibraries/casacore/tags/casacore-0.1.1")
 		     

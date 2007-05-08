@@ -12,6 +12,9 @@
 
 #include <stdexcept>
 
+
+using namespace conrad::scimath;
+
 namespace conrad {
 namespace synthesis {
 	
@@ -21,8 +24,6 @@ class ImageEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST(testPredict);
     CPPUNIT_TEST(testDesignMatrix);
     CPPUNIT_TEST(testSVD);
-    CPPUNIT_TEST(testNormalEquations);
-    CPPUNIT_TEST(testNormalEquationsSVD);
     CPPUNIT_TEST_EXCEPTION(testFixed, std::domain_error);
     CPPUNIT_TEST_SUITE_END();
 	
@@ -103,40 +104,6 @@ class ImageEquationTest : public CppUnit::TestFixture  {
 		CPPUNIT_ASSERT(abs(improved(npix/2+npix*npix/2)-1.0)<0.003);
 		CPPUNIT_ASSERT(abs(improved(10+npix*5)-0.700)<0.003);
 	}
-	
-	void testNormalEquations() {
-		// Predict with the "perfect" parameters"
-		DesignMatrix dm1(*params1);
-		p1->predict(*ida);
-		// Calculate gradients using "imperfect" parameters" 
-		p2->calcEquations(*ida, dm1);
-		Quality q;
-		LinearSolver solver1(*params2);
-		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
-		solver1.addNormalEquations(normeq);
-		solver1.solveNormalEquations(q);
-		casa::Vector<double> improved=solver1.parameters().value("image.i.cena");
-		uint npix=16;
-		CPPUNIT_ASSERT(abs(improved(npix/2+npix*npix/2)-1.0)<0.003);
-		CPPUNIT_ASSERT(abs(improved(10+npix*5)-0.700)<0.003);
-	}	
-	
-	void testNormalEquationsSVD() {
-		// Predict with the "perfect" parameters"
-		DesignMatrix dm1(*params1);
-		p1->predict(*ida);
-		// Calculate gradients using "imperfect" parameters" 
-		p2->calcEquations(*ida, dm1);
-		Quality q;
-		LinearSolver solver1(*params2);
-		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
-		solver1.addNormalEquations(normeq);
-		solver1.solveNormalEquations(q, true);
-		casa::Vector<double> improved=solver1.parameters().value("image.i.cena");
-		uint npix=16;
-		CPPUNIT_ASSERT(abs(improved(npix/2+npix*npix/2)-1.0)<0.003);
-		CPPUNIT_ASSERT(abs(improved(10+npix*5)-0.700)<0.003);
-	}	
 	
 	void testFixed() {
 		DesignMatrix dm1(*params1);

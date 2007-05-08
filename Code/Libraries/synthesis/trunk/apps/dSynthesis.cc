@@ -19,6 +19,8 @@
 using std::cout;
 using std::endl;
 
+using namespace conrad::scimath;
+
 using namespace conrad::synthesis;
 
 void printVectorAsMatrix(const uint npix, const casa::Vector<double>& vec) {

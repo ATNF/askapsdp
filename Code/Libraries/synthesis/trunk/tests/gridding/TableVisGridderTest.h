@@ -13,6 +13,8 @@
 
 #include <stdexcept>
 
+using namespace conrad::scimath;
+
 namespace conrad {
 namespace synthesis {
 	

@@ -35,10 +35,10 @@ namespace conrad {
 namespace synthesis
 {
 
-class SynEquation : public Equation {
+class SynEquation : public conrad::scimath::Equation {
 public:	
     
-    SynEquation(const Params& ip) : Equation(ip) {};
+    SynEquation(const conrad::scimath::Params& ip) : conrad::scimath::Equation(ip) {};
     
 	/// Predict model visibility
 	/// @param ida data accessor
@@ -47,12 +47,12 @@ public:
 	/// Calculate the design matrix only
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix) = 0;
+	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::DesignMatrix& designmatrix) = 0;
 
 	/// Calculate the normal equations
 	/// @param ida data accessor
 	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, NormalEquations& normeq) = 0;
+	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::NormalEquations& normeq) = 0;
 
 };
 
