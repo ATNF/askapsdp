@@ -1,5 +1,6 @@
-#include <dataaccess/IDataAccessor.h>
 #include <fitting/Params.h>
+
+#include <dataaccess/IDataAccessor.h>
 #include <measurementequation/ComponentEquation.h>
 #include <fitting/NormalEquations.h>
 #include <fitting/DesignMatrix.h>
