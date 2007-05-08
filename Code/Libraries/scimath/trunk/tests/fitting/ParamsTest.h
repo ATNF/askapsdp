@@ -118,6 +118,7 @@ namespace synthesis {
       CPPUNIT_ASSERT( p1->size()==0);
       p1->add("Ind0");
       CPPUNIT_ASSERT(p1->has("Ind0"));
+      CPPUNIT_ASSERT(!p1->has("Ind1"));
       p1->add("Ind1");
       CPPUNIT_ASSERT(!pempty->has("Null"));
     }

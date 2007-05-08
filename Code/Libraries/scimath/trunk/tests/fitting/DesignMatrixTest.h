@@ -91,9 +91,9 @@ class DesignMatrixTest : public CppUnit::TestFixture  {
     {
 		Params ip;
 		ip.add("Value0");
-		delete p1;
 		// Will throw std::invalid_argument
-		p1->addDerivative("FooBar", casa::Vector<casa::DComplex>(100, 0.0));
+		casa::Vector<casa::DComplex> mat(100, 0.0);
+		p1->addDerivative("FooBar", mat);
     }
     
   };
