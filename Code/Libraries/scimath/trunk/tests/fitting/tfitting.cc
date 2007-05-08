@@ -4,7 +4,6 @@
 #include <ParamsTest.h>
 #include <DesignMatrixTest.h>
 #include <NormalEquationsTest.h>
-//#include <LinearSolverTest.h>
 
 
 int main( int argc, char **argv)
@@ -14,7 +13,6 @@ int main( int argc, char **argv)
   runner.addTest( conrad::synthesis::ParamsTest::suite() );
   runner.addTest( conrad::synthesis::DesignMatrixTest::suite() );
   runner.addTest( conrad::synthesis::NormalEquationsTest::suite() );
-//  runner.addTest( conrad::synthesis::LinearSolverTest::suite() );
   runner.run();
   return 0;
 }
