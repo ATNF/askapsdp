@@ -16,7 +16,7 @@
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 

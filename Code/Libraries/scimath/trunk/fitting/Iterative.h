@@ -1,9 +1,9 @@
-#ifndef SYNITERATIVE_H_
-#define SYNITERATIVE_H_
+#ifndef SCIMATHITERATIVE_H_
+#define SCIMATHITERATIVE_H_
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 	
 

@@ -1,12 +1,12 @@
-#ifndef SYNQUALITY_H_
-#define SYNQUALITY_H_
+#ifndef SCIMATHQUALITY_H_
+#define SCIMATHQUALITY_H_
 
 #include <iostream>
 #include <string>
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 class Quality

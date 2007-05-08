@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 namespace conrad {
-namespace synthesis {
+namespace scimath {
 
 NormalEquations::NormalEquations(const Params& ip) : 	itsParams(ip)
 {

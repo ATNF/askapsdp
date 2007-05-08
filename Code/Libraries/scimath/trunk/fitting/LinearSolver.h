@@ -6,8 +6,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SYNLINEARSOLVER_H_
-#define SYNLINEARSOLVER_H_
+#ifndef SCIMATHLINEARSOLVER_H_
+#define SCIMATHLINEARSOLVER_H_
 
 #include <fitting/Solver.h>
 #include <fitting/NormalEquations.h>
@@ -16,7 +16,7 @@
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 class LinearSolver : public Solver

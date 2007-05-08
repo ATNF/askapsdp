@@ -13,7 +13,7 @@ using std::vector;
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 	/// Make an empty domain

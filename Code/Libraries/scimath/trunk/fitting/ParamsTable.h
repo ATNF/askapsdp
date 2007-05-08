@@ -5,8 +5,8 @@
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
-#ifndef SYNPARAMSTABLE_H_
-#define SYNPARAMSTABLE_H_
+#ifndef SCIMATHPARAMSTABLE_H_
+#define SCIMATHPARAMSTABLE_H_
 
 namespace conrad
 {

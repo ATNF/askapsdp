@@ -5,7 +5,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace conrad {
-namespace synthesis {
+namespace scimath {
 	
  class ParamsTest : public CppUnit::TestFixture  {
     

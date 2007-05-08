@@ -6,8 +6,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SYNDOMAIN_H_
-#define SYNDOMAIN_H_
+#ifndef SCIMATHDOMAIN_H_
+#define SCIMATHDOMAIN_H_
 
 #include <iostream>
 #include <vector>
@@ -17,7 +17,7 @@
 namespace conrad
 {
 	
-namespace synthesis
+namespace scimath
 {
 
 class Domain

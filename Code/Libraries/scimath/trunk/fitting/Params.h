@@ -5,8 +5,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SYNPARAMS_H_
-#define SYNPARAMS_H_
+#ifndef SCIMATHPARAMS_H_
+#define SCIMATHPARAMS_H_
 
 #include <fitting/Domain.h>
 
@@ -23,7 +23,7 @@ using std::vector;
 using std::map;
 
 namespace conrad {
-namespace synthesis
+namespace scimath
 {
 
 class Params {

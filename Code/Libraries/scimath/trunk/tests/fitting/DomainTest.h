@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace conrad {
-namespace synthesis {
+namespace scimath {
 	
 class DomainTest : public CppUnit::TestFixture  {
 

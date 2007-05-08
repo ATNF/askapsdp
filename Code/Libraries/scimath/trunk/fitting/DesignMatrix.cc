@@ -20,7 +20,7 @@ using std::map;
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 DesignMatrix::DesignMatrix(const Params& ip) : itsParams(ip)

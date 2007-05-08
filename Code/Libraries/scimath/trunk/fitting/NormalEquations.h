@@ -5,15 +5,15 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SYNNORMALEQUATIONS_H_
-#define SYNNORMALEQUATIONS_H_
+#ifndef SCIMATHNORMALEQUATIONS_H_
+#define SCIMATHNORMALEQUATIONS_H_
 
 #include <fitting/Params.h>
 
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 	
 class DesignMatrix;

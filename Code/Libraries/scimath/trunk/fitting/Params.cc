@@ -13,7 +13,7 @@ using std::string;
 using std::ostream;
 
 namespace conrad {
-namespace synthesis
+namespace scimath
 {
 	
 	Params::Params() {

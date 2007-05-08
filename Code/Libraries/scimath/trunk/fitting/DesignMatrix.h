@@ -5,8 +5,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SYNDESIGNMATRIX_H
-#define SYNDESIGNMATRIX_H
+#ifndef SCIMATHDESIGNMATRIX_H
+#define SCIMATHDESIGNMATRIX_H
 
 #include <map>
 #include <vector>
@@ -18,7 +18,7 @@
 #include <fitting/Params.h>
 
 namespace conrad {
-namespace synthesis {
+namespace scimath {
 	
 class NormalEquations;
 	

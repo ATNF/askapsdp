@@ -10,8 +10,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SYNSOLVER_H_
-#define SYNSOLVER_H_
+#ifndef SCIMATHSOLVER_H_
+#define SCIMATHSOLVER_H_
 
 #include <fitting/Params.h>
 #include <fitting/NormalEquations.h>
@@ -21,7 +21,7 @@
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 class Solver : public Iterative

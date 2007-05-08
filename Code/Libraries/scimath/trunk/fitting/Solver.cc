@@ -2,7 +2,7 @@
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 Solver::Solver(const Params& ip) : itsParams(ip), itsNormalEquations(ip),

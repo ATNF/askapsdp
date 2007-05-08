@@ -6,14 +6,14 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SYNEQUATION_H
-#define SYNEQUATION_H
+#ifndef SCIMATHEQUATION_H
+#define SCIMATHEQUATION_H
 
 #include <fitting/Params.h>
 
 namespace conrad { 
 
-namespace synthesis
+namespace scimath
 {
 
 class Equation {

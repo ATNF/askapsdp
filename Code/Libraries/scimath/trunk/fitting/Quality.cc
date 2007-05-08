@@ -2,7 +2,7 @@
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 	
 Quality::Quality() : itsCond(0.0), itsRank(0), itsDOF(0), itsInfo("")

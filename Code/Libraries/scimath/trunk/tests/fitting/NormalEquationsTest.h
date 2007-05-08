@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 namespace conrad {
-namespace synthesis {
+namespace scimath {
 	
 class NormalEquationsTest : public CppUnit::TestFixture  {
 

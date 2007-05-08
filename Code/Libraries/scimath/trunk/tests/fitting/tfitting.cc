@@ -9,10 +9,10 @@
 int main( int argc, char **argv)
 {
   CppUnit::TextUi::TestRunner runner;
-  runner.addTest( conrad::synthesis::DomainTest::suite() );
-  runner.addTest( conrad::synthesis::ParamsTest::suite() );
-  runner.addTest( conrad::synthesis::DesignMatrixTest::suite() );
-  runner.addTest( conrad::synthesis::NormalEquationsTest::suite() );
+  runner.addTest( conrad::scimath::DomainTest::suite() );
+  runner.addTest( conrad::scimath::ParamsTest::suite() );
+  runner.addTest( conrad::scimath::DesignMatrixTest::suite() );
+  runner.addTest( conrad::scimath::NormalEquationsTest::suite() );
   runner.run();
   return 0;
 }
