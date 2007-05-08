@@ -98,10 +98,15 @@ public:
 	virtual void chooseTimeRange(casa::Double start,casa::Double stop) = 0;
 
 	/// Choose polarization. 
-	/// @param stokes a string describing the wanted polarization 
+	/// @param pols a string describing the wanted polarization 
 	/// in the output. Allowed values are: I, "IQUV","XXYY","RRLL"
-	virtual void chooseStokes(const casa::String &stokes) = 0;
-       
+	virtual void choosePolarizations(const casa::String &pols) = 0;
+
+	/// Choose cycles. This is an equivalent of choosing the time range,
+	/// but the selection is done in integer cycle numbers
+	/// @param start the number of the first cycle to choose
+	/// @param stop the number of the last cycle to choose
+	virtual void chooseCycles(casa::uInt start, casa::uInt stop) = 0;
 };
 
 } // end of namespace synthesis

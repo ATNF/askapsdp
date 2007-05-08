@@ -101,7 +101,7 @@ void doTest(const shared_ptr<IDataSource> &ds) {
      // obtain and configure data selector
      IDataSelectorPtr sel=ds->createSelector();   
      sel->chooseChannels(100,150); // 100 channels starting from 150
-     sel->chooseStokes("IQUV"); // full Stokes
+     sel->choosePolarizations("IQUV"); // full Stokes
 
      // get the iterator
      IDataSharedIter it=ds->createIterator(sel);     
