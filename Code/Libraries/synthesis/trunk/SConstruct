@@ -9,8 +9,6 @@
 from conradenv import env
 
 env.Append(CCFLAGS=['-O2'])
-env.Append(CCFLAGS=['-ftree-vectorize'])
-#env.Append(CCFLAGS=['-D_GLIBCXX_DEBUG'])
 
 
 # Add casacore package from tag 0.1.1
