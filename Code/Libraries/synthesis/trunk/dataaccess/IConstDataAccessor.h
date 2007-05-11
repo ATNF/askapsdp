@@ -4,7 +4,7 @@
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
-///
+/// 
 #ifndef I_CONST_DATA_ACCESSOR_H
 #define I_CONST_DATA_ACCESSOR_H
 
