@@ -12,7 +12,7 @@
 namespace conrad {
 namespace scimath {
 
-NormalEquations::NormalEquations(const Params& ip) : 	itsParams(ip)
+NormalEquations::NormalEquations(const Params& ip) : itsParams(ip)
 {
 	itsApprox=NormalEquations::COMPLETE;
 	vector<string> names=ip.freeNames();
