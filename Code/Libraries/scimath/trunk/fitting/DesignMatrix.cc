@@ -38,10 +38,24 @@ DesignMatrix::DesignMatrix(const DesignMatrix& other)
 DesignMatrix& DesignMatrix::operator=(const DesignMatrix& other)
 {
 	if(this!=&other) {
+		itsAMatrix.clear();
+		itsBVector.clear();
+		itsWeight.clear();
 		itsParams=other.itsParams;
-		itsAMatrix=other.itsAMatrix;
-		itsBVector=other.itsBVector;
-		itsWeight=other.itsWeight;
+		std::map<string, DMAMatrix>::iterator AIt, OtherAIt;
+		for (AIt=other.itsAMatrix.begin();AIt!=other.itsAMatrix.end();AIt++) {
+			DMAMatrix::iterator AMIt;
+			for (uint i=0;i<AIt->first.size();i++) {
+				itsAMatrix[AIt->first][i]=other.itsAMatrix[AIt->first][i].copy();
+			}
+		}
+	
+		for (uint i=0;i<other.itsBVector.size();i++) {
+			itsBVector[i]=other.itsBVector[i].copy();
+		}
+		for (uint i=0;i<other.itsWeight.size();i++) {
+			itsWeight[i]=other.itsWeight[i].copy();
+		}
 	}
 }
 
@@ -52,22 +66,25 @@ DesignMatrix::~DesignMatrix()
 
 void DesignMatrix::merge(const DesignMatrix& other) 
 {
-	if(itsAMatrix.size()==0) {
-		itsParams=other.itsParams;
-		itsAMatrix=other.itsAMatrix;
-		itsBVector=other.itsBVector;
-		itsWeight=other.itsWeight;
-	}
-	else {
-		std::map<string, DMAMatrix>::iterator AIt, OtherAIt;
-		for (AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++) {
-			std::copy(other.itsAMatrix[AIt->first].begin(), other.itsAMatrix[AIt->first].end(), 
-				itsAMatrix[AIt->first].end());
+	itsParams.merge(other.itsParams);
+
+	vector<string> names(other.names());
+	vector<string>::const_iterator nameIt;
+	for (nameIt=names.begin();nameIt!=names.end();nameIt++) {
+		DMAMatrix AM(other.derivative(*nameIt));
+		DMAMatrix::iterator AMIt;
+		for (AMIt=AM.begin();AMIt!=AM.end();AMIt++) {
+			addDerivative(*nameIt, AMIt->copy());
 		}
-	
-		std::copy(other.itsBVector.begin(), other.itsBVector.end(), itsBVector.end());
-		std::copy(other.itsWeight.begin(), other.itsWeight.end(), itsWeight.end());
 	}
+
+	for (uint i=0;i<other.itsBVector.size();i++) {
+		itsBVector.push_back(other.itsBVector[i].copy());
+	}
+	for (uint i=0;i<other.itsWeight.size();i++) {
+		itsWeight.push_back(other.itsWeight[i].copy());
+	}
+	
 }
 
 void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv)
@@ -149,13 +166,11 @@ double DesignMatrix::fit() const
 uint DesignMatrix::nData() const
 {
 	uint nData=0;
-	std::map<string, DMAMatrix>::iterator AIt;
-	for (AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++) {
-		DMAMatrix::iterator it;
-		for (it=AIt->second.begin();it!=AIt->second.end();it++) {
-			nData+=it->nrow();
-		}
-	}
+    DMBVector::iterator bIt;
+    DMWeight::iterator wIt;
+    for (bIt=itsBVector.begin();bIt!=itsBVector.end();bIt++) {
+        nData+=bIt->size();
+    }
 	return nData;
 }
 
