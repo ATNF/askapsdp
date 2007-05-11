@@ -83,7 +83,7 @@ class DesignMatrixTest : public CppUnit::TestFixture  {
 		p1->addDerivative("Value1", casa::Vector<casa::DComplex>(100, 0.0));
 		p1->addDerivative("Image2", casa::Vector<casa::DComplex>(gradsize, 0.0));
 		p1->addResidual(casa::Vector<casa::DComplex>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
-		CPPUNIT_ASSERT(p1->nData()==10200);
+		CPPUNIT_ASSERT(p1->nData()==100);
 		CPPUNIT_ASSERT(p1->nParameters()==3);
     }  
     
