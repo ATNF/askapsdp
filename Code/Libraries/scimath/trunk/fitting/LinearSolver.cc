@@ -106,6 +106,15 @@ bool LinearSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
 		else {
 			quality.setInfo("SVD decomposition rank deficient");
 		}
+        // Update the parameters for the calculated changes
+        map<string, uint>::iterator indit;
+        for (indit=indices.begin();indit!=indices.end();indit++) {
+            casa::Vector<double>& value(itsParams.value(indit->first));
+            for (uint i=0;i<value.nelements();i++) {
+                value(i)+=gsl_vector_get(X, indit->second+i);
+            }
+            itsParams.update(indit->first, value);
+        }
 		gsl_vector_free(S);
 		gsl_vector_free(work);
 		gsl_matrix_free(V);
@@ -114,17 +123,17 @@ bool LinearSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
 		quality.setInfo("Cholesky decomposition");
 		gsl_linalg_cholesky_decomp(A);
 		gsl_linalg_cholesky_solve(A, B, X);
+        // Update the parameters for the calculated changes
+        map<string, uint>::iterator indit;
+        for (indit=indices.begin();indit!=indices.end();indit++) {
+            casa::Vector<double>& value(itsParams.value(indit->first));
+            for (uint i=0;i<value.nelements();i++) {
+                value(i)=gsl_vector_get(X, indit->second+i);
+            }
+            itsParams.update(indit->first, value);
+        }
 	}
 	
-	// Update the parameters for the calculated changes
-	map<string, uint>::iterator indit;
-	for (indit=indices.begin();indit!=indices.end();indit++) {
-		casa::Vector<double>& value(itsParams.value(indit->first));
-		for (uint i=0;i<value.nelements();i++) {
-			value(i)+=gsl_vector_get(X, indit->second+i);
-		}
-		itsParams.update(indit->first, value);
-	}
 
 	// Free up gsl storage
 	gsl_vector_free(B);
