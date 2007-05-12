@@ -56,6 +56,7 @@ int generic(const std::vector<Coord>& u,
 {
 
 	const int gSize = static_cast<int>(std::sqrt(static_cast<float>(grid.size())));
+    std::cout << "Grid size = " << gSize << std::endl;
 	const int nSamples = u.size();
 	const int nChan = freq.size();
 	 
@@ -226,6 +227,7 @@ int wprojection(const std::vector<Coord>& u,
 					std::vector<Value>& data,
 					const std::vector<Coord>& freq,
 					const Coord cellSize,
+                    const Coord baseline,
 					const int wSize,
 					std::vector<Value>& grid) {
 
@@ -233,7 +235,6 @@ int wprojection(const std::vector<Coord>& u,
 	const int nChan = freq.size();
 
 	cout << "************************* W projection gridding *********************" << endl;
-	const Coord baseline=*std::max_element(w.begin(), w.end());
 	int support=static_cast<int>(3.0*sqrt(abs(baseline)*static_cast<Coord>(cellSize)*freq[0])/cellSize); 
 	int overSample=8;
 	cout << "Support = " << support << " pixels" << endl;
@@ -324,7 +325,7 @@ int main() {
 	
 	standard(u, v, w, data, freq, cellSize, grid);
 
-	wprojection(u, v, w, data, freq, cellSize, wSize, grid);
+	wprojection(u, v, w, data, freq, cellSize, baseline, wSize, grid);
 	
 	cout << "Done" << endl;
 	

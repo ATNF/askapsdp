@@ -60,7 +60,8 @@ int generic(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 {
 
 	const int gSize = grid.ncolumn();
-	const int nSamples = uvw.size();
+    std::cout << "Grid size = " << gSize << std::endl;
+    const int nSamples = uvw.size();
 	const int nChan = freq.size();
 	const int nPol = data.shape()(2);
 
