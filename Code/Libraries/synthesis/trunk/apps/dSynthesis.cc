@@ -71,75 +71,53 @@ int main() {
 
 	// Predict with the "perfect" parameters"
 	cout << "Predicting data from perfect model" << endl;
+    cout << endl;
 	{
 		ImageEquation perfecteq(perfect);
 		perfecteq.predict(ida);
 	}
 
 	cout << "Making imperfect model" << endl;
-	Params imperfect1;
-	Params imperfect2;
-	Params imperfect3;
+    cout << endl;
+	Params imperfect;
 	{
 		casa::Vector<double> imagePixels2(npix*npix);
 		imagePixels2.set(0.0);
 		imagePixels2(npix/2+npix*npix/2)=0.9;
 		imagePixels2(12+npix*3)=0.75;
-		imperfect1.add("image.i.cena", imagePixels2, imageDomain);
-		imperfect2.add("image.i.cena", imagePixels2, imageDomain);
-		imperfect3.add("image.i.cena", imagePixels2, imageDomain);
+		imperfect.add("image.i.cena", imagePixels2, imageDomain);
 		printVectorAsMatrix(npix, imagePixels2);
+        cout << endl;
 	}
 
 	cout << "Calculating derivatives from imperfect model" << endl;
+    cout << endl;
+    
 	DesignMatrix dm(perfect);
 	{
-		ImageEquation imperfecteq(imperfect1);
+		ImageEquation imperfecteq(imperfect);
 		imperfecteq.calcEquations(ida, dm);
 	}
 	NormalEquations normeq(dm, NormalEquations::COMPLETE);
+    cout << "Data vector (i.e. residual image):" << endl;
+    printVectorAsMatrix(npix, normeq.dataVector()["image.i.cena"]);
+    cout << "Slice of normal equations (i.e. dirty psf):" << endl;
+    printVectorAsMatrix(npix, normeq.normalMatrix()["image.i.cena"]["image.i.cena"].column(npix/2+npix*npix/2));
+    cout << endl;
 	
-	{
-		cout << "Solving for updated parameters using SVD of the design matrix" << endl;
-		Quality q1;
-		LinearSolver solver1(imperfect1);
-		solver1.addDesignMatrix(dm);
-		solver1.solveDesignMatrix(q1);
-		casa::Vector<double> improved1=solver1.parameters().value("image.i.cena");
-		cout << q1 << endl;
-		cout << "Updated model:" << endl;
-		printVectorAsMatrix(npix, improved1);
-	}
-	
-	{
-		cout << "Solving for updated parameters using Cholesky decomposition of normal equations" 
-			<< endl;
-		Quality q2;
-		LinearSolver solver2(imperfect2);
-		cout << "Data vector (i.e. residual image):" << endl;
-		printVectorAsMatrix(npix, normeq.dataVector()["image.i.cena"]);
-		cout << "Slice of normal equations (i.e. dirty psf):" << endl;
-		printVectorAsMatrix(npix, normeq.normalMatrix()["image.i.cena"]["image.i.cena"].column(npix/2+npix*npix/2));
-		solver2.addNormalEquations(normeq);
-		solver2.solveNormalEquations(q2);
-		casa::Vector<double> improved2=solver2.parameters().value("image.i.cena");
-		cout << q2 << endl;
-		cout << "Updated model:" << endl;
-		printVectorAsMatrix(npix, improved2);
-	}
-
-	{
-		cout << "Solving for updated parameters using SVD of normal equations" 
-			<< endl;
-		Quality q3;
-		LinearSolver solver3(imperfect3);
-		solver3.addNormalEquations(normeq);
-		solver3.solveNormalEquations(q3, true);
-		casa::Vector<double> improved3=solver3.parameters().value("image.i.cena");
-		cout << q3 << endl;
-		cout << "Updated model:" << endl;
-		printVectorAsMatrix(npix, improved3);
-	}
+    {
+        cout << "Solving for updated parameters using SVD of normal equations" 
+            << endl;
+        Quality q3;
+        LinearSolver solver3(imperfect);
+        solver3.addNormalEquations(normeq);
+        solver3.solveNormalEquations(q3, true);
+        casa::Vector<double> improved3=solver3.parameters().value("image.i.cena");
+        cout << q3 << endl;
+        cout << "Updated model:" << endl;
+        printVectorAsMatrix(npix, improved3);
+        cout << endl;
+    }
 
 	std::cout << "Done" << std::endl;
 	return 0;	  	  
