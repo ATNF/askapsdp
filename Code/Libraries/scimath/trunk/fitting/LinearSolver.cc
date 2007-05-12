@@ -12,7 +12,9 @@
 #include <gsl/gsl_linalg.h>
 
 #include <iostream>
+#include <cmath>
 
+using std::abs;
 
 namespace conrad
 {
