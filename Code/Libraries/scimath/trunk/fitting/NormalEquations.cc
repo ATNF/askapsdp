@@ -59,22 +59,22 @@ NormalEquations::NormalEquations(const DesignMatrix& dm,
 				for (uint iDataSet=0;iDataSet<nDataSet;iDataSet++) {
 					// Need to special case for CASA product limitation
 					if(dm.derivative(*iterRow)[iDataSet].ncolumn()==1) {		 
-						const casa::Vector<casa::DComplex>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
+						const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
 						if(first) {
-							itsDataVector[*iterRow]=sum(real(conj(aV)*(dm.residual()[iDataSet])));
+							itsDataVector[*iterRow]=sum(((aV)*(dm.residual()[iDataSet])));
 							first=false;
 						}
 						else {
-							itsDataVector[*iterRow]+=sum(real(conj(aV)*(dm.residual()[iDataSet])));
+							itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
 						}
 					}
 					else {
 						if(first) {
-							itsDataVector[*iterRow]=real(product(adjoint(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
+							itsDataVector[*iterRow]=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
 							first=false;
 						}
 						else {
-							itsDataVector[*iterRow]+=real(product(adjoint(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
+							itsDataVector[*iterRow]+=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
 						}
 					}
 				}
@@ -89,24 +89,24 @@ NormalEquations::NormalEquations(const DesignMatrix& dm,
 						const uint nARow=dm.derivative(*iterRow).size();
 						for (uint iARow=0;(iARow<nARow);iARow++) {
 							if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1)) {
-								const casa::Vector<casa::DComplex>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
-								const casa::Vector<casa::DComplex>& aColV(dm.derivative(*iterCol)[iACol].column(0));
+								const casa::Vector<casa::Double>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
+								const casa::Vector<casa::Double>& aColV(dm.derivative(*iterCol)[iACol].column(0));
 								if(first) {
 									itsNormalMatrix[*iterRow][*iterCol].resize(1,1);
-									itsNormalMatrix[*iterRow][*iterCol].set(sum(real(conj(aRowV)*(aColV))));
+									itsNormalMatrix[*iterRow][*iterCol].set(sum(((aRowV)*(aColV))));
 									first=false;
 								}
 								else {
-									itsNormalMatrix[*iterRow][*iterCol]+=sum(real(conj(aRowV)*(aColV)));
+									itsNormalMatrix[*iterRow][*iterCol]+=sum(((aRowV)*(aColV)));
 								}
 							}
 							else {
 								if(first) {
-									itsNormalMatrix[*iterRow][*iterCol]=real(product(adjoint(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
+									itsNormalMatrix[*iterRow][*iterCol]=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
 									first=false;
 								}
 								else {
-									itsNormalMatrix[*iterRow][*iterCol]+=real(product(adjoint(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
+									itsNormalMatrix[*iterRow][*iterCol]+=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
 								}
 							}
 						}

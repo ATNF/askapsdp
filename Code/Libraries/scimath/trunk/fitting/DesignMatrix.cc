@@ -87,7 +87,7 @@ void DesignMatrix::merge(const DesignMatrix& other)
 	
 }
 
-void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv)
+void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv)
 {
 	if(!itsParams.has(name)) {
 		throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
@@ -95,7 +95,7 @@ void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::DC
 	itsAMatrix[name].push_back(deriv.copy());
 }
 
-void DesignMatrix::addResidual(const casa::Vector<casa::DComplex>& residual, const casa::Vector<double>& weight)
+void DesignMatrix::addResidual(const casa::Vector<casa::Double>& residual, const casa::Vector<double>& weight)
 {
 	itsBVector.push_back(residual.copy());
 	itsWeight.push_back(weight.copy());
@@ -153,7 +153,7 @@ double DesignMatrix::fit() const
 	for (bIt=itsBVector.begin(),wIt=itsWeight.begin();
 		(bIt!=itsBVector.end())&&(wIt!=itsWeight.end());bIt++, wIt++) {
 		sumwt+=casa::sum(*wIt);
-		sum+=casa::sum((*wIt)*real((*bIt)*conj(*bIt)));
+		sum+=casa::sum((*wIt)*((*bIt)*(*bIt)));
 	}
 	if(sumwt>0.0) {
 		return sqrt(sum/sumwt);

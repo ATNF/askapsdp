@@ -76,10 +76,10 @@ class NormalEquationsTest : public CppUnit::TestFixture  {
         ip.add("Image2", im);
 
         DesignMatrix dm(ip);
-        dm.addDerivative("Value0", casa::Matrix<casa::DComplex>(100, 1, 0.0));
-        dm.addDerivative("Value1", casa::Matrix<casa::DComplex>(100, 1, 0.0));
-        dm.addDerivative("Image2", casa::Matrix<casa::DComplex>(100, imsize, 0.0));
-        dm.addResidual(casa::Vector<casa::DComplex>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
+        dm.addDerivative("Value0", casa::Matrix<casa::Double>(100, 1, 0.0));
+        dm.addDerivative("Value1", casa::Matrix<casa::Double>(100, 1, 0.0));
+        dm.addDerivative("Image2", casa::Matrix<casa::Double>(100, imsize, 0.0));
+        dm.addResidual(casa::Vector<casa::Double>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
         CPPUNIT_ASSERT(dm.nData()==100);
         CPPUNIT_ASSERT(dm.nParameters()==(imsize+2));
         NormalEquations normeq(dm,  NormalEquations::COMPLETE);

@@ -79,10 +79,10 @@ class DesignMatrixTest : public CppUnit::TestFixture  {
 		delete p1;
 		p1 = new DesignMatrix(ip);
 		uint gradsize=10*10*100;
-		p1->addDerivative("Value0", casa::Vector<casa::DComplex>(100, 0.0));
-		p1->addDerivative("Value1", casa::Vector<casa::DComplex>(100, 0.0));
-		p1->addDerivative("Image2", casa::Vector<casa::DComplex>(gradsize, 0.0));
-		p1->addResidual(casa::Vector<casa::DComplex>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
+		p1->addDerivative("Value0", casa::Vector<casa::Double>(100, 0.0));
+		p1->addDerivative("Value1", casa::Vector<casa::Double>(100, 0.0));
+		p1->addDerivative("Image2", casa::Vector<casa::Double>(gradsize, 0.0));
+		p1->addResidual(casa::Vector<casa::Double>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
 		CPPUNIT_ASSERT(p1->nData()==100);
 		CPPUNIT_ASSERT(p1->nParameters()==3);
     }  
@@ -92,7 +92,7 @@ class DesignMatrixTest : public CppUnit::TestFixture  {
 		Params ip;
 		ip.add("Value0");
 		// Will throw std::invalid_argument
-		casa::Vector<casa::DComplex> mat(100, 0.0);
+		casa::Vector<casa::Double> mat(100, 0.0);
 		p1->addDerivative("FooBar", mat);
     }
     

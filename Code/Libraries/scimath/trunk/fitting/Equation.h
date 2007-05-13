@@ -42,7 +42,7 @@ public:
 	/// Return a default set of parameters
 	/// @param ip Parameters
 	const Params& defaultParameters() const {return itsDefaultParams;};
-
+    
 protected:
 	Params itsParams;
 	Params itsDefaultParams;

@@ -22,8 +22,8 @@ namespace scimath {
 	
 class NormalEquations;
 	
-typedef std::vector<casa::Matrix<casa::DComplex> > DMAMatrix;
-typedef std::vector<casa::Vector<casa::DComplex> > DMBVector;
+typedef std::vector<casa::Matrix<casa::Double> > DMAMatrix;
+typedef std::vector<casa::Vector<casa::Double> > DMBVector;
 typedef std::vector<casa::Vector<casa::Double> > DMWeight;
 
 class DesignMatrix
@@ -52,12 +52,12 @@ public:
 	/// Add the derivative of the data with respect to dof of the named parameter
 	/// @param name Name of parameter
 	/// @param deriv Derivative
-	void addDerivative(const string& name, const casa::Matrix<casa::DComplex>& deriv);
+	void addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv);
 	
 	/// Add the residual constraint
 	/// @param residual Residual vector
 	/// @param weight Weight vector
-	void addResidual(const casa::Vector<casa::DComplex>& residual, const casa::Vector<double>& weight);
+	void addResidual(const casa::Vector<casa::Double>& residual, const casa::Vector<double>& weight);
 	
 	/// Reset to empty
 	void reset();
