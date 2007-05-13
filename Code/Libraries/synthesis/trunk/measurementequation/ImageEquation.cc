@@ -44,8 +44,8 @@ void ImageEquation::predict(IDataAccessor& ida)
 	const casa::Vector<double>& time=ida.time();	
 	const uint nChan=freq.nelements();
 	const uint nRow=ida.nRow();
-	casa::Matrix<casa::DComplex> vis(nRow,nChan);
-	casa::Matrix<casa::DComplex> noDeriv(0,0);
+	casa::Matrix<double> vis(nRow,2*nChan);
+	casa::Matrix<double> noDeriv(0,0);
 
 	vector<string> completions(parameters().completions("image.i"));
 	vector<string>::iterator it;
@@ -72,7 +72,7 @@ void ImageEquation::predict(IDataAccessor& ida)
 
 		for (uint row=0;row<nRow;row++) {
 			for (uint i=0;i<nChan;i++) {
-				ida.rwVisibility()(row,i,0) += casa::Complex(vis(row,i));
+				ida.rwVisibility()(row,i,0) += casa::Complex(vis(row,2*i), vis(row,2*i+1));
 			}
 		}
 	}
@@ -92,10 +92,10 @@ void ImageEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix
 		
 	// Set up arrays to hold the output values
 	// Row, Two values (complex) per channel, single pol
-	casa::Vector<casa::DComplex> residual(nRow*nChan);
-	casa::Vector<double> weights(nRow*nChan);
+	casa::Vector<casa::Double> residual(2*nRow*nChan);
+	casa::Vector<double> weights(2*nRow*nChan);
 	weights.set(1.0);
-	casa::Matrix<casa::DComplex> vis(nRow,nChan);
+	casa::Matrix<casa::Double> vis(nRow,2*nChan);
 
 	// Loop over all completions i.e. all sources
 	vector<string> completions(parameters().completions("image.i"));
@@ -114,7 +114,7 @@ void ImageEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix
 
 		const casa::Vector<double> imagePixels=parameters().value(imageName);
 		const uint nPixels=imagePixels.nelements();
-		casa::Matrix<casa::DComplex> imageDeriv(nRow*nChan,nPixels);
+		casa::Matrix<casa::Double> imageDeriv(2*nRow*nChan,nPixels);
 		
 		this->calcVis(imagePixels, raStart, raEnd, raCells, 
 			decStart, decEnd, decCells, freq, ida.uvw(),
@@ -122,7 +122,8 @@ void ImageEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix
 
 		for (uint row=0;row<ida.nRow();row++) {
 			for (uint i=0;i<freq.nelements();i++) {
-				residual(nChan*row+i)=casa::DComplex(ida.visibility()(row,i,0))-vis(row,i);
+                residual(nChan*row+2*i)=real(ida.visibility()(row,i,0))-vis(row,2*i);
+                residual(nChan*row+2*i+1)=imag(ida.visibility()(row,i,0))-vis(row,2*i+1);
 			}
 		}
 
@@ -143,7 +144,7 @@ void ImageEquation::calcVis(const casa::Vector<double>& imagePixels,
 	const double decStart, const double decEnd, const int decCells, 
 	const casa::Vector<double>& freq,  
 	const casa::Vector<casa::RigidVector<double, 3> >& uvw,
-	casa::Matrix<casa::DComplex>& vis, bool doDeriv, casa::Matrix<casa::DComplex>& imageDeriv) 
+	casa::Matrix<casa::Double>& vis, bool doDeriv, casa::Matrix<casa::Double>& imageDeriv) 
 {
 	double raInc=(raStart-raEnd)/double(raCells);
 	double decInc=(decStart-decEnd)/double(decCells);
@@ -166,14 +167,17 @@ void ImageEquation::calcVis(const casa::Vector<double>& imagePixels,
 				if(doDeriv) {
 					for (uint i=0;i<nChan;i++) {
 						double phase = delay * freq(i);
-						vis(row,i) += casa::Complex(flux * cos(phase), flux * sin(phase));
-						imageDeriv(nChan*row+i,pixel) = casa::Complex(cos(phase), sin(phase));
+                        vis(row,2*i) += flux * cos(phase);
+                        vis(row,2*i+1) += flux * sin(phase);
+                        imageDeriv(nChan*row+2*i,pixel) = cos(phase);
+                        imageDeriv(nChan*row+2*i+1,pixel) = sin(phase);
 					}
 				}
 				else {
 					for (uint i=0;i<nChan;i++) {
 						double phase = delay * freq(i);
-						vis(row,i) += casa::Complex(flux * cos(phase), flux * sin(phase));
+                        vis(row,2*i) += flux * cos(phase);
+                        vis(row,2*i+1) += flux * sin(phase);
 					}
 				}
 				pixel++;

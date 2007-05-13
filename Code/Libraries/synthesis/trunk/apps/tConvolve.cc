@@ -6,7 +6,7 @@
 //
 // The challenge is to minimize the run time - specifically
 // the time per grid addition. On a MacBookPro and an Opteron
-// this is about 12ns.
+// this is about 8ns.
 //
 //   For further details contact Tim.Cornwell@csiro.au
 // May 3, 2007
@@ -21,6 +21,7 @@
 using std::cout;
 using std::endl;
 using std::complex;
+using std::abs;
 
 // Typedefs for easy testing
 // Cost of using double for Coord is low, cost for 

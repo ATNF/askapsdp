@@ -88,14 +88,14 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 	{
 		DesignMatrix dm1(*params1);
 		p1->calcEquations(*ida, dm1);
-		CPPUNIT_ASSERT(abs(dm1.fit()-100.0)<0.01);
+		CPPUNIT_ASSERT(abs(dm1.fit()-100.0/sqrt(2.0))<0.01);
 		p1->predict(*ida);
 		dm1.reset();
 		p1->calcEquations(*ida, dm1);
-		CPPUNIT_ASSERT(dm1.fit()<0.03);
+        CPPUNIT_ASSERT(dm1.fit()<0.021);
 		DesignMatrix dm2(*params2);
 		p2->calcEquations(*ida, dm2);
-		CPPUNIT_ASSERT(abs(dm2.fit()-7.02399)<0.0001);
+		CPPUNIT_ASSERT(abs(dm2.fit()-4.96671)<0.0001);
 	}
 	
 	void testAssembly() {
@@ -120,7 +120,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		solver1.addDesignMatrix(dm1);
 		solver1.solveDesignMatrix(q);
 		CPPUNIT_ASSERT(q.rank()==3);
-		CPPUNIT_ASSERT(abs(q.cond()-1.97889e+06)<100.0);
+        CPPUNIT_ASSERT(abs(q.cond()-1.94563e+06)<100.0);
   	    solver1.parameters().fix("flux.i.cena");
 		solver1.solveDesignMatrix(q);
 		CPPUNIT_ASSERT(q.rank()==2);

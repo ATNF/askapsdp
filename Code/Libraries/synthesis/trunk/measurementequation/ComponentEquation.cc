@@ -93,10 +93,10 @@ void ComponentEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designma
 	// Set up arrays to hold the output values
 	// Two values (complex) per row, channel, pol
 	uint nData=ida.nRow()*freq.nelements()*2;
-	casa::Vector<casa::DComplex> raDeriv(nData);
-	casa::Vector<casa::DComplex> decDeriv(nData);
-	casa::Vector<casa::DComplex> fluxiDeriv(nData);
-	casa::Vector<casa::DComplex> residual(nData);
+	casa::Vector<casa::Double> raDeriv(nData);
+	casa::Vector<casa::Double> decDeriv(nData);
+	casa::Vector<casa::Double> fluxiDeriv(nData);
+	casa::Vector<casa::Double> residual(nData);
 	casa::Vector<double> weights(nData);
 	
 	// Loop over all completions i.e. all sources
@@ -120,15 +120,19 @@ void ComponentEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designma
 				ida.uvw()(row)(0), ida.uvw()(row)(1), av);
 
 			for (uint i=0;i<freq.nelements();i++) {
-				residual(i+offset)=(ida.visibility()(row,i,0))
-					-casa::Complex(av(2*i).value(), av(2*i+1).value());
-				raDeriv(i+offset)=casa::DComplex(av[2*i].derivative(0), av(2*i+1).derivative(0)); 	
-				decDeriv(i+offset)=casa::DComplex(av[2*i].derivative(1), av(2*i+1).derivative(1)); 	
-				fluxiDeriv(i+offset)=casa::DComplex(av[2*i].derivative(2), av(2*i+1).derivative(2)); 	
-				weights(i+offset)=1.0;	
+                residual(2*i+offset)=real(ida.visibility()(row,i,0))-av(2*i).value();
+                residual(2*i+1+offset)=imag(ida.visibility()(row,i,0))-av(2*i+1).value();
+                raDeriv(2*i+offset)=av[2*i].derivative(0);
+                raDeriv(2*i+1+offset)=av(2*i+1).derivative(0);     
+                decDeriv(2*i+offset)=av[2*i].derivative(1);
+                decDeriv(2*i+1+offset)=av(2*i+1).derivative(1);     
+                fluxiDeriv(2*i+offset)=av[2*i].derivative(2);
+                fluxiDeriv(2*i+1+offset)=av(2*i+1).derivative(2);     
+                weights(2*i+offset)=1.0;  
+                weights(2*i+1+offset)=1.0;  
 			}
 
-			offset+=freq.nelements();
+			offset+=2*freq.nelements();
 		}
 		// Now we can add the design matrix, residual, and weights
 		designmatrix.addDerivative(raName, raDeriv);
