@@ -20,81 +20,73 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    PolynomialEquation *p1, *p2, *p3, *pempty;
+    PolynomialEquation *itsPoly1, *itsPoly2;
+    casa::Vector<double> itsArguments;
+    casa::Vector<double> itsData;
+    casa::Vector<double> itsModel;
     
   public:
     void setUp()
     {
+      itsArguments.resize(10);
+      for (uint i=0;i<itsArguments.size();i++) {
+          itsArguments[i]=i;
+      }
+      itsData.resize(10);
+      itsData.set(0.0);
+      itsModel.resize(10);
+      itsModel.set(0.0);
       Params ip;
       casa::Vector<double> quadratic(3);
       quadratic(0)=1;
       quadratic(1)=2;
       quadratic(2)=3;
       ip.add("poly", quadratic);
-      p1 = new PolynomialEquation(ip);
-      p2 = new PolynomialEquation();
-      p3 = new PolynomialEquation();
-      pempty = new PolynomialEquation();
-
+      itsPoly1 = new PolynomialEquation(ip, itsData, itsArguments, itsModel);       
+      itsPoly2 = new PolynomialEquation();
     }
         
     void tearDown() 
     {
-      delete p1;
-      delete p2;
-      delete p3;
-      delete pempty;
+      delete itsPoly1;
+      delete itsPoly2;
     }
     
     void testConstructors()
     {
-        CPPUNIT_ASSERT(p1->parameters().names().size()==1);
-        CPPUNIT_ASSERT(p1->parameters().names()[0]=="poly");
+      CPPUNIT_ASSERT(itsPoly1->parameters().names().size()==1);
+      CPPUNIT_ASSERT(itsPoly1->parameters().names()[0]=="poly");
     }
     
     void testCopy() 
     {
-		delete p2;
-		p2 = new PolynomialEquation(*p1);
-        CPPUNIT_ASSERT(p2->parameters().names().size()==1);
-        CPPUNIT_ASSERT(p2->parameters().names()[0]=="poly");
+		delete itsPoly2;
+		itsPoly2 = new PolynomialEquation(*itsPoly1);
+        CPPUNIT_ASSERT(itsPoly2->parameters().names().size()==1);
+        CPPUNIT_ASSERT(itsPoly2->parameters().names().size()==1);
+        CPPUNIT_ASSERT(itsPoly2->parameters().names()[0]=="poly");
     }
     
     void testPredict()
     {
-        casa::Vector<double> x(10);
-        for (uint i=0;i<x.size();i++) {
-            x[i]=i;
-        }
-        casa::Vector<double> values(10);
-        p1->predict(x, values);
-        CPPUNIT_ASSERT(values[0]==1); // 1 
-        CPPUNIT_ASSERT(values[4]==57); // 1+2*4+3*16=57
-        CPPUNIT_ASSERT(values[9]==262); // 1+2*9+3*81=1+18+241=262
+        itsPoly1->predict();
+        CPPUNIT_ASSERT(itsModel[0]==1); // 1 
+        CPPUNIT_ASSERT(itsModel[4]==57); // 1+2*4+3*16=57
+        CPPUNIT_ASSERT(itsModel[9]==262); // 1+2*9+3*81=1+18+241=262
     }  
     
     void testDesignMatrix()
     {
-        casa::Vector<double> x(10);
-        for (uint i=0;i<x.size();i++) {
-            x[i]=i;
-        }
         casa::Vector<double> values(10);
-        DesignMatrix dm(p1->parameters());
-        p1->predict(x, values);
-        p1->calcEquations(values, x, dm);
+        DesignMatrix dm(itsPoly1->parameters());
+        itsPoly1->predict();
+        itsPoly1->calcEquations(dm);
     }  
     void testSolutionDM()
     {
-        casa::Vector<double> x(10);
-        for (uint i=0;i<x.size();i++) {
-            x[i]=i;
-        }
-        casa::Vector<double> values(10);
-        DesignMatrix dm(p1->parameters());
-        p1->predict(x, values);
-        p1->calcEquations(values, x, dm);
-        Params ip(p1->parameters());
+        DesignMatrix dm(itsPoly1->parameters());
+        itsPoly1->calcEquations(dm);
+        Params ip(itsPoly1->parameters());
         casa::Vector<double> pvals(ip.value("poly").size());
         pvals.set(0.0);
         ip.update("poly", pvals);
@@ -106,16 +98,11 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
     }  
     void testSolutionNE()
     {
-        casa::Vector<double> x(10);
-        for (uint i=0;i<x.size();i++) {
-            x[i]=i;
-        }
-        casa::Vector<double> values(10);
-        DesignMatrix dm(p1->parameters());
-        p1->predict(x, values);
-        p1->calcEquations(values, x, dm);
+        itsPoly1->predict();
+        DesignMatrix dm(itsPoly1->parameters());
+        itsPoly1->calcEquations(dm);
         NormalEquations normeq(dm, NormalEquations::COMPLETE);
-        Params ip(p1->parameters());
+        Params ip(itsPoly1->parameters());
         casa::Vector<double> pvals(ip.value("poly").size());
         pvals.set(0.0);
         ip.update("poly", pvals);

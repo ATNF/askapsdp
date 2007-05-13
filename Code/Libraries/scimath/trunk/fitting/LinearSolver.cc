@@ -12,8 +12,8 @@
 #include <gsl/gsl_linalg.h>
 
 #include <iostream>
-#include <cmath>
 
+#include <cmath>
 using std::abs;
 
 namespace conrad
@@ -50,10 +50,6 @@ bool LinearSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
 	}
 
     // Convert the normal equations to gsl format
-    // Note that A is complex but hermitean so it has the
-    // right number of independent terms (nParameter*nParameter)
-    // although the matrix is bigger. It might be worth
-    // packing to a purely real format.
 	gsl_matrix * A = gsl_matrix_alloc (nParameters, nParameters);
 	gsl_vector * B = gsl_vector_alloc (nParameters);
 	gsl_vector * X = gsl_vector_alloc (nParameters);
@@ -91,7 +87,7 @@ bool LinearSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
 		double smin=1e50;
 		double smax=0.0;
 		for (uint i=0;i<nParameters;i++) {
-			double sValue=abs(gsl_vector_get(S, i));
+			double sValue=std::abs(gsl_vector_get(S, i));
 			if(sValue>0.0) 
 			{
 				rank++;
@@ -171,7 +167,7 @@ bool LinearSolver::solveDesignMatrix(Quality& quality) {
 	}
 
     // Convert the design matrix to gsl format
-	gsl_matrix * A = gsl_matrix_alloc (2*nData, nParameters);
+	gsl_matrix * A = gsl_matrix_alloc (nData, nParameters);
 	map<string, uint>::iterator indit;
 	DMAMatrix::iterator AIt;
 	// Outer loop is over the names of parameters. Each parameter
@@ -186,11 +182,10 @@ bool LinearSolver::solveDesignMatrix(Quality& quality) {
 			iA<nA;iA++,AIt++) {
 			for (uint row=0;row<AIt->nrow();row++) {
 				for (uint col=0;col<AIt->ncolumn();col++) {
-					gsl_matrix_set(A, outerRow+2*row, col+indit->second, real((*AIt)(row,col)));
-					gsl_matrix_set(A, outerRow+2*row+1, col+indit->second, imag((*AIt)(row,col)));
+					gsl_matrix_set(A, outerRow+row, col+indit->second, (*AIt)(row,col));
 				}
 			}
-			outerRow+=2*AIt->nrow();
+			outerRow+=AIt->nrow();
 		}
 	}
 	
@@ -201,15 +196,14 @@ bool LinearSolver::solveDesignMatrix(Quality& quality) {
 	gsl_linalg_SV_decomp (A, V, S, work);
 
 	// Now find the solution for the residual vector
-	gsl_vector * res = gsl_vector_alloc(2*nData);
+	gsl_vector * res = gsl_vector_alloc(nData);
 	
 	DMBVector::iterator BIt;
 	for (BIt=itsDesignMatrix.residual().begin();
 			BIt!=itsDesignMatrix.residual().end();BIt++) {
 		uint outerRow=0;
 		for (uint row=0;row<BIt->nelements();row++) {
-			gsl_vector_set(res, outerRow++, real((*BIt)[row]));
-			gsl_vector_set(res, outerRow++, imag((*BIt)[row]));
+			gsl_vector_set(res, outerRow++, (*BIt)[row]);
 		}
 	}
 	gsl_vector * x = gsl_vector_alloc(nParameters);
@@ -228,7 +222,7 @@ bool LinearSolver::solveDesignMatrix(Quality& quality) {
 	double smin=1e50;
 	double smax=0.0;
 	for (uint i=0;i<nParameters;i++) {
-		double sValue=abs(gsl_vector_get(S, i));
+		double sValue=std::abs(gsl_vector_get(S, i));
 		if(sValue>0.0) 
 		{
 			rank++;

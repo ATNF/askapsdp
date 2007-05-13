@@ -1,7 +1,9 @@
 /// @file
 ///
-/// Equation: Represent a parametrized equation. 
-
+/// PolynomialEquation: Represent a polynomial equation. 
+/// The parameters of the polynomial are supplied via the
+/// Params class. The data and arguments are also part
+/// of the constructor. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -21,17 +23,31 @@ namespace scimath
 class PolynomialEquation : public Equation {
 public:	
 	/// Constructor
-	/// Using default parameters
     PolynomialEquation() : Equation() {};
     
-    /// Using specified parameters
-    PolynomialEquation(const Params& ip) : Equation(ip) {};
+    /// Constructor for real use
+    /// @param ip Coefficients of polynomial stored with names poly.*
+    /// @param data Data constraints
+    /// @param arguments Arguments for the polynomial
+    /// @param model Model (to be calculated)
+    PolynomialEquation(const Params& ip, casa::Vector<double>& data, 
+        casa::Vector<double>& arguments, casa::Vector<double>& model);
+        
+    /// Copy constructor
+    PolynomialEquation(const PolynomialEquation& other);
     
+    /// Assignment operator
+    PolynomialEquation& operator=(const PolynomialEquation& other);
+    
+    /// Destructor
     virtual ~PolynomialEquation(){};
     
-    virtual void predict(const casa::Vector<double>& arguments, casa::Vector<double>& values);
+    /// Predict the model data
+    virtual void predict();
     
-    virtual void calcEquations(const casa::Vector<double>& data, const casa::Vector<double>& arguments, DesignMatrix& dm);
+    /// Calculate the design matrix
+    /// @param dm Design matrix
+    virtual void calcEquations(DesignMatrix& dm);
 
 protected:
 
@@ -41,6 +57,10 @@ protected:
         casa::Vector<double>& values);
     void calcPolyDeriv(const casa::Vector<double>& arguments, const casa::Vector<double>& parameters,
         casa::Matrix<double>& valueDerivs);
+        
+    casa::Vector<double> itsData;
+    casa::Vector<double> itsArguments;
+    casa::Vector<double> itsModel;
 
 };
 

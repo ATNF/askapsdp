@@ -15,10 +15,16 @@ Quality::~Quality()
 
 std::ostream& operator<<(std::ostream& os, const Quality& q)
 {
-	os << "Quality : " << q.info()
-		<< " : degrees of freedom " << q.DOF() 
-		<< ", rank = " << q.rank() 
-		<< ", condition number = " << q.cond();
+	os << "Solution : " << q.info();
+    if(q.DOF()>0) {
+		os << " : degrees of freedom " << q.DOF();
+    }
+    if(q.rank()>0) {
+		os << ", rank = " << q.rank();
+    }
+    if(q.cond()>0.0) { 
+		os << ", condition number = " << q.cond();
+    }
 }
 	
 
