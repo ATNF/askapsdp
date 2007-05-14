@@ -92,7 +92,7 @@ void ImageEquation::predict()
 	}
 };
 
-void ImageEquation::calcEquations(DesignMatrix& designmatrix) 
+void ImageEquation::calcEquations(NormalEquations& ne) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
@@ -115,6 +115,9 @@ void ImageEquation::calcEquations(DesignMatrix& designmatrix)
 	vector<string> completions(parameters().completions("image.i"));
 	vector<string>::iterator it;
 	for (it=completions.begin();it!=completions.end();it++) {
+        
+        DesignMatrix designmatrix(parameters());
+
 		string imageName("image.i"+(*it));
 		Domain domain(parameters().domain(imageName));
 
@@ -144,6 +147,7 @@ void ImageEquation::calcEquations(DesignMatrix& designmatrix)
 		// Now we can add the design matrix, residual, and weights
 		designmatrix.addDerivative(imageName, imageDeriv);
 		designmatrix.addResidual(residual, weights);
+        ne.add(designmatrix, NormalEquations::COMPLETE);
 	}
 };
 

@@ -36,9 +36,9 @@ public:
 	/// Predict model visibility
 	virtual void predict();
 	
-	/// Calculate the regular design matrix
-	/// @param design matrix
-	virtual void calcEquations(conrad::scimath::DesignMatrix& designmatrix);
+	/// Calculate the normal equations
+	/// @param ne Normal equations
+	virtual void calcEquations(conrad::scimath::NormalEquations& ne);
 	
 private:
     boost::shared_ptr<IDataAccessor> itsIda;

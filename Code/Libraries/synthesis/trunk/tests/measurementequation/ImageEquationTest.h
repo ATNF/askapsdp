@@ -23,7 +23,6 @@ class ImageEquationTest : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(ImageEquationTest);
     CPPUNIT_TEST(testPredict);
-    CPPUNIT_TEST(testDesignMatrix);
     CPPUNIT_TEST(testSVD);
     CPPUNIT_TEST_EXCEPTION(testFixed, std::domain_error);
     CPPUNIT_TEST_SUITE_END();
@@ -75,31 +74,17 @@ class ImageEquationTest : public CppUnit::TestFixture  {
 		p1->predict();
 	}
 	
-	void testDesignMatrix()
-	{
-		DesignMatrix dm1(*params1);
-		p1->calcEquations(dm1);
-		CPPUNIT_ASSERT(abs(dm1.fit()-0.860064)<0.01);
-		p1->predict();
-		dm1.reset();
-		p1->calcEquations(dm1);
-		CPPUNIT_ASSERT(dm1.fit()<0.0001);
-		DesignMatrix dm2(*params2);
-		p2->calcEquations(dm2);
-		CPPUNIT_ASSERT(abs(dm2.fit()-0.0792956)<0.0001);
-	}
-	
 	void testSVD() {
 		// Predict with the "perfect" parameters"
-		DesignMatrix dm1(*params1);
+		NormalEquations ne(*params1);
 		p1->predict();
 		// Calculate gradients using "imperfect" parameters" 
-		p2->calcEquations(dm1);
+		p2->calcEquations(ne);
 		Quality q;
 		LinearSolver solver1(*params2);
-		solver1.addDesignMatrix(dm1);
-		solver1.solveDesignMatrix(q);
-        CPPUNIT_ASSERT(abs(q.cond()-1.32933e+07)<100.0);
+		solver1.addNormalEquations(ne);
+		solver1.solveNormalEquations(q, true);
+        CPPUNIT_ASSERT(abs(q.cond()-1.77101e+14)<1e9);
 		casa::Vector<double> improved=solver1.parameters().value("image.i.cena");
 		uint npix=16;
 		CPPUNIT_ASSERT(abs(improved(npix/2+npix*npix/2)-1.0)<0.003);
@@ -107,15 +92,15 @@ class ImageEquationTest : public CppUnit::TestFixture  {
 	}
 	
 	void testFixed() {
-		DesignMatrix dm1(*params1);
+		NormalEquations ne(*params1);
 		p1->predict();
-		p2->calcEquations(dm1);
+		p2->calcEquations(ne);
 		Quality q;
 		LinearSolver solver1(*params2);
-		solver1.addDesignMatrix(dm1);
+		solver1.addNormalEquations(ne);
 		// Should throw exception: domain_error
 	    solver1.parameters().fix("image.i.cena");
-		solver1.solveDesignMatrix(q);
+		solver1.solveNormalEquations(q);
 	}
 };
   

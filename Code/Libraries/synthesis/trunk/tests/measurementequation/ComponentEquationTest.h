@@ -23,9 +23,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(ComponentEquationTest);
     CPPUNIT_TEST(testCopy);
     CPPUNIT_TEST(testPredict);
-    CPPUNIT_TEST(testDesignMatrix);
     CPPUNIT_TEST(testAssembly);
-    CPPUNIT_TEST(testSVD);
     CPPUNIT_TEST(testConstructNormalEquations);
 	CPPUNIT_TEST(testSolveNormalEquations);
 	CPPUNIT_TEST_EXCEPTION(testNoFree, std::domain_error);
@@ -84,58 +82,20 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		p1->predict();
 	}
 	
-	void testDesignMatrix()
-	{
-		DesignMatrix dm1(*params1);
-		p1->calcEquations(dm1);
-		CPPUNIT_ASSERT(abs(dm1.fit()-100.0/sqrt(2.0))<0.01);
-		p1->predict();
-		dm1.reset();
-		p1->calcEquations(dm1);
-        CPPUNIT_ASSERT(dm1.fit()<0.021);
-		DesignMatrix dm2(*params2);
-		p2->calcEquations(dm2);
-		CPPUNIT_ASSERT(abs(dm2.fit()-4.96671)<0.0001);
-	}
-	
 	void testAssembly() {
 		// Predict with the "perfect" parameters"
-		DesignMatrix dm1(*params1);
+		NormalEquations ne(*params1);
 		p1->predict();
 		// Calculate gradients using "imperfect" parameters" 
-		p2->calcEquations(dm1);
-		Quality q;
+		p2->calcEquations(ne);
 		LinearSolver solver1(*params2);
-		solver1.addDesignMatrix(dm1);
-	}
-
-	void testSVD() {
-		// Predict with the "perfect" parameters"
-		p1->predict();
-		// Calculate gradients using "imperfect" parameters" 
-		DesignMatrix dm1(*params1);
-		p2->calcEquations(dm1);
-		Quality q;
-		LinearSolver solver1(*params2);
-		solver1.addDesignMatrix(dm1);
-		solver1.solveDesignMatrix(q);
-		CPPUNIT_ASSERT(q.rank()==3);
-        CPPUNIT_ASSERT(abs(q.cond()-1.94563e+06)<100.0);
-  	    solver1.parameters().fix("flux.i.cena");
-		solver1.solveDesignMatrix(q);
-		CPPUNIT_ASSERT(q.rank()==2);
-		CPPUNIT_ASSERT(abs(q.cond()-2.58063)<0.0001);
-	    solver1.parameters().fix("direction.ra.cena");
-		solver1.solveDesignMatrix(q);
-		CPPUNIT_ASSERT(q.rank()==1);
-		CPPUNIT_ASSERT(abs(q.cond()-1.000000)<0.0001);
+		solver1.addNormalEquations(ne);
 	}
 
 	void testConstructNormalEquations() {
-		DesignMatrix dm1(*params1);
-		p2->calcEquations(dm1);
-		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
-		std::map<string, std::map<string, casa::Matrix<double> > > nm(normeq.normalMatrix());
+		NormalEquations ne(*params1);
+		p2->calcEquations(ne);
+		std::map<string, std::map<string, casa::Matrix<double> > > nm(ne.normalMatrix());
 		vector<string> names(params1->names());
 		for (uint row=0;row<names.size();row++) {
 			for (uint col=0;col<names.size();col++) {
@@ -150,28 +110,27 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		// Predict with the "perfect" parameters"
 		p1->predict();
 		// Calculate gradients using "imperfect" parameters" 
-		DesignMatrix dm1(*params1);
-		p2->calcEquations(dm1);
+		NormalEquations ne(*params1);
+		p2->calcEquations(ne);
 		Quality q;
 		LinearSolver solver1(*params2);
-		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
-		solver1.addNormalEquations(normeq);
+		solver1.addNormalEquations(ne);
 		solver1.solveNormalEquations(q, true);
         CPPUNIT_ASSERT(abs(q.cond()-3.78547e+12)<1e7);
 	}
 
 	void testNoFree() {
-		DesignMatrix dm1(*params1);
+		NormalEquations ne(*params1);
 		p1->predict();
-		p2->calcEquations(dm1);
+		p2->calcEquations(ne);
 		Quality q;
 		LinearSolver solver1(*params2);
-		solver1.addDesignMatrix(dm1);
+		solver1.addNormalEquations(ne);
   	    solver1.parameters().fix("flux.i.cena");
 	    solver1.parameters().fix("direction.ra.cena");
 	    solver1.parameters().fix("direction.dec.cena");
 		// Should throw exception: domain_error
-		solver1.solveDesignMatrix(q);
+		solver1.solveNormalEquations(q);
     }
 	
   };

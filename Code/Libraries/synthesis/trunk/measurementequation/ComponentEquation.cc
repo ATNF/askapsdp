@@ -85,7 +85,7 @@ void ComponentEquation::predict()
 	}
 };
 
-void ComponentEquation::calcEquations(DesignMatrix& designmatrix) 
+void ComponentEquation::calcEquations(NormalEquations& ne) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
@@ -94,7 +94,7 @@ void ComponentEquation::calcEquations(DesignMatrix& designmatrix)
 
 	const casa::Vector<double>& freq=itsIda->frequency();	
 	const casa::Vector<double>& time=itsIda->time();	
-		
+	
 	const uint nParameters=3;
 	
 	// Define AutoDiff's for the output visibilities.
@@ -116,6 +116,9 @@ void ComponentEquation::calcEquations(DesignMatrix& designmatrix)
 	vector<string> completions(parameters().completions("flux.i"));
 	vector<string>::iterator it;
 	for (it=completions.begin();it!=completions.end();it++) {
+        
+        DesignMatrix designmatrix(parameters());
+        
 		uint offset=0;
 	
 		string raName("direction.ra"+(*it));
@@ -152,6 +155,8 @@ void ComponentEquation::calcEquations(DesignMatrix& designmatrix)
 		designmatrix.addDerivative(decName, decDeriv);
 		designmatrix.addDerivative(fluxName, fluxiDeriv);
 		designmatrix.addResidual(residual, weights);
+            
+        ne.add(designmatrix, NormalEquations::COMPLETE);
 	}
 };
 

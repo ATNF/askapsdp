@@ -94,12 +94,11 @@ int main() {
 	cout << "Calculating derivatives from imperfect model" << endl;
     cout << endl;
     
-	DesignMatrix dm(perfect);
+	NormalEquations normeq(perfect);
 	{
 		ImageEquation imperfecteq(imperfect, ida);
-		imperfecteq.calcEquations(dm);
+		imperfecteq.calcEquations(normeq);
 	}
-	NormalEquations normeq(dm, NormalEquations::COMPLETE);
     cout << "Data vector (i.e. residual image):" << endl;
     printVectorAsMatrix(npix, normeq.dataVector()["image.i.cena"]);
     cout << "Slice of normal equations (i.e. dirty psf):" << endl;
