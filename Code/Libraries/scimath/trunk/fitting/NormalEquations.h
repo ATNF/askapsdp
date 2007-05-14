@@ -10,6 +10,9 @@
 
 #include <fitting/Params.h>
 
+#include <casa/aips.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
 
 namespace conrad
 {
@@ -40,20 +43,25 @@ public:
 	/// Copy constructor
 	NormalEquations(const NormalEquations& normeq);
 
+    /// Assignment operator
+    NormalEquations& operator=(const NormalEquations& normeq);
+    
+    virtual ~NormalEquations();
+    
 	/// Return the specified parameters
 	const Params& parameters() const;
 	Params& parameters();
 		
-	/// Construct the normal equations from the design matrix
-	/// @param dm Design matrix
-	/// @param approx Type of approximation to be used
-	NormalEquations(const DesignMatrix& dm, const NormalEquations::Approximation approx);
-	
-	/// Assignment operator
-	NormalEquations& operator=(const NormalEquations& normeq);
-	
-	virtual ~NormalEquations();
-	
+    /// Construct the normal equations from the design matrix
+    /// @param dm Design matrix
+    /// @param approx Type of approximation to be used
+    NormalEquations(const DesignMatrix& dm, const NormalEquations::Approximation approx);
+    
+    /// Add the design matrix to the normal equations
+    /// @param dm Design matrix
+    /// @param approx Type of approximation to be used
+    void add(const DesignMatrix& dm, const NormalEquations::Approximation approx);
+    
 	// Set the approximation
 	void setApproximation(const NormalEquations::Approximation approx);
 	

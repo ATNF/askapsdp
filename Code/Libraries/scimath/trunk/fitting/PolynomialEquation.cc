@@ -72,7 +72,7 @@ void PolynomialEquation::predict()
 	}
 };
 
-void PolynomialEquation::calcEquations(DesignMatrix& designmatrix) 
+void PolynomialEquation::calcEquations(NormalEquations& ne) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
@@ -82,6 +82,8 @@ void PolynomialEquation::calcEquations(DesignMatrix& designmatrix)
     casa::Vector<double> values(itsData.size());
     values=0.0;
     
+    DesignMatrix designmatrix(parameters());
+   
     vector<string> completions(parameters().completions("poly"));
     vector<string>::iterator it;
     // Loop over all polynomials adding to the values
@@ -99,6 +101,7 @@ void PolynomialEquation::calcEquations(DesignMatrix& designmatrix)
     
     residual-=itsModel;
     designmatrix.addResidual(residual, weights);
+    ne.add(designmatrix, NormalEquations::COMPLETE);
 };
 
 void PolynomialEquation::calcPoly(const casa::Vector<double>& x, const casa::Vector<double>& parameters, 

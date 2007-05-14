@@ -42,87 +42,170 @@ NormalEquations& NormalEquations::operator=(const NormalEquations& other)
 }
 
 NormalEquations::NormalEquations(const DesignMatrix& dm, 
-	const NormalEquations::Approximation approx)
+    const NormalEquations::Approximation approx)
 {
-	itsParams=dm.parameters();
-	itsApprox=approx;
-	vector<string> names=dm.names();
-	vector<string>::iterator iterRow;
-	vector<string>::iterator iterCol;
-	const uint nDataSet=dm.residual().size();
-	
-	switch(approx) {
-		case NormalEquations::COMPLETE:
-			// This looks hairy but it's all just linear algebra!
-			for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
-				bool first=true;
-				for (uint iDataSet=0;iDataSet<nDataSet;iDataSet++) {
-					// Need to special case for CASA product limitation
-					if(dm.derivative(*iterRow)[iDataSet].ncolumn()==1) {		 
-						const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
-						if(first) {
-							itsDataVector[*iterRow]=sum(((aV)*(dm.residual()[iDataSet])));
-							first=false;
-						}
-						else {
-							itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
-						}
-					}
-					else {
-						if(first) {
-							itsDataVector[*iterRow]=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-							first=false;
-						}
-						else {
-							itsDataVector[*iterRow]+=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-						}
-					}
-				}
-			}
-			// Outside loops are over parameter names
-			for (iterCol=names.begin();iterCol!=names.end();iterCol++) {
-				const uint nACol=dm.derivative(*iterCol).size();
-				// Inside loops are over lists of derivatives
-				for (uint iACol=0;(iACol<nACol);iACol++) {
-					for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
-						bool first=true;
-						const uint nARow=dm.derivative(*iterRow).size();
-						for (uint iARow=0;(iARow<nARow);iARow++) {
-							if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1)) {
-								const casa::Vector<casa::Double>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
-								const casa::Vector<casa::Double>& aColV(dm.derivative(*iterCol)[iACol].column(0));
-								if(first) {
-									itsNormalMatrix[*iterRow][*iterCol].resize(1,1);
-									itsNormalMatrix[*iterRow][*iterCol].set(sum(((aRowV)*(aColV))));
-									first=false;
-								}
-								else {
-									itsNormalMatrix[*iterRow][*iterCol]+=sum(((aRowV)*(aColV)));
-								}
-							}
-							else {
-								if(first) {
-									itsNormalMatrix[*iterRow][*iterCol]=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-									first=false;
-								}
-								else {
-									itsNormalMatrix[*iterRow][*iterCol]+=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-								}
-							}
-						}
-					}
-				}
-			}
-			break;
-//		case NormalEquations::DIAGONAL_COMPLETE:
-//			throw(std::invalid_argument("Normal Equation approximation DIAGONAL_COMPLETE not yet implemented"));
-//		case NormalEquations::DIAGONAL_SLICE:
-//			throw(std::invalid_argument("Normal Equation approximation DIAGONAL_SLICE not yet implemented"));
-//		case NormalEquations::DIAGONAL_DIAGONAL:
-//			throw(std::invalid_argument("Normal Equation approximation DIAGONAL_DIAGONAL not yet implemented"));
-//		default:
-//			throw(std::invalid_argument("Unknown Normal Equation approximation"));
-	}
+    itsParams=dm.parameters();
+    itsApprox=approx;
+    vector<string> names=dm.names();
+    vector<string>::iterator iterRow;
+    vector<string>::iterator iterCol;
+    const uint nDataSet=dm.residual().size();
+    
+    switch(approx) {
+        case NormalEquations::COMPLETE:
+            // This looks hairy but it's all just linear algebra!
+            for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
+                bool first=true;
+                for (uint iDataSet=0;iDataSet<nDataSet;iDataSet++) {
+                    // Need to special case for CASA product limitation
+                    if(dm.derivative(*iterRow)[iDataSet].ncolumn()==1) {         
+                        const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
+                        if(first) {
+                            itsDataVector[*iterRow]=sum(((aV)*(dm.residual()[iDataSet])));
+                            first=false;
+                        }
+                        else {
+                            itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
+                        }
+                    }
+                    else {
+                        if(first) {
+                            itsDataVector[*iterRow]=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
+                            first=false;
+                        }
+                        else {
+                            itsDataVector[*iterRow]+=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
+                        }
+                    }
+                }
+            }
+            // Outside loops are over parameter names
+            for (iterCol=names.begin();iterCol!=names.end();iterCol++) {
+                const uint nACol=dm.derivative(*iterCol).size();
+                // Inside loops are over lists of derivatives
+                for (uint iACol=0;(iACol<nACol);iACol++) {
+                    for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
+                        bool first=true;
+                        const uint nARow=dm.derivative(*iterRow).size();
+                        for (uint iARow=0;(iARow<nARow);iARow++) {
+                            if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1)) {
+                                const casa::Vector<casa::Double>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
+                                const casa::Vector<casa::Double>& aColV(dm.derivative(*iterCol)[iACol].column(0));
+                                if(first) {
+                                    itsNormalMatrix[*iterRow][*iterCol].resize(1,1);
+                                    itsNormalMatrix[*iterRow][*iterCol].set(sum(((aRowV)*(aColV))));
+                                    first=false;
+                                }
+                                else {
+                                    itsNormalMatrix[*iterRow][*iterCol]+=sum(((aRowV)*(aColV)));
+                                }
+                            }
+                            else {
+                                if(first) {
+                                    itsNormalMatrix[*iterRow][*iterCol]=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
+                                    first=false;
+                                }
+                                else {
+                                    itsNormalMatrix[*iterRow][*iterCol]+=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+//      case NormalEquations::DIAGONAL_COMPLETE:
+//          throw(std::invalid_argument("Normal Equation approximation DIAGONAL_COMPLETE not yet implemented"));
+//      case NormalEquations::DIAGONAL_SLICE:
+//          throw(std::invalid_argument("Normal Equation approximation DIAGONAL_SLICE not yet implemented"));
+//      case NormalEquations::DIAGONAL_DIAGONAL:
+//          throw(std::invalid_argument("Normal Equation approximation DIAGONAL_DIAGONAL not yet implemented"));
+//      default:
+//          throw(std::invalid_argument("Unknown Normal Equation approximation"));
+    }
+}
+
+void NormalEquations::add(const DesignMatrix& dm, const NormalEquations::Approximation approx)
+{
+    itsParams.merge(dm.parameters());
+    itsApprox=approx;
+    vector<string> names=dm.names();
+    vector<string>::iterator iterRow;
+    vector<string>::iterator iterCol;
+    const uint nDataSet=dm.residual().size();
+    
+    switch(approx) {
+        case NormalEquations::COMPLETE:
+            // This looks hairy but it's all just linear algebra!
+            for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
+                bool first=(itsDataVector[*iterRow].size()==0);
+                for (uint iDataSet=0;iDataSet<nDataSet;iDataSet++) {
+                    // Need to special case for CASA product limitation
+                    if(dm.derivative(*iterRow)[iDataSet].ncolumn()==1) {         
+                        const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
+                        if(first) {
+                            itsDataVector[*iterRow]=sum(((aV)*(dm.residual()[iDataSet])));
+                            first=false;
+                        }
+                        else {
+                            itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
+                        }
+                    }
+                    else {
+                        if(first) {
+                            itsDataVector[*iterRow]=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
+                            first=false;
+                        }
+                        else {
+                            itsDataVector[*iterRow]+=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
+                        }
+                    }
+                }
+            }
+            // Outside loops are over parameter names
+            for (iterCol=names.begin();iterCol!=names.end();iterCol++) {
+                const uint nACol=dm.derivative(*iterCol).size();
+                // Inside loops are over lists of derivatives
+                for (uint iACol=0;(iACol<nACol);iACol++) {
+                    for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
+                        bool first=(itsNormalMatrix[*iterRow][*iterCol].nrow()==0);
+                        const uint nARow=dm.derivative(*iterRow).size();
+                        for (uint iARow=0;(iARow<nARow);iARow++) {
+                            if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1)) {
+                                const casa::Vector<casa::Double>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
+                                const casa::Vector<casa::Double>& aColV(dm.derivative(*iterCol)[iACol].column(0));
+                                if(first) {
+                                    itsNormalMatrix[*iterRow][*iterCol].resize(1,1);
+                                    itsNormalMatrix[*iterRow][*iterCol].set(sum(((aRowV)*(aColV))));
+                                    first=false;
+                                }
+                                else {
+                                    itsNormalMatrix[*iterRow][*iterCol]+=sum(((aRowV)*(aColV)));
+                                }
+                            }
+                            else {
+                                if(first) {
+                                    itsNormalMatrix[*iterRow][*iterCol]=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
+                                    first=false;
+                                }
+                                else {
+                                    itsNormalMatrix[*iterRow][*iterCol]+=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+//      case NormalEquations::DIAGONAL_COMPLETE:
+//          throw(std::invalid_argument("Normal Equation approximation DIAGONAL_COMPLETE not yet implemented"));
+//      case NormalEquations::DIAGONAL_SLICE:
+//          throw(std::invalid_argument("Normal Equation approximation DIAGONAL_SLICE not yet implemented"));
+//      case NormalEquations::DIAGONAL_DIAGONAL:
+//          throw(std::invalid_argument("Normal Equation approximation DIAGONAL_DIAGONAL not yet implemented"));
+//      default:
+//          throw(std::invalid_argument("Unknown Normal Equation approximation"));
+    }
 }
 
 NormalEquations::~NormalEquations()

@@ -12,7 +12,6 @@
 #define SCIMATHPOLYEQUATION_H
 
 #include <fitting/Equation.h>
-#include <fitting/DesignMatrix.h>
 #include <fitting/NormalEquations.h>
 
 namespace conrad { 
@@ -46,8 +45,8 @@ public:
     virtual void predict();
     
     /// Calculate the design matrix
-    /// @param dm Design matrix
-    virtual void calcEquations(DesignMatrix& dm);
+    /// @param ne Normal equations
+    virtual void calcEquations(NormalEquations& ne);
 
 protected:
 

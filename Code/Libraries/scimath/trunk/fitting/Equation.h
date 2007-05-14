@@ -12,7 +12,7 @@
 #define SCIMATHEQUATION_H
 
 #include <fitting/Params.h>
-#include <fitting/DesignMatrix.h>
+#include <fitting/NormalEquations.h>
 
 namespace conrad { 
 
@@ -52,7 +52,7 @@ public:
     
     virtual void predict() = 0;
     
-    virtual void calcEquations(DesignMatrix& dm) = 0;
+    virtual void calcEquations(NormalEquations& ne) = 0;
     
 protected:
 	Params itsParams;
