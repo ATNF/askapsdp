@@ -26,6 +26,20 @@ namespace conrad
 namespace synthesis
 {
 
+ImageEquation::ImageEquation(const ImageEquation& other)
+{
+    operator=(other);
+}
+    
+ImageEquation& ImageEquation::operator=(const ImageEquation& other)
+{
+    if(this!=&other) {
+        itsParams=other.itsParams;
+        itsDefaultParams=other.itsDefaultParams;
+        itsIda=other.itsIda;
+    }
+}
+
 void ImageEquation::init()
 {
 	// The default parameters serve as a holder for the patterns to match the actual
@@ -34,16 +48,16 @@ void ImageEquation::init()
 	itsDefaultParams.add("image.i");
 }
 
-void ImageEquation::predict(IDataAccessor& ida) 
+void ImageEquation::predict() 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
 		throw std::invalid_argument("Parameters not consistent with this equation");
 	}
-	const casa::Vector<double>& freq=ida.frequency();	
-	const casa::Vector<double>& time=ida.time();	
+	const casa::Vector<double>& freq=itsIda->frequency();	
+	const casa::Vector<double>& time=itsIda->time();	
 	const uint nChan=freq.nelements();
-	const uint nRow=ida.nRow();
+	const uint nRow=itsIda->nRow();
 	casa::Matrix<double> vis(nRow,2*nChan);
 	casa::Matrix<double> noDeriv(0,0);
 
@@ -68,27 +82,27 @@ void ImageEquation::predict(IDataAccessor& ida)
 		const uint nPixels=imagePixels.nelements();
 
 		this->calcVis(imagePixels, raStart, raEnd, raCells, decStart, decEnd, decCells, 
-			freq, ida.uvw(), vis, false, noDeriv);
+			freq, itsIda->uvw(), vis, false, noDeriv);
 
 		for (uint row=0;row<nRow;row++) {
 			for (uint i=0;i<nChan;i++) {
-				ida.rwVisibility()(row,i,0) += casa::Complex(vis(row,2*i), vis(row,2*i+1));
+				itsIda->rwVisibility()(row,i,0) += casa::Complex(vis(row,2*i), vis(row,2*i+1));
 			}
 		}
 	}
 };
 
-void ImageEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix) 
+void ImageEquation::calcEquations(DesignMatrix& designmatrix) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
 		throw std::invalid_argument("Parameters not consistent with this equation");
 	}
 
-	const casa::Vector<double>& freq=ida.frequency();	
+	const casa::Vector<double>& freq=itsIda->frequency();	
 	const uint nChan=freq.nelements();
-	const uint nRow=ida.nRow();
-	const casa::Vector<double>& time=ida.time();	
+	const uint nRow=itsIda->nRow();
+	const casa::Vector<double>& time=itsIda->time();	
 		
 	// Set up arrays to hold the output values
 	// Row, Two values (complex) per channel, single pol
@@ -117,13 +131,13 @@ void ImageEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix
 		casa::Matrix<casa::Double> imageDeriv(2*nRow*nChan,nPixels);
 		
 		this->calcVis(imagePixels, raStart, raEnd, raCells, 
-			decStart, decEnd, decCells, freq, ida.uvw(),
+			decStart, decEnd, decCells, freq, itsIda->uvw(),
 			vis, true, imageDeriv);
 
-		for (uint row=0;row<ida.nRow();row++) {
+		for (uint row=0;row<itsIda->nRow();row++) {
 			for (uint i=0;i<freq.nelements();i++) {
-                residual(nChan*row+2*i)=real(ida.visibility()(row,i,0))-vis(row,2*i);
-                residual(nChan*row+2*i+1)=imag(ida.visibility()(row,i,0))-vis(row,2*i+1);
+                residual(nChan*row+2*i)=real(itsIda->visibility()(row,i,0))-vis(row,2*i);
+                residual(nChan*row+2*i+1)=imag(itsIda->visibility()(row,i,0))-vis(row,2*i+1);
 			}
 		}
 
@@ -131,12 +145,6 @@ void ImageEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix
 		designmatrix.addDerivative(imageName, imageDeriv);
 		designmatrix.addResidual(residual, weights);
 	}
-};
-
-void ImageEquation::calcEquations(IDataAccessor& ida, NormalEquations& normeq) 
-{
-	// We can only make a relatively poor approximation to the normal equations
-	normeq.setApproximation(NormalEquations::DIAGONAL_SLICE);
 };
 
 void ImageEquation::calcVis(const casa::Vector<double>& imagePixels, 

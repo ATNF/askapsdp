@@ -11,6 +11,7 @@
 
 #include <stdexcept>
 
+#include <boost/shared_ptr.hpp>
 
 using namespace conrad::scimath;
 
@@ -33,32 +34,31 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
   private:
     ComponentEquation *p1, *p2;
 	Params *params1, *params2, *params3;
-    DataAccessorStub *ida;
+    boost::shared_ptr<IDataAccessor> ida;
 
   public:
     void setUp()
     {
-      ida = new DataAccessorStub(true);
+      ida = boost::shared_ptr<IDataAccessor>(new DataAccessorStub(true));
       
 	  params1 = new Params;
 	  params1->add("flux.i.cena", 100.0);
 	  params1->add("direction.ra.cena", 0.5);
 	  params1->add("direction.dec.cena", -0.3);
 
-      p1 = new ComponentEquation(*params1);
+      p1 = new ComponentEquation(*params1, ida);
 
 	  params2 = new Params;
 	  params2->add("flux.i.cena", 100.0);
 	  params2->add("direction.ra.cena", 0.500005);
 	  params2->add("direction.dec.cena", -0.300003);
 	  	  
-      p2 = new ComponentEquation(*params2);
+      p2 = new ComponentEquation(*params2, ida);
       
     }
     
     void tearDown() 
     {
-      delete ida;
       delete p1;
       delete p2;
     }
@@ -70,7 +70,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		ip.add("Value1");
 		ip.add("Value2");
 		delete p1;
-		p1 = new ComponentEquation(ip);
+		p1 = new ComponentEquation(ip, ida);
 		delete p2;
 		p2 = new ComponentEquation(*p1);
 		CPPUNIT_ASSERT(p2->parameters().names().size()==3);
@@ -81,29 +81,29 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
     
 	void testPredict()
 	{
-		p1->predict(*ida);
+		p1->predict();
 	}
 	
 	void testDesignMatrix()
 	{
 		DesignMatrix dm1(*params1);
-		p1->calcEquations(*ida, dm1);
+		p1->calcEquations(dm1);
 		CPPUNIT_ASSERT(abs(dm1.fit()-100.0/sqrt(2.0))<0.01);
-		p1->predict(*ida);
+		p1->predict();
 		dm1.reset();
-		p1->calcEquations(*ida, dm1);
+		p1->calcEquations(dm1);
         CPPUNIT_ASSERT(dm1.fit()<0.021);
 		DesignMatrix dm2(*params2);
-		p2->calcEquations(*ida, dm2);
+		p2->calcEquations(dm2);
 		CPPUNIT_ASSERT(abs(dm2.fit()-4.96671)<0.0001);
 	}
 	
 	void testAssembly() {
 		// Predict with the "perfect" parameters"
 		DesignMatrix dm1(*params1);
-		p1->predict(*ida);
+		p1->predict();
 		// Calculate gradients using "imperfect" parameters" 
-		p2->calcEquations(*ida, dm1);
+		p2->calcEquations(dm1);
 		Quality q;
 		LinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
@@ -111,10 +111,10 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 
 	void testSVD() {
 		// Predict with the "perfect" parameters"
-		p1->predict(*ida);
+		p1->predict();
 		// Calculate gradients using "imperfect" parameters" 
 		DesignMatrix dm1(*params1);
-		p2->calcEquations(*ida, dm1);
+		p2->calcEquations(dm1);
 		Quality q;
 		LinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
@@ -133,7 +133,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 
 	void testConstructNormalEquations() {
 		DesignMatrix dm1(*params1);
-		p2->calcEquations(*ida, dm1);
+		p2->calcEquations(dm1);
 		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
 		std::map<string, std::map<string, casa::Matrix<double> > > nm(normeq.normalMatrix());
 		vector<string> names(params1->names());
@@ -148,21 +148,22 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 
 	void testSolveNormalEquations() {
 		// Predict with the "perfect" parameters"
-		p1->predict(*ida);
+		p1->predict();
 		// Calculate gradients using "imperfect" parameters" 
 		DesignMatrix dm1(*params1);
-		p2->calcEquations(*ida, dm1);
+		p2->calcEquations(dm1);
 		Quality q;
 		LinearSolver solver1(*params2);
 		NormalEquations normeq(dm1, NormalEquations::COMPLETE);
 		solver1.addNormalEquations(normeq);
-		solver1.solveNormalEquations(q);
+		solver1.solveNormalEquations(q, true);
+        CPPUNIT_ASSERT(abs(q.cond()-3.78547e+12)<1e7);
 	}
 
 	void testNoFree() {
 		DesignMatrix dm1(*params1);
-		p1->predict(*ida);
-		p2->calcEquations(*ida, dm1);
+		p1->predict();
+		p2->calcEquations(dm1);
 		Quality q;
 		LinearSolver solver1(*params2);
 		solver1.addDesignMatrix(dm1);
@@ -171,7 +172,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 	    solver1.parameters().fix("direction.dec.cena");
 		// Should throw exception: domain_error
 		solver1.solveDesignMatrix(q);
-	}
+    }
 	
   };
   

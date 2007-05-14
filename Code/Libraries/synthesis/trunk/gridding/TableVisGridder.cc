@@ -5,7 +5,7 @@ namespace conrad
 namespace synthesis
 {
 
-TableVisGridder::TableVisGridder()
+TableVisGridder::TableVisGridder(boost::shared_ptr<IDataAccessor>& ida) : itsIda(ida)
 {
 }
 
@@ -13,28 +13,24 @@ TableVisGridder::~TableVisGridder()
 {
 }
 
-void TableVisGridder::forward(const IDataAccessor& ida,
-		const casa::Vector<double>& cellSize,
+void TableVisGridder::forward(const casa::Vector<double>& cellSize,
 		casa::Cube<casa::Complex>& grid,
 		casa::Vector<float>& weights)
 {
 }
 		
-void TableVisGridder::forward(const IDataAccessor& ida,
-		const casa::Vector<double>& cellSize,
+void TableVisGridder::forward(const casa::Vector<double>& cellSize,
 		casa::Array<casa::Complex>& grid,
 		casa::Matrix<float>& weights)
 {
 }
 		
-void TableVisGridder::reverse(IDataAccessor& ida, 
-		const casa::Cube<casa::Complex>& grid, 
+void TableVisGridder::reverse(const casa::Cube<casa::Complex>& grid, 
 		const casa::Vector<double>& cellSize)
 {
 }
 
-void TableVisGridder::reverse(IDataAccessor& ida, 
-		const casa::Array<casa::Complex>& grid, 
+void TableVisGridder::reverse(const casa::Array<casa::Complex>& grid, 
 		const casa::Vector<double>& cellSize)
 {
 }

@@ -49,7 +49,8 @@ int main() {
 	
 	cout << "Synthesis demonstration program" << endl;
 
-	DataAccessorStub ida(true);
+	boost::shared_ptr<IDataAccessor> ida(new DataAccessorStub(true));
+    
 	Params perfect;
 
 	int npix=16;
@@ -73,8 +74,8 @@ int main() {
 	cout << "Predicting data from perfect model" << endl;
     cout << endl;
 	{
-		ImageEquation perfecteq(perfect);
-		perfecteq.predict(ida);
+		ImageEquation perfecteq(perfect, ida);
+		perfecteq.predict();
 	}
 
 	cout << "Making imperfect model" << endl;
@@ -95,8 +96,8 @@ int main() {
     
 	DesignMatrix dm(perfect);
 	{
-		ImageEquation imperfecteq(imperfect);
-		imperfecteq.calcEquations(ida, dm);
+		ImageEquation imperfecteq(imperfect, ida);
+		imperfecteq.calcEquations(dm);
 	}
 	NormalEquations normeq(dm, NormalEquations::COMPLETE);
     cout << "Data vector (i.e. residual image):" << endl;

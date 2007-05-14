@@ -16,7 +16,7 @@ int main( int argc, char **argv)
   runner.addTest( conrad::synthesis::TableVisGridderTest::suite());
 
   runner.addTest( conrad::synthesis::ComponentEquationTest::suite() );
-  runner.addTest( conrad::synthesis::ImageEquationTest::suite() );
+//  runner.addTest( conrad::synthesis::ImageEquationTest::suite() );
 
   runner.run();
   return 0;

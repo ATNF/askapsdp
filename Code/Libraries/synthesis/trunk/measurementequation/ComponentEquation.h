@@ -1,34 +1,47 @@
 #ifndef SYNCOMPONENTEQUATION_H_
 #define SYNCOMPONENTEQUATION_H_
 
-#include <measurementequation/SynEquation.h>
+#include <fitting/Equation.h>
+#include <fitting/Params.h>
+#include <dataaccess/IDataAccessor.h>
+
+#include <boost/shared_ptr.hpp>
+
+#include <casa/aips.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Cube.h>
 
 namespace conrad
 {
 namespace synthesis
 {
 
-class ComponentEquation : public SynEquation
+class ComponentEquation : public conrad::scimath::Equation
 {
 public:
 
-	ComponentEquation(const conrad::scimath::Params& ip) : SynEquation(ip) {};
+    /// @param ida data accessor
+	ComponentEquation(const conrad::scimath::Params& ip,
+        boost::shared_ptr<IDataAccessor>& ida) :  conrad::scimath::Equation(ip),
+        itsIda(ida) {init();};
 	
+    ComponentEquation(const ComponentEquation& other);
+    
+    ComponentEquation& operator=(const ComponentEquation& other);
+    
+    virtual ~ComponentEquation() {};
+    
 	/// Predict model visibility
-	/// @param ida data accessor
-	virtual void predict(IDataAccessor& ida);
-	
-	/// Calculate the normal equations
-	/// @param ida data accessor
-	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::NormalEquations& normeq);
+	virtual void predict();
 	
 	/// Calculate the regular design matrix
-	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::DesignMatrix& designmatrix);
+	virtual void calcEquations(conrad::scimath::DesignMatrix& designmatrix);
 	
 private:
+    boost::shared_ptr<IDataAccessor> itsIda;
 	void init();
 	/// Templated function to do the calculation of value and derivatives.
 	template<class T>

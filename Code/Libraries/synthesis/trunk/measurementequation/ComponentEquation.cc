@@ -1,5 +1,4 @@
 #include <fitting/Params.h>
-
 #include <dataaccess/IDataAccessor.h>
 #include <measurementequation/ComponentEquation.h>
 #include <fitting/NormalEquations.h>
@@ -26,6 +25,20 @@ namespace conrad
 namespace synthesis
 {
 
+ComponentEquation::ComponentEquation(const ComponentEquation& other)
+{
+    operator=(other);
+}
+    
+ComponentEquation& ComponentEquation::operator=(const ComponentEquation& other)
+{
+    if(this!=&other) {
+        itsParams=other.itsParams;
+        itsDefaultParams=other.itsDefaultParams;
+        itsIda=other.itsIda;
+    }
+}
+
 void ComponentEquation::init()
 {
 	// The default parameters serve as a holder for the patterns to match the actual
@@ -36,14 +49,14 @@ void ComponentEquation::init()
 	itsDefaultParams.add("direction.dec");
 }
 
-void ComponentEquation::predict(IDataAccessor& ida) 
+void ComponentEquation::predict() 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
 		throw std::invalid_argument("Parameters not consistent with this equation");
 	}
-	const casa::Vector<double>& freq=ida.frequency();	
-	const casa::Vector<double>& time=ida.time();	
+	const casa::Vector<double>& freq=itsIda->frequency();	
+	const casa::Vector<double>& time=itsIda->time();	
 	casa::Vector<float> vis(2*freq.nelements());
 
 	vector<string> completions(parameters().completions("flux.i"));
@@ -61,26 +74,26 @@ void ComponentEquation::predict(IDataAccessor& ida)
 		const double dec=parameters().scalarValue(decName);
 		const double fluxi=parameters().scalarValue(fluxName);
 
-		for (uint row=0;row<ida.nRow();row++) {
+		for (uint row=0;row<itsIda->nRow();row++) {
 		
-			this->calcRegularVis<float>(ra, dec, fluxi, freq, ida.uvw()(row)(0), ida.uvw()(row)(1), vis);
+			this->calcRegularVis<float>(ra, dec, fluxi, freq, itsIda->uvw()(row)(0), itsIda->uvw()(row)(1), vis);
 
 			for (uint i=0;i<freq.nelements();i++) {
-				ida.rwVisibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
+				itsIda->rwVisibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
 			}
 		}
 	}
 };
 
-void ComponentEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designmatrix) 
+void ComponentEquation::calcEquations(DesignMatrix& designmatrix) 
 {
 	if(parameters().isCongruent(itsDefaultParams))
 	{
 		throw std::invalid_argument("Parameters not consistent with this equation");
 	}
 
-	const casa::Vector<double>& freq=ida.frequency();	
-	const casa::Vector<double>& time=ida.time();	
+	const casa::Vector<double>& freq=itsIda->frequency();	
+	const casa::Vector<double>& time=itsIda->time();	
 		
 	const uint nParameters=3;
 	
@@ -92,7 +105,7 @@ void ComponentEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designma
 
 	// Set up arrays to hold the output values
 	// Two values (complex) per row, channel, pol
-	uint nData=ida.nRow()*freq.nelements()*2;
+	uint nData=itsIda->nRow()*freq.nelements()*2;
 	casa::Vector<casa::Double> raDeriv(nData);
 	casa::Vector<casa::Double> decDeriv(nData);
 	casa::Vector<casa::Double> fluxiDeriv(nData);
@@ -114,14 +127,14 @@ void ComponentEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designma
 		casa::AutoDiff<double> adec(parameters().scalarValue(decName), nParameters, 1);
 		casa::AutoDiff<double> afluxi(parameters().scalarValue(fluxName), nParameters, 2);
 			
-		for (uint row=0;row<ida.nRow();row++) {
+		for (uint row=0;row<itsIda->nRow();row++) {
 
 			this->calcRegularVis<casa::AutoDiff<double> >(ara, adec, afluxi, freq, 
-				ida.uvw()(row)(0), ida.uvw()(row)(1), av);
+				itsIda->uvw()(row)(0), itsIda->uvw()(row)(1), av);
 
 			for (uint i=0;i<freq.nelements();i++) {
-                residual(2*i+offset)=real(ida.visibility()(row,i,0))-av(2*i).value();
-                residual(2*i+1+offset)=imag(ida.visibility()(row,i,0))-av(2*i+1).value();
+                residual(2*i+offset)=real(itsIda->visibility()(row,i,0))-av(2*i).value();
+                residual(2*i+1+offset)=imag(itsIda->visibility()(row,i,0))-av(2*i+1).value();
                 raDeriv(2*i+offset)=av[2*i].derivative(0);
                 raDeriv(2*i+1+offset)=av(2*i+1).derivative(0);     
                 decDeriv(2*i+offset)=av[2*i].derivative(1);
@@ -142,9 +155,6 @@ void ComponentEquation::calcEquations(IDataAccessor& ida, DesignMatrix& designma
 	}
 };
 
-void ComponentEquation::calcEquations(IDataAccessor& ida, NormalEquations& normeq) 
-{
-};
 // This can be done easily by hand (and we should do for production) but I'm leaving
 // it in this form for the moment to show how the differentiation is done using
 // casa::AutoDiff

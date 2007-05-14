@@ -1,9 +1,11 @@
-#ifndef IMAGEEQUATION_H_
-#define IMAGEEQUATION_H_
+#ifndef SYNIMAGEEQUATION_H_
+#define SYNIMAGEEQUATION_H_
 
 #include <fitting/Params.h>
-#include <measurementequation/SynEquation.h>
+#include <fitting/Equation.h>
 #include <dataaccess/IDataAccessor.h>
+
+#include <boost/shared_ptr.hpp>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -16,27 +18,30 @@ namespace conrad
 namespace synthesis
 {
 
-class ImageEquation : public SynEquation
+class ImageEquation : public conrad::scimath::Equation
 {
 public:
 
-	ImageEquation(const conrad::scimath::Params& ip) : SynEquation(ip) {};
+	ImageEquation(const conrad::scimath::Params& ip, 
+        boost::shared_ptr<IDataAccessor>& ida) :  conrad::scimath::Equation(ip),
+        itsIda(ida) {init();};
 	
+    ImageEquation(const ImageEquation& other);
+    
+    ImageEquation& operator=(const ImageEquation& other);
+    
+    virtual ~ImageEquation() {};
+    
 	/// Predict model visibility
-	/// @param ida data accessor
-	virtual void predict(IDataAccessor& ida);
-	
-	/// Calculate the normal equations
-	/// @param ida data accessor
-	/// @param normeq Normal equations
-	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::NormalEquations& normeq);
+	virtual void predict();
 	
 	/// Calculate the regular design matrix
 	/// @param ida data accessor
 	/// @param design matrix
-	virtual void calcEquations(IDataAccessor& ida, conrad::scimath::DesignMatrix& designmatrix);
+	virtual void calcEquations(conrad::scimath::DesignMatrix& designmatrix);
 	
 private:
+    boost::shared_ptr<IDataAccessor> itsIda;
 	void init();
     void calcVis(const casa::Vector<double>& imagePixels, 
 		const double raStart, const double raEnd, const int raCells, 

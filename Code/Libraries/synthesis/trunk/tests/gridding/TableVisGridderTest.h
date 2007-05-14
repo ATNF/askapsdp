@@ -27,7 +27,7 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 	
   private:
     TableVisGridder *p1, *p2, *p3, *pempty;
-    DataAccessorStub *ida;
+    boost::shared_ptr<IDataAccessor> ida;
 	casa::Vector<double>* cellSize;
 	casa::Cube<casa::Complex>* grid;
 	casa::Vector<float>* weights;
@@ -36,23 +36,23 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
   public:
     void setUp()
     {
-      ida = new DataAccessorStub(true);
-      
+      ida = boost::shared_ptr<IDataAccessor>(new DataAccessorStub(true));
+            
 	  Params ip;
 	  ip.add("flux.i.cena", 100.0);
 	  ip.add("direction.ra.cena", 0.5);
 	  ip.add("direction.dec.cena", -0.3);
 	  
-	  ComponentEquation ce(ip);
-	  ce.predict(*ida);
+	  ComponentEquation ce(ip, ida);
+	  ce.predict();
 
-      p1 = new TableVisGridder();
+      p1 = new TableVisGridder(ida);
 
-      p2 = new TableVisGridder();
+      p2 = new TableVisGridder(ida);
       
-      p3 = new TableVisGridder();
+      p3 = new TableVisGridder(ida);
       
-      pempty = new TableVisGridder();
+      pempty = new TableVisGridder(ida);
 
       cellSize=new casa::Vector<double>(2);
 
@@ -69,7 +69,6 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
     
     void tearDown() 
     {
-      delete ida;
       delete p1;
       delete p2;
       delete p3;
@@ -81,11 +80,11 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 
 	void testForward()
 	{
-		p1->forward(*ida, *cellSize, *grid, *weights);
+		p1->forward(*cellSize, *grid, *weights);
 	}    
 	void testReverse()
 	{
-		p1->reverse(*ida, *grid, *cellSize);
+		p1->reverse(*grid, *cellSize);
 	}    
   };
   

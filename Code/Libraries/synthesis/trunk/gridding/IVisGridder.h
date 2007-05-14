@@ -18,7 +18,6 @@
 #ifndef IVISGRIDDER_H_
 #define IVISGRIDDER_H_
 
-#include <dataaccess/IDataAccessor.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -38,41 +37,34 @@ public:
 	
 	/// Grid the visibility data onto the grid using multifrequency
 	/// synthesis. Note that the weights allow complete flexibility
-	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,pol
 	/// @param weights Output weights: vector: pol
-	virtual void forward(const IDataAccessor& ida,
-			const casa::Vector<double>& cellSize,
+	virtual void forward(const casa::Vector<double>& cellSize,
 			casa::Cube<casa::Complex>& grid,
 			casa::Vector<float>& weights) = 0;
 			
 	/// Grid the spectral visibility data onto the grid
 	/// Note that the weights allow complete flexibility
-	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,chan,pol
 	/// @param weights Output weights: vector: pol
-	virtual void forward(const IDataAccessor& ida,
-			const casa::Vector<double>& cellSize,
+	virtual void forward(const casa::Vector<double>& cellSize,
 			casa::Array<casa::Complex>& grid,
 			casa::Matrix<float>& weights) = 0;
 			
 	/// Estimate visibility data from the grid using multifrequency
 	/// synthesis. 
-	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Input grid: cube: u,v,pol
-	virtual void reverse(IDataAccessor& ida, 
-			const casa::Cube<casa::Complex>& grid, 
+	virtual void reverse(const casa::Cube<casa::Complex>& grid, 
 			const casa::Vector<double>& cellSize) = 0;
 
 	/// Estimate spectral visibility data from the grid
 	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output weights: cube of same shape as visibility
-	virtual void reverse(IDataAccessor& ida, 
-			const casa::Array<casa::Complex>& grid, 
+	virtual void reverse(const casa::Array<casa::Complex>& grid, 
 			const casa::Vector<double>& cellSize) = 0;
 };
 
