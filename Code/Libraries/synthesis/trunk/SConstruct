@@ -10,20 +10,9 @@ from conradenv import env
 
 env.Append(CCFLAGS=['-O2'])
 
-
-# Add casacore package from tag 0.1.1
-# This will pull in all packages it depends on
-env.AddConradPackage("boost", "ThirdPartyLibraries/boost/tags/boost-1.33.1")
-env.AddConradPackage("scimath", "Code/Libraries/scimath/trunk")
-env.AddConradPackage("casacore", 
-		     "ThirdPartyLibraries/casacore/tags/casacore-0.1.1")
-		     
-# add the casacore build tool, this will pull in all casacore specific
-# build flags
-env.Tool('casa')
-
 # create build object with library name
 pkg = env.ConradPackage("synthesis")
+
 # add sub packages 
 pkg.AddSubPackage("measurementequation")
 pkg.AddSubPackage("dataaccess")

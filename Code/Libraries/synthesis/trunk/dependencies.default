@@ -1,1 +1,2 @@
-casacore=ThirdPartyLibraries/casacore/tags/casacore-0.1.1
+scimath=Code/Libraries/scimath/trunk
+boost=ThirdPartyLibraries/boost/tags/boost-1.33.1

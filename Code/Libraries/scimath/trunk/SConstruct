@@ -1,6 +1,6 @@
 # @file
 # SConstruct build script for this module.
-# This is currently a test case, please edit this comment when deemed stable
+# Package dependencies are read from 'dependencies.default'
 #
 # @author Malte Marquarding <Malte.Marquarding@csiro.au>
 #
@@ -10,22 +10,11 @@ from conradenv import env
 
 env.Append(CCFLAGS=['-O2'])
 
-
-# Add casacore package from tag 0.1.1
-# This will pull in all packages it depends on
-env.AddConradPackage("casacore", "ThirdPartyLibraries/casacore/tags/casacore-0.1.1")
-
-env.AddConradPackage("gsl", "ThirdPartyLibraries/gsl/tags/gsl-1.9")
-		     
-# add the casacore build tool, this will pull in all casacore specific
-# build flags
-env.Tool('casa')
-
 # create build object with library name
 pkg = env.ConradPackage("scimath")
+
 # add sub packages 
 pkg.AddSubPackage("fitting")
 
 # run the build process
 pkg()
-
