@@ -122,7 +122,8 @@ int generic(const std::vector<Coord>& u,
 	cout << "    Time per visibility spectral sample " 
 		<< 1e6*time/double(nSamples*nChan) << " (us) " << endl;
 	cout << "    Time per grid-addition " 
-		<< 1e9*time/(double(nSamples)*double(nChan)*double((2*support)*(2*support+1)))
+		<< 1e9*time/(double(nSamples)*double(nChan)*
+        double((2*support)*(2*support+1)))
 		<< " (ns) " << endl;
 		
 	cout << "+++++ Reverse processing +++++" << endl;
@@ -169,20 +170,23 @@ int generic(const std::vector<Coord>& u,
 	cout << "    Time per visibility spectral sample " 
 		<< 1e6*time/double(nSamples*nChan) << " (us) " << endl;
 	cout << "    Time per grid-addition " 
-		<< 1e9*time/(double(nSamples)*double(nChan)*double((2*support)*(2*support+1)))
+		<< 1e9*time/(double(nSamples)*double(nChan)*
+        double((2*support)*(2*support+1)))
 		<< " (ns) " << endl;
 
 	return 0;
 }
 
-int standard(const std::vector<Coord>& u, const std::vector<Coord>& v, const std::vector<Coord>& w, 
+int standard(const std::vector<Coord>& u, const std::vector<Coord>& v, 
+                    const std::vector<Coord>& w, 
 					std::vector<Value>& data,
 					const std::vector<Coord>& freq,
 					const Coord cellSize,
 					std::vector<Value>& grid) {
 
 		
-	cout << "*************************** Standard gridding ***********************" << endl;
+	cout << "*************************** Standard gridding ***********************" 
+        << endl;
 	int support=3;		// Support for gridding function in pixels
 	const int overSample=100;
 	cout << "Support = " << support << " pixels" << endl;
@@ -208,7 +212,8 @@ int standard(const std::vector<Coord>& u, const std::vector<Coord>& v, const std
 	std::vector<uint> cOffset;
 	cOffset.assign(data.size(),0);
 	
-	return generic(u, v, w, data, freq, cellSize, C, support, overSample, cOffset, grid); 
+	return generic(u, v, w, data, freq, cellSize, C, support, overSample, 
+        cOffset, grid); 
 }
 
 // Perform w projection (data dependent) gridding
@@ -235,8 +240,10 @@ int wprojection(const std::vector<Coord>& u,
 	const int nSamples = u.size();
 	const int nChan = freq.size();
 
-	cout << "************************* W projection gridding *********************" << endl;
-	int support=static_cast<int>(3.0*sqrt(abs(baseline)*static_cast<Coord>(cellSize)*freq[0])/cellSize); 
+	cout << "************************* W projection gridding *********************" 
+        << endl;
+	int support=static_cast<int>(3.0*sqrt(abs(baseline)*
+        static_cast<Coord>(cellSize)*freq[0])/cellSize); 
 	int overSample=8;
 	cout << "Support = " << support << " pixels" << endl;
 	const Coord wCellSize=2*baseline*freq[0]/wSize;
@@ -290,7 +297,8 @@ int wprojection(const std::vector<Coord>& u,
 		}
 	}
 		
-	return generic(u, v, w, data, freq, cellSize, C, support, overSample, cOffset, grid);
+	return generic(u, v, w, data, freq, cellSize, C, support, overSample, 
+        cOffset, grid);
 }
 
 int main() {
