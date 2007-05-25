@@ -1,4 +1,5 @@
-#include <gridding/TableVisGridder.h>
+#include <gridding/BoxVisGridder.h>
+#include <gridding/SphFuncVisGridder.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
 #include <dataaccess/DataIteratorStub.h>
@@ -26,7 +27,9 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    TableVisGridder *p1, *p2, *p3, *pempty;
+    BoxVisGridder *itsBox;
+    SphFuncVisGridder *itsSphFunc;
+    
     IDataSharedIter idi;
 	casa::Vector<double>* cellSize;
 	casa::Cube<casa::Complex>* grid;
@@ -45,11 +48,9 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 	  ComponentEquation ce(ip, idi);
 	  ce.predict();
 
-      p1 = new TableVisGridder(idi);
-      p2 = new TableVisGridder(idi);
-      p3 = new TableVisGridder(idi);
-      
-      pempty = new TableVisGridder(idi);
+      itsBox = new BoxVisGridder(idi);
+      itsSphFunc = new SphFuncVisGridder(idi);
+
 
       cellSize=new casa::Vector<double>(2);
 
@@ -66,22 +67,22 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
     
     void tearDown() 
     {
-      delete p1;
-      delete p2;
-      delete p3;
-      delete pempty;
+      delete itsBox;
+      delete itsSphFunc;
       delete cellSize;
       delete grid;
       delete weights;
     }
 
-	void testForward()
-	{
-		p1->forward(*cellSize, *grid, *weights);
-	}    
 	void testReverse()
 	{
-		p1->reverse(*cellSize, *grid);
+        itsBox->reverse(*cellSize, *grid, *weights);
+        itsSphFunc->reverse(*cellSize, *grid, *weights);
+	}    
+	void testForward()
+	{
+        itsBox->forward(*cellSize, *grid);
+        itsSphFunc->forward(*cellSize, *grid);
 	}    
   };
   

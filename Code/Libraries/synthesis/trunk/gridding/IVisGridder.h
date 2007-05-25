@@ -40,7 +40,7 @@ public:
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,pol
 	/// @param weights Output weights: vector: pol
-	virtual void forward(const casa::Vector<double>& cellSize,
+	virtual void reverse(const casa::Vector<double>& cellSize,
 			casa::Cube<casa::Complex>& grid,
 			casa::Vector<float>& weights) = 0;
 			
@@ -49,7 +49,7 @@ public:
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,chan,pol
 	/// @param weights Output weights: vector: pol
-	virtual void forward(const casa::Vector<double>& cellSize,
+	virtual void reverse(const casa::Vector<double>& cellSize,
 			casa::Array<casa::Complex>& grid,
 			casa::Matrix<float>& weights) = 0;
 			
@@ -57,13 +57,13 @@ public:
     /// synthesis. 
     /// @param cellSize Input Cell sizes (wavelengths)
     /// @param grid Input grid: cube: u,v,pol
-    virtual void reverse(const casa::Vector<double>& cellSize, 
+    virtual void forward(const casa::Vector<double>& cellSize, 
         const casa::Cube<casa::Complex>& grid) = 0; 
 
     /// Estimate spectral visibility data from the grid
     /// @param cellSize Input Cell sizes (wavelengths)
     /// @param grid Output weights: cube of same shape as visibility
-    virtual void reverse(const casa::Vector<double>& cellSize, 
+    virtual void forward(const casa::Vector<double>& cellSize, 
         const casa::Array<casa::Complex>& grid) = 0; 
 };
 

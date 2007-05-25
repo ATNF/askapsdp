@@ -5,7 +5,7 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Domain.h>
 
-#include <gridding/TableVisGridder.h>
+#include <gridding/SphFuncVisGridder.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
@@ -93,11 +93,11 @@ void ImageFFTEquation::predict()
             uvCellsize(0)=double(raCells)/(raStart-raEnd);
             uvCellsize(1)=double(decCells)/(decStart-decEnd);
     
-            TableVisGridder tvg(itsIdi);
+            SphFuncVisGridder tvg(itsIdi);
             
             itsIdi.chooseBuffer("model");
             
-            tvg.reverse(uvCellsize, uvGrid);
+            tvg.forward(uvCellsize, uvGrid);
     	}
     }
 };
@@ -120,11 +120,11 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
         IDataSharedIter modelIdi(itsIdi);
         modelIdi.chooseBuffer("model");
 
-        IDataSharedIter residualIdi;
+        IDataSharedIter residualIdi(itsIdi);
         residualIdi.chooseBuffer("residual");
 
-        TableVisGridder tvgModel(modelIdi);
-        TableVisGridder tvgResidual(residualIdi);
+        SphFuncVisGridder tvgModel(modelIdi);
+        SphFuncVisGridder tvgResidual(residualIdi);
        
     	const casa::Vector<double>& freq=itsIdi->frequency();	
     	const uint nChan=freq.nelements();
@@ -151,11 +151,11 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
             uvCellsize(0)=double(raCells)/(raStart-raEnd);
             uvCellsize(1)=double(decCells)/(decStart-decEnd);
             
-            tvgModel.reverse(uvCellsize, uvGrid);
+            tvgModel.forward(uvCellsize, uvGrid);
             residualIdi->rwVisibility()=itsIdi->visibility()-modelIdi->visibility();
             
             casa::Vector<float> uvWeights;
-            tvgResidual.forward(uvCellsize, uvGrid, uvWeights);
+            tvgResidual.reverse(uvCellsize, uvGrid, uvWeights);
 
             casa::Matrix<double> imageDeriv(raCells, decCells);
 

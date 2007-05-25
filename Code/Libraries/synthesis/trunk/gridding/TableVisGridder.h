@@ -23,28 +23,10 @@ namespace synthesis
 class TableVisGridder : public IVisGridder
 {
 public:
-
-	// Types of convolution function
-	enum Type {
-		STANDARD=0,
-		WPROJECTION,
-		ILLUMINATION,
-		TABLE
-	};
 	
 	// Standard two dimensional gridding
 	TableVisGridder(IDataSharedIter& idi);
 	
-//	// W projection gridding
-//	TableVisGridder(const int wPlanes, const float maxBaseline);
-//	
-//	// Illumination pattern
-//	TableVisGridder(const float diameter, const float blockage);
-//
-//	// Two dimensional table-based
-//	TableVisGridder(const casa::Matrix<float>& table, const uint support,
-//		const uint overSample);
-//		 
 	virtual ~TableVisGridder();
 	
 	/// Grid the visibility data onto the grid using multifrequency
@@ -52,7 +34,7 @@ public:
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,pol
 	/// @param weights Output weights: vector: pol
-	virtual void forward(const casa::Vector<double>& cellSize,
+	virtual void reverse(const casa::Vector<double>& cellSize,
 			casa::Cube<casa::Complex>& grid,
 			casa::Vector<float>& weights);
 			
@@ -61,7 +43,7 @@ public:
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,chan,pol
 	/// @param weights Output weights: vector: pol
-	virtual void forward(const casa::Vector<double>& cellSize,
+	virtual void reverse(const casa::Vector<double>& cellSize,
 			casa::Array<casa::Complex>& grid,
 			casa::Matrix<float>& weights);
 			
@@ -69,37 +51,37 @@ public:
 	/// synthesis. 
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Input grid: cube: u,v,pol
-	virtual void reverse(const casa::Vector<double>& cellSize, const casa::Cube<casa::Complex>& grid); 
+	virtual void forward(const casa::Vector<double>& cellSize, const casa::Cube<casa::Complex>& grid); 
 
 	/// Estimate spectral visibility data from the grid
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output weights: cube of same shape as visibility
-	virtual void reverse(const casa::Vector<double>& cellSize, const casa::Array<casa::Complex>& grid); 
+	virtual void forward(const casa::Vector<double>& cellSize, const casa::Array<casa::Complex>& grid); 
 
+protected:
+
+    casa::Cube<float> itsC;
+    int itsSupport;
+    int itsOverSample;
+    int itsCSize;
+    int itsCCenter;
+    virtual int cOffset(int, int)=0;
 			
 private:
     IDataSharedIter itsIdi;
-	void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+	void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 					const casa::Cube<casa::Complex>& visibility,
 					const casa::Cube<float>& visweight,
 					const casa::Vector<double>& freq,
 					const casa::Vector<double>& cellSize,
-					const casa::Cube<float>& C,
-					const int support,
-					const int overSample,
-					const casa::Matrix<uint>& cOffset,
 					casa::Cube<casa::Complex>& grid,
 					casa::Vector<float>& sumwt);
 					
-	void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+	void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 					casa::Cube<casa::Complex>& visibility,
 					casa::Cube<float>& visweight,
 					const casa::Vector<double>& freq,
 					const casa::Vector<double>& cellSize,
-					const casa::Cube<float>& C,
-					const int support,
-					const int overSample,
-					const casa::Matrix<uint>& cOffset,
 					const casa::Cube<casa::Complex>& grid);
 					
 	void initConvolutionFunction();
