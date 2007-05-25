@@ -1,6 +1,6 @@
 #include <measurementequation/ComponentEquation.h>
 #include <fitting/LinearSolver.h>
-#include <dataaccess/DataAccessorStub.h>
+#include <dataaccess/DataIteratorStub.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
 #include <measures/Measures/MPosition.h>
@@ -32,26 +32,26 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
   private:
     ComponentEquation *p1, *p2;
 	Params *params1, *params2, *params3;
-    boost::shared_ptr<IDataAccessor> ida;
+    IDataSharedIter idi;
 
   public:
     void setUp()
     {
-      ida = boost::shared_ptr<IDataAccessor>(new DataAccessorStub(true));
+      idi= IDataSharedIter(new DataIteratorStub(1));
       
 	  params1 = new Params;
 	  params1->add("flux.i.cena", 100.0);
 	  params1->add("direction.ra.cena", 0.5);
 	  params1->add("direction.dec.cena", -0.3);
 
-      p1 = new ComponentEquation(*params1, ida);
+      p1 = new ComponentEquation(*params1, idi);
 
 	  params2 = new Params;
 	  params2->add("flux.i.cena", 100.0);
 	  params2->add("direction.ra.cena", 0.500005);
 	  params2->add("direction.dec.cena", -0.300003);
 	  	  
-      p2 = new ComponentEquation(*params2, ida);
+      p2 = new ComponentEquation(*params2, idi);
       
     }
     
@@ -68,7 +68,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		ip.add("Value1");
 		ip.add("Value2");
 		delete p1;
-		p1 = new ComponentEquation(ip, ida);
+		p1 = new ComponentEquation(ip, idi);
 		delete p2;
 		p2 = new ComponentEquation(*p1);
 		CPPUNIT_ASSERT(p2->parameters().names().size()==3);

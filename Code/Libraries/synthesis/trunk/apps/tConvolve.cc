@@ -26,8 +26,8 @@ using std::abs;
 // Typedefs for easy testing
 // Cost of using double for Coord is low, cost for 
 // double for Real is also low
-typedef double Coord;
-typedef double Real;
+typedef float Coord;
+typedef float Real;
 typedef std::complex<Real> Value;
 
 // Perform standard data independent gridding
@@ -133,7 +133,7 @@ int generic(const std::vector<Coord>& u,
 	for (int i=0;i<nSamples;i++) {
 		for (int chan=0;chan<nChan;chan++) {
 			
-			double sumviswt=0.0;
+			Real sumviswt=0.0;
 
 			int find=i*nChan+chan;
 

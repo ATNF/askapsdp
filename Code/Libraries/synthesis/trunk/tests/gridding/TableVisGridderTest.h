@@ -1,7 +1,7 @@
 #include <gridding/TableVisGridder.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
-#include <dataaccess/DataAccessorStub.h>
+#include <dataaccess/DataIteratorStub.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
 #include <measures/Measures/MPosition.h>
@@ -27,37 +27,34 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 	
   private:
     TableVisGridder *p1, *p2, *p3, *pempty;
-    boost::shared_ptr<IDataAccessor> ida;
+    IDataSharedIter idi;
 	casa::Vector<double>* cellSize;
 	casa::Cube<casa::Complex>* grid;
 	casa::Vector<float>* weights;
-		
 
   public:
     void setUp()
     {
-      ida = boost::shared_ptr<IDataAccessor>(new DataAccessorStub(true));
+      idi = IDataSharedIter(new DataIteratorStub(1));
             
 	  Params ip;
 	  ip.add("flux.i.cena", 100.0);
 	  ip.add("direction.ra.cena", 0.5);
 	  ip.add("direction.dec.cena", -0.3);
 	  
-	  ComponentEquation ce(ip, ida);
+	  ComponentEquation ce(ip, idi);
 	  ce.predict();
 
-      p1 = new TableVisGridder(ida);
-
-      p2 = new TableVisGridder(ida);
+      p1 = new TableVisGridder(idi);
+      p2 = new TableVisGridder(idi);
+      p3 = new TableVisGridder(idi);
       
-      p3 = new TableVisGridder(ida);
-      
-      pempty = new TableVisGridder(ida);
+      pempty = new TableVisGridder(idi);
 
       cellSize=new casa::Vector<double>(2);
 
-      (*cellSize)(0)=10.0*casa::C::arcsec;
-      (*cellSize)(1)=10.0*casa::C::arcsec;
+      (*cellSize)(0)=1.0/(10.0*casa::C::arcsec);
+      (*cellSize)(1)=1.0/(10.0*casa::C::arcsec);
       
       grid=new casa::Cube<casa::Complex>(512,512,1);
       grid->set(0.0);
@@ -84,7 +81,7 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 	}    
 	void testReverse()
 	{
-		p1->reverse(*grid, *cellSize);
+		p1->reverse(*cellSize, *grid);
 	}    
   };
   

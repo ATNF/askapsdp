@@ -12,7 +12,8 @@
 
 #include <gridding/IVisGridder.h>
 #include <boost/shared_ptr.hpp>
-#include <dataaccess/IDataAccessor.h>
+#include <dataaccess/IDataIterator.h>
+#include <dataaccess/SharedIter.h>
 
 namespace conrad
 {
@@ -32,7 +33,7 @@ public:
 	};
 	
 	// Standard two dimensional gridding
-	TableVisGridder(boost::shared_ptr<IDataAccessor>& ida);
+	TableVisGridder(IDataSharedIter& idi);
 	
 //	// W projection gridding
 //	TableVisGridder(const int wPlanes, const float maxBaseline);
@@ -48,7 +49,6 @@ public:
 	
 	/// Grid the visibility data onto the grid using multifrequency
 	/// synthesis. Note that the weights allow complete flexibility
-	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,pol
 	/// @param weights Output weights: vector: pol
@@ -58,7 +58,6 @@ public:
 			
 	/// Grid the spectral visibility data onto the grid
 	/// Note that the weights allow complete flexibility
-	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,chan,pol
 	/// @param weights Output weights: vector: pol
@@ -68,22 +67,18 @@ public:
 			
 	/// Estimate visibility data from the grid using multifrequency
 	/// synthesis. 
-	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Input grid: cube: u,v,pol
-	virtual void reverse(const casa::Cube<casa::Complex>& grid, 
-			const casa::Vector<double>& cellSize);
+	virtual void reverse(const casa::Vector<double>& cellSize, const casa::Cube<casa::Complex>& grid); 
 
 	/// Estimate spectral visibility data from the grid
-	/// @param ida Data Accessor
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output weights: cube of same shape as visibility
-	virtual void reverse(const casa::Array<casa::Complex>& grid, 
-			const casa::Vector<double>& cellSize);
+	virtual void reverse(const casa::Vector<double>& cellSize, const casa::Array<casa::Complex>& grid); 
 
 			
 private:
-    boost::shared_ptr<IDataAccessor> itsIda;
+    IDataSharedIter itsIdi;
 	void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 					const casa::Cube<casa::Complex>& visibility,
 					const casa::Cube<float>& visweight,
@@ -112,4 +107,4 @@ private:
 
 }
 }
-#endif /*IVISGRIDDER_H_*/
+#endif

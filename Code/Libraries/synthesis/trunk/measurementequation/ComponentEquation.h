@@ -3,9 +3,9 @@
 
 #include <fitting/Equation.h>
 #include <fitting/Params.h>
-#include <dataaccess/IDataAccessor.h>
 
-#include <boost/shared_ptr.hpp>
+#include <dataaccess/SharedIter.h>
+#include <dataaccess/IDataIterator.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -24,8 +24,8 @@ public:
 
     /// @param ida data accessor
 	ComponentEquation(const conrad::scimath::Params& ip,
-        boost::shared_ptr<IDataAccessor>& ida) :  conrad::scimath::Equation(ip),
-        itsIda(ida) {init();};
+        IDataSharedIter& idi) :  conrad::scimath::Equation(ip),
+        itsIdi(idi) {init();};
 	
     ComponentEquation(const ComponentEquation& other);
     
@@ -41,7 +41,7 @@ public:
 	virtual void calcEquations(conrad::scimath::NormalEquations& ne);
 	
 private:
-    boost::shared_ptr<IDataAccessor> itsIda;
+    IDataSharedIter itsIdi;
 	void init();
 	/// Templated function to do the calculation of value and derivatives.
 	template<class T>

@@ -2,9 +2,9 @@
 // @file : Evolving demonstration program for synthesis capabilities
 //
 
-#include <measurementequation/ImageEquation.h>
+#include <measurementequation/ImageDFTEquation.h>
 #include <fitting/LinearSolver.h>
-#include <dataaccess/DataAccessorStub.h>
+#include <dataaccess/DataIteratorStub.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
@@ -49,7 +49,7 @@ int main() {
 	
 	cout << "Synthesis demonstration program" << endl;
 
-	boost::shared_ptr<IDataAccessor> ida(new DataAccessorStub(true));
+	IDataSharedIter idi(new DataIteratorStub(1));
     
 	Params perfect;
 
@@ -74,7 +74,7 @@ int main() {
 	cout << "Predicting data from perfect model" << endl;
     cout << endl;
 	{
-		ImageEquation perfecteq(perfect, ida);
+		ImageDFTEquation perfecteq(perfect, idi);
 		perfecteq.predict();
 	}
 
@@ -96,7 +96,7 @@ int main() {
     
 	NormalEquations normeq(perfect);
 	{
-		ImageEquation imperfecteq(imperfect, ida);
+		ImageDFTEquation imperfecteq(imperfect, idi);
 		imperfecteq.calcEquations(normeq);
 	}
     cout << "Data vector (i.e. residual image):" << endl;
