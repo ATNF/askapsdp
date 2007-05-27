@@ -29,8 +29,9 @@ public:
     /// @param data Data constraints
     /// @param arguments Arguments for the polynomial
     /// @param model Model (to be calculated)
-    PolynomialEquation(const Params& ip, casa::Vector<double>& data, 
-        casa::Vector<double>& arguments, casa::Vector<double>& model);
+    PolynomialEquation(const Params& ip, casa::Vector<double>& data,
+        casa::Vector<double>& weights, casa::Vector<double>& arguments, 
+        casa::Vector<double>& model);
         
     /// Copy constructor
     PolynomialEquation(const PolynomialEquation& other);
@@ -58,6 +59,7 @@ protected:
         casa::Matrix<double>& valueDerivs);
         
     casa::Vector<double> itsData;
+    casa::Vector<double> itsWeights;
     casa::Vector<double> itsArguments;
     casa::Vector<double> itsModel;
 

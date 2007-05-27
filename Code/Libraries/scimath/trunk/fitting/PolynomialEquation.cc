@@ -24,9 +24,12 @@ namespace conrad
 namespace scimath
 {
     
-PolynomialEquation::PolynomialEquation(const Params& ip, casa::Vector<double>& data, 
-    casa::Vector<double>& arguments, casa::Vector<double>& model) : Equation(ip), itsData(data), 
-    itsArguments(arguments), itsModel(model) 
+PolynomialEquation::PolynomialEquation(const Params& ip, 
+    casa::Vector<double>& data, 
+    casa::Vector<double>& weights,
+    casa::Vector<double>& arguments, 
+    casa::Vector<double>& model) : Equation(ip), itsData(data), 
+    itsWeights(weights), itsArguments(arguments), itsModel(model) 
 {
 };
     
@@ -40,6 +43,7 @@ PolynomialEquation& PolynomialEquation::operator=(const PolynomialEquation& othe
         itsParams=other.itsParams;
         itsDefaultParams=other.itsDefaultParams;
         itsData=other.itsData;
+        itsWeights=other.itsWeights;
         itsArguments=other.itsArguments;
         itsModel=other.itsModel;
     }
@@ -96,11 +100,9 @@ void PolynomialEquation::calcEquations(NormalEquations& ne)
         designmatrix.addDerivative(polyName, valueDerivs);
     }
     casa::Vector<double> residual(itsData.copy());
-    casa::Vector<double> weights(itsData.size());
-    weights=1.0;
     
     residual-=itsModel;
-    designmatrix.addResidual(residual, weights);
+    designmatrix.addResidual(residual, itsWeights);
     ne.add(designmatrix, NormalEquations::COMPLETE);
 };
 

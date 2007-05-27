@@ -21,6 +21,7 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
     PolynomialEquation *itsPoly1, *itsPoly2;
     casa::Vector<double> itsArguments;
     casa::Vector<double> itsData;
+    casa::Vector<double> itsWeights;
     casa::Vector<double> itsModel;
     
   public:
@@ -32,6 +33,8 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
       }
       itsData.resize(10);
       itsData.set(0.0);
+      itsWeights.resize(10);
+      itsWeights.set(1.0);
       itsModel.resize(10);
       itsModel.set(0.0);
       Params ip;
@@ -40,7 +43,7 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
       quadratic(1)=2;
       quadratic(2)=3;
       ip.add("poly", quadratic);
-      itsPoly1 = new PolynomialEquation(ip, itsData, itsArguments, itsModel);       
+      itsPoly1 = new PolynomialEquation(ip, itsData, itsWeights, itsArguments, itsModel);       
       itsPoly2 = new PolynomialEquation();
     }
         
