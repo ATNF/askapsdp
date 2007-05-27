@@ -25,7 +25,7 @@ namespace scimath
 	
 	Params& Params::operator=(const Params& other) {
 		if(this!=&other) {
-			itsVectors=other.itsVectors;
+			itsArrays=other.itsArrays;
 			itsDomains=other.itsDomains;
 			itsFree=other.itsFree;
 		}
@@ -50,34 +50,34 @@ namespace scimath
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			casa::Vector<double> ipVector(1);
-			ipVector(0)=ip;
-			itsVectors[name]=ipVector.copy();
+			casa::Array<double> ipArray(casa::IPosition(1,1));
+			ipArray(casa::IPosition(1,0))=ip;
+			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
 		}
 	}
 	
-	void Params::add(const string& name, const casa::Vector<double>& ip) 
+	void Params::add(const string& name, const casa::Array<double>& ip) 
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			itsVectors[name]=ip.copy();
+			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
 		}
 	}
 	
-	void Params::add(const string& name, const casa::Vector<double>& ip,
+	void Params::add(const string& name, const casa::Array<double>& ip,
 		const Domain& domain)
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			itsVectors[name]=ip.copy();
+			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=domain;
 		}
@@ -89,21 +89,21 @@ namespace scimath
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
 		else {
-			casa::Vector<double> ipVector(1);
-			ipVector(0)=ip;
-			itsVectors[name]=ipVector.copy();
+			casa::Array<double> ipArray(casa::IPosition(1,1));
+			ipArray(casa::IPosition(1,0))=ip;
+			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=domain;
 		}
 	}
 	
-	void Params::update(const string& name, const casa::Vector<double>& ip) 
+	void Params::update(const string& name, const casa::Array<double>& ip) 
 	{
 		if(!has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
 		}
 		else {
-			itsVectors[name]=ip.copy();
+			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
 		}
@@ -115,9 +115,9 @@ namespace scimath
 			throw(std::invalid_argument("Parameter " + name + " does not already exist"));
 		}
 		else {
-			casa::Vector<double> ipVector(1);
-			ipVector(0)=ip;
-			itsVectors[name]=ipVector.copy();
+			casa::Array<double> ipArray(casa::IPosition(1,1));
+			ipArray(casa::IPosition(1,0))=ip;
+			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
 		}
@@ -130,22 +130,22 @@ namespace scimath
 	
 	bool Params::has(const string& name) const 
 	{
-		return itsVectors.count(name)>0;
+		return itsArrays.count(name)>0;
 	}		
 
 	bool Params::isScalar(const string& name) const 
 	{
-		return itsVectors[name].nelements()==1;
+		return itsArrays[name].nelements()==1;
 	}		
 
-	const casa::Vector<double>& Params::value(const string& name) const 
+	const casa::Array<double>& Params::value(const string& name) const 
 	{
-		return itsVectors[name];
+		return itsArrays[name];
 	}		
 	
-	casa::Vector<double>& Params::value(const string& name) 
+	casa::Array<double>& Params::value(const string& name) 
 	{
-		return itsVectors[name];
+		return itsArrays[name];
 	}		
 	
 	const double Params::scalarValue(const string& name) const
@@ -153,7 +153,7 @@ namespace scimath
 		if(!isScalar(name)) {
 			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
 		}
-		return itsVectors[name](0);
+		return itsArrays[name](casa::IPosition(1,0));
 	}		
 	
 	double Params::scalarValue(const string& name) 
@@ -161,7 +161,7 @@ namespace scimath
 		if(!isScalar(name)) {
 			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
 		}
-		return itsVectors[name](0);
+		return itsArrays[name](casa::IPosition(1,0));
 	}		
 	
 	const Domain& Params::domain(const string& name) const 
@@ -191,7 +191,7 @@ namespace scimath
 		std::vector<string>::iterator iter;
 		for(iter = names.begin(); iter != names.end(); iter++) {
 			if(!has(*iter)) {
-				itsVectors[*iter]=other.itsVectors[*iter];
+				itsArrays[*iter]=other.itsArrays[*iter];
 				itsFree[*iter]=other.itsFree[*iter];
 				itsDomains[*iter]=other.itsDomains[*iter];
 			}
@@ -248,7 +248,7 @@ namespace scimath
 
 	void Params::reset()
 	{
-		itsVectors.clear();
+		itsArrays.clear();
 		itsDomains.clear();
 		itsFree.clear();
 	}

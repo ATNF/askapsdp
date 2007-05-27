@@ -102,15 +102,15 @@ namespace scimath {
   	{
 		p1->add("Value0", 1.5);
         CPPUNIT_ASSERT(p1->has("Value0"));
-		casa::Vector<double> im(100);
+		casa::Array<double> im(casa::IPosition(2,10,10));
 		im.set(3.0);
 		p1->add("Value1", im);
-        CPPUNIT_ASSERT(p1->value("Value1")(50)==3.0);
+        CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==3.0);
         CPPUNIT_ASSERT(p1->has("Value1"));
 	    CPPUNIT_ASSERT(!p1->isScalar("Value1"));
         CPPUNIT_ASSERT(p1->value("Value1").nelements()==100);
         p1->value("Value1").set(4.0);
-        CPPUNIT_ASSERT(p1->value("Value1")(10)==4.0);
+        CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==4.0);
   	}  
   
     void testIndices()
@@ -129,10 +129,10 @@ namespace scimath {
       p1->add("Add0");
       CPPUNIT_ASSERT( p1->size()==1);
       p1->add("Add1", 1.4);
-      CPPUNIT_ASSERT( p1->value("Add1")(0)==1.4);
+      CPPUNIT_ASSERT( p1->scalarValue("Add1")==1.4);
       CPPUNIT_ASSERT( p1->size()==2);
       p1->update("Add1", 2.6);
-      CPPUNIT_ASSERT( p1->value("Add1")(0)==2.6);
+      CPPUNIT_ASSERT( p1->scalarValue("Add1")==2.6);
     }
     
     void testCongruent()

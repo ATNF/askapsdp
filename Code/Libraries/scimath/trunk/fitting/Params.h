@@ -11,7 +11,7 @@
 #include <fitting/Domain.h>
 
 #include <casa/aips.h>
-#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Array.h>
 
 #include <map>
 #include <vector>
@@ -42,12 +42,12 @@ public:
 	/// Add an Parameter
 	/// @param name Name of param to be added
 	/// @param ip Param to be added
-	void add(const string& name, const casa::Vector<double>& ip);
+	void add(const string& name, const casa::Array<double>& ip);
 
 	/// Add an Parameter
 	/// @param name Name of param to be added
 	/// @param ip Param to be added
-	void add(const string& name, const casa::Vector<double>& ip,
+	void add(const string& name, const casa::Array<double>& ip,
 		const Domain& domain);
 	void add(const string& name, const double ip,
 		const Domain& domain);
@@ -55,7 +55,7 @@ public:
 	/// Update an Parameter
 	/// @param name Name of param to be updated
 	/// @param ip Param to be updated
-	void update(const string& name, const casa::Vector<double>& ip);
+	void update(const string& name, const casa::Array<double>& ip);
 	void update(const string& name, const double ip);
 
     /// Is this parameter a scalar?
@@ -75,8 +75,8 @@ public:
 	
 	/// Return the value for the parameter with this name
 	/// @param name Name of param
-	const casa::Vector<double>& value(const string& name) const;		
-	casa::Vector<double>& value(const string& name);
+	const casa::Array<double>& value(const string& name) const;		
+	casa::Array<double>& value(const string& name);
 
 	/// Return the value for the scalar parameter with this name
 	/// Throws invalid_argument if non-scalar
@@ -116,7 +116,7 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const Params& params);
 	
 private:
-	mutable map<string, casa::Vector<double> > itsVectors;
+	mutable map<string, casa::Array<double> > itsArrays;
 	mutable map<string, Domain> itsDomains;
 	mutable map<string, bool> itsFree;
 };

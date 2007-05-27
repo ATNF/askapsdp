@@ -85,7 +85,7 @@ void ImageFFTEquation::predict()
     		double decEnd=domain.end("DEC");
     		int decCells=domain.cells("DEC");
     
-    		const casa::Vector<double> imagePixels=parameters().value(imageName);
+    		const casa::Vector<double> imagePixels(parameters().value(imageName));
     		const uint nPixels=imagePixels.nelements();
             
             casa::Cube<casa::Complex> uvGrid(raCells, decCells, 1);
@@ -143,7 +143,7 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
     		double decEnd=domain.end("DEC");
     		int decCells=domain.cells("DEC");
     
-    		const casa::Vector<double> imagePixels=parameters().value(imageName);
+    		const casa::Vector<double> imagePixels(parameters().value(imageName));
     		const uint nPixels=imagePixels.nelements();
             
             casa::Cube<casa::Complex> uvGrid(raCells, decCells, 1);

@@ -71,7 +71,7 @@ void PolynomialEquation::predict()
     // Loop over all polynomials adding to the values
 	for (it=completions.begin();it!=completions.end();it++) {
 		string polyName("poly"+(*it));
-		const casa::Vector<double> par=parameters().value(polyName);
+		const casa::Vector<double> par(parameters().value(polyName));
         this->calcPoly(itsArguments, par, itsModel);
 	}
 };
@@ -93,7 +93,7 @@ void PolynomialEquation::calcEquations(NormalEquations& ne)
     // Loop over all polynomials adding to the values
     for (it=completions.begin();it!=completions.end();it++) {
         string polyName("poly"+(*it));
-        const casa::Vector<double> par=parameters().value(polyName);
+        const casa::Vector<double> par(parameters().value(polyName));
         casa::Matrix<double> valueDerivs(itsData.size(), par.size());
         this->calcPoly(itsArguments, par, itsModel);
         this->calcPolyDeriv(itsArguments, par, valueDerivs);
@@ -106,7 +106,8 @@ void PolynomialEquation::calcEquations(NormalEquations& ne)
     ne.add(designmatrix, NormalEquations::COMPLETE);
 };
 
-void PolynomialEquation::calcPoly(const casa::Vector<double>& x, const casa::Vector<double>& parameters, 
+void PolynomialEquation::calcPoly(const casa::Vector<double>& x, 
+    const casa::Vector<double>& parameters, 
     casa::Vector<double>& values) 
 {
     for (int ix=0;ix<x.size();ix++) {
@@ -115,7 +116,8 @@ void PolynomialEquation::calcPoly(const casa::Vector<double>& x, const casa::Vec
        }
     }
 }
-void PolynomialEquation::calcPolyDeriv(const casa::Vector<double>& x, const casa::Vector<double>& parameters,
+void PolynomialEquation::calcPolyDeriv(const casa::Vector<double>& x, 
+    const casa::Vector<double>& parameters,
     casa::Matrix<double>& valueDerivs) 
 {
     uint nPoly=parameters.size();

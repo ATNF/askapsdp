@@ -83,7 +83,7 @@ void ImageDFTEquation::predict()
     		double decEnd=domain.end("DEC");
     		int decCells=domain.cells("DEC");
     
-    		const casa::Vector<double> imagePixels=parameters().value(imageName);
+    		const casa::Vector<double> imagePixels(parameters().value(imageName));
     		const uint nPixels=imagePixels.nelements();
     
             casa::Matrix<double> noDeriv(0,0);
@@ -139,7 +139,7 @@ void ImageDFTEquation::calcEquations(NormalEquations& ne)
     		double decEnd=domain.end("DEC");
     		int decCells=domain.cells("DEC");
     
-    		const casa::Vector<double> imagePixels=parameters().value(imageName);
+    		const casa::Vector<double> imagePixels(parameters().value(imageName));
     		const uint nPixels=imagePixels.nelements();
     		
             DesignMatrix designmatrix(parameters());
