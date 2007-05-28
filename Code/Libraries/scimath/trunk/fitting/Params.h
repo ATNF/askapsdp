@@ -112,6 +112,11 @@ public:
 		
 	/// Reset to empty
 	void reset();
+    
+    /// Count -  gives the number of accesses - use
+    /// this for caching. Is incremented on every non-const
+    /// access
+    int count(const string& name) const;
 
 	friend std::ostream& operator<<(std::ostream& os, const Params& params);
 	
@@ -119,6 +124,8 @@ private:
 	mutable map<string, casa::Array<double> > itsArrays;
 	mutable map<string, Domain> itsDomains;
 	mutable map<string, bool> itsFree;
+    mutable map<string, int> itsCounts;
+    
 };
 
 }

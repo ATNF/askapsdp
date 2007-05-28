@@ -104,14 +104,15 @@ bool LinearSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
 		else {
 			quality.setInfo("SVD decomposition rank deficient");
 		}
-        // Update the parameters for the calculated changes
+        // Update the parameters for the calculated changes. Exploit reference
+        // semantics of casa::Array.
         map<string, uint>::iterator indit;
         for (indit=indices.begin();indit!=indices.end();indit++) {
-            casa::Vector<double> value(itsParams.value(indit->first));
+            casa::IPosition vecShape(1, itsParams.value(indit->first).nelements());
+            casa::Vector<double> value(itsParams.value(indit->first).reform(vecShape));
             for (uint i=0;i<value.nelements();i++) {
                 value(i)+=gsl_vector_get(X, indit->second+i);
             }
-            itsParams.update(indit->first, value);
         }
 		gsl_vector_free(S);
 		gsl_vector_free(work);
@@ -124,11 +125,11 @@ bool LinearSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
         // Update the parameters for the calculated changes
         map<string, uint>::iterator indit;
         for (indit=indices.begin();indit!=indices.end();indit++) {
-            casa::Vector<double> value(itsParams.value(indit->first));
+            casa::IPosition vecShape(1, itsParams.value(indit->first).nelements());
+            casa::Vector<double> value(itsParams.value(indit->first).reform(vecShape));
             for (uint i=0;i<value.nelements();i++) {
                 value(i)=gsl_vector_get(X, indit->second+i);
             }
-            itsParams.update(indit->first, value);
         }
 	}
 	
@@ -211,7 +212,8 @@ bool LinearSolver::solveDesignMatrix(Quality& quality) {
 	
 	// Update the parameters for the calculated changes
 	for (indit=indices.begin();indit!=indices.end();indit++) {
-		casa::Vector<double> value(itsParams.value(indit->first));
+        casa::IPosition vecShape(1, itsParams.value(indit->first).nelements());
+        casa::Vector<double> value(itsParams.value(indit->first).reform(vecShape));
 		for (uint i=0;i<value.nelements();i++) {
 			value(i)+=gsl_vector_get(x, indit->second+i);
 		}

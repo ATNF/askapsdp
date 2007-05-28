@@ -28,6 +28,7 @@ namespace scimath
 			itsArrays=other.itsArrays;
 			itsDomains=other.itsDomains;
 			itsFree=other.itsFree;
+            itsCounts=other.itsCounts;
 		}
 		return *this;
 	}
@@ -55,6 +56,7 @@ namespace scimath
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
+            itsCounts[name]=0;
 		}
 	}
 	
@@ -63,10 +65,11 @@ namespace scimath
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
 		}
-		else {
+        else {
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
+            itsCounts[name]=0;
 		}
 	}
 	
@@ -80,6 +83,7 @@ namespace scimath
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=domain;
+            itsCounts[name]=0;
 		}
 	}
 	
@@ -94,6 +98,7 @@ namespace scimath
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=domain;
+            itsCounts[name]=0;
 		}
 	}
 	
@@ -106,6 +111,7 @@ namespace scimath
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
+            itsCounts[name]++;
 		}
 	}
 	
@@ -120,6 +126,7 @@ namespace scimath
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsDomains[name]=Domain();
+            itsCounts[name]++;
 		}
 	}
 	
@@ -145,6 +152,7 @@ namespace scimath
 	
 	casa::Array<double>& Params::value(const string& name) 
 	{
+        itsCounts[name]++;
 		return itsArrays[name];
 	}		
 	
@@ -161,6 +169,7 @@ namespace scimath
 		if(!isScalar(name)) {
 			throw(std::invalid_argument("Parameter " + name + " is not scalar"));
 		}
+        itsCounts[name]++;
 		return itsArrays[name](casa::IPosition(1,0));
 	}		
 	
@@ -194,6 +203,7 @@ namespace scimath
 				itsArrays[*iter]=other.itsArrays[*iter];
 				itsFree[*iter]=other.itsFree[*iter];
 				itsDomains[*iter]=other.itsDomains[*iter];
+                itsCounts[*iter]++;
 			}
 		}
 	}
@@ -251,6 +261,7 @@ namespace scimath
 		itsArrays.clear();
 		itsDomains.clear();
 		itsFree.clear();
+        itsCounts.clear();
 	}
 	
 	ostream& operator<<(ostream& os, const Params& params) {
@@ -274,6 +285,10 @@ namespace scimath
 		}
 		return os;
 	}
+    
+    int Params::count(const string& name) const {
+        return itsCounts[name];
+    }
 
 	
 }
