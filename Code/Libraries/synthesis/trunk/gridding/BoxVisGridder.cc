@@ -5,7 +5,7 @@ namespace conrad
 namespace synthesis
 {
 
-BoxVisGridder::BoxVisGridder(IDataSharedIter& idi) : TableVisGridder(idi)
+BoxVisGridder::BoxVisGridder()
 {
     initConvolutionFunction();
 }

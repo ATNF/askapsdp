@@ -43,7 +43,7 @@ private:
     IDataSharedIter itsIdi;
     
 	void init();
-    void calcVisDFT(const casa::Vector<double>& imagePixels, 
+    void calcVisDFT(const casa::Array<double>& imagePixels, 
         const double raStart, const double raEnd, const int raCells, 
         const double decStart, const double decEnd, const int decCells, 
         const casa::Vector<double>& freq, 

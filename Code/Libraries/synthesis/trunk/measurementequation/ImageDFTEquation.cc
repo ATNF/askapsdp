@@ -83,8 +83,7 @@ void ImageDFTEquation::predict()
     		double decEnd=domain.end("DEC");
     		int decCells=domain.cells("DEC");
     
-    		const casa::Vector<double> imagePixels(parameters().value(imageName));
-    		const uint nPixels=imagePixels.nelements();
+    		const casa::Array<double> imagePixels(parameters().value(imageName));
     
             casa::Matrix<double> noDeriv(0,0);
             this->calcVisDFT(imagePixels, raStart, raEnd, raCells, decStart, decEnd, decCells, 
@@ -139,7 +138,7 @@ void ImageDFTEquation::calcEquations(NormalEquations& ne)
     		double decEnd=domain.end("DEC");
     		int decCells=domain.cells("DEC");
     
-    		const casa::Vector<double> imagePixels(parameters().value(imageName));
+    		const casa::Array<double> imagePixels(parameters().value(imageName));
     		const uint nPixels=imagePixels.nelements();
     		
             DesignMatrix designmatrix(parameters());
@@ -168,7 +167,7 @@ void ImageDFTEquation::calcEquations(NormalEquations& ne)
 	}
 };
 
-void ImageDFTEquation::calcVisDFT(const casa::Vector<double>& imagePixels, 
+void ImageDFTEquation::calcVisDFT(const casa::Array<double>& imagePixels, 
     const double raStart, const double raEnd, const int raCells, 
     const double decStart, const double decEnd, const int decCells, 
     const casa::Vector<double>& freq,  
@@ -192,7 +191,7 @@ void ImageDFTEquation::calcVisDFT(const casa::Vector<double>& imagePixels,
             for (uint m=0;m<decCells;m++) {
                 double dec = decStart + m * decInc;
                 double delay = casa::C::_2pi * (ra * u + dec * v + sqrt(1 - ra * ra - dec * dec) * w)/casa::C::c;
-                double flux = imagePixels(pixel);
+                double flux = imagePixels(casa::IPosition(2, l, m));
                 if(doDeriv) {
                     for (uint i=0;i<nChan;i++) {
                         double phase = delay * freq(i);

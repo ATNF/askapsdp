@@ -22,7 +22,7 @@ class BoxVisGridder : public TableVisGridder
 public:
 	
 	// Standard two dimensional gridding
-	BoxVisGridder(IDataSharedIter& idi);
+	BoxVisGridder();
 	
 	virtual ~BoxVisGridder();
     

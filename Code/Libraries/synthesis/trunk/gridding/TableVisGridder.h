@@ -11,9 +11,7 @@
 #define TABLEVISGRIDDER_H_
 
 #include <gridding/IVisGridder.h>
-#include <boost/shared_ptr.hpp>
-#include <dataaccess/IDataIterator.h>
-#include <dataaccess/SharedIter.h>
+
 
 namespace conrad
 {
@@ -25,7 +23,7 @@ class TableVisGridder : public IVisGridder
 public:
 	
 	// Standard two dimensional gridding
-	TableVisGridder(IDataSharedIter& idi);
+	TableVisGridder();
 	
 	virtual ~TableVisGridder();
 	
@@ -34,7 +32,8 @@ public:
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,pol
 	/// @param weights Output weights: vector: pol
-	virtual void reverse(const casa::Vector<double>& cellSize,
+	virtual void reverse(IDataSharedIter& idi,
+            const casa::Vector<double>& cellSize,
 			casa::Cube<casa::Complex>& grid,
 			casa::Vector<float>& weights);
 			
@@ -43,7 +42,8 @@ public:
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output grid: cube: u,v,chan,pol
 	/// @param weights Output weights: vector: pol
-	virtual void reverse(const casa::Vector<double>& cellSize,
+	virtual void reverse(IDataSharedIter& idi,
+            const casa::Vector<double>& cellSize,
 			casa::Array<casa::Complex>& grid,
 			casa::Matrix<float>& weights);
 			
@@ -51,12 +51,15 @@ public:
 	/// synthesis. 
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Input grid: cube: u,v,pol
-	virtual void forward(const casa::Vector<double>& cellSize, const casa::Cube<casa::Complex>& grid); 
+	virtual void forward(IDataSharedIter& idi,
+            const casa::Vector<double>& cellSize, 
+            const casa::Cube<casa::Complex>& grid); 
 
 	/// Estimate spectral visibility data from the grid
 	/// @param cellSize Input Cell sizes (wavelengths)
 	/// @param grid Output weights: cube of same shape as visibility
-	virtual void forward(const casa::Vector<double>& cellSize, const casa::Array<casa::Complex>& grid); 
+	virtual void forward(IDataSharedIter& idi,
+        const casa::Vector<double>& cellSize, const casa::Array<casa::Complex>& grid); 
 
 protected:
 
@@ -68,7 +71,6 @@ protected:
     virtual int cOffset(int, int)=0;
 			
 private:
-    IDataSharedIter itsIdi;
 	void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 					const casa::Cube<casa::Complex>& visibility,
 					const casa::Cube<float>& visweight,

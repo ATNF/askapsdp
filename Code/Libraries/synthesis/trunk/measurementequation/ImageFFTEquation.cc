@@ -93,11 +93,11 @@ void ImageFFTEquation::predict()
             uvCellsize(0)=double(raCells)/(raStart-raEnd);
             uvCellsize(1)=double(decCells)/(decStart-decEnd);
     
-            SphFuncVisGridder tvg(itsIdi);
+            SphFuncVisGridder tvg;
             
             itsIdi.chooseBuffer("model");
             
-            tvg.forward(uvCellsize, uvGrid);
+            tvg.forward(itsIdi, uvCellsize, uvGrid);
     	}
     }
 };
@@ -123,8 +123,7 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
         IDataSharedIter residualIdi(itsIdi);
         residualIdi.chooseBuffer("residual");
 
-        SphFuncVisGridder tvgModel(modelIdi);
-        SphFuncVisGridder tvgResidual(residualIdi);
+        SphFuncVisGridder tvg;
        
     	const casa::Vector<double>& freq=itsIdi->frequency();	
     	const uint nChan=freq.nelements();
@@ -151,11 +150,11 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
             uvCellsize(0)=double(raCells)/(raStart-raEnd);
             uvCellsize(1)=double(decCells)/(decStart-decEnd);
             
-            tvgModel.forward(uvCellsize, uvGrid);
+            tvg.forward(modelIdi, uvCellsize, uvGrid);
             residualIdi->rwVisibility()=itsIdi->visibility()-modelIdi->visibility();
             
             casa::Vector<float> uvWeights;
-            tvgResidual.reverse(uvCellsize, uvGrid, uvWeights);
+            tvg.reverse(residualIdi, uvCellsize, uvGrid, uvWeights);
 
             casa::Matrix<double> imageDeriv(raCells, decCells);
 

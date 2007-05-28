@@ -48,8 +48,8 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 	  ComponentEquation ce(ip, idi);
 	  ce.predict();
 
-      itsBox = new BoxVisGridder(idi);
-      itsSphFunc = new SphFuncVisGridder(idi);
+      itsBox = new BoxVisGridder();
+      itsSphFunc = new SphFuncVisGridder();
 
 
       cellSize=new casa::Vector<double>(2);
@@ -76,13 +76,13 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 
 	void testReverse()
 	{
-        itsBox->reverse(*cellSize, *grid, *weights);
-        itsSphFunc->reverse(*cellSize, *grid, *weights);
+        itsBox->reverse(idi, *cellSize, *grid, *weights);
+        itsSphFunc->reverse(idi, *cellSize, *grid, *weights);
 	}    
 	void testForward()
 	{
-        itsBox->forward(*cellSize, *grid);
-        itsSphFunc->forward(*cellSize, *grid);
+        itsBox->forward(idi, *cellSize, *grid);
+        itsSphFunc->forward(idi, *cellSize, *grid);
 	}    
   };
   

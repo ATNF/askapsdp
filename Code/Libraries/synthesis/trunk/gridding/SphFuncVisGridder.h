@@ -22,7 +22,7 @@ class SphFuncVisGridder : public TableVisGridder
 public:
 	
 	// Standard two dimensional gridding
-	SphFuncVisGridder(IDataSharedIter& idi);
+	SphFuncVisGridder();
 	
 	virtual ~SphFuncVisGridder();
     
