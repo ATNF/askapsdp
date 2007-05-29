@@ -1,6 +1,6 @@
 /// @file
 ///
-/// IEpochConverter: Interface for epoch convertion. This is a relatively
+/// IEpochConverter: Interface for epoch conversion. This is a relatively
 /// low-level interface, which is used within the implementation of
 /// the data accessor. The end user interacts with the IDataConverter
 /// class. 
@@ -27,15 +27,6 @@ struct IEpochConverter : public IConverterBase {
     /// @param in an epoch to convert. Target units/frame are
     /// properties of the actual instance of the derived class
     virtual casa::Double operator()(const casa::MEpoch &in) const = 0;
-
-    /// convert a given epoch into target units/frame
-    /// @param in an epoch to convert. Target units/frame as well as
-    /// the default units/frame are properties of the actual instance of
-    /// the derived class.
-    ///
-    /// This method is supposed to be used with a table column, where
-    /// the units and frame are defined once for the whole column
-    virtual casa::Double operator()(const casa::Double &in) const = 0;
 };
 
 } // namespace synthesis
