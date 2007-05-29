@@ -25,16 +25,16 @@
 #include <measures/Measures/MRadialVelocity.h>
 #include <casa/Quanta/MVFrequency.h>
 
+// own includes
+#include "IConverterBase.h"
+
 namespace conrad {
 
 namespace synthesis {
 	
-class IDataConverter
+class IDataConverter : public IConverterBase
 {
 public:
-	/// an empty virtual destructor to make the compiler happy
-	virtual ~IDataConverter();
-
 	/// set the reference frame for any time epochs 
 	/// (e.g. time-based selection, visibility timestamp)
 	/// The value of the specified measure is the origin epoch. 
