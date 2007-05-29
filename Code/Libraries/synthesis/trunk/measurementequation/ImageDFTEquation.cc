@@ -71,21 +71,24 @@ void ImageDFTEquation::predict()
     	for (it=completions.begin();it!=completions.end();it++) {
     	
     		string imageName("image.i"+(*it));
+
+            const casa::Array<double> imagePixels(parameters().value(imageName));
+            const casa::IPosition imageShape(imagePixels.shape());
+            
     		Domain domain(parameters().domain(imageName));
     		if(!domain.has("RA")||!domain.has("DEC")) {
     			throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
     		}
     		double raStart=domain.start("RA");
     		double raEnd=domain.end("RA");
-    		int raCells=domain.cells("RA");
+            int raCells=imageShape(domain.order("RA"));
     
     		double decStart=domain.start("DEC");
     		double decEnd=domain.end("DEC");
-    		int decCells=domain.cells("DEC");
-    
-    		const casa::Array<double> imagePixels(parameters().value(imageName));
+            int decCells=imageShape(domain.order("DEC"));
     
             casa::Matrix<double> noDeriv(0,0);
+            
             this->calcVisDFT(imagePixels, raStart, raEnd, raCells, decStart, decEnd, decCells, 
                 freq, itsIdi->uvw(), vis, false, noDeriv);
     
@@ -128,17 +131,20 @@ void ImageDFTEquation::calcEquations(NormalEquations& ne)
     	for (it=completions.begin();it!=completions.end();it++) {
             
     		string imageName("image.i"+(*it));
-    		Domain domain(parameters().domain(imageName));
+            const casa::Array<double> imagePixels(parameters().value(imageName));
+            const casa::IPosition imageShape(imagePixels.shape());
+            
+            Domain domain(parameters().domain(imageName));
+            if(!domain.has("RA")||!domain.has("DEC")) {
+                throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
+            }
+            double raStart=domain.start("RA");
+            double raEnd=domain.end("RA");
+            int raCells=imageShape(domain.order("RA"));
     
-    		double raStart=domain.start("RA");
-    		double raEnd=domain.end("RA");
-    		int raCells=domain.cells("RA");
-    
-    		double decStart=domain.start("DEC");
-    		double decEnd=domain.end("DEC");
-    		int decCells=domain.cells("DEC");
-    
-    		const casa::Array<double> imagePixels(parameters().value(imageName));
+            double decStart=domain.start("DEC");
+            double decEnd=domain.end("DEC");
+            int decCells=imageShape(domain.order("DEC"));
     		const uint nPixels=imagePixels.nelements();
     		
             DesignMatrix designmatrix(parameters());
@@ -147,18 +153,14 @@ void ImageDFTEquation::calcEquations(NormalEquations& ne)
             this->calcVisDFT(imagePixels, raStart, raEnd, raCells, 
                  decStart, decEnd, decCells, freq, itsIdi->uvw(),
                  vis, true, imageDeriv);
+
             for (uint row=0;row<itsIdi->nRow();row++) {
                 for (uint i=0;i<freq.nelements();i++) {
                     residual(nChan*row+2*i)=real(itsIdi->visibility()(row,i,0))-vis(row,2*i);
                     residual(nChan*row+2*i+1)=imag(itsIdi->visibility()(row,i,0))-vis(row,2*i+1);
                 }
             }
-            for (uint row=0;row<itsIdi->nRow();row++) {
-                for (uint i=0;i<freq.nelements();i++) {
-                    residual(nChan*row+2*i)=real(itsIdi->visibility()(row,i,0))-vis(row,2*i);
-                    residual(nChan*row+2*i+1)=imag(itsIdi->visibility()(row,i,0))-vis(row,2*i+1);
-                }
-            }
+
             // Now we can add the design matrix, residual, and weights
             designmatrix.addDerivative(imageName, imageDeriv);
             designmatrix.addResidual(residual, weights);
@@ -186,10 +188,10 @@ void ImageDFTEquation::calcVisDFT(const casa::Array<double>& imagePixels,
         double u=uvw(row)(0);
         double v=uvw(row)(1);
         double w=uvw(row)(2);
-        for (uint l=0;l<raCells;l++) {
-            double ra = raStart + l * raInc;
-            for (uint m=0;m<decCells;m++) {
-                double dec = decStart + m * decInc;
+        for (uint m=0;m<decCells;m++) {
+            double dec = decStart + m * decInc;
+            for (uint l=0;l<raCells;l++) {
+                double ra = raStart + l * raInc;
                 double delay = casa::C::_2pi * (ra * u + dec * v + sqrt(1 - ra * ra - dec * dec) * w)/casa::C::c;
                 double flux = imagePixels(casa::IPosition(2, l, m));
                 if(doDeriv) {

@@ -51,14 +51,12 @@ int main() {
 
 	IDataSharedIter idi(new DataIteratorStub(1));
     
-	Params perfect;
-
-	int npix=16;
+    int npix=16;
 	cout << "Making " << npix << " by " << npix << " pixel image" << endl;
 		
     Domain imageDomain;
-    imageDomain.add("RA", -120.0*casa::C::arcsec, +120.0*casa::C::arcsec, npix); 
-    imageDomain.add("DEC", -120.0*casa::C::arcsec, +120.0*casa::C::arcsec, npix); 
+    imageDomain.add("RA", -120.0*casa::C::arcsec, +120.0*casa::C::arcsec); 
+    imageDomain.add("DEC", -120.0*casa::C::arcsec, +120.0*casa::C::arcsec); 
 
     cout << "Adding two point sources" << endl;
 	{
@@ -66,13 +64,11 @@ int main() {
 		imagePixels1.set(0.0);
         imagePixels1(casa::IPosition(2, npix/2, npix/2))=1.0;
         imagePixels1(casa::IPosition(2, 12, 3))=0.7;
+        Params perfect;
 		perfect.add("image.i.cena", imagePixels1, imageDomain);
 		printArray(npix, imagePixels1);
-	}
-
-	// Predict with the "perfect" parameters"
-	cout << "Predicting data from perfect model" << endl;
-	{
+    	// Predict with the "perfect" parameters"
+    	cout << "Predicting data from perfect model" << endl;
 		ImageDFTEquation perfecteq(perfect, idi);
 		perfecteq.predict();
 	}
@@ -93,16 +89,18 @@ int main() {
 	cout << "Calculating derivatives from imperfect model" << endl;
     cout << endl;
     
-	NormalEquations normeq(perfect);
+	NormalEquations normeq(imperfect);
 	{
 		ImageDFTEquation imperfecteq(imperfect, idi);
 		imperfecteq.calcEquations(normeq);
 	}
-//    cout << "Data vector (i.e. residual image):" << endl;
-//    printArray(npix, normeq.dataVector()["image.i.cena"]);
-//    cout << "Slice of normal equations (i.e. dirty psf):" << endl;
-//    printArray(npix, normeq.normalMatrix()["image.i.cena"]["image.i.cena"].column(npix/2+npix*npix/2));
-//    cout << endl;
+    casa::Array<double> dv(normeq.dataVector()["image.i.cena"].reform(casa::IPosition(2, npix, npix)));
+    cout << "Data vector (i.e. residual image):" << endl;
+    printArray(npix, dv);
+    casa::Array<double> psf(normeq.normalMatrix()["image.i.cena"]["image.i.cena"].column(npix/2+npix*npix/2).reform(casa::IPosition(2, npix, npix)));
+    cout << "Slice of normal equations (i.e. dirty psf):" << endl;
+    printArray(npix, psf);
+    cout << endl;
 	
     {
         Quality q3;

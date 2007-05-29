@@ -28,7 +28,6 @@ namespace scimath
 			itsNames=other.itsNames;
 			itsStart=other.itsStart;
 			itsEnd=other.itsEnd;
-			itsCells=other.itsCells;
 		}
 	}
 	
@@ -43,10 +42,9 @@ namespace scimath
 		itsNames.clear();
 		itsStart.clear();
 		itsEnd.clear();
-		itsCells.clear();
 	}
 	
-	void Domain::add(const string& name, const double start, const double end, const int cells)
+	void Domain::add(const string& name, const double start, const double end)
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Axis " + name + " already exists"));
@@ -55,7 +53,6 @@ namespace scimath
 			itsNames.push_back(name);
 			itsStart.push_back(start);
 			itsEnd.push_back(end);
-			itsCells.push_back(cells);
 		}
 	}
 	
@@ -83,11 +80,6 @@ namespace scimath
 		return itsNames;
 	}
 	
-	const std::vector<int>& Domain::shape() const
-	{
-		return itsCells;
-	}
-
 	/// Return start value	
 	/// @param name Name of axis
 	double Domain::start(const string& name) const
@@ -102,20 +94,13 @@ namespace scimath
 		return itsEnd[order(name)];
 	}
 
-	/// Return number of cells
-	/// @param name Name of axis
-	int Domain::cells(const string& name) const
-	{
-		return itsCells[order(name)];
-	}
-
 	ostream& operator<<(ostream& os, const Domain& domain) {
 
 		vector<string> names(domain.names());
 		vector<string>::iterator it;
 		for(it = names.begin(); it != names.end(); it++) {
 			os << *it << " from " << domain.start(*it) << " to " << domain.end(*it)
-				<< " in " << domain.cells(*it) << " cells" << std::endl;
+				<< std::endl;
 		}
 		return os;
 	}

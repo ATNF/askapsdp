@@ -4,6 +4,9 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <stdexcept>
+#include <cmath>
+
+using std::abs;
 
 namespace conrad {
 namespace scimath {

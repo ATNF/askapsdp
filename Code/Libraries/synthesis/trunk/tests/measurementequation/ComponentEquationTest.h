@@ -10,6 +10,9 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <stdexcept>
+#include <cmath>
+
+using std::abs;
 
 #include <boost/shared_ptr.hpp>
 
@@ -110,7 +113,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		// Predict with the "perfect" parameters"
 		p1->predict();
 		// Calculate gradients using "imperfect" parameters" 
-		NormalEquations ne(*params1);
+		NormalEquations ne(*params2);
 		p2->calcEquations(ne);
 		Quality q;
 		LinearSolver solver1(*params2);

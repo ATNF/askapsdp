@@ -73,19 +73,20 @@ void ImageFFTEquation::predict()
     	for (it=completions.begin();it!=completions.end();it++) {
     	
     		string imageName("image.i"+(*it));
-    		Domain domain(parameters().domain(imageName));
-    		if(!domain.has("RA")||!domain.has("DEC")) {
-    			throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
-    		}
-    		double raStart=domain.start("RA");
-    		double raEnd=domain.end("RA");
-    		int raCells=domain.cells("RA");
+            const casa::Array<double> imagePixels(parameters().value(imageName));
+            const casa::IPosition imageShape(imagePixels.shape());
+            
+            Domain domain(parameters().domain(imageName));
+            if(!domain.has("RA")||!domain.has("DEC")) {
+                throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
+            }
+            double raStart=domain.start("RA");
+            double raEnd=domain.end("RA");
+            int raCells=imageShape(domain.order("RA"));
     
-    		double decStart=domain.start("DEC");
-    		double decEnd=domain.end("DEC");
-    		int decCells=domain.cells("DEC");
-    
-    		const casa::Vector<double> imagePixels(parameters().value(imageName));
+            double decStart=domain.start("DEC");
+            double decEnd=domain.end("DEC");
+            int decCells=imageShape(domain.order("DEC"));
     		const uint nPixels=imagePixels.nelements();
             
             casa::Cube<casa::Complex> uvGrid(raCells, decCells, 1);
@@ -93,10 +94,9 @@ void ImageFFTEquation::predict()
             uvCellsize(0)=double(raCells)/(raStart-raEnd);
             uvCellsize(1)=double(decCells)/(decStart-decEnd);
     
-            SphFuncVisGridder tvg;
-            
             itsIdi.chooseBuffer("model");
             
+            SphFuncVisGridder tvg;
             tvg.forward(itsIdi, uvCellsize, uvGrid);
     	}
     }
@@ -123,8 +123,6 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
         IDataSharedIter residualIdi(itsIdi);
         residualIdi.chooseBuffer("residual");
 
-        SphFuncVisGridder tvg;
-       
     	const casa::Vector<double>& freq=itsIdi->frequency();	
     	const uint nChan=freq.nelements();
     	const uint nRow=itsIdi->nRow();
@@ -132,17 +130,20 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
     	for (it=completions.begin();it!=completions.end();it++) {
             
     		string imageName("image.i"+(*it));
-    		Domain domain(parameters().domain(imageName));
+            const casa::Array<double> imagePixels(parameters().value(imageName));
+            const casa::IPosition imageShape(imagePixels.shape());
+            
+            Domain domain(parameters().domain(imageName));
+            if(!domain.has("RA")||!domain.has("DEC")) {
+                throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
+            }
+            double raStart=domain.start("RA");
+            double raEnd=domain.end("RA");
+            int raCells=imageShape(domain.order("RA"));
     
-    		double raStart=domain.start("RA");
-    		double raEnd=domain.end("RA");
-    		int raCells=domain.cells("RA");
-    
-    		double decStart=domain.start("DEC");
-    		double decEnd=domain.end("DEC");
-    		int decCells=domain.cells("DEC");
-    
-    		const casa::Vector<double> imagePixels(parameters().value(imageName));
+            double decStart=domain.start("DEC");
+            double decEnd=domain.end("DEC");
+            int decCells=imageShape(domain.order("DEC"));
     		const uint nPixels=imagePixels.nelements();
             
             casa::Cube<casa::Complex> uvGrid(raCells, decCells, 1);
@@ -150,6 +151,7 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
             uvCellsize(0)=double(raCells)/(raStart-raEnd);
             uvCellsize(1)=double(decCells)/(decStart-decEnd);
             
+            SphFuncVisGridder tvg;
             tvg.forward(modelIdi, uvCellsize, uvGrid);
             residualIdi->rwVisibility()=itsIdi->visibility()-modelIdi->visibility();
             
