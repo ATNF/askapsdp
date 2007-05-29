@@ -20,6 +20,10 @@ using namespace conrad;
 using namespace casa;
 using namespace synthesis;
 
+/// apparently this template is not compiled in to the casacore libraries,
+/// manual instantiation is required
+template Vector<MVDirection>;
+
 DataAccessorStub::DataAccessorStub(const bool fill)
 {
 	if(fill) {
