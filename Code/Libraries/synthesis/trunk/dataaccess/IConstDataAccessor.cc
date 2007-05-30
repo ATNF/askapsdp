@@ -6,7 +6,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 //
-#include "IConstDataAccessor.h"
+#include <dataaccess/IConstDataAccessor.h>
 
 namespace conrad {
 

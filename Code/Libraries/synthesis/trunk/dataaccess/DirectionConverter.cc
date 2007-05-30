@@ -15,7 +15,7 @@
 #include <casa/Quanta/MVDirection.h>
 
 // own includes
-#include "DirectionConverter.h"
+#include <dataaccess/DirectionConverter.h>
 
 using namespace conrad;
 using namespace synthesis;

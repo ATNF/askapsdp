@@ -9,7 +9,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include "IConverterBase.h"
+#include <dataaccess/IConverterBase.h>
 
 using namespace conrad;
 using namespace synthesis;

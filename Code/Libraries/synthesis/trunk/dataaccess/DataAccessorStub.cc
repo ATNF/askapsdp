@@ -5,14 +5,19 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include "DataAccessorStub.h"
+// STD includes
+#include <vector>
+
+// CASA includes
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
 #include <measures/Measures/MPosition.h>
 #include <casa/Quanta/Quantum.h>
 #include <casa/Quanta/MVPosition.h>
 
-#include <vector>
+// own includes
+#include <dataaccess/DataAccessorStub.h>
+
 using std::vector;
 
 

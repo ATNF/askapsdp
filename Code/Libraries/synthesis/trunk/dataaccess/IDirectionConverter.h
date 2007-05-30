@@ -14,10 +14,10 @@
 
 // CASA includes
 #include <measures/Measures/MDirection.h>
+#include <casa/Quanta/MVDirection.h>
 
 // own includes
-#include "IConverterBase.h"
-#include <casa/Quanta/MVDirection.h>
+#include <dataaccess/IConverterBase.h>
 
 namespace conrad {
 

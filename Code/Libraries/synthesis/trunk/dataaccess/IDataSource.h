@@ -15,8 +15,8 @@
 #define I_DATA_SOURCE_H
 
 // own includes
-#include "IConstDataSource.h"
-#include "IDataIterator.h"
+#include <dataaccess/IConstDataSource.h>
+#include <dataaccess/IDataIterator.h>
 
 namespace conrad {
 

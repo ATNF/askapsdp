@@ -7,7 +7,7 @@
 #ifndef DATA_ACCESSOR_STUB_H
 #define DATA_ACCESSOR_STUB_H
 
-#include "IFlagDataAccessor.h"
+#include <dataaccess/IFlagDataAccessor.h>
 
 namespace conrad {
 	

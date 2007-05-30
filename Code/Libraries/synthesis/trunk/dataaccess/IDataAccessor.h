@@ -13,7 +13,7 @@
 #ifndef I_DATA_ACCESSOR_H
 #define I_DATA_ACCESSOR_H
 
-#include "IConstDataAccessor.h"
+#include <dataaccess/IConstDataAccessor.h>
 
 namespace conrad {
 

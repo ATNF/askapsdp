@@ -16,7 +16,7 @@
 #include <measures/Measures/MEpoch.h>
 
 // own includes
-#include "IEpochConverter.h"
+#include <dataaccess/IEpochConverter.h>
 
 namespace conrad {
 

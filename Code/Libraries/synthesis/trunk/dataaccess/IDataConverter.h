@@ -26,7 +26,7 @@
 #include <casa/Quanta/MVFrequency.h>
 
 // own includes
-#include "IConverterBase.h"
+#include <dataaccess/IConverterBase.h>
 
 namespace conrad {
 

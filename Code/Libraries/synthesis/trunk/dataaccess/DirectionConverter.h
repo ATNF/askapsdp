@@ -16,7 +16,7 @@
 #include <measures/Measures/MDirection.h>
 
 // own includes
-#include "IDirectionConverter.h"
+#include <dataaccess/IDirectionConverter.h>
 
 namespace conrad {
 

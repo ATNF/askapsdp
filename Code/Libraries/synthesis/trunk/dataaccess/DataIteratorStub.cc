@@ -9,7 +9,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include "DataIteratorStub.h"
+#include <dataaccess/DataIteratorStub.h>
 
 namespace conrad {
 

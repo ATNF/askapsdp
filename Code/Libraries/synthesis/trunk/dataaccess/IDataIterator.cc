@@ -10,7 +10,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include "IDataIterator.h"
+#include <dataaccess/IDataIterator.h>
 
 namespace conrad {
 

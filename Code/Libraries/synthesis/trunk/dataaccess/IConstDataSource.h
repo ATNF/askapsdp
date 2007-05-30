@@ -19,9 +19,9 @@
 #include <measures/Measures/MRadialVelocity.h>
 
 // own includes
-#include "IConstDataIterator.h"
-#include "IDataSelector.h"
-#include "IDataConverter.h"
+#include <dataaccess/IConstDataIterator.h>
+#include <dataaccess/IDataSelector.h>
+#include <dataaccess/IDataConverter.h>
 
 
 namespace conrad {

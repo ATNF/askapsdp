@@ -14,7 +14,6 @@
 #include <casa/Quanta/MVRadialVelocity.h>
 #include <casa/Quanta/MVEpoch.h>
 #include <casa/BasicSL/String.h>
-//#include <casa/Quanta/MVDirection.h>
 
 namespace conrad {
 

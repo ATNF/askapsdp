@@ -13,8 +13,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include "IConstDataIterator.h"
-#include "IConstDataAccessor.h"
+#include <dataaccess/IConstDataIterator.h>
+#include <dataaccess/IConstDataAccessor.h>
 
 namespace conrad {
 

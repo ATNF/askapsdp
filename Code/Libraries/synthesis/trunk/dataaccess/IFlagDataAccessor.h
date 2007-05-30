@@ -14,7 +14,7 @@
 #ifndef I_FLAG_DATA_ACCESSOR_H
 #define I_FLAG_DATA_ACCESSOR_H
 
-#include "IDataAccessor.h"
+#include <dataaccess/IDataAccessor.h>
 
 namespace conrad {
 

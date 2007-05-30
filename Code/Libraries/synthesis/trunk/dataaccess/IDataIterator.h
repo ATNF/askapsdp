@@ -21,8 +21,8 @@
 
 #include <string>
 
-#include "IConstDataIterator.h"
-#include "IDataAccessor.h"
+#include <dataaccess/IConstDataIterator.h>
+#include <dataaccess/IDataAccessor.h>
 
 namespace conrad {
 

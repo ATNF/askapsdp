@@ -19,7 +19,7 @@
 #ifndef I_CONST_DATA_ITERATOR_H
 #define I_CONST_DATA_ITERATOR_H
 
-#include "IDataAccessor.h"
+#include <dataaccess/IDataAccessor.h>
 
 namespace conrad {
 

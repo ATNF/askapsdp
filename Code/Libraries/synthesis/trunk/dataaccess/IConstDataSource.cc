@@ -1,4 +1,4 @@
-#include "IConstDataSource.h"
+#include <dataaccess/IConstDataSource.h>
 
 namespace conrad {
 
