@@ -1,4 +1,5 @@
 #include <fitting/PolynomialEquation.h>
+#include <fitting/CompositeEquation.h>
 #include <fitting/LinearSolver.h>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -18,6 +19,7 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST(testCopy);
     CPPUNIT_TEST(testPredict);
     CPPUNIT_TEST(testSolutionNE);
+    CPPUNIT_TEST(testComposite);
     CPPUNIT_TEST_SUITE_END();
 	
   private:
@@ -85,6 +87,24 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
         Params ip(itsPoly1->parameters());
         NormalEquations normeq(ip);
         itsPoly1->calcEquations(normeq);
+        casa::Vector<double> pvals(ip.value("poly").size());
+        pvals.set(0.0);
+        ip.update("poly", pvals);
+        LinearSolver solver(ip);
+        solver.addNormalEquations(normeq);
+        Quality q;
+        solver.solveNormalEquations(q, true);
+        CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
+    }  
+    
+    void testComposite()
+    {
+        CompositeEquation comp(itsPoly1->parameters());
+        comp.add(*itsPoly1);
+        comp.predict();
+        Params ip(comp.parameters());
+        NormalEquations normeq(ip);
+        comp.calcEquations(normeq);
         casa::Vector<double> pvals(ip.value("poly").size());
         pvals.set(0.0);
         ip.update("poly", pvals);

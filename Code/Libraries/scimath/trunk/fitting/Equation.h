@@ -50,9 +50,9 @@ public:
 	/// @param ip Parameters
 	const Params& defaultParameters() const;
     
-    virtual void predict() = 0;
+    virtual void predict() {};
     
-    virtual void calcEquations(NormalEquations& ne) = 0;
+    virtual void calcEquations(NormalEquations& ne) {};
     
 protected:
 	Params itsParams;
