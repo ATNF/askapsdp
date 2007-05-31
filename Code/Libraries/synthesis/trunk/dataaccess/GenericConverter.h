@@ -32,14 +32,14 @@ struct GenericConverter : virtual public IConverterBase {
     /// create a converter to the target frame/unit
     /// @param targetRef target reference frame        
     /// @param targetUnit desired units in the output. 
-    GenericConverter(const M::Ref &targetRef,
+    GenericConverter(const typename M::Ref &targetRef,
                      const casa::Unit &targetUnit) : itsTargetRef(targetRef),
 		           itsTargetUnit(targetUnit) {}
 
     /// convert specified measure to the target units/frame
     /// @param in a measure to convert. 
     virtual inline casa::Double operator()(const M &in) const {
-       M::MVType converted=M::Convert(in.getRef(),itsTargetRef)(in).getValue();
+       typename M::MVType converted=M::Convert(in.getRef(),itsTargetRef)(in).getValue();
        return converted.get(itsTargetUnit);
     }
 
@@ -52,7 +52,7 @@ struct GenericConverter : virtual public IConverterBase {
     }
 
 private:    
-    M::Ref itsTargetRef;
+    typename M::Ref itsTargetRef;
     casa::Unit  itsTargetUnit;
 };
 
