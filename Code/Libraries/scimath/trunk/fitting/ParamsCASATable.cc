@@ -31,9 +31,12 @@ namespace scimath
     
     const String colName("NAME");
     const String colValues("VALUES");
+    const String colAxes("AXES");
+    const String colStart("AXESSTART");
+    const String colEnd("AXESEND");
     const String colAxes("DOMAIN");
-    const String colStart("START");
-    const String colEnd("END");
+    const String colStart("DOMAINSTART");
+    const String colEnd("DOMAINEND");
     const String colFree("FREE");
 
 ParamsCASATable::ParamsCASATable(const std::string& tablename, bool exists)
@@ -53,6 +56,9 @@ void ParamsCASATable::createTable(const std::string& tablename)
     itsTableDesc.addColumn (ArrayColumnDesc<String>(colAxes));
     itsTableDesc.addColumn (ArrayColumnDesc<double>(colStart,1));
     itsTableDesc.addColumn (ArrayColumnDesc<double>(colEnd,1));
+    itsTableDesc.addColumn (ArrayColumnDesc<String>(colDomain));
+    itsTableDesc.addColumn (ArrayColumnDesc<double>(colDomainStart,1));
+    itsTableDesc.addColumn (ArrayColumnDesc<double>(colDomainEnd,1));
     itsTableDesc.addColumn (ArrayColumnDesc<double>(colValues));
     itsTableDesc.addColumn (ScalarColumnDesc<bool>(colFree));
   
@@ -76,17 +82,27 @@ ParamsCASATable::~ParamsCASATable()
     itsTable.flush();
 }
 
-bool ParamsCASATable::getParameters(Params& ip) const
+bool ParamsCASATable::getParameters(Params& ip, const Domain& domain) const 
+{
+    Domain null;
+    null.add("NULL", 0.0, 0.0);
+    return getParameters(ip, null);
+}
+
+bool ParamsCASATable::getParameters(Params& ip, const Domain& domain) const
 {
     if(!(Table::isReadable(itsTable.tableName()))){
         return false;
     }
  
     ROScalarColumn<String> nameCol (itsTable, colName);
-    ROArrayColumn<String> axesCol (itsTable, colAxes);
     ROArrayColumn<double> valCol (itsTable, colValues);
+    ROArrayColumn<String> axesCol (itsTable, colAxes);
     ROArrayColumn<double> startCol (itsTable, colStart);
     ROArrayColumn<double> endCol (itsTable, colEnd);
+    ROArrayColumn<String> domainCol (itsTable, colDomain);
+    ROArrayColumn<double> domainStartCol (itsTable, colDomainStart);
+    ROArrayColumn<double> domainEndCol (itsTable, colDomainEnd);
     ROScalarColumn<bool> freeCol (itsTable, colFree);
     
     int rownr=itsTable.nrow();
@@ -132,14 +148,25 @@ std::vector<std::string> ParamsCASATable::toStdString(const casa::Vector<casa::S
     return result;
 }
 
-bool ParamsCASATable::setParameters(const Params& ip) {
+bool ParamsCASATable::setParameters(const Params& ip, const Domain& domain) const 
+{
+    Domain null;
+    null.add("NULL", 0.0, 0.0);
+    return setParameters(ip, null);
+}
+
+
+bool ParamsCASATable::setParameters(const Params& ip, const Domain& domain) {
     itsTable.reopenRW();
     TableLocker locker(itsTable, FileLocker::Write);
     ScalarColumn<String> nameCol (itsTable, colName);
-    ArrayColumn<String> axesCol (itsTable, colAxes);
     ArrayColumn<double> valCol (itsTable, colValues);
+    ArrayColumn<String> axesCol (itsTable, colAxes);
     ArrayColumn<double> startCol (itsTable, colStart);
     ArrayColumn<double> endCol (itsTable, colEnd);
+    ArrayColumn<String> domainCol (itsTable, colDomain);
+    ArrayColumn<double> domainStartCol (itsTable, colDomainStart);
+    ArrayColumn<double> domainEndCol (itsTable, colDomainEnd);
     ScalarColumn<bool> freeCol (itsTable, colFree);
     
     std::vector<string> names(ip.names());
@@ -155,6 +182,10 @@ bool ParamsCASATable::setParameters(const Params& ip) {
         startCol.put(rownr, casa::Vector<double>(ax.start())); 
         endCol.put(rownr, casa::Vector<double>(ax.end()));
         
+        domainCol.put(rownr, toCASAString(domain.names())); 
+        domainStartCol.put(rownr, casa::Vector<double>(domain.start())); 
+        domainEndCol.put(rownr, casa::Vector<double>(domain.end()));
+                
         freeCol.put(rownr, ip.isFree(*it));
         
         rownr++; 

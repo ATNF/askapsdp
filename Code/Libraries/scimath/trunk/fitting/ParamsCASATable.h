@@ -31,11 +31,13 @@ public:
 	
 	/// Get the parameters for a specified domain
 	/// @param ip Template of parameters - must match
-	virtual bool getParameters(Params& ip) const;
+    virtual bool getParameters(Params& ip) const;
+    virtual bool getParameters(Params& ip, const Domain& domain) const;
 
 	/// Set the parameters for a given domain
 	/// @param ip Parameters to set
-	virtual bool setParameters (const Params& ip);
+    virtual bool setParameters (const Params& ip);
+    virtual bool setParameters (const Params& ip, const Domain& domain);
     
 private:
 

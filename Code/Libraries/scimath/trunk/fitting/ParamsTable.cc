@@ -16,11 +16,20 @@ ParamsTable::~ParamsTable()
 
 bool ParamsTable::getParameters(Params& ip) const
 {
-	return false;
+    return false;
+};
+
+bool ParamsTable::getParameters(Params& ip, const Domain& domain) const
+{
+    return false;
 };
 
 bool ParamsTable::setParameters(const Params& ip) {
-	return false;
+    return false;
+}
+
+bool ParamsTable::setParameters(const Params& ip, const Domain& domain) {
+    return false;
 }
 
 }

@@ -19,6 +19,8 @@ namespace conrad
 	
 namespace scimath
 {
+    
+typedef Axes Domain;
 
 class Axes
 {
