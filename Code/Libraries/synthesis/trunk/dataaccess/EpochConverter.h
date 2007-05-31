@@ -40,9 +40,15 @@ struct EpochConverter : public IEpochConverter {
 
     /// convert specified MEpoch to the target units/frame
     /// @param in an epoch to convert. 
-    virtual casa::Double operator()(const casa::MEpoch &in) const;
+    casa::Double EpochConverter::operator()(const casa::MEpoch &in) const;
+
+    /// set a frame (for epochs it is just a position), where the
+    /// conversion is performed
+    virtual void setMeasFrame(const casa::MeasFrame &frame);
+
 private:
-    casa::MEpoch itsTargetOrigin;
+    casa::MVEpoch itsTargetOrigin;
+    casa::MEpoch::Ref itsTargetRef;
     casa::Unit  itsTargetUnit;
 };
 

@@ -32,7 +32,7 @@ namespace conrad {
 
 namespace synthesis {
 	
-class IDataConverter : public IConverterBase
+class IDataConverter : virtual public IConverterBase
 {
 public:
 	/// set the reference frame for any time epochs 

@@ -14,6 +14,8 @@
 #define I_DATA_ACCESS_TEST_H
 
 #include <stdexcept>
+#include <boost/shared_ptr.hpp>
+
 #include "DataAccessTestImpl.h"
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -22,7 +24,7 @@ namespace conrad {
 namespace synthesis {
 
 class DataAccessTest : public CppUnit::TestFixture,
-                       protected DataAccessTestImpl
+                       protected DataAccessTestImpl		       
 {
     CPPUNIT_TEST_SUITE(DataAccessTest);
     CPPUNIT_TEST(testAccess);

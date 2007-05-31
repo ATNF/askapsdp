@@ -19,9 +19,15 @@
 
 // own includes
 #include <dataaccess/BasicDataConverter.h>
+#include <dataaccess/EpochConverter.h>
 
 using namespace conrad;
 using namespace synthesis;
+
+BasicDataConverter::BasicDataConverter() :
+     itsEpochConverter(new EpochConverter)
+{     
+}
 
 /// set the reference frame for any time epochs 
 /// (e.g. time-based selection, visibility timestamp)
@@ -39,6 +45,7 @@ using namespace synthesis;
 void BasicDataConverter::setEpochFrame(const casa::MEpoch &origin,
 	   const casa::Unit &unit)
 {
+  itsEpochConverter.reset(new EpochConverter(origin,unit));
 }
 
 /// set the reference frame for directions. At this moment we
@@ -90,4 +97,11 @@ void BasicDataConverter::setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
 ///
 void BasicDataConverter::setRestFrequency(const casa::MVFrequency &restFreq)
 {
+}
+
+
+/// set a frame (time, position), where the conversion is performed
+void BasicDataConverter::setMeasFrame(const casa::MeasFrame &frame)
+{
+  itsEpochConverter->setMeasFrame(frame);
 }

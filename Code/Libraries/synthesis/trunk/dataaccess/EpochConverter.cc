@@ -30,7 +30,9 @@ using namespace casa;
 ///        to seconds
 EpochConverter::EpochConverter(const casa::MEpoch &targetOrigin,
                        const casa::Unit &targetUnit) :
-        itsTargetOrigin(targetOrigin), itsTargetUnit(targetUnit) {}
+        itsTargetOrigin(targetOrigin.getValue()),
+	itsTargetRef(targetOrigin.getRef()),
+	itsTargetUnit(targetUnit) {}
 
 /// convert specified MEpoch to the target units/frame
 /// @param in an epoch to convert. 
@@ -40,8 +42,15 @@ casa::Double EpochConverter::operator()(const casa::MEpoch &in) const
   /// we do all conversions. Specializations can be written for the cases
   /// when either frame or unit conversions are not required
   MVEpoch converted=MEpoch::Convert(in.getRef(),
-                        itsTargetOrigin.getRef())(in).getValue();
+                        itsTargetRef)(in).getValue();
   // relative to the origin
-  converted-=itsTargetOrigin.getValue();
+  converted-=itsTargetOrigin;
   return converted.getTime(itsTargetUnit).getValue();
+}
+
+/// set a frame (for epochs it is just a position), where the
+/// conversion is performed
+void EpochConverter::setMeasFrame(const casa::MeasFrame &frame)
+{
+  itsTargetRef.set(frame);
 }

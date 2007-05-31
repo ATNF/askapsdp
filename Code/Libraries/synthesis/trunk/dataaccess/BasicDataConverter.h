@@ -36,6 +36,15 @@ namespace synthesis {
 class BasicDataConverter : public IDataConverter
 {
 public:
+    /// default constructor sets up the default conversion options,
+    /// which are:
+    ///    for Epoch, origin/frame are MJD 0 UTC, units are seconds
+    ///               (defined in the default arguments for the
+    ///                constructor of EpochConverter)
+    BasicDataConverter();
+
+    /// implementation of the interface methods
+
     /// set the reference frame for any time epochs 
     /// (e.g. time-based selection, visibility timestamp)
     /// The value of the specified measure is the origin epoch. 
@@ -94,6 +103,17 @@ public:
     ///                 between frequencies and velocities
     ///
     virtual void setRestFrequency(const casa::MVFrequency &restFreq);
+
+    /// set a frame (for epochs it is just a position), where the
+    /// conversion is performed
+    virtual void setMeasFrame(const casa::MeasFrame &frame);
+
+
+    /// methods used within the DataSource/DataIterator
+    casa::Double inline epoch(const casa::MEpoch &in) const
+    {
+      return (*itsEpochConverter)(in);
+    }
 private:
     boost::shared_ptr<IEpochConverter>  itsEpochConverter;
     

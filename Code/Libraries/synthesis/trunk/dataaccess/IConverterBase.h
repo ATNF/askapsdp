@@ -12,14 +12,26 @@
 #ifndef I_CONVERTER_BASE_H
 #define I_CONVERTER_BASE_H
 
+// CASA includes
+#include <measures/Measures/MeasFrame.h>
+
 namespace conrad {
 
 namespace synthesis {
 
 struct IConverterBase {
+
     /// an empty virtual destructor to keep the compiler happy
     /// for all derived interfaces
     virtual ~IConverterBase();
+
+protected: // the following method(s) are not for a general framework user,
+           // but rather for implementation
+    /// set a frame (i.e. time and/or position), where the
+    /// conversion is performed
+    /// @param frame  MeasFrame object (can be constructed from
+    ///               MPosition or MEpoch on-the-fly)
+    virtual void setMeasFrame(const casa::MeasFrame &frame) = 0;
 };
 
 } // namespace synthesis

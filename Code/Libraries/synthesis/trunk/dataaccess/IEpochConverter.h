@@ -14,6 +14,7 @@
 
 // CASA includes
 #include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MeasFrame.h>
 
 // own includes
 #include <dataaccess/IConverterBase.h>
@@ -22,11 +23,14 @@ namespace conrad {
 
 namespace synthesis {
 
-struct IEpochConverter : public IConverterBase {
+struct IEpochConverter : virtual public IConverterBase {
     /// convert specified MEpoch to the target units/frame
     /// @param in an epoch to convert. Target units/frame are
     /// properties of the actual instance of the derived class
     virtual casa::Double operator()(const casa::MEpoch &in) const = 0;
+
+    /// using statement to make this method public in all derived classes
+    using IConverterBase::setMeasFrame;
 };
 
 } // namespace synthesis
