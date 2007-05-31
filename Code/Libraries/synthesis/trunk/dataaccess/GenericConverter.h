@@ -28,7 +28,7 @@ namespace synthesis {
 /// call the appropriate functionality of the epoch measures.
 
 template<typename M>
-struct GenericConverter : public IConverterBase {
+struct GenericConverter : virtual public IConverterBase {
     /// create a converter to the target frame/unit
     /// @param targetRef target reference frame        
     /// @param targetUnit desired units in the output. 
@@ -38,10 +38,19 @@ struct GenericConverter : public IConverterBase {
 
     /// convert specified measure to the target units/frame
     /// @param in a measure to convert. 
-    virtual casa::Double operator()(const M &in) const {
+    virtual inline casa::Double operator()(const M &in) const {
        M::MVType converted=M::Convert(in.getRef(),itsTargetRef)(in).getValue();
        return converted.get(itsTargetUnit);
     }
+
+    /// set a frame (i.e. time and/or position), where the
+    /// conversion is performed
+    /// @param frame  MeasFrame object (can be constructed from
+    ///               MPosition or MEpoch on-the-fly)
+    virtual void setMeasFrame(const casa::MeasFrame &frame) {
+       itsTargetRef.set(frame);
+    }
+
 private:    
     M::Ref itsTargetRef;
     casa::Unit  itsTargetUnit;

@@ -32,11 +32,19 @@ struct DirectionConverter : public IDirectionConverter {
     /// create a converter to the target frame
     /// @param targetFrame a desired reference frame
     ///        Class defaults to J2000
-    DirectionConverter(const casa::MDirection::Ref &targetFrame);
+    DirectionConverter(const casa::MDirection::Ref &targetFrame =
+                             casa::MDirection::Ref(casa::MDirection::J2000));
 
     /// convert specified MEpoch to the target units/frame
     /// @param in an epoch to convert. 
     virtual casa::MVDirection operator()(const casa::MDirection &in) const;
+
+    /// set a frame (i.e. time and/or position), where the
+    /// conversion is performed
+    /// @param frame  MeasFrame object (can be constructed from
+    ///               MPosition or MEpoch on-the-fly)
+    virtual void setMeasFrame(const casa::MeasFrame &frame);
+
 private:
     casa::MDirection::Ref itsTargetFrame;    
 };

@@ -39,3 +39,12 @@ casa::MVDirection
     return MDirection::Convert(in.getRef(),
                              itsTargetFrame)(in).getValue();    
 }
+
+/// set a frame (i.e. time and/or position), where the
+/// conversion is performed
+/// @param frame  MeasFrame object (can be constructed from
+///               MPosition or MEpoch on-the-fly)
+void DirectionConverter::setMeasFrame(const casa::MeasFrame &frame)
+{
+  itsTargetFrame.set(frame);
+}

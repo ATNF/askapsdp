@@ -20,12 +20,14 @@
 // own includes
 #include <dataaccess/BasicDataConverter.h>
 #include <dataaccess/EpochConverter.h>
+#include <dataaccess/DirectionConverter.h>
 
 using namespace conrad;
 using namespace synthesis;
 
 BasicDataConverter::BasicDataConverter() :
-     itsEpochConverter(new EpochConverter)
+     itsEpochConverter(new EpochConverter),
+     itsDirectionConverter(new DirectionConverter)
 {     
 }
 
@@ -57,8 +59,9 @@ void BasicDataConverter::setEpochFrame(const casa::MEpoch &origin,
 /// @param unit units for all direction offsets. Unused at the
 ///             moment. Default units are radians.
 void BasicDataConverter::setDirectionFrame(const casa::MDirection::Ref &ref,
-               const casa::Unit &unit)
+               const casa::Unit &)
 {
+  itsDirectionConverter.reset(new DirectionConverter(ref));
 }
 
 /// set the reference frame for any frequency
@@ -104,4 +107,5 @@ void BasicDataConverter::setRestFrequency(const casa::MVFrequency &restFreq)
 void BasicDataConverter::setMeasFrame(const casa::MeasFrame &frame)
 {
   itsEpochConverter->setMeasFrame(frame);
+  itsDirectionConverter->setMeasFrame(frame);
 }

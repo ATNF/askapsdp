@@ -28,6 +28,7 @@
 // own includes
 #include <dataaccess/IDataConverter.h>
 #include <dataaccess/IEpochConverter.h>
+#include <dataaccess/IDirectionConverter.h>
 
 namespace conrad {
 
@@ -41,6 +42,7 @@ public:
     ///    for Epoch, origin/frame are MJD 0 UTC, units are seconds
     ///               (defined in the default arguments for the
     ///                constructor of EpochConverter)
+    ///    for Directions, frame is J2000, units are not used
     BasicDataConverter();
 
     /// implementation of the interface methods
@@ -109,14 +111,28 @@ public:
     virtual void setMeasFrame(const casa::MeasFrame &frame);
 
 
-    /// methods used within the DataSource/DataIterator
+    /// following methods are used within the DataSource/DataIterator
+    
+    /// convert epochs
+    /// @param in input epoch given as an MEpoch object
+    /// @return epoch converted to Double 
     casa::Double inline epoch(const casa::MEpoch &in) const
     {
       return (*itsEpochConverter)(in);
     }
+
+    /// convert directions
+    /// @param in input direction given as an MDirection object
+    /// @param out output direction as an MVDirection object
+    void inline direction(const casa::MDirection &in,
+                          casa::MVDirection &out) const
+    {
+      out=(*itsDirectionConverter)(in);
+    }
+    
 private:
     boost::shared_ptr<IEpochConverter>  itsEpochConverter;
-    
+    boost::shared_ptr<IDirectionConverter>  itsDirectionConverter;
 };
   
 } // namespace synthesis
