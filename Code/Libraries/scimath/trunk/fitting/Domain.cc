@@ -80,20 +80,32 @@ namespace scimath
 		return itsNames;
 	}
 	
-	/// Return start value	
-	/// @param name Name of axis
-	double Domain::start(const string& name) const
-	{
-		return itsStart[order(name)];
-	}
-	
-	/// Return end value	
-	/// @param name Name of axis
-	double Domain::end(const string& name) const
-	{
-		return itsEnd[order(name)];
-	}
+    /// Return start value  
+    /// @param name Name of axis
+    double Domain::start(const string& name) const
+    {
+        return itsStart[order(name)];
+    }
+    
+    /// Return end value    
+    /// @param name Name of axis
+    double Domain::end(const string& name) const
+    {
+        return itsEnd[order(name)];
+    }
 
+    // Return start values  
+    const std::vector<double>& Domain::start() const
+    {
+        return itsStart;
+    }
+    
+    // Return end values  
+    const std::vector<double>& Domain::end() const
+    {
+        return itsEnd;
+    }
+    
 	ostream& operator<<(ostream& os, const Domain& domain) {
 
 		vector<string> names(domain.names());

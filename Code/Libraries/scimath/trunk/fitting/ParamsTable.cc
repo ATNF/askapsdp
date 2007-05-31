@@ -1,10 +1,9 @@
 #include <fitting/ParamsTable.h>
 #include <fitting/Params.h>
-#include <fitting/Domain.h>
 
 namespace conrad
 {
-namespace synthesis
+namespace scimath
 {
 
 ParamsTable::ParamsTable()
@@ -15,13 +14,14 @@ ParamsTable::~ParamsTable()
 {
 }
 
-bool ParamsTable::getParameters(Params& ip, const Domain& domain) const
+bool ParamsTable::getParameters(Params& ip) const
 {
 	return false;
 };
 
-bool ParamsTable::setParameters(const Params& ip, const Domain& domain) {
+bool ParamsTable::setParameters(const Params& ip) {
 	return false;
 }
+
 }
 }

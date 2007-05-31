@@ -51,14 +51,22 @@ public:
 	/// Return the possible axis names
 	const std::vector<std::string>& names() const;
 
-	/// Return start value	
-	/// @param name Name of axis
-	double start(const std::string& name) const;
-	
-	/// Return end value	
-	/// @param name Name of axis
-	double end(const std::string& name) const;
-	
+    /// Return start value  
+    /// @param name Name of axis
+    double start(const std::string& name) const;
+    
+    /// Return end value    
+    /// @param name Name of axis
+    double end(const std::string& name) const;
+    
+    /// Return start value  
+    /// @param name Name of axis
+    const std::vector<double>& start() const;
+    
+    /// Return end value    
+    /// @param name Name of axis
+    const std::vector<double>& end() const;
+    
 	friend std::ostream& operator<<(std::ostream& os, const Domain& domain);
 	
 private:
