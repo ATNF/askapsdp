@@ -8,7 +8,6 @@
 #define SCIMATHPARAMSTABLE_H_
 
 #include <fitting/Params.h>
-#include <fitting/Domain.h>
 
 namespace conrad
 {

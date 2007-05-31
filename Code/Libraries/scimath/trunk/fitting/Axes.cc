@@ -1,4 +1,4 @@
-#include <fitting/Domain.h>
+#include <fitting/Axes.h>
 #include <casa/aips.h>
 #include <casa/Exceptions/Error.h>
 
@@ -16,13 +16,13 @@ namespace conrad
 namespace scimath
 {
 
-	/// Make an empty domain
-	Domain::Domain()
+	/// Make an empty axes
+	Axes::Axes()
 	{
 	}
 	
 	/// Assignment operator
-	Domain& Domain::operator=(const Domain& other)
+	Axes& Axes::operator=(const Axes& other)
 	{
 		if(this!=&other) {
 			itsNames=other.itsNames;
@@ -32,19 +32,19 @@ namespace scimath
 	}
 	
 	/// Copy constructor
-	Domain::Domain(const Domain& other)
+	Axes::Axes(const Axes& other)
 	{
 		operator=(other);
 	}
 
-	Domain::~Domain() 
+	Axes::~Axes() 
 	{
 		itsNames.clear();
 		itsStart.clear();
 		itsEnd.clear();
 	}
 	
-	void Domain::add(const string& name, const double start, const double end)
+	void Axes::add(const string& name, const double start, const double end)
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Axis " + name + " already exists"));
@@ -58,7 +58,7 @@ namespace scimath
 	
 	/// Has this axis?
 	/// @param name Name of axis
-	bool Domain::has(const string& name) const
+	bool Axes::has(const string& name) const
 	{
 		if(itsNames.size()==0) return false;
 		for (uint i=0;i<itsNames.size();i++) {
@@ -67,7 +67,7 @@ namespace scimath
 		return false;
 	}
 	
-	int Domain::order(const string& name) const
+	int Axes::order(const string& name) const
 	{
 		for (uint i=0;i<itsNames.size();i++) {
 			if(itsNames[i]==name) return i;
@@ -75,43 +75,43 @@ namespace scimath
 		throw(std::invalid_argument("Axis " + name + " does not exist"));
 	}
 	
-	const std::vector<string>& Domain::names() const
+	const std::vector<string>& Axes::names() const
 	{
 		return itsNames;
 	}
 	
     /// Return start value  
     /// @param name Name of axis
-    double Domain::start(const string& name) const
+    double Axes::start(const string& name) const
     {
         return itsStart[order(name)];
     }
     
     /// Return end value    
     /// @param name Name of axis
-    double Domain::end(const string& name) const
+    double Axes::end(const string& name) const
     {
         return itsEnd[order(name)];
     }
 
     // Return start values  
-    const std::vector<double>& Domain::start() const
+    const std::vector<double>& Axes::start() const
     {
         return itsStart;
     }
     
     // Return end values  
-    const std::vector<double>& Domain::end() const
+    const std::vector<double>& Axes::end() const
     {
         return itsEnd;
     }
     
-	ostream& operator<<(ostream& os, const Domain& domain) {
+	ostream& operator<<(ostream& os, const Axes& axes) {
 
-		vector<string> names(domain.names());
+		vector<string> names(axes.names());
 		vector<string>::iterator it;
 		for(it = names.begin(); it != names.end(); it++) {
-			os << *it << " from " << domain.start(*it) << " to " << domain.end(*it)
+			os << *it << " from " << axes.start(*it) << " to " << axes.end(*it)
 				<< std::endl;
 		}
 		return os;

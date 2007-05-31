@@ -8,7 +8,7 @@
 #ifndef SCIMATHPARAMS_H_
 #define SCIMATHPARAMS_H_
 
-#include <fitting/Domain.h>
+#include <fitting/Axes.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -48,9 +48,9 @@ public:
 	/// @param name Name of param to be added
 	/// @param ip Param to be added
 	void add(const string& name, const casa::Array<double>& ip,
-		const Domain& domain);
+		const Axes& axes);
 	void add(const string& name, const double ip,
-		const Domain& domain);
+		const Axes& axes);
 
 	/// Update an Parameter
 	/// @param name Name of param to be updated
@@ -86,8 +86,8 @@ public:
 
 	/// Return the domain for the parameter with this name
 	/// @param name Name of param
-	const Domain& domain(const string& name) const;		
-	Domain& domain(const string& name);
+	const Axes& axes(const string& name) const;		
+	Axes& axes(const string& name);
 	
 	/// Return all the completions for this name
 	/// @param match Match e.g. "flux.i.*"
@@ -114,15 +114,15 @@ public:
 	void reset();
     
     /// Count -  gives the number of accesses - use
-    /// this for caching. Is incremented on every non-const
-    /// access
+    /// this as a aid in caching. Is incremented on every non-const
+    /// access. A cache is no longer valid if the count has increased.
     int count(const string& name) const;
 
 	friend std::ostream& operator<<(std::ostream& os, const Params& params);
 	
 private:
 	mutable map<string, casa::Array<double> > itsArrays;
-	mutable map<string, Domain> itsDomains;
+	mutable map<string, Axes> itsAxes;
 	mutable map<string, bool> itsFree;
     mutable map<string, int> itsCounts;
     

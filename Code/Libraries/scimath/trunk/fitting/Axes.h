@@ -1,13 +1,13 @@
 /// @file
 ///
-/// Domain: Represent a domain for imaging equation purposes.
+/// Axes: Represent a domain for imaging equation purposes.
 /// 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SCIMATHDOMAIN_H_
-#define SCIMATHDOMAIN_H_
+#ifndef SCIMATHAXES_H_
+#define SCIMATHAXES_H_
 
 #include <iostream>
 #include <vector>
@@ -20,19 +20,19 @@ namespace conrad
 namespace scimath
 {
 
-class Domain
+class Axes
 {
 public:
 	/// Make an empty domain
-	Domain();
+	Axes();
 	
 	/// Assignment operator
-	Domain& operator=(const Domain& other);
+	Axes& operator=(const Axes& other);
 	
 	/// Copy constructor
-	Domain(const Domain& other);
+	Axes(const Axes& other);
 
-	~Domain();
+	~Axes();
 	
 	/// Add an axis 
 	/// @param name Name of axis
@@ -67,7 +67,7 @@ public:
     /// @param name Name of axis
     const std::vector<double>& end() const;
     
-	friend std::ostream& operator<<(std::ostream& os, const Domain& domain);
+	friend std::ostream& operator<<(std::ostream& os, const Axes& domain);
 	
 private:
 	mutable std::vector<std::string> itsNames;

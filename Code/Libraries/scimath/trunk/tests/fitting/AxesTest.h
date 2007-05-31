@@ -1,4 +1,4 @@
-#include <fitting/Domain.h>
+#include <fitting/Axes.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -8,9 +8,9 @@
 namespace conrad {
 namespace scimath {
 	
-class DomainTest : public CppUnit::TestFixture  {
+class AxesTest : public CppUnit::TestFixture  {
 
-    CPPUNIT_TEST_SUITE(DomainTest);
+    CPPUNIT_TEST_SUITE(AxesTest);
     CPPUNIT_TEST(testIndices);
     CPPUNIT_TEST(testValues);
     CPPUNIT_TEST_EXCEPTION(testDuplError, std::invalid_argument);
@@ -18,15 +18,15 @@ class DomainTest : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 	
   private:
-    Domain *p1, *p2, *p3, *pempty;
+    Axes *p1, *p2, *p3, *pempty;
     
   public:
     void setUp()
     {
-      p1 = new Domain();
-      p2 = new Domain();
-      p3 = new Domain();
-      pempty = new Domain();
+      p1 = new Axes();
+      p2 = new Axes();
+      p3 = new Axes();
+      pempty = new Axes();
     }
     
     void tearDown() 
@@ -50,7 +50,7 @@ class DomainTest : public CppUnit::TestFixture  {
       p1->add("Time", 0.0, 1.0);
       CPPUNIT_ASSERT(p1->has("Time"));
       p1->add("Freq", 0.7e9, 1.7e9);
-      Domain pnew(*p1);
+      Axes pnew(*p1);
       
       CPPUNIT_ASSERT(pnew.has("Time"));
       CPPUNIT_ASSERT(pnew.start("Time")==0.0);

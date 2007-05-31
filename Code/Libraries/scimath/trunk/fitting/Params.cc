@@ -1,5 +1,5 @@
 #include <fitting/Params.h>
-#include <fitting/Domain.h>
+#include <fitting/Axes.h>
 #include <casa/aips.h>
 #include <casa/Utilities/Regex.h>
 #include <casa/BasicSL/String.h>
@@ -26,7 +26,7 @@ namespace scimath
 	Params& Params::operator=(const Params& other) {
 		if(this!=&other) {
 			itsArrays=other.itsArrays;
-			itsDomains=other.itsDomains;
+			itsAxes=other.itsAxes;
 			itsFree=other.itsFree;
             itsCounts=other.itsCounts;
 		}
@@ -55,7 +55,7 @@ namespace scimath
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
-			itsDomains[name]=Domain();
+			itsAxes[name]=Axes();
             itsCounts[name]=0;
 		}
 	}
@@ -68,13 +68,13 @@ namespace scimath
         else {
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
-			itsDomains[name]=Domain();
+			itsAxes[name]=Axes();
             itsCounts[name]=0;
 		}
 	}
 	
 	void Params::add(const string& name, const casa::Array<double>& ip,
-		const Domain& domain)
+		const Axes& axes)
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
@@ -82,12 +82,12 @@ namespace scimath
 		else {
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
-			itsDomains[name]=domain;
+			itsAxes[name]=axes;
             itsCounts[name]=0;
 		}
 	}
 	
-	void Params::add(const string& name, const double ip, const Domain& domain) 
+	void Params::add(const string& name, const double ip, const Axes& axes) 
 	{
 		if(has(name)) {
 			throw(std::invalid_argument("Parameter " + name + " already exists"));
@@ -97,7 +97,7 @@ namespace scimath
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
-			itsDomains[name]=domain;
+			itsAxes[name]=axes;
             itsCounts[name]=0;
 		}
 	}
@@ -110,7 +110,7 @@ namespace scimath
 		else {
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
-			itsDomains[name]=Domain();
+			itsAxes[name]=Axes();
             itsCounts[name]++;
 		}
 	}
@@ -125,7 +125,7 @@ namespace scimath
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
-			itsDomains[name]=Domain();
+			itsAxes[name]=Axes();
             itsCounts[name]++;
 		}
 	}
@@ -173,14 +173,14 @@ namespace scimath
 		return itsArrays[name](casa::IPosition(1,0));
 	}		
 	
-	const Domain& Params::domain(const string& name) const 
+	const Axes& Params::axes(const string& name) const 
 	{
-		return itsDomains[name];
+		return itsAxes[name];
 	}		
 	
-	Domain& Params::domain(const string& name) 
+	Axes& Params::axes(const string& name) 
 	{
-		return itsDomains[name];
+		return itsAxes[name];
 	}		
 	
 	bool Params::isCongruent(const Params& other) const
@@ -202,7 +202,7 @@ namespace scimath
 			if(!has(*iter)) {
 				itsArrays[*iter]=other.itsArrays[*iter];
 				itsFree[*iter]=other.itsFree[*iter];
-				itsDomains[*iter]=other.itsDomains[*iter];
+				itsAxes[*iter]=other.itsAxes[*iter];
                 itsCounts[*iter]++;
 			}
 		}
@@ -259,7 +259,7 @@ namespace scimath
 	void Params::reset()
 	{
 		itsArrays.clear();
-		itsDomains.clear();
+		itsAxes.clear();
 		itsFree.clear();
         itsCounts.clear();
 	}

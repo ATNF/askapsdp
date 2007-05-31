@@ -3,8 +3,12 @@
 //
 
 #include <measurementequation/ImageDFTEquation.h>
+
+#include <fitting/ParamsCASATable.h>
 #include <fitting/LinearSolver.h>
+
 #include <dataaccess/DataIteratorStub.h>
+
 
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
@@ -23,26 +27,27 @@ using namespace conrad::scimath;
 
 using namespace conrad::synthesis;
 
-void printArray(const uint npix, const casa::Array<double>& arr) {
-	std::cout << std::fixed;
-	std::cout << "      "; 
-	for (int col=0;col<npix;col++) {
- 		std::cout.width(7); 
- 		std::cout << col << " ";
-	}
-	std::cout << std::endl;
-	std::cout.precision(3); 
+void printArray(const casa::Array<double>& arr) {
+    casa::IPosition shape(arr.shape());
+    std::cout << std::fixed;
+    std::cout << "      "; 
+    for (int col=0;col<shape(1);col++) {
+        std::cout.width(7); 
+        std::cout << col << " ";
+    }
+    std::cout << std::endl;
+    std::cout.precision(3); 
 
-	for (int row=0;row<npix;row++) {
-		std::cout << "[";
-		std::cout.width(3); 
-		std::cout << row << "] ";
-		for (int col=0;col<npix;col++) {
- 			std::cout.width(7); 
- 			std::cout << arr(casa::IPosition(2, row, col)) << " ";
-		}
-		std::cout << std::endl;
-	}
+    for (int row=0;row<shape(1);row++) {
+        std::cout << "[";
+        std::cout.width(3); 
+        std::cout << row << "] ";
+        for (int col=0;col<shape(0);col++) {
+            std::cout.width(7); 
+            std::cout << arr(casa::IPosition(2, row, col)) << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 int main() {
@@ -55,7 +60,7 @@ int main() {
 	cout << "Making " << npix << " by " << npix << " pixel image" << endl;
 		
     Domain imageDomain;
-    imageDomain.add("RA", -120.0*casa::C::arcsec, +120.0*casa::C::arcsec); 
+    imageDomain.add("RA",  -120.0*casa::C::arcsec, +120.0*casa::C::arcsec); 
     imageDomain.add("DEC", -120.0*casa::C::arcsec, +120.0*casa::C::arcsec); 
 
     cout << "Adding two point sources" << endl;
@@ -66,7 +71,7 @@ int main() {
         imagePixels1(casa::IPosition(2, 12, 3))=0.7;
         Params perfect;
 		perfect.add("image.i.cena", imagePixels1, imageDomain);
-		printArray(npix, imagePixels1);
+		printArray(imagePixels1);
     	// Predict with the "perfect" parameters"
     	cout << "Predicting data from perfect model" << endl;
 		ImageDFTEquation perfecteq(perfect, idi);
@@ -82,7 +87,7 @@ int main() {
         imagePixels2(casa::IPosition(2, npix/2, npix/2))=0.9;
         imagePixels2(casa::IPosition(2, 12, 3))=0.75;
 		imperfect.add("image.i.cena", imagePixels2, imageDomain);
-		printArray(npix, imagePixels2);
+		printArray(imagePixels2);
         cout << endl;
 	}
 
@@ -96,10 +101,10 @@ int main() {
 	}
     casa::Array<double> dv(normeq.dataVector()["image.i.cena"].reform(casa::IPosition(2, npix, npix)));
     cout << "Data vector (i.e. residual image):" << endl;
-    printArray(npix, dv);
+    printArray(dv);
     casa::Array<double> psf(normeq.normalMatrix()["image.i.cena"]["image.i.cena"].column(npix/2+npix*npix/2).reform(casa::IPosition(2, npix, npix)));
     cout << "Slice of normal equations (i.e. dirty psf):" << endl;
-    printArray(npix, psf);
+    printArray(psf);
     cout << endl;
 	
     {
@@ -112,8 +117,10 @@ int main() {
         cout << q3 << endl;
         cout << "Updated model:" << endl;
         casa::Array<double> improved3=solver3.parameters().value("image.i.cena");
-        printArray(npix, improved3);
+        printArray(improved3);
         cout << endl;
+        ParamsCASATable pt("dSynthesis_params.tab");
+        pt.setParameters(solver3.parameters());
     }
 
 	std::cout << "Done" << std::endl;

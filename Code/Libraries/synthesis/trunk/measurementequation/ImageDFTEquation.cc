@@ -3,7 +3,7 @@
 #include <measurementequation/ImageDFTEquation.h>
 #include <fitting/NormalEquations.h>
 #include <fitting/DesignMatrix.h>
-#include <fitting/Domain.h>
+#include <fitting/Axes.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
@@ -16,7 +16,7 @@
 #include <stdexcept>
 
 using conrad::scimath::Params;
-using conrad::scimath::Domain;
+using conrad::scimath::Axes;
 using conrad::scimath::NormalEquations;
 using conrad::scimath::DesignMatrix;
 
@@ -75,17 +75,17 @@ void ImageDFTEquation::predict()
             const casa::Array<double> imagePixels(parameters().value(imageName));
             const casa::IPosition imageShape(imagePixels.shape());
             
-    		Domain domain(parameters().domain(imageName));
-    		if(!domain.has("RA")||!domain.has("DEC")) {
+    		Axes axes(parameters().axes(imageName));
+    		if(!axes.has("RA")||!axes.has("DEC")) {
     			throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
     		}
-    		double raStart=domain.start("RA");
-    		double raEnd=domain.end("RA");
-            int raCells=imageShape(domain.order("RA"));
+    		double raStart=axes.start("RA");
+    		double raEnd=axes.end("RA");
+            int raCells=imageShape(axes.order("RA"));
     
-    		double decStart=domain.start("DEC");
-    		double decEnd=domain.end("DEC");
-            int decCells=imageShape(domain.order("DEC"));
+    		double decStart=axes.start("DEC");
+    		double decEnd=axes.end("DEC");
+            int decCells=imageShape(axes.order("DEC"));
     
             casa::Matrix<double> noDeriv(0,0);
             
@@ -134,17 +134,17 @@ void ImageDFTEquation::calcEquations(NormalEquations& ne)
             const casa::Array<double> imagePixels(parameters().value(imageName));
             const casa::IPosition imageShape(imagePixels.shape());
             
-            Domain domain(parameters().domain(imageName));
-            if(!domain.has("RA")||!domain.has("DEC")) {
+            Axes axes(parameters().axes(imageName));
+            if(!axes.has("RA")||!axes.has("DEC")) {
                 throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
             }
-            double raStart=domain.start("RA");
-            double raEnd=domain.end("RA");
-            int raCells=imageShape(domain.order("RA"));
+            double raStart=axes.start("RA");
+            double raEnd=axes.end("RA");
+            int raCells=imageShape(axes.order("RA"));
     
-            double decStart=domain.start("DEC");
-            double decEnd=domain.end("DEC");
-            int decCells=imageShape(domain.order("DEC"));
+            double decStart=axes.start("DEC");
+            double decEnd=axes.end("DEC");
+            int decCells=imageShape(axes.order("DEC"));
     		const uint nPixels=imagePixels.nelements();
     		
             DesignMatrix designmatrix(parameters());

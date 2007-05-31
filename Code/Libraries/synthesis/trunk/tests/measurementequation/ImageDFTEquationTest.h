@@ -41,17 +41,17 @@ class ImageDFTEquationTest : public CppUnit::TestFixture  {
       idi = IDataSharedIter(new DataIteratorStub(1));
       
 	  uint npix=16;
-      Domain imageDomain;
+      Axes imageAxes;
 	  double arcsec=casa::C::pi/(3600.0*180.0);
-      imageDomain.add("RA", -120.0*arcsec, +120.0*arcsec); 
-      imageDomain.add("DEC", -120.0*arcsec, +120.0*arcsec); 
+      imageAxes.add("RA", -120.0*arcsec, +120.0*arcsec); 
+      imageAxes.add("DEC", -120.0*arcsec, +120.0*arcsec); 
 
 	  params1 = new Params;
       casa::Array<double> imagePixels1(casa::IPosition(2, npix, npix));
       imagePixels1.set(0.0);
       imagePixels1(casa::IPosition(2, npix/2, npix/2))=1.0;
       imagePixels1(casa::IPosition(2, 12, 3))=0.7;
-	  params1->add("image.i.cena", imagePixels1, imageDomain);
+	  params1->add("image.i.cena", imagePixels1, imageAxes);
 
       p1 = new ImageDFTEquation(*params1, idi);
 
@@ -60,7 +60,7 @@ class ImageDFTEquationTest : public CppUnit::TestFixture  {
       imagePixels2.set(0.0);
       imagePixels2(casa::IPosition(2, npix/2, npix/2))=0.9;
       imagePixels2(casa::IPosition(2, 12, 3))=0.75;
-	  params2->add("image.i.cena", imagePixels2, imageDomain);
+	  params2->add("image.i.cena", imagePixels2, imageAxes);
 	  	  
       p2 = new ImageDFTEquation(*params2, idi);
       
