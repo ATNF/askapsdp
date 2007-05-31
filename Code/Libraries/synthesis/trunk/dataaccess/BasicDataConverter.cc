@@ -27,7 +27,13 @@ using namespace synthesis;
 
 BasicDataConverter::BasicDataConverter() :
      itsEpochConverter(new EpochConverter),
-     itsDirectionConverter(new DirectionConverter)
+     itsDirectionConverter(new DirectionConverter),
+     itsFrequencyConverter(new GenericConverter<casa::MFrequency>(
+                           casa::MFrequency::Ref(casa::MFrequency::LSRK),
+			   "GHz")),
+     itsVelocityConverter(new GenericConverter<casa::MRadialVelocity>(
+                     casa::MRadialVelocity::Ref(casa::MRadialVelocity::LSRK),
+		     "km/s"))
 {     
 }
 
@@ -75,6 +81,7 @@ void BasicDataConverter::setDirectionFrame(const casa::MDirection::Ref &ref,
 void BasicDataConverter::setFrequencyFrame(const casa::MFrequency::Ref &ref,
        const casa::Unit &unit)
 {
+  itsFrequencyConverter.reset(new GenericConverter<casa::MFrequency>(ref,unit));
 }
 
 /// set the reference frame for any velocity
@@ -87,6 +94,7 @@ void BasicDataConverter::setFrequencyFrame(const casa::MFrequency::Ref &ref,
 void BasicDataConverter::setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
 		const casa::Unit &unit)
 {
+  itsVelocityConverter.reset(new GenericConverter<casa::MRadialVelocity>(ref,unit));
 }
 
 /// set the rest frequency required to do the frequency to velocity
@@ -108,4 +116,6 @@ void BasicDataConverter::setMeasFrame(const casa::MeasFrame &frame)
 {
   itsEpochConverter->setMeasFrame(frame);
   itsDirectionConverter->setMeasFrame(frame);
+  itsFrequencyConverter->setMeasFrame(frame);
+  itsVelocityConverter->setMeasFrame(frame);
 }

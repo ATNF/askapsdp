@@ -24,11 +24,16 @@
 #include <boost/shared_ptr.hpp>
 
 // CASA includes
+#include <measures/Measures/MFrequency.h>
+#include <measures/Measures/MCFrequency.h>
+#include <measures/Measures/MRadialVelocity.h>
+#include <measures/Measures/MCRadialVelocity.h>
 
 // own includes
 #include <dataaccess/IDataConverter.h>
 #include <dataaccess/IEpochConverter.h>
 #include <dataaccess/IDirectionConverter.h>
+#include <dataaccess/GenericConverter.h>
 
 namespace conrad {
 
@@ -129,10 +134,31 @@ public:
     {
       out=(*itsDirectionConverter)(in);
     }
+
+    /// convert frequencies
+    /// @param in input frequency given as an MFrequency object
+    /// @param out output frequency as a Double
+    casa::Double inline frequency(const casa::MFrequency &in) const
+    {
+      return (*itsFrequencyConverter)(in);
+    }
+
+    /// convert velocities
+    /// @param in input velocities given as an MRadialVelocity object
+    /// @param out output velocity as a Double
+    casa::Double inline frequency(const casa::MRadialVelocity &in) const
+    {
+      return (*itsVelocityConverter)(in);
+    }
+    
     
 private:
-    boost::shared_ptr<IEpochConverter>  itsEpochConverter;
+    boost::shared_ptr<IEpochConverter>      itsEpochConverter;
     boost::shared_ptr<IDirectionConverter>  itsDirectionConverter;
+    boost::shared_ptr<GenericConverter<casa::MFrequency> >
+                                            itsFrequencyConverter;
+    boost::shared_ptr<GenericConverter<casa::MRadialVelocity> >
+                                            itsVelocityConverter;
 };
   
 } // namespace synthesis
