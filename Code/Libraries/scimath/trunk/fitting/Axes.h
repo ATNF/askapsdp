@@ -20,8 +20,6 @@ namespace conrad
 namespace scimath
 {
     
-typedef Axes Domain;
-
 class Axes
 {
 public:
@@ -76,6 +74,8 @@ private:
 	mutable std::vector<double> itsStart;
 	mutable std::vector<double> itsEnd;
 };
+
+typedef Axes Domain;
 
 };
 };

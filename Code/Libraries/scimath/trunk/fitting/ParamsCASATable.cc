@@ -1,5 +1,6 @@
 #include <fitting/ParamsCASATable.h>
 #include <fitting/Params.h>
+#include <fitting/Axes.h>
 
 #include <string>
 
@@ -34,9 +35,9 @@ namespace scimath
     const String colAxes("AXES");
     const String colStart("AXESSTART");
     const String colEnd("AXESEND");
-    const String colAxes("DOMAIN");
-    const String colStart("DOMAINSTART");
-    const String colEnd("DOMAINEND");
+    const String colDomain("DOMAIN");
+    const String colDomainStart("DOMAINSTART");
+    const String colDomainEnd("DOMAINEND");
     const String colFree("FREE");
 
 ParamsCASATable::ParamsCASATable(const std::string& tablename, bool exists)
@@ -82,7 +83,7 @@ ParamsCASATable::~ParamsCASATable()
     itsTable.flush();
 }
 
-bool ParamsCASATable::getParameters(Params& ip, const Domain& domain) const 
+bool ParamsCASATable::getParameters(Params& ip) const 
 {
     Domain null;
     null.add("NULL", 0.0, 0.0);
@@ -148,7 +149,7 @@ std::vector<std::string> ParamsCASATable::toStdString(const casa::Vector<casa::S
     return result;
 }
 
-bool ParamsCASATable::setParameters(const Params& ip, const Domain& domain) const 
+bool ParamsCASATable::setParameters(const Params& ip)
 {
     Domain null;
     null.add("NULL", 0.0, 0.0);
