@@ -16,6 +16,7 @@
 
 // CASA includes
 #include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MeasConvert.h>
 
 // own includes
 #include <dataaccess/IConverterBase.h>
@@ -38,9 +39,10 @@ struct GenericConverter : virtual public IConverterBase {
 
     /// convert specified measure to the target units/frame
     /// @param in a measure to convert. 
-    virtual inline casa::Double operator()(const M &in) const {
-       typename M::MVType converted=M::Convert(in.getRef(),itsTargetRef)(in).getValue();
-       return converted.get(itsTargetUnit);
+    virtual inline casa::Double operator()(const M &in) const {       
+       typename M::MVType converted=
+                typename M::Convert(in.getRef(),itsTargetRef)(in).getValue();
+       return converted.get(itsTargetUnit).getValue();
     }
 
     /// set a frame (i.e. time and/or position), where the
