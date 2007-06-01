@@ -6,6 +6,6 @@ os.system("cd Tools/Dev/recursivebuild; python setup.py -q install; cd ../../.."
 from recursivebuild import build
 
 build(['Tools/setup.py',
-       'ThirdPartyLibraries/setup.py',
+       '3rdParty/setup.py',
        'Code/setup.py'])
 

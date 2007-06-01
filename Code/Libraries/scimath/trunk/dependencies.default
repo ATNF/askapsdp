@@ -1,2 +1,2 @@
-gsl=ThirdPartyLibraries/gsl/tags/gsl-1.9
-casacore=ThirdPartyLibraries/casacore/tags/casacore-0.1.1
+gsl=3rdParty/gsl/tags/gsl-1.9
+casacore=3rdParty/casacore/tags/casacore-0.1.1

@@ -28,7 +28,7 @@ not require root permission.
 Express install (for the very brave - takes a long time)
 ===============
 The following will (hopefully) automatically install setuptools, recursivebuild,
-Tools, ThirdPartyLibraries and Code. If you don't want to do it all at once then
+Tools, 3rdParty and Code. If you don't want to do it all at once then
 skip this and move to the next step.
 cd svnCONRAD
 python setup.py -q install
@@ -53,9 +53,9 @@ Installing Tools
 cd svnCONRAD/Tools
 python setup.py -q install
 
-Installing ThirdPartyLibraries
+Installing 3rdParty
 ==============================
-cd svnCONRAD/ThirdPartyLibraries
+cd svnCONRAD/3rdParty
 python setup.py -q install
 
 Install Code
@@ -65,6 +65,6 @@ python setup.py -q install
 
 Additional repositories (eg svnComputing/AutoBuild)
 =======================
-Build first Tools, then ThirdPartyLibraries and finally the Code directory. In
+Build first Tools, then 3rdParty and finally the Code directory. In
 each case the command is:
 python setup.py -q install
