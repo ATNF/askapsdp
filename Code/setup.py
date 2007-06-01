@@ -1,5 +1,5 @@
 from recursivebuild import build
 
-build(['Libraries/setup.py',
+build(['Base/setup.py',
        'Subsystems/setup.py',
        'Systems/setup.py'])
