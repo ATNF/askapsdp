@@ -47,7 +47,7 @@ f.close()
 
 if not os.path.exists("lib"):
     os.mkdir("lib")
-    os.mkdir("python")
+    os.mkdir("lib/python")
 if not os.path.exists("bin"):
     os.mkdir("bin")
 dconf = os.path.expanduser("~/.pydistutils.cfg")
