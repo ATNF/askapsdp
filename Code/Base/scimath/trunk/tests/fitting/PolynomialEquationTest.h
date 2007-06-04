@@ -112,6 +112,7 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
         solver.addNormalEquations(normeq);
         Quality q;
         solver.solveNormalEquations(q, true);
+        std::cout << q << std::endl;
         CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
     }  
     

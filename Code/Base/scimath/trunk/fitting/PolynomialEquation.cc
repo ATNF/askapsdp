@@ -103,7 +103,7 @@ void PolynomialEquation::calcEquations(NormalEquations& ne)
     
     residual-=itsModel;
     designmatrix.addResidual(residual, itsWeights);
-    ne.add(designmatrix, NormalEquations::COMPLETE);
+    ne.add(designmatrix);
 };
 
 void PolynomialEquation::calcPoly(const casa::Vector<double>& x, 

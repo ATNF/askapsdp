@@ -32,12 +32,12 @@ public:
 	/// Get the parameters for a specified domain
 	/// @param ip Template of parameters - must match
     virtual bool getParameters(Params& ip) const;
-    virtual bool getParameters(Params& ip, const Domain& domain) const;
+    virtual bool getParameters(Params& ip, const Domain& dom) const;
 
 	/// Set the parameters for a given domain
 	/// @param ip Parameters to set
     virtual bool setParameters (const Params& ip);
-    virtual bool setParameters (const Params& ip, const Domain& domain);
+    virtual bool setParameters (const Params& ip, const Domain& dom);
     
 private:
 
@@ -45,7 +45,6 @@ private:
     std::vector<std::string> toStdString(const casa::Vector<casa::String>& s);
 
     void createTable(const std::string& tablename);
-
     bool openTable(const std::string& tablename);
     
     std::string itsTableName;

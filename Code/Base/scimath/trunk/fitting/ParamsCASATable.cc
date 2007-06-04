@@ -7,6 +7,7 @@
 #include <casa/aips.h>
 #include <tables/Tables/TableLocker.h>
 #include <tables/Tables/TableDesc.h>
+#include <tables/Tables/ColumnDesc.h>
 #include <tables/Tables/ScaColDesc.h>
 #include <tables/Tables/ArrColDesc.h>
 #include <tables/Tables/SetupNewTab.h>
@@ -60,7 +61,7 @@ void ParamsCASATable::createTable(const std::string& tablename)
     itsTableDesc.addColumn (ArrayColumnDesc<String>(colDomain));
     itsTableDesc.addColumn (ArrayColumnDesc<double>(colDomainStart,1));
     itsTableDesc.addColumn (ArrayColumnDesc<double>(colDomainEnd,1));
-    itsTableDesc.addColumn (ArrayColumnDesc<double>(colValues));
+    itsTableDesc.addColumn (ArrayColumnDesc<double>(colValues,-1));
     itsTableDesc.addColumn (ScalarColumnDesc<bool>(colFree));
   
     SetupNewTable newtab(itsTableName, itsTableDesc, Table::New);

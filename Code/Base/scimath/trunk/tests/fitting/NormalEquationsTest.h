@@ -82,7 +82,7 @@ class NormalEquationsTest : public CppUnit::TestFixture  {
         dm.addResidual(casa::Vector<casa::Double>(100.0, 0.0), casa::Vector<double>(100.0, 1.0));
         CPPUNIT_ASSERT(dm.nData()==100);
         CPPUNIT_ASSERT(dm.nParameters()==(imsize+2));
-        NormalEquations normeq(dm,  NormalEquations::COMPLETE);
+        NormalEquations normeq(dm);
         CPPUNIT_ASSERT(normeq.parameters().names()[0]=="Image2");
         CPPUNIT_ASSERT(normeq.parameters().names().size()==3);
         CPPUNIT_ASSERT(normeq.parameters().names()[1]=="Value0");

@@ -34,7 +34,7 @@ public:
     CompositeEquation& operator=(const CompositeEquation& other);
     
     virtual ~CompositeEquation();
-
+    
     virtual void predict();
     
     virtual void calcEquations(NormalEquations& ne);
