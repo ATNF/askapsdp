@@ -162,7 +162,7 @@ void ComponentEquation::calcEquations(NormalEquations& ne)
     		designmatrix.addDerivative(fluxName, fluxiDeriv);
     		designmatrix.addResidual(residual, weights);
                 
-            ne.add(designmatrix, NormalEquations::COMPLETE);
+            ne.add(designmatrix);
     	}
     }
 };

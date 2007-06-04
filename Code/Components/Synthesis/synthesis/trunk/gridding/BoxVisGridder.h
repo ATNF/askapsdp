@@ -28,9 +28,8 @@ public:
     
 protected:
     int cOffset(int, int);
-	
-private:
-	void initConvolutionFunction();
+    void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+        const casa::IPosition& shape);
 };
 
 }

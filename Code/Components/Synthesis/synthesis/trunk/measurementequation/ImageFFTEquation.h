@@ -43,6 +43,11 @@ private:
     IDataSharedIter itsIdi;
     
 	void init();
+    
+    void cfft(casa::Cube<casa::Complex>& arr, bool toUV);
+    void toComplex(casa::Cube<casa::Complex>& out, const casa::Array<double>& in);
+    void toDouble(casa::Array<double>& out, const casa::Cube<casa::Complex>& in);
+    
 };
 
 }

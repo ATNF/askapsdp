@@ -164,7 +164,7 @@ void ImageDFTEquation::calcEquations(NormalEquations& ne)
             // Now we can add the design matrix, residual, and weights
             designmatrix.addDerivative(imageName, imageDeriv);
             designmatrix.addResidual(residual, weights);
-            ne.add(designmatrix, NormalEquations::COMPLETE);
+            ne.add(designmatrix);
         }
 	}
 };

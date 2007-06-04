@@ -7,7 +7,6 @@ namespace synthesis
 
 BoxVisGridder::BoxVisGridder()
 {
-    initConvolutionFunction();
 }
 
 BoxVisGridder::~BoxVisGridder()
@@ -15,7 +14,8 @@ BoxVisGridder::~BoxVisGridder()
     itsC.resize(0,0,0);
 }
 
-void BoxVisGridder::initConvolutionFunction() {
+void BoxVisGridder::initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+        const casa::IPosition& shape) {
     itsSupport=0;
     itsOverSample=1;
     itsCSize=2*(itsSupport+1)*itsOverSample+1;

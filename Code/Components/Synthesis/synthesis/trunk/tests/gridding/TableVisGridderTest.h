@@ -31,9 +31,9 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
     SphFuncVisGridder *itsSphFunc;
     
     IDataSharedIter idi;
-	casa::Vector<double>* cellSize;
-	casa::Cube<casa::Complex>* grid;
-	casa::Vector<float>* weights;
+    Axes* itsAxes;
+	casa::Cube<casa::Complex>* itsGrid;
+	casa::Vector<float>* itsWeights;
 
   public:
     void setUp()
@@ -51,17 +51,17 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
       itsBox = new BoxVisGridder();
       itsSphFunc = new SphFuncVisGridder();
 
+      double cellSize=10*casa::C::arcsec;
 
-      cellSize=new casa::Vector<double>(2);
+      itsAxes=new Axes();
+      itsAxes->add("RA", 256*cellSize, -256*cellSize);
+      itsAxes->add("DEC", -256*cellSize, 256*cellSize);
 
-      (*cellSize)(0)=1.0/(10.0*casa::C::arcsec);
-      (*cellSize)(1)=1.0/(10.0*casa::C::arcsec);
+      itsGrid=new casa::Cube<casa::Complex>(512,512,1);
+      itsGrid->set(0.0);
       
-      grid=new casa::Cube<casa::Complex>(512,512,1);
-      grid->set(0.0);
-      
-      weights=new casa::Vector<float>(1);
-      weights->set(0.0);
+      itsWeights=new casa::Vector<float>(1);
+      itsWeights->set(0.0);
       
     }
     
@@ -69,20 +69,20 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
     {
       delete itsBox;
       delete itsSphFunc;
-      delete cellSize;
-      delete grid;
-      delete weights;
+      delete itsGrid;
+      delete itsWeights;
+      delete itsAxes;
     }
 
 	void testReverse()
 	{
-        itsBox->reverse(idi, *cellSize, *grid, *weights);
-        itsSphFunc->reverse(idi, *cellSize, *grid, *weights);
+        itsBox->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+        itsSphFunc->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
 	}    
 	void testForward()
 	{
-        itsBox->forward(idi, *cellSize, *grid);
-        itsSphFunc->forward(idi, *cellSize, *grid);
+        itsBox->forward(idi, *itsAxes, *itsGrid);
+        itsSphFunc->forward(idi, *itsAxes, *itsGrid);
 	}    
   };
   

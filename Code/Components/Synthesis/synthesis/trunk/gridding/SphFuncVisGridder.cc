@@ -7,7 +7,6 @@ namespace synthesis
 
 SphFuncVisGridder::SphFuncVisGridder()
 {
-    initConvolutionFunction();
 }
 
 SphFuncVisGridder::~SphFuncVisGridder()
@@ -15,10 +14,11 @@ SphFuncVisGridder::~SphFuncVisGridder()
     itsC.resize(0,0,0);
 }
 
-void SphFuncVisGridder::initConvolutionFunction() {
+void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+        const casa::IPosition& shape) {
     itsSupport=3;
     itsOverSample=128;
-    itsCSize=2*(itsSupport+1)*itsOverSample+1;
+    itsCSize=2*(itsSupport+1)*itsOverSample+2;
     itsCCenter=(itsCSize-1)/2;
     itsC.resize(itsCSize, itsCSize, 1);
     for (int ix=0;ix<itsCSize;ix++) {

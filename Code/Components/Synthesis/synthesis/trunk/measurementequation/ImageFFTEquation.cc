@@ -9,6 +9,7 @@
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
+#include <scimath/Mathematics/FFTServer.h>
 #include <casa/BasicSL/Constants.h>
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Vector.h>
@@ -76,28 +77,15 @@ void ImageFFTEquation::predict()
             const casa::Array<double> imagePixels(parameters().value(imageName));
             const casa::IPosition imageShape(imagePixels.shape());
             
-            Axes axes(parameters().axes(imageName));
-            if(!axes.has("RA")||!axes.has("DEC")) {
-                throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
-            }
-            double raStart=axes.start("RA");
-            double raEnd=axes.end("RA");
-            int raCells=imageShape(axes.order("RA"));
-    
-            double decStart=axes.start("DEC");
-            double decEnd=axes.end("DEC");
-            int decCells=imageShape(axes.order("DEC"));
-    		const uint nPixels=imagePixels.nelements();
+            casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
+            toComplex(uvGrid, imagePixels);
             
-            casa::Cube<casa::Complex> uvGrid(raCells, decCells, 1);
-            casa::Vector<double> uvCellsize(2);
-            uvCellsize(0)=double(raCells)/(raStart-raEnd);
-            uvCellsize(1)=double(decCells)/(decStart-decEnd);
+            cfft(uvGrid, true);
     
             itsIdi.chooseBuffer("model");
             
             SphFuncVisGridder tvg;
-            tvg.forward(itsIdi, uvCellsize, uvGrid);
+            tvg.forward(itsIdi, parameters().axes(imageName), uvGrid);
     	}
     }
 };
@@ -132,39 +120,74 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
     		string imageName("image.i"+(*it));
             const casa::Array<double> imagePixels(parameters().value(imageName));
             const casa::IPosition imageShape(imagePixels.shape());
+            casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
+            uvGrid.set(0.0);
             
             Axes axes(parameters().axes(imageName));
-            if(!axes.has("RA")||!axes.has("DEC")) {
-                throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
-            }
-            double raStart=axes.start("RA");
-            double raEnd=axes.end("RA");
-            int raCells=imageShape(axes.order("RA"));
-    
-            double decStart=axes.start("DEC");
-            double decEnd=axes.end("DEC");
-            int decCells=imageShape(axes.order("DEC"));
-    		const uint nPixels=imagePixels.nelements();
-            
-            casa::Cube<casa::Complex> uvGrid(raCells, decCells, 1);
-            casa::Vector<double> uvCellsize(2);
-            uvCellsize(0)=double(raCells)/(raStart-raEnd);
-            uvCellsize(1)=double(decCells)/(decStart-decEnd);
-            
             SphFuncVisGridder tvg;
-            tvg.forward(modelIdi, uvCellsize, uvGrid);
+            tvg.forward(modelIdi, axes, uvGrid);
             residualIdi->rwVisibility()=itsIdi->visibility()-modelIdi->visibility();
             
-            casa::Vector<float> uvWeights;
-            tvg.reverse(residualIdi, uvCellsize, uvGrid, uvWeights);
+            casa::Vector<float> uvWeights(1);
+            tvg.reverse(residualIdi, axes, uvGrid, uvWeights);
+            cfft(uvGrid, false);
+            casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
+            toDouble(imageDeriv, uvGrid);
 
-            casa::Matrix<double> imageDeriv(raCells, decCells);
-
+            uvGrid.set(0.0);
+            tvg.reverseWeights(residualIdi, axes, uvGrid);
+            cfft(uvGrid, false);
+            casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
+            toDouble(imageWeights, uvGrid);
             // Now we can add the design matrix, residual, and weights
-//            ne.add(designmatrix, NormalEquations::COMPLETE);
+//            ne.add(designmatrix);
         }
 	}
 };
+
+void ImageFFTEquation::cfft(casa::Cube<casa::Complex>& arr, bool toUV) {
+
+    casa::FFTServer<casa::Float,casa::Complex> ffts;
+    uint nx=arr.shape()(0);
+    uint ny=arr.shape()(1);
+    uint nz=arr.shape()(2);
+    for (uint iz=0;iz<nz;iz++) {
+        casa::Matrix<casa::Complex> mat(arr.xyPlane(iz));
+        for (uint iy=0;iy<ny;iy++) {
+            casa::Array<casa::Complex> vec(mat.column(iy));
+            ffts.fft(vec, toUV);
+        }
+        for (uint ix=0;ix<nx;ix++) {
+            casa::Array<casa::Complex> vec(mat.row(ix));
+            ffts.fft(vec, toUV);
+        }
+    }
+}
+
+void ImageFFTEquation::toComplex(casa::Cube<casa::Complex>& out, const casa::Array<double>& in) {
+    uint nx=in.shape()(0);
+    uint ny=in.shape()(1);
+    casa::Cube<double> cube(in);
+    for (uint iy=0;iy<ny;iy++) {
+        casa::Vector<double> vec(cube.xyPlane(0).column(iy));
+        for (uint ix=0;ix<nx;ix++) {
+            out(ix,iy,0)=casa::Complex(float(vec(ix)));
+        }
+    }
+}
+
+void ImageFFTEquation::toDouble(casa::Array<double>& out, const casa::Cube<casa::Complex>& in) {
+    uint nx=in.shape()(0);
+    uint ny=in.shape()(1);
+    casa::Cube<double> cube(out);
+    casa::Matrix<casa::Complex> mat(in.xyPlane(0));
+    for (uint iy=0;iy<ny;iy++) {
+        casa::Vector<casa::Complex> vec(mat.column(iy));
+        for (uint ix=0;ix<nx;ix++) {
+            cube(ix,iy,0)=double(real(vec(ix)));
+        }
+    }
+}
 
 }
 

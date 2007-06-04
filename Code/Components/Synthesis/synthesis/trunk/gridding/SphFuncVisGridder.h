@@ -28,9 +28,9 @@ public:
     
 protected:
     int cOffset(int, int);
-	
+    void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+        const casa::IPosition& shape);
 private:
-	void initConvolutionFunction();
     double grdsf(double nu);
 };
 
