@@ -68,12 +68,16 @@ public:
         const casa::Vector<double>& datavector,
         const casa::IPosition& shape);
 
-    void addSlice(const string& name, const casa::Vector<double>& normalmatrix,
+    void addSlice(const string& name, 
+        const casa::Vector<double>& normalmatrixslice,
+        const casa::Vector<double>& normalmatrixdiagonal,
         const casa::Vector<double>& datavector,
         const casa::IPosition& shape,
         const casa::IPosition& reference);
 
-    void addSlice(const string& name, const casa::Vector<double>& normalmatrix,
+    void addSlice(const string& name, 
+        const casa::Vector<double>& normalmatrixslice,
+        const casa::Vector<double>& normalmatrixdiagonal,
         const casa::Vector<double>& datavector,
         const casa::IPosition& reference);
 
@@ -92,10 +96,10 @@ public:
     std::map<string, std::map<string, casa::Matrix<double> > >& normalMatrix() const;
     
     /// Return normal equations slice
-    std::map<string, std::map<string, casa::Vector<double> > >& normalMatrixSlice() const;
+    std::map<string, casa::Vector<double> >& normalMatrixSlice() const;
     
     /// Return normal equations diagonal
-    std::map<string, std::map<string, casa::Vector<double> > >& normalMatrixDiagonal() const;
+    std::map<string, casa::Vector<double> >& normalMatrixDiagonal() const;
     
     /// Return data vector
     std::map<string, casa::Vector<double> >& dataVector() const;
@@ -113,8 +117,8 @@ protected:
     // Note that this is a very flexible format - it allows any of the
     // approximations to be used
     mutable std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix;
-    mutable std::map<string, std::map<string, casa::Vector<double> > > itsNormalMatrixSlice;
-    mutable std::map<string, std::map<string, casa::Vector<double> > > itsNormalMatrixDiagonal;
+    mutable std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
+    mutable std::map<string, casa::Vector<double> > itsNormalMatrixDiagonal;
     mutable std::map<string, casa::IPosition> itsShape;
     mutable std::map<string, casa::IPosition> itsReference;
     mutable std::map<string, casa::Vector<double> > itsDataVector;

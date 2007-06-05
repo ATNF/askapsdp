@@ -21,12 +21,12 @@ NormalEquations::NormalEquations(const Params& ip) : itsParams(ip)
 	vector<string>::iterator iterCol;
 	for (iterRow=names.begin();iterRow!=names.end();++iterRow) {
         itsDataVector[*iterRow]=casa::Vector<double>(0);
-        itsShape[*iterRow]=casa::IPosition(1,0);
-        itsReference[*iterRow]=casa::IPosition(1,0);
+        itsShape[*iterRow]=casa::IPosition();
+        itsReference[*iterRow]=casa::IPosition();
+        itsNormalMatrixSlice[*iterRow]=casa::Vector<double>(0);
+        itsNormalMatrixDiagonal[*iterRow]=casa::Vector<double>(0);
 		for (iterCol=names.begin();iterCol!=names.end();++iterCol) {
             itsNormalMatrix[*iterRow][*iterCol]=casa::Matrix<double>(0,0);
-            itsNormalMatrixSlice[*iterRow][*iterCol]=casa::Matrix<double>(0,0);
-            itsNormalMatrixDiagonal[*iterRow][*iterCol]=casa::Matrix<double>(0,0);
 		}
 	}
 }
@@ -207,25 +207,26 @@ void NormalEquations::merge(const NormalEquations& other)
         else {
             itsDataVector[*iterCol]+=other.itsDataVector[*iterCol];
         }
+        itsShape[*iterCol].resize(0);
         itsShape[*iterCol]=other.itsShape[*iterCol];
+        if(itsNormalMatrixSlice[*iterCol].shape()!=other.itsNormalMatrixSlice[*iterCol].shape()) {
+            itsNormalMatrixSlice[*iterCol]=other.itsNormalMatrixSlice[*iterCol];
+        }
+        else {
+            itsNormalMatrixSlice[*iterCol]+=other.itsNormalMatrixSlice[*iterCol];
+        }
+        if(itsNormalMatrixDiagonal[*iterCol].shape()!=other.itsNormalMatrixDiagonal[*iterCol].shape()) {
+            itsNormalMatrixDiagonal[*iterCol]=other.itsNormalMatrixDiagonal[*iterCol];
+        }
+        else {
+            itsNormalMatrixDiagonal[*iterCol]+=other.itsNormalMatrixDiagonal[*iterCol];
+        }
         for (iterRow=names.begin();iterRow!=names.end();iterRow++) {
             if(itsNormalMatrix[*iterCol][*iterRow].shape()!=other.itsNormalMatrix[*iterCol][*iterRow].shape()) {
                 itsNormalMatrix[*iterCol][*iterRow]=other.itsNormalMatrix[*iterCol][*iterRow];
             }
             else {
                 itsNormalMatrix[*iterCol][*iterRow]+=other.itsNormalMatrix[*iterCol][*iterRow];
-            }
-            if(itsNormalMatrixSlice[*iterCol][*iterRow].shape()!=other.itsNormalMatrixSlice[*iterCol][*iterRow].shape()) {
-                itsNormalMatrixSlice[*iterCol][*iterRow]=other.itsNormalMatrixSlice[*iterCol][*iterRow];
-            }
-            else {
-                itsNormalMatrixSlice[*iterCol][*iterRow]+=other.itsNormalMatrixSlice[*iterCol][*iterRow];
-            }
-            if(itsNormalMatrixDiagonal[*iterCol][*iterRow].shape()!=other.itsNormalMatrixDiagonal[*iterCol][*iterRow].shape()) {
-                itsNormalMatrixDiagonal[*iterCol][*iterRow]=other.itsNormalMatrixDiagonal[*iterCol][*iterRow];
-            }
-            else {
-                itsNormalMatrixDiagonal[*iterCol][*iterRow]+=other.itsNormalMatrixDiagonal[*iterCol][*iterRow];
             }
         }
     }
@@ -238,12 +239,12 @@ std::map<string, std::map<string, casa::Matrix<double> > >& NormalEquations::nor
 	return itsNormalMatrix;
 }
 
-std::map<string, std::map<string, casa::Vector<double> > >& NormalEquations::normalMatrixDiagonal() const
+std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixDiagonal() const
 {
     return itsNormalMatrixDiagonal;
 }
 
-std::map<string, std::map<string, casa::Vector<double> > >& NormalEquations::normalMatrixSlice() const
+std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixSlice() const
 {
     return itsNormalMatrixSlice;
 }
@@ -274,10 +275,12 @@ void NormalEquations::reset()
 	map<string, casa::Matrix<double> >::iterator iterCol;
 	for (iterRow=itsDataVector.begin();iterRow!=itsDataVector.end();iterRow++) {
 		itsDataVector[iterRow->first].resize();
+        itsShape[iterRow->first].resize(0);
+        itsReference[iterRow->first].resize(0);
+        itsNormalMatrixSlice[iterRow->first].resize();
+        itsNormalMatrixDiagonal[iterRow->first].resize();
 		for (iterCol=itsNormalMatrix[iterRow->first].begin();iterCol!=itsNormalMatrix[iterRow->first].end();iterCol++) {
             itsNormalMatrix[iterRow->first][iterCol->first].resize();
-            itsNormalMatrixSlice[iterRow->first][iterCol->first].resize();
-            itsNormalMatrixDiagonal[iterRow->first][iterCol->first].resize();
 		}
 	}
     itsNormalMatrix.clear();
@@ -304,6 +307,7 @@ void NormalEquations::add(const string& name, const casa::Matrix<double>& normal
     else {
         itsNormalMatrix[name][name]+=normalmatrix;
     }
+    itsShape[name].resize(0);
     itsShape[name]=shape;
 }
 
@@ -314,8 +318,11 @@ void NormalEquations::add(const string& name, const casa::Matrix<double>& normal
     add(name, normalmatrix, datavector, shape);
 }
 
-void NormalEquations::addSlice(const string& name, const casa::Vector<double>& normalmatrix, 
-        const casa::Vector<double>& datavector, const casa::IPosition& shape,
+void NormalEquations::addSlice(const string& name, 
+        const casa::Vector<double>& normalmatrixslice, 
+        const casa::Vector<double>& normalmatrixdiagonal, 
+        const casa::Vector<double>& datavector, 
+        const casa::IPosition& shape,
         const casa::IPosition& reference) 
 {
     
@@ -325,17 +332,25 @@ void NormalEquations::addSlice(const string& name, const casa::Vector<double>& n
     else {
         itsDataVector[name]+=datavector;
     }
-    if(normalmatrix.shape()!=itsNormalMatrix[name][name].shape()) {
-        itsNormalMatrixSlice[name][name]=normalmatrix;
+    if(normalmatrixslice.shape()!=itsNormalMatrixSlice[name].shape()) {
+        itsNormalMatrixSlice[name]=normalmatrixslice;
     }
     else {
-        itsNormalMatrixSlice[name][name]+=normalmatrix;
+        itsNormalMatrixSlice[name]+=normalmatrixslice;
     }
+    if(normalmatrixdiagonal.shape()!=itsNormalMatrixDiagonal[name].shape()) {
+        itsNormalMatrixDiagonal[name]=normalmatrixdiagonal;
+    }
+    else {
+        itsNormalMatrixDiagonal[name]+=normalmatrixdiagonal;
+    }
+    itsShape[name].resize(0);
     itsShape[name]=shape;
+    itsReference[name].resize(0);
     itsReference[name]=reference;
 }
 
-void NormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrix, 
+void NormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrixdiagonal, 
         const casa::Vector<double>& datavector, const casa::IPosition& shape) 
 {
     
@@ -345,12 +360,13 @@ void NormalEquations::addDiagonal(const string& name, const casa::Vector<double>
     else {
         itsDataVector[name]+=datavector;
     }
-    if(normalmatrix.shape()!=itsNormalMatrix[name][name].shape()) {
-        itsNormalMatrixDiagonal[name][name]=normalmatrix;
+    if(normalmatrixdiagonal.shape()!=itsNormalMatrixDiagonal[name].shape()) {
+        itsNormalMatrixDiagonal[name]=normalmatrixdiagonal;
     }
     else {
-        itsNormalMatrixDiagonal[name][name]+=normalmatrix;
+        itsNormalMatrixDiagonal[name]+=normalmatrixdiagonal;
     }
+    itsShape[name].resize(0);
     itsShape[name]=shape;
 }
 

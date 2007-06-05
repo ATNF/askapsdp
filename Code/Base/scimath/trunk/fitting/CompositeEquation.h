@@ -1,9 +1,8 @@
 /// @file
 ///
-/// CompositeEquation: Represent a parametrized equation. 
-///
-/// This is a base class. See PolynomialCompositeEquation for an example
-/// of how to derive.
+/// CompositeEquation: Represent composite equations. This uses
+/// the composite pattern to allow a set of equations to be
+/// assembled and used the same as a single equation. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -27,6 +26,7 @@ public:
     CompositeEquation() : Equation() {};
     
     /// Using specified parameters
+    /// @param ip Parameters
     CompositeEquation(const Params& ip);
     
     CompositeEquation(const CompositeEquation& other);
@@ -37,6 +37,7 @@ public:
     
     virtual void predict();
     
+    ///
     virtual void calcEquations(NormalEquations& ne);
     
     virtual void add(Equation& eq);

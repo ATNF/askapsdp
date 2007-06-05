@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Axes: Represent a domain for imaging equation purposes.
+/// Axes: Represent a set of axes - names and extrema
 /// 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
@@ -23,7 +23,7 @@ namespace scimath
 class Axes
 {
 public:
-	/// Make an empty domain
+	/// Make an empty set of axes
 	Axes();
 	
 	/// Assignment operator
