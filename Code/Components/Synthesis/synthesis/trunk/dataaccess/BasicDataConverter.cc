@@ -21,6 +21,7 @@
 #include <dataaccess/BasicDataConverter.h>
 #include <dataaccess/EpochConverter.h>
 #include <dataaccess/DirectionConverter.h>
+#include <dataaccess/DopplerConverter.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -108,6 +109,8 @@ void BasicDataConverter::setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
 ///
 void BasicDataConverter::setRestFrequency(const casa::MVFrequency &restFreq)
 {
+  itsDopplerConverter.reset(new DopplerConverter(restFreq,
+                            casa::MDoppler::RADIO));
 }
 
 

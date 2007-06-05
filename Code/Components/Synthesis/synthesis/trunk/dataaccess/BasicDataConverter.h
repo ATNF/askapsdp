@@ -20,6 +20,9 @@
 #ifndef BASIC_DATA_CONVERTER_H
 #define BASIC_DATA_CONVERTER_H
 
+// std includes
+#include <stdexcept>
+
 // boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -34,6 +37,7 @@
 #include <dataaccess/IEpochConverter.h>
 #include <dataaccess/IDirectionConverter.h>
 #include <dataaccess/GenericConverter.h>
+#include <dataaccess/IDopplerConverter.h>
 
 namespace conrad {
 
@@ -146,9 +150,41 @@ public:
     /// convert velocities
     /// @param in input velocities given as an MRadialVelocity object
     /// @param out output velocity as a Double
-    casa::Double inline frequency(const casa::MRadialVelocity &in) const
+    casa::Double inline velocity(const casa::MRadialVelocity &in) const
     {
       return (*itsVelocityConverter)(in);
+    }
+
+    /// convert frequencies from velocities
+    /// @param in input velocity given as an MRadialVelocity object
+    /// @param out output frequency as a Double
+    ///
+    /// Note, an exception will be thrown if the rest frequency is not
+    /// defined.
+    ///
+    casa::Double inline frequency(const casa::MRadialVelocity &in) const
+    {      
+      if (!itsDopplerConverter) {
+          throw std::logic_error("A rest frequency is needed to be able to "
+	  "use BasicDataConverter::frequency(MRadialVelocity)");
+      }
+      return (*itsFrequencyConverter)((*itsDopplerConverter)(in));
+    }
+
+    /// convert velocities from frequencies
+    /// @param in input frequency  given as an MFrequency object
+    /// @param out output velocity as a Double
+    ///
+    /// Note, an exception will be thrown if the rest frequency is not
+    /// defined.
+    ///
+    casa::Double inline velocity(const casa::MFrequency &in) const
+    {      
+      if (!itsDopplerConverter) {
+          throw std::logic_error("A rest frequency is needed to be able to "
+	  "use BasicDataConverter::frequency(MRadialVelocity)");
+      }      
+      return (*itsVelocityConverter)((*itsDopplerConverter)(in));
     }
     
     
@@ -159,6 +195,7 @@ private:
                                             itsFrequencyConverter;
     boost::shared_ptr<GenericConverter<casa::MRadialVelocity> >
                                             itsVelocityConverter;
+    boost::shared_ptr<IDopplerConverter>    itsDopplerConverter;
 };
   
 } // namespace synthesis
