@@ -1,6 +1,6 @@
 /// @file IDataSelector.h
 ///
-/// IDataSelector: Interface class prepresenting a selection of visibility
+/// IDataSelector: Interface class representing a selection of visibility
 ///                data according to some criterion. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
