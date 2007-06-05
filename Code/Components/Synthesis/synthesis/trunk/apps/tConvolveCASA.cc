@@ -237,7 +237,7 @@ int wprojection(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 	const int nChan = freq.size();
 
 	cout << "************************* W projection gridding *********************" << endl;
-	int support=static_cast<int>(3.0*sqrt(abs(baseline)*static_cast<Coord>(cellSize)*freq(0))/cellSize); 
+	int support=static_cast<int>(1.5*sqrt(abs(baseline)*static_cast<Coord>(cellSize)*freq(0))/cellSize); 
 	int overSample=8;
 	cout << "Support = " << support << " pixels" << endl;
 	const Coord wCellSize=2*baseline*freq(0)/wSize;
