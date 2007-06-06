@@ -11,12 +11,14 @@
 #ifndef I_SHARED_ITER_H
 #define I_SHARED_ITER_H
 
+/// std includes
 #include <string>
+
+/// boost includes
 #include <boost/shared_ptr.hpp>
 
-#include <casa/aips.h>
-#include <casa/Exceptions/Error.h>
-#include <casa/Utilities/Assert.h>
+/// own includes
+#include <dataaccess/DataAccessError.h>
 
 namespace conrad {
 
@@ -70,14 +72,14 @@ public:
     /// access via operator* uses typedef value_type defined in each
     /// iterator which can be used in conjunction with this class
     inline typename T::value_type operator*() const {
-       DebugAssert(*this,casa::AipsError);
+       CONRADDEBUGASSERT(*this);
        return *(*itsSharedPtr);
     }
 
     /// access via operator-> uses typedef pointer_type defined in each
     /// iterator which can be used in conjunction with this class
     inline typename T::pointer_type operator->() const {
-       DebugAssert(*this,casa::AipsError);
+       CONRADDEBUGASSERT(*this);
        return (*itsSharedPtr).operator->();
     }
 
@@ -93,7 +95,7 @@ public:
     /// highlight that it does an initialization of existing object.
     inline const SharedIter<T>& init() const
     {
-      DebugAssert(itsSharedPtr,casa::AipsError);
+      CONRADDEBUGASSERT(itsSharedPtr);
       itsSharedPtr->init();
       return *this;
     }
@@ -112,7 +114,7 @@ public:
     ///         while (it.next()) {} are possible)
     inline bool next() const
     {
-      DebugAssert(itsSharedPtr,casa::AipsError);
+      CONRADDEBUGASSERT(itsSharedPtr);
       return itsSharedPtr->next();      
     }
 
@@ -136,7 +138,7 @@ public:
     ///
     inline void chooseBuffer(const std::string &bufferID) const
     {
-      DebugAssert(itsSharedPtr,casa::AipsError);
+      CONRADDEBUGASSERT(itsSharedPtr);
       itsSharedPtr->chooseBuffer(bufferID);
     }
 
@@ -144,7 +146,7 @@ public:
     /// by this iterator and the original visibilities
     /// (see IDataIterator::chooseOriginal() for more details)
     inline void chooseOriginal() const {
-      DebugAssert(itsSharedPtr,casa::AipsError);
+      CONRADDEBUGASSERT(itsSharedPtr);
       itsSharedPtr->chooseOriginal(); 
     }
 
@@ -158,7 +160,7 @@ public:
     ///         buffer requested
     ///
     inline typename T::value_type buffer(const std::string &bufferID) const {
-       DebugAssert(itsSharedPtr,casa::AipsError);
+       CONRADDEBUGASSERT(itsSharedPtr);
        return itsSharedPtr->buffer(bufferID);
     }
     
@@ -176,7 +178,7 @@ public:
          if (cmp.itsSharedPtr) {
 	     // this class should be null
 	     if (itsSharedPtr)
-	         throw casa::AipsError("A comparison of SharedIter has only been implemented "
+	         throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
 	                  "for the case where one of the objects is empty.");	     
 	     return !cmp.hasMore(); // == the empty object means that
 	                           // it is at the end	     
@@ -184,7 +186,7 @@ public:
 	     return !hasMore(); // == the empty object means that
 	                        // it is at the end
 	 } 
-	 throw casa::AipsError("A comparison of SharedIter has only been implemented " 
+	 throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
 	                 "for the case where one of the objects is not empty.");
 	 return false; 
     }
@@ -197,7 +199,7 @@ public:
          if (cmp.itsSharedPtr) {
 	     // this class should be null
 	     if (itsSharedPtr)
-	         throw casa::AipsError("A comparison of SharedIter has only been implemented "
+	         throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
 	                  "for the case where one of the objects is empty.");	     
 	     return cmp.hasMore(); // != the empty object means that
 	                           // it is not at the end	     
@@ -205,7 +207,7 @@ public:
 	     return hasMore(); // == the empty object means that
 	                        // it is not at the end
 	 } 
-	 throw casa::AipsError("A comparison of SharedIter has only been implemented " 
+	 throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
 	                 "for the case where one of the objects is not empty.");
 	 return true;
     }

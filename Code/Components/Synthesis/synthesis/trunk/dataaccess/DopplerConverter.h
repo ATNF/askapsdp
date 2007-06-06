@@ -15,9 +15,6 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-/// std includes
-#include <stdexcept>
-
 /// CASA includes
 #include <measures/Measures/MDoppler.h>
 #include <measures/Measures/MCDoppler.h>
@@ -26,6 +23,7 @@
 
 /// own includes
 #include <dataaccess/IDopplerConverter.h>
+#include <dataaccess/DataAccessError.h>
 
 #ifndef DOPPLER_CONVERTER_H
 #define DOPPLER_CONVERTER_H
@@ -77,13 +75,15 @@ protected:
     /// MFrequency::REST (it doesn't make sense to always return zero
     /// velocity).
     static casa::MRadialVelocity::Types
-        freqToVelType(casa::MFrequency::Types type) throw(std::logic_error);
+        freqToVelType(casa::MFrequency::Types type)
+	                throw(DataAccessLogicError);
 
     /// convert velocity frame type to frequency frame type
     /// @param type velocity frame type to convert
     /// @return resulting frequency frame type
     static casa::MFrequency::Types
-      velToFreqType(casa::MRadialVelocity::Types type) throw(std::logic_error);
+      velToFreqType(casa::MRadialVelocity::Types type)
+                        throw(DataAccessLogicError);
 		 
 private:
     /// doppler converters:

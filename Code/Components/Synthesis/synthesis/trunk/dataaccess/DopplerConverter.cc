@@ -60,7 +60,7 @@ DopplerConverter::operator()(const casa::MFrequency &freq) const
   casa::Double t=freq.getValue().getValue(); // extract frequency in Hz
 
   // need to change the next line to a proper Conrad error when available
-  DebugAssert(t!=0,casa::AipsError);
+  CONRADDEBUGASSERT(t!=0);
   
   t/=itsRestFrequency; // form nu/nu_0
   t*=t; // form (nu/nu_0)^2  
@@ -98,7 +98,7 @@ DopplerConverter::operator()(const casa::MRadialVelocity &vel) const
 /// velocity).
 casa::MRadialVelocity::Types
 DopplerConverter::freqToVelType(casa::MFrequency::Types type)
-                                throw(std::logic_error)
+                                throw(DataAccessLogicError)
 {
   switch(type) {
     case casa::MFrequency::LSRK: return casa::MRadialVelocity::LSRK;
@@ -109,7 +109,7 @@ DopplerConverter::freqToVelType(casa::MFrequency::Types type)
     case casa::MFrequency::GALACTO: return casa::MRadialVelocity::GALACTO;
     case casa::MFrequency::LGROUP: return casa::MRadialVelocity::LGROUP;
     case casa::MFrequency::CMB: return casa::MRadialVelocity::CMB;
-    default: throw std::logic_error("DopplerConverter: Unable to convert "
+    default: throw DataAccessLogicError("DopplerConverter: Unable to convert "
                               "freqency frame type to velocity frame type");
   };
 
@@ -122,7 +122,7 @@ DopplerConverter::freqToVelType(casa::MFrequency::Types type)
 /// @return resulting frequency frame type
 casa::MFrequency::Types
 DopplerConverter::velToFreqType(casa::MRadialVelocity::Types type)
-                                             throw(std::logic_error)
+                                             throw(DataAccessLogicError)
 {
   switch(type) {
     case casa::MRadialVelocity::LSRK: return casa::MFrequency::LSRK;
@@ -133,7 +133,7 @@ DopplerConverter::velToFreqType(casa::MRadialVelocity::Types type)
     case casa::MRadialVelocity::GALACTO: return casa::MFrequency::GALACTO;
     case casa::MRadialVelocity::LGROUP: return casa::MFrequency::LGROUP;
     case casa::MRadialVelocity::CMB: return casa::MFrequency::CMB;
-    default: throw std::logic_error("DopplerConverter: Unable to convert "
+    default: throw DataAccessLogicError("DopplerConverter: Unable to convert "
                              "velocity frame type to frequency frame type");
   };
 

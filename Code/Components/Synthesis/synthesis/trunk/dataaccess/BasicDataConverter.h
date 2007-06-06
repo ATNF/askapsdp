@@ -20,9 +20,6 @@
 #ifndef BASIC_DATA_CONVERTER_H
 #define BASIC_DATA_CONVERTER_H
 
-// std includes
-#include <stdexcept>
-
 // boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -40,6 +37,7 @@
 #include <dataaccess/IDirectionConverter.h>
 #include <dataaccess/GenericConverter.h>
 #include <dataaccess/IDopplerConverter.h>
+#include <dataaccess/DataAccessError.h>
 
 namespace conrad {
 
@@ -167,7 +165,7 @@ public:
     casa::Double inline frequency(const casa::MRadialVelocity &in) const
     {      
       if (!itsDopplerConverter) {
-          throw std::logic_error("A rest frequency is needed to be able to "
+          throw DataAccessLogicError("A rest frequency is needed to be able to "
 	  "use BasicDataConverter::frequency(MRadialVelocity)");
       }
       return (*itsFrequencyConverter)((*itsDopplerConverter)(in));
@@ -183,7 +181,7 @@ public:
     casa::Double inline velocity(const casa::MFrequency &in) const
     {      
       if (!itsDopplerConverter) {
-          throw std::logic_error("A rest frequency is needed to be able to "
+          throw DataAccessLogicError("A rest frequency is needed to be able to "
 	  "use BasicDataConverter::frequency(MRadialVelocity)");
       }      
       return (*itsVelocityConverter)((*itsDopplerConverter)(in));

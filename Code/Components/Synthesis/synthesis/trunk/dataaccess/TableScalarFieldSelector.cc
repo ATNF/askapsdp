@@ -10,11 +10,9 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-/// std include
-#include <stdexcept>
-
 /// own include
 #include <dataaccess/TableScalarFieldSelector.h>
+#include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -85,7 +83,7 @@ void TableDataSelector::chooseSpectralWindow(casa::uInt spWinID)
 void TableDataSelector::chooseTimeRange(const casa::MVEpoch &start,
           const casa::MVEpoch &stop)
 {
-   throw std::runtime_error("not yet implemented");
+   throw DataAccessLogicError("not yet implemented");
 }
 
 /// Choose time range. This method accepts a time range with 
@@ -97,7 +95,7 @@ void TableDataSelector::chooseTimeRange(const casa::MVEpoch &start,
 /// @param stop the end of the chosen time interval
 void TableDataSelector::chooseTimeRange(casa::Double start,casa::Double stop)
 {
-   throw std::runtime_error("not yet implemented");
+   throw DataAccessLogicError("not yet implemented");
 }
  
 /// Choose cycles. This is an equivalent of choosing the time range,
@@ -106,7 +104,7 @@ void TableDataSelector::chooseTimeRange(casa::Double start,casa::Double stop)
 /// @param stop the number of the last cycle to choose
 void TableDataSelector::chooseCycles(casa::uInt start, casa::uInt stop)
 {
-   throw std::runtime_error("not yet implemented");
+   throw DataAccessLogicError("not yet implemented");
 }
 
 /// Obtain a table expression node for selection. This method is
