@@ -1,4 +1,4 @@
-/// @file TableDataSelector.h
+/// @file TableDataSelector.cc
 ///
 /// TableBasedDataSelector: Class representing a selection of visibility
 ///                data according to some criterion. This is an
@@ -10,6 +10,9 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+/// std include
+#include <stdexcept>
+
 /// own include
 #include <dataaccess/TableDataSelector.h>
 
@@ -17,10 +20,38 @@ using namespace conrad;
 using namespace synthesis;
 using namespace casa;
 
+
+/// construct a table selector with cycles defined by the time interval
+/// @param tab MS table to work with
+/// @param cycleInterval a duration of the cycle interval in seconds
+///        Default value is 10 seconds.
+///        (used to convert selection based on cycles to selection
+///         using a normal time range)
+TableDataSelector::TableDataSelector(const casa::Table &tab,
+                                     casa::Double cycleInterval) :
+                           itsMS(tab), itsUseRowsToGetCycles(false),
+                           itsCycleInterval(cycleInterval) {}
+
+/// construct a table selector with cycles defined by the given number of
+/// rows. This is probably faster than the time based selection, but
+/// requires all rows to be always present (i.e. all baselines should
+/// always appear in the MS, even if some of them are fully flagged).
+/// @param tab MS table to work with
+/// @param cycleRows a number of rows per a cycle
+///        (used to convert a selection based on cycles to the selection
+///         using row numbers). This approach will only work if the number
+///        of rows per cycle is fixed (i.e. always nBaselines x nFeeds)
+TableDataSelector::TableDataSelector(const casa::Table &tab,
+                                     casa::uInt cycleRows) :
+         itsMS(tab), itsUseRowsToGetCycles(true), itsCycleRows(cycleRows) {}
+
+
 /// Choose a single feed, the same for both antennae
 /// @param feedID the sequence number of feed to choose
 void TableDataSelector::chooseFeed(casa::uInt feedID)
 {
+   itsTableSelector=itsTableSelector && (itsMS.col("FEED") ==
+                  static_cast<casa::Int>(feedID));
 }
 
 /// Choose a single baseline
@@ -29,6 +60,9 @@ void TableDataSelector::chooseFeed(casa::uInt feedID)
 /// Which one is the first and which is the second is not important
 void TableDataSelector::chooseBaseline(casa::uInt ant1, casa::uInt ant2)
 {
+   itsTableSelector=itsTableSelector && (itsMS.col("ANTENNA1") ==
+           static_cast<casa::Int>(ant1)) && (itsMS.col("ANTENNA2") ==
+	   static_cast<casa::Int>(ant2));
 }
   
 /// Choose a time range. Both start and stop times are given via
@@ -39,6 +73,7 @@ void TableDataSelector::chooseBaseline(casa::uInt ant1, casa::uInt ant2)
 void TableDataSelector::chooseTimeRange(const casa::MVEpoch &start,
           const casa::MVEpoch &stop)
 {
+   throw std::runtime_error("not yet implemented");
 }
 
 /// Choose time range. This method accepts a time range with 
@@ -50,6 +85,7 @@ void TableDataSelector::chooseTimeRange(const casa::MVEpoch &start,
 /// @param stop the end of the chosen time interval
 void TableDataSelector::chooseTimeRange(casa::Double start,casa::Double stop)
 {
+   throw std::runtime_error("not yet implemented");
 }
  
 /// Choose cycles. This is an equivalent of choosing the time range,
@@ -58,6 +94,7 @@ void TableDataSelector::chooseTimeRange(casa::Double start,casa::Double stop)
 /// @param stop the number of the last cycle to choose
 void TableDataSelector::chooseCycles(casa::uInt start, casa::uInt stop)
 {
+   throw std::runtime_error("not yet implemented");
 }
 
 /// Obtain a table expression node for selection. This method is
@@ -70,5 +107,5 @@ void TableDataSelector::chooseCycles(casa::uInt start, casa::uInt stop)
 const casa::TableExprNode& TableDataSelector::getTableSelector(
                                 const IDataConverter &conv) const
 {
-  return itsTableSelector;
+   return itsTableSelector;
 }

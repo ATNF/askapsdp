@@ -14,6 +14,7 @@
 
 /// casa includes
 #include <tables/Tables/ExprNode.h>
+#include <tables/Tables/Table.h>
 
 /// own includes
 #include <dataaccess/IDataSelector.h>
@@ -29,6 +30,26 @@ namespace synthesis {
 class TableDataSelector : virtual public IDataSelector
 {
 public:
+  /// construct a table selector with cycles defined by the time interval
+  /// @param tab MS table to work with
+  /// @param cycleInterval a duration of the cycle interval in seconds
+  ///        Default value is 10 seconds.
+  ///        (used to convert selection based on cycles to selection
+  ///         using a normal time range)
+  explicit TableDataSelector(const casa::Table &tab,
+                             casa::Double cycleInterval = 10.);
+
+  /// construct a table selector with cycles defined by the given number of
+  /// rows. This is probably faster than the time based selection, but
+  /// requires all rows to be always present (i.e. all baselines should
+  /// always appear in the MS, even if some of them are fully flagged).
+  /// @param tab MS table to work with
+  /// @param cycleRows a number of rows per a cycle
+  ///        (used to convert a selection based on cycles to the selection
+  ///         using row numbers). This approach will only work if the number
+  ///        of rows per cycle is fixed (i.e. always nBaselines x nFeeds)
+  TableDataSelector(const casa::Table &tab, casa::uInt cycleRows);
+
   /// Choose a single feed, the same for both antennae
   /// @param feedID the sequence number of feed to choose
   virtual void chooseFeed(casa::uInt feedID);
@@ -71,8 +92,24 @@ public:
   ///              out epochs used in the selection
   const casa::TableExprNode& getTableSelector(const IDataConverter &conv) const;
 public:
+  /// a measurement set to work with. Reference semantics
+  const casa::Table &itsMS;
   /// a current table selection expression
   mutable casa::TableExprNode  itsTableSelector;
+
+  /// parameters of the time selection, when time is specified via MVEpoch object
+  bool itsMVEpochTimeDefined; 
+  casa::MVEpoch itsStart;
+  casa::MVEpoch itsStop;
+  
+  /// data fields to distinguish different cycles as there is no
+  /// such information in the measurement set. Only one method is
+  /// actually used and the following flag determines which one.
+  bool itsUseRowsToGetCycles; 
+  /// duration of the cycle
+  casa::Double itsCycleInterval;
+  /// number of rows per cycle
+  casa::uInt itsCycleRows;
 };
   
 } // namespace synthesis
