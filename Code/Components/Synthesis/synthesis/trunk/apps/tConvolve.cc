@@ -102,10 +102,10 @@ int generic(const std::vector<Coord>& u,
 			iv+=gSize/2;
 
 			for (int suppv=-support;suppv<+support;suppv++) {
-				int vind=cSize*(fracv+suppv+cCenter)+fracu+cCenter+coff;
+                int vind=cSize*(fracv+overSample*suppv+cCenter)+fracu+cCenter+coff;
 				int gind=iu+gSize*(iv+suppv);
 				for (int suppu=-support;suppu<+support;suppu++) {
-					Real wt=C[vind+suppu];
+					Real wt=C[vind+overSample*suppu];
 					grid[gind+suppu]+=wt*data[find];
 					sumwt+=wt;
 				}					
@@ -150,10 +150,10 @@ int generic(const std::vector<Coord>& u,
 			iv+=gSize/2;
 
 			for (int suppv=-support;suppv<+support;suppv++) {
-				int vind=cSize*(fracv+suppv+cCenter)+fracu+cCenter+coff;
+                int vind=cSize*(fracv+overSample*suppv+cCenter)+fracu+cCenter+coff;
 				int gind=iu+gSize*(iv+suppv);
 				for (int suppu=-support;suppu<+support;suppu++) {
-					Real wt=C[vind+suppu];
+					Real wt=C[vind+overSample*suppu];
 					data[find]=data[find]+wt*grid[gind+suppu];
 					sumviswt+=wt;
 				}

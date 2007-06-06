@@ -105,7 +105,7 @@ int generic(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
 
 				for (int suppu=-support;suppu<+support;suppu++) {
 					for (int suppv=-support;suppv<+support;suppv++) {
-						Real wt=C(iu+fracu+cCenter,iu+fracu+cCenter,coff);
+						Real wt=C(iu+suppu*overSample+fracu,iu+suppv*overSample+fracu,coff);
 						grid(iu+suppu,iv+suppv,pol)+=wt*data(i,chan,pol);
 						sumwt+=wt;
 					}

@@ -113,7 +113,8 @@ int main() {
         solver3.addNormalEquations(normeq);
         cout << "Solving for updated parameters using SVD of normal equations" 
             << endl;
-        solver3.solveNormalEquations(q3, true);
+        solver3.setAlgorithm("SVD");
+        solver3.solveNormalEquations(q3);
         cout << q3 << endl;
         cout << "Updated model:" << endl;
         casa::Array<double> improved3=solver3.parameters().value("image.i.cena");
