@@ -28,6 +28,7 @@
 
 // CASA includes
 #include <measures/Measures/MFrequency.h>
+#include <measures/Measures/MCDoppler.h>
 #include <measures/Measures/MCFrequency.h>
 #include <measures/Measures/MRadialVelocity.h>
 #include <measures/Measures/MCRadialVelocity.h>
