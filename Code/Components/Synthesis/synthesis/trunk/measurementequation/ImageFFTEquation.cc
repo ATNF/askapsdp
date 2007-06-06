@@ -1,6 +1,7 @@
 #include <dataaccess/SharedIter.h>
 #include <fitting/Params.h>
 #include <measurementequation/ImageFFTEquation.h>
+#include <gridding/SphFuncVisGridder.h>
 #include <fitting/NormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Axes.h>
@@ -61,8 +62,6 @@ void ImageFFTEquation::predict()
 	vector<string> completions(parameters().completions("image.i"));
 	vector<string>::iterator it;
     
-    itsIdi.chooseBuffer("model");
-    
     for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
 
         const casa::Vector<double>& freq=itsIdi->frequency();   
@@ -79,11 +78,8 @@ void ImageFFTEquation::predict()
             
             casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
             toComplex(uvGrid, imagePixels);
-            
             cfft(uvGrid, true);
     
-            itsIdi.chooseBuffer("model");
-            
             SphFuncVisGridder tvg;
             tvg.forward(itsIdi, parameters().axes(imageName), uvGrid);
     	}
@@ -122,25 +118,54 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
             const casa::IPosition imageShape(imagePixels.shape());
             casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
             uvGrid.set(0.0);
+
+            casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
+            casa::Cube<double> imagePSF(imageShape(0), imageShape(1), 1);
+            casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
             
+            // Predict the model visibility
             Axes axes(parameters().axes(imageName));
             SphFuncVisGridder tvg;
-            tvg.forward(modelIdi, axes, uvGrid);
-            residualIdi->rwVisibility()=itsIdi->visibility()-modelIdi->visibility();
+            toComplex(uvGrid, imagePixels);
+            cfft(uvGrid, true);
+            tvg.forward(itsIdi, axes, uvGrid);
+//            residualIdi->rwVisibility()=itsIdi->visibility()-modelIdi->visibility();
             
-            casa::Vector<float> uvWeights(1);
-            tvg.reverse(residualIdi, axes, uvGrid, uvWeights);
-            cfft(uvGrid, false);
-            casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
-            toDouble(imageDeriv, uvGrid);
+            // Calculate residual image
+            {
+                casa::Vector<float> uvWeights(1);
+                tvg.reverse(itsIdi, axes, uvGrid, uvWeights);
+                cfft(uvGrid, false);
+                toDouble(imageDeriv, uvGrid);
+                tvg.correctConvolution(axes, imageDeriv);
+            }
+            // Calculate weights image (i.e. diagonal of normal matrix)
+            {
+                uvGrid.set(0.0);
+                tvg.reverseWeights(itsIdi, axes, uvGrid);
+                cfft(uvGrid, false);
+                toDouble(imageWeights, uvGrid);
+                tvg.correctConvolution(axes, imageWeights);
+            }
+            // Calculate PSF (i.e. slice through normal matrix)
+            {
+                modelIdi->rwVisibility().set(casa::Complex(1.0));
+                uvGrid.set(0.0);
+                casa::Vector<float> uvWeights(1);
+                tvg.reverse(modelIdi, axes, uvGrid, uvWeights);
+                cfft(uvGrid, false);
+                toDouble(imagePSF, uvGrid);
+                tvg.correctConvolution(axes, imagePSF);
+            }
 
-            uvGrid.set(0.0);
-            tvg.reverseWeights(residualIdi, axes, uvGrid);
-            cfft(uvGrid, false);
-            casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
-            toDouble(imageWeights, uvGrid);
-            // Now we can add the design matrix, residual, and weights
-//            ne.add(designmatrix);
+            casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
+            {
+                casa::IPosition vecShape(1, imagePSF.nelements());
+                casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
+                casa::Vector<double> imageWeightsVec(imageWeights.reform(vecShape));
+                casa::Vector<double> imageDerivVec(imageDeriv.reform(vecShape));
+                ne.addSlice(imageName, imagePSFVec, imageWeightsVec, imageDerivVec, imageShape, reference);
+            }
         }
 	}
 };

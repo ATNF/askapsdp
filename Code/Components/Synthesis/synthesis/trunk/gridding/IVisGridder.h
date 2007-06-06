@@ -79,6 +79,15 @@ public:
     virtual void forward(IDataSharedIter& idi,
         const scimath::Axes& axes,
         const casa::Array<casa::Complex>& grid) = 0; 
+        
+    /// Correct for gridding convolution function
+    /// @param axes axes specifications
+    /// @param image image to be corrected
+    virtual void correctConvolution(const scimath::Axes& axes,
+        casa::Cube<double>& image) = 0;
+    virtual void correctConvolution(const scimath::Axes& axes,
+        casa::Array<double>& image) = 0;
+        
 };
 
 }

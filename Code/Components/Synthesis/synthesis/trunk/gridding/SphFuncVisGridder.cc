@@ -18,17 +18,51 @@ void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi, const casa
         const casa::IPosition& shape) {
     itsSupport=3;
     itsOverSample=128;
-    itsCSize=2*(itsSupport+1)*itsOverSample+2;
-    itsCCenter=(itsCSize-1)/2;
+    itsCSize=2*(itsSupport+1)*itsOverSample; // 1024;
+    itsCCenter=itsCSize/2-1; // 511
     itsC.resize(itsCSize, itsCSize, 1);
     for (int ix=0;ix<itsCSize;ix++) {
-        double fx=grdsf(double(ix-itsCCenter)/double(itsOverSample));
+        double nux=std::abs(double(ix-itsCCenter))/double(itsSupport*itsOverSample);
+        double fx=grdsf(nux)*(1.0-std::pow(nux,2));
+//        std::cout << ix << " " << fx << std::endl;
         for (int iy=0;iy<itsCSize;iy++) {
-            double fy=grdsf(double(iy-itsCCenter)/double(itsOverSample));
+            double nuy=std::abs(double(iy-itsCCenter))/double(itsSupport*itsOverSample);
+            double fy=grdsf(nuy)*(1.0-std::pow(nuy,2));
             itsC(ix,iy,0)=fx*fy;
         }
     }
 }
+
+void SphFuncVisGridder::correctConvolution(const scimath::Axes& axes,
+        casa::Cube<double>& grid)
+{
+    int nx=grid.shape()(0);
+    int ny=grid.shape()(1);
+    int nz=grid.shape()(2);
+    casa::Vector<double> ccfx(nx);
+    casa::Vector<double> ccfy(ny);
+    for (int ix=0;ix<nx;ix++) {
+        double nux=std::abs(double(ix-nx/2))/double(nx/2);
+        ccfx(ix)=1.0/grdsf(nux);
+    }
+    for (int iy=0;iy<ny;iy++) {
+        double nuy=std::abs(double(iy-ny/2))/double(ny/2);
+        ccfy(iy)=1.0/grdsf(nuy);
+    }
+    for (int iz=0;iz<nz;iz++) {
+        for(int ix=0;ix<nx;ix++) {
+            for(int iy=0;iy<ny;iy++) {
+                grid.xyPlane(iz)(ix,iy)*=ccfx(ix)*ccfy(iy);
+            }
+        }
+    }
+}
+
+void SphFuncVisGridder::correctConvolution(const scimath::Axes& axes,
+        casa::Array<double>& grid) 
+{
+}
+
 
 // find spheroidal function with m = 6, alpha = 1 using the rational
 // approximations discussed by fred schwab in 'indirect imaging'.
@@ -50,15 +84,15 @@ double SphFuncVisGridder::grdsf (double nu) {
                4.028559e-3, -3.697768e-2, 1.021332e-1,
                -1.201436e-1, 6.412774e-2};
   double q[2][3]= {1.0000000, 8.212018e-1, 2.078043e-1,
-             1.0000000, 9.599102e-1, 2.918724e-1};
+            1.0000000, 9.599102e-1, 2.918724e-1};
   double value = 0.0;
   
   if ((nu>=0.0)&&(nu<0.75)) {
-    part = 1;
+    part = 0;
     nuend = 0.75;
   }
   else if ((nu>=0.75)&&(nu<=1.00)) {
-    part = 2;
+    part = 1;
     nuend = 1.00;
   }
   else {
@@ -67,13 +101,12 @@ double SphFuncVisGridder::grdsf (double nu) {
   }
 
   top = p[part][0];
-  delnusq = std::pow(nu, 2) - std::pow(nuend, 2);
-  for (k = 0;k< np;k++) {
-    top += p[part][k] * std::pow(delnusq, (k+1));
-  }
   bot = q[part][0];
-  for (k = 0;k< nq;k++) {
-    bot += q[part][k] * std::pow(delnusq, (k+1));
+  delnusq = std::pow(nu, 2) - std::pow(nuend, 2);
+  for (k = 1;k<= np;k++) {
+    double factor=std::pow(delnusq, k);
+    top += p[part][k] * factor;
+    bot += q[part][k] * factor;
   }
   if (bot!=0.0) {
     value = top/bot;
@@ -81,6 +114,7 @@ double SphFuncVisGridder::grdsf (double nu) {
   else {
     value = 0.0;
   }
+  if(value<0.0) value=0.0;
   return value;
 }
 

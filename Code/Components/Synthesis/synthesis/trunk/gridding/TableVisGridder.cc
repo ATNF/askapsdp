@@ -1,5 +1,7 @@
 #include <gridding/TableVisGridder.h>
 
+#include <casa/BasicSL/Constants.h>
+
 using namespace conrad::scimath;
 
 #include <stdexcept>
@@ -120,6 +122,7 @@ void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double
     const int nPol = visibility.shape()(2);
 
     sumwt.set(0.0);
+    grid.set(0.0);
     
     // Loop over all samples adding them to the grid
     // First scale to the correct pixel location
@@ -133,21 +136,35 @@ void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double
 
                 int coff=cOffset(i,chan);
             
+                int iu, iv;
                 double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-                int iu=int(uScaled);
+                if(uScaled>0.0) {
+                    iu=int(uScaled+0.5);
+                }
+                else {
+                    iu=int(uScaled-0.5);
+                }
                 int fracu=int(itsOverSample*(uScaled-double(iu)));
                 iu+=gSize/2;
 
-                double vScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(1));
-                int iv=int(vScaled);
+                double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
+                if(vScaled>0.0) {
+                    iv=int(vScaled+0.5);
+                }
+                else {
+                    iv=int(vScaled-0.5);
+                }
                 int fracv=int(itsOverSample*(vScaled-double(iv)));
                 iv+=gSize/2;
 
-                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
-                    for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
-                        float wt=itsC(iu+fracu+itsCCenter,iu+fracu+itsCCenter,coff)*visweight(i,chan,pol);
-                        grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
-                        sumwt(pol)+=wt;
+                if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
+                    ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize)) {
+                    for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
+                        for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
+                            float wt=itsC(suppu*itsOverSample+fracu+itsCCenter,suppv*itsOverSample+fracv+itsCCenter,coff);
+                            grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
+                            sumwt(pol)+=wt;
+                        }
                     }
                 }
             }
@@ -187,20 +204,35 @@ void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector
 
                 int coff=cOffset(i,chan);
             
+                int iu, iv;
                 double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-                int iu=int(uScaled);
+                if(uScaled>0.0) {
+                    iu=int(uScaled+0.5);
+                }
+                else {
+                    iu=int(uScaled-0.5);
+                }
                 int fracu=int(itsOverSample*(uScaled-double(iu)));
-                iu+=gSize/2;
+                iu=gSize/2;
 
-                double vScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(1));
-                int iv=int(vScaled);
+                double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
+                if(vScaled>0.0) {
+                    iv=int(vScaled+0.5);
+                }
+                else {
+                    iv=int(vScaled-0.5);
+                }
                 int fracv=int(itsOverSample*(vScaled-double(iv)));
-                iv+=gSize/2;
+                iv=gSize/2;
 
-                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
-                    for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
-                        float wt=itsC(iu+fracu+itsCCenter,iu+fracu+itsCCenter,coff)*visweight(i,chan,pol);
-                        grid(suppu,suppv,pol)+=wt;
+
+                if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
+                    ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize)) {
+                    for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
+                        for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
+                            float wt=itsC(suppu*itsOverSample+fracu+itsCCenter,suppv*itsOverSample+fracv+itsCCenter,coff);
+                            grid(iu+suppu,iv+suppv,pol)+=wt;
+                        }
                     }
                 }
             }
@@ -230,6 +262,9 @@ void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double
     const int nChan = freq.size();
     const int nPol = visibility.shape()(2);
 
+    visibility.set(0.0);
+    visweight.set(0.0);
+
     // Loop over all samples adding them to the grid
     // First scale to the correct pixel location
     // Then find the fraction of a pixel to the nearest pixel
@@ -242,26 +277,58 @@ void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double
 
                 int coff=cOffset(i,chan);
             
+                int iu, iv;
                 double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-                int iu=int(uScaled);
+                if(uScaled>0.0) {
+                    iu=int(uScaled+0.5);
+                }
+                else {
+                    iu=int(uScaled-0.5);
+                }
                 int fracu=int(itsOverSample*(uScaled-double(iu)));
                 iu+=gSize/2;
 
-                double vScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(1));
-                int iv=int(vScaled);
+                double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
+                if(vScaled>0.0) {
+                    iv=int(vScaled+0.5);
+                }
+                else {
+                    iv=int(vScaled-0.5);
+                }
                 int fracv=int(itsOverSample*(vScaled-double(iv)));
                 iv+=gSize/2;
 
                 double sumviswt=0.0;
-                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
-                    for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
-                        float wt=itsC(iu+fracu+itsCCenter,iu+fracu+itsCCenter,coff);
-                        visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
-                        sumviswt+=wt;
+                visibility(i,chan,pol)=0.0;
+                if(itsSupport>0) {
+                    if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
+                        ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize)) {
+                        for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
+                            for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
+                                float wt=itsC(suppu*itsOverSample+fracu+itsCCenter,suppv*itsOverSample+fracv+itsCCenter,coff);
+                                visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
+                                sumviswt+=wt;
+                            }
+                        }
+                    }
+                    if(sumviswt>0.0) {
+                        visibility(i,chan,pol)=visibility(i,chan,pol)/casa::Complex(sumviswt);
+                        visweight(i,chan,pol)=sumviswt;
+                    }
+                    else {
+                        visibility(i,chan,pol)=0.0;
                     }
                 }
-                visibility(i,chan,pol)=visibility(i,chan,pol)/casa::Complex(sumviswt);
-                visweight(i,chan,pol)=sumviswt;
+                else {
+                    visibility(i,chan,pol)=grid(iu,iv,pol);
+                    sumviswt=1.0;
+                }
+//                if((chan==0)&&(pol==0)) {
+//                    std::cout << uvw(i)
+//                    << " " << iu << " " << iv << " " << coff << " " << fracu << " " << fracv 
+//                    << " " << visibility(i, chan, pol) 
+//                    << " " << visweight(i, chan, pol) << std::endl;
+//                }
             }
         }
     }
@@ -275,16 +342,28 @@ void TableVisGridder::findCellsize(casa::Vector<double>& cellsize, const casa::I
     }
     double raStart=axes.start("RA");
     double raEnd=axes.end("RA");
-    int raCells=imageShape(axes.order("RA"));
 
     double decStart=axes.start("DEC");
     double decEnd=axes.end("DEC");
-    int decCells=imageShape(axes.order("DEC"));
     
     cellsize.resize(2);
-    cellsize(0)=double(raCells)/(raStart-raEnd);
-    cellsize(1)=double(decCells)/(decStart-decEnd);
+    cellsize(0)=1.0/std::abs(raEnd-raStart);
+    cellsize(1)=1.0/std::abs(decEnd-decStart);
+
 }
+
+void TableVisGridder::correctConvolution(const scimath::Axes& axes,
+        casa::Cube<double>& grid)
+{
+}
+
+void TableVisGridder::correctConvolution(const scimath::Axes& axes,
+        casa::Array<double>& grid)
+{
+}
+
+        
+
             
 }
 }
