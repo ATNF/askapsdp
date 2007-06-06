@@ -13,8 +13,13 @@
 
 #include <iostream>
 
+#include <string>
+#include <map>
+
 #include <cmath>
 using std::abs;
+using std::map;
+using std::string;
 
 namespace conrad
 {

@@ -1,11 +1,10 @@
 /// @file
 ///
-/// Solver: Base class for solvers of parametrized imaging
-/// equations.
+/// Solver: Abstract (but not pure!) base class for solvers of 
+/// parametrized equations.
 ///
-/// The base solver does something sensible and can be used as-is.
-/// For simple parameters, a least squares solution is calculated,
-/// and for image parameters, a steepest descent algorithm is used.
+/// The base class holds the parameters and the normal equations.
+/// Derived classes perform the solution of the normal equations.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>

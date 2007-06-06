@@ -49,7 +49,6 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
       quadratic(2)=3;
       ip.add("poly", quadratic);
       itsPoly1 = new PolynomialEquation(ip, itsData, itsWeights, itsArguments, itsModel);       
-      itsPoly2 = new PolynomialEquation();
     }
         
     void tearDown() 

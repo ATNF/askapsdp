@@ -10,6 +10,15 @@
 #include <casa/Arrays/Vector.h>
 
 #include <stdexcept>
+#include <string>
+#include <map>
+#include <cmath>
+#include <vector>
+
+using std::abs;
+using std::map;
+using std::string;
+using std::vector;
 
 namespace conrad {
 namespace scimath {

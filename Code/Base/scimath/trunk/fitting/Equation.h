@@ -1,9 +1,54 @@
-/// @file
+/// @file Equation.h
 ///
-/// Equation: Represent a parametrized equation. 
+/// Equation: Represent a parametrized equation. The equation
+/// can be used to calculate predicted values (predict) and
+/// to evaluate the normal equations. The data are to be
+/// passed in via the (derived class) constructor.
 ///
 /// This is a base class. See PolynomialEquation for an example
-/// of how to derive.
+/// of how to derive, and CompositeEquation for how to assemble
+/// composite equations. This fitting framework has been designed
+/// for synthesis calibration and imaging using the master/worker
+/// framework but is also appropriate for general use.
+///
+/// Here's a (longwinded) example of how to use this framework
+/// for fitting a polynomial equation.
+/// 
+///    casa::Vector<double> arguments(10); 
+///    casa::Vector<double> data(10);
+///    casa::Vector<double> weights(10);
+///    casa::Vector<double> model(10);
+///    
+///    for (uint i=0;i<arguments.size();i++) {
+///        arguments[i]=i;
+///    }
+///    data.set(0.0);
+///    weights.set(1.0);
+///    model.set(0.0);
+///
+///    Params ip;
+///    casa::Vector<double> quadratic(3);
+///    quadratic(0)=1;
+///    quadratic(1)=2;
+///    quadratic(2)=3;
+///    ip.add("poly", quadratic);
+///
+///    PolynomialEquation poly(ip, data, weights, arguments, model);       
+///    poly.predict();
+///    quadratic.set(0.0);
+///    ip.update("poly", quadratic);
+///
+///    NormalEquations normeq(ip);
+///    poly.calcEquations(normeq);
+///
+///    LinearSolver solver(ip);
+///    solver.addNormalEquations(normeq);
+///    Quality q;
+///    solver.setAlgorithm("SVD");
+///    solver.solveNormalEquations(q);
+///
+/// The class PolynomialEquation holds the C++ code responsible for
+/// calculating values and derivatives of the specific polynomial.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -23,11 +68,7 @@ namespace scimath
 
 class Equation {
 public:	
-	/// Constructor
-	/// Using default parameters
-    Equation() {};
-    
-    /// Using specified parameters
+    /// Construct using specified parameters
     explicit Equation(const Params& ip);
     
     /// Copy constructor
@@ -46,7 +87,8 @@ public:
 	/// @param ip Parameters
 	virtual void setParameters(const Params& ip);
 	
-	/// Check if set of parameters is valid for this equation
+	/// Check if a set of parameters is complete for this equation
+    /// i.e. are all the required parameters present
 	/// @param ip Parameters
 	virtual bool complete(const Params& ip);
 	
@@ -68,6 +110,7 @@ public:
     virtual Equation::ShPtr clone();
 
 protected:
+    Equation() {};
 	Params itsParams;
 	Params itsDefaultParams;
 };

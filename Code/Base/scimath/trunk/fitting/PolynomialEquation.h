@@ -20,9 +20,7 @@ namespace scimath
 {
 
 class PolynomialEquation : public Equation {
-public:	
-	/// Constructor
-    PolynomialEquation() : Equation() {};
+public:
     
     /// Constructor for real use
     /// @param ip Coefficients of polynomial stored with names poly.*
@@ -65,7 +63,6 @@ protected:
     casa::Vector<double> itsWeights;
     casa::Vector<double> itsArguments;
     casa::Vector<double> itsModel;
-
 };
 
 }

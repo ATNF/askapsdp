@@ -22,8 +22,6 @@ namespace scimath
 class CompositeEquation : public Equation {
 public:	
 	/// Constructor
-	/// Using default parameters
-    CompositeEquation() : Equation() {};
     
     /// Using specified parameters
     /// @param ip Parameters
