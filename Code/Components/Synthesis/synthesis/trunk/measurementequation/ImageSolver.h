@@ -32,7 +32,7 @@ public:
 	/// The solution is constructed from the normal equations
 	/// @param q Quality information
 	/// @param useSVD use SVD instead of Cholesky decomposition
-	virtual bool solveNormalEquations(conrad::scimath::Quality& q, const bool useSVD=false);
+	virtual bool solveNormalEquations(conrad::scimath::Quality& q);
 	
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the design matrix

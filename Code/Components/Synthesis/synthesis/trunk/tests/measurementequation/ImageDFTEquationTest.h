@@ -87,7 +87,8 @@ class ImageDFTEquationTest : public CppUnit::TestFixture  {
             LinearSolver solver1(*params2);
             solver1.addNormalEquations(ne);
             Quality q;
-            solver1.solveNormalEquations(q, true);
+            solver1.setAlgorithm("SVD");
+            solver1.solveNormalEquations(q);
             casa::Array<double> improved=solver1.parameters().value("image.i.cena");
             uint npix=16;
             CPPUNIT_ASSERT(std::abs(q.cond()-1115634013709.060)<1.0);

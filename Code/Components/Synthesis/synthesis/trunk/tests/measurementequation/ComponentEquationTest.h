@@ -118,7 +118,8 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
 		Quality q;
 		LinearSolver solver1(*params2);
 		solver1.addNormalEquations(ne);
-		solver1.solveNormalEquations(q, true);
+        solver1.setAlgorithm("SVD");
+		solver1.solveNormalEquations(q);
         CPPUNIT_ASSERT(abs(q.cond()-3.78547e+12)<1e7);
 	}
 

@@ -14,20 +14,26 @@ using namespace conrad::scimath;
 #include <cmath>
 using std::abs;
 
+#include <map>
+#include <vector>
+#include <string>
+
+using std::map;
+using std::vector;
+using std::string;
+
 namespace conrad
 {
 namespace synthesis
 {
 
-
 void ImageSolver::init() {
 	itsNormalEquations.reset();
-	itsDesignMatrix.reset();
 }
 
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
-bool ImageSolver::solveNormalEquations(Quality& quality, const bool useSVD) {
+bool ImageSolver::solveNormalEquations(Quality& quality) {
 	
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
 	uint nParameters=0;
