@@ -49,6 +49,9 @@ public:
     /// @param ne Normal equations
     virtual void calcEquations(NormalEquations& ne);
 
+    /// Clone this 
+    virtual Equation::ShPtr clone();
+
 protected:
 
     void init();

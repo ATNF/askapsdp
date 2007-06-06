@@ -129,6 +129,12 @@ void PolynomialEquation::calcPolyDeriv(const casa::Vector<double>& x,
     }
 }
 
+Equation::ShPtr PolynomialEquation::clone() {
+    return Equation::ShPtr(new PolynomialEquation(*this));
+}
+
+
+
 }
 
 }

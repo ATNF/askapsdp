@@ -44,6 +44,7 @@ Equation::ShPtr Equation::clone() {
     return Equation::ShPtr(new Equation(*this));
 }
 
+
 }
 
 }

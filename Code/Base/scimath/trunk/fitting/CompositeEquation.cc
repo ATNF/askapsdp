@@ -39,8 +39,11 @@ void CompositeEquation::calcEquations(NormalEquations& ne) {
 }
 
 void CompositeEquation::add(Equation& eq) {
-//    itsList.push_back(eq.clone());
-    itsList.push_back(&eq);
+    itsList.push_back(eq.clone());
+}
+
+Equation::ShPtr CompositeEquation::clone() {
+    return Equation::ShPtr(new CompositeEquation(*this));
 }
 
 }

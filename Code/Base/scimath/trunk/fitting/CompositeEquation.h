@@ -44,11 +44,14 @@ public:
     /// @param ne Normal equations to be filled
     virtual void calcEquations(NormalEquations& ne);
    
+    /// Clone this 
+    virtual Equation::ShPtr clone();
+   
     /// These next function is specific to the Composite
     /// Add an equation
     /// @param eq equation to be added
     virtual void add(Equation& eq);    
-   
+
 protected:
     std::list<Equation::ShPtr> itsList;
 };

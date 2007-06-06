@@ -62,10 +62,9 @@ public:
     virtual void calcEquations(NormalEquations& ne) {};
     
     /// Shared pointer definition
-//    typedef boost::shared_ptr<Equation> ShPtr;
-    typedef Equation* ShPtr;
+    typedef boost::shared_ptr<Equation> ShPtr;
     
-    /// Clone this 
+    /// Clone this into a shared pointer 
     virtual Equation::ShPtr clone();
 
 protected:
