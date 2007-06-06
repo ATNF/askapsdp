@@ -1,10 +1,14 @@
-/// @file TableDataSelector.h
+/// @file TableScalarFieldSelector.h
 ///
-/// TableBasedDataSelector: Class representing a selection of visibility
+/// TableScalarFieldSelector: Class representing a selection of visibility
 ///                data according to some criterion. This is an
 ///                implementation of the part of the IDataSelector
 ///                interface, which can be done with the table selection
-///                mechanism in the table based case 
+///                mechanism in the table based case. Only simple
+///                (scalar) fields are included in this selection.
+///                Epoch-based selection is done via a separate class
+///                because a fully defined converter is required to
+///                perform such selection.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -59,6 +63,10 @@ public:
   /// @param ant2 the sequence number of the second antenna
   /// Which one is the first and which is the second is not important
   virtual void chooseBaseline(casa::uInt ant1, casa::uInt ant2);
+
+  /// Choose a single spectral window (also known as IF).
+  /// @param spWinID the ID of the spectral window to choose
+  virtual void chooseSpectralWindow(casa::uInt spWinID);
     
   /// Choose a time range. Both start and stop times are given via
   /// casa::MVEpoch object. The reference frame is specified by
@@ -83,6 +91,7 @@ public:
   /// @param stop the number of the last cycle to choose
   virtual void chooseCycles(casa::uInt start, casa::uInt stop);
 
+protected:
   /// Obtain a table expression node for selection. This method is
   /// used in the implementation of the iterator to form a subtable
   /// obeying the selection criteria specified by the user via
@@ -91,9 +100,9 @@ public:
   /// @param conv  a reference to the converter, which is used to sort
   ///              out epochs used in the selection
   const casa::TableExprNode& getTableSelector(const IDataConverter &conv) const;
-public:
+private:
   /// a measurement set to work with. Reference semantics
-  const casa::Table &itsMS;
+  casa::Table itsMS;
   /// a current table selection expression
   mutable casa::TableExprNode  itsTableSelector;
 

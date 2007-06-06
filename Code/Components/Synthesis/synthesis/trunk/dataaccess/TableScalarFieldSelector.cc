@@ -14,7 +14,7 @@
 #include <stdexcept>
 
 /// own include
-#include <dataaccess/TableDataSelector.h>
+#include <dataaccess/TableScalarFieldSelector.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -50,7 +50,8 @@ TableDataSelector::TableDataSelector(const casa::Table &tab,
 /// @param feedID the sequence number of feed to choose
 void TableDataSelector::chooseFeed(casa::uInt feedID)
 {
-   itsTableSelector=itsTableSelector && (itsMS.col("FEED") ==
+   itsTableSelector=itsTableSelector && (itsMS.col("FEED1") ==
+                  static_cast<casa::Int>(feedID)) && (itsMS.col("FEED2") ==
                   static_cast<casa::Int>(feedID));
 }
 
@@ -64,6 +65,17 @@ void TableDataSelector::chooseBaseline(casa::uInt ant1, casa::uInt ant2)
            static_cast<casa::Int>(ant1)) && (itsMS.col("ANTENNA2") ==
 	   static_cast<casa::Int>(ant2));
 }
+
+/// Choose a single spectral window (also known as IF).
+/// @param spWinID the ID of the spectral window to choose
+void TableDataSelector::chooseSpectralWindow(casa::uInt spWinID)
+{
+   // we may need to change this later. Suprisingly, no such column was
+   // present in the simulated dataset
+   itsTableSelector=itsTableSelector && (itsMS.col("SPECTRAL_WINDOW") ==
+                  static_cast<casa::Int>(spWinID));
+}
+
   
 /// Choose a time range. Both start and stop times are given via
 /// casa::MVEpoch object. The reference frame is specified by
