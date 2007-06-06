@@ -3,7 +3,8 @@
 /// DesignMatrix: Hold the design matrix for parameters. If the relationship
 /// between data B and model X is B=AX then A is the design matrix.
 /// This is usually too large to do much with but it can be used as a
-/// convenient way to build up the normal equations.
+/// convenient way to build up the normal equations. In fact this is
+/// currently the only use for DesignMatrix.
 /// 
 /// We also store the B vector using this class.
 ///

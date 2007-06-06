@@ -50,6 +50,16 @@
 /// The class PolynomialEquation holds the C++ code responsible for
 /// calculating values and derivatives of the specific polynomial.
 ///
+/// The overall concept of this set of classes is similar to that
+/// of the MeqTree package from ASTRON with a couple of notable
+/// exceptions:
+///   - For large number of parameters, one has the option of calculating
+/// and keeping only subsections of the full normal equations
+///   - The equations are hard-coded to specific high level mathematical
+/// relationships rather than being composed from a tree.
+///
+/// These two changes are needed to allow imaging.
+///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///

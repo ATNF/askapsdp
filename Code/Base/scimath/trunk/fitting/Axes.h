@@ -2,7 +2,16 @@
 ///
 /// Axes: Represent a set of axes - names and extrema.
 /// The axes are used to describe a multidimensional
-/// parameter.
+/// parameter. For example,
+///
+///      Axes imageAxes;
+///      double arcsec=casa::C::pi/(3600.0*180.0);
+///      double cell=5.0*arcsec;
+///      imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0); 
+///      imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
+///      imageAxes.add("FREQ", 1e9, 1.2e9);
+///
+/// TODO: Add tabulated axes
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -68,6 +77,7 @@ public:
     /// @param name Name of axis
     const std::vector<double>& end() const;
     
+    /// Output to an ostream
 	friend std::ostream& operator<<(std::ostream& os, const Axes& domain);
 	
 private:
@@ -75,6 +85,8 @@ private:
 	mutable std::vector<double> itsStart;
 	mutable std::vector<double> itsEnd;
 };
+
+/// Use Domain as a synonym (for the moment).
 
 typedef Axes Domain;
 

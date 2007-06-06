@@ -1,7 +1,7 @@
 /// @file
 ///
-/// ParamsTable: Base class for storing and retrieving Params by 
-/// domain specification.
+/// ParamsCASATable: Concrete class for storing and retrieving Params by 
+/// domain specification to and from a CASA table.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
