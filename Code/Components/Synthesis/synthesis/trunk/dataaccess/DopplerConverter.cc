@@ -17,7 +17,6 @@
 
 /// CASA include
 #include <casa/Quanta/MVDoppler.h>
-#include <measures/Measures/MCDoppler.h>
 // temporary
 #include <casa/Exceptions/Error.h>
 

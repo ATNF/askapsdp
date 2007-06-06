@@ -20,6 +20,7 @@
 
 /// CASA includes
 #include <measures/Measures/MDoppler.h>
+#include <measures/Measures/MCDoppler.h>
 #include <measures/Measures/MeasConvert.h>
 #include <casa/Quanta/MVFrequency.h>
 

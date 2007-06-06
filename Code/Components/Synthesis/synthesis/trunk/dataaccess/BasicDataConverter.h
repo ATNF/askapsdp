@@ -28,10 +28,11 @@
 
 // CASA includes
 #include <measures/Measures/MFrequency.h>
-#include <measures/Measures/MCDoppler.h>
-#include <measures/Measures/MCFrequency.h>
 #include <measures/Measures/MRadialVelocity.h>
+// following includes are required to instantiate a generic converter
+// for MRadialVelocity and MFrequency
 #include <measures/Measures/MCRadialVelocity.h>
+#include <measures/Measures/MCFrequency.h>
 
 // own includes
 #include <dataaccess/IDataConverter.h>
@@ -202,4 +203,4 @@ private:
 } // namespace synthesis
 
 } // namespace conrad
-#endif // I_DATA_CONVERTER_H
+#endif // BASIC_DATA_CONVERTER_H
