@@ -93,7 +93,8 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
         LinearSolver solver(ip);
         solver.addNormalEquations(normeq);
         Quality q;
-        solver.solveNormalEquations(q, true);
+        solver.setAlgorithm("SVD");
+        solver.solveNormalEquations(q);
         CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
     }  
     
@@ -111,7 +112,8 @@ class PolynomialEquationTest : public CppUnit::TestFixture  {
         LinearSolver solver(ip);
         solver.addNormalEquations(normeq);
         Quality q;
-        solver.solveNormalEquations(q, true);
+        solver.setAlgorithm("SVD");
+        solver.solveNormalEquations(q);
         CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
     }  
     

@@ -40,6 +40,10 @@ bool Equation::complete(const Params& ip) {return itsDefaultParams.isCongruent(i
 /// @param ip Parameters
 const Params& Equation::defaultParameters() const {return itsDefaultParams;};
 
+Equation::ShPtr Equation::clone() {
+    return Equation::ShPtr(new Equation(*this));
+}
+
 }
 
 }

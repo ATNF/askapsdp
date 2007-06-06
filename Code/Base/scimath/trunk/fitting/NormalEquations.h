@@ -1,6 +1,6 @@
 /// @file
 ///
-/// NormalEquations: Hold the normal equations for parameters
+/// NormalEquations: Hold the normal equations for parameters. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -17,11 +17,13 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/IPosition.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace conrad
 {
 namespace scimath
 {
-	
+
 class DesignMatrix;
     
 class NormalEquations 
@@ -112,6 +114,10 @@ public:
   
     /// Reset to empty
     void reset();
+
+    /// Shared pointer definition
+    typedef boost::shared_ptr<NormalEquations> ShPtr;
+    
 protected:
     Params itsParams;
     // Note that this is a very flexible format - it allows any of the

@@ -13,6 +13,8 @@ CompositeEquation::CompositeEquation(const CompositeEquation& other) {
 
 CompositeEquation& CompositeEquation::operator=(const CompositeEquation& other) {
     if(this!=&other) {
+        itsParams=other.itsParams;
+        itsDefaultParams=other.itsDefaultParams;
         itsList=other.itsList;
     }
 }
@@ -23,25 +25,22 @@ CompositeEquation::CompositeEquation(const Params& ip) : Equation(ip) {};
 CompositeEquation::~CompositeEquation(){};
 
 void CompositeEquation::predict() {
-    for (std::list<Equation*>::iterator it=itsList.begin();
+    for (std::list<Equation::ShPtr>::iterator it=itsList.begin();
         it!=itsList.end();it++) {
         (*it)->predict();
     }
 }
 
 void CompositeEquation::calcEquations(NormalEquations& ne) {
-    for (std::list<Equation*>::iterator it=itsList.begin();
+    for (std::list<Equation::ShPtr>::iterator it=itsList.begin();
         it!=itsList.end();it++) {
         (*it)->calcEquations(ne);
     }
 }
 
 void CompositeEquation::add(Equation& eq) {
+//    itsList.push_back(eq.clone());
     itsList.push_back(&eq);
-}
-
-void CompositeEquation::remove(Equation& eq) {
-    itsList.remove(&eq);
 }
 
 }

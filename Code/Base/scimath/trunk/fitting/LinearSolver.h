@@ -1,6 +1,6 @@
 /// @file
 ///
-/// LinearSolver: This solver uses SVD to solve the design matrix
+/// LinearSolver: This solver uses SVD to solve the normal
 /// equations.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
@@ -22,8 +22,8 @@ namespace scimath
 class LinearSolver : public Solver
 {
 public:	
-
-	LinearSolver(const Params& ip) : Solver(ip) {};
+    /// Constructor
+	explicit LinearSolver(const Params& ip) : Solver(ip) {};
 	
 	/// Initialize this solver
 	virtual void init();
@@ -31,12 +31,7 @@ public:
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the normal equations
 	/// @param q Quality information
-	/// @param useSVD use SVD instead of Cholesky decomposition
-	virtual bool solveNormalEquations(Quality& q, const bool useSVD=false);
-	
-	/// Solve for parameters, updating the values kept internally
-	/// The solution is constructed from the design matrix
-	virtual bool solveDesignMatrix(Quality& q);
+	virtual bool solveNormalEquations(Quality& q);
 	
 protected:
 };

@@ -5,8 +5,7 @@ namespace conrad
 namespace scimath
 {
 
-Solver::Solver(const Params& ip) : itsParams(ip), itsNormalEquations(ip),
-	itsDesignMatrix(ip)
+Solver::Solver(const Params& ip) : itsParams(ip), itsNormalEquations(ip)
 {
 };
 
@@ -26,11 +25,5 @@ Params& Solver::parameters() {
 void Solver::addNormalEquations(const NormalEquations& normeq) {
 	itsNormalEquations.merge(normeq);
 }
-
-void Solver::addDesignMatrix(const DesignMatrix& designmatrix) 
-{
-	itsDesignMatrix.merge(designmatrix);
-}
-
 }
 }

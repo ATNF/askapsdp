@@ -1,7 +1,8 @@
 /// @file
 ///
-/// Axes: Represent a set of axes - names and extrema
-/// 
+/// Axes: Represent a set of axes - names and extrema.
+/// The axes are used to describe a multidimensional
+/// parameter.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -40,7 +41,7 @@ public:
 	/// @param end End value
 	void add(const std::string& name, const double start, const double end);
 	
-	/// Has this axis?
+	/// Do it have this axis?
 	/// @param name Name of axis
 	bool has(const std::string& name) const;
 
@@ -79,4 +80,4 @@ typedef Axes Domain;
 
 };
 };
-#endif /*DOMAIN_H_*/
+#endif /*AXES_H_*/

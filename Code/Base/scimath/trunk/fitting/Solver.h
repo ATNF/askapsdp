@@ -15,8 +15,7 @@
 
 #include <fitting/Params.h>
 #include <fitting/NormalEquations.h>
-#include <fitting/DesignMatrix.h>
-#include <fitting/Iterative.h>
+#include <fitting/Solveable.h>
 #include <fitting/Quality.h>
 
 namespace conrad
@@ -24,11 +23,11 @@ namespace conrad
 namespace scimath
 {
 
-class Solver : public Iterative
+class Solver : public Solveable
 {
 public:	
-
-	Solver(const Params& ip);
+    /// Constructor from parameters
+	explicit Solver(const Params& ip);
 
 	virtual ~Solver() {};
 	
@@ -42,27 +41,18 @@ public:
 	/// Return current values of params
 	const Params& parameters() const;
 	Params& parameters();
-		
-	/// Add the design matrix
-	/// @param designmatrix Design Matrix
-	virtual void addDesignMatrix(const DesignMatrix& designmatrix);
-	
+			
 	/// Add the normal equations
 	/// @param normeq Normal Equations
 	virtual void addNormalEquations(const NormalEquations& normeq);
 
 	/// Solve for parameters, updating the values kept internally
 	/// The solution is constructed from the normal equations
-	virtual bool solveNormalEquations(Quality& q, const bool useSVD=false) = 0;
-	
-	/// Solve for parameters, updating the values kept internally
-	/// The solution is constructed from the design matrix
-	virtual bool solveDesignMatrix(Quality& q) = 0;
+	virtual bool solveNormalEquations(Quality& q) = 0;
 	
 protected:
 	Params itsParams;
 	NormalEquations itsNormalEquations;
-	DesignMatrix itsDesignMatrix;
 };
 
 }

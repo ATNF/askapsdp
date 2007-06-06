@@ -14,6 +14,8 @@
 #include <fitting/Params.h>
 #include <fitting/NormalEquations.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace conrad { 
 
 namespace scimath
@@ -26,10 +28,12 @@ public:
     Equation() {};
     
     /// Using specified parameters
-    Equation(const Params& ip);
+    explicit Equation(const Params& ip);
     
+    /// Copy constructor
     Equation(const Equation& other);
     
+    /// Assignment operator
     Equation& operator=(const Equation& other);
     
     virtual ~Equation();
@@ -50,10 +54,20 @@ public:
 	/// @param ip Parameters
 	const Params& defaultParameters() const;
     
+    /// Predict the data from the parameters. This changes the internal state.
     virtual void predict() {};
     
+    /// Calculate the normal equations for the given data and parameters
+    /// @param ne Normal equations to be filled
     virtual void calcEquations(NormalEquations& ne) {};
     
+    /// Shared pointer definition
+//    typedef boost::shared_ptr<Equation> ShPtr;
+    typedef Equation* ShPtr;
+    
+    /// Clone this 
+    virtual Equation::ShPtr clone();
+
 protected:
 	Params itsParams;
 	Params itsDefaultParams;

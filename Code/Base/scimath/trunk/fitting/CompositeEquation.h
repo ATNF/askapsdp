@@ -29,23 +29,28 @@ public:
     /// @param ip Parameters
     CompositeEquation(const Params& ip);
     
+    /// Copy constructor
     CompositeEquation(const CompositeEquation& other);
     
+    /// Assignment operator
     CompositeEquation& operator=(const CompositeEquation& other);
     
     virtual ~CompositeEquation();
     
+    /// Predict the data from the parameters. This changes the internal state.
     virtual void predict();
     
-    ///
+    /// Calculate the normal equations for the given data and parameters
+    /// @param ne Normal equations to be filled
     virtual void calcEquations(NormalEquations& ne);
-    
-    virtual void add(Equation& eq);
-    
-    virtual void remove(Equation& eq);
-    
+   
+    /// These next function is specific to the Composite
+    /// Add an equation
+    /// @param eq equation to be added
+    virtual void add(Equation& eq);    
+   
 protected:
-    std::list<Equation*> itsList;
+    std::list<Equation::ShPtr> itsList;
 };
 
 }

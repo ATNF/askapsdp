@@ -1,6 +1,21 @@
 /// @file
 ///
-/// DesignMatrix: Hold the design matrix for parameters
+/// DesignMatrix: Hold the design matrix for parameters. If the relationship
+/// between data B and model X is B=AX then A is the design matrix.
+/// This is usually too large to do much with but it can be used as a
+/// convenient way to build up the normal equations.
+/// 
+/// We also store the B vector using this class.
+///
+/// The parameters are identified by strings and so the storage
+/// for the design matrix is a map of strings to a std::vector
+/// of casa::Matrix's. There is (currently) not much checking
+/// of the consistency of ordering - it is assumed that the
+/// std::vector elements march in order. Since the only way
+/// to fill them is via the add* functions, this should be ok.
+///
+/// The parameters are intrinisically casa::Array's but we convert them
+/// to casa::Vector's to avoid indexing hell.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -34,7 +49,7 @@ public:
 	
 	/// Define a design matrix
 	/// @param ip Parameters
-	DesignMatrix(const Params& ip);
+	explicit DesignMatrix(const Params& ip);
 	
 	/// Copy constructor
 	DesignMatrix(const DesignMatrix& dm);
