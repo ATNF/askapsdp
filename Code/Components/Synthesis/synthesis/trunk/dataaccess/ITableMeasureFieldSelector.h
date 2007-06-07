@@ -38,8 +38,8 @@ public:
    ///
    /// @param conv shared pointer to the converter object to use
    ///
-   virtual void setConverter(const boost::shared_ptr<IDataConverterImpl> &conv)
-                             throw() = 0;
+   virtual void setConverter(const
+            boost::shared_ptr<IDataConverterImpl const> &conv) throw() = 0;
 
    /// main method, updates table expression node to narrow down the selection
    ///

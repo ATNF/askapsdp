@@ -71,5 +71,5 @@ casa::MEpoch EpochConverter::toMeasure(casa::Double in) const
 casa::MEpoch EpochConverter::toMeasure(const casa::MVEpoch &in)
                                        const throw()
 {
-  return casa::MEpoch(in,itsTargetRef);
+  return casa::MEpoch(in+itsTargetOrigin,itsTargetRef);
 }

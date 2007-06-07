@@ -47,6 +47,7 @@ class DataConverterTest : public CppUnit::TestFixture {
    CPPUNIT_TEST_EXCEPTION(testMissingRestFrequency2,std::exception);
    CPPUNIT_TEST(testVelToFreq);
    CPPUNIT_TEST(testFreqToVel);
+   CPPUNIT_TEST(testEpochToMeasures);
    CPPUNIT_TEST_SUITE_END();
 public:
    void setUp()
@@ -216,6 +217,22 @@ public:
      itsConverter->setMeasFrame(someFrame);
      
      CPPUNIT_ASSERT(fabs(itsConverter->velocity(topoFreq)+10)<1e-4);
+   }
+
+   /// test reverse "conversions" to measures for epoch
+   void testEpochToMeasures() {
+     casa::MEpoch refEpoch=casa::MEpoch(casa::MVEpoch(casa::Quantity(54257.29,"d")),
+                            casa::MEpoch::Ref(casa::MEpoch::UTC));
+     itsConverter->setEpochFrame(refEpoch,"d");
+     casa::MEpoch newEpoch=casa::MEpoch(casa::MVEpoch(casa::Quantity(54258.29,"d")),
+                            casa::MEpoch::Ref(casa::MEpoch::UTC));
+     const casa::Double asDouble=itsConverter->epoch(newEpoch);
+     const casa::MVEpoch asMVEpoch(casa::Quantity(asDouble,"d"));
+     
+     CPPUNIT_ASSERT(fabs(itsConverter->epoch(
+              itsConverter->epochMeasure(asDouble))-1.)<1e-7);	      
+     CPPUNIT_ASSERT(fabs(itsConverter->epoch(
+              itsConverter->epochMeasure(asMVEpoch))-1.)<1e-7);     
    }
    
    

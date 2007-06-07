@@ -24,7 +24,7 @@ using namespace synthesis;
 /// @param conv shared pointer to the converter object to use
 ///
 void TableMeasureFieldSelector::setConverter(const
-               boost::shared_ptr<IDataConverterImpl> &conv) throw()
+               boost::shared_ptr<IDataConverterImpl const> &conv) throw()
 {
   itsConverter=conv;
 }
