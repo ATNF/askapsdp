@@ -37,13 +37,13 @@
 #include <dataaccess/IDirectionConverter.h>
 #include <dataaccess/GenericConverter.h>
 #include <dataaccess/IDopplerConverter.h>
-#include <dataaccess/DataAccessError.h>
+#include <dataaccess/IDataConverterImpl.h>
 
 namespace conrad {
 
 namespace synthesis {
 	
-class BasicDataConverter : public IDataConverter
+class BasicDataConverter : public IDataConverterImpl
 {
 public:
     /// default constructor sets up the default conversion options,
@@ -125,35 +125,33 @@ public:
     /// convert epochs
     /// @param in input epoch given as an MEpoch object
     /// @return epoch converted to Double 
-    casa::Double inline epoch(const casa::MEpoch &in) const
-    {
-      return (*itsEpochConverter)(in);
-    }
+    virtual casa::Double epoch(const casa::MEpoch &in) const;    
+
+    /// reverse conversion: form a measure from 'double' epoch
+    /// @param[in] in epoch given as Double in the target units/frame
+    /// @return epoch converted to Measure
+    virtual casa::MEpoch epochMeasure(casa::Double in) const;
+
+    /// reverse conversion: form a measure from MVEpoch
+    /// @param[in] in epoch given as MVEpoch in the target frame
+    /// @return epoch converted to Measure
+    virtual casa::MEpoch epochMeasure(const casa::MVEpoch &in) const;
 
     /// convert directions
     /// @param in input direction given as an MDirection object
     /// @param out output direction as an MVDirection object
-    void inline direction(const casa::MDirection &in,
-                          casa::MVDirection &out) const
-    {
-      out=(*itsDirectionConverter)(in);
-    }
+    virtual void direction(const casa::MDirection &in, 
+                          casa::MVDirection &out) const;    
 
     /// convert frequencies
     /// @param in input frequency given as an MFrequency object
     /// @param out output frequency as a Double
-    casa::Double inline frequency(const casa::MFrequency &in) const
-    {
-      return (*itsFrequencyConverter)(in);
-    }
+    virtual casa::Double frequency(const casa::MFrequency &in) const;
 
     /// convert velocities
     /// @param in input velocities given as an MRadialVelocity object
     /// @param out output velocity as a Double
-    casa::Double inline velocity(const casa::MRadialVelocity &in) const
-    {
-      return (*itsVelocityConverter)(in);
-    }
+    virtual casa::Double velocity(const casa::MRadialVelocity &in) const;    
 
     /// convert frequencies from velocities
     /// @param in input velocity given as an MRadialVelocity object
@@ -162,14 +160,8 @@ public:
     /// Note, an exception will be thrown if the rest frequency is not
     /// defined.
     ///
-    casa::Double inline frequency(const casa::MRadialVelocity &in) const
-    {      
-      if (!itsDopplerConverter) {
-          throw DataAccessLogicError("A rest frequency is needed to be able to "
-	  "use BasicDataConverter::frequency(MRadialVelocity)");
-      }
-      return (*itsFrequencyConverter)((*itsDopplerConverter)(in));
-    }
+    virtual casa::Double frequency(const casa::MRadialVelocity &in) const;
+    
 
     /// convert velocities from frequencies
     /// @param in input frequency  given as an MFrequency object
@@ -178,15 +170,7 @@ public:
     /// Note, an exception will be thrown if the rest frequency is not
     /// defined.
     ///
-    casa::Double inline velocity(const casa::MFrequency &in) const
-    {      
-      if (!itsDopplerConverter) {
-          throw DataAccessLogicError("A rest frequency is needed to be able to "
-	  "use BasicDataConverter::frequency(MRadialVelocity)");
-      }      
-      return (*itsVelocityConverter)((*itsDopplerConverter)(in));
-    }
-    
+    virtual casa::Double velocity(const casa::MFrequency &in) const;    
     
 private:
     boost::shared_ptr<IEpochConverter>      itsEpochConverter;

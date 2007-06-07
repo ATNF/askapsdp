@@ -54,3 +54,22 @@ void EpochConverter::setMeasFrame(const casa::MeasFrame &frame)
 {
   itsTargetRef.set(frame);
 }
+
+/// Reverse conversion (casa::Double to full measure)
+/// @param in an epoch given as Double in the target units/frame
+/// @return the same epoch as a fully qualified measure
+casa::MEpoch EpochConverter::toMeasure(casa::Double in) const
+{
+  casa::MVEpoch res(casa::Quantity(in,itsTargetUnit));
+  res+=itsTargetOrigin;
+  return casa::MEpoch(res,itsTargetRef);
+}
+
+/// Reverse conversion (casa::MVEpoch to full measure)
+/// @param in an epoch given as MVEpoch in the target frame
+/// @return the same epoch as a fully qualified measure
+casa::MEpoch EpochConverter::toMeasure(const casa::MVEpoch &in)
+                                       const throw()
+{
+  return casa::MEpoch(in,itsTargetRef);
+}

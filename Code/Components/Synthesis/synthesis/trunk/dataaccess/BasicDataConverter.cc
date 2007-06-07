@@ -22,6 +22,7 @@
 #include <dataaccess/EpochConverter.h>
 #include <dataaccess/DirectionConverter.h>
 #include <dataaccess/DopplerConverter.h>
+#include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -121,4 +122,87 @@ void BasicDataConverter::setMeasFrame(const casa::MeasFrame &frame)
   itsDirectionConverter->setMeasFrame(frame);
   itsFrequencyConverter->setMeasFrame(frame);
   itsVelocityConverter->setMeasFrame(frame);
+}
+
+/// convert epochs
+/// @param in input epoch given as an MEpoch object
+/// @return epoch converted to Double 
+casa::Double BasicDataConverter::epoch(const casa::MEpoch &in) const
+{
+  return (*itsEpochConverter)(in);
+}
+
+/// reverse conversion: form a measure from 'double' epoch
+/// @param[in] in epoch given as Double in the target units/frame
+/// @return epoch converted to Measure
+casa::MEpoch BasicDataConverter::epochMeasure(casa::Double in) const
+{
+  return itsEpochConverter->toMeasure(in);
+}
+
+/// reverse conversion: form a measure from MVEpoch
+/// @param[in] in epoch given as MVEpoch in the target frame
+/// @return epoch converted to Measure
+casa::MEpoch BasicDataConverter::epochMeasure(const casa::MVEpoch &in) const
+{
+  return itsEpochConverter->toMeasure(in);
+}
+
+/// convert directions
+/// @param in input direction given as an MDirection object
+/// @param out output direction as an MVDirection object
+void BasicDataConverter::direction(const casa::MDirection &in,
+                      casa::MVDirection &out) const
+{
+  out=(*itsDirectionConverter)(in);
+}
+
+/// convert frequencies
+/// @param in input frequency given as an MFrequency object
+/// @param out output frequency as a Double
+casa::Double BasicDataConverter::frequency(const casa::MFrequency &in) const
+{
+  return (*itsFrequencyConverter)(in);
+}
+
+/// convert velocities
+/// @param in input velocities given as an MRadialVelocity object
+/// @param out output velocity as a Double
+casa::Double BasicDataConverter::velocity(const casa::MRadialVelocity &in)
+                                          const
+{
+  return (*itsVelocityConverter)(in);
+}
+
+/// convert frequencies from velocities
+/// @param in input velocity given as an MRadialVelocity object
+/// @param out output frequency as a Double
+///
+/// Note, an exception will be thrown if the rest frequency is not
+/// defined.
+///
+casa::Double BasicDataConverter::frequency(const casa::MRadialVelocity &in)
+                                           const
+{      
+  if (!itsDopplerConverter) {
+      throw DataAccessLogicError("A rest frequency is needed to be able to "
+      "use BasicDataConverter::frequency(MRadialVelocity)");
+  }
+  return (*itsFrequencyConverter)((*itsDopplerConverter)(in));
+}
+
+/// convert velocities from frequencies
+/// @param in input frequency  given as an MFrequency object
+/// @param out output velocity as a Double
+///
+/// Note, an exception will be thrown if the rest frequency is not
+/// defined.
+///
+casa::Double BasicDataConverter::velocity(const casa::MFrequency &in) const
+{      
+  if (!itsDopplerConverter) {
+      throw DataAccessLogicError("A rest frequency is needed to be able to "
+      "use BasicDataConverter::frequency(MRadialVelocity)");
+  }      
+  return (*itsVelocityConverter)((*itsDopplerConverter)(in));
 }
