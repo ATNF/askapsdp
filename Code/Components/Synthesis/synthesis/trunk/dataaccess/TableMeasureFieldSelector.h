@@ -29,16 +29,16 @@ public:
    ///
    /// @param conv shared pointer to the converter object to use
    ///
-   virtual void setConverter(const boost::shared_ptr<IDataConverter> &conv)
+   virtual void setConverter(const boost::shared_ptr<IDataConverterImpl> &conv)
                              throw();
 protected:
    /// obtain a converter object to use
    /// @return a const reference to the converter object associated with
    ///         this class
-   const IDataConverter& converter() const throw();
+   const IDataConverterImpl& converter() const throw();
 private:
    /// converter object
-   boost::shared_ptr<IDataConverter> itsConverter;
+   boost::shared_ptr<IDataConverterImpl> itsConverter;
 };
 
 

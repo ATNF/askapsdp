@@ -24,7 +24,7 @@ using namespace synthesis;
 /// @param conv shared pointer to the converter object to use
 ///
 void TableMeasureFieldSelector::setConverter(const
-               boost::shared_ptr<IDataConverter> &conv) throw()
+               boost::shared_ptr<IDataConverterImpl> &conv) throw()
 {
   itsConverter=conv;
 }
@@ -32,7 +32,7 @@ void TableMeasureFieldSelector::setConverter(const
 /// obtain a converter object to use
 /// @return a const reference to the converter object associated with
 ///         this class
-const IDataConverter& TableMeasureFieldSelector::converter() const throw()
+const IDataConverterImpl& TableMeasureFieldSelector::converter() const throw()
 {
   // we may need to put a debug assert here
   return *itsConverter;

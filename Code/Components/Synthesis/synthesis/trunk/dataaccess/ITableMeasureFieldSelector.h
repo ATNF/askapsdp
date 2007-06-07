@@ -17,7 +17,7 @@
 #include <tables/Tables/Table.h>
 
 /// own includes
-#include <dataaccess/IDataConverter.h>
+#include <dataaccess/IDataConverterImpl.h>
 
 /// boost includes
 #include <boost/shared_ptr.hpp>
@@ -38,7 +38,7 @@ public:
    ///
    /// @param conv shared pointer to the converter object to use
    ///
-   virtual void setConverter(const boost::shared_ptr<IDataConverter> &conv)
+   virtual void setConverter(const boost::shared_ptr<IDataConverterImpl> &conv)
                              throw() = 0;
 
    /// main method, updates table expression node to narrow down the selection
