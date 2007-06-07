@@ -1,4 +1,4 @@
-/// @file TableScalarFieldSelector.h
+/// @file TableDataSelector.h
 ///
 /// TableDataSelector: Class representing a selection of visibility
 ///                data according to some criterion. This is an
@@ -25,9 +25,6 @@ namespace conrad {
 
 namespace synthesis {
 	
-// A derivative from this class is passed to a DataSource object in the
-// request for an iterator. The iterator obtained that way runs through
-// the selected part of the dataset.
 class TableDataSelector : public TableScalarFieldSelector
 {
 public:
@@ -104,7 +101,7 @@ public:
   ///
   /// @param conv  a shared pointer to the converter, which is used to sort
   ///              out epochs and other measures used in the selection
-  const casa::TableExprNode& getTableSelector(const
+  virtual const casa::TableExprNode& getTableSelector(const
                   boost::shared_ptr<IDataConverterImpl const> &conv) const;
 private:
   /// a measurement set to work with. Reference semantics

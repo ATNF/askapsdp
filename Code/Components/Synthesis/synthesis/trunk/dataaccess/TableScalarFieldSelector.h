@@ -21,7 +21,7 @@
 #include <tables/Tables/Table.h>
 
 /// own includes
-#include <dataaccess/IDataSelector.h>
+#include <dataaccess/ITableDataSelectorImpl.h>
 #include <dataaccess/IDataConverter.h>
 
 namespace conrad {
@@ -31,7 +31,7 @@ namespace synthesis {
 // A derivative from this class is passed to a DataSource object in the
 // request for an iterator. The iterator obtained that way runs through
 // the selected part of the dataset.
-class TableScalarFieldSelector : virtual public IDataSelector
+class TableScalarFieldSelector : virtual public ITableDataSelectorImpl
 {
 public:
   /// construct a table selector
