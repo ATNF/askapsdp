@@ -44,7 +44,7 @@ public:
    /// main method, updates table expression node to narrow down the selection
    ///
    /// @param tex a reference to table expression to use
-   virtual void updateTableExpression(casa::TableExprNode &tex) = 0;
+   virtual void updateTableExpression(casa::TableExprNode &tex) const = 0;
 };
 
 } // namespace conrad

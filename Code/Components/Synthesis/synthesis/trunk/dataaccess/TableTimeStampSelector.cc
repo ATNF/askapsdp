@@ -12,8 +12,14 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+// casa includes
+#include <casa/Exceptions/Error.h>
+#include <tables/Tables/TableRecord.h>
+#include <tables/Tables/ColumnDesc.h>
+
 // own includes
 #include <dataaccess/TableTimeStampSelector.h>
+#include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -22,7 +28,25 @@ using namespace synthesis;
 ///
 /// @param tex a reference to table expression to use
 void TableTimeStampSelector::updateTableExpression(casa::TableExprNode &tex)
+	                                           const
 {
-  tex=tex && (tex.table().col("TIME") > start()) &&
-             (tex.table().col("TIME") < stop());
+  try {
+    const casa::Table &table=tex.table();
+    const casa::TableRecord &timeColKeywords =
+            table.tableDesc()["TIME"].keywordSet();
+    const casa::Array<casa::String> &measInfo =
+            timeColKeywords.asArrayString("MEASINFO");
+    CONRADASSERT(measInfo.nelements()>=2);
+    CONRADASSERT(measInfo.ndim()==1);
+    CONRADASSERT(measInfo(casa::IPosition(1,0))=="epoch");
+    std::pair<casa::Double, casa::Double>
+            startAndStop = getStartAndStop(measInfo(casa::IPosition(1,1)),
+                                    timeColKeywords.asString("QuantumUnits"));
+    tex=tex && (table.col("TIME") > startAndStop.first) &&
+               (table.col("TIME") < startAndStop.second);
+  }
+  catch(const casa::AipsError &ae) {
+    CONRADTHROW(DataAccessError, "casa::AipsError is caught inside "
+         "TableTimeStampSelector::updateTableExpression: "<<ae.what());
+  }
 }
