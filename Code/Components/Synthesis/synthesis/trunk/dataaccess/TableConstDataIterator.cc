@@ -23,7 +23,7 @@ TableConstDataIterator::TableConstDataIterator(const casa::Table &ms,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
 	    casa::uInt maxChunkSize) :
 	   itsMS(ms), itsSelector(sel), itsConverter(conv),
-	   itsMaxChunkSize(maxChunkSize)
+	   itsMaxChunkSize(maxChunkSize), itsAccessor(*this)
 {
   init();
 }
@@ -35,6 +35,8 @@ void TableConstDataIterator::init()
   itsTabIterator=casa::TableIterator(itsMS(itsSelector->
                                getTableSelector(itsConverter)),"TIME",
 	   casa::TableIterator::DontCare,casa::TableIterator::NoSort);
+  itsCurrentIteration=itsTabIterator.table();  
+  setUpIteration();
 }
 
 /// operator* delivers a reference to data accessor (current chunk)
@@ -48,6 +50,12 @@ const IConstDataAccessor& TableConstDataIterator::operator*() const
 /// @return True if there are more data available
 casa::Bool TableConstDataIterator::hasMore() const throw()
 {
+  if (!itsTabIterator.pastEnd()) {
+      return true;
+  }
+  if (itsCurrentTopRow+itsAccessor.nRow()<itsCurrentIteration.nrow()) {
+      return true;
+  }   
   return false;
 }
       
@@ -57,4 +65,30 @@ casa::Bool TableConstDataIterator::hasMore() const throw()
 casa::Bool TableConstDataIterator::next()
 {
   return hasMore();
+}
+
+/// setup accessor for a new iteration
+void TableConstDataIterator::setUpIteration()
+{
+  itsAccessor.invalidateAllCaches();
+  itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
+                  itsCurrentIteration.nrow() : itsMaxChunkSize;
+  
+      
+}
+
+
+/// populate the buffer of visibilities with the values of current
+/// iteration
+/// @param[in] vis a reference to the nRow x nChannel x nPol buffer
+///            cube to fill with the complex visibility data
+void TableConstDataIterator::fillVisibility(casa::Cube<casa::Complex> &vis) const
+{
+}
+
+/// populate the buffer with uvw
+/// @param[in] uvw a reference to vector of rigid vectors (3 elemets,
+///            u,v and w for each row) to fill
+void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double, 3> >&uvw) const
+{
 }

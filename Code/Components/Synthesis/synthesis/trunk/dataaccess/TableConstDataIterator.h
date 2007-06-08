@@ -22,7 +22,7 @@
 #include <dataaccess/IConstDataIterator.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableDataSelectorImpl.h>
-#include <dataaccess/DataAccessorStub.h>
+#include <dataaccess/TableConstDataAccessor.h>
 
 namespace conrad {
 
@@ -55,6 +55,36 @@ public:
   /// @return True if there are more data (so constructions like 
   ///         while(it.next()) {} are possible)
   virtual casa::Bool next();
+
+  /// methods used in the accessor.
+
+  /// @return number of rows in the current accessor
+  casa::uInt inline nRow() const throw() { return itsNumberOfRows;}
+
+  /// temporary - access to number of channels and polarizations
+  /// it will be determined by the selector, get them from the table
+  /// for now
+
+  /// @return number of channels in the current accessor
+  casa::uInt inline nChannel() const throw() { return itsNumberOfChannels;}
+
+  /// @return number of channels in the current accessor
+  casa::uInt inline nPol() const throw() { return itsNumberOfPols;}
+
+  /// populate the buffer of visibilities with the values of current
+  /// iteration
+  /// @param[in] vis a reference to the nRow x nChannel x nPol buffer
+  ///            cube to fill with the complex visibility data
+  void fillVisibility(casa::Cube<casa::Complex> &vis) const;
+
+  /// populate the buffer with uvw
+  /// @param[in] uvw a reference to vector of rigid vectors (3 elemets,
+  ///            u,v and w for each row) to fill
+  void fillUVW(casa::Vector<casa::RigidVector<casa::Double, 3> >&uvw) const;
+  
+protected:
+  /// setup accessor for a new iteration
+  void setUpIteration();
 private:
   casa::Table itsMS;
   boost::shared_ptr<ITableDataSelectorImpl const>  itsSelector;
@@ -62,10 +92,21 @@ private:
   /// the maximum allowed number of rows in the accessor.
   casa::uInt itsMaxChunkSize;
   casa::TableIterator itsTabIterator;
+  /// current group of data returned by itsTabIterator
+  casa::Table itsCurrentIteration;
+  /// current row in the itsCurrentIteration projected to the row 0
+  /// of the data accessor
   casa::uInt itsCurrentTopRow;
+  /// number of rows in the current chunk
+  casa::uInt itsNumberOfRows;
+  /// next two data members are temporary here
+  /// we need to use properties of selector when it's ready
+  casa::uInt itsNumberOfChannels;
+  casa::uInt itsNumberOfPols;
+  
   /// for now use the stub, although it won't provide read on
   /// demand capability
-  mutable DataAccessorStub itsAccessor;
+  mutable TableConstDataAccessor itsAccessor;
 };
 
 

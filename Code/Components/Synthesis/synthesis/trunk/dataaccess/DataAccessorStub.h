@@ -17,8 +17,8 @@ namespace synthesis {
 /// A stubbed implementation of the data accessor
 struct DataAccessorStub : public IFlagDataAccessor
 {
-	/// Default version can fill with MIRANdA data
-	DataAccessorStub(const bool fill=false);
+     /// Default version can fill with MIRANdA data
+     DataAccessorStub(const bool fill=false);
 	
      /// The number of rows in this chunk
      /// @return the number of rows in this chunk
