@@ -24,7 +24,6 @@ void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi, const casa
     for (int ix=0;ix<itsCSize;ix++) {
         double nux=std::abs(double(ix-itsCCenter))/double(itsSupport*itsOverSample);
         double fx=grdsf(nux)*(1.0-std::pow(nux,2));
-//        std::cout << ix << " " << fx << std::endl;
         for (int iy=0;iy<itsCSize;iy++) {
             double nuy=std::abs(double(iy-itsCCenter))/double(itsSupport*itsOverSample);
             double fy=grdsf(nuy)*(1.0-std::pow(nuy,2));
@@ -106,6 +105,9 @@ double SphFuncVisGridder::grdsf (double nu) {
   for (k = 1;k<= np;k++) {
     double factor=std::pow(delnusq, k);
     top += p[part][k] * factor;
+  }
+  for (k = 1;k<= nq;k++) {
+    double factor=std::pow(delnusq, k);
     bot += q[part][k] * factor;
   }
   if (bot!=0.0) {
