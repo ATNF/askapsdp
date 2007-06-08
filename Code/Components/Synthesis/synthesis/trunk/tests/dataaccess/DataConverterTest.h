@@ -61,13 +61,13 @@ public:
    /// test Epoch conversion
    void testEpochConversion()
    { 
-    casa::MEpoch refEpoch=casa::MEpoch(casa::MVEpoch(casa::Quantity(50237.29,"d")),
+    casa::MEpoch refEpoch=casa::MEpoch(casa::MVEpoch(casa::Quantity(50257.29,"d")),
                             casa::MEpoch::Ref(casa::MEpoch::UTC));
     itsConverter->setEpochFrame(refEpoch,"s");
     CPPUNIT_ASSERT(fabs(itsConverter->epoch(refEpoch))<1e-7);
     // adjust it one day forward and see whether the epoch is converted
     // to seconds
-    casa::MEpoch newEpoch=casa::MEpoch(casa::MVEpoch(casa::Quantity(50238.29,"d")),
+    casa::MEpoch newEpoch=casa::MEpoch(casa::MVEpoch(casa::Quantity(50258.29,"d")),
                             casa::MEpoch::Ref(casa::MEpoch::UTC));
     CPPUNIT_ASSERT(fabs(itsConverter->epoch(newEpoch)-86400)<1e-7);
 
