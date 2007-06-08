@@ -38,7 +38,7 @@ public:
   TableConstDataIterator(const casa::Table &ms,
               const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
 	      const boost::shared_ptr<IDataConverterImpl const> &conv,
-	      casa::uInt maxChunkSize = MAXINT);
+	      casa::uInt maxChunkSize = INT_MAX);
 
   /// Restart the iteration from the beginning
   virtual void init();
