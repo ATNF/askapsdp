@@ -7,6 +7,9 @@
 
 # Always import this
 from conradenv import env
+import os
+
+os.environ['AIPSPATH']=os.environ['CONRAD_PROJECT_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
 
 env.Append(CCFLAGS=['-O2'])
 
