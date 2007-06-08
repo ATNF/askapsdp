@@ -31,9 +31,13 @@ public:
     /// @param image image to be corrected
     virtual void correctConvolution(const scimath::Axes& axes,
         casa::Cube<double>& image);
-    virtual void correctConvolution(const scimath::Axes& axes,
-        casa::Array<double>& image);
-        
+
+    /// Apply gridding convolution function in image space
+    /// @param axes axes specifications
+    /// @param image image to be corrected
+    virtual void applyConvolution(const scimath::Axes& axes,
+        casa::Cube<double>& image);
+           
 protected:
     int cOffset(int, int);
     void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,

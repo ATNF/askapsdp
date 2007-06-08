@@ -51,17 +51,37 @@ void SphFuncVisGridder::correctConvolution(const scimath::Axes& axes,
     for (int iz=0;iz<nz;iz++) {
         for(int ix=0;ix<nx;ix++) {
             for(int iy=0;iy<ny;iy++) {
-                grid.xyPlane(iz)(ix,iy)*=ccfx(ix)*ccfy(iy);
+                grid(ix,iy,iz)*=ccfx(ix)*ccfy(iy);
             }
         }
     }
 }
 
-void SphFuncVisGridder::correctConvolution(const scimath::Axes& axes,
-        casa::Array<double>& grid) 
-{
-}
 
+void SphFuncVisGridder::applyConvolution(const scimath::Axes& axes,
+        casa::Cube<double>& grid)
+{
+    int nx=grid.shape()(0);
+    int ny=grid.shape()(1);
+    int nz=grid.shape()(2);
+    casa::Vector<double> ccfx(nx);
+    casa::Vector<double> ccfy(ny);
+    for (int ix=0;ix<nx;ix++) {
+        double nux=std::abs(double(ix-nx/2))/double(nx/2);
+        ccfx(ix)=grdsf(nux);
+    }
+    for (int iy=0;iy<ny;iy++) {
+        double nuy=std::abs(double(iy-ny/2))/double(ny/2);
+        ccfy(iy)=grdsf(nuy);
+    }
+    for (int iz=0;iz<nz;iz++) {
+        for(int ix=0;ix<nx;ix++) {
+            for(int iy=0;iy<ny;iy++) {
+                grid(ix,iy,iz)*=ccfx(ix)*ccfy(iy);
+            }
+        }
+    }
+}
 
 // find spheroidal function with m = 6, alpha = 1 using the rational
 // approximations discussed by fred schwab in 'indirect imaging'.

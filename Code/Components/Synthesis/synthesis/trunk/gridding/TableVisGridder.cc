@@ -355,14 +355,14 @@ void TableVisGridder::findCellsize(casa::Vector<double>& cellsize, const casa::I
 void TableVisGridder::correctConvolution(const scimath::Axes& axes,
         casa::Cube<double>& grid)
 {
+    std::cout << "Null gridding function correction" << std::endl;
 }
 
-void TableVisGridder::correctConvolution(const scimath::Axes& axes,
-        casa::Array<double>& grid)
+void TableVisGridder::applyConvolution(const scimath::Axes& axes,
+        casa::Cube<double>& grid)
 {
+    std::cout << "Null gridding function correction" << std::endl;
 }
-
-        
 
             
 }

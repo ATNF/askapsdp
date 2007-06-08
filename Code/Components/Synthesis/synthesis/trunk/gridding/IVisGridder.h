@@ -85,8 +85,12 @@ public:
     /// @param image image to be corrected
     virtual void correctConvolution(const scimath::Axes& axes,
         casa::Cube<double>& image) = 0;
-    virtual void correctConvolution(const scimath::Axes& axes,
-        casa::Array<double>& image) = 0;
+        
+    /// Apply gridding convolution function in image space
+    /// @param axes axes specifications
+    /// @param image image to be corrected
+    virtual void applyConvolution(const scimath::Axes& axes,
+        casa::Cube<double>& image) = 0;
         
 };
 

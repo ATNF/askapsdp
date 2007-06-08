@@ -95,15 +95,13 @@ class ImageFFTEquationTest : public CppUnit::TestFixture  {
         solver1.solveNormalEquations(q);
 		casa::Array<double> improved=solver1.parameters().value("image.i.cena");
 		uint npix=512;
-//        std::cout << improved(casa::IPosition(2, npix/4, npix/4)) << std::endl; 
-//        std::cout << improved(casa::IPosition(2, npix/2, npix/2)) << std::endl; 
-//        std::cout << improved(casa::IPosition(2, 3*npix/8, 7*npix/16)) << std::endl; 
         {
             ParamsCASATable pt("ImageFFTEquationTest.tab", false);
             pt.setParameters(solver1.parameters());
         }
-//		CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
-//		CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.003);
+        // This only works for the pixels with emission but it's a good test nevertheless
+		CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
+		CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.003);
 	}
 	
 	void testFixed() {

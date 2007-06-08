@@ -73,15 +73,15 @@ void ImageFFTEquation::predict()
     	for (it=completions.begin();it!=completions.end();it++) {
     	
     		string imageName("image.i"+(*it));
-            const casa::Array<double> imagePixels(parameters().value(imageName));
+            const Axes axes(parameters().axes(imageName));
+            casa::Cube<double> imagePixels(parameters().value(imageName).copy());
             const casa::IPosition imageShape(imagePixels.shape());
-            
+            SphFuncVisGridder tvg;
+            tvg.correctConvolution(axes, imagePixels);
             casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
             toComplex(uvGrid, imagePixels);
             cfft(uvGrid, true);
-    
-            SphFuncVisGridder tvg;
-            tvg.forward(itsIdi, parameters().axes(imageName), uvGrid);
+            tvg.forward(itsIdi, axes, uvGrid);
     	}
     }
 };
@@ -97,15 +97,7 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
     vector<string> completions(parameters().completions("image.i"));
     vector<string>::iterator it;
 
-    itsIdi.chooseOriginal();
-
     for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
-
-        IDataSharedIter modelIdi(itsIdi);
-        modelIdi.chooseBuffer("model");
-
-        IDataSharedIter residualIdi(itsIdi);
-        residualIdi.chooseBuffer("residual");
 
     	const casa::Vector<double>& freq=itsIdi->frequency();	
     	const uint nChan=freq.nelements();
@@ -114,7 +106,7 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
     	for (it=completions.begin();it!=completions.end();it++) {
             
     		string imageName("image.i"+(*it));
-            const casa::Array<double> imagePixels(parameters().value(imageName));
+            casa::Cube<double> imagePixels(parameters().value(imageName).copy());
             const casa::IPosition imageShape(imagePixels.shape());
             casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
             uvGrid.set(0.0);
@@ -122,17 +114,22 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
             casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
             casa::Cube<double> imagePSF(imageShape(0), imageShape(1), 1);
             casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
+
+            casa::Cube<casa::Complex> vis(itsIdi->visibility().copy());            
+            itsIdi->rwVisibility().set(0.0);
             
             // Predict the model visibility
             Axes axes(parameters().axes(imageName));
             SphFuncVisGridder tvg;
+            tvg.correctConvolution(axes, imagePixels);
             toComplex(uvGrid, imagePixels);
             cfft(uvGrid, true);
             tvg.forward(itsIdi, axes, uvGrid);
-//            residualIdi->rwVisibility()=itsIdi->visibility()-modelIdi->visibility();
+            itsIdi->rwVisibility()=vis-itsIdi->visibility();
             
             // Calculate residual image
             {
+                uvGrid.set(0.0);
                 casa::Vector<float> uvWeights(1);
                 tvg.reverse(itsIdi, axes, uvGrid, uvWeights);
                 cfft(uvGrid, false);
@@ -149,13 +146,14 @@ void ImageFFTEquation::calcEquations(NormalEquations& ne)
             }
             // Calculate PSF (i.e. slice through normal matrix)
             {
-                modelIdi->rwVisibility().set(casa::Complex(1.0));
+                itsIdi->rwVisibility().set(casa::Complex(1.0));
                 uvGrid.set(0.0);
                 casa::Vector<float> uvWeights(1);
-                tvg.reverse(modelIdi, axes, uvGrid, uvWeights);
+                tvg.reverse(itsIdi, axes, uvGrid, uvWeights);
                 cfft(uvGrid, false);
                 toDouble(imagePSF, uvGrid);
                 tvg.correctConvolution(axes, imagePSF);
+                itsIdi->rwVisibility()=vis;
             }
 
             casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
