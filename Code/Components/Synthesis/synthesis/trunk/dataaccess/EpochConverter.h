@@ -40,7 +40,7 @@ struct EpochConverter : public IEpochConverter {
 
     /// convert specified MEpoch to the target units/frame
     /// @param in an epoch to convert. 
-    casa::Double EpochConverter::operator()(const casa::MEpoch &in) const;
+    casa::Double operator()(const casa::MEpoch &in) const;
 
     /// Reverse conversion (casa::Double to full measure)
     /// @param in an epoch given as Double in the target units/frame
