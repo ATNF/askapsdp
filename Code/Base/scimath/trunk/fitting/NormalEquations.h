@@ -149,7 +149,7 @@ public:
     std::map<string, casa::IPosition>& shape() const;
     
     /// Return references
-    std::map<string, casa::IPosition >& NormalEquations::reference() const;
+    std::map<string, casa::IPosition >& reference() const;
   
     /// Reset to empty
     void reset();
