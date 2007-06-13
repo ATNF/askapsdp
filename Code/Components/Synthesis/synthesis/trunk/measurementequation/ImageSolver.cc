@@ -75,10 +75,5 @@ bool ImageSolver::solveNormalEquations(Quality& quality) {
 	return true;
 };
 
-// Fully general solver from the design matrix
-bool ImageSolver::solveDesignMatrix(Quality& quality) {
-	return false;
-};
-
 }
 }
