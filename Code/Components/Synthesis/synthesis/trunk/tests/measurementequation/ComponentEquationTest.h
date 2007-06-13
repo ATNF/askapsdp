@@ -129,7 +129,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
         solver1.addNormalEquations(ne);
         solver1.setAlgorithm("SVD");
         solver1.solveNormalEquations(q);
-        CPPUNIT_ASSERT(abs(q.cond()/3.6263e+27-1.0)<0.001);
+        CPPUNIT_ASSERT(abs(q.cond()/1.78229e+24-1.0)<0.001);
     }
 
     void testSolveNormalEquationsFix() {
@@ -145,7 +145,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
-            CPPUNIT_ASSERT(abs(q.cond()/3.54964e+27-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/1.74461e+24-1.0)<0.001);
         }
         {
             Quality q;
@@ -155,7 +155,7 @@ class ComponentEquationTest : public CppUnit::TestFixture  {
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
-            CPPUNIT_ASSERT(abs(q.cond()/1.17489e27-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/5.77448e+23-1.0)<0.001);
         }
         {
             Quality q;

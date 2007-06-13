@@ -43,13 +43,19 @@ public:
 private:
     IDataSharedIter itsIdi;
 	void init();
-	/// Templated function to do the calculation of value and derivatives.
-	template<class T>
-	void calcRegularVis(const T& ra, const T& dec, const T& flux, 
+    /// Templated function to do the calculation of value and derivatives.
+    template<class T>
+    void calcRegularGauss(const T& ra, const T& dec, const T& flux, 
         const T& bmaj, const T& bmin, const T& bpa, 
-		const casa::Vector<double>& freq, 
+        const casa::Vector<double>& freq, 
         const double u, const double v, const double w, 
-		casa::Vector<T>& vis);
+        casa::Vector<T>& vis);
+    /// Templated function to do the calculation of value and derivatives.
+    template<class T>
+    void calcRegularPoint(const T& ra, const T& dec, const T& flux, 
+        const casa::Vector<double>& freq, 
+        const double u, const double v, const double w, 
+        casa::Vector<T>& vis);
 };
 
 }

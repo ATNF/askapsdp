@@ -87,11 +87,20 @@ void ComponentEquation::predict()
                 const casa::Vector<double>& time=itsIdi->time();    
                 casa::Vector<float> vis(2*freq.nelements());
 
-    			this->calcRegularVis<float>(ra, dec, fluxi, bmaj, bmin, bpa, freq, 
-                    itsIdi->uvw()(row)(0), 
-                    itsIdi->uvw()(row)(1), 
-                    itsIdi->uvw()(row)(3), 
-                    vis);
+                if((bmaj>0.0)&&(bmin>0.0)) {
+                    this->calcRegularGauss<float>(ra, dec, fluxi, bmaj, bmin, bpa, freq, 
+                        itsIdi->uvw()(row)(0), 
+                        itsIdi->uvw()(row)(1), 
+                        itsIdi->uvw()(row)(3), 
+                        vis);
+                }
+                else {
+                    this->calcRegularPoint<float>(ra, dec, fluxi, freq, 
+                        itsIdi->uvw()(row)(0), 
+                        itsIdi->uvw()(row)(1), 
+                        itsIdi->uvw()(row)(3), 
+                        vis);
+                }
 
                 for (uint i=0;i<freq.nelements();i++) {
 				    itsIdi->rwVisibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
@@ -160,13 +169,23 @@ void ComponentEquation::calcEquations(NormalEquations& ne)
     			
     		for (uint row=0;row<itsIdi->nRow();row++) {
     
-    			this->calcRegularVis<casa::AutoDiff<double> >(ara, adec, afluxi, 
-                    abmaj, abmin, abpa, freq, 
-    				itsIdi->uvw()(row)(0), 
-                    itsIdi->uvw()(row)(1), 
-                    itsIdi->uvw()(row)(2), 
-                    av);
-    
+                if((abmaj>0.0)&&(abmin>0.0)) {
+                    this->calcRegularGauss<casa::AutoDiff<double> >(ara, adec,
+                        afluxi, abmaj, abmin, abpa, freq, 
+                        itsIdi->uvw()(row)(0), 
+                        itsIdi->uvw()(row)(1), 
+                        itsIdi->uvw()(row)(3), 
+                        av);
+                }
+                else {
+                    this->calcRegularPoint<casa::AutoDiff<double> >(ara, adec,
+                        afluxi, freq, 
+                        itsIdi->uvw()(row)(0), 
+                        itsIdi->uvw()(row)(1), 
+                        itsIdi->uvw()(row)(3), 
+                        av);
+                }
+
     			for (uint i=0;i<freq.nelements();i++) {
                     residual(2*i+offset)=real(itsIdi->visibility()(row,i,0))-av(2*i).value();
                     residual(2*i+1+offset)=imag(itsIdi->visibility()(row,i,0))-av(2*i+1).value();
@@ -206,28 +225,39 @@ void ComponentEquation::calcEquations(NormalEquations& ne)
 // it in this form for the moment to show how the differentiation is done using
 // casa::AutoDiff
 template<class T>
-void ComponentEquation::calcRegularVis(const T& ra, const T& dec, const T& flux,
-    const T& bmaj, const T& bmin, const T& bpa, 
-	const casa::Vector<double>& freq, 
+void ComponentEquation::calcRegularPoint(const T& ra, const T& dec, const T& flux,
+    const casa::Vector<double>& freq, 
     const double u, const double v, const double w,
-	casa::Vector<T>& vis) 
+    casa::Vector<T>& vis) 
 {
-	T delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
+    T delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
     T scale = 1.0/casa::C::c;
-	for (uint i=0;i<freq.nelements();i++) {
-		T phase = delay * freq(i);
-        if((bmaj>0.0) && (bmin>0.0)) {
-            T up=( cos(bpa)*u + sin(bpa)*v)*scale*freq(i);
-            T vp=(-sin(bpa)*u + cos(bpa)*v)*scale*freq(i);
-            T decorr = exp(-scale*(bmaj*bmaj*up*up+bmin*bmin*vp*vp));
-            vis(2*i)   = flux * decorr * cos(phase);
-            vis(2*i+1) = flux * decorr * sin(phase);
-        }
-        else {
-            vis(2*i)   = flux * cos(phase);
-            vis(2*i+1) = flux * sin(phase);
-        }
-	}
+    for (uint i=0;i<freq.nelements();i++) {
+        T phase = delay * freq(i);
+        vis(2*i)   = flux * cos(phase);
+        vis(2*i+1) = flux * sin(phase);
+    }
+}
+
+template<class T>
+void ComponentEquation::calcRegularGauss(const T& ra, const T& dec, const T& flux,
+    const T& bmaj, const T& bmin, const T& bpa, 
+    const casa::Vector<double>& freq, 
+    const double u, const double v, const double w,
+    casa::Vector<T>& vis) 
+{
+    T delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
+    // exp(-a*x^2) transforms to exp(-pi^2*u^2/a)
+    // a=4log(2)/FWHM^2 so scaling = pi^2*FWHM/(4log(2))
+    T scale = std::pow(casa::C::pi,2)/(casa::C::c*(4*log(2)));
+    for (uint i=0;i<freq.nelements();i++) {
+        T phase = delay * freq(i);
+        T up=( cos(bpa)*u + sin(bpa)*v)*scale*freq(i);
+        T vp=(-sin(bpa)*u + cos(bpa)*v)*scale*freq(i);
+        T decorr = exp(-scale*(bmaj*bmaj*up*up+bmin*bmin*vp*vp));
+        vis(2*i)   = flux * decorr * cos(phase);
+        vis(2*i+1) = flux * decorr * sin(phase);
+    }
 }
 
 }
