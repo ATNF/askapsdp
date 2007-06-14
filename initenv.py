@@ -8,6 +8,7 @@
 #
 import sys
 import os
+from distutils.sysconfig import get_python_version
 
 from optparse import OptionParser
 
@@ -31,6 +32,7 @@ shmap = { "bash" : { "suffix": "sh", "envset": "export",
 
 
 shell =  shmap[opts.shell]
+pylibdir = "lib/python%s" % get_python_version()
 
 filename = "initconrad.%s" % shell["suffix"]
 if os.path.exists(filename):
@@ -39,31 +41,16 @@ f = file(filename, "w")
 exports = "%s CONRAD_PROJECT_ROOT%s%s\n" % ( shell["envset"], 
 					     shell["envassign"],
 					     os.getcwd() )
-exports += "%s PYTHONPATH%s${CONRAD_PROJECT_ROOT}/lib/python:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools\n" % (shell["envset"], shell["envassign"])
-exports += "%s PATH%s${CONRAD_PROJECT_ROOT}/bin:${PATH}" % (shell["envset"], 
-							    shell["envassign"])
+exports += "%s PYTHONPATH%s${CONRAD_PROJECT_ROOT}/%s:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools\n" % (shell["envset"], shell["envassign"], pylibdir)
+exports += "%s PATH%s${CONRAD_PROJECT_ROOT}/bin:${PATH}\n" % (shell["envset"], 
+                                                              shell["envassign"])
+exports += '%s PS1%s"(conrad)$PS1"' %(shell["envset"],shell["envassign"])
 f.write(exports)
 f.close()
 
-if not os.path.exists("lib"):
-    os.mkdir("lib")
-    os.mkdir("lib/python")
+if not os.path.exists(pylibdir):
+    os.makedirs(pylibdir)
 if not os.path.exists("bin"):
     os.mkdir("bin")
-dconf = os.path.expanduser("~/.pydistutils.cfg")
-
-if os.path.exists(dconf):
-    print "Moving existing ~/.pydistutils.cfg out of the way"
-    os.rename(dconf, dconf+".save")
-    print """Warning this changes the default location of the 
-installation of python packages to the CONRAD tree."""
-
-f = file(dconf, "w")
-f.write("""
-[install]
-install_lib = $CONRAD_PROJECT_ROOT/lib/python
-install_scripts = $CONRAD_PROJECT_ROOT/bin
-""")
-f.close()
 
 print "Created initconrad.%s, please run '%s initconrad.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
