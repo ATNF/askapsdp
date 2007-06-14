@@ -23,9 +23,12 @@ class ComponentEquation : public conrad::scimath::Equation
 public:
 
     /// @param ida data accessor
-	ComponentEquation(const conrad::scimath::Params& ip,
+    ComponentEquation(const conrad::scimath::Params& ip,
         IDataSharedIter& idi) :  conrad::scimath::Equation(ip),
         itsIdi(idi) {init();};
+
+    ComponentEquation(IDataSharedIter& idi) :  conrad::scimath::Equation(),
+        itsIdi(idi) {init();itsParams=itsDefaultParams;};
 	
     ComponentEquation(const ComponentEquation& other);
     

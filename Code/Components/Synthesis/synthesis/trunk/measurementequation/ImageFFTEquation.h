@@ -22,9 +22,11 @@ class ImageFFTEquation : public conrad::scimath::Equation
 {
 public:
 
-	ImageFFTEquation(const conrad::scimath::Params& ip, 
+    ImageFFTEquation(const conrad::scimath::Params& ip, 
         IDataSharedIter& idi) :  
         conrad::scimath::Equation(ip), itsIdi(idi) {init();};
+    ImageFFTEquation(IDataSharedIter& idi) :  
+        conrad::scimath::Equation(), itsIdi(idi) {init();itsParams=itsDefaultParams;};
 	
     ImageFFTEquation(const ImageFFTEquation& other);
     

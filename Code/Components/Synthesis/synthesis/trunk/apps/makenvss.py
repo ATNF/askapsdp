@@ -10,11 +10,17 @@ def putline(t, name, value):
     t.putcell('NAME', row, name)
     t.putcell('VALUES', row, value)
     t.putcell('FREE', row, True)
+    t.putcell('AXES', row, '')
+    t.putcell('AXESSTART', row, 0.0)
+    t.putcell('AXESEND', row, 0.0)
+    t.putcell('DOMAIN', row, '')
+    t.putcell('DOMAINSTART', row, 0.0)
+    t.putcell('DOMAINEND', row, 0.0)
     
 def addsource(t, dir, rad, flux, bmaj, bmin, bpa):
     arcsec=math.pi/(180*3600.0)
     degree=math.pi/180.0
-    source='source%d'%(t.nrows())
+    source='source%04d'%(t.nrows()/6)
     ra=dir['m0']['value']
     dec=dir['m1']['value']
     putline(t, 'flux.i.'+source, flux)
