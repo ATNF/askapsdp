@@ -13,12 +13,12 @@
 ///
 /// Here's a (longwinded) example of how to use this framework
 /// for fitting a polynomial equation.
-/// 
-///    casa::Vector<double> arguments(10); 
+///
+///    casa::Vector<double> arguments(10);
 ///    casa::Vector<double> data(10);
 ///    casa::Vector<double> weights(10);
 ///    casa::Vector<double> model(10);
-///    
+///
 ///    for (uint i=0;i<arguments.size();i++) {
 ///        arguments[i]=i;
 ///    }
@@ -33,7 +33,7 @@
 ///    quadratic(2)=3;
 ///    ip.add("poly", quadratic);
 ///
-///    PolynomialEquation poly(ip, data, weights, arguments, model);       
+///    PolynomialEquation poly(ip, data, weights, arguments, model);
 ///    poly.predict();
 ///    quadratic.set(0.0);
 ///    ip.update("poly", quadratic);
@@ -71,65 +71,66 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace conrad { 
-
-namespace scimath
+namespace conrad
 {
 
-class Equation {
-public:	
-    /// Construct using specified parameters
-    explicit Equation(const Params& ip);
-    
-    /// Copy constructor
-    Equation(const Equation& other);
-    
-    /// Assignment operator
-    Equation& operator=(const Equation& other);
-    
-    virtual ~Equation();
+  namespace scimath
+  {
 
-	/// Access the parameters
-	const Params& parameters() const;
-	Params& parameters();
-	
-	/// Set the parameters to new values
-	/// @param ip Parameters
-	virtual void setParameters(const Params& ip);
-	
-	/// Check if a set of parameters is complete for this equation
-    /// i.e. are all the required parameters present
-	/// @param ip Parameters
-	virtual bool complete(const Params& ip);
-	
-	/// Return a default set of parameters
-	/// @param ip Parameters
-	const Params& defaultParameters() const;
-    
-    /// Predict the data from the parameters. This changes the internal state.
-    virtual void predict() {};
-    
-    /// Calculate the normal equations for the given data and parameters
-    /// @param ne Normal equations to be filled
-    virtual void calcEquations(NormalEquations& ne) {};
-    
-    /// Shared pointer definition
-    typedef boost::shared_ptr<Equation> ShPtr;
-    
-    /// Clone this into a shared pointer 
-    virtual Equation::ShPtr clone();
+    class Equation
+    {
+      public:
 
-protected:
-    Equation() {};
-	Params itsParams;
-	Params itsDefaultParams;
-};
+/// Construct using default parameters
+        Equation();
 
-}
+/// Construct using specified parameters
+        explicit Equation(const Params& ip);
+
+/// Copy constructor
+        Equation(const Equation& other);
+
+/// Assignment operator
+        Equation& operator=(const Equation& other);
+
+        virtual ~Equation();
+
+/// Access the parameters
+        const Params& parameters() const;
+        Params& parameters();
+
+/// Set the parameters to new values
+/// @param ip Parameters
+        virtual void setParameters(const Params& ip);
+
+/// Check if a set of parameters is complete for this equation
+/// i.e. are all the required parameters present
+/// @param ip Parameters
+        virtual bool complete(const Params& ip);
+
+/// Return a default set of parameters
+/// @param ip Parameters
+        const Params& defaultParameters() const;
+        Params& defaultParameters();
+
+/// Predict the data from the parameters. This changes the internal state.
+        virtual void predict() {};
+
+/// Calculate the normal equations for the given data and parameters
+/// @param ne Normal equations to be filled
+        virtual void calcEquations(NormalEquations& ne) {};
+
+/// Shared pointer definition
+        typedef boost::shared_ptr<Equation> ShPtr;
+
+/// Clone this into a shared pointer
+        virtual Equation::ShPtr clone();
+
+      protected:
+        Params itsParams;
+        Params itsDefaultParams;
+    };
+
+  }
 }
 #endif
-
-
-
-
-

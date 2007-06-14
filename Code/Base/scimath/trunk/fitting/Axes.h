@@ -7,7 +7,7 @@
 ///      Axes imageAxes;
 ///      double arcsec=casa::C::pi/(3600.0*180.0);
 ///      double cell=5.0*arcsec;
-///      imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0); 
+///      imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0);
 ///      imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
 ///      imageAxes.add("FREQ", 1e9, 1.2e9);
 ///
@@ -26,70 +26,70 @@
 
 namespace conrad
 {
-	
-namespace scimath
-{
-    
-class Axes
-{
-public:
-	/// Make an empty set of axes
-	Axes();
-	
-	/// Assignment operator
-	Axes& operator=(const Axes& other);
-	
-	/// Copy constructor
-	Axes(const Axes& other);
 
-	~Axes();
-	
-	/// Add an axis 
-	/// @param name Name of axis
-	/// @param start Start value
-	/// @param end End value
-	void add(const std::string& name, const double start, const double end);
-	
-	/// Do it have this axis?
-	/// @param name Name of axis
-	bool has(const std::string& name) const;
+  namespace scimath
+  {
 
-	/// Order of this axis
-	/// @param name Name of axis
-	int order(const std::string& name) const;
-		
-	/// Return the possible axis names
-	const std::vector<std::string>& names() const;
+    class Axes
+    {
+      public:
+/// Make an empty set of axes
+        Axes();
 
-    /// Return start value  
-    /// @param name Name of axis
-    double start(const std::string& name) const;
-    
-    /// Return end value    
-    /// @param name Name of axis
-    double end(const std::string& name) const;
-    
-    /// Return start value  
-    /// @param name Name of axis
-    const std::vector<double>& start() const;
-    
-    /// Return end value    
-    /// @param name Name of axis
-    const std::vector<double>& end() const;
-    
-    /// Output to an ostream
-	friend std::ostream& operator<<(std::ostream& os, const Axes& domain);
-	
-private:
-	mutable std::vector<std::string> itsNames;
-	mutable std::vector<double> itsStart;
-	mutable std::vector<double> itsEnd;
-};
+/// Assignment operator
+        Axes& operator=(const Axes& other);
+
+/// Copy constructor
+        Axes(const Axes& other);
+
+        ~Axes();
+
+/// Add an axis
+/// @param name Name of axis
+/// @param start Start value
+/// @param end End value
+        void add(const std::string& name, const double start, const double end);
+
+/// Do it have this axis?
+/// @param name Name of axis
+        bool has(const std::string& name) const;
+
+/// Order of this axis
+/// @param name Name of axis
+        int order(const std::string& name) const;
+
+/// Return the possible axis names
+        const std::vector<std::string>& names() const;
+
+/// Return start value
+/// @param name Name of axis
+        double start(const std::string& name) const;
+
+/// Return end value
+/// @param name Name of axis
+        double end(const std::string& name) const;
+
+/// Return start value
+/// @param name Name of axis
+        const std::vector<double>& start() const;
+
+/// Return end value
+/// @param name Name of axis
+        const std::vector<double>& end() const;
+
+/// Output to an ostream
+        friend std::ostream& operator<<(std::ostream& os, const Axes& domain);
+
+      private:
+        mutable std::vector<std::string> itsNames;
+        mutable std::vector<double> itsStart;
+        mutable std::vector<double> itsEnd;
+    };
 
 /// Use Domain as a synonym (for the moment).
 
-typedef Axes Domain;
+    typedef Axes Domain;
 
+  };
 };
-};
-#endif /*AXES_H_*/
+#endif                                            /*AXES_H_*/

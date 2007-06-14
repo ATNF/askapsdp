@@ -12,32 +12,30 @@
 
 namespace conrad
 {
-namespace scimath
-{
+  namespace scimath
+  {
 
+    class ParamsTable
+    {
+      public:
+        ParamsTable();
 
-class ParamsTable
-{
-public:
-	ParamsTable();
-	
-	virtual ~ParamsTable();
-	
-	/// Get the parameters for a specified domain
-	/// @param ip Template of parameters - must match
-    /// @param dom domain of parameters
-    virtual bool getParameters(Params& ip) const;
-    virtual bool getParameters(Params& ip, const Domain& domain) const;
+        virtual ~ParamsTable();
 
-	/// Set the parameters for a given domain
-	/// @param ip Parameters to set
-    /// @param dom domain of parameters
-    virtual bool setParameters (const Params& ip);
-    virtual bool setParameters (const Params& ip, const Domain& domain);
+/// Get the parameters for a specified domain
+/// @param ip Template of parameters - must match
+/// @param dom domain of parameters
+        virtual void getParameters(Params& ip) const;
+        virtual void getParameters(Params& ip, const Domain& domain) const;
 
-};
+/// Set the parameters for a given domain
+/// @param ip Parameters to set
+/// @param dom domain of parameters
+        virtual void setParameters (const Params& ip);
+        virtual void setParameters (const Params& ip, const Domain& domain);
 
+    };
+
+  }
 }
-}
-
-#endif /*PARAMSTABLE_H_*/
+#endif                                            /*PARAMSTABLE_H_*/

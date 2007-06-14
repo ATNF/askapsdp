@@ -3,34 +3,32 @@
 
 namespace conrad
 {
-namespace scimath
-{
+  namespace scimath
+  {
 
-ParamsTable::ParamsTable()
-{
-}
+    ParamsTable::ParamsTable()
+    {
+    }
 
-ParamsTable::~ParamsTable()
-{
-}
+    ParamsTable::~ParamsTable()
+    {
+    }
 
-bool ParamsTable::getParameters(Params& ip) const
-{
-    return false;
-};
+    void ParamsTable::getParameters(Params& ip) const
+    {
+    };
 
-bool ParamsTable::getParameters(Params& ip, const Domain& domain) const
-{
-    return false;
-};
+    void ParamsTable::getParameters(Params& ip, const Domain& domain) const
+    {
+    };
 
-bool ParamsTable::setParameters(const Params& ip) {
-    return false;
-}
+    void ParamsTable::setParameters(const Params& ip)
+    {
+    }
 
-bool ParamsTable::setParameters(const Params& ip, const Domain& domain) {
-    return false;
-}
+    void ParamsTable::setParameters(const Params& ip, const Domain& domain)
+    {
+    }
 
-}
+  }
 }

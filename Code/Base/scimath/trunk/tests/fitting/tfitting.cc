@@ -6,7 +6,6 @@
 #include <NormalEquationsTest.h>
 #include <PolynomialEquationTest.h>
 
-
 int main( int argc, char **argv)
 {
   CppUnit::TextUi::TestRunner runner;

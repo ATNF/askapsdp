@@ -16,27 +16,26 @@
 
 namespace conrad
 {
-namespace scimath
-{
+  namespace scimath
+  {
 
-class LinearSolver : public Solver
-{
-public:	
-    /// Constructor
-	explicit LinearSolver(const Params& ip) : Solver(ip) {};
-	
-	/// Initialize this solver
-	virtual void init();
-	
-	/// Solve for parameters, updating the values kept internally
-	/// The solution is constructed from the normal equations
-	/// @param q Quality information
-	virtual bool solveNormalEquations(Quality& q);
-	
-protected:
-};
+    class LinearSolver : public Solver
+    {
+      public:
+/// Constructor
+        explicit LinearSolver(const Params& ip) : Solver(ip) {};
 
+/// Initialize this solver
+        virtual void init();
+
+/// Solve for parameters, updating the values kept internally
+/// The solution is constructed from the normal equations
+/// @param q Quality information
+        virtual bool solveNormalEquations(Quality& q);
+
+      protected:
+    };
+
+  }
 }
-}
-
 #endif

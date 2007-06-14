@@ -2,31 +2,33 @@
 
 namespace conrad
 {
-namespace scimath
-{
-	
-Quality::Quality() : itsCond(0.0), itsRank(0), itsDOF(0), itsInfo("")
-{
-}
+  namespace scimath
+  {
 
-Quality::~Quality()
-{
-}
+    Quality::Quality() : itsCond(0.0), itsRank(0), itsDOF(0), itsInfo("")
+    {
+    }
 
-std::ostream& operator<<(std::ostream& os, const Quality& q)
-{
-	os << "Solution : " << q.info();
-    if(q.DOF()>0) {
-		os << " : degrees of freedom " << q.DOF();
+    Quality::~Quality()
+    {
     }
-    if(q.rank()>0) {
-		os << ", rank = " << q.rank();
-    }
-    if(q.cond()>0.0) { 
-		os << ", condition number = " << q.cond();
-    }
-}
-	
 
-}
+    std::ostream& operator<<(std::ostream& os, const Quality& q)
+    {
+      os << "Solution : " << q.info();
+      if(q.DOF()>0)
+      {
+        os << " : degrees of freedom " << q.DOF();
+      }
+      if(q.rank()>0)
+      {
+        os << ", rank = " << q.rank();
+      }
+      if(q.cond()>0.0)
+      {
+        os << ", condition number = " << q.cond();
+      }
+    }
+
+  }
 }

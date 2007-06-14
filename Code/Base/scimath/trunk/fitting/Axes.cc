@@ -13,111 +13,117 @@ using std::vector;
 
 namespace conrad
 {
-namespace scimath
-{
+  namespace scimath
+  {
 
-	/// Make an empty axes
-	Axes::Axes()
-	{
-	}
-	
-	/// Assignment operator
-	Axes& Axes::operator=(const Axes& other)
-	{
-		if(this!=&other) {
-			itsNames=other.itsNames;
-			itsStart=other.itsStart;
-			itsEnd=other.itsEnd;
-		}
-	}
-	
-	/// Copy constructor
-	Axes::Axes(const Axes& other)
-	{
-		operator=(other);
-	}
+/// Make an empty axes
+    Axes::Axes()
+    {
+    }
 
-	Axes::~Axes() 
-	{
-		itsNames.clear();
-		itsStart.clear();
-		itsEnd.clear();
-	}
-	
-	void Axes::add(const string& name, const double start, const double end)
-	{
-		if(has(name)) {
-			throw(std::invalid_argument("Axis " + name + " already exists"));
-		}
-		else {
-			itsNames.push_back(name);
-			itsStart.push_back(start);
-			itsEnd.push_back(end);
-		}
-	}
-	
-	/// Has this axis?
-	/// @param name Name of axis
-	bool Axes::has(const string& name) const
-	{
-		if(itsNames.size()==0) return false;
-		for (uint i=0;i<itsNames.size();i++) {
-			if(itsNames[i]==name) return true;
-		}
-		return false;
-	}
-	
-	int Axes::order(const string& name) const
-	{
-		for (uint i=0;i<itsNames.size();i++) {
-			if(itsNames[i]==name) return i;
-		}
-		throw(std::invalid_argument("Axis " + name + " does not exist"));
-	}
-	
-	const std::vector<string>& Axes::names() const
-	{
-		return itsNames;
-	}
-	
-    /// Return start value  
-    /// @param name Name of axis
+/// Assignment operator
+    Axes& Axes::operator=(const Axes& other)
+    {
+      if(this!=&other)
+      {
+        itsNames=other.itsNames;
+        itsStart=other.itsStart;
+        itsEnd=other.itsEnd;
+      }
+    }
+
+/// Copy constructor
+    Axes::Axes(const Axes& other)
+    {
+      operator=(other);
+    }
+
+    Axes::~Axes()
+    {
+      itsNames.clear();
+      itsStart.clear();
+      itsEnd.clear();
+    }
+
+    void Axes::add(const string& name, const double start, const double end)
+    {
+      if(has(name))
+      {
+        throw(std::invalid_argument("Axis " + name + " already exists"));
+      }
+      else
+      {
+        itsNames.push_back(name);
+        itsStart.push_back(start);
+        itsEnd.push_back(end);
+      }
+    }
+
+/// Has this axis?
+/// @param name Name of axis
+    bool Axes::has(const string& name) const
+    {
+      if(itsNames.size()==0) return false;
+      for (uint i=0;i<itsNames.size();i++)
+      {
+        if(itsNames[i]==name) return true;
+      }
+      return false;
+    }
+
+    int Axes::order(const string& name) const
+    {
+      for (uint i=0;i<itsNames.size();i++)
+      {
+        if(itsNames[i]==name) return i;
+      }
+      throw(std::invalid_argument("Axis " + name + " does not exist"));
+    }
+
+    const std::vector<string>& Axes::names() const
+    {
+      return itsNames;
+    }
+
+/// Return start value
+/// @param name Name of axis
     double Axes::start(const string& name) const
     {
-        return itsStart[order(name)];
+      return itsStart[order(name)];
     }
-    
-    /// Return end value    
-    /// @param name Name of axis
+
+/// Return end value
+/// @param name Name of axis
     double Axes::end(const string& name) const
     {
-        return itsEnd[order(name)];
+      return itsEnd[order(name)];
     }
 
-    // Return start values  
+// Return start values
     const std::vector<double>& Axes::start() const
     {
-        return itsStart;
+      return itsStart;
     }
-    
-    // Return end values  
+
+// Return end values
     const std::vector<double>& Axes::end() const
     {
-        return itsEnd;
+      return itsEnd;
     }
-    
-	ostream& operator<<(ostream& os, const Axes& axes) {
 
-		vector<string> names(axes.names());
-		vector<string>::iterator it;
-		for(it = names.begin(); it != names.end(); it++) {
-			os << *it << " from " << axes.start(*it) << " to " << axes.end(*it)
-				<< std::endl;
-		}
-		return os;
-	}
+    ostream& operator<<(ostream& os, const Axes& axes)
+    {
 
+      vector<string> names(axes.names());
+      vector<string>::iterator it;
+      for(it = names.begin(); it != names.end(); it++)
+      {
+        os << *it << " from " << axes.start(*it) << " to " << axes.end(*it)
+          << std::endl;
+      }
+      return os;
+    }
 
-}
+  }
 
 };
