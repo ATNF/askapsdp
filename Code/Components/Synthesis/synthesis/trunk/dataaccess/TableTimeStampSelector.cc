@@ -24,16 +24,22 @@
 using namespace conrad;
 using namespace synthesis;
 
+/// constructor, stores the table which will later be used to form
+/// expression nodes
+/// @param[in] tab a measurement set
+TableTimeStampSelector::TableTimeStampSelector(const casa::Table &tab) :
+         itsMS(tab) {}
+
+
 /// main method, updates table expression node to narrow down the selection
 ///
 /// @param tex a reference to table expression to use
 void TableTimeStampSelector::updateTableExpression(casa::TableExprNode &tex)
 	                                           const
 {
-  try {
-    const casa::Table &table=tex.table();
+  try {    
     const casa::TableRecord &timeColKeywords =
-            table.tableDesc()["TIME"].keywordSet();
+            itsMS.tableDesc()["TIME"].keywordSet();
     const casa::Array<casa::String> &measInfo =
             timeColKeywords.asArrayString("MEASINFO");
     CONRADASSERT(measInfo.nelements()>=2);
@@ -42,8 +48,13 @@ void TableTimeStampSelector::updateTableExpression(casa::TableExprNode &tex)
     std::pair<casa::Double, casa::Double>
             startAndStop = getStartAndStop(measInfo(casa::IPosition(1,1)),
                                     timeColKeywords.asString("QuantumUnits"));
-    tex=tex && (table.col("TIME") > startAndStop.first) &&
-               (table.col("TIME") < startAndStop.second);
+    if (tex.isNull()) {
+        tex=(itsMS.col("TIME") > startAndStop.first) &&
+            (itsMS.col("TIME") < startAndStop.second);
+    } else {
+        tex=tex && (itsMS.col("TIME") > startAndStop.first) &&
+                   (itsMS.col("TIME") < startAndStop.second);
+    }
   }
   catch(const casa::AipsError &ae) {
     CONRADTHROW(DataAccessError, "casa::AipsError is caught inside "

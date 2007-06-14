@@ -57,7 +57,7 @@ public:
   /// it's OK to have a protected data member here, because its read
   /// only 
   const TableConstDataIterator& itsIterator;
-  /// set all xxxChanged flags to true
+  /// set all itsXxxChanged flags to true
   void invalidateAllCaches() const throw();
 private:
   mutable bool itsVisibilityChanged;

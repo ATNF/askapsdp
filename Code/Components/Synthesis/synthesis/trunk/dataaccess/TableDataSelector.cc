@@ -66,8 +66,8 @@ void TableDataSelector::chooseCycles(casa::uInt start, casa::uInt stop)
 ///              out epochs used in the selection
 const casa::TableExprNode& TableDataSelector::getTableSelector(const
                     boost::shared_ptr<IDataConverterImpl const> &conv) const
-{
-   if (itsEpochSelector) {
+{  
+   if (itsEpochSelector) { 
        /// epoch selection has been done, we need to narrow down the
        /// selection by updating the table expression
        itsEpochSelector->setConverter(conv);

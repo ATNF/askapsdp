@@ -28,9 +28,15 @@ TableScalarFieldSelector::TableScalarFieldSelector(const casa::Table &tab) :
 /// @param feedID the sequence number of feed to choose
 void TableScalarFieldSelector::chooseFeed(casa::uInt feedID)
 {
-   itsTableSelector=itsTableSelector && (itsMS.col("FEED1") ==
+   if (itsTableSelector.isNull()) {
+       itsTableSelector= (itsMS.col("FEED1") ==
                   static_cast<casa::Int>(feedID)) && (itsMS.col("FEED2") ==
                   static_cast<casa::Int>(feedID));
+   } else {
+       itsTableSelector=itsTableSelector && (itsMS.col("FEED1") ==
+                  static_cast<casa::Int>(feedID)) && (itsMS.col("FEED2") ==
+                  static_cast<casa::Int>(feedID));
+   }
 }
 
 /// Choose a single baseline
@@ -40,9 +46,15 @@ void TableScalarFieldSelector::chooseFeed(casa::uInt feedID)
 void TableScalarFieldSelector::chooseBaseline(casa::uInt ant1,
                                               casa::uInt ant2)
 {
-   itsTableSelector=itsTableSelector && (itsMS.col("ANTENNA1") ==
+   if (itsTableSelector.isNull()) {
+       itsTableSelector= (itsMS.col("ANTENNA1") ==
            static_cast<casa::Int>(ant1)) && (itsMS.col("ANTENNA2") ==
 	   static_cast<casa::Int>(ant2));
+   } else {
+       itsTableSelector=itsTableSelector && (itsMS.col("ANTENNA1") ==
+           static_cast<casa::Int>(ant1)) && (itsMS.col("ANTENNA2") ==
+	   static_cast<casa::Int>(ant2));
+   }
 }
 
 /// Choose a single spectral window (also known as IF).
@@ -51,8 +63,13 @@ void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
 {
    // we may need to change this later. Suprisingly, no such column was
    // present in the simulated dataset
-   itsTableSelector=itsTableSelector && (itsMS.col("SPECTRAL_WINDOW") ==
+   if (itsTableSelector.isNull()) {
+       itsTableSelector=(itsMS.col("SPECTRAL_WINDOW") ==
                   static_cast<casa::Int>(spWinID));
+   } else {
+       itsTableSelector=itsTableSelector && (itsMS.col("SPECTRAL_WINDOW") ==
+                  static_cast<casa::Int>(spWinID));
+   }
 }
  
 /// Obtain a table expression node for selection. This method is
@@ -63,7 +80,7 @@ void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
 /// @return a reference to the cached table expression node
 ///
 casa::TableExprNode& TableScalarFieldSelector::getTableSelector() const
-{
+{ 
   return itsTableSelector;
 }
 

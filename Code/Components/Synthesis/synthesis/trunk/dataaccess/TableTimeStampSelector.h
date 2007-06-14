@@ -14,6 +14,9 @@
 #ifndef TABLE_TIME_STAMP_SELECTOR_H
 #define TABLE_TIME_STAMP_SELECTOR_H
 
+/// casa
+#include <tables/Tables/Table.h>
+
 /// std includes
 #include <utility>
 #include <string>
@@ -28,6 +31,11 @@ namespace synthesis {
 class TableTimeStampSelector : public TableMeasureFieldSelector
 {
 public:
+   /// constructor, stores the table which will later be used to form
+   /// expression nodes
+   /// @param[in] tab a measurement set
+   TableTimeStampSelector(const casa::Table &tab);
+ 
    /// main method, updates table expression node to narrow down the selection
    ///
    /// @param tex a reference to table expression to use
@@ -42,6 +50,14 @@ protected:
    virtual std::pair<casa::Double, casa::Double> 
            getStartAndStop(const std::string &frame,
                            const std::string &units) const = 0;
+
+   /// access to stored measurement set
+   /// @return a const reference to the measurement set used to form
+   /// expression nodes in the selection process
+   inline const casa::Table& ms() const throw() { return itsMS; }
+private:
+   /// measurement set used in the selection process
+   casa::Table itsMS;
 };
 
 } // namespace conrad

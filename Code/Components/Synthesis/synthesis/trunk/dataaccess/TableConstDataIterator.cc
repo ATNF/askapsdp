@@ -8,9 +8,13 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+/// casa includes
+#include <tables/Tables/ArrayColumn.h>
+
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
 
+using namespace casa;
 using namespace conrad;
 using namespace synthesis;
 
@@ -24,17 +28,18 @@ TableConstDataIterator::TableConstDataIterator(const casa::Table &ms,
 	    casa::uInt maxChunkSize) :
 	   itsMS(ms), itsSelector(sel), itsConverter(conv),
 	   itsMaxChunkSize(maxChunkSize), itsAccessor(*this)
-{
+{ 
   init();
 }
 
 /// Restart the iteration from the beginning
 void TableConstDataIterator::init()
-{
-  itsCurrentTopRow=0;
+{ 
+  itsCurrentTopRow=0;  
+  itsSelector->getTableSelector(itsConverter);  
   itsTabIterator=casa::TableIterator(itsMS(itsSelector->
                                getTableSelector(itsConverter)),"TIME",
-	   casa::TableIterator::DontCare,casa::TableIterator::NoSort);
+	   casa::TableIterator::DontCare,casa::TableIterator::NoSort);  
   itsCurrentIteration=itsTabIterator.table();  
   setUpIteration();
 }
@@ -73,7 +78,14 @@ void TableConstDataIterator::setUpIteration()
   itsAccessor.invalidateAllCaches();
   itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
-  
+  // retreive the number of channels and polarizations from the table
+  if (itsNumberOfRows) {
+      ROArrayColumn<Complex> visCol(itsCurrentIteration,"DATA");
+      std::cout<<visCol.shape(0)<<std::endl;
+  } else {
+      itsNumberOfChannels=0;
+      itsNumberOfPols=0;  
+  }
       
 }
 
