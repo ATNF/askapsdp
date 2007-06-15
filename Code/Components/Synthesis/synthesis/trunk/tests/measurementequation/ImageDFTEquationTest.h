@@ -19,71 +19,75 @@ using std::abs;
 
 using namespace conrad::scimath;
 
-namespace conrad {
-namespace synthesis {
-    
-class ImageDFTEquationTest : public CppUnit::TestFixture  {
+namespace conrad
+{
+  namespace synthesis
+  {
 
-    CPPUNIT_TEST_SUITE(ImageDFTEquationTest);
-    CPPUNIT_TEST(testPredict);
-    CPPUNIT_TEST(testSVD);
-    CPPUNIT_TEST_EXCEPTION(testFixed, std::domain_error);
-    CPPUNIT_TEST_SUITE_END();
-	
-  private:
-    ImageDFTEquation *p1, *p2;
-	Params *params1, *params2, *params3;
-    IDataSharedIter idi;
-
-  public:
-    void setUp()
+    class ImageDFTEquationTest : public CppUnit::TestFixture
     {
-      idi = IDataSharedIter(new DataIteratorStub(1));
-      
-	  uint npix=16;
-      Axes imageAxes;
-	  double arcsec=casa::C::pi/(3600.0*180.0);
-      imageAxes.add("RA", -120.0*arcsec, +120.0*arcsec); 
-      imageAxes.add("DEC", -120.0*arcsec, +120.0*arcsec); 
 
-	  params1 = new Params;
-      casa::Array<double> imagePixels1(casa::IPosition(2, npix, npix));
-      imagePixels1.set(0.0);
-      imagePixels1(casa::IPosition(2, npix/2, npix/2))=1.0;
-      imagePixels1(casa::IPosition(2, 12, 3))=0.7;
-	  params1->add("image.i.cena", imagePixels1, imageAxes);
+      CPPUNIT_TEST_SUITE(ImageDFTEquationTest);
+      CPPUNIT_TEST(testPredict);
+      CPPUNIT_TEST(testSVD);
+      CPPUNIT_TEST_EXCEPTION(testFixed, std::domain_error);
+      CPPUNIT_TEST_SUITE_END();
 
-      p1 = new ImageDFTEquation(*params1, idi);
+      private:
+        ImageDFTEquation *p1, *p2;
+        Params *params1, *params2, *params3;
+        IDataSharedIter idi;
 
-	  params2 = new Params;
-      casa::Array<double> imagePixels2(casa::IPosition(2, npix, npix));
-      imagePixels2.set(0.0);
-      imagePixels2(casa::IPosition(2, npix/2, npix/2))=0.9;
-      imagePixels2(casa::IPosition(2, 12, 3))=0.75;
-	  params2->add("image.i.cena", imagePixels2, imageAxes);
-	  	  
-      p2 = new ImageDFTEquation(*params2, idi);
-      
-    }
-    
-    void tearDown() 
-    {
-      delete p1;
-      delete p2;
-  	}
-        
-	void testPredict()
-	{
-		p1->predict();
-	}
-	
-    void testSVD() {
-        // Calculate gradients using "imperfect" parameters" 
-        p1->predict();
-        // Predict with the "perfect" parameters"
-        NormalEquations ne(*params2);
-        p2->calcEquations(ne);
+      public:
+        void setUp()
         {
+          idi = IDataSharedIter(new DataIteratorStub(1));
+
+          uint npix=16;
+          Axes imageAxes;
+          double arcsec=casa::C::pi/(3600.0*180.0);
+          imageAxes.add("RA", -120.0*arcsec, +120.0*arcsec);
+          imageAxes.add("DEC", -120.0*arcsec, +120.0*arcsec);
+
+          params1 = new Params;
+          casa::Array<double> imagePixels1(casa::IPosition(2, npix, npix));
+          imagePixels1.set(0.0);
+          imagePixels1(casa::IPosition(2, npix/2, npix/2))=1.0;
+          imagePixels1(casa::IPosition(2, 12, 3))=0.7;
+          params1->add("image.i.cena", imagePixels1, imageAxes);
+
+          p1 = new ImageDFTEquation(*params1, idi);
+
+          params2 = new Params;
+          casa::Array<double> imagePixels2(casa::IPosition(2, npix, npix));
+          imagePixels2.set(0.0);
+          imagePixels2(casa::IPosition(2, npix/2, npix/2))=0.9;
+          imagePixels2(casa::IPosition(2, 12, 3))=0.75;
+          params2->add("image.i.cena", imagePixels2, imageAxes);
+
+          p2 = new ImageDFTEquation(*params2, idi);
+
+        }
+
+        void tearDown()
+        {
+          delete p1;
+          delete p2;
+        }
+
+        void testPredict()
+        {
+          p1->predict();
+        }
+
+        void testSVD()
+        {
+// Calculate gradients using "imperfect" parameters"
+          p1->predict();
+// Predict with the "perfect" parameters"
+          NormalEquations ne(*params2);
+          p2->calcEquations(ne);
+          {
             LinearSolver solver1(*params2);
             solver1.addNormalEquations(ne);
             Quality q;
@@ -94,21 +98,22 @@ class ImageDFTEquationTest : public CppUnit::TestFixture  {
             CPPUNIT_ASSERT(std::abs(q.cond()-1115634013709.060)<1.0);
             CPPUNIT_ASSERT(std::abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
             CPPUNIT_ASSERT(std::abs(improved(casa::IPosition(2, 12, 3))-0.700)<0.003);
+          }
         }
-    }
-    
-	void testFixed() {
-		p1->predict();
-        NormalEquations ne(*params2);
-		p2->calcEquations(ne);
-		Quality q;
-		LinearSolver solver1(*params2);
-		solver1.addNormalEquations(ne);
-		// Should throw exception: domain_error
-	    solver1.parameters().fix("image.i.cena");
-		solver1.solveNormalEquations(q);
-	}
-};
-  
-}
+
+        void testFixed()
+        {
+          p1->predict();
+          NormalEquations ne(*params2);
+          p2->calcEquations(ne);
+          Quality q;
+          LinearSolver solver1(*params2);
+          solver1.addNormalEquations(ne);
+// Should throw exception: domain_error
+          solver1.parameters().fix("image.i.cena");
+          solver1.solveNormalEquations(q);
+        }
+    };
+
+  }
 }

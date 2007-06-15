@@ -15,54 +15,53 @@
 
 namespace conrad
 {
-namespace synthesis
-{
+  namespace synthesis
+  {
 
-class ComponentEquation : public conrad::scimath::Equation
-{
-public:
+    class ComponentEquation : public conrad::scimath::Equation
+    {
+      public:
 
-    /// @param ida data accessor
-    ComponentEquation(const conrad::scimath::Params& ip,
-        IDataSharedIter& idi) :  conrad::scimath::Equation(ip),
-        itsIdi(idi) {init();};
+/// @param ida data accessor
+        ComponentEquation(const conrad::scimath::Params& ip,
+          IDataSharedIter& idi) :  conrad::scimath::Equation(ip),
+          itsIdi(idi) {init();};
 
-    ComponentEquation(IDataSharedIter& idi) :  conrad::scimath::Equation(),
-        itsIdi(idi) {init();itsParams=itsDefaultParams;};
-	
-    ComponentEquation(const ComponentEquation& other);
-    
-    ComponentEquation& operator=(const ComponentEquation& other);
-    
-    virtual ~ComponentEquation() {};
-    
-	/// Predict model visibility
-	virtual void predict();
-	
-	/// Calculate the normal equations
-	/// @param ne Normal equations
-	virtual void calcEquations(conrad::scimath::NormalEquations& ne);
-	
-private:
-    IDataSharedIter itsIdi;
-	void init();
-    /// Templated function to do the calculation of value and derivatives.
-    template<class T>
-    void calcRegularGauss(const T& ra, const T& dec, const T& flux, 
-        const T& bmaj, const T& bmin, const T& bpa, 
-        const casa::Vector<double>& freq, 
-        const double u, const double v, const double w, 
-        casa::Vector<T>& vis);
-    /// Templated function to do the calculation of value and derivatives.
-    template<class T>
-    void calcRegularPoint(const T& ra, const T& dec, const T& flux, 
-        const casa::Vector<double>& freq, 
-        const double u, const double v, const double w, 
-        casa::Vector<T>& vis);
-};
+        ComponentEquation(IDataSharedIter& idi) :  conrad::scimath::Equation(),
+          itsIdi(idi) {init();itsParams=itsDefaultParams;};
+
+        ComponentEquation(const ComponentEquation& other);
+
+        ComponentEquation& operator=(const ComponentEquation& other);
+
+        virtual ~ComponentEquation() {};
+
+/// Predict model visibility
+        virtual void predict();
+
+/// Calculate the normal equations
+/// @param ne Normal equations
+        virtual void calcEquations(conrad::scimath::NormalEquations& ne);
+
+      private:
+        IDataSharedIter itsIdi;
+        void init();
+/// Templated function to do the calculation of value and derivatives.
+        template<class T>
+          void calcRegularGauss(const T& ra, const T& dec, const T& flux,
+          const T& bmaj, const T& bmin, const T& bpa,
+          const casa::Vector<double>& freq,
+          const double u, const double v, const double w,
+          casa::Vector<T>& vis);
+/// Templated function to do the calculation of value and derivatives.
+        template<class T>
+          void calcRegularPoint(const T& ra, const T& dec, const T& flux,
+          const casa::Vector<double>& freq,
+          const double u, const double v, const double w,
+          casa::Vector<T>& vis);
+    };
+
+  }
 
 }
-
-}
-
 #endif

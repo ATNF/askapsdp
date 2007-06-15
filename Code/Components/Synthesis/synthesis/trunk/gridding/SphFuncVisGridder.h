@@ -1,6 +1,6 @@
 /// @file
 ///
-/// SphFuncVisGridder: SphFunc-based visibility gridder. 
+/// SphFuncVisGridder: SphFunc-based visibility gridder.
 ///
 /// This supports gridders with a table loopkup.
 ///
@@ -14,38 +14,38 @@
 
 namespace conrad
 {
-namespace synthesis
-{
+  namespace synthesis
+  {
 
-class SphFuncVisGridder : public TableVisGridder
-{
-public:
-	
-	// Standard two dimensional gridding
-	SphFuncVisGridder();
-	
-	virtual ~SphFuncVisGridder();
+    class SphFuncVisGridder : public TableVisGridder
+    {
+      public:
 
-    /// Correct for gridding convolution function
-    /// @param axes axes specifications
-    /// @param image image to be corrected
-    virtual void correctConvolution(const scimath::Axes& axes,
-        casa::Cube<double>& image);
+// Standard two dimensional gridding
+        SphFuncVisGridder();
 
-    /// Apply gridding convolution function in image space
-    /// @param axes axes specifications
-    /// @param image image to be corrected
-    virtual void applyConvolution(const scimath::Axes& axes,
-        casa::Cube<double>& image);
-           
-protected:
-    virtual int cOffset(int, int);
-    virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
-        const casa::IPosition& shape);
-private:
-    double grdsf(double nu);
-};
+        virtual ~SphFuncVisGridder();
 
-}
+/// Correct for gridding convolution function
+/// @param axes axes specifications
+/// @param image image to be corrected
+        virtual void correctConvolution(const scimath::Axes& axes,
+          casa::Cube<double>& image);
+
+/// Apply gridding convolution function in image space
+/// @param axes axes specifications
+/// @param image image to be corrected
+        virtual void applyConvolution(const scimath::Axes& axes,
+          casa::Cube<double>& image);
+
+      protected:
+        virtual int cOffset(int, int);
+        virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+          const casa::IPosition& shape);
+      private:
+        double grdsf(double nu);
+    };
+
+  }
 }
 #endif

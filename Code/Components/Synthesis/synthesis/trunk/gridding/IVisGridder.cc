@@ -2,15 +2,15 @@
 
 namespace conrad
 {
-namespace synthesis
-{
+  namespace synthesis
+  {
 
-IVisGridder::IVisGridder()
-{
-}
+    IVisGridder::IVisGridder()
+    {
+    }
 
-IVisGridder::~IVisGridder()
-{
-}
-}
+    IVisGridder::~IVisGridder()
+    {
+    }
+  }
 }

@@ -16,27 +16,26 @@
 
 namespace conrad
 {
-namespace synthesis
-{
+  namespace synthesis
+  {
 
-class ImageSolver : public conrad::scimath::Solver
-{
-public:	
+    class ImageSolver : public conrad::scimath::Solver
+    {
+      public:
 
-	ImageSolver(const conrad::scimath::Params& ip) : conrad::scimath::Solver(ip) {};
-	
-	/// Initialize this solver
-	virtual void init();
-	
-	/// Solve for parameters, updating the values kept internally
-	/// The solution is constructed from the normal equations
-	/// @param q Solution quality information
-	virtual bool solveNormalEquations(conrad::scimath::Quality& q);
-		
-protected:
-};
+        ImageSolver(const conrad::scimath::Params& ip) : conrad::scimath::Solver(ip) {};
 
+/// Initialize this solver
+        virtual void init();
+
+/// Solve for parameters, updating the values kept internally
+/// The solution is constructed from the normal equations
+/// @param q Solution quality information
+        virtual bool solveNormalEquations(conrad::scimath::Quality& q);
+
+      protected:
+    };
+
+  }
 }
-}
-
 #endif

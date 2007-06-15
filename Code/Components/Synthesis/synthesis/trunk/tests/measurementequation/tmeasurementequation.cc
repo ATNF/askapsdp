@@ -4,7 +4,6 @@
 #include <ImageDFTEquationTest.h>
 #include <ImageFFTEquationTest.h>
 
-
 int main( int argc, char **argv)
 {
   CppUnit::TextUi::TestRunner runner;

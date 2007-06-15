@@ -1,6 +1,6 @@
 /// @file
 ///
-/// BoxVisGridder: Box-based visibility gridder. 
+/// BoxVisGridder: Box-based visibility gridder.
 ///
 /// This supports gridders with a table loopkup.
 ///
@@ -14,24 +14,24 @@
 
 namespace conrad
 {
-namespace synthesis
-{
+  namespace synthesis
+  {
 
-class BoxVisGridder : public TableVisGridder
-{
-public:
-	
-	// Standard two dimensional gridding
-	BoxVisGridder();
-	
-	virtual ~BoxVisGridder();
-    
-protected:
-    virtual int cOffset(int, int);
-    virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
-        const casa::IPosition& shape);
-};
+    class BoxVisGridder : public TableVisGridder
+    {
+      public:
 
-}
+// Standard two dimensional gridding
+        BoxVisGridder();
+
+        virtual ~BoxVisGridder();
+
+      protected:
+        virtual int cOffset(int, int);
+        virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+          const casa::IPosition& shape);
+    };
+
+  }
 }
 #endif
