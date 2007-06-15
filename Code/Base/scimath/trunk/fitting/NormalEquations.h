@@ -2,7 +2,7 @@
 ///
 /// NormalEquations: Hold the normal equations for parameters.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHNORMALEQUATIONS_H_
@@ -26,6 +26,7 @@ namespace conrad
 
     class DesignMatrix;
 
+    /// @brief Hold the normal equations 
     class NormalEquations
 /// Fully general normal equations
     {
@@ -47,29 +48,32 @@ namespace conrad
 
 /// Construct the normal equations from the design matrix
 /// @param dm Design matrix
-/// @param approx Type of approximation to be used
         NormalEquations(const DesignMatrix& dm);
 
 /// Add the design matrix to the normal equations
 /// @param dm Design matrix
-/// @param approx Type of approximation to be used
         void add(const DesignMatrix& dm);
 
-/// Return the specified parameters
+/// Return the specified parameters (const)
         const Params& parameters() const;
+        
+/// Return the specified parameters (non-const)
         Params& parameters();
 
-/// Store full normal matrix for a given parameter. This means
+/// @param Store full normal matrix for a given parameter. 
+
+/// This means
 /// that the cross terms between parameters are excluded. However
 /// the terms inside a parameter are retained.
 /// @param name Name of parameter
 /// @param normalmatrix Normal Matrix for this parameter
 /// @param datavector Data vector for this parameter
-/// @param shape Shape of this parameter
         void add(const string& name, const casa::Matrix<double>& normalmatrix,
           const casa::Vector<double>& datavector);
 
-/// Store full normal matrix for a given parameter. This means
+/// @brief Store full normal matrix for a given parameter.
+/// 
+/// This means
 /// that the cross terms between parameters are excluded. However
 /// the terms inside a parameter are retained.
 /// @param name Name of parameter
@@ -80,11 +84,14 @@ namespace conrad
           const casa::Vector<double>& datavector,
           const casa::IPosition& shape);
 
-/// Store slice of the normal matrix for a given parameter. This means
+/// @brief Store slice of the normal matrix for a given parameter. 
+/// 
+/// This means
 /// that the cross terms between parameters are excluded and only
 /// a slice of the normal matrix is retained.
 /// @param name Name of parameter
-/// @param normalmatrix Normal Matrix for this parameter
+/// @param normalmatrixslice Slice of normal matrix for this parameter
+/// @param normalmatrixdiagonal Diagonal of normal matrix for this parameter
 /// @param datavector Data vector for this parameter
 /// @param shape Shape of this parameter
 /// @param reference Reference point for the slice
@@ -95,13 +102,15 @@ namespace conrad
           const casa::IPosition& shape,
           const casa::IPosition& reference);
 
-/// Store slice of the normal matrix for a given parameter. This means
+/// @brief Store slice of the normal matrix for a given parameter. 
+///
+/// This means
 /// that the cross terms between parameters are excluded and only
 /// a slice of the normal matrix is retained.
 /// @param name Name of parameter
-/// @param normalmatrix Normal Matrix for this parameter
+/// @param normalmatrixslice Slice of normal matrix for this parameter
+/// @param normalmatrixdiagonal Diagonal of normal matrix for this parameter
 /// @param datavector Data vector for this parameter
-/// @param shape Shape of this parameter
 /// @param reference Reference point for the slice
         void addSlice(const string& name,
           const casa::Vector<double>& normalmatrixslice,
@@ -109,27 +118,34 @@ namespace conrad
           const casa::Vector<double>& datavector,
           const casa::IPosition& reference);
 
-/// Store diagonal of the normal matrix for a given parameter. This means
-/// that the cross terms between parameters are excluded and only
-/// the diagonal inside a parameter is kept.
-/// @param name Name of parameter
-/// @param normalmatrix Normal Matrix for this parameter
-/// @param datavector Data vector for this parameter
-        void addDiagonal(const string& name, const casa::Vector<double>& normalmatrix,
-          const casa::Vector<double>& datavector,
-          const casa::IPosition& shape);
-
-/// Store diagonal of the normal matrix for a given parameter. This means
+/// @brief Store diagonal of the normal matrix for a given parameter. 
+///
+/// This means
 /// that the cross terms between parameters are excluded and only
 /// the diagonal inside a parameter is kept.
 /// @param name Name of parameter
 /// @param normalmatrix Normal Matrix for this parameter
 /// @param datavector Data vector for this parameter
 /// @param shape Shape of this parameter
+        void addDiagonal(const string& name, 
+          const casa::Vector<double>& normalmatrix,
+          const casa::Vector<double>& datavector,
+          const casa::IPosition& shape);
+
+/// @brief Store diagonal of the normal matrix for a given parameter. 
+///
+/// This means
+/// that the cross terms between parameters are excluded and only
+/// the diagonal inside a parameter is kept.
+/// @param name Name of parameter
+/// @param normalmatrix Normal Matrix for this parameter
+/// @param datavector Data vector for this parameter
         void addDiagonal(const string& name, const casa::Vector<double>& normalmatrix,
           const casa::Vector<double>& datavector);
 
-/// Merge these normal equations with another - means that we just add
+/// @brief Merge these normal equations with another
+///
+/// This means that we just add
 /// @param other Other normal equations
         void merge(const NormalEquations& other);
 
@@ -158,14 +174,22 @@ namespace conrad
         typedef boost::shared_ptr<NormalEquations> ShPtr;
 
       protected:
+      /// Parameters
         Params itsParams;
 // Note that this is a very flexible format - it allows any of the
 // approximations to be used
+/// Normal matrices stored as a map or maps of Matrixes - it's really just a big
+/// matrix.
         mutable std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix;
+/// A slice through a specified plane
         mutable std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
+        /// The diagonal 
         mutable std::map<string, casa::Vector<double> > itsNormalMatrixDiagonal;
+        /// The shape
         mutable std::map<string, casa::IPosition> itsShape;
+        /// The Reference point for the slice
         mutable std::map<string, casa::IPosition> itsReference;
+        /// The data vectors
         mutable std::map<string, casa::Vector<double> > itsDataVector;
     };
 

@@ -26,6 +26,9 @@ namespace conrad
   namespace scimath
   {
 
+    LinearSolver::~LinearSolver() {
+    }
+    
     void LinearSolver::init()
     {
       itsNormalEquations.reset();
@@ -74,7 +77,6 @@ namespace conrad
           {
             for (uint col=0;col<nm.ncolumn();col++)
             {
-//                    std::cout << indit1->first << " " << indit2->first << " " << row << " " << col << " " << nm(row,col) << std::endl;
               gsl_matrix_set(A, row+(indit1->second), col+(indit2->second), nm(row,col));
             }
           }
@@ -85,7 +87,6 @@ namespace conrad
         const casa::Vector<double>& dv(itsNormalEquations.dataVector()[indit1->first]);
         for (uint row=0;row<dv.nelements();row++)
         {
-//            std::cout << indit1->first << " " << row << " " << dv(row) << std::endl;
           gsl_vector_set(B, row+(indit1->second), dv(row));
         }
       }

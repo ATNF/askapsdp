@@ -9,6 +9,10 @@ namespace conrad
     {
     };
 
+    Solver::~Solver()
+    {
+    }
+    
     void Solver::setParameters(const Params& ip)
     {
       itsParams=ip;

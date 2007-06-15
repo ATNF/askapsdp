@@ -3,7 +3,7 @@
 /// LinearSolver: This solver uses SVD to solve the normal
 /// equations.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHLINEARSOLVER_H_
@@ -18,12 +18,16 @@ namespace conrad
 {
   namespace scimath
   {
-
+    /// Solve the normal equations for updates to the parameters
     class LinearSolver : public Solver
     {
       public:
 /// Constructor
+/// @param ip Parameters for this solver
         explicit LinearSolver(const Params& ip) : Solver(ip) {};
+        
+/// Destructor
+        virtual ~LinearSolver();
 
 /// Initialize this solver
         virtual void init();

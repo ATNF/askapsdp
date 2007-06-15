@@ -45,7 +45,7 @@ namespace conrad
       itsEnd.clear();
     }
 
-    void Axes::add(const string& name, const double start, const double end)
+    void Axes::add(const std::string& name, const double start, const double end)
     {
       if(has(name))
       {
@@ -61,7 +61,7 @@ namespace conrad
 
 /// Has this axis?
 /// @param name Name of axis
-    bool Axes::has(const string& name) const
+    bool Axes::has(const std::string& name) const
     {
       if(itsNames.size()==0) return false;
       for (uint i=0;i<itsNames.size();i++)
@@ -71,7 +71,7 @@ namespace conrad
       return false;
     }
 
-    int Axes::order(const string& name) const
+    int Axes::order(const std::string& name) const
     {
       for (uint i=0;i<itsNames.size();i++)
       {
@@ -87,14 +87,14 @@ namespace conrad
 
 /// Return start value
 /// @param name Name of axis
-    double Axes::start(const string& name) const
+    double Axes::start(const std::string& name) const
     {
       return itsStart[order(name)];
     }
 
 /// Return end value
 /// @param name Name of axis
-    double Axes::end(const string& name) const
+    double Axes::end(const std::string& name) const
     {
       return itsEnd[order(name)];
     }

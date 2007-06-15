@@ -2,7 +2,7 @@
 ///
 /// Quality: Encapsulate quality of a solution
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHQUALITY_H_
@@ -15,7 +15,7 @@ namespace conrad
 {
   namespace scimath
   {
-
+    /// Encapsulate the quality of a solutin
     class Quality
     {
       public:
@@ -24,29 +24,43 @@ namespace conrad
 
         virtual ~Quality();
 
-// Set and get rank of equations
+/// Set rank of equations
+/// @param rank Rank to be set 
         void setRank(const unsigned int rank) {itsRank=rank;};
-        const unsigned int rank() const {return itsRank;};
+/// Get rank of equations
+        unsigned int rank() const {return itsRank;};
 
-// Set and get condition number of equations
+/// Set condition number of equations
+/// @param cond Condition number of equations
         void setCond(const double cond) {itsCond=cond;};
-        const double cond() const {return itsCond;};
 
-// Set and get caller-defined info string
+/// Get condition number of equations
+        double cond() const {return itsCond;};
+
+/// Set caller-defined info string
+/// @param info Caller-defined info string
         void setInfo(const std::string info) {itsInfo=info;}
+
+/// Get caller-defined info string
         const std::string& info() const {return itsInfo;};
 
-// Set and get degrees of freedom of equations
+/// Set degrees of freedom of equations
+/// @param DOF degrees of freedom
         void setDOF(const unsigned int DOF) {itsDOF=DOF;};
-        const unsigned int DOF() const {return itsDOF;};
+/// Get degrees of freedom of equations
+        unsigned int DOF() const {return itsDOF;};
 
-// Output quality
+/// Output quality
         friend std::ostream& operator<<(std::ostream& os, const Quality& q);
 
       private:
+      /// Condition number
         double itsCond;
+        /// Rank
         unsigned int itsRank;
+        /// Degrees of freedom
         unsigned int itsDOF;
+        /// Info string
         std::string itsInfo;
     };
 

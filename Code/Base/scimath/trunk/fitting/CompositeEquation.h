@@ -4,7 +4,7 @@
 /// the composite pattern to allow a set of equations to be
 /// assembled and used the same as a single equation.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHCOMPOSITEEQUATION_H
@@ -19,12 +19,11 @@ namespace conrad
 
   namespace scimath
   {
-
+    /// @brief A composite of Equations
     class CompositeEquation : public Equation
     {
       public:
 /// Constructor
-
 /// Using specified parameters
 /// @param ip Parameters
         CompositeEquation(const Params& ip);
@@ -47,12 +46,14 @@ namespace conrad
 /// Clone this
         virtual Equation::ShPtr clone();
 
-/// These next function is specific to the Composite
-/// Add an equation
+/// @brief Add an equation to the composite
+///
+/// This function is specific to the Composite
 /// @param eq equation to be added
         virtual void add(Equation& eq);
 
       protected:
+      /// List of shared pointers to Equations
         std::list<Equation::ShPtr> itsList;
     };
 

@@ -2,7 +2,7 @@
 ///
 /// ParamsTable: Base class for storing and retrieving Params
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 #ifndef SCIMATHPARAMSTABLE_H_
 #define SCIMATHPARAMSTABLE_H_
@@ -14,26 +14,34 @@ namespace conrad
 {
   namespace scimath
   {
-
+    /// Abstract base class for parameter persistence
     class ParamsTable
     {
       public:
+      /// Default constructor
         ParamsTable();
 
         virtual ~ParamsTable();
 
+/// Get all the parameters
+/// @param ip Template of parameters - must match
+        virtual void getParameters(Params& ip) const;
+
 /// Get the parameters for a specified domain
 /// @param ip Template of parameters - must match
 /// @param dom domain of parameters
-        virtual void getParameters(Params& ip) const;
-        virtual void getParameters(Params& ip, const Domain& domain) const;
+        virtual void getParameters(Params& ip, const Domain& dom) const;
+
+/// Set all the parameters
+/// @param ip Parameters to set
+        virtual void setParameters (const Params& ip);
 
 /// Set the parameters for a given domain
 /// @param ip Parameters to set
 /// @param dom domain of parameters
-        virtual void setParameters (const Params& ip);
-        virtual void setParameters (const Params& ip, const Domain& domain);
+        virtual void setParameters (const Params& ip, const Domain& dom);
 
+ 
     };
 
   }

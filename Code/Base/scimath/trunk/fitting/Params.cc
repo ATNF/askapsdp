@@ -38,22 +38,22 @@ namespace conrad
       return *this;
     }
 
-    bool Params::isFree(const string& name) const
+    bool Params::isFree(const std::string& name) const
     {
       return itsFree[name];
     }
 
-    void Params::free(const string& name)
+    void Params::free(const std::string& name)
     {
       itsFree[name]=true;
     }
 
-    void Params::fix(const string& name)
+    void Params::fix(const std::string& name)
     {
       itsFree[name]=false;
     }
 
-    void Params::add(const string& name, const double ip)
+    void Params::add(const std::string& name, const double ip)
     {
       if(has(name))
       {
@@ -70,7 +70,7 @@ namespace conrad
       }
     }
 
-    void Params::add(const string& name, const casa::Array<double>& ip)
+    void Params::add(const std::string& name, const casa::Array<double>& ip)
     {
       if(has(name))
       {
@@ -85,7 +85,7 @@ namespace conrad
       }
     }
 
-    void Params::add(const string& name, const casa::Array<double>& ip,
+    void Params::add(const std::string& name, const casa::Array<double>& ip,
       const Axes& axes)
     {
       if(has(name))
@@ -101,7 +101,7 @@ namespace conrad
       }
     }
 
-    void Params::add(const string& name, const double ip, const Axes& axes)
+    void Params::add(const std::string& name, const double ip, const Axes& axes)
     {
       if(has(name))
       {
@@ -118,7 +118,7 @@ namespace conrad
       }
     }
 
-    void Params::update(const string& name, const casa::Array<double>& ip)
+    void Params::update(const std::string& name, const casa::Array<double>& ip)
     {
       if(!has(name))
       {
@@ -133,7 +133,7 @@ namespace conrad
       }
     }
 
-    void Params::update(const string& name, const double ip)
+    void Params::update(const std::string& name, const double ip)
     {
       if(!has(name))
       {
@@ -155,28 +155,28 @@ namespace conrad
       return static_cast<uint>(itsFree.size());
     }
 
-    bool Params::has(const string& name) const
+    bool Params::has(const std::string& name) const
     {
       return itsArrays.count(name)>0;
     }
 
-    bool Params::isScalar(const string& name) const
+    bool Params::isScalar(const std::string& name) const
     {
       return itsArrays[name].nelements()==1;
     }
 
-    const casa::Array<double>& Params::value(const string& name) const
+    const casa::Array<double>& Params::value(const std::string& name) const
     {
       return itsArrays[name];
     }
 
-    casa::Array<double>& Params::value(const string& name)
+    casa::Array<double>& Params::value(const std::string& name)
     {
       itsCounts[name]++;
       return itsArrays[name];
     }
 
-    const double Params::scalarValue(const string& name) const
+    const double Params::scalarValue(const std::string& name) const
     {
       if(!isScalar(name))
       {
@@ -185,7 +185,7 @@ namespace conrad
       return itsArrays[name](casa::IPosition(1,0));
     }
 
-    double Params::scalarValue(const string& name)
+    double Params::scalarValue(const std::string& name)
     {
       if(!isScalar(name))
       {
@@ -195,12 +195,12 @@ namespace conrad
       return itsArrays[name](casa::IPosition(1,0));
     }
 
-    const Axes& Params::axes(const string& name) const
+    const Axes& Params::axes(const std::string& name) const
     {
       return itsAxes[name];
     }
 
-    Axes& Params::axes(const string& name)
+    Axes& Params::axes(const std::string& name)
     {
       return itsAxes[name];
     }
@@ -267,7 +267,7 @@ namespace conrad
       return names;
     }
 
-    vector<string> Params::completions(const string& pattern) const
+    vector<string> Params::completions(const std::string& pattern) const
     {
       casa::Regex regex(casa::Regex::fromPattern(pattern+"*"));
       casa::Regex sub(casa::Regex::fromPattern(pattern));
@@ -323,7 +323,7 @@ namespace conrad
       return os;
     }
 
-    int Params::count(const string& name) const
+    int Params::count(const std::string& name) const
     {
       return itsCounts[name];
     }

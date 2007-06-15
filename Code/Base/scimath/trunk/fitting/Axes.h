@@ -13,7 +13,7 @@
 ///
 /// TODO: Add tabulated axes
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHAXES_H_
@@ -29,7 +29,10 @@ namespace conrad
 
   namespace scimath
   {
-
+/// @brief Describe axes of parameters
+///
+/// An axis has a name and start and end values (doubles)
+/// An Axes is a ordered set of Axises.
     class Axes
     {
       public:
@@ -58,7 +61,7 @@ namespace conrad
 /// @param name Name of axis
         int order(const std::string& name) const;
 
-/// Return the possible axis names
+/// Return the axis names
         const std::vector<std::string>& names() const;
 
 /// Return start value
@@ -69,12 +72,10 @@ namespace conrad
 /// @param name Name of axis
         double end(const std::string& name) const;
 
-/// Return start value
-/// @param name Name of axis
+/// Return start values
         const std::vector<double>& start() const;
 
-/// Return end value
-/// @param name Name of axis
+/// Return end values
         const std::vector<double>& end() const;
 
 /// Output to an ostream

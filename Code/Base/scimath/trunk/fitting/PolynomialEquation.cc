@@ -59,6 +59,10 @@ namespace conrad
       }
     }
 
+    PolynomialEquation::~PolynomialEquation()
+    {
+    }
+    
     void PolynomialEquation::init()
     {
 // The default parameters serve as a holder for the patterns to match the actual

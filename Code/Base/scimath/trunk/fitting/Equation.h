@@ -60,7 +60,7 @@
 ///
 /// These two changes are needed to allow imaging.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHEQUATION_H
@@ -76,7 +76,7 @@ namespace conrad
 
   namespace scimath
   {
-
+    /// Representa parameterised equation
     class Equation
     {
       public:
@@ -95,8 +95,9 @@ namespace conrad
 
         virtual ~Equation();
 
-/// Access the parameters
+/// Access the parameters (const)
         const Params& parameters() const;
+/// Access the parameters (non-const)
         Params& parameters();
 
 /// Set the parameters to new values
@@ -108,9 +109,9 @@ namespace conrad
 /// @param ip Parameters
         virtual bool complete(const Params& ip);
 
-/// Return a default set of parameters
-/// @param ip Parameters
+/// Return a default set of parameters (const)
         const Params& defaultParameters() const;
+/// Return a default set of parameters (non-const)
         Params& defaultParameters();
 
 /// Predict the data from the parameters. This changes the internal state.
@@ -127,7 +128,9 @@ namespace conrad
         virtual Equation::ShPtr clone();
 
       protected:
+      /// Parameters
         Params itsParams;
+        /// Default parameters
         Params itsDefaultParams;
     };
 

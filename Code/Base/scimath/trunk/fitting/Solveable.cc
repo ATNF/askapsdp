@@ -8,13 +8,14 @@ namespace conrad
   {
 
 /// Standard constructor
-    Solveable::Solveable(const double gain, const int niter, const double tol, const string algorithm,
-      const string subalgorithm) : itsGain(gain), itsNiter(niter), itsTol(tol),
+    Solveable::Solveable(const double gain, const int niter, const double tol, 
+      const std::string& algorithm,
+      const std::string& subalgorithm) : itsGain(gain), itsNiter(niter), itsTol(tol),
       itsAlgorithm(algorithm), itsSubAlgorithm(subalgorithm)
     {
     };
 
-    Solveable::~Solveable() {};
+    Solveable::~Solveable(){};
 
 /// Get and set gain
     double Solveable::gain() {return itsGain;}
@@ -29,12 +30,12 @@ namespace conrad
     void Solveable::setTol(const double tol) {itsTol=tol;};
 
 /// Get and set algorithm
-    string Solveable::algorithm() {return itsAlgorithm;};
-    void Solveable::setAlgorithm(const string algorithm) {itsAlgorithm=algorithm;};
+    std::string Solveable::algorithm() {return itsAlgorithm;};
+    void Solveable::setAlgorithm(const std::string& algorithm) {itsAlgorithm=algorithm;};
 
 /// Get and set subalgorithm
-    string Solveable::subAlgorithm() {return itsSubAlgorithm;};
-    void Solveable::setSubAlgorithm(const string subalgorithm) {itsSubAlgorithm=subalgorithm;};
+    std::string Solveable::subAlgorithm() {return itsSubAlgorithm;};
+    void Solveable::setSubAlgorithm(const std::string& subalgorithm) {itsSubAlgorithm=subalgorithm;};
 
   }
 }

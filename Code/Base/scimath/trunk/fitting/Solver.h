@@ -6,7 +6,7 @@
 /// The base class holds the parameters and the normal equations.
 /// Derived classes perform the solution of the normal equations.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHSOLVER_H_
@@ -22,13 +22,15 @@ namespace conrad
   namespace scimath
   {
 
+    /// Base class for solvers
     class Solver : public Solveable
     {
       public:
 /// Constructor from parameters
+/// @param ip Parameters
         explicit Solver(const Params& ip);
 
-        virtual ~Solver() {};
+        virtual ~Solver();
 
 /// Initialize this solver
         virtual void init() = 0;
@@ -37,8 +39,10 @@ namespace conrad
 /// @param ip Parameters
         void setParameters(const Params& ip);
 
-/// Return current values of params
+/// Return current values of params (const)
         const Params& parameters() const;
+
+/// Return current values of params (non const)
         Params& parameters();
 
 /// Add the normal equations
@@ -47,10 +51,14 @@ namespace conrad
 
 /// Solve for parameters, updating the values kept internally
 /// The solution is constructed from the normal equations
+/// @param q Quality of solution
         virtual bool solveNormalEquations(Quality& q) = 0;
 
       protected:
+        /// Parameters
         Params itsParams;
+        
+        /// Normal equations
         NormalEquations itsNormalEquations;
     };
 
