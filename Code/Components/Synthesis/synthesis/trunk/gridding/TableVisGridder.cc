@@ -11,7 +11,7 @@ namespace conrad
 namespace synthesis
 {
 
-TableVisGridder::TableVisGridder()
+TableVisGridder::TableVisGridder() : itsInM(false)
 {
 }
 
@@ -132,10 +132,16 @@ void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double
     // visibility to the grid.
     for (int i=0;i<nSamples;i++) {
         for (int chan=0;chan<nChan;chan++) {
+            
+            int overSample=itsOverSample;
+            if(itsInM) {
+                overSample=int(double(itsOverSample)*freq[0]/freq[chan]+0.5);
+            }
+            
             for (int pol=0;pol<nPol;pol++) {
 
                 int coff=cOffset(i,chan);
-            
+                
                 int iu, iv;
                 double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
                 if(uScaled>0.0) {
@@ -144,7 +150,7 @@ void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double
                 else {
                     iu=int(uScaled-0.5);
                 }
-                int fracu=int(itsOverSample*(uScaled-double(iu)));
+                int fracu=int(overSample*(uScaled-double(iu)));
                 iu+=gSize/2;
 
                 double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
@@ -154,14 +160,14 @@ void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double
                 else {
                     iv=int(vScaled-0.5);
                 }
-                int fracv=int(itsOverSample*(vScaled-double(iv)));
+                int fracv=int(overSample*(vScaled-double(iv)));
                 iv+=gSize/2;
-
+                
                 if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
                     ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize)) {
                     for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
                         for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
-                            float wt=itsC(suppu*itsOverSample+fracu+itsCCenter,suppv*itsOverSample+fracv+itsCCenter,coff);
+                            float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
                             grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
                             sumwt(pol)+=wt;
                         }
@@ -200,6 +206,12 @@ void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector
     // visibility to the grid.
     for (int i=0;i<nSamples;i++) {
         for (int chan=0;chan<nChan;chan++) {
+
+            int overSample=itsOverSample;
+            if(itsInM) {
+                overSample=int(double(itsOverSample)*freq[0]/freq[chan]+0.5);
+            }
+            
             for (int pol=0;pol<nPol;pol++) {
 
                 int coff=cOffset(i,chan);
@@ -212,7 +224,7 @@ void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector
                 else {
                     iu=int(uScaled-0.5);
                 }
-                int fracu=int(itsOverSample*(uScaled-double(iu)));
+                int fracu=int(overSample*(uScaled-double(iu)));
                 iu=gSize/2;
 
                 double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
@@ -222,7 +234,7 @@ void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector
                 else {
                     iv=int(vScaled-0.5);
                 }
-                int fracv=int(itsOverSample*(vScaled-double(iv)));
+                int fracv=int(overSample*(vScaled-double(iv)));
                 iv=gSize/2;
 
 
@@ -230,7 +242,7 @@ void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector
                     ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize)) {
                     for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
                         for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
-                            float wt=itsC(suppu*itsOverSample+fracu+itsCCenter,suppv*itsOverSample+fracv+itsCCenter,coff);
+                            float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
                             grid(iu+suppu,iv+suppv,pol)+=wt;
                         }
                     }
@@ -273,6 +285,12 @@ void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double
     // visibility to the grid.
     for (int i=0;i<nSamples;i++) {
         for (int chan=0;chan<nChan;chan++) {
+
+            int overSample=itsOverSample;
+            if(itsInM) {
+                overSample=int(double(itsOverSample)*freq[0]/freq[chan]+0.5);
+            }
+            
             for (int pol=0;pol<nPol;pol++) {
 
                 int coff=cOffset(i,chan);
@@ -285,7 +303,7 @@ void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double
                 else {
                     iu=int(uScaled-0.5);
                 }
-                int fracu=int(itsOverSample*(uScaled-double(iu)));
+                int fracu=int(overSample*(uScaled-double(iu)));
                 iu+=gSize/2;
 
                 double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
@@ -295,7 +313,7 @@ void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double
                 else {
                     iv=int(vScaled-0.5);
                 }
-                int fracv=int(itsOverSample*(vScaled-double(iv)));
+                int fracv=int(overSample*(vScaled-double(iv)));
                 iv+=gSize/2;
 
                 double sumviswt=0.0;
@@ -305,7 +323,7 @@ void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double
                         ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize)) {
                         for (int suppu=-itsSupport;suppu<+itsSupport;suppu++) {
                             for (int suppv=-itsSupport;suppv<+itsSupport;suppv++) {
-                                float wt=itsC(suppu*itsOverSample+fracu+itsCCenter,suppv*itsOverSample+fracv+itsCCenter,coff);
+                                float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
                                 visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
                                 sumviswt+=wt;
                             }

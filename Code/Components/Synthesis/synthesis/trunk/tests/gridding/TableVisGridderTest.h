@@ -1,5 +1,6 @@
 #include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
+#include <gridding/AntennaIllumVisGridder.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
 #include <dataaccess/DataIteratorStub.h>
@@ -22,13 +23,18 @@ namespace synthesis {
 class TableVisGridderTest : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TableVisGridderTest);
-    CPPUNIT_TEST(testForward);
-    CPPUNIT_TEST(testReverse);
+    CPPUNIT_TEST(testForwardBox);
+    CPPUNIT_TEST(testReverseBox);
+    CPPUNIT_TEST(testForwardSph);
+    CPPUNIT_TEST(testReverseSph);
+    CPPUNIT_TEST(testForwardAnt);
+    CPPUNIT_TEST(testReverseAnt);
     CPPUNIT_TEST_SUITE_END();
 	
   private:
     BoxVisGridder *itsBox;
     SphFuncVisGridder *itsSphFunc;
+    AntennaIllumVisGridder *itsAnt;
     
     IDataSharedIter idi;
     Axes* itsAxes;
@@ -44,12 +50,16 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
 	  ip.add("flux.i.cena", 100.0);
 	  ip.add("direction.ra.cena", 0.5);
 	  ip.add("direction.dec.cena", -0.3);
+      ip.add("shape.bmaj.cena", 0.0); 
+      ip.add("shape.bmin.cena", 0.0); 
+      ip.add("shape.bpa.cena", 0.0);
 	  
 	  ComponentEquation ce(ip, idi);
 	  ce.predict();
 
       itsBox = new BoxVisGridder();
       itsSphFunc = new SphFuncVisGridder();
+      itsAnt = new AntennaIllumVisGridder(12.0, 1.0);
 
       double cellSize=10*casa::C::arcsec;
 
@@ -69,21 +79,36 @@ class TableVisGridderTest : public CppUnit::TestFixture  {
     {
       delete itsBox;
       delete itsSphFunc;
+      delete itsAnt;
       delete itsGrid;
       delete itsWeights;
       delete itsAxes;
     }
 
-	void testReverse()
-	{
+    void testReverseBox()
+    {
         itsBox->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
-        itsSphFunc->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
-	}    
-	void testForward()
-	{
+    }    
+    void testForwardBox()
+    {
         itsBox->forward(idi, *itsAxes, *itsGrid);
+    }    
+    void testReverseSph()
+    {
+        itsSphFunc->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+    }    
+    void testForwardSph()
+    {
         itsSphFunc->forward(idi, *itsAxes, *itsGrid);
-	}    
+    }    
+    void testReverseAnt()
+    {
+        itsAnt->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+    }    
+    void testForwardAnt()
+    {
+        itsAnt->forward(idi, *itsAxes, *itsGrid);
+    }    
   };
   
 }

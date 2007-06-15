@@ -2,7 +2,7 @@
 ///
 /// TableVisGridder: Table-based visibility gridder. 
 ///
-/// This supports gridders with a table loopkup.
+/// This supports gridders with a table lookup.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -21,7 +21,8 @@ class TableVisGridder : public IVisGridder
 {
 public:
 	
-	// Standard two dimensional gridding
+	/// Standard two dimensional gridding using a convolution function
+    /// in a table
 	TableVisGridder();
 	
 	virtual ~TableVisGridder();
@@ -100,20 +101,36 @@ public:
 
 protected:
 
+    // The convolution function is stored as a cube so that we can use the third axes
+    // for data dependent variations e.g. w projection. The function cOffset can be
+    // used to generate this offset.
     casa::Cube<float> itsC;
+    virtual int cOffset(int, int)=0;
+
+    // Support, oversampling, size, and center of the convolution function.
     int itsSupport;
     int itsOverSample;
     int itsCSize;
     int itsCCenter;
-    virtual int cOffset(int, int)=0;
+    
+    /// If !itsInM these functions assume that the convolution function
+    /// is specified in wavelengths. This is not always the case e.g. for antenna illumination
+    /// pattern gridding. In that case, set itsInM to true.
+    bool itsInM;
+
+    // Initialize the convolution function - this is the key function to override
     virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
         const casa::IPosition& shape);
+        
+    // Find the cellsize from the image shape and axis definitions
     void findCellsize(casa::Vector<double>& cellSize, const casa::IPosition& imageShape, 
         const scimath::Axes& axes);
     
-			
-private:
-    void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+    /// Functions to do the real work. We may need to override these for derived classes so we
+    /// make them virtual and protected. 
+
+    /// Visibility to image for a cube (MFS)
+    virtual void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
                     const casa::Cube<casa::Complex>& visibility,
                     const casa::Cube<float>& visweight,
                     const casa::Vector<double>& freq,
@@ -121,20 +138,23 @@ private:
                     casa::Cube<casa::Complex>& grid,
                     casa::Vector<float>& sumwt);
                     
-    void genericReverseWeights(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+    /// Visibility weights to image for a cube (MFS)
+    virtual void genericReverseWeights(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
                     const casa::Cube<float>& visweight,
                     const casa::Vector<double>& freq,
                     const casa::Vector<double>& cellSize,
                     casa::Cube<casa::Complex>& grid);
                     
-    void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+    /// Image to visibility for a cube (MFS))
+    virtual void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
                     casa::Cube<casa::Complex>& visibility,
                     casa::Cube<float>& visweight,
                     const casa::Vector<double>& freq,
                     const casa::Vector<double>& cellSize,
                     const casa::Cube<casa::Complex>& grid);
                     
-    void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+    /// Visibility to image for an array (spectral line)
+    virtual void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
                     const casa::Cube<casa::Complex>& visibility,
                     const casa::Cube<float>& visweight,
                     const casa::Vector<double>& freq,
@@ -142,12 +162,14 @@ private:
                     casa::Array<casa::Complex>& grid,
                     casa::Matrix<float>& sumwt);
                     
+    /// Visibility weights to image for an array (spectral line)
     void genericReverseWeights(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
                     const casa::Cube<float>& visweight,
                     const casa::Vector<double>& freq,
                     const casa::Vector<double>& cellSize,
                     casa::Array<casa::Complex>& grid);
                     
+    /// Image to visibility for an array (spectral line)
     void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
                     casa::Cube<casa::Complex>& visibility,
                     casa::Cube<float>& visweight,

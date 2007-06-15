@@ -27,8 +27,8 @@ public:
 	virtual ~BoxVisGridder();
     
 protected:
-    int cOffset(int, int);
-    void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+    virtual int cOffset(int, int);
+    virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
         const casa::IPosition& shape);
 };
 

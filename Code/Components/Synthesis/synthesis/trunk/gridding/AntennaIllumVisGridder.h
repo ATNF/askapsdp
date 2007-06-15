@@ -1,14 +1,14 @@
 /// @file
 ///
-/// SphFuncVisGridder: SphFunc-based visibility gridder. 
-///
-/// This supports gridders with a table loopkup.
+/// AntennaIllumVisGridder: Grids visibility data using
+/// the self-convolution of the antenna illumination
+/// pattern. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SPHVISGRIDDER_H_
-#define SPHVISGRIDDER_H_
+#ifndef ANTENNAILLUMGRIDDER_H_
+#define ANTENNAILLUMGRIDDER_H_
 
 #include <gridding/TableVisGridder.h>
 
@@ -17,14 +17,16 @@ namespace conrad
 namespace synthesis
 {
 
-class SphFuncVisGridder : public TableVisGridder
+class AntennaIllumVisGridder : public TableVisGridder
 {
 public:
 	
-	// Standard two dimensional gridding
-	SphFuncVisGridder();
+	/// Use antenna illumination pattern
+    /// @param diameter Antenna diameter (meters)
+    /// @param blockage Antenna blockage (meters)
+	AntennaIllumVisGridder(const double diameter, const double blockage);
 	
-	virtual ~SphFuncVisGridder();
+	virtual ~AntennaIllumVisGridder();
 
     /// Correct for gridding convolution function
     /// @param axes axes specifications
@@ -43,7 +45,11 @@ protected:
     virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
         const casa::IPosition& shape);
 private:
-    double grdsf(double nu);
+    double itsReferenceFrequency;
+    void selfConvolve(casa::Matrix<casa::Complex>& disk);
+    double itsDiameter;
+    double itsBlockage;
+    
 };
 
 }
