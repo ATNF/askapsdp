@@ -32,8 +32,8 @@ namespace conrad
       init();
     };
 
-    ComponentEquation(IDataSharedIter& idi) :  conrad::scimath::Equation(),
-      itsIdi(idi) 
+    ComponentEquation::ComponentEquation(IDataSharedIter& idi) :  
+      conrad::scimath::Equation(), itsIdi(idi) 
     {
       init();itsParams=itsDefaultParams;
     };

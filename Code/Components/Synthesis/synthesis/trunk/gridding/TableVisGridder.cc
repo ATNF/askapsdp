@@ -21,7 +21,7 @@ namespace conrad
     {
     }
 
-    // Data to grid (MFS)
+    /// Data to grid (MFS)
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid,
@@ -35,7 +35,7 @@ namespace conrad
         cellsize, grid, weights);
     }
 
-    // Data to grid (spectral line)
+    /// Data to grid (spectral line)
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid,
@@ -49,7 +49,7 @@ namespace conrad
         cellsize, grid, weights);
     }
 
-    // Data weights to grid (MFS) 
+    /// Data weights to grid (MFS) 
     void TableVisGridder::reverseWeights(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid)
@@ -62,7 +62,7 @@ namespace conrad
         cellsize, grid);
     }
 
-    // Data weights to grid (spectral line) 
+    /// Data weights to grid (spectral line) 
     void TableVisGridder::reverseWeights(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid)
@@ -75,7 +75,7 @@ namespace conrad
         cellsize, grid);
     }
 
-    // Grid to data (MFS)
+    /// Grid to data (MFS)
     void TableVisGridder::forward(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       const casa::Cube<casa::Complex>& grid)
@@ -88,7 +88,7 @@ namespace conrad
         cellsize, grid);
     }
 
-    // Grid to data (spectral line)
+    /// Grid to data (spectral line)
     void TableVisGridder::forward(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       const casa::Array<casa::Complex>& grid)
