@@ -102,9 +102,11 @@ namespace conrad
 
       protected:
 
-/// The convolution function is stored as a cube so that we can use the third axes
-/// for data dependent variations e.g. w projection. The function cOffset can be
-/// used to generate this offset.
+        /// @brief Convolution function
+        ///
+        /// The convolution function is stored as a cube so that we can use the third axes
+        /// for data dependent variations e.g. w projection. The function cOffset can be
+        /// used to generate this offset.
         casa::Cube<float> itsC;
         
         /// Return the offset into the convolution function for a given
@@ -120,69 +122,113 @@ namespace conrad
         /// Center of convolution functio
         int itsCCenter;
 
+/// @brief Are the convolution functions constant in meters?
+///
 /// If !itsInM these functions assume that the convolution function
 /// is specified in wavelengths. This is not always the case e.g. for antenna illumination
 /// pattern gridding. In that case, set itsInM to true.
         bool itsInM;
 
 /// Initialize the convolution function - this is the key function to override
+/// @param idi Data iterator
+/// @param cellsize cellsize in wavelengths
+/// @param shape grid shape
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
-          const casa::Vector<double>& cellSize,
+          const casa::Vector<double>& cellsize,
           const casa::IPosition& shape)=0;
 
 /// Find the cellsize from the image shape and axis definitions
-        void findCellsize(casa::Vector<double>& cellSize, const casa::IPosition& imageShape,
+/// @param cellsize cellsize in wavelengths
+/// @param shape grid shape
+/// @param axes Axes definition
+        void findCellsize(casa::Vector<double>& cellsize, const casa::IPosition& shape,
           const conrad::scimath::Axes& axes);
 
 /// Functions to do the real work. We may need to override these for derived classes so we
 /// make them virtual and protected.
 
 /// Visibility to image for a cube (MFS)
-        virtual void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+/// @param uvw UVW in meters
+/// @param visibility Visibility
+/// @param visweight Visibility weight
+/// @param freq Frequency
+/// @param cellsize Cellsize in wavelengths
+/// @param grid Grid for data
+/// @param sumwt Total summed weight per polarization 
+        virtual void genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           const casa::Cube<casa::Complex>& visibility,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellSize,
+          const casa::Vector<double>& cellsize,
           casa::Cube<casa::Complex>& grid,
           casa::Vector<float>& sumwt);
 
 /// Visibility weights to image for a cube (MFS)
-        virtual void genericReverseWeights(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+/// @param uvw UVW in meters
+/// @param visweight Visibility weight
+/// @param freq Frequency
+/// @param cellsize Cellsize in wavelengths
+/// @param grid Grid for data
+        virtual void genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellSize,
+          const casa::Vector<double>& cellsize,
           casa::Cube<casa::Complex>& grid);
 
 /// Image to visibility for a cube (MFS))
-        virtual void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+/// @param uvw UVW in meters
+/// @param visibility Visibility
+/// @param visweight Visibility weight
+/// @param freq Frequency
+/// @param cellsize Cellsize in wavelengths
+/// @param grid Grid for data
+        virtual void genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           casa::Cube<casa::Complex>& visibility,
           casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellSize,
+          const casa::Vector<double>& cellsize,
           const casa::Cube<casa::Complex>& grid);
 
 /// Visibility to image for an array (spectral line)
-        virtual void genericReverse(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+/// @param uvw UVW in meters
+/// @param visibility Visibility
+/// @param visweight Visibility weight
+/// @param freq Frequency
+/// @param cellsize Cellsize in wavelengths
+/// @param grid Grid for data
+/// @param sumwt Total summed weight per polarization and channel
+        virtual void genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           const casa::Cube<casa::Complex>& visibility,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellSize,
+          const casa::Vector<double>& cellsize,
           casa::Array<casa::Complex>& grid,
           casa::Matrix<float>& sumwt);
 
 /// Visibility weights to image for an array (spectral line)
-        void genericReverseWeights(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+/// @param uvw UVW in meters
+/// @param visweight Visibility weight
+/// @param freq Frequency
+/// @param cellsize Cellsize in wavelengths
+/// @param grid Grid for data
+        void genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellSize,
+          const casa::Vector<double>& cellsize,
           casa::Array<casa::Complex>& grid);
 
 /// Image to visibility for an array (spectral line)
-        void genericForward(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+/// @param uvw UVW in meters
+/// @param visibility Visibility
+/// @param visweight Visibility weight
+/// @param freq Frequency
+/// @param cellsize Cellsize in wavelengths
+/// @param grid Grid for data
+        void genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           casa::Cube<casa::Complex>& visibility,
           casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellSize,
+          const casa::Vector<double>& cellsize,
           const casa::Array<casa::Complex>& grid);
 
     };
