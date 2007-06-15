@@ -17,7 +17,6 @@ namespace conrad
       if(this!=&other)
       {
         itsParams=other.itsParams;
-        itsDefaultParams=other.itsDefaultParams;
         itsList=other.itsList;
       }
     }
@@ -26,6 +25,12 @@ namespace conrad
     CompositeEquation::CompositeEquation(const Params& ip) : Equation(ip) {};
 
     CompositeEquation::~CompositeEquation(){};
+    
+    Params CompositeEquation::defaultParameters()
+    {
+      Params ip;
+      return ip;
+    }
 
     void CompositeEquation::predict()
     {
@@ -54,7 +59,6 @@ namespace conrad
     {
       return Equation::ShPtr(new CompositeEquation(*this));
     }
-
   }
 
 }

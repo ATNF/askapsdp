@@ -104,16 +104,6 @@ namespace conrad
 /// @param ip Parameters
         virtual void setParameters(const Params& ip);
 
-/// Check if a set of parameters is complete for this equation
-/// i.e. are all the required parameters present
-/// @param ip Parameters
-        virtual bool complete(const Params& ip);
-
-/// Return a default set of parameters (const)
-        const Params& defaultParameters() const;
-/// Return a default set of parameters (non-const)
-        Params& defaultParameters();
-
 /// Predict the data from the parameters. This changes the internal state.
         virtual void predict() {};
 
@@ -130,8 +120,6 @@ namespace conrad
       protected:
       /// Parameters
         Params itsParams;
-        /// Default parameters
-        Params itsDefaultParams;
     };
 
   }

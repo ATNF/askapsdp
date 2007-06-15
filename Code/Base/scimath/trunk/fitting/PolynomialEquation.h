@@ -24,6 +24,9 @@ namespace conrad
     {
       public:
 
+/// Return a default set of parameters
+        static Params defaultParameters();
+
 /// Constructor for real use
 /// @param ip Coefficients of polynomial stored with names poly.*
 /// @param data Data constraints

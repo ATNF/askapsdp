@@ -18,18 +18,17 @@ namespace conrad
       if(this!=&other)
       {
         itsParams=other.itsParams;
-        itsDefaultParams=other.itsDefaultParams;
       }
     }
 
-// Using default parameters
     Equation::Equation()
     {
-      itsParams=itsDefaultParams;
     };
 
 // Using specified parameters
-    Equation::Equation(const Params& ip) : itsParams(ip) {};
+    Equation::Equation(const Params& ip) : itsParams(ip) 
+    {
+    };
 
     Equation::~Equation(){};
 
@@ -39,13 +38,6 @@ namespace conrad
 
 // Set the parameters to new values
     void Equation::setParameters(const Params& ip) {itsParams=ip;};
-
-// Check if set of parameters is valid for this equation
-    bool Equation::complete(const Params& ip) {return itsDefaultParams.isCongruent(ip);};
-
-// Return a default set of parameters
-    Params& Equation::defaultParameters() {return itsDefaultParams;};
-    const Params& Equation::defaultParameters() const {return itsDefaultParams;};
 
     Equation::ShPtr Equation::clone()
     {

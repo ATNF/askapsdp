@@ -51,7 +51,6 @@ namespace conrad
       if(this!=&other)
       {
         itsParams=other.itsParams;
-        itsDefaultParams=other.itsDefaultParams;
         itsData=other.itsData;
         itsWeights=other.itsWeights;
         itsArguments=other.itsArguments;
@@ -63,63 +62,59 @@ namespace conrad
     {
     }
     
+    Params PolynomialEquation::defaultParameters()
+    {
+      Params ip;
+      ip.add("poly");
+      return ip;
+    }
+     
     void PolynomialEquation::init()
     {
-// The default parameters serve as a holder for the patterns to match the actual
-// parameters. Shell pattern matching rules apply.
-      itsDefaultParams.reset();
-      itsDefaultParams.add("poly");
     }
 
     void PolynomialEquation::predict()
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
-      }
-
-      itsModel.set(0.0);
 
       vector<string> completions(parameters().completions("poly"));
-      vector<string>::iterator it;
-// Loop over all polynomials adding to the values
-      for (it=completions.begin();it!=completions.end();it++)
-      {
-        string polyName("poly"+(*it));
-        const casa::Vector<double> par(parameters().value(polyName));
-        this->calcPoly(itsArguments, par, itsModel);
+      if(completions.size()>0) {
+        vector<string>::iterator it;
+// Loop over all polynomials adding to the values. 
+        for (it=completions.begin();it!=completions.end();it++)
+        {
+          string polyName("poly"+(*it));
+          const casa::Vector<double> par(parameters().value(polyName));
+          this->calcPoly(itsArguments, par, itsModel);
+        }
       }
-    };
+    }
 
     void PolynomialEquation::calcEquations(NormalEquations& ne)
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
-      }
-
-      casa::Vector<double> values(itsData.size());
-      values=0.0;
-
-      DesignMatrix designmatrix(parameters());
-
       vector<string> completions(parameters().completions("poly"));
-      vector<string>::iterator it;
-// Loop over all polynomials adding to the values
-      for (it=completions.begin();it!=completions.end();it++)
-      {
-        string polyName("poly"+(*it));
-        const casa::Vector<double> par(parameters().value(polyName));
-        casa::Matrix<double> valueDerivs(itsData.size(), par.size());
-        this->calcPoly(itsArguments, par, itsModel);
-        this->calcPolyDeriv(itsArguments, par, valueDerivs);
-        designmatrix.addDerivative(polyName, valueDerivs);
-      }
-      casa::Vector<double> residual(itsData.copy());
+      if(completions.size()>0) {
+        DesignMatrix designmatrix(parameters());
 
-      residual-=itsModel;
-      designmatrix.addResidual(residual, itsWeights);
-      ne.add(designmatrix);
+        casa::Vector<double> values(itsData.size());
+        values=0.0;
+
+        vector<string>::iterator it;
+// Loop over all polynomials adding to the values. 
+        for (it=completions.begin();it!=completions.end();it++)
+        {
+          string polyName("poly"+(*it));
+          const casa::Vector<double> par(parameters().value(polyName));
+          casa::Matrix<double> valueDerivs(itsData.size(), par.size());
+          this->calcPoly(itsArguments, par, itsModel);
+          this->calcPolyDeriv(itsArguments, par, valueDerivs);
+          designmatrix.addDerivative(polyName, valueDerivs);
+        }
+        casa::Vector<double> residual(itsData.copy());
+  
+        residual-=itsModel;
+        designmatrix.addResidual(residual, itsWeights);
+        ne.add(designmatrix);
+      }
     };
 
     void PolynomialEquation::calcPoly(const casa::Vector<double>& x,

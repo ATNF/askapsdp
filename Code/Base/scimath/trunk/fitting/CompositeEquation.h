@@ -36,6 +36,10 @@ namespace conrad
 
         virtual ~CompositeEquation();
 
+/// Return a default set of parameters - this doesn't make much sense
+/// for a static of a composite but it doesn't matter
+        static Params defaultParameters();
+
 /// Predict the data from the parameters. This changes the internal state.
         virtual void predict();
 
