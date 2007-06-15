@@ -25,6 +25,19 @@ namespace conrad
   namespace synthesis
   {
 
+    ComponentEquation::ComponentEquation(const conrad::scimath::Params& ip,
+          IDataSharedIter& idi) :  conrad::scimath::Equation(ip),
+          itsIdi(idi) 
+    {
+      init();
+    };
+
+    ComponentEquation(IDataSharedIter& idi) :  conrad::scimath::Equation(),
+      itsIdi(idi) 
+    {
+      init();itsParams=itsDefaultParams;
+    };
+
     ComponentEquation::ComponentEquation(const ComponentEquation& other)
     {
       operator=(other);
@@ -38,6 +51,10 @@ namespace conrad
         itsDefaultParams=other.itsDefaultParams;
         itsIdi=other.itsIdi;
       }
+    }
+    
+    ComponentEquation::~ComponentEquation() 
+    {
     }
 
     void ComponentEquation::init()
@@ -117,7 +134,7 @@ namespace conrad
       }
     };
 
-    void ComponentEquation::calcEquations(NormalEquations& ne)
+    void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
       if(parameters().isCongruent(itsDefaultParams))
       {

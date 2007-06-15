@@ -10,9 +10,11 @@ namespace conrad
   namespace synthesis
   {
 
-    AntennaIllumVisGridder::AntennaIllumVisGridder(const double diameter, const double blockage) : TableVisGridder(), itsReferenceFrequency(0.0),
+    AntennaIllumVisGridder::AntennaIllumVisGridder(const double diameter, 
+      const double blockage) : TableVisGridder(), itsReferenceFrequency(0.0),
       itsDiameter(diameter), itsBlockage(blockage)
     {
+      // The antenna illumination pattern is fixed in meters
       TableVisGridder::itsInM=true;
     }
 
@@ -22,15 +24,16 @@ namespace conrad
     }
 
 /// Initialize the convolution function for the disk.
-    void AntennaIllumVisGridder::initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+    void AntennaIllumVisGridder::initConvolutionFunction(IDataSharedIter& idi, 
+      const casa::Vector<double>& cellSize,
       const casa::IPosition& shape)
     {
 
       if(idi->frequency()[0]!=itsReferenceFrequency)
       {
         itsReferenceFrequency=idi->frequency()[0];
-// Cellsize is in wavelengths so we convert to the physical length (m) at the reference
-// frequency (the first channel)
+// Cellsize is in wavelengths so we convert to the physical length (m) at 
+// the reference frequency (the first channel)
 // WARNING: Ignoring different cellsizes!
         double toM=cellSize(0)*casa::C::c/itsReferenceFrequency;
         double rmax=std::pow(itsDiameter*toM,2);
@@ -43,10 +46,12 @@ namespace conrad
         disk.set(0.0);
         for (int ix=0;ix<itsCSize;ix++)
         {
-          double nux2=std::pow(std::abs(double(ix-itsCCenter))/double(itsOverSample), 2);
+          double nux2=std::pow(std::abs(double(ix-itsCCenter))
+            /double(itsOverSample), 2);
           for (int iy=0;iy<itsCSize;iy++)
           {
-            double nuy2=std::pow(std::abs(double(iy-itsCCenter))/double(itsOverSample), 2);
+            double nuy2=std::pow(std::abs(double(iy-itsCCenter))
+              /double(itsOverSample), 2);
             double r=nux2+nuy2;
             if((r>rmin)&&(r<rmax))
             {
@@ -60,7 +65,8 @@ namespace conrad
       }
     }
 
-/// Convolve the disk with itself
+/// Convolve the disk with itself - we could save some work here if it becomes
+/// too expensive
     void AntennaIllumVisGridder::selfConvolve(casa::Matrix<casa::Complex>& disk)
     {
 

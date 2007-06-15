@@ -1,8 +1,10 @@
 #include <gridding/TableVisGridder.h>
+#include <conrad/ConradError.h>
 
 #include <casa/BasicSL/Constants.h>
 
 using namespace conrad::scimath;
+using namespace conrad;
 
 #include <stdexcept>
 
@@ -19,13 +21,9 @@ namespace conrad
     {
     }
 
-    void TableVisGridder::initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellsize,
-      const casa::IPosition& shape)
-    {
-    }
-
+    // Data to grid (MFS)
     void TableVisGridder::reverse(IDataSharedIter& idi,
-      const scimath::Axes& axes,
+      const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid,
       casa::Vector<float>& weights)
     {
@@ -37,8 +35,9 @@ namespace conrad
         cellsize, grid, weights);
     }
 
+    // Data to grid (spectral line)
     void TableVisGridder::reverse(IDataSharedIter& idi,
-      const scimath::Axes& axes,
+      const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid,
       casa::Matrix<float>& weights)
     {
@@ -50,8 +49,9 @@ namespace conrad
         cellsize, grid, weights);
     }
 
+    // Data weights to grid (MFS) 
     void TableVisGridder::reverseWeights(IDataSharedIter& idi,
-      const scimath::Axes& axes,
+      const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid)
     {
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
@@ -62,8 +62,9 @@ namespace conrad
         cellsize, grid);
     }
 
+    // Data weights to grid (spectral line) 
     void TableVisGridder::reverseWeights(IDataSharedIter& idi,
-      const scimath::Axes& axes,
+      const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid)
     {
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
@@ -74,8 +75,9 @@ namespace conrad
         cellsize, grid);
     }
 
+    // Grid to data (MFS)
     void TableVisGridder::forward(IDataSharedIter& idi,
-      const scimath::Axes& axes,
+      const conrad::scimath::Axes& axes,
       const casa::Cube<casa::Complex>& grid)
     {
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
@@ -86,8 +88,9 @@ namespace conrad
         cellsize, grid);
     }
 
+    // Grid to data (spectral line)
     void TableVisGridder::forward(IDataSharedIter& idi,
-      const scimath::Axes& axes,
+      const conrad::scimath::Axes& axes,
       const casa::Array<casa::Complex>& grid)
     {
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
@@ -98,6 +101,8 @@ namespace conrad
         cellsize, grid);
     }
 
+    /// Next are the implementation methods. Not all of these are implemented yet.
+    /// Data to grid (MFS)
     void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<casa::Complex>& visibility,
       const casa::Cube<float>& visweight,
@@ -106,8 +111,10 @@ namespace conrad
       casa::Array<casa::Complex>& grid,
       casa::Matrix<float>& sumwt)
     {
+      CONRADTHROW(ConradError, "genericReverse not yet implemented");
     }
 
+    /// Data to grid (spectral line)
     void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<casa::Complex>& visibility,
       const casa::Cube<float>& visweight,
@@ -190,14 +197,17 @@ namespace conrad
       }
     }
 
+    /// Data weights to grid (spectral line)
     void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
       const casa::Vector<double>& cellsize,
       casa::Array<casa::Complex>& grid)
     {
+      CONRADTHROW(ConradError, "genericReverseWeights not yet implemented");
     }
 
+    /// Data weights to grid (MFS)
     void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
@@ -274,6 +284,7 @@ namespace conrad
       }
     }
 
+    /// Grid to data (spectral line)
     void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       casa::Cube<casa::Complex>& visibility,
       casa::Cube<float>& visweight,
@@ -281,8 +292,10 @@ namespace conrad
       const casa::Vector<double>& cellsize,
       const casa::Array<casa::Complex>& grid)
     {
+      CONRADTHROW(ConradError, "genericForward not yet implemented");
     }
 
+    /// Grid to data (MFS)
     void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       casa::Cube<casa::Complex>& visibility,
       casa::Cube<float>& visweight,
@@ -389,8 +402,9 @@ namespace conrad
       }
     }
 
-    void TableVisGridder::findCellsize(casa::Vector<double>& cellsize, const casa::IPosition& imageShape,
-      const Axes& axes)
+    void TableVisGridder::findCellsize(casa::Vector<double>& cellsize, 
+      const casa::IPosition& imageShape,
+      const conrad::scimath::Axes& axes)
     {
 
       if(!axes.has("RA")||!axes.has("DEC"))
@@ -407,18 +421,6 @@ namespace conrad
       cellsize(0)=1.0/std::abs(raEnd-raStart);
       cellsize(1)=1.0/std::abs(decEnd-decStart);
 
-    }
-
-    void TableVisGridder::correctConvolution(const scimath::Axes& axes,
-      casa::Cube<double>& grid)
-    {
-      std::cout << "Null gridding function correction" << std::endl;
-    }
-
-    void TableVisGridder::applyConvolution(const scimath::Axes& axes,
-      casa::Cube<double>& grid)
-    {
-      std::cout << "Null gridding function correction" << std::endl;
     }
 
   }

@@ -26,6 +26,11 @@ namespace conrad
 {
   namespace synthesis
   {
+    
+    ImageSolver::ImageSolver(const conrad::scimath::Params& ip) : 
+          conrad::scimath::Solver(ip) 
+    {
+    }
 
     void ImageSolver::init()
     {
@@ -34,24 +39,24 @@ namespace conrad
 
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
-    bool ImageSolver::solveNormalEquations(Quality& quality)
+    bool ImageSolver::solveNormalEquations(conrad::scimath::Quality& quality)
     {
 
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
       uint nParameters=0;
 
-// Find all the free parameters
-      const vector<string> names(itsParams.freeNames());
-      if(names.size()<1)
-      {
-        throw(std::domain_error("No free parameters"));
-      }
+// Find all the free parameters beginning with image
+      vector<string> names(itsParams.completions("image"));
       vector<string>::const_iterator it;
       map<string, uint> indices;
+      
       for (it=names.begin();it!=names.end();it++)
       {
-        indices[*it]=nParameters;
-        nParameters+=itsParams.value(*it).nelements();
+        string name="image"+*it;
+        if(itsParams.isFree(name)) {
+          indices[name]=nParameters;
+          nParameters+=itsParams.value(name).nelements();
+        }
       }
       if(nParameters<1)
       {

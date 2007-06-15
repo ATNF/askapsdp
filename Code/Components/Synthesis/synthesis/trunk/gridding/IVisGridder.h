@@ -12,7 +12,7 @@
 ///
 /// No phase rotation is performed in the gridder.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef IVISGRIDDER_H_
@@ -29,14 +29,21 @@
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/SharedIter.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace conrad
 {
   namespace synthesis
   {
 
+    /// @brief Abstract Base Class for all gridders.
     class IVisGridder
     {
       public:
+      
+/// Shared pointer definition
+        typedef boost::shared_ptr<IVisGridder> ShPtr;
+                
         IVisGridder();
         virtual ~IVisGridder();
 
@@ -61,6 +68,24 @@ namespace conrad
           const scimath::Axes& axes,
           casa::Array<casa::Complex>& grid,
           casa::Matrix<float>& weights) = 0;
+
+/// Grid the visibility wefghts onto the grid using multifrequency
+/// synthesis. Note that the weights allow complete flexibility
+/// @param idi DataIterator
+/// @param axes axes specifications
+/// @param grid Output grid: cube: u,v,pol
+        virtual void reverseWeights(IDataSharedIter& idi,
+          const scimath::Axes& axes,
+          casa::Cube<casa::Complex>& grid) = 0;
+
+/// Grid the spectral visibility weights onto the grid
+/// Note that the weights allow complete flexibility
+/// @param idi DataIterator
+/// @param axes axes specifications
+/// @param grid Output grid: cube: u,v,chan,pol
+        virtual void reverseWeights(IDataSharedIter& idi,
+          const scimath::Axes& axes,
+          casa::Array<casa::Complex>& grid) = 0;
 
 /// Estimate visibility data from the grid using multifrequency
 /// synthesis.

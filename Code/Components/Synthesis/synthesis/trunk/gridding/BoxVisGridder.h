@@ -2,9 +2,7 @@
 ///
 /// BoxVisGridder: Box-based visibility gridder.
 ///
-/// This supports gridders with a table loopkup.
-///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef BOXVISGRIDDER_H_
@@ -16,19 +14,42 @@ namespace conrad
 {
   namespace synthesis
   {
-
+    /// @brief Minimal box-car convolution (aka nearest neighbour) gridder.
+    ///
+    /// It doesn't work well but it is fast and simple.
     class BoxVisGridder : public TableVisGridder
     {
       public:
 
-// Standard two dimensional gridding
+// Standard two dimensional box gridding
         BoxVisGridder();
 
         virtual ~BoxVisGridder();
 
+/// @brief Correct for gridding convolution function
+/// @param axes axes specifications
+/// @param image image to be corrected
+        virtual void correctConvolution(const scimath::Axes& axes,
+          casa::Cube<double>& image) {};
+
+/// @brief Apply gridding convolution function
+/// @param axes axes specifications
+/// @param image image to be corrected
+        virtual void applyConvolution(const scimath::Axes& axes,
+          casa::Cube<double>& image) {};
+
+
       protected:
-        virtual int cOffset(int, int);
-        virtual void initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+      /// Offset into convolution function
+      /// @param row Row number
+      /// @param chan Channel number
+        virtual int cOffset(int row, int chan);
+        /// Initialize convolution function
+        /// @param idi Data access iterator
+        /// @param cellSize Cell size in wavelengths
+        /// @param shape Shape of grid
+        virtual void initConvolutionFunction(IDataSharedIter& idi, 
+          const casa::Vector<double>& cellSize,
           const casa::IPosition& shape);
     };
 

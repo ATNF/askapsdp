@@ -1,4 +1,7 @@
 #include <measurementequation/ImageFFTEquation.h>
+#include <gridding/BoxVisGridder.h>
+#include <gridding/SphFuncVisGridder.h>
+#include <gridding/AntennaIllumVisGridder.h>
 #include <measurementequation/ImageSolver.h>
 #include <dataaccess/DataIteratorStub.h>
 #include <fitting/ParamsCASATable.h>
@@ -28,7 +31,9 @@ namespace conrad
 
       CPPUNIT_TEST_SUITE(ImageFFTEquationTest);
       CPPUNIT_TEST(testPredict);
-      CPPUNIT_TEST(testSolve);
+      CPPUNIT_TEST(testSolveSphFun);
+      CPPUNIT_TEST(testSolveBox);
+      CPPUNIT_TEST(testSolveAntIllum);
       CPPUNIT_TEST_EXCEPTION(testFixed, std::domain_error);
       CPPUNIT_TEST_SUITE_END();
 
@@ -80,7 +85,7 @@ namespace conrad
           p1->predict();
         }
 
-        void testSolve()
+        void testSolveSphFun()
         {
 // Predict with the "perfect" parameters"
           NormalEquations ne(*params1);
@@ -99,7 +104,57 @@ namespace conrad
           casa::Array<double> improved=solver1.parameters().value("image.i.cena");
           uint npix=512;
           {
-            ParamsCASATable pt("ImageFFTEquationTest.tab", false);
+            ParamsCASATable pt("ImageFFTEquationTest_SphFun.tab", false);
+            pt.setParameters(solver1.parameters());
+          }
+// This only works for the pixels with emission but it's a good test nevertheless
+          CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
+          CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.003);
+        }
+
+        void testSolveBox()
+        {
+// Predict with the "perfect" parameters"
+          NormalEquations ne(*params1);
+          IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new BoxVisGridder());
+          p1->setGridder(gridder);
+          p1->predict();
+// Calculate gradients using "imperfect" parameters"
+          p2->setGridder(gridder);
+          p2->calcEquations(ne);
+          Quality q;
+          ImageSolver solver1(*params2);
+          solver1.addNormalEquations(ne);
+          solver1.solveNormalEquations(q);
+          casa::Array<double> improved=solver1.parameters().value("image.i.cena");
+          uint npix=512;
+          {
+            ParamsCASATable pt("ImageFFTEquationTest_Box.tab", false);
+            pt.setParameters(solver1.parameters());
+          }
+// This only works for the pixels with emission but it's a good test nevertheless
+          CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
+          CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.003);
+        }
+
+        void testSolveAntIllum()
+        {
+// Predict with the "perfect" parameters"
+          NormalEquations ne(*params1);
+          IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(12.0, 1.0));
+          p1->setGridder(gridder);
+          p1->predict();
+// Calculate gradients using "imperfect" parameters"
+          p2->setGridder(gridder);
+          p2->calcEquations(ne);
+          Quality q;
+          ImageSolver solver1(*params2);
+          solver1.addNormalEquations(ne);
+          solver1.solveNormalEquations(q);
+          casa::Array<double> improved=solver1.parameters().value("image.i.cena");
+          uint npix=512;
+          {
+            ParamsCASATable pt("ImageFFTEquationTest_AntIllum.tab", false);
             pt.setParameters(solver1.parameters());
           }
 // This only works for the pixels with emission but it's a good test nevertheless

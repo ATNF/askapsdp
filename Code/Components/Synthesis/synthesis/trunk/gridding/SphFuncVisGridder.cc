@@ -14,7 +14,10 @@ namespace conrad
       itsC.resize(0,0,0);
     }
 
-    void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi, const casa::Vector<double>& cellSize,
+    /// Initialize the convolution function into the cube. If necessary this
+    /// could be optimized by using symmetries.
+    void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi, 
+      const casa::Vector<double>& cellSize,
       const casa::IPosition& shape)
     {
       itsSupport=3;
@@ -35,6 +38,8 @@ namespace conrad
       }
     }
 
+    /// The Convolution function correction in image space is the
+    /// the spheroidal function itself.
     void SphFuncVisGridder::correctConvolution(const scimath::Axes& axes,
       casa::Cube<double>& grid)
     {
@@ -65,6 +70,8 @@ namespace conrad
       }
     }
 
+    /// The Convolution function correction in image space is the
+    /// the spheroidal function itself.
     void SphFuncVisGridder::applyConvolution(const scimath::Axes& axes,
       casa::Cube<double>& grid)
     {

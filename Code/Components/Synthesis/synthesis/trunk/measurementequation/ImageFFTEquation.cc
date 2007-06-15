@@ -29,6 +29,47 @@ namespace conrad
   namespace synthesis
   {
 
+    ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
+      IDataSharedIter& idi) : 
+      conrad::scimath::Equation(ip), itsIdi(idi) 
+      {
+        itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
+        init();
+      };
+        
+    ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi) 
+      : conrad::scimath::Equation(), itsIdi(idi) 
+    {
+      itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
+      init();
+      itsParams=itsDefaultParams;
+    }
+
+    ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
+      IDataSharedIter& idi, IVisGridder::ShPtr gridder) : 
+      conrad::scimath::Equation(ip), itsIdi(idi), itsGridder(gridder) 
+      {
+        init();
+      };
+        
+    ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi,
+      IVisGridder::ShPtr gridder) 
+      : conrad::scimath::Equation(), itsIdi(idi), itsGridder(gridder) 
+    {
+      init();
+      itsParams=itsDefaultParams;
+    }
+
+    ImageFFTEquation::~ImageFFTEquation() 
+    {
+    }
+
+        
+    void ImageFFTEquation::setGridder(IVisGridder::ShPtr gridder) 
+    {
+      itsGridder=gridder;
+    }
+    
     ImageFFTEquation::ImageFFTEquation(const ImageFFTEquation& other)
     {
       operator=(other);
@@ -41,6 +82,7 @@ namespace conrad
         itsParams=other.itsParams;
         itsDefaultParams=other.itsDefaultParams;
         itsIdi=other.itsIdi;
+        itsGridder = other.itsGridder;
       }
     }
 
@@ -78,17 +120,16 @@ namespace conrad
           const Axes axes(parameters().axes(imageName));
           casa::Cube<double> imagePixels(parameters().value(imageName).copy());
           const casa::IPosition imageShape(imagePixels.shape());
-          SphFuncVisGridder tvg;
-          tvg.correctConvolution(axes, imagePixels);
+          itsGridder->correctConvolution(axes, imagePixels);
           casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
           toComplex(uvGrid, imagePixels);
           cfft(uvGrid, true);
-          tvg.forward(itsIdi, axes, uvGrid);
+          itsGridder->forward(itsIdi, axes, uvGrid);
         }
       }
     };
 
-    void ImageFFTEquation::calcEquations(NormalEquations& ne)
+    void ImageFFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
       if(parameters().isCongruent(itsDefaultParams))
       {
@@ -124,49 +165,49 @@ namespace conrad
 
 // Predict the model visibility
           Axes axes(parameters().axes(imageName));
-          SphFuncVisGridder tvg;
-          tvg.correctConvolution(axes, imagePixels);
+          itsGridder->correctConvolution(axes, imagePixels);
           toComplex(uvGrid, imagePixels);
           cfft(uvGrid, true);
-          tvg.forward(itsIdi, axes, uvGrid);
+          itsGridder->forward(itsIdi, axes, uvGrid);
           itsIdi->rwVisibility()=vis-itsIdi->visibility();
 
-// Calculate residual image
+// Calculate contribution to residual image
           {
             uvGrid.set(0.0);
             casa::Vector<float> uvWeights(1);
-            tvg.reverse(itsIdi, axes, uvGrid, uvWeights);
+            itsGridder->reverse(itsIdi, axes, uvGrid, uvWeights);
             cfft(uvGrid, false);
             toDouble(imageDeriv, uvGrid);
-            tvg.correctConvolution(axes, imageDeriv);
+            itsGridder->correctConvolution(axes, imageDeriv);
           }
-// Calculate weights image (i.e. diagonal of normal matrix)
+// Calculate contribution to weights image (i.e. diagonal of normal matrix)
           {
             uvGrid.set(0.0);
-            tvg.reverseWeights(itsIdi, axes, uvGrid);
+            itsGridder->reverseWeights(itsIdi, axes, uvGrid);
             cfft(uvGrid, false);
             toDouble(imageWeights, uvGrid);
-            tvg.correctConvolution(axes, imageWeights);
+            itsGridder->correctConvolution(axes, imageWeights);
           }
-// Calculate PSF (i.e. slice through normal matrix)
+// Calculate contribution to PSF (i.e. slice through normal matrix)
           {
             itsIdi->rwVisibility().set(casa::Complex(1.0));
             uvGrid.set(0.0);
             casa::Vector<float> uvWeights(1);
-            tvg.reverse(itsIdi, axes, uvGrid, uvWeights);
+            itsGridder->reverse(itsIdi, axes, uvGrid, uvWeights);
             cfft(uvGrid, false);
             toDouble(imagePSF, uvGrid);
-            tvg.correctConvolution(axes, imagePSF);
+            itsGridder->correctConvolution(axes, imagePSF);
             itsIdi->rwVisibility()=vis;
           }
-
+// Add everything found to the normal equations
           casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
           {
             casa::IPosition vecShape(1, imagePSF.nelements());
             casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
             casa::Vector<double> imageWeightsVec(imageWeights.reform(vecShape));
             casa::Vector<double> imageDerivVec(imageDeriv.reform(vecShape));
-            ne.addSlice(imageName, imagePSFVec, imageWeightsVec, imageDerivVec, imageShape, reference);
+            ne.addSlice(imageName, imagePSFVec, imageWeightsVec, imageDerivVec, 
+              imageShape, reference);
           }
         }
       }

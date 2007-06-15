@@ -25,6 +25,23 @@ namespace conrad
   namespace synthesis
   {
 
+    ImageDFTEquation::ImageDFTEquation(const conrad::scimath::Params& ip,
+      IDataSharedIter& idi) : conrad::scimath::Equation(ip), itsIdi(idi) 
+      {
+        init();
+      };
+        
+    ImageDFTEquation::ImageDFTEquation(IDataSharedIter& idi) : conrad::scimath::Equation(), 
+      itsIdi(idi) 
+    {
+      init();
+      itsParams=itsDefaultParams;
+    }
+
+    ImageDFTEquation::~ImageDFTEquation() 
+    {
+    }
+    
     ImageDFTEquation::ImageDFTEquation(const ImageDFTEquation& other)
     {
       operator=(other);
@@ -106,7 +123,7 @@ namespace conrad
       }
     };
 
-    void ImageDFTEquation::calcEquations(NormalEquations& ne)
+    void ImageDFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
       if(parameters().isCongruent(itsDefaultParams))
       {

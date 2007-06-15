@@ -1,9 +1,9 @@
 /// @file
 ///
-/// ImageSolver: This solver uses SVD to solve the design matrix
-/// equations.
+/// ImageSolver: This solver calculates the dirty image (or equivalent)
+/// for all parameters called image*
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SYNIMAGESOLVER_H_
@@ -18,22 +18,28 @@ namespace conrad
 {
   namespace synthesis
   {
-
+    /// @brief Simple linear solver for images.
+    ///
+    /// This solver takes the normal equations and simply divides
+    /// the data vector by the diagonal of the normal matrix. This
+    /// is analogous to making the dirty image or a linear mosaic
+    /// of dirty images.
     class ImageSolver : public conrad::scimath::Solver
     {
       public:
 
-        ImageSolver(const conrad::scimath::Params& ip) : conrad::scimath::Solver(ip) {};
+        /// @brief Constructor from parameters.
+        /// The parameters named image* will be interpreted as images and
+        /// solutions formed by the method described.
+        ImageSolver(const conrad::scimath::Params& ip);
 
-/// Initialize this solver
+        /// @brief Initialize this solver
         virtual void init();
 
-/// Solve for parameters, updating the values kept internally
-/// The solution is constructed from the normal equations
-/// @param q Solution quality information
+        /// @brief Solve for parameters, updating the values kept internally
+        /// The solution is constructed from the normal equations
+        /// @param q Solution quality information
         virtual bool solveNormalEquations(conrad::scimath::Quality& q);
-
-      protected:
     };
 
   }
