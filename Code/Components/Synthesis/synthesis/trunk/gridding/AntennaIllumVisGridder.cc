@@ -5,6 +5,10 @@
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/ArrayMath.h>
 
+#include <conrad/ConradError.h>
+
+using namespace conrad;
+
 namespace conrad
 {
   namespace synthesis
@@ -35,33 +39,34 @@ namespace conrad
 // Cellsize is in wavelengths so we convert to the physical length (m) at 
 // the reference frequency (the first channel)
 // WARNING: Ignoring different cellsizes!
-        double toM=cellSize(0)*casa::C::c/itsReferenceFrequency;
-        double rmax=std::pow(itsDiameter*toM,2);
-        double rmin=std::pow(itsBlockage*toM,2);
         itsSupport=3;
         itsOverSample=128;
         itsCSize=2*(itsSupport+1)*itsOverSample;  // 1024;
         itsCCenter=itsCSize/2-1;                  // 511
         casa::Matrix<casa::Complex> disk(itsCSize, itsCSize);
         disk.set(0.0);
+        double toCell=(cellSize(0)/double(itsOverSample))*casa::C::c/itsReferenceFrequency;
+        double rmax=std::pow(itsDiameter*toCell,2);
+        double rmin=std::pow(itsBlockage*toCell,2);
+        double sumDisk=0.0;
         for (int ix=0;ix<itsCSize;ix++)
         {
-          double nux2=std::pow(std::abs(double(ix-itsCCenter))
-            /double(itsOverSample), 2);
+          double nux2=std::pow(std::abs(double(ix-itsCCenter)), 2);
           for (int iy=0;iy<itsCSize;iy++)
           {
-            double nuy2=std::pow(std::abs(double(iy-itsCCenter))
-              /double(itsOverSample), 2);
+            double nuy2=std::pow(std::abs(double(iy-itsCCenter)), 2);
             double r=nux2+nuy2;
             if((r>rmin)&&(r<rmax))
             {
               disk(ix,iy)=1.0;
+              sumDisk+=1.0;
             }
           }
         }
         itsC.resize(itsCSize, itsCSize, 1);
         selfConvolve(disk);
-        itsC.xyPlane(0)=real(disk)/real(disk(itsCCenter, itsCCenter));
+        itsC.xyPlane(0)=real(disk);
+        CONRADCHECK(sumDisk>0.0, "Antenna illumination convolution function is empty");
       }
     }
 

@@ -55,6 +55,9 @@ namespace conrad
         ComponentEquation& operator=(const ComponentEquation& other);
 
         virtual ~ComponentEquation();
+        
+        /// Return the default parameters
+        static conrad::scimath::Params defaultParameters();
 
         /// @brief Predict model visibility for the iterator. 
         virtual void predict();

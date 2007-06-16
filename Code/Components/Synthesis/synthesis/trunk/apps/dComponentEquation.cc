@@ -7,7 +7,7 @@
 #include <fitting/ParamsCASATable.h>
 #include <fitting/LinearSolver.h>
 
-#include <dataaccess/DataIteratorStub.h>
+#include <dataaccess/TableConstDataSource.h>
 
 #include <stdexcept>
 #include <iostream>
@@ -25,19 +25,30 @@ int main(int argc, const char** argv)
   try
   {
 
-    cout << "ComponentEquation demonstration program" << endl;
+     if (argc!=2) {
+        std::cerr<<"Usage "<<argv[0]<<" measurement_set"<<std::endl;
+        exit(1);
+     }
+     
+    TableConstDataSource ds(argv[1]);
 
-    IDataSharedIter idi(new DataIteratorStub(1));
+    cout << "Synthesis demonstration program" << endl;
 
     ParamsCASATable pt("nvss.par", true);
-
-    ComponentEquation ce(idi);
-    Params nvsspar=ce.defaultParameters();
+    Params nvsspar;
+    {
+      ComponentEquation ce;
+      nvsspar=ce.defaultParameters();
+    }
     pt.getParameters(nvsspar);
     std::cout << "Read parameters" << std::endl;
     std::cout << nvsspar << std::endl;
-    ce.setParameters(nvsspar);
-    ce.predict();
+
+    for (IDataSharedIter it=ds.createIterator();it!=it.end();++it) {
+      ComponentEquation ce(it);
+      ce.setParameters(nvsspar);
+      ce.predict();
+    }
     std::cout << "Finished prediction" << std::endl;
     exit(0);
   }

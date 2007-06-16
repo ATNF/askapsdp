@@ -41,8 +41,8 @@ namespace conrad
       : conrad::scimath::Equation(), itsIdi(idi) 
     {
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
+      itsParams=defaultParameters();
       init();
-      itsParams=itsDefaultParams;
     }
 
     ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
@@ -56,20 +56,21 @@ namespace conrad
       IVisGridder::ShPtr gridder) 
       : conrad::scimath::Equation(), itsIdi(idi), itsGridder(gridder) 
     {
+      itsParams=defaultParameters();
       init();
-      itsParams=itsDefaultParams;
     }
 
     ImageFFTEquation::~ImageFFTEquation() 
     {
     }
-
-        
-    void ImageFFTEquation::setGridder(IVisGridder::ShPtr gridder) 
-    {
-      itsGridder=gridder;
-    }
     
+    conrad::scimath::Params ImageFFTEquation::defaultParameters()
+    {
+      Params ip;
+      ip.add("image");
+      return ip;
+    }
+
     ImageFFTEquation::ImageFFTEquation(const ImageFFTEquation& other)
     {
       operator=(other);
@@ -80,7 +81,6 @@ namespace conrad
       if(this!=&other)
       {
         itsParams=other.itsParams;
-        itsDefaultParams=other.itsDefaultParams;
         itsIdi=other.itsIdi;
         itsGridder = other.itsGridder;
       }
@@ -88,34 +88,26 @@ namespace conrad
 
     void ImageFFTEquation::init()
     {
-// The default parameters serve as a holder for the patterns to match the actual
-// parameters. Shell pattern matching rules apply.
-      itsDefaultParams.reset();
-      itsDefaultParams.add("image.i");
     }
 
     void ImageFFTEquation::predict()
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
+      vector<string> completions(parameters().completions("image.i"));
+      if(completions.size()==0) {
+        std::cerr << "No parameters appropriate for ImageFFTEquation" << std::endl;
+        std::cerr << parameters() << std::endl;
+        return;
       }
 
-      vector<string> completions(parameters().completions("image.i"));
       vector<string>::iterator it;
+      
+//      itsIdi.chooseBuffer("model");
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
-
-        const casa::Vector<double>& freq=itsIdi->frequency();
-        const casa::Vector<double>& time=itsIdi->time();
-        const uint nChan=freq.nelements();
-        const uint nRow=itsIdi->nRow();
-        casa::Matrix<double> vis(nRow,2*nChan);
-
+        itsIdi->rwVisibility().set(0.0);
         for (it=completions.begin();it!=completions.end();it++)
         {
-
           string imageName("image.i"+(*it));
           const Axes axes(parameters().axes(imageName));
           casa::Cube<double> imagePixels(parameters().value(imageName).copy());
@@ -131,22 +123,20 @@ namespace conrad
 
     void ImageFFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
-      }
-
 // Loop over all completions i.e. all sources
       vector<string> completions(parameters().completions("image.i"));
+      if(completions.size()==0) {
+        std::cerr << "No parameters appropriate for ImageFFTEquation" << std::endl;
+        std::cerr << parameters() << std::endl;
+        return;
+      }
+
+//      itsIdi.chooseOriginal();
+
       vector<string>::iterator it;
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
-
-        const casa::Vector<double>& freq=itsIdi->frequency();
-        const uint nChan=freq.nelements();
-        const uint nRow=itsIdi->nRow();
-
         for (it=completions.begin();it!=completions.end();it++)
         {
 
@@ -161,9 +151,9 @@ namespace conrad
           casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
 
           casa::Cube<casa::Complex> vis(itsIdi->visibility().copy());
-          itsIdi->rwVisibility().set(0.0);
 
 // Predict the model visibility
+          itsIdi->rwVisibility().set(casa::Complex(0.0));
           Axes axes(parameters().axes(imageName));
           itsGridder->correctConvolution(axes, imagePixels);
           toComplex(uvGrid, imagePixels);

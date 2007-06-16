@@ -35,7 +35,8 @@ namespace conrad
     ComponentEquation::ComponentEquation(IDataSharedIter& idi) :  
       conrad::scimath::Equation(), itsIdi(idi) 
     {
-      init();itsParams=itsDefaultParams;
+      itsParams=defaultParameters();
+      init();
     };
 
     ComponentEquation::ComponentEquation(const ComponentEquation& other)
@@ -48,7 +49,6 @@ namespace conrad
       if(this!=&other)
       {
         itsParams=other.itsParams;
-        itsDefaultParams=other.itsDefaultParams;
         itsIdi=other.itsIdi;
       }
     }
@@ -59,24 +59,26 @@ namespace conrad
 
     void ComponentEquation::init()
     {
-// The default parameters serve as a holder for the patterns to match the actual
-// parameters. Shell pattern matching rules apply.
-      itsDefaultParams.reset();
-      itsDefaultParams.add("flux.i");
-      itsDefaultParams.add("direction.ra");
-      itsDefaultParams.add("direction.dec");
-      itsDefaultParams.add("shape.bmaj");
-      itsDefaultParams.add("shape.bmin");
-      itsDefaultParams.add("shape.bpa");
     }
 
+    conrad::scimath::Params ComponentEquation::defaultParameters()
+    {
+// The default parameters serve as a holder for the patterns to match the actual
+// parameters. Shell pattern matching rules apply.
+      conrad::scimath::Params ip;
+      ip.add("flux.i");
+      ip.add("direction.ra");
+      ip.add("direction.dec");
+      ip.add("shape.bmaj");
+      ip.add("shape.bmin");
+      ip.add("shape.bpa");
+      return ip;
+    }
     void ComponentEquation::predict()
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
-      }
       vector<string> completions(parameters().completions("flux.i"));
+      if(completions.size()==0) return;
+
       vector<string>::iterator it;
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
@@ -136,14 +138,11 @@ namespace conrad
 
     void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
-      }
-
 // Loop over all completions i.e. all sources
       vector<string> completions(parameters().completions("flux.i"));
       vector<string>::iterator it;
+      
+      if(completions.size()==0) return;
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {

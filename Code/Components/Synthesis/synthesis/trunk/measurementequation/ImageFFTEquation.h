@@ -67,9 +67,8 @@ namespace conrad
 
         virtual ~ImageFFTEquation();
         
-        /// @brief Use the specified gridder
-        /// @param gridder Shared pointer to a gridder
-        void setGridder(IVisGridder::ShPtr gridder);
+        /// Return the default parameters
+        static conrad::scimath::Params defaultParameters();
 
 /// Predict model visibility
         virtual void predict();

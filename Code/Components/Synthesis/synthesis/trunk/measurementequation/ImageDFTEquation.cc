@@ -34,8 +34,8 @@ namespace conrad
     ImageDFTEquation::ImageDFTEquation(IDataSharedIter& idi) : conrad::scimath::Equation(), 
       itsIdi(idi) 
     {
+      itsParams=defaultParameters();
       init();
-      itsParams=itsDefaultParams;
     }
 
     ImageDFTEquation::~ImageDFTEquation() 
@@ -52,30 +52,32 @@ namespace conrad
       if(this!=&other)
       {
         itsParams=other.itsParams;
-        itsDefaultParams=other.itsDefaultParams;
         itsIdi=other.itsIdi;
       }
     }
 
     void ImageDFTEquation::init()
     {
-// The default parameters serve as a holder for the patterns to match the actual
-// parameters. Shell pattern matching rules apply.
-      itsDefaultParams.reset();
-      itsDefaultParams.add("image.i");
+    }
+    
+    conrad::scimath::Params ImageDFTEquation::defaultParameters()
+    {
+      Params ip;
+      ip.add("image");
+      return ip;
     }
 
     void ImageDFTEquation::predict()
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
-      }
-
       vector<string> completions(parameters().completions("image.i"));
       vector<string>::iterator it;
 
-      itsIdi.chooseBuffer("model");
+      if(completions.size()==0) {
+        std::cerr << "No parameters appropriate for ImageFFTEquation" << std::endl;
+        return;
+      }
+
+//      itsIdi.chooseBuffer("model");
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
@@ -85,6 +87,7 @@ namespace conrad
         const uint nChan=freq.nelements();
         const uint nRow=itsIdi->nRow();
         casa::Matrix<double> vis(nRow,2*nChan);
+        vis.set(0.0);
 
         for (it=completions.begin();it!=completions.end();it++)
         {
@@ -125,16 +128,16 @@ namespace conrad
 
     void ImageDFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
-      if(parameters().isCongruent(itsDefaultParams))
-      {
-        throw std::invalid_argument("Parameters not consistent with this equation");
-      }
-
 // Loop over all completions i.e. all sources
       vector<string> completions(parameters().completions("image.i"));
       vector<string>::iterator it;
 
-      itsIdi.chooseOriginal();
+      if(completions.size()==0) {
+        std::cerr << "No parameters appropriate for ImageDFTEquation" << std::endl;
+        return;
+      }
+
+//      itsIdi.chooseOriginal();
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
@@ -150,6 +153,7 @@ namespace conrad
         casa::Vector<double> weights(2*nRow*nChan);
         weights.set(1.0);
         casa::Matrix<double> vis(nRow,2*nChan);
+        vis.set(0.0);
 
         for (it=completions.begin();it!=completions.end();it++)
         {

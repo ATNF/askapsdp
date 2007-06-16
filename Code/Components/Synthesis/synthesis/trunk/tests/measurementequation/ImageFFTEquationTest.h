@@ -39,7 +39,7 @@ namespace conrad
 
       private:
         ImageFFTEquation *p1, *p2;
-        Params *params1, *params2, *params3;
+        Params *params1, *params2;
         IDataSharedIter idi;
 
       public:
@@ -76,23 +76,26 @@ namespace conrad
 
         void tearDown()
         {
+          delete params1;
+          delete params2;
           delete p1;
           delete p2;
         }
 
         void testPredict()
         {
+          {
+            ParamsCASATable pt("ImageFFTEquationTest_original.tab", false);
+            pt.setParameters(*params1);
+          }
           p1->predict();
         }
 
         void testSolveSphFun()
         {
+
 // Predict with the "perfect" parameters"
           NormalEquations ne(*params1);
-          {
-            ParamsCASATable pt("ImageFFTEquationTest_original.tab", false);
-            pt.setParameters(*params1);
-          }
 
           p1->predict();
 // Calculate gradients using "imperfect" parameters"
@@ -117,10 +120,11 @@ namespace conrad
 // Predict with the "perfect" parameters"
           NormalEquations ne(*params1);
           IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new BoxVisGridder());
-          p1->setGridder(gridder);
+          p1 = new ImageFFTEquation(*params1, idi, gridder);
+          p2 = new ImageFFTEquation(*params2, idi, gridder);
+
           p1->predict();
 // Calculate gradients using "imperfect" parameters"
-          p2->setGridder(gridder);
           p2->calcEquations(ne);
           Quality q;
           ImageSolver solver1(*params2);
@@ -142,10 +146,11 @@ namespace conrad
 // Predict with the "perfect" parameters"
           NormalEquations ne(*params1);
           IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(12.0, 1.0));
-          p1->setGridder(gridder);
+          p1 = new ImageFFTEquation(*params1, idi, gridder);
+          p2 = new ImageFFTEquation(*params2, idi, gridder);
+
           p1->predict();
 // Calculate gradients using "imperfect" parameters"
-          p2->setGridder(gridder);
           p2->calcEquations(ne);
           Quality q;
           ImageSolver solver1(*params2);

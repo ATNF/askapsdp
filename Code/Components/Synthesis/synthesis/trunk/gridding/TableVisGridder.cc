@@ -182,13 +182,20 @@ namespace conrad
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
               ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
             {
-              for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
-              {
-                for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+              if(itsSupport==0) {
+                float wt=itsC(itsCCenter,itsCCenter,coff);
+                grid(iu,iv,pol)+=wt*visibility(i,chan,pol);
+                sumwt(pol)+=wt;
+              }
+              else {
+                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                 {
-                  float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
-                  grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
-                  sumwt(pol)+=wt;
+                  for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+                  {
+                    float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
+                    grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
+                    sumwt(pol)+=wt;
+                  }
                 }
               }
             }
@@ -270,12 +277,17 @@ namespace conrad
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
               ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
             {
-              for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
-              {
-                for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+              if(itsSupport==0) {
+                float wt=itsC(itsCCenter,itsCCenter,coff);
+                grid(iu,iv,pol)+=wt;              }
+              else {
+                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                 {
-                  float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
-                  grid(iu+suppu,iv+suppv,pol)+=wt;
+                  for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+                  {
+                    float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
+                    grid(iu+suppu,iv+suppv,pol)+=wt;
+                  }
                 }
               }
             }
@@ -366,13 +378,20 @@ namespace conrad
               if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
                 ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
               {
-                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
-                {
-                  for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+                if(itsSupport==0) {
+                  float wt=itsC(itsCCenter,itsCCenter,coff);
+                  visibility(i,chan,pol)+=wt*grid(iu,iv,pol);
+                  sumviswt+=wt;
+                }
+                else {
+                  for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                   {
-                    float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
-                    visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
-                    sumviswt+=wt;
+                    for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+                    {
+                      float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
+                      visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
+                      sumviswt+=wt;
+                    }
                   }
                 }
               }

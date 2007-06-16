@@ -50,6 +50,10 @@ namespace conrad
 
         virtual ~ImageDFTEquation();
 
+        /// Return the default parameters
+        static conrad::scimath::Params defaultParameters();
+
+
 /// Predict model visibility
         virtual void predict();
 
