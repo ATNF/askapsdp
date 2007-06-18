@@ -23,6 +23,7 @@
 /// own includes
 #include <dataaccess/ITableDataSelectorImpl.h>
 #include <dataaccess/IDataConverter.h>
+#include <dataaccess/ITableHolder.h>
 
 namespace conrad {
 
@@ -42,12 +43,10 @@ namespace synthesis {
 /// A derivative from this class is passed to a DataSource object in the
 /// request for an iterator. The iterator obtained that way runs through
 /// the selected part of the dataset.
-class TableScalarFieldSelector : virtual public ITableDataSelectorImpl
+class TableScalarFieldSelector : virtual public ITableDataSelectorImpl,
+                                 virtual protected ITableHolder
 {
 public:
-  /// construct a table selector
-  /// @param[in] tab MS table to work with
-  explicit TableScalarFieldSelector(const casa::Table &tab);
   
   /// Choose a single feed, the same for both antennae
   /// @param[in] feedID the sequence number of feed to choose
@@ -73,11 +72,7 @@ protected:
   ///
   casa::TableExprNode& getTableSelector() const;
 
-  /// @return a const reference on the table
-  const casa::Table& table() const throw();
 private:
-  /// a measurement set to work with. Reference semantics
-  casa::Table itsMS;
   /// a current table selection expression (cache)
   mutable casa::TableExprNode  itsTableSelector;  
 };

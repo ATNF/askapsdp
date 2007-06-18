@@ -23,7 +23,7 @@ using namespace casa;
 /// construct a table selector with cycles defined by the time interval
 /// @param[in] tab MS table to work with
 TableDataSelector::TableDataSelector(const casa::Table &tab) :
-                      TableScalarFieldSelector(tab) {}
+                      TableHolder(tab) {}
 
 
 /// Choose a time range. Both start and stop times are given via

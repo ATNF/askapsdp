@@ -23,22 +23,17 @@ using namespace synthesis;
 using namespace casa;
 
 
-/// construct a table selector
-/// @param tab MS table to work with
-TableScalarFieldSelector::TableScalarFieldSelector(const casa::Table &tab) :
-                                     itsMS(tab) {}
-
 /// Choose a single feed, the same for both antennae
 /// @param feedID the sequence number of feed to choose
 void TableScalarFieldSelector::chooseFeed(casa::uInt feedID)
 {
    if (itsTableSelector.isNull()) {
-       itsTableSelector= (itsMS.col("FEED1") ==
-                  static_cast<casa::Int>(feedID)) && (itsMS.col("FEED2") ==
+       itsTableSelector= (table().col("FEED1") ==
+                  static_cast<casa::Int>(feedID)) && (table().col("FEED2") ==
                   static_cast<casa::Int>(feedID));
    } else {
-       itsTableSelector=itsTableSelector && (itsMS.col("FEED1") ==
-                  static_cast<casa::Int>(feedID)) && (itsMS.col("FEED2") ==
+       itsTableSelector=itsTableSelector && (table().col("FEED1") ==
+                  static_cast<casa::Int>(feedID)) && (table().col("FEED2") ==
                   static_cast<casa::Int>(feedID));
    }
 }
@@ -51,12 +46,12 @@ void TableScalarFieldSelector::chooseBaseline(casa::uInt ant1,
                                               casa::uInt ant2)
 {
    if (itsTableSelector.isNull()) {
-       itsTableSelector= (itsMS.col("ANTENNA1") ==
-           static_cast<casa::Int>(ant1)) && (itsMS.col("ANTENNA2") ==
+       itsTableSelector= (table().col("ANTENNA1") ==
+           static_cast<casa::Int>(ant1)) && (table().col("ANTENNA2") ==
 	   static_cast<casa::Int>(ant2));
    } else {
-       itsTableSelector=itsTableSelector && (itsMS.col("ANTENNA1") ==
-           static_cast<casa::Int>(ant1)) && (itsMS.col("ANTENNA2") ==
+       itsTableSelector=itsTableSelector && (table().col("ANTENNA1") ==
+           static_cast<casa::Int>(ant1)) && (table().col("ANTENNA2") ==
 	   static_cast<casa::Int>(ant2));
    }
 }
@@ -65,13 +60,15 @@ void TableScalarFieldSelector::chooseBaseline(casa::uInt ant1,
 /// @param spWinID the ID of the spectral window to choose
 void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
 {
-   // we may need to change this later. Suprisingly, no such column was
-   // present in the simulated dataset
+   /// @todo we need a proper spectral window selection, which works with
+   /// the structure of the measurement set to extract data description ids
+   /// required for this selection
+   
    if (itsTableSelector.isNull()) {
-       itsTableSelector=(itsMS.col("SPECTRAL_WINDOW") ==
+       itsTableSelector=(table().col("DATA_DESC_ID") ==
                   static_cast<casa::Int>(spWinID));
    } else {
-       itsTableSelector=itsTableSelector && (itsMS.col("SPECTRAL_WINDOW") ==
+       itsTableSelector=itsTableSelector && (table().col("DATA_DESC_ID") ==
                   static_cast<casa::Int>(spWinID));
    }
 }
@@ -86,10 +83,4 @@ void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
 casa::TableExprNode& TableScalarFieldSelector::getTableSelector() const
 { 
   return itsTableSelector;
-}
-
-/// @return a const reference on the table
-const casa::Table& TableScalarFieldSelector::table() const throw()
-{
-  return itsMS;
 }
