@@ -41,7 +41,7 @@ namespace conrad
       : conrad::scimath::Equation(), itsIdi(idi) 
     {
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
-      itsParams=defaultParameters();
+      itsParams=defaultParameters().clone();
       init();
     }
 
@@ -56,7 +56,7 @@ namespace conrad
       IVisGridder::ShPtr gridder) 
       : conrad::scimath::Equation(), itsIdi(idi), itsGridder(gridder) 
     {
-      itsParams=defaultParameters();
+      itsParams=defaultParameters().clone();
       init();
     }
 

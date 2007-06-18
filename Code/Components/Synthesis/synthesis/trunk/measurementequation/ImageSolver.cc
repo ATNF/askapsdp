@@ -46,16 +46,16 @@ namespace conrad
       uint nParameters=0;
 
 // Find all the free parameters beginning with image
-      vector<string> names(itsParams.completions("image"));
+      vector<string> names(itsParams->completions("image"));
       vector<string>::const_iterator it;
       map<string, uint> indices;
       
       for (it=names.begin();it!=names.end();it++)
       {
         string name="image"+*it;
-        if(itsParams.isFree(name)) {
+        if(itsParams->isFree(name)) {
           indices[name]=nParameters;
-          nParameters+=itsParams.value(name).nelements();
+          nParameters+=itsParams->value(name).nelements();
         }
       }
       if(nParameters<1)
@@ -67,10 +67,10 @@ namespace conrad
       for (indit=indices.begin();indit!=indices.end();indit++)
       {
 // Axes are dof, dof for each parameter
-        casa::IPosition vecShape(1, itsParams.value(indit->first).nelements());
-        const casa::Vector<double>& diag(itsNormalEquations.normalMatrixDiagonal()[indit->first]);
-        const casa::Vector<double>& dv(itsNormalEquations.dataVector()[indit->first]);
-        casa::Vector<double> value(itsParams.value(indit->first).reform(vecShape));
+        casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
+        const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal()[indit->first]);
+        const casa::Vector<double>& dv(itsNormalEquations->dataVector()[indit->first]);
+        casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
         for (uint elem=0;elem<dv.nelements();elem++)
         {
           if(diag(elem)>0.0)
