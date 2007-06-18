@@ -3,6 +3,7 @@
 #include <fitting/Axes.h>
 
 #include <string>
+#include <iostream>
 
 #include <casa/aips.h>
 #include <tables/Tables/TableLocker.h>
@@ -72,6 +73,7 @@ namespace conrad
 
       SetupNewTable newtab(itsTableName, itsTableDesc, Table::New);
       itsTable=Table(newtab,0,False,Table::LittleEndian);
+      std::cout << "Successfully created new parameters table " << itsTableName << std::endl;
     }
 
     void ParamsCASATable::openTable(const std::string& tablename)
@@ -80,11 +82,12 @@ namespace conrad
 
       itsTableName=tablename;
       itsTable=Table(itsTableName);
+      std::cout << "Successfully opened existing parameters table " << itsTableName << std::endl;
     }
 
     ParamsCASATable::~ParamsCASATable()
     {
-      itsTable.flush();
+      itsTable.flush(true);
     }
 
     void ParamsCASATable::getParameters(Params& ip) const
@@ -123,14 +126,22 @@ namespace conrad
         startCol.get(rownr, start);
         casa::Vector<double> end;
         endCol.get(rownr, end);
-        bool free;
-        freeCol.get(rownr, free);
         Axes ax;
         for (int i=0;i<axesNames.nelements();i++)
         {
           ax.add(axesNames(i), start(i), end(i));
         }
         ip.add(name, value, ax);
+        bool free;
+        freeCol.get(rownr, free);
+        if(free) 
+        {
+          ip.free(name);
+        }
+        else 
+        {
+          ip.fix(name);
+        }
       }
     };
 
