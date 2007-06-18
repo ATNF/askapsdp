@@ -38,7 +38,7 @@ namespace synthesis {
 /// implemented in a parallel environment. The user should also take care
 /// in the situation when the iterators with different selection access
 /// the same buffer (this behavior is still TBD).
-class IDataIterator : virtual public IConstDataIterator
+class IDataIterator : public IConstDataIterator
 {
 public:
 	/// the type of the value pointed by this iterator
