@@ -1,9 +1,9 @@
-/// @file ITableMeasureFieldSelector.h
-///
-/// ITableMeasureFieldSelector: an interface to constrain a table selection
-///                     object (expression node) for a field which is
-///                     a measure (i.e. requires a fully defined converter
-///                     to complete processing)
+/// @file ITableMeasureFieldSelector.cc
+/// @brief Interface constraining an expression node for measure fields
+/// @details The units and reference frame have to be specified via a
+/// fully defined converter to form an expression node selecting a subtable
+/// based on some measure-type field (e.g. time range). This interface
+/// provide appropriate methods.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

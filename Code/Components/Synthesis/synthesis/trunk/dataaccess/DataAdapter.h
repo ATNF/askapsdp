@@ -1,5 +1,6 @@
 /// @file DataAdapter.h
-///
+/// @brief a helper template to be used with SharedIter
+/// @details
 /// DataAdapter: a helper template to be used in conjunction with the
 ///        SharedIter. It allows to call STL algorithms by selecting
 ///        the visibility data from the DataAccessor (i.e. the
@@ -22,6 +23,15 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief A helper template to be used with SharedIter
+/// @details
+/// It allows to call STL algorithms by selecting
+/// the visibility data from the DataAccessor (i.e. the
+/// operator* will return a reference to the visibility array,
+/// instead of the whole data accessor). Optionally, it is
+/// possible to ignore calls to the operator++. This allows to 
+/// write to the same data accessor, which is currently read or
+/// its associated buffers.
 template<typename Iter, typename Sel, typename Inc>
 class DataAdapter {
 public:
@@ -29,7 +39,10 @@ public:
   /// construct an adapter for the supplied iterator
   /// 
   /// @param[in] iter a const reference to the iterator to work with
-  ///
+  /// @param[in] selector a const reference to the selector object
+  ///            choosing what field this adapter returns. This selector
+  ///            is a different entity from the IDataSelector and related
+  ///            classes, and is used with this template only.
   explicit DataAdapter(const Iter &iter, const Sel &selector = Sel()) :
                 itsIter(iter), itsSelector(selector) {}
   
@@ -64,16 +77,25 @@ private:
 		 /// can be void).
 };
 
-/// two basic incrementors: one doing nothing (if one wants to write to the
+
+/// @brief an incrementor, which does nothing
+/// @details
+/// there are two basic incrementors: one doing nothing (if one wants
+/// to write to the
 /// same iterator) and another doing normal increments (if the destination
 /// is pointed by a separate iterators)
-
 struct NoIncrement {
    template<typename Iter>
    inline void operator()(const Iter &iter) const
    {}
 };
 
+/// @brief an incrementor, which does normal increments
+/// @details
+/// there are two basic incrementors: one doing nothing (if one wants
+/// to write to the
+/// same iterator) and another doing normal increments (if the destination
+/// is pointed by a separate iterators)
 struct Incremented {
    template<typename Iter>
    inline void operator()(const Iter &iter) const
@@ -82,7 +104,7 @@ struct Incremented {
    }
 };
 
-/// Data selectors
+/// @brief data selector, which selects read-write visibility
 struct VisibilitySelector {
    typedef casa::Cube<casa::Complex>& value_type;
    template<typename Iter>
@@ -92,6 +114,7 @@ struct VisibilitySelector {
    }
 };
 
+/// @brief data selector, which selects given buffer
 struct BufferSelector {
   BufferSelector(const std::string &buffer) : itsBufferName(buffer) {}
  
@@ -113,11 +136,11 @@ private:
 ///              described above)
 ///
 /// template arguments:
-/// @param Iter a type of the iterator (autodetected)
-/// @param Inc  a type of the incrementor (autodetected)
+/// Iter a type of the iterator (autodetected)
+/// Inc  a type of the incrementor (autodetected)
 /// method parameters:
-/// @param iter a valid SharedIter (with a permission to write)
-/// @param dummy an incrementor object. It is used for type identification
+/// @param[in] iter a valid SharedIter (with a permission to write)
+/// the last dummy parameter is an incrementor object. It is used for type identification
 ///              only. An object of this type constructed with a default
 ///              constructor will be  used for actual increment of the
 ///              iterator passed in the first parameter.
@@ -151,12 +174,12 @@ DataAdapter<Iter, VisibilitySelector, Incremented> VisAdapter(Iter iter)
 /// the compilation stage
 
 /// template arguments:
-/// @param Iter a type of the iterator (autodetected)
-/// @param Inc  a type of the incrementor (autodetected)
+/// Iter a type of the iterator (autodetected)
+/// Inc  a type of the incrementor (autodetected)
 /// method parameters:
-/// @param buffer a name of the buffer to use
-/// @param iter a valid SharedIter (with a permission to write)
-/// @param dummy an incrementor object. It is used for type identification
+/// @param[in] buffer a name of the buffer to use
+/// @param[in] iter a valid SharedIter (with a permission to write)
+/// the last dummy parameter is an incrementor object. It is used for type identification
 ///              only. An object of this type constructed with a default
 ///              constructor will be  used for actual increment of the
 ///              iterator passed in the first parameter.

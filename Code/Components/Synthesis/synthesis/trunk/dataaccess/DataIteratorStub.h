@@ -1,6 +1,5 @@
-/// @file
-///
-/// DataIteratorStub: A stub to work in pair with DataAccessorStub
+/// @file DataIteratorStub.h
+/// @brief A stub to work in pair with DataAccessorStub
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -18,6 +17,7 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief An iterator stub to work in pair with DataAccessorStub
 class DataIteratorStub : public IDataIterator
 {
 public:

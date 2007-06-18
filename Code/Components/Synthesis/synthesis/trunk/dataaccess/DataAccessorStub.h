@@ -1,6 +1,6 @@
-/// @file DataAccessorStub.h
+/// @file DataAccessorStub.h 
+/// @brief a stub to debug the code, which uses DataAccessor
 ///
-/// DataAccessorStub:  a stub to debug the code, which uses DataAccessor
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
@@ -10,7 +10,6 @@
 #include <dataaccess/IFlagDataAccessor.h>
 
 namespace conrad {
-	
 
 namespace synthesis {
 

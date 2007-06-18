@@ -1,10 +1,14 @@
 /// @file TableScalarFieldSelector.cc
-///
-/// TableScalarFieldSelector: Class representing a selection of visibility
-///                data according to some criterion. This is an
-///                implementation of the part of the IDataSelector
-///                interface, which can be done with the table selection
-///                mechanism in the table based case 
+/// @brief An implementation of ITableDataSelectorImpl for simple (scalar) fields, like feed ID.
+/// @details This class represents a selection of visibility
+///         data according to some criterion. This is an
+///         implementation of the part of the IDataSelector
+///         interface, which can be done with the table selection
+///         mechanism in the table based case. Only simple
+///         (scalar) fields are included in this selection.
+///         Epoch-based selection is done via a separate class
+///         because a fully defined converter is required to
+///         perform such selection.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

@@ -1,6 +1,6 @@
-/// @file
-///
-/// IDirectionConverter: Interface for direction conversion. This is a
+/// @file IDirectionConverter.h
+/// @brief An interface for direction conversion.
+/// @details This is a
 /// relatively low-level interface, which is used within the implementation
 /// of the data accessor. The end user interacts with the IDataConverter
 /// class. 
@@ -23,6 +23,11 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief An interface for direction conversion.
+/// @details This is a
+/// relatively low-level interface, which is used within the implementation
+/// of the data accessor. The end user interacts with the IDataConverter
+/// class. 
 struct IDirectionConverter : virtual public IConverterBase {
     /// convert specified MDirection to the target frame
     /// @param in an epoch to convert. Target frame is a

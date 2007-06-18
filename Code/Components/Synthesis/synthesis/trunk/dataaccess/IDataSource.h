@@ -1,6 +1,7 @@
-/// @file
-///
-/// IDataSource: Allow access to a source of visibility data, probably
+/// @file IDataSource.h
+/// @brief Access to a source of visibility data
+/// @details
+/// IDataSource allows access to a source of visibility data, probably
 /// either a MeasurementSet or a stream. This class provides methods to
 /// create read/write iterators as opposed to IConstDataSource.
 /// Probably all real instances will be derived from this interface and
@@ -22,7 +23,15 @@ namespace conrad {
 
 namespace synthesis {
 
-class IDataSource : public IConstDataSource
+/// @brief Access to a source of visibility data
+/// @details
+/// IDataSource allows access to a source of visibility data, probably
+/// either a MeasurementSet or a stream. This class provides methods to
+/// create read/write iterators as opposed to IConstDataSource.
+/// Probably all real instances will be derived from this interface and
+/// IConstDataSource will never be used directly. The code is split into
+/// two classes just for structuring. 
+class IDataSource : virtual public IConstDataSource
 {
 public:
 	/// get a read/write iterator over the whole dataset represented 

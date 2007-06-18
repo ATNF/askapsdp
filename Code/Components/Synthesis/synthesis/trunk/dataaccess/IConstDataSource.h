@@ -1,7 +1,7 @@
-/// @file
-///
-/// IConstDataSource: Allow access to a source of visibility data, probably
-/// either a MeasurementSet or a stream.
+/// @file IConstDataSource.h
+/// @brief Read-only access to a source of visibility data
+/// @details IConstDataSource allows access to a source of visibility data,
+/// probably either a MeasurementSet or a stream.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -34,6 +34,9 @@ typedef boost::shared_ptr<IDataConverter> IDataConverterPtr;
 typedef boost::shared_ptr<IDataSelector const> IDataSelectorConstPtr;
 typedef boost::shared_ptr<IDataConverter const> IDataConverterConstPtr;
 
+/// @brief Read-only access to a source of visibility data
+/// @details IConstDataSource allows access to a source of visibility data,
+/// probably either a MeasurementSet or a stream.
 class IConstDataSource
 {
 public:

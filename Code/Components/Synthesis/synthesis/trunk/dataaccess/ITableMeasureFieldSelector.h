@@ -1,9 +1,9 @@
 /// @file ITableMeasureFieldSelector.h
-///
-/// ITableMeasureFieldSelector: an interface to constrain a table selection
-///                     object (expression node) for a field which is
-///                     a measure (i.e. requires a fully defined converter
-///                     to complete processing)
+/// @brief Interface constraining an expression node for measure fields
+/// @details The units and reference frame have to be specified via a
+/// fully defined converter to form an expression node selecting a subtable
+/// based on some measure-type field (e.g. time range). This interface
+/// provide appropriate methods.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -26,6 +26,11 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief Interface constraining an expression node for measure fields
+/// @details The units and reference frame have to be specified via a
+/// fully defined converter to form an expression node selecting a subtable
+/// based on some measure-type field (e.g. time range). This interface
+/// provide appropriate methods.
 class ITableMeasureFieldSelector {
 public:
    /// to keep the compiler happy
@@ -36,14 +41,14 @@ public:
    /// just stores a shared pointer on the converter for future use.
    /// It doesn't require all frame information to be set, etc.
    ///
-   /// @param conv shared pointer to the converter object to use
+   /// @param[in] conv shared pointer to the converter object to use
    ///
    virtual void setConverter(const
             boost::shared_ptr<IDataConverterImpl const> &conv) throw() = 0;
 
    /// main method, updates table expression node to narrow down the selection
    ///
-   /// @param tex a reference to table expression to use
+   /// @param[in] tex a reference to table expression to use
    virtual void updateTableExpression(casa::TableExprNode &tex) const = 0;
 };
 

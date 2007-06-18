@@ -1,9 +1,7 @@
-/// @file
-///
-/// IPolSelector: Interface to select a number of polarization products
-///               Examples are, e.g. circulars with cross products,
-///               full stokes, stokes I only, etc.
-///
+/// @file IPolSelector.h
+/// @brief Interface to select a number of polarization products
+/// @details Examples of the polarization selection are, e.g. circulars
+/// with cross products, full stokes, stokes I only, etc.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -16,9 +14,14 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief Interface to select a number of polarization products
+/// @details Examples of the polarization selection are, e.g. circulars
+/// with cross products, full stokes, stokes I only, etc.
 class IPolSelector {
 public:
     /// non-explicit constructor to allow conversion from the strings like
+    /// "XX,YY,XY,YX"
+    /// @param[in] stokes requested polarizations, i.e. a string like
     /// "XX,YY,XY,YX"
     IPolSelector(const std::string &stokes);
     

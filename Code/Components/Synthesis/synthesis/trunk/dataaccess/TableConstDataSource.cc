@@ -1,5 +1,6 @@
 /// @file TableConstDataSource.cc
-///
+/// @brief Implementation of IConstDataSource in the table-based case
+/// @details
 /// TableConstDataSource: Allow read-only access to the data stored in the
 /// measurement set. This class implements IConstDataSource interface.
 /// 

@@ -1,5 +1,6 @@
-/// @file
-///
+/// @file BasicDataConverter.cc
+/// @brief An implementation of the data converter
+/// @details
 /// BasicDataConverter: An implementation of the data converter
 /// (IDataConverter interface). The intention is to use it in conjunction
 /// with the table based implementation of the data accessor. However,

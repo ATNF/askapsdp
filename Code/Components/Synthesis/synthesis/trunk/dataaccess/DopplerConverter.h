@@ -1,15 +1,9 @@
-/// @file
-///
-/// DopplerConverter: Class for interconversion between frequencies
-/// and velocities. This is an implementation of a relatively low-level
+/// @file DopplerConverter.h
+/// @brief A class for interconversion between frequencies
+/// and velocities
+/// @details This is an implementation of a relatively low-level
 /// interface, which is used within the implementation of the data
-//// accessor. The end user interacts with the IDataConverter class only.
-///
-/// The idea behind this class is very similar to CASA's VelocityMachine,
-/// but we require a bit different interface to use the class efficiently
-/// (and the interface conversion would be equivalent in complexity to
-/// the transformation itself). Hence, we will use this class 
-/// instead of the VelocityMachine
+/// accessor. The end user interacts with the IDataConverter class only.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -32,12 +26,23 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief A class for interconversion between frequencies
+/// and velocities
+/// @details This is an implementation of a relatively low-level
+/// interface, which is used within the implementation of the data
+/// accessor. The end user interacts with the IDataConverter class only.
+///
+/// The idea behind this class is very similar to CASA's VelocityMachine,
+/// but we require a bit different interface to use the class efficiently
+/// (and the interface conversion would be equivalent in complexity to
+/// the transformation itself). Hence, we will use this class 
+/// instead of the VelocityMachine
 struct DopplerConverter : virtual public IDopplerConverter {
 
     /// constructor
-    /// @param restFreq The rest frequency used for interconversion between
+    /// @param[in] restFreq The rest frequency used for interconversion between
     ///                 frequencies and velocities
-    /// @param velType velocity (doppler) type (i.e. radio, optical)
+    /// @param[in] velType velocity (doppler) type (i.e. radio, optical)
     /// Default is radio definition.
     explicit DopplerConverter(const casa::MVFrequency &restFreq,
                               casa::MDoppler::Types velType =
@@ -47,7 +52,7 @@ struct DopplerConverter : virtual public IDopplerConverter {
     /// frame. Velocity definition (i.e. optical or radio, etc) is
     /// determined by the implementation class.
     ///
-    /// @param freq an MFrequency measure to convert.
+    /// @param[in] freq an MFrequency measure to convert.
     /// @return a reference on MRadialVelocity object with the result
     virtual const casa::MRadialVelocity& operator()(const casa::MFrequency &freq) const;
 
@@ -55,7 +60,7 @@ struct DopplerConverter : virtual public IDopplerConverter {
     /// frame. Velocity definition (i.e. optical or radio, etc) is
     /// determined by the implementation class.
     ///
-    /// @param vel an MRadialVelocity measure to convert.
+    /// @param[in] vel an MRadialVelocity measure to convert.
     /// @return a reference on MFrequency object with the result
     virtual const casa::MFrequency& operator()(const casa::MRadialVelocity &vel) const;
 protected:
@@ -63,12 +68,12 @@ protected:
     /// because we're not doing conversions here. This method is empty.
     /// Defined here to make the compiler happy.
     ///
-    /// @param frame  MeasFrame object (can be constructed from
+    /// @param[in] frame  MeasFrame object (can be constructed from
     ///               MPosition or MEpoch on-the-fly). Not used.
-    virtual void setMeasFrame(const casa::MeasFrame &);
+    virtual void setMeasFrame(const casa::MeasFrame &frame);
 
     /// convert frequency frame type to velocity frame type
-    /// @param type frequency frame type to convert
+    /// @param[in] type frequency frame type to convert
     /// @return resulting velocity frame type
     ///
     /// Note, an exception is thrown if the the frame type is
@@ -79,7 +84,7 @@ protected:
 	                throw(DataAccessLogicError);
 
     /// convert velocity frame type to frequency frame type
-    /// @param type velocity frame type to convert
+    /// @param[in] type velocity frame type to convert
     /// @return resulting frequency frame type
     static casa::MFrequency::Types
       velToFreqType(casa::MRadialVelocity::Types type)

@@ -1,14 +1,14 @@
 /// @file TableScalarFieldSelector.h
-///
-/// TableScalarFieldSelector: Class representing a selection of visibility
-///                data according to some criterion. This is an
-///                implementation of the part of the IDataSelector
-///                interface, which can be done with the table selection
-///                mechanism in the table based case. Only simple
-///                (scalar) fields are included in this selection.
-///                Epoch-based selection is done via a separate class
-///                because a fully defined converter is required to
-///                perform such selection.
+/// @brief An implementation of ITableDataSelectorImpl for simple (scalar) fields, like feed ID.
+/// @details This class represents a selection of visibility
+///         data according to some criterion. This is an
+///         implementation of the part of the IDataSelector
+///         interface, which can be done with the table selection
+///         mechanism in the table based case. Only simple
+///         (scalar) fields are included in this selection.
+///         Epoch-based selection is done via a separate class
+///         because a fully defined converter is required to
+///         perform such selection.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -28,28 +28,39 @@ namespace conrad {
 
 namespace synthesis {
 	
-// A derivative from this class is passed to a DataSource object in the
-// request for an iterator. The iterator obtained that way runs through
-// the selected part of the dataset.
+/// @brief An implementation of ITableDataSelectorImpl for simple (scalar) fields, like feed ID.
+/// @details This class represents a selection of visibility
+///         data according to some criterion. This is an
+///         implementation of the part of the IDataSelector
+///         interface, which can be done with the table selection
+///         mechanism in the table based case. Only simple
+///         (scalar) fields are included in this selection.
+///         Epoch-based selection is done via a separate class
+///         because a fully defined converter is required to
+///         perform such selection.
+///
+/// A derivative from this class is passed to a DataSource object in the
+/// request for an iterator. The iterator obtained that way runs through
+/// the selected part of the dataset.
 class TableScalarFieldSelector : virtual public ITableDataSelectorImpl
 {
 public:
   /// construct a table selector
-  /// @param tab MS table to work with
+  /// @param[in] tab MS table to work with
   explicit TableScalarFieldSelector(const casa::Table &tab);
   
   /// Choose a single feed, the same for both antennae
-  /// @param feedID the sequence number of feed to choose
+  /// @param[in] feedID the sequence number of feed to choose
   virtual void chooseFeed(casa::uInt feedID);
 
   /// Choose a single baseline
-  /// @param ant1 the sequence number of the first antenna
-  /// @param ant2 the sequence number of the second antenna
+  /// @param[in] ant1 the sequence number of the first antenna
+  /// @param[in] ant2 the sequence number of the second antenna
   /// Which one is the first and which is the second is not important
   virtual void chooseBaseline(casa::uInt ant1, casa::uInt ant2);
 
   /// Choose a single spectral window (also known as IF).
-  /// @param spWinID the ID of the spectral window to choose
+  /// @param[in] spWinID the ID of the spectral window to choose
   virtual void chooseSpectralWindow(casa::uInt spWinID);
       
 protected:

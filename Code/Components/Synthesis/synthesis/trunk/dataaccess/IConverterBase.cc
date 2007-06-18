@@ -1,5 +1,6 @@
-/// @file
-///
+/// @file IConverterBase.cc
+/// @brief A base class for all converter classes.
+/// @details
 /// IConverterBase: A base class for all converter classes. It doesn't
 /// have any useful functionality and is used as a structural unit.
 /// The only method defined is a virtual destructor to make the compiler

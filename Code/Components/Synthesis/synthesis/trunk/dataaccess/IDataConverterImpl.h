@@ -1,17 +1,9 @@
 /// @file IDataConverterImpl.h
-///
-/// IDataConverterImpl: Interface to described on-the-fly conversions requested
-/// from the data source object. The polymorphism will allow a high performance
-/// implementation in the future, i.e. bypassing conversionsi, if the data
-/// appear in the requested frame/units up front. However, implementation of
-/// this optimization will be deferred until the very latest stages. A
-/// single converter class is expected to work for most of the cases.
-/// This interface presents methods exposed to the implementation layer.
-/// The end user interacts with IDataConverter only
-///
-/// The main idea is to supply a DataConverter and DataSelector when
-/// an iterator is requested from the DataSource object. The iterator will
-/// return the data in the requested frame/units.
+/// @brief A rich interface to describe on-the-fly conversions
+/// @details Interface to describe on-the-fly conversions requested
+/// from the data source object. In contrast to IDataConverter, this
+/// interface contains methods used within the implementation part of the
+/// data access layer, which are not exposed to the end user.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -33,6 +25,11 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief A rich interface to describe on-the-fly conversions (not exposed to end user)
+/// @details Interface to describe on-the-fly conversions requested
+/// from the data source object. In contrast to IDataConverter, this
+/// interface contains methods used within the implementation part of the
+/// data access layer, which are not exposed to the end user.
 class IDataConverterImpl : virtual public IDataConverter
 {
 public:
@@ -59,17 +56,17 @@ public:
 
     /// convert frequencies
     /// @param[in] in input frequency given as an MFrequency object
-    /// @param out output frequency as a Double
+    /// @return output frequency as a Double
     virtual casa::Double frequency(const casa::MFrequency &in) const = 0;
 
     /// convert velocities
     /// @param[in] in input velocities given as an MRadialVelocity object
-    /// @param out output velocity as a Double
+    /// @return output velocity as a Double
     virtual casa::Double velocity(const casa::MRadialVelocity &in) const = 0;
 
     /// convert frequencies from velocities
     /// @param[in] in input velocity given as an MRadialVelocity object
-    /// @param out output frequency as a Double
+    /// @return output frequency as a Double
     ///
     /// Note, an exception will be thrown if the rest frequency is not
     /// defined.
@@ -78,7 +75,7 @@ public:
 
     /// convert velocities from frequencies
     /// @param[in] in input frequency  given as an MFrequency object
-    /// @param out output velocity as a Double
+    /// @return output velocity as a Double
     ///
     /// Note, an exception will be thrown if the rest frequency is not
     /// defined.

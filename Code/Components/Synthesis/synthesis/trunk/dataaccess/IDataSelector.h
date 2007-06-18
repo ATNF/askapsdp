@@ -1,6 +1,6 @@
 /// @file IDataSelector.h
-///
-/// IDataSelector: Interface class representing a selection of visibility
+/// @brief Interface class representing visibility selection
+/// @details Interface class representing a selection of visibility
 ///                data according to some criterion. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
@@ -18,10 +18,14 @@
 namespace conrad {
 
 namespace synthesis {
-	
-// A derivative from this class is passed to a DataSource object in the
-// request for an iterator. The iterator obtained that way runs through
-// the selected part of the dataset (doesn't matter disk or stream based).
+
+/// @brief Interface class representing visibility selection
+/// @details IDataSelector represents a selection of visibility
+/// data according to some criterion 
+/// A derivative from this class is passed to a derivative from
+/// IDataSource in the request for an iterator. The iterator obtained
+/// that way runs through the selected part of the dataset (doesn't
+/// matter disk or stream based).
 class IDataSelector
 {
 public:
@@ -29,29 +33,29 @@ public:
 	virtual ~IDataSelector();
 		
 	/// Choose a single feed, the same for both antennae
-	/// @param feedID the sequence number of feed to choose
+	/// @param[in] feedID the sequence number of feed to choose
 	virtual void chooseFeed(casa::uInt feedID) = 0;
 
 	/// Choose a single baseline
-	/// @param ant1 the sequence number of the first antenna
-	/// @param ant2 the sequence number of the second antenna
+	/// @param[in] ant1 the sequence number of the first antenna
+	/// @param[in] ant2 the sequence number of the second antenna
 	/// Which one is the first and which is the second is not important
 	virtual void chooseBaseline(casa::uInt ant1, casa::uInt ant2) = 0;
 	
 	/// Choose a subset of spectral channels
-	/// @param nChan a number of spectral channels wanted in the output
-	/// @param start the number of the first spectral channel to choose
-	/// @param nAvg a number of adjacent spectral channels to average
+	/// @param[in] nChan a number of spectral channels wanted in the output
+	/// @param[in] start the number of the first spectral channel to choose
+	/// @param[in] nAvg a number of adjacent spectral channels to average
 	///             default is no averaging
 	virtual void chooseChannels(casa::uInt nChan,
 	         casa::uInt start, casa::uInt nAvg = 1) = 0;
 
 	/// Choose a subset of frequencies. The reference frame is
 	/// defined by the DataSource object
-	/// @param nChan a number of spectral channels wanted in the output
-	/// @param start the frequency of the first spectral channel to
+	/// @param[in] nChan a number of spectral channels wanted in the output
+	/// @param[in] start the frequency of the first spectral channel to
 	///        choose (given as casa::MVFrequency object)
-	/// @param freqInc an increment in terms of the frequency in the
+	/// @param[in] freqInc an increment in terms of the frequency in the
 	///        same reference frame as start. This parameter plays
 	///        the same role as nAvg for chooseChannels, i.e. twice
 	///        the frequency resolution would average two adjacent channels
@@ -61,10 +65,10 @@ public:
 
 	/// Choose a subset of radial velocities. The reference frame is
 	/// defined by the DataSource object
-	/// @param nChan a number of spectral channels wanted in the output
-	/// @param start the velocity of the first spectral channel to
+	/// @param[in] nChan a number of spectral channels wanted in the output
+	/// @param[in] start the velocity of the first spectral channel to
 	///        choose (given as casa::MVRadialVelocity object)
-	/// @param velInc an increment in terms of the radial velocity in the
+	/// @param[in] velInc an increment in terms of the radial velocity in the
 	///        same reference frame as start. This parameter plays
 	///        the same role as nAvg for chooseChannels, i.e. twice
 	///        the velocity resolution would average two adjacent channels
@@ -73,7 +77,7 @@ public:
 		 const casa::MVRadialVelocity &velInc) = 0;
 	
 	/// Choose a single spectral window (also known as IF).
-	/// @param spWinID the ID of the spectral window to choose
+	/// @param[in] spWinID the ID of the spectral window to choose
 	virtual void chooseSpectralWindow(casa::uInt spWinID) = 0;
 
 	/// Choose a time range. The behavior for streams needs thinking.
@@ -82,8 +86,8 @@ public:
 	/// the stop time. Both start and stop times are given via
 	/// casa::MVEpoch object. The reference frame is specified by
 	/// the DataSource object.
-	/// @param start the beginning of the chosen time interval
-	/// @param stop  the end of the chosen time interval
+	/// @param[in] start the beginning of the chosen time interval
+	/// @param[in] stop  the end of the chosen time interval
 	virtual void chooseTimeRange(const casa::MVEpoch &start,
 	          const casa::MVEpoch &stop) = 0;
 
@@ -92,8 +96,8 @@ public:
 	/// Both start and stop times are given as Doubles.
 	/// The reference frame is the same as for the version accepting
 	/// MVEpoch and is specified via the DataSource object.
-	/// @param start the beginning of the chosen time interval
-	/// @param stop the end of the chosen time interval
+	/// @param[in] start the beginning of the chosen time interval
+	/// @param[in] stop the end of the chosen time interval
 	virtual void chooseTimeRange(casa::Double start,casa::Double stop) = 0;
 
 	/// Choose polarization. 
@@ -103,8 +107,8 @@ public:
 
 	/// Choose cycles. This is an equivalent of choosing the time range,
 	/// but the selection is done in integer cycle numbers
-	/// @param start the number of the first cycle to choose
-	/// @param stop the number of the last cycle to choose
+	/// @param[in] start the number of the first cycle to choose
+	/// @param[in] stop the number of the last cycle to choose
 	virtual void chooseCycles(casa::uInt start, casa::uInt stop) = 0;
 };
 

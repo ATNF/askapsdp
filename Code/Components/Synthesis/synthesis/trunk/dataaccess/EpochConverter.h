@@ -1,6 +1,6 @@
-/// @file
-///
-/// EpochConverter: A class for epoch conversion. This is an implementation
+/// @file EpochConverter.h
+/// @brief A class for epoch conversion
+/// @details This is an implementation
 /// of the low-level interface, which is used within the implementation of
 /// the data accessor. The end user interacts with the IDataConverter
 /// class. 
@@ -22,12 +22,12 @@ namespace conrad {
 
 namespace synthesis {
 
-/// An implementation of the epoch converter. This class just
-/// call the appropriate functionality of the epoch measures.
-/// TODO: we probably need a class where default input frame can be
+/// @brief An implementation of the epoch converter.
+/// @details This class just call the appropriate functionality of
+/// the (epoch) measures.
+/// @todo we probably need a class where default input frame can be
 /// specified at construction (e.g. operator() can receive MVEpoch or
 /// even a Double). Such class can be derived from this one
-///
 struct EpochConverter : public IEpochConverter {
     /// create a converter to the target frame/unit
     /// @param targetOrigin a measure describing target reference frame

@@ -1,3 +1,12 @@
+/// @file IConstDataSource.cc
+/// @brief Access to a source of visibility data
+/// @details IConstDataSource allows access to a source of visibility data,
+/// probably either a MeasurementSet or a stream.
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
+///
+
 #include <dataaccess/IConstDataSource.h>
 
 namespace conrad {

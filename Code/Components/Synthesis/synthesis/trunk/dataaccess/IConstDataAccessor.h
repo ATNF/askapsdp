@@ -1,6 +1,5 @@
-/// @file IDataAccessor.h
-///
-/// IDataAccessor: Interface class for read-only access to visibility data
+/// @file IConstDataAccessor.h
+/// @brief Interface class for read-only access to visibility data
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -20,11 +19,12 @@ namespace conrad {
 
 namespace synthesis {
 
-/// IConstDataAccessor: an interface class for read-only 
+/// @brief Interface class for read-only access to visibility data
+/// @details IConstDataAccessor is an interface class for read-only 
 /// access to buffered visibility data. Working instances include 
 /// a chunk of streamed data or a portion of the disk-based table. 
-/// A reference to this type is supposed to be
-/// returned by a ConstDataIterator object and its derivatives
+/// A reference to this type is returned by a derivative from
+/// IConstDataIterator
 class IConstDataAccessor
 {
 public:

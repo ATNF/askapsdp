@@ -1,6 +1,6 @@
 /// @file IConstDataIterator.h
-///
-/// IConstDataIterator: Allow read-only iteration across preselected data. Each 
+/// @brief A read-only iterator across preselected data
+/// @details Each 
 /// iteration step is represented by the IConstDataAccessor interface.
 /// The idea is that an iterator object will be obtained via IDataSource
 /// which will take care of the actual method to access the data and the
@@ -25,6 +25,18 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief Read-only iterator across preselected data
+/// @details Each 
+/// iteration step is represented by the IConstDataAccessor interface.
+/// The idea is that an iterator object will be obtained via IDataSource
+/// which will take care of the actual method to access the data and the
+/// source (a MeasurementSet or a stream). Any class controlling data selection
+/// is likely to be held by a real implementation of the iterator. However,
+/// it will be set up via the IDataSource object and IS NOT a part of this
+/// interface.
+/// 
+/// Additional read/write buffers can be used via the IDataIterator, which
+/// implements a read/write interface
 class IConstDataIterator
 {
 public:

@@ -1,9 +1,8 @@
-/// @file
-///
-/// DirectionConverter: A class for direction conversion. This is an
-/// implementation of the low-level interface, which is used within the
-/// implementation of the data accessor. The end user interacts with the
-/// IDataConverter class. 
+/// @file DirectionConverter.cc
+/// @brief A class for direction conversion
+/// @details This is an implementation of the low-level interface,
+/// which is used within the implementation of the data accessor.
+/// The end user interacts with the  IDataConverter class. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

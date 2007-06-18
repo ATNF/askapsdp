@@ -1,5 +1,7 @@
 /// @file SharedIter.h
-///
+/// @brief a helper template to be used with iterators created by
+///        factories
+/// @details 
 /// SharedIter: a helper template to be used with iterators created by
 ///        factories, which are expected to be handled via a boost's smart
 ///        pointer. It allows to avoid an ugly syntax like *(*it), etc.
@@ -24,8 +26,12 @@ namespace conrad {
 
 namespace synthesis {
 
-// a template to handle iterators via a pointer stored in the shared_ptr,
-// provides a basic iterator interface
+/// @brief a helper template to be used with iterators created by
+///        factories
+/// @details It wraps iterators via a pointer stored in the shared_ptr and
+/// provides a basic iterator interface. It allows to avoid an ugly
+/// syntax like *(*it), etc for iterators created by factories (and therefore
+/// handled via a boost's smart pointer. 
 template<typename T> class SharedIter
 {
 public:    
@@ -37,31 +43,41 @@ public:
     SharedIter() : itsSharedPtr() {}; // never throws
 
     /// constructors from a raw pointer
+    /// @param[in] p raw pointer
     template<typename Y> explicit SharedIter(Y *p) : 
 	           itsSharedPtr(p) {};    		   
     
-    /// constructors from a shared pointer, call the same constructor
+    /// constructor from a shared pointer, calls the same constructor
     /// of the shared pointer object, this class owns
+    /// @param[in] r a reference to the shared pointer
     SharedIter(boost::shared_ptr<T> const &r) :
 	     itsSharedPtr(r) {}; // never throws
+
+    /// constructor from a shared pointer of different type, calls the
+    /// same constructor of the shared pointer object, this class owns
+    /// @param[in] r a reference to the shared pointer	     
     template<typename Y> SharedIter(boost::shared_ptr<Y> const &r) :
              itsSharedPtr(r) {}; // never throws
     
     /// constructors from SharedIter, need templates to allow automatic
     /// type cast
+    /// @param[in] r a reference to the SharedIter
     SharedIter(SharedIter<T> const &r) :
-             itsSharedPtr(r.itsSharedPtr) {}; // never throws
+             itsSharedPtr(r.itsSharedPtr) {}; // never throws	     
+    /// @param[in] r a reference to the SharedIter
     template<typename Y> SharedIter(SharedIter<Y> const &r) :
              itsSharedPtr(static_cast<boost::shared_ptr<Y> const&>(r)) {}; // never throws
 
     /// assignment operators. Check for self-assignment is done in shared_ptr,
     /// no need to repeat it here.
+    /// @param[in] r a reference to the SharedIter
     inline SharedIter<T>& operator=(SharedIter<T> const &r) throw()
     {
       itsSharedPtr=r.itsSharedPtr;
       return *this;
     }
 
+    /// @param[in] r a reference to the SharedIter
     template<typename Y>inline SharedIter<T>& operator=(SharedIter<Y> const &r) throw()
     {
       itsSharedPtr=static_cast<boost::shared_ptr<Y> const&>(r);
@@ -71,6 +87,7 @@ public:
     
     /// access via operator* uses typedef value_type defined in each
     /// iterator which can be used in conjunction with this class
+    /// @return a T:value_type (i.e. a reference to the result)
     inline typename T::value_type operator*() const {
        CONRADDEBUGASSERT(*this);
        return *(*itsSharedPtr);
@@ -78,6 +95,7 @@ public:
 
     /// access via operator-> uses typedef pointer_type defined in each
     /// iterator which can be used in conjunction with this class
+    /// @return T::pointer_type (i.e. a pointer to the result)
     inline typename T::pointer_type operator->() const {
        CONRADDEBUGASSERT(*this);
        return (*itsSharedPtr).operator->();
@@ -134,7 +152,7 @@ public:
     /// IDataIterator call). The method is valid for types
     /// derived from IDataIterator only.
     ///
-    /// @param bufferID the name of buffer to choose
+    /// @param[in] bufferID the name of buffer to choose
     ///
     inline void chooseBuffer(const std::string &bufferID) const
     {
@@ -155,7 +173,7 @@ public:
     /// The call is translated to the appropriate IDataIterator call
     /// (which should be provided by the underlying iterator class)
     ///
-    /// @param bufferID the name of the buffer to return
+    /// @param[in] bufferID the name of the buffer to return
     /// @return a reference to the data accessor corresponding to the
     ///         buffer requested
     ///

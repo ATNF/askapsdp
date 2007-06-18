@@ -1,6 +1,7 @@
-/// @file
-///
-/// IDataConverter: Interface to described on-the-fly conversions requested
+/// @file IDataConverter.h
+/// @brief An interface to describe on-the-fly conversions
+/// @details IDataConverter is an interface to describe on-the-fly
+/// conversions requested
 /// from the data source object. The polymorphism will allow a high performance
 /// implementation in the future, i.e. bypassing conversionsi, if the data
 /// appear in the requested frame/units up front. However, implementation of
@@ -31,7 +32,19 @@
 namespace conrad {
 
 namespace synthesis {
-	
+
+/// @brief An interface to describe on-the-fly conversions
+/// @details IDataConverter is an interface to describe on-the-fly
+/// conversions requested
+/// from the data source object. The polymorphism will allow a high performance
+/// implementation in the future, i.e. bypassing conversionsi, if the data
+/// appear in the requested frame/units up front. However, implementation of
+/// this optimization will be deferred until the very latest stages. A
+/// single converter class is expected to work for most of the cases.
+///
+/// The main idea is to supply a DataConverter and DataSelector when
+/// an iterator is requested from the DataSource object. The iterator will
+/// return the data in the requested frame/units.	
 class IDataConverter : virtual public IConverterBase
 {
 public:

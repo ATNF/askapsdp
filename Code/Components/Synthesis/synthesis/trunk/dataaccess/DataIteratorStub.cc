@@ -1,7 +1,5 @@
-/// @file
-///
-///
-/// DataIteratorStub: A stub to work in pair with DataAccessorStub
+/// @file DataIteratorStub.cc
+/// @brief A stub to work in pair with DataAccessorStub
 ///
 /// 
 ///

@@ -1,5 +1,6 @@
 /// @file IDataAccessor.h
-///
+/// @brief Interface class to access buffered visibility data
+/// @details
 /// IDataAccessor: Interface class to access buffered visibility data
 ///        with the writing permission. It is ment to be used in conjunction 
 ///        with a read/write iterator (IDataIterator) for an access to 
@@ -19,8 +20,9 @@ namespace conrad {
 
 namespace synthesis {
 
-/// IDataAccessor: an interface class to access buffered visibility data
-/// with a read/write capability. It is meant to be used together with 
+/// @brief an interface class to access buffered visibility data
+/// with a read/write capability.
+/// @details It is meant to be used together with 
 /// derived iterators, which support a read/write access (e.g. for buffers 
 /// associated with visibility chunks).
 class IDataAccessor : public IConstDataAccessor

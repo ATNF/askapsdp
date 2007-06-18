@@ -1,5 +1,6 @@
-/// @file
-///
+/// @file IConverterBase.h
+/// @brief A base class for all converter classes.
+/// @details
 /// IConverterBase: A base class for all converter classes. It doesn't
 /// have any useful functionality and is used as a structural unit.
 /// The only method defined is a virtual destructor to make the compiler
@@ -19,6 +20,11 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief A base class for all converter classes.
+/// @details It doesn't
+/// have any useful functionality and is used as a structural unit.
+/// The only method defined is a virtual destructor to make the compiler
+/// happy and reduce the number of *.cc files for the derived interfaces
 struct IConverterBase {
 
     /// an empty virtual destructor to keep the compiler happy
@@ -29,7 +35,7 @@ protected: // the following method(s) are not for a general framework user,
            // but rather for implementation
     /// set a frame (i.e. time and/or position), where the
     /// conversion is performed
-    /// @param frame  MeasFrame object (can be constructed from
+    /// @param[in] frame  MeasFrame object (can be constructed from
     ///               MPosition or MEpoch on-the-fly)
     virtual void setMeasFrame(const casa::MeasFrame &frame) = 0;
 };

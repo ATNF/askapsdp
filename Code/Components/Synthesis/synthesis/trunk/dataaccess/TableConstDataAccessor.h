@@ -1,11 +1,13 @@
 /// @file TableConstDataAccessor.h
+/// @brief an implementation of IConstDataAccessor working with TableConstDataIterator
 ///
-/// TableConstDataAccessor:  an implementation of the DataAccessor to work
-///                          with the TableConstDataIterator. It is currently
-///                          derived from DataAccessorStub as most of the
-///                          methods are stubbed. However, in the future
-///                          it should become a separate class derived
-///                          directly from its interface
+/// @details TableConstDataAccessor is an implementation of the
+/// DataAccessor working with the TableConstDataIterator. It is currently
+/// derived from DataAccessorStub as most of the
+/// methods are stubbed. However, in the future
+/// it should become a separate class derived
+/// directly from its interface
+///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
@@ -23,7 +25,15 @@ namespace synthesis {
 /// to be able to link this class to appropriate iterator
 class TableConstDataIterator;
 
-// derived to have the stubbed behavior for the remaining other methods
+
+/// @brief an implementation of IConstDataAccessor working with TableConstDataIterator
+///
+/// @details TableConstDataAccessor is an implementation of the
+/// DataAccessor working with the TableConstDataIterator. It is currently
+/// derived from DataAccessorStub as most of the
+/// methods are stubbed. However, in the future
+/// it should become a separate class derived
+/// directly from its interface
 class TableConstDataAccessor : public DataAccessorStub
 {
 public:

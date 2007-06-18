@@ -1,6 +1,5 @@
-/// @file IDataAccessor.cc
-///
-/// IDataAccessor: Interface class for read-only access to visibility data
+/// @file IConstDataAccessor.cc
+/// @brief Interface class for read-only access to visibility data
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

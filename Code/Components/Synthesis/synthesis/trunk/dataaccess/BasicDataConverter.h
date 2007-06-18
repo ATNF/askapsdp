@@ -1,21 +1,10 @@
-/// @file
-///
-/// BasicDataConverter: An implementation of the data converter
-/// (IDataConverter interface). The intention is to use it in conjunction
-/// with the table based implementation of the data accessor. However,
-/// it looks at this stage that this class is relatively general and can be
-/// used with any implementation of the data accessor layer. One may want to
-/// write a different implementation to achieve a better optimization, which
-/// may be specific to a particular DataSource.
-///
-/// The main idea is to supply a DataConverter and DataSelector when
-/// an iterator is requested from the DataSource object. The iterator will
-/// return the data in the requested frame/units. The end user interacts
-/// with the IDataConverter interface only.
+/// @file BasicDataConverter.h
+/// @brief An implementation of the data converter
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
+
 
 #ifndef BASIC_DATA_CONVERTER_H
 #define BASIC_DATA_CONVERTER_H
@@ -42,8 +31,22 @@
 namespace conrad {
 
 namespace synthesis {
-	
-class BasicDataConverter : public IDataConverterImpl
+
+/// @brief
+/// An implementation of the data converter (IDataConverter interface).
+/// @details
+/// The intention is to use this class in conjunction
+/// with the table based implementation of the data accessor. However,
+/// it looks at this stage that this class is relatively general and can be
+/// used with any implementation of the data accessor layer. One may want to
+/// write a different implementation to achieve a better optimization, which
+/// may be specific to a particular DataSource.
+///
+/// The main idea is to supply a DataConverter and DataSelector when
+/// an iterator is requested from the DataSource object. The iterator will
+/// return the data in the requested frame/units. The end user interacts
+/// with the IDataConverter interface only.
+class BasicDataConverter : virtual public IDataConverterImpl
 {
 public:
     /// default constructor sets up the default conversion options,
@@ -62,11 +65,11 @@ public:
     /// All visibility timestamps will be given as offsets from
     /// it. The units of these offsets are given by the second
     /// parameter
-    /// @param origin a zero-point for the visibility timestamps 
+    /// @param[in] origin a zero-point for the visibility timestamps 
     ///        (they are given as time offsets with respect to 
     ///        this origin). A reference frame of this measure is
     ///        used in all time epochs (e.g. selection)
-    /// @param unit a required time unit for timestamps
+    /// @param[in] unit a required time unit for timestamps
     ///
     /// Class defaults to MJD 0 UTC, timestamp in seconds
     virtual void setEpochFrame(const casa::MEpoch &origin = casa::MEpoch(),
@@ -76,9 +79,9 @@ public:
     /// have only pointing direction accessible via DataAccessor.
     /// In the future, selection based on the direction observed can
     /// be added.
-    /// @param ref a reference frame to be used for all directions
+    /// @param[in] ref a reference frame to be used for all directions
     ///            (default is J2000).
-    /// @param unit units for all direction offsets. Unused at the
+    /// @param[in] unit units for all direction offsets. Unused at the
     ///             moment. Default units are radians.
     virtual void setDirectionFrame(const casa::MDirection::Ref &ref,
                    const casa::Unit &unit = "rad");
@@ -86,8 +89,8 @@ public:
     /// set the reference frame for any frequency
     /// (e.g. in the frequency-based selection or frequency to channel
     ///  mapping)
-    /// @param ref a reference frame to be used with all frequencies
-    /// @param unit frequency units to use (frequencies will be returned
+    /// @param[in] ref a reference frame to be used with all frequencies
+    /// @param[in] unit frequency units to use (frequencies will be returned
     ///             as Doubles)
     ///
     /// Class defaults to LSRK, GHz
@@ -96,8 +99,8 @@ public:
 
     /// set the reference frame for any velocity
     /// (e.g. in the velocity-based selection or spectral labelling)
-    /// @param ref a reference frame to be used with all velocities
-    /// @param unit velocity units to use (velocities will be returned
+    /// @param[in] ref a reference frame to be used with all velocities
+    /// @param[in] unit velocity units to use (velocities will be returned
     ///             as Doubles)
     ///  
     /// Class defaults to LSRK, km/s
@@ -110,20 +113,21 @@ public:
     /// tracking) will require this if an operation with frequencies is
     /// requested.
     ///
-    /// @param restFreq a rest frequency to be used for interconversions
+    /// @param[in] restFreq a rest frequency to be used for interconversions
     ///                 between frequencies and velocities
     ///
     virtual void setRestFrequency(const casa::MVFrequency &restFreq);
 
     /// set a frame (for epochs it is just a position), where the
     /// conversion is performed
+    /// @param[in] frame measure's frame object
     virtual void setMeasFrame(const casa::MeasFrame &frame);
 
 
     /// following methods are used within the DataSource/DataIterator
     
     /// convert epochs
-    /// @param in input epoch given as an MEpoch object
+    /// @param[in] in input epoch given as an MEpoch object
     /// @return epoch converted to Double 
     virtual casa::Double epoch(const casa::MEpoch &in) const;    
 
@@ -138,24 +142,24 @@ public:
     virtual casa::MEpoch epochMeasure(const casa::MVEpoch &in) const;
 
     /// convert directions
-    /// @param in input direction given as an MDirection object
-    /// @param out output direction as an MVDirection object
+    /// @param[in] in input direction given as an MDirection object
+    /// @param[out] out output direction as an MVDirection object
     virtual void direction(const casa::MDirection &in, 
                           casa::MVDirection &out) const;    
 
     /// convert frequencies
-    /// @param in input frequency given as an MFrequency object
-    /// @param out output frequency as a Double
+    /// @param[in] in input frequency given as an MFrequency object
+    /// @return output frequency as a Double
     virtual casa::Double frequency(const casa::MFrequency &in) const;
 
     /// convert velocities
-    /// @param in input velocities given as an MRadialVelocity object
-    /// @param out output velocity as a Double
+    /// @param[in] in input velocities given as an MRadialVelocity object
+    /// @return output velocity as a Double
     virtual casa::Double velocity(const casa::MRadialVelocity &in) const;    
 
     /// convert frequencies from velocities
-    /// @param in input velocity given as an MRadialVelocity object
-    /// @param out output frequency as a Double
+    /// @param[in] in input velocity given as an MRadialVelocity object
+    /// @return output frequency as a Double
     ///
     /// Note, an exception will be thrown if the rest frequency is not
     /// defined.
@@ -164,8 +168,8 @@ public:
     
 
     /// convert velocities from frequencies
-    /// @param in input frequency  given as an MFrequency object
-    /// @param out output velocity as a Double
+    /// @param[in] in input frequency  given as an MFrequency object
+    /// @return output velocity as a Double
     ///
     /// Note, an exception will be thrown if the rest frequency is not
     /// defined.

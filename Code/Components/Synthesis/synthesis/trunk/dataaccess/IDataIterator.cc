@@ -1,7 +1,6 @@
-/// @file
-///
-/// IDataIterator: an interface to the data iterator with
-/// associated buffers. See the description of IConstDataIterator
+/// @file IDataIterator.cc
+/// @brief an interface to the data iterator with associated buffers
+/// @details See the description of IConstDataIterator
 /// for more details. Buffers are the visibility chunks conformant
 /// to the data pointed to by the IDataIterator, but with a read/write access. 
 /// 

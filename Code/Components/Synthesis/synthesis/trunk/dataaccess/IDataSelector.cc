@@ -1,7 +1,7 @@
 /// @file IDataSelector.cc
-///
-/// IDataSelector: Interface class representing a selection of visibility
-///                data according to some criterion. 
+/// @brief An interface class representing visibility selection
+/// @details IDataSelector is an interface class representing a
+/// selection of visibility data according to some criterion. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

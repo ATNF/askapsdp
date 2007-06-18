@@ -1,14 +1,13 @@
 /// @file ITableDataSelectorImpl.h
+/// @brief An interface for table data selection
+/// @details ITableDataSelectorImpl is an interface for data selection
+/// to be used within the table-based implementation of the layer. The
+/// end user interacts with the IDataSelector interface only.
 ///
-/// ITableDataSelectorImpl: Interface for data selection to be used within
-///                the table-based implementation of the layer. The
-///                end user interacts with the IDataSelector interface 
-///                only.
-///
-///                If (or when) we have different data sources 
-///                table-independent functionality can be split out into a
-///                separate interface (i.e. IDataSelectorImpl), which could
-///                be a base class for this one.
+/// If (or when) we have different data sources 
+/// table-independent functionality can be split out into a
+/// separate interface (i.e. IDataSelectorImpl), which could
+/// be a base class for this one.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -30,6 +29,15 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief An interface for subtable selection (forms an expression node)
+/// @details ITableDataSelectorImpl is an interface for data selection
+/// to be used within the table-based implementation of the layer. The
+/// end user interacts with the IDataSelector interface only.
+///
+/// @todo If (or when) we have different data sources 
+/// table-independent functionality can be split out into a
+/// separate interface (i.e. IDataSelectorImpl), which could
+/// be a base class for this one.
 class ITableDataSelectorImpl : virtual public IDataSelector
 {
 public:

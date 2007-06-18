@@ -1,7 +1,5 @@
 /// @file DataAccessError.h
-///
-/// DataAccessError: define exception classes used at the data access
-///                     layer
+/// @brief Exception classes used at the data access layer
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -20,6 +18,7 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief general exception class used in the data access layer
 struct DataAccessError : public ConradError
 {
   /// constructor - pass the message to the base class
@@ -29,6 +28,7 @@ struct DataAccessError : public ConradError
   explicit DataAccessError(const std::string& message);
 };
 
+/// @brief exception class indicating a logic error in the data access layer
 struct DataAccessLogicError : public DataAccessError
 {
   /// constructor - pass the message to the base class

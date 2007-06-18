@@ -1,10 +1,10 @@
-/// @file TableMeasureFieldSelector.h
-///
-/// TableMeasureFieldSelector: partial implementation of an interface to
-///                     constrain a table selection
-///                     object (expression node) for a field which is
-///                     a measure (i.e. requires a fully defined converter
-///                     to complete processing)
+/// @file TableMeasureFieldSelector.cc
+/// @brief partial implementation of ITableMeasureFieldSelector (handles converter)
+/// @details This is a partial implementation of an interface to
+/// constrain a table selection object (expression node)
+/// for a field which is a measure, i.e. requires a
+/// fully defined converter for processing
+/// (base interface is ITableMeasureSelector)
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

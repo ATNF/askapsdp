@@ -1,7 +1,6 @@
-/// @file
-///
-/// IDataIterator: an interface to the data iterator with
-/// associated buffers. See the description of IConstDataIterator
+/// @file IDataIterator.h
+/// @brief an interface to the data iterator with associated buffers.
+/// @details See the description of IConstDataIterator
 /// for more details. Buffers are the visibility chunks conformant
 /// to the data pointed to by the IDataIterator, but with a read/write access. 
 /// They are managed by the DataSource object and will not be destroyed
@@ -28,6 +27,17 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief an interface to the data iterator with associated buffers.
+/// @details See the description of IConstDataIterator
+/// for more details. Buffers are the visibility chunks conformant
+/// to the data pointed to by the IDataIterator, but with a read/write access. 
+/// They are managed by the DataSource object and will not be destroyed
+/// when the iterator goes out of scope. All iterators created from the same
+/// DataSource object work with the same buffers. The user is responsible
+/// for synchronization, if a simultanous access to the same buffer is
+/// implemented in a parallel environment. The user should also take care
+/// in the situation when the iterators with different selection access
+/// the same buffer (this behavior is still TBD).
 class IDataIterator : public IConstDataIterator
 {
 public:

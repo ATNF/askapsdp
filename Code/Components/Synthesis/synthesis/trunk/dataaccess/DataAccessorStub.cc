@@ -1,6 +1,6 @@
-/// @file DataAccessorStub.h
+/// @file DataAccessorStub.cc
+/// @brief a stub to debug the code, which uses DataAccessor
 ///
-/// DataAccessorStub:  a stub to debug the code, which uses DataAccessor
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
@@ -20,14 +20,11 @@
 
 using std::vector;
 
-
-using namespace conrad;
 using namespace casa;
-using namespace synthesis;
 
-/// apparently this template is not compiled in to the casacore libraries,
-/// manual instantiation is required
-//template Vector<MVDirection>;
+namespace conrad  {
+
+namespace synthesis {
 
 DataAccessorStub::DataAccessorStub(const bool fill)
 {
@@ -277,3 +274,7 @@ const casa::Vector<casa::Double>& DataAccessorStub::velocity() const
 {
   return itsVelocity;
 }
+
+} // namespace synthesis
+
+} // namespace conrad

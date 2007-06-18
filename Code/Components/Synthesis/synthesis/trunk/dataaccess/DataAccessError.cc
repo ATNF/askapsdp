@@ -1,7 +1,7 @@
-/// @file DataAccessError.h
-///
-/// DataAccessError: define exception classes used at the data access
-///                     layer
+/// @file DataAccessError.cc
+/// @brief define exception classes used at the data access layer
+/// @details this file contains implementations of the exception classes,
+/// which can be thrown from the data access layer
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

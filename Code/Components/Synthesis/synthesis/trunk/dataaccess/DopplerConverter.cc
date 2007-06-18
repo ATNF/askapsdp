@@ -1,7 +1,7 @@
-/// @file
-///
-/// DopplerConverter: Class for interconversion between frequencies
-/// and velocities. This is an implementation of a relatively low-level
+/// @file DopplerConverter.cc
+/// @brief A class for interconversion between frequencies
+/// and velocities.
+/// @details This is an implementation of a relatively low-level
 /// interface, which is used within the implementation of the data
 //// accessor. The end user interacts with the IDataConverter class only.
 ///

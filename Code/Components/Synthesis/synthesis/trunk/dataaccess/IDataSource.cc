@@ -1,3 +1,13 @@
+/// @file IDataSource.cc
+/// @brief Access to a source of visibility data
+/// @details
+/// IDataSource allows access to a source of visibility data, probably
+/// either a MeasurementSet or a stream. This class provides methods to
+/// create read/write iterators as opposed to IConstDataSource.
+/// Probably all real instances will be derived from this interface and
+/// IConstDataSource will never be used directly. The code is split into
+/// two classes just for structuring. 
+///
 #include <dataaccess/IDataSource.h>
 
 namespace conrad {

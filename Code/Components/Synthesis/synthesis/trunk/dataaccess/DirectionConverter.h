@@ -1,6 +1,7 @@
-/// @file
-///
-/// DirectionConverter: A class for direction conversion. This is an
+/// @file DirectionConverter.h
+/// @brief A class for direction conversion
+/// @details
+/// DirectionConverter is a class for direction conversion. This is an
 /// implementation of the low-level interface, which is used within the
 /// implementation of the data accessor. The end user interacts with the
 /// IDataConverter class. 
@@ -22,9 +23,10 @@ namespace conrad {
 
 namespace synthesis {
 
-/// An implementation of the direction converter. This class just
-/// call the appropriate functionality of the direction measures.
-/// TODO: we probably need a class where default input frame can be
+/// @brief An implementation of the direction converter.
+/// @details This class just call the appropriate functionality
+/// of the direction measures.
+/// @todo we probably need a class where default input frame can be
 /// specified at construction (e.g. operator() can receive MVDirection or
 /// even Doubles). Such class can be derived from this one
 ///

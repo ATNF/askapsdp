@@ -1,6 +1,7 @@
 /// @file IFlagDataAccessor.h
-///
-/// IFlagDataAccessor: Interface class to access buffered visibility data
+/// @brief An read/write iterface to flagging information
+/// @details  IFlagDataAccessor is an interface class to access
+///        buffered visibility data
 ///        with the writing permission. This class is a further extension
 ///        of IDataAccessor to provide a read/write interface to the 
 ///        flag information. The user should dynamic cast to this 
@@ -20,9 +21,11 @@ namespace conrad {
 
 namespace synthesis {
 
-/// IFlagDataAccessor: a further extension of the IDataAccessor interface 
-/// class with a read/write access to the flag information.
-class IFlagDataAccessor : public IDataAccessor
+/// @brief An read/write iterface to flagging information
+/// @details IFlagDataAccessor is a further extension of the
+/// IDataAccessor interface class to provide a read/write access to
+/// the flag information.
+class IFlagDataAccessor : virtual public IDataAccessor
 {
 public:
         /// Cube of flags corresponding to the output of visibility()

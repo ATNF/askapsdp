@@ -1,10 +1,10 @@
 /// @file TableMeasureFieldSelector.h
-///
-/// TableMeasureFieldSelector: partial implementation of an interface to
-///                     constrain a table selection
-///                     object (expression node) for a field which is
-///                     a measure (i.e. requires a fully defined converter
-///                     to complete processing)
+/// @brief partial implementation of ITableMeasureFieldSelector (handles converter)
+/// @details This is a partial implementation of an interface to
+/// constrain a table selection object (expression node)
+/// for a field which is a measure, i.e. requires a
+/// fully defined converter for processing
+/// (base interface is ITableMeasureSelector)
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -20,6 +20,12 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief partial implementation of ITableMeasureFieldSelector (handles converter)
+/// @details This is a partial implementation of an interface to
+/// constrain a table selection object (expression node)
+/// for a field which is a measure, i.e. requires a
+/// fully defined converter for processing
+/// (base interface is ITableMeasureSelector)
 class TableMeasureFieldSelector : ITableMeasureFieldSelector {
 public:
    /// set the converter to use. It should be fully specified somewhere
@@ -27,7 +33,7 @@ public:
    /// just stores a shared pointer on the converter for future use.
    /// It doesn't require all frame information to be set, etc.
    ///
-   /// @param conv shared pointer to the converter object to use
+   /// @param[in] conv shared pointer to the converter object to use
    ///
    virtual void setConverter(const
              boost::shared_ptr<IDataConverterImpl const> &conv) throw();

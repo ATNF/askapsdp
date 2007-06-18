@@ -1,12 +1,12 @@
-/// @file
-///
-/// IDataIterator: Allow iteration across preselected data. Each 
-/// iteration step is represented by the MEDataAccessor interface.
-/// The idea is that an iterator object will be obtained via MEDataSource
-/// which will take care of the actual method to access the data and the
-/// source (a MeasurementSet or a stream). Any class controlling data selection
-/// is likely to be held by a real implementation of the iterator. However,
-/// it will be set up via the MEDataSource object and IS NOT a part of this
+/// @file IConstDataIterator.cc
+/// @brief A read-only iterator across preselected data.
+/// @details Each  iteration step is represented by the IDataAccessor
+/// interface. The idea is that an iterator object will be obtained via
+/// IDataSource which will take care of the actual method to access the \
+/// data and the source (a MeasurementSet or a stream). Any class
+/// controlling data selection is likely to be held by a real
+/// implementation of the iterator. However,
+/// it will be set up via the IDataSource object and IS NOT a part of this
 /// interface.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

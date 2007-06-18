@@ -1,6 +1,6 @@
-/// @file
-///
-/// IEpochConverter: Interface for epoch conversion. This is a relatively
+/// @file IEpochConverter.h
+/// @brief An interface for epoch conversion
+/// @details This is a relatively
 /// low-level interface, which is used within the implementation of
 /// the data accessor. The end user interacts with the IDataConverter
 /// class. 
@@ -23,19 +23,26 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief An interface for epoch conversion
+/// @details This is a relatively
+/// low-level interface, which is used within the implementation of
+/// the data accessor. The end user interacts with the IDataConverter
+/// class.
+/// @note inherited setMeasFrame method is public, rather than protected.
+/// Apparently, doxygen doesn't know how the using statement works in C++.
 struct IEpochConverter : virtual public IConverterBase {
     /// convert specified MEpoch to the target units/frame
-    /// @param in an epoch to convert. Target units/frame are
+    /// @param[in] in an epoch to convert. Target units/frame are
     /// properties of the actual instance of the derived class
     virtual casa::Double operator()(const casa::MEpoch &in) const = 0;
 
     /// Reverse conversion (casa::Double to full measure)
-    /// @param in an epoch given as Double in the target units/frame
+    /// @param[in] in an epoch given as Double in the target units/frame
     /// @return the same epoch as a fully qualified measure
     virtual casa::MEpoch toMeasure(casa::Double in) const = 0;
 
     /// Reverse conversion (casa::MVEpoch to full measure)
-    /// @param in an epoch given as MVEpoch in the target frame
+    /// @param[in] in an epoch given as MVEpoch in the target frame
     /// @return the same epoch as a fully qualified measure
     virtual casa::MEpoch toMeasure(const casa::MVEpoch &in) const throw() = 0;
 

@@ -1,12 +1,12 @@
 /// @file TableTimeStampSelector.h
-///
-/// TableTimeStampSelector: Class representing a selection of visibility
-///                data on some time interval. It implements the abstract
-///                method updating table expression node via a new
-///                abstract method, which just return start and stop
-///                times as Double in the same frame/units as the TIME
-///                column in the table. These two methods are specified
-///                in the derived classes.
+/// @brief Generalized selection on epoch in the table-based case
+/// @details This class representing a selection of visibility
+///          data on some time interval. It implements the abstract
+///          method updating table expression node via a new
+///          abstract method, which just return start and stop
+///          times as Double in the same frame/units as the TIME
+///          column in the table. These two methods are specified
+///          in the derived classes.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -28,6 +28,14 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief Generalized selection on epoch in the table-based case
+/// @details This class representing a selection of visibility
+///          data on some time interval. It implements the abstract
+///          method updating table expression node via a new
+///          abstract method, which just return start and stop
+///          times as Double in the same frame/units as the TIME
+///          column in the table. These two methods are specified
+///          in the derived classes.
 class TableTimeStampSelector : public TableMeasureFieldSelector
 {
 public:

@@ -1,8 +1,10 @@
 /// @file TableConstDataIterator.cc
 ///
+/// @brief Implementation of IConstDataIterator in the table-based case
+/// @details
 /// TableConstDataIterator: Allow read-only iteration across preselected data. Each 
 /// iteration step is represented by the IConstDataAccessor interface.
-/// This is implementation in the table-based case.
+/// This is an implementation in the table-based case.
 /// 
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>

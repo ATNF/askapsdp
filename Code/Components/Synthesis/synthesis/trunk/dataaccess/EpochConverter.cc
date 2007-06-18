@@ -1,6 +1,6 @@
-/// @file
-///
-/// EpochConverter: A class for epoch conversion. This is an implementation
+/// @file EpochConverter.cc
+/// @brief A class for epoch conversion
+/// @details This is an implementation
 /// of the low-level interface, which is used within the implementation of
 /// the data accessor. The end user interacts with the IDataConverter
 /// class. 
