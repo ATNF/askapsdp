@@ -41,6 +41,9 @@ namespace conrad
         
         /// Assignment operator
         Params(const Params& other);
+        
+        /// Destructor
+        virtual ~Params();
 
 /// Add a scalar parameter
 /// @param name Name of param to be added
@@ -157,7 +160,7 @@ namespace conrad
         /// @param params Parameters to be output
         friend std::ostream& operator<<(std::ostream& os, const Params& params);
 
-      private:
+      protected:
 /// The value arrays, ordered as a map
         mutable std::map<std::string, casa::Array<double> > itsArrays;
         /// The axes, ordered as a map

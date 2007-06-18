@@ -37,6 +37,10 @@ namespace conrad
       }
       return *this;
     }
+    
+    Params::~Params()
+    {
+    }
 
     bool Params::isFree(const std::string& name) const
     {
