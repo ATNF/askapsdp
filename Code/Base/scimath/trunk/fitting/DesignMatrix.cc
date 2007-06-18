@@ -23,7 +23,7 @@ namespace conrad
   namespace scimath
   {
 
-    DesignMatrix::DesignMatrix(const Params& ip) : itsParams(ip)
+    DesignMatrix::DesignMatrix(const Params& ip) : itsParams(ip.clone())
     {
       itsAMatrix.clear();
       itsBVector.clear();
@@ -71,7 +71,7 @@ namespace conrad
 
     void DesignMatrix::merge(const DesignMatrix& other)
     {
-      itsParams.merge(other.itsParams);
+      itsParams->merge(*other.itsParams);
 
       vector<string> names(other.names());
       vector<string>::const_iterator nameIt;
@@ -98,7 +98,7 @@ namespace conrad
 
     void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv)
     {
-      if(!itsParams.has(name))
+      if(!itsParams->has(name))
       {
         throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
       }
@@ -113,22 +113,22 @@ namespace conrad
 
     vector<string> DesignMatrix::names() const
     {
-      return itsParams.names();
+      return itsParams->names();
     }
 
     const Params& DesignMatrix::parameters() const
     {
-      return itsParams;
+      return *itsParams;
     }
 
     Params& DesignMatrix::parameters()
     {
-      return itsParams;
+      return *itsParams;
     }
 
     DMAMatrix DesignMatrix::derivative(const string& name) const
     {
-      if(!itsParams.has(name))
+      if(!itsParams->has(name))
       {
         throw(std::invalid_argument("Parameter "+name+" does not exist in the declared parameters"));
       }
@@ -203,6 +203,11 @@ namespace conrad
         }
       }
       return nParameters;
+    }
+
+    DesignMatrix::ShPtr DesignMatrix::clone()
+    {
+      return DesignMatrix::ShPtr(new DesignMatrix(*this));
     }
 
   }

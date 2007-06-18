@@ -34,7 +34,9 @@ namespace conrad
 
         NormalEquations() {};
 
-/// Define the normal equations
+/// @brief Construct for the specified parameters
+///
+/// Initialisation does not allocate much memory.
 /// @param ip Parameters
         NormalEquations(const Params& ip);
 
@@ -173,9 +175,16 @@ namespace conrad
 /// Shared pointer definition
         typedef boost::shared_ptr<NormalEquations> ShPtr;
 
+/// Clone this into a shared pointer
+        virtual NormalEquations::ShPtr clone();
+
+/// Clone this into a shared pointer
+        virtual NormalEquations::ShPtr clone() const;
+
+
       protected:
       /// Parameters
-        Params itsParams;
+        Params::ShPtr itsParams;
 // Note that this is a very flexible format - it allows any of the
 // approximations to be used
 /// Normal matrices stored as a map or maps of Matrixes - it's really just a big

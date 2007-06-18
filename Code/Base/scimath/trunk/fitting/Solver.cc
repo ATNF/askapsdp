@@ -5,8 +5,10 @@ namespace conrad
   namespace scimath
   {
 
-    Solver::Solver(const Params& ip) : itsParams(ip), itsNormalEquations(ip)
+    Solver::Solver(const Params& ip) : itsParams(ip.clone())
     {
+      NormalEquations ne(ip);
+      itsNormalEquations=ne.clone();
     };
 
     Solver::~Solver()
@@ -15,23 +17,23 @@ namespace conrad
     
     void Solver::setParameters(const Params& ip)
     {
-      itsParams=ip;
+      itsParams=ip.clone();
     }
 /// Return current values of params
     const Params& Solver::parameters() const
     {
-      return itsParams;
+      return *itsParams;
     };
 
 /// Return current values of params
     Params& Solver::parameters()
     {
-      return itsParams;
+      return *itsParams;
     };
 
     void Solver::addNormalEquations(const NormalEquations& normeq)
     {
-      itsNormalEquations.merge(normeq);
+      itsNormalEquations->merge(normeq);
     }
   }
 }

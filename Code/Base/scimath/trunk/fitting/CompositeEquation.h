@@ -48,7 +48,7 @@ namespace conrad
         virtual void calcEquations(NormalEquations& ne);
 
 /// Clone this
-        virtual Equation::ShPtr clone();
+        virtual CompositeEquation::ShPtr clone();
 
 /// @brief Add an equation to the composite
 ///

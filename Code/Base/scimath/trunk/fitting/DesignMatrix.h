@@ -52,8 +52,6 @@ namespace conrad
     {
       public:
 
-        DesignMatrix() {};
-
 /// Define a design matrix
 /// @param ip Parameters
         explicit DesignMatrix(const Params& ip);
@@ -112,11 +110,17 @@ namespace conrad
 /// Return number of parameters
         uint nParameters() const;
 
+/// Shared pointer definition
+        typedef boost::shared_ptr<DesignMatrix> ShPtr;
+
+/// Clone this into a shared pointer
+        virtual DesignMatrix::ShPtr clone();
+
         friend class NormalEquations;
 
       private:
 /// Parameters used in this design matrix
-        Params itsParams;
+        Params::ShPtr itsParams;
 /// Design Matrix = number of parameters x number of dof/parameter x number of data points
 /// The number of dof of parameters can vary from parameter to parameter
         mutable std::map<string, DMAMatrix > itsAMatrix;

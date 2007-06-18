@@ -43,7 +43,7 @@ namespace conrad
       uint nParameters=0;
 
 // Find all the free parameters
-      const vector<string> names(itsParams.freeNames());
+      const vector<string> names(itsParams->freeNames());
       if(names.size()<1)
       {
         throw(std::domain_error("No free parameters"));
@@ -53,7 +53,7 @@ namespace conrad
       for (it=names.begin();it!=names.end();it++)
       {
         indices[*it]=nParameters;
-        nParameters+=itsParams.value(*it).nelements();
+        nParameters+=itsParams->value(*it).nelements();
       }
       if(nParameters<1)
       {
@@ -72,7 +72,7 @@ namespace conrad
         for (indit1=indices.begin();indit1!=indices.end();indit1++)
         {
 // Axes are dof, dof for each parameter
-          const casa::Matrix<double>& nm(itsNormalEquations.normalMatrix()[indit1->first][indit2->first]);
+          const casa::Matrix<double>& nm(itsNormalEquations->normalMatrix()[indit1->first][indit2->first]);
           for (uint row=0;row<nm.nrow();row++)
           {
             for (uint col=0;col<nm.ncolumn();col++)
@@ -84,7 +84,7 @@ namespace conrad
       }
       for (indit1=indices.begin();indit1!=indices.end();indit1++)
       {
-        const casa::Vector<double>& dv(itsNormalEquations.dataVector()[indit1->first]);
+        const casa::Vector<double>& dv(itsNormalEquations->dataVector()[indit1->first]);
         for (uint row=0;row<dv.nelements();row++)
         {
           gsl_vector_set(B, row+(indit1->second), dv(row));
@@ -130,8 +130,8 @@ namespace conrad
         map<string, uint>::iterator indit;
         for (indit=indices.begin();indit!=indices.end();indit++)
         {
-          casa::IPosition vecShape(1, itsParams.value(indit->first).nelements());
-          casa::Vector<double> value(itsParams.value(indit->first).reform(vecShape));
+          casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
+          casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
           for (uint i=0;i<value.nelements();i++)
           {
             value(i)+=gsl_vector_get(X, indit->second+i);
@@ -150,8 +150,8 @@ namespace conrad
         map<string, uint>::iterator indit;
         for (indit=indices.begin();indit!=indices.end();indit++)
         {
-          casa::IPosition vecShape(1, itsParams.value(indit->first).nelements());
-          casa::Vector<double> value(itsParams.value(indit->first).reform(vecShape));
+          casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
+          casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
           for (uint i=0;i<value.nelements();i++)
           {
             value(i)=gsl_vector_get(X, indit->second+i);

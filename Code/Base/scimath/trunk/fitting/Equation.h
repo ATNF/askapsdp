@@ -119,7 +119,7 @@ namespace conrad
 
       protected:
       /// Parameters
-        Params itsParams;
+        Params::ShPtr itsParams;
     };
 
   }

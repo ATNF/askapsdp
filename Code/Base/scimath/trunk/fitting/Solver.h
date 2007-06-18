@@ -56,10 +56,10 @@ namespace conrad
 
       protected:
         /// Parameters
-        Params itsParams;
+        Params::ShPtr itsParams;
         
         /// Normal equations
-        NormalEquations itsNormalEquations;
+        NormalEquations::ShPtr itsNormalEquations;
     };
 
   }

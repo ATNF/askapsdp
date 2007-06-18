@@ -26,18 +26,18 @@ namespace conrad
     };
 
 // Using specified parameters
-    Equation::Equation(const Params& ip) : itsParams(ip) 
+    Equation::Equation(const Params& ip) : itsParams(ip.clone()) 
     {
     };
 
     Equation::~Equation(){};
 
 // Access the parameters
-    const Params& Equation::parameters() const {return itsParams;};
-    Params& Equation::parameters() {return itsParams;};
+    const Params& Equation::parameters() const {return *itsParams;};
+    Params& Equation::parameters() {return *itsParams;};
 
 // Set the parameters to new values
-    void Equation::setParameters(const Params& ip) {itsParams=ip;};
+    void Equation::setParameters(const Params& ip) {itsParams=ip.clone();};
 
     Equation::ShPtr Equation::clone()
     {

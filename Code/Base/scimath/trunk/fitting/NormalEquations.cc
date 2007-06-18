@@ -25,7 +25,7 @@ namespace conrad
   namespace scimath
   {
 
-    NormalEquations::NormalEquations(const Params& ip) : itsParams(ip)
+    NormalEquations::NormalEquations(const Params& ip) : itsParams(ip.clone())
     {
       vector<string> names=ip.freeNames();
       vector<string>::iterator iterRow;
@@ -65,7 +65,7 @@ namespace conrad
 
     NormalEquations::NormalEquations(const DesignMatrix& dm)
     {
-      itsParams=dm.parameters();
+      itsParams=dm.parameters().clone();
       vector<string> names=dm.names();
       vector<string>::iterator iterRow;
       vector<string>::iterator iterCol;
@@ -153,7 +153,7 @@ namespace conrad
 
     void NormalEquations::add(const DesignMatrix& dm)
     {
-      itsParams.merge(dm.parameters());
+      itsParams->merge(dm.parameters());
       vector<string> names=dm.names();
       vector<string>::iterator iterRow;
       vector<string>::iterator iterCol;
@@ -245,8 +245,8 @@ namespace conrad
     }
     void NormalEquations::merge(const NormalEquations& other)
     {
-      itsParams.merge(other.itsParams);
-      vector<string> names=itsParams.names();
+      itsParams->merge(*other.itsParams);
+      vector<string> names=itsParams->names();
       vector<string>::iterator iterRow;
       vector<string>::iterator iterCol;
 
@@ -452,13 +452,24 @@ namespace conrad
 
     const Params& NormalEquations::parameters() const
     {
-      return itsParams;
+      return *itsParams;
     }
 
     Params& NormalEquations::parameters()
     {
-      return itsParams;
+      return *itsParams;
     }
+
+    NormalEquations::ShPtr NormalEquations::clone()
+    {
+      return NormalEquations::ShPtr(new NormalEquations(*this));
+    }
+
+    NormalEquations::ShPtr NormalEquations::clone() const
+    {
+      return NormalEquations::ShPtr(new NormalEquations(*this));
+    }
+
 
   }
 }

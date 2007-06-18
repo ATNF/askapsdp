@@ -38,6 +38,16 @@ namespace conrad
       return *this;
     }
     
+    Params::ShPtr Params::clone()
+    {
+      return Params::ShPtr(new Params(*this));
+    }
+
+    Params::ShPtr Params::clone() const
+    {
+      return Params::ShPtr(new Params(*this));
+    }
+
     Params::~Params()
     {
     }

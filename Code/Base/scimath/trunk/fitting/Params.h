@@ -19,6 +19,8 @@
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 
+#include <boost/shared_ptr.hpp>
+
 #include <map>
 #include <vector>
 #include <string>
@@ -33,7 +35,7 @@ namespace conrad
     {
       public:
 
-        /// Default constructor
+         /// Default constructor
         Params();
 
         /// Copy constructor
@@ -154,6 +156,15 @@ namespace conrad
 /// access. A cache is no longer valid if the count has increased.
 /// @param name Name of param
         int count(const std::string& name) const;
+
+/// Shared pointer definition
+        typedef boost::shared_ptr<Params> ShPtr;
+
+/// Clone this into a shared pointer
+        virtual Params::ShPtr clone();
+
+/// Clone this into a shared pointer
+        virtual Params::ShPtr clone() const;
 
         /// Shift operator for Params
         /// @param os Output ostream

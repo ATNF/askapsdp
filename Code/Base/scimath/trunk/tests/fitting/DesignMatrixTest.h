@@ -25,10 +25,11 @@ namespace conrad
       public:
         void setUp()
         {
-          p1 = new DesignMatrix();
-          p2 = new DesignMatrix();
-          p3 = new DesignMatrix();
-          pempty = new DesignMatrix();
+          Params ip;
+          p1 = new DesignMatrix(ip);
+          p2 = new DesignMatrix(ip);
+          p3 = new DesignMatrix(ip);
+          pempty = new DesignMatrix(ip);
         }
 
         void tearDown()
@@ -95,6 +96,8 @@ namespace conrad
           Params ip;
           ip.add("Value0");
 // Will throw std::invalid_argument
+          delete p1;
+          p1 = new DesignMatrix(ip);
           casa::Vector<casa::Double> mat(100, 0.0);
           p1->addDerivative("FooBar", mat);
         }
