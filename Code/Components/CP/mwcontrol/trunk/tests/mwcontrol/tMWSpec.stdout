@@ -1,0 +1,87 @@
+Multi specification: 
+ Full name: 
+ Station1:         []
+ Station2:         []
+ Corr selection:   
+ Correlation type: []
+ Integration:      1e+30 Hz,  1e+30 s
+ Sources:          []
+ Extra sources:    []
+ Instrument model: []
+. Multi specification: xyz1
+.  Full name: xyz1
+.  Station1:         [CS*, CS*, CS*, RS1*, RS1*, RS2*]
+.  Station2:         [CS*, RS1*, RS2*, RS1*, RS2*, RS2*]
+.  Corr selection:   CROSS
+.  Correlation type: [XX, XY, YX, YY]
+.  Integration:      2 Hz,  0.5 s
+.  Sources:          [3C343]
+.  Extra sources:    [M81]
+.  Instrument model: [Bandpass, DirGain, Phase]
+. . Solve specification: sl1
+. .  Full name: xyz1.sl1
+. .  Station1:         [CS*, RS1*]
+. .  Station2:         [RS1*, RS2*]
+. .  Corr selection:   CROSS
+. .  Correlation type: [XX, XY, YX, YY]
+. .  Integration:      2 Hz,  0.5 s
+. .  Sources:          [3C343]
+. .  Extra sources:    [M81]
+. .  Instrument model: [Bandpass, Phase]
+. .  Solve: 
+. .   Max nr. of iterations:  10
+. .   Convergence threshold:  1e-07
+. .   Min fraction converged: 0.95
+. .   Solvable parameters:    [PHASE:*]
+. .   Excluded parameters:    []
+. .   Domain size :           1000 Hz,  1 s
+. . Correct specification: sl2
+. .  Full name: xyz1.sl2
+. .  Station1:         [CS*, CS*, CS*, RS1*, RS1*, RS2*]
+. .  Station2:         [CS*, RS1*, RS2*, RS1*, RS2*, RS2*]
+. .  Corr selection:   CROSS
+. .  Correlation type: [XX, XY, YX, YY]
+. .  Integration:      2 Hz,  0.5 s
+. .  Sources:          [3C343]
+. .  Extra sources:    [M81]
+. .  Instrument model: [DirGain, Phase]
+. .  Output data: OUTDATA2
+. Multi specification: xyz2
+.  Full name: xyz2
+.  Station1:         [CS*, CS*, RS1*]
+.  Station2:         [CS*, RS1*, RS1*]
+.  Corr selection:   
+.  Correlation type: []
+.  Integration:      1e+30 Hz,  1e+30 s
+.  Sources:          [3C343]
+.  Extra sources:    []
+.  Instrument model: [Bandpass]
+. . Solve specification: sl1
+. .  Full name: xyz2.sl1
+. .  Station1:         [CS*, RS1*]
+. .  Station2:         [RS1*, RS2*]
+. .  Corr selection:   
+. .  Correlation type: []
+. .  Integration:      1e+30 Hz,  1e+30 s
+. .  Sources:          [3C343]
+. .  Extra sources:    []
+. .  Instrument model: [Bandpass, Phase]
+. .  Solve: 
+. .   Max nr. of iterations:  10
+. .   Convergence threshold:  1e-07
+. .   Min fraction converged: 0.95
+. .   Solvable parameters:    [PHASE:*]
+. .   Excluded parameters:    []
+. .   Domain size :           1000 Hz,  1 s
+. . Predict specification: sl3
+. .  Full name: xyz2.sl3
+. .  Station1:         [CS*, CS*, RS1*]
+. .  Station2:         [CS*, RS1*, RS1*]
+. .  Corr selection:   
+. .  Correlation type: []
+. .  Integration:      1e+30 Hz,  1e+30 s
+. .  Sources:          [3C343]
+. .  Extra sources:    []
+. .  Instrument model: [Phase]
+. .  Output data: OUTDATA3
+OK

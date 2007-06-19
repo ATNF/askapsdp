@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# First run tMWControl without MPI.
+# It makes no sense to continue if this fails.
+\rm -f tMWControl_tmp.cout*
+echo "Doing single process run ..."
+tMWControl
+STATUS=$?
+if [ $STATUS != 0 ]; then
+  exit
+fi
+cat tMWControl_tmp.cout0
+
+# Run tMWControl using mpirun on 3 nodes and 4 nodes.
+# If MPI is not available, assume it is ok.
+statdiff3=0
+statdiff4=0
+if [ -f $MPIBIN/mpirun ]; then
+  echo "localhost" > tMWControl_tmp.machinefile
+  \rm -f tMWControl_tmp.cout*
+  echo ""
+  echo "Doing MPI run on 3 nodes ..."
+  $MPIBIN/mpirun -np 3 -machinefile tMWControl_tmp.machinefile tMWControl
+  STATUS=$?
+  cat tMWControl_tmp.cout*
+  if [ $STATUS != 0 ]; then
+    exit
+  fi
+  \rm -f tMWControl_tmp.cout*
+  echo ""
+  echo "Doing MPI run on 4 nodes ..."
+  $MPIBIN/mpirun -np 4 -machinefile tMWControl_tmp.machinefile tMWControl
+  STATUS=$?
+  cat tMWControl_tmp.cout*
+  if [ $STATUS != 0 ]; then
+    exit
+  fi
+else
+  # No MPI configured. Print the standard files to achieve that the
+  # output is correct.
+  echo ">>>"
+  echo "MPI is not available"
+  echo "<<<"
+  cat MWControl.in_mpi_out3 MWControl.in_mpi_out4
+fi

@@ -1,0 +1,22 @@
+Run1 ...
+Server connection on port 3851
+received 1
+sent 2
+sent 3
+received 2
+Client connection on host localhost, port 3851
+sent 1
+received 2
+received 3
+sent 2
+Run2 ...
+Server connection on port 3851
+received 1
+sent 2
+sent 3
+received 2
+Client connection on host localhost, port 3851
+sent 1
+received 2
+received 3
+sent 2

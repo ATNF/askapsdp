@@ -1,0 +1,677 @@
+
+Doing MPI run on 3 nodes ...
+SolverTest::setInitInfo
+  MS:         tMWControl.in_ms
+  Column:     INDATA
+  SkyParmDB:  test.gsm
+  InstParmDB: test.mep
+  Subband:    0
+  CalcUVW:    0
+SolverTest::doProcess
+  Operation: 2
+  StreamId:  0
+  Set work domain: [20 Hz, 300 Hz, 0, 1]
+SolverTest::doProcess
+  Operation: 3
+  StreamId:  0
+  Solve maxiter 10
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 0
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 2
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 3
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 4
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 5
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 6
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 7
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 8
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 9
+SolverTest::doProcess
+  Operation: 3
+  StreamId:  0
+  Solve maxiter 10
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 0
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 2
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 3
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 4
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 5
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 6
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 7
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 8
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 9
+prediffer rank 1
+PredifferTest::setInitInfo
+  MS:         tMWControl.in_ms
+  Column:     INDATA
+  SkyParmDB:  test.gsm
+  InstParmDB: test.mep
+  Subband:    0
+  CalcUVW:    0
+PredifferTest::doProcess
+  Operation: 2
+  StreamId:  0
+  Set work domain: [20 Hz, 300 Hz, 0, 1]
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitSolve,  streamId 0
+   Max nr. of iterations:  10
+   Convergence threshold:  1e-07
+   Min fraction converged: 0.95
+   Solvable parameters:    [PHASE:*]
+   Excluded parameters:    []
+   Domain shape:           1000 Hz,  1 s
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitCorrect,  streamId 0
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitSolve,  streamId 0
+   Max nr. of iterations:  10
+   Convergence threshold:  1e-07
+   Min fraction converged: 0.95
+   Solvable parameters:    [PHASE:*]
+   Excluded parameters:    []
+   Domain shape:           1000 Hz,  1 s
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitCorrect,  streamId 0
+prediffer rank 2
+PredifferTest::setInitInfo
+  MS:         tMWControl.in_ms
+  Column:     INDATA
+  SkyParmDB:  test.gsm
+  InstParmDB: test.mep
+  Subband:    0
+  CalcUVW:    0
+PredifferTest::doProcess
+  Operation: 2
+  StreamId:  0
+  Set work domain: [20 Hz, 300 Hz, 0, 1]
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitSolve,  streamId 0
+   Max nr. of iterations:  10
+   Convergence threshold:  1e-07
+   Min fraction converged: 0.95
+   Solvable parameters:    [PHASE:*]
+   Excluded parameters:    []
+   Domain shape:           1000 Hz,  1 s
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitCorrect,  streamId 0
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitSolve,  streamId 0
+   Max nr. of iterations:  10
+   Convergence threshold:  1e-07
+   Min fraction converged: 0.95
+   Solvable parameters:    [PHASE:*]
+   Excluded parameters:    []
+   Domain shape:           1000 Hz,  1 s
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitCorrect,  streamId 0

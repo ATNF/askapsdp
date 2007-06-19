@@ -1,0 +1,17 @@
+# @file
+# SConstruct build script for this module.
+#
+# @author Ger van Diepen (diepen AT astron nl)
+#
+
+# Always import this
+from conradenv import env
+
+# create build object with library name
+pkg = env.ConradPackage("mwcommon")
+# add sub packages 
+pkg.AddSubPackage("mwcommon")
+
+# run the build process
+pkg()
+

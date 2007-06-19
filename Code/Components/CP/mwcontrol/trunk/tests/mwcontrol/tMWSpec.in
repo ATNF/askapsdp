@@ -1,0 +1,67 @@
+DataSet                 = test.ms           # name of Measurement Set
+
+Strategy.Steps          = [ xyz1, xyz2 ]    # steps
+Strategy.Stations       = [ CS*, RS1*, RS2*, DE* ]   # names of stations to use
+Strategy.InputData      = INDATA            # MS input data column 
+Strategy.RegionOfInterest = [1175e6, 1176e6, 1000.0, 3000.0] # region of interest to process
+Strategy.Correlation.Selection = ALL        # one of AUTO, CROSS, ALL
+Strategy.Correlation.Type = [ XX, YY ]      # which (cross)correlations to use
+Strategy.WorkDomainSize.Freq = 1e+6         # work domain size: f(Hz) 
+Strategy.WorkDomainSize.Time = 10           # work domain size: t(s)
+Strategy.Integration.Freq = 1;              # integration interval: f(Hz)
+Strategy.Integration.Time = 0.1;            # integration interval: t(s)
+
+BBDB.Host               = dop50.nfra.nl     # hostname/ipaddr of BB DBMS
+BBDB.Port               = 5432              # port used by BB DBMS
+BBDB.DBName             = bbs               # name of the BB database
+BBDB.UserName           = postgres          # username for accessing the DBMS
+BBDB.PassWord           =                   # password for accessing the DBMS
+
+ParmDB.Instrument       = test.mep          # instrument parameters (MS table)
+ParmDB.LocalSky         = test.gsm          # local sky parameters (MS table)
+ParmDB.History          = test.his          # history (MS table)
+
+Step.xyz1.Steps         = [ sl1, sl2 ]      # names of substeps
+Step.xyz1.Baselines.Station1 =            \ # baselines to use 
+      [ CS*, CS*,  CS*,  RS1*, RS1*, RS2* ]
+Step.xyz1.Baselines.Station2 =            \ # (all if empty)
+      [ CS*, RS1*, RS2*, RS1*, RS2*, RS2* ]
+Step.xyz1.Sources       = [ 3C343 ]         # list of sources
+Step.xyz1.ExtraSources  = [ M81 ]           # list of sources outside patch
+Step.xyz1.InstrumentModel = [ Bandpass,   \ # Instrument model
+                           DirGain, Phase ]
+Step.xyz1.Integration.Freq = 2;             # integration interval: f(Hz)
+Step.xyz1.Integration.Time = 0.5;           # integration interval: t(s)
+Step.xyz1.Correlation.Selection = CROSS     # one of AUTO, CROSS, ALL
+Step.xyz1.Correlation.Type = [ XX, XY,    \ # which (cross) correlations to use
+                               YX, YY ]
+
+Step.xyz2.Steps         = [ sl1, sl3 ]      # names of substeps
+Step.xyz2.Baselines.Station1 = [ CS*, CS*,  RS1* ] # baselines to use
+Step.xyz2.Baselines.Station2 = [ CS*, RS1*, RS1* ] # (all if empty)
+Step.xyz2.Sources       = [ 3C343 ]         # sources in the source model
+Step.xyz2.InstrumentModel = [ Bandpass ]    # Instrument model
+
+Step.sl1.Baselines.Station1 = [ CS*,  RS1* ] # baselines to use
+Step.sl1.Baselines.Station2 = [ RS1*, RS2* ] # (all if empty)
+Step.sl1.Operation      = SOLVE           \ # one of SOLVE, SUBTRACT, CORRECT,
+                                            # PREDICT, SHIFT, REFIT
+Step.sl1.OutputData     = OUTDATA1          # MS output data column
+Step.sl1.Solve.MaxIter  = 10                # maximum number of iterations
+Step.sl1.Solve.Epsilon  = 1e-7              # convergence threshold
+Step.sl1.Solve.MinConverged = 0.95          # fraction that must have converged
+Step.sl1.Solve.Parms    = [ PHASE:* ]       # names of solvable parameters
+Step.sl1.Solve.ExclParms = []               # parameters excluded from solve
+Step.sl1.Solve.DomainSize.Freq = 1000       # f(Hz)
+Step.sl1.Solve.DomainSize.Time = 1          # t(s)
+Step.sl1.InstrumentModel = [ Bandpass, Phase ]
+
+Step.sl2.Operation      = CORRECT         \ # one of SOLVE, SUBTRACT, CORRECT,
+                                            # PREDICT, SHIFT, REFIT
+Step.sl2.OutputData     = OUTDATA2          # MS output data column
+Step.sl2.InstrumentModel = [ DirGain, Phase ]
+
+Step.sl3.Operation      = PREDICT         \ # one of SOLVE, SUBTRACT, CORRECT,
+                                            # PREDICT, SHIFT, REFIT
+Step.sl3.OutputData     = OUTDATA3          # MS output data column
+Step.sl3.InstrumentModel = [ Phase ]
