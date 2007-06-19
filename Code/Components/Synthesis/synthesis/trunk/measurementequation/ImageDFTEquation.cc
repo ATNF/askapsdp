@@ -157,45 +157,47 @@ namespace conrad
 
         for (it=completions.begin();it!=completions.end();it++)
         {
+          if(parameters().isFree(*it)) {  
 
-          string imageName("image.i"+(*it));
-          const casa::Array<double> imagePixels(parameters().value(imageName));
-          const casa::IPosition imageShape(imagePixels.shape());
-
-          Axes axes(parameters().axes(imageName));
-          if(!axes.has("RA")||!axes.has("DEC"))
-          {
-            throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
-          }
-          double raStart=axes.start("RA");
-          double raEnd=axes.end("RA");
-          int raCells=imageShape(axes.order("RA"));
-
-          double decStart=axes.start("DEC");
-          double decEnd=axes.end("DEC");
-          int decCells=imageShape(axes.order("DEC"));
-          const uint nPixels=imagePixels.nelements();
-
-          DesignMatrix designmatrix(parameters());
-          casa::Matrix<double> imageDeriv(2*nRow*nChan,nPixels);
-
-          this->calcVisDFT(imagePixels, raStart, raEnd, raCells,
-            decStart, decEnd, decCells, freq, itsIdi->uvw(),
-            vis, true, imageDeriv);
-
-          for (uint row=0;row<itsIdi->nRow();row++)
-          {
-            for (uint i=0;i<freq.nelements();i++)
+            string imageName("image.i"+(*it));
+            const casa::Array<double> imagePixels(parameters().value(imageName));
+            const casa::IPosition imageShape(imagePixels.shape());
+  
+            Axes axes(parameters().axes(imageName));
+            if(!axes.has("RA")||!axes.has("DEC"))
             {
-              residual(nChan*row+2*i)=real(itsIdi->visibility()(row,i,0))-vis(row,2*i);
-              residual(nChan*row+2*i+1)=imag(itsIdi->visibility()(row,i,0))-vis(row,2*i+1);
+              throw(std::invalid_argument("RA and DEC specification not present for "+imageName));
             }
+            double raStart=axes.start("RA");
+            double raEnd=axes.end("RA");
+            int raCells=imageShape(axes.order("RA"));
+  
+            double decStart=axes.start("DEC");
+            double decEnd=axes.end("DEC");
+            int decCells=imageShape(axes.order("DEC"));
+            const uint nPixels=imagePixels.nelements();
+  
+            DesignMatrix designmatrix(parameters());
+            casa::Matrix<double> imageDeriv(2*nRow*nChan,nPixels);
+  
+            this->calcVisDFT(imagePixels, raStart, raEnd, raCells,
+              decStart, decEnd, decCells, freq, itsIdi->uvw(),
+              vis, true, imageDeriv);
+  
+            for (uint row=0;row<itsIdi->nRow();row++)
+            {
+              for (uint i=0;i<freq.nelements();i++)
+              {
+                residual(nChan*row+2*i)=real(itsIdi->visibility()(row,i,0))-vis(row,2*i);
+                residual(nChan*row+2*i+1)=imag(itsIdi->visibility()(row,i,0))-vis(row,2*i+1);
+              }
+            }
+  
+  // Now we can add the design matrix, residual, and weights
+            designmatrix.addDerivative(imageName, imageDeriv);
+            designmatrix.addResidual(residual, weights);
+            ne.add(designmatrix);
           }
-
-// Now we can add the design matrix, residual, and weights
-          designmatrix.addDerivative(imageName, imageDeriv);
-          designmatrix.addResidual(residual, weights);
-          ne.add(designmatrix);
         }
       }
     };
