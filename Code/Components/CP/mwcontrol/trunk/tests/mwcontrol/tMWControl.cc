@@ -171,7 +171,7 @@ void doSolver (const string& host, const string& port,
 void findSocket (int argc, const char** argv,
                  string& host, string& port, int& nnode, int& rank)
 {
-  CONRADCHECK (argc < 6, "Using sockets run as: tMWControl socket <host> "
+  CONRADCHECK (argc >= 6, "Using sockets run as: tMWControl socket <host> "
                "<port> <#nodes> <rank>");
   host = argv[2];
   port = argv[3];
