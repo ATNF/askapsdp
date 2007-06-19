@@ -1,4 +1,4 @@
-/// @file MPIConnection.h
+/// @file
 /// @brief Connection to workers based on MPI.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

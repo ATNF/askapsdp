@@ -1,4 +1,4 @@
-/// @file MWPredictStep.h
+/// @file
 /// @brief Step to process the MW predict command.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

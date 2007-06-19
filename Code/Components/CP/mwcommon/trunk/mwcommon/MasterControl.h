@@ -1,4 +1,4 @@
-/// @file MasterControl.h
+/// @file
 /// @brief Master control of a distributed process.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

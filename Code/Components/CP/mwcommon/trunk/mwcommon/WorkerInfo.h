@@ -1,4 +1,4 @@
-/// @file WorkerInfo.h
+/// @file
 /// @brief Information about a worker.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

@@ -1,4 +1,4 @@
-/// @file NodeDesc.h
+/// @file
 /// @brief Description of a node in a cluster.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

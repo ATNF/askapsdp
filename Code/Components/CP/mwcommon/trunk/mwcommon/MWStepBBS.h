@@ -1,4 +1,4 @@
-/// @file MWStepBBS.h
+/// @file
 /// @brief The base class for a BBSKernel step.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

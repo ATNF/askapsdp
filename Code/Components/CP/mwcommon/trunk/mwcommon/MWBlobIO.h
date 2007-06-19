@@ -1,4 +1,4 @@
-/// @file MWBlobIO.h
+/// @file
 /// @brief Classes to convert a message to/from a blob.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

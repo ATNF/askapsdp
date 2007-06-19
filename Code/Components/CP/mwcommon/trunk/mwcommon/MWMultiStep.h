@@ -1,4 +1,4 @@
-/// @file MWMultiStep.h
+/// @file
 /// @brief A step consisting of several other steps.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

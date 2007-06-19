@@ -1,4 +1,4 @@
-/// @file SocketConnection.h
+/// @file
 /// @brief Connection to workers based on a socket.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

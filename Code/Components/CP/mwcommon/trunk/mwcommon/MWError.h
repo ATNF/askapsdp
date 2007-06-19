@@ -1,4 +1,4 @@
-/// @file MWError.h
+/// @file
 /// @brief Basic exception for master/worker related errors.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

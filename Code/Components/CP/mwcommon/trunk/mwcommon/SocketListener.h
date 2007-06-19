@@ -1,4 +1,4 @@
-/// @file SocketListener.h
+/// @file
 /// @brief Class that creates a socket and accepts connections.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

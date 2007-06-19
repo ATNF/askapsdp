@@ -1,4 +1,4 @@
-/// @file MWCorrectStep.h
+/// @file
 /// @brief Step to process the MW correct command.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

@@ -1,4 +1,4 @@
-/// @file MWStep.h
+/// @file
 /// @brief Abstract base class for steps to process MW commands.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

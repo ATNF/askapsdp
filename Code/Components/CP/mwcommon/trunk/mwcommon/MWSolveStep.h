@@ -1,4 +1,4 @@
-/// @file MWSolveStep.h
+/// @file
 /// @brief Step to process the MW solve command.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

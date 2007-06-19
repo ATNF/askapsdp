@@ -1,4 +1,4 @@
-/// @file MWSubtractStep.h
+/// @file
 /// @brief Step to process the MW subtract command.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

@@ -1,4 +1,4 @@
-/// @file WorkerProxy.h
+/// @file
 /// @brief Abstract base class for all worker proxies.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

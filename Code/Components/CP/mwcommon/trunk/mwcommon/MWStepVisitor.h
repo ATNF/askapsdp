@@ -1,4 +1,4 @@
-/// @file MWStepVisitor.h
+/// @file
 /// @brief Base visitor class to visit an MWStep hierarchy.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

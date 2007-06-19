@@ -1,4 +1,4 @@
-/// @file MPIConnectionSet.h
+/// @file
 /// @brief Class to hold a set of MPI connections.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

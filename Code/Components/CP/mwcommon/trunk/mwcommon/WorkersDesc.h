@@ -1,4 +1,4 @@
-/// @file WorkersDesc.h
+/// @file
 /// @brief Description of all workers.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

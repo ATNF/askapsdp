@@ -1,4 +1,4 @@
-/// @file MemConnection.h
+/// @file
 /// @brief Connection to workers based on memory.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

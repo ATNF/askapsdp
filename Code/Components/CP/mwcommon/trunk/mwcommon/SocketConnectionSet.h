@@ -1,4 +1,4 @@
-/// @file SocketConnectionSet.h
+/// @file
 /// @brief Set of socket connections.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

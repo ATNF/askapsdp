@@ -1,4 +1,4 @@
-/// @file MWConnectionSet.h
+/// @file
 /// @brief Abstract base class for all MWConnectionSets.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

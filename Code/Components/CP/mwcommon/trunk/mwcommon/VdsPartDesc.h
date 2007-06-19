@@ -1,4 +1,4 @@
-/// @file VdsPartDesc.h
+/// @file
 /// @brief Description of a visibility data set or part thereof.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

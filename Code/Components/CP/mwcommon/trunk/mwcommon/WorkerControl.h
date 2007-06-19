@@ -1,4 +1,4 @@
-/// @file WorkerControl.h
+/// @file
 /// @brief High level worker control.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

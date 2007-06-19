@@ -1,4 +1,4 @@
-/// @file MemConnectionSet.h
+/// @file
 /// @brief Set of Memory connections.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

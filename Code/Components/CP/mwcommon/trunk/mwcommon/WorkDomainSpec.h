@@ -1,4 +1,4 @@
-/// @file WorkDomainSpec.h
+/// @file
 /// @brief Define the specifications of the work domain.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

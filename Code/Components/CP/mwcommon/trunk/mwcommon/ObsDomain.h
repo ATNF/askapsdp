@@ -1,4 +1,4 @@
-/// @file ObsDomain.h
+/// @file
 /// @brief Define the boundary values of a domain.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

@@ -1,4 +1,4 @@
-/// @file MWStepFactory.h
+/// @file
 /// @brief Factory pattern to make the correct MWStep object
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

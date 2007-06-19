@@ -1,4 +1,4 @@
-/// @file DomainShape.h
+/// @file
 /// @brief Define the shape of a domain.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.

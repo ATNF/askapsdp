@@ -1,4 +1,4 @@
-/// @file VdsDesc.h
+/// @file
 /// @brief Describe an entire visibility data set
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
