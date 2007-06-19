@@ -1,6 +1,5 @@
 /// @file
-///
-/// SynthesisParams - specialization of Params for synthesis applications
+/// @brief Helper functions for dealing with Params for synthesis
 ///
 /// Adds some useful functions specific to synthesis
 ///
@@ -22,7 +21,7 @@ namespace conrad
     {
       public:
         /// @brief Add a parameter as an image
-        /// @brief ip Parameters
+        /// @param ip Parameters
         /// @param name Name of parameter
         /// @param ra Right Ascencion
         /// @param dec Declination
@@ -38,7 +37,7 @@ namespace conrad
           const double freqmin, const double freqmax, const int nchan);
 
         /// @brief Add a parameter as an image
-        /// @brief ip Parameters
+        /// @param ip Parameters
         /// @param name Name of parameter
         /// @param image Name of image file
         static void add(conrad::scimath::Params& ip, const string& name, 
