@@ -1,4 +1,5 @@
 /// @file
+/// @brief CompositeEquation: Represent composite equations. 
 ///
 /// CompositeEquation: Represent composite equations. This uses
 /// the composite pattern to allow a set of equations to be

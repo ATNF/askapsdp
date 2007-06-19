@@ -113,7 +113,7 @@ namespace conrad
 
     vector<string> DesignMatrix::names() const
     {
-      return itsParams->names();
+      return itsParams->freeNames();
     }
 
     const Params& DesignMatrix::parameters() const

@@ -246,7 +246,7 @@ namespace conrad
     void NormalEquations::merge(const NormalEquations& other)
     {
       itsParams->merge(*other.itsParams);
-      vector<string> names=itsParams->names();
+      vector<string> names=itsParams->freeNames();
       vector<string>::iterator iterRow;
       vector<string>::iterator iterCol;
 
