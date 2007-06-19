@@ -1,17 +1,18 @@
 //
 // @file : Evolving demonstration program for synthesis capabilities
 //
-
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/ImageSolver.h>
+
 #include <measurementequation/SynthesisParamsHelper.h>
 
 #include <fitting/CompositeEquation.h>
 #include <fitting/ParamsCASATable.h>
 #include <fitting/Axes.h>
 
-#include <dataaccess/TableConstDataSource.h>
+//#include <dataaccess/TableConstDataSource.h>
+#include <dataaccess/DataIteratorStub.h>
 
 #include <casa/aips.h>
 #include <casa/BasicSL/Constants.h>
@@ -24,7 +25,6 @@ using std::cout;
 using std::endl;
 
 using namespace conrad::scimath;
-
 using namespace conrad::synthesis;
 
 int main(int argc, const char** argv)
@@ -36,47 +36,62 @@ int main(int argc, const char** argv)
         exit(1);
      }
      
-    TableConstDataSource ds(argv[1]);
+//    TableConstDataSource ds(argv[1]);
 
     cout << "Synthesis demonstration program" << endl;
 
-// Get the nvss model
+// Get the nvss model - fix all the parameters
     ParamsCASATable pt("nvss.par", true);
     Params nvsspar(ComponentEquation::defaultParameters());
     pt.getParameters(nvsspar);
-    std::cout << "Read parameters" << std::endl;
+    std::cout << "Read NVSS model" << std::endl;
+    vector<string> names(nvsspar.freeNames());
+    std::cout << "Number of free parameters in NVSS model = " << names.size() << std::endl;
+    for (vector<string>::iterator it=names.begin();it!=names.end();it++) {
+      nvsspar.fix(*it);
+    }
+    IDataSharedIter idi = IDataSharedIter(new DataIteratorStub(1));    
+    
+    CompositeEquation me(nvsspar);
+    ComponentEquation ce(nvsspar, idi);
+    ImageFFTEquation ie(nvsspar, idi);
+    me.add(ce);
+    me.add(ie);
 
 // Predict the visibilities for the nvss model
 //    it->chooseBuffer("model");
-//    for (IConstDataSharedIter it=ds.createConstIterator();it!=it.end();++it) {
-//      ComponentEquation ce(nvsspar, it);
-//      ce.predict();
+//    for (it=ds.createConstIterator();it!=it.end();++it) {
+      ce.predict();
 //    }
     
 // Define an image
-    Params imagepar;
-    SynthesisParamsHelper::add(imagepar, "image.i.nvss", 
+    SynthesisParamsHelper::add(nvsspar, "image.i.nvss", 
       12.5*casa::C::hour, 45.0*casa::C::degree, 12.0*casa::C::arcsec,
-      1024, 1024, 1.420e9-256.0e9, 1.420e9, 1);
+      3*1024, 3*1024, 1.420e9-256.0e6, 1.420e9, 1);
 
-    std::cout << "Defined image" << std::endl;
+    std::cout << "Added NVSS image to model " << std::endl;
+    std::cout << "Number of free parameters now = " << nvsspar.freeNames().size() << std::endl;
     
-    NormalEquations ne(imagepar);
+    NormalEquations ne(nvsspar);
     std::cout << "Constructed normal equations" << std::endl;
-    ImageSolver is(imagepar);
-    std::cout << "Defined image solver" << std::endl;
-//    for (IConstDataSharedIter it=ds.createConstIterator();it!=it.end();++it) {
-//      ImageFFTEquation ie(imagepar, it);
-//      ce.calcNormalEquations(ne);
-//      is.addNormalEquation(ne);
+    
+    ImageSolver is(nvsspar);
+    std::cout << "Constructed image solver" << std::endl;
+//    for (it=ds.createConstIterator();it!=it.end();++it) {
+      me.calcEquations(ne);
+      std::cout << "Calculated normal equations" << std::endl;
+      is.addNormalEquations(ne);
+      std::cout << "Added normal equations to solver" << std::endl;
 //    }
     Quality q;
     std::cout << "Solving normal equations" << std::endl;
     is.solveNormalEquations(q);
     std::cout << q << std::endl;
     
-    ParamsCASATable result("dSynthesis.par");
-    result.setParameters(is.parameters());
+    {
+      ParamsCASATable result("dSynthesis.par", false);
+      result.setParameters(is.parameters());
+    }
     
     std::cout << "Finished imaging" << std::endl;
     exit(0);
