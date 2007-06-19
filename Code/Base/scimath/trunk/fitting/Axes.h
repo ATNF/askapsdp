@@ -1,17 +1,18 @@
 /// @file
+/// @brief Axes: Represent a set of axes - names and extrema.
 ///
-/// Axes: Represent a set of axes - names and extrema.
 /// The axes are used to describe a multidimensional
 /// parameter. For example,
+/// @code
+/// Axes imageAxes;
+/// double arcsec=casa::C::pi/(3600.0*180.0);
+/// double cell=5.0*arcsec;
+/// imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0);
+/// imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
+/// imageAxes.add("FREQ", 1e9, 1.2e9);
+/// @endcode
 ///
-///      Axes imageAxes;
-///      double arcsec=casa::C::pi/(3600.0*180.0);
-///      double cell=5.0*arcsec;
-///      imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0);
-///      imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
-///      imageAxes.add("FREQ", 1e9, 1.2e9);
-///
-/// TODO: Add tabulated axes
+/// @todo Add tabulated axes
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -26,36 +27,36 @@
 
 namespace conrad
 {
-
+  
   namespace scimath
   {
-/// @brief Describe axes of parameters
-///
-/// An axis has a name and start and end values (doubles)
-/// An Axes is a ordered set of Axises.
+    /// @brief Describe axes of parameters
+    ///
+    /// An axis has a name and start and end values (doubles)
+    /// An Axes is a ordered set of Axises.
     class Axes
     {
-      public:
-/// Make an empty set of axes
-        Axes();
-
-/// Assignment operator
-        Axes& operator=(const Axes& other);
-
-/// Copy constructor
-        Axes(const Axes& other);
-
-        ~Axes();
-
-/// Add an axis
-/// @param name Name of axis
-/// @param start Start value
-/// @param end End value
-        void add(const std::string& name, const double start, const double end);
-
-/// Do it have this axis?
-/// @param name Name of axis
-        bool has(const std::string& name) const;
+    public:
+      /// Make an empty set of axes
+      Axes();
+      
+      /// Assignment operator
+      Axes& operator=(const Axes& other);
+      
+      /// Copy constructor
+      Axes(const Axes& other);
+      
+      ~Axes();
+      
+      /// Add an axis
+      /// @param name Name of axis
+      /// @param start Start value
+      /// @param end End value
+      void add(const std::string& name, const double start, const double end);
+      
+      /// Do it have this axis?
+      /// @param name Name of axis
+      bool has(const std::string& name) const;
 
 /// Order of this axis
 /// @param name Name of axis
