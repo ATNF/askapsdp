@@ -18,11 +18,11 @@ namespace conrad { namespace cp {
   /// @brief Base class for BBSKernel worker proxies.
 
   /// This class is the base class for BBSKernel proxy workers.
-  /// It interpretes a \a process command and handles the \init as a special
-  /// case by the setInitInfo function, which has to be implemented in
-  /// derived classes.
+  /// It interpretes a \a process command and handles the \a Init operation as a
+  /// special case by calling the \a setInitInfo function, which has to be
+  /// implemented in derived classes.
   /// Other commands are handled by the \a doProcess function which
-  /// has to be implemented in derived classes.
+  /// has to be implemented in derived classes as well.
 
   class BBSProxy: public WorkerProxy
   {
