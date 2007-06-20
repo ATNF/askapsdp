@@ -78,6 +78,9 @@ namespace conrad
             value(elem)+=dv(elem)/diag(elem);
           }
         }
+        itsParams->add("debug."+indit->first+".diagonal", itsNormalEquations->normalMatrixDiagonal()[indit->first]);
+        itsParams->add("debug."+indit->first+".dataVector", itsNormalEquations->dataVector()[indit->first]);
+        itsParams->add("debug."+indit->first+".slice", itsNormalEquations->normalMatrixSlice()[indit->first]);
       }
 
       quality.setDOF(nParameters);

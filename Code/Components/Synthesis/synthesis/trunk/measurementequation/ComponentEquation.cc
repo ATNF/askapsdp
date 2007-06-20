@@ -257,7 +257,8 @@ namespace conrad
       const double u, const double v, const double w,
       casa::Vector<T>& vis)
     {
-      T delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
+      T n =  casa::sqrt(T(1.0) - (ra*ra+dec*dec));
+      T delay = casa::C::_2pi * (ra * u + dec * v + n * w)/casa::C::c;
       T scale = 1.0/casa::C::c;
       for (uint i=0;i<freq.nelements();i++)
       {
@@ -274,7 +275,8 @@ namespace conrad
       const double u, const double v, const double w,
       casa::Vector<T>& vis)
     {
-      T delay = casa::C::_2pi * (ra * u + dec * v)/casa::C::c;
+      T n =  casa::sqrt(T(1.0) - (ra*ra+dec*dec));
+      T delay = casa::C::_2pi * (ra * u + dec * v + n * w)/casa::C::c;
 // exp(-a*x^2) transforms to exp(-pi^2*u^2/a)
 // a=4log(2)/FWHM^2 so scaling = pi^2*FWHM/(4log(2))
       T scale = std::pow(casa::C::pi,2)/(casa::C::c*(4*log(2)));
