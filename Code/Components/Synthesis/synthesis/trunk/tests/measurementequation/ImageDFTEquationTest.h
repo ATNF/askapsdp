@@ -95,7 +95,7 @@ namespace conrad
             solver1.solveNormalEquations(q);
             casa::Array<double> improved=solver1.parameters().value("image.i.cena");
             uint npix=16;
-            CPPUNIT_ASSERT(std::abs(q.cond()-1115634013709.060)<1.0);
+            CPPUNIT_ASSERT(std::abs(q.cond()/1115634013709.060-1.0)<0.0001);
             CPPUNIT_ASSERT(std::abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
             CPPUNIT_ASSERT(std::abs(improved(casa::IPosition(2, 12, 3))-0.700)<0.003);
           }
