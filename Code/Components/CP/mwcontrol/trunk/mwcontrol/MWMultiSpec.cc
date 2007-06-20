@@ -14,6 +14,10 @@ using namespace std;
 
 namespace conrad { namespace cp {
 
+  MWMultiSpec::MWMultiSpec()
+    : MWSpec()
+  {}
+
   MWMultiSpec::MWMultiSpec(const string& name,
 			   const ParameterSet& parset,
 			   const MWSpec* parent)

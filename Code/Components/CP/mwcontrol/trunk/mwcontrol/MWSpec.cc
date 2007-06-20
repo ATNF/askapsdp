@@ -70,6 +70,9 @@ namespace conrad { namespace cp {
     return MWSpec::ShPtr (spec);
   }
 
+  MWSpec::MWSpec()
+  {}
+
   MWSpec::MWSpec (const string& name, 
 		  const ParameterSet& parset,
 		  const MWSpec* parent)

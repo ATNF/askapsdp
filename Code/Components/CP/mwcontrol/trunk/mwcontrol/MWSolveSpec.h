@@ -1,14 +1,13 @@
-//# MWSolveSpec.h: The properties for solvable parameters
-//#
-//# Copyright (C) 2007
-//#
+/// @file
+/// @brief Specification of a solve step.
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Ger van Diepen (diepen AT astron nl)
+///
 //# $Id$
 
 #ifndef CONRAD_MWCONTROL_MWSOLVESPEC_H
 #define CONRAD_MWCONTROL_MWSOLVESPEC_H
-
-/// \file
-/// The properties for solvable parameters
 
 //# Includes
 #include <mwcontrol/MWSingleSpec.h>
@@ -16,17 +15,22 @@
 
 namespace conrad { namespace cp {
 
+  /// @ingroup mwcontrol
+  /// @brief Specification of a solve step.
+
+  /// This is a so-called \e leaf class in the MWSpec composite pattern (see
+  /// Design Patterns, Gamma et al, 1995).
+  ///
+  /// It implements a solve step specification which is read from a
+  /// LOFAR .parset file. The base class holds the standard data members,
+  /// while this class holds the specific solve info.
+  /// The class implements the required virtual functions.
+
   class MWSolveSpec : public MWSingleSpec
   {
   public:
-    /// Default constructor. Construct an empty MWSolveSpec object and make
-    /// it a child of the MWSpec object \a parent.
-    explicit MWSolveSpec(const MWSpec* parent = 0);
-
-    /// Construct a MWSolveSpec having the name \a name. Configuration
-    /// information for this step can be retrieved from the parameter set \a
-    /// parset, by searching for keys <tt>Step.\a name</tt>. \a parent
-    /// is a pointer to the MWSpec object that is the parent of \c *this.
+    /// Construct from the given .parset file.
+    /// Unspecified items are taken from the parent specification.
     MWSolveSpec(const std::string& name,
 		const LOFAR::ACC::APS::ParameterSet& parset,
 		const MWSpec* parent);
@@ -36,8 +40,8 @@ namespace conrad { namespace cp {
     /// Visit the object, so the visitor can process it.
     virtual void visit (MWSpecVisitor&) const;
 
-    /// Print the contents of \c *this in human readable form into the output
-    /// stream \a os.
+    /// Print the contents in human readable form into the output stream.
+    /// Indent as needed.
     virtual void print (std::ostream& os, const std::string& indent) const;
 
     /// @name Accessor methods

@@ -1,14 +1,13 @@
-//# MWSpec.h: Base component class of the MWSpec composite pattern.
-//#
-//# Copyright (C) 2007
-//#
+/// @file
+/// @brief Base component class of the MWSpec composite pattern.
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Ger van Diepen (diepen AT astron nl)
+///
 //# $Id$
 
 #ifndef CONRAD_MWCONTROL_MWSPEC_H
 #define CONRAD_MWCONTROL_MWSPEC_H
-
-/// \file
-/// Base component class of the MWSpec composite pattern.
 
 //# Includes
 #include <mwcontrol/MWSpecVisitor.h>
@@ -22,11 +21,30 @@ namespace LOFAR { namespace ACC { namespace APS { class ParameterSet; }}}
 
 namespace conrad { namespace cp {
 
+  /// @ingroup mwcontrol
+  /// @brief Base component class of the MWSpec composite pattern.
+
   /// This is the so-called \e component class in the MWSpec composite
   /// pattern (see Gamma, 1995). It is the base class for all MWSpec
   /// classes, both composite and leaf classes. It has data members that are
   /// common to all MWSpec classes.
-
+  ///
+  /// The MWSpec objects contain the specification of the BBS steps to
+  /// perform in the MW framework. A step can be part of a composite
+  /// MWMultiSpec object and the specification in there acts as the default
+  /// value of a step. In that way it is possible to create a composite
+  /// step object, that can be used with various sky source models.
+  ///
+  /// The specification is given in a LOFAR .parset file. In there each
+  /// step has a name, say XX. Then the \a parset variables <tt>Step.XX.*</tt>
+  /// contain the specification of XX.
+  /// A composite object is made by specifying the names of the steps it
+  /// consists of as <tt>Step.COMP.Steps=["XX", "YY", "ZZ"]</tt>.
+  ///
+  /// An MWSpec hierarchy needs to be transformed to an MWStep hierarchy
+  /// to be able to process the steps. This is done by the derived MWSpecVisitor
+  /// class MWSpec2Step.
+ 
   class MWSpec
   {
   public:
@@ -36,15 +54,18 @@ namespace conrad { namespace cp {
     /// Destructor.
     virtual ~MWSpec();
 
-    /// Create a new spec object. The new spec can either be a MWSingleSpec
-    /// or a MWMultiSpec object. This is determined by examining the
-    /// parameter set \a parSet. If this set contains a key
-    /// <tt>Step.<em>name</em>.Steps</tt>, then \a aName is a MWMultiSpec,
-    /// otherwise it is a SingleSpec. The third, optional, argument is used
-    /// to pass a backreference to the parent MWSpec object.
+    /// Create a new spec object. This is a factory method.
+    /// The new spec can either be a MWSingleSpec or a MWMultiSpec object.
+    /// This is determined by examining the parameter set \a parSet.
+    /// If this set contains a key <tt>Step.<em>name</em>.Steps</tt>,
+    /// then \a aName is a MWMultiSpec, otherwise it is an object derived
+    /// from SingleSpec.
+    /// The third argument is used to pass a backreference to the parent
+    /// MWSpec object for the default values.
+    /// The exact type of the MWSingleSpec is determined by the \a Operation.
     static MWSpec::ShPtr create (const std::string& name,
 				 const LOFAR::ACC::APS::ParameterSet& parSet,
-				 const MWSpec* parent = 0);
+				 const MWSpec* parent);
 
     /// Print the contents of \c *this in human readable form into the output
     /// stream \a os.
@@ -66,14 +87,10 @@ namespace conrad { namespace cp {
     const MWSpec* getParent() const
       { return itsParent; }
 
-    /// Make \a parent the parent of this spec.
-    void setParent(const MWSpec* parent)
-      { itsParent = parent; }
-
     /// Visit the object, so the visitor can process it.
     virtual void visit (MWSpecVisitor&) const = 0;
 
-     /// Return the selection of baselines for this spec.
+    /// Return the selection of baselines for this spec.
     /// @{
     const std::vector<std::string>& getStation1() const
       { return itsStation1; }
@@ -108,9 +125,8 @@ namespace conrad { namespace cp {
     /// @}
 
   protected:
-    /// Default constructor. Construct an empty MWSpec object and make it a
-    /// child of the MWSpec object \a parent.
-    MWSpec(const MWSpec* parent = 0) : itsParent(parent) {}
+    /// Construct an empty object.
+    MWSpec();
 
     /// Construct a MWSpec. \a name identifies the spec name in the
     /// parameter set file. It does \e not uniquely identify the spec \e

@@ -1,12 +1,13 @@
-//# MWStrategySpec.h: The specification of a strategy
-//#
-//# Copyright (C) 2007
+/// @file
+/// @brief Specification of a BBS strategy
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Ger van Diepen (diepen AT astron nl)
+///
+//# $Id$
 
 #ifndef CONRAD_MWCONTROL_MWSTRATEGYSPEC_H
 #define CONRAD_MWCONTROL_MWSTRATEGYSPEC_H
-
-/// \file
-/// The properties for solvable parameters
 
 //# Includes
 #include <mwcontrol/MWMultiSpec.h>
@@ -15,6 +16,19 @@
 #include <iosfwd>
 
 namespace conrad { namespace cp {
+
+  /// @ingroup mwcontrol
+  /// @brief Specification of a BBS strategy
+
+  /// This class contains the specification of a BBS strategy.
+  /// It consists of two parts:
+  /// <ul>
+  ///  <li> The work domain specification which defines the work domain size and
+  ///       optionally the basic data selection and integration.
+  ///  <li> The name of the MWMultiSpec object containing the steps to be performed
+  ///       when processing the data for this strategy.
+  /// </ul>
+  /// The strategy specification is read from a LOFAR .parset file.
 
   class MWStrategySpec
   {
@@ -25,15 +39,14 @@ namespace conrad { namespace cp {
 
     /// Construct a MWSolveSpec having the name \a name. Configuration
     /// information for this step can be retrieved from the parameter set \a
-    /// parset, by searching for keys <tt>Step.\a name</tt>. \a parent
-    /// is a pointer to the MWSpec object that is the parent of \c *this.
+    /// parset, by searching for keys <tt>Strategy.\a name</tt>.
     MWStrategySpec (const std::string& name,
 		    const LOFAR::ACC::APS::ParameterSet& parset);
 
-    /// Print the contents of \c this into the output stream \a os.
+    /// Print the contents in human readable form into the output stream.
     void print (std::ostream& os) const;
 
-    /// Return the step (possibly multi step) in this strategy.
+    /// Return the step (possibly multi step) specification in this strategy.
     const MWMultiSpec& getStep() const
       { return itsStep; }
 

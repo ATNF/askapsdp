@@ -1,14 +1,13 @@
-//# MWMultiSpec.h: Derived composite class of the MWSpec composite pattern.
-//#
-//# Copyright (C) 2007
-//#
+/// @file
+/// @brief Specification of a step containing multiple other steps.
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Ger van Diepen (diepen AT astron nl)
+///
 //# $Id$
 
 #ifndef CONRAD_MWCONTROL_MWMULTISPEC_H
 #define CONRAD_MWCONTROL_MWMULTISPEC_H
-
-/// \file
-/// Derived composite class of the MWSpec composite pattern.
 
 //# Includes
 #include <mwcontrol/MWSpec.h>
@@ -16,13 +15,25 @@
 
 namespace conrad { namespace cp {
 
+  /// @ingroup mwcontrol
+  /// @brief Specification of a step containing multiple other steps.
+
   /// This is the so-called \e composite class in the composite pattern (see
-  /// Gamma, 1995). The composite class contains pointers to zero or more
-  /// MWSpec (component) objects.
+  /// Design Patterns, Gamma et al, 1995). The composite class contains shared
+  /// pointers to zero or more MWSpec (component) objects.
+  /// This class is very useful to combine multiple steps which can be treated
+  /// as a single step. They object is created from the contents of a LOFAR
+  /// .parset file.
+  ///
+  /// The contained objects get their default values from the settings
+  /// in this parent MWMultiSpec object.
 
   class MWMultiSpec : public MWSpec
   {
   public:
+    /// Construct an empty MWMultiSpec object.
+    MWMultiSpec();
+
     /// Construct a MWMultiSpec. \a name identifies the step name in the
     /// parameter set file. It does \e not uniquely identify the step \e
     /// object being created. The third argument is used to pass a
@@ -30,10 +41,6 @@ namespace conrad { namespace cp {
     MWMultiSpec(const std::string& name,
 		const LOFAR::ACC::APS::ParameterSet& parset,
 		const MWSpec* parent);
-
-    /// Default constructor. Construct an empty MWMultiSpec object and make
-    /// it a child of the MWSpec object \a parent.
-    explicit MWMultiSpec(const MWSpec* parent = 0) : MWSpec(parent) {}
 
     virtual ~MWMultiSpec();
 
@@ -44,11 +51,11 @@ namespace conrad { namespace cp {
     /// Visit the object, so the visitor can process it.
     virtual void visit (MWSpecVisitor&) const;
 
-    /// Print the contents of \c *this in human readable form into the output
-    /// stream \a os.
+    /// Print the contents in human readable form into the output stream.
+    /// Indent as needed.
     virtual void print (std::ostream& os, const std::string& indent) const;
 
-    /// Define functions and so to iterate.
+    /// Define functions to do STL style iteration.
     /// @{
     typedef std::list<MWSpec::ShPtr>::const_iterator const_iterator;
     const_iterator begin() const
@@ -68,8 +75,6 @@ namespace conrad { namespace cp {
     std::list<MWSpec::ShPtr> itsSpecs;
   };
 
-  /// @}
-    
 }} /// end namespaces
 
 #endif

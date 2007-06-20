@@ -14,11 +14,6 @@ using namespace std;
 
 namespace conrad { namespace cp {
 
-  MWSolveSpec::MWSolveSpec(const MWSpec* parent) : 
-    MWSingleSpec(parent),
-    itsMaxIter(0), itsEpsilon(0), itsMinConverged(0)
-  {}
-
   MWSolveSpec::MWSolveSpec(const string& name, 
 			   const ParameterSet& parset,
 			   const MWSpec* parent)

@@ -1,8 +1,10 @@
-//#  ParameterHandler.h: DataHolder for sending/receiving mwcontrol info
-//#
-//#  Copyright (C) 2007
-//#
-//#  $Id$
+/// @file
+/// @brief Handle a LOFAR .parset file
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Ger van Diepen (diepen AT astron nl)
+///
+//# $Id$
 
 #ifndef CONRAD_MWCONTROL_PARAMETERHANDLER_H
 #define CONRAD_MWCONTROL_PARAMETERHANDLER_H
@@ -15,6 +17,20 @@ namespace conrad { namespace cp {
   class MWMultiSpec;
   class MWStrategySpec;
 
+  /// @ingroup mwcontrol
+  /// @brief Handle a LOFAR .parset file
+
+  /// This class handles the processing of a LOFAR .parset file
+  /// It has two sets of functions:
+  /// <ul>
+  ///  <li> It augments the LOFAR ParameterSet class with functions that can deal
+  ///       with undefined parameters. There is a set of functions that return
+  ///       a default value if undefined and a set of functions that leave the
+  ///       value untouched if undefined.
+  ///  <li> Functions to retrieve specific info from the .parset file.
+  ///       These can be initial info, strategy specifications (MWStrategySpec),
+  ///       and step specifications (MWStep).
+  /// </ul>
 
   class ParameterHandler
   {

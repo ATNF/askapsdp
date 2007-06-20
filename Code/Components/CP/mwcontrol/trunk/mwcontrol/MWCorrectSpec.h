@@ -1,31 +1,34 @@
-//# MWCorrectSpec.h: Derived leaf class of the MWSpec composite pattern.
-//#
-//# Copyright (C) 2007
-//#
+/// @file
+/// @brief Specification of a correct step.
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Ger van Diepen (diepen AT astron nl)
+///
 //# $Id$
 
 #ifndef CONRAD_MWCONTROL_MWCORRECTSPEC_H
 #define CONRAD_MWCONTROL_MWCORRECTSPEC_H
-
-/// \file
-/// Derived leaf class of the MWSpec composite pattern.
 
 //# Includes
 #include <mwcontrol/MWSingleSpec.h>
 
 namespace conrad { namespace cp {
 
+  /// @ingroup mwcontrol
+  /// @brief Specification of a correct step.
+
   /// This is a so-called \e leaf class in the MWSpec composite pattern (see
-  /// Gamma, 1995).
-  /// \note Currently, a %MWCorrectSpec is in fact identical to a
-  /// MWSingleSpec. Only the classType() method is overridden.
+  /// Design Patterns, Gamma et al, 1995).
+  ///
+  /// It implements a correct step specification which is read from a
+  /// LOFAR .parset file. The base class holds all data members.
+  /// This class implements the required virtual functions.
 
   class MWCorrectSpec : public MWSingleSpec
   {
   public:
-    explicit MWCorrectSpec(const MWSpec* parent = 0) : 
-      MWSingleSpec(parent) {}
-
+    /// Construct from the given .parset file.
+    /// Unspecified items are taken from the parent specification.
     MWCorrectSpec(const std::string& name,
 		  const LOFAR::ACC::APS::ParameterSet& parSet,
 		  const MWSpec* parent)
@@ -34,8 +37,8 @@ namespace conrad { namespace cp {
     /// Visit the object, so the visitor can process it.
     virtual void visit (MWSpecVisitor&) const;
 
-    /// Print the contents of \c *this in human readable form into the output
-    /// stream \a os.
+    /// Print the contents in human readable form into the output stream.
+    /// Indent as needed.
     virtual void print (std::ostream& os, const std::string& indent) const;
   };
 

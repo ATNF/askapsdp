@@ -23,10 +23,6 @@ namespace conrad { namespace cp {
     os << endl << indent << " Output data: " << itsOutputData;
   }
 
-  MWSingleSpec::MWSingleSpec(const MWSpec* parent) :
-    MWSpec(parent)
-  {}
-
   MWSingleSpec::MWSingleSpec(const string& name, 
 			     const ParameterSet& parset,
 			     const MWSpec* parent) :

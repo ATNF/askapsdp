@@ -1,14 +1,13 @@
-//# MWSpec2Step.h: Convert MWSpec objects to a MWMultiStep
-//#
-//# Copyright (C) 2007
-//#
+/// @file
+/// @brief Convert an MWSpec object to an MWStep object.
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Ger van Diepen (diepen AT astron nl)
+///
 //# $Id$
 
 #ifndef CONRAD_MWCONTROL_MWSPEC2STEP_H
 #define CONRAD_MWCONTROL_MWSPEC2STEP_H
-
-/// \file
-/// Convert MWSpec objects to a MWMultiStep.
 
 //# Includes
 #include <mwcontrol/MWSpecVisitor.h>
@@ -23,10 +22,16 @@ namespace conrad { namespace cp {
   class MWStrategySpec;
   class WorkDomainSpec;
 
+  /// @ingroup mwcontrol
+  /// @brief Convert an MWSpec object to an MWStep object.
 
-  /// This MWSpec visitor class converts the various MWSpec objects
-  /// to MWStep objects and collects them in an MWMultiStep.
-  /// It also has a (static) method to convert a strategy to WorkDomainSpec.
+  /// This MWSpec2Step visitor class converts the various MWSpec objects
+  /// to MWStep objects and collects them in a single MWMultiStep. Thus if the
+  /// MWSpec has multiple levels of MWMultiSpec objects, it is flattened to a
+  /// single MWMultiStep.
+  ///
+  /// The class also has a (static) method to convert an MWStrategySpec object
+  /// to an WorkDomainSpec object.
 
   class MWSpec2Step: public MWSpecVisitor
   {
