@@ -157,9 +157,9 @@ namespace conrad
 
         for (it=completions.begin();it!=completions.end();it++)
         {
-          if(parameters().isFree(*it)) {  
+          string imageName("image.i"+(*it));
+          if(parameters().isFree(imageName)) {
 
-            string imageName("image.i"+(*it));
             const casa::Array<double> imagePixels(parameters().value(imageName));
             const casa::IPosition imageShape(imagePixels.shape());
   

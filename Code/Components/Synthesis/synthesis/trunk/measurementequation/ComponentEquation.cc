@@ -142,8 +142,6 @@ namespace conrad
       vector<string> completions(parameters().completions("flux.i"));
       vector<string>::iterator it;
       
-      if(completions.size()==0) return;
-
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
 
@@ -173,81 +171,79 @@ namespace conrad
 
         for (it=completions.begin();it!=completions.end();it++)
         {
-          if(parameters().isFree(*it)) {  
-            DesignMatrix designmatrix(parameters());
+          DesignMatrix designmatrix(parameters());
 
-            uint offset=0;
-  
-            string raName("direction.ra"+(*it));
-            string decName("direction.dec"+(*it));
-            string fluxName("flux.i"+(*it));
-            string bmajName("shape.bmaj"+(*it));
-            string bminName("shape.bmin"+(*it));
-            string bpaName("shape.bpa"+(*it));
-  
-  // Define AutoDiff's for the three unknown parameters
-            casa::AutoDiff<double> ara(parameters().scalarValue(raName), nParameters, 0);
-            casa::AutoDiff<double> adec(parameters().scalarValue(decName), nParameters, 1);
-            casa::AutoDiff<double> afluxi(parameters().scalarValue(fluxName), nParameters, 2);
-            casa::AutoDiff<double> abmaj(parameters().scalarValue(bmajName), nParameters, 3);
-            casa::AutoDiff<double> abmin(parameters().scalarValue(bminName), nParameters, 4);
-            casa::AutoDiff<double> abpa(parameters().scalarValue(bpaName), nParameters, 5);
-  
-            for (uint row=0;row<itsIdi->nRow();row++)
+          uint offset=0;
+
+          string raName("direction.ra"+(*it));
+          string decName("direction.dec"+(*it));
+          string fluxName("flux.i"+(*it));
+          string bmajName("shape.bmaj"+(*it));
+          string bminName("shape.bmin"+(*it));
+          string bpaName("shape.bpa"+(*it));
+
+// Define AutoDiff's for the three unknown parameters
+          casa::AutoDiff<double> ara(parameters().scalarValue(raName), nParameters, 0);
+          casa::AutoDiff<double> adec(parameters().scalarValue(decName), nParameters, 1);
+          casa::AutoDiff<double> afluxi(parameters().scalarValue(fluxName), nParameters, 2);
+          casa::AutoDiff<double> abmaj(parameters().scalarValue(bmajName), nParameters, 3);
+          casa::AutoDiff<double> abmin(parameters().scalarValue(bminName), nParameters, 4);
+          casa::AutoDiff<double> abpa(parameters().scalarValue(bpaName), nParameters, 5);
+
+          for (uint row=0;row<itsIdi->nRow();row++)
+          {
+
+            if((abmaj>0.0)&&(abmin>0.0))
             {
-  
-              if((abmaj>0.0)&&(abmin>0.0))
-              {
-                this->calcRegularGauss<casa::AutoDiff<double> >(ara, adec,
-                  afluxi, abmaj, abmin, abpa, freq,
-                  itsIdi->uvw()(row)(0),
-                  itsIdi->uvw()(row)(1),
-                  itsIdi->uvw()(row)(3),
-                  av);
-              }
-              else
-              {
-                this->calcRegularPoint<casa::AutoDiff<double> >(ara, adec,
-                  afluxi, freq,
-                  itsIdi->uvw()(row)(0),
-                  itsIdi->uvw()(row)(1),
-                  itsIdi->uvw()(row)(3),
-                  av);
-              }
-  
-              for (uint i=0;i<freq.nelements();i++)
-              {
-                residual(2*i+offset)=real(itsIdi->visibility()(row,i,0))-av(2*i).value();
-                residual(2*i+1+offset)=imag(itsIdi->visibility()(row,i,0))-av(2*i+1).value();
-                raDeriv(2*i+offset)=av[2*i].derivative(0);
-                raDeriv(2*i+1+offset)=av(2*i+1).derivative(0);
-                decDeriv(2*i+offset)=av[2*i].derivative(1);
-                decDeriv(2*i+1+offset)=av(2*i+1).derivative(1);
-                fluxiDeriv(2*i+offset)=av[2*i].derivative(2);
-                fluxiDeriv(2*i+1+offset)=av(2*i+1).derivative(2);
-                bmajDeriv(2*i+offset)=av[2*i].derivative(3);
-                bmajDeriv(2*i+1+offset)=av(2*i+1).derivative(3);
-                bminDeriv(2*i+offset)=av[2*i].derivative(4);
-                bminDeriv(2*i+1+offset)=av(2*i+1).derivative(4);
-                bpaDeriv(2*i+offset)=av[2*i].derivative(5);
-                bpaDeriv(2*i+1+offset)=av(2*i+1).derivative(5);
-                weights(2*i+offset)=1.0;
-                weights(2*i+1+offset)=1.0;
-              }
-  
-              offset+=2*freq.nelements();
+              this->calcRegularGauss<casa::AutoDiff<double> >(ara, adec,
+                afluxi, abmaj, abmin, abpa, freq,
+                itsIdi->uvw()(row)(0),
+                itsIdi->uvw()(row)(1),
+                itsIdi->uvw()(row)(3),
+                av);
             }
-  // Now we can add the design matrix, residual, and weights
-            designmatrix.addDerivative(raName, raDeriv);
-            designmatrix.addDerivative(decName, decDeriv);
-            designmatrix.addDerivative(fluxName, fluxiDeriv);
-            designmatrix.addDerivative(bmajName, bmajDeriv);
-            designmatrix.addDerivative(bminName, bminDeriv);
-            designmatrix.addDerivative(bpaName, bpaDeriv);
-            designmatrix.addResidual(residual, weights);
-  
-            ne.add(designmatrix);
+            else
+            {
+              this->calcRegularPoint<casa::AutoDiff<double> >(ara, adec,
+                afluxi, freq,
+                itsIdi->uvw()(row)(0),
+                itsIdi->uvw()(row)(1),
+                itsIdi->uvw()(row)(3),
+                av);
+            }
+
+            for (uint i=0;i<freq.nelements();i++)
+            {
+              residual(2*i+offset)=real(itsIdi->visibility()(row,i,0))-av(2*i).value();
+              residual(2*i+1+offset)=imag(itsIdi->visibility()(row,i,0))-av(2*i+1).value();
+              raDeriv(2*i+offset)=av[2*i].derivative(0);
+              raDeriv(2*i+1+offset)=av(2*i+1).derivative(0);
+              decDeriv(2*i+offset)=av[2*i].derivative(1);
+              decDeriv(2*i+1+offset)=av(2*i+1).derivative(1);
+              fluxiDeriv(2*i+offset)=av[2*i].derivative(2);
+              fluxiDeriv(2*i+1+offset)=av(2*i+1).derivative(2);
+              bmajDeriv(2*i+offset)=av[2*i].derivative(3);
+              bmajDeriv(2*i+1+offset)=av(2*i+1).derivative(3);
+              bminDeriv(2*i+offset)=av[2*i].derivative(4);
+              bminDeriv(2*i+1+offset)=av(2*i+1).derivative(4);
+              bpaDeriv(2*i+offset)=av[2*i].derivative(5);
+              bpaDeriv(2*i+1+offset)=av(2*i+1).derivative(5);
+              weights(2*i+offset)=1.0;
+              weights(2*i+1+offset)=1.0;
+            }
+
+            offset+=2*freq.nelements();
           }
+// Now we can add the design matrix, residual, and weights
+          designmatrix.addDerivative(raName, raDeriv);
+          designmatrix.addDerivative(decName, decDeriv);
+          designmatrix.addDerivative(fluxName, fluxiDeriv);
+          designmatrix.addDerivative(bmajName, bmajDeriv);
+          designmatrix.addDerivative(bminName, bminDeriv);
+          designmatrix.addDerivative(bpaName, bpaDeriv);
+          designmatrix.addResidual(residual, weights);
+
+          ne.add(designmatrix);
         }
       }
     };

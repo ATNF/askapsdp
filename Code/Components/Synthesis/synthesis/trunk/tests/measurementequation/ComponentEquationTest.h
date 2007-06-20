@@ -112,7 +112,7 @@ namespace conrad
           NormalEquations ne(*params1);
           p2->calcEquations(ne);
           std::map<string, std::map<string, casa::Matrix<double> > > nm(ne.normalMatrix());
-          vector<string> names(params1->names());
+          vector<string> names(params1->freeNames());
           for (uint row=0;row<names.size();row++)
           {
             for (uint col=0;col<names.size();col++)
