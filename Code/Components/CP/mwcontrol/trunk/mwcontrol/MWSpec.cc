@@ -71,6 +71,7 @@ namespace conrad { namespace cp {
   }
 
   MWSpec::MWSpec()
+    : itsParent (0)
   {}
 
   MWSpec::MWSpec (const string& name, 
