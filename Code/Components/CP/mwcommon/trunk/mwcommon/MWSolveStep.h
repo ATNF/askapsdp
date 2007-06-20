@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Step to process the MW solve command.
+  /// @ingroup mwcommon
+  /// @brief Step to process the MW solve command.
 
   /// This class defines a step that solves parameters by comparing a
   /// parameterized model to data in the VDS.

@@ -14,7 +14,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Factory pattern to make the correct MWStep object
+  /// @ingroup mwcommon
+  /// @brief Factory pattern to make the correct MWStep object
 
   /// This class contains a map of names to \a create functions
   /// of derived MWStep objects. It is used to reconstruct the correct

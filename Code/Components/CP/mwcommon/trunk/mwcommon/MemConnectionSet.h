@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Set of Memory connections.
+  /// @ingroup mwcommon
+  /// @brief Set of Memory connections.
 
   /// This class represents a set of memory connections. Typically it is used
   /// to group connections to workers of a specific type.

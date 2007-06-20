@@ -14,7 +14,8 @@
 
 namespace conrad { namespace cp {
 
-  /// A step consisting of several other steps.
+  /// @ingroup mwcommon
+  /// @brief A step consisting of several other steps.
 
   /// This class makes it possible to form a list of MWStep objects.
   /// Note that the class itself is an MWStep, so the list can be nested.

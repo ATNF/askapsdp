@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Define the boundary values of a domain.
+  /// @ingroup mwcommon
+  /// @brief Define the boundary values of a domain.
 
   /// This class defines the boundaries of an observation domain.
   /// Currently it only defines a single range in time and freq.

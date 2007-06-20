@@ -17,7 +17,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Set of socket connections.
+  /// @ingroup mwcommon
+  /// @brief Set of socket connections.
 
   /// This class represents a set of socket connections. Typically it is used
   /// to group connections to workers of a specific type.

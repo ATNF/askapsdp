@@ -17,7 +17,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Class to convert a message to a blob.
+  /// @ingroup mwcommon
+  /// @brief Class to convert a message to a blob.
 
   /// This class forms the envelope of messages used in the MW framework.
   /// MW messages are transmitted as blobs.
@@ -54,7 +55,8 @@ namespace conrad { namespace cp {
   };
 
 
-  /// Class to convert a message from a blob.
+  /// @ingroup mwcommon
+  /// @brief Class to convert a message from a blob.
 
   /// This class is the opposite of MWBlobOut.
   /// It can be used to obtain operation and streamId and to read the message.

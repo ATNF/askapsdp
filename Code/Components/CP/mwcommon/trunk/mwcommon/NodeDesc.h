@@ -17,7 +17,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Description of a node in a cluster.
+  /// @ingroup mwcommon
+  /// @brief Description of a node in a cluster.
 
   /// This class holds the basic description of a node.
   /// It tells the name of the node and which file systems it has access to.

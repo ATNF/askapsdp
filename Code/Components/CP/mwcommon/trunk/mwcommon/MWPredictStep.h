@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Step to process the MW predict command.
+  /// @ingroup mwcommon
+  /// @brief Step to process the MW predict command.
 
   /// This class defines a step that does a predict, i.e. that writes the
   /// predicted data set into the VDS.

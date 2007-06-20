@@ -17,7 +17,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Connection to workers based on memory.
+  /// @ingroup mwcommon
+  /// @brief Connection to workers based on memory.
 
   /// This class acts as the MW communication mechanism in memory.
   /// It makes it possible to use the MW framework in a single process

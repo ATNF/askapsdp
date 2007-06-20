@@ -23,7 +23,8 @@ namespace LOFAR {
 
 namespace conrad { namespace cp {
 
-  /// Abstract base class for all worker proxies.
+  /// @ingroup mwcommon
+  /// @brief Abstract base class for all worker proxies.
 
   /// This class is the abstract base class for the possible workers.
   /// Usually a worker is a proxy class to a class doing the actual work.

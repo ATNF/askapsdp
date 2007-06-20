@@ -17,7 +17,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Define the specifications of the work domain.
+  /// @ingroup mwcommon
+  /// @brief Define the specifications of the work domain.
 
   /// This class defines the properties of a work domain. It contains:
   /// <ul>

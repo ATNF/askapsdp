@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Connection to workers based on MPI.
+  /// @ingroup mwcommon
+  /// @brief Connection to workers based on MPI.
 
   /// This class handles the MPI connection between two processes by
   /// giving it the correct MPI rank of the other (destination) process.

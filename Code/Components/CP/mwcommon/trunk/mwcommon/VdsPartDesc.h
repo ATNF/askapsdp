@@ -17,7 +17,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Description of a visibility data set or part thereof.
+  /// @ingroup mwcommon
+  /// @brief Description of a visibility data set or part thereof.
 
   /// This class holds the description of a visibility data set (VDS) part.
   /// It defines the name of the part and on which file system it is located.

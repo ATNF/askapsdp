@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Step to process the MW correct command.
+  /// @ingroup mwcommon
+  /// @brief Step to process the MW correct command.
 
   /// This class defines a step that corrects the data in the VDS for
   /// the given parameters.

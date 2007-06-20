@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Describe an entire visibility data set
+  /// @ingroup mwcommon
+  /// @brief Describe an entire visibility data set
 
   /// This class holds the description of an entire visibility data set (VDS).
   /// In VdsPartDesc objects it describes the parts it consists of and

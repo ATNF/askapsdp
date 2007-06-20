@@ -21,7 +21,8 @@ namespace LOFAR {
 
 namespace conrad { namespace cp {
 
-  /// Information about a worker.
+  /// @ingroup mwcommon
+  /// @brief Information about a worker.
 
   /// This class contains the information describing a worker.
   /// It contains the name of the host it is running on and a vector

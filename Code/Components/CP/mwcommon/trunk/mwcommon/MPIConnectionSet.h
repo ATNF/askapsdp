@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Class to hold a set of MPI connections.
+  /// @ingroup mwcommon
+  /// @brief Class to hold a set of MPI connections.
 
   /// This class represents a set of MPI connections. Typically it is used
   /// to group connections to workers of a specific type.

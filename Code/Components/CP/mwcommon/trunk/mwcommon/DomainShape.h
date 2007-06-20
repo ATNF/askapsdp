@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Define the shape of a domain.
+  /// @ingroup mwcommon
+  /// @brief Define the shape of a domain.
 
   /// This class defines the shape of a domain.
   /// Currently this can only be done for time and frequency.

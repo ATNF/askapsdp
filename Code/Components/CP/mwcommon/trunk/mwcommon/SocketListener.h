@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Class that creates a socket and accepts connections.
+  /// @ingroup mwcommon
+  /// @brief Class that creates a socket and accepts connections.
 
   /// This class sets up a socket listener. It is used by SocketConnectionSet
   /// to accept connection requests from workers.

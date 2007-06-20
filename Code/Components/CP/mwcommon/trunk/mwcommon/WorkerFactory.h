@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Factory pattern to generate a WorkerProxy object.
+  /// @ingroup mwcommon
+  /// @brief Factory pattern to generate a WorkerProxy object.
 
   /// This class contains a map of names to \a create functions
   /// of derived WorkerProxy objects. It is used to construct the correct

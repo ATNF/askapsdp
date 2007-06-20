@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// High level worker control.
+  /// @ingroup mwcommon
+  /// @brief High level worker control.
 
   /// This class if the high level control of a proxy worker.
   /// The \a init function sets up the connection and does the initialisation.

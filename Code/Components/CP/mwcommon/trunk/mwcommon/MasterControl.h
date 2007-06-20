@@ -19,7 +19,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Master control of a distributed process.
+  /// @ingroup mwcommon
+  /// @brief Master control of a distributed process.
 
   /// This class does the overall control of the master/worker framework.
   /// It defines the basic operations (see the enum) that can be done by the

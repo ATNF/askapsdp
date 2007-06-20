@@ -20,7 +20,8 @@ namespace conrad { namespace cp {
   class MWPredictStep;
 
 
-  /// Base visitor class to visit an MWStep hierarchy.
+  /// @ingroup mwcommon
+  /// @brief Base visitor class to visit an MWStep hierarchy.
 
   /// This is a class to traverse a MWStep composite using the visitor
   /// pattern (see Design Patterns, Gamma et al, 1995).

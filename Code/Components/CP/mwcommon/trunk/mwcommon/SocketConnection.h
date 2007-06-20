@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Connection to workers based on a socket.
+  /// @ingroup mwcommon
+  /// @brief Connection to workers based on a socket.
 
   /// This class handles the socket connection between two processes.
   /// For a client it can set up the connection to a server on a given

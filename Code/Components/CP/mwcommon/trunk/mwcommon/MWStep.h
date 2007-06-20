@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Abstract base class for steps to process MW commands.
+  /// @ingroup mwcommon
+  /// @brief Abstract base class for steps to process MW commands.
 
   /// This class is the abstract base class for all possible steps that
   /// can be executed in the Master-Control framework.

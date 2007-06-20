@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Abstract base class for all MWConnectionSets.
+  /// @ingroup mwcommon
+  /// @brief Abstract base class for all MWConnectionSets.
 
   /// This class defines the abstract base class for all MWConnectionSet
   /// classes.

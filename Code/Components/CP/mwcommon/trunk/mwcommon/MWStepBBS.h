@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// The base class for a BBSKernel step.
+  /// @ingroup mwcommon
+  /// @brief The base class for a BBSKernel step.
 
   /// This class defines the base information for any step in the BBSKernel
   /// or similar software. Note that this information is on top of the

@@ -13,7 +13,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Basic exception for master/worker related errors.
+  /// @ingroup mwcommon
+  /// @brief Basic exception for master/worker related errors.
 
   /// This class defines the basic MW exception.
   /// Only this basic exception is defined so far. In the future, some more 

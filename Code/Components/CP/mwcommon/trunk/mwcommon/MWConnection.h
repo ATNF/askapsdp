@@ -19,7 +19,8 @@ namespace LOFAR {
 
 namespace conrad { namespace cp {
 
-  /// Abstract base class for all MWConnections.
+  /// @ingroup mwcommon
+  /// @brief Abstract base class for all MWConnections.
 
   /// This class defines the base class for classes to transport data.
   /// Actually, the data transport is done between two MWConnection objects

@@ -16,7 +16,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Description of all workers.
+  /// @ingroup mwcommon
+  /// @brief Description of all workers.
 
   /// This class holds the description of the workers in an MW run.
   /// For each worker it describes on which node it runs and which types

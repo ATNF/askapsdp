@@ -15,7 +15,8 @@
 
 namespace conrad { namespace cp {
 
-  /// Step to process the MW subtract command.
+  /// @ingroup mwcommon
+  /// @brief Step to process the MW subtract command.
 
   /// This class defines a step that subtracts a model from the data
   /// and writes the result into the VDS
