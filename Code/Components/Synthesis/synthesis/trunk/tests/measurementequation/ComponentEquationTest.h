@@ -136,7 +136,7 @@ namespace conrad
           solver1.addNormalEquations(ne);
           solver1.setAlgorithm("SVD");
           solver1.solveNormalEquations(q);
-          CPPUNIT_ASSERT(abs(q.cond()/1.37915e+24-1.0)<0.001);
+          CPPUNIT_ASSERT(abs(q.cond()/2.70123e+12-1.0)<0.001);
         }
 
         void testSolveNormalEquationsFix()
@@ -153,7 +153,7 @@ namespace conrad
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
-            CPPUNIT_ASSERT(abs(q.cond()/1.34999e+24-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/3.28578e+09-1.0)<0.001);
           }
           {
             Quality q;
@@ -163,7 +163,7 @@ namespace conrad
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
-            CPPUNIT_ASSERT(abs(q.cond()/1.12483e+24-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/2.92807e+09-1.0)<0.001);
           }
           {
             Quality q;
@@ -174,7 +174,7 @@ namespace conrad
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
-            CPPUNIT_ASSERT(abs(q.cond()/1.0796e9-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/6.85634e+08-1.0)<0.001);
           }
           {
             Quality q;
@@ -186,7 +186,7 @@ namespace conrad
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
-            CPPUNIT_ASSERT(abs(q.cond()/19.2717-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/8.37068-1.0)<0.001);
           }
           {
             Quality q;

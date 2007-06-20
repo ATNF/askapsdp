@@ -279,13 +279,14 @@ namespace conrad
       T delay = casa::C::_2pi * (ra * u + dec * v + n * w)/casa::C::c;
 // exp(-a*x^2) transforms to exp(-pi^2*u^2/a)
 // a=4log(2)/FWHM^2 so scaling = pi^2*FWHM/(4log(2))
-      T scale = std::pow(casa::C::pi,2)/(casa::C::c*(4*log(2)));
+      T scale = std::pow(casa::C::pi,2)/(4*log(2));
+      T up=( cos(bpa)*u + sin(bpa)*v)/casa::C::c;
+      T vp=(-sin(bpa)*u + cos(bpa)*v)/casa::C::c;
+      T r=(bmaj*bmaj*up*up+bmin*bmin*vp*vp)*scale;
       for (uint i=0;i<freq.nelements();i++)
       {
         T phase = delay * freq(i);
-        T up=( cos(bpa)*u + sin(bpa)*v)*scale*freq(i);
-        T vp=(-sin(bpa)*u + cos(bpa)*v)*scale*freq(i);
-        T decorr = exp(-scale*(bmaj*bmaj*up*up+bmin*bmin*vp*vp));
+        T decorr = exp( - r * freq(i) * freq(i));
         vis(2*i)   = flux * decorr * cos(phase);
         vis(2*i+1) = flux * decorr * sin(phase);
       }
