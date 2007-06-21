@@ -8,4 +8,4 @@ opts = ""
 if "install" in sys.argv:
     opts = "install"
 
-run("scons-0.96.95 %s" % opts )
+run("scons-0.97 %s" % opts )
