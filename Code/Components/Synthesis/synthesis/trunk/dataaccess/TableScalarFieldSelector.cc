@@ -66,15 +66,17 @@ void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
         getDataDescription().getDescIDsForSpWinID(static_cast<int>(spWinID));
    if (dataDescIDs.size()) {
        std::vector<size_t>::const_iterator ci=dataDescIDs.begin();
-       if (itsTableSelector.isNull()) {
-           itsTableSelector=(table().col("DATA_DESC_ID") ==
+       TableExprNode tempNode=(table().col("DATA_DESC_ID") ==
                   static_cast<casa::Int>(*ci));
-           ++ci;		  
+       for(++ci;ci!=dataDescIDs.end();++ci) {           
+	   tempNode = tempNode || (table().col("DATA_DESC_ID") ==
+                  static_cast<casa::Int>(*ci));
        }
-       for(;ci!=dataDescIDs.end();++ci) {
-	   itsTableSelector=itsTableSelector && (table().col("DATA_DESC_ID") ==
-                  static_cast<casa::Int>(*ci));
-       }      
+       if (itsTableSelector.isNull()) {
+           itsTableSelector=tempNode;
+       } else {
+           itsTableSelector = itsTableSelector && tempNode;
+       }       
    } else {
      // required spectral window is not present in the measurement set
      // we have to insert a dummy expression, otherwise an exception
