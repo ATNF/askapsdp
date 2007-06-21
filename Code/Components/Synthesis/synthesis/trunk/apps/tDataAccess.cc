@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
          cerr<<"Usage "<<argv[0]<<" measurement_set"<<endl;
 	 return -2;
      }
-     
+
      TableConstDataSource ds(argv[1]);
      doReadOnlyTest(ds);    
      
