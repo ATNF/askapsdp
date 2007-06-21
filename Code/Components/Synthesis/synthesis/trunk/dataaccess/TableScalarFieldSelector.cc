@@ -60,17 +60,27 @@ void TableScalarFieldSelector::chooseBaseline(casa::uInt ant1,
 /// @param spWinID the ID of the spectral window to choose
 void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
 {
-   /// @todo we need a proper spectral window selection, which works with
-   /// the structure of the measurement set to extract data description ids
-   /// required for this selection
-   
-   if (itsTableSelector.isNull()) {
-       itsTableSelector=(table().col("DATA_DESC_ID") ==
-                  static_cast<casa::Int>(spWinID));
+   // one spectral window can correspond to multiple data description IDs
+   // We need to obtain this information from the DATA_DESCRIPTION table
+   std::vector<size_t> dataDescIDs =
+        getDataDescription().getDescIDsForSpWinID(static_cast<int>(spWinID));
+   if (dataDescIDs.size()) {
+       std::vector<size_t>::const_iterator ci=dataDescIDs.begin();
+       if (itsTableSelector.isNull()) {
+           itsTableSelector=(table().col("DATA_DESC_ID") ==
+                  static_cast<casa::Int>(*ci));
+           ++ci;		  
+       }
+       for(;ci!=dataDescIDs.end();++ci) {
+	   itsTableSelector=itsTableSelector && (table().col("DATA_DESC_ID") ==
+                  static_cast<casa::Int>(*ci));
+       }      
    } else {
-       itsTableSelector=itsTableSelector && (table().col("DATA_DESC_ID") ==
-                  static_cast<casa::Int>(spWinID));
-   }
+     // required spectral window is not present in the measurement set
+     // we have to insert a dummy expression, otherwise an exception
+     // is thrown within the table selection.
+     itsTableSelector=(table().col("DATA_DESC_ID") == -1) && False;
+   }   
 }
  
 /// Obtain a table expression node for selection. This method is

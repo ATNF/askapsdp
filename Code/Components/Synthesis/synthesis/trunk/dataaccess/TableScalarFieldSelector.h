@@ -24,6 +24,7 @@
 #include <dataaccess/ITableDataSelectorImpl.h>
 #include <dataaccess/IDataConverter.h>
 #include <dataaccess/ITableHolder.h>
+#include <dataaccess/ISubtableInfoHolder.h>
 
 namespace conrad {
 
@@ -44,7 +45,8 @@ namespace synthesis {
 /// request for an iterator. The iterator obtained that way runs through
 /// the selected part of the dataset.
 class TableScalarFieldSelector : virtual public ITableDataSelectorImpl,
-                                 virtual protected ITableHolder
+                                 virtual protected ITableHolder,
+				 virtual protected ISubtableInfoHolder
 {
 public:
   

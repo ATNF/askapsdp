@@ -22,6 +22,7 @@
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableMeasureFieldSelector.h>
 #include <dataaccess/TableHolder.h>
+#include <dataaccess/SubtableInfoHolder.h>
 
 namespace conrad {
 
@@ -34,7 +35,8 @@ namespace synthesis {
 ///                implementation of the IDataSelector interface 
 ///                in the table-based case. 
 class TableDataSelector : public TableScalarFieldSelector,
-                          virtual protected TableHolder
+                          virtual protected TableHolder,
+			  virtual protected SubtableInfoHolder
 {
 public:
   /// construct a table selector with cycles defined by the time interval

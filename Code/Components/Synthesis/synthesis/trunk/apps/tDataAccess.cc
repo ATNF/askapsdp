@@ -19,9 +19,10 @@ using namespace conrad;
 using namespace synthesis;
 
 void doReadOnlyTest(const IConstDataSource &ds) {
-  //IDataSelectorPtr sel=ds.createSelector();
+  IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
-  for (IConstDataSharedIter it=ds.createConstIterator();it!=it.end();++it) {
+  sel->chooseSpectralWindow(0);
+  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {
   //IConstDataSharedIter it=ds.createConstIterator();
        cout<<"this is a test "<<it->visibility().nrow()<<endl;
        cout<<"uvw: "<<it->uvw()(1)<<endl;
