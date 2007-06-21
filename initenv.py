@@ -44,7 +44,8 @@ exports = "%s CONRAD_PROJECT_ROOT%s%s\n" % ( shell["envset"],
 exports += "%s PYTHONPATH%s${CONRAD_PROJECT_ROOT}/%s:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools\n" % (shell["envset"], shell["envassign"], pylibdir)
 exports += "%s PATH%s${CONRAD_PROJECT_ROOT}/bin:${PATH}\n" % (shell["envset"], 
                                                               shell["envassign"])
-exports += '%s PS1%s"(conrad)$PS1"' %(shell["envset"],shell["envassign"])
+exports += '%s PS1%s"(conrad)$PS1"\n' % (shell["envset"],shell["envassign"])
+exports += '%s MANPATH%s${CONRAD_PROJECT_ROOT}/man:${MANPATH}\n' % (shell["envset"],shell["envassign"])
 f.write(exports)
 f.close()
 
