@@ -35,5 +35,19 @@ namespace conrad
     {
       itsNormalEquations->merge(normeq);
     }
+    
+    bool Solver::solveNormalEquations(conrad::scimath::Quality& q)
+    {
+    }
+    
+    Solver::ShPtr Solver::clone()
+    {
+      return Solver::ShPtr(new Solver(*this));
+    }
+    
+    void Solver::init()
+    {
+    }
+    
   }
 }

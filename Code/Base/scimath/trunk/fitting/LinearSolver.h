@@ -36,6 +36,9 @@ namespace conrad
 /// The solution is constructed from the normal equations
 /// @param q Quality information
         virtual bool solveNormalEquations(Quality& q);
+        
+/// @brief Clone this object
+        virtual Solver::ShPtr clone();
 
       protected:
     };

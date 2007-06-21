@@ -167,5 +167,10 @@ namespace conrad
       return true;
     };
 
+    Solver::ShPtr LinearSolver::clone()
+    {
+      return Solver::ShPtr(new LinearSolver(*this));
+    }
+
   }
 }

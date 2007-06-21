@@ -33,7 +33,7 @@ namespace conrad
         virtual ~Solver();
 
 /// Initialize this solver
-        virtual void init() = 0;
+        virtual void init();
 
 /// Set the parameters
 /// @param ip Parameters
@@ -52,7 +52,14 @@ namespace conrad
 /// Solve for parameters, updating the values kept internally
 /// The solution is constructed from the normal equations
 /// @param q Quality of solution
-        virtual bool solveNormalEquations(Quality& q) = 0;
+        virtual bool solveNormalEquations(Quality& q);
+
+/// Shared pointer definition
+        typedef boost::shared_ptr<Solver> ShPtr;
+
+/// Clone this into a shared pointer
+        virtual Solver::ShPtr clone();
+
 
       protected:
         /// Parameters

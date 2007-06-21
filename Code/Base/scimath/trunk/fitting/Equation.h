@@ -13,6 +13,7 @@
 ///
 /// Here's a (longwinded) example of how to use this framework
 /// for fitting a polynomial equation.
+/// @code
 ///
 ///    casa::Vector<double> arguments(10);
 ///    casa::Vector<double> data(10);
@@ -46,6 +47,7 @@
 ///    Quality q;
 ///    solver.setAlgorithm("SVD");
 ///    solver.solveNormalEquations(q);
+/// @endcode
 ///
 /// The class PolynomialEquation holds the C++ code responsible for
 /// calculating values and derivatives of the specific polynomial.
