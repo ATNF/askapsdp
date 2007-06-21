@@ -90,6 +90,11 @@ namespace conrad
 
       return true;
     };
+    
+    Solver::ShPtr ImageSolver::clone()
+    {
+      return Solver::ShPtr(new ImageSolver(*this));
+    }
 
   }
 }

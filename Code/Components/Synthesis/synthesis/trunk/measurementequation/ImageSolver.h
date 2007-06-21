@@ -40,6 +40,10 @@ namespace conrad
         /// The solution is constructed from the normal equations
         /// @param q Solution quality information
         virtual bool solveNormalEquations(conrad::scimath::Quality& q);
+        
+/// @brief Clone this object
+        virtual conrad::scimath::Solver::ShPtr clone();
+
     };
 
   }
