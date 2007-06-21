@@ -1,3 +1,4 @@
+casacore=3rdParty/casacore/tags/casacore-0.1.1;casa_measures casa_scimath casa_scimath_f
 scimath=Code/Base/scimath/trunk
 boost=3rdParty/boost/tags/boost-1.33.1
 conrad=Code/Base/conrad/Cc/trunk
