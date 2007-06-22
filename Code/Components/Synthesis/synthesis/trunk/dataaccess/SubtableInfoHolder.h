@@ -23,6 +23,7 @@
 
 // own includes
 #include <dataaccess/ISubtableInfoHolder.h>
+#include <dataaccess/ITableHolder.h>
 #include <dataaccess/ITableDataDescHolder.h>
 
 namespace conrad {
@@ -40,7 +41,9 @@ namespace synthesis {
 /// Such design allows to avoid parsing of all possible subtables and
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
-struct SubtableInfoHolder : virtual public ISubtableInfoHolder {
+struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
+                            virtual public ITableHolder
+{
 
    /// @brief obtain data description holder
    /// @details A MemTableDataDescHolder is constructed on the first call

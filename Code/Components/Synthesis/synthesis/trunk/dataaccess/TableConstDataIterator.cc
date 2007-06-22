@@ -29,7 +29,7 @@ using namespace synthesis;
 /// @param[in] conv shared pointer to converter
 /// @param[in] maxChunkSize maximum number of rows per accessor
 TableConstDataIterator::TableConstDataIterator(
-            const boost::shared_ptr<ISubtableInfoHolder const> &msManager,
+            const boost::shared_ptr<ITableManager const> &msManager,
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
 	    casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
@@ -228,4 +228,5 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
 /// @param[in] freq a reference to a vector to fill
 void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) const
 {
+  freq.resize(itsNumberOfChannels);
 }

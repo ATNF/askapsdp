@@ -20,38 +20,38 @@ using namespace synthesis;
 /// @brief construct from a shared pointer to info holder
 /// @details This version of the constructor allows to work with any
 /// type of info holder
-/// @param infoHolder a shared pointer to an instance of info holder.
+/// @param tabManager a shared pointer to an table manager
 /// This pointer will be stored inside this class and used to
 /// access the table and derived information (i.e. reference semantics)
 TableInfoAccessor::TableInfoAccessor(const
-          boost::shared_ptr<ISubtableInfoHolder const> &infoHolder)
-	  throw() : itsInfoHolder(infoHolder) {}
+          boost::shared_ptr<ITableManager const> &tabManager)
+	  throw() : itsTableManager(tabManager) {}
 
 /// @brief construct from a table object
 /// @details This version of the constructor creates a TableManager
 /// object for a given table and stores it as ISubtableInfoHolder 
 /// @param tab a measurement set table to work with
 TableInfoAccessor::TableInfoAccessor(const casa::Table &tab) :
-       itsInfoHolder(new TableManager(tab)) {}
+       itsTableManager(new TableManager(tab)) {}
 
 
 /// @return a const reference to Table held by this object
 const casa::Table& TableInfoAccessor::table() const throw()
 {
-  CONRADDEBUGASSERT(itsInfoHolder);
-  return itsInfoHolder->table();
+  CONRADDEBUGASSERT(itsTableManager);
+  return itsTableManager->table();
 }
 
 /// @return a reference to ISubtableInfoHolder
 const ISubtableInfoHolder& TableInfoAccessor::subtableInfo() const
 {
-  CONRADDEBUGASSERT(itsInfoHolder);
-  return *itsInfoHolder;
+  CONRADDEBUGASSERT(itsTableManager);
+  return *itsTableManager;
 }
 
 /// @return a shared pointer on infoHolder
-const boost::shared_ptr<ISubtableInfoHolder const>& 
+const boost::shared_ptr<ITableManager const>& 
                TableInfoAccessor::getTableManager() const throw()
 {
-  return itsInfoHolder;
+  return itsTableManager;
 }

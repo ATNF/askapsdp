@@ -26,7 +26,7 @@ using namespace casa;
 /// (a derivative of ISubtableInfoHolder)
 ///
 TableDataSelector::TableDataSelector(const
-       boost::shared_ptr<ISubtableInfoHolder const> &msManager) :
+       boost::shared_ptr<ITableManager const> &msManager) :
        TableInfoAccessor(msManager) {}
 
 /// Choose a time range. Both start and stop times are given via

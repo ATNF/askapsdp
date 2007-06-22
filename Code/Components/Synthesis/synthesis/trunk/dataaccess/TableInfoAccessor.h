@@ -19,8 +19,8 @@
 #include <boost/shared_ptr.hpp>
 
 // own includes
-#include <dataaccess/ITableDataDescHolder.h>
 #include <dataaccess/ITableInfoAccessor.h>
+#include <dataaccess/TableManager.h>
 
 namespace conrad {
 
@@ -32,18 +32,18 @@ namespace synthesis {
 /// level of wrapping is used to ship around the measurement set table
 /// with its derived information.
 /// @note see the TableManager class, which is an implementation of
-/// the ISubtableInfoHolder interface, for detailed description how
-/// this hierarchy of classes is supposed to work together
+/// the ISubtableInfoHolder and ITableHolder interfaces, for detailed
+/// description how this bunch of classes is supposed to work together
 struct TableInfoAccessor : virtual public ITableInfoAccessor {
 
   /// @brief construct from a shared pointer to info holder
   /// @details This version of the constructor allows to work with any
   /// type of info holder
-  /// @param infoHolder a shared pointer to an instance of info holder.
+  /// @param tabManager a shared pointer to an table manager
   /// This pointer will be stored inside this class and used to
   /// access the table and derived information (i.e. reference semantics)
-  TableInfoAccessor(const boost::shared_ptr<ISubtableInfoHolder const>
-                    &infoHolder) throw();
+  TableInfoAccessor(const boost::shared_ptr<ITableManager const>
+                    &tabManager) throw();
 
   /// @brief construct from a table object
   /// @details This version of the constructor creates a TableManager
@@ -58,11 +58,11 @@ struct TableInfoAccessor : virtual public ITableInfoAccessor {
   virtual const ISubtableInfoHolder& subtableInfo() const;
 
   /// @return a shared pointer on infoHolder
-  virtual const boost::shared_ptr<ISubtableInfoHolder const>&
+  virtual const boost::shared_ptr<ITableManager const>&
                         getTableManager() const throw();
   
 private:
-  boost::shared_ptr<ISubtableInfoHolder const> itsInfoHolder;
+  boost::shared_ptr<ITableManager const> itsTableManager;
 };
 
 } // namespace synthesis

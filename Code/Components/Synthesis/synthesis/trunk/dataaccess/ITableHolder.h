@@ -16,7 +16,11 @@
 #ifndef I_TABLE_HOLDER_H
 #define I_TABLE_HOLDER_H
 
+// casa includes
 #include <tables/Tables/Table.h>
+
+// own includes
+#include <dataaccess/IHolder.h>
 
 namespace conrad {
 
@@ -31,10 +35,7 @@ namespace synthesis {
 /// This interface is the base class in an hierarchy of classes which
 /// provide required functionality. Building derived information on-demand
 /// is also expected to be implemented.
-struct ITableHolder {
-
-  /// void virtual destructor to keep the compiler happy
-  virtual ~ITableHolder();
+struct ITableHolder : virtual public IHolder {
 
   /// @return a const reference to Table held by this object
   virtual const casa::Table& table() const throw() = 0;

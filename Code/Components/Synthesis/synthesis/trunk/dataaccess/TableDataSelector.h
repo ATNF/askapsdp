@@ -22,7 +22,7 @@
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableMeasureFieldSelector.h>
 #include <dataaccess/TableInfoAccessor.h>
-#include <dataaccess/ISubtableInfoHolder.h>
+#include <dataaccess/ITableManager.h>
 
 namespace conrad {
 
@@ -43,7 +43,7 @@ public:
   /// @param[in] msManager a shared pointer to the manager of the measurement set
   /// (a derivative of ISubtableInfoHolder)
   ///
-  explicit TableDataSelector(const boost::shared_ptr<ISubtableInfoHolder const> &msManager);
+  explicit TableDataSelector(const boost::shared_ptr<ITableManager const> &msManager);
    
   /// Choose a time range. Both start and stop times are given via
   /// casa::MVEpoch object. The reference frame is specified by

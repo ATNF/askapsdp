@@ -26,6 +26,7 @@
 #include <dataaccess/ITableDataSelectorImpl.h>
 #include <dataaccess/TableConstDataAccessor.h>
 #include <dataaccess/TableInfoAccessor.h>
+#include <dataaccess/ITableManager.h>
 
 namespace conrad {
 
@@ -44,7 +45,7 @@ public:
   /// @param[in] sel shared pointer to selector
   /// @param[in] conv shared pointer to converter
   /// @param[in] maxChunkSize maximum number of rows per accessor
-  TableConstDataIterator(const boost::shared_ptr<ISubtableInfoHolder const>
+  TableConstDataIterator(const boost::shared_ptr<ITableManager const>
               &msManager,
               const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
 	      const boost::shared_ptr<IDataConverterImpl const> &conv,

@@ -15,7 +15,7 @@
 #include <vector>
 
 // own includes
-#include <dataaccess/ITableHolder.h>
+#include <dataaccess/IHolder.h>
 
 namespace conrad {
 
@@ -25,10 +25,7 @@ namespace synthesis {
 /// @details A class derived from this interface provides access to
 /// the content of the DATA_DESCRIPTION table (which connects data
 /// description id with spectral window id and polarization id
-struct ITableDataDescHolder {
-
-  /// void virtual destructor to keep the compiler happy
-  virtual ~ITableDataDescHolder();
+struct ITableDataDescHolder : virtual public IHolder {
 
   /// obtain spectral window ID via data description ID
   /// @param dataDescriptionID an index into data description table for

@@ -3,11 +3,15 @@
 /// @details This file contains a class, which holds a table and
 /// associated derived information, which is built on-demand. It
 /// implements ITableHolder and ISubtableInfoHolder interfaces.
-/// There are two ways of using this class:
+/// At this stage, the class just has a constructor defined which
+/// connects individual components together. All functionality is
+/// inherited from the building blocks.
+/// @note There are two ways of using this class:
 /// @li At the level of hierarchy where the access to such information is
 ///    first required, derive also (multiple inheritance is assumed) virtually
-///    from ITableHolder or ISubtableInfoHolder (the latter is derived
-///    virtually from the former, so only one is sufficient).
+///    from ITableHolder or ISubtableInfoHolder (depending on what is required,
+///    the ITableManager interface is derived from these two and provides both
+///    the table and derived information access).
 ///    At the top level, derive also (multiple derivation is assumed) from
 ///    TableManager. This will implement pure virtual methods in
 ///    ITableHolder and ISubtableInfoHolder. This method is probably the
@@ -20,7 +24,7 @@
 ///    where an access to table/derived information is required, derive
 ///    virtually from ITableInfoAccessor. At the top level, derive
 ///    from TableInfoAccessor. Its constructor accepts a smart pointer
-///    to ISubtableInfoHolder, which TableManager is derived from.
+///    to ITableManager, which TableManager is derived from.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
@@ -33,6 +37,7 @@
 #include <tables/Tables/Table.h>
 
 // own includes
+#include <dataaccess/ITableManager.h>
 #include <dataaccess/SubtableInfoHolder.h>
 #include <dataaccess/TableHolder.h>
 
@@ -41,7 +46,7 @@ namespace conrad {
 namespace synthesis {
 
 /// @brief Class to manage Table and derived information
-/// @details This file contains a class, which holds a table and
+/// @details This class holds a table and
 /// associated derived information, which is built on-demand. It
 /// implements ITableHolder and ISubtableInfoHolder interfaces.
 /// At this stage, the class just has a constructor defined which
@@ -50,8 +55,9 @@ namespace synthesis {
 /// @note There are two ways of using this class:
 /// @li At the level of hierarchy where the access to such information is
 ///    first required, derive also (multiple inheritance is assumed) virtually
-///    from ITableHolder or ISubtableInfoHolder (the latter is derived
-///    virtually from the former, so only one is sufficient).
+///    from ITableHolder or ISubtableInfoHolder (depending on what is required,
+///    the ITableManager interface is derived from these two and provides both
+///    the table and derived information access).
 ///    At the top level, derive also (multiple derivation is assumed) from
 ///    TableManager. This will implement pure virtual methods in
 ///    ITableHolder and ISubtableInfoHolder. This method is probably the
@@ -64,8 +70,9 @@ namespace synthesis {
 ///    where an access to table/derived information is required, derive
 ///    virtually from ITableInfoAccessor. At the top level, derive
 ///    from TableInfoAccessor. Its constructor accepts a smart pointer
-///    to ISubtableInfoHolder, which TableManager is derived from.
-struct TableManager : virtual public TableHolder,
+///    to ITableManager, which TableManager is derived from.
+struct TableManager : virtual public ITableManager,
+                      virtual public TableHolder,
                       virtual public SubtableInfoHolder
 {
   /// construct a table/derived info manager from the table object

@@ -20,6 +20,7 @@
 // own includes
 #include <dataaccess/ITableHolder.h>
 #include <dataaccess/ISubtableInfoHolder.h>
+#include <dataaccess/ITableManager.h>
 
 namespace conrad {
 
@@ -37,7 +38,7 @@ struct ITableInfoAccessor : virtual public ITableHolder {
   virtual const ISubtableInfoHolder& subtableInfo() const = 0;
   
   /// @return a shared pointer on infoHolder
-  virtual const boost::shared_ptr<ISubtableInfoHolder const>&
+  virtual const boost::shared_ptr<ITableManager const>&
                         getTableManager() const throw() = 0;
 
 };
