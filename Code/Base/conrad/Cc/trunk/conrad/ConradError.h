@@ -1,12 +1,11 @@
-//#  ConradError.h: Base class for CONRAD exceptions
-//#
-//#  Copyright (C) 2007
-//#
-//#  $Id$
+/// @file
+/// @brief Base class for CONRAD exceptions
+/// @author Ger van Diepen (gvd AT astron DOT nl)
 
 #ifndef CONRAD_ERROR_H
 #define CONRAD_ERROR_H
 
+#include <string>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -17,7 +16,9 @@ namespace conrad {
   class ConradError: public std::runtime_error
   {
   public:
+    /// Constructor taking a message
     explicit ConradError(const std::string& message);
+    /// epty destructor
     virtual ~ConradError() throw();
   };
 
@@ -25,6 +26,7 @@ namespace conrad {
   class CheckError: public ConradError
   {
   public:
+    /// Constructor taking a message
     explicit CheckError(const std::string& message);
     virtual ~CheckError() throw();
   };
@@ -33,6 +35,7 @@ namespace conrad {
   class AssertError: public ConradError
   {
   public:
+    /// Constructor taking a message
     explicit AssertError(const std::string& message);
     virtual ~AssertError() throw();
   };

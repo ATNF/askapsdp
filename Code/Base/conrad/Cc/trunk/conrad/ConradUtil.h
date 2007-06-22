@@ -1,8 +1,9 @@
-//#  ConradUtil.h: Common CONRAD utility functions and classes
-//#
-//#  Copyright (C) 2007
-//#
-//#  $Id$
+/// @file
+/// @brief Common CONRAD utility functions and classes
+///
+/// @author Ger van Diepen (gvd AT astron DOT nl)
+///
+/// @copyright
 
 #ifndef CONRAD_UTIL_H
 #define CONRAD_UTIL_H
