@@ -123,13 +123,16 @@ public:
     CPPUNIT_ASSERT(result.separation(direction)<1e-7);
    }
 
-   /// test Direction conversion
+   /// test Frequency conversion
    void testFrequencyConversion()
    {
      const casa::MVFrequency freq(casa::Quantity(1420,"MHz"));
      casa::MFrequency lsrkFreq(freq, casa::MFrequency::LSRK);
      itsConverter->setFrequencyFrame(casa::MFrequency::Ref(
                       casa::MFrequency::LSRK),"GHz");
+		      
+     CPPUNIT_ASSERT(itsConverter->isVoid(casa::MFrequency::Ref(
+                      casa::MFrequency::LSRK),"GHz"));
 
      CPPUNIT_ASSERT(fabs(itsConverter->frequency(lsrkFreq)-1.42)<1e-7);
 

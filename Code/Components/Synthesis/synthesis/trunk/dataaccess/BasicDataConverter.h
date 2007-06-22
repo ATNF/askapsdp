@@ -145,7 +145,13 @@ public:
     /// @param[in] in input direction given as an MDirection object
     /// @param[out] out output direction as an MVDirection object
     virtual void direction(const casa::MDirection &in, 
-                          casa::MVDirection &out) const;    
+                          casa::MVDirection &out) const;
+
+    /// test whether the frequency conversion is void
+    /// @param[in] testRef reference frame to test
+    /// @param[in] testUnit units to test
+    virtual bool isVoid(const casa::MFrequency::Ref &testRef,
+                        const casa::Unit &testUnit) const;
 
     /// convert frequencies
     /// @param[in] in input frequency given as an MFrequency object
@@ -161,7 +167,7 @@ public:
     /// @param[in] in input velocity given as an MRadialVelocity object
     /// @return output frequency as a Double
     ///
-    /// Note, an exception will be thrown if the rest frequency is not
+    /// @note An exception will be thrown if the rest frequency is not
     /// defined.
     ///
     virtual casa::Double frequency(const casa::MRadialVelocity &in) const;
@@ -171,7 +177,7 @@ public:
     /// @param[in] in input frequency  given as an MFrequency object
     /// @return output velocity as a Double
     ///
-    /// Note, an exception will be thrown if the rest frequency is not
+    /// @note An exception will be thrown if the rest frequency is not
     /// defined.
     ///
     virtual casa::Double velocity(const casa::MFrequency &in) const;    

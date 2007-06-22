@@ -125,6 +125,15 @@ void BasicDataConverter::setMeasFrame(const casa::MeasFrame &frame)
   itsVelocityConverter->setMeasFrame(frame);
 }
 
+/// test whether the frequency conversion is void
+/// @param[in] testRef reference frame to test
+/// @param[in] testUnit units to test
+bool BasicDataConverter::isVoid(const casa::MFrequency::Ref &testRef,
+                    const casa::Unit &testUnit) const
+{
+  return itsFrequencyConverter->isVoid(testRef,testUnit);
+}
+
 /// convert epochs
 /// @param in input epoch given as an MEpoch object
 /// @return epoch converted to Double 
