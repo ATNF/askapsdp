@@ -8,6 +8,9 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+/// boost includes
+#include <boost/shared_ptr.hpp>
+
 /// own includes
 #include <dataaccess/TableConstDataSource.h>
 #include <dataaccess/TableConstDataIterator.h>
@@ -23,7 +26,7 @@ using namespace casa;
 /// @param[in] fname file name of the measurement set to use
 ///
 TableConstDataSource::TableConstDataSource(const std::string &fname) :
-         itsMS(fname) {}
+         TableInfoAccessor(casa::Table(fname)) {}
 
 /// create a converter object corresponding to this type of the
 /// DataSource. The user can change converting policies (units,
@@ -77,7 +80,7 @@ TableConstDataSource::createConstIterator(const IDataSelectorConstPtr &sel,
                  "converter are received by the createConstIterator method");
    }
    return boost::shared_ptr<IConstDataIterator>(new TableConstDataIterator(
-                itsMS,implSel,implConv));
+                getTableManager(),implSel,implConv));
 }
 
 /// create a selector object corresponding to this type of the
@@ -97,5 +100,5 @@ TableConstDataSource::createConstIterator(const IDataSelectorConstPtr &sel,
 /// iteration loop is started).
 IDataSelectorPtr TableConstDataSource::createSelector() const
 {
-  return IDataSelectorPtr(new TableDataSelector(itsMS));
+  return IDataSelectorPtr(new TableDataSelector(getTableManager()));
 }

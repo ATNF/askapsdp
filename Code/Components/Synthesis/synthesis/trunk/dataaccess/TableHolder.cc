@@ -1,4 +1,4 @@
-/// @file TableHolder.h
+/// @file 
 /// @brief A class holding a table object
 /// @details A simple implementation of the ITableHolder interface.
 /// This class just holds a table object and returns

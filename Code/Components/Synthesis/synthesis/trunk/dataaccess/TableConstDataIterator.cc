@@ -23,15 +23,16 @@ using namespace casa;
 using namespace conrad;
 using namespace synthesis;
 
-/// @param[in] ms the measurement set to use (as a reference to table)
+/// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector
 /// @param[in] conv shared pointer to converter
 /// @param[in] maxChunkSize maximum number of rows per accessor
-TableConstDataIterator::TableConstDataIterator(const casa::Table &ms,
+TableConstDataIterator::TableConstDataIterator(
+            const boost::shared_ptr<ISubtableInfoHolder const> &msManager,
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
-	    casa::uInt maxChunkSize) :
-	   itsMS(ms), itsSelector(sel), itsConverter(conv),
+	    casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
+	    itsSelector(sel), itsConverter(conv),
 	   itsMaxChunkSize(maxChunkSize), itsAccessor(*this)
 { 
   init();
@@ -44,10 +45,10 @@ void TableConstDataIterator::init()
   const casa::TableExprNode &exprNode =
               itsSelector->getTableSelector(itsConverter);
   if (exprNode.isNull()) {
-      itsTabIterator=casa::TableIterator(itsMS,"TIME",
+      itsTabIterator=casa::TableIterator(table(),"TIME",
 	   casa::TableIterator::DontCare,casa::TableIterator::NoSort);
   } else {
-      itsTabIterator=casa::TableIterator(itsMS(itsSelector->
+      itsTabIterator=casa::TableIterator(table()(itsSelector->
                                getTableSelector(itsConverter)),"TIME",
 	   casa::TableIterator::DontCare,casa::TableIterator::NoSort);
   }  
@@ -93,7 +94,7 @@ casa::Bool TableConstDataIterator::next()
                       remainder : itsMaxChunkSize;
       // number of channels/pols are expected to be the same as for the
       // first iteration
-      itsAccessor.invalidateAllCaches();
+      itsAccessor.invalidateIterationCaches();
   }  
   return hasMore();
 }
@@ -102,7 +103,7 @@ casa::Bool TableConstDataIterator::next()
 void TableConstDataIterator::setUpIteration()
 {
   itsCurrentIteration=itsTabIterator.table();  
-  itsAccessor.invalidateAllCaches();
+  itsAccessor.invalidateIterationCaches();
   itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
   // retreive the number of channels and polarizations from the table
@@ -182,4 +183,10 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
             thisRowUVW(curPos[0])=buf(curPos);
        }
   }
+}
+
+/// populate the buffer with frequencies
+/// @param[in] freq a reference to a vector to fill
+void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) const
+{
 }

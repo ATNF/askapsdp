@@ -64,16 +64,38 @@ public:
   /// packed into a 3-D rigid vector
   virtual const casa::Vector<casa::RigidVector<casa::Double, 3> >&uvw() const;
 
+  /// Frequency for each channel
+  /// @return a reference to vector containing frequencies for each
+  ///         spectral channel (vector size is nChannel). Frequencies
+  ///         are given as Doubles, the frame/units are specified by
+  ///         the DataSource object
+  virtual const casa::Vector<casa::Double>& frequency() const;
+
+  /// @brief set itsXxxChanged flags corresponding to items updated on
+  /// each iteration to true
+  /// @details Such caches like visibility, uvw, noise and flags are updated
+  /// on each new iteration. These are invalidated by call to this methid.
+  /// Caches of frequency/velocity axis are updated less regularly (may be
+  /// only once if the is just one spectral window in the measurement set).
+  /// These are invalidated by a call to notifyNewSpectralWindow(), if
+  /// the new window is not the same as the cached one
+  void invalidateIterationCaches() const throw();
+  
+  /// @brief set itsXxxChanged flags corresponding to spectral axis
+  /// information to true
+  /// @details See invalidateIterationCaches for more details
+  void invalidateSpectralCaches() const throw();
+protected:
   /// it's OK to have a protected data member here, because its read
   /// only 
   const TableConstDataIterator& itsIterator;
-  /// set all itsXxxChanged flags to true
-  void invalidateAllCaches() const throw();
 private:
   mutable bool itsVisibilityChanged;
   mutable casa::Cube<casa::Complex> itsVisibility;
   mutable bool itsUVWChanged;
   mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
+  mutable bool itsFrequencyChanged; 
+  mutable casa::Vector<casa::Double> itsFrequency;
 };
 
 

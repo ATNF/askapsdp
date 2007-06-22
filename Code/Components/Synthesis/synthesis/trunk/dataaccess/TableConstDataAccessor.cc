@@ -24,7 +24,7 @@ using namespace synthesis;
 TableConstDataAccessor::TableConstDataAccessor(const
                                             TableConstDataIterator &iter) :
 			   itsIterator(iter), itsVisibilityChanged(true),
-			   itsUVWChanged(true) {}
+			   itsUVWChanged(true), itsFrequencyChanged(true) {}
 
 /// The number of rows in this chunk
 /// @return the number of rows in this chunk
@@ -73,9 +73,31 @@ TableConstDataAccessor::uvw() const
   return itsUVW;
 }
 
-/// set all xxxChanged flags to true
-void TableConstDataAccessor::invalidateAllCaches() const throw()
+/// Frequency for each channel
+/// @return a reference to vector containing frequencies for each
+///         spectral channel (vector size is nChannel). Frequencies
+///         are given as Doubles, the frame/units are specified by
+///         the DataSource object
+const casa::Vector<casa::Double>& TableConstDataAccessor::frequency() const
+{
+  if (itsFrequencyChanged) {
+      itsIterator.fillFrequency(itsFrequency);
+      itsFrequencyChanged=false;
+  }
+  return itsFrequency;
+}
+
+/// set itsXxxChanged flags corresponding to items updated on each iteration to true
+void TableConstDataAccessor::invalidateIterationCaches() const throw()
 {
   itsVisibilityChanged=true;
   itsUVWChanged=true;
+}
+
+/// @brief set itsXxxChanged flags corresponding to spectral axis
+/// information to true
+/// @details See invalidateIterationCaches for more details
+void TableConstDataAccessor::invalidateSpectralCaches() const throw()
+{
+  itsFrequencyChanged=true;
 }

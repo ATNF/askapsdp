@@ -62,7 +62,7 @@ void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
 {
    // one spectral window can correspond to multiple data description IDs
    // We need to obtain this information from the DATA_DESCRIPTION table
-   std::vector<size_t> dataDescIDs =
+   std::vector<size_t> dataDescIDs = subtableInfo().
         getDataDescription().getDescIDsForSpWinID(static_cast<int>(spWinID));
    if (dataDescIDs.size()) {
        std::vector<size_t>::const_iterator ci=dataDescIDs.begin();

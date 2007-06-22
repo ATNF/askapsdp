@@ -21,8 +21,8 @@
 #include <dataaccess/TableScalarFieldSelector.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableMeasureFieldSelector.h>
-#include <dataaccess/TableHolder.h>
-#include <dataaccess/SubtableInfoHolder.h>
+#include <dataaccess/TableInfoAccessor.h>
+#include <dataaccess/ISubtableInfoHolder.h>
 
 namespace conrad {
 
@@ -35,14 +35,15 @@ namespace synthesis {
 ///                implementation of the IDataSelector interface 
 ///                in the table-based case. 
 class TableDataSelector : public TableScalarFieldSelector,
-                          virtual protected TableHolder,
-			  virtual protected SubtableInfoHolder
+                          virtual protected TableInfoAccessor
 {
 public:
-  /// construct a table selector with cycles defined by the time interval
-  /// @param[in] tab MS table to work with
+  /// construct a table selector passing a table/derived info manager
+  /// via a smart pointer 
+  /// @param[in] msManager a shared pointer to the manager of the measurement set
+  /// (a derivative of ISubtableInfoHolder)
   ///
-  explicit TableDataSelector(const casa::Table &tab);
+  explicit TableDataSelector(const boost::shared_ptr<ISubtableInfoHolder const> &msManager);
    
   /// Choose a time range. Both start and stop times are given via
   /// casa::MVEpoch object. The reference frame is specified by

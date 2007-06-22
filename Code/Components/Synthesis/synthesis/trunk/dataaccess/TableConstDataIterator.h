@@ -25,6 +25,7 @@
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableDataSelectorImpl.h>
 #include <dataaccess/TableConstDataAccessor.h>
+#include <dataaccess/TableInfoAccessor.h>
 
 namespace conrad {
 
@@ -35,14 +36,16 @@ namespace synthesis {
 /// TableConstDataIterator: Allow read-only iteration across preselected data. Each 
 /// iteration step is represented by the IConstDataAccessor interface.
 /// This is an implementation in the table-based case.
-class TableConstDataIterator : public IConstDataIterator
+class TableConstDataIterator : virtual public IConstDataIterator,
+                               virtual protected TableInfoAccessor
 {
 public:
-  /// @param[in] ms the measurement set to use (as a reference to table)
+  /// @param[in] msManager a manager of the measurement set to use
   /// @param[in] sel shared pointer to selector
   /// @param[in] conv shared pointer to converter
   /// @param[in] maxChunkSize maximum number of rows per accessor
-  TableConstDataIterator(const casa::Table &ms,
+  TableConstDataIterator(const boost::shared_ptr<ISubtableInfoHolder const>
+              &msManager,
               const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
 	      const boost::shared_ptr<IDataConverterImpl const> &conv,
 	      casa::uInt maxChunkSize = INT_MAX);
@@ -88,12 +91,15 @@ public:
   /// @param[in] uvw a reference to vector of rigid vectors (3 elemets,
   ///            u,v and w for each row) to fill
   void fillUVW(casa::Vector<casa::RigidVector<casa::Double, 3> >&uvw) const;
+
+  /// populate the buffer with frequencies
+  /// @param[in] freq a reference to a vector to fill
+  void fillFrequency(casa::Vector<casa::Double> &freq) const;
   
 protected:
   /// setup accessor for a new iteration
   void setUpIteration();
 private:
-  casa::Table itsMS;
   boost::shared_ptr<ITableDataSelectorImpl const>  itsSelector;
   boost::shared_ptr<IDataConverterImpl const>  itsConverter;
   /// the maximum allowed number of rows in the accessor.

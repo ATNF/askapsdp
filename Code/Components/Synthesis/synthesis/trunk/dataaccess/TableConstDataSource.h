@@ -19,6 +19,7 @@
 
 /// own includes
 #include <dataaccess/IConstDataSource.h>
+#include <dataaccess/TableInfoAccessor.h>
 
 /// std includes
 #include <string>
@@ -31,7 +32,9 @@ namespace synthesis {
 /// @details
 /// TableConstDataSource: Allow read-only access to the data stored in the
 /// measurement set. This class implements IConstDataSource interface.
-class TableConstDataSource : virtual public IConstDataSource
+/// 
+class TableConstDataSource : virtual public IConstDataSource,
+                             virtual protected TableInfoAccessor
 {
 public:
   /// construct a read-only data source object
@@ -93,8 +96,6 @@ public:
   /// unless the init method is called for the iterator (and the new
   /// iteration loop is started).
   virtual IDataSelectorPtr createSelector() const;
-private:
-  casa::Table itsMS; // a measurement set to work with
 };
  
 } // namespace synthesis

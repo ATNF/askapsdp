@@ -20,11 +20,14 @@ using namespace synthesis;
 using namespace casa;
 
 
-/// construct a table selector with cycles defined by the time interval
-/// @param[in] tab MS table to work with
-TableDataSelector::TableDataSelector(const casa::Table &tab) :
-                      TableHolder(tab) {}
-
+/// construct a table selector passing a table/derived info manager
+/// via a smart pointer 
+/// @param[in] msManager a shared pointer to the manager of the measurement set
+/// (a derivative of ISubtableInfoHolder)
+///
+TableDataSelector::TableDataSelector(const
+       boost::shared_ptr<ISubtableInfoHolder const> &msManager) :
+       TableInfoAccessor(msManager) {}
 
 /// Choose a time range. Both start and stop times are given via
 /// casa::MVEpoch object. The reference frame is specified by
