@@ -12,6 +12,7 @@
 
 /// casa includes
 #include <tables/Tables/ArrayColumn.h>
+#include <tables/Tables/ScalarColumn.h>
 
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
@@ -41,7 +42,9 @@ TableConstDataIterator::TableConstDataIterator(
 /// Restart the iteration from the beginning
 void TableConstDataIterator::init()
 { 
-  itsCurrentTopRow=0;  
+  itsCurrentTopRow=0;
+  itsCurrentDataDescID=-100; // this value can't be in the table,
+                             // therefore it is a flag of a new data descriptor
   const casa::TableExprNode &exprNode =
               itsSelector->getTableSelector(itsConverter);
   if (exprNode.isNull()) {
@@ -82,19 +85,20 @@ casa::Bool TableConstDataIterator::next()
 {
   itsCurrentTopRow+=itsNumberOfRows;
   if (itsCurrentTopRow>=itsCurrentIteration.nrow()) {
+      itsCurrentTopRow=0;
       // need to advance table iterator further
-      itsTabIterator.next();
+      itsTabIterator.next();      
       if (!itsTabIterator.pastEnd()) {
           setUpIteration();
-      }
-      itsCurrentTopRow=0;
+      }      
   } else {
       uInt remainder=itsCurrentIteration.nrow()-itsCurrentTopRow;
       itsNumberOfRows=remainder<=itsMaxChunkSize ?
                       remainder : itsMaxChunkSize;
-      // number of channels/pols are expected to be the same as for the
-      // first iteration
       itsAccessor.invalidateIterationCaches();
+      // determine whether DATA_DESC_ID is uniform in the whole chunk
+      // and reduce itsNumberOfRows if necessary
+      makeUniformDataDescID();      
   }  
   return hasMore();
 }
@@ -108,15 +112,50 @@ void TableConstDataIterator::setUpIteration()
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
   // retreive the number of channels and polarizations from the table
   if (itsNumberOfRows) {
+      // determine whether DATA_DESC_ID is uniform in the whole chunk
+      // and reduce itsNumberOfRows if necessary
+      // set up visibility cube shape if necessary
+      makeUniformDataDescID();
+  } else {
+      itsNumberOfChannels=0;
+      itsNumberOfPols=0;
+      itsCurrentDataDescID=-100;
+  }  
+}
+
+/// @brief method ensures that the chunk has uniform DATA_DESC_ID
+/// @details This method reduces itsNumberOfRows to the achieve
+/// uniform DATA_DESC_ID reading for all rows in the current chunk.
+/// The resulting itsNumberOfRows will be 1 or more.
+/// itsAccessor's spectral axis cache is reset if new DATA_DESC_ID is
+/// different from itsCurrentDataDescID
+/// This method also sets up itsNumberOfPols and itsNumberOfChannels
+/// when DATA_DESC_ID changes (and therefore at the first run as well)
+void TableConstDataIterator::makeUniformDataDescID()
+{
+  CONRADDEBUGASSERT(itsNumberOfRows);
+  CONRADDEBUGASSERT(itsCurrentTopRow+itsNumberOfRows<
+                    itsCurrentIteration.nrow());
+
+  ROScalarColumn<Int> dataDescCol(itsCurrentIteration,"DATA_DESC_ID");
+  const Int newDataDescID=dataDescCol(itsCurrentTopRow);
+  if (itsCurrentDataDescID!=newDataDescID) {
+      itsAccessor.invalidateSpectralCaches();
+      itsCurrentDataDescID=newDataDescID;
+      
+      // determine the shape of the visibility cube
       ROArrayColumn<Complex> visCol(itsCurrentIteration,"DATA");
-      const casa::IPosition &shape=visCol.shape(0);
+      const casa::IPosition &shape=visCol.shape(itsCurrentTopRow);
       CONRADASSERT(shape.size() && (shape.size()<3));
       itsNumberOfPols=shape[0];
       itsNumberOfChannels=shape.size()>1?shape[1]:1;      
-  } else {
-      itsNumberOfChannels=0;
-      itsNumberOfPols=0;  
-  }  
+  }
+  for (uInt row=1;row<itsNumberOfRows;++row) {
+       if (dataDescCol(row+itsCurrentTopRow)!=itsCurrentDataDescID) {
+           itsNumberOfRows=row;
+	   break;
+       }
+  }
 }
 
 

@@ -99,6 +99,17 @@ public:
 protected:
   /// setup accessor for a new iteration
   void setUpIteration();
+
+  /// @brief method ensures that the chunk has uniform DATA_DESC_ID
+  /// @details This method reduces itsNumberOfRows to the achieve
+  /// uniform DATA_DESC_ID reading for all rows in the current chunk.
+  /// The resulting itsNumberOfRows will be 1 or more.
+  /// itsAccessor's spectral axis cache is reset if new DATA_DESC_ID is
+  /// different from itsCurrentDataDescID
+  /// This method also sets up itsNumberOfPols and itsNumberOfChannels
+  /// when DATA_DESC_ID changes (and therefore at the first run as well)
+  void makeUniformDataDescID();
+  
 private:
   boost::shared_ptr<ITableDataSelectorImpl const>  itsSelector;
   boost::shared_ptr<IDataConverterImpl const>  itsConverter;
@@ -116,9 +127,11 @@ private:
   /// we need to use properties of selector when it's ready
   casa::uInt itsNumberOfChannels;
   casa::uInt itsNumberOfPols;
+
+  /// current DATA_DESC_ID, the iteration is broken if this
+  /// ID changes
+  casa::Int itsCurrentDataDescID;
   
-  /// for now use the stub, although it won't provide read on
-  /// demand capability
   mutable TableConstDataAccessor itsAccessor;
 };
 
