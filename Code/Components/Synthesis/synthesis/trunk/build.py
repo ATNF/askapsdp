@@ -1,11 +1,6 @@
 # @file
 # build script for AutoBuild
-import sys
-import os
 
-if sys.argv.count("-q") > 0:
-    redirect = " > /dev/null"
-else:
-    redirect = ""
+from recursivebuild import run_scons
 
-os.system("scons %s" % redirect)
+run_scons()

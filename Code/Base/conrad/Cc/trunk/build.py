@@ -1,11 +1,6 @@
 # @file
 # build script for AutoBuild
-import sys
-import os
-from recursivebuild import run
 
-opts = ""
-if "install" in sys.argv:
-    opts = "install"
+from recursivebuild import run_scons
 
-run("scons-0.97 %s" % opts )
+run_scons()
