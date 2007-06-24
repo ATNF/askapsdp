@@ -17,6 +17,9 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/IPosition.h>
 
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
 #include <boost/shared_ptr.hpp>
 
 namespace conrad
@@ -181,7 +184,13 @@ namespace conrad
 /// Clone this into a shared pointer
         virtual NormalEquations::ShPtr clone() const;
 
-
+        /// Shift operators for NormalEquations
+        /// @param os Input Output ostream
+        /// @param ne NormalEquations to be processed @{
+        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const NormalEquations& ne);
+        friend LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& os, NormalEquations& ne); 
+        /// @}
+        
       protected:
       /// Parameters
         Params::ShPtr itsParams;

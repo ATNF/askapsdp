@@ -470,6 +470,24 @@ namespace conrad
       return NormalEquations::ShPtr(new NormalEquations(*this));
     }
 
+// These are the items that we need to write to and read from a blob stream
+// Params::ShPtr itsParams;
+// std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix
+// std::map<string, casa::Vector<double> > itsNormalMatrixSlice
+// std::map<string, casa::Vector<double> > itsNormalMatrixDiagonal
+// std::map<string, casa::IPosition> itsShape
+// std::map<string, casa::IPosition> itsReference
+// std::map<string, casa::Vector<double> > itsDataVector
+//
+/// @todo Finish shift operators for NormalEquations
+    LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const NormalEquations& ne) 
+    {
+      os << *(ne.itsParams);
+    }
 
+    LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& is, NormalEquations& ne)
+    {
+      is >> *(ne.itsParams);
+    }
   }
 }

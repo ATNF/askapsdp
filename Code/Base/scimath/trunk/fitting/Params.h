@@ -21,6 +21,9 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
 #include <map>
 #include <vector>
 #include <string>
@@ -170,6 +173,13 @@ namespace conrad
         /// @param os Output ostream
         /// @param params Parameters to be output
         friend std::ostream& operator<<(std::ostream& os, const Params& params);
+
+        /// Shift operators for Params
+        /// @param os Input Output ostream
+        /// @param params Parameters to be processed @{
+        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par);
+        friend LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& os, Params& par); 
+        /// @}
 
       protected:
 /// The value arrays, ordered as a map

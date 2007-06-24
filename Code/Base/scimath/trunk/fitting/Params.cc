@@ -4,6 +4,11 @@
 #include <casa/Utilities/Regex.h>
 #include <casa/BasicSL/String.h>
 
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
+#include <conrad/ConradUtil.h>
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -340,6 +345,21 @@ namespace conrad
     int Params::count(const std::string& name) const
     {
       return itsCounts[name];
+    }
+    
+// These are the items that we need to write to and read from a blob stream
+// std::map<std::string, casa::Array<double> > itsArrays;
+// std::map<std::string, Axes> itsAxes;
+// std::map<std::string, bool> itsFree;
+// std::map<std::string, int> itsCounts;
+/// @todo Finish shift operators for Params
+    
+    LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par) 
+    {
+    }
+
+    LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& os, Params& par)
+    {
     }
 
   }
