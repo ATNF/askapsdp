@@ -7,6 +7,8 @@
 
 #include <mwcommon/MWError.h>
 
+using namespace conrad;
+
 namespace conrad { namespace cp {
 
   MWError::MWError (const std::string& message)

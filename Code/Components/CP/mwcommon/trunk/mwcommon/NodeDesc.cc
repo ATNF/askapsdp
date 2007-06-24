@@ -6,7 +6,7 @@
 //# $Id$
 
 #include <mwcommon/NodeDesc.h>
-#include <mwcommon/ConradUtil.h>
+#include <conrad/ConradUtil.h>
 #include <ostream>
 
 using namespace std;

@@ -9,7 +9,7 @@
 #ifndef CONRAD_MWCOMMON_MWERROR_H
 #define CONRAD_MWCOMMON_MWERROR_H
 
-#include <mwcommon/ConradError.h>
+#include <conrad/ConradError.h>
 
 namespace conrad { namespace cp {
 
@@ -20,7 +20,7 @@ namespace conrad { namespace cp {
   /// Only this basic exception is defined so far. In the future, some more 
   /// fine-grained exceptions might be derived from it.
 
-  class MWError: public ConradError
+  class MWError: public conrad::ConradError
   {
   public:
     /// Create the exception object with the given message.
