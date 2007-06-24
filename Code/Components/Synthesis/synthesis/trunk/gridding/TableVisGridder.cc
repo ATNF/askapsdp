@@ -437,8 +437,8 @@ namespace conrad
       double decEnd=axes.end("DEC");
 
       cellsize.resize(2);
-      cellsize(0)=1.0/std::abs(raEnd-raStart);
-      cellsize(1)=1.0/std::abs(decEnd-decStart);
+      cellsize(0)=1.0/(raEnd-raStart);
+      cellsize(1)=1.0/(decEnd-decStart);
 
     }
 

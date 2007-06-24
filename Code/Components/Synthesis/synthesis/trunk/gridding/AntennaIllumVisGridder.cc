@@ -18,6 +18,9 @@ namespace conrad
       const double blockage) : TableVisGridder(), itsReferenceFrequency(0.0),
       itsDiameter(diameter), itsBlockage(blockage)
     {
+      CONRADCHECK(diameter>0.0, "Blockage must be positive");
+      CONRADCHECK(diameter>blockage, "Antenna diameter must be greater than blockage");
+      CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
       // The antenna illumination pattern is fixed in meters
       TableVisGridder::itsInM=true;
     }
@@ -45,9 +48,10 @@ namespace conrad
         itsCCenter=itsCSize/2-1;                  // 511
         casa::Matrix<casa::Complex> disk(itsCSize, itsCSize);
         disk.set(0.0);
-        double toCell=(cellSize(0)/double(itsOverSample))*casa::C::c/itsReferenceFrequency;
-        double rmax=std::pow(itsDiameter*toCell,2);
-        double rmin=std::pow(itsBlockage*toCell,2);
+        /// Calculate the size of one cell in meters
+        double cell=cellSize(0)*(casa::C::c/itsReferenceFrequency)/double(itsOverSample);
+        double rmax=std::pow(itsDiameter/cell,2);
+        double rmin=std::pow(itsBlockage/cell,2);
         double sumDisk=0.0;
         for (int ix=0;ix<itsCSize;ix++)
         {
@@ -66,7 +70,7 @@ namespace conrad
         itsC.resize(itsCSize, itsCSize, 1);
         selfConvolve(disk);
         itsC.xyPlane(0)=real(disk);
-        CONRADCHECK(sumDisk>0.0, "Antenna illumination convolution function is empty");
+        CONRADCHECK(sumDisk>0.0, "Antenna illumination convolution function is empty: field of view too small?");
       }
     }
 
