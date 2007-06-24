@@ -9,7 +9,7 @@ def putline(t, name, value):
     row=t.nrows()-1
     t.putcell('NAME', row, name)
     t.putcell('VALUES', row, value)
-    t.putcell('FREE', row, True)
+    t.putcell('FREE', row, False)
     t.putcell('AXES', row, '')
     t.putcell('AXESSTART', row, 0.0)
     t.putcell('AXESEND', row, 0.0)

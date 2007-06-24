@@ -1,6 +1,8 @@
 //
 // @file : Evolving demonstration program for synthesis capabilities
 //
+#include <conrad/ConradError.h>
+
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/ImageSolver.h>
@@ -18,81 +20,96 @@
 #include <casa/BasicSL/Constants.h>
 #include <casa/Arrays/Cube.h>
 
+#include <APS/ParameterSet.h>
+
 #include <stdexcept>
 #include <iostream>
 
 using std::cout;
 using std::endl;
 
+using namespace conrad;
 using namespace conrad::scimath;
 using namespace conrad::synthesis;
+
+using namespace LOFAR::ACC::APS;
 
 int main(int argc, const char** argv)
 {
   try
   {
-     if (argc!=2) {
-        std::cerr<<"Usage "<<argv[0]<<" measurement_set"<<std::endl;
-        exit(1);
-     }
-     
+    string parsetname("dSynthesis.parset");
+    if (argc==2)
+    {
+      parsetname=argv[1];
+    }
+
+    ParameterSet parset(parsetname);
+    string ms=parset.getString("DataSet");
+
+    Params skymodel;
+
+    if(parset.isDefined("Parms.LocalSky"))
+    {
+      string localsky(parset.getString("Parms.LocalSky"));
+      ParamsCASATable pt(localsky, true);
+      Params localskypar(ComponentEquation::defaultParameters());
+      pt.getParameters(localskypar);
+      std::cout << "Read Local Sky model " << localsky << std::endl;
+      vector<string> names(localskypar.freeNames());
+      std::cout << "Number of free parameters in NVSS model = " << names.size() << std::endl;
+      for (vector<string>::iterator it=names.begin();it!=names.end();it++)
+      {
+        localskypar.fix(*it);
+      }
+      skymodel.merge(localskypar);
+    }
+
+    vector<string> images=parset.getStringVector("Images.Names");
+
+    for (vector<string>::iterator it=images.begin();it!=images.end();it++)
+    {
+      std::cout << "Defining image " << *it << std::endl;
+      std::vector<int> shape=parset.getInt32Vector("Images."+*it+".shape");
+      int nchan=parset.getInt32("Images."+*it+".nchan");
+      std::vector<double> freq=parset.getDoubleVector("Images."+*it+".frequency");
+      std::vector<std::string> direction=parset.getStringVector("Images."+*it+".direction");
+      std::vector<std::string> cellsize=parset.getStringVector("Images."+*it+".cellsize");
+      
+      SynthesisParamsHelper::add(skymodel, *it,
+        direction, cellsize, shape, freq[0], freq[1], nchan);
+    }
+
 //    TableConstDataSource ds(argv[1]);
 
     cout << "Synthesis demonstration program" << endl;
 
-// Get the nvss model - fix all the parameters
-    ParamsCASATable pt("nvss.par", true);
-    Params nvsspar(ComponentEquation::defaultParameters());
-    pt.getParameters(nvsspar);
-    std::cout << "Read NVSS model" << std::endl;
-    vector<string> names(nvsspar.freeNames());
-    std::cout << "Number of free parameters in NVSS model = " << names.size() << std::endl;
-    for (vector<string>::iterator it=names.begin();it!=names.end();it++) {
-      nvsspar.fix(*it);
-    }
-    IDataSharedIter idi = IDataSharedIter(new DataIteratorStub(1));    
-    
-    CompositeEquation me(nvsspar);
-    ComponentEquation ce(nvsspar, idi);
-    ImageFFTEquation ie(nvsspar, idi);
-    me.add(ce);
-    me.add(ie);
+    IDataSharedIter idi = IDataSharedIter(new DataIteratorStub(1));
 
-// Predict the visibilities for the nvss model
-//    it->chooseBuffer("model");
-//    for (it=ds.createConstIterator();it!=it.end();++it) {
-      ce.predict();
-//    }
-    
-// Define an image
-    SynthesisParamsHelper::add(nvsspar, "image.i.nvss", 
-      12.5*casa::C::hour, 45.0*casa::C::degree, 12.0*casa::C::arcsec,
-      3*1024, 3*1024, 1.420e9-256.0e6, 1.420e9, 1);
+    ImageFFTEquation ie(skymodel, idi);
 
-    std::cout << "Added NVSS image to model " << std::endl;
-    std::cout << "Number of free parameters now = " << nvsspar.freeNames().size() << std::endl;
-    
-    NormalEquations ne(nvsspar);
+    NormalEquations ne(skymodel);
     std::cout << "Constructed normal equations" << std::endl;
-    
-    ImageSolver is(nvsspar);
+
+    ImageSolver is(skymodel);
     std::cout << "Constructed image solver" << std::endl;
 //    for (it=ds.createConstIterator();it!=it.end();++it) {
-      me.calcEquations(ne);
-      std::cout << "Calculated normal equations" << std::endl;
-      is.addNormalEquations(ne);
-      std::cout << "Added normal equations to solver" << std::endl;
+    ie.calcEquations(ne);
+    std::cout << "Calculated normal equations" << std::endl;
+    is.addNormalEquations(ne);
+    std::cout << "Added normal equations to solver" << std::endl;
 //    }
     Quality q;
     std::cout << "Solving normal equations" << std::endl;
     is.solveNormalEquations(q);
     std::cout << q << std::endl;
-    
+
     {
-      ParamsCASATable result("dSynthesis.par", false);
-      result.setParameters(is.parameters());
+      string result(parset.getString("Parms.Result"));
+      ParamsCASATable results(result, false);
+      results.setParameters(is.parameters());
     }
-    
+
     std::cout << "Finished imaging" << std::endl;
     exit(0);
   }

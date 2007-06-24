@@ -23,19 +23,18 @@ namespace conrad
         /// @brief Add a parameter as an image
         /// @param ip Parameters
         /// @param name Name of parameter
-        /// @param ra Right Ascencion
-        /// @param dec Declination
-        /// @param cellsize Cellsize
-        /// @param nx Number of pixels in RA
-        /// @param ny Number of pixels in Dec
+        /// @param direction Strings containing [ra, dec, frame]
+        /// @param cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
+        /// @param shape Number of pixels in RA and DEC e.g. [256, 256]
         /// @param freqmin Minimum frequency (Hz)
         /// @param freqmax Maximum frequency (Hz)
         /// @param nchan Number of spectral channels
         static void add(conrad::scimath::Params& ip, const string& name, 
-          const double ra, const double dec, const double cellsize,
-          const int nx, const int ny, 
+          const vector<string>& direction, 
+          const vector<string>& cellsize, 
+          const vector<int>& shape,
           const double freqmin, const double freqmax, const int nchan);
-
+          
         /// @brief Add a parameter as an image
         /// @param ip Parameters
         /// @param name Name of parameter
