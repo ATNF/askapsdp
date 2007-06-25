@@ -41,7 +41,8 @@ int main(int argc, const char** argv)
   try
   {
     
-    string parsetname(string(argv[0])+".parset");
+    string progname(argv[0]);
+    string parsetname(progname+".parset");
     if (argc==2)
     {
       parsetname=argv[1];
