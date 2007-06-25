@@ -40,10 +40,11 @@ namespace conrad { namespace cp {
     itsSolver = new Solver();
   }
 
-  void SolverBBS::doProcess (int operation, int streamId,
-			     LOFAR::BlobIStream& in,
-			     LOFAR::BlobString& out)
+  int SolverBBS::doProcess (int operation, int streamId,
+                            LOFAR::BlobIStream& in,
+                            LOFAR::BlobOStream& out)
   {
+    return operation;
   }
 
 }} // end namespaces

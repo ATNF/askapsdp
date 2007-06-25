@@ -13,10 +13,11 @@ namespace conrad { namespace cp {
   BBSProxy::~BBSProxy()
   {}
 
-  void BBSProxy::process (int operation, int streamId,
-			  LOFAR::BlobIStream& in,
-			  LOFAR::BlobString& out)
+  int BBSProxy::process (int operation, int streamId,
+                         LOFAR::BlobIStream& in,
+                         LOFAR::BlobOStream& out)
   {
+    int resOper = operation;
     if (operation == MasterControl::Init) {
       std::string msName, msSuffix, colName, skyDB, instDB;
       LOFAR::uint32 subBand;
@@ -26,8 +27,9 @@ namespace conrad { namespace cp {
       setInitInfo (msName+msSuffix, colName, skyDB, instDB,
 		   subBand, calcUVW);
     } else {
-      doProcess (operation, streamId, in, out);
+      resOper = doProcess (operation, streamId, in, out);
     }
+    return resOper;
   }
 
 }} // end namespaces

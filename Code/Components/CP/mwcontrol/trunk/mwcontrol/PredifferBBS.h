@@ -24,8 +24,8 @@ namespace conrad { namespace cp {
 
   /// This class handles the commands the WorkerControl has received.
   /// The first command is a call of the \a setInitInfo function.
-  /// Thereafter doProcess is called which reads the message data from the blob
-  /// and calls the correct BBS Prediffer function.
+  /// Thereafter \a doProcess is called which reads the message data from
+  /// the blob and calls the correct BBS Prediffer function.
   ///
   /// Note that a similar class is made as a test class, which only prints the
   /// command. The \a create function registered in the WorkerFactory determines
@@ -52,11 +52,12 @@ class PredifferBBS: public PredifferProxy
 
     /// Process the given operation. The associated data is read from the blob.
     /// An optional result can be written into the output blob.
-    /// @todo Currently only one streamId is supported. A map<streamId, Prediffer*>
-    /// should be used and a new Prediffer created for a new streamId.
-    virtual void doProcess (int operation, int streamId,
-			    LOFAR::BlobIStream& in,
-			    LOFAR::BlobString& out);
+    /// @todo Currently only one streamId is supported.
+    /// A map<streamId, Prediffer*> should be used and a new Prediffer
+    /// created for a new streamId.
+    virtual int doProcess (int operation, int streamId,
+                           LOFAR::BlobIStream& in,
+                           LOFAR::BlobOStream& out);
 
   private:
     LOFAR::BBS::Prediffer* itsPrediffer;

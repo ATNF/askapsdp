@@ -42,10 +42,11 @@ namespace conrad { namespace cp {
 				  subBand, calcUVW);
   }
 
-  void PredifferBBS::doProcess (int operation, int streamId,
-				LOFAR::BlobIStream& in,
-				LOFAR::BlobString& out)
+  int PredifferBBS::doProcess (int operation, int streamId,
+                               LOFAR::BlobIStream& in,
+                               LOFAR::BlobOStream& out)
   {
+    return operation;
   }
 
 }} // end namespaces

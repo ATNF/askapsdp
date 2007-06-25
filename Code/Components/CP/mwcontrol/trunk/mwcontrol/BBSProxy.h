@@ -37,8 +37,8 @@ namespace conrad { namespace cp {
     /// the message and calling \a setInitInfo for it.
     /// Other operations are sent to \a doProcess in the derived class
     /// which can write the result into the output buffer.
-    virtual void process (int operation, int streamId,
-			  LOFAR::BlobIStream& in, LOFAR::BlobString& out);
+    virtual int process (int operation, int streamId,
+                         LOFAR::BlobIStream& in, LOFAR::BlobOStream& out);
 
     /// Initialise the proxy by telling the data is has to operate on.
     virtual void setInitInfo (const std::string& measurementSet,
@@ -50,9 +50,10 @@ namespace conrad { namespace cp {
 
   private:
     /// Process any other command than \a init.
-    virtual void doProcess (int operation, int streamId,
-			    LOFAR::BlobIStream& in,
-			    LOFAR::BlobString& out) = 0;
+    /// Return the operation type of the reply.
+    virtual int doProcess (int operation, int streamId,
+                           LOFAR::BlobIStream& in,
+                           LOFAR::BlobOStream& out) = 0;
   };
 
 }} /// end namespaces
