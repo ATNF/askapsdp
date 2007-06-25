@@ -1,5 +1,5 @@
 //
-// @file : Evolving demonstration program for synthesis capabilities
+// @file : Evolving CONRAD program for synthesis capabilities
 //
 #include <conrad/ConradError.h>
 
@@ -86,7 +86,7 @@ int main(int argc, const char** argv)
 
 //    TableConstDataSource ds(argv[1]);
 
-    cout << "Synthesis demonstration program" << endl;
+    cout << "Synthesis imaging program" << endl;
 
     IDataSharedIter idi = IDataSharedIter(new DataIteratorStub(1));
 
