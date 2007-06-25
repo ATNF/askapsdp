@@ -133,8 +133,8 @@ void TableConstDataIterator::setUpIteration()
 /// when DATA_DESC_ID changes (and therefore at the first run as well)
 void TableConstDataIterator::makeUniformDataDescID()
 {
-  CONRADDEBUGASSERT(itsNumberOfRows);
-  CONRADDEBUGASSERT(itsCurrentTopRow+itsNumberOfRows<
+  CONRADDEBUGASSERT(itsNumberOfRows);  
+  CONRADDEBUGASSERT(itsCurrentTopRow+itsNumberOfRows<=
                     itsCurrentIteration.nrow());
 
   ROScalarColumn<Int> dataDescCol(itsCurrentIteration,"DATA_DESC_ID");
