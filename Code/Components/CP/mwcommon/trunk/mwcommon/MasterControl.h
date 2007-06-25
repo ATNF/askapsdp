@@ -108,9 +108,9 @@ namespace conrad { namespace cp {
     virtual void visitPredict  (const MWPredictStep&);
     /// @}
 
-    /// Read the result from all prediffers.
-    /// This is merely to see if all prediffers have performed the step.
-    void readAllPrediffers();
+    /// Read the result from all prediffers and/or solvers.
+    /// This is merely to see if the workers have performed the step.
+    void readAllWorkers (bool prediffers, bool solvers);
 
     //# Data members.
     ObsDomain              itsFullDomain;

@@ -33,7 +33,7 @@ namespace conrad { namespace cp {
       bufIn.resize (0);
       bufOut.resize (0);
       itsConnection->read (bufIn);
-      if (! itsProxy->handleData (bufIn, bufOut)) {
+      if (! itsProxy->handleMessage (bufIn, bufOut)) {
 	break;
       }
       if (bufOut.size() > 0) {

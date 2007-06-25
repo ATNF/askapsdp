@@ -61,20 +61,26 @@ namespace conrad { namespace cp {
     /// is called and the status \a false is returned.
     /// Otherwise the \a process function is called to do the actual
     /// processing.
-    bool handleData (const LOFAR::BlobString& in, LOFAR::BlobString& out);
+    bool handleMessage (const LOFAR::BlobString& in, LOFAR::BlobString& out);
 
   private:
     /// Get the work types supported by the proxy.
     virtual std::vector<int> getWorkTypes() const = 0;
 
     /// Let a derived class process the received data.
-    virtual void process (int operation, int streamId,
-			  LOFAR::BlobIStream& in,
-			  LOFAR::BlobString& out) = 0;
+    /// The returned operation will be put into the reply message.
+    /// If the returned operation is < 0, no reply message will be sent.
+    virtual int process (int operation, int streamId,
+                         LOFAR::BlobIStream& in,
+                         LOFAR::BlobOStream& out) = 0;
 
     /// Let a derived class end its processing.
     /// The default implementation does nothing.
     virtual void quit();
+
+
+    /// The workerId is set at the beginning.
+    int itsWorkerId;
   };
 
 }} /// end namespaces

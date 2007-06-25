@@ -38,7 +38,7 @@ namespace conrad { namespace cp {
     CONRADCHECK (itsResult.size() == 0,
 		 "MemConnection: received result has not been read");
     // Let the worker process the data and keep its result.
-    itsWorker->handleData (data, itsResult);
+    itsWorker->handleMessage (data, itsResult);
   }
 
   void MemConnection::send (const void*, unsigned)

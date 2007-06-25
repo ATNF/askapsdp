@@ -13,7 +13,7 @@
 
 /// The package @a mwcommon contains the common parts of the
 /// Master-Worker framework.
-
+///
 /// More to be added.
 
 /// @defgroup mwcommon mwcommon: Common Master-Worker classes

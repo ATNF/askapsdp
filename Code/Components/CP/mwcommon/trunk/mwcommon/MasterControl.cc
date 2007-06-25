@@ -37,12 +37,28 @@ namespace conrad { namespace cp {
     itsFullDomain = fullDomain;
     // Fill the DataHolder as much as possible.
     LOFAR::BlobString buf;
-    MWBlobOut out(buf, MasterControl::Init, 0);
-    out.blobStream() << msName << "" << colName << skyDB << instDB
-		     << subBand << calcUVW;
-    out.finish();
-    itsPrediffers->writeAll (buf);
-    itsSolvers->writeAll (buf);
+    int workerId = 0;
+    for (int i=0; i<itsPrediffers->size(); ++i) {
+      buf.resize (0);
+      MWBlobOut out(buf, MasterControl::Init, 0, workerId);
+      out.blobStream() << msName << "" << colName << skyDB << instDB
+                       << subBand << calcUVW;
+      out.finish();
+      itsPrediffers->write (i, buf);
+      ++workerId;
+    }
+    for (int i=0; i<itsSolvers->size(); ++i) {
+      buf.resize (0);
+      MWBlobOut out(buf, MasterControl::Init, 0, workerId);
+      out.blobStream() << msName << "" << colName << skyDB << instDB
+                       << subBand << calcUVW;
+      out.finish();
+      itsSolvers->write (i, buf);
+      ++workerId;
+    }
+    // Now read the replies back. They contain no info, but merely show
+    // the worker is alive.
+    readAllWorkers (true, true);
   }
 
   void MasterControl::setWorkDomainSpec (const WorkDomainSpec& wds)
@@ -62,6 +78,7 @@ namespace conrad { namespace cp {
       out.finish();
       itsPrediffers->writeAll (buf);
       itsSolvers->writeAll (buf);
+      readAllWorkers (true, true);
       // Iterate through all steps and execute them.
       step.visit (*this);
     }
@@ -85,6 +102,8 @@ namespace conrad { namespace cp {
     }
     itsPrediffers->writeAll (buf);
     itsSolvers->write (0, buf);
+    // Read reply back from solver.
+    itsSolvers->read (0, buf);
     // Read the reply back from each prediffer and send that to the solver.
     for (int i=0; i<itsPrediffers->size(); ++i) {
       itsPrediffers->read (i, buf);
@@ -128,7 +147,7 @@ namespace conrad { namespace cp {
     out.blobStream() << step;
     out.finish();
     itsPrediffers->writeAll (buf);
-    readAllPrediffers();
+    readAllWorkers (true, false);
   }
 
   void MasterControl::visitSubtract (const MWSubtractStep& step)
@@ -138,7 +157,7 @@ namespace conrad { namespace cp {
     out.blobStream() << step;
     out.finish();
     itsPrediffers->writeAll (buf);
-    readAllPrediffers();
+    readAllWorkers (true, false);
   }
 
   void MasterControl::visitPredict (const MWPredictStep& step)
@@ -148,15 +167,22 @@ namespace conrad { namespace cp {
     out.blobStream() << step;
     out.finish();
     itsPrediffers->writeAll (buf);
-    readAllPrediffers();
+    readAllWorkers (true, false);
   }
 
-  void MasterControl::readAllPrediffers()
+  void MasterControl::readAllWorkers (bool prediffers, bool solvers)
   {
     LOFAR::BlobString buf;
-    for (int i=0; i<itsPrediffers->size(); ++i) {
-      itsPrediffers->read (i, buf);
-    }    
+    if (prediffers) {
+      for (int i=0; i<itsPrediffers->size(); ++i) {
+        itsPrediffers->read (i, buf);
+      }    
+    }
+    if (solvers) {
+      for (int i=0; i<itsSolvers->size(); ++i) {
+        itsSolvers->read (i, buf);
+      }    
+    }
   }
 
 }} // end namespaces
