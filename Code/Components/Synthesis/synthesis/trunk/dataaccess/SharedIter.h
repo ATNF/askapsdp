@@ -89,7 +89,7 @@ public:
     /// iterator which can be used in conjunction with this class
     /// @return a T:value_type (i.e. a reference to the result)
     inline typename T::value_type operator*() const {
-       CONRADDEBUGASSERT(*this);
+       CONRADDEBUGASSERT(itsSharedPtr);
        return *(*itsSharedPtr);
     }
 
@@ -97,7 +97,7 @@ public:
     /// iterator which can be used in conjunction with this class
     /// @return T::pointer_type (i.e. a pointer to the result)
     inline typename T::pointer_type operator->() const {
-       CONRADDEBUGASSERT(*this);
+       CONRADDEBUGASSERT(itsSharedPtr);
        return (*itsSharedPtr).operator->();
     }
 
