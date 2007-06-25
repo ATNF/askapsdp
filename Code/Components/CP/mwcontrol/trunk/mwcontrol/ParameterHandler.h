@@ -10,6 +10,8 @@
 #define CONRAD_MWCONTROL_PARAMETERHANDLER_H
 
 #include <APS/ParameterSet.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
 
 namespace conrad { namespace cp {
 
@@ -98,6 +100,14 @@ namespace conrad { namespace cp {
     LOFAR::ACC::APS::ParameterSet itsParms;
   };
 
+
+  // Write/read a ParameterSet into/from a blob.
+  // @{
+  LOFAR::BlobOStream operator<< (LOFAR::BlobOStream&,
+                                 const LOFAR::ACC::APS::ParameterSet&);
+  LOFAR::BlobIStream operator>> (LOFAR::BlobIStream&,
+                                 LOFAR::ACC::APS::ParameterSet&);
+  // @}
 
   inline std::string ParameterHandler::getString (const std::string& parm) const
     { return itsParms.getString (parm); }

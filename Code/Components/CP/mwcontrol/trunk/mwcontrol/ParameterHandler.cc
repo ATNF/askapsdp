@@ -148,4 +148,35 @@ namespace conrad { namespace cp {
     }
   }
 
+
+  LOFAR::BlobOStream operator<< (LOFAR::BlobOStream& bs,
+                                 const LOFAR::ACC::APS::ParameterSet& m)
+  {
+    bs.putStart ("ParameterSet", 1);
+    bs << static_cast<LOFAR::uint32>(m.size());
+    for (LOFAR::ACC::APS::ParameterSet::const_iterator it=m.begin();
+         it!=m.end();
+         ++it) {
+      bs << it->first << it->second;
+    }
+    bs.putEnd();
+    return bs;
+  }
+
+  LOFAR::BlobIStream operator>> (LOFAR::BlobIStream& bs,
+                                 LOFAR::ACC::APS::ParameterSet& m)
+  {
+    bs.getStart ("ParameterSet");
+    m.clear();
+    LOFAR::uint32 size;
+    bs >> size;
+    std::string k,v;
+    for (LOFAR::uint32 i=0; i<size; ++i) {
+      bs >> k >> v;
+      m.add (k, v);
+    }
+    bs.getEnd();
+    return bs;
+  }
+
 }} // end namespaces
