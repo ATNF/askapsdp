@@ -7,6 +7,9 @@
 #include <conrad/ConradError.h>
 #include <dataaccess/SharedIter.h>
 
+// casa
+#include <measures/Measures/MFrequency.h>
+
 // std
 #include <stdexcept>
 #include <iostream>
@@ -20,11 +23,11 @@ using namespace synthesis;
 
 void doReadOnlyTest(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
-  //sel->chooseFeed(1);
-  sel->chooseSpectralWindow(0);
-  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {
-  //IConstDataSharedIter it=ds.createConstIterator();
-       cout<<"this is a test "<<it->visibility().nrow()<<endl;
+  sel->chooseFeed(1);  
+  IDataConverterPtr conv=ds.createConverter();
+  conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
+  for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
+       cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        cout<<"uvw: "<<it->uvw()(1)<<endl;
   }
 }

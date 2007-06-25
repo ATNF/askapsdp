@@ -18,6 +18,7 @@
 // own includes
 #include <dataaccess/SubtableInfoHolder.h>
 #include <dataaccess/MemTableDataDescHolder.h>
+#include <dataaccess/MemTableSpWindowHolder.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -34,8 +35,27 @@ const ITableDataDescHolder& SubtableInfoHolder::getDataDescription() const
   return *itsDataDescHolder;
 }
 
+/// @brief obtain spectral window holder
+/// @details A MemTableSpWindowHolder is constructed on the first call
+/// to this method and a reference to it is always returned later
+/// @return a reference to the handler of the SPECTRAL_WINDOW subtable
+const ITableSpWindowHolder& SubtableInfoHolder::getSpWindow() const
+{
+  if (!itsSpWindowHolder) {
+      initSpWindowHolder();
+  }
+  return *itsSpWindowHolder;
+}
+
 /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
 void SubtableInfoHolder::initDataDescHolder() const
 {
   itsDataDescHolder.reset(new MemTableDataDescHolder(table()));
 }
+
+/// initialize itsSpWindowHolder with an instance of MemTableSpWindowHolder.
+void SubtableInfoHolder::initSpWindowHolder() const
+{
+  itsSpWindowHolder.reset(new MemTableSpWindowHolder(table()));
+}
+

@@ -64,9 +64,9 @@ struct GenericConverter : virtual public IConverterBase {
     /// @param[in] testRef reference frame of the propsed input
     /// @param[in] testUnit units in the proposed input
     virtual inline bool isVoid(const typename M::Ref &testRef,
-                     const casa::Unit &testUnit) const {
+                     const casa::Unit &testUnit) const {		     
        return (itsTargetRef.getType() == testRef.getType()) &&
-              (itsTargetUnit == testUnit);
+              (itsTargetUnit.getName() == testUnit.getName());
     }
     
 

@@ -227,6 +227,37 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
 /// populate the buffer with frequencies
 /// @param[in] freq a reference to a vector to fill
 void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) const
-{
-  freq.resize(itsNumberOfChannels);
+{  
+  CONRADDEBUGASSERT(itsConverter);
+  const ITableSpWindowHolder& spWindowSubtable=subtableInfo().getSpWindow();
+  const int spWindowIndex = subtableInfo().getDataDescription().
+                            getSpectralWindowID(itsCurrentDataDescID);
+  if (spWindowIndex<0) {
+      CONRADTHROW(DataAccessError,"A negative spectral window index ("<<
+              spWindowIndex<<") is encountered for Data Description ID="<<
+	      itsCurrentDataDescID);
+  }
+  
+  if (itsConverter->isVoid(spWindowSubtable.getReferenceFrame(
+              static_cast<const uInt>(spWindowIndex)),
+	                   spWindowSubtable.getFrequencyUnit())) {
+      // the conversion is void, i.e. table units/frame are exactly what
+      // we need for output. This simplifies things a lot.
+      freq.reference(spWindowSubtable.getFrequencies(
+                               static_cast<const uInt>(spWindowIndex)));
+      if (itsNumberOfChannels!=freq.nelements()) {
+          CONRADTHROW(DataAccessError,"The measurement set has bad or corrupted "<<
+	       "SPECTRAL_WINDOW subtable. The number of spectral channels for data "<<
+	       itsNumberOfChannels<<" doesn't match the number of channels in the "<<
+	       "frequency axis ("<<freq.nelements()<<")");
+      }
+  } else { 
+      // have to deal element by element as a conversion is required
+      freq.resize(itsNumberOfChannels);
+      for (uInt ch=0;ch<itsNumberOfChannels;++ch) {
+           freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequencies(
+	             static_cast<const uInt>(spWindowIndex),ch));
+	                            
+      }
+  }
 }

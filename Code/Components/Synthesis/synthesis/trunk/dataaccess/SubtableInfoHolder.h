@@ -51,12 +51,24 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    /// @return a reference to the handler of the DATA_DESCRIPTION subtable
    virtual const ITableDataDescHolder& getDataDescription() const;
 
+   /// @brief obtain spectral window holder
+   /// @details A MemTableSpWindowHolder is constructed on the first call
+   /// to this method and a reference to it is always returned later
+   /// @return a reference to the handler of the SPECTRAL_WINDOW subtable
+   virtual const ITableSpWindowHolder& getSpWindow() const;
+
 protected:   
    /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
-   virtual void initDataDescHolder() const;
+   void initDataDescHolder() const;
+
+   /// initialize itsSpWindowHolder with an instance of MemTableSpWindowHolder.
+   void initSpWindowHolder() const;
 private:
    /// smart pointer to data description holder
    mutable boost::shared_ptr<ITableDataDescHolder const> itsDataDescHolder;
+
+   /// smart pointer to spectral window holder
+   mutable boost::shared_ptr<ITableSpWindowHolder const> itsSpWindowHolder;
 };
 
 

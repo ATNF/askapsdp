@@ -12,6 +12,7 @@
 // own includes
 #include <dataaccess/MemTableSpWindowHolder.h>
 #include <conrad/ConradError.h>
+#include <dataaccess/DataAccessError.h>
 
 // casa includes
 #include <tables/Tables/ScalarColumn.h>
@@ -32,9 +33,17 @@ MemTableSpWindowHolder::MemTableSpWindowHolder(const casa::Table &ms)
 {
   Table spWindowSubtable=ms.keywordSet().asTable("SPECTRAL_WINDOW");
 
-  // load units
-  itsFreqUnits=casa::Unit(spWindowSubtable.tableDesc().columnDesc("CHAN_FREQ").
-                   keywordSet().asString("QuantumUnits"));
+  // load units 
+  const Array<String> &tabUnits=spWindowSubtable.tableDesc().
+          columnDesc("CHAN_FREQ").keywordSet().asArrayString("QuantumUnits");
+  if (tabUnits.nelements()!=1 || tabUnits.ndim()!=1) {
+      CONRADTHROW(DataAccessError,"Unable to interpret the QuantumUnits keyword "<<
+                  "for the CHAN_FREQ column of the SPECTRAL_WINDOW subtable. "<<
+		  "It should be an 1D Array of 1 String element and it has "<<
+		  tabUnits.nelements()<<" elements and "<<tabUnits.ndim()<<
+		  " dimensions");
+  }  
+  itsFreqUnits=casa::Unit(tabUnits(IPosition(1,0)));
   
   // load reference frame ids
   ROScalarColumn<Int> measRefCol(spWindowSubtable,"MEAS_FREQ_REF");
@@ -92,8 +101,8 @@ MemTableSpWindowHolder::getFrequencies(casa::uInt spWindowID) const
 casa::MFrequency MemTableSpWindowHolder::getFrequencies(casa::uInt spWindowID,
                           casa::uInt channel) const
 {
-  CONRADDEBUGASSERT(spWindowID<itsChanFreqs.nelements());
-  CONRADDEBUGASSERT(itsChanFreqs[spWindowID].nelements()<channel);
+  CONRADDEBUGASSERT(spWindowID<itsChanFreqs.nelements());  
+  CONRADDEBUGASSERT(channel<itsChanFreqs[spWindowID].nelements());
   const casa::Double freqAsDouble=itsChanFreqs[spWindowID][channel];
   const casa::MVFrequency result(Quantity(freqAsDouble,itsFreqUnits));
   return MFrequency(result,MFrequency::Ref(itsMeasRefIDs[spWindowID]));

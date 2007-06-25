@@ -21,6 +21,7 @@
 
 #include <dataaccess/IHolder.h>
 #include <dataaccess/ITableDataDescHolder.h>
+#include <dataaccess/ITableSpWindowHolder.h>
 
 namespace conrad {
 
@@ -42,7 +43,9 @@ struct ISubtableInfoHolder : virtual public IHolder {
 
    /// @return a reference to the handler of the DATA_DESCRIPTION subtable
    virtual const ITableDataDescHolder& getDataDescription() const = 0;
-  
+
+   /// @return a reference to the handler of the SPECTRAL_WINDOW subtable
+   virtual const ITableSpWindowHolder& getSpWindow() const = 0;
 };
 
 
