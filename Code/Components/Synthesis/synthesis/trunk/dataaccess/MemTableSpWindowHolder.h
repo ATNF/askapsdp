@@ -1,6 +1,6 @@
 /// @file
-/// @brief An interface to SPECTRAL_WINDOW subtable
-/// @details A class derived from this interface provides access to
+/// @brief Implementation of ITableSpWindowHolder
+/// @details This file contains a class, which reads and stores 
 /// the content of the SPECTRAL_WINDOW subtable (which provides
 /// frequencies for each channel). The table is indexed with the
 /// spectral window ID.
@@ -9,38 +9,46 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_SP_WINDOW_HOLDER_H
-#define I_TABLE_SP_WINDOW_HOLDER_H
+#ifndef MEM_TABLE_SP_WINDOW_HOLDER_H
+#define MEM_TABLE_SP_WINDOW_HOLDER_H
 
 // casa includes
 #include <measures/Measures/MFrequency.h>
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Array.h>
+#include <tables/Tables/Table.h>
+#include <casa/Quanta/Unit.h>
 
 // own includes
-#include <dataaccess/IHolder.h>
+#include <dataaccess/ITableSpWindowHolder.h>
 
 namespace conrad {
 
 namespace synthesis {
 
-/// @brief An interface to SPECTRAL_WINDOW subtable
-/// @details A class derived from this interface provides access to
-/// the content of the SPECTRAL_WINDOW subtable (which provides
+/// @brief Memory-based implementation of ITableSpWindowHolder
+/// @details This class reads and stores in memory the content
+/// of the SPECTRAL_WINDOW subtable (which provides
 /// frequencies for each channel). The table is indexed with the
 /// spectral window ID.
-struct ITableSpWindowHolder : virtual public IHolder {
+struct MemTableSpWindowHolder : virtual public ITableSpWindowHolder {
+
+  /// read all required information from the SPECTRAL_WINDOW subtable
+  /// @param ms an input measurement set (in fact any table which has a
+  /// SPECTRAL_WINDOW subtable defined)
+  explicit MemTableSpWindowHolder(const casa::Table &ms);
 
   /// obtain the reference frame used in the spectral window table
   /// @param[in] spWindowID an index into spectral window table
   /// @return the reference frame of the given row
   virtual casa::MFrequency::Ref
-                    getReferenceFrame(casa::uInt spWindowID) const = 0;
+                    getReferenceFrame(casa::uInt spWindowID) const;
 
   /// @brief obtain the frequency units used in the spectral window table
   /// @details The frequency units depend on the measurement set only and
   /// are the same for all rows.
   /// @return a reference to the casa::Unit object
-  virtual const casa::Unit& getFrequencyUnit() const throw() = 0;
+  virtual const casa::Unit& getFrequencyUnit() const throw();
   
   /// @brief obtain frequencies for each spectral channel
   /// @details All frequencies for each spectral channel are retreived as
@@ -49,7 +57,7 @@ struct ITableSpWindowHolder : virtual public IHolder {
   /// @param[in] spWindowID an index into spectral window table
   /// @return freqs a const reference to a vector with result
   virtual const casa::Vector<casa::Double>&
-                     getFrequencies(casa::uInt spWindowID) const = 0;
+                     getFrequencies(casa::uInt spWindowID) const;
 
   /// @brief obtain frequency for a given spectral channel
   /// @details This version of the method is intended to obtain a
@@ -59,7 +67,18 @@ struct ITableSpWindowHolder : virtual public IHolder {
   /// @param[in] spWindowID an index into spectral window table
   /// @param[in] channel a channel number of interest
   virtual casa::MFrequency getFrequencies(casa::uInt spWindowID,
-                            casa::uInt channel) const = 0;
+                            casa::uInt channel) const;
+private:
+  // reference frame ids for each row (spectral window ID)
+  casa::Vector<casa::Int>  itsMeasRefIDs;
+  
+  // a buffer for channel frequencies
+  // we use Vector of Vectors as each cell can, in principle, have
+  // different shape
+  casa::Vector<casa::Vector<casa::Double> > itsChanFreqs;
+  
+  // frequency units used in the table (and therefore used in itsChanFreqs)
+  casa::Unit itsFreqUnits;
 };
 
 
@@ -67,4 +86,4 @@ struct ITableSpWindowHolder : virtual public IHolder {
 
 } // namespace conrad
 
-#endif // #ifndef I_TABLE_SP_WINDOW_HOLDER_H
+#endif // #ifndef MEM_TABLE_SP_WINDOW_HOLDER_H
