@@ -252,7 +252,7 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
 	       "frequency axis ("<<freq.nelements()<<")");
       }
   } else { 
-      // have to deal element by element as a conversion is required
+      // have to process element by element as a conversion is required
       freq.resize(itsNumberOfChannels);
       for (uInt ch=0;ch<itsNumberOfChannels;++ch) {
            freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequencies(
@@ -260,4 +260,13 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
 	                            
       }
   }
+}
+
+/// populate the buffer with time stamps
+/// @param[in] time a reference to a vector to fill
+void TableConstDataIterator::fillTime(casa::Vector<casa::Double> &time) const
+{
+  ROScalarColumn<Double> timeCol(itsCurrentIteration,"TIME");
+  timeCol.getColumnRange(Slicer(IPosition(1,itsCurrentTopRow),
+             IPosition(1,itsNumberOfRows)),time,True);
 }

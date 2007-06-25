@@ -87,11 +87,26 @@ const casa::Vector<casa::Double>& TableConstDataAccessor::frequency() const
   return itsFrequency;
 }
 
+/// Timestamp for each row
+/// @return a reference to vector containing timestamps for each
+///         row (as Double w.r.t. the origin specified by the 
+///         DataSource object along with the reference frame)  
+const casa::Vector<casa::Double>& TableConstDataAccessor::time() const
+{
+  if (itsTimeChanged) {
+      itsIterator.fillTime(itsTime);
+      itsTimeChanged=false;
+  }
+  return itsTime;
+}
+
+
 /// set itsXxxChanged flags corresponding to items updated on each iteration to true
 void TableConstDataAccessor::invalidateIterationCaches() const throw()
 {
   itsVisibilityChanged=true;
   itsUVWChanged=true;
+  itsTimeChanged=true;
 }
 
 /// @brief set itsXxxChanged flags corresponding to spectral axis

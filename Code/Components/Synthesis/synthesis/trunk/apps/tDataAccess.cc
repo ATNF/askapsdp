@@ -29,6 +29,7 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        cout<<"uvw: "<<it->uvw()(1)<<endl;
+       //cout<<"time: "<<it->time()-4.634e9<<endl;
   }
 }
 

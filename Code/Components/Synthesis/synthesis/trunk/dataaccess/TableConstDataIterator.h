@@ -96,6 +96,10 @@ public:
   /// populate the buffer with frequencies
   /// @param[in] freq a reference to a vector to fill
   void fillFrequency(casa::Vector<casa::Double> &freq) const;
+
+  /// populate the buffer with time stamps
+  /// @param[in] time a reference to a vector to fill
+  void fillTime(casa::Vector<casa::Double> &time) const;
   
 protected:
   /// setup accessor for a new iteration
