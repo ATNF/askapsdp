@@ -188,7 +188,7 @@ namespace conrad
         /// @param os Input Output ostream
         /// @param ne NormalEquations to be processed @{
         friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const NormalEquations& ne);
-        friend LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& os, NormalEquations& ne); 
+        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, NormalEquations& ne); 
         /// @}
         
       protected:

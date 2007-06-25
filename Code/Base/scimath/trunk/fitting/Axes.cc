@@ -7,6 +7,12 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobArray.h>
+#include <Blob/BlobSTL.h>
+
+
 using std::ostream;
 using std::string;
 using std::vector;
@@ -122,6 +128,16 @@ namespace conrad
           << std::endl;
       }
       return os;
+    }
+    
+    LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Axes& axes) 
+    {
+      os << axes.itsNames << axes.itsStart << axes.itsEnd;
+    }
+
+    LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Axes& axes)
+    {
+      os >> axes.itsNames >> axes.itsStart >> axes.itsEnd;
     }
 
   }

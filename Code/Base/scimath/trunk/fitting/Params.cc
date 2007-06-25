@@ -6,6 +6,8 @@
 
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
+#include <Blob/BlobArray.h>
+#include <Blob/BlobSTL.h>
 
 #include <conrad/ConradUtil.h>
 
@@ -352,14 +354,15 @@ namespace conrad
 // std::map<std::string, Axes> itsAxes;
 // std::map<std::string, bool> itsFree;
 // std::map<std::string, int> itsCounts;
-/// @todo Finish shift operators for Params
     
     LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par) 
     {
+      os << par.itsArrays << par.itsAxes << par.itsFree << par.itsCounts;
     }
 
-    LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& os, Params& par)
+    LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Params& par)
     {
+      os >> par.itsArrays >> par.itsAxes >> par.itsFree >> par.itsCounts;
     }
 
   }

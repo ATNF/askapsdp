@@ -178,7 +178,7 @@ namespace conrad
         /// @param os Input Output ostream
         /// @param params Parameters to be processed @{
         friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par);
-        friend LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& os, Params& par); 
+        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Params& par); 
         /// @}
 
       protected:

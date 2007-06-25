@@ -25,6 +25,9 @@
 #include <map>
 #include <string>
 
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
 namespace conrad
 {
   
@@ -81,6 +84,10 @@ namespace conrad
 
 /// Output to an ostream
         friend std::ostream& operator<<(std::ostream& os, const Axes& domain);
+
+/// IO to and from a BlobStream
+        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Axes& axes); 
+        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Axes& axes);
 
       private:
         mutable std::vector<std::string> itsNames;

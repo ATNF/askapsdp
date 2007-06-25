@@ -9,6 +9,9 @@
 #include <casa/Arrays/MatrixMath.h>
 #include <casa/Arrays/Vector.h>
 
+#include <Blob/BlobArray.h>
+#include <Blob/BlobSTL.h>
+
 #include <stdexcept>
 #include <string>
 #include <map>
@@ -478,16 +481,20 @@ namespace conrad
 // std::map<string, casa::IPosition> itsShape
 // std::map<string, casa::IPosition> itsReference
 // std::map<string, casa::Vector<double> > itsDataVector
-//
-/// @todo Finish shift operators for NormalEquations
+
+    
     LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const NormalEquations& ne) 
     {
-      os << *(ne.itsParams);
+      os << *(ne.itsParams) << ne.itsNormalMatrix << ne.itsNormalMatrixSlice 
+        << ne.itsNormalMatrixDiagonal << ne.itsDataVector; 
+//        << ne.itsNormalMatrixDiagonal << ne.itsShape << ne.itsReference << ne.itsDataVector; 
     }
 
-    LOFAR::BlobIStream& operator>>(const LOFAR::BlobIStream& is, NormalEquations& ne)
+    LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, NormalEquations& ne)
     {
-      is >> *(ne.itsParams);
+      is >> *(ne.itsParams) >> ne.itsNormalMatrix >> ne.itsNormalMatrixSlice 
+        >> ne.itsNormalMatrixDiagonal >> ne.itsDataVector;
+//        >> ne.itsNormalMatrixDiagonal >> ne.itsShape >> ne.itsReference >> ne.itsDataVector;
     }
   }
 }
