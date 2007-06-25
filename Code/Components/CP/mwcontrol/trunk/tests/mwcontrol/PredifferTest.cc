@@ -9,10 +9,9 @@
 #include "MWIos.h"
 #include <mwcommon/MasterControl.h>
 #include <mwcommon/MWStepFactory.h>
-#include <mwcommon/MWBlobIO.h>
 #include <mwcommon/MWError.h>
 #include <Blob/BlobIStream.h>
-#include <Blob/BlobString.h>
+#include <Blob/BlobOStream.h>
 
 using namespace std;
 
@@ -46,10 +45,11 @@ namespace conrad { namespace cp {
            << "  CalcUVW:    " << calcUVW << endl;
   }
 
-  void PredifferTest::doProcess (int operation, int streamId,
-				 LOFAR::BlobIStream& in,
-				 LOFAR::BlobString& out)
+  int PredifferTest::doProcess (int operation, int streamId,
+                                LOFAR::BlobIStream& in,
+                                LOFAR::BlobOStream& out)
   {
+    int resOper = operation;
     MWCOUT << "PredifferTest::doProcess" << endl;
     MWCOUT << "  Operation: " << operation << endl;
     MWCOUT << "  StreamId:  " << streamId << endl;
@@ -70,14 +70,13 @@ namespace conrad { namespace cp {
       // Process the step (using a visitor).
       MWStepTester visitor (streamId, &out);
       step->visit (visitor);
+      resOper = visitor.getResultOperation();
       break;
     }
     case MasterControl::GetEq:
     {
       MWCOUT << "  GetEq" << endl;
-      MWBlobOut bout (out, MasterControl::GetEq, streamId);
-      bout.blobStream() << true;
-      bout.finish();
+      out << true;
       break;
     }
     case MasterControl::Solve:
@@ -85,12 +84,14 @@ namespace conrad { namespace cp {
       MWCOUT << "  Solve" << endl;
       bool value;
       in >> value;
+      resOper = -1;     // no reply to be sent
       break;
     }
     default:
       CONRADTHROW (MWError, "PredifferTest::doProcess: operation "
 		   << operation << " is unknown");
     }
+    return resOper;
   }
 
 }} // end namespaces

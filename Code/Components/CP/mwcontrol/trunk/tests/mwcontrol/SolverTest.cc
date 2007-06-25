@@ -8,8 +8,9 @@
 #include "MWIos.h"
 #include <mwcommon/MWSolveStep.h>
 #include <mwcommon/MasterControl.h>
-#include <mwcommon/MWBlobIO.h>
 #include <mwcommon/MWError.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
 
 using namespace std;
 
@@ -43,10 +44,11 @@ namespace conrad { namespace cp {
            << "  CalcUVW:    " << calcUVW << endl;
   }
 
-  void SolverTest::doProcess (int operation, int streamId,
-			      LOFAR::BlobIStream& in,
-			      LOFAR::BlobString& out)
+  int SolverTest::doProcess (int operation, int streamId,
+                             LOFAR::BlobIStream& in,
+                             LOFAR::BlobOStream& out)
   {
+    int resOper = operation;
     MWCOUT << "SolverTest::doProcess" << endl;
     MWCOUT << "  Operation: " << operation << endl;
     MWCOUT << "  StreamId:  " << streamId << endl;
@@ -78,6 +80,7 @@ namespace conrad { namespace cp {
       bool result;
       in >> result;
       MWCOUT << "  ParmInfo " << result << endl;
+      resOper = -1;     // no reply to be sent
       break;
     }
     case MasterControl::GetEq:
@@ -86,6 +89,7 @@ namespace conrad { namespace cp {
       bool result;
       in >> result;
       MWCOUT << "  GetEq " << result << endl;
+      resOper = -1;     // no reply to be sent
       break;
     }
     case MasterControl::Solve:
@@ -93,15 +97,14 @@ namespace conrad { namespace cp {
       MWCOUT << "  Solve iteration: " << itsNrIter << endl;
       ++itsNrIter;
       bool converged = itsNrIter>=itsMaxIter;
-      MWBlobOut bout (out, MasterControl::Solve, streamId);
-      bout.blobStream() << converged;
-      bout.finish();
+      out << converged;
       break;
     }
     default:
       CONRADTHROW (MWError, "SolverTest::doProcess: operation "
 		   << operation << " is unknown");
     }
+    return resOper;
   }
 
 }} // end namespaces

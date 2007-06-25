@@ -50,7 +50,7 @@ echo "Doing socket run on 3 nodes ..."
 \rm -f tMWControl_tmp.cout*
 ./tMWControl socket localhost 3851 3 1 &    # prediffer 1
 ./tMWControl socket localhost 3851 3 2 &    # prediffer 2
-./tMWControl socket localhost 3851 3 0      # master
+./tMWControl socket localhost 3851 3 0      # master + solver
 STATUS=$?
 # Wait a second to be sure the prediffers ended as well.
 sleep 1

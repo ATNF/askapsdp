@@ -29,9 +29,9 @@ namespace conrad { namespace cp {
 			      unsigned int subBand,
 			      bool calcUVW);
 
-    virtual void doProcess (int operation, int streamId,
-			    LOFAR::BlobIStream& in,
-			    LOFAR::BlobString& out);
+    virtual int doProcess (int operation, int streamId,
+                           LOFAR::BlobIStream& in,
+                           LOFAR::BlobOStream& out);
   };
 
 }} // end namespaces

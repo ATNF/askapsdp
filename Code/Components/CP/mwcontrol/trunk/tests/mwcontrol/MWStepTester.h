@@ -9,7 +9,7 @@
 
 #include <mwcommon/MWStepVisitor.h>
 #include <mwcommon/MWStep.h>
-#include <Blob/BlobString.h>
+#include <Blob/BlobOStream.h>
 
 
 namespace conrad { namespace cp {
@@ -17,9 +17,13 @@ namespace conrad { namespace cp {
   class MWStepTester: public MWStepVisitor
   {
   public:
-    MWStepTester (int streamId, LOFAR::BlobString* out);
+    MWStepTester (int streamId, LOFAR::BlobOStream* out);
 
     virtual ~MWStepTester();
+
+    // Get the resulting operation.
+    int getResultOperation() const
+      { return itsOperation; }
 
   private:
     // Process the various MWStep types.
@@ -34,8 +38,9 @@ namespace conrad { namespace cp {
     void writeResult (bool result);
 
     //# Data members.
-    int                itsStreamId;
-    LOFAR::BlobString* itsOut;
+    int                 itsStreamId;
+    int                 itsOperation;
+    LOFAR::BlobOStream* itsOut;
   };
 
 }} // end namespaces
