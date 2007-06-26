@@ -164,7 +164,7 @@ namespace conrad
           }
 // This only works for the pixels with emission but it's a good test nevertheless
           CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
-          CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.003);
+          CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.005);
         }
 
         void testFixed()
