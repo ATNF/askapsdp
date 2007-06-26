@@ -83,7 +83,7 @@ namespace conrad
       {
 
         const casa::Vector<double>& freq=itsIdi->frequency();
-        const casa::Vector<double>& time=itsIdi->time();
+        const double time=itsIdi->time();
         const uint nChan=freq.nelements();
         const uint nRow=itsIdi->nRow();
         casa::Matrix<double> vis(nRow,2*nChan);
@@ -145,7 +145,7 @@ namespace conrad
         const casa::Vector<double>& freq=itsIdi->frequency();
         const uint nChan=freq.nelements();
         const uint nRow=itsIdi->nRow();
-        const casa::Vector<double>& time=itsIdi->time();
+        const double time=itsIdi->time();
 
 // Set up arrays to hold the output values
 // Row, Two values (complex) per channel, single pol

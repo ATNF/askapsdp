@@ -262,11 +262,11 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
   }
 }
 
-/// populate the buffer with time stamps
-/// @param[in] time a reference to a vector to fill
-void TableConstDataIterator::fillTime(casa::Vector<casa::Double> &time) const
+/// @return the time stamp  
+casa::Double TableConstDataIterator::getTime() const 
 {
   ROScalarColumn<Double> timeCol(itsCurrentIteration,"TIME");
-  timeCol.getColumnRange(Slicer(IPosition(1,itsCurrentTopRow),
-             IPosition(1,itsNumberOfRows)),time,True);
+  return timeCol(0);
+  //timeCol.getColumnRange(Slicer(IPosition(1,itsCurrentTopRow),
+    //         IPosition(1,itsNumberOfRows)),time,True);
 }

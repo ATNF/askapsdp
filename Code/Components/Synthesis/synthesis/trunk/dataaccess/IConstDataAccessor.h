@@ -114,10 +114,11 @@ public:
 	virtual const casa::Cube<casa::Complex>& noise() const = 0;
 
 	/// Timestamp for each row
-	/// @return a reference to vector containing timestamps for each
-	///         row (as Double w.r.t. the origin specified by the 
-	///         DataSource object along with the reference frame)  
-	virtual const casa::Vector<casa::Double>& time() const = 0;
+	/// @return a timestamp for this buffer (it is always the same
+	///         for all rows. The timestamp is returned as 
+	///         Double w.r.t. the origin specified by the 
+	///         DataSource object and in that reference frame
+	virtual casa::Double time() const = 0;
 
 	/// Frequency for each channel
 	/// @return a reference to vector containing frequencies for each

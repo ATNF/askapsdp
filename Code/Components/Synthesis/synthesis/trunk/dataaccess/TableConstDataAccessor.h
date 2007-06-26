@@ -72,12 +72,12 @@ public:
   virtual const casa::Vector<casa::Double>& frequency() const;
 
   /// Timestamp for each row
-  /// @return a reference to vector containing timestamps for each
-  ///         row (as Double w.r.t. the origin specified by the 
-  ///         DataSource object along with the reference frame)  
-  virtual const casa::Vector<casa::Double>& time() const;
-
-
+  /// @return a timestamp for this buffer (it is always the same
+  ///         for all rows. The timestamp is returned as 
+  ///         Double w.r.t. the origin specified by the 
+  ///         DataSource object and in that reference frame
+  virtual casa::Double time() const;
+     
   /// @brief set itsXxxChanged flags corresponding to items updated on
   /// each iteration to true
   /// @details Such caches like visibility, uvw, noise and flags are updated
@@ -104,7 +104,7 @@ private:
   mutable bool itsFrequencyChanged; 
   mutable casa::Vector<casa::Double> itsFrequency;
   mutable bool itsTimeChanged;
-  mutable casa::Vector<casa::Double> itsTime;
+  mutable casa::Double itsTime;
 };
 
 

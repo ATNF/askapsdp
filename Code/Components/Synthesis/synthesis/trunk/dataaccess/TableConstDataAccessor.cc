@@ -88,13 +88,14 @@ const casa::Vector<casa::Double>& TableConstDataAccessor::frequency() const
 }
 
 /// Timestamp for each row
-/// @return a reference to vector containing timestamps for each
-///         row (as Double w.r.t. the origin specified by the 
-///         DataSource object along with the reference frame)  
-const casa::Vector<casa::Double>& TableConstDataAccessor::time() const
+/// @return a timestamp for this buffer (it is always the same
+///         for all rows. The timestamp is returned as 
+///         Double w.r.t. the origin specified by the 
+///         DataSource object and in that reference frame
+casa::Double TableConstDataAccessor::time() const
 {
   if (itsTimeChanged) {
-      itsIterator.fillTime(itsTime);
+      itsTime=itsIterator.getTime();
       itsTimeChanged=false;
   }
   return itsTime;

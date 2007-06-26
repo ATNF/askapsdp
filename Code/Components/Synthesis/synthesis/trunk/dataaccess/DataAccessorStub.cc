@@ -78,7 +78,7 @@ DataAccessorStub::DataAccessorStub(const bool fill)
       uint nPol(1);
       this->itsVisibility.resize(nRows, nChan, nPol);
       this->itsVisibility.set(casa::Complex(0.0, 0.0));
-      this->itsTime.resize(nRows);
+      this->itsTime=0;
       this->itsUVW.resize(nRows);
       this->itsAntenna1.resize(nRows);
       this->itsAntenna2.resize(nRows);
@@ -90,8 +90,7 @@ DataAccessorStub::DataAccessorStub(const bool fill)
 		      this->itsAntenna1(row)=iant1;
 		      this->itsAntenna2(row)=iant2;
 		      this->itsFeed1(row)=0;
-		      this->itsFeed2(row)=0;
-		      this->itsTime(row)=0.0;
+		      this->itsFeed2(row)=0;		      
 			  this->itsUVW(row)=casa::RigidVector<casa::Double, 3>(0.0, 0.0, 0.0);
 			  for (uint dim=0;dim<3;dim++) this->itsUVW(row)(dim)=mPos[iant1].get("m").getValue()(dim)-mPos[iant2].get("m").getValue()(dim);
 			  row++;
@@ -245,11 +244,11 @@ const casa::Cube<casa::Complex>& DataAccessorStub::noise() const
   return itsNoise;
 }
 
-/// Timestamp for each row
-/// @return a reference to vector containing timestamps for each
-///         row (as Double, the frame/origin/units are specified by the
-///         DataSource object)
-const casa::Vector<casa::Double>& DataAccessorStub::time() const
+/// @return a timestamp for this buffer (it is always the same
+///         for all rows. The timestamp is returned as 
+///         Double w.r.t. the origin specified by the 
+///         DataSource object and in that reference frame
+casa::Double DataAccessorStub::time() const
 {
   return itsTime;
 }

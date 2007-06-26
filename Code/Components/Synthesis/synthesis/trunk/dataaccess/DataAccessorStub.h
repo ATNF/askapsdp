@@ -116,10 +116,12 @@ struct DataAccessorStub : public IFlagDataAccessor
              uvw() const;
          
      /// Timestamp for each row
-     /// @return a reference to vector containing timestamps for each
-     ///         row (as Double, the frame/origin/units are specified by the
-     ///         DataSource object)
-     virtual const casa::Vector<casa::Double>& time() const;
+     /// @return a timestamp for this buffer (it is always the same
+     ///         for all rows. The timestamp is returned as 
+     ///         Double w.r.t. the origin specified by the 
+     ///         DataSource object and in that reference frame
+     virtual casa::Double time() const;
+     
      
      /// Frequency for each channel
      /// @return a reference to vector containing frequencies for each
@@ -151,7 +153,7 @@ struct DataAccessorStub : public IFlagDataAccessor
      mutable casa::Cube<casa::Bool> itsFlag;
      mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
      mutable casa::Cube<casa::Complex> itsNoise;
-     mutable casa::Vector<casa::Double> itsTime;
+     mutable casa::Double itsTime;
      mutable casa::Vector<casa::Double> itsFrequency;
      mutable casa::Vector<casa::Double> itsVelocity;
 };

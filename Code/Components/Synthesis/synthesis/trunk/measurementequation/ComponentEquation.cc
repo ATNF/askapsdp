@@ -107,7 +107,7 @@ namespace conrad
           {
 
             const casa::Vector<double>& freq=itsIdi->frequency();
-            const casa::Vector<double>& time=itsIdi->time();
+            const double time=itsIdi->time();
             casa::Vector<float> vis(2*freq.nelements());
 
             if((bmaj>0.0)&&(bmin>0.0))
@@ -146,7 +146,7 @@ namespace conrad
       {
 
         const casa::Vector<double>& freq=itsIdi->frequency();
-        const casa::Vector<double>& time=itsIdi->time();
+        const double time=itsIdi->time();
 
         const uint nParameters=6;
 
