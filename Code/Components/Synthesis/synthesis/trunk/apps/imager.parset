@@ -3,10 +3,10 @@ DataSet                 			= spw_1.ms  # name of Measurement Set
 Parms.Instrument							=
 Parms.LocalSky								= nvss.par
 Parms.GlobalSky								=
-Parms.Result									= dSynthesis.par
+Parms.Result									= imager.par
 
 Images.Names									= [image.i.nvss]
-Images.image.i.nvss.shape			= [4096,4096]
+Images.image.i.nvss.shape			= [1024,1024]
 Images.image.i.nvss.cellsize	= [6arcsec, 6arcsec]
 Images.image.i.nvss.frequency	= [1.420e9-256e6, 1.420e9]
 Images.image.i.nvss.nchan			= 1
