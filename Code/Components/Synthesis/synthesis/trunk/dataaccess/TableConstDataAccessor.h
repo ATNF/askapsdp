@@ -1,9 +1,8 @@
 /// @file
 /// @brief an implementation of IConstDataAccessor
 ///
-/// @details TableDataAccessor is an implementation of the
-/// DataAccessor. It is intended to be used with both const and
-/// non-const iterators. It is currently
+/// @details TableConstDataAccessor is an implementation of the
+/// DataAccessor working with TableConstDataIterator. It is currently
 /// derived from DataAccessorStub as most of the
 /// methods are stubbed. However, in the future
 /// it should become a separate class derived
