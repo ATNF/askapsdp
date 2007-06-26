@@ -28,10 +28,16 @@ namespace conrad {
 
 namespace synthesis {
 	
-/// short cut typedefs for Selector and Converter
+/// short cut for shared pointer to IDataSelector
 typedef boost::shared_ptr<IDataSelector> IDataSelectorPtr;
+
+/// short cut for shared pointer to IDataConverter
 typedef boost::shared_ptr<IDataConverter> IDataConverterPtr;
+
+/// short cut for shared pointer to const IDataSelector
 typedef boost::shared_ptr<IDataSelector const> IDataSelectorConstPtr;
+
+/// short cut for shared pointer to const IDataConverter
 typedef boost::shared_ptr<IDataConverter const> IDataConverterConstPtr;
 
 /// @brief Read-only access to a source of visibility data

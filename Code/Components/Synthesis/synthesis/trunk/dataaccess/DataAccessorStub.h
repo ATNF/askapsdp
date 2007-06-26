@@ -139,22 +139,37 @@ struct DataAccessorStub : public IFlagDataAccessor
 
      
 //private: // to be able to change stubbed data directly, if necessary
-     /// cached results which are filled from an appropriate table
-     /// when necessary (they probably have to be moved to DataSource)
+     // cached results which are filled from an appropriate table
+     // when necessary (they probably have to be moved to DataSource)
+     /// cached antenna1
      mutable casa::Vector<casa::uInt> itsAntenna1;
+     /// cached antenna2
      mutable casa::Vector<casa::uInt> itsAntenna2;
+     /// cached feed1
      mutable casa::Vector<casa::uInt> itsFeed1;
+     /// cached feed2
      mutable casa::Vector<casa::uInt> itsFeed2;
+     /// cached feed1 position angle
      mutable casa::Vector<casa::Float> itsFeed1PA;
+     /// cached feed2 position angle
      mutable casa::Vector<casa::Float> itsFeed2PA;
+     /// cached pointing direction of the first antenna
      mutable casa::Vector<casa::MVDirection> itsPointingDir1;
+     /// cached pointing direction of the second antenna
      mutable casa::Vector<casa::MVDirection> itsPointingDir2;
+     /// cached visibility
      mutable casa::Cube<casa::Complex> itsVisibility;
+     /// cached flag
      mutable casa::Cube<casa::Bool> itsFlag;
+     /// cached uvw
      mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
+     /// cached noise
      mutable casa::Cube<casa::Complex> itsNoise;
+     /// cached time
      mutable casa::Double itsTime;
+     /// cached frequency
      mutable casa::Vector<casa::Double> itsFrequency;
+     /// cached velocity
      mutable casa::Vector<casa::Double> itsVelocity;
 };
 

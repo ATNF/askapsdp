@@ -98,6 +98,7 @@ public:
 	///         while(it.next()) {} are possible)
 	casa::Bool next();
 public:
+        /// a maximum number of simulated iterations
 	casa::uInt itsMaxCounter;
         /// counter of the iteration number
 	casa::uInt itsCounter;

@@ -271,7 +271,10 @@ private:
 class IDataIterator;
 class IConstDataIterator;
 
+/// short cut to non-const shared iterator 
 typedef SharedIter<IDataIterator> IDataSharedIter;
+
+/// short cut to const shared iterator 
 typedef SharedIter<IConstDataIterator> IConstDataSharedIter;
 
 } // end of namespace synthesis

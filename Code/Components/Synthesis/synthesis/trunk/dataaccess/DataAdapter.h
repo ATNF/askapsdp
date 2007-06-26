@@ -56,7 +56,8 @@ public:
   inline typename Sel::value_type operator*() const {
      return itsSelector(itsIter);
   }
-  
+
+  /// increment operation
   inline void operator++() const {
      itsIncrementor(itsIter);
   }
@@ -85,6 +86,8 @@ private:
 /// same iterator) and another doing normal increments (if the destination
 /// is pointed by a separate iterators)
 struct NoIncrement {
+   /// this operator of the given class does nothing
+   /// @param[in] iter ignored
    template<typename Iter>
    inline void operator()(const Iter &iter) const
    {}
@@ -97,6 +100,9 @@ struct NoIncrement {
 /// same iterator) and another doing normal increments (if the destination
 /// is pointed by a separate iterators)
 struct Incremented {
+   /// @brief increment of the given iterator
+   /// @details 
+   /// @param[in] iter iterator to increment
    template<typename Iter>
    inline void operator()(const Iter &iter) const
    {
@@ -106,7 +112,13 @@ struct Incremented {
 
 /// @brief data selector, which selects read-write visibility
 struct VisibilitySelector {
+
+   /// a type of the result
    typedef casa::Cube<casa::Complex>& value_type;
+
+   /// @brief access to the visibility cube
+   /// @details The method returns a non-const reference to visibilities
+   /// @param[in] iter iterator to work with
    template<typename Iter>
    inline value_type operator()(const Iter &iter) const
    {
@@ -116,16 +128,26 @@ struct VisibilitySelector {
 
 /// @brief data selector, which selects given buffer
 struct BufferSelector {
+  /// @brief set up the selector for a given buffer
+  /// @details
+  /// @param[in] buffer the name of the buffer
   BufferSelector(const std::string &buffer) : itsBufferName(buffer) {}
- 
+
+  /// a type of the result
   typedef casa::Cube<casa::Complex>& value_type;
+
   
+  /// @brief access to the visibility cube
+  /// @details The method returns a non-const reference to visibilities
+  /// in the given buffer
+  /// @param[in] iter iterator to work with
   template<typename Iter>
   inline value_type operator()(const Iter &iter) const
   {
     return iter.buffer(itsBufferName).rwVisibility();
   }  
 private:
+  /// buffer name to work with
   const std::string itsBufferName;
 };
 
