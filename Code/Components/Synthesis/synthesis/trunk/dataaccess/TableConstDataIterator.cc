@@ -13,12 +13,12 @@
 /// casa includes
 #include <tables/Tables/ArrayColumn.h>
 #include <tables/Tables/ScalarColumn.h>
+#include <measures/TableMeasures/ScalarMeasColumn.h>
 
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
-
 
 using namespace casa;
 using namespace conrad;
@@ -264,9 +264,21 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
 
 /// @return the time stamp  
 casa::Double TableConstDataIterator::getTime() const 
-{
-  ROScalarColumn<Double> timeCol(itsCurrentIteration,"TIME");
-  return timeCol(0);
-  //timeCol.getColumnRange(Slicer(IPosition(1,itsCurrentTopRow),
-    //         IPosition(1,itsNumberOfRows)),time,True);
+{ 
+  // add additional checks in debug mode
+  #ifdef CONRAD_DEBUG
+   ROScalarColumn<Double> timeCol(itsCurrentIteration,"TIME");
+   Double time=timeCol(itsCurrentTopRow);
+    Vector<Double> allTimes=timeCol.getColumnRange(Slicer(IPosition(1,
+                       itsCurrentTopRow),IPosition(1,itsNumberOfRows)));
+    for (uInt row=0;row<allTimes.nelements();++row)
+         if (allTimes[row]!=time) {
+             throw DataAccessLogicError("Time column is not homogeneous for each "
+	                            "DataAccessor. This shouldn't happend");
+	 }  
+  #endif
+  // end of additional checks
+
+  ROScalarMeasColumn<MEpoch> timeMeasCol(itsCurrentIteration,"TIME"); 
+  return itsConverter->epoch(timeMeasCol(itsCurrentTopRow)); 
 }

@@ -26,10 +26,12 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   sel->chooseFeed(1);  
   IDataConverterPtr conv=ds.createConverter();
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
+  conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
+                      casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        cout<<"uvw: "<<it->uvw()(1)<<endl;
-       //cout<<"time: "<<it->time()-4.634e9<<endl;
+       cout<<"time: "<<it->time()<<endl;
   }
 }
 
