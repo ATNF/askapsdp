@@ -1,8 +1,9 @@
-/// @file TableConstDataAccessor.h
-/// @brief an implementation of IConstDataAccessor working with TableConstDataIterator
+/// @file
+/// @brief an implementation of IDataAccessor
 ///
-/// @details TableConstDataAccessor is an implementation of the
-/// DataAccessor working with the TableConstDataIterator. It is currently
+/// @details TableDataAccessor is an implementation of the
+/// DataAccessor. It is intended to be used with both const and
+/// non-const iterators. It is currently
 /// derived from DataAccessorStub as most of the
 /// methods are stubbed. However, in the future
 /// it should become a separate class derived
@@ -11,8 +12,8 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
-#ifndef TABLE_CONST_DATA_ACCESSOR_H
-#define TABLE_CONST_DATA_ACCESSOR_H
+#ifndef TABLE_DATA_ACCESSOR_H
+#define TABLE_DATA_ACCESSOR_H
 
 /// own includes
 #include <dataaccess/IConstDataAccessor.h>
@@ -26,20 +27,21 @@ namespace synthesis {
 class TableConstDataIterator;
 
 
-/// @brief an implementation of IConstDataAccessor working with TableConstDataIterator
+/// @brief an implementation of IDataAccessor in the table-based case
 ///
-/// @details TableConstDataAccessor is an implementation of the
-/// DataAccessor working with the TableConstDataIterator. It is currently
+/// @details TableDataAccessor is an implementation of the
+/// DataAccessor working with both TableConstDataIterator and
+/// TableDataIterator. It is currently
 /// derived from DataAccessorStub as most of the
 /// methods are stubbed. However, in the future
 /// it should become a separate class derived
 /// directly from its interface
-class TableConstDataAccessor : public DataAccessorStub
+class TableDataAccessor : public DataAccessorStub
 {
 public:
   /// construct an object linked with the given iterator
   /// @param iter a reference to associated iterator
-  explicit TableConstDataAccessor(const TableConstDataIterator &iter);
+  explicit TableDataAccessor(const TableConstDataIterator &iter);
 
   /// The number of rows in this chunk
   /// @return the number of rows in this chunk
@@ -112,4 +114,4 @@ private:
 
 } // namespace conrad
 
-#endif // #ifndef TABLE_CONST_DATA_ACCESSOR_H
+#endif // #ifndef TABLE_DATA_ACCESSOR_H
