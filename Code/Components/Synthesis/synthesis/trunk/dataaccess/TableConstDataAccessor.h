@@ -39,7 +39,7 @@ class TableConstDataAccessor : public DataAccessorStub
 public:
   /// construct an object linked with the given iterator
   /// @param iter a reference to associated iterator
-  TableConstDataAccessor(const TableConstDataIterator &iter);
+  explicit TableConstDataAccessor(const TableConstDataIterator &iter);
 
   /// The number of rows in this chunk
   /// @return the number of rows in this chunk
