@@ -24,7 +24,7 @@
 #include <dataaccess/IConstDataIterator.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableDataSelectorImpl.h>
-#include <dataaccess/TableDataAccessor.h>
+#include <dataaccess/TableConstDataAccessor.h>
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/ITableManager.h>
 
@@ -137,7 +137,7 @@ private:
   casa::Int itsCurrentDataDescID;
 
   /// accessor (a chunk of data)
-  mutable TableDataAccessor itsAccessor;
+  mutable TableConstDataAccessor itsAccessor;
 };
 
 

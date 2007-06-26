@@ -1,7 +1,7 @@
-/// @file TableConstDataAccessor.cc
-/// @brief an implementation of IDataAccessor
+/// @file
+/// @brief an implementation of IConstDataAccessor in the table-based case
 ///
-/// @details TableDataAccessor is an implementation of the
+/// @details TableConstDataAccessor is an implementation of the
 /// DataAccessor working with the TableConstDataIterator. It is currently
 /// derived from DataAccessorStub as most of the
 /// methods are stubbed. However, in the future
@@ -13,7 +13,7 @@
 ///
 
 /// own includes
-#include <dataaccess/TableDataAccessor.h>
+#include <dataaccess/TableConstDataAccessor.h>
 #include <dataaccess/TableConstDataIterator.h>
 
 using namespace conrad;
@@ -21,27 +21,28 @@ using namespace synthesis;
 
 /// construct an object linked with the given iterator
 /// @param iter a reference to associated iterator
-TableDataAccessor::TableDataAccessor(const TableConstDataIterator &iter) :
+TableConstDataAccessor::TableConstDataAccessor(
+                           const TableConstDataIterator &iter) :
 			   itsIterator(iter), itsVisibilityChanged(true),
 			   itsUVWChanged(true), itsFrequencyChanged(true) {}
 
 /// The number of rows in this chunk
 /// @return the number of rows in this chunk
-casa::uInt TableDataAccessor::nRow() const throw()
+casa::uInt TableConstDataAccessor::nRow() const throw()
 {
   return itsIterator.nRow();
 }
 
 /// The number of spectral channels (equal for all rows)
 /// @return the number of spectral channels
-casa::uInt TableDataAccessor::nChannel() const throw()
+casa::uInt TableConstDataAccessor::nChannel() const throw()
 {
   return itsIterator.nChannel();
 }
 
 /// The number of polarization products (equal for all rows)
 /// @return the number of polarization products (can be 1,2 or 4)
-casa::uInt TableDataAccessor::nPol() const throw()
+casa::uInt TableConstDataAccessor::nPol() const throw()
 {
   return itsIterator.nPol();
 }
@@ -50,7 +51,7 @@ casa::uInt TableDataAccessor::nPol() const throw()
 /// a complex visibility)
 /// @return a reference to nRow x nChannel x nPol cube, containing
 /// all visibility data
-const casa::Cube<casa::Complex>& TableDataAccessor::visibility() const
+const casa::Cube<casa::Complex>& TableConstDataAccessor::visibility() const
 {
   if (itsVisibilityChanged) {
       itsIterator.fillVisibility(itsVisibility);
@@ -63,7 +64,7 @@ const casa::Cube<casa::Complex>& TableDataAccessor::visibility() const
 /// @return a reference to vector containing uvw-coordinates
 /// packed into a 3-D rigid vector
 const casa::Vector<casa::RigidVector<casa::Double, 3> >&
-TableDataAccessor::uvw() const
+TableConstDataAccessor::uvw() const
 {
   if (itsUVWChanged) {
       itsIterator.fillUVW(itsUVW);
@@ -77,7 +78,7 @@ TableDataAccessor::uvw() const
 ///         spectral channel (vector size is nChannel). Frequencies
 ///         are given as Doubles, the frame/units are specified by
 ///         the DataSource object
-const casa::Vector<casa::Double>& TableDataAccessor::frequency() const
+const casa::Vector<casa::Double>& TableConstDataAccessor::frequency() const
 {
   if (itsFrequencyChanged) {
       itsIterator.fillFrequency(itsFrequency);
@@ -91,7 +92,7 @@ const casa::Vector<casa::Double>& TableDataAccessor::frequency() const
 ///         for all rows. The timestamp is returned as 
 ///         Double w.r.t. the origin specified by the 
 ///         DataSource object and in that reference frame
-casa::Double TableDataAccessor::time() const
+casa::Double TableConstDataAccessor::time() const
 {
   if (itsTimeChanged) {
       itsTime=itsIterator.getTime();
@@ -102,7 +103,7 @@ casa::Double TableDataAccessor::time() const
 
 
 /// set itsXxxChanged flags corresponding to items updated on each iteration to true
-void TableDataAccessor::invalidateIterationCaches() const throw()
+void TableConstDataAccessor::invalidateIterationCaches() const throw()
 {
   itsVisibilityChanged=true;
   itsUVWChanged=true;
@@ -112,7 +113,7 @@ void TableDataAccessor::invalidateIterationCaches() const throw()
 /// @brief set itsXxxChanged flags corresponding to spectral axis
 /// information to true
 /// @details See invalidateIterationCaches for more details
-void TableDataAccessor::invalidateSpectralCaches() const throw()
+void TableConstDataAccessor::invalidateSpectralCaches() const throw()
 {
   itsFrequencyChanged=true;
 }
