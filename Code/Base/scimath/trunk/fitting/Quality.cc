@@ -15,7 +15,9 @@ namespace conrad
 
     std::ostream& operator<<(std::ostream& os, const Quality& q)
     {
-      os << "Solution : " << q.info();
+      if(q.info()!="") {
+        os << "Solution : " << q.info();
+      }
       if(q.DOF()>0)
       {
         os << " : degrees of freedom " << q.DOF();
