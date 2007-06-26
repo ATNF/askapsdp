@@ -121,7 +121,7 @@ int main(int argc, const char** argv)
     Quality q;
     std::cout << "Solving normal equations" << std::endl;
     is.solveNormalEquations(q);
-    std::cout << q << std::endl;
+    std::cout << "Number of degrees of freedom = " << q.DOF() << std::endl;
 
     {
       string resultfile(parset.getString("Parms.Result"));
