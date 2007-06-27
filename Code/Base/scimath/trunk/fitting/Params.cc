@@ -44,11 +44,6 @@ namespace conrad
       }
       return *this;
     }
-    
-    Params::ShPtr Params::clone()
-    {
-      return Params::ShPtr(new Params(*this));
-    }
 
     Params::ShPtr Params::clone() const
     {
@@ -61,7 +56,7 @@ namespace conrad
 
     bool Params::isFree(const std::string& name) const
     {
-      return itsFree[name];
+      return itsFree.find(name)->second;
     }
 
     void Params::free(const std::string& name)
@@ -183,53 +178,37 @@ namespace conrad
 
     bool Params::isScalar(const std::string& name) const
     {
-      return itsArrays[name].nelements()==1;
+      return value(name).nelements()==1;
     }
 
     const casa::Array<double>& Params::value(const std::string& name) const
     {
-      return itsArrays[name];
+      return itsArrays.find(name)->second;
     }
 
     casa::Array<double>& Params::value(const std::string& name)
     {
       itsCounts[name]++;
-      return itsArrays[name];
+      return itsArrays.find(name)->second;
     }
 
-    const double Params::scalarValue(const std::string& name) const
+    double Params::scalarValue(const std::string& name) const
     {
       if(!isScalar(name))
       {
         throw(std::invalid_argument("Parameter " + name + " is not scalar"));
       }
-      return itsArrays[name](casa::IPosition(1,0));
-    }
-
-    double Params::scalarValue(const std::string& name)
-    {
-      if(!isScalar(name))
-      {
-        throw(std::invalid_argument("Parameter " + name + " is not scalar"));
-      }
-      itsCounts[name]++;
-      return itsArrays[name](casa::IPosition(1,0));
+      return value(name)(casa::IPosition(1,0));
     }
 
     const Axes& Params::axes(const std::string& name) const
     {
-      return itsAxes[name];
-    }
-
-    Axes& Params::axes(const std::string& name)
-    {
-      return itsAxes[name];
+      return itsAxes.find(name)->second;
     }
 
     bool Params::isCongruent(const Params& other) const
     {
-      std::map<string,bool>::iterator iter;
-      for(iter = itsFree.begin(); iter != itsFree.end(); iter++)
+      for(std::map<string,bool>::const_iterator iter = itsFree.begin(); iter != itsFree.end(); iter++)
       {
         if(other.itsFree.count(iter->first)==0)
         {
@@ -242,14 +221,14 @@ namespace conrad
     void Params::merge(const Params& other)
     {
       std::vector<string> names(other.names());
-      std::vector<string>::iterator iter;
-      for(iter = names.begin(); iter != names.end(); iter++)
+      for(std::vector<string>::const_iterator iter = names.begin(); iter != names.end(); iter++)
       {
+        /// @todo Improve merging logic for Params
         if(!has(*iter))
         {
-          itsArrays[*iter]=other.itsArrays[*iter];
-          itsFree[*iter]=other.itsFree[*iter];
-          itsAxes[*iter]=other.itsAxes[*iter];
+          itsArrays[*iter]=other.itsArrays.find(*iter)->second;
+          itsFree[*iter]=other.itsFree.find(*iter)->second;
+          itsAxes[*iter]=other.itsAxes.find(*iter)->second;
           itsCounts[*iter]++;
         }
       }
@@ -258,8 +237,8 @@ namespace conrad
     vector<string> Params::names() const
     {
       vector<string> names;
-      std::map<string,bool>::iterator iter;
-      for(iter = itsFree.begin(); iter != itsFree.end(); iter++)
+      for(std::map<string,bool>::const_iterator iter = itsFree.begin(); 
+        iter != itsFree.end(); iter++)
       {
         names.push_back(iter->first);
       }
@@ -269,10 +248,9 @@ namespace conrad
     vector<string> Params::freeNames() const
     {
       vector<string> names;
-      std::map<string,bool>::iterator iter;
-      for(iter = itsFree.begin(); iter != itsFree.end(); iter++)
+      for(std::map<string,bool>::const_iterator iter = itsFree.begin(); iter != itsFree.end(); iter++)
       {
-        if(itsFree[iter->first]) names.push_back(iter->first);
+        if(isFree(iter->first)) names.push_back(iter->first);
       }
       return names;
     }
@@ -280,10 +258,9 @@ namespace conrad
     vector<string> Params::fixedNames() const
     {
       vector<string> names;
-      std::map<string,bool>::iterator iter;
-      for(iter = itsFree.begin(); iter != itsFree.end(); iter++)
+      for(std::map<string,bool>::const_iterator iter = itsFree.begin(); iter != itsFree.end(); iter++)
       {
-        if(!itsFree[iter->first]) names.push_back(iter->first);
+        if(!isFree(iter->first)) names.push_back(iter->first);
       }
       return names;
     }
@@ -293,9 +270,8 @@ namespace conrad
       casa::Regex regex(casa::Regex::fromPattern(pattern+"*"));
       casa::Regex sub(casa::Regex::fromPattern(pattern));
       vector<string> completions;
-      std::map<string,bool>::iterator iter;
       uint ncomplete=0;
-      for(iter = itsFree.begin(); iter != itsFree.end(); iter++)
+      for(std::map<string,bool>::const_iterator iter = itsFree.begin(); iter != itsFree.end(); iter++)
       {
         if(casa::String(iter->first).matches(regex))
         {
@@ -320,8 +296,7 @@ namespace conrad
     {
 
       vector<string> names(params.names());
-      vector<string>::iterator it;
-      for(it = names.begin(); it != names.end(); it++)
+      for(vector<string>::const_iterator it = names.begin(); it != names.end(); it++)
       {
         os << *it << " : ";
         if(params.isScalar(*it))

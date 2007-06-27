@@ -38,7 +38,7 @@ namespace conrad
         virtual bool solveNormalEquations(Quality& q);
         
 /// @brief Clone this object
-        virtual Solver::ShPtr clone();
+        virtual Solver::ShPtr clone() const;
 
       protected:
     };

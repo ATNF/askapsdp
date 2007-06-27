@@ -1,4 +1,4 @@
-/// @file
+/// @file fitting/Params.h
 ///
 /// Params: represent a set of parameters for an equation.
 ///
@@ -98,6 +98,7 @@ namespace conrad
 
 /// Is this parameter free?
 /// @param name Name of param
+/// @return True if free to vary
         bool isFree(const std::string& name) const;
 
 /// Return number of values in the parameter
@@ -106,6 +107,7 @@ namespace conrad
 /// Return array value for the parameter with this name (const)
 /// @param name Name of param
         const casa::Array<double>& value(const std::string& name) const;
+
 /// Return array value for the parameter with this name (non-const)
 /// @param name Name of param
         casa::Array<double>& value(const std::string& name);
@@ -113,20 +115,12 @@ namespace conrad
 /// Return the value for the scalar parameter with this name (const)
 /// Throws invalid_argument if non-scalar
 /// @param name Name of param
-        const double scalarValue(const std::string& name) const;
-
-/// Return the value for the scalar parameter with this name (non const)
-/// Throws invalid_argument if non-scalar
-/// @param name Name of param
-        double scalarValue(const std::string& name);
+/// @return Value of parameter
+        double scalarValue(const std::string& name) const;
 
 /// Return the axes for the parameter with this name (const)
 /// @param name Name of param
         const Axes& axes(const std::string& name) const;
-
-/// Return the axes for the parameter with this name (non-const)
-/// @param name Name of param
-        Axes& axes(const std::string& name);
 
 /// Return all the completions for this name
 /// @param match Match e.g. "flux.i.*"
@@ -143,9 +137,12 @@ namespace conrad
 
 /// Does this name exist?
 /// @param name Name of parameters
+/// @return True if named parameter exists
         bool has(const std::string& name) const;
 
-/// Is this set congruent with another?
+/// Is this set congruent with another? Means that this must be a subset
+/// @param other Other params to be test against
+/// @return True if congruent
         bool isCongruent(const Params& other) const;
 
 /// Merge parameters from other into this set
@@ -164,10 +161,7 @@ namespace conrad
         typedef boost::shared_ptr<Params> ShPtr;
 
 /// Clone this into a shared pointer
-        virtual Params::ShPtr clone();
-
-/// Clone this into a shared pointer
-        virtual Params::ShPtr clone() const;
+        Params::ShPtr clone() const;
 
         /// Shift operator for Params
         /// @param os Output ostream
@@ -176,19 +170,20 @@ namespace conrad
 
         /// Shift operators for Params
         /// @param os Input Output ostream
-        /// @param params Parameters to be processed @{
+        /// @param par Parameters to be processed @{
         friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par);
         friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Params& par); 
         /// @}
 
       protected:
 /// The value arrays, ordered as a map
-        mutable std::map<std::string, casa::Array<double> > itsArrays;
+        std::map<std::string, casa::Array<double> > itsArrays;
         /// The axes, ordered as a map
-        mutable std::map<std::string, Axes> itsAxes;
+        std::map<std::string, Axes> itsAxes;
         /// The free/fixed status, ordered as a map
-        mutable std::map<std::string, bool> itsFree;
-        /// The update count, ordered as a map
+        std::map<std::string, bool> itsFree;
+        /// The update count, ordered as a map. This is logically a cache 
+        /// and must be mutable
         mutable std::map<std::string, int> itsCounts;
 
     };

@@ -78,9 +78,8 @@ namespace conrad
 
       vector<string> completions(parameters().completions("poly"));
       if(completions.size()>0) {
-        vector<string>::iterator it;
 // Loop over all polynomials adding to the values. 
-        for (it=completions.begin();it!=completions.end();it++)
+        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           string polyName("poly"+(*it));
           const casa::Vector<double> par(parameters().value(polyName));
@@ -98,9 +97,8 @@ namespace conrad
         casa::Vector<double> values(itsData.size());
         values=0.0;
 
-        vector<string>::iterator it;
 // Loop over all polynomials adding to the values. 
-        for (it=completions.begin();it!=completions.end();it++)
+        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           string polyName("poly"+(*it));
           const casa::Vector<double> par(parameters().value(polyName));
@@ -144,7 +142,7 @@ namespace conrad
       }
     }
 
-    Equation::ShPtr PolynomialEquation::clone()
+    Equation::ShPtr PolynomialEquation::clone() const
     {
       return Equation::ShPtr(new PolynomialEquation(*this));
     }

@@ -1,4 +1,5 @@
 #include <fitting/DesignMatrix.h>
+#include <conrad/ConradError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -14,7 +15,7 @@ namespace conrad
 
       CPPUNIT_TEST_SUITE(DesignMatrixTest);
       CPPUNIT_TEST(testConstructors);
-      CPPUNIT_TEST_EXCEPTION(testInvalidArgument, std::invalid_argument);
+      CPPUNIT_TEST_EXCEPTION(testInvalidArgument, conrad::CheckError);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testAdd);
       CPPUNIT_TEST_SUITE_END();
@@ -48,10 +49,10 @@ namespace conrad
           ip.add("Value2");
           delete p1;
           p1 = new DesignMatrix(ip);
-          CPPUNIT_ASSERT(p1->names().size()==3);
-          CPPUNIT_ASSERT(p1->names()[0]=="Value0");
-          CPPUNIT_ASSERT(p1->names()[1]=="Value1");
-          CPPUNIT_ASSERT(p1->names()[2]=="Value2");
+          CPPUNIT_ASSERT(p1->parameters().names().size()==3);
+          CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p1->parameters().names()[2]=="Value2");
         }
 
         void testCopy()
@@ -64,10 +65,10 @@ namespace conrad
           p1 = new DesignMatrix(ip);
           delete p2;
           p2 = new DesignMatrix(*p1);
-          CPPUNIT_ASSERT(p2->names().size()==3);
-          CPPUNIT_ASSERT(p2->names()[0]=="Value0");
-          CPPUNIT_ASSERT(p2->names()[1]=="Value1");
-          CPPUNIT_ASSERT(p2->names()[2]=="Value2");
+          CPPUNIT_ASSERT(p2->parameters().names().size()==3);
+          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
         }
 
         void testAdd()

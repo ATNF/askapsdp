@@ -69,7 +69,7 @@ namespace conrad
     NormalEquations::NormalEquations(const DesignMatrix& dm)
     {
       itsParams=dm.parameters().clone();
-      vector<string> names=dm.names();
+      vector<string> names=dm.parameters().freeNames();
       vector<string>::iterator iterRow;
       vector<string>::iterator iterCol;
       const uint nDataSet=dm.residual().size();
@@ -157,7 +157,7 @@ namespace conrad
     void NormalEquations::add(const DesignMatrix& dm)
     {
       itsParams->merge(dm.parameters());
-      vector<string> names=dm.names();
+      vector<string> names=dm.parameters().freeNames();
       vector<string>::iterator iterRow;
       vector<string>::iterator iterCol;
       const uint nDataSet=dm.residual().size();
@@ -255,76 +255,76 @@ namespace conrad
 
       for (iterCol=names.begin();iterCol!=names.end();iterCol++)
       {
-        if(itsDataVector[*iterCol].size()!=other.itsDataVector[*iterCol].size())
+        if(itsDataVector[*iterCol].size()!=other.itsDataVector.find(*iterCol)->second.size())
         {
-          itsDataVector[*iterCol]=other.itsDataVector[*iterCol];
+          itsDataVector[*iterCol]=other.itsDataVector.find(*iterCol)->second;
         }
         else
         {
-          itsDataVector[*iterCol]+=other.itsDataVector[*iterCol];
+          itsDataVector[*iterCol]+=other.itsDataVector.find(*iterCol)->second;
         }
         itsShape[*iterCol].resize(0);
-        itsShape[*iterCol]=other.itsShape[*iterCol];
-        if(itsNormalMatrixSlice[*iterCol].shape()!=other.itsNormalMatrixSlice[*iterCol].shape())
+        itsShape[*iterCol]=other.itsShape.find(*iterCol)->second;
+        if(itsNormalMatrixSlice[*iterCol].shape()!=other.itsNormalMatrixSlice.find(*iterCol)->second.shape())
         {
-          itsNormalMatrixSlice[*iterCol]=other.itsNormalMatrixSlice[*iterCol];
+          itsNormalMatrixSlice[*iterCol]=other.itsNormalMatrixSlice.find(*iterCol)->second;
         }
         else
         {
-          itsNormalMatrixSlice[*iterCol]+=other.itsNormalMatrixSlice[*iterCol];
+          itsNormalMatrixSlice[*iterCol]+=other.itsNormalMatrixSlice.find(*iterCol)->second;
         }
-        if(itsNormalMatrixDiagonal[*iterCol].shape()!=other.itsNormalMatrixDiagonal[*iterCol].shape())
+        if(itsNormalMatrixDiagonal[*iterCol].shape()!=other.itsNormalMatrixDiagonal.find(*iterCol)->second.shape())
         {
-          itsNormalMatrixDiagonal[*iterCol]=other.itsNormalMatrixDiagonal[*iterCol];
+          itsNormalMatrixDiagonal[*iterCol]=other.itsNormalMatrixDiagonal.find(*iterCol)->second;
         }
         else
         {
-          itsNormalMatrixDiagonal[*iterCol]+=other.itsNormalMatrixDiagonal[*iterCol];
+          itsNormalMatrixDiagonal[*iterCol]+=other.itsNormalMatrixDiagonal.find(*iterCol)->second;
         }
         for (iterRow=names.begin();iterRow!=names.end();iterRow++)
         {
-          if(itsNormalMatrix[*iterCol][*iterRow].shape()!=other.itsNormalMatrix[*iterCol][*iterRow].shape())
+          if(itsNormalMatrix[*iterCol][*iterRow].shape()!=other.itsNormalMatrix.find(*iterCol)->second.find(*iterRow)->second.shape())
           {
-            itsNormalMatrix[*iterCol][*iterRow]=other.itsNormalMatrix[*iterCol][*iterRow];
+            itsNormalMatrix[*iterCol][*iterRow]=other.itsNormalMatrix.find(*iterCol)->second.find(*iterRow)->second;
           }
           else
           {
-            itsNormalMatrix[*iterCol][*iterRow]+=other.itsNormalMatrix[*iterCol][*iterRow];
+            itsNormalMatrix[*iterCol][*iterRow]+=other.itsNormalMatrix.find(*iterCol)->second.find(*iterRow)->second;
           }
         }
       }
     }
 
 /// Return normal equations
-    std::map<string, std::map<string, casa::Matrix<double> > >& NormalEquations::normalMatrix() const
+    const std::map<string, std::map<string, casa::Matrix<double> > >& NormalEquations::normalMatrix() const
     {
       return itsNormalMatrix;
     }
 
-    std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixDiagonal() const
+    const std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixDiagonal() const
     {
       return itsNormalMatrixDiagonal;
     }
 
-    std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixSlice() const
+    const std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixSlice() const
     {
       return itsNormalMatrixSlice;
     }
 
 /// Return data vector
-    std::map<string, casa::Vector<double> >& NormalEquations::dataVector() const
+    const std::map<string, casa::Vector<double> >& NormalEquations::dataVector() const
     {
       return itsDataVector;
     }
 
 /// Return shape
-    std::map<string, casa::IPosition >& NormalEquations::shape() const
+    const std::map<string, casa::IPosition >& NormalEquations::shape() const
     {
       return itsShape;
     }
 
 /// Return reference
-    std::map<string, casa::IPosition >& NormalEquations::reference() const
+    const std::map<string, casa::IPosition >& NormalEquations::reference() const
     {
       return itsReference;
     }
@@ -456,16 +456,6 @@ namespace conrad
     const Params& NormalEquations::parameters() const
     {
       return *itsParams;
-    }
-
-    Params& NormalEquations::parameters()
-    {
-      return *itsParams;
-    }
-
-    NormalEquations::ShPtr NormalEquations::clone()
-    {
-      return NormalEquations::ShPtr(new NormalEquations(*this));
     }
 
     NormalEquations::ShPtr NormalEquations::clone() const

@@ -36,6 +36,7 @@ namespace conrad
         itsStart=other.itsStart;
         itsEnd=other.itsEnd;
       }
+      return *this;
     }
 
 /// Copy constructor
@@ -46,9 +47,6 @@ namespace conrad
 
     Axes::~Axes()
     {
-      itsNames.clear();
-      itsStart.clear();
-      itsEnd.clear();
     }
 
     void Axes::add(const std::string& name, const double start, const double end)
@@ -91,15 +89,11 @@ namespace conrad
       return itsNames;
     }
 
-/// Return start value
-/// @param name Name of axis
     double Axes::start(const std::string& name) const
     {
       return itsStart[order(name)];
     }
 
-/// Return end value
-/// @param name Name of axis
     double Axes::end(const std::string& name) const
     {
       return itsEnd[order(name)];
@@ -121,8 +115,7 @@ namespace conrad
     {
 
       vector<string> names(axes.names());
-      vector<string>::iterator it;
-      for(it = names.begin(); it != names.end(); it++)
+      for(vector<string>::const_iterator it = names.begin(); it != names.end(); it++)
       {
         os << *it << " from " << axes.start(*it) << " to " << axes.end(*it)
           << std::endl;

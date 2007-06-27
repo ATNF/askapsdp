@@ -61,9 +61,6 @@ namespace conrad
 
 /// Return the specified parameters (const)
         const Params& parameters() const;
-        
-/// Return the specified parameters (non-const)
-        Params& parameters();
 
 /// @param Store full normal matrix for a given parameter. 
 
@@ -155,31 +152,28 @@ namespace conrad
         void merge(const NormalEquations& other);
 
 /// Return normal equations
-        std::map<string, std::map<string, casa::Matrix<double> > >& normalMatrix() const;
+        const std::map<string, std::map<string, casa::Matrix<double> > >& normalMatrix() const;
 
 /// Return normal equations slice
-        std::map<string, casa::Vector<double> >& normalMatrixSlice() const;
+        const std::map<string, casa::Vector<double> >& normalMatrixSlice() const;
 
 /// Return normal equations diagonal
-        std::map<string, casa::Vector<double> >& normalMatrixDiagonal() const;
+        const std::map<string, casa::Vector<double> >& normalMatrixDiagonal() const;
 
 /// Return data vector
-        std::map<string, casa::Vector<double> >& dataVector() const;
+        const std::map<string, casa::Vector<double> >& dataVector() const;
 
 /// Return shape
-        std::map<string, casa::IPosition>& shape() const;
+        const std::map<string, casa::IPosition>& shape() const;
 
 /// Return references
-        std::map<string, casa::IPosition >& reference() const;
+        const std::map<string, casa::IPosition >& reference() const;
 
 /// Reset to empty
         void reset();
 
 /// Shared pointer definition
         typedef boost::shared_ptr<NormalEquations> ShPtr;
-
-/// Clone this into a shared pointer
-        virtual NormalEquations::ShPtr clone();
 
 /// Clone this into a shared pointer
         virtual NormalEquations::ShPtr clone() const;
@@ -198,17 +192,17 @@ namespace conrad
 // approximations to be used
 /// Normal matrices stored as a map or maps of Matrixes - it's really just a big
 /// matrix.
-        mutable std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix;
+        std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix;
 /// A slice through a specified plane
-        mutable std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
+        std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
         /// The diagonal 
-        mutable std::map<string, casa::Vector<double> > itsNormalMatrixDiagonal;
+        std::map<string, casa::Vector<double> > itsNormalMatrixDiagonal;
         /// The shape
-        mutable std::map<string, casa::IPosition> itsShape;
+        std::map<string, casa::IPosition> itsShape;
         /// The Reference point for the slice
-        mutable std::map<string, casa::IPosition> itsReference;
+        std::map<string, casa::IPosition> itsReference;
         /// The data vectors
-        mutable std::map<string, casa::Vector<double> > itsDataVector;
+        std::map<string, casa::Vector<double> > itsDataVector;
     };
 
   }

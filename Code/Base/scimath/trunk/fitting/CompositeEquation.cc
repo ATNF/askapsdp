@@ -21,8 +21,7 @@ namespace conrad
       }
     }
 
-/// Using specified parameters
-    CompositeEquation::CompositeEquation(const Params& ip) : Equation(ip) {};
+    CompositeEquation::CompositeEquation() : Equation(Params()) {};
 
     CompositeEquation::~CompositeEquation(){};
     
@@ -50,8 +49,9 @@ namespace conrad
       }
     }
 
-    void CompositeEquation::add(Equation& eq)
+    void CompositeEquation::add(const Equation& eq)
     {
+      itsParams->merge(eq.parameters());
       itsList.push_back(eq.clone());
     }
 

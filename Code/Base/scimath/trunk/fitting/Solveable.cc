@@ -8,10 +8,8 @@ namespace conrad
   {
 
 /// Standard constructor
-    Solveable::Solveable(const double gain, const int niter, const double tol, 
-      const std::string& algorithm,
-      const std::string& subalgorithm) : itsGain(gain), itsNiter(niter), itsTol(tol),
-      itsAlgorithm(algorithm), itsSubAlgorithm(subalgorithm)
+    Solveable::Solveable() : itsGain(0.1), itsNiter(100), itsTol(1e-6),
+      itsAlgorithm(""), itsSubAlgorithm("")
     {
     };
 

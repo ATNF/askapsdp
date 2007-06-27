@@ -62,7 +62,7 @@ namespace conrad
 /// Assignment operator
         DesignMatrix& operator=(const DesignMatrix& dm);
 
-        virtual ~DesignMatrix();
+        ~DesignMatrix();
 
 /// @brief Merge this design matrix with another
 ///
@@ -85,36 +85,30 @@ namespace conrad
 
 /// Return the parameters used by this equation (const)
         const Params& parameters() const;
-
-/// Return the parameters used by this equation (non-const)
-        Params& parameters();
-
+        
 /// Return the list of named design matrix terms
-        DMAMatrix derivative(const string& name) const;
+        const DMAMatrix& derivative(const string& name) const;
 
 /// Return list of the residual vectors
-        DMBVector residual() const;
+        const DMBVector& residual() const;
 
 /// Return lists of the weight vector
-        DMWeight weight() const;
-
-/// Return names of parameters
-        vector<string> names() const;
+        const DMWeight& weight() const;
 
 /// Return value of fit
         double fit() const;
 
 /// Return number of data constraints
-        uint nData() const;
+        int nData() const;
 
 /// Return number of parameters
-        uint nParameters() const;
+        int nParameters() const;
 
 /// Shared pointer definition
         typedef boost::shared_ptr<DesignMatrix> ShPtr;
 
 /// Clone this into a shared pointer
-        virtual DesignMatrix::ShPtr clone();
+        DesignMatrix::ShPtr clone() const;
 
         friend class NormalEquations;
 
@@ -125,9 +119,9 @@ namespace conrad
 /// The number of dof of parameters can vary from parameter to parameter
         mutable std::map<string, DMAMatrix > itsAMatrix;
 /// Residual matrix = number of data points
-        mutable DMBVector itsBVector;
+        DMBVector itsBVector;
 /// Weight = number of data points        
-        mutable DMWeight itsWeight;
+        DMWeight itsWeight;
     };
 
   }

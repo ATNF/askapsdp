@@ -103,7 +103,7 @@ namespace conrad
 
         void testComposite()
         {
-          CompositeEquation comp(itsPoly1->parameters());
+          CompositeEquation comp;
           comp.add(*itsPoly1);
           comp.predict();
           Params ip(comp.parameters());

@@ -34,12 +34,11 @@ namespace conrad
 
 // Access the parameters
     const Params& Equation::parameters() const {return *itsParams;};
-    Params& Equation::parameters() {return *itsParams;};
 
 // Set the parameters to new values
     void Equation::setParameters(const Params& ip) {itsParams=ip.clone();};
 
-    Equation::ShPtr Equation::clone()
+    Equation::ShPtr Equation::clone() const
     {
       return Equation::ShPtr(new Equation(*this));
     }

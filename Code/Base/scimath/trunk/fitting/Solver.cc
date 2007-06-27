@@ -25,12 +25,6 @@ namespace conrad
       return *itsParams;
     };
 
-/// Return current values of params
-    Params& Solver::parameters()
-    {
-      return *itsParams;
-    };
-
     void Solver::addNormalEquations(const NormalEquations& normeq)
     {
       itsNormalEquations->merge(normeq);
@@ -40,7 +34,7 @@ namespace conrad
     {
     }
     
-    Solver::ShPtr Solver::clone()
+    Solver::ShPtr Solver::clone() const
     {
       return Solver::ShPtr(new Solver(*this));
     }

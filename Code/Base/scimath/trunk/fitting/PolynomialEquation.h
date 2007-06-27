@@ -63,7 +63,7 @@ namespace conrad
         virtual void calcEquations(NormalEquations& ne);
 
 /// Clone this
-        virtual Equation::ShPtr clone();
+        virtual Equation::ShPtr clone() const;
 
       protected:
         /// Initialize

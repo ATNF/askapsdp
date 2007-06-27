@@ -42,9 +42,6 @@ namespace conrad
 /// Return current values of params (const)
         const Params& parameters() const;
 
-/// Return current values of params (non const)
-        Params& parameters();
-
 /// Add the normal equations
 /// @param normeq Normal Equations
         virtual void addNormalEquations(const NormalEquations& normeq);
@@ -58,7 +55,7 @@ namespace conrad
         typedef boost::shared_ptr<Solver> ShPtr;
 
 /// Clone this into a shared pointer
-        virtual Solver::ShPtr clone();
+        virtual Solver::ShPtr clone() const;
 
 
       protected:

@@ -1,6 +1,6 @@
 #include <fitting/LinearSolver.h>
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -44,10 +44,8 @@ namespace conrad
 
 // Find all the free parameters
       const vector<string> names(itsParams->freeNames());
-      if(names.size()<1)
-      {
-        throw(std::domain_error("No free parameters"));
-      }
+      CONRADCHECK(names.size()>0, "No free parameters in Linear Solver");
+
       vector<string>::const_iterator it;
       map<string, uint> indices;
       for (it=names.begin();it!=names.end();it++)
@@ -55,24 +53,21 @@ namespace conrad
         indices[*it]=nParameters;
         nParameters+=itsParams->value(*it).nelements();
       }
-      if(nParameters<1)
-      {
-        throw(std::domain_error("No free parameters"));
-      }
+      CONRADCHECK(nParameters>0, "No free parameters in Linear Solver");
 
 // Convert the normal equations to gsl format
       gsl_matrix * A = gsl_matrix_alloc (nParameters, nParameters);
       gsl_vector * B = gsl_vector_alloc (nParameters);
       gsl_vector * X = gsl_vector_alloc (nParameters);
 
-      map<string, uint>::iterator indit1;
-      map<string, uint>::iterator indit2;
-      for (indit2=indices.begin();indit2!=indices.end();indit2++)
+      for (map<string, uint>::const_iterator indit2=indices.begin();indit2!=indices.end();indit2++)
       {
-        for (indit1=indices.begin();indit1!=indices.end();indit1++)
+        for (map<string, uint>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
         {
 // Axes are dof, dof for each parameter
-          const casa::Matrix<double>& nm(itsNormalEquations->normalMatrix()[indit1->first][indit2->first]);
+// Take a deep breath for const-safe indexing into the double layered map
+          const casa::Matrix<double>& 
+            nm(itsNormalEquations->normalMatrix().find(indit1->first)->second.find(indit2->first)->second);
           for (uint row=0;row<nm.nrow();row++)
           {
             for (uint col=0;col<nm.ncolumn();col++)
@@ -82,9 +77,9 @@ namespace conrad
           }
         }
       }
-      for (indit1=indices.begin();indit1!=indices.end();indit1++)
+      for (map<string, uint>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
       {
-        const casa::Vector<double>& dv(itsNormalEquations->dataVector()[indit1->first]);
+        const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit1->first)->second);
         for (uint row=0;row<dv.nelements();row++)
         {
           gsl_vector_set(B, row+(indit1->second), dv(row));
@@ -167,7 +162,7 @@ namespace conrad
       return true;
     };
 
-    Solver::ShPtr LinearSolver::clone()
+    Solver::ShPtr LinearSolver::clone() const
     {
       return Solver::ShPtr(new LinearSolver(*this));
     }

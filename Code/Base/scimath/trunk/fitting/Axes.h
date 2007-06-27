@@ -1,4 +1,4 @@
-/// @file
+/// @file fitting/Axes.h
 /// @brief Axes: Represent a set of axes - names and extrema.
 ///
 /// The axes are used to describe a multidimensional
@@ -59,10 +59,12 @@ namespace conrad
       
       /// Do it have this axis?
       /// @param name Name of axis
+      /// @return True if name exists
       bool has(const std::string& name) const;
 
 /// Order of this axis
 /// @param name Name of axis
+/// @return sequence of axis (0 rel)
         int order(const std::string& name) const;
 
 /// Return the axis names
@@ -85,18 +87,18 @@ namespace conrad
 /// Output to an ostream
         friend std::ostream& operator<<(std::ostream& os, const Axes& domain);
 
-/// IO to and from a BlobStream
+/// IO to and from a BlobStream @{
         friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Axes& axes); 
         friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Axes& axes);
+        /// @}
 
       private:
-        mutable std::vector<std::string> itsNames;
-        mutable std::vector<double> itsStart;
-        mutable std::vector<double> itsEnd;
+        std::vector<std::string> itsNames;
+        std::vector<double> itsStart;
+        std::vector<double> itsEnd;
     };
 
 /// Use Domain as a synonym (for the moment).
-
     typedef Axes Domain;
 
   };

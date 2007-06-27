@@ -25,9 +25,7 @@ namespace conrad
     {
       public:
 /// Constructor
-/// Using specified parameters
-/// @param ip Parameters
-        CompositeEquation(const Params& ip);
+        CompositeEquation();
 
 /// Copy constructor
         CompositeEquation(const CompositeEquation& other);
@@ -55,9 +53,9 @@ namespace conrad
 ///
 /// This function is specific to the Composite
 /// @param eq equation to be added
-        virtual void add(Equation& eq);
+        virtual void add(const Equation& eq);
 
-      protected:
+      private:
       /// List of shared pointers to Equations
         std::list<Equation::ShPtr> itsList;
     };

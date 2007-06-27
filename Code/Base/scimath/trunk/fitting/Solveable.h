@@ -18,18 +18,14 @@ namespace conrad
 /// @brief Base class for solveables
 ///
 /// Derive solveable classes from this base to have standard parameters available.
+/// None of these have standard meanings. Similarly the names of the algorithms
+/// are not specified here.
+
     class Solveable
     {
       public:
 /// Standard constructor
-/// @param gain Loop gain
-/// @param niter Number of iterations
-/// @param tol Tolerance for solution
-/// @param algorithm Name of the algorithm to be used
-/// @param subalgorithm Name of the sub-algorithm to be used
-        Solveable(const double gain=0.1, const int niter=100, 
-          const double tol=1e-6, const std::string& algorithm=std::string(""),
-          const std::string& subalgorithm=std::string(""));
+        Solveable();
           
         virtual ~Solveable();
 

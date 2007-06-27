@@ -94,13 +94,12 @@ namespace conrad
 
 /// Assignment operator
         Equation& operator=(const Equation& other);
-
+        
+/// Destructor
         virtual ~Equation();
 
 /// Access the parameters (const)
         const Params& parameters() const;
-/// Access the parameters (non-const)
-        Params& parameters();
 
 /// Set the parameters to new values
 /// @param ip Parameters
@@ -117,7 +116,7 @@ namespace conrad
         typedef boost::shared_ptr<Equation> ShPtr;
 
 /// Clone this into a shared pointer
-        virtual Equation::ShPtr clone();
+        virtual Equation::ShPtr clone() const;
 
       protected:
       /// Parameters

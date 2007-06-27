@@ -51,13 +51,13 @@ namespace conrad
 
         void testCreate()
         {
-          ParamsCASATable pt("ParamsTableTest.tab", false);
+          ParamsCasaTable pt("ParamsTableTest.tab", false);
           pt.setParameters(*p1);
         }
 
         void testGet()
         {
-          ParamsCASATable pt("ParamsTableTest.tab", true);
+          ParamsCasaTable pt("ParamsTableTest.tab", true);
           Params ip;
           pt.getParameters(ip);
           CPPUNIT_ASSERT(p1->isCongruent(ip));
