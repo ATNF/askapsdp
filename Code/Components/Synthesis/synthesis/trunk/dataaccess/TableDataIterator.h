@@ -17,6 +17,7 @@
 
 #include <dataaccess/TableConstDataIterator.h>
 #include <dataaccess/IDataIterator.h>
+#include <dataaccess/TableInfoAccessor.h>
 
 namespace conrad {
 
@@ -30,7 +31,8 @@ namespace synthesis {
 /// Each iteration step is represented by the IDataAccessor interface in this
 /// case. 
 class TableDataIterator : public TableConstDataIterator,
-                          virtual public IDataIterator
+                          virtual public IDataIterator,
+			  virtual protected TableInfoAccessor
 {
 public:
   /// @param[in] msManager a manager of the measurement set to use
@@ -82,7 +84,23 @@ public:
   /// @return a reference to writable data accessor to the
   ///         buffer requested
   virtual IDataAccessor& buffer(const std::string &bufferID) const;    
-  
+
+  /// Restart the iteration from the beginning
+  void init();
+
+  /// @brief Checks whether there are more data available.
+  /// @details
+  /// @return True if there are more data available
+  /// @note this method can be removed from this class
+  /// when we migrate to g++-4.1 and inheritance of
+  /// interfaces is made virtual.
+  virtual casa::Bool hasMore() const throw();
+	
+  /// advance the iterator one step further 
+  /// @return True if there are more data (so constructions like 
+  ///         while(it.next()) {} are possible)
+  virtual casa::Bool next();
+
 };
 
 } // end of namespace synthesis

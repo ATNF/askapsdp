@@ -33,7 +33,7 @@ TableDataIterator::TableDataIterator(
 {
   // a shallow constructor is used. Need init to complete the construction
   // this approach allows to call a right init() method.
-  TableConstDataIterator::init();
+  init();
 }
 
 /// @brief operator* delivers a reference to data accessor (current chunk)
@@ -85,3 +85,32 @@ IDataAccessor& TableDataIterator::buffer(const std::string &bufferID) const
   return operator*();
 }
 
+/// Restart the iteration from the beginning
+void TableDataIterator::init()
+{
+  TableConstDataIterator::init();
+}
+
+// hasMore method has to be overridden
+// because of the problem with the g++-3.3 compiler (the inheritance
+// between read/write and read/only interfaces can not be made virtual
+// and therefore there is an ambiguity). Other methods are overridden anyway.
+
+/// @brief Checks whether there are more data available.
+/// @details
+/// @return True if there are more data available
+/// @note this method can be removed from this class
+/// when we migrate to g++-4.1 and inheritance of
+/// interfaces is made virtual.
+casa::Bool TableDataIterator::hasMore() const throw()
+{
+  return TableConstDataIterator::hasMore();
+}
+      
+/// advance the iterator one step further 
+/// @return True if there are more data (so constructions like 
+///         while(it.next()) {} are possible)
+casa::Bool TableDataIterator::next()
+{
+  return TableConstDataIterator::next();
+}

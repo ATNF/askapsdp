@@ -28,6 +28,14 @@ using namespace casa;
 TableConstDataSource::TableConstDataSource(const std::string &fname) :
          TableInfoAccessor(casa::Table(fname)) {}
 
+/// construct a part of the read only object for use in the
+/// derived classes
+/// @note Due to virtual inheritance, TableInfoAccessor will be initialized
+/// in the concrete derived class. This empty constructor is added to make
+/// the compiler happy
+TableConstDataSource::TableConstDataSource() :
+         TableInfoAccessor(boost::shared_ptr<ITableManager const>()) {} 
+
 /// create a converter object corresponding to this type of the
 /// DataSource. The user can change converting policies (units,
 /// reference frames) by appropriate calls to this converter object
@@ -102,3 +110,4 @@ IDataSelectorPtr TableConstDataSource::createSelector() const
 {
   return IDataSelectorPtr(new TableDataSelector(getTableManager()));
 }
+

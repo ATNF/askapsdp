@@ -96,6 +96,11 @@ public:
   /// unless the init method is called for the iterator (and the new
   /// iteration loop is started).
   virtual IDataSelectorPtr createSelector() const;
+protected:
+  /// construct a part of the read only object for use in the
+  /// derived classes
+  TableConstDataSource();
+  
 };
  
 } // namespace synthesis
