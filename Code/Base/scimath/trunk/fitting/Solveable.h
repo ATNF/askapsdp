@@ -25,7 +25,7 @@ namespace conrad
     {
       public:
 /// Standard constructor
-        Solveable();
+        explicit Solveable();
           
         virtual ~Solveable();
 

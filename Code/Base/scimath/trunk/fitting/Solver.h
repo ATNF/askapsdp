@@ -52,7 +52,7 @@ namespace conrad
         virtual bool solveNormalEquations(Quality& q);
 
 /// Shared pointer definition
-        typedef boost::shared_ptr<Solver> ShPtr;
+        typedef boost::shared_ptr<Solver> ShPtr const;
 
 /// Clone this into a shared pointer
         virtual Solver::ShPtr clone() const;
