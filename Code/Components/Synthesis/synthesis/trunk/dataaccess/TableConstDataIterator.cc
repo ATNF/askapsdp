@@ -33,11 +33,43 @@ TableConstDataIterator::TableConstDataIterator(
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
 	    casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
-	    itsSelector(sel), itsConverter(conv),
-	   itsMaxChunkSize(maxChunkSize), itsAccessor(*this)
+	    theirAccessorPtr(new TableConstDataAccessor(*this)),
+	    itsSelector(sel), itsConverter(conv), 
+	    itsMaxChunkSize(maxChunkSize)
+	   
 { 
   init();
 }
+
+/// @brief constructor for derived classes
+/// @details This version of the constructor doesn't do full initialization
+/// because some steps are to be done differently in the derived classes
+/// For example, the correct accessor should be initialized by the
+/// top-level class.
+/// @param[in] sel shared pointer to selector
+/// @param[in] conv shared pointer to converter
+/// @param[in] maxChunkSize maximum number of rows per accessor
+///
+/// @note The virtual base class TableInfoAccessor is initialized with
+/// the copy of itself in this version of the constructor (which is intended
+/// for derived classes). This is done to make the compiler happy.
+/// TableInfoAccessor doesn't have a default constructor and have to be
+/// initialized explicitly because it is a virtual parent. From another side,
+/// this requirement means that all derived classes have to do the same
+/// explicit initialization and this copy constructor will never be called.
+/// If this construction causes any problems with some compiler, an
+/// additional unused parameter msManager can be added to use the same
+/// initialization as for the other constructor. All derived classes
+/// will have an access to msManager anyway.
+TableConstDataIterator::TableConstDataIterator(
+            const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
+            const boost::shared_ptr<IDataConverterImpl const> &conv,
+            casa::uInt maxChunkSize) : TableInfoAccessor(*this),
+	                               itsSelector(sel), itsConverter(conv), 
+	                               itsMaxChunkSize(maxChunkSize)
+{
+}
+
 
 /// Restart the iteration from the beginning
 void TableConstDataIterator::init()
@@ -62,7 +94,8 @@ void TableConstDataIterator::init()
 /// @return a reference to the current chunk
 const IConstDataAccessor& TableConstDataIterator::operator*() const
 {
-  return itsAccessor;
+  CONRADDEBUGASSERT(theirAccessorPtr);
+  return *theirAccessorPtr;
 }
       
 /// Checks whether there are more data available.
@@ -95,7 +128,8 @@ casa::Bool TableConstDataIterator::next()
       uInt remainder=itsCurrentIteration.nrow()-itsCurrentTopRow;
       itsNumberOfRows=remainder<=itsMaxChunkSize ?
                       remainder : itsMaxChunkSize;
-      itsAccessor.invalidateIterationCaches();
+      CONRADDEBUGASSERT(theirAccessorPtr);		      
+      theirAccessorPtr->invalidateIterationCaches();
       // determine whether DATA_DESC_ID is uniform in the whole chunk
       // and reduce itsNumberOfRows if necessary
       makeUniformDataDescID();      
@@ -106,8 +140,9 @@ casa::Bool TableConstDataIterator::next()
 /// setup accessor for a new iteration of the table iterator
 void TableConstDataIterator::setUpIteration()
 {
-  itsCurrentIteration=itsTabIterator.table();  
-  itsAccessor.invalidateIterationCaches();
+  itsCurrentIteration=itsTabIterator.table();
+  CONRADDEBUGASSERT(theirAccessorPtr);		      
+  theirAccessorPtr->invalidateIterationCaches();
   itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
   // retreive the number of channels and polarizations from the table
@@ -127,7 +162,7 @@ void TableConstDataIterator::setUpIteration()
 /// @details This method reduces itsNumberOfRows to the achieve
 /// uniform DATA_DESC_ID reading for all rows in the current chunk.
 /// The resulting itsNumberOfRows will be 1 or more.
-/// itsAccessor's spectral axis cache is reset if new DATA_DESC_ID is
+/// theirAccessor's spectral axis cache is reset if new DATA_DESC_ID is
 /// different from itsCurrentDataDescID
 /// This method also sets up itsNumberOfPols and itsNumberOfChannels
 /// when DATA_DESC_ID changes (and therefore at the first run as well)
@@ -140,7 +175,8 @@ void TableConstDataIterator::makeUniformDataDescID()
   ROScalarColumn<Int> dataDescCol(itsCurrentIteration,"DATA_DESC_ID");
   const Int newDataDescID=dataDescCol(itsCurrentTopRow);
   if (itsCurrentDataDescID!=newDataDescID) {
-      itsAccessor.invalidateSpectralCaches();
+      CONRADDEBUGASSERT(theirAccessorPtr);		      
+      theirAccessorPtr->invalidateSpectralCaches();
       itsCurrentDataDescID=newDataDescID;
       
       // determine the shape of the visibility cube

@@ -41,6 +41,7 @@ class TableConstDataIterator : virtual public IConstDataIterator,
                                virtual protected TableInfoAccessor
 {
 public:
+  /// @brief constructor for users
   /// @param[in] msManager a manager of the measurement set to use
   /// @param[in] sel shared pointer to selector
   /// @param[in] conv shared pointer to converter
@@ -101,6 +102,19 @@ public:
   casa::Double getTime() const;
   
 protected:
+  /// @brief constructor for derived classes
+  /// @details This version of the constructor doesn't do full initialization
+  /// because some steps are to be done differently in the derived classes
+  /// For example, the correct accessor should be initialized by the
+  /// top-level class.
+  /// @param[in] sel shared pointer to selector
+  /// @param[in] conv shared pointer to converter
+  /// @param[in] maxChunkSize maximum number of rows per accessor
+  TableConstDataIterator(
+              const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
+	      const boost::shared_ptr<IDataConverterImpl const> &conv,
+	      casa::uInt maxChunkSize);
+
   /// setup accessor for a new iteration
   void setUpIteration();
 
@@ -113,7 +127,10 @@ protected:
   /// This method also sets up itsNumberOfPols and itsNumberOfChannels
   /// when DATA_DESC_ID changes (and therefore at the first run as well)
   void makeUniformDataDescID();
-  
+
+  /// accessor (a chunk of data) to be used with derived classes as well,
+  /// although the accessor type can be different
+  boost::shared_ptr<TableConstDataAccessor> theirAccessorPtr;  
 private:
   boost::shared_ptr<ITableDataSelectorImpl const>  itsSelector;
   boost::shared_ptr<IDataConverterImpl const>  itsConverter;
@@ -135,9 +152,6 @@ private:
   /// current DATA_DESC_ID, the iteration is broken if this
   /// ID changes
   casa::Int itsCurrentDataDescID;
-
-  /// accessor (a chunk of data)
-  mutable TableConstDataAccessor itsAccessor;
 };
 
 
