@@ -31,9 +31,9 @@ TableDataIterator::TableDataIterator(
       TableConstDataIterator(boost::shared_ptr<TableConstDataAccessor>(
       new TableDataAccessor(*this)),sel,conv,maxChunkSize)
 {
- // a shallow constructor is used. Need init to complete the construction
- // this approach allows to call a right init() method.
- TableConstDataIterator::init();
+  // a shallow constructor is used. Need init to complete the construction
+  // this approach allows to call a right init() method.
+  TableConstDataIterator::init();
 }
 
 /// @brief operator* delivers a reference to data accessor (current chunk)
