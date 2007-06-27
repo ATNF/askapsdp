@@ -99,6 +99,9 @@ namespace conrad { namespace cp {
     /// Process a step (which can consist of multiple steps).
     void processSteps (const MWStep&);
 
+    /// End the processing.
+    void quit();
+
   private:
     /// Process the various MWStep types.
     /// @{

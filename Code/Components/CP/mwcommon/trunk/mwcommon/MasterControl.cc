@@ -82,6 +82,10 @@ namespace conrad { namespace cp {
       // Iterate through all steps and execute them.
       step.visit (*this);
     }
+  }
+   
+  void MasterControl::quit()
+  {
     // Send an end command.
     LOFAR::BlobString buf;
     MWBlobOut out(buf, -1, 0);
