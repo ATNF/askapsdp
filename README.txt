@@ -32,11 +32,12 @@ root permission.
 
 recursivebuild
 ==============
-'recursivebuild' provides three options
+'recursivebuild' provides four options
 
 -q        suppress messages to stdout and just print errors
 install   install the packages
 doc       build documentation
+test      run unit tests
 
 Express install (for the very brave - takes a long time)
 ========================================================
