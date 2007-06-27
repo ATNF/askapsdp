@@ -176,6 +176,7 @@ namespace conrad
         /// @}
 
       protected:
+      /// @todo Use single map map<string, struct>
 /// The value arrays, ordered as a map
         std::map<std::string, casa::Array<double> > itsArrays;
         /// The axes, ordered as a map

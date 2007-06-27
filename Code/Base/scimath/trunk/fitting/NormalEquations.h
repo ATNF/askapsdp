@@ -35,7 +35,7 @@ namespace conrad
     {
       public:
 
-        NormalEquations() {};
+        explicit NormalEquations();
 
 /// @brief Construct for the specified parameters
 ///

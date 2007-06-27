@@ -27,7 +27,8 @@ namespace conrad
 /// Return a default set of parameters
         static Params defaultParameters();
 
-/// Constructor for real use
+/// Constructor for real use: Note that the arguments are NOT
+/// const - the values are updated in place.
 /// @param ip Coefficients of polynomial stored with names poly.*
 /// @param data Data constraints
 /// @param weights Weights for data
@@ -37,7 +38,8 @@ namespace conrad
           casa::Vector<double>& weights, casa::Vector<double>& arguments,
           casa::Vector<double>& model);
 
-/// Constructor using default parameters
+/// Constructor using default parameters: Note that the arguments are NOT
+/// const - the values are updated in place.
 /// @param data Data constraints
 /// @param weights Weights for data
 /// @param arguments Arguments for the polynomial

@@ -28,6 +28,8 @@ namespace conrad
   namespace scimath
   {
 
+    NormalEquations::NormalEquations() {};
+    
     NormalEquations::NormalEquations(const Params& ip) : itsParams(ip.clone())
     {
       vector<string> names=ip.freeNames();

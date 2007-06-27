@@ -1,3 +1,5 @@
+/// @todo Make exception-safe
+
 #include <fitting/LinearSolver.h>
 
 #include <conrad/ConradError.h>

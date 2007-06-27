@@ -3,13 +3,18 @@
 /// Equation: Represent a parametrized equation. The equation
 /// can be used to calculate predicted values (predict) and
 /// to evaluate the normal equations. The data are to be
-/// passed in via the (derived class) constructor.
+/// passed in via the (derived class) constructor. Hence
+/// the arguments should not be declared as const.
 ///
 /// This is a base class. See PolynomialEquation for an example
 /// of how to derive, and CompositeEquation for how to assemble
 /// composite equations. This fitting framework has been designed
 /// for synthesis calibration and imaging using the master/worker
 /// framework but is also appropriate for general use.
+///
+/// Implementors of derived classes are encouraged to use shared
+/// pointers rather than copies. CASA::Arrays can be used as is
+/// since they are by reference.
 ///
 /// Here's a (longwinded) example of how to use this framework
 /// for fitting a polynomial equation.
