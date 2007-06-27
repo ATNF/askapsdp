@@ -13,6 +13,7 @@
 ///
 
 #include <dataaccess/TableDataIterator.h>
+#include <dataaccess/TableDataAccessor.h>
 #include <dataaccess/TableInfoAccessor.h>
 
 using namespace conrad;
@@ -27,7 +28,13 @@ TableDataIterator::TableDataIterator(
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
             casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
-	       TableConstDataIterator(msManager,sel,conv,maxChunkSize) {}
+      TableConstDataIterator(boost::shared_ptr<TableConstDataAccessor>(
+      new TableDataAccessor(*this)),sel,conv,maxChunkSize)
+{
+ // a shallow constructor is used. Need init to complete the construction
+ // this approach allows to call a right init() method.
+ TableConstDataIterator::init();
+}
 
 /// @brief operator* delivers a reference to data accessor (current chunk)
 /// @details

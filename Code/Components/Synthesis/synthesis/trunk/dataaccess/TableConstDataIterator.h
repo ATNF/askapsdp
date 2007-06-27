@@ -107,10 +107,12 @@ protected:
   /// because some steps are to be done differently in the derived classes
   /// For example, the correct accessor should be initialized by the
   /// top-level class.
+  /// @param[in] accessor shared pointer to accessor to work with
   /// @param[in] sel shared pointer to selector
   /// @param[in] conv shared pointer to converter
   /// @param[in] maxChunkSize maximum number of rows per accessor
   TableConstDataIterator(
+              const boost::shared_ptr<TableConstDataAccessor> &accessor,
               const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
 	      const boost::shared_ptr<IDataConverterImpl const> &conv,
 	      casa::uInt maxChunkSize);
