@@ -18,8 +18,7 @@ using namespace synthesis;
 /// construct an object linked with the given iterator
 /// @param iter a reference to associated iterator
 TableDataAccessor::TableDataAccessor(const TableConstDataIterator &iter) :
-               TableConstDataAccessor(iter), itsBufferNeedsFlush(false),
-	       itsBufferChanged(true) {}
+               TableConstDataAccessor(iter), itsVisNeedsFlush(false) {}
 
 /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
 /// each element is a complex visibility)
@@ -29,10 +28,10 @@ TableDataAccessor::TableDataAccessor(const TableConstDataIterator &iter) :
 ///
 const casa::Cube<casa::Complex>& TableDataAccessor::visibility() const
 {
-  if (itsBufferedVisibility) {
+  if (itsScratchBufferPtr) {
       // active buffer should be returned
       fillBufferIfNeeded();
-      return *itsBufferedVisibility;      
+      return itsScratchBufferPtr->vis;      
   }
   // use original visibilities
   return TableConstDataAccessor::visibility();
@@ -41,14 +40,14 @@ const casa::Cube<casa::Complex>& TableDataAccessor::visibility() const
 /// read the information into the buffer if necessary
 void TableDataAccessor::fillBufferIfNeeded() const
 {
-  if (itsBufferChanged) {
-      // can't proceed if buffer is not set. Otherwise, it's a logic error
-      CONRADDEBUGASSERT(itsBufferedVisibility);
-      CONRADDEBUGASSERT(!itsBufferNeedsFlush);
+  // can't proceed if buffer is not set. Otherwise, it's a logic error
+  CONRADDEBUGASSERT(itsScratchBufferPtr);  
+  if (itsScratchBufferPtr->needsRead) {
+      CONRADDEBUGASSERT(!itsScratchBufferPtr->needsFlush);
 
       // a call to iterator method will be here
       //
-      itsBufferChanged=false;
+      itsScratchBufferPtr->needsRead=false;
   }
 }
 
@@ -59,51 +58,49 @@ void TableDataAccessor::fillBufferIfNeeded() const
 /// all visibility data
 ///
 casa::Cube<casa::Complex>& TableDataAccessor::rwVisibility()
-{
-  itsBufferNeedsFlush=true;
-  if (itsBufferedVisibility) {
-      // active buffer should be returned
+{    
+  if (itsScratchBufferPtr) {
+      // active buffer should be returned      
       fillBufferIfNeeded();
-      return *itsBufferedVisibility;      
+      itsScratchBufferPtr->needsFlush=true;
+      return itsScratchBufferPtr->vis;      
   }
+  // original visibility is requested
+  itsVisNeedsFlush=true;
   throw DataAccessLogicError("rwVisibility() for original visibilities is "
                                  "not yet implemented");  
   return const_cast<casa::Cube<casa::Complex>&>(TableConstDataAccessor::visibility());
 }
 
 
-/// @brief set the buffer to work with
-/// @details The modification flag (describing whether one needs to
-/// flush the buffer back to disk) is reset automatically.
-/// @param[in] buf shared pointer to nRow x nChannel x nPol cube with
-/// visibilities
+/// @brief set the scratch buffer to work with.
+/// @details The scratch buffer is a cache of the visibility cube
+/// and associated modification flags (one for reading, one for writing)
+/// @param[in] buf a shared pointer to scratch buffer
 void TableDataAccessor::setBuffer(
-           const boost::shared_ptr<casa::Cube<casa::Complex> > &buf) throw()
-{
-  CONRADDEBUGASSERT(!itsBufferNeedsFlush);
-  itsBufferedVisibility=buf;
-  resetBufferFlushFlag();
+           const boost::shared_ptr<ScratchBuffer> &buf) throw()
+{  
+  itsScratchBufferPtr=buf;  
 }
 
 /// revert to original visibilities
 void TableDataAccessor::setOriginal() throw()
-{
-  CONRADDEBUGASSERT(!itsBufferNeedsFlush);
-  itsBufferedVisibility.reset();
+{ 
+  itsScratchBufferPtr.reset();
 }
 
 
-/// set itsBufferNeedsFlush to false (i.e. after this buffer is
-/// synchronized with the disk
-void TableDataAccessor::resetBufferFlushFlag() throw()
+/// set itsVisNeedsFlush to false (i.e. used after the visibility scratch 
+/// buffer is synchronized with the disk)
+void TableDataAccessor::notifySyncCompleted() throw()
 {
-  itsBufferNeedsFlush=false;
+  itsVisNeedsFlush=false;
 }
 
-/// @return True if the active buffer needs to be written back
-bool TableDataAccessor::bufferNeedsFlush() const throw()
+/// @return True if the visibilities need to be written back
+bool TableDataAccessor::visNeedsSync() const throw()
 {
-  return itsBufferNeedsFlush;
+  return itsVisNeedsFlush;
 }
 
 
@@ -114,18 +111,28 @@ bool TableDataAccessor::bufferNeedsFlush() const throw()
 /// details on this methid.
 void TableDataAccessor::invalidateIterationCaches() const throw()
 {
-  CONRADDEBUGASSERT(!itsBufferNeedsFlush);
   TableConstDataAccessor::invalidateIterationCaches();
-  itsBufferChanged=true;
+  // may not need this method eventually. void for now.
 }
 
 /// @brief Obtain a const reference to associated iterator.
 /// @details See documentation for the base TableConstDataAccessor class
 /// for more information
 /// @return a const reference to the associated iterator
-/// @todo put a correct return type when it's ready
-const TableConstDataIterator& TableDataAccessor::iterator()
+const TableDataIterator& TableDataAccessor::iterator()
                                const throw(DataAccessLogicError)
 {
-  return TableConstDataAccessor::iterator();
+  #ifdef CONRAD_DEBUG
+  try {
+    return dynamic_cast<const TableDataIterator&>(
+                  TableConstDataAccessor::iterator());    		   
+  }
+  catch (const std::bad_cast &bc) {
+     throw DataAccessLogicError(bc.what());
+  }
+  #else
+  return static_cast<const TableDataIterator&>(
+                  TableConstDataAccessor::iterator());
+  
+  #endif
 }

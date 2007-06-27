@@ -15,12 +15,14 @@
 
 // own includes
 #include <dataaccess/TableConstDataAccessor.h>
+#include <dataaccess/ScratchBuffer.h>
+#include <dataaccess/TableDataIterator.h>
 
 namespace conrad {
 	
 namespace synthesis {
 
-/// @brief an implementation of IConstDataAccessor
+/// @brief an implementation of IDataAccessor
 ///
 /// @details TableDataAccessor is an implementation of the
 /// DataAccessor working with TableDataIterator.
@@ -48,23 +50,21 @@ public:
   ///
   virtual casa::Cube<casa::Complex>& rwVisibility();
 
-  /// @brief set the buffer to work with.
-  /// @details The modification flag (describing whether one needs to
-  /// flush the buffer back to disk) is reset automatically.
-  /// @param[in] buf shared pointer to nRow x nChannel x nPol cube with
-  /// visibilities
-  void setBuffer(const boost::shared_ptr<casa::Cube<casa::Complex> >
-                 &buf) throw();
+  /// @brief set the scratch buffer to work with.
+  /// @details The scratch buffer is a cache of the visibility cube
+  /// and associated modification flags (one for reading, one for writing)
+  /// @param[in] buf a shared pointer to scratch buffer
+  void setBuffer(const boost::shared_ptr<ScratchBuffer> &buf) throw();
 
   /// revert to original visibilities
   void setOriginal() throw();
 
-  /// set itsBufferNeedsFlush to false (i.e. after this buffer is
-  /// synchronized with the disk
-  void resetBufferFlushFlag() throw();
+  /// set itsVisNeedsFlush to false (i.e. used after the visibility scratch 
+  /// buffer is synchronized with the disk)
+  void notifySyncCompleted() throw();
 
-  /// @return True if the active buffer needs to be written back
-  bool bufferNeedsFlush() const throw();
+  /// @return True if the visibilities need to be written back
+  bool visNeedsSync() const throw();
 
   /// @brief invalidate items updated on each iteration
   /// @details this method is overloaded to keep track of
@@ -81,22 +81,17 @@ protected:
   /// @details See documentation for the base TableConstDataAccessor class
   /// for more information
   /// @return a const reference to the associated iterator
-  /// @todo put a correct return type when it's ready
-  const TableConstDataIterator& iterator() const throw(DataAccessLogicError);
+  const TableDataIterator& iterator() const throw(DataAccessLogicError);
 
 private:
 
   /// the current iteration of the active buffer. A void pointer means
   /// that the original visibility is selected, rather than a buffer.
-  boost::shared_ptr<casa::Cube<casa::Complex> > itsBufferedVisibility;
+  boost::shared_ptr<ScratchBuffer> itsScratchBufferPtr;
 
-  /// a flag that the buffer was modified and needs flushing back
-  bool itsBufferNeedsFlush;
-
-  /// a flag meaning that the buffer has to be read from the disk
-  /// (the same meaning as itsVisibilityChanged in the TableConstDataAccessor,
-  /// but for buffers)
-  mutable bool itsBufferChanged;
+  /// a flag that the original visibility has been modified and needs
+  /// flushing back
+  bool itsVisNeedsFlush;
 };
 
 
