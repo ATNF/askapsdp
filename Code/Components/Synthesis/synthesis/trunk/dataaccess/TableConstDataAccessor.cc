@@ -117,3 +117,14 @@ void TableConstDataAccessor::invalidateSpectralCaches() const throw()
 {
   itsFrequencyChanged=true;
 }
+
+/// @brief Obtain a const reference to associated iterator.
+/// @details This method is mainly intended to be used in the derived
+/// non-const implementation, which works with a different type of the
+/// iterator.
+/// @return a const reference to the associated iterator
+const TableConstDataIterator& TableConstDataAccessor::iterator() const
+                                            throw(DataAccessLogicError)
+{
+  return itsIterator;
+}

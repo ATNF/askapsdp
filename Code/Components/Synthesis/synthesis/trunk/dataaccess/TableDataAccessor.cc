@@ -44,6 +44,7 @@ void TableDataAccessor::fillBufferIfNeeded() const
   if (itsBufferChanged) {
       // can't proceed if buffer is not set. Otherwise, it's a logic error
       CONRADDEBUGASSERT(itsBufferedVisibility);
+      CONRADDEBUGASSERT(!itsBufferNeedsFlush);
 
       // a call to iterator method will be here
       //
@@ -79,6 +80,7 @@ casa::Cube<casa::Complex>& TableDataAccessor::rwVisibility()
 void TableDataAccessor::setBuffer(
            const boost::shared_ptr<casa::Cube<casa::Complex> > &buf) throw()
 {
+  CONRADDEBUGASSERT(!itsBufferNeedsFlush);
   itsBufferedVisibility=buf;
   resetBufferFlushFlag();
 }
@@ -86,6 +88,7 @@ void TableDataAccessor::setBuffer(
 /// revert to original visibilities
 void TableDataAccessor::setOriginal() throw()
 {
+  CONRADDEBUGASSERT(!itsBufferNeedsFlush);
   itsBufferedVisibility.reset();
 }
 
@@ -101,4 +104,28 @@ void TableDataAccessor::resetBufferFlushFlag() throw()
 bool TableDataAccessor::bufferNeedsFlush() const throw()
 {
   return itsBufferNeedsFlush;
+}
+
+
+/// @brief invalidate items updated on each iteration
+/// @details this method is overloaded to keep track of
+/// the iterator position and supply an appropriate piece
+/// of the active buffer. See TableConstDataAccessor for
+/// details on this methid.
+void TableDataAccessor::invalidateIterationCaches() const throw()
+{
+  CONRADDEBUGASSERT(!itsBufferNeedsFlush);
+  TableConstDataAccessor::invalidateIterationCaches();
+  itsBufferChanged=true;
+}
+
+/// @brief Obtain a const reference to associated iterator.
+/// @details See documentation for the base TableConstDataAccessor class
+/// for more information
+/// @return a const reference to the associated iterator
+/// @todo put a correct return type when it's ready
+const TableConstDataIterator& TableDataAccessor::iterator()
+                               const throw(DataAccessLogicError)
+{
+  return TableConstDataAccessor::iterator();
 }

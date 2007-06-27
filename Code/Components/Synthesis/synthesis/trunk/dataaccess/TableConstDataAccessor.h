@@ -17,6 +17,7 @@
 /// own includes
 #include <dataaccess/IConstDataAccessor.h>
 #include <dataaccess/DataAccessorStub.h>
+#include <dataaccess/DataAccessError.h>
 
 namespace conrad {
 	
@@ -87,24 +88,37 @@ public:
   /// only once if the is just one spectral window in the measurement set).
   /// These are invalidated by a call to notifyNewSpectralWindow(), if
   /// the new window is not the same as the cached one
-  void invalidateIterationCaches() const throw();
+  virtual void invalidateIterationCaches() const throw();
   
   /// @brief set itsXxxChanged flags corresponding to spectral axis
   /// information to true
   /// @details See invalidateIterationCaches for more details
   void invalidateSpectralCaches() const throw();
 protected:
-  /// it's OK to have a protected data member here, because its read
-  /// only 
+  /// @brief Obtain a const reference to associated iterator.
+  /// @details This method is mainly intended to be used in the derived
+  /// non-const implementation, which works with a different type of the
+  /// iterator.
+  /// @return a const reference to the associated iterator
+  const TableConstDataIterator& iterator() const throw(DataAccessLogicError);
+private:  
+  /// a reference to iterator managing this accessor
   const TableConstDataIterator& itsIterator;
-private:
+  /// change flag for visibility
   mutable bool itsVisibilityChanged;
+  /// internal buffer for visibility
   mutable casa::Cube<casa::Complex> itsVisibility;
+  /// change flag for uvw
   mutable bool itsUVWChanged;
+  /// internal buffer for uvw
   mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
-  mutable bool itsFrequencyChanged; 
+  /// change flag for frequency
+  mutable bool itsFrequencyChanged;
+  /// internal buffer for frequency
   mutable casa::Vector<casa::Double> itsFrequency;
+  /// change flag for time
   mutable bool itsTimeChanged;
+  /// internal buffer for time
   mutable casa::Double itsTime;
 };
 

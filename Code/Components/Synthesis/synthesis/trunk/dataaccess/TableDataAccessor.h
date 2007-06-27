@@ -65,9 +65,25 @@ public:
 
   /// @return True if the active buffer needs to be written back
   bool bufferNeedsFlush() const throw();
+
+  /// @brief invalidate items updated on each iteration
+  /// @details this method is overloaded to keep track of
+  /// the iterator position and supply an appropriate piece
+  /// of the active buffer. See TableConstDataAccessor for
+  /// details on this methid.
+  virtual void invalidateIterationCaches() const throw();
+
 protected:
   /// read the information into the buffer if necessary
   void fillBufferIfNeeded() const;
+
+  /// @brief Obtain a const reference to associated iterator.
+  /// @details See documentation for the base TableConstDataAccessor class
+  /// for more information
+  /// @return a const reference to the associated iterator
+  /// @todo put a correct return type when it's ready
+  const TableConstDataIterator& iterator() const throw(DataAccessLogicError);
+
 private:
 
   /// the current iteration of the active buffer. A void pointer means
