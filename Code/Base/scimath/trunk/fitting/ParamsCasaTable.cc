@@ -72,7 +72,7 @@ namespace conrad
       itsTableDesc.addColumn (ScalarColumnDesc<bool>(colFree));
 
       SetupNewTable newtab(itsTableName, itsTableDesc, Table::New);
-      itsTable=Table(newtab,0,False,Table::LittleEndian);
+      itsTable=Table(newtab,0,False,Table::LocalEndian);
       std::cout << "Successfully created new parameters table " << itsTableName << std::endl;
     }
 

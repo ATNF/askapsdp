@@ -3,18 +3,13 @@
 #include <fitting/NormalEquations.h>
 #include <fitting/DesignMatrix.h>
 
-#include <casa/BasicSL/Constants.h>
-#include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
-#include <casa/Arrays/Cube.h>
 #include <casa/Arrays/ArrayMath.h>
 #include <scimath/Mathematics/AutoDiff.h>
 #include <scimath/Mathematics/AutoDiffMath.h>
 
 #include <cmath>
-
-#include <stdexcept>
 
 using conrad::scimath::NormalEquations;
 using conrad::scimath::DesignMatrix;
