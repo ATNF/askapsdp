@@ -1,3 +1,4 @@
-#blob=3rdParty/LOFAR/Blob/tags/Blob-1.0
-#aps=3rdParty/LOFAR/APS/tags/APS-2.1
+common=3rdParty/LOFAR/Common/tags/Common-3.1
+blob=3rdParty/LOFAR/Blob/tags/Blob-1.0
+aps=3rdParty/LOFAR/APS/tags/APS-2.1
 conrad=Code/Base/conrad/Cc/trunk
