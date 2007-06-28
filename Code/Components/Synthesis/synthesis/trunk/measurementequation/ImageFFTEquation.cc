@@ -96,10 +96,10 @@ namespace conrad
       vector<string>::iterator it;
       
 //      itsIdi.chooseBuffer("model");
-      itsIdi.chooseBuffer("MODEL_DATA");
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
+        itsIdi.chooseBuffer("MODEL_DATA");
         itsIdi->rwVisibility().set(0.0);
         for (it=completions.begin();it!=completions.end();it++)
         {
@@ -138,22 +138,19 @@ namespace conrad
             casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
             
             itsIdi.chooseOriginal();
-      
-            casa::Cube<casa::Complex> vis(itsIdi->visibility().copy());
+            const casa::Cube<casa::Complex> vis(itsIdi->visibility().copy());
   
   // Predict the model visibility
-            itsIdi.chooseBuffer("MODEL_DATA");
-      
+            itsIdi.chooseBuffer("SCRATCH_DATA");
             itsIdi->rwVisibility().set(casa::Complex(0.0));
             Axes axes(parameters().axes(imageName));
+            
             itsGridder->correctConvolution(axes, imagePixels);
             toComplex(uvGrid, imagePixels);
             cfft(uvGrid, true);
             itsGridder->forward(itsIdi, axes, uvGrid);
-            vis=vis-itsIdi->visibility();
+            itsIdi->rwVisibility()=vis-itsIdi->visibility();
   
-            itsIdi.chooseBuffer("RESIDUAL_DATA");
-            itsIdi->rwVisibility()=vis.copy();
   // Calculate contribution to residual image
             {
               uvGrid.set(0.0);
@@ -180,7 +177,6 @@ namespace conrad
               cfft(uvGrid, false);
               toDouble(imagePSF, uvGrid);
               itsGridder->correctConvolution(axes, imagePSF);
-              itsIdi->rwVisibility()=vis;
             }
   // Add everything found to the normal equations
             casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);

@@ -80,7 +80,7 @@ namespace conrad
       const conrad::scimath::Axes& axes,
       const casa::Cube<casa::Complex>& grid)
     {
-      casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
+      casa::Cube<float> visweight(idi->visibility().shape()); 
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
       initConvolutionFunction(idi, cellsize, grid.shape());
@@ -93,7 +93,7 @@ namespace conrad
       const conrad::scimath::Axes& axes,
       const casa::Array<casa::Complex>& grid)
     {
-      casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
+      casa::Cube<float> visweight(idi->visibility().shape());
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
       initConvolutionFunction(idi, cellsize, grid.shape());
