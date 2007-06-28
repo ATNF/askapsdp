@@ -11,6 +11,7 @@
 
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
+#include <Blob/BlobAipsIO.h>
 
 #include <stdexcept>
 #include <string>
@@ -478,15 +479,16 @@ namespace conrad
     LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const NormalEquations& ne) 
     {
       os << *(ne.itsParams) << ne.itsNormalMatrix << ne.itsNormalMatrixSlice 
-        << ne.itsNormalMatrixDiagonal << ne.itsDataVector; 
-//        << ne.itsNormalMatrixDiagonal << ne.itsShape << ne.itsReference << ne.itsDataVector; 
+        << ne.itsNormalMatrixDiagonal << ne.itsShape << ne.itsReference << ne.itsDataVector; 
+//        << ne.itsNormalMatrixDiagonal << ne.itsDataVector; 
     }
 
     LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, NormalEquations& ne)
     {
+      ne.itsParams = Params::ShPtr(new Params());
       is >> *(ne.itsParams) >> ne.itsNormalMatrix >> ne.itsNormalMatrixSlice 
-        >> ne.itsNormalMatrixDiagonal >> ne.itsDataVector;
-//        >> ne.itsNormalMatrixDiagonal >> ne.itsShape >> ne.itsReference >> ne.itsDataVector;
+        >> ne.itsNormalMatrixDiagonal >> ne.itsShape >> ne.itsReference >> ne.itsDataVector;
+//        >> ne.itsNormalMatrixDiagonal >> ne.itsDataVector;
     }
   }
 }

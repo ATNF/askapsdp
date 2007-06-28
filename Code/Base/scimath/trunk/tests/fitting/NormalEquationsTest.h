@@ -2,6 +2,12 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <Blob/BlobString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
 #include <stdexcept>
 
 namespace conrad
@@ -15,6 +21,7 @@ namespace conrad
       CPPUNIT_TEST_SUITE(NormalEquationsTest);
       CPPUNIT_TEST(testConstructors);
       CPPUNIT_TEST(testCopy);
+      CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST(testAdd);
       CPPUNIT_TEST_SUITE_END();
 
@@ -92,6 +99,28 @@ namespace conrad
           CPPUNIT_ASSERT(normeq.parameters().names()[2]=="Value1");
         }
 
+        void testBlobStream() {
+          Params ip;
+          ip.add("Value0");
+          ip.add("Value1");
+          ip.add("Value2");
+          delete p1;
+          p1 = new NormalEquations(ip);
+          LOFAR::BlobString b1(false);
+          LOFAR::BlobOBufString bob(b1);
+          LOFAR::BlobOStream bos(bob);
+          bos << *p1;
+          Params pnew;
+          LOFAR::BlobIBufString bib(b1);
+          LOFAR::BlobIStream bis(bib);
+          p2 = new NormalEquations();
+          bis >> *p2;
+          CPPUNIT_ASSERT(p2->parameters().names().size()==3);
+          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
+          
+        }
     };
 
   }

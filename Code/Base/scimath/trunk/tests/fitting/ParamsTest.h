@@ -1,5 +1,13 @@
 #include <fitting/Params.h>
 
+#include <Blob/BlobString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
+using namespace LOFAR;
+
 #include <stdexcept>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -20,6 +28,7 @@ namespace conrad
       CPPUNIT_TEST(testCongruent);
       CPPUNIT_TEST(testCompletions);
       CPPUNIT_TEST(testCopy);
+      CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_EXCEPTION(testDuplicate, std::invalid_argument);
       CPPUNIT_TEST_EXCEPTION(testNotScalar, std::invalid_argument);
       CPPUNIT_TEST_SUITE_END();
@@ -149,6 +158,23 @@ namespace conrad
           CPPUNIT_ASSERT( !(p1->isCongruent(*p2)));
           p3->add("foo");
           CPPUNIT_ASSERT( p1->isCongruent(*p3));
+        }
+        
+        void testBlobStream() {
+          p1->add("Copy0");
+          p1->add("Copy1", 1.5);
+          LOFAR::BlobString b1(false);
+          LOFAR::BlobOBufString bob(b1);
+          LOFAR::BlobOStream bos(bob);
+          bos << *p1;
+          Params pnew;
+          LOFAR::BlobIBufString bib(b1);
+          LOFAR::BlobIStream bis(bib);
+          bis >> pnew;
+          CPPUNIT_ASSERT(pnew.has("Copy0"));
+          CPPUNIT_ASSERT(pnew.has("Copy1"));
+          CPPUNIT_ASSERT(pnew.scalarValue("Copy1")==1.5);
+          
         }
     };
 
