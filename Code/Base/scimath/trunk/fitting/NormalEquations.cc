@@ -11,13 +11,14 @@
 
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
-#include <Blob/BlobAipsIO.h>
 
 #include <stdexcept>
 #include <string>
 #include <map>
 #include <cmath>
 #include <vector>
+
+using namespace LOFAR;
 
 using std::abs;
 using std::map;

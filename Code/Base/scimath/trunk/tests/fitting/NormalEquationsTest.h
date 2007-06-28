@@ -102,10 +102,19 @@ namespace conrad
         void testBlobStream() {
           Params ip;
           ip.add("Value0");
-          ip.add("Value1");
-          ip.add("Value2");
-          delete p1;
-          p1 = new NormalEquations(ip);
+          ip.add("Value1", 1.5);
+          uint imsize=10*10;
+          casa::Vector<double> im(imsize);
+          im.set(3.0);
+          ip.add("Image2", im);
+
+          DesignMatrix dm(ip);
+          dm.addDerivative("Value0", casa::Matrix<casa::Double>(100, 1, 0.0));
+          dm.addDerivative("Value1", casa::Matrix<casa::Double>(100, 1, 0.0));
+          dm.addDerivative("Image2", casa::Matrix<casa::Double>(100, imsize, 0.0));
+          dm.addResidual(casa::Vector<casa::Double>(100, 0.0), casa::Vector<double>(100, 1.0));
+	  delete p1;
+          p1 = new NormalEquations(dm);
           LOFAR::BlobString b1(false);
           LOFAR::BlobOBufString bob(b1);
           LOFAR::BlobOStream bos(bob);
@@ -115,11 +124,10 @@ namespace conrad
           LOFAR::BlobIStream bis(bib);
           p2 = new NormalEquations();
           bis >> *p2;
+          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Image2");
           CPPUNIT_ASSERT(p2->parameters().names().size()==3);
-          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
-          
+          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value0");
+          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value1");
         }
     };
 
