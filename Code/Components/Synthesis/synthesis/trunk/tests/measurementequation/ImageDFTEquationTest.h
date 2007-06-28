@@ -10,13 +10,15 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
+
 #include <cmath>
 
 using std::abs;
 
 #include <boost/shared_ptr.hpp>
 
+using namespace conrad;
 using namespace conrad::scimath;
 
 namespace conrad
@@ -30,7 +32,7 @@ namespace conrad
       CPPUNIT_TEST_SUITE(ImageDFTEquationTest);
       CPPUNIT_TEST(testPredict);
       CPPUNIT_TEST(testSVD);
-      CPPUNIT_TEST_EXCEPTION(testFixed, std::domain_error);
+      CPPUNIT_TEST_EXCEPTION(testFixed, ConradError);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -107,10 +109,9 @@ namespace conrad
           NormalEquations ne(*params2);
           p2->calcEquations(ne);
           Quality q;
+          params2->fix("image.i.cena");
           LinearSolver solver1(*params2);
           solver1.addNormalEquations(ne);
-// Should throw exception: domain_error
-          solver1.parameters().fix("image.i.cena");
           solver1.solveNormalEquations(q);
         }
     };

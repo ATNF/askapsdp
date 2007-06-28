@@ -1,7 +1,7 @@
 DataSet                 			= spw_1.ms  # name of Measurement Set
 
 Parms.Instrument							=
-Parms.LocalSky								= nvss.par
+Parms.LocalSky								= # nvss.par
 Parms.GlobalSky								=
 Parms.Result									= imager.par
 
@@ -12,6 +12,6 @@ Images.image.i.nvss.frequency	= [1.420e9-256e6, 1.420e9]
 Images.image.i.nvss.nchan			= 1
 Images.image.i.nvss.direction	= [12h30m00.00, -45.00.00.00, J2000]
 
-Imager.gridder								= AntennaIllum
+Imager.gridder								= SphFunc
 Imager.AntennaIllum.diameter	= 12
 Imager.AntennaIllum.blockage	= 1

@@ -13,11 +13,10 @@
 #include <gridding/AntennaIllumVisGridder.h>
 
 #include <fitting/CompositeEquation.h>
-#include <fitting/ParamsCASATable.h>
+#include <fitting/ParamsCasaTable.h>
 #include <fitting/Axes.h>
 
-//#include <dataaccess/TableConstDataSource.h>
-#include <dataaccess/DataIteratorStub.h>
+#include <dataaccess/TableDataSource.h>
 
 #include <casa/aips.h>
 #include <casa/BasicSL/Constants.h>
@@ -54,10 +53,10 @@ int main(int argc, const char** argv)
     Params skymodel;
 
     /// Load the local sky model if it has been specified
-    if(parset.isDefined("Parms.LocalSky"))
+    if(parset.isDefined("Parms.LocalSky")&&parset.getString("Parms.LocalSky")!="")
     {
       string localsky(parset.getString("Parms.LocalSky"));
-      ParamsCASATable pt(localsky, true);
+      ParamsCasaTable pt(localsky, true);
       Params localskypar(ComponentEquation::defaultParameters());
       pt.getParameters(localskypar);
       std::cout << "Read Local Sky model " << localsky << std::endl;
@@ -85,11 +84,9 @@ int main(int argc, const char** argv)
         freq[0], freq[1], nchan);
     }
 
-//    TableConstDataSource ds(argv[1]);
+    TableDataSource ds(ms);
 
     cout << "Synthesis imaging program" << endl;
-
-    IDataSharedIter idi = IDataSharedIter(new DataIteratorStub(1));
 
     /// Now set up the imager
     
@@ -105,19 +102,21 @@ int main(int argc, const char** argv)
       gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
     }
     
-    ImageFFTEquation ie(skymodel, idi, gridder);
-
     NormalEquations ne(skymodel);
     std::cout << "Constructed normal equations" << std::endl;
 
     ImageSolver is(skymodel);
     std::cout << "Constructed image solver" << std::endl;
-//    for (it=ds.createConstIterator();it!=it.end();++it) {
-    ie.calcEquations(ne);
-    std::cout << "Calculated normal equations" << std::endl;
-    is.addNormalEquations(ne);
-    std::cout << "Added normal equations to solver" << std::endl;
-//    }
+    IDataSelectorPtr sel=ds.createSelector();
+    IDataConverterPtr conv=ds.createConverter();
+    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
+    for (IDataSharedIter it=ds.createIterator(sel, conv);it!=it.end();++it) {
+      ImageFFTEquation ie(skymodel, it, gridder);
+      ie.calcEquations(ne);
+      std::cout << "Calculated normal equations" << std::endl;
+      is.addNormalEquations(ne);
+      std::cout << "Added normal equations to solver" << std::endl;
+    }
     Quality q;
     std::cout << "Solving normal equations" << std::endl;
     is.solveNormalEquations(q);
@@ -125,7 +124,7 @@ int main(int argc, const char** argv)
 
     {
       string resultfile(parset.getString("Parms.Result"));
-      ParamsCASATable results(resultfile, false);
+      ParamsCasaTable results(resultfile, false);
       results.setParameters(is.parameters());
     }
 

@@ -21,6 +21,8 @@ namespace conrad
   {
 
     /// Incomplete base class for table-based gridding of visibility data.
+    ///
+    /// @todo Implement factory for gridders
     class TableVisGridder : public IVisGridder
     {
       public:

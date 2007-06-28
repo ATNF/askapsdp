@@ -59,11 +59,9 @@ namespace conrad
         }
       }
       CONRADCHECK(nParameters>0, "No free parameters in ImageSolver");
-      std::cout << "Free parameters = " << nParameters << std::endl;
       
       for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
       {
-        std::cout << "Processing " << indit->first << std::endl;
 // Axes are dof, dof for each parameter
         casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
         
@@ -86,7 +84,6 @@ namespace conrad
         itsParams->add("debug."+indit->first+".slice", itsNormalEquations->normalMatrixSlice().find(indit->first)->second);
       }
 
-      std::cout << "Solution done" << std::endl;
       quality.setDOF(nParameters);
       quality.setRank(0);
       quality.setCond(0.0);

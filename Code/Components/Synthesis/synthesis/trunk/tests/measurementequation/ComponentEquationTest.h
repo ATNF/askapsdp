@@ -10,13 +10,15 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
+
 #include <cmath>
 
 using std::abs;
 
 #include <boost/shared_ptr.hpp>
 
+using namespace conrad;
 using namespace conrad::scimath;
 
 namespace conrad
@@ -34,7 +36,7 @@ namespace conrad
       CPPUNIT_TEST(testConstructNormalEquations);
       CPPUNIT_TEST(testSolveNormalEquations);
       CPPUNIT_TEST(testSolveNormalEquationsFix);
-      CPPUNIT_TEST_EXCEPTION(testNoFree, std::domain_error);
+      CPPUNIT_TEST_EXCEPTION(testNoFree, ConradError);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -148,8 +150,8 @@ namespace conrad
           p2->calcEquations(ne);
           {
             Quality q;
+            params2->fix("flux.i.cena");
             LinearSolver solver1(*params2);
-            solver1.parameters().fix("flux.i.cena");
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
@@ -157,9 +159,9 @@ namespace conrad
           }
           {
             Quality q;
+            params2->fix("flux.i.cena");
+            params2->fix("direction.ra.cena");
             LinearSolver solver1(*params2);
-            solver1.parameters().fix("flux.i.cena");
-            solver1.parameters().fix("direction.ra.cena");
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
@@ -167,10 +169,10 @@ namespace conrad
           }
           {
             Quality q;
+            params2->fix("flux.i.cena");
+            params2->fix("direction.ra.cena");
+            params2->fix("direction.dec.cena");
             LinearSolver solver1(*params2);
-            solver1.parameters().fix("flux.i.cena");
-            solver1.parameters().fix("direction.ra.cena");
-            solver1.parameters().fix("direction.dec.cena");
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
@@ -178,11 +180,11 @@ namespace conrad
           }
           {
             Quality q;
+            params2->fix("flux.i.cena");
+            params2->fix("direction.ra.cena");
+            params2->fix("direction.dec.cena");
+            params2->fix("shape.bpa.cena");
             LinearSolver solver1(*params2);
-            solver1.parameters().fix("flux.i.cena");
-            solver1.parameters().fix("direction.ra.cena");
-            solver1.parameters().fix("direction.dec.cena");
-            solver1.parameters().fix("shape.bpa.cena");
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
@@ -190,12 +192,12 @@ namespace conrad
           }
           {
             Quality q;
+            params2->fix("flux.i.cena");
+            params2->fix("direction.ra.cena");
+            params2->fix("direction.dec.cena");
+            params2->fix("shape.bmin.cena");
+            params2->fix("shape.bpa.cena");
             LinearSolver solver1(*params2);
-            solver1.parameters().fix("flux.i.cena");
-            solver1.parameters().fix("direction.ra.cena");
-            solver1.parameters().fix("direction.dec.cena");
-            solver1.parameters().fix("shape.bmin.cena");
-            solver1.parameters().fix("shape.bpa.cena");
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
@@ -209,15 +211,14 @@ namespace conrad
           p1->predict();
           p2->calcEquations(ne);
           Quality q;
+          params2->fix("flux.i.cena");
+          params2->fix("direction.ra.cena");
+          params2->fix("direction.dec.cena");
+          params2->fix("shape.bmaj.cena");
+          params2->fix("shape.bmin.cena");
+          params2->fix("shape.bpa.cena");
           LinearSolver solver1(*params2);
           solver1.addNormalEquations(ne);
-          solver1.parameters().fix("flux.i.cena");
-          solver1.parameters().fix("direction.ra.cena");
-          solver1.parameters().fix("direction.dec.cena");
-          solver1.parameters().fix("shape.bmaj.cena");
-          solver1.parameters().fix("shape.bmin.cena");
-          solver1.parameters().fix("shape.bpa.cena");
-// Should throw exception: domain_error
           solver1.solveNormalEquations(q);
         }
 
