@@ -1,5 +1,5 @@
 #include <fitting/Params.h>
-#include <fitting/ParamsCASATable.h>
+#include <fitting/ParamsCasaTable.h>
 
 #include <tables/Tables/TableError.h>
 
