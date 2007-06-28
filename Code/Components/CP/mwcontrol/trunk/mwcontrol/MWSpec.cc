@@ -14,7 +14,7 @@
 #include <mwcontrol/MWMultiSpec.h>
 #include <mwcommon/ParameterHandler.h>
 #include <mwcommon/MWError.h>
-#include <mwcommon/ConradUtil.h>
+#include <conrad/ConradUtil.h>
 #include <APS/ParameterSet.h>
 #include <ostream>
 

@@ -5,7 +5,7 @@
 #include <mwcontrol/MWStrategySpec.h>
 #include <mwcontrol/MWSpec.h>
 #include <mwcontrol/ParameterHandlerBBS.h>
-#include <mwcommon/ConradUtil.h>
+#include <conrad/ConradUtil.h>
 #include <ostream>
 
 using namespace std;

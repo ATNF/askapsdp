@@ -6,7 +6,7 @@
 
 #include <mwcontrol/MWSolveSpec.h>
 #include <mwcommon/MWError.h>
-#include <mwcommon/ConradUtil.h>
+#include <conrad/ConradUtil.h>
 #include <APS/ParameterSet.h>
 
 using namespace LOFAR::ACC::APS;
