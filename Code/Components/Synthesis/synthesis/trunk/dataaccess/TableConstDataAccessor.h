@@ -94,7 +94,7 @@ public:
   /// information to true
   /// @details See invalidateIterationCaches for more details
   void invalidateSpectralCaches() const throw();
-protected:
+
   /// @brief Obtain a const reference to associated iterator.
   /// @details This method is mainly intended to be used in the derived
   /// non-const implementation, which works with a different type of the

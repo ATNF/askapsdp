@@ -28,12 +28,8 @@ TableDataIterator::TableDataIterator(
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
             casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
-      TableConstDataIterator(boost::shared_ptr<TableConstDataAccessor>(
-      new TableDataAccessor(*this)),sel,conv,maxChunkSize)
-{
-  // a shallow constructor is used. Need init to complete the construction
-  // this approach allows to call a right init() method.
-  init();
+              TableConstDataIterator(msManager,sel,conv,maxChunkSize)
+{  
 }
 
 /// @brief operator* delivers a reference to data accessor (current chunk)
@@ -45,7 +41,8 @@ TableDataIterator::TableDataIterator(
 ///
 IDataAccessor& TableDataIterator::operator*() const
 {
-  return const_cast<IDataAccessor&>(dynamic_cast<const IDataAccessor&>(TableConstDataIterator::operator*()));
+  CONRADDEBUGASSERT(itsActiveBufferPtr);
+  return *itsActiveBufferPtr;
 }
 
 /// @brief Switch the output of operator* and operator-> to one of 
@@ -63,6 +60,15 @@ IDataAccessor& TableDataIterator::operator*() const
 /// @param[in] bufferID  the name of the buffer to choose
 void TableDataIterator::chooseBuffer(const std::string &bufferID)
 {
+  std::map<std::string, boost::shared_ptr<IDataAccessor> >::const_iterator
+                      bufferIt = itsBuffers.find(bufferID);
+  if (bufferIt==itsBuffers.end()) {
+      // deal with new buffer
+      itsBuffers[bufferID] = itsActiveBufferPtr =
+           boost::shared_ptr<IDataAccessor>(new TableDataAccessor(getAccessor()));
+  } else {
+      itsActiveBufferPtr=bufferIt->second;
+  }
 }
 
 /// Switch the output of operator* and operator-> to the original
@@ -72,6 +78,7 @@ void TableDataIterator::chooseBuffer(const std::string &bufferID)
 ///
 void TableDataIterator::chooseOriginal()
 {
+  itsActiveBufferPtr=itsOriginalVisAccessor;
 }
 
 /// @brief obtain any associated buffer for read/write access.
@@ -82,7 +89,15 @@ void TableDataIterator::chooseOriginal()
 ///         buffer requested
 IDataAccessor& TableDataIterator::buffer(const std::string &bufferID) const
 {
-  return operator*();
+  std::map<std::string, boost::shared_ptr<IDataAccessor> >::const_iterator
+                      bufferIt = itsBuffers.find(bufferID);
+  if (bufferIt!=itsBuffers.end()) {
+      // this buffer already exists
+      return *(bufferIt->second);
+  }
+  // this is a request for a new buffer
+  return *(itsBuffers[bufferID] =
+      boost::shared_ptr<IDataAccessor>(new TableDataAccessor(getAccessor())));
 }
 
 /// Restart the iteration from the beginning

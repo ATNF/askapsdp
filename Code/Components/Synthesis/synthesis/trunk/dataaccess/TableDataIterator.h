@@ -15,9 +15,19 @@
 #ifndef TABLE_DATA_ITERATOR_H
 #define TABLE_DATA_ITERATOR_H
 
+// std includes
+#include <string>
+#include <map>
+
+// boost includes
+#include <boost/shared_ptr.hpp>
+
+// own includes
 #include <dataaccess/TableConstDataIterator.h>
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/TableInfoAccessor.h>
+#include <dataaccess/IDataAccessor.h>
+
 
 namespace conrad {
 
@@ -100,7 +110,18 @@ public:
   /// @return True if there are more data (so constructions like 
   ///         while(it.next()) {} are possible)
   virtual casa::Bool next();
+private:
+  /// shared pointer to the data accessor associated with either an active
+  /// buffer or original visibilites. The actual type held by the pointer
+  /// may vary.
+  boost::shared_ptr<IDataAccessor> itsActiveBufferPtr;
 
+  /// a container of buffers
+  mutable std::map<std::string, boost::shared_ptr<IDataAccessor> > itsBuffers;
+
+  /// shared pointer to data accessor associated with original visibilities
+  /// (initialized at the constructor)
+  boost::shared_ptr<IDataAccessor> itsOriginalVisAccessor;
 };
 
 } // end of namespace synthesis

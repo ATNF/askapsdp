@@ -41,7 +41,7 @@ class TableConstDataIterator : virtual public IConstDataIterator,
                                virtual protected TableInfoAccessor
 {
 public:
-  /// @brief constructor for users
+  /// @brief constructor of the const iterator
   /// @param[in] msManager a manager of the measurement set to use
   /// @param[in] sel shared pointer to selector
   /// @param[in] conv shared pointer to converter
@@ -102,20 +102,6 @@ public:
   casa::Double getTime() const;
   
 protected:
-  /// @brief constructor for derived classes
-  /// @details This version of the constructor doesn't do full initialization
-  /// because some steps are to be done differently in the derived classes
-  /// For example, the correct accessor should be initialized by the
-  /// top-level class.
-  /// @param[in] accessor shared pointer to accessor to work with
-  /// @param[in] sel shared pointer to selector
-  /// @param[in] conv shared pointer to converter
-  /// @param[in] maxChunkSize maximum number of rows per accessor
-  TableConstDataIterator(
-              const boost::shared_ptr<TableConstDataAccessor> &accessor,
-              const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
-	      const boost::shared_ptr<IDataConverterImpl const> &conv,
-	      casa::uInt maxChunkSize);
 
   /// setup accessor for a new iteration
   void setUpIteration();
@@ -130,10 +116,15 @@ protected:
   /// when DATA_DESC_ID changes (and therefore at the first run as well)
   void makeUniformDataDescID();
 
-  /// accessor (a chunk of data) to be used with derived classes as well,
-  /// although the accessor type can be different
-  boost::shared_ptr<TableConstDataAccessor> theirAccessorPtr;  
+  /// obtain a reference to the accessor (for derived classes)
+  inline const TableConstDataAccessor& getAccessor() const throw()
+  { return itsAccessor;}
+
 private:
+  /// accessor (a chunk of data) 
+  /// although the accessor type can be different
+  TableConstDataAccessor itsAccessor;  
+
   boost::shared_ptr<ITableDataSelectorImpl const>  itsSelector;
   boost::shared_ptr<IDataConverterImpl const>  itsConverter;
   /// the maximum allowed number of rows in the accessor.
