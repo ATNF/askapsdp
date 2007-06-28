@@ -13,7 +13,7 @@
 ///
 
 #include <dataaccess/TableDataIterator.h>
-#include <dataaccess/TableDataAccessor.h>
+#include <dataaccess/TableBufferDataAccessor.h>
 #include <dataaccess/TableInfoAccessor.h>
 
 using namespace conrad;
@@ -65,7 +65,7 @@ void TableDataIterator::chooseBuffer(const std::string &bufferID)
   if (bufferIt==itsBuffers.end()) {
       // deal with new buffer
       itsBuffers[bufferID] = itsActiveBufferPtr =
-           boost::shared_ptr<IDataAccessor>(new TableDataAccessor(getAccessor()));
+           boost::shared_ptr<IDataAccessor>(new TableBufferDataAccessor(getAccessor()));
   } else {
       itsActiveBufferPtr=bufferIt->second;
   }
@@ -97,7 +97,7 @@ IDataAccessor& TableDataIterator::buffer(const std::string &bufferID) const
   }
   // this is a request for a new buffer
   return *(itsBuffers[bufferID] =
-      boost::shared_ptr<IDataAccessor>(new TableDataAccessor(getAccessor())));
+      boost::shared_ptr<IDataAccessor>(new TableBufferDataAccessor(getAccessor())));
 }
 
 /// Restart the iteration from the beginning
