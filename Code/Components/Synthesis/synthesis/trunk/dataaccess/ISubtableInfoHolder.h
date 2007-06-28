@@ -22,6 +22,7 @@
 #include <dataaccess/IHolder.h>
 #include <dataaccess/ITableDataDescHolder.h>
 #include <dataaccess/ITableSpWindowHolder.h>
+#include <dataaccess/IBufferManager.h>
 
 namespace conrad {
 
@@ -46,6 +47,9 @@ struct ISubtableInfoHolder : virtual public IHolder {
 
    /// @return a reference to the handler of the SPECTRAL_WINDOW subtable
    virtual const ITableSpWindowHolder& getSpWindow() const = 0;
+
+   /// @return a reference to the manager of buffers (BUFFERS subtable)
+   virtual const IBufferManager& getBufferManager() const = 0;
 };
 
 

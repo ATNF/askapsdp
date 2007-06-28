@@ -20,6 +20,7 @@
 #include <dataaccess/TableBufferDataAccessor.h>
 #include <dataaccess/TableDataAccessor.h>
 #include <dataaccess/TableInfoAccessor.h>
+#include <dataaccess/IBufferManager.h>
 
 namespace conrad {
 
@@ -195,6 +196,13 @@ casa::Bool TableDataIterator::next()
 void TableDataIterator::readBuffer(casa::Cube<casa::Complex> &vis,
                         const std::string &name) const
 {
+  const IBufferManager &bufManager=subtableInfo().getBufferManager();
+  if (bufManager.bufferExists(name,itsIterationCounter)) {
+      bufManager.readBuffer(vis,name,itsIterationCounter);
+  } else {
+      const TableConstDataAccessor &accessor=getAccessor();
+      vis.resize(accessor.nRow(),accessor.nChannel(), accessor.nPol());
+  }
 }
 
 /// write the cube back to the given buffer  
@@ -204,4 +212,5 @@ void TableDataIterator::readBuffer(casa::Cube<casa::Complex> &vis,
 void TableDataIterator::writeBuffer(const casa::Cube<casa::Complex> &vis,
                          const std::string &name) const
 {
+  subtableInfo().getBufferManager().writeBuffer(vis,name,itsIterationCounter);
 }

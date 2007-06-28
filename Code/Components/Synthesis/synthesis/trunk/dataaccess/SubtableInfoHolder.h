@@ -57,18 +57,31 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    /// @return a reference to the handler of the SPECTRAL_WINDOW subtable
    virtual const ITableSpWindowHolder& getSpWindow() const;
 
+   /// @brief obtain a manager of buffers
+   /// @details A TableBufferManager is constructed on the first call
+   /// to this method, which makes BUFFERS subtable if it is not yet
+   /// present.
+   /// @return a reference to the manager of buffers (BUFFERS subtable)
+   virtual const IBufferManager& getBufferManager() const;
+
 protected:   
    /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
    void initDataDescHolder() const;
 
    /// initialize itsSpWindowHolder with an instance of MemTableSpWindowHolder.
    void initSpWindowHolder() const;
+
+   /// initialize itsBufferManager with an instance of TableBufferManager
+   void initBufferManager() const;
 private:
    /// smart pointer to data description holder
    mutable boost::shared_ptr<ITableDataDescHolder const> itsDataDescHolder;
 
    /// smart pointer to spectral window holder
    mutable boost::shared_ptr<ITableSpWindowHolder const> itsSpWindowHolder;
+
+   /// smart pointer to the buffer manager
+   mutable boost::shared_ptr<IBufferManager const> itsBufferManager;
 };
 
 

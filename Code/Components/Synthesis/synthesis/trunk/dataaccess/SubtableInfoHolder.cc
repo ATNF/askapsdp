@@ -19,6 +19,7 @@
 #include <dataaccess/SubtableInfoHolder.h>
 #include <dataaccess/MemTableDataDescHolder.h>
 #include <dataaccess/MemTableSpWindowHolder.h>
+#include <dataaccess/TableBufferManager.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -59,3 +60,22 @@ void SubtableInfoHolder::initSpWindowHolder() const
   itsSpWindowHolder.reset(new MemTableSpWindowHolder(table()));
 }
 
+/// @brief obtain a manager of buffers
+/// @details A TableBufferManager is constructed on the first call
+/// to this method, which makes BUFFERS subtable if it is not yet
+/// present.
+/// @return a reference to the manager of buffers (BUFFERS subtable)
+const IBufferManager& SubtableInfoHolder::getBufferManager() const
+{
+  if (!itsBufferManager) {
+      initBufferManager();
+  }
+  return *itsBufferManager;
+}
+
+/// initialize itsBufferManager with an instance of TableBufferManager
+void SubtableInfoHolder::initBufferManager() const
+{
+  /// @todo need to get the subtable here
+  itsBufferManager.reset(new TableBufferManager(table()));
+}
