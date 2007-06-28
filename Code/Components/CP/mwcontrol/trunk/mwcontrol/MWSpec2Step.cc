@@ -10,11 +10,11 @@
 #include <mwcontrol/MWCorrectSpec.h>
 #include <mwcontrol/MWSubtractSpec.h>
 #include <mwcontrol/MWPredictSpec.h>
+#include <mwcontrol/MWSolveStepBBS.h>
+#include <mwcontrol/MWCorrectStepBBS.h>
+#include <mwcontrol/MWSubtractStepBBS.h>
+#include <mwcontrol/MWPredictStepBBS.h>
 #include <mwcommon/WorkDomainSpec.h>
-#include <mwcommon/MWSolveStep.h>
-#include <mwcommon/MWCorrectStep.h>
-#include <mwcommon/MWSubtractStep.h>
-#include <mwcommon/MWPredictStep.h>
 
 using namespace std;
 
@@ -52,8 +52,8 @@ namespace conrad { namespace cp {
 
   void MWSpec2Step::visitSolve (const MWSolveSpec& spec)
   {
-    MWSolveStep step;
-    setCommon (spec, step);
+    MWSolveStepBBS step;
+    setProp (spec, step.getProp());
     step.setParmPatterns (spec.getParms());
     step.setExclPatterns (spec.getExclParms());
     step.setDomainShape (spec.getDomainShape());
@@ -65,28 +65,29 @@ namespace conrad { namespace cp {
 
   void MWSpec2Step::visitCorrect (const MWCorrectSpec& spec)
   {
-    MWCorrectStep step;
-    setCommon (spec, step);
+    MWCorrectStepBBS step;
+    setProp (spec, step.getProp());
     itsSteps.push_back (step);
   }
 
   void MWSpec2Step::visitSubtract (const MWSubtractSpec& spec)
   {
-    MWCorrectStep step;
-    setCommon (spec, step);
+    MWCorrectStepBBS step;
+    setProp (spec, step.getProp());
     itsSteps.push_back (step);
   }
 
   void MWSpec2Step::visitPredict (const MWPredictSpec& spec)
   {
-    MWCorrectStep step;
-    setCommon (spec, step);
+    MWCorrectStepBBS step;
+    setProp (spec, step.getProp());
     itsSteps.push_back (step);
   }
 
-  void MWSpec2Step::setCommon (const MWSingleSpec& spec, MWStepBBS& step) const
+  void MWSpec2Step::setProp (const MWSingleSpec& spec,
+                             MWStepBBSProp& prop) const
   {
-    step.set (spec.getStation1(),
+    prop.set (spec.getStation1(),
 	      spec.getStation2(),
 	      spec.getIntegration(),
 	      spec.getCorrType(),

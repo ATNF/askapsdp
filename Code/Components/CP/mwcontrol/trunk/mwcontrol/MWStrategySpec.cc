@@ -4,7 +4,7 @@
 
 #include <mwcontrol/MWStrategySpec.h>
 #include <mwcontrol/MWSpec.h>
-#include <mwcontrol/ParameterHandler.h>
+#include <mwcontrol/ParameterHandlerBBS.h>
 #include <mwcommon/ConradUtil.h>
 #include <ostream>
 
@@ -36,7 +36,7 @@ namespace conrad { namespace cp {
     double freqSize = psh.getDouble("WorkDomainSize.Freq");
     double timeSize = psh.getDouble("WorkDomainSize.Time");
     itsWorkDomainSize = DomainShape(freqSize, timeSize);
-    itsStep = ParameterHandler(parset).getSteps (itsName);
+    itsStep = ParameterHandlerBBS(parset).getSteps (itsName);
   }
 
   void MWStrategySpec::print (std::ostream& os) const

@@ -12,7 +12,7 @@
 #include <mwcontrol/MWSolveSpec.h>
 #include <mwcontrol/MWSubtractSpec.h>
 #include <mwcontrol/MWMultiSpec.h>
-#include <mwcontrol/ParameterHandler.h>
+#include <mwcommon/ParameterHandler.h>
 #include <mwcommon/MWError.h>
 #include <mwcommon/ConradUtil.h>
 #include <APS/ParameterSet.h>

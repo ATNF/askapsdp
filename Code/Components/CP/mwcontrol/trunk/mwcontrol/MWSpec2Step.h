@@ -20,6 +20,7 @@ namespace conrad { namespace cp {
   class MWSingleSpec;
   class MWStepBBS;
   class MWStrategySpec;
+  class MWStepBBSProp;
   class WorkDomainSpec;
 
   /// @ingroup mwcontrol
@@ -55,8 +56,8 @@ namespace conrad { namespace cp {
     static WorkDomainSpec convertStrategy (const MWStrategySpec&);
 
   private:
-    /// Set the common fields of each spec.
-    void setCommon (const MWSingleSpec& spec, MWStepBBS& step) const;
+    /// Set the common properties of each spec.
+    void setProp (const MWSingleSpec& spec, MWStepBBSProp& step) const;
 
     MWMultiStep itsSteps;   /// collection of all steps
   };
