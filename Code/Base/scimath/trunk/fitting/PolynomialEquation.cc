@@ -118,6 +118,7 @@ namespace conrad
       {
         for (int ipar=0;ipar<parameters.size();ipar++)
         {
+          /// @todo Optimize calculation of values
           values[ix]+=parameters[ipar]*std::pow(x[ix], ipar);
         }
       }
@@ -132,6 +133,7 @@ namespace conrad
       {
         for (int ipar=0;ipar<parameters.size();ipar++)
         {
+          /// @todo Optimize calculation of derivatives
           valueDerivs(ix,ipar)=std::pow(x[ix], ipar);
         }
       }

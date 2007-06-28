@@ -5,6 +5,11 @@
 /// Params class. The data and arguments are also part
 /// of the constructor.
 ///
+/// This is mostly a demonstration quality class - it needs
+/// to be optimized for real use.
+///
+/// @todo Use axes if present to normalize before fitting
+///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///

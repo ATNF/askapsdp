@@ -58,7 +58,6 @@ namespace conrad
         void tearDown()
         {
           delete itsPoly1;
-          delete itsPoly2;
         }
 
         void testConstructors()
@@ -69,11 +68,10 @@ namespace conrad
 
         void testCopy()
         {
-          delete itsPoly2;
-          itsPoly2 = new PolynomialEquation(*itsPoly1);
-          CPPUNIT_ASSERT(itsPoly2->parameters().names().size()==1);
-          CPPUNIT_ASSERT(itsPoly2->parameters().names().size()==1);
-          CPPUNIT_ASSERT(itsPoly2->parameters().names()[0]=="poly");
+          PolynomialEquation poly2(*itsPoly1);
+          CPPUNIT_ASSERT(poly2.parameters().names().size()==1);
+          CPPUNIT_ASSERT(poly2.parameters().names().size()==1);
+          CPPUNIT_ASSERT(poly2.parameters().names()[0]=="poly");
         }
 
         void testPredict()
