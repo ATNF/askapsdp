@@ -34,7 +34,7 @@ struct MapMemFun : public std::unary_function<X*, void> {
   /// @param[in] in member function
   explicit MapMemFun(void (X::*in)()) : func(in) {}
 
-  /// @param[in] a reference to the pair-like object with a pointer-like
+  /// @param[in] in a reference to the pair-like object with a pointer-like
   /// object stored in the second parameter.
   template<typename P>
   void operator()(const P &in) const    
@@ -150,8 +150,17 @@ IDataAccessor& TableDataIterator::buffer(const std::string &bufferID) const
 /// Restart the iteration from the beginning
 void TableDataIterator::init()
 {
+  // call sync() member function for all accessors in itsBuffers
+  std::for_each(itsBuffers.begin(),itsBuffers.end(),
+           mapMemFun(&TableBufferDataAccessor::sync));
+
   TableConstDataIterator::init();
   itsIterationCounter=0;
+
+  // call notifyNewIteration() member function for all accessors
+  // in itsBuffers
+  std::for_each(itsBuffers.begin(),itsBuffers.end(),
+           mapMemFun(&TableBufferDataAccessor::notifyNewIteration));
 }
 
 // hasMore method has to be overridden
@@ -213,4 +222,12 @@ void TableDataIterator::writeBuffer(const casa::Cube<casa::Complex> &vis,
                          const std::string &name) const
 {
   subtableInfo().getBufferManager().writeBuffer(vis,name,itsIterationCounter);
+}
+
+/// destructor required to sync buffers on the last iteration
+TableDataIterator::~TableDataIterator()
+{
+  // call sync() member function for all accessors in itsBuffers
+  std::for_each(itsBuffers.begin(),itsBuffers.end(),
+           mapMemFun(&TableBufferDataAccessor::sync));
 }

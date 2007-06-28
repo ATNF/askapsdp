@@ -56,6 +56,9 @@ public:
 	      const boost::shared_ptr<IDataConverterImpl const> &conv,
 	      casa::uInt maxChunkSize = INT_MAX);
 
+  /// destructor required to sync buffers on the last iteration
+  virtual ~TableDataIterator();
+
   /// @brief operator* delivers a reference to data accessor (current chunk)
   /// @details
   /// @return a reference to the current chunk
