@@ -44,9 +44,12 @@ class TableDataIterator;
 class TableBufferDataAccessor : virtual public MetaDataAccessor
 {
 public:
-  /// construct an object linked with the given const accessor
-  /// @param acc a reference to the associated accessor
-  explicit TableBufferDataAccessor(const TableConstDataAccessor &acc);
+  /// construct an object linked with the given const accessor and
+  /// non-const iterator (which provides a read/write functionality)
+  /// @param name a name of the buffer represented by this accessor
+  /// @param iter a reference to the associated read-write iterator
+  explicit TableBufferDataAccessor(const std::string &name,
+                                   const TableDataIterator &iter);
 
   /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
   /// each element is a complex visibility)
@@ -65,12 +68,8 @@ public:
   ///
   virtual casa::Cube<casa::Complex>& rwVisibility();
 
-  /// set needsFlush flag to false (i.e. used after the visibility scratch 
-  /// buffer is synchronized with the disk)
-  void notifySyncCompleted() throw();
-
-  /// @return True if the visibilities need to be written back
-  bool needSync() const throw();
+  /// sync the buffer with table if necessary
+  void sync();
 
   /// set needsRead flag to true (i.e. used following an iterator step
   /// to force updating the cache on the next data request
@@ -82,7 +81,18 @@ private:
     
   /// the current iteration of the active buffer. A void pointer means
   /// that the original visibility is selected, rather than a buffer.
-  ScratchBuffer itsScratchBuffer;  
+  mutable ScratchBuffer itsScratchBuffer;
+
+  /// the name of the current buffer (one needs it for a proper
+  /// cache management request)
+  const std::string itsName;
+
+  /// @brief A reference to associated read-write iterator.
+  /// @details
+  /// @note We could have obtained
+  /// it from the data accessor, but this approach seems more general and
+  /// works faster.
+  const TableDataIterator &itsIterator;
 };
 
 

@@ -27,6 +27,7 @@
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/IDataAccessor.h>
+#include <dataaccess/TableBufferDataAccessor.h>
 
 
 namespace conrad {
@@ -110,6 +111,25 @@ public:
   /// @return True if there are more data (so constructions like 
   ///         while(it.next()) {} are possible)
   virtual casa::Bool next();
+
+  // to make it public instead of protected
+  using TableConstDataIterator::getAccessor;
+
+  /// populate the cube with the data stored in the given buffer  
+  /// @param[in] vis a reference to the nRow x nChannel x nPol buffer
+  ///            cube to fill with the complex visibility data
+  /// @param[in] name a name of the buffer to work with
+  virtual void readBuffer(casa::Cube<casa::Complex> &vis,
+                          const std::string &name) const;
+
+  /// write the cube back to the given buffer  
+  /// @param[in] vis a reference to the nRow x nChannel x nPol buffer
+  ///            cube to fill with the complex visibility data
+  /// @param[in] name a name of the buffer to work with
+  virtual void writeBuffer(const casa::Cube<casa::Complex> &vis,
+                           const std::string &name) const;
+  			  
+
 private:
   /// shared pointer to the data accessor associated with either an active
   /// buffer or original visibilites. The actual type held by the pointer
@@ -117,11 +137,16 @@ private:
   boost::shared_ptr<IDataAccessor> itsActiveBufferPtr;
 
   /// a container of buffers
-  mutable std::map<std::string, boost::shared_ptr<IDataAccessor> > itsBuffers;
+  mutable std::map<std::string,
+           boost::shared_ptr<TableBufferDataAccessor> >  itsBuffers;
 
   /// shared pointer to data accessor associated with original visibilities
   /// (initialized at the constructor)
   boost::shared_ptr<IDataAccessor> itsOriginalVisAccessor;
+
+  /// counter of the iteration steps. It is used to store the buffers
+  /// to the appropriate cell of the disk table
+  casa::uInt itsIterationCounter;
 };
 
 } // end of namespace synthesis
