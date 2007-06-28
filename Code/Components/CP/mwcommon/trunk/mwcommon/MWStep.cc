@@ -12,4 +12,9 @@ namespace conrad { namespace cp {
   MWStep::~MWStep()
   {}
 
+  void MWStep::visit (MWStepVisitor& visitor) const
+  {
+    visitor.visit (*this);
+  }
+
 }} // end namespaces

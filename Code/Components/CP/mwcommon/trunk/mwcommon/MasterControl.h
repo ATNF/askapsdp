@@ -105,10 +105,8 @@ namespace conrad { namespace cp {
   private:
     /// Process the various MWStep types.
     /// @{
-    virtual void visitSolve    (const MWSolveStep&);
-    virtual void visitCorrect  (const MWCorrectStep&);
-    virtual void visitSubtract (const MWSubtractStep&);
-    virtual void visitPredict  (const MWPredictStep&);
+    virtual void visitSolve  (const MWSolveStep&);
+    virtual void visitSimple (const MWSimpleStep&);
     /// @}
 
     /// Read the result from all prediffers and/or solvers.

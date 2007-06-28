@@ -1,5 +1,5 @@
 /// @file
-/// @brief Step to process the MW solve command.
+/// @brief Base class for a step to process an MW solve command.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
@@ -9,132 +9,45 @@
 #ifndef CONRAD_MWCOMMON_MWSOLVESTEP_H
 #define CONRAD_MWCOMMON_MWSOLVESTEP_H
 
-#include <mwcommon/MWStepBBS.h>
-#include <mwcommon/DomainShape.h>
-#include <vector>
-#include <string>
+#include <mwcommon/MWStep.h>
 
 namespace conrad { namespace cp {
 
   /// @ingroup mwcommon
-  /// @brief Step to process the MW solve command.
+  /// @brief Base class for a step to process an MW solve command.
 
-  /// This class defines a step that solves parameters by comparing a
-  /// parameterized model to data in the VDS.
-  /// The following data are defined for a solve:
+  /// This class defines a base class for step types that can solve
+  /// for parameters by comparing a parameterized model to observed data.
+  /// A derived class has to implement the detailed solve command.
+  ///
+  /// A solve step uses a prediffer and a solver exchanging messages.
+  /// All MWSolveStep classes have in common that they are executed by the
+  /// MasterControl in the same way, so all such classes have to obey the
+  /// same communication protocol.
+  /// This is:
   /// <ul>
-  ///  <li> The names of parameters to solve for. This is done by means of
-  ///       a vector of file name like patterns, so all parameters matching
-  ///       the pattern are used.
-  ///       A parameter name consist of multiple parts separated by colons.
-  ///  <li> The names of parameters to be excluded from above (also using
-  ///       a vector of patterns).
-  ///  <li> The shape of the solve domain. It cannot exceed a work domain
-  ///       defined in WorkDomainSpec, but it can be smaller. If smaller,
-  ///       independent solutions will be determined for each solve domain.
-  ///  <li> Convergence criteria:
-  ///       <ul>
-  ///        <li> Maximum number of iterations.
-  ///             Typically 10.
-  ///        <li> Epsilon. A solve domain has converged if the
-  ///             fractional improvement of a solution < epsilon.
-  ///             Typically 1e-7.
-  ///        <li> The fraction of solve domains to be converged before
-  ///             the entire solve is treated as being converged.
-  ///             Probably non-converged solve domains contain bad data.
-  ///             Typically 0.95.
-  ///       </ul>
+  ///  <li> The step object is sent to all workers. The prediffers send a reply
+  ///       which is forwarded to the solver.
+  ///  <li> The prediffers get a getEq command and send a reply with e.g.
+  ///       the normalized equations. They are forwarded to the solver.
+  ///  <li> The solver gets a Solve command to solve the equations and send
+  ///       a reply with the solution. This is forwarded to all prediffers.
+  ///  <li> MasterControl tests if the reply from the solver says it has
+  ///       converged. This flag must be the first (bool) value in the message
+  ///       data. If not converged, step 2 and 3 are repeated.
   /// </ul>
   ///
-  /// It uses the standard MWStep functionality (factory and visitor) to
-  /// create and process the object.
-  /// The object can be converted to/from blob, so it can be sent to workers.
+  /// In fact, any step that has such an iterative character can be derived
+  /// from this class. Examples are calibration and deconvolution. But also
+  /// a distributed algorithm to find sources in an image cube can use it.
 
-  class MWSolveStep: public MWStepBBS
+  class MWSolveStep: public MWStep
   {
   public:
-    MWSolveStep();
+    MWSolveStep()
+    {}
 
     virtual ~MWSolveStep();
-
-    /// Clone the step object.
-    virtual MWSolveStep* clone() const;
-
-    /// Create a new object of this type.
-    static MWStep::ShPtr create();
-
-    /// Register the create function in the MWStepFactory.
-    static void registerCreate();
-
-    /// Set/get the parameter name patterns.
-    /// @{
-    void setParmPatterns (const std::vector<std::string>& parms)
-      { itsParmPatterns = parms; }
-    const std::vector<std::string>& getParmPatterns() const
-      { return itsParmPatterns; }
-    /// @}
-    
-    /// Set/get the parameter name patterns to be excluded.
-    /// @{
-    void setExclPatterns (const std::vector<std::string>& parms)
-      { itsExclPatterns = parms; }
-    const std::vector<std::string>& getExclPatterns() const
-      { return itsExclPatterns; }
-    /// @}
-    
-    /// Set/get the solve domain shape.
-    /// @{
-    void setDomainShape (const DomainShape& ds)
-      { itsShape = ds; }
-    DomainShape getDomainShape() const
-      { return itsShape; }
-    /// @}
-    
-    /// Set/get the max nr of iterations.
-    /// By default it is 10.
-    /// @{
-    void setMaxIter (int maxIter)
-      { itsMaxIter = maxIter; }
-    int getMaxIter() const
-      { return itsMaxIter; }
-    /// @}
-
-    /// Set/get the convergence epsilon.
-    /// A fitter has converged if
-    ///    abs(sol - lastsol) / max(abs(lastsol), abs(sol)) < epsilon.
-    /// By default it is 1e-5.
-    /// @{
-    void setEpsilon (double epsilon)
-      { itsEpsilon = epsilon; }
-    double getEpsilon() const
-      { return itsEpsilon; }
-    /// @}
-
-    /// Set/get the fraction of fitters that have to converge.
-    /// By default it is 0.95.
-    /// @{
-    void setFraction (double fraction)
-      { itsFraction = fraction; }
-    double getFraction() const
-      { return itsFraction; }
-    /// @}
-
-    /// Visit the object, so the visitor can process it.
-    virtual void visit (MWStepVisitor&) const;
-
-    /// Convert to/from blob.
-    /// @{
-    virtual void toBlob (LOFAR::BlobOStream&) const;
-    virtual void fromBlob (LOFAR::BlobIStream&);
-    /// @}
-
-  private:
-    std::vector<std::string> itsParmPatterns;
-    std::vector<std::string> itsExclPatterns;
-    DomainShape itsShape;
-    int         itsMaxIter;
-    double      itsEpsilon;
-    double      itsFraction;    /// fraction of fitters to be converged
   };
 
 }} /// end namespaces

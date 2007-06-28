@@ -46,8 +46,12 @@ namespace conrad { namespace cp {
     /// Clone the step object.
     virtual MWStep* clone() const = 0;
 
+    /// Give the (unique) class name of the MWStep.
+    virtual std::string className() const = 0;
+
     /// Visit the object, so the visitor can process it.
-    virtual void visit (MWStepVisitor&) const = 0;
+    /// The default implementation uses the MWStepVisitor::visit function.
+    virtual void visit (MWStepVisitor&) const;
 
     /// Convert to/from blob.
     /// @{

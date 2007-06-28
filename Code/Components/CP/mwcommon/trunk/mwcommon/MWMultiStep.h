@@ -42,6 +42,9 @@ namespace conrad { namespace cp {
     /// Add a step object (in fact, a clone is added).
     void push_back (const MWStep&);
 
+    /// Give the (unique) class name of the MWStep.
+    virtual std::string className() const;
+
     /// Visit the object, which visits each step.
     virtual void visit (MWStepVisitor&) const;
 

@@ -7,12 +7,19 @@
 
 #include <mwcommon/MWStepVisitor.h>
 #include <mwcommon/MWMultiStep.h>
+#include <mwcommon/MWSolveStep.h>
+#include <mwcommon/MWSimpleStep.h>
 #include <mwcommon/MWError.h>
 
 namespace conrad { namespace cp {
 
   MWStepVisitor::~MWStepVisitor()
   {}
+
+  void MWStepVisitor::registerVisit (const std::string& name, VisitFunc* func)
+  {
+    itsMap[name] = func;
+  }
 
   void MWStepVisitor::visitMulti (const MWMultiStep& mws)
   {
@@ -23,28 +30,47 @@ namespace conrad { namespace cp {
     }
   }
 
-  void MWStepVisitor::visitSolve (const MWSolveStep&)
+  void MWStepVisitor::visitSolve (const MWSolveStep& step)
   {
-    CONRADTHROW (MWError,
-	       "visitSolve not implemented in derived MWStepVisitor class");
+    visit (step);
   }
 
-  void MWStepVisitor::visitSubtract (const MWSubtractStep&)
+  void MWStepVisitor::visitSubtract (const MWSubtractStep& step)
   {
-    CONRADTHROW (MWError,
-	       "visitSubtract not implemented in derived MWStepVisitor class");
+    visitSimple (step);
   }
 
-  void MWStepVisitor::visitCorrect (const MWCorrectStep&)
+  void MWStepVisitor::visitCorrect (const MWCorrectStep& step)
   {
-    CONRADTHROW (MWError,
-	       "visitCorrect not implemented in derived MWStepVisitor class");
+    visitSimple (step);
   }
 
-  void MWStepVisitor::visitPredict (const MWPredictStep&)
+  void MWStepVisitor::visitPredict (const MWPredictStep& step)
+  {
+    visitSimple (step);
+  }
+
+  void MWStepVisitor::visitSimple (const MWSimpleStep& step)
+  {
+    visit (step);
+  }
+
+  void MWStepVisitor::visit (const MWStep& step)
+  {
+    std::string name = step.className();
+    std::map<std::string,VisitFunc*>::const_iterator iter = itsMap.find(name);
+    if (iter == itsMap.end()) {
+      visitStep (step);
+    } else {
+      (*iter->second)(*this, step);
+    }
+  }
+
+  void MWStepVisitor::visitStep (const MWStep& step)
   {
     CONRADTHROW (MWError,
-	       "visitPredict not implemented in derived MWStepVisitor class");
+                 "No visit function available for MWStep of type "
+                 << step.className());
   }
 
 }} // end namespaces

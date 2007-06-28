@@ -36,6 +36,12 @@ namespace conrad { namespace cp {
     MWStepFactory::push_back ("MWMultiStep", &create);
   }
 
+  std::string MWMultiStep::className() const
+  {
+    static std::string name("MWMultiStep");
+    return name;
+  }
+
   void MWMultiStep::visit (MWStepVisitor& visitor) const
   {
     visitor.visitMulti (*this);

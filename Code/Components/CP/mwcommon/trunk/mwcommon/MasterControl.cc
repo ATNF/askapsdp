@@ -7,9 +7,7 @@
 
 #include <mwcommon/MasterControl.h>
 #include <mwcommon/MWSolveStep.h>
-#include <mwcommon/MWCorrectStep.h>
-#include <mwcommon/MWSubtractStep.h>
-#include <mwcommon/MWPredictStep.h>
+#include <mwcommon/MWSimpleStep.h>
 #include <mwcommon/MWBlobIO.h>
 
 using namespace std;
@@ -144,27 +142,7 @@ namespace conrad { namespace cp {
     }
   }
 
-  void MasterControl::visitCorrect (const MWCorrectStep& step)
-  {
-    LOFAR::BlobString buf;
-    MWBlobOut out (buf, MasterControl::Step, 0);
-    out.blobStream() << step;
-    out.finish();
-    itsPrediffers->writeAll (buf);
-    readAllWorkers (true, false);
-  }
-
-  void MasterControl::visitSubtract (const MWSubtractStep& step)
-  {
-    LOFAR::BlobString buf;
-    MWBlobOut out (buf, MasterControl::Step, 0);
-    out.blobStream() << step;
-    out.finish();
-    itsPrediffers->writeAll (buf);
-    readAllWorkers (true, false);
-  }
-
-  void MasterControl::visitPredict (const MWPredictStep& step)
+  void MasterControl::visitSimple (const MWSimpleStep& step)
   {
     LOFAR::BlobString buf;
     MWBlobOut out (buf, MasterControl::Step, 0);
