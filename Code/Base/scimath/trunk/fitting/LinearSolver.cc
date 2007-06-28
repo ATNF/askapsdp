@@ -27,6 +27,10 @@ namespace conrad
 {
   namespace scimath
   {
+    
+    LinearSolver::LinearSolver(const Params& ip) : Solver(ip) 
+    {
+    };
 
     LinearSolver::~LinearSolver() {
     }
@@ -42,15 +46,14 @@ namespace conrad
     {
 
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
-      uint nParameters=0;
+      int nParameters=0;
 
 // Find all the free parameters
       const vector<string> names(itsParams->freeNames());
       CONRADCHECK(names.size()>0, "No free parameters in Linear Solver");
 
-      vector<string>::const_iterator it;
-      map<string, uint> indices;
-      for (it=names.begin();it!=names.end();it++)
+      map<string, int> indices;
+      for (vector<string>::const_iterator it=names.begin();it!=names.end();it++)
       {
         indices[*it]=nParameters;
         nParameters+=itsParams->value(*it).nelements();
@@ -62,27 +65,27 @@ namespace conrad
       gsl_vector * B = gsl_vector_alloc (nParameters);
       gsl_vector * X = gsl_vector_alloc (nParameters);
 
-      for (map<string, uint>::const_iterator indit2=indices.begin();indit2!=indices.end();indit2++)
+      for (map<string, int>::const_iterator indit2=indices.begin();indit2!=indices.end();indit2++)
       {
-        for (map<string, uint>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
+        for (map<string, int>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
         {
 // Axes are dof, dof for each parameter
 // Take a deep breath for const-safe indexing into the double layered map
           const casa::Matrix<double>& 
             nm(itsNormalEquations->normalMatrix().find(indit1->first)->second.find(indit2->first)->second);
-          for (uint row=0;row<nm.nrow();row++)
+          for (int row=0;row<nm.nrow();row++)
           {
-            for (uint col=0;col<nm.ncolumn();col++)
+            for (int col=0;col<nm.ncolumn();col++)
             {
               gsl_matrix_set(A, row+(indit1->second), col+(indit2->second), nm(row,col));
             }
           }
         }
       }
-      for (map<string, uint>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
+      for (map<string, int>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
       {
         const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit1->first)->second);
-        for (uint row=0;row<dv.nelements();row++)
+        for (int row=0;row<dv.nelements();row++)
         {
           gsl_vector_set(B, row+(indit1->second), dv(row));
         }
@@ -98,10 +101,10 @@ namespace conrad
         gsl_vector * X = gsl_vector_alloc(nParameters);
         gsl_linalg_SV_solve (A, V, S, B, X);
 // Now find the statistics for the decomposition
-        uint rank=0;
+        int rank=0;
         double smin=1e50;
         double smax=0.0;
-        for (uint i=0;i<nParameters;i++)
+        for (int i=0;i<nParameters;i++)
         {
           double sValue=std::abs(gsl_vector_get(S, i));
           if(sValue>0.0)
@@ -124,12 +127,12 @@ namespace conrad
         }
 // Update the parameters for the calculated changes. Exploit reference
 // semantics of casa::Array.
-        map<string, uint>::iterator indit;
+        map<string, int>::iterator indit;
         for (indit=indices.begin();indit!=indices.end();indit++)
         {
           casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-          for (uint i=0;i<value.nelements();i++)
+          for (int i=0;i<value.nelements();i++)
           {
             value(i)+=gsl_vector_get(X, indit->second+i);
           }
@@ -144,12 +147,12 @@ namespace conrad
         gsl_linalg_cholesky_decomp(A);
         gsl_linalg_cholesky_solve(A, B, X);
 // Update the parameters for the calculated changes
-        map<string, uint>::iterator indit;
+        map<string, int>::iterator indit;
         for (indit=indices.begin();indit!=indices.end();indit++)
         {
           casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-          for (uint i=0;i<value.nelements();i++)
+          for (int i=0;i<value.nelements();i++)
           {
             value(i)=gsl_vector_get(X, indit->second+i);
           }

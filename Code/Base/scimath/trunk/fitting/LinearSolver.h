@@ -24,7 +24,7 @@ namespace conrad
       public:
 /// Constructor
 /// @param ip Parameters for this solver
-        explicit LinearSolver(const Params& ip) : Solver(ip) {};
+        explicit LinearSolver(const Params& ip);
         
 /// Destructor
         virtual ~LinearSolver();
