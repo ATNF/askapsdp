@@ -41,7 +41,7 @@ else
   echo ">>>"
   echo "MPI is not available"
   echo "<<<"
-  cat MWControl.in_mpi_out3 MWControl.in_mpi_out4
+  cat tMWControl.in_mpi_out3 tMWControl.in_mpi_out4
 fi
 
 # Run tMWControl on 3 nodes with a socket connection.

@@ -21,7 +21,7 @@
 //#  $Id: tMWStep.cc,v 1.6 2006/10/03 15:54:07 loose Exp $
 
 #include <mwcontrol/MWMultiSpec.h>
-#include <mwcontrol/ParameterHandler.h>
+#include <mwcontrol/ParameterHandlerBBS.h>
 
 using namespace LOFAR::ACC::APS;
 using namespace conrad::cp;
@@ -30,7 +30,7 @@ using namespace std;
 int main()
 {
   try {
-    ParameterHandler psh (ParameterSet("tMWSpec.in"));
+    ParameterHandlerBBS psh (ParameterSet("tMWSpec.in"));
     psh.getSteps("Strategy").print (cout, "");
     cout << endl;
   } catch (LOFAR::Exception& e) {

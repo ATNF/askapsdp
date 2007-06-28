@@ -7,7 +7,7 @@
 #include "PredifferTest.h"
 #include "SolverTest.h"
 #include "MWIos.h"
-#include <mwcontrol/ParameterHandler.h>
+#include <mwcontrol/ParameterHandlerBBS.h>
 #include <mwcontrol/MWStrategySpec.h>
 #include <mwcontrol/MWSpec2Step.h>
 #include <mwcommon/MemConnectionSet.h>
@@ -17,10 +17,10 @@
 #include <mwcommon/WorkerControl.h>
 #include <mwcommon/MasterControl.h>
 #include <mwcommon/MWMultiStep.h>
-#include <mwcommon/MWSolveStep.h>
-#include <mwcommon/MWCorrectStep.h>
-#include <mwcommon/MWSubtractStep.h>
-#include <mwcommon/MWPredictStep.h>
+#include <mwcontrol/MWSolveStepBBS.h>
+#include <mwcontrol/MWCorrectStepBBS.h>
+#include <mwcontrol/MWSubtractStepBBS.h>
+#include <mwcontrol/MWPredictStepBBS.h>
 #include <mwcommon/VdsDesc.h>
 #include <mwcommon/MWError.h>
 #include <APS/ParameterSet.h>
@@ -69,7 +69,7 @@ void doMaster (const string& port,
                int solverRank,
                int nworkers, int nparts,
 	       const WorkerFactory& factory,
-	       const ParameterHandler& params)
+	       const ParameterHandlerBBS& params)
 {
   // Get the initial values from the params.
   string msName, colName, skyDB, instDB;
@@ -138,6 +138,7 @@ void doMaster (const string& port,
     // Execute the steps.
     mc.processSteps (converter.getSteps());
   }
+  mc.quit();
 }
 
 void doPrediffer (const string& host, const string& port,
@@ -186,10 +187,10 @@ int main (int argc, const char** argv)
   int status = 0;
   try {
     // Register the create functions for the various steps.
-    MWSolveStep::registerCreate();
-    MWCorrectStep::registerCreate();
-    MWSubtractStep::registerCreate();
-    MWPredictStep::registerCreate();
+    MWSolveStepBBS::registerCreate();
+    MWCorrectStepBBS::registerCreate();
+    MWSubtractStepBBS::registerCreate();
+    MWPredictStepBBS::registerCreate();
     MWMultiStep::registerCreate();
     // Define the functions to use for the proxy workers.
     WorkerFactory factory;
@@ -215,7 +216,7 @@ int main (int argc, const char** argv)
       MWIos::setName ("tMWControl_tmp.cout" + ostr.str());
     }
     // Open the parameter set and get nr of VDS parts.
-    ParameterHandler params (LOFAR::ACC::APS::ParameterSet("tMWControl.in"));
+    ParameterHandlerBBS params(LOFAR::ACC::APS::ParameterSet("tMWControl.in"));
     int nparts = params.getNParts();
     // Find out if this process is master, solver, or prediffer.
     int solverRank = 0;

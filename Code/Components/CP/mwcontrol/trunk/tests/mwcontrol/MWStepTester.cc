@@ -7,7 +7,7 @@
 #include "MWStepTester.h"
 #include "MWIos.h"
 #include <mwcommon/MasterControl.h>
-#include <mwcommon/MWSolveStep.h>
+#include <mwcontrol/MWSolveStepBBS.h>
 #include <mwcommon/ConradUtil.h>
 
 using namespace std;
@@ -24,8 +24,9 @@ namespace conrad { namespace cp {
   MWStepTester::~MWStepTester()
   {}
 
-  void MWStepTester::visitSolve (const MWSolveStep& step)
+  void MWStepTester::visitSolve (const MWSolveStep& stepmw)
   {
+    const MWSolveStepBBS& step = dynamic_cast<const MWSolveStepBBS&>(stepmw);
     MWCOUT << "  MWStepTester::visitSolve,  streamId " << itsStreamId << endl;
     MWCOUT << "   Max nr. of iterations:  " << step.getMaxIter() << endl;
     MWCOUT << "   Convergence threshold:  " << step.getEpsilon() << endl;
@@ -37,21 +38,21 @@ namespace conrad { namespace cp {
     *itsOut << true;
   }
 
-  void MWStepTester::visitCorrect (const MWCorrectStep& step)
+  void MWStepTester::visitCorrect (const MWCorrectStep&)
   {
     MWCOUT << "  MWStepTester::visitCorrect,  streamId "
            << itsStreamId << endl;
     writeResult (true);
   }
 
-  void MWStepTester::visitSubtract (const MWSubtractStep& step)
+  void MWStepTester::visitSubtract (const MWSubtractStep&)
   {
     MWCOUT << "  MWStepTester::visitSubtract,  streamId "
            << itsStreamId << endl;
     writeResult (true);
   }
 
-  void MWStepTester::visitPredict (const MWPredictStep& step)
+  void MWStepTester::visitPredict (const MWPredictStep&)
   {
     MWCOUT << "  MWStepTester::visitPredict,  streamId "
            << itsStreamId << endl;

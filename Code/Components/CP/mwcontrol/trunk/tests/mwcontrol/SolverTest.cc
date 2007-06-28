@@ -6,7 +6,7 @@
 
 #include "SolverTest.h"
 #include "MWIos.h"
-#include <mwcommon/MWSolveStep.h>
+#include <mwcontrol/MWSolveStepBBS.h>
 #include <mwcommon/MasterControl.h>
 #include <mwcommon/MWError.h>
 #include <Blob/BlobIStream.h>
@@ -64,9 +64,9 @@ namespace conrad { namespace cp {
     {
       // A step has to be processed.
       // Only a solve can be processed.
-      CONRADCHECK (in.getNextType() == "MWSolveStep",
-		   "SolverTest can only handle an MWSolveStep step");
-      MWSolveStep step;
+      CONRADCHECK (in.getNextType() == "MWSolveStepBBS",
+		   "SolverTest can only handle an MWSolveStepBBS step");
+      MWSolveStepBBS step;
       // Fill it from the blobstream.
       step.fromBlob (in);
       itsMaxIter = step.getMaxIter();

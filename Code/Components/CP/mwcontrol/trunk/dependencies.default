@@ -1,2 +1,4 @@
-blob=3rdParty/LOFAR/Blob/tags/Blob-1.0
+#bbms=3rdParty/LOFAR/MS/tags/MS-0.1
+#parmdb=3rdParty/LOFAR/ParmDB/tags/ParmDB-1.0
+#bbskernel=3rdParty/LOFAR/BBSKernel/tags/BBSKernel-0.1
 mwcommon=Code/Components/CP/mwcommon/trunk
