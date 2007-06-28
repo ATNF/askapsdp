@@ -42,7 +42,7 @@ namespace conrad
         virtual bool solveNormalEquations(conrad::scimath::Quality& q);
         
 /// @brief Clone this object
-        virtual conrad::scimath::Solver::ShPtr clone();
+        virtual conrad::scimath::Solver::ShPtr clone() const;
 
     };
 

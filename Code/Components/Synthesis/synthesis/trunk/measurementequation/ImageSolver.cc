@@ -1,12 +1,13 @@
 #include <measurementequation/ImageSolver.h>
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Vector.h>
 
+using namespace conrad;
 using namespace conrad::scimath;
 
 #include <iostream>
@@ -47,10 +48,9 @@ namespace conrad
 
 // Find all the free parameters beginning with image
       vector<string> names(itsParams->completions("image"));
-      vector<string>::const_iterator it;
       map<string, uint> indices;
       
-      for (it=names.begin();it!=names.end();it++)
+      for (vector<string>::const_iterator  it=names.begin();it!=names.end();it++)
       {
         string name="image"+*it;
         if(itsParams->isFree(name)) {
@@ -58,19 +58,22 @@ namespace conrad
           nParameters+=itsParams->value(name).nelements();
         }
       }
-      if(nParameters<1)
+      CONRADCHECK(nParameters>0, "No free parameters in ImageSolver");
+      std::cout << "Free parameters = " << nParameters << std::endl;
+      
+      for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
       {
-        throw(std::domain_error("No free parameters"));
-      }
-
-      map<string, uint>::iterator indit;
-      for (indit=indices.begin();indit!=indices.end();indit++)
-      {
+        std::cout << "Processing " << indit->first << std::endl;
 // Axes are dof, dof for each parameter
         casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-        const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal()[indit->first]);
-        const casa::Vector<double>& dv(itsNormalEquations->dataVector()[indit->first]);
+        
+        CONRADCHECK(itsNormalEquations->normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+        const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
+        CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
+        const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
+        
         casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+        
         for (uint elem=0;elem<dv.nelements();elem++)
         {
           if(diag(elem)>0.0)
@@ -78,11 +81,12 @@ namespace conrad
             value(elem)+=dv(elem)/diag(elem);
           }
         }
-        itsParams->add("debug."+indit->first+".diagonal", itsNormalEquations->normalMatrixDiagonal()[indit->first]);
-        itsParams->add("debug."+indit->first+".dataVector", itsNormalEquations->dataVector()[indit->first]);
-        itsParams->add("debug."+indit->first+".slice", itsNormalEquations->normalMatrixSlice()[indit->first]);
+        itsParams->add("debug."+indit->first+".diagonal", itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
+        itsParams->add("debug."+indit->first+".dataVector", itsNormalEquations->dataVector().find(indit->first)->second);
+        itsParams->add("debug."+indit->first+".slice", itsNormalEquations->normalMatrixSlice().find(indit->first)->second);
       }
 
+      std::cout << "Solution done" << std::endl;
       quality.setDOF(nParameters);
       quality.setRank(0);
       quality.setCond(0.0);
@@ -91,7 +95,7 @@ namespace conrad
       return true;
     };
     
-    Solver::ShPtr ImageSolver::clone()
+    Solver::ShPtr ImageSolver::clone() const
     {
       return Solver::ShPtr(new ImageSolver(*this));
     }

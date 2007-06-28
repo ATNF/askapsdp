@@ -96,6 +96,7 @@ namespace conrad
       vector<string>::iterator it;
       
 //      itsIdi.chooseBuffer("model");
+      itsIdi.chooseBuffer("MODEL_DATA");
 
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
@@ -124,6 +125,8 @@ namespace conrad
 
       vector<string>::iterator it;
 
+      itsIdi.chooseBuffer("SCRATCH_DATA");
+      
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         for (it=completions.begin();it!=completions.end();it++)
