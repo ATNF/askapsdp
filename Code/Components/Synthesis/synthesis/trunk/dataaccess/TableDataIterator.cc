@@ -71,7 +71,8 @@ TableDataIterator::TableDataIterator(
               TableConstDataIterator(msManager,sel,conv,maxChunkSize),
 	      itsOriginalVisAccessor(new TableDataAccessor(getAccessor())),
 	      itsIterationCounter(0)
-{  
+{
+  itsActiveBufferPtr=itsOriginalVisAccessor;
 }
 
 /// @brief operator* delivers a reference to data accessor (current chunk)
