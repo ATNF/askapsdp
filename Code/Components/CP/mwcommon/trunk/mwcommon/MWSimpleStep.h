@@ -32,6 +32,11 @@ namespace conrad { namespace cp {
     {}
 
     virtual ~MWSimpleStep();
+
+    /// Visit the object, so the visitor can process it.
+    /// The default implementation uses the MWStepVisitor::visitsIMPLE
+    /// function.
+    virtual void visit (MWStepVisitor&) const;
   };
 
 
@@ -53,6 +58,11 @@ namespace conrad { namespace cp {
     {}
 
     virtual ~MWSubtractStep();
+
+    /// Visit the object, so the visitor can process it.
+    /// The default implementation uses the MWStepVisitor::visitSubtractct
+    /// function.
+    virtual void visit (MWStepVisitor&) const;
   };
 
 
@@ -75,6 +85,11 @@ namespace conrad { namespace cp {
     {}
 
     virtual ~MWCorrectStep();
+
+    /// Visit the object, so the visitor can process it.
+    /// The default implementation uses the MWStepVisitor::visitCorrect
+    /// function.
+    virtual void visit (MWStepVisitor&) const;
   };
 
 
@@ -96,6 +111,11 @@ namespace conrad { namespace cp {
     {}
 
     virtual ~MWPredictStep();
+
+    /// Visit the object, so the visitor can process it.
+    /// The default implementation uses the MWStepVisitor::visitPredict
+    /// function.
+    virtual void visit (MWStepVisitor&) const;
   };
 
 

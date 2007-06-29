@@ -48,6 +48,10 @@ namespace conrad { namespace cp {
     {}
 
     virtual ~MWSolveStep();
+
+    /// Visit the object, so the visitor can process it.
+    /// The default implementation uses the MWStepVisitor::visitSolve function.
+    virtual void visit (MWStepVisitor&) const;
   };
 
 }} /// end namespaces

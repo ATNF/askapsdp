@@ -17,4 +17,9 @@ namespace conrad { namespace cp {
   MWSolveStep::~MWSolveStep()
   {}
 
+  void MWSolveStep::visit (MWStepVisitor& visitor) const
+  {
+    visitor.visitSolve (*this);
+  }
+
 }} // end namespaces
