@@ -21,6 +21,8 @@
 #include <casa/aips.h>
 #include <casa/BasicSL/Constants.h>
 #include <casa/Arrays/Cube.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
 
 #include <APS/ParameterSet.h>
 
@@ -109,18 +111,31 @@ int main(int argc, const char** argv)
     std::cout << "Constructed image solver" << std::endl;
     IDataSelectorPtr sel=ds.createSelector();
     IDataConverterPtr conv=ds.createConverter();
-    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
-    for (IDataSharedIter it=ds.createIterator(sel, conv);it!=it.end();++it) {
-      ImageFFTEquation ie(skymodel, it, gridder);
-      ie.calcEquations(ne);
-      std::cout << "Calculated normal equations" << std::endl;
-      is.addNormalEquations(ne);
-      std::cout << "Added normal equations to solver" << std::endl;
-    }
+    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
+    IDataSharedIter it=ds.createIterator(sel, conv);
+    
+    it.init();
+    it.chooseOriginal();
+
+    ImageFFTEquation ie(skymodel, it, gridder);
+    ie.calcEquations(ne);
+    std::cout << "Calculated normal equations" << std::endl;
+    is.addNormalEquations(ne);
+    std::cout << "Added normal equations to solver" << std::endl;
+
     Quality q;
     std::cout << "Solving normal equations" << std::endl;
     is.solveNormalEquations(q);
     std::cout << "Number of degrees of freedom = " << q.DOF() << std::endl;
+
+    for (vector<string>::iterator it=images.begin();it!=images.end();it++)
+    {
+      casa::Array<double> resultImage(skymodel.value(*it));
+      std::cout << *it << std::endl
+        << "Maximum = " << max(resultImage) << ", minimum = " << min(resultImage) << std::endl
+        << "Axes " << skymodel.axes(*it) << std::endl;
+      
+    }
 
     {
       string resultfile(parset.getString("Parms.Result"));

@@ -122,6 +122,7 @@ namespace conrad
       const vector<string> completions(parameters().completions("image.i"));
       
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
+//      itsIdi.init();
       {
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
@@ -149,7 +150,8 @@ namespace conrad
             toComplex(uvGrid, imagePixels);
             cfft(uvGrid, true);
             itsGridder->forward(itsIdi, axes, uvGrid);
-            itsIdi->rwVisibility()=vis-itsIdi->visibility();
+//            itsIdi->rwVisibility()=vis-itsIdi->visibility();
+            itsIdi->rwVisibility()=vis.copy();
   
   // Calculate contribution to residual image
             {

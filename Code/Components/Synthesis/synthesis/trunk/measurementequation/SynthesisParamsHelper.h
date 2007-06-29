@@ -2,6 +2,8 @@
 /// @brief Helper functions for dealing with Params for synthesis
 ///
 /// Adds some useful functions specific to synthesis
+/// @todo Function to output nicely formatted axes
+/// @todo Functions to read/write images
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>

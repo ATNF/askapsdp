@@ -6,9 +6,9 @@ Parms.GlobalSky								=
 Parms.Result									= imager.par
 
 Images.Names									= [image.i.nvss]
-Images.image.i.nvss.shape			= [1024,1024]
+Images.image.i.nvss.shape			= [3072,3072]
 Images.image.i.nvss.cellsize	= [6arcsec, 6arcsec]
-Images.image.i.nvss.frequency	= [1.420e9-256e6, 1.420e9]
+Images.image.i.nvss.frequency	= [1.164e9, 1.420e9]
 Images.image.i.nvss.nchan			= 1
 Images.image.i.nvss.direction	= [12h30m00.00, -45.00.00.00, J2000]
 
