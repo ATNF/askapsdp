@@ -1,0 +1,200 @@
+prediffer rank 15
+PredifferTest::setInitInfo
+  MS:         tMWControl.in_ms
+  Column:     INDATA
+  SkyParmDB:  test.gsm
+  InstParmDB: test.mep
+  Subband:    0
+  CalcUVW:    0
+PredifferTest::doProcess
+  Operation: 2
+  StreamId:  0
+  Set work domain: [20 Hz, 300 Hz, 0, 1]
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitSolve,  streamId 0
+   Max nr. of iterations:  10
+   Convergence threshold:  1e-07
+   Min fraction converged: 0.95
+   Solvable parameters:    [PHASE:*]
+   Excluded parameters:    []
+   Domain shape:           1000 Hz,  1 s
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitCorrect,  streamId 0
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitSolve,  streamId 0
+   Max nr. of iterations:  10
+   Convergence threshold:  1e-07
+   Min fraction converged: 0.95
+   Solvable parameters:    [PHASE:*]
+   Excluded parameters:    []
+   Domain shape:           1000 Hz,  1 s
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq
+PredifferTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve
+PredifferTest::doProcess
+  Operation: 3
+  StreamId:  0
+  MWStepTester::visitCorrect,  streamId 0

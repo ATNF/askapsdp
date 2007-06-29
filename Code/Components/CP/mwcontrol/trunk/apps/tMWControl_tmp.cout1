@@ -1,0 +1,1332 @@
+solver rank 1
+SolverTest::setInitInfo
+  MS:         tMWControl.in_ms
+  Column:     INDATA
+  SkyParmDB:  test.gsm
+  InstParmDB: test.mep
+  Subband:    0
+  CalcUVW:    0
+SolverTest::doProcess
+  Operation: 2
+  StreamId:  0
+  Set work domain: [20 Hz, 300 Hz, 0, 1]
+SolverTest::doProcess
+  Operation: 3
+  StreamId:  0
+  Solve maxiter 10
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 0
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 2
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 3
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 4
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 5
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 6
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 7
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 8
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 9
+SolverTest::doProcess
+  Operation: 3
+  StreamId:  0
+  Solve maxiter 10
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 4
+  StreamId:  0
+  ParmInfo 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 0
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 2
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 3
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 4
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 5
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 6
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 7
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 8
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 5
+  StreamId:  0
+  GetEq 1
+SolverTest::doProcess
+  Operation: 6
+  StreamId:  0
+  Solve iteration: 9
