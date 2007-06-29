@@ -9,6 +9,7 @@
 ///
 
 // casa includes
+#include <tables/Tables/TableRecord.h>
 
 // own includes
 #include <dataaccess/TableDataSource.h>
@@ -22,9 +23,16 @@ using namespace synthesis;
 
 /// construct a read-write data source object
 /// @param[in] fname file name of the measurement set to use
-///
-TableDataSource::TableDataSource(const std::string &fname)  :
-         TableInfoAccessor(casa::Table(fname,casa::Table::Update)) {}
+/// @param[in] newBuffers, if True the BUFFERS subtable will be
+/// removed, if it already exists.     
+TableDataSource::TableDataSource(const std::string &fname, bool newBuffers) :
+         TableInfoAccessor(casa::Table(fname,casa::Table::Update))
+{
+  if (newBuffers && table().keywordSet().isDefined("BUFFERS")) {
+      table().rwKeywordSet().asTable("BUFFERS").markForDelete();
+      table().rwKeywordSet().removeField("BUFFERS");
+  }
+}
 
 /// @brief obtain a read/write iterator
 /// @details 

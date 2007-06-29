@@ -207,11 +207,17 @@ void TableDataIterator::readBuffer(casa::Cube<casa::Complex> &vis,
                         const std::string &name) const
 {
   const IBufferManager &bufManager=subtableInfo().getBufferManager();
+  const TableConstDataAccessor &accessor=getAccessor();
+  const casa::IPosition requiredShape(3, accessor.nRow(),
+          accessor.nChannel(), accessor.nPol());
   if (bufManager.bufferExists(name,itsIterationCounter)) {
       bufManager.readBuffer(vis,name,itsIterationCounter);
-  } else {
-      const TableConstDataAccessor &accessor=getAccessor();
-      vis.resize(accessor.nRow(),accessor.nChannel(), accessor.nPol());
+      if (vis.shape()!=requiredShape) {
+	  // this is an old buffer with a different shape. Can't be used
+	  vis.resize(requiredShape);
+      }
+  } else {     
+      vis.resize(requiredShape);
   }
 }
 

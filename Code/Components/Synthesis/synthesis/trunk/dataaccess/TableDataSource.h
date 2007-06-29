@@ -25,8 +25,9 @@ class TableDataSource : public TableConstDataSource,
 public:
   /// construct a read-write data source object
   /// @param[in] fname file name of the measurement set to use
-  ///
-  TableDataSource(const std::string &fname);
+  /// @param[in] newBuffers, if True the BUFFERS subtable will be
+  /// removed, if it already exists.   
+  TableDataSource(const std::string &fname, bool newBuffers=false);
 
   /// @brief obtain a read/write iterator
   /// @details 
