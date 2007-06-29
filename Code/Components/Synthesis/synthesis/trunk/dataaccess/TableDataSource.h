@@ -23,11 +23,22 @@ class TableDataSource : public TableConstDataSource,
 			virtual protected TableInfoAccessor
 {
 public:
+  /// various options affecting the behavior of this DataSource
+  enum TableDataSourceOptions {
+     /// default operations, i.e. subtable-based buffers, use existing
+     /// buffers if available
+     DEFAULT = 0,
+     /// delete BUFFERS subtable in the measurement set, if present
+     REMOVE_BUFFERS = 1,
+     /// create buffers in memory (via MemoryTable)
+     MEMORY_BUFFERS = 2
+  };
+  
   /// construct a read-write data source object
   /// @param[in] fname file name of the measurement set to use
-  /// @param[in] newBuffers, if True the BUFFERS subtable will be
-  /// removed, if it already exists.   
-  TableDataSource(const std::string &fname, bool newBuffers=false);
+  /// @param[in] opt options from TableDataSourceOptions, can be or'ed
+  TableDataSource(const std::string &fname, int opt =
+                                            TableDataSource::DEFAULT);
 
   /// @brief obtain a read/write iterator
   /// @details 

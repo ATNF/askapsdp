@@ -64,6 +64,14 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    /// @return a reference to the manager of buffers (BUFFERS subtable)
    virtual const IBufferManager& getBufferManager() const;
 
+   /// @brief set up BufferManager to be memory based.
+   /// @detail After calling this method, the buffers will be held in
+   /// memory (via casa::MemoryTable), rather than be a subtable of
+   /// the measurement set.
+   /// @note This method should be called before any operations with
+   /// the buffer
+   void useMemoryBuffers() const;
+
 protected:   
    /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
    void initDataDescHolder() const;
@@ -73,6 +81,7 @@ protected:
 
    /// initialize itsBufferManager with an instance of TableBufferManager
    void initBufferManager() const;
+
 private:
    /// smart pointer to data description holder
    mutable boost::shared_ptr<ITableDataDescHolder const> itsDataDescHolder;

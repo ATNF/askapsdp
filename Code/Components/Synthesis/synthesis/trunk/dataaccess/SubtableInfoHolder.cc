@@ -19,12 +19,14 @@
 #include <tables/Tables/SetupNewTab.h>
 #include <tables/Tables/TableDesc.h>
 #include <tables/Tables/TableRecord.h>
+#include <tables/Tables/MemoryTable.h>
 
 // own includes
 #include <dataaccess/SubtableInfoHolder.h>
 #include <dataaccess/MemTableDataDescHolder.h>
 #include <dataaccess/MemTableSpWindowHolder.h>
 #include <dataaccess/TableBufferManager.h>
+#include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
 using namespace synthesis;
@@ -89,4 +91,19 @@ void SubtableInfoHolder::initBufferManager() const
   }
   itsBufferManager.reset(new
             TableBufferManager(table().keywordSet().asTable("BUFFERS")));
+}
+
+/// @brief set up BufferManager to be memory based.
+/// @detail After calling this method, the buffers will be held in
+/// memory (via casa::MemoryTable), rather than be a subtable of
+/// the measurement set.
+/// @note This method should be called before any operations with
+/// the buffer
+void SubtableInfoHolder::useMemoryBuffers() const
+{
+  CONRADASSERT(!itsBufferManager);
+  casa::SetupNewTable maker("BUFFERS",
+                            casa::TableDesc(),casa::Table::New);
+  itsBufferManager.reset(new TableBufferManager(casa::Table(maker,
+                         casa::Table::Memory)));
 }

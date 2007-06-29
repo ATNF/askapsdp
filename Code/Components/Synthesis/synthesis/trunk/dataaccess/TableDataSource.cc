@@ -17,20 +17,37 @@
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableDataSelectorImpl.h>
+#include <dataaccess/SubtableInfoHolder.h>
 
 using namespace conrad;
 using namespace synthesis;
 
 /// construct a read-write data source object
 /// @param[in] fname file name of the measurement set to use
-/// @param[in] newBuffers, if True the BUFFERS subtable will be
-/// removed, if it already exists.     
-TableDataSource::TableDataSource(const std::string &fname, bool newBuffers) :
+/// @param[in] opt, options from TableDataSourceOptions, can be or'ed
+/// removed, if it already exists.   
+TableDataSource::TableDataSource(const std::string &fname,
+                int opt) :
          TableInfoAccessor(casa::Table(fname,casa::Table::Update))
 {
-  if (newBuffers && table().keywordSet().isDefined("BUFFERS")) {
-      table().rwKeywordSet().asTable("BUFFERS").markForDelete();
-      table().rwKeywordSet().removeField("BUFFERS");
+  if (opt | REMOVE_BUFFERS) {
+      if (table().keywordSet().isDefined("BUFFERS")) {
+          table().rwKeywordSet().asTable("BUFFERS").markForDelete();
+          table().rwKeywordSet().removeField("BUFFERS");
+      }
+  }
+  if (opt | MEMORY_BUFFERS) {
+      // not a very tidy solution, but I don't like to put this
+      // table-specific option into the interface
+      try {
+         dynamic_cast<const SubtableInfoHolder&>(subtableInfo()).
+                      useMemoryBuffers();    		      
+      }
+      catch (std::bad_cast &) {
+          throw DataAccessLogicError("subtableInfo() doesn't seem to return an "
+	                   "instance of the class which has useMemoryBuffers() "
+			   "method");
+      }
   }
 }
 
