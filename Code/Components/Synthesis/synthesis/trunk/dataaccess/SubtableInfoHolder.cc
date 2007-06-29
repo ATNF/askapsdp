@@ -15,6 +15,11 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+// casa includes
+#include <tables/Tables/SetupNewTab.h>
+#include <tables/Tables/TableDesc.h>
+#include <tables/Tables/TableRecord.h>
+
 // own includes
 #include <dataaccess/SubtableInfoHolder.h>
 #include <dataaccess/MemTableDataDescHolder.h>
@@ -75,7 +80,13 @@ const IBufferManager& SubtableInfoHolder::getBufferManager() const
 
 /// initialize itsBufferManager with an instance of TableBufferManager
 void SubtableInfoHolder::initBufferManager() const
-{
-  /// @todo need to get the subtable here
-  itsBufferManager.reset(new TableBufferManager(table()));
+{  
+  if (!table().keywordSet().isDefined("BUFFERS")) {
+      // we have to create a brand new subtable
+      casa::SetupNewTable maker(table().tableName()+"/BUFFERS",
+                                casa::TableDesc(),casa::Table::New);
+      table().rwKeywordSet().defineTable("BUFFERS",casa::Table(maker));
+  }
+  itsBufferManager.reset(new
+            TableBufferManager(table().keywordSet().asTable("BUFFERS")));
 }

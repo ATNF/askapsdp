@@ -3,7 +3,7 @@
 //                        data access layer
 //
 
-#include <dataaccess/TableConstDataSource.h>
+#include <dataaccess/TableDataSource.h>
 #include <conrad/ConradError.h>
 #include <dataaccess/SharedIter.h>
 
@@ -35,6 +35,22 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   }
 }
 
+void doReadWriteTest(const IDataSource &ds) {
+  IDataSelectorPtr sel=ds.createSelector();
+  sel->chooseFeed(1);  
+  IDataConverterPtr conv=ds.createConverter();
+  conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
+  conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
+                      casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
+  for (IDataSharedIter it=ds.createIterator(sel,conv);it!=it.end();++it) {
+       //cout<<it.buffer("TEST").rwVisibility()<<endl;
+       it.buffer("TEST").rwVisibility()=it->visibility();
+       it.chooseBuffer("MODEL_DATA");
+       it->rwVisibility()=it.buffer("TEST").visibility();
+       it.chooseOriginal();
+  }
+}
+
 int main(int argc, char **argv) {
   try {
      if (argc!=2) {
@@ -42,8 +58,9 @@ int main(int argc, char **argv) {
 	 return -2;
      }
 
-     TableConstDataSource ds(argv[1]);
-     doReadOnlyTest(ds);    
+     TableDataSource ds(argv[1]);
+     //doReadOnlyTest(ds);
+     doReadWriteTest(ds);    
      
   }
   catch(const ConradError &ce) {

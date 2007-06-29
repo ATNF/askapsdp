@@ -35,8 +35,8 @@ TableInfoAccessor::TableInfoAccessor(const casa::Table &tab) :
        itsTableManager(new TableManager(tab)) {}
 
 
-/// @return a const reference to Table held by this object
-const casa::Table& TableInfoAccessor::table() const throw()
+/// @return a non-const reference to Table held by this object
+casa::Table& TableInfoAccessor::table() const throw()
 {
   CONRADDEBUGASSERT(itsTableManager);
   return itsTableManager->table();

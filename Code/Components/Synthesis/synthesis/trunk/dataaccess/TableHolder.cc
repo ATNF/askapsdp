@@ -24,8 +24,8 @@ TableHolder::TableHolder(const casa::Table &tab) :
               itsTable(tab) {}
 
 
-/// @return a const reference to Table held by this object
-const casa::Table& TableHolder::table() const throw()
+/// @return a non-const reference to Table held by this object
+casa::Table& TableHolder::table() const throw()
 {
   return itsTable;
 }

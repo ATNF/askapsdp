@@ -8,7 +8,17 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+// CASA includes
+#include <tables/Tables/ArrayColumn.h>
+#include <tables/Tables/ArrColDesc.h>
+#include <casa/BasicSL/Complex.h>
+
+// own includes
 #include <dataaccess/TableBufferManager.h>
+#include <dataaccess/DataAccessError.h>
+
+#include <iostream>
+using namespace std;
 
 using namespace conrad;
 using namespace synthesis;
@@ -29,7 +39,12 @@ TableBufferManager::TableBufferManager(const casa::Table &tab) :
 void TableBufferManager::readBuffer(casa::Cube<casa::Complex> &vis,
                         const std::string &name,
 			   casa::uInt index) const
-{
+{ 
+ CONRADDEBUGASSERT(table().actualTableDesc().isColumn(name));
+ CONRADDEBUGASSERT(index<table().nrow());
+ casa::ROArrayColumn<casa::Complex> bufCol(table(),name);
+ CONRADASSERT(bufCol.ndim(index) == 3); // only cubes should be in buffers
+ bufCol.get(index,vis,casa::True);
 }
 
 /// @brief write the cube back to the given buffer
@@ -41,8 +56,21 @@ void TableBufferManager::readBuffer(casa::Cube<casa::Complex> &vis,
 void TableBufferManager::writeBuffer(const casa::Cube<casa::Complex> &vis,
                          const std::string &name,
 			   casa::uInt index) const
-{
+{  
+  if (!table().actualTableDesc().isColumn(name)) {
+      // create a brand new buffer
+      casa::ArrayColumnDesc<casa::Complex> newColDesc(name,
+           "Writable buffer managed by the dataaccess layer",3);
+      newColDesc.rwKeywordSet().define("UNIT","Jy");
+      table().addColumn(newColDesc);
+  }
+  if (table().nrow()<=index) {
+      table().addRow(index-table().nrow()+1);
+  }
+  casa::ArrayColumn<casa::Complex> bufCol(table(),name);
+  bufCol.put(index,vis);
 }
+
 
 /// @brief check whether the particular buffer exists
 /// @param[in] name a name of the buffer to query
@@ -51,5 +79,14 @@ void TableBufferManager::writeBuffer(const casa::Cube<casa::Complex> &vis,
 bool TableBufferManager::bufferExists(const std::string &name,
 			   casa::uInt index) const
 {
-  return false;
+  if (!table().actualTableDesc().isColumn(name)) {
+      // there is no such buffer at all
+      return false;
+  }
+  if (table().nrow()<=index) {
+      // buffer exists, but the index requested is beyond the limits
+      return false;
+  }
+  casa::ROArrayColumn<casa::Complex> bufCol(table(),name);
+  return bufCol.isDefined(index);
 }

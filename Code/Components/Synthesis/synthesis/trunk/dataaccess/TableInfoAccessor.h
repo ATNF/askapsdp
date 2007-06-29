@@ -51,8 +51,8 @@ struct TableInfoAccessor : virtual public ITableInfoAccessor {
   /// @param tab a measurement set table to work with
   TableInfoAccessor(const casa::Table &tab); 
   
-  /// @return a const reference to Table held by this object
-  virtual const casa::Table& table() const throw();
+  /// @return a non-const reference to Table held by this object
+  virtual casa::Table& table() const throw();
 
   /// @return a reference to ISubtableInfoHolder
   virtual const ISubtableInfoHolder& subtableInfo() const;

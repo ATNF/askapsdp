@@ -37,8 +37,8 @@ namespace synthesis {
 /// is also expected to be implemented.
 struct ITableHolder : virtual public IHolder {
 
-  /// @return a const reference to Table held by this object
-  virtual const casa::Table& table() const throw() = 0;
+  /// @return a non-const reference to Table held by this object
+  virtual casa::Table& table() const throw() = 0;
 
 };
 
