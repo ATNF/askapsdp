@@ -43,11 +43,13 @@ namespace conrad {
       
       if(nchan>1) {
         casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
+        pixels.set(0.0);
         axes.add("FREQUENCY", freqmin, freqmax);
         ip.add(name, pixels, axes);
       }
       else {
         casa::Cube<double> pixels(nx, ny, 1);
+        pixels.set(0.0);
         axes.add("FREQUENCY", freqmin, freqmax);
         ip.add(name, pixels, axes);
       }

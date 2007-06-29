@@ -150,8 +150,7 @@ namespace conrad
             toComplex(uvGrid, imagePixels);
             cfft(uvGrid, true);
             itsGridder->forward(itsIdi, axes, uvGrid);
-//            itsIdi->rwVisibility()=vis-itsIdi->visibility();
-            itsIdi->rwVisibility()=vis.copy();
+            itsIdi->rwVisibility()=vis-itsIdi->visibility();
   
   // Calculate contribution to residual image
             {
