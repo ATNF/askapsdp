@@ -14,7 +14,34 @@ using namespace std;
 
 
 namespace conrad { namespace cp {
-
+    
+  std::ostream& operator<<(std::ostream& os, MasterControl::Operation op) {
+    switch(op) {
+      case MasterControl::Init:
+        os << string("Init: Initialize");
+        break;
+      case MasterControl::SetWd:
+        os << string("SetWd: Set working domain");
+        break;
+      case MasterControl::Step:
+        os << string("Step: Process a step");
+        break;
+      case MasterControl::ParmInfo:
+        os << string("ParmInfo: Solveable parameter info");
+        break;
+      case MasterControl::GetEq:
+        os << string("GetEq: get equations");
+        break;
+      case MasterControl::Solve:
+        os << string("Solve: solve equations");
+        break;
+      case MasterControl::EndWd:
+        os << string("EndWd: End processing working domain");
+        break;
+    }
+    return os;
+  };
+  
   MasterControl::MasterControl (const MWConnectionSet::ShPtr& prediffers,
 				const MWConnectionSet::ShPtr& solvers)
     : itsPrediffers (prediffers),

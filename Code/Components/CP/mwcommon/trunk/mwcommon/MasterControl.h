@@ -76,6 +76,10 @@ namespace conrad { namespace cp {
       /// end the processing of a work domain
       EndWd
     };
+    
+    /// Provide a descriptive string for the standard operations
+    /// @param op Enumeration to be described
+    friend std::ostream& operator<<(std::ostream& os, MasterControl::Operation op);
 
     /// Create the master control with the giuven prediffer and solver
     /// connections.
