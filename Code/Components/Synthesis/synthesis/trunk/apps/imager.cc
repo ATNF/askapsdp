@@ -16,6 +16,7 @@
 #include <fitting/ParamsCasaTable.h>
 #include <fitting/Axes.h>
 
+#include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableDataSource.h>
 
 #include <casa/aips.h>
