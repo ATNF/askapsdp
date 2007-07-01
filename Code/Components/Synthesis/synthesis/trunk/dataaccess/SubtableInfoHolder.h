@@ -65,7 +65,7 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    virtual const IBufferManager& getBufferManager() const;
 
    /// @brief set up BufferManager to be memory based.
-   /// @detail After calling this method, the buffers will be held in
+   /// @details After calling this method, the buffers will be held in
    /// memory (via casa::MemoryTable), rather than be a subtable of
    /// the measurement set.
    /// @note This method should be called before any operations with
