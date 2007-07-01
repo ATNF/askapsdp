@@ -11,7 +11,7 @@ import os
 
 os.environ['AIPSPATH']=os.environ['CONRAD_PROJECT_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
 
-env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG'])
+env.Append(CCFLAGS=['-g', '-ftree-vectorize', '-O2','-DCONRAD_DEBUG'])
 
 # create build object with library name
 pkg = env.ConradPackage("synthesis")

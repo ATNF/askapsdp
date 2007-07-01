@@ -42,8 +42,7 @@ int main(int argc, const char** argv)
   try
   {
     
-    string progname(argv[0]);
-    string parsetname(progname+".parset");
+    string parsetname("imager.in");
     if (argc==2)
     {
       parsetname=argv[1];

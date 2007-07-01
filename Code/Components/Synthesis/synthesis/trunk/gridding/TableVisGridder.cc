@@ -21,7 +21,7 @@ namespace conrad
     {
     }
 
-    /// Data to grid (MFS)
+/// Data to grid (MFS)
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid,
@@ -35,7 +35,7 @@ namespace conrad
         cellsize, grid, weights);
     }
 
-    /// Data to grid (spectral line)
+/// Data to grid (spectral line)
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid,
@@ -49,7 +49,7 @@ namespace conrad
         cellsize, grid, weights);
     }
 
-    /// Data weights to grid (MFS) 
+/// Data weights to grid (MFS)
     void TableVisGridder::reverseWeights(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid)
@@ -62,7 +62,7 @@ namespace conrad
         cellsize, grid);
     }
 
-    /// Data weights to grid (spectral line) 
+/// Data weights to grid (spectral line)
     void TableVisGridder::reverseWeights(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid)
@@ -75,12 +75,12 @@ namespace conrad
         cellsize, grid);
     }
 
-    /// Grid to data (MFS)
+/// Grid to data (MFS)
     void TableVisGridder::forward(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       const casa::Cube<casa::Complex>& grid)
     {
-      casa::Cube<float> visweight(idi->visibility().shape()); 
+      casa::Cube<float> visweight(idi->visibility().shape());
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
       initConvolutionFunction(idi, cellsize, grid.shape());
@@ -88,7 +88,7 @@ namespace conrad
         cellsize, grid);
     }
 
-    /// Grid to data (spectral line)
+/// Grid to data (spectral line)
     void TableVisGridder::forward(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       const casa::Array<casa::Complex>& grid)
@@ -101,8 +101,8 @@ namespace conrad
         cellsize, grid);
     }
 
-    /// Next are the implementation methods. Not all of these are implemented yet.
-    /// Data to grid (MFS)
+/// Next are the implementation methods. Not all of these are implemented yet.
+/// Data to grid (MFS)
     void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<casa::Complex>& visibility,
       const casa::Cube<float>& visweight,
@@ -114,7 +114,7 @@ namespace conrad
       CONRADTHROW(ConradError, "genericReverse not yet implemented");
     }
 
-    /// Data to grid (spectral line)
+/// Data to grid (spectral line)
     void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<casa::Complex>& visibility,
       const casa::Cube<float>& visweight,
@@ -127,7 +127,8 @@ namespace conrad
       const int gSize = grid.ncolumn();
       const int nSamples = uvw.size();
       const int nChan = freq.size();
-      const int nPol = visibility.shape()(2);
+//      const int nPol = visibility.shape()(2);
+      const int nPol = 1;
 
       sumwt.set(0.0);
       grid.set(0.0);
@@ -182,20 +183,26 @@ namespace conrad
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
               ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
             {
-              if(itsSupport==0) {
+              if(itsSupport==0)
+              {
                 float wt=itsC(itsCCenter,itsCCenter,coff);
                 grid(iu,iv,pol)+=wt*visibility(i,chan,pol);
                 sumwt(pol)+=wt;
               }
-              else {
+              else
+              {
+                int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
                 for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                 {
+                  int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                   for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                   {
-                    float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
+                    float wt=itsC(uoff,voff,coff);
                     grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
                     sumwt(pol)+=wt;
+                    voff+=itsOverSample;
                   }
+                  uoff+=itsOverSample;
                 }
               }
             }
@@ -204,7 +211,7 @@ namespace conrad
       }
     }
 
-    /// Data weights to grid (spectral line)
+/// Data weights to grid (spectral line)
     void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
@@ -214,7 +221,7 @@ namespace conrad
       CONRADTHROW(ConradError, "genericReverseWeights not yet implemented");
     }
 
-    /// Data weights to grid (MFS)
+/// Data weights to grid (MFS)
     void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       const casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
@@ -277,17 +284,24 @@ namespace conrad
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
               ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
             {
-              if(itsSupport==0) {
+              if(itsSupport==0)
+              {
                 float wt=itsC(itsCCenter,itsCCenter,coff);
-                grid(iu,iv,pol)+=wt;              }
-              else {
+                grid(iu,iv,pol)+=wt;
+              }
+              else
+              {
+                int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
                 for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                 {
+                  int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                   for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                   {
-                    float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
+                    float wt=itsC(uoff,voff,coff);
                     grid(iu+suppu,iv+suppv,pol)+=wt;
+                    voff+=itsOverSample;
                   }
+                  uoff+=itsOverSample;
                 }
               }
             }
@@ -296,7 +310,7 @@ namespace conrad
       }
     }
 
-    /// Grid to data (spectral line)
+/// Grid to data (spectral line)
     void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       casa::Cube<casa::Complex>& visibility,
       casa::Cube<float>& visweight,
@@ -307,7 +321,7 @@ namespace conrad
       CONRADTHROW(ConradError, "genericForward not yet implemented");
     }
 
-    /// Grid to data (MFS)
+/// Grid to data (MFS)
     void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
       casa::Cube<casa::Complex>& visibility,
       casa::Cube<float>& visweight,
@@ -319,7 +333,8 @@ namespace conrad
       const int gSize = grid.ncolumn();
       const int nSamples = uvw.size();
       const int nChan = freq.size();
-      const int nPol = visibility.shape()(2);
+//      const int nPol = visibility.shape()(2);
+      const int nPol = 1;
 
       visibility.set(0.0);
       visweight.set(0.0);
@@ -378,20 +393,26 @@ namespace conrad
               if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
                 ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
               {
-                if(itsSupport==0) {
+                if(itsSupport==0)
+                {
                   float wt=itsC(itsCCenter,itsCCenter,coff);
                   visibility(i,chan,pol)+=wt*grid(iu,iv,pol);
                   sumviswt+=wt;
                 }
-                else {
+                else
+                {
+                  int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
                   for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                   {
+                    int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                     for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                     {
-                      float wt=itsC(suppu*overSample+fracu+itsCCenter,suppv*overSample+fracv+itsCCenter,coff);
+                      float wt=itsC(uoff,voff,coff);
                       visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
                       sumviswt+=wt;
+                      voff+=itsOverSample;
                     }
+                    uoff+=itsOverSample;
                   }
                 }
               }
@@ -421,7 +442,7 @@ namespace conrad
       }
     }
 
-    void TableVisGridder::findCellsize(casa::Vector<double>& cellsize, 
+    void TableVisGridder::findCellsize(casa::Vector<double>& cellsize,
       const casa::IPosition& imageShape,
       const conrad::scimath::Axes& axes)
     {
@@ -443,4 +464,5 @@ namespace conrad
     }
 
   }
+
 }

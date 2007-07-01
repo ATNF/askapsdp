@@ -96,7 +96,7 @@ namespace conrad
       vector<string>::iterator it;
       
 //      itsIdi.chooseBuffer("model");
-
+      /// @todo Minimise ffts in predict
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         itsIdi.chooseBuffer("MODEL_DATA");
@@ -121,6 +121,7 @@ namespace conrad
 // Loop over all completions i.e. all sources
       const vector<string> completions(parameters().completions("image.i"));
       
+      /// @todo Minimize ffts in calcEquations
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
 //      itsIdi.init();
       {
