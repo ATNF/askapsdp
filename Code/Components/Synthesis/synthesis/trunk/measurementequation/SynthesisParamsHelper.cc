@@ -67,7 +67,7 @@ namespace conrad {
       }
     }
     
-    void SynthesisParamsHelper::saveAsCasaImage(conrad::scimath::Params& ip, const string& name,
+    void SynthesisParamsHelper::saveAsCasaImage(const conrad::scimath::Params& ip, const string& name,
       const string& imagename) 
     {
       const casa::Array<double> imagePixels(ip.value(name));

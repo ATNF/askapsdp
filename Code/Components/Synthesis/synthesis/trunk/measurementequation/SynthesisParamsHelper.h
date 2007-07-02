@@ -48,7 +48,7 @@ namespace conrad
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param image Name of image file
-        static void saveAsCasaImage(conrad::scimath::Params& ip, const string& name,
+        static void saveAsCasaImage(const conrad::scimath::Params& ip, const string& name,
           const string& imagename);
     };
 
