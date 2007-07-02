@@ -1,2 +1,19 @@
-/// @defgroup dataaccess
-/// @defgroup gridding
+/// @defgroup dataaccess Data access subpackage
+/// @defgroup measurementequation Measurement equation implementation
+/// @defgroup gridding Gridding algorithms
+
+/// The package namespace
+namespace synthesis {};
+
+/// @mainpage CONRAD synthesis package
+///
+/// @section Introduction
+/// Describe me here
+/// in a little bit more detail
+/// @section Subpackages
+///
+/// @li @ref dataaccess
+/// @li @ref measurementequation
+/// @li @ref gridding
+///
+/// @copyright 2007 CONRAD, All Rights Reserved.
