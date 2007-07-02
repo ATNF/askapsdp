@@ -134,6 +134,7 @@ int main(int argc, const char** argv)
       std::cout << *it << std::endl
         << "Maximum = " << max(resultImage) << ", minimum = " << min(resultImage) << std::endl
         << "Axes " << skymodel.axes(*it) << std::endl;
+      SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
       
     }
 

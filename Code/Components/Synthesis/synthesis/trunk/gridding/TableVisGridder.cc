@@ -130,9 +130,6 @@ namespace conrad
 //      const int nPol = visibility.shape()(2);
       const int nPol = 1;
 
-      sumwt.set(0.0);
-      grid.set(0.0);
-
 // Loop over all samples adding them to the grid
 // First scale to the correct pixel location
 // Then find the fraction of a pixel to the nearest pixel
@@ -335,9 +332,6 @@ namespace conrad
       const int nChan = freq.size();
 //      const int nPol = visibility.shape()(2);
       const int nPol = 1;
-
-      visibility.set(0.0);
-      visweight.set(0.0);
 
 // Loop over all samples adding them to the grid
 // First scale to the correct pixel location

@@ -92,107 +92,139 @@ namespace conrad
 
     void ImageFFTEquation::predict()
     {
-      vector<string> completions(parameters().completions("image.i"));
-      vector<string>::iterator it;
+      const vector<string> completions(parameters().completions("image.i"));
+
+// To minimize the number of data passes, we keep copies of the grids in memory, and
+// switch between these. This optimization may not be sufficient in the long run.
       
-//      itsIdi.chooseBuffer("model");
-      /// @todo Minimise ffts in predict
+      std::map<string, casa::Cube<casa::Complex>* > grids;
+      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+      {
+        string imageName("image.i"+(*it));
+        const Axes axes(parameters().axes(imageName));
+        casa::Cube<double> imagePixels(parameters().value(imageName).copy());
+        const casa::IPosition imageShape(imagePixels.shape());
+        itsGridder->correctConvolution(axes, imagePixels);
+        grids[imageName]=new casa::Cube<casa::Complex>(imageShape(0), imageShape(1), 1);
+// Since we just defined it, we know its there and can use the simple version of the lookup
+        toComplex(*grids[imageName], imagePixels);
+        cfft(*grids[imageName], true);
+      }
+// Loop through degridding the data
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         itsIdi.chooseBuffer("MODEL_DATA");
         itsIdi->rwVisibility().set(0.0);
-        for (it=completions.begin();it!=completions.end();it++)
+        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           string imageName("image.i"+(*it));
           const Axes axes(parameters().axes(imageName));
-          casa::Cube<double> imagePixels(parameters().value(imageName).copy());
-          const casa::IPosition imageShape(imagePixels.shape());
-          itsGridder->correctConvolution(axes, imagePixels);
-          casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
-          toComplex(uvGrid, imagePixels);
-          cfft(uvGrid, true);
-          itsGridder->forward(itsIdi, axes, uvGrid);
+          itsGridder->forward(itsIdi, axes, *grids[imageName]);
         }
+      }
+      // Now clean up 
+      for (std::map<string, casa::Cube<casa::Complex>* >::iterator it=grids.begin();
+        it!=grids.end();++it) 
+      {
+        delete it->second;
       }
     };
 
     void ImageFFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
-// Loop over all completions i.e. all sources
+      
+// First we have to do the predict so that the residual data is filled in
+      predict();
+      
+// We will need to loop over all completions i.e. all sources
       const vector<string> completions(parameters().completions("image.i"));
       
-      /// @todo Minimize ffts in calcEquations
-      for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
-//      itsIdi.init();
+// To minimize the number of data passes, we keep copies of the grids in memory, and
+// switch between these. This optimization may not be sufficient in the long run.      
+// Set up initial grids for all the types we need to make
+      vector<string> types(3);
+      types[0]="map";
+      types[1]="weight";
+      types[2]="psf";
+      std::map<string, casa::Cube<casa::Complex>* > grids;
+      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
-        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+        const string imageName("image.i"+(*it));
+        const casa::IPosition imageShape(parameters().value(imageName).shape());
+        for (vector<string>::const_iterator type=types.begin();type!=types.end();++type) {
+          grids[string(imageName+(*type))]=new casa::Cube<casa::Complex>(imageShape(0), imageShape(1), 1);
+          grids[string(imageName+(*type))]->set(0.0);
+        }
+      }
+// Now we loop through all the data
+      bool first=true;
+      for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
+      {
+        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
         {
-          string imageName("image.i"+(*it));
+          const string imageName("image.i"+(*it));
+          const Axes axes(parameters().axes(imageName));
           if(parameters().isFree(imageName)) {
-
-            casa::Cube<double> imagePixels(parameters().value(imageName).copy());
-            const casa::IPosition imageShape(imagePixels.shape());
-            casa::Cube<casa::Complex> uvGrid(imageShape(0), imageShape(1), 1);
-            uvGrid.set(0.0);
-  
-            casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
-            casa::Cube<double> imagePSF(imageShape(0), imageShape(1), 1);
-            casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
-            
-            itsIdi.chooseOriginal();
-            const casa::Cube<casa::Complex> vis(itsIdi->visibility().copy());
-  
-  // Predict the model visibility
+            casa::Vector<float> uvWeights(1);
+            itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
+            uvWeights.set(0.0);
+            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"map")], uvWeights);
+            itsGridder->reverseWeights(itsIdi, axes, *grids[string(imageName+"weight")]);
             itsIdi.chooseBuffer("SCRATCH_DATA");
-            itsIdi->rwVisibility().set(casa::Complex(0.0));
-            Axes axes(parameters().axes(imageName));
-            
-            itsGridder->correctConvolution(axes, imagePixels);
-            toComplex(uvGrid, imagePixels);
-            cfft(uvGrid, true);
-            itsGridder->forward(itsIdi, axes, uvGrid);
-            itsIdi->rwVisibility()=vis-itsIdi->visibility();
-  
-  // Calculate contribution to residual image
-            {
-              uvGrid.set(0.0);
-              casa::Vector<float> uvWeights(1);
-              itsGridder->reverse(itsIdi, axes, uvGrid, uvWeights);
-              cfft(uvGrid, false);
-              toDouble(imageDeriv, uvGrid);
-              itsGridder->correctConvolution(axes, imageDeriv);
-            }
-  // Calculate contribution to weights image (i.e. diagonal of normal matrix)
-            {
-              uvGrid.set(0.0);
-              itsGridder->reverseWeights(itsIdi, axes, uvGrid);
-              cfft(uvGrid, false);
-              toDouble(imageWeights, uvGrid);
-              itsGridder->correctConvolution(axes, imageWeights);
-            }
-  // Calculate contribution to PSF (i.e. slice through normal matrix)
-            {
-              itsIdi->rwVisibility().set(casa::Complex(1.0));
-              uvGrid.set(0.0);
-              casa::Vector<float> uvWeights(1);
-              itsGridder->reverse(itsIdi, axes, uvGrid, uvWeights);
-              cfft(uvGrid, false);
-              toDouble(imagePSF, uvGrid);
-              itsGridder->correctConvolution(axes, imagePSF);
-            }
-  // Add everything found to the normal equations
-            casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
-            {
-              casa::IPosition vecShape(1, imagePSF.nelements());
-              casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
-              casa::Vector<double> imageWeightsVec(imageWeights.reform(vecShape));
-              casa::Vector<double> imageDerivVec(imageDeriv.reform(vecShape));
-              ne.addSlice(imageName, imagePSFVec, imageWeightsVec, imageDerivVec, 
-                imageShape, reference);
-            }
+            itsIdi->rwVisibility().set(casa::Complex(1.0));
+            uvWeights.set(0.0);
+            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"psf")], uvWeights);
+            itsIdi.chooseOriginal();
           }
         }
       }
+
+// Now we have to complete the transforms and fill in the normal equations
+      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+      {
+        const string imageName("image.i"+(*it));
+        const casa::IPosition imageShape(parameters().value(imageName).shape());
+        const Axes axes(parameters().axes(imageName));
+
+        casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
+        casa::Cube<double> imagePSF(imageShape(0), imageShape(1), 1);
+        casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
+  
+        {
+          casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"map")]);
+          cfft(*uvGrid, false);
+          toDouble(imageDeriv, *uvGrid);
+          itsGridder->correctConvolution(axes, imageDeriv);
+        }
+        {
+          casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"weight")]);
+          cfft(*uvGrid, false);
+          toDouble(imageWeights, *uvGrid);
+          itsGridder->correctConvolution(axes, imageWeights);
+        }
+        {
+          casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"psf")]);
+          cfft(*uvGrid, false);
+          toDouble(imagePSF, *uvGrid);
+          itsGridder->correctConvolution(axes, imagePSF);
+        }
+        {
+          casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
+          casa::IPosition vecShape(1, imagePSF.nelements());
+          casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
+          casa::Vector<double> imageWeightsVec(imageWeights.reform(vecShape));
+          casa::Vector<double> imageDerivVec(imageDeriv.reform(vecShape));
+          ne.addSlice(imageName, imagePSFVec, imageWeightsVec, imageDerivVec, 
+            imageShape, reference);
+        }
+      }
+      // Now delete all the grids to avoid memory leaks
+      for (std::map<string, casa::Cube<casa::Complex>* >::iterator it=grids.begin();
+        it!=grids.end();++it) 
+      {
+        delete it->second;
+      }
+
     };
 
     void ImageFFTEquation::cfft(casa::Cube<casa::Complex>& arr, bool toUV)

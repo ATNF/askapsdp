@@ -5,9 +5,21 @@
 #include <casa/BasicSL/Constants.h>
 #include <casa/Quanta.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
 #include <casa/Arrays/Cube.h>
 
+#include <images/Images/PagedImage.h>
+#include <lattices/Lattices/ArrayLattice.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/StokesCoordinate.h>
+#include <coordinates/Coordinates/SpectralCoordinate.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <coordinates/Coordinates/Projection.h>
+
+#include <measures/Measures/Stokes.h>
+
 using namespace conrad::scimath;
+using namespace casa;
 
 namespace conrad {
   namespace synthesis {
@@ -53,6 +65,55 @@ namespace conrad {
         axes.add("FREQUENCY", freqmin, freqmax);
         ip.add(name, pixels, axes);
       }
+    }
+    
+    void SynthesisParamsHelper::saveAsCasaImage(conrad::scimath::Params& ip, const string& name,
+      const string& imagename) 
+    {
+      const casa::Array<double> imagePixels(ip.value(name));
+      const Axes axes(ip.axes(name));
+      casa::Array<float> floatImagePixels(imagePixels.shape());
+      casa::convertArray<float, double>(floatImagePixels, imagePixels);
+      
+      casa::ArrayLattice<float> latImagePixels(floatImagePixels);
+      casa::Matrix<double> xform(2,2);                                    
+      xform = 0.0; xform.diagonal() = 1.0;
+      int nx=imagePixels.shape()(0);                          
+      int ny=imagePixels.shape()(1);                          
+      casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
+      casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
+
+      casa::Quantum<double> incLon((axes.start("RA")-axes.end("RA"))/double(nx), "rad");
+      casa::Quantum<double> incLat((axes.start("DEC")-axes.end("DEC"))/double(ny), "rad");
+      
+      casa::DirectionCoordinate radec(MDirection::J2000,
+                            Projection(Projection::SIN),
+                            refLon, refLat,
+                            incLon, incLat,
+                            xform, nx/2, nx/2);
+
+      casa::CoordinateSystem imageCoords;
+      imageCoords.addCoordinate(radec);
+      
+//      casa::Vector<int> iquv(1);
+//      iquv(0) = Stokes::I; 
+//
+//      casa::StokesCoordinate stokes(iquv);
+//      imageCoords.addCoordinate(stokes);
+      
+      int nchan=imagePixels.shape()(2);
+      double restfreq = 0.0;
+      double crpix = (nchan-1)/2;
+      double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
+      double cdelt = (axes.start("FREQUENCY")-axes.end("FREQUENCY"))/double(nchan);
+      casa::SpectralCoordinate freq(casa::MFrequency::TOPO, crval, cdelt, crpix, restfreq);
+      imageCoords.addCoordinate(freq);
+       
+      casa::PagedImage<float> imgImagePixels(TiledShape(imagePixels.shape()), 
+        imageCoords, casa::String(imagename));
+      imgImagePixels.copyData(latImagePixels); 
+      
+      
     }
           
       

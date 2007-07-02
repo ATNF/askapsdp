@@ -61,7 +61,7 @@ namespace conrad
           casa::Array<double> imagePixels1(casa::IPosition(2, npix, npix));
           imagePixels1.set(0.0);
           imagePixels1(casa::IPosition(2, npix/2, npix/2))=1.0;
-          imagePixels1(casa::IPosition(2, 3*npix/8, 7*npix/16))=0.7;
+//          imagePixels1(casa::IPosition(2, 3*npix/8, 7*npix/16))=0.7;
           params1->add("image.i.cena", imagePixels1, imageAxes);
 
           p1 = new ImageFFTEquation(*params1, idi);
@@ -70,7 +70,7 @@ namespace conrad
           casa::Array<double> imagePixels2(casa::IPosition(2, npix, npix));
           imagePixels2.set(0.0);
           imagePixels2(casa::IPosition(2, npix/2, npix/2))=0.9;
-          imagePixels2(casa::IPosition(2, 3*npix/8, 7*npix/16))=0.75;
+//          imagePixels2(casa::IPosition(2, 3*npix/8, 7*npix/16))=0.75;
           params2->add("image.i.cena", imagePixels2, imageAxes);
 
           p2 = new ImageFFTEquation(*params2, idi);
@@ -112,6 +112,8 @@ namespace conrad
             pt.setParameters(*params2);
           }
           // This only works for the pixels with emission but it's a good test nevertheless
+          std::cout << improved(casa::IPosition(2, npix/2, npix/2)) << std::endl;
+          std::cout << improved(casa::IPosition(2, 3*npix/8, 7*npix/16)) << std::endl;
           CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
           CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.003);
         }
@@ -127,6 +129,7 @@ namespace conrad
           p2 = new ImageFFTEquation(*params2, idi, gridder);
 
           p1->predict();
+          
 // Calculate gradients using "imperfect" parameters"
           p2->calcEquations(ne);
           Quality q;
@@ -140,6 +143,8 @@ namespace conrad
             pt.setParameters(*params2);
           }
 // This only works for the pixels with emission but it's a good test nevertheless
+          std::cout << improved(casa::IPosition(2, npix/2, npix/2)) << std::endl;
+          std::cout << improved(casa::IPosition(2, 3*npix/8, 7*npix/16)) << std::endl;
           CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
           CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.003);
         }
@@ -155,6 +160,7 @@ namespace conrad
           p2 = new ImageFFTEquation(*params2, idi, gridder);
 
           p1->predict();
+
 // Calculate gradients using "imperfect" parameters"
           p2->calcEquations(ne);
           Quality q;
@@ -168,6 +174,8 @@ namespace conrad
             pt.setParameters(*params2);
           }
 // This only works for the pixels with emission but it's a good test nevertheless
+          std::cout << improved(casa::IPosition(2, npix/2, npix/2)) << std::endl;
+          std::cout << improved(casa::IPosition(2, 3*npix/8, 7*npix/16)) << std::endl;
           CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, npix/2, npix/2))-1.0)<0.003);
           CPPUNIT_ASSERT(abs(improved(casa::IPosition(2, 3*npix/8, 7*npix/16))-0.700)<0.005);
         }
