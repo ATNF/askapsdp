@@ -30,6 +30,7 @@ namespace conrad
       itsCSize=2*(itsSupport+1)*itsOverSample;    // 1024;
       itsCCenter=itsCSize/2-1;                    // 511
       itsC.resize(itsCSize, itsCSize, 1);
+      itsC.set(0.0);
       for (int ix=0;ix<itsCSize;ix++)
       {
         double nux=std::abs(double(ix-itsCCenter))/double(itsSupport*itsOverSample);
@@ -63,11 +64,11 @@ namespace conrad
         double nuy=std::abs(double(iy-ny/2))/double(ny/2);
         ccfy(iy)=1.0/grdsf(nuy);
       }
-      for (int iz=0;iz<nz;iz++)
+      for(int ix=0;ix<nx;ix++)
       {
-        for(int ix=0;ix<nx;ix++)
+        for(int iy=0;iy<ny;iy++)
         {
-          for(int iy=0;iy<ny;iy++)
+          for (int iz=0;iz<nz;iz++)
           {
             grid(ix,iy,iz)*=ccfx(ix)*ccfy(iy);
           }
@@ -95,11 +96,11 @@ namespace conrad
         double nuy=std::abs(double(iy-ny/2))/double(ny/2);
         ccfy(iy)=grdsf(nuy);
       }
-      for (int iz=0;iz<nz;iz++)
+      for(int ix=0;ix<nx;ix++)
       {
-        for(int ix=0;ix<nx;ix++)
+        for(int iy=0;iy<ny;iy++)
         {
-          for(int iy=0;iy<ny;iy++)
+          for (int iz=0;iz<nz;iz++)
           {
             grid(ix,iy,iz)*=ccfx(ix)*ccfy(iy);
           }

@@ -9,6 +9,7 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 #include <gridding/IVisGridder.h>
+#include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/AntennaIllumVisGridder.h>
 
@@ -98,6 +99,10 @@ int main(int argc, const char** argv)
       double blockage=parset.getDouble("Imager.AntennaIllum.blockage");
       std::cout << "Using Antenna Illumination for gridding function" << std::endl;
       gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(diameter, blockage));
+    }
+    else if(parset.getString("Imager.gridder")=="Box") {
+      std::cout << "Using Box function for gridding" << std::endl;
+      gridder=IVisGridder::ShPtr(new BoxVisGridder());
     }
     else {
       std::cout << "Using spheriodal function for gridding" << std::endl;

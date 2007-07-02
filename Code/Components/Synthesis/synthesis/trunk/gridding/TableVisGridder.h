@@ -232,6 +232,11 @@ namespace conrad
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           const casa::Array<casa::Complex>& grid);
+          ///
+        /// Round to nearest integer
+        static int nint(double x) {
+          return x>0? int(x+0.5) : int(x-0.5);
+        }
 
     };
 

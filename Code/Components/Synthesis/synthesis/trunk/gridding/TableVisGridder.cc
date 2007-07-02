@@ -151,30 +151,13 @@ namespace conrad
           {
 
             int coff=cOffset(i,chan);
-
-            int iu, iv;
             double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-            if(uScaled>0.0)
-            {
-              iu=int(uScaled+0.5);
-            }
-            else
-            {
-              iu=int(uScaled-0.5);
-            }
-            int fracu=int(overSample*(uScaled-double(iu)));
+            int iu = nint(uScaled);
+            int fracu=nint(overSample*(double(iu)-uScaled));
             iu+=gSize/2;
-
             double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
-            if(vScaled>0.0)
-            {
-              iv=int(vScaled+0.5);
-            }
-            else
-            {
-              iv=int(vScaled-0.5);
-            }
-            int fracv=int(overSample*(vScaled-double(iv)));
+            int iv = nint(vScaled);
+            int fracv=nint(overSample*(double(iv)-vScaled));
             iv+=gSize/2;
 
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
@@ -252,39 +235,21 @@ namespace conrad
           {
 
             int coff=cOffset(i,chan);
-
-            int iu, iv;
             double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-            if(uScaled>0.0)
-            {
-              iu=int(uScaled+0.5);
-            }
-            else
-            {
-              iu=int(uScaled-0.5);
-            }
-            int fracu=int(overSample*(uScaled-double(iu)));
-            iu=gSize/2;
-
+            int iu = nint(uScaled);
+            int fracu=nint(overSample*(double(iu)-uScaled));
+            iu+=gSize/2;
             double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
-            if(vScaled>0.0)
-            {
-              iv=int(vScaled+0.5);
-            }
-            else
-            {
-              iv=int(vScaled-0.5);
-            }
-            int fracv=int(overSample*(vScaled-double(iv)));
-            iv=gSize/2;
-
+            int iv = nint(vScaled);
+            int fracv=nint(overSample*(double(iv)-vScaled));
+            iv+=gSize/2;            
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
               ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
             {
               if(itsSupport==0)
               {
                 float wt=itsC(itsCCenter,itsCCenter,coff);
-                grid(iu,iv,pol)+=wt;
+                grid(gSize/2,gSize/2,pol)+=wt;
               }
               else
               {
@@ -295,7 +260,7 @@ namespace conrad
                   for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                   {
                     float wt=itsC(uoff,voff,coff);
-                    grid(iu+suppu,iv+suppv,pol)+=wt;
+                    grid(gSize/2+suppu,gSize/2+suppv,pol)+=wt;
                     voff+=itsOverSample;
                   }
                   uoff+=itsOverSample;
@@ -354,32 +319,15 @@ namespace conrad
           {
 
             int coff=cOffset(i,chan);
-
-            int iu, iv;
             double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-            if(uScaled>0.0)
-            {
-              iu=int(uScaled+0.5);
-            }
-            else
-            {
-              iu=int(uScaled-0.5);
-            }
-            int fracu=int(overSample*(uScaled-double(iu)));
+            int iu = nint(uScaled);
+            int fracu=nint(overSample*(double(iu)-uScaled));
             iu+=gSize/2;
-
             double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
-            if(vScaled>0.0)
-            {
-              iv=int(vScaled+0.5);
-            }
-            else
-            {
-              iv=int(vScaled-0.5);
-            }
-            int fracv=int(overSample*(vScaled-double(iv)));
+            int iv = nint(vScaled);
+            int fracv=nint(overSample*(double(iv)-vScaled));
             iv+=gSize/2;
-
+                        
             double sumviswt=0.0;
             visibility(i,chan,pol)=0.0;
             if(itsSupport>0)
