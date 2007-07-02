@@ -79,13 +79,21 @@ namespace conrad
             value(elem)+=dv(elem)/diag(elem);
           }
         }
+	casa::IPosition valShape(itsParams->value(indit->first).shape());
+        
 	Axes axes(itsParams->axes(indit->first));
-        itsParams->add("debug."+indit->first+".diagonal", itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second,
-		       axes);
-        itsParams->add("debug."+indit->first+".dataVector", itsNormalEquations->dataVector().find(indit->first)->second,
-		       axes);
-        itsParams->add("debug."+indit->first+".slice", itsNormalEquations->normalMatrixSlice().find(indit->first)->second,
-		       axes);
+	{
+	  casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
+	  itsParams->add("debug."+indit->first+".diagonal", value, axes);
+	}
+	{
+	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
+	  itsParams->add("debug."+indit->first+".dataVector", value, axes);
+	}
+	{
+	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
+	  itsParams->add("debug."+indit->first+".slice", value, axes);
+	}
       }
 
       quality.setDOF(nParameters);
