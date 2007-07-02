@@ -50,6 +50,7 @@ namespace synthesis {
 /// into a separate class and to hold it in a shared pointer.
 /// Conceptually, this class has to be derived from IConstDataAccessor.
 /// However, it would cause problems with g++-3.3 later. 
+/// @ingroup dataaccess
 class MetaDataAccessor : virtual public IDataAccessor
 {
 public:

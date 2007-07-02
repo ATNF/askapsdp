@@ -40,6 +40,7 @@ namespace synthesis {
 /// (and the interface conversion would be equivalent in complexity to
 /// the transformation itself). Hence, we will use a class derived from
 /// this interface instead of the VelocityMachine
+/// @ingroup dataaccess
 struct IDopplerConverter : virtual public IConverterBase {
     /// convert specified frequency to velocity in the same reference
     /// frame. Velocity definition (i.e. optical or radio, etc) is

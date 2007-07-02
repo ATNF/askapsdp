@@ -32,6 +32,7 @@ namespace synthesis {
 /// possible to ignore calls to the operator++. This allows to 
 /// write to the same data accessor, which is currently read or
 /// its associated buffers.
+/// @ingroup dataaccess
 template<typename Iter, typename Sel, typename Inc>
 class DataAdapter {
 public:

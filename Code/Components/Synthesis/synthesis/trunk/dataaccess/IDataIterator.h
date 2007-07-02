@@ -38,6 +38,7 @@ namespace synthesis {
 /// implemented in a parallel environment. The user should also take care
 /// in the situation when the iterators with different selection access
 /// the same buffer (this behavior is still TBD).
+/// @ingroup dataaccess
 class IDataIterator : public IConstDataIterator
 {
 public:

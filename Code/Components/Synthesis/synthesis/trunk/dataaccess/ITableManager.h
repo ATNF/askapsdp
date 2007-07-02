@@ -31,6 +31,7 @@ namespace synthesis {
 /// both interfaces and provides a access to the Table itself and
 /// cached derived information. See its description for more details on 
 /// how this part of the class tree is organized.
+/// @ingroup dataaccess
 struct ITableManager : virtual public ITableHolder,
                        virtual public ISubtableInfoHolder
 {  

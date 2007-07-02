@@ -35,6 +35,7 @@ namespace synthesis {
 /// This interface is the base class in an hierarchy of classes which
 /// provide required functionality. Building derived information on-demand
 /// is also expected to be implemented.
+/// @ingroup dataaccess
 struct ITableHolder : virtual public IHolder {
 
   /// @return a non-const reference to Table held by this object

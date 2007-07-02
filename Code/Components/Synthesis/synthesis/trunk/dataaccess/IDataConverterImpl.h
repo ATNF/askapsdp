@@ -30,6 +30,7 @@ namespace synthesis {
 /// from the data source object. In contrast to IDataConverter, this
 /// interface contains methods used within the implementation part of the
 /// data access layer, which are not exposed to the end user.
+/// @ingroup dataaccess
 class IDataConverterImpl : virtual public IDataConverter
 {
 public:

@@ -18,6 +18,7 @@ namespace conrad {
 namespace synthesis {
 
 /// @brief An iterator stub to work in pair with DataAccessorStub
+/// @ingroup dataaccess
 class DataIteratorStub : public IDataIterator
 {
 public:

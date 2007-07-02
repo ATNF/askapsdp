@@ -15,8 +15,7 @@
 
 #include <dataaccess/TableHolder.h>
 
-using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// constructor - set the table to work with
 /// @param[in] tab table to work with

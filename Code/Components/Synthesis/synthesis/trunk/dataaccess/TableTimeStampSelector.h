@@ -36,6 +36,7 @@ namespace synthesis {
 ///          times as Double in the same frame/units as the TIME
 ///          column in the table. These two methods are specified
 ///          in the derived classes.
+/// @ingroup dataaccess
 class TableTimeStampSelector : public TableMeasureFieldSelector
 {
 public:

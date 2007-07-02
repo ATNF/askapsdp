@@ -13,7 +13,8 @@ namespace conrad {
 
 namespace synthesis {
 
-/// A stubbed implementation of the data accessor
+/// @brief A stubbed implementation of the data accessor
+/// @ingroup dataaccess
 struct DataAccessorStub : virtual public IFlagDataAccessor
 {
      /// Default version can fill with MIRANdA data

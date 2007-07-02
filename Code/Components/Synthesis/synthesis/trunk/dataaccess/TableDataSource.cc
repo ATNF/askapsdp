@@ -20,7 +20,7 @@
 #include <dataaccess/SubtableInfoHolder.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// construct a read-write data source object
 /// @param[in] fname file name of the measurement set to use

@@ -9,8 +9,7 @@
 
 #include <dataaccess/IDataSelector.h>
 
-using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// An empty virtual destructor to make the compiler happy
 IDataSelector::~IDataSelector()

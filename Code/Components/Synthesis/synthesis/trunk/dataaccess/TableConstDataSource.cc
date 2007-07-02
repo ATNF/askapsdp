@@ -19,7 +19,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 using namespace casa;
 
 /// construct a read-only data source object

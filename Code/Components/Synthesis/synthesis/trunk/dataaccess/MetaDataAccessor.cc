@@ -22,8 +22,7 @@
 
 #include <dataaccess/MetaDataAccessor.h>
 
-using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// construct an object linked with the given const accessor
 /// @param acc a reference to the associated accessor

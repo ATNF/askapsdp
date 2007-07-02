@@ -14,7 +14,7 @@
 #include <conrad/ConradError.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 
 /// @brief construct from a shared pointer to info holder

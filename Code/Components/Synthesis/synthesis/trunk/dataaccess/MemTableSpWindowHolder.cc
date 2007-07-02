@@ -23,7 +23,7 @@
 
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 using namespace casa;
 
 /// read all required information from the SPECTRAL_WINDOW subtable

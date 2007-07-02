@@ -26,6 +26,7 @@ namespace synthesis {
 /// for a field which is a measure, i.e. requires a
 /// fully defined converter for processing
 /// (base interface is ITableMeasureSelector)
+/// @ingroup dataaccess
 class TableMeasureFieldSelector : ITableMeasureFieldSelector {
 public:
    /// set the converter to use. It should be fully specified somewhere

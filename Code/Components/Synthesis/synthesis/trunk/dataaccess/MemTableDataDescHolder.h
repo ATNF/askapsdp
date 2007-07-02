@@ -27,6 +27,7 @@ namespace synthesis {
 /// @brief Implementation of ITableDataDescHolder holding everything in memory
 /// @details This file contains a class implementing the ITableDataDescHolder
 /// interface by reading the appropriate subtable into memory in the constructor.
+/// @ingroup dataaccess
 struct MemTableDataDescHolder : public ITableDataDescHolder {
 
   /// read all required information from the DATA_DESCRIPTION subtable

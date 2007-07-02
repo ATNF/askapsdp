@@ -25,6 +25,7 @@ namespace synthesis {
 /// @details IFlagDataAccessor is a further extension of the
 /// IDataAccessor interface class to provide a read/write access to
 /// the flag information.
+/// @ingroup dataaccess
 class IFlagDataAccessor : virtual public IDataAccessor
 {
 public:

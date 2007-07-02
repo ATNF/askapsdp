@@ -17,7 +17,7 @@
 #include <dataaccess/TableConstDataIterator.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// construct an object linked with the given iterator
 /// @param iter a reference to associated iterator

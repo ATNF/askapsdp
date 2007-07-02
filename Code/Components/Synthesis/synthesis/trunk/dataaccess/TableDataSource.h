@@ -18,6 +18,11 @@ namespace conrad {
 
 namespace synthesis {
 
+/// @brief Implementation of IDataSource in the table-based case
+/// @details
+/// TableDataSource: Allow read-write access to the data stored in the
+/// measurement set. This class implements IConstDataSource interface.
+/// @ingroup dataaccess
 class TableDataSource : public TableConstDataSource,
                         virtual public IDataSource,
 			virtual protected TableInfoAccessor

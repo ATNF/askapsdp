@@ -15,7 +15,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// construct an object linked with the given const accessor
 /// @param iter a reference to the associated accessor

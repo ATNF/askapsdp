@@ -13,7 +13,7 @@
 #include <dataaccess/IConverterBase.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// an empty virtual destructor to keep the compiler happy
 /// for all derived interfaces

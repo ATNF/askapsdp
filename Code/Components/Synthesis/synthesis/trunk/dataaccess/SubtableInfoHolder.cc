@@ -29,7 +29,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// @brief obtain data description holder
 /// @details A MemTableDataDescHolder is constructed on the first call

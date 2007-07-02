@@ -41,6 +41,7 @@ namespace synthesis {
 /// Such design allows to avoid parsing of all possible subtables and
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
+/// @ingroup dataaccess
 struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
                             virtual public ITableHolder
 {

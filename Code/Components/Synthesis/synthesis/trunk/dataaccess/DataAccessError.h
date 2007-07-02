@@ -19,6 +19,7 @@ namespace conrad {
 namespace synthesis {
 
 /// @brief general exception class used in the data access layer
+/// @ingroup dataaccess
 struct DataAccessError : public ConradError
 {
   /// constructor - pass the message to the base class

@@ -17,7 +17,7 @@
 #include <dataaccess/DirectionConverter.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 using namespace casa;
 
 /// create a converter to the target frame

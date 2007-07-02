@@ -32,7 +32,7 @@ namespace synthesis {
 /// @details
 /// TableConstDataSource: Allow read-only access to the data stored in the
 /// measurement set. This class implements IConstDataSource interface.
-/// 
+/// @ingroup dataaccess
 class TableConstDataSource : virtual public IConstDataSource,
                              virtual protected TableInfoAccessor
 {

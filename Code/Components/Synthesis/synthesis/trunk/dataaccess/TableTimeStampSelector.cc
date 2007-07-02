@@ -22,7 +22,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// constructor, stores the table which will later be used to form
 /// expression nodes

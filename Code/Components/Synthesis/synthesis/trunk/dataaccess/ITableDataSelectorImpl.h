@@ -38,6 +38,7 @@ namespace synthesis {
 /// table-independent functionality can be split out into a
 /// separate interface (i.e. IDataSelectorImpl), which could
 /// be a base class for this one.
+/// @ingroup dataaccess
 class ITableDataSelectorImpl : virtual public IDataSelector
 {
 public:

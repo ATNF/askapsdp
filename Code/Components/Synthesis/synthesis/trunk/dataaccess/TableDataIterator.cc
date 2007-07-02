@@ -57,7 +57,7 @@ MapMemFun<X> mapMemFun(void (X::*in)()) {
 }
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector

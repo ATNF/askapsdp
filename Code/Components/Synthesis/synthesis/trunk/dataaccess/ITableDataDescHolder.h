@@ -25,6 +25,7 @@ namespace synthesis {
 /// @details A class derived from this interface provides access to
 /// the content of the DATA_DESCRIPTION table (which connects data
 /// description id with spectral window id and polarization id
+/// @ingroup dataaccess
 struct ITableDataDescHolder : virtual public IHolder {
 
   /// obtain spectral window ID via data description ID

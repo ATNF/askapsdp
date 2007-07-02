@@ -43,6 +43,7 @@ typedef boost::shared_ptr<IDataConverter const> IDataConverterConstPtr;
 /// @brief Read-only access to a source of visibility data
 /// @details IConstDataSource allows access to a source of visibility data,
 /// probably either a MeasurementSet or a stream.
+/// @ingroup dataaccess
 class IConstDataSource
 {
 public:

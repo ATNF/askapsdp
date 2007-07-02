@@ -37,6 +37,7 @@ namespace synthesis {
 /// 
 /// Additional read/write buffers can be used via the IDataIterator, which
 /// implements a read/write interface
+/// @ingroup dataaccess
 class IConstDataIterator
 {
 public:

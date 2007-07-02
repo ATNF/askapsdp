@@ -17,6 +17,7 @@ namespace synthesis {
 /// @brief Interface to select a number of polarization products
 /// @details Examples of the polarization selection are, e.g. circulars
 /// with cross products, full stokes, stokes I only, etc.
+/// @ingroup dataaccess
 class IPolSelector {
 public:
     /// non-explicit constructor to allow conversion from the strings like

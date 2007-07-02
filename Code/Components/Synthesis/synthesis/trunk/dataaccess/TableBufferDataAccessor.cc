@@ -16,7 +16,7 @@
 #include <dataaccess/TableDataIterator.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// construct an object linked with the given const accessor and
 /// non-const iterator (which provides a read/write functionality)

@@ -26,7 +26,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 BasicDataConverter::BasicDataConverter() :
      itsEpochConverter(new EpochConverter),

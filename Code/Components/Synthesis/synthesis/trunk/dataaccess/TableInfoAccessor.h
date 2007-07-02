@@ -34,6 +34,7 @@ namespace synthesis {
 /// @note see the TableManager class, which is an implementation of
 /// the ISubtableInfoHolder and ITableHolder interfaces, for detailed
 /// description how this bunch of classes is supposed to work together
+/// @ingroup dataaccess
 struct TableInfoAccessor : virtual public ITableInfoAccessor {
 
   /// @brief construct from a shared pointer to info holder

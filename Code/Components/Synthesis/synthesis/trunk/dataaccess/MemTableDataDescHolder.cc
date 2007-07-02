@@ -14,7 +14,7 @@
 #include <tables/Tables/TableRecord.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 using namespace std;
 using namespace casa;
 

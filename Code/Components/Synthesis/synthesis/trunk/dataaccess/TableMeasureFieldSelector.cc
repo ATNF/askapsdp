@@ -14,7 +14,7 @@
 #include <dataaccess/TableMeasureFieldSelector.h>
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// set the converter to use. It should be fully specified somewhere
 /// else before the actual selection can take place. This method

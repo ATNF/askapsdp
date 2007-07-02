@@ -21,7 +21,7 @@
 using namespace std;
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// construct the object and link it to the given buffers subtable
 /// @param[in] tab  subtable to use
