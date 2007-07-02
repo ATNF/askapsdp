@@ -16,11 +16,11 @@
 #ifndef TABLE_SCALAR_FIELD_SELECTOR_H
 #define TABLE_SCALAR_FIELD_SELECTOR_H
 
-/// casa includes
+// casa includes
 #include <tables/Tables/ExprNode.h>
 #include <tables/Tables/Table.h>
 
-/// own includes
+// own includes
 #include <dataaccess/ITableDataSelectorImpl.h>
 #include <dataaccess/IDataConverter.h>
 #include <dataaccess/ITableHolder.h>

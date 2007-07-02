@@ -13,14 +13,14 @@
 #ifndef TABLE_CONST_DATA_ITERATOR_H
 #define TABLE_CONST_DATA_ITERATOR_H
 
-/// boost includes
+// boost includes
 #include <boost/shared_ptr.hpp>
 
-/// casa includes
+// casa includes
 #include <tables/Tables/Table.h>
 #include <tables/Tables/TableIter.h>
 
-/// own includes
+// own includes
 #include <dataaccess/IConstDataIterator.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableDataSelectorImpl.h>

@@ -13,7 +13,7 @@
 #ifndef TABLE_MEASURE_FIELD_SELECTOR_H
 #define TABLE_MEASURE_FIELD_SELECTOR_H
 
-/// own includes
+// own includes
 #include <dataaccess/ITableMeasureFieldSelector.h>
 
 namespace conrad {

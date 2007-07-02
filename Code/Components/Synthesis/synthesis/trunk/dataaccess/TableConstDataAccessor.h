@@ -14,7 +14,7 @@
 #ifndef TABLE_CONST_DATA_ACCESSOR_H
 #define TABLE_CONST_DATA_ACCESSOR_H
 
-/// own includes
+// own includes
 #include <dataaccess/IConstDataAccessor.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <dataaccess/DataAccessError.h>

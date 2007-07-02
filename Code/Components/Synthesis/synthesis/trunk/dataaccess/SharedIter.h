@@ -13,13 +13,13 @@
 #ifndef I_SHARED_ITER_H
 #define I_SHARED_ITER_H
 
-/// std includes
+// std includes
 #include <string>
 
-/// boost includes
+// boost includes
 #include <boost/shared_ptr.hpp>
 
-/// own includes
+// own includes
 #include <dataaccess/DataAccessError.h>
 
 namespace conrad {

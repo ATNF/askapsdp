@@ -9,18 +9,19 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-/// CASA includes
+#ifndef DOPPLER_CONVERTER_H
+#define DOPPLER_CONVERTER_H
+
+// CASA includes
 #include <measures/Measures/MDoppler.h>
 #include <measures/Measures/MCDoppler.h>
 #include <measures/Measures/MeasConvert.h>
 #include <casa/Quanta/MVFrequency.h>
 
-/// own includes
+// own includes
 #include <dataaccess/IDopplerConverter.h>
 #include <dataaccess/DataAccessError.h>
 
-#ifndef DOPPLER_CONVERTER_H
-#define DOPPLER_CONVERTER_H
 
 namespace conrad {
 

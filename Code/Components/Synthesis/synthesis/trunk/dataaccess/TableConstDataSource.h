@@ -11,17 +11,17 @@
 #ifndef TABLE_CONST_DATA_SOURCE_H
 #define TABLE_CONST_DATA_SOURCE_H
 
-/// boost includes
+// boost includes
 #include <boost/shared_ptr.hpp>
 
-/// casa includes
+// casa includes
 #include <tables/Tables/Table.h>
 
-/// own includes
+// own includes
 #include <dataaccess/IConstDataSource.h>
 #include <dataaccess/TableInfoAccessor.h>
 
-/// std includes
+// std includes
 #include <string>
 
 namespace conrad {

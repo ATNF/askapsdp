@@ -14,14 +14,14 @@
 #ifndef TABLE_TIME_STAMP_SELECTOR_H
 #define TABLE_TIME_STAMP_SELECTOR_H
 
-/// casa
+// casa
 #include <tables/Tables/Table.h>
 
-/// std includes
+// std includes
 #include <utility>
 #include <string>
 
-/// own includes
+// own includes
 #include <dataaccess/TableMeasureFieldSelector.h>
 
 namespace conrad {

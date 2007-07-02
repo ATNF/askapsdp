@@ -46,6 +46,7 @@ namespace synthesis {
 /// an iterator is requested from the DataSource object. The iterator will
 /// return the data in the requested frame/units. The end user interacts
 /// with the IDataConverter interface only.
+/// @ingroup dataaccess
 class BasicDataConverter : virtual public IDataConverterImpl
 {
 public:

@@ -12,12 +12,12 @@
 #ifndef TABLE_DATA_SELECTOR_H
 #define TABLE_DATA_SELECTOR_H
 
-/// boost includes
+// boost includes
 #include <boost/shared_ptr.hpp>
 
-/// casa includes
+// casa includes
 
-/// own includes
+// own includes
 #include <dataaccess/TableScalarFieldSelector.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/ITableMeasureFieldSelector.h>

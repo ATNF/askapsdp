@@ -12,14 +12,14 @@
 #ifndef I_TABLE_MEASURE_FIELD_SELECTOR_H
 #define I_TABLE_MEASURE_FIELD_SELECTOR_H
 
-/// casa includes
+// casa includes
 #include <tables/Tables/ExprNode.h>
 #include <tables/Tables/Table.h>
 
-/// own includes
+// own includes
 #include <dataaccess/IDataConverterImpl.h>
 
-/// boost includes
+// boost includes
 #include <boost/shared_ptr.hpp>
 
 namespace conrad {

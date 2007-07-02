@@ -15,13 +15,13 @@
 #ifndef I_TABLE_DATA_SELECTOR_IMPL_H
 #define I_TABLE_DATA_SELECTOR_IMPL_H
 
-/// boost includes
+// boost includes
 #include <boost/shared_ptr.hpp>
 
-/// casa includes
+// casa includes
 #include <tables/Tables/ExprNode.h>
 
-/// own includes
+// own includes
 #include <dataaccess/IDataConverterImpl.h>
 #include <dataaccess/IDataSelector.h>
 
