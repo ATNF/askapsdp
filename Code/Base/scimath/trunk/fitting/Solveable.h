@@ -48,16 +48,22 @@ namespace conrad
         void setTol(const double tol=1e-6);
 
 /// Get algorithm e.g. "SVD" or "MSClean"
-        std::string algorithm();
+        const std::string& algorithm();
         /// Set algorithm
         /// @param algorithm Name of algrithm
         void setAlgorithm(const std::string& algorithm=std::string(""));
 
 /// Get subalgorithm
-        std::string subAlgorithm();
+        const std::string& subAlgorithm();
         /// Set subalgorithm
         /// @param subalgorithm Name of subalgrithm
         void setSubAlgorithm(const std::string& subalgorithm=std::string(""));
+        
+/// Set verbose flag
+/// @param verbose True for lots of output
+        void setVerbose(bool verbose=true);
+/// Return verbose flag
+        bool verbose();
 
       private:
 /// Algorithm name
@@ -70,6 +76,8 @@ namespace conrad
         int itsNiter;
         /// Tolerance for solution
         double itsTol;
+        /// Verbose output?
+        bool itsVerbose;
     };
 
   }

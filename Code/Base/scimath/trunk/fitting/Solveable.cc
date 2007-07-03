@@ -9,7 +9,7 @@ namespace conrad
 
 /// Standard constructor
     Solveable::Solveable() : itsGain(0.1), itsNiter(100), itsTol(1e-6),
-      itsAlgorithm(""), itsSubAlgorithm("")
+      itsAlgorithm(""), itsSubAlgorithm(""), itsVerbose(false)
     {
     };
 
@@ -28,12 +28,16 @@ namespace conrad
     void Solveable::setTol(const double tol) {itsTol=tol;};
 
 /// Get and set algorithm
-    std::string Solveable::algorithm() {return itsAlgorithm;};
+    const std::string& Solveable::algorithm() {return itsAlgorithm;};
     void Solveable::setAlgorithm(const std::string& algorithm) {itsAlgorithm=algorithm;};
 
 /// Get and set subalgorithm
-    std::string Solveable::subAlgorithm() {return itsSubAlgorithm;};
+    const std::string& Solveable::subAlgorithm() {return itsSubAlgorithm;};
     void Solveable::setSubAlgorithm(const std::string& subalgorithm) {itsSubAlgorithm=subalgorithm;};
+    
+    void Solveable::setVerbose(bool verbose) {itsVerbose=verbose;};
+    bool Solveable::verbose() {return itsVerbose;};
+    
 
   }
 }
