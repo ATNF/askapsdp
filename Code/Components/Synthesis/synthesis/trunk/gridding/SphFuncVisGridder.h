@@ -63,7 +63,7 @@ namespace conrad
       /// @param nu Argument for spheroidal function
         double grdsf(double nu);
         /// Initialize lookup table for spheriodal function
-        void SphFuncVisGridder::initSphFunc();
+        void initSphFunc();
     };
   }
 }
