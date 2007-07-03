@@ -8,8 +8,13 @@ namespace synthesis {};
 /// @mainpage CONRAD synthesis package
 ///
 /// @section Introduction
-/// Describe me here
-/// in a little bit more detail
+/// The synthesis package supports processing of radio synthesis observations,
+/// including calibration, editing, and imaging. The emphasis is on the
+/// processing of MIRANdA and KAT scale data sets i.e. TB per hours.
+///
+/// The synthesis package itself is designed to run in one thread or
+/// process. Parallel execution is supported in the @ref calim package.
+///
 /// @section Subpackages
 ///
 /// @li @ref dataaccess

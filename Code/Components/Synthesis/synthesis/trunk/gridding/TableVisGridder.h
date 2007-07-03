@@ -131,7 +131,10 @@ namespace conrad
 /// pattern gridding. In that case, set itsInM to true.
         bool itsInM;
 
-/// Initialize the convolution function - this is the key function to override
+/// Initialize the convolution function - this is the key function to override.
+/// This should also setup cOffset to get the correct value of the offset
+/// fo every row and channel.
+///
 /// @param idi Data iterator
 /// @param cellsize cellsize in wavelengths
 /// @param shape grid shape
@@ -234,6 +237,7 @@ namespace conrad
           const casa::Array<casa::Complex>& grid);
           ///
         /// Round to nearest integer
+        /// @param x Value to be rounded
         static int nint(double x) {
           return x>0? int(x+0.5) : int(x-0.5);
         }

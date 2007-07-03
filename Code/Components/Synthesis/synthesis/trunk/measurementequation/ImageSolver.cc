@@ -70,30 +70,38 @@ namespace conrad
         CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
         const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
         
-        casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-        
-        for (uint elem=0;elem<dv.nelements();elem++)
         {
-          if(diag(elem)>0.0)
+          casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+          for (uint elem=0;elem<dv.nelements();elem++)
           {
-            value(elem)+=dv(elem)/diag(elem);
+            if(diag(elem)>0.0)
+            {
+              value(elem)+=dv(elem)/diag(elem);
+            }
           }
         }
-	casa::IPosition valShape(itsParams->value(indit->first).shape());
-        
-	Axes axes(itsParams->axes(indit->first));
-	{
-	  casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
-	  itsParams->add("debug."+indit->first+".diagonal", value, axes);
-	}
-	{
-	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
-	  itsParams->add("debug."+indit->first+".dataVector", value, axes);
-	}
-	{
-	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
-	  itsParams->add("debug."+indit->first+".slice", value, axes);
-	}
+
+        /// Now write add some debug information but fix it to ensure that these 
+        /// are not fit later on.
+        if(verbose()) {              
+        	Axes axes(itsParams->axes(indit->first));
+          casa::IPosition valShape(itsParams->value(indit->first).shape());
+        	{
+        	  casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
+            itsParams->add("debug."+indit->first+".diagonal", value, axes);
+            itsParams->fix("debug."+indit->first+".diagonal");
+        	}
+        	{
+        	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
+        	  itsParams->add("debug."+indit->first+".dataVector", value, axes);
+            itsParams->fix("debug."+indit->first+".dataVector");
+        	}
+        	{
+        	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
+            itsParams->add("debug."+indit->first+".slice", value, axes);
+            itsParams->fix("debug."+indit->first+".slice");
+        	}
+        }
       }
 
       quality.setDOF(nParameters);
