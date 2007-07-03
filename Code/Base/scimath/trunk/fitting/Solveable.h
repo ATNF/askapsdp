@@ -9,6 +9,9 @@
 #define SCIMATHSOLVEABLE_H_
 
 #include <string>
+#include <casa/aips.h>
+#include <casa/BasicSL/Constants.h>
+#include <casa/Quanta.h>
 
 namespace conrad
 {
@@ -65,6 +68,14 @@ namespace conrad
 /// Return verbose flag
         bool verbose();
 
+/// Set threshold: if the absolute value of the maximum residual is less
+/// than this number, iteration will stop.
+/// @param threshold Quantity
+        void setThreshold(const casa::Quantity& threshold=casa::Quantity(0.0, "Jy"));
+
+/// Return threshold
+        const casa::Quantity& threshold();
+
       private:
 /// Algorithm name
         std::string itsAlgorithm;
@@ -78,6 +89,8 @@ namespace conrad
         double itsTol;
         /// Verbose output?
         bool itsVerbose;
+        /// Threshold
+        casa::Quantity itsThreshold;
     };
 
   }

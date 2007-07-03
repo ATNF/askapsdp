@@ -9,7 +9,8 @@ namespace conrad
 
 /// Standard constructor
     Solveable::Solveable() : itsGain(0.1), itsNiter(100), itsTol(1e-6),
-      itsAlgorithm(""), itsSubAlgorithm(""), itsVerbose(false)
+      itsAlgorithm(""), itsSubAlgorithm(""), itsVerbose(false),
+      itsThreshold(casa::Quantity(0.0, "Jy"))
     {
     };
 
@@ -37,6 +38,17 @@ namespace conrad
     
     void Solveable::setVerbose(bool verbose) {itsVerbose=verbose;};
     bool Solveable::verbose() {return itsVerbose;};
+
+    void Solveable::setThreshold(const casa::Quantity& threshold) 
+    {
+      itsThreshold=threshold;
+    }
+
+    const casa::Quantity& Solveable::threshold() 
+    {
+      return itsThreshold;
+    }
+
     
 
   }
