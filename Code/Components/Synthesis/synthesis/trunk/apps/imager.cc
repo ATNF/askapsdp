@@ -26,6 +26,7 @@
 #include <casa/Arrays/Cube.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
+#include <casa/OS/Timer.h>
 
 #include <APS/ParameterSet.h>
 
@@ -44,6 +45,11 @@ int main(int argc, const char** argv)
 {
   try
   {
+    
+    cout << "CONRAD synthesis imaging program" << endl;
+
+    casa::Timer timer;
+    timer.mark();
     
     string parsetname("imager.in");
     if (argc==2)
@@ -90,8 +96,6 @@ int main(int argc, const char** argv)
 
     TableDataSource ds(ms);
 
-    cout << "Synthesis imaging program" << endl;
-
     /// Now set up the imager
     
     IVisGridder::ShPtr gridder;
@@ -121,36 +125,45 @@ int main(int argc, const char** argv)
     it.init();
     it.chooseOriginal();
 
-    ImageFFTEquation ie(skymodel, it, gridder);
-    ie.calcEquations(ne);
-    std::cout << "Calculated normal equations" << std::endl;
+    int nCycles(parset.getInt32("Imager.cycles", 10));
+    
+    for (int cycle=0;cycle<nCycles;cycle++) {
+      if(nCycles>1) {
+        std::cout << "*** Starting major cycle " << cycle << " ***" << std::endl;
+      }
+      ImageFFTEquation ie(skymodel, it, gridder);
+      ie.calcEquations(ne);
+      std::cout << "Calculated normal equations" << std::endl;
 
-    string resultfile(parset.getString("Parms.Result"));
-    ParamsCasaTable results(resultfile, false);
+      string resultfile(parset.getString("Parms.Result"));
+      ParamsCasaTable results(resultfile, false);
 
-    Quality q;
-    std::cout << "Solving normal equations" << std::endl;
-    if(parset.getString("Imager.solver")=="Clean") {
-      ImageMultiScaleSolver is(skymodel);
-      std::cout << "Constructed image multiscale solver" << std::endl;
-      is.addNormalEquations(ne);
-      std::cout << "Added normal equations to solver" << std::endl;
-      is.setNiter(parset.getInt32("Imager.niter", 1000));
-      is.setGain(parset.getFloat("Imager.gain", 0.7));
-      is.setAlgorithm(parset.getString("Imager.algorithm", "MultiScale"));
-      is.solveNormalEquations(q);
-      results.setParameters(is.parameters());
+      Quality q;
+      std::cout << "Solving normal equations" << std::endl;
+      if(parset.getString("Imager.solver")=="Clean") {
+        ImageMultiScaleSolver is(skymodel);
+        std::cout << "Constructed image multiscale solver" << std::endl;
+        is.addNormalEquations(ne);
+        std::cout << "Added normal equations to solver" << std::endl;
+        is.setNiter(parset.getInt32("Imager.niter", 100));
+        is.setGain(parset.getFloat("Imager.gain", 0.7));
+        is.setAlgorithm(parset.getString("Imager.algorithm", "MultiScale"));
+        std::vector<float> scales(1); scales[0]=0;
+        is.setScales(parset.getFloatVector("Imager.scales", scales));
+        is.solveNormalEquations(q);
+        results.setParameters(is.parameters());
+      }
+      else {
+        ImageSolver is(skymodel);
+        std::cout << "Constructed image solver" << std::endl;
+        is.addNormalEquations(ne);
+        std::cout << "Added normal equations to solver" << std::endl;
+        is.solveNormalEquations(q);
+        results.setParameters(is.parameters());
+      }
+
+      std::cout << "Number of degrees of freedom = " << q.DOF() << std::endl;
     }
-    else {
-      ImageSolver is(skymodel);
-      std::cout << "Constructed image solver" << std::endl;
-      is.addNormalEquations(ne);
-      std::cout << "Added normal equations to solver" << std::endl;
-      is.solveNormalEquations(q);
-      results.setParameters(is.parameters());
-    }
-
-    std::cout << "Number of degrees of freedom = " << q.DOF() << std::endl;
 
     for (vector<string>::iterator it=images.begin();it!=images.end();it++)
     {
@@ -161,9 +174,11 @@ int main(int argc, const char** argv)
       SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
       
     }
-
-
     std::cout << "Finished imaging" << std::endl;
+    std::cout << "user:   " << timer.user () << std::endl; 
+    std::cout << "system: " << timer.system () << std::endl;
+    std::cout << "real:   " << timer.real () << std::endl; 
+
     exit(0);
   }
   catch (conrad::ConradError& x)
