@@ -45,7 +45,7 @@ namespace synthesis {
 /// The main idea is to supply a DataConverter and DataSelector when
 /// an iterator is requested from the DataSource object. The iterator will
 /// return the data in the requested frame/units.	
-/// @ingroup dataaccess
+/// @ingroup dataaccess_i
 class IDataConverter : virtual public IConverterBase
 {
 public:

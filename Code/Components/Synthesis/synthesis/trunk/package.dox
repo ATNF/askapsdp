@@ -1,4 +1,8 @@
-/// @defgroup dataaccess Data access subpackage
+/// @defgroup dataaccess_i Data access subpackage - high level interfaces
+/// @defgroup dataaccess_conv Data access subpackage - converters
+/// @defgroup dataaccess_tm Data access subpackage - table management
+/// @defgroup dataaccess_tab Data access subpackage - table-based implementation
+/// @defgroup dataaccess_hlp Data access subpackage - helper and debug classes
 /// @defgroup measurementequation Measurement equation implementation
 /// @defgroup gridding Gridding algorithms
 
@@ -17,7 +21,11 @@ namespace synthesis {};
 ///
 /// @section Subpackages
 ///
-/// @li @ref dataaccess
+/// @li @ref dataaccess_i
+/// @li @ref dataaccess_conv
+/// @li @ref dataaccess_tm
+/// @li @ref dataaccess_tab
+/// @li @ref dataaccess_hlp
 /// @li @ref measurementequation
 /// @li @ref gridding
 ///

@@ -28,7 +28,7 @@ namespace synthesis {
 /// @todo we probably need a class where default input frame can be
 /// specified at construction (e.g. operator() can receive MVEpoch or
 /// even a Double). Such class can be derived from this one
-/// @ingroup dataaccess
+/// @ingroup dataaccess_conv
 struct EpochConverter : public IEpochConverter {
     /// create a converter to the target frame/unit
     /// @param targetOrigin a measure describing target reference frame

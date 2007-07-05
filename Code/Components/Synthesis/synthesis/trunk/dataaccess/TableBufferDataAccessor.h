@@ -26,7 +26,7 @@ namespace conrad {
 namespace synthesis {
 
 /// forward declaration of the type returned by reference
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableDataIterator;
 
 /// @brief an implementation of IDataAccessor
@@ -42,7 +42,7 @@ class TableDataIterator;
 /// IDataAccessor and MetaDataAccessor should be derived from IConstDataAccessor
 /// rather then from IDataAccessor. However, the correct approach requires
 /// a virtual inheritance from all interfaces and it won't work with g++-3.3
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableBufferDataAccessor : virtual public MetaDataAccessor
 {
 public:

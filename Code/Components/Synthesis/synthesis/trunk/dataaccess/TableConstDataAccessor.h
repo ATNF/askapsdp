@@ -24,7 +24,7 @@ namespace conrad {
 namespace synthesis {
 
 /// to be able to link this class to appropriate iterator
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableConstDataIterator;
 
 
@@ -37,7 +37,7 @@ class TableConstDataIterator;
 /// methods are stubbed. However, in the future
 /// it should become a separate class derived
 /// directly from its interface
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableConstDataAccessor : public DataAccessorStub
 {
 public:

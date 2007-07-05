@@ -31,7 +31,7 @@ namespace synthesis {
 /// of the SPECTRAL_WINDOW subtable (which provides
 /// frequencies for each channel). The table is indexed with the
 /// spectral window ID.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 struct MemTableSpWindowHolder : virtual public ITableSpWindowHolder {
 
   /// read all required information from the SPECTRAL_WINDOW subtable

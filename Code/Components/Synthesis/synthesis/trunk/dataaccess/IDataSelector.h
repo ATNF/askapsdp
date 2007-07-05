@@ -26,7 +26,7 @@ namespace synthesis {
 /// IDataSource in the request for an iterator. The iterator obtained
 /// that way runs through the selected part of the dataset (doesn't
 /// matter disk or stream based).
-/// @ingroup dataaccess
+/// @ingroup dataaccess_i
 class IDataSelector
 {
 public:

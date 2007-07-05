@@ -24,7 +24,7 @@ namespace synthesis {
 /// information holder, subtable data holder, etc). There is no need
 /// for any methods here. It just has an empty virtual destructor to
 /// avoid specifying it for a number of the next level classes.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_hlp
 struct IHolder {
 
   /// void virtual destructor to keep the compiler happy

@@ -44,7 +44,7 @@ namespace synthesis {
 /// A derivative from this class is passed to a DataSource object in the
 /// request for an iterator. The iterator obtained that way runs through
 /// the selected part of the dataset.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableScalarFieldSelector : virtual public ITableDataSelectorImpl,
 				 virtual protected ITableInfoAccessor
 {

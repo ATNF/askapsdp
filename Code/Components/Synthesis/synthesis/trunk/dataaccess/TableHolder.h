@@ -32,7 +32,7 @@ namespace synthesis {
 /// or data description table), which are not necessarily cheap to copy.
 /// Derived classes will provide required functionality. Building derived
 /// information on-demand is also expected to be implemented.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tm
 struct TableHolder : virtual public ITableHolder {
 
   /// constructor - set the table to work with

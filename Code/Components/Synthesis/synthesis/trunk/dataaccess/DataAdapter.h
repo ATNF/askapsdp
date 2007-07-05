@@ -32,7 +32,7 @@ namespace synthesis {
 /// possible to ignore calls to the operator++. This allows to 
 /// write to the same data accessor, which is currently read or
 /// its associated buffers.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_hlp
 template<typename Iter, typename Sel, typename Inc>
 class DataAdapter {
 public:
@@ -86,6 +86,7 @@ private:
 /// to write to the
 /// same iterator) and another doing normal increments (if the destination
 /// is pointed by a separate iterators)
+/// @ingroup dataaccess_i
 struct NoIncrement {
    /// this operator of the given class does nothing
    /// @param[in] iter ignored
@@ -100,6 +101,7 @@ struct NoIncrement {
 /// to write to the
 /// same iterator) and another doing normal increments (if the destination
 /// is pointed by a separate iterators)
+/// @ingroup dataaccess_i
 struct Incremented {
    /// @brief increment of the given iterator
    /// @details 
@@ -112,6 +114,7 @@ struct Incremented {
 };
 
 /// @brief data selector, which selects read-write visibility
+/// @ingroup dataaccess_hlp
 struct VisibilitySelector {
 
    /// a type of the result
@@ -128,6 +131,7 @@ struct VisibilitySelector {
 };
 
 /// @brief data selector, which selects given buffer
+/// @ingroup dataaccess_hlp
 struct BufferSelector {
   /// @brief set up the selector for a given buffer
   /// @details
@@ -172,6 +176,7 @@ private:
 ///     transform(output_iter,output_iter.end(),
 ///          VisAdapter(output_iter,NoIncrement()));
 ///
+/// @ingroup dataaccess_i
 template<typename Iter, typename Inc>
 DataAdapter<Iter, VisibilitySelector, Inc> VisAdapter(Iter iter,
 const Inc &) {
@@ -187,6 +192,7 @@ const Inc &) {
 ///     transform(input_iter,input_iter.end(),
 ///               VisAdapter(output_iter));
 ///
+/// @ingroup dataaccess_i
 template<typename Iter>
 DataAdapter<Iter, VisibilitySelector, Incremented> VisAdapter(Iter iter)
 {
@@ -211,6 +217,7 @@ DataAdapter<Iter, VisibilitySelector, Incremented> VisAdapter(Iter iter)
 ///     transform(output_iter,output_iter.end(),
 ///          BufferAdapter("MODEL_DATA",output_iter,NoIncrement()));
 ///
+/// @ingroup dataaccess_i
 template<int N, typename Iter, typename Inc>
 DataAdapter<Iter, BufferSelector, Inc> BufferAdapter(const std::string &buffer,
                        Iter iter, const Inc &) {
@@ -226,6 +233,7 @@ DataAdapter<Iter, BufferSelector, Inc> BufferAdapter(const std::string &buffer,
 ///     transform(input_iter,input_iter.end(),
 ///               BufferAdapter("MODEL_DATA",output_iter));
 ///
+/// @ingroup dataaccess_i
 template<typename Iter>
 DataAdapter<Iter, BufferSelector, Incremented>
             BufferAdapter(const std::string &buffer, Iter iter)

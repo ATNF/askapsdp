@@ -34,7 +34,7 @@ namespace synthesis {
 ///                data according to some criterion. This is an
 ///                implementation of the IDataSelector interface 
 ///                in the table-based case. 
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableDataSelector : public TableScalarFieldSelector,
                           virtual protected TableInfoAccessor
 {

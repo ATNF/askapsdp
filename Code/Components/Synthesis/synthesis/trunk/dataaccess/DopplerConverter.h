@@ -38,7 +38,7 @@ namespace synthesis {
 /// (and the interface conversion would be equivalent in complexity to
 /// the transformation itself). Hence, we will use this class 
 /// instead of the VelocityMachine
-/// @ingroup dataaccess
+/// @ingroup dataaccess_conv
 struct DopplerConverter : virtual public IDopplerConverter {
 
     /// constructor

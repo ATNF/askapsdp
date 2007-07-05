@@ -33,7 +33,7 @@ namespace synthesis {
 /// SubtableInfoHolder. An additional level of wrapping is required to
 /// store the class actually holding the table & its derived
 /// data by pointer (managed by a smart pointer template).
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tm
 struct ITableInfoAccessor : virtual public ITableHolder {
   /// @return a reference to ISubtableInfoHolder
   virtual const ISubtableInfoHolder& subtableInfo() const = 0;

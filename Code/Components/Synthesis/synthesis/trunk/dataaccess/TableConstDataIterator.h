@@ -37,7 +37,7 @@ namespace synthesis {
 /// TableConstDataIterator: Allow read-only iteration across preselected data. Each 
 /// iteration step is represented by the IConstDataAccessor interface.
 /// This is an implementation in the table-based case.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableConstDataIterator : virtual public IConstDataIterator,
                                virtual protected TableInfoAccessor
 {

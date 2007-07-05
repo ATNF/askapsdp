@@ -29,7 +29,7 @@ namespace synthesis {
 /// @details Read-write iterator (see IDataIterator) uses the concept
 /// of buffers to store scratch data. This is an abstract interface
 /// to operations with such buffers.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_hlp
 struct IBufferManager : virtual public IHolder
 {
   /// @brief populate the cube with the data stored in the given buffer

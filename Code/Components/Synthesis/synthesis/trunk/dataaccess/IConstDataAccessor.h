@@ -25,7 +25,7 @@ namespace synthesis {
 /// a chunk of streamed data or a portion of the disk-based table. 
 /// A reference to this type is returned by a derivative from
 /// IConstDataIterator
-/// @ingroup dataaccess
+/// @ingroup dataaccess_i
 class IConstDataAccessor
 {
 public:

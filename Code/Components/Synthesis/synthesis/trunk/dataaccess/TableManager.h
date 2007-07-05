@@ -71,7 +71,7 @@ namespace synthesis {
 ///    virtually from ITableInfoAccessor. At the top level, derive
 ///    from TableInfoAccessor. Its constructor accepts a smart pointer
 ///    to ITableManager, which TableManager is derived from.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tm
 struct TableManager : virtual public ITableManager,
                       virtual public TableHolder,
                       virtual public SubtableInfoHolder

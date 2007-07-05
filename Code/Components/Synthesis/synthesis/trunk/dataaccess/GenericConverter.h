@@ -33,7 +33,7 @@ namespace synthesis {
 /// a subtraction of origin is not required. For MEpoch, where such
 /// subtraction is required, there is a separate class EpochConverter
 /// This class just call the appropriate functionality of the epoch measures.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_conv
 template<typename M>
 struct GenericConverter : virtual public IConverterBase {
     /// create a converter to the target frame/unit

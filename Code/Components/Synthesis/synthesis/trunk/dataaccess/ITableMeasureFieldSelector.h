@@ -31,7 +31,7 @@ namespace synthesis {
 /// fully defined converter to form an expression node selecting a subtable
 /// based on some measure-type field (e.g. time range). This interface
 /// provide appropriate methods.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class ITableMeasureFieldSelector {
 public:
    /// to keep the compiler happy

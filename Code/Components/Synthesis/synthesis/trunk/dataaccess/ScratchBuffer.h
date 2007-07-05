@@ -31,7 +31,7 @@ namespace synthesis {
 /// cache disk information for each current iteration.
 /// @note an std::pair can be used instead, but this class gives
 /// a better looking code
-/// @ingroup dataaccess
+/// @ingroup dataaccess_hlp
 struct ScratchBuffer {
     ScratchBuffer() : needsRead(true), needsFlush(false) {}
     

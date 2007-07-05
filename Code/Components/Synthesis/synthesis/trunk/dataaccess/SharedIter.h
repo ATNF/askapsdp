@@ -32,7 +32,7 @@ namespace synthesis {
 /// provides a basic iterator interface. It allows to avoid an ugly
 /// syntax like *(*it), etc for iterators created by factories (and therefore
 /// handled via a boost's smart pointer. 
-/// @ingroup dataaccess
+/// @ingroup dataaccess_i
 template<typename T> class SharedIter
 {
 public:    

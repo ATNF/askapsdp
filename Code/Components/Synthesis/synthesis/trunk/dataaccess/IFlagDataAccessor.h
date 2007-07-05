@@ -1,5 +1,5 @@
 /// @file IFlagDataAccessor.h
-/// @brief An read/write iterface to flagging information
+/// @brief An read/write interface to flagging information
 /// @details  IFlagDataAccessor is an interface class to access
 ///        buffered visibility data
 ///        with the writing permission. This class is a further extension
@@ -21,11 +21,11 @@ namespace conrad {
 
 namespace synthesis {
 
-/// @brief An read/write iterface to flagging information
+/// @brief An read/write interface to flagging information
 /// @details IFlagDataAccessor is a further extension of the
 /// IDataAccessor interface class to provide a read/write access to
 /// the flag information.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_i
 class IFlagDataAccessor : virtual public IDataAccessor
 {
 public:

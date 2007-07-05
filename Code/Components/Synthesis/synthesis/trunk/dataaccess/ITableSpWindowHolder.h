@@ -28,7 +28,7 @@ namespace synthesis {
 /// the content of the SPECTRAL_WINDOW subtable (which provides
 /// frequencies for each channel). The table is indexed with the
 /// spectral window ID.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 struct ITableSpWindowHolder : virtual public IHolder {
 
   /// obtain the reference frame used in the spectral window table

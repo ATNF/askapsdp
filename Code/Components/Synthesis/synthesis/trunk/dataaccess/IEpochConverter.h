@@ -30,7 +30,7 @@ namespace synthesis {
 /// class.
 /// @note inherited setMeasFrame method is public, rather than protected.
 /// Apparently, doxygen doesn't know how the using statement works in C++.
-/// @ingroup dataaccess
+/// @ingroup dataaccess_conv
 struct IEpochConverter : virtual public IConverterBase {
     /// convert specified MEpoch to the target units/frame
     /// @param[in] in an epoch to convert. Target units/frame are

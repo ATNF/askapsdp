@@ -29,7 +29,7 @@ namespace synthesis {
 /// @todo we probably need a class where default input frame can be
 /// specified at construction (e.g. operator() can receive MVDirection or
 /// even Doubles). Such class can be derived from this one
-/// @ingroup dataaccess
+/// @ingroup dataaccess_conv
 struct DirectionConverter : public IDirectionConverter {
     /// create a converter to the target frame
     /// @param targetFrame a desired reference frame

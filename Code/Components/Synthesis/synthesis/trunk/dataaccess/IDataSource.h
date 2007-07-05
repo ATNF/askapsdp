@@ -31,7 +31,7 @@ namespace synthesis {
 /// Probably all real instances will be derived from this interface and
 /// IConstDataSource will never be used directly. The code is split into
 /// two classes just for structuring. 
-/// @ingroup dataaccess
+/// @ingroup dataaccess_i
 class IDataSource : virtual public IConstDataSource
 {
 public:

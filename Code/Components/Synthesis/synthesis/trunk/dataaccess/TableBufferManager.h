@@ -22,7 +22,7 @@ namespace synthesis {
 /// @details Read-write iterator (see IDataIterator) uses the concept
 /// of buffers to store scratch data. This class stores buffers in the
 /// BUFFERS subtable 
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 struct TableBufferManager : virtual public IBufferManager,
                             virtual protected TableHolder
 {

@@ -41,7 +41,7 @@ namespace synthesis {
 /// TableDataIterator extends the interface further to read-write operations.
 /// Each iteration step is represented by the IDataAccessor interface in this
 /// case. 
-/// @ingroup dataaccess
+/// @ingroup dataaccess_tab
 class TableDataIterator : public TableConstDataIterator,
                           virtual public IDataIterator,
 			  virtual protected TableInfoAccessor

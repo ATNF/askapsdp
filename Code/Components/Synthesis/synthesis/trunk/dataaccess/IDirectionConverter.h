@@ -28,7 +28,7 @@ namespace synthesis {
 /// relatively low-level interface, which is used within the implementation
 /// of the data accessor. The end user interacts with the IDataConverter
 /// class. 
-/// @ingroup dataaccess
+/// @ingroup dataaccess_conv
 struct IDirectionConverter : virtual public IConverterBase {
     /// convert specified MDirection to the target frame
     /// @param in an epoch to convert. Target frame is a

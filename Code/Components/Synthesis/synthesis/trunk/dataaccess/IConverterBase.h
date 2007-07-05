@@ -25,7 +25,7 @@ namespace synthesis {
 /// have any useful functionality and is used as a structural unit.
 /// The only method defined is a virtual destructor to make the compiler
 /// happy and reduce the number of *.cc files for the derived interfaces
-/// @ingroup dataaccess
+/// @ingroup dataaccess_conv
 struct IConverterBase {
 
     /// an empty virtual destructor to keep the compiler happy

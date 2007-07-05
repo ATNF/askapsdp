@@ -25,7 +25,7 @@ namespace synthesis {
 /// @details It is meant to be used together with 
 /// derived iterators, which support a read/write access (e.g. for buffers 
 /// associated with visibility chunks).
-/// @ingroup dataaccess
+/// @ingroup dataaccess_i
 class IDataAccessor : public IConstDataAccessor
 {
 public:
