@@ -16,6 +16,10 @@
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <coordinates/Coordinates/Projection.h>
 
+
+#include <APS/ParameterSet.h>
+
+
 #include <measures/Measures/Stokes.h>
 
 using namespace conrad::scimath;
@@ -23,7 +27,25 @@ using namespace casa;
 
 namespace conrad {
   namespace synthesis {
-  
+ 
+     void SynthesisParamsHelper::add(conrad::scimath::Params& ip, const LOFAR::ACC::APS::ParameterSet& parset,
+      const std::string& baseKey)
+     {
+        vector<string> images=parset.getStringVector(baseKey+"Names");
+        for (vector<string>::iterator it=images.begin();it!=images.end();it++)
+        {
+          std::cout << "Defining image " << *it << std::endl;
+          std::vector<int> shape=parset.getInt32Vector(baseKey+*it+".shape");
+          int nchan=parset.getInt32("Images."+*it+".nchan");
+          std::vector<double> freq=parset.getDoubleVector(baseKey+*it+".frequency");
+          std::vector<std::string> direction=parset.getStringVector(baseKey+*it+".direction");
+          std::vector<std::string> cellsize=parset.getStringVector(baseKey+*it+".cellsize");
+          
+          SynthesisParamsHelper::add(ip, *it, direction, cellsize, shape, 
+            freq[0], freq[1], nchan);
+        }
+     }
+ 
 
     void SynthesisParamsHelper::add(conrad::scimath::Params& ip, const string& name, 
       const vector<string>& direction, 

@@ -5,14 +5,10 @@
 
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/ImageFFTEquation.h>
-#include <measurementequation/ImageSolver.h>
-#include <measurementequation/ImageMultiScaleSolver.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
-#include <gridding/IVisGridder.h>
-#include <gridding/BoxVisGridder.h>
-#include <gridding/SphFuncVisGridder.h>
-#include <gridding/AntennaIllumVisGridder.h>
+#include <measurementequation/ImageSolverFactory.h>
+#include <gridding/VisGridderFactory.h>
 
 #include <fitting/CompositeEquation.h>
 #include <fitting/ParamsCasaTable.h>
@@ -80,43 +76,15 @@ int main(int argc, const char** argv)
     }
 
     /// Create the specified images
-    vector<string> images=parset.getStringVector("Images.Names");
-    for (vector<string>::iterator it=images.begin();it!=images.end();it++)
-    {
-      std::cout << "Defining image " << *it << std::endl;
-      std::vector<int> shape=parset.getInt32Vector("Images."+*it+".shape");
-      int nchan=parset.getInt32("Images."+*it+".nchan");
-      std::vector<double> freq=parset.getDoubleVector("Images."+*it+".frequency");
-      std::vector<std::string> direction=parset.getStringVector("Images."+*it+".direction");
-      std::vector<std::string> cellsize=parset.getStringVector("Images."+*it+".cellsize");
-      
-      SynthesisParamsHelper::add(skymodel, *it, direction, cellsize, shape, 
-        freq[0], freq[1], nchan);
-    }
-
-    TableDataSource ds(ms);
-
-    /// Now set up the imager
+    SynthesisParamsHelper::add(skymodel, parset, "Images.");
     
-    IVisGridder::ShPtr gridder;
-    if(parset.getString("Imager.gridder")=="AntennaIllum") {
-      double diameter=parset.getDouble("Imager.gridder.AntennaIllum.diameter");
-      double blockage=parset.getDouble("Imager.gridder.AntennaIllum.blockage");
-      std::cout << "Using Antenna Illumination for gridding function" << std::endl;
-      gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(diameter, blockage));
-    }
-    else if(parset.getString("Imager.gridder")=="Box") {
-      std::cout << "Using Box function for gridding" << std::endl;
-      gridder=IVisGridder::ShPtr(new BoxVisGridder());
-    }
-    else {
-      std::cout << "Using spheriodal function for gridding" << std::endl;
-      gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
-    }
-
-    NormalEquations ne(skymodel);
-    std::cout << "Constructed normal equations" << std::endl;
-
+    /// Create the gridder and solver
+    ParameterSet subset(parset.makeSubset("Imager."));
+    IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
+    Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
+    
+    /// Create data iterator
+    TableDataSource ds(ms);
     IDataSelectorPtr sel=ds.createSelector();
     IDataConverterPtr conv=ds.createConverter();
     conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
@@ -124,6 +92,9 @@ int main(int argc, const char** argv)
     
     it.init();
     it.chooseOriginal();
+
+    NormalEquations ne(skymodel);
+    std::cout << "Constructed normal equations" << std::endl;
 
     int nCycles(parset.getInt32("Imager.solver.cycles", 10));
     
@@ -140,33 +111,11 @@ int main(int argc, const char** argv)
 
       Quality q;
       std::cout << "Solving normal equations" << std::endl;
-      if(parset.getString("Imager.solver")=="Clean") {
-        ImageMultiScaleSolver is(skymodel);
-        is.setVerbose(parset.getBool("Imager.solver.verbose", true));
-        is.setVerbose(true);
-        std::cout << "Constructed image multiscale solver" << std::endl;
-        is.addNormalEquations(ne);
-        std::cout << "Added normal equations to solver" << std::endl;
-        is.setNiter(parset.getInt32("Imager.solver.niter", 100));
-        is.setGain(parset.getFloat("Imager.solver.gain", 0.7));
-        is.setAlgorithm(parset.getString("Imager.solver.algorithm", "MultiScale"));
-        std::vector<float> scales(1); scales[0]=0;
-        is.setScales(parset.getFloatVector("Imager.solver.scales", scales));
-        std::cout << "Constructed image multiscale solver" << std::endl;
-        is.solveNormalEquations(q);
-        skymodel=is.parameters();
-        results.setParameters(skymodel);
-      }
-      else {
-        ImageSolver is(skymodel);
-        is.setVerbose(parset.getBool("Imager.solver.verbose", true));
-        std::cout << "Constructed image solver" << std::endl;
-        is.addNormalEquations(ne);
-        std::cout << "Added normal equations to solver" << std::endl;
-        is.solveNormalEquations(q);
-        skymodel=is.parameters();
-        results.setParameters(skymodel);
-      }
+      solver->addNormalEquations(ne);
+      std::cout << "Added normal equations to solver" << std::endl;
+      solver->solveNormalEquations(q);
+      skymodel=solver->parameters();
+      results.setParameters(skymodel);
 
       std::cout << "Number of degrees of freedom = " << q.DOF() << std::endl;
     }

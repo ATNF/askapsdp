@@ -13,6 +13,8 @@
 
 #include <fitting/Params.h>
 
+#include <APS/ParameterSet.h>
+
 namespace conrad
 {
   namespace synthesis
@@ -36,6 +38,14 @@ namespace conrad
           const vector<string>& cellsize, 
           const vector<int>& shape,
           const double freqmin, const double freqmax, const int nchan);
+          
+        /// @brief Add a set of parameters from a parset
+        /// @param ip Parameters
+        /// @param parset ParameterSet
+        /// @param baseKey basekey for parameters e.g. "Images."
+        static void add(conrad::scimath::Params& ip,
+          const LOFAR::ACC::APS::ParameterSet& parset,
+          const std::string& baseKey);
           
         /// @brief Add a parameter as an image
         /// @param ip Parameters
