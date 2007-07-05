@@ -50,7 +50,9 @@ struct TableInfoAccessor : virtual public ITableInfoAccessor {
   /// @details This version of the constructor creates a TableManager
   /// object for a given table and stores it as ISubtableInfoHolder 
   /// @param tab a measurement set table to work with
-  TableInfoAccessor(const casa::Table &tab); 
+  /// @param useMemBuffers if true, buffers in memory will be created
+  /// instead of the disk-based buffers
+  TableInfoAccessor(const casa::Table &tab, bool useMemBuffers=false); 
   
   /// @return a non-const reference to Table held by this object
   virtual casa::Table& table() const throw();

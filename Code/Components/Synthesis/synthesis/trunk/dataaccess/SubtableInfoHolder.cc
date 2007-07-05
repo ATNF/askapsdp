@@ -31,6 +31,16 @@
 using namespace conrad;
 using namespace conrad::synthesis;
 
+/// @brief construct SubtableInfoHolder
+/// @details The idea is that this constructor is the point where one can choose
+/// how the lower level management is done (i.e. disk or memory based buffers). 
+/// In the future, more arguments can be received by this constructor. It is probably
+/// practical to provide reasonable defaults here
+/// @param memBuffers true if the buffers should be held in memory, false if they should be
+/// written back to the disk (table needs to be writable for this)
+SubtableInfoHolder::SubtableInfoHolder(bool memBuffers) : itsUseMemBuffers(memBuffers) {}
+
+
 /// @brief obtain data description holder
 /// @details A MemTableDataDescHolder is constructed on the first call
 /// to this method and a reference to it is always returned later
@@ -83,27 +93,23 @@ const IBufferManager& SubtableInfoHolder::getBufferManager() const
 /// initialize itsBufferManager with an instance of TableBufferManager
 void SubtableInfoHolder::initBufferManager() const
 {  
-  if (!table().keywordSet().isDefined("BUFFERS")) {
-      // we have to create a brand new subtable
-      casa::SetupNewTable maker(table().tableName()+"/BUFFERS",
-                                casa::TableDesc(),casa::Table::New);
-      table().rwKeywordSet().defineTable("BUFFERS",casa::Table(maker));
+  if (itsUseMemBuffers) {
+      // After calling this method, the buffers will be held in
+      // memory (via casa::MemoryTable), rather than be a subtable of
+      // the measurement set.
+      casa::SetupNewTable maker("BUFFERS",
+								casa::TableDesc(),casa::Table::New);
+      itsBufferManager.reset(new TableBufferManager(casa::Table(maker,
+                                casa::Table::Memory)));      
+  } else {  
+      if (!table().keywordSet().isDefined("BUFFERS")) {
+          // we have to create a brand new subtable
+          casa::SetupNewTable maker(table().tableName()+"/BUFFERS",
+                                  casa::TableDesc(),casa::Table::New);
+          table().rwKeywordSet().defineTable("BUFFERS",casa::Table(maker));
+      }
+      itsBufferManager.reset(new
+               TableBufferManager(table().keywordSet().asTable("BUFFERS")));
   }
-  itsBufferManager.reset(new
-            TableBufferManager(table().keywordSet().asTable("BUFFERS")));
 }
 
-/// @brief set up BufferManager to be memory based.
-/// @detail After calling this method, the buffers will be held in
-/// memory (via casa::MemoryTable), rather than be a subtable of
-/// the measurement set.
-/// @note This method should be called before any operations with
-/// the buffer
-void SubtableInfoHolder::useMemoryBuffers() const
-{
-  CONRADASSERT(!itsBufferManager);
-  casa::SetupNewTable maker("BUFFERS",
-                            casa::TableDesc(),casa::Table::New);
-  itsBufferManager.reset(new TableBufferManager(casa::Table(maker,
-                         casa::Table::Memory)));
-}

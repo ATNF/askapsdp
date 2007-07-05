@@ -28,25 +28,14 @@ using namespace conrad::synthesis;
 /// removed, if it already exists.   
 TableDataSource::TableDataSource(const std::string &fname,
                 int opt) :
-         TableInfoAccessor(casa::Table(fname,casa::Table::Update))
+         TableInfoAccessor(casa::Table(fname, (opt & MEMORY_BUFFERS) && 
+				  !(opt & REMOVE_BUFFERS) ? casa::Table::Old : casa::Table::Update),
+						opt & MEMORY_BUFFERS)
 {
-  if (opt | REMOVE_BUFFERS) {
+  if (opt & REMOVE_BUFFERS) {
       if (table().keywordSet().isDefined("BUFFERS")) {
           table().rwKeywordSet().asTable("BUFFERS").markForDelete();
           table().rwKeywordSet().removeField("BUFFERS");
-      }
-  }
-  if (opt | MEMORY_BUFFERS) {
-      // not a very tidy solution, but I don't like to put this
-      // table-specific option into the interface
-      try {
-         dynamic_cast<const SubtableInfoHolder&>(subtableInfo()).
-                      useMemoryBuffers();    		      
-      }
-      catch (std::bad_cast &) {
-          throw DataAccessLogicError("subtableInfo() doesn't seem to return an "
-	                   "instance of the class which has useMemoryBuffers() "
-			   "method");
       }
   }
 }

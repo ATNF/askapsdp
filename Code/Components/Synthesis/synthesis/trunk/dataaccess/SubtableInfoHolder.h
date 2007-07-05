@@ -45,6 +45,14 @@ namespace synthesis {
 struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
                             virtual public ITableHolder
 {
+   /// @brief construct SubtableInfoHolder
+   /// @details The idea is that this constructor is the point where one can choose
+   /// how the lower level management is done (i.e. disk or memory based buffers). 
+   /// In the future, more arguments can be received by this constructor. It is probably
+   /// practical to provide reasonable defaults here
+   /// @param memBuffers true if the buffers should be held in memory, false if they should be
+   /// written back to the disk (table needs to be writable for this)
+   explicit SubtableInfoHolder(bool memBuffers = false);
 
    /// @brief obtain data description holder
    /// @details A MemTableDataDescHolder is constructed on the first call
@@ -65,14 +73,6 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    /// @return a reference to the manager of buffers (BUFFERS subtable)
    virtual const IBufferManager& getBufferManager() const;
 
-   /// @brief set up BufferManager to be memory based.
-   /// @details After calling this method, the buffers will be held in
-   /// memory (via casa::MemoryTable), rather than be a subtable of
-   /// the measurement set.
-   /// @note This method should be called before any operations with
-   /// the buffer
-   void useMemoryBuffers() const;
-
 protected:   
    /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
    void initDataDescHolder() const;
@@ -92,6 +92,9 @@ private:
 
    /// smart pointer to the buffer manager
    mutable boost::shared_ptr<IBufferManager const> itsBufferManager;
+   
+   /// true if visibility buffers are kept in memory
+   bool itsUseMemBuffers;
 };
 
 

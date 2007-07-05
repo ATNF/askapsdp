@@ -25,7 +25,7 @@ using namespace conrad::synthesis;
 TableBufferDataAccessor::TableBufferDataAccessor(const std::string &name,
                                    const TableDataIterator &iter) :
                  MetaDataAccessor(iter.getAccessor()), itsName(name),
-		 itsIterator(iter) {}
+			     itsIterator(iter) {}
 
 /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
 /// each element is a complex visibility)

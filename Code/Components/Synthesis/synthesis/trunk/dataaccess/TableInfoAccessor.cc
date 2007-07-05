@@ -31,8 +31,11 @@ TableInfoAccessor::TableInfoAccessor(const
 /// @details This version of the constructor creates a TableManager
 /// object for a given table and stores it as ISubtableInfoHolder 
 /// @param tab a measurement set table to work with
-TableInfoAccessor::TableInfoAccessor(const casa::Table &tab) :
-       itsTableManager(new TableManager(tab)) {}
+/// @param useMemBuffers if true, buffers in memory will be created
+/// instead of the disk-based buffers
+TableInfoAccessor::TableInfoAccessor(const casa::Table &tab, 
+                  bool useMemBuffer) :
+        itsTableManager(new TableManager(tab,useMemBuffer)) {}
 
 
 /// @return a non-const reference to Table held by this object

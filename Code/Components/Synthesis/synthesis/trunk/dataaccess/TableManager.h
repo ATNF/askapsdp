@@ -78,8 +78,10 @@ struct TableManager : virtual public ITableManager,
 {
   /// construct a table/derived info manager from the table object
   /// @param[in] tab MS table to work with
-  explicit TableManager(const casa::Table &tab) :
-           TableHolder(tab) {}
+  /// @param useMemBuffers if true, buffers in memory will be created
+  /// instead of the disk-based buffers
+  explicit TableManager(const casa::Table &tab, bool useMemBuffers) :
+           TableHolder(tab), SubtableInfoHolder(useMemBuffers) {}
 };
 
 } // namespace synthesis
