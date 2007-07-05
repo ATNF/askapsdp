@@ -100,8 +100,8 @@ int main(int argc, const char** argv)
     
     IVisGridder::ShPtr gridder;
     if(parset.getString("Imager.gridder")=="AntennaIllum") {
-      double diameter=parset.getDouble("Imager.AntennaIllum.diameter");
-      double blockage=parset.getDouble("Imager.AntennaIllum.blockage");
+      double diameter=parset.getDouble("Imager.gridder.AntennaIllum.diameter");
+      double blockage=parset.getDouble("Imager.gridder.AntennaIllum.blockage");
       std::cout << "Using Antenna Illumination for gridding function" << std::endl;
       gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(diameter, blockage));
     }
@@ -125,7 +125,7 @@ int main(int argc, const char** argv)
     it.init();
     it.chooseOriginal();
 
-    int nCycles(parset.getInt32("Imager.cycles", 10));
+    int nCycles(parset.getInt32("Imager.solver.cycles", 10));
     
     for (int cycle=0;cycle<nCycles;cycle++) {
       if(nCycles>1) {
@@ -142,30 +142,37 @@ int main(int argc, const char** argv)
       std::cout << "Solving normal equations" << std::endl;
       if(parset.getString("Imager.solver")=="Clean") {
         ImageMultiScaleSolver is(skymodel);
+        is.setVerbose(parset.getBool("Imager.solver.verbose", true));
+        is.setVerbose(true);
         std::cout << "Constructed image multiscale solver" << std::endl;
         is.addNormalEquations(ne);
         std::cout << "Added normal equations to solver" << std::endl;
-        is.setNiter(parset.getInt32("Imager.niter", 100));
-        is.setGain(parset.getFloat("Imager.gain", 0.7));
-        is.setAlgorithm(parset.getString("Imager.algorithm", "MultiScale"));
+        is.setNiter(parset.getInt32("Imager.solver.niter", 100));
+        is.setGain(parset.getFloat("Imager.solver.gain", 0.7));
+        is.setAlgorithm(parset.getString("Imager.solver.algorithm", "MultiScale"));
         std::vector<float> scales(1); scales[0]=0;
-        is.setScales(parset.getFloatVector("Imager.scales", scales));
+        is.setScales(parset.getFloatVector("Imager.solver.scales", scales));
+        std::cout << "Constructed image multiscale solver" << std::endl;
         is.solveNormalEquations(q);
-        results.setParameters(is.parameters());
+        skymodel=is.parameters();
+        results.setParameters(skymodel);
       }
       else {
         ImageSolver is(skymodel);
+        is.setVerbose(parset.getBool("Imager.solver.verbose", true));
         std::cout << "Constructed image solver" << std::endl;
         is.addNormalEquations(ne);
         std::cout << "Added normal equations to solver" << std::endl;
         is.solveNormalEquations(q);
-        results.setParameters(is.parameters());
+        skymodel=is.parameters();
+        results.setParameters(skymodel);
       }
 
       std::cout << "Number of degrees of freedom = " << q.DOF() << std::endl;
     }
 
-    for (vector<string>::iterator it=images.begin();it!=images.end();it++)
+    vector<string> resultimages=skymodel.names();
+    for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
     {
       casa::Array<double> resultImage(skymodel.value(*it));
       std::cout << *it << std::endl

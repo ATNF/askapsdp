@@ -96,6 +96,7 @@ namespace conrad
         double nuy=std::abs(double(iy-ny/2))/double(ny/2);
         ccfy(iy)=grdsf(nuy);
       }
+      /// @todo Optimize grid correction
       for(int ix=0;ix<nx;ix++)
       {
         for(int iy=0;iy<ny;iy++)

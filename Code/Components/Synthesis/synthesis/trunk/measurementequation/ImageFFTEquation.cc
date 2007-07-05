@@ -201,6 +201,8 @@ namespace conrad
           cfft(*uvGrid, false);
           toDouble(imageWeights, *uvGrid);
           itsGridder->correctConvolution(axes, imageWeights);
+          /// @todo Understand the correct use of the weights for various gridding functions
+          imageWeights.set(imageWeights(casa::IPosition(3, imageShape(0)/2, imageShape(1)/2, 0)));
         }
         {
           casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"psf")]);
