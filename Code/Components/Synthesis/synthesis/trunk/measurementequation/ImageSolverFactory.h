@@ -5,7 +5,7 @@
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD SYNTHESIS_IMAGESOLVERFACTORY_H_
+#ifndef CONRAD_SYNTHESIS_IMAGESOLVERFACTORY_H_
 #define CONRAD_SYNTHESIS_IMAGESOLVERFACTORY_H_
 
 #include <fitting/Solver.h>
