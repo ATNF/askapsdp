@@ -12,6 +12,7 @@
 
 // casa includes
 #include <tables/Tables/Table.h>
+#include <tables/Tables/TableError.h>
 #include <casa/OS/EnvVar.h>
 
 // std includes
@@ -33,12 +34,14 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TableDataAccessTest);
   CPPUNIT_TEST(readOnlyTest);
   CPPUNIT_TEST(bufferManagerTest);
+  CPPUNIT_TEST_EXCEPTION(bufferManagerExceptionTest,casa::TableError);
   CPPUNIT_TEST_SUITE_END();
 public:
   void setUp();
   void tearDown();
   void readOnlyTest() {}
-  void bufferManagerTest();
+  void bufferManagerExceptionTest();
+  void bufferManagerTest();  
 protected:
   void doBufferTest() const;
 private:
@@ -72,12 +75,25 @@ void TableDataAccessTest::tearDown()
   copiedMS.markForDelete();  
 }
 
+void TableDataAccessTest::bufferManagerExceptionTest()
+{
+  // test with the disk buffers, and leave the table read only. This
+  // should throw a TableError
+  itsTableInfoAccessor.reset(new TableInfoAccessor(casa::Table(itsTestMSName),
+                                                   false));
+  doBufferTest();						   
+}
+
 void TableDataAccessTest::bufferManagerTest()
 {
   // first test with memory buffers
   itsTableInfoAccessor.reset(new TableInfoAccessor(casa::Table(itsTestMSName),
                                                   true));
-  doBufferTest();						  
+  doBufferTest();
+  // now test with the disk buffers, and leave this set for other tests
+  itsTableInfoAccessor.reset(new TableInfoAccessor(casa::Table(itsTestMSName,
+                                   casa::Table::Update), false));
+  doBufferTest();
 }
 
 void TableDataAccessTest::doBufferTest() const
@@ -91,19 +107,18 @@ void TableDataAccessTest::doBufferTest() const
   bufferMgr.writeBuffer(vis,"TEST",index);
   CPPUNIT_ASSERT(bufferMgr.bufferExists("TEST",index));
   casa::Cube<casa::Complex> vis2(5,1,2);
-  vis.set(casa::Complex(-1.,0.5));
+  vis2.set(casa::Complex(-1.,0.5));
   CPPUNIT_ASSERT(!bufferMgr.bufferExists("TEST",index-1));
   bufferMgr.writeBuffer(vis2,"TEST",index-1);
   CPPUNIT_ASSERT(bufferMgr.bufferExists("TEST",index-1));
   bufferMgr.readBuffer(vis,"TEST",index-1);
   bufferMgr.readBuffer(vis2,"TEST",index);
   CPPUNIT_ASSERT(vis.shape()==casa::IPosition(3,5,1,2));
-  CPPUNIT_ASSERT(vis2.shape()==casa::IPosition(3,5,10,2));
+  CPPUNIT_ASSERT(vis2.shape()==casa::IPosition(3,5,10,2));  
   for (casa::uInt x=0;x<vis.shape()[0];++x) {
        for (casa::uInt y=0;y<vis.shape()[1];++y) {
-            for (casa::uInt z=0;z<vis.shape()[2];++z) {
-	         //std::cout<<(vis2(x,y,z)+vis(x,0,z))<<endl;
-	         //CPPUNIT_ASSERT(abs(vis2(x,y,z)+vis(x,0,z))<1e-9);
+            for (casa::uInt z=0;z<vis.shape()[2];++z) {	         
+	         CPPUNIT_ASSERT(abs(vis2(x,y,z)+vis(x,0,z))<1e-9);
 	    }
        }
   }
