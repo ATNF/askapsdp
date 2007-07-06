@@ -45,7 +45,7 @@ int main(int argc, const char** argv)
     casa::Timer timer;
     timer.mark();
     
-    string parsetname("imager.in");
+    string parsetname("cimager.in");
     if (argc==2)
     {
       parsetname=argv[1];
@@ -61,7 +61,7 @@ int main(int argc, const char** argv)
     
     /// Create the gridder and solver using factories acting on 
     /// parametersets
-    ParameterSet subset(parset.makeSubset("Imager."));
+    ParameterSet subset(parset.makeSubset("Cimager."));
     IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
     Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
     
@@ -80,7 +80,7 @@ int main(int argc, const char** argv)
     std::cout << "Constructed normal equations" << std::endl;
 
     // Now do the required number of major cycles
-    int nCycles(parset.getInt32("Imager.solver.cycles", 10));
+    int nCycles(parset.getInt32("Cimager.solver.cycles", 10));
     for (int cycle=0;cycle<nCycles;cycle++) {
       
       if(nCycles>1) {
