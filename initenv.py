@@ -41,7 +41,7 @@ f = file(filename, "w")
 exports = "%s CONRAD_PROJECT_ROOT%s%s\n" % ( shell["envset"], 
 					     shell["envassign"],
 					     os.getcwd() )
-exports += "%s PYTHONPATH%s${CONRAD_PROJECT_ROOT}/%s:$CONRAD_PROJECT_ROOT}/%s/site-packages:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools\n" % (shell["envset"], shell["envassign"], shell["envassign"], pylibdir)
+exports += "%s PYTHONPATH%s${CONRAD_PROJECT_ROOT}/%s:$CONRAD_PROJECT_ROOT}/%s/site-packages:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools\n" % (shell["envset"], shell["envassign"], pylibdir, pylibdir)
 exports += "%s PATH%s${CONRAD_PROJECT_ROOT}/bin:${PATH}\n" % (shell["envset"], 
                                                               shell["envassign"])
 exports += '%s PS1%s"(conrad)$PS1"\n' % (shell["envset"],shell["envassign"])
