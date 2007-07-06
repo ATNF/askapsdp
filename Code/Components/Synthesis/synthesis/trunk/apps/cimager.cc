@@ -3,14 +3,12 @@
 //
 #include <conrad/ConradError.h>
 
-#include <measurementequation/ComponentEquation.h>
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
 
-#include <fitting/CompositeEquation.h>
 #include <fitting/ParamsCasaTable.h>
 #include <fitting/Axes.h>
 
@@ -41,7 +39,7 @@ int main(int argc, const char** argv)
 {
   try
   {
-    
+
     cout << "CONRAD synthesis imaging program" << endl;
 
     casa::Timer timer;
@@ -56,34 +54,19 @@ int main(int argc, const char** argv)
     ParameterSet parset(parsetname);
     string ms=parset.getString("DataSet");
 
+    /// Create the specified images from the definition in the
+    /// parameter set
     Params skymodel;
-
-    /// Load the local sky model if it has been specified
-    if(parset.isDefined("Parms.LocalSky")&&parset.getString("Parms.LocalSky")!="")
-    {
-      string localsky(parset.getString("Parms.LocalSky"));
-      ParamsCasaTable pt(localsky, true);
-      Params localskypar(ComponentEquation::defaultParameters());
-      pt.getParameters(localskypar);
-      std::cout << "Read Local Sky model " << localsky << std::endl;
-      vector<string> names(localskypar.freeNames());
-      std::cout << "Number of free parameters in Local Sky model = " << names.size() << std::endl;
-      for (vector<string>::iterator it=names.begin();it!=names.end();it++)
-      {
-        localskypar.fix(*it);
-      }
-      skymodel.merge(localskypar);
-    }
-
-    /// Create the specified images
     SynthesisParamsHelper::add(skymodel, parset, "Images.");
     
-    /// Create the gridder and solver
+    /// Create the gridder and solver using factories acting on 
+    /// parametersets
     ParameterSet subset(parset.makeSubset("Imager."));
     IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
     Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
     
     /// Create data iterator
+    /// @todo Convert this to a factory
     TableDataSource ds(ms);
     IDataSelectorPtr sel=ds.createSelector();
     IDataConverterPtr conv=ds.createConverter();
@@ -96,30 +79,33 @@ int main(int argc, const char** argv)
     NormalEquations ne(skymodel);
     std::cout << "Constructed normal equations" << std::endl;
 
+    // Now do the required number of major cycles
     int nCycles(parset.getInt32("Imager.solver.cycles", 10));
-    
     for (int cycle=0;cycle<nCycles;cycle++) {
+      
       if(nCycles>1) {
         std::cout << "*** Starting major cycle " << cycle << " ***" << std::endl;
       }
       ImageFFTEquation ie(skymodel, it, gridder);
+      std::cout << "Constructed measurement equation" << std::endl;
+
       ie.calcEquations(ne);
       std::cout << "Calculated normal equations" << std::endl;
-
-      string resultfile(parset.getString("Parms.Result"));
-      ParamsCasaTable results(resultfile, false);
-
-      Quality q;
-      std::cout << "Solving normal equations" << std::endl;
       solver->addNormalEquations(ne);
       std::cout << "Added normal equations to solver" << std::endl;
+      Quality q;
+      std::cout << "Solving normal equations" << std::endl;
       solver->solveNormalEquations(q);
+      std::cout << "Solved normal equations" << std::endl;
       skymodel=solver->parameters();
-      results.setParameters(skymodel);
-
-      std::cout << "Number of degrees of freedom = " << q.DOF() << std::endl;
     }
 
+    // Now write the results to a table
+    string resultfile(parset.getString("Parms.Result"));
+    ParamsCasaTable results(resultfile, false);
+    results.setParameters(skymodel);
+ 
+    // And write the images to CASA image files           
     vector<string> resultimages=skymodel.names();
     for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
     {
