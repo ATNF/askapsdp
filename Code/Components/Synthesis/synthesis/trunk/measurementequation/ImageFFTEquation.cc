@@ -131,11 +131,11 @@ namespace conrad
       }
     };
 
+// Calculate the residual visibility and image. We transform the model on the fly
+// so that we only have to read (and write) the data once. This uses more memory
+// but cuts down on IO
     void ImageFFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
     {
-      
-// First we have to do the predict so that the residual data is filled in
-      predict();
       
 // We will need to loop over all completions i.e. all sources
       const vector<string> completions(parameters().completions("image.i"));
@@ -144,10 +144,11 @@ namespace conrad
 // switch between these. This optimization may not be sufficient in the long run.      
 // Set up initial grids for all the types we need to make
       vector<string> types(3);
-      types[0]="map";
-      types[1]="weight";
+      types[0]="model";
+      types[1]="map";
       types[2]="psf";
       std::map<string, casa::Cube<casa::Complex>* > grids;
+      std::map<string, casa::Vector<casa::Double>* > sumWeights;
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));
@@ -155,13 +156,38 @@ namespace conrad
         for (vector<string>::const_iterator type=types.begin();type!=types.end();++type) {
           grids[string(imageName+(*type))]=new casa::Cube<casa::Complex>(imageShape(0), imageShape(1), 1);
           grids[string(imageName+(*type))]->set(0.0);
+          sumWeights[string(imageName+(*type))]=new casa::Vector<casa::Double>(1);
+          sumWeights[string(imageName+(*type))]->set(0.0);
         }
       }
+      // Now we fill in the models
+      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+      {
+        string imageName("image.i"+(*it));
+        const Axes axes(parameters().axes(imageName));
+        casa::Cube<double> imagePixels(parameters().value(imageName).copy());
+        const casa::IPosition imageShape(imagePixels.shape());
+        itsGridder->correctConvolution(axes, imagePixels);
+        string modelName("image.i"+(*it)+"model");
+        toComplex(*grids[modelName], imagePixels);
+        cfft(*grids[modelName], true);
+      }      
 // Now we loop through all the data
       bool first=true;
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
+        /// Accumulate model visibility for all models
+        itsIdi.chooseBuffer("MODEL_DATA");
+        itsIdi->rwVisibility().set(0.0);
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
+        {
+          string modelName("image.i"+(*it)+"model");
+          string imageName("image.i"+(*it));
+          const Axes axes(parameters().axes(imageName));
+          itsGridder->forward(itsIdi, axes, *grids[modelName]);
+        }
+        /// Now we can calculate the residual visibility and image
+        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           const string imageName("image.i"+(*it));
           const Axes axes(parameters().axes(imageName));
@@ -169,20 +195,22 @@ namespace conrad
             itsIdi.chooseOriginal();
             casa::Vector<float> uvWeights(1);
             itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
-            uvWeights.set(0.0);
             itsIdi.chooseBuffer("RESIDUAL_DATA");
-            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"map")], uvWeights);
-            itsGridder->reverseWeights(itsIdi, axes, *grids[string(imageName+"weight")]);
+            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"map")], 
+              *sumWeights[string(imageName+"map")]);
             itsIdi.chooseBuffer("SCRATCH_DATA");
             itsIdi->rwVisibility().set(casa::Complex(1.0));
             uvWeights.set(0.0);
-            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"psf")], uvWeights);
+            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"psf")],
+              *sumWeights[string(imageName+"psf")]);
             itsIdi.chooseOriginal();
           }
         }
       }
+      
 
-// Now we have to complete the transforms and fill in the normal equations
+      // We have looped over all the data, so now we have to complete the 
+      // transforms and fill in the normal equations
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));
@@ -190,6 +218,10 @@ namespace conrad
         const Axes axes(parameters().axes(imageName));
 
         casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
+        /// @todo Handle polarizations correctly
+        imageWeights.set((*sumWeights[string(imageName+"psf")])(0)
+          /(double(imageShape(0))*double(imageShape(1))));
+
         casa::Cube<double> imagePSF(imageShape(0), imageShape(1), 1);
         casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
   
@@ -198,14 +230,6 @@ namespace conrad
           cfft(*uvGrid, false);
           toDouble(imageDeriv, *uvGrid);
           itsGridder->correctConvolution(axes, imageDeriv);
-        }
-        {
-          casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"weight")]);
-          cfft(*uvGrid, false);
-          toDouble(imageWeights, *uvGrid);
-          itsGridder->correctConvolution(axes, imageWeights);
-          /// @todo Understand the correct use of the weights for various gridding functions
-          imageWeights.set(imageWeights(casa::IPosition(3, imageShape(0)/2, imageShape(1)/2, 0)));
         }
         {
           casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"psf")]);

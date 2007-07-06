@@ -98,6 +98,14 @@ int main(int argc, const char** argv)
       solver->solveNormalEquations(q);
       std::cout << "Solved normal equations" << std::endl;
       skymodel=solver->parameters();
+
+      vector<string> resultimages=skymodel.names();
+      for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
+      {
+        casa::Array<double> resultImage(skymodel.value(*it));
+        std::cout << *it << std::endl
+          << "Maximum = " << max(resultImage) << ", minimum = " << min(resultImage) << std::endl;
+      }
     }
 
     // Now write the results to a table

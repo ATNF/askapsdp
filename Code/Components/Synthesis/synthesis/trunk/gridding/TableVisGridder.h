@@ -42,7 +42,7 @@ namespace conrad
         virtual void reverse(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<float>& weights);
+          casa::Vector<double>& weights);
 
 /// @brief Grid the spectral visibility data onto the grid
 /// Note that the weights allow complete flexibility
@@ -53,25 +53,7 @@ namespace conrad
         virtual void reverse(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<float>& weights);
-
-/// @brief Grid the visibility weights onto the grid using multifrequency
-/// synthesis. Note that the weights allow complete flexibility
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output grid: cube: u,v,pol
-        virtual void reverseWeights(IDataSharedIter& idi,
-          const conrad::scimath::Axes& axes,
-          casa::Cube<casa::Complex>& grid);
-
-/// Grid the spectral visibility data onto the grid
-/// Note that the weights allow complete flexibility
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output grid: cube: u,v,chan,pol
-        virtual void reverseWeights(IDataSharedIter& idi,
-          const conrad::scimath::Axes& axes,
-          casa::Array<casa::Complex>& grid);
+          casa::Matrix<double>& weights);
 
 /// @brief Estimate visibility data from the grid using multifrequency
 /// synthesis.
@@ -166,19 +148,8 @@ namespace conrad
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<float>& sumwt);
+          casa::Vector<double>& sumwt);
 
-/// Visibility weights to image for a cube (MFS)
-/// @param uvw UVW in meters
-/// @param visweight Visibility weight
-/// @param freq Frequency
-/// @param cellsize Cellsize in wavelengths
-/// @param grid Grid for data
-        virtual void genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
-          const casa::Cube<float>& visweight,
-          const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellsize,
-          casa::Cube<casa::Complex>& grid);
 
 /// Image to visibility for a cube (MFS))
 /// @param uvw UVW in meters
@@ -208,19 +179,8 @@ namespace conrad
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<float>& sumwt);
+          casa::Matrix<double>& sumwt);
 
-/// Visibility weights to image for an array (spectral line)
-/// @param uvw UVW in meters
-/// @param visweight Visibility weight
-/// @param freq Frequency
-/// @param cellsize Cellsize in wavelengths
-/// @param grid Grid for data
-        void genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
-          const casa::Cube<float>& visweight,
-          const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellsize,
-          casa::Array<casa::Complex>& grid);
 
 /// Image to visibility for an array (spectral line)
 /// @param uvw UVW in meters

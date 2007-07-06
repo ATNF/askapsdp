@@ -56,7 +56,7 @@ namespace conrad
         virtual void reverse(IDataSharedIter& idi,
           const scimath::Axes& axes,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<float>& weights) = 0;
+          casa::Vector<double>& weights) = 0;
 
 /// Grid the spectral visibility data onto the grid
 /// Note that the weights allow complete flexibility
@@ -67,25 +67,7 @@ namespace conrad
         virtual void reverse(IDataSharedIter& idi,
           const scimath::Axes& axes,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<float>& weights) = 0;
-
-/// Grid the visibility wefghts onto the grid using multifrequency
-/// synthesis. Note that the weights allow complete flexibility
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output grid: cube: u,v,pol
-        virtual void reverseWeights(IDataSharedIter& idi,
-          const scimath::Axes& axes,
-          casa::Cube<casa::Complex>& grid) = 0;
-
-/// Grid the spectral visibility weights onto the grid
-/// Note that the weights allow complete flexibility
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output grid: cube: u,v,chan,pol
-        virtual void reverseWeights(IDataSharedIter& idi,
-          const scimath::Axes& axes,
-          casa::Array<casa::Complex>& grid) = 0;
+          casa::Matrix<double>& weights) = 0;
 
 /// Estimate visibility data from the grid using multifrequency
 /// synthesis.

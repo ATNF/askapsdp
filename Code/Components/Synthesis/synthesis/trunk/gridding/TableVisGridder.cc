@@ -25,7 +25,7 @@ namespace conrad
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid,
-      casa::Vector<float>& weights)
+      casa::Vector<double>& weights)
     {
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
       casa::Vector<double> cellsize;
@@ -39,7 +39,7 @@ namespace conrad
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid,
-      casa::Matrix<float>& weights)
+      casa::Matrix<double>& weights)
     {
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
       casa::Vector<double> cellsize;
@@ -47,32 +47,6 @@ namespace conrad
       initConvolutionFunction(idi, cellsize, grid.shape());
       genericReverse(idi->uvw(), idi->visibility(), visweight, idi->frequency(),
         cellsize, grid, weights);
-    }
-
-/// Data weights to grid (MFS)
-    void TableVisGridder::reverseWeights(IDataSharedIter& idi,
-      const conrad::scimath::Axes& axes,
-      casa::Cube<casa::Complex>& grid)
-    {
-      casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
-      casa::Vector<double> cellsize;
-      findCellsize(cellsize, grid.shape(), axes);
-      initConvolutionFunction(idi, cellsize, grid.shape());
-      genericReverseWeights(idi->uvw(), visweight, idi->frequency(),
-        cellsize, grid);
-    }
-
-/// Data weights to grid (spectral line)
-    void TableVisGridder::reverseWeights(IDataSharedIter& idi,
-      const conrad::scimath::Axes& axes,
-      casa::Array<casa::Complex>& grid)
-    {
-      casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
-      casa::Vector<double> cellsize;
-      findCellsize(cellsize, grid.shape(), axes);
-      initConvolutionFunction(idi, cellsize, grid.shape());
-      genericReverseWeights(idi->uvw(), visweight, idi->frequency(),
-        cellsize, grid);
     }
 
 /// Grid to data (MFS)
@@ -109,7 +83,7 @@ namespace conrad
       const casa::Vector<double>& freq,
       const casa::Vector<double>& cellsize,
       casa::Array<casa::Complex>& grid,
-      casa::Matrix<float>& sumwt)
+      casa::Matrix<double>& sumwt)
     {
       CONRADTHROW(ConradError, "genericReverse not yet implemented");
     }
@@ -121,7 +95,7 @@ namespace conrad
       const casa::Vector<double>& freq,
       const casa::Vector<double>& cellsize,
       casa::Cube<casa::Complex>& grid,
-      casa::Vector<float>& sumwt)
+      casa::Vector<double>& sumwt)
     {
 
       const int gSize = grid.ncolumn();
@@ -180,87 +154,6 @@ namespace conrad
                     float wt=itsC(uoff,voff,coff);
                     grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
                     sumwt(pol)+=wt;
-                    voff+=itsOverSample;
-                  }
-                  uoff+=itsOverSample;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-/// Data weights to grid (spectral line)
-    void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
-      const casa::Cube<float>& visweight,
-      const casa::Vector<double>& freq,
-      const casa::Vector<double>& cellsize,
-      casa::Array<casa::Complex>& grid)
-    {
-      CONRADTHROW(ConradError, "genericReverseWeights not yet implemented");
-    }
-
-/// Data weights to grid (MFS)
-    void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
-      const casa::Cube<float>& visweight,
-      const casa::Vector<double>& freq,
-      const casa::Vector<double>& cellsize,
-      casa::Cube<casa::Complex>& grid)
-    {
-
-      const int gSize = grid.ncolumn();
-      const int nSamples = uvw.size();
-      const int nChan = freq.size();
-      const int nPol = 1;
-
-// Loop over all samples adding them to the grid
-// First scale to the correct pixel location
-// Then find the fraction of a pixel to the nearest pixel
-// Loop over the entire itsSupport, calculating weights from
-// the convolution function and adding the scaled
-// visibility to the grid.
-      for (int i=0;i<nSamples;i++)
-      {
-        for (int chan=0;chan<nChan;chan++)
-        {
-
-          int overSample=itsOverSample;
-          if(itsInM)
-          {
-            overSample=int(double(itsOverSample)*freq[0]/freq[chan]+0.5);
-          }
-
-          for (int pol=0;pol<nPol;pol++)
-          {
-
-            int coff=cOffset(i,chan);
-            double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-            int iu = nint(uScaled);
-            int fracu=nint(overSample*(double(iu)-uScaled));
-            iu+=gSize/2;
-            double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
-            int iv = nint(vScaled);
-            int fracv=nint(overSample*(double(iv)-vScaled));
-            iv+=gSize/2;            
-            if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
-              ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
-            {
-              if(itsSupport==0)
-              {
-                float wt=itsC(itsCCenter,itsCCenter,coff);
-                grid(gSize/2,gSize/2,pol)+=wt;
-              }
-              else
-              {
-                int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
-                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
-                {
-                  int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
-                  for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
-                  {
-                    float wt=itsC(uoff,voff,coff);
-                    grid(gSize/2+suppu,gSize/2+suppv,pol)+=wt;
                     voff+=itsOverSample;
                   }
                   uoff+=itsOverSample;
