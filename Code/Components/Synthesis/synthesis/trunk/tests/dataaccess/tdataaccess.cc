@@ -10,12 +10,14 @@
 
 #include "DataAccessTest.h"
 #include "DataConverterTest.h"
+#include "TableDataAccessTest.h"
 
 int main(int, char **)
 {
    CppUnit::TextUi::TestRunner runner;
    runner.addTest(conrad::synthesis::DataConverterTest::suite());
    runner.addTest(conrad::synthesis::DataAccessTest::suite());
+   runner.addTest(conrad::synthesis::TableDataAccessTest::suite());
    runner.run();
    return 0;
 }
