@@ -121,6 +121,7 @@ namespace conrad
           const Axes axes(parameters().axes(imageName));
           itsGridder->forward(itsIdi, axes, *grids[imageName]);
         }
+        itsIdi.chooseOriginal();
       }
       // Now clean up 
       for (std::map<string, casa::Cube<casa::Complex>* >::iterator it=grids.begin();
@@ -165,9 +166,11 @@ namespace conrad
           const string imageName("image.i"+(*it));
           const Axes axes(parameters().axes(imageName));
           if(parameters().isFree(imageName)) {
+            itsIdi.chooseOriginal();
             casa::Vector<float> uvWeights(1);
             itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
             uvWeights.set(0.0);
+            itsIdi.chooseBuffer("RESIDUAL_DATA");
             itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"map")], uvWeights);
             itsGridder->reverseWeights(itsIdi, axes, *grids[string(imageName+"weight")]);
             itsIdi.chooseBuffer("SCRATCH_DATA");
