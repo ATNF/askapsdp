@@ -129,7 +129,6 @@ namespace conrad
         }
       }
       itsC=itsC/(float(nx)*float(ny));
-      std::cout << itsC << std::endl;
     }
     
     /// The Convolution function correction in image space is the
