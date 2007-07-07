@@ -8,14 +8,14 @@
 #ifndef WPROJECTGRIDDER_H_
 #define WPROJECTGRIDDER_H_
 
-#include <gridding/TableVisGridder.h>
+#include <gridding/SphFuncVisGridder.h>
 
 namespace conrad
 {
   namespace synthesis
   {
     /// W projection gridder
-    class WProjectVisGridder : public TableVisGridder
+    class WProjectVisGridder : public SphFuncVisGridder
     {
       public:
 
@@ -25,18 +25,6 @@ namespace conrad
         WProjectVisGridder(const double wmax, const int nwplanes);
 
         virtual ~WProjectVisGridder();
-
-/// Correct for gridding convolution function
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void correctConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image);
-
-/// Apply gridding convolution function in image space
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void applyConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image);
 
       protected:
       /// Offset into convolution function
@@ -51,11 +39,6 @@ namespace conrad
           const casa::Vector<double>& cellSize,
           const casa::IPosition& shape);
       private:
-      /// Calculate prolate spheroidal function
-      /// @param nu Argument for spheroidal function
-        double grdsf(double nu);
-        /// Initialize lookup table for spheriodal function
-        void initWProject();
         /// Scaling
         double itsWScale;
         /// Number of w planes

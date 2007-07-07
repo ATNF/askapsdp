@@ -58,7 +58,6 @@ namespace conrad
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
           const casa::Vector<double>& cellSize,
           const casa::IPosition& shape);
-      private:
       /// Calculate prolate spheroidal function
       /// @param nu Argument for spheroidal function
         double grdsf(double nu);
