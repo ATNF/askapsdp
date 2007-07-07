@@ -2,6 +2,7 @@
 #include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/AntennaIllumVisGridder.h>
+#include <gridding/WProjectVisGridder.h>
 
 using namespace LOFAR::ACC::APS;
 namespace conrad
@@ -20,7 +21,13 @@ namespace conrad
     IVisGridder::ShPtr VisGridderFactory::make(const ParameterSet& parset) {
       IVisGridder::ShPtr gridder;
       /// @todo Better handling of string case
-      if(parset.getString("gridder")=="AntennaIllum") {
+      if(parset.getString("gridder")=="WProject") {
+        double wmax=parset.getDouble("gridder.WProject.wmax");
+        int nwplanes=parset.getInt32("gridder.WProject.nwplanes");
+        std::cout << "Using W projection gridding " << std::endl;
+        gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes));
+      }
+      else if(parset.getString("gridder")=="AntennaIllum") {
         double diameter=parset.getDouble("gridder.AntennaIllum.diameter");
         double blockage=parset.getDouble("gridder.AntennaIllum.blockage");
         std::cout << "Using Antenna Illumination for gridding function" << std::endl;
