@@ -52,7 +52,7 @@ int main(int argc, const char** argv)
     }
 
     ParameterSet parset(parsetname);
-    string ms=parset.getString("DataSet");
+    vector<string> ms=parset.getStringVector("DataSet");
 
     /// Create the specified images from the definition in the
     /// parameter set
@@ -64,17 +64,6 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("Cimager."));
     IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
     Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
-    
-    /// Create data iterator
-    /// @todo Convert this to a factory
-    TableDataSource ds(ms);
-    IDataSelectorPtr sel=ds.createSelector();
-    IDataConverterPtr conv=ds.createConverter();
-    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
-    IDataSharedIter it=ds.createIterator(sel, conv);
-    
-    it.init();
-    it.chooseOriginal();
 
     NormalEquations ne(skymodel);
     std::cout << "Constructed normal equations" << std::endl;
@@ -86,13 +75,28 @@ int main(int argc, const char** argv)
       if(nCycles>1) {
         std::cout << "*** Starting major cycle " << cycle << " ***" << std::endl;
       }
-      ImageFFTEquation ie(skymodel, it, gridder);
-      std::cout << "Constructed measurement equation" << std::endl;
+    
+      /// Now iterate through all data sets
+      /// @todo Convert this to a factory
+      for (vector<string>::iterator thisms=ms.begin();thisms!=ms.end();++thisms) {
+        std::cout << "Processing data set " << *thisms << std::endl;
+        TableDataSource ds(*thisms);
+        IDataSelectorPtr sel=ds.createSelector();
+        IDataConverterPtr conv=ds.createConverter();
+        conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
+        IDataSharedIter it=ds.createIterator(sel, conv);
+        it.init();
+        it.chooseOriginal();
+        ImageFFTEquation ie(skymodel, it, gridder);
+        std::cout << "Constructed measurement equation" << std::endl;
 
-      ie.calcEquations(ne);
-      std::cout << "Calculated normal equations" << std::endl;
-      solver->addNormalEquations(ne);
-      std::cout << "Added normal equations to solver" << std::endl;
+        ie.calcEquations(ne);
+        std::cout << "Calculated normal equations" << std::endl;
+        solver->addNormalEquations(ne);
+        std::cout << "Added normal equations to solver" << std::endl;
+      }
+
+      // Perform the solution
       Quality q;
       std::cout << "Solving normal equations" << std::endl;
       solver->solveNormalEquations(q);
@@ -117,10 +121,6 @@ int main(int argc, const char** argv)
     vector<string> resultimages=skymodel.names();
     for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
     {
-      casa::Array<double> resultImage(skymodel.value(*it));
-      std::cout << *it << std::endl
-        << "Maximum = " << max(resultImage) << ", minimum = " << min(resultImage) << std::endl
-        << "Axes " << skymodel.axes(*it) << std::endl;
       SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
       
     }
