@@ -2,6 +2,9 @@
 
 #include <conrad/ConradError.h>
 
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
+
 #include <casa/BasicSL/Constants.h>
 #include <scimath/Mathematics/FFTServer.h>
 
@@ -45,7 +48,7 @@ namespace conrad
       itsCMap.resize(nSamples, nChan);
       itsCMap.set(0);
       
-      int cenw=itsNWPlanes/2-1;
+      int cenw=(itsNWPlanes-1)/2;
       for (int i=0;i<nSamples;i++)
       {
         double w=(idi->uvw()(i)(2))/(casa::C::c);
@@ -56,7 +59,6 @@ namespace conrad
         }
       }
       if(itsSupport!=0) return;
-  
                
       casa::FFTServer<casa::Float,casa::Complex> ffts;
       itsSupport=0;
@@ -71,12 +73,12 @@ namespace conrad
       for (int ix=0;ix<nx;ix++)
       {
         double nux=std::abs(double(ix-cenx))/double(nx/2);
-        ccfx(ix)=grdsf(nux);
+        ccfx(ix)=grdsf(nux)/double(nx);
       }
       for (int iy=0;iy<ny;iy++)
       {
         double nuy=std::abs(double(iy-ceny))/double(ny/2);
-        ccfy(iy)=grdsf(nuy);
+        ccfy(iy)=grdsf(nuy)/double(nx);
       }
       
       // Now we step through the w planes, starting the furthest
@@ -85,14 +87,15 @@ namespace conrad
       // We pad here to do sinc interpolation of the convolution
       // function in uv space
       casa::Matrix<casa::Complex> thisPlane(nx*itsOverSample, ny*itsOverSample);
-      thisPlane.set(0.0);
       
       double cellx=1.0/(double(nx)*cellSize(0));
       double celly=1.0/(double(ny)*cellSize(1));
 
-      // We loop down so that the first time round we can get the
-      // support
-      for (int iw=itsNWPlanes-1;iw>-1;iw--) {
+
+      for (int iw=0;iw<=cenw;iw++) {
+         
+        thisPlane.set(0.0);
+        
         double w=double(iw-cenw)*itsWScale;
         for(int ix=cenx-nx/2;ix<cenx+nx/2;ix++)
         {
@@ -123,16 +126,13 @@ namespace conrad
         // If the support is not yet set, find it and size the
         // convolution function appropriately
         if(itsSupport==0) {
-          float cmax=float(nx)*float(ny);
+          // Find the support by starting from the edge and
+          // working in
+          for(int ix=0;ix<itsOverSample*cenx;ix++)
           {
-            // Find the support by starting from the edge and
-            // working in
-            for(int ix=0;ix<itsOverSample*cenx;ix++)
-            {
-              if(abs(abs(thisPlane(ix,itsOverSample*ceny)))>cmax*itsCutoff) {
-                itsSupport=abs(ix-itsOverSample*cenx)/itsOverSample;
-                break;
-              }
+            if(abs(thisPlane(ix,itsOverSample*ceny))>itsCutoff){
+              itsSupport=abs(ix-itsOverSample*cenx)/itsOverSample;
+              break;
             }
           }
           itsSupport=(itsSupport<nx/2)?itsSupport:nx/2;
@@ -153,7 +153,13 @@ namespace conrad
                 thisPlane(ix+itsOverSample*cenx,iy+itsOverSample*ceny);
           }
         }
+        itsC.xyPlane(itsNWPlanes-1-iw)=casa::conj(itsC.xyPlane(iw));
       }
+//      std::cout << "Shape of convolution function = " << itsC.shape() << std::endl;
+//      for (int iw=0;iw<itsNWPlanes;iw++) {
+//        std::cout << iw << " " << real(casa::max(casa::abs(itsC.xyPlane(iw)))) 
+//          << std::endl;
+//      }
     }
     
     int WProjectVisGridder::cOffset(int row, int chan)

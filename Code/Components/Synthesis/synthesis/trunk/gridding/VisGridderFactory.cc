@@ -26,6 +26,8 @@ namespace conrad
         int nwplanes=parset.getInt32("gridder.WProject.nwplanes", 16);
         double cutoff=parset.getDouble("gridder.WProject.cutoff", 1e-3);
         int oversample=parset.getInt32("gridder.WProject.oversample", 1);
+        /// @todo Fix oversample>1 case
+        oversample=1;
         std::cout << "Using W projection gridding " << std::endl;
         gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample));
       }
