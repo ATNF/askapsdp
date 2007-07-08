@@ -91,7 +91,7 @@ namespace conrad
         /// The convolution function is stored as a cube so that we can use the third axes
         /// for data dependent variations e.g. w projection. The function cOffset can be
         /// used to generate this offset.
-        casa::Cube<float> itsC;
+        casa::Cube<casa::Complex> itsC;
         
         /// Return the offset into the convolution function for a given
         /// row and channel

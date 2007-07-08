@@ -15,8 +15,8 @@
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef IVISGRIDDER_H_
-#define IVISGRIDDER_H_
+#ifndef CONRAD_SYNTHESIS_IVISGRIDDER_H_
+#define CONRAD_SYNTHESIS_IVISGRIDDER_H_
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>

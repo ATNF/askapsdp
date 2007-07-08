@@ -139,9 +139,9 @@ namespace conrad
             {
               if(itsSupport==0)
               {
-                float wt=itsC(itsCCenter,itsCCenter,coff);
+                casa::Complex wt=itsC(itsCCenter,itsCCenter,coff);
                 grid(iu,iv,pol)+=wt*visibility(i,chan,pol);
-                sumwt(pol)+=wt;
+                sumwt(pol)+=real(wt);
               }
               else
               {
@@ -151,9 +151,9 @@ namespace conrad
                   int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                   for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                   {
-                    float wt=itsC(uoff,voff,coff);
+                    casa::Complex wt=itsC(uoff,voff,coff);
                     grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
-                    sumwt(pol)+=wt;
+                    sumwt(pol)+=real(wt);
                     voff+=itsOverSample;
                   }
                   uoff+=itsOverSample;
@@ -230,9 +230,9 @@ namespace conrad
               {
                 if(itsSupport==0)
                 {
-                  float wt=itsC(itsCCenter,itsCCenter,coff);
+                  casa::Complex wt=itsC(itsCCenter,itsCCenter,coff);
                   visibility(i,chan,pol)+=wt*grid(iu,iv,pol);
-                  sumviswt+=wt;
+                  sumviswt+=real(wt);
                 }
                 else
                 {
@@ -242,9 +242,9 @@ namespace conrad
                     int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                     for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                     {
-                      float wt=itsC(uoff,voff,coff);
+                      casa::Complex wt=itsC(uoff,voff,coff);
                       visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
-                      sumviswt+=wt;
+                      sumviswt+=real(wt);
                       voff+=itsOverSample;
                     }
                     uoff+=itsOverSample;

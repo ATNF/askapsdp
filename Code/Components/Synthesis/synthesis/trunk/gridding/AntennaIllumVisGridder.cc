@@ -69,7 +69,7 @@ namespace conrad
         }
         itsC.resize(itsCSize, itsCSize, 1);
         selfConvolve(disk);
-        itsC.xyPlane(0)=real(disk);
+        itsC.xyPlane(0)=disk;
         CONRADCHECK(sumDisk>0.0, "Antenna illumination convolution function is empty: field of view too small?");
       }
     }

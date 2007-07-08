@@ -22,10 +22,12 @@ namespace conrad
       IVisGridder::ShPtr gridder;
       /// @todo Better handling of string case
       if(parset.getString("gridder")=="WProject") {
-        double wmax=parset.getDouble("gridder.WProject.wmax");
-        int nwplanes=parset.getInt32("gridder.WProject.nwplanes");
+        double wmax=parset.getDouble("gridder.WProject.wmax", 10000.0);
+        int nwplanes=parset.getInt32("gridder.WProject.nwplanes", 16);
+        double cutoff=parset.getDouble("gridder.WProject.cutoff", 1e-3);
+        int oversample=parset.getInt32("gridder.WProject.oversample", 1);
         std::cout << "Using W projection gridding " << std::endl;
-        gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes));
+        gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample));
       }
       else if(parset.getString("gridder")=="AntennaIllum") {
         double diameter=parset.getDouble("gridder.AntennaIllum.diameter");

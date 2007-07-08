@@ -5,8 +5,8 @@
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef WPROJECTGRIDDER_H_
-#define WPROJECTGRIDDER_H_
+#ifndef CONRAD_SYNTHESIS_WPROJECTVISGRIDDER_H_
+#define CONRAD_SYNTHESIS_WPROJECTVISGRIDDER_H_
 
 #include <gridding/SphFuncVisGridder.h>
 
@@ -22,7 +22,8 @@ namespace conrad
 // W projection
 // @param wmax Maximum baseline (wavelengths)
 // @param nwplanes Number of w planes
-        WProjectVisGridder(const double wmax, const int nwplanes);
+        WProjectVisGridder(const double wmax, const int nwplanes,
+          const double cutoff, const int overSample);
 
         virtual ~WProjectVisGridder();
 
@@ -43,6 +44,8 @@ namespace conrad
         double itsWScale;
         /// Number of w planes
         int itsNWPlanes;
+        /// Threshold for cutoff of convolution function
+        double itsCutoff;
         /// Mapping from row and channel to planes
         casa::Matrix<int> itsCMap;
     };
