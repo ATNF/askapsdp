@@ -11,7 +11,13 @@ import os
 
 os.environ['AIPSPATH']=os.environ['CONRAD_PROJECT_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
 
-env.Append(CCFLAGS=['-g', '-O2','-DCONRAD_DEBUG'])
+env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g','-DUSE_NOSOCKETS'])
+
+env["CC"] = "mpicc"
+env["CXX"] = "mpicxx"
+env["LINK"] = "mpicxx"
+env["SHLINK"] = "mpicxx"
+env.AppendUnique(CPPFLAGS=['-DHAVE_MPI'])
 
 # create build object with library name
 pkg = env.ConradPackage("synthesis")
