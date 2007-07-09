@@ -32,6 +32,9 @@ namespace conrad { namespace cp {
   class MPIConnectionSet: public MWConnectionSet
   {
   public:
+    /// Define a shared pointer to this object.
+    typedef boost::shared_ptr<MPIConnectionSet> ShPtr;
+
     /// Set up a connection set to destinations using MPI.
     MPIConnectionSet();
 
