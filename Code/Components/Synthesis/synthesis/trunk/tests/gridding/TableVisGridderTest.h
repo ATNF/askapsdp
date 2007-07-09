@@ -1,6 +1,7 @@
 #include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/AntennaIllumVisGridder.h>
+#include <gridding/WProjectVisGridder.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
 #include <dataaccess/DataIteratorStub.h>
@@ -32,17 +33,20 @@ namespace conrad
       CPPUNIT_TEST(testReverseSph);
       CPPUNIT_TEST(testForwardAnt);
       CPPUNIT_TEST(testReverseAnt);
+      CPPUNIT_TEST(testForwardWProject);
+      CPPUNIT_TEST(testReverseWProject);
       CPPUNIT_TEST_SUITE_END();
 
       private:
         BoxVisGridder *itsBox;
         SphFuncVisGridder *itsSphFunc;
         AntennaIllumVisGridder *itsAnt;
+        WProjectVisGridder *itsWProject;
 
         IDataSharedIter idi;
         Axes* itsAxes;
         casa::Cube<casa::Complex>* itsGrid;
-        casa::Vector<float>* itsWeights;
+        casa::Vector<double>* itsWeights;
 
       public:
         void setUp()
@@ -63,6 +67,7 @@ namespace conrad
           itsBox = new BoxVisGridder();
           itsSphFunc = new SphFuncVisGridder();
           itsAnt = new AntennaIllumVisGridder(12.0, 1.0);
+          itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1);
 
           double cellSize=10*casa::C::arcsec;
 
@@ -73,7 +78,7 @@ namespace conrad
           itsGrid=new casa::Cube<casa::Complex>(512,512,1);
           itsGrid->set(0.0);
 
-          itsWeights=new casa::Vector<float>(1);
+          itsWeights=new casa::Vector<double>(1);
           itsWeights->set(0.0);
 
         }
@@ -111,6 +116,14 @@ namespace conrad
         void testForwardAnt()
         {
           itsAnt->forward(idi, *itsAxes, *itsGrid);
+        }
+        void testReverseWProject()
+        {
+          itsWProject->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+        }
+        void testForwardWProject()
+        {
+          itsWProject->forward(idi, *itsAxes, *itsGrid);
         }
     };
 
