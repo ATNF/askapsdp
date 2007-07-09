@@ -230,7 +230,7 @@ namespace conrad
               {
                 if(itsSupport==0)
                 {
-                  casa::Complex wt=itsC(itsCCenter,itsCCenter,coff);
+                  casa::Complex wt=conj(itsC(itsCCenter,itsCCenter,coff));
                   visibility(i,chan,pol)+=wt*grid(iu,iv,pol);
                   sumviswt+=real(wt);
                 }
