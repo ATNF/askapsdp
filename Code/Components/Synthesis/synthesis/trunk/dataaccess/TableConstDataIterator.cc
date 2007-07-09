@@ -256,7 +256,7 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
       // have to process element by element as a conversion is required
       freq.resize(itsNumberOfChannels);
       for (uInt ch=0;ch<itsNumberOfChannels;++ch) {
-           freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequencies(
+           freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequency(
 	             static_cast<const uInt>(spWindowIndex),ch));
 	                            
       }

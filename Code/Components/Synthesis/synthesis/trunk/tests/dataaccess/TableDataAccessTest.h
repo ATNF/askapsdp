@@ -126,7 +126,7 @@ void TableDataAccessTest::spWindowTest()
   CPPUNIT_ASSERT(spWindow.getFrequencies(0).size() == 13);
   for (casa::uInt chan=0;chan<13;++chan) { 
      CPPUNIT_ASSERT(spWindow.getFrequencies(0)[chan] ==
-              spWindow.getFrequencies(0,chan).getValue().getValue());
+              spWindow.getFrequency(0,chan).getValue().getValue());
   }
   CPPUNIT_ASSERT(fabs(spWindow.getFrequencies(0)[0]-1.4e9)<1e-5);
 }

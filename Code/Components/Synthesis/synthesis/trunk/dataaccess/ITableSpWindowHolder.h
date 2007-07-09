@@ -59,7 +59,7 @@ struct ITableSpWindowHolder : virtual public IHolder {
   /// (and, hence, element by element operations are needed anyway)
   /// @param[in] spWindowID an index into spectral window table
   /// @param[in] channel a channel number of interest
-  virtual casa::MFrequency getFrequencies(casa::uInt spWindowID,
+  virtual casa::MFrequency getFrequency(casa::uInt spWindowID,
                             casa::uInt channel) const = 0;
 };
 

@@ -98,7 +98,7 @@ MemTableSpWindowHolder::getFrequencies(casa::uInt spWindowID) const
 /// (and, hence, element by element operations are needed anyway)
 /// @param[in] spWindowID an index into spectral window table
 /// @param[in] channel a channel number of interest
-casa::MFrequency MemTableSpWindowHolder::getFrequencies(casa::uInt spWindowID,
+casa::MFrequency MemTableSpWindowHolder::getFrequency(casa::uInt spWindowID,
                           casa::uInt channel) const
 {
   CONRADDEBUGASSERT(spWindowID<itsChanFreqs.nelements());  
