@@ -37,7 +37,8 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   //CPPUNIT_TEST(readOnlyTest);
   CPPUNIT_TEST_EXCEPTION(bufferManagerExceptionTest,casa::TableError);
   CPPUNIT_TEST(bufferManagerTest);
-  //CPPUNIT_TEST(dataDescTest);  
+  CPPUNIT_TEST(dataDescTest);
+  CPPUNIT_TEST(spWindowTest);  
   CPPUNIT_TEST_SUITE_END();
 public:
   
@@ -52,7 +53,9 @@ public:
   /// extensive test of buffer operations
   void bufferManagerTest();
   /// test access to data description subtable
-  void dataDescTest();  
+  void dataDescTest();
+  /// test access to spectral window subtable
+  void spWindowTest();
 protected:
   void doBufferTest() const;
 private:
@@ -83,7 +86,7 @@ void TableDataAccessTest::bufferManagerTest()
   itsTableInfoAccessor.reset(new TableInfoAccessor(
               casa::Table(TableTestRunner::msName()),true));
   doBufferTest();
-  // now test with the disk buffers, and leave this set for other tests
+  // now test with the disk buffers
   itsTableInfoAccessor.reset(new TableInfoAccessor(
             casa::Table(TableTestRunner::msName(),casa::Table::Update), false));
   doBufferTest();
@@ -92,6 +95,11 @@ void TableDataAccessTest::bufferManagerTest()
 /// test access to data description subtable
 void TableDataAccessTest::dataDescTest()
 {
+  // because we're not accessing the buffers here, it shouldn't really
+  // matter whether we open it with memory buffers or with disk buffers
+  // and read-only table should be enough.
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+              casa::Table(TableTestRunner::msName()),false));
   CONRADASSERT(itsTableInfoAccessor);
   const ITableDataDescHolder &dataDescription=itsTableInfoAccessor->
                     subtableInfo().getDataDescription();
@@ -101,6 +109,27 @@ void TableDataAccessTest::dataDescTest()
   CPPUNIT_ASSERT(dataDescription.getDescIDsForSpWinID(1).size()==0);
 }
 
+/// test access to spectral window subtable
+void TableDataAccessTest::spWindowTest()
+{
+  // because we're not accessing the buffers here, it shouldn't really
+  // matter whether we open it with memory buffers or with disk buffers
+  // and read-only table should be enough.
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+              casa::Table(TableTestRunner::msName()),false));
+  CONRADASSERT(itsTableInfoAccessor);
+  const ITableSpWindowHolder &spWindow=itsTableInfoAccessor->
+                    subtableInfo().getSpWindow();
+  CPPUNIT_ASSERT(spWindow.getReferenceFrame(0).getType() ==
+                 casa::MFrequency::TOPO);
+  CPPUNIT_ASSERT(spWindow.getFrequencyUnit().getName() == "Hz");
+  CPPUNIT_ASSERT(spWindow.getFrequencies(0).size() == 13);
+  for (casa::uInt chan=0;chan<13;++chan) { 
+     CPPUNIT_ASSERT(spWindow.getFrequencies(0)[chan] ==
+              spWindow.getFrequencies(0,chan).getValue().getValue());
+  }
+  CPPUNIT_ASSERT(fabs(spWindow.getFrequencies(0)[0]-1.4e9)<1e-5);
+}
 
 void TableDataAccessTest::doBufferTest() const
 {
