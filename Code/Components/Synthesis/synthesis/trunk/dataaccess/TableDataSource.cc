@@ -34,7 +34,10 @@ TableDataSource::TableDataSource(const std::string &fname,
 {
   if (opt & REMOVE_BUFFERS) {
       if (table().keywordSet().isDefined("BUFFERS")) {
-          table().rwKeywordSet().asTable("BUFFERS").markForDelete();
+          try {
+            table().rwKeywordSet().asTable("BUFFERS").markForDelete();
+	  }
+	  catch(...) {}
           table().rwKeywordSet().removeField("BUFFERS");
       }
   }

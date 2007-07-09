@@ -20,6 +20,7 @@
 #include <tables/Tables/TableDesc.h>
 #include <tables/Tables/TableRecord.h>
 #include <tables/Tables/MemoryTable.h>
+#include <tables/Tables/TableError.h>
 
 // own includes
 #include <dataaccess/SubtableInfoHolder.h>
@@ -101,7 +102,26 @@ void SubtableInfoHolder::initBufferManager() const
 								casa::TableDesc(),casa::Table::New);
       itsBufferManager.reset(new TableBufferManager(casa::Table(maker,
                                 casa::Table::Memory)));      
-  } else {  
+  } else {
+      // first, test that we have a compatible BUFFERS subtable if the
+      // keyword exists
+      if (table().keywordSet().isDefined("BUFFERS")) {
+          try {
+	     casa::Table testTab(table().keywordSet().asTable("BUFFERS"));
+	     // just to avoid the compiler thinking that we don't use testTab
+	     testTab.throwIfNull();
+	  }
+	  catch (...) {
+	     // we have some problems with this subtable
+	     try {
+	        table().rwKeywordSet().removeField("BUFFERS");
+	     }
+	     catch (const casa::TableError &te) {
+	        CONRADTHROW(DataAccessError,"Unable to remove corrupted BUFFERS keyword. AipsError: "<<
+		            te.what());
+	     }
+	  }
+      }
       if (!table().keywordSet().isDefined("BUFFERS")) {
           // we have to create a brand new subtable
           casa::SetupNewTable maker(table().tableName()+"/BUFFERS",
