@@ -66,13 +66,13 @@ MPIConnectionSet::ShPtr initConnections(int nnode, int rank)
 // I am the master - I need a connection to every worker
     for (int i=1; i<nnode; ++i)
     {
-      MWCOUT << "Connection to worker " << i << " = " << cs->addConnection (i, 0) << std::endl;
+      cs->addConnection (i, 0);
     }
   }
   else
   {
 // I am a worker - I only need to talk to the master
-    MWCOUT << "Connection to master = " << cs->addConnection (0, 0) << std::endl;
+    cs->addConnection (0, 0);
   }
   return cs;
 }
@@ -117,9 +117,9 @@ void receiveNE(MPIConnectionSet::ShPtr& cs, int nnode, Solver::ShPtr& is)
 void sendModel(MPIConnectionSet::ShPtr& cs, int nnode, const Params& skymodel)
 {
   LOFAR::BlobString bs;
+  bs.resize(0);
   LOFAR::BlobOBufString bob(bs);
   LOFAR::BlobOStream out(bob);
-  bs.resize(0);
   out.putStart("model", 1);
   out << skymodel;
   out.putEnd();
@@ -138,8 +138,8 @@ void receiveModel(MPIConnectionSet::ShPtr& cs, Params& skymodel)
   cs->read(0, bs);
   LOFAR::BlobIBufString bib(bs);
   LOFAR::BlobIStream in(bib);
-  int version=in.getStart("");
-//  CONRADASSERT(version==1)
+  int version=in.getStart("model");
+  CONRADASSERT(version==1)
   in >> skymodel;
   in.getEnd();
   return;
