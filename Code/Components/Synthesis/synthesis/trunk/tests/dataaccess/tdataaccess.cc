@@ -7,17 +7,26 @@
 /// 
 
 #include <cppunit/ui/text/TestRunner.h>
+#include <iostream>
 
 #include "DataAccessTest.h"
 #include "DataConverterTest.h"
 #include "TableDataAccessTest.h"
 
+#include "TableTestRunner.h"
+
 int main(int, char **)
 {
-   CppUnit::TextUi::TestRunner runner;
+ try {
+   //CppUnit::TextUi::TestRunner runner;
+   conrad::synthesis::TableTestRunner runner;
    runner.addTest(conrad::synthesis::DataConverterTest::suite());
    runner.addTest(conrad::synthesis::DataAccessTest::suite());
    runner.addTest(conrad::synthesis::TableDataAccessTest::suite());
    runner.run();
    return 0;
+ }
+ catch (const conrad::ConradError &ce) {
+	 std::cerr<<ce.what()<<std::endl;
+ }
 }

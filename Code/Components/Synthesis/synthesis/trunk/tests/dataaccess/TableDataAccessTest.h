@@ -25,6 +25,7 @@
 // own includes
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableInfoAccessor.h>
+#include "TableTestRunner.h"
 
 namespace conrad {
 
@@ -55,53 +56,36 @@ public:
 protected:
   void doBufferTest() const;
 private:
-  std::string itsTestMSName;
   boost::shared_ptr<ITableInfoAccessor> itsTableInfoAccessor;  
 }; // class TableDataAccessTest
 
 void TableDataAccessTest::setUp()
 {  
-  itsTestMSName="./.test.ms";
-  std::string path2TestMS="../../testdata/trunk/testdataset.ms";
-  if (casa::EnvironmentVariable::isDefined("CONRAD_PROJECT_ROOT")) {
-      path2TestMS=casa::EnvironmentVariable::get("CONRAD_PROJECT_ROOT")+
-                "/Code/Components/Synthesis/testdata/trunk/testdataset.ms";
-  }
-  try {
-    casa::Table originalMS(path2TestMS);
-    originalMS.deepCopy(itsTestMSName,casa::Table::New);
-  }
-  catch (const casa::AipsError &ae) {
-      CONRADTHROW(DataAccessError, "The current directory is not writable, can't "<<
-                  "create a copy of the test dataset. AipsError: "<<ae.what());
-  }  
 }
 
 void TableDataAccessTest::tearDown()
 { 
   itsTableInfoAccessor.reset();
-  casa::Table copiedMS(itsTestMSName,casa::Table::Update);
-  copiedMS.markForDelete();  
 }
 
 void TableDataAccessTest::bufferManagerExceptionTest()
 {
   // test with the disk buffers, and leave the table read only. This
   // should throw a TableError
-  itsTableInfoAccessor.reset(new TableInfoAccessor(casa::Table(itsTestMSName),
-                                                   false));
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+          casa::Table(TableTestRunner::msName()),false));
   doBufferTest();						   
 }
 
 void TableDataAccessTest::bufferManagerTest()
 {
   // first test with memory buffers
-  itsTableInfoAccessor.reset(new TableInfoAccessor(casa::Table(itsTestMSName),
-                                                  true));
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+              casa::Table(TableTestRunner::msName()),true));
   doBufferTest();
   // now test with the disk buffers, and leave this set for other tests
-  itsTableInfoAccessor.reset(new TableInfoAccessor(casa::Table(itsTestMSName,
-                                   casa::Table::Update), false));
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+            casa::Table(TableTestRunner::msName(),casa::Table::Update), false));
   doBufferTest();
 }
 
