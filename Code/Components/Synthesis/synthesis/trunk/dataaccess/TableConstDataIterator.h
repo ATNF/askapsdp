@@ -101,6 +101,10 @@ public:
 
   /// @return the time stamp  
   casa::Double getTime() const;
+
+  /// populate the buffer with IDs of the first antenna
+  /// @param[in] ids a reference to a vector to fill
+  void fillAntenna1(casa::Vector<casa::uInt> &ids) const;
   
 protected:
 

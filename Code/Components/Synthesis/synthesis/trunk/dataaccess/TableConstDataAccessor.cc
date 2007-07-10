@@ -24,7 +24,10 @@ using namespace conrad::synthesis;
 TableConstDataAccessor::TableConstDataAccessor(
                            const TableConstDataIterator &iter) :
 			   itsIterator(iter), itsVisibilityChanged(true),
-			   itsUVWChanged(true), itsFrequencyChanged(true) {}
+			   itsUVWChanged(true), itsFrequencyChanged(true),
+			   itsTimeChanged(true), itsAntenna1Changed(true),
+			   itsAntenna2Changed(true), itsFeed1Changed(true),
+			   itsFeed2Changed(true) {}
 
 /// The number of rows in this chunk
 /// @return the number of rows in this chunk
@@ -108,6 +111,10 @@ void TableConstDataAccessor::invalidateIterationCaches() const throw()
   itsVisibilityChanged=true;
   itsUVWChanged=true;
   itsTimeChanged=true;
+  itsAntenna1Changed=true;
+  itsAntenna2Changed=true;
+  itsFeed1Changed=true;
+  itsFeed2Changed=true;
 }
 
 /// @brief set itsXxxChanged flags corresponding to spectral axis

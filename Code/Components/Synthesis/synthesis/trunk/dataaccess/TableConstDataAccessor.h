@@ -122,6 +122,23 @@ private:
   mutable bool itsTimeChanged;
   /// internal buffer for time
   mutable casa::Double itsTime;
+  /// change flag for the first antenna ids
+  mutable bool itsAntenna1Changed;
+  /// internal buffer for the first antenna ids
+  mutable casa::Vector<casa::uInt> itsAntenna1;
+  /// change flag for the second antenna ids
+  mutable bool itsAntenna2Changed;
+  /// internal buffer for the second antenna ids
+  mutable casa::Vector<casa::uInt> itsAntenna2;
+  /// change flag for the first feed ids
+  mutable bool itsFeed1Changed;
+  /// internal buffer for the first feed ids
+  mutable casa::Vector<casa::uInt> itsFeed1;
+  /// change flag for the second feed ids
+  mutable bool itsFeed2Changed;
+  /// internal buffer for the first feed ids
+  mutable casa::Vector<casa::uInt> itsFeed2;
+  
 };
 
 

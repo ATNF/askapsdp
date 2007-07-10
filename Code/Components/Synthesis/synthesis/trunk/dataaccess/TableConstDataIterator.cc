@@ -283,3 +283,14 @@ casa::Double TableConstDataIterator::getTime() const
   ROScalarMeasColumn<MEpoch> timeMeasCol(itsCurrentIteration,"TIME"); 
   return itsConverter->epoch(timeMeasCol(itsCurrentTopRow)); 
 }
+
+
+/// populate the buffer with IDs of the first antenna
+/// @param[in] ids a reference to a vector to fill
+void TableConstDataIterator::fillAntenna1(casa::Vector<casa::uInt> &ids) const
+{
+  ROScalarColumn<uInt> ant1Col(itsCurrentIteration,"ANTENNA1");
+  ids.resize(itsNumberOfRows);
+  ant1Col.getColumnRange(Slicer(IPosition(1,
+             itsCurrentTopRow),IPosition(1,itsNumberOfRows)),ids);
+}
