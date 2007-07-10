@@ -46,6 +46,10 @@ namespace conrad
 /// @param normeq Normal Equations
         virtual void addNormalEquations(const NormalEquations& normeq);
 
+/// Copy the normal equations from another solver
+/// @param other Another solver
+        virtual void copyNormalEquations(const Solver& other);
+
 /// Solve for parameters, updating the values kept internally
 /// The solution is constructed from the normal equations
 /// @param q Quality of solution
@@ -56,7 +60,6 @@ namespace conrad
 
 /// Clone this into a shared pointer
         virtual Solver::ShPtr clone() const;
-
 
       protected:
         /// Parameters

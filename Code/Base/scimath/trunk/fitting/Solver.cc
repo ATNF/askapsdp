@@ -25,6 +25,11 @@ namespace conrad
       return *itsParams;
     };
 
+    void Solver::copyNormalEquations(const Solver& other)
+    {
+      itsNormalEquations=other.itsNormalEquations->clone();
+    }
+
     void Solver::addNormalEquations(const NormalEquations& normeq)
     {
       itsNormalEquations->merge(normeq);
