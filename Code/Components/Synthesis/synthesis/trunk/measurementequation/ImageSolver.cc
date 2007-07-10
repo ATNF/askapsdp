@@ -87,19 +87,37 @@ namespace conrad
         	Axes axes(itsParams->axes(indit->first));
           casa::IPosition valShape(itsParams->value(indit->first).shape());
         	{
-        	  casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
-            itsParams->add("debug."+indit->first+".diagonal", value, axes);
-            itsParams->fix("debug."+indit->first+".diagonal");
+            casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
+            string name("debug."+indit->first+".diagonal");
+            if(itsParams->has(name)) {
+              itsParams->update(name, value);
+            }
+            else {
+              itsParams->add(name, value, axes);
+            }
+            itsParams->fix(name);
         	}
         	{
         	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
-        	  itsParams->add("debug."+indit->first+".dataVector", value, axes);
-            itsParams->fix("debug."+indit->first+".dataVector");
+            string name("debug."+indit->first+".dataVector");
+            if(itsParams->has(name)) {
+              itsParams->update(name, value);
+            }
+            else {
+              itsParams->add(name, value, axes);
+            }
+            itsParams->fix(name);
         	}
         	{
         	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
-            itsParams->add("debug."+indit->first+".slice", value, axes);
-            itsParams->fix("debug."+indit->first+".slice");
+            string name("debug."+indit->first+".slice");
+            if(itsParams->has(name)) {
+              itsParams->update(name, value);
+            }
+            else {
+              itsParams->add(name, value, axes);
+            }
+            itsParams->fix(name);
         	}
         }
       }
