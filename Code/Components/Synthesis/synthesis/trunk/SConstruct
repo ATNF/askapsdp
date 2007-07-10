@@ -11,8 +11,10 @@ import os
 
 os.environ['AIPSPATH']=os.environ['CONRAD_PROJECT_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
 
-#env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g','-DUSE_NOSOCKETS'])
-env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g'])
+if env["PLATFORM"] == "darwin":
+   env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g','-DUSE_NOSOCKETS'])
+else:
+   env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g'])
 
 # create build object with library name
 pkg = env.ConradPackage("synthesis")
