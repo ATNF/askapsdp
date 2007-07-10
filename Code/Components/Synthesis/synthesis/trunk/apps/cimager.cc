@@ -305,9 +305,6 @@ int main(int argc, const char** argv)
       }
     }
     MWCOUT << "Finished imaging" << std::endl;
-    MWCOUT << "user:   " << timer.user () << std::endl;
-    MWCOUT << "system: " << timer.system () << std::endl;
-    MWCOUT << "real:   " << timer.real () << std::endl;
     MWCOUT << "Ending MPI for rank " << rank << std::endl;
     MPIConnection::endMPI();
 
