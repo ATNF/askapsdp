@@ -287,10 +287,20 @@ casa::Double TableConstDataIterator::getTime() const
 
 /// populate the buffer with IDs of the first antenna
 /// @param[in] ids a reference to a vector to fill
-void TableConstDataIterator::fillAntenna1(casa::Vector<casa::uInt> &ids) const
+void TableConstDataIterator::fillAntenna1(casa::Vector<casa::uInt>& ids) const
 {
-  ROScalarColumn<uInt> ant1Col(itsCurrentIteration,"ANTENNA1");
+  ROScalarColumn<Int> ant1Col(itsCurrentIteration,"ANTENNA1");
   ids.resize(itsNumberOfRows);
-  ant1Col.getColumnRange(Slicer(IPosition(1,
-             itsCurrentTopRow),IPosition(1,itsNumberOfRows)),ids);
+  Vector<Int> buf=ant1Col.getColumnRange(Slicer(IPosition(1,
+             itsCurrentTopRow),IPosition(1,itsNumberOfRows)));
+  CONRADDEBUGASSERT(buf.nelements()==ids.nelements());
+  // need a copy because the type is different. There are no
+  // appropriate cast operators for casa::Vectors
+  Vector<Int>::const_iterator ci=buf.begin();
+  Vector<uInt>::iterator it=ids.begin();
+  for (; ci!=buf.end() && it!=ids.end() ; ++ci,++it) {
+       CONRADDEBUGASSERT(*ci>=0);
+	   *it=static_cast<uInt>(*ci);
+  }
+  //ids.reference(static_cast<const Vector<uInt> >(buf));
 }

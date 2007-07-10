@@ -81,6 +81,11 @@ public:
   ///         Double w.r.t. the origin specified by the 
   ///         DataSource object and in that reference frame
   virtual casa::Double time() const;
+  
+  /// First antenna IDs for all rows
+  /// @return a vector with IDs of the first antenna corresponding
+  /// to each visibility (one for each row)
+  virtual const casa::Vector<casa::uInt>& antenna1() const;
      
   /// @brief set itsXxxChanged flags corresponding to items updated on
   /// each iteration to true

@@ -104,6 +104,19 @@ casa::Double TableConstDataAccessor::time() const
   return itsTime;
 }
 
+/// First antenna IDs for all rows
+/// @return a vector with IDs of the first antenna corresponding
+/// to each visibility (one for each row)
+const casa::Vector<casa::uInt>& TableConstDataAccessor::antenna1() const
+{
+  if (itsAntenna1Changed) {
+	 itsIterator.fillAntenna1(itsAntenna1);
+	 itsAntenna1Changed=false;
+  }
+  return itsAntenna1;
+}
+
+
 
 /// set itsXxxChanged flags corresponding to items updated on each iteration to true
 void TableConstDataAccessor::invalidateIterationCaches() const throw()

@@ -30,7 +30,7 @@ void doReadOnlyTest(const IConstDataSource &ds) {
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
-       cout<<"uvw: "<<it->uvw()(1)<<endl;
+       cout<<"antenna1: "<<it->antenna1()<<endl;
        cout<<"time: "<<it->time()<<endl;
   }
 }
@@ -61,8 +61,8 @@ int main(int argc, char **argv) {
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
      TableDataSource ds(argv[1]);     
-     //doReadOnlyTest(ds);
-     doReadWriteTest(ds);    
+     doReadOnlyTest(ds);
+     //doReadWriteTest(ds);    
      
   }
   catch(const ConradError &ce) {
