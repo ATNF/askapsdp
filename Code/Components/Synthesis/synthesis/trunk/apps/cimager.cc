@@ -201,7 +201,7 @@ int main(int argc, const char** argv)
     NormalEquations ne(skymodel);
 
 // Now do the required number of major cycles
-    int nCycles(parset.getInt32("Cimager.solver.cycles", 10));
+    int nCycles(parset.getInt32("Cimager.solver.cycles", 1));
     for (int cycle=0;cycle<nCycles;cycle++)
     {
 
@@ -211,45 +211,51 @@ int main(int argc, const char** argv)
       }
 
 /// Now iterate through all data sets
+/// If running in parallel, the master doesn't do this.
+      if(!isParallel||!isMaster) {
       int slot=1;
       vector<string> ms=parset.getStringVector("DataSet");
       for (vector<string>::iterator thisms=ms.begin();thisms!=ms.end();++thisms)
       {
         if(!isParallel||(rank==slot))
         {
-          MWCOUT << "Processing data set " << *thisms << std::endl;
-          TableDataSource ds(*thisms);
-          IDataSelectorPtr sel=ds.createSelector();
-          IDataConverterPtr conv=ds.createConverter();
-          conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
-          IDataSharedIter it=ds.createIterator(sel, conv);
-          it.init();
-          it.chooseOriginal();
-          if((cycle>0)&&(isParallel))
-          {
-            receiveModel(cs, skymodel);
-            MWCOUT << "Received model from master" << std::endl;
+            MWCOUT << "Processing data set " << *thisms << std::endl;
+            TableDataSource ds(*thisms);
+            IDataSelectorPtr sel=ds.createSelector();
+            IDataConverterPtr conv=ds.createConverter();
+            conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"Hz");
+            IDataSharedIter it=ds.createIterator(sel, conv);
+            it.init();
+            it.chooseOriginal();
+            if((cycle>0)&&(isParallel))
+            {
+              receiveModel(cs, skymodel);
+              MWCOUT << "Received model from master" << std::endl;
+            }
+            ImageFFTEquation ie(skymodel, it, gridder);
+            MWCOUT << "Constructed measurement equation" << std::endl;
+  
+            ie.calcEquations(ne);
+            MWCOUT << "Calculated normal equations" << std::endl;
+            if(isParallel)
+            {
+              sendNE(cs, rank, ne);
+              MWCOUT << "Sent normal equations to the solver via MPI" << std::endl;
+            }
+            else
+            {
+              solver->addNormalEquations(ne);
+              MWCOUT << "Added normal equations to solver" << std::endl;
+            }
           }
-          ImageFFTEquation ie(skymodel, it, gridder);
-          MWCOUT << "Constructed measurement equation" << std::endl;
-
-          ie.calcEquations(ne);
-          MWCOUT << "Calculated normal equations" << std::endl;
-          if(nnode>1)
-          {
-            sendNE(cs, rank, ne);
-            MWCOUT << "Sent normal equations to the solver via MPI" << std::endl;
-          }
-          else
-          {
-            solver->addNormalEquations(ne);
-            MWCOUT << "Added normal equations to solver" << std::endl;
-          }
-        }
-        slot++;
+          slot++;
+          MWCOUT << "user:   " << timer.user () << std::endl;
+          MWCOUT << "system: " << timer.system () << std::endl;
+          MWCOUT << "real:   " << timer.real () << std::endl;        }
       }
 
-// Solver runs in master
+// Now do the solution
+// If running in parallel only the master does this
       if(!isParallel||isMaster)
       {
 // Could be that we are waiting for normal equations
@@ -259,17 +265,17 @@ int main(int argc, const char** argv)
           receiveNE(cs, nnode, solver);
           MWCOUT << "Received all normal equations" << std::endl;
         }
-// Perform the solution
         MWCOUT << "Solving normal equations" << std::endl;
         Quality q;
         solver->solveNormalEquations(q);
         MWCOUT << "Solved normal equations" << std::endl;
         skymodel=solver->parameters();
-        if((nCycles>1)&&(isParallel))
+        // Don't send the model where there are no workers around
+        if((nCycles>1)&&(cycle<(nCycles-1))&&(isParallel))
         {
           sendModel(cs, nnode, skymodel);
+          MWCOUT << "Sent model to all workers" << std::endl;
         }
-        MWCOUT << "Broadcast model to all workers" << std::endl;
         vector<string> resultimages=skymodel.names();
         for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
         {
@@ -278,7 +284,9 @@ int main(int argc, const char** argv)
             << "Maximum = " << max(resultImage) << ", minimum = " << min(resultImage) << std::endl;
         }
 
-      }
+        MWCOUT << "user:   " << timer.user () << std::endl;
+        MWCOUT << "system: " << timer.system () << std::endl;
+        MWCOUT << "real:   " << timer.real () << std::endl;      }
     }
 
 // The solution is complete - now we need to write out the results
