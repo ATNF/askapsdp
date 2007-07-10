@@ -86,7 +86,22 @@ public:
   /// @return a vector with IDs of the first antenna corresponding
   /// to each visibility (one for each row)
   virtual const casa::Vector<casa::uInt>& antenna1() const;
-     
+
+  /// Second antenna IDs for all rows
+  /// @return a vector with IDs of the second antenna corresponding
+  /// to each visibility (one for each row)
+  virtual const casa::Vector<casa::uInt>& antenna2() const;
+
+  /// First feed IDs for all rows
+  /// @return a vector with IDs of the first feed corresponding
+  /// to each visibility (one for each row)
+  virtual const casa::Vector<casa::uInt>& feed1() const;
+
+  /// Second feed IDs for all rows
+  /// @return a vector with IDs of the second feed corresponding
+  /// to each visibility (one for each row)
+  virtual const casa::Vector<casa::uInt>& feed2() const;
+
   /// @brief set itsXxxChanged flags corresponding to items updated on
   /// each iteration to true
   /// @details Such caches like visibility, uvw, noise and flags are updated

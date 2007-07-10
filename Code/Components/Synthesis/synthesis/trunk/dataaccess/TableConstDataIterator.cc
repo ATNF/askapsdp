@@ -289,10 +289,44 @@ casa::Double TableConstDataIterator::getTime() const
 /// @param[in] ids a reference to a vector to fill
 void TableConstDataIterator::fillAntenna1(casa::Vector<casa::uInt>& ids) const
 {
-  ROScalarColumn<Int> ant1Col(itsCurrentIteration,"ANTENNA1");
+  fillVectorOfIDs(ids,"ANTENNA1");
+}
+
+/// populate the buffer with IDs of the second antenna
+/// @param[in] ids a reference to a vector to fill
+void TableConstDataIterator::fillAntenna2(casa::Vector<casa::uInt> &ids) const
+{
+  fillVectorOfIDs(ids,"ANTENNA2");
+}
+
+/// populate the buffer with IDs of the first feed
+/// @param[in] ids a reference to a vector to fill
+void TableConstDataIterator::fillFeed1(casa::Vector<casa::uInt> &ids) const
+{
+  fillVectorOfIDs(ids,"FEED1");
+}
+
+/// populate the buffer with IDs of the second feed
+/// @param[in] ids a reference to a vector to fill
+void TableConstDataIterator::fillFeed2(casa::Vector<casa::uInt> &ids) const
+{
+  fillVectorOfIDs(ids,"FEED2");
+}
+
+
+/// @brief a helper method to read a column with IDs of some sort
+/// @details It reads the column of casa::Int and fills a Vector of
+/// casa::uInt. A check to ensure all numbers are non-negative is done
+/// in the debug mode.
+/// @param[in] ids a reference to a vector to fill
+/// @param[in] name a name of the column to read
+void TableConstDataIterator::fillVectorOfIDs(casa::Vector<casa::uInt> &ids,
+                     const casa::String &name) const
+{
+  ROScalarColumn<Int> col(itsCurrentIteration,name);
   ids.resize(itsNumberOfRows);
-  Vector<Int> buf=ant1Col.getColumnRange(Slicer(IPosition(1,
-             itsCurrentTopRow),IPosition(1,itsNumberOfRows)));
+  Vector<Int> buf=col.getColumnRange(Slicer(IPosition(1,
+                      itsCurrentTopRow),IPosition(1,itsNumberOfRows)));
   CONRADDEBUGASSERT(buf.nelements()==ids.nelements());
   // need a copy because the type is different. There are no
   // appropriate cast operators for casa::Vectors

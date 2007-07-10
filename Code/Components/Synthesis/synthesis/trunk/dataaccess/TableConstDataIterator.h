@@ -105,8 +105,28 @@ public:
   /// populate the buffer with IDs of the first antenna
   /// @param[in] ids a reference to a vector to fill
   void fillAntenna1(casa::Vector<casa::uInt> &ids) const;
-  
+
+  /// populate the buffer with IDs of the second antenna
+  /// @param[in] ids a reference to a vector to fill
+  void fillAntenna2(casa::Vector<casa::uInt> &ids) const;
+
+  /// populate the buffer with IDs of the first feed
+  /// @param[in] ids a reference to a vector to fill
+  void fillFeed1(casa::Vector<casa::uInt> &ids) const;
+
+  /// populate the buffer with IDs of the second feed
+  /// @param[in] ids a reference to a vector to fill
+  void fillFeed2(casa::Vector<casa::uInt> &ids) const;
+
 protected:
+  /// @brief a helper method to read a column with IDs of some sort
+  /// @details It reads the column of casa::Int and fills a Vector of
+  /// casa::uInt. A check to ensure all numbers are non-negative is done
+  /// in the debug mode.
+  /// @param[in] ids a reference to a vector to fill
+  /// @param[in] name a name of the column to read
+  void fillVectorOfIDs(casa::Vector<casa::uInt> &ids,
+                       const casa::String &name) const;
 
   /// setup accessor for a new iteration
   void setUpIteration();

@@ -116,6 +116,41 @@ const casa::Vector<casa::uInt>& TableConstDataAccessor::antenna1() const
   return itsAntenna1;
 }
 
+/// Second antenna IDs for all rows
+/// @return a vector with IDs of the second antenna corresponding
+/// to each visibility (one for each row)
+const casa::Vector<casa::uInt>& TableConstDataAccessor::antenna2() const
+{
+  if (itsAntenna2Changed) {
+	 itsIterator.fillAntenna2(itsAntenna2);
+	 itsAntenna2Changed=false;
+  }
+  return itsAntenna2; 
+}
+
+/// First feed IDs for all rows
+/// @return a vector with IDs of the first feed corresponding
+/// to each visibility (one for each row)
+const casa::Vector<casa::uInt>& TableConstDataAccessor::feed1() const
+{
+  if (itsFeed1Changed) {
+	 itsIterator.fillFeed1(itsFeed1);
+	 itsFeed1Changed=false;
+  }
+  return itsFeed1;
+}
+
+/// Second feed IDs for all rows
+/// @return a vector with IDs of the second feed corresponding
+/// to each visibility (one for each row)
+const casa::Vector<casa::uInt>& TableConstDataAccessor::feed2() const
+{
+  if (itsFeed2Changed) {
+	 itsIterator.fillFeed2(itsFeed2);
+	 itsFeed2Changed=false;
+  }
+  return itsFeed2;
+}
 
 
 /// set itsXxxChanged flags corresponding to items updated on each iteration to true
