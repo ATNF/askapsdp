@@ -27,6 +27,7 @@ namespace conrad
       casa::Cube<casa::Complex>& grid,
       casa::Vector<double>& weights)
     {
+      /// @todo Address weighting in TableVisGridder
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
@@ -85,6 +86,7 @@ namespace conrad
       casa::Array<casa::Complex>& grid,
       casa::Matrix<double>& sumwt)
     {
+      /// @todo Implement TableVisGridder::genericReverse for spectral line
       CONRADTHROW(ConradError, "genericReverse not yet implemented");
     }
 
@@ -145,6 +147,7 @@ namespace conrad
               }
               else
               {
+                /// @todo Unwrap this loop to avoid casa::Cube index overhead
                 int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
                 for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                 {
@@ -173,6 +176,7 @@ namespace conrad
       const casa::Vector<double>& cellsize,
       const casa::Array<casa::Complex>& grid)
     {
+      /// @todo Implement TableVisGridder::genericForward for spectral line
       CONRADTHROW(ConradError, "genericForward not yet implemented");
     }
 
@@ -188,6 +192,7 @@ namespace conrad
       const int gSize = grid.ncolumn();
       const int nSamples = uvw.size();
       const int nChan = freq.size();
+      // @todo Fix polarization processing in TableVisGridder
 //      const int nPol = visibility.shape()(2);
       const int nPol = 1;
 
