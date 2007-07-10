@@ -14,6 +14,8 @@
 #include <fitting/Params.h>
 
 #include <APS/ParameterSet.h>
+#include <images/Images/TempImage.h>
+#include <images/Images/ImageInterface.h>
 
 namespace conrad
 {
@@ -60,6 +62,18 @@ namespace conrad
         /// @param imagename Name of image file
         static void saveAsCasaImage(const conrad::scimath::Params& ip, const string& name,
           const string& imagename);
+        
+        /// @brief Copy a parameter to a CASA TempImage
+        /// Note that this will be a reference if possible
+        /// @param ip Parameters
+        /// @param name Name of parameter
+        static boost::shared_ptr<casa::TempImage<float> > 
+          tempImage(const conrad::scimath::Params& ip, 
+          const string& name);
+          
+        static void update(conrad::scimath::Params& ip, const string& name, 
+          const casa::ImageInterface<float>& image);
+        
     };
 
   }

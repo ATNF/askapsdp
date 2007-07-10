@@ -16,6 +16,7 @@
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
+#include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
 
@@ -54,7 +55,6 @@ void initOutput(int rank)
   ostr << rank;
   MWIos::setName ("cimager_tmp.cout" + ostr.str());
 }
-
 
 // Initialize connections
 MPIConnectionSet::ShPtr initConnections(int nnode, int rank)
@@ -150,7 +150,7 @@ int main(int argc, const char** argv)
 {
   try
   {
-
+      
 // Initialize MPI (also succeeds if no MPI available).
     MPIConnection::initMPI (argc, argv);
     int nnode = MPIConnection::getNrNodes();
@@ -189,10 +189,11 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("Cimager."));
 
     Params skymodel;
+    
 /// Create the specified images from the definition in the
 /// parameter set
     SynthesisParamsHelper::add(skymodel, parset, "Images.");
-
+        
 /// Create the gridder and solver using factories acting on
 /// parametersets
     Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
@@ -265,23 +266,52 @@ int main(int argc, const char** argv)
           receiveNE(cs, nnode, solver);
           MWCOUT << "Received all normal equations" << std::endl;
         }
-        MWCOUT << "Solving normal equations" << std::endl;
-        Quality q;
-        solver->solveNormalEquations(q);
-        MWCOUT << "Solved normal equations" << std::endl;
-        skymodel=solver->parameters();
-        // Don't send the model where there are no workers around
-        if((nCycles>1)&&(cycle<(nCycles-1))&&(isParallel))
-        {
-          sendModel(cs, nnode, skymodel);
-          MWCOUT << "Sent model to all workers" << std::endl;
+        if(cycle<(nCycles-1)) {
+          MWCOUT << "Solving normal equations" << std::endl;
+          Quality q;
+          solver->solveNormalEquations(q);
+          MWCOUT << "Solved normal equations" << std::endl;
+          skymodel=solver->parameters();
+          // Don't send the model where there are no workers around
+          if((nCycles>1)&&(isParallel))
+          {
+            sendModel(cs, nnode, skymodel);
+            MWCOUT << "Sent model to all workers" << std::endl;
+          }
+        }
+        else {
+          if(parset.getBool("Cimager.restore", true)) {
+            vector<string> beam=parset.getStringVector("Cimager.restore.beam");
+            casa::Vector<casa::Quantum<double> > qbeam(3);
+            for (int i=0;i<3;i++) {
+              casa::Quantity::read(qbeam(i), beam[i]);
+            }
+            MWCOUT << "Last cycle - restoring model" << std::endl;
+            // Make an image restore solver from the current solver
+            // so it can use the normal equations
+            // And write the images to CASA image files before and after restoring
+            vector<string> resultimages=skymodel.names();
+            for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
+            {
+              SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
+            }
+            ImageRestoreSolver ir(skymodel, qbeam);
+            ir.copyNormalEquations(*solver);
+            Quality q;
+            ir.solveNormalEquations(q);
+            for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
+            {
+              SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it+string(".restored"));
+            }
+          }
         }
         vector<string> resultimages=skymodel.names();
         for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
         {
           casa::Array<double> resultImage(skymodel.value(*it));
           MWCOUT << *it << std::endl
-            << "Maximum = " << max(resultImage) << ", minimum = " << min(resultImage) << std::endl;
+            << "Maximum = " << max(resultImage) << ", minimum = " 
+            << min(resultImage) << std::endl;
         }
 
         MWCOUT << "user:   " << timer.user () << std::endl;
@@ -296,17 +326,12 @@ int main(int argc, const char** argv)
       string resultfile(parset.getString("Parms.Result"));
       ParamsCasaTable results(resultfile, false);
       results.setParameters(skymodel);
-
-// And write the images to CASA image files
-      vector<string> resultimages=skymodel.names();
-      for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
-      {
-        SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
-      }
     }
     MWCOUT << "Finished imaging" << std::endl;
-    MWCOUT << "Ending MPI for rank " << rank << std::endl;
-    MPIConnection::endMPI();
+    if(isParallel) {
+      MWCOUT << "Ending MPI for rank " << rank << std::endl;
+      MPIConnection::endMPI();
+    }
 
     exit(0);
   }
