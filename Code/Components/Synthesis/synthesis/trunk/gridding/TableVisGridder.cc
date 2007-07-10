@@ -242,7 +242,7 @@ namespace conrad
                     int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                     for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                     {
-                      casa::Complex wt=itsC(uoff,voff,coff);
+                      casa::Complex wt=conj(itsC(uoff,voff,coff));
                       visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
                       sumviswt+=real(wt);
                       voff+=itsOverSample;
