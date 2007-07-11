@@ -106,7 +106,7 @@ namespace conrad
             double y2=double(iy-ceny)*celly;
             y2*=y2;
             double r2=x2+y2;
-            double phase=casa::C::pi*w*r2;
+            double phase=2.0*casa::C::pi*w*(1.0-sqrt(1.0-r2));
             double wt=ccfx(ix-cenx+nx/2)*ccfy(iy-ceny+ny/2);
             thisPlane(ix,iy)=casa::Complex(wt*cos(phase), wt*sin(phase));
           }
