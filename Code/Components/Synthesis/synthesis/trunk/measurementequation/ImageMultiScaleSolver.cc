@@ -125,6 +125,7 @@ namespace conrad
           lc.setscales(itsScales);
           lc.setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), false);
         }
+        lc.ignoreCenterBox(true);
         lc.clean(clean);
 
         casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
