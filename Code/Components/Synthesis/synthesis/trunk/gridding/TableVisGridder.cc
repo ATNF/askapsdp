@@ -148,18 +148,18 @@ namespace conrad
               else
               {
                 /// @todo Unwrap this loop to avoid casa::Cube index overhead
-                int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
-                for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
+                int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
+                for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                 {
-                  int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
-                  for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+                  int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
+                  for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                   {
                     casa::Complex wt=itsC(uoff,voff,coff);
                     grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
                     sumwt(pol)+=real(wt);
-                    voff+=itsOverSample;
+                    uoff+=itsOverSample;
                   }
-                  uoff+=itsOverSample;
+                  voff+=itsOverSample;
                 }
               }
             }
@@ -241,18 +241,18 @@ namespace conrad
                 }
                 else
                 {
-                  int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
-                  for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
+                  int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
+                  for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                   {
-                    int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
-                    for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
+                    int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
+                    for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                     {
                       casa::Complex wt=conj(itsC(uoff,voff,coff));
                       visibility(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
                       sumviswt+=real(wt);
-                      voff+=itsOverSample;
+                      uoff+=itsOverSample;
                     }
-                    uoff+=itsOverSample;
+                    voff+=itsOverSample;
                   }
                 }
               }
