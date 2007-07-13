@@ -11,6 +11,10 @@
 #ifndef CACHED_ACCESSOR_FIELD_TCC
 #define CACHED_ACCESSOR_FIELD_TCC
 
+namespace conrad {
+
+namespace synthesis {
+
 /// @brief a single cached field of the data accessor 
 ///
 /// @details TableConstDataAccessor manages a number of cached fields.
@@ -76,5 +80,9 @@ const T& CachedAccessorField<T>::value(Reader reader) const
   }
   return itsValue;
 }
+
+} // namespace synthesis
+
+} // namespace conrad
 
 #endif // #ifndef CACHED_ACCESSOR_FIELD_TCC
