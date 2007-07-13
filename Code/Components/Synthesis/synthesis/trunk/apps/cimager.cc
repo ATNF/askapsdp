@@ -47,6 +47,15 @@ using namespace conrad::synthesis;
 using namespace LOFAR::ACC::APS;
 using namespace conrad::cp;
 
+std::ostream& os(bool isParallel) {
+  if(isParallel) {
+    return MWCOUT;
+  }
+  else {
+    return std::cout;
+  }
+}
+
 // For MPI, we need to divert the output
 void initOutput(int rank)
 {
@@ -167,12 +176,12 @@ int main(int argc, const char** argv)
       cs=initConnections(nnode, rank);
       if (isMaster)
       {
-        MWCOUT << "CONRAD synthesis imaging program (parallel version) on " << nnode
+        os(isParallel) << "CONRAD synthesis imaging program (parallel version) on " << nnode
           << " nodes (master)" << std::endl;
       }
       else
       {
-        MWCOUT << "CONRAD synthesis imaging program (parallel version) on " << nnode
+        os(isParallel) << "CONRAD synthesis imaging program (parallel version) on " << nnode
           << " nodes (worker " << rank << ")" << std::endl;
       }
     }
@@ -208,7 +217,7 @@ int main(int argc, const char** argv)
 
       if(nCycles>1)
       {
-        MWCOUT << "*** Starting major cycle " << cycle << " ***" << std::endl;
+        os(isParallel) << "*** Starting major cycle " << cycle << " ***" << std::endl;
       }
 
 /// Now iterate through all data sets
@@ -220,7 +229,7 @@ int main(int argc, const char** argv)
       {
         if(!isParallel||(rank==slot))
         {
-            MWCOUT << "Processing data set " << *thisms << std::endl;
+            os(isParallel) << "Processing data set " << *thisms << std::endl;
             TableDataSource ds(*thisms);
             IDataSelectorPtr sel=ds.createSelector();
             IDataConverterPtr conv=ds.createConverter();
@@ -231,28 +240,28 @@ int main(int argc, const char** argv)
             if((cycle>0)&&(isParallel))
             {
               receiveModel(cs, skymodel);
-              MWCOUT << "Received model from master" << std::endl;
+              os(isParallel) << "Received model from master" << std::endl;
             }
             ImageFFTEquation ie(skymodel, it, gridder);
-            MWCOUT << "Constructed measurement equation" << std::endl;
+            os(isParallel) << "Constructed measurement equation" << std::endl;
   
             ie.calcEquations(ne);
-            MWCOUT << "Calculated normal equations" << std::endl;
+            os(isParallel) << "Calculated normal equations" << std::endl;
             if(isParallel)
             {
               sendNE(cs, rank, ne);
-              MWCOUT << "Sent normal equations to the solver via MPI" << std::endl;
+              os(isParallel) << "Sent normal equations to the solver via MPI" << std::endl;
             }
             else
             {
               solver->addNormalEquations(ne);
-              MWCOUT << "Added normal equations to solver" << std::endl;
+              os(isParallel) << "Added normal equations to solver" << std::endl;
             }
           }
           slot++;
-          MWCOUT << "user:   " << timer.user () << std::endl;
-          MWCOUT << "system: " << timer.system () << std::endl;
-          MWCOUT << "real:   " << timer.real () << std::endl;        }
+          os(isParallel) << "user:   " << timer.user () << std::endl;
+          os(isParallel) << "system: " << timer.system () << std::endl;
+          os(isParallel) << "real:   " << timer.real () << std::endl;        }
       }
 
 // Now do the solution
@@ -262,21 +271,21 @@ int main(int argc, const char** argv)
 // Could be that we are waiting for normal equations
         if (isParallel)
         {
-          MWCOUT << "Waiting for normal equations" << std::endl;
+          os(isParallel) << "Waiting for normal equations" << std::endl;
           receiveNE(cs, nnode, solver);
-          MWCOUT << "Received all normal equations" << std::endl;
+          os(isParallel) << "Received all normal equations" << std::endl;
         }
         if(cycle<(nCycles-1)) {
-          MWCOUT << "Solving normal equations" << std::endl;
+          os(isParallel) << "Solving normal equations" << std::endl;
           Quality q;
           solver->solveNormalEquations(q);
-          MWCOUT << "Solved normal equations" << std::endl;
+          os(isParallel) << "Solved normal equations" << std::endl;
           skymodel=solver->parameters();
           // Don't send the model where there are no workers around
           if((nCycles>1)&&(isParallel))
           {
             sendModel(cs, nnode, skymodel);
-            MWCOUT << "Sent model to all workers" << std::endl;
+            os(isParallel) << "Sent model to all workers" << std::endl;
           }
         }
         else {
@@ -286,7 +295,7 @@ int main(int argc, const char** argv)
             for (int i=0;i<3;i++) {
               casa::Quantity::read(qbeam(i), beam[i]);
             }
-            MWCOUT << "Last cycle - restoring model" << std::endl;
+            os(isParallel) << "Last cycle - restoring model" << std::endl;
             // Make an image restore solver from the current solver
             // so it can use the normal equations
             // And write the images to CASA image files before and after restoring
@@ -309,14 +318,14 @@ int main(int argc, const char** argv)
         for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
         {
           casa::Array<double> resultImage(skymodel.value(*it));
-          MWCOUT << *it << std::endl
+          os(isParallel) << *it << std::endl
             << "Maximum = " << max(resultImage) << ", minimum = " 
             << min(resultImage) << std::endl;
         }
 
-        MWCOUT << "user:   " << timer.user () << std::endl;
-        MWCOUT << "system: " << timer.system () << std::endl;
-        MWCOUT << "real:   " << timer.real () << std::endl;      }
+        os(isParallel) << "user:   " << timer.user () << std::endl;
+        os(isParallel) << "system: " << timer.system () << std::endl;
+        os(isParallel) << "real:   " << timer.real () << std::endl;      }
     }
 
 // The solution is complete - now we need to write out the results
@@ -327,9 +336,9 @@ int main(int argc, const char** argv)
       ParamsCasaTable results(resultfile, false);
       results.setParameters(skymodel);
     }
-    MWCOUT << "Finished imaging" << std::endl;
+    os(isParallel) << "Finished imaging" << std::endl;
     if(isParallel) {
-      MWCOUT << "Ending MPI for rank " << rank << std::endl;
+      os(isParallel) << "Ending MPI for rank " << rank << std::endl;
       MPIConnection::endMPI();
     }
 
@@ -337,12 +346,12 @@ int main(int argc, const char** argv)
   }
   catch (conrad::ConradError& x)
   {
-    MWCOUT << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
+    std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
   catch (std::exception& x)
   {
-    MWCOUT << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+    std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
 };
