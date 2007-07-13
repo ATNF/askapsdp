@@ -29,9 +29,9 @@ struct CachedAccessorField {
   
   /// @brief access the data, read on-demand
   /// @details On the first request and whenever is necessary, this method reads the data using 
-  /// a given member of the Reader class
+  /// a given member of the Reader class.
   /// Reader is a type of an object function, which can fill this field
-  /// with the appropriate information (i.e. read it). Used in value method only
+  /// with the appropriate information (i.e. read it). 
   /// @param[in] reader an object which has a method able to fill this field
   /// @param[in] func a pointer to a member of reader to be used to fill the field if required
   /// @return a reference to the actual data
@@ -42,7 +42,7 @@ struct CachedAccessorField {
   /// @details On the first request and whenever is necessary, this method reads the data 
   /// using Reader::operator(), which must accept non-const reference to the type T.
   /// Reader is a type of an object function, which can fill this field
-  /// with the appropriate information (i.e. read it). Used in value method only  
+  /// with the appropriate information (i.e. read it).   
   /// @param[in] reader an object which has a method able to fill this field
   /// @return a reference to the actual data
   template<typename Reader>
