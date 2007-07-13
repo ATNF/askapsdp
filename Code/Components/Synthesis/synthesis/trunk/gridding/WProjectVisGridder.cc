@@ -68,17 +68,17 @@ namespace conrad
       int cenx=nx/2;
       int ceny=ny/2;
  
-      casa::Vector<double> ccfx(nx);
-      casa::Vector<double> ccfy(ny);
+      casa::Vector<float> ccfx(nx);
+      casa::Vector<float> ccfy(ny);
       for (int ix=0;ix<nx;ix++)
       {
-        double nux=std::abs(double(ix-cenx))/double(nx/2);
-        ccfx(ix)=grdsf(nux)/double(nx);
+        float nux=std::abs(float(ix-cenx))/float(nx/2);
+        ccfx(ix)=grdsf(nux)/float(nx);
       }
       for (int iy=0;iy<ny;iy++)
       {
-        double nuy=std::abs(double(iy-ceny))/double(ny/2);
-        ccfy(iy)=grdsf(nuy)/double(nx);
+        float nuy=std::abs(float(iy-ceny))/float(ny/2);
+        ccfy(iy)=grdsf(nuy)/float(nx);
       }
       
       // Now we step through the w planes, starting the furthest
@@ -88,31 +88,32 @@ namespace conrad
       // function in uv space
       casa::Matrix<casa::Complex> thisPlane(nx*itsOverSample, ny*itsOverSample);
       
-      double cellx=1.0/(double(nx)*cellSize(0));
-      double celly=1.0/(double(ny)*cellSize(1));
+      float cellx=1.0/(float(nx)*cellSize(0));
+      float celly=1.0/(float(ny)*cellSize(1));
 
 
       for (int iw=0;iw<=cenw;iw++) {
          
         thisPlane.set(0.0);
         
-        double w=double(iw-cenw)*itsWScale;
-        for(int ix=cenx-nx/2;ix<cenx+nx/2;ix++)
+        float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
+        for(int iy=ceny-ny/2;iy<ceny+ny/2;iy++)
         {
-          double x2=double(ix-cenx)*cellx;
-          x2*=x2;
-          for(int iy=ceny-ny/2;iy<ceny+ny/2;iy++)
+          float y2=float(iy-ceny)*celly;
+          y2*=y2;
+          for(int ix=cenx-nx/2;ix<cenx+nx/2;ix++)
           {
-            double y2=double(iy-ceny)*celly;
-            y2*=y2;
-            double r2=x2+y2;
-            double phase=2.0*casa::C::pi*w*(1.0-sqrt(1.0-r2));
-            double wt=ccfx(ix-cenx+nx/2)*ccfy(iy-ceny+ny/2);
+            float x2=float(ix-cenx)*cellx;
+            x2*=x2;
+            float r2=x2+y2;
+            float phase=w*(1.0-sqrt(1.0-r2));
+            float wt=ccfx(iy-ceny+ny/2)*ccfy(ix-cenx+nx/2);
             thisPlane(ix,iy)=casa::Complex(wt*cos(phase), wt*sin(phase));
           }
         }
         // Now we have to calculate the Fourier transform to get the
         // convolution function in uv space
+        // @todo Replace ffts by smarter versions - real/complex and FFTW
         for (int iy=0;iy<itsOverSample*ny;iy++)
         {
           casa::Array<casa::Complex> vec(thisPlane.column(iy));
@@ -155,11 +156,7 @@ namespace conrad
         }
         itsC.xyPlane(itsNWPlanes-1-iw)=casa::conj(itsC.xyPlane(iw));
       }
-//      std::cout << "Shape of convolution function = " << itsC.shape() << std::endl;
-//      for (int iw=0;iw<itsNWPlanes;iw++) {
-//        std::cout << iw << " " << real(casa::max(casa::abs(itsC.xyPlane(iw)))) 
-//          << std::endl;
-//      }
+      std::cout << "Shape of convolution function = " << itsC.shape() << std::endl;
     }
     
     int WProjectVisGridder::cOffset(int row, int chan)
