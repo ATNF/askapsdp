@@ -18,6 +18,7 @@
 #include <dataaccess/IConstDataAccessor.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <dataaccess/DataAccessError.h>
+#include <dataaccess/CachedAccessorField.tcc>
 
 namespace conrad {
 	
@@ -102,8 +103,7 @@ public:
   /// to each visibility (one for each row)
   virtual const casa::Vector<casa::uInt>& feed2() const;
 
-  /// @brief set itsXxxChanged flags corresponding to items updated on
-  /// each iteration to true
+  /// @brief invalidate fields updated on each iteration
   /// @details Such caches like visibility, uvw, noise and flags are updated
   /// on each new iteration. These are invalidated by call to this methid.
   /// Caches of frequency/velocity axis are updated less regularly (may be
@@ -112,8 +112,7 @@ public:
   /// the new window is not the same as the cached one
   virtual void invalidateIterationCaches() const throw();
   
-  /// @brief set itsXxxChanged flags corresponding to spectral axis
-  /// information to true
+  /// @brief invalidate fields corresponding to the spectral axis
   /// @details See invalidateIterationCaches for more details
   void invalidateSpectralCaches() const throw();
 
@@ -124,41 +123,36 @@ public:
   /// @return a const reference to the associated iterator
   const TableConstDataIterator& iterator() const throw(DataAccessLogicError);
 private:  
+  /// a helper adapter method to set the time via non-const reference
+  /// @param[in] time a reference to buffer to fill with the current time 
+  void readTime(casa::Double &time) const;
+  
   /// a reference to iterator managing this accessor
   const TableConstDataIterator& itsIterator;
-  /// change flag for visibility
-  mutable bool itsVisibilityChanged;
-  /// internal buffer for visibility
-  mutable casa::Cube<casa::Complex> itsVisibility;
-  /// change flag for uvw
-  mutable bool itsUVWChanged;
-  /// internal buffer for uvw
-  mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
-  /// change flag for frequency
-  mutable bool itsFrequencyChanged;
-  /// internal buffer for frequency
-  mutable casa::Vector<casa::Double> itsFrequency;
-  /// change flag for time
-  mutable bool itsTimeChanged;
-  /// internal buffer for time
-  mutable casa::Double itsTime;
-  /// change flag for the first antenna ids
-  mutable bool itsAntenna1Changed;
-  /// internal buffer for the first antenna ids
-  mutable casa::Vector<casa::uInt> itsAntenna1;
-  /// change flag for the second antenna ids
-  mutable bool itsAntenna2Changed;
-  /// internal buffer for the second antenna ids
-  mutable casa::Vector<casa::uInt> itsAntenna2;
-  /// change flag for the first feed ids
-  mutable bool itsFeed1Changed;
-  /// internal buffer for the first feed ids
-  mutable casa::Vector<casa::uInt> itsFeed1;
-  /// change flag for the second feed ids
-  mutable bool itsFeed2Changed;
-  /// internal buffer for the first feed ids
-  mutable casa::Vector<casa::uInt> itsFeed2;
   
+  /// internal buffer for visibility
+  CachedAccessorField<casa::Cube<casa::Complex> > itsVisibility;
+ 
+  /// internal buffer for uvw
+  CachedAccessorField<casa::Vector<casa::RigidVector<casa::Double, 3> > > itsUVW;
+ 
+  /// internal buffer for frequency
+  CachedAccessorField<casa::Vector<casa::Double> > itsFrequency;
+
+  /// internal buffer for time
+  CachedAccessorField<casa::Double> itsTime;
+  
+  /// internal buffer for the first antenna ids
+  CachedAccessorField<casa::Vector<casa::uInt> > itsAntenna1;
+
+  /// internal buffer for the second antenna ids
+  CachedAccessorField<casa::Vector<casa::uInt> > itsAntenna2;
+  
+  /// internal buffer for the first feed ids
+  CachedAccessorField<casa::Vector<casa::uInt> > itsFeed1;
+  
+  /// internal buffer for the second feed ids
+  CachedAccessorField<casa::Vector<casa::uInt> > itsFeed2;
 };
 
 

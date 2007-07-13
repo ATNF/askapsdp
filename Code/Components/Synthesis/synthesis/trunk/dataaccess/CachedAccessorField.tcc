@@ -15,20 +15,37 @@
 ///
 /// @details TableConstDataAccessor manages a number of cached fields.
 /// This class represents a single such field
-/// Template parameters:
+/// Template parameter:
 /// @li T is a type of the field
-/// @li Reader is a type of an object function, which can fill this field
-/// with the appropriate information (i.e. read it)
+/// @ingroup dataaccess_hlp
 template<typename T>
 struct CachedAccessorField {
   /// @brief initialize the class, set the flag that reading is required
   CachedAccessorField() : itsChangedFlag(true) {}
   
+  /// @brief access the data, read on-demand
+  /// @details On the first request and whenever is necessary, this method reads the data using 
+  /// a given member of the Reader class
+  /// Reader is a type of an object function, which can fill this field
+  /// with the appropriate information (i.e. read it). Used in value method only
+  /// @param[in] reader an object which has a method able to fill this field
+  /// @param[in] func a pointer to a member of reader to be used to fill the field if required
   /// @return a reference to the actual data
-  operator const T&() const;
-
+  template<typename Reader>
+  inline const T& value(const Reader &reader, void (Reader::*func)(T&) const) const;
+  
+  /// @brief access the data, read on-demand
+  /// @details On the first request and whenever is necessary, this method reads the data 
+  /// using Reader::operator(), which must accept non-const reference to the type T.
+  /// Reader is a type of an object function, which can fill this field
+  /// with the appropriate information (i.e. read it). Used in value method only  
+  /// @param[in] reader an object which has a method able to fill this field
+  /// @return a reference to the actual data
+  template<typename Reader>
+  inline const T& value(Reader reader) const;
+   
   /// @brief invalidate the field
-  void invalidate() throw() { itsChangedFlag=true; }
+  void inline invalidate() const throw() { itsChangedFlag=true; }
 
 private:
   /// true, if the field needs reading
@@ -37,5 +54,27 @@ private:
   /// cached buffer
   mutable T itsValue;
 };
+
+template<class T> template<typename Reader>
+const T& CachedAccessorField<T>::value(const Reader &reader, 
+                        void (Reader::*func)(T&) const)  const
+{ 
+  if (itsChangedFlag) {
+	  (reader.*func)(itsValue);
+	  itsChangedFlag=false;
+  }
+  return itsValue;
+}
+
+
+template<class T> template<typename Reader>
+const T& CachedAccessorField<T>::value(Reader reader) const
+{ 
+  if (itsChangedFlag) {
+	  reader(itsValue);
+	  itsChangedFlag=false;
+  }
+  return itsValue;
+}
 
 #endif // #ifndef CACHED_ACCESSOR_FIELD_TCC

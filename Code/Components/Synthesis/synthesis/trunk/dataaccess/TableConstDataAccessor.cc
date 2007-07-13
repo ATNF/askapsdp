@@ -19,15 +19,12 @@
 using namespace conrad;
 using namespace conrad::synthesis;
 
+
 /// construct an object linked with the given iterator
 /// @param iter a reference to associated iterator
 TableConstDataAccessor::TableConstDataAccessor(
                            const TableConstDataIterator &iter) :
-			   itsIterator(iter), itsVisibilityChanged(true),
-			   itsUVWChanged(true), itsFrequencyChanged(true),
-			   itsTimeChanged(true), itsAntenna1Changed(true),
-			   itsAntenna2Changed(true), itsFeed1Changed(true),
-			   itsFeed2Changed(true) {}
+			   itsIterator(iter) {}
 
 /// The number of rows in this chunk
 /// @return the number of rows in this chunk
@@ -56,11 +53,8 @@ casa::uInt TableConstDataAccessor::nPol() const throw()
 /// all visibility data
 const casa::Cube<casa::Complex>& TableConstDataAccessor::visibility() const
 {
-  if (itsVisibilityChanged) {
-      itsIterator.fillVisibility(itsVisibility);
-      itsVisibilityChanged=false;
-  }
-  return itsVisibility;
+  return itsVisibility.value(itsIterator,
+                        &TableConstDataIterator::fillVisibility);
 }
 
 /// UVW
@@ -69,11 +63,7 @@ const casa::Cube<casa::Complex>& TableConstDataAccessor::visibility() const
 const casa::Vector<casa::RigidVector<casa::Double, 3> >&
 TableConstDataAccessor::uvw() const
 {
-  if (itsUVWChanged) {
-      itsIterator.fillUVW(itsUVW);
-      itsUVWChanged=false;
-  }
-  return itsUVW;
+  return itsUVW.value(itsIterator,&TableConstDataIterator::fillUVW);
 }
 
 /// Frequency for each channel
@@ -83,25 +73,25 @@ TableConstDataAccessor::uvw() const
 ///         the DataSource object
 const casa::Vector<casa::Double>& TableConstDataAccessor::frequency() const
 {
-  if (itsFrequencyChanged) {
-      itsIterator.fillFrequency(itsFrequency);
-      itsFrequencyChanged=false;
-  }
-  return itsFrequency;
+  return itsFrequency.value(itsIterator,&TableConstDataIterator::fillFrequency);
 }
 
-/// Timestamp for each row
+/// a helper adapter method to set the time via non-const reference
+/// @param[in] time a reference to buffer to fill with the current time 
+void TableConstDataAccessor::readTime(casa::Double &time) const
+{
+  time=itsIterator.getTime();
+}
+  
+
+/// Timestamp for all rows
 /// @return a timestamp for this buffer (it is always the same
 ///         for all rows. The timestamp is returned as 
 ///         Double w.r.t. the origin specified by the 
 ///         DataSource object and in that reference frame
 casa::Double TableConstDataAccessor::time() const
 {
-  if (itsTimeChanged) {
-      itsTime=itsIterator.getTime();
-      itsTimeChanged=false;
-  }
-  return itsTime;
+  return itsTime.value(*this,&TableConstDataAccessor::readTime);
 }
 
 /// First antenna IDs for all rows
@@ -109,11 +99,7 @@ casa::Double TableConstDataAccessor::time() const
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& TableConstDataAccessor::antenna1() const
 {
-  if (itsAntenna1Changed) {
-	 itsIterator.fillAntenna1(itsAntenna1);
-	 itsAntenna1Changed=false;
-  }
-  return itsAntenna1;
+  return itsAntenna1.value(itsIterator,&TableConstDataIterator::fillAntenna1);
 }
 
 /// Second antenna IDs for all rows
@@ -121,11 +107,7 @@ const casa::Vector<casa::uInt>& TableConstDataAccessor::antenna1() const
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& TableConstDataAccessor::antenna2() const
 {
-  if (itsAntenna2Changed) {
-	 itsIterator.fillAntenna2(itsAntenna2);
-	 itsAntenna2Changed=false;
-  }
-  return itsAntenna2; 
+  return itsAntenna2.value(itsIterator,&TableConstDataIterator::fillAntenna2);
 }
 
 /// First feed IDs for all rows
@@ -133,11 +115,7 @@ const casa::Vector<casa::uInt>& TableConstDataAccessor::antenna2() const
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& TableConstDataAccessor::feed1() const
 {
-  if (itsFeed1Changed) {
-	 itsIterator.fillFeed1(itsFeed1);
-	 itsFeed1Changed=false;
-  }
-  return itsFeed1;
+  return itsFeed1.value(itsIterator,&TableConstDataIterator::fillFeed1);
 }
 
 /// Second feed IDs for all rows
@@ -145,32 +123,27 @@ const casa::Vector<casa::uInt>& TableConstDataAccessor::feed1() const
 /// to each visibility (one for each row)
 const casa::Vector<casa::uInt>& TableConstDataAccessor::feed2() const
 {
-  if (itsFeed2Changed) {
-	 itsIterator.fillFeed2(itsFeed2);
-	 itsFeed2Changed=false;
-  }
-  return itsFeed2;
+  return itsFeed1.value(itsIterator,&TableConstDataIterator::fillFeed2);
 }
 
 
-/// set itsXxxChanged flags corresponding to items updated on each iteration to true
+/// invalidate fields  updated on each iteration
 void TableConstDataAccessor::invalidateIterationCaches() const throw()
 {
-  itsVisibilityChanged=true;
-  itsUVWChanged=true;
-  itsTimeChanged=true;
-  itsAntenna1Changed=true;
-  itsAntenna2Changed=true;
-  itsFeed1Changed=true;
-  itsFeed2Changed=true;
+  itsVisibility.invalidate();
+  itsUVW.invalidate();
+  itsTime.invalidate();
+  itsAntenna1.invalidate();
+  itsAntenna2.invalidate();
+  itsFeed1.invalidate();
+  itsFeed2.invalidate();
 }
 
-/// @brief set itsXxxChanged flags corresponding to spectral axis
-/// information to true
+/// @brief invalidate all fields  corresponding to the spectral axis
 /// @details See invalidateIterationCaches for more details
 void TableConstDataAccessor::invalidateSpectralCaches() const throw()
 {
-  itsFrequencyChanged=true;
+  itsFrequency.invalidate();
 }
 
 /// @brief Obtain a const reference to associated iterator.
