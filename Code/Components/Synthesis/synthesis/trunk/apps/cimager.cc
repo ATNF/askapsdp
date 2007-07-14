@@ -206,7 +206,6 @@ int main(int argc, const char** argv)
       /// Create the gridder and solver using factories acting on
       /// parametersets
       IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
-      Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
       
       
       NormalEquations ne(skymodel);
@@ -216,9 +215,8 @@ int main(int argc, const char** argv)
       for (int cycle=0;cycle<nCycles;cycle++)
 	{
 	  
-	  // Need to reset the solver so that the normal equations are zero'ed
-	  solver->init();
-	  
+    Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
+
 	  if(nCycles>1)
 	    {
 	      os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
