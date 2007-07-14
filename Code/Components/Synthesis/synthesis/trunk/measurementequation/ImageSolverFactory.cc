@@ -27,9 +27,6 @@ namespace conrad
         std::cout << "Constructed image multiscale solver" << std::endl;
         solver->setGain(parset.getFloat("solver.gain", 0.7));
         solver->setAlgorithm(parset.getString("solver.algorithm", "MultiScale"));
-  //      std::vector<float> scales(1); scales[0]=0;
-  //      dynamic_cast<ImageMultiScaleSolver*>(*solver)->setScales(parset.getFloatVector("solver.scales", scales));
-  
       }
       else {
         solver = Solver::ShPtr(new ImageSolver(ip));
@@ -37,6 +34,9 @@ namespace conrad
       }
       solver->setVerbose(parset.getBool("solver.verbose", true));
       solver->setNiter(parset.getInt32("solver.niter", 100));
+      casa::Quantity threshold;
+      casa::Quantity::read(threshold, parset.getString("solver.threshold", "0Jy"));
+      solver->setThreshold(threshold);
       return solver;
     }
   }
