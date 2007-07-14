@@ -46,6 +46,7 @@ namespace conrad
     
     void Solver::init()
     {
+      itsNormalEquations->reset();
     }
     
   }
