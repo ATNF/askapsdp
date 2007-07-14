@@ -12,6 +12,8 @@ pkg = env.ConradPackage("mwcommon")
 # add sub packages 
 pkg.AddSubPackage("mwcommon")
 
+env.Append(CPPFLAGS=['-O2','-DCONRAD_DEBUG', '-g'])
+
 # run the build process
 pkg()
 
