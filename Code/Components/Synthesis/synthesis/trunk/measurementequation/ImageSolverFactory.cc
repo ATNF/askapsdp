@@ -23,7 +23,12 @@ namespace conrad
     Solver::ShPtr ImageSolverFactory::make(Params& ip, const ParameterSet& parset) {
       Solver::ShPtr solver;
       if(parset.getString("solver")=="Clean") {
-        solver = Solver::ShPtr(new ImageMultiScaleSolver(ip));
+        std::vector<float> defaultScales(3);
+        defaultScales[0]=0.0;
+        defaultScales[1]=10.0;
+        defaultScales[2]=30.0;
+        std::vector<float> scales=parset.getFloatVector("solver.scales", defaultScales);
+        solver = Solver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
         std::cout << "Constructed image multiscale solver" << std::endl;
         solver->setGain(parset.getFloat("solver.gain", 0.7));
         solver->setAlgorithm(parset.getString("solver.algorithm", "MultiScale"));

@@ -34,14 +34,22 @@ namespace conrad
   namespace synthesis
   {
     
+      
     ImageMultiScaleSolver::ImageMultiScaleSolver(const conrad::scimath::Params& ip) : 
           conrad::scimath::Solver(ip) 
     {
-      itsScales.resize(4);
+      itsScales.resize(3);
       itsScales(0)=0;
-      itsScales(1)=3;
-      itsScales(2)=10;
-      itsScales(3)=30;
+      itsScales(1)=10;
+      itsScales(2)=30;
+    }
+
+    ImageMultiScaleSolver::ImageMultiScaleSolver(const conrad::scimath::Params& ip,
+      const casa::Vector<float>& scales) : 
+          conrad::scimath::Solver(ip) 
+    {
+      itsScales.resize(scales.size());
+      itsScales=scales;
     }
 
     void ImageMultiScaleSolver::init()
@@ -165,10 +173,5 @@ namespace conrad
       return Solver::ShPtr(new ImageMultiScaleSolver(*this));
     }
 
-    void ImageMultiScaleSolver::setScales(const casa::Vector<float>& scales) 
-    {
-      itsScales.resize(scales.size());
-      itsScales=scales;
-    }
   }
 }

@@ -31,8 +31,18 @@ namespace conrad
         /// @brief Constructor from parameters.
         /// The parameters named image* will be interpreted as images and
         /// solutions formed by the method described.
+        /// The default scales are 0, 10, 30 pixels
+        /// @param ip Parameters i.e. the images
         ImageMultiScaleSolver(const conrad::scimath::Params& ip);
 
+        /// @brief Constructor from parameters and scales.
+        /// The parameters named image* will be interpreted as images and
+        /// solutions formed by the method described.
+        /// @param ip Parameters i.e. the images
+        /// @param scales Scales to be solved in pixels
+        ImageMultiScaleSolver(const conrad::scimath::Params& ip,
+          const casa::Vector<float>& scales);
+          
         /// @brief Initialize this solver
         virtual void init();
 
