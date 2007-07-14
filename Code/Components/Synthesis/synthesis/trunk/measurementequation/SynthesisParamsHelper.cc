@@ -156,7 +156,13 @@ namespace conrad {
       casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
 
       casa::Quantum<double> incLon((axes.start("RA")-axes.end("RA"))/double(nx), "rad");
-      casa::Quantum<double> incLat((axes.start("DEC")-axes.end("DEC"))/double(ny), "rad");
+      casa::Quantum<double> incLat;
+      if(refLat.getValue()<0.0) {
+        incLat=casa::Quantum<double>((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
+      }
+      else {
+        incLat=casa::Quantum<double>((axes.start("DEC")-axes.end("DEC"))/double(ny), "rad");
+      }
       
       casa::DirectionCoordinate radec(MDirection::J2000,
                             Projection(Projection::SIN),

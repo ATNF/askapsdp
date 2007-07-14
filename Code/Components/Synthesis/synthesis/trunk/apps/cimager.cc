@@ -47,8 +47,8 @@ using namespace conrad::synthesis;
 using namespace LOFAR::ACC::APS;
 using namespace conrad::cp;
 
-std::ostream& os(bool isParallel) {
-  if(isParallel) {
+std::ostream& os() {
+  if(MPIConnection::getRank()>0) {
     return MWCOUT;
   }
   else {
@@ -176,12 +176,12 @@ int main(int argc, const char** argv)
       cs=initConnections(nnode, rank);
       if (isMaster)
       {
-        os(isParallel) << "CONRAD synthesis imaging program (parallel version) on " << nnode
+        os() << "CONRAD synthesis imaging program (parallel version) on " << nnode
           << " nodes (master)" << std::endl;
       }
       else
       {
-        os(isParallel) << "CONRAD synthesis imaging program (parallel version) on " << nnode
+        os() << "CONRAD synthesis imaging program (parallel version) on " << nnode
           << " nodes (worker " << rank << ")" << std::endl;
       }
     }
@@ -205,7 +205,6 @@ int main(int argc, const char** argv)
         
 /// Create the gridder and solver using factories acting on
 /// parametersets
-    Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
     IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
 
     NormalEquations ne(skymodel);
@@ -215,9 +214,11 @@ int main(int argc, const char** argv)
     for (int cycle=0;cycle<nCycles;cycle++)
     {
 
+      Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
+
       if(nCycles>1)
       {
-        os(isParallel) << "*** Starting major cycle " << cycle << " ***" << std::endl;
+        os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
       }
 
 /// Now iterate through all data sets
@@ -229,7 +230,7 @@ int main(int argc, const char** argv)
       {
         if(!isParallel||(rank==slot))
         {
-            os(isParallel) << "Processing data set " << *thisms << std::endl;
+            os() << "Processing data set " << *thisms << std::endl;
             TableDataSource ds(*thisms);
             IDataSelectorPtr sel=ds.createSelector();
             IDataConverterPtr conv=ds.createConverter();
@@ -240,28 +241,27 @@ int main(int argc, const char** argv)
             if((cycle>0)&&(isParallel))
             {
               receiveModel(cs, skymodel);
-              os(isParallel) << "Received model from master" << std::endl;
+              os() << "Received model from master" << std::endl;
             }
             ImageFFTEquation ie(skymodel, it, gridder);
-            os(isParallel) << "Constructed measurement equation" << std::endl;
+            os() << "Constructed measurement equation" << std::endl;
   
             ie.calcEquations(ne);
-            os(isParallel) << "Calculated normal equations" << std::endl;
+            os() << "Calculated normal equations" << std::endl;
             if(isParallel)
             {
               sendNE(cs, rank, ne);
-              os(isParallel) << "Sent normal equations to the solver via MPI" << std::endl;
+              os() << "Sent normal equations to the solver via MPI" << std::endl;
             }
             else
             {
               solver->addNormalEquations(ne);
-              os(isParallel) << "Added normal equations to solver" << std::endl;
+              os() << "Added normal equations to solver" << std::endl;
             }
           }
           slot++;
-          os(isParallel) << "user:   " << timer.user () << std::endl;
-          os(isParallel) << "system: " << timer.system () << std::endl;
-          os(isParallel) << "real:   " << timer.real () << std::endl;        }
+          os() << "user:   " << timer.user () << " system: " << timer.system () 
+            <<" real:   " << timer.real () << std::endl;      }
       }
 
 // Now do the solution
@@ -271,31 +271,37 @@ int main(int argc, const char** argv)
 // Could be that we are waiting for normal equations
         if (isParallel)
         {
-          os(isParallel) << "Waiting for normal equations" << std::endl;
+          os() << "Waiting for normal equations" << std::endl;
           receiveNE(cs, nnode, solver);
-          os(isParallel) << "Received all normal equations" << std::endl;
+          os() << "Received all normal equations" << std::endl;
         }
         if(cycle<(nCycles-1)) {
-          os(isParallel) << "Solving normal equations" << std::endl;
+          os() << "Solving normal equations" << std::endl;
           Quality q;
           solver->solveNormalEquations(q);
-          os(isParallel) << "Solved normal equations" << std::endl;
+          os() << "Solved normal equations" << std::endl;
           skymodel=solver->parameters();
           // Don't send the model where there are no workers around
           if((nCycles>1)&&(isParallel))
           {
             sendModel(cs, nnode, skymodel);
-            os(isParallel) << "Sent model to all workers" << std::endl;
+            os() << "Sent model to all workers" << std::endl;
           }
         }
         else {
+          os() << "Writing out result as an image" << std::endl;
+          vector<string> resultimages=skymodel.names();
+          for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
+          {
+            SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
+          }
           if(parset.getBool("Cimager.restore", true)) {
             vector<string> beam=parset.getStringVector("Cimager.restore.beam");
             casa::Vector<casa::Quantum<double> > qbeam(3);
             for (int i=0;i<3;i++) {
               casa::Quantity::read(qbeam(i), beam[i]);
             }
-            os(isParallel) << "Last cycle - restoring model" << std::endl;
+            os() << "Last cycle - restoring model" << std::endl;
             // Make an image restore solver from the current solver
             // so it can use the normal equations
             // And write the images to CASA image files before and after restoring
@@ -318,14 +324,13 @@ int main(int argc, const char** argv)
         for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
         {
           casa::Array<double> resultImage(skymodel.value(*it));
-          os(isParallel) << *it << std::endl
+          os() << *it << std::endl
             << "Maximum = " << max(resultImage) << ", minimum = " 
             << min(resultImage) << std::endl;
         }
 
-        os(isParallel) << "user:   " << timer.user () << std::endl;
-        os(isParallel) << "system: " << timer.system () << std::endl;
-        os(isParallel) << "real:   " << timer.real () << std::endl;      }
+        os() << "user:   " << timer.user () << " system: " << timer.system () 
+          <<" real:   " << timer.real () << std::endl;      }
     }
 
 // The solution is complete - now we need to write out the results
@@ -336,9 +341,9 @@ int main(int argc, const char** argv)
       ParamsCasaTable results(resultfile, false);
       results.setParameters(skymodel);
     }
-    os(isParallel) << "Finished imaging" << std::endl;
+    os() << "Finished imaging" << std::endl;
     if(isParallel) {
-      os(isParallel) << "Ending MPI for rank " << rank << std::endl;
+      os() << "Ending MPI for rank " << rank << std::endl;
       MPIConnection::endMPI();
     }
 
