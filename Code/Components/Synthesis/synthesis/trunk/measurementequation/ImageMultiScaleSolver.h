@@ -57,7 +57,7 @@ namespace conrad
         /// Set the scales
         void setScales(const casa::Vector<float>& scales);
         
-        protected:
+      protected:
         /// Scales in pixels
         casa::Vector<float> itsScales;
 

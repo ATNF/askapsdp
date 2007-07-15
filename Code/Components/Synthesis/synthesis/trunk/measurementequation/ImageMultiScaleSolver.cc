@@ -140,24 +140,24 @@ namespace conrad
 
         /// Now write add some debug information but fix it to ensure that these 
         /// are not fit later on.
-        if(verbose()) {              
-        	Axes axes(itsParams->axes(indit->first));
-        	{
-        	  casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
-            itsParams->add("debug."+indit->first+".diagonal", value, axes);
-            itsParams->fix("debug."+indit->first+".diagonal");
-        	}
-        	{
-        	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
-        	  itsParams->add("debug."+indit->first+".dataVector", value, axes);
-            itsParams->fix("debug."+indit->first+".dataVector");
-        	}
-        	{
-        	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
-            itsParams->add("debug."+indit->first+".slice", value, axes);
-            itsParams->fix("debug."+indit->first+".slice");
-        	}
-        }
+//        if(verbose()) {              
+//        	Axes axes(itsParams->axes(indit->first));
+//        	{
+//        	  casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
+//            itsParams->add("debug."+indit->first+".diagonal", value, axes);
+//            itsParams->fix("debug."+indit->first+".diagonal");
+//        	}
+//        	{
+//        	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
+//        	  itsParams->add("debug."+indit->first+".dataVector", value, axes);
+//            itsParams->fix("debug."+indit->first+".dataVector");
+//        	}
+//        	{
+//        	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
+//            itsParams->add("debug."+indit->first+".slice", value, axes);
+//            itsParams->fix("debug."+indit->first+".slice");
+//        	}
+//        }
       }
 
       quality.setDOF(nParameters);
