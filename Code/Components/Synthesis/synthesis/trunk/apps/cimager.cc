@@ -237,27 +237,21 @@ void summariseModel(Params& skymodel)
 }
 
 /// Write the results out
-void writeResults(Params& skymodel, Solver::ShPtr& solver, ParameterSet& parset)
+void writeResults(Params& skymodel, Solver::ShPtr& solver, 
+  const string& resultfile, bool restore, 
+  const casa::Vector<casa::Quantum<double> > qbeam)
 {
   vector<string> resultimages=skymodel.names();
   for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
   {
     SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
   }
-  string resultfile(parset.getString("Parms.Result", ""));
   if(resultfile!="") {
     ParamsCasaTable results(resultfile, false);
     results.setParameters(skymodel);
   }
-  if(parset.getBool("Cimager.restore", true))
+  if(restore) 
   {
-    vector<string> beam=parset.getStringVector("Cimager.restore.beam");
-    casa::Vector<casa::Quantum<double> > qbeam(3);
-    for (int i=0;i<3;i++)
-    {
-      casa::Quantity::read(qbeam(i), beam[i]);
-    }
-    os() << "Last cycle - restoring model" << std::endl;
   /// Make an image restore solver from the current solver
   /// so it can use the normal equations
   /// And write the images to CASA image files before and after restoring
@@ -277,6 +271,44 @@ void writeResults(Params& skymodel, Solver::ShPtr& solver, ParameterSet& parset)
   }
 }
 
+void processInputs(const string& parsetname, string& resultfile, bool& restore,
+  int& nCycles, vector<string>& ms, casa::Vector<casa::Quantum<double> >& qbeam,
+  Params& skymodel, Solver::ShPtr& solver, IVisGridder::ShPtr& gridder) 
+{
+/// Process inputs
+  ParameterSet parset(parsetname);
+  ParameterSet subset(parset.makeSubset("Cimager."));
+  
+  resultfile=parset.getString("Parms.Result", "");
+  
+  restore=parset.getBool("Cimager.restore", true);
+
+  nCycles=parset.getInt32("Cimager.solver.cycles", 1);
+  
+  ms=parset.getStringVector("DataSet");
+
+  qbeam.resize(3);
+  vector<string> beam=parset.getStringVector("Cimager.restore.beam");
+  for (int i=0;i<3;i++)
+  {
+    casa::Quantity::read(qbeam(i), beam[i]);
+  }
+
+/// Create the specified images from the definition in the
+/// parameter set. We can solve for any number of images
+/// at once (but you may/will run out of memory!)
+  SynthesisParamsHelper::add(skymodel, parset, "Images.");
+
+/// Create the solver from the parameterset definition and the existing
+/// definition of the parameters. We create the solver here so that it
+/// can do any caching required
+  solver=ImageSolverFactory::make(skymodel, subset);
+
+/// Create the gridder using a factory acting on a
+/// parameterset
+  gridder=VisGridderFactory::make(subset);
+}
+
  
 
 // Main function
@@ -285,6 +317,7 @@ int main(int argc, const char** argv)
 {
   try
   {
+///==============================================================================
 
 // Initialize MPI (also succeeds if no MPI available).
     MPIConnection::initMPI (argc, argv);
@@ -299,6 +332,21 @@ int main(int argc, const char** argv)
     // using the log system.
     initOutput(rank);
 
+///==============================================================================
+/// Process inputs
+    string parsetname("cimager.in");
+    string resultfile;
+    bool restore;
+    int nCycles;
+    vector<string> ms;
+    casa::Vector<casa::Quantum<double> > qbeam;
+    Params skymodel;
+    Solver::ShPtr solver;
+    IVisGridder::ShPtr gridder;
+    processInputs(parsetname, resultfile, restore, nCycles, ms, qbeam,
+      skymodel, solver, gridder); 
+
+///==============================================================================
     // Tell the world about me/us
     if(isParallel)
     {
@@ -319,34 +367,13 @@ int main(int argc, const char** argv)
       cout << "CONRAD synthesis imaging program (serial version)" << endl;
     }
 
+///==============================================================================
+
     casa::Timer timer;
     timer.mark();
 
-    string parsetname("cimager.in");
-    ParameterSet parset(parsetname);
-    ParameterSet subset(parset.makeSubset("Cimager."));
-
-// Define empty params to hold the images
-    Params skymodel;
-
-/// Create the specified images from the definition in the
-/// parameter set. We can solve for any number of images
-/// at once (but you may/will run out of memory!)
-    SynthesisParamsHelper::add(skymodel, parset, "Images.");
     NormalEquations ne(skymodel);
-
-/// Create the solver from the parameterset definition and the existing
-/// definition of the parameters. We create the solver here so that it
-/// can do any caching required
-    Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
-
-/// Create the gridder using a factory acting on a
-/// parameterset
-    IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
-
-///==============================================================================
 // Now do the required number of major cycles
-    int nCycles(parset.getInt32("Cimager.solver.cycles", 1));
     for (int cycle=0;cycle<nCycles;cycle++)
     {
 
@@ -363,7 +390,6 @@ int main(int argc, const char** argv)
 ///
 /// PREDIFFER steps
 ///
-      vector<string> ms=parset.getStringVector("DataSet");
       if(isParallel) {
         if(!isMaster) {
           if(cycle>0) {
@@ -402,7 +428,7 @@ int main(int argc, const char** argv)
         {
           /// This is the final step - restore the image and write it out
           os() << "Writing out results as CASA images" << std::endl;
-          writeResults(skymodel, solver, parset);
+          writeResults(skymodel, solver, resultfile, restore, qbeam);
         }
         summariseModel(skymodel);
         
