@@ -122,42 +122,32 @@ namespace conrad
         casa::ArrayLattice<float> clean(cleanArray);
                 
         // Create a lattice cleaner to do the dirty work :)
-        casa::LatticeCleaner<float> lc(psf, dirty);
+        /// @todo More checks on reuse of LatticeCleaner
+        boost::shared_ptr<casa::LatticeCleaner<float> > lc;
+        std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > >::iterator it;
+        it=itsCleaners.find(indit->first);
+        if(it!=itsCleaners.end()) {
+          lc=it->second;
+          lc->update(dirty);
+        }
+        else {
+          lc=boost::shared_ptr<casa::LatticeCleaner<float> > (new casa::LatticeCleaner<float>(psf, dirty));
+          itsCleaners[indit->first]=lc;          
+        }
         if(algorithm()=="Hogbom") {
           casa::Vector<float> scales(1);
           scales(0)=0.0;
-          lc.setscales(scales);
-          lc.setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(), false);
+          lc->setscales(scales);
+          lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(), false);
         }
         else {
-          lc.setscales(itsScales);
-          lc.setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), false);
+          lc->setscales(itsScales);
+          lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), false);
         }
-        lc.ignoreCenterBox(true);
-        lc.clean(clean);
+        lc->ignoreCenterBox(true);
+        lc->clean(clean);
 
         casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
-
-        /// Now write add some debug information but fix it to ensure that these 
-        /// are not fit later on.
-//        if(verbose()) {              
-//        	Axes axes(itsParams->axes(indit->first));
-//        	{
-//        	  casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
-//            itsParams->add("debug."+indit->first+".diagonal", value, axes);
-//            itsParams->fix("debug."+indit->first+".diagonal");
-//        	}
-//        	{
-//        	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
-//        	  itsParams->add("debug."+indit->first+".dataVector", value, axes);
-//            itsParams->fix("debug."+indit->first+".dataVector");
-//        	}
-//        	{
-//        	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
-//            itsParams->add("debug."+indit->first+".slice", value, axes);
-//            itsParams->fix("debug."+indit->first+".slice");
-//        	}
-//        }
       }
 
       quality.setDOF(nParameters);

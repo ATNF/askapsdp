@@ -191,7 +191,6 @@ void receiveModel(MPIConnectionSet::ShPtr& cs, int nnode, Params& skymodel)
   in.getEnd();
   os() << "Received model from the solver via MPI in " 
     << timer.real() << " seconds " << std::endl;
-  return;
 }
 
 /// Calculate the normal equations for a given measurement set
@@ -211,6 +210,30 @@ void calcNE(const string& ms, Params& skymodel, IVisGridder::ShPtr& gridder,
   ie.calcEquations(ne);
   os() << "Calculated normal equations for " << ms << " in " 
     << timer.real() << " seconds " << std::endl;
+}
+
+void solveNE(Params& skymodel, Solver::ShPtr& solver)
+{
+  os() << "Solving normal equations" << std::endl;
+  casa::Timer timer;
+  timer.mark();
+  Quality q;
+  solver->solveNormalEquations(q);
+  os() << "Solved normal equations in " 
+    << timer.real() << " seconds " << std::endl;
+  skymodel=solver->parameters();
+}
+
+void summariseModel(Params& skymodel) 
+{
+  vector<string> resultimages=skymodel.names();
+  for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
+  {
+    casa::Array<double> resultImage(skymodel.value(*it));
+    os() << *it << std::endl
+      << "Maximum = " << max(resultImage) << ", minimum = "
+      << min(resultImage) << std::endl;
+  }
 }
 
 /// Write the results out
@@ -312,6 +335,11 @@ int main(int argc, const char** argv)
     SynthesisParamsHelper::add(skymodel, parset, "Images.");
     NormalEquations ne(skymodel);
 
+/// Create the solver from the parameterset definition and the existing
+/// definition of the parameters. We create the solver here so that it
+/// can do any caching required
+    Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
+
 /// Create the gridder using a factory acting on a
 /// parameterset
     IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
@@ -321,11 +349,6 @@ int main(int argc, const char** argv)
     int nCycles(parset.getInt32("Cimager.solver.cycles", 1));
     for (int cycle=0;cycle<nCycles;cycle++)
     {
-
-/// Create the solver from the parameterset definition and the existing
-/// definition of the parameters. We need the solver here so that we
-/// can accumulate the normalequations
-      Solver::ShPtr solver=ImageSolverFactory::make(skymodel, subset);
 
       if(nCycles>1)
       {
@@ -370,11 +393,7 @@ int main(int argc, const char** argv)
         }
         if(cycle<(nCycles-1))
         {
-          os() << "Solving normal equations" << std::endl;
-          Quality q;
-          solver->solveNormalEquations(q);
-          os() << "Solved normal equations" << std::endl;
-          skymodel=solver->parameters();
+          solveNE(skymodel, solver);
           if(isParallel) {
             sendModel(cs, nnode, skymodel);
           }
@@ -385,14 +404,8 @@ int main(int argc, const char** argv)
           os() << "Writing out results as CASA images" << std::endl;
           writeResults(skymodel, solver, parset);
         }
-        vector<string> resultimages=skymodel.names();
-        for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
-        {
-          casa::Array<double> resultImage(skymodel.value(*it));
-          os() << *it << std::endl
-            << "Maximum = " << max(resultImage) << ", minimum = "
-            << min(resultImage) << std::endl;
-        }
+        summariseModel(skymodel);
+        
         os() << "user:   " << timer.user () << " system: " << timer.system ()
           <<" real:   " << timer.real () << std::endl;
       }

@@ -14,6 +14,11 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 
+#include <boost/shared_ptr.hpp>
+#include <lattices/Lattices/LatticeCleaner.h>
+
+#include <map>
+
 namespace conrad
 {
   namespace synthesis
@@ -60,6 +65,8 @@ namespace conrad
       protected:
         /// Scales in pixels
         casa::Vector<float> itsScales;
+        /// Map of Cleaners
+        std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > > itsCleaners;
 
     };
 
