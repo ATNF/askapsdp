@@ -104,8 +104,12 @@ MPIConnectionSet::ShPtr initConnections(int nnode, int rank)
 
 
 // Send the normal equations from this worker to the master as a blob
-void sendNE(MPIConnectionSet::ShPtr& cs, int rank, const NormalEquations& ne)
+void sendNE(MPIConnectionSet::ShPtr& cs, int nnode, int rank, const NormalEquations& ne)
 {
+  if (nnode==1) return;
+  casa::Timer timer;
+  timer.mark();
+
   LOFAR::BlobString bs;
   bs.resize(0);
   LOFAR::BlobOBufString bob(bs);
@@ -114,12 +118,19 @@ void sendNE(MPIConnectionSet::ShPtr& cs, int rank, const NormalEquations& ne)
   out << rank << ne;
   out.putEnd();
   cs->write(0, bs);
+  os() << "Sent normal equations to the solver via MPI in " 
+    << timer.real() << " seconds " << std::endl;
 }
 
 
 // Receive the normal equations as a blob
 void receiveNE(MPIConnectionSet::ShPtr& cs, int nnode, Solver::ShPtr& is)
 {
+  if (nnode==1) return;
+  os() << "Waiting for normal equations" << std::endl;
+  casa::Timer timer;
+  timer.mark();
+
   LOFAR::BlobString bs;
   NormalEquations ne;
   int rank;
@@ -134,6 +145,8 @@ void receiveNE(MPIConnectionSet::ShPtr& cs, int nnode, Solver::ShPtr& is)
     in.getEnd();
     is->addNormalEquations(ne);
   }
+  os() << "Received normal equations from the workers via MPI in " 
+    << timer.real() << " seconds" << std::endl;
   return;
 }
 
@@ -141,6 +154,10 @@ void receiveNE(MPIConnectionSet::ShPtr& cs, int nnode, Solver::ShPtr& is)
 // Send the model to all workers
 void sendModel(MPIConnectionSet::ShPtr& cs, int nnode, const Params& skymodel)
 {
+  if (nnode==1) return;
+  casa::Timer timer;
+  timer.mark();
+
   LOFAR::BlobString bs;
   bs.resize(0);
   LOFAR::BlobOBufString bob(bs);
@@ -152,12 +169,17 @@ void sendModel(MPIConnectionSet::ShPtr& cs, int nnode, const Params& skymodel)
   {
     cs->write(i-1, bs);
   }
+  os() << "Sent model to the workers via MPI in " 
+    << timer.real() << " seconds " << std::endl;
 }
 
 
 // Receive the model from the solver
-void receiveModel(MPIConnectionSet::ShPtr& cs, Params& skymodel)
+void receiveModel(MPIConnectionSet::ShPtr& cs, int nnode, Params& skymodel)
 {
+  if (nnode==1) return;
+  casa::Timer timer;
+  timer.mark();
   LOFAR::BlobString bs;
   bs.resize(0);
   cs->read(0, bs);
@@ -167,12 +189,17 @@ void receiveModel(MPIConnectionSet::ShPtr& cs, Params& skymodel)
   CONRADASSERT(version==1);
   in >> skymodel;
   in.getEnd();
+  os() << "Received model from the solver via MPI in " 
+    << timer.real() << " seconds " << std::endl;
   return;
 }
 
 /// Calculate the normal equations for a given measurement set
 void calcNE(const string& ms, Params& skymodel, IVisGridder::ShPtr& gridder,
   NormalEquations& ne) { 
+  os() << "Calculating normal equations for " << ms << std::endl;
+  casa::Timer timer;
+  timer.mark();
   TableDataSource ds(ms);
   IDataSelectorPtr sel=ds.createSelector();
   IDataConverterPtr conv=ds.createConverter();
@@ -182,6 +209,8 @@ void calcNE(const string& ms, Params& skymodel, IVisGridder::ShPtr& gridder,
   it.chooseOriginal();
   ImageFFTEquation ie(skymodel, it, gridder);
   ie.calcEquations(ne);
+  os() << "Calculated normal equations for " << ms << " in " 
+    << timer.real() << " seconds " << std::endl;
 }
 
 /// Write the results out
@@ -241,7 +270,7 @@ int main(int argc, const char** argv)
     MPIConnectionSet::ShPtr cs;
 
     bool isParallel(nnode>1);
-    bool isMaster(isParallel&&(rank==0));
+    bool isMaster(rank==0);
 
     // For MPI, send all output to separate log files. Eventually we'll do this
     // using the log system.
@@ -281,13 +310,13 @@ int main(int argc, const char** argv)
 /// parameter set. We can solve for any number of images
 /// at once (but you may/will run out of memory!)
     SynthesisParamsHelper::add(skymodel, parset, "Images.");
+    NormalEquations ne(skymodel);
 
 /// Create the gridder using a factory acting on a
 /// parameterset
     IVisGridder::ShPtr gridder=VisGridderFactory::make(subset);
 
-    NormalEquations ne(skymodel);
-
+///==============================================================================
 // Now do the required number of major cycles
     int nCycles(parset.getInt32("Cimager.solver.cycles", 1));
     for (int cycle=0;cycle<nCycles;cycle++)
@@ -308,49 +337,36 @@ int main(int argc, const char** argv)
 /// via MPI (parallel)
 
 /// If running in parallel, the master doesn't do this.
-      if(!isParallel||!isMaster)
-      {
-        int slot=1;
-        vector<string> ms=parset.getStringVector("DataSet");
+///
+/// PREDIFFER steps
+///
+      vector<string> ms=parset.getStringVector("DataSet");
+      if(isParallel) {
+        if(!isMaster) {
+          if(cycle>0) {
+            receiveModel(cs, nnode, skymodel);
+          } 
+          calcNE(ms[rank-1], skymodel, gridder, ne);
+          sendNE(cs, nnode, rank, ne);
+        }
+      }
+      else {
         for (vector<string>::iterator thisms=ms.begin();thisms!=ms.end();++thisms)
         {
-          if(!isParallel||(rank==slot))
-          {
-            if((cycle>0)&&(isParallel))
-            {
-              receiveModel(cs, skymodel);
-              os() << "Received model from master" << std::endl;
-            }
-            os() << "Processing data set " << *thisms << std::endl;
-            calcNE(*thisms, skymodel, gridder, ne);
-            os() << "Calculated normal equations" << std::endl;
-            if(isParallel)
-            {
-              sendNE(cs, rank, ne);
-              os() << "Sent normal equations to the solver via MPI" << std::endl;
-            }
-            else
-            {
-              solver->addNormalEquations(ne);
-              os() << "Added normal equations to solver" << std::endl;
-            }
-            os() << "user:   " << timer.user () << " system: " << timer.system ()
-              <<" real:   " << timer.real () << std::endl;
-          }
-          slot++;
+          calcNE(*thisms, skymodel, gridder, ne);
+          solver->addNormalEquations(ne);
+          os() << "Added normal equations to solver " << std::endl;
         }
       }
 
+/// SOLVER steps
 /// Now do the solution
 /// If running in parallel only the master does this
-      if(!isParallel||isMaster)
+      if(isMaster) 
       {
-/// Could be that we are waiting for normal equations
-        if (isParallel)
-        {
-          os() << "Waiting for normal equations" << std::endl;
+        if(isParallel) {
+/// We must be waiting for normal equations
           receiveNE(cs, nnode, solver);
-          os() << "Received all normal equations" << std::endl;
         }
         if(cycle<(nCycles-1))
         {
@@ -359,11 +375,8 @@ int main(int argc, const char** argv)
           solver->solveNormalEquations(q);
           os() << "Solved normal equations" << std::endl;
           skymodel=solver->parameters();
-/// Only send the model if there are workers still around
-          if((nCycles>1)&&(isParallel))
-          {
+          if(isParallel) {
             sendModel(cs, nnode, skymodel);
-            os() << "Sent model to all workers" << std::endl;
           }
         }
         else
@@ -380,12 +393,12 @@ int main(int argc, const char** argv)
             << "Maximum = " << max(resultImage) << ", minimum = "
             << min(resultImage) << std::endl;
         }
-
         os() << "user:   " << timer.user () << " system: " << timer.system ()
           <<" real:   " << timer.real () << std::endl;
       }
     } 
     /// End of major cycle
+///==============================================================================
 
     os() << "Finished imaging" << std::endl;
     if(isParallel)
