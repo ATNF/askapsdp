@@ -39,6 +39,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(bufferManagerTest);
   CPPUNIT_TEST(dataDescTest);
   CPPUNIT_TEST(spWindowTest);  
+  CPPUNIT_TEST(feedTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   
@@ -56,6 +57,8 @@ public:
   void dataDescTest();
   /// test access to spectral window subtable
   void spWindowTest();
+  /// test access to the feed subtable
+  void feedTest();
 protected:
   void doBufferTest() const;
 private:
@@ -130,6 +133,44 @@ void TableDataAccessTest::spWindowTest()
   }
   CPPUNIT_ASSERT(fabs(spWindow.getFrequencies(0)[0]-1.4e9)<1e-5);
 }
+
+/// test access to the feed subtable
+void TableDataAccessTest::feedTest()
+{
+  // because we're not accessing the buffers here, it shouldn't really
+  // matter whether we open it with memory buffers or with disk buffers
+  // and read-only table should be enough.
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+              casa::Table(TableTestRunner::msName()),false));
+  CPPUNIT_ASSERT(itsTableInfoAccessor);
+  const ITableFeedHolder &feedSubtable=itsTableInfoAccessor->
+                      subtableInfo().getFeed();
+  casa::MEpoch time(casa::MVEpoch(casa::Quantity(50257.29,"d")),
+                    casa::MEpoch::Ref(casa::MEpoch::UTC));
+  for (casa::uInt feed=0; feed<5; ++feed) {                  
+       for (casa::uInt ant=1; ant<6; ++ant) {
+            CPPUNIT_ASSERT(fabs(feedSubtable.getBeamOffset(time,0,ant,feed)(0)-
+                       feedSubtable.getBeamOffset(time,0,0,feed)(0))<1e-7);
+            CPPUNIT_ASSERT(fabs(feedSubtable.getBeamOffset(time,0,ant,feed)(1)-
+                       feedSubtable.getBeamOffset(time,0,0,feed)(1))<1e-7);
+            CPPUNIT_ASSERT(fabs(feedSubtable.getBeamPA(time,0,ant,feed)-
+                       feedSubtable.getBeamPA(time,0,0,feed))<1e-7);           
+       }
+       if (feed!=4) {
+           CPPUNIT_ASSERT(fabs(feedSubtable.getBeamOffset(time,0,0,
+                                             feed)(0))*206265-900<1e-5);
+           CPPUNIT_ASSERT(fabs(feedSubtable.getBeamOffset(time,0,0,
+                                             feed)(1))*206265-900<1e-5);
+       } else {
+           CPPUNIT_ASSERT(fabs(feedSubtable.getBeamOffset(time,0,0,
+                                             feed)(0))<1e-5);
+           CPPUNIT_ASSERT(fabs(feedSubtable.getBeamOffset(time,0,0,
+                                             feed)(1))<1e-5);
+       }
+       CPPUNIT_ASSERT(fabs(feedSubtable.getBeamPA(time,0,0,feed))<1e-5);
+  }                  
+}
+
 
 void TableDataAccessTest::doBufferTest() const
 {

@@ -72,7 +72,13 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    /// present.
    /// @return a reference to the manager of buffers (BUFFERS subtable)
    virtual const IBufferManager& getBufferManager() const;
-
+     
+   /// @brief obtain a feed subtable handler
+   /// @details A TableFeedHolder is constructred on the first call to
+   /// this method and a reference to it is always returne later
+   /// @return a reference to the handler of the FEED subtable
+   virtual const ITableFeedHolder& getFeed() const;
+   
 protected:   
    /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
    void initDataDescHolder() const;
@@ -82,6 +88,9 @@ protected:
 
    /// initialize itsBufferManager with an instance of TableBufferManager
    void initBufferManager() const;
+   
+   /// initialize itsFeedHolder with an instance of TableFeedHolder
+   void initFeedHolder() const;
 
 private:
    /// smart pointer to data description holder
@@ -95,6 +104,9 @@ private:
    
    /// true if visibility buffers are kept in memory
    bool itsUseMemBuffers;
+
+   /// smart pointer to the feed subtable handler
+   mutable boost::shared_ptr<ITableFeedHolder const> itsFeedHolder;
 };
 
 
