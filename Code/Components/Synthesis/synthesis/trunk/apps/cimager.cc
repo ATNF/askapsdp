@@ -71,6 +71,7 @@ std::ostream& os()
   }
 }
 
+
 // For MPI, we need to divert the output
 void initOutput(int rank)
 {
@@ -118,7 +119,7 @@ void sendNE(MPIConnectionSet::ShPtr& cs, int nnode, int rank, const NormalEquati
   out << rank << ne;
   out.putEnd();
   cs->write(0, bs);
-  os() << "Sent normal equations to the solver via MPI in " 
+  os() << "PREDIFFER Sent normal equations to the solver via MPI in "
     << timer.real() << " seconds " << std::endl;
 }
 
@@ -127,7 +128,7 @@ void sendNE(MPIConnectionSet::ShPtr& cs, int nnode, int rank, const NormalEquati
 void receiveNE(MPIConnectionSet::ShPtr& cs, int nnode, Solver::ShPtr& is)
 {
   if (nnode==1) return;
-  os() << "Waiting for normal equations" << std::endl;
+  os() << "SOLVER Waiting for normal equations" << std::endl;
   casa::Timer timer;
   timer.mark();
 
@@ -145,7 +146,7 @@ void receiveNE(MPIConnectionSet::ShPtr& cs, int nnode, Solver::ShPtr& is)
     in.getEnd();
     is->addNormalEquations(ne);
   }
-  os() << "Received normal equations from the workers via MPI in " 
+  os() << "SOLVER Received normal equations from the prediffers via MPI in "
     << timer.real() << " seconds" << std::endl;
   return;
 }
@@ -169,7 +170,7 @@ void sendModel(MPIConnectionSet::ShPtr& cs, int nnode, const Params& skymodel)
   {
     cs->write(i-1, bs);
   }
-  os() << "Sent model to the workers via MPI in " 
+  os() << "SOLVER Sent model to the prediffers via MPI in "
     << timer.real() << " seconds " << std::endl;
 }
 
@@ -189,14 +190,16 @@ void receiveModel(MPIConnectionSet::ShPtr& cs, int nnode, Params& skymodel)
   CONRADASSERT(version==1);
   in >> skymodel;
   in.getEnd();
-  os() << "Received model from the solver via MPI in " 
+  os() << "PREDIFFER Received model from the solver via MPI in "
     << timer.real() << " seconds " << std::endl;
 }
 
+
 /// Calculate the normal equations for a given measurement set
 void calcNE(const string& ms, Params& skymodel, IVisGridder::ShPtr& gridder,
-  NormalEquations& ne) { 
-  os() << "Calculating normal equations for " << ms << std::endl;
+NormalEquations& ne)
+{
+  os() << "PREDIFFER Calculating normal equations for " << ms << std::endl;
   casa::Timer timer;
   timer.mark();
   TableDataSource ds(ms);
@@ -208,23 +211,25 @@ void calcNE(const string& ms, Params& skymodel, IVisGridder::ShPtr& gridder,
   it.chooseOriginal();
   ImageFFTEquation ie(skymodel, it, gridder);
   ie.calcEquations(ne);
-  os() << "Calculated normal equations for " << ms << " in " 
+  os() << "PREDIFFER Calculated normal equations for " << ms << " in "
     << timer.real() << " seconds " << std::endl;
 }
 
+
 void solveNE(Params& skymodel, Solver::ShPtr& solver)
 {
-  os() << "Solving normal equations" << std::endl;
+  os() << "SOLVER Solving normal equations" << std::endl;
   casa::Timer timer;
   timer.mark();
   Quality q;
   solver->solveNormalEquations(q);
-  os() << "Solved normal equations in " 
+  os() << "SOLVER Solved normal equations in "
     << timer.real() << " seconds " << std::endl;
   skymodel=solver->parameters();
 }
 
-void summariseModel(Params& skymodel) 
+
+void summariseModel(Params& skymodel)
 {
   vector<string> resultimages=skymodel.names();
   for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
@@ -236,25 +241,27 @@ void summariseModel(Params& skymodel)
   }
 }
 
+
 /// Write the results out
-void writeResults(Params& skymodel, Solver::ShPtr& solver, 
-  const string& resultfile, bool restore, 
-  const casa::Vector<casa::Quantum<double> > qbeam)
+void writeResults(Params& skymodel, Solver::ShPtr& solver,
+const string& resultfile, bool restore,
+const casa::Vector<casa::Quantum<double> > qbeam)
 {
   vector<string> resultimages=skymodel.names();
   for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
   {
     SynthesisParamsHelper::saveAsCasaImage(skymodel, *it, *it);
   }
-  if(resultfile!="") {
+  if(resultfile!="")
+  {
     ParamsCasaTable results(resultfile, false);
     results.setParameters(skymodel);
   }
-  if(restore) 
+  if(restore)
   {
-  /// Make an image restore solver from the current solver
-  /// so it can use the normal equations
-  /// And write the images to CASA image files before and after restoring
+/// Make an image restore solver from the current solver
+/// so it can use the normal equations
+/// And write the images to CASA image files before and after restoring
     vector<string> resultimages=skymodel.names();
     for (vector<string>::iterator it=resultimages.begin();it!=resultimages.end();it++)
     {
@@ -271,20 +278,21 @@ void writeResults(Params& skymodel, Solver::ShPtr& solver,
   }
 }
 
+
 void processInputs(const string& parsetname, string& resultfile, bool& restore,
-  int& nCycles, vector<string>& ms, casa::Vector<casa::Quantum<double> >& qbeam,
-  Params& skymodel, Solver::ShPtr& solver, IVisGridder::ShPtr& gridder) 
+int& nCycles, vector<string>& ms, casa::Vector<casa::Quantum<double> >& qbeam,
+Params& skymodel, Solver::ShPtr& solver, IVisGridder::ShPtr& gridder)
 {
 /// Process inputs
   ParameterSet parset(parsetname);
   ParameterSet subset(parset.makeSubset("Cimager."));
-  
+
   resultfile=parset.getString("Parms.Result", "");
-  
+
   restore=parset.getBool("Cimager.restore", true);
 
   nCycles=parset.getInt32("Cimager.solver.cycles", 1);
-  
+
   ms=parset.getStringVector("DataSet");
 
   qbeam.resize(3);
@@ -309,7 +317,6 @@ void processInputs(const string& parsetname, string& resultfile, bool& restore,
   gridder=VisGridderFactory::make(subset);
 }
 
- 
 
 // Main function
 
@@ -328,134 +335,158 @@ int main(int argc, const char** argv)
     bool isParallel(nnode>1);
     bool isMaster(rank==0);
 
-    // For MPI, send all output to separate log files. Eventually we'll do this
-    // using the log system.
+// For MPI, send all output to separate log files. Eventually we'll do this
+// using the log system.
     initOutput(rank);
 
 ///==============================================================================
-/// Process inputs
+/// Process inputs from the parset file
     string parsetname("cimager.in");
-    string resultfile;
-    bool restore;
-    int nCycles;
-    vector<string> ms;
-    casa::Vector<casa::Quantum<double> > qbeam;
-    Params skymodel;
-    Solver::ShPtr solver;
-    IVisGridder::ShPtr gridder;
+
+    string resultfile;                            // File for params
+    bool restore;                                 // Do we want a restored image?
+    int nCycles;                                  // Number of major cycles
+    vector<string> ms;                            // Names of measurement sets
+    casa::Vector<casa::Quantum<double> > qbeam;   // Restoring beam
+    Params skymodel;                              // Skymodel
+    Solver::ShPtr solver;                         // Image solver to be used
+    IVisGridder::ShPtr gridder;                   // Gridder to be used
+
     processInputs(parsetname, resultfile, restore, nCycles, ms, qbeam,
-      skymodel, solver, gridder); 
-
-///==============================================================================
-    // Tell the world about me/us
-    if(isParallel)
-    {
-      cs=initConnections(nnode, rank);
-      if (isMaster)
-      {
-        os() << "CONRAD synthesis imaging program (parallel version) on " << nnode
-          << " nodes (master)" << std::endl;
-      }
-      else
-      {
-        os() << "CONRAD synthesis imaging program (parallel version) on " << nnode
-          << " nodes (worker " << rank << ")" << std::endl;
-      }
-    }
-    else
-    {
-      cout << "CONRAD synthesis imaging program (serial version)" << endl;
-    }
-
-///==============================================================================
+      skymodel, solver, gridder);
 
     casa::Timer timer;
     timer.mark();
 
+
     NormalEquations ne(skymodel);
-// Now do the required number of major cycles
-    for (int cycle=0;cycle<nCycles;cycle++)
+      
+///==============================================================================
+/// Parallel version
+    if(isParallel)
     {
-
-      if(nCycles>1)
+      cs=initConnections(nnode, rank);
+      if (isMaster)
+///
+/// SOLVER steps
+///
       {
-        os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
+        os() << "CONRAD synthesis imaging program (parallel version) on " << nnode
+          << " nodes (master)" << std::endl;
+        for (int cycle=0;cycle<nCycles;cycle++)
+        {
+
+          if(nCycles>1)
+          {
+            os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
+          }
+/// We must be waiting for normal equations
+          receiveNE(cs, nnode, solver);
+/// Do a solution and send the model to the PREDIFFERs
+          if(cycle<(nCycles-1))
+          {
+            solveNE(skymodel, solver);
+            sendModel(cs, nnode, skymodel);
+          }
+          else
+          {
+  /// This is the final step - restore the image and write it out
+            os() << "Writing out results as CASA images" << std::endl;
+            writeResults(skymodel, solver, resultfile, restore, qbeam);
+          }
+          summariseModel(skymodel);
+        }
       }
-
-/// Now iterate through all data sets in turn, accumulating the normal equations.
-/// The normal equations are sent to the solver, either in process (serial) or
-/// via MPI (parallel)
-
-/// If running in parallel, the master doesn't do this.
+      else
+      {
 ///
 /// PREDIFFER steps
 ///
-      if(isParallel) {
-        if(!isMaster) {
-          if(cycle>0) {
+        os() << "CONRAD synthesis imaging program (parallel version) on " << nnode
+          << " nodes (worker " << rank << ")" << std::endl;
+
+/// Now iterate through all data sets in turn, accumulating the normal equations
+/// via the PREDIFFERs. The normal equations are sent to the SOLVER
+///
+        for (int cycle=0;cycle<nCycles;cycle++)
+        {
+          if(cycle>0)
+          {
             receiveModel(cs, nnode, skymodel);
-          } 
+          }
           calcNE(ms[rank-1], skymodel, gridder, ne);
           sendNE(cs, nnode, rank, ne);
         }
+        os() << "user:   " << timer.user () << " system: " << timer.system ()
+          <<" real:   " << timer.real () << std::endl;
       }
-      else {
+      os() << "Ending MPI for rank " << rank << std::endl;
+      MPIConnection::endMPI();
+    }
+    else
+    {
+///==============================================================================
+/// Serial version
+      os() << "CONRAD synthesis imaging program (serial version)" << endl;
+
+      for (int cycle=0;cycle<nCycles;cycle++)
+      {
+
+        if(nCycles>1)
+        {
+          os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
+        }
+
+/// Now iterate through all data sets in turn, accumulating the normal equations
+/// via the PREDIFFERs. The normal equations are sent to the SOLVER
+///
+/// PREDIFFER step for all measurement sets
+///
         for (vector<string>::iterator thisms=ms.begin();thisms!=ms.end();++thisms)
         {
           calcNE(*thisms, skymodel, gridder, ne);
           solver->addNormalEquations(ne);
           os() << "Added normal equations to solver " << std::endl;
         }
-      }
-
-/// SOLVER steps
-/// Now do the solution
-/// If running in parallel only the master does this
-      if(isMaster) 
-      {
-        if(isParallel) {
-/// We must be waiting for normal equations
-          receiveNE(cs, nnode, solver);
-        }
+///
+/// SOLVER does the solution
+///
         if(cycle<(nCycles-1))
         {
           solveNE(skymodel, solver);
-          if(isParallel) {
-            sendModel(cs, nnode, skymodel);
-          }
         }
         else
         {
-          /// This is the final step - restore the image and write it out
+/// This is the final step - restore the image and write it out
           os() << "Writing out results as CASA images" << std::endl;
           writeResults(skymodel, solver, resultfile, restore, qbeam);
         }
         summariseModel(skymodel);
-        
-        os() << "user:   " << timer.user () << " system: " << timer.system ()
-          <<" real:   " << timer.real () << std::endl;
       }
-    } 
-    /// End of major cycle
+      os() << "user:   " << timer.user () << " system: " << timer.system ()
+        <<" real:   " << timer.real () << std::endl;
+    }
+  
+/// End of major cycle
 ///==============================================================================
 
     os() << "Finished imaging" << std::endl;
-    if(isParallel)
-    {
-      os() << "Ending MPI for rank " << rank << std::endl;
-      MPIConnection::endMPI();
-    }
-
     exit(0);
   }
+
+
   catch (conrad::ConradError& x)
   {
     std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
+  
+  
   catch (std::exception& x)
   {
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
+
+
 };
