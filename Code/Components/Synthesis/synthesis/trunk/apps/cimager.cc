@@ -119,7 +119,7 @@ void sendNE(MPIConnectionSet::ShPtr& cs, int nnode, int rank, const NormalEquati
   out << rank << ne;
   out.putEnd();
   cs->write(0, bs);
-  os() << "PREDIFFER Sent normal equations to the solver via MPI in "
+  os() << "PREDIFFER " << rank << " Sent normal equations to the solver via MPI in "
     << timer.real() << " seconds " << std::endl;
 }
 
@@ -145,6 +145,8 @@ void receiveNE(MPIConnectionSet::ShPtr& cs, int nnode, Solver::ShPtr& is)
     in >> rank >> ne;
     in.getEnd();
     is->addNormalEquations(ne);
+    os() << "SOLVER Received normal equations from prediffer " << rank 
+      << " after " << timer.real() << " seconds" << std::endl;
   }
   os() << "SOLVER Received normal equations from the prediffers via MPI in "
     << timer.real() << " seconds" << std::endl;
@@ -176,7 +178,7 @@ void sendModel(MPIConnectionSet::ShPtr& cs, int nnode, const Params& skymodel)
 
 
 // Receive the model from the solver
-void receiveModel(MPIConnectionSet::ShPtr& cs, int nnode, Params& skymodel)
+void receiveModel(MPIConnectionSet::ShPtr& cs, int rank, int nnode, Params& skymodel)
 {
   if (nnode==1) return;
   casa::Timer timer;
@@ -190,7 +192,7 @@ void receiveModel(MPIConnectionSet::ShPtr& cs, int nnode, Params& skymodel)
   CONRADASSERT(version==1);
   in >> skymodel;
   in.getEnd();
-  os() << "PREDIFFER Received model from the solver via MPI in "
+  os() << "PREDIFFER " << rank << " Received model from the solver via MPI in "
     << timer.real() << " seconds " << std::endl;
 }
 
@@ -412,7 +414,7 @@ int main(int argc, const char** argv)
         {
           if(cycle>0)
           {
-            receiveModel(cs, nnode, skymodel);
+            receiveModel(cs, rank, nnode, skymodel);
           }
           calcNE(ms[rank-1], skymodel, gridder, ne);
           sendNE(cs, nnode, rank, ne);
