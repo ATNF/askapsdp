@@ -34,7 +34,7 @@
 
 
 using namespace conrad;
-using namespace synthesis;
+using namespace conrad::synthesis;
 
 /// @brief construct the object
 /// @details
