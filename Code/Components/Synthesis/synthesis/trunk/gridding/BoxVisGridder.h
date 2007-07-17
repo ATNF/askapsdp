@@ -16,7 +16,8 @@ namespace conrad
   {
     /// @brief Minimal box-car convolution (aka nearest neighbour) gridder.
     ///
-    /// It doesn't work well but it is fast and simple.
+    /// @details It doesn't work well but it is fast and simple.
+    /// @ingroup gridding
     class BoxVisGridder : public TableVisGridder
     {
       public:

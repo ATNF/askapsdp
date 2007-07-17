@@ -18,7 +18,7 @@ namespace conrad
     {
     }
     
-    IVisGridder::ShPtr VisGridderFactory::make(const ParameterSet& parset) {
+    IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ACC::APS::ParameterSet &parset) {
       IVisGridder::ShPtr gridder;
       /// @todo Better handling of string case
       if(parset.getString("gridder")=="WProject") {

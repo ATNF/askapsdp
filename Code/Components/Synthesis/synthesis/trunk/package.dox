@@ -14,10 +14,31 @@ namespace synthesis {};
 /// @section Introduction
 /// The synthesis package supports processing of radio synthesis observations,
 /// including calibration, editing, and imaging. The emphasis is on the
-/// processing of MIRANdA and KAT scale data sets i.e. TB per hours.
+/// processing of MIRANdA and KAT scale data sets i.e. TBs per hour.
 ///
-/// The synthesis package itself is designed to run in one thread or
-/// process. Parallel execution is supported in the @ref calim package.
+/// @section Assumptions and goals
+///
+/// The large data volumes to be processed require that I/O of data be
+/// minimized. Hence the goal is to write algorithms that require only
+/// a minimal number of reads and writes. For spectral line processing,
+/// our goal is to read the visibility data only once.
+///
+/// The synthesis package itself is designed to run in one process. 
+/// We envisage that OpenMP-type multi-threading may be supported by
+/// specialise versions of some of the classes in this package. 
+/// Message passing parallel execution is supported in the @ref calim package.
+///
+/// We assume that the problem can be (and is) partitioned such that the
+/// image data always fits in memory during the processing.
+///
+/// @section Dependencies
+/// The synthesis package makes extensive use of the CONRAD @ref fitting 
+/// framework. 
+///
+/// Data access is via a set of classes that make use of the casa measures
+/// package. Numerical data are held in casa Arrays (including Vector,
+/// Matrix, and Cube). Non-numerical data are usually held in standard
+/// containers such as vectors, and maps.
 ///
 /// @section Subpackages
 ///

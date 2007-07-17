@@ -14,14 +14,18 @@ namespace conrad
 {
   namespace synthesis
   {
-    /// W projection gridder
+    /// @brief Visibility gridder using W projection
+    /// @ingroup gridding
     class WProjectVisGridder : public SphFuncVisGridder
     {
       public:
 
-// W projection
-// @param wmax Maximum baseline (wavelengths)
-// @param nwplanes Number of w planes
+/// @brief Construct a gridder for W projection
+/// @param wmax Maximum baseline (wavelengths)
+/// @param nwplanes Number of w planes
+/// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
+/// @param overSample Oversampling (currently limited to <=1)
+//
         WProjectVisGridder(const double wmax, const int nwplanes,
           const double cutoff, const int overSample);
 

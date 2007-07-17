@@ -18,6 +18,7 @@ namespace conrad
   namespace synthesis
   {
     /// @brief Construct image solvers according to parameters
+    /// @ingroup measurementequation
     class ImageSolverFactory
     {
       public:
@@ -26,6 +27,7 @@ namespace conrad
         ~ImageSolverFactory();
 
         /// @brief Make a shared pointer for an image solver
+        /// @param ip Params for the solver
         /// @param parset ParameterSet containing description of
         /// solver to be constructed
         static conrad::scimath::Solver::ShPtr make(conrad::scimath::Params& ip, 

@@ -23,12 +23,12 @@ namespace conrad
 {
   namespace synthesis
   {
-    /// @brief Simple linear solver for images.
+    /// @brief Multiscale solver for images.
     ///
-    /// This solver takes the normal equations and simply divides
-    /// the data vector by the diagonal of the normal matrix. This
-    /// is analogous to making the dirty image or a linear mosaic
-    /// of dirty images.
+    /// @details This solver performs multi-scale clean using the 
+    /// casa::LatticeCleaner classes
+    ///
+    /// @ingroup measurementequation
     class ImageMultiScaleSolver : public conrad::scimath::Solver
     {
       public:

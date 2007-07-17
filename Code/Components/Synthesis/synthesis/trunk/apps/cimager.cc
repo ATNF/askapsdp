@@ -333,7 +333,7 @@ int main(int argc, const char** argv)
     MPIConnectionSet::ShPtr cs;
 
     bool isParallel(nnode>1);
-    bool isMaster(rank==0);
+    bool isSolver(rank==0);
 
 // For MPI, send all output to separate log files. Eventually we'll do this
 // using the log system.
@@ -366,7 +366,7 @@ int main(int argc, const char** argv)
     if(isParallel)
     {
       cs=initConnections(nnode, rank);
-      if (isMaster)
+      if (isSolver)
 ///
 /// SOLVER steps
 ///

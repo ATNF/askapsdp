@@ -20,7 +20,7 @@ namespace conrad
     {
     }
     
-    Solver::ShPtr ImageSolverFactory::make(Params& ip, const ParameterSet& parset) {
+    Solver::ShPtr ImageSolverFactory::make(conrad::scimath::Params &ip, const LOFAR::ACC::APS::ParameterSet &parset) {
       Solver::ShPtr solver;
       if(parset.getString("solver")=="Clean") {
         std::vector<float> defaultScales(3);

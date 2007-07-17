@@ -29,10 +29,13 @@ namespace conrad
 
     /// @brief Visibility processing for components
     ///
-    /// This class does predictions and calculates normal equations
+    /// @details This class does predictions and calculates normal equations
     /// for discrete components such as point sources and Gaussians.
     /// Names are flux.{i,q,u,v}, direction.{ra,dec}, shape.{bmaj,bmin,bpa}
     /// etc.
+    ///
+    /// @ingroup measurementequation
+    
     class ComponentEquation : public conrad::scimath::Equation
     {
       public:

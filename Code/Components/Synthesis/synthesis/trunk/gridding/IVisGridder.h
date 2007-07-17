@@ -37,6 +37,7 @@ namespace conrad
   {
 
     /// @brief Abstract Base Class for all gridders.
+    /// @ingroup gridding
     class IVisGridder
     {
       public:

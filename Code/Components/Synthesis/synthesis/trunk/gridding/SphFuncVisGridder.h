@@ -24,7 +24,9 @@ namespace conrad
 {
   namespace synthesis
   {
-    /// Spheroidal function gridder suitable for bog-standard gridding.
+    /// @brief Spheroidal function gridder suitable for bog-standard gridding.
+    /// @ingroup gridding
+    
     class SphFuncVisGridder : public TableVisGridder
     {
       public:

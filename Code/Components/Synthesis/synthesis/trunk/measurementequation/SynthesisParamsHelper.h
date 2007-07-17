@@ -22,7 +22,7 @@ namespace conrad
   namespace synthesis
   {
     /// @brief Helper functions for synthesis processing using Params
-    ///
+    /// @ingroup measurementequation
     class SynthesisParamsHelper 
     {
       public:
@@ -70,7 +70,11 @@ namespace conrad
         static boost::shared_ptr<casa::TempImage<float> > 
           tempImage(const conrad::scimath::Params& ip, 
           const string& name);
-          
+       
+        /// @brief Update a parameter from an image
+        /// @param ip Parameters
+        /// @param name Name of parameter
+        /// @param image Image to be drawn from 
         static void update(conrad::scimath::Params& ip, const string& name, 
           const casa::ImageInterface<float>& image);
         

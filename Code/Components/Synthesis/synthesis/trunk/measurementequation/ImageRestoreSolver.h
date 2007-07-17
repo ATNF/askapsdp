@@ -20,10 +20,10 @@ namespace conrad
   {
     /// @brief Restore solver for images.
     ///
-    /// This solver takes the normal equations and simply divides
-    /// the data vector by the diagonal of the normal matrix. This
-    /// is analogous to making the dirty image or a linear mosaic
-    /// of dirty images.
+    /// ImageRestoreSolver: This solver restores images by smoothing the model
+    /// and adding the residuals. Note that the units will be changed from
+    /// Jy/pixel to Jy/beam.
+    /// @ingroup measurementequation
     class ImageRestoreSolver : public conrad::scimath::Solver
     {
       public:

@@ -17,8 +17,9 @@ namespace conrad
   {
     /// @brief Gridder that is appropriate for mosaicing. 
     ///
-    /// The antenna primary beam is used for gridding, though we actually 
+    /// @details The antenna primary beam is used for gridding, though we actually 
     /// work from the illumination pattern since it is better behaved.
+    /// @ingroup gridding
     class AntennaIllumVisGridder : public TableVisGridder
     {
       public:

@@ -29,9 +29,10 @@ namespace conrad
 
     /// @brief FFT-based image equations
     ///
-    /// This class does predictions and calculates normal equations
+    /// @details This class does predictions and calculates normal equations
     /// images. Parameter names are image.{i,q,u,v}.*
     /// The transforms are done using gridding and FFTs.
+    /// @ingroup measurementequation
     class ImageFFTEquation : public conrad::scimath::Equation
     {
       public:

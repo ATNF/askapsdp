@@ -17,12 +17,13 @@ namespace conrad
 {
   namespace synthesis
   {
-    /// @brief Factory Class for all gridders.
-    /// @todo Python version of factory 
+    /// @brief Factory class for visibility gridders
+    /// @ingroup gridding
     class VisGridderFactory
     {
       public:
-                
+    /// @brief Factory Class for all gridders.
+    /// @todo Python version of factory 
         VisGridderFactory();
         virtual ~VisGridderFactory();
 

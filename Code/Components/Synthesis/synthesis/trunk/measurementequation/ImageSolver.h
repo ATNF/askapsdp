@@ -20,10 +20,11 @@ namespace conrad
   {
     /// @brief Simple linear solver for images.
     ///
-    /// This solver takes the normal equations and simply divides
+    /// @details This solver takes the normal equations and simply divides
     /// the data vector by the diagonal of the normal matrix. This
     /// is analogous to making the dirty image or a linear mosaic
     /// of dirty images.
+    /// @ingroup measurementequation
     class ImageSolver : public conrad::scimath::Solver
     {
       public:

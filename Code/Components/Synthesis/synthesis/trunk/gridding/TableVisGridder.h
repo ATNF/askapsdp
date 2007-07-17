@@ -20,9 +20,10 @@ namespace conrad
   namespace synthesis
   {
 
-    /// Incomplete base class for table-based gridding of visibility data.
+    /// @brief Incomplete base class for table-based gridding of visibility data.
     ///
     /// @todo Implement factory for gridders
+    /// @ingroup gridding
     class TableVisGridder : public IVisGridder
     {
       public:

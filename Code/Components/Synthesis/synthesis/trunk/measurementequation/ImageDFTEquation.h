@@ -27,8 +27,9 @@ namespace conrad
 
     /// @brief Discrete Fourier Transform-based image equations
     ///
-    /// This class does predictions and calculates normal equations
+    /// @details This class does predictions and calculates normal equations
     /// images. Parameter names are image.{i,q,u,v}.*
+    /// @ingroup measurementequation
     class ImageDFTEquation : public conrad::scimath::Equation
     {
       public:
