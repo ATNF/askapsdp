@@ -416,10 +416,11 @@ int main(int argc, const char** argv)
           }
           calcNE(ms[rank-1], skymodel, gridder, ne);
           sendNE(cs, nnode, rank, ne);
+          os() << "user:   " << timer.user () << " system: " << timer.system ()
+            <<" real:   " << timer.real () << std::endl;
         }
-        os() << "user:   " << timer.user () << " system: " << timer.system ()
-          <<" real:   " << timer.real () << std::endl;
       }
+      os() << "Finished imaging" << std::endl;
       os() << "Ending MPI for rank " << rank << std::endl;
       MPIConnection::endMPI();
     }
@@ -462,26 +463,19 @@ int main(int argc, const char** argv)
           writeResults(skymodel, solver, resultfile, restore, qbeam);
         }
         summariseModel(skymodel);
+        os() << "user:   " << timer.user () << " system: " << timer.system ()
+          <<" real:   " << timer.real () << std::endl;
       }
-      os() << "user:   " << timer.user () << " system: " << timer.system ()
-        <<" real:   " << timer.real () << std::endl;
+      os() << "Finished imaging" << std::endl;
     }
-  
-/// End of major cycle
 ///==============================================================================
-
-    os() << "Finished imaging" << std::endl;
     exit(0);
   }
-
-
   catch (conrad::ConradError& x)
   {
     std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
-  
-  
   catch (std::exception& x)
   {
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
