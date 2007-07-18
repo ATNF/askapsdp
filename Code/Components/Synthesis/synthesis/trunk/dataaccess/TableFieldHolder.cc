@@ -34,28 +34,11 @@ using namespace conrad::synthesis;
 /// @param[in] ms a table object, which has a field subtable defined
 /// (i.e. this method accepts a main ms table).
 TableFieldHolder::TableFieldHolder(const casa::Table &ms) :
-       itsFieldSubtable(ms.keywordSet().asTable("FIELD")),
-       itsIterator(itsFieldSubtable,"TIME",casa::TableIterator::DontCare,
+       TableHolder(ms.keywordSet().asTable("FIELD")),
+       itsIterator(table(),"TIME",casa::TableIterator::DontCare,
                    casa::TableIterator::NoSort)
 {
-  const casa::Array<casa::String> &tabUnits=itsFieldSubtable.tableDesc().
-        columnDesc("TIME").keywordSet().asArrayString("QuantumUnits");
-  if (tabUnits.nelements()!=1 || tabUnits.ndim()!=1) {
-      CONRADTHROW(DataAccessError, "Unable to interpret the QuantumUnits "
-        "keyword for the TIME column of the FIELD subtable. It should be a "
-        "1D Array of exactly 1 String element and the table has "<<tabUnits.nelements()<<
-        " elements and "<<tabUnits.ndim()<<" dimensions");
-  }
-  itsTimeUnits=casa::Unit(tabUnits(casa::IPosition(1,0)));
-  
-  const casa::RecordInterface &timeMeasInfo=itsFieldSubtable.tableDesc().
-            columnDesc("TIME").keywordSet().asRecord("MEASINFO");
-  CONRADASSERT(timeMeasInfo.asString("type")=="epoch");
-  if (timeMeasInfo.asString("Ref")!="UTC") {
-      CONRADTHROW(DataAccessError, "The frame "<<timeMeasInfo.asString("Ref")<<
-           " is not supported, only UTC is supported");
-  }
-  if (!itsFieldSubtable.nrow()) {
+  if (!table().nrow()) {
       CONRADTHROW(DataAccessError, "The FIELD subtable is empty");
   }
   fillCacheWithCurrentIteration();  
@@ -102,8 +85,7 @@ void TableFieldHolder::fillCacheWithCurrentIteration() const
 /// pointing and therefore can be time-dependent)
 void TableFieldHolder::fillCacheOnDemand(const casa::MEpoch &time) const
 {
-  CONRADASSERT(time.getRef().getType() == casa::MEpoch::UTC);
-  casa::Double dTime=time.getValue().getTime(itsTimeUnits).getValue();
+  const casa::Double dTime=tableTime(time);
   if (dTime<itsCachedStartTime) {
       itsIterator.reset();
       fillCacheWithCurrentIteration();
@@ -112,7 +94,7 @@ void TableFieldHolder::fillCacheOnDemand(const casa::MEpoch &time) const
       CONRADTHROW(DataAccessError, "An earlier time is requested ("<<time<<") than "
              "the FIELD table has data for");
   }
-  if ((itsFieldSubtable.nrow() == 1) || 
+  if ((table().nrow() == 1) || 
       (dTime>=itsCachedStartTime && dTime<=itsCachedStopTime)) {      
       return;
   }

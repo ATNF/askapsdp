@@ -23,6 +23,8 @@
 
 // own includes
 #include <dataaccess/ITableFieldHolder.h>
+#include <dataaccess/TimeDependentSubtable.h>
+#include <dataaccess/TableHolder.h>
 
 namespace conrad {
 
@@ -40,7 +42,9 @@ namespace synthesis {
 /// later return cached values.
 /// @note The class has not been properly tested with time-dependent FIELD table
 /// @ingroup dataaccess_tab
-struct TableFieldHolder : virtual public ITableFieldHolder {
+struct TableFieldHolder : virtual public ITableFieldHolder,
+                          virtual protected TableHolder,
+                          virtual protected TimeDependentSubtable {
 
   /// @brief construct the object
   /// @details 
@@ -70,15 +74,10 @@ protected:
   void fillCacheWithCurrentIteration() const;
   
 private:
-  /// FIELD subtable to work with
-  casa::Table itsFieldSubtable;
   
   /// iterator over the FIELD subtable
   mutable casa::TableIterator itsIterator;
-  
-  /// time units of the FIELD subtable
-  casa::Unit itsTimeUnits;
-  
+   
   /// start time of the time range, for which the cache is valid
   /// Time independent table has a very wide time range. Values are
   /// stored as Doubles in the native frame/units of the FIELD table
