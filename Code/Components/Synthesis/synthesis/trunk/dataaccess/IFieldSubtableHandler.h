@@ -9,8 +9,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_FIELD_HOLDER_H
-#define I_TABLE_FIELD_HOLDER_H
+#ifndef I_FIELD_SUBTABLE_HANLDER_H
+#define I_FIELD_SUBTABLE_HANLDER_H
 
 // casa includes
 #include <measures/Measures/MEpoch.h>
@@ -29,7 +29,7 @@ namespace synthesis {
 /// reference centres for each time). The POINTING table gives the actual 
 /// pointing of the antennae. 
 /// @ingroup dataaccess_tab
-struct ITableFieldHolder : virtual public IHolder {
+struct IFieldSubtableHandler : virtual public IHolder {
   
   /// @brief obtain the reference direction for a given time.
   /// @details It is not clear at the moment whether this subtable is
@@ -50,4 +50,4 @@ struct ITableFieldHolder : virtual public IHolder {
 
 } // namespace conrad
 
-#endif // #ifndef I_TABLE_FIELD_HOLDER_H
+#endif // #ifndef I_FIELD_SUBTABLE_HANLDER_H

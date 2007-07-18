@@ -80,10 +80,10 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    virtual const ITableFeedHolder& getFeed() const;
    
    /// @brief obtain a field subtable handler
-   /// @details A TableFieldHolder is consructed on the first call to this
+   /// @details A FieldSubtableHandler is consructed on the first call to this
    /// method and a reference to it is returned thereafter.
    /// @return a reference to the handler of the FIELD subtable
-   virtual const ITableFieldHolder& getField() const;
+   virtual const IFieldSubtableHandler& getField() const;
    
 protected:   
    /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
@@ -98,7 +98,7 @@ protected:
    /// initialize itsFeedHolder with an instance of TableFeedHolder
    void initFeedHolder() const;
    
-   /// initialize itsFieldHolder with an instance of TableFieldHolder
+   /// initialize itsFieldHolder with an instance of FieldSubtableHandler
    void initFieldHolder() const;
 
 private:
@@ -118,7 +118,7 @@ private:
    mutable boost::shared_ptr<ITableFeedHolder const> itsFeedHolder;
    
    /// smart pointer to the field subtable handler
-   mutable boost::shared_ptr<ITableFieldHolder const> itsFieldHolder;
+   mutable boost::shared_ptr<IFieldSubtableHandler const> itsFieldHolder;
 };
 
 

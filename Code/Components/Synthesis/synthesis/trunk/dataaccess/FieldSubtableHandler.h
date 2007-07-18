@@ -13,8 +13,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_FIELD_HOLDER_H
-#define TABLE_FIELD_HOLDER_H
+#ifndef FIELD_SUBTABLE_HANDLER_H
+#define FIELD_SUBTABLE_HANDLER_H
 
 // casa includes
 #include <tables/Tables/Table.h>
@@ -22,7 +22,7 @@
 #include <casa/Quanta/Quantum.h>
 
 // own includes
-#include <dataaccess/ITableFieldHolder.h>
+#include <dataaccess/IFieldSubtableHandler.h>
 #include <dataaccess/TimeDependentSubtable.h>
 #include <dataaccess/TableHolder.h>
 
@@ -42,15 +42,15 @@ namespace synthesis {
 /// later return cached values.
 /// @note The class has not been properly tested with time-dependent FIELD table
 /// @ingroup dataaccess_tab
-struct TableFieldHolder : virtual public ITableFieldHolder,
-                          virtual protected TableHolder,
-                          virtual protected TimeDependentSubtable {
+struct FieldSubtableHandler : virtual public IFieldSubtableHandler,
+                              virtual protected TableHolder,
+                              virtual protected TimeDependentSubtable {
 
   /// @brief construct the object
   /// @details 
   /// @param[in] ms a table object, which has a field subtable defined
   /// (i.e. this method accepts a main ms table).
-  explicit TableFieldHolder(const casa::Table &ms); 
+  explicit FieldSubtableHandler(const casa::Table &ms); 
   
   /// @brief obtain the reference direction for a given time.
   /// @details It is not clear at the moment whether this subtable is
@@ -97,4 +97,5 @@ private:
 
 } // namespace conrad
 
-#endif // #ifndef TABLE_FIELD_HOLDER_H
+#endif // #ifndef FIELD_SUBTABLE_HANDLER_H
+

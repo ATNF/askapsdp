@@ -14,7 +14,7 @@
 ///
 
 // own includes
-#include <dataaccess/TableFieldHolder.h>
+#include <dataaccess/FieldSubtableHandler.h>
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
 
@@ -33,7 +33,7 @@ using namespace conrad::synthesis;
 /// @details 
 /// @param[in] ms a table object, which has a field subtable defined
 /// (i.e. this method accepts a main ms table).
-TableFieldHolder::TableFieldHolder(const casa::Table &ms) :
+FieldSubtableHandler::FieldSubtableHandler(const casa::Table &ms) :
        TableHolder(ms.keywordSet().asTable("FIELD")),
        itsIterator(table(),"TIME",casa::TableIterator::DontCare,
                    casa::TableIterator::NoSort)
@@ -54,7 +54,7 @@ TableFieldHolder::TableFieldHolder(const casa::Table &ms) :
 /// @param[in] time a full epoch of interest (the subtable can have multiple
 /// pointings.
 /// @return a reference to direction measure
-const casa::MDirection& TableFieldHolder::getReferenceDir(const 
+const casa::MDirection& FieldSubtableHandler::getReferenceDir(const 
                  casa::MEpoch &time) const
 {
   fillCacheOnDemand(time);
@@ -63,7 +63,7 @@ const casa::MDirection& TableFieldHolder::getReferenceDir(const
 
 /// read the current iteration and populate cache. It also advances the
 /// iterator
-void TableFieldHolder::fillCacheWithCurrentIteration() const
+void FieldSubtableHandler::fillCacheWithCurrentIteration() const
 {
   casa::Table curIt=itsIterator.table();
   if (curIt.nrow()>1) {
@@ -83,7 +83,7 @@ void TableFieldHolder::fillCacheWithCurrentIteration() const
 /// read the data if cache is outdated
 /// @param[in] time a full epoch of interest (field table can have many
 /// pointing and therefore can be time-dependent)
-void TableFieldHolder::fillCacheOnDemand(const casa::MEpoch &time) const
+void FieldSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time) const
 {
   const casa::Double dTime=tableTime(time);
   if (dTime<itsCachedStartTime) {

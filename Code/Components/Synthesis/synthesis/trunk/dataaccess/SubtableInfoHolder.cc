@@ -29,7 +29,7 @@
 #include <dataaccess/TableBufferManager.h>
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableFeedHolder.h>
-#include <dataaccess/TableFieldHolder.h>
+#include <dataaccess/FieldSubtableHandler.h>
 
 using namespace conrad;
 using namespace conrad::synthesis;
@@ -155,10 +155,10 @@ void SubtableInfoHolder::initFeedHolder() const
 
 
 /// @brief obtain a field subtable handler
-/// @details A TableFieldHolder is consructed on the first call to this
+/// @details A FieldSubtableHandler is consructed on the first call to this
 /// method and a reference to it is returned thereafter.
 /// @return a reference to the handler of the FIELD subtable
-const ITableFieldHolder& SubtableInfoHolder::getField() const
+const IFieldSubtableHandler& SubtableInfoHolder::getField() const
 {
   if (!itsFieldHolder) {
       initFieldHolder();
@@ -166,8 +166,8 @@ const ITableFieldHolder& SubtableInfoHolder::getField() const
   return *itsFieldHolder;
 }
 
-/// initialize itsFieldHolder with an instance of TableFieldHolder
+/// initialize itsFieldHolder with an instance of FieldSubtableHandler
 void SubtableInfoHolder::initFieldHolder() const
 {
-  itsFieldHolder.reset(new TableFieldHolder(table()));
+  itsFieldHolder.reset(new FieldSubtableHandler(table()));
 }
