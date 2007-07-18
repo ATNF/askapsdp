@@ -89,7 +89,7 @@ void TableFieldHolder::fillCacheWithCurrentIteration() const
   }
   casa::ROScalarColumn<casa::Double> timeCol(curIt,"TIME");
   itsCachedStartTime=timeCol(0);
-  casa::ROScalarMeasColumn<casa::MDirection> refDirCol(curIt,"REFERENCE_DIRECTION");
+  casa::ROScalarMeasColumn<casa::MDirection> refDirCol(curIt,"REFERENCE_DIR");
   itsReferenceDir=refDirCol(0);
   if (!itsIterator.pastEnd()) {
       itsIterator.next();

@@ -40,6 +40,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(dataDescTest);
   CPPUNIT_TEST(spWindowTest);  
   CPPUNIT_TEST(feedTest);
+  CPPUNIT_TEST(fieldTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   
@@ -59,6 +60,8 @@ public:
   void spWindowTest();
   /// test access to the feed subtable
   void feedTest();
+  /// test access to the field subtable
+  void fieldTest();
 protected:
   void doBufferTest() const;
 private:
@@ -169,6 +172,26 @@ void TableDataAccessTest::feedTest()
        }
        CPPUNIT_ASSERT(fabs(feedSubtable.getBeamPA(time,0,0,feed))<1e-5);
   }                  
+}
+
+/// test access to the field subtable
+void TableDataAccessTest::fieldTest()
+{
+  // because we're not accessing the buffers here, it shouldn't really
+  // matter whether we open it with memory buffers or with disk buffers
+  // and read-only table should be enough.
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+              casa::Table(TableTestRunner::msName()),false));
+  CPPUNIT_ASSERT(itsTableInfoAccessor);
+  const ITableFieldHolder &fieldSubtable=itsTableInfoAccessor->
+                      subtableInfo().getField();
+  casa::MEpoch time(casa::MVEpoch(casa::Quantity(50257.29,"d")),
+                    casa::MEpoch::Ref(casa::MEpoch::UTC));
+  casa::MVDirection refDir(casa::Quantity(0.,"deg"), casa::Quantity(-50.,"deg"));
+  CPPUNIT_ASSERT(fieldSubtable.getReferenceDir(time).getRef().getType() ==
+                 casa::MDirection::J2000);
+  CPPUNIT_ASSERT(fieldSubtable.getReferenceDir(time).getValue().
+                 separation(refDir)<1e-7);       
 }
 
 

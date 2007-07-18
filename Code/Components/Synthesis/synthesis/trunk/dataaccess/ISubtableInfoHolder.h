@@ -24,6 +24,7 @@
 #include <dataaccess/ITableSpWindowHolder.h>
 #include <dataaccess/IBufferManager.h>
 #include <dataaccess/ITableFeedHolder.h>
+#include <dataaccess/ITableFieldHolder.h>
 
 namespace conrad {
 
@@ -55,6 +56,9 @@ struct ISubtableInfoHolder : virtual public IHolder {
    
    /// @return a reference to the handler of the FEED subtable
    virtual const ITableFeedHolder& getFeed() const = 0;
+   
+   /// @return a reference to the handler of the FIELD subtable
+   virtual const ITableFieldHolder& getField() const = 0;
 };
 
 

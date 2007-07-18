@@ -38,6 +38,7 @@ namespace synthesis {
 /// a difference from subtable handler classes, whose name starts from Mem...
 /// The latter classes read all the subtable into memory in the constructor and
 /// later return cached values.
+/// @note The class has not been properly tested with time-dependent FIELD table
 /// @ingroup dataaccess_tab
 struct TableFieldHolder : virtual public ITableFieldHolder {
 
