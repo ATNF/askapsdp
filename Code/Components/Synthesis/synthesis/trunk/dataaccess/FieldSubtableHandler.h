@@ -31,15 +31,15 @@ namespace conrad {
 namespace synthesis {
 
 
-/// @brief An interface to FIELD subtable
-/// @details A class derived from this interface provides access to
+/// @brief A handler of the FIELD subtable
+/// @details This class derived provides access to
 /// the content of the FIELD subtable (which provides delay, phase and
 /// reference centres for each time). The POINTING table gives the actual 
 /// pointing of the antennae. Although this implementation caches the values
 /// for the last requested time range, it reads the data on-demand. This is 
 /// a difference from subtable handler classes, whose name starts from Mem...
 /// The latter classes read all the subtable into memory in the constructor and
-/// later return cached values.
+/// later return cached values. 
 /// @note The class has not been properly tested with time-dependent FIELD table
 /// @ingroup dataaccess_tab
 struct FieldSubtableHandler : virtual public IFieldSubtableHandler,

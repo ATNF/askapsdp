@@ -38,10 +38,16 @@ namespace conrad {
 
 namespace synthesis {
 
-/// @brief An interface to FEED subtable
-/// @details A class derived from this interface provides access to
+/// @brief A class to access FEED subtable
+/// @details This file contains a class implementing IFeedSubtableHandler interface to
 /// the content of the FEED subtable (which provides offsets of each physical
-/// feed from the dish pointing centre and its position anlge. 
+/// feed from the dish pointing centre and its position anlge). Although this 
+/// implementation caches the values for the last requested time-range and 
+/// the spectral window, it reads the data on-demand. This is the difference
+/// from some other subtables which are implemented by Mem... classes reading
+/// all the required data in the constructor. If the table is trivial 
+/// (no time- and spectral window dependence), it will be fully cached on the
+/// first request.
 /// @note The measurement set format specifies offsets for each receptor,
 /// rather than feed (i.e. for each polarization separately). We handle possible
 /// squints together with other image plane effects and therefore need just
