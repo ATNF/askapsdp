@@ -147,7 +147,8 @@ namespace conrad
               }
               else
               {
-                /// @todo Unwrap this loop to avoid casa::Cube index overhead
+            	  /// Replacing this by direct pointer arithmetic makes no
+            	  /// real difference in performance - not sure why
                 int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                 for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                 {

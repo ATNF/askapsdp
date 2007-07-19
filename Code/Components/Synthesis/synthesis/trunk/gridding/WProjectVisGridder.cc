@@ -10,24 +10,28 @@
 
 using namespace conrad;
 
+#include <cmath>
+
 namespace conrad
 {
   namespace synthesis
   {
 
     WProjectVisGridder::WProjectVisGridder(const double wmax, const int nwplanes,
-      const double cutoff, const int overSample)
+      const double cutoff, const int overSample, const int maxSupport)
     {
       CONRADCHECK(wmax>0.0, "Baseline length must be greater than zero");
       CONRADCHECK(nwplanes>0, "Number of w planes must be greater than zero");
       CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
       CONRADCHECK(cutoff>0.0, "Cutoff must be positive");
       CONRADCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
+      CONRADCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
       itsNWPlanes=2*nwplanes+1;
       itsWScale=wmax/double(nwplanes);
       itsOverSample=overSample;
       itsCutoff=cutoff;
+      itsMaxSupport=maxSupport;
     }
 
     WProjectVisGridder::~WProjectVisGridder()
@@ -63,8 +67,11 @@ namespace conrad
       casa::FFTServer<casa::Float,casa::Complex> ffts;
       itsSupport=0;
 
-      int nx=shape(0)/itsOverSample;
-      int ny=shape(1)/itsOverSample;
+      /// Limit the size of the convolution function since
+      /// we don't need it finely sampled in image space. This
+      /// will reduce the time taken to calculate it.
+      int nx=std::min(itsMaxSupport, shape(0)/itsOverSample);
+      int ny=std::min(itsMaxSupport, shape(1)/itsOverSample);
       int cenx=nx/2;
       int ceny=ny/2;
  

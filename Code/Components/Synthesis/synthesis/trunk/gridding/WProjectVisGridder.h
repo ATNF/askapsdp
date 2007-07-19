@@ -25,9 +25,10 @@ namespace conrad
 /// @param nwplanes Number of w planes
 /// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
 /// @param overSample Oversampling (currently limited to <=1)
+/// @param maxSupport Maximum support to be allowed
 //
         WProjectVisGridder(const double wmax, const int nwplanes,
-          const double cutoff, const int overSample);
+          const double cutoff, const int overSample, const int maxSupport);
 
         virtual ~WProjectVisGridder();
 
@@ -52,6 +53,8 @@ namespace conrad
         double itsCutoff;
         /// Mapping from row and channel to planes
         casa::Matrix<int> itsCMap;
+        /// Maximum support
+        int itsMaxSupport;
     };
   }
 }
