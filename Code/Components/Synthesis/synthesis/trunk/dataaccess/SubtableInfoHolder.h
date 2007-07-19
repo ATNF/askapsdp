@@ -74,10 +74,10 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    virtual const IBufferManager& getBufferManager() const;
      
    /// @brief obtain a feed subtable handler
-   /// @details A TableFeedHolder is constructred on the first call to
+   /// @details A FeedSubtableHandler is constructred on the first call to
    /// this method and a reference to it is always returne later
    /// @return a reference to the handler of the FEED subtable
-   virtual const ITableFeedHolder& getFeed() const;
+   virtual const IFeedSubtableHandler& getFeed() const;
    
    /// @brief obtain a field subtable handler
    /// @details A FieldSubtableHandler is consructed on the first call to this
@@ -95,7 +95,7 @@ protected:
    /// initialize itsBufferManager with an instance of TableBufferManager
    void initBufferManager() const;
    
-   /// initialize itsFeedHolder with an instance of TableFeedHolder
+   /// initialize itsFeedHolder with an instance of FeedSubtableHandler
    void initFeedHolder() const;
    
    /// initialize itsFieldHolder with an instance of FieldSubtableHandler
@@ -115,7 +115,7 @@ private:
    bool itsUseMemBuffers;
 
    /// smart pointer to the feed subtable handler
-   mutable boost::shared_ptr<ITableFeedHolder const> itsFeedHolder;
+   mutable boost::shared_ptr<IFeedSubtableHandler const> itsFeedHolder;
    
    /// smart pointer to the field subtable handler
    mutable boost::shared_ptr<IFieldSubtableHandler const> itsFieldHolder;

@@ -12,8 +12,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_FEED_HOLDER_H
-#define I_TABLE_FEED_HOLDER_H
+#ifndef I_FEED_SUBTABLE_HANDLER_H
+#define I_FEED_SUBTABLE_HANDLER_H
 
 // casa includes
 #include <measures/Measures/MEpoch.h>
@@ -35,7 +35,7 @@ namespace synthesis {
 /// squints together with other image plane effects and therefore need just
 /// a reference position (i.e. an average offset if there is any squint). 
 /// @ingroup dataaccess_tab
-struct ITableFeedHolder : virtual public IHolder {
+struct IFeedSubtableHandler : virtual public IHolder {
 
   /// obtain the offsets of each beam with respect to dish pointing
   /// centre.
@@ -70,4 +70,4 @@ struct ITableFeedHolder : virtual public IHolder {
 
 } // namespace conrad
 
-#endif // #ifndef I_TABLE_FEED_HOLDER_H
+#endif // #ifndef I_FEED_SUBTABLE_HANDLER_H

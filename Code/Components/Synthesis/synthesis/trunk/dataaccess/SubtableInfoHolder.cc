@@ -28,7 +28,7 @@
 #include <dataaccess/MemTableSpWindowHolder.h>
 #include <dataaccess/TableBufferManager.h>
 #include <dataaccess/DataAccessError.h>
-#include <dataaccess/TableFeedHolder.h>
+#include <dataaccess/FeedSubtableHandler.h>
 #include <dataaccess/FieldSubtableHandler.h>
 
 using namespace conrad;
@@ -136,10 +136,10 @@ void SubtableInfoHolder::initBufferManager() const
 }
 
 /// @brief obtain a feed subtable handler
-/// @details A TableFeedHolder is constructred on the first call to
+/// @details A FeedSubtableHandler is constructred on the first call to
 /// this method and a reference to it is always returne later
 /// @return a reference to the handler of the FEED subtable
-const ITableFeedHolder& SubtableInfoHolder::getFeed() const
+const IFeedSubtableHandler& SubtableInfoHolder::getFeed() const
 {
   if (!itsFeedHolder) {
       initFeedHolder();
@@ -147,10 +147,10 @@ const ITableFeedHolder& SubtableInfoHolder::getFeed() const
   return *itsFeedHolder;
 }
 
-/// initialize itsFeedHolder with an instance of TableFeedHolder
+/// initialize itsFeedHolder with an instance of FeedSubtableHandler
 void SubtableInfoHolder::initFeedHolder() const
 {
-  itsFeedHolder.reset(new TableFeedHolder(table()));  
+  itsFeedHolder.reset(new FeedSubtableHandler(table()));  
 }
 
 

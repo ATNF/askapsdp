@@ -1,6 +1,6 @@
 /// @file
 /// @brief A class to access FEED subtable
-/// @details This file contains a class implementing ITableFeedHolder interface to
+/// @details This file contains a class implementing IFeedSubtableHandler interface to
 /// the content of the FEED subtable (which provides offsets of each physical
 /// feed from the dish pointing centre and its position anlge). Although this 
 /// implementation caches the values for the last requested time-range and 
@@ -20,7 +20,7 @@
 
 
 // own includes
-#include <dataaccess/TableFeedHolder.h>
+#include <dataaccess/FeedSubtableHandler.h>
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
 
@@ -39,21 +39,11 @@ using namespace conrad::synthesis;
 /// @brief construct the object
 /// @details
 /// @param[in] ms a table object, which has a feed subtable (main MS table)
-TableFeedHolder::TableFeedHolder(const casa::Table &ms) :
-          itsFeedSubtable(ms.keywordSet().asTable("FEED")),
-          itsCachedSpWindow(-2)
+FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
+          TableHolder(ms.keywordSet().asTable("FEED")),
+          itsCachedSpWindow(-2), itsIntervalFactor(1.)
 {
-  const casa::Array<casa::String> &tabUnits=itsFeedSubtable.tableDesc().
-          columnDesc("TIME").keywordSet().asArrayString("QuantumUnits");
-  if (tabUnits.nelements()!=1 || tabUnits.ndim()!=1) {
-      CONRADTHROW(DataAccessError, "Unable to interpret the QuantumUnits keyword for "
-                  "the TIME column of the FEED subtable. It should be a 1D Array of "
-                  "exactly 1 String element and the table has "<<tabUnits.nelements()<<
-                  " elements and "<<tabUnits.ndim()<<" dimensions");
-  }
-  itsTimeUnits=casa::Unit(tabUnits(casa::IPosition(1,0)));
-  
-  const casa::Array<casa::String> &intervalUnits=itsFeedSubtable.tableDesc().
+  const casa::Array<casa::String> &intervalUnits=table().tableDesc().
           columnDesc("INTERVAL").keywordSet().asArrayString("QuantumUnits");
   if (intervalUnits.nelements()!=1 || intervalUnits.ndim()!=1) {
       CONRADTHROW(DataAccessError, "Unable to interpret the QuantumUnits keyword for "
@@ -61,17 +51,10 @@ TableFeedHolder::TableFeedHolder(const casa::Table &ms) :
                   "exactly 1 String element and the table has "<<intervalUnits.nelements()<<
                   " elements and "<<intervalUnits.ndim()<<" dimensions");
   }
-  if (itsTimeUnits.getName()!=intervalUnits(casa::IPosition(1,0))) {
-      CONRADTHROW(DataAccessError, "The units of TIME and INTERVAL columns of the "
-                  "FEED subtable are different. This case is not yet implemented");
-  }
-  const casa::RecordInterface &timeMeasInfo=itsFeedSubtable.tableDesc().
-            columnDesc("TIME").keywordSet().asRecord("MEASINFO");
-  CONRADASSERT(timeMeasInfo.asString("type")=="epoch");
-  if (timeMeasInfo.asString("Ref")!="UTC") {
-      CONRADTHROW(DataAccessError, "The frame "<<timeMeasInfo.asString("Ref")<<
-           " is not supported, only UTC is supported");
-  }          
+  itsIntervalFactor = tableTime(1.).getValue().
+            getTime(casa::Unit(intervalUnits(casa::IPosition(1,0)))).getValue();
+  CONRADDEBUGASSERT(itsIntervalFactor != 0);
+  itsIntervalFactor = 1./itsIntervalFactor;          
 }
  
 /// obtain the offsets of each beam with respect to dish pointing
@@ -85,7 +68,7 @@ TableFeedHolder::TableFeedHolder(const casa::Table &ms) :
 /// @return a reference to RigidVector<Double,2> with the offsets on each
 /// axes (in radians).
 const casa::RigidVector<casa::Double, 2>& 
-        TableFeedHolder::getBeamOffset(const casa::MEpoch &time, 
+        FeedSubtableHandler::getBeamOffset(const casa::MEpoch &time, 
                       casa::uInt spWinID,
                       casa::uInt antID, casa::uInt feedID) const
 {
@@ -101,7 +84,7 @@ const casa::RigidVector<casa::Double, 2>&
 /// in cache).
 /// @param[in] antID antenna of interest
 /// @param[in] feedID feed of interest 
-casa::uInt TableFeedHolder::getIndex(casa::uInt antID, casa::uInt feedID) const
+casa::uInt FeedSubtableHandler::getIndex(casa::uInt antID, casa::uInt feedID) const
 {
  if (antID>=itsIndices.nrow()) {
       CONRADTHROW(DataAccessError, "Antenna ID requested ("<<antID<<
@@ -129,23 +112,22 @@ casa::uInt TableFeedHolder::getIndex(casa::uInt antID, casa::uInt feedID) const
 /// dependent
 /// @param[in] spWinID spectral window ID of interest (feed table can be
 /// spectral window-dependent  
-void TableFeedHolder::fillCacheOnDemand(const casa::MEpoch &time, 
+void FeedSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time, 
                        casa::uInt spWinID) const
 {
-  CONRADASSERT(time.getRef().getType()==casa::MEpoch::UTC);
-  casa::Double dTime=time.getValue().getTime(itsTimeUnits).getValue();
+  const casa::Double dTime=tableTime(time);
   if (dTime>=itsCachedStartTime && dTime<=itsCachedStopTime &&
       (spWinID==itsCachedSpWindow || itsCachedSpWindow==-1)) {
       // cache is valid
       return;
   }
-  casa::TableExprNode expression= ((itsFeedSubtable.col("SPECTRAL_WINDOW_ID") ==
+  casa::TableExprNode expression= ((table().col("SPECTRAL_WINDOW_ID") ==
                 static_cast<casa::Int>(spWinID)) || 
-                    (itsFeedSubtable.col("SPECTRAL_WINDOW_ID") == -1)) &&
-               (itsFeedSubtable.col("TIME") <= dTime) &&
-                (itsFeedSubtable.col("TIME") + itsFeedSubtable.col("INTERVAL")>=
+                    (table().col("SPECTRAL_WINDOW_ID") == -1)) &&
+               (table().col("TIME") <= dTime) &&
+                (table().col("TIME") + itsIntervalFactor*table().col("INTERVAL")>=
                  dTime);
-  casa::Table selection=itsFeedSubtable(expression);
+  casa::Table selection=table()(expression);
   if (selection.nrow()==0) {
       CONRADTHROW(DataAccessError, "FEED subtable is empty");
   }
@@ -181,7 +163,7 @@ void TableFeedHolder::fillCacheOnDemand(const casa::MEpoch &time,
 /// @param[in] rcptOffsets offsets for all receptors corresponding to the 
 /// given feed
 /// @param[out] beamOffsets returned averaged offsets
-void TableFeedHolder::computeBeamOffset(const casa::Array<casa::Double> &rcptOffsets,
+void FeedSubtableHandler::computeBeamOffset(const casa::Array<casa::Double> &rcptOffsets,
                       casa::RigidVector<casa::Double, 2> &beamOffsets)
 {
   CONRADASSERT(rcptOffsets.ndim()<3);
@@ -212,7 +194,7 @@ void TableFeedHolder::computeBeamOffset(const casa::Array<casa::Double> &rcptOff
 /// feed
 /// @return the angle corresponding to the beam (curretly that of the first 
 /// receptor) 
-casa::Double TableFeedHolder::computePositionAngle(const casa::Array<casa::Double>
+casa::Double FeedSubtableHandler::computePositionAngle(const casa::Array<casa::Double>
                                &rcptAngles)
 {
   CONRADDEBUGASSERT(rcptAngles.ndim()==1);
@@ -230,7 +212,7 @@ casa::Double TableFeedHolder::computePositionAngle(const casa::Array<casa::Doubl
 /// @param[in] antID antenna of interest
 /// @param[in] feedID feed of interest 
 /// @return a position angle (in radians).
-casa::Double TableFeedHolder::getBeamPA(const casa::MEpoch &time, 
+casa::Double FeedSubtableHandler::getBeamPA(const casa::MEpoch &time, 
                                  casa::uInt spWinID, 
                                  casa::uInt antID, casa::uInt feedID) const
 {

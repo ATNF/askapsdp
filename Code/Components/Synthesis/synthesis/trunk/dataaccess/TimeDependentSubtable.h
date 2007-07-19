@@ -48,6 +48,17 @@ struct TimeDependentSubtable : virtual public ITimeDependentSubtable {
   /// @return an epoch in table's native frame/units
   virtual casa::Double tableTime(const casa::MEpoch &time) const;
   
+  /// @brief obtain a full epoch object for a given time (reverse conversion)
+  /// @details Some subtables can have more than one time-related columns, i.e.
+  /// TIME and INTERVAL. This method allows to form a full MEpoch measure from
+  /// the time represented as double in the native table's reference frame/unit.
+  /// It allows to extract frame/unit information and compare them with that of
+  /// the other columns. 
+  virtual casa::MEpoch tableTime(casa::Double time) const;
+
+protected:
+   /// @brief initialize itsConverter
+   void initConverter() const;  
 private:
   mutable boost::shared_ptr<IEpochConverter const> itsConverter;
 };

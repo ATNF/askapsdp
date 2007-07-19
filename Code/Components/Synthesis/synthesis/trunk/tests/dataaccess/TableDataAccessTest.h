@@ -146,7 +146,7 @@ void TableDataAccessTest::feedTest()
   itsTableInfoAccessor.reset(new TableInfoAccessor(
               casa::Table(TableTestRunner::msName()),false));
   CPPUNIT_ASSERT(itsTableInfoAccessor);
-  const ITableFeedHolder &feedSubtable=itsTableInfoAccessor->
+  const IFeedSubtableHandler &feedSubtable=itsTableInfoAccessor->
                       subtableInfo().getFeed();
   casa::MEpoch time(casa::MVEpoch(casa::Quantity(50257.29,"d")),
                     casa::MEpoch::Ref(casa::MEpoch::UTC));

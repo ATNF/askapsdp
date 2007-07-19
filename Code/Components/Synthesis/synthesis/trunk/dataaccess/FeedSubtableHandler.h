@@ -1,6 +1,6 @@
 /// @file
 /// @brief A class to access FEED subtable
-/// @details This file contains a class implementing ITableFeedHolder interface to
+/// @details This file contains a class implementing IFeedSubtableHandler interface to
 /// the content of the FEED subtable (which provides offsets of each physical
 /// feed from the dish pointing centre and its position anlge). Although this 
 /// implementation caches the values for the last requested time-range and 
@@ -18,8 +18,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef TABLE_FEED_HOLDER_H
-#define TABLE_FEED_HOLDER_H
+#ifndef FEED_SUBTABLE_HANDLER_H
+#define FEED_SUBTABLE_HANDLER_H
 
 // casa includes
 #include <tables/Tables/Table.h>
@@ -30,7 +30,9 @@
 
 
 // own includes
-#include <dataaccess/ITableFeedHolder.h>
+#include <dataaccess/IFeedSubtableHandler.h>
+#include <dataaccess/TableHolder.h>
+#include <dataaccess/TimeDependentSubtable.h>
 
 namespace conrad {
 
@@ -45,13 +47,15 @@ namespace synthesis {
 /// squints together with other image plane effects and therefore need just
 /// a reference position (i.e. an average offset if there is any squint). 
 /// @ingroup dataaccess_tab
-struct TableFeedHolder : virtual public ITableFeedHolder {
+struct FeedSubtableHandler : virtual public IFeedSubtableHandler,
+                             virtual protected TableHolder,
+                             virtual protected TimeDependentSubtable   {
   
   
   /// @brief construct the object
   /// @details
   /// @param[in] ms a table object, which has a feed subtable (main MS table)
-  explicit TableFeedHolder(const casa::Table &ms);
+  explicit FeedSubtableHandler(const casa::Table &ms);
   
 
   /// obtain the offsets of each beam with respect to dish pointing
@@ -114,12 +118,6 @@ protected:
   static casa::Double computePositionAngle(const casa::Array<casa::Double>
                                &rcptAngles);             
 private:
-  /// FEED subtable to work with
-  casa::Table itsFeedSubtable;
-  
-  /// time units of the FEED subtable
-  casa::Unit itsTimeUnits;
-
  
   /// the spectral window for which the cache is valid. -1 means for any
   /// spectral window (if the table is spectral window-independent). 
@@ -146,6 +144,10 @@ private:
   /// sort, as it was done for the VisBuffer in AIPS++ is not sufficient
   /// in the general case.
   mutable casa::Matrix<casa::Int> itsIndices;
+  
+  /// a factor to multiply the INTERVAL to get the same units as
+  /// TIME column
+  casa::Double itsIntervalFactor;
 };
 
 
@@ -153,4 +155,4 @@ private:
 
 } // namespace conrad
 
-#endif // #ifndef TABLE_FEED_HOLDER_H
+#endif // #ifndef FEED_SUBTABLE_HANDLER_H
