@@ -25,6 +25,7 @@
 #include <dataaccess/IBufferManager.h>
 #include <dataaccess/IFeedSubtableHandler.h>
 #include <dataaccess/IFieldSubtableHandler.h>
+#include <dataaccess/IAntennaSubtableHandler.h>
 
 namespace conrad {
 
@@ -59,6 +60,9 @@ struct ISubtableInfoHolder : virtual public IHolder {
    
    /// @return a reference to the handler of the FIELD subtable
    virtual const IFieldSubtableHandler& getField() const = 0;
+
+   /// @return a reference to the handler of the ANTENNA subtable
+   virtual const IAntennaSubtableHandler& getAntenna() const = 0;
 };
 
 

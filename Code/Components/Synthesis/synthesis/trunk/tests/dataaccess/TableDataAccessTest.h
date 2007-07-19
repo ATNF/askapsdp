@@ -41,6 +41,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(spWindowTest);  
   CPPUNIT_TEST(feedTest);
   CPPUNIT_TEST(fieldTest);
+  CPPUNIT_TEST(antennaTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   
@@ -62,6 +63,8 @@ public:
   void feedTest();
   /// test access to the field subtable
   void fieldTest();
+  /// test access to the antenna subtable
+  void antennaTest();
 protected:
   void doBufferTest() const;
 private:
@@ -221,6 +224,27 @@ void TableDataAccessTest::doBufferTest() const
 	    }
        }
   }
+}
+
+/// test access to the antenna subtable
+void TableDataAccessTest::antennaTest()
+{
+  // because we're not accessing the buffers here, it shouldn't really
+  // matter whether we open it with memory buffers or with disk buffers
+  // and read-only table should be enough.
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+              casa::Table(TableTestRunner::msName()),false));
+  CPPUNIT_ASSERT(itsTableInfoAccessor);
+  const IAntennaSubtableHandler &antennaSubtable=itsTableInfoAccessor->
+                      subtableInfo().getAntenna();
+  for (casa::uInt ant=0;ant<6;++ant) {
+       CPPUNIT_ASSERT(antennaSubtable.getMount(ant) == "ALT-AZ");
+      for (casa::uInt ant2=0; ant2<ant; ++ant2) {
+           CPPUNIT_ASSERT(antennaSubtable.getPosition(ant).getValue().
+              separation(antennaSubtable.getPosition(ant2).getValue(),"deg").
+                         getValue()<0.1);
+      }
+  }                     
 }
 
 } // namespace synthesis

@@ -30,6 +30,7 @@
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/FeedSubtableHandler.h>
 #include <dataaccess/FieldSubtableHandler.h>
+#include <dataaccess/MemAntennaSubtableHandler.h>
 
 using namespace conrad;
 using namespace conrad::synthesis;
@@ -50,10 +51,10 @@ SubtableInfoHolder::SubtableInfoHolder(bool memBuffers) : itsUseMemBuffers(memBu
 /// @return a reference to the handler of the DATA_DESCRIPTION subtable
 const ITableDataDescHolder& SubtableInfoHolder::getDataDescription() const
 {
-  if (!itsDataDescHolder) {
-      initDataDescHolder();
+  if (!itsDataDescHandler) {
+      itsDataDescHandler.reset(new MemTableDataDescHolder(table()));
   }
-  return *itsDataDescHolder;
+  return *itsDataDescHandler;
 }
 
 /// @brief obtain spectral window holder
@@ -62,23 +63,12 @@ const ITableDataDescHolder& SubtableInfoHolder::getDataDescription() const
 /// @return a reference to the handler of the SPECTRAL_WINDOW subtable
 const ITableSpWindowHolder& SubtableInfoHolder::getSpWindow() const
 {
-  if (!itsSpWindowHolder) {
-      initSpWindowHolder();
+  if (!itsSpWindowHandler) {
+      itsSpWindowHandler.reset(new MemTableSpWindowHolder(table()));
   }
-  return *itsSpWindowHolder;
+  return *itsSpWindowHandler;
 }
 
-/// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
-void SubtableInfoHolder::initDataDescHolder() const
-{
-  itsDataDescHolder.reset(new MemTableDataDescHolder(table()));
-}
-
-/// initialize itsSpWindowHolder with an instance of MemTableSpWindowHolder.
-void SubtableInfoHolder::initSpWindowHolder() const
-{
-  itsSpWindowHolder.reset(new MemTableSpWindowHolder(table()));
-}
 
 /// @brief obtain a manager of buffers
 /// @details A TableBufferManager is constructed on the first call
@@ -141,16 +131,10 @@ void SubtableInfoHolder::initBufferManager() const
 /// @return a reference to the handler of the FEED subtable
 const IFeedSubtableHandler& SubtableInfoHolder::getFeed() const
 {
-  if (!itsFeedHolder) {
-      initFeedHolder();
+  if (!itsFeedHandler) {
+      itsFeedHandler.reset(new FeedSubtableHandler(table()));  
   }
-  return *itsFeedHolder;
-}
-
-/// initialize itsFeedHolder with an instance of FeedSubtableHandler
-void SubtableInfoHolder::initFeedHolder() const
-{
-  itsFeedHolder.reset(new FeedSubtableHandler(table()));  
+  return *itsFeedHandler;
 }
 
 
@@ -160,14 +144,21 @@ void SubtableInfoHolder::initFeedHolder() const
 /// @return a reference to the handler of the FIELD subtable
 const IFieldSubtableHandler& SubtableInfoHolder::getField() const
 {
-  if (!itsFieldHolder) {
-      initFieldHolder();
+  if (!itsFieldHandler) {
+      itsFieldHandler.reset(new FieldSubtableHandler(table()));
   }
-  return *itsFieldHolder;
+  return *itsFieldHandler;
 }
 
-/// initialize itsFieldHolder with an instance of FieldSubtableHandler
-void SubtableInfoHolder::initFieldHolder() const
+
+/// @brief obtain an antenna subtable handler
+/// @details A MemAntennaSubtableHandler is constructed on the first call
+/// to this method and a reference to it is returned thereafter
+/// @return a reference to the handler of the ANTENNA subtable
+const IAntennaSubtableHandler& SubtableInfoHolder::getAntenna() const
 {
-  itsFieldHolder.reset(new FieldSubtableHandler(table()));
+  if (!itsAntennaHandler) {
+      itsAntennaHandler.reset(new MemAntennaSubtableHandler(table()));
+  }
+  return *itsAntennaHandler;
 }

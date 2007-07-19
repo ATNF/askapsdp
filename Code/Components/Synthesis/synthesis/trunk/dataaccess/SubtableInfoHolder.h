@@ -85,28 +85,24 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    /// @return a reference to the handler of the FIELD subtable
    virtual const IFieldSubtableHandler& getField() const;
    
+   /// @brief obtain an antenna subtable handler
+   /// @details A MemAntennaSubtableHandler is constructed on the first call
+   /// to this method and a reference to it is returned thereafter
+   /// @return a reference to the handler of the ANTENNA subtable
+   virtual const IAntennaSubtableHandler& getAntenna() const;
+   
+   
 protected:   
-   /// initialize itsDataDescHolder with an instance of MemTableDataDescHolder.
-   void initDataDescHolder() const;
-
-   /// initialize itsSpWindowHolder with an instance of MemTableSpWindowHolder.
-   void initSpWindowHolder() const;
 
    /// initialize itsBufferManager with an instance of TableBufferManager
    void initBufferManager() const;
    
-   /// initialize itsFeedHolder with an instance of FeedSubtableHandler
-   void initFeedHolder() const;
-   
-   /// initialize itsFieldHolder with an instance of FieldSubtableHandler
-   void initFieldHolder() const;
-
 private:
-   /// smart pointer to data description holder
-   mutable boost::shared_ptr<ITableDataDescHolder const> itsDataDescHolder;
+   /// smart pointer to the handler of the data description subtable
+   mutable boost::shared_ptr<ITableDataDescHolder const> itsDataDescHandler;
 
-   /// smart pointer to spectral window holder
-   mutable boost::shared_ptr<ITableSpWindowHolder const> itsSpWindowHolder;
+   /// smart pointer to the handler of the spectral window subtable
+   mutable boost::shared_ptr<ITableSpWindowHolder const> itsSpWindowHandler;
 
    /// smart pointer to the buffer manager
    mutable boost::shared_ptr<IBufferManager const> itsBufferManager;
@@ -115,10 +111,13 @@ private:
    bool itsUseMemBuffers;
 
    /// smart pointer to the feed subtable handler
-   mutable boost::shared_ptr<IFeedSubtableHandler const> itsFeedHolder;
+   mutable boost::shared_ptr<IFeedSubtableHandler const> itsFeedHandler;
    
    /// smart pointer to the field subtable handler
-   mutable boost::shared_ptr<IFieldSubtableHandler const> itsFieldHolder;
+   mutable boost::shared_ptr<IFieldSubtableHandler const> itsFieldHandler;
+   
+   /// smart pointer to the antenna subtable handler
+   mutable boost::shared_ptr<IAntennaSubtableHandler const> itsAntennaHandler;
 };
 
 
