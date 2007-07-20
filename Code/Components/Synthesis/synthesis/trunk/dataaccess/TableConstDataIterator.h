@@ -117,6 +117,10 @@ public:
   /// populate the buffer with IDs of the second feed
   /// @param[in] ids a reference to a vector to fill
   void fillFeed2(casa::Vector<casa::uInt> &ids) const;
+  
+  /// fill the buffer with the pointing directions of the first antenna/feed
+  /// @param[in] dirs a reference to a vector to fill
+  void fillPointingDir1(casa::Vector<casa::MVDirection> &dirs) const;
 
 protected:
   /// @brief a helper method to read a column with IDs of some sort

@@ -14,11 +14,13 @@
 #include <tables/Tables/ArrayColumn.h>
 #include <tables/Tables/ScalarColumn.h>
 #include <measures/TableMeasures/ScalarMeasColumn.h>
+#include <scimath/Mathematics/SquareMatrix.h>
 
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
+#include <dataaccess/DirectionConverter.h>
 
 using namespace casa;
 using namespace conrad;
@@ -336,5 +338,56 @@ void TableConstDataIterator::fillVectorOfIDs(casa::Vector<casa::uInt> &ids,
        CONRADDEBUGASSERT(*ci>=0);
 	   *it=static_cast<uInt>(*ci);
   }
-  //ids.reference(static_cast<const Vector<uInt> >(buf));
+}
+
+/// fill the buffer with the pointing directions of the first antenna/feed
+/// @param[in] dirs a reference to a vector to fill
+void TableConstDataIterator::fillPointingDir1(casa::Vector<casa::MVDirection> &dirs) const
+{
+  CONRADDEBUGASSERT(itsConverter);
+  dirs.resize(itsNumberOfRows);
+  const casa::MEpoch  epoch=itsConverter->epochMeasure(getTime());
+  // we currently use FIELD table to get the pointing direction. This table
+  // does not depend on the antenna.
+  casa::MDirection antReferenceDir=subtableInfo().getField().
+                           getReferenceDir(epoch);
+  const casa::Vector<casa::uInt> &feedIDs=itsAccessor.feed1();
+  const casa::Vector<casa::uInt> &antIDs=itsAccessor.antenna1();
+  CONRADDEBUGASSERT(feedIDs.nelements() == antIDs.nelements() &&
+                    feedIDs.nelements() == itsNumberOfRows);
+  DirectionConverter dirConv(casa::MDirection::Ref(casa::MDirection::AZEL));
+  dirConv.setMeasFrame(epoch);                  
+  for (casa::uInt row=0; row<itsNumberOfRows; ++row) {
+       const casa::uInt ant=antIDs[row];
+       const casa::uInt feed=feedIDs[row];
+       casa::RigidVector<casa::Double, 2> offsets =
+               subtableInfo().getFeed().getBeamOffset(epoch,0,ant,feed);
+       const casa::String &antMount=subtableInfo().getAntenna().
+                                            getMount(ant);                   
+       if (antMount == "ALT-AZ" || antMount == "alt-az")  {
+           // need to do parallactic angle rotation
+           const casa::MVDirection zenith(0.,1.);
+           dirConv.setMeasFrame(casa::MeasFrame(subtableInfo().getAntenna().
+                                getPosition(ant),epoch));
+           const casa::Double posAngle=dirConv(antReferenceDir).
+                                        positionAngle(zenith);
+           casa::SquareMatrix<casa::Double, 2> 
+                       rotMatrix(casa::SquareMatrix<casa::Double, 2>::General);
+           const casa::Double cpa=cos(posAngle);
+           const casa::Double spa=sin(posAngle);            
+           rotMatrix(0,0)=cpa;
+           rotMatrix(0,1)=-spa;
+           rotMatrix(1,0)=spa;
+           rotMatrix(1,1)=cpa;
+           offsets*=rotMatrix;                                        
+       } else if (antMount != "EQUATORIAL" || antMount != "equatorial") {
+           CONRADTHROW(DataAccessError,"Unknown mount type "<<antMount<<
+                " for antenna "<<ant);
+       }
+       casa::MDirection feedPointingCentre(antReferenceDir);
+       // x direction is fliped to convert az-el type frame to ra-dec           
+       feedPointingCentre.shift(casa::MVDirection(-offsets(0),
+                             offsets(1)),casa::True);
+       itsConverter->direction(feedPointingCentre,dirs[row]);                        
+  }                             
 }

@@ -30,7 +30,7 @@ void doReadOnlyTest(const IConstDataSource &ds) {
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
-       cout<<"feed2: "<<it->feed2()<<endl;
+       cout<<"direction: "<<it->pointingDir1()<<endl;
        cout<<"time: "<<it->time()<<endl;
   }
 }

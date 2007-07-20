@@ -126,6 +126,16 @@ const casa::Vector<casa::uInt>& TableConstDataAccessor::feed2() const
   return itsFeed1.value(itsIterator,&TableConstDataIterator::fillFeed2);
 }
 
+/// Return pointing centre directions of the first antenna/feed
+/// @return a vector with direction measures (coordinate system
+/// is set via IDataConverter), one direction for each
+/// visibility/row
+const casa::Vector<casa::MVDirection>& TableConstDataAccessor::pointingDir1() 
+                                        const
+{
+  return itsPointingDir1.value(itsIterator,
+                               &TableConstDataIterator::fillPointingDir1);
+}                                        
 
 /// invalidate fields  updated on each iteration
 void TableConstDataAccessor::invalidateIterationCaches() const throw()
@@ -137,6 +147,7 @@ void TableConstDataAccessor::invalidateIterationCaches() const throw()
   itsAntenna2.invalidate();
   itsFeed1.invalidate();
   itsFeed2.invalidate();
+  itsPointingDir1.invalidate();
 }
 
 /// @brief invalidate all fields  corresponding to the spectral axis
