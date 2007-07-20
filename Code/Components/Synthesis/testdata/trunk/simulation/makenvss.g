@@ -3,7 +3,7 @@
 # from the NVSS at 12h30 +45, and then just inverted
 # the declinatiion. 
 #
-nvssfakecl:=function(sr=1e6, fluxlimit=0.010) {
+addnvss:=function(cl, sr=1e6, fluxlimit=0.010) {
   
   include 'measures.g';
   
@@ -8739,8 +8739,7 @@ bpa[i]:= -49.8;
 
   include 'componentlist.g';
   
-  cl:=emptycomponentlist();
-  ncomp:=0;
+  ncomp:=cl.length();
   for (i in 1:len(flux)) {
     if((rad[i]<sr)&&(flux[i]>fluxlimit*1e3)) {
       ncomp+:=1;
@@ -8758,6 +8757,7 @@ bpa[i]:= -49.8;
       else {
 	cl.setshape(ncomp, 'POINT', log=F);
       }
+      if(ncomp%100==1) print ncomp;
     }
   }
   return cl;
