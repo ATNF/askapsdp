@@ -32,12 +32,13 @@ root permission.
 
 recursivebuild
 ==============
-'recursivebuild' provides four options
+'recursivebuild' provides five options
 
 -q        suppress messages to stdout and just print errors
 install   install the packages
 doc       build documentation
 test      run unit tests
+pylint    run pylint on the module
 
 Express install (for the very brave - takes a long time)
 ========================================================
