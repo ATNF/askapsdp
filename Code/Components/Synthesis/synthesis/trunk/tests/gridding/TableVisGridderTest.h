@@ -67,7 +67,7 @@ namespace conrad
           itsBox = new BoxVisGridder();
           itsSphFunc = new SphFuncVisGridder();
           itsAnt = new AntennaIllumVisGridder(12.0, 1.0);
-          itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1);
+          itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1, 128);
 
           double cellSize=10*casa::C::arcsec;
 
