@@ -40,27 +40,39 @@ addcomplist:=function(im, cl) {
   pix:=im.getchunk();
   nx:=pix::shape[1];  
   ny:=pix::shape[2];
-  dx:=180*60*60*abs(cs.increment()[1])/pi;
+  dx:=180*60*60*cs.increment()[1]/pi;
+  dy:=180*60*60*cs.increment()[2]/pi;
+  incx:=pi*cs.increment()[1]/(180.0*60);
+  incy:=pi*cs.increment()[2]/(180.0*60);
+  rx:=cs.referencevalue('m', 'direction').direction.m0.value;
+  ry:=cs.referencevalue('m', 'direction').direction.m1.value;
+  px:=cs.referencepixel()[1];
+  py:=cs.referencepixel()[2];
 
   for (icomp in 1:cl.length()) {
+    if(icomp%100==1) print icomp;
     comp:=cl.component(icomp, T);
-    dir:=cs.topixel([comp.shape.direction.m0, comp.shape.direction.m1]);
+# The next line fails!
+#    dir:=cs.topixel([comp.shape.direction.m0,
+#		     comp.shape.direction.m1]);
+    dir[1]:=px+(comp.shape.direction.m0.value-rx)/incx;
+    dir[2]:=py+(comp.shape.direction.m1.value-ry)/incy;
+    dir:=[as_integer(dir[1]), as_integer(dir[2])]
     if(is_fail(dir)) {
       print "Error converting direction ", dir::message
     }
-    else if((as_integer(dir[1])<1)||(as_integer(dir[1])>nx)||
-       (as_integer(dir[2])<1)||(as_integer(dir[2])>ny)) {
+    else if((dir[1]<1)||(dir[1]>nx)||(dir[2]<1)||(dir[2]>ny)) {
       print 'Component ', icomp, ' is off the grid: ',
 	  comp.shape.direction.m0.value,
 	  comp.shape.direction.m1.value, dir
     }
     else {
       if(comp.shape.type=='Point') {
-	pix[as_integer(dir[1]), as_integer(dir[2]), , 1]+:=comp.flux.value;
+	pix[dir[1], dir[2], , 1]+:=comp.flux.value;
     }
       else {
-	bmaj:=dq.convert(comp.shape.majoraxis, 'arcsec').value/dx;
-	bmin:=dq.convert(comp.shape.minoraxis, 'arcsec').value/dx;
+	bmaj:=dq.convert(comp.shape.majoraxis, 'arcsec').value/abs(dx);
+	bmin:=dq.convert(comp.shape.minoraxis, 'arcsec').value/abs(dx);
 	bpa :=dq.convert(comp.shape.positionangle, 'rad').value;
 	pix:=addgaussian2d(pix, comp.flux.value[1], dir,
 			   [bmaj, bmin], bpa);
@@ -85,13 +97,13 @@ tabledelete(totalcl);
 # Make the empty image
 #  
 cell:="6arcsec";
-npix:=6000;
+npix:=8192;
 include 'coordsys.g';
 cs:=coordsys(direction=T,stokes="I",spectral=T);
 cs.setreferencevalue(1.4e9, 'spectral');
 cs.setreferencecode('J2000', 'direction');
+cs.setreferencevalue([spaste(pc.m0.value, 'rad'), spaste(pc.m1.value, 'rad')], 'direction');
 cs.setincrement([cell,cell], 'direction');
-cs.setreferencevalue(['12h30m00.00', '-45d00m00.0'], 'direction');
 cs.setreferencepixel([npix/2+1,npix/2+1], 'direction');
 cs.setrestfrequency('1.420GHz');
 cs.settelescope('ASKAP');
@@ -152,3 +164,5 @@ ims:=im.convolve2d(spaste(totalmodel, '.smoothed'),
 im.done();
 ims.done();
 cl.done();
+
+exit;
