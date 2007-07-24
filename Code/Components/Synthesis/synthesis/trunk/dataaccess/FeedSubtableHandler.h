@@ -90,13 +90,28 @@ struct FeedSubtableHandler : virtual public IFeedSubtableHandler,
   virtual casa::Double getBeamPA(const casa::MEpoch &time, 
                                  casa::uInt spWinID, 
                                  casa::uInt antID, casa::uInt feedID) const;
+
+  /// @brief check whether the given time and spectral window ID is  in cache.
+  /// @details The users of this class are expected to do some heavy postprocessing
+  /// based on the position angle and beam offsets returned. It is, therefore,
+  /// very important to know whether they're still the same or not.
+  /// The cache contains the data for all antennae and feeds.
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return true if the beam parameters didn't change for the given time and
+  /// spectral window ID
+  virtual bool newBeamDetails(const casa::MEpoch &time, casa::uInt spWinID) const;
+
 protected:
-  /// read the data if necessary to ensure that cache is in sync
+  /// read the data to fill the cache, a call to isCacheValid allows to check
+  /// whether reading is necessary
   /// @param[in] time a full epoch of interest (feed table can be time-
   /// dependent
   /// @param[in] spWinID spectral window ID of interest (feed table can be
   /// spectral window-dependent  
-  void fillCacheOnDemand(const casa::MEpoch &time, casa::uInt spWinID) const;
+  void fillCache(const casa::MEpoch &time, casa::uInt spWinID) const;
   
   /// obtain an index of the given feed/antenna pair via the look-up table
   /// the method throws exceptions if antenna or feed is out of range or

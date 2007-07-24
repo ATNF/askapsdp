@@ -63,6 +63,20 @@ struct IFeedSubtableHandler : virtual public IHolder {
   virtual casa::Double getBeamPA(const casa::MEpoch &time, 
                                  casa::uInt spWinID,
                                  casa::uInt antID, casa::uInt feedID) const = 0;
+  
+  /// @brief check whether the given time and spectral window ID is  in cache.
+  /// @details The users of this class are expected to do some heavy postprocessing
+  /// based on the position angle and beam offsets returned. It is, therefore,
+  /// very important to know whether they're still the same or not.
+  /// The cache contains the data for all antennae and feeds.
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return true if the beam parameters are different for the given time and
+  /// spectral window ID
+  virtual bool newBeamDetails(const casa::MEpoch &time, casa::uInt spWinID) const = 0;
+  
 };
 
 

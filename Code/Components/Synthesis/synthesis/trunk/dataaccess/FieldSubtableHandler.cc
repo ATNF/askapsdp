@@ -36,7 +36,7 @@ using namespace conrad::synthesis;
 FieldSubtableHandler::FieldSubtableHandler(const casa::Table &ms) :
        TableHolder(ms.keywordSet().asTable("FIELD")),
        itsIterator(table(),"TIME",casa::TableIterator::DontCare,
-                   casa::TableIterator::NoSort)
+                   casa::TableIterator::NoSort), itsNeverAccessedFlag(true)
 {
   if (!table().nrow()) {
       CONRADTHROW(DataAccessError, "The FIELD subtable is empty");
@@ -58,6 +58,7 @@ const casa::MDirection& FieldSubtableHandler::getReferenceDir(const
                  casa::MEpoch &time) const
 {
   fillCacheOnDemand(time);
+  itsNeverAccessedFlag=false;
   return itsReferenceDir;
 }                 
 
@@ -80,9 +81,36 @@ void FieldSubtableHandler::fillCacheWithCurrentIteration() const
   }
 }
 
+/// @brief check whether the field changed for a given time
+/// @details The users of this class can do relatively heavy calculations
+/// depending on the field position on the sky. It is, therefore, practical
+/// to assist caching by providing a method to test whether the cache is
+/// still valid or not for a new time. Use this method instead of testing
+/// whether directions are close enough as it can make use the information
+/// stored in the subtable. The method always returns true before the 
+/// first access to the data.
+/// @param[in] time a full epoch of interest (the subtable can have multiple
+/// pointings.
+/// @return true if the field information have been changed
+bool FieldSubtableHandler::newField(const casa::MEpoch &time) const
+{
+  if (itsNeverAccessedFlag) {
+      return true;
+  }
+  // we may need caching of dTime if it becomes performance critical
+  const casa::Double dTime=tableTime(time);
+  if (dTime<itsCachedStartTime) {
+      return true;
+  }
+  if (table().nrow() == 1) {
+      return false;
+  }
+  return (dTime>itsCachedStopTime);
+}
+
 /// read the data if cache is outdated
 /// @param[in] time a full epoch of interest (field table can have many
-/// pointing and therefore can be time-dependent)
+/// pointings and therefore can be time-dependent)
 void FieldSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time) const
 {
   const casa::Double dTime=tableTime(time);

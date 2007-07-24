@@ -39,6 +39,9 @@ using namespace conrad::synthesis;
 /// @brief construct the object
 /// @details
 /// @param[in] ms a table object, which has a feed subtable (main MS table)
+/// @note a flag showing the first access to the data similar to itsNeverAccessedFlag
+/// in FieldSubtableHandler is not required here because itsCachedSpWindow 
+/// initial value of -2 serves as such flag.
 FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
           TableHolder(ms.keywordSet().asTable("FEED")),
           itsCachedSpWindow(-2), itsIntervalFactor(1.)
@@ -59,7 +62,7 @@ FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
  
 /// obtain the offsets of each beam with respect to dish pointing
 /// centre.
-/// @param[in] time a full epoch to of interest (feed table can be time-
+/// @param[in] time a full epoch of interest (feed table can be time-
 /// dependent
 /// @param[in] spWinID spectral window ID of interest (feed table can be
 /// spectral window-dependent
@@ -72,7 +75,10 @@ const casa::RigidVector<casa::Double, 2>&
                       casa::uInt spWinID,
                       casa::uInt antID, casa::uInt feedID) const
 {
-  fillCacheOnDemand(time,spWinID);
+  CONRADDEBUGASSERT(spWinID>=0);
+  if (newBeamDetails(time,spWinID)) {
+      fillCache(time,spWinID);
+  }
   const casa::uInt index=getIndex(antID,feedID);
   CONRADDEBUGASSERT(index<=itsBeamOffsets.nelements());
   return itsBeamOffsets[index];
@@ -80,7 +86,7 @@ const casa::RigidVector<casa::Double, 2>&
 
 /// obtain an index of the given feed/antenna pair via the look-up table
 /// the method throws exceptions if antenna or feed is out of range or
-/// the appropriate record is not defined in the FEED subtable (i.e. ascent
+/// the appropriate record is not defined in the FEED subtable (i.e. absent
 /// in cache).
 /// @param[in] antID antenna of interest
 /// @param[in] feedID feed of interest 
@@ -106,21 +112,41 @@ casa::uInt FeedSubtableHandler::getIndex(casa::uInt antID, casa::uInt feedID) co
   return static_cast<casa::uInt>(index);
 } 
 
-
-/// read the data if necessary to ensure that cache is in sync
+/// @brief check whether the given time and spectral window ID is  in cache.
+/// @details The users of this class are expected to do some heavy postprocessing
+/// based on the position angle and beam offsets returned. It is, therefore,
+/// very important to know whether they're still the same or not.
+/// The cache contains the data for all antennae and feeds.
 /// @param[in] time a full epoch of interest (feed table can be time-
 /// dependent
 /// @param[in] spWinID spectral window ID of interest (feed table can be
-/// spectral window-dependent  
-void FeedSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time, 
-                       casa::uInt spWinID) const
+/// spectral window-dependent
+/// @return true if the beam parameters differ for the given time and
+/// spectral window ID
+bool FeedSubtableHandler::newBeamDetails(const casa::MEpoch &time, 
+                                    casa::uInt spWinID) const
 {
   const casa::Double dTime=tableTime(time);
   if (dTime>=itsCachedStartTime && dTime<=itsCachedStopTime &&
       (spWinID==itsCachedSpWindow || itsCachedSpWindow==-1)) {
       // cache is valid
-      return;
-  }
+      return false;
+  } 
+  return true;
+}                                    
+
+
+/// read the data to fill the cache, a call to isCacheValid allows to check
+/// whether reading is necessary
+/// @param[in] time a full epoch of interest (feed table can be time-
+/// dependent
+/// @param[in] spWinID spectral window ID of interest (feed table can be
+/// spectral window-dependent  
+void FeedSubtableHandler::fillCache(const casa::MEpoch &time, 
+                       casa::uInt spWinID) const
+{
+  // if we really need to optimize the performance, we can cache dTime
+  const casa::Double dTime=tableTime(time);
   casa::TableExprNode expression= ((table().col("SPECTRAL_WINDOW_ID") ==
                 static_cast<casa::Int>(spWinID)) || 
                     (table().col("SPECTRAL_WINDOW_ID") == -1)) &&
@@ -216,7 +242,10 @@ casa::Double FeedSubtableHandler::getBeamPA(const casa::MEpoch &time,
                                  casa::uInt spWinID, 
                                  casa::uInt antID, casa::uInt feedID) const
 {
-  fillCacheOnDemand(time,spWinID);
+  CONRADDEBUGASSERT(spWinID>=0);
+  if (newBeamDetails(time,spWinID)) {
+      fillCache(time,spWinID);
+  }
   const casa::uInt index=getIndex(antID,feedID);
   CONRADDEBUGASSERT(index<=itsPositionAngles.nelements());
   return itsPositionAngles[index];

@@ -64,6 +64,20 @@ struct FieldSubtableHandler : virtual public IFieldSubtableHandler,
   /// @return a reference to direction measure
   virtual const casa::MDirection& getReferenceDir(const casa::MEpoch &time) 
                                                   const;
+
+  /// @brief check whether the field changed for a given time
+  /// @details The users of this class can do relatively heavy calculations
+  /// depending on the field position on the sky. It is, therefore, practical
+  /// to assist caching by providing a method to test whether the cache is
+  /// still valid or not for a new time. Use this method instead of testing
+  /// whether directions are close enough as it can make use the information
+  /// stored in the subtable. The method always returns true before the 
+  /// first access to the data.
+  /// @param[in] time a full epoch of interest (the subtable can have multiple
+  /// pointings.
+  /// @return true if the field information have been changed
+  virtual bool newField(const casa::MEpoch &time) const;
+
 protected:
   /// read the data if cache is outdated
   /// @param[in] time a full epoch of interest (field table can have many
@@ -89,7 +103,14 @@ private:
   
   /// cache of the reference direction
   mutable casa::MDirection itsReferenceDir;
-   
+  
+  /// @brief flag showing that no data has been obtained yet via this class
+  /// @details It is necessary that newField always returns true before 
+  /// the first getReferenceDir call. Otherwise, caching of the derived
+  /// information can be complicated. With this flag the meaning of newField
+  /// method is to test whether the field is new since the last access to
+  /// its parameters.
+  mutable bool itsNeverAccessedFlag;
 };
 
 
