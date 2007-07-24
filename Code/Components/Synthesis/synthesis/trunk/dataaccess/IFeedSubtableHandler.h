@@ -76,7 +76,49 @@ struct IFeedSubtableHandler : virtual public IHolder {
   /// @return true if the beam parameters are different for the given time and
   /// spectral window ID
   virtual bool newBeamDetails(const casa::MEpoch &time, casa::uInt spWinID) const = 0;
+
+  /// obtain position angles for all beams in the current cache (w.r.t. some
+  /// coordinate system fixed with the dish). The correspondence between 
+  /// indices in the 1D cache and  antenna/feed pair can be obtained via
+  /// the getIndex method
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a reference to a vector with angles (in radians)
+  virtual const casa::Vector<casa::Double>& getAllBeamPAs(
+                        const casa::MEpoch &time, casa::uInt spWinID) const = 0;
+
+  /// obtain the offsets for all beams with respect to dish pointing
+  /// centre.
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a reference to a vector with offsets (in radians on each axis)
+  virtual const casa::Vector<casa::RigidVector<casa::Double, 2> > &
+         getAllBeamOffsets(const casa::MEpoch &time, casa::uInt spWinID) const = 0;
+
+  /// obtain feed IDs for the given time and spectral window
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a vector of feed IDs, each element corresponds to the appropriate
+  /// element of getAllBeamPAs and getAllBeamOffsets
+  virtual const casa::Vector<casa::Int>& getFeedIDs(const casa::MEpoch &time, 
+                      casa::uInt spWinID) const = 0;
   
+  /// obtain antenna IDs for the given time and spectral window
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a vector of antenna IDs, each element corresponds to the appropriate
+  /// element of getAllBeamPAs and getAllBeamOffsets
+  virtual const casa::Vector<casa::Int>& getAntennaIDs(const casa::MEpoch &time, 
+                      casa::uInt spWinID) const = 0;
+
 };
 
 

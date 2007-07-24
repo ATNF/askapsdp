@@ -64,7 +64,7 @@ struct FeedSubtableHandler : virtual public IFeedSubtableHandler,
   explicit FeedSubtableHandler(const casa::Table &ms);
   
 
-  /// obtain the offsets of each beam with respect to dish pointing
+  /// obtain the offsets of a given beam with respect to dish pointing
   /// centre.
   /// @param[in] time a full epoch of interest (feed table can be time-
   /// dependent
@@ -91,6 +91,51 @@ struct FeedSubtableHandler : virtual public IFeedSubtableHandler,
                                  casa::uInt spWinID, 
                                  casa::uInt antID, casa::uInt feedID) const;
 
+  /// obtain position angles for all beams in the current cache (w.r.t. some
+  /// coordinate system fixed with the dish). The correspondence between 
+  /// indices in the 1D cache and  antenna/feed pair can be obtained via
+  /// the getFeedIDs and getAntennaIDs methods
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a reference to a vector with angles (in radians)
+  virtual const casa::Vector<casa::Double>& getAllBeamPAs(
+                        const casa::MEpoch &time, casa::uInt spWinID) const;
+
+  /// obtain the offsets for all beams with respect to dish pointing
+  /// centre.
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a reference to a vector with offsets (in radians on each axis)
+  virtual const casa::Vector<casa::RigidVector<casa::Double, 2> > &
+           getAllBeamOffsets(const casa::MEpoch &time, casa::uInt spWinID) const;
+
+  /// obtain feed IDs for the given time and spectral window
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a vector of feed IDs, each element corresponds to the appropriate
+  /// element of getAllBeamPAs and getAllBeamOffsets
+  virtual const casa::Vector<casa::Int>& getFeedIDs(const casa::MEpoch &time, 
+                      casa::uInt spWinID) const;
+  
+  /// obtain antenna IDs for the given time and spectral window
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return a vector of antenna IDs, each element corresponds to the appropriate
+  /// element of getAllBeamPAs and getAllBeamOffsets
+  virtual const casa::Vector<casa::Int>& getAntennaIDs(const casa::MEpoch &time, 
+                      casa::uInt spWinID) const;
+  
+  
+  /// ontain antenna IDs for the given time and spectral window
+  
   /// @brief check whether the given time and spectral window ID is  in cache.
   /// @details The users of this class are expected to do some heavy postprocessing
   /// based on the position angle and beam offsets returned. It is, therefore,
@@ -103,7 +148,7 @@ struct FeedSubtableHandler : virtual public IFeedSubtableHandler,
   /// @return true if the beam parameters didn't change for the given time and
   /// spectral window ID
   virtual bool newBeamDetails(const casa::MEpoch &time, casa::uInt spWinID) const;
-
+ 
 protected:
   /// read the data to fill the cache, a call to isCacheValid allows to check
   /// whether reading is necessary
@@ -112,6 +157,14 @@ protected:
   /// @param[in] spWinID spectral window ID of interest (feed table can be
   /// spectral window-dependent  
   void fillCache(const casa::MEpoch &time, casa::uInt spWinID) const;
+  
+  /// the same as fillCache, but perform it if newBeamDetails returns true
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent  
+  void fillCacheOnDemand(const casa::MEpoch &time, casa::uInt spWinID) const;
+    
   
   /// obtain an index of the given feed/antenna pair via the look-up table
   /// the method throws exceptions if antenna or feed is out of range or
@@ -169,6 +222,12 @@ private:
   /// a factor to multiply the INTERVAL to get the same units as
   /// TIME column
   casa::Double itsIntervalFactor;
+  
+  /// a cache of antenna IDs
+  mutable casa::Vector<casa::Int> itsAntennaIDs;
+  
+  /// a cache of feed IDs
+  mutable casa::Vector<casa::Int> itsFeedIDs;
 };
 
 
