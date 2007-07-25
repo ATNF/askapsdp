@@ -40,7 +40,7 @@ FieldSubtableHandler::FieldSubtableHandler(const casa::Table &ms) :
 {
   if (!table().nrow()) {
       CONRADTHROW(DataAccessError, "The FIELD subtable is empty");
-  }
+  }  
   fillCacheWithCurrentIteration();  
 }         
   
@@ -66,7 +66,7 @@ const casa::MDirection& FieldSubtableHandler::getReferenceDir(const
 /// iterator
 void FieldSubtableHandler::fillCacheWithCurrentIteration() const
 {
-  casa::Table curIt=itsIterator.table();
+  casa::Table curIt=itsIterator.table(); 
   if (curIt.nrow()>1) {
       CONRADTHROW(DataAccessError, "Multiple rows for the same TIME in the FIELD table "
           "(e.g. polynomial interpolation) are not yet supported");
@@ -75,10 +75,11 @@ void FieldSubtableHandler::fillCacheWithCurrentIteration() const
   itsCachedStartTime=timeCol(0);
   casa::ROScalarMeasColumn<casa::MDirection> refDirCol(curIt,"REFERENCE_DIR");
   itsReferenceDir=refDirCol(0);
+  CONRADDEBUGASSERT(!itsIterator.pastEnd());
+  itsIterator.next();
   if (!itsIterator.pastEnd()) {
-      itsIterator.next();
-      itsCachedStopTime=timeCol(1);
-  }
+      itsCachedStopTime=timeCol(0);
+  }    
 }
 
 /// @brief check whether the field changed for a given time
