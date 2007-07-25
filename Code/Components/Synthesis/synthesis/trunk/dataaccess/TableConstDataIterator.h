@@ -27,6 +27,7 @@
 #include <dataaccess/TableConstDataAccessor.h>
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/ITableManager.h>
+#include <dataaccess/CachedAccessorField.tcc>
 
 namespace conrad {
 
@@ -99,9 +100,17 @@ public:
   /// @param[in] freq a reference to a vector to fill
   void fillFrequency(casa::Vector<casa::Double> &freq) const;
 
-  /// @return the time stamp  
+  /// @return the time stamp in the table's native frame/units
+  /// @note this method doesn't do any caching. It reads the table each
+  /// time it is called. It is intended for use from the accessor only, where
+  /// caching is done. 
   casa::Double getTime() const;
-
+  
+  /// @brief an alternative way to get the time stamp
+  /// @details This method uses the accessor to get cached time stamp. It
+  /// is returned as an epoch measure.
+  casa::MEpoch currentEpoch() const; 
+  
   /// populate the buffer with IDs of the first antenna
   /// @param[in] ids a reference to a vector to fill
   void fillAntenna1(casa::Vector<casa::uInt> &ids) const;
@@ -122,7 +131,23 @@ public:
   /// @param[in] dirs a reference to a vector to fill
   void fillPointingDir1(casa::Vector<casa::MVDirection> &dirs) const;
 
+  /// fill the buffer with the pointing directions of the second antenna/feed
+  /// @param[in] dirs a reference to a vector to fill
+  void fillPointingDir2(casa::Vector<casa::MVDirection> &dirs) const;
+
 protected:
+  /// @brief A helper method to fill a given vector with pointingdirections.
+  /// @details fillPointingDir1 and fillPointingDir2 methods do very similar
+  /// operations, which differ only by the feedIDs and antennaIDs used.
+  /// This method encapsulates these common operations
+  /// @param[in] dirs a reference to a vector to fill
+  /// @param[in] antIDs a vector with antenna IDs
+  /// @param[in] feedIDs a vector with feed IDs
+  void fillVectorOfPointings(casa::Vector<casa::MVDirection> &dirs,
+               const casa::Vector<casa::uInt> &antIDs,
+               const casa::Vector<casa::uInt> &feedIDs) const;
+  
+  
   /// @brief a helper method to read a column with IDs of some sort
   /// @details It reads the column of casa::Int and fills a Vector of
   /// casa::uInt. A check to ensure all numbers are non-negative is done
@@ -149,6 +174,23 @@ protected:
   inline const TableConstDataAccessor& getAccessor() const throw()
   { return itsAccessor;}
 
+  /// @brief Fill internal buffer with the pointing directions.
+  /// @details  The layout of this buffer is the same as the layout of
+  /// the FEED subtable for current time and spectral window. 
+  /// getAntennaIDs and getFeedIDs methods of the 
+  /// subtable handler can be used to unwrap this 1D array. 
+  /// The buffer can invalidated if the time changes (i.e. for an alt-az array),
+  /// for an equatorial array this happends only if the FEED or FIELD subtable
+  /// are time-dependent
+  /// @param[in] dirs a reference to a vector to fill
+  void fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const;
+
+  /// @brief obtain a current spectral window ID
+  /// @details This method obtains a spectral window ID corresponding to the
+  /// current data description ID and tests its validity
+  /// @return current spectral window ID
+  casa::uInt currentSpWindowID() const;  
+  
 private:
   /// accessor (a chunk of data) 
   /// although the accessor type can be different
@@ -174,6 +216,10 @@ private:
   /// current DATA_DESC_ID, the iteration is broken if this
   /// ID changes
   casa::Int itsCurrentDataDescID;
+  
+  /// internal buffer for pointing offsets for the whole current cache
+  /// of the Feed subtable handler
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDirectionCache;
 };
 
 

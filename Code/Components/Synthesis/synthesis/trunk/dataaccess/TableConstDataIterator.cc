@@ -99,6 +99,9 @@ casa::Bool TableConstDataIterator::next()
       itsNumberOfRows=remainder<=itsMaxChunkSize ?
                       remainder : itsMaxChunkSize;      
       itsAccessor.invalidateIterationCaches();
+      // itsDirectionCache don't need invalidation because the time is the same
+      // as for the previous iteration
+      
       // determine whether DATA_DESC_ID is uniform in the whole chunk
       // and reduce itsNumberOfRows if necessary
       makeUniformDataDescID();      
@@ -111,8 +114,20 @@ void TableConstDataIterator::setUpIteration()
 {
   itsCurrentIteration=itsTabIterator.table();  
   itsAccessor.invalidateIterationCaches();
+  
   itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
+  
+  if (itsDirectionCache.isValid()) {
+      // extra checks make sense if the cache is valid (and this means it 
+      // has been used before)
+      const casa::MEpoch epoch = currentEpoch();
+      if (subtableInfo().getField().newField(epoch) ||
+          !subtableInfo().getAntenna().allEquatorial() ||
+          subtableInfo().getFeed().newBeamDetails(epoch,currentSpWindowID())) {
+              itsDirectionCache.invalidate();
+      }
+  }
   // retreive the number of channels and polarizations from the table
   if (itsNumberOfRows) {
       // determine whether DATA_DESC_ID is uniform in the whole chunk
@@ -145,6 +160,17 @@ void TableConstDataIterator::makeUniformDataDescID()
   if (itsCurrentDataDescID!=newDataDescID) {      
       itsAccessor.invalidateSpectralCaches();
       itsCurrentDataDescID=newDataDescID;
+      if (itsDirectionCache.isValid()) {
+          // if-statement, because it is pointless to do further checks in the 
+          // case when the cache is already invalid due to 
+          // the time change. In addition, checks require an access to the table,
+          // which we want to avoid if, e.g., we don't need pointing direction 
+          // at all
+          if (subtableInfo().getFeed().newBeamDetails(currentEpoch(),
+                                       currentSpWindowID())) {
+              itsDirectionCache.invalidate();
+          }
+      }
       
       // determine the shape of the visibility cube
       ROArrayColumn<Complex> visCol(itsCurrentIteration,"DATA");
@@ -227,12 +253,12 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
   }
 }
 
-/// populate the buffer with frequencies
-/// @param[in] freq a reference to a vector to fill
-void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) const
-{  
-  CONRADDEBUGASSERT(itsConverter);
-  const ITableSpWindowHolder& spWindowSubtable=subtableInfo().getSpWindow();
+/// @brief obtain a current spectral window ID
+/// @details This method obtains a spectral window ID corresponding to the
+/// current data description ID and tests its validity
+/// @return current spectral window ID
+casa::uInt TableConstDataIterator::currentSpWindowID() const
+{
   const int spWindowIndex = subtableInfo().getDataDescription().
                             getSpectralWindowID(itsCurrentDataDescID);
   if (spWindowIndex<0) {
@@ -240,14 +266,23 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
               spWindowIndex<<") is encountered for Data Description ID="<<
 	      itsCurrentDataDescID);
   }
+  return static_cast<const uInt>(spWindowIndex);
+}  
+
+
+/// populate the buffer with frequencies
+/// @param[in] freq a reference to a vector to fill
+void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) const
+{  
+  CONRADDEBUGASSERT(itsConverter);
+  const ITableSpWindowHolder& spWindowSubtable=subtableInfo().getSpWindow();
+  const casa::uInt spWindowID = currentSpWindowID();
   
-  if (itsConverter->isVoid(spWindowSubtable.getReferenceFrame(
-              static_cast<const uInt>(spWindowIndex)),
+  if (itsConverter->isVoid(spWindowSubtable.getReferenceFrame(spWindowID),
 	                   spWindowSubtable.getFrequencyUnit())) {
       // the conversion is void, i.e. table units/frame are exactly what
       // we need for output. This simplifies things a lot.
-      freq.reference(spWindowSubtable.getFrequencies(
-                               static_cast<const uInt>(spWindowIndex)));
+      freq.reference(spWindowSubtable.getFrequencies(spWindowID));
       if (itsNumberOfChannels!=freq.nelements()) {
           CONRADTHROW(DataAccessError,"The measurement set has bad or corrupted "<<
 	       "SPECTRAL_WINDOW subtable. The number of spectral channels for data "<<
@@ -259,7 +294,7 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
       freq.resize(itsNumberOfChannels);
       for (uInt ch=0;ch<itsNumberOfChannels;++ch) {
            freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequency(
-	             static_cast<const uInt>(spWindowIndex),ch));
+	                                    spWindowID,ch));
 	                            
       }
   }
@@ -340,30 +375,53 @@ void TableConstDataIterator::fillVectorOfIDs(casa::Vector<casa::uInt> &ids,
   }
 }
 
-/// fill the buffer with the pointing directions of the first antenna/feed
-/// @param[in] dirs a reference to a vector to fill
-void TableConstDataIterator::fillPointingDir1(casa::Vector<casa::MVDirection> &dirs) const
-{
+/// @brief an alternative way to get the time stamp
+/// @details This method uses the accessor to get cached time stamp. It
+/// is returned as an epoch measure.
+casa::MEpoch TableConstDataIterator::currentEpoch() const 
+{ 
   CONRADDEBUGASSERT(itsConverter);
-  dirs.resize(itsNumberOfRows);
-  const casa::MEpoch  epoch=itsConverter->epochMeasure(getTime());
+  return itsConverter->epochMeasure(itsAccessor.time());
+}  
+
+/// @brief Fill internal buffer with the pointing directions.
+/// @details  The layout of this buffer is the same as the layout of
+/// the FEED subtable for current time and spectral window. 
+/// getAntennaIDs and getFeedIDs methods of the 
+/// subtable handler can be used to unwrap this 1D array. 
+/// The buffer can invalidated if the time changes (i.e. for an alt-az array),
+/// for an equatorial array this happends only if the FEED or FIELD subtable
+/// are time-dependent
+/// @param[in] dirs a reference to a vector to fill
+void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const
+{
+  const casa::MEpoch epoch=currentEpoch();
+  const casa::uInt spWindowID = currentSpWindowID();
+  // antenna and feed IDs here are those in the FEED subtable, rather than
+  // in the current accessor
+  const casa::Vector<casa::Int> &antIDs=subtableInfo().getFeed().
+                             getAntennaIDs(epoch,spWindowID);                             
+  const casa::Vector<casa::Int> &feedIDs=subtableInfo().getFeed().
+                             getFeedIDs(epoch,spWindowID);
+  CONRADDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());                           
+  dirs.resize(antIDs.nelements());
   // we currently use FIELD table to get the pointing direction. This table
   // does not depend on the antenna.
   casa::MDirection antReferenceDir=subtableInfo().getField().
-                           getReferenceDir(epoch);
-  const casa::Vector<casa::uInt> &feedIDs=itsAccessor.feed1();
-  const casa::Vector<casa::uInt> &antIDs=itsAccessor.antenna1();
-  CONRADDEBUGASSERT(feedIDs.nelements() == antIDs.nelements() &&
-                    feedIDs.nelements() == itsNumberOfRows);
+                                   getReferenceDir(epoch);
+  // 
   DirectionConverter dirConv(casa::MDirection::Ref(casa::MDirection::AZEL));
   dirConv.setMeasFrame(epoch);                  
-  for (casa::uInt row=0; row<itsNumberOfRows; ++row) {
-       const casa::uInt ant=antIDs[row];
-       const casa::uInt feed=feedIDs[row];
-       casa::RigidVector<casa::Double, 2> offsets =
-               subtableInfo().getFeed().getBeamOffset(epoch,0,ant,feed);
+  
+  const casa::Vector<casa::RigidVector<casa::Double, 2> > &offsets =
+               subtableInfo().getFeed().getAllBeamOffsets(epoch,spWindowID);
+  for (casa::uInt element=0;element<antIDs.nelements();++element) {
+       const casa::uInt ant=antIDs[element];
+       const casa::uInt feed=feedIDs[element];
        const casa::String &antMount=subtableInfo().getAntenna().
                                             getMount(ant);                   
+       
+       casa::RigidVector<casa::Double, 2> offset = offsets[element];
        if (antMount == "ALT-AZ" || antMount == "alt-az")  {
            // need to do parallactic angle rotation
            const casa::MVDirection zenith(0.,1.);
@@ -379,15 +437,75 @@ void TableConstDataIterator::fillPointingDir1(casa::Vector<casa::MVDirection> &d
            rotMatrix(0,1)=-spa;
            rotMatrix(1,0)=spa;
            rotMatrix(1,1)=cpa;
-           offsets*=rotMatrix;                                        
+           offset*=rotMatrix;                                        
        } else if (antMount != "EQUATORIAL" || antMount != "equatorial") {
            CONRADTHROW(DataAccessError,"Unknown mount type "<<antMount<<
                 " for antenna "<<ant);
        }
        casa::MDirection feedPointingCentre(antReferenceDir);
        // x direction is fliped to convert az-el type frame to ra-dec           
-       feedPointingCentre.shift(casa::MVDirection(-offsets(0),
-                             offsets(1)),casa::True);
-       itsConverter->direction(feedPointingCentre,dirs[row]);                        
-  }                             
+       feedPointingCentre.shift(casa::MVDirection(-offset(0),
+                             offset(1)),casa::True);
+       itsConverter->direction(feedPointingCentre,dirs[element]);
+  }
+}
+
+               
+
+/// fill the buffer with the pointing directions of the first antenna/feed
+/// @param[in] dirs a reference to a vector to fill
+void TableConstDataIterator::fillPointingDir1(
+                          casa::Vector<casa::MVDirection> &dirs) const
+{ 
+  const casa::Vector<casa::uInt> &feedIDs=itsAccessor.feed1();
+  const casa::Vector<casa::uInt> &antIDs=itsAccessor.antenna1();
+  fillVectorOfPointings(dirs,antIDs,feedIDs);
+}
+
+/// fill the buffer with the pointing directions of the second antenna/feed
+/// @param[in] dirs a reference to a vector to fill
+void TableConstDataIterator::fillPointingDir2(
+                          casa::Vector<casa::MVDirection> &dirs) const
+{ 
+  const casa::Vector<casa::uInt> &feedIDs=itsAccessor.feed2();
+  const casa::Vector<casa::uInt> &antIDs=itsAccessor.antenna2();
+  fillVectorOfPointings(dirs,antIDs,feedIDs);
+}
+
+
+/// @brief A helper method to fill a given vector with pointingdirections.
+/// @details fillPointingDir1 and fillPointingDir2 methods do very similar
+/// operations, which differ only by the feedIDs and antennaIDs used.
+/// This method encapsulates these common operations
+/// @param[in] dirs a reference to a vector to fill
+/// @param[in] antIDs a vector with antenna IDs
+/// @param[in] feedIDs a vector with feed IDs
+void TableConstDataIterator::fillVectorOfPointings(
+               casa::Vector<casa::MVDirection> &dirs,
+               const casa::Vector<casa::uInt> &antIDs,
+               const casa::Vector<casa::uInt> &feedIDs) const
+{
+  CONRADDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());
+  const casa::Vector<casa::MVDirection> &directionCache = itsDirectionCache.
+                      value(*this,&TableConstDataIterator::fillDirectionCache);
+  const casa::Matrix<casa::Int> &directionCacheIndices = 
+                 subtableInfo().getFeed().getIndices();
+  dirs.resize(itsNumberOfRows);
+  
+  for (casa::uInt row=0; row<itsNumberOfRows; ++row) {
+       if ((feedIDs[row]>=directionCacheIndices.ncolumn()) ||
+           (antIDs[row]>=directionCacheIndices.nrow())) {
+              CONRADTHROW(DataAccessError, "antID="<<antIDs[row]<<
+                   " and/or feedID="<<feedIDs[row]<<
+                   " are beyond the range of the FEED table");
+           }
+       if (directionCacheIndices(antIDs[row],feedIDs[row])<0) {
+           CONRADTHROW(DataAccessError, "The pair andID="<<antIDs[row]<<
+                   " feedID="<<feedIDs[row]<<" doesn't have beam parameters defined"); 
+       }    
+       const casa::uInt index = static_cast<casa::uInt>(
+                    directionCacheIndices(antIDs[row],feedIDs[row]));
+       CONRADDEBUGASSERT(index < directionCache.nelements());             
+       dirs[row]=directionCache[index];             
+  }                    
 }

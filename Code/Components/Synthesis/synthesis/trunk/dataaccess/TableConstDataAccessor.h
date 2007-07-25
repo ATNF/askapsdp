@@ -64,6 +64,12 @@ public:
   /// visibility/row
   virtual const casa::Vector<casa::MVDirection>& pointingDir1() const;
 
+  /// Return pointing centre directions of the second antenna/feed
+  /// @return a vector with direction measures (coordinate system
+  /// is set via IDataConverter), one direction for each
+  /// visibility/row
+  virtual const casa::Vector<casa::MVDirection>& pointingDir2() const;
+
   /// Visibilities (a cube is nRow x nChannel x nPol; each element is
   /// a complex visibility)
   /// @return a reference to nRow x nChannel x nPol cube, containing
@@ -162,6 +168,9 @@ private:
   
   /// internal buffer for the pointing directions of the first antenna
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsPointingDir1;
+
+  /// internal buffer for the pointing directions of the second antenna
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsPointingDir2;
 };
 
 

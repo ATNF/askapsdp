@@ -135,7 +135,19 @@ const casa::Vector<casa::MVDirection>& TableConstDataAccessor::pointingDir1()
 {
   return itsPointingDir1.value(itsIterator,
                                &TableConstDataIterator::fillPointingDir1);
-}                                        
+}   
+
+/// Return pointing centre directions of the second antenna/feed
+/// @return a vector with direction measures (coordinate system
+/// is set via IDataConverter), one direction for each
+/// visibility/row
+const casa::Vector<casa::MVDirection>& TableConstDataAccessor::pointingDir2() 
+                                        const
+{
+  return itsPointingDir2.value(itsIterator,
+                               &TableConstDataIterator::fillPointingDir2);
+}   
+                                     
 
 /// invalidate fields  updated on each iteration
 void TableConstDataAccessor::invalidateIterationCaches() const throw()

@@ -45,12 +45,25 @@ struct MemAntennaSubtableHandler : virtual public IAntennaSubtableHandler {
   /// @param[in] antID antenna ID to return the position for
   /// @return a string describing the mount type
   virtual const casa::String& getMount(casa::uInt antID) const;
+  
+  /// @brief check whether all antennae are equatorialy mounted
+  /// @details
+  /// This method checks the mount type for all antennas to be 
+  /// either EQUATORIAL or equatorial. This mount type doesn't require
+  /// parallactic angle rotation and can be trated separately.
+  /// @return true, if all antennae are equatorially mounted
+  virtual bool allEquatorial() const throw();   
+    
 private:
   /// a cache of antenna mounts
   casa::Vector<casa::String> itsMounts;
   
   /// a cache of antenna positions
-  casa::Vector<casa::MPosition> itsPositions;   
+  casa::Vector<casa::MPosition> itsPositions;
+  
+  /// an internal buffer for a flag showing whether all antennae are equatorially
+  /// mounted
+  bool itsAllEquatorial;   
 };
 
 
