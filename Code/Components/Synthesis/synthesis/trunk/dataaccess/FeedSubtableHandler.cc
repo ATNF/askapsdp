@@ -206,11 +206,33 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
                       // uninitialized index
   casa::ROArrayColumn<casa::Double>  rcptrOffsets(selection,"BEAM_OFFSET");
   casa::ROArrayColumn<casa::Double>  rcptrPAs(selection,"RECEPTOR_ANGLE");
+  // update start and stop times as well as the spectral window ID 
+  // used the in cache management within the same loop
+  casa::ROScalarColumn<casa::Double> timeCol(selection,"TIME");
+  casa::ROScalarColumn<casa::Double> intervalCol(selection,"INTERVAL");
+  casa::ROScalarColumn<casa::Int> spWinCol(selection,"SPECTRAL_WINDOW_ID");
+  itsCachedSpWindow = spWinCol(0);
   for (casa::uInt row=0; row<selection.nrow(); ++row) {
        computeBeamOffset(rcptrOffsets(row),itsBeamOffsets[row]);
        itsPositionAngles[row]=computePositionAngle(rcptrPAs(row));
        itsIndices(antIDs(row),feedIDs(row))=row;
-  }          
+       
+       const casa::Double cStartTime = timeCol(row);
+       const casa::Double cStopTime = cStartTime+
+                          intervalCol(row) * itsIntervalFactor;
+       if (!row || itsCachedStartTime<cStartTime) {
+           itsCachedStartTime=cStartTime;
+       }
+       if (!row || itsCachedStopTime>cStopTime) {
+           itsCachedStopTime=cStopTime;
+       }
+       if (spWinCol(row) != -1) {
+           CONRADDEBUGASSERT((itsCachedSpWindow == -1) || 
+                             (spWinCol(row) == itsCachedSpWindow));
+           itsCachedSpWindow = spWinCol(row);
+       }
+  }
+            
 }
                        
 
@@ -320,3 +342,22 @@ const casa::Vector<casa::Int>& FeedSubtableHandler::getAntennaIDs(const casa::ME
   fillCacheOnDemand(time,spWinID);
   return itsAntennaIDs;  
 }  
+
+/// @brief obtain a matrix of indices into beam offset and beam PA arrays
+/// @details getAllBeamOffsets and getAllBeamPAs methods return references
+/// to 1D arrays. This method returns a matrix of nAnt x nFeed indices, which
+/// is required to establish correspondence between the elements of 1D arrays
+/// mentioned above and feed/antenna pairs. Negative values mean that this
+/// feed/antenna pair is undefined.
+/// @note The method returns a valid result after a call to any of the access 
+/// methods (e.g. getAllBeamOffsets). We could have required the time and spWinID
+/// input parameters here to ensure that the cache is up to date as it is done
+/// in all access methods. However, all use cases of this call imply that
+/// the cache is already up to date and passing parameters and doing additional
+/// checks will be a waste of resources. It is probably better to live with the
+/// current interface although this approach is less elegant.
+/// @return a reference to matrix with indicies
+const casa::Matrix<casa::Int>& FeedSubtableHandler::getIndices() const throw()
+{
+  return itsIndices;
+}

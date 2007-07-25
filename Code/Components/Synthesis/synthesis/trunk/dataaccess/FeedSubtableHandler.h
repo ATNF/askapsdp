@@ -134,7 +134,21 @@ struct FeedSubtableHandler : virtual public IFeedSubtableHandler,
                       casa::uInt spWinID) const;
   
   
-  /// ontain antenna IDs for the given time and spectral window
+  /// @brief obtain a matrix of indices into beam offset and beam PA arrays
+  /// @details getAllBeamOffsets and getAllBeamPAs methods return references
+  /// to 1D arrays. This method returns a matrix of nAnt x nFeed indices, which
+  /// is required to establish correspondence between the elements of 1D arrays
+  /// mentioned above and feed/antenna pairs. Negative values mean that this
+  /// feed/antenna pair is undefined.
+  /// @note The method returns a valid result after a call to any of the access 
+  /// methods (e.g. getAllBeamOffsets). We could have required the time and spWinID
+  /// input parameters here to ensure that the cache is up to date as it is done
+  /// in all access methods. However, all use cases of this call imply that
+  /// the cache is already up to date and passing parameters and doing additional
+  /// checks will be a waste of resources. It is probably better to live with the
+  /// current interface although this approach is less elegant.
+  /// @return a reference to matrix with indicies
+  virtual const casa::Matrix<casa::Int>& getIndices() const throw();
   
   /// @brief check whether the given time and spectral window ID is  in cache.
   /// @details The users of this class are expected to do some heavy postprocessing
@@ -168,7 +182,7 @@ protected:
   
   /// obtain an index of the given feed/antenna pair via the look-up table
   /// the method throws exceptions if antenna or feed is out of range or
-  /// the appropriate record is not defined in the FEED subtable (i.e. ascent
+  /// the appropriate record is not defined in the FEED subtable (i.e. absent
   /// in cache).
   /// @param[in] antID antenna of interest
   /// @param[in] feedID feed of interest 
