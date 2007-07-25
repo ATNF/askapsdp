@@ -51,6 +51,13 @@ struct CachedAccessorField {
   /// @brief invalidate the field
   void inline invalidate() const throw() { itsChangedFlag=true; }
 
+  /// @brief test validity
+  /// @details To avoid unnecessary checks/duplicated invalidation of the field
+  /// it is convenient to be able to test whether the field is still valid.
+  /// Otherwise, any additional checks are pointless.
+  /// @return true if the cache is valid
+  bool inline isValid() const throw() { return !itsChangedFlag;}
+  
 private:
   /// true, if the field needs reading
   mutable bool itsChangedFlag;
