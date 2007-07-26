@@ -197,7 +197,7 @@ private:
   TableConstDataAccessor itsAccessor;  
 
   boost::shared_ptr<ITableDataSelectorImpl const>  itsSelector;
-  boost::shared_ptr<IDataConverterImpl const>  itsConverter;
+  boost::shared_ptr<IDataConverterImpl>  itsConverter;
   /// the maximum allowed number of rows in the accessor.
   casa::uInt itsMaxChunkSize;
   casa::TableIterator itsTabIterator;

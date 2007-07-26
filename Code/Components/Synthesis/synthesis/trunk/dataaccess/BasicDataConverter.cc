@@ -216,3 +216,23 @@ casa::Double BasicDataConverter::velocity(const casa::MFrequency &in) const
   }      
   return (*itsVelocityConverter)((*itsDopplerConverter)(in));
 }
+
+/// @brief Clone the converter (sort of a virtual constructor
+/// @details The same converter can be used to create a number of iterators.
+/// However, we need to set the reference frame to perform some 
+/// conversions on the per-iterator basis. To avoid very nasty bugs when 
+/// two independent iterators indirectly affect each other by using different
+/// reference frames for conversion, it is practical to isolate all changes
+/// to a private copy of the converter. Each iterator will clone a 
+/// converter in the constructor instead of using the same instance via
+/// a smart pointer. 
+/// @note An alternative approach is to ammend the interface
+/// to pass the reference frame as an argument for methods, which perform
+/// the conversions. Time will show which one is better. A change from one
+/// way of solving the problem to another doesn't affect the high level
+/// user interface and can be done relatively easy.
+/// @return a smart pointer to a clone of this instance of the converter
+boost::shared_ptr<IDataConverterImpl> BasicDataConverter::clone() const
+{
+  return boost::shared_ptr<IDataConverterImpl>(new BasicDataConverter(*this));
+}  

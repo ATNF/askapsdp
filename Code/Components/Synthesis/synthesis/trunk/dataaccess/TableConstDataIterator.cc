@@ -15,6 +15,7 @@
 #include <tables/Tables/ScalarColumn.h>
 #include <measures/TableMeasures/ScalarMeasColumn.h>
 #include <scimath/Mathematics/SquareMatrix.h>
+#include <measures/Measures/MeasFrame.h>
 
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
@@ -35,10 +36,17 @@ TableConstDataIterator::TableConstDataIterator(
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
 	    casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
-	    itsAccessor(*this), itsSelector(sel), itsConverter(conv), 
+	    itsAccessor(*this), itsSelector(sel),
+#ifndef CONRAD_DEBUG	     
+	    itsConverter(conv->clone()),
+#endif 
 	    itsMaxChunkSize(maxChunkSize)
 	   
 { 
+  CONRADDEBUGASSERT(conv);
+  #ifdef CONRAD_DEBUG
+    itsConverter = conv->clone();
+  #endif
   init();
 }
 
@@ -291,6 +299,21 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
       }
   } else { 
       // have to process element by element as a conversion is required
+      const casa::MEpoch epoch=currentEpoch();
+      // always use the dish pointing centre, rather than a pointing centre
+      // of each individual feed for frequency conversion. The error is not
+      // huge. If this code will ever work for SKA, this may need to be changed.
+      // Currently use the FIELD table, not the actual pointing. It is probably
+      // correct to use the phase centre for conversion as opposed to the
+      // pointing centre.
+      const casa::MDirection &antReferenceDir=subtableInfo().getField().
+                                   getReferenceDir(epoch);
+      // currently use the position of the first antenna for convertion.
+      // we may need some average position + a check that they are close
+      // enough to throw an exception if someone gives a VLBI measurement set.                             
+      itsConverter->setMeasFrame(casa::MeasFrame(epoch, subtableInfo().
+                     getAntenna().getPosition(0), antReferenceDir));
+  
       freq.resize(itsNumberOfChannels);
       for (uInt ch=0;ch<itsNumberOfChannels;++ch) {
            freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequency(
@@ -409,7 +432,8 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
   // does not depend on the antenna.
   casa::MDirection antReferenceDir=subtableInfo().getField().
                                    getReferenceDir(epoch);
-  // 
+                                   
+  // we need a separate converter for parallactic angle calculations
   DirectionConverter dirConv(casa::MDirection::Ref(casa::MDirection::AZEL));
   dirConv.setMeasFrame(epoch);                  
   
@@ -419,7 +443,14 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
        const casa::uInt ant=antIDs[element];
        const casa::uInt feed=feedIDs[element];
        const casa::String &antMount=subtableInfo().getAntenna().
-                                            getMount(ant);                   
+                                            getMount(ant);
+       // if we decide to be paranoid about performance, we can add a method
+       // to the converter to test whether antenna position and/or epoch are
+       // really required to the requested convertion. Because the antenna 
+       // position are cached, the overhead of the present straightforward
+       // approach should be relatively minor.                                                             
+       itsConverter->setMeasFrame(casa::MeasFrame(epoch,subtableInfo().
+                     getAntenna().getPosition(ant)));
        
        casa::RigidVector<casa::Double, 2> offset = offsets[element];
        if (antMount == "ALT-AZ" || antMount == "alt-az")  {
