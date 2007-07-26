@@ -160,6 +160,7 @@ void TableConstDataAccessor::invalidateIterationCaches() const throw()
   itsFeed1.invalidate();
   itsFeed2.invalidate();
   itsPointingDir1.invalidate();
+  itsPointingDir2.invalidate();
 }
 
 /// @brief invalidate all fields  corresponding to the spectral axis

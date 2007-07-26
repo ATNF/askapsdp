@@ -28,6 +28,7 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
+  conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));                    
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        cout<<"direction: "<<it->pointingDir2()<<endl;
