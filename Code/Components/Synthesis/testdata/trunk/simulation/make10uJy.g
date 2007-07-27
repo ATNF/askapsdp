@@ -84,7 +84,7 @@ addcomplist:=function(im, cl) {
 
 totalcl    := '10uJy.cl';
 totalmodel := '10uJy.model';
-asciifile  := 'cj.list';
+asciifile  := 'weak.list';
 
 include 'measures.g';
 pc:=dm.direction('J2000', '12h30m00.00', '-45d00m00.0');
