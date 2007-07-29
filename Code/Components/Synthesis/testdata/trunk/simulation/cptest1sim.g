@@ -10,6 +10,15 @@ config:='askap30';
 nchan:=128; # total number of channels in 256MHz
 nspw:=4 # Number of spectral windows over which the channels are spread
 #
+npix:=8192;
+totalmodel := '10uJy.model';
+
+small:=F; # Make a small image?
+if(small) {
+  npix:=4096;
+  totalmodel := '10uJy.model.small';
+}
+
 
 include 'logger.g';
 dl.screen();
@@ -183,7 +192,7 @@ for (spwid in 1:nspw) {
   myim.setimage();
   print myim.setoptions(ftmachine='wproject', wprojplanes=64);
   print myim.setvp(dovp=T, usedefaultvp=F, vptable=simvp, parangleinc="360deg");
-  print myim.ft('10uJy.model');
+  print myim.ft(totalmodel);
   myim.done();
   ot:=table(msname, readonly=F);
   md:=ot.getcol('MODEL_DATA');

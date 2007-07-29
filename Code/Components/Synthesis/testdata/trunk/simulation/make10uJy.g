@@ -82,14 +82,22 @@ addcomplist:=function(im, cl) {
   return im.putchunk(pix);
 }
 
-totalcl    := '10uJy.cl';
-totalmodel := '10uJy.model';
-asciifile  := 'weak.list';
-
 include 'measures.g';
 pc:=dm.direction('J2000', '12h30m00.00', '-45d00m00.0');
 
 include 'table.g';
+
+npix:=8192;
+totalmodel := '10uJy.model';
+
+small:=F; # Make a small image?
+if(small) {
+  npix:=4096;
+  totalmodel := '10uJy.model.small';
+}
+
+totalcl    := '10uJy.cl';
+asciifile  := 'weak.list';
 
 tabledelete(totalmodel);
 tabledelete(totalcl);
@@ -97,7 +105,6 @@ tabledelete(totalcl);
 # Make the empty image
 #  
 cell:="6arcsec";
-npix:=8192;
 include 'coordsys.g';
 cs:=coordsys(direction=T,stokes="I",spectral=T);
 cs.setreferencevalue(1.4e9, 'spectral');
