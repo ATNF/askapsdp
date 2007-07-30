@@ -301,3 +301,14 @@ void TableDataIterator::writeOriginalVis() const
   }             
 }		  
 
+/// @brief check whether one can write to the main table
+/// @details Buffers held in subtables are not covered by this method.
+/// @return true if write operation is allowed
+bool TableDataIterator::mainTableWritable() const throw()
+{
+  try {
+    return getCurrentIteration().isWritable();
+  }
+  catch (...) {}
+  return false;
+}

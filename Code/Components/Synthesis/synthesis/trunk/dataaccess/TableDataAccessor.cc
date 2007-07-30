@@ -44,7 +44,14 @@ casa::Cube<casa::Complex>& TableDataAccessor::rwVisibility()
 {    
   //throw DataAccessLogicError("rwVisibility() for original visibilities is "
   //                               "not yet implemented");  
+  
+  if (!itsIterator.mainTableWritable()) {
+      throw DataAccessLogicError("rwVisibility() is used for original visibilities, "
+           "but the table is not writable");
+  }
+  
   itsNeedsFlushFlag=true;
+  
   // the solution with const_cast is not very elegant, however it seems to
   // be the only alternative to creating a copy of the buffer or making the whole
   // const interface untidy by putting a non-const method there. 

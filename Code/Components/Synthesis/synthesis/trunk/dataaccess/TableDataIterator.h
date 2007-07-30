@@ -141,7 +141,12 @@ public:
   /// visibility cube stays the same as the shape of the data in the
   /// table. The method uses DataAccessor to obtain a reference to the
   /// visibility cube (hence no parameters). 
-  void writeOriginalVis() const;		  
+  void writeOriginalVis() const;
+  
+  /// @brief check whether one can write to the main table
+  /// @details Buffers held in subtables are not covered by this method.
+  /// @return true if write operation is allowed
+  bool mainTableWritable() const throw();		  
 
 private:
   /// shared pointer to the data accessor associated with either an active

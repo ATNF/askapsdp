@@ -49,6 +49,7 @@ void doReadWriteTest(const IDataSource &ds) {
        it.chooseBuffer("MODEL_DATA");
        it->rwVisibility()=it.buffer("TEST").visibility();
        it.chooseOriginal();
+       it->rwVisibility().set(casa::Complex(1.,0.5));
   }
 }
 
@@ -62,8 +63,8 @@ int main(int argc, char **argv) {
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
      TableDataSource ds(argv[1]);     
-     doReadOnlyTest(ds);
-     //doReadWriteTest(ds);    
+     //doReadOnlyTest(ds);
+     doReadWriteTest(ds);    
      
   }
   catch(const ConradError &ce) {
