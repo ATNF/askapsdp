@@ -25,6 +25,7 @@
 // own includes
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableInfoAccessor.h>
+#include <dataaccess/TableDataSource.h>
 #include "TableTestRunner.h"
 
 namespace conrad {
@@ -42,6 +43,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(feedTest);
   CPPUNIT_TEST(fieldTest);
   CPPUNIT_TEST(antennaTest);
+  CPPUNIT_TEST(originalVisRewriteTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   
@@ -65,6 +67,8 @@ public:
   void fieldTest();
   /// test access to the antenna subtable
   void antennaTest();
+  /// test to rewrite original visibilities
+  void originalVisRewriteTest();
 protected:
   void doBufferTest() const;
 private:
@@ -245,6 +249,61 @@ void TableDataAccessTest::antennaTest()
                          getValue()<0.1);
       }
   }                     
+}
+
+/// test to rewrite original visibilities
+void TableDataAccessTest::originalVisRewriteTest()
+{
+  TableDataSource tds(TableTestRunner::msName(), TableDataSource::WRITE_PERMITTED);
+  IDataSource &ds=tds; // to have all interface methods available without
+                       // ambiguity (otherwise methods overridden in 
+                       // TableDataSource would get a priority)
+  casa::uInt iterCntr=0;
+  for (IDataSharedIter it=ds.createIterator(); it!=it.end(); ++it,++iterCntr) {
+       // store original visibilities in a buffer
+       it.buffer("BACKUP").rwVisibility() = it->visibility();
+  }
+  casa::Vector<casa::Cube<casa::Complex> > memoryBuffer(iterCntr);
+  iterCntr=0;
+  for (IDataSharedIter it = ds.createIterator(); it!=it.end(); ++it,++iterCntr) {
+       // save original values in memory to check buffers as well
+       memoryBuffer[iterCntr] = it->visibility();
+       // reset visibilities to a constant
+       it->rwVisibility().set(casa::Complex(1.,0.5));
+  }
+  // check that the visibilities are set to a required constant
+  for (IConstDataSharedIter cit = ds.createConstIterator(); 
+                                        cit != cit.end(); ++cit) {
+       const casa::Cube<casa::Complex> &vis = cit->visibility();
+       for (casa::uInt row = 0; row < vis.nrow(); ++row) {
+            for (casa::uInt column = 0; column < vis.ncolumn(); ++column) {
+                 for (casa::uInt plane = 0; plane < vis.nplane(); ++plane) {
+                      CPPUNIT_ASSERT(abs(vis(row,column,plane)-
+                                         casa::Complex(1.,0.5))<1e-7);
+                 }
+            }
+       }
+  }
+  // set visibilities back to the original values
+  for (IDataSharedIter it=ds.createIterator(); it!=it.end(); ++it) {
+       // store original visibilities in a buffer
+       it->rwVisibility() = it.buffer("BACKUP").visibility();
+  }
+  
+  // compare with the values stored in the memory
+  iterCntr=0;
+  for (IConstDataSharedIter cit = ds.createConstIterator(); 
+                                  cit != cit.end(); ++cit,++iterCntr) {
+       const casa::Cube<casa::Complex> &vis = cit->visibility();
+       for (casa::uInt row = 0; row < vis.nrow(); ++row) {
+            for (casa::uInt column = 0; column < vis.ncolumn(); ++column) {
+                 for (casa::uInt plane = 0; plane < vis.nplane(); ++plane) {
+                      CPPUNIT_ASSERT(abs(vis(row,column,plane)-
+                             memoryBuffer[iterCntr](row,column,plane))<1e-7);
+                 }
+            }
+       }
+  }
 }
 
 } // namespace synthesis

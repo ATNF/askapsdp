@@ -29,7 +29,8 @@ using namespace conrad::synthesis;
 TableDataSource::TableDataSource(const std::string &fname,
                 int opt) :
          TableInfoAccessor(casa::Table(fname, (opt & MEMORY_BUFFERS) && 
-				  !(opt & REMOVE_BUFFERS) ? casa::Table::Old : casa::Table::Update),
+				  !(opt & REMOVE_BUFFERS) && !(opt & WRITE_PERMITTED) ? 
+				      casa::Table::Old : casa::Table::Update),
 						opt & MEMORY_BUFFERS)
 {
   if (opt & REMOVE_BUFFERS) {

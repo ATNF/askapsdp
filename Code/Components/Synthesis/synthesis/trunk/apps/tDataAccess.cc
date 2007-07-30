@@ -63,8 +63,8 @@ int main(int argc, char **argv) {
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
      TableDataSource ds(argv[1]);     
-     //doReadOnlyTest(ds);
-     doReadWriteTest(ds);    
+     doReadOnlyTest(ds);
+     //doReadWriteTest(ds);    
      
   }
   catch(const ConradError &ce) {

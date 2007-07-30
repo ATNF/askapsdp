@@ -36,7 +36,9 @@ public:
      /// delete BUFFERS subtable in the measurement set, if present
      REMOVE_BUFFERS = 1,
      /// create buffers in memory (via MemoryTable)
-     MEMORY_BUFFERS = 2
+     MEMORY_BUFFERS = 2,
+     /// allow to write to the measurement set
+     WRITE_PERMITTED = 4
   };
   
   /// construct a read-write data source object
