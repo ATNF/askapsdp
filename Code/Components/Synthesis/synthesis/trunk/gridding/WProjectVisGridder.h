@@ -44,7 +44,6 @@ namespace conrad
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
           const casa::Vector<double>& cellSize,
           const casa::IPosition& shape);
-      private:
         /// Scaling
         double itsWScale;
         /// Number of w planes

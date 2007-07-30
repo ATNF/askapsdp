@@ -36,19 +36,19 @@ namespace conrad
 
         virtual ~SphFuncVisGridder();
 
-/// Correct for gridding convolution function
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void correctConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image);
-
-/// Apply gridding convolution function in image space
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void applyConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image);
-
       protected:
+  /// Correct for gridding convolution function
+  /// @param axes axes specifications
+  /// @param image image to be corrected
+          virtual void correctConvolution(const scimath::Axes& axes,
+            casa::Cube<double>& image);
+
+  /// Apply gridding convolution function in image space
+  /// @param axes axes specifications
+  /// @param image image to be corrected
+          virtual void applyConvolution(const scimath::Axes& axes,
+            casa::Cube<double>& image);
+
       /// Offset into convolution function
       /// @param row Row number
       /// @param chan Channel number

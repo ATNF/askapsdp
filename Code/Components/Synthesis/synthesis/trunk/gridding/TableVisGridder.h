@@ -231,7 +231,7 @@ namespace conrad
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
-        void genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        virtual void genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           casa::Cube<casa::Complex>& visibility,
           casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,

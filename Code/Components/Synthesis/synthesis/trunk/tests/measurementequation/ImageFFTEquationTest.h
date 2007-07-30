@@ -153,7 +153,8 @@ namespace conrad
         {
 // Predict with the "perfect" parameters"
           NormalEquations ne(*params1);
-          IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(12.0, 1.0));
+          IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(12.0, 
+        		  1.0, 8000, 64, 1e-3, 1, 128));
           delete p1;
           delete p2;
           p1 = new ImageFFTEquation(*params1, idi, gridder);

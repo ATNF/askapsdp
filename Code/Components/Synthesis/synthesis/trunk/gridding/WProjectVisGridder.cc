@@ -85,7 +85,7 @@ namespace conrad
       for (int iy=0;iy<ny;iy++)
       {
         float nuy=std::abs(float(iy-ceny))/float(ny/2);
-        ccfy(iy)=grdsf(nuy)/float(nx);
+        ccfy(iy)=grdsf(nuy)/float(ny);
       }
       
       // Now we step through the w planes, starting the furthest

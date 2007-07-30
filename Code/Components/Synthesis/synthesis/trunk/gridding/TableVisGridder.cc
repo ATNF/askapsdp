@@ -14,12 +14,12 @@ namespace conrad
   namespace synthesis
   {
 
-    TableVisGridder::TableVisGridder() : itsInM(false)
+    TableVisGridder::TableVisGridder()
     {
     }
 
     TableVisGridder::TableVisGridder(const int overSample, const int support) : 
-  	  itsInM(false), itsOverSample(overSample), itsSupport(support)
+  	  itsOverSample(overSample), itsSupport(support)
     {
         CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
         CONRADCHECK(support>0, "Maximum support must be greater than 0");
@@ -141,11 +141,6 @@ namespace conrad
         {
 
           int overSample=itsOverSample;
-          if(itsInM)
-          {
-            overSample=int(double(itsOverSample)*freq[0]/freq[chan]+0.5);
-          }
-
           for (int pol=0;pol<nPol;pol++)
           {
 
@@ -220,10 +215,6 @@ namespace conrad
         {
 
           int overSample=itsOverSample;
-          if(itsInM)
-          {
-            overSample=int(double(itsOverSample)*freq[0]/freq[chan]+0.5);
-          }
 
           for (int pol=0;pol<nPol;pol++)
           {
@@ -312,11 +303,6 @@ namespace conrad
         {
 
           int overSample=itsOverSample;
-          if(itsInM)
-          {
-            overSample=int(double(itsOverSample)*freq[0]/freq[chan]+0.5);
-          }
-
           for (int pol=0;pol<nPol;pol++)
           {
 

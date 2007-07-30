@@ -9,7 +9,7 @@
 #ifndef ANTENNAILLUMGRIDDER_H_
 #define ANTENNAILLUMGRIDDER_H_
 
-#include <gridding/TableVisGridder.h>
+#include <gridding/WProjectVisGridder.h>
 
 namespace conrad
 {
@@ -20,34 +20,23 @@ namespace conrad
     /// @details The antenna primary beam is used for gridding, though we actually 
     /// work from the illumination pattern since it is better behaved.
     /// @ingroup gridding
-    class AntennaIllumVisGridder : public TableVisGridder
+    class AntennaIllumVisGridder : public WProjectVisGridder
     {
       public:
 
 /// @brief Construct antenna illumination pattern gridder
 /// @param diameter Antenna diameter (meters)
 /// @param blockage Antenna blockage (meters)
+/// @param wmax Maximum baseline (wavelengths)
+/// @param nwplanes Number of w planes
+/// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
 /// @param overSample Oversampling (currently limited to <=1)
-/// @param support Support of convolution function
+/// @param maxSupport Maximum support to be allowed
 	  AntennaIllumVisGridder(const double diameter, const double blockage,
-    		const int overSample, const int support);
+			  const double wmax, const int nwplanes, const double cutoff,
+    		const int overSample, const int maxSupport);
 
         virtual ~AntennaIllumVisGridder();
-
-/// @brief Correct for gridding convolution function in image space.
-/// This is a no-op since it should be corrected using the normal
-/// equations mechanism
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void correctConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image);
-
-/// @brief Apply gridding convolution function in image space
-/// This is a no-op.
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void applyConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image);
 
       protected:
       /// Offset into convolution function
