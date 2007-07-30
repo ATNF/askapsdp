@@ -104,11 +104,9 @@ namespace conrad
         const Axes axes(parameters().axes(imageName));
         casa::Cube<double> imagePixels(parameters().value(imageName).copy());
         const casa::IPosition imageShape(imagePixels.shape());
-        itsGridder->correctConvolution(axes, imagePixels);
         grids[imageName]=new casa::Cube<casa::Complex>(imageShape(0), imageShape(1), 1);
 // Since we just defined it, we know its there and can use the simple version of the lookup
-        toComplex(*grids[imageName], imagePixels);
-        cfft(*grids[imageName], true);
+        itsGridder->initialiseForward(imagePixels, axes, *grids[imageName]);
       }
 // Loop through degridding the data
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
@@ -143,10 +141,11 @@ namespace conrad
 // To minimize the number of data passes, we keep copies of the grids in memory, and
 // switch between these. This optimization may not be sufficient in the long run.      
 // Set up initial grids for all the types we need to make
-      vector<string> types(3);
+      vector<string> types(4);
       types[0]="model";
       types[1]="map";
       types[2]="psf";
+      types[3]="weight";
       std::map<string, casa::Cube<casa::Complex>* > grids;
       std::map<string, casa::Vector<casa::Double>* > sumWeights;
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
@@ -167,10 +166,8 @@ namespace conrad
         const Axes axes(parameters().axes(imageName));
         casa::Cube<double> imagePixels(parameters().value(imageName).copy());
         const casa::IPosition imageShape(imagePixels.shape());
-        itsGridder->correctConvolution(axes, imagePixels);
         string modelName("image.i"+(*it)+"model");
-        toComplex(*grids[modelName], imagePixels);
-        cfft(*grids[modelName], true);
+        itsGridder->initialiseForward(imagePixels, axes, *grids[modelName]);
       }      
 // Now we loop through all the data
       bool first=true;
@@ -190,19 +187,20 @@ namespace conrad
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           const string imageName("image.i"+(*it));
+          const string mapName(imageName+"map");
+          const string psfName(imageName+"psf");
+          const string weightName(imageName+"weight");
           const Axes axes(parameters().axes(imageName));
           if(parameters().isFree(imageName)) {
             itsIdi.chooseOriginal();
             casa::Vector<float> uvWeights(1);
             itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
             itsIdi.chooseBuffer("RESIDUAL_DATA");
-            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"map")], 
-              *sumWeights[string(imageName+"map")]);
+            itsGridder->reverse(itsIdi, axes, *grids[mapName], *sumWeights[mapName]);
             itsIdi.chooseBuffer("SCRATCH_DATA");
             itsIdi->rwVisibility().set(casa::Complex(1.0));
             uvWeights.set(0.0);
-            itsGridder->reverse(itsIdi, axes, *grids[string(imageName+"psf")],
-              *sumWeights[string(imageName+"psf")]);
+            itsGridder->reverse(itsIdi, axes, *grids[psfName], *sumWeights[psfName]);
             itsIdi.chooseOriginal();
           }
         }
@@ -214,36 +212,26 @@ namespace conrad
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));
+        const string mapName(imageName+"map");
+        const string psfName(imageName+"psf");
+        const string weightName(imageName+"weight");
         const casa::IPosition imageShape(parameters().value(imageName).shape());
         const Axes axes(parameters().axes(imageName));
 
-        casa::Cube<double> imageWeights(imageShape(0), imageShape(1), 1);
-        /// @todo Handle polarizations correctly
-        imageWeights.set((*sumWeights[string(imageName+"psf")])(0)
-          /(double(imageShape(0))*double(imageShape(1))));
-
         casa::Cube<double> imagePSF(imageShape(0), imageShape(1), 1);
+        casa::Cube<double> imageWeight(imageShape(0), imageShape(1), 1);
         casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
   
-        {
-          casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"map")]);
-          cfft(*uvGrid, false);
-          toDouble(imageDeriv, *uvGrid);
-          itsGridder->correctConvolution(axes, imageDeriv);
-        }
-        {
-          casa::Cube<casa::Complex>* uvGrid(grids[string(imageName+"psf")]);
-          cfft(*uvGrid, false);
-          toDouble(imagePSF, *uvGrid);
-          itsGridder->correctConvolution(axes, imagePSF);
-        }
+        itsGridder->finaliseReverse(*grids[mapName], axes, imageDeriv);
+        itsGridder->finaliseReverse(*grids[psfName], axes, imagePSF);
+		imageWeight.set((*sumWeights[mapName])(0)/(float(imageShape(0))*float(imageShape(1))));
         {
           casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
           casa::IPosition vecShape(1, imagePSF.nelements());
           casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
-          casa::Vector<double> imageWeightsVec(imageWeights.reform(vecShape));
+          casa::Vector<double> imageWeightVec(imageWeight.reform(vecShape));
           casa::Vector<double> imageDerivVec(imageDeriv.reform(vecShape));
-          ne.addSlice(imageName, imagePSFVec, imageWeightsVec, imageDerivVec, 
+          ne.addSlice(imageName, imagePSFVec, imageWeightVec, imageDerivVec, 
             imageShape, reference);
         }
       }
@@ -255,60 +243,6 @@ namespace conrad
       }
 
     };
-
-    void ImageFFTEquation::cfft(casa::Cube<casa::Complex>& arr, bool toUV)
-    {
-
-      casa::FFTServer<casa::Float,casa::Complex> ffts;
-      uint nx=arr.shape()(0);
-      uint ny=arr.shape()(1);
-      uint nz=arr.shape()(2);
-      for (uint iz=0;iz<nz;iz++)
-      {
-        casa::Matrix<casa::Complex> mat(arr.xyPlane(iz));
-        for (uint iy=0;iy<ny;iy++)
-        {
-          casa::Array<casa::Complex> vec(mat.column(iy));
-          ffts.fft(vec, toUV);
-        }
-        for (uint ix=0;ix<nx;ix++)
-        {
-          casa::Array<casa::Complex> vec(mat.row(ix));
-          ffts.fft(vec, toUV);
-        }
-      }
-    }
-
-    void ImageFFTEquation::toComplex(casa::Cube<casa::Complex>& out, const casa::Array<double>& in)
-    {
-      uint nx=in.shape()(0);
-      uint ny=in.shape()(1);
-      casa::Cube<double> cube(in);
-      for (uint iy=0;iy<ny;iy++)
-      {
-        casa::Vector<double> vec(cube.xyPlane(0).column(iy));
-        for (uint ix=0;ix<nx;ix++)
-        {
-          out(ix,iy,0)=casa::Complex(float(vec(ix)));
-        }
-      }
-    }
-
-    void ImageFFTEquation::toDouble(casa::Array<double>& out, const casa::Cube<casa::Complex>& in)
-    {
-      uint nx=in.shape()(0);
-      uint ny=in.shape()(1);
-      casa::Cube<double> cube(out);
-      casa::Matrix<casa::Complex> mat(in.xyPlane(0));
-      for (uint iy=0;iy<ny;iy++)
-      {
-        casa::Vector<casa::Complex> vec(mat.column(iy));
-        for (uint ix=0;ix<nx;ix++)
-        {
-          cube(ix,iy,0)=double(real(vec(ix)));
-        }
-      }
-    }
 
   }
 

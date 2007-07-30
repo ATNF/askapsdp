@@ -27,7 +27,10 @@ namespace conrad
 /// @brief Construct antenna illumination pattern gridder
 /// @param diameter Antenna diameter (meters)
 /// @param blockage Antenna blockage (meters)
-        AntennaIllumVisGridder(const double diameter, const double blockage);
+/// @param overSample Oversampling (currently limited to <=1)
+/// @param support Support of convolution function
+	  AntennaIllumVisGridder(const double diameter, const double blockage,
+    		const int overSample, const int support);
 
         virtual ~AntennaIllumVisGridder();
 

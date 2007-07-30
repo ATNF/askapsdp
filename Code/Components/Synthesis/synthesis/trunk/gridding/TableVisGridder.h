@@ -31,6 +31,11 @@ namespace conrad
 /// @brief Standard two dimensional gridding using a convolution function
 /// in a table
         TableVisGridder();
+/// @brief Standard two dimensional gridding using a convolution function
+/// in a table
+    /// @param overSample Oversampling (currently limited to <=1)
+    /// @param support Support of function
+        TableVisGridder(const int overSample, const int support);
 
         virtual ~TableVisGridder();
 
@@ -45,6 +50,16 @@ namespace conrad
           casa::Cube<casa::Complex>& grid,
           casa::Vector<double>& weights);
 
+/// @brief Grid the visibility weights onto the grid using multifrequency
+/// synthesis. Note that the weights allow complete flexibility
+/// @param idi DataIterator
+/// @param axes axes specifications
+/// @param grid Output grid: cube: u,v,pol
+        virtual void reverseWeights(IDataSharedIter& idi,
+          const conrad::scimath::Axes& axes,
+          casa::Cube<casa::Complex>& grid,
+	      casa::Vector<double>& weights);          
+                
 /// @brief Grid the spectral visibility data onto the grid
 /// Note that the weights allow complete flexibility
 /// @param idi DataIterator
@@ -73,17 +88,17 @@ namespace conrad
           const conrad::scimath::Axes& axes,
           const casa::Array<casa::Complex>& grid);
 
-/// @brief Correct for gridding convolution function
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void correctConvolution(const conrad::scimath::Axes& axes,
-          casa::Cube<double>& image) = 0;
+        /// @brief Finish off the transform to the image plane
+        /// @param in Input complex grid
+        /// @param axes Axes description
+        /// @param out Output double precision grid
+        virtual void finaliseReverse(casa::Cube<casa::Complex>& in, const conrad::scimath::Axes& axes, casa::Cube<double>& out);
 
-/// @brief Apply gridding convolution function
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void applyConvolution(const conrad::scimath::Axes& axes,
-          casa::Cube<double>& image) = 0;
+        /// @brief Initialise the transform from the image plane
+        /// @param in Input double precision grid
+        /// @param axes Axes description
+        /// @param  out Output complex grid
+        virtual void initialiseForward(casa::Cube<double>& in, const conrad::scimath::Axes& axes, casa::Cube<casa::Complex>& out);
 
       protected:
 
@@ -116,7 +131,7 @@ namespace conrad
 
 /// Initialize the convolution function - this is the key function to override.
 /// This should also setup cOffset to get the correct value of the offset
-/// fo every row and channel.
+/// for every row and channel.
 ///
 /// @param idi Data iterator
 /// @param cellsize cellsize in wavelengths
@@ -124,6 +139,18 @@ namespace conrad
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
           const casa::Vector<double>& cellsize,
           const casa::IPosition& shape)=0;
+        
+/// @brief Correct for gridding convolution function
+/// @param axes axes specifications
+/// @param image image to be corrected
+        virtual void correctConvolution(const conrad::scimath::Axes& axes,
+          casa::Cube<double>& image) = 0;
+
+/// @brief Apply gridding convolution function
+/// @param axes axes specifications
+/// @param image image to be corrected
+        virtual void applyConvolution(const conrad::scimath::Axes& axes,
+          casa::Cube<double>& image) = 0;
 
 /// Find the cellsize from the image shape and axis definitions
 /// @param cellsize cellsize in wavelengths
@@ -150,6 +177,20 @@ namespace conrad
           const casa::Vector<double>& cellsize,
           casa::Cube<casa::Complex>& grid,
           casa::Vector<double>& sumwt);
+        
+/// Accumulate summed weights * convolution function (MFS)
+/// @param uvw UVW in meters
+/// @param visweight Visibility weight
+/// @param freq Frequency
+/// @param cellsize Cellsize in wavelengths
+/// @param grid Grid for data
+/// @param sumwt Total summed weight per polarization 
+        void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+          const casa::Cube<float>& visweight,
+          const casa::Vector<double>& freq,
+          const casa::Vector<double>& cellsize,
+          casa::Cube<casa::Complex>& grid,
+          casa::Vector<double>& weights);
 
 
 /// Image to visibility for a cube (MFS))
@@ -202,6 +243,16 @@ namespace conrad
         static int nint(double x) {
           return x>0? int(x+0.5) : int(x-0.5);
         }
+        /// FFT helper function
+        void cfft(casa::Cube<casa::Complex>& arr, bool toUV);
+        
+        /// Conversion helper function
+        void toComplex(casa::Cube<casa::Complex>& out, 
+          const casa::Array<double>& in);
+
+        /// Conversion helper function
+        void toDouble(casa::Array<double>& out, 
+          const casa::Cube<casa::Complex>& in);
 
     };
 

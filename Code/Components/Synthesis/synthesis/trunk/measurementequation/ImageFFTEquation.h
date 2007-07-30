@@ -88,16 +88,6 @@ namespace conrad
 
         void init();
 
-        /// FFT helper function
-        void cfft(casa::Cube<casa::Complex>& arr, bool toUV);
-        
-        /// Conversion helper function
-        void toComplex(casa::Cube<casa::Complex>& out, 
-          const casa::Array<double>& in);
-
-        /// Conversion helper function
-        void toDouble(casa::Array<double>& out, 
-          const casa::Cube<casa::Complex>& in);
 
     };
 

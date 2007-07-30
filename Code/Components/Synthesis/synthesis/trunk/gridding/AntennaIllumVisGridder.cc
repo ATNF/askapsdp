@@ -15,12 +15,15 @@ namespace conrad
   {
 
     AntennaIllumVisGridder::AntennaIllumVisGridder(const double diameter, 
-      const double blockage) : TableVisGridder(), itsReferenceFrequency(0.0),
-      itsDiameter(diameter), itsBlockage(blockage)
+      const double blockage, const int overSample, const int support) : 
+    	  TableVisGridder(overSample, support), itsReferenceFrequency(0.0),
+    	  itsDiameter(diameter), itsBlockage(blockage)
+
     {
       CONRADCHECK(diameter>0.0, "Blockage must be positive");
       CONRADCHECK(diameter>blockage, "Antenna diameter must be greater than blockage");
       CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
+
       // The antenna illumination pattern is fixed in meters
       TableVisGridder::itsInM=true;
     }
@@ -42,14 +45,13 @@ namespace conrad
 // Cellsize is in wavelengths so we convert to the physical length (m) at 
 // the reference frequency (the first channel)
 // WARNING: Ignoring different cellsizes!
-        itsSupport=3;
-        itsOverSample=128;
         itsCSize=2*(itsSupport+1)*itsOverSample;  // 1024;
         itsCCenter=itsCSize/2-1;                  // 511
         casa::Matrix<casa::Complex> disk(itsCSize, itsCSize);
         disk.set(0.0);
         /// Calculate the size of one cell in meters
         double cell=cellSize(0)*(casa::C::c/itsReferenceFrequency)/double(itsOverSample);
+        std::cout << "Antenna illumination cell size " << cell << " meters" << std::endl;
         double rmax=std::pow(itsDiameter/cell,2);
         double rmin=std::pow(itsBlockage/cell,2);
         double sumDisk=0.0;

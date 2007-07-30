@@ -70,6 +70,17 @@ namespace conrad
           casa::Array<casa::Complex>& grid,
           casa::Matrix<double>& weights) = 0;
 
+/// @brief Grid the visibility data onto the grid using multifrequency
+/// synthesis. Note that the weights allow complete flexibility
+/// @param idi DataIterator
+/// @param axes axes specifications
+/// @param grid Output grid: cube: u,v,pol
+        virtual void reverseWeights(IDataSharedIter& idi,
+          const conrad::scimath::Axes& axes,
+          casa::Cube<casa::Complex>& grid,
+	      casa::Vector<double>& weights) = 0;
+                
+                
 /// Estimate visibility data from the grid using multifrequency
 /// synthesis.
 /// @param idi DataIterator
@@ -86,18 +97,18 @@ namespace conrad
         virtual void forward(IDataSharedIter& idi,
           const scimath::Axes& axes,
           const casa::Array<casa::Complex>& grid) = 0;
-
-/// Correct for gridding convolution function
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void correctConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image) = 0;
-
-/// Apply gridding convolution function in image space
-/// @param axes axes specifications
-/// @param image image to be corrected
-        virtual void applyConvolution(const scimath::Axes& axes,
-          casa::Cube<double>& image) = 0;
+	
+		/// @brief Finish off the transform to the image plane
+		/// @param in Input complex grid
+		/// @param axes Axes description
+		/// @param out Output double precision grid
+		virtual void finaliseReverse(casa::Cube<casa::Complex>& in, const conrad::scimath::Axes& axes, casa::Cube<double>& out) = 0;
+		
+		/// @brief Initialise the transform from the image plane
+		/// @param in Input double precision grid
+		/// @param axes Axes description
+		/// @param  out Output complex grid
+	    virtual void initialiseForward(casa::Cube<double>& in, const conrad::scimath::Axes& axes, casa::Cube<casa::Complex>& out) = 0;
 
     };
 
