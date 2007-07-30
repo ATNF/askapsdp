@@ -53,8 +53,6 @@ namespace conrad
       private:
         /// Reference frequency for illumination pattern. 
         double itsReferenceFrequency;
-        /// Convolve disk with itself to get the convolution function
-        void selfConvolve(casa::Matrix<casa::Complex>& disk);
         /// Antenna diameter
         double itsDiameter;
         /// Antenna blockage

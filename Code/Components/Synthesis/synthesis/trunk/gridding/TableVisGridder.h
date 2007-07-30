@@ -55,6 +55,7 @@ namespace conrad
 /// @param idi DataIterator
 /// @param axes axes specifications
 /// @param grid Output grid: cube: u,v,pol
+/// @param weights Output weights: vector: pol
         virtual void reverseWeights(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Cube<casa::Complex>& grid,
@@ -184,7 +185,7 @@ namespace conrad
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
-/// @param sumwt Total summed weight per polarization 
+/// @param weights Output weights: vector: pol
         void genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,

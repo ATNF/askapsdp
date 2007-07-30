@@ -13,10 +13,8 @@
 
 #include <APS/ParameterSet.h>
 
-namespace conrad
-{
-  namespace synthesis
-  {
+namespace conrad {
+  namespace synthesis {
     /// @brief Factory class for visibility gridders
     /// @ingroup gridding
     class VisGridderFactory

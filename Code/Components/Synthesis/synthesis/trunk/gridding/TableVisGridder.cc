@@ -448,7 +448,8 @@ namespace conrad
     }
 
     // Note that this alters in!
-    void TableVisGridder::finaliseReverse(casa::Cube<casa::Complex>& in, const scimath::Axes& axes, casa::Cube<double>& out)
+    void TableVisGridder::finaliseReverse(casa::Cube<casa::Complex>& in, 
+    		const conrad::scimath::Axes& axes, casa::Cube<double>& out)
     {
       cfft(in, false);
       toDouble(out, in);
@@ -456,7 +457,8 @@ namespace conrad
     }
 
     // Note that this alters in!
-    void TableVisGridder::initialiseForward(casa::Cube<double>& in, const scimath::Axes& axes, casa::Cube<casa::Complex>& out)
+    void TableVisGridder::initialiseForward(casa::Cube<double>& in, 
+    		const conrad::scimath::Axes& axes, casa::Cube<casa::Complex>& out)
     {
       correctConvolution(axes, in);
       toComplex(out, in);

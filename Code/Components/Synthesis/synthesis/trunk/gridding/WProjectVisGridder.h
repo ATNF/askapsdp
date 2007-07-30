@@ -10,10 +10,8 @@
 
 #include <gridding/SphFuncVisGridder.h>
 
-namespace conrad
-{
-  namespace synthesis
-  {
+namespace conrad {
+  namespace synthesis {
     /// @brief Visibility gridder using W projection
     /// @ingroup gridding
     class WProjectVisGridder : public SphFuncVisGridder

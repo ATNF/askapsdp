@@ -75,6 +75,7 @@ namespace conrad
 /// @param idi DataIterator
 /// @param axes axes specifications
 /// @param grid Output grid: cube: u,v,pol
+/// @param weights Output weights: vector: pol
         virtual void reverseWeights(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Cube<casa::Complex>& grid,
