@@ -469,7 +469,7 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
            rotMatrix(1,0)=spa;
            rotMatrix(1,1)=cpa;
            offset*=rotMatrix;                                        
-       } else if (antMount != "EQUATORIAL" || antMount != "equatorial") {
+       } else if (antMount != "EQUATORIAL" && antMount != "equatorial") {
            CONRADTHROW(DataAccessError,"Unknown mount type "<<antMount<<
                 " for antenna "<<ant);
        }
