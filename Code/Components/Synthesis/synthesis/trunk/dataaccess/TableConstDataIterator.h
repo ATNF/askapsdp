@@ -191,6 +191,23 @@ protected:
   /// @return current spectral window ID
   casa::uInt currentSpWindowID() const;  
   
+  /// @brief obtain the current iteration of the table iterator
+  /// @details This class uses TableIterator behind the scene. This method
+  /// returns the current iteration, which can be used in derived classes
+  /// (e.g. for read-write access)
+  /// @return a const reference to table object representing the current iteration
+  inline const casa::Table& getCurrentIteration() const throw() 
+       {return itsCurrentIteration;}
+  
+  /// @brief obtain the current top row
+  /// @details This class uses TableIterator behind the scence. One iteration
+  /// of the table iterator may cover more than one iteration of the iterator
+  /// represented by this class. The result of this method is a row number, 
+  /// where current data accessor starts.
+  /// @return row number in itsCurrentItrertion corresponding to row 0 of the
+  /// accessor at this iteration
+  inline casa::uInt getCurrentTopRow() const throw() {return itsCurrentTopRow;}
+  
 private:
   /// accessor (a chunk of data) 
   /// although the accessor type can be different

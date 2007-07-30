@@ -50,7 +50,7 @@ public:
   /// non-const iterator (which provides a read/write functionality)
   /// @param name a name of the buffer represented by this accessor
   /// @param iter a reference to the associated read-write iterator
-  explicit TableBufferDataAccessor(const std::string &name,
+  TableBufferDataAccessor(const std::string &name,
                                    const TableDataIterator &iter);
 
   /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
@@ -81,11 +81,10 @@ private:
   /// read the information into the buffer if necessary
   void fillBufferIfNeeded() const;
     
-  /// the current iteration of the active buffer. A void pointer means
-  /// that the original visibility is selected, rather than a buffer.
+  /// the current iteration of the buffer.
   mutable ScratchBuffer itsScratchBuffer;
 
-  /// the name of the current buffer (one needs it for a proper
+  /// the name of the buffer (one needs it for a proper
   /// cache management request)
   const std::string itsName;
 

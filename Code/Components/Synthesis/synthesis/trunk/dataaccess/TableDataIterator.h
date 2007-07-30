@@ -34,6 +34,9 @@ namespace conrad {
 
 namespace synthesis {
 
+// forward declaration to be able to define shared pointer to this class
+class TableDataAccessor;
+
 /// @brief Implementation of IDataIterator in the table-based case
 /// @details
 /// TableConstDataIterator: Allow read-only iteration across preselected data. Each 
@@ -132,7 +135,13 @@ public:
   /// @param[in] name a name of the buffer to work with
   virtual void writeBuffer(const casa::Cube<casa::Complex> &vis,
                            const std::string &name) const;
-  			  
+  	
+  /// @brief write back the original visibilities
+  /// @details The write operation is possible if the shape of the 
+  /// visibility cube stays the same as the shape of the data in the
+  /// table. The method uses DataAccessor to obtain a reference to the
+  /// visibility cube (hence no parameters). 
+  void writeOriginalVis() const;		  
 
 private:
   /// shared pointer to the data accessor associated with either an active
@@ -146,7 +155,7 @@ private:
 
   /// shared pointer to data accessor associated with original visibilities
   /// (initialized at the constructor)
-  boost::shared_ptr<IDataAccessor> itsOriginalVisAccessor;
+  boost::shared_ptr<TableDataAccessor> itsOriginalVisAccessor;
 
   /// counter of the iteration steps. It is used to store the buffers
   /// to the appropriate cell of the disk table

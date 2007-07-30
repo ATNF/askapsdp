@@ -12,22 +12,30 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+// stl includes
 #include <algorithm>
 #include <functional>
 #include <utility>
 
+// own includes
 #include <dataaccess/TableDataIterator.h>
 #include <dataaccess/TableBufferDataAccessor.h>
 #include <dataaccess/TableDataAccessor.h>
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/IBufferManager.h>
+#include <dataaccess/DataAccessError.h>
+
+// casa includes
+#include <tables/Tables/ArrayColumn.h>
 
 namespace conrad {
 
 namespace synthesis {
 
-/// an adapter to use stl functions with maps.
+/// @brief an adapter to use stl functions with maps.
+/// @details
 /// can be moved in its own file, if found useful in other parts of the code
+/// @ingroup dataaccess_hlp
 template<typename X>
 struct MapMemFun : public std::unary_function<X*, void> {
   /// construct adapter for member function in
@@ -69,7 +77,7 @@ TableDataIterator::TableDataIterator(
             const boost::shared_ptr<IDataConverterImpl const> &conv,
             casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
               TableConstDataIterator(msManager,sel,conv,maxChunkSize),
-	      itsOriginalVisAccessor(new TableDataAccessor(getAccessor())),
+	      itsOriginalVisAccessor(new TableDataAccessor(*this)),
 	      itsIterationCounter(0)
 {
   itsActiveBufferPtr=itsOriginalVisAccessor;
@@ -154,6 +162,8 @@ void TableDataIterator::init()
   // call sync() member function for all accessors in itsBuffers
   std::for_each(itsBuffers.begin(),itsBuffers.end(),
            mapMemFun(&TableBufferDataAccessor::sync));
+  CONRADDEBUGASSERT(itsOriginalVisAccessor);         
+  itsOriginalVisAccessor->sync();
 
   TableConstDataIterator::init();
   itsIterationCounter=0;
@@ -162,6 +172,8 @@ void TableDataIterator::init()
   // in itsBuffers
   std::for_each(itsBuffers.begin(),itsBuffers.end(),
            mapMemFun(&TableBufferDataAccessor::notifyNewIteration));
+  // original visibilities will be read on-demand by the code in
+  // TableConstDataAccessor in a usual way
 }
 
 // hasMore method has to be overridden
@@ -188,6 +200,8 @@ casa::Bool TableDataIterator::next()
   // call sync() member function for all accessors in itsBuffers
   std::for_each(itsBuffers.begin(),itsBuffers.end(),
            mapMemFun(&TableBufferDataAccessor::sync));
+  CONRADDEBUGASSERT(itsOriginalVisAccessor);         
+  itsOriginalVisAccessor->sync();
 
   ++itsIterationCounter;
   
@@ -195,6 +209,8 @@ casa::Bool TableDataIterator::next()
   // in itsBuffers
   std::for_each(itsBuffers.begin(),itsBuffers.end(),
            mapMemFun(&TableBufferDataAccessor::notifyNewIteration));
+  // original visibilities will be read on-demand by the code in
+  // TableConstDataAccessor in a usual way
 
   return TableConstDataIterator::next();
 }
@@ -237,4 +253,51 @@ TableDataIterator::~TableDataIterator()
   // call sync() member function for all accessors in itsBuffers
   std::for_each(itsBuffers.begin(),itsBuffers.end(),
            mapMemFun(&TableBufferDataAccessor::sync));
+  if (itsOriginalVisAccessor) {
+      // there is no much point to throw an exception here if itsOriginalVisAccesor
+      // doesn't point to a valid instance for some reason (it shouldn't happend)         
+      itsOriginalVisAccessor->sync();
+  }    
 }
+
+/// @brief write back the original visibilities
+/// @details The write operation is possible if the shape of the 
+/// visibility cube stays the same as the shape of the data in the
+/// table. The method uses DataAccessor to obtain a reference to the
+/// visibility cube (hence no parameters). 
+void TableDataIterator::writeOriginalVis() const
+{
+  const casa::Cube<casa::Complex> &originalVis=getAccessor().visibility();
+  // no change of shape is permitted
+  CONRADASSERT(originalVis.nrow() == nRow() &&
+               originalVis.ncolumn() == nChannel() &&
+               originalVis.nplane() == nPol());
+  casa::ArrayColumn<casa::Complex> visCol(getCurrentIteration(), "DATA");
+  CONRADDEBUGASSERT(getCurrentIteration().nrow() >= getCurrentTopRow()+
+                    nRow());
+  casa::uInt tableRow = getCurrentTopRow();
+  for (casa::uInt row=0;row<originalVis.nrow();++row,++tableRow) {
+       const casa::IPosition &shape = visCol.shape(row);
+       CONRADDEBUGASSERT(shape.size() && (shape.size())<3);
+       const casa::uInt thisRowNumberOfPols = shape[0];
+       const casa::uInt thisRowNumberOfChannels = shape.size()>1 ? shape[1] : 1;
+       if (thisRowNumberOfPols != originalVis.nplane() ||
+           thisRowNumberOfChannels != originalVis.ncolumn()) {
+           CONRADTHROW(DataAccessError, "Current implementation of the writing to original "
+                "visibilities does not support partial selection of the data");                 
+       }
+       // for now just copy
+       casa::IPosition curPos(2,thisRowNumberOfPols,
+                                 thisRowNumberOfChannels);
+       casa::Array<casa::Complex> buf(curPos);
+       for (casa::uInt chan=0; chan<thisRowNumberOfChannels; ++chan) {
+            curPos[1]=chan;
+            for (casa::uInt pol=0; pol<thisRowNumberOfPols; ++pol) {
+                 curPos[0] = pol;
+                 buf(curPos) = originalVis(row,chan,pol);
+            }
+       }
+       visCol.put(tableRow, buf);                          
+  }             
+}		  
+

@@ -12,8 +12,11 @@
 #ifndef TABLE_DATA_ACCESSOR_H
 #define TABLE_DATA_ACCESSOR_H
 
+// casa includes
+#include <casa/Arrays/IPosition.h>
+
 // own includes
-#include <dataaccess/TableConstDataAccessor.h>
+#include <dataaccess/TableDataIterator.h>
 #include <dataaccess/MetaDataAccessor.h>
 
 namespace conrad {
@@ -39,9 +42,9 @@ class TableDataIterator;
 class TableDataAccessor : virtual public MetaDataAccessor
 {
 public:
-  /// construct an object linked with the given const accessor
-  /// @param acc a reference to the associated accessor
-  explicit TableDataAccessor(const TableConstDataAccessor &acc);
+  /// construct an object linked with the given read-write iterator
+  /// @param iter a reference to the associated read-write iterator
+  explicit TableDataAccessor(const TableDataIterator &iter);
 
   /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
   /// each element is a complex visibility)
@@ -59,6 +62,19 @@ public:
   /// all visibility data
   ///
   virtual casa::Cube<casa::Complex>& rwVisibility();
+  
+  /// this method flush back the data to disk if there are any changes
+  void sync() const;
+private:
+  /// a flag showing that the visibility has been changed and needs flushing
+  /// back to the table
+  mutable bool itsNeedsFlushFlag;  
+  
+  /// @brief A reference to associated read-write iterator
+  /// @details 
+  /// @note We could have obtained it from the data accessor, but
+  /// this approach seems to be more general and works faster.
+  const TableDataIterator &itsIterator;  
 };
 
 
