@@ -197,10 +197,8 @@ namespace conrad
             itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
             itsIdi.chooseBuffer("RESIDUAL_DATA");
             itsGridder->reverse(itsIdi, axes, *grids[mapName], *sumWeights[mapName]);
-            itsIdi.chooseBuffer("SCRATCH_DATA");
-            itsIdi->rwVisibility().set(casa::Complex(1.0));
             uvWeights.set(0.0);
-            itsGridder->reverse(itsIdi, axes, *grids[psfName], *sumWeights[psfName]);
+            itsGridder->reverse(itsIdi, axes, *grids[psfName], *sumWeights[psfName], true);
             itsIdi.chooseOriginal();
           }
         }

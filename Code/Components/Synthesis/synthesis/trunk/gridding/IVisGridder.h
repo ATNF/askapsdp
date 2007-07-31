@@ -54,10 +54,12 @@ namespace conrad
 /// @param axes axes specifications
 /// @param grid Output grid: cube: u,v,pol
 /// @param weights Output weights: vector: pol
+/// @param dopsf Make the psf?
         virtual void reverse(IDataSharedIter& idi,
           const scimath::Axes& axes,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<double>& weights) = 0;
+          casa::Vector<double>& weights,
+          bool dopsf=false) = 0;
 
 /// Grid the spectral visibility data onto the grid
 /// Note that the weights allow complete flexibility
@@ -65,10 +67,12 @@ namespace conrad
 /// @param axes axes specifications
 /// @param grid Output grid: cube: u,v,chan,pol
 /// @param weights Output weights: vector: pol
+/// @param dopsf Make the psf?
         virtual void reverse(IDataSharedIter& idi,
           const scimath::Axes& axes,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<double>& weights) = 0;
+          casa::Matrix<double>& weights,
+          bool dopsf=false) = 0;
 
 /// @brief Grid the visibility data onto the grid using multifrequency
 /// synthesis. Note that the weights allow complete flexibility

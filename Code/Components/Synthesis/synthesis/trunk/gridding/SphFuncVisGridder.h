@@ -55,10 +55,12 @@ namespace conrad
         virtual int cOffset(int row, int chan);
         /// Initialize convolution function
         /// @param idi Data access iterator
+        /// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
         /// @param cellSize Cell size in wavelengths
         /// @param shape Shape of grid
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
-          const casa::Vector<double>& cellSize,
+        		casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        		const casa::Vector<double>& cellSize,
           const casa::IPosition& shape);
       /// Calculate prolate spheroidal function
       /// @param nu Argument for spheroidal function

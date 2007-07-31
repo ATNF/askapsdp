@@ -41,13 +41,14 @@ namespace conrad
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
     void WProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi, 
-      const casa::Vector<double>& cellSize,
+    		casa::Vector<casa::RigidVector<double, 3> >& uvw,
+    		const casa::Vector<double>& cellSize,
       const casa::IPosition& shape)
     {
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
-      const int nSamples = idi->uvw().size();
+      const int nSamples = uvw.size();
       const int nChan = idi->frequency().size();
       itsCMap.resize(nSamples, nChan);
       itsCMap.set(0);
@@ -55,7 +56,7 @@ namespace conrad
       int cenw=(itsNWPlanes-1)/2;
       for (int i=0;i<nSamples;i++)
       {
-        double w=(idi->uvw()(i)(2))/(casa::C::c);
+        double w=(uvw(i)(2))/(casa::C::c);
         for (int chan=0;chan<nChan;chan++)
         {
           double freq=idi->frequency()[chan];
@@ -115,7 +116,7 @@ namespace conrad
             float r2=x2+y2;
             float phase=w*(1.0-sqrt(1.0-r2));
             float wt=ccfx(iy-ceny+ny/2)*ccfy(ix-cenx+nx/2);
-            thisPlane(ix,iy)=casa::Complex(wt*cos(phase), wt*sin(phase));
+            thisPlane(ix,iy)=casa::Complex(wt*cos(phase), -wt*sin(phase));
           }
         }
         // Now we have to calculate the Fourier transform to get the

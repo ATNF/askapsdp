@@ -4,6 +4,9 @@
 #include <scimath/Mathematics/FFTServer.h>
 #include <casa/BasicSL/Constants.h>
 
+#include <measures/Measures/MDirection.h>
+#include <measures/Measures/UVWMachine.h>
+
 using namespace conrad::scimath;
 using namespace conrad;
 
@@ -33,15 +36,19 @@ namespace conrad
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Cube<casa::Complex>& grid,
-      casa::Vector<double>& weights)
+      casa::Vector<double>& weights,
+      bool dopsf)
     {
       /// @todo Address weighting in TableVisGridder
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
-      initConvolutionFunction(idi, cellsize, grid.shape());
-      genericReverse(idi->uvw(), idi->visibility(), visweight, idi->frequency(),
-        cellsize, grid, weights);
+      casa::Vector<casa::RigidVector<double, 3> > outUVW;
+      casa::Vector<double> delay;
+      rotateUVW(idi, axes, outUVW, delay);
+      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      genericReverse(outUVW, delay, idi->visibility(), visweight, idi->frequency(),
+        cellsize, grid, weights, dopsf);
     }
 
 /// Data weights to grid (MFS)
@@ -54,8 +61,11 @@ namespace conrad
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
-      initConvolutionFunction(idi, cellsize, grid.shape());
-      genericReverseWeights(idi->uvw(), visweight, idi->frequency(),
+      casa::Vector<casa::RigidVector<double, 3> > outUVW;
+      casa::Vector<double> delay;
+      rotateUVW(idi, axes, outUVW, delay);
+      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      genericReverseWeights(outUVW, delay, visweight, idi->frequency(),
         cellsize, grid, weights);
     }
 
@@ -63,14 +73,18 @@ namespace conrad
     void TableVisGridder::reverse(IDataSharedIter& idi,
       const conrad::scimath::Axes& axes,
       casa::Array<casa::Complex>& grid,
-      casa::Matrix<double>& weights)
+      casa::Matrix<double>& weights,
+      bool dopsf)
     {
       casa::Cube<float> visweight(grid.shape()); visweight.set(1.0);
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
-      initConvolutionFunction(idi, cellsize, grid.shape());
-      genericReverse(idi->uvw(), idi->visibility(), visweight, idi->frequency(),
-        cellsize, grid, weights);
+      casa::Vector<casa::RigidVector<double, 3> > outUVW;
+      casa::Vector<double> delay;
+      rotateUVW(idi, axes, outUVW, delay);
+      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      genericReverse(outUVW, delay, idi->visibility(), visweight, idi->frequency(),
+        cellsize, grid, weights, dopsf);
     }
 
 /// Grid to data (MFS)
@@ -81,8 +95,11 @@ namespace conrad
       casa::Cube<float> visweight(idi->visibility().shape());
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
-      initConvolutionFunction(idi, cellsize, grid.shape());
-      genericForward(idi->uvw(), idi->rwVisibility(), visweight, idi->frequency(),
+      casa::Vector<double> delay;
+      casa::Vector<casa::RigidVector<double, 3> > outUVW;
+      rotateUVW(idi, axes, outUVW, delay);
+      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      genericForward(outUVW, delay, idi->rwVisibility(), visweight, idi->frequency(),
         cellsize, grid);
     }
 
@@ -94,20 +111,47 @@ namespace conrad
       casa::Cube<float> visweight(idi->visibility().shape());
       casa::Vector<double> cellsize;
       findCellsize(cellsize, grid.shape(), axes);
-      initConvolutionFunction(idi, cellsize, grid.shape());
-      genericForward(idi->uvw(), idi->rwVisibility(), visweight, idi->frequency(),
+      casa::Vector<double> delay;
+      casa::Vector<casa::RigidVector<double, 3> > outUVW;
+      rotateUVW(idi, axes, outUVW, delay);
+      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      genericForward(outUVW, delay, idi->rwVisibility(), visweight, idi->frequency(),
         cellsize, grid);
+    }
+    
+    void TableVisGridder::rotateUVW(IDataSharedIter& idi, const conrad::scimath::Axes& axes,
+		casa::Vector<casa::RigidVector<double, 3> >& outUVW, casa::Vector<double>& delay) 
+    {
+        casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
+        casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
+		casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
+        const int nSamples = idi->uvw().size();
+        delay.resize(nSamples);
+        outUVW.resize(nSamples);
+
+        /// @todo Deal with changing pointing
+    	casa::UVWMachine machine(out, idi->pointingDir1()(0), false, true);
+        casa::Vector<double> uvw(3);
+        for (int row=0;row<nSamples;row++) {
+        	/// @todo Decide what to do about pointingDir1!=pointingDir2
+            for (int i=0;i<2;i++) uvw(i)=-idi->uvw()(row)(i);
+            uvw(2)=idi->uvw()(row)(2);
+            machine.convertUVW(delay(row), uvw);
+            for (int i=0;i<3;i++) outUVW(row)(i)=uvw(i);
+        }
     }
 
 /// Next are the implementation methods. Not all of these are implemented yet.
 /// Data to grid (spectral line)
     void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+	  	  const casa::Vector<double>& delay,
       const casa::Cube<casa::Complex>& visibility,
       const casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
       const casa::Vector<double>& cellsize,
       casa::Array<casa::Complex>& grid,
-      casa::Matrix<double>& sumwt)
+      casa::Matrix<double>& sumwt,
+      bool dopsf)
     {
       /// @todo Implement TableVisGridder::genericReverse for spectral line
       CONRADTHROW(ConradError, "genericReverse not yet implemented");
@@ -115,12 +159,14 @@ namespace conrad
 
 /// Data to grid (MFS)
     void TableVisGridder::genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+  	  	  const casa::Vector<double>& delay,
       const casa::Cube<casa::Complex>& visibility,
       const casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
       const casa::Vector<double>& cellsize,
       casa::Cube<casa::Complex>& grid,
-      casa::Vector<double>& sumwt)
+      casa::Vector<double>& sumwt,
+      bool dopsf)
     {
 
       const int gSize = grid.ncolumn();
@@ -140,41 +186,44 @@ namespace conrad
         for (int chan=0;chan<nChan;chan++)
         {
 
-          int overSample=itsOverSample;
+          double phase=2.0f*casa::C::pi*freq[chan]*delay(i)/(casa::C::c);
+          casa::Complex phasor(cos(phase), sin(phase));
+
+          int coff=cOffset(i,chan);
+          double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
+          int iu = nint(uScaled);
+          int fracu=nint(itsOverSample*(double(iu)-uScaled));
+          iu+=gSize/2;
+          double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
+          int iv = nint(vScaled);
+          int fracv=nint(itsOverSample*(double(iv)-vScaled));
+          iv+=gSize/2;
+
           for (int pol=0;pol<nPol;pol++)
           {
-
-            int coff=cOffset(i,chan);
-            double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-            int iu = nint(uScaled);
-            int fracu=nint(overSample*(double(iu)-uScaled));
-            iu+=gSize/2;
-            double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
-            int iv = nint(vScaled);
-            int fracv=nint(overSample*(double(iv)-vScaled));
-            iv+=gSize/2;
-
+      		casa::Complex rVis=phasor*conj(visibility(i,chan,pol));
+      		if (dopsf) rVis=casa::Complex(1.0, 0.0);
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
               ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
             {
               if(itsSupport==0)
               {
-                casa::Complex wt=itsC(itsCCenter,itsCCenter,coff);
-                grid(iu,iv,pol)+=wt*visibility(i,chan,pol);
+                casa::Complex wt=itsC(itsCCenter,itsCCenter,coff)*visweight(i,chan,pol);
+                grid(iu,iv,pol)+=wt*rVis;
                 sumwt(pol)+=real(wt);
               }
               else
               {
             	  /// Replacing this by direct pointer arithmetic makes no
             	  /// real difference in performance - not sure why
-                int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
+            	int voff=-itsOverSample*itsSupport+fracv+itsCCenter;
                 for (int suppv=-itsSupport;suppv<+itsSupport;suppv++)
                 {
                   int uoff=-itsOverSample*itsSupport+fracu+itsCCenter;
                   for (int suppu=-itsSupport;suppu<+itsSupport;suppu++)
                   {
                     casa::Complex wt=itsC(uoff,voff,coff)*visweight(i,chan,pol);
-                    grid(iu+suppu,iv+suppv,pol)+=wt*visibility(i,chan,pol);
+                    grid(iu+suppu,iv+suppv,pol)+=wt*rVis;
                     sumwt(pol)+=real(wt);
                     uoff+=itsOverSample;
                   }
@@ -190,6 +239,7 @@ namespace conrad
 
     /// Data to grid (MFS)
     void TableVisGridder::genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+  	  	  const casa::Vector<double>& delay,
       const casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
       const casa::Vector<double>& cellsize,
@@ -214,25 +264,25 @@ namespace conrad
         for (int chan=0;chan<nChan;chan++)
         {
 
-          int overSample=itsOverSample;
+          double phase=2.0f*casa::C::pi*freq[chan]*delay(i)/(casa::C::c);
+          casa::Complex phasor(cos(phase), sin(phase));
+
+          int coff=cOffset(i,chan);
+          double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
+          int iu = nint(uScaled);
+          int fracu=nint(itsOverSample*(double(iu)-uScaled));
+          iu=gSize/2;
+          double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
+          int iv = nint(vScaled);
+          int fracv=nint(itsOverSample*(double(iv)-vScaled));
+          iv=gSize/2;
 
           for (int pol=0;pol<nPol;pol++)
           {
-
-            int coff=cOffset(i,chan);
-            double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-            int iu = nint(uScaled);
-            int fracu=nint(overSample*(double(iu)-uScaled));
-            iu=gSize/2;
-            double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
-            int iv = nint(vScaled);
-            int fracv=nint(overSample*(double(iv)-vScaled));
-            iv=gSize/2;
-
             if(((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&
               ((iu+itsSupport)<gSize)&&((iv+itsSupport)<gSize))
             {
-              if(itsSupport==0)
+        	  if(itsSupport==0)
               {
                 casa::Complex wt=itsC(itsCCenter,itsCCenter,coff)*visweight(i,chan,pol);
                 grid(iu,iv,pol)+=wt;
@@ -265,6 +315,7 @@ namespace conrad
 
 /// Grid to data (spectral line)
     void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+  	  	  const casa::Vector<double>& delay,
       casa::Cube<casa::Complex>& visibility,
       casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
@@ -277,6 +328,7 @@ namespace conrad
 
 /// Grid to data (MFS)
     void TableVisGridder::genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+  	  	  const casa::Vector<double>& delay,
       casa::Cube<casa::Complex>& visibility,
       casa::Cube<float>& visweight,
       const casa::Vector<double>& freq,
@@ -302,20 +354,21 @@ namespace conrad
         for (int chan=0;chan<nChan;chan++)
         {
 
-          int overSample=itsOverSample;
+          double phase=2.0f*casa::C::pi*freq[chan]*delay(i)/(casa::C::c);
+          casa::Complex phasor(cos(phase), sin(phase));
+
+          int coff=cOffset(i,chan);
+          double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
+          int iu = nint(uScaled);
+          int fracu=nint(itsOverSample*(double(iu)-uScaled));
+          iu+=gSize/2;
+          double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
+          int iv = nint(vScaled);
+          int fracv=nint(itsOverSample*(double(iv)-vScaled));
+          iv+=gSize/2;
+
           for (int pol=0;pol<nPol;pol++)
           {
-
-            int coff=cOffset(i,chan);
-            double uScaled=freq[chan]*uvw(i)(0)/(casa::C::c*cellsize(0));
-            int iu = nint(uScaled);
-            int fracu=nint(overSample*(double(iu)-uScaled));
-            iu+=gSize/2;
-            double vScaled=freq[chan]*uvw(i)(1)/(casa::C::c*cellsize(1));
-            int iv = nint(vScaled);
-            int fracv=nint(overSample*(double(iv)-vScaled));
-            iv+=gSize/2;
-                        
             double sumviswt=0.0;
             visibility(i,chan,pol)=0.0;
             if(itsSupport>0)
@@ -348,7 +401,7 @@ namespace conrad
               }
               if(sumviswt>0.0)
               {
-                visibility(i,chan,pol)=visibility(i,chan,pol)/casa::Complex(sumviswt);
+                visibility(i,chan,pol)=phasor*conj(visibility(i,chan,pol)/casa::Complex(sumviswt));
                 visweight(i,chan,pol)=sumviswt;
               }
               else
@@ -358,7 +411,7 @@ namespace conrad
             }
             else
             {
-              visibility(i,chan,pol)=grid(iu,iv,pol);
+              visibility(i,chan,pol)=conj(phasor)*grid(iu,iv,pol);
               sumviswt=1.0;
             }
 //                if((chan==0)&&(pol==0)) {

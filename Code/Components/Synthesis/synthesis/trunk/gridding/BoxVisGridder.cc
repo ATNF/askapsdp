@@ -15,7 +15,8 @@ namespace conrad
     }
 
     void BoxVisGridder::initConvolutionFunction(IDataSharedIter& idi, 
-      const casa::Vector<double>& cellSize,
+    		casa::Vector<casa::RigidVector<double, 3> >& uvw,
+    		const casa::Vector<double>& cellSize,
       const casa::IPosition& shape)
     {
       itsSupport=0;

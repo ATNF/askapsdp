@@ -34,13 +34,14 @@ namespace conrad
 /// Initialize the convolution function into the cube. If necessary this
 /// could be optimized by using symmetries.
         void AntennaIllumVisGridder::initConvolutionFunction(IDataSharedIter& idi,
-            const casa::Vector<double>& cellSize,
+        		casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        		const casa::Vector<double>& cellSize,
             const casa::IPosition& shape)
         {
 /// We have to calculate the lookup function converting from
 /// row and channel to plane of the w-dependent convolution
 /// function
-            const int nSamples = idi->uvw().size();
+            const int nSamples = uvw.size();
             const int nChan = idi->frequency().size();
             itsCMap.resize(nSamples, nChan);
             itsCMap.set(0);
@@ -48,7 +49,7 @@ namespace conrad
             int cenw=(itsNWPlanes-1)/2;
             for (int i=0;i<nSamples;i++)
             {
-                double w=(idi->uvw()(i)(2))/(casa::C::c);
+                double w=(uvw(i)(2))/(casa::C::c);
                 for (int chan=0;chan<nChan;chan++)
                 {
                     double freq=idi->frequency()[chan];

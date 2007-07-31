@@ -45,10 +45,12 @@ namespace conrad
 /// @param axes axes specifications
 /// @param grid Output grid: cube: u,v,pol
 /// @param weights Output weights: vector: pol
+/// @param dopsf Make the psf?
         virtual void reverse(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<double>& weights);
+          casa::Vector<double>& weights,
+          bool dopsf=false);
 
 /// @brief Grid the visibility weights onto the grid using multifrequency
 /// synthesis. Note that the weights allow complete flexibility
@@ -67,10 +69,12 @@ namespace conrad
 /// @param axes axes specifications
 /// @param grid Output grid: cube: u,v,chan,pol
 /// @param weights Output weights: vector: pol
+/// @param dopsf Make the psf?
         virtual void reverse(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<double>& weights);
+          casa::Matrix<double>& weights,
+          bool dopsf=false);
 
 /// @brief Estimate visibility data from the grid using multifrequency
 /// synthesis.
@@ -123,22 +127,17 @@ namespace conrad
         /// Center of convolution functio
         int itsCCenter;
 
-/// @brief Are the convolution functions constant in meters?
-///
-/// If !itsInM these functions assume that the convolution function
-/// is specified in wavelengths. This is not always the case e.g. for antenna illumination
-/// pattern gridding. In that case, set itsInM to true.
-        bool itsInM;
-
 /// Initialize the convolution function - this is the key function to override.
 /// This should also setup cOffset to get the correct value of the offset
 /// for every row and channel.
 ///
 /// @param idi Data iterator
+/// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
 /// @param cellsize cellsize in wavelengths
 /// @param shape grid shape
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
-          const casa::Vector<double>& cellsize,
+        		casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        		const casa::Vector<double>& cellsize,
           const casa::IPosition& shape)=0;
         
 /// @brief Correct for gridding convolution function
@@ -165,28 +164,34 @@ namespace conrad
 
 /// Visibility to image for a cube (MFS)
 /// @param uvw UVW in meters
+/// @param delay delay in meters
 /// @param visibility Visibility
 /// @param visweight Visibility weight
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
 /// @param sumwt Total summed weight per polarization 
+/// @param dopsf Make the psf?
         virtual void genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        	  	  const casa::Vector<double>& delay,
           const casa::Cube<casa::Complex>& visibility,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<double>& sumwt);
+          casa::Vector<double>& sumwt,
+          bool dopsf=false);
         
 /// Accumulate summed weights * convolution function (MFS)
 /// @param uvw UVW in meters
+        /// @param delay delay in meters
 /// @param visweight Visibility weight
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
 /// @param weights Output weights: vector: pol
         void genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        	  	  const casa::Vector<double>& delay,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
@@ -196,12 +201,14 @@ namespace conrad
 
 /// Image to visibility for a cube (MFS))
 /// @param uvw UVW in meters
+        /// @param delay delay in meters
 /// @param visibility Visibility
 /// @param visweight Visibility weight
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
         virtual void genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        	  	  const casa::Vector<double>& delay,
           casa::Cube<casa::Complex>& visibility,
           casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
@@ -210,34 +217,48 @@ namespace conrad
 
 /// Visibility to image for an array (spectral line)
 /// @param uvw UVW in meters
+        /// @param delay delay in meters
 /// @param visibility Visibility
 /// @param visweight Visibility weight
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
 /// @param sumwt Total summed weight per polarization and channel
+/// @param dopsf Make the psf?
         virtual void genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        	  	  const casa::Vector<double>& delay,
           const casa::Cube<casa::Complex>& visibility,
           const casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<double>& sumwt);
+          casa::Matrix<double>& sumwt,
+          bool dopsf=false);
 
 
 /// Image to visibility for an array (spectral line)
 /// @param uvw UVW in meters
+        /// @param delay delay in meters
 /// @param visibility Visibility
 /// @param visweight Visibility weight
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
         virtual void genericForward(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
+        	  	  const casa::Vector<double>& delay,
           casa::Cube<casa::Complex>& visibility,
           casa::Cube<float>& visweight,
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           const casa::Array<casa::Complex>& grid);
+        
+/// Find the change in delay required
+        /// @param idi Data iterator
+        /// @param axes Image axes
+        /// @param outUVW Rotated uvw
+        /// @param delay Delay change (m)
+        void TableVisGridder::rotateUVW(IDataSharedIter& idi, const conrad::scimath::Axes& axes,
+    		casa::Vector<casa::RigidVector<double, 3> >& outUVW, casa::Vector<double>& delay);
           ///
         /// Round to nearest integer
         /// @param x Value to be rounded
