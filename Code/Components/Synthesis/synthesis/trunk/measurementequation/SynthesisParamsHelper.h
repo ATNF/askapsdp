@@ -71,6 +71,20 @@ namespace conrad
           tempImage(const conrad::scimath::Params& ip, 
           const string& name);
        
+        /// @brief Create a coordinate system for a parameter
+        /// @param ip Parameters
+        /// @param name Name of parameter
+        static casa::CoordinateSystem 
+          coordinateSystem(const conrad::scimath::Params& ip, 
+          const string& name);
+       
+        /// @brief Create a direction coordinate for a parameter
+        /// @param ip Parameters
+        /// @param name Name of parameter
+        static casa::DirectionCoordinate 
+          directionCoordinate(const conrad::scimath::Params& ip, 
+          const string& name);
+       
         /// @brief Update a parameter from an image
         /// @param ip Parameters
         /// @param name Name of parameter

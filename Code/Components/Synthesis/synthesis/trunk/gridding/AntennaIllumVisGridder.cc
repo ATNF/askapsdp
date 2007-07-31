@@ -4,6 +4,8 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/ArrayMath.h>
+#include <measures/Measures/MDirection.h>
+#include <measures/Measures/UVWMachine.h>
 
 #include <conrad/ConradError.h>
 
@@ -16,14 +18,16 @@ namespace conrad
 
         AntennaIllumVisGridder::AntennaIllumVisGridder(const double diameter, const double blockage,
             const double wmax, const int nwplanes, const double cutoff,
-            const int overSample, const int maxSupport) :
+            const int overSample, const int maxSupport, const int maxFeeds) :
         WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport),
-            itsReferenceFrequency(0.0), itsDiameter(diameter), itsBlockage(blockage)
+            itsReferenceFrequency(0.0), itsDiameter(diameter), itsBlockage(blockage),
+            itsMaxFeeds(maxFeeds)
 
         {
             CONRADCHECK(diameter>0.0, "Blockage must be positive");
             CONRADCHECK(diameter>blockage, "Antenna diameter must be greater than blockage");
             CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
+            CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
         }
 
         AntennaIllumVisGridder::~AntennaIllumVisGridder()
@@ -34,6 +38,7 @@ namespace conrad
 /// Initialize the convolution function into the cube. If necessary this
 /// could be optimized by using symmetries.
         void AntennaIllumVisGridder::initConvolutionFunction(IDataSharedIter& idi,
+        		const conrad::scimath::Axes& axes,
         		casa::Vector<casa::RigidVector<double, 3> >& uvw,
         		const casa::Vector<double>& cellSize,
             const casa::IPosition& shape)
@@ -45,21 +50,26 @@ namespace conrad
             const int nChan = idi->frequency().size();
             itsCMap.resize(nSamples, nChan);
             itsCMap.set(0);
+            /// @todo Select max feeds more carefully
+            itsMaxFeeds=casa::max(idi->feed1())+1;
 
             int cenw=(itsNWPlanes-1)/2;
             for (int i=0;i<nSamples;i++)
             {
                 double w=(uvw(i)(2))/(casa::C::c);
+                int feed=idi->feed1()(i);
                 for (int chan=0;chan<nChan;chan++)
                 {
                     double freq=idi->frequency()[chan];
-                    itsCMap(i,chan)=chan*itsNWPlanes+(cenw+nint(w*freq/itsWScale));
+                    itsCMap(i,chan)=feed+itsMaxFeeds*(chan*itsNWPlanes+(cenw+nint(w*freq/itsWScale)));
                 }
             }
             if(itsSupport!=0) return;
 
-//            /// Get the pointing direction - for the moment just use the first one
-//            casa::MDirection pc(idi->pointingDir1()(0));
+            /// Get the pointing direction - for the moment just use the first one
+            casa::Matrix<double> slope;
+            findCollimation(idi, axes, slope);
+            int nFeeds=slope.nrow();
             
             casa::FFTServer<casa::Float,casa::Complex> ffts;
             itsSupport=0;
@@ -95,6 +105,7 @@ namespace conrad
             float cellx=1.0/(float(nx)*cellSize(0));
             float celly=1.0/(float(ny)*cellSize(1));
 
+			for (int feed=0;feed<itsMaxFeeds;feed++) {
             for (int chan=0;chan<nChan;chan++)
             {
 /// Make the disk for this channel
@@ -104,17 +115,25 @@ namespace conrad
                 double cell=cellSize(0)*(casa::C::c/idi->frequency()[chan])/double(itsOverSample);
                 double rmax=std::pow(itsDiameter/cell,2);
                 double rmin=std::pow(itsBlockage/cell,2);
+                /// Slope is the delay per m 
+                double ax=2.0f*casa::C::pi*cell*slope(0,feed)*idi->frequency()[chan]/casa::C::c;
+                double ay=2.0f*casa::C::pi*cell*slope(1,feed)*idi->frequency()[chan]/casa::C::c;
                 double sumDisk=0.0;
+                /// Calculate the antenna voltage pattern, including the
+                /// phase shift due to pointing
                 for (int ix=0;ix<nx;ix++)
                 {
-                    double nux2=std::pow(std::abs(double(ix-cenx)), 2);
+                	double nux=double(ix-cenx);
+                    double nux2=std::pow(std::abs(nux), 2);
                     for (int iy=0;iy<ny;iy++)
                     {
-                        double nuy2=std::pow(std::abs(double(iy-ceny)), 2);
+                    	double nuy=double(iy-ceny);
+                        double nuy2=std::pow(std::abs(nuy), 2);
                         double r=nux2+nuy2;
                         if((r>rmin)&&(r<rmax))
                         {
-                            disk(ix,iy)=1.0;
+                        	double phase=ax*nux+ay*nuy;
+                            disk(ix,iy)=casa::Complex(cos(phase), -sin(phase));
                             sumDisk+=1.0;
                         }
                     }
@@ -130,15 +149,17 @@ namespace conrad
                     ffts.fft(vec, true);
                 }
                 disk=disk*conj(disk);
-                for (int iw=0;iw<=cenw;iw++)
+                /// Calculate the total convolution function including
+                /// the w term and the antenna convolution function
+                for (int iw=0;iw<itsNWPlanes;iw++)
                 {
 
                     thisPlane.set(0.0);
 
                     float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
                     double freq=idi->frequency()[chan];
-                    int zIndex=chan*itsNWPlanes+iw;
-                    int zFlipIndex=chan*itsNWPlanes+(itsNWPlanes-1-iw);
+                    int zIndex=feed+itsMaxFeeds*(chan*itsNWPlanes+iw);
+                    int zFlipIndex=feed+itsMaxFeeds*(chan*itsNWPlanes+(itsNWPlanes-1-iw));
 
                     for(int iy=ceny-ny/2;iy<ceny+ny/2;iy++)
                     {
@@ -151,7 +172,7 @@ namespace conrad
                             float r2=x2+y2;
                             float phase=w*(1.0-sqrt(1.0-r2));
                             casa::Complex wt=disk(ix,iy)*casa::Complex(ccfx(iy-ceny+ny/2)*ccfy(ix-cenx+nx/2));
-                            thisPlane(ix,iy)=wt*casa::Complex(cos(phase), sin(phase));
+                            thisPlane(ix,iy)=wt*casa::Complex(cos(phase), -sin(phase));
                         }
                     }
 // Now we have to calculate the Fourier transform to get the
@@ -182,12 +203,13 @@ namespace conrad
                             }
                         }
                         itsSupport=(itsSupport<nx/2)?itsSupport:nx/2;
+                        CONRADCHECK(itsSupport>0, "Derived support is zero");
                         itsCSize=2*(itsSupport+1)*itsOverSample;
                         std::cout << "W support = " << itsSupport
                         << " pixels, convolution function size = " << itsCSize << " pixels"
                         << std::endl;
                         itsCCenter=itsCSize/2-1;
-                        itsC.resize(itsCSize, itsCSize, itsNWPlanes*nChan);
+                        itsC.resize(itsCSize, itsCSize, itsNWPlanes*nChan*itsMaxFeeds);
                         itsC.set(0.0);
                     }
 // Now cut out the inner part of the convolution function
@@ -199,9 +221,9 @@ namespace conrad
                                 thisPlane(ix+itsOverSample*cenx,iy+itsOverSample*ceny);
                         }
                     }
-                    itsC.xyPlane(zFlipIndex)=casa::conj(itsC.xyPlane(zIndex));
                 }
             }
+			}
             std::cout << "Shape of convolution function = " << itsC.shape() << std::endl;
         }
 
@@ -209,6 +231,38 @@ namespace conrad
         int AntennaIllumVisGridder::cOffset(int row, int chan)
         {
             return itsCMap(row, chan);
+        }
+
+        void AntennaIllumVisGridder::findCollimation(IDataSharedIter& idi, const conrad::scimath::Axes& axes,
+    		casa::Matrix<double>& slope) 
+        {
+            casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
+            casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
+    		casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
+            const int nSamples = idi->uvw().size();
+            slope.resize(2, itsMaxFeeds);
+            casa::Vector<bool> done(itsMaxFeeds);
+            done.set(false);
+
+            /// @todo Deal with changing pointing
+        	casa::UVWMachine machine(out, idi->pointingDir1()(0), false, true);
+            casa::Vector<double> uvw(3);
+            int nDone=0;
+            for (int row=0;row<nSamples;row++) {
+                double delay;
+                int feed=idi->feed1()(row);
+                if(!done(feed)) {
+					for (int i=0;i<2;i++) {
+		                uvw.set(0.0);
+        	        	uvw(i)=1.0;
+	        	        machine.convertUVW(delay, uvw);
+	            	    slope(i,feed)=delay;
+					}
+					done(feed)=true;
+					nDone++;
+					if (nDone==itsMaxFeeds) break;
+				}
+            }
         }
 
     }

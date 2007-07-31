@@ -46,7 +46,7 @@ namespace conrad
       casa::Vector<casa::RigidVector<double, 3> > outUVW;
       casa::Vector<double> delay;
       rotateUVW(idi, axes, outUVW, delay);
-      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      initConvolutionFunction(idi, axes, outUVW, cellsize, grid.shape());
       genericReverse(outUVW, delay, idi->visibility(), visweight, idi->frequency(),
         cellsize, grid, weights, dopsf);
     }
@@ -64,7 +64,7 @@ namespace conrad
       casa::Vector<casa::RigidVector<double, 3> > outUVW;
       casa::Vector<double> delay;
       rotateUVW(idi, axes, outUVW, delay);
-      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      initConvolutionFunction(idi, axes, outUVW, cellsize, grid.shape());
       genericReverseWeights(outUVW, delay, visweight, idi->frequency(),
         cellsize, grid, weights);
     }
@@ -82,7 +82,7 @@ namespace conrad
       casa::Vector<casa::RigidVector<double, 3> > outUVW;
       casa::Vector<double> delay;
       rotateUVW(idi, axes, outUVW, delay);
-      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      initConvolutionFunction(idi, axes, outUVW, cellsize, grid.shape());
       genericReverse(outUVW, delay, idi->visibility(), visweight, idi->frequency(),
         cellsize, grid, weights, dopsf);
     }
@@ -98,7 +98,7 @@ namespace conrad
       casa::Vector<double> delay;
       casa::Vector<casa::RigidVector<double, 3> > outUVW;
       rotateUVW(idi, axes, outUVW, delay);
-      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      initConvolutionFunction(idi, axes, outUVW, cellsize, grid.shape());
       genericForward(outUVW, delay, idi->rwVisibility(), visweight, idi->frequency(),
         cellsize, grid);
     }
@@ -114,7 +114,7 @@ namespace conrad
       casa::Vector<double> delay;
       casa::Vector<casa::RigidVector<double, 3> > outUVW;
       rotateUVW(idi, axes, outUVW, delay);
-      initConvolutionFunction(idi, outUVW, cellsize, grid.shape());
+      initConvolutionFunction(idi, axes, outUVW, cellsize, grid.shape());
       genericForward(outUVW, delay, idi->rwVisibility(), visweight, idi->frequency(),
         cellsize, grid);
     }

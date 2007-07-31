@@ -32,9 +32,10 @@ namespace conrad
 /// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
 /// @param overSample Oversampling (currently limited to <=1)
 /// @param maxSupport Maximum support to be allowed
+/// @param maxFeeds Maximum number of feeds allowed
 	  AntennaIllumVisGridder(const double diameter, const double blockage,
 			  const double wmax, const int nwplanes, const double cutoff,
-    		const int overSample, const int maxSupport);
+    		const int overSample, const int maxSupport, const int maxFeeds);
 
         virtual ~AntennaIllumVisGridder();
 
@@ -49,6 +50,7 @@ namespace conrad
         /// @param cellSize Cell size in wavelengths
         /// @param shape Shape of grid
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
+        		const conrad::scimath::Axes& axes,
         		casa::Vector<casa::RigidVector<double, 3> >& uvw,
         		const casa::Vector<double>& cellSize,
           const casa::IPosition& shape);
@@ -59,6 +61,16 @@ namespace conrad
         double itsDiameter;
         /// Antenna blockage
         double itsBlockage;
+        /// Maximum number of feeds
+        int itsMaxFeeds;
+        
+        /// Find the slopes needed to repoint the antenna
+        /// @param idi Data iterator
+        /// @param axes Image axes
+        /// @param slope Matrix of slopes at 1m east and north
+        void findCollimation(IDataSharedIter& idi, 
+        		const conrad::scimath::Axes& axes,
+	    		casa::Matrix<double>& slope);
 
     };
 

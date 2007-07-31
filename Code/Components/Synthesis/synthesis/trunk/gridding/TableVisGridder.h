@@ -136,6 +136,7 @@ namespace conrad
 /// @param cellsize cellsize in wavelengths
 /// @param shape grid shape
         virtual void initConvolutionFunction(IDataSharedIter& idi, 
+        		const conrad::scimath::Axes& axes,
         		casa::Vector<casa::RigidVector<double, 3> >& uvw,
         		const casa::Vector<double>& cellsize,
           const casa::IPosition& shape)=0;

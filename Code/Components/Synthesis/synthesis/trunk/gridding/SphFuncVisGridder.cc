@@ -17,6 +17,7 @@ namespace conrad
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
     void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi, 
+    		const conrad::scimath::Axes& axes,
     		casa::Vector<casa::RigidVector<double, 3> >& uvw,
     		const casa::Vector<double>& cellSize,
       const casa::IPosition& shape)

@@ -41,9 +41,10 @@ namespace conrad
         double cutoff=parset.getDouble("gridder.AntennaIllum.cutoff", 1e-3);
         int oversample=parset.getInt32("gridder.AntennaIllum.oversample", 15);
         int maxSupport=parset.getInt32("gridder.AntennaIllum.maxsupport", 128);
+        int maxFeeds=parset.getInt32("gridder.AntennaIllum.maxfeeds", 32);
         std::cout << "Using Antenna Illumination for gridding function" << std::endl;
         gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(diameter, blockage, wmax, nwplanes, cutoff, oversample, 
-        		maxSupport));
+        		maxSupport, maxFeeds));
       }
       else if(parset.getString("gridder")=="Box") {
         std::cout << "Using Box function for gridding" << std::endl;
