@@ -58,6 +58,9 @@ namespace conrad
             }
             if(itsSupport!=0) return;
 
+//            /// Get the pointing direction - for the moment just use the first one
+//            casa::MDirection pc(idi->pointingDir1()(0));
+            
             casa::FFTServer<casa::Float,casa::Complex> ffts;
             itsSupport=0;
 
@@ -102,12 +105,12 @@ namespace conrad
                 double rmax=std::pow(itsDiameter/cell,2);
                 double rmin=std::pow(itsBlockage/cell,2);
                 double sumDisk=0.0;
-                for (int ix=0;ix<itsCSize;ix++)
+                for (int ix=0;ix<nx;ix++)
                 {
-                    double nux2=std::pow(std::abs(double(ix-itsCCenter)), 2);
-                    for (int iy=0;iy<itsCSize;iy++)
+                    double nux2=std::pow(std::abs(double(ix-cenx)), 2);
+                    for (int iy=0;iy<ny;iy++)
                     {
-                        double nuy2=std::pow(std::abs(double(iy-itsCCenter)), 2);
+                        double nuy2=std::pow(std::abs(double(iy-ceny)), 2);
                         double r=nux2+nuy2;
                         if((r>rmin)&&(r<rmax))
                         {
@@ -147,8 +150,7 @@ namespace conrad
                             x2*=x2;
                             float r2=x2+y2;
                             float phase=w*(1.0-sqrt(1.0-r2));
-//                            casa::Complex wt=disk(ix,iy)*casa::Complex(ccfx(iy-ceny+ny/2)*ccfy(ix-cenx+nx/2));
-                            casa::Complex wt=casa::Complex(ccfx(iy-ceny+ny/2)*ccfy(ix-cenx+nx/2));
+                            casa::Complex wt=disk(ix,iy)*casa::Complex(ccfx(iy-ceny+ny/2)*ccfy(ix-cenx+nx/2));
                             thisPlane(ix,iy)=wt*casa::Complex(cos(phase), sin(phase));
                         }
                     }
