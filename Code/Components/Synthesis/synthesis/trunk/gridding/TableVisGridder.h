@@ -258,7 +258,7 @@ namespace conrad
         /// @param axes Image axes
         /// @param outUVW Rotated uvw
         /// @param delay Delay change (m)
-        void TableVisGridder::rotateUVW(IDataSharedIter& idi, const conrad::scimath::Axes& axes,
+        void rotateUVW(IDataSharedIter& idi, const conrad::scimath::Axes& axes,
     		casa::Vector<casa::RigidVector<double, 3> >& outUVW, casa::Vector<double>& delay);
           ///
         /// Round to nearest integer
