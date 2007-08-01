@@ -6,6 +6,7 @@
 #include <dataaccess/TableDataSource.h>
 #include <conrad/ConradError.h>
 #include <dataaccess/SharedIter.h>
+#include <dataaccess/ParsetInterface.h>
 
 // casa
 #include <measures/Measures/MFrequency.h>
@@ -23,8 +24,9 @@ using namespace synthesis;
 
 void doReadOnlyTest(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
-  //sel->chooseFeed(1);  
-  IDataConverterPtr conv=ds.createConverter();
+  //sel->chooseFeed(1);
+  sel<<LOFAR::ACC::APS::ParameterSet("test.in").makeSubset("TestSelection.");
+  IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::BARY),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
