@@ -32,13 +32,15 @@ root permission.
 
 recursivebuild
 ==============
-'recursivebuild' provides five options
+'recursivebuild' provides the following command-line options
 
--q        suppress messages to stdout and just print errors
 install   install the packages
+clean     clean up the build directories (doesn't remove the installed eggs)
 doc       build documentation
 test      run unit tests
 pylint    run pylint on the module
+-q        suppress messages to stdout and just print errors
+-x        exit recursivebuild when an error is encountered
 
 Express install (for the very brave - takes a long time)
 ========================================================
