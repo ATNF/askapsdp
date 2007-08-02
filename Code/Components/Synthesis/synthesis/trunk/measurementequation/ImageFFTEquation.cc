@@ -219,7 +219,7 @@ namespace conrad
   
         itsGridder->finaliseReverse(*grids[mapName], axes, imageDeriv);
         itsGridder->finaliseReverse(*grids[psfName], axes, imagePSF);
-        itsGridder->finaliseReverseWeights(*sumWeights[mapName], imageWeight);
+        itsGridder->finaliseReverseWeights(*sumWeights[imageName], imageWeight);
         {
           casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
           casa::IPosition vecShape(1, imagePSF.nelements());
