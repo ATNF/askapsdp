@@ -33,88 +33,86 @@
 
 namespace conrad
 {
-  namespace synthesis
-  {
+	namespace synthesis
+	{
 
-    /// @brief Abstract Base Class for all gridders.
-    /// @ingroup gridding
-    class IVisGridder
-    {
-      public:
-      
-/// Shared pointer definition
-        typedef boost::shared_ptr<IVisGridder> ShPtr;
-                
-        IVisGridder();
-        virtual ~IVisGridder();
+		/// @brief Abstract Base Class for all gridders.
+		/// @ingroup gridding
+		class IVisGridder
+		{
+			public:
 
-/// Grid the visibility data onto the grid using multifrequency
-/// synthesis. Note that the weights allow complete flexibility
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output grid: cube: u,v,pol
-/// @param dopsf Make the psf?
-        virtual void reverse(IDataSharedIter& idi,
-          const scimath::Axes& axes,
-          casa::Cube<casa::Complex>& grid,
-          bool dopsf=false) = 0;
+				/// Shared pointer definition
+				typedef boost::shared_ptr<IVisGridder> ShPtr;
 
-/// Grid the spectral visibility data onto the grid
-/// Note that the weights allow complete flexibility
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output grid: cube: u,v,chan,pol
-/// @param dopsf Make the psf?
-        virtual void reverse(IDataSharedIter& idi,
-          const scimath::Axes& axes,
-          casa::Array<casa::Complex>& grid,
-          bool dopsf=false) = 0;
+				IVisGridder();
+				virtual ~IVisGridder();
 
-/// @brief Accumulate the weights as needed to calculate the
-/// weights image
-/// @param idi DataIterator
-/// @param weights Output weights: matrix: offset, pol
-        virtual void reverseWeights(IDataSharedIter& idi,
-	      casa::Matrix<double>& weights) = 0;
-                
-                
-/// Estimate visibility data from the grid using multifrequency
-/// synthesis.
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Input grid: cube: u,v,pol
-        virtual void forward(IDataSharedIter& idi,
-          const scimath::Axes& axes,
-          const casa::Cube<casa::Complex>& grid) = 0;
+				/// Grid the visibility data onto the grid using multifrequency
+				/// synthesis. Note that the weights allow complete flexibility
+				/// @param idi DataIterator
+				/// @param axes axes specifications
+				/// @param grid Output grid: cube: u,v,pol
+				/// @param dopsf Make the psf?
+				virtual void reverse(IDataSharedIter& idi, const scimath::Axes& axes,
+				    casa::Cube<casa::Complex>& grid, bool dopsf=false) = 0;
 
-/// Estimate spectral visibility data from the grid
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output weights: cube of same shape as visibility
-        virtual void forward(IDataSharedIter& idi,
-          const scimath::Axes& axes,
-          const casa::Array<casa::Complex>& grid) = 0;
-	
-		/// @brief Finish off the transform to the image plane
-		/// @param in Input complex grid
-		/// @param axes Axes description
-		/// @param out Output double precision grid
-		virtual void finaliseReverse(casa::Cube<casa::Complex>& in, const conrad::scimath::Axes& axes, casa::Cube<double>& out) = 0;
-		
-		/// @brief Initialise the transform from the image plane
-		/// @param in Input double precision grid
-		/// @param axes Axes description
-		/// @param  out Output complex grid
-	    virtual void initialiseForward(casa::Cube<double>& in, const conrad::scimath::Axes& axes, casa::Cube<casa::Complex>& out) = 0;
+				/// Grid the spectral visibility data onto the grid
+				/// Note that the weights allow complete flexibility
+				/// @param idi DataIterator
+				/// @param axes axes specifications
+				/// @param grid Output grid: cube: u,v,chan,pol
+				/// @param dopsf Make the psf?
+				virtual void reverse(IDataSharedIter& idi, const scimath::Axes& axes,
+				    casa::Array<casa::Complex>& grid, bool dopsf=false) = 0;
 
-        /// Form the sum of the convolution function squared, multiplied by the weights for each
-        /// different convolution function. This is used in the evaluation of the second derivative.
-        /// @param sumwt Sum of weights (offset, pol)
-        /// @param out Output double precision grid
-        virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt, casa::Cube<double>& out) = 0;
+				/// @brief Accumulate the weights as needed to calculate the
+				/// weights image
+				/// @param idi DataIterator
+				/// @param weights Output weights: matrix: offset, pol
+				virtual void reverseWeights(IDataSharedIter& idi,
+				    casa::Matrix<double>& weights) = 0;
 
-    };
+				/// Estimate visibility data from the grid using multifrequency
+				/// synthesis.
+				/// @param idi DataIterator
+				/// @param axes axes specifications
+				/// @param grid Input grid: cube: u,v,pol
+				virtual void forward(IDataSharedIter& idi, const scimath::Axes& axes,
+				    const casa::Cube<casa::Complex>& grid) = 0;
 
-  }
+				/// Estimate spectral visibility data from the grid
+				/// @param idi DataIterator
+				/// @param axes axes specifications
+				/// @param grid Output weights: cube of same shape as visibility
+				virtual void forward(IDataSharedIter& idi, const scimath::Axes& axes,
+				    const casa::Array<casa::Complex>& grid) = 0;
+
+				/// @brief Finish off the transform to the image plane
+				/// @param in Input complex grid
+				/// @param axes Axes description
+				/// @param out Output double precision grid
+				virtual void finaliseReverse(casa::Cube<casa::Complex>& in,
+				    const conrad::scimath::Axes& axes, casa::Cube<double>& out) = 0;
+
+				/// @brief Initialise the transform from the image plane
+				/// @param in Input double precision grid
+				/// @param axes Axes description
+				/// @param  out Output complex grid
+				virtual void
+				    initialiseForward(casa::Cube<double>& in,
+				        const conrad::scimath::Axes& axes,
+				        casa::Cube<casa::Complex>& out) = 0;
+
+				/// Form the sum of the convolution function squared, multiplied by the weights for each
+				/// different convolution function. This is used in the evaluation of the second derivative.
+				/// @param sumwt Sum of weights (offset, pol)
+				/// @param out Output double precision grid
+				virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt,
+				    const scimath::Axes& axes, casa::Cube<double>& out) = 0;
+
+		};
+
+	}
 }
 #endif                                            /*IVISGRIDDER_H_*/

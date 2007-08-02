@@ -451,13 +451,15 @@ namespace conrad
 		}
 
 		/// This is the default implementation
-		void TableVisGridder::finaliseReverseWeights(
-		    casa::Matrix<double>& sumWeights, casa::Cube<double>& out)
+		void TableVisGridder::finaliseReverseWeights(casa::Matrix<double>& sumWeights, 
+				const conrad::scimath::Axes& axes, casa::Cube<double>& out)
 		{
+			int nx=out.shape()(0);
+			int ny=out.shape()(1);
 			int nPol=sumWeights.shape()(1);
 			for (int pol=0; pol<nPol; pol++)
 			{
-				out.set(casa::sum(sumWeights.column(pol)));
+				out.set(casa::sum(sumWeights.column(pol))/(double(nx)*double(ny)));
 			}
 		}
 

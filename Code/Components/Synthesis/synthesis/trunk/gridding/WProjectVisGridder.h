@@ -32,13 +32,6 @@ namespace conrad
 
 				virtual ~WProjectVisGridder();
 
-				/// Form the sum of the convolution function squared, multiplied by the weights for each
-				/// different convolution function. This is used in the evaluation of the second derivative.
-				/// @param sumwt Sum of weights (offset, pol)
-				/// @param out Output double precision grid
-				virtual void finaliseReverseWeights(casa::Matrix<double>& sumWeights,
-				    casa::Cube<double>& out);
-
 			protected:
 				/// Offset into convolution function
 				/// @param row Row number

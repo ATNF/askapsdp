@@ -96,8 +96,10 @@ namespace conrad
         /// Form the sum of the convolution function squared, multiplied by the weights for each
         /// different convolution function. This is used in the evaluation of the second derivative.
         /// @param sumwt Sum of weights (offset, pol)
+        /// @param axes Axes description
         /// @param out Output double precision grid
-        virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt, casa::Cube<double>& out);
+        virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt, 
+        		const conrad::scimath::Axes& axes, casa::Cube<double>& out);
 
         /// @brief Initialise the transform from the image plane
         /// @param in Input double precision grid
