@@ -46,7 +46,7 @@ namespace conrad
         IDataSharedIter idi;
         Axes* itsAxes;
         casa::Cube<casa::Complex>* itsGrid;
-        casa::Vector<double>* itsWeights;
+        casa::Matrix<double>* itsWeights;
 
       public:
         void setUp()
@@ -66,7 +66,7 @@ namespace conrad
 
           itsBox = new BoxVisGridder();
           itsSphFunc = new SphFuncVisGridder();
-          itsAnt = new AntennaIllumVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128);
+          itsAnt = new AntennaIllumVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
           itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1, 128);
 
           double cellSize=10*casa::C::arcsec;
@@ -78,7 +78,7 @@ namespace conrad
           itsGrid=new casa::Cube<casa::Complex>(512,512,1);
           itsGrid->set(0.0);
 
-          itsWeights=new casa::Vector<double>(1);
+          itsWeights=new casa::Matrix<double>(0,0);
           itsWeights->set(0.0);
 
         }
@@ -95,7 +95,8 @@ namespace conrad
 
         void testReverseBox()
         {
-          itsBox->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+          itsBox->reverse(idi, *itsAxes, *itsGrid);
+          itsBox->reverseWeights(idi, *itsWeights);
         }
         void testForwardBox()
         {
@@ -103,7 +104,8 @@ namespace conrad
         }
         void testReverseSph()
         {
-          itsSphFunc->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+          itsSphFunc->reverse(idi, *itsAxes, *itsGrid);
+          itsSphFunc->reverseWeights(idi, *itsWeights);
         }
         void testForwardSph()
         {
@@ -111,7 +113,8 @@ namespace conrad
         }
         void testReverseAnt()
         {
-          itsAnt->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+          itsAnt->reverse(idi, *itsAxes, *itsGrid);
+          itsAnt->reverseWeights(idi, *itsWeights);
         }
         void testForwardAnt()
         {
@@ -119,7 +122,8 @@ namespace conrad
         }
         void testReverseWProject()
         {
-          itsWProject->reverse(idi, *itsAxes, *itsGrid, *itsWeights);
+          itsWProject->reverse(idi, *itsAxes, *itsGrid);
+          itsWProject->reverseWeights(idi, *itsWeights);
         }
         void testForwardWProject()
         {

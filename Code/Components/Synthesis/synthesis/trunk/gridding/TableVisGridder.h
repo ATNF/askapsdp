@@ -44,24 +44,11 @@ namespace conrad
 /// @param idi DataIterator
 /// @param axes axes specifications
 /// @param grid Output grid: cube: u,v,pol
-/// @param weights Output weights: vector: pol
 /// @param dopsf Make the psf?
         virtual void reverse(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<double>& weights,
-          bool dopsf=false);
-
-/// @brief Grid the visibility weights onto the grid using multifrequency
-/// synthesis. Note that the weights allow complete flexibility
-/// @param idi DataIterator
-/// @param axes axes specifications
-/// @param grid Output grid: cube: u,v,pol
-/// @param weights Output weights: vector: pol
-        virtual void reverseWeights(IDataSharedIter& idi,
-          const conrad::scimath::Axes& axes,
-          casa::Cube<casa::Complex>& grid,
-	      casa::Vector<double>& weights);          
+          bool dopsf=false);         
                 
 /// @brief Grid the spectral visibility data onto the grid
 /// Note that the weights allow complete flexibility
@@ -73,8 +60,13 @@ namespace conrad
         virtual void reverse(IDataSharedIter& idi,
           const conrad::scimath::Axes& axes,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<double>& weights,
           bool dopsf=false);
+        
+/// @brief Sum the weights as needed for forming the weights image
+/// @param idi DataIterator
+/// @param weights Output weights: vector: offset, pol
+        virtual void reverseWeights(IDataSharedIter& idi, 
+        		casa::Matrix<double>& weights);
 
 /// @brief Estimate visibility data from the grid using multifrequency
 /// synthesis.
@@ -98,6 +90,14 @@ namespace conrad
         /// @param axes Axes description
         /// @param out Output double precision grid
         virtual void finaliseReverse(casa::Cube<casa::Complex>& in, const conrad::scimath::Axes& axes, casa::Cube<double>& out);
+
+        /// @brief Finish off the transform of weights to the image plane
+        ///
+        /// Form the sum of the convolution function squared, multiplied by the weights for each
+        /// different convolution function. This is used in the evaluation of the second derivative.
+        /// @param sumwt Sum of weights (offset, pol)
+        /// @param out Output double precision grid
+        virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt, casa::Cube<double>& out);
 
         /// @brief Initialise the transform from the image plane
         /// @param in Input double precision grid
@@ -171,7 +171,6 @@ namespace conrad
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
-/// @param sumwt Total summed weight per polarization 
 /// @param dopsf Make the psf?
         virtual void genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
         	  	  const casa::Vector<double>& delay,
@@ -180,24 +179,13 @@ namespace conrad
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           casa::Cube<casa::Complex>& grid,
-          casa::Vector<double>& sumwt,
           bool dopsf=false);
         
-/// Accumulate summed weights * convolution function (MFS)
-/// @param uvw UVW in meters
-        /// @param delay delay in meters
+/// Accumulate summed weights per convolution function offset and polarization
 /// @param visweight Visibility weight
-/// @param freq Frequency
-/// @param cellsize Cellsize in wavelengths
-/// @param grid Grid for data
-/// @param weights Output weights: vector: pol
-        void genericReverseWeights(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
-        	  	  const casa::Vector<double>& delay,
-          const casa::Cube<float>& visweight,
-          const casa::Vector<double>& freq,
-          const casa::Vector<double>& cellsize,
-          casa::Cube<casa::Complex>& grid,
-          casa::Vector<double>& weights);
+/// @param weights Output weights: matrix: offset, pol
+        void genericReverseWeights(const casa::Cube<float>& visweight,
+          casa::Matrix<double>& weights);
 
 
 /// Image to visibility for a cube (MFS))
@@ -224,7 +212,6 @@ namespace conrad
 /// @param freq Frequency
 /// @param cellsize Cellsize in wavelengths
 /// @param grid Grid for data
-/// @param sumwt Total summed weight per polarization and channel
 /// @param dopsf Make the psf?
         virtual void genericReverse(const casa::Vector<casa::RigidVector<double, 3> >& uvw,
         	  	  const casa::Vector<double>& delay,
@@ -233,7 +220,6 @@ namespace conrad
           const casa::Vector<double>& freq,
           const casa::Vector<double>& cellsize,
           casa::Array<casa::Complex>& grid,
-          casa::Matrix<double>& sumwt,
           bool dopsf=false);
 
 

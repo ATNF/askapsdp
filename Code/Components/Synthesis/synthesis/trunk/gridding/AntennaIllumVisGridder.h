@@ -35,7 +35,7 @@ namespace conrad
 /// @param maxFeeds Maximum number of feeds allowed
 	  AntennaIllumVisGridder(const double diameter, const double blockage,
 			  const double wmax, const int nwplanes, const double cutoff,
-    		const int overSample, const int maxSupport, const int maxFeeds);
+    		const int overSample, const int maxSupport, const int maxFeeds=1);
 
         virtual ~AntennaIllumVisGridder();
 

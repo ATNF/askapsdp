@@ -147,7 +147,7 @@ namespace conrad
       types[2]="psf";
       types[3]="weight";
       std::map<string, casa::Cube<casa::Complex>* > grids;
-      std::map<string, casa::Vector<casa::Double>* > sumWeights;
+      std::map<string, casa::Matrix<casa::Double>* > sumWeights;
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));
@@ -155,9 +155,8 @@ namespace conrad
         for (vector<string>::const_iterator type=types.begin();type!=types.end();++type) {
           grids[string(imageName+(*type))]=new casa::Cube<casa::Complex>(imageShape(0), imageShape(1), 1);
           grids[string(imageName+(*type))]->set(0.0);
-          sumWeights[string(imageName+(*type))]=new casa::Vector<casa::Double>(1);
-          sumWeights[string(imageName+(*type))]->set(0.0);
         }
+        sumWeights[imageName]=new casa::Matrix<casa::Double>(0,0);
       }
       // Now we fill in the models
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
@@ -189,16 +188,14 @@ namespace conrad
           const string imageName("image.i"+(*it));
           const string mapName(imageName+"map");
           const string psfName(imageName+"psf");
-          const string weightName(imageName+"weight");
           const Axes axes(parameters().axes(imageName));
           if(parameters().isFree(imageName)) {
             itsIdi.chooseOriginal();
-            casa::Vector<float> uvWeights(1);
             itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
             itsIdi.chooseBuffer("RESIDUAL_DATA");
-            itsGridder->reverse(itsIdi, axes, *grids[mapName], *sumWeights[mapName]);
-            uvWeights.set(0.0);
-            itsGridder->reverse(itsIdi, axes, *grids[psfName], *sumWeights[psfName], true);
+            itsGridder->reverse(itsIdi, axes, *grids[mapName]);
+            itsGridder->reverse(itsIdi, axes, *grids[psfName], true);
+            itsGridder->reverseWeights(itsIdi, *sumWeights[imageName]);
             itsIdi.chooseOriginal();
           }
         }
@@ -222,7 +219,7 @@ namespace conrad
   
         itsGridder->finaliseReverse(*grids[mapName], axes, imageDeriv);
         itsGridder->finaliseReverse(*grids[psfName], axes, imagePSF);
-		imageWeight.set((*sumWeights[mapName])(0)/(float(imageShape(0))*float(imageShape(1))));
+        itsGridder->finaliseReverseWeights(*sumWeights[mapName], imageWeight);
         {
           casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
           casa::IPosition vecShape(1, imagePSF.nelements());
