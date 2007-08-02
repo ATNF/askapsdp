@@ -27,7 +27,7 @@ namespace synthesis {
 /// fully defined converter for processing
 /// (base interface is ITableMeasureSelector)
 /// @ingroup dataaccess_tab
-class TableMeasureFieldSelector : ITableMeasureFieldSelector {
+class TableMeasureFieldSelector : virtual public ITableMeasureFieldSelector {
 public:
    /// set the converter to use. It should be fully specified somewhere
    /// else before the actual selection can take place. This method

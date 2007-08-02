@@ -14,6 +14,7 @@
 /// own include
 #include <dataaccess/TableDataSelector.h>
 #include <dataaccess/DataAccessError.h>
+#include <dataaccess/TableTimeStampSelectorImpl.h>
 
 using namespace conrad;
 using namespace conrad::synthesis;
@@ -37,7 +38,8 @@ TableDataSelector::TableDataSelector(const
 void TableDataSelector::chooseTimeRange(const casa::MVEpoch &start,
           const casa::MVEpoch &stop)
 {
-   throw DataAccessLogicError("not yet implemented");
+   itsEpochSelector.reset(new TableTimeStampSelectorImpl<casa::MVEpoch>(table(),
+                          start, stop));
 }
 
 /// Choose time range. This method accepts a time range with 
@@ -49,7 +51,8 @@ void TableDataSelector::chooseTimeRange(const casa::MVEpoch &start,
 /// @param[in] stop the end of the chosen time interval
 void TableDataSelector::chooseTimeRange(casa::Double start,casa::Double stop)
 {
-   throw DataAccessLogicError("not yet implemented");
+   itsEpochSelector.reset(new TableTimeStampSelectorImpl<casa::Double>(table(),
+                          start, stop));
 }
  
 /// Choose cycles. This is an equivalent of choosing the time range,

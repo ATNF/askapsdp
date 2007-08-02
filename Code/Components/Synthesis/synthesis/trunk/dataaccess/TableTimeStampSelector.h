@@ -16,6 +16,7 @@
 
 // casa
 #include <tables/Tables/Table.h>
+#include <measures/Measures/MEpoch.h>
 
 // std includes
 #include <utility>
@@ -23,6 +24,8 @@
 
 // own includes
 #include <dataaccess/TableMeasureFieldSelector.h>
+#include <dataaccess/ITableHolder.h>
+#include <dataaccess/TimeDependentSubtable.h>
 
 namespace conrad {
 
@@ -37,14 +40,12 @@ namespace synthesis {
 ///          column in the table. These two methods are specified
 ///          in the derived classes.
 /// @ingroup dataaccess_tab
-class TableTimeStampSelector : public TableMeasureFieldSelector
+class TableTimeStampSelector : public TableMeasureFieldSelector,
+                               virtual protected ITableHolder,
+                               virtual protected TimeDependentSubtable
 {
 public:
-   /// constructor, stores the table which will later be used to form
-   /// expression nodes
-   /// @param[in] tab a measurement set
-   TableTimeStampSelector(const casa::Table &tab);
- 
+  
    /// main method, updates table expression node to narrow down the selection
    ///
    /// @param tex a reference to table expression to use
@@ -52,21 +53,17 @@ public:
 
 protected:
   
+   /// @brief This method has to be overriden in derived classes.
+   /// @details According to the interface, the data converter is
+   /// not available inside the chooseTimeRange method. It only becomes
+   /// available when the iterator is created. Therefore, the processing
+   /// of the time selection has to be deferred until the converter is known.
+   /// This method can be overridden in two different ways depending on whether
+   /// the selection is done using time as Double or as MVTime.  
    /// @return start and stop times of the interval to be selected (as
    ///         an std::pair, start is first, stop is second)
-   /// @param[in] frame a name of the native reference frame for a table
-   /// @param[in] units native units used in the table
-   virtual std::pair<casa::Double, casa::Double> 
-           getStartAndStop(const std::string &frame,
-                           const std::string &units) const = 0;
-
-   /// access to stored measurement set
-   /// @return a const reference to the measurement set used to form
-   /// expression nodes in the selection process
-   inline const casa::Table& ms() const throw() { return itsMS; }
-private:
-   /// measurement set used in the selection process
-   casa::Table itsMS;
+   virtual std::pair<casa::MEpoch, casa::MEpoch>
+           getStartAndStop() const = 0;       
 };
 
 } // namespace conrad

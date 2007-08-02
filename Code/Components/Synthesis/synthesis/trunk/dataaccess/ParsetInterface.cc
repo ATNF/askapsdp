@@ -17,10 +17,10 @@
 
 #include <iostream>
 
-/// @brief set selections according to the given parset object
-/// @details
-/// @param[in] sel a shared pointer to the converter to be updated
-/// @param[in] parset a parset object to read the parameters from
+// @brief set selections according to the given parset object
+// @details
+// @param[in] sel a shared pointer to the converter to be updated
+// @param[in] parset a parset object to read the parameters from
 void conrad::synthesis::operator<<(const boost::shared_ptr<IDataSelector> &sel,
                  const LOFAR::ACC::APS::ParameterSet &parset)
 {

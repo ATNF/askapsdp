@@ -16,6 +16,8 @@
 #include <casa/Exceptions/Error.h>
 #include <tables/Tables/TableRecord.h>
 #include <tables/Tables/ColumnDesc.h>
+#include <measures/Measures/MCEpoch.h>
+#include <measures/Measures/MeasConvert.h>
 
 // own includes
 #include <dataaccess/TableTimeStampSelector.h>
@@ -23,12 +25,6 @@
 
 using namespace conrad;
 using namespace conrad::synthesis;
-
-/// constructor, stores the table which will later be used to form
-/// expression nodes
-/// @param[in] tab a measurement set
-TableTimeStampSelector::TableTimeStampSelector(const casa::Table &tab) :
-         itsMS(tab) {}
 
 
 /// main method, updates table expression node to narrow down the selection
@@ -38,22 +34,17 @@ void TableTimeStampSelector::updateTableExpression(casa::TableExprNode &tex)
 	                                           const
 {
   try {    
-    const casa::TableRecord &timeColKeywords =
-            itsMS.tableDesc()["TIME"].keywordSet();
-    const casa::Array<casa::String> &measInfo =
-            timeColKeywords.asArrayString("MEASINFO");
-    CONRADASSERT(measInfo.nelements()>=2);
-    CONRADASSERT(measInfo.ndim()==1);
-    CONRADASSERT(measInfo(casa::IPosition(1,0))=="epoch");
-    std::pair<casa::Double, casa::Double>
-            startAndStop = getStartAndStop(measInfo(casa::IPosition(1,1)),
-                                    timeColKeywords.asString("QuantumUnits"));
+    const std::pair<casa::MEpoch, casa::MEpoch> startAndStop = getStartAndStop();
+    
+    const casa::Double start = tableTime(startAndStop.first);
+    const casa::Double stop = tableTime(startAndStop.second);
+            
     if (tex.isNull()) {
-        tex=(itsMS.col("TIME") > startAndStop.first) &&
-            (itsMS.col("TIME") < startAndStop.second);
+        tex=(table().col("TIME") > start) &&
+            (table().col("TIME") < stop);
     } else {
-        tex=tex && (itsMS.col("TIME") > startAndStop.first) &&
-                   (itsMS.col("TIME") < startAndStop.second);
+        tex=tex && (table().col("TIME") > start) &&
+                   (table().col("TIME") < stop);
     }
   }
   catch(const casa::AipsError &ae) {
