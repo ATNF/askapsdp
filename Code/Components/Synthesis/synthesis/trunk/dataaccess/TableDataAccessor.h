@@ -30,12 +30,21 @@ class TableDataIterator;
 /// @brief an implementation of IDataAccessor for original visibility
 ///
 /// @details TableDataAccessor is an implementation of the
-/// DataAccessor for original visibility working with TableDataIterator.
-/// At this moment this class just throws an exception if a write is
-/// attempted and mirrors all const functions.
+/// DataAccessor for original (non-buffered) visibilities, i.e. visibilities
+/// in the DATA column of the measurement set. It is working in pair with 
+/// the TableDataIterator class. If the measurement set is writable (see
+/// construction options in TableDataSource), this class allows to use
+/// rwVisibility() method of the interface. An exception is thrown if the shape
+/// of the updated visibility cube doesn't match the shape of the DATA column
+/// when write is attempted (the write operation is delayed until the iterator
+/// is progressed to the next step). Simple selections (i.e. those based on the
+/// feed ID, baseline, time range) can be used together with the write operation.
+/// However, polarization and spectral selections and on-the-fly averaging
+/// are not supported by this class. It is not trivial and probably we don't 
+/// even have a use case in CONRAD to support such operations. 
 ///
 /// @note conceptually, the class should be derived from MetaDataAccessor and
-/// IDataAccessor and MetaDataAccessor should be derived from IConstDataAccessor
+/// IDataAccessor, and MetaDataAccessor should be derived from IConstDataAccessor
 /// rather then from IDataAccessor. However, the correct approach requires
 /// a virtual inheritance from all interfaces and it won't work with g++-3.3
 /// @ingroup dataaccess_tab
