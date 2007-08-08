@@ -59,6 +59,9 @@ namespace conrad
         }
       }
       CONRADCHECK(nParameters>0, "No free parameters in ImageSolver");
+      double dthreshold=0.0;
+     	dthreshold=threshold().getValue("%")/100.0;
+      
       
       for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
       {
@@ -69,14 +72,17 @@ namespace conrad
         const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
         CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
         const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
-        
+        double cutoff=dthreshold*casa::max(diag);
         {
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
           for (uint elem=0;elem<dv.nelements();elem++)
           {
-            if(diag(elem)>0.0)
+            if(diag(elem)>cutoff)
             {
               value(elem)+=dv(elem)/diag(elem);
+            }
+            else {
+              value(elem)+=dv(elem)/cutoff;
             }
           }
         }

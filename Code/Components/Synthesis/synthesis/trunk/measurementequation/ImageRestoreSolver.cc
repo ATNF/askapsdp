@@ -66,7 +66,10 @@ namespace conrad
       }
       CONRADCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
       
-      for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
+      double dthreshold=0.0;
+     	dthreshold=threshold().getValue("%")/100.0;
+      
+     	for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
       {
 // Axes are dof, dof for each parameter
         casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
@@ -75,6 +78,7 @@ namespace conrad
         const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
         CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
         const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
+        double cutoff=dthreshold*casa::max(diag);
         
         // Create a temporary image
         boost::shared_ptr<casa::TempImage<float> >
@@ -92,11 +96,52 @@ namespace conrad
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
           for (uint elem=0;elem<dv.nelements();elem++)
           {
-            if(diag(elem)>0.0)
+            if(diag(elem)>cutoff)
             {
               value(elem)+=dv(elem)/diag(elem);
             }
+            else {
+              value(elem)+=dv(elem)/cutoff;
+            }
           }
+        }
+        /// Now write add some debug information 
+        if(verbose()) {              
+        	Axes axes(itsParams->axes(indit->first));
+          casa::IPosition valShape(itsParams->value(indit->first).shape());
+        	{
+            casa::Array<double> value(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second.reform(valShape));
+            string name("debug."+indit->first+".diagonal");
+            if(itsParams->has(name)) {
+              itsParams->update(name, value);
+            }
+            else {
+              itsParams->add(name, value, axes);
+            }
+            itsParams->fix(name);
+        	}
+        	{
+        	  casa::Array<double> value(itsNormalEquations->dataVector().find(indit->first)->second.reform(valShape));
+            string name("debug."+indit->first+".dataVector");
+            if(itsParams->has(name)) {
+              itsParams->update(name, value);
+            }
+            else {
+              itsParams->add(name, value, axes);
+            }
+            itsParams->fix(name);
+        	}
+        	{
+        	  casa::Array<double> value(itsNormalEquations->normalMatrixSlice().find(indit->first)->second.reform(valShape));
+            string name("debug."+indit->first+".slice");
+            if(itsParams->has(name)) {
+              itsParams->update(name, value);
+            }
+            else {
+              itsParams->add(name, value, axes);
+            }
+            itsParams->fix(name);
+        	}
         }
       }
 

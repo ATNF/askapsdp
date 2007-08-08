@@ -67,7 +67,7 @@ namespace conrad
 			if (itsSupport!=0)
 				return;
 
-			/// Get the pointing direction - for the moment just use the first one
+			/// Get the pointing direction
 			casa::Matrix<double> slope;
 			findCollimation(idi, axes, slope);
 			int nFeeds=slope.nrow();
@@ -233,6 +233,10 @@ namespace conrad
 			    << std::endl;
 		}
 
+		/// To finalize the transform of the weights, we use the following steps:
+		/// 1. For each plane of the convolution function, transform to image plane
+		/// and multiply by conjugate to get abs value squared.
+		/// 2. Sum all planes weighted by the weight for that convolution function.
 		void AntennaIllumVisGridder::finaliseReverseWeights(casa::Matrix<double>& sumWeights, 
 		    const conrad::scimath::Axes& axes,
 				casa::Cube<double>& out)
@@ -289,9 +293,10 @@ namespace conrad
 						casa::Array<casa::Complex> vec(thisPlane.row(ix));
 						ffts.fft(vec, false);
 					}
+					std::cout << "Maximum " << casa::max(casa::abs(thisPlane)) << std::endl;
 					for (int pol=0; pol<nPol; pol++)
 					{
-						double weight=sumWeights(iz, pol);
+						double weight=sumWeights(iz, pol)*(double(nx)*double(ny));
 						for (int ix=0; ix<nx; ix++)
 						{
 							for (int iy=0; iy<ny; iy++)
