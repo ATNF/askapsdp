@@ -12,6 +12,9 @@
 #ifndef I_COMPONENT_H
 #define I_COMPONENT_H
 
+// own includes
+#include <conrad/ConradError.h>
+
 // std includes
 #include <vector>
 
@@ -20,7 +23,7 @@
 #include <scimath/Mathematics/AutoDiffMath.h>
 #include <casa/Arrays/Vector.h>
 #include <scimath/Mathematics/RigidVector.h>
-
+#include <measures/Measures/Stokes.h>
 
 
 namespace conrad {
@@ -47,9 +50,11 @@ struct IComponent {
   /// double values. The first one is a real part, the second is imaginary part.
   /// @param[in] uvw  baseline spacings (in metres)
   /// @param[in] freq vector of frequencies to do calculations for
+  /// @param[in] pol required polarization 
   /// @param[out] result an output buffer used to store values
   virtual void calculate(const casa::RigidVector<casa::Double, 3> &uvw,
                     const casa::Vector<casa::Double> &freq,
+                    casa::Stokes::StokesTypes pol,
                     std::vector<double> &result) const = 0;
   
   /// @brief calculate visibilities and derivatives for this component
@@ -59,10 +64,27 @@ struct IComponent {
   /// structure.
   /// @param[in] uvw  baseline spacings (in metres)
   /// @param[in] freq vector of frequencies to do calculations for
+  /// @param[in] pol required polarization 
   /// @param[out] result an output buffer used to store values
   virtual void calculate(const casa::RigidVector<casa::Double, 3> &uvw,
                     const casa::Vector<casa::Double> &freq,
+                    casa::Stokes::StokesTypes pol,
                     std::vector<casa::AutoDiff<double> > &result) const = 0;                    
+
+  /// @brief convert StokesTypes into an index 0..3
+  /// @details It is decided that all components have to be defined in
+  /// terms of IQUV stokes parameters. It is not prohibited that the 
+  /// constructors of actual components accept other stokes parameters like
+  /// XX, etc. However, in the latter case, these parameters should be converted
+  /// to IQUV at the time of the object construction. Most likely actual 
+  /// components will hold an array of fluxes for each stokes parameter. Therefore,
+  /// it is necessary to convert quickly from StokesTypes to the index.
+  /// This method gives a mapping of I to 0, Q to 1, U to 2 and V to 3. For
+  /// other values an exception is thrown.
+  /// @param[in] pol required polarization
+  /// @return an index (I: 0, Q: 1, U: 2 and V: 3)
+  static size_t stokesIndex(casa::Stokes::StokesTypes pol) throw(ConradError);
+  
 }; 
 
 } // namespace synthesis
