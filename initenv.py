@@ -25,10 +25,12 @@ parser.add_option("-s", "--shell",
 
 shmap = { "bash" : { "suffix": "sh", "envset": "export", 
 		     "envassign": "=",
-		     "init" : "."},
+		     "init" : ".", 
+                     "prompt" : "export PS1=(conrad)${PS1}"},
 	  "tcsh" : { "suffix": "csh", "envset": "setenv", 
 		     "envassign": " ",
-		     "init" : "source"} }
+		     "init" : "source",
+                     "prompt" : "set prompt=\(conrad\)${prompt}"} }
 
 
 shell =  shmap[opts.shell]
@@ -36,6 +38,7 @@ pylibdir = "lib/python%s" % get_python_version()
 
 filename = "initconrad.%s" % shell["suffix"]
 if os.path.exists(filename):
+    print "%s has already been generated. Remove it first to force regeneration." % filename
     sys.exit(0)
 f = file(filename, "w")
 exports = "%s CONRAD_PROJECT_ROOT%s%s\n" % ( shell["envset"], 
@@ -44,7 +47,9 @@ exports = "%s CONRAD_PROJECT_ROOT%s%s\n" % ( shell["envset"],
 exports += "%s PYTHONPATH%s${CONRAD_PROJECT_ROOT}/%s:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools\n" % (shell["envset"], shell["envassign"], pylibdir)
 exports += "%s PATH%s${CONRAD_PROJECT_ROOT}/bin:${PATH}\n" % (shell["envset"], 
                                                               shell["envassign"])
-exports += '%s PS1%s"(conrad)$PS1"\n' % (shell["envset"],shell["envassign"])
+
+exports += shell["prompt"]+"\n"
+   
 exports += '%s MANPATH%s${CONRAD_PROJECT_ROOT}/man:${MANPATH}\n' % (shell["envset"],shell["envassign"])
 f.write(exports)
 f.close()
