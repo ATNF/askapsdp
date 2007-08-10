@@ -66,9 +66,3 @@ Install Code
 cd $CONRAD_PROJECT_ROOT/Code
 python setup.py -q install
 
-Additional repositories (eg svnComputing/AutoBuild)
-===================================================
-Build first Tools, then 3rdParty and finally the Code directory. In
-each case the command is:
-python setup.py -q install
-
