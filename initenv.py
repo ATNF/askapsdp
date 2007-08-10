@@ -26,11 +26,11 @@ parser.add_option("-s", "--shell",
 shmap = { "bash" : { "suffix": "sh", "envset": "export", 
 		     "envassign": "=",
 		     "init" : ".", 
-                     "prompt" : "export PS1=(conrad)${PS1}"},
+                     "prompt" : 'export PS1="(conrad)${PS1}"'},
 	  "tcsh" : { "suffix": "csh", "envset": "setenv", 
 		     "envassign": " ",
 		     "init" : "source",
-                     "prompt" : "set prompt=\(conrad\)${prompt}"} }
+                     "prompt" : 'set prompt="\(conrad\)${prompt}"'} }
 
 
 shell =  shmap[opts.shell]
