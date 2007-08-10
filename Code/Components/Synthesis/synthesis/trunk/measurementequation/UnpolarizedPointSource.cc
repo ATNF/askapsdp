@@ -1,0 +1,102 @@
+/// @file
+///
+/// @brief A component representing an unpolarized point source with flat spectrum
+/// @details
+///     This is an implementation of IComponent for the point source model.
+///     The point source is assumed unpolarized with a flat spectrum
+///     (i.e. spectral index 0).
+///
+/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
+/// 
+
+#include <measurementequation/UnpolarizedPointSource.h>
+
+#include <scimath/Mathematics/RigidVector.h>
+
+namespace conrad {
+
+namespace synthesis {
+
+
+/// @brief actual calculations
+/// @details templated method for actual calculations. Made private, because
+/// it is used and declared in UnpolarizedPointSource.cc only
+/// @param[in] uvw  baseline spacings (in metres)
+/// @param[in] freq vector of frequencies to do calculations for
+/// @param[in] params RigidVector with parameters
+/// @param[out] result an output buffer used to store values
+template<typename T>
+void UnpolarizedPointSource::calcPoint(
+                    const casa::RigidVector<casa::Double, 3> &uvw,
+                    const casa::Vector<casa::Double> &freq,
+                    const casa::RigidVector<T, 3> &params,
+                    std::vector<T> &result)
+{
+  const T ra=params(1);
+  const T dec=params(2);
+  const T flux=params(0);
+  
+  const T n =  casa::sqrt(T(1.0) - (ra*ra+dec*dec));
+  const T delay = casa::C::_2pi * (ra * uvw(0) + dec * uvw(1) + 
+                                   n * uvw(2))/casa::C::c;
+  const T scale = 1.0/casa::C::c;
+  typename std::vector<T>::iterator it=result.begin();
+  for (casa::Vector<casa::Double>::const_iterator ci=freq.cbegin(); 
+       ci!=freq.end();++ci,++it)
+      {
+        const T phase = delay * (*ci);
+        *it = flux * cos(phase);
+        *(++it) = flux * sin(phase);
+      }
+}
+
+/// @brief construct the point source component
+/// @details 
+/// @param[in] flux flux density in Jy
+/// @param[in] ra offset in right ascension w.r.t. the current phase 
+/// centre (in radians)
+/// @param[in] dec offset in declination w.r.t. the current phase
+/// centre (in radians)
+UnpolarizedPointSource::UnpolarizedPointSource(double flux, double ra, 
+          double dec) : 
+          UnpolarizedComponent<3>(casa::RigidVector<double, 3>(flux,ra,dec)) 
+              {}
+
+              
+/// @brief calculate stokes I visibilities for this component
+/// @details This variant of the method calculates just the visibilities
+/// (without derivatives) for a number of frequencies. This method has
+/// to be defined in the derived classes and is used to in the implementation
+/// of the IComponent interface if stokes I is requested. Otherwise result
+/// is filled with 0.
+/// @param[in] uvw  baseline spacings (in metres)
+/// @param[in] freq vector of frequencies to do calculations for
+/// @param[out] result an output buffer used to store values
+void UnpolarizedPointSource::calculate(
+                    const casa::RigidVector<casa::Double, 3> &uvw,
+                    const casa::Vector<casa::Double> &freq,
+                    std::vector<double> &result) const
+{
+}                    
+  
+/// @brief calculate stokes I visibilities and derivatives for this component
+/// @details This variant of the method does simultaneous calculations of
+/// the values and derivatives. This method has
+/// to be defined in the derived classes and is used to in the implementation
+/// of the IComponent interface if stokes I is requested. Otherwise result
+/// is filled with 0.
+/// @param[in] uvw  baseline spacings (in metres)
+/// @param[in] freq vector of frequencies to do calculations for
+/// @param[out] result an output buffer used to store values
+void UnpolarizedPointSource::calculate(
+                    const casa::RigidVector<casa::Double, 3> &uvw,
+                    const casa::Vector<casa::Double> &freq,
+                    std::vector<casa::AutoDiff<double> > &result) const
+{
+}
+
+} // namespace conrad
+
+} // namespace synthesis
+              

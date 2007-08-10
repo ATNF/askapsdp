@@ -42,6 +42,10 @@ struct IComponent {
   /// virtual destructor to keep the compiler happy
   virtual ~IComponent(); 
   
+  /// @brief get number of parameters
+  /// @return a number of parameters  this component depends upon
+  virtual size_t nParameters() const throw() = 0;
+  
   /// @brief calculate visibilities for this component
   /// @details This variant of the method calculates just the visibilities
   /// (without derivatives) for a number of frequencies. The result is stored 
