@@ -62,6 +62,8 @@ namespace conrad
 				{
 					double freq=idi->frequency()[chan];
 					itsCMap(i, chan)=cenw+nint(w*freq/itsWScale);
+					CONRADCHECK(itsCMap(i,chan)<itsNWPlanes, "W scaling error: recommend allowing larger range of w");
+					CONRADCHECK(itsCMap(i,chan)>-1, "W scaling error: recommend allowing larger range of w");
 				}
 			}
 			if (itsSupport!=0)
@@ -150,9 +152,9 @@ namespace conrad
 					}
 					itsSupport=(itsSupport<nx/2) ? itsSupport : nx/2;
 					itsCSize=2*(itsSupport+1)*itsOverSample;
-					std::cout << "W support = "<< itsSupport
-					    << " pixels, convolution function size = "<< itsCSize<< " pixels"
-					    << std::endl;
+					std::cout << "Convolution function support = "<< itsSupport
+						  << " pixels, convolution function size = "<< itsCSize
+						  << " pixels"<< std::endl;
 					itsCCenter=itsCSize/2-1;
 					itsC.resize(itsCSize, itsCSize, itsNWPlanes);
 					itsC.set(0.0);

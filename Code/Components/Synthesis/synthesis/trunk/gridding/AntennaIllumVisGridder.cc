@@ -51,7 +51,6 @@ namespace conrad
 			itsCMap.resize(nSamples, nChan);
 			itsCMap.set(0);
 			/// @todo Select max feeds more carefully
-			itsMaxFeeds=casa::max(idi->feed1())+1;
 
 			int cenw=(itsNWPlanes-1)/2;
 			for (int i=0; i<nSamples; i++)
@@ -62,6 +61,10 @@ namespace conrad
 				{
 					double freq=idi->frequency()[chan];
 					itsCMap(i, chan)=feed+itsMaxFeeds*(chan*itsNWPlanes+(cenw+nint(w*freq/itsWScale)));
+					CONRADCHECK(itsCMap(i,chan)<(itsNWPlanes*nChan*itsMaxFeeds), 
+						    "W scaling error: recommend allowing larger range of w");
+					CONRADCHECK(itsCMap(i,chan)>-1, 
+						    "W scaling error: recommend allowing larger range of w");
 				}
 			}
 			if (itsSupport!=0)
@@ -209,7 +212,7 @@ namespace conrad
 							itsSupport=(itsSupport<nx/2) ? itsSupport : nx/2;
 							CONRADCHECK(itsSupport>0, "Derived support is zero");
 							itsCSize=2*(itsSupport+1)*itsOverSample;
-							std::cout << "W support = "<< itsSupport
+							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
 							itsCCenter=itsCSize/2-1;
@@ -256,8 +259,6 @@ namespace conrad
 
 			int nZ=sumWeights.shape()(0);
 
-			std::cout << sumWeights << std::endl;
-
 			CONRADCHECK(sumWeights.shape()(1)!=nPol, "Number of polarizations do not match");
 
 			out.set(0.0);
@@ -267,7 +268,6 @@ namespace conrad
 				if (max(sumWeights.row(iz))>0)
 				{
 					thisPlane.set(0.0);
-					std::cout << "Processing plane "<< iz << " of "<< nZ << std::endl;
 
 					// Now fill the inner part of the uv plane with the convolution function
 					// and transform to obtain the full size image
@@ -293,7 +293,6 @@ namespace conrad
 						casa::Array<casa::Complex> vec(thisPlane.row(ix));
 						ffts.fft(vec, false);
 					}
-					std::cout << "Maximum " << casa::max(casa::abs(thisPlane)) << std::endl;
 					for (int pol=0; pol<nPol; pol++)
 					{
 						double weight=sumWeights(iz, pol)*(double(nx)*double(ny));
