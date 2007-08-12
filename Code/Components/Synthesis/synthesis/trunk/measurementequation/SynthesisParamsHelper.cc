@@ -74,7 +74,12 @@ namespace conrad {
       /// @todo Do something with the frame info in direction[2]
       Axes axes;
       axes.add("RA", ra-double(nx)*xcellsize/2.0, ra+double(nx)*xcellsize/2.0);
-      axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
+      if(dec>0.0) {
+	axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
+      }
+      else {
+	axes.add("DEC", dec+double(ny)*ycellsize/2.0, dec-double(ny)*ycellsize/2.0);
+      }
       
       if(nchan>1) {
         casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
@@ -205,12 +210,7 @@ namespace conrad {
 
       casa::Quantum<double> incLon((axes.start("RA")-axes.end("RA"))/double(nx), "rad");
       casa::Quantum<double> incLat;
-      if(refLat.getValue()<0.0) {
-        incLat=casa::Quantum<double>((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
-      }
-      else {
-        incLat=casa::Quantum<double>((axes.start("DEC")-axes.end("DEC"))/double(ny), "rad");
-      }
+      incLat=casa::Quantum<double>((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
       
       casa::DirectionCoordinate radec(MDirection::J2000,
                             Projection(Projection::SIN),

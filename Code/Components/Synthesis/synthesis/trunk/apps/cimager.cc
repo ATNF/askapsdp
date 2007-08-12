@@ -35,6 +35,7 @@
 
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableDataSource.h>
+#include <dataaccess/ParsetInterface.h>
 
 #include <casa/aips.h>
 #include <casa/BasicSL/Constants.h>
@@ -198,7 +199,7 @@ void receiveModel(MPIConnectionSet::ShPtr& cs, int rank, int nnode,
 }
 
 /// Calculate the normal equations for a given measurement set
-void calcNE(const string& ms, Params& skymodel, IVisGridder::ShPtr& gridder,
+void calcNE(const string& ms, ParameterSet& parset, Params& skymodel, IVisGridder::ShPtr& gridder,
     NormalEquations& ne)
 {
 	os() << "PREDIFFER Calculating normal equations for "<< ms << std::endl;
@@ -206,6 +207,7 @@ void calcNE(const string& ms, Params& skymodel, IVisGridder::ShPtr& gridder,
 	timer.mark();
 	TableDataSource ds(ms);
 	IDataSelectorPtr sel=ds.createSelector();
+	sel << parset;
 	IDataConverterPtr conv=ds.createConverter();
 	conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
 	IDataSharedIter it=ds.createIterator(sel, conv);
@@ -282,25 +284,24 @@ void writeResults(Params& skymodel, Solver::ShPtr& solver,
 	}
 }
 
-void processInputs(const string& parsetname, string& resultfile, bool& restore,
+void processInputs(ParameterSet& parset, string& resultfile, bool& restore,
     int& nCycles, vector<string>& ms,
     casa::Vector<casa::Quantum<double> >& qbeam, Params& skymodel,
     Solver::ShPtr& solver, IVisGridder::ShPtr& gridder)
 {
 	/// Process inputs
-	ParameterSet parset(parsetname);
 	ParameterSet subset(parset.makeSubset("Cimager."));
 
 	resultfile=parset.getString("Parms.Result", "");
 
-	restore=parset.getBool("Cimager.restore", true);
+	restore=subset.getBool("restore", true);
 
-	nCycles=parset.getInt32("Cimager.solver.cycles", 1);
+	nCycles=subset.getInt32("solver.cycles", 1);
 
 	ms=parset.getStringVector("DataSet");
 
 	qbeam.resize(3);
-	vector<string> beam=parset.getStringVector("Cimager.restore.beam");
+	vector<string> beam=subset.getStringVector("restore.beam");
 	for (int i=0; i<3; i++)
 	{
 		casa::Quantity::read(qbeam(i), beam[i]);
@@ -345,6 +346,8 @@ int main(int argc, const char** argv)
 		///==============================================================================
 		/// Process inputs from the parset file
 		string parsetname("cimager.in");
+		ParameterSet parset(parsetname);
+		ParameterSet subset(parset.makeSubset("Cimager."));
 
 		string resultfile; // File for params
 		bool restore; // Do we want a restored image?
@@ -355,7 +358,7 @@ int main(int argc, const char** argv)
 		Solver::ShPtr solver; // Image solver to be used
 		IVisGridder::ShPtr gridder; // Gridder to be used
 
-		processInputs(parsetname, resultfile, restore, nCycles, ms, qbeam,
+		processInputs(parset, resultfile, restore, nCycles, ms, qbeam,
 				skymodel, solver, gridder);
 
 		casa::Timer timer;
@@ -417,7 +420,7 @@ int main(int argc, const char** argv)
 					{
 						receiveModel(cs, rank, nnode, skymodel);
 					}
-					calcNE(ms[rank-1], skymodel, gridder, ne);
+					calcNE(ms[rank-1], parset, skymodel, gridder, ne);
 					sendNE(cs, nnode, rank, ne);
 					os() << "user:   " << timer.user () << " system: " << timer.system ()
 					<<" real:   " << timer.real () << std::endl;
@@ -448,7 +451,7 @@ int main(int argc, const char** argv)
 				///
 				for (vector<string>::iterator thisms=ms.begin();thisms!=ms.end();++thisms)
 				{
-					calcNE(*thisms, skymodel, gridder, ne);
+					calcNE(*thisms, parset, skymodel, gridder, ne);
 					solver->addNormalEquations(ne);
 					os() << "Added normal equations to solver " << std::endl;
 				}
