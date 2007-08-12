@@ -77,7 +77,10 @@ namespace conrad
 				/// @param slope Matrix of slopes at 1m east and north
 				void findCollimation(IDataSharedIter& idi,
 				    const conrad::scimath::Axes& axes, casa::Matrix<double>& slope);
-
+		  /// Pad up in size using FFT
+		  /// @param in Input Cube
+		  /// @param out Output Cube
+		  void fftPad(const casa::Cube<double>& in, casa::Cube<double>& out);
 		};
 
 	}
