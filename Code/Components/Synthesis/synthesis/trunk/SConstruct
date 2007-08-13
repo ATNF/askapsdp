@@ -20,6 +20,7 @@ pkg = env.ConradPackage("synthesis")
 pkg.AddSubPackage("measurementequation")
 pkg.AddSubPackage("dataaccess")
 pkg.AddSubPackage("gridding")
+pkg.AddSubPackage("parallel")
 
 # run the build process
 pkg()
