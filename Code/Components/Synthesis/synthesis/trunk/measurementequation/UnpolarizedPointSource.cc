@@ -66,10 +66,9 @@ UnpolarizedPointSource::UnpolarizedPointSource(double flux, double ra,
               
 /// @brief calculate stokes I visibilities for this component
 /// @details This variant of the method calculates just the visibilities
-/// (without derivatives) for a number of frequencies. This method has
-/// to be defined in the derived classes and is used to in the implementation
-/// of the IComponent interface if stokes I is requested. Otherwise result
-/// is filled with 0.
+/// (without derivatives) for a number of frequencies. This method is 
+/// used to in the implementation of the IComponent interface if 
+/// stokes I is requested. Otherwise result is filled with 0.
 /// @param[in] uvw  baseline spacings (in metres)
 /// @param[in] freq vector of frequencies to do calculations for
 /// @param[out] result an output buffer used to store values
@@ -81,10 +80,10 @@ void UnpolarizedPointSource::calculate(
   calcPoint(uvw,freq,parameters(),result);
 }                    
   
+
 /// @brief calculate stokes I visibilities and derivatives for this component
 /// @details This variant of the method does simultaneous calculations of
-/// the values and derivatives. This method has
-/// to be defined in the derived classes and is used to in the implementation
+/// the values and derivatives. This method is used to in the implementation
 /// of the IComponent interface if stokes I is requested. Otherwise result
 /// is filled with 0.
 /// @param[in] uvw  baseline spacings (in metres)

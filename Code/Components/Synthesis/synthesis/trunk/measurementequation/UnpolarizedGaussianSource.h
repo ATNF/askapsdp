@@ -1,16 +1,17 @@
 /// @file
 ///
-/// @brief A component representing an unpolarized point source with flat spectrum
+/// @brief A component representing an unpolarized gaussian source with the 
+//  flat spectrum
 /// @details
-///     This is an implementation of IComponent for the point source model.
-///     The point source is assumed unpolarized with a flat spectrum
+///     This is an implementation of IComponent for the gaussian source model.
+///     The source is assumed unpolarized with a flat spectrum
 ///     (i.e. spectral index 0).
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
-#ifndef POINT_SOURCE_COMPONENT_H
-#define POINT_SOURCE_COMPONENT_H
+#ifndef GAUSSIAN_SOURCE_COMPONENT_H
+#define GAUSSIAN_SOURCE_COMPONENT_H
 
 #include <measurementequation/UnpolarizedComponent.h>
 
@@ -19,13 +20,14 @@ namespace conrad {
 
 namespace synthesis {
 
-/// @brief A component representing an unpolarized point source with flat spectrum
+/// @brief A component representing an unpolarized gaussian source with the 
+/// flat spectrum
 /// @details
-///     This is an implementation of IComponent for the point source model.
-///     The point source is assumed unpolarized with a flat spectrum
+///     This is an implementation of IComponent for the gaussian source model.
+///     The source is assumed unpolarized with a flat spectrum
 ///     (i.e. spectral index 0).
 /// @ingroup measurementequation  
-struct UnpolarizedPointSource : public UnpolarizedComponent<3> {
+struct UnpolarizedGaussianSource : public UnpolarizedComponent<6> {
 
   /// @brief construct the point source component
   /// @details 
@@ -34,7 +36,11 @@ struct UnpolarizedPointSource : public UnpolarizedComponent<3> {
   /// centre (in radians)
   /// @param[in] dec offset in declination w.r.t. the current phase
   /// centre (in radians)
-  UnpolarizedPointSource(double flux, double ra, double dec);
+  /// @param[in] maj major axis in radians
+  /// @param[in] min minor axis in radians
+  /// @param[in] pa  position angle in radians
+  UnpolarizedGaussianSource(double flux, double ra, double dec, double maj,
+                         double min, double pa);
   
   /// @brief calculate stokes I visibilities for this component
   /// @details This variant of the method calculates just the visibilities
@@ -62,15 +68,15 @@ struct UnpolarizedPointSource : public UnpolarizedComponent<3> {
 private:
   /// @brief actual calculations
   /// @details templated method for actual calculations. Made private, because
-  /// it is used and declared in UnpolarizedPointSource.cc only
+  /// it is used and declared in UnpolarizedGaussianSource.cc only
   /// @param[in] uvw  baseline spacings (in metres)
   /// @param[in] freq vector of frequencies to do calculations for
   /// @param[in] params RigidVector with parameters
   /// @param[out] result an output buffer used to store values
   template<typename T>
-  static void calcPoint(const casa::RigidVector<casa::Double, 3> &uvw,
+  static void calcGaussian(const casa::RigidVector<casa::Double, 3> &uvw,
                     const casa::Vector<casa::Double> &freq,
-                    const casa::RigidVector<T, 3> &params,
+                    const casa::RigidVector<T, 6> &params,
                     std::vector<T> &result);
 };
 
@@ -80,5 +86,5 @@ private:
 
 
 
-#endif // #ifndef POINT_SOURCE_COMPONENT_H
+#endif // #ifndef GAUSSIAN_SOURCE_COMPONENT_H
 
