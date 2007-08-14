@@ -124,7 +124,6 @@ namespace conrad
 				
 				if (isParallel())
 				{
-					CONRADCHECK(itsRank>=itsMs.size(), "Insufficient number of data sets defined");
 					receiveModel();
 					calcOne(itsMs[itsRank-1]);
 					sendNE();
