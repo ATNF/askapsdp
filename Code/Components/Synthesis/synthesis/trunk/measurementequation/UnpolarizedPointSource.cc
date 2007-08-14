@@ -42,7 +42,7 @@ void UnpolarizedPointSource::calcPoint(
                                    n * uvw(2))/casa::C::c;
   const T scale = 1.0/casa::C::c;
   typename std::vector<T>::iterator it=result.begin();
-  for (casa::Vector<casa::Double>::const_iterator ci=freq.cbegin(); 
+  for (casa::Vector<casa::Double>::const_iterator ci=freq.begin(); 
        ci!=freq.end();++ci,++it)
       {
         const T phase = delay * (*ci);
@@ -78,6 +78,7 @@ void UnpolarizedPointSource::calculate(
                     const casa::Vector<casa::Double> &freq,
                     std::vector<double> &result) const
 {
+  calcPoint(uvw,freq,parameters(),result);
 }                    
   
 /// @brief calculate stokes I visibilities and derivatives for this component
@@ -94,6 +95,12 @@ void UnpolarizedPointSource::calculate(
                     const casa::Vector<casa::Double> &freq,
                     std::vector<casa::AutoDiff<double> > &result) const
 {
+  const casa::RigidVector<double, 3> &params = parameters();
+  const casa::RigidVector<casa::AutoDiff<double>, 3>  paramsAutoDiff(
+                              casa::AutoDiff<double>(params(0),3, 0),
+                              casa::AutoDiff<double>(params(1),3, 1),
+                              casa::AutoDiff<double>(params(2),3, 2));
+  calcPoint(uvw,freq,paramsAutoDiff,result);
 }
 
 } // namespace conrad
