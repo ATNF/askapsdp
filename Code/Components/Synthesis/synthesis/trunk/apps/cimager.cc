@@ -36,27 +36,23 @@ using namespace LOFAR::ACC::APS;
 
 int main(int argc, const char** argv)
 {
+	ParameterSet parset("cimager.in");
+
+	ImagerParallel imager(argc, argv, parset);
+
 	try
 	{
 		casa::Timer timer;
 		timer.mark();
+		
+		imager.initialize();
 
-		/// Create the specified images from the definition in the
-		/// parameter set. We can solve for any number of images
-		/// at once (but you may/will run out of memory!)
-		Params skymodel;
-		ParameterSet parset("cimager.in");
-		skymodel << parset.makeSubset("Cimager.");
-
-		ImagerParallel imager(argc, argv, parset);
-
-		int nCycles=parset.getInt32("Cimager.ncycles", 1);
+		int nCycles=parset.getInt32("Cimager.ncycles", 0);
 		if(nCycles==0)
 		{
 			/// No cycling - just make a dirty image
-			imager.calcNE(skymodel);
-			imager.solveNE(skymodel);
-			imager.writeResults(skymodel);
+			imager.calcNE();
+			imager.solveNE();
 		}
 		else
 		{
@@ -64,20 +60,16 @@ int main(int argc, const char** argv)
 			for (int cycle=0;cycle<nCycles;cycle++)
 			{
 				imager.os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
-				imager.calcNE(skymodel);
-				if(cycle<(nCycles-1))
-				{
-					imager.solveNE(skymodel);
-				}
-				else
-				{
-					/// This is the final step - restore the image and write it out
-					imager.writeResults(skymodel);
-				}
+				imager.calcNE();
+				imager.solveNE();
 				imager.os() << "user:   " << timer.user () << " system: " << timer.system ()
 				<<" real:   " << timer.real () << std::endl;
 			}
 		}
+		imager.finalize();
+		/// This is the final step - restore the image and write it out
+		imager.writeModel();
+
 		///==============================================================================
 		exit(0);
 	}

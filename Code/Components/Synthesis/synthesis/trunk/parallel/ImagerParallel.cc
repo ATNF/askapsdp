@@ -16,19 +16,20 @@
 
 #include <conrad/ConradError.h>
 
+#include <dataaccess/DataAccessError.h>
+#include <dataaccess/TableDataSource.h>
+#include <dataaccess/ParsetInterface.h>
+
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/ParsetInterface.h>
 
-#include <measurementequation/ImageRestoreSolver.h>
+#include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
 
 #include <fitting/ParamsCasaTable.h>
 #include <fitting/Axes.h>
-
-#include <dataaccess/DataAccessError.h>
-#include <dataaccess/TableDataSource.h>
-#include <dataaccess/ParsetInterface.h>
 
 #include <casa/aips.h>
 #include <casa/BasicSL/Constants.h>
@@ -57,96 +58,167 @@ namespace conrad
 	{
 
 		ImagerParallel::ImagerParallel(int argc, const char** argv,
-		    const ParameterSet& parset) : SynParallel(argc, argv)
+		    const ParameterSet& parset) :
+			SynParallel(argc, argv), itsParset(parset)
 		{
+
+			/// Create the specified images from the definition in the
+			/// parameter set. We can solve for any number of images
+			/// at once (but you may/will run out of memory!)
+			itsModel << parset.makeSubset("Images.");
+
 			ParameterSet subset(itsParset.makeSubset("Cimager."));
 
-			itsRestore=subset.getBool("restore", true);
-
-			itsMs=parset.getStringVector("DataSet");
-
-			itsQbeam.resize(3);
-			vector<string> beam=subset.getStringVector("restore.beam");
-			for (int i=0; i<3; i++)
+			if (isSolver())
 			{
-				casa::Quantity::read(itsQbeam(i), beam[i]);
+				itsRestore=itsParset.getBool("Cimager.restore", true);
+
+				itsQbeam.resize(3);
+				vector<string> beam=itsParset.getStringVector("Cimager.restore.beam");
+				for (int i=0; i<3; i++)
+				{
+					casa::Quantity::read(itsQbeam(i), beam[i]);
+				}
+
+				/// Create the solver from the parameterset definition and the existing
+				/// definition of the parameters. 
+				itsSolver=ImageSolverFactory::make(*itsModel, subset);
+				CONRADCHECK(itsSolver, "Solver not defined correctly");
 			}
+			if(isPrediffer())
+			{
+				/// Get the list of measurement sets
+				itsMs=itsParset.getStringVector("DataSet");
 
-			/// Create the solver from the parameterset definition and the existing
-			/// definition of the parameters. We create the solver here so that it
-			/// can do any caching required
-			itsSolver << subset;
-
-			/// Create the gridder using a factory acting on a
-			/// parameterset
-			itsGridder=VisGridderFactory::make(subset);
-
+				/// Create the gridder using a factory acting on a
+				/// parameterset
+				itsGridder=VisGridderFactory::make(subset);
+				CONRADCHECK(itsGridder, "Gridder not defined correctly");
+			}
 		}
-		;
-		/// Calculate the normal equations for a given measurement set
-		void ImagerParallel::calcNE(Params& model)
+
+		void ImagerParallel::initialize()
 		{
-			os() << "PREDIFFER Calculating normal equations for "<< itsMs[itsRank]
-			    << std::endl;
+			if (isParallel()&&isSolver())
+			{
+				broadcastModel();
+			}
+		}
+		void ImagerParallel::finalize()
+		{
+			if (isParallel()&&isPrediffer())
+			{
+				receiveModel();
+			}
+		}
+
+		void ImagerParallel::calcOne(const string& ms)
+		{
 			casa::Timer timer;
 			timer.mark();
-			TableDataSource ds(itsMs[itsRank]);
+			os() << "Calculating normal equations for "
+			    << ms << std::endl;
+			TableDataSource ds(ms);
 			IDataSelectorPtr sel=ds.createSelector();
 			sel << itsParset;
 			IDataConverterPtr conv=ds.createConverter();
-			conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
-			    "Hz");
+			conv->setFrequencyFrame(
+		    	casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
 			IDataSharedIter it=ds.createIterator(sel, conv);
-			it.init();
-			it.chooseOriginal();
-			ImageFFTEquation ie(model, it, itsGridder);
-			ie.calcEquations(itsNe);
-			os() << "PREDIFFER Calculated normal equations for "<< itsMs[itsRank]
+			ImageFFTEquation ie(*itsModel, it, itsGridder);
+			ie.calcEquations(*itsNe);
+			os() << "Calculated normal equations for "<< ms
 			    << " in "<< timer.real() << " seconds "<< std::endl;
 		}
 
-		void ImagerParallel::solveNE(Params& model)
+		/// Calculate the normal equations for a given measurement set
+		void ImagerParallel::calcNE()
 		{
-			// Receive the normal equations - no-op if serial
-			receiveNE();
-			os() << "SOLVER Solving normal equations"<< std::endl;
-			casa::Timer timer;
-			timer.mark();
-			Quality q;
-			itsSolver->solveNormalEquations(q);
-			os() << "SOLVER Solved normal equations in "<< timer.real()
-			    << " seconds "<< std::endl;
-			model=itsSolver->parameters();
-			// Broadcast the model - no-op if serial
-			broadcastModel(model);
+			if (isPrediffer())
+			{
+				CONRADCHECK(itsGridder, "Gridder not defined");
+				CONRADCHECK(itsModel, "Model not defined");
+				CONRADCHECK(itsMs.size()>0, "Data sets not defined");
+				
+				// Discard any old parameters
+				itsNe=NormalEquations::ShPtr(new NormalEquations(*itsModel));
+				
+				CONRADCHECK(itsNe, "NormalEquations not defined");
+				
+				if (isParallel())
+				{
+					CONRADCHECK(itsRank>=itsMs.size(), "Insufficient number of data sets defined");
+					receiveModel();
+					calcOne(itsMs[itsRank-1]);
+					sendNE();
+				}
+				else
+				{
+					for (int iMs=0; iMs<itsMs.size(); iMs++)
+					{
+						calcOne(itsMs[iMs]);
+						CONRADCHECK(itsSolver, "Solver not defined correctly");
+						itsSolver->setParameters(*itsModel);
+						itsSolver->addNormalEquations(*itsNe);
+					}
+				}
+			}
+		}
+
+		void ImagerParallel::solveNE()
+		{
+			if (isSolver())
+			{
+				// Receive the normal equations
+				if (isParallel())
+				{
+					receiveNE();
+				}
+				os() << "Solving normal equations"<< std::endl;
+				casa::Timer timer;
+				timer.mark();
+				Quality q;
+				itsSolver->solveNormalEquations(q);
+				os() << "Solved normal equations in "<< timer.real()
+				    << " seconds "<< std::endl;
+				*itsModel=itsSolver->parameters();
+				// Broadcast the *itsModel
+				if (isParallel())
+				{
+					broadcastModel();
+				}
+			}
 		}
 
 		/// Write the results out
-		void ImagerParallel::writeResults(Params& model)
+		void ImagerParallel::writeModel()
 		{
-			os() << "Writing out results as CASA images"<< std::endl;
-			vector<string> resultimages=model.names();
-			for (vector<string>::iterator it=resultimages.begin(); it
-			    !=resultimages.end(); it++)
+			if (isSolver())
 			{
-				SynthesisParamsHelper::saveAsCasaImage(model, *it, *it);
-			}
-
-			if (itsRestore)
-			{
-				os() << "Writing out restored images as CASA images"<< std::endl;
-				ImageRestoreSolver ir(model, itsQbeam);
-				ir.setThreshold(itsSolver->threshold());
-				ir.setVerbose(itsSolver->verbose());
-				ir.copyNormalEquations(*itsSolver);
-				Quality q;
-				ir.solveNormalEquations(q);
-				resultimages=ir.parameters().names();
+				os() << "Writing out results as CASA images"<< std::endl;
+				vector<string> resultimages=itsModel->names();
 				for (vector<string>::iterator it=resultimages.begin(); it
 				    !=resultimages.end(); it++)
 				{
-					SynthesisParamsHelper::saveAsCasaImage(model, *it, *it
-					    +string(".restored"));
+					SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it);
+				}
+
+				if (itsRestore)
+				{
+					os() << "Writing out restored images as CASA images"<< std::endl;
+					ImageRestoreSolver ir(*itsModel, itsQbeam);
+					ir.setThreshold(itsSolver->threshold());
+					ir.setVerbose(itsSolver->verbose());
+					ir.copyNormalEquations(*itsSolver);
+					Quality q;
+					ir.solveNormalEquations(q);
+					resultimages=ir.parameters().names();
+					for (vector<string>::iterator it=resultimages.begin(); it
+					    !=resultimages.end(); it++)
+					{
+						SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it
+						    +string(".restored"));
+					}
 				}
 			}
 		}

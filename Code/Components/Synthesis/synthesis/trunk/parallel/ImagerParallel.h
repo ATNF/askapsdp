@@ -24,7 +24,7 @@ namespace conrad
     ///
     /// @details Provides generic methods for parallel algorithms
     /// @ingroup parallel
-    class ImagerParallel: virtual public SynParallel
+    class ImagerParallel: public SynParallel
     {
       public:
 
@@ -34,19 +34,25 @@ namespace conrad
       	/// @param parset ParameterSet for inputs
       	ImagerParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
       	
+				/// Initialize for calculations - use this to start any required transfers for MPI
+				virtual void initialize();
+
       	/// Calculate the normalequations
-      	/// @params skymodel Sky model from which the normal equations are to be derived
-      	virtual void calcNE(conrad::scimath::Params& skymodel);
+      	virtual void calcNE();
       	
       	/// Solve the normal equations
-      	/// @params skymodel Sky model from which the normal equations are to be derived
-      	virtual void solveNE(conrad::scimath::Params& skymodel);
+      	virtual void solveNE();
 
       	/// Write the results
-      	/// @params skymodel Sky model to be written
-      	virtual void writeResults(conrad::scimath::Params& skymodel);
+      	virtual void writeModel();
+
+				/// Finalize after calculations - use this to catch any pending transfers for MPI
+				virtual void finalize();
 
       private:
+      	
+      	/// Calculate normal equations for one MS
+      	void calcOne(const string& ms);
       	
       	/// ParameterSet
       	LOFAR::ACC::APS::ParameterSet itsParset;
@@ -62,6 +68,7 @@ namespace conrad
 
     		/// Gridder to be used
     		IVisGridder::ShPtr itsGridder; 
+    		
     };
 
   }

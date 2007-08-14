@@ -43,26 +43,27 @@ namespace conrad
 
 			itsIsParallel=(itsNNode>1);
 			itsIsSolver=(itsRank==0);
+			itsIsPrediffer=(!itsIsParallel)||(itsRank>0);
 
-			// For MPI, send all output to separate log files. Eventually we'll do this
-			// using the log system.
+			initConnections();
 
-			// Set the name of the output stream.
-			std::ostringstream ostr;
-			ostr << itsRank;
-			MWIos::setName ("cimager_tmp.cout" + ostr.str());
-
-			if (itsIsParallel)
+			if (isParallel())
 			{
-				if (itsIsSolver)
+				// For MPI, send all output to separate log files. Eventually we'll do this
+				// using the log system.
+				std::ostringstream ostr;
+				ostr << itsRank;
+				MWIos::setName ("cimager_tmp.cout" + ostr.str());
+
+				if (isSolver())
 				{
 					os() << "CONRAD synthesis program (parallel) running on "<< itsNNode
-					    << " nodes (master)"<< std::endl;
+					    << " nodes (master/solver)"<< std::endl;
 				}
 				else
 				{
 					os() << "CONRAD synthesis program (parallel) running on "<< itsNNode
-					    << " nodes (worker "<< itsRank << ")"<< std::endl;
+					    << " nodes (prediffer "<< itsRank << ")"<< std::endl;
 				}
 			}
 			else
@@ -70,22 +71,40 @@ namespace conrad
 				os() << "CONRAD synthesis program (serial)"<< std::endl;
 			}
 
+			itsModel = Params::ShPtr(new Params());
+			itsSolver = Solver::ShPtr(new Solver(*itsModel));
+			itsNe = NormalEquations::ShPtr(new NormalEquations(*itsModel));
+
 		}
 
 		SynParallel::~SynParallel()
 		{
-			if (itsIsParallel)
+			if (isParallel())
 			{
-				os() << "Ending MPI for rank "<< itsRank << std::endl;
+				os() << "Exiting MPI"<< std::endl;
 				MPIConnection::endMPI();
 			}
 		}
 
+		conrad::scimath::Params::ShPtr& SynParallel::params()
+		{
+			return itsModel;
+		}
+
 		std::ostream& SynParallel::os()
 		{
-			if (itsRank>0)
+			if (isParallel())
 			{
-				return MWCOUT;
+				if (isPrediffer())
+				{
+					MWCOUT << "PREDIFFER " << itsRank << " : ";
+					return MWCOUT;
+				}
+				else
+				{
+					std::cout << "SOLVER : ";
+					return std::cout;
+				}
 			}
 			else
 			{
@@ -96,26 +115,29 @@ namespace conrad
 		// Initialize connections
 		void SynParallel::initConnections()
 		{
-			itsConnectionSet=MPIConnectionSet::ShPtr(new MPIConnectionSet());
-			if (itsRank==0)
+			if (isParallel())
 			{
-				// I am the master - I need a connection to every worker
-				for (int i=1; i<itsNNode; ++i)
+				itsConnectionSet=MPIConnectionSet::ShPtr(new MPIConnectionSet());
+				if (isSolver())
 				{
-					itsConnectionSet->addConnection(i, 0);
+					// I am the master - I need a connection to every worker
+					for (int i=1; i<itsNNode; ++i)
+					{
+						itsConnectionSet->addConnection(i, 0);
+					}
 				}
-			}
-			else
-			{
-				// I am a worker - I only need to talk to the master
-				itsConnectionSet->addConnection(0, 0);
+				else
+				{
+					// I am a worker - I only need to talk to the master
+					itsConnectionSet->addConnection(0, 0);
+				}
 			}
 		}
 
 		// Send the normal equations from this worker to the master as a blob
 		void SynParallel::sendNE()
 		{
-			if (itsIsParallel)
+			if (isParallel()&&isPrediffer())
 			{
 				casa::Timer timer;
 				timer.mark();
@@ -125,11 +147,10 @@ namespace conrad
 				LOFAR::BlobOBufString bob(bs);
 				LOFAR::BlobOStream out(bob);
 				out.putStart("ne", 1);
-				out << itsRank << itsNe;
+				out << itsRank << *itsNe;
 				out.putEnd();
 				itsConnectionSet->write(0, bs);
-				os() << "PREDIFFER "<< itsRank
-				    << " Sent normal equations to the solver via MPI in "
+				os() << "Sent normal equations to the solver via MPI in "
 				    << timer.real()<< " seconds "<< std::endl;
 			}
 		}
@@ -137,9 +158,10 @@ namespace conrad
 		// Receive the normal equations as a blob
 		void SynParallel::receiveNE()
 		{
-			if (itsIsParallel)
+			CONRADCHECK(itsSolver, "Solver not yet defined");
+			if (isParallel()&&isSolver())
 			{
-				os() << "SOLVER Waiting for normal equations"<< std::endl;
+				os() << "Waiting for normal equations"<< std::endl;
 				casa::Timer timer;
 				timer.mark();
 
@@ -152,25 +174,23 @@ namespace conrad
 					LOFAR::BlobIStream in(bib);
 					int version=in.getStart("ne");
 					CONRADASSERT(version==1);
-					in >> rank >> itsNe;
+					in >> rank >> *itsNe;
 					in.getEnd();
-					itsSolver->addNormalEquations(itsNe);
-					os() << "SOLVER Received normal equations from prediffer "<< rank
+					itsSolver->addNormalEquations(*itsNe);
+					os() << "Received normal equations from prediffer "<< rank
 					    << " after "<< timer.real() << " seconds"<< std::endl;
 				}
-				os()
-				    << "SOLVER Received normal equations from the prediffers via MPI in "
+				os()<< "Received normal equations from all prediffers via MPI in "
 				    << timer.real() << " seconds"<< std::endl;
 			}
-			return;
 		}
 
 		// Send the model to all workers
-		void SynParallel::broadcastModel(const Params& model)
+		void SynParallel::broadcastModel()
 		{
-			if (itsIsParallel)
+			if (isParallel()&&isSolver())
 			{
-
+				CONRADCHECK(itsModel, "Model not defined prior to broadcast")
 				casa::Timer timer;
 				timer.mark();
 
@@ -179,23 +199,23 @@ namespace conrad
 				LOFAR::BlobOBufString bob(bs);
 				LOFAR::BlobOStream out(bob);
 				out.putStart("model", 1);
-				out << model;
+				out << *itsModel;
 				out.putEnd();
 				for (int i=1; i<itsNNode; ++i)
 				{
 					itsConnectionSet->write(i-1, bs);
 				}
-				os() << "SOLVER Sent model to the prediffers via MPI in "
-				    << timer.real()<< " seconds "<< std::endl;
+				os() << "Sent model to the prediffers via MPI in "<< timer.real()
+				    << " seconds "<< std::endl;
 			}
 		}
 
 		// Receive the model from the solver
-		void SynParallel::receiveModel(Params& model)
+		void SynParallel::receiveModel()
 		{
-			if (itsIsParallel)
+			if (isParallel()&&isPrediffer())
 			{
-
+				CONRADCHECK(itsModel, "Model not defined prior to receiving")
 				casa::Timer timer;
 				timer.mark();
 				LOFAR::BlobString bs;
@@ -205,15 +225,14 @@ namespace conrad
 				LOFAR::BlobIStream in(bib);
 				int version=in.getStart("model");
 				CONRADASSERT(version==1);
-				in >> model;
+				in >> *itsModel;
 				in.getEnd();
-				os() << "PREDIFFER "<< itsRank
-				    << " Received model from the solver via MPI in "<< timer.real()
+				os() << "Received model from the solver via MPI in "<< timer.real()
 				    << " seconds "<< std::endl;
 			}
 		}
-		
-		void SynParallel::writeModel(const Params& model)
+
+		void SynParallel::writeModel()
 		{
 		}
 

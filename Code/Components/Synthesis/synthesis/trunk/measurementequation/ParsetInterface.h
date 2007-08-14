@@ -28,7 +28,7 @@ namespace synthesis {
 /// @param[in] params Images to be created here
 /// @param[in] parset a parset object to read the parameters from
 /// @ingroup dataaccess_hlp
-  void operator<<(conrad::scimath::Params& ip, const LOFAR::ACC::APS::ParameterSet &parset);
+  void operator<<(conrad::scimath::Params::ShPtr& ip, const LOFAR::ACC::APS::ParameterSet &parset);
 
   void operator<<(conrad::scimath::Solver::ShPtr& solver, const LOFAR::ACC::APS::ParameterSet &parset);
 

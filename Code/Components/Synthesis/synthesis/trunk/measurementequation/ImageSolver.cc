@@ -62,15 +62,16 @@ namespace conrad
       double dthreshold=0.0;
      	dthreshold=threshold().getValue("%")/100.0;
       
+//     	std::cout << "Solver parameters : " << *itsParams << std::endl;
+//     	std::cout << "Normal equation parameters : " << itsNormalEquations->parameters() << std::endl;
       
       for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
       {
 // Axes are dof, dof for each parameter
         casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-        
-        CONRADCHECK(itsNormalEquations->normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+        CONRADCHECK(itsNormalEquations->normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
         const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
-        CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
+        CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present for solution");
         const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
         double cutoff=dthreshold*casa::max(diag);
         {

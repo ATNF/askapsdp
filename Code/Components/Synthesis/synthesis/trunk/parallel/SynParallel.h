@@ -35,18 +35,30 @@ namespace conrad
 
 				/// @brief Return an output stream suitable for use in parallel environment
 				std::ostream& os();
+				
+				/// Initialize for calculations
+				virtual void initialize() = 0;
 
 				/// Calculate the normalequations
-				/// @params model Model from which the normal equations are to be derived
-				virtual void calcNE(conrad::scimath::Params& model);
+				virtual void calcNE() = 0;
 
 				/// Solve the normal equations
-				/// @params model Model to be updated
-				virtual void solveNE(conrad::scimath::Params& model);
+				virtual void solveNE() = 0;
 				
       	/// Write the results
-      	/// @params model Model to be written
-      	virtual void writeModel(const conrad::scimath::Params& model);
+      	virtual void writeModel() = 0;
+      	
+      	/// Is this running in parallel?
+      	bool isParallel() {return itsIsParallel;};
+
+      	/// Is this the solver?
+      	bool isSolver() {return itsIsSolver;};
+
+      	/// Is this a prediffer?
+      	bool isPrediffer() {return itsIsPrediffer;};
+      	
+      	/// Return the model
+      	conrad::scimath::Params::ShPtr& params();
 
 			protected:
 				/// Initialize the MPI connections
@@ -59,16 +71,15 @@ namespace conrad
 				void receiveNE();
 
 				/// @brief Broadcast the model
-				/// @params model Model to be broadcast
-				void broadcastModel(const conrad::scimath::Params& model);
+				void broadcastModel();
 
 				/// @brief Receive the model
-				/// @params model Model from which the normal equations are to be derived
-				void receiveModel(conrad::scimath::Params& model);
+				void receiveModel();
 
 				conrad::cp::MPIConnectionSet::ShPtr itsConnectionSet;
-
-				conrad::scimath::NormalEquations itsNe; // Normal equations
+				
+				conrad::scimath::Params::ShPtr itsModel; // Model
+				conrad::scimath::NormalEquations::ShPtr itsNe; // Normal equations
 				conrad::scimath::Solver::ShPtr itsSolver; // Image solver to be used
 
 				int itsRank; // Rank of process
@@ -76,6 +87,7 @@ namespace conrad
 
 				bool itsIsParallel; // Is this parallel? itsNNode > 1?
 				bool itsIsSolver; // Is this the solver?
+				bool itsIsPrediffer; // Is this a prediffer?
 
 		};
 
