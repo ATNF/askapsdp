@@ -28,14 +28,7 @@
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
 
-#include <fitting/ParamsCasaTable.h>
-#include <fitting/Axes.h>
-
 #include <casa/aips.h>
-#include <casa/BasicSL/Constants.h>
-#include <casa/Arrays/Cube.h>
-#include <casa/Arrays/Array.h>
-#include <casa/Arrays/ArrayMath.h>
 #include <casa/OS/Timer.h>
 
 #include <APS/ParameterSet.h>
@@ -107,8 +100,7 @@ namespace conrad
 			IDataSelectorPtr sel=ds.createSelector();
 			sel << itsParset;
 			IDataConverterPtr conv=ds.createConverter();
-			conv->setFrequencyFrame(
-		    	casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+			conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
 			IDataSharedIter it=ds.createIterator(sel, conv);
 			ImageFFTEquation ie(*itsModel, it, itsGridder);
 			ie.calcEquations(*itsNe);

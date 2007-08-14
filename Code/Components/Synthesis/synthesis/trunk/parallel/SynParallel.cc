@@ -126,7 +126,7 @@ namespace conrad
 						itsConnectionSet->addConnection(i, 0);
 					}
 				}
-				else
+				if(isPrediffer())
 				{
 					// I am a worker - I only need to talk to the master
 					itsConnectionSet->addConnection(0, 0);
@@ -167,9 +167,9 @@ namespace conrad
 
 				LOFAR::BlobString bs;
 				int rank;
-				for (int i=0; i<itsNNode-1; i++)
+				for (int i=1; i<itsNNode; i++)
 				{
-					itsConnectionSet->read(i, bs);
+					itsConnectionSet->read(i-1, bs);
 					LOFAR::BlobIBufString bib(bs);
 					LOFAR::BlobIStream in(bib);
 					int version=in.getStart("ne");
@@ -201,10 +201,7 @@ namespace conrad
 				out.putStart("model", 1);
 				out << *itsModel;
 				out.putEnd();
-				for (int i=1; i<itsNNode; ++i)
-				{
-					itsConnectionSet->write(i-1, bs);
-				}
+				itsConnectionSet->writeAll(bs);
 				os() << "Sent model to the prediffers via MPI in "<< timer.real()
 				    << " seconds "<< std::endl;
 			}
@@ -217,7 +214,8 @@ namespace conrad
 			{
 				CONRADCHECK(itsModel, "Model not defined prior to receiving")
 				casa::Timer timer;
-				timer.mark();
+				timer.mark();	
+				os() << "Receiving model from the solver via MPI"<< std::endl;
 				LOFAR::BlobString bs;
 				bs.resize(0);
 				itsConnectionSet->read(0, bs);
@@ -246,7 +244,6 @@ namespace conrad
 				receiveModel();
 			}
 		}
-
 
 		void SynParallel::writeModel()
 		{
