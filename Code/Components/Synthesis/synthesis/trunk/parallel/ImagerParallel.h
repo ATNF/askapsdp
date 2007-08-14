@@ -34,9 +34,6 @@ namespace conrad
       	/// @param parset ParameterSet for inputs
       	ImagerParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
       	
-				/// Initialize for calculations - use this to start any required transfers for MPI
-				virtual void initialize();
-
       	/// Calculate the normalequations
       	virtual void calcNE();
       	
@@ -45,9 +42,6 @@ namespace conrad
 
       	/// Write the results
       	virtual void writeModel();
-
-				/// Finalize after calculations - use this to catch any pending transfers for MPI
-				virtual void finalize();
 
       private:
       	

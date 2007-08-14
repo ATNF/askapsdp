@@ -97,21 +97,6 @@ namespace conrad
 			}
 		}
 
-		void ImagerParallel::initialize()
-		{
-			if (isParallel()&&isSolver())
-			{
-				broadcastModel();
-			}
-		}
-		void ImagerParallel::finalize()
-		{
-			if (isParallel()&&isPrediffer())
-			{
-				receiveModel();
-			}
-		}
-
 		void ImagerParallel::calcOne(const string& ms)
 		{
 			casa::Timer timer;

@@ -37,7 +37,10 @@ namespace conrad
 				std::ostream& os();
 				
 				/// Initialize for calculations
-				virtual void initialize() = 0;
+				virtual void initialize();
+
+				/// Finalize calculations
+				virtual void finalize();
 
 				/// Calculate the normalequations
 				virtual void calcNE() = 0;
