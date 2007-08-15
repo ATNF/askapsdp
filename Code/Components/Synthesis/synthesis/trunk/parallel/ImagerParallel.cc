@@ -82,6 +82,7 @@ namespace conrad
 			{
 				/// Get the list of measurement sets
 				itsMs=itsParset.getStringVector("DataSet");
+				CONRADCHECK(itsMs.size()==(itsNNode-1), "Need one data set per node");
 
 				/// Create the gridder using a factory acting on a
 				/// parameterset
@@ -116,7 +117,6 @@ namespace conrad
 				CONRADCHECK(itsGridder, "Gridder not defined");
 				CONRADCHECK(itsModel, "Model not defined");
 				CONRADCHECK(itsMs.size()>0, "Data sets not defined");
-				
 				// Discard any old parameters
 				itsNe=NormalEquations::ShPtr(new NormalEquations(*itsModel));
 				
