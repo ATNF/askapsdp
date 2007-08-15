@@ -230,21 +230,6 @@ namespace conrad
 			}
 		}
 
-		void SynParallel::initialize()
-		{
-			if (isParallel()&&isSolver())
-			{
-				broadcastModel();
-			}
-		}
-		void SynParallel::finalize()
-		{
-			if (isParallel()&&isPrediffer())
-			{
-				receiveModel();
-			}
-		}
-
 		void SynParallel::writeModel()
 		{
 		}

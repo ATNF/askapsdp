@@ -36,12 +36,6 @@ namespace conrad
 				/// @brief Return an output stream suitable for use in parallel environment
 				std::ostream& os();
 				
-				/// Initialize for calculations
-				virtual void initialize();
-
-				/// Finalize calculations
-				virtual void finalize();
-
 				/// Calculate the normalequations
 				virtual void calcNE() = 0;
 
@@ -63,9 +57,11 @@ namespace conrad
       	/// Return the model
       	conrad::scimath::Params::ShPtr& params();
 
-			protected:
-				/// Initialize the MPI connections
-				void initConnections();
+				/// @brief Broadcast the model
+				void broadcastModel();
+
+				/// @brief Receive the model
+				void receiveModel();
 
 				/// @brief Send the normal equations
 				void sendNE();
@@ -73,11 +69,9 @@ namespace conrad
 				/// @brief Receive the normal equations
 				void receiveNE();
 
-				/// @brief Broadcast the model
-				void broadcastModel();
-
-				/// @brief Receive the model
-				void receiveModel();
+			protected:
+				/// Initialize the MPI connections
+				void initConnections();
 
 				conrad::cp::MPIConnectionSet::ShPtr itsConnectionSet;
 				

@@ -36,16 +36,16 @@ using namespace LOFAR::ACC::APS;
 
 int main(int argc, const char** argv)
 {
-	ParameterSet parset("cimager.in");
-
-	ImagerParallel imager(argc, argv, parset);
-
 	try
 	{
+
 		casa::Timer timer;
+
 		timer.mark();
 		
-		imager.initialize();
+	  ParameterSet parset("cimager.in");
+	  
+	  ImagerParallel imager(argc, argv, parset);
 
 		int nCycles=parset.getInt32("Cimager.ncycles", 0);
 		if(nCycles==0)
@@ -60,18 +60,20 @@ int main(int argc, const char** argv)
 			for (int cycle=0;cycle<nCycles;cycle++)
 			{
 				imager.os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
+				if(cycle>0) imager.receiveModel();
 				imager.calcNE();
 				imager.solveNE();
+				// Broadcast the model
+				if (cycle<(nCycles-1)) imager.broadcastModel();
 				imager.os() << "user:   " << timer.user () << " system: " << timer.system ()
 				<<" real:   " << timer.real () << std::endl;
 			}
 		}
-		imager.finalize();
+
 		/// This is the final step - restore the image and write it out
 		imager.writeModel();
 
 		///==============================================================================
-		exit(0);
 	}
 	catch (conrad::ConradError& x)
 	{
@@ -83,5 +85,6 @@ int main(int argc, const char** argv)
 		std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
 		exit(1);
 	}
+	exit(0);
 }
 

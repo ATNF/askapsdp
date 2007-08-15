@@ -82,7 +82,9 @@ namespace conrad
 			{
 				/// Get the list of measurement sets
 				itsMs=itsParset.getStringVector("DataSet");
-				CONRADCHECK(itsMs.size()==(itsNNode-1), "Need one data set per node");
+				if(itsNNode>1) {
+				  CONRADCHECK(itsMs.size()==(itsNNode-1), "When running in parallel, need one data set per node");
+				}
 
 				/// Create the gridder using a factory acting on a
 				/// parameterset
@@ -124,7 +126,6 @@ namespace conrad
 				
 				if (isParallel())
 				{
-					receiveModel();
 					calcOne(itsMs[itsRank-1]);
 					sendNE();
 				}
@@ -158,11 +159,6 @@ namespace conrad
 				os() << "Solved normal equations in "<< timer.real()
 				    << " seconds "<< std::endl;
 				*itsModel=itsSolver->parameters();
-				// Broadcast the *itsModel
-				if (isParallel())
-				{
-					broadcastModel();
-				}
 			}
 		}
 
