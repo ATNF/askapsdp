@@ -14,8 +14,7 @@
 #ifndef PARAMETERIZED_COMPONENT_H
 #define PARAMETERIZED_COMPONENT_H
 
-#include <measurementequation/IComponent.h>
-
+#include <measurementequation/IParameterizedComponent.h>
 
 namespace conrad {
 
@@ -29,7 +28,7 @@ namespace synthesis {
 ///     RigidVector. Number of components is a template argument
 /// @ingroup measurementequation  
 template<size_t NComp>
-class ParameterizedComponent : virtual public IComponent {
+class ParameterizedComponent : virtual public IParameterizedComponent {
 public:
 
   /// @brief get number of parameters
