@@ -1,14 +1,10 @@
 /// @file
-/// @brief A method to set up images from a parset file
-/// @details Parameters are currently passed around using parset files.
-/// The methods declared in this file set up images 
-/// from the ParameterSet object. This is probably a temporary solution.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#include <measurementequation/ParsetInterface.h>
+#include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageSolver.h>
 #include <measurementequation/ImageMultiScaleSolver.h>

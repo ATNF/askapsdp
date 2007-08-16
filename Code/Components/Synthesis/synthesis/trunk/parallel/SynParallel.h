@@ -1,6 +1,6 @@
 /// @file
 ///
-/// SynParallel: Support for parallel applications
+/// Provides generic methods for parallel algorithms using the measurement equation
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -8,6 +8,7 @@
 #ifndef CONRAD_SYNTHESIS_SYNPARALLEL_H_
 #define CONRAD_SYNTHESIS_SYNPARALLEL_H_
 
+#include <fitting/Equation.h>
 #include <fitting/Solver.h>
 #include <fitting/NormalEquations.h>
 #include <fitting/Params.h>
@@ -18,15 +19,52 @@ namespace conrad
 {
 	namespace synthesis
 	{
-		/// @brief Support for parallel algorithms
+		/// @brief Support for parallel algorithms using the measurement equation
 		///
-		/// @details Provides generic methods for parallel algorithms
+		/// @details Support for parallel applications using the measurement equation
+		/// classes. An application is derived from this abstract base. The model used is that the
+		/// application has many prediffers and one solver, running in separate MPI processes
+		/// or in one single thread. The solver is the master so the number of processes
+		/// is one more than the number of prediffers. Each prediffer is currently given
+		/// a separate data set.
+		///
+		/// The steps are:
+		/// (a) define an initial model and distribute to all prediffers
+		/// (b) calculate the normal equations for each data set (this part is
+		/// distributed across the prediffers)
+		/// (c) send all normal equations to the solver for merging
+		/// (d) solve the merged normal equations
+		/// (e) distribute the model to all prediffers and return to (b)
+		///
+		/// The caller is responsible for ensuring that the model is transferred correctly 
+		/// before a CalcNE and after a SolveNE. For example:
+		/// @code
+		/// Perform multiple major cycles
+		///		for (int cycle=0;cycle<nCycles;cycle++)
+		///		{
+		///			imager.os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
+		///			if(cycle>0) imager.receiveModel();
+		///			imager.calcNE();
+		///			imager.solveNE();
+		///			// Broadcast the model
+		///			if (cycle<(nCycles-1)) imager.broadcastModel();
+		///		}
+		/// @endcode
+		/// The normal equations are transferred automatically between the calcNE and solveNE
+		/// steps so the called does not need to be concerned about that.
+		///
+		/// If the number of nodes is 1 then everything occurs in the same process with
+		/// no overall for transmission of model or normal equations.
+		///
 		/// @ingroup parallel
 		class SynParallel
 		{
 			public:
 
 				/// @brief Constructor from ParameterSet
+				/// @details The command line inputs are needed solely for MPI - currently no
+				/// application specific information is passed on the command line.
+				/// @param argc Number of command line inputs
 				/// @param argc Number of command line inputs
 				/// @param argv Command line inputs
 				SynParallel(int argc, const char** argv);
@@ -34,57 +72,80 @@ namespace conrad
 				~SynParallel();
 
 				/// @brief Return an output stream suitable for use in parallel environment
+				/// @details Sending messages to std::cout can be error prone in a parallel
+				/// environment. Hence one should write to this stream, which is currently
+				/// connected to a file tagged with the rank number. Eventually the conrad
+				/// logging system will be used.
 				std::ostream& os();
-				
-				/// Calculate the normalequations
+
+				/// Calculate the normalequations (runs only in the prediffers)
 				virtual void calcNE() = 0;
 
-				/// Solve the normal equations
+				/// Solve the normal equations (runs only in the solver)
 				virtual void solveNE() = 0;
-				
-      	/// Write the results
-      	virtual void writeModel() = 0;
-      	
-      	/// Is this running in parallel?
-      	bool isParallel() {return itsIsParallel;};
 
-      	/// Is this the solver?
-      	bool isSolver() {return itsIsSolver;};
+				/// Write the model (runs only in the solver)
+				virtual void writeModel() = 0;
 
-      	/// Is this a prediffer?
-      	bool isPrediffer() {return itsIsPrediffer;};
-      	
-      	/// Return the model
-      	conrad::scimath::Params::ShPtr& params();
+				/// Is this running in parallel?
+				bool isParallel();
 
-				/// @brief Broadcast the model
+				/// Is this the solver?
+				bool isSolver();
+
+				/// Is this a prediffer?
+				bool isPrediffer();
+
+				/// Return the model
+				conrad::scimath::Params::ShPtr& params();
+
+				/// @brief Broadcast the model to all prediffers
 				void broadcastModel();
 
-				/// @brief Receive the model
+				/// @brief Receive the model from the solver
 				void receiveModel();
 
-				/// @brief Send the normal equations
+				/// @brief Send the normal equations from this prediffer to the solver
 				void sendNE();
 
-				/// @brief Receive the normal equations
+				/// @brief Receive the normal equations from all prediffers into this solver
 				void receiveNE();
 
 			protected:
 				/// Initialize the MPI connections
 				void initConnections();
 
+				/// The set of all connections between processes. For the solver, there
+				/// are connections to every prediffer, but each prediffer has only one
+				/// connection, which is to the solver.
 				conrad::cp::MPIConnectionSet::ShPtr itsConnectionSet;
+
+				/// The model
+				conrad::scimath::Params::ShPtr itsModel;
+
+				/// Holder for the normal equations
+				conrad::scimath::NormalEquations::ShPtr itsNe;
+
+				/// Holder for the solver
+				conrad::scimath::Solver::ShPtr itsSolver;
 				
-				conrad::scimath::Params::ShPtr itsModel; // Model
-				conrad::scimath::NormalEquations::ShPtr itsNe; // Normal equations
-				conrad::scimath::Solver::ShPtr itsSolver; // Image solver to be used
+				/// Holder for the equation
+				conrad::scimath::Equation::ShPtr itsEquation;
 
-				int itsRank; // Rank of process
-				int itsNNode; // Number of nodes
+				/// Rank of this process : 0 for the solver, >0 for prediffers
+				int itsRank;
 
-				bool itsIsParallel; // Is this parallel? itsNNode > 1?
-				bool itsIsSolver; // Is this the solver?
-				bool itsIsPrediffer; // Is this a prediffer?
+				/// Number of nodes
+				int itsNNode;
+
+				/// Is this parallel? itsNNode > 1?
+				bool itsIsParallel;
+
+				/// Is this the solver?
+				bool itsIsSolver;
+
+				/// Is this a prediffer?
+				bool itsIsPrediffer;
 
 		};
 

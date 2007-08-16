@@ -42,9 +42,10 @@ namespace conrad
 				/// Form the sum of the convolution function squared, multiplied by the weights for each
 				/// different convolution function. This is used in the evaluation of the second derivative.
 				/// @param sumwt Sum of weights (offset, pol)
+				/// @param axes Axes description 
 				/// @param out Output double precision grid
-				virtual void finaliseReverseWeights(casa::Matrix<double>& sumWeights,
-	          const scimath::Axes& axes,
+				virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt,
+	          const conrad::scimath::Axes& axes,
 				    casa::Cube<double>& out);
 
 			protected:
@@ -54,6 +55,7 @@ namespace conrad
 				virtual int cOffset(int row, int chan);
 				/// Initialize convolution function
 				/// @param idi Data access iterator
+				/// @param axes Axes description 
 				/// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
 				/// @param cellSize Cell size in wavelengths
 				/// @param shape Shape of grid

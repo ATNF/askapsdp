@@ -1,6 +1,7 @@
 /// @file
 ///
-/// SynParallel: Support for parallel applications
+/// ImagerParallel: Support for parallel applications using the measurement equation
+/// classes.
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -29,24 +30,36 @@ namespace conrad
       public:
 
         /// @brief Constructor from ParameterSet
+      	/// @details The parset is used to construct the internal state. We could
+      	/// also support construction from a python dictionary (for example).
+      	/// The command line inputs are needed solely for MPI - currently no
+      	/// application specific information is passed on the command line.
       	/// @param argc Number of command line inputs
       	/// @param argv Command line inputs
       	/// @param parset ParameterSet for inputs
       	ImagerParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
       	
-      	/// Calculate the normalequations
+      	/// @brief Calculate the normalequations (runs in the prediffers)
+      	/// @details ImageFFTEquation and the specified gridder (set in the parset
+      	/// file) are used to calculate the normal equations. The image parameters
+      	/// are defined in the parset file.
       	virtual void calcNE();
       	
-      	/// Solve the normal equations
+      	/// @brief Solve the normal equations (runs in the solver)
+      	/// @details Either a dirty image can be constructed or the 
+      	/// multiscale clean can be used, as specified in the parset file.
       	virtual void solveNE();
 
-      	/// Write the results
+      	/// @brief Write the results (runs in the solver)
+      	/// @details The model images are written as AIPS++ images. In addition,
+      	/// the images may be restored using the specified beam.
       	virtual void writeModel();
 
       private:
       	
-      	/// Calculate normal equations for one MS
-      	void calcOne(const string& ms);
+      	/// Calculate normal equations for one data set
+      	/// @param ms Name of data set
+      	void calcOne(const string& dataset);
       	
       	/// ParameterSet
       	LOFAR::ACC::APS::ParameterSet itsParset;
@@ -54,7 +67,7 @@ namespace conrad
       	/// Do we want a restored image?
     		bool itsRestore; 
     		
-    		/// Names of measurement sets
+    		/// Names of measurement sets, one per prediffer
     		vector<string> itsMs; 
     		
     		/// Restoring beam

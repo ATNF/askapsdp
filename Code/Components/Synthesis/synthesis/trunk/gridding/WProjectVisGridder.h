@@ -39,6 +39,7 @@ namespace conrad
 				virtual int cOffset(int row, int chan);
 				/// Initialize convolution function
 				/// @param idi Data access iterator
+				/// @param axes axes specifications
 				/// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
 				/// @param cellSize Cell size in wavelengths
 				/// @param shape Shape of grid

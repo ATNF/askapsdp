@@ -5,6 +5,7 @@
 /// @defgroup dataaccess_hlp Data access subpackage - helper and debug classes
 /// @defgroup measurementequation Measurement equation implementation
 /// @defgroup gridding Gridding algorithms
+/// @defgroup parallel Support for writing parallel applications
 
 /// The package namespace
 namespace synthesis {};
@@ -26,7 +27,8 @@ namespace synthesis {};
 /// The synthesis package itself is designed to run in one process. 
 /// We envisage that OpenMP-type multi-threading may be supported by
 /// specialise versions of some of the classes in this package. 
-/// Message passing parallel execution is supported in the @ref calim package.
+/// Message passing parallel execution is supported in the 
+/// @ref parallel classes and in the @ref calim package.
 ///
 /// We assume that the problem can be (and is) partitioned such that the
 /// image data always fits in memory during the processing.
@@ -49,5 +51,6 @@ namespace synthesis {};
 /// @li @ref dataaccess_hlp
 /// @li @ref measurementequation
 /// @li @ref gridding
+/// @li @ref parallel
 ///
 /// @copyright 2007 CONRAD, All Rights Reserved.

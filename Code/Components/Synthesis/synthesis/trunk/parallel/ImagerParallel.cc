@@ -1,5 +1,5 @@
 ///
-/// @file : Synthesis imaging program
+/// @file 
 ///
 /// Performs synthesis imaging from a data source, using any of a number of
 /// image solvers. Can run in serial or parallel (MPI) mode.
@@ -23,7 +23,7 @@
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageRestoreSolver.h>
-#include <measurementequation/ParsetInterface.h>
+#include <measurementequation/MEParsetInterface.h>
 
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
@@ -51,7 +51,7 @@ namespace conrad
 	{
 
 		ImagerParallel::ImagerParallel(int argc, const char** argv,
-		    const ParameterSet& parset) :
+		    const LOFAR::ACC::APS::ParameterSet& parset) :
 			SynParallel(argc, argv), itsParset(parset)
 		{
 
@@ -105,8 +105,9 @@ namespace conrad
 			IDataConverterPtr conv=ds.createConverter();
 			conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
 			IDataSharedIter it=ds.createIterator(sel, conv);
-			ImageFFTEquation ie(*itsModel, it, itsGridder);
-			ie.calcEquations(*itsNe);
+			/// @todo Keep equation around between calls
+			itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+			itsEquation->calcEquations(*itsNe);
 			os() << "Calculated normal equations for "<< ms
 			    << " in "<< timer.real() << " seconds "<< std::endl;
 		}

@@ -73,6 +73,7 @@ namespace conrad
 
 			itsModel = Params::ShPtr(new Params());
 			itsSolver = Solver::ShPtr(new Solver(*itsModel));
+			itsEquation = Equation::ShPtr(new Equation(*itsModel));
 			itsNe = NormalEquations::ShPtr(new NormalEquations(*itsModel));
 
 		}
@@ -84,6 +85,24 @@ namespace conrad
 				os() << "Exiting MPI"<< std::endl;
 				MPIConnection::endMPI();
 			}
+		}
+
+		/// Is this running in parallel?
+		bool SynParallel::isParallel()
+		{
+			return itsIsParallel;
+		}
+
+		/// Is this the solver?
+		bool SynParallel::isSolver()
+		{
+			return itsIsSolver;
+		}
+
+		/// Is this a prediffer?
+		bool SynParallel::isPrediffer()
+		{
+			return itsIsPrediffer;
 		}
 
 		conrad::scimath::Params::ShPtr& SynParallel::params()
@@ -126,7 +145,7 @@ namespace conrad
 						itsConnectionSet->addConnection(i, 0);
 					}
 				}
-				if(isPrediffer())
+				if (isPrediffer())
 				{
 					// I am a worker - I only need to talk to the master
 					itsConnectionSet->addConnection(0, 0);
@@ -214,7 +233,7 @@ namespace conrad
 			{
 				CONRADCHECK(itsModel, "Model not defined prior to receiving")
 				casa::Timer timer;
-				timer.mark();	
+				timer.mark();
 				os() << "Receiving model from the solver via MPI"<< std::endl;
 				LOFAR::BlobString bs;
 				bs.resize(0);
