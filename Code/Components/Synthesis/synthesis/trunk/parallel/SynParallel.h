@@ -39,7 +39,6 @@ namespace conrad
 		/// The caller is responsible for ensuring that the model is transferred correctly 
 		/// before a CalcNE and after a SolveNE. For example:
 		/// @code
-		/// Perform multiple major cycles
 		///		for (int cycle=0;cycle<nCycles;cycle++)
 		///		{
 		///			imager.os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
@@ -61,10 +60,9 @@ namespace conrad
 		{
 			public:
 
-				/// @brief Constructor from ParameterSet
+				/// @brief Constructor 
 				/// @details The command line inputs are needed solely for MPI - currently no
 				/// application specific information is passed on the command line.
-				/// @param argc Number of command line inputs
 				/// @param argc Number of command line inputs
 				/// @param argv Command line inputs
 				SynParallel(int argc, const char** argv);
