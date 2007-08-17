@@ -15,7 +15,7 @@
 
 #include <parallel/ImagerParallel.h>
 
-#include <measurementequation/ParsetInterface.h>
+#include <measurementequation/MEParsetInterface.h>
 
 #include <fitting/Params.h>
 
