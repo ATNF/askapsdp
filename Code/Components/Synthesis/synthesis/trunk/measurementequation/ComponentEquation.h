@@ -10,12 +10,17 @@
 #ifndef SYNCOMPONENTEQUATION_H_
 #define SYNCOMPONENTEQUATION_H_
 
+// own include
 #include <fitting/Equation.h>
 #include <fitting/Params.h>
 
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataIterator.h>
+#include <dataaccess/CachedAccessorField.tcc>
 
+#include <measurementequation/IParameterizedComponent.h>
+
+// casa includes
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
@@ -105,9 +110,23 @@ namespace conrad
           const casa::Vector<double>& freq,
           const double u, const double v, const double w,
           casa::Vector<T>& vis);
+    protected:
+        /// a short cut to shared pointer on a parameterized component
+        typedef boost::shared_ptr<IParameterizedComponent> IParameterizedComponentPtr;
+    
+        /// @brief fill the cache of the components
+        /// @details This method convertes the parameters into a vector of 
+        /// components. It is called on the first access to itsComponents
+        void fillComponentCache(std::vector<IParameterizedComponentPtr> &in) const;      
+    private:   
+        /// @brief vector of components plugged into this component equation
+        /// this has nothing to do with data accessor, we just reuse the class
+        /// for a cached field
+        CachedAccessorField<std::vector<IParameterizedComponentPtr> > itsComponents;     
     };
 
   }
 
 }
+
 #endif

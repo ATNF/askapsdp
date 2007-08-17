@@ -15,6 +15,11 @@
 #include <scimath/Mathematics/AutoDiff.h>
 #include <scimath/Mathematics/AutoDiffMath.h>
 
+
+#include <measurementequation/UnpolarizedPointSource.h>
+#include <measurementequation/UnpolarizedGaussianSource.h>
+
+
 #include <stdexcept>
 
 using conrad::scimath::NormalEquations;
@@ -61,8 +66,8 @@ namespace conrad
     {
     }
 
-    conrad::scimath::Params ComponentEquation::defaultParameters()
-    {
+conrad::scimath::Params ComponentEquation::defaultParameters()
+{
 // The default parameters serve as a holder for the patterns to match the actual
 // parameters. Shell pattern matching rules apply.
       conrad::scimath::Params ip;
@@ -73,90 +78,96 @@ namespace conrad
       ip.add("shape.bmin");
       ip.add("shape.bpa");
       return ip;
-    }
-    void ComponentEquation::predict()
-    {
-      vector<string> completions(parameters().completions("flux.i"));
-      if(completions.size()==0) return;
+}
 
-      vector<string>::iterator it;
-
-      for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
-      {
-// This outer loop is over all strings that complete the flux.i.* pattern
-// correctly. An exception will be throw if the parameters are not
-// consistent
-        for (it=completions.begin();it!=completions.end();it++)
-        {
-
-          string fluxName("flux.i"+(*it));
-          string raName("direction.ra"+(*it));
-          string decName("direction.dec"+(*it));
-          string bmajName("shape.bmaj"+(*it));
-          string bminName("shape.bmin"+(*it));
-          string bpaName("shape.bpa"+(*it));
-
-          const double ra=parameters().scalarValue(raName);
-          const double dec=parameters().scalarValue(decName);
-          const double fluxi=parameters().scalarValue(fluxName);
-          const double bmaj=parameters().scalarValue(bmajName);
-          const double bmin=parameters().scalarValue(bminName);
-          const double bpa=parameters().scalarValue(bpaName);
-
-          for (uint row=0;row<itsIdi->nRow();row++)
-          {
-
-            const casa::Vector<double>& freq=itsIdi->frequency();
-            const double time=itsIdi->time();
-            casa::Vector<float> vis(2*freq.nelements());
-
-            if((bmaj>0.0)&&(bmin>0.0))
-            {
-              this->calcRegularGauss<float>(ra, dec, fluxi, bmaj, bmin, bpa, freq,
-                itsIdi->uvw()(row)(0),
-                itsIdi->uvw()(row)(1),
-                itsIdi->uvw()(row)(3),
-                vis);
-            }
-            else
-            {
-              this->calcRegularPoint<float>(ra, dec, fluxi, freq,
-                itsIdi->uvw()(row)(0),
-                itsIdi->uvw()(row)(1),
-                itsIdi->uvw()(row)(3),
-                vis);
-            }
-
-            for (uint i=0;i<freq.nelements();i++)
-            {
-              itsIdi->rwVisibility()(row,i,0) += casa::Complex(vis(2*i), vis(2*i+1));
-            }
+/// @brief fill the cache of the components
+/// @details This method convertes the parameters into a vector of 
+/// components. It is called on the first access to itsComponents
+void ComponentEquation::fillComponentCache(
+            std::vector<IParameterizedComponentPtr> &in) const
+{
+  std::vector<std::string> completions(parameters().completions("flux.i"));
+  in.resize(completions.size());
+  if(!completions.size()) {
+     return;
+  }
+  
+  // This loop is over all strings that complete the flux.i.* pattern
+  // correctly. An exception will be throw if the parameters are not
+  // consistent
+  std::vector<IParameterizedComponentPtr>::iterator compIt=in.begin();
+  for (std::vector<std::string>::const_iterator it=completions.begin();
+        it!=completions.end();++it,++compIt)  {
+          const std::string &cur = *it;
+          
+          const double ra=parameters().scalarValue("direction.ra"+cur);
+          const double dec=parameters().scalarValue("direction.dec"+cur);
+          const double fluxi=parameters().scalarValue("flux.i"+cur);
+          const double bmaj=parameters().scalarValue("shape.bmaj"+cur);
+          const double bmin=parameters().scalarValue("shape.bmin"+cur);
+          const double bpa=parameters().scalarValue("shape.bpa"+cur);
+          
+          if((bmaj>0.0)&&(bmin>0.0)) {
+             // this is a gaussian
+             compIt->reset(new UnpolarizedGaussianSource(fluxi,ra,dec,bmaj,
+                            bmin,bpa));
+          } else {
+             // this is a point source
+             compIt->reset(new UnpolarizedPointSource(fluxi,ra,dec));
           }
         }
-      }
-    };
-
-    void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
-    {
-// Loop over all completions i.e. all sources
-      vector<string> completions(parameters().completions("flux.i"));
-      vector<string>::iterator it;
+  
+}                  
+    
+void ComponentEquation::predict()
+{
+    const std::vector<IParameterizedComponentPtr> &compList = 
+           itsComponents.value(*this,&ComponentEquation::fillComponentCache);
       
-      for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
-      {
+    // in the future we should move the iteration to the higher level and
+    // deal hear with the accessor only. It will reduce the number of repeated
+    // iterations required         
+    for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
+         const casa::Vector<casa::Double>& freq=itsIdi->frequency();
+         const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsIdi->uvw();
+         casa::Cube<casa::Complex> &rwVis = itsIdi->rwVisibility();
+         std::vector<double> vis(2*freq.nelements());
+         
+         // loop over components
+         for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
+              compList.begin(); compIt!=compList.end();++compIt) {
+              CONRADDEBUGASSERT(*compIt); 
+              // current component
+              const IParameterizedComponent& curComp = *(*compIt);
+              for (casa::uInt row=0;row<itsIdi->nRow();++row) {
+                   curComp.calculate(uvw[row],freq,casa::Stokes::I,vis);
+            
+                   for (casa::uInt i=0;i<freq.nelements();++i) {
+                        rwVis(row,i,0) += casa::Complex(vis[2*i], vis[2*i+1]);
+                   }
+              }
+         }
+    }
+};
 
-        const casa::Vector<double>& freq=itsIdi->frequency();
-        const double time=itsIdi->time();
+void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
+{
+  const std::vector<IParameterizedComponentPtr> &compList = 
+           itsComponents.value(*this,&ComponentEquation::fillComponentCache);
+   
+  std::vector<std::string> completions(parameters().completions("flux.i"));
+      
+  for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
 
-        const uint nParameters=6;
+       const casa::Vector<double>& freq=itsIdi->frequency();
+       const double time=itsIdi->time();
+
+       const uint nParameters=6;
 
 // Define AutoDiff's for the output visibilities.
-        casa::Vector<casa::AutoDiff<double> > av(2*freq.nelements());
-        for (uint i=0;i<2*freq.nelements();i++)
-        {
-          av[i]=casa::AutoDiff<double>(0.0, nParameters);
-        }
-
+       casa::Vector<casa::AutoDiff<double> > av(2*freq.nelements(),
+                         casa::AutoDiff<double>(0.,nParameters));
+        
 // Set up arrays to hold the output values
 // Two values (complex) per row, channel, pol
         uint nData=itsIdi->nRow()*freq.nelements()*2;
@@ -169,7 +180,7 @@ namespace conrad
         casa::Vector<casa::Double> residual(nData);
         casa::Vector<double> weights(nData);
 
-        for (it=completions.begin();it!=completions.end();it++)
+        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           DesignMatrix designmatrix(parameters());
 
