@@ -47,7 +47,7 @@ void timeDependentSubtableTest(const string &ms, const IConstDataSource &ds)
 void doReadOnlyTest(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
-  sel<<LOFAR::ACC::APS::ParameterSet("test.in").makeSubset("TestSelection.");
+  //sel<<LOFAR::ACC::APS::ParameterSet("test.in").makeSubset("TestSelection.");
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::BARY),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
@@ -56,7 +56,9 @@ void doReadOnlyTest(const IConstDataSource &ds) {
     
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
-       cout<<"direction: "<<it->pointingDir2()<<endl;
+       //cout<<"direction: "<<it->pointingDir2()<<endl;
+       cout<<"ant1: "<<it->antenna1()<<endl;
+       cout<<"ant2: "<<it->antenna2()<<endl;
        cout<<"time: "<<it->time()<<endl;
   }
 }
@@ -88,8 +90,8 @@ int main(int argc, char **argv) {
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
      TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
-     timeDependentSubtableTest(argv[1],ds);
-     //doReadOnlyTest(ds);
+     //timeDependentSubtableTest(argv[1],ds);
+     doReadOnlyTest(ds);
      //doReadWriteTest(ds);    
      
   }

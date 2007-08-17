@@ -79,7 +79,10 @@ public:
   virtual boost::shared_ptr<IConstDataIterator> createConstIterator(const
              IDataSelectorConstPtr &sel,
              const IDataConverterConstPtr &conv) const;
-
+  
+  // we need this to get access to the overloaded syntax in the base class 
+  using IConstDataSource::createConstIterator;
+ 
   /// create a selector object corresponding to this type of the
   /// DataSource
   ///

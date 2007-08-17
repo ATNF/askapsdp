@@ -56,6 +56,35 @@ void TableScalarFieldSelector::chooseBaseline(casa::uInt ant1,
    }
 }
 
+/// @brief Choose autocorrelations only
+void TableScalarFieldSelector::chooseAutoCorrelations()
+{
+   if (itsTableSelector.isNull()) {
+       itsTableSelector = (table().col("ANTENNA1") ==
+                           table().col("ANTENNA2")) &&
+                           (table().col("FEED1") ==
+                           table().col("FEED2"));
+   } else {
+       itsTableSelector = itsTableSelector && (table().col("ANTENNA1") ==
+                                               table().col("ANTENNA2")) &&
+                           (table().col("FEED1") == table().col("FEED2"));
+   }
+}
+  
+/// @brief Choose crosscorrelations only
+void TableScalarFieldSelector::chooseCrossCorrelations()
+{
+   if (itsTableSelector.isNull()) {
+       itsTableSelector = (table().col("ANTENNA1") !=
+                           table().col("ANTENNA2")) || 
+                           (table().col("FEED1") != table().col("FEED2"));
+   } else {
+       itsTableSelector = itsTableSelector && ((table().col("ANTENNA1") !=
+                                               table().col("ANTENNA2")) ||
+                           (table().col("FEED1") != table().col("FEED2"))) ;
+   }
+}
+
 /// Choose a single spectral window (also known as IF).
 /// @param spWinID the ID of the spectral window to choose
 void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)

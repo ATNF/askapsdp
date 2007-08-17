@@ -43,6 +43,13 @@ public:
 	/// Which one is the first and which is the second is not important
 	virtual void chooseBaseline(casa::uInt ant1, casa::uInt ant2) = 0;
 	
+	/// @brief Choose autocorrelations only
+    virtual void chooseAutoCorrelations() = 0;
+  
+    /// @brief Choose crosscorrelations only
+    virtual void chooseCrossCorrelations() = 0;
+	
+	
 	/// Choose a subset of spectral channels
 	/// @param[in] nChan a number of spectral channels wanted in the output
 	/// @param[in] start the number of the first spectral channel to choose

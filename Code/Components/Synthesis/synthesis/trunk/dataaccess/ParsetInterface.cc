@@ -72,5 +72,14 @@ void conrad::synthesis::operator<<(const boost::shared_ptr<IDataSelector> &sel,
       sel->chooseTimeRange(static_cast<casa::Double>(timeRange[0]),
                         static_cast<casa::Double>(timeRange[1]));  
   } 
- 
+  if (parset.isDefined("CorrelationType")) {
+      std::string corrType=parset.getString("CorrelationType");
+      if (corrType == "auto") {
+          sel->chooseAutoCorrelations();
+      } else if (corrType == "cross") {
+          sel->chooseCrossCorrelations();
+      } else if (corrType != "all") {
+          CONRADTHROW(DataAccessError, "CorrelationType can either be cross, auto or all (default)");
+      }
+  }
 }

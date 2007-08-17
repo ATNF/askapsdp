@@ -26,6 +26,7 @@
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/TableDataSource.h>
+#include <dataaccess/IConstDataSource.h>
 #include "TableTestRunner.h"
 
 namespace conrad {
@@ -36,6 +37,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(TableDataAccessTest);
   //CPPUNIT_TEST(readOnlyTest);
+  CPPUNIT_TEST(corrTypeSelectionTest);
   CPPUNIT_TEST_EXCEPTION(bufferManagerExceptionTest,casa::TableError);
   CPPUNIT_TEST(bufferManagerTest);
   CPPUNIT_TEST(dataDescTest);
@@ -51,6 +53,8 @@ public:
   void setUp();
   /// destruct the test suite
   void tearDown();
+  /// test of correlation type selection
+  void corrTypeSelectionTest();
   /// test of read only operations of the whole table-based implementation
   void readOnlyTest() {}
   /// test exception if disk-based buffers are requested for a read-only table  
@@ -83,6 +87,29 @@ void TableDataAccessTest::tearDown()
 { 
   itsTableInfoAccessor.reset();
 }
+
+/// test of correlation type selection
+void TableDataAccessTest::corrTypeSelectionTest() 
+{
+  TableConstDataSource ds(TableTestRunner::msName());
+  IDataSelectorPtr sel = ds.createSelector();   
+  sel->chooseAutoCorrelations();
+  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {  
+       for (casa::uInt row=0;row<it->nRow();++row) {
+            CPPUNIT_ASSERT(it->antenna1()[row] == it->antenna2()[row]);
+            CPPUNIT_ASSERT(it->feed1()[row] == it->feed2()[row]); 
+       }
+  }
+  sel = ds.createSelector();
+  sel->chooseCrossCorrelations();
+  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {  
+       for (casa::uInt row=0;row<it->nRow();++row) {
+            CPPUNIT_ASSERT((it->antenna1()[row] != it->antenna2()[row]) ||
+                           (it->feed1()[row] != it->feed2()[row])); 
+       }
+  }
+}
+
 
 void TableDataAccessTest::bufferManagerExceptionTest()
 {

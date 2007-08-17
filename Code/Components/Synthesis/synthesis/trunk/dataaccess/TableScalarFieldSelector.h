@@ -63,6 +63,12 @@ public:
   /// Choose a single spectral window (also known as IF).
   /// @param[in] spWinID the ID of the spectral window to choose
   virtual void chooseSpectralWindow(casa::uInt spWinID);
+  
+  /// @brief Choose autocorrelations only
+  virtual void chooseAutoCorrelations();
+  
+  /// @brief Choose crosscorrelations only
+  virtual void chooseCrossCorrelations();
       
 protected:
   /// Obtain a table expression node for selection. This method is

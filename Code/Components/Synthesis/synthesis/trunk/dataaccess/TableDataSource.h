@@ -70,6 +70,9 @@ public:
   virtual boost::shared_ptr<IDataIterator> createIterator(const
              IDataSelectorConstPtr &sel, const
   	   IDataConverterConstPtr &conv) const;
+  	   
+  // we need this to get access to the overloaded syntax in the base class 
+  using IDataSource::createIterator;	   
 };
  
 } // namespace synthesis
