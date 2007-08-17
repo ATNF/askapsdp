@@ -8,8 +8,12 @@
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/ParsetInterface.h>
 
+#include <dataaccess/TableManager.h>
+#include <dataaccess/IDataConverterImpl.h>
+
 // casa
 #include <measures/Measures/MFrequency.h>
+#include <tables/Tables/Table.h>
 
 // std
 #include <stdexcept>
@@ -22,6 +26,24 @@ using std::endl;
 using namespace conrad;
 using namespace synthesis;
 
+void timeDependentSubtableTest(const string &ms, const IConstDataSource &ds) 
+{
+  IDataConverterPtr conv=ds.createConverter();  
+  //conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
+  //                    casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
+  IDataSelectorPtr sel=ds.createSelector();
+  //sel->chooseFeed(1);
+  //sel<<LOFAR::ACC::APS::ParameterSet("test.in").makeSubset("TestSelection.");
+  const IDataConverterImpl &dci=dynamic_cast<const IDataConverterImpl&>(*conv);
+  const TableManager tm(casa::Table(ms),true);
+  const IFeedSubtableHandler &fsh = tm.getFeed();  
+  for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
+       cout<<"direction: "<<it->pointingDir2()<<endl;
+       cout<<"time: "<<it->time()<<" "<<dci.epochMeasure(it->time())<<" "<<
+             fsh.getAllBeamOffsets(dci.epochMeasure(it->time()),0)<<endl;
+  }
+}
+
 void doReadOnlyTest(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
@@ -31,6 +53,7 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::AZEL));                    
+    
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        cout<<"direction: "<<it->pointingDir2()<<endl;
@@ -65,7 +88,8 @@ int main(int argc, char **argv) {
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
      TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
-     doReadOnlyTest(ds);
+     timeDependentSubtableTest(argv[1],ds);
+     //doReadOnlyTest(ds);
      //doReadWriteTest(ds);    
      
   }
