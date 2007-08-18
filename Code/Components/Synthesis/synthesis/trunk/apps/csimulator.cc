@@ -9,6 +9,8 @@
 
 #include <ms/MeasurementSets/NewMSSimulator.h>
 
+#include <ms/MeasurementSets/MeasurementSet.h>
+
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -255,7 +257,12 @@ int main(int argc, const char** argv)
 
 		ParameterSet parset("csimulator.in");
 
-		NewMSSimulator sim(parset.getString("DataSet", "test.ms"));
+		string msname(parset.getString("DataSet", "test.ms"));
+		NewMSSimulator sim(msname);
+		
+	  // Make a MeasurementSet object for the disk-base MeasurementSet that we just
+	  // created
+	  MeasurementSet ms(msname, Table::Update);
 
 		ParameterSet subset(parset.makeSubset("Csimulator."));
 
@@ -277,6 +284,7 @@ int main(int argc, const char** argv)
 		ParameterSet observeParset(subset.makeSubset("observe."));
 		readObserve(sim, observeParset);
 
+		ms.flush();
 
 		///==============================================================================
 	}
