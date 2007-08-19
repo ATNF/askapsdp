@@ -50,10 +50,10 @@ namespace conrad
 		{
 			public:
 			static int asInteger(const std::string& s);
-			static casa::Quantity MEParsetInterface::asQuantity(const std::string& s);
-			static casa::MEpoch MEParsetInterface::asMEpoch(const std::vector<std::string>& epoch);
-			static casa::MDirection MEParsetInterface::asMDirection(const std::vector<std::string>& direction);
-			static casa::MPosition MEParsetInterface::asMPosition(const std::vector<std::string>& position);
+			static casa::Quantity asQuantity(const std::string& s);
+			static casa::MEpoch asMEpoch(const std::vector<std::string>& epoch);
+			static casa::MDirection asMDirection(const std::vector<std::string>& direction);
+			static casa::MPosition asMPosition(const std::vector<std::string>& position);
 		};
 
 	} // namespace synthesis
