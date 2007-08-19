@@ -151,9 +151,9 @@ namespace conrad
 
 			    int nFeeds=parset.getInt32("feeds.number", 0);
 
-			    casa::Vector<double> x(2*nFeeds);
-			    casa::Vector<double> y(2*nFeeds);
-			    casa::Vector<casa::String> pol(2*nFeeds);
+			    casa::Vector<double> x(nFeeds);
+			    casa::Vector<double> y(nFeeds);
+			    casa::Vector<casa::String> pol(nFeeds);
 
 			    casa::String mode=parset.getString("feeds.mode", "perfect X Y");
 			    for (int feed=0; feed<nFeeds; feed++)
@@ -161,12 +161,9 @@ namespace conrad
 				    ostringstream os;
 				    os << "feeds.feed"<< feed;
 				    vector<double> xy(parset.getDoubleVector(os.str()));
-				    x[2*feed]=xy[0];
-				    y[2*feed]=xy[1];
-				    x[2*feed+1]=xy[0];
-				    y[2*feed+1]=xy[1];
-				    pol[2*feed]="X";
-				    pol[2*feed+1]="Y";
+				    x[feed]=xy[0];
+				    y[feed]=xy[1];
+				    pol[feed]="X";
 			    }
 			    if(parset.isDefined("feeds.spacing"))
 			    {

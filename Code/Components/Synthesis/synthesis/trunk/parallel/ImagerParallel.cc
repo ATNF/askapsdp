@@ -80,6 +80,12 @@ namespace conrad
 			{
 				/// Get the list of measurement sets
 				itsMs=itsParset.getStringVector("dataset");
+				if(itsMs.size()==1) {
+					string tmpl=itsMs[0];
+					for (int i=0;i<itsNNode-1;i++) {
+						itsMs[i]=substituteWorkerNumber(tmpl);
+					}
+				}
 				if(itsNNode>1) {
 				  CONRADCHECK(itsMs.size()==(itsNNode-1), "When running in parallel, need one data set per node");
 				}

@@ -202,9 +202,14 @@ namespace conrad
 		
 		string SynParallel::substituteWorkerNumber(const string& s) 
 		{
-			ostringstream oos;
-			oos << itsRank-1;
 			casa::Regex reg("\%w");
+			ostringstream oos;
+			if(itsNNode>1) {
+				oos << itsRank-1;
+			}
+			else {
+				oos << 0;
+			}
 			casa::String cs(s);
 			cs.gsub(reg, oos.str());
 			return string(cs);
