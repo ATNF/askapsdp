@@ -1,10 +1,10 @@
 /// @file
 ///
-/// @brief Base class for parallel synthesis applications
+/// @brief Base class for parallel applications
 /// @details
-/// Supports parallel algorithms by providing methods for initialization
-/// of MPI connections, sending normal equations and models around.
-/// There is assumed to be one solver and many prediffers.
+/// Supports algorithms by providing methods for initialization
+/// of MPI connections, sending and models around.
+/// There is assumed to be one master and many workers.
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -42,8 +42,8 @@ namespace conrad
 			itsRank = MPIConnection::getRank();
 
 			itsIsParallel=(itsNNode>1);
-			itsIsSolver=(itsRank==0);
-			itsIsPrediffer=(!itsIsParallel)||(itsRank>0);
+			itsIsMaster=(itsRank==0);
+			itsIsWorker=(!itsIsParallel)||(itsRank>0);
 
 			initConnections();
 
@@ -55,26 +55,23 @@ namespace conrad
 				ostr << itsRank;
 				MWIos::setName ("cimager_tmp.cout" + ostr.str());
 
-				if (isSolver())
+				if (isMaster())
 				{
-					os() << "CONRAD synthesis program (parallel) running on "<< itsNNode
-					    << " nodes (master/solver)"<< std::endl;
+					os() << "CONRAD program (parallel) running on "<< itsNNode
+					    << " nodes (master/master)"<< std::endl;
 				}
 				else
 				{
-					os() << "CONRAD synthesis program (parallel) running on "<< itsNNode
-					    << " nodes (prediffer "<< itsRank << ")"<< std::endl;
+					os() << "CONRAD program (parallel) running on "<< itsNNode
+					    << " nodes (worker "<< itsRank << ")"<< std::endl;
 				}
 			}
 			else
 			{
-				os() << "CONRAD synthesis program (serial)"<< std::endl;
+				os() << "CONRAD program (serial)"<< std::endl;
 			}
 
 			itsModel = Params::ShPtr(new Params());
-			itsSolver = Solver::ShPtr(new Solver(*itsModel));
-			itsEquation = Equation::ShPtr(new Equation(*itsModel));
-			itsNe = NormalEquations::ShPtr(new NormalEquations(*itsModel));
 
 		}
 
@@ -93,16 +90,16 @@ namespace conrad
 			return itsIsParallel;
 		}
 
-		/// Is this the solver?
-		bool SynParallel::isSolver()
+		/// Is this the master?
+		bool SynParallel::isMaster()
 		{
-			return itsIsSolver;
+			return itsIsMaster;
 		}
 
-		/// Is this a prediffer?
-		bool SynParallel::isPrediffer()
+		/// Is this a worker?
+		bool SynParallel::isWorker()
 		{
-			return itsIsPrediffer;
+			return itsIsWorker;
 		}
 
 		conrad::scimath::Params::ShPtr& SynParallel::params()
@@ -114,14 +111,14 @@ namespace conrad
 		{
 			if (isParallel())
 			{
-				if (isPrediffer())
+				if (isWorker())
 				{
-					MWCOUT << "PREDIFFER " << itsRank << " : ";
+					MWCOUT << "WORKER " << itsRank << " : ";
 					return MWCOUT;
 				}
 				else
 				{
-					std::cout << "SOLVER : ";
+					std::cout << "MASTER : ";
 					return std::cout;
 				}
 			}
@@ -137,7 +134,7 @@ namespace conrad
 			if (isParallel())
 			{
 				itsConnectionSet=MPIConnectionSet::ShPtr(new MPIConnectionSet());
-				if (isSolver())
+				if (isMaster())
 				{
 					// I am the master - I need a connection to every worker
 					for (int i=1; i<itsNNode; ++i)
@@ -145,7 +142,7 @@ namespace conrad
 						itsConnectionSet->addConnection(i, 0);
 					}
 				}
-				if (isPrediffer())
+				if (isWorker())
 				{
 					// I am a worker - I only need to talk to the master
 					itsConnectionSet->addConnection(0, 0);
@@ -153,61 +150,10 @@ namespace conrad
 			}
 		}
 
-		// Send the normal equations from this worker to the master as a blob
-		void SynParallel::sendNE()
-		{
-			if (isParallel()&&isPrediffer())
-			{
-				casa::Timer timer;
-				timer.mark();
-
-				LOFAR::BlobString bs;
-				bs.resize(0);
-				LOFAR::BlobOBufString bob(bs);
-				LOFAR::BlobOStream out(bob);
-				out.putStart("ne", 1);
-				out << itsRank << *itsNe;
-				out.putEnd();
-				itsConnectionSet->write(0, bs);
-				os() << "Sent normal equations to the solver via MPI in "
-				    << timer.real()<< " seconds "<< std::endl;
-			}
-		}
-
-		// Receive the normal equations as a blob
-		void SynParallel::receiveNE()
-		{
-			CONRADCHECK(itsSolver, "Solver not yet defined");
-			if (isParallel()&&isSolver())
-			{
-				os() << "Waiting for normal equations"<< std::endl;
-				casa::Timer timer;
-				timer.mark();
-
-				LOFAR::BlobString bs;
-				int rank;
-				for (int i=1; i<itsNNode; i++)
-				{
-					itsConnectionSet->read(i-1, bs);
-					LOFAR::BlobIBufString bib(bs);
-					LOFAR::BlobIStream in(bib);
-					int version=in.getStart("ne");
-					CONRADASSERT(version==1);
-					in >> rank >> *itsNe;
-					in.getEnd();
-					itsSolver->addNormalEquations(*itsNe);
-					os() << "Received normal equations from prediffer "<< rank
-					    << " after "<< timer.real() << " seconds"<< std::endl;
-				}
-				os()<< "Received normal equations from all prediffers via MPI in "
-				    << timer.real() << " seconds"<< std::endl;
-			}
-		}
-
 		// Send the model to all workers
 		void SynParallel::broadcastModel()
 		{
-			if (isParallel()&&isSolver())
+			if (isParallel()&&isMaster())
 			{
 				CONRADCHECK(itsModel, "Model not defined prior to broadcast")
 				casa::Timer timer;
@@ -221,20 +167,20 @@ namespace conrad
 				out << *itsModel;
 				out.putEnd();
 				itsConnectionSet->writeAll(bs);
-				os() << "Sent model to the prediffers via MPI in "<< timer.real()
+				os() << "Sent model to the workers via MPI in "<< timer.real()
 				    << " seconds "<< std::endl;
 			}
 		}
 
-		// Receive the model from the solver
+		// Receive the model from the master
 		void SynParallel::receiveModel()
 		{
-			if (isParallel()&&isPrediffer())
+			if (isParallel()&&isWorker())
 			{
 				CONRADCHECK(itsModel, "Model not defined prior to receiving")
 				casa::Timer timer;
 				timer.mark();
-				os() << "Receiving model from the solver via MPI"<< std::endl;
+				os() << "Receiving model from the master via MPI"<< std::endl;
 				LOFAR::BlobString bs;
 				bs.resize(0);
 				itsConnectionSet->read(0, bs);
@@ -244,13 +190,9 @@ namespace conrad
 				CONRADASSERT(version==1);
 				in >> *itsModel;
 				in.getEnd();
-				os() << "Received model from the solver via MPI in "<< timer.real()
+				os() << "Received model from the master via MPI in "<< timer.real()
 				    << " seconds "<< std::endl;
 			}
-		}
-
-		void SynParallel::writeModel()
-		{
 		}
 
 	}

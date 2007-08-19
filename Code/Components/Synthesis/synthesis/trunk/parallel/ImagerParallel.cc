@@ -52,7 +52,7 @@ namespace conrad
 
 		ImagerParallel::ImagerParallel(int argc, const char** argv,
 		    const LOFAR::ACC::APS::ParameterSet& parset) :
-			SynParallel(argc, argv), itsParset(parset)
+			MEParallel(argc, argv), itsParset(parset)
 		{
 
 			/// Create the specified images from the definition in the
@@ -62,7 +62,7 @@ namespace conrad
 
 			ParameterSet subset(itsParset.makeSubset("Cimager."));
 
-			if (isSolver())
+			if (isMaster())
 			{
 				itsRestore=itsParset.getBool("Cimager.restore", true);
 
@@ -78,7 +78,7 @@ namespace conrad
 				itsSolver=ImageSolverFactory::make(*itsModel, subset);
 				CONRADCHECK(itsSolver, "Solver not defined correctly");
 			}
-			if(isPrediffer())
+			if(isWorker())
 			{
 				/// Get the list of measurement sets
 				itsMs=itsParset.getStringVector("DataSet");
@@ -115,7 +115,7 @@ namespace conrad
 		/// Calculate the normal equations for a given measurement set
 		void ImagerParallel::calcNE()
 		{
-			if (isPrediffer())
+			if (isWorker())
 			{
 				CONRADCHECK(itsGridder, "Gridder not defined");
 				CONRADCHECK(itsModel, "Model not defined");
@@ -145,7 +145,7 @@ namespace conrad
 
 		void ImagerParallel::solveNE()
 		{
-			if (isSolver())
+			if (isMaster())
 			{
 				// Receive the normal equations
 				if (isParallel())
@@ -166,7 +166,7 @@ namespace conrad
 		/// Write the results out
 		void ImagerParallel::writeModel()
 		{
-			if (isSolver())
+			if (isMaster())
 			{
 				os() << "Writing out results as CASA images"<< std::endl;
 				vector<string> resultimages=itsModel->names();

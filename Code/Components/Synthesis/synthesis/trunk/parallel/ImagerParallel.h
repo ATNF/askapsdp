@@ -9,7 +9,7 @@
 #ifndef CONRAD_SYNTHESIS_IMAGERPARALLEL_H_
 #define CONRAD_SYNTHESIS_IMAGERPARALLEL_H_
 
-#include <parallel/SynParallel.h>
+#include <parallel/MEParallel.h>
 
 #include <gridding/IVisGridder.h>
 
@@ -25,7 +25,7 @@ namespace conrad
     ///
     /// @details Provides generic methods for parallel algorithms
     /// @ingroup parallel
-    class ImagerParallel: public SynParallel
+    class ImagerParallel: public MEParallel
     {
       public:
 

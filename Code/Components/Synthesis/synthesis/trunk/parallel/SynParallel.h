@@ -19,41 +19,16 @@ namespace conrad
 {
 	namespace synthesis
 	{
-		/// @brief Support for parallel algorithms using the measurement equation
+		/// @brief Support for parallel algorithms 
 		///
-		/// @details Support for parallel applications using the measurement equation
-		/// classes. An application is derived from this abstract base. The model used is that the
-		/// application has many prediffers and one solver, running in separate MPI processes
-		/// or in one single thread. The solver is the master so the number of processes
-		/// is one more than the number of prediffers. Each prediffer is currently given
-		/// a separate data set.
-		///
-		/// The steps are:
-		/// (a) define an initial model and distribute to all prediffers
-		/// (b) calculate the normal equations for each data set (this part is
-		/// distributed across the prediffers)
-		/// (c) send all normal equations to the solver for merging
-		/// (d) solve the merged normal equations
-		/// (e) distribute the model to all prediffers and return to (b)
-		///
-		/// The caller is responsible for ensuring that the model is transferred correctly 
-		/// before a CalcNE and after a SolveNE. For example:
-		/// @code
-		///		for (int cycle=0;cycle<nCycles;cycle++)
-		///		{
-		///			imager.os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
-		///			if(cycle>0) imager.receiveModel();
-		///			imager.calcNE();
-		///			imager.solveNE();
-		///			// Broadcast the model
-		///			if (cycle<(nCycles-1)) imager.broadcastModel();
-		///		}
-		/// @endcode
-		/// The normal equations are transferred automatically between the calcNE and solveNE
-		/// steps so the called does not need to be concerned about that.
+		/// @details Support for parallel applications in the area.
+		/// An application is derived from this abstract base. The model used is that the
+		/// application has many workers and one master, running in separate MPI processes
+		/// or in one single thread. The master is the master so the number of processes
+		/// is one more than the number of workers. 
 		///
 		/// If the number of nodes is 1 then everything occurs in the same process with
-		/// no overall for transmission of model or normal equations.
+		/// no overall for transmission of model.
 		///
 		/// @ingroup parallel
 		class SynParallel
@@ -76,61 +51,40 @@ namespace conrad
 				/// logging system will be used.
 				std::ostream& os();
 
-				/// Calculate the normalequations (runs only in the prediffers)
-				virtual void calcNE() = 0;
-
-				/// Solve the normal equations (runs only in the solver)
-				virtual void solveNE() = 0;
-
-				/// Write the model (runs only in the solver)
+				/// Write the model (runs only in the master)
 				virtual void writeModel() = 0;
 
 				/// Is this running in parallel?
 				bool isParallel();
 
-				/// Is this the solver?
-				bool isSolver();
+				/// Is this the master?
+				bool isMaster();
 
-				/// Is this a prediffer?
-				bool isPrediffer();
+				/// Is this a worker?
+				bool isWorker();
 
 				/// Return the model
 				conrad::scimath::Params::ShPtr& params();
 
-				/// @brief Broadcast the model to all prediffers
+				/// @brief Broadcast the model to all workers
 				void broadcastModel();
 
-				/// @brief Receive the model from the solver
+				/// @brief Receive the model from the master
 				void receiveModel();
-
-				/// @brief Send the normal equations from this prediffer to the solver
-				void sendNE();
-
-				/// @brief Receive the normal equations from all prediffers into this solver
-				void receiveNE();
 
 			protected:
 				/// Initialize the MPI connections
 				void initConnections();
 
-				/// The set of all connections between processes. For the solver, there
-				/// are connections to every prediffer, but each prediffer has only one
-				/// connection, which is to the solver.
+				/// The set of all connections between processes. For the master, there
+				/// are connections to every worker, but each worker has only one
+				/// connection, which is to the master.
 				conrad::cp::MPIConnectionSet::ShPtr itsConnectionSet;
 
 				/// The model
 				conrad::scimath::Params::ShPtr itsModel;
 
-				/// Holder for the normal equations
-				conrad::scimath::NormalEquations::ShPtr itsNe;
-
-				/// Holder for the solver
-				conrad::scimath::Solver::ShPtr itsSolver;
-				
-				/// Holder for the equation
-				conrad::scimath::Equation::ShPtr itsEquation;
-
-				/// Rank of this process : 0 for the solver, >0 for prediffers
+				/// Rank of this process : 0 for the master, >0 for workers
 				int itsRank;
 
 				/// Number of nodes
@@ -139,11 +93,11 @@ namespace conrad
 				/// Is this parallel? itsNNode > 1?
 				bool itsIsParallel;
 
-				/// Is this the solver?
-				bool itsIsSolver;
+				/// Is this the Master?
+				bool itsIsMaster;
 
-				/// Is this a prediffer?
-				bool itsIsPrediffer;
+				/// Is this a worker?
+				bool itsIsWorker;
 
 		};
 
