@@ -14,28 +14,49 @@
 #ifndef ME_PARSET_INTERFACE_H
 #define ME_PARSET_INTERFACE_H
 
+#include <vector>
+#include <string>
+
+#include <casa/aips.h>
+#include <casa/Quanta.h>
+#include <measures/Measures/MDirection.h>
+#include <measures/Measures/MPosition.h>
+#include <measures/Measures/MEpoch.h>
+
 // own includes
 #include <fitting/Params.h>
 #include <fitting/Solver.h>
 #include <APS/ParameterSet.h>
 
-namespace conrad {
+namespace conrad
+{
 
-namespace synthesis {
+	namespace synthesis
+	{
 
-/// @brief set up images according to the parset file
-/// @param[in] params Images to be created here
-/// @param[in] parset a parset object to read the parameters from
-/// @ingroup measurementequation
-  void operator<<(conrad::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+		/// @brief set up images according to the parset file
+		/// @param[in] params Images to be created here
+		/// @param[in] parset a parset object to read the parameters from
+		/// @ingroup measurementequation
+		void operator<<(conrad::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
 
-/// @brief set up solver according to the parset file
-/// @param[in] solver Pointer to solver to be created
-/// @param[in] parset a parset object to read the parameters from
-/// @ingroup measurementequation
-  void operator<<(conrad::scimath::Solver::ShPtr& solver, const LOFAR::ACC::APS::ParameterSet &parset);
+		/// @brief set up solver according to the parset file
+		/// @param[in] solver Pointer to solver to be created
+		/// @param[in] parset a parset object to read the parameters from
+		/// @ingroup measurementequation
+		void operator<<(conrad::scimath::Solver::ShPtr& solver, const LOFAR::ACC::APS::ParameterSet &parset);
 
-} // namespace synthesis
+		class MEParsetInterface
+		{
+			public:
+			static int asInteger(const std::string& s);
+			static casa::Quantity MEParsetInterface::asQuantity(const std::string& s);
+			static casa::MEpoch MEParsetInterface::asMEpoch(const std::vector<std::string>& epoch);
+			static casa::MDirection MEParsetInterface::asMDirection(const std::vector<std::string>& direction);
+			static casa::MPosition MEParsetInterface::asMPosition(const std::vector<std::string>& position);
+		};
+
+	} // namespace synthesis
 
 } // namespace conrad
 

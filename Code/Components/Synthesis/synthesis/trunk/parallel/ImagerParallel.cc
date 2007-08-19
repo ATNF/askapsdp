@@ -58,16 +58,14 @@ namespace conrad
 			/// Create the specified images from the definition in the
 			/// parameter set. We can solve for any number of images
 			/// at once (but you may/will run out of memory!)
-			itsModel << parset.makeSubset("Images.");
-
-			ParameterSet subset(itsParset.makeSubset("Cimager."));
+			itsModel << itsParset.makeSubset("Images.");
 
 			if (isMaster())
 			{
-				itsRestore=itsParset.getBool("Cimager.restore", true);
+				itsRestore=itsParset.getBool("restore", true);
 
 				itsQbeam.resize(3);
-				vector<string> beam=itsParset.getStringVector("Cimager.restore.beam");
+				vector<string> beam=itsParset.getStringVector("restore.beam");
 				for (int i=0; i<3; i++)
 				{
 					casa::Quantity::read(itsQbeam(i), beam[i]);
@@ -75,20 +73,20 @@ namespace conrad
 
 				/// Create the solver from the parameterset definition and the existing
 				/// definition of the parameters. 
-				itsSolver=ImageSolverFactory::make(*itsModel, subset);
+				itsSolver=ImageSolverFactory::make(*itsModel, itsParset);
 				CONRADCHECK(itsSolver, "Solver not defined correctly");
 			}
 			if(isWorker())
 			{
 				/// Get the list of measurement sets
-				itsMs=itsParset.getStringVector("DataSet");
+				itsMs=itsParset.getStringVector("dataset");
 				if(itsNNode>1) {
 				  CONRADCHECK(itsMs.size()==(itsNNode-1), "When running in parallel, need one data set per node");
 				}
 
 				/// Create the gridder using a factory acting on a
 				/// parameterset
-				itsGridder=VisGridderFactory::make(subset);
+				itsGridder=VisGridderFactory::make(itsParset);
 				CONRADCHECK(itsGridder, "Gridder not defined correctly");
 			}
 		}

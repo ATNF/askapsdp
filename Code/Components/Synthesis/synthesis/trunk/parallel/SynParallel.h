@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Provides generic methods for parallel algorithms using the measurement equation
+/// Provides generic methods for parallel algorithms
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -50,9 +50,6 @@ namespace conrad
 				/// connected to a file tagged with the rank number. Eventually the conrad
 				/// logging system will be used.
 				std::ostream& os();
-
-				/// Write the model (runs only in the master)
-				virtual void writeModel() = 0;
 
 				/// Is this running in parallel?
 				bool isParallel();

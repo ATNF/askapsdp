@@ -44,10 +44,11 @@ int main(int argc, const char** argv)
 		timer.mark();
 		
 	  ParameterSet parset("cimager.in");
+	  ParameterSet subset(parset.makeSubset("Cimager."));
 	  
-	  ImagerParallel imager(argc, argv, parset);
+	  ImagerParallel imager(argc, argv, subset);
 
-		int nCycles=parset.getInt32("Cimager.ncycles", 0);
+		int nCycles=subset.getInt32("ncycles", 0);
 		if(nCycles==0)
 		{
 			/// No cycling - just make a dirty image
