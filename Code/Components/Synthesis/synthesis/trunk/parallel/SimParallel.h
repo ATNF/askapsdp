@@ -58,13 +58,13 @@ namespace conrad
       	LOFAR::ACC::APS::ParameterSet itsParset;
       	
       	/// Read the telescope info from the parset specified in the main parset
-      	void readTelescope();
+      	void readAntennas();
       	
       	/// Read the sources from the parset file
       	void readSources();
       	
       	/// Read the spectral window definitions
-      	void readSpw();
+      	void readSpws();
       	
       	/// Read the feed definitions
       	void readFeeds();

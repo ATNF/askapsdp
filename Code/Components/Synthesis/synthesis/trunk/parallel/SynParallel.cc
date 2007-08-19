@@ -20,11 +20,16 @@
 #include <Blob/BlobOStream.h>
 
 #include <casa/OS/Timer.h>
+#include <casa/Utilities/Regex.h>
+#include <casa/BasicSL/String.h>
 
 #include <conrad/ConradError.h>
 
 #include <parallel/SynParallel.h>
 
+#include <sstream>
+
+using namespace std;
 using namespace conrad;
 using namespace conrad::cp;
 using namespace conrad::scimath;
@@ -194,6 +199,17 @@ namespace conrad
 				    << " seconds "<< std::endl;
 			}
 		}
+		
+		string SynParallel::substituteWorkerNumber(const string& s) 
+		{
+			ostringstream oos;
+			oos << itsRank-1;
+			casa::Regex reg("\%w");
+			casa::String cs(s);
+			cs.gsub(reg, oos.str());
+			return string(cs);
+		}
+
 
 	}
 }

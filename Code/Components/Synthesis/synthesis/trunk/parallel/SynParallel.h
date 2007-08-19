@@ -95,6 +95,9 @@ namespace conrad
 
 				/// Is this a worker?
 				bool itsIsWorker;
+				
+				/// Substitute %w by worker number. This allows workers to do different work!
+				string substituteWorkerNumber(const string& s);
 
 		};
 
