@@ -137,7 +137,8 @@ namespace conrad
           LinearSolver solver1(*params2);
           solver1.addNormalEquations(ne);
           solver1.setAlgorithm("SVD");
-          solver1.solveNormalEquations(q);
+          solver1.solveNormalEquations(q);  
+          std::cout<<"Q="<<q.cond()<<" "<<solver1.parameters()<<std::endl;
           CPPUNIT_ASSERT(abs(q.cond()/2.70123e+12-1.0)<0.001);
         }
 
@@ -154,7 +155,8 @@ namespace conrad
             LinearSolver solver1(*params2);
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
-            solver1.solveNormalEquations(q);
+            solver1.solveNormalEquations(q); 
+            std::cout<<"Q="<<q.cond()<<" "<<solver1.parameters()<<std::endl;
             CPPUNIT_ASSERT(abs(q.cond()/3.28578e+09-1.0)<0.001);
           }
           {
