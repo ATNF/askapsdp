@@ -97,6 +97,7 @@ namespace conrad
 // To minimize the number of data passes, we keep copies of the grids in memory, and
 // switch between these. This optimization may not be sufficient in the long run.
       
+      itsIdi.chooseOriginal();
       std::map<string, casa::Cube<casa::Complex>* > grids;
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
@@ -111,7 +112,6 @@ namespace conrad
 // Loop through degridding the data
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
-        itsIdi.chooseBuffer("MODEL_DATA");
         itsIdi->rwVisibility().set(0.0);
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
@@ -119,7 +119,6 @@ namespace conrad
           const Axes axes(parameters().axes(imageName));
           itsGridder->forward(itsIdi, axes, *grids[imageName]);
         }
-        itsIdi.chooseOriginal();
       }
       // Now clean up 
       for (std::map<string, casa::Cube<casa::Complex>* >::iterator it=grids.begin();

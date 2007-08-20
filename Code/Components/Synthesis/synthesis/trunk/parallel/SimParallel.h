@@ -133,6 +133,10 @@ namespace conrad
 
 				/// Read miscellaneous definitions for simulation
 				void readSimulation();
+				
+				/// Predict data for current model
+				/// @param ds Data set to predict for
+				void predict(const string& ds);
 
 		};
 

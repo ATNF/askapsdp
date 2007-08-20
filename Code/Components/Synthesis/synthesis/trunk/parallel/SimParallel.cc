@@ -15,7 +15,17 @@
 
 #include <parallel/SimParallel.h>
 
+#include <dataaccess/DataAccessError.h>
+#include <dataaccess/TableDataSource.h>
+#include <dataaccess/ParsetInterface.h>
+
+#include <measurementequation/ImageFFTEquation.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/MEParsetInterface.h>
+
+#include <measurementequation/ImageSolverFactory.h>
+#include <gridding/VisGridderFactory.h>
 
 #include <APS/ParameterSet.h>
 
@@ -36,7 +46,8 @@ namespace conrad
 		{
 			if (isWorker())
 			{
-				string msname(substituteWorkerNumber(parset.getString("dataset", "test%w.ms")));
+				string msname(substituteWorkerNumber(parset.getString("dataset",
+				    "test%w.ms")));
 				itsSim=boost::shared_ptr<casa::NewMSSimulator> (new casa::NewMSSimulator(msname));
 
 				itsMs=boost::shared_ptr<casa::MeasurementSet> (new casa::MeasurementSet(msname, casa::Table::Update));
@@ -61,9 +72,10 @@ namespace conrad
 
 		    SimParallel::~SimParallel()
 		    {
-		    	if(isWorker()) {
-			    	itsMs->flush();
-		    	}
+			    if(isWorker())
+			    {
+				    itsMs->flush();
+			    }
 		    }
 
 		    void SimParallel::readAntennas()
@@ -187,11 +199,25 @@ namespace conrad
 			    const vector<string> sources=parset.getStringVector("sources.names");
 			    for (int i=0; i<sources.size(); ++i)
 			    {
-				    ostringstream oos;
-				    oos << "sources." << sources[i]<< ".direction";
-				    os() << "Simulating source "<< oos.str() << std::endl;
-				    casa::MDirection direction=MEParsetInterface::asMDirection(parset.getStringVector(oos.str()));
-				    itsSim->initFields(casa::String(sources[i]), direction, casa::String(""));
+				    {
+					    ostringstream oos;
+					    oos << "sources." << sources[i]<< ".direction";
+					    os() << "Simulating source "<< sources[i] << std::endl;
+					    casa::MDirection direction=MEParsetInterface::asMDirection(parset.getStringVector(oos.str()));
+					    itsSim->initFields(casa::String(sources[i]), direction, casa::String(""));
+				    }
+				    {
+					    ostringstream oos;
+					    oos << "sources." << sources[i]<< ".model";
+					    if(parset.isDefined(oos.str()))
+					    {
+						    string model=parset.getString(oos.str());
+						    os() << "Adding image " << model << " as model for "<< sources[i] << std::endl;
+						    ostringstream paramName;
+						    paramName << "image.i." << sources[i];
+						    SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName.str(), model);
+					    }
+				    }
 			    }
 			    os() << "Successfully defined sources"<< std::endl;
 		    }
@@ -286,8 +312,35 @@ namespace conrad
 							    MEParsetInterface::asQuantity(line[2]),
 							    MEParsetInterface::asQuantity(line[3]));
 				    }
+
 				    os() << "Successfully simulated "<< nScans << " scans"<< std::endl;
 				    itsMs->flush();
+
+				    predict(itsMs->tableName());
+
+			    }
+		    }
+		    void SimParallel::predict(const string& ms)
+		    {
+			    if(isWorker())
+			    {
+				    casa::Timer timer;
+				    timer.mark();
+				    os() << "Simulating data for " << ms << std::endl;
+				    os() << "Model is " << *itsModel;
+				    TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED);
+				    IDataSelectorPtr sel=ds.createSelector();
+				    sel << itsParset;
+				    IDataConverterPtr conv=ds.createConverter();
+				    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+				    IDataSharedIter it=ds.createIterator(sel, conv);
+				    /// Create the gridder using a factory acting on a
+				    /// parameterset
+				    IVisGridder::ShPtr gridder=VisGridderFactory::make(itsParset);
+				    CONRADCHECK(gridder, "Gridder not defined correctly");
+				    conrad::scimath::Equation::ShPtr equation(new ImageFFTEquation (*itsModel, it, gridder));
+				    equation->predict();
+				    os() << "Predicted data for "<< ms << " in "<< timer.real() << " seconds "<< std::endl;
 			    }
 		    }
 

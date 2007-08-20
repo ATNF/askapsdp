@@ -56,7 +56,14 @@ namespace conrad
         static void add(conrad::scimath::Params& ip, const string& name, 
           const string& image);
           
-        /// @brief Save a parameter as an image
+        /// @brief Get a parameter from a CASA image
+        /// @param ip Parameters
+        /// @param name Name of parameter
+        /// @param imagename Name of image file
+        static void getFromCasaImage(conrad::scimath::Params& ip, const string& name,
+          const string& imagename);
+        
+        /// @brief Save a parameter as a CASA image
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param imagename Name of image file
