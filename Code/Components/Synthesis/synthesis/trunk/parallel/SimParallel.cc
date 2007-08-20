@@ -87,14 +87,15 @@ namespace conrad
 			    }
 
 			    /// Csimulator.name = ASKAP
-			    string telName=parset.getString("antennas.name");
+			    string telName=parset.getString("antennas.telescope");
 			    os() << "Simulating "<< telName << std::endl;
 			    ostringstream oos;
 			    oos << "antennas." << telName << ".";
 			    ParameterSet antParset(parset.makeSubset(oos.str()));
 
 			    /// Csimulator.ASKAP.number=45
-			    int nAnt=antParset.getInt32("number", 0);
+			    vector<string> antNames(antParset.getStringVector("names"));
+			    int nAnt=antNames.size();
 			    CONRADCHECK(nAnt>0, "No antennas defined in parset file");
 
 			    /// Csimulator.ASKAP.mount=equatorial
@@ -126,17 +127,13 @@ namespace conrad
 			    /// ...
 			    for (int iant=0; iant<nAnt; iant++)
 			    {
-				    ostringstream oos;
-				    oos << "antenna"<< iant;
-				    vector<float> xyz=antParset.getFloatVector(oos.str());
+				    vector<float> xyz=antParset.getFloatVector(antNames[iant]);
 				    x[iant]=xyz[0];
 				    y[iant]=xyz[1];
 				    z[iant]=xyz[2];
 				    mounts[iant]=mount;
 				    dishDiameter[iant]=diameter;
-				    oos.clear();
-				    oos << telName << iant;
-				    name[iant]=oos.str();
+				    name[iant]=antNames[iant];
 			    }
 
 			    /// Csimulator.ASKAP.location=[+115deg, -26deg, 192km, WGS84]
@@ -157,7 +154,9 @@ namespace conrad
 				    parset=ParameterSet(substituteWorkerNumber(itsParset.getString("feeds.definition")));
 			    }
 
-			    int nFeeds=parset.getInt32("feeds.number", 0);
+			    vector<string> feedNames(parset.getStringVector("feeds.names"));
+			    int nFeeds=feedNames.size();
+			    CONRADCHECK(nFeeds>0, "No feeds specified");
 
 			    casa::Vector<double> x(nFeeds);
 			    casa::Vector<double> y(nFeeds);
@@ -167,7 +166,7 @@ namespace conrad
 			    for (int feed=0; feed<nFeeds; feed++)
 			    {
 				    ostringstream os;
-				    os << "feeds.feed"<< feed;
+				    os << "feeds."<< feedNames[feed];
 				    vector<double> xy(parset.getDoubleVector(os.str()));
 				    x[feed]=xy[0];
 				    y[feed]=xy[1];
@@ -222,9 +221,6 @@ namespace conrad
 			    os() << "Successfully defined sources"<< std::endl;
 		    }
 
-		    /// Csimulator.spws.number=2
-		    /// Csimulator.spws.spw1=[LBand1, 128, 1.420GHz, -1MHz, "XX XY YX YY"]
-		    /// Csimulator.spws.spw2=[LBand2, 128, 1.000GHz, -1MHz, "XX XY YX YY"]
 		    void SimParallel::readSpws()
 		    {
 			    ParameterSet parset(itsParset);
@@ -233,17 +229,18 @@ namespace conrad
 				    parset=ParameterSet(substituteWorkerNumber(itsParset.getString("spws.definition")));
 			    }
 
-			    int nSpw=parset.getInt32("spws.number");
+			    vector<string> names(parset.getStringVector("spws.names"));
+			    int nSpw=names.size();
 			    CONRADCHECK(nSpw>0, "No spectral windows defined");
 			    for (int spw=0; spw<nSpw; spw++)
 			    {
 				    ostringstream os;
-				    os << "spws.spw"<< spw;
+				    os << "spws."<< names[spw];
 				    vector<string> line=parset.getStringVector(os.str());
-				    itsSim->initSpWindows(line[0], MEParsetInterface::asInteger(line[1]),
+				    itsSim->initSpWindows(names[spw], MEParsetInterface::asInteger(line[0]),
+						    MEParsetInterface::asQuantity(line[1]),
 						    MEParsetInterface::asQuantity(line[2]),
-						    MEParsetInterface::asQuantity(line[3]),
-						    MEParsetInterface::asQuantity(line[3]), line[4]);
+						    MEParsetInterface::asQuantity(line[2]), line[3]);
 			    }
 			    os() << "Successfully defined "<< nSpw << " spectral windows"
 			    << std::endl;

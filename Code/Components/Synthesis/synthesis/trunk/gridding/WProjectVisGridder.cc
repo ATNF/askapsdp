@@ -62,6 +62,9 @@ namespace conrad
 				{
 					double freq=idi->frequency()[chan];
 					itsCMap(i, chan)=cenw+nint(w*freq/itsWScale);
+					if(itsCMap(i, chan)<0) {
+						std::cout << w << " " << freq << " " << itsWScale << " " << itsCMap(i, chan) << std::endl; 
+					}
 					CONRADCHECK(itsCMap(i,chan)<itsNWPlanes, "W scaling error: recommend allowing larger range of w");
 					CONRADCHECK(itsCMap(i,chan)>-1, "W scaling error: recommend allowing larger range of w");
 				}

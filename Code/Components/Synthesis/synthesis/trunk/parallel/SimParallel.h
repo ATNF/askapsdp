@@ -77,14 +77,18 @@ namespace conrad
 		/// @endcode
 		/// The spws parset file is:
 		/// @code
-		/// spws.number         =       7
-		///		spws.spw0             =       [Continuum, 256, 1.420GHz, -1MHz, "XX XY YX YY"]
-		///		spws.spw1             =       [Spectral, 16384, 1.420GHz, -15.626kHz, "XX YY"]
-		///		spws.spw2             =       [Temporal, 16, 1.420GHz, -16MHz, "XX YY"]
-		///		spws.spw3             =       [Temporal0, 4, 1.420GHz, -16MHz, "XX YY"]
-		///		spws.spw4             =       [Temporal1, 4, 1.356GHz, -16MHz, "XX YY"]
-		///		spws.spw5             =       [Temporal2, 4, 1.292GHz, -16MHz, "XX YY"]
-		///		spws.spw6             =       [Temporal3, 4, 1.228GHz, -16MHz, "XX YY"]
+		///		spws.names      = [Continuum, Continuum0, Temporal, Temporal0, Temporal1, Temporal2, Temporal3, Spectral]
+		///
+		///		spws.Continuum  =[ 256, 1.420GHz, -1MHz, "XX XY YX YY"]
+		///		spws.Continuum0 =[ 16, 1.420GHz, -1MHz, "XX XY YX YY"]
+		///
+		///		spws.Temporal   =[ 16, 1.420GHz, -16MHz, "XX YY"]
+		///		spws.Temporal0  =[ 4, 1.420GHz, -16MHz, "XX YY"]
+		///		spws.Temporal1  =[ 4, 1.356GHz, -16MHz, "XX YY"]
+		///		spws.Temporal2  =[ 4, 1.292GHz, -16MHz, "XX YY"]
+		///		spws.Temporal3  =[ 4, 1.228GHz, -16MHz, "XX YY"]
+		///
+		///		spws.Spectral   =[ 16384, 1.420GHz, -15.626kHz, "XX YY"]
 		/// @endcode
 		/// @ingroup parallel
 		class SimParallel : public SynParallel
@@ -133,7 +137,7 @@ namespace conrad
 
 				/// Read miscellaneous definitions for simulation
 				void readSimulation();
-				
+
 				/// Predict data for current model
 				/// @param ds Data set to predict for
 				void predict(const string& ds);
