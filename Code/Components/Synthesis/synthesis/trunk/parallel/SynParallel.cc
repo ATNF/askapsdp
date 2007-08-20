@@ -22,6 +22,7 @@
 #include <casa/OS/Timer.h>
 #include <casa/Utilities/Regex.h>
 #include <casa/BasicSL/String.h>
+#include <casa/OS/Path.h>
 
 #include <conrad/ConradError.h>
 
@@ -57,8 +58,9 @@ namespace conrad
 				// For MPI, send all output to separate log files. Eventually we'll do this
 				// using the log system.
 				std::ostringstream ostr;
-				ostr << itsRank;
-				MWIos::setName ("cimager_tmp.cout" + ostr.str());
+				casa::Path progname(argv[0]);
+				ostr << progname.baseName() << "_tmp.cout" << itsRank;
+				MWIos::setName (ostr.str());
 
 				if (isMaster())
 				{
