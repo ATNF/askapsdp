@@ -46,13 +46,28 @@ namespace conrad
 		/// @ingroup measurementequation
 		void operator<<(conrad::scimath::Solver::ShPtr& solver, const LOFAR::ACC::APS::ParameterSet &parset);
 
+		/// @brief Conversion functions for parset entries
 		class MEParsetInterface
 		{
 			public:
+				/// @brief Interpret string as an integer
+				/// @param s String to be interpreted
 			static int asInteger(const std::string& s);
+			
+			/// @brief Interpret string as a quantity
+			/// @param s String to be interpreted
 			static casa::Quantity asQuantity(const std::string& s);
+
+			/// @brief Interpret string as an MEpoch
+			/// @param s String to be interpreted
 			static casa::MEpoch asMEpoch(const std::vector<std::string>& epoch);
+
+			/// @brief Interpret string as an MDirection
+			/// @param s String to be interpreted 
 			static casa::MDirection asMDirection(const std::vector<std::string>& direction);
+
+			/// @brief Interpret string as an MPosition
+			/// @param s String to be interpreted 
 			static casa::MPosition asMPosition(const std::vector<std::string>& position);
 		};
 

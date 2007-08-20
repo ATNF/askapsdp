@@ -97,7 +97,7 @@ namespace conrad
 				bool itsIsWorker;
 				
 				/// Substitute %w by worker number. This allows workers to do different work!
-				string substituteWorkerNumber(const string& s);
+				std::string substituteWorkerNumber(const std::string& s);
 
 		};
 

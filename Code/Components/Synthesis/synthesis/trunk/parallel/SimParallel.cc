@@ -1,10 +1,6 @@
 /// @file
 ///
-/// @brief Base class for parallel applications
-/// @details
-/// Supports algorithms by providing methods for initialization
-/// of MPI connections, sending and models around.
-/// There is assumed to be one master and many workers.
+/// @brief Class for parallel simulation using CASA NewMSSimulator
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
@@ -35,7 +31,7 @@ namespace conrad
 	{
 
 		SimParallel::SimParallel(int argc, const char** argv,
-		    const ParameterSet& parset) :
+		    const LOFAR::ACC::APS::ParameterSet& parset) :
 			SynParallel(argc, argv), itsParset(parset)
 		{
 			if (isWorker())
