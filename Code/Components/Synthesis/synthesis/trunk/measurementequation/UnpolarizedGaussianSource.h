@@ -13,8 +13,11 @@
 #ifndef GAUSSIAN_SOURCE_COMPONENT_H
 #define GAUSSIAN_SOURCE_COMPONENT_H
 
+// own includes
 #include <measurementequation/UnpolarizedComponent.h>
 
+// std includes
+#include <string>
 
 namespace conrad {
 
@@ -31,6 +34,8 @@ struct UnpolarizedGaussianSource : public UnpolarizedComponent<6> {
 
   /// @brief construct the point source component
   /// @details 
+  /// @param[in] name a name of the component. Will be added to all parameter
+  ///            names (e.g. after direction.ra) 
   /// @param[in] flux flux density in Jy
   /// @param[in] ra offset in right ascension w.r.t. the current phase 
   /// centre (in radians)
@@ -39,8 +44,8 @@ struct UnpolarizedGaussianSource : public UnpolarizedComponent<6> {
   /// @param[in] maj major axis in radians
   /// @param[in] min minor axis in radians
   /// @param[in] pa  position angle in radians
-  UnpolarizedGaussianSource(double flux, double ra, double dec, double maj,
-                         double min, double pa);
+  UnpolarizedGaussianSource(const std::string &name, double flux, double ra, 
+           double dec, double maj, double min, double pa);
   
   /// @brief calculate stokes I visibilities for this component
   /// @details This variant of the method calculates just the visibilities
@@ -66,6 +71,7 @@ struct UnpolarizedGaussianSource : public UnpolarizedComponent<6> {
                     const casa::Vector<casa::Double> &freq,
                     std::vector<casa::AutoDiff<double> > &result) const; 
 private:
+  
   /// @brief actual calculations
   /// @details templated method for actual calculations. Made private, because
   /// it is used and declared in UnpolarizedGaussianSource.cc only

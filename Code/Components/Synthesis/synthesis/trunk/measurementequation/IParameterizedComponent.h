@@ -14,8 +14,11 @@
 #ifndef I_PARAMETERIZED_COMPONENT_H
 #define I_PARAMETERIZED_COMPONENT_H
 
+// own includes
 #include <measurementequation/IComponent.h>
 
+// std includes
+#include <string>
 
 namespace conrad {
 
@@ -30,9 +33,17 @@ namespace synthesis {
 /// @ingroup measurementequation  
 struct IParameterizedComponent : virtual public IComponent {
   /// @brief get number of parameters
-  /// @return a number of parameters  this component depends upon. This is
-  /// a template parameter for this class
-  virtual size_t nParameters() const throw() = 0;   
+  /// @return a number of parameters  this component depends upon. 
+  virtual size_t nParameters() const throw() = 0;
+  
+  /// @brief get the name of the given parameter
+  /// @details All parameters are handled in the synthesis code using their
+  /// string name, which allows to fix or free any of them easily. This method
+  /// allows to obtain this string name using a integer index
+  /// @param[in] index an integer index of the parameter (should be less than
+  /// nParameters).
+  /// @return a const reference to the string name of the parameter 
+  virtual const std::string& parameterName(size_t index) const = 0;
 };
 
 } // namespace synthesis

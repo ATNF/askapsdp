@@ -138,8 +138,7 @@ namespace conrad
           solver1.addNormalEquations(ne);
           solver1.setAlgorithm("SVD");
           solver1.solveNormalEquations(q);  
-          std::cout<<"Q="<<q.cond()<<" "<<solver1.parameters()<<std::endl;
-          CPPUNIT_ASSERT(abs(q.cond()/2.70123e+12-1.0)<0.001);
+          CPPUNIT_ASSERT(abs(q.cond()/4.99482e+12-1.0)<0.001);
         }
 
         void testSolveNormalEquationsFix()
@@ -156,8 +155,7 @@ namespace conrad
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q); 
-            std::cout<<"Q="<<q.cond()<<" "<<solver1.parameters()<<std::endl;
-            CPPUNIT_ASSERT(abs(q.cond()/3.28578e+09-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/6.07565e+09-1.0)<0.001);
           }
           {
             Quality q;
@@ -167,7 +165,7 @@ namespace conrad
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
             solver1.solveNormalEquations(q);
-            CPPUNIT_ASSERT(abs(q.cond()/2.92807e+09-1.0)<0.001);
+            CPPUNIT_ASSERT(abs(q.cond()/3.54341e+09-1.0)<0.001);
           }
           {
             Quality q;

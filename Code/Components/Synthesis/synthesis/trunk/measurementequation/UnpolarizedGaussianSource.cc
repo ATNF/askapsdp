@@ -22,6 +22,8 @@ namespace synthesis {
 
 /// @brief construct the point source component
 /// @details 
+/// @param[in] name a name of the component. Will be added to all parameter
+///            names (e.g. after direction.ra) 
 /// @param[in] flux flux density in Jy
 /// @param[in] ra offset in right ascension w.r.t. the current phase 
 /// centre (in radians)
@@ -30,7 +32,8 @@ namespace synthesis {
 /// @param[in] maj major axis in radians
 /// @param[in] min minor axis in radians
 /// @param[in] pa  position angle in radians
-UnpolarizedGaussianSource::UnpolarizedGaussianSource(double flux, double ra, 
+UnpolarizedGaussianSource::UnpolarizedGaussianSource(const std::string &name,
+        double flux, double ra, 
         double dec, double maj, double min, double pa)  : 
           UnpolarizedComponent<6>(casa::RigidVector<double, 6>()) 
 {
@@ -41,6 +44,13 @@ UnpolarizedGaussianSource::UnpolarizedGaussianSource(double flux, double ra,
   params(3)=maj;
   params(4)=min;
   params(5)=pa;
+  
+  casa::RigidVector<std::string, 6> &names = parameterNames();
+  const char *nameTemplates[] = {"flux.i","direction.ra","direction.dec",
+                 "shape.bmaj","shape.bmin","shape.bpa"};
+  for (size_t i=0;i<6;++i) {
+       names(i)=std::string(nameTemplates[i])+name;
+  }               
 }
 
 /// @brief calculate stokes I visibilities for this component
@@ -99,7 +109,6 @@ void UnpolarizedGaussianSource::calcGaussian(
   const T bmaj=params(3);
   const T bmin=params(4);
   const T bpa=params(5);
-  
   const T n =  casa::sqrt(T(1.0) - (ra*ra+dec*dec));
   const T delay = casa::C::_2pi * (ra * uvw(0) + dec * uvw(1) + 
                                    n * uvw(2))/casa::C::c;
@@ -117,8 +126,8 @@ void UnpolarizedGaussianSource::calcGaussian(
         const casa::Double currentFreq = *ci;
         const T phase = delay * currentFreq;
         const T decorr = exp( - r * currentFreq * currentFreq);
-        *it = flux * cos(phase);
-        *(++it) = flux * sin(phase);
+        *it = flux * decorr * cos(phase);
+        *(++it) = flux *decorr * sin(phase);
       }
 
 }

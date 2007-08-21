@@ -109,11 +109,11 @@ void ComponentEquation::fillComponentCache(
           
           if((bmaj>0.0)&&(bmin>0.0)) {
              // this is a gaussian
-             compIt->reset(new UnpolarizedGaussianSource(fluxi,ra,dec,bmaj,
+             compIt->reset(new UnpolarizedGaussianSource(cur,fluxi,ra,dec,bmaj,
                             bmin,bpa));
           } else {
              // this is a point source
-             compIt->reset(new UnpolarizedPointSource(fluxi,ra,dec));
+             compIt->reset(new UnpolarizedPointSource(cur,fluxi,ra,dec));
           }
         }
   
@@ -154,110 +154,97 @@ void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
 {
   const std::vector<IParameterizedComponentPtr> &compList = 
            itsComponents.value(*this,&ComponentEquation::fillComponentCache);
-   
-  std::vector<std::string> completions(parameters().completions("flux.i"));
-      
+  
+  // in the future we should move the iteration to the higher level and
+  // deal here with the accessor only. It will reduce the number of repeated
+  // iterations required         
   for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
 
-       const casa::Vector<double>& freq=itsIdi->frequency();
-       const double time=itsIdi->time();
-
-       const uint nParameters=6;
-
-// Define AutoDiff's for the output visibilities.
-       casa::Vector<casa::AutoDiff<double> > av(2*freq.nelements(),
-                         casa::AutoDiff<double>(0.,nParameters));
-        
+      const casa::Vector<double>& freq=itsIdi->frequency();
+      CONRADDEBUGASSERT(freq.nelements()!=0);
+      const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsIdi->uvw();
+                 
 // Set up arrays to hold the output values
 // Two values (complex) per row, channel, pol
-        uint nData=itsIdi->nRow()*freq.nelements()*2;
-        casa::Vector<casa::Double> raDeriv(nData);
-        casa::Vector<casa::Double> decDeriv(nData);
-        casa::Vector<casa::Double> fluxiDeriv(nData);
-        casa::Vector<casa::Double> bmajDeriv(nData);
-        casa::Vector<casa::Double> bminDeriv(nData);
-        casa::Vector<casa::Double> bpaDeriv(nData);
-        casa::Vector<casa::Double> residual(nData);
-        casa::Vector<double> weights(nData);
-
-        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
-        {
-          DesignMatrix designmatrix(parameters());
-
-          uint offset=0;
-
-          string raName("direction.ra"+(*it));
-          string decName("direction.dec"+(*it));
-          string fluxName("flux.i"+(*it));
-          string bmajName("shape.bmaj"+(*it));
-          string bminName("shape.bmin"+(*it));
-          string bpaName("shape.bpa"+(*it));
-
-// Define AutoDiff's for the three unknown parameters
-          casa::AutoDiff<double> ara(parameters().scalarValue(raName), nParameters, 0);
-          casa::AutoDiff<double> adec(parameters().scalarValue(decName), nParameters, 1);
-          casa::AutoDiff<double> afluxi(parameters().scalarValue(fluxName), nParameters, 2);
-          casa::AutoDiff<double> abmaj(parameters().scalarValue(bmajName), nParameters, 3);
-          casa::AutoDiff<double> abmin(parameters().scalarValue(bminName), nParameters, 4);
-          casa::AutoDiff<double> abpa(parameters().scalarValue(bpaName), nParameters, 5);
-
-          for (uint row=0;row<itsIdi->nRow();row++)
-          {
-
-            if((abmaj>0.0)&&(abmin>0.0))
-            {
-              this->calcRegularGauss<casa::AutoDiff<double> >(ara, adec,
-                afluxi, abmaj, abmin, abpa, freq,
-                itsIdi->uvw()(row)(0),
-                itsIdi->uvw()(row)(1),
-                itsIdi->uvw()(row)(3),
-                av);
-            }
-            else
-            {
-              this->calcRegularPoint<casa::AutoDiff<double> >(ara, adec,
-                afluxi, freq,
-                itsIdi->uvw()(row)(0),
-                itsIdi->uvw()(row)(1),
-                itsIdi->uvw()(row)(3),
-                av);
-            }
-
-            for (uint i=0;i<freq.nelements();i++)
-            {
-              residual(2*i+offset)=real(itsIdi->visibility()(row,i,0))-av(2*i).value();
-              residual(2*i+1+offset)=imag(itsIdi->visibility()(row,i,0))-av(2*i+1).value();
-              raDeriv(2*i+offset)=av[2*i].derivative(0);
-              raDeriv(2*i+1+offset)=av(2*i+1).derivative(0);
-              decDeriv(2*i+offset)=av[2*i].derivative(1);
-              decDeriv(2*i+1+offset)=av(2*i+1).derivative(1);
-              fluxiDeriv(2*i+offset)=av[2*i].derivative(2);
-              fluxiDeriv(2*i+1+offset)=av(2*i+1).derivative(2);
-              bmajDeriv(2*i+offset)=av[2*i].derivative(3);
-              bmajDeriv(2*i+1+offset)=av(2*i+1).derivative(3);
-              bminDeriv(2*i+offset)=av[2*i].derivative(4);
-              bminDeriv(2*i+1+offset)=av(2*i+1).derivative(4);
-              bpaDeriv(2*i+offset)=av[2*i].derivative(5);
-              bpaDeriv(2*i+1+offset)=av(2*i+1).derivative(5);
-              weights(2*i+offset)=1.0;
-              weights(2*i+1+offset)=1.0;
-            }
-
-            offset+=2*freq.nelements();
-          }
-// Now we can add the design matrix, residual, and weights
-          designmatrix.addDerivative(raName, raDeriv);
-          designmatrix.addDerivative(decName, decDeriv);
-          designmatrix.addDerivative(fluxName, fluxiDeriv);
-          designmatrix.addDerivative(bmajName, bmajDeriv);
-          designmatrix.addDerivative(bminName, bminDeriv);
-          designmatrix.addDerivative(bpaName, bpaDeriv);
-          designmatrix.addResidual(residual, weights);
-
-          ne.add(designmatrix);
-        }
+      const casa::uInt nData=itsIdi->nRow()*freq.nelements()*2;
+      CONRADDEBUGASSERT(nData!=0);
+      casa::Vector<casa::Double> residual(nData);
+      // initialize residuals with the observed visibilities
+                
+      uint offset=0;
+      for (casa::uInt row=0;row<itsIdi->nRow(); ++row,offset+=2*freq.nelements()) {
+           casa::Vector<casa::Double> residSlice = 
+                           residual(casa::Slice(offset,2*freq.nelements()));
+           casa::Vector<casa::Complex> visSlice = 
+                           itsIdi->visibility().xyPlane(0).row(row);
+           casa::Vector<casa::Complex>::const_iterator visIt = visSlice.begin();
+                                
+           for (casa::Vector<casa::Double>::iterator residIt = residSlice.begin();
+                      residIt!=residSlice.end() && visIt!=visSlice.end(); 
+                      ++residIt,++visIt) {
+                // calculate residuals
+                *residIt = real(*visIt);
+                ++residIt;
+                *(residIt) = imag(*visIt);
+           }
       }
-    };
+                
+      DesignMatrix designmatrix(parameters());
+      for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
+                compList.begin(); compIt!=compList.end();++compIt) {
+           CONRADDEBUGASSERT(*compIt); 
+           const size_t nParameters = (*compIt)->nParameters();
+           // Define AutoDiff's for the output visibilities.
+           vector<casa::AutoDiff<double> > visDerivBuffer(2*freq.nelements(),
+                         casa::AutoDiff<double>(0.,nParameters));
+           casa::Array<casa::Double> derivatives(casa::IPosition(2,nData,nParameters));
+      
+           offset=0;
+           // current component
+           const IParameterizedComponent& curComp = *(*compIt);
+           for (casa::uInt row=0;row<itsIdi->nRow();
+                                 ++row,offset+=2*freq.nelements()) {
+                curComp.calculate(uvw[row],freq,casa::Stokes::I,visDerivBuffer);
+                // copy derivatives from buffer for each parameter
+                for (casa::uInt par=0; par<nParameters; ++par) {
+                     casa::Vector<casa::Double> derivSlice = 
+                           derivatives(casa::IPosition(2,offset,par), 
+                              casa::IPosition(2,offset+2*freq.nelements()-1,par));
+                     vector<casa::AutoDiff<double> >::const_iterator bufIt =
+                           visDerivBuffer.begin();
+                     for (casa::Vector<casa::Double>::iterator sliceIt = 
+                          derivSlice.begin(); sliceIt!=derivSlice.end() && 
+                          bufIt!=visDerivBuffer.end(); ++sliceIt,++bufIt) {
+                          
+                          // copy derivatives for each spectral channel (both real and 
+                          // imaginary parts)
+                          *sliceIt = bufIt->derivative(par);
+                     }                              
+                }
+                // add contribution to residuals
+                casa::Vector<casa::Double> residSlice = 
+                           residual(casa::Slice(offset,2*freq.nelements()));
+                vector<casa::AutoDiff<double> >::const_iterator bufIt =
+                           visDerivBuffer.begin();
+                for (casa::Vector<casa::Double>::iterator residIt = residSlice.begin();
+                     residIt!=residSlice.end() && bufIt!=visDerivBuffer.end();
+                     ++residIt,++bufIt) {
+                     *(residIt) -= bufIt->value();
+                }
+
+           }
+           // Now we can add the design matrix, residual, and weights
+           for (casa::uInt par=0; par<nParameters; ++par) {
+                designmatrix.addDerivative((*compIt)->parameterName(par),
+                       derivatives(casa::IPosition(2,0,par),
+                                   casa::IPosition(2,nData-1,par)));
+           }
+      }
+      casa::Vector<double> weights(nData,1.);
+      designmatrix.addResidual(residual, weights);
+      ne.add(designmatrix);
+  }
+}
 
 // This can be done easily by hand (and we should do for production) but I'm leaving
 // it in this form for the moment to show how the differentiation is done using

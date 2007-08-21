@@ -53,15 +53,20 @@ void UnpolarizedPointSource::calcPoint(
 
 /// @brief construct the point source component
 /// @details 
+/// @param[in] name a name of the component. Will be added to all parameter
+///            names (e.g. after direction.ra) 
 /// @param[in] flux flux density in Jy
 /// @param[in] ra offset in right ascension w.r.t. the current phase 
 /// centre (in radians)
 /// @param[in] dec offset in declination w.r.t. the current phase
 /// centre (in radians)
-UnpolarizedPointSource::UnpolarizedPointSource(double flux, double ra, 
-          double dec) : 
+UnpolarizedPointSource::UnpolarizedPointSource(const std::string &name, 
+          double flux, double ra, double dec) : 
           UnpolarizedComponent<3>(casa::RigidVector<double, 3>(flux,ra,dec)) 
-              {}
+{
+  parameterNames() = casa::RigidVector<std::string, 3>("flux.i"+name,
+            "direction.ra"+name, "direction.dec"+name);
+}
 
               
 /// @brief calculate stokes I visibilities for this component
