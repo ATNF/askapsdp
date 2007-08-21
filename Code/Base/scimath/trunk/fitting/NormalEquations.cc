@@ -90,11 +90,16 @@ namespace conrad
             const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
             if(first)
             {
-              itsDataVector[*iterRow]=sum(((aV)*(dm.residual()[iDataSet])));
+              // we need to initialize the Vector by either resizing or
+              // assigning a vector of size 1 as below
+              itsDataVector[*iterRow] = casa::Vector<double>(1, 
+                            sum(((aV)*(dm.residual()[iDataSet]))));
               first=false;
             }
             else
             {
+              // operator+= will add constant to every element of the vector,
+              // we have just one element here
               itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
             }
           }
@@ -178,11 +183,16 @@ namespace conrad
             const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
             if(first)
             {
-              itsDataVector[*iterRow]=sum(((aV)*(dm.residual()[iDataSet])));
+              // we need to initialize the Vector by either resizing or
+              // assigning a vector of size 1 as below
+              itsDataVector[*iterRow] = casa::Vector<double>(1,
+                            sum(((aV)*(dm.residual()[iDataSet]))));
               first=false;
             }
             else
             {
+              // operator+= will add constant to every element of the vector,
+              // we have just one element here
               itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
             }
           }
@@ -200,6 +210,11 @@ namespace conrad
           }
         }
       }
+      /*
+      for (std::map<std::string, casa::Vector<double> >::const_iterator tci=
+           itsDataVector.begin();tci!=itsDataVector.end(); ++tci)
+              std::cout<<tci->first<<" "<<tci->second.nelements()<<std::endl;
+      */
 // Outside loops are over parameter names
       for (iterCol=names.begin();iterCol!=names.end();iterCol++)
       {
