@@ -340,21 +340,21 @@ namespace conrad
       for (iterRow=itsDataVector.begin();iterRow!=itsDataVector.end();iterRow++)
       {
         itsDataVector[iterRow->first].resize();
+        itsDataVector[iterRow->first]=casa::Vector<double>(0);
         itsShape[iterRow->first].resize(0);
+        itsShape[iterRow->first]=casa::IPosition();
         itsReference[iterRow->first].resize(0);
+        itsReference[iterRow->first]=casa::IPosition();
         itsNormalMatrixSlice[iterRow->first].resize();
+        itsNormalMatrixSlice[iterRow->first]=casa::Vector<double>(0);
         itsNormalMatrixDiagonal[iterRow->first].resize();
+        itsNormalMatrixDiagonal[iterRow->first]=casa::Vector<double>(0);
         for (iterCol=itsNormalMatrix[iterRow->first].begin();iterCol!=itsNormalMatrix[iterRow->first].end();iterCol++)
         {
           itsNormalMatrix[iterRow->first][iterCol->first].resize();
+          itsNormalMatrix[iterRow->first][iterCol->first]=casa::Matrix<double>(0,0);
         }
       }
-      itsNormalMatrix.clear();
-      itsNormalMatrixSlice.clear();
-      itsNormalMatrixDiagonal.clear();
-      itsDataVector.clear();
-      itsShape.clear();
-      itsReference.clear();
     }
 
     void NormalEquations::add(const string& name, const casa::Matrix<double>& normalmatrix,

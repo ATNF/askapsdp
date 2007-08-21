@@ -70,6 +70,7 @@ namespace conrad
 
     void PolynomialEquation::predict()
     {
+    	itsModel.set(0.0);
 
       vector<string> completions(parameters().completions("poly"));
       if(completions.size()>0) {
@@ -85,7 +86,9 @@ namespace conrad
 
     void PolynomialEquation::calcEquations(NormalEquations& ne)
     {
-      vector<string> completions(parameters().completions("poly"));
+    	itsModel.set(0.0);
+
+    	vector<string> completions(parameters().completions("poly"));
       if(completions.size()>0) {
         DesignMatrix designmatrix(parameters());
 
