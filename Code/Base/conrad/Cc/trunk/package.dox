@@ -1,0 +1,24 @@
+/// @brief The global CONRAD namespace. 
+///
+/// Any CONRAD package needs to be in this namespace
+///
+namespace conrad {};
+
+/// @mainpage The standard CONRAD package
+///
+/// @section Introduction
+/// This package provides essential c++ functionality, e.g. exception handling and
+/// operator<< extensions.
+/// @section Errors
+/// This package provides a base class for exceptions all othe packages should derive their specific exceptions from (conrad::ConradError).
+///
+/// Three macros are provided for throwing exceptions:
+/// 
+///  - #CONRADTHROW
+///  - #CONRADCHECK
+///  - #CONRADASSERT
+///
+/// @section Logging
+/// @todo Needs to be implemented on top of log4cxx
+///
+/// @copyright 2007 CONRAD, All Rights Reserved.

@@ -18,7 +18,7 @@ namespace conrad {
   public:
     /// Constructor taking a message
     explicit ConradError(const std::string& message);
-    /// epty destructor
+    /// empty destructor
     virtual ~ConradError() throw();
   };
 
@@ -28,6 +28,7 @@ namespace conrad {
   public:
     /// Constructor taking a message
     explicit CheckError(const std::string& message);
+    /// empty destructor
     virtual ~CheckError() throw();
   };
 
@@ -37,13 +38,14 @@ namespace conrad {
   public:
     /// Constructor taking a message
     explicit AssertError(const std::string& message);
+    /// empty destructor
     virtual ~AssertError() throw();
   };
 
 
   /// Macro to throw an exception where the exception text can be formatted.
   /// For example:
-  /// THROWEXC(ConradError, "File " << fileName << " could not be opened");
+  /// CONRADTHROW(ConradError, "File " << fileName << " could not be opened");
   //  Note that a do/while is used to be able to use the macro everywhere.
 #define CONRADTHROW(exc,messageStream)   \
     {					 \

@@ -47,10 +47,12 @@ namespace conrad {
 
 
 namespace std {
+  /// @name operator<< Extensions
   /// Print the contents of a vector or list.
+  ///
   /// Enclose it in square brackets, using a comma as separator.
   /// \note operator<<() must be defined for type \c T.
-  ///@{
+  //@{
   template<typename T>
   inline ostream& operator<<(ostream& os, const vector<T>& c)
   {
@@ -63,7 +65,7 @@ namespace std {
     conrad::printContainer(os, c, ",", "[", "]");
     return os;
   }
-  ///@}
+  //@}
 } // end namespace std
 
 
