@@ -33,10 +33,12 @@ namespace conrad
       itsCCenter=itsCSize/2-1;                    // 511
       itsC.resize(itsCSize, itsCSize, 1);
       itsC.set(0.0);
+			double volume=0.0;
       for (int ix=0;ix<itsCSize;ix++)
       {
         double nux=std::abs(double(ix-itsCCenter))/double(itsSupport*itsOverSample);
         double fx=grdsf(nux)*(1.0-std::pow(nux,2));
+      	volume+=fx;
         for (int iy=0;iy<itsCSize;iy++)
         {
           double nuy=std::abs(double(iy-itsCCenter))/double(itsSupport*itsOverSample);
@@ -44,6 +46,9 @@ namespace conrad
           itsC(ix,iy,0)=fx*fy;
         }
       }
+			volume/=double(itsOverSample);
+			CONRADCHECK(volume>0.0, "Integral of convolution function is zero");
+      itsC/=casa::Complex(volume*volume);
     }
     
     /// The Convolution function correction in image space is the

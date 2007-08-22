@@ -121,8 +121,6 @@ namespace conrad
 			delay.resize(nSamples);
 			outUVW.resize(nSamples);
 
-			/// @todo Deal with changing pointing
-			casa::UVWMachine machine(out, idi->pointingDir1()(0), false, true);
 			casa::Vector<double> uvw(3);
 			for (int row=0; row<nSamples; row++)
 			{
@@ -130,6 +128,8 @@ namespace conrad
 				for (int i=0; i<2; i++)
 					uvw(i)=-idi->uvw()(row)(i);
 				uvw(2)=idi->uvw()(row)(2);
+				/// @todo Deal with changing pointing
+				casa::UVWMachine machine(out, idi->pointingDir1()(0), false, true);
 				machine.convertUVW(delay(row), uvw);
 				for (int i=0; i<3; i++)
 					outUVW(row)(i)=uvw(i);
