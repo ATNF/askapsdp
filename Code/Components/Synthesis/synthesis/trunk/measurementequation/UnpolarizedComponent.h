@@ -38,7 +38,7 @@ struct UnpolarizedComponent : public ParameterizedComponent<NComp>,
   
   /// @brief construct the object with a given parameters
   /// @details
-  /// @param[in] parameters of the component (meaning is defined in the
+  /// @param[in] param parameters of the component (meaning is defined in the
   /// derived classes)
   UnpolarizedComponent(const casa::RigidVector<double, NComp> &param) :
             ParameterizedComponent<NComp>(param) {}

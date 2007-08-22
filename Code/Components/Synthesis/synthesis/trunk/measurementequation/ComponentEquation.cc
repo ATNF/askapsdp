@@ -125,7 +125,7 @@ void ComponentEquation::predict()
            itsComponents.value(*this,&ComponentEquation::fillComponentCache);
       
     // in the future we should move the iteration to the higher level and
-    // deal hear with the accessor only. It will reduce the number of repeated
+    // deal here with the accessor only. It will reduce the number of repeated
     // iterations required         
     for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
          const casa::Vector<casa::Double>& freq=itsIdi->frequency();
