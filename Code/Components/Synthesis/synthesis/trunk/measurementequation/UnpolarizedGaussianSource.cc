@@ -135,3 +135,4 @@ void UnpolarizedGaussianSource::calcGaussian(
 } // namespace conrad
  
 } // namespace synthesis
+
