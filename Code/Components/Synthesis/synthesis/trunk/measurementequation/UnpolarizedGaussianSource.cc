@@ -114,7 +114,7 @@ void UnpolarizedGaussianSource::calcGaussian(
                                    n * uvw(2))/casa::C::c;
   // exp(-a*x^2) transforms to exp(-pi^2*u^2/a)
   // a=4log(2)/FWHM^2 so scaling = pi^2*FWHM/(4log(2))
-  const T scale = std::pow(casa::C::pi,2)/(4*log(2));
+  const T scale = std::pow(casa::C::pi,2)/(4*log(2.0));
   const T up=( cos(bpa)*uvw(0) + sin(bpa)*uvw(1))/casa::C::c;
   const T vp=(-sin(bpa)*uvw(0) + cos(bpa)*uvw(1))/casa::C::c;
   const T r=(bmaj*bmaj*up*up+bmin*bmin*vp*vp)*scale;

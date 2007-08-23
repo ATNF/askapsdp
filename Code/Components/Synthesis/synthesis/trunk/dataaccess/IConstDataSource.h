@@ -111,8 +111,7 @@ public:
 	/// inline methods properly
 	inline boost::shared_ptr<IConstDataIterator> createConstIterator(const
 		    IDataConverterPtr &conv) const { 
-            return createConstIterator(static_cast<const 
-	            IDataConverterConstPtr&>(conv)); 
+            return createConstIterator((const IDataConverterConstPtr&)conv); 
         }
 
 	/// get iterator over a selected part of the dataset represented
@@ -144,8 +143,7 @@ public:
 	/// inline methods properly
 	inline boost::shared_ptr<IConstDataIterator> createConstIterator(const
 		    IDataSelectorPtr &sel) const { 
-            return createConstIterator(static_cast<const 
-                    IDataSelectorConstPtr&>(sel)); 
+            return createConstIterator((const IDataSelectorConstPtr&)sel); 
         }
 
 	/// get iterator over a selected part of the dataset represented
