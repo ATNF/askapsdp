@@ -8,7 +8,7 @@
 /// @defgroup parallel Support for writing parallel applications
 
 /// The package namespace
-namespace synthesis {};
+namespace conrad::synthesis {};
 
 /// @mainpage CONRAD synthesis package
 ///
