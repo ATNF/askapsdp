@@ -170,7 +170,7 @@ namespace conrad
 				    vector<double> xy(parset.getDoubleVector(os.str()));
 				    x[feed]=xy[0];
 				    y[feed]=xy[1];
-				    pol[feed]="X";
+				    pol[feed]="X Y";
 			    }
 			    if(parset.isDefined("feeds.spacing"))
 			    {
@@ -202,7 +202,7 @@ namespace conrad
 					    ostringstream oos;
 					    oos << "sources." << sources[i]<< ".direction";
 					    os() << "Simulating source "<< sources[i] << std::endl;
-					    casa::MDirection direction=MEParsetInterface::asMDirection(parset.getStringVector(oos.str()));
+					    casa::MDirection direction(MEParsetInterface::asMDirection(parset.getStringVector(oos.str())));
 					    itsSim->initFields(casa::String(sources[i]), direction, casa::String(""));
 				    }
 				    {

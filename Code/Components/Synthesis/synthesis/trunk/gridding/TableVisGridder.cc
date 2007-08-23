@@ -117,6 +117,7 @@ namespace conrad
 			casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0,
 			    "rad");
 			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
+			std::cout << out << idi->pointingDir1()(0) << std::endl;
 			const int nSamples = idi->uvw().size();
 			delay.resize(nSamples);
 			outUVW.resize(nSamples);
@@ -129,7 +130,7 @@ namespace conrad
 					uvw(i)=-idi->uvw()(row)(i);
 				uvw(2)=idi->uvw()(row)(2);
 				/// @todo Deal with changing pointing
-				casa::UVWMachine machine(out, idi->pointingDir1()(0), false, true);
+				casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
 				machine.convertUVW(delay(row), uvw);
 				for (int i=0; i<3; i++)
 					outUVW(row)(i)=uvw(i);

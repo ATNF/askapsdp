@@ -117,7 +117,8 @@ namespace conrad
 			casa::Quantity::read(lat, direction[1]);
 			casa::MDirection::Types type;
 			casa::MDirection::getType(type, direction[2]);
-			casa::MDirection dir(lng, lat, type);
+			casa::MDirection dir(lng, lat, casa::MDirection::J2000);
+	    std::cout << dir << casa::MDirection::showType(dir.type()) << " " << type << " " << casa::MDirection::showType(casa::MDirection::J2000) << std::endl;
 			return dir;
 		}
 
