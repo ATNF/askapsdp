@@ -28,7 +28,8 @@ namespace conrad
 
 		{
 			CONRADCHECK(diameter>0.0, "Blockage must be positive");
-			CONRADCHECK(diameter>blockage, "Antenna diameter must be greater than blockage");
+			CONRADCHECK(diameter>blockage,
+			    "Antenna diameter must be greater than blockage");
 			CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
 			CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
 		}
@@ -63,10 +64,10 @@ namespace conrad
 				{
 					double freq=idi->frequency()[chan];
 					itsCMap(i, chan)=feed+itsMaxFeeds*(chan*itsNWPlanes+(cenw+nint(w*freq/itsWScale)));
-					CONRADCHECK(itsCMap(i,chan)<(itsNWPlanes*nChan*itsMaxFeeds),
-							"W scaling error: recommend allowing larger range of w");
-					CONRADCHECK(itsCMap(i,chan)>-1,
-							"W scaling error: recommend allowing larger range of w");
+					CONRADCHECK(itsCMap(i, chan)<(itsNWPlanes*nChan*itsMaxFeeds),
+					    "W scaling error: recommend allowing larger range of w");
+					CONRADCHECK(itsCMap(i, chan)>-1,
+					    "W scaling error: recommend allowing larger range of w");
 				}
 			}
 			if (itsSupport!=0)
@@ -80,43 +81,44 @@ namespace conrad
 			casa::FFTServer<casa::Float,casa::Complex> ffts;
 			itsSupport=0;
 
+			/// These are the actual cell sizes used
+			float cellx=1.0/(float(shape(0))*cellSize(0));
+			float celly=1.0/(float(shape(1))*cellSize(1));
+
 			/// Limit the size of the convolution function since
 			/// we don't need it finely sampled in image space. This
 			/// will reduce the time taken to calculate it.
-			int nx=std::min(itsMaxSupport, shape(0)/itsOverSample);
-			int ny=std::min(itsMaxSupport, shape(1)/itsOverSample);
-			int cenx=nx/2;
-			int ceny=ny/2;
+			int nx=std::min(itsMaxSupport, shape(0));
+			int ny=std::min(itsMaxSupport, shape(1));
+			/// We want nx * ccellx = overSample * shape(0) * cellx
 
-			casa::Vector<float> ccfx(nx);
-			casa::Vector<float> ccfy(ny);
-			for (int ix=0; ix<nx; ix++)
+			// Find the actual cellsizes in x and y (radians) after over
+			// oversampling (in uv space)
+			float ccellx=float(itsOverSample)*float(shape(0))*cellx/float(nx);
+			float ccelly=float(itsOverSample)*float(shape(1))*celly/float(ny);
+
+			int qnx=nx/itsOverSample;
+			int qny=ny/itsOverSample;
+
+			casa::Vector<float> ccfx(qnx);
+			casa::Vector<float> ccfy(qny);
+			for (int ix=0; ix<qnx; ix++)
 			{
-				float nux=std::abs(float(ix-cenx))/float(nx/2);
-				ccfx(ix)=grdsf(nux)/float(nx);
+				float nux=std::abs(float(ix-qnx/2))/float(qnx/2);
+				ccfx(ix)=grdsf(nux)/float(qnx);
 			}
-			for (int iy=0; iy<ny; iy++)
+			for (int iy=0; iy<qny; iy++)
 			{
-				float nuy=std::abs(float(iy-ceny))/float(ny/2);
-				ccfy(iy)=grdsf(nuy)/float(ny);
+				float nuy=std::abs(float(iy-qny/2))/float(qny/2);
+				ccfy(iy)=grdsf(nuy)/float(qny);
 			}
-
-			// Now we step through the w planes, starting the furthest
-			// out. We calculate the support for that plane and use it
-			// for all the others.
-			// We pad here to do sinc interpolation of the convolution
-			// function in uv space
-			casa::Matrix<casa::Complex> thisPlane(nx*itsOverSample, ny*itsOverSample);
-
-			float cellx=1.0/(float(nx)*cellSize(0));
-			float celly=1.0/(float(ny)*cellSize(1));
 
 			for (int feed=0; feed<itsMaxFeeds; feed++)
 			{
 				for (int chan=0; chan<nChan; chan++)
 				{
 					/// Make the disk for this channel
-					casa::Matrix<casa::Complex> disk(nx*itsOverSample, ny*itsOverSample);
+					casa::Matrix<casa::Complex> disk(nx, ny);
 					disk.set(0.0);
 					/// Calculate the size of one cell in meters
 					double cell=cellSize(0)*(casa::C::c/idi->frequency()[chan])/double(itsOverSample);
@@ -125,26 +127,27 @@ namespace conrad
 					/// Slope is the delay per m 
 					double ax=2.0f*casa::C::pi*cell*slope(0, feed)*idi->frequency()[chan]/casa::C::c;
 					double ay=2.0f*casa::C::pi*cell*slope(1, feed)*idi->frequency()[chan]/casa::C::c;
-					double sumDisk=0.0;
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
 					for (int ix=0; ix<nx; ix++)
 					{
-						double nux=double(ix-cenx);
-						double nux2=std::pow(std::abs(nux), 2);
+						double nux=double(ix-nx/2);
+						double nux2=nux*nux;
 						for (int iy=0; iy<ny; iy++)
 						{
-							double nuy=double(iy-ceny);
-							double nuy2=std::pow(std::abs(nuy), 2);
+							double nuy=double(iy-ny/2);
+							double nuy2=nuy*nuy;
 							double r=nux2+nuy2;
-							if ((r>rmin)&&(r<rmax))
+							if ((r>=rmin)&&(r<=rmax))
 							{
 								double phase=ax*nux+ay*nuy;
 								disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
-								sumDisk+=1.0;
 							}
 						}
 					}
+					// Ensure that there is always one point filled
+					disk(nx/2,ny/2)=casa::Complex(1.0);										
+					
 					for (uint iy=0; iy<ny; iy++)
 					{
 						casa::Array<casa::Complex> vec(disk.column(iy));
@@ -156,79 +159,88 @@ namespace conrad
 						ffts.fft(vec, true);
 					}
 					disk=disk*conj(disk);
+					float peak=casa::max(casa::real(disk));
+					CONRADCHECK(peak>0.0, "Synthetic primary beam is empty");
+					disk/=casa::Complex(peak);
+					
 					/// Calculate the total convolution function including
 					/// the w term and the antenna convolution function
+					casa::Matrix<casa::Complex> thisPlane(nx, ny);
+
 					for (int iw=0; iw<itsNWPlanes; iw++)
 					{
-
 						thisPlane.set(0.0);
 
 						float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
 						double freq=idi->frequency()[chan];
 						int zIndex=feed+itsMaxFeeds*(chan*itsNWPlanes+iw);
-						int zFlipIndex=feed+itsMaxFeeds*(chan*itsNWPlanes
-						    +(itsNWPlanes-1-iw));
 
-						for (int iy=ceny-ny/2; iy<ceny+ny/2; iy++)
+						// Loop over the central nx, ny region, setting it to the product
+						// of the phase screen and the spheroidal function
+						for (int iy=0; iy<qny; iy++)
 						{
-							float y2=float(iy-ceny)*celly;
+							float y2=float(iy-qny/2)*ccelly;
 							y2*=y2;
-							for (int ix=cenx-nx/2; ix<cenx+nx/2; ix++)
+							for (int ix=0; ix<qnx; ix++)
 							{
-								float x2=float(ix-cenx)*cellx;
+								float x2=float(ix-qnx/2)*ccellx;
 								x2*=x2;
 								float r2=x2+y2;
 								float phase=w*(1.0-sqrt(1.0-r2));
-								casa::Complex wt=disk(ix, iy)*casa::Complex(ccfx(iy-ceny+ny/2)
-								    *ccfy(ix-cenx+nx/2));
-								thisPlane(ix, iy)=wt*casa::Complex(cos(phase), -sin(phase));
+								casa::Complex wt=disk(ix, iy)*casa::Complex(ccfx(iy)*ccfy(ix));
+								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(cos(phase), -sin(phase));
 							}
 						}
+						// At this point, we have the phase screen multiplied by the spheroidal
+						// function, sampled on larger cellsize (itsOverSample larger) in image
+						// space. Only the inner qnx, qny pixels have a non-zero value
+
 						// Now we have to calculate the Fourier transform to get the
 						// convolution function in uv space
-						// @todo Replace ffts by smarter versions - real/complex and FFTW
-						for (int iy=0; iy<itsOverSample*ny; iy++)
+						for (int iy=0; iy<ny; iy++)
 						{
 							casa::Array<casa::Complex> vec(thisPlane.column(iy));
 							ffts.fft(vec, true);
 						}
-						for (int ix=0; ix<itsOverSample*nx; ix++)
+						for (int ix=0; ix<nx; ix++)
 						{
 							casa::Array<casa::Complex> vec(thisPlane.row(ix));
 							ffts.fft(vec, true);
 						}
+						// Now thisPlane is filled with convolution function
+						// sampled on a finer grid in u,v
+						//
 						// If the support is not yet set, find it and size the
 						// convolution function appropriately
 						if (itsSupport==0)
 						{
 							// Find the support by starting from the edge and
 							// working in
-							for (int ix=0; ix<itsOverSample*cenx; ix++)
+							for (int ix=0; ix<nx/2; ix++)
 							{
-								if (abs(thisPlane(ix, itsOverSample*ceny))>itsCutoff)
+								if (abs(thisPlane(ix, ny/2))>itsCutoff)
 								{
-									itsSupport=abs(ix-itsOverSample*cenx)/itsOverSample;
+									itsSupport=abs(ix-nx/2)/itsOverSample;
 									break;
 								}
 							}
 							itsSupport=(itsSupport<nx/2) ? itsSupport : nx/2;
-							CONRADCHECK(itsSupport>0, "Derived support is zero");
 							itsCSize=2*(itsSupport+1)*itsOverSample;
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
 							itsCCenter=itsCSize/2-1;
-							itsC.resize(itsCSize, itsCSize, itsNWPlanes*nChan*itsMaxFeeds);
+							itsC.resize(itsCSize, itsCSize, itsMaxFeeds*nChan*itsNWPlanes);
 							itsC.set(0.0);
 						}
-						// Now cut out the inner part of the convolution function
-						for (int iy=-itsSupport*itsOverSample; iy<+itsOverSample*itsSupport; iy++)
+						// Now cut out the inner part of the convolution function and
+						// insert it into the convolution function
+						for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
 						{
 							for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample
 							    *itsSupport; ix++)
 							{
-								itsC(ix+itsCCenter, iy+itsCCenter, zIndex)=thisPlane(ix
-								    +itsOverSample*cenx, iy+itsOverSample*ceny);
+								itsC(ix+itsCCenter, iy+itsCCenter, zIndex)=thisPlane(ix+nx/2, iy+ny/2);
 							}
 						}
 					}
@@ -268,7 +280,8 @@ namespace conrad
 
 			int nZ=sumWeights.shape()(0);
 
-			CONRADCHECK(sumWeights.shape()(1)!=nPol, "Number of polarizations do not match");
+			CONRADCHECK(sumWeights.shape()(1)!=nPol,
+			    "Number of polarizations do not match");
 
 			out.set(0.0);
 			cOut.set(0.0);
@@ -291,7 +304,7 @@ namespace conrad
 					}
 
 					// Now we have to calculate the Fourier transform to get the
-					// convolution function in uv space
+					// convolution function in image space
 					for (int iy=0; iy<cny; iy++)
 					{
 						casa::Array<casa::Complex> vec(thisPlane.column(iy));
@@ -302,15 +315,16 @@ namespace conrad
 						casa::Array<casa::Complex> vec(thisPlane.row(ix));
 						ffts.fft(vec, false);
 					}
+					double peak(casa::max(casa::real(thisPlane)));
+					CONRADCHECK(peak>0.0, "Peak of primary beam is zero");
 					for (int pol=0; pol<nPol; pol++)
 					{
-						double weight=sumWeights(iz, pol)*(double(nx)*double(ny));
+						double weight=sumWeights(iz, pol)/peak;
 						for (int ix=0; ix<cnx; ix++)
 						{
 							for (int iy=0; iy<cny; iy++)
 							{
-								cOut(ix, iy, pol)+=weight*real(thisPlane(ix, iy)
-								    *conj(thisPlane(ix, iy)));
+								cOut(ix, iy, pol)+=weight*real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
 							}
 						}
 					}
@@ -332,7 +346,7 @@ namespace conrad
 			int onx=out.shape()(0);
 			int ony=out.shape()(1);
 			int onz=out.shape()(2);
-
+			
 			CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
 			CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");
 			CONRADCHECK(inz==onz, "Number of z planes different in padding");
@@ -374,6 +388,11 @@ namespace conrad
 				casa::Array<double> outArray(out.xyPlane(iz));
 
 				casa::real(outArray, constOutPlane);
+				/// Rescale to compensate for increase in sampling
+				double scale=(double(inx)*double(iny))/(double(onx)*double(ony));
+
+				outArray*=scale;
+				
 			}
 		}
 
@@ -395,7 +414,6 @@ namespace conrad
 			done.set(false);
 
 			/// @todo Deal with changing pointing
-			casa::UVWMachine machine(out, idi->pointingDir1()(0), false, true);
 			casa::Vector<double> uvw(3);
 			int nDone=0;
 			for (int row=0; row<nSamples; row++)
@@ -404,6 +422,7 @@ namespace conrad
 				int feed=idi->feed1()(row);
 				if (!done(feed))
 				{
+					casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
 					for (int i=0; i<2; i++)
 					{
 						uvw.set(0.0);
