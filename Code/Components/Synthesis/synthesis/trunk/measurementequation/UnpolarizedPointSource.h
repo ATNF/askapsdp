@@ -1,10 +1,10 @@
 /// @file
 ///
-/// @brief A component representing an unpolarized point source with flat spectrum
-/// @details
-///     This is an implementation of IComponent for the point source model.
-///     The point source is assumed unpolarized with a flat spectrum
-///     (i.e. spectral index 0).
+/// @brief A component representing an unpolarized point source with flat 
+///        spectrum
+/// @details This is an implementation of IComponent for the point source model.
+///  The point source is assumed unpolarized with a flat spectrum
+///  (i.e. spectral index 0).
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
