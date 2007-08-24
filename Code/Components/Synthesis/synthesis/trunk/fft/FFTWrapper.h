@@ -1,6 +1,6 @@
-/// @file
+/// @file FFTWrapper.h
 ///
-/// FFTWrapper: This class provides wrapper (adapter) functionality for the FFTW library
+/// FFTWrapper: This class provides limited wrapper (adapter) functionality for the FFTW library
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Rudolph van der Merwe <rudolph@ska.ac.za>
@@ -20,18 +20,6 @@ namespace conrad
 {
     namespace fftw
     {
-        // template <typename T>
-        // struct complex_trait {
-        //     typedef fftw_complex* complexPtr;
-        // };
-        // template <>
-        // struct complex_trait<DComplex> {
-        //     typedef fftw_complex* complexPtr;
-        // };
-        // template <>
-        // struct complex_trait<Complex> {
-        //     typedef fftwf_complex* complexPtr;
-        // };
 
         template <typename T>
         void fft(Vector<T>& vec, const Bool forward=True);
