@@ -79,37 +79,6 @@ namespace conrad
         IDataSharedIter itsIdi;
         /// Initialize this object
         virtual void init();
-        
-        /// @brief Templated function to do the calculation of value and derivatives.
-        /// @param ra Right Ascension (rad)
-        /// @param dec Declination (rad)
-        /// @param bmaj Major axis (rad)
-        /// @param bmin Minor axis (rad)
-        /// @param bpa Position angle (rad)
-        /// @param freq Observing frequency (Hz)
-        /// @param u U coordinate (meters)
-        /// @param v V coordinate (meters)
-        /// @param w W coordinate (meters)
-        /// @param vis Visibility
-        template<class T>
-          void calcRegularGauss(const T& ra, const T& dec, const T& flux,
-          const T& bmaj, const T& bmin, const T& bpa,
-          const casa::Vector<double>& freq,
-          const double u, const double v, const double w,
-          casa::Vector<T>& vis);
-/// @brief Templated function to do the calculation of value and derivatives.
-        /// @param ra Right Ascension (rad)
-        /// @param dec Declination (rad)
-        /// @param freq Observing frequency (Hz)
-        /// @param u U coordinate (meters)
-        /// @param v V coordinate (meters)
-        /// @param w W coordinate (meters)
-        /// @param vis Visibility
-        template<class T>
-          void calcRegularPoint(const T& ra, const T& dec, const T& flux,
-          const casa::Vector<double>& freq,
-          const double u, const double v, const double w,
-          casa::Vector<T>& vis);
     protected:
         /// a short cut to shared pointer on a parameterized component
         typedef boost::shared_ptr<IParameterizedComponent> IParameterizedComponentPtr;
