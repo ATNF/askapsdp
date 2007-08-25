@@ -117,7 +117,6 @@ namespace conrad
 			casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0,
 			    "rad");
 			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
-			std::cout << out << idi->pointingDir1()(0) << std::endl;
 			const int nSamples = idi->uvw().size();
 			delay.resize(nSamples);
 			outUVW.resize(nSamples);

@@ -330,6 +330,7 @@ namespace conrad
 				    sel << itsParset;
 				    IDataConverterPtr conv=ds.createConverter();
 				    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+						conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
 				    IDataSharedIter it=ds.createIterator(sel, conv);
 				    /// Create the gridder using a factory acting on a
 				    /// parameterset

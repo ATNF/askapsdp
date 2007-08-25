@@ -4,6 +4,15 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
+#include <casa/aips.h>
+#include <casa/Quanta.h>
+#include <measures/Measures/MDirection.h>
+#include <measures/Measures/MPosition.h>
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/Measure.h>
+
+#include <conrad/ConradError.h>
+
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageSolver.h>
@@ -14,15 +23,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
-
-#include <casa/aips.h>
-#include <casa/Quanta.h>
-#include <measures/Measures/MDirection.h>
-#include <measures/Measures/MPosition.h>
-#include <measures/Measures/MEpoch.h>
-
-#include <conrad/ConradError.h>
-
 
 using namespace std;
 using namespace conrad;
@@ -117,8 +117,7 @@ namespace conrad
 			casa::Quantity::read(lat, direction[1]);
 			casa::MDirection::Types type;
 			casa::MDirection::getType(type, direction[2]);
-			casa::MDirection dir(lng, lat, casa::MDirection::J2000);
-	    std::cout << dir << casa::MDirection::showType(dir.type()) << " " << type << " " << casa::MDirection::showType(casa::MDirection::J2000) << std::endl;
+			casa::MDirection dir(lng, lat, type);
 			return dir;
 		}
 

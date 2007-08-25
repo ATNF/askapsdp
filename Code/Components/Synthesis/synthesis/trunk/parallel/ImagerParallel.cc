@@ -108,6 +108,7 @@ namespace conrad
 			sel << itsParset;
 			IDataConverterPtr conv=ds.createConverter();
 			conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+			conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
 			IDataSharedIter it=ds.createIterator(sel, conv);
 			/// @todo Keep equation around between calls
 			itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));

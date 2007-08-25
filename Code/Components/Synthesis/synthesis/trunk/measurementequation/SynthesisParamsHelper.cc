@@ -173,18 +173,24 @@ namespace conrad
 			CONRADCHECK(whichDir>-1, "No direction coordinate present in model");
 			casa::DirectionCoordinate radec(imageCoords.directionCoordinate(whichDir));
 			casa::Vector<double> pixel(2);
-			casa::Vector<double> worldStart(2);
-			casa::Vector<double> worldEnd(2);
+			
+			casa::Vector<double> refPix(radec.referencePixel());
+			casa::Vector<double> refInc(radec.increment());
+			casa::Vector<double> refValue(radec.referenceValue());
 
-			pixel(0)=1.0;
-			pixel(1)=1.0;
-			radec.toWorld(worldStart, pixel);
+			casa::Vector<double> start(2);
+			casa::Vector<double> end(2);
 
-			pixel(0)=double(imagePixels.shape()(0));
-			pixel(1)=double(imagePixels.shape()(1));
-			radec.toWorld(worldEnd, pixel);
-			axes.add("RA", worldStart(0), worldEnd(0));
-			axes.add("DEC", worldStart(1), worldEnd(1));
+			int nx=imagePixels.shape()(0);
+			int ny=imagePixels.shape()(1);
+			
+			for (int i=0;i<2;++i) {
+				start(i)=refValue(i)+refInc(i)*(refPix(i)-0.0);
+				end(i)=refValue(i)+refInc(i)*(refPix(i)-double(imagePixels.shape()(i)));
+			}
+
+			axes.add("RA", start(0), end(0));
+			axes.add("DEC", start(1), end(1));
 
 			int whichSpectral=imageCoords.findCoordinate(Coordinate::SPECTRAL);
 			CONRADCHECK(whichSpectral>-1, "No spectral coordinate present in model");
