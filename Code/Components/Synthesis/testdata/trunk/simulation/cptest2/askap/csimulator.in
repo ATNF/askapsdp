@@ -1,0 +1,35 @@
+Csimulator.dataset              =       points_conrad.ms
+
+Csimulator.sources.names                =       [points]
+
+Csimulator.sources.points.direction       =       [12h30m00.000, -45.00.00.000, J2000]
+Csimulator.sources.points.model   =       points.model.small
+
+Csimulator.antennas.definition  =       ASKAP45.in
+Csimulator.feeds.definition     =       ASKAP1feeds.in
+Csimulator.spws.definition      =       ASKAPspws.in
+
+Csimulator.simulation.blockage             =       0.01
+Csimulator.simulation.elevationlimit       =       8deg
+Csimulator.simulation.autocorrwt           =       0.0
+Csimulator.simulation.integrationtime      =       600s
+Csimulator.simulation.usehourangles        =       True
+Csimulator.simulation.referencetime       =       [2007Mar07, UTC]
+
+Csimulator.observe.number       =       1
+Csimulator.observe.scan0        =       [points, Temporal7, -4h, 4h]
+
+Csimulator.gridder                          	= WProject
+Csimulator.gridder.WProject.wmax            	= 40000
+Csimulator.gridder.WProject.nwplanes        	= 256
+Csimulator.gridder.WProject.maxsupport		= 512
+Csimulator.gridder.WProject.cutoff	        = 0.001
+
+Csimulator.gridder.AntennaIllum.wmax            	= 30000
+Csimulator.gridder.AntennaIllum.nwplanes        	= 8
+Csimulator.gridder.AntennaIllum.oversample     	        = 1
+Csimulator.gridder.AntennaIllum.diameter		= 12m
+Csimulator.gridder.AntennaIllum.blockage		= 1m
+Csimulator.gridder.AntennaIllum.maxfeeds		= 1
+Csimulator.gridder.AntennaIllum.maxsupport		= 512
+

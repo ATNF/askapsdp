@@ -1,0 +1,40 @@
+Cimager.dataset                	= [points_conrad.ms]
+#Feed				= 5
+
+Cimager.Images.Names			= [image.i.points_conrad]
+Cimager.Images.image.i.points_conrad.shape		= [4096,4096]
+Cimager.Images.image.i.points_conrad.cellsize	= [4.5arcsec, 4.5arcsec]
+Cimager.Images.image.i.points_conrad.frequency	= [1.164e9, 1.420e9]
+Cimager.Images.image.i.points_conrad.nchan		= 1
+Cimager.Images.image.i.points_conrad.direction	= [12h30m00.00, -45.00.00.00, J2000]
+
+Cimager.gridder                         = WProject
+Cimager.gridder.WProject.wmax           = 40000
+Cimager.gridder.WProject.nwplanes       = 256
+Cimager.gridder.WProject.cutoff     	= 0.001
+Cimager.gridder.WProject.maxsupport	= 512
+
+#Cimager.gridder                          	= AntennaIllum
+Cimager.gridder.AntennaIllum.wmax            	= 35000
+Cimager.gridder.AntennaIllum.nwplanes        	= 64
+Cimager.gridder.AntennaIllum.oversample     	= 1
+Cimager.gridder.AntennaIllum.diameter		= 12m
+Cimager.gridder.AntennaIllum.blockage		= 1.2m
+Cimager.gridder.AntennaIllum.cutoff     	= 0.001
+Cimager.gridder.AntennaIllum.maxfeeds		= 1
+Cimager.gridder.AntennaIllum.maxsupport		= 512
+
+Cimager.solver                           	= Clean
+Cimager.solver.Dirty.cycles                     = 1
+Cimager.solver.Dirty.threshold			= 10%
+Cimager.solver.Dirty.verbose                   	= True
+
+Cimager.solver.Clean.algorithm                 	= MultiScale
+Cimager.solver.Clean.niter                     	= 100
+Cimager.solver.Clean.gain                      	= 0.7
+Cimager.solver.Clean.cycles                    	= 3
+Cimager.solver.Clean.threshold                	= 1mJy
+Cimager.solver.Clean.verbose                   	= True
+
+Cimager.restore                          	= True
+Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
