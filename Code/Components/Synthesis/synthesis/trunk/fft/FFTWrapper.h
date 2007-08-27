@@ -13,7 +13,7 @@
 
 namespace conrad
 {
-    namespace fftw
+    namespace synthesis
     {
 
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward);
