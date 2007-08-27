@@ -159,7 +159,6 @@ namespace conrad
 				// If the support is not yet set, find it and size the
 				// convolution function appropriately
 				float maxPlane=abs(thisPlane(nx/2,ny/2));
-				std::cout << maxPlane << std::endl;
 				if (itsSupport==0)
 				{
 					// Find the support by starting from the edge and
