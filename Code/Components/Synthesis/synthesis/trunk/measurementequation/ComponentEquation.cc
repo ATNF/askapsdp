@@ -18,6 +18,7 @@
 
 #include <measurementequation/UnpolarizedPointSource.h>
 #include <measurementequation/UnpolarizedGaussianSource.h>
+#include <measurementequation/VectorOperations.h>
 
 
 #include <stdexcept>
@@ -133,6 +134,9 @@ void ComponentEquation::predict()
          casa::Cube<casa::Complex> &rwVis = itsIdi->rwVisibility();
          std::vector<double> vis(2*freq.nelements());
          
+         // reset all visibility cube to 0
+         rwVis.set(0);
+         
          // loop over components
          for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
               compList.begin(); compIt!=compList.end();++compIt) {
@@ -141,10 +145,11 @@ void ComponentEquation::predict()
               const IParameterizedComponent& curComp = *(*compIt);
               for (casa::uInt row=0;row<itsIdi->nRow();++row) {
                    curComp.calculate(uvw[row],freq,casa::Stokes::I,vis);
-            
-                   for (casa::uInt i=0;i<freq.nelements();++i) {
-                        rwVis(row,i,0) += casa::Complex(vis[2*i], vis[2*i+1]);
-                   }
+                   
+                   /// next command adds model visibilities to the
+                   /// appropriate slice of the visibility cube. Conversions
+                   /// between complex and two doubles are handled automatically
+                   addVector(rwVis.xyPlane(0).row(row),vis);
               }
          }
     }
@@ -171,22 +176,13 @@ void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
       casa::Vector<casa::Double> residual(nData);
       // initialize residuals with the observed visibilities
                 
-      uint offset=0;
-      for (casa::uInt row=0;row<itsIdi->nRow(); ++row,offset+=2*freq.nelements()) {
-           casa::Vector<casa::Double> residSlice = 
-                           residual(casa::Slice(offset,2*freq.nelements()));
-           casa::Vector<casa::Complex> visSlice = 
-                           itsIdi->visibility().xyPlane(0).row(row);
-           casa::Vector<casa::Complex>::const_iterator visIt = visSlice.begin();
-                                
-           for (casa::Vector<casa::Double>::iterator residIt = residSlice.begin();
-                      residIt!=residSlice.end() && visIt!=visSlice.end(); 
-                      ++residIt,++visIt) {
-                // calculate residuals
-                *residIt = real(*visIt);
-                ++residIt;
-                *(residIt) = imag(*visIt);
-           }
+      for (casa::uInt row=0,offset=0; row<itsIdi->nRow(); 
+                                      ++row,offset+=2*freq.nelements()) {
+           // the following command copies visibility slice to the appropriate 
+           // residual slice converting complex to two doubles automatically
+           // via templates 
+           copyVector(itsIdi->visibility().xyPlane(0).row(row),
+                      residual(casa::Slice(offset,2*freq.nelements())));          
       }
                 
       DesignMatrix designmatrix(parameters());
@@ -199,39 +195,26 @@ void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
                          casa::AutoDiff<double>(0.,nParameters));
            casa::Array<casa::Double> derivatives(casa::IPosition(2,nData,nParameters));
       
-           offset=0;
            // current component
            const IParameterizedComponent& curComp = *(*compIt);
-           for (casa::uInt row=0;row<itsIdi->nRow();
+           for (casa::uInt row=0,offset=0; row<itsIdi->nRow();
                                  ++row,offset+=2*freq.nelements()) {
                 curComp.calculate(uvw[row],freq,casa::Stokes::I,visDerivBuffer);
                 // copy derivatives from buffer for each parameter
                 for (casa::uInt par=0; par<nParameters; ++par) {
-                     casa::Vector<casa::Double> derivSlice = 
+                     // copy derivatives for each channel from visDerivBuffer
+                     // to the appropriate slice of the derivatives Array
+                     // template takes care of the actual types
+                     copyDerivativeVector(par,visDerivBuffer,  
                            derivatives(casa::IPosition(2,offset,par), 
-                              casa::IPosition(2,offset+2*freq.nelements()-1,par));
-                     vector<casa::AutoDiff<double> >::const_iterator bufIt =
-                           visDerivBuffer.begin();
-                     for (casa::Vector<casa::Double>::iterator sliceIt = 
-                          derivSlice.begin(); sliceIt!=derivSlice.end() && 
-                          bufIt!=visDerivBuffer.end(); ++sliceIt,++bufIt) {
-                          
-                          // copy derivatives for each spectral channel (both real and 
-                          // imaginary parts)
-                          *sliceIt = bufIt->derivative(par);
-                     }                              
+                           casa::IPosition(2,offset+2*freq.nelements()-1,par)));                                 
                 }
-                // add contribution to residuals
-                casa::Vector<casa::Double> residSlice = 
-                           residual(casa::Slice(offset,2*freq.nelements()));
-                vector<casa::AutoDiff<double> >::const_iterator bufIt =
-                           visDerivBuffer.begin();
-                for (casa::Vector<casa::Double>::iterator residIt = residSlice.begin();
-                     residIt!=residSlice.end() && bufIt!=visDerivBuffer.end();
-                     ++residIt,++bufIt) {
-                     *(residIt) -= bufIt->value();
-                }
-
+                // subtract contribution from the residuals
+                // next command does: residual slice -= visDerivBuffer
+                // taking care of all type conversions via templates
+                subtractVector(visDerivBuffer,
+                         residual(casa::Slice(offset,2*freq.nelements())));          
+  
            }
            // Now we can add the design matrix, residual, and weights
            for (casa::uInt par=0; par<nParameters; ++par) {
