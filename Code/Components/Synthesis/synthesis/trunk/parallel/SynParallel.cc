@@ -79,6 +79,7 @@ namespace conrad
 			}
 
 			itsModel = Params::ShPtr(new Params());
+			CONRADCHECK(itsModel, "Model not defined correctly");
 
 		}
 

@@ -397,12 +397,12 @@ namespace conrad
 				casa::Matrix<casa::Complex> mat(arr.xyPlane(iz));
 				for (uint iy=0; iy<ny; iy++)
 				{
-					casa::Array<casa::Complex> vec(mat.column(iy));
+					casa::Vector<casa::Complex> vec(mat.column(iy));
 					ffts.fft(vec, toUV);
 				}
 				for (uint ix=0; ix<nx; ix++)
 				{
-					casa::Array<casa::Complex> vec(mat.row(ix));
+					casa::Vector<casa::Complex> vec(mat.row(ix));
 					ffts.fft(vec, toUV);
 				}
 			}

@@ -41,6 +41,7 @@ namespace conrad
 
 		/// Initialize the convolution function into the cube. If necessary this
 		/// could be optimized by using symmetries.
+	  /// @todo Make initConvolutionFunction more robust
 		void AntennaIllumVisGridder::initConvolutionFunction(IDataSharedIter& idi,
 		    const conrad::scimath::Axes& axes,
 		    casa::Vector<casa::RigidVector<double, 3> >& uvw,
@@ -150,12 +151,12 @@ namespace conrad
 					
 					for (uint iy=0; iy<ny; iy++)
 					{
-						casa::Array<casa::Complex> vec(disk.column(iy));
+						casa::Vector<casa::Complex> vec(disk.column(iy));
 						ffts.fft(vec, true);
 					}
 					for (uint ix=0; ix<nx; ix++)
 					{
-						casa::Array<casa::Complex> vec(disk.row(ix));
+						casa::Vector<casa::Complex> vec(disk.row(ix));
 						ffts.fft(vec, true);
 					}
 					disk=disk*conj(disk);
@@ -177,6 +178,7 @@ namespace conrad
 
 						// Loop over the central nx, ny region, setting it to the product
 						// of the phase screen and the spheroidal function
+						double maxCF=0.0;
 						for (int iy=0; iy<qny; iy++)
 						{
 							float y2=float(iy-qny/2)*ccelly;
@@ -189,8 +191,11 @@ namespace conrad
 								float phase=w*(1.0-sqrt(1.0-r2));
 								casa::Complex wt=disk(ix, iy)*casa::Complex(ccfx(iy)*ccfy(ix));
 								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(cos(phase), -sin(phase));
+								maxCF+=casa::real(disk(ix,iy));
 							}
 						}
+						maxCF/=(double(nx)*double(ny));
+						//						std::cout << "Feed " << feed << " Freq " << freq << " W " << w << " Max CF = " << maxCF << std::endl;	  
 						// At this point, we have the phase screen multiplied by the spheroidal
 						// function, sampled on larger cellsize (itsOverSample larger) in image
 						// space. Only the inner qnx, qny pixels have a non-zero value
@@ -199,17 +204,14 @@ namespace conrad
 						// convolution function in uv space
 						for (int iy=0; iy<ny; iy++)
 						{
-							casa::Array<casa::Complex> vec(thisPlane.column(iy));
+							casa::Vector<casa::Complex> vec(thisPlane.column(iy));
 							ffts.fft(vec, true);
 						}
 						for (int ix=0; ix<nx; ix++)
 						{
-							casa::Array<casa::Complex> vec(thisPlane.row(ix));
+							casa::Vector<casa::Complex> vec(thisPlane.row(ix));
 							ffts.fft(vec, true);
 						}
-						// Now thisPlane is filled with convolution function
-						// sampled on a finer grid in u,v
-						//
 						// If the support is not yet set, find it and size the
 						// convolution function appropriately
 						if (itsSupport==0)
@@ -218,7 +220,7 @@ namespace conrad
 							// working in
 							for (int ix=0; ix<nx/2; ix++)
 							{
-								if (abs(thisPlane(ix, ny/2))>itsCutoff)
+								if (abs(thisPlane(ix, ny/2))>itsCutoff*maxCF)
 								{
 									itsSupport=abs(ix-nx/2)/itsOverSample;
 									break;
@@ -307,26 +309,27 @@ namespace conrad
 					// convolution function in image space
 					for (int iy=0; iy<cny; iy++)
 					{
-						casa::Array<casa::Complex> vec(thisPlane.column(iy));
+						casa::Vector<casa::Complex> vec(thisPlane.column(iy));
 						ffts.fft(vec, false);
 					}
 					for (int ix=0; ix<cnx; ix++)
 					{
-						casa::Array<casa::Complex> vec(thisPlane.row(ix));
+						casa::Vector<casa::Complex> vec(thisPlane.row(ix));
 						ffts.fft(vec, false);
 					}
-					double peak(casa::max(casa::real(thisPlane)));
-					CONRADCHECK(peak>0.0, "Peak of primary beam is zero");
-					for (int pol=0; pol<nPol; pol++)
-					{
-						double weight=sumWeights(iz, pol)/peak;
-						for (int ix=0; ix<cnx; ix++)
+					double peak(casa::abs(casa::max(casa::real(thisPlane))));
+					if(peak>0.0) {
+					  for (int pol=0; pol<nPol; pol++)
+					    {
+					      double weight=sumWeights(iz, pol)/peak;
+					      for (int ix=0; ix<cnx; ix++)
 						{
-							for (int iy=0; iy<cny; iy++)
-							{
-								cOut(ix, iy, pol)+=weight*real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
-							}
+						  for (int iy=0; iy<cny; iy++)
+						    {
+						      cOut(ix, iy, pol)+=weight*real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
+						    }
 						}
+					    }
 					}
 				}
 			}
@@ -359,12 +362,12 @@ namespace conrad
 				outPlane.set(0.0);
 				for (int iy=0; iy<iny; iy++)
 				{
-					casa::Array<casa::DComplex> vec(inPlane.column(iy));
+					casa::Vector<casa::DComplex> vec(inPlane.column(iy));
 					ffts.fft(vec, false);
 				}
 				for (int ix=0; ix<inx; ix++)
 				{
-					casa::Array<casa::DComplex> vec(inPlane.row(ix));
+					casa::Vector<casa::DComplex> vec(inPlane.row(ix));
 					ffts.fft(vec, false);
 				}
 				for (int iy=0; iy<iny; iy++)
@@ -376,12 +379,12 @@ namespace conrad
 				}
 				for (int iy=0; iy<ony; iy++)
 				{
-					casa::Array<casa::DComplex> vec(outPlane.column(iy));
+					casa::Vector<casa::DComplex> vec(outPlane.column(iy));
 					ffts.fft(vec, true);
 				}
 				for (int ix=0; ix<onx; ix++)
 				{
-					casa::Array<casa::DComplex> vec(outPlane.row(ix));
+					casa::Vector<casa::DComplex> vec(outPlane.row(ix));
 					ffts.fft(vec, true);
 				}
 				const casa::Array<casa::DComplex> constOutPlane(outPlane);

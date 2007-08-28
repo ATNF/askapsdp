@@ -59,6 +59,7 @@ namespace conrad
 			/// parameter set. We can solve for any number of images
 			/// at once (but you may/will run out of memory!)
 			itsModel << itsParset.makeSubset("Images.");
+			CONRADCHECK(itsModel, "Model not defined correctly");
 
 			if (isMaster())
 			{
@@ -66,6 +67,7 @@ namespace conrad
 
 				itsQbeam.resize(3);
 				vector<string> beam=itsParset.getStringVector("restore.beam");
+				CONRADCHECK(beam.size()==3, "Need three elements for beam");
 				for (int i=0; i<3; i++)
 				{
 					casa::Quantity::read(itsQbeam(i), beam[i]);
@@ -80,14 +82,17 @@ namespace conrad
 			{
 				/// Get the list of measurement sets
 				itsMs=itsParset.getStringVector("dataset");
+				CONRADCHECK(itsMs.size()>0, "Need dataset specification");
 				if(itsMs.size()==1) {
 					string tmpl=itsMs[0];
 					for (int i=0;i<itsNNode-1;i++) {
 						itsMs[i]=substituteWorkerNumber(tmpl);
+						std::cout << itsMs[i] << std::endl;
 					}
 				}
 				if(itsNNode>1) {
-				  CONRADCHECK(itsMs.size()==(itsNNode-1), "When running in parallel, need one data set per node");
+				  CONRADCHECK(itsMs.size()==(itsNNode-1),
+					      "When running in parallel, need one data set per node");
 				}
 
 				/// Create the gridder using a factory acting on a
