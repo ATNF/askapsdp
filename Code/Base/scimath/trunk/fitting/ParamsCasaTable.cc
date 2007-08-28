@@ -35,7 +35,9 @@ namespace conrad
 {
   namespace scimath
   {
-
+    /// The column identifiers
+    /// @name  Column Identifiers
+    //@{
     const String colName("NAME");
     const String colValues("VALUES");
     const String colAxes("AXES");
@@ -45,6 +47,7 @@ namespace conrad
     const String colDomainStart("DOMAINSTART");
     const String colDomainEnd("DOMAINEND");
     const String colFree("FREE");
+    //@}
 
     ParamsCasaTable::ParamsCasaTable(const std::string& tablename, bool exists)
     {

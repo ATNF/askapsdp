@@ -168,16 +168,20 @@ namespace conrad
         /// @param params Parameters to be output
         friend std::ostream& operator<<(std::ostream& os, const Params& params);
 
-        /// Shift operators for Params
-        /// @param os Input Output ostream
-        /// @param par Parameters to be processed @{
-        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par);
-        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Params& par); 
-        /// @}
+        /// Output shift operator for Params
+        /// @param os Output ostream
+        /// @param par Parameters to be processed
+        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, 
+                                              const Params& par);
+        /// Input shift operator for Params
+        /// @param os Input stream
+        /// @param par Parameters to be processed
+        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, 
+                                              Params& par); 
 
       protected:
-      /// @todo Use single map map<string, struct>
-/// The value arrays, ordered as a map
+        /// @todo Use single map map<string, struct>
+        /// The value arrays, ordered as a map
         std::map<std::string, casa::Array<double> > itsArrays;
         /// The axes, ordered as a map
         std::map<std::string, Axes> itsAxes;

@@ -291,8 +291,8 @@ namespace conrad
       itsFree.clear();
       itsCounts.clear();
     }
-
-    ostream& operator<<(ostream& os, const Params& params)
+    
+    std::ostream& operator<<(std::ostream& os, const Params& params)
     {
 
       vector<string> names(params.names());

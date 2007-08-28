@@ -62,45 +62,54 @@ namespace conrad
       /// @return True if name exists
       bool has(const std::string& name) const;
 
-/// Order of this axis
-/// @param name Name of axis
-/// @return sequence of axis (0 rel)
-        int order(const std::string& name) const;
+      /// Order of this axis
+      /// @param name Name of axis
+      /// @return sequence of axis (0 rel)
+      int order(const std::string& name) const;
+      
+      /// Return the axis names
+      const std::vector<std::string>& names() const;
+      
+      /// Return start value
+      /// @param name Name of axis
+      double start(const std::string& name) const;
+      
+      /// Return end value
+      /// @param name Name of axis
+      double end(const std::string& name) const;
+      
+      /// Return start values
+      const std::vector<double>& start() const;
+      
+      /// Return end values
+      const std::vector<double>& end() const;
+      
+      /// Output to an ostream
+      /// @param os an ostream
+      /// @param axes the Axes instance
+      friend std::ostream& operator<<(std::ostream& os, const Axes& axes);
+      
+      /// IO to a BlobStream
+      /// @param os an ostream
+      /// @param axes the Axes instance
+      friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, 
+                                            const Axes& axes); 
 
-/// Return the axis names
-        const std::vector<std::string>& names() const;
-
-/// Return start value
-/// @param name Name of axis
-        double start(const std::string& name) const;
-
-/// Return end value
-/// @param name Name of axis
-        double end(const std::string& name) const;
-
-/// Return start values
-        const std::vector<double>& start() const;
-
-/// Return end values
-        const std::vector<double>& end() const;
-
-/// Output to an ostream
-        friend std::ostream& operator<<(std::ostream& os, const Axes& domain);
-
-/// IO to and from a BlobStream @{
-        friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Axes& axes); 
-        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Axes& axes);
-        /// @}
-
-      private:
-        std::vector<std::string> itsNames;
-        std::vector<double> itsStart;
-        std::vector<double> itsEnd;
+      /// IO from a BlobStream
+      /// @param os an ostream
+      /// @param axes the Axes instance
+      friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, 
+                                            Axes& axes);
+      
+    private:
+      std::vector<std::string> itsNames;
+      std::vector<double> itsStart;
+      std::vector<double> itsEnd;
     };
 
-/// Use Domain as a synonym (for the moment).
+    /// Use Domain as a synonym (for the moment).
     typedef Axes Domain;
 
   };
 };
-#endif                                            /*AXES_H_*/
+#endif

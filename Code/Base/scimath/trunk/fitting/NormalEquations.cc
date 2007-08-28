@@ -503,7 +503,8 @@ namespace conrad
     {
       ne.itsParams = Params::ShPtr(new Params());
       is >> *(ne.itsParams) >> ne.itsNormalMatrix >> ne.itsNormalMatrixSlice 
-        >> ne.itsNormalMatrixDiagonal >> ne.itsShape >> ne.itsReference >> ne.itsDataVector;
+         >> ne.itsNormalMatrixDiagonal >> ne.itsShape >> ne.itsReference 
+         >> ne.itsDataVector;
 //        >> ne.itsNormalMatrixDiagonal >> ne.itsDataVector;
     }
   }

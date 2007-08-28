@@ -63,8 +63,6 @@ namespace conrad
       }
     }
 
-/// Has this axis?
-/// @param name Name of axis
     bool Axes::has(const std::string& name) const
     {
       if(itsNames.size()==0) return false;
@@ -99,26 +97,27 @@ namespace conrad
       return itsEnd[order(name)];
     }
 
-// Return start values
+    // Return start values
     const std::vector<double>& Axes::start() const
     {
       return itsStart;
     }
 
-// Return end values
+    // Return end values
     const std::vector<double>& Axes::end() const
     {
       return itsEnd;
     }
 
-    ostream& operator<<(ostream& os, const Axes& axes)
+    std::ostream& operator<<(std::ostream& os, const Axes& axes)
     {
 
       vector<string> names(axes.names());
-      for(vector<string>::const_iterator it = names.begin(); it != names.end(); it++)
+      for(vector<string>::const_iterator it = names.begin(); 
+          it != names.end(); it++)
       {
         os << *it << " from " << axes.start(*it) << " to " << axes.end(*it)
-          << std::endl;
+           << std::endl;
       }
       return os;
     }
