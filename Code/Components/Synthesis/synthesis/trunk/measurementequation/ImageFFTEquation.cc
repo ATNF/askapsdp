@@ -6,11 +6,12 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Axes.h>
 
+
 #include <gridding/SphFuncVisGridder.h>
 
 #include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
-#include <scimath/Mathematics/FFTServer.h>
+
 #include <casa/BasicSL/Constants.h>
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Vector.h>

@@ -48,7 +48,7 @@ namespace conrad
 			{
 				string msname(substituteWorkerNumber(parset.getString("dataset",
 				    "test%w.ms")));
-				itsSim=boost::shared_ptr<casa::NewMSSimulator> (new casa::NewMSSimulator(msname));
+				itsSim=boost::shared_ptr<Simulator> (new Simulator(msname));
 
 				itsMs=boost::shared_ptr<casa::MeasurementSet> (new casa::MeasurementSet(msname, casa::Table::Update));
 
@@ -330,7 +330,7 @@ namespace conrad
 				    sel << itsParset;
 				    IDataConverterPtr conv=ds.createConverter();
 				    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
-						conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+				    conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
 				    IDataSharedIter it=ds.createIterator(sel, conv);
 				    /// Create the gridder using a factory acting on a
 				    /// parameterset

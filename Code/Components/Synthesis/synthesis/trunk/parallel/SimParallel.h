@@ -11,7 +11,7 @@
 #include <parallel/SynParallel.h>
 
 #include <ms/MeasurementSets/MeasurementSet.h>
-#include <ms/MeasurementSets/NewMSSimulator.h>
+#include <simulation/Simulator.h>
 
 #include <APS/ParameterSet.h>
 
@@ -114,8 +114,8 @@ namespace conrad
 				void simulate();
 
 			private:
-				/// casacore Simulator
-				boost::shared_ptr<casa::NewMSSimulator> itsSim;
+				/// Simulator
+				boost::shared_ptr<Simulator> itsSim;
 
 				/// MeasurementSet pointer - we need this to flush the MS to disk
 				boost::shared_ptr<casa::MeasurementSet> itsMs;
