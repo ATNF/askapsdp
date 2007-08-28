@@ -127,15 +127,18 @@ namespace conrad
 
       private:
         
-        static const int M = 13;
+        int M;
         std::vector<int> dataLength;
-        static const double sp_precision = 5e-6;
-        static const double dp_precision = 5e-12;
+        double sp_precision;
+        double dp_precision;
      
       public:
           
         void setUp()
         {
+            M = 13;
+            sp_precision = 5e-6;
+            dp_precision = 5e-12;            
             srand((unsigned)time(0));
             dataLength = std::vector<int>(M); 
             for(int i=0; i < dataLength.size(); i++){
