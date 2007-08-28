@@ -141,6 +141,7 @@ namespace conrad
             dp_precision = 5e-12;            
             srand((unsigned)time(0));
             dataLength = std::vector<int>(M); 
+            // The maximum data length N*N is set here. We use powers of two from 2 to 2048 for N.
             for(int i=0; i < dataLength.size(); i++){
                 dataLength[i]=(int)pow(2,i+1);
             }            
