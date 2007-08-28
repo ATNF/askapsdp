@@ -136,7 +136,7 @@ namespace conrad
           
         void setUp()
         {
-            M = 13;
+            M = 11;
             sp_precision = 5e-6;
             dp_precision = 5e-12;            
             srand((unsigned)time(0));
