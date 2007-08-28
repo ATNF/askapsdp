@@ -176,7 +176,7 @@ struct OutputValueAccessor : public BasicIncrementor {
   /// @details To form residuals we need to perform '-=' operation.
   /// Default action is to subtract the value without any type conversion
   /// @param[in] in subtrahend
-  /// @param[inout] out minuend for input and result for output
+  /// @param[in,out] out minuend for input and result for output
   inline void subtract(const ValueType &in, ValueType& out) const throw() 
          {out-=in;} 
          
@@ -184,7 +184,7 @@ struct OutputValueAccessor : public BasicIncrementor {
   /// @details To do the prediction we need to perform '+=' operation.
   /// Default action is to add the value without any type conversion
   /// @param[in] in a value to add
-  /// @param[inout] out another item and result for output
+  /// @param[in,out] out another item and result for output
   inline void add(const ValueType &in, ValueType& out) const throw() 
          {out+=in;} 
                
@@ -215,7 +215,7 @@ struct OutputValueAccessor<casa::Complex> : public ComplexNumberIncrementor {
   /// imaginary part of the input complex number, depending on whether it is
   /// even or odd call to the increment operator.
   /// @param[in] in subtrahend
-  /// @param[inout] out minuend for input and result for output
+  /// @param[in,out] out minuend for input and result for output
   inline void subtract(casa::Double in, casa::Complex& out) const throw() 
       {
         if (isRealNow()) {
@@ -231,7 +231,7 @@ struct OutputValueAccessor<casa::Complex> : public ComplexNumberIncrementor {
   /// imaginary part of the input complex number, depending on whether it is
   /// even or odd call to the increment operator.
   /// @param[in] in a value to add
-  /// @param[inout] out another item and result for output
+  /// @param[in,out] out another item and result for output
   inline void add(casa::Double in, casa::Complex& out) const throw() 
       {
         if (isRealNow()) {
