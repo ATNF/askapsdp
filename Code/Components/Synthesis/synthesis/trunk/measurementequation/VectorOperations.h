@@ -39,6 +39,9 @@ template<typename T>
 struct ValueTypeExtractor {
   /// type of the value of the container is given by value_type by default
   typedef typename T::value_type type;
+  // there is deliberately no container_type defined in this template
+  // it prevent wrong code implying by mistake a reference semantics for
+  // STL containers from compilation. 
 };
 
 
@@ -48,6 +51,8 @@ template<typename Y>
 struct ValueTypeExtractor<casa::Vector<Y> > {
  /// type of the value of the container is a template argument for casa::Vector
  typedef Y type;
+ /// type of the container. Defining this allowing reference semantics
+ typedef casa::Vector<Y> container_type;
 };
 
 /// Specialization of ValueTypeExtractor for casa::Array
@@ -56,6 +61,8 @@ template<typename Y>
 struct ValueTypeExtractor<casa::Array<Y> > {
   /// type of the value of the container is a template argument for casa::Array
   typedef Y type;
+  /// type of the container. Defining this allowing reference semantics
+  typedef casa::Array<Y> container_type;
 };
 
 /// @brief Simple increment of the iterator
@@ -268,12 +275,10 @@ private:
 /// ValueTypeExtractor is valid for all STL containers.
 /// @ingroup measurementequation
 template<typename InType,typename OutType>
-void copyVector(const InType& inVec, const OutType& outVec) 
+inline void copyVector(const InType& inVec, OutType &outVec) 
 {
-  // need a new object to be able to pass slices instead of normal arrays
-  OutType outVecRef(outVec);
   typename InType::const_iterator ci = inVec.begin();
-  typename OutType::iterator it = outVecRef.begin();
+  typename OutType::iterator it = outVec.begin();
   vector_operations::InputValueAccessor<typename 
                 vector_operations::ValueTypeExtractor<InType>::type> iva;
   vector_operations::OutputValueAccessor<typename 
@@ -282,6 +287,25 @@ void copyVector(const InType& inVec, const OutType& outVec)
        iva.increment(ci),ova.increment(it)) {
        ova.write(iva(*ci),*it);
   }
+}
+
+/// @brief copy 1D-vector and flatten it on demand
+/// @details This version is intended for slices of casa containers, which
+/// use reference semantics and can be temporary objects.
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType, typename OutType>
+inline void copyVector(const InType& inVec, const OutType &outVec)
+{
+  // use this to ensure that no STL containers are called with this
+  // syntax. Passing const reference is necessary for casa containers 
+  // only, which use reference semantics. If we allow the following code
+  // for STL containers, it would modify the copy and the changes would not
+  // propagate to the destination container.
+  typename vector_operations::ValueTypeExtractor<OutType>::container_type 
+                                                        OutVecRef(outVec);
+  copyVector(inVec,OutVecRef); 
 }
 
 /// @brief copy 1D-vector of derivatives
@@ -293,12 +317,10 @@ void copyVector(const InType& inVec, const OutType& outVec)
 /// @param[in] outVec output vector
 /// @ingroup measurementequation
 template<typename InType,typename OutType>
-void copyDerivativeVector(size_t par, const InType& inVec, const OutType& outVec) 
+inline void copyDerivativeVector(size_t par, const InType& inVec, OutType& outVec) 
 {
-  // need a new object to be able to pass slices instead of normal arrays
-  OutType outVecRef(outVec);
   typename InType::const_iterator ci = inVec.begin();
-  typename OutType::iterator it = outVecRef.begin();
+  typename OutType::iterator it = outVec.begin();
   vector_operations::InputValueAccessor<typename 
                 vector_operations::ValueTypeExtractor<InType>::type> iva;
   vector_operations::OutputValueAccessor<typename 
@@ -308,6 +330,27 @@ void copyDerivativeVector(size_t par, const InType& inVec, const OutType& outVec
        ova.write(ci->derivative(par),*it);
   }
 }
+
+/// @brief copy 1D-vector of derivatives
+/// @details This version is intended for slices of casa containers, which
+/// use reference semantics and can be temporary objects.
+/// @param[in] par a number of derivative of interest
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType, typename OutType>
+inline void copyDerivativeVector(size_t par, const InType& inVec, 
+                                 const OutType &outVec)
+{
+  // use this to ensure that no STL containers are called with this
+  // syntax. Passing const reference is necessary for casa containers 
+  // only, which use reference semantics. If we allow the following code
+  // for STL containers, it would modify the copy and the changes would not
+  // propagate to the destination container.
+  typename vector_operations::ValueTypeExtractor<OutType>::container_type 
+                                                        OutVecRef(outVec);
+  copyDerivativeVector(par, inVec, OutVecRef); 
+}
  
 
 /// @brief subtract one 1D-vector from another, flatten on demand
@@ -316,12 +359,10 @@ void copyDerivativeVector(size_t par, const InType& inVec, const OutType& outVec
 /// @param[in] inVec input vector
 /// @param[in] outVec output vector
 template<typename InType,typename OutType>
-void subtractVector(const InType& inVec, const OutType& outVec) 
+inline void subtractVector(const InType& inVec, OutType& outVec) 
 {
-  // need a new object to be able to pass slices instead of normal arrays
-  OutType outVecRef(outVec);
   typename InType::const_iterator ci = inVec.begin();
-  typename OutType::iterator it = outVecRef.begin();
+  typename OutType::iterator it = outVec.begin();
   vector_operations::InputValueAccessor<typename 
                 vector_operations::ValueTypeExtractor<InType>::type> iva;
   vector_operations::OutputValueAccessor<typename 
@@ -332,18 +373,36 @@ void subtractVector(const InType& inVec, const OutType& outVec)
   }
 }
 
+/// @brief subtract one 1D-vector from another, flatten on demand
+/// @details This version is intended for slices of casa containers, which
+/// use reference semantics and can be temporary objects.
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType, typename OutType>
+inline void subtractVector(const InType& inVec, const OutType &outVec)
+{
+  // use this to ensure that no STL containers are called with this
+  // syntax. Passing const reference is necessary for casa containers 
+  // only, which use reference semantics. If we allow the following code
+  // for STL containers, it would modify the copy and the changes would not
+  // propagate to the destination container.
+  typename vector_operations::ValueTypeExtractor<OutType>::container_type 
+                                                        OutVecRef(outVec);
+  subtractVector(inVec,OutVecRef); 
+}
+
+
 /// @brief add one 1D-vector to another, flatten on demand
 /// @details See copyVector for more information. This method adds
 /// the input vector to the output one instead of copying to it.
 /// @param[in] inVec input vector
 /// @param[in] outVec output vector
 template<typename InType,typename OutType>
-void addVector(const InType& inVec, const OutType& outVec) 
+inline void addVector(const InType& inVec, OutType& outVec) 
 {
-  // need a new object to be able to pass slices instead of normal arrays
-  OutType outVecRef(outVec);
   typename InType::const_iterator ci = inVec.begin();
-  typename OutType::iterator it = outVecRef.begin();
+  typename OutType::iterator it = outVec.begin();
   vector_operations::InputValueAccessor<typename 
                 vector_operations::ValueTypeExtractor<InType>::type> iva;
   vector_operations::OutputValueAccessor<typename 
@@ -352,6 +411,25 @@ void addVector(const InType& inVec, const OutType& outVec)
        iva.increment(ci),ova.increment(it)) {
        ova.add(iva(*ci),*it);
   }
+}
+
+/// @brief add one 1D-vector to another, flatten on demand
+/// @details This version is intended for slices of casa containers, which
+/// use reference semantics and can be temporary objects.
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType, typename OutType>
+inline void addVector(const InType& inVec, const OutType &outVec)
+{
+  // use this to ensure that no STL containers are called with this
+  // syntax. Passing const reference is necessary for casa containers 
+  // only, which use reference semantics. If we allow the following code
+  // for STL containers, it would modify the copy and the changes would not
+  // propagate to the destination container.
+  typename vector_operations::ValueTypeExtractor<OutType>::container_type 
+                                                        OutVecRef(outVec);
+  addVector(inVec,OutVecRef); 
 }
 
 
