@@ -7,6 +7,7 @@
 ///
 #include <fft/FFTWrapper.h>
 
+#include <conrad/ConradTypes.h>
 #include <complex>
 #include <fftw3.h>
 #include <casa/Arrays/Vector.h>
@@ -16,10 +17,10 @@ using namespace casa;
 
 namespace conrad
 {
-    namespace fftw
+    namespace synthesis
     {
 
-        void fft(Vector<DComplex>& vec, const Bool forward)
+        void fft(Vector<DComplex>& vec, const bool forward)
         {
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
@@ -40,7 +41,7 @@ namespace conrad
             fftw_destroy_plan(p);
         }
         
-        void fft(Vector<Complex>& vec, const Bool forward)
+        void fft(Vector<Complex>& vec, const bool forward)
         {
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
