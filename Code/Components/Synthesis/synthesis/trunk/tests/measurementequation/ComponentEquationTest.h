@@ -139,6 +139,14 @@ namespace conrad
           solver1.setAlgorithm("SVD");
           solver1.solveNormalEquations(q);  
           CPPUNIT_ASSERT(abs(q.cond()/4.99482e+12-1.0)<0.001);
+          // check that it converged to a correct result
+          const Params &solution = solver1.parameters();
+          CPPUNIT_ASSERT(abs(solution.scalarValue("direction.dec.cena")+0.3)<1e-5);
+          CPPUNIT_ASSERT(abs(solution.scalarValue("direction.ra.cena")-0.5)<1e-5);
+          CPPUNIT_ASSERT(abs(solution.scalarValue("flux.i.cena")-100)<3e-1);
+          CPPUNIT_ASSERT(abs(solution.scalarValue("shape.bmaj.cena")-0.00014859)<1e-6);
+          CPPUNIT_ASSERT(abs(solution.scalarValue("shape.bmin.cena")-9.66813e-5)<1e-6);
+          CPPUNIT_ASSERT(abs(solution.scalarValue("shape.bpa.cena")+0.952876)<1e-2);
         }
 
         void testSolveNormalEquationsFix()

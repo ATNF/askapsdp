@@ -135,7 +135,7 @@ void ComponentEquation::predict()
          std::vector<double> vis(2*freq.nelements());
          
          // reset all visibility cube to 0
-         rwVis.set(0);
+         rwVis.set(0.);
          
          // loop over components
          for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
@@ -149,7 +149,7 @@ void ComponentEquation::predict()
                    /// next command adds model visibilities to the
                    /// appropriate slice of the visibility cube. Conversions
                    /// between complex and two doubles are handled automatically
-                   addVector(rwVis.xyPlane(0).row(row),vis);
+                   addVector(vis,rwVis.xyPlane(0).row(row));
               }
          }
     }
@@ -182,7 +182,7 @@ void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
            // residual slice converting complex to two doubles automatically
            // via templates 
            copyVector(itsIdi->visibility().xyPlane(0).row(row),
-                      residual(casa::Slice(offset,2*freq.nelements())));          
+                      residual(casa::Slice(offset,2*freq.nelements())));       
       }
                 
       DesignMatrix designmatrix(parameters());
@@ -194,7 +194,7 @@ void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
            vector<casa::AutoDiff<double> > visDerivBuffer(2*freq.nelements(),
                          casa::AutoDiff<double>(0.,nParameters));
            casa::Array<casa::Double> derivatives(casa::IPosition(2,nData,nParameters));
-      
+           
            // current component
            const IParameterizedComponent& curComp = *(*compIt);
            for (casa::uInt row=0,offset=0; row<itsIdi->nRow();
