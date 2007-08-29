@@ -413,15 +413,20 @@ namespace conrad
 		{
 			uint nx=in.shape()(0);
 			uint ny=in.shape()(1);
+			uint nz=in.shape()(2);
 			casa::Cube<double> cube(in);
-			for (uint iy=0; iy<ny; iy++)
-			{
-				casa::Vector<double> vec(cube.xyPlane(0).column(iy));
+			for (uint iz=0; iz<nz; iz++)
+			  {
+			    casa::Matrix<double> mat(cube.xyPlane(iz));
+			    for (uint iy=0; iy<ny; iy++)
+			      {
+				casa::Vector<double> vec(mat.column(iy));
 				for (uint ix=0; ix<nx; ix++)
-				{
-					out(ix, iy, 0)=casa::Complex(float(vec(ix)));
-				}
-			}
+				  {
+				    out(ix, iy, iz)=casa::Complex(float(vec(ix)));
+				  }
+			      }
+			  }
 		}
 
 		void TableVisGridder::toDouble(casa::Array<double>& out,
@@ -429,16 +434,20 @@ namespace conrad
 		{
 			uint nx=in.shape()(0);
 			uint ny=in.shape()(1);
+			uint nz=in.shape()(2);
 			casa::Cube<double> cube(out);
-			casa::Matrix<casa::Complex> mat(in.xyPlane(0));
-			for (uint iy=0; iy<ny; iy++)
-			{
+			for (uint iz=0; iz<nz; iz++)
+			  {
+			    casa::Matrix<casa::Complex> mat(in.xyPlane(iz));
+			    for (uint iy=0; iy<ny; iy++)
+			      {
 				casa::Vector<casa::Complex> vec(mat.column(iy));
 				for (uint ix=0; ix<nx; ix++)
-				{
-					cube(ix, iy, 0)=double(real(vec(ix)));
-				}
-			}
+				  {
+				    cube(ix, iy, iz)=double(real(vec(ix)));
+				  }
+			      }
+			  }
 		}
 
 		// Note that this alters in!

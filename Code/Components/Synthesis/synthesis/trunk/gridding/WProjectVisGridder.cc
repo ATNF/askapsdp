@@ -165,7 +165,7 @@ namespace conrad
 					// working in
 					for (int ix=0; ix<nx/2; ix++)
 					  {
-						if (abs(thisPlane(ix, ny/2))>itsCutoff*maxPlane)
+						if (casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxPlane)
 						{
 							itsSupport=abs(ix-nx/2)/itsOverSample;
 							break;

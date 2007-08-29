@@ -11,6 +11,9 @@
 
 #include <conrad/ConradError.h>
 
+//#include <fitting/Params.h>
+//#include <fitting/ParamsCasaTable.h>
+
 using namespace conrad;
 
 namespace conrad
@@ -36,7 +39,13 @@ namespace conrad
 
 		AntennaIllumVisGridder::~AntennaIllumVisGridder()
 		{
-			itsC.resize(0, 0, 0);
+		  //		  conrad::scimath::ParamsCasaTable iptable("convolutionfunction.tab", false);
+		  //		  conrad::scimath::Params ip;
+		  //		  casa::Array<double> realC(itsC.shape());
+		  //		  toDouble(realC, itsC);
+		  //		  ip.add("Real.Convolution", realC);
+		  //		  iptable.setParameters(ip);
+		  itsC.resize(0, 0, 0);
 		}
 
 		/// Initialize the convolution function into the cube. If necessary this
@@ -119,7 +128,7 @@ namespace conrad
 				for (int chan=0; chan<nChan; chan++)
 				{
 					/// Make the disk for this channel
-					casa::Matrix<casa::Complex> disk(nx, ny);
+					casa::Matrix<casa::Complex> disk(qnx, qny);
 					disk.set(0.0);
 					/// Calculate the size of one cell in meters
 					double cell=cellSize(0)*(casa::C::c/idi->frequency()[chan])/double(itsOverSample);
@@ -130,13 +139,13 @@ namespace conrad
 					double ay=2.0f*casa::C::pi*cell*slope(1, feed)*idi->frequency()[chan]/casa::C::c;
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
-					for (int ix=0; ix<nx; ix++)
+					for (int ix=0; ix<qnx; ix++)
 					{
-						double nux=double(ix-nx/2);
+						double nux=double(ix-qnx/2);
 						double nux2=nux*nux;
-						for (int iy=0; iy<ny; iy++)
+						for (int iy=0; iy<qny; iy++)
 						{
-							double nuy=double(iy-ny/2);
+							double nuy=double(iy-qny/2);
 							double nuy2=nuy*nuy;
 							double r=nux2+nuy2;
 							if ((r>=rmin)&&(r<=rmax))
@@ -147,14 +156,14 @@ namespace conrad
 						}
 					}
 					// Ensure that there is always one point filled
-					disk(nx/2,ny/2)=casa::Complex(1.0);										
+					disk(qnx/2,qny/2)=casa::Complex(1.0);										
 					
-					for (uint iy=0; iy<ny; iy++)
+					for (uint iy=0; iy<qny; iy++)
 					{
 						casa::Vector<casa::Complex> vec(disk.column(iy));
 						ffts.fft(vec, true);
 					}
-					for (uint ix=0; ix<nx; ix++)
+					for (uint ix=0; ix<qnx; ix++)
 					{
 						casa::Vector<casa::Complex> vec(disk.row(ix));
 						ffts.fft(vec, true);
@@ -220,7 +229,7 @@ namespace conrad
 							// working in
 							for (int ix=0; ix<nx/2; ix++)
 							{
-								if (abs(thisPlane(ix, ny/2))>itsCutoff*maxCF)
+								if (casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF)
 								{
 									itsSupport=abs(ix-nx/2)/itsOverSample;
 									break;
@@ -231,6 +240,9 @@ namespace conrad
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
+							std::cout << "Maximum extent = " << itsCSize*cell
+								  << " (m) sampled at " << cell << " (m)"
+								  << std::endl;
 							itsCCenter=itsCSize/2-1;
 							itsC.resize(itsCSize, itsCSize, itsMaxFeeds*nChan*itsNWPlanes);
 							itsC.set(0.0);
@@ -413,6 +425,7 @@ namespace conrad
 			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
 			const int nSamples = idi->uvw().size();
 			slope.resize(2, itsMaxFeeds);
+			slope.set(0.0);
 			casa::Vector<bool> done(itsMaxFeeds);
 			done.set(false);
 
@@ -423,6 +436,7 @@ namespace conrad
 			{
 				double delay;
 				int feed=idi->feed1()(row);
+				CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
 				if (!done(feed))
 				{
 					casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
