@@ -465,8 +465,7 @@ namespace conrad
 		    const MPosition& mRefLocation, const Vector<Double>& xIn,
 		    const Vector<Double>& yIn, const Vector<Double>& zIn)
 		{
-			std::cout << "Simulator::longlat2global not yet implemented"
-			    << std::endl;
+			std::cout << "Simulator::longlat2global not yet implemented"<< std::endl;
 		}
 		;
 
@@ -478,8 +477,8 @@ namespace conrad
 			MSFieldColumns& fieldc=msc.field();
 			Int baseFieldID=fieldc.nrow();
 
-			std::cout << "Creating new field "<< sourceName << ", ID "<< baseFieldID+1
-			    << std::endl;
+			std::cout << "Creating new field "<< sourceName << ", ID "<< baseFieldID
+			    +1<< std::endl;
 
 			ms_p->field().addRow(1); //SINGLE DISH CASE
 			fieldc.name().put(baseFieldID, sourceName);
@@ -595,7 +594,8 @@ namespace conrad
 		{
 			if (mode=="list")
 			{
-				std::cout << "Mode list not supported without x,y,pol set"<< LogIO::EXCEPTION;
+				std::cout << "Mode list not supported without x,y,pol set"
+				    << LogIO::EXCEPTION;
 			}
 
 			Vector<Double> x;
@@ -627,9 +627,10 @@ namespace conrad
 				isList=True;
 				if (x.nelements()!=y.nelements())
 				{
-					std::cout << "Feed x and y must be the same length"<< LogIO::EXCEPTION;
+					std::cout << "Feed x and y must be the same length"
+					    << LogIO::EXCEPTION;
 				}
-				CONRADCHECK(pol.nelements()==x.nelements(), 
+				CONRADCHECK(pol.nelements()==x.nelements(),
 						"Feed polarization list must be same length as the number of positions");
 				std::cout << "Constructing FEED table from list"<< std::endl;
 			}
@@ -691,8 +692,8 @@ namespace conrad
 							feedPol(1, iRow) = "R";
 						}
 						polResp(0, 0, iRow)=polResp(1, 1, iRow)=Complex(1.0, 0.0);
-						std::cout << "Row "<< iRow+1<< " : Feed "<< j+1<< " on antenna "<< i+1
-						    << " "<< x(j) << " "<< y(j) << " "<< pol(j) << std::endl;
+						std::cout << "Row "<< iRow+1<< " : Feed "<< j+1<< " on antenna "
+						    << i+1<< " "<< x(j) << " "<< y(j) << " "<< pol(j) << std::endl;
 						iRow++;
 					}
 				}
@@ -823,7 +824,7 @@ namespace conrad
 				}
 			}
 			CONRADCHECK(existingSpWID>-1, "Spectral window named " + spWindowName + " not yet defined");
-			
+
 			MSPolarizationColumns& polc=msc.polarization();
 			baseSpWID=existingSpWID;
 			Double startFreq, freqInc;
@@ -887,8 +888,8 @@ namespace conrad
 				beam_offsets=msfpe_tmp.getBeamOffsets();
 				antenna_mounts=msfpe_tmp.antennaMounts();
 			}
-			CONRADCHECK(beam_offsets.nplane()==(uInt)nFeed && beam_offsets.ncolumn()==(uInt)nAnt, 
-				"Feed table format is incompatible with existing code of Simulator::observe");
+			CONRADCHECK(beam_offsets.nplane()==(uInt)nFeed && beam_offsets.ncolumn()==(uInt)nAnt,
+					"Feed table format is incompatible with existing code of Simulator::observe");
 
 			// Now we know where we are and where we are pointing, we can do the time calculations
 			Double Tstart, Tend, Tint;
@@ -1041,6 +1042,8 @@ namespace conrad
 
 			std::cout << "Calculating uvw coordinates for " << nIntegrations << " integrations" << std::endl;
 
+			
+			// Start of loop over time
 			for(Int integration=0; integration<nIntegrations; integration++)
 			{
 
@@ -1068,10 +1071,13 @@ namespace conrad
 				Int startingRow = row;
 				Double diamMax2 = square( max(antDiam) );
 
+				// Start of loop over feed
 				for(Int feed=0; feed<nFeed; feed++)
 				{
-					if (nFeed)
-					std::cout << "Processing feed "<<feed<< std::endl;
+					if ((nFeed>0)&&(integration==0))
+					{
+						std::cout << "Processing feed "<<feed<< std::endl;
+					}
 					// for now assume that all feeds have the same offsets w.r.t.
 					// antenna frame for all antennas
 					RigidVector<Double, 2> beamOffset=beam_offsets(0,0,feed);
@@ -1277,9 +1283,9 @@ namespace conrad
 						pointingc.directionMeasCol().put(m,direction);
 						pointingc.targetMeasCol().put(m,direction);
 					}
-					Time+=Tint;
-				} // time ranges
-			} // feeds
+				} // feeds
+				Time+=Tint;
+			} // time ranges
 
 			{
 				msd.setAntenna(0);

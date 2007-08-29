@@ -20,10 +20,10 @@ namespace conrad
 		{
 			public:
 
-				// Constructor from name only
+				/// Constructor from name only
 				Simulator(const casa::String&);
 
-				// Constructor from existing MS
+				/// Constructor from existing MS
 				Simulator(casa::MeasurementSet&);
 
 				// Copy constructor - for completeness only
