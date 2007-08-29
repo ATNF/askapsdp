@@ -10,5 +10,5 @@ feeds.feed4          =       [0, 0]
 feeds.feed5          =       [0, 1]
 feeds.feed6          =       [1, -1]
 feeds.feed7          =       [1, 0]
-feeds.feed8          =       [1, -1]
+feeds.feed8          =       [1, 1]
 

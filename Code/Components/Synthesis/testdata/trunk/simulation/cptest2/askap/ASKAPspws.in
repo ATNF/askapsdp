@@ -5,6 +5,7 @@ spws.Continuum  =[ 256, 1.420GHz, -1MHz, "XX XY YX YY"]
 spws.Continuum0 =[ 16, 1.420GHz, -1MHz, "XX XY YX YY"]
 
 spws.Temporal   =[ 16, 1.420GHz, -16MHz, "XX YY"]
+
 spws.Temporal0  =[ 4, 1.420GHz, -16MHz, "XX YY"]
 spws.Temporal1  =[ 4, 1.356GHz, -16MHz, "XX YY"]
 spws.Temporal2  =[ 4, 1.292GHz, -16MHz, "XX YY"]
@@ -13,5 +14,9 @@ spws.Temporal4  =[ 4, 1.164GHz, -16MHz, "XX YY"]
 spws.Temporal5  =[ 4, 1.100GHz, -16MHz, "XX YY"]
 spws.Temporal6  =[ 4, 1.036GHz, -16MHz, "XX YY"]
 spws.Temporal7  =[ 4, 0.972GHz, -16MHz, "XX YY"]
+spws.Temporal8  =[ 4, 0.908GHz, -16MHz, "XX YY"]
+spws.Temporal9  =[ 4, 0.844GHz, -16MHz, "XX YY"]
+spws.Temporal10  =[ 4, 0.780GHz, -16MHz, "XX YY"]
+spws.Temporal11  =[ 4, 0.716GHz, -16MHz, "XX YY"]
 
 spws.Spectral   =[ 16384, 1.420GHz, -15.626kHz, "XX YY"]
