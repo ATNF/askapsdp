@@ -33,9 +33,11 @@ namespace conrad
 				/// @param overSample Oversampling (currently limited to <=1)
 				/// @param maxSupport Maximum support to be allowed
 				/// @param maxFeeds Maximum number of feeds allowed
+		  /// @params Name Name of table to save convolution function into
 				AntennaIllumVisGridder(const double diameter, const double blockage,
 				    const double wmax, const int nwplanes, const double cutoff,
-				    const int overSample, const int maxSupport, const int maxFeeds=1);
+				    const int overSample, const int maxSupport, const int maxFeeds=1,
+						       const std::string& name=std::string(""));
 
 				virtual ~AntennaIllumVisGridder();
 

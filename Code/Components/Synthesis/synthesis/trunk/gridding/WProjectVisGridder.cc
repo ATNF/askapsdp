@@ -19,7 +19,7 @@ namespace conrad
 
 		WProjectVisGridder::WProjectVisGridder(const double wmax,
 		    const int nwplanes, const double cutoff, const int overSample,
-		    const int maxSupport)
+						       const int maxSupport, const std::string& name)
 		{
 			CONRADCHECK(wmax>0.0, "Baseline length must be greater than zero");
 			CONRADCHECK(nwplanes>0, "Number of w planes must be greater than zero");
@@ -33,6 +33,7 @@ namespace conrad
 			itsOverSample=overSample;
 			itsCutoff=cutoff;
 			itsMaxSupport=maxSupport;
+			itsName=name;
 		}
 
 		WProjectVisGridder::~WProjectVisGridder()
@@ -193,6 +194,7 @@ namespace conrad
 			}
 			std::cout << "Shape of convolution function = "<< itsC.shape()
 			    << std::endl;
+			if(itsName!="") save(itsName);
 		}
 
 		int WProjectVisGridder::cOffset(int row, int chan)

@@ -15,6 +15,8 @@
 
 #include <gridding/IVisGridder.h>
 
+#include <string>
+
 namespace conrad
 {
 	namespace synthesis
@@ -35,9 +37,15 @@ namespace conrad
 				/// in a table
 				/// @param overSample Oversampling (currently limited to <=1)
 				/// @param support Support of function
-				TableVisGridder(const int overSample, const int support);
+		  /// @params Name Name of table to save convolution function into
+		  TableVisGridder(const int overSample, const int support, 
+				  const std::string& name=std::string(""));
 
 				virtual ~TableVisGridder();
+
+		  /// @brief Save the convolution function to a table
+		  /// @param name Name of CASA table to save to
+		  void save(const std::string& name);
 
 				/// @brief Grid the visibility data onto the grid using multifrequency
 				/// synthesis. Note that the weights allow complete flexibility
@@ -125,8 +133,10 @@ namespace conrad
 				int itsOverSample;
 				/// Size of convolution function on first two axes (square)
 				int itsCSize;
-				/// Center of convolution functio
+				/// Center of convolution function
 				int itsCCenter;
+		  /// Name of table to save to
+		  std::string itsName;
 
 				/// Initialize the convolution function - this is the key function to override.
 				/// This should also setup cOffset to get the correct value of the offset

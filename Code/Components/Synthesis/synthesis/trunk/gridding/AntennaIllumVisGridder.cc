@@ -11,9 +11,6 @@
 
 #include <conrad/ConradError.h>
 
-//#include <fitting/Params.h>
-//#include <fitting/ParamsCasaTable.h>
-
 using namespace conrad;
 
 namespace conrad
@@ -24,8 +21,8 @@ namespace conrad
 		AntennaIllumVisGridder::AntennaIllumVisGridder(const double diameter,
 		    const double blockage, const double wmax, const int nwplanes,
 		    const double cutoff, const int overSample, const int maxSupport,
-		    const int maxFeeds) :
-			WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport),
+		    const int maxFeeds, const std::string& name) :
+			WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, name),
 			    itsReferenceFrequency(0.0), itsDiameter(diameter),
 			    itsBlockage(blockage), itsMaxFeeds(maxFeeds)
 
@@ -39,12 +36,6 @@ namespace conrad
 
 		AntennaIllumVisGridder::~AntennaIllumVisGridder()
 		{
-		  //		  conrad::scimath::ParamsCasaTable iptable("convolutionfunction.tab", false);
-		  //		  conrad::scimath::Params ip;
-		  //		  casa::Array<double> realC(itsC.shape());
-		  //		  toDouble(realC, itsC);
-		  //		  ip.add("Real.Convolution", realC);
-		  //		  iptable.setParameters(ip);
 		  itsC.resize(0, 0, 0);
 		}
 
@@ -262,6 +253,7 @@ namespace conrad
 			}
 			std::cout << "Shape of convolution function = "<< itsC.shape()
 			    << std::endl;
+			if(itsName!="") save(itsName);
 		}
 
 		/// To finalize the transform of the weights, we use the following steps:

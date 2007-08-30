@@ -85,9 +85,9 @@ namespace conrad
 				CONRADCHECK(itsMs.size()>0, "Need dataset specification");
 				if(itsMs.size()==1) {
 					string tmpl=itsMs[0];
+					itsMs.resize(itsNNode-1);
 					for (int i=0;i<itsNNode-1;i++) {
 						itsMs[i]=substituteWorkerNumber(tmpl);
-						std::cout << itsMs[i] << std::endl;
 					}
 				}
 				if(itsNNode>1) {

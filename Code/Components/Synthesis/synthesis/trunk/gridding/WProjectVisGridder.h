@@ -26,9 +26,11 @@ namespace conrad
 				/// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
 				/// @param overSample Oversampling (currently limited to <=1)
 				/// @param maxSupport Maximum support to be allowed
+		  /// @params Name Name of table to save convolution function into
 				//
 				WProjectVisGridder(const double wmax, const int nwplanes,
-				    const double cutoff, const int overSample, const int maxSupport);
+				    const double cutoff, const int overSample, const int maxSupport,
+						   const std::string& name);
 
 				virtual ~WProjectVisGridder();
 

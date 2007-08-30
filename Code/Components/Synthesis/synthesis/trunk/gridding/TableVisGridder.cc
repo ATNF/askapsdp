@@ -7,6 +7,9 @@
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/UVWMachine.h>
 
+#include <fitting/Params.h>
+#include <fitting/ParamsCasaTable.h>
+
 using namespace conrad::scimath;
 using namespace conrad;
 
@@ -17,12 +20,13 @@ namespace conrad
 	namespace synthesis
 	{
 
-		TableVisGridder::TableVisGridder()
+	  TableVisGridder::TableVisGridder() : itsName("")
 		{
 		}
 
-		TableVisGridder::TableVisGridder(const int overSample, const int support) :
-			itsOverSample(overSample), itsSupport(support)
+		TableVisGridder::TableVisGridder(const int overSample, const int support,
+						 const std::string& name) :
+		  itsOverSample(overSample), itsSupport(support), itsName(name)
 		{
 			CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
 			CONRADCHECK(support>0, "Maximum support must be greater than 0");
@@ -30,6 +34,16 @@ namespace conrad
 
 		TableVisGridder::~TableVisGridder()
 		{
+		}
+
+		void TableVisGridder::save(const std::string& name)
+		{
+		  conrad::scimath::ParamsCasaTable iptable(name, false);
+		  conrad::scimath::Params ip;
+		  casa::Array<double> realC(itsC.shape());
+		  toDouble(realC, itsC);
+		  ip.add("Real.Convolution", realC);
+		  iptable.setParameters(ip);
 		}
 
 		/// Data to grid (MFS)
