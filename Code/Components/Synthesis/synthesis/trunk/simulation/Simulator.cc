@@ -63,18 +63,29 @@ namespace conrad
 	namespace synthesis
 	{
 
+		/// Number of flag categories
 		const uInt nCat = 6; // Number of Flag categories
 
+		/// Name of SIGMA hyper column
 		const String sigmaCol = "sigmaHyperColumn";
+		/// Name of DATA hyper column
 		const String dataCol = "dataHyperColumn";
+		/// Name of scratch DATA hyper column
 		const String scratchDataCol = "scratchDataHyperColumn";
+		/// Name of imaging weight hyper column
 		const String imweightCol = "imWeightHyperColumn";
+		/// Name of flag hyper column
 		const String flagCol = "flagHyperColumn";
 
+		/// Name of SIGMA hypercube id column
 		const String sigmaTileId = "SIGMA_HYPERCUBE_ID";
+		/// Name of data hypercube id column
 		const String dataTileId = "DATA_HYPERCUBE_ID";
+		/// Name of scratch data hypercube id column
 		const String scratchDataTileId = "SCRATCH_DATA_HYPERCUBE_ID";
+		/// Name of flag hypercube id column
 		const String flagTileId = "FLAG_CATEGORY_HYPERCUBE_ID";
+		/// Name of imaging weight hypercube id column
 		const String imweightTileId = "IMAGING_WEIGHT_HYPERCUBE_ID";
 
 		// a but ugly solution to use the feed table parser of MSIter
@@ -82,7 +93,7 @@ namespace conrad
 		struct MSFeedParameterExtractor : protected MSIter
 		{
 
-				MSFeedParameterExtractor(const MeasurementSet &ms)
+				MSFeedParameterExtractor(const casa::MeasurementSet &ms)
 				{
 					msc_p=new ROMSColumns(ms);
 					msc_p->antenna().mount().getColumn(antennaMounts_p, True);
@@ -118,7 +129,7 @@ namespace conrad
 			mRefTime_p=MEpoch(today, MEpoch::UTC);
 		}
 
-		Simulator::Simulator(const String& MSName) :
+		Simulator::Simulator(const casa::String& MSName) :
 			ms_p(0), dataAcc_p(), scratchDataAcc_p(), sigmaAcc_p(), flagAcc_p(),
 			    imweightAcc_p(), maxData_p(2e9)
 		{
@@ -273,7 +284,7 @@ namespace conrad
 			hasHyperCubes_p=True;
 		}
 
-		Simulator::Simulator(MeasurementSet& theMS) :
+		Simulator::Simulator(casa::MeasurementSet& theMS) :
 			ms_p(0), dataAcc_p(), scratchDataAcc_p(), sigmaAcc_p(), flagAcc_p(),
 			    imweightAcc_p(), maxData_p(2e9)
 		{
@@ -314,8 +325,8 @@ namespace conrad
 		}
 
 		// Add new hypercubes as the shape changes
-		void Simulator::addHyperCubes(const Int id, const Int nBase,
-		    const Int nChan, const Int nCorr)
+		void Simulator::addHyperCubes(const int id, const int nBase,
+		    const int nChan, const int nCorr)
 		{
 			Record tileId;
 			const uInt chanTiles=(nChan+7)/8;
@@ -346,19 +357,19 @@ namespace conrad
 			operator=(mss);
 		}
 
-		void Simulator::initAnt(const String& telescope, const Vector<Double>& x,
-		    const Vector<Double>& y, const Vector<Double>& z,
-		    const Vector<Double>& dishDiameter, const Vector<Double>& offset,
-		    const Vector<String>& mount, const Vector<String>& name,
-		    const String& coordsystem, const MPosition& mRefLocation)
+		void Simulator::initAnt(const casa::String& telescope, const casa::Vector<double>& x,
+		    const casa::Vector<double>& y, const casa::Vector<double>& z,
+		    const casa::Vector<double>& dishDiameter, const casa::Vector<double>& offset,
+		    const casa::Vector<casa::String>& mount, const casa::Vector<casa::String>& name,
+		    const casa::String& coordsystem, const casa::MPosition& mRefLocation)
 		{
 			telescope_p=telescope;
 
 			Int nAnt = x.nelements();
 
-			Vector<Double> xx(x.nelements() );
-			Vector<Double> yy(x.nelements() );
-			Vector<Double> zz(x.nelements() );
+			Vector<double> xx(x.nelements() );
+			Vector<double> yy(x.nelements() );
+			Vector<double> zz(x.nelements() );
 			if (coordsystem == "global")
 			{
 				xx = x;
@@ -392,7 +403,7 @@ namespace conrad
 			}
 
 			Vector<Int> antId(nAnt);
-			Matrix<Double> antXYZ(3, nAnt);
+			Matrix<double> antXYZ(3, nAnt);
 
 			for (Int i=0; i<nAnt; i++)
 			{
@@ -422,10 +433,10 @@ namespace conrad
 			std::cout << "Added rows to ANTENNA table"<< std::endl;
 		}
 
-		void Simulator::local2global(Vector<Double>& xGeo, Vector<Double>& yGeo,
-		    Vector<Double>& zGeo, const MPosition& mRefLocation,
-		    const Vector<Double>& xLocal, const Vector<Double>& yLocal,
-		    const Vector<Double>& zLocal)
+		void Simulator::local2global(casa::Vector<double>& xGeo, casa::Vector<double>& yGeo,
+				casa::Vector<double>& zGeo, const casa::MPosition& mRefLocation,
+		    const casa::Vector<double>& xLocal, const casa::Vector<double>& yLocal,
+		    const casa::Vector<double>& zLocal)
 		{
 			uInt nn = xLocal.nelements();
 			xGeo.resize(nn);
@@ -434,22 +445,22 @@ namespace conrad
 
 			MPosition::Convert loc2(mRefLocation, MPosition::ITRF);
 			MPosition locitrf(loc2());
-			Vector<Double> xyz = locitrf.get("m").getValue();
+			Vector<double> xyz = locitrf.get("m").getValue();
 
-			Vector<Double> ang = locitrf.getAngle("rad").getValue();
-			Double d1, d2;
+			Vector<double> ang = locitrf.getAngle("rad").getValue();
+			double d1, d2;
 			d1 = ang(0);
 			d2 = ang(1);
-			Double cosLong = cos(d1);
-			Double sinLong = sin(d1);
-			Double cosLat = cos(d2);
-			Double sinLat = sin(d2);
+			double cosLong = cos(d1);
+			double sinLong = sin(d1);
+			double cosLat = cos(d2);
+			double sinLat = sin(d2);
 
 			for (uInt i=0; i< nn; i++)
 			{
 
-				Double xG1 = -sinLat * yLocal(i) + cosLat * zLocal(i);
-				Double yG1 = xLocal(i);
+				double xG1 = -sinLat * yLocal(i) + cosLat * zLocal(i);
+				double yG1 = xLocal(i);
 
 				xGeo(i) = cosLong * xG1 - sinLong * yG1 + xyz(0);
 				yGeo(i) = sinLong * xG1 + cosLong * yG1 + xyz(1);
@@ -460,17 +471,17 @@ namespace conrad
 		}
 		;
 
-		void Simulator::longlat2global(Vector<Double>& xReturned,
-		    Vector<Double>& yReturned, Vector<Double>& zReturned,
-		    const MPosition& mRefLocation, const Vector<Double>& xIn,
-		    const Vector<Double>& yIn, const Vector<Double>& zIn)
+		void Simulator::longlat2global(casa::Vector<double>& xReturned,
+				casa::Vector<double>& yReturned, casa::Vector<double>& zReturned,
+		    const casa::MPosition& mRefLocation, const casa::Vector<double>& xIn,
+		    const casa::Vector<double>& yIn, const casa::Vector<double>& zIn)
 		{
 			std::cout << "Simulator::longlat2global not yet implemented"<< std::endl;
 		}
 		;
 
-		void Simulator::initFields(const String& sourceName,
-		    const MDirection& sourceDirection, const String& calCode)
+		void Simulator::initFields(const casa::String& sourceName,
+		    const casa::MDirection& sourceDirection, const casa::String& calCode)
 		{
 
 			MSColumns msc(*ms_p);
@@ -495,9 +506,9 @@ namespace conrad
 		}
 		;
 
-		void Simulator::initSpWindows(const String& spWindowName, const Int& nChan,
-		    const Quantity& startFreq, const Quantity& freqInc,
-		    const Quantity& freqRes, const String& stokesString)
+		void Simulator::initSpWindows(const casa::String& spWindowName, const int& nChan,
+		    const casa::Quantity& startFreq, const casa::Quantity& freqInc,
+		    const casa::Quantity& freqRes, const casa::String& stokesString)
 		{
 
 			Vector<Int> stokesTypes(4);
@@ -544,12 +555,12 @@ namespace conrad
 			polc.flagRow().fillColumn(False);
 			ddc.flagRow().fillColumn(False);
 			polc.numCorr().put(baseSpWID, nCorr);
-			Vector <Double> freqs(nChan), bandwidth(nChan);
+			Vector <double> freqs(nChan), bandwidth(nChan);
 			bandwidth=freqInc.getValue("Hz");
 			ddc.spectralWindowId().put(baseSpWID, baseSpWID);
 			ddc.polarizationId().put(baseSpWID, baseSpWID);
-			Double vStartFreq(startFreq.getValue("Hz"));
-			Double vFreqInc(freqInc.getValue("Hz"));
+			double vStartFreq(startFreq.getValue("Hz"));
+			double vFreqInc(freqInc.getValue("Hz"));
 			for (Int chan=0; chan<nChan; chan++)
 			{
 				freqs(chan)=vStartFreq+chan*vFreqInc;
@@ -590,23 +601,9 @@ namespace conrad
 
 		}
 
-		void Simulator::initFeeds(const String& mode)
-		{
-			if (mode=="list")
-			{
-				std::cout << "Mode list not supported without x,y,pol set"
-				    << LogIO::EXCEPTION;
-			}
-
-			Vector<Double> x;
-			Vector<Double> y;
-			Vector<String> pol;
-			initFeeds(mode, x, y, pol);
-		}
-
 		// NOTE:  initAnt and initSpWindows must be called before this one!
-		void Simulator::initFeeds(const String& mode, const Vector<Double>& x,
-		    const Vector<Double>& y, const Vector<String>& pol)
+		void Simulator::initFeeds(const casa::String& mode, const casa::Vector<double>& x,
+		    const casa::Vector<double>& y, const casa::Vector<casa::String>& pol)
 		{
 			MSColumns msc(*ms_p);
 			MSAntennaColumns& antc=msc.antenna();
@@ -652,11 +649,11 @@ namespace conrad
 			Vector<Int> feedBeamId(nRow);
 
 			Vector<Int> feedNumRec(nRow);
-			Cube<Double> beamOffset(2, 2, nRow);
+			Cube<double> beamOffset(2, 2, nRow);
 
 			Matrix<String> feedPol(2, nRow);
-			Matrix<Double> feedXYZ(3, nRow);
-			Matrix<Double> feedAngle(2, nRow);
+			Matrix<double> feedXYZ(3, nRow);
+			Matrix<double> feedAngle(2, nRow);
 			Cube<Complex> polResp(2, 2, nRow);
 
 			Int iRow=0;
@@ -761,9 +758,9 @@ namespace conrad
 			return *this;
 		}
 
-		void Simulator::settimes(const Quantity& qIntegrationTime,
-				const Bool useHourAngle,
-				const MEpoch& mRefTime)
+		void Simulator::settimes(const casa::Quantity& qIntegrationTime,
+				const bool useHourAngle,
+				const casa::MEpoch& mRefTime)
 
 		{
 
@@ -777,10 +774,10 @@ namespace conrad
 			t_offset_p=0.0;
 		}
 
-		void Simulator::observe(const String& sourceName,
-				const String& spWindowName,
-				const Quantity& qStartTime,
-				const Quantity& qStopTime)
+		void Simulator::observe(const casa::String& sourceName,
+				const casa::String& spWindowName,
+				const casa::Quantity& qStartTime,
+				const casa::Quantity& qStopTime)
 		{
 			MSColumns msc(*ms_p);
 
@@ -789,9 +786,9 @@ namespace conrad
 			CONRADCHECK(antc.nrow()>0, "Antenna information not yet defined");
 
 			Int nAnt=antc.nrow();
-			Vector<Double> antDiam;
+			Vector<double> antDiam;
 			antc.dishDiameter().getColumn(antDiam);
-			Matrix<Double> antXYZ(3,nAnt);
+			Matrix<double> antXYZ(3,nAnt);
 			antc.position().getColumn(antXYZ);
 
 			MSDerivedValues msd;
@@ -827,8 +824,8 @@ namespace conrad
 
 			MSPolarizationColumns& polc=msc.polarization();
 			baseSpWID=existingSpWID;
-			Double startFreq, freqInc;
-			Vector<Double> resolution;
+			double startFreq, freqInc;
+			Vector<double> resolution;
 			spwc.refFrequency().get(baseSpWID,startFreq);
 			spwc.resolution().get(baseSpWID,resolution);
 			freqInc=resolution(0);
@@ -881,7 +878,7 @@ namespace conrad
 			}
 
 			// A bit ugly solution to extract the information about beam offsets
-			Cube<RigidVector<Double, 2> > beam_offsets;
+			Cube<RigidVector<double, 2> > beam_offsets;
 			Vector<String> antenna_mounts;
 			{ // to close MSIter, when the job is done
 				MSFeedParameterExtractor msfpe_tmp(*ms_p);
@@ -892,7 +889,7 @@ namespace conrad
 					"Feed table format is incompatible with existing code of Simulator::observe");
 
 			// Now we know where we are and where we are pointing, we can do the time calculations
-			Double Tstart, Tend, Tint;
+			double Tstart, Tend, Tint;
 			{
 				Tint = qIntegrationTime_p.getValue("s");
 
@@ -928,7 +925,7 @@ namespace conrad
 			Int nobsrow= obsc.nrow();
 			obs.addRow();
 			obsc.telescopeName().put(nobsrow,telescope_p);
-			Vector<Double> timeRange(2);
+			Vector<double> timeRange(2);
 			timeRange(0)=Tstart;
 			timeRange(1)=Tend;
 			obsc.timeRange().put(nobsrow,timeRange);
@@ -945,7 +942,7 @@ namespace conrad
 				if (tmpids.nelements()>0) maxArrayId=max(tmpids);
 			}
 
-			Double Time=Tstart;
+			double Time=Tstart;
 			Bool firstTime = True;
 
 			uInt nShadowed = 0;
@@ -1026,7 +1023,7 @@ namespace conrad
 				tileId.define(imweightTileId, static_cast<Int>(10*hyperCubeID_p + 4));
 				imweightAcc_p.extendHypercube(nNewRows, tileId);
 				// Size of scratch columns
-				Double thisChunk=16.0*Double(nChan)*Double(nCorr)*Double(nNewRows);
+				double thisChunk=16.0*double(nChan)*double(nCorr)*double(nNewRows);
 				dataWritten_p+=thisChunk;
 				std::cout << "Written " << thisChunk/(1024.0*1024.0) << " Mbytes to scratch columns" << std::endl;
 			}
@@ -1050,7 +1047,7 @@ namespace conrad
 				MEpoch epUT1 (Quantity(Time/C::day, "d"), MEpoch::UT1);
 				MEpoch::Ref refGMST1(MEpoch::GMST1);
 				MEpoch::Convert epGMST1(epUT1, refGMST1);
-				Double gmst = epGMST1().get("d").getValue("d");
+				double gmst = epGMST1().get("d").getValue("d");
 				gmst = (gmst - Int(gmst)) * C::_2pi; // Into Radians
 
 				MEpoch ep(Quantity((Time + Tint/2), "s"));
@@ -1067,9 +1064,9 @@ namespace conrad
 
 				Vector<Bool> isShadowed(nAnt); isShadowed.set(False);
 				Vector<Bool> isTooLow(nAnt); isTooLow.set(False);
-				Double fractionBlocked1=0.0, fractionBlocked2=0.0;
+				double fractionBlocked1=0.0, fractionBlocked2=0.0;
 				Int startingRow = row;
-				Double diamMax2 = square( max(antDiam) );
+				double diamMax2 = square( max(antDiam) );
 
 				// Start of loop over feed
 				for(Int feed=0; feed<nFeed; feed++)
@@ -1080,7 +1077,7 @@ namespace conrad
 					}
 					// for now assume that all feeds have the same offsets w.r.t.
 					// antenna frame for all antennas
-					RigidVector<Double, 2> beamOffset=beam_offsets(0,0,feed);
+					RigidVector<double, 2> beamOffset=beam_offsets(0,0,feed);
 
 					// fringe stopping center could be different for different feeds
 					MDirection feed_phc=fc;
@@ -1101,14 +1098,14 @@ namespace conrad
 					if (antenna_mounts[0]=="ALT-AZ" || antenna_mounts[0]=="alt-az")
 					{
 						// parallactic angle rotation is necessary
-						SquareMatrix<Double, 2> xform(SquareMatrix<Double, 2>::General);
+						SquareMatrix<double, 2> xform(SquareMatrix<double, 2>::General);
 						// SquareMatrix' default constructor is a bit strange, we probably
 						// need to change it in the future
 
 
-						const Double pa=msd.parAngle();
-						const Double cpa=cos(pa);
-						const Double spa=sin(pa);
+						const double pa=msd.parAngle();
+						const double cpa=cos(pa);
+						const double spa=sin(pa);
 						xform(0,0)=cpa;
 						xform(1,1)=cpa;
 						xform(0,1)=-spa;
@@ -1118,25 +1115,25 @@ namespace conrad
 					// x direction is flipped to convert az-el type frame to ra-dec
 					feed_phc.shift(-beamOffset(0),beamOffset(1),True);
 
-					Double ra, dec; // current phase center
+					double ra, dec; // current phase center
 					ra = feed_phc.getAngle().getValue()(0);
 					dec = feed_phc.getAngle().getValue()(1);
 
 					// Transformation from antenna position difference (ant2-ant1) to uvw
-					Double H0 = gmst-ra, sH0=sin(H0), cH0=cos(H0), sd=sin(dec), cd=cos(dec);
-					Matrix<Double> trans(3,3,0);
+					double H0 = gmst-ra, sH0=sin(H0), cH0=cos(H0), sd=sin(dec), cd=cos(dec);
+					Matrix<double> trans(3,3,0);
 					trans(0,0) = -sH0; trans(0,1) = -cH0;
 					trans(1,0) = sd*cH0; trans(1,1) = -sd*sH0; trans(1,2) = -cd;
 					trans(2,0) = -cd*cH0; trans(2,1) = cd*sH0; trans(2,2) = -sd;
 
 					// Rotate antennas to correct frame
-					Matrix<Double> antUVW(3,nAnt);
+					Matrix<double> antUVW(3,nAnt);
 					for (Int ant1=0; ant1<nAnt; ant1++)
 					antUVW.column(ant1)=product(trans,antXYZ.column(ant1));
 
 					for(Int ant1=0; ant1<nAnt; ant1++)
 					{
-						Double x1=antUVW(0,ant1), y1=antUVW(1,ant1), z1=antUVW(2,ant1);
+						double x1=antUVW(0,ant1), y1=antUVW(1,ant1), z1=antUVW(2,ant1);
 						Int startAnt2=ant1+1;
 						if(autoCorrelationWt_p>0.0) startAnt2=ant1;
 						for (Int ant2=startAnt2; ant2<nAnt; ant2++)
@@ -1148,8 +1145,8 @@ namespace conrad
 							msc.feed1().put(row,feed);
 							msc.feed2().put(row,feed);
 
-							Double x2=antUVW(0,ant2), y2=antUVW(1,ant2), z2=antUVW(2,ant2);
-							Vector<Double> uvwvec(3);
+							double x2=antUVW(0,ant2), y2=antUVW(1,ant2), z2=antUVW(2,ant2);
+							Vector<double> uvwvec(3);
 							uvwvec(0) = x2-x1;
 							uvwvec(1) = y2-y1;
 							uvwvec(2) = z2-z1;
@@ -1220,7 +1217,7 @@ namespace conrad
 					}
 
 					// Find antennas pointing below the elevation limit
-					Vector<Double> azel(2);
+					Vector<double> azel(2);
 					for (Int ant1=0; ant1<nAnt; ant1++)
 					{
 
@@ -1235,7 +1232,7 @@ namespace conrad
 						if (firstTime)
 						{
 							firstTime = False;
-							Double ha1 = msd.hourAngle() * 180.0/C::pi / 15.0;
+							double ha1 = msd.hourAngle() * 180.0/C::pi / 15.0;
 							std::cout << "Starting conditions for antenna 1: " << std::endl;
 							std::cout << "     time = " << formatTime(Time) << std::endl;
 							std::cout << "     scan = " << scan+1 << std::endl;
@@ -1268,7 +1265,7 @@ namespace conrad
 					Int numPointing=pointingc.nrow();
 					ms_p->pointing().addRow(numpointrows);
 					numpointrows += numPointing;
-					Double Tint=qIntegrationTime_p.getValue("s");
+					double Tint=qIntegrationTime_p.getValue("s");
 					Vector<MDirection> direction(1);
 					direction(0)=fieldCenter;
 					for (Int m=numPointing; m < (numPointing+nAnt); m++)
@@ -1289,9 +1286,9 @@ namespace conrad
 
 			{
 				msd.setAntenna(0);
-				Vector<Double> azel=msd.azel().getAngle("rad").getValue("rad");
+				Vector<double> azel=msd.azel().getAngle("rad").getValue("rad");
 
-				Double ha1 = msd.hourAngle() * 180.0/C::pi / 15.0;
+				double ha1 = msd.hourAngle() * 180.0/C::pi / 15.0;
 				std::cout << "Stopping conditions for antenna 1: " << std::endl;
 				std::cout << "     time = " << formatTime(Time) << std::endl;
 				std::cout << "     scan = " << scan+1 << std::endl;
@@ -1311,14 +1308,14 @@ namespace conrad
 		// We will want to put this somewhere else eventually, but I don't yet know where!
 		// Till then.
 		// Stolen from Fred Schwab
-		void Simulator::blockage(Double &fraction1, Double &fraction2,
-				const Vector<Double>& uvw,
-				const Double diam1,
-				const Double diam2)
+		void Simulator::blockage(double &fraction1, double &fraction2,
+				const casa::Vector<double>& uvw,
+				const double diam1,
+				const double diam2)
 		{
-			Double separation = sqrt( square(uvw(0)) + square(uvw(1)) );
-			Double rmin = 0.5 * min(abs(diam1),abs(diam2));
-			Double rmax = 0.5 * max(abs(diam1),abs(diam2));
+			double separation = sqrt( square(uvw(0)) + square(uvw(1)) );
+			double rmin = 0.5 * min(abs(diam1),abs(diam2));
+			double rmax = 0.5 * max(abs(diam1),abs(diam2));
 			if (separation >= (rmin+rmax))
 			{
 				fraction1 = 0.0;
@@ -1331,20 +1328,20 @@ namespace conrad
 			}
 			else
 			{
-				Double c = separation/(0.5 * abs(diam1));
-				Double s=abs(diam2)/abs(diam1);
-				Double sinb=sqrt(2.0 * (square(c*s)+square(c)+square(s))-pow(c,4.0)-pow(s,4.0)-1.0)
+				double c = separation/(0.5 * abs(diam1));
+				double s=abs(diam2)/abs(diam1);
+				double sinb=sqrt(2.0 * (square(c*s)+square(c)+square(s))-pow(c,4.0)-pow(s,4.0)-1.0)
 				/(2.0 * c);
-				Double sina=sinb/s;
+				double sina=sinb/s;
 				//  Due to roundoff, sina or sinb might be ever so slightly larger than 1
 				//  in the case of unequal radii, with the center of one antenna pattern
 				//  inside the other:
 				sinb=min(1.0, sinb);
 				sina=min(1.0, sina);
 
-				Double b=asin(sinb);
-				Double a=asin(sina);
-				Double area=(square(s)*a+b)-(square(s)*sina*cos(a)+sinb*cos(b));
+				double b=asin(sinb);
+				double a=asin(sina);
+				double area=(square(s)*a+b)-(square(s)*sina*cos(a)+sinb*cos(b));
 				fraction1 = area/C::pi;
 				fraction2 = fraction1/square(s);
 			}
@@ -1356,7 +1353,7 @@ namespace conrad
 			return;
 		};
 
-		String Simulator::formatDirection(const MDirection& direction)
+		String Simulator::formatDirection(const casa::MDirection& direction)
 		{
 			MVAngle mvRa=direction.getAngle().getValue()(0);
 			MVAngle mvDec=direction.getAngle().getValue()(1);
@@ -1370,7 +1367,7 @@ namespace conrad
 			return String(oss);
 		}
 
-		String Simulator::formatTime(const Double time)
+		String Simulator::formatTime(const double time)
 		{
 			MVTime mvtime(Quantity(time, "s"));
 			return mvtime.string(MVTime::DMY,7);

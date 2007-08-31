@@ -20,13 +20,14 @@ namespace conrad
 	namespace synthesis
 	{
 
-	  TableVisGridder::TableVisGridder() : itsName("")
+		TableVisGridder::TableVisGridder() :
+			itsName("")
 		{
 		}
 
 		TableVisGridder::TableVisGridder(const int overSample, const int support,
-						 const std::string& name) :
-		  itsOverSample(overSample), itsSupport(support), itsName(name)
+		    const std::string& name) :
+			itsOverSample(overSample), itsSupport(support), itsName(name)
 		{
 			CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
 			CONRADCHECK(support>0, "Maximum support must be greater than 0");
@@ -38,12 +39,12 @@ namespace conrad
 
 		void TableVisGridder::save(const std::string& name)
 		{
-		  conrad::scimath::ParamsCasaTable iptable(name, false);
-		  conrad::scimath::Params ip;
-		  casa::Array<double> realC(itsC.shape());
-		  toDouble(realC, itsC);
-		  ip.add("Real.Convolution", realC);
-		  iptable.setParameters(ip);
+			conrad::scimath::ParamsCasaTable iptable(name, false);
+			conrad::scimath::Params ip;
+			casa::Array<double> realC(itsC.shape());
+			toDouble(realC, itsC);
+			ip.add("Real.Convolution", realC);
+			iptable.setParameters(ip);
 		}
 
 		/// Data to grid (MFS)
@@ -126,8 +127,7 @@ namespace conrad
 		    casa::Vector<casa::RigidVector<double, 3> >& outUVW,
 		    casa::Vector<double>& delay)
 		{
-			casa::Quantum<double>
-			    refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
+			casa::Quantum<double>refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
 			casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0,
 			    "rad");
 			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
@@ -430,17 +430,17 @@ namespace conrad
 			uint nz=in.shape()(2);
 			casa::Cube<double> cube(in);
 			for (uint iz=0; iz<nz; iz++)
-			  {
-			    casa::Matrix<double> mat(cube.xyPlane(iz));
-			    for (uint iy=0; iy<ny; iy++)
-			      {
-				casa::Vector<double> vec(mat.column(iy));
-				for (uint ix=0; ix<nx; ix++)
-				  {
-				    out(ix, iy, iz)=casa::Complex(float(vec(ix)));
-				  }
-			      }
-			  }
+			{
+				casa::Matrix<double> mat(cube.xyPlane(iz));
+				for (uint iy=0; iy<ny; iy++)
+				{
+					casa::Vector<double> vec(mat.column(iy));
+					for (uint ix=0; ix<nx; ix++)
+					{
+						out(ix, iy, iz)=casa::Complex(float(vec(ix)));
+					}
+				}
+			}
 		}
 
 		void TableVisGridder::toDouble(casa::Array<double>& out,
@@ -451,17 +451,17 @@ namespace conrad
 			uint nz=in.shape()(2);
 			casa::Cube<double> cube(out);
 			for (uint iz=0; iz<nz; iz++)
-			  {
-			    casa::Matrix<casa::Complex> mat(in.xyPlane(iz));
-			    for (uint iy=0; iy<ny; iy++)
-			      {
-				casa::Vector<casa::Complex> vec(mat.column(iy));
-				for (uint ix=0; ix<nx; ix++)
-				  {
-				    cube(ix, iy, iz)=double(real(vec(ix)));
-				  }
-			      }
-			  }
+			{
+				casa::Matrix<casa::Complex> mat(in.xyPlane(iz));
+				for (uint iy=0; iy<ny; iy++)
+				{
+					casa::Vector<casa::Complex> vec(mat.column(iy));
+					for (uint ix=0; ix<nx; ix++)
+					{
+						cube(ix, iy, iz)=double(real(vec(ix)));
+					}
+				}
+			}
 		}
 
 		// Note that this alters in!
@@ -474,8 +474,9 @@ namespace conrad
 		}
 
 		/// This is the default implementation
-		void TableVisGridder::finaliseReverseWeights(casa::Matrix<double>& sumWeights, 
-				const conrad::scimath::Axes& axes, casa::Cube<double>& out)
+		void TableVisGridder::finaliseReverseWeights(
+		    casa::Matrix<double>& sumWeights, const conrad::scimath::Axes& axes,
+		    casa::Cube<double>& out)
 		{
 			int nx=out.shape()(0);
 			int ny=out.shape()(1);

@@ -13,24 +13,27 @@
 
 #include <APS/ParameterSet.h>
 
-namespace conrad {
-  namespace synthesis {
-    /// @brief Factory class for visibility gridders
-    /// @ingroup gridding
-    class VisGridderFactory
-    {
-      public:
-    /// @brief Factory Class for all gridders.
-    /// @todo Python version of factory 
-        VisGridderFactory();
-        virtual ~VisGridderFactory();
+namespace conrad
+{
+	namespace synthesis
+	{
+		/// @brief Factory class for visibility gridders
+		/// @ingroup gridding
+		class VisGridderFactory
+		{
+			public:
+				/// @brief Factory Class for all gridders.
+				/// @todo Python version of factory 
+				VisGridderFactory();
+				virtual ~VisGridderFactory();
 
-        /// @brief Make a shared pointer for a visibility gridder
-        /// @param parset ParameterSet containing description of
-        /// gridder to be constructed
-        static IVisGridder::ShPtr make(const LOFAR::ACC::APS::ParameterSet& parset); 
-    };
+				/// @brief Make a shared pointer for a visibility gridder
+				/// @param parset ParameterSet containing description of
+				/// gridder to be constructed
+				static IVisGridder::ShPtr make(
+				    const LOFAR::ACC::APS::ParameterSet& parset);
+		};
 
-  }
+	}
 }
 #endif 

@@ -6,6 +6,8 @@
 /// @defgroup measurementequation Measurement equation implementation
 /// @defgroup gridding Gridding algorithms
 /// @defgroup parallel Support for writing parallel applications
+/// @defgroup fft FFT interfaces
+/// @defgroup simulation Data simulation
 
 /// The package namespace
 namespace conrad::synthesis {};
@@ -52,5 +54,7 @@ namespace conrad::synthesis {};
 /// @li @ref measurementequation
 /// @li @ref gridding
 /// @li @ref parallel
+/// @li @ref fft
+/// @li @ref simulation
 ///
 /// @copyright 2007 CONRAD, All Rights Reserved.

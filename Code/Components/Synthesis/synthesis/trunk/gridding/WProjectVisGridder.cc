@@ -19,7 +19,7 @@ namespace conrad
 
 		WProjectVisGridder::WProjectVisGridder(const double wmax,
 		    const int nwplanes, const double cutoff, const int overSample,
-						       const int maxSupport, const std::string& name)
+		    const int maxSupport, const std::string& name)
 		{
 			CONRADCHECK(wmax>0.0, "Baseline length must be greater than zero");
 			CONRADCHECK(nwplanes>0, "Number of w planes must be greater than zero");
@@ -63,14 +63,17 @@ namespace conrad
 				{
 					double freq=idi->frequency()[chan];
 					itsCMap(i, chan)=cenw+nint(w*freq/itsWScale);
-					if(itsCMap(i, chan)<0) {
-						std::cout << w << " " << freq << " " << itsWScale << " " << itsCMap(i, chan) << std::endl; 
+					if (itsCMap(i, chan)<0)
+					{
+						std::cout << w << " "<< freq << " "<< itsWScale << " "<< itsCMap(i,
+						    chan) << std::endl;
 					}
 					CONRADCHECK(itsCMap(i,chan)<itsNWPlanes, "W scaling error: recommend allowing larger range of w");
 					CONRADCHECK(itsCMap(i,chan)>-1, "W scaling error: recommend allowing larger range of w");
 				}
 			}
-			if (itsSupport!=0) {
+			if (itsSupport!=0)
+			{
 				return;
 			}
 
@@ -87,7 +90,7 @@ namespace conrad
 			int nx=std::min(itsMaxSupport, shape(0));
 			int ny=std::min(itsMaxSupport, shape(1));
 			/// We want nx * ccellx = overSample * shape(0) * cellx
-			
+
 			// Find the actual cellsizes in x and y (radians) after over
 			// oversampling (in uv space)
 			float ccellx=float(itsOverSample)*float(shape(0))*cellx/float(nx);
@@ -95,7 +98,7 @@ namespace conrad
 
 			int qnx=nx/itsOverSample;
 			int qny=ny/itsOverSample;
-			
+
 			casa::Vector<float> ccfx(qnx);
 			casa::Vector<float> ccfy(qny);
 			for (int ix=0; ix<qnx; ix++)
@@ -135,13 +138,14 @@ namespace conrad
 						float r2=x2+y2;
 						float phase=w*(1.0-sqrt(1.0-r2));
 						float wt=ccfx(iy)*ccfy(ix);
-						thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(wt*cos(phase), -wt*sin(phase));
+						thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(
+						    wt*cos(phase), -wt*sin(phase));
 					}
 				}
-			  // At this point, we have the phase screen multiplied by the spheroidal
+				// At this point, we have the phase screen multiplied by the spheroidal
 				// function, sampled on larger cellsize (itsOverSample larger) in image
 				// space. Only the inner qnx, qny pixels have a non-zero value
-				
+
 				// Now we have to calculate the Fourier transform to get the
 				// convolution function in uv space
 				for (int iy=0; iy<ny; iy++)
@@ -159,13 +163,13 @@ namespace conrad
 				//
 				// If the support is not yet set, find it and size the
 				// convolution function appropriately
-				float maxPlane=abs(thisPlane(nx/2,ny/2));
+				float maxPlane=abs(thisPlane(nx/2, ny/2));
 				if (itsSupport==0)
 				{
 					// Find the support by starting from the edge and
 					// working in
 					for (int ix=0; ix<nx/2; ix++)
-					  {
+					{
 						if (casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxPlane)
 						{
 							itsSupport=abs(ix-nx/2)/itsOverSample;
@@ -175,8 +179,8 @@ namespace conrad
 					itsSupport=(itsSupport<nx/2) ? itsSupport : nx/2;
 					itsCSize=2*(itsSupport+1)*itsOverSample;
 					std::cout << "Convolution function support = "<< itsSupport
-						  << " pixels, convolution function size = "<< itsCSize
-						  << " pixels"<< std::endl;
+					    << " pixels, convolution function size = "<< itsCSize<< " pixels"
+					    << std::endl;
 					itsCCenter=itsCSize/2-1;
 					itsC.resize(itsCSize, itsCSize, itsNWPlanes);
 					itsC.set(0.0);
@@ -194,7 +198,8 @@ namespace conrad
 			}
 			std::cout << "Shape of convolution function = "<< itsC.shape()
 			    << std::endl;
-			if(itsName!="") save(itsName);
+			if (itsName!="")
+				save(itsName);
 		}
 
 		int WProjectVisGridder::cOffset(int row, int chan)

@@ -29,19 +29,19 @@ namespace conrad
 		{
 			CONRADCHECK(diameter>0.0, "Blockage must be positive");
 			CONRADCHECK(diameter>blockage,
-			    "Antenna diameter must be greater than blockage");
+					"Antenna diameter must be greater than blockage");
 			CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
 			CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
 		}
 
 		AntennaIllumVisGridder::~AntennaIllumVisGridder()
 		{
-		  itsC.resize(0, 0, 0);
+			itsC.resize(0, 0, 0);
 		}
 
 		/// Initialize the convolution function into the cube. If necessary this
 		/// could be optimized by using symmetries.
-	  /// @todo Make initConvolutionFunction more robust
+		/// @todo Make initConvolutionFunction more robust
 		void AntennaIllumVisGridder::initConvolutionFunction(IDataSharedIter& idi,
 		    const conrad::scimath::Axes& axes,
 		    casa::Vector<casa::RigidVector<double, 3> >& uvw,
@@ -66,9 +66,9 @@ namespace conrad
 					double freq=idi->frequency()[chan];
 					itsCMap(i, chan)=feed+itsMaxFeeds*(chan*itsNWPlanes+(cenw+nint(w*freq/itsWScale)));
 					CONRADCHECK(itsCMap(i, chan)<(itsNWPlanes*nChan*itsMaxFeeds),
-					    "W scaling error: recommend allowing larger range of w");
+							"W scaling error: recommend allowing larger range of w");
 					CONRADCHECK(itsCMap(i, chan)>-1,
-					    "W scaling error: recommend allowing larger range of w");
+							"W scaling error: recommend allowing larger range of w");
 				}
 			}
 			if (itsSupport!=0)
@@ -147,8 +147,8 @@ namespace conrad
 						}
 					}
 					// Ensure that there is always one point filled
-					disk(qnx/2,qny/2)=casa::Complex(1.0);										
-					
+					disk(qnx/2, qny/2)=casa::Complex(1.0);
+
 					for (uint iy=0; iy<qny; iy++)
 					{
 						casa::Vector<casa::Complex> vec(disk.column(iy));
@@ -163,7 +163,7 @@ namespace conrad
 					float peak=casa::max(casa::real(disk));
 					CONRADCHECK(peak>0.0, "Synthetic primary beam is empty");
 					disk/=casa::Complex(peak);
-					
+
 					/// Calculate the total convolution function including
 					/// the w term and the antenna convolution function
 					casa::Matrix<casa::Complex> thisPlane(nx, ny);
@@ -190,8 +190,9 @@ namespace conrad
 								float r2=x2+y2;
 								float phase=w*(1.0-sqrt(1.0-r2));
 								casa::Complex wt=disk(ix, iy)*casa::Complex(ccfx(iy)*ccfy(ix));
-								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(cos(phase), -sin(phase));
-								maxCF+=casa::real(disk(ix,iy));
+								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(
+								    cos(phase), -sin(phase));
+								maxCF+=casa::real(disk(ix, iy));
 							}
 						}
 						maxCF/=(double(nx)*double(ny));
@@ -231,9 +232,8 @@ namespace conrad
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
-							std::cout << "Maximum extent = " << itsCSize*cell
-								  << " (m) sampled at " << cell << " (m)"
-								  << std::endl;
+							std::cout << "Maximum extent = "<< itsCSize*cell
+							    << " (m) sampled at "<< cell << " (m)"<< std::endl;
 							itsCCenter=itsCSize/2-1;
 							itsC.resize(itsCSize, itsCSize, itsMaxFeeds*nChan*itsNWPlanes);
 							itsC.set(0.0);
@@ -245,7 +245,8 @@ namespace conrad
 							for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample
 							    *itsSupport; ix++)
 							{
-								itsC(ix+itsCCenter, iy+itsCCenter, zIndex)=thisPlane(ix+nx/2, iy+ny/2);
+								itsC(ix+itsCCenter, iy+itsCCenter, zIndex)=thisPlane(ix+nx/2,
+								    iy+ny/2);
 							}
 						}
 					}
@@ -253,7 +254,8 @@ namespace conrad
 			}
 			std::cout << "Shape of convolution function = "<< itsC.shape()
 			    << std::endl;
-			if(itsName!="") save(itsName);
+			if (itsName!="")
+				save(itsName);
 		}
 
 		/// To finalize the transform of the weights, we use the following steps:
@@ -287,7 +289,7 @@ namespace conrad
 			int nZ=sumWeights.shape()(0);
 
 			CONRADCHECK(sumWeights.shape()(1)!=nPol,
-			    "Number of polarizations do not match");
+					"Number of polarizations do not match");
 
 			out.set(0.0);
 			cOut.set(0.0);
@@ -322,18 +324,20 @@ namespace conrad
 						ffts.fft(vec, false);
 					}
 					double peak(casa::abs(casa::max(casa::real(thisPlane))));
-					if(peak>0.0) {
-					  for (int pol=0; pol<nPol; pol++)
-					    {
-					      double weight=sumWeights(iz, pol)/peak;
-					      for (int ix=0; ix<cnx; ix++)
+					if (peak>0.0)
+					{
+						for (int pol=0; pol<nPol; pol++)
 						{
-						  for (int iy=0; iy<cny; iy++)
-						    {
-						      cOut(ix, iy, pol)+=weight*real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
-						    }
+							double weight=sumWeights(iz, pol)/peak;
+							for (int ix=0; ix<cnx; ix++)
+							{
+								for (int iy=0; iy<cny; iy++)
+								{
+									cOut(ix, iy, pol)+=weight*real(thisPlane(ix, iy)
+									    *conj(thisPlane(ix, iy)));
+								}
+							}
 						}
-					    }
 					}
 				}
 			}
@@ -353,7 +357,7 @@ namespace conrad
 			int onx=out.shape()(0);
 			int ony=out.shape()(1);
 			int onz=out.shape()(2);
-			
+
 			CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
 			CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");
 			CONRADCHECK(inz==onz, "Number of z planes different in padding");
@@ -399,7 +403,7 @@ namespace conrad
 				double scale=(double(inx)*double(iny))/(double(onx)*double(ony));
 
 				outArray*=scale;
-				
+
 			}
 		}
 

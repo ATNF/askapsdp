@@ -37,15 +37,15 @@ namespace conrad
 				/// in a table
 				/// @param overSample Oversampling (currently limited to <=1)
 				/// @param support Support of function
-		  /// @params Name Name of table to save convolution function into
-		  TableVisGridder(const int overSample, const int support, 
-				  const std::string& name=std::string(""));
+				/// @param name Name of table to save convolution function into
+				TableVisGridder(const int overSample, const int support,
+				    const std::string& name=std::string(""));
 
 				virtual ~TableVisGridder();
 
-		  /// @brief Save the convolution function to a table
-		  /// @param name Name of CASA table to save to
-		  void save(const std::string& name);
+				/// @brief Save the convolution function to a table
+				/// @param name Name of CASA table to save to
+				void save(const std::string& name);
 
 				/// @brief Grid the visibility data onto the grid using multifrequency
 				/// synthesis. Note that the weights allow complete flexibility
@@ -135,8 +135,8 @@ namespace conrad
 				int itsCSize;
 				/// Center of convolution function
 				int itsCCenter;
-		  /// Name of table to save to
-		  std::string itsName;
+				/// Name of table to save to
+				std::string itsName;
 
 				/// Initialize the convolution function - this is the key function to override.
 				/// This should also setup cOffset to get the correct value of the offset
@@ -192,8 +192,7 @@ namespace conrad
 				    const casa::Cube<float>& visweight,
 				    const casa::Vector<double>& freq,
 				    const casa::Vector<double>& cellsize,
-				    casa::Cube<casa::Complex>& grid, 
-				    bool dopsf=false);
+				    casa::Cube<casa::Complex>& grid, bool dopsf=false);
 
 				/// Accumulate summed weights per convolution function offset and polarization
 				/// @param visweight Visibility weight
@@ -247,8 +246,7 @@ namespace conrad
 				    const casa::Vector<casa::RigidVector<double, 3> >& uvw,
 				    const casa::Vector<double>& delay,
 				    casa::Cube<casa::Complex>& visibility,
-				    casa::Cube<float>& visweight, 
-				    const casa::Vector<double>& freq,
+				    casa::Cube<float>& visweight, const casa::Vector<double>& freq,
 				    const casa::Vector<double>& cellsize,
 				    const casa::Array<casa::Complex>& grid);
 
@@ -257,8 +255,7 @@ namespace conrad
 				/// @param axes Image axes
 				/// @param outUVW Rotated uvw
 				/// @param delay Delay change (m)
-				void rotateUVW(IDataSharedIter& idi, 
-						const conrad::scimath::Axes& axes,
+				void rotateUVW(IDataSharedIter& idi, const conrad::scimath::Axes& axes,
 				    casa::Vector<casa::RigidVector<double, 3> >& outUVW,
 				    casa::Vector<double>& delay);
 				///

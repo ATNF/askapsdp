@@ -33,11 +33,11 @@ namespace conrad
 				/// @param overSample Oversampling (currently limited to <=1)
 				/// @param maxSupport Maximum support to be allowed
 				/// @param maxFeeds Maximum number of feeds allowed
-		  /// @params Name Name of table to save convolution function into
+				/// @param name Name of table to save convolution function into
 				AntennaIllumVisGridder(const double diameter, const double blockage,
 				    const double wmax, const int nwplanes, const double cutoff,
 				    const int overSample, const int maxSupport, const int maxFeeds=1,
-						       const std::string& name=std::string(""));
+				    const std::string& name=std::string(""));
 
 				virtual ~AntennaIllumVisGridder();
 
@@ -47,8 +47,7 @@ namespace conrad
 				/// @param axes Axes description 
 				/// @param out Output double precision grid
 				virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt,
-	          const conrad::scimath::Axes& axes,
-				    casa::Cube<double>& out);
+				    const conrad::scimath::Axes& axes, casa::Cube<double>& out);
 
 			protected:
 				/// Offset into convolution function
@@ -81,10 +80,10 @@ namespace conrad
 				/// @param slope Matrix of slopes at 1m east and north
 				void findCollimation(IDataSharedIter& idi,
 				    const conrad::scimath::Axes& axes, casa::Matrix<double>& slope);
-		  /// Pad up in size using FFT
-		  /// @param in Input Cube
-		  /// @param out Output Cube
-		  void fftPad(const casa::Cube<double>& in, casa::Cube<double>& out);
+				/// Pad up in size using FFT
+				/// @param in Input Cube
+				/// @param out Output Cube
+				void fftPad(const casa::Cube<double>& in, casa::Cube<double>& out);
 		};
 
 	}
