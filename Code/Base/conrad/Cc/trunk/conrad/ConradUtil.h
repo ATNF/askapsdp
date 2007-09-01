@@ -22,6 +22,13 @@ namespace conrad {
   /// Convert a string to lowercase.
   std::string toLower(std::string s);
 
+	/// Round to nearest integer
+	/// @param x Value to be rounded
+	int nint(double x);
+
+	/// Round to nearest integer
+	/// @param x Value to be rounded
+	int nint(float x);
 
   /// Write a vector to an ostream with a given separator, prefix and postfix.
   /// \note operator<<() must be defined for the container elements.

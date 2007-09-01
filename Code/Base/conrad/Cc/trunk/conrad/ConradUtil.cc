@@ -22,4 +22,14 @@ namespace conrad {
     return str;
   }
 
+	int nint(double x)
+	{
+		return x>0 ? int(x+0.5) : int(x-0.5);
+	}
+
+	int nint(float x)
+	{
+		return x>0 ? int(x+0.5) : int(x-0.5);
+	}
+
 } // end namespaces
