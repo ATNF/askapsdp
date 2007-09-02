@@ -6,7 +6,6 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Axes.h>
 
-
 #include <gridding/SphFuncVisGridder.h>
 
 #include <msvis/MSVis/StokesVector.h>
@@ -27,218 +26,192 @@ using conrad::scimath::DesignMatrix;
 
 namespace conrad
 {
-  namespace synthesis
-  {
+	namespace synthesis
+	{
 
-    ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
-      IDataSharedIter& idi) : 
-      conrad::scimath::Equation(ip), itsIdi(idi) 
-      {
-        itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
-        init();
-      };
-        
-    ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi) 
-      : conrad::scimath::Equation(), itsIdi(idi) 
-    {
-      itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
-      itsParams=defaultParameters().clone();
-      init();
-    }
+		ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
+		    IDataSharedIter& idi) :
+			conrad::scimath::Equation(ip), itsIdi(idi)
+		{
+			itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
+			init();
+		}
+		;
 
-    ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
-      IDataSharedIter& idi, IVisGridder::ShPtr gridder) : 
-      conrad::scimath::Equation(ip), itsIdi(idi), itsGridder(gridder) 
-      {
-        init();
-      };
-        
-    ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi,
-      IVisGridder::ShPtr gridder) 
-      : conrad::scimath::Equation(), itsIdi(idi), itsGridder(gridder) 
-    {
-      itsParams=defaultParameters().clone();
-      init();
-    }
+		ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi) :
+			conrad::scimath::Equation(), itsIdi(idi)
+		{
+			itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
+			itsParams=defaultParameters().clone();
+			init();
+		}
 
-    ImageFFTEquation::~ImageFFTEquation() 
-    {
-    }
-    
-    conrad::scimath::Params ImageFFTEquation::defaultParameters()
-    {
-      Params ip;
-      ip.add("image");
-      return ip;
-    }
+		ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
+		    IDataSharedIter& idi, IVisGridder::ShPtr gridder) :
+			conrad::scimath::Equation(ip), itsIdi(idi), itsGridder(gridder)
+		{
+			init();
+		}
+		;
 
-    ImageFFTEquation::ImageFFTEquation(const ImageFFTEquation& other)
-    {
-      operator=(other);
-    }
+		ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi,
+		    IVisGridder::ShPtr gridder) :
+			conrad::scimath::Equation(), itsIdi(idi), itsGridder(gridder)
+		{
+			itsParams=defaultParameters().clone();
+			init();
+		}
 
-    ImageFFTEquation& ImageFFTEquation::operator=(const ImageFFTEquation& other)
-    {
-      if(this!=&other)
-      {
-        itsParams=other.itsParams;
-        itsIdi=other.itsIdi;
-        itsGridder = other.itsGridder;
-      }
-    }
+		ImageFFTEquation::~ImageFFTEquation()
+		{
+		}
 
-    void ImageFFTEquation::init()
-    {
-    }
+		conrad::scimath::Params ImageFFTEquation::defaultParameters()
+		{
+			Params ip;
+			ip.add("image");
+			return ip;
+		}
 
-    void ImageFFTEquation::predict()
-    {
-      const vector<string> completions(parameters().completions("image.i"));
+		ImageFFTEquation::ImageFFTEquation(const ImageFFTEquation& other)
+		{
+			operator=(other);
+		}
 
-// To minimize the number of data passes, we keep copies of the grids in memory, and
-// switch between these. This optimization may not be sufficient in the long run.
-      
-      itsIdi.chooseOriginal();
-      std::map<string, casa::Cube<casa::Complex>* > grids;
-      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
-      {
-        string imageName("image.i"+(*it));
-        const Axes axes(parameters().axes(imageName));
-        casa::Cube<double> imagePixels(parameters().value(imageName).copy());
-        const casa::IPosition imageShape(imagePixels.shape());
-        grids[imageName]=new casa::Cube<casa::Complex>(imageShape(0), imageShape(1), 1);
-// Since we just defined it, we know its there and can use the simple version of the lookup
-        itsGridder->initialiseForward(imagePixels, axes, *grids[imageName]);
-      }
-// Loop through degridding the data
-      for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
-      {
-        itsIdi->rwVisibility().set(0.0);
-        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
-        {
-          string imageName("image.i"+(*it));
-          const Axes axes(parameters().axes(imageName));
-          itsGridder->forward(itsIdi, axes, *grids[imageName]);
-        }
-      }
-      // Now clean up 
-      for (std::map<string, casa::Cube<casa::Complex>* >::iterator it=grids.begin();
-        it!=grids.end();++it) 
-      {
-        delete it->second;
-      }
-    };
+		ImageFFTEquation& ImageFFTEquation::operator=(const ImageFFTEquation& other)
+		{
+			if(this!=&other)
+			{
+				itsParams=other.itsParams;
+				itsIdi=other.itsIdi;
+				itsGridder = other.itsGridder;
+			}
+		}
 
-// Calculate the residual visibility and image. We transform the model on the fly
-// so that we only have to read (and write) the data once. This uses more memory
-// but cuts down on IO
-    void ImageFFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
-    {
-      
-// We will need to loop over all completions i.e. all sources
-      const vector<string> completions(parameters().completions("image.i"));
-      
-// To minimize the number of data passes, we keep copies of the grids in memory, and
-// switch between these. This optimization may not be sufficient in the long run.      
-// Set up initial grids for all the types we need to make
-      vector<string> types(4);
-      types[0]="model";
-      types[1]="map";
-      types[2]="psf";
-      types[3]="weight";
-      std::map<string, casa::Cube<casa::Complex>* > grids;
-      std::map<string, casa::Matrix<casa::Double>* > sumWeights;
-      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
-      {
-        const string imageName("image.i"+(*it));
-        const casa::IPosition imageShape(parameters().value(imageName).shape());
-        for (vector<string>::const_iterator type=types.begin();type!=types.end();++type) {
-          grids[string(imageName+(*type))]=new casa::Cube<casa::Complex>(imageShape(0), imageShape(1), 1);
-          grids[string(imageName+(*type))]->set(0.0);
-        }
-        sumWeights[imageName]=new casa::Matrix<casa::Double>(0,0);
-      }
-      // Now we fill in the models
-      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
-      {
-        string imageName("image.i"+(*it));
-        const Axes axes(parameters().axes(imageName));
-        casa::Cube<double> imagePixels(parameters().value(imageName).copy());
-        const casa::IPosition imageShape(imagePixels.shape());
-        string modelName("image.i"+(*it)+"model");
-        itsGridder->initialiseForward(imagePixels, axes, *grids[modelName]);
-      }      
-// Now we loop through all the data
-      bool first=true;
-      for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
-      {
-        /// Accumulate model visibility for all models
-        itsIdi.chooseBuffer("MODEL_DATA");
-        itsIdi->rwVisibility().set(0.0);
-        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
-        {
-          string modelName("image.i"+(*it)+"model");
-          string imageName("image.i"+(*it));
-          const Axes axes(parameters().axes(imageName));
-          itsGridder->forward(itsIdi, axes, *grids[modelName]);
-        }
-        /// Now we can calculate the residual visibility and image
-        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
-        {
-          const string imageName("image.i"+(*it));
-          const string mapName(imageName+"map");
-          const string psfName(imageName+"psf");
-          const Axes axes(parameters().axes(imageName));
-          if(parameters().isFree(imageName)) {
-            itsIdi.chooseOriginal();
-            itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
-            itsIdi.chooseBuffer("RESIDUAL_DATA");
-            itsGridder->reverse(itsIdi, axes, *grids[mapName]);
-            itsGridder->reverse(itsIdi, axes, *grids[psfName], true);
-            itsGridder->reverseWeights(itsIdi, *sumWeights[imageName]);
-            itsIdi.chooseOriginal();
-          }
-        }
-      }
-      
+		void ImageFFTEquation::init()
+		{
+		}
 
-      // We have looped over all the data, so now we have to complete the 
-      // transforms and fill in the normal equations
-      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
-      {
-        const string imageName("image.i"+(*it));
-        const string mapName(imageName+"map");
-        const string psfName(imageName+"psf");
-        const string weightName(imageName+"weight");
-        const casa::IPosition imageShape(parameters().value(imageName).shape());
-        const Axes axes(parameters().axes(imageName));
+		void ImageFFTEquation::predict()
+		{
+			const vector<string> completions(parameters().completions("image.i"));
 
-        casa::Cube<double> imagePSF(imageShape(0), imageShape(1), 1);
-        casa::Cube<double> imageWeight(imageShape(0), imageShape(1), 1);
-        casa::Cube<double> imageDeriv(imageShape(0), imageShape(1), 1);
-  
-        itsGridder->finaliseReverse(*grids[mapName], axes, imageDeriv);
-        itsGridder->finaliseReverse(*grids[psfName], axes, imagePSF);
-        itsGridder->finaliseReverseWeights(*sumWeights[imageName], axes, imageWeight);
-        {
-          casa::IPosition reference(3, imageShape(0)/2, imageShape(1)/2, 0);
-          casa::IPosition vecShape(1, imagePSF.nelements());
-          casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
-          casa::Vector<double> imageWeightVec(imageWeight.reform(vecShape));
-          casa::Vector<double> imageDerivVec(imageDeriv.reform(vecShape));
-          ne.addSlice(imageName, imagePSFVec, imageWeightVec, imageDerivVec, 
-            imageShape, reference);
-        }
-      }
-      // Now delete all the grids to avoid memory leaks
-      for (std::map<string, casa::Cube<casa::Complex>* >::iterator it=grids.begin();
-        it!=grids.end();++it) 
-      {
-        delete it->second;
-      }
+			// To minimize the number of data passes, we keep copies of the gridders in memory, and
+			// switch between these. This optimization may not be sufficient in the long run.
 
-    };
+			itsIdi.chooseOriginal();
+			std::map<string, IVisGridder::ShPtr> gridders;
+			for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+			{
+				string imageName("image.i"+(*it));
+				const Axes axes(parameters().axes(imageName));
+				casa::Array<double> imagePixels(parameters().value(imageName).copy());
+				const casa::IPosition imageShape(imagePixels.shape());
+				gridders[imageName]=itsGridder->clone();
+				gridders[imageName]->initialiseDegrid(axes, imagePixels);
+			}
+			// Loop through degridding the data
+			for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
+			{
+				itsIdi->rwVisibility().set(0.0);
+				for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+				{
+					string imageName("image.i"+(*it));
+					gridders[imageName]->degrid(itsIdi);
+				}
+			}
+		};
 
-  }
+		// Calculate the residual visibility and image. We transform the model on the fly
+		// so that we only have to read (and write) the data once. This uses more memory
+		// but cuts down on IO
+		void ImageFFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
+		{
+
+			// We will need to loop over all completions i.e. all sources
+			const vector<string> completions(parameters().completions("image.i"));
+
+			// To minimize the number of data passes, we keep copies of the gridders in memory, and
+			// switch between these. This optimization may not be sufficient in the long run.      
+			// Set up initial gridders for model and for the residuals. This enables us to 
+			// do both at the same time.
+
+			std::map<string, IVisGridder::ShPtr> modelGridders;
+			std::map<string, IVisGridder::ShPtr> residualGridders;
+			for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+			{
+				const string imageName("image.i"+(*it));
+				const casa::IPosition imageShape(parameters().value(imageName).shape());
+				const Axes axes(parameters().axes(imageName));
+				casa::Array<double> imagePixels(parameters().value(imageName).copy());
+				modelGridders[imageName]=itsGridder->clone();
+				residualGridders[imageName]=itsGridder->clone();
+			}
+			// Now we initialise appropriately
+			for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+			{
+				string imageName("image.i"+(*it));
+				const Axes axes(parameters().axes(imageName));
+				casa::Array<double> imagePixels(parameters().value(imageName).copy());
+				const casa::IPosition imageShape(imagePixels.shape());
+				/// First the model
+				modelGridders[imageName]->initialiseDegrid(axes, imagePixels);
+				/// Now the residual images
+				residualGridders[imageName]->initialiseGrid(axes, imageShape, true);
+			}
+			// Now we loop through all the data
+			bool first=true;
+			for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
+			{
+				/// Accumulate model visibility for all models
+				itsIdi.chooseBuffer("MODEL_DATA");
+				itsIdi->rwVisibility().set(0.0);
+				for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
+				{
+					string imageName("image.i"+(*it));
+					modelGridders[imageName]->degrid(itsIdi);
+				}
+				/// Now we can calculate the residual visibility and image
+				for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+				{
+					const string imageName("image.i"+(*it));
+					if(parameters().isFree(imageName))
+					{
+						itsIdi.chooseOriginal();
+						itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
+						itsIdi.chooseBuffer("RESIDUAL_DATA");
+						residualGridders[imageName]->grid(itsIdi);
+					}
+				}
+			}
+
+			// We have looped over all the data, so now we have to complete the 
+			// transforms and fill in the normal equations with the results from the
+			// residual gridders
+			for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+			{
+				const string imageName("image.i"+(*it));
+				const casa::IPosition imageShape(parameters().value(imageName).shape());
+
+				casa::Array<double> imagePSF(imageShape);
+				casa::Array<double> imageWeight(imageShape);
+				casa::Array<double> imageDeriv(imageShape);
+
+				residualGridders[imageName]->finaliseGrid(imageDeriv);
+				residualGridders[imageName]->finalisePSF(imagePSF);
+				residualGridders[imageName]->finaliseWeights(imageWeight);
+				{
+					casa::IPosition reference(4, imageShape(0)/2, imageShape(1)/2, 0, imageShape(3)/2);
+					casa::IPosition vecShape(1, imagePSF.nelements());
+					casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
+					casa::Vector<double> imageWeightVec(imageWeight.reform(vecShape));
+					casa::Vector<double> imageDerivVec(imageDeriv.reform(vecShape));
+					ne.addSlice(imageName, imagePSFVec, imageWeightVec, imageDerivVec,
+							imageShape, reference);
+				}
+			}
+		};
+
+	}
 
 }

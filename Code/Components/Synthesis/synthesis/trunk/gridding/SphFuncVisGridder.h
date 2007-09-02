@@ -24,8 +24,6 @@ namespace conrad
 {
 	namespace synthesis
 	{
-		/// @brief Spheroidal function gridder suitable for bog-standard gridding.
-		/// @ingroup gridding
 
 		class SphFuncVisGridder : public TableVisGridder
 		{
@@ -36,39 +34,30 @@ namespace conrad
 
 				virtual ~SphFuncVisGridder();
 
+				/// Clone a copy of this Gridder
+				virtual IVisGridder::ShPtr clone();
+
 			protected:
+				/// @brief Initialize the convolution function
+				/// @param idi Data iterator
+				virtual void initConvolutionFunction(IDataSharedIter& idi);
+
+				/// @brief Initialise the indices
+				virtual void initIndices(IDataSharedIter& idi);
+
 				/// Correct for gridding convolution function
-				/// @param axes axes specifications
 				/// @param image image to be corrected
-				virtual void correctConvolution(const scimath::Axes& axes,
-				    casa::Cube<double>& image);
+				virtual void correctConvolution(casa::Array<double>& image);
 
-				/// Apply gridding convolution function in image space
-				/// @param axes axes specifications
-				/// @param image image to be corrected
-				virtual void applyConvolution(const scimath::Axes& axes,
-				    casa::Cube<double>& image);
-
-				/// Offset into convolution function
-				/// @param row Row number
-				/// @param chan Channel number
-				virtual int cOffset(int row, int chan);
-				/// Initialize convolution function
-				/// @param idi Data access iterator
-				/// @param axes axes specifications
-				/// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
-				/// @param cellSize Cell size in wavelengths
-				/// @param shape Shape of grid
-				virtual void initConvolutionFunction(IDataSharedIter& idi,
-				    const conrad::scimath::Axes& axes,
-				    casa::Vector<casa::RigidVector<double, 3> >& uvw,
-				    const casa::Vector<double>& cellSize, const casa::IPosition& shape);
 				/// Calculate prolate spheroidal function
 				/// @param nu Argument for spheroidal function
 				double grdsf(double nu);
+
 				/// Initialize lookup table for spheriodal function
 				void initSphFunc();
+
 		};
+
 	}
 }
 #endif

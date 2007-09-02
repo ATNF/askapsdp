@@ -11,28 +11,33 @@ namespace conrad
 
     BoxVisGridder::~BoxVisGridder()
     {
-      itsC.resize(0,0,0);
     }
 
-    void BoxVisGridder::initConvolutionFunction(IDataSharedIter& idi, 
-    		const conrad::scimath::Axes& axes,
-    		casa::Vector<casa::RigidVector<double, 3> >& uvw,
-    		const casa::Vector<double>& cellSize,
-      const casa::IPosition& shape)
+		/// Clone a copy of this Gridder
+		IVisGridder::ShPtr BoxVisGridder::clone() 
+		{
+			return IVisGridder::ShPtr(new BoxVisGridder(*this));
+		}
+
+		void BoxVisGridder::initIndices(IDataSharedIter& idi) 
+		{
+		}
+
+    void BoxVisGridder::initConvolutionFunction(IDataSharedIter& idi)
     {
       itsSupport=0;
       itsOverSample=1;
       itsCSize=2*(itsSupport+1)*itsOverSample+1; // 3
       itsCCenter=(itsCSize-1)/2; // 1
-      itsC.resize(itsCSize, itsCSize, 1); // 3, 3, 1
-      itsC.set(0.0);
-      itsC(itsCCenter,itsCCenter,0)=1.0; // 1,1,0 = 1
+      itsConvFunc.resize(1);
+      itsConvFunc(0).resize(itsCSize, itsCSize, 1); // 3, 3, 1
+      itsConvFunc(0).set(0.0);
+      itsConvFunc(0)(itsCCenter,itsCCenter)=1.0; // 1,1,0 = 1
     }
-
-    int BoxVisGridder::cOffset(int row, int chan)
-    {
-      return 0;
-    }
+    
+		void BoxVisGridder::correctConvolution(casa::Array<double>& image)
+		{
+		}
 
   }
 }

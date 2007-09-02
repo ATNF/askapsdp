@@ -41,29 +41,28 @@ namespace conrad
 
 				virtual ~AntennaIllumVisGridder();
 
+				/// Clone a copy of this Gridder
+				virtual IVisGridder::ShPtr clone();
+
 				/// Form the sum of the convolution function squared, multiplied by the weights for each
 				/// different convolution function. This is used in the evaluation of the second derivative.
-				/// @param sumwt Sum of weights (offset, pol)
-				/// @param axes Axes description 
 				/// @param out Output double precision grid
-				virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt,
-				    const conrad::scimath::Axes& axes, casa::Cube<double>& out);
+				virtual void finaliseReverseWeights(casa::Array<double>& out);
 
 			protected:
-				/// Offset into convolution function
+				/// @brief Initialise the indices
+				virtual void initIndices(IDataSharedIter& idi);
+				
+				/// Index into convolution function
 				/// @param row Row number
+				/// @param pol Polarization id
 				/// @param chan Channel number
-				virtual int cOffset(int row, int chan);
+				virtual int cIndex(int row, int pol, int chan);
+				
 				/// Initialize convolution function
 				/// @param idi Data access iterator
-				/// @param axes Axes description 
-				/// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
-				/// @param cellSize Cell size in wavelengths
-				/// @param shape Shape of grid
-				virtual void initConvolutionFunction(IDataSharedIter& idi,
-				    const conrad::scimath::Axes& axes,
-				    casa::Vector<casa::RigidVector<double, 3> >& uvw,
-				    const casa::Vector<double>& cellSize, const casa::IPosition& shape);
+				virtual void initConvolutionFunction(IDataSharedIter& idi);
+				
 			private:
 				/// Reference frequency for illumination pattern. 
 				double itsReferenceFrequency;
@@ -76,14 +75,12 @@ namespace conrad
 
 				/// Find the slopes needed to repoint the antenna
 				/// @param idi Data iterator
-				/// @param axes Image axes
 				/// @param slope Matrix of slopes at 1m east and north
-				void findCollimation(IDataSharedIter& idi,
-				    const conrad::scimath::Axes& axes, casa::Matrix<double>& slope);
+				void findCollimation(IDataSharedIter& idi, casa::Matrix<double>& slope);
 				/// Pad up in size using FFT
-				/// @param in Input Cube
-				/// @param out Output Cube
-				void fftPad(const casa::Cube<double>& in, casa::Cube<double>& out);
+				/// @param in Input Array
+				/// @param out Output Array
+				void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
 		};
 
 	}

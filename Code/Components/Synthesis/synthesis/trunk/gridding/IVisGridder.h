@@ -2,16 +2,6 @@
 ///
 /// IVisGridder: Interface definition for visibility gridders
 ///
-/// Gridders derived from this base are intentionally designed to
-/// work with visibility data accessed via the synthesis/dataaccess
-/// classes. They are not intended to be generate purpose gridding
-/// classes.
-///
-/// Multi-frequency synthesis and normal spectral gridding are
-/// supported by different methods.
-///
-/// No phase rotation is performed in the gridder.
-///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
@@ -37,83 +27,63 @@ namespace conrad
 	{
 
 		/// @brief Abstract Base Class for all gridders.
+		/// A gridder puts the synthesis data onto a grid and transforms
+		/// as necessary. To allow all the important possibilities, the
+		/// Fourier transforms are performed here rather than externally.
+		/// 
+		/// There is a separate class for degridding.
 		/// @ingroup gridding
 		class IVisGridder
 		{
 			public:
 
-				/// Shared pointer definition
-				typedef boost::shared_ptr<IVisGridder> ShPtr;
+			/// Shared pointer definition
+			typedef boost::shared_ptr<IVisGridder> ShPtr;
 
-				IVisGridder();
-				virtual ~IVisGridder();
+			IVisGridder();
+			virtual ~IVisGridder();
+			
+			/// Clone a copy of this Gridder
+			virtual ShPtr clone() = 0;
 
-				/// Grid the visibility data onto the grid using multifrequency
-				/// synthesis. Note that the weights allow complete flexibility
-				/// @param idi DataIterator
-				/// @param axes axes specifications
-				/// @param grid Output grid: cube: u,v,pol
-				/// @param dopsf Make the psf?
-				virtual void reverse(IDataSharedIter& idi, const scimath::Axes& axes,
-				    casa::Cube<casa::Complex>& grid, bool dopsf=false) = 0;
+			/// @brief Initialise the gridding
+			/// @param axes axes specifications
+			/// @param shape Shape of output image: cube: u,v,pol,chan
+			/// @param dopsf Make the psf?
+			virtual void initialiseGrid(const scimath::Axes& axes,
+					const casa::IPosition& shape, const bool dopsf=true) = 0;
 
-				/// Grid the spectral visibility data onto the grid
-				/// Note that the weights allow complete flexibility
-				/// @param idi DataIterator
-				/// @param axes axes specifications
-				/// @param grid Output grid: cube: u,v,chan,pol
-				/// @param dopsf Make the psf?
-				virtual void reverse(IDataSharedIter& idi, const scimath::Axes& axes,
-				    casa::Array<casa::Complex>& grid, bool dopsf=false) = 0;
+			/// Grid the visibility data.
+			/// @param idi DataIterator
+			virtual void grid(IDataSharedIter& idi) = 0;
 
-				/// @brief Accumulate the weights as needed to calculate the
-				/// weights image
-				/// @param idi DataIterator
-				/// @param weights Output weights: matrix: offset, pol
-				virtual void reverseWeights(IDataSharedIter& idi,
-				    casa::Matrix<double>& weights) = 0;
+			/// Form the final output image
+			/// @param out Output double precision image
+			virtual void finaliseGrid(casa::Array<double>& out) = 0;
 
-				/// Estimate visibility data from the grid using multifrequency
-				/// synthesis.
-				/// @param idi DataIterator
-				/// @param axes axes specifications
-				/// @param grid Input grid: cube: u,v,pol
-				virtual void forward(IDataSharedIter& idi, const scimath::Axes& axes,
-				    const casa::Cube<casa::Complex>& grid) = 0;
+			/// Form the final output image
+			/// @param out Output double precision PSF
+			virtual void finalisePSF(casa::Array<double>& out) = 0;
 
-				/// Estimate spectral visibility data from the grid
-				/// @param idi DataIterator
-				/// @param axes axes specifications
-				/// @param grid Output weights: cube of same shape as visibility
-				virtual void forward(IDataSharedIter& idi, const scimath::Axes& axes,
-				    const casa::Array<casa::Complex>& grid) = 0;
+			/// Form the sum of the convolution function squared, multiplied by the weights for each
+			/// different convolution function. This is used in the evaluation of the second derivative.
+			/// @param out Output double precision sum of weights images
+			virtual void finaliseWeights(casa::Array<double>& out) = 0;
 
-				/// @brief Finish off the transform to the image plane
-				/// @param in Input complex grid
-				/// @param axes Axes description
-				/// @param out Output double precision grid
-				virtual void finaliseReverse(casa::Cube<casa::Complex>& in,
-				    const conrad::scimath::Axes& axes, casa::Cube<double>& out) = 0;
+			/// @brief Initialise the degridding
+			/// @param axes axes specifications
+			/// @param image Input image: cube: u,v,pol,chan
+			virtual void initialiseDegrid(const scimath::Axes& axes,
+					const casa::Array<double>& image) = 0;
 
-				/// @brief Initialise the transform from the image plane
-				/// @param in Input double precision grid
-				/// @param axes Axes description
-				/// @param  out Output complex grid
-				virtual void
-				    initialiseForward(casa::Cube<double>& in,
-				        const conrad::scimath::Axes& axes,
-				        casa::Cube<casa::Complex>& out) = 0;
+			/// Degrid the visibility data.
+			/// @param idi DataIterator
+			virtual void degrid(IDataSharedIter& idi) = 0;
 
-				/// Form the sum of the convolution function squared, multiplied by the weights for each
-				/// different convolution function. This is used in the evaluation of the second derivative.
-				/// @param sumwt Sum of weights (offset, pol)
-				/// @param axes axes specifications
-				/// @param out Output double precision grid
-				virtual void finaliseReverseWeights(casa::Matrix<double>& sumwt,
-				    const scimath::Axes& axes, casa::Cube<double>& out) = 0;
+			/// @brief Finalise
+			virtual void finaliseDegrid() = 0;
 
 		};
-
 	}
 }
 #endif                                            /*IVISGRIDDER_H_*/

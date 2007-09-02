@@ -34,29 +34,33 @@ namespace conrad
 
 				virtual ~WProjectVisGridder();
 
+				/// Clone a copy of this Gridder
+				virtual IVisGridder::ShPtr clone();
+
 			protected:
+				/// @brief Initialise the indices
+				virtual void initIndices(IDataSharedIter& idi);
+
 				/// Offset into convolution function
 				/// @param row Row number
+				/// @param row Polarisation
 				/// @param chan Channel number
-				virtual int cOffset(int row, int chan);
+				virtual int cIndex(int row, int pol, int chan);
+
 				/// Initialize convolution function
 				/// @param idi Data access iterator
-				/// @param axes axes specifications
-				/// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
-				/// @param cellSize Cell size in wavelengths
-				/// @param shape Shape of grid
-				virtual void initConvolutionFunction(IDataSharedIter& idi,
-				    const conrad::scimath::Axes& axes,
-				    casa::Vector<casa::RigidVector<double, 3> >& uvw,
-				    const casa::Vector<double>& cellSize, const casa::IPosition& shape);
+				virtual void initConvolutionFunction(IDataSharedIter& idi);
+
 				/// Scaling
 				double itsWScale;
 				/// Number of w planes
 				int itsNWPlanes;
 				/// Threshold for cutoff of convolution function
 				double itsCutoff;
-				/// Mapping from row and channel to planes
-				casa::Matrix<int> itsCMap;
+				/// Mapping from row, pol, and channel to planes of convolution function
+				casa::Cube<int> itsCMap;
+				/// Mapping from row, pol, and channel to planes of grid
+				casa::Cube<int> itsGMap;
 				/// Maximum support
 				int itsMaxSupport;
 		};

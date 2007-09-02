@@ -1,12 +1,13 @@
 #include <gridding/WProjectVisGridder.h>
 
 #include <conrad/ConradError.h>
+#include <conrad/ConradUtil.h>
 
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
 
 #include <casa/BasicSL/Constants.h>
-#include <scimath/Mathematics/FFTServer.h>
+#include <fft/FFTWrapper.h>
 
 using namespace conrad;
 
@@ -40,61 +41,78 @@ namespace conrad
 		{
 		}
 
+		/// Clone a copy of this Gridder
+		IVisGridder::ShPtr WProjectVisGridder::clone()
+		{
+			return IVisGridder::ShPtr(new WProjectVisGridder(*this));
+		}
+
 		/// Initialize the convolution function into the cube. If necessary this
 		/// could be optimized by using symmetries.
-		void WProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi,
-		    const conrad::scimath::Axes& axes,
-		    casa::Vector<casa::RigidVector<double, 3> >& uvw,
-		    const casa::Vector<double>& cellSize, const casa::IPosition& shape)
+		void WProjectVisGridder::initIndices(IDataSharedIter& idi)
 		{
 			/// We have to calculate the lookup function converting from
 			/// row and channel to plane of the w-dependent convolution
 			/// function
-			const int nSamples = uvw.size();
+			const int nSamples = idi->uvw().size();
 			const int nChan = idi->frequency().size();
-			itsCMap.resize(nSamples, nChan);
-			itsCMap.set(0);
-
+			const int nPol = itsShape(2);
+			itsCMap.resize(nSamples, nPol, nChan);
 			int cenw=(itsNWPlanes-1)/2;
 			for (int i=0; i<nSamples; i++)
 			{
-				double w=(uvw(i)(2))/(casa::C::c);
+				double w=(idi->uvw()(i)(2))/(casa::C::c);
 				for (int chan=0; chan<nChan; chan++)
 				{
-					double freq=idi->frequency()[chan];
-					itsCMap(i, chan)=cenw+nint(w*freq/itsWScale);
-					if (itsCMap(i, chan)<0)
+					for (int pol=0; pol<nPol; pol++)
 					{
-						std::cout << w << " "<< freq << " "<< itsWScale << " "<< itsCMap(i,
-						    chan) << std::endl;
+						double freq=idi->frequency()[chan];
+						itsCMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
+						if (itsCMap(i, pol, chan)<0)
+						{
+							std::cout << w << " "<< freq << " "<< itsWScale << " "<< itsCMap(
+							    i, pol, chan) << std::endl;
+						}
+						CONRADCHECK(itsCMap(i,pol,chan)<itsNWPlanes, "W scaling error: recommend allowing larger range of w");
+						CONRADCHECK(itsCMap(i,pol,chan)>-1, "W scaling error: recommend allowing larger range of w");
 					}
-					CONRADCHECK(itsCMap(i,chan)<itsNWPlanes, "W scaling error: recommend allowing larger range of w");
-					CONRADCHECK(itsCMap(i,chan)>-1, "W scaling error: recommend allowing larger range of w");
 				}
 			}
+		}
+
+		/// Initialize the convolution function into the cube. If necessary this
+		/// could be optimized by using symmetries.
+		void WProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi)
+		{
+			/// We have to calculate the lookup function converting from
+			/// row and channel to plane of the w-dependent convolution
+			/// function
+			const int nSamples = idi->uvw().size();
+			const int nChan = idi->frequency().size();
+			int cenw=(itsNWPlanes-1)/2;
+
 			if (itsSupport!=0)
 			{
 				return;
 			}
 
-			casa::FFTServer<casa::Float,casa::Complex> ffts;
 			itsSupport=0;
 
 			/// These are the actual cell sizes used
-			float cellx=1.0/(float(shape(0))*cellSize(0));
-			float celly=1.0/(float(shape(1))*cellSize(1));
+			float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
+			float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
 
 			/// Limit the size of the convolution function since
 			/// we don't need it finely sampled in image space. This
 			/// will reduce the time taken to calculate it.
-			int nx=std::min(itsMaxSupport, shape(0));
-			int ny=std::min(itsMaxSupport, shape(1));
-			/// We want nx * ccellx = overSample * shape(0) * cellx
+			int nx=std::min(itsMaxSupport, itsShape(0));
+			int ny=std::min(itsMaxSupport, itsShape(1));
+			/// We want nx * ccellx = overSample * itsShape(0) * cellx
 
 			// Find the actual cellsizes in x and y (radians) after over
 			// oversampling (in uv space)
-			float ccellx=float(itsOverSample)*float(shape(0))*cellx/float(nx);
-			float ccelly=float(itsOverSample)*float(shape(1))*celly/float(ny);
+			float ccellx=float(itsOverSample)*float(itsShape(0))*cellx/float(nx);
+			float ccelly=float(itsOverSample)*float(itsShape(1))*celly/float(ny);
 
 			int qnx=nx/itsOverSample;
 			int qny=ny/itsOverSample;
@@ -148,16 +166,8 @@ namespace conrad
 
 				// Now we have to calculate the Fourier transform to get the
 				// convolution function in uv space
-				for (int iy=0; iy<ny; iy++)
-				{
-					casa::Array<casa::Complex> vec(thisPlane.column(iy));
-					ffts.fft(vec, true);
-				}
-				for (int ix=0; ix<nx; ix++)
-				{
-					casa::Array<casa::Complex> vec(thisPlane.row(ix));
-					ffts.fft(vec, true);
-				}
+				fft2d(thisPlane, true);
+
 				// Now thisPlane is filled with convolution function
 				// sampled on a finer grid in u,v
 				//
@@ -182,29 +192,30 @@ namespace conrad
 					    << " pixels, convolution function size = "<< itsCSize<< " pixels"
 					    << std::endl;
 					itsCCenter=itsCSize/2-1;
-					itsC.resize(itsCSize, itsCSize, itsNWPlanes);
-					itsC.set(0.0);
+					itsConvFunc.resize(itsNWPlanes);
 				}
+				itsConvFunc(iw).resize(itsCSize, itsCSize);
+				itsConvFunc(iw).set(0.0);
 				// Now cut out the inner part of the convolution function and
 				// insert it into the convolution function
 				for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
 				{
 					for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
 					{
-						itsC(ix+itsCCenter, iy+itsCCenter, iw)=thisPlane(ix+nx/2, iy+ny/2);
+						itsConvFunc(iw)(ix+itsCCenter, iy+itsCCenter)=thisPlane(ix+nx/2, iy
+						    +ny/2);
 					}
 				}
-				itsC.xyPlane(itsNWPlanes-1-iw)=casa::conj(itsC.xyPlane(iw));
+				itsConvFunc(itsNWPlanes-1-iw)=casa::conj(itsConvFunc(iw));
 			}
-			std::cout << "Shape of convolution function = "<< itsC.shape()
-			    << std::endl;
+			std::cout << "Shape of convolution function = "<< itsConvFunc(0).shape()<< " by "<< itsConvFunc.size() << " planes"<< std::endl;
 			if (itsName!="")
 				save(itsName);
 		}
 
-		int WProjectVisGridder::cOffset(int row, int chan)
+		int WProjectVisGridder::cIndex(int row, int pol, int chan)
 		{
-			return itsCMap(row, chan);
+			return itsCMap(row, pol, chan);
 		}
 
 	}

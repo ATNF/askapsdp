@@ -25,39 +25,22 @@ namespace conrad
 				// Standard two dimensional box gridding
 				BoxVisGridder();
 
+				/// Clone a copy of this Gridder
+				virtual IVisGridder::ShPtr clone();
+
 				virtual ~BoxVisGridder();
 
+				/// @brief Initialise the indices
+				virtual void initIndices(IDataSharedIter& idi);
+
 				/// @brief Correct for gridding convolution function
-				/// @param axes axes specifications
 				/// @param image image to be corrected
-				virtual void correctConvolution(const scimath::Axes& axes,
-				    casa::Cube<double>& image)
-				{
-				}
-
-				/// @brief Apply gridding convolution function
-				/// @param axes axes specifications
-				/// @param image image to be corrected
-				virtual void applyConvolution(const scimath::Axes& axes,
-				    casa::Cube<double>& image)
-				{
-				}
-
+				virtual void correctConvolution(casa::Array<double>& image);
+				
 			protected:
-				/// Offset into convolution function
-				/// @param row Row number
-				/// @param chan Channel number
-				virtual int cOffset(int row, int chan);
 				/// Initialize convolution function
 				/// @param idi Data access iterator
-				/// @param axes axes specifications
-				/// @param uvw Input uvw (may be rotated so we cannot use the iterator version)
-				/// @param cellSize Cell size in wavelengths
-				/// @param shape Shape of grid
-				virtual void initConvolutionFunction(IDataSharedIter& idi,
-				    const conrad::scimath::Axes& axes,
-				    casa::Vector<casa::RigidVector<double, 3> >& uvw,
-				    const casa::Vector<double>& cellSize, const casa::IPosition& shape);
+				virtual void initConvolutionFunction(IDataSharedIter& idi);
 		};
 
 	}

@@ -45,8 +45,9 @@ namespace conrad
 
         IDataSharedIter idi;
         Axes* itsAxes;
-        casa::Cube<casa::Complex>* itsGrid;
-        casa::Matrix<double>* itsWeights;
+        casa::Array<double>* itsModel;
+        casa::Array<double>* itsModelPSF;
+        casa::Array<double>* itsModelWeights;
 
       public:
         void setUp()
@@ -75,12 +76,12 @@ namespace conrad
           itsAxes->add("RA", 256*cellSize, -256*cellSize);
           itsAxes->add("DEC", -256*cellSize, 256*cellSize);
 
-          itsGrid=new casa::Cube<casa::Complex>(512,512,1);
-          itsGrid->set(0.0);
-
-          itsWeights=new casa::Matrix<double>(0,0);
-          itsWeights->set(0.0);
-
+          itsModel=new casa::Array<double>(casa::IPosition(4,512,512,1,1));
+          itsModel->set(0.0);
+          itsModelPSF=new casa::Array<double>(casa::IPosition(4,512,512,1,1));
+          itsModelPSF->set(0.0);
+          itsModelWeights=new casa::Array<double>(casa::IPosition(4,512,512,1,1));
+          itsModelWeights->set(0.0);
         }
 
         void tearDown()
@@ -88,46 +89,63 @@ namespace conrad
           delete itsBox;
           delete itsSphFunc;
           delete itsAnt;
-          delete itsGrid;
-          delete itsWeights;
+          delete itsModel;
+          delete itsModelPSF;
+          delete itsModelWeights;
           delete itsAxes;
         }
 
         void testReverseBox()
         {
-          itsBox->reverse(idi, *itsAxes, *itsGrid);
-          itsBox->reverseWeights(idi, *itsWeights);
+          itsBox->initialiseGrid(*itsAxes, itsModel->shape(), true);
+          itsBox->grid(idi);
+          itsBox->finaliseGrid(*itsModel);
+          itsBox->finalisePSF(*itsModelPSF);
+          itsBox->finaliseWeights(*itsModelWeights);
         }
         void testForwardBox()
         {
-          itsBox->forward(idi, *itsAxes, *itsGrid);
+        	itsBox->initialiseDegrid(*itsAxes, *itsModel);
+          itsBox->degrid(idi);
         }
         void testReverseSph()
         {
-          itsSphFunc->reverse(idi, *itsAxes, *itsGrid);
-          itsSphFunc->reverseWeights(idi, *itsWeights);
+          itsSphFunc->initialiseGrid(*itsAxes, itsModel->shape(), true);
+          itsSphFunc->grid(idi);
+          itsSphFunc->finaliseGrid(*itsModel);
+          itsSphFunc->finalisePSF(*itsModelPSF);
+          itsSphFunc->finaliseWeights(*itsModelWeights);
         }
         void testForwardSph()
         {
-          itsSphFunc->forward(idi, *itsAxes, *itsGrid);
+        	itsSphFunc->initialiseDegrid(*itsAxes, *itsModel);
+          itsSphFunc->degrid(idi);
         }
         void testReverseAnt()
         {
-          itsAnt->reverse(idi, *itsAxes, *itsGrid);
-          itsAnt->reverseWeights(idi, *itsWeights);
+          itsAnt->initialiseGrid(*itsAxes, itsModel->shape(), true);
+          itsAnt->grid(idi);
+          itsAnt->finaliseGrid(*itsModel);
+          itsAnt->finalisePSF(*itsModelPSF);
+          itsAnt->finaliseWeights(*itsModelWeights);
         }
         void testForwardAnt()
         {
-          itsAnt->forward(idi, *itsAxes, *itsGrid);
+        	itsAnt->initialiseDegrid(*itsAxes, *itsModel);
+          itsAnt->degrid(idi);
         }
         void testReverseWProject()
         {
-          itsWProject->reverse(idi, *itsAxes, *itsGrid);
-          itsWProject->reverseWeights(idi, *itsWeights);
+          itsWProject->initialiseGrid(*itsAxes, itsModel->shape(), true);
+          itsWProject->grid(idi);
+          itsWProject->finaliseGrid(*itsModel);
+          itsWProject->finalisePSF(*itsModelPSF);
+          itsWProject->finaliseWeights(*itsModelWeights);
         }
         void testForwardWProject()
         {
-          itsWProject->forward(idi, *itsAxes, *itsGrid);
+        	itsWProject->initialiseDegrid(*itsAxes, *itsModel);
+          itsWProject->degrid(idi);
         }
     };
 

@@ -12,6 +12,7 @@
 #include <fftw3.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/ArrayIter.h>
 
 using namespace casa;
 
@@ -61,7 +62,49 @@ namespace conrad
             vec.putStorage(dataPtr, deleteIt);    
             fftwf_destroy_plan(p);
         }        
-        
+
+    		/// Transform first two axes only. No limit on dimensions.
+    		void fft2d(casa::Array<casa::Complex>& arr, const bool forward)
+    		{
+    			/// Make an iterator that returns plane by plane
+    			casa::ArrayIterator<casa::Complex> it(arr, 2);
+    			while (!it.pastEnd())
+    			{
+    				casa::Matrix<casa::Complex> mat(it.array());
+    				for (uint iy=0; iy<arr.shape()(1); iy++)
+    				{
+    					casa::Vector<casa::Complex> vec(mat.column(iy));
+    					fft(vec, forward);
+    				}
+    				for (uint ix=0; ix<arr.shape()(0); ix++)
+    				{
+    					casa::Vector<casa::Complex> vec(mat.row(ix));
+    					fft(vec, forward);
+    				}
+    				it.next();
+    			}
+    		}
+    		/// Transform first two axes only. No limit on dimensions.
+    		void fft2d(casa::Array<casa::DComplex>& arr, const bool forward)
+    		{
+    			/// Make an iterator that returns plane by plane
+    			casa::ArrayIterator<casa::DComplex> it(arr, 2);
+    			while (!it.pastEnd())
+    			{
+    				casa::Matrix<casa::DComplex> mat(it.array());
+    				for (uint iy=0; iy<arr.shape()(1); iy++)
+    				{
+    					casa::Vector<casa::DComplex> vec(mat.column(iy));
+    					fft(vec, forward);
+    				}
+    				for (uint ix=0; ix<arr.shape()(0); ix++)
+    				{
+    					casa::Vector<casa::DComplex> vec(mat.row(ix));
+    					fft(vec, forward);
+    				}
+    				it.next();
+    			}
+    		}
     }
 }
 
