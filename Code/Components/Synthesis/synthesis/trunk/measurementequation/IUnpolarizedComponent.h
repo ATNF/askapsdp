@@ -36,7 +36,7 @@ struct IUnpolarizedComponent : virtual public IComponent {
   /// @brief calculate stokes I visibilities for this component
   /// @details This variant of the method calculates just the visibilities
   /// (without derivatives) for a number of frequencies. This method has
-  /// to be defined in the derived classes and is used to in the implementation
+  /// to be defined in the derived classes and is used in the implementation
   /// of the IComponent interface if stokes I is requested. Otherwise result
   /// is filled with 0.
   /// @param[in] uvw  baseline spacings (in metres)
@@ -49,7 +49,7 @@ struct IUnpolarizedComponent : virtual public IComponent {
   /// @brief calculate stokes I visibilities and derivatives for this component
   /// @details This variant of the method does simultaneous calculations of
   /// the values and derivatives. This method has
-  /// to be defined in the derived classes and is used to in the implementation
+  /// to be defined in the derived classes and is used in the implementation
   /// of the IComponent interface if stokes I is requested. Otherwise result
   /// is filled with 0.
   /// @param[in] uvw  baseline spacings (in metres)
