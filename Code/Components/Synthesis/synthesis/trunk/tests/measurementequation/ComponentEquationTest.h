@@ -92,7 +92,8 @@ namespace conrad
           CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
           CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
         }
-
+        
+        
         void testPredict()
         {
           p1->predict();

@@ -45,6 +45,7 @@ namespace conrad
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testSubtract);
       CPPUNIT_TEST(testAdd);
+      CPPUNIT_TEST(test1); // temporary
       CPPUNIT_TEST_SUITE_END();
 
       
@@ -109,6 +110,19 @@ namespace conrad
           CPPUNIT_ASSERT(fabs(vec[0]+3.)<1e-10 && fabs(vec[1]-4.)<1e-10);
           addVector(complexVec,vec);
           CPPUNIT_ASSERT(fabs(vec[0]+4.)<1e-10 && fabs(vec[1]-2.)<1e-10);
+        }
+         
+        // temporary method for autodiff experiments
+        void test1()
+        {
+          vector<casa::AutoDiff<casa::Complex> > autoDiffVec(2, 
+                                          casa::AutoDiff<casa::Complex>(casa::Complex(0.,0.),1));
+          autoDiffVec[0]=sin(casa::AutoDiff<casa::Complex>(0.,1,0))+casa::Complex(0,1.)*cos(casa::AutoDiff<casa::Complex>(0.,1,0));
+          //autoDiffVec[1]=casa::Complex(1.)+cos(casa::AutoDiff<casa::Complex>(casa::C::_2pi/4.,1,0));
+          autoDiffVec[1]=exp(casa::AutoDiff<casa::Complex>(casa::C::_2pi/4.,1,0)*casa::Complex(0,1.));
+          //std::cout<<autoDiffVec[0].value()<<" "<<autoDiffVec[0].derivative(0)<<std::endl;
+          //std::cout<<autoDiffVec[1].value()<<" "<<autoDiffVec[1].derivative(0)<<std::endl;
+          
         }
 
     };
