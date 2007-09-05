@@ -56,7 +56,8 @@ namespace conrad
 			/// function
 			const int nSamples = idi->uvw().size();
 			const int nChan = idi->frequency().size();
-			const int nPol = itsShape(2);
+			const int nPol = idi->visibility().shape()(2);
+			
 			itsCMap.resize(nSamples, nPol, nChan);
 			int cenw=(itsNWPlanes-1)/2;
 			for (int i=0; i<nSamples; i++)
@@ -193,22 +194,24 @@ namespace conrad
 					    << std::endl;
 					itsCCenter=itsCSize/2-1;
 					itsConvFunc.resize(itsNWPlanes);
+					itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
+					itsSumWeights.set(0.0);
 				}
-				itsConvFunc(iw).resize(itsCSize, itsCSize);
-				itsConvFunc(iw).set(0.0);
+				itsConvFunc[iw].resize(itsCSize, itsCSize);
+				itsConvFunc[iw].set(0.0);
 				// Now cut out the inner part of the convolution function and
 				// insert it into the convolution function
 				for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
 				{
 					for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
 					{
-						itsConvFunc(iw)(ix+itsCCenter, iy+itsCCenter)=thisPlane(ix+nx/2, iy
+						itsConvFunc[iw](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix+nx/2, iy
 						    +ny/2);
 					}
 				}
-				itsConvFunc(itsNWPlanes-1-iw)=casa::conj(itsConvFunc(iw));
+				itsConvFunc[itsNWPlanes-1-iw]=casa::conj(itsConvFunc[iw]);
 			}
-			std::cout << "Shape of convolution function = "<< itsConvFunc(0).shape()<< " by "<< itsConvFunc.size() << " planes"<< std::endl;
+			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()<< " by "<< itsConvFunc.size() << " planes"<< std::endl;
 			if (itsName!="")
 				save(itsName);
 		}

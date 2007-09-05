@@ -8,7 +8,6 @@
 #include <casa/Quanta.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
-#include <casa/Arrays/Cube.h>
 
 #include <images/Images/PagedImage.h>
 #include <images/Images/TempImage.h>
@@ -86,20 +85,12 @@ namespace conrad
 				axes.add("DEC", dec+double(ny)*ycellsize/2.0, dec-double(ny)*ycellsize/2.0);
 			}
 
-			if (nchan>1)
-			{
-				casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
-				pixels.set(0.0);
-				axes.add("FREQUENCY", freqmin, freqmax);
-				ip.add(name, pixels, axes);
-			}
-			else
-			{
-				casa::Cube<double> pixels(nx, ny, 1);
-				pixels.set(0.0);
-				axes.add("FREQUENCY", freqmin, freqmax);
-				ip.add(name, pixels, axes);
-			}
+			axes.add("STOKES", 0.0, 0.0);
+			
+			casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
+			pixels.set(0.0);
+			axes.add("FREQUENCY", freqmin, freqmax);
+			ip.add(name, pixels, axes);
 		}
 
 		void SynthesisParamsHelper::saveAsCasaImage(
@@ -131,11 +122,11 @@ namespace conrad
 			casa::CoordinateSystem imageCoords;
 			imageCoords.addCoordinate(radec);
 
-			//      casa::Vector<int> iquv(1);
-			//      iquv(0) = Stokes::I; 
-			//
-			//      casa::StokesCoordinate stokes(iquv);
-			//      imageCoords.addCoordinate(stokes);
+			casa::Vector<int> iquv(1);
+			iquv(0) = Stokes::I;
+
+			casa::StokesCoordinate stokes(iquv);
+			imageCoords.addCoordinate(stokes);
 
 			int nchan=imagePixels.shape()(2);
 			double restfreq = 0.0;
@@ -192,6 +183,8 @@ namespace conrad
 			axes.add("RA", start(0), end(0));
 			axes.add("DEC", start(1), end(1));
 
+			axes.add("STOKES", 0.0, 0.0);
+
 			int whichSpectral=imageCoords.findCoordinate(Coordinate::SPECTRAL);
 			CONRADCHECK(whichSpectral>-1, "No spectral coordinate present in model");
 			casa::SpectralCoordinate freq(imageCoords.spectralCoordinate(whichSpectral));
@@ -202,7 +195,7 @@ namespace conrad
 			axes.add("FREQUENCY", startFreq, endFreq);
 
 			ip.add(name, 
-					imagePixels.reform(IPosition(3, imagePixels.shape()(0), imagePixels.shape()(1), nChan)), 
+					imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)), 
 					axes);
 
 		}

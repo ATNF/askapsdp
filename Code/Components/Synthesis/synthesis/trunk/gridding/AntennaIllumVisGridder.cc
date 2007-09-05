@@ -237,9 +237,11 @@ namespace conrad
 							    << " (m) sampled at "<< cell << " (m)"<< std::endl;
 							itsCCenter=itsCSize/2-1;
 							itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
+							itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2), itsShape(3));
+							itsSumWeights.set(0.0);
 						}
-						itsConvFunc(zIndex).resize(itsCSize, itsCSize);
-						itsConvFunc(zIndex).set(0.0);
+						itsConvFunc[zIndex].resize(itsCSize, itsCSize);
+						itsConvFunc[zIndex].set(0.0);
 						// Now cut out the inner part of the convolution function and
 						// insert it into the convolution function
 						for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
@@ -247,14 +249,14 @@ namespace conrad
 							for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample
 							    *itsSupport; ix++)
 							{
-								itsConvFunc(zIndex)(ix+itsCCenter, iy+itsCCenter)=thisPlane(ix
+								itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix
 								    +nx/2, iy+ny/2);
 							}
 						}
 					}
 				}
 			}
-			std::cout << "Shape of convolution function = "<< itsConvFunc(0).shape()<< " by "<< itsConvFunc.size() << " planes"<< std::endl;
+			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()<< " by "<< itsConvFunc.size() << " planes"<< std::endl;
 			if (itsName!="")
 				save(itsName);
 		}
@@ -302,7 +304,7 @@ namespace conrad
 				{
 					for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
 					{
-						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc(iz)(ix+itsCCenter, iy
+						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix+itsCCenter, iy
 						    +itsCCenter);
 					}
 				}

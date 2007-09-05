@@ -99,13 +99,13 @@ namespace conrad
 
 				casa::Vector<double> itsUVCellSize;
 
-				/// @brief Sum of weights
+				/// @brief Sum of weights (axes are index, pol, chan) 
 				casa::Cube<double> itsSumWeights;
 
 				/// @brief Convolution function
 				/// The convolution function is stored as a vector of arrays so that we can
 				/// use any of a number of functions. The index is calculated by cIndex.
-				casa::Vector<casa::Matrix<casa::Complex> > itsConvFunc;
+				std::vector<casa::Matrix<casa::Complex> > itsConvFunc;
 
 				/// Return the index into the convolution function for a given
 				/// row, polarisation, and channel
@@ -126,8 +126,8 @@ namespace conrad
 				std::string itsName;
 
 				/// The grid is stored as a cube as well so we can index into that as well.
-				casa::Vector<casa::Array<casa::Complex> > itsGrid;
-				casa::Vector<casa::Array<casa::Complex> > itsGridPSF;
+				std::vector<casa::Array<casa::Complex> > itsGrid;
+				std::vector<casa::Array<casa::Complex> > itsGridPSF;
 
 				/// Return the index into the grid for a given
 				/// row and channel
@@ -158,8 +158,8 @@ namespace conrad
 				    const int iv, const int support, const int overSample,
 				    const int cCenter, const int fracu, const int fracv);
 
-				void gridKernel(casa::Matrix<casa::Complex>& grid, double sumwt,
-				    const casa::Matrix<casa::Complex>& convFunc, 
+				void gridKernel(casa::Matrix<casa::Complex>& grid, double& sumwt,
+				    casa::Matrix<casa::Complex>& convFunc, 
 				    const casa::Complex& cVis,
 				    const int iu, const int iv, const int support,
 				    const int overSample, const int cCenter, const int fracu,

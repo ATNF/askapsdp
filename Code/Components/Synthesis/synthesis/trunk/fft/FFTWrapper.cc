@@ -9,7 +9,12 @@
 
 #include <conrad/ConradTypes.h>
 #include <complex>
+#ifdef CONRAD_USE_FFTW
 #include <fftw3.h>
+#else 
+#include <scimath/Mathematics/FFTServer.h>
+#endif
+
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/ArrayIter.h>
@@ -21,9 +26,11 @@ namespace conrad
     namespace synthesis
     {
 
+    	
         void fft(Vector<DComplex>& vec, const bool forward)
         {
-            const IPosition shape = vec.shape();
+#ifdef CONRAD_USE_FFTW
+        	const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
             Bool deleteIt;
             DComplex *dataPtr = vec.getStorage(deleteIt);
@@ -40,10 +47,16 @@ namespace conrad
             }
             vec.putStorage(dataPtr, deleteIt);    
             fftw_destroy_plan(p);
+#else
+            casa::FFTServer<double, casa::DComplex> ffts;
+            bool ncForward(forward);
+            ffts.fft(vec, ncForward);
+#endif
         }
         
         void fft(Vector<Complex>& vec, const bool forward)
         {
+#ifdef CONRAD_USE_FFTW
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
             Bool deleteIt;
@@ -61,6 +74,11 @@ namespace conrad
             }
             vec.putStorage(dataPtr, deleteIt);    
             fftwf_destroy_plan(p);
+#else
+            casa::FFTServer<float, casa::Complex> ffts;
+            bool ncForward(forward);
+            ffts.fft(vec, ncForward);
+#endif
         }        
 
     		/// Transform first two axes only. No limit on dimensions.

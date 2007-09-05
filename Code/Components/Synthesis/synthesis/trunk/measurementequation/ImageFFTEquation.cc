@@ -201,7 +201,7 @@ namespace conrad
 				residualGridders[imageName]->finalisePSF(imagePSF);
 				residualGridders[imageName]->finaliseWeights(imageWeight);
 				{
-					casa::IPosition reference(4, imageShape(0)/2, imageShape(1)/2, 0, imageShape(3)/2);
+					casa::IPosition reference(4, imageShape(0)/2, imageShape(1)/2, 0, 0);
 					casa::IPosition vecShape(1, imagePSF.nelements());
 					casa::Vector<double> imagePSFVec(imagePSF.reform(vecShape));
 					casa::Vector<double> imageWeightVec(imageWeight.reform(vecShape));

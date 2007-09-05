@@ -43,10 +43,10 @@ namespace conrad
 
 		/// Totally selfcontained gridding
 		void TableVisGridder::gridKernel(casa::Matrix<casa::Complex>& grid,
-		    double sumwt, const casa::Matrix<casa::Complex>& convFunc,
-		    const casa::Complex& cVis, const int iu, const int iv, const int support,
-		    const int overSample, const int cCenter, const int fracu,
-		    const int fracv)
+		    double& sumwt, casa::Matrix<casa::Complex>& convFunc,
+		    const casa::Complex& cVis, const int iu, const int iv,
+		    const int support, const int overSample, const int cCenter,
+		    const int fracu, const int fracv)
 		{
 			/// Gridding visibility to grid
 			int voff=-overSample*support+fracv+cCenter;
@@ -56,7 +56,7 @@ namespace conrad
 				for (int suppu=-support; suppu<+support; suppu++)
 				{
 					casa::Complex wt=convFunc(uoff, voff);
-					grid(iu+uoff, iv+voff)+=cVis*wt;
+					grid(iu+suppu, iv+suppv)+=cVis*wt;
 					sumwt+=casa::real(wt);
 					uoff+=itsOverSample;
 				}
@@ -80,7 +80,7 @@ namespace conrad
 				for (int suppu=-support; suppu<+support; suppu++)
 				{
 					casa::Complex wt=conj(convFunc(uoff, voff));
-					cVis+=wt*grid(iu+uoff, iv+voff);
+					cVis+=wt*grid(iu+suppu, iv+suppv);
 					sumviswt+=casa::real(wt);
 					uoff+=itsOverSample;
 				}
@@ -102,8 +102,8 @@ namespace conrad
 			conrad::scimath::Params ip;
 			for (int i=0; i<itsConvFunc.size(); i++)
 			{
-				casa::Array<double> realC(itsConvFunc(i).shape());
-				toDouble(realC, itsConvFunc(i));
+				casa::Array<double> realC(itsConvFunc[i].shape());
+				toDouble(realC, itsConvFunc[i]);
 				std::ostringstream os;
 				os<<"Real.Convolution"<<i;
 				ip.add(os.str(), realC);
@@ -139,45 +139,49 @@ namespace conrad
 					/// Scale U,V to integer pixels plus fractional terms
 					double uScaled=idi->frequency()[chan]*idi->uvw()(i)(0)/(casa::C::c*itsUVCellSize(0));
 					int iu = nint(uScaled);
-					int fracu=nint(itsOverSample*(double(iu)-uScaled));
+					const int fracu=nint(itsOverSample*(double(iu)-uScaled));
 					iu+=itsShape(0)/2;
 					double vScaled=idi->frequency()[chan]*idi->uvw()(i)(1)/(casa::C::c*itsUVCellSize(1));
 					int iv = nint(vScaled);
-					int fracv=nint(itsOverSample*(double(iv)-vScaled));
+					const int fracv=nint(itsOverSample*(double(iv)-vScaled));
 					iv+=itsShape(1)/2;
 
 					/// Calculate the delay phasor
-					double phase=2.0f*casa::C::pi*idi->frequency()[chan]*delay(i)/(casa::C::c);
-					casa::Complex phasor(cos(phase), sin(phase));
+					const double phase=2.0f*casa::C::pi*idi->frequency()[chan]*delay(i)/(casa::C::c);
+					const casa::Complex phasor(cos(phase), sin(phase));
 
 					/// Now loop over all polarizations
 					for (int pol=0; pol<nPol; pol++)
 					{
 
 						/// Make a slicer to extract just this plane
-						casa::IPosition ipStart(4, 0, 0, pol, chan);
-						casa::IPosition ipLength(4, itsShape(0), itsShape(1), 0, 0);
-						casa::Slicer slicer(ipStart, ipLength);
+						//						casa::IPosition ipStart(4, 0, 0, pol, chan);
+						/// @todo Enable pol and chan maps
+						const casa::IPosition ipStart(4, 0, 0, 0, 0);
+						const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
+						const casa::IPosition onePlane(2, itsShape(0), itsShape(1));
+						const casa::Slicer slicer(ipStart, onePlane4D);
 
 						/// Lookup the portion of grid and convolution function to be
 						/// used for this row, polarisation and channel
 
-						int gInd=gIndex(i, pol, chan);
+						const int gInd=gIndex(i, pol, chan);
+						const int cInd=cIndex(i, pol, chan);
+						casa::Matrix<casa::Complex>& convFunc(itsConvFunc[cInd]);
 
-						int cInd=cIndex(i, pol, chan);
-						const casa::Matrix<casa::Complex>& convFunc(itsConvFunc(cInd));
+						casa::Array<casa::Complex> aGrid(itsGrid[gInd](slicer));
+						casa::Matrix<casa::Complex> grid(aGrid.nonDegenerate());
 
 						/// Need to check if this point lies on the grid (taking into 
-						/// account the support
+						/// account the support)
 						if (((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&((iu+itsSupport)
 						    <itsShape(0))&&((iv+itsSupport)<itsShape(1)))
 						{
 							if (forward)
 							{
 								casa::Complex cVis(idi->visibility()(i, chan, pol));
-								const casa::Matrix<casa::Complex> grid(itsGrid(gInd)(slicer));
 								degridKernel(cVis, convFunc, grid, iu, iv, itsSupport,
-								    itsOverSample, itsCCenter, fracu, fracu);
+								    itsOverSample, itsCCenter, fracu, fracv);
 								idi->rwVisibility()(i, chan, pol)=cVis*phasor;
 							}
 							else
@@ -185,17 +189,19 @@ namespace conrad
 								/// Gridding visibility data onto grid
 								const casa::Complex rVis=phasor*conj(idi->visibility()(i, chan,
 								    pol));
-								casa::Matrix<casa::Complex> grid(itsGrid(gInd)(slicer));
-								gridKernel(grid, itsSumWeights(cInd, pol, chan), convFunc,
-								    rVis, iu, iv, itsSupport, itsOverSample, itsCCenter, fracu,
-								    fracu);
+								double sumwt=0.0;
+								gridKernel(grid, sumwt, convFunc, rVis, iu, iv, itsSupport,
+								    itsOverSample, itsCCenter, fracu, fracv);
+								itsSumWeights(cInd, pol, chan)=sumwt;
+								
+								/// Grid PSF?
 								if (itsDopsf)
 								{
-									casa::Matrix<casa::Complex> gridPSF(itsGridPSF(gInd)(slicer));
-									double sumwt=0;
+									casa::Array<casa::Complex> aGridPSF(itsGridPSF[gInd](slicer));
+									casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
 									const casa::Complex uVis(1.0);
 									gridKernel(gridPSF, sumwt, convFunc, uVis, iu, iv,
-									    itsSupport, itsOverSample, itsCCenter, fracu, fracu);
+									    itsSupport, itsOverSample, itsCCenter, fracu, fracv);
 								}
 							}
 						}
@@ -249,16 +255,21 @@ namespace conrad
 		    const casa::Array<double>& in)
 		{
 			out.resize(in.shape());
+			int nx=in.shape()(0);
+			int ny=in.shape()(0);
 
-			casa::ReadOnlyArrayIterator<double> inIt(in, 1);
-			casa::ArrayIterator<casa::Complex> outIt(out, 1);
+			casa::ReadOnlyArrayIterator<double> inIt(in, 2);
+			casa::ArrayIterator<casa::Complex> outIt(out, 2);
 			while (!inIt.pastEnd()&&!outIt.pastEnd())
 			{
-				casa::Vector<double> inVec(inIt.array());
-				casa::Vector<casa::Complex> outVec(outIt.array());
-				for (uint ix=0; ix<inVec.size(); ix++)
+				casa::Matrix<double> inMat(inIt.array());
+				casa::Matrix<casa::Complex> outMat(outIt.array());
+				for (uint iy=0; iy<ny; iy++)
 				{
-					outVec(ix)=casa::Complex(float(inVec(ix)));
+					for (uint ix=0; ix<nx; ix++)
+					{
+						outMat(ix, iy)=casa::Complex(float(inMat(ix,iy)));
+					}
 				}
 				inIt.next();
 				outIt.next();
@@ -271,16 +282,21 @@ namespace conrad
 		    const casa::Array<casa::Complex>& in)
 		{
 			out.resize(in.shape());
+			int nx=in.shape()(0);
+			int ny=in.shape()(0);
 
-			casa::ReadOnlyArrayIterator<casa::Complex> inIt(in, 1);
-			casa::ArrayIterator<double> outIt(out, 1);
+			casa::ReadOnlyArrayIterator<casa::Complex> inIt(in, 2);
+			casa::ArrayIterator<double> outIt(out, 2);
 			while (!inIt.pastEnd()&&!outIt.pastEnd())
 			{
-				casa::Vector<casa::Complex> inVec(inIt.array());
-				casa::Vector<double> outVec(outIt.array());
-				for (uint ix=0; ix<inVec.size(); ix++)
+				casa::Matrix<casa::Complex> inMat(inIt.array());
+				casa::Matrix<double> outMat(outIt.array());
+				for (uint iy=0; iy<ny; iy++)
 				{
-					outVec(ix)=double(casa::real(inVec(ix)));
+					for (uint ix=0; ix<nx; ix++)
+					{
+						outMat(ix, iy)=double(casa::real(inMat(ix,iy)));
+					}
 				}
 				inIt.next();
 				outIt.next();
@@ -290,20 +306,23 @@ namespace conrad
 		void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		    const casa::IPosition& shape, const bool dopsf)
 		{
-			/// We only need one grid
-			itsGrid.resize(1);
-			itsGrid(0).resize(shape);
-			itsGrid(0).set(0.0);
-			itsGridPSF.resize(1);
-			if (itsDopsf)
-			{
-				itsGrid(0).resize(shape);
-				itsGrid(0).set(0.0);
-			}
-
 			itsAxes=axes;
 			itsShape=shape;
 			itsDopsf=dopsf;
+
+			/// We only need one grid
+			itsGrid.resize(1);
+			itsGrid[0].resize(shape);
+			itsGrid[0].set(0.0);
+			if (itsDopsf)
+			{
+				itsGridPSF.resize(1);
+				itsGridPSF[0].resize(shape);
+				itsGridPSF[0].set(0.0);
+			}
+
+			itsSumWeights.resize(1, itsShape(2), itsShape(3));
+			itsSumWeights.set(0.0);
 
 			if (!itsAxes.has("RA")||!itsAxes.has("DEC"))
 			{
@@ -324,11 +343,10 @@ namespace conrad
 		/// This is the default implementation
 		void TableVisGridder::finaliseGrid(casa::Array<double>& out)
 		{
-			out.set(0.0);
 			/// Loop over all grids Fourier transforming and accumulating
 			for (int i=0; i<itsGrid.size(); i++)
 			{
-				casa::Array<casa::Complex> scratch(itsGrid(i).copy());
+				casa::Array<casa::Complex> scratch(itsGrid[i].copy());
 				fft2d(scratch, false);
 				if (i==0)
 				{
@@ -337,7 +355,7 @@ namespace conrad
 				else
 				{
 					casa::Array<double> work(out.shape());
-					toDouble(work, itsGrid(i));
+					toDouble(work, itsGrid[i]);
 					out+=work;
 				}
 			}
@@ -348,11 +366,10 @@ namespace conrad
 		/// This is the default implementation
 		void TableVisGridder::finalisePSF(casa::Array<double>& out)
 		{
-			out.set(0.0);
 			/// Loop over all grids Fourier transforming and accumulating
-			for (int i=0; i<itsGrid.size(); i++)
+			for (int i=0; i<itsGridPSF.size(); i++)
 			{
-				casa::Array<casa::Complex> scratch(itsGridPSF(i).copy());
+				casa::Array<casa::Complex> scratch(itsGridPSF[i].copy());
 				fft2d(scratch, false);
 				if (i==0)
 				{
@@ -361,7 +378,7 @@ namespace conrad
 				else
 				{
 					casa::Array<double> work(out.shape());
-					toDouble(work, itsGridPSF(i));
+					toDouble(work, itsGridPSF[i]);
 					out+=work;
 				}
 			}
@@ -379,8 +396,6 @@ namespace conrad
 
 			int nZ=itsSumWeights.shape()(0);
 
-			casa::ArrayIterator<double> it(out);
-
 			for (int chan=0; chan<nChan; chan++)
 				for (int pol=0; pol<nPol; pol++)
 				{
@@ -390,8 +405,11 @@ namespace conrad
 						sumwt+=itsSumWeights(iz, pol, chan);
 					}
 					sumwt=sumwt/(double(nx)*double(ny));
-					it.array().set(sumwt);
-					it.next();
+
+					casa::IPosition ipStart(4, 0, 0, pol, chan);
+					casa::IPosition onePlane(4, itsShape(0), itsShape(1), 1, 1);
+					casa::Slicer slicer(ipStart, onePlane);
+					out(slicer).set(sumwt);
 				}
 		}
 
@@ -418,12 +436,12 @@ namespace conrad
 
 			/// We only need one grid
 			itsGrid.resize(1);
-			itsGrid(0).resize(itsShape);
+			itsGrid[0].resize(itsShape);
 
 			casa::Array<double> scratch(in.copy());
 			correctConvolution(scratch);
-			toComplex(itsGrid(0), scratch);
-			fft2d(itsGrid(0), true);
+			toComplex(itsGrid[0], scratch);
+			fft2d(itsGrid[0], true);
 		}
 
 		/// This is the default implementation
