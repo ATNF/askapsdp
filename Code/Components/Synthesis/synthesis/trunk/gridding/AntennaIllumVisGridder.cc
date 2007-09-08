@@ -170,7 +170,7 @@ namespace conrad
 					disk(qnx/2, qny/2)=casa::Complex(1.0);
 					fft2d(disk, false);
 					disk=disk*conj(disk);
-					float peak=casa::max(casa::real(disk));
+					float peak=casa::real(casa::max(casa::abs(disk)));
 					CONRADCHECK(peak>0.0, "Synthetic primary beam is empty");
 					disk/=casa::Complex(peak);
 
@@ -291,6 +291,8 @@ namespace conrad
 			CONRADCHECK(itsSumWeights.shape()(2)!=nPol,
 					"Number of polarizations do not match");
 
+			std::cout << itsSumWeights << std::endl;
+
 			out.set(0.0);
 			cOut.set(0.0);
 
@@ -311,7 +313,7 @@ namespace conrad
 
 				fft2d(thisPlane, false);
 
-				double peak(casa::abs(casa::max(casa::real(thisPlane))));
+				double peak(casa::real(casa::max(casa::abs(thisPlane))));
 				if (peak>0.0)
 				{
 					for (int chan=0; chan<nChan; chan++)
