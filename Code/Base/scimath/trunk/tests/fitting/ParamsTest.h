@@ -8,7 +8,7 @@
 
 using namespace LOFAR;
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -29,8 +29,8 @@ namespace conrad
       CPPUNIT_TEST(testCompletions);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testBlobStream);
-      CPPUNIT_TEST_EXCEPTION(testDuplicate, std::invalid_argument);
-      CPPUNIT_TEST_EXCEPTION(testNotScalar, std::invalid_argument);
+      CPPUNIT_TEST_EXCEPTION(testDuplicate, conrad::CheckError);
+      CPPUNIT_TEST_EXCEPTION(testNotScalar, conrad::CheckError);
       CPPUNIT_TEST_SUITE_END();
 
       private:

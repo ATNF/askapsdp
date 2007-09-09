@@ -1,3 +1,10 @@
+/// @file
+///
+/// Equations hold equations for the fitting classes
+///
+/// (c) 2007 CONRAD, All Rights Reserved.
+/// @author Tim Cornwell tim.cornwel@csiro.au
+///
 #include <fitting/Params.h>
 #include <fitting/Equation.h>
 

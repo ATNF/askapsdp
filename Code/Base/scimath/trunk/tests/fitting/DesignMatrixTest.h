@@ -2,9 +2,6 @@
 #include <conrad/ConradError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
-
-#include <stdexcept>
-
 namespace conrad
 {
   namespace scimath

@@ -4,7 +4,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
 #include <cmath>
 
 using std::abs;

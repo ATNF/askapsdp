@@ -1,3 +1,10 @@
+/// @file
+///
+/// Holds the parameters in a table
+///
+/// (c) 2007 CONRAD, All Rights Reserved.
+/// @author Tim Cornwell tim.cornwel@csiro.au
+///
 #include <fitting/ParamsTable.h>
 #include <fitting/Params.h>
 

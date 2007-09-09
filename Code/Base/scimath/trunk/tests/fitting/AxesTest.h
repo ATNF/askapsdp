@@ -2,7 +2,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
 #include <vector>
 
 namespace conrad
@@ -16,7 +16,7 @@ namespace conrad
       CPPUNIT_TEST_SUITE(DomainTest);
       CPPUNIT_TEST(testIndices);
       CPPUNIT_TEST(testValues);
-      CPPUNIT_TEST_EXCEPTION(testDuplError, std::invalid_argument);
+      CPPUNIT_TEST_EXCEPTION(testDuplError, conrad::CheckError);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST_SUITE_END();
 

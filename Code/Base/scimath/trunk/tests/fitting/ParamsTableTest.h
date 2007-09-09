@@ -3,7 +3,7 @@
 
 #include <tables/Tables/TableError.h>
 
-#include <stdexcept>
+#include <conrad/ConradError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 

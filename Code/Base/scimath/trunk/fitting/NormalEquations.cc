@@ -1,3 +1,11 @@
+/// @file
+///
+/// Holds the normal equations for a set of linear equations
+///
+/// (c) 2007 CONRAD, All Rights Reserved.
+/// @author Tim Cornwell tim.cornwel@csiro.au
+///
+
 #include <fitting/DesignMatrix.h>
 #include <fitting/NormalEquations.h>
 #include <fitting/Params.h>

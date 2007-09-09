@@ -1,3 +1,11 @@
+/// @file
+///
+/// Expresses a polynomial equation
+///
+/// (c) 2007 CONRAD, All Rights Reserved.
+/// @author Tim Cornwell tim.cornwel@csiro.au
+///
+
 #include <fitting/Params.h>
 #include <fitting/PolynomialEquation.h>
 #include <fitting/NormalEquations.h>

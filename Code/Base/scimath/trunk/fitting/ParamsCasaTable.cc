@@ -1,3 +1,10 @@
+/// @file
+///
+/// Holds the parameters in a CASA table
+///
+/// (c) 2007 CONRAD, All Rights Reserved.
+/// @author Tim Cornwell tim.cornwel@csiro.au
+///
 #include <fitting/ParamsCasaTable.h>
 #include <fitting/Params.h>
 #include <fitting/Axes.h>
@@ -20,7 +27,10 @@
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/ArrayUtil.h>
+
 #include <casa/Arrays/Slice.h>
+
+
 #include <casa/Utilities/Regex.h>
 #include <casa/Utilities/GenSort.h>
 #include <casa/BasicMath/Math.h>

@@ -8,7 +8,8 @@
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 
-#include <stdexcept>
+
+#include <conrad/ConradError.h>
 
 namespace conrad
 {

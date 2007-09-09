@@ -1,3 +1,10 @@
+/// @file
+///
+/// Class to handle design equations for the fitting classes
+///
+/// (c) 2007 CONRAD, All Rights Reserved.
+/// @author Tim Cornwell tim.cornwel@csiro.au
+///
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 #include <casa/aips.h>
@@ -10,7 +17,6 @@
 
 #include <conrad/ConradError.h>
 
-#include <stdexcept>
 #include <iostream>
 #include <string>
 #include <vector>
