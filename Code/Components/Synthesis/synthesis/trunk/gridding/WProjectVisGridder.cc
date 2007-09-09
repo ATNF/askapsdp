@@ -68,6 +68,7 @@ namespace conrad
 					for (int pol=0; pol<nPol; pol++)
 					{
 						double freq=idi->frequency()[chan];
+						/// Calculate the index into the convolution functions
 						itsCMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
 						if (itsCMap(i, pol, chan)<0)
 						{

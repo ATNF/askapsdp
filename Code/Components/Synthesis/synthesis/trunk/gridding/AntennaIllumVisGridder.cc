@@ -55,7 +55,7 @@ namespace conrad
 			/// function
 			const int nSamples = idi->uvw().size();
 			const int nChan = idi->frequency().size();
-			const int nPol = itsShape(2);
+			const int nPol = idi->rwVisibility().shape()(2);
 			itsCMap.resize(nSamples, nPol, nChan);
 			itsCMap.set(0);
 			/// @todo Select max feeds more carefully
@@ -63,18 +63,24 @@ namespace conrad
 			int cenw=(itsNWPlanes-1)/2;
 			for (int i=0; i<nSamples; i++)
 			{
-				double w=(idi->uvw()(i)(2))/(casa::C::c);
 				int feed=idi->feed1()(i);
+				CONRADCHECK(feed<itsMaxFeeds, "Exceeded specified maximum number of feeds");
+				CONRADCHECK(feed>-1, "Illegal negative feed number");
+
 				for (int chan=0; chan<nChan; chan++)
 				{
+					double freq=idi->frequency()[chan];
+					double w=(idi->uvw()(i)(2))/(casa::C::c);
+					int iw=cenw+int(w*freq/itsWScale);
+					CONRADCHECK(iw<itsNWPlanes, 
+						"W scaling error: recommend allowing larger range of w");
+					CONRADCHECK(iw>-1,
+						"W scaling error: recommend allowing larger range of w");
+
 					for (int pol=0; pol<nPol; pol++)
 					{
-						double freq=idi->frequency()[chan];
-						itsCMap(i, pol, chan)=feed+itsMaxFeeds*(chan*itsNWPlanes+(cenw+nint(w*freq/itsWScale)));
-						CONRADCHECK(itsCMap(i, pol, chan)<(itsNWPlanes*nChan*itsMaxFeeds),
-								"W scaling error: recommend allowing larger range of w");
-						CONRADCHECK(itsCMap(i, pol, chan)>-1,
-								"W scaling error: recommend allowing larger range of w");
+						/// Order is (iw, chan, feed)
+						itsCMap(i, pol, chan)=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
 					}
 				}
 			}
@@ -134,6 +140,7 @@ namespace conrad
 				ccfy(iy)=grdsf(nuy)/float(qny);
 			}
 
+			int zIndex=0;
 			for (int feed=0; feed<itsMaxFeeds; feed++)
 			{
 				for (int chan=0; chan<nChan; chan++)
@@ -142,26 +149,27 @@ namespace conrad
 					casa::Matrix<casa::Complex> disk(qnx, qny);
 					disk.set(0.0);
 					/// Calculate the size of one cell in meters
-					double cell=itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan])/double(itsOverSample);
-					double rmax=std::pow(itsDiameter/(2.0*cell), 2);
-					double rmin=std::pow(itsBlockage/(2.0*cell), 2);
+					float cell=itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan])/double(itsOverSample);
+					float rmax=std::pow(itsDiameter/(2.0*cell), 2);
+					float rmin=std::pow(itsBlockage/(2.0*cell), 2);
 					/// Slope is the delay per m 
-					double ax=2.0f*casa::C::pi*cell*slope(0, feed)*idi->frequency()[chan]/casa::C::c;
-					double ay=2.0f*casa::C::pi*cell*slope(1, feed)*idi->frequency()[chan]/casa::C::c;
+					float ax=2.0f*casa::C::pi*cell*slope(0, feed)*idi->frequency()[chan]/casa::C::c;
+					float ay=2.0f*casa::C::pi*cell*slope(1, feed)*idi->frequency()[chan]/casa::C::c;
+
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
 					for (int ix=0; ix<qnx; ix++)
 					{
-						double nux=double(ix-qnx/2);
-						double nux2=nux*nux;
+						float nux=float(ix-qnx/2);
+						float nux2=nux*nux;
 						for (int iy=0; iy<qny; iy++)
 						{
-							double nuy=double(iy-qny/2);
-							double nuy2=nuy*nuy;
-							double r=nux2+nuy2;
+							float nuy=float(iy-qny/2);
+							float nuy2=nuy*nuy;
+							float r=nux2+nuy2;
 							if ((r>=rmin)&&(r<=rmax))
 							{
-								double phase=ax*nux+ay*nuy;
+								float phase=ax*nux+ay*nuy;
 								disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
 							}
 						}
@@ -182,13 +190,11 @@ namespace conrad
 					{
 						thisPlane.set(0.0);
 
-						float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
-						double freq=idi->frequency()[chan];
-						int zIndex=feed+itsMaxFeeds*(chan*itsNWPlanes+iw);
-
 						// Loop over the central nx, ny region, setting it to the product
 						// of the phase screen and the spheroidal function
-						double maxCF=0.0;
+						float maxCF=0.0;
+						float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
+						float freq=idi->frequency()[chan];
 						for (int iy=0; iy<qny; iy++)
 						{
 							float y2=float(iy-qny/2)*ccelly;
@@ -205,7 +211,7 @@ namespace conrad
 								maxCF+=casa::real(disk(ix, iy));
 							}
 						}
-						maxCF/=(double(nx)*double(ny));
+						maxCF/=(float(nx)*float(ny));
 						// At this point, we have the phase screen multiplied by the spheroidal
 						// function, sampled on larger cellsize (itsOverSample larger) in image
 						// space. Only the inner qnx, qny pixels have a non-zero value
@@ -237,9 +243,11 @@ namespace conrad
 							    << " (m) sampled at "<< cell << " (m)"<< std::endl;
 							itsCCenter=itsCSize/2-1;
 							itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
-							itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2), itsShape(3));
+							itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
+							    itsShape(3));
 							itsSumWeights.set(0.0);
 						}
+						
 						itsConvFunc[zIndex].resize(itsCSize, itsCSize);
 						itsConvFunc[zIndex].set(0.0);
 						// Now cut out the inner part of the convolution function and
@@ -253,10 +261,12 @@ namespace conrad
 								    +nx/2, iy+ny/2);
 							}
 						}
-					}
-				}
-			}
-			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()<< " by "<< itsConvFunc.size() << " planes"<< std::endl;
+						zIndex++;
+					} // w loop
+				} // chan loop
+			} // feed loop
+			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
+			    << " by "<< itsConvFunc.size() << " planes"<< std::endl;
 			if (itsName!="")
 				save(itsName);
 		}
@@ -265,7 +275,7 @@ namespace conrad
 		/// 1. For each plane of the convolution function, transform to image plane
 		/// and multiply by conjugate to get abs value squared.
 		/// 2. Sum all planes weighted by the weight for that convolution function.
-		void AntennaIllumVisGridder::finaliseReverseWeights(casa::Array<double>& out)
+		void AntennaIllumVisGridder::finaliseWeights(casa::Array<double>& out)
 		{
 
 			int nx=out.shape()(0);
@@ -288,10 +298,8 @@ namespace conrad
 
 			int nZ=itsConvFunc.size();
 
-			CONRADCHECK(itsSumWeights.shape()(2)!=nPol,
-					"Number of polarizations do not match");
-
-			std::cout << itsSumWeights << std::endl;
+//			CONRADCHECK(itsSumWeights.shape()(1)!=nPol,
+//					"Number of polarizations do not match");
 
 			out.set(0.0);
 			cOut.set(0.0);
@@ -313,14 +321,14 @@ namespace conrad
 
 				fft2d(thisPlane, false);
 
-				double peak(casa::real(casa::max(casa::abs(thisPlane))));
+				float peak(casa::real(casa::max(casa::abs(thisPlane))));
 				if (peak>0.0)
 				{
 					for (int chan=0; chan<nChan; chan++)
 					{
 						for (int pol=0; pol<nPol; pol++)
 						{
-							double weight=itsSumWeights(iz, pol, chan)/peak;
+							float weight=itsSumWeights(iz, pol, chan)/peak;
 							for (int ix=0; ix<cnx; ix++)
 							{
 								for (int iy=0; iy<cny; iy++)
@@ -375,6 +383,8 @@ namespace conrad
 				double scale=(double(inx)*double(iny))/(double(onx)*double(ony));
 
 				outArray*=scale;
+				inIt.next();
+				outIt.next();
 			}
 		}
 

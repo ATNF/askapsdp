@@ -133,6 +133,8 @@ namespace conrad
 			// visibility to the grid.
 			for (int i=0; i<nSamples; i++)
 			{
+				/// Temporarily fix to channel zero only
+				int iChan=0;
 				for (int chan=0; chan<nChan; chan++)
 				{
 
@@ -150,7 +152,9 @@ namespace conrad
 					const double phase=2.0f*casa::C::pi*idi->frequency()[chan]*delay(i)/(casa::C::c);
 					const casa::Complex phasor(cos(phase), sin(phase));
 
-					/// Now loop over all polarizations
+					/// Now loop over all visibility polarizations
+					/// Temporarily fix to Stokes I only
+					int iPol=0;
 					for (int pol=0; pol<nPol; pol++)
 					{
 
@@ -192,7 +196,7 @@ namespace conrad
 								double sumwt=0.0;
 								gridKernel(grid, sumwt, convFunc, rVis, iu, iv, itsSupport,
 								    itsOverSample, itsCCenter, fracu, fracv);
-								itsSumWeights(cInd, pol, chan)=sumwt;
+								itsSumWeights(cInd, iPol, iChan)+=sumwt;
 								
 								/// Grid PSF?
 								if (itsDopsf)
