@@ -9,10 +9,7 @@
 #ifndef SYNIMAGEMULTISCALESOLVER_H_
 #define SYNIMAGEMULTISCALESOLVER_H_
 
-#include <fitting/Solver.h>
-#include <fitting/NormalEquations.h>
-#include <fitting/DesignMatrix.h>
-#include <fitting/Params.h>
+#include <measurementequation/ImageSolver.h>
 
 #include <boost/shared_ptr.hpp>
 #include <lattices/Lattices/LatticeCleaner.h>
@@ -29,7 +26,7 @@ namespace conrad
     /// casa::LatticeCleaner classes
     ///
     /// @ingroup measurementequation
-    class ImageMultiScaleSolver : public conrad::scimath::Solver
+    class ImageMultiScaleSolver : public ImageSolver
     {
       public:
 

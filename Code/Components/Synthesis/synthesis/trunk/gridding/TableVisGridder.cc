@@ -197,7 +197,7 @@ namespace conrad
 								gridKernel(grid, sumwt, convFunc, rVis, iu, iv, itsSupport,
 								    itsOverSample, itsCCenter, fracu, fracv);
 								itsSumWeights(cInd, iPol, iChan)+=sumwt;
-								
+
 								/// Grid PSF?
 								if (itsDopsf)
 								{
@@ -365,6 +365,7 @@ namespace conrad
 			}
 			// Now we can do the convolution correction
 			correctConvolution(out);
+			out*=double(out.shape()(0))*double(out.shape()(1));
 		}
 
 		/// This is the default implementation
@@ -388,6 +389,7 @@ namespace conrad
 			}
 			// Now we can do the convolution correction
 			correctConvolution(out);
+			out*=double(out.shape()(0))*double(out.shape()(1));
 		}
 
 		/// This is the default implementation
@@ -401,6 +403,7 @@ namespace conrad
 			int nZ=itsSumWeights.shape()(0);
 
 			for (int chan=0; chan<nChan; chan++)
+			{
 				for (int pol=0; pol<nPol; pol++)
 				{
 					double sumwt=0.0;
@@ -408,13 +411,13 @@ namespace conrad
 					{
 						sumwt+=itsSumWeights(iz, pol, chan);
 					}
-					sumwt=sumwt/(double(nx)*double(ny));
 
 					casa::IPosition ipStart(4, 0, 0, pol, chan);
 					casa::IPosition onePlane(4, itsShape(0), itsShape(1), 1, 1);
 					casa::Slicer slicer(ipStart, onePlane);
 					out(slicer).set(sumwt);
 				}
+			}
 		}
 
 		void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,

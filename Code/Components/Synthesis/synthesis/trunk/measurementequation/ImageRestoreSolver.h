@@ -10,7 +10,7 @@
 #ifndef SYNIMAGERESTORESOLVER_H_
 #define SYNIMAGERESTORESOLVER_H_
 
-#include <fitting/Solver.h>
+#include <measurementequation/ImageSolver.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Quanta.h>
 
@@ -24,7 +24,7 @@ namespace conrad
     /// and adding the residuals. Note that the units will be changed from
     /// Jy/pixel to Jy/beam.
     /// @ingroup measurementequation
-    class ImageRestoreSolver : public conrad::scimath::Solver
+    class ImageRestoreSolver : public ImageSolver
     {
       public:
 

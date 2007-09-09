@@ -35,7 +35,7 @@ namespace conrad
     
     ImageRestoreSolver::ImageRestoreSolver(const conrad::scimath::Params& ip,
           const casa::Vector<casa::Quantum<double> >& beam) :
-          conrad::scimath::Solver(ip), itsBeam(beam)
+          ImageSolver(ip), itsBeam(beam)
     {
     }
 

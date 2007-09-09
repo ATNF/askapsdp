@@ -72,10 +72,10 @@ namespace conrad
 					double freq=idi->frequency()[chan];
 					double w=(idi->uvw()(i)(2))/(casa::C::c);
 					int iw=cenw+int(w*freq/itsWScale);
-					CONRADCHECK(iw<itsNWPlanes, 
-						"W scaling error: recommend allowing larger range of w");
+					CONRADCHECK(iw<itsNWPlanes,
+							"W scaling error: recommend allowing larger range of w");
 					CONRADCHECK(iw>-1,
-						"W scaling error: recommend allowing larger range of w");
+							"W scaling error: recommend allowing larger range of w");
 
 					for (int pol=0; pol<nPol; pol++)
 					{
@@ -247,7 +247,7 @@ namespace conrad
 							    itsShape(3));
 							itsSumWeights.set(0.0);
 						}
-						
+
 						itsConvFunc[zIndex].resize(itsCSize, itsCSize);
 						itsConvFunc[zIndex].set(0.0);
 						// Now cut out the inner part of the convolution function and
@@ -278,10 +278,12 @@ namespace conrad
 		void AntennaIllumVisGridder::finaliseWeights(casa::Array<double>& out)
 		{
 
-			int nx=out.shape()(0);
-			int ny=out.shape()(1);
-			int nPol=out.shape()(2);
-			int nChan=out.shape()(3);
+			int nx=itsShape(0);
+			int ny=itsShape(1);
+			int nPol=itsShape(2);
+			int nChan=itsShape(3);
+
+			int nZ=itsSumWeights.shape()(0);
 
 			/// We must pad the convolution function to full size, reverse transform
 			/// square, and sum multiplied by the corresponding weight
@@ -292,17 +294,10 @@ namespace conrad
 
 			/// This is the output array before sinc padding
 			casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
+			cOut.set(0.0);
 
 			/// Work space
 			casa::Matrix<casa::Complex> thisPlane(cnx, cny);
-
-			int nZ=itsConvFunc.size();
-
-//			CONRADCHECK(itsSumWeights.shape()(1)!=nPol,
-//					"Number of polarizations do not match");
-
-			out.set(0.0);
-			cOut.set(0.0);
 
 			for (int iz=0; iz<nZ; iz++)
 			{
@@ -319,23 +314,20 @@ namespace conrad
 					}
 				}
 
+				thisPlane*=casa::Complex(float(cnx)*float(cny));
+				/// The peak here should be unity
 				fft2d(thisPlane, false);
 
-				float peak(casa::real(casa::max(casa::abs(thisPlane))));
-				if (peak>0.0)
+				for (int chan=0; chan<nChan; chan++)
 				{
-					for (int chan=0; chan<nChan; chan++)
+					for (int pol=0; pol<nPol; pol++)
 					{
-						for (int pol=0; pol<nPol; pol++)
+						for (int ix=0; ix<cnx; ix++)
 						{
-							float weight=itsSumWeights(iz, pol, chan)/peak;
-							for (int ix=0; ix<cnx; ix++)
+							for (int iy=0; iy<cny; iy++)
 							{
-								for (int iy=0; iy<cny; iy++)
-								{
-									cOut(casa::IPosition(4, ix, iy, pol, chan))+=weight
-									    *real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
-								}
+								cOut(casa::IPosition(4, ix, iy, pol, chan))+=itsSumWeights(iz, pol, chan)
+								    *real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
 							}
 						}
 					}
@@ -379,10 +371,7 @@ namespace conrad
 				casa::Array<double> outArray(outIt.array());
 
 				casa::real(outArray, constOutPlane);
-				/// Rescale to compensate for increase in sampling
-				double scale=(double(inx)*double(iny))/(double(onx)*double(ony));
 
-				outArray*=scale;
 				inIt.next();
 				outIt.next();
 			}

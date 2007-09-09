@@ -18,7 +18,7 @@ namespace conrad
 {
   namespace synthesis
   {
-    /// @brief Simple linear solver for images.
+    /// @brief Base class for solvers of images
     ///
     /// @details This solver takes the normal equations and simply divides
     /// the data vector by the diagonal of the normal matrix. This
@@ -44,6 +44,12 @@ namespace conrad
         
 /// @brief Clone this object
         virtual conrad::scimath::Solver::ShPtr clone() const;
+        
+        /// @brief Save the weights as a parameter
+        virtual void saveWeights();
+
+        /// @brief Save the PSFs as a parameter
+        virtual void savePSF();
 
     };
 

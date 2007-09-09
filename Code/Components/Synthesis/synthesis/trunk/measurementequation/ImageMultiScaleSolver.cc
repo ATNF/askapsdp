@@ -36,7 +36,7 @@ namespace conrad
     
       
     ImageMultiScaleSolver::ImageMultiScaleSolver(const conrad::scimath::Params& ip) : 
-          conrad::scimath::Solver(ip) 
+          ImageSolver(ip) 
     {
       itsScales.resize(3);
       itsScales(0)=0;
@@ -46,7 +46,7 @@ namespace conrad
 
     ImageMultiScaleSolver::ImageMultiScaleSolver(const conrad::scimath::Params& ip,
       const casa::Vector<float>& scales) : 
-          conrad::scimath::Solver(ip) 
+          ImageSolver(ip) 
     {
       itsScales.resize(scales.size());
       itsScales=scales;
@@ -89,7 +89,7 @@ namespace conrad
         const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
         CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
         const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
-        CONRADCHECK(itsNormalEquations->normalMatrixSlice().count(indit->first)>0, "Data vector not present");
+        CONRADCHECK(itsNormalEquations->normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
         const casa::Vector<double>& slice(itsNormalEquations->normalMatrixSlice().find(indit->first)->second);
         
         casa::Array<float> dirtyArray(valShape);
@@ -154,6 +154,10 @@ namespace conrad
       quality.setRank(0);
       quality.setCond(0.0);
       quality.setInfo("Multiscale Clean");
+      
+      /// Save the PSF and Weight
+      saveWeights();
+      savePSF();
 
       return true;
     };
