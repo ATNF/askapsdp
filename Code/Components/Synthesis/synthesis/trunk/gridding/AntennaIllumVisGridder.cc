@@ -108,7 +108,7 @@ namespace conrad
 
 			itsSupport=0;
 
-			/// These are the actual cell sizes used
+			/// These are the actual image pixel sizes used
 			float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
 			float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
 
@@ -119,13 +119,13 @@ namespace conrad
 			int ny=std::min(itsMaxSupport, itsShape(1));
 			/// We want nx * ccellx = overSample * itsShape(0) * cellx
 
-			// Find the actual cellsizes in x and y (radians) after over
-			// oversampling (in uv space)
-			float ccellx=float(itsOverSample)*float(itsShape(0))*cellx/float(nx);
-			float ccelly=float(itsOverSample)*float(itsShape(1))*celly/float(ny);
-
 			int qnx=nx/itsOverSample;
 			int qny=ny/itsOverSample;
+
+			// Find the actual cellsizes in x and y (radians) 
+			// corresponding to the limited support
+			float ccellx=1.0/(float(qnx)*itsUVCellSize(0));
+			float ccelly=1.0/(float(qny)*itsUVCellSize(1));
 
 			casa::Vector<float> ccfx(qnx);
 			casa::Vector<float> ccfy(qny);
@@ -149,12 +149,12 @@ namespace conrad
 					casa::Matrix<casa::Complex> disk(qnx, qny);
 					disk.set(0.0);
 					/// Calculate the size of one cell in meters
-					float cell=itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan])/double(itsOverSample);
+					float cell=itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan]);
 					float rmax=std::pow(itsDiameter/(2.0*cell), 2);
 					float rmin=std::pow(itsBlockage/(2.0*cell), 2);
-					/// Slope is the delay per m 
-					float ax=2.0f*casa::C::pi*cell*slope(0, feed)*idi->frequency()[chan]/casa::C::c;
-					float ay=2.0f*casa::C::pi*cell*slope(1, feed)*idi->frequency()[chan]/casa::C::c;
+					/// Slope is the turns per cell 
+					float ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed);
+					float ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed);
 
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
@@ -304,7 +304,10 @@ namespace conrad
 				thisPlane.set(0.0);
 
 				// Now fill the inner part of the uv plane with the convolution function
-				// and transform to obtain the full size image
+				// and transform to obtain the image. The uv sampling is fixed here
+				// so when we transform to image spaces with a smaller number of
+				// pixels, we end up with an image with larger pixels. Therefore
+				// we will have to FFT pad to get to the full resolution.
 				for (int iy=-itsSupport; iy<+itsSupport; iy++)
 				{
 					for (int ix=-itsSupport; ix<+itsSupport; ix++)
