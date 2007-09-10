@@ -305,12 +305,12 @@ namespace conrad
 
 				// Now fill the inner part of the uv plane with the convolution function
 				// and transform to obtain the full size image
-				for (int iy=-itsSupport*itsOverSample; iy<+itsOverSample*itsSupport; iy++)
+				for (int iy=-itsSupport; iy<+itsSupport; iy++)
 				{
-					for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
+					for (int ix=-itsSupport; ix<+itsSupport; ix++)
 					{
-						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix+itsCCenter, iy
-						    +itsCCenter);
+						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](itsOverSample*ix+itsCCenter, 
+								itsOverSample*iy+itsCCenter);
 					}
 				}
 
