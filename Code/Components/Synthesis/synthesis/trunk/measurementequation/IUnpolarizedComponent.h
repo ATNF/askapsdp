@@ -17,6 +17,7 @@
 #define I_UNPOLARIZED_COMPONENT_H
 
 #include <measurementequation/IComponent.h>
+
 namespace conrad {
 
 namespace synthesis {

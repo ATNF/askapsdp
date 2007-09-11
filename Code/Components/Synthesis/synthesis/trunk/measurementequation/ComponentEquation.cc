@@ -33,36 +33,18 @@ namespace conrad
 
     ComponentEquation::ComponentEquation(const conrad::scimath::Params& ip,
           IDataSharedIter& idi) :  conrad::scimath::Equation(ip),
-          itsIdi(idi) 
+          itsIdi(idi), itsAllComponentsUnpolarised(false)
     {
       init();
     };
 
     ComponentEquation::ComponentEquation(IDataSharedIter& idi) :  
-      conrad::scimath::Equation(), itsIdi(idi) 
+      conrad::scimath::Equation(), itsIdi(idi), itsAllComponentsUnpolarised(false) 
     {
       itsParams=defaultParameters().clone();
       init();
     };
-
-    ComponentEquation::ComponentEquation(const ComponentEquation& other)
-    {
-      operator=(other);
-    }
-
-    ComponentEquation& ComponentEquation::operator=(const ComponentEquation& other)
-    {
-      if(this!=&other)
-      {
-        itsParams=other.itsParams;
-        itsIdi=other.itsIdi;
-      }
-    }
     
-    ComponentEquation::~ComponentEquation() 
-    {
-    }
-
     void ComponentEquation::init()
     {
     }
@@ -93,6 +75,10 @@ void ComponentEquation::fillComponentCache(
      return;
   }
   
+  // we will need to change this variable to false in the loop below, when
+  // at least one polarised component is implemented.
+  itsAllComponentsUnpolarised = true;
+  
   // This loop is over all strings that complete the flux.i.* pattern
   // correctly. An exception will be throw if the parameters are not
   // consistent
@@ -118,7 +104,85 @@ void ComponentEquation::fillComponentCache(
           }
         }
   
-}                  
+}   
+
+/// @brief a helper method to populate a visibility cube
+/// @details This is method computes visibilities for the one given
+/// component and adds them to the cube provided. This is the most
+/// generic method, which iterates over polarisations. An overloaded
+/// version of the method do the same for unpolarised components
+/// (i.e. it doesn't bother to add zeros)
+///
+/// @param[in] comp component to generate the visibilities for
+/// @param[in] uvw baseline spacings, one triplet for each data row.
+/// @param[in] freq a vector of frequencies (one for each spectral
+///            channel) 
+/// @param[in] rwVis a non-const reference to the visibility cube to alter
+void ComponentEquation::addModelToCube(const IParameterizedComponent& comp,
+       const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
+       const casa::Vector<casa::Double>& freq,
+       casa::Cube<casa::Complex> &rwVis)
+{
+  CONRADDEBUGASSERT(rwVis.nrow() == uvw.nelements());
+  CONRADDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
+
+  // in the future we need to ensure that polarisation 
+  // products appear in this order and as Stokes parameters
+  const casa::Stokes::StokesTypes polVect[4] =
+       { casa::Stokes::I, casa::Stokes::Q, casa::Stokes::U, casa::Stokes::V };
+                                
+  CONRADDEBUGASSERT(rwVis.nplane()<=4);
+  
+  // flattened buffer for visibilities 
+  std::vector<double> vis(2*freq.nelements()); 
+ 
+  for (casa::uInt row=0;row<rwVis.nrow();++row) {
+       for (casa::uInt pol=0; pol<rwVis.nplane(); ++pol) {
+           comp.calculate(uvw[row],freq,polVect[pol],vis);
+                   
+           /// next command adds model visibilities to the
+           /// appropriate slice of the visibility cube. Conversions
+           /// between complex and two doubles are handled automatically
+           addVector(vis,rwVis.xyPlane(pol).row(row));
+       }          
+  }
+}               
+
+/// @brief a helper method to populate a visibility cube
+/// @details This is method computes visibilities for the one given
+/// component and adds them to the cube provided. This is a second
+/// version of the method. It is intended for unpolarised components
+/// (i.e. it doesn't bother to add zeros)
+///
+/// @param[in] comp component to generate the visibilities for
+/// @param[in] uvw baseline spacings, one triplet for each data row.
+/// @param[in] freq a vector of frequencies (one for each spectral
+///            channel) 
+/// @param[in] rwVis a non-const reference to the visibility cube to alter
+void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
+       const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
+       const casa::Vector<casa::Double>& freq,
+       casa::Cube<casa::Complex> &rwVis)
+{
+  CONRADDEBUGASSERT(rwVis.nrow() == uvw.nelements());
+  CONRADDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
+  CONRADDEBUGASSERT(rwVis.nplane() >= 1);
+  
+  // in the future, we have to ensure that the first polarisation product is
+  // stokes I. 
+ 
+  // flattened buffer for visibilities 
+  std::vector<double> vis(2*freq.nelements()); 
+ 
+  for (casa::uInt row=0;row<rwVis.nrow();++row) {
+       comp.calculate(uvw[row],freq,vis);
+       
+       /// next command adds model visibilities to the
+       /// appropriate slice of the visibility cube. Conversions
+       /// between complex and two doubles are handled automatically
+       addVector(vis,rwVis.xyPlane(0).row(row));
+  }           
+}
     
 void ComponentEquation::predict()
 {
@@ -132,7 +196,6 @@ void ComponentEquation::predict()
          const casa::Vector<casa::Double>& freq=itsIdi->frequency();
          const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsIdi->uvw();
          casa::Cube<casa::Complex> &rwVis = itsIdi->rwVisibility();
-         std::vector<double> vis(2*freq.nelements());
          
          // reset all visibility cube to 0
          rwVis.set(0.);
@@ -143,17 +206,91 @@ void ComponentEquation::predict()
               CONRADDEBUGASSERT(*compIt); 
               // current component
               const IParameterizedComponent& curComp = *(*compIt);
-              for (casa::uInt row=0;row<itsIdi->nRow();++row) {
-                   curComp.calculate(uvw[row],freq,casa::Stokes::I,vis);
-                   
-                   /// next command adds model visibilities to the
-                   /// appropriate slice of the visibility cube. Conversions
-                   /// between complex and two doubles are handled automatically
-                   addVector(vis,rwVis.xyPlane(0).row(row));
+              try {
+                 const IUnpolarizedComponent &unpolComp = 
+                    dynamic_cast<const IUnpolarizedComponent&>(curComp);
+                 addModelToCube(unpolComp,uvw,freq,rwVis);
+              }
+              catch (const std::bad_cast&) {
+                 addModelToCube(curComp,uvw,freq,rwVis);
               }
          }
     }
 };
+
+/// @brief a helper method to update design matrix and residuals
+/// @details This method iterates over a given number of polarisation 
+/// products in the visibility cube. It updates the design matrix with
+/// derivatives and subtracts values from the vector of residuals.
+/// The latter is a flattened vector which should have a size of 
+/// 2*nChan*nPol*nRow. Spectral channel is the most frequently varying
+/// index, then follows the polarisation index, and the least frequently
+/// varying index is the row. The number of channels and the number of
+/// rows always corresponds to that of the visibility cube. The number of
+/// polarisations can be less than the number of planes in the cube to
+/// allow processing of incomplete data cubes (or unpolarised components). In contrast to 
+/// 
+/// @param[in] comp component to generate the visibilities for
+/// @param[in] uvw baseline coorindates for each row
+/// @param[in] freq a vector of frequencies (one frequency for each
+///            spectral channel)
+/// @param[in] dm design matrix to update (to add derivatives to)
+/// @param[in] residual vector of residuals to update 
+/// @param[in] nPol a number of polarisation products to process
+void ComponentEquation::updateDesignMatrixAndResiduals(
+                   const IParameterizedComponent& comp,
+                   const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw,
+                   const casa::Vector<casa::Double>& freq,
+                   scimath::DesignMatrix &dm, casa::Vector<casa::Double> &residual,
+                   casa::uInt nPol)
+{
+  const size_t nParameters = comp.nParameters();
+  // number of data points  in the flattened vector
+  const casa::uInt nData=nPol*uvw.nelements()*freq.nelements()*2;
+  CONRADDEBUGASSERT(nData!=0);
+  CONRADDEBUGASSERT(nPol<=4);
+  CONRADDEBUGASSERT(residual.nelements() == nData);
+      
+  // Define AutoDiffs to buffer the output of a single call to the calculate 
+  // method of the component.
+  vector<casa::AutoDiff<double> > visDerivBuffer(2*freq.nelements(),
+                          casa::AutoDiff<double>(0.,nParameters));
+  casa::Array<casa::Double> derivatives(casa::IPosition(2,nData, nParameters));
+           
+  for (casa::uInt row=0,offset=0; row<uvw.nelements(); ++row) {
+       
+       const casa::RigidVector<casa::Double, 3> &thisRowUVW = uvw[row];
+       
+       // in the future we need to ensure that polarisation 
+       // products appear in this order and as Stokes parameters
+       const casa::Stokes::StokesTypes polVect[4] =
+           { casa::Stokes::I, casa::Stokes::Q, casa::Stokes::U, casa::Stokes::V };
+       
+       for (casa::uInt pol=0; pol<nPol; ++pol,offset+=2*freq.nelements()) {
+            comp.calculate(thisRowUVW,freq,polVect[pol],visDerivBuffer);
+            // copy derivatives from buffer for each parameter
+            for (casa::uInt par=0; par<nParameters; ++par) {
+                 // copy derivatives for each channel from visDerivBuffer
+                 // to the appropriate slice of the derivatives Array
+                 // template takes care of the actual types
+                 copyDerivativeVector(par,visDerivBuffer,  
+                           derivatives(casa::IPosition(2,offset,par), 
+                           casa::IPosition(2,offset+2*freq.nelements()-1,par)));                                 
+            }
+            // subtract contribution from the residuals
+            // next command does: residual slice -= visDerivBuffer
+            // taking care of all type conversions via templates
+            subtractVector(visDerivBuffer,
+                  residual(casa::Slice(offset,2*freq.nelements())));
+       }
+  }
+  // Now we can add the design matrix, residual, and weights
+  for (casa::uInt par=0; par<nParameters; ++par) {
+       dm.addDerivative(comp.parameterName(par), 
+              derivatives(casa::IPosition(2,0,par),
+                          casa::IPosition(2,nData-1,par)));
+  }                
+}
 
 void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
 {
@@ -169,59 +306,35 @@ void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
       CONRADDEBUGASSERT(freq.nelements()!=0);
       const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsIdi->uvw();
                  
-// Set up arrays to hold the output values
-// Two values (complex) per row, channel, pol
-      const casa::uInt nData=itsIdi->nRow()*freq.nelements()*2;
+      // maximum number of polarisations to process, can be less than
+      // the number of planes in the visibility cube, if all components are
+      // unpolarised
+      const casa::uInt nPol = itsAllComponentsUnpolarised ? 1 : itsIdi->nPol();
+      CONRADDEBUGASSERT(nPol<=itsIdi->visibility().nplane());
+      
+      // Set up arrays to hold the output values
+      // Two values (complex) per row, channel, pol
+      const casa::uInt nData=itsIdi->nRow()*freq.nelements()*2*nPol;
       CONRADDEBUGASSERT(nData!=0);
       casa::Vector<casa::Double> residual(nData);
-      // initialize residuals with the observed visibilities
-                
-      for (casa::uInt row=0,offset=0; row<itsIdi->nRow(); 
-                                      ++row,offset+=2*freq.nelements()) {
-           // the following command copies visibility slice to the appropriate 
-           // residual slice converting complex to two doubles automatically
-           // via templates 
-           copyVector(itsIdi->visibility().xyPlane(0).row(row),
-                      residual(casa::Slice(offset,2*freq.nelements())));       
+      
+      // initialize residuals with the observed visibilities          
+      for (casa::uInt row=0,offset=0; row<itsIdi->nRow(); ++row) {
+           for (casa::uInt pol=0; pol<nPol; ++pol,offset+=2*freq.nelements()) {
+                // the following command copies visibility slice to the appropriate 
+                // residual slice converting complex to two doubles automatically
+                // via templates 
+                copyVector(itsIdi->visibility().xyPlane(pol).row(row),
+                      residual(casa::Slice(offset,2*freq.nelements())));      
+           } 
       }
                 
       DesignMatrix designmatrix(parameters());
       for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
                 compList.begin(); compIt!=compList.end();++compIt) {
            CONRADDEBUGASSERT(*compIt); 
-           const size_t nParameters = (*compIt)->nParameters();
-           // Define AutoDiff's for the output visibilities.
-           vector<casa::AutoDiff<double> > visDerivBuffer(2*freq.nelements(),
-                         casa::AutoDiff<double>(0.,nParameters));
-           casa::Array<casa::Double> derivatives(casa::IPosition(2,nData,nParameters));
-           
-           // current component
-           const IParameterizedComponent& curComp = *(*compIt);
-           for (casa::uInt row=0,offset=0; row<itsIdi->nRow();
-                                 ++row,offset+=2*freq.nelements()) {
-                curComp.calculate(uvw[row],freq,casa::Stokes::I,visDerivBuffer);
-                // copy derivatives from buffer for each parameter
-                for (casa::uInt par=0; par<nParameters; ++par) {
-                     // copy derivatives for each channel from visDerivBuffer
-                     // to the appropriate slice of the derivatives Array
-                     // template takes care of the actual types
-                     copyDerivativeVector(par,visDerivBuffer,  
-                           derivatives(casa::IPosition(2,offset,par), 
-                           casa::IPosition(2,offset+2*freq.nelements()-1,par)));                                 
-                }
-                // subtract contribution from the residuals
-                // next command does: residual slice -= visDerivBuffer
-                // taking care of all type conversions via templates
-                subtractVector(visDerivBuffer,
-                         residual(casa::Slice(offset,2*freq.nelements())));          
-  
-           }
-           // Now we can add the design matrix, residual, and weights
-           for (casa::uInt par=0; par<nParameters; ++par) {
-                designmatrix.addDerivative((*compIt)->parameterName(par),
-                       derivatives(casa::IPosition(2,0,par),
-                                   casa::IPosition(2,nData-1,par)));
-           }
+           updateDesignMatrixAndResiduals(*(*compIt),uvw,freq,designmatrix,
+                               residual,nPol);
       }
       casa::Vector<double> weights(nData,1.);
       designmatrix.addResidual(residual, weights);

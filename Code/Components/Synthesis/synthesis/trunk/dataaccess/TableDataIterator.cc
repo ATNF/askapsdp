@@ -51,11 +51,12 @@ struct MapMemFun : public std::unary_function<X*, void> {
       return ((*in.second).*func)();
     }
 private:
+  /// @brief buffered pointer to a member function
   void (X::*func)();
 };
 
 /// a helper method to autodetect the input type
-/// @param[in] func member function to call for all elements in the map
+/// @param[in] in a member function to call for all elements in the map
 template<typename X>
 MapMemFun<X> mapMemFun(void (X::*in)()) {
   return MapMemFun<X>(in);

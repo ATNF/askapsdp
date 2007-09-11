@@ -10,8 +10,9 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
-#ifndef GAUSSIAN_SOURCE_COMPONENT_H
-#define GAUSSIAN_SOURCE_COMPONENT_H
+
+#ifndef UNPOLARIZED_GAUSSIAN_SOURCE_H
+#define UNPOLARIZED_GAUSSIAN_SOURCE_H
 
 // own includes
 #include <measurementequation/UnpolarizedComponent.h>
@@ -92,5 +93,5 @@ private:
 
 
 
-#endif // #ifndef GAUSSIAN_SOURCE_COMPONENT_H
+#endif // #ifndef UNPOLARIZED_GAUSSIAN_SOURCE_H
 
