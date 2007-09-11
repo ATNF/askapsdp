@@ -183,7 +183,11 @@ void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
        addVector(vis,rwVis.xyPlane(0).row(row));
   }           
 }
-    
+
+/// @brief Predict model visibility for the iterator.
+/// @details This version of the predict method iterates
+/// over all chunks of data and calls another variant of
+/// predict for each accessor.     
 void ComponentEquation::predict()
 {
     const std::vector<IParameterizedComponentPtr> &compList = 
@@ -193,30 +197,48 @@ void ComponentEquation::predict()
     // deal here with the accessor only. It will reduce the number of repeated
     // iterations required         
     for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
-         const casa::Vector<casa::Double>& freq=itsIdi->frequency();
-         const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsIdi->uvw();
-         casa::Cube<casa::Complex> &rwVis = itsIdi->rwVisibility();
-         
-         // reset all visibility cube to 0
-         rwVis.set(0.);
-         
-         // loop over components
-         for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
-              compList.begin(); compIt!=compList.end();++compIt) {
-              CONRADDEBUGASSERT(*compIt); 
-              // current component
-              const IParameterizedComponent& curComp = *(*compIt);
-              try {
-                 const IUnpolarizedComponent &unpolComp = 
-                    dynamic_cast<const IUnpolarizedComponent&>(curComp);
-                 addModelToCube(unpolComp,uvw,freq,rwVis);
-              }
-              catch (const std::bad_cast&) {
-                 addModelToCube(curComp,uvw,freq,rwVis);
-              }
-         }
+         predict(*itsIdi);
     }
 };
+
+/// @brief Predict model visibilities for one accessor (chunk).
+/// @details This version of the predict method works with
+/// a single chunk of data only. It seems that all measurement
+/// equations should work with accessors rather than iterators
+/// (i.e. the iteration over chunks should be moved to the higher
+/// level, outside this class). In the future, I expect that
+/// predict() without parameters will be deprecated.
+/// @param chunk a read-write accessor to work with
+void ComponentEquation::predict(IDataAccessor &chunk)
+{
+  const std::vector<IParameterizedComponentPtr> &compList = 
+         itsComponents.value(*this,&ComponentEquation::fillComponentCache);
+  
+  const casa::Vector<casa::Double>& freq = chunk.frequency();
+  const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = chunk.uvw();
+  casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
+         
+  // reset all visibility cube to 0
+  rwVis.set(0.);
+         
+  // loop over components
+  for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
+       compList.begin(); compIt!=compList.end();++compIt) {
+       
+       CONRADDEBUGASSERT(*compIt); 
+       // current component
+       const IParameterizedComponent& curComp = *(*compIt);
+       try {
+            const IUnpolarizedComponent &unpolComp = 
+              dynamic_cast<const IUnpolarizedComponent&>(curComp);
+            addModelToCube(unpolComp,uvw,freq,rwVis);
+       }
+       catch (const std::bad_cast&) {
+            addModelToCube(curComp,uvw,freq,rwVis);
+       }
+  }
+}
+
 
 /// @brief a helper method to update design matrix and residuals
 /// @details This method iterates over a given number of polarisation 
@@ -292,6 +314,61 @@ void ComponentEquation::updateDesignMatrixAndResiduals(
   }                
 }
 
+/// @brief Calculate the normal equation for one accessor (chunk).
+/// @details This version of the method works on a single chunk of
+/// data only (one iteration).It seems that all measurement
+/// equations should work with accessors rather than iterators
+/// (i.e. the iteration over chunks should be moved to the higher
+/// level, outside this class). In the future, I expect that
+/// the variant of the method without parameters will be deprecated.
+/// @param[in] chunk a read-write accessor to work with
+/// @param[in] ne Normal equations
+void ComponentEquation::calcEquations(const IConstDataAccessor &chunk,
+                   conrad::scimath::NormalEquations& ne)
+{
+  const std::vector<IParameterizedComponentPtr> &compList = 
+         itsComponents.value(*this,&ComponentEquation::fillComponentCache);
+  
+  const casa::Vector<double>& freq=chunk.frequency();
+  CONRADDEBUGASSERT(freq.nelements()!=0);
+  const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = chunk.uvw();
+  const casa::Cube<casa::Complex> &visCube = chunk.visibility();
+                 
+  // maximum number of polarisations to process, can be less than
+  // the number of planes in the visibility cube, if all components are
+  // unpolarised
+  const casa::uInt nPol = itsAllComponentsUnpolarised ? 1 : chunk.nPol();
+  CONRADDEBUGASSERT(nPol <= chunk.visibility().nplane());
+      
+  // Set up arrays to hold the output values
+  // Two values (complex) per row, channel, pol
+  const casa::uInt nData=chunk.nRow()*freq.nelements()*2*nPol;
+  CONRADDEBUGASSERT(nData!=0);
+  casa::Vector<casa::Double> residual(nData);
+      
+  // initialize residuals with the observed visibilities          
+  for (casa::uInt row=0,offset=0; row < chunk.nRow(); ++row) {
+       for (casa::uInt pol=0; pol<nPol; ++pol,offset+=2*freq.nelements()) {
+            // the following command copies visibility slice to the appropriate 
+            // residual slice converting complex to two doubles automatically
+            // via templates 
+            copyVector(visCube.xyPlane(pol).row(row),
+                  residual(casa::Slice(offset,2*freq.nelements())));      
+       } 
+  }
+                
+  DesignMatrix designmatrix(parameters());
+  for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
+            compList.begin(); compIt!=compList.end();++compIt) {
+       CONRADDEBUGASSERT(*compIt); 
+       updateDesignMatrixAndResiduals(*(*compIt),uvw,freq,designmatrix,
+                           residual,nPol);
+  }
+  casa::Vector<double> weights(nData,1.);
+  designmatrix.addResidual(residual, weights);
+  ne.add(designmatrix);
+}
+
 void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
 {
   const std::vector<IParameterizedComponentPtr> &compList = 
@@ -301,44 +378,7 @@ void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
   // deal here with the accessor only. It will reduce the number of repeated
   // iterations required         
   for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
-
-      const casa::Vector<double>& freq=itsIdi->frequency();
-      CONRADDEBUGASSERT(freq.nelements()!=0);
-      const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsIdi->uvw();
-                 
-      // maximum number of polarisations to process, can be less than
-      // the number of planes in the visibility cube, if all components are
-      // unpolarised
-      const casa::uInt nPol = itsAllComponentsUnpolarised ? 1 : itsIdi->nPol();
-      CONRADDEBUGASSERT(nPol<=itsIdi->visibility().nplane());
-      
-      // Set up arrays to hold the output values
-      // Two values (complex) per row, channel, pol
-      const casa::uInt nData=itsIdi->nRow()*freq.nelements()*2*nPol;
-      CONRADDEBUGASSERT(nData!=0);
-      casa::Vector<casa::Double> residual(nData);
-      
-      // initialize residuals with the observed visibilities          
-      for (casa::uInt row=0,offset=0; row<itsIdi->nRow(); ++row) {
-           for (casa::uInt pol=0; pol<nPol; ++pol,offset+=2*freq.nelements()) {
-                // the following command copies visibility slice to the appropriate 
-                // residual slice converting complex to two doubles automatically
-                // via templates 
-                copyVector(itsIdi->visibility().xyPlane(pol).row(row),
-                      residual(casa::Slice(offset,2*freq.nelements())));      
-           } 
-      }
-                
-      DesignMatrix designmatrix(parameters());
-      for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
-                compList.begin(); compIt!=compList.end();++compIt) {
-           CONRADDEBUGASSERT(*compIt); 
-           updateDesignMatrixAndResiduals(*(*compIt),uvw,freq,designmatrix,
-                               residual,nPol);
-      }
-      casa::Vector<double> weights(nData,1.);
-      designmatrix.addResidual(residual, weights);
-      ne.add(designmatrix);
+       calcEquations(*itsIdi,ne);
   }
 }
 

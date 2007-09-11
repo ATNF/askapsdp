@@ -18,6 +18,7 @@
 
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataIterator.h>
+#include <dataaccess/IDataAccessor.h>
 #include <dataaccess/CachedAccessorField.tcc>
 
 #include <measurementequation/IParameterizedComponent.h>
@@ -62,13 +63,42 @@ namespace conrad
         /// Return the default parameters
         static conrad::scimath::Params defaultParameters();
 
-        /// @brief Predict model visibility for the iterator. 
+        /// @brief Predict model visibility for the iterator.
+        /// @details This version of the predict method iterates
+        /// over all chunks of data and calls another variant of
+        /// predict for each accessor. 
         virtual void predict();
+        
+        /// @brief Predict model visibilities for one accessor (chunk).
+        /// @details This version of the predict method works with
+        /// a single chunk of data only. It seems that all measurement
+        /// equations should work with accessors rather than iterators
+        /// (i.e. the iteration over chunks should be moved to the higher
+        /// level, outside this class). In the future, I expect that
+        /// predict() without parameters will be deprecated.
+        /// @param[in] chunk a read-write accessor to work with
+        virtual void predict(IDataAccessor &chunk);
 
-/// @brief Calculate the normal equations
-/// @param ne Normal equations
+        /// @brief Calculate the normal equations
+        /// @details This version iterates through all chunks of data and
+        /// calls another version of the method for each individual accessor
+        /// (each iteration of the iterator)
+        /// @param[in] ne Normal equations
         virtual void calcEquations(conrad::scimath::NormalEquations& ne);
 
+        /// @brief Calculate the normal equation for one accessor (chunk).
+        /// @details This version of the method works on a single chunk of
+        /// data only (one iteration).It seems that all measurement
+        /// equations should work with accessors rather than iterators
+        /// (i.e. the iteration over chunks should be moved to the higher
+        /// level, outside this class). In the future, I expect that
+        /// the variant of the method without parameters will be deprecated.
+        /// @param[in] chunk a read-write accessor to work with
+        /// @param[in] ne Normal equations
+        virtual void calcEquations(const IConstDataAccessor &chunk,
+                                   conrad::scimath::NormalEquations& ne);
+        
+        
       private:
       /// Shared iterator for data access
         IDataSharedIter itsIdi;
