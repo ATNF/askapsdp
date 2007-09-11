@@ -30,7 +30,7 @@ class IDataAccessor : public IConstDataAccessor
 {
 public:
 	
-        /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
+    /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
 	/// each element is a complex visibility)
 	///
 	/// @return a reference to nRow x nChannel x nPol cube, containing
@@ -39,7 +39,7 @@ public:
 	virtual const casa::Cube<casa::Complex>& visibility() const = 0;
 
 	
-        /// Read-write access to visibilities (a cube is nRow x nChannel x nPol;
+    /// Read-write access to visibilities (a cube is nRow x nChannel x nPol;
 	/// each element is a complex visibility)
 	///
 	/// @return a reference to nRow x nChannel x nPol cube, containing
