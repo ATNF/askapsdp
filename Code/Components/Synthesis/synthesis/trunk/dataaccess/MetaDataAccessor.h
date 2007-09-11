@@ -6,10 +6,10 @@
 /// held by the iterator. This class implements an adapter which calls
 /// methods of IConstDataAccessor associated to metadata access (there will
 /// be just one instance of a class derived from IConstDataAccessor, but
-/// many derived from this class. Using this adapter allows to avoid
+/// many instances of a class derived from this one). Using this adapter allows to avoid
 /// an unnecessary duplication of caches. Static data members are not a
 /// suitable solution for this problem because there could be unrelated
-/// instances of the iterator, which should have separate const accessor.
+/// instances of the iterator, which should have separate const accessors.
 /// Possible derived classes include read-write accessor to buffers and
 /// read-write accessor to original data.
 /// @note an alternative approach is to split out all code managing metadata
@@ -40,10 +40,10 @@ namespace synthesis {
 /// held by the iterator. This class implements an adapter which calls
 /// methods of IConstDataAccessor associated to metadata access (there will
 /// be just one instance of a class derived from IConstDataAccessor, but
-/// many derived from this class. Using this adapter allows to avoid
+/// many instances of a class derived from this one). Using this adapter allows to avoid
 /// an unnecessary duplication of caches. Static data members are not a
 /// suitable solution for this problem because there could be unrelated
-/// instances of the iterator, which should have separate const accessor.
+/// instances of the iterator, which should have separate const accessors.
 /// Possible derived classes include read-write accessor to buffers and
 /// read-write accessor to original data.
 /// @note an alternative approach is to split out all code managing metadata
