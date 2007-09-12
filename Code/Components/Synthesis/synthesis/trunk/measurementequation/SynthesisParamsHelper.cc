@@ -163,7 +163,10 @@ namespace conrad
 			int whichDir=imageCoords.findCoordinate(Coordinate::DIRECTION);
 			CONRADCHECK(whichDir>-1, "No direction coordinate present in model");
 			casa::DirectionCoordinate radec(imageCoords.directionCoordinate(whichDir));
-			casa::Vector<double> pixel(2);
+
+			casa::Vector<casa::String> units(2);
+			units.set("rad");
+			radec.setWorldAxisUnits(units);
 			
 			casa::Vector<double> refPix(radec.referencePixel());
 			casa::Vector<double> refInc(radec.increment());
@@ -194,8 +197,7 @@ namespace conrad
 			freq.toWorld(endFreq, double(nChan));
 			axes.add("FREQUENCY", startFreq, endFreq);
 
-			ip.add(name, 
-					imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)), 
+			ip.add(name, imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)), 
 					axes);
 
 		}
