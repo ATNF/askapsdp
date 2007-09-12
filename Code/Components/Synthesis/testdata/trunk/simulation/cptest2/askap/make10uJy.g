@@ -1,37 +1,6 @@
 include 'note.g';
 include 'gaussian.g';
 
-# Add a gaussian
-const addgaussian2d := function(a, height=1, center=[0,0], 
-				fwhm=[1,1]/fwhm_to_natural, pa=0)
-{
-
-  # Rotate if necessary
-  cpa := cos(pa);
-  spa := sin(pa);
-
-  width := abs(fwhm) * fwhm_to_natural;
-
-  maxextent:=as_integer(5*fwhm[1]);
-  nx:=a::shape[1];  
-  ny:=a::shape[2];
-
-  if((as_integer(center[1])<1)||(as_integer(center[1])>nx)) return a;
-  if((as_integer(center[2])<1)||(as_integer(center[2])>ny)) return a;
-
-  x:=max(1, (center[1]-maxextent)):min(nx, (center[1]+maxextent));
-  y:=max(1, (center[2]-maxextent)):min(nx, (center[2]+maxextent));
-
-  for(iy in y) {
-    rx :=  cpa*(x-center[1]) + spa*(iy-center[2]);
-    ry := -spa*(x-center[1]) + cpa*(iy-center[2]);
-    r:=(rx/width[1])^2+(ry/width[2])^2;
-    g:=height * exp(-r);
-    a[x, iy, 1, ]+:=g;
-  }
-  return a;
-}
-
 # Add a componentlist to an image
 addcomplist:=function(im, cl) {
   cs:=im.coordsys();
@@ -50,32 +19,62 @@ addcomplist:=function(im, cl) {
   py:=cs.referencepixel()[2];
 
   for (icomp in 1:cl.length()) {
-    if(icomp%100==1) print icomp;
+    if(icomp%100==1) {
+      print icomp;
+    }
     comp:=cl.component(icomp, T);
+    if(!is_fail(comp)) {
 # The next line fails!
 #    dir:=cs.topixel([comp.shape.direction.m0,
 #		     comp.shape.direction.m1]);
-    dir[1]:=px+(comp.shape.direction.m0.value-rx)/incx;
-    dir[2]:=py+(comp.shape.direction.m1.value-ry)/incy;
-    dir:=[as_integer(dir[1]), as_integer(dir[2])]
-    if(is_fail(dir)) {
-      print "Error converting direction ", dir::message
-    }
-    else if((dir[1]<1)||(dir[1]>nx)||(dir[2]<1)||(dir[2]>ny)) {
-      print 'Component ', icomp, ' is off the grid: ',
-	  comp.shape.direction.m0.value,
-	  comp.shape.direction.m1.value, dir
-    }
-    else {
-      if(comp.shape.type=='Point') {
-	pix[dir[1], dir[2], , 1]+:=comp.flux.value;
-    }
+      dir[1]:=px+(comp.shape.direction.m0.value-rx)/incx;
+      dir[2]:=py+(comp.shape.direction.m1.value-ry)/incy;
+      dir:=[as_integer(dir[1]), as_integer(dir[2])];
+      if(is_fail(dir)) {
+	print "Error converting direction ", dir::message;
+      }
+      else if((dir[1]<1)||(dir[1]>nx)||(dir[2]<1)||(dir[2]>ny)) {
+	print 'Component ', icomp, ' is off the grid: ',
+	    comp.shape.direction.m0.value,
+		comp.shape.direction.m1.value, dir;
+      }
       else {
-	bmaj:=dq.convert(comp.shape.majoraxis, 'arcsec').value/abs(dx);
-	bmin:=dq.convert(comp.shape.minoraxis, 'arcsec').value/abs(dx);
-	bpa :=dq.convert(comp.shape.positionangle, 'rad').value;
-	pix:=addgaussian2d(pix, comp.flux.value[1], dir,
-			   [bmaj, bmin], bpa);
+	if(comp.shape.type=='Point') {
+	  print icomp, pix::shape, dir;
+	  pix[dir[1], dir[2], , 1]+:=comp.flux.value;
+	}
+	else {
+	  height:=comp.flux[1].value;
+	  width[1]:=dq.convert(comp.shape.majoraxis, 'arcsec').value/abs(dx);
+	  width[2]:=dq.convert(comp.shape.minoraxis, 'arcsec').value/abs(dx);
+	  pa :=dq.convert(comp.shape.positionangle, 'rad').value;
+	  # Rotate if necessary
+	  cpa := cos(pa);
+	  spa := sin(pa);
+
+	  width := abs(fwhm) * fwhm_to_natural;
+
+	  maxextent:=as_integer(5*fwhm[1]);
+	  nx:=pix::shape[1];  
+	  ny:=pix::shape[2];
+
+	  if((as_integer(center[1])>0)&&(as_integer(center[1])<=nx)&&
+	     (as_integer(center[2])>0)&&(as_integer(center[2])<=ny)) {
+
+	    x:=max(1, (center[1]-maxextent)):min(nx, (center[1]+maxextent));
+	    y:=max(1, (center[2]-maxextent)):min(nx, (center[2]+maxextent));
+	    
+	    if((width[1]>0.0)&&(width[2]>0.0)) {
+	      for(iy in y) {
+		rx :=  cpa*(x-center[1]) + spa*(iy-center[2]);
+		ry := -spa*(x-center[1]) + cpa*(iy-center[2]);
+		r:=(rx/width[1])^2+(ry/width[2])^2;
+		g:=height * exp(-r);
+		a[x, iy, 1, ]+:=g;
+	      }
+	    }
+	  }
+	}
       }
     }
   }
@@ -87,17 +86,17 @@ pc:=dm.direction('J2000', '12h30m00.00', '-45d00m00.0');
 
 include 'table.g';
 
-npix:=16384;
+npix:=12*1024;
 totalmodel := 'cptest2.10uJy.model';
 
-small:=T; # Make a small image?
+small:=F; # Make a small image?
 if(small) {
   npix:=npix/2;
   totalmodel := 'cptest2.10uJy.model.small';
 }
 
 totalcl    := '10uJy.cl';
-asciifile  := 'weak.list';
+asciifile  := '10uJy.txt';
 
 tabledelete(totalmodel);
 tabledelete(totalcl);
@@ -165,11 +164,7 @@ cl.rename(totalcl);
 include 'image.g';
 im:=image(totalmodel);
 addcomplist(im, cl);
-ims:=im.convolve2d(spaste(totalmodel, '.smoothed'),
-		   major='30arcsec', minor='30arcsec', 
-		   overwrite=T);
 im.done();
-ims.done();
 cl.done();
 
 exit;
