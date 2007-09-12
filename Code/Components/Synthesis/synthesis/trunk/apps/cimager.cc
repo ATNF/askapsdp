@@ -32,8 +32,21 @@ using namespace conrad::synthesis;
 using namespace conrad::scimath;
 using namespace LOFAR::ACC::APS;
 
-// Main function
+// Move to Conrad Util
+std::string getInputs(const std::string& key, const std::string& def, int argc, const char** argv)
+{
+	if(argc>2) {
+		for (int arg=0;arg<(argc-1);arg++) {
+			std::string argument=string(argv[arg]);
+			if(argument==key) {
+				return string(argv[arg+1]); 
+			}
+		}
+	}
+	return def;
+}
 
+// Main function
 int main(int argc, const char** argv)
 {
 	try
@@ -43,10 +56,13 @@ int main(int argc, const char** argv)
 
 		timer.mark();
 		
-	  ParameterSet parset("cimager.in");
+		std::string parsetFile(getInputs("-inputs", "cimager.in", argc, argv));
+		
+	  ParameterSet parset(parsetFile);
 	  ParameterSet subset(parset.makeSubset("Cimager."));
 	  
 	  ImagerParallel imager(argc, argv, subset);
+		imager.os() << "parset file " << parsetFile << std::endl;
 
 		int nCycles=subset.getInt32("ncycles", 0);
 		if(nCycles==0)

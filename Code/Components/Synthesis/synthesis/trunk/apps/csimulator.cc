@@ -17,19 +17,32 @@ using std::endl;
 using namespace std;
 using namespace conrad;
 using namespace conrad::synthesis;
-
+// Move to Conrad Util
+std::string getInputs(const std::string& key, const std::string& def, int argc, const char** argv)
+{
+	if(argc>2) {
+		for (int arg=0;arg<(argc-1);arg++) {
+			std::string argument=string(argv[arg]);
+			if(argument==key) {
+				return string(argv[arg+1]); 
+			}
+		}
+	}
+	return def;
+}
 // Main function
 
 int main(int argc, const char** argv)
 {
 	try
 	{
-
-		LOFAR::ACC::APS::ParameterSet parset("csimulator.in");
+		std::string parsetFile(getInputs("-inputs", "csimulator.in", argc, argv));
+		LOFAR::ACC::APS::ParameterSet parset(parsetFile);
 		LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
 
 		SimParallel sim(argc, argv, subset);
 		sim.os() << "CONRAD simulation program" << std::endl;
+		sim.os() << "parset file " << parsetFile << std::endl;
 		
 		sim.simulate();
 
