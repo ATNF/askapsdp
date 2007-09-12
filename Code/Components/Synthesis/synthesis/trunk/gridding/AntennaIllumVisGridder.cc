@@ -109,23 +109,22 @@ namespace conrad
 			itsSupport=0;
 
 			/// These are the actual image pixel sizes used
-			float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
-			float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
+			double cellx=1.0/(double(itsShape(0))*itsUVCellSize(0));
+			double celly=1.0/(double(itsShape(1))*itsUVCellSize(1));
 
 			/// Limit the size of the convolution function since
 			/// we don't need it finely sampled in image space. This
 			/// will reduce the time taken to calculate it.
 			int nx=std::min(itsMaxSupport, itsShape(0));
 			int ny=std::min(itsMaxSupport, itsShape(1));
-			/// We want nx * ccellx = overSample * itsShape(0) * cellx
 
 			int qnx=nx/itsOverSample;
 			int qny=ny/itsOverSample;
 
 			// Find the actual cellsizes in x and y (radians) 
 			// corresponding to the limited support
-			float ccellx=1.0/(float(qnx)*itsUVCellSize(0));
-			float ccelly=1.0/(float(qny)*itsUVCellSize(1));
+			double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
+			double ccelly=1.0/(double(qny)*itsUVCellSize(1));
 
 			casa::Vector<float> ccfx(qnx);
 			casa::Vector<float> ccfy(qny);
@@ -149,27 +148,27 @@ namespace conrad
 					casa::Matrix<casa::Complex> disk(qnx, qny);
 					disk.set(0.0);
 					/// Calculate the size of one cell in meters
-					float cell=itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan]);
-					float rmax=std::pow(itsDiameter/(2.0*cell), 2);
-					float rmin=std::pow(itsBlockage/(2.0*cell), 2);
+					double cell=std::abs(itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan]));
+					double rmax=std::pow(itsDiameter/(2.0*cell), 2);
+					double rmin=std::pow(itsBlockage/(2.0*cell), 2);
 					/// Slope is the turns per cell 
-					float ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed);
-					float ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed);
+					double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed);
+					double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed);
 
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
 					for (int ix=0; ix<qnx; ix++)
 					{
-						float nux=float(ix-qnx/2);
-						float nux2=nux*nux;
+						double nux=double(ix-qnx/2);
+						double nux2=nux*nux;
 						for (int iy=0; iy<qny; iy++)
 						{
-							float nuy=float(iy-qny/2);
-							float nuy2=nuy*nuy;
-							float r=nux2+nuy2;
+							double nuy=double(iy-qny/2);
+							double nuy2=nuy*nuy;
+							double r=nux2+nuy2;
 							if ((r>=rmin)&&(r<=rmax))
 							{
-								float phase=ax*nux+ay*nuy;
+								double phase=ax*nux+ay*nuy;
 								disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
 							}
 						}
@@ -192,26 +191,26 @@ namespace conrad
 
 						// Loop over the central nx, ny region, setting it to the product
 						// of the phase screen and the spheroidal function
-						float maxCF=0.0;
-						float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
-						float freq=idi->frequency()[chan];
+						double maxCF=0.0;
+						double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
+						double freq=idi->frequency()[chan];
 						for (int iy=0; iy<qny; iy++)
 						{
-							float y2=float(iy-qny/2)*ccelly;
+							double y2=double(iy-qny/2)*ccelly;
 							y2*=y2;
 							for (int ix=0; ix<qnx; ix++)
 							{
-								float x2=float(ix-qnx/2)*ccellx;
+								double x2=double(ix-qnx/2)*ccellx;
 								x2*=x2;
-								float r2=x2+y2;
-								float phase=w*(1.0-sqrt(1.0-r2));
+								double r2=x2+y2;
+								double phase=w*(1.0-sqrt(1.0-r2));
 								casa::Complex wt=disk(ix, iy)*casa::Complex(ccfx(iy)*ccfy(ix));
 								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(
 								    cos(phase), -sin(phase));
 								maxCF+=casa::real(disk(ix, iy));
 							}
 						}
-						maxCF/=(float(nx)*float(ny));
+						maxCF/=(double(nx)*double(ny));
 						// At this point, we have the phase screen multiplied by the spheroidal
 						// function, sampled on larger cellsize (itsOverSample larger) in image
 						// space. Only the inner qnx, qny pixels have a non-zero value
@@ -317,7 +316,7 @@ namespace conrad
 					}
 				}
 
-				thisPlane*=casa::Complex(float(cnx)*float(cny));
+				thisPlane*=casa::Complex(double(cnx)*double(cny));
 				/// The peak here should be unity
 				fft2d(thisPlane, false);
 
@@ -423,6 +422,7 @@ namespace conrad
 						break;
 				}
 			}
+			CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
 		}
 
 	}

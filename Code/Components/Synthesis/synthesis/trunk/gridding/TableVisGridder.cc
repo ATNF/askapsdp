@@ -57,7 +57,7 @@ namespace conrad
 				{
 					casa::Complex wt=convFunc(uoff, voff);
 					grid(iu+suppu, iv+suppv)+=cVis*wt;
-					sumwt+=casa::real(wt);
+					sumwt+=1;
 					uoff+=itsOverSample;
 				}
 				voff+=itsOverSample;
