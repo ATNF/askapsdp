@@ -23,6 +23,7 @@
 
 #include <measurementequation/IParameterizedComponent.h>
 #include <measurementequation/IUnpolarizedComponent.h>
+#include <measurementequation/IMeasurementEquation.h>
 
 // casa includes
 #include <casa/aips.h>
@@ -45,7 +46,8 @@ namespace conrad
     ///
     /// @ingroup measurementequation
     
-    class ComponentEquation : public conrad::scimath::Equation
+    class ComponentEquation : virtual public IMeasurementEquation,
+                              virtual public conrad::scimath::Equation
     {
       public:
 
