@@ -28,7 +28,7 @@ namespace conrad
 				double wmax=parset.getDouble("gridder.WProject.wmax", 35000.0);
 				int nwplanes=parset.getInt32("gridder.WProject.nwplanes", 64);
 				double cutoff=parset.getDouble("gridder.WProject.cutoff", 1e-3);
-				int oversample=parset.getInt32("gridder.WProject.oversample", 1);
+				int oversample=parset.getInt32("gridder.WProject.oversample", 8);
 				int maxSupport=parset.getInt32("gridder.WProject.maxsupport", 256);
 				string tablename=parset.getString("gridder.WProject.tablename", "");
 				std::cout << "Using W projection gridding "<< std::endl;
@@ -42,7 +42,7 @@ namespace conrad
 				double wmax=parset.getDouble("gridder.AntennaIllum.wmax", 10000.0);
 				int nwplanes=parset.getInt32("gridder.AntennaIllum.nwplanes", 64);
 				double cutoff=parset.getDouble("gridder.AntennaIllum.cutoff", 1e-3);
-				int oversample=parset.getInt32("gridder.AntennaIllum.oversample", 1);
+				int oversample=parset.getInt32("gridder.AntennaIllum.oversample", 8);
 				int maxSupport=parset.getInt32("gridder.AntennaIllum.maxsupport", 128);
 				int maxFeeds=parset.getInt32("gridder.AntennaIllum.maxfeeds", 1);
 				string tablename=parset.getString("gridder.AntennaIllum.tablename", "");
