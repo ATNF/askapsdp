@@ -29,8 +29,8 @@ MultiChunkEquation::MultiChunkEquation(const IDataSharedIter& idi) :
 /// calls an abstract method declared in IMeasurementEquation for each 
 //// individual accessor (each iteration of the iterator)
 /// @param[in] ne Normal equations
-void MultiChunkEquation::calcEquations(conrad::scimath::NormalEquations& ne)
-{
+void MultiChunkEquation::calcEquations(conrad::scimath::NormalEquations& ne) const
+{ 
   for (itsSharedIterator.init(); itsSharedIterator.hasMore(); 
                                  itsSharedIterator.next()) {
        calcEquations(*itsSharedIterator,ne);
@@ -41,7 +41,7 @@ void MultiChunkEquation::calcEquations(conrad::scimath::NormalEquations& ne)
 /// @details This version of the predict method iterates
 /// over all chunks of data and calls an abstract method declared
 /// in IMeasurementEquation for each accessor. 
-void MultiChunkEquation::predict()
+void MultiChunkEquation::predict() const
 {
   for (itsSharedIterator.init(); itsSharedIterator.hasMore(); 
                                  itsSharedIterator.next()) {

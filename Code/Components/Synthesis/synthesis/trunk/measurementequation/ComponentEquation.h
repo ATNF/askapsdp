@@ -54,11 +54,11 @@ namespace conrad
         /// @param ip Parameters
         /// @param idi data iterator
         ComponentEquation(const conrad::scimath::Params& ip,
-          IDataSharedIter& idi);
+          const IDataSharedIter& idi);
 
         /// @brief Constructor using default parameters
         /// @param idi data iterator
-        ComponentEquation(IDataSharedIter& idi);
+        ComponentEquation(const IDataSharedIter& idi);
         
         /// Return the default parameters
         static conrad::scimath::Params defaultParameters();
@@ -71,7 +71,7 @@ namespace conrad
         /// level, outside this class). In the future, I expect that
         /// predict() without parameters will be deprecated.
         /// @param[in] chunk a read-write accessor to work with
-        virtual void predict(IDataAccessor &chunk);
+        virtual void predict(IDataAccessor &chunk) const;
 
         /// @brief Calculate the normal equation for one accessor (chunk).
         /// @details This version of the method works on a single chunk of
@@ -83,7 +83,7 @@ namespace conrad
         /// @param[in] chunk a read-write accessor to work with
         /// @param[in] ne Normal equations
         virtual void calcEquations(const IConstDataAccessor &chunk,
-                                   conrad::scimath::NormalEquations& ne);
+                                   conrad::scimath::NormalEquations& ne) const;
         
         using MultiChunkEquation::predict;
         using MultiChunkEquation::calcEquations;

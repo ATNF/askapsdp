@@ -32,17 +32,17 @@ namespace conrad
   {
 
     ComponentEquation::ComponentEquation(const conrad::scimath::Params& ip,
-          IDataSharedIter& idi) :   MultiChunkEquation(idi),  
+          const IDataSharedIter& idi) :   MultiChunkEquation(idi),  
            conrad::scimath::Equation(ip), itsAllComponentsUnpolarised(false)
     {
       init();
     };
 
-    ComponentEquation::ComponentEquation(IDataSharedIter& idi) :
+    ComponentEquation::ComponentEquation(const IDataSharedIter& idi) :
            MultiChunkEquation(idi), conrad::scimath::Equation(), 
            itsAllComponentsUnpolarised(false) 
     {
-      itsParams=defaultParameters().clone();
+      setParameters(defaultParameters());
       init();
     };
     
@@ -69,7 +69,7 @@ conrad::scimath::Params ComponentEquation::defaultParameters()
 /// components. It is called on the first access to itsComponents
 void ComponentEquation::fillComponentCache(
             std::vector<IParameterizedComponentPtr> &in) const
-{
+{ 
   std::vector<std::string> completions(parameters().completions("flux.i"));
   in.resize(completions.size());
   if(!completions.size()) {
@@ -193,7 +193,7 @@ void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
 /// level, outside this class). In the future, I expect that
 /// predict() without parameters will be deprecated.
 /// @param chunk a read-write accessor to work with
-void ComponentEquation::predict(IDataAccessor &chunk)
+void ComponentEquation::predict(IDataAccessor &chunk) const
 {
   const std::vector<IParameterizedComponentPtr> &compList = 
          itsComponents.value(*this,&ComponentEquation::fillComponentCache);
@@ -308,7 +308,7 @@ void ComponentEquation::updateDesignMatrixAndResiduals(
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
 void ComponentEquation::calcEquations(const IConstDataAccessor &chunk,
-                   conrad::scimath::NormalEquations& ne)
+                   conrad::scimath::NormalEquations& ne) const
 {
   const std::vector<IParameterizedComponentPtr> &compList = 
          itsComponents.value(*this,&ComponentEquation::fillComponentCache);

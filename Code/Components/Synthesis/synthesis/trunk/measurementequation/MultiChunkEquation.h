@@ -47,13 +47,13 @@ public:
   /// calls an abstract method declared in IMeasurementEquation for each 
   //// individual accessor (each iteration of the iterator)
   /// @param[in] ne Normal equations
-  virtual void calcEquations(conrad::scimath::NormalEquations& ne);
+  virtual void calcEquations(conrad::scimath::NormalEquations& ne) const;
 
   /// @brief Predict model visibility for the iterator.
   /// @details This version of the predict method iterates
   /// over all chunks of data and calls an abstract method declared
   /// in IMeasurementEquation for each accessor. 
-  virtual void predict();
+  virtual void predict() const;
    
   using IMeasurementEquation::predict;
   using IMeasurementEquation::calcEquations;

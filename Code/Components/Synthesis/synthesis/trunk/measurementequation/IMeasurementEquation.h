@@ -43,7 +43,7 @@ struct IMeasurementEquation
   /// rather than iterators (i.e. the iteration over chunks should be 
   /// moved to the higher level, outside this class). 
   /// @param[in] chunk a read-write accessor to work with
-  virtual void predict(IDataAccessor &chunk) = 0;
+  virtual void predict(IDataAccessor &chunk) const = 0;
 
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This calculation is done for a single chunk of
@@ -54,7 +54,7 @@ struct IMeasurementEquation
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                                   conrad::scimath::NormalEquations& ne) = 0;
+                          conrad::scimath::NormalEquations& ne) const = 0;
 };
 
 } // namespace synthesis
