@@ -385,7 +385,7 @@ namespace conrad
 
 				std::cout << "Using local coordinates for the antennas"<< endl
 				    << "Reference position = ";
-				std::cout << mvLong.string(MVAngle::ANGLE, 7);
+				std::cout << mvLong.string(MVAngle::ANGLE, 7) << " ";
 				std::cout << mvLat.string(MVAngle::DIG2, 7);
 				std::cout << std::endl;
 				local2global(xx, yy, zz, mRefLocation, x, y, z);

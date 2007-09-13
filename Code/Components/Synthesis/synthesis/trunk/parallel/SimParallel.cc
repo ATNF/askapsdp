@@ -110,6 +110,9 @@ namespace conrad
 			    string coordinates=antParset.getString("coordinates", "local");
 			    CONRADCHECK((coordinates=="local")||(coordinates=="global"), "Coordinates type unknown");
 
+			    /// Csimulator.ASKAP.scale=0.333
+			    float scale=antParset.getFloat("scale", 1.0);
+
 			    /// Now we get the coordinates for each antenna in turn
 			    casa::Vector<double> x(nAnt);
 			    casa::Vector<double> y(nAnt);
@@ -128,9 +131,9 @@ namespace conrad
 			    for (int iant=0; iant<nAnt; iant++)
 			    {
 				    vector<float> xyz=antParset.getFloatVector(antNames[iant]);
-				    x[iant]=xyz[0];
-				    y[iant]=xyz[1];
-				    z[iant]=xyz[2];
+				    x[iant]=xyz[0]*scale;
+				    y[iant]=xyz[1]*scale;
+				    z[iant]=xyz[2]*scale;
 				    mounts[iant]=mount;
 				    dishDiameter[iant]=diameter;
 				    name[iant]=antNames[iant];
