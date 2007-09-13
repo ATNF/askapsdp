@@ -53,7 +53,7 @@ namespace conrad
     {
       if(this!=&other)
       {
-        itsParams=other.itsParams;
+        static_cast<Equation*>(this)->operator=(other);
         itsData=other.itsData;
         itsWeights=other.itsWeights;
         itsArguments=other.itsArguments;

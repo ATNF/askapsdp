@@ -24,7 +24,7 @@ namespace conrad
     {
       if(this!=&other)
       {
-        itsParams=other.itsParams;
+        rwParameters()=other.itsParams;
       }
     }
 
@@ -43,8 +43,21 @@ namespace conrad
     const Params& Equation::parameters() const {return *itsParams;};
 
 // Set the parameters to new values
-    void Equation::setParameters(const Params& ip) {itsParams=ip.clone();};
+    void Equation::setParameters(const Params& ip) 
+    {
+       rwParameters()=ip.clone();
+    }
 
+    /// @brief non-const reference to paramters
+    /// @details Due to caching, derived classes may need to know when
+    /// the parameters of the equation have been updated. To track all
+    /// updates, itsParams is made private. All changes to parameters are
+    /// done via this method (including setParameters exposed to the user).
+    Params::ShPtr& Equation::rwParameters() throw() 
+    {
+       return itsParams;
+    }
+    
     Equation::ShPtr Equation::clone() const
     {
       return Equation::ShPtr(new Equation(*this));

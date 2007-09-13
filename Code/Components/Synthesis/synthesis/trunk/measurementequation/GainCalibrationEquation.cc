@@ -34,7 +34,7 @@ GainCalibrationEquation::GainCalibrationEquation(const conrad::scimath::Params& 
 /// level, outside this class). In the future, I expect that
 /// predict() without parameters will be deprecated.
 /// @param[in] chunk a read-write accessor to work with
-void GainCalibrationEquation::predict(IDataAccessor &chunk)
+void GainCalibrationEquation::predict(IDataAccessor &chunk) const
 {
   itsPerfectVisME.predict(chunk);
 }
@@ -49,7 +49,7 @@ void GainCalibrationEquation::predict(IDataAccessor &chunk)
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
 void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
-                                   conrad::scimath::NormalEquations& ne)
+                                   conrad::scimath::NormalEquations& ne) const
 {
   itsPerfectVisME.calcEquations(chunk,ne);
 }                                   

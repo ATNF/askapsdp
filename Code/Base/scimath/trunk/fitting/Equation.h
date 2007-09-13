@@ -122,8 +122,15 @@ namespace conrad
 
 /// Clone this into a shared pointer
         virtual Equation::ShPtr clone() const;
-
-      protected:
+    protected:
+      /// @brief non-const reference to paramters
+      /// @details Due to caching, derived classes may need to know when
+      /// the parameters of the equation have been updated. To track all
+      /// updates, itsParams is made private. All changes to parameters are
+      /// done via this method (including setParameters exposed to the user).
+      virtual Params::ShPtr& rwParameters() throw();
+      
+    private:
       /// Parameters
         Params::ShPtr itsParams;
     };

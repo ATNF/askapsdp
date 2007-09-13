@@ -34,7 +34,7 @@ namespace conrad
     ImageDFTEquation::ImageDFTEquation(IDataSharedIter& idi) : conrad::scimath::Equation(), 
       itsIdi(idi) 
     {
-      itsParams=defaultParameters().clone();
+      rwParameters()=defaultParameters().clone();
       init();
     }
 
@@ -51,7 +51,7 @@ namespace conrad
     {
       if(this!=&other)
       {
-        itsParams=other.itsParams;
+        static_cast<conrad::scimath::Equation*>(this)->operator=(other);
         itsIdi=other.itsIdi;
       }
     }

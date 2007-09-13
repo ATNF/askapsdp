@@ -52,7 +52,7 @@ public:
   /// level, outside this class). In the future, I expect that
   /// predict() without parameters will be deprecated.
   /// @param[in] chunk a read-write accessor to work with
-  virtual void predict(IDataAccessor &chunk);
+  virtual void predict(IDataAccessor &chunk) const;
 
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This version of the method works on a single chunk of
@@ -64,7 +64,7 @@ public:
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                                   conrad::scimath::NormalEquations& ne);
+                                   conrad::scimath::NormalEquations& ne) const;
   
   using MultiChunkEquation::predict;
   using MultiChunkEquation::calcEquations;

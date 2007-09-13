@@ -23,7 +23,7 @@ namespace conrad
     {
       if(this!=&other)
       {
-        itsParams=other.itsParams;
+        static_cast<Equation*>(this)->operator=(other);
         itsList=other.itsList;
       }
     }
@@ -58,7 +58,7 @@ namespace conrad
 
     void CompositeEquation::add(const Equation& eq)
     {
-      itsParams->merge(eq.parameters());
+      rwParameters()->merge(eq.parameters());
       itsList.push_back(eq.clone());
     }
 
