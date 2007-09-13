@@ -86,7 +86,9 @@ pc:=dm.direction('J2000', '12h30m00.00', '-45d00m00.0');
 
 include 'table.g';
 
-npix:=12*1024;
+# Use an irrational cellsize to put sources in awkward places
+cell:="2.71828183arcsec";
+npix:=16*1024;
 totalmodel := 'cptest2.10uJy.model';
 
 small:=F; # Make a small image?
@@ -103,7 +105,6 @@ tabledelete(totalcl);
 #
 # Make the empty image
 #  
-cell:="3arcsec";
 include 'coordsys.g';
 cs:=coordsys(direction=T,stokes="I",spectral=T);
 cs.setreferencevalue(1.4e9, 'spectral');
