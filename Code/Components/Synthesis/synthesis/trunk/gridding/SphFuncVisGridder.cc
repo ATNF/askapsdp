@@ -38,12 +38,10 @@ namespace conrad
 			itsConvFunc.resize(1);
 			itsConvFunc[0].resize(itsCSize, itsCSize);
 			itsConvFunc[0].set(0.0);
-			double volume=0.0;
 			for (int ix=0; ix<itsCSize; ix++)
 			{
 				double nux=std::abs(double(ix-itsCCenter))/double(itsSupport*itsOverSample);
 				double fx=grdsf(nux)*(1.0-std::pow(nux, 2));
-				volume+=fx;
 				for (int iy=0; iy<itsCSize; iy++)
 				{
 					double nuy=std::abs(double(iy-itsCCenter))/double(itsSupport*itsOverSample);
@@ -51,9 +49,11 @@ namespace conrad
 					itsConvFunc[0](ix, iy)=fx*fy;
 				}
 			}
-			volume/=double(itsOverSample);
-			CONRADCHECK(volume>0.0, "Integral of convolution function is zero");
-			itsConvFunc[0]/=casa::Complex(volume*volume);
+//			///If we normalize here then the sum of weights image will be meaningful
+//			float volume=casa::sum(casa::real(itsConvFunc[0]));
+//			std::cout << "Volume of SphFunc = " << volume << std::endl;
+//			CONRADCHECK(volume>0.0, "Integral of convolution function is zero");
+//			itsConvFunc[0]*=casa::Complex((float(itsOverSample)*float(itsOverSample))/volume);
 		}
 
 		void SphFuncVisGridder::correctConvolution(casa::Array<double>& grid)

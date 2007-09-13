@@ -152,28 +152,27 @@ namespace conrad
 				/// need to be overridden
 				void generic(IDataSharedIter& idi, bool forward);
 
-				void degridKernel(casa::Complex& cVis,
+				/// Gridding kernel
+				static void gridKernel(casa::Matrix<casa::Complex>& grid, double& sumwt,
+				    casa::Matrix<casa::Complex>& convFunc, 
+				    const casa::Complex& cVis, const float& wtVis,
+				    const int iu, const int iv, const int support,
+				    const int overSample, const int cCenter, const int fracu,
+				    const int fracv);
+
+				/// Degridding kernel
+				static void degridKernel(casa::Complex& cVis,
 				    const casa::Matrix<casa::Complex>& convFunc,
 				    const casa::Matrix<casa::Complex>& grid, const int iu,
 				    const int iv, const int support, const int overSample,
 				    const int cCenter, const int fracu, const int fracv);
 
-				void gridKernel(casa::Matrix<casa::Complex>& grid, double& sumwt,
-				    casa::Matrix<casa::Complex>& convFunc, 
-				    const casa::Complex& cVis,
-				    const int iu, const int iv, const int support,
-				    const int overSample, const int cCenter, const int fracu,
-				    const int fracv);
-
 				/// Find the cellsize from the image shape and axis definitions
 				/// @param cellsize cellsize in wavelengths
-				/// @param shape grid shape
-				/// @param axes Axes definition
 				void findCellsize(casa::Vector<double>& cellsize);
 
 				/// Find the change in delay required
 				/// @param idi Data iterator
-				/// @param axes Image axes
 				/// @param outUVW Rotated uvw
 				/// @param delay Delay change (m)
 				void rotateUVW(IDataSharedIter& idi,

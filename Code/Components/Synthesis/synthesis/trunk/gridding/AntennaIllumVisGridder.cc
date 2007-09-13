@@ -238,7 +238,7 @@ namespace conrad
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
-							std::cout << "Maximum extent = "<< itsCSize*cell
+							std::cout << "Maximum extent = "<< itsCSize*cell/itsOverSample
 							    << " (m) sampled at "<< cell << " (m)"<< std::endl;
 							itsCCenter=itsCSize/2-1;
 							itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);

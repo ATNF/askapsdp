@@ -16,7 +16,6 @@
 using namespace conrad::scimath;
 using namespace conrad;
 
-#include <stdexcept>
 #include <ostream>
 
 namespace conrad
@@ -44,9 +43,9 @@ namespace conrad
 		/// Totally selfcontained gridding
 		void TableVisGridder::gridKernel(casa::Matrix<casa::Complex>& grid,
 		    double& sumwt, casa::Matrix<casa::Complex>& convFunc,
-		    const casa::Complex& cVis, const int iu, const int iv,
-		    const int support, const int overSample, const int cCenter,
-		    const int fracu, const int fracv)
+		    const casa::Complex& cVis, const float& viswt, const int iu,
+		    const int iv, const int support, const int overSample,
+		    const int cCenter, const int fracu, const int fracv)
 		{
 			/// Gridding visibility to grid
 			int voff=-overSample*support+fracv+cCenter;
@@ -55,12 +54,12 @@ namespace conrad
 				int uoff=-overSample*support+fracu+cCenter;
 				for (int suppu=-support; suppu<+support; suppu++)
 				{
-					casa::Complex wt=convFunc(uoff, voff);
+					casa::Complex wt=viswt*convFunc(uoff, voff);
 					grid(iu+suppu, iv+suppv)+=cVis*wt;
-					sumwt+=1;
-					uoff+=itsOverSample;
+					sumwt+=casa::abs(wt);
+					uoff+=overSample;
 				}
-				voff+=itsOverSample;
+				voff+=overSample;
 			}
 		}
 
@@ -82,9 +81,9 @@ namespace conrad
 					casa::Complex wt=conj(convFunc(uoff, voff));
 					cVis+=wt*grid(iu+suppu, iv+suppv);
 					sumviswt+=casa::real(wt);
-					uoff+=itsOverSample;
+					uoff+=overSample;
 				}
-				voff+=itsOverSample;
+				voff+=overSample;
 			}
 			if (sumviswt>0.0)
 			{
@@ -194,8 +193,9 @@ namespace conrad
 								const casa::Complex rVis=phasor*conj(idi->visibility()(i, chan,
 								    pol));
 								double sumwt=0.0;
-								gridKernel(grid, sumwt, convFunc, rVis, iu, iv, itsSupport,
-								    itsOverSample, itsCCenter, fracu, fracv);
+								const float wtVis(1.0);
+								gridKernel(grid, sumwt, convFunc, rVis, wtVis, iu, iv,
+								    itsSupport, itsOverSample, itsCCenter, fracu, fracv);
 								itsSumWeights(cInd, iPol, iChan)+=sumwt;
 
 								/// Grid PSF?
@@ -204,7 +204,7 @@ namespace conrad
 									casa::Array<casa::Complex> aGridPSF(itsGridPSF[gInd](slicer));
 									casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
 									const casa::Complex uVis(1.0);
-									gridKernel(gridPSF, sumwt, convFunc, uVis, iu, iv,
+									gridKernel(gridPSF, sumwt, convFunc, uVis, wtVis, iu, iv,
 									    itsSupport, itsOverSample, itsCCenter, fracu, fracv);
 								}
 							}
@@ -328,10 +328,8 @@ namespace conrad
 			itsSumWeights.resize(1, itsShape(2), itsShape(3));
 			itsSumWeights.set(0.0);
 
-			if (!itsAxes.has("RA")||!itsAxes.has("DEC"))
-			{
-				throw(std::invalid_argument("RA and DEC specification not present in axes"));
-			}
+			CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"), "RA and DEC specification not present in axes");
+
 			double raStart=itsAxes.start("RA");
 			double raEnd=itsAxes.end("RA");
 
@@ -427,10 +425,8 @@ namespace conrad
 			itsAxes=axes;
 			itsShape=in.shape();
 
-			if (!itsAxes.has("RA")||!itsAxes.has("DEC"))
-			{
-				throw(std::invalid_argument("RA and DEC specification not present in axes"));
-			}
+			CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"), "RA and DEC specification not present in axes");
+
 			double raStart=itsAxes.start("RA");
 			double raEnd=itsAxes.end("RA");
 
