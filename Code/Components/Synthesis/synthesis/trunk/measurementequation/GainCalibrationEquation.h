@@ -12,6 +12,10 @@
 #ifndef GAIN_CALIBRATION_EQUATION_H
 #define GAIN_CALIBRATION_EQUATION_H
 
+// std includes
+#include <vector>
+#include <utility>
+
 // own includes
 #include <fitting/Equation.h>
 #include <fitting/Params.h>
@@ -19,6 +23,9 @@
 
 #include <measurementequation/MultiChunkEquation.h>
 #include <dataaccess/IDataAccessor.h>
+
+#include <dataaccess/CachedAccessorField.tcc>
+
 
 namespace conrad {
 
@@ -68,10 +75,37 @@ public:
   
   using MultiChunkEquation::predict;
   using MultiChunkEquation::calcEquations;
+protected:
+  /// @brief type of the gains cache
+  typedef std::vector<std::pair<double, double> > GainsCacheType;
+
+  // @brief fill the gains cache from parameters
+  // @param[in] a reference to the container to fill with values
+  void fillGainsCache(GainsCacheType &in) const;
   
+  /// @brief helper method to split parameter string
+  /// @details Parameters have a form similar to "gain.g11.dt0.25",
+  /// one needs to have a way to extract this information from the string.
+  /// This method splits a string on each dot symbol and appends the all
+  /// substring to a given vector.
+  /// @param[in] str input string.
+  /// @param[out] parts non-const reference to a vector where substrings will
+  ///                   be added to. 
+  static void splitParameterString(const std::string &str,
+                     std::vector<std::string> &parts) throw(); 
+   
 private:
   /// @brief measurement equation giving perfect visibilities
-  const IMeasurementEquation &itsPerfectVisME;   
+  const IMeasurementEquation &itsPerfectVisME;  
+  
+  
+  /// @brief unpacked parameters
+  /// @details Currently gains are just antenna dependent. In the future,
+  /// we can expect to work with time-, feed- and frequency-dependent cases.
+  /// most likely the type of value stored in the container will be changed
+  /// to account for various possible situations.
+  /// The current meaning of each element is g11 and g22 for each antenna.
+  GainsCacheType itsGainsCache;
 };
 
 } // namespace synthesis
