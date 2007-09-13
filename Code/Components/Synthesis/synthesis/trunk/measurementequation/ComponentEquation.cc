@@ -32,14 +32,15 @@ namespace conrad
   {
 
     ComponentEquation::ComponentEquation(const conrad::scimath::Params& ip,
-          IDataSharedIter& idi) :  conrad::scimath::Equation(ip),
-          itsIdi(idi), itsAllComponentsUnpolarised(false)
+          IDataSharedIter& idi) :   MultiChunkEquation(idi),  
+           conrad::scimath::Equation(ip), itsAllComponentsUnpolarised(false)
     {
       init();
     };
 
-    ComponentEquation::ComponentEquation(IDataSharedIter& idi) :  
-      conrad::scimath::Equation(), itsIdi(idi), itsAllComponentsUnpolarised(false) 
+    ComponentEquation::ComponentEquation(IDataSharedIter& idi) :
+           MultiChunkEquation(idi), conrad::scimath::Equation(), 
+           itsAllComponentsUnpolarised(false) 
     {
       itsParams=defaultParameters().clone();
       init();
@@ -183,23 +184,6 @@ void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
        addVector(vis,rwVis.xyPlane(0).row(row));
   }           
 }
-
-/// @brief Predict model visibility for the iterator.
-/// @details This version of the predict method iterates
-/// over all chunks of data and calls another variant of
-/// predict for each accessor.     
-void ComponentEquation::predict()
-{
-    const std::vector<IParameterizedComponentPtr> &compList = 
-           itsComponents.value(*this,&ComponentEquation::fillComponentCache);
-      
-    // in the future we should move the iteration to the higher level and
-    // deal here with the accessor only. It will reduce the number of repeated
-    // iterations required         
-    for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
-         predict(*itsIdi);
-    }
-};
 
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This version of the predict method works with
@@ -367,19 +351,6 @@ void ComponentEquation::calcEquations(const IConstDataAccessor &chunk,
   casa::Vector<double> weights(nData,1.);
   designmatrix.addResidual(residual, weights);
   ne.add(designmatrix);
-}
-
-void ComponentEquation::calcEquations(conrad::scimath::NormalEquations& ne)
-{
-  const std::vector<IParameterizedComponentPtr> &compList = 
-           itsComponents.value(*this,&ComponentEquation::fillComponentCache);
-  
-  // in the future we should move the iteration to the higher level and
-  // deal here with the accessor only. It will reduce the number of repeated
-  // iterations required         
-  for (itsIdi.init();itsIdi.hasMore();itsIdi.next()) {
-       calcEquations(*itsIdi,ne);
-  }
 }
 
 } // namespace synthesis

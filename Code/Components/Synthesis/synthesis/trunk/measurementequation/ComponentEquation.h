@@ -16,14 +16,12 @@
 #include <fitting/DesignMatrix.h>
 
 
-#include <dataaccess/SharedIter.h>
-#include <dataaccess/IDataIterator.h>
-#include <dataaccess/IDataAccessor.h>
 #include <dataaccess/CachedAccessorField.tcc>
 
 #include <measurementequation/IParameterizedComponent.h>
 #include <measurementequation/IUnpolarizedComponent.h>
-#include <measurementequation/IMeasurementEquation.h>
+#include <measurementequation/MultiChunkEquation.h>
+
 
 // casa includes
 #include <casa/aips.h>
@@ -46,7 +44,7 @@ namespace conrad
     ///
     /// @ingroup measurementequation
     
-    class ComponentEquation : virtual public IMeasurementEquation,
+    class ComponentEquation : virtual public MultiChunkEquation,
                               virtual public conrad::scimath::Equation
     {
       public:
@@ -64,12 +62,6 @@ namespace conrad
         
         /// Return the default parameters
         static conrad::scimath::Params defaultParameters();
-
-        /// @brief Predict model visibility for the iterator.
-        /// @details This version of the predict method iterates
-        /// over all chunks of data and calls another variant of
-        /// predict for each accessor. 
-        virtual void predict();
         
         /// @brief Predict model visibilities for one accessor (chunk).
         /// @details This version of the predict method works with
@@ -80,13 +72,6 @@ namespace conrad
         /// predict() without parameters will be deprecated.
         /// @param[in] chunk a read-write accessor to work with
         virtual void predict(IDataAccessor &chunk);
-
-        /// @brief Calculate the normal equations
-        /// @details This version iterates through all chunks of data and
-        /// calls another version of the method for each individual accessor
-        /// (each iteration of the iterator)
-        /// @param[in] ne Normal equations
-        virtual void calcEquations(conrad::scimath::NormalEquations& ne);
 
         /// @brief Calculate the normal equation for one accessor (chunk).
         /// @details This version of the method works on a single chunk of
@@ -100,10 +85,10 @@ namespace conrad
         virtual void calcEquations(const IConstDataAccessor &chunk,
                                    conrad::scimath::NormalEquations& ne);
         
+        using MultiChunkEquation::predict;
+        using MultiChunkEquation::calcEquations;
         
       private:
-      /// Shared iterator for data access
-        IDataSharedIter itsIdi;
         /// Initialize this object
         virtual void init();
     protected:
