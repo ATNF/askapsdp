@@ -353,6 +353,16 @@ void ComponentEquation::calcEquations(const IConstDataAccessor &chunk,
   ne.add(designmatrix);
 }
 
+/// @brief read-write access to parameters
+/// @details This method is overridden to invalidate component cache.
+/// @return a non-const reference to Param::ShPtr
+scimath::Params::ShPtr& ComponentEquation::rwParameters() throw()
+{ 
+  itsComponents.invalidate();
+  return scimath::Equation::rwParameters();
+}
+
+
 } // namespace synthesis
 
 } // namespace conrad

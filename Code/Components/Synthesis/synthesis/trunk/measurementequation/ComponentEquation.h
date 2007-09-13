@@ -158,7 +158,12 @@ namespace conrad
                    const casa::Vector<casa::Double>& freq,
                    scimath::DesignMatrix &dm, casa::Vector<casa::Double> &residual,
                    casa::uInt nPol);
-
+        
+        /// @brief read-write access to parameters
+        /// @details This method is overridden to invalidate component cache.
+        /// @return a non-const reference to Param::ShPtr
+        virtual scimath::Params::ShPtr& rwParameters() throw();
+        
     private:   
         /// @brief vector of components plugged into this component equation
         /// this has nothing to do with data accessor, we just reuse the class
