@@ -77,7 +77,7 @@ public:
   using MultiChunkEquation::calcEquations;
 protected:
   /// @brief type of the gains cache
-  typedef std::vector<std::pair<double, double> > GainsCacheType;
+  typedef std::vector<std::pair<casa::Complex, casa::Complex> > GainsCacheType;
 
   // @brief fill the gains cache from parameters
   // @param[in] a reference to the container to fill with values
@@ -105,7 +105,12 @@ private:
   /// most likely the type of value stored in the container will be changed
   /// to account for various possible situations.
   /// The current meaning of each element is g11 and g22 for each antenna.
-  GainsCacheType itsGainsCache;
+  CachedAccessorField<GainsCacheType> itsGainsCache;
+  
+  /// @brief cache of names of the parameters
+  /// @details in the future, we will probably hold this information inside
+  /// GainsCacheType
+  mutable std::vector<std::string> itsNameCache;
 };
 
 } // namespace synthesis
