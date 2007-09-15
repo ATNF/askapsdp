@@ -104,7 +104,10 @@ namespace conrad
 				casa::Array<double> realC(itsConvFunc[i].shape());
 				toDouble(realC, itsConvFunc[i]);
 				std::ostringstream os;
-				os<<"Real.Convolution"<<i;
+				os<<"Real.Convolution";
+				os.width(5);
+				os.fill('0');
+				os<<i;
 				ip.add(os.str(), realC);
 			}
 			iptable.setParameters(ip);

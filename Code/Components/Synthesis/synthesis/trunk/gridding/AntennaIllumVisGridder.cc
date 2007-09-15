@@ -94,6 +94,8 @@ namespace conrad
 			if (itsSupport!=0)
 				return;
 
+			double refFreq((itsAxes.start("FREQUENCY")+itsAxes.end("FREQUENCY"))/2.0);
+
 			/// We have to calculate the lookup function converting from
 			/// row and channel to plane of the w-dependent convolution
 			/// function
@@ -142,18 +144,24 @@ namespace conrad
 			int zIndex=0;
 			for (int feed=0; feed<itsMaxFeeds; feed++)
 			{
+
 				for (int chan=0; chan<nChan; chan++)
 				{
+					/// Slope is the turns per wavelength so we need to convert from the
+					/// image reference frequency to the channel frequency
+					double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed)
+					    *idi->frequency()[chan]/refFreq;
+					double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed)
+					    *idi->frequency()[chan]/refFreq;
+
 					/// Make the disk for this channel
 					casa::Matrix<casa::Complex> disk(qnx, qny);
 					disk.set(0.0);
-					/// Calculate the size of one cell in meters
+
+					/// Calculate the size of one cell in m.
 					double cell=std::abs(itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan]));
 					double rmax=std::pow(itsDiameter/(2.0*cell), 2);
 					double rmin=std::pow(itsBlockage/(2.0*cell), 2);
-					/// Slope is the turns per cell 
-					double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed);
-					double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed);
 
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
@@ -207,7 +215,7 @@ namespace conrad
 								casa::Complex wt=disk(ix, iy)*casa::Complex(ccfx(iy)*ccfy(ix));
 								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(
 								    cos(phase), -sin(phase));
-								maxCF+=casa::real(disk(ix, iy));
+								maxCF+=casa::abs(disk(ix, iy));
 							}
 						}
 						maxCF/=(double(nx)*double(ny));
@@ -227,13 +235,29 @@ namespace conrad
 							// working in
 							for (int ix=0; ix<nx/2; ix++)
 							{
-								if (casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF)
+								/// Check on horizontal axis
+								if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF))
 								{
 									itsSupport=abs(ix-nx/2)/itsOverSample;
 									break;
 								}
+								///  Check on diagonal
+								if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF))
+								{
+									itsSupport=abs(int(1.414*float(ix))-nx/2)/itsOverSample;
+									break;
+								}
+								if (nx==ny)
+								{
+									/// Check on vertical axis
+									if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF))
+									{
+										itsSupport=abs(ix-ny/2)/itsOverSample;
+										break;
+									}
+								}
 							}
-							itsSupport=(itsSupport<nx/2) ? itsSupport : nx/2;
+							CONRADCHECK(itsSupport*itsOverSample<nx/2, "Overflowing convolution function - increase maxSupport or decrease overSample")
 							itsCSize=2*(itsSupport+1)*itsOverSample;
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
@@ -246,6 +270,7 @@ namespace conrad
 							    itsShape(3));
 							itsSumWeights.set(0.0);
 						}
+						zIndex=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
 
 						itsConvFunc[zIndex].resize(itsCSize, itsCSize);
 						itsConvFunc[zIndex].set(0.0);
@@ -260,12 +285,11 @@ namespace conrad
 								    +nx/2, iy+ny/2);
 							}
 						}
-						zIndex++;
 					} // w loop
 				} // chan loop
 			} // feed loop
 			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
-			    << " by "<< itsConvFunc.size() << " planes"<< std::endl;
+			    << " by "<< itsConvFunc.size()<< " planes"<< std::endl;
 			if (itsName!="")
 				save(itsName);
 		}
@@ -311,8 +335,8 @@ namespace conrad
 				{
 					for (int ix=-itsSupport; ix<+itsSupport; ix++)
 					{
-						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](itsOverSample*ix+itsCCenter, 
-								itsOverSample*iy+itsCCenter);
+						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](itsOverSample*ix
+						    +itsCCenter, itsOverSample*iy+itsCCenter);
 					}
 				}
 
@@ -328,8 +352,8 @@ namespace conrad
 						{
 							for (int iy=0; iy<cny; iy++)
 							{
-								cOut(casa::IPosition(4, ix, iy, pol, chan))+=itsSumWeights(iz, pol, chan)
-								    *real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
+								cOut(casa::IPosition(4, ix, iy, pol, chan))+=itsSumWeights(iz,
+								    pol, chan)*real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
 							}
 						}
 					}
@@ -347,6 +371,13 @@ namespace conrad
 
 			int onx=out.shape()(0);
 			int ony=out.shape()(1);
+
+			// Shortcut no-op
+			if ((inx==onx)&&(iny==ony))
+			{
+				out=in.copy();
+				return;
+			}
 
 			CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
 			CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");

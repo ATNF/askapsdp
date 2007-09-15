@@ -97,7 +97,7 @@ namespace conrad
 			{
 				return;
 			}
-
+			
 			itsSupport=0;
 
 			/// These are the actual cell sizes used
