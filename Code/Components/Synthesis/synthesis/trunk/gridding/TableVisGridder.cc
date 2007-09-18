@@ -127,6 +127,10 @@ namespace conrad
 			const int nChan = idi->frequency().size();
 			const int nPol = idi->visibility().shape()(2);
 
+			const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
+			const casa::IPosition onePlane(2, itsShape(0), itsShape(1));
+
+
 			// Loop over all samples adding them to the grid
 			// First scale to the correct pixel location
 			// Then find the fraction of a pixel to the nearest pixel
@@ -135,8 +139,10 @@ namespace conrad
 			// visibility to the grid.
 			for (int i=0; i<nSamples; i++)
 			{
-				/// Temporarily fix to channel zero only
-				int iChan=0;
+				/// Temporarily fix to do MFS only
+				int imageChan=0;
+				int imagePol=0;
+				
 				for (int chan=0; chan<nChan; chan++)
 				{
 
@@ -155,19 +161,14 @@ namespace conrad
 					const casa::Complex phasor(cos(phase), sin(phase));
 
 					/// Now loop over all visibility polarizations
-					/// Temporarily fix to Stokes I only
-					int iPol=0;
 					for (int pol=0; pol<nPol; pol++)
 					{
 
 						/// Make a slicer to extract just this plane
-						//						casa::IPosition ipStart(4, 0, 0, pol, chan);
 						/// @todo Enable pol and chan maps
-						const casa::IPosition ipStart(4, 0, 0, 0, 0);
-						const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
-						const casa::IPosition onePlane(2, itsShape(0), itsShape(1));
+						const casa::IPosition ipStart(4, 0, 0, imagePol, imageChan);
 						const casa::Slicer slicer(ipStart, onePlane4D);
-
+						
 						/// Lookup the portion of grid and convolution function to be
 						/// used for this row, polarisation and channel
 
@@ -199,7 +200,7 @@ namespace conrad
 								const float wtVis(1.0);
 								gridKernel(grid, sumwt, convFunc, rVis, wtVis, iu, iv,
 								    itsSupport, itsOverSample, itsCCenter, fracu, fracv);
-								itsSumWeights(cInd, iPol, iChan)+=sumwt;
+								itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
 
 								/// Grid PSF?
 								if (itsDopsf)

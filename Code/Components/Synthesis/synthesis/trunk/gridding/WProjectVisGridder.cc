@@ -57,7 +57,7 @@ namespace conrad
 			const int nSamples = idi->uvw().size();
 			const int nChan = idi->frequency().size();
 			const int nPol = idi->visibility().shape()(2);
-			
+
 			itsCMap.resize(nSamples, nPol, nChan);
 			int cenw=(itsNWPlanes-1)/2;
 			for (int i=0; i<nSamples; i++)
@@ -97,7 +97,7 @@ namespace conrad
 			{
 				return;
 			}
-			
+
 			itsSupport=0;
 
 			/// These are the actual cell sizes used
@@ -182,13 +182,30 @@ namespace conrad
 					// working in
 					for (int ix=0; ix<nx/2; ix++)
 					{
-						if (casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxPlane)
+						/// Check on horizontal axis
+						if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff))
 						{
 							itsSupport=abs(ix-nx/2)/itsOverSample;
 							break;
 						}
+						///  Check on diagonal
+						if ((casa::abs(thisPlane(ix, ix))>itsCutoff))
+						{
+							itsSupport=abs(int(1.414*float(ix))-nx/2)/itsOverSample;
+							break;
+						}
+						if (nx==ny)
+						{
+							/// Check on vertical axis
+							if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff))
+							{
+								itsSupport=abs(ix-ny/2)/itsOverSample;
+								break;
+							}
+						}
 					}
-					itsSupport=(itsSupport<nx/2) ? itsSupport : nx/2;
+					CONRADCHECK(itsSupport*itsOverSample<nx/2,
+							"Overflowing convolution function - increase maxSupport or decrease overSample")
 					itsCSize=2*(itsSupport+1)*itsOverSample;
 					std::cout << "Convolution function support = "<< itsSupport
 					    << " pixels, convolution function size = "<< itsCSize<< " pixels"
@@ -212,7 +229,8 @@ namespace conrad
 				}
 				itsConvFunc[itsNWPlanes-1-iw]=casa::conj(itsConvFunc[iw]);
 			}
-			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()<< " by "<< itsConvFunc.size() << " planes"<< std::endl;
+			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
+			    << " by "<< itsConvFunc.size() << " planes"<< std::endl;
 			if (itsName!="")
 				save(itsName);
 		}
