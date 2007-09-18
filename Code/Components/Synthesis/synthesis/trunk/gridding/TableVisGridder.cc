@@ -173,7 +173,12 @@ namespace conrad
 						/// used for this row, polarisation and channel
 
 						const int gInd=gIndex(i, pol, chan);
+						CONRADCHECK(gInd>-1, "Index into image grid is less than zero");
+						CONRADCHECK(gInd<itsGrid.size(), "Index into image grid exceeds number of planes");
 						const int cInd=cIndex(i, pol, chan);
+						CONRADCHECK(cInd>-1, "Index into convolution functions is less than zero");
+						CONRADCHECK(cInd<itsConvFunc.size(), "Index into convolution functions exceeds number of planes");
+						
 						casa::Matrix<casa::Complex>& convFunc(itsConvFunc[cInd]);
 
 						casa::Array<casa::Complex> aGrid(itsGrid[gInd](slicer));
