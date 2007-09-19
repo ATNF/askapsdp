@@ -16,6 +16,8 @@
 
 #include <string>
 
+#include <casa/BasicSL/Complex.h>
+
 namespace conrad
 {
 	namespace synthesis

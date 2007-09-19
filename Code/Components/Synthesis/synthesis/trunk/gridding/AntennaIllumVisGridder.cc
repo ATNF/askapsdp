@@ -244,7 +244,7 @@ namespace conrad
 								///  Check on diagonal
 								if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF))
 								{
-									itsSupport=abs(int(1.414*float(ix))-nx/2)/itsOverSample;
+									itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
 									break;
 								}
 								if (nx==ny)
@@ -258,7 +258,7 @@ namespace conrad
 								}
 							}
 							CONRADCHECK(itsSupport*itsOverSample<nx/2, "Overflowing convolution function - increase maxSupport or decrease overSample")
-							itsCSize=2*(itsSupport+1)*itsOverSample;
+							itsCSize=2*(itsSupport+3)*itsOverSample;
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
@@ -321,6 +321,8 @@ namespace conrad
 
 			/// Work space
 			casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+
+			std::cout << itsSumWeights << std::endl;
 
 			for (int iz=0; iz<nZ; iz++)
 			{

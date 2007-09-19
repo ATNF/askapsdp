@@ -48,7 +48,12 @@ namespace conrad
 		    const int cCenter, const int fracu, const int fracv)
 		{
 			/// Gridding visibility to grid
-			int voff=-overSample*support+fracv+cCenter;
+		  //		  CONRADCHECK(-overSample*support+fracu+cCenter>-1, "Indexing outside of convolution function"); 
+		  //		  CONRADCHECK(+overSample*support+fracu+cCenter<convFunc.shape()(0), "Indexing outside of convolution function"); 
+		  //		  CONRADCHECK(-overSample*support+fracv+cCenter>-1, "Indexing outside of convolution function"); 
+		  //		  CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1), "Indexing outside of convolution function"); 
+
+		  int voff=-overSample*support+fracv+cCenter;
 			for (int suppv=-support; suppv<+support; suppv++)
 			{
 				int uoff=-overSample*support+fracu+cCenter;
@@ -56,7 +61,7 @@ namespace conrad
 				{
 					casa::Complex wt=viswt*convFunc(uoff, voff);
 					grid(iu+suppu, iv+suppv)+=cVis*wt;
-					sumwt+=casa::abs(wt);
+					sumwt+=casa::abs(casa::DComplex(wt));
 					uoff+=overSample;
 				}
 				voff+=overSample;
@@ -70,6 +75,11 @@ namespace conrad
 		    const int support, const int overSample, const int cCenter,
 		    const int fracu, const int fracv)
 		{
+		  CONRADCHECK(-overSample*support+fracu+cCenter>-1, "Indexing outside of convolution function"); 
+		  CONRADCHECK(+overSample*support+fracu+cCenter<convFunc.shape()(0), "Indexing outside of convolution function"); 
+		  CONRADCHECK(-overSample*support+fracv+cCenter>-1, "Indexing outside of convolution function"); 
+		  CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1), "Indexing outside of convolution function"); 
+
 			/// Degridding from grid to visibility
 			double sumviswt=0.0;
 			int voff=-overSample*support+fracv+cCenter;
@@ -80,7 +90,7 @@ namespace conrad
 				{
 					casa::Complex wt=conj(convFunc(uoff, voff));
 					cVis+=wt*grid(iu+suppu, iv+suppv);
-					sumviswt+=casa::real(wt);
+					sumviswt+=casa::abs(casa::DComplex(wt));
 					uoff+=overSample;
 				}
 				voff+=overSample;
@@ -205,6 +215,7 @@ namespace conrad
 								const float wtVis(1.0);
 								gridKernel(grid, sumwt, convFunc, rVis, wtVis, iu, iv,
 								    itsSupport, itsOverSample, itsCCenter, fracu, fracv);
+
 								itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
 
 								/// Grid PSF?
