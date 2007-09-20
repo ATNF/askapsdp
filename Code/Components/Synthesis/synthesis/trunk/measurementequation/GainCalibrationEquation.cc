@@ -16,6 +16,7 @@
 #include <measurementequation/VectorOperations.h>
 #include <fitting/NormalEquations.h>
 #include <fitting/DesignMatrix.h>
+#include <fitting/Params.h>
 
 
 // std includes
@@ -111,7 +112,11 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   // the following assumes that no parameters are missed, i.e. gains.size()
   // is the number of antennae 
   const casa::uInt nDataPerPol = 2*buffChunk.nChannel();
-  casa::Cube<double> derivatives(buffChunk.nRow()*buffChunk.nChannel()*nPol,2,
+  // second axis distinguishes between derivatives by real part of gains and
+  // that by imaginary part, the first axis has double the size of elements 
+  // because each pair of adjacent elements corresponds to real and imaginary
+  // parts of the value of derivative
+  casa::Cube<double> derivatives(buffChunk.nRow()*buffChunk.nChannel()*nPol*2,2,
                                  gains.size(),0.);
   casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol);
   for (casa::uInt row = 0, offset = 0; row < buffChunk.nRow(); 
@@ -153,11 +158,31 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                            IPosition(1,offset+nDataPerPol-1)));           
        }   
   }
-  
-  DesignMatrix designmatrix(parameters());
+  // we need to remove all unused parameters before creating a design matrix
+  scimath::Params::ShPtr tempParams(parameters().clone());
+  for (std::vector<std::string>::const_iterator ci = itsUnusedParamNames.begin();
+                              ci != itsUnusedParamNames.end(); ++ci) {
+       tempParams->remove(*ci);
+  }
+  // if we have just one polarisation, we need to exclude the second one
+  if (nPol == 1) {
+      for (std::vector<std::pair<std::string,std::string> >::const_iterator 
+                 ci = itsNameCache.begin(); ci != itsNameCache.end(); ++ci) {
+           if (ci->second != "") {
+               tempParams->remove(ci->second);
+           }
+      }                              
+  }
+  //
+  DesignMatrix designmatrix(*tempParams);
+  tempParams.reset();
   CONRADDEBUGASSERT(itsNameCache.size() >= gains.size());
   for (casa::uInt ant = 0; ant<gains.size(); ++ant) {
-       designmatrix.addDerivative(itsNameCache[ant],derivatives.xyPlane(ant));
+       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<gains.size()<<std::endl;
+       designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant).column(0));
+       if (nPol>1) {
+           designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant).column(1));
+       }
   }
   designmatrix.addResidual(residual,casa::Vector<double>(residual.size(),1.));
   ne.add(designmatrix);
@@ -167,22 +192,34 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
 // @param[in] a reference to the container to fill with values
 void GainCalibrationEquation::fillGainsCache(GainsCacheType &in) const
 {
+  // it would be much nicer if we had an iterator over parameters with a
+  // possible template match, but it is not currently in the interface of
+  // the Param class 
+  const std::vector<std::string> allFreeNames(parameters().freeNames());
+  for (std::vector<std::string>::const_iterator ci = allFreeNames.begin();
+                         ci != allFreeNames.end(); ++ci) {
+       if (ci->find("gain") != 0) {
+           // word "gain" is not found or the string doesn't start from it
+           itsUnusedParamNames.push_back(*ci);
+       }
+  }
+
   std::vector<std::string> completions(parameters().completions("gain"));
-  in.resize(completions.size());
-  itsNameCache.resize(completions.size());
+  in.resize(completions.size()/2);
+  itsNameCache.resize(completions.size()/2);
   if(!completions.size()) {
      return;
-  }
+  } 
   for (std::vector<std::string>::const_iterator it=completions.begin();
                                                 it!=completions.end();++it)  {
-       if (it->find("g") == 0) {
+       if (it->find(".g") == 0) {
            std::vector<std::string> parString;
-           splitParameterString(*it,parString);
+           splitParameterString(it->substr(1),parString);
            if (parString.size()<2) {
-               CONRADTHROW(CheckError, "Parameter "<<*it<<" has incomplete name");
+               CONRADTHROW(CheckError, "Parameter gain"<<*it<<" has incomplete name");
            }
-           if (parString[0]!="g11" && parString[1]!="g22") {
-               CONRADTHROW(CheckError, "Only gains.g11.* and gains.g22.* are recognized, not "<<
+           if (parString[0]!="g11" && parString[0]!="g22") {
+               CONRADTHROW(CheckError, "Only gain.g11.* and gain.g22.* are recognized, not gain"<<
                            *it);
            }
            // next check is temporary
@@ -191,7 +228,7 @@ void GainCalibrationEquation::fillGainsCache(GainsCacheType &in) const
            }
            const int antID = utility::fromString<int>(parString[1]);
            if (antID<0 || antID>=in.size()) {
-               CONRADTHROW(ConradError, "Parameter "<<*it<<" has incorrect antenna ID ("<<
+               CONRADTHROW(ConradError, "Parameter gain"<<*it<<" has incorrect antenna ID ("<<
                           parString[1]<<")");    
            }
            casa::Complex gain(0.,0.);
@@ -208,10 +245,14 @@ void GainCalibrationEquation::fillGainsCache(GainsCacheType &in) const
            
            if (parString[0] == "g11") {
                in[antID].first = gain; 
+               itsNameCache[antID].first = "gain"+*it;    
            } else {
                in[antID].second = gain; 
+               itsNameCache[antID].second = "gain"+*it;    
            } 
-           itsNameCache[antID] = "gain"+*it;
+           
+       } else {
+           itsUnusedParamNames.push_back("gain"+*it);
        }
   }
 }
@@ -239,8 +280,9 @@ void GainCalibrationEquation::splitParameterString(const std::string &str,
   size_t pos=0; 
   while (pos!=std::string::npos && pos<str.size()) {
          size_t newPos = str.find(".",pos);
-         if (pos == std::string::npos) {
+         if (newPos == std::string::npos) {
              parts.push_back(str.substr(pos));
+             pos=newPos;
          } else {
            parts.push_back(str.substr(pos,newPos-pos));
            pos=newPos+1;

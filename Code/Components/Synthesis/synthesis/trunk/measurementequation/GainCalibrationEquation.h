@@ -110,7 +110,19 @@ private:
   /// @brief cache of names of the parameters
   /// @details in the future, we will probably hold this information inside
   /// GainsCacheType
-  mutable std::vector<std::string> itsNameCache;
+  mutable std::vector<std::pair<std::string, std::string> > itsNameCache;
+  
+  /// @brief names of unused parameters
+  /// @details In the current design of Params, DesignMatrix and NormalEquation
+  /// classes, derivatives should be defined for all declared parameters. This
+  /// class however is intended to provide normal equations only for parameters it
+  /// knows about. Moreover, some parameters have to be passed to 
+  /// a measurement equation used to calculate "perfect" visibilities. Therefore,
+  /// there are always some unused parameters. One possible way of dealing with 
+  /// this problem is to remove all parameters, for which we don't know the derivatives. 
+  /// This data member contains a list of names of all unused parameters to be
+  /// fixed before normal equations are calculated.
+  mutable std::vector<std::string> itsUnusedParamNames; 
 };
 
 
@@ -128,7 +140,7 @@ namespace utility {
 /// @param[in] str input string
 /// @return result of the conversion
 /// @exception ConradError is thrown if the conversion failed
-template<class T> T fromString(const std::string &str) throw(std::bad_cast) {
+template<class T> T fromString(const std::string &str) throw(ConradError) {
          std::istringstream is(str);
          T buf;
          is>>buf;
@@ -144,7 +156,7 @@ template<class T> T fromString(const std::string &str) throw(std::bad_cast) {
 /// @param[in] a const reference to the value to convert
 /// @return resulting string
 /// @exception ConradError is thrown if the conversion failed
-template<class T> std::string toString(const T &in) throw(std::bad_cast) {
+template<class T> std::string toString(const T &in) throw(ConradError) {
          std::ostringstream os;
          os<<in;
          if (!os) {
