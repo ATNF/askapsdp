@@ -258,6 +258,20 @@ namespace conrad
 			}
 			return completions;
 		}
+		
+		/// @brief remove a parameter
+        /// @details One needs to be able to remove a given parameter to avoid passing
+        /// unused parameters to design matrix.
+        /// @param[in] name parameter name
+        void Params::remove(const std::string &name)
+        {
+          CONRADDEBUGASSERT(has(name));
+          itsArrays.erase(name);
+          itsAxes.erase(name);
+          itsFree.erase(name);
+          itsCounts.erase(name);
+        }
+		
 
 		void Params::reset()
 		{

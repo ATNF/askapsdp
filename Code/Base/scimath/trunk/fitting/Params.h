@@ -74,6 +74,12 @@ namespace conrad
         void add(const std::string& name, const double value,
           const Axes& axes);
 
+        /// @brief remove a parameter
+        /// @details One needs to be able to remove a given parameter to avoid passing
+        /// unused parameters to design matrix.
+        /// @param[in] name parameter name
+        void remove(const std::string &name);
+
 /// Update an Array parameter
 /// @param name Name of param to be updated
 /// @param value New value
