@@ -1,6 +1,8 @@
 # @file
 # build script for AutoBuild
 
-from recursivebuild import run_scons
+from recursivebuild.thirdpartybuilder import SconsBuilder as Builder
 
-run_scons()
+b = Builder(".")
+b.build()
+
