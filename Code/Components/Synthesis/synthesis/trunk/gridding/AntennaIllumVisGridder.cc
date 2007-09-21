@@ -8,6 +8,9 @@
 #include <casa/Arrays/ArrayMath.h>
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/UVWMachine.h>
+#include <casa/Quanta/MVDirection.h>
+#include <casa/Quanta/MVAngle.h>
+#include <casa/Quanta/MVTime.h>
 
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
@@ -301,6 +304,8 @@ namespace conrad
 		void AntennaIllumVisGridder::finaliseWeights(casa::Array<double>& out)
 		{
 
+		  std::cout << "Calculating sum of weights image" << std::endl;
+
 			int nx=itsShape(0);
 			int ny=itsShape(1);
 			int nPol=itsShape(2);
@@ -322,23 +327,20 @@ namespace conrad
 			/// Work space
 			casa::Matrix<casa::Complex> thisPlane(cnx, cny);
 
-			std::cout << itsSumWeights << std::endl;
-
 			for (int iz=0; iz<nZ; iz++)
 			{
 				thisPlane.set(0.0);
 
 				// Now fill the inner part of the uv plane with the convolution function
 				// and transform to obtain the image. The uv sampling is fixed here
-				// so when we transform to image spaces with a smaller number of
-				// pixels, we end up with an image with larger pixels. Therefore
-				// we will have to FFT pad to get to the full resolution.
+				// so the total field of view is itsOverSample times larger than the
+				// original field of view.
 				for (int iy=-itsSupport; iy<+itsSupport; iy++)
 				{
 					for (int ix=-itsSupport; ix<+itsSupport; ix++)
 					{
-						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](itsOverSample*ix
-						    +itsCCenter, itsOverSample*iy+itsCCenter);
+						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample+itsCCenter,
+											      iy*itsOverSample+itsCCenter);
 					}
 				}
 
@@ -346,16 +348,20 @@ namespace conrad
 				/// The peak here should be unity
 				fft2d(thisPlane, false);
 
+				// Now we need to cut out only the part inside the field of view
 				for (int chan=0; chan<nChan; chan++)
 				{
 					for (int pol=0; pol<nPol; pol++)
 					{
+					  casa::IPosition ip(4, 0, 0, pol, chan);
+					  double wt=itsSumWeights(iz, pol, chan);
 						for (int ix=0; ix<cnx; ix++)
 						{
+						  ip(0)=ix;
 							for (int iy=0; iy<cny; iy++)
 							{
-								cOut(casa::IPosition(4, ix, iy, pol, chan))+=itsSumWeights(iz,
-								    pol, chan)*real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
+							  ip(1)=iy;
+								cOut(ip)+=wt*casa::real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
 							}
 						}
 					}
@@ -441,6 +447,13 @@ namespace conrad
 				CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
 				if (!done(feed))
 				{
+				  casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
+				  casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
+				  std::cout << "Feed " << feed << " points at Right Ascension ";
+				  std::cout << mvLong.string(casa::MVAngle::TIME, 8) << ", Declination ";
+				  std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
+				  std::cout << " (J2000)" << std::endl;
+
 					casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
 					for (int i=0; i<2; i++)
 					{
