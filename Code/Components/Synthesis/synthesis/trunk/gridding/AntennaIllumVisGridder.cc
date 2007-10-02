@@ -260,7 +260,10 @@ namespace conrad
 									}
 								}
 							}
-							CONRADCHECK(itsSupport*itsOverSample<nx/2, "Overflowing convolution function - increase maxSupport or decrease overSample")
+							CONRADCHECK(itsSupport>0,
+								    "Unable to determine support of convolution function");
+							CONRADCHECK(itsSupport*itsOverSample<nx/2,
+								    "Overflowing convolution function - increase maxSupport or decrease overSample")
 							itsCSize=2*(itsSupport+3)*itsOverSample;
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize

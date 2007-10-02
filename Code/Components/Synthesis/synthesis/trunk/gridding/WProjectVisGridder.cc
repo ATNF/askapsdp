@@ -204,6 +204,7 @@ namespace conrad
 							}
 						}
 					}
+					CONRADCHECK(itsSupport>0, "Unable to determine support of convolution function");
 					CONRADCHECK(itsSupport*itsOverSample<nx/2,
 							"Overflowing convolution function - increase maxSupport or decrease overSample")
 					itsCSize=2*(itsSupport+1)*itsOverSample;
