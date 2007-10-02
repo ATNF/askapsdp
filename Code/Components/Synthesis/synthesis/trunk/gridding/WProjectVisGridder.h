@@ -59,8 +59,6 @@ namespace conrad
 				double itsCutoff;
 				/// Mapping from row, pol, and channel to planes of convolution function
 				casa::Cube<int> itsCMap;
-				/// Mapping from row, pol, and channel to planes of grid
-				casa::Cube<int> itsGMap;
 				/// Maximum support
 				int itsMaxSupport;
 		};

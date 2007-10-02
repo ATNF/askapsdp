@@ -3,6 +3,7 @@
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/AntennaIllumVisGridder.h>
 #include <gridding/WProjectVisGridder.h>
+#include <gridding/WStackVisGridder.h>
 
 using namespace LOFAR::ACC::APS;
 namespace conrad
@@ -35,6 +36,13 @@ namespace conrad
 				gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
 						maxSupport, tablename));
 			}
+			else if (parset.getString("gridder")=="WStack")
+			{
+				double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
+				int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 64);
+				std::cout << "Using W Stack gridding "<< std::endl;
+				gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
+			}
 			else if (parset.getString("gridder")=="AntennaIllum")
 			{
 				double diameter=parset.getDouble("gridder.AntennaIllum.diameter");
@@ -48,7 +56,8 @@ namespace conrad
 				string tablename=parset.getString("gridder.AntennaIllum.tablename", "");
 				std::cout << "Using Antenna Illumination for gridding function"
 				    << std::endl;
-				gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(diameter, blockage, wmax, nwplanes, cutoff, oversample,
+				gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(diameter, blockage, 
+						wmax, nwplanes, cutoff, oversample,
 						maxSupport, maxFeeds, tablename));
 			}
 			else if (parset.getString("gridder")=="Box")

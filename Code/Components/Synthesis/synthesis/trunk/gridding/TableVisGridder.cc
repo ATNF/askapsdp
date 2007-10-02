@@ -377,7 +377,7 @@ namespace conrad
 				else
 				{
 					casa::Array<double> work(out.shape());
-					toDouble(work, itsGrid[i]);
+					toDouble(work, scratch);
 					out+=work;
 				}
 			}
@@ -401,7 +401,7 @@ namespace conrad
 				else
 				{
 					casa::Array<double> work(out.shape());
-					toDouble(work, itsGridPSF[i]);
+					toDouble(work, scratch);
 					out+=work;
 				}
 			}

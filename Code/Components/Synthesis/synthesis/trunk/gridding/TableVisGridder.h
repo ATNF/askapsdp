@@ -149,6 +149,15 @@ namespace conrad
 				/// @param image image to be corrected
 				virtual void correctConvolution(casa::Array<double>& image) = 0;
 
+				/// Conversion helper function
+				static void toComplex(casa::Array<casa::Complex>& out,
+				    const casa::Array<double>& in);
+
+				/// Conversion helper function
+				static void toDouble(casa::Array<double>& out,
+				    const casa::Array<casa::Complex>& in);
+				
+				
 			private:
 				/// Generic grid/degrid - this is the heart of this framework. It should never
 				/// need to be overridden
@@ -181,13 +190,7 @@ namespace conrad
 				    casa::Vector<casa::RigidVector<double, 3> >& outUVW,
 				    casa::Vector<double>& delay);
 
-				/// Conversion helper function
-				static void toComplex(casa::Array<casa::Complex>& out,
-				    const casa::Array<double>& in);
 
-				/// Conversion helper function
-				static void toDouble(casa::Array<double>& out,
-				    const casa::Array<casa::Complex>& in);
 
 		};
 	}
