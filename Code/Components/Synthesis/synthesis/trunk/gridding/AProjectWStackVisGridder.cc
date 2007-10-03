@@ -29,9 +29,8 @@ namespace conrad
 		    const double cutoff, const int overSample, const int maxSupport,
 		    const int maxFeeds, const std::string& name) :
 			WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
-			    itsDiameter(diameter), itsBlockage(blockage), 
-			    itsOverSample(overSample), itsMaxSupport(maxSupport), 
-			    itsMaxFeeds(maxFeeds), itsName(name)
+			    itsDiameter(diameter), itsBlockage(blockage),  
+			    itsMaxFeeds(maxFeeds)
 
 		{
 			CONRADCHECK(diameter>0.0, "Blockage must be positive");
@@ -39,6 +38,15 @@ namespace conrad
 					"Antenna diameter must be greater than blockage");
 			CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
 			CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
+			CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
+			CONRADCHECK(cutoff>0.0, "Cutoff must be positive");
+			CONRADCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
+			CONRADCHECK(maxSupport>0, "Maximum support must be greater than 0")
+			itsSupport=0;
+			itsOverSample=overSample;
+			itsCutoff=cutoff;
+			itsMaxSupport=maxSupport;
+			itsName=name;
 		}
 
 		AProjectWStackVisGridder::~AProjectWStackVisGridder()
@@ -72,7 +80,6 @@ namespace conrad
 
 				for (int chan=0; chan<nChan; chan++)
 				{
-					double freq=idi->frequency()[chan];
 					for (int pol=0; pol<nPol; pol++)
 					{
 						/// Order is (iw, chan, feed)
@@ -101,13 +108,8 @@ namespace conrad
 			/// Get the pointing direction
 			casa::Matrix<double> slope;
 			findCollimation(idi, slope);
-			int nFeeds=slope.nrow();
 
 			itsSupport=0;
-
-			/// These are the actual image pixel sizes used
-			double cellx=1.0/(double(itsShape(0))*itsUVCellSize(0));
-			double celly=1.0/(double(itsShape(1))*itsUVCellSize(1));
 
 			/// Limit the size of the convolution function since
 			/// we don't need it finely sampled in image space. This
@@ -117,11 +119,6 @@ namespace conrad
 
 			int qnx=nx/itsOverSample;
 			int qny=ny/itsOverSample;
-
-			// Find the actual cellsizes in x and y (radians) 
-			// corresponding to the limited support
-			double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
-			double ccelly=1.0/(double(qny)*itsUVCellSize(1));
 
 			int zIndex=0;
 			for (int feed=0; feed<itsMaxFeeds; feed++)
