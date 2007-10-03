@@ -1,7 +1,7 @@
 #include <gridding/VisGridderFactory.h>
 #include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
-#include <gridding/AntennaIllumVisGridder.h>
+#include <gridding/AWProjectVisGridder.h>
 #include <gridding/WProjectVisGridder.h>
 #include <gridding/WStackVisGridder.h>
 
@@ -43,20 +43,20 @@ namespace conrad
 				std::cout << "Using W Stack gridding "<< std::endl;
 				gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
 			}
-			else if (parset.getString("gridder")=="AntennaIllum")
+			else if (parset.getString("gridder")=="AWProject")
 			{
-				double diameter=parset.getDouble("gridder.AntennaIllum.diameter");
-				double blockage=parset.getDouble("gridder.AntennaIllum.blockage");
-				double wmax=parset.getDouble("gridder.AntennaIllum.wmax", 10000.0);
-				int nwplanes=parset.getInt32("gridder.AntennaIllum.nwplanes", 64);
-				double cutoff=parset.getDouble("gridder.AntennaIllum.cutoff", 1e-3);
-				int oversample=parset.getInt32("gridder.AntennaIllum.oversample", 8);
-				int maxSupport=parset.getInt32("gridder.AntennaIllum.maxsupport", 128);
-				int maxFeeds=parset.getInt32("gridder.AntennaIllum.maxfeeds", 1);
-				string tablename=parset.getString("gridder.AntennaIllum.tablename", "");
+				double diameter=parset.getDouble("gridder.AWProject.diameter");
+				double blockage=parset.getDouble("gridder.AWProject.blockage");
+				double wmax=parset.getDouble("gridder.AWProject.wmax", 10000.0);
+				int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 64);
+				double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
+				int oversample=parset.getInt32("gridder.AWProject.oversample", 8);
+				int maxSupport=parset.getInt32("gridder.AWProject.maxsupport", 128);
+				int maxFeeds=parset.getInt32("gridder.AWProject.maxfeeds", 1);
+				string tablename=parset.getString("gridder.AWProject.tablename", "");
 				std::cout << "Using Antenna Illumination for gridding function"
 				    << std::endl;
-				gridder=IVisGridder::ShPtr(new AntennaIllumVisGridder(diameter, blockage, 
+				gridder=IVisGridder::ShPtr(new AWProjectVisGridder(diameter, blockage, 
 						wmax, nwplanes, cutoff, oversample,
 						maxSupport, maxFeeds, tablename));
 			}

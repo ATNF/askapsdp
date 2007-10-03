@@ -1,4 +1,4 @@
-#include <gridding/AntennaIllumVisGridder.h>
+#include <gridding/AWProjectVisGridder.h>
 
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Array.h>
@@ -24,7 +24,7 @@ namespace conrad
 	namespace synthesis
 	{
 
-		AntennaIllumVisGridder::AntennaIllumVisGridder(const double diameter,
+		AWProjectVisGridder::AWProjectVisGridder(const double diameter,
 		    const double blockage, const double wmax, const int nwplanes,
 		    const double cutoff, const int overSample, const int maxSupport,
 		    const int maxFeeds, const std::string& name) :
@@ -40,18 +40,18 @@ namespace conrad
 			CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
 		}
 
-		AntennaIllumVisGridder::~AntennaIllumVisGridder()
+		AWProjectVisGridder::~AWProjectVisGridder()
 		{
 		}
 
 		/// Clone a copy of this Gridder
-		IVisGridder::ShPtr AntennaIllumVisGridder::clone()
+		IVisGridder::ShPtr AWProjectVisGridder::clone()
 		{
-			return IVisGridder::ShPtr(new AntennaIllumVisGridder(*this));
+			return IVisGridder::ShPtr(new AWProjectVisGridder(*this));
 		}
 
 		/// Initialize the indices into the cube.
-		void AntennaIllumVisGridder::initIndices(IDataSharedIter& idi)
+		void AWProjectVisGridder::initIndices(IDataSharedIter& idi)
 		{
 			/// We have to calculate the lookup function converting from
 			/// row and channel to plane of the w-dependent convolution
@@ -92,7 +92,7 @@ namespace conrad
 		/// Initialize the convolution function into the cube. If necessary this
 		/// could be optimized by using symmetries.
 		/// @todo Make initConvolutionFunction more robust
-		void AntennaIllumVisGridder::initConvolutionFunction(IDataSharedIter& idi)
+		void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi)
 		{
 			if (itsSupport!=0)
 				return;
@@ -304,7 +304,7 @@ namespace conrad
 		/// 1. For each plane of the convolution function, transform to image plane
 		/// and multiply by conjugate to get abs value squared.
 		/// 2. Sum all planes weighted by the weight for that convolution function.
-		void AntennaIllumVisGridder::finaliseWeights(casa::Array<double>& out)
+		void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
 		{
 
 		  std::cout << "Calculating sum of weights image" << std::endl;
@@ -373,7 +373,7 @@ namespace conrad
 			fftPad(cOut, out);
 		}
 
-		void AntennaIllumVisGridder::fftPad(const casa::Array<double>& in,
+		void AWProjectVisGridder::fftPad(const casa::Array<double>& in,
 		    casa::Array<double>& out)
 		{
 
@@ -421,12 +421,12 @@ namespace conrad
 			}
 		}
 
-		int AntennaIllumVisGridder::cIndex(int row, int pol, int chan)
+		int AWProjectVisGridder::cIndex(int row, int pol, int chan)
 		{
 			return itsCMap(row, pol, chan);
 		}
 
-		void AntennaIllumVisGridder::findCollimation(IDataSharedIter& idi,
+		void AWProjectVisGridder::findCollimation(IDataSharedIter& idi,
 		    casa::Matrix<double>& slope)
 		{
 			casa::Quantum<double>refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,

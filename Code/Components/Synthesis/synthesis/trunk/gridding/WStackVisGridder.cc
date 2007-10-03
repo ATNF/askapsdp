@@ -131,6 +131,7 @@ namespace conrad
 			{
 				casa::Matrix<casa::Complex> mat(it.array());
 
+				/// @todo Optimise multiply loop
 				for (int iy=0; iy<ny; iy++)
 				{
 					float y2=float(iy-ny/2)*celly;

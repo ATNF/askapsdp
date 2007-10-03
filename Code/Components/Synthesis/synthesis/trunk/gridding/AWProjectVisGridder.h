@@ -1,13 +1,13 @@
 /// @file
 ///
-/// AntennaIllumVisGridder: Grids visibility data using the self-convolution of 
+/// AWProjectVisGridder: Grids visibility data using the self-convolution of 
 /// the antenna illumination pattern.
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef ANTENNAILLUMGRIDDER_H_
-#define ANTENNAILLUMGRIDDER_H_
+#ifndef AWPROJECTVISGRIDDER_H_
+#define AWPROJECTVISGRIDDER_H_
 
 #include <gridding/WProjectVisGridder.h>
 
@@ -20,7 +20,7 @@ namespace conrad
 		/// @details The antenna primary beam is used for gridding, though we actually 
 		/// work from the illumination pattern since it is better behaved.
 		/// @ingroup gridding
-		class AntennaIllumVisGridder : public WProjectVisGridder
+		class AWProjectVisGridder : public WProjectVisGridder
 		{
 			public:
 
@@ -34,12 +34,12 @@ namespace conrad
 				/// @param maxSupport Maximum support to be allowed
 				/// @param maxFeeds Maximum number of feeds allowed
 				/// @param name Name of table to save convolution function into
-				AntennaIllumVisGridder(const double diameter, const double blockage,
+				AWProjectVisGridder(const double diameter, const double blockage,
 				    const double wmax, const int nwplanes, const double cutoff,
 				    const int overSample, const int maxSupport, const int maxFeeds=1,
 				    const std::string& name=std::string(""));
 
-				virtual ~AntennaIllumVisGridder();
+				virtual ~AWProjectVisGridder();
 
 				/// Clone a copy of this Gridder
 				virtual IVisGridder::ShPtr clone();
