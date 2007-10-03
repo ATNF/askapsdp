@@ -155,21 +155,26 @@ namespace conrad
 			std::cout << "Stacking W planes"<< std::endl;
 
 			/// Loop over all grids Fourier transforming and accumulating
+			bool first=true;
 			for (int i=0; i<itsGrid.size(); i++)
 			{
-				casa::Array<casa::Complex> scratch(itsGrid[i].copy());
-				fft2d(scratch, false);
-				multiply(scratch, i);
+				if (casa::max(casa::amplitude(itsGrid[i]))>0.0)
+				{
+					casa::Array<casa::Complex> scratch(itsGrid[i].copy());
+					fft2d(scratch, false);
+					multiply(scratch, i);
 
-				if (i==0)
-				{
-					toDouble(out, scratch);
-				}
-				else
-				{
-					casa::Array<double> work(out.shape());
-					toDouble(work, scratch);
-					out+=work;
+					if (first)
+					{
+						first=false;
+						toDouble(out, scratch);
+					}
+					else
+					{
+						casa::Array<double> work(out.shape());
+						toDouble(work, scratch);
+						out+=work;
+					}
 				}
 			}
 			// Now we can do the convolution correction
@@ -182,21 +187,26 @@ namespace conrad
 		{
 
 			/// Loop over all grids Fourier transforming and accumulating
+			bool first=true;
 			for (int i=0; i<itsGrid.size(); i++)
 			{
-				casa::Array<casa::Complex> scratch(itsGridPSF[i].copy());
-				fft2d(scratch, false);
-				multiply(scratch, i);
+				if (casa::max(casa::amplitude(itsGridPSF[i]))>0.0)
+				{
+					casa::Array<casa::Complex> scratch(itsGridPSF[i].copy());
+					fft2d(scratch, false);
+					multiply(scratch, i);
 
-				if (i==0)
-				{
-					toDouble(out, scratch);
-				}
-				else
-				{
-					casa::Array<double> work(out.shape());
-					toDouble(work, scratch);
-					out+=work;
+					if (first)
+					{
+						first=false;
+						toDouble(out, scratch);
+					}
+					else
+					{
+						casa::Array<double> work(out.shape());
+						toDouble(work, scratch);
+						out+=work;
+					}
 				}
 			}
 			// Now we can do the convolution correction
