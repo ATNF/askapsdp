@@ -29,7 +29,9 @@ namespace conrad
 		    const double cutoff, const int overSample, const int maxSupport,
 		    const int maxFeeds, const std::string& name) :
 			WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
-			    itsDiameter(diameter), itsBlockage(blockage), itsMaxFeeds(maxFeeds)
+			    itsDiameter(diameter), itsBlockage(blockage), 
+			    itsOverSample(overSample), itsMaxSupport(maxSupport), 
+			    itsMaxFeeds(maxFeeds), itsName(name)
 
 		{
 			CONRADCHECK(diameter>0.0, "Blockage must be positive");

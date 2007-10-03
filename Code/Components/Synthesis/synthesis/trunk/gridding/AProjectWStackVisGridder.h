@@ -86,8 +86,12 @@ namespace conrad
 				double itsCutoff;
 				/// Mapping from row, pol, and channel to planes of convolution function
 				casa::Cube<int> itsCMap;
+				/// Oversampling
+				int itsOverSample;
 				/// Maximum support
 				int itsMaxSupport;
+				/// Name of table to save convolution function
+				string itsName;
 		};
 
 	}
