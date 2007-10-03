@@ -127,6 +127,9 @@ namespace conrad
 				/// Name of table to save to
 				std::string itsName;
 
+				/// Is the model empty? Used to shortcut degridding
+				bool itsModelIsEmpty;
+				
 				/// The grid is stored as a cube as well so we can index into that as well.
 				std::vector<casa::Array<casa::Complex> > itsGrid;
 				std::vector<casa::Array<casa::Complex> > itsGridPSF;

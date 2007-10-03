@@ -72,6 +72,47 @@ namespace conrad
 			}
 		}
 
+		void WStackVisGridder::initialiseGrid(const scimath::Axes& axes,
+		    const casa::IPosition& shape, const bool dopsf)
+		{
+			itsAxes=axes;
+			itsShape=shape;
+			itsDopsf=dopsf;
+
+			/// We only need one grid
+			itsGrid.resize(itsNWPlanes);
+			for (int i=0; i<itsNWPlanes; i++)
+			{
+				itsGrid[i].resize(shape);
+				itsGrid[i].set(0.0);
+			}
+			if (itsDopsf)
+			{
+				itsGridPSF.resize(itsNWPlanes);
+				for (int i=0; i<itsNWPlanes; i++)
+				{
+					itsGridPSF[i].resize(shape);
+					itsGridPSF[i].set(0.0);
+				}
+			}
+
+			itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
+			itsSumWeights.set(0.0);
+
+			CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"), "RA and DEC specification not present in axes");
+
+			double raStart=itsAxes.start("RA");
+			double raEnd=itsAxes.end("RA");
+
+			double decStart=itsAxes.start("DEC");
+			double decEnd=itsAxes.end("DEC");
+
+			itsUVCellSize.resize(2);
+			itsUVCellSize(0)=1.0/(raEnd-raStart);
+			itsUVCellSize(1)=1.0/(decEnd-decStart);
+
+		}
+
 		void WStackVisGridder::multiply(casa::Array<casa::Complex>& scratch, int i)
 		{
 			/// These are the actual cell sizes used
@@ -110,8 +151,8 @@ namespace conrad
 		/// This is the default implementation
 		void WStackVisGridder::finaliseGrid(casa::Array<double>& out)
 		{
-			
-			std::cout << "Stacking W planes" << std::endl;
+
+			std::cout << "Stacking W planes"<< std::endl;
 
 			/// Loop over all grids Fourier transforming and accumulating
 			for (int i=0; i<itsGrid.size(); i++)
@@ -182,18 +223,30 @@ namespace conrad
 			itsUVCellSize(0)=1.0/(raEnd-raStart);
 			itsUVCellSize(1)=1.0/(decEnd-decStart);
 
-			std::cout << "Filling W stack with image" << std::endl;
-
 			itsGrid.resize(itsNWPlanes);
-			for (int i=0; i<itsNWPlanes; i++)
+			if (casa::max(casa::abs(in))>0.0)
 			{
-				itsGrid[i].resize(itsShape);
-
+				itsModelIsEmpty=false;
+				std::cout << "Filling W stack with model"<< std::endl;
 				casa::Array<double> scratch(in.copy());
 				correctConvolution(scratch);
-				toComplex(itsGrid[i], scratch);
-				multiply(itsGrid[i], i);
-				fft2d(itsGrid[i], true);
+				for (int i=0; i<itsNWPlanes; i++)
+				{
+					itsGrid[i].resize(itsShape);
+					toComplex(itsGrid[i], scratch);
+					multiply(itsGrid[i], i);
+					fft2d(itsGrid[i], true);
+				}
+			}
+			else
+			{
+				itsModelIsEmpty=true;
+				std::cout << "No need to fill W stack: model is empty"<< std::endl;
+				for (int i=0; i<itsNWPlanes; i++)
+				{
+					itsGrid[i].resize(itsShape);
+					itsGrid[i].set(casa::Complex(0.0));
+				}
 			}
 		}
 

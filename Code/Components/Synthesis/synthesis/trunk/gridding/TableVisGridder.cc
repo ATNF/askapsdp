@@ -24,13 +24,14 @@ namespace conrad
 	{
 
 		TableVisGridder::TableVisGridder() :
-			itsName("")
+			itsName(""), itsModelIsEmpty(false)
 		{
 		}
 
 		TableVisGridder::TableVisGridder(const int overSample, const int support,
 		    const std::string& name) :
-			itsOverSample(overSample), itsSupport(support), itsName(name)
+			itsOverSample(overSample), itsSupport(support), itsName(name), 
+			itsModelIsEmpty(false)
 		{
 			CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
 			CONRADCHECK(support>0, "Maximum support must be greater than 0");
@@ -109,7 +110,7 @@ namespace conrad
 		{
 			conrad::scimath::ParamsCasaTable iptable(name, false);
 			conrad::scimath::Params ip;
-			for (int i=0; i<itsConvFunc.size(); i++)
+			for (unsigned int i=0; i<itsConvFunc.size(); i++)
 			{
 				casa::Array<double> realC(itsConvFunc[i].shape());
 				toDouble(realC, itsConvFunc[i]);
@@ -126,6 +127,8 @@ namespace conrad
 		/// This is a generic grid/degrid
 		void TableVisGridder::generic(IDataSharedIter& idi, bool forward)
 		{
+			if(forward&&itsModelIsEmpty) return;
+			
 			casa::Vector<casa::RigidVector<double, 3> > outUVW;
 			casa::Vector<double> delay;
 			rotateUVW(idi, outUVW, delay);
@@ -139,7 +142,6 @@ namespace conrad
 
 			const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
 			const casa::IPosition onePlane(2, itsShape(0), itsShape(1));
-
 
 			// Loop over all samples adding them to the grid
 			// First scale to the correct pixel location
@@ -461,10 +463,19 @@ namespace conrad
 			itsGrid.resize(1);
 			itsGrid[0].resize(itsShape);
 
-			casa::Array<double> scratch(in.copy());
-			correctConvolution(scratch);
-			toComplex(itsGrid[0], scratch);
-			fft2d(itsGrid[0], true);
+			if (casa::max(casa::abs(in))>0.0)
+			{
+				itsModelIsEmpty=false;
+				casa::Array<double> scratch(in.copy());
+				correctConvolution(scratch);
+				toComplex(itsGrid[0], scratch);
+				fft2d(itsGrid[0], true);
+			}
+			else {
+				std::cout << "No need to degrid: model is empty" << std::endl;
+				itsModelIsEmpty=true;
+				itsGrid[0].set(casa::Complex(0.0));
+			}
 		}
 
 		/// This is the default implementation
