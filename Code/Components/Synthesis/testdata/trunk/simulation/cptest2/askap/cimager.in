@@ -1,28 +1,38 @@
-Cimager.dataset                	= [points_conrad.ms]
-#Feed				= 5
+Cimager.dataset                	= [10uJy.ms]
 
-Cimager.Images.Names			= [image.i.points_conrad]
-Cimager.Images.image.i.points_conrad.shape		= [4096,4096]
-Cimager.Images.image.i.points_conrad.cellsize	= [4.5arcsec, 4.5arcsec]
-Cimager.Images.image.i.points_conrad.frequency	= [1.164e9, 1.420e9]
-Cimager.Images.image.i.points_conrad.nchan		= 1
-Cimager.Images.image.i.points_conrad.direction	= [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.Names			= [image.i.10uJy]
+Cimager.Images.image.i.10uJy.shape		= [4096,4096]
+Cimager.Images.image.i.10uJy.cellsize	= [4.5arcsec, 4.5arcsec]
+Cimager.Images.image.i.10uJy.frequency	= [1.164e9, 1.420e9]
+Cimager.Images.image.i.10uJy.nchan		= 1
+Cimager.Images.image.i.10uJy.direction	= [12h30m00.00, -45.00.00.00, J2000]
 
 Cimager.gridder                         = WProject
-Cimager.gridder.WProject.wmax           = 40000
+Cimager.gridder.WProject.wmax           = 15000
+Cimager.gridder.WProject.oversample     	= 8
 Cimager.gridder.WProject.nwplanes       = 256
 Cimager.gridder.WProject.cutoff     	= 0.001
 Cimager.gridder.WProject.maxsupport	= 512
 
-#Cimager.gridder                          	= AntennaIllum
-Cimager.gridder.AntennaIllum.wmax            	= 35000
-Cimager.gridder.AntennaIllum.nwplanes        	= 64
-Cimager.gridder.AntennaIllum.oversample     	= 1
-Cimager.gridder.AntennaIllum.diameter		= 12m
-Cimager.gridder.AntennaIllum.blockage		= 1.2m
-Cimager.gridder.AntennaIllum.cutoff     	= 0.001
-Cimager.gridder.AntennaIllum.maxfeeds		= 1
-Cimager.gridder.AntennaIllum.maxsupport		= 512
+#Cimager.gridder                          	= AProjectWStack
+Cimager.gridder.AProjectWStack.wmax            	= 15000
+Cimager.gridder.AProjectWStack.nwplanes        	= 64
+Cimager.gridder.AProjectWStack.oversample     	= 8
+Cimager.gridder.AProjectWStack.diameter		= 12m
+Cimager.gridder.AProjectWStack.blockage		= 1.2m
+Cimager.gridder.AProjectWStack.cutoff     	= 0.001
+Cimager.gridder.AProjectWStack.maxfeeds		= 1
+Cimager.gridder.AProjectWStack.maxsupport		= 512
+
+#Cimager.gridder                          	= AWProject
+Cimager.gridder.AWProject.wmax            	= 15000
+Cimager.gridder.AWProject.nwplanes        	= 64
+Cimager.gridder.AWProject.oversample     	= 8
+Cimager.gridder.AWProject.diameter		= 12m
+Cimager.gridder.AWProject.blockage		= 1.2m
+Cimager.gridder.AWProject.cutoff     	= 0.001
+Cimager.gridder.AWProject.maxfeeds		= 1
+Cimager.gridder.AWProject.maxsupport		= 512
 
 Cimager.solver                           	= Clean
 Cimager.solver.Dirty.cycles                     = 1
