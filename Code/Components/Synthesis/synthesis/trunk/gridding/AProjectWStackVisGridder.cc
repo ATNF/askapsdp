@@ -102,7 +102,6 @@ namespace conrad
 			/// We have to calculate the lookup function converting from
 			/// row and channel to plane of the w-dependent convolution
 			/// function
-			const int nSamples = idi->uvw().size();
 			const int nChan = idi->frequency().size();
 
 			/// Get the pointing direction
@@ -167,7 +166,28 @@ namespace conrad
 					float peak=casa::real(casa::max(casa::abs(disk)));
 					CONRADCHECK(peak>0.0, "Synthetic primary beam is empty");
 					disk/=casa::Complex(peak);
-					fft2d(disk, true);
+
+					/// Calculate the total convolution function including
+					/// the w term and the antenna convolution function
+					casa::Matrix<casa::Complex> thisPlane(nx, ny);
+
+					double maxCF=0.0;
+					for (int iy=0; iy<qny; iy++)
+					{
+						for (int ix=0; ix<qnx; ix++)
+						{
+							thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=disk(ix,iy);
+							maxCF+=casa::abs(disk(ix, iy));
+						}
+					}
+					maxCF/=(double(nx)*double(ny));
+					// At this point, we have the phase screen multiplied by the spheroidal
+					// function, sampled on larger cellsize (itsOverSample larger) in image
+					// space. Only the inner qnx, qny pixels have a non-zero value
+
+					// Now we have to calculate the Fourier transform to get the
+					// convolution function in uv space
+					fft2d(thisPlane, true);
 
 					if (itsSupport==0)
 					{
@@ -176,13 +196,13 @@ namespace conrad
 						for (int ix=0; ix<nx/2; ix++)
 						{
 							/// Check on horizontal axis
-							if ((casa::abs(disk(ix, ny/2))>itsCutoff))
+							if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF))
 							{
 								itsSupport=abs(ix-nx/2)/itsOverSample;
 								break;
 							}
 							///  Check on diagonal
-							if ((casa::abs(disk(ix, ix))>itsCutoff))
+							if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF))
 							{
 								itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
 								break;
@@ -190,7 +210,7 @@ namespace conrad
 							if (nx==ny)
 							{
 								/// Check on vertical axis
-								if ((casa::abs(disk(nx/2, ix))>itsCutoff))
+								if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF))
 								{
 									itsSupport=abs(ix-ny/2)/itsOverSample;
 									break;
@@ -222,7 +242,7 @@ namespace conrad
 					{
 						for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
 						{
-							itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=disk(ix+nx
+							itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix+nx
 							    /2, iy+ny/2);
 						}
 					}
