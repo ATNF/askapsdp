@@ -72,18 +72,33 @@ namespace conrad
 			itsCMap.set(0);
 			/// @todo Select max feeds more carefully
 
+			itsGMap.resize(nSamples, nPol, nChan);
+			itsGMap.set(0);
+			int cenw=(itsNWPlanes-1)/2;
+
 			for (int i=0; i<nSamples; i++)
 			{
 				int feed=idi->feed1()(i);
 				CONRADCHECK(feed<itsMaxFeeds, "Exceeded specified maximum number of feeds");
 				CONRADCHECK(feed>-1, "Illegal negative feed number");
 
+				double w=(idi->uvw()(i)(2))/(casa::C::c);
+
 				for (int chan=0; chan<nChan; chan++)
 				{
 					for (int pol=0; pol<nPol; pol++)
 					{
-						/// Order is (iw, chan, feed)
+						/// Calculate the index into the convolution functions
+						/// Order is (chan, feed)
 						itsCMap(i, pol, chan)=chan+nChan*feed;
+
+						/// Calculate the index into the grids
+						double freq=idi->frequency()[chan];
+						itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
+						CONRADCHECK(itsGMap(i,pol,chan)<itsNWPlanes,
+							    "W scaling error: recommend allowing larger range of w");
+						CONRADCHECK(itsGMap(i,pol,chan)>-1,
+							    "W scaling error: recommend allowing larger range of w");
 					}
 				}
 			}
@@ -171,23 +186,18 @@ namespace conrad
 					/// the w term and the antenna convolution function
 					casa::Matrix<casa::Complex> thisPlane(nx, ny);
 
-					double maxCF=0.0;
 					for (int iy=0; iy<qny; iy++)
 					{
 						for (int ix=0; ix<qnx; ix++)
 						{
 							thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=disk(ix,iy);
-							maxCF+=casa::abs(disk(ix, iy));
 						}
 					}
-					maxCF/=(double(nx)*double(ny));
-					// At this point, we have the phase screen multiplied by the spheroidal
-					// function, sampled on larger cellsize (itsOverSample larger) in image
-					// space. Only the inner qnx, qny pixels have a non-zero value
-
 					// Now we have to calculate the Fourier transform to get the
 					// convolution function in uv space
 					fft2d(thisPlane, true);
+					double cfMax=casa::real(thisPlane(nx/2,ny/2));
+					thisPlane*=casa::Complex(1.0/cfMax);
 
 					if (itsSupport==0)
 					{
@@ -196,13 +206,13 @@ namespace conrad
 						for (int ix=0; ix<nx/2; ix++)
 						{
 							/// Check on horizontal axis
-							if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF))
+							if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff))
 							{
 								itsSupport=abs(ix-nx/2)/itsOverSample;
 								break;
 							}
 							///  Check on diagonal
-							if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF))
+							if ((casa::abs(thisPlane(ix, ix))>itsCutoff))
 							{
 								itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
 								break;
@@ -210,7 +220,7 @@ namespace conrad
 							if (nx==ny)
 							{
 								/// Check on vertical axis
-								if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF))
+								if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff))
 								{
 									itsSupport=abs(ix-ny/2)/itsOverSample;
 									break;
@@ -242,8 +252,8 @@ namespace conrad
 					{
 						for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
 						{
-							itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix+nx
-							    /2, iy+ny/2);
+							itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=
+							  thisPlane(ix+nx/2, iy+ny/2);
 						}
 					}
 				} // chan loop
