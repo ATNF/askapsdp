@@ -355,6 +355,7 @@ namespace conrad
 				casa::Array<double> outArray(outIt.array());
 
 				casa::real(outArray, constOutPlane);
+				outArray*=1.0/(double(onx)*double(ony));
 
 				inIt.next();
 				outIt.next();
