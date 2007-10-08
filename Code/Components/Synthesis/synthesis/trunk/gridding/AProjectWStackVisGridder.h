@@ -63,6 +63,10 @@ namespace conrad
 				/// @param idi Data access iterator
 				virtual void initConvolutionFunction(IDataSharedIter& idi);
 
+				/// Correct for gridding convolution function
+				/// @param image image to be corrected
+				virtual void correctConvolution(casa::Array<double>& image);
+
 			private:
 				/// Reference frequency for illumination pattern. 
 				double itsReferenceFrequency;

@@ -416,5 +416,9 @@ namespace conrad
 			CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
 		}
 
+		void AProjectWStackVisGridder::correctConvolution(casa::Array<double>& grid)
+		{
+		}
+
 	}
 }
