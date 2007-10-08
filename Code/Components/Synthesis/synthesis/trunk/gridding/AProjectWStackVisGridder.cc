@@ -177,7 +177,6 @@ namespace conrad
 					// Ensure that there is always one point filled
 					disk(qnx/2, qny/2)=casa::Complex(1.0);
 					fft2d(disk, false);
-					disk=disk*conj(disk);
 					float peak=casa::real(casa::max(casa::abs(disk)));
 					CONRADCHECK(peak>0.0, "Synthetic primary beam is empty");
 					disk/=casa::Complex(peak);
@@ -186,11 +185,13 @@ namespace conrad
 					/// the w term and the antenna convolution function
 					casa::Matrix<casa::Complex> thisPlane(nx, ny);
 
+					thisPlane.set(casa::Complex(0.0));
+
 					for (int iy=0; iy<qny; iy++)
 					{
 						for (int ix=0; ix<qnx; ix++)
 						{
-							thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=disk(ix,iy);
+							thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=disk(ix,iy)*conj(disk(ix,iy));
 						}
 					}
 					// Now we have to calculate the Fourier transform to get the
@@ -201,32 +202,7 @@ namespace conrad
 
 					if (itsSupport==0)
 					{
-						// Find the support by starting from the edge and
-						// working in
-						for (int ix=0; ix<nx/2; ix++)
-						{
-							/// Check on horizontal axis
-							if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff))
-							{
-								itsSupport=abs(ix-nx/2)/itsOverSample;
-								break;
-							}
-							///  Check on diagonal
-							if ((casa::abs(thisPlane(ix, ix))>itsCutoff))
-							{
-								itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
-								break;
-							}
-							if (nx==ny)
-							{
-								/// Check on vertical axis
-								if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff))
-								{
-									itsSupport=abs(ix-ny/2)/itsOverSample;
-									break;
-								}
-							}
-						}
+					  itsSupport=1+2*nint(casa::sqrt(rmax));
 						CONRADCHECK(itsSupport>0,
 								"Unable to determine support of convolution function");
 						CONRADCHECK(itsSupport*itsOverSample<nx/2,
@@ -235,8 +211,8 @@ namespace conrad
 						std::cout << "Convolution function support = "<< itsSupport
 						    << " pixels, convolution function size = "<< itsCSize
 						    << " pixels"<< std::endl;
-						std::cout << "Maximum extent = "<< itsCSize*cell/itsOverSample
-						    << " (m) sampled at "<< cell << " (m)"<< std::endl;
+						std::cout << "Maximum extent = "<< 2*itsSupport*cell
+						    << " (m) sampled at "<< cell/itsOverSample << " (m)"<< std::endl;
 						itsCCenter=itsCSize/2-1;
 						itsConvFunc.resize(itsMaxFeeds*nChan);
 						itsSumWeights.resize(itsMaxFeeds*nChan, itsShape(2), itsShape(3));

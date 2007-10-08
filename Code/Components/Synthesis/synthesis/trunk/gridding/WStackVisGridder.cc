@@ -255,7 +255,7 @@ namespace conrad
 				std::cout << "No need to fill W stack: model is empty"<< std::endl;
 				for (int i=0; i<itsNWPlanes; i++)
 				{
-					itsGrid[i].resize(itsShape);
+					itsGrid[i].resize(casa::IPosition(1,1));
 					itsGrid[i].set(casa::Complex(0.0));
 				}
 			}
