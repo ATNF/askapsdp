@@ -289,3 +289,4 @@ void GainCalibrationEquation::splitParameterString(const std::string &str,
          }
   }
 }
+

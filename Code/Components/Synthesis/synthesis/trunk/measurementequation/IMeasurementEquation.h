@@ -62,3 +62,4 @@ struct IMeasurementEquation
 } // namespace conrad
 
 #endif // #ifndef I_MEASUREMENT_EQUATION_H
+

@@ -104,3 +104,4 @@ namespace conrad
 } // namespace conrad
 
 #endif // #ifndef GAIN_CALIBRATION_EQUATION_TEST_H
+

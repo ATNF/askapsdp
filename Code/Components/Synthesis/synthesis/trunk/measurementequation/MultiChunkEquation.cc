@@ -55,3 +55,4 @@ const IDataSharedIter& MultiChunkEquation::iterator() const throw()
 {
   return itsSharedIterator;
 }
+
