@@ -26,7 +26,7 @@ namespace conrad
 
 		AProjectWStackVisGridder::AProjectWStackVisGridder(const double diameter,
 		    const double blockage, const double wmax, const int nwplanes,
-		    const double cutoff, const int overSample, const int maxSupport,
+		    const int overSample, const int maxSupport,
 		    const int maxFeeds, const std::string& name) :
 			WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
 			    itsDiameter(diameter), itsBlockage(blockage),  
@@ -39,12 +39,9 @@ namespace conrad
 			CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
 			CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
 			CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
-			CONRADCHECK(cutoff>0.0, "Cutoff must be positive");
-			CONRADCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
 			CONRADCHECK(maxSupport>0, "Maximum support must be greater than 0")
 			itsSupport=0;
 			itsOverSample=overSample;
-			itsCutoff=cutoff;
 			itsMaxSupport=maxSupport;
 			itsName=name;
 		}
@@ -123,16 +120,14 @@ namespace conrad
 			casa::Matrix<double> slope;
 			findCollimation(idi, slope);
 
-			itsSupport=0;
-
 			/// Limit the size of the convolution function since
 			/// we don't need it finely sampled in image space. This
 			/// will reduce the time taken to calculate it.
 			int nx=std::min(itsMaxSupport, itsShape(0));
 			int ny=std::min(itsMaxSupport, itsShape(1));
 
-			int qnx=nx/itsOverSample;
-			int qny=ny/itsOverSample;
+			double cellu=itsUVCellSize(0)/itsOverSample;
+			double cellv=itsUVCellSize(1)/itsOverSample;
 
 			int zIndex=0;
 			for (int feed=0; feed<itsMaxFeeds; feed++)
@@ -142,29 +137,29 @@ namespace conrad
 				{
 					/// Slope is the turns per wavelength so we need to convert from the
 					/// image reference frequency to the channel frequency
-					double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed)
+					double ax=2.0f*casa::C::pi*cellu*slope(0, feed)
 					    *idi->frequency()[chan]/refFreq;
-					double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed)
+					double ay=2.0f*casa::C::pi*cellv*slope(1, feed)
 					    *idi->frequency()[chan]/refFreq;
 
 					/// Make the disk for this channel
-					casa::Matrix<casa::Complex> disk(qnx, qny);
+					casa::Matrix<casa::Complex> disk(nx, ny);
 					disk.set(0.0);
 
 					/// Calculate the size of one cell in m.
-					double cell=std::abs(itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan]));
+					double cell=std::abs(cellu*(casa::C::c/idi->frequency()[chan]));
 					double rmax=std::pow(itsDiameter/(2.0*cell), 2);
 					double rmin=std::pow(itsBlockage/(2.0*cell), 2);
 
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
-					for (int ix=0; ix<qnx; ix++)
+					for (int ix=0; ix<nx; ix++)
 					{
-						double nux=double(ix-qnx/2);
+						double nux=double(ix-nx/2);
 						double nux2=nux*nux;
-						for (int iy=0; iy<qny; iy++)
+						for (int iy=0; iy<ny; iy++)
 						{
-							double nuy=double(iy-qny/2);
+							double nuy=double(iy-ny/2);
 							double nuy2=nuy*nuy;
 							double r=nux2+nuy2;
 							if ((r>=rmin)&&(r<=rmax))
@@ -175,45 +170,38 @@ namespace conrad
 						}
 					}
 					// Ensure that there is always one point filled
-					disk(qnx/2, qny/2)=casa::Complex(1.0);
+					disk(nx/2, ny/2)=casa::Complex(1.0);
 					fft2d(disk, false);
-					float peak=casa::real(casa::max(casa::abs(disk)));
-					CONRADCHECK(peak>0.0, "Synthetic primary beam is empty");
-					disk/=casa::Complex(peak);
 
-					/// Calculate the total convolution function including
-					/// the w term and the antenna convolution function
-					casa::Matrix<casa::Complex> thisPlane(nx, ny);
-
-					thisPlane.set(casa::Complex(0.0));
-
-					for (int iy=0; iy<qny; iy++)
+					/// Calculate the total convolution function 
+					for (int iy=0; iy<ny; iy++)
 					{
-						for (int ix=0; ix<qnx; ix++)
+						for (int ix=0; ix<nx; ix++)
 						{
-							thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=disk(ix,iy)*conj(disk(ix,iy));
+						  disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
 						}
 					}
 					// Now we have to calculate the Fourier transform to get the
 					// convolution function in uv space
-					fft2d(thisPlane, true);
-					double cfMax=casa::real(thisPlane(nx/2,ny/2));
-					thisPlane*=casa::Complex(1.0/cfMax);
+					fft2d(disk, true);
+					double cfMax=casa::real(disk(nx/2,ny/2));
+					CONRADCHECK(cfMax>0.0, "Convolution function not normalisable");
+					disk*=casa::Complex(1.0/cfMax);
 
 					if (itsSupport==0)
 					{
-					  itsSupport=1+2*nint(casa::sqrt(rmax));
+					  itsSupport=3+2*nint(casa::sqrt(rmax))/itsOverSample;
 						CONRADCHECK(itsSupport>0,
 								"Unable to determine support of convolution function");
 						CONRADCHECK(itsSupport*itsOverSample<nx/2,
 								"Overflowing convolution function - increase maxSupport or decrease overSample")
-						itsCSize=2*(itsSupport+1)*itsOverSample;
+						  itsCSize=2*itsSupport*itsOverSample+1;
 						std::cout << "Convolution function support = "<< itsSupport
 						    << " pixels, convolution function size = "<< itsCSize
 						    << " pixels"<< std::endl;
-						std::cout << "Maximum extent = "<< 2*itsSupport*cell
-						    << " (m) sampled at "<< cell/itsOverSample << " (m)"<< std::endl;
-						itsCCenter=itsCSize/2-1;
+						std::cout << "Maximum extent = "<< itsSupport*itsOverSample*cell
+						    << " (m) sampled at "<< cell << " (m)"<< std::endl;
+						itsCCenter=itsSupport*itsOverSample;
 						itsConvFunc.resize(itsMaxFeeds*nChan);
 						itsSumWeights.resize(itsMaxFeeds*nChan, itsShape(2), itsShape(3));
 						itsSumWeights.set(0.0);
@@ -224,12 +212,12 @@ namespace conrad
 					itsConvFunc[zIndex].set(0.0);
 					// Now cut out the inner part of the convolution function and
 					// insert it into the convolution function
-					for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
+					for (int iy=0; iy<itsCSize; iy++)
 					{
-						for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
+					  for (int ix=0;ix<itsCSize; ix++)
 						{
-							itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=
-							  thisPlane(ix+nx/2, iy+ny/2);
+							itsConvFunc[zIndex](ix, iy)=
+							  disk(ix-itsCCenter+nx/2, iy-itsCCenter+ny/2);
 						}
 					}
 				} // chan loop

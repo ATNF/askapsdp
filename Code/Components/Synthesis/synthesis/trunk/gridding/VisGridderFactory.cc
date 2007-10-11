@@ -67,7 +67,6 @@ namespace conrad
 				double blockage=parset.getDouble("gridder.AProjectWStack.blockage");
 				double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
 				int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 64);
-				double cutoff=parset.getDouble("gridder.AProjectWStack.cutoff", 1e-3);
 				int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
 				int maxSupport=parset.getInt32("gridder.AProjectWStack.maxsupport", 128);
 				int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
@@ -75,7 +74,7 @@ namespace conrad
 				std::cout << "Using Antenna Illumination projection and W stacking gridding"
 				    << std::endl;
 				gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(diameter, blockage, 
-						wmax, nwplanes, cutoff, oversample,
+						wmax, nwplanes, oversample,
 						maxSupport, maxFeeds, tablename));
 			}
 			else if (parset.getString("gridder")=="Box")

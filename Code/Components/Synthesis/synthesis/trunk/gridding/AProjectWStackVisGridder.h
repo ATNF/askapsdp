@@ -29,13 +29,12 @@ namespace conrad
 				/// @param blockage Antenna blockage (meters)
 				/// @param wmax Maximum baseline (wavelengths)
 				/// @param nwplanes Number of w planes
-				/// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
 				/// @param overSample Oversampling (currently limited to <=1)
 				/// @param maxSupport Maximum support to be allowed
 				/// @param maxFeeds Maximum number of feeds allowed
 				/// @param name Name of table to save convolution function into
 				AProjectWStackVisGridder(const double diameter, const double blockage,
-				    const double wmax, const int nwplanes, const double cutoff,
+				    const double wmax, const int nwplanes, 
 				    const int overSample, const int maxSupport, const int maxFeeds=1,
 				    const std::string& name=std::string(""));
 
@@ -76,6 +75,10 @@ namespace conrad
 				double itsBlockage;
 				/// Maximum number of feeds
 				int itsMaxFeeds;
+		  /// Maximum support to test
+		  int itsMaxSupport;
+				/// Mapping from row, pol, and channel to planes of convolution function
+				casa::Cube<int> itsCMap;
 
 				/// Find the slopes needed to repoint the antenna
 				/// @param idi Data iterator
@@ -85,17 +88,6 @@ namespace conrad
 				/// @param in Input Array
 				/// @param out Output Array
 				void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
-
-				/// Threshold for cutoff of convolution function
-				double itsCutoff;
-				/// Mapping from row, pol, and channel to planes of convolution function
-				casa::Cube<int> itsCMap;
-				/// Oversampling
-				int itsOverSample;
-				/// Maximum support
-				int itsMaxSupport;
-				/// Name of table to save convolution function
-				string itsName;
 		};
 
 	}

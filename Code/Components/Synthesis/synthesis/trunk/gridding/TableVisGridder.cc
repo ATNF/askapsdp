@@ -49,10 +49,10 @@ namespace conrad
 		    const int cCenter, const int fracu, const int fracv)
 		{
 			/// Gridding visibility to grid
-		  //		  CONRADCHECK(-overSample*support+fracu+cCenter>-1, "Indexing outside of convolution function"); 
-		  //		  CONRADCHECK(+overSample*support+fracu+cCenter<convFunc.shape()(0), "Indexing outside of convolution function"); 
-		  //		  CONRADCHECK(-overSample*support+fracv+cCenter>-1, "Indexing outside of convolution function"); 
-		  //		  CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1), "Indexing outside of convolution function"); 
+		   CONRADCHECK(-overSample*support+fracu+cCenter>-1, "Indexing outside of convolution function"); 
+		   CONRADCHECK(+overSample*support+fracu+cCenter<convFunc.shape()(0), "Indexing outside of convolution function"); 
+		   CONRADCHECK(-overSample*support+fracv+cCenter>-1, "Indexing outside of convolution function"); 
+		   CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1), "Indexing outside of convolution function"); 
 
 		  int voff=-overSample*support+fracv+cCenter;
 			for (int suppv=-support; suppv<+support; suppv++)
@@ -135,6 +135,8 @@ namespace conrad
 
 			initIndices(idi);
 			initConvolutionFunction(idi);
+
+			CONRADCHECK(itsSupport>0, "Support must be greater than 0");
 
 			const int nSamples = idi->uvw().size();
 			const int nChan = idi->frequency().size();
