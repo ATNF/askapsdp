@@ -1,6 +1,9 @@
 #include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
-//#include <gridding/AntennaIllumVisGridder.h>
+#include <gridding/AWProjectVisGridder.h>
+#include <gridding/AProjectWStackVisGridder.h>
+#include <gridding/WStackVisGridder.h>
+#include <gridding/AWProjectVisGridder.h>
 #include <gridding/WProjectVisGridder.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
@@ -31,17 +34,25 @@ namespace conrad
       CPPUNIT_TEST(testReverseBox);
       CPPUNIT_TEST(testForwardSph);
       CPPUNIT_TEST(testReverseSph);
-      CPPUNIT_TEST(testForwardAnt);
-      CPPUNIT_TEST(testReverseAnt);
+      CPPUNIT_TEST(testForwardAWProject);
+      CPPUNIT_TEST(testReverseAWProject);
       CPPUNIT_TEST(testForwardWProject);
       CPPUNIT_TEST(testReverseWProject);
+      CPPUNIT_TEST(testForwardWStack);
+      CPPUNIT_TEST(testReverseWStack);
+      CPPUNIT_TEST(testForwardAWProject);
+      CPPUNIT_TEST(testReverseAWProject);
+      CPPUNIT_TEST(testForwardAProjectWStack);
+      CPPUNIT_TEST(testReverseAProjectWStack);
       CPPUNIT_TEST_SUITE_END();
 
       private:
         BoxVisGridder *itsBox;
         SphFuncVisGridder *itsSphFunc;
-        //AntennaIllumVisGridder *itsAnt;
+        AWProjectVisGridder *itsAWProject;
         WProjectVisGridder *itsWProject;
+        WStackVisGridder *itsWStack;
+        AProjectWStackVisGridder *itsAProjectWStack;
 
         IDataSharedIter idi;
         Axes* itsAxes;
@@ -67,8 +78,10 @@ namespace conrad
 
           itsBox = new BoxVisGridder();
           itsSphFunc = new SphFuncVisGridder();
-          //itsAnt = new AntennaIllumVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
+          itsAWProject = new AWProjectVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
+          itsAProjectWStack = new AProjectWStackVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
           itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1, 128, "");
+          itsWStack = new WStackVisGridder(10000.0, 8);
 
           double cellSize=10*casa::C::arcsec;
 
@@ -88,7 +101,10 @@ namespace conrad
         {
           delete itsBox;
           delete itsSphFunc;
-          //delete itsAnt;
+          delete itsWProject;
+          delete itsWStack;
+          delete itsAWProject;
+          delete itsAProjectWStack;
           delete itsModel;
           delete itsModelPSF;
           delete itsModelWeights;
@@ -121,22 +137,18 @@ namespace conrad
         	itsSphFunc->initialiseDegrid(*itsAxes, *itsModel);
           itsSphFunc->degrid(idi);
         }
-        void testReverseAnt()
+        void testReverseAWProject()
         {
-	  /*
-          itsAnt->initialiseGrid(*itsAxes, itsModel->shape(), true);
-          itsAnt->grid(idi);
-          itsAnt->finaliseGrid(*itsModel);
-          itsAnt->finalisePSF(*itsModelPSF);
-          itsAnt->finaliseWeights(*itsModelWeights);
-	  */
+          itsAWProject->initialiseGrid(*itsAxes, itsModel->shape(), true);
+          itsAWProject->grid(idi);
+          itsAWProject->finaliseGrid(*itsModel);
+          itsAWProject->finalisePSF(*itsModelPSF);
+          itsAWProject->finaliseWeights(*itsModelWeights);
         }
-        void testForwardAnt()
+        void testForwardAWProject()
         {
-		/*
-        	itsAnt->initialiseDegrid(*itsAxes, *itsModel);
-          itsAnt->degrid(idi);
-	  */
+        	itsAWProject->initialiseDegrid(*itsAxes, *itsModel);
+          itsAWProject->degrid(idi);
         }
         void testReverseWProject()
         {
@@ -150,6 +162,32 @@ namespace conrad
         {
         	itsWProject->initialiseDegrid(*itsAxes, *itsModel);
           itsWProject->degrid(idi);
+        }
+        void testReverseWStack()
+        {
+          itsWStack->initialiseGrid(*itsAxes, itsModel->shape(), true);
+          itsWStack->grid(idi);
+          itsWStack->finaliseGrid(*itsModel);
+          itsWStack->finalisePSF(*itsModelPSF);
+          itsWStack->finaliseWeights(*itsModelWeights);
+        }
+        void testForwardWStack()
+        {
+        	itsWStack->initialiseDegrid(*itsAxes, *itsModel);
+          itsWStack->degrid(idi);
+        }
+        void testReverseAProjectWStack()
+        {
+          itsAProjectWStack->initialiseGrid(*itsAxes, itsModel->shape(), true);
+          itsAProjectWStack->grid(idi);
+          itsAProjectWStack->finaliseGrid(*itsModel);
+          itsAProjectWStack->finalisePSF(*itsModelPSF);
+          itsAProjectWStack->finaliseWeights(*itsModelWeights);
+        }
+        void testForwardAProjectWStack()
+        {
+        	itsAProjectWStack->initialiseDegrid(*itsAxes, *itsModel);
+          itsAProjectWStack->degrid(idi);
         }
     };
 
