@@ -1,6 +1,6 @@
 #include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
-#include <gridding/AntennaIllumVisGridder.h>
+//#include <gridding/AntennaIllumVisGridder.h>
 #include <gridding/WProjectVisGridder.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
@@ -40,7 +40,7 @@ namespace conrad
       private:
         BoxVisGridder *itsBox;
         SphFuncVisGridder *itsSphFunc;
-        AntennaIllumVisGridder *itsAnt;
+        //AntennaIllumVisGridder *itsAnt;
         WProjectVisGridder *itsWProject;
 
         IDataSharedIter idi;
@@ -67,7 +67,7 @@ namespace conrad
 
           itsBox = new BoxVisGridder();
           itsSphFunc = new SphFuncVisGridder();
-          itsAnt = new AntennaIllumVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
+          //itsAnt = new AntennaIllumVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
           itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1, 128, "");
 
           double cellSize=10*casa::C::arcsec;
@@ -88,7 +88,7 @@ namespace conrad
         {
           delete itsBox;
           delete itsSphFunc;
-          delete itsAnt;
+          //delete itsAnt;
           delete itsModel;
           delete itsModelPSF;
           delete itsModelWeights;
@@ -123,16 +123,20 @@ namespace conrad
         }
         void testReverseAnt()
         {
+	  /*
           itsAnt->initialiseGrid(*itsAxes, itsModel->shape(), true);
           itsAnt->grid(idi);
           itsAnt->finaliseGrid(*itsModel);
           itsAnt->finalisePSF(*itsModelPSF);
           itsAnt->finaliseWeights(*itsModelWeights);
+	  */
         }
         void testForwardAnt()
         {
+		/*
         	itsAnt->initialiseDegrid(*itsAxes, *itsModel);
           itsAnt->degrid(idi);
+	  */
         }
         void testReverseWProject()
         {
