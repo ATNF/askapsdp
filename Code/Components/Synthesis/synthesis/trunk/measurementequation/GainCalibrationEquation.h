@@ -80,7 +80,7 @@ protected:
   typedef std::vector<std::pair<casa::Complex, casa::Complex> > GainsCacheType;
 
   // @brief fill the gains cache from parameters
-  // @param[in] a reference to the container to fill with values
+  // @param[in] in a reference to the container to fill with values
   void fillGainsCache(GainsCacheType &in) const;
   
   /// @brief helper method to split parameter string
@@ -153,7 +153,7 @@ template<class T> T fromString(const std::string &str) throw(ConradError) {
 /// @brief helper method to convert any type (e.g. numbers) to a string
 /// @details any type supported by the input stream can be converted
 /// using this method.
-/// @param[in] a const reference to the value to convert
+/// @param[in] in a const reference to the value to convert
 /// @return resulting string
 /// @exception ConradError is thrown if the conversion failed
 template<class T> std::string toString(const T &in) throw(ConradError) {
