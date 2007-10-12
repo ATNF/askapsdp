@@ -79,7 +79,7 @@ namespace conrad
           itsBox = new BoxVisGridder();
           itsSphFunc = new SphFuncVisGridder();
           itsAWProject = new AWProjectVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
-          itsAProjectWStack = new AProjectWStackVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
+          itsAProjectWStack = new AProjectWStackVisGridder(12.0, 1.0, 10000.0, 8, 1, 128, 1);
           itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1, 128, "");
           itsWStack = new WStackVisGridder(10000.0, 8);
 
