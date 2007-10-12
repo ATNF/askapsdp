@@ -190,18 +190,18 @@ namespace conrad
 
 					if (itsSupport==0)
 					{
-					  itsSupport=3+2*nint(casa::sqrt(rmax))/itsOverSample;
+					  itsSupport=1+2*nint(casa::sqrt(rmax))/itsOverSample;
 						CONRADCHECK(itsSupport>0,
 								"Unable to determine support of convolution function");
 						CONRADCHECK(itsSupport*itsOverSample<nx/2,
 								"Overflowing convolution function - increase maxSupport or decrease overSample")
-						  itsCSize=2*itsSupport*itsOverSample+1;
+						  itsCSize=2*(itsSupport+1)*itsOverSample+1;
 						std::cout << "Convolution function support = "<< itsSupport
 						    << " pixels, convolution function size = "<< itsCSize
 						    << " pixels"<< std::endl;
 						std::cout << "Maximum extent = "<< itsSupport*itsOverSample*cell
 						    << " (m) sampled at "<< cell << " (m)"<< std::endl;
-						itsCCenter=itsSupport*itsOverSample;
+						itsCCenter=(itsSupport+1)*itsOverSample;
 						itsConvFunc.resize(itsMaxFeeds*nChan);
 						itsSumWeights.resize(itsMaxFeeds*nChan, itsShape(2), itsShape(3));
 						itsSumWeights.set(0.0);
