@@ -15,6 +15,18 @@ namespace conrad
 	namespace synthesis
 	{
 		/// @brief Visibility gridder using W projection
+		/// @details The visibilities are gridded using a convolution
+		/// function that implements a Fresnel transform. This corrects
+		/// for the w term in the full synthesis measurement equation.
+		///
+		/// The convolution function is calculated straightforwardly
+		/// by constructing an image of the complex w-dependent 
+		/// phasor and Fourier transforming. The calculation is
+		/// done using a coarse but large grid in image space so
+		/// that it is sub-sampled in uv space.
+		///
+		/// The scaling is slow in data points, fast in w planes.
+		///
 		/// @ingroup gridding
 		class WProjectVisGridder : public SphFuncVisGridder
 		{

@@ -140,7 +140,7 @@ namespace conrad
 
 				/// Predict data for current model
 				/// @param ds Data set to predict for
-				void predict(const string& ds);
+				void predict(const std::string& ds);
 
 		};
 

@@ -59,15 +59,15 @@ namespace conrad
 			static casa::Quantity asQuantity(const std::string& s);
 
 			/// @brief Interpret string as an MEpoch
-			/// @param s String to be interpreted
+			/// @param epoch String to be interpreted
 			static casa::MEpoch asMEpoch(const std::vector<std::string>& epoch);
 
 			/// @brief Interpret string as an MDirection
-			/// @param s String to be interpreted 
+			/// @param direction String to be interpreted 
 			static casa::MDirection asMDirection(const std::vector<std::string>& direction);
 
 			/// @brief Interpret string as an MPosition
-			/// @param s String to be interpreted 
+			/// @param position String to be interpreted 
 			static casa::MPosition asMPosition(const std::vector<std::string>& position);
 		};
 

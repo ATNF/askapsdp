@@ -81,7 +81,6 @@ namespace conrad
 #endif
         }        
 
-    		/// Transform first two axes only. No limit on dimensions.
     		void fft2d(casa::Array<casa::Complex>& arr, const bool forward)
     		{
     			/// Make an iterator that returns plane by plane

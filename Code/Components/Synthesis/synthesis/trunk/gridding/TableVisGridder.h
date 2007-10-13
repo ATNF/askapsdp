@@ -4,8 +4,6 @@
 /// and the unimplemented methods provided. In some cases, it may be 
 /// necessary or more efficient to override the provided methods as well.
 ///
-/// The main work in derived classes is to provide the convolution function.
-///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
@@ -31,6 +29,12 @@ namespace conrad
 		/// grids may be for separate pointings, or for separate W planes. The summation
 		/// process may include Fourier transformation.
 		///
+		/// The main work in derived classes is to provide the convolution function
+		/// and stacking operations.
+		///
+		/// The sensitivity will vary as a function of position within the image.
+		/// This is calculated by direct evaluation.
+		///
 		/// @ingroup gridding
 		class TableVisGridder : public IVisGridder
 		{
@@ -49,6 +53,8 @@ namespace conrad
 
 				virtual ~TableVisGridder();
 
+				/// @brief Save to a table (for debugging)
+				/// @param name Name of table
 				void save(const std::string& name);
 
 				/// @brief Initialise the gridding
@@ -70,8 +76,11 @@ namespace conrad
 				/// @param out Output double precision PSF
 				virtual void finalisePSF(casa::Array<double>& out);
 
-				/// Form the sum of the convolution function squared, multiplied by the weights for each
-				/// different convolution function. This is used in the evaluation of the second derivative.
+				/// @brief Calculate weights image
+				/// @details Form the sum of the convolution function squared, 
+				/// multiplied by the weights for each different convolution 
+				/// function. This is used in the evaluation of the position
+				/// dependent sensitivity
 				/// @param out Output double precision sum of weights images
 				virtual void finaliseWeights(casa::Array<double>& out);
 
@@ -99,6 +108,7 @@ namespace conrad
 				/// Do we want a PSF?
 				bool itsDopsf;
 
+				/// Cell sizes in wavelengths
 				casa::Vector<double> itsUVCellSize;
 
 				/// @brief Sum of weights (axes are index, pol, chan) 
@@ -132,6 +142,7 @@ namespace conrad
 				
 				/// The grid is stored as a cube as well so we can index into that as well.
 				std::vector<casa::Array<casa::Complex> > itsGrid;
+				/// Grid for PSF
 				std::vector<casa::Array<casa::Complex> > itsGridPSF;
 
 				/// Return the index into the grid for a given

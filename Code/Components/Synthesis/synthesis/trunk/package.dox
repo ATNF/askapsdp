@@ -3,9 +3,9 @@
 /// @defgroup dataaccess_tm Data access subpackage - table management
 /// @defgroup dataaccess_tab Data access subpackage - table-based implementation
 /// @defgroup dataaccess_hlp Data access subpackage - helper and debug classes
-/// @defgroup measurementequation Measurement equation implementation
+/// @defgroup measurementequation Measurement equations
 /// @defgroup gridding Gridding algorithms
-/// @defgroup parallel Support for writing parallel applications
+/// @defgroup parallel Parallel application support
 /// @defgroup fft FFT interfaces
 /// @defgroup simulation Data simulation
 
@@ -17,7 +17,7 @@ namespace conrad::synthesis {};
 /// @section Introduction
 /// The synthesis package supports processing of radio synthesis observations,
 /// including calibration, editing, and imaging. The emphasis is on the
-/// processing of MIRANdA and KAT scale data sets i.e. TBs per hour.
+/// processing of ASKAP and KAT scale data sets i.e. TBs per hour.
 ///
 /// @section Assumptions and goals
 ///
@@ -28,7 +28,7 @@ namespace conrad::synthesis {};
 ///
 /// The synthesis package itself is designed to run in one process. 
 /// We envisage that OpenMP-type multi-threading may be supported by
-/// specialise versions of some of the classes in this package. 
+/// specialised versions of some of the classes in this package. 
 /// Message passing parallel execution is supported in the 
 /// @ref parallel classes and in the @ref calim package.
 ///

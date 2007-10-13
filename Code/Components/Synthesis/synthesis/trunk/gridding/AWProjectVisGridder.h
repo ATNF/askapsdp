@@ -17,14 +17,22 @@ namespace conrad
 	{
 		/// @brief Gridder that is appropriate for mosaicing. 
 		///
-		/// @details The antenna primary beam is used for gridding, though we actually 
-		/// work from the illumination pattern since it is better behaved.
+		/// @details The visibilities are gridded using a convolution
+		/// function derived from the antenna illumination pattern,
+		/// appropriately shifted in position for each feed, and
+		/// incorporating the Fresnel term needed to correct for the
+		/// w-term in the full measurement equation.
+		///
+		/// The scaling is slow in data points, slow in w planes 
+		/// (since the calculation of the convolution function
+		/// usually dominates).
+		///
 		/// @ingroup gridding
 		class AWProjectVisGridder : public WProjectVisGridder
 		{
 			public:
 
-				/// @brief Construct antenna illumination pattern gridder
+				/// @brief Construct antenna illumination pattern/W term gridder
 				/// @param diameter Antenna diameter (meters)
 				/// @param blockage Antenna blockage (meters)
 				/// @param wmax Maximum baseline (wavelengths)

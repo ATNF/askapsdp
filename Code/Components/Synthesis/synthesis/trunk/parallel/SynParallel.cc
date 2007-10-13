@@ -87,7 +87,7 @@ namespace conrad
 		{
 			if (isParallel())
 			{
-				os() << "Exiting MPI"<< std::endl;
+				std::cout << "Exiting MPI"<< std::endl;
 				MPIConnection::endMPI();
 			}
 		}

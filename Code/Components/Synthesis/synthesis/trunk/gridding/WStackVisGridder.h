@@ -14,7 +14,16 @@ namespace conrad
 {
 	namespace synthesis
 	{
-		/// @brief Visibility gridder using W projection
+		/// @brief Visibility gridder using W stacking
+		/// @details The visibilities are gridded using a convolution
+		/// function of compact support - actually a spheroidal function.
+		/// To correct for the w term in the full synthesis measurement equation 
+		/// the data are first partitioned in w and then gridded onto separate
+		/// planes. At the end, all planes are Fourier transformed and stacked
+		/// after multiplication by the w-dependent complex phasor image.
+		///
+		/// The scaling is fast in data points, slow in w planes.
+		///
 		/// @ingroup gridding
 		class WStackVisGridder : public SphFuncVisGridder
 		{
@@ -57,7 +66,7 @@ namespace conrad
 
 				/// Offset into grid
 				/// @param row Row number
-				/// @param row Polarisation
+				/// @param pol Polarisation
 				/// @param chan Channel number
 				virtual int gIndex(int row, int pol, int chan);
 

@@ -17,8 +17,17 @@ namespace conrad
 	{
 		/// @brief Gridder that is appropriate for mosaicing. 
 		///
-		/// @details The antenna primary beam is used for gridding, though we actually 
-		/// work from the illumination pattern since it is better behaved.
+		/// @details The visibilities are gridded using a convolution
+		/// function derived from the antenna illumination pattern, 
+		/// appropriately shifted in position for each feed.
+		///
+		/// To correct for the w term in the full synthesis measurement equation 
+		/// the data are first partitioned in w and then gridded onto separate
+		/// planes. At the end, all planes are Fourier transformed and stacked
+		/// after multiplication by the w-dependent complex phasor image.
+		///
+		/// The scaling is fast in data points, slow in w planes.
+		///
 		/// @ingroup gridding
 		class AProjectWStackVisGridder : public WStackVisGridder
 		{
