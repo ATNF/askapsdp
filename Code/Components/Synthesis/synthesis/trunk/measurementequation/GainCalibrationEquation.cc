@@ -173,15 +173,15 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
       }                              
   }
   //
-  //std::cout<<derivatives.xyPlane(0)<<std::endl;
+  //std::cout<<derivatives.xyPlane(1).column(1)<<std::endl;
   DesignMatrix designmatrix(*tempParams);
   tempParams.reset();
   CONRADDEBUGASSERT(itsNameCache.size() >= gains.size());
   for (casa::uInt ant = 0; ant<gains.size(); ++ant) {
-       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(0))<<std::endl;
-       designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant).column(0));
+       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(1))<<std::endl;
+       designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant));
        if (nPol>1) {
-           designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant).column(1));
+           designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant));
        }
   }
   designmatrix.addResidual(residual,casa::Vector<double>(residual.size(),1.));
@@ -231,15 +231,7 @@ void GainCalibrationEquation::fillGainsCache(GainsCacheType &in) const
                CONRADTHROW(ConradError, "Parameter gain"<<*it<<" has incorrect antenna ID ("<<
                           parString[1]<<")");    
            }
-           casa::Complex gain(0.,0.);
-           if (parameters().isScalar("gain"+*it)) {
-               gain = parameters().scalarValue("gain"+*it);
-           } else {
-               const casa::Array<double> &gains = parameters().value("gain"+*it);
-               gain = casa::Complex(gains(casa::IPosition(1,0)),
-                                    gains(casa::IPosition(1,1)));
-           }
-           
+           casa::Complex gain = parameters().complexValue("gain"+*it);
            CONRADDEBUGASSERT(antID<in.size());
            CONRADDEBUGASSERT(antID<itsNameCache.size());
            
