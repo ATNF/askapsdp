@@ -430,50 +430,53 @@ namespace conrad
 		void AWProjectVisGridder::findCollimation(IDataSharedIter& idi,
 		    casa::Matrix<double>& slope)
 		{
-			casa::Quantum<double>refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
-			    "rad");
-			casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC"))
-			    /2.0, "rad");
-			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
-			const int nSamples = idi->uvw().size();
-			slope.resize(2, itsMaxFeeds);
-			slope.set(0.0);
-			casa::Vector<bool> done(itsMaxFeeds);
-			done.set(false);
+      casa::Quantum<double>refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
+          "rad");
+      casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC"))
+          /2.0, "rad");
+      casa::Quantum<double> negRefLon(-(itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
+          "rad");
+      casa::Quantum<double> negRefLat(-(itsAxes.start("DEC")+itsAxes.end("DEC"))
+          /2.0, "rad");
+      //			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
+      casa::MVDirection out(refLon, refLat);
+      casa::MVDirection negOut(negRefLon, negRefLat);
+      const int nSamples = idi->uvw().size();
+      slope.resize(2, itsMaxFeeds);
+      slope.set(0.0);
+      casa::Vector<bool> done(itsMaxFeeds);
+      done.set(false);
 
-			/// @todo Deal with changing pointing
-			casa::Vector<double> uvw(3);
-			int nDone=0;
-			for (int row=0; row<nSamples; row++)
-			{
-				double delay;
-				int feed=idi->feed1()(row);
-				CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
-				if (!done(feed))
-				{
-				  casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
-				  casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-				  std::cout << "Feed " << feed << " points at Right Ascension ";
-				  std::cout << mvLong.string(casa::MVAngle::TIME, 8) << ", Declination ";
-				  std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
-				  std::cout << " (J2000)" << std::endl;
+      /// @todo Deal with changing pointing
+      casa::Vector<double> uvw(3);
+      int nDone=0;
+      for (int row=0; row<nSamples; row++)
+      {
+        int feed=idi->feed1()(row);
+        CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
+        if (!done(feed))
+        {
+          casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
+          casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
+          std::cout << "Feed "<< feed << " points at Right Ascension ";
+          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
+          << ", Declination ";
+          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
+          std::cout << " (J2000)";
+          casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
+          offset.shift(negOut);
+          slope(0,feed)=offset.get()(0)*cos(refLat.getValue());
+          slope(1,feed)=offset.get()(1);
+          std::cout << ", offset by " << 180.0*slope(0,feed)/casa::C::pi << " "
+          << 180.0*slope(1,feed)/casa::C::pi << " degrees" << std::endl;
 
-					casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
-					for (int i=0; i<2; i++)
-					{
-						uvw.set(0.0);
-						uvw(i)=1.0;
-						machine.convertUVW(delay, uvw);
-						slope(i, feed)=delay;
-					}
-					done(feed)=true;
-					nDone++;
-					if (nDone==itsMaxFeeds)
-						break;
-				}
-			}
-			CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
+          done(feed)=true;
+          nDone++;
+          if (nDone==itsMaxFeeds)
+          break;
+        }
+      }
+      CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
 		}
-
 	}
 }
