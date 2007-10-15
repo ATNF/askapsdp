@@ -134,21 +134,20 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             const casa::Complex g1 = pol ? gains[ant1].second : gains[ant1].first;
             // gains for antenna 2, polarisation pol
             const casa::Complex g2 = pol ? gains[ant2].second : gains[ant2].first;
-            
             // there is probably an unnecessary copying in the following code,
             // but we leave it as it is for now. I have a feeling that this
             // part has to be redesigned to have a faster and more readable code
             casa::Vector<casa::Complex> buf = modelVis.xyPlane(pol).row(row)*
-                casa::Complex(0.,imag(g1))*conj(g2);
+                                              conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,0,ant1), 
                                IPosition(3,offset+nDataPerPol-1,0,ant1)));
-            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(real(g1))*conj(g2);
+            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,1.)*conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,1,ant1), 
                                IPosition(3,offset+nDataPerPol-1,1,ant1)));
-            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,-imag(g2))*g1;
+            buf = modelVis.xyPlane(pol).row(row)*g1;
             copyVector(buf, derivatives(IPosition(3,offset,0,ant2), 
                                IPosition(3,offset+nDataPerPol-1,0,ant2)));
-            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(real(g2))*g1;
+            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,-1.)*g1;
             copyVector(buf, derivatives(IPosition(3,offset,1,ant2), 
                                IPosition(3,offset+nDataPerPol-1,1,ant2)));                    
             buf = modelVis.xyPlane(pol).row(row)*conj(g2)*g1;
@@ -156,7 +155,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                  residual(IPosition(1,offset),IPosition(1,offset+nDataPerPol-1)));
             subtractVector(buf, residual(IPosition(1,offset),
                            IPosition(1,offset+nDataPerPol-1)));           
-       }   
+       }  
   }
   // we need to remove all unused parameters before creating a design matrix
   scimath::Params::ShPtr tempParams(parameters().clone());
@@ -174,11 +173,12 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
       }                              
   }
   //
+  //std::cout<<derivatives.xyPlane(0)<<std::endl;
   DesignMatrix designmatrix(*tempParams);
   tempParams.reset();
   CONRADDEBUGASSERT(itsNameCache.size() >= gains.size());
   for (casa::uInt ant = 0; ant<gains.size(); ++ant) {
-       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<gains.size()<<std::endl;
+       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(0))<<std::endl;
        designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant).column(0));
        if (nPol>1) {
            designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant).column(1));

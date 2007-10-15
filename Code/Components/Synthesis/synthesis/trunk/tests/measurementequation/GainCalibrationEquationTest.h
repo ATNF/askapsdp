@@ -85,17 +85,32 @@ namespace conrad
         {
           // Predict with the "perfect" parameters"
           eq1->predict();
-          //std::cout<<*params1<<std::endl;
           // Calculate gradients using "imperfect" parameters"
           NormalEquations ne(*params2);
           eq2->calcEquations(ne);
-          /*
           Quality q;
           LinearSolver solver1(*params2);
           solver1.addNormalEquations(ne);
           solver1.setAlgorithm("SVD");
           solver1.solveNormalEquations(q);  
-          */
+          
+          // checking that solved gains should be close to 1 for g11 
+          // and to 0.9 for g22 (we don't have data to solve for the second
+          // polarisation, so it should be left unchanged)
+          CONRADASSERT(params2);
+          std::vector<std::string> completions(params2->completions("gain"));
+          for (std::vector<std::string>::const_iterator it=completions.begin();
+                                                it!=completions.end();++it)  {
+               const std::string parname = "gain"+*it;                                 
+               if (it->find(".g11") == 0) {
+                   CPPUNIT_ASSERT(fabs(params2->scalarValue(parname)-1.0)<0.7);
+               } else if (it->find(".g22") == 0) {
+                   CPPUNIT_ASSERT(fabs(params2->scalarValue(parname)-0.9)<1e-5);
+               } else {
+                 CONRADTHROW(ConradError, "an invalid gain parameter "<<parname<<" has been detected");
+               }
+          }
+          //std::cout<<*params2<<std::endl;
         }
       
     };
