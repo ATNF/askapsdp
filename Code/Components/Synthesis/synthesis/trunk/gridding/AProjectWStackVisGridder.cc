@@ -358,18 +358,14 @@ namespace conrad
 					          "rad");
 			          casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC"))
 					          /2.0, "rad");
-			          casa::Quantum<double> negRefLon(-(itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
-					          "rad");
-			          casa::Quantum<double> negRefLat(-(itsAxes.start("DEC")+itsAxes.end("DEC"))
-					          /2.0, "rad");
-			          //			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
 			          casa::MVDirection out(refLon, refLat);
-			          casa::MVDirection negOut(negRefLon, negRefLat);
 			          const int nSamples = idi->uvw().size();
 			          slope.resize(2, itsMaxFeeds);
 			          slope.set(0.0);
 			          casa::Vector<bool> done(itsMaxFeeds);
 			          done.set(false);
+
+			          // exact formulae for l and m 
 
 			          /// @todo Deal with changing pointing
 			          casa::Vector<double> uvw(3);
@@ -388,9 +384,9 @@ namespace conrad
 					          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
 					          std::cout << " (J2000)";
 					          casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
-					          offset.shift(negOut);
-					          slope(0,feed)=offset.get()(0)*cos(refLat.getValue());
-					          slope(1,feed)=offset.get()(1);
+					          slope(0,feed)=sin(offset.getLong()-out.getLong())*cos(offset.getLat()); 
+					          slope(1,feed)=sin(offset.getLat())*cos(out.getLat())- 
+					                  cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()-out.getLong());
 					          std::cout << ", offset by " << 180.0*slope(0,feed)/casa::C::pi << " "
 					          << 180.0*slope(1,feed)/casa::C::pi << " degrees" << std::endl;
 

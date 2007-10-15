@@ -261,16 +261,16 @@ namespace conrad
 								}
 							}
 							CONRADCHECK(itsSupport>0,
-								    "Unable to determine support of convolution function");
+									"Unable to determine support of convolution function");
 							CONRADCHECK(itsSupport*itsOverSample<nx/2,
-								    "Overflowing convolution function - increase maxSupport or decrease overSample")
+									"Overflowing convolution function - increase maxSupport or decrease overSample")
 							itsCSize=2*(itsSupport+1)*itsOverSample;
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
 							std::cout << "Maximum extent = "<< 2*itsSupport*cell
-								  << " (m) sampled at "<< cell/itsOverSample 
-								  << " (m)"<< std::endl;
+							    << " (m) sampled at "<< cell/itsOverSample << " (m)"
+							    << std::endl;
 							itsCCenter=itsCSize/2-1;
 							itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
 							itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
@@ -308,7 +308,7 @@ namespace conrad
 		void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
 		{
 
-		  std::cout << "Calculating sum of weights image" << std::endl;
+			std::cout << "Calculating sum of weights image" << std::endl;
 
 			int nx=itsShape(0);
 			int ny=itsShape(1);
@@ -343,8 +343,8 @@ namespace conrad
 				{
 					for (int ix=-itsSupport; ix<+itsSupport; ix++)
 					{
-						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample+itsCCenter,
-											      iy*itsOverSample+itsCCenter);
+						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample
+						    +itsCCenter, iy*itsOverSample+itsCCenter);
 					}
 				}
 
@@ -357,15 +357,16 @@ namespace conrad
 				{
 					for (int pol=0; pol<nPol; pol++)
 					{
-					  casa::IPosition ip(4, 0, 0, pol, chan);
-					  double wt=itsSumWeights(iz, pol, chan);
+						casa::IPosition ip(4, 0, 0, pol, chan);
+						double wt=itsSumWeights(iz, pol, chan);
 						for (int ix=0; ix<cnx; ix++)
 						{
-						  ip(0)=ix;
+							ip(0)=ix;
 							for (int iy=0; iy<cny; iy++)
 							{
-							  ip(1)=iy;
-								cOut(ip)+=wt*casa::real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
+								ip(1)=iy;
+								cOut(ip)+=wt*casa::real(thisPlane(ix, iy)
+								    *conj(thisPlane(ix, iy)));
 							}
 						}
 					}
@@ -430,53 +431,54 @@ namespace conrad
 		void AWProjectVisGridder::findCollimation(IDataSharedIter& idi,
 		    casa::Matrix<double>& slope)
 		{
-      casa::Quantum<double>refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
-          "rad");
-      casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC"))
-          /2.0, "rad");
-      casa::Quantum<double> negRefLon(-(itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
-          "rad");
-      casa::Quantum<double> negRefLat(-(itsAxes.start("DEC")+itsAxes.end("DEC"))
-          /2.0, "rad");
-      //			casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
-      casa::MVDirection out(refLon, refLat);
-      casa::MVDirection negOut(negRefLon, negRefLat);
-      const int nSamples = idi->uvw().size();
-      slope.resize(2, itsMaxFeeds);
-      slope.set(0.0);
-      casa::Vector<bool> done(itsMaxFeeds);
-      done.set(false);
+			casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
+			    "rad");
+			casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC"))
+			    /2.0, "rad");
+			casa::MVDirection out(refLon, refLat);
+			const int nSamples = idi->uvw().size();
+			slope.resize(2, itsMaxFeeds);
+			slope.set(0.0);
+			casa::Vector<bool> done(itsMaxFeeds);
+			done.set(false);
 
-      /// @todo Deal with changing pointing
-      casa::Vector<double> uvw(3);
-      int nDone=0;
-      for (int row=0; row<nSamples; row++)
-      {
-        int feed=idi->feed1()(row);
-        CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
-        if (!done(feed))
-        {
-          casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
-          casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-          std::cout << "Feed "<< feed << " points at Right Ascension ";
-          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
-          << ", Declination ";
-          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
-          std::cout << " (J2000)";
-          casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
-          offset.shift(negOut);
-          slope(0,feed)=offset.get()(0)*cos(refLat.getValue());
-          slope(1,feed)=offset.get()(1);
-          std::cout << ", offset by " << 180.0*slope(0,feed)/casa::C::pi << " "
-          << 180.0*slope(1,feed)/casa::C::pi << " degrees" << std::endl;
+			// exact formulae for l and m 
 
-          done(feed)=true;
-          nDone++;
-          if (nDone==itsMaxFeeds)
-          break;
-        }
-      }
-      CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
+			/// @todo Deal with changing pointing
+			casa::Vector<double> uvw(3);
+			int nDone=0;
+			for (int row=0; row<nSamples; row++)
+			{
+				int feed=idi->feed1()(row);
+				CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
+				if (!done(feed))
+				{
+					casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
+					casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
+					std::cout << "Feed "<< feed << " points at Right Ascension ";
+					std::cout << mvLong.string(casa::MVAngle::TIME, 8)
+					    << ", Declination ";
+					std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
+					std::cout << " (J2000)";
+					casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
+					slope(0, feed)=sin(offset.getLong()-out.getLong())
+					    *cos(offset.getLat());
+					slope(1, feed)=sin(offset.getLat())*cos(out.getLat())
+					    - cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()
+					        -out.getLong());
+					std::cout << ", offset by " << 180.0*slope(0, feed)/casa::C::pi
+					    << " " << 180.0*slope(1, feed)/casa::C::pi << " degrees"
+					    << std::endl;
+
+					done(feed)=true;
+					nDone++;
+					if (nDone==itsMaxFeeds)
+						break;
+				}
+			}
+			CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
 		}
+
 	}
+
 }
