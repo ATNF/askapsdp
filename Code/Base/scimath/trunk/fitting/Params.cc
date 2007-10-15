@@ -107,6 +107,21 @@ namespace conrad
 			itsAxes[name]=axes;
 			itsCounts[name]=0;
 		}
+		
+		/// @brief add a complex-valued parameter
+        /// @details This method is a convenient way to add parameters, which
+        /// are complex numbers. It is equivalent to adding of an array of size
+        /// 2 filled with real and imaginary part.
+        /// @param[in] name parameter name
+        /// @param[in] value a value of the parameter to be added
+        void Params::add(const std::string &name, const casa::Complex &value)
+        {
+            casa::Array<double> buf(casa::IPosition(1,2));
+            buf(casa::IPosition(1,0)) = real(value);
+            buf(casa::IPosition(1,1)) = imag(value);
+            add(name,buf);
+        }
+		
 
 		void Params::add(const std::string& name, const double ip, const Axes& axes)
 		{
@@ -173,6 +188,30 @@ namespace conrad
 			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
 			CONRADCHECK(isScalar(name), "Parameter " + name + " is not scalar");
 			return value(name)(casa::IPosition(1,0));
+		}
+		
+		/// @brief Return the value for the complex-valued parameter (const)
+        /// @details Any scalar parameter or generic array-valued parameter with the
+        /// shape [2] can be retreived into a complex number. Two numbers
+        /// are interpreted as real and imaginary part of the complex value. If only
+        /// one number is available, it is assumed to be a real part, with the imaginary
+        /// part being zero.
+        /// @note This method throws invalud_argument if the parameter shape is 
+        /// incompatible.
+        /// @param[in] name Name of the parameter
+        /// @return value of the parameter
+        casa::Complex Params::complexValue(const std::string &name) const
+		{
+		    CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			const casa::Array<double> &arrVal = value(name);
+			CONRADCHECK(arrVal.nelements() != 0 && arrVal.nelements()<3 &&
+			            arrVal.ndim() ==1, "Parameter " + name + 
+			            " cannot be converted to a complex number");
+			if (arrVal.nelements() == 1) {
+			    return arrVal(casa::IPosition(1,0));
+			} 
+			return casa::Complex(arrVal(casa::IPosition(1,0)), 
+			                     arrVal(casa::IPosition(1,1))); 
 		}
 
 		const Axes& Params::axes(const std::string& name) const
