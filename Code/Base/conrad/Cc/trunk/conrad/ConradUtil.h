@@ -8,10 +8,15 @@
 #ifndef CONRAD_UTIL_H
 #define CONRAD_UTIL_H
 
+#include <conrad/ConradError.h>
+
+
 #include <ostream>
 #include <string>
 #include <vector>
 #include <list>
+#include <sstream>
+
 
 namespace conrad {
 
@@ -48,6 +53,50 @@ namespace conrad {
     }
     os << postfix;
   }
+
+/// a number of helper functions are gathered in this namespace
+namespace utility {
+
+// comments from Max Voronkov:
+// probably something like this exists somewhere in the Blob support.
+// I grabbed this code from one of my old programs to speed up the development.
+// It sat for a while inside GainCalibrationEquation, but now I need it in
+// other unrelated classes, so the code has been moved here.
+// If the appropriate code existing somewhere else in conrad,
+// we can switch to use that code instead. 
+
+/// @brief helper method to interpret string
+/// @details any type supported by the input stream can be converted
+/// using this method (e.g. string to numbers)
+/// @param[in] str input string
+/// @return result of the conversion
+/// @exception ConradError is thrown if the conversion failed
+template<class T> T fromString(const std::string &str) throw(ConradError) {
+         std::istringstream is(str);
+         T buf;
+         is>>buf;
+         if (!is) {
+             CONRADTHROW(ConradError, "Unable to convert "<<str);
+         } 
+         return buf;
+}
+
+/// @brief helper method to convert any type (e.g. numbers) to a string
+/// @details any type supported by the input stream can be converted
+/// using this method.
+/// @param[in] in a const reference to the value to convert
+/// @return resulting string
+/// @exception ConradError is thrown if the conversion failed
+template<class T> std::string toString(const T &in) throw(ConradError) {
+         std::ostringstream os;
+         os<<in;
+         if (!os) {
+             CONRADTHROW(ConradError, "Unable to convert "<<in<<" to string");
+         }
+         return os.str();
+}
+
+} // namespace utility
 
 
 } // end namespace conrad
