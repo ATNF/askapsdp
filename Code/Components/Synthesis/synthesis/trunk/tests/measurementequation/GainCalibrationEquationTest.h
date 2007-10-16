@@ -21,6 +21,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <conrad/ConradError.h>
+#include <conrad/ConradUtil.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -105,7 +106,7 @@ namespace conrad
           for (std::vector<std::string>::const_iterator it=completions.begin();
                                                 it!=completions.end();++it)  {
                const std::string parname = "gain"+*it;                                 
-               //std::cout<<parname<<" "<<params2->complexValue(parname)<<std::endl;
+               std::cout<<parname<<" "<<params2->complexValue(parname)<<std::endl;
                if (!params2->isScalar(parname)) continue; // temporary
                
                if (it->find(".g11") == 0) {

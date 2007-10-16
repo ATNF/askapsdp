@@ -126,48 +126,6 @@ private:
 };
 
 
-/// a number of helper functions are gathered in this namespace
-namespace utility {
-
-// probably something like this exists somewhere in the Blob support.
-// I grabbed this code from one of my old programs to speed up the development.
-// If the appropriate code existing somewhere else in conrad is structured out
-// we can move to use it instead. 
-
-/// @brief helper method to interpret string
-/// @details any type supported by the input stream can be converted
-/// using this method (e.g. string to numbers)
-/// @param[in] str input string
-/// @return result of the conversion
-/// @exception ConradError is thrown if the conversion failed
-template<class T> T fromString(const std::string &str) throw(ConradError) {
-         std::istringstream is(str);
-         T buf;
-         is>>buf;
-         if (!is) {
-             CONRADTHROW(ConradError, "Unable to convert "<<str);
-         } 
-         return buf;
-}
-
-/// @brief helper method to convert any type (e.g. numbers) to a string
-/// @details any type supported by the input stream can be converted
-/// using this method.
-/// @param[in] in a const reference to the value to convert
-/// @return resulting string
-/// @exception ConradError is thrown if the conversion failed
-template<class T> std::string toString(const T &in) throw(ConradError) {
-         std::ostringstream os;
-         os<<in;
-         if (!os) {
-             CONRADTHROW(ConradError, "Unable to convert "<<in<<" to string");
-         }
-         return os.str();
-}
-
-} // namespace utility
-
-
 } // namespace synthesis
 
 } // namespace conrad

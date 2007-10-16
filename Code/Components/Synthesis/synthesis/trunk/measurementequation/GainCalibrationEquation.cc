@@ -12,6 +12,7 @@
 // own includes
 #include <measurementequation/GainCalibrationEquation.h>
 #include <conrad/ConradError.h>
+#include <conrad/ConradUtil.h>
 #include <dataaccess/MemBufferDataAccessor.h>
 #include <measurementequation/VectorOperations.h>
 #include <fitting/NormalEquations.h>
@@ -141,13 +142,13 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                                               conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,0,ant1), 
                                IPosition(3,offset+nDataPerPol-1,0,ant1)));
-            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,1.)*conj(g2);
+            buf = casa::Complex(0.,0.)*modelVis.xyPlane(pol).row(row)*casa::Complex(0.,1.)*conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,1,ant1), 
                                IPosition(3,offset+nDataPerPol-1,1,ant1)));
             buf = modelVis.xyPlane(pol).row(row)*g1;
             copyVector(buf, derivatives(IPosition(3,offset,0,ant2), 
                                IPosition(3,offset+nDataPerPol-1,0,ant2)));
-            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,-1.)*g1;
+            buf = casa::Complex(0.,0.)*modelVis.xyPlane(pol).row(row)*casa::Complex(0.,-1.)*g1;
             copyVector(buf, derivatives(IPosition(3,offset,1,ant2), 
                                IPosition(3,offset+nDataPerPol-1,1,ant2)));                    
             buf = modelVis.xyPlane(pol).row(row)*conj(g2)*g1;
@@ -173,12 +174,12 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
       }                              
   }
   //
-  //std::cout<<derivatives.xyPlane(1).column(1)<<std::endl;
+  //std::cout<<derivatives.xyPlane(0).column(0)<<std::endl;
   DesignMatrix designmatrix(*tempParams);
   tempParams.reset();
   CONRADDEBUGASSERT(itsNameCache.size() >= gains.size());
   for (casa::uInt ant = 0; ant<gains.size(); ++ant) {
-       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(1))<<std::endl;
+       std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(1))<<std::endl;
        designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant));
        if (nPol>1) {
            designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant));
