@@ -121,11 +121,13 @@ namespace conrad
 
           Quality q;
           solver.setAlgorithm("SVD");
-//          std::cout << "Before " << solver.parameters().value("poly") << std::endl;
+          //std::cout << "Before " << solver.parameters().value("poly") << std::endl;
           solver.solveNormalEquations(q);
-//          std::cout << "After  " << solver.parameters().value("poly") << std::endl;
+          //std::cout << "After  " << solver.parameters().value("poly") << std::endl;
           //std::cout << q << std::endl;
           CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
+          const casa::Vector<double> result = solver.parameters().value("poly");
+          CPPUNIT_ASSERT(fabs(result[0]-1.)<1e-5 && fabs(result[1]-2.)<1e-5 && fabs(result[2]-3.)<1e-5);
         }
         
         void testSolutionNEChol()
