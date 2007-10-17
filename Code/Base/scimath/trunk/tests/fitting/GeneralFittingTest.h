@@ -10,12 +10,16 @@
 #ifndef GENERAL_FITTING_TEST_H
 #define GENERAL_FITTING_TEST_H
 
-#include <fitting/LinearSolver.h>
 
-#include <cppunit/extensions/HelperMacros.h>
+#include <casa/Arrays/Cube.h>
+#include <casa/Arrays/Matrix.h>
+
+#include <fitting/LinearSolver.h>
 
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
+
+#include <cppunit/extensions/HelperMacros.h>
 
 #include <cmath>
 
@@ -31,6 +35,7 @@ namespace scimath
 
      CPPUNIT_TEST_SUITE(GeneralFittingTest);
      CPPUNIT_TEST(testRealEquation);
+     CPPUNIT_TEST(testComplexEquation);
      CPPUNIT_TEST_SUITE_END();
 
   public:
@@ -67,7 +72,82 @@ namespace scimath
          }     
      }
      
+     void testComplexEquation() {
+         const double trueGainsReal[] = {0.9,1.1,1.2,0.6,1.3,1.05}; 
+         const double trueGainsImag[] = {0.1,-0.1,0.,0.1,-0.1,0.}; 
+         
+         createParams(makeComplex(&trueGainsReal[0], &trueGainsImag[0]), 
+                      itsTrueGains);
+         predictComplex();
+         const double guessedGainsReal[] = {1.,1.,1.,1.,1.,1.};
+         const double guessedGainsImag[] = {0.,0.,0.,0.,0.,0.};
+         //createParams(makeComplex(&trueGainsReal[0], &trueGainsImag[0]), 
+         //             itsGuessedGains);
+         createParams(makeComplex(&guessedGainsReal[0], &guessedGainsImag[0]),
+                      itsGuessedGains);
+         for (size_t iteration=0; iteration<1; ++iteration) {
+              NormalEquations ne(itsGuessedGains);
+              calcEquationsComplex(ne);
+              Quality q;
+              LinearSolver solver(itsGuessedGains);
+              solver.addNormalEquations(ne);
+              solver.setAlgorithm("SVD");
+              solver.solveNormalEquations(q);
+              //std::cout<<q<<std::endl;
+         }  
+         /*
+         for (casa::uInt ant=0;ant<itsNAnt;++ant) {
+              CPPUNIT_ASSERT(abs(itsGuessedGains.scalarValue(parName(ant))-
+                                 trueGains[ant])<0.05);
+         } 
+         */    
+         //std::cout<<itsGuessedGains<<std::endl;
+     }
   protected:
+     /// @brief a helper class to get complex sequence from two real sequences.
+     /// @details This helper class acts as an iterator over a complex-valued
+     /// sequence. It is initialized with two iterators over two real-valued
+     /// sequences, which represent real and imaginary part of the output,
+     /// respectively. No boundary checks are done.
+     template<typename RealIter, typename ImagIter>
+     struct ComplexSequenceIterator {
+         /// @brief constructor - remembers iterators
+         /// @param[in] ri real part iterator
+         /// @param[in] ii imaginary part iterator 
+         ComplexSequenceIterator(const RealIter &ri, const ImagIter &ii) :
+                  itsRealIter(ri), itsImagIter(ii) {}
+         
+         /// @brief read-only access method (enough for now)
+         /// @return a reference to current element
+         casa::Complex operator*() const {
+             return casa::Complex(*itsRealIter,*itsImagIter);
+         }
+         
+         /// @brief advance operator
+         /// @return reference to itself
+         ComplexSequenceIterator& operator++() {
+             ++itsRealIter; ++itsImagIter;
+             return *this;
+         }
+     private:
+         /// @brief real part iterator
+         RealIter itsRealIter;
+         /// @brief imaginary part iterator
+         ImagIter itsImagIter;
+     }; 
+     
+     /// @brief helper function to create complex sequence iterator
+     /// @details This is necessary to avoid specifying template arguments
+     /// all the time. These types will be deduced from the method's
+     /// arguments types.
+     /// @param[in] ri real part iterator
+     /// @param[in] ii imaginary part iterator
+     template<typename RealIter, typename ImagIter>
+     static ComplexSequenceIterator<RealIter, ImagIter> makeComplex(const RealIter &ri,
+              const ImagIter &ii) {
+        return ComplexSequenceIterator<RealIter,ImagIter>(ri,ii);
+     }
+  
      /// @brief create parameter object from a sequence of values
      /// @details This method reads itsNAnt elements from the specified
      /// sequence (general iterator semantics) and packs them into 
@@ -149,14 +229,74 @@ namespace scimath
          ne.add(designMatrix);
      }
        
+     /// @brief predict products from itsTrueGains
+     /// @details This variant implements equation working with
+     /// complex gains. Predicted values are stored in itsComplexMeasuredValues
+     void predictComplex() {
+         itsComplexMeasuredValues.resize(itsBaselines.size());
+         for (size_t baseline=0; baseline<itsBaselines.size(); ++baseline) {
+               itsComplexMeasuredValues[baseline] = 
+                  itsTrueGains.complexValue(parName(itsBaselines[baseline].first))*
+                  conj(itsTrueGains.complexValue(parName(itsBaselines[baseline].second)));
+         }
+     }
+
+     /// @brief calculate normal equations at itsGuessedGains
+     /// @details This variant calculates normal equations for the case
+     /// of complex-valued gains (i.e. amplitudes and phases) 
+     /// @param[in] ne a reference to normal equations object
+     void calcEquationsComplex(NormalEquations &ne) {
+         CONRADASSERT(itsBaselines.size() == itsComplexMeasuredValues.size());
+         
+         // the first axis has double length because each pair of consequitive
+         // elements corresponds to real and imaginary part of the complex-valued
+         // gradient. The second axis distinguishes between derivatives by
+         // real part and derivatives by imaginary part of the appropriate 
+         // gain coefficient.
+         casa::Cube<double> derivatives(itsBaselines.size()*2,2,itsNAnt,0.);
+         casa::Vector<double> residual(itsBaselines.size()*2);
+         for (size_t baseline=0; baseline<itsBaselines.size(); ++baseline) {
+              CONRADASSERT(itsBaselines[baseline].first<itsNAnt);
+              CONRADASSERT(itsBaselines[baseline].second<itsNAnt);
+              casa::Complex g2 = itsGuessedGains.complexValue(parName(
+                                        itsBaselines[baseline].second));
+              casa::Complex g1 = itsGuessedGains.complexValue(parName(
+                                        itsBaselines[baseline].first));
+              // d/dRe(g1)=conj(g2)
+              derivatives(baseline*2,0,itsBaselines[baseline].first) = real(g2);
+              derivatives(baseline*2+1,0,itsBaselines[baseline].first) = -imag(g2);
+              // d/dIm(g1)=i*conj(g2)
+              derivatives(baseline*2,1,itsBaselines[baseline].first) = imag(g2);
+              derivatives(baseline*2+1,1,itsBaselines[baseline].first) = real(g2);
+              // d/dRe(g2)=g1
+              derivatives(baseline*2,0,itsBaselines[baseline].second) = real(g1);
+              derivatives(baseline*2+1,0,itsBaselines[baseline].second) = imag(g1);
+              // d/dIm(g2)=-i*g1
+              derivatives(baseline*2,1,itsBaselines[baseline].second) = imag(g1);
+              derivatives(baseline*2+1,1,itsBaselines[baseline].second) = -real(g1);
+ 
+              const casa::Complex resBuf = itsComplexMeasuredValues[baseline] - 
+                                             g1*conj(g2);
+              residual[baseline*2] = real(resBuf);
+              residual[baseline*2+1] = imag(resBuf);
+         }
+         DesignMatrix designMatrix(itsGuessedGains);
+         for (casa::uInt ant=0; ant<itsNAnt; ++ant) {
+              designMatrix.addDerivative(parName(ant),derivatives.xyPlane(ant));
+         }
+         designMatrix.addResidual(residual,casa::Vector<double>(residual.size(),1.));
+         ne.add(designMatrix);
+     }
 
   private:
      /// @brief guessed parameters
      Params itsGuessedGains;
      /// @brief true parameters
      Params itsTrueGains;
-     /// @brief data sample playing a role of measured data
-     casa::Vector<double> itsRealMeasuredValues;     
+     /// @brief data sample playing a role of measured real data
+     casa::Vector<double> itsRealMeasuredValues;
+     /// @brief data sample playing a role of measured complex data
+     casa::Vector<casa::Complex> itsComplexMeasuredValues;
      /// @brief first and second "antenna" corresponding to a baseline
      std::vector<std::pair<casa::uInt, casa::uInt> > itsBaselines;
      /// @brief number of antennae
