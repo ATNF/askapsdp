@@ -181,9 +181,7 @@ namespace conrad
 					// Now we have to calculate the Fourier transform to get the
 					// convolution function in uv space
 					fft2d(disk, true);
-					double cfMax=casa::real(disk(nx/2, ny/2));
-					CONRADCHECK(cfMax>0.0, "Convolution function not normalisable");
-					disk*=casa::Complex(1.0/cfMax);
+					// Normalize so that the sum of the weights image will be meaningful
 
 					if (itsSupport==0)
 					{
@@ -217,6 +215,10 @@ namespace conrad
 							disk(ix-itsCCenter+nx/2, iy-itsCCenter+ny/2);
 						}
 					}
+					// Normalize so that the sum of the weights image will be meaningful
+					float volume=casa::sum(casa::real(itsConvFunc[zIndex]));
+					CONRADCHECK(volume>0.0, "Integral of convolution function is zero");
+					itsConvFunc[zIndex]*=casa::Complex((float(itsOverSample)*float(itsOverSample))/volume);
 				} // chan loop
 			          } // feed loop
 			          std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()

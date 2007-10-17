@@ -138,11 +138,13 @@ namespace conrad
 					y2*=y2;
 					for (int ix=0; ix<nx; ix++)
 					{
-						float x2=float(ix-nx/2)*cellx;
-						x2*=x2;
-						float r2=x2+y2;
-						float phase=w*(1.0-sqrt(1.0-r2));
-						mat(ix, iy)*=casa::Complex(cos(phase), -sin(phase));
+					  if(casa::abs(mat(ix,iy))>0.0) {
+					    float x2=float(ix-nx/2)*cellx;
+					    x2*=x2;
+					    float r2=x2+y2;
+					    float phase=w*(1.0-sqrt(1.0-r2));
+					    mat(ix, iy)*=casa::Complex(cos(phase), -sin(phase));
+					  }
 					}
 				}
 				it.next();
@@ -153,7 +155,7 @@ namespace conrad
 		void WStackVisGridder::finaliseGrid(casa::Array<double>& out)
 		{
 
-			std::cout << "Stacking W planes"<< std::endl;
+			std::cout << "Stacking " << itsNWPlanes << " planes of W stack to get final image"<< std::endl;
 
 			/// Loop over all grids Fourier transforming and accumulating
 			bool first=true;
@@ -238,7 +240,7 @@ namespace conrad
 			if (casa::max(casa::abs(in))>0.0)
 			{
 				itsModelIsEmpty=false;
-				std::cout << "Filling W stack with model"<< std::endl;
+				std::cout << "Filling " << itsNWPlanes << " planes of W stack with model"<< std::endl;
 				casa::Array<double> scratch(in.copy());
 				correctConvolution(scratch);
 				for (int i=0; i<itsNWPlanes; i++)

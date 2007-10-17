@@ -51,7 +51,7 @@ namespace conrad
 			}
 //			///If we normalize here then the sum of weights image will be meaningful
 			float volume=casa::sum(casa::real(itsConvFunc[0]));
-			std::cout << "Volume of SphFunc = " << volume << std::endl;
+			//			std::cout << "Volume of SphFunc = " << volume << std::endl;
 			CONRADCHECK(volume>0.0, "Integral of convolution function is zero");
 			itsConvFunc[0]*=casa::Complex((float(itsOverSample)*float(itsOverSample))/volume);
 		}
