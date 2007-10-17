@@ -49,6 +49,11 @@ namespace conrad
 				/// Clone a copy of this Gridder
 				virtual IVisGridder::ShPtr clone();
 
+				/// Form the sum of the convolution function squared, multiplied by the weights for each
+				/// different convolution function. This is used in the evaluation of the second derivative.
+				/// @param out Output double precision grid
+				virtual void finaliseWeights(casa::Array<double>& out);
+
 			protected:
 				/// @brief Initialise the indices
 				virtual void initIndices(IDataSharedIter& idi);
@@ -73,6 +78,10 @@ namespace conrad
 				casa::Cube<int> itsCMap;
 				/// Maximum support
 				int itsMaxSupport;
+				/// Pad up in size using FFT
+				/// @param in Input Array
+				/// @param out Output Array
+				void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
 		};
 	}
 }

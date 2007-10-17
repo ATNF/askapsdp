@@ -241,5 +241,129 @@ namespace conrad
 			return itsCMap(row, pol, chan);
 		}
 
+		/// To finalize the transform of the weights, we use the following steps:
+		/// 1. For each plane of the convolution function, transform to image plane
+		/// and multiply by conjugate to get abs value squared.
+		/// 2. Sum all planes weighted by the weight for that convolution function.
+		void WProjectVisGridder::finaliseWeights(casa::Array<double>& out)
+		{
+
+			std::cout << "Calculating sum of weights image" << std::endl;
+
+			int nx=itsShape(0);
+			int ny=itsShape(1);
+			int nPol=itsShape(2);
+			int nChan=itsShape(3);
+
+			int nZ=itsSumWeights.shape()(0);
+
+			/// We must pad the convolution function to full size, reverse transform
+			/// square, and sum multiplied by the corresponding weight
+			int cnx=std::min(itsMaxSupport, nx);
+			int cny=std::min(itsMaxSupport, ny);
+			int ccenx=cnx/2;
+			int cceny=cny/2;
+
+			/// This is the output array before sinc padding
+			casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
+			cOut.set(0.0);
+
+			/// Work space
+			casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+
+			for (int iz=0; iz<nZ; iz++)
+			{
+				thisPlane.set(0.0);
+
+				// Now fill the inner part of the uv plane with the convolution function
+				// and transform to obtain the image. The uv sampling is fixed here
+				// so the total field of view is itsOverSample times larger than the
+				// original field of view.
+				for (int iy=-itsSupport; iy<+itsSupport; iy++)
+				{
+					for (int ix=-itsSupport; ix<+itsSupport; ix++)
+					{
+						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample
+						    +itsCCenter, iy*itsOverSample+itsCCenter);
+					}
+				}
+
+				thisPlane*=casa::Complex(double(cnx)*double(cny));
+				/// The peak here should be unity
+				fft2d(thisPlane, false);
+
+				// Now we need to cut out only the part inside the field of view
+				for (int chan=0; chan<nChan; chan++)
+				{
+					for (int pol=0; pol<nPol; pol++)
+					{
+						casa::IPosition ip(4, 0, 0, pol, chan);
+						casa::Complex wt=itsSumWeights(iz, pol, chan);
+						for (int ix=0; ix<cnx; ix++)
+						{
+							ip(0)=ix;
+							for (int iy=0; iy<cny; iy++)
+							{
+								ip(1)=iy;
+								cOut(ip)+=casa::real(wt*thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
+							}
+						}
+					}
+				}
+			}
+			fftPad(cOut, out);
+			// Need to correct twice!
+			correctConvolution(out);
+			correctConvolution(out);
+		}
+
+		void WProjectVisGridder::fftPad(const casa::Array<double>& in,
+		    casa::Array<double>& out)
+		{
+
+			int inx=in.shape()(0);
+			int iny=in.shape()(1);
+
+			int onx=out.shape()(0);
+			int ony=out.shape()(1);
+
+			// Shortcut no-op
+			if ((inx==onx)&&(iny==ony))
+			{
+				out=in.copy();
+				return;
+			}
+
+			CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
+			CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");
+
+			/// Make an iterator that returns plane by plane
+			casa::ReadOnlyArrayIterator<double> inIt(in, 2);
+			casa::ArrayIterator<double> outIt(out, 2);
+			while (!inIt.pastEnd()&&!outIt.pastEnd())
+			{
+				casa::Matrix<casa::DComplex> inPlane(inx, iny);
+				casa::Matrix<casa::DComplex> outPlane(onx, ony);
+				casa::convertArray(inPlane, inIt.array());
+				outPlane.set(0.0);
+				fft2d(inPlane, false);
+				for (int iy=0; iy<iny; iy++)
+				{
+					for (int ix=0; ix<inx; ix++)
+					{
+						outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
+					}
+				}
+				fft2d(outPlane, true);
+				const casa::Array<casa::DComplex> constOutPlane(outPlane);
+				casa::Array<double> outArray(outIt.array());
+
+				casa::real(outArray, constOutPlane);
+
+				inIt.next();
+				outIt.next();
+			}
+		}
+
 	}
 }
