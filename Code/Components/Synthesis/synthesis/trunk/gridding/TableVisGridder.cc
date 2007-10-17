@@ -43,7 +43,7 @@ namespace conrad
 
 		/// Totally selfcontained gridding
 		void TableVisGridder::gridKernel(casa::Matrix<casa::Complex>& grid,
-		    double& sumwt, casa::Matrix<casa::Complex>& convFunc,
+		    casa::Complex& sumwt, casa::Matrix<casa::Complex>& convFunc,
 		    const casa::Complex& cVis, const float& viswt, const int iu,
 		    const int iv, const int support, const int overSample,
 		    const int cCenter, const int fracu, const int fracv)
@@ -62,7 +62,7 @@ namespace conrad
 				{
 					casa::Complex wt=viswt*convFunc(uoff, voff);
 					grid(iu+suppu, iv+suppv)+=cVis*wt;
-					sumwt+=casa::real(wt);
+					sumwt+=wt;
 					uoff+=overSample;
 				}
 				voff+=overSample;
@@ -84,6 +84,7 @@ namespace conrad
 			/// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
 		  /// data using the convolution function as the weighting function. 
 			casa::Complex sumviswt=0.0;
+			cVis=0.0;
 			int voff=-overSample*support+fracv+cCenter;
 			for (int suppv=-support; suppv<+support; suppv++)
 			{
@@ -216,7 +217,7 @@ namespace conrad
 								/// Gridding visibility data onto grid
 								const casa::Complex rVis=phasor*conj(idi->visibility()(i, chan,
 								    pol));
-								double sumwt=0.0;
+								casa::Complex sumwt=0.0;
 								const float wtVis(1.0);
 								gridKernel(grid, sumwt, convFunc, rVis, wtVis, iu, iv,
 								    itsSupport, itsOverSample, itsCCenter, fracu, fracv);
@@ -293,9 +294,9 @@ namespace conrad
 			{
 				casa::Matrix<double> inMat(inIt.array());
 				casa::Matrix<casa::Complex> outMat(outIt.array());
-				for (uint iy=0; iy<ny; iy++)
+				for (int iy=0; iy<ny; iy++)
 				{
-					for (uint ix=0; ix<nx; ix++)
+					for (int ix=0; ix<nx; ix++)
 					{
 						outMat(ix, iy)=casa::Complex(float(inMat(ix,iy)));
 					}
@@ -320,9 +321,9 @@ namespace conrad
 			{
 				casa::Matrix<casa::Complex> inMat(inIt.array());
 				casa::Matrix<double> outMat(outIt.array());
-				for (uint iy=0; iy<ny; iy++)
+				for (int iy=0; iy<ny; iy++)
 				{
-					for (uint ix=0; ix<nx; ix++)
+					for (int ix=0; ix<nx; ix++)
 					{
 						outMat(ix, iy)=double(casa::real(inMat(ix,iy)));
 					}
@@ -351,7 +352,7 @@ namespace conrad
 			}
 
 			itsSumWeights.resize(1, itsShape(2), itsShape(3));
-			itsSumWeights.set(0.0);
+			itsSumWeights.set(casa::Complex(0.0));
 
 			CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"), "RA and DEC specification not present in axes");
 
@@ -371,7 +372,7 @@ namespace conrad
 		void TableVisGridder::finaliseGrid(casa::Array<double>& out)
 		{
 			/// Loop over all grids Fourier transforming and accumulating
-			for (int i=0; i<itsGrid.size(); i++)
+			for (unsigned int i=0; i<itsGrid.size(); i++)
 			{
 				casa::Array<casa::Complex> scratch(itsGrid[i].copy());
 				fft2d(scratch, false);
@@ -395,7 +396,7 @@ namespace conrad
 		void TableVisGridder::finalisePSF(casa::Array<double>& out)
 		{
 			/// Loop over all grids Fourier transforming and accumulating
-			for (int i=0; i<itsGridPSF.size(); i++)
+			for (unsigned int i=0; i<itsGridPSF.size(); i++)
 			{
 				casa::Array<casa::Complex> scratch(itsGridPSF[i].copy());
 				fft2d(scratch, false);
@@ -418,8 +419,6 @@ namespace conrad
 		/// This is the default implementation
 		void TableVisGridder::finaliseWeights(casa::Array<double>& out)
 		{
-			int nx=itsShape(0);
-			int ny=itsShape(1);
 			int nPol=itsShape(2);
 			int nChan=itsShape(3);
 
@@ -432,7 +431,7 @@ namespace conrad
 					double sumwt=0.0;
 					for (int iz=0; iz<nZ; iz++)
 					{
-						sumwt+=itsSumWeights(iz, pol, chan);
+						sumwt+=casa::real(itsSumWeights(iz, pol, chan));
 					}
 
 					casa::IPosition ipStart(4, 0, 0, pol, chan);

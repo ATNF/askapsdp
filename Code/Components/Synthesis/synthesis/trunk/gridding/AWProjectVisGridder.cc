@@ -275,7 +275,7 @@ namespace conrad
 							itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
 							itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
 							    itsShape(3));
-							itsSumWeights.set(0.0);
+							itsSumWeights.set(casa::Complex(0.0));
 						}
 						zIndex=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
 
@@ -358,14 +358,14 @@ namespace conrad
 					for (int pol=0; pol<nPol; pol++)
 					{
 						casa::IPosition ip(4, 0, 0, pol, chan);
-						double wt=itsSumWeights(iz, pol, chan);
+						casa::Complex wt=itsSumWeights(iz, pol, chan);
 						for (int ix=0; ix<cnx; ix++)
 						{
 							ip(0)=ix;
 							for (int iy=0; iy<cny; iy++)
 							{
 								ip(1)=iy;
-								cOut(ip)+=wt*casa::real(thisPlane(ix, iy)
+								cOut(ip)+=casa::real(wt*thisPlane(ix, iy)
 								    *conj(thisPlane(ix, iy)));
 							}
 						}

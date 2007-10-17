@@ -214,7 +214,7 @@ namespace conrad
 					itsCCenter=itsCSize/2-1;
 					itsConvFunc.resize(itsNWPlanes);
 					itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
-					itsSumWeights.set(0.0);
+					itsSumWeights.set(casa::Complex(0.0));
 				}
 				itsConvFunc[iw].resize(itsCSize, itsCSize);
 				itsConvFunc[iw].set(0.0);

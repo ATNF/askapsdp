@@ -112,7 +112,7 @@ namespace conrad
 				casa::Vector<double> itsUVCellSize;
 
 				/// @brief Sum of weights (axes are index, pol, chan) 
-				casa::Cube<double> itsSumWeights;
+				casa::Cube<casa::Complex> itsSumWeights;
 
 				/// @brief Convolution function
 				/// The convolution function is stored as a vector of arrays so that we can
@@ -178,7 +178,8 @@ namespace conrad
 				void generic(IDataSharedIter& idi, bool forward);
 
 				/// Gridding kernel
-				static void gridKernel(casa::Matrix<casa::Complex>& grid, double& sumwt,
+				static void gridKernel(casa::Matrix<casa::Complex>& grid, 
+						casa::Complex& sumwt,
 				    casa::Matrix<casa::Complex>& convFunc, 
 				    const casa::Complex& cVis, const float& wtVis,
 				    const int iu, const int iv, const int support,

@@ -97,7 +97,7 @@ namespace conrad
 			}
 
 			itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
-			itsSumWeights.set(0.0);
+			itsSumWeights.set(casa::Complex(0.0));
 
 			CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"), "RA and DEC specification not present in axes");
 
@@ -246,6 +246,8 @@ namespace conrad
 					itsGrid[i].resize(itsShape);
 					toComplex(itsGrid[i], scratch);
 					multiply(itsGrid[i], i);
+					/// Need to conjugate to get sense of w correction correct
+					itsGrid[i]=casa::conj(itsGrid[i]);
 					fft2d(itsGrid[i], true);
 				}
 			}
