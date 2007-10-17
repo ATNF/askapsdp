@@ -333,7 +333,12 @@ namespace conrad
 				}
 				else
 				{
-					os << " (array : shape " << params.value(*it).shape() << ") ";
+					const casa::Array<double> &arrVal = params.value(*it);
+					os << " (array : shape " << arrVal.shape();
+					if (arrVal.nelements() == 2 && arrVal.ndim() == 1) {
+					    os<<" or complex: "<<params.complexValue(*it);
+					}
+					os<< ") ";
 				}
 				if(params.isFree(*it))
 				{
