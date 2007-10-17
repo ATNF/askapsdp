@@ -373,6 +373,9 @@ namespace conrad
 				}
 			}
 			fftPad(cOut, out);
+			// We have to correct twice since this is the square!
+			correctConvolution(out);
+			correctConvolution(out);
 		}
 
 		void AWProjectVisGridder::fftPad(const casa::Array<double>& in,
