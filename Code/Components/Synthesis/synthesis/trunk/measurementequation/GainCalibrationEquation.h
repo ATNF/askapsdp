@@ -73,6 +73,17 @@ public:
   virtual void calcEquations(const IConstDataAccessor &chunk,
                                    conrad::scimath::NormalEquations& ne) const;
   
+  
+  /// @brief set reference antenna and its phase
+  /// @details It is impossible to determine absolute phase and some
+  /// value has to be adopted. This method sets the desired phase for
+  /// any particular antenna.
+  /// @param[in] ant a 0-based number of a new reference antenna
+  /// @param[in] phase a phase to adopt (in radians) 
+  /// @note This method can probably be made protected and these
+  /// parameters can be controlled via an additional fixed parameter.
+  void setReferenceAntenna(casa::uInt ant, double phase);
+  
   using MultiChunkEquation::predict;
   using MultiChunkEquation::calcEquations;
 protected:
@@ -98,6 +109,16 @@ private:
   /// @brief measurement equation giving perfect visibilities
   const IMeasurementEquation &itsPerfectVisME;  
   
+  /// @brief adopted conjugate gain of the reference antenna normalized to 
+  /// the amplitude of one
+  /// @details For the case of complex gains, we can't solve for an absolute
+  /// phase and have to adopt a value of phase for any antenna called a 
+  /// reference antenna. For simplicity of processing, this phase is held in
+  /// a complex number with a unity amplitude. adopted phase = -arg(this number).
+  casa::Complex itsReferencePhase;
+  
+  /// @brief 0-based number of the reference antenna
+  casa::uInt itsReferenceAntenna;
   
   /// @brief unpacked parameters
   /// @details Currently gains are just antenna dependent. In the future,

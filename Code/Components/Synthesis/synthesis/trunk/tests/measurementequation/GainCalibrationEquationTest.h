@@ -74,8 +74,10 @@ namespace conrad
           params2->add("shape.bpa.cena", -57*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
                params2->add("gain.g11."+toString(ant),casa::Complex(0.9,0.1));
+               //if (ant>=6) params2->fix("gain.g11."+toString(ant));
                //params2->add("gain.g11."+toString(ant),1.1);
                params2->add("gain.g22."+toString(ant),0.9);
+               //params2->fix("gain.g22."+toString(ant));
           }
 
           p2.reset(new ComponentEquation(*params2, idi));
@@ -87,15 +89,18 @@ namespace conrad
         {
           // Predict with the "perfect" parameters"
           eq1->predict();
-          // Calculate gradients using "imperfect" parameters"
-          NormalEquations ne(*params2);
-          eq2->calcEquations(ne);
-          Quality q;
-          LinearSolver solver1(*params2);
-          solver1.addNormalEquations(ne);
-          solver1.setAlgorithm("SVD");
-          solver1.solveNormalEquations(q);  
           
+          for (size_t iter=0; iter<1; ++iter) {
+               // Calculate gradients using "imperfect" parameters"
+               NormalEquations ne(*params2);
+               eq2->calcEquations(ne);
+               Quality q;
+               LinearSolver solver1(*params2);
+               solver1.addNormalEquations(ne);
+               solver1.setAlgorithm("SVD");
+               solver1.solveNormalEquations(q);  
+               std::cout<<q<<std::endl;
+          }
           //std::cout<<*params2<<std::endl;
         
           // checking that solved gains should be close to 1 for g11 

@@ -9,6 +9,9 @@
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
+// casa includes
+#include <casa/Complex.h>
+
 // own includes
 #include <measurementequation/GainCalibrationEquation.h>
 #include <conrad/ConradError.h>
@@ -44,7 +47,8 @@ using namespace conrad::synthesis;
 GainCalibrationEquation::GainCalibrationEquation(const conrad::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
             MultiChunkEquation(idi), conrad::scimath::Equation(ip),
-            itsPerfectVisME(ime) {}
+            itsPerfectVisME(ime), itsReferenceAntenna(0), 
+            itsReferencePhase(casa::Complex(1.,0.)) {}
   
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This version of the predict method works with
@@ -101,6 +105,11 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
 {
   const GainsCacheType &gains = 
          itsGainsCache.value(*this,&GainCalibrationEquation::fillGainsCache);
+  if (gains.size() <= itsReferenceAntenna) {
+      CONRADTHROW(ConradError, "A reference antenna "<<itsReferenceAntenna<<
+                  " is outside the range, nAnts = "<<gains.size()<<
+                  " or gains for some antennae are not specified"); 
+  }       
   MemBufferDataAccessor  buffChunk(chunk);
   itsPerfectVisME.predict(buffChunk);
   
@@ -117,9 +126,9 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   // that by imaginary part, the first axis has double the size of elements 
   // because each pair of adjacent elements corresponds to real and imaginary
   // parts of the value of derivative
-  casa::Cube<double> derivatives(buffChunk.nRow()*buffChunk.nChannel()*nPol*2,2,
-                                 gains.size(),0.);
-  casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol);
+  casa::Cube<double> derivatives(nDataPerPol*buffChunk.nRow()*nPol+1+nPol,
+                                 2,gains.size(),0.);
+  casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol+1+nPol);
   for (casa::uInt row = 0, offset = 0; row < buffChunk.nRow(); 
                                     ++row) { 
        casa::uInt ant1 = chunk.antenna1()[row];
@@ -142,13 +151,13 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                                               conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,0,ant1), 
                                IPosition(3,offset+nDataPerPol-1,0,ant1)));
-            buf = casa::Complex(0.,0.)*modelVis.xyPlane(pol).row(row)*casa::Complex(0.,1.)*conj(g2);
+            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,1.)*conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,1,ant1), 
                                IPosition(3,offset+nDataPerPol-1,1,ant1)));
             buf = modelVis.xyPlane(pol).row(row)*g1;
             copyVector(buf, derivatives(IPosition(3,offset,0,ant2), 
                                IPosition(3,offset+nDataPerPol-1,0,ant2)));
-            buf = casa::Complex(0.,0.)*modelVis.xyPlane(pol).row(row)*casa::Complex(0.,-1.)*g1;
+            buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,-1.)*g1;
             copyVector(buf, derivatives(IPosition(3,offset,1,ant2), 
                                IPosition(3,offset+nDataPerPol-1,1,ant2)));                    
             buf = modelVis.xyPlane(pol).row(row)*conj(g2)*g1;
@@ -158,6 +167,19 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                            IPosition(1,offset+nDataPerPol-1)));           
        }  
   }
+  // add constraint to get an "absolute" phase with a desired origin
+  const casa::uInt dataLength = nDataPerPol*buffChunk.nRow()*nPol;
+  for (casa::uInt pol=0; pol<nPol; ++pol) {
+       CONRADDEBUGASSERT(pol<2);
+       
+       const casa::Complex refGain = pol ? gains[itsReferenceAntenna].second : 
+                                           gains[itsReferenceAntenna].first;
+       residual[dataLength+pol]=-imag(itsReferencePhase*refGain);
+       derivatives(dataLength+pol,0,itsReferenceAntenna) = imag(itsReferencePhase);
+       derivatives(dataLength+pol,1,itsReferenceAntenna) = real(itsReferencePhase);
+  }
+                        
+  
   // we need to remove all unused parameters before creating a design matrix
   scimath::Params::ShPtr tempParams(parameters().clone());
   for (std::vector<std::string>::const_iterator ci = itsUnusedParamNames.begin();
@@ -179,7 +201,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   tempParams.reset();
   CONRADDEBUGASSERT(itsNameCache.size() >= gains.size());
   for (casa::uInt ant = 0; ant<gains.size(); ++ant) {
-       std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(1))<<std::endl;
+       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(1))<<std::endl;
        designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant));
        if (nPol>1) {
            designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant));
@@ -188,6 +210,21 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   designmatrix.addResidual(residual,casa::Vector<double>(residual.size(),1.));
   ne.add(designmatrix);
 }                                   
+
+/// @brief set reference antenna and its phase
+/// @details It is impossible to determine absolute phase and some
+/// value has to be adopted. This method sets the desired phase for
+/// any particular antenna.
+/// @param[in] ant a 0-based number of a new reference antenna
+/// @param[in] phase a phase to adopt (in radians) 
+/// @note This method can probably be made protected and these
+/// parameters can be controlled via an additional fixed parameter.
+void GainCalibrationEquation::setReferenceAntenna(casa::uInt ant, double phase)
+{
+  itsReferenceAntenna = ant;
+  itsReferencePhase = casa::polar(casa::Float(1.),-casa::Float(phase));
+}
+
 
 // @brief fill the gains cache from parameters
 // @param[in] a reference to the container to fill with values
