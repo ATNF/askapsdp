@@ -78,14 +78,18 @@ namespace scimath
          
          createParams(makeComplex(&trueGainsReal[0], &trueGainsImag[0]), 
                       itsTrueGains);
+         // correction factor to apply a phase shift to get a correct
+         // absolute phase, which we can't determine in the calibration solution.
+         // Antenna 0 is a reference.
+         itsRefPhase = polar(casa::Float(1.), 
+                             -arg(itsTrueGains.complexValue(parName(0))));
+         
          predictComplex();
          const double guessedGainsReal[] = {1.,1.,1.,1.,1.,1.};
          const double guessedGainsImag[] = {0.,0.,0.,0.,0.,0.};
-         //createParams(makeComplex(&trueGainsReal[0], &trueGainsImag[0]), 
-         //             itsGuessedGains);
          createParams(makeComplex(&guessedGainsReal[0], &guessedGainsImag[0]),
                       itsGuessedGains);
-         for (size_t iteration=0; iteration<1; ++iteration) {
+         for (size_t iteration=0; iteration<5; ++iteration) {
               NormalEquations ne(itsGuessedGains);
               calcEquationsComplex(ne);
               Quality q;
@@ -93,15 +97,12 @@ namespace scimath
               solver.addNormalEquations(ne);
               solver.setAlgorithm("SVD");
               solver.solveNormalEquations(q);
-              //std::cout<<q<<std::endl;
          }  
-         /*
          for (casa::uInt ant=0;ant<itsNAnt;++ant) {
-              CPPUNIT_ASSERT(abs(itsGuessedGains.scalarValue(parName(ant))-
-                                 trueGains[ant])<0.05);
-         } 
-         */    
-         //std::cout<<itsGuessedGains<<std::endl;
+             const std::string name = parName(ant); 
+             CPPUNIT_ASSERT(abs(itsTrueGains.complexValue(name)-
+                      itsGuessedGains.complexValue(name))<1e-7);
+         }
      }
   protected:
      /// @brief a helper class to get complex sequence from two real sequences.
@@ -253,8 +254,8 @@ namespace scimath
          // gradient. The second axis distinguishes between derivatives by
          // real part and derivatives by imaginary part of the appropriate 
          // gain coefficient.
-         casa::Cube<double> derivatives(itsBaselines.size()*2,2,itsNAnt,0.);
-         casa::Vector<double> residual(itsBaselines.size()*2);
+         casa::Cube<double> derivatives(itsBaselines.size()*2+1,2,itsNAnt,0.);
+         casa::Vector<double> residual(itsBaselines.size()*2+1);
          for (size_t baseline=0; baseline<itsBaselines.size(); ++baseline) {
               CONRADASSERT(itsBaselines[baseline].first<itsNAnt);
               CONRADASSERT(itsBaselines[baseline].second<itsNAnt);
@@ -280,6 +281,16 @@ namespace scimath
               residual[baseline*2] = real(resBuf);
               residual[baseline*2+1] = imag(resBuf);
          }
+         /*
+         residual[itsBaselines.size()*2] = -imag(itsGuessedGains.complexValue(
+                                                 parName(0)));
+         derivatives(itsBaselines.size()*2,1,0) = 1.;
+         */
+         const casa::Complex refGain = itsGuessedGains.complexValue(parName(0));
+         residual[itsBaselines.size()*2] = -imag(refGain*itsRefPhase);
+         derivatives(itsBaselines.size()*2,0,0) = imag(itsRefPhase);
+         derivatives(itsBaselines.size()*2,1,0) = real(itsRefPhase);
+         
          DesignMatrix designMatrix(itsGuessedGains);
          for (casa::uInt ant=0; ant<itsNAnt; ++ant) {
               designMatrix.addDerivative(parName(ant),derivatives.xyPlane(ant));
@@ -293,6 +304,11 @@ namespace scimath
      Params itsGuessedGains;
      /// @brief true parameters
      Params itsTrueGains;
+     /// @brief reference phase
+     /// @detail A complex number with amplitude of 1 and the phase
+     /// equivalent to the phase of the gain of a reference antenna
+     /// (we can't determine absolute phase and have to adopt something)
+     casa::Complex itsRefPhase;
      /// @brief data sample playing a role of measured real data
      casa::Vector<double> itsRealMeasuredValues;
      /// @brief data sample playing a role of measured complex data
