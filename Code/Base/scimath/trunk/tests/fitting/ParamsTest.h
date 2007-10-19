@@ -70,6 +70,7 @@ namespace conrad
         {
           p1->add("NS0", casa::Vector<double>(100));
           double result=p1->scalarValue("NS0");
+          p1->add("DoSomethingWithResult", result);
         }
 
         void testCompletions()

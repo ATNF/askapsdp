@@ -81,7 +81,7 @@ namespace conrad
           Params ip;
           ip.add("Value0");
           ip.add("Value1", 1.5);
-          uint imsize=10*10;
+          int imsize=10*10;
           casa::Vector<double> im(imsize);
           im.set(3.0);
           ip.add("Image2", im);

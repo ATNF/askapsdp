@@ -81,6 +81,7 @@ namespace conrad
 			{
 				if(itsNames[i]==name) return i;
 			}
+                        return -1;
 		}
 
 		const std::vector<string>& Axes::names() const
@@ -128,11 +129,13 @@ namespace conrad
 		LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Axes& axes)
 		{
 			os << axes.itsNames << axes.itsStart << axes.itsEnd;
+                        return os;
 		}
 
-		LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Axes& axes)
+		LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, Axes& axes)
 		{
-			os >> axes.itsNames >> axes.itsStart >> axes.itsEnd;
+			is >> axes.itsNames >> axes.itsStart >> axes.itsEnd;
+                        return is;
 		}
 
 	}

@@ -76,6 +76,7 @@ namespace conrad
         itsShape=other.itsShape;
         itsReference=other.itsReference;
       }
+      return *this;
     }
 
     NormalEquations::NormalEquations(const DesignMatrix& dm)
@@ -504,7 +505,8 @@ namespace conrad
     {
       os << *(ne.itsParams) << ne.itsNormalMatrix << ne.itsNormalMatrixSlice 
         << ne.itsNormalMatrixDiagonal << ne.itsShape << ne.itsReference << ne.itsDataVector; 
-//        << ne.itsNormalMatrixDiagonal << ne.itsDataVector; 
+//        << ne.itsNormalMatrixDiagonal << ne.itsDataVector;
+     return os;
     }
 
     LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, NormalEquations& ne)
@@ -514,6 +516,7 @@ namespace conrad
          >> ne.itsNormalMatrixDiagonal >> ne.itsShape >> ne.itsReference 
          >> ne.itsDataVector;
 //        >> ne.itsNormalMatrixDiagonal >> ne.itsDataVector;
+      return is;
     }
   }
 }

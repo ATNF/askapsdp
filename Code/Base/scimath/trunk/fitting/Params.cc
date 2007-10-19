@@ -367,11 +367,13 @@ namespace conrad
 		LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par)
 		{
 			os << par.itsArrays << par.itsAxes << par.itsFree << par.itsCounts;
+                        return os;
 		}
 
-		LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, Params& par)
+		LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, Params& par)
 		{
-			os >> par.itsArrays >> par.itsAxes >> par.itsFree >> par.itsCounts;
+			is >> par.itsArrays >> par.itsAxes >> par.itsFree >> par.itsCounts;
+                        return is;
 		}
 
 	}
