@@ -54,19 +54,17 @@ namespace conrad
 		   CONRADCHECK(-overSample*support+fracv+cCenter>-1, "Indexing outside of convolution function"); 
 		   CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1), "Indexing outside of convolution function"); 
 
-		  int voff=-overSample*support+fracv+cCenter;
 			for (int suppv=-support; suppv<+support; suppv++)
 			{
-				int uoff=-overSample*support+fracu+cCenter;
-				for (int suppu=-support; suppu<+support; suppu++)
-				{
-					casa::Complex wt=viswt*convFunc(uoff, voff);
-					grid(iu+suppu, iv+suppv)+=cVis*wt;
-					sumwt+=wt;
-					uoff+=overSample;
-				}
-				voff+=overSample;
+			  int voff=suppv*overSample+fracv+cCenter;
+			  for (int suppu=-support; suppu<+support; suppu++)
+			    {
+			      int uoff=suppu*overSample+fracu+cCenter;
+			      casa::Complex wt=convFunc(uoff, voff);
+			      grid(iu+suppu, iv+suppv)+=cVis*wt;
+			    }
 			}
+			sumwt+=viswt;
 		}
 
 		/// Totally selfcontained degridding
@@ -76,35 +74,18 @@ namespace conrad
 		    const int support, const int overSample, const int cCenter,
 		    const int fracu, const int fracv)
 		{
-		  CONRADCHECK(-overSample*support+fracu+cCenter>-1, "Indexing outside of convolution function"); 
-		  CONRADCHECK(+overSample*support+fracu+cCenter<convFunc.shape()(0), "Indexing outside of convolution function"); 
-		  CONRADCHECK(-overSample*support+fracv+cCenter>-1, "Indexing outside of convolution function"); 
-		  CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1), "Indexing outside of convolution function"); 
-
 			/// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
 		  /// data using the convolution function as the weighting function. 
-			casa::Complex sumviswt=0.0;
 			cVis=0.0;
-			int voff=-overSample*support+fracv+cCenter;
 			for (int suppv=-support; suppv<+support; suppv++)
 			{
-				int uoff=-overSample*support+fracu+cCenter;
-				for (int suppu=-support; suppu<+support; suppu++)
-				{
-					casa::Complex wt=conj(convFunc(uoff, voff));
-					cVis+=wt*grid(iu+suppu, iv+suppv);
-					sumviswt+=wt;
-					uoff+=overSample;
-				}
-				voff+=overSample;
-			}
-			if (casa::abs(sumviswt)>0.0)
-			{
-				cVis=conj(cVis)/sumviswt;
-			}
-			else
-			{
-				cVis=0.0;
+			  int voff=suppv*overSample+fracv+cCenter;
+			  for (int suppu=-support; suppu<+support; suppu++)
+			    {
+			      int uoff=suppu*overSample+fracu+cCenter;
+			      casa::Complex wt=convFunc(uoff, voff);
+			      cVis+=wt*conj(grid(iu+suppu, iv+suppv));
+			    }
 			}
 		}
 

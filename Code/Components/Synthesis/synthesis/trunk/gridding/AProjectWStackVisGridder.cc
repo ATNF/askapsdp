@@ -150,6 +150,7 @@ namespace conrad
 
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
+					double sumdisk=0.0;
 					for (int ix=0; ix<nx; ix++)
 					{
 						double nux=double(ix-nx/2);
@@ -163,25 +164,31 @@ namespace conrad
 							{
 								double phase=ax*nux+ay*nuy;
 								disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
+								sumdisk+=1.0;
 							}
 						}
 					}
-					// Ensure that there is always one point filled
-					disk(nx/2, ny/2)=casa::Complex(1.0);
+					CONRADCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
+					disk*=casa::Complex(float(nx)*float(ny)/sumdisk);
+					/// Now convolve the disk with itself
 					fft2d(disk, false);
-
-					/// Calculate the total convolution function 
-					for (int iy=0; iy<ny; iy++)
+					std::cout << "Feed " << feed
+						  << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)) << std::endl;
+					for (int ix=0; ix<nx; ix++)
 					{
-						for (int ix=0; ix<nx; ix++)
+						for (int iy=0; iy<ny; iy++)
 						{
-							disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
+						  disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
 						}
 					}
-					// Now we have to calculate the Fourier transform to get the
-					// convolution function in uv space
+					std::cout << "Feed " << feed
+						  <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk)))
+						  << std::endl;
 					fft2d(disk, true);
-					// Normalize so that the sum of the weights image will be meaningful
+					std::cout << "Feed " << feed
+						  << ": Integral of primary beam power pattern = " << disk(nx/2,ny/2) 
+						  << " (pixels) " << std::endl;
+					
 
 					if (itsSupport==0)
 					{
@@ -215,10 +222,6 @@ namespace conrad
 							disk(ix-itsCCenter+nx/2, iy-itsCCenter+ny/2);
 						}
 					}
-					// Normalize so that the sum of the weights image will be meaningful
-					float volume=casa::sum(casa::real(itsConvFunc[zIndex]));
-					CONRADCHECK(volume>0.0, "Integral of convolution function is zero");
-					itsConvFunc[zIndex]*=casa::Complex((float(itsOverSample)*float(itsOverSample))/volume);
 				} // chan loop
 			          } // feed loop
 			          std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
@@ -380,7 +383,7 @@ namespace conrad
 				          {
 					          casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
 					          casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-					          std::cout << "Feed "<< feed << " points at Right Ascension ";
+					          std::cout << "Feed " << feed << " points at Right Ascension ";
 					          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
 					          << ", Declination ";
 					          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);

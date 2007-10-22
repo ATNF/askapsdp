@@ -23,7 +23,7 @@ namespace conrad
 			CONRADCHECK(wmax>0.0, "Baseline length must be greater than zero");
 			CONRADCHECK(nwplanes>0, "Number of w planes must be greater than zero");
 
-			itsNWPlanes=2*nwplanes+1;
+			itsNWPlanes=nwplanes;
 			itsWScale=wmax/double(nwplanes);
 		}
 

@@ -74,7 +74,10 @@ namespace conrad
 				{
 					double freq=idi->frequency()[chan];
 					double w=(idi->uvw()(i)(2))/(casa::C::c);
-					int iw=cenw+int(w*freq/itsWScale);
+					int iw=0;
+					if(itsNWPlanes>1) {
+					  iw=cenw+int(w*freq/itsWScale);
+					}
 					CONRADCHECK(iw<itsNWPlanes,
 							"W scaling error: recommend allowing larger range of w");
 					CONRADCHECK(iw>-1,
@@ -168,6 +171,7 @@ namespace conrad
 
 					/// Calculate the antenna voltage pattern, including the
 					/// phase shift due to pointing
+					double sumdisk=0.0;
 					for (int ix=0; ix<qnx; ix++)
 					{
 						double nux=double(ix-qnx/2);
@@ -181,16 +185,13 @@ namespace conrad
 							{
 								double phase=ax*nux+ay*nuy;
 								disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
+								sumdisk+=1.0;
 							}
 						}
 					}
-					// Ensure that there is always one point filled
-					disk(qnx/2, qny/2)=casa::Complex(1.0);
+					CONRADCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
+					disk*=casa::Complex(float(qnx)*float(qny)/sumdisk);
 					fft2d(disk, false);
-					disk=disk*conj(disk);
-					float peak=casa::real(casa::max(casa::abs(disk)));
-					CONRADCHECK(peak>0.0, "Synthetic primary beam is empty");
-					disk/=casa::Complex(peak);
 
 					/// Calculate the total convolution function including
 					/// the w term and the antenna convolution function
@@ -215,13 +216,13 @@ namespace conrad
 								x2*=x2;
 								double r2=x2+y2;
 								double phase=w*(1.0-sqrt(1.0-r2));
-								casa::Complex wt=disk(ix, iy)*casa::Complex(ccfx(iy)*ccfy(ix));
+								casa::Complex wt=disk(ix, iy)*conj(disk(ix,iy))
+								  *casa::Complex(ccfx(iy)*ccfy(ix));
 								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(
 								    cos(phase), -sin(phase));
-								maxCF+=casa::abs(disk(ix, iy));
+								maxCF+=casa::abs(wt);
 							}
 						}
-						maxCF/=(double(nx)*double(ny));
 						// At this point, we have the phase screen multiplied by the spheroidal
 						// function, sampled on larger cellsize (itsOverSample larger) in image
 						// space. Only the inner qnx, qny pixels have a non-zero value
@@ -444,8 +445,6 @@ namespace conrad
 			slope.set(0.0);
 			casa::Vector<bool> done(itsMaxFeeds);
 			done.set(false);
-
-			// exact formulae for l and m 
 
 			/// @todo Deal with changing pointing
 			casa::Vector<double> uvw(3);

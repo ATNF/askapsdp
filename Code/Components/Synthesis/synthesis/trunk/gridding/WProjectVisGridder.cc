@@ -29,7 +29,7 @@ namespace conrad
 			CONRADCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
 			CONRADCHECK(maxSupport>0, "Maximum support must be greater than 0")
 			itsSupport=0;
-			itsNWPlanes=2*nwplanes+1;
+			itsNWPlanes=nwplanes;
 			itsWScale=wmax/double(nwplanes);
 			itsOverSample=overSample;
 			itsCutoff=cutoff;
@@ -69,7 +69,12 @@ namespace conrad
 					{
 						double freq=idi->frequency()[chan];
 						/// Calculate the index into the convolution functions
-						itsCMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
+						if(itsNWPlanes>1) {
+						  itsCMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
+						}
+						else {
+						  itsCMap(i, pol, chan)=0;
+						}
 						if (itsCMap(i, pol, chan)<0)
 						{
 							std::cout << w << " "<< freq << " "<< itsWScale << " "<< itsCMap(
@@ -111,13 +116,13 @@ namespace conrad
 			int ny=std::min(itsMaxSupport, itsShape(1));
 			/// We want nx * ccellx = overSample * itsShape(0) * cellx
 
-			// Find the actual cellsizes in x and y (radians) after over
-			// oversampling (in uv space)
-			float ccellx=float(itsOverSample)*float(itsShape(0))*cellx/float(nx);
-			float ccelly=float(itsOverSample)*float(itsShape(1))*celly/float(ny);
-
 			int qnx=nx/itsOverSample;
 			int qny=ny/itsOverSample;
+
+			// Find the actual cellsizes in x and y (radians) after over
+			// oversampling (in uv space)
+			float ccellx=float(itsShape(0))*cellx/float(qnx);
+			float ccelly=float(itsShape(1))*celly/float(qny);
 
 			casa::Vector<float> ccfx(qnx);
 			casa::Vector<float> ccfy(qny);
