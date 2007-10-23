@@ -99,7 +99,7 @@ namespace conrad
         }
       }
       
-      
+      /*
       // temporary code to export matrices, which cause problems with the GSL
       // to write up a clear case
       {
@@ -116,7 +116,7 @@ namespace conrad
         }
       }
       // end of the temporary code
-      
+      */
       
       if(algorithm()=="SVD")
       {  
