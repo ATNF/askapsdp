@@ -101,6 +101,7 @@ namespace conrad
 				return;
 
 			double refFreq((itsAxes.start("FREQUENCY")+itsAxes.end("FREQUENCY"))/2.0);
+			std::cout << "Reference frequency " << refFreq/1e9 << " (GHz)" << std::endl;
 
 			/// We have to calculate the lookup function converting from
 			/// row and channel to plane of the w-dependent convolution
@@ -155,10 +156,10 @@ namespace conrad
 				{
 					/// Slope is the turns per wavelength so we need to convert from the
 					/// image reference frequency to the channel frequency
-					double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed)
-					    *idi->frequency()[chan]/refFreq;
-					double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed)
-					    *idi->frequency()[chan]/refFreq;
+				  //					double ax=2.0f*casa::C::pi*cellu*slope(0, feed) *idi->frequency()[chan]/refFreq;
+				  //					double ay=2.0f*casa::C::pi*cellv*slope(1, feed) *idi->frequency()[chan]/refFreq;
+					double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed);
+					double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed);
 
 					/// Make the disk for this channel
 					casa::Matrix<casa::Complex> disk(qnx, qny);
@@ -265,14 +266,14 @@ namespace conrad
 									"Unable to determine support of convolution function");
 							CONRADCHECK(itsSupport*itsOverSample<nx/2,
 									"Overflowing convolution function - increase maxSupport or decrease overSample")
-							itsCSize=2*(itsSupport+1)*itsOverSample;
+							itsCSize=2*(itsSupport+1)*itsOverSample+1;
 							std::cout << "Convolution function support = "<< itsSupport
 							    << " pixels, convolution function size = "<< itsCSize
 							    << " pixels"<< std::endl;
-							std::cout << "Maximum extent = "<< 2*itsSupport*cell
+							std::cout << "Maximum extent = "<< itsSupport*cell
 							    << " (m) sampled at "<< cell/itsOverSample << " (m)"
 							    << std::endl;
-							itsCCenter=itsCSize/2-1;
+							itsCCenter=(itsSupport+1)*itsOverSample;
 							itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
 							itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
 							    itsShape(3));
