@@ -108,9 +108,6 @@ namespace conrad
 			if (itsSupport!=0)
 				return;
 
-			double refFreq((itsAxes.start("FREQUENCY")+itsAxes.end("FREQUENCY"))/2.0);
-			std::cout << "Reference frequency " << refFreq/1e9 << " (GHz)" << std::endl;
-
 			/// We have to calculate the lookup function converting from
 			/// row and channel to plane of the w-dependent convolution
 			/// function
@@ -135,10 +132,6 @@ namespace conrad
 
 				for (int chan=0; chan<nChan; chan++)
 				{
-					/// Slope is the turns per wavelength so we need to convert from the
-					/// image reference frequency to the channel frequency
-				  //					double ax=2.0f*casa::C::pi*cellu*slope(0, feed) *idi->frequency()[chan]/refFreq;
-				  //					double ay=2.0f*casa::C::pi*cellv*slope(1, feed) *idi->frequency()[chan]/refFreq;
 					double ax=2.0f*casa::C::pi*cellu*slope(0, feed);
 					double ay=2.0f*casa::C::pi*cellv*slope(1, feed);
 
