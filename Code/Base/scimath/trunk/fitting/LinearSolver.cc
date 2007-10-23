@@ -6,6 +6,7 @@
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 #include <fitting/LinearSolver.h>
+#include <fitting/GSLSVDReplacement.h>
 
 #include <conrad/ConradError.h>
 
@@ -97,14 +98,33 @@ namespace conrad
 //          std::cout << "B " << row << " " << dv(row) << std::endl; 
         }
       }
-
-      if(algorithm()=="SVD")
+      
+      /*
+      // temporary code to export matrices, which cause problems with the GSL
+      // to write up a clear case
       {
+        std::ofstream os("dbg.dat");
+        os<<nParameters<<std::endl;
+        for (int row=0;row<nParameters;++row) {
+             for (int col=0;col<nParameters;++col) {
+                  if (col) {
+                      os<<" ";
+                  } 
+                  os<<gsl_matrix_get(A,row,col);
+             }
+             os<<std::endl;
+        }
+      }
+      // end of the temporary code
+      */
+      
+      if(algorithm()=="SVD")
+      {  
         gsl_matrix * V = gsl_matrix_alloc (nParameters, nParameters);
         gsl_vector * S = gsl_vector_alloc (nParameters);
         gsl_vector * work = gsl_vector_alloc (nParameters);
-        gsl_linalg_SV_decomp (A, V, S, work);
-
+        //gsl_linalg_SV_decomp (A, V, S, work);
+        SVDecomp (A, V, S);
         gsl_vector * X = gsl_vector_alloc(nParameters);
         gsl_linalg_SV_solve (A, V, S, B, X);
 // Now find the statistics for the decomposition
