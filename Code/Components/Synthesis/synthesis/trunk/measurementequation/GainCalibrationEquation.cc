@@ -47,8 +47,7 @@ using namespace conrad::synthesis;
 GainCalibrationEquation::GainCalibrationEquation(const conrad::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
             MultiChunkEquation(idi), conrad::scimath::Equation(ip),
-            itsPerfectVisME(ime), itsReferenceAntenna(0), 
-            itsReferencePhase(casa::Complex(1.,0.)) {}
+            itsPerfectVisME(ime) {}
   
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This version of the predict method works with
@@ -60,12 +59,17 @@ GainCalibrationEquation::GainCalibrationEquation(const conrad::scimath::Params& 
 /// @param[in] chunk a read-write accessor to work with
 void GainCalibrationEquation::predict(IDataAccessor &chunk) const
 {
+  // temporary fix, caching doesn't work here because the solver doesn't
+  // notify this class when parameters are changed (reference semantics)
+  itsGainsCache.invalidate();
+  //
   const GainsCacheType &gains = 
          itsGainsCache.value(*this,&GainCalibrationEquation::fillGainsCache);
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
   CONRADDEBUGASSERT(rwVis.nplane());
   
   itsPerfectVisME.predict(chunk);
+  rwVis.set(casa::Complex(1.,0.));
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
        casa::uInt ant1 = chunk.antenna1()[row];
        casa::uInt ant2 = chunk.antenna2()[row];
@@ -103,16 +107,15 @@ void GainCalibrationEquation::predict(IDataAccessor &chunk) const
 void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                                    conrad::scimath::NormalEquations& ne) const
 {
+  // temporary fix, caching doesn't work here because the solver doesn't
+  // notify this class when parameters are changed (reference semantics)
+  itsGainsCache.invalidate();
+  //
   const GainsCacheType &gains = 
          itsGainsCache.value(*this,&GainCalibrationEquation::fillGainsCache);
-  if (gains.size() <= itsReferenceAntenna) {
-      CONRADTHROW(ConradError, "A reference antenna "<<itsReferenceAntenna<<
-                  " is outside the range, nAnts = "<<gains.size()<<
-                  " or gains for some antennae are not specified"); 
-  }       
   MemBufferDataAccessor  buffChunk(chunk);
   itsPerfectVisME.predict(buffChunk);
-  
+  buffChunk.rwVisibility().set(casa::Complex(1.,0.));
   const casa::Cube<casa::Complex> &modelVis = buffChunk.visibility();
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
   
@@ -126,9 +129,9 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   // that by imaginary part, the first axis has double the size of elements 
   // because each pair of adjacent elements corresponds to real and imaginary
   // parts of the value of derivative
-  casa::Cube<double> derivatives(nDataPerPol*buffChunk.nRow()*nPol+1+nPol,
+  casa::Cube<double> derivatives(nDataPerPol*buffChunk.nRow()*nPol+nPol*0,
                                  2,gains.size(),0.);
-  casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol+1+nPol);
+  casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol+nPol*0);
   for (casa::uInt row = 0, offset = 0; row < buffChunk.nRow(); 
                                     ++row) { 
        casa::uInt ant1 = chunk.antenna1()[row];
@@ -137,13 +140,15 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
            CONRADTHROW(ConradError, "Accessor contains data for antenna, which doesn't present in the"
                       " parameter list, ant1="<<ant1<<" ant2="<<ant2);
        }
-       
        for (casa::uInt pol=0; pol<nPol; ++pol,offset+=nDataPerPol) {
             CONRADDEBUGASSERT(pol<2);
             // gains for antenna 1, polarisation pol
             const casa::Complex g1 = pol ? gains[ant1].second : gains[ant1].first;
             // gains for antenna 2, polarisation pol
             const casa::Complex g2 = pol ? gains[ant2].second : gains[ant2].first;
+            
+            //std::cout<<"row="<<row<<" ant1="<<ant1<<" ant2="<<ant2<<" "<<g1<<" "<<g2<<std::endl;
+       
             // there is probably an unnecessary copying in the following code,
             // but we leave it as it is for now. I have a feeling that this
             // part has to be redesigned to have a faster and more readable code
@@ -167,19 +172,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                            IPosition(1,offset+nDataPerPol-1)));           
        }  
   }
-  // add constraint to get an "absolute" phase with a desired origin
-  const casa::uInt dataLength = nDataPerPol*buffChunk.nRow()*nPol;
-  for (casa::uInt pol=0; pol<nPol; ++pol) {
-       CONRADDEBUGASSERT(pol<2);
-       
-       const casa::Complex refGain = pol ? gains[itsReferenceAntenna].second : 
-                                           gains[itsReferenceAntenna].first;
-       residual[dataLength+pol]=-imag(itsReferencePhase*refGain);
-       derivatives(dataLength+pol,0,itsReferenceAntenna) = imag(itsReferencePhase);
-       derivatives(dataLength+pol,1,itsReferenceAntenna) = real(itsReferencePhase);
-  }
-                        
-  
+                         
   // we need to remove all unused parameters before creating a design matrix
   scimath::Params::ShPtr tempParams(parameters().clone());
   for (std::vector<std::string>::const_iterator ci = itsUnusedParamNames.begin();
@@ -201,7 +194,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   tempParams.reset();
   CONRADDEBUGASSERT(itsNameCache.size() >= gains.size());
   for (casa::uInt ant = 0; ant<gains.size(); ++ant) {
-       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<sum(derivatives.xyPlane(ant).column(1))<<std::endl;
+       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<derivatives.xyPlane(ant)<<std::endl;
        designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant));
        if (nPol>1) {
            designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant));
@@ -210,21 +203,6 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   designmatrix.addResidual(residual,casa::Vector<double>(residual.size(),1.));
   ne.add(designmatrix);
 }                                   
-
-/// @brief set reference antenna and its phase
-/// @details It is impossible to determine absolute phase and some
-/// value has to be adopted. This method sets the desired phase for
-/// any particular antenna.
-/// @param[in] ant a 0-based number of a new reference antenna
-/// @param[in] phase a phase to adopt (in radians) 
-/// @note This method can probably be made protected and these
-/// parameters can be controlled via an additional fixed parameter.
-void GainCalibrationEquation::setReferenceAntenna(casa::uInt ant, double phase)
-{
-  itsReferenceAntenna = ant;
-  itsReferencePhase = casa::polar(casa::Float(1.),-casa::Float(phase));
-}
-
 
 // @brief fill the gains cache from parameters
 // @param[in] a reference to the container to fill with values

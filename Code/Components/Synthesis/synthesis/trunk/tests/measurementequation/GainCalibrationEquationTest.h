@@ -49,16 +49,30 @@ namespace conrad
         {
           idi = IDataSharedIter(new DataIteratorStub(1));
           const casa::uInt nAnt = 30;
-
+          const casa::uInt nAnt1 = 6;
+          const double realGains[nAnt] = {1.1, 0.9, 1.05, 0.87, 1.333,
+                                          1.1, 1.0, 1.0, -1.0, 0.3, 
+                                         -0.5, 1.1, 0.9, 0.98, 1.03,
+                                         -0.3, -1.1, 0.9, 1.1, 1.05,
+                                          1.0, -0.3, 1.1, 0.3, 1.8,
+                                          0.5, -0.7, 1.054, 1.0, 1.1}; 
+          const double imagGains[nAnt] = {0.0, 0., -0.05, 0.587, 0.,
+                                          0., -0.1, 0.02, -0.1, 0.84, 
+                                          0.86, 0.1, 0.1, 0., 0.03,
+                                         -0.84, 0., 0., -0.1, -0.05,
+                                          0.2, 0.9, 1.1, 0.3, -0.1,
+                                         -0.9, 0.72, -0.04, 0.05, -0.1}; 
+          
           params1.reset(new Params);
-          params1->add("flux.i.cena", 100.0);
+          params1->add("flux.i.cena", 100.);
           params1->add("direction.ra.cena", 0.5);
           params1->add("direction.dec.cena", -0.3);
           params1->add("shape.bmaj.cena", 30.0*casa::C::arcsec);
           params1->add("shape.bmin.cena", 20.0*casa::C::arcsec);
           params1->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               params1->add("gain.g11."+toString(ant),1.);
+               params1->add("gain.g11."+toString(ant),
+                            casa::Complex(realGains[ant],imagGains[ant]));
                params1->add("gain.g22."+toString(ant),1.);
           }
 
@@ -66,20 +80,18 @@ namespace conrad
           eq1.reset(new GainCalibrationEquation(*params1,idi,*p1));
 
           params2.reset(new Params);
-          params2->add("flux.i.cena", 100.0);
-          params2->add("direction.ra.cena", 0.500005);
-          params2->add("direction.dec.cena", -0.300003);
-          params2->add("shape.bmaj.cena", 33.0*casa::C::arcsec);
-          params2->add("shape.bmin.cena", 22.0*casa::C::arcsec);
-          params2->add("shape.bpa.cena", -57*casa::C::degree);
+          params2->add("flux.i.cena", 100.);
+          params2->add("direction.ra.cena", 0.50000);
+          params2->add("direction.dec.cena", -0.30000);
+          params2->add("shape.bmaj.cena", 30.0*casa::C::arcsec);
+          params2->add("shape.bmin.cena", 20.0*casa::C::arcsec);
+          params2->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               params2->add("gain.g11."+toString(ant),casa::Complex(0.9,0.1));
-               //if (ant>=6) params2->fix("gain.g11."+toString(ant));
-               //params2->add("gain.g11."+toString(ant),1.1);
-               params2->add("gain.g22."+toString(ant),0.9);
-               //params2->fix("gain.g22."+toString(ant));
+               params2->add("gain.g11."+toString(ant),casa::Complex(1.0,0.0));
+               params2->add("gain.g22."+toString(ant),1.0);
+               params2->fix("gain.g22."+toString(ant));
           }
-
+       
           p2.reset(new ComponentEquation(*params2, idi));
           eq2.reset(new GainCalibrationEquation(*params2,idi,*p2));
 
@@ -89,8 +101,14 @@ namespace conrad
         {
           // Predict with the "perfect" parameters"
           eq1->predict();
-          
-          for (size_t iter=0; iter<1; ++iter) {
+          std::vector<std::string> freeNames = params2->freeNames();
+          for (std::vector<std::string>::const_iterator it = freeNames.begin();
+               it!=freeNames.end();++it) {
+               if (it->find("gain") != 0) {
+                   params2->fix(*it);
+               }
+          }
+          for (size_t iter=0; iter<5; ++iter) {
                // Calculate gradients using "imperfect" parameters"
                NormalEquations ne(*params2);
                eq2->calcEquations(ne);
@@ -99,7 +117,22 @@ namespace conrad
                solver1.addNormalEquations(ne);
                solver1.setAlgorithm("SVD");
                solver1.solveNormalEquations(q);  
-               std::cout<<q<<std::endl;
+               
+               // taking care of the absolute phase uncertainty
+               const casa::uInt refAnt = 0;
+               const casa::Complex refPhaseTerm = casa::polar(1.f,
+                       -arg(params2->complexValue("gain.g11."+toString(refAnt))));
+                       
+               std::vector<std::string> freeNames(params2->freeNames());
+               for (std::vector<std::string>::const_iterator it=freeNames.begin();
+                                                   it!=freeNames.end();++it)  {
+                    const std::string parname = *it;
+                    if (parname.find("gain") == 0) {                    
+                        params2->update(parname,
+                             params2->complexValue(parname)*refPhaseTerm);                                 
+                    } 
+               }
+               
           }
           //std::cout<<*params2<<std::endl;
         
@@ -111,13 +144,12 @@ namespace conrad
           for (std::vector<std::string>::const_iterator it=completions.begin();
                                                 it!=completions.end();++it)  {
                const std::string parname = "gain"+*it;                                 
-               std::cout<<parname<<" "<<params2->complexValue(parname)<<std::endl;
-               if (!params2->isScalar(parname)) continue; // temporary
                
-               if (it->find(".g11") == 0) {
-                   CPPUNIT_ASSERT(fabs(params2->scalarValue(parname)-1.0)<0.7);
-               } else if (it->find(".g22") == 0) {
-                   CPPUNIT_ASSERT(fabs(params2->scalarValue(parname)-0.9)<1e-5);
+               if (it->find(".g22") == 0) {
+                   CPPUNIT_ASSERT(fabs(params2->scalarValue(parname)-1.0)<1e-7);
+               } else if (it->find(".g11") == 0) {
+                   CPPUNIT_ASSERT(abs(params2->complexValue(parname)-
+                          params1->complexValue(parname))<1e-7);
                } else {
                  CONRADTHROW(ConradError, "an invalid gain parameter "<<parname<<" has been detected");
                }
