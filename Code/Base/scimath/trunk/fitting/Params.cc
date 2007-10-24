@@ -142,6 +142,21 @@ namespace conrad
 			itsAxes[name]=Axes();
 			itsCounts[name]++;
 		}
+		
+		/// @brief update a complex-valued parameter
+        /// @details This method is a convenient way to update parameters, which
+        /// are complex numbers. It is equivalent to updating of an array of size
+        /// 2 filled with real and imaginary part.
+        /// @param[in] name parameter name
+        /// @param[in] value a value of the parameter to be added
+        void Params::update(const std::string &name, const casa::Complex &value)
+        {
+            casa::Array<double> buf(casa::IPosition(1,2));
+            buf(casa::IPosition(1,0)) = real(value);
+            buf(casa::IPosition(1,1)) = imag(value);
+            update(name,buf);
+        }
+		
 
 		void Params::update(const std::string& name, const double ip)
 		{

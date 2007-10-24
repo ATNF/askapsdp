@@ -98,6 +98,15 @@ namespace conrad
 /// @param value New value
         void update(const std::string& name, const double value);
 
+        /// @brief update a complex-valued parameter
+        /// @details This method is a convenient way to update parameters, which
+        /// are complex numbers. It is equivalent to updating of an array of size
+        /// 2 filled with real and imaginary part.
+        /// @param[in] name parameter name
+        /// @param[in] value a value of the parameter to be added
+        void update(const std::string &name, const casa::Complex &value);
+
+
 /// Is this parameter a scalar?
 /// @param name Name of param
         bool isScalar(const std::string& name) const;
