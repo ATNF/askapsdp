@@ -22,9 +22,10 @@ namespace conrad
 		{
 			CONRADCHECK(wmax>0.0, "Baseline length must be greater than zero");
 			CONRADCHECK(nwplanes>0, "Number of w planes must be greater than zero");
+			CONRADCHECK(nwplanes%2==1, "Number of w planes must be odd");
 
 			itsNWPlanes=nwplanes;
-			itsWScale=wmax/double(nwplanes);
+			itsWScale=wmax/double((nwplanes-1)/2);
 		}
 
 		WStackVisGridder::~WStackVisGridder()

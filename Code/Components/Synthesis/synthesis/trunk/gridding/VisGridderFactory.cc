@@ -33,7 +33,7 @@ namespace conrad
 				int oversample=parset.getInt32("gridder.WProject.oversample", 8);
 				int maxSupport=parset.getInt32("gridder.WProject.maxsupport", 256);
 				string tablename=parset.getString("gridder.WProject.tablename", "");
-				std::cout << "Using W projection gridding "<< std::endl;
+				std::cout << "Gridding using W projection"<< std::endl;
 				gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
 						maxSupport, tablename));
 			}
@@ -41,7 +41,7 @@ namespace conrad
 			{
 				double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
 				int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 64);
-				std::cout << "Using W Stack gridding "<< std::endl;
+				std::cout << "Gridding using W stacking "<< std::endl;
 				gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
 			}
 			else if (parset.getString("gridder")=="AWProject")
@@ -55,7 +55,7 @@ namespace conrad
 				int maxSupport=parset.getInt32("gridder.AWProject.maxsupport", 128);
 				int maxFeeds=parset.getInt32("gridder.AWProject.maxfeeds", 1);
 				string tablename=parset.getString("gridder.AWProject.tablename", "");
-				std::cout << "Using Antenna Illumination and W projection gridding"
+				std::cout << "Gridding with Using Antenna Illumination and W projection"
 				    << std::endl;
 				gridder=IVisGridder::ShPtr(new AWProjectVisGridder(diameter, blockage, 
 						wmax, nwplanes, cutoff, oversample,
@@ -71,7 +71,7 @@ namespace conrad
 				int maxSupport=parset.getInt32("gridder.AProjectWStack.maxsupport", 128);
 				int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
 				string tablename=parset.getString("gridder.AProjectWStack.tablename", "");
-				std::cout << "Using Antenna Illumination projection and W stacking gridding"
+				std::cout << "Gridding with Antenna Illumination projection and W stacking"
 				    << std::endl;
 				gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(diameter, blockage, 
 						wmax, nwplanes, oversample,
@@ -79,12 +79,12 @@ namespace conrad
 			}
 			else if (parset.getString("gridder")=="Box")
 			{
-				std::cout << "Using Box function for gridding"<< std::endl;
+				std::cout << "Gridding with Box function"<< std::endl;
 				gridder=IVisGridder::ShPtr(new BoxVisGridder());
 			}
 			else
 			{
-				std::cout << "Using spheriodal function for gridding"<< std::endl;
+				std::cout << "Gridding with spheriodal function"<< std::endl;
 				gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
 			}
 			return gridder;

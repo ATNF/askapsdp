@@ -90,7 +90,12 @@ namespace conrad
 
 						/// Calculate the index into the grids
 						double freq=idi->frequency()[chan];
-						itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
+						if(itsNWPlanes>1) {
+						  itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
+						}
+						else {
+						  itsGMap(i, pol, chan)=0;
+						}
 						CONRADCHECK(itsGMap(i,pol,chan)<itsNWPlanes,
 								"W scaling error: recommend allowing larger range of w");
 						CONRADCHECK(itsGMap(i,pol,chan)>-1,
