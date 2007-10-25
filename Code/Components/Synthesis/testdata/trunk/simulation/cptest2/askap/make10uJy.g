@@ -88,14 +88,8 @@ include 'table.g';
 
 # Use an irrational cellsize to put sources in awkward places
 cell:="2.71828183arcsec";
-npix:=16*1024;
+npix:=8*1024;
 totalmodel := 'cptest2.10uJy.model';
-
-small:=F; # Make a small image?
-if(small) {
-  npix:=npix/2;
-  totalmodel := 'cptest2.10uJy.model.small';
-}
 
 totalcl    := '10uJy.cl';
 asciifile  := '10uJy.txt';
