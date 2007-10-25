@@ -80,15 +80,24 @@ protected:
   /// @brief type of the gains cache
   typedef std::vector<std::pair<casa::Complex, casa::Complex> > GainsCacheType;
 
-  // @brief fill the gains cache from parameters
-  // @param[in] in a reference to the container to fill with values
+  /// @brief fill the gains cache from parameters
+  /// @param[in] in a reference to the container to fill with values
   void fillGainsCache(GainsCacheType &in) const;
+  
+  /// @brief obtain a name of the parameter
+  /// @details This method returns the parameter name for a gain of the
+  /// given antenna and polarisation. In the future, we may add time and/or
+  /// feed number as well.
+  /// @param[in] ant antenna number (0-based)
+  /// @param[in] pol index of the polarisation product
+  static std::string paramName(casa::uInt ant, casa::uInt pol);
+   
   
   /// @brief helper method to split parameter string
   /// @details Parameters have a form similar to "gain.g11.dt0.25",
   /// one needs to have a way to extract this information from the string.
-  /// This method splits a string on each dot symbol and appends the all
-  /// substring to a given vector.
+  /// This method splits a string on each dot symbol and adds the all
+  /// substrings to the given vector.
   /// @param[in] str input string.
   /// @param[out] parts non-const reference to a vector where substrings will
   ///                   be added to. 

@@ -69,7 +69,6 @@ void GainCalibrationEquation::predict(IDataAccessor &chunk) const
   CONRADDEBUGASSERT(rwVis.nplane());
   
   itsPerfectVisME.predict(chunk);
-  rwVis.set(casa::Complex(1.,0.));
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
        casa::uInt ant1 = chunk.antenna1()[row];
        casa::uInt ant2 = chunk.antenna2()[row];
@@ -115,7 +114,6 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
          itsGainsCache.value(*this,&GainCalibrationEquation::fillGainsCache);
   MemBufferDataAccessor  buffChunk(chunk);
   itsPerfectVisME.predict(buffChunk);
-  buffChunk.rwVisibility().set(casa::Complex(1.,0.));
   const casa::Cube<casa::Complex> &modelVis = buffChunk.visibility();
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
   
@@ -129,9 +127,9 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   // that by imaginary part, the first axis has double the size of elements 
   // because each pair of adjacent elements corresponds to real and imaginary
   // parts of the value of derivative
-  casa::Cube<double> derivatives(nDataPerPol*buffChunk.nRow()*nPol+nPol*0,
+  casa::Cube<double> derivatives(nDataPerPol*buffChunk.nRow()*nPol,
                                  2,gains.size(),0.);
-  casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol+nPol*0);
+  casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol);
   for (casa::uInt row = 0, offset = 0; row < buffChunk.nRow(); 
                                     ++row) { 
        casa::uInt ant1 = chunk.antenna1()[row];
@@ -148,7 +146,6 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             const casa::Complex g2 = pol ? gains[ant2].second : gains[ant2].first;
             
             //std::cout<<"row="<<row<<" ant1="<<ant1<<" ant2="<<ant2<<" "<<g1<<" "<<g2<<std::endl;
-       
             // there is probably an unnecessary copying in the following code,
             // but we leave it as it is for now. I have a feeling that this
             // part has to be redesigned to have a faster and more readable code
@@ -203,6 +200,27 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   designmatrix.addResidual(residual,casa::Vector<double>(residual.size(),1.));
   ne.add(designmatrix);
 }                                   
+
+/// @brief obtain a name of the parameter
+/// @details This method returns the parameter name for a gain of the
+/// given antenna and polarisation. In the future, we may add time and/or
+/// feed number as well.
+/// @param[in] ant antenna number (0-based)
+/// @param[in] pol index of the polarisation product
+std::string GainCalibrationEquation::paramName(casa::uInt ant, 
+                                               casa::uInt pol)
+{ 
+  std::string res("gain.");
+  if (!pol) {
+      res+="g11.";
+  } else if (pol == 1) {
+      res+="g22.";
+  } else {
+      CONRADTHROW(ConradError, "Only parallel hand polarisation products are supported at the moment, you have pol="<<pol);
+  }
+
+  return res+utility::toString<casa::uInt>(ant);
+}                                               
 
 // @brief fill the gains cache from parameters
 // @param[in] a reference to the container to fill with values
