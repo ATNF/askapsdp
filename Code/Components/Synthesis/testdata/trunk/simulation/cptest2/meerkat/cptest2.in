@@ -1,0 +1,64 @@
+Csimulator.dataset                              =       /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack%w.ms
+
+Csimulator.sources.names                        =       [10uJy]
+
+Csimulator.sources.10uJy.direction              =       [12h30m00.000, -45.00.00.000, J2000]
+Csimulator.sources.10uJy.model                  =       /work/cor203/Projects/CONRAD/cptest2/meerkat/cptest2.10uJy.model
+
+Csimulator.antennas.definition                  =       /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/cptest2/meerkat/MEERKAT80.in
+Csimulator.feeds.definition                     =       /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/cptest2/meerkat/MEERKATfeeds.in
+Csimulator.spws.definition                      =       /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/cptest2/meerkat/MEERKATspws.in
+
+Csimulator.simulation.blockage                  =       0.01
+Csimulator.simulation.elevationlimit            =       8deg
+Csimulator.simulation.autocorrwt                =       0.0
+Csimulator.simulation.integrationtime           =       3s
+Csimulator.simulation.usehourangles             =       True
+Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
+
+Csimulator.observe.number                       =       1
+Csimulator.observe.scan0                        =       [10uJy, Continuum%w, -6h, 6h]
+
+Csimulator.gridder                              = AProjectWStack
+Csimulator.gridder.AProjectWStack.wmax            	= 12000
+Csimulator.gridder.AProjectWStack.nwplanes        	= 33
+Csimulator.gridder.AProjectWStack.oversample     	= 8
+Csimulator.gridder.AProjectWStack.diameter		= 12m
+Csimulator.gridder.AProjectWStack.blockage		= 1m
+Csimulator.gridder.AProjectWStack.maxfeeds		= 1
+Csimulator.gridder.AProjectWStack.maxsupport		= 1024
+Csimulator.gridder.AProjectWStack.cutoff		= 0.001
+
+Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack%w.ms
+
+Cimager.Images.Names                            = [image.i.10uJy_AProjectWStack]
+Cimager.Images.image.i.10uJy_AProjectWStack.shape		= [2048,2048]
+Cimager.Images.image.i.10uJy_AProjectWStack.cellsize	= [2.0arcsec, 2.0arcsec]
+Cimager.Images.image.i.10uJy_AProjectWStack.frequency	= [1.245e9,1.420e9]
+Cimager.Images.image.i.10uJy_AProjectWStack.nchan		= 1
+Cimager.Images.image.i.10uJy_AProjectWStack.direction	= [12h30m00.00, -45.00.00.00, J2000]
+
+Cimager.gridder                          	= AProjectWStack
+Cimager.gridder.AProjectWStack.wmax            	= 12000
+Cimager.gridder.AProjectWStack.nwplanes        	= 33
+Cimager.gridder.AProjectWStack.oversample     	= 8
+Cimager.gridder.AProjectWStack.diameter		= 12m
+Cimager.gridder.AProjectWStack.blockage		= 1m
+Cimager.gridder.AProjectWStack.maxfeeds		= 1
+Cimager.gridder.AProjectWStack.maxsupport       = 1024
+Cimager.gridder.AProjectWStack.cutoff		= 0.001
+
+Cimager.solver                           	= Dirty
+Cimager.solver.Dirty.threshold			= 10%
+Cimager.solver.Dirty.verbose                   	= True
+
+Cimager.solver.Clean.algorithm                 	= MultiScale
+Cimager.solver.Clean.niter                     	= 100
+Cimager.solver.Clean.gain                      	= 0.9
+Cimager.solver.Clean.cycles                    	= 3
+Cimager.solver.Clean.threshold                	= 0.1mJy
+Cimager.solver.Clean.verbose                   	= True
+
+Cimager.ncycles                                 = 0
+Cimager.restore                          	= False
+Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
