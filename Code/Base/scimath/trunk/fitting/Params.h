@@ -209,9 +209,9 @@ namespace conrad
         friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, 
                                               const Params& par);
         /// Input shift operator for Params
-        /// @param os Input stream
-        /// @param par Parameters to be processed
-        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, 
+        /// @param[in] is Input stream
+        /// @param[in] par Parameters to be processed
+        friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, 
                                               Params& par); 
 
       protected:
