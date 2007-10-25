@@ -114,19 +114,23 @@ namespace conrad
 
         void testSolutionNESVD()
         {
+          // the data points used are far from perfect to discriminate between
+          // two parabolas (need to go far from the origin), as a result we
+          // need to increase the limit on the condition number.
+          LinearSolver solver(itsPolyWrong->parameters(),1e5);
           NormalEquations normeq(itsPolyWrong->parameters());
           itsPolyWrong->calcEquations(normeq);
-          LinearSolver solver(itsPolyWrong->parameters());
           solver.addNormalEquations(normeq);
-
+          
           Quality q;
           solver.setAlgorithm("SVD");
           //std::cout << "Before " << solver.parameters().value("poly") << std::endl;
           solver.solveNormalEquations(q);
           //std::cout << "After  " << solver.parameters().value("poly") << std::endl;
-          //std::cout << q << std::endl;
+          
           CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
           const casa::Vector<double> result = solver.parameters().value("poly");
+          //std::cout<<result<<std::endl;
           CPPUNIT_ASSERT(fabs(result[0]-1.)<1e-5 && fabs(result[1]-2.)<1e-5 && fabs(result[2]-3.)<1e-5);
         }
         
@@ -155,7 +159,11 @@ namespace conrad
           casa::Vector<double> pvals(ip.value("poly").size());
           pvals.set(0.0);
           ip.update("poly", pvals);
-          LinearSolver solver(ip);
+          // data points are not good to discriminate between two parabolas,
+          // condition number will be large, need to adjust the threshold
+          // test here that a negative value specified by a static constant 
+          // works and means no limit on the condition number
+          LinearSolver solver(ip,LinearSolver::KeepAllSingularValues);
           solver.addNormalEquations(normeq);
           Quality q;
           solver.setAlgorithm("SVD");

@@ -13,6 +13,7 @@
 // own includes
 #include <fitting/GSLSVDReplacement.h>
 #include <conrad/ConradError.h>
+#include <conrad/IndexedLess.h>
 
 // main SVD code, taken from another project
 #include <fitting/SVDecompose.h>
@@ -21,10 +22,37 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <algorithm>
+#include <numeric>
+
 
 namespace conrad {
 
+namespace utility {
+/// @brief a helper object function to populate an array of indices
+/// @details An instance of this class is initialized with an initial
+/// number, which are returned in the first call. All subsequent calls
+/// result in an incremented value. (result = initial + (number_of_call-1);)
+template<typename T>
+struct Counter {
+   typedef T result_type;
+   /// @brief constructor
+   /// @details initialize the counter with the initial value (default is 0)
+   /// @param[in] val initial value
+   Counter(const T &val = T(0)) : itsValue(val) {}
+   
+   /// @brief next value
+   /// @details return current value and increment it
+   T operator()() const { return itsValue++; }
+private:
+    /// current value
+    mutable T itsValue;
+};
+
+} // namespace utility
+
 namespace scimath {
+
 
 /// @brief main method - do SVD (in a symmetric case)
 /// @details The routine does decomposition: A=UWV^T
@@ -61,19 +89,27 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
   }
   CONRADDEBUGASSERT(MatrixV.nrow() == V->size1);
   CONRADDEBUGASSERT(MatrixV.ncol() == V->size2);
+  // we need to sort singular values to get them in the descending order
+  // with appropriate permutations of the A and V matrices
+  std::vector<size_t> VectorSIndices(VectorS.size());
+  std::generate(VectorSIndices.begin(), VectorSIndices.end(), 
+                utility::Counter<size_t>());
+  std::sort(VectorSIndices.begin(), VectorSIndices.end(), 
+            not2(utility::indexedLess(VectorS.begin())));
   
+  CONRADDEBUGASSERT(VectorS.size() == VectorSIndices.size());
   for (int row=0;row<MatrixV.nrow();++row) {
        for (int col=0;col<MatrixV.ncol();++col) {
-            gsl_matrix_set(V,row,col,MatrixV(row,col));
+            gsl_matrix_set(V,row,col,MatrixV(row,VectorSIndices[col]));
        }
   }
   CONRADDEBUGASSERT(VectorS.size() == S->size);
   for (int item=0;item<VectorS.size();++item) {
-       gsl_vector_set(S,item,VectorS[item]);
+       gsl_vector_set(S,item,VectorS[VectorSIndices[item]]);
   }
   for (int row=0;row<MatrixA.nrow();++row) {
        for (int col=0;col<MatrixA.ncol();++col) {
-            gsl_matrix_set(A,row,col,MatrixA(row,col));
+            gsl_matrix_set(A,row,col,MatrixA(row,VectorSIndices[col]));
        }
   }
 }

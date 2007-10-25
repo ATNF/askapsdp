@@ -22,9 +22,22 @@ namespace conrad
     class LinearSolver : public Solver
     {
       public:
-/// Constructor
-/// @param ip Parameters for this solver
-        explicit LinearSolver(const Params& ip);
+       /// @brief no limit on the condition number
+       static const double KeepAllSingularValues = -1.;
+      
+       /// @brief Constructor
+       /// @details Optionally, it is possible to limit the condition number of
+       /// normal equation matrix to a given number.
+       /// @param ip Parameters for this solver
+       /// @param maxCondNumber maximum allowed condition number of the range
+       /// of the normal equation matrix for the SVD algorithm. Effectively this
+       /// puts the limit on the singular values, which are considered to be
+       /// non-zero (all greater than the largest singular value divided by this
+       /// condition number threshold). Default is 1e3. Put a negative number
+       /// if you don't want to drop any singular values (may be a not very wise
+       /// thing to do!). A very large threshold has the same effect. Zero
+       /// threshold is not allowed and will cause an exception.
+       explicit LinearSolver(const Params& ip, double maxCondNumber = 1e3);
         
 /// Destructor
         virtual ~LinearSolver();
@@ -40,7 +53,11 @@ namespace conrad
 /// @brief Clone this object
         virtual Solver::ShPtr clone() const;
 
-      protected:
+       private:
+         /// @brief maximum condition number allowed
+         /// @details Effectively, this is a threshold for singular values 
+         /// taken into account in the svd method
+         double itsMaxCondNumber;
     };
 
   }

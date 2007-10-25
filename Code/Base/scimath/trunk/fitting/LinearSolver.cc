@@ -33,9 +33,24 @@ namespace conrad
 {
   namespace scimath
   {
+    const double LinearSolver::KeepAllSingularValues;
     
-    LinearSolver::LinearSolver(const Params& ip) : Solver(ip) 
+    /// @brief Constructor
+    /// @details Optionally, it is possible to limit the condition number of
+    /// normal equation matrix to a given number.
+    /// @param ip Parameters for this solver
+    /// @param maxCondNumber maximum allowed condition number of the range
+    /// of the normal equation matrix for the SVD algorithm. Effectively this
+    /// puts the limit on the singular values, which are considered to be
+    /// non-zero (all greater than the largest singular value divided by this
+    /// condition number threshold). Default is 1e3. Put a negative number
+    /// if you don't want to drop any singular values (may be a not very wise
+    /// thing to do!). A very large threshold has the same effect. Zero
+    /// threshold is not allowed and will cause an exception.
+    LinearSolver::LinearSolver(const Params& ip, double maxCondNumber) : 
+           Solver(ip), itsMaxCondNumber(maxCondNumber) 
     {
+      CONRADASSERT(itsMaxCondNumber!=0);
     };
 
     LinearSolver::~LinearSolver() {
@@ -125,6 +140,27 @@ namespace conrad
         gsl_vector * work = gsl_vector_alloc (nParameters);
         //gsl_linalg_SV_decomp (A, V, S, work);
         SVDecomp (A, V, S);
+        
+        // code to put a limit on the condition number of the system
+        const double singularValueLimit = nParameters>1 ? 
+                    gsl_vector_get(S,0)/itsMaxCondNumber : -1.; 
+        for (int i=1; i<nParameters; ++i) {
+             if (gsl_vector_get(S,i)<singularValueLimit) {
+                 gsl_vector_set(S,i,0.);
+             }
+        }
+        
+        /*
+        // temporary code for debugging
+        {
+          std::ofstream os("dbg2.dat");
+          for (int i=0; i<nParameters; ++i) {
+               os<<i<<" "<<gsl_vector_get(S,i)<<std::endl;
+          }
+        }
+        // end of temporary code
+        */
+        
         gsl_vector * X = gsl_vector_alloc(nParameters);
         gsl_linalg_SV_solve (A, V, S, B, X);
 // Now find the statistics for the decomposition
