@@ -21,11 +21,10 @@ namespace conrad {
 
 namespace scimath {
 
-/// @brief main method - do SVD (in a symmetric case)
-/// @details The routine does decomposition: A=UWV^T
-/// @param[in] A a matrix to decompose (gsl_matrix)
-/// @param[out] V a matrix with eigenvectors
-/// @param[out] S a vector with singular values
+// @brief main method - do SVD (in a symmetric case)
+// @param[in] A a matrix to decompose (gsl_matrix)
+// @param[out] V a matrix with eigenvectors
+// @param[out] S a vector with singular values
 void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S);
         
 

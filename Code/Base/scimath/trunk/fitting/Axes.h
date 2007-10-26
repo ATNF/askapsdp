@@ -96,9 +96,9 @@ namespace conrad
                                             const Axes& axes); 
 
       /// IO from a BlobStream
-      /// @param os an ostream
+      /// @param is an ostream
       /// @param axes the Axes instance
-      friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& os, 
+      friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, 
                                             Axes& axes);
       
     private:

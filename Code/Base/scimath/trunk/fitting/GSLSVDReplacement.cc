@@ -35,6 +35,7 @@ namespace utility {
 /// result in an incremented value. (result = initial + (number_of_call-1);)
 template<typename T>
 struct Counter {
+   /// @brief type of the result
    typedef T result_type;
    /// @brief constructor
    /// @details initialize the counter with the initial value (default is 0)
