@@ -76,8 +76,8 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
   svd::Matrix2D<std::vector<double> > MatrixV(MatrixVBuffer);
   
   std::vector<double> VectorS;
-  for (int row=0;row<MatrixA.nrow();++row) {
-       for (int col=0;col<MatrixA.ncol();++col) {
+  for (size_t row=0;row<MatrixA.nrow();++row) {
+       for (size_t col=0;col<MatrixA.ncol();++col) {
             MatrixA(row,col)=gsl_matrix_get(A,row,col);
        }
   }
@@ -95,20 +95,20 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
   std::generate(VectorSIndices.begin(), VectorSIndices.end(), 
                 utility::Counter<size_t>());
   std::sort(VectorSIndices.begin(), VectorSIndices.end(), 
-            not2(utility::indexedLess(VectorS.begin())));
+            not2(utility::indexedLess<size_t>(VectorS.begin())));
   
   CONRADDEBUGASSERT(VectorS.size() == VectorSIndices.size());
-  for (int row=0;row<MatrixV.nrow();++row) {
-       for (int col=0;col<MatrixV.ncol();++col) {
+  for (size_t row=0;row<MatrixV.nrow();++row) {
+       for (size_t col=0;col<MatrixV.ncol();++col) {
             gsl_matrix_set(V,row,col,MatrixV(row,VectorSIndices[col]));
        }
   }
   CONRADDEBUGASSERT(VectorS.size() == S->size);
-  for (int item=0;item<VectorS.size();++item) {
+  for (size_t item=0;item<VectorS.size();++item) {
        gsl_vector_set(S,item,VectorS[VectorSIndices[item]]);
   }
-  for (int row=0;row<MatrixA.nrow();++row) {
-       for (int col=0;col<MatrixA.ncol();++col) {
+  for (size_t row=0;row<MatrixA.nrow();++row) {
+       for (size_t col=0;col<MatrixA.ncol();++col) {
             gsl_matrix_set(A,row,col,MatrixA(row,VectorSIndices[col]));
        }
   }
@@ -118,3 +118,4 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
 } // namespace scimath
 
 } // namespace conrad
+

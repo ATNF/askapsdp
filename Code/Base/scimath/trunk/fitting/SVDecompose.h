@@ -54,8 +54,8 @@ namespace svd {
       size_t m,n; // number of rows and columns;
       Cont &cont; // reference to the container
     public:
-        Matrix2D(Cont &icont,size_t im=0,size_t in=0) : cont(icont),
-	          m(im),n(in) {cont.resize(m*n);};
+        Matrix2D(Cont &icont,size_t im=0,size_t in=0) : 
+	          m(im),n(in), cont(icont) {cont.resize(m*n);};
 	void resize(size_t newnrow, size_t newncol) {
 	     m=newnrow;
 	     n=newncol;
@@ -254,7 +254,7 @@ namespace svd {
 		 // next QR transformation
 		 double c=1.;
 		 double s=1.;		 
-		 for (size_t j=l;j<=nm;++j) {
+		 for (size_t j=l;j<=size_t(nm);++j) {
 		      size_t i=j+1;
 		      g=rv1[i];
 		      y=W[i];
