@@ -43,7 +43,7 @@ namespace utility
               values[i] = buf[i];
               indices[i] = i;
          }
-         std::sort(indices.begin(),indices.end(),indexedLess(values.begin()));
+         std::sort(indices.begin(),indices.end(),indexedLess<size_t>(values.begin()));
          const size_t expectations[nElements] = {2, 4, 0, 1, 3};
          for (size_t i=0; i<nElements; ++i) {
               CPPUNIT_ASSERT(expectations[i] == indices[i]);

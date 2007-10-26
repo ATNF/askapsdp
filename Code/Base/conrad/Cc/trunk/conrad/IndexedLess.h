@@ -35,9 +35,8 @@ namespace utility {
 /// stored in a container defined by its random access iterator of the origin
 /// each time it is asked to compare two indicies. Each instance of the class
 /// holds a copy of the rangom access iterator.
-template<typename Iter>
-struct IndexedLess : public std::binary_function<typename Iter::value_type,
-                     typename Iter::value_type,bool> {
+template<typename Iter, typename IndexType>
+struct IndexedLess : public std::binary_function<IndexType,IndexType,bool> {
    /// @brief constructor
    /// @details
    /// @param[in] iter random access iterator to work with
@@ -49,7 +48,6 @@ struct IndexedLess : public std::binary_function<typename Iter::value_type,
    /// @param[in] index1 index of the first value
    /// @param[in] index2 index of the second value
    /// @return true if value[index1]<value[index2]
-   template<typename IndexType>
    bool operator()(const IndexType &index1, const IndexType &index2) const 
    {
       return itsComparator(*(itsIter+index1), *(itsIter+index2)); 
@@ -68,10 +66,10 @@ private:
 /// writing type names all the time. Function can extract the 
 /// template parameter from the argument type, i.e. automatically
 /// @param[in] iter random access iterator to work with
-template<typename Iter>
-IndexedLess<Iter> indexedLess(const Iter &iter) 
+template<typename IndexType, typename Iter>
+IndexedLess<Iter,IndexType> indexedLess(const Iter &iter) 
 {
-   return IndexedLess<Iter>(iter);
+   return IndexedLess<Iter,IndexType>(iter);
 }
 
 } // namespace utility
@@ -79,3 +77,4 @@ IndexedLess<Iter> indexedLess(const Iter &iter)
 } // namespace conrad
 
 #endif // #define INDEXED_LESS_H
+
