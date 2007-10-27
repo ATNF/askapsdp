@@ -1,6 +1,4 @@
-gsl=3rdParty/gsl/tags/gsl-1.10
-casacore=3rdParty/casacore/tags/casacore-0.2.0;casa_tables casa_casa
+gsl=3rdParty/gsl/default
 conrad=Code/Base/conrad/Cc/trunk
-blob=3rdParty/LOFAR/Blob/tags/Blob-1.0;blob
-aps=3rdParty/LOFAR/APS/tags/APS-2.1
-common=3rdParty/LOFAR/Common/tags/Common-3.1
+blob=3rdParty/LOFAR/Blob/default;blob
+aps=3rdParty/LOFAR/APS/default
