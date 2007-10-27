@@ -101,7 +101,7 @@ namespace scimath
          for (casa::uInt ant=0;ant<itsNAnt;++ant) {
              const std::string name = parName(ant); 
              CPPUNIT_ASSERT(abs(itsTrueGains.complexValue(name)-
-                      itsGuessedGains.complexValue(name))<1e-7);
+                      itsGuessedGains.complexValue(name))<1e-6);
          }
      }
   protected:
