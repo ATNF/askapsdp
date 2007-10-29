@@ -1,4 +1,4 @@
 gsl=3rdParty/gsl/default
 conrad=Code/Base/conrad/Cc/trunk
-blob=3rdParty/LOFAR/Blob/default;blob
-aps=3rdParty/LOFAR/APS/default
+blob=3rdParty/LOFAR/Blob/tags/Blob-1.0;blob
+aps=3rdParty/LOFAR/APS/tags/APS-2.1
