@@ -24,38 +24,45 @@ namespace svd {
 
   using namespace std;
 
+  /// square of the argument
   double inline sqr(double x) {return x==0? 0 :x*x;}
 
+  /// sign of the argument 
   double inline sign(double a,double b)
   {
     return b>=0?fabs(a):-fabs(a);
   }
 
+  /// the smallest of two input numbers
   int inline imin(int a,int b) { return a>b?b:a;}
 
+  /// the largest of two given numbers
   double inline fmax(double a,double b) { return a>b?a:b;}
 
-  // supplementary function to calculate hypothenuse using the
-  // Pythagor formula sqrt(a^2+b^2) without destructive underflow or
-  // overflow.
+  /// supplementary function to calculate hypothenuse using the
+  /// Pythagor formula sqrt(a^2+b^2) without destructive underflow or
+  /// overflow.
   double inline pythag(double a,double b) {
      double absa=fabs(a),absb=fabs(b);
      if (absa>absb) return absa*sqrt(1.+sqr(absb/absa));
      else return (absb==0.?0.:absb*sqrt(1.+sqr(absa/absb)));
   }
 
-  // adapter to be used with any one dimensional container, which
-  // supports
-  //           1) typedef value_type exists 
-  //           2) operator [index]  (index (0..size-1)) returning value_type&
-  //           3) size_t size() const; returning a number of elements
-  //           4) void resize(size_t newsize); resize the array
+  /// adapter to be used with any one dimensional container, which
+  /// supports
+  ///           1) typedef value_type exists 
+  ///           2) operator [index]  (index (0..size-1)) returning value_type&
+  ///           3) size_t size() const; returning a number of elements
+  ///           4) void resize(size_t newsize); resize the array
   template<class Cont> class Matrix2D {
       size_t m,n; // number of rows and columns;
       Cont &cont; // reference to the container
     public:
-        Matrix2D(Cont &icont,size_t im=0,size_t in=0) : 
+    /// constructor
+    Matrix2D(Cont &icont,size_t im=0,size_t in=0) : 
 	          m(im),n(in), cont(icont) {cont.resize(m*n);};
+	
+	/// change of the size
 	void resize(size_t newnrow, size_t newncol) {
 	     m=newnrow;
 	     n=newncol;
@@ -63,6 +70,7 @@ namespace svd {
 	         cont.resize(m*n);
 	}
 	
+	/// access operator
 	typename Cont::value_type& operator()(size_t row, size_t col) {
 	     if (row>=m || col>=n) {
 	          std::cout<<m<<" "<<n<<" "<<row<<" "<<col<<std::endl;
@@ -71,36 +79,40 @@ namespace svd {
 	     return cont[row*n+col];
 	}
 
+    /// read-only access
 	const typename Cont::value_type& operator()(size_t row,
 	                                           size_t col) const {
 	     if (row>=m || col>=n) throw string("Out of range in const method");					   
 	     return cont[row*n+col];
 	}
+	
+	/// number of rows
 	size_t nrow() const { return m;}
+	/// number of columns
 	size_t ncol() const { return n;}
   };
 
-  // given a matrix A[0..m-1][0..n-1] this routine computes its singular
-  // value decomposition, A=UWV^T. The matrix U replaces A on output,
-  // the diagonal matrix of singular values W is output as a vector
-  // W[0..n-1]. The matrix V (not the transpose V^T) is output as
-  // V[0..n-1][0..n-1]. See Numerical Recipies in C for detail.
-  // Note for C++ implementation:
-  //      W is a class of any type, which has the following
-  //        1) operator [index]   (index (0..size-1)), returning double&
-  //        2) size_t size() const; returning a number of elements
-  //        3) void resize(size_t newsize);  resize the array (doesn't
-  //           matter whether the elements are preserved or not).
-  //      V and M are classes of any type, which have the following
-  //        1) operator (row,col) (row (0..nrow-1), col (0..ncol-1)),
-  //           returning double&
-  //        2) size_t nrow() const; returning a number of rows
-  //        3) size_t ncol() const; returning a number of columns
-  //        4) void resize(size_t newnrow, size_t newncol);
-  //           resize the matrix (doesn't
-  //           matter whether the elements are preserved or not).
-  // The function may throw an exception (string) if number of
-  // internal iteration has exceeded the limit
+  /// given a matrix A[0..m-1][0..n-1] this routine computes its singular
+  /// value decomposition, A=UWV^T. The matrix U replaces A on output,
+  /// the diagonal matrix of singular values W is output as a vector
+  /// W[0..n-1]. The matrix V (not the transpose V^T) is output as
+  /// V[0..n-1][0..n-1]. See Numerical Recipies in C for detail.
+  /// Note for C++ implementation:
+  ///      W is a class of any type, which has the following
+  ///        1) operator [index]   (index (0..size-1)), returning double&
+  ///        2) size_t size() const; returning a number of elements
+  ///        3) void resize(size_t newsize);  resize the array (doesn't
+  ///           matter whether the elements are preserved or not).
+  ///      V and M are classes of any type, which have the following
+  ///        1) operator (row,col) (row (0..nrow-1), col (0..ncol-1)),
+  ///           returning double&
+  ///        2) size_t nrow() const; returning a number of rows
+  ///        3) size_t ncol() const; returning a number of columns
+  ///        4) void resize(size_t newnrow, size_t newncol);
+  ///           resize the matrix (doesn't
+  ///           matter whether the elements are preserved or not).
+  /// The function may throw an exception (string) if number of
+  /// internal iteration has exceeded the limit
   template<class Array, class Matrix>
   void computeSVD(Matrix &A, Array &W, Matrix &V) {
        // setup the sizes of the output arrays
