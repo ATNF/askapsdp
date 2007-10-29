@@ -126,7 +126,7 @@ namespace conrad
 
       CONRADCHECK(itsTable.nrow()>0, "Parameters table " << itsTable.tableName() << " is empty");
 
-      for (int rownr=0;rownr<itsTable.nrow();rownr++)
+      for (size_t rownr=0; rownr<itsTable.nrow(); ++rownr)
       {
         casa::String name;
         nameCol.get(rownr, name);
@@ -140,7 +140,7 @@ namespace conrad
         casa::Vector<double> end;
         endCol.get(rownr, end);
         Axes ax;
-        for (int i=0;i<axesNames.nelements();i++)
+        for (size_t i=0; i<axesNames.nelements(); ++i)
         {
           ax.add(axesNames(i), start(i), end(i));
         }
@@ -161,7 +161,7 @@ namespace conrad
     casa::Vector<casa::String> ParamsCasaTable::toCasaString(const std::vector<std::string>& s)
     {
       casa::Vector<casa::String> result(s.size());
-      for (int i=0;i<s.size();i++)
+      for (size_t i=0; i<s.size(); ++i)
       {
         result(i)=s[i];
       }
@@ -171,7 +171,7 @@ namespace conrad
     std::vector<std::string> ParamsCasaTable::toStdString(const casa::Vector<casa::String>& s)
     {
       std::vector<std::string> result(s.nelements());
-      for (int i=0;i<s.nelements();i++)
+      for (size_t i=0; i<s.nelements(); ++i)
       {
         result[i]=s(i);
       }

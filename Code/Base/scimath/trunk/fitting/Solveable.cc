@@ -15,8 +15,8 @@ namespace conrad
   {
 
 /// Standard constructor
-    Solveable::Solveable() : itsGain(0.1), itsNiter(100), itsTol(1e-6),
-      itsAlgorithm(""), itsSubAlgorithm(""), itsVerbose(false),
+    Solveable::Solveable() : itsGain(0.1), itsNiter(100), 
+      itsAlgorithm(""), itsSubAlgorithm(""), itsTol(1e-6), itsVerbose(false),
       itsThreshold(casa::Quantity(0.0, "Jy"))
     {
     };

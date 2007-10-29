@@ -59,6 +59,7 @@ namespace conrad
         itsArguments=other.itsArguments;
         itsModel=other.itsModel;
       }
+      return *this;
     }
 
     PolynomialEquation::~PolynomialEquation()
@@ -125,12 +126,12 @@ namespace conrad
       const casa::Vector<double>& parameters,
       casa::Vector<double>& values)
     {
-      for (int ix=0;ix<x.size();ix++)
+      for (size_t ix=0; ix<x.size(); ++ix)
       {
-        for (int ipar=0;ipar<parameters.size();ipar++)
+        for (size_t ipar=0; ipar<parameters.size(); ++ipar)
         {
           /// @todo Optimize calculation of values
-          values[ix]+=parameters[ipar]*std::pow(x[ix], ipar);
+          values[ix]+=parameters[ipar]*std::pow(x[ix], int(ipar));
         }
       }
     }
@@ -138,14 +139,14 @@ namespace conrad
       const casa::Vector<double>& parameters,
       casa::Matrix<double>& valueDerivs)
     {
-      uint nPoly=parameters.size();
-      uint n=x.size();
-      for (int ix=0;ix<x.size();ix++)
+      const uint nPoly=parameters.size();
+      const uint n=x.size();
+      for (uint ix=0; ix<n; ++ix)
       {
-        for (int ipar=0;ipar<parameters.size();ipar++)
+        for (uint ipar=0; ipar<nPoly; ++ipar)
         {
           /// @todo Optimize calculation of derivatives
-          valueDerivs(ix,ipar)=std::pow(x[ix], ipar);
+          valueDerivs(ix,ipar)=std::pow(x[ix], int(ipar));
         }
       }
     }

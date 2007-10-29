@@ -45,6 +45,7 @@ namespace conrad
     
     bool Solver::solveNormalEquations(conrad::scimath::Quality& q)
     {
+     return false;
     }
     
     Solver::ShPtr Solver::clone() const

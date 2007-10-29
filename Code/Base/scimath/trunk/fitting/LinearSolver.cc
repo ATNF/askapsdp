@@ -94,9 +94,9 @@ namespace conrad
 // Take a deep breath for const-safe indexing into the double layered map
           const casa::Matrix<double>& 
             nm(itsNormalEquations->normalMatrix().find(indit1->first)->second.find(indit2->first)->second);
-          for (int row=0;row<nm.nrow();row++)
+          for (size_t row=0; row<nm.nrow(); ++row)
           {
-            for (int col=0;col<nm.ncolumn();col++)
+            for (size_t col=0; col<nm.ncolumn(); ++col)
             {
               gsl_matrix_set(A, row+(indit1->second), col+(indit2->second), nm(row,col));
 //              std::cout << "A " << row << " " << col << " " << nm(row,col) << std::endl; 
@@ -107,7 +107,7 @@ namespace conrad
       for (map<string, int>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
       {
         const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit1->first)->second);
-        for (int row=0;row<dv.nelements();row++)
+        for (size_t row=0; row<dv.nelements(); ++row)
         {
           gsl_vector_set(B, row+(indit1->second), dv(row));
 //          std::cout << "B " << row << " " << dv(row) << std::endl; 
@@ -195,7 +195,7 @@ namespace conrad
         {
           casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-          for (int i=0;i<value.nelements();i++)
+          for (size_t i=0; i<value.nelements(); ++i)
           {
 //          	std::cout << value(i) << " " << gsl_vector_get(X, indit->second+i) << std::endl;
             value(i)+=gsl_vector_get(X, indit->second+i);
@@ -216,7 +216,7 @@ namespace conrad
         {
           casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-          for (int i=0;i<value.nelements();i++)
+          for (size_t i=0; i<value.nelements(); ++i)
           {
             value(i)+=gsl_vector_get(X, indit->second+i);
           }

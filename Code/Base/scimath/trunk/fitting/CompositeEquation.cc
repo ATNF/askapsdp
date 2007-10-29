@@ -26,6 +26,7 @@ namespace conrad
         static_cast<Equation*>(this)->operator=(other);
         itsList=other.itsList;
       }
+      return *this;
     }
 
     CompositeEquation::CompositeEquation() : Equation(Params()) {};

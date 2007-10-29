@@ -110,7 +110,7 @@ namespace svd {
        // Householder reduction to bidiagonal form
        double g=0., anorm=0., scale=0.;
        vector<double> rv1(A.ncol());
-       int l;
+       int l=1;
        for (size_t i=0;i<A.ncol();++i) {
             l=i+1;
 	    rv1[i]=scale*g;

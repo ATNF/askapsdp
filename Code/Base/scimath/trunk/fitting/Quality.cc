@@ -38,6 +38,7 @@ namespace conrad
       {
         os << ", condition number = " << q.cond();
       }
+      return os;
     }
 
   }

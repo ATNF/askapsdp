@@ -26,6 +26,7 @@ namespace conrad
       {
         rwParameters()=other.itsParams;
       }
+      return *this;
     }
 
     Equation::Equation()

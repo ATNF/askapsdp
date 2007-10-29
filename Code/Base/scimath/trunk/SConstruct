@@ -9,7 +9,8 @@
 from conradenv import env
 
 env.Append(CCFLAGS=['-O2'])
-env.Append(CCFLAGS=['-DHAVE_AIPSPP'])
+#env.Append(CCFLAGS=['-Wall'])
+#env.Append(CCFLAGS=['-DHAVE_AIPSPP'])
 
 # create build object with library name
 pkg = env.ConradPackage("scimath")
