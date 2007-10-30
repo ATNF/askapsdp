@@ -139,7 +139,6 @@ namespace conrad
 			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
-			itsAxes[name]=Axes();
 			itsCounts[name]++;
 		}
 		
@@ -165,7 +164,6 @@ namespace conrad
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
-			itsAxes[name]=Axes();
 			itsCounts[name]++;
 		}
 
