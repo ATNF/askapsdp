@@ -1,0 +1,458 @@
+
+
+
+
+
+
+
+
+MASTER : CONRAD program (parallel) running on 8 nodes (master/master)
+Constructed dirty image solver
+MASTER : parset file cptest2.in
+MASTER : Waiting for normal equations
+Gridding with Antenna Illumination projection and W stacking
+Gridding with Antenna Illumination projection and W stacking
+Gridding with Antenna Illumination projection and W stacking
+Gridding with Antenna Illumination projection and W stacking
+Gridding with Antenna Illumination projection and W stacking
+Gridding with Antenna Illumination projection and W stacking
+Gridding with Antenna Illumination projection and W stacking
+No need to fill W stack: model is empty
+No need to fill W stack: model is empty
+No need to fill W stack: model is empty
+No need to fill W stack: model is empty
+No need to fill W stack: model is empty
+No need to fill W stack: model is empty
+No need to fill W stack: model is empty
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 0 0 degrees
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 0 0 degrees
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 0 0 degrees
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 0 0 degrees
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 0 0 degrees
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 0 0 degrees
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 0 0 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Convolution function support = 2 pixels, convolution function size = 49 pixels
+Maximum extent = 14.337 (m) sampled at 0.896061 (m)
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Convolution function support = 2 pixels, convolution function size = 49 pixels
+Maximum extent = 14.8445 (m) sampled at 0.92778 (m)
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Convolution function support = 2 pixels, convolution function size = 49 pixels
+Maximum extent = 14.6714 (m) sampled at 0.91696 (m)
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Convolution function support = 2 pixels, convolution function size = 49 pixels
+Maximum extent = 14.5022 (m) sampled at 0.90639 (m)
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Convolution function support = 2 pixels, convolution function size = 49 pixels
+Maximum extent = 15.0217 (m) sampled at 0.938858 (m)
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Convolution function support = 2 pixels, convolution function size = 49 pixels
+Maximum extent = 14.1754 (m) sampled at 0.885964 (m)
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Convolution function support = 2 pixels, convolution function size = 49 pixels
+Maximum extent = 15.2033 (m) sampled at 0.950204 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7281.78,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Shape of convolution function = [49, 49] by 16 planes
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (8192,0) (pixels) 
+Shape of convolution function = [49, 49] by 16 planes
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Shape of convolution function = [49, 49] by 16 planes
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Shape of convolution function = [49, 49] by 16 planes
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Shape of convolution function = [49, 49] by 16 planes
+Feed 0: Integral of primary beam power pattern = (7710.12,0) (pixels) 
+Shape of convolution function = [49, 49] by 16 planes
+Feed 0: Integral of primary beam power pattern = (8738.13,0) (pixels) 
+Shape of convolution function = [49, 49] by 16 planes
+Stacking 33 planes of W stack to get final image
+Stacking 33 planes of W stack to get final image
+Stacking 33 planes of W stack to get final image
+Stacking 33 planes of W stack to get final image
+Stacking 33 planes of W stack to get final image
+Stacking 33 planes of W stack to get final image
+Stacking 33 planes of W stack to get final image
+Calculating sum of weights image
+Calculating sum of weights image
+Calculating sum of weights image
+Calculating sum of weights image
+Calculating sum of weights image
+Calculating sum of weights image
+Calculating sum of weights image
+Exiting MPI
+MASTER : Received normal equations from prediffer 1 after 10820.6 seconds
+Exiting MPI
+MASTER : Received normal equations from prediffer 2 after 10826.8 seconds
+Exiting MPI
+MASTER : Received normal equations from prediffer 3 after 10833 seconds
+Exiting MPI
+MASTER : Received normal equations from prediffer 4 after 10839.2 seconds
+Exiting MPI
+MASTER : Received normal equations from prediffer 5 after 10845.4 seconds
+Exiting MPI
+MASTER : Received normal equations from prediffer 6 after 10851.6 seconds
+Exiting MPI
+MASTER : Received normal equations from prediffer 7 after 10857.8 seconds
+MASTER : Received normal equations from all prediffers via MPI in 10857.8 seconds
+MASTER : Solving normal equations
+MASTER : Solved normal equations in 0.85 seconds 
+MASTER : Writing out results as CASA images
+Exiting MPI
+WORKER 1 : CONRAD program (parallel) running on 8 nodes (worker 1)
+WORKER 1 : parset file cptest2.in
+WORKER 1 : Calculating normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack0.ms
+WORKER 1 : Calculated normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack0.ms in 10812.3 seconds 
+WORKER 1 : Sent normal equations to the solver via MPI in 6.5 seconds 
+WORKER 2 : CONRAD program (parallel) running on 8 nodes (worker 2)
+WORKER 2 : parset file cptest2.in
+WORKER 2 : Calculating normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack1.ms
+WORKER 2 : Calculated normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack1.ms in 10762.9 seconds 
+WORKER 2 : Sent normal equations to the solver via MPI in 62.13 seconds 
+WORKER 3 : CONRAD program (parallel) running on 8 nodes (worker 3)
+WORKER 3 : parset file cptest2.in
+WORKER 3 : Calculating normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack2.ms
+WORKER 3 : Calculated normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack2.ms in 10618.9 seconds 
+WORKER 3 : Sent normal equations to the solver via MPI in 212.46 seconds 
+WORKER 4 : CONRAD program (parallel) running on 8 nodes (worker 4)
+WORKER 4 : parset file cptest2.in
+WORKER 4 : Calculating normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack3.ms
+WORKER 4 : Calculated normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack3.ms in 10689.3 seconds 
+WORKER 4 : Sent normal equations to the solver via MPI in 148.14 seconds 
+WORKER 5 : CONRAD program (parallel) running on 8 nodes (worker 5)
+WORKER 5 : parset file cptest2.in
+WORKER 5 : Calculating normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack4.ms
+WORKER 5 : Calculated normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack4.ms in 10637.6 seconds 
+WORKER 5 : Sent normal equations to the solver via MPI in 205.91 seconds 
+WORKER 6 : CONRAD program (parallel) running on 8 nodes (worker 6)
+WORKER 6 : parset file cptest2.in
+WORKER 6 : Calculating normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack5.ms
+WORKER 6 : Calculated normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack5.ms in 10586.5 seconds 
+WORKER 6 : Sent normal equations to the solver via MPI in 263.5 seconds 
+WORKER 7 : CONRAD program (parallel) running on 8 nodes (worker 7)
+WORKER 7 : parset file cptest2.in
+WORKER 7 : Calculating normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack6.ms
+WORKER 7 : Calculated normal equations for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack6.ms in 10456.1 seconds 
+WORKER 7 : Sent normal equations to the solver via MPI in 399.91 seconds 

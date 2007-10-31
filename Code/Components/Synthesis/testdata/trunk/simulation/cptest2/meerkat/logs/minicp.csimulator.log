@@ -1,0 +1,1684 @@
+MASTER : CONRAD program (parallel) running on 8 nodes (master/master)
+MASTER : CONRAD simulation program
+MASTER : parset file cptest2.in
+Exiting MPI
+Using local coordinates for the antennas
+Reference position = +021.23.18.1 -30.42.53.8
+Added rows to ANTENNA table
+Creating new field 10uJy, ID 1
+Using local coordinates for the antennas
+Reference position = +021.23.18.1 -30.42.53.8
+Added rows to ANTENNA table
+Creating new field 10uJy, ID 1
+Using local coordinates for the antennas
+Reference position = +021.23.18.1 -30.42.53.8
+Added rows to ANTENNA table
+Creating new field 10uJy, ID 1
+Using local coordinates for the antennas
+Reference position = +021.23.18.1 -30.42.53.8
+Added rows to ANTENNA table
+Creating new field 10uJy, ID 1
+Using local coordinates for the antennas
+Reference position = +021.23.18.1 -30.42.53.8
+Added rows to ANTENNA table
+Creating new field 10uJy, ID 1
+Constructing FEED table from list
+Row 1 : Feed 1 on antenna 1 0 0 X Y
+Row 2 : Feed 1 on antenna 2 0 0 X Y
+Row 3 : Feed 1 on antenna 3 0 0 X Y
+Row 4 : Feed 1 on antenna 4 0 0 X Y
+Row 5 : Feed 1 on antenna 5 0 0 X Y
+Row 6 : Feed 1 on antenna 6 0 0 X Y
+Row 7 : Feed 1 on antenna 7 0 0 X Y
+Row 8 : Feed 1 on antenna 8 0 0 X Y
+Row 9 : Feed 1 on antenna 9 0 0 X Y
+Row 10 : Feed 1 on antenna 10 0 0 X Y
+Row 11 : Feed 1 on antenna 11 0 0 X Y
+Row 12 : Feed 1 on antenna 12 0 0 X Y
+Row 13 : Feed 1 on antenna 13 0 0 X Y
+Row 14 : Feed 1 on antenna 14 0 0 X Y
+Row 15 : Feed 1 on antenna 15 0 0 X Y
+Row 16 : Feed 1 on antenna 16 0 0 X Y
+Row 17 : Feed 1 on antenna 17 0 0 X Y
+Row 18 : Feed 1 on antenna 18 0 0 X Y
+Row 19 : Feed 1 on antenna 19 0 0 X Y
+Row 20 : Feed 1 on antenna 20 0 0 X Y
+Row 21 : Feed 1 on antenna 21 0 0 X Y
+Row 22 : Feed 1 on antenna 22 0 0 X Y
+Row 23 : Feed 1 on antenna 23 0 0 X Y
+Row 24 : Feed 1 on antenna 24 0 0 X Y
+Row 25 : Feed 1 on antenna 25 0 0 X Y
+Row 26 : Feed 1 on antenna 26 0 0 X Y
+Row 27 : Feed 1 on antenna 27 0 0 X Y
+Row 28 : Feed 1 on antenna 28 0 0 X Y
+Row 29 : Feed 1 on antenna 29 0 0 X Y
+Row 30 : Feed 1 on antenna 30 0 0 X Y
+Row 31 : Feed 1 on antenna 31 0 0 X Y
+Row 32 : Feed 1 on antenna 32 0 0 X Y
+Row 33 : Feed 1 on antenna 33 0 0 X Y
+Row 34 : Feed 1 on antenna 34 0 0 X Y
+Row 35 : Feed 1 on antenna 35 0 0 X Y
+Row 36 : Feed 1 on antenna 36 0 0 X Y
+Row 37 : Feed 1 on antenna 37 0 0 X Y
+Row 38 : Feed 1 on antenna 38 0 0 X Y
+Row 39 : Feed 1 on antenna 39 0 0 X Y
+Row 40 : Feed 1 on antenna 40 0 0 X Y
+Row 41 : Feed 1 on antenna 41 0 0 X Y
+Row 42 : Feed 1 on antenna 42 0 0 X Y
+Row 43 : Feed 1 on antenna 43 0 0 X Y
+Row 44 : Feed 1 on antenna 44 0 0 X Y
+Row 45 : Feed 1 on antenna 45 0 0 X Y
+Row 46 : Feed 1 on antenna 46 0 0 X Y
+Row 47 : Feed 1 on antenna 47 0 0 X Y
+Row 48 : Feed 1 on antenna 48 0 0 X Y
+Row 49 : Feed 1 on antenna 49 0 0 X Y
+Row 50 : Feed 1 on antenna 50 0 0 X Y
+Row 51 : Feed 1 on antenna 51 0 0 X Y
+Row 52 : Feed 1 on antenna 52 0 0 X Y
+Row 53 : Feed 1 on antenna 53 0 0 X Y
+Row 54 : Feed 1 on antenna 54 0 0 X Y
+Row 55 : Feed 1 on antenna 55 0 0 X Y
+Row 56 : Feed 1 on antenna 56 0 0 X Y
+Row 57 : Feed 1 on antenna 57 0 0 X Y
+Row 58 : Feed 1 on antenna 58 0 0 X Y
+Row 59 : Feed 1 on antenna 59 0 0 X Y
+Row 60 : Feed 1 on antenna 60 0 0 X Y
+Row 61 : Feed 1 on antenna 61 0 0 X Y
+Row 62 : Feed 1 on antenna 62 0 0 X Y
+Row 63 : Feed 1 on antenna 63 0 0 X Y
+Row 64 : Feed 1 on antenna 64 0 0 X Y
+Row 65 : Feed 1 on antenna 65 0 0 X Y
+Row 66 : Feed 1 on antenna 66 0 0 X Y
+Row 67 : Feed 1 on antenna 67 0 0 X Y
+Row 68 : Feed 1 on antenna 68 0 0 X Y
+Row 69 : Feed 1 on antenna 69 0 0 X Y
+Row 70 : Feed 1 on antenna 70 0 0 X Y
+Row 71 : Feed 1 on antenna 71 0 0 X Y
+Row 72 : Feed 1 on antenna 72 0 0 X Y
+Row 73 : Feed 1 on antenna 73 0 0 X Y
+Row 74 : Feed 1 on antenna 74 0 0 X Y
+Row 75 : Feed 1 on antenna 75 0 0 X Y
+Row 76 : Feed 1 on antenna 76 0 0 X Y
+Row 77 : Feed 1 on antenna 77 0 0 X Y
+Row 78 : Feed 1 on antenna 78 0 0 X Y
+Row 79 : Feed 1 on antenna 79 0 0 X Y
+Row 80 : Feed 1 on antenna 80 0 0 X Y
+Added rows to FEED table
+Creating new spectral window Continuum, ID 1
+Creating new spectral window Spectral, ID 2
+Creating new spectral window Temporal0, ID 3
+Creating new spectral window Temporal1, ID 4
+Creating new spectral window Temporal2, ID 5
+Creating new spectral window Temporal3, ID 6
+Creating new spectral window Temporal4, ID 7
+Creating new spectral window Temporal5, ID 8
+Creating new spectral window Temporal6, ID 9
+Creating new spectral window Temporal7, ID 10
+Creating new spectral window Temporal8, ID 11
+Creating new spectral window Temporal9, ID 12
+Creating new spectral window Temporal10, ID 13
+Creating new spectral window Temporal11, ID 14
+Creating new spectral window Temporal12, ID 15
+Creating new spectral window Temporal13, ID 16
+Creating new spectral window Temporal14, ID 17
+Creating new spectral window Temporal15, ID 18
+Creating new spectral window Wide0, ID 19
+Creating new spectral window Wide1, ID 20
+Creating new spectral window Wide2, ID 21
+Creating new spectral window Wide3, ID 22
+Creating new spectral window Wide4, ID 23
+Creating new spectral window Wide5, ID 24
+Creating new spectral window Wide6, ID 25
+Creating new spectral window Wide7, ID 26
+Creating new spectral window Wide8, ID 27
+Creating new spectral window Wide9, ID 28
+Creating new spectral window Wide10, ID 29
+Creating new spectral window Wide11, ID 30
+Creating new spectral window Wide12, ID 31
+Creating new spectral window Wide13, ID 32
+Creating new spectral window Wide14, ID 33
+Creating new spectral window Wide15, ID 34
+Creating new spectral window Continuum0, ID 35
+Creating new spectral window Continuum1, ID 36
+Creating new spectral window Continuum2, ID 37
+Creating new spectral window Continuum3, ID 38
+Creating new spectral window Continuum4, ID 39
+Creating new spectral window Continuum5, ID 40
+Creating new spectral window Continuum6, ID 41
+Creating new spectral window Continuum7, ID 42
+Creating new spectral window Continuum8, ID 43
+Creating new spectral window Continuum9, ID 44
+Creating new spectral window Continuum10, ID 45
+Creating new spectral window Continuum11, ID 46
+Creating new spectral window Continuum12, ID 47
+Creating new spectral window Continuum13, ID 48
+Creating new spectral window Continuum14, ID 49
+Creating new spectral window Continuum15, ID 50
+Spectral window : Continuum5
+     reference frequency : 1.34GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+Observing source : 10uJy
+     direction : 12:30:00.00   -45.00.00.00       J2000
+Times specified are interpreted as hour angles for first source observed
+     offset in time = 0.125739 hours from 07-Mar-2007/00:00:33.0
+Time range : 
+     start : 06-Mar-2007/18:08:05.7
+     stop  : 07-Mar-2007/06:08:05.7
+Creating new hypercube 1
+Adding 45504000 rows
+Written 44437.5 Mbytes to scratch columns
+Calculating uvw coordinates for 14400 integrations
+Processing feed 0
+Starting conditions for antenna 1: 
+     time = 06-Mar-2007/18:08:05.7
+     scan = 1
+     az   = 130.806 deg
+     el   = 21.0104 deg
+     ha   = -6.00647 hours
+Constructing FEED table from list
+Row 1 : Feed 1 on antenna 1 0 0 X Y
+Row 2 : Feed 1 on antenna 2 0 0 X Y
+Row 3 : Feed 1 on antenna 3 0 0 X Y
+Row 4 : Feed 1 on antenna 4 0 0 X Y
+Row 5 : Feed 1 on antenna 5 0 0 X Y
+Row 6 : Feed 1 on antenna 6 0 0 X Y
+Row 7 : Feed 1 on antenna 7 0 0 X Y
+Row 8 : Feed 1 on antenna 8 0 0 X Y
+Row 9 : Feed 1 on antenna 9 0 0 X Y
+Row 10 : Feed 1 on antenna 10 0 0 X Y
+Row 11 : Feed 1 on antenna 11 0 0 X Y
+Row 12 : Feed 1 on antenna 12 0 0 X Y
+Row 13 : Feed 1 on antenna 13 0 0 X Y
+Row 14 : Feed 1 on antenna 14 0 0 X Y
+Row 15 : Feed 1 on antenna 15 0 0 X Y
+Row 16 : Feed 1 on antenna 16 0 0 X Y
+Row 17 : Feed 1 on antenna 17 0 0 X Y
+Row 18 : Feed 1 on antenna 18 0 0 X Y
+Row 19 : Feed 1 on antenna 19 0 0 X Y
+Row 20 : Feed 1 on antenna 20 0 0 X Y
+Row 21 : Feed 1 on antenna 21 0 0 X Y
+Row 22 : Feed 1 on antenna 22 0 0 X Y
+Row 23 : Feed 1 on antenna 23 0 0 X Y
+Row 24 : Feed 1 on antenna 24 0 0 X Y
+Row 25 : Feed 1 on antenna 25 0 0 X Y
+Row 26 : Feed 1 on antenna 26 0 0 X Y
+Row 27 : Feed 1 on antenna 27 0 0 X Y
+Row 28 : Feed 1 on antenna 28 0 0 X Y
+Row 29 : Feed 1 on antenna 29 0 0 X Y
+Row 30 : Feed 1 on antenna 30 0 0 X Y
+Row 31 : Feed 1 on antenna 31 0 0 X Y
+Row 32 : Feed 1 on antenna 32 0 0 X Y
+Row 33 : Feed 1 on antenna 33 0 0 X Y
+Row 34 : Feed 1 on antenna 34 0 0 X Y
+Row 35 : Feed 1 on antenna 35 0 0 X Y
+Row 36 : Feed 1 on antenna 36 0 0 X Y
+Row 37 : Feed 1 on antenna 37 0 0 X Y
+Row 38 : Feed 1 on antenna 38 0 0 X Y
+Row 39 : Feed 1 on antenna 39 0 0 X Y
+Row 40 : Feed 1 on antenna 40 0 0 X Y
+Row 41 : Feed 1 on antenna 41 0 0 X Y
+Row 42 : Feed 1 on antenna 42 0 0 X Y
+Row 43 : Feed 1 on antenna 43 0 0 X Y
+Row 44 : Feed 1 on antenna 44 0 0 X Y
+Row 45 : Feed 1 on antenna 45 0 0 X Y
+Row 46 : Feed 1 on antenna 46 0 0 X Y
+Row 47 : Feed 1 on antenna 47 0 0 X Y
+Row 48 : Feed 1 on antenna 48 0 0 X Y
+Row 49 : Feed 1 on antenna 49 0 0 X Y
+Row 50 : Feed 1 on antenna 50 0 0 X Y
+Row 51 : Feed 1 on antenna 51 0 0 X Y
+Row 52 : Feed 1 on antenna 52 0 0 X Y
+Row 53 : Feed 1 on antenna 53 0 0 X Y
+Row 54 : Feed 1 on antenna 54 0 0 X Y
+Row 55 : Feed 1 on antenna 55 0 0 X Y
+Row 56 : Feed 1 on antenna 56 0 0 X Y
+Row 57 : Feed 1 on antenna 57 0 0 X Y
+Row 58 : Feed 1 on antenna 58 0 0 X Y
+Row 59 : Feed 1 on antenna 59 0 0 X Y
+Row 60 : Feed 1 on antenna 60 0 0 X Y
+Row 61 : Feed 1 on antenna 61 0 0 X Y
+Row 62 : Feed 1 on antenna 62 0 0 X Y
+Row 63 : Feed 1 on antenna 63 0 0 X Y
+Row 64 : Feed 1 on antenna 64 0 0 X Y
+Row 65 : Feed 1 on antenna 65 0 0 X Y
+Row 66 : Feed 1 on antenna 66 0 0 X Y
+Row 67 : Feed 1 on antenna 67 0 0 X Y
+Row 68 : Feed 1 on antenna 68 0 0 X Y
+Row 69 : Feed 1 on antenna 69 0 0 X Y
+Row 70 : Feed 1 on antenna 70 0 0 X Y
+Row 71 : Feed 1 on antenna 71 0 0 X Y
+Row 72 : Feed 1 on antenna 72 0 0 X Y
+Row 73 : Feed 1 on antenna 73 0 0 X Y
+Row 74 : Feed 1 on antenna 74 0 0 X Y
+Row 75 : Feed 1 on antenna 75 0 0 X Y
+Row 76 : Feed 1 on antenna 76 0 0 X Y
+Row 77 : Feed 1 on antenna 77 0 0 X Y
+Row 78 : Feed 1 on antenna 78 0 0 X Y
+Row 79 : Feed 1 on antenna 79 0 0 X Y
+Row 80 : Feed 1 on antenna 80 0 0 X Y
+Added rows to FEED table
+Creating new spectral window Continuum, ID 1
+Creating new spectral window Spectral, ID 2
+Creating new spectral window Temporal0, ID 3
+Creating new spectral window Temporal1, ID 4
+Creating new spectral window Temporal2, ID 5
+Creating new spectral window Temporal3, ID 6
+Creating new spectral window Temporal4, ID 7
+Creating new spectral window Temporal5, ID 8
+Creating new spectral window Temporal6, ID 9
+Creating new spectral window Temporal7, ID 10
+Creating new spectral window Temporal8, ID 11
+Creating new spectral window Temporal9, ID 12
+Creating new spectral window Temporal10, ID 13
+Creating new spectral window Temporal11, ID 14
+Creating new spectral window Temporal12, ID 15
+Creating new spectral window Temporal13, ID 16
+Creating new spectral window Temporal14, ID 17
+Creating new spectral window Temporal15, ID 18
+Creating new spectral window Wide0, ID 19
+Creating new spectral window Wide1, ID 20
+Creating new spectral window Wide2, ID 21
+Creating new spectral window Wide3, ID 22
+Creating new spectral window Wide4, ID 23
+Creating new spectral window Wide5, ID 24
+Creating new spectral window Wide6, ID 25
+Creating new spectral window Wide7, ID 26
+Creating new spectral window Wide8, ID 27
+Creating new spectral window Wide9, ID 28
+Creating new spectral window Wide10, ID 29
+Creating new spectral window Wide11, ID 30
+Creating new spectral window Wide12, ID 31
+Creating new spectral window Wide13, ID 32
+Creating new spectral window Wide14, ID 33
+Creating new spectral window Wide15, ID 34
+Creating new spectral window Continuum0, ID 35
+Creating new spectral window Continuum1, ID 36
+Creating new spectral window Continuum2, ID 37
+Creating new spectral window Continuum3, ID 38
+Creating new spectral window Continuum4, ID 39
+Creating new spectral window Continuum5, ID 40
+Creating new spectral window Continuum6, ID 41
+Creating new spectral window Continuum7, ID 42
+Creating new spectral window Continuum8, ID 43
+Creating new spectral window Continuum9, ID 44
+Creating new spectral window Continuum10, ID 45
+Creating new spectral window Continuum11, ID 46
+Creating new spectral window Continuum12, ID 47
+Creating new spectral window Continuum13, ID 48
+Creating new spectral window Continuum14, ID 49
+Creating new spectral window Continuum15, ID 50
+Spectral window : Continuum0
+     reference frequency : 1.42GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+Observing source : 10uJy
+     direction : 12:30:00.00   -45.00.00.00       J2000
+Times specified are interpreted as hour angles for first source observed
+     offset in time = 0.125739 hours from 07-Mar-2007/00:00:33.0
+Time range : 
+     start : 06-Mar-2007/18:08:05.7
+     stop  : 07-Mar-2007/06:08:05.7
+Creating new hypercube 1
+Adding 45504000 rows
+Constructing FEED table from list
+Row 1 : Feed 1 on antenna 1 0 0 X Y
+Row 2 : Feed 1 on antenna 2 0 0 X Y
+Row 3 : Feed 1 on antenna 3 0 0 X Y
+Row 4 : Feed 1 on antenna 4 0 0 X Y
+Row 5 : Feed 1 on antenna 5 0 0 X Y
+Row 6 : Feed 1 on antenna 6 0 0 X Y
+Row 7 : Feed 1 on antenna 7 0 0 X Y
+Row 8 : Feed 1 on antenna 8 0 0 X Y
+Row 9 : Feed 1 on antenna 9 0 0 X Y
+Row 10 : Feed 1 on antenna 10 0 0 X Y
+Row 11 : Feed 1 on antenna 11 0 0 X Y
+Row 12 : Feed 1 on antenna 12 0 0 X Y
+Row 13 : Feed 1 on antenna 13 0 0 X Y
+Row 14 : Feed 1 on antenna 14 0 0 X Y
+Row 15 : Feed 1 on antenna 15 0 0 X Y
+Row 16 : Feed 1 on antenna 16 0 0 X Y
+Row 17 : Feed 1 on antenna 17 0 0 X Y
+Row 18 : Feed 1 on antenna 18 0 0 X Y
+Row 19 : Feed 1 on antenna 19 0 0 X Y
+Row 20 : Feed 1 on antenna 20 0 0 X Y
+Row 21 : Feed 1 on antenna 21 0 0 X Y
+Row 22 : Feed 1 on antenna 22 0 0 X Y
+Row 23 : Feed 1 on antenna 23 0 0 X Y
+Row 24 : Feed 1 on antenna 24 0 0 X Y
+Row 25 : Feed 1 on antenna 25 0 0 X Y
+Row 26 : Feed 1 on antenna 26 0 0 X Y
+Row 27 : Feed 1 on antenna 27 0 0 X Y
+Row 28 : Feed 1 on antenna 28 0 0 X Y
+Row 29 : Feed 1 on antenna 29 0 0 X Y
+Row 30 : Feed 1 on antenna 30 0 0 X Y
+Row 31 : Feed 1 on antenna 31 0 0 X Y
+Row 32 : Feed 1 on antenna 32 0 0 X Y
+Row 33 : Feed 1 on antenna 33 0 0 X Y
+Row 34 : Feed 1 on antenna 34 0 0 X Y
+Row 35 : Feed 1 on antenna 35 0 0 X Y
+Row 36 : Feed 1 on antenna 36 0 0 X Y
+Row 37 : Feed 1 on antenna 37 0 0 X Y
+Row 38 : Feed 1 on antenna 38 0 0 X Y
+Row 39 : Feed 1 on antenna 39 0 0 X Y
+Row 40 : Feed 1 on antenna 40 0 0 X Y
+Row 41 : Feed 1 on antenna 41 0 0 X Y
+Row 42 : Feed 1 on antenna 42 0 0 X Y
+Row 43 : Feed 1 on antenna 43 0 0 X Y
+Row 44 : Feed 1 on antenna 44 0 0 X Y
+Row 45 : Feed 1 on antenna 45 0 0 X Y
+Row 46 : Feed 1 on antenna 46 0 0 X Y
+Row 47 : Feed 1 on antenna 47 0 0 X Y
+Row 48 : Feed 1 on antenna 48 0 0 X Y
+Row 49 : Feed 1 on antenna 49 0 0 X Y
+Row 50 : Feed 1 on antenna 50 0 0 X Y
+Row 51 : Feed 1 on antenna 51 0 0 X Y
+Row 52 : Feed 1 on antenna 52 0 0 X Y
+Row 53 : Feed 1 on antenna 53 0 0 X Y
+Row 54 : Feed 1 on antenna 54 0 0 X Y
+Row 55 : Feed 1 on antenna 55 0 0 X Y
+Row 56 : Feed 1 on antenna 56 0 0 X Y
+Row 57 : Feed 1 on antenna 57 0 0 X Y
+Row 58 : Feed 1 on antenna 58 0 0 X Y
+Row 59 : Feed 1 on antenna 59 0 0 X Y
+Row 60 : Feed 1 on antenna 60 0 0 X Y
+Row 61 : Feed 1 on antenna 61 0 0 X Y
+Row 62 : Feed 1 on antenna 62 0 0 X Y
+Row 63 : Feed 1 on antenna 63 0 0 X Y
+Row 64 : Feed 1 on antenna 64 0 0 X Y
+Row 65 : Feed 1 on antenna 65 0 0 X Y
+Row 66 : Feed 1 on antenna 66 0 0 X Y
+Row 67 : Feed 1 on antenna 67 0 0 X Y
+Row 68 : Feed 1 on antenna 68 0 0 X Y
+Row 69 : Feed 1 on antenna 69 0 0 X Y
+Row 70 : Feed 1 on antenna 70 0 0 X Y
+Row 71 : Feed 1 on antenna 71 0 0 X Y
+Row 72 : Feed 1 on antenna 72 0 0 X Y
+Row 73 : Feed 1 on antenna 73 0 0 X Y
+Row 74 : Feed 1 on antenna 74 0 0 X Y
+Row 75 : Feed 1 on antenna 75 0 0 X Y
+Row 76 : Feed 1 on antenna 76 0 0 X Y
+Row 77 : Feed 1 on antenna 77 0 0 X Y
+Row 78 : Feed 1 on antenna 78 0 0 X Y
+Row 79 : Feed 1 on antenna 79 0 0 X Y
+Row 80 : Feed 1 on antenna 80 0 0 X Y
+Added rows to FEED table
+Creating new spectral window Continuum, ID 1
+Creating new spectral window Spectral, ID 2
+Creating new spectral window Temporal0, ID 3
+Creating new spectral window Temporal1, ID 4
+Creating new spectral window Temporal2, ID 5
+Creating new spectral window Temporal3, ID 6
+Creating new spectral window Temporal4, ID 7
+Creating new spectral window Temporal5, ID 8
+Creating new spectral window Temporal6, ID 9
+Creating new spectral window Temporal7, ID 10
+Creating new spectral window Temporal8, ID 11
+Creating new spectral window Temporal9, ID 12
+Creating new spectral window Temporal10, ID 13
+Creating new spectral window Temporal11, ID 14
+Creating new spectral window Temporal12, ID 15
+Creating new spectral window Temporal13, ID 16
+Creating new spectral window Temporal14, ID 17
+Creating new spectral window Temporal15, ID 18
+Creating new spectral window Wide0, ID 19
+Creating new spectral window Wide1, ID 20
+Creating new spectral window Wide2, ID 21
+Creating new spectral window Wide3, ID 22
+Creating new spectral window Wide4, ID 23
+Creating new spectral window Wide5, ID 24
+Creating new spectral window Wide6, ID 25
+Creating new spectral window Wide7, ID 26
+Creating new spectral window Wide8, ID 27
+Creating new spectral window Wide9, ID 28
+Creating new spectral window Wide10, ID 29
+Creating new spectral window Wide11, ID 30
+Creating new spectral window Wide12, ID 31
+Creating new spectral window Wide13, ID 32
+Creating new spectral window Wide14, ID 33
+Creating new spectral window Wide15, ID 34
+Creating new spectral window Continuum0, ID 35
+Creating new spectral window Continuum1, ID 36
+Creating new spectral window Continuum2, ID 37
+Creating new spectral window Continuum3, ID 38
+Creating new spectral window Continuum4, ID 39
+Creating new spectral window Continuum5, ID 40
+Creating new spectral window Continuum6, ID 41
+Creating new spectral window Continuum7, ID 42
+Creating new spectral window Continuum8, ID 43
+Creating new spectral window Continuum9, ID 44
+Creating new spectral window Continuum10, ID 45
+Creating new spectral window Continuum11, ID 46
+Creating new spectral window Continuum12, ID 47
+Creating new spectral window Continuum13, ID 48
+Creating new spectral window Continuum14, ID 49
+Creating new spectral window Continuum15, ID 50
+Spectral window : Continuum6
+     reference frequency : 1.324GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+Observing source : 10uJy
+     direction : 12:30:00.00   -45.00.00.00       J2000
+Times specified are interpreted as hour angles for first source observed
+     offset in time = 0.125739 hours from 07-Mar-2007/00:00:33.0
+Time range : 
+     start : 06-Mar-2007/18:08:05.7
+     stop  : 07-Mar-2007/06:08:05.7
+Creating new hypercube 1
+Adding 45504000 rows
+Written 44437.5 Mbytes to scratch columns
+Calculating uvw coordinates for 14400 integrations
+Processing feed 0
+Starting conditions for antenna 1: 
+     time = 06-Mar-2007/18:08:05.7
+     scan = 1
+     az   = 130.806 deg
+     el   = 21.0104 deg
+     ha   = -6.00647 hours
+Using local coordinates for the antennas
+Reference position = +021.23.18.1 -30.42.53.8
+Added rows to ANTENNA table
+Creating new field 10uJy, ID 1
+Written 44437.5 Mbytes to scratch columns
+Calculating uvw coordinates for 14400 integrations
+Processing feed 0
+Starting conditions for antenna 1: 
+     time = 06-Mar-2007/18:08:05.7
+     scan = 1
+     az   = 130.806 deg
+     el   = 21.0104 deg
+     ha   = -6.00647 hours
+Constructing FEED table from list
+Row 1 : Feed 1 on antenna 1 0 0 X Y
+Row 2 : Feed 1 on antenna 2 0 0 X Y
+Row 3 : Feed 1 on antenna 3 0 0 X Y
+Row 4 : Feed 1 on antenna 4 0 0 X Y
+Row 5 : Feed 1 on antenna 5 0 0 X Y
+Row 6 : Feed 1 on antenna 6 0 0 X Y
+Row 7 : Feed 1 on antenna 7 0 0 X Y
+Row 8 : Feed 1 on antenna 8 0 0 X Y
+Row 9 : Feed 1 on antenna 9 0 0 X Y
+Row 10 : Feed 1 on antenna 10 0 0 X Y
+Row 11 : Feed 1 on antenna 11 0 0 X Y
+Row 12 : Feed 1 on antenna 12 0 0 X Y
+Row 13 : Feed 1 on antenna 13 0 0 X Y
+Row 14 : Feed 1 on antenna 14 0 0 X Y
+Row 15 : Feed 1 on antenna 15 0 0 X Y
+Row 16 : Feed 1 on antenna 16 0 0 X Y
+Row 17 : Feed 1 on antenna 17 0 0 X Y
+Row 18 : Feed 1 on antenna 18 0 0 X Y
+Row 19 : Feed 1 on antenna 19 0 0 X Y
+Row 20 : Feed 1 on antenna 20 0 0 X Y
+Row 21 : Feed 1 on antenna 21 0 0 X Y
+Row 22 : Feed 1 on antenna 22 0 0 X Y
+Row 23 : Feed 1 on antenna 23 0 0 X Y
+Row 24 : Feed 1 on antenna 24 0 0 X Y
+Row 25 : Feed 1 on antenna 25 0 0 X Y
+Row 26 : Feed 1 on antenna 26 0 0 X Y
+Row 27 : Feed 1 on antenna 27 0 0 X Y
+Row 28 : Feed 1 on antenna 28 0 0 X Y
+Row 29 : Feed 1 on antenna 29 0 0 X Y
+Row 30 : Feed 1 on antenna 30 0 0 X Y
+Row 31 : Feed 1 on antenna 31 0 0 X Y
+Row 32 : Feed 1 on antenna 32 0 0 X Y
+Row 33 : Feed 1 on antenna 33 0 0 X Y
+Row 34 : Feed 1 on antenna 34 0 0 X Y
+Row 35 : Feed 1 on antenna 35 0 0 X Y
+Row 36 : Feed 1 on antenna 36 0 0 X Y
+Row 37 : Feed 1 on antenna 37 0 0 X Y
+Row 38 : Feed 1 on antenna 38 0 0 X Y
+Row 39 : Feed 1 on antenna 39 0 0 X Y
+Row 40 : Feed 1 on antenna 40 0 0 X Y
+Row 41 : Feed 1 on antenna 41 0 0 X Y
+Row 42 : Feed 1 on antenna 42 0 0 X Y
+Row 43 : Feed 1 on antenna 43 0 0 X Y
+Row 44 : Feed 1 on antenna 44 0 0 X Y
+Row 45 : Feed 1 on antenna 45 0 0 X Y
+Row 46 : Feed 1 on antenna 46 0 0 X Y
+Row 47 : Feed 1 on antenna 47 0 0 X Y
+Row 48 : Feed 1 on antenna 48 0 0 X Y
+Row 49 : Feed 1 on antenna 49 0 0 X Y
+Row 50 : Feed 1 on antenna 50 0 0 X Y
+Row 51 : Feed 1 on antenna 51 0 0 X Y
+Row 52 : Feed 1 on antenna 52 0 0 X Y
+Row 53 : Feed 1 on antenna 53 0 0 X Y
+Row 54 : Feed 1 on antenna 54 0 0 X Y
+Row 55 : Feed 1 on antenna 55 0 0 X Y
+Row 56 : Feed 1 on antenna 56 0 0 X Y
+Row 57 : Feed 1 on antenna 57 0 0 X Y
+Row 58 : Feed 1 on antenna 58 0 0 X Y
+Row 59 : Feed 1 on antenna 59 0 0 X Y
+Row 60 : Feed 1 on antenna 60 0 0 X Y
+Row 61 : Feed 1 on antenna 61 0 0 X Y
+Row 62 : Feed 1 on antenna 62 0 0 X Y
+Row 63 : Feed 1 on antenna 63 0 0 X Y
+Row 64 : Feed 1 on antenna 64 0 0 X Y
+Row 65 : Feed 1 on antenna 65 0 0 X Y
+Row 66 : Feed 1 on antenna 66 0 0 X Y
+Row 67 : Feed 1 on antenna 67 0 0 X Y
+Row 68 : Feed 1 on antenna 68 0 0 X Y
+Row 69 : Feed 1 on antenna 69 0 0 X Y
+Row 70 : Feed 1 on antenna 70 0 0 X Y
+Row 71 : Feed 1 on antenna 71 0 0 X Y
+Row 72 : Feed 1 on antenna 72 0 0 X Y
+Row 73 : Feed 1 on antenna 73 0 0 X Y
+Row 74 : Feed 1 on antenna 74 0 0 X Y
+Row 75 : Feed 1 on antenna 75 0 0 X Y
+Row 76 : Feed 1 on antenna 76 0 0 X Y
+Row 77 : Feed 1 on antenna 77 0 0 X Y
+Row 78 : Feed 1 on antenna 78 0 0 X Y
+Row 79 : Feed 1 on antenna 79 0 0 X Y
+Row 80 : Feed 1 on antenna 80 0 0 X Y
+Added rows to FEED table
+Creating new spectral window Continuum, ID 1
+Creating new spectral window Spectral, ID 2
+Creating new spectral window Temporal0, ID 3
+Creating new spectral window Temporal1, ID 4
+Creating new spectral window Temporal2, ID 5
+Creating new spectral window Temporal3, ID 6
+Creating new spectral window Temporal4, ID 7
+Creating new spectral window Temporal5, ID 8
+Creating new spectral window Temporal6, ID 9
+Creating new spectral window Temporal7, ID 10
+Creating new spectral window Temporal8, ID 11
+Creating new spectral window Temporal9, ID 12
+Creating new spectral window Temporal10, ID 13
+Creating new spectral window Temporal11, ID 14
+Creating new spectral window Temporal12, ID 15
+Creating new spectral window Temporal13, ID 16
+Creating new spectral window Temporal14, ID 17
+Creating new spectral window Temporal15, ID 18
+Creating new spectral window Wide0, ID 19
+Creating new spectral window Wide1, ID 20
+Creating new spectral window Wide2, ID 21
+Creating new spectral window Wide3, ID 22
+Creating new spectral window Wide4, ID 23
+Creating new spectral window Wide5, ID 24
+Creating new spectral window Wide6, ID 25
+Creating new spectral window Wide7, ID 26
+Creating new spectral window Wide8, ID 27
+Creating new spectral window Wide9, ID 28
+Creating new spectral window Wide10, ID 29
+Creating new spectral window Wide11, ID 30
+Creating new spectral window Wide12, ID 31
+Creating new spectral window Wide13, ID 32
+Creating new spectral window Wide14, ID 33
+Creating new spectral window Wide15, ID 34
+Creating new spectral window Continuum0, ID 35
+Creating new spectral window Continuum1, ID 36
+Creating new spectral window Continuum2, ID 37
+Creating new spectral window Continuum3, ID 38
+Creating new spectral window Continuum4, ID 39
+Creating new spectral window Continuum5, ID 40
+Creating new spectral window Continuum6, ID 41
+Creating new spectral window Continuum7, ID 42
+Creating new spectral window Continuum8, ID 43
+Creating new spectral window Continuum9, ID 44
+Creating new spectral window Continuum10, ID 45
+Creating new spectral window Continuum11, ID 46
+Creating new spectral window Continuum12, ID 47
+Creating new spectral window Continuum13, ID 48
+Creating new spectral window Continuum14, ID 49
+Creating new spectral window Continuum15, ID 50
+Spectral window : Continuum1
+     reference frequency : 1.404GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+Observing source : 10uJy
+     direction : 12:30:00.00   -45.00.00.00       J2000
+Times specified are interpreted as hour angles for first source observed
+     offset in time = 0.125739 hours from 07-Mar-2007/00:00:33.0
+Time range : 
+     start : 06-Mar-2007/18:08:05.7
+     stop  : 07-Mar-2007/06:08:05.7
+Creating new hypercube 1
+Adding 45504000 rows
+Written 44437.5 Mbytes to scratch columns
+Calculating uvw coordinates for 14400 integrations
+Processing feed 0
+Starting conditions for antenna 1: 
+     time = 06-Mar-2007/18:08:05.7
+     scan = 1
+     az   = 130.806 deg
+     el   = 21.0104 deg
+     ha   = -6.00647 hours
+Constructing FEED table from list
+Row 1 : Feed 1 on antenna 1 0 0 X Y
+Row 2 : Feed 1 on antenna 2 0 0 X Y
+Row 3 : Feed 1 on antenna 3 0 0 X Y
+Row 4 : Feed 1 on antenna 4 0 0 X Y
+Row 5 : Feed 1 on antenna 5 0 0 X Y
+Row 6 : Feed 1 on antenna 6 0 0 X Y
+Row 7 : Feed 1 on antenna 7 0 0 X Y
+Row 8 : Feed 1 on antenna 8 0 0 X Y
+Row 9 : Feed 1 on antenna 9 0 0 X Y
+Row 10 : Feed 1 on antenna 10 0 0 X Y
+Row 11 : Feed 1 on antenna 11 0 0 X Y
+Row 12 : Feed 1 on antenna 12 0 0 X Y
+Row 13 : Feed 1 on antenna 13 0 0 X Y
+Row 14 : Feed 1 on antenna 14 0 0 X Y
+Row 15 : Feed 1 on antenna 15 0 0 X Y
+Row 16 : Feed 1 on antenna 16 0 0 X Y
+Row 17 : Feed 1 on antenna 17 0 0 X Y
+Row 18 : Feed 1 on antenna 18 0 0 X Y
+Row 19 : Feed 1 on antenna 19 0 0 X Y
+Row 20 : Feed 1 on antenna 20 0 0 X Y
+Row 21 : Feed 1 on antenna 21 0 0 X Y
+Row 22 : Feed 1 on antenna 22 0 0 X Y
+Row 23 : Feed 1 on antenna 23 0 0 X Y
+Row 24 : Feed 1 on antenna 24 0 0 X Y
+Row 25 : Feed 1 on antenna 25 0 0 X Y
+Row 26 : Feed 1 on antenna 26 0 0 X Y
+Row 27 : Feed 1 on antenna 27 0 0 X Y
+Row 28 : Feed 1 on antenna 28 0 0 X Y
+Row 29 : Feed 1 on antenna 29 0 0 X Y
+Row 30 : Feed 1 on antenna 30 0 0 X Y
+Row 31 : Feed 1 on antenna 31 0 0 X Y
+Row 32 : Feed 1 on antenna 32 0 0 X Y
+Row 33 : Feed 1 on antenna 33 0 0 X Y
+Row 34 : Feed 1 on antenna 34 0 0 X Y
+Row 35 : Feed 1 on antenna 35 0 0 X Y
+Row 36 : Feed 1 on antenna 36 0 0 X Y
+Row 37 : Feed 1 on antenna 37 0 0 X Y
+Row 38 : Feed 1 on antenna 38 0 0 X Y
+Row 39 : Feed 1 on antenna 39 0 0 X Y
+Row 40 : Feed 1 on antenna 40 0 0 X Y
+Row 41 : Feed 1 on antenna 41 0 0 X Y
+Row 42 : Feed 1 on antenna 42 0 0 X Y
+Row 43 : Feed 1 on antenna 43 0 0 X Y
+Row 44 : Feed 1 on antenna 44 0 0 X Y
+Row 45 : Feed 1 on antenna 45 0 0 X Y
+Row 46 : Feed 1 on antenna 46 0 0 X Y
+Row 47 : Feed 1 on antenna 47 0 0 X Y
+Row 48 : Feed 1 on antenna 48 0 0 X Y
+Row 49 : Feed 1 on antenna 49 0 0 X Y
+Row 50 : Feed 1 on antenna 50 0 0 X Y
+Row 51 : Feed 1 on antenna 51 0 0 X Y
+Row 52 : Feed 1 on antenna 52 0 0 X Y
+Row 53 : Feed 1 on antenna 53 0 0 X Y
+Row 54 : Feed 1 on antenna 54 0 0 X Y
+Row 55 : Feed 1 on antenna 55 0 0 X Y
+Row 56 : Feed 1 on antenna 56 0 0 X Y
+Row 57 : Feed 1 on antenna 57 0 0 X Y
+Row 58 : Feed 1 on antenna 58 0 0 X Y
+Row 59 : Feed 1 on antenna 59 0 0 X Y
+Row 60 : Feed 1 on antenna 60 0 0 X Y
+Row 61 : Feed 1 on antenna 61 0 0 X Y
+Row 62 : Feed 1 on antenna 62 0 0 X Y
+Row 63 : Feed 1 on antenna 63 0 0 X Y
+Row 64 : Feed 1 on antenna 64 0 0 X Y
+Row 65 : Feed 1 on antenna 65 0 0 X Y
+Row 66 : Feed 1 on antenna 66 0 0 X Y
+Row 67 : Feed 1 on antenna 67 0 0 X Y
+Row 68 : Feed 1 on antenna 68 0 0 X Y
+Row 69 : Feed 1 on antenna 69 0 0 X Y
+Row 70 : Feed 1 on antenna 70 0 0 X Y
+Row 71 : Feed 1 on antenna 71 0 0 X Y
+Row 72 : Feed 1 on antenna 72 0 0 X Y
+Row 73 : Feed 1 on antenna 73 0 0 X Y
+Row 74 : Feed 1 on antenna 74 0 0 X Y
+Row 75 : Feed 1 on antenna 75 0 0 X Y
+Row 76 : Feed 1 on antenna 76 0 0 X Y
+Row 77 : Feed 1 on antenna 77 0 0 X Y
+Row 78 : Feed 1 on antenna 78 0 0 X Y
+Row 79 : Feed 1 on antenna 79 0 0 X Y
+Row 80 : Feed 1 on antenna 80 0 0 X Y
+Added rows to FEED table
+Creating new spectral window Continuum, ID 1
+Creating new spectral window Spectral, ID 2
+Creating new spectral window Temporal0, ID 3
+Creating new spectral window Temporal1, ID 4
+Creating new spectral window Temporal2, ID 5
+Creating new spectral window Temporal3, ID 6
+Creating new spectral window Temporal4, ID 7
+Creating new spectral window Temporal5, ID 8
+Creating new spectral window Temporal6, ID 9
+Creating new spectral window Temporal7, ID 10
+Creating new spectral window Temporal8, ID 11
+Creating new spectral window Temporal9, ID 12
+Creating new spectral window Temporal10, ID 13
+Creating new spectral window Temporal11, ID 14
+Creating new spectral window Temporal12, ID 15
+Creating new spectral window Temporal13, ID 16
+Creating new spectral window Temporal14, ID 17
+Creating new spectral window Temporal15, ID 18
+Creating new spectral window Wide0, ID 19
+Creating new spectral window Wide1, ID 20
+Creating new spectral window Wide2, ID 21
+Creating new spectral window Wide3, ID 22
+Creating new spectral window Wide4, ID 23
+Creating new spectral window Wide5, ID 24
+Creating new spectral window Wide6, ID 25
+Creating new spectral window Wide7, ID 26
+Creating new spectral window Wide8, ID 27
+Creating new spectral window Wide9, ID 28
+Creating new spectral window Wide10, ID 29
+Creating new spectral window Wide11, ID 30
+Creating new spectral window Wide12, ID 31
+Creating new spectral window Wide13, ID 32
+Creating new spectral window Wide14, ID 33
+Creating new spectral window Wide15, ID 34
+Creating new spectral window Continuum0, ID 35
+Creating new spectral window Continuum1, ID 36
+Creating new spectral window Continuum2, ID 37
+Creating new spectral window Continuum3, ID 38
+Creating new spectral window Continuum4, ID 39
+Creating new spectral window Continuum5, ID 40
+Creating new spectral window Continuum6, ID 41
+Creating new spectral window Continuum7, ID 42
+Creating new spectral window Continuum8, ID 43
+Creating new spectral window Continuum9, ID 44
+Creating new spectral window Continuum10, ID 45
+Creating new spectral window Continuum11, ID 46
+Creating new spectral window Continuum12, ID 47
+Creating new spectral window Continuum13, ID 48
+Creating new spectral window Continuum14, ID 49
+Creating new spectral window Continuum15, ID 50
+Spectral window : Continuum3
+     reference frequency : 1.372GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+Observing source : 10uJy
+     direction : 12:30:00.00   -45.00.00.00       J2000
+Times specified are interpreted as hour angles for first source observed
+     offset in time = 0.125739 hours from 07-Mar-2007/00:00:33.0
+Time range : 
+     start : 06-Mar-2007/18:08:05.7
+     stop  : 07-Mar-2007/06:08:05.7
+Creating new hypercube 1
+Adding 45504000 rows
+Written 44437.5 Mbytes to scratch columns
+Calculating uvw coordinates for 14400 integrations
+Processing feed 0
+Starting conditions for antenna 1: 
+     time = 06-Mar-2007/18:08:05.7
+     scan = 1
+     az   = 130.806 deg
+     el   = 21.0104 deg
+     ha   = -6.00647 hours
+Using local coordinates for the antennas
+Reference position = +021.23.18.1 -30.42.53.8
+Added rows to ANTENNA table
+Creating new field 10uJy, ID 1
+Constructing FEED table from list
+Row 1 : Feed 1 on antenna 1 0 0 X Y
+Row 2 : Feed 1 on antenna 2 0 0 X Y
+Row 3 : Feed 1 on antenna 3 0 0 X Y
+Row 4 : Feed 1 on antenna 4 0 0 X Y
+Row 5 : Feed 1 on antenna 5 0 0 X Y
+Row 6 : Feed 1 on antenna 6 0 0 X Y
+Row 7 : Feed 1 on antenna 7 0 0 X Y
+Row 8 : Feed 1 on antenna 8 0 0 X Y
+Row 9 : Feed 1 on antenna 9 0 0 X Y
+Row 10 : Feed 1 on antenna 10 0 0 X Y
+Row 11 : Feed 1 on antenna 11 0 0 X Y
+Row 12 : Feed 1 on antenna 12 0 0 X Y
+Row 13 : Feed 1 on antenna 13 0 0 X Y
+Row 14 : Feed 1 on antenna 14 0 0 X Y
+Row 15 : Feed 1 on antenna 15 0 0 X Y
+Row 16 : Feed 1 on antenna 16 0 0 X Y
+Row 17 : Feed 1 on antenna 17 0 0 X Y
+Row 18 : Feed 1 on antenna 18 0 0 X Y
+Row 19 : Feed 1 on antenna 19 0 0 X Y
+Row 20 : Feed 1 on antenna 20 0 0 X Y
+Row 21 : Feed 1 on antenna 21 0 0 X Y
+Row 22 : Feed 1 on antenna 22 0 0 X Y
+Row 23 : Feed 1 on antenna 23 0 0 X Y
+Row 24 : Feed 1 on antenna 24 0 0 X Y
+Row 25 : Feed 1 on antenna 25 0 0 X Y
+Row 26 : Feed 1 on antenna 26 0 0 X Y
+Row 27 : Feed 1 on antenna 27 0 0 X Y
+Row 28 : Feed 1 on antenna 28 0 0 X Y
+Row 29 : Feed 1 on antenna 29 0 0 X Y
+Row 30 : Feed 1 on antenna 30 0 0 X Y
+Row 31 : Feed 1 on antenna 31 0 0 X Y
+Row 32 : Feed 1 on antenna 32 0 0 X Y
+Row 33 : Feed 1 on antenna 33 0 0 X Y
+Row 34 : Feed 1 on antenna 34 0 0 X Y
+Row 35 : Feed 1 on antenna 35 0 0 X Y
+Row 36 : Feed 1 on antenna 36 0 0 X Y
+Row 37 : Feed 1 on antenna 37 0 0 X Y
+Row 38 : Feed 1 on antenna 38 0 0 X Y
+Row 39 : Feed 1 on antenna 39 0 0 X Y
+Row 40 : Feed 1 on antenna 40 0 0 X Y
+Row 41 : Feed 1 on antenna 41 0 0 X Y
+Row 42 : Feed 1 on antenna 42 0 0 X Y
+Row 43 : Feed 1 on antenna 43 0 0 X Y
+Row 44 : Feed 1 on antenna 44 0 0 X Y
+Row 45 : Feed 1 on antenna 45 0 0 X Y
+Row 46 : Feed 1 on antenna 46 0 0 X Y
+Row 47 : Feed 1 on antenna 47 0 0 X Y
+Row 48 : Feed 1 on antenna 48 0 0 X Y
+Row 49 : Feed 1 on antenna 49 0 0 X Y
+Row 50 : Feed 1 on antenna 50 0 0 X Y
+Row 51 : Feed 1 on antenna 51 0 0 X Y
+Row 52 : Feed 1 on antenna 52 0 0 X Y
+Row 53 : Feed 1 on antenna 53 0 0 X Y
+Row 54 : Feed 1 on antenna 54 0 0 X Y
+Row 55 : Feed 1 on antenna 55 0 0 X Y
+Row 56 : Feed 1 on antenna 56 0 0 X Y
+Row 57 : Feed 1 on antenna 57 0 0 X Y
+Row 58 : Feed 1 on antenna 58 0 0 X Y
+Row 59 : Feed 1 on antenna 59 0 0 X Y
+Row 60 : Feed 1 on antenna 60 0 0 X Y
+Row 61 : Feed 1 on antenna 61 0 0 X Y
+Row 62 : Feed 1 on antenna 62 0 0 X Y
+Row 63 : Feed 1 on antenna 63 0 0 X Y
+Row 64 : Feed 1 on antenna 64 0 0 X Y
+Row 65 : Feed 1 on antenna 65 0 0 X Y
+Row 66 : Feed 1 on antenna 66 0 0 X Y
+Row 67 : Feed 1 on antenna 67 0 0 X Y
+Row 68 : Feed 1 on antenna 68 0 0 X Y
+Row 69 : Feed 1 on antenna 69 0 0 X Y
+Row 70 : Feed 1 on antenna 70 0 0 X Y
+Row 71 : Feed 1 on antenna 71 0 0 X Y
+Row 72 : Feed 1 on antenna 72 0 0 X Y
+Row 73 : Feed 1 on antenna 73 0 0 X Y
+Row 74 : Feed 1 on antenna 74 0 0 X Y
+Row 75 : Feed 1 on antenna 75 0 0 X Y
+Row 76 : Feed 1 on antenna 76 0 0 X Y
+Row 77 : Feed 1 on antenna 77 0 0 X Y
+Row 78 : Feed 1 on antenna 78 0 0 X Y
+Row 79 : Feed 1 on antenna 79 0 0 X Y
+Row 80 : Feed 1 on antenna 80 0 0 X Y
+Added rows to FEED table
+Creating new spectral window Continuum, ID 1
+Creating new spectral window Spectral, ID 2
+Creating new spectral window Temporal0, ID 3
+Creating new spectral window Temporal1, ID 4
+Creating new spectral window Temporal2, ID 5
+Creating new spectral window Temporal3, ID 6
+Creating new spectral window Temporal4, ID 7
+Creating new spectral window Temporal5, ID 8
+Creating new spectral window Temporal6, ID 9
+Creating new spectral window Temporal7, ID 10
+Creating new spectral window Temporal8, ID 11
+Creating new spectral window Temporal9, ID 12
+Creating new spectral window Temporal10, ID 13
+Creating new spectral window Temporal11, ID 14
+Creating new spectral window Temporal12, ID 15
+Creating new spectral window Temporal13, ID 16
+Creating new spectral window Temporal14, ID 17
+Creating new spectral window Temporal15, ID 18
+Creating new spectral window Wide0, ID 19
+Creating new spectral window Wide1, ID 20
+Creating new spectral window Wide2, ID 21
+Creating new spectral window Wide3, ID 22
+Creating new spectral window Wide4, ID 23
+Creating new spectral window Wide5, ID 24
+Creating new spectral window Wide6, ID 25
+Creating new spectral window Wide7, ID 26
+Creating new spectral window Wide8, ID 27
+Creating new spectral window Wide9, ID 28
+Creating new spectral window Wide10, ID 29
+Creating new spectral window Wide11, ID 30
+Creating new spectral window Wide12, ID 31
+Creating new spectral window Wide13, ID 32
+Creating new spectral window Wide14, ID 33
+Creating new spectral window Wide15, ID 34
+Creating new spectral window Continuum0, ID 35
+Creating new spectral window Continuum1, ID 36
+Creating new spectral window Continuum2, ID 37
+Creating new spectral window Continuum3, ID 38
+Creating new spectral window Continuum4, ID 39
+Creating new spectral window Continuum5, ID 40
+Creating new spectral window Continuum6, ID 41
+Creating new spectral window Continuum7, ID 42
+Creating new spectral window Continuum8, ID 43
+Creating new spectral window Continuum9, ID 44
+Creating new spectral window Continuum10, ID 45
+Creating new spectral window Continuum11, ID 46
+Creating new spectral window Continuum12, ID 47
+Creating new spectral window Continuum13, ID 48
+Creating new spectral window Continuum14, ID 49
+Creating new spectral window Continuum15, ID 50
+Spectral window : Continuum2
+     reference frequency : 1.388GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+Observing source : 10uJy
+     direction : 12:30:00.00   -45.00.00.00       J2000
+Times specified are interpreted as hour angles for first source observed
+     offset in time = 0.125739 hours from 07-Mar-2007/00:00:33.0
+Time range : 
+     start : 06-Mar-2007/18:08:05.7
+     stop  : 07-Mar-2007/06:08:05.7
+Creating new hypercube 1
+Adding 45504000 rows
+Written 44437.5 Mbytes to scratch columns
+Calculating uvw coordinates for 14400 integrations
+Processing feed 0
+Starting conditions for antenna 1: 
+     time = 06-Mar-2007/18:08:05.7
+     scan = 1
+     az   = 130.806 deg
+     el   = 21.0104 deg
+     ha   = -6.00647 hours
+Constructing FEED table from list
+Row 1 : Feed 1 on antenna 1 0 0 X Y
+Row 2 : Feed 1 on antenna 2 0 0 X Y
+Row 3 : Feed 1 on antenna 3 0 0 X Y
+Row 4 : Feed 1 on antenna 4 0 0 X Y
+Row 5 : Feed 1 on antenna 5 0 0 X Y
+Row 6 : Feed 1 on antenna 6 0 0 X Y
+Row 7 : Feed 1 on antenna 7 0 0 X Y
+Row 8 : Feed 1 on antenna 8 0 0 X Y
+Row 9 : Feed 1 on antenna 9 0 0 X Y
+Row 10 : Feed 1 on antenna 10 0 0 X Y
+Row 11 : Feed 1 on antenna 11 0 0 X Y
+Row 12 : Feed 1 on antenna 12 0 0 X Y
+Row 13 : Feed 1 on antenna 13 0 0 X Y
+Row 14 : Feed 1 on antenna 14 0 0 X Y
+Row 15 : Feed 1 on antenna 15 0 0 X Y
+Row 16 : Feed 1 on antenna 16 0 0 X Y
+Row 17 : Feed 1 on antenna 17 0 0 X Y
+Row 18 : Feed 1 on antenna 18 0 0 X Y
+Row 19 : Feed 1 on antenna 19 0 0 X Y
+Row 20 : Feed 1 on antenna 20 0 0 X Y
+Row 21 : Feed 1 on antenna 21 0 0 X Y
+Row 22 : Feed 1 on antenna 22 0 0 X Y
+Row 23 : Feed 1 on antenna 23 0 0 X Y
+Row 24 : Feed 1 on antenna 24 0 0 X Y
+Row 25 : Feed 1 on antenna 25 0 0 X Y
+Row 26 : Feed 1 on antenna 26 0 0 X Y
+Row 27 : Feed 1 on antenna 27 0 0 X Y
+Row 28 : Feed 1 on antenna 28 0 0 X Y
+Row 29 : Feed 1 on antenna 29 0 0 X Y
+Row 30 : Feed 1 on antenna 30 0 0 X Y
+Row 31 : Feed 1 on antenna 31 0 0 X Y
+Row 32 : Feed 1 on antenna 32 0 0 X Y
+Row 33 : Feed 1 on antenna 33 0 0 X Y
+Row 34 : Feed 1 on antenna 34 0 0 X Y
+Row 35 : Feed 1 on antenna 35 0 0 X Y
+Row 36 : Feed 1 on antenna 36 0 0 X Y
+Row 37 : Feed 1 on antenna 37 0 0 X Y
+Row 38 : Feed 1 on antenna 38 0 0 X Y
+Row 39 : Feed 1 on antenna 39 0 0 X Y
+Row 40 : Feed 1 on antenna 40 0 0 X Y
+Row 41 : Feed 1 on antenna 41 0 0 X Y
+Row 42 : Feed 1 on antenna 42 0 0 X Y
+Row 43 : Feed 1 on antenna 43 0 0 X Y
+Row 44 : Feed 1 on antenna 44 0 0 X Y
+Row 45 : Feed 1 on antenna 45 0 0 X Y
+Row 46 : Feed 1 on antenna 46 0 0 X Y
+Row 47 : Feed 1 on antenna 47 0 0 X Y
+Row 48 : Feed 1 on antenna 48 0 0 X Y
+Row 49 : Feed 1 on antenna 49 0 0 X Y
+Row 50 : Feed 1 on antenna 50 0 0 X Y
+Row 51 : Feed 1 on antenna 51 0 0 X Y
+Row 52 : Feed 1 on antenna 52 0 0 X Y
+Row 53 : Feed 1 on antenna 53 0 0 X Y
+Row 54 : Feed 1 on antenna 54 0 0 X Y
+Row 55 : Feed 1 on antenna 55 0 0 X Y
+Row 56 : Feed 1 on antenna 56 0 0 X Y
+Row 57 : Feed 1 on antenna 57 0 0 X Y
+Row 58 : Feed 1 on antenna 58 0 0 X Y
+Row 59 : Feed 1 on antenna 59 0 0 X Y
+Row 60 : Feed 1 on antenna 60 0 0 X Y
+Row 61 : Feed 1 on antenna 61 0 0 X Y
+Row 62 : Feed 1 on antenna 62 0 0 X Y
+Row 63 : Feed 1 on antenna 63 0 0 X Y
+Row 64 : Feed 1 on antenna 64 0 0 X Y
+Row 65 : Feed 1 on antenna 65 0 0 X Y
+Row 66 : Feed 1 on antenna 66 0 0 X Y
+Row 67 : Feed 1 on antenna 67 0 0 X Y
+Row 68 : Feed 1 on antenna 68 0 0 X Y
+Row 69 : Feed 1 on antenna 69 0 0 X Y
+Row 70 : Feed 1 on antenna 70 0 0 X Y
+Row 71 : Feed 1 on antenna 71 0 0 X Y
+Row 72 : Feed 1 on antenna 72 0 0 X Y
+Row 73 : Feed 1 on antenna 73 0 0 X Y
+Row 74 : Feed 1 on antenna 74 0 0 X Y
+Row 75 : Feed 1 on antenna 75 0 0 X Y
+Row 76 : Feed 1 on antenna 76 0 0 X Y
+Row 77 : Feed 1 on antenna 77 0 0 X Y
+Row 78 : Feed 1 on antenna 78 0 0 X Y
+Row 79 : Feed 1 on antenna 79 0 0 X Y
+Row 80 : Feed 1 on antenna 80 0 0 X Y
+Added rows to FEED table
+Creating new spectral window Continuum, ID 1
+Creating new spectral window Spectral, ID 2
+Creating new spectral window Temporal0, ID 3
+Creating new spectral window Temporal1, ID 4
+Creating new spectral window Temporal2, ID 5
+Creating new spectral window Temporal3, ID 6
+Creating new spectral window Temporal4, ID 7
+Creating new spectral window Temporal5, ID 8
+Creating new spectral window Temporal6, ID 9
+Creating new spectral window Temporal7, ID 10
+Creating new spectral window Temporal8, ID 11
+Creating new spectral window Temporal9, ID 12
+Creating new spectral window Temporal10, ID 13
+Creating new spectral window Temporal11, ID 14
+Creating new spectral window Temporal12, ID 15
+Creating new spectral window Temporal13, ID 16
+Creating new spectral window Temporal14, ID 17
+Creating new spectral window Temporal15, ID 18
+Creating new spectral window Wide0, ID 19
+Creating new spectral window Wide1, ID 20
+Creating new spectral window Wide2, ID 21
+Creating new spectral window Wide3, ID 22
+Creating new spectral window Wide4, ID 23
+Creating new spectral window Wide5, ID 24
+Creating new spectral window Wide6, ID 25
+Creating new spectral window Wide7, ID 26
+Creating new spectral window Wide8, ID 27
+Creating new spectral window Wide9, ID 28
+Creating new spectral window Wide10, ID 29
+Creating new spectral window Wide11, ID 30
+Creating new spectral window Wide12, ID 31
+Creating new spectral window Wide13, ID 32
+Creating new spectral window Wide14, ID 33
+Creating new spectral window Wide15, ID 34
+Creating new spectral window Continuum0, ID 35
+Creating new spectral window Continuum1, ID 36
+Creating new spectral window Continuum2, ID 37
+Creating new spectral window Continuum3, ID 38
+Creating new spectral window Continuum4, ID 39
+Creating new spectral window Continuum5, ID 40
+Creating new spectral window Continuum6, ID 41
+Creating new spectral window Continuum7, ID 42
+Creating new spectral window Continuum8, ID 43
+Creating new spectral window Continuum9, ID 44
+Creating new spectral window Continuum10, ID 45
+Creating new spectral window Continuum11, ID 46
+Creating new spectral window Continuum12, ID 47
+Creating new spectral window Continuum13, ID 48
+Creating new spectral window Continuum14, ID 49
+Creating new spectral window Continuum15, ID 50
+Spectral window : Continuum4
+     reference frequency : 1.356GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+Observing source : 10uJy
+     direction : 12:30:00.00   -45.00.00.00       J2000
+Times specified are interpreted as hour angles for first source observed
+     offset in time = 0.125739 hours from 07-Mar-2007/00:00:33.0
+Time range : 
+     start : 06-Mar-2007/18:08:05.7
+     stop  : 07-Mar-2007/06:08:05.7
+Creating new hypercube 1
+Adding 45504000 rows
+Written 44437.5 Mbytes to scratch columns
+Calculating uvw coordinates for 14400 integrations
+Processing feed 0
+Starting conditions for antenna 1: 
+     time = 06-Mar-2007/18:08:05.7
+     scan = 1
+     az   = 130.806 deg
+     el   = 21.0104 deg
+     ha   = -6.00647 hours
+Stopping conditions for antenna 1: 
+     time = 07-Mar-2007/06:08:05.7
+     scan = 1
+     az   = -130.89 deg
+     el   = 20.8241 deg
+     ha   = 6.02554 hours
+45504000 visibilities simulated 
+7802927 visibilities flagged due to shadowing 
+0 visibilities flagged due to elevation limit of 8 degrees 
+Stopping conditions for antenna 1: 
+     time = 07-Mar-2007/06:08:05.7
+     scan = 1
+     az   = -130.89 deg
+     el   = 20.8241 deg
+     ha   = 6.02554 hours
+45504000 visibilities simulated 
+7802927 visibilities flagged due to shadowing 
+0 visibilities flagged due to elevation limit of 8 degrees 
+Gridding with Antenna Illumination projection and W stacking
+Filling 33 planes of W stack with model
+Gridding with Antenna Illumination projection and W stacking
+Filling 33 planes of W stack with model
+Stopping conditions for antenna 1: 
+     time = 07-Mar-2007/06:08:05.7
+     scan = 1
+     az   = -130.89 deg
+     el   = 20.8241 deg
+     ha   = 6.02554 hours
+45504000 visibilities simulated 
+7802927 visibilities flagged due to shadowing 
+0 visibilities flagged due to elevation limit of 8 degrees 
+Gridding with Antenna Illumination projection and W stacking
+Filling 33 planes of W stack with model
+Stopping conditions for antenna 1: 
+     time = 07-Mar-2007/06:08:05.7
+     scan = 1
+     az   = -130.89 deg
+     el   = 20.8241 deg
+     ha   = 6.02554 hours
+45504000 visibilities simulated 
+7802927 visibilities flagged due to shadowing 
+0 visibilities flagged due to elevation limit of 8 degrees 
+Gridding with Antenna Illumination projection and W stacking
+Filling 33 planes of W stack with model
+Stopping conditions for antenna 1: 
+     time = 07-Mar-2007/06:08:05.7
+     scan = 1
+     az   = -130.89 deg
+     el   = 20.8241 deg
+     ha   = 6.02554 hours
+45504000 visibilities simulated 
+7802927 visibilities flagged due to shadowing 
+0 visibilities flagged due to elevation limit of 8 degrees 
+Gridding with Antenna Illumination projection and W stacking
+Filling 33 planes of W stack with model
+Stopping conditions for antenna 1: 
+     time = 07-Mar-2007/06:08:05.7
+     scan = 1
+     az   = -130.89 deg
+     el   = 20.8241 deg
+     ha   = 6.02554 hours
+45504000 visibilities simulated 
+7802927 visibilities flagged due to shadowing 
+0 visibilities flagged due to elevation limit of 8 degrees 
+Stopping conditions for antenna 1: 
+     time = 07-Mar-2007/06:08:05.7
+     scan = 1
+     az   = -130.89 deg
+     el   = 20.8241 deg
+     ha   = 6.02554 hours
+45504000 visibilities simulated 
+7802927 visibilities flagged due to shadowing 
+0 visibilities flagged due to elevation limit of 8 degrees 
+Gridding with Antenna Illumination projection and W stacking
+Filling 33 planes of W stack with model
+Gridding with Antenna Illumination projection and W stacking
+Filling 33 planes of W stack with model
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.25505e-08 -2.27721e-08 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (625.642,0) (pixels) 
+Convolution function support = 6 pixels, convolution function size = 113 pixels
+Maximum extent = 12.4339 (m) sampled at 0.25904 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (625.642,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (625.642,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (625.642,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (625.642,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (631.672,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (631.672,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (631.672,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (631.672,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (637.82,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Shape of convolution function = [113, 113] by 16 planes
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.25505e-08 -2.27721e-08 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Convolution function support = 6 pixels, convolution function size = 113 pixels
+Maximum extent = 12.5842 (m) sampled at 0.26217 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (639.376,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (642.51,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (645.675,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (652.099,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (inf,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (655.36,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (inf,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (655.36,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (657.003,0) (pixels) 
+Shape of convolution function = [113, 113] by 16 planes
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.25505e-08 -2.27721e-08 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (605.413,0) (pixels) 
+Convolution function support = 6 pixels, convolution function size = 113 pixels
+Maximum extent = 12.2872 (m) sampled at 0.255983 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (608.223,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (611.058,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (611.058,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (611.058,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (611.058,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (616.809,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (619.726,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (619.726,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (619.726,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (619.726,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (622.67,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (622.67,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (622.67,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (622.67,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (625.642,0) (pixels) 
+Shape of convolution function = [113, 113] by 16 planes
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.25505e-08 -2.27721e-08 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Convolution function support = 7 pixels, convolution function size = 129 pixels
+Maximum extent = 14.0046 (m) sampled at 0.250082 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (591.747,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (591.747,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (591.747,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (591.747,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (597.139,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (597.139,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (597.139,0) (pixels) 
+Shape of convolution function = [129, 129] by 16 planes
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.25505e-08 -2.27721e-08 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (597.139,0) (pixels) 
+Convolution function support = 7 pixels, convolution function size = 129 pixels
+Maximum extent = 14.1679 (m) sampled at 0.252998 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (599.872,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (599.872,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (599.872,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (599.872,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (599.872,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (599.872,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (602.63,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (602.63,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (602.63,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (602.63,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (605.413,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (605.413,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (605.413,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (605.413,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (605.413,0) (pixels) 
+Shape of convolution function = [129, 129] by 16 planes
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.25505e-08 -2.27721e-08 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (567.411,0) (pixels) 
+Convolution function support = 7 pixels, convolution function size = 129 pixels
+Maximum extent = 13.845 (m) sampled at 0.247232 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (567.411,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (567.411,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (567.411,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (569.878,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (574.877,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (577.41,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (577.41,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (577.41,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (577.41,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (577.41,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (582.542,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (582.542,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (582.542,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (586.452,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (589.088,0) (pixels) 
+Shape of convolution function = [129, 129] by 16 planes
+Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.25505e-08 -2.27721e-08 degrees
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (557.753,0) (pixels) 
+Convolution function support = 7 pixels, convolution function size = 129 pixels
+Maximum extent = 13.689 (m) sampled at 0.244446 (m)
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (557.753,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (560.137,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (560.137,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (560.137,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (560.137,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (560.137,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (560.137,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (562.541,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (562.541,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (562.541,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (562.541,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (inf,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (564.966,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (567.411,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (567.411,0) (pixels) 
+Feed 0: Peak of primary beam voltage pattern = (1,0)
+Feed 0: Peak of primary beam power pattern = 1
+Feed 0: Integral of primary beam power pattern = (567.411,0) (pixels) 
+Shape of convolution function = [129, 129] by 16 planes
+Exiting MPI
+Exiting MPI
+Exiting MPI
+Exiting MPI
+Exiting MPI
+Exiting MPI
+Exiting MPI
+WORKER 1 : CONRAD program (parallel) running on 8 nodes (worker 1)
+WORKER 1 : Simulating MEERKAT80
+WORKER 1 : Successfully defined 80 antennas of MEERKAT80
+WORKER 1 : Simulating source 10uJy
+WORKER 1 : Adding image /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model as model for 10uJy
+WORKER 1 : Successfully defined sources
+WORKER 1 : Successfully defined 1 feeds
+WORKER 1 : Successfully defined 50 spectral windows
+WORKER 1 : Successfully set simulation parameters
+WORKER 1 : CONRAD simulation program
+WORKER 1 : parset file cptest2.in
+WORKER 1 : Observing scan 0 on source 10uJy at band Continuum0 from -6 h to 6 h
+WORKER 1 : Successfully simulated 1 scans
+WORKER 1 : Simulating data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack0.ms
+WORKER 1 : Model is image.i.10uJy :  (array : shape [8192, 8192, 1, 1])  (free)
+WORKER 1 : Predicted data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack0.ms in 20427.1 seconds 
+WORKER 2 : CONRAD program (parallel) running on 8 nodes (worker 2)
+WORKER 2 : Simulating MEERKAT80
+WORKER 2 : Successfully defined 80 antennas of MEERKAT80
+WORKER 2 : Simulating source 10uJy
+WORKER 2 : Adding image /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model as model for 10uJy
+WORKER 2 : Successfully defined sources
+WORKER 2 : Successfully defined 1 feeds
+WORKER 2 : Successfully defined 50 spectral windows
+WORKER 2 : Successfully set simulation parameters
+WORKER 2 : CONRAD simulation program
+WORKER 2 : parset file cptest2.in
+WORKER 2 : Observing scan 0 on source 10uJy at band Continuum1 from -6 h to 6 h
+WORKER 2 : Successfully simulated 1 scans
+WORKER 2 : Simulating data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack1.ms
+WORKER 2 : Model is image.i.10uJy :  (array : shape [8192, 8192, 1, 1])  (free)
+WORKER 2 : Predicted data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack1.ms in 20011.2 seconds 
+WORKER 3 : CONRAD program (parallel) running on 8 nodes (worker 3)
+WORKER 3 : Simulating MEERKAT80
+WORKER 3 : Successfully defined 80 antennas of MEERKAT80
+WORKER 3 : Simulating source 10uJy
+WORKER 3 : Adding image /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model as model for 10uJy
+WORKER 3 : Successfully defined sources
+WORKER 3 : Successfully defined 1 feeds
+WORKER 3 : Successfully defined 50 spectral windows
+WORKER 3 : Successfully set simulation parameters
+WORKER 3 : CONRAD simulation program
+WORKER 3 : parset file cptest2.in
+WORKER 3 : Observing scan 0 on source 10uJy at band Continuum2 from -6 h to 6 h
+WORKER 3 : Successfully simulated 1 scans
+WORKER 3 : Simulating data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack2.ms
+WORKER 3 : Model is image.i.10uJy :  (array : shape [8192, 8192, 1, 1])  (free)
+WORKER 3 : Predicted data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack2.ms in 19883.8 seconds 
+WORKER 4 : CONRAD program (parallel) running on 8 nodes (worker 4)
+WORKER 4 : Simulating MEERKAT80
+WORKER 4 : Successfully defined 80 antennas of MEERKAT80
+WORKER 4 : Simulating source 10uJy
+WORKER 4 : Adding image /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model as model for 10uJy
+WORKER 4 : Successfully defined sources
+WORKER 4 : Successfully defined 1 feeds
+WORKER 4 : Successfully defined 50 spectral windows
+WORKER 4 : Successfully set simulation parameters
+WORKER 4 : CONRAD simulation program
+WORKER 4 : parset file cptest2.in
+WORKER 4 : Observing scan 0 on source 10uJy at band Continuum3 from -6 h to 6 h
+WORKER 4 : Successfully simulated 1 scans
+WORKER 4 : Simulating data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack3.ms
+WORKER 4 : Model is image.i.10uJy :  (array : shape [8192, 8192, 1, 1])  (free)
+WORKER 4 : Predicted data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack3.ms in 19594.4 seconds 
+WORKER 5 : CONRAD program (parallel) running on 8 nodes (worker 5)
+WORKER 5 : Simulating MEERKAT80
+WORKER 5 : Successfully defined 80 antennas of MEERKAT80
+WORKER 5 : Simulating source 10uJy
+WORKER 5 : Adding image /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model as model for 10uJy
+WORKER 5 : Successfully defined sources
+WORKER 5 : Successfully defined 1 feeds
+WORKER 5 : Successfully defined 50 spectral windows
+WORKER 5 : Successfully set simulation parameters
+WORKER 5 : CONRAD simulation program
+WORKER 5 : parset file cptest2.in
+WORKER 5 : Observing scan 0 on source 10uJy at band Continuum4 from -6 h to 6 h
+WORKER 5 : Successfully simulated 1 scans
+WORKER 5 : Simulating data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack4.ms
+WORKER 5 : Model is image.i.10uJy :  (array : shape [8192, 8192, 1, 1])  (free)
+WORKER 5 : Predicted data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack4.ms in 17006.6 seconds 
+WORKER 6 : CONRAD program (parallel) running on 8 nodes (worker 6)
+WORKER 6 : Simulating MEERKAT80
+WORKER 6 : Successfully defined 80 antennas of MEERKAT80
+WORKER 6 : Simulating source 10uJy
+WORKER 6 : Adding image /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model as model for 10uJy
+WORKER 6 : Successfully defined sources
+WORKER 6 : Successfully defined 1 feeds
+WORKER 6 : Successfully defined 50 spectral windows
+WORKER 6 : Successfully set simulation parameters
+WORKER 6 : CONRAD simulation program
+WORKER 6 : parset file cptest2.in
+WORKER 6 : Observing scan 0 on source 10uJy at band Continuum5 from -6 h to 6 h
+WORKER 6 : Successfully simulated 1 scans
+WORKER 6 : Simulating data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack5.ms
+WORKER 6 : Model is image.i.10uJy :  (array : shape [8192, 8192, 1, 1])  (free)
+WORKER 6 : Predicted data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack5.ms in 16551.2 seconds 
+WORKER 7 : CONRAD program (parallel) running on 8 nodes (worker 7)
+WORKER 7 : Simulating MEERKAT80
+WORKER 7 : Successfully defined 80 antennas of MEERKAT80
+WORKER 7 : Simulating source 10uJy
+WORKER 7 : Adding image /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model as model for 10uJy
+WORKER 7 : Successfully defined sources
+WORKER 7 : Successfully defined 1 feeds
+WORKER 7 : Successfully defined 50 spectral windows
+WORKER 7 : Successfully set simulation parameters
+WORKER 7 : CONRAD simulation program
+WORKER 7 : parset file cptest2.in
+WORKER 7 : Observing scan 0 on source 10uJy at band Continuum6 from -6 h to 6 h
+WORKER 7 : Successfully simulated 1 scans
+WORKER 7 : Simulating data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack6.ms
+WORKER 7 : Model is image.i.10uJy :  (array : shape [8192, 8192, 1, 1])  (free)
+WORKER 7 : Predicted data for /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack6.ms in 16624.9 seconds 
