@@ -10,7 +10,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 // casa includes
-#include <casa/Complex.h>
+#include <casa/complex.h>
 
 // own includes
 #include <measurementequation/GainCalibrationEquation.h>
