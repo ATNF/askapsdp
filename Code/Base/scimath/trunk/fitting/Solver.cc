@@ -7,6 +7,7 @@
 ///
 
 #include <fitting/Solver.h>
+#include <conrad/ConradError.h>
 
 namespace conrad
 {
@@ -23,23 +24,46 @@ namespace conrad
     {
     }
     
+    Solver::Solver(const Solver& other) {
+    	operator=(other);
+    }
+    
+    Solver& Solver::operator=(const Solver& other)
+    {
+    	if(this!=&other) 
+    	{
+    		itsParams=other.itsParams;
+    		itsNormalEquations=other.itsNormalEquations;
+    	}
+    	return *this;
+    }
+
+
+    
     void Solver::setParameters(const Params& ip)
     {
       itsParams=ip.clone();
+      NormalEquations ne(ip);
+      itsNormalEquations=ne.clone();
     }
+    
 /// Return current values of params
     const Params& Solver::parameters() const
     {
+    	CONRADCHECK(itsParams, "Params not defined in Solver");
       return *itsParams;
     };
 
     void Solver::copyNormalEquations(const Solver& other)
     {
+    	CONRADCHECK(other.itsNormalEquations, "NormalEquations not defined in other Solver");
       itsNormalEquations=other.itsNormalEquations->clone();
+    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver after copy");
     }
 
     void Solver::addNormalEquations(const NormalEquations& normeq)
     {
+    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver prior to adding");
       itsNormalEquations->merge(normeq);
     }
     
@@ -55,7 +79,9 @@ namespace conrad
     
     void Solver::init()
     {
+    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver before reset");
       itsNormalEquations->reset();
+    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver after reset");
     }
     
   }

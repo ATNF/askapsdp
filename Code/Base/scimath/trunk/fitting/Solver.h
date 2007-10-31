@@ -29,6 +29,14 @@ namespace conrad
 /// Constructor from parameters
 /// @param ip Parameters
         explicit Solver(const Params& ip);
+        
+/// Copy constructor
+        /// @params other Other
+        Solver(const Solver& other);
+        
+        /// Assignment
+        /// @params other Other
+        Solver& operator=(const Solver& other);
 
         virtual ~Solver();
 
