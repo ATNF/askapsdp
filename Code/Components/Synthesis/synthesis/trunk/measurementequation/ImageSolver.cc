@@ -60,8 +60,6 @@ namespace conrad
 				}
 			}
 			CONRADCHECK(nParameters>0, "No free parameters in ImageSolver");
-			double dthreshold=0.0;
-			dthreshold=threshold().getValue("%")/100.0;
 
 			//     	std::cout << "Solver parameters : " << *itsParams << std::endl;
 			//     	std::cout << "Normal equation parameters : " << itsNormalEquations->parameters() << std::endl;
@@ -77,7 +75,9 @@ namespace conrad
 				    & diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
 				CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present for solution");
 				const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
-				double cutoff=dthreshold*casa::max(diag);
+				double maxDiag(casa::max(diag));
+				std::cout << "Maximum of weights = " << maxDiag << std::endl;
+				double cutoff=tol()*maxDiag;
 				{
 					casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
 					for (uint elem=0; elem<dv.nelements(); elem++)
@@ -121,7 +121,12 @@ namespace conrad
 					string weightsName="weights"+*it;
 					const casa::Array<double>
 					    & ADiag(itsNormalEquations->normalMatrixDiagonal().find(name)->second.reform(arrShape));
-					itsParams->add(weightsName, ADiag, axes);
+					if(!itsParams->has(weightsName)) {
+						itsParams->add(weightsName, ADiag, axes);			
+					}
+					else {
+						itsParams->update(weightsName, ADiag);
+					}
 				}
 			}
 		}
@@ -140,7 +145,12 @@ namespace conrad
 					string psfName="psf"+*it;
 					const casa::Array<double>
 					    & APSF(itsNormalEquations->normalMatrixSlice().find(name)->second.reform(arrShape));
-					itsParams->add(psfName, APSF, axes);
+					if(!itsParams->has(psfName)) {
+						itsParams->add(psfName, APSF, axes);
+					}
+					else {
+						itsParams->update(psfName, APSF);
+					}
 				}
 			}
 		}

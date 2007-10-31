@@ -55,11 +55,6 @@ namespace conrad
 			MEParallel(argc, argv), itsParset(parset)
 		{
 
-			/// Create the specified images from the definition in the
-			/// parameter set. We can solve for any number of images
-			/// at once (but you may/will run out of memory!)
-			itsModel << itsParset.makeSubset("Images.");
-			CONRADCHECK(itsModel, "Model not defined correctly");
 
 			if (isMaster())
 			{
@@ -72,6 +67,12 @@ namespace conrad
 				{
 					casa::Quantity::read(itsQbeam(i), beam[i]);
 				}
+
+				/// Create the specified images from the definition in the
+				/// parameter set. We can solve for any number of images
+				/// at once (but you may/will run out of memory!)
+				itsModel << itsParset.makeSubset("Images.");
+				CONRADCHECK(itsModel, "Model not defined correctly");
 
 				/// Create the solver from the parameterset definition and the existing
 				/// definition of the parameters. 
@@ -108,8 +109,7 @@ namespace conrad
 		{
 			casa::Timer timer;
 			timer.mark();
-			os() << "Calculating normal equations for "
-			    << ms << std::endl;
+			os() << "Calculating normal equations for " << ms << std::endl;
 			TableDataSource ds(ms);
 			IDataSelectorPtr sel=ds.createSelector();
 			sel << itsParset;
@@ -118,7 +118,11 @@ namespace conrad
 			conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
 			IDataSharedIter it=ds.createIterator(sel, conv);
 			/// @todo Keep equation around between calls
+			CONRADCHECK(itsModel, "Model not defined");
+			CONRADCHECK(itsNe, "NormalEquations not defined");
+			CONRADCHECK(itsGridder, "Gridder not defined");
 			itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+			CONRADCHECK(itsEquation, "Equation not defined");
 			itsEquation->calcEquations(*itsNe);
 			os() << "Calculated normal equations for "<< ms
 			    << " in "<< timer.real() << " seconds "<< std::endl;
@@ -127,13 +131,14 @@ namespace conrad
 		/// Calculate the normal equations for a given measurement set
 		void ImagerParallel::calcNE()
 		{
+			// Discard any old parameters
+			itsNe=NormalEquations::ShPtr(new NormalEquations(*itsModel));
+
 			if (isWorker())
 			{
 				CONRADCHECK(itsGridder, "Gridder not defined");
 				CONRADCHECK(itsModel, "Model not defined");
 //				CONRADCHECK(itsMs.size()>0, "Data sets not defined");
-				// Discard any old parameters
-				itsNe=NormalEquations::ShPtr(new NormalEquations(*itsModel));
 				
 				CONRADCHECK(itsNe, "NormalEquations not defined");
 				
@@ -144,11 +149,12 @@ namespace conrad
 				}
 				else
 				{
+					CONRADCHECK(itsSolver, "Solver not defined correctly");
+					itsSolver->init();
+					itsSolver->setParameters(*itsModel);
 					for (int iMs=0; iMs<itsMs.size(); iMs++)
 					{
 						calcOne(itsMs[iMs]);
-						CONRADCHECK(itsSolver, "Solver not defined correctly");
-						itsSolver->setParameters(*itsModel);
 						itsSolver->addNormalEquations(*itsNe);
 					}
 				}
@@ -185,6 +191,7 @@ namespace conrad
 				for (vector<string>::iterator it=resultimages.begin(); it
 				    !=resultimages.end(); it++)
 				{
+					os() << "Saving " << *it << " with name " << *it << std::endl;
 					SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it);
 				}
 
@@ -197,12 +204,15 @@ namespace conrad
 					ir.copyNormalEquations(*itsSolver);
 					Quality q;
 					ir.solveNormalEquations(q);
-					resultimages=ir.parameters().names();
+					resultimages=ir.parameters().completions("image");
 					for (vector<string>::iterator it=resultimages.begin(); it
 					    !=resultimages.end(); it++)
 					{
-						SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it
-						    +string(".restored"));
+						string imageName("image"+(*it));
+						os() << "Saving restored image " << imageName << " with name " 
+							<< imageName+string(".restored") << std::endl;
+						SynthesisParamsHelper::saveAsCasaImage(*itsModel, imageName, 
+								imageName+string(".restored"));
 					}
 				}
 			}

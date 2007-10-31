@@ -49,10 +49,6 @@ namespace conrad
 				/// Clone a copy of this Gridder
 				virtual IVisGridder::ShPtr clone();
 
-				/// Form the sum of the convolution function squared, multiplied by the weights for each
-				/// different convolution function. This is used in the evaluation of the second derivative.
-				/// @param out Output double precision grid
-				virtual void finaliseWeights(casa::Array<double>& out);
 
 			protected:
 				/// @brief Initialise the indices

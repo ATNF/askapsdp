@@ -62,7 +62,7 @@ namespace conrad
 				/// @param argv Command line inputs
 				MEParallel(int argc, const char** argv);
 
-				~MEParallel();
+				virtual ~MEParallel();
 
 				/// Calculate the normalequations (runs only in the workers)
 				virtual void calcNE() = 0;

@@ -98,12 +98,15 @@ namespace conrad
         casa::convertArray<float, double>(psfArray, slice.reform(valShape));
         casa::Array<float> cleanArray(valShape);
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
+				double maxDiag(casa::max(diag));
+				std::cout << "Maximum of weights = " << maxDiag << std::endl;
+				double cutoff=tol()*maxDiag;
         {
           casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
           casa::Vector<float> psfVector(psfArray.reform(vecShape));
           for (uint elem=0;elem<dv.nelements();elem++)
           {
-            if(diag(elem)>0.0)
+            if(diag(elem)>cutoff)
             {
               dirtyVector(elem)=dv(elem)/diag(elem);
               psfVector(elem)=slice(elem)/diag(elem);

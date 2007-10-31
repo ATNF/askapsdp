@@ -50,6 +50,7 @@ namespace conrad
 			{
 				casa::Timer timer;
 				timer.mark();
+				os() << "Sending normal equations to the solver via MPI" << std::endl;
 
 				LOFAR::BlobString bs;
 				bs.resize(0);
@@ -70,12 +71,17 @@ namespace conrad
 			CONRADCHECK(itsSolver, "Solver not yet defined");
 			if (isParallel()&&isMaster())
 			{
+				os() << "Initialising solver"<< std::endl;
+				itsSolver->init();
+				itsSolver->setParameters(*itsModel);
+				
 				os() << "Waiting for normal equations"<< std::endl;
 				casa::Timer timer;
 				timer.mark();
 
 				LOFAR::BlobString bs;
 				int rank;
+
 				for (int i=1; i<itsNNode; i++)
 				{
 					itsConnectionSet->read(i-1, bs);

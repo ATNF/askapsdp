@@ -68,6 +68,7 @@ int main(int argc, const char** argv)
 		if(nCycles==0)
 		{
 			/// No cycling - just make a dirty image
+			imager.broadcastModel();
 			imager.calcNE();
 			imager.solveNE();
 		}
@@ -77,14 +78,19 @@ int main(int argc, const char** argv)
 			for (int cycle=0;cycle<nCycles;cycle++)
 			{
 				imager.os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
-				if(cycle>0) imager.receiveModel();
+				imager.broadcastModel();
+				imager.receiveModel();
 				imager.calcNE();
 				imager.solveNE();
-				// Broadcast the model
-				if (cycle<(nCycles-1)) imager.broadcastModel();
+
 				imager.os() << "user:   " << timer.user () << " system: " << timer.system ()
 				<<" real:   " << timer.real () << std::endl;
 			}
+			imager.os() << "*** Finished major cycles ***" << std::endl;
+			imager.broadcastModel();
+			imager.receiveModel();
+			imager.calcNE();
+			imager.receiveNE();
 		}
 
 		/// This is the final step - restore the image and write it out

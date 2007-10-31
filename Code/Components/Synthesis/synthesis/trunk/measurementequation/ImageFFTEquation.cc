@@ -86,6 +86,7 @@ namespace conrad
 				itsIdi=other.itsIdi;
 				itsGridder = other.itsGridder;
 			}
+			return *this;
 		}
 
 		void ImageFFTEquation::init()
@@ -160,7 +161,6 @@ namespace conrad
 				residualGridders[imageName]->initialiseGrid(axes, imageShape, true);
 			}
 			// Now we loop through all the data
-			bool first=true;
 			for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
 			{
 				/// Accumulate model visibility for all models

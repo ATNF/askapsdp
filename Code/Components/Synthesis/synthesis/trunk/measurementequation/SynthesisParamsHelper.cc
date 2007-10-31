@@ -86,7 +86,7 @@ namespace conrad
 			}
 
 			axes.add("STOKES", 0.0, 0.0);
-			
+
 			casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
 			pixels.set(0.0);
 			axes.add("FREQUENCY", freqmin, freqmax);
@@ -167,7 +167,7 @@ namespace conrad
 			casa::Vector<casa::String> units(2);
 			units.set("rad");
 			radec.setWorldAxisUnits(units);
-			
+
 			casa::Vector<double> refPix(radec.referencePixel());
 			casa::Vector<double> refInc(radec.increment());
 			casa::Vector<double> refValue(radec.referenceValue());
@@ -177,8 +177,9 @@ namespace conrad
 
 			int nx=imagePixels.shape()(0);
 			int ny=imagePixels.shape()(1);
-			
-			for (int i=0;i<2;++i) {
+
+			for (int i=0;i<2;++i)
+			{
 				start(i)=refValue(i)+refInc(i)*(refPix(i)-0.0);
 				end(i)=refValue(i)+refInc(i)*(refPix(i)-double(imagePixels.shape()(i)));
 			}
@@ -197,7 +198,7 @@ namespace conrad
 			freq.toWorld(endFreq, double(nChan));
 			axes.add("FREQUENCY", startFreq, endFreq);
 
-			ip.add(name, imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)), 
+			ip.add(name, imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)),
 					axes);
 
 		}
@@ -234,11 +235,11 @@ namespace conrad
 			casa::CoordinateSystem imageCoords;
 			imageCoords.addCoordinate(radec);
 
-			//      casa::Vector<int> iquv(1);
-			//      iquv(0) = Stokes::I; 
-			//
-			//      casa::StokesCoordinate stokes(iquv);
-			//      imageCoords.addCoordinate(stokes);
+			casa::Vector<int> iquv(1);
+			iquv(0) = Stokes::I;
+
+			casa::StokesCoordinate stokes(iquv);
+			imageCoords.addCoordinate(stokes);
 
 			int nchan=ip.value(name).shape()(2);
 			double restfreq = 0.0;
