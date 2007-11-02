@@ -77,12 +77,6 @@ public:
   using MultiChunkEquation::predict;
   using MultiChunkEquation::calcEquations;
 protected:
-  /// @brief type of the gains cache
-  typedef std::vector<std::pair<casa::Complex, casa::Complex> > GainsCacheType;
-
-  /// @brief fill the gains cache from parameters
-  /// @param[in] in a reference to the container to fill with values
-  void fillGainsCache(GainsCacheType &in) const;
   
   /// @brief obtain a name of the parameter
   /// @details This method returns the parameter name for a gain of the
@@ -91,8 +85,18 @@ protected:
   /// @param[in] ant antenna number (0-based)
   /// @param[in] pol index of the polarisation product
   static std::string paramName(casa::uInt ant, casa::uInt pol);
-   
   
+  /// @brief a helper method to copy parameter to a temporary list
+  /// @details The current implementation of the design matrix implies
+  /// that derivatives have to be defined for all parameters, passed at
+  /// the construction. We always have extra parameters, which have to be
+  /// ignored. This method copies a given parameter from the parameter class 
+  /// this equation has been initialized with to a new parameter container, 
+  /// or updates the value, if a parameter with such name already exists.
+  /// @param[in] name name of the parameter to add/update
+  /// @param[in] par parameter class to work with
+  void copyParameter(const std::string &name, scimath::Params &par) const;
+     
   /// @brief helper method to split parameter string
   /// @details Parameters have a form similar to "gain.g11.dt0.25",
   /// one needs to have a way to extract this information from the string.
@@ -107,31 +111,6 @@ protected:
 private:
   /// @brief measurement equation giving perfect visibilities
   const IMeasurementEquation &itsPerfectVisME;  
-    
-  /// @brief unpacked parameters
-  /// @details Currently gains are just antenna dependent. In the future,
-  /// we can expect to work with time-, feed- and frequency-dependent cases.
-  /// most likely the type of value stored in the container will be changed
-  /// to account for various possible situations.
-  /// The current meaning of each element is g11 and g22 for each antenna.
-  CachedAccessorField<GainsCacheType> itsGainsCache;
-  
-  /// @brief cache of names of the parameters
-  /// @details in the future, we will probably hold this information inside
-  /// GainsCacheType
-  mutable std::vector<std::pair<std::string, std::string> > itsNameCache;
-  
-  /// @brief names of unused parameters
-  /// @details In the current design of Params, DesignMatrix and NormalEquation
-  /// classes, derivatives should be defined for all declared parameters. This
-  /// class however is intended to provide normal equations only for parameters it
-  /// knows about. Moreover, some parameters have to be passed to 
-  /// a measurement equation used to calculate "perfect" visibilities. Therefore,
-  /// there are always some unused parameters. One possible way of dealing with 
-  /// this problem is to remove all parameters, for which we don't know the derivatives. 
-  /// This data member contains a list of names of all unused parameters to be
-  /// fixed before normal equations are calculated.
-  mutable std::vector<std::string> itsUnusedParamNames; 
 };
 
 

@@ -29,6 +29,8 @@
 #include <string>
 #include <exception>
 #include <sstream>
+#include <set>
+
 
 using casa::IPosition;
 using conrad::scimath::DesignMatrix;
@@ -59,37 +61,27 @@ GainCalibrationEquation::GainCalibrationEquation(const conrad::scimath::Params& 
 /// @param[in] chunk a read-write accessor to work with
 void GainCalibrationEquation::predict(IDataAccessor &chunk) const
 {
-  // temporary fix, caching doesn't work here because the solver doesn't
-  // notify this class when parameters are changed (reference semantics)
-  itsGainsCache.invalidate();
-  //
-  const GainsCacheType &gains = 
-         itsGainsCache.value(*this,&GainCalibrationEquation::fillGainsCache);
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
   CONRADDEBUGASSERT(rwVis.nplane());
   
+  // we don't do cross-pols at the moment. Maximum allowed number of 
+  // polarisation products is 2.
+  const casa::uInt nPol = chunk.nPol()>1? 2: 1;
+  
   itsPerfectVisME.predict(chunk);
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
-       casa::uInt ant1 = chunk.antenna1()[row];
-       casa::uInt ant2 = chunk.antenna2()[row];
+       const casa::uInt ant1 = chunk.antenna1()[row];
+       const casa::uInt ant2 = chunk.antenna2()[row];
+       CONRADASSERT(ant1!=ant2); // not yet implemented
        
-       if (ant1>=gains.size() || ant2>=gains.size()) {
-           CONRADTHROW(ConradError, "Accessor contains data for antenna, which doesn't present in the"
-                      " parameter list, ant1="<<ant1<<" ant2="<<ant2);
-       }
-       const std::pair<casa::Complex,casa::Complex> factor(gains[ant1].first*
-            conj(gains[ant2].first), gains[ant1].second*conj(gains[ant2].second));
-       
-       // we need to have some code here to ensure that we deal with the native
-       // polarisation system (i.e. a linear one).
-       
-       // first polarisation product
-       casa::Vector<casa::Complex> slice = rwVis.xyPlane(0).row(row);
-       slice *= factor.first;
-       // second polarisation product
-       if (rwVis.nplane()>=2) {
-           slice = rwVis.xyPlane(1).row(row);
-           slice *= factor.second;
+       for (casa::uInt pol=0; pol<nPol; ++pol) {
+            CONRADDEBUGASSERT(pol<2);
+            
+            const casa::Complex factor = parameters().complexValue(paramName(ant1,pol))*
+                   conj(parameters().complexValue(paramName(ant2,pol)));
+                   
+            casa::Vector<casa::Complex> slice = rwVis.xyPlane(pol).row(row);
+            slice *= factor;
        }  
   }
 }
@@ -106,12 +98,6 @@ void GainCalibrationEquation::predict(IDataAccessor &chunk) const
 void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                                    conrad::scimath::NormalEquations& ne) const
 {
-  // temporary fix, caching doesn't work here because the solver doesn't
-  // notify this class when parameters are changed (reference semantics)
-  itsGainsCache.invalidate();
-  //
-  const GainsCacheType &gains = 
-         itsGainsCache.value(*this,&GainCalibrationEquation::fillGainsCache);
   MemBufferDataAccessor  buffChunk(chunk);
   itsPerfectVisME.predict(buffChunk);
   const casa::Cube<casa::Complex> &modelVis = buffChunk.visibility();
@@ -119,86 +105,89 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   
   CONRADDEBUGASSERT(buffChunk.nPol());
   
+  // we don't do cross-pols at the moment. Maximum allowed number of 
+  // polarisation products is 2.
   const casa::uInt nPol = buffChunk.nPol()>1? 2: 1;
   // the following assumes that no parameters are missed, i.e. gains.size()
   // is the number of antennae 
   const casa::uInt nDataPerPol = 2*buffChunk.nChannel();
-  // second axis distinguishes between derivatives by real part of gains and
-  // that by imaginary part, the first axis has double the size of elements 
-  // because each pair of adjacent elements corresponds to real and imaginary
-  // parts of the value of derivative
-  casa::Cube<double> derivatives(nDataPerPol*buffChunk.nRow()*nPol,
-                                 2,gains.size(),0.);
-  casa::Vector<double> residual(nDataPerPol*buffChunk.nRow()*nPol);
-  for (casa::uInt row = 0, offset = 0; row < buffChunk.nRow(); 
-                                    ++row) { 
+  
+  
+  for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
        casa::uInt ant1 = chunk.antenna1()[row];
        casa::uInt ant2 = chunk.antenna2()[row];
-       if (ant1>=gains.size() || ant2>=gains.size()) {
-           CONRADTHROW(ConradError, "Accessor contains data for antenna, which doesn't present in the"
-                      " parameter list, ant1="<<ant1<<" ant2="<<ant2);
-       }
-       for (casa::uInt pol=0; pol<nPol; ++pol,offset+=nDataPerPol) {
-            CONRADDEBUGASSERT(pol<2);
-            // gains for antenna 1, polarisation pol
-            const casa::Complex g1 = pol ? gains[ant1].second : gains[ant1].first;
-            // gains for antenna 2, polarisation pol
-            const casa::Complex g2 = pol ? gains[ant2].second : gains[ant2].first;
+       CONRADASSERT(ant1!=ant2); // not yet implemented
+       
+       //parameters to be added to a design matrix (separate for each row)
+       scimath::Params thisRowParams;
+       
+       casa::Vector<double> residual(nDataPerPol*nPol);
+       
+       // there is probably an unnecessary copying, but it can't be
+       // fixed while we have to convert each complex number to a pair
+       // of real numbers
             
-            //std::cout<<"row="<<row<<" ant1="<<ant1<<" ant2="<<ant2<<" "<<g1<<" "<<g2<<std::endl;
-            // there is probably an unnecessary copying in the following code,
-            // but we leave it as it is for now. I have a feeling that this
-            // part has to be redesigned to have a faster and more readable code
+       // second axis distinguishes between derivatives by real part of gains and
+       // that by imaginary part, the first axis has double the size of elements 
+       // because each pair of adjacent elements corresponds to real and imaginary
+       // parts of the value of derivative. The last axis of the cube is the 
+       // parameter. 
+       casa::Cube<double> derivatives(nDataPerPol*nPol,2,nPol*2,0.);
+       
+       // a vector with parameter names in the same order as they are present
+       // in the cube of derivatives (last axis)
+       std::vector<std::string> names;
+       names.reserve(nPol*2);
+        
+       for (casa::uInt pol=0; pol<nPol; ++pol) {
+            CONRADDEBUGASSERT(pol<2);
+            
+            // gains for antenna 1, polarisation pol
+            const std::string g1name = paramName(ant1,pol);
+            names.push_back(g1name);
+            copyParameter(g1name,thisRowParams);
+            const casa::Complex g1 = thisRowParams.complexValue(g1name);
+            
+            // gains for antenna 2, polarisation pol
+            const std::string g2name = paramName(ant2,pol);
+            names.push_back(g2name);
+            copyParameter(g2name,thisRowParams);
+            const casa::Complex g2 = thisRowParams.complexValue(g2name);
+            
+            const casa::uInt offset=pol*nDataPerPol;
+             
+            // it is better to flatten the last index instead of increasing
+            // dimensionality to 4, because polarisation effects, when
+            // implemented, would introduce cross-terms in derivatives
+            // (via leakages) 
             casa::Vector<casa::Complex> buf = modelVis.xyPlane(pol).row(row)*
                                               conj(g2);
-            copyVector(buf, derivatives(IPosition(3,offset,0,ant1), 
-                               IPosition(3,offset+nDataPerPol-1,0,ant1)));
+            copyVector(buf, derivatives(IPosition(3,offset,0,pol*2), 
+                               IPosition(3,offset+nDataPerPol-1,0,pol*2)));
             buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,1.)*conj(g2);
-            copyVector(buf, derivatives(IPosition(3,offset,1,ant1), 
-                               IPosition(3,offset+nDataPerPol-1,1,ant1)));
+            copyVector(buf, derivatives(IPosition(3,offset,1,pol*2), 
+                               IPosition(3,offset+nDataPerPol-1,1,pol*2)));
             buf = modelVis.xyPlane(pol).row(row)*g1;
-            copyVector(buf, derivatives(IPosition(3,offset,0,ant2), 
-                               IPosition(3,offset+nDataPerPol-1,0,ant2)));
+            copyVector(buf, derivatives(IPosition(3,offset,0,pol*2+1), 
+                               IPosition(3,offset+nDataPerPol-1,0,pol*2+1)));
             buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,-1.)*g1;
-            copyVector(buf, derivatives(IPosition(3,offset,1,ant2), 
-                               IPosition(3,offset+nDataPerPol-1,1,ant2)));                    
+            copyVector(buf, derivatives(IPosition(3,offset,1,pol*2+1), 
+                               IPosition(3,offset+nDataPerPol-1,1,pol*2+1)));                    
             buf = modelVis.xyPlane(pol).row(row)*conj(g2)*g1;
             copyVector(measuredVis.xyPlane(pol).row(row),
                  residual(IPosition(1,offset),IPosition(1,offset+nDataPerPol-1)));
             subtractVector(buf, residual(IPosition(1,offset),
                            IPosition(1,offset+nDataPerPol-1)));           
-       }  
-  }
-                         
-  // we need to remove all unused parameters before creating a design matrix
-  scimath::Params::ShPtr tempParams(parameters().clone());
-  for (std::vector<std::string>::const_iterator ci = itsUnusedParamNames.begin();
-                              ci != itsUnusedParamNames.end(); ++ci) {
-       tempParams->remove(*ci);
-  }
-  // if we have just one polarisation, we need to exclude the second one
-  if (nPol == 1) {
-      for (std::vector<std::pair<std::string,std::string> >::const_iterator 
-                 ci = itsNameCache.begin(); ci != itsNameCache.end(); ++ci) {
-           if (ci->second != "") {
-               tempParams->remove(ci->second);
-           }
-      }                              
-  }
-  //
-  //std::cout<<derivatives.xyPlane(0).column(0)<<std::endl;
-  DesignMatrix designmatrix(*tempParams);
-  tempParams.reset();
-  CONRADDEBUGASSERT(itsNameCache.size() >= gains.size());
-  for (casa::uInt ant = 0; ant<gains.size(); ++ant) {
-       //std::cout<<"ant="<<ant<<" "<<itsNameCache[ant].first<<" "<<derivatives.xyPlane(ant)<<std::endl;
-       designmatrix.addDerivative(itsNameCache[ant].first,derivatives.xyPlane(ant));
-       if (nPol>1) {
-           designmatrix.addDerivative(itsNameCache[ant].second,derivatives.xyPlane(ant));
        }
+       DesignMatrix designmatrix(thisRowParams);
+       for (casa::uInt par=0; par<names.size(); ++par) {
+            CONRADDEBUGASSERT(par<derivatives.nplane());
+            designmatrix.addDerivative(names[par],derivatives.xyPlane(par));
+       }
+       designmatrix.addResidual(residual,
+                    casa::Vector<double>(residual.size(),1.));
+       ne.add(designmatrix);
   }
-  designmatrix.addResidual(residual,casa::Vector<double>(residual.size(),1.));
-  ne.add(designmatrix);
 }                                   
 
 /// @brief obtain a name of the parameter
@@ -222,66 +211,31 @@ std::string GainCalibrationEquation::paramName(casa::uInt ant,
   return res+utility::toString<casa::uInt>(ant);
 }                                               
 
-// @brief fill the gains cache from parameters
-// @param[in] a reference to the container to fill with values
-void GainCalibrationEquation::fillGainsCache(GainsCacheType &in) const
+/// @brief a helper method to copy parameter to a temporary list
+/// @details The current implementation of the design matrix implies
+/// that derivatives have to be defined for all parameters, passed at
+/// the construction. We always have extra parameters, which have to be
+/// ignored. This method copies a given parameter from the parameter class 
+/// this equation has been initialized with to a new parameter container, 
+/// or updates the value, if a parameter with such name already exists.
+/// @param[in] name name of the parameter to add/update
+/// @param[in] par parameter class to work with
+void GainCalibrationEquation::copyParameter(const std::string &name, 
+                                            scimath::Params &par) const
 {
-  // it would be much nicer if we had an iterator over parameters with a
-  // possible template match, but it is not currently in the interface of
-  // the Param class 
-  const std::vector<std::string> allFreeNames(parameters().freeNames());
-  for (std::vector<std::string>::const_iterator ci = allFreeNames.begin();
-                         ci != allFreeNames.end(); ++ci) {
-       if (ci->find("gain") != 0) {
-           // word "gain" is not found or the string doesn't start from it
-           itsUnusedParamNames.push_back(*ci);
-       }
+  if (!par.has(name)) {
+      par.add(name,parameters().value(name));
+  } else {
+      par.update(name,parameters().value(name));
   }
-
-  std::vector<std::string> completions(parameters().completions("gain"));
-  in.resize(completions.size()/2);
-  itsNameCache.resize(completions.size()/2);
-  if(!completions.size()) {
-     return;
-  } 
-  for (std::vector<std::string>::const_iterator it=completions.begin();
-                                                it!=completions.end();++it)  {
-       if (it->find(".g") == 0) {
-           std::vector<std::string> parString;
-           splitParameterString(it->substr(1),parString);
-           if (parString.size()<2) {
-               CONRADTHROW(CheckError, "Parameter gain"<<*it<<" has incomplete name");
-           }
-           if (parString[0]!="g11" && parString[0]!="g22") {
-               CONRADTHROW(CheckError, "Only gain.g11.* and gain.g22.* are recognized, not gain"<<
-                           *it);
-           }
-           // next check is temporary
-           if (parString.size()>2) {
-               CONRADTHROW(ConradError, "Feed- and time-dependent gains are not yet implemented");
-           }
-           const int antID = utility::fromString<int>(parString[1]);
-           if (antID<0 || antID>=in.size()) {
-               CONRADTHROW(ConradError, "Parameter gain"<<*it<<" has incorrect antenna ID ("<<
-                          parString[1]<<")");    
-           }
-           casa::Complex gain = parameters().complexValue("gain"+*it);
-           CONRADDEBUGASSERT(antID<in.size());
-           CONRADDEBUGASSERT(antID<itsNameCache.size());
-           
-           if (parString[0] == "g11") {
-               in[antID].first = gain; 
-               itsNameCache[antID].first = "gain"+*it;    
-           } else {
-               in[antID].second = gain; 
-               itsNameCache[antID].second = "gain"+*it;    
-           } 
-           
-       } else {
-           itsUnusedParamNames.push_back("gain"+*it);
-       }
+       
+  // I'm not sure we need to fix 'fixed' parameters at all,
+  // because they will be used for the design matrix only, not for a solver.
+  // Do it just in case, and we'll have a true copy of a subset of parameters.
+  if (!parameters().isFree(name)) {
+      par.fix(name);
   }
-}
+}                                            
 
 
 /// @brief helper method to split parameter string

@@ -49,7 +49,7 @@ namespace conrad
         {
           idi = IDataSharedIter(new DataIteratorStub(1));
           const casa::uInt nAnt = 30;
-          const casa::uInt nAnt1 = 6;
+          //const casa::uInt nAnt1 = 6;
           const double realGains[nAnt] = {1.1, 0.9, 1.05, 0.87, 1.333,
                                           1.1, 1.0, 1.0, -1.0, 0.3, 
                                          -0.5, 1.1, 0.9, 0.98, 1.03,
