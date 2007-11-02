@@ -111,7 +111,7 @@ void UnpolarizedGaussianSource::calcGaussian(
   const T bpa=params(5);
   const T n =  casa::sqrt(T(1.0) - (ra*ra+dec*dec));
   const T delay = casa::C::_2pi * (ra * uvw(0) + dec * uvw(1) + 
-                                   n * uvw(2))/casa::C::c;
+                                   (n-T(1.0)) * uvw(2))/casa::C::c;
   // exp(-a*x^2) transforms to exp(-pi^2*u^2/a)
   // a=4log(2)/FWHM^2 so scaling = pi^2*FWHM/(4log(2))
   const T scale = std::pow(casa::C::pi,2)/(4*log(2.0));

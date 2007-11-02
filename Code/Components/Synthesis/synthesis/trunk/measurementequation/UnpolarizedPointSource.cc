@@ -39,7 +39,7 @@ void UnpolarizedPointSource::calcPoint(
   
   const T n =  casa::sqrt(T(1.0) - (ra*ra+dec*dec));
   const T delay = casa::C::_2pi * (ra * uvw(0) + dec * uvw(1) + 
-                                   n * uvw(2))/casa::C::c;
+                                   (n-T(1.0)) * uvw(2))/casa::C::c;
   const T scale = 1.0/casa::C::c;
   typename std::vector<T>::iterator it=result.begin();
   for (casa::Vector<casa::Double>::const_iterator ci=freq.begin(); 
