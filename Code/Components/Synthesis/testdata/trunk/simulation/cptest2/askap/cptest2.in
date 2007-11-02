@@ -5,9 +5,9 @@ Csimulator.sources.names                        =       [10uJy]
 Csimulator.sources.10uJy.direction              =       [12h30m00.000, -45.00.00.000, J2000]
 Csimulator.sources.10uJy.model                  =       /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model
 
-Csimulator.antennas.definition                  =       ASKAP45.in
-Csimulator.feeds.definition                     =       ASKAP32feeds.in
-Csimulator.spws.definition                      =       ASKAPspws.in
+Csimulator.antennas.definition                  =       definitions/ASKAP45.in
+Csimulator.feeds.definition                     =       definitions/ASKAP32feeds.in
+Csimulator.spws.definition                      =       definitions/ASKAPspws.in
 
 Csimulator.simulation.blockage                  =       0.01
 Csimulator.simulation.elevationlimit            =       8deg

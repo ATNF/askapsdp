@@ -1,0 +1,63 @@
+Csimulator.dataset                              =       10uJy_stdtest.ms
+
+Csimulator.sources.names                        =       [10uJy]
+
+Csimulator.sources.10uJy.direction              =       [12h30m00.000, -45.00.00.000, J2000]
+Csimulator.sources.10uJy.model                  =       10uJy.model.small
+
+Csimulator.antennas.definition                  =       definitions/ASKAP45.in
+Csimulator.feeds.definition                     =       definitions/ASKAP1feeds.in
+Csimulator.spws.definition                      =       definitions/ASKAPspws.in
+
+Csimulator.simulation.blockage                  =       0.01
+Csimulator.simulation.elevationlimit            =       8deg
+Csimulator.simulation.autocorrwt                =       0.0
+Csimulator.simulation.integrationtime           =       150s
+Csimulator.simulation.usehourangles             =       True
+Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
+
+Csimulator.observe.number                       =       1
+Csimulator.observe.scan0                        =       [10uJy, Wide0, -6h, 6h]
+
+Csimulator.gridder                              = AWProject
+Csimulator.gridder.AWProject.wmax            	= 15000
+Csimulator.gridder.AWProject.nwplanes        	= 257
+Csimulator.gridder.AWProject.oversample     	= 8
+Csimulator.gridder.AWProject.diameter		= 12m
+Csimulator.gridder.AWProject.blockage		= 4m
+Csimulator.gridder.AWProject.maxfeeds		= 1
+Csimulator.gridder.AWProject.maxsupport		= 1024
+
+Cimager.dataset                                 = 10uJy_stdtest.ms
+
+Cimager.Images.Names                            = [image.i.10uJy_stdtest]
+Cimager.Images.image.i.10uJy_stdtest.shape		= [2048,2048]
+Cimager.Images.image.i.10uJy_stdtest.cellsize	        = [8.0arcsec, 8.0arcsec]
+Cimager.Images.image.i.10uJy_stdtest.frequency	        = [1.420e9,1.420e9]
+Cimager.Images.image.i.10uJy_stdtest.nchan		= 1
+Cimager.Images.image.i.10uJy_stdtest.direction	        = [12h30m00.00, -45.00.00.00, J2000]
+
+Cimager.gridder                          	= WProject
+Cimager.gridder.WProject.wmax            	= 15000
+Cimager.gridder.WProject.nwplanes        	= 257
+Cimager.gridder.WProject.oversample     	= 8
+Cimager.gridder.WProject.diameter		= 12m
+Cimager.gridder.WProject.blockage		= 4m
+Cimager.gridder.WProject.maxfeeds		= 1
+Cimager.gridder.WProject.maxsupport             = 1024
+
+Cimager.solver                           	= Clean
+Cimager.solver.Dirty.tolerance                  = 0.1
+Cimager.solver.Dirty.threshold			= 10%
+Cimager.solver.Dirty.verbose                   	= True
+
+Cimager.solver.Clean.algorithm                 	= MultiScale
+Cimager.solver.Clean.niter                     	= 100
+Cimager.solver.Clean.gain                      	= 0.9
+Cimager.solver.Clean.threshold                	= 0.1mJy
+Cimager.solver.Clean.tolerance                  = 0.1
+Cimager.solver.Clean.verbose                   	= True
+
+Cimager.ncycles                                 = 5
+Cimager.restore                          	= True
+Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
