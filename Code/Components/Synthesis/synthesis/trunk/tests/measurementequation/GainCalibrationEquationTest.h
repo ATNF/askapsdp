@@ -65,10 +65,10 @@ namespace conrad
           
           params1.reset(new Params);
           params1->add("flux.i.cena", 100.);
-          params1->add("direction.ra.cena", 0.5);
-          params1->add("direction.dec.cena", -0.3);
-          params1->add("shape.bmaj.cena", 30.0*casa::C::arcsec);
-          params1->add("shape.bmin.cena", 20.0*casa::C::arcsec);
+          params1->add("direction.ra.cena", 0.5*casa::C::arcsec);
+          params1->add("direction.dec.cena", -0.3*casa::C::arcsec);
+          params1->add("shape.bmaj.cena", 3.0e-3*casa::C::arcsec);
+          params1->add("shape.bmin.cena", 2.0e-3*casa::C::arcsec);
           params1->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
                params1->add("gain.g11."+toString(ant),
@@ -81,10 +81,10 @@ namespace conrad
 
           params2.reset(new Params);
           params2->add("flux.i.cena", 100.);
-          params2->add("direction.ra.cena", 0.50000);
-          params2->add("direction.dec.cena", -0.30000);
-          params2->add("shape.bmaj.cena", 30.0*casa::C::arcsec);
-          params2->add("shape.bmin.cena", 20.0*casa::C::arcsec);
+          params2->add("direction.ra.cena", 0.50000*casa::C::arcsec);
+          params2->add("direction.dec.cena", -0.30000*casa::C::arcsec);
+          params2->add("shape.bmaj.cena", 3.0e-3*casa::C::arcsec);
+          params2->add("shape.bmin.cena", 2.0e-3*casa::C::arcsec);
           params2->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
                params2->add("gain.g11."+toString(ant),casa::Complex(1.0,0.0));
@@ -117,6 +117,7 @@ namespace conrad
                solver1.addNormalEquations(ne);
                solver1.setAlgorithm("SVD");
                solver1.solveNormalEquations(q);  
+               //std::cout<<q<<std::endl;
                
                // taking care of the absolute phase uncertainty
                const casa::uInt refAnt = 0;
@@ -148,8 +149,10 @@ namespace conrad
                if (it->find(".g22") == 0) {
                    CPPUNIT_ASSERT(fabs(params2->scalarValue(parname)-1.0)<1e-7);
                } else if (it->find(".g11") == 0) {
-                   CPPUNIT_ASSERT(abs(params2->complexValue(parname)-
-                          params1->complexValue(parname))<1e-7);
+                   const casa::Complex diff = params2->complexValue(parname)-
+                          params1->complexValue(parname);
+                   //std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
+                   CPPUNIT_ASSERT(abs(diff)<1e-7);
                } else {
                  CONRADTHROW(ConradError, "an invalid gain parameter "<<parname<<" has been detected");
                }
