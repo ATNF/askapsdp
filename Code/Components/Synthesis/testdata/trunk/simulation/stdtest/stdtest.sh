@@ -12,8 +12,8 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:.:${CONRAD_PROJECT_ROOT}/Code/Compon
 
 export AIPSPATH=${CONRAD_PROJECT_ROOT}/Code/Components/Synthesis/testdata/trunk
 
-echo "Running csimulator to create MeasurementSet"
+echo "Running csimulator to create MeasurementSet for a single pointing"
 time ${CONRAD_PROJECT_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/csimulator -inputs stdtest.in
 
-echo "Running cimager to form Cleaned mosaic"
+echo "Running cimager to form Clean image of single pointing"
 time ${CONRAD_PROJECT_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager -inputs stdtest.in
