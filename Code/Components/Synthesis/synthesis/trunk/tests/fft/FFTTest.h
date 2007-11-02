@@ -5,6 +5,7 @@
 #include <casa/Arrays/Matrix.h>
 #include <fft/FFTWrapper.h>
 
+#include <conrad/ConradError.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <stdexcept>
@@ -41,6 +42,8 @@ static double calc_error(const casa::Array<T>& A, const casa::Array<T>& B, Metri
             case NRMSE:
                 totalError += pow(abs(A(iPos)-B(iPos)) / abs(B(iPos)),2);
                 break;
+            default:
+                CONRADTHROW(conrad::ConradError, "Action is not defined for metric "<<metric);
         }
     }
 
@@ -50,6 +53,8 @@ static double calc_error(const casa::Array<T>& A, const casa::Array<T>& B, Metri
         case NRMSE:
             totalError = sqrt(totalError);
             break;
+        default:
+            CONRADTHROW(conrad::ConradError, "Action is not defined for metric "<<metric);
     }
     return totalError;
 }
@@ -142,16 +147,15 @@ namespace conrad
             srand((unsigned)time(0));
             dataLength = std::vector<int>(M); 
             // The maximum data length N*N is set here. We use powers of two from 2 to 2048 for N.
-            for(int i=0; i < dataLength.size(); i++){
+            for(size_t i=0; i < dataLength.size(); i++){
                 dataLength[i]=(int)pow(2,i+1);
             }            
         }
 
         void testForwardBackwardSinglePrecision()
         {
-            int N;
-            for(int i=0; i < dataLength.size(); i++){
-                N = dataLength[i];
+            for(size_t i=0; i < dataLength.size(); i++){
+                const size_t N = dataLength[i];
                 cout << endl << "  Single precision : NMRSE error threshold = " << sp_precision 
                      << " : Testing if  ifft(fft(X)) = X : 2D NxN fft : N = " << N;
                 casa::Matrix<casa::Complex> sp_mat(N, N, 1);
@@ -160,9 +164,8 @@ namespace conrad
         }
         void testForwardBackwardDoublePrecision()
         {
-            int N;
-            for(int i=0; i<dataLength.size(); i++){
-                N = dataLength[i];            
+            for(size_t i=0; i<dataLength.size(); i++){
+                const size_t N = dataLength[i];            
                 cout << endl << "  Double precision : NMRSE error threshold = " << dp_precision
                      << " : Testing if  ifft(fft(X)) = X : 2D NxN fft : N = " << N;
                 casa::Matrix<casa::DComplex> dp_mat(N, N, 1);

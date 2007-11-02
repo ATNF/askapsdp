@@ -156,7 +156,7 @@ bool FeedSubtableHandler::newBeamDetails(const casa::MEpoch &time,
 {
   const casa::Double dTime=tableTime(time);
   if (dTime>=itsCachedStartTime && dTime<=itsCachedStopTime &&
-      (spWinID==itsCachedSpWindow || itsCachedSpWindow==-1)) {
+      (casa::Int(spWinID)==itsCachedSpWindow || itsCachedSpWindow==-1)) {
       // cache is valid
       return false;
   } 
@@ -200,7 +200,7 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
          "columns of the FEED subtable are not allowed");
   }
   ++maxAntID; ++maxFeedID; // now we have numbers of feeds and antennae
-  CONRADDEBUGASSERT(maxAntID*maxFeedID == selection.nrow());
+  CONRADDEBUGASSERT(maxAntID*maxFeedID == casa::Int(selection.nrow()));
   itsIndices.resize(maxAntID,maxFeedID);
   itsIndices.set(-2); // negative value is a flag, which means an 
                       // uninitialized index

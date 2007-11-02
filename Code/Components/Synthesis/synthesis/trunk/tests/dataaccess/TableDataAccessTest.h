@@ -247,10 +247,13 @@ void TableDataAccessTest::doBufferTest() const
   bufferMgr.readBuffer(vis,"TEST",index-1);
   bufferMgr.readBuffer(vis2,"TEST",index);
   CPPUNIT_ASSERT(vis.shape()==casa::IPosition(3,5,1,2));
-  CPPUNIT_ASSERT(vis2.shape()==casa::IPosition(3,5,10,2));  
-  for (casa::uInt x=0;x<vis.shape()[0];++x) {
-       for (casa::uInt y=0;y<vis.shape()[1];++y) {
-            for (casa::uInt z=0;z<vis.shape()[2];++z) {	         
+  CPPUNIT_ASSERT(vis2.shape()==casa::IPosition(3,5,10,2));
+  CONRADDEBUGASSERT(vis.shape()[0]>=0);  
+  CONRADDEBUGASSERT(vis.shape()[1]>=0);
+  CONRADDEBUGASSERT(vis.shape()[2]>=0);
+  for (casa::uInt x=0;x<casa::uInt(vis.shape()[0]);++x) {
+       for (casa::uInt y=0;y<casa::uInt(vis.shape()[1]);++y) {
+            for (casa::uInt z=0;z<casa::uInt(vis.shape()[2]);++z) {	         
 	         CPPUNIT_ASSERT(abs(vis2(x,y,z)+vis(x,0,z))<1e-9);
 	    }
        }

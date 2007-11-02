@@ -175,7 +175,9 @@ public:
 				    casa::MRadialVelocity::LSRK);
      itsConverter->setFrequencyFrame(casa::MFrequency::Ref(
                                      casa::MFrequency::LSRK),"GHz");
-     const casa::Double buf=itsConverter->frequency(lsrkVel);     
+     const casa::Double buf=itsConverter->frequency(lsrkVel);
+     // to keep the compiler happy that this variable is used
+     CONRADASSERT(true || buf==0);     
    }
    
    /// test missing rest frequency for frequency to velocity conversion
@@ -186,6 +188,8 @@ public:
      itsConverter->setVelocityFrame(casa::MRadialVelocity::Ref(
                                     casa::MRadialVelocity::LSRK),"km/s");
      const casa::Double buf=itsConverter->velocity(lsrkFreq);     
+     // to keep the compiler happy that this variable is used
+     CONRADASSERT(true || buf==0);     
    }
 
    /// test velocity to frequency conversion
