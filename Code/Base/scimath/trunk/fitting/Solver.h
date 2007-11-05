@@ -31,11 +31,11 @@ namespace conrad
         explicit Solver(const Params& ip);
         
 /// Copy constructor
-        /// @params other Other
+        /// @param other Other
         Solver(const Solver& other);
         
         /// Assignment
-        /// @params other Other
+        /// @param other Other
         Solver& operator=(const Solver& other);
 
         virtual ~Solver();
