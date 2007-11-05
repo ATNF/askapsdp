@@ -201,6 +201,13 @@ struct OutputValueAccessor : public BasicIncrementor {
 /// @ingroup measurementequation
 template<>
 struct OutputValueAccessor<casa::Complex> : public ComplexNumberIncrementor {
+   /// @brief default constructor
+   /// @details strictly speaking, this method is not required for correct
+   /// operations. However, it the compiler gives a
+   /// warning that itsRealPart data member can be uninitialized, if this
+   /// constructor is not present. 
+   OutputValueAccessor() : itsRealPart(0.) {}
+
    /// @brief write the value
    /// @details This method of this particular specialization stores real or
    /// imaginary part of the input complex number, depending on whether it is
