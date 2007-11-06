@@ -21,8 +21,7 @@ namespace conrad
     CPPUNIT_TEST(testIntAssert);
     CPPUNIT_TEST(testFloatAssert);
     CPPUNIT_TEST(testDoubleAssert);
-    CPPUNIT_TEST(testIntCheck
-);
+    CPPUNIT_TEST(testIntCheck);
     CPPUNIT_TEST_SUITE_END();
     
   public:
