@@ -102,6 +102,7 @@ namespace conrad
 
 			itsIdi.chooseOriginal();
 			std::map<string, IVisGridder::ShPtr> gridders;
+			std::cout << "Initialising for model degridding" << std::endl;
 			for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
 			{
 				string imageName("image.i"+(*it));
@@ -112,6 +113,7 @@ namespace conrad
 				gridders[imageName]->initialiseDegrid(axes, imagePixels);
 			}
 			// Loop through degridding the data
+			std::cout << "Starting to degrid model" << std::endl;
 			for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
 			{
 				itsIdi->rwVisibility().set(0.0);
@@ -121,6 +123,7 @@ namespace conrad
 					gridders[imageName]->degrid(itsIdi);
 				}
 			}
+			std::cout << "Finished degridding model" << std::endl;
 		};
 
 		// Calculate the residual visibility and image. We transform the model on the fly
@@ -149,6 +152,7 @@ namespace conrad
 				residualGridders[imageName]=itsGridder->clone();
 			}
 			// Now we initialise appropriately
+			std::cout << "Initialising for model degridding and residual gridding" << std::endl;
 			for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
 			{
 				string imageName("image.i"+(*it));
@@ -161,6 +165,7 @@ namespace conrad
 				residualGridders[imageName]->initialiseGrid(axes, imageShape, true);
 			}
 			// Now we loop through all the data
+			std::cout << "Starting degridding model and gridding residuals" << std::endl;
 			for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
 			{
 				/// Accumulate model visibility for all models
@@ -184,10 +189,12 @@ namespace conrad
 					}
 				}
 			}
+			std::cout << "Finished degridding model and gridding residuals" << std::endl;
 
 			// We have looped over all the data, so now we have to complete the 
 			// transforms and fill in the normal equations with the results from the
 			// residual gridders
+			std::cout << "Adding residual image, PSF, and weights image to the normal equations" << std::endl;
 			for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
 			{
 				const string imageName("image.i"+(*it));
