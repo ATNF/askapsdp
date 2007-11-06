@@ -171,6 +171,7 @@ namespace conrad
 					}
 					CONRADCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
 					disk*=casa::Complex(float(nx)*float(ny)/sumdisk);
+
 					/// Now convolve the disk with itself
 					fft2d(disk, false);
 					std::cout << "Feed " << feed
@@ -189,6 +190,15 @@ namespace conrad
 					std::cout << "Feed " << feed
 						  << ": Integral of primary beam power pattern = " << disk(nx/2,ny/2) 
 						  << " (pixels) " << std::endl;
+					sumdisk=0.0;
+					for (int ix=0; ix<nx; ix++)
+					{
+						for (int iy=0; iy<ny; iy++)
+						{
+						  sumdisk+=casa::abs(disk(ix,iy));
+						}
+					}
+					disk*=casa::Complex(float(itsOverSample)*float(itsOverSample)/casa::Complex(sumdisk));
 					
 
 					if (itsSupport==0)
