@@ -106,14 +106,15 @@ namespace conrad
           casa::Vector<float> psfVector(psfArray.reform(vecShape));
           for (uint elem=0;elem<dv.nelements();elem++)
           {
+	    // For the PSF, we really need a separate version for each pixel. However, 
+	    // a reasonable approximation is to just divide by the maximum weight.
+	    psfVector(elem)=slice(elem)/maxDiag;
             if(diag(elem)>cutoff)
             {
               dirtyVector(elem)=dv(elem)/diag(elem);
-              psfVector(elem)=slice(elem)/diag(elem);
             }
             else {
               dirtyVector(elem)=0.0;
-              psfVector(elem)=0.0;
             }
           }
         }
