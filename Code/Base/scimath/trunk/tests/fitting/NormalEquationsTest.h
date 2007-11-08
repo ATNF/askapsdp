@@ -54,13 +54,11 @@ namespace conrad
           ip.add("Value1");
           ip.add("Value2");
           delete p1;
-          p1 = new NormalEquations;
-          // parameters are no longer part of the normal equation. 
-          // one needs to test actual matrix elements
-          //CPPUNIT_ASSERT(p1->parameters().names().size()==3);
-          //CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
-          //CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
-          //CPPUNIT_ASSERT(p1->parameters().names()[2]=="Value2");
+          p1 = new NormalEquations(ip);
+          CPPUNIT_ASSERT(p1->parameters().names().size()==3);
+          CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p1->parameters().names()[2]=="Value2");
         }
 
         void testCopy()
@@ -70,15 +68,13 @@ namespace conrad
           ip.add("Value1");
           ip.add("Value2");
           delete p1;
-          p1 = new NormalEquations;
+          p1 = new NormalEquations(ip);
           delete p2;
           p2 = new NormalEquations(*p1);
-          // parameters are no longer part of the normal equation. 
-          // one needs to test actual matrix elements
-          //CPPUNIT_ASSERT(p2->parameters().names().size()==3);
-          //CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
-          //CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
-          //CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
+          CPPUNIT_ASSERT(p2->parameters().names().size()==3);
+          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
         }
 
         void testAdd()
