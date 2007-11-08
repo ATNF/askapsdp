@@ -179,7 +179,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             subtractVector(buf, residual(IPosition(1,offset),
                            IPosition(1,offset+nDataPerPol-1)));           
        }
-       DesignMatrix designmatrix(thisRowParams);
+       DesignMatrix designmatrix;// old parameters: thisRowParams;
        for (casa::uInt par=0; par<names.size(); ++par) {
             CONRADDEBUGASSERT(par<derivatives.nplane());
             designmatrix.addDerivative(names[par],derivatives.xyPlane(par));

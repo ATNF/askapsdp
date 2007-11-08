@@ -99,7 +99,7 @@ namespace conrad
 
     	vector<string> completions(parameters().completions("poly"));
       if(completions.size()>0) {
-        DesignMatrix designmatrix(parameters());
+        DesignMatrix designmatrix; // old parameters: parameters();
 
         casa::Vector<double> values(itsData.size());
         values=0.0;

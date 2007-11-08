@@ -79,12 +79,13 @@ namespace conrad
       return *this;
     }
 
-    NormalEquations::NormalEquations(const DesignMatrix& dm)
+    NormalEquations::NormalEquations(const Params &ip, const DesignMatrix& dm)
     {
-      itsParams=dm.parameters().clone();
-      vector<string> names=dm.parameters().freeNames();
-      vector<string>::iterator iterRow;
-      vector<string>::iterator iterCol;
+      //itsParams=dm.parameters().clone();
+      itsParams=ip.clone();
+      std::set<string> names=dm.parameterNames();
+      std::set<string>::iterator iterRow;
+      std::set<string>::iterator iterCol;
       const uint nDataSet=dm.residual().size();
 
 // This looks hairy but it's all just linear algebra!
@@ -174,10 +175,10 @@ namespace conrad
 
     void NormalEquations::add(const DesignMatrix& dm)
     {
-      itsParams->merge(dm.parameters());
-      vector<string> names=dm.parameters().freeNames();
-      vector<string>::iterator iterRow;
-      vector<string>::iterator iterCol;
+      //itsParams->merge(dm.parameters());
+      std::set<string> names=dm.parameterNames();
+      std::set<string>::iterator iterRow;
+      std::set<string>::iterator iterCol;
       const uint nDataSet=dm.residual().size();
 
 // This looks hairy but it's all just linear algebra!

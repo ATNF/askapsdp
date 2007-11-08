@@ -32,12 +32,17 @@ namespace conrad
   namespace scimath
   {
 
-    DesignMatrix::DesignMatrix(const Params& ip) : itsParams(ip.clone())
+    DesignMatrix::DesignMatrix() : itsParameterNamesInvalid(true) {}
+    
+/*
+    DesignMatrix::DesignMatrix(const Params& ip) : itsParams(ip.clone()),
+                                 itsParameterNamesInvalid(true)
     {
       itsAMatrix.clear();
       itsBVector.clear();
       itsWeight.clear();
     }
+    */
 
     DesignMatrix::DesignMatrix(const DesignMatrix& other)
     {
@@ -51,7 +56,8 @@ namespace conrad
         itsAMatrix.clear();
         itsBVector.clear();
         itsWeight.clear();
-        itsParams=other.itsParams;
+        //itsParams=other.itsParams;
+        itsParameterNamesInvalid = true;
         // We need to do a deep copy to ensure that future changes don't propagate here
         for (std::map<string, DMAMatrix>::const_iterator AIt=other.itsAMatrix.begin();AIt!=other.itsAMatrix.end();AIt++)
         {
@@ -81,17 +87,14 @@ namespace conrad
 
     void DesignMatrix::merge(const DesignMatrix& other)
     {
-      itsParams->merge(*other.itsParams);
-
-      vector<string> names(other.parameters().freeNames());
-      vector<string>::const_iterator nameIt;
-      for (nameIt=names.begin();nameIt!=names.end();nameIt++)
-      {
-        const DMAMatrix& AM(other.derivative(*nameIt));
-        for (DMAMatrix::const_iterator AMIt=AM.begin();AMIt!=AM.end();AMIt++)
-        {
-          addDerivative(*nameIt, AMIt->copy());
-        }
+      //itsParams->merge(*other.itsParams);
+      
+      for (std::map<std::string,DMAMatrix>::const_iterator cit = 
+           other.itsAMatrix.begin();cit!=other.itsAMatrix.end();++cit) {
+           const DMAMatrix& AM = cit->second;
+           for (DMAMatrix::const_iterator AMIt = AM.begin(); AMIt!=AM.end(); ++AMIt) {
+                addDerivative(cit->first,AMIt->copy());
+           }
       }
 
       for (uint i=0;i<other.itsBVector.size();i++)
@@ -106,25 +109,39 @@ namespace conrad
     }
 
     void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv)
-    {
-      CONRADCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
+    { 
+      itsParameterNamesInvalid = true;
+      //CONRADCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
       itsAMatrix[name].push_back(deriv.copy());
     }
 
     void DesignMatrix::addResidual(const casa::Vector<casa::Double>& residual, const casa::Vector<double>& weight)
     {
+      CONRADDEBUGASSERT(residual.nelements() == weight.nelements());
       itsBVector.push_back(residual.copy());
       itsWeight.push_back(weight.copy());
     }
 
-    const Params& DesignMatrix::parameters() const
+    /// @brief obtain all parameter names
+    /// @details This method builds on-demand and returns a set with parameter
+    /// names this design matrix knows about. 
+    /// @return a const reference to std::set
+    const std::set<std::string> DesignMatrix::parameterNames() const
     {
-      return *itsParams;
+      if (itsParameterNamesInvalid) {
+          itsParameterNames.clear();
+          for (std::map<std::string, DMAMatrix>::const_iterator ci = itsAMatrix.begin();
+               ci != itsAMatrix.end(); ++ci) {
+               itsParameterNames.insert(itsParameterNames.end(),ci->first);
+          }
+          itsParameterNamesInvalid = false;
+      }
+      return itsParameterNames;
     }
 
     const DMAMatrix& DesignMatrix::derivative(const string& name) const
     {
-      CONRADCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
+      //CONRADCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
       CONRADCHECK(itsAMatrix.count(name)>0, "Parameter "+name+" does not exist in the assigned values");
       return itsAMatrix[name];
     }
@@ -150,10 +167,9 @@ namespace conrad
     {
       double sumwt=0.0;
       double sum=0.0;
-      DMBVector::const_iterator bIt;
-      DMWeight::const_iterator wIt;
-      for (bIt=itsBVector.begin(), wIt=itsWeight.begin();
-        (bIt!=itsBVector.end())&&(wIt!=itsWeight.end());bIt++, wIt++)
+      DMBVector::const_iterator bIt = itsBVector.begin();
+      DMWeight::const_iterator wIt = itsWeight.begin(); 
+      for (; (bIt!=itsBVector.end())&&(wIt!=itsWeight.end());++bIt, ++wIt)
       {
         sumwt+=casa::sum(*wIt);
         sum+=casa::sum((*wIt)*((*bIt)*(*bIt)));
@@ -165,7 +181,7 @@ namespace conrad
     int DesignMatrix::nData() const
     {
       int nData=0;
-      for (DMBVector::const_iterator bIt=itsBVector.begin();bIt!=itsBVector.end();bIt++)
+      for (DMBVector::const_iterator bIt=itsBVector.begin();bIt!=itsBVector.end();++bIt)
       {
         nData+=bIt->size();
       }
@@ -175,9 +191,9 @@ namespace conrad
     int DesignMatrix::nParameters() const
     {
       int nParameters=0;
-      for (std::map<string, DMAMatrix>::const_iterator AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();AIt++)
+      for (std::map<string, DMAMatrix>::const_iterator AIt=itsAMatrix.begin();AIt!=itsAMatrix.end();++AIt)
       {
-        for (DMAMatrix::const_iterator it=AIt->second.begin();it!=AIt->second.end();it++)
+        for (DMAMatrix::const_iterator it=AIt->second.begin();it!=AIt->second.end();++it)
         {
           nParameters+=it->ncolumn();
         }

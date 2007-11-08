@@ -54,6 +54,7 @@ namespace conrad
         static_cast<conrad::scimath::Equation*>(this)->operator=(other);
         itsIdi=other.itsIdi;
       }
+      return *this;
     }
 
     void ImageDFTEquation::init()
@@ -83,7 +84,7 @@ namespace conrad
       {
 
         const casa::Vector<double>& freq=itsIdi->frequency();
-        const double time=itsIdi->time();
+        //const double time=itsIdi->time();
         const uint nChan=freq.nelements();
         const uint nRow=itsIdi->nRow();
         casa::Matrix<double> vis(nRow,2*nChan);
@@ -145,7 +146,7 @@ namespace conrad
         const casa::Vector<double>& freq=itsIdi->frequency();
         const uint nChan=freq.nelements();
         const uint nRow=itsIdi->nRow();
-        const double time=itsIdi->time();
+        //const double time=itsIdi->time();
 
 // Set up arrays to hold the output values
 // Row, Two values (complex) per channel, single pol
@@ -177,7 +178,7 @@ namespace conrad
             int decCells=imageShape(axes.order("DEC"));
             const uint nPixels=imagePixels.nelements();
   
-            DesignMatrix designmatrix(parameters());
+            DesignMatrix designmatrix; //old parameters: parameters();
             casa::Matrix<double> imageDeriv(2*nRow*nChan,nPixels);
   
             this->calcVisDFT(imagePixels, raStart, raEnd, raCells,
@@ -222,10 +223,13 @@ namespace conrad
         double u=uvw(row)(0);
         double v=uvw(row)(1);
         double w=uvw(row)(2);
-        for (uint m=0;m<decCells;m++)
+        CONRADDEBUGASSERT(decCells>=0);
+        CONRADDEBUGASSERT(raCells>=0);
+        
+        for (uint m=0;m<uint(decCells);++m)
         {
           double dec = decStart + m * decInc;
-          for (uint l=0;l<raCells;l++)
+          for (uint l=0;l<uint(raCells);l++)
           {
             double ra = raStart + l * raInc;
             double delay = casa::C::_2pi * (ra * u + dec * v + sqrt(1 - ra * ra - dec * dec) * w)/casa::C::c;

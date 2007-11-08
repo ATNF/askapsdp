@@ -52,8 +52,9 @@ namespace conrad
       virtual ~NormalEquations();
       
       /// Construct the normal equations from the design matrix
+      /// @param ip parameters (design matrix no longer holds them)
       /// @param dm Design matrix
-      NormalEquations(const DesignMatrix& dm);
+      NormalEquations(const Params &ip, const DesignMatrix& dm);
       
       /// Add the design matrix to the normal equations
       /// @param dm Design matrix

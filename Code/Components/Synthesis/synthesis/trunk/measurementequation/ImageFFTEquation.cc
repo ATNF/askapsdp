@@ -48,7 +48,7 @@ namespace conrad
 
 		ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
 		    IDataSharedIter& idi, IVisGridder::ShPtr gridder) :
-			conrad::scimath::Equation(ip), itsIdi(idi), itsGridder(gridder)
+			conrad::scimath::Equation(ip), itsGridder(gridder), itsIdi(idi)
 		{
 			init();
 		}
@@ -56,7 +56,7 @@ namespace conrad
 
 		ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi,
 		    IVisGridder::ShPtr gridder) :
-			conrad::scimath::Equation(), itsIdi(idi), itsGridder(gridder)
+			conrad::scimath::Equation(), itsGridder(gridder), itsIdi(idi)
 		{
 			rwParameters()=defaultParameters().clone();
 			init();

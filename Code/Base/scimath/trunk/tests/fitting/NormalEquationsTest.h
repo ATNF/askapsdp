@@ -11,6 +11,7 @@
 
 #include <conrad/ConradError.h>
 
+
 namespace conrad
 {
   namespace scimath
@@ -31,7 +32,7 @@ namespace conrad
 
       public:
         void setUp()
-        {
+        { 
           p1 = new NormalEquations();
           p2 = new NormalEquations();
           p3 = new NormalEquations();
@@ -53,11 +54,13 @@ namespace conrad
           ip.add("Value1");
           ip.add("Value2");
           delete p1;
-          p1 = new NormalEquations(ip);
-          CPPUNIT_ASSERT(p1->parameters().names().size()==3);
-          CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p1->parameters().names()[2]=="Value2");
+          p1 = new NormalEquations;
+          // parameters are no longer part of the normal equation. 
+          // one needs to test actual matrix elements
+          //CPPUNIT_ASSERT(p1->parameters().names().size()==3);
+          //CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
+          //CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
+          //CPPUNIT_ASSERT(p1->parameters().names()[2]=="Value2");
         }
 
         void testCopy()
@@ -67,17 +70,19 @@ namespace conrad
           ip.add("Value1");
           ip.add("Value2");
           delete p1;
-          p1 = new NormalEquations(ip);
+          p1 = new NormalEquations;
           delete p2;
           p2 = new NormalEquations(*p1);
-          CPPUNIT_ASSERT(p2->parameters().names().size()==3);
-          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
+          // parameters are no longer part of the normal equation. 
+          // one needs to test actual matrix elements
+          //CPPUNIT_ASSERT(p2->parameters().names().size()==3);
+          //CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
+          //CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
+          //CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
         }
 
         void testAdd()
-        {
+        {  
           Params ip;
           ip.add("Value0");
           ip.add("Value1", 1.5);
@@ -86,14 +91,14 @@ namespace conrad
           im.set(3.0);
           ip.add("Image2", im);
 
-          DesignMatrix dm(ip);
+          DesignMatrix dm;
           dm.addDerivative("Value0", casa::Matrix<casa::Double>(100, 1, 0.0));
           dm.addDerivative("Value1", casa::Matrix<casa::Double>(100, 1, 0.0));
           dm.addDerivative("Image2", casa::Matrix<casa::Double>(100, imsize, 0.0));
           dm.addResidual(casa::Vector<casa::Double>(100, 0.0), casa::Vector<double>(100, 1.0));
           CPPUNIT_ASSERT(dm.nData()==100);
           CPPUNIT_ASSERT(dm.nParameters()==(imsize+2));
-          NormalEquations normeq(dm);
+          NormalEquations normeq(ip,dm);
           CPPUNIT_ASSERT(normeq.parameters().names()[0]=="Image2");
           CPPUNIT_ASSERT(normeq.parameters().names().size()==3);
           CPPUNIT_ASSERT(normeq.parameters().names()[1]=="Value0");
@@ -109,13 +114,13 @@ namespace conrad
           im.set(3.0);
           ip.add("Image2", im);
 
-          DesignMatrix dm(ip);
+          DesignMatrix dm;
           dm.addDerivative("Value0", casa::Matrix<casa::Double>(100, 1, 0.0));
           dm.addDerivative("Value1", casa::Matrix<casa::Double>(100, 1, 0.0));
           dm.addDerivative("Image2", casa::Matrix<casa::Double>(100, imsize, 0.0));
           dm.addResidual(casa::Vector<casa::Double>(100, 0.0), casa::Vector<double>(100, 1.0));
 	  delete p1;
-          p1 = new NormalEquations(dm);
+          p1 = new NormalEquations(ip,dm);
           LOFAR::BlobString b1(false);
           LOFAR::BlobOBufString bob(b1);
           LOFAR::BlobOStream bos(bob);

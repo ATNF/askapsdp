@@ -26,6 +26,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -33,97 +34,112 @@
 
 #include <fitting/Params.h>
 
-namespace conrad
-{
-  namespace scimath
-  {
+namespace conrad {
+  
+namespace scimath {
 
-    class NormalEquations;
+class NormalEquations;
 
 /// Format of A matrix
-    typedef std::vector<casa::Matrix<casa::Double> > DMAMatrix;
-    /// Format of B vector
-    typedef std::vector<casa::Vector<casa::Double> > DMBVector;
-    /// Format of weights
-    typedef std::vector<casa::Vector<casa::Double> > DMWeight;
+typedef std::vector<casa::Matrix<casa::Double> > DMAMatrix;
 
-    /// @brief Hold the design matrix
-    class DesignMatrix
-    {
-      public:
+/// Format of B vector
+typedef std::vector<casa::Vector<casa::Double> > DMBVector;
+    
+/// Format of weights
+typedef std::vector<casa::Vector<casa::Double> > DMWeight;
 
-/// Define a design matrix
-/// @param ip Parameters
-        explicit DesignMatrix(const Params& ip);
 
-/// Copy constructor
-        DesignMatrix(const DesignMatrix& dm);
+/// @brief Hold the design matrix
+class DesignMatrix {
+public:
 
-/// Assignment operator
-        DesignMatrix& operator=(const DesignMatrix& dm);
+  /// Define a design matrix
+  DesignMatrix();
+  //// @param ip Parameters
+  //explicit DesignMatrix(const Params& ip);
 
-        ~DesignMatrix();
+  /// @brief Copy constructor
+  /// @param[in] dm another design matrix
+  DesignMatrix(const DesignMatrix& dm);
 
-/// @brief Merge this design matrix with another
-///
-/// Merging means that we just need to append on the data axis
-/// @param other Other design matrix
-        void merge(const DesignMatrix& other);
+  /// @brief Assignment operator
+  /// @param[in] dm another design matrix
+  DesignMatrix& operator=(const DesignMatrix& dm);
 
-/// @brief Add the derivative of the data with respect to dof of the named parameter
-/// @param name Name of parameter
-/// @param deriv Derivative
-        void addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv);
+  /// @brief destructor
+  ~DesignMatrix();
 
-/// @brief Add the residual constraint
-/// @param residual Residual vector
-/// @param weight Weight vector
-        void addResidual(const casa::Vector<casa::Double>& residual, const casa::Vector<double>& weight);
+  /// @brief Merge this design matrix with another
+  ///
+  /// Merging means that we just need to append on the data axis
+  /// @param[in] other Other design matrix
+  void merge(const DesignMatrix& other);
 
-/// Reset to empty
-        void reset();
+  /// @brief Add the derivative of the data with respect to dof of the named parameter
+  /// @param[in] name Name of parameter
+  /// @param[in] deriv Derivative
+  void addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv);
 
-/// Return the parameters used by this equation (const)
-        const Params& parameters() const;
-        
-/// Return the list of named design matrix terms
-        const DMAMatrix& derivative(const string& name) const;
+  /// @brief Add the residual constraint
+  /// @param[in] residual Residual vector
+  /// @param[in] weight Weight vector
+  void addResidual(const casa::Vector<casa::Double>& residual, const casa::Vector<double>& weight);
 
-/// Return list of the residual vectors
-        const DMBVector& residual() const;
+  /// @brief Reset to empty
+  void reset();
 
-/// Return lists of the weight vector
-        const DMWeight& weight() const;
+  /// @brief obtain all parameter names
+  /// @details This method builds on-demand and returns a set with parameter
+  /// names this design matrix knows about. 
+  /// @return a const reference to std::set
+  const std::set<std::string> parameterNames() const;
+                
+  /// Return the list of named design matrix terms
+  const DMAMatrix& derivative(const string& name) const;
 
-/// Return value of fit
-        double fit() const;
+  /// Return list of the residual vectors
+  const DMBVector& residual() const;
 
-/// Return number of data constraints
-        int nData() const;
+  /// Return lists of the weight vector
+  const DMWeight& weight() const;
 
-/// Return number of parameters
-        int nParameters() const;
+  /// Return value of fit
+  double fit() const;
 
-/// Shared pointer definition
-        typedef boost::shared_ptr<DesignMatrix> ShPtr;
+  /// Return number of data constraints
+  int nData() const;
 
-/// Clone this into a shared pointer
-        DesignMatrix::ShPtr clone() const;
+  /// Return number of parameters
+  int nParameters() const;
 
-        friend class NormalEquations;
+  /// Shared pointer definition
+  typedef boost::shared_ptr<DesignMatrix> ShPtr;
 
-      private:
-/// Parameters used in this design matrix
-        Params::ShPtr itsParams;
-/// Design Matrix = number of parameters x number of dof/parameter x number of data points
-/// The number of dof of parameters can vary from parameter to parameter
-        mutable std::map<string, DMAMatrix > itsAMatrix;
-/// Residual matrix = number of data points
-        DMBVector itsBVector;
-/// Weight = number of data points        
-        DMWeight itsWeight;
-    };
+  /// Clone this into a shared pointer
+  DesignMatrix::ShPtr clone() const;
 
-  }
-}
+  friend class NormalEquations;
+
+private:
+  
+  /// Design Matrix = number of parameters x number of dof/parameter x number of data points
+  /// The number of dof of parameters can vary from parameter to parameter
+  mutable std::map<string, DMAMatrix > itsAMatrix;
+  
+  /// Residual matrix = number of data points
+  DMBVector itsBVector;
+  
+  /// Weight = number of data points        
+  DMWeight itsWeight;
+  
+  /// cache of parameter names
+  mutable std::set<std::string> itsParameterNames;
+  
+  /// invalidity flag for the cache of parameter names
+  mutable bool itsParameterNamesInvalid;
+};
+
+} // namespace scimath
+} // namespace conrad
 #endif

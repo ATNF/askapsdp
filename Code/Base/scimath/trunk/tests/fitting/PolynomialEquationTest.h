@@ -37,7 +37,7 @@ namespace conrad
 
       public:
         void setUp()
-        {
+        { 
         	/// The arguments are the independent variables
           itsArguments.resize(10);
           for (uint i=0;i<itsArguments.size();i++)
@@ -82,7 +82,6 @@ namespace conrad
           itsDataWrong=itsDataPerfect.copy();
           itsPolyWrong = new PolynomialEquation(ipWrong, itsDataWrong, itsWeights, itsArguments, itsModelWrong);
           itsPolyWrong->predict();
-          
         }
 
         void tearDown()

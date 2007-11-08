@@ -341,7 +341,7 @@ void ComponentEquation::calcEquations(const IConstDataAccessor &chunk,
        } 
   }
                 
-  DesignMatrix designmatrix(parameters());
+  DesignMatrix designmatrix; // old parameters: parameters();
   for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
             compList.begin(); compIt!=compList.end();++compIt) {
        CONRADDEBUGASSERT(*compIt); 

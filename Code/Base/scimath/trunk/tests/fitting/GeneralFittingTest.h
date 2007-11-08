@@ -216,7 +216,7 @@ namespace scimath
               derivatives(baseline,itsBaselines[baseline].second) = 
                     itsGuessedGains.scalarValue(parName(itsBaselines[baseline].first));
          }
-         DesignMatrix designMatrix(itsGuessedGains);
+         DesignMatrix designMatrix; // params: itsGuessedGaussian
          for (casa::uInt ant=0; ant<itsNAnt; ++ant) {
               designMatrix.addDerivative(parName(ant),derivatives.column(ant));
          }
@@ -291,7 +291,7 @@ namespace scimath
          derivatives(itsBaselines.size()*2,0,0) = imag(itsRefPhase);
          derivatives(itsBaselines.size()*2,1,0) = real(itsRefPhase);
          
-         DesignMatrix designMatrix(itsGuessedGains);
+         DesignMatrix designMatrix; // params: itsGuessedGains;
          for (casa::uInt ant=0; ant<itsNAnt; ++ant) {
               designMatrix.addDerivative(parName(ant),derivatives.xyPlane(ant));
          }
