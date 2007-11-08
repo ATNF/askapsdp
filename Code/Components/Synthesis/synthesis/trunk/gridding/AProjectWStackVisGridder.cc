@@ -174,8 +174,8 @@ namespace conrad
 
 					/// Now convolve the disk with itself
 					fft2d(disk, false);
-					std::cout << "Feed " << feed
-						  << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)) << std::endl;
+					//					std::cout << "Feed " << feed
+					//						  << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)) << std::endl;
 					for (int ix=0; ix<nx; ix++)
 					{
 						for (int iy=0; iy<ny; iy++)
@@ -183,13 +183,13 @@ namespace conrad
 						  disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
 						}
 					}
-					std::cout << "Feed " << feed
-						  <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk)))
-						  << std::endl;
+					//					std::cout << "Feed " << feed
+					//						  <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk)))
+					//						  << std::endl;
 					fft2d(disk, true);
-					std::cout << "Feed " << feed
-						  << ": Integral of primary beam power pattern = " << disk(nx/2,ny/2) 
-						  << " (pixels) " << std::endl;
+					//					std::cout << "Feed " << feed
+					//						  << ": Integral of primary beam power pattern = " << disk(nx/2,ny/2) 
+					//						  << " (pixels) " << std::endl;
 					sumdisk=0.0;
 					for (int ix=0; ix<nx; ix++)
 					{
@@ -394,17 +394,17 @@ namespace conrad
 				          {
 					          casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
 					          casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-					          std::cout << "Feed " << feed << " points at Right Ascension ";
-					          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
-					          << ", Declination ";
-					          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
-					          std::cout << " (J2000)";
+						  //					          std::cout << "Feed " << feed << " points at Right Ascension ";
+						  //					          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
+						  //					          << ", Declination ";
+						  //					          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
+						  //					          std::cout << " (J2000)";
 					          casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
 					          slope(0,feed)=sin(offset.getLong()-out.getLong())*cos(offset.getLat()); 
 					          slope(1,feed)=sin(offset.getLat())*cos(out.getLat())- 
 					                  cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()-out.getLong());
-					          std::cout << ", offset by " << 180.0*slope(0,feed)/casa::C::pi << " "
-					          << 180.0*slope(1,feed)/casa::C::pi << " degrees" << std::endl;
+						  //					          std::cout << ", offset by " << 180.0*slope(0,feed)/casa::C::pi << " "
+						  //					          << 180.0*slope(1,feed)/casa::C::pi << " degrees" << std::endl;
 
 					          done(feed)=true;
 					          nDone++;
