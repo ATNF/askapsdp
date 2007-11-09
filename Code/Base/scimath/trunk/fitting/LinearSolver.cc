@@ -92,8 +92,8 @@ namespace conrad
         {
 // Axes are dof, dof for each parameter
 // Take a deep breath for const-safe indexing into the double layered map
-          const casa::Matrix<double>& 
-            nm(itsNormalEquations->normalMatrix().find(indit1->first)->second.find(indit2->first)->second);
+          const casa::Matrix<double>& nm = itsNormalEquations->normalMatrix(indit1->first, indit2->first);
+          
           for (size_t row=0; row<nm.nrow(); ++row)
           {
             for (size_t col=0; col<nm.ncolumn(); ++col)

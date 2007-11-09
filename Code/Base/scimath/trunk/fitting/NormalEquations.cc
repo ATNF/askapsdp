@@ -20,6 +20,8 @@
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
 
+#include <conrad/ConradError.h>
+
 #include <stdexcept>
 #include <string>
 #include <map>
@@ -324,12 +326,6 @@ namespace conrad
       }
     }
 
-/// Return normal equations
-    const std::map<string, std::map<string, casa::Matrix<double> > >& NormalEquations::normalMatrix() const
-    {
-      return itsNormalMatrix;
-    }
-
     const std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixDiagonal() const
     {
       return itsNormalMatrixDiagonal;
@@ -339,6 +335,24 @@ namespace conrad
     {
       return itsNormalMatrixSlice;
     }
+    
+/// @brief normal equations for given parameters
+/// @details This method is added instead of the one returning the
+/// whole map of maps as a step towards hiding the actual matrix 
+/// implementation
+/// @param[in] par1 the name of the first parameter
+/// @param[in] par2 the name of the second parameter
+const casa::Matrix<double>& NormalEquations::normalMatrix(const std::string &par1, 
+                        const std::string &par2) const
+{
+   std::map<string,std::map<string, casa::Matrix<double> > >::const_iterator cIt1 = 
+                                    itsNormalMatrix.find(par1);
+   CONRADASSERT(cIt1 != itsNormalMatrix.end());
+   std::map<string, casa::Matrix<double> >::const_iterator cIt2 = 
+                                    cIt1->second.find(par2);
+   CONRADASSERT(cIt2 != cIt1->second.end());
+   return cIt2->second;                             
+}
 
 /// Return data vector
     const std::map<string, casa::Vector<double> >& NormalEquations::dataVector() const

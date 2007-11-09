@@ -153,8 +153,14 @@ namespace conrad
       /// @param other Other normal equations
       void merge(const NormalEquations& other);
       
-      /// Return normal equations
-      const std::map<string, std::map<string, casa::Matrix<double> > >& normalMatrix() const;
+      /// @brief normal equations for given parameters
+      /// @details This method is added instead of the one returning the
+      /// whole map of maps as a step towards hiding the actual matrix 
+      /// implementation
+      /// @param[in] par1 the name of the first parameter
+      /// @param[in] par2 the name of the second parameter
+      const casa::Matrix<double>& normalMatrix(const std::string &par1, 
+                        const std::string &par2) const;
       
       /// Return normal equations slice
       const std::map<string, casa::Vector<double> >& normalMatrixSlice() const;
