@@ -11,7 +11,6 @@ def update_command(thePath, recursive=False):
     if recursive:
         ropt = ""
     comm = "svn up %s %s" % (ropt, thePath)
-    print comm
     p = subprocess.Popen(comm, stdout=subprocess.PIPE, 
                          stderr=subprocess.PIPE, shell=True, close_fds=True)
     c = p.communicate()
@@ -38,5 +37,6 @@ def update_tree(thePath):
 
 update_tree("Tools/Dev")
 os.system("cd Tools/Dev/setuptools; python bootstrap.py")
-os.system("cd Tools/Dev/recursivebuild; python setup.py -q install")
-os.system("python initenv.py")
+os.system("python initenv.py >/dev/null")
+os.system(". initconrad.sh; cd Tools/Dev/recursivebuild; python setup.py -q install")
+
