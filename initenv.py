@@ -23,35 +23,82 @@ parser.add_option("-s", "--shell",
 
 (opts, args) = parser.parse_args()
 
-shmap = { "bash" : { "suffix": "sh", "envset": "export", 
-		     "envassign": "=",
-		     "init" : ".", 
-                     "prompt" : 'export PS1="(conrad)${PS1}"'},
-	  "tcsh" : { "suffix": "csh", "envset": "setenv", 
-		     "envassign": " ",
-		     "init" : "source",
-                     "prompt" : 'set prompt="\(conrad\)${prompt}"'} }
+pyvers = "python%s" % get_python_version()
+pylibdir = "lib/%s" % pyvers
+
+bashinit = """\
+export CONRAD_PROJECT_ROOT=%s
+pypath="${CONRAD_PROJECT_ROOT}/lib/%s:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools"
+
+if [ "${PYTHONPATH}" !=  "" ]
+then
+    PYTHONPATH=`echo $PYTHONPATH | sed "s#:*$pypath:*##"`
+    PYTHONPATH="${pypath}:${PYTHONPATH}"
+    PYTHONPATH=`echo ${PYTHONPATH} | sed -e '{s#^:##;s#:$##;}'`
+else
+    PYTHONPATH="${pypath}"
+fi
+export PYTHONPATH
+
+PATH=`echo $PATH | sed "s#:*$CONRAD_PROJECT_ROOT/bin:*##"`
+PATH="${CONRAD_PROJECT_ROOT}/bin:${PATH}"
+export PATH
+
+psset=`echo $PS1 |grep conrad`
+if [ "$psset" == "" ]
+then
+   export PS1="(conrad)${PS1}"
+fi
+
+MANPATH=`echo $MANPATH | sed "s#:*$CONRAD_PROJECT_ROOT/man:*##"`
+MANPATH="${CONRAD_PROJECT_ROOT}/man:${MANPATH}"
+export MANPATH
+
+""" % (os.getcwd(), pyvers)
+
+tcshinit = """\
+setenv CONRAD_PROJECT_ROOT %s
+set pypath="${CONRAD_PROJECT_ROOT}/lib/%s:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools"
+
+if ($?PYTHONPATH) then
+    setenv PYTHONPATH `echo ${PYTHONPATH} | sed "s#:*${pypath}:*##"`
+    setenv PYTHONPATH "${pypath}:${PYTHONPATH}"
+    setenv PYTHONPATH `echo ${PYTHONPATH} | sed -e '{s#^:##;s#:$##;}'`
+else
+    setenv PYTHONPATH "${pypath}"
+endif
+
+setenv PATH `echo $PATH | sed "s#:*$CONRAD_PROJECT_ROOT/bin:*##"`
+setenv PATH "${CONRAD_PROJECT_ROOT}/bin:${PATH}"
+
+
+set psset=`echo $prompt |grep conrad`
+if ("$psset" == "") then
+   set prompt="\(conrad\)${prompt}"
+endif
+
+setenv MANPATH `echo $MANPATH | sed "s#:*$CONRAD_PROJECT_ROOT/man:*##"`
+setenv MANPATH "${CONRAD_PROJECT_ROOT}/man:${MANPATH}"
+"""  % (os.getcwd(), pyvers)
+
+
+shmap = { "bash" : { "suffix": "sh",
+		     "init" : ".", "file" : bashinit
+                     },
+	  "tcsh" : { "suffix": "csh",
+		     "init" : "source", "file" : tcshinit
+                     }
+          }
 
 
 shell =  shmap[opts.shell]
-pylibdir = "lib/python%s" % get_python_version()
 
 filename = "initconrad.%s" % shell["suffix"]
 if os.path.exists(filename):
     print "%s has already been generated. Remove it first to force regeneration." % filename
     sys.exit(0)
 f = file(filename, "w")
-exports = "%s CONRAD_PROJECT_ROOT%s%s\n" % ( shell["envset"], 
-					     shell["envassign"],
-					     os.getcwd() )
-exports += "%s PYTHONPATH%s${CONRAD_PROJECT_ROOT}/%s:${CONRAD_PROJECT_ROOT}/Tools/Dev/scons-tools\n" % (shell["envset"], shell["envassign"], pylibdir)
-exports += "%s PATH%s${CONRAD_PROJECT_ROOT}/bin:${PATH}\n" % (shell["envset"], 
-                                                              shell["envassign"])
-
-exports += shell["prompt"]+"\n"
-   
-exports += '%s MANPATH%s${CONRAD_PROJECT_ROOT}/man:${MANPATH}\n' % (shell["envset"],shell["envassign"])
-f.write(exports)
+f.write(shell["file"])
 f.close()
 
 if not os.path.exists(pylibdir):
