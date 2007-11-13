@@ -140,7 +140,35 @@ protected:
   /// and add the code to handle this situation later, if it appears to be 
   /// necessary.
   void mergeParameter(const std::string &par, const GenericNormalEquations& src);
-                       
+  
+  /// @brief Add/update one parameter using given matrix and data vector
+  /// @details This helper method is the main workhorse use in merging two
+  /// normal equations, adding an independent parameter or a design matrix.
+  /// The normal matrix to be integrated with this class is given in the form
+  /// of map of matrices (effectively a sparse matrix). Each element of the map
+  /// corresponds to a cross- or parallel term in the normal equations. Data
+  /// vector is given simply as a casa::Vector, rather than the map of vectors,
+  /// because only one parameter is concerned here. If a parameter with the given
+  /// name doesn't exist, the method adds it to both normal matrix and data vector,
+  /// populating correctly all required cross-terms with 0-matrices of an 
+  /// appropriate shape.
+  /// @param[in] par name of the parameter to work with
+  /// @param[in] inNM input normal matrix
+  /// @param[in] inDV input data vector 
+  void addParameter(const std::string &par, const MapOfMatrices &inNM,
+                    const casa::Vector<double>& inDV);
+  
+  /// @brief extract dimension of a parameter from the given row
+  /// @details This helper method analyses the matrices stored in the supplied
+  /// map (effectively a row of a sparse matrix) and extracts the dimension of
+  /// the parameter this row corresponds to. If compiled with CONRAD_DEBUG, 
+  /// this method does an additional consistency check that all elements of
+  /// the sparse matrix give the same dimension (number of rows is the same for
+  /// all elements).
+  /// @param[in] nmRow a row of the sparse normal matrix to work with
+  /// @return dimension of the corresponding parameter
+  static casa::uInt parameterDimension(const MapOfMatrices &nmRow);  
+                           
 private:
   
   /// @brief normal matrix

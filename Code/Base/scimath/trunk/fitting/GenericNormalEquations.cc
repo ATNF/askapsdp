@@ -124,61 +124,116 @@ void GenericNormalEquations::mergeParameter(const std::string &par,
    
    const MapOfVectors::const_iterator srcItData = src.itsDataVector.find(par);
    CONRADDEBUGASSERT(srcItData != src.itsDataVector.end());
-                         
-   std::map<std::string, MapOfMatrices>::iterator destItRow = 
-                         itsNormalMatrix.find(par);
+   
+   addParameter(par, srcItRow->second, srcItData->second);                        
+}
 
-   if (destItRow != itsNormalMatrix.end()) {
-       // this parameter is already known to this class
-       CONRADDEBUGASSERT(destItRow->second.find(par) != destItRow->second.end());
+/// @brief Add/update one parameter using given matrix and data vector
+/// @details This helper method is the main workhorse use in merging two
+/// normal equations, adding an independent parameter or a design matrix.
+/// The normal matrix to be integrated with this class is given in the form
+/// of map of matrices (effectively a sparse matrix). Each element of the map
+/// corresponds to a cross- or parallel term in the normal equations. Data
+/// vector is given simply as a casa::Vector, rather than the map of vectors,
+/// because only one parameter is concerned here. If a parameter with the given
+/// name doesn't exist, the method adds it to both normal matrix and data vector,
+/// populating correctly all required cross-terms with 0-matrices of an 
+/// appropriate shape.
+/// @param[in] par name of the parameter to work with
+/// @param[in] inNM input normal matrix
+/// @param[in] inDV input data vector 
+void GenericNormalEquations::addParameter(const std::string &par, 
+           const MapOfMatrices &inNM, const casa::Vector<double>& inDV)
+{
+  // nmRowIt is an iterator over rows (the outer map) of the normal matrix
+  // stored in this class 
+  std::map<std::string, MapOfMatrices>::iterator nmRowIt = 
+                         itsNormalMatrix.find(par);
+  if (nmRowIt != itsNormalMatrix.end()) {
+      // this parameter is already present in the normal matrix held by this class
+      CONRADDEBUGASSERT(nmRowIt->second.find(par) != nmRowIt->second.end());
        
-       // process normal matrix
-       for (MapOfMatrices::iterator destItCol = destItRow->second.begin();
-            destItCol != destItRow->second.end(); ++destItCol) {
+      // first, process normal matrix 
+      for (MapOfMatrices::iterator nmColIt = nmRowIt->second.begin();
+                          nmColIt != nmRowIt->second.end(); ++nmColIt) {
             
-            // search for an appropriate parameter in the source 
-            MapOfMatrices::const_iterator srcItCol = 
-                           srcItRow->second.find(destItCol->first);           
-            // work with cross-term only if the source matrix have it
-            if (srcItCol != srcItRow->second.end()) {
-                CONRADCHECK(srcItCol->second.shape() == destItCol->second.shape(),
+           // search for an appropriate parameter in the input matrix 
+           MapOfMatrices::const_iterator inNMIt = inNM.find(nmColIt->first);           
+           // work with cross-terms only if the input matrix have them
+           if (inNMIt != inNM.end()) {
+               CONRADCHECK(inNMIt->second.shape() == nmColIt->second.shape(),
                         "shape mismatch for normal matrix, parameters ("<<
-                        destItRow->first<<" , "<<destItCol->first<<")");
-                destItCol->second += srcItCol->second; // add up a matrix         
-            }            
-       }
-       // process data vector
-       MapOfVectors::const_iterator destItData = itsDataVector.find(par);
-       CONRADDEBUGASSERT(destItData != itsDataVector.end());
-       CONRADCHECK(srcItData->second.shape() == destItData->second.shape(),
-                        "shape mismatch for data vector, parameter: "<<
-                        destItData->first);
-       casa::Vector<double> destVec = destItData->second;
-       const casa::Vector<double> srcVec = srcItData->second;
-       destVec += srcVec; // add up a vector    
-   } else {
-      // this is a new parameter
-      destItRow = itsNormalMatrix.insert(std::make_pair(par,MapOfMatrices())).first;
-      
-      // process normal matrix - add cross terms for all parameters
-      // gathered from rows (it uses the fact the normal matrix is always square)
-      for (std::map<std::string, MapOfMatrices>::const_iterator nameIt = 
-           itsNormalMatrix.begin(); nameIt != itsNormalMatrix.end(); ++nameIt) {
-            
-           // search for an appropriate parameter in the source 
-           MapOfMatrices::const_iterator srcItCol = 
-                          srcItRow->second.find(nameIt->first);           
-           // work with cross-term only if the source matrix have it
-           if (srcItCol != srcItRow->second.end()) {
-               destItRow->second.insert(*srcItCol); // assign a matrix         
+                        nmRowIt->first<<" , "<<nmColIt->first<<")");
+                nmColIt->second += inNMIt->second; // add up a matrix         
            }            
       }
+      
+      // now process the data vector
+      MapOfVectors::const_iterator dvIt = itsDataVector.find(par);
+      CONRADDEBUGASSERT(dvIt != itsDataVector.end());
+      CONRADCHECK(inDV.shape() == dvIt->second.shape(),
+               "shape mismatch for data vector, parameter: "<<dvIt->first);
+      // we have to instantiate explicitly a casa::Vector object because
+      // otherwise, for some reason, the compiler can't figure out the type 
+      // properly at the += operator. Exploit reference semantics - no copying!
+      casa::Vector<double> destVec = dvIt->second;
+      destVec += inDV; // add up a vector  
+  } else {
+     // this is a brand new parameter
+     nmRowIt = itsNormalMatrix.insert(std::make_pair(par,MapOfMatrices())).first;
+     // iterator, which points to this parameter in inNM map.
+     
+     const casa::uInt newParDimension = parameterDimension(inNM); 
        
-      // process data vector
-      CONRADDEBUGASSERT(itsDataVector.find(par) == itsDataVector.end());
-      itsDataVector.insert(std::make_pair(par, srcItData->second));
-   }                              
-}
+     // process normal matrix - add cross terms for all parameters, names are
+     // gathered from rows (it uses the fact the normal matrix is always square)
+     for (std::map<std::string, MapOfMatrices>::const_iterator nameIt = 
+          itsNormalMatrix.begin(); nameIt != itsNormalMatrix.end(); ++nameIt) {
+            
+          // search for an appropriate parameter in the source 
+          MapOfMatrices::const_iterator inNMIt = inNM.find(nameIt->first);           
+          if (inNMIt != inNM.end()) {
+              // insert terms only if the input matrix have them
+              nmRowIt->second.insert(*inNMIt); // assign a matrix         
+          } else {
+              // insert zero matrix, as the parameter referred by nameIt and
+              // the new parameter are independent and, therefore, have zero 
+              // cross-terms.
+              const casa::uInt thisParDimension = 
+                               parameterDimension(nameIt->second); 
+              nmRowIt->second.insert(std::make_pair(nameIt->first,
+                  casa::Matrix<double>(newParDimension, thisParDimension,0.)));
+          }            
+     }
+       
+     // process data vector
+     CONRADDEBUGASSERT(itsDataVector.find(par) == itsDataVector.end());
+     itsDataVector.insert(std::make_pair(par, inDV));
+  }                       
+}           
+
+/// @brief extract dimension of a parameter from the given row
+/// @details This helper method analyses the matrices stored in the supplied
+/// map (effectively a row of a sparse matrix) and extracts the dimension of
+/// the parameter this row corresponds to. If compiled with CONRAD_DEBUG, 
+/// this method does an additional consistency check that all elements of
+/// the sparse matrix give the same dimension (number of rows is the same for
+/// all elements).
+/// @param[in] nmRow a row of the sparse normal matrix to work with
+/// @return dimension of the corresponding parameter
+casa::uInt GenericNormalEquations::parameterDimension(const MapOfMatrices &nmRow)
+{
+  const MapOfMatrices::const_iterator it = nmRow.begin();
+  CONRADDEBUGASSERT(it != nmRow.end());
+  const casa::uInt dim = it->second.nrow();
+#ifdef CONRAD_DEBUG
+  for (MapOfMatrices::const_iterator cur = it; cur != nmRow.end(); ++cur) {
+       CONRADASSERT(cur->second.nrow() == dim);
+  }     
+#endif // CONRAD_DEBUG
+  return dim;
+}  
+
   
 /// @brief Add a design matrix to the normal equations
 /// @details This method computes the contribution to the normal matrix 
@@ -186,13 +241,13 @@ void GenericNormalEquations::mergeParameter(const std::string &par,
 /// @param[in] dm Design matrix to use
 void GenericNormalEquations::add(const DesignMatrix& dm)
 {
-
-// old unmodified code at this stage
-
-      std::set<string> names=dm.parameterNames();
-      std::set<string>::iterator iterRow;
-      std::set<string>::iterator iterCol;
-      const uint nDataSet=dm.residual().size();
+  std::set<string> names=dm.parameterNames();
+  const casa::uInt nDataSet=dm.residual().size();
+  
+  
+  std::set<string>::iterator iterRow;
+  std::set<string>::iterator iterCol;
+      
 
 // This looks hairy but it's all just linear algebra!
       for (iterRow=names.begin();iterRow!=names.end();iterRow++)
@@ -290,56 +345,11 @@ void GenericNormalEquations::add(const string& name,
                                const casa::Matrix<double>& normalmatrix,
                                const casa::Vector<double>& datavector)
 {
-  // destItRow is an iterator over rows in the destination matrix (normal
-  // matrix stored in this class, the source matrix is given as a parameter)
-  std::map<std::string, MapOfMatrices>::iterator destItRow = 
-                         itsNormalMatrix.find(name);
-
-  if (destItRow != itsNormalMatrix.end()) {
-      // this parameter is already known to this class
-      
-      // the assumption is no cross terms, just get parallel term iterators
-      // for matrix and data vector
-      const MapOfMatrices::iterator destItCol = destItRow->second.find(name); 
-      CONRADDEBUGASSERT(destItCol != destItRow->second.end());
-      const MapOfVectors::iterator destItData = itsDataVector.find(name);
-      CONRADDEBUGASSERT(destItData != itsDataVector.end());
-      
-      CONRADCHECK(normalmatrix.shape() == destItCol->second.shape(),
-                        "shape mismatch for the normal matrix, 'add' method, "
-                        " parameter: "<<destItRow->first);
-      CONRADCHECK(datavector.shape() == destItData->second.shape(),
-                        "shape mismatch for the data vector, 'add' method, "
-                        " parameter: "<<destItRow->first);
-              
-      destItCol->second += normalmatrix;
-      destItData->second += datavector;            
-  } else {
-     // this is a brand new parameter
-     destItRow = itsNormalMatrix.insert(std::make_pair(name,MapOfMatrices())).first;
-      
-     // process normal matrix - add zero cross terms for all parameters
-     // names are gathered from rows of the current normal matrix (it uses the 
-     // fact the normal matrix is always square)
-     for (std::map<std::string, MapOfMatrices>::const_iterator nameIt = 
-          itsNormalMatrix.begin(); nameIt != itsNormalMatrix.end(); ++nameIt) {
-           
-           CONRADDEBUGASSERT(destItRow->second.find(nameIt->first) ==
-                             destItRow->second.end()); 
-           if (nameIt->first == name) {
-               destItRow->second.insert(std::make_pair(name,normalmatrix));
-           } else {
-               destItRow->second.insert(std::make_pair(name, 
-                                casa::Matrix<double>(normalmatrix.nrow(),
-                                normalmatrix.ncolumn(),0.)));
-           }            
-     }
-       
-     // process data vector
-     CONRADDEBUGASSERT(itsDataVector.find(name) == itsDataVector.end());
-     itsDataVector.insert(std::make_pair(name, datavector)); 
-  }
-}                               
+  MapOfMatrices tempSparseMatrix;
+  tempSparseMatrix[name] = normalmatrix;
+  
+  addParameter(name, tempSparseMatrix, datavector);
+}  
   
 /// @brief normal equations for given parameters
 /// @details In the current framework, parameters are essentially 
