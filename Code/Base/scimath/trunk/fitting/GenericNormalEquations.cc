@@ -144,11 +144,7 @@ void GenericNormalEquations::mergeParameter(const std::string &par,
                 CONRADCHECK(srcItCol->second.shape() == destItCol->second.shape(),
                         "shape mismatch for normal matrix, parameters ("<<
                         destItRow->first<<" , "<<destItCol->first<<")");
-                casa::Matrix<double> destMatrix(destItCol->second);
-                casa::Matrix<double> srcMatrix(srcItCol->second);
-                destMatrix += srcMatrix;
-                //(casa::Array<double>(destItCol->second)) += 
-                //          (casa::Array<double>(srcItCol->second)); // add up a matrix         
+                destItCol->second += srcItCol->second; // add up a matrix         
             }            
        }
        // process data vector
@@ -157,11 +153,9 @@ void GenericNormalEquations::mergeParameter(const std::string &par,
        CONRADCHECK(srcItData->second.shape() == destItData->second.shape(),
                         "shape mismatch for data vector, parameter: "<<
                         destItData->first);
-       casa::Vector<double> destVector(destItData->second);
-       casa::Vector<double> srcVector(srcItData->second);
-       destVector += srcVector;
-       //casa::Vector<double>(destItData->second) += 
-       //               casa::Vector<double>(srcItData->second); // add up a vector    
+       casa::Vector<double> destVec = destItData->second;
+       const casa::Vector<double> srcVec = srcItData->second;
+       destVec += srcVec; // add up a vector    
    } else {
       // this is a new parameter
       destItRow = itsNormalMatrix.insert(std::make_pair(par,MapOfMatrices())).first;
