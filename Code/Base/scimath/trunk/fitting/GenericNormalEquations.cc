@@ -284,6 +284,7 @@ void GenericNormalEquations::add(const DesignMatrix& dm)
        }
       
        // now add up all other data points
+       ++derivMatricesIt;
        for(casa::uInt dataPoint = 1; derivMatricesIt != derivMatrices.end() ;
                                ++dataPoint,++derivMatricesIt) {
            dataVector += dvElement(*derivMatricesIt, *residualIt);
@@ -314,7 +315,6 @@ const casa::Matrix<double>&
              const std::string &par, casa::uInt dataPoint)
 {
   const DMAMatrix &derivMatrices = dm.derivative(par);
-                   
   // there is no benefit here from introducing an iterator as
   // only one specific offset is always taken
   CONRADDEBUGASSERT(dataPoint < derivMatrices.size());
