@@ -357,8 +357,8 @@ casa::Matrix<double> GenericNormalEquations::nmElement(const casa::Matrix<double
 casa::Vector<double> GenericNormalEquations::dvElement(const casa::Matrix<double> &dm,
               const casa::Vector<double> &dv)
 {
-  CONRADDEBUGASSERT(dm.ncolumn() && dv.nelement());
-  CONRADDEBUGASSERT(dm.nrow() == dv.nelement());
+  CONRADDEBUGASSERT(dm.ncolumn() && dv.nelements());
+  CONRADDEBUGASSERT(dm.nrow() == dv.nelements());
   if (dm.ncolumn() == 1) {
       const casa::Vector<double> &dmColVec = dm.column(0);
       return casa::Vector<double>(1, sum(dmColVec*dv));
