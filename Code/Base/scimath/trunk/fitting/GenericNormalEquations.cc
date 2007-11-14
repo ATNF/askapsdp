@@ -274,98 +274,98 @@ void GenericNormalEquations::add(const DesignMatrix& dm)
        MapOfMatrices normalMatrix; // normal matrix buffer for this row
        
        // the first contribution
-       if (derivMatricesIt->ncolumn() == 1) {
-           // need special case due to limitations of CASA product
-           const casa::Vector<double> &aV = derivMatricesIt->column(0);
-           dataVector = casa::Vector<double>(1, sum(aV*(*residualIt)));
-           
-           for (std::set<string>::const_iterator iterCol = names.begin();
+       dataVector = dvElement(*derivMatricesIt, *residualIt);
+       
+       for (std::set<string>::const_iterator iterCol = names.begin();
                 iterCol != names.end(); ++iterCol) {
                 
-                const DMAMatrix &derivMatricesCol = dm.derivative(*iterCol);
-                // there is no benefit here from introducing an iterator as
-                // only one specific offset is always taken
-                CONRADDEBUGASSERT(derivMatricesCol.size());
-                const casa::Matrix<double> &derivMatrixCol = derivMatricesCol[0];
-                CONRADDEBUGASSERT(derivMatrixCol.ncolumn());
-                if (derivMatrixCol.ncolumn() == 1) {
-                    const casa::Vector<double> &aColV = derivMatrixCol.column(0);
-                    
-                    normalMatrix.insert(std::make_pair(*iterCol,
-                           casa::Matrix<double>(1,1,sum(aV*aColV)))); 
-                } else {
-                    normalMatrix.insert(std::make_pair(*iterCol,
-                         product(transpose(*derivMatricesIt),derivMatrixCol)));
-                }      
-                
-           }
-       } else {
-           dataVector = product(transpose(*derivMatricesIt), *residualIt);
-           
-           for (std::set<string>::const_iterator iterCol = names.begin();
-                iterCol != names.end(); ++iterCol) {
-                const DMAMatrix &derivMatricesCol = dm.derivative(*iterCol);
-            
-                // there is no benefit here from introducing an iterator as
-                // only one specific offset is always taken
-                CONRADDEBUGASSERT(derivMatricesCol.size());
-                const casa::Matrix<double> &derivMatrixCol = derivMatricesCol[0];
-                
-                normalMatrix.insert(std::make_pair(*iterCol,
-                       product(transpose(*derivMatricesIt),derivMatrixCol)));   
-           }
-      }
+            normalMatrix.insert(std::make_pair(*iterCol, 
+                 nmElement(*derivMatricesIt, extractDerivatives(dm,*iterCol,0))));         
+       }
       
-      // now add up all other data points
-      for(casa::uInt dataPoint = 0; derivMatricesIt != derivMatrices.end() ;
+       // now add up all other data points
+       for(casa::uInt dataPoint = 1; derivMatricesIt != derivMatrices.end() ;
                                ++dataPoint,++derivMatricesIt) {
-          if (derivMatricesIt->ncolumn() == 1) {
-              // need special case due to limitations of CASA product
-              const casa::Vector<double> &aV = derivMatricesIt->column(0);
-              dataVector += casa::Vector<double>(1, sum(aV*(*residualIt)));
-              for (MapOfMatrices::iterator iterCol = normalMatrix.begin();
-                   iterCol != normalMatrix.end(); ++iterCol) {
-                   
-                   const DMAMatrix &derivMatricesCol = dm.derivative(iterCol->first);
-                   
-                   // there is no benefit here from introducing an iterator as
-                   // only one specific offset is always taken
-                   CONRADDEBUGASSERT(dataPoint < derivMatricesCol.size());
-                   const casa::Matrix<double> &derivMatrixCol = 
-                                            derivMatricesCol[dataPoint];
-                   CONRADDEBUGASSERT(derivMatrixCol.ncolumn());
-                   if (derivMatrixCol.ncolumn() == 1) {
-                       const casa::Vector<double> &aColV = derivMatrixCol.column(0);
+           dataVector += dvElement(*derivMatricesIt, *residualIt);
+          
+           for (MapOfMatrices::iterator iterCol = normalMatrix.begin();
+                               iterCol != normalMatrix.end(); ++iterCol) {
                     
-                       iterCol->second += casa::Matrix<double>(1,1,sum(aV*aColV)); 
-                    } else {
-                       iterCol->second += product(transpose(*derivMatricesIt),
-                                          derivMatrixCol);
-                    }      
-              }
-          } else {
-              dataVector += product(transpose(*derivMatricesIt), *residualIt);
-              
-              for (MapOfMatrices::iterator iterCol = normalMatrix.begin();
-                   iterCol != normalMatrix.end(); ++iterCol) {
-                   
-                   const DMAMatrix &derivMatricesCol = dm.derivative(iterCol->first);
-                   
-                   // there is no benefit here from introducing an iterator as
-                   // only one specific offset is always taken
-                   CONRADDEBUGASSERT(dataPoint < derivMatricesCol.size());
-                   const casa::Matrix<double> &derivMatrixCol = 
-                                            derivMatricesCol[dataPoint];
-                   CONRADDEBUGASSERT(derivMatrixCol.ncolumn());
-                   iterCol->second += product(transpose(*derivMatricesIt),
-                                      derivMatrixCol);      
-              }
-         }
-      }
+                iterCol->second += nmElement(*derivMatricesIt, 
+                           extractDerivatives(dm,iterCol->first,dataPoint));
+           }
+       }
       addParameter(*iterRow, normalMatrix, dataVector); 
   }
     
 }
+
+/// @brief Extract derivatives from design matrix
+/// @detail This method extracts an appropriate derivative matrix
+/// from the given design matrix. Effectively, it implements
+/// dm.derivative(par)[dataPoint] with some additional validity checks
+/// @param[in] dm Design matrix to work with
+/// @param[in] par parameter name of interest
+/// @param[in] dataPoint a sequence number of the data point, for which 
+/// the derivatives are returned
+/// @return matrix of derivatives
+const casa::Matrix<double>& 
+     GenericNormalEquations::extractDerivatives(const DesignMatrix &dm,
+             const std::string &par, casa::uInt dataPoint)
+{
+  const DMAMatrix &derivMatrices = dm.derivative(par);
+                   
+  // there is no benefit here from introducing an iterator as
+  // only one specific offset is always taken
+  CONRADDEBUGASSERT(dataPoint < derivMatrices.size());
+  return derivMatrices[dataPoint];
+}  
+  
+/// @brief Calculate an element of A^tA
+/// @details Each element of a sparse normal matrix is also a matrix
+/// in general. However, due to some limitations of CASA operators, a
+/// separate treatment is required for degenerate cases. This method
+/// calculates an element of the normal matrix (effectively an element of
+/// a product of A transposed and A, where A is the whole design matrix)
+/// @param[in] matrix1 the first element of a sparse normal matrix
+/// @param[in] matrix2 the second element of a sparse normal matrix
+/// @return a product of matrix1 transposed to matrix2
+casa::Matrix<double> GenericNormalEquations::nmElement(const casa::Matrix<double> &matrix1,
+               const casa::Matrix<double> &matrix2)
+{
+  CONRADDEBUGASSERT(matrix1.ncolumn() && matrix2.ncolumn());
+  CONRADDEBUGASSERT(matrix1.nrow() == matrix2.nrow());
+  if (matrix1.ncolumn() == 1 && matrix2.ncolumn() == 1) {
+      const casa::Vector<double> &m1ColVec = matrix1.column(0);
+      const casa::Vector<double> &m2ColVec = matrix2.column(0);
+      return casa::Matrix<double>(1,1,sum(m1ColVec*m2ColVec));
+  }
+  
+  // at least one of the matrices is non-degenerate
+  return product(transpose(matrix1),matrix2);
+}               
+  
+/// @brief Calculate an element of A^tB
+/// @details Each element of a sparse normal matrix is also a matrix
+/// in general. However, due to some limitations of CASA operators, a
+/// separate treatment is required for degenerate cases. This method
+/// calculates an element of the right-hand side of the normal equation
+/// (effectively an element of a product of A transposed and the data
+/// vector, where A is the whole design matrix)
+/// @param[in] dm an element of the design matrix
+/// @param[in] dv an element of the data vector
+casa::Vector<double> GenericNormalEquations::dvElement(const casa::Matrix<double> &dm,
+              const casa::Vector<double> &dv)
+{
+  CONRADDEBUGASSERT(dm.ncolumn() && dv.nelement());
+  CONRADDEBUGASSERT(dm.nrow() == dv.nelement());
+  if (dm.ncolumn() == 1) {
+      const casa::Vector<double> &dmColVec = dm.column(0);
+      return casa::Vector<double>(1, sum(dmColVec*dv));
+  }
+  // dm is non-degenerate
+  return product(transpose(dm), dv);
+}               
   
 /// @brief add normal matrix for a given parameter
 /// @details This means that the cross terms between parameters 

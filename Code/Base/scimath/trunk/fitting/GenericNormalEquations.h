@@ -168,7 +168,45 @@ protected:
   /// @param[in] nmRow a row of the sparse normal matrix to work with
   /// @return dimension of the corresponding parameter
   static casa::uInt parameterDimension(const MapOfMatrices &nmRow);  
-                           
+  
+  
+  /// @brief Calculate an element of A^tA
+  /// @details Each element of a sparse normal matrix is also a matrix
+  /// in general. However, due to some limitations of CASA operators, a
+  /// separate treatment is required for degenerate cases. This method
+  /// calculates an element of the normal matrix (effectively an element of
+  /// a product of A transposed and A, where A is the whole design matrix)
+  /// @param[in] matrix1 the first element of a sparse normal matrix
+  /// @param[in] matrix2 the second element of a sparse normal matrix
+  /// @return a product of matrix1 transposed to matrix2
+  static casa::Matrix<double> nmElement(const casa::Matrix<double> &matrix1,
+               const casa::Matrix<double> &matrix2);
+  
+  /// @brief Calculate an element of A^tB
+  /// @details Each element of a sparse normal matrix is also a matrix
+  /// in general. However, due to some limitations of CASA operators, a
+  /// separate treatment is required for degenerate cases. This method
+  /// calculates an element of the right-hand side of the normal equation
+  /// (effectively an element of a product of A transposed and the data
+  /// vector, where A is the whole design matrix)
+  /// @param[in] dm an element of the design matrix
+  /// @param[in] dv an element of the data vector
+  /// @return element of the right-hand side of the normal equations
+  static casa::Vector<double> dvElement(const casa::Matrix<double> &dm,
+              const casa::Vector<double> &dv); 
+  
+  /// @brief Extract derivatives from design matrix
+  /// @detail This method extracts an appropriate derivative matrix
+  /// from the given design matrix. Effectively, it implements
+  /// dm.derivative(par)[dataPoint] with some additional validity checks
+  /// @param[in] dm Design matrix to work with
+  /// @param[in] par parameter name of interest
+  /// @param[in] dataPoint a sequence number of the data point, for which 
+  /// the derivatives are returned
+  /// @return matrix of derivatives
+  static const casa::Matrix<double>& extractDerivatives(const DesignMatrix &dm,
+             const std::string &par, casa::uInt dataPoint);
+  
 private:
   
   /// @brief normal matrix
