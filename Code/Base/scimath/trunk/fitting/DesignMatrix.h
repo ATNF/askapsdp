@@ -108,7 +108,7 @@ public:
   double fit() const;
 
   /// Return number of data constraints
-  int nData() const;
+  casa::uInt nData() const;
 
   /// Return number of parameters
   int nParameters() const;

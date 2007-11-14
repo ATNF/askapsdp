@@ -178,9 +178,9 @@ namespace conrad
       return sqrt(sum/sumwt);
     }
 
-    int DesignMatrix::nData() const
+    casa::uInt DesignMatrix::nData() const
     {
-      int nData=0;
+      casa::uInt nData=0;
       for (DMBVector::const_iterator bIt=itsBVector.begin();bIt!=itsBVector.end();++bIt)
       {
         nData+=bIt->size();
