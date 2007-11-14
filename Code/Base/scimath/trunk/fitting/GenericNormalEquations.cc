@@ -36,6 +36,8 @@ using namespace conrad;
 using namespace conrad::scimath;
 using namespace LOFAR;
 
+using casa::product;
+using casa::transpose;
 
 /// @brief a default constructor
 /// @details It creates an empty normal equations class
@@ -243,96 +245,126 @@ void GenericNormalEquations::add(const DesignMatrix& dm)
 {
   std::set<string> names=dm.parameterNames();
   const casa::uInt nDataSet=dm.residual().size();
+  if (!nDataSet) {
+      return; // nothing to process
+  }
   
-  
-  std::set<string>::iterator iterRow;
-  std::set<string>::iterator iterCol;
+  // Loop over all parameters defined by the design matrix.
+  // It may be better to write an iterator over parameters defined in
+  // the design matrix instead of building a set or list. 
+  for (std::set<string>::const_iterator iterRow = names.begin(); 
+       iterRow != names.end(); ++iterRow) {
+       const DMAMatrix &derivMatrices = dm.derivative(*iterRow);
+       DMAMatrix::const_iterator derivMatricesIt = derivMatrices.begin();
+       CONRADDEBUGASSERT(derivMatricesIt != derivMatrices.end());
+       DMBVector::const_iterator residualIt = dm.residual().begin();
+       CONRADDEBUGASSERT(residualIt != dm.residual().end());
+       CONRADDEBUGASSERT(derivMatricesIt->ncolumn());
+       
+       casa::Vector<double> dataVector; // data vector buffer for this row 
+       
+       // it looks unnecessary from the first glance to fill the map
+       // of matrices for the whole row. However, the design matrix can
+       // be defined for a subset of parameters used by this normal equation
+       // class. Therefore, one must resize appropriate elements of 
+       // itsNormalMatrix to have there zero matrix of appropriate shape.
+       // it requires access to the size of the result anyway, therefore
+       // it is not too bad to calculate all elements in the row before
+       // merging them with itsNormalMatrix
+       MapOfMatrices normalMatrix; // normal matrix buffer for this row
+       
+       // the first contribution
+       if (derivMatricesIt->ncolumn() == 1) {
+           // need special case due to limitations of CASA product
+           const casa::Vector<double> &aV = derivMatricesIt->column(0);
+           dataVector = casa::Vector<double>(1, sum(aV*(*residualIt)));
+           
+           for (std::set<string>::const_iterator iterCol = names.begin();
+                iterCol != names.end(); ++iterCol) {
+                
+                const DMAMatrix &derivMatricesCol = dm.derivative(*iterCol);
+                // there is no benefit here from introducing an iterator as
+                // only one specific offset is always taken
+                CONRADDEBUGASSERT(derivMatricesCol.size());
+                const casa::Matrix<double> &derivMatrixCol = derivMatricesCol[0];
+                CONRADDEBUGASSERT(derivMatrixCol.ncolumn());
+                if (derivMatrixCol.ncolumn() == 1) {
+                    const casa::Vector<double> &aColV = derivMatrixCol.column(0);
+                    
+                    normalMatrix.insert(std::make_pair(*iterCol,
+                           casa::Matrix<double>(1,1,sum(aV*aColV)))); 
+                } else {
+                    normalMatrix.insert(std::make_pair(*iterCol,
+                         product(transpose(*derivMatricesIt),derivMatrixCol)));
+                }      
+                
+           }
+       } else {
+           dataVector = product(transpose(*derivMatricesIt), *residualIt);
+           
+           for (std::set<string>::const_iterator iterCol = names.begin();
+                iterCol != names.end(); ++iterCol) {
+                const DMAMatrix &derivMatricesCol = dm.derivative(*iterCol);
+            
+                // there is no benefit here from introducing an iterator as
+                // only one specific offset is always taken
+                CONRADDEBUGASSERT(derivMatricesCol.size());
+                const casa::Matrix<double> &derivMatrixCol = derivMatricesCol[0];
+                
+                normalMatrix.insert(std::make_pair(*iterCol,
+                       product(transpose(*derivMatricesIt),derivMatrixCol)));   
+           }
+      }
       
-
-// This looks hairy but it's all just linear algebra!
-      for (iterRow=names.begin();iterRow!=names.end();iterRow++)
-      {
-        bool first=(itsDataVector[*iterRow].size()==0);
-        for (uint iDataSet=0;iDataSet<nDataSet;iDataSet++)
-        {
-// Need to special case for CASA product limitation
-          if(dm.derivative(*iterRow)[iDataSet].ncolumn()==1)
-          {
-            const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
-            if(first)
-            {
-              // we need to initialize the Vector by either resizing or
-              // assigning a vector of size 1 as below
-              itsDataVector[*iterRow] = casa::Vector<double>(1,
-                            sum(((aV)*(dm.residual()[iDataSet]))));
-              first=false;
-            }
-            else
-            {
-              // operator+= will add constant to every element of the vector,
-              // we have just one element here
-              itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
-            }
-          }
-          else
-          {
-            if(first)
-            {
-              itsDataVector[*iterRow]=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-              first=false;
-            }
-            else
-            {
-              itsDataVector[*iterRow]+=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-            }
-          }
-        }
-      }
-// Outside loops are over parameter names
-      for (iterCol=names.begin();iterCol!=names.end();iterCol++)
-      {
-        const uint nACol=dm.derivative(*iterCol).size();
-// Inside loops are over lists of derivatives
-        for (uint iACol=0;(iACol<nACol);iACol++)
-        {
-          for (iterRow=names.begin();iterRow!=names.end();iterRow++)
-          {
-            bool first=(itsNormalMatrix[*iterRow][*iterCol].nrow()==0);
-            const uint nARow=dm.derivative(*iterRow).size();
-            for (uint iARow=0;(iARow<nARow);iARow++)
-            {
-              if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1))
-              {
-                const casa::Vector<casa::Double>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
-                const casa::Vector<casa::Double>& aColV(dm.derivative(*iterCol)[iACol].column(0));
-                if(first)
-                {
-                  itsNormalMatrix[*iterRow][*iterCol].resize(1,1);
-                  itsNormalMatrix[*iterRow][*iterCol].set(sum(((aRowV)*(aColV))));
-                  first=false;
-                }
-                else
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]+=sum(((aRowV)*(aColV)));
-                }
+      // now add up all other data points
+      for(casa::uInt dataPoint = 0; derivMatricesIt != derivMatrices.end() ;
+                               ++dataPoint,++derivMatricesIt) {
+          if (derivMatricesIt->ncolumn() == 1) {
+              // need special case due to limitations of CASA product
+              const casa::Vector<double> &aV = derivMatricesIt->column(0);
+              dataVector += casa::Vector<double>(1, sum(aV*(*residualIt)));
+              for (MapOfMatrices::iterator iterCol = normalMatrix.begin();
+                   iterCol != normalMatrix.end(); ++iterCol) {
+                   
+                   const DMAMatrix &derivMatricesCol = dm.derivative(iterCol->first);
+                   
+                   // there is no benefit here from introducing an iterator as
+                   // only one specific offset is always taken
+                   CONRADDEBUGASSERT(dataPoint < derivMatricesCol.size());
+                   const casa::Matrix<double> &derivMatrixCol = 
+                                            derivMatricesCol[dataPoint];
+                   CONRADDEBUGASSERT(derivMatrixCol.ncolumn());
+                   if (derivMatrixCol.ncolumn() == 1) {
+                       const casa::Vector<double> &aColV = derivMatrixCol.column(0);
+                    
+                       iterCol->second += casa::Matrix<double>(1,1,sum(aV*aColV)); 
+                    } else {
+                       iterCol->second += product(transpose(*derivMatricesIt),
+                                          derivMatrixCol);
+                    }      
               }
-              else
-              {
-                if(first)
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-                  first=false;
-                }
-                else
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]+=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-                }
+          } else {
+              dataVector += product(transpose(*derivMatricesIt), *residualIt);
+              
+              for (MapOfMatrices::iterator iterCol = normalMatrix.begin();
+                   iterCol != normalMatrix.end(); ++iterCol) {
+                   
+                   const DMAMatrix &derivMatricesCol = dm.derivative(iterCol->first);
+                   
+                   // there is no benefit here from introducing an iterator as
+                   // only one specific offset is always taken
+                   CONRADDEBUGASSERT(dataPoint < derivMatricesCol.size());
+                   const casa::Matrix<double> &derivMatrixCol = 
+                                            derivMatricesCol[dataPoint];
+                   CONRADDEBUGASSERT(derivMatrixCol.ncolumn());
+                   iterCol->second += product(transpose(*derivMatricesIt),
+                                      derivMatrixCol);      
               }
-            }
-          }
-        }
+         }
       }
-  
+      addParameter(*iterRow, normalMatrix, dataVector); 
+  }
+    
 }
   
 /// @brief add normal matrix for a given parameter
