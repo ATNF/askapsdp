@@ -15,6 +15,7 @@
 #include <casa/Arrays/Matrix.h>
 
 #include <fitting/LinearSolver.h>
+#include <fitting/GenericNormalEquations.h>
 
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>

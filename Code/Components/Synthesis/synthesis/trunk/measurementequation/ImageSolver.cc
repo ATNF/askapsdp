@@ -18,6 +18,7 @@ using std::abs;
 #include <map>
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 using std::map;
 using std::vector;
@@ -35,7 +36,7 @@ namespace conrad
 
 		void ImageSolver::init()
 		{
-			itsNormalEquations.reset();
+			resetNormalEquations();
 		}
 
 		// Solve for update simply by scaling the data vector by the diagonal term of the
@@ -70,11 +71,11 @@ namespace conrad
 				// Axes are dof, dof for each parameter
 				casa::IPosition arrShape(itsParams->value(indit->first).shape());
 				casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-				CONRADCHECK(itsNormalEquations->normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
+				CONRADCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
 				const casa::Vector<double>
-				    & diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
-				CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present for solution");
-				const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
+				    & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
+				CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
+				const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 				double maxDiag(casa::max(diag));
 				std::cout << "Maximum of weights = " << maxDiag << std::endl;
 				double cutoff=tol()*maxDiag;
@@ -114,13 +115,13 @@ namespace conrad
 			for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
 			{
 				string name="image"+*it;
-				if (itsNormalEquations->normalMatrixDiagonal().count(name))
+				if (normalEquations().normalMatrixDiagonal().count(name))
 				{
-					const casa::IPosition arrShape(itsNormalEquations->shape().find(name)->second);
+					const casa::IPosition arrShape(normalEquations().shape().find(name)->second);
 					Axes axes(itsParams->axes(name));
 					string weightsName="weights"+*it;
 					const casa::Array<double>
-					    & ADiag(itsNormalEquations->normalMatrixDiagonal().find(name)->second.reform(arrShape));
+					    & ADiag(normalEquations().normalMatrixDiagonal().find(name)->second.reform(arrShape));
 					if(!itsParams->has(weightsName)) {
 						itsParams->add(weightsName, ADiag, axes);			
 					}
@@ -138,13 +139,13 @@ namespace conrad
 			for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
 			{
 				string name="image"+*it;
-				if (itsNormalEquations->normalMatrixSlice().count(name))
+				if (normalEquations().normalMatrixSlice().count(name))
 				{
-					const casa::IPosition arrShape(itsNormalEquations->shape().find(name)->second);
+					const casa::IPosition arrShape(normalEquations().shape().find(name)->second);
 					Axes axes(itsParams->axes(name));
 					string psfName="psf"+*it;
 					const casa::Array<double>
-					    & APSF(itsNormalEquations->normalMatrixSlice().find(name)->second.reform(arrShape));
+					    & APSF(normalEquations().normalMatrixSlice().find(name)->second.reform(arrShape));
 					if(!itsParams->has(psfName)) {
 						itsParams->add(psfName, APSF, axes);
 					}
@@ -159,6 +160,23 @@ namespace conrad
 		{
 			return Solver::ShPtr(new ImageSolver(*this));
 		}
+
+        /// @return a reference to normal equations object
+        /// @note In this class and derived classes the type returned
+        /// by this method is narrowed to always provide image-specific 
+        /// normal equations objects
+        const scimath::NormalEquations& ImageSolver::normalEquations() const
+        {
+           try {
+              return dynamic_cast<const scimath::NormalEquations&>(
+                                            Solver::normalEquations());
+           }
+           catch (const std::bad_cast &bc)
+           {
+              CONRADTHROW(ConradError, "An attempt to use incompatible normal "
+                          "equations class with image solver");
+           }
+        }
 
 	}
 }

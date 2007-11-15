@@ -277,8 +277,19 @@ namespace conrad
     {
       reset();
     }
-    void NormalEquations::merge(const NormalEquations& other)
-    {
+  
+  /// @brief Merge these normal equations with another
+  /// @details Combining two normal equations depends on the actual class type
+  /// (different work is required for a full matrix and for an approximation).
+  /// This method must be overriden in the derived classes for correct 
+  /// implementation. 
+  /// This means that we just add
+  /// @param[in] src an object to get the normal equations from
+  void NormalEquations::merge(const INormalEquations& src)
+  {
+    try {
+      const NormalEquations &other = dynamic_cast<const NormalEquations&>(src);    
+  
       itsParams->merge(*other.itsParams);
       vector<string> names=itsParams->freeNames();
       vector<string>::iterator iterRow;
@@ -325,6 +336,11 @@ namespace conrad
         }
       }
     }
+    catch (const std::bad_cast &bc) {
+        CONRADTHROW(ConradError, "An attempt to merge NormalEquations with an "
+                    "equation of incompatible type");
+    }
+  }
 
     const std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixDiagonal() const
     {
@@ -335,13 +351,17 @@ namespace conrad
     {
       return itsNormalMatrixSlice;
     }
-    
+ 
 /// @brief normal equations for given parameters
-/// @details This method is added instead of the one returning the
-/// whole map of maps as a step towards hiding the actual matrix 
-/// implementation
+/// @details In the current framework, parameters are essentially 
+/// vectors, not scalars. Each element of such vector is treated
+/// independently (but only vector as a whole can be fixed). As a 
+/// result any element of the normal matrix is another matrix for
+/// all non-scalar parameters. For scalar parameters each such
+/// matrix has a shape of [1,1].
 /// @param[in] par1 the name of the first parameter
 /// @param[in] par2 the name of the second parameter
+/// @return one element of the sparse normal matrix (a dense matrix)
 const casa::Matrix<double>& NormalEquations::normalMatrix(const std::string &par1, 
                         const std::string &par2) const
 {
@@ -354,11 +374,22 @@ const casa::Matrix<double>& NormalEquations::normalMatrix(const std::string &par
    return cIt2->second;                             
 }
 
-/// Return data vector
-    const std::map<string, casa::Vector<double> >& NormalEquations::dataVector() const
-    {
-      return itsDataVector;
-    }
+/// @brief data vector for a given parameter
+/// @details In the current framework, parameters are essentially 
+/// vectors, not scalars. Each element of such vector is treated
+/// independently (but only vector as a whole can be fixed). As a 
+/// result any element of the normal matrix as well as an element of the
+/// data vector are, in general, matrices, not scalar. For the scalar 
+/// parameter each element of data vector is a vector of unit length.
+/// @param[in] par the name of the parameter of interest
+/// @return one element of the sparse data vector (a dense vector)
+const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) const
+{
+   std::map<string, casa::Vector<double> >::const_iterator cIt = 
+                                     itsDataVector.find(par);
+   CONRADASSERT(cIt != itsDataVector.end());                                  
+   return cIt->second;
+}
 
 /// Return shape
     const std::map<string, casa::IPosition >& NormalEquations::shape() const
@@ -501,37 +532,30 @@ const casa::Matrix<double>& NormalEquations::normalMatrix(const std::string &par
       return *itsParams;
     }
 
-    NormalEquations::ShPtr NormalEquations::clone() const
+    INormalEquations::ShPtr NormalEquations::clone() const
     {
-      return NormalEquations::ShPtr(new NormalEquations(*this));
+      return INormalEquations::ShPtr(new NormalEquations(*this));
     }
 
-// These are the items that we need to write to and read from a blob stream
-// Params::ShPtr itsParams;
-// std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix
-// std::map<string, casa::Vector<double> > itsNormalMatrixSlice
-// std::map<string, casa::Vector<double> > itsNormalMatrixDiagonal
-// std::map<string, casa::IPosition> itsShape
-// std::map<string, casa::IPosition> itsReference
-// std::map<string, casa::Vector<double> > itsDataVector
-
+    /// @brief write the object to a blob stream
+    /// @param[in] os the output stream
+    void NormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
+    {
+      os << *(itsParams) << itsNormalMatrix << itsNormalMatrixSlice 
+        << itsNormalMatrixDiagonal << itsShape << itsReference << itsDataVector; 
+//        << itsNormalMatrixDiagonal << itsDataVector;
+    }
     
-    LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const NormalEquations& ne) 
+    /// @brief read the object from a blob stream
+    /// @param[in] is the input stream
+    /// @note Not sure whether the parameter should be made const or not 
+    void NormalEquations::readFromBlob(LOFAR::BlobIStream& is) 
     {
-      os << *(ne.itsParams) << ne.itsNormalMatrix << ne.itsNormalMatrixSlice 
-        << ne.itsNormalMatrixDiagonal << ne.itsShape << ne.itsReference << ne.itsDataVector; 
-//        << ne.itsNormalMatrixDiagonal << ne.itsDataVector;
-     return os;
-    }
-
-    LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, NormalEquations& ne)
-    {
-      ne.itsParams = Params::ShPtr(new Params());
-      is >> *(ne.itsParams) >> ne.itsNormalMatrix >> ne.itsNormalMatrixSlice 
-         >> ne.itsNormalMatrixDiagonal >> ne.itsShape >> ne.itsReference 
-         >> ne.itsDataVector;
-//        >> ne.itsNormalMatrixDiagonal >> ne.itsDataVector;
-      return is;
+      itsParams = Params::ShPtr(new Params());
+      is >> *(itsParams) >> itsNormalMatrix >> itsNormalMatrixSlice 
+         >> itsNormalMatrixDiagonal >> itsShape >> itsReference 
+         >> itsDataVector;
+//        >> itsNormalMatrixDiagonal >> itsDataVector;
     }
   }
 }

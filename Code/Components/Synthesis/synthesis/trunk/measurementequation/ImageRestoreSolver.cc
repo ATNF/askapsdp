@@ -41,7 +41,7 @@ namespace conrad
 
 		void ImageRestoreSolver::init()
 		{
-			itsNormalEquations.reset();
+			resetNormalEquations();
 		}
 
 		// Solve for update simply by scaling the data vector by the diagonal term of the
@@ -76,11 +76,11 @@ namespace conrad
 				// Axes are dof, dof for each parameter
 				casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
 
-				CONRADCHECK(itsNormalEquations->normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+				CONRADCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
 				const casa::Vector<double>
-				    & diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
-				CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
-				const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
+				    & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
+				CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
+				const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 				double maxDiag(casa::max(diag));
 				std::cout << "Maximum of weights = " << maxDiag << std::endl;
 				double cutoff=tol()*maxDiag;

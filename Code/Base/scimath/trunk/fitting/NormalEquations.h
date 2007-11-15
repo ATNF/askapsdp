@@ -9,6 +9,7 @@
 #define SCIMATHNORMALEQUATIONS_H_
 
 #include <fitting/Params.h>
+#include <fitting/INormalEquations.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -30,12 +31,12 @@ namespace conrad
     class DesignMatrix;
     
     /// @brief Hold the normal equations 
-    class NormalEquations
+    class NormalEquations : public INormalEquations
     /// Fully general normal equations
     {
     public:
       
-      explicit NormalEquations();
+      NormalEquations();
       
       /// @brief Construct for the specified parameters
       ///
@@ -148,19 +149,39 @@ namespace conrad
                        const casa::Vector<double>& datavector);
       
       /// @brief Merge these normal equations with another
-      ///
+      /// @details Combining two normal equations depends on the actual class type
+      /// (different work is required for a full matrix and for an approximation).
+      /// This method must be overriden in the derived classes for correct 
+      /// implementation. 
       /// This means that we just add
-      /// @param other Other normal equations
-      void merge(const NormalEquations& other);
+      /// @param[in] src an object to get the normal equations from
+      virtual void merge(const INormalEquations& src);
       
-      /// @brief normal equations for given parameters
-      /// @details This method is added instead of the one returning the
-      /// whole map of maps as a step towards hiding the actual matrix 
-      /// implementation
-      /// @param[in] par1 the name of the first parameter
-      /// @param[in] par2 the name of the second parameter
-      const casa::Matrix<double>& normalMatrix(const std::string &par1, 
+      
+       /// @brief normal equations for given parameters
+       /// @details In the current framework, parameters are essentially 
+       /// vectors, not scalars. Each element of such vector is treated
+       /// independently (but only vector as a whole can be fixed). As a 
+       /// result the element of the normal matrix is another matrix for
+       /// all non-scalar parameters. For scalar parameters each such
+       /// matrix has a shape of [1,1].
+       /// @param[in] par1 the name of the first parameter
+       /// @param[in] par2 the name of the second parameter
+       /// @return one element of the sparse normal matrix (a dense matrix)
+       virtual const casa::Matrix<double>& normalMatrix(const std::string &par1, 
                         const std::string &par2) const;
+  
+       /// @brief data vector for a given parameter
+       /// @details In the current framework, parameters are essentially 
+       /// vectors, not scalars. Each element of such vector is treated
+       /// independently (but only vector as a whole can be fixed). As a 
+       /// result any element of the normal matrix as well as an element of the
+       /// data vector are, in general, matrices, not scalar. For the scalar 
+       /// parameter each element of data vector is a vector of unit length.
+       /// @param[in] par the name of the parameter of interest
+       /// @return one element of the sparse data vector (a dense vector)
+       virtual const casa::Vector<double>& dataVector(const std::string &par) const;
+      
       
       /// Return normal equations slice
       const std::map<string, casa::Vector<double> >& normalMatrixSlice() const;
@@ -178,26 +199,23 @@ namespace conrad
       const std::map<string, casa::IPosition >& reference() const;
       
       /// Reset to empty
-      void reset();
+      virtual void reset();
       
       /// Shared pointer definition
       typedef boost::shared_ptr<NormalEquations> ShPtr;
       
       /// Clone this into a shared pointer
-      virtual NormalEquations::ShPtr clone() const;
+      virtual INormalEquations::ShPtr clone() const;
       
-      /// Output shift operators for NormalEquations
-      /// @param os the output stream
-      /// @param ne NormalEquations to be processed
-      friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, 
-                                            const NormalEquations& ne);
+      /// @brief write the object to a blob stream
+      /// @param[in] os the output stream
+      virtual void writeToBlob(LOFAR::BlobOStream& os) const;
 
-      /// Input shift operators for NormalEquations
-      /// @param is the input stream
-      /// @param ne NormalEquations to be processed
-      friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, 
-                                            NormalEquations& ne); 
-        
+      /// @brief read the object from a blob stream
+      /// @param[in] is the input stream
+      /// @note Not sure whether the parameter should be made const or not 
+      virtual void readFromBlob(LOFAR::BlobIStream& is); 
+              
     protected:
       /// Parameters
       Params::ShPtr itsParams;

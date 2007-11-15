@@ -13,7 +13,7 @@
 #define SCIMATHSOLVER_H_
 
 #include <fitting/Params.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/Solveable.h>
 #include <fitting/Quality.h>
 
@@ -52,7 +52,7 @@ namespace conrad
 
 /// Add the normal equations
 /// @param normeq Normal Equations
-        virtual void addNormalEquations(const NormalEquations& normeq);
+        virtual void addNormalEquations(const INormalEquations& normeq);
 
 /// Copy the normal equations from another solver
 /// @param other Another solver
@@ -68,13 +68,19 @@ namespace conrad
 
 /// Clone this into a shared pointer
         virtual Solver::ShPtr clone() const;
+        
+        /// @return a reference to normal equations object
+        virtual const INormalEquations& normalEquations() const;
+
+        /// @brief reset normal equations
+        void resetNormalEquations() const;
 
       protected:
         /// Parameters
         Params::ShPtr itsParams;
-        
+      private:  
         /// Normal equations
-        NormalEquations::ShPtr itsNormalEquations;
+        INormalEquations::ShPtr itsNormalEquations;
     };
 
   }

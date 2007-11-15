@@ -54,7 +54,7 @@ namespace conrad
 
     void ImageMultiScaleSolver::init()
     {
-      itsNormalEquations.reset();
+      resetNormalEquations();
     }
 
 // Solve for update simply by scaling the data vector by the diagonal term of the
@@ -85,12 +85,12 @@ namespace conrad
         const casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
         const casa::IPosition valShape(itsParams->value(indit->first).shape());
         
-        CONRADCHECK(itsNormalEquations->normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
-        const casa::Vector<double>& diag(itsNormalEquations->normalMatrixDiagonal().find(indit->first)->second);
-        CONRADCHECK(itsNormalEquations->dataVector().count(indit->first)>0, "Data vector not present");
-        const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit->first)->second);
-        CONRADCHECK(itsNormalEquations->normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
-        const casa::Vector<double>& slice(itsNormalEquations->normalMatrixSlice().find(indit->first)->second);
+        CONRADCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+        const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
+        CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
+        const casa::Vector<double>& dv = normalEquations().dataVector(indit->first);
+        CONRADCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
+        const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
         
         casa::Array<float> dirtyArray(valShape);
         casa::convertArray<float, double>(dirtyArray, diag.reform(valShape));

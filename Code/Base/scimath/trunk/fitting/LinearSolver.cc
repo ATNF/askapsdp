@@ -58,7 +58,7 @@ namespace conrad
     
     void LinearSolver::init()
     {
-      itsNormalEquations.reset();
+      resetNormalEquations();
     }
 
 // Fully general solver for the normal equations for any shape
@@ -92,7 +92,7 @@ namespace conrad
         {
 // Axes are dof, dof for each parameter
 // Take a deep breath for const-safe indexing into the double layered map
-          const casa::Matrix<double>& nm = itsNormalEquations->normalMatrix(indit1->first, indit2->first);
+          const casa::Matrix<double>& nm = normalEquations().normalMatrix(indit1->first, indit2->first);
           
           for (size_t row=0; row<nm.nrow(); ++row)
           {
@@ -106,7 +106,7 @@ namespace conrad
       }
       for (map<string, int>::const_iterator indit1=indices.begin();indit1!=indices.end();indit1++)
       {
-        const casa::Vector<double>& dv(itsNormalEquations->dataVector().find(indit1->first)->second);
+        const casa::Vector<double> &dv = normalEquations().dataVector(indit1->first);
         for (size_t row=0; row<dv.nelements(); ++row)
         {
           gsl_vector_set(B, row+(indit1->second), dv(row));

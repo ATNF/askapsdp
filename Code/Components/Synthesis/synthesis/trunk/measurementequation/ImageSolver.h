@@ -51,6 +51,12 @@ namespace conrad
         /// @brief Save the PSFs as a parameter
         virtual void savePSF();
 
+        /// @return a reference to normal equations object
+        /// @note In this class and derived classes the type returned
+        /// by this method is narrowed to always provide image-specific 
+        /// normal equations objects
+        virtual const scimath::NormalEquations& normalEquations() const;
+ 
     };
 
   }

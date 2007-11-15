@@ -99,6 +99,7 @@ struct GenericNormalEquations : public INormalEquations {
   /// matrix has a shape of [1,1].
   /// @param[in] par1 the name of the first parameter
   /// @param[in] par2 the name of the second parameter
+  /// @return one element of the sparse normal matrix (a dense matrix)
   virtual const casa::Matrix<double>& normalMatrix(const std::string &par1, 
                         const std::string &par2) const;
   
@@ -110,7 +111,8 @@ struct GenericNormalEquations : public INormalEquations {
   /// data vector are, in general, matrices, not scalar. For the scalar 
   /// parameter each element of data vector is a vector of unit length.
   /// @param[in] par the name of the parameter of interest
-  const casa::Vector<double>& dataVector(const std::string &par) const;
+  /// @return one element of the sparse data vector (a dense vector)     
+  virtual const casa::Vector<double>& dataVector(const std::string &par) const;
   
   /// @brief write the object to a blob stream
   /// @param[in] os the output stream

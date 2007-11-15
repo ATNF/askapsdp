@@ -8,6 +8,7 @@
 
 #include <fitting/Solver.h>
 #include <conrad/ConradError.h>
+#include <fitting/NormalEquations.h>
 
 namespace conrad
 {
@@ -16,8 +17,8 @@ namespace conrad
 
     Solver::Solver(const Params& ip) : itsParams(ip.clone())
     {
-      NormalEquations ne(ip);
-      itsNormalEquations=ne.clone();
+      itsNormalEquations.reset(new NormalEquations(ip));
+      //itsNormalEquations=ne.clone();
     };
 
     Solver::~Solver()
@@ -38,7 +39,20 @@ namespace conrad
     	return *this;
     }
 
-
+    /// @return a reference to normal equations object
+    const INormalEquations& Solver::normalEquations() const
+    {
+      CONRADDEBUGASSERT(itsNormalEquations);
+      return *itsNormalEquations;
+    }
+    
+    /// @brief reset normal equations
+    void Solver::resetNormalEquations() const
+    {
+      CONRADDEBUGASSERT(itsNormalEquations);
+      return itsNormalEquations->reset();   
+    }
+    
     
     void Solver::setParameters(const Params& ip)
     {
@@ -61,7 +75,7 @@ namespace conrad
     	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver after copy");
     }
 
-    void Solver::addNormalEquations(const NormalEquations& normeq)
+    void Solver::addNormalEquations(const INormalEquations& normeq)
     {
     	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver prior to adding");
       itsNormalEquations->merge(normeq);

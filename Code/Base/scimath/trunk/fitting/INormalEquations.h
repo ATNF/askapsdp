@@ -71,8 +71,20 @@ struct INormalEquations : public ISerializable {
   /// matrix has a shape of [1,1].
   /// @param[in] par1 the name of the first parameter
   /// @param[in] par2 the name of the second parameter
+  /// @return one element of the sparse normal matrix (a dense matrix)
   virtual const casa::Matrix<double>& normalMatrix(const std::string &par1, 
                         const std::string &par2) const = 0;
+  
+  /// @brief data vector for a given parameter
+  /// @details In the current framework, parameters are essentially 
+  /// vectors, not scalars. Each element of such vector is treated
+  /// independently (but only vector as a whole can be fixed). As a 
+  /// result any element of the normal matrix as well as an element of the
+  /// data vector are, in general, matrices, not scalar. For the scalar 
+  /// parameter each element of data vector is a vector of unit length.
+  /// @param[in] par the name of the parameter of interest
+  /// @return one element of the sparse data vector (a dense vector)     
+  virtual const casa::Vector<double>& dataVector(const std::string &par) const = 0;
   
 };
 
