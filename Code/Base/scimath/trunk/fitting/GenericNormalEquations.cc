@@ -199,7 +199,8 @@ void GenericNormalEquations::addParameter(const std::string &par,
               nmRowIt->second.insert(*inNMIt); // assign a matrix
               if (par != nmOldRowIt->first) {
                   // fill in a symmetric term
-                  nmOldRowIt->second.insert(std::make_pair(par,inNMIt->second));
+                  nmOldRowIt->second.insert(std::make_pair(par,
+                                transpose(inNMIt->second)));
               }         
           } else {
               // insert zero matrix, as the parameter referred by nameIt and
