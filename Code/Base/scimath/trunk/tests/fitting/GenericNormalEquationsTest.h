@@ -38,7 +38,7 @@ namespace conrad
     {
  
       CPPUNIT_TEST_SUITE(GenericNormalEquationsTest);
-      CPPUNIT_TEST(testAdd);
+      CPPUNIT_TEST(testAddDesignMatrixScalar);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -56,7 +56,7 @@ namespace conrad
         }
 
         
-        void testAdd()
+        void testAddDesignMatrixScalar()
         {
           const casa::uInt nData = 10;
           DesignMatrix dm;
@@ -71,7 +71,8 @@ namespace conrad
                               4.*nData)<1e-7);
           CPPUNIT_ASSERT(fabs(itsNE->normalMatrix("Value1", "Value0")(0,0)-
                               2.*nData)<1e-7);
-          //std::cout<<itsNE->normalMatrix("Value0", "Value1")(0,0)<<std::endl;
+          CPPUNIT_ASSERT(fabs(itsNE->normalMatrix("Value0", "Value1")(0,0)-
+                              2.*nData)<1e-7);
         }
 
     };

@@ -31,7 +31,7 @@ namespace conrad {
 
 namespace scimath {
 
-// forward declaration
+// forward declarations
 class DesignMatrix;
 
 /// @brief Normal equations without any approximation

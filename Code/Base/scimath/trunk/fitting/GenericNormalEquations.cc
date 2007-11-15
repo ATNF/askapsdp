@@ -184,29 +184,39 @@ void GenericNormalEquations::addParameter(const std::string &par,
      // this is a brand new parameter
      nmRowIt = itsNormalMatrix.insert(std::make_pair(par,MapOfMatrices())).first;
      // iterator, which points to this parameter in inNM map.
-     
      const casa::uInt newParDimension = parameterDimension(inNM); 
        
      // process normal matrix - add cross terms for all parameters, names are
      // gathered from rows (it uses the fact the normal matrix is always square)
-     for (std::map<std::string, MapOfMatrices>::const_iterator nameIt = 
-          itsNormalMatrix.begin(); nameIt != itsNormalMatrix.end(); ++nameIt) {
+     for (std::map<std::string, MapOfMatrices>::iterator nmOldRowIt = 
+          itsNormalMatrix.begin(); nmOldRowIt != itsNormalMatrix.end(); 
+          ++nmOldRowIt) {
             
           // search for an appropriate parameter in the source 
-          MapOfMatrices::const_iterator inNMIt = inNM.find(nameIt->first);           
+          MapOfMatrices::const_iterator inNMIt = inNM.find(nmOldRowIt->first);           
           if (inNMIt != inNM.end()) {
               // insert terms only if the input matrix have them
-              nmRowIt->second.insert(*inNMIt); // assign a matrix         
+              nmRowIt->second.insert(*inNMIt); // assign a matrix
+              if (par != nmOldRowIt->first) {
+                  // fill in a symmetric term
+                  nmOldRowIt->second.insert(std::make_pair(par,inNMIt->second));
+              }         
           } else {
               // insert zero matrix, as the parameter referred by nameIt and
               // the new parameter are independent and, therefore, have zero 
               // cross-terms.
               const casa::uInt thisParDimension = 
-                               parameterDimension(nameIt->second); 
-              nmRowIt->second.insert(std::make_pair(nameIt->first,
+                               parameterDimension(nmOldRowIt->second); 
+              nmRowIt->second.insert(std::make_pair(nmOldRowIt->first,
                   casa::Matrix<double>(newParDimension, thisParDimension,0.)));
+              if (par != nmOldRowIt->first) {
+                  // fill in a symmetric term
+                  nmOldRowIt->second.insert(std::make_pair(par,
+                      casa::Matrix<double>(thisParDimension, newParDimension,0.)));    
+              }
           }            
      }
+     
        
      // process data vector
      CONRADDEBUGASSERT(itsDataVector.find(par) == itsDataVector.end());
