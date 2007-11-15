@@ -114,12 +114,12 @@ struct GenericNormalEquations : public INormalEquations {
   
   /// @brief write the object to a blob stream
   /// @param[in] os the output stream
-  virtual LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os) const;
+  virtual void writeToBlob(LOFAR::BlobOStream& os) const;
 
   /// @brief read the object from a blob stream
   /// @param[in] is the input stream
   /// @note Not sure whether the parameter should be made const or not 
-  virtual LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is); 
+  virtual void readFromBlob(LOFAR::BlobIStream& is); 
 
 protected:
   // @brief map of matrices (data element of each row map)

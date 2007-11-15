@@ -33,14 +33,27 @@ struct ISerializable {
 
   /// @brief write the object to a blob stream
   /// @param[in] os the output stream
-  virtual LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os) const = 0;
+  virtual void writeToBlob(LOFAR::BlobOStream& os) const = 0;
 
   /// @brief read the object from a blob stream
   /// @param[in] is the input stream
   /// @note Not sure whether the parameter should be made const or not 
-  virtual LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is) = 0; 
+  virtual void readFromBlob(LOFAR::BlobIStream& is) = 0; 
   
 };
+
+/// @brief operator to store the object in a blob stream
+/// @param[in] os the output stream
+/// @param[in] obj a serializable object
+/// @return the output steam to be able to use chain semantics
+LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &os, const ISerializable& obj);
+
+/// @brief operator to load an object from a blob stream
+/// @param[in] is the input stream
+/// @param[in] obj a serializable object
+/// @return the input steam to be able to use chain semantics
+LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &is, ISerializable& obj);
+
 
 } // namespace conrad
 

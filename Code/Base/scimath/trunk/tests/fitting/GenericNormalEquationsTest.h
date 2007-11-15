@@ -32,6 +32,7 @@
 #include <conrad/ConradError.h>
 
 #include <boost/shared_ptr.hpp>
+#include <algorithm>
 
 namespace conrad
 {
@@ -44,6 +45,11 @@ namespace conrad
       CPPUNIT_TEST_SUITE(GenericNormalEquationsTest);
       CPPUNIT_TEST(testAddDesignMatrixScalar);
       CPPUNIT_TEST(testAddDesignMatrixNonScalar);
+      CPPUNIT_TEST(testAddIndependentParameter);
+      CPPUNIT_TEST(testMerge);
+      CPPUNIT_TEST(testConstructorFromDesignMatrix);
+      CPPUNIT_TEST_EXCEPTION(testNonConformanceError, conrad::CheckError);
+      CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -70,6 +76,11 @@ namespace conrad
           dm.addResidual(casa::Vector<casa::Double>(nData, -1.0), casa::Vector<double>(nData, 1.0));
           CPPUNIT_ASSERT(dm.nData() == nData);
           itsNE->add(dm);
+          checkScalarResults(nData);
+        }
+        
+        void checkScalarResults(casa::uInt nData) 
+        {
           // checking that A^tA and A^B were calculated correctly
           CPPUNIT_ASSERT(itsNE->normalMatrix("Value0", "Value0").shape() == 
                casa::IPosition(2,1,1));
@@ -90,7 +101,7 @@ namespace conrad
           CPPUNIT_ASSERT(itsNE->dataVector("Value0").size() == 1);                    
           CPPUNIT_ASSERT(fabs(itsNE->dataVector("Value0")[0]+double(nData))<1e-7);
           CPPUNIT_ASSERT(itsNE->dataVector("Value1").size() == 1);                    
-          CPPUNIT_ASSERT(fabs(itsNE->dataVector("Value1")[0]+2.*nData)<1e-7);     
+          CPPUNIT_ASSERT(fabs(itsNE->dataVector("Value1")[0]+2.*nData)<1e-7);             
         }
         
         static casa::Matrix<double> populateMatrix(casa::uInt nrow, casa::uInt ncol,
@@ -102,6 +113,14 @@ namespace conrad
                     result(row,col) = *buf;
                }
           }
+          return result;
+        }
+        
+        static casa::Vector<double> populateVector(casa::uInt size, 
+                                                   const double *buf)
+        {
+          casa::Vector<double> result(size,0.);
+          std::copy(buf,buf+size,result.cbegin());
           return result;
         }
         
@@ -117,11 +136,17 @@ namespace conrad
           matrix2.column(1) = 0.;
           matrix2.column(2) = -2.;
           dm.addDerivative("Value1", matrix2);
-          dm.addResidual(casa::Vector<casa::Double>(nData, 1.0), casa::Vector<double>(nData, 1.0));
+          dm.addResidual(casa::Vector<casa::Double>(nData, -1.0), casa::Vector<double>(nData, 1.0));
           CPPUNIT_ASSERT(dm.nData() == nData);
           itsNE->add(dm);
           
           // check that A^tA and A^tB were calculated correctly
+          checkNonScalarResults(nData);
+        }
+        
+        void checkNonScalarResults(casa::uInt nData) 
+        {
+          // check normal matrix first
           CPPUNIT_ASSERT(itsNE->normalMatrix("Value0", "Value0").shape() == 
                casa::IPosition(2,2,2));
           CPPUNIT_ASSERT(itsNE->normalMatrix("Value1", "Value1").shape() == 
@@ -165,8 +190,110 @@ namespace conrad
                                populateMatrix(3,1,m6)*double(nData))<1e-7);
           CPPUNIT_ASSERT(fabs(itsNE->normalMatrix("ScalarValue",
                          "ScalarValue")(0,0) - double(nData))<1e-7);
+          // check right-hand side part
+          CPPUNIT_ASSERT(itsNE->dataVector("ScalarValue").size() == 1);                    
+          CPPUNIT_ASSERT(fabs(itsNE->dataVector("ScalarValue")[0]+
+                              double(nData))<1e-7);
+          CPPUNIT_ASSERT(norm(itsNE->dataVector("Value0")+populateVector(2,m5)*
+                              double(nData))<1e-7);               
+          CPPUNIT_ASSERT(norm(itsNE->dataVector("Value1")+populateVector(3,m6)*
+                              double(nData))<1e-7);               
+        }
+        void checkIndependentResults()
+        {
+          // check independence                     
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Independent",
+                               "ScalarValue"))<1e-7);
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("ScalarValue",
+                               "Independent"))<1e-7);
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Independent", "Value0"))<1e-7);
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Independent", "Value1"))<1e-7);
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Value0", "Independent"))<1e-7);
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Value1", "Independent"))<1e-7);
+        }
+        void testAddIndependentParameter()
+        {
+          testAddDesignMatrixNonScalar();
+          const double m[] = {0.,1.,1.,0.}; // matrix for the new parameter
+          const double v[] = {2.,-3.}; // data vector for the new parameter
+          itsNE->add("Independent", populateMatrix(2,2,m), populateVector(2,v));
+          
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Independent","Independent")-
+                               populateMatrix(2,2,m))<1e-7);
+          CPPUNIT_ASSERT(norm(itsNE->dataVector("Independent")-
+                               populateVector(2,v))<1e-7);
+          // check for independence
+          checkIndependentResults();
+          // check that other matrix elements are intact (nData = 10)
+          checkNonScalarResults(10);  
+        }
+        
+        void testMerge()
+        {
+          testAddIndependentParameter();
+          boost::shared_ptr<GenericNormalEquations> bufNE = itsNE;
+          itsNE.reset(new GenericNormalEquations);
+          testAddDesignMatrixNonScalar();
+          itsNE->merge(*bufNE);
+          
+          const double m[] = {0.,1.,1.,0.}; // matrix for independent parameter
+          const double v[] = {2.,-3.}; // data vector for independent parameter
+          CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Independent","Independent")-
+                               populateMatrix(2,2,m))<1e-7);
+          CPPUNIT_ASSERT(norm(itsNE->dataVector("Independent")-
+                               populateVector(2,v))<1e-7);
+          // check for independence
+          checkIndependentResults();
+          // check other matrix elements. nData = 20 because each data
+          // point has been added twice due to merging and all matrix elements
+          // are expected to be scaled appropriately.
+          checkNonScalarResults(20);  
+        }
+        
+        void testConstructorFromDesignMatrix()
+        {
+          testAddDesignMatrixScalar();
+          const casa::uInt nData = 20;
+          DesignMatrix dm;
+          dm.addDerivative("Value0", casa::Matrix<casa::Double>(nData, 1, 1.0));
+          dm.addDerivative("Value1", casa::Matrix<casa::Double>(nData, 1, 2.0));
+          dm.addResidual(casa::Vector<casa::Double>(nData, -1.0), casa::Vector<double>(nData, 1.0));
+          CPPUNIT_ASSERT(dm.nData() == nData);
+          GenericNormalEquations gne(dm);
+          itsNE->merge(gne);
+          checkScalarResults(30); // we add more data points, elements should scale
+          itsNE->reset();
+          itsNE->merge(gne);
+          checkScalarResults(20); // now only this design matrix is important
+          itsNE=boost::dynamic_pointer_cast<GenericNormalEquations>(gne.clone());
+          CPPUNIT_ASSERT(itsNE);
+          checkScalarResults(20); // the same, but here we're checking constructor
+                                  // only
+        }
+        
+        void testNonConformanceError()
+        {
+          testAddDesignMatrixScalar();
+          testAddDesignMatrixNonScalar();
         }
 
+        void testBlobStream()
+        {
+          testAddDesignMatrixNonScalar();
+          LOFAR::BlobString bstr(false);
+          LOFAR::BlobOBufString bob(bstr);
+          LOFAR::BlobOStream bos(bob);
+          
+          bos<<*itsNE;
+          
+          itsNE->reset();
+          
+          LOFAR::BlobIBufString bib(bstr);
+          LOFAR::BlobIStream bis(bib);
+          bis>>*itsNE;
+          
+          checkNonScalarResults(10);
+        }
     };
 
   }

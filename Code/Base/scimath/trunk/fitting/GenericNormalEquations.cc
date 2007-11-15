@@ -433,27 +433,26 @@ const casa::Vector<double>& GenericNormalEquations::dataVector(const std::string
   
 /// @brief write the object to a blob stream
 /// @param[in] os the output stream
-LOFAR::BlobOStream& GenericNormalEquations::operator<<(LOFAR::BlobOStream& os) const
+void GenericNormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
 { 
-  const std::string type("unknown");
-  os<<type<<itsNormalMatrix<<itsDataVector;
-  return os;
-  
+  // increment version number on the next line and in the next method
+  // if any new data members are added  
+  os.putStart("GenericNormalEquations",1);
+  os<<itsNormalMatrix<<itsDataVector;
+  os.putEnd();
 }
 
 /// @brief read the object from a blob stream
 /// @param[in] is the input stream
 /// @note Not sure whether the parameter should be made const or not 
-LOFAR::BlobIStream& GenericNormalEquations::operator>>(LOFAR::BlobIStream& is)
+void GenericNormalEquations::readFromBlob(LOFAR::BlobIStream& is)
 { 
-  std::string type("GenericNormalEquations");
-  is>>type;
-  CONRADCHECK(type == "GenericNormalEquations", 
+  const int version = is.getStart("GenericNormalEquations");
+  CONRADCHECK(version == 1, 
               "Attempting to read from a blob stream an object of the wrong "
-              "type: expect GenericNormalEquations, found "<<type);
+              "version: expect version 1, found version "<<version);
   is>>itsNormalMatrix>>itsDataVector;
-  return is;
-               
+  is.getEnd();
 }
 
  
