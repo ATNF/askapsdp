@@ -60,7 +60,7 @@ namespace scimath
          predictReal();
          const double guessedGains[] = {1.,1.,1.,1.,1.,1.};
          createParams(&guessedGains[0],itsGuessedGains);
-         NormalEquations ne(itsGuessedGains);
+         GenericNormalEquations ne;
          calcEquationsReal(ne);
          Quality q;
          LinearSolver solver(itsGuessedGains);
@@ -91,7 +91,7 @@ namespace scimath
          createParams(makeComplex(&guessedGainsReal[0], &guessedGainsImag[0]),
                       itsGuessedGains);
          for (size_t iteration=0; iteration<5; ++iteration) {
-              NormalEquations ne(itsGuessedGains);
+              GenericNormalEquations ne;
               calcEquationsComplex(ne);
               Quality q;
               LinearSolver solver(itsGuessedGains);
@@ -206,7 +206,7 @@ namespace scimath
      /// @details This variant calculates normal equations for the case
      /// of real-valued gains (i.e. just amplitudes). 
      /// @param[in] ne a reference to normal equations object
-     void calcEquationsReal(NormalEquations &ne) {
+     void calcEquationsReal(GenericNormalEquations &ne) {
          CONRADASSERT(itsBaselines.size() == itsRealMeasuredValues.size());
          casa::Matrix<double> derivatives(itsBaselines.size(),itsNAnt,0.);
          for (size_t baseline=0; baseline<itsBaselines.size(); ++baseline) {
@@ -247,7 +247,7 @@ namespace scimath
      /// @details This variant calculates normal equations for the case
      /// of complex-valued gains (i.e. amplitudes and phases) 
      /// @param[in] ne a reference to normal equations object
-     void calcEquationsComplex(NormalEquations &ne) {
+     void calcEquationsComplex(GenericNormalEquations &ne) {
          CONRADASSERT(itsBaselines.size() == itsComplexMeasuredValues.size());
          
          // the first axis has double length because each pair of consequitive

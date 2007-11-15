@@ -8,7 +8,6 @@
 
 #include <fitting/Solver.h>
 #include <conrad/ConradError.h>
-#include <fitting/NormalEquations.h>
 
 namespace conrad
 {
@@ -17,8 +16,6 @@ namespace conrad
 
     Solver::Solver(const Params& ip) : itsParams(ip.clone())
     {
-      itsNormalEquations.reset(new NormalEquations(ip));
-      //itsNormalEquations=ne.clone();
     };
 
     Solver::~Solver()
@@ -49,16 +46,15 @@ namespace conrad
     /// @brief reset normal equations
     void Solver::resetNormalEquations() const
     {
-      CONRADDEBUGASSERT(itsNormalEquations);
-      return itsNormalEquations->reset();   
+      if (itsNormalEquations) {
+          itsNormalEquations->reset();   
+      }
     }
     
     
     void Solver::setParameters(const Params& ip)
     {
       itsParams=ip.clone();
-      NormalEquations ne(ip);
-      itsNormalEquations=ne.clone();
     }
     
 /// Return current values of params
@@ -77,8 +73,11 @@ namespace conrad
 
     void Solver::addNormalEquations(const INormalEquations& normeq)
     {
-    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver prior to adding");
-      itsNormalEquations->merge(normeq);
+      if (itsNormalEquations) {
+          itsNormalEquations->merge(normeq);
+      } else {
+          itsNormalEquations = normeq.clone();
+      }
     }
     
     bool Solver::solveNormalEquations(conrad::scimath::Quality& q)
@@ -93,9 +92,10 @@ namespace conrad
     
     void Solver::init()
     {
-    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver before reset");
-      itsNormalEquations->reset();
-    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver after reset");
+      if (itsNormalEquations) {
+         itsNormalEquations->reset();
+       	 CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver after reset");
+      }
     }
     
   }
