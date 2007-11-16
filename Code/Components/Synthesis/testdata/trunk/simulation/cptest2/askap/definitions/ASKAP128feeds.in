@@ -1,4 +1,4 @@
-feeds.spacing=0.5deg
+feeds.spacing=1.0deg
 feeds.names=[feed0, feed1, feed2, feed3, feed4, feed5, feed6, feed7, feed8, feed9, feed10, feed11, feed12, feed13, feed14, feed15, feed16, feed17, feed18, feed19, feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31, feed32, feed33, feed34, feed35, feed36, feed37, feed38, feed39, feed40, feed41, feed42, feed43, feed44, feed45, feed46, feed47, feed48, feed49, feed50, feed51, feed52, feed53, feed54, feed55, feed56, feed57, feed58, feed59, feed60, feed61, feed62, feed63, feed64, feed65, feed66, feed67, feed68, feed69, feed70, feed71, feed72, feed73, feed74, feed75, feed76, feed77, feed78, feed79, feed80, feed81, feed82, feed83, feed84, feed85, feed86, feed87, feed88, feed89, feed90, feed91, feed92, feed93, feed94, feed95, feed96, feed97, feed98, feed99, feed100, feed101, feed102, feed103, feed104, feed105, feed106, feed107, feed108, feed109, feed110, feed111, feed112, feed113, feed114, feed115, feed116, feed117, feed118, feed119, feed120, feed121, feed122, feed123, feed124, feed125, feed126, feed127]
 feeds.feed0=[-1.750000,-2.750000]
 feeds.feed1=[-0.750000,-2.750000]

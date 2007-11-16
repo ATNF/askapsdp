@@ -2,7 +2,7 @@ from pylab import *
 
 nfeeds=32
 
-print "feeds.spacing=0.5deg"
+print "feeds.spacing=1.0deg"
 feeds="[feed0"
 for feed in range(1,4*nfeeds-1):
     feeds="%s, feed%d"%(feeds,feed)
