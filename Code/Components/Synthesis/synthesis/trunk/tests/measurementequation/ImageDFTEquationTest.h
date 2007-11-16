@@ -87,7 +87,7 @@ namespace conrad
 // Calculate gradients using "imperfect" parameters"
           p1->predict();
 // Predict with the "perfect" parameters"
-          NormalEquations ne(*params2);
+          GenericNormalEquations ne; //(*params2);
           p2->calcEquations(ne);
           {
             LinearSolver solver1(*params2);
@@ -109,7 +109,7 @@ namespace conrad
         void testFixed()
         {
           p1->predict();
-          NormalEquations ne(*params2);
+          GenericNormalEquations ne; //(*params2);
           p2->calcEquations(ne);
           Quality q;
           params2->fix("image.i.cena");

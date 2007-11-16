@@ -10,7 +10,7 @@
 #define SCIMATHLINEARSOLVER_H_
 
 #include <fitting/Solver.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 

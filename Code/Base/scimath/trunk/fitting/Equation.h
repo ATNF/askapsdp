@@ -44,7 +44,7 @@
 ///    quadratic.set(0.0);
 ///    ip.update("poly", quadratic);
 ///
-///    NormalEquations normeq(ip);
+///    GenericNormalEquations normeq;
 ///    poly.calcEquations(normeq);
 ///
 ///    LinearSolver solver(ip);
@@ -74,7 +74,7 @@
 #define SCIMATHEQUATION_H
 
 #include <fitting/Params.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/INormalEquations.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -115,7 +115,7 @@ namespace conrad
 
 /// Calculate the normal equations for the given data and parameters
 /// @param ne Normal equations to be filled
-        virtual void calcEquations(NormalEquations& ne) {};
+        virtual void calcEquations(INormalEquations& ne) {};
 
 /// Shared pointer definition
         typedef boost::shared_ptr<Equation> ShPtr;

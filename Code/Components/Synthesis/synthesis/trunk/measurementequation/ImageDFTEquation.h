@@ -9,7 +9,7 @@
 #define SYNIMAGEDFTEQUATION_H_
 
 #include <fitting/Params.h>
-#include <fitting/Equation.h>
+#include <fitting/GenericEquation.h>
 
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataIterator.h>
@@ -30,7 +30,7 @@ namespace conrad
     /// @details This class does predictions and calculates normal equations
     /// images. Parameter names are image.{i,q,u,v}.*
     /// @ingroup measurementequation
-    class ImageDFTEquation : public conrad::scimath::Equation
+    class ImageDFTEquation : public conrad::scimath::GenericEquation
     {
       public:
         /// Standard constructor
@@ -60,7 +60,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcEquations(conrad::scimath::NormalEquations& ne);
+        virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne);
 
       private:
       /// Iterator giving access to the visibility data

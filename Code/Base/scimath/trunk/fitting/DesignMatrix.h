@@ -38,7 +38,7 @@ namespace conrad {
   
 namespace scimath {
 
-class NormalEquations;
+
 
 /// Format of A matrix
 typedef std::vector<casa::Matrix<casa::Double> > DMAMatrix;
@@ -119,7 +119,7 @@ public:
   /// Clone this into a shared pointer
   DesignMatrix::ShPtr clone() const;
 
-  friend class NormalEquations;
+  
 
 private:
   

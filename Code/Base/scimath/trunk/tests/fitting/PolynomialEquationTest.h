@@ -1,5 +1,6 @@
 #include <fitting/PolynomialEquation.h>
 #include <fitting/CompositeEquation.h>
+#include <fitting/GenericNormalEquations.h>
 #include <fitting/LinearSolver.h>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -117,7 +118,7 @@ namespace conrad
           // two parabolas (need to go far from the origin), as a result we
           // need to increase the limit on the condition number.
           LinearSolver solver(itsPolyWrong->parameters(),1e5);
-          NormalEquations normeq(itsPolyWrong->parameters());
+          GenericNormalEquations normeq; //(itsPolyWrong->parameters());
           itsPolyWrong->calcEquations(normeq);
           solver.addNormalEquations(normeq);
           
@@ -135,7 +136,7 @@ namespace conrad
         
         void testSolutionNEChol()
         {
-          NormalEquations normeq(itsPolyWrong->parameters());
+          GenericNormalEquations normeq; //(itsPolyWrong->parameters());
           itsPolyWrong->calcEquations(normeq);
           LinearSolver solver(itsPolyWrong->parameters());
           solver.addNormalEquations(normeq);
@@ -153,7 +154,7 @@ namespace conrad
           comp.add(*itsPolyPerfect);
           comp.predict();
           Params ip(comp.parameters());
-          NormalEquations normeq(ip);
+          GenericNormalEquations normeq;//(ip);
           comp.calcEquations(normeq);
           casa::Vector<double> pvals(ip.value("poly").size());
           pvals.set(0.0);

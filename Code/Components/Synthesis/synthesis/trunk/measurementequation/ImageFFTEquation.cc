@@ -31,7 +31,7 @@ namespace conrad
 
 		ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
 		    IDataSharedIter& idi) :
-			conrad::scimath::Equation(ip), itsIdi(idi)
+			conrad::scimath::ImagingEquation(ip), itsIdi(idi)
 		{
 			itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
 			init();
@@ -39,7 +39,7 @@ namespace conrad
 		;
 
 		ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi) :
-			conrad::scimath::Equation(), itsIdi(idi)
+		    itsIdi(idi)
 		{
 			itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
 			rwParameters()=defaultParameters().clone();
@@ -48,7 +48,7 @@ namespace conrad
 
 		ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
 		    IDataSharedIter& idi, IVisGridder::ShPtr gridder) :
-			conrad::scimath::Equation(ip), itsGridder(gridder), itsIdi(idi)
+			conrad::scimath::ImagingEquation(ip), itsGridder(gridder), itsIdi(idi)
 		{
 			init();
 		}
@@ -56,7 +56,7 @@ namespace conrad
 
 		ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi,
 		    IVisGridder::ShPtr gridder) :
-			conrad::scimath::Equation(), itsGridder(gridder), itsIdi(idi)
+			itsGridder(gridder), itsIdi(idi)
 		{
 			rwParameters()=defaultParameters().clone();
 			init();
@@ -129,7 +129,7 @@ namespace conrad
 		// Calculate the residual visibility and image. We transform the model on the fly
 		// so that we only have to read (and write) the data once. This uses more memory
 		// but cuts down on IO
-		void ImageFFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
+		void ImageFFTEquation::calcImagingEquations(conrad::scimath::NormalEquations& ne)
 		{
 
 			// We will need to loop over all completions i.e. all sources

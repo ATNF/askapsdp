@@ -1,7 +1,7 @@
 #include <dataaccess/SharedIter.h>
 #include <fitting/Params.h>
 #include <measurementequation/ImageDFTEquation.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/GenericNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Axes.h>
 
@@ -17,7 +17,6 @@
 
 using conrad::scimath::Params;
 using conrad::scimath::Axes;
-using conrad::scimath::NormalEquations;
 using conrad::scimath::DesignMatrix;
 
 namespace conrad
@@ -26,12 +25,12 @@ namespace conrad
   {
 
     ImageDFTEquation::ImageDFTEquation(const conrad::scimath::Params& ip,
-      IDataSharedIter& idi) : conrad::scimath::Equation(ip), itsIdi(idi) 
+      IDataSharedIter& idi) : conrad::scimath::GenericEquation(ip), itsIdi(idi) 
       {
         init();
       };
         
-    ImageDFTEquation::ImageDFTEquation(IDataSharedIter& idi) : conrad::scimath::Equation(), 
+    ImageDFTEquation::ImageDFTEquation(IDataSharedIter& idi) :  
       itsIdi(idi) 
     {
       rwParameters()=defaultParameters().clone();
@@ -51,7 +50,7 @@ namespace conrad
     {
       if(this!=&other)
       {
-        static_cast<conrad::scimath::Equation*>(this)->operator=(other);
+        static_cast<conrad::scimath::GenericEquation*>(this)->operator=(other);
         itsIdi=other.itsIdi;
       }
       return *this;
@@ -127,7 +126,7 @@ namespace conrad
       }
     };
 
-    void ImageDFTEquation::calcEquations(conrad::scimath::NormalEquations& ne)
+    void ImageDFTEquation::calcGenericEquations(scimath::GenericNormalEquations& ne)
     {
 // Loop over all completions i.e. all sources
       vector<string> completions(parameters().completions("image.i"));

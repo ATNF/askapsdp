@@ -18,7 +18,7 @@
 #include <conrad/ConradUtil.h>
 #include <dataaccess/MemBufferDataAccessor.h>
 #include <measurementequation/VectorOperations.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/GenericNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 
@@ -48,7 +48,7 @@ using namespace conrad::synthesis;
 /// only, and, therefore, the dependency on iterator will be removed
 GainCalibrationEquation::GainCalibrationEquation(const conrad::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
-            MultiChunkEquation(idi), conrad::scimath::Equation(ip),
+            MultiChunkEquation(idi), conrad::scimath::GenericEquation(ip),
             itsPerfectVisME(ime) {}
   
 /// @brief Predict model visibilities for one accessor (chunk).
@@ -96,7 +96,7 @@ void GainCalibrationEquation::predict(IDataAccessor &chunk) const
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
 void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
-                                   conrad::scimath::NormalEquations& ne) const
+                              conrad::scimath::GenericNormalEquations& ne) const
 {
   MemBufferDataAccessor  buffChunk(chunk);
   itsPerfectVisME.predict(buffChunk);
@@ -268,5 +268,17 @@ void GainCalibrationEquation::splitParameterString(const std::string &str,
            pos=newPos+1;
          }
   }
+}
+
+/// @brief Calculate the normal equations for the iterator
+/// @details This version iterates through all chunks of data and
+/// calls an abstract method declared in IMeasurementEquation for each 
+/// individual accessor (each iteration of the iterator)
+/// @note there is probably a problem with constness here. Hope this method is
+/// only temporary here.
+/// @param[in] ne Normal equations
+void GainCalibrationEquation::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne)
+{
+  MultiChunkEquation::calcGenericEquations(ne);
 }
 

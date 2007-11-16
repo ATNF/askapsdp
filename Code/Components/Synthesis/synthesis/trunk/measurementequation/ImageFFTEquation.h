@@ -10,7 +10,7 @@
 #define SYNIMAGEFFTEQUATION_H_
 
 #include <fitting/Params.h>
-#include <fitting/Equation.h>
+#include <fitting/ImagingEquation.h>
 
 #include <gridding/IVisGridder.h>
 #include <dataaccess/SharedIter.h>
@@ -33,7 +33,7 @@ namespace conrad
     /// images. Parameter names are image.{i,q,u,v}.*
     /// The transforms are done using gridding and FFTs.
     /// @ingroup measurementequation
-    class ImageFFTEquation : public conrad::scimath::Equation
+    class ImageFFTEquation : public conrad::scimath::ImagingEquation
     {
       public:
 
@@ -76,7 +76,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcEquations(conrad::scimath::NormalEquations& ne);
+        virtual void calcImagingEquations(conrad::scimath::NormalEquations& ne);
 
       private:
       

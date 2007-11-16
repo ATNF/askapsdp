@@ -17,9 +17,9 @@
 #include <utility>
 
 // own includes
-#include <fitting/Equation.h>
+#include <fitting/GenericEquation.h>
 #include <fitting/Params.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/GenericNormalEquations.h>
 
 #include <measurementequation/MultiChunkEquation.h>
 #include <dataaccess/IDataAccessor.h>
@@ -37,7 +37,7 @@ namespace synthesis {
 /// normal equations, which allow to solve for unknowns in the gain matrix.
 /// @ingroup measurementequation
 class GainCalibrationEquation : virtual public MultiChunkEquation,
-                                virtual public conrad::scimath::Equation
+                                virtual public conrad::scimath::GenericEquation
 {
 public:
 
@@ -71,11 +71,23 @@ public:
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                                   conrad::scimath::NormalEquations& ne) const;
+                         conrad::scimath::GenericNormalEquations& ne) const;
   
     
   using MultiChunkEquation::predict;
   using MultiChunkEquation::calcEquations;
+  using conrad::scimath::GenericEquation::calcEquations;
+       
+  
+  /// @brief Calculate the normal equations for the iterator
+  /// @details This version iterates through all chunks of data and
+  /// calls an abstract method declared in IMeasurementEquation for each 
+  /// individual accessor (each iteration of the iterator)
+  /// @note I hope this method is temporary, untill a proper constness of the
+  /// method is restored.
+  /// @param[in] ne Normal equations
+  virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne);
+  
 protected:
   
   /// @brief obtain a name of the parameter
@@ -107,7 +119,7 @@ protected:
   ///                   be added to. 
   static void splitParameterString(const std::string &str,
                      std::vector<std::string> &parts) throw(); 
-   
+     
 private:
   /// @brief measurement equation giving perfect visibilities
   const IMeasurementEquation &itsPerfectVisME;  

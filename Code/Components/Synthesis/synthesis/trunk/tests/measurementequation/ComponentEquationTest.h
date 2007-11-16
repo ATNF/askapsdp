@@ -102,7 +102,7 @@ namespace conrad
         void testAssembly()
         {
 // Predict with the "perfect" parameters"
-          NormalEquations ne(*params1);
+          GenericNormalEquations ne; //(*params1);
           p1->predict();
 // Calculate gradients using "imperfect" parameters"
           p2->calcEquations(ne);
@@ -112,7 +112,7 @@ namespace conrad
 
         void testConstructNormalEquations()
         {
-          NormalEquations ne(*params1);
+          GenericNormalEquations ne; //(*params1);
           p2->calcEquations(ne);
           vector<string> names(params1->freeNames());
           for (uint row=0;row<names.size();row++)
@@ -132,7 +132,7 @@ namespace conrad
 // Predict with the "perfect" parameters"
           p1->predict();
 // Calculate gradients using "imperfect" parameters"
-          NormalEquations ne(*params2);
+          GenericNormalEquations ne; //(*params2);
           p2->calcEquations(ne);
           Quality q;
           LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
@@ -155,7 +155,7 @@ namespace conrad
 // Predict with the "perfect" parameters"
           p1->predict();
 // Calculate gradients using "imperfect" parameters"
-          NormalEquations ne(*params2);
+          GenericNormalEquations ne; //(*params2);
           p2->calcEquations(ne);
           {
             Quality q;
@@ -216,7 +216,7 @@ namespace conrad
 
         void testNoFree()
         {
-          NormalEquations ne(*params1);
+          GenericNormalEquations ne; //(*params1);
           p1->predict();
           p2->calcEquations(ne);
           Quality q;

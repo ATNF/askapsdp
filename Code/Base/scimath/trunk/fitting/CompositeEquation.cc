@@ -48,7 +48,7 @@ namespace conrad
       }
     }
 
-    void CompositeEquation::calcEquations(NormalEquations& ne)
+    void CompositeEquation::calcEquations(INormalEquations& ne)
     {
       for (std::list<Equation::ShPtr>::iterator it=itsList.begin();
         it!=itsList.end();it++)

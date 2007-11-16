@@ -94,7 +94,7 @@ namespace conrad
 					}
 				}
 				if(itsNNode>1) {
-				  CONRADCHECK(itsMs.size()==(itsNNode-1),
+				  CONRADCHECK(int(itsMs.size()) == (itsNNode-1),
 					      "When running in parallel, need one data set per node");
 				}
 
@@ -152,7 +152,7 @@ namespace conrad
 					CONRADCHECK(itsSolver, "Solver not defined correctly");
 					itsSolver->init();
 					itsSolver->setParameters(*itsModel);
-					for (int iMs=0; iMs<itsMs.size(); iMs++)
+					for (size_t iMs=0; iMs<itsMs.size(); iMs++)
 					{
 						calcOne(itsMs[iMs]);
 						itsSolver->addNormalEquations(*itsNe);

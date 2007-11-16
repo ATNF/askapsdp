@@ -110,7 +110,7 @@ namespace conrad
           }
           for (size_t iter=0; iter<5; ++iter) {
                // Calculate gradients using "imperfect" parameters"
-               NormalEquations ne(*params2);
+               GenericNormalEquations ne; //(*params2);
                eq2->calcEquations(ne);
                Quality q;
                LinearSolver solver1(*params2);

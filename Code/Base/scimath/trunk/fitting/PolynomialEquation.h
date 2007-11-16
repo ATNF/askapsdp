@@ -16,8 +16,7 @@
 #ifndef SCIMATHPOLYEQUATION_H
 #define SCIMATHPOLYEQUATION_H
 
-#include <fitting/Equation.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/GenericEquation.h>
 
 namespace conrad
 {
@@ -25,7 +24,7 @@ namespace conrad
   namespace scimath
   {
     /// Represent a polynomial of arbitrary degree
-    class PolynomialEquation : public Equation
+    class PolynomialEquation : public GenericEquation
     {
       public:
 
@@ -67,7 +66,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcEquations(NormalEquations& ne);
+        virtual void calcGenericEquations(GenericNormalEquations& ne);
 
 /// Clone this
         virtual Equation::ShPtr clone() const;

@@ -44,7 +44,7 @@ namespace conrad
 
 /// Calculate the normal equations for the given data and parameters
 /// @param ne Normal equations to be filled
-        virtual void calcEquations(NormalEquations& ne);
+        virtual void calcEquations(INormalEquations& ne);
 
 /// Clone this
         virtual CompositeEquation::ShPtr clone();

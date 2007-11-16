@@ -8,7 +8,7 @@
 
 #include <fitting/Params.h>
 #include <fitting/PolynomialEquation.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/DesignMatrix.h>
 
 #include <casa/Arrays/Vector.h>
@@ -19,7 +19,6 @@
 
 #include <cmath>
 
-using conrad::scimath::NormalEquations;
 using conrad::scimath::DesignMatrix;
 
 namespace conrad
@@ -31,7 +30,7 @@ namespace conrad
       casa::Vector<double>& data,
       casa::Vector<double>& weights,
       casa::Vector<double>& arguments,
-      casa::Vector<double>& model) : Equation(ip), itsData(data),
+      casa::Vector<double>& model) : GenericEquation(ip), itsData(data),
       itsWeights(weights), itsArguments(arguments), itsModel(model)
     {
     };
@@ -39,7 +38,7 @@ namespace conrad
     PolynomialEquation::PolynomialEquation(casa::Vector<double>& data,
       casa::Vector<double>& weights,
       casa::Vector<double>& arguments,
-      casa::Vector<double>& model) : Equation(), itsData(data),
+      casa::Vector<double>& model) :  itsData(data),
       itsWeights(weights), itsArguments(arguments), itsModel(model)
     {
     };
@@ -93,7 +92,7 @@ namespace conrad
       }
     }
 
-    void PolynomialEquation::calcEquations(NormalEquations& ne)
+    void PolynomialEquation::calcGenericEquations(GenericNormalEquations& ne)
     {
     	itsModel.set(0.0);
 

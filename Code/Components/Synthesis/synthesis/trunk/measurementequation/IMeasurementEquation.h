@@ -13,8 +13,7 @@
 #define I_MEASUREMENT_EQUATION_H
 
 // own includes
-#include <fitting/Equation.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/GenericNormalEquations.h>
 #include <dataaccess/IDataAccessor.h>
 #include <dataaccess/IConstDataAccessor.h>
 
@@ -54,7 +53,7 @@ struct IMeasurementEquation
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                          conrad::scimath::NormalEquations& ne) const = 0;
+                          conrad::scimath::GenericNormalEquations& ne) const = 0;
 };
 
 } // namespace synthesis

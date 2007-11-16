@@ -29,7 +29,7 @@ MultiChunkEquation::MultiChunkEquation(const IDataSharedIter& idi) :
 /// calls an abstract method declared in IMeasurementEquation for each 
 //// individual accessor (each iteration of the iterator)
 /// @param[in] ne Normal equations
-void MultiChunkEquation::calcEquations(conrad::scimath::NormalEquations& ne) const
+void MultiChunkEquation::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const
 { 
   for (itsSharedIterator.init(); itsSharedIterator.hasMore(); 
                                  itsSharedIterator.next()) {
