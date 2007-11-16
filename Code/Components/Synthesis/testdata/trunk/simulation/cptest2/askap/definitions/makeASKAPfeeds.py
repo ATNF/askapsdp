@@ -1,3 +1,4 @@
+from pylab import *
 
 nfeeds=32
 
@@ -10,13 +11,10 @@ feeds="%s, feed%d]"%(feeds,4*nfeeds-1)
 print "feeds.names=%s"%feeds
 
 feedid=0
-minx=100
-maxx=-100
-miny=100
-maxy=-100
-for cenx in [-0.0,+1.0]:
-    for ceny in [-0.0,+1.0]:
-    
+fx=zeros(4*nfeeds, 'f')
+fy=zeros(4*nfeeds, 'f')
+for offx in [-0.25,0.25]:
+    for offy in [-0.25,0.25]:
         for feed in range(nfeeds):
             if feed<4:
                 x=feed+1
@@ -27,13 +25,8 @@ for cenx in [-0.0,+1.0]:
             else:
                 x=feed-28+1
                 y=5
-            fx=2*x+cenx-5.5
-            fy=2*y+ceny-5.5
-            minx=min(fx,minx)
-            miny=min(fy,miny)
-            maxx=max(fx,maxx)
-            maxy=max(fy,maxy)
-            print "feeds.feed%d=[%f,%f]"%(feedid,fx,fy)
+            fx[feedid]=x-2.5+offx
+            fy[feedid]=y-2.5+offy
+            print "feeds.feed%d=[%f,%f]"%(feedid,fx[feedid],fy[feedid])
             feedid=feedid+1
 
-#print minx, miny, maxx, maxy
