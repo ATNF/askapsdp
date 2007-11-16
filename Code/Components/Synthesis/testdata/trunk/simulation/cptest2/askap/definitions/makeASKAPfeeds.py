@@ -10,8 +10,12 @@ feeds="%s, feed%d]"%(feeds,4*nfeeds-1)
 print "feeds.names=%s"%feeds
 
 feedid=0
-for cenx in [-0.5,+0.5]:
-    for ceny in [-0.5,+0.5]:
+minx=100
+maxx=-100
+miny=100
+maxy=-100
+for cenx in [-0.0,+1.0]:
+    for ceny in [-0.0,+1.0]:
     
         for feed in range(nfeeds):
             if feed<4:
@@ -23,8 +27,13 @@ for cenx in [-0.5,+0.5]:
             else:
                 x=feed-28+1
                 y=5
-            fx=2*x+cenx-5.0
-            fy=2*y+ceny-5.0
-            feedid=feedid+1
+            fx=2*x+cenx-5.5
+            fy=2*y+ceny-5.5
+            minx=min(fx,minx)
+            miny=min(fy,miny)
+            maxx=max(fx,maxx)
+            maxy=max(fy,maxy)
             print "feeds.feed%d=[%f,%f]"%(feedid,fx,fy)
+            feedid=feedid+1
 
+#print minx, miny, maxx, maxy
