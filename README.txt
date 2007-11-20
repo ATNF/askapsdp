@@ -66,3 +66,36 @@ Install Code
 cd $CONRAD_PROJECT_ROOT/Code
 python setup.py -q install
 
+Release Process
+===============
+One of the primary motivations for all of the above procedure is to facilitate
+releasing tagged versions of projects. To support this a releaseprocess toolbox
+is provided in Tools. A project can create a release by providing a release.py
+script that internally calls releaseprocess.release.
+
+This will create a tar file that can be deployed to a destination machine, untarred
+and then installed. Currently the convention is to run the install out of a sandbox
+rather than embedding many files in standard locations on the destination machine.
+This makes it easier to remove an installed system.
+
+A number of conventions should be adhered to when creating the release.py script in
+order to ensure a predictable experience when installing a system. With that in
+mind, it is intended that an install should consist of the following steps:
+1. Untar the tar file
+2. cd into the tar file
+3. execute ./complete.sh
+4. enter root password if prompted, or confirm install options
+
+The following assumptions are made:
+1. services will be automatically started by the install and that previously running 
+   versions will be removed. Parameters for service scripts should be written in 
+   /etc/default/servicename to correspond with the service script in 
+   /etc/init.d/servicename.
+2. services will log to /var/log/servicename.log
+3. deleting the untarred directory will gracefully disable the service because it should
+   contain a test for the necessary files. Ideally the default, init.d and log files 
+   could be removed too.
+
+More details are provided with the different versions of releaseprocess at 
+Tools/releaseprocess. They can be read by executing python setup.py doc or examining the 
+source code directly for the relevant version.
