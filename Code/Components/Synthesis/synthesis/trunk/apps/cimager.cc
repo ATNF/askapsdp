@@ -69,6 +69,7 @@ int main(int argc, const char** argv)
 		{
 			/// No cycling - just make a dirty image
 			imager.broadcastModel();
+			imager.receiveModel();
 			imager.calcNE();
 			imager.solveNE();
 		}
