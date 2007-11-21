@@ -71,3 +71,4 @@ struct ImagingEquation : public Equation {
 } // namespace conrad
 
 #endif // #ifndef IMAGING_EQUATION_H
+

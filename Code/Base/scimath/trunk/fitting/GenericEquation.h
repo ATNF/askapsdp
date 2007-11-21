@@ -65,3 +65,4 @@ struct GenericEquation : public Equation {
 } // namespace conrad
 
 #endif // #ifndef GENERIC_EQUATION_H
+
