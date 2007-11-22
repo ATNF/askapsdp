@@ -1,12 +1,18 @@
 /// @file
-///
-/// NormalEquations: Hold the normal equations for parameters.
+/// @brief Normal equations with an approximation for imaging
+/// @details There are two kinds of normal equations currently supported. The
+/// first one is a generic case, where the full normal matrix is retained. It
+/// is used for calibration. The second one is intended for imaging, where we
+/// can't afford to keep the whole normal matrix. In the latter approach, the 
+/// matrix is approximated by a sum of diagonal and shift invariant matrices. 
+/// This class represents the approximated case, and is used with imaging 
+/// algorithms.
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef SCIMATHNORMALEQUATIONS_H_
-#define SCIMATHNORMALEQUATIONS_H_
+#ifndef IMAGING_NORMAL_EQUATIONS_H
+#define IMAGING_NORMAL_EQUATIONS_H
 
 #include <fitting/Params.h>
 #include <fitting/INormalEquations.h>
@@ -30,32 +36,32 @@ namespace conrad
     
     class DesignMatrix;
     
-    /// @brief Hold the normal equations 
-    class NormalEquations : public INormalEquations
-    /// Fully general normal equations
+/// @brief Normal equations with an approximation for imaging
+/// @details There are two kinds of normal equations currently supported. The
+/// first one is a generic case, where the full normal matrix is retained. It
+/// is used for calibration. The second one is intended for imaging, where we
+/// can't afford to keep the whole normal matrix. In the latter approach, the 
+/// matrix is approximated by a sum of diagonal and shift invariant matrices. 
+/// This class represents the approximated case, and is used with imaging 
+/// algorithms.
+    class ImagingNormalEquations : public INormalEquations
     {
     public:
       
-      NormalEquations();
+      ImagingNormalEquations();
       
       /// @brief Construct for the specified parameters
       ///
       /// Initialisation does not allocate much memory.
       /// @param ip Parameters
-      NormalEquations(const Params& ip);
-      
-      /// Copy constructor
-      NormalEquations(const NormalEquations& normeq);
-      
-      /// Assignment operator
-      NormalEquations& operator=(const NormalEquations& normeq);
-      
-      virtual ~NormalEquations();
+      ImagingNormalEquations(const Params& ip);
+        
+      virtual ~ImagingNormalEquations();
       
       /// Construct the normal equations from the design matrix
       /// @param ip parameters (design matrix no longer holds them)
       /// @param dm Design matrix
-      NormalEquations(const Params &ip, const DesignMatrix& dm);
+      ImagingNormalEquations(const Params &ip, const DesignMatrix& dm);
       
       /// Add the design matrix to the normal equations
       /// @param dm Design matrix
@@ -202,7 +208,7 @@ namespace conrad
       virtual void reset();
       
       /// Shared pointer definition
-      typedef boost::shared_ptr<NormalEquations> ShPtr;
+      typedef boost::shared_ptr<ImagingNormalEquations> ShPtr;
       
       /// Clone this into a shared pointer
       virtual INormalEquations::ShPtr clone() const;
@@ -236,6 +242,6 @@ namespace conrad
       std::map<string, casa::Vector<double> > itsDataVector;
     };
     
-  }
-}
-#endif
+  }  // namespace scimath
+} // namespace conrad
+#endif // #ifndef IMAGING_NORMAL_EQUATIONS_H

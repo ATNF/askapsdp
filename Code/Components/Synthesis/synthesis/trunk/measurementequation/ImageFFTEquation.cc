@@ -2,7 +2,7 @@
 #include <fitting/Params.h>
 #include <measurementequation/ImageFFTEquation.h>
 #include <gridding/SphFuncVisGridder.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/ImagingNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Axes.h>
 
@@ -21,7 +21,7 @@
 
 using conrad::scimath::Params;
 using conrad::scimath::Axes;
-using conrad::scimath::NormalEquations;
+using conrad::scimath::ImagingNormalEquations;
 using conrad::scimath::DesignMatrix;
 
 namespace conrad
@@ -129,7 +129,7 @@ namespace conrad
 		// Calculate the residual visibility and image. We transform the model on the fly
 		// so that we only have to read (and write) the data once. This uses more memory
 		// but cuts down on IO
-		void ImageFFTEquation::calcImagingEquations(conrad::scimath::NormalEquations& ne)
+		void ImageFFTEquation::calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne)
 		{
 
 			// We will need to loop over all completions i.e. all sources

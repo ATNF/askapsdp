@@ -76,7 +76,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcImagingEquations(conrad::scimath::NormalEquations& ne);
+        virtual void calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne);
 
       private:
       

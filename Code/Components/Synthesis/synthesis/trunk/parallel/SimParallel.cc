@@ -199,7 +199,7 @@ namespace conrad
 			    }
 
 			    const vector<string> sources=parset.getStringVector("sources.names");
-			    for (int i=0; i<sources.size(); ++i)
+			    for (size_t i=0; i<sources.size(); ++i)
 			    {
 				    {
 					    ostringstream oos;

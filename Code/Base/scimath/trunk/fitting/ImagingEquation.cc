@@ -41,7 +41,7 @@ ImagingEquation::ImagingEquation(const Params &ip) : Equation(ip) {}
 void ImagingEquation::calcEquations(INormalEquations &ne) 
 {
   try {
-     calcImagingEquations(dynamic_cast<NormalEquations&>(ne));
+     calcImagingEquations(dynamic_cast<ImagingNormalEquations&>(ne));
   }
   catch (const std::bad_cast &bc) {
      CONRADTHROW(ConradError, "An attempt to use incompatible type of "

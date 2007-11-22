@@ -1,13 +1,19 @@
 /// @file
-///
-/// Holds the normal equations for a set of linear equations
+/// @brief Normal equations with an approximation for imaging
+/// @details There are two kinds of normal equations currently supported. The
+/// first one is a generic case, where the full normal matrix is retained. It
+/// is used for calibration. The second one is intended for imaging, where we
+/// can't afford to keep the whole normal matrix. In the latter approach, the 
+/// matrix is approximated by a sum of diagonal and shift invariant matrices. 
+/// This class represents the approximated case, and is used with imaging 
+/// algorithms.
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 
 #include <fitting/DesignMatrix.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/ImagingNormalEquations.h>
 #include <fitting/Params.h>
 
 #include <casa/aips.h>
@@ -40,9 +46,9 @@ namespace conrad
   namespace scimath
   {
 
-    NormalEquations::NormalEquations() {};
+    ImagingNormalEquations::ImagingNormalEquations() {};
     
-    NormalEquations::NormalEquations(const Params& ip) : itsParams(ip.clone())
+    ImagingNormalEquations::ImagingNormalEquations(const Params& ip) : itsParams(ip.clone())
     {
       vector<string> names=ip.freeNames();
       vector<string>::iterator iterRow;
@@ -61,27 +67,8 @@ namespace conrad
       }
     }
 
-    NormalEquations::NormalEquations(const NormalEquations& other)
-    {
-      operator=(other);
-    }
 
-    NormalEquations& NormalEquations::operator=(const NormalEquations& other)
-    {
-      if(this!=&other)
-      {
-        itsParams=other.itsParams;
-        itsNormalMatrix=other.itsNormalMatrix;
-        itsNormalMatrixSlice=other.itsNormalMatrixSlice;
-        itsNormalMatrixDiagonal=other.itsNormalMatrixDiagonal;
-        itsDataVector=other.itsDataVector;
-        itsShape=other.itsShape;
-        itsReference=other.itsReference;
-      }
-      return *this;
-    }
-
-    NormalEquations::NormalEquations(const Params &ip, const DesignMatrix& dm)
+    ImagingNormalEquations::ImagingNormalEquations(const Params &ip, const DesignMatrix& dm)
     {
       //itsParams=dm.parameters().clone();
       itsParams=ip.clone();
@@ -175,7 +162,7 @@ namespace conrad
       }
     }
 
-    void NormalEquations::add(const DesignMatrix& dm)
+    void ImagingNormalEquations::add(const DesignMatrix& dm)
     {
       //itsParams->merge(dm.parameters());
       std::set<string> names=dm.parameterNames();
@@ -273,7 +260,7 @@ namespace conrad
       }
     }
 
-    NormalEquations::~NormalEquations()
+    ImagingNormalEquations::~ImagingNormalEquations()
     {
       reset();
     }
@@ -285,10 +272,11 @@ namespace conrad
   /// implementation. 
   /// This means that we just add
   /// @param[in] src an object to get the normal equations from
-  void NormalEquations::merge(const INormalEquations& src)
+  void ImagingNormalEquations::merge(const INormalEquations& src)
   {
     try {
-      const NormalEquations &other = dynamic_cast<const NormalEquations&>(src);    
+      const ImagingNormalEquations &other = 
+                         dynamic_cast<const ImagingNormalEquations&>(src);    
   
       itsParams->merge(*other.itsParams);
       vector<string> names=itsParams->freeNames();
@@ -342,12 +330,12 @@ namespace conrad
     }
   }
 
-    const std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixDiagonal() const
+    const std::map<string, casa::Vector<double> >& ImagingNormalEquations::normalMatrixDiagonal() const
     {
       return itsNormalMatrixDiagonal;
     }
 
-    const std::map<string, casa::Vector<double> >& NormalEquations::normalMatrixSlice() const
+    const std::map<string, casa::Vector<double> >& ImagingNormalEquations::normalMatrixSlice() const
     {
       return itsNormalMatrixSlice;
     }
@@ -362,7 +350,7 @@ namespace conrad
 /// @param[in] par1 the name of the first parameter
 /// @param[in] par2 the name of the second parameter
 /// @return one element of the sparse normal matrix (a dense matrix)
-const casa::Matrix<double>& NormalEquations::normalMatrix(const std::string &par1, 
+const casa::Matrix<double>& ImagingNormalEquations::normalMatrix(const std::string &par1, 
                         const std::string &par2) const
 {
    std::map<string,std::map<string, casa::Matrix<double> > >::const_iterator cIt1 = 
@@ -383,7 +371,7 @@ const casa::Matrix<double>& NormalEquations::normalMatrix(const std::string &par
 /// parameter each element of data vector is a vector of unit length.
 /// @param[in] par the name of the parameter of interest
 /// @return one element of the sparse data vector (a dense vector)
-const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) const
+const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string &par) const
 {
    std::map<string, casa::Vector<double> >::const_iterator cIt = 
                                      itsDataVector.find(par);
@@ -392,18 +380,18 @@ const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) 
 }
 
 /// Return shape
-    const std::map<string, casa::IPosition >& NormalEquations::shape() const
+    const std::map<string, casa::IPosition >& ImagingNormalEquations::shape() const
     {
       return itsShape;
     }
 
 /// Return reference
-    const std::map<string, casa::IPosition >& NormalEquations::reference() const
+    const std::map<string, casa::IPosition >& ImagingNormalEquations::reference() const
     {
       return itsReference;
     }
 
-    void NormalEquations::reset()
+    void ImagingNormalEquations::reset()
     {
       map<string, casa::Vector<double> >::iterator iterRow;
       map<string, casa::Matrix<double> >::iterator iterCol;
@@ -427,7 +415,7 @@ const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) 
       }
     }
 
-    void NormalEquations::add(const string& name, const casa::Matrix<double>& normalmatrix,
+    void ImagingNormalEquations::add(const string& name, const casa::Matrix<double>& normalmatrix,
       const casa::Vector<double>& datavector, const casa::IPosition& shape)
     {
 
@@ -451,14 +439,14 @@ const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) 
       itsShape[name]=shape;
     }
 
-    void NormalEquations::add(const string& name, const casa::Matrix<double>& normalmatrix,
+    void ImagingNormalEquations::add(const string& name, const casa::Matrix<double>& normalmatrix,
       const casa::Vector<double>& datavector)
     {
       casa::IPosition shape(1, datavector.nelements());
       add(name, normalmatrix, datavector, shape);
     }
 
-    void NormalEquations::addSlice(const string& name,
+    void ImagingNormalEquations::addSlice(const string& name,
       const casa::Vector<double>& normalmatrixslice,
       const casa::Vector<double>& normalmatrixdiagonal,
       const casa::Vector<double>& datavector,
@@ -496,7 +484,7 @@ const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) 
       itsReference[name]=reference;
     }
 
-    void NormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrixdiagonal,
+    void ImagingNormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrixdiagonal,
       const casa::Vector<double>& datavector, const casa::IPosition& shape)
     {
 
@@ -520,26 +508,26 @@ const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) 
       itsShape[name]=shape;
     }
 
-    void NormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrix,
+    void ImagingNormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrix,
       const casa::Vector<double>& datavector)
     {
       casa::IPosition shape(1, datavector.nelements());
       addDiagonal(name, normalmatrix, datavector, shape);
     }
 
-    const Params& NormalEquations::parameters() const
+    const Params& ImagingNormalEquations::parameters() const
     {
       return *itsParams;
     }
 
-    INormalEquations::ShPtr NormalEquations::clone() const
+    INormalEquations::ShPtr ImagingNormalEquations::clone() const
     {
-      return INormalEquations::ShPtr(new NormalEquations(*this));
+      return INormalEquations::ShPtr(new ImagingNormalEquations(*this));
     }
 
     /// @brief write the object to a blob stream
     /// @param[in] os the output stream
-    void NormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
+    void ImagingNormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
     {
       os << *(itsParams) << itsNormalMatrix << itsNormalMatrixSlice 
         << itsNormalMatrixDiagonal << itsShape << itsReference << itsDataVector; 
@@ -549,7 +537,7 @@ const casa::Vector<double>& NormalEquations::dataVector(const std::string &par) 
     /// @brief read the object from a blob stream
     /// @param[in] is the input stream
     /// @note Not sure whether the parameter should be made const or not 
-    void NormalEquations::readFromBlob(LOFAR::BlobIStream& is) 
+    void ImagingNormalEquations::readFromBlob(LOFAR::BlobIStream& is) 
     {
       itsParams = Params::ShPtr(new Params());
       is >> *(itsParams) >> itsNormalMatrix >> itsNormalMatrixSlice 

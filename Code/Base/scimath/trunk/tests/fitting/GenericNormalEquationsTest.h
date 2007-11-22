@@ -18,7 +18,6 @@
 #include <fitting/GenericNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 
-#include <fitting/NormalEquations.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 

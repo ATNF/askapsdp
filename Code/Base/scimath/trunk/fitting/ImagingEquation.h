@@ -20,7 +20,7 @@
 
 #include <fitting/Equation.h>
 #include <fitting/INormalEquations.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/ImagingNormalEquations.h>
 
 namespace conrad {
 
@@ -53,7 +53,7 @@ struct ImagingEquation : public Equation {
     /// @note Input type will be changed to ImagingNormalEquation, when
     /// this class is split out from the current NormalEquation
     /// @param[in] ne normal equations to update
-    virtual void calcImagingEquations(NormalEquations &ne) = 0;
+    virtual void calcImagingEquations(ImagingNormalEquations &ne) = 0;
     
     /// @brief calculate normal equations
     /// @details This is the main method defined in the base class which can

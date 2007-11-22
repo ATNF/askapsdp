@@ -1,4 +1,4 @@
-#include <fitting/NormalEquations.h>
+#include <fitting/ImagingNormalEquations.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -17,10 +17,10 @@ namespace conrad
   namespace scimath
   {
 
-    class NormalEquationsTest : public CppUnit::TestFixture
+    class ImagingNormalEquationsTest : public CppUnit::TestFixture
     {
 
-      CPPUNIT_TEST_SUITE(NormalEquationsTest);
+      CPPUNIT_TEST_SUITE(ImagingNormalEquationsTest);
       CPPUNIT_TEST(testConstructors);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testBlobStream);
@@ -28,15 +28,15 @@ namespace conrad
       CPPUNIT_TEST_SUITE_END();
 
       private:
-        NormalEquations *p1, *p2, *p3, *pempty;
+        ImagingNormalEquations *p1, *p2, *p3, *pempty;
 
       public:
         void setUp()
         { 
-          p1 = new NormalEquations();
-          p2 = new NormalEquations();
-          p3 = new NormalEquations();
-          pempty = new NormalEquations();
+          p1 = new ImagingNormalEquations();
+          p2 = new ImagingNormalEquations();
+          p3 = new ImagingNormalEquations();
+          pempty = new ImagingNormalEquations();
         }
 
         void tearDown()
@@ -54,7 +54,7 @@ namespace conrad
           ip.add("Value1");
           ip.add("Value2");
           delete p1;
-          p1 = new NormalEquations(ip);
+          p1 = new ImagingNormalEquations(ip);
           CPPUNIT_ASSERT(p1->parameters().names().size()==3);
           CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
           CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
@@ -68,9 +68,9 @@ namespace conrad
           ip.add("Value1");
           ip.add("Value2");
           delete p1;
-          p1 = new NormalEquations(ip);
+          p1 = new ImagingNormalEquations(ip);
           delete p2;
-          p2 = new NormalEquations(*p1);
+          p2 = new ImagingNormalEquations(*p1);
           CPPUNIT_ASSERT(p2->parameters().names().size()==3);
           CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
           CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
@@ -94,7 +94,7 @@ namespace conrad
           dm.addResidual(casa::Vector<casa::Double>(100, 0.0), casa::Vector<double>(100, 1.0));
           CPPUNIT_ASSERT(dm.nData()==100);
           CPPUNIT_ASSERT(dm.nParameters()==(imsize+2));
-          NormalEquations normeq(ip,dm);
+          ImagingNormalEquations normeq(ip,dm);
           CPPUNIT_ASSERT(normeq.parameters().names()[0]=="Image2");
           CPPUNIT_ASSERT(normeq.parameters().names().size()==3);
           CPPUNIT_ASSERT(normeq.parameters().names()[1]=="Value0");
@@ -116,7 +116,7 @@ namespace conrad
           dm.addDerivative("Image2", casa::Matrix<casa::Double>(100, imsize, 0.0));
           dm.addResidual(casa::Vector<casa::Double>(100, 0.0), casa::Vector<double>(100, 1.0));
 	  delete p1;
-          p1 = new NormalEquations(ip,dm);
+          p1 = new ImagingNormalEquations(ip,dm);
           LOFAR::BlobString b1(false);
           LOFAR::BlobOBufString bob(b1);
           LOFAR::BlobOStream bos(bob);
@@ -124,7 +124,7 @@ namespace conrad
           Params pnew;
           LOFAR::BlobIBufString bib(b1);
           LOFAR::BlobIStream bis(bib);
-          p2 = new NormalEquations();
+          p2 = new ImagingNormalEquations();
           bis >> *p2;
           CPPUNIT_ASSERT(p2->parameters().names()[0]=="Image2");
           CPPUNIT_ASSERT(p2->parameters().names().size()==3);
