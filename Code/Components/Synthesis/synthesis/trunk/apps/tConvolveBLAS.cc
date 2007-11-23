@@ -104,17 +104,16 @@ void degridData(const std::vector<Value>& grid, const int gSize, const int suppo
   {
 
     outdata[find]=0.0;
-
-    int coff=cOffset[find];
-
     // The actual grid point from which we offset
     int gind=iu[find]+gSize*iv[find];
+    // The Convoluton function point from which we offset
+    int coff=cOffset[find];
+    
     for (int suppv=0; suppv<sSize; suppv++)
     {
 #ifdef USEBLAS
       Value dot;
-      cblas_cdotu_sub(sSize, &grid[gind-support], 1, &C[coff-support], 1,
-          &dot);
+      cblas_cdotu_sub(sSize, &grid[gind-support], 1, &C[coff-support], 1, &dot);
       outdata[find]+=dot;
 #else
       for (int suppu=0; suppu<sSize; suppu++)
