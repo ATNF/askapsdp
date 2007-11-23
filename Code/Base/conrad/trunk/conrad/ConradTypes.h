@@ -22,12 +22,14 @@ namespace conrad {
   //@{
   using ::ushort;
   using ::uint;
+
   // Apple doesn't define uLong
 #if defined(__APPLE__)
   typedef unsigned long        ulong;
 #else
   using ::ulong;
 #endif
+  typedef unsigned char        uchar;
   typedef long long            longlong;
   typedef unsigned long long   ulonglong;
   typedef long double          ldouble;
