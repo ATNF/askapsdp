@@ -58,7 +58,7 @@ void gridData(const std::vector<Value>& data, const int support,
 {
 
   int sSize=2*support+1;
-  for (int find=0; find<data.size(); find++)
+  for (unsigned int find=0; find<data.size(); find++)
   {
 
     int coff=cOffset[find];
@@ -100,7 +100,7 @@ void degridData(const std::vector<Value>& grid, const int gSize, const int suppo
 
   int sSize=2*support+1;
 
-  for (int find=0; find<outdata.size(); find++)
+  for (unsigned int find=0; find<outdata.size(); find++)
   {
 
     outdata[find]=0.0;
@@ -143,8 +143,6 @@ void initC(const int nSamples, const std::vector<Coord>& w,
     const int wSize, const int gSize, int& support, int& overSample,
     Coord& wCellSize, std::vector<Value>& C)
 {
-
-  const int nChan = freq.size();
 
   cout << "Initializing W projection convolution function" << endl;
   support=static_cast<int>(1.5*sqrt(abs(baseline) *static_cast<Coord>(cellSize)
