@@ -80,9 +80,10 @@ namespace conrad
 				void receiveNE();
 
 			protected:
-
+			
+			 
 				/// Holder for the normal equations
-				conrad::scimath::NormalEquations::ShPtr itsNe;
+				conrad::scimath::INormalEquations::ShPtr itsNe;
 
 				/// Holder for the solver
 				conrad::scimath::Solver::ShPtr itsSolver;

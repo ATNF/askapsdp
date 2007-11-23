@@ -21,6 +21,7 @@
 #include <conrad/ConradError.h>
 
 #include <parallel/MEParallel.h>
+#include <fitting/ImagingNormalEquations.h>
 
 using namespace conrad;
 using namespace conrad::cp;
@@ -35,7 +36,7 @@ namespace conrad
 		{
 			itsSolver = Solver::ShPtr(new Solver(*itsModel));
 			itsEquation = Equation::ShPtr(new Equation(*itsModel));
-			itsNe = NormalEquations::ShPtr(new NormalEquations(*itsModel));
+			itsNe = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
 
 		}
 

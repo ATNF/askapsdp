@@ -10,7 +10,7 @@
 #define SYNIMAGESOLVER_H_
 
 #include <fitting/Solver.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/ImagingNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 
@@ -55,7 +55,7 @@ namespace conrad
         /// @note In this class and derived classes the type returned
         /// by this method is narrowed to always provide image-specific 
         /// normal equations objects
-        virtual const scimath::NormalEquations& normalEquations() const;
+        virtual const scimath::ImagingNormalEquations& normalEquations() const;
  
     };
 

@@ -1,7 +1,7 @@
 #include <fitting/Params.h>
 #include <dataaccess/SharedIter.h>
 #include <measurementequation/ComponentEquation.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/DesignMatrix.h>
 
 #include <msvis/MSVis/StokesVector.h>
@@ -23,7 +23,7 @@
 
 #include <stdexcept>
 
-using conrad::scimath::NormalEquations;
+using conrad::scimath::INormalEquations;
 using conrad::scimath::DesignMatrix;
 
 namespace conrad

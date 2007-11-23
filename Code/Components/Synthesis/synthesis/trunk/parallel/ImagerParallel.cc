@@ -132,7 +132,7 @@ namespace conrad
 		void ImagerParallel::calcNE()
 		{
 			// Discard any old parameters
-			itsNe=NormalEquations::ShPtr(new NormalEquations(*itsModel));
+			itsNe=ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
 
 			if (isWorker())
 			{

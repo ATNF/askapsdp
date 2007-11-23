@@ -165,10 +165,10 @@ namespace conrad
         /// @note In this class and derived classes the type returned
         /// by this method is narrowed to always provide image-specific 
         /// normal equations objects
-        const scimath::NormalEquations& ImageSolver::normalEquations() const
+        const scimath::ImagingNormalEquations& ImageSolver::normalEquations() const
         {
            try {
-              return dynamic_cast<const scimath::NormalEquations&>(
+              return dynamic_cast<const scimath::ImagingNormalEquations&>(
                                             Solver::normalEquations());
            }
            catch (const std::bad_cast &bc)

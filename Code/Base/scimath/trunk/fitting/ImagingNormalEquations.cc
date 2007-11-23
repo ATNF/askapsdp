@@ -60,205 +60,9 @@ namespace conrad
         itsReference[*iterRow]=casa::IPosition();
         itsNormalMatrixSlice[*iterRow]=casa::Vector<double>(0);
         itsNormalMatrixDiagonal[*iterRow]=casa::Vector<double>(0);
-        for (iterCol=names.begin();iterCol!=names.end();++iterCol)
-        {
-          itsNormalMatrix[*iterRow][*iterCol]=casa::Matrix<double>(0,0);
-        }
       }
     }
 
-
-    ImagingNormalEquations::ImagingNormalEquations(const Params &ip, const DesignMatrix& dm)
-    {
-      //itsParams=dm.parameters().clone();
-      itsParams=ip.clone();
-      std::set<string> names=dm.parameterNames();
-      std::set<string>::iterator iterRow;
-      std::set<string>::iterator iterCol;
-      const uint nDataSet=dm.residual().size();
-
-// This looks hairy but it's all just linear algebra!
-      for (iterRow=names.begin();iterRow!=names.end();iterRow++)
-      {
-        bool first=true;
-        for (uint iDataSet=0;iDataSet<nDataSet;iDataSet++)
-        {
-// Need to special case for CASA product limitation
-          if(dm.derivative(*iterRow)[iDataSet].ncolumn()==1)
-          {
-            const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
-            if(first)
-            {
-              // we need to initialize the Vector by either resizing or
-              // assigning a vector of size 1 as below
-              itsDataVector[*iterRow] = casa::Vector<double>(1, 
-                            sum(((aV)*(dm.residual()[iDataSet]))));
-              first=false;
-            }
-            else
-            {
-              // operator+= will add constant to every element of the vector,
-              // we have just one element here
-              itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
-            }
-          }
-          else
-          {
-            if(first)
-            {
-              itsDataVector[*iterRow]=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-              first=false;
-            }
-            else
-            {
-              itsDataVector[*iterRow]+=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-            }
-          }
-        }
-      }
-// Outside loops are over parameter names
-      for (iterCol=names.begin();iterCol!=names.end();iterCol++)
-      {
-        const uint nACol=dm.derivative(*iterCol).size();
-// Inside loops are over lists of derivatives
-        for (uint iACol=0;(iACol<nACol);iACol++)
-        {
-          for (iterRow=names.begin();iterRow!=names.end();iterRow++)
-          {
-            bool first=true;
-            const uint nARow=dm.derivative(*iterRow).size();
-            for (uint iARow=0;(iARow<nARow);iARow++)
-            {
-              if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1))
-              {
-                const casa::Vector<casa::Double>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
-                const casa::Vector<casa::Double>& aColV(dm.derivative(*iterCol)[iACol].column(0));
-                if(first)
-                {
-                  itsNormalMatrix[*iterRow][*iterCol].resize(1,1);
-                  itsNormalMatrix[*iterRow][*iterCol].set(sum(((aRowV)*(aColV))));
-                  first=false;
-                }
-                else
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]+=sum(((aRowV)*(aColV)));
-                }
-              }
-              else
-              {
-                if(first)
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-                  first=false;
-                }
-                else
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]+=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    void ImagingNormalEquations::add(const DesignMatrix& dm)
-    {
-      //itsParams->merge(dm.parameters());
-      std::set<string> names=dm.parameterNames();
-      std::set<string>::iterator iterRow;
-      std::set<string>::iterator iterCol;
-      const uint nDataSet=dm.residual().size();
-
-// This looks hairy but it's all just linear algebra!
-      for (iterRow=names.begin();iterRow!=names.end();iterRow++)
-      {
-        bool first=(itsDataVector[*iterRow].size()==0);
-        for (uint iDataSet=0;iDataSet<nDataSet;iDataSet++)
-        {
-// Need to special case for CASA product limitation
-          if(dm.derivative(*iterRow)[iDataSet].ncolumn()==1)
-          {
-            const casa::Vector<casa::Double>& aV(dm.derivative(*iterRow)[iDataSet].column(0));
-            if(first)
-            {
-              // we need to initialize the Vector by either resizing or
-              // assigning a vector of size 1 as below
-              itsDataVector[*iterRow] = casa::Vector<double>(1,
-                            sum(((aV)*(dm.residual()[iDataSet]))));
-              first=false;
-            }
-            else
-            {
-              // operator+= will add constant to every element of the vector,
-              // we have just one element here
-              itsDataVector[*iterRow]+=sum(((aV)*(dm.residual()[iDataSet])));
-            }
-          }
-          else
-          {
-            if(first)
-            {
-              itsDataVector[*iterRow]=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-              first=false;
-            }
-            else
-            {
-              itsDataVector[*iterRow]+=(product(transpose(dm.derivative(*iterRow)[iDataSet]),dm.residual()[iDataSet]));
-            }
-          }
-        }
-      }
-      /*
-      for (std::map<std::string, casa::Vector<double> >::const_iterator tci=
-           itsDataVector.begin();tci!=itsDataVector.end(); ++tci)
-              std::cout<<tci->first<<" "<<tci->second.nelements()<<std::endl;
-      */
-// Outside loops are over parameter names
-      for (iterCol=names.begin();iterCol!=names.end();iterCol++)
-      {
-        const uint nACol=dm.derivative(*iterCol).size();
-// Inside loops are over lists of derivatives
-        for (uint iACol=0;(iACol<nACol);iACol++)
-        {
-          for (iterRow=names.begin();iterRow!=names.end();iterRow++)
-          {
-            bool first=(itsNormalMatrix[*iterRow][*iterCol].nrow()==0);
-            const uint nARow=dm.derivative(*iterRow).size();
-            for (uint iARow=0;(iARow<nARow);iARow++)
-            {
-              if((dm.derivative(*iterRow)[iARow].ncolumn()==1)&&(dm.derivative(*iterCol)[iACol].ncolumn()==1))
-              {
-                const casa::Vector<casa::Double>& aRowV(dm.derivative(*iterRow)[iARow].column(0));
-                const casa::Vector<casa::Double>& aColV(dm.derivative(*iterCol)[iACol].column(0));
-                if(first)
-                {
-                  itsNormalMatrix[*iterRow][*iterCol].resize(1,1);
-                  itsNormalMatrix[*iterRow][*iterCol].set(sum(((aRowV)*(aColV))));
-                  first=false;
-                }
-                else
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]+=sum(((aRowV)*(aColV)));
-                }
-              }
-              else
-              {
-                if(first)
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-                  first=false;
-                }
-                else
-                {
-                  itsNormalMatrix[*iterRow][*iterCol]+=(product(transpose(dm.derivative(*iterRow)[iARow]),dm.derivative(*iterCol)[iACol]));
-                }
-              }
-            }
-          }
-        }
-      }
-    }
 
     ImagingNormalEquations::~ImagingNormalEquations()
     {
@@ -311,17 +115,6 @@ namespace conrad
         {
           itsNormalMatrixDiagonal[*iterCol]+=other.itsNormalMatrixDiagonal.find(*iterCol)->second;
         }
-        for (iterRow=names.begin();iterRow!=names.end();iterRow++)
-        {
-          if(itsNormalMatrix[*iterCol][*iterRow].shape()!=other.itsNormalMatrix.find(*iterCol)->second.find(*iterRow)->second.shape())
-          {
-            itsNormalMatrix[*iterCol][*iterRow]=other.itsNormalMatrix.find(*iterCol)->second.find(*iterRow)->second;
-          }
-          else
-          {
-            itsNormalMatrix[*iterCol][*iterRow]+=other.itsNormalMatrix.find(*iterCol)->second.find(*iterRow)->second;
-          }
-        }
       }
     }
     catch (const std::bad_cast &bc) {
@@ -353,13 +146,10 @@ namespace conrad
 const casa::Matrix<double>& ImagingNormalEquations::normalMatrix(const std::string &par1, 
                         const std::string &par2) const
 {
-   std::map<string,std::map<string, casa::Matrix<double> > >::const_iterator cIt1 = 
-                                    itsNormalMatrix.find(par1);
-   CONRADASSERT(cIt1 != itsNormalMatrix.end());
-   std::map<string, casa::Matrix<double> >::const_iterator cIt2 = 
-                                    cIt1->second.find(par2);
-   CONRADASSERT(cIt2 != cIt1->second.end());
-   return cIt2->second;                             
+   CONRADTHROW(ConradError, 
+               "ImagingNormalEquations::normalMatrix has not yet been implemented");
+   const casa::Matrix<double> *buf = 0;
+   return *buf; // the code shouldn't get this far.                             
 }
 
 /// @brief data vector for a given parameter
@@ -407,44 +197,10 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
         itsNormalMatrixSlice[iterRow->first]=casa::Vector<double>(0);
         itsNormalMatrixDiagonal[iterRow->first].resize();
         itsNormalMatrixDiagonal[iterRow->first]=casa::Vector<double>(0);
-        for (iterCol=itsNormalMatrix[iterRow->first].begin();iterCol!=itsNormalMatrix[iterRow->first].end();iterCol++)
-        {
-          itsNormalMatrix[iterRow->first][iterCol->first].resize();
-          itsNormalMatrix[iterRow->first][iterCol->first]=casa::Matrix<double>(0,0);
-        }
       }
     }
 
-    void ImagingNormalEquations::add(const string& name, const casa::Matrix<double>& normalmatrix,
-      const casa::Vector<double>& datavector, const casa::IPosition& shape)
-    {
-
-      if(datavector.size()!=itsDataVector[name].size())
-      {
-        itsDataVector[name]=datavector;
-      }
-      else
-      {
-        itsDataVector[name]+=datavector;
-      }
-      if(normalmatrix.shape()!=itsNormalMatrix[name][name].shape())
-      {
-        itsNormalMatrix[name][name]=normalmatrix;
-      }
-      else
-      {
-        itsNormalMatrix[name][name]+=normalmatrix;
-      }
-      itsShape[name].resize(0);
-      itsShape[name]=shape;
-    }
-
-    void ImagingNormalEquations::add(const string& name, const casa::Matrix<double>& normalmatrix,
-      const casa::Vector<double>& datavector)
-    {
-      casa::IPosition shape(1, datavector.nelements());
-      add(name, normalmatrix, datavector, shape);
-    }
+ 
 
     void ImagingNormalEquations::addSlice(const string& name,
       const casa::Vector<double>& normalmatrixslice,
@@ -456,22 +212,16 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
 
       if(datavector.size()!=itsDataVector[name].size())
       {
+        CONRADDEBUGASSERT(itsDataVector[name].size() == 0);
         itsDataVector[name]=datavector;
       }
       else
       {
         itsDataVector[name]+=datavector;
       }
-      if(normalmatrixslice.shape()!=itsNormalMatrixSlice[name].shape())
-      {
-        itsNormalMatrixSlice[name]=normalmatrixslice;
-      }
-      else
-      {
-        itsNormalMatrixSlice[name]+=normalmatrixslice;
-      }
       if(normalmatrixdiagonal.shape()!=itsNormalMatrixDiagonal[name].shape())
       {
+        CONRADDEBUGASSERT(itsNormalMatrixDiagonal[name].size() == 0);
         itsNormalMatrixDiagonal[name]=normalmatrixdiagonal;
       }
       else
@@ -490,6 +240,7 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
 
       if(datavector.size()!=itsDataVector[name].size())
       {
+        CONRADDEBUGASSERT(itsDataVector[name].size() == 0);
         itsDataVector[name]=datavector;
       }
       else
@@ -498,6 +249,7 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
       }
       if(normalmatrixdiagonal.shape()!=itsNormalMatrixDiagonal[name].shape())
       {
+        CONRADDEBUGASSERT(itsNormalMatrixDiagonal[name].size() == 0);
         itsNormalMatrixDiagonal[name]=normalmatrixdiagonal;
       }
       else
@@ -529,9 +281,8 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
     /// @param[in] os the output stream
     void ImagingNormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
     {
-      os << *(itsParams) << itsNormalMatrix << itsNormalMatrixSlice 
+      os << *(itsParams) << itsNormalMatrixSlice 
         << itsNormalMatrixDiagonal << itsShape << itsReference << itsDataVector; 
-//        << itsNormalMatrixDiagonal << itsDataVector;
     }
     
     /// @brief read the object from a blob stream
@@ -540,10 +291,9 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
     void ImagingNormalEquations::readFromBlob(LOFAR::BlobIStream& is) 
     {
       itsParams = Params::ShPtr(new Params());
-      is >> *(itsParams) >> itsNormalMatrix >> itsNormalMatrixSlice 
+      is >> *(itsParams)  >> itsNormalMatrixSlice 
          >> itsNormalMatrixDiagonal >> itsShape >> itsReference 
          >> itsDataVector;
-//        >> itsNormalMatrixDiagonal >> itsDataVector;
     }
   }
 }

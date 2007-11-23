@@ -57,47 +57,11 @@ namespace conrad
       ImagingNormalEquations(const Params& ip);
         
       virtual ~ImagingNormalEquations();
-      
-      /// Construct the normal equations from the design matrix
-      /// @param ip parameters (design matrix no longer holds them)
-      /// @param dm Design matrix
-      ImagingNormalEquations(const Params &ip, const DesignMatrix& dm);
-      
-      /// Add the design matrix to the normal equations
-      /// @param dm Design matrix
-      void add(const DesignMatrix& dm);
-      
+            
       /// Return the specified parameters (const)
       const Params& parameters() const;
             
-      /// This means
-      /// that the cross terms between parameters are excluded. However
-      /// the terms inside a parameter are retained.
-      /// @param name Name of parameter
-      /// @param normalmatrix Normal Matrix for this parameter
-      /// @param datavector Data vector for this parameter
-      void add(const string& name, const casa::Matrix<double>& normalmatrix,
-               const casa::Vector<double>& datavector);
       
-      /// @brief Store full normal matrix for a given parameter.
-      /// 
-      /// This means
-      /// that the cross terms between parameters are excluded. However
-      /// the terms inside a parameter are retained.
-      /// @param name Name of parameter
-      /// @param normalmatrix Normal Matrix for this parameter
-      /// @param datavector Data vector for this parameter
-      /// @param shape Shape of this parameter
-      void add(const string& name, const casa::Matrix<double>& normalmatrix,
-               const casa::Vector<double>& datavector,
-               const casa::IPosition& shape);
-      
-      /// @brief Store slice of the normal matrix for a given parameter. 
-      /// 
-      /// This means
-      /// that the cross terms between parameters are excluded and only
-      /// a slice of the normal matrix is retained.
-      /// @param name Name of parameter
       /// @param normalmatrixslice Slice of normal matrix for this parameter
       /// @param normalmatrixdiagonal Diagonal of normal matrix for
       ///        this parameter
@@ -225,11 +189,6 @@ namespace conrad
     protected:
       /// Parameters
       Params::ShPtr itsParams;
-      // Note that this is a very flexible format - it allows any of the
-      // approximations to be used
-      /// Normal matrices stored as a map or maps of Matrixes - 
-      /// it's really just a big matrix.
-      std::map<string, std::map<string, casa::Matrix<double> > > itsNormalMatrix;
       /// A slice through a specified plane
       std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
       /// The diagonal 

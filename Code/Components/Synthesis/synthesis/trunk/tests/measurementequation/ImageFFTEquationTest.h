@@ -99,7 +99,7 @@ namespace conrad
           // Predict with the "perfect" parameters"
           p1->predict();
           // Calculate gradients using "imperfect" parameters"
-          NormalEquations ne(*params1);
+          ImagingNormalEquations ne(*params1);
           p2->calcEquations(ne);
           Quality q;
           ImageSolver solver1(*params2);
@@ -121,7 +121,7 @@ namespace conrad
         void testSolveBox()
         {
 // Predict with the "perfect" parameters"
-          NormalEquations ne(*params1);
+          ImagingNormalEquations ne(*params1);
           IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new BoxVisGridder());
           delete p1;
           delete p2;
@@ -152,7 +152,7 @@ namespace conrad
         void testSolveAntIllum()
         {
 // Predict with the "perfect" parameters"
-          NormalEquations ne(*params1);
+          ImagingNormalEquations ne(*params1);
           IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AWProjectVisGridder(12.0, 
         		  1.0, 8000, 64, 1e-3, 1, 128));
           delete p1;
@@ -183,7 +183,7 @@ namespace conrad
 
         void testFixed()
         {
-          NormalEquations ne(*params1);
+          ImagingNormalEquations ne(*params1);
           p1->predict();
           p2->calcEquations(ne);
           Quality q;

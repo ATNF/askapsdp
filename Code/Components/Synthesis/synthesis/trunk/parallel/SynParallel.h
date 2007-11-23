@@ -10,7 +10,7 @@
 
 #include <fitting/Equation.h>
 #include <fitting/Solver.h>
-#include <fitting/NormalEquations.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
 #include <mwcommon/MPIConnectionSet.h>
