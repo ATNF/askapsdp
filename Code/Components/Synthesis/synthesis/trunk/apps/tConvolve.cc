@@ -52,7 +52,7 @@ const Coord cellSize,
 const std::vector<Real>& C,
 const int support,
 const int overSample,
-const std::vector<uint>& cOffset,
+const std::vector<unsigned int>& cOffset,
 std::vector<Value>& grid)
 {
 
@@ -218,7 +218,7 @@ std::vector<Value>& grid)
     }
   }
 
-  std::vector<uint> cOffset;
+  std::vector<unsigned int> cOffset;
   cOffset.assign(data.size(),0);
 
   return generic(u, v, w, data, freq, cellSize, C, support, overSample,
@@ -303,7 +303,7 @@ std::vector<Value>& grid)
     }
   }
 
-  std::vector<uint> cOffset(data.size());
+  std::vector<unsigned int> cOffset(data.size());
   for (int i=0;i<nSamples;i++)
   {
     for (int chan=0;chan<nChan;chan++)

@@ -13,7 +13,7 @@ int main( int argc, char **argv)
   runner.addTest( conrad::synthesis::ComponentEquationTest::suite() );
   runner.addTest( conrad::synthesis::GainCalibrationEquationTest::suite() );
   //runner.addTest( conrad::synthesis::ImageDFTEquationTest::suite() );
-  //runner.addTest( conrad::synthesis::ImageFFTEquationTest::suite() );
+  runner.addTest( conrad::synthesis::ImageFFTEquationTest::suite() );
   runner.run();
   return 0;
 }
