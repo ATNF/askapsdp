@@ -18,6 +18,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <stdexcept>
+#include <boost/shared_ptr.hpp>
 
 using namespace conrad::scimath;
 
@@ -47,22 +48,22 @@ namespace conrad
       CPPUNIT_TEST_SUITE_END();
 
       private:
-        BoxVisGridder *itsBox;
-        SphFuncVisGridder *itsSphFunc;
-        AWProjectVisGridder *itsAWProject;
-        WProjectVisGridder *itsWProject;
-        WStackVisGridder *itsWStack;
-        AProjectWStackVisGridder *itsAProjectWStack;
+        boost::shared_ptr<BoxVisGridder> itsBox;
+        boost::shared_ptr<SphFuncVisGridder> itsSphFunc;
+        boost::shared_ptr<AWProjectVisGridder> itsAWProject;
+        boost::shared_ptr<WProjectVisGridder> itsWProject;
+        boost::shared_ptr<WStackVisGridder> itsWStack;
+        boost::shared_ptr<AProjectWStackVisGridder> itsAProjectWStack;
 
         IDataSharedIter idi;
-        Axes* itsAxes;
-        casa::Array<double>* itsModel;
-        casa::Array<double>* itsModelPSF;
-        casa::Array<double>* itsModelWeights;
+        boost::shared_ptr<Axes> itsAxes;
+        boost::shared_ptr<casa::Array<double> > itsModel;
+        boost::shared_ptr<casa::Array<double> > itsModelPSF;
+        boost::shared_ptr<casa::Array<double> > itsModelWeights;
 
       public:
         void setUp()
-        {
+        { 
           idi = IDataSharedIter(new DataIteratorStub(1));
 
           Params ip;
@@ -76,40 +77,27 @@ namespace conrad
           ComponentEquation ce(ip, idi);
           ce.predict();
 
-          itsBox = new BoxVisGridder();
-          itsSphFunc = new SphFuncVisGridder();
-          itsAWProject = new AWProjectVisGridder(12.0, 1.0, 10000.0, 8, 1e-3, 1, 128, 1);
-          itsAProjectWStack = new AProjectWStackVisGridder(12.0, 1.0, 10000.0, 8, 1, 128, 1);
-          itsWProject = new WProjectVisGridder(10000.0, 8, 1e-3, 1, 128, "");
-          itsWStack = new WStackVisGridder(10000.0, 8);
+          itsBox.reset(new BoxVisGridder());
+          itsSphFunc.reset(new SphFuncVisGridder());
+          itsAWProject.reset(new AWProjectVisGridder(12.0, 1.0, 10000.0, 9, 1e-3, 1, 128, 1));
+          itsAProjectWStack.reset(new AProjectWStackVisGridder(12.0, 1.0, 10000.0, 9, 1, 128, 1));
+          itsWProject.reset(new WProjectVisGridder(10000.0, 9, 1e-3, 1, 128, ""));
+          itsWStack.reset(new WStackVisGridder(10000.0, 9));
 
           double cellSize=10*casa::C::arcsec;
 
-          itsAxes=new Axes();
+          itsAxes.reset(new Axes());
           itsAxes->add("RA", 256*cellSize, -256*cellSize);
           itsAxes->add("DEC", -256*cellSize, 256*cellSize);
 
-          itsModel=new casa::Array<double>(casa::IPosition(4,512,512,1,1));
+          itsModel.reset(new casa::Array<double>(casa::IPosition(4,512,512,1,1)));
           itsModel->set(0.0);
-          itsModelPSF=new casa::Array<double>(casa::IPosition(4,512,512,1,1));
+          itsModelPSF.reset(new casa::Array<double>(casa::IPosition(4,512,512,1,1)));
           itsModelPSF->set(0.0);
-          itsModelWeights=new casa::Array<double>(casa::IPosition(4,512,512,1,1));
+          itsModelWeights.reset(new casa::Array<double>(casa::IPosition(4,512,512,1,1)));
           itsModelWeights->set(0.0);
         }
 
-        void tearDown()
-        {
-          delete itsBox;
-          delete itsSphFunc;
-          delete itsWProject;
-          delete itsWStack;
-          delete itsAWProject;
-          delete itsAProjectWStack;
-          delete itsModel;
-          delete itsModelPSF;
-          delete itsModelWeights;
-          delete itsAxes;
-        }
 
         void testReverseBox()
         {
@@ -138,7 +126,7 @@ namespace conrad
           itsSphFunc->degrid(idi);
         }
         void testReverseAWProject()
-        {
+        { 
           itsAWProject->initialiseGrid(*itsAxes, itsModel->shape(), true);
           itsAWProject->grid(idi);
           itsAWProject->finaliseGrid(*itsModel);
@@ -159,7 +147,7 @@ namespace conrad
           itsWProject->finaliseWeights(*itsModelWeights);
         }
         void testForwardWProject()
-        {
+        {  
         	itsWProject->initialiseDegrid(*itsAxes, *itsModel);
           itsWProject->degrid(idi);
         }
