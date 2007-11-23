@@ -1,16 +1,17 @@
-//   This C++ program has been written to demonstrate the
-// convolutional resampling algorithm used in radio
+//   This C++ program has been written to demonstrate the convolutional resampling algorithm used in radio
 // interferometry. It should compile with:
-//      g++ -O2 tConvolveBLAS.cc -o tConvolveBLAS
+//      g++ -O2 -fstrict-aliasing tConvolveBLAS.cc -o tConvolveBLAS
 // Enabling BLAS support on OS X:
-//      g++ -DUSEBLAS -O2 -framework vecLib tConvolveBLAS.cc -o tConvolveBLAS
+//      g++ -DUSEBLAS -O2 -fstrict-aliasing -framework vecLib tConvolveBLAS.cc -o tConvolveBLAS
 //
-// The challenge is to minimize the run time - specifically
-// the time per grid addition. On a MacBookPro 2GHz Intel Core Duo
-// this is about 6.6ns
+// Strict-aliasing tells the compiler that there are no memory locations accessed through aliases.
 //
-//   For further details contact Tim.Cornwell@csiro.au
+// The challenge is to minimize the run time - specifically the time per grid addition. On a MacBookPro 
+// 2GHz Intel Core Duo this is about 5.9ns
+//
+// For further details contact Tim.Cornwell@csiro.au
 // November 22, 2007
+// - Rewritten from tConvolve to use BLAS, and to be much smarter about not using strides in C
 
 #include <iostream>
 #include <cmath>
@@ -35,180 +36,101 @@ using std::abs;
 // Typedefs for easy testing
 // Cost of using double for Coord is low, cost for
 // double for Real is also low
-typedef float Coord;
+typedef double Coord;
 typedef float Real;
 typedef std::complex<Real> Value;
 
-// Perform standard data independent gridding
+// Perform gridding
 //
-// u,v,w - components of spatial frequency
-// data - values to be gridded
-// freq - temporal frequency (inverse wavelengths)
-// cellSize - size of one grid cell in wavelengths
-// C - convolution function
+// data - values to be gridded in a 1D vector
 // support - Total width of convolution function=2*support+1
 // overSample - Oversampling factor for the convolution function
+// C - convolution function
 // cOffset - offsets into convolution function per data point
+// iu, iv - integer locations of grid points
 // grid - Output grid
-//
+// gSize - size of one axis of grid
 
-int generic(const std::vector<Coord>& u, const std::vector<Coord>& v,
-    const std::vector<Coord>& w, const std::vector<Value>& data,
-    std::vector<Value>& outdata, const std::vector<Coord>& freq,
-    const Coord cellSize, const std::vector<Value>& C, const int support,
-    const int overSample, const std::vector<unsigned int>& cOffset,
+void gridData(const std::vector<Value>& data, const int support,
+    const std::vector<Value>& C, const std::vector<unsigned int>& cOffset,
+    const std::vector<unsigned int>& iu, const std::vector<unsigned int>& iv,
     std::vector<Value>& grid, const int gSize)
 {
 
-  const int nSamples = u.size();
-  const int nChan = freq.size();
-
-  int sSize=2*(support+1);
-
-  int cCenter=sSize/2;
-
-  cout << "+++++ Forward processing +++++" << endl;
-
-  // Grid
-  grid.assign(grid.size(), Value(0.0));
-
-  clock_t start, finish;
-  double time;
-
-  start = clock();
-  // Loop over all samples adding them to the grid
-  // First scale to the correct pixel location
-  // Then find the fraction of a pixel to the nearest pixel
-  // Loop over the entire support, calculating weights from
-  // the convolution function and adding the scaled
-  // visibility to the grid.
-  for (int i=0; i<nSamples; i++)
+  int sSize=2*support+1;
+  for (int find=0; find<data.size(); find++)
   {
-    for (int chan=0; chan<nChan; chan++)
+
+    int coff=cOffset[find];
+
+    // The actual grid point
+    int gind=iu[find]+gSize*iv[find];
+    for (int suppv=0; suppv<sSize; suppv++)
     {
-
-      int find=i*nChan+chan;
-
-      int coff=cOffset[find];
-
-      Coord uScaled=freq[chan]*u[i]/cellSize;
-      int iu=int(uScaled);
-      if (uScaled<Coord(iu))
-      {
-        iu-=1;
-      }
-      int fracu=int(overSample*(uScaled-Coord(iu)));
-      iu+=gSize/2;
-
-      Coord vScaled=freq[chan]*v[i]/cellSize;
-      int iv=int(vScaled);
-      if (vScaled<Coord(iv))
-      {
-        iv-=1;
-      }
-      int fracv=int(overSample*(vScaled-Coord(iv)));
-      iv+=gSize/2;
-
-      // The beginning of the convolution function for this point
-      int cind=sSize*sSize*(fracu+overSample*(fracv+overSample*coff));
-      // The actual grid point
-      int gind=iu+gSize*iv; 
-      for (int suppv=0; suppv<sSize; suppv++)
-      {
 #ifdef USEBLAS
-        //        void cblas_zaxpy(const int N, const void *alpha, const void *X,
-        //                         const int incX, void *Y, const int incY);
-        cblas_caxpy(sSize, &data[find], &C[cind], 1, &grid[gind-support], 1);
+      cblas_caxpy(sSize, &data[find], &C[coff-support], 1, &grid[gind-support], 1);
 #else
-        for (int suppu=0; suppu<sSize; suppu++)
-        {
-          grid[gind+suppu-support]+=data[find]*C[cind+suppu];
-        }
-#endif
-        gind+=gSize;
-        cind+=sSize;
+      for (int suppu=0; suppu<sSize; suppu++)
+      {
+        grid[gind-support+suppu]+=data[find]*C[coff-support+suppu];
       }
+#endif
+      gind+=gSize;
+      coff+=sSize;
     }
   }
-  finish = clock();
-  // Report on timings
-  time = (double(finish)-double(start))/CLOCKS_PER_SEC;
-  cout << "    Time " << time << " (s) " << endl;
-  cout << "    Time per visibility sample " << 1e6*time/double(nSamples) << " (us) " << endl;
-  cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << endl;
-  cout << "    Time per grid-addition " << 1e9*time/(double(nSamples)*double(nChan)* double((2*support)*(2*support+1))) << " (ns) " << endl;
-
-  cout << "+++++ Reverse processing +++++" << endl;
-
-  grid.assign(grid.size(), Value(1.0));
-  
-  // Just run the gridding in reverse
-  start = clock();
-  for (int i=0; i<nSamples; i++)
-  {
-    for (int chan=0; chan<nChan; chan++)
-    {
-
-      int find=i*nChan+chan;
-      outdata[find]=0.0;
-
-      int coff=cOffset[find];
-
-      Coord uScaled=freq[chan]*u[i]/cellSize;
-      int iu=int(uScaled);
-      if (uScaled<Coord(iu))
-      {
-        iu-=1;
-      }
-      int fracu=int(overSample*(uScaled-Coord(iu)));
-      iu+=gSize/2;
-
-      Coord vScaled=freq[chan]*v[i]/cellSize;
-      int iv=int(vScaled);
-      if (vScaled<Coord(iv))
-      {
-        iv-=1;
-      }
-      int fracv=int(overSample*(vScaled-Coord(iv)));
-      iv+=gSize/2;
-
-      // The beginning of the convolution function for this point
-      int cind=sSize*sSize*(fracu+overSample*(fracv+overSample*coff));
-      // The actual grid point
-      int gind=iu+gSize*iv; 
-      for (int suppv=0; suppv<sSize; suppv++)
-      {
-#ifdef USEBLAS
-        Value dot;
-        cblas_cdotu_sub(2*support+1, &grid[gind-support], 1, &C[cind-support+cCenter], 1,
-            &dot);
-        outdata[find]+=dot;
-#else
-        for (int suppu=0; suppu<sSize; suppu++)
-        {
-          outdata[find]+=grid[gind+suppu-support]*C[cind+suppu-support+cCenter];
-        }
-#endif
-        gind+=gSize;
-        cind+=sSize;
-      }
-    }
-  }
-  finish = clock();
-  // Report on timings
-  time = (double(finish)-double(start))/CLOCKS_PER_SEC;
-  cout << "    Time " << time << " (s) " << endl;
-  cout << "    Time per visibility sample " << 1e6*time/double(nSamples) << " (us) " << endl;
-  cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << endl;
-  cout << "    Time per grid-addition " << 1e9*time/(double(nSamples)*double(nChan)* double((2*support)*(2*support+1))) << " (ns) " << endl;
-
-  return 0;
 }
 
-// Perform w projection (data dependent) gridding
+// Perform degridding
 //
-// u,v,w - components of spatial frequency
-// data - values to be gridded
+// grid - Input grid
+// gSize - size of one axis of grid
+// support - Total width of convolution function=2*support+1
+// overSample - Oversampling factor for the convolution function
+// C - convolution function
+// cOffset - offsets into convolution function per data point
+// iu, iv - integer locations of grid points
+// data - Output values in a 1D vector
+
+void degridData(const std::vector<Value>& grid, const int gSize, const int support,
+    const std::vector<Value>& C, const std::vector<unsigned int>& cOffset,
+    const std::vector<unsigned int>& iu, const std::vector<unsigned int>& iv,
+    std::vector<Value>& outdata)
+{
+
+  int sSize=2*support+1;
+
+  for (int find=0; find<outdata.size(); find++)
+  {
+
+    outdata[find]=0.0;
+
+    int coff=cOffset[find];
+
+    // The actual grid point from which we offset
+    int gind=iu[find]+gSize*iv[find];
+    for (int suppv=0; suppv<sSize; suppv++)
+    {
+#ifdef USEBLAS
+      Value dot;
+      cblas_cdotu_sub(sSize, &grid[gind-support], 1, &C[coff-support], 1,
+          &dot);
+      outdata[find]+=dot;
+#else
+      for (int suppu=0; suppu<sSize; suppu++)
+      {
+        outdata[find]+=grid[gind-support+suppu]*C[coff-support+suppu];
+      }
+#endif
+      gind+=gSize;
+      coff+=sSize;
+    }
+
+  }
+}
+
+// Initialize W project convolution function
+//
 // nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
 // cellSize - size of one grid cell in wavelengths
@@ -216,24 +138,21 @@ int generic(const std::vector<Coord>& u, const std::vector<Coord>& v,
 // support - Total width of convolution function=2*support+1
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
-int wprojection(const std::vector<Coord>& u, const std::vector<Coord>& v,
-    const std::vector<Coord>& w, const std::vector<Value>& data,
-    std::vector<Value>& outdata, const std::vector<Coord>& freq,
-    const Coord cellSize, const Coord baseline, const int wSize,
-    std::vector<Value>& grid, const int gSize)
+void initC(const int nSamples, const std::vector<Coord>& w,
+    const std::vector<Coord>& freq, const Coord cellSize, 
+    const Coord baseline,
+    const int wSize, const int gSize, int& support, int& overSample,
+    Coord& wCellSize, std::vector<Value>& C)
 {
 
-  const int nSamples = u.size();
   const int nChan = freq.size();
 
-  cout
-      << "************************* W projection gridding *********************"
-      << endl;
-  int support=static_cast<int>(1.5*sqrt(abs(baseline)
-      *static_cast<Coord>(cellSize)*freq[0])/cellSize);
-  int overSample=8;
+  cout << "Initializing W projection convolution function" << endl;
+  support=static_cast<int>(1.5*sqrt(abs(baseline) *static_cast<Coord>(cellSize)
+      *freq[0])/cellSize);
+  overSample=8;
   cout << "Support = " << support << " pixels" << endl;
-  const Coord wCellSize=2*baseline*freq[0]/wSize;
+  wCellSize=2*baseline*freq[0]/wSize;
   cout << "W cellsize = " << wCellSize << " wavelengths" << endl;
 
   // Convolution function. This should be the convolution of the
@@ -242,11 +161,11 @@ int wprojection(const std::vector<Coord>& u, const std::vector<Coord>& v,
   // suppress aliasing. In practice, we calculate entire function
   // by Fourier transformation. Here we take an approximation that
   // is good enough.
-  int sSize=2*(support+1);
+  int sSize=2*support+1;
 
-  int cCenter=sSize/2;
+  int cCenter=(sSize-1)/2;
 
-  std::vector<Value> C(sSize*sSize*overSample*overSample*wSize);
+  C.resize(sSize*sSize*overSample*overSample*wSize);
   cout << "Size of convolution function = " << sSize*sSize*overSample
       *overSample*wSize*8/(1024*1024) << " MB" << std::endl;
   cout << "Shape of convolution function = [" << sSize << ", " << sSize << ", "
@@ -292,13 +211,33 @@ int wprojection(const std::vector<Coord>& u, const std::vector<Coord>& v,
   {
     C[i]*=Value(wSize*overSample*overSample/sumC);
   }
-  sumC=0.0;
-  for (int i=0; i<sSize*sSize*overSample*overSample*wSize; i++)
-  {
-    sumC+=abs(C[i]);
-  }
+}
+// Initialize Lookup function
+//
+// nSamples - number of visibility samples
+// freq - temporal frequency (inverse wavelengths)
+// cellSize - size of one grid cell in wavelengths
+// gSize - size of grid in pixels (per axis)
+// support - Total width of convolution function=2*support+1
+// wCellSize - size of one w grid cell in wavelengths
+// wSize - Size of lookup table in w
+void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
+    const std::vector<Coord>& w, const std::vector<Coord>& freq,
+    const Coord cellSize, const Coord wCellSize, const Coord baseline,
+    const int wSize, const int gSize, const int support, const int overSample,
+    std::vector<unsigned int>& cOffset, std::vector<unsigned int>& iu,
+    std::vector<unsigned int>& iv)
+{
 
-  std::vector<unsigned int> cOffset(data.size());
+  const int nSamples = u.size();
+  const int nChan = freq.size();
+
+  int sSize=2*support+1;
+
+  // Now calculate the offset for each visibility point
+  cOffset.resize(nSamples*nChan);
+  iu.resize(nSamples*nChan);
+  iv.resize(nSamples*nChan);
   for (int i=0; i<nSamples; i++)
   {
     for (int chan=0; chan<nChan; chan++)
@@ -306,13 +245,31 @@ int wprojection(const std::vector<Coord>& u, const std::vector<Coord>& v,
 
       int find=i*nChan+chan;
 
+      Coord uScaled=freq[chan]*u[i]/cellSize;
+      iu[find]=int(uScaled);
+      if (uScaled<Coord(iu[find]))
+      {
+        iu[find]-=1;
+      }
+      int fracu=int(overSample*(uScaled-Coord(iu[find])));
+      iu[find]+=gSize/2;
+
+      Coord vScaled=freq[chan]*v[i]/cellSize;
+      iv[find]=int(vScaled);
+      if (vScaled<Coord(iv[find]))
+      {
+        iv[find]-=1;
+      }
+      int fracv=int(overSample*(vScaled-Coord(iv[find])));
+      iv[find]+=gSize/2;
+
+      // The beginning of the convolution function for this point
       Coord wScaled=freq[chan]*w[i]/wCellSize;
-      cOffset[find]=wSize/2+int(wScaled);
+      int woff=wSize/2+int(wScaled);
+      cOffset[find]=sSize*sSize*(fracu+overSample*(fracv+overSample*woff));
     }
   }
 
-  return generic(u, v, w, data, outdata, freq, cellSize, C, support,
-      overSample, cOffset, grid, gSize);
 }
 
 int main()
@@ -320,7 +277,7 @@ int main()
   const int baseline=2000; // Maximum baseline in meters
   const int nSamples=10000; // Number of data samples
   const int gSize=512; // Size of output grid in pixels
-  const Coord cellSize=50; // Cellsize of output grid in wavelengths
+  const Coord cellSize=40; // Cellsize of output grid in wavelengths
   const int wSize=64; // Number of lookup planes in w projection
   const int nChan=16; // Number of spectral channels
 
@@ -350,10 +307,49 @@ int main()
     freq[i]=(1.4e9-2.0e5*Coord(i)/Coord(nChan))/2.998e8;
   }
 
+  // Initialize convolution function and offsets
+  std::vector<std::complex<float> > C;
+  int support, overSample;
+  std::vector<unsigned int> cOffset;
+  // Vectors of grid centers
+  std::vector<unsigned int> iu;
+  std::vector<unsigned int> iv;
+  Coord wCellSize;
+  
+  initC(nSamples, w, freq, cellSize, baseline, wSize, gSize, support,
+      overSample, wCellSize, C);
+  initCOffset(u, v, w, freq, cellSize, wCellSize, baseline, wSize, gSize,
+      support, overSample, cOffset, iu, iv);
+  int sSize=2*support+1;
+  
   std::vector<Value> grid(gSize*gSize);
+  cout << "+++++ Forward processing +++++" << endl;
 
-  wprojection(u, v, w, data, outdata, freq, cellSize, baseline, wSize, grid,
-      gSize);
+  clock_t start, finish;
+  double time;
+
+  start = clock();
+  grid.assign(grid.size(), Value(0.0));
+  gridData(data, support, C, cOffset, iu, iv, grid, gSize);
+  finish = clock();
+  // Report on timings
+  // Report on timings
+  time = (double(finish)-double(start))/CLOCKS_PER_SEC;
+  cout << "    Time " << time << " (s) " << endl;
+  cout << "    Time per visibility spectral sample " << 1e6*time/double(data.size()) << " (us) " << endl;
+  cout << "    Time per degridding " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
+
+  cout << "+++++ Reverse processing +++++" << endl;
+
+  grid.assign(grid.size(), Value(1.0));
+  start = clock();
+  degridData(grid, gSize, support, C, cOffset, iu, iv, outdata);
+  finish = clock();
+  // Report on timings
+  time = (double(finish)-double(start))/CLOCKS_PER_SEC;
+  cout << "    Time " << time << " (s) " << endl;
+  cout << "    Time per visibility spectral sample " << 1e6*time/double(data.size()) << " (us) " << endl;
+  cout << "    Time per degridding " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
 
   cout << "Done" << endl;
 
