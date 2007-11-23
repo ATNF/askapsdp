@@ -89,7 +89,7 @@ int main(int argc, const char** argv)
 			}
 			imager.os() << "*** Finished major cycles ***" << std::endl;
 			imager.broadcastModel();
-			imager.receiveModel();
+                        imager.receiveModel();
 			imager.calcNE();
 			imager.receiveNE();
 		}
