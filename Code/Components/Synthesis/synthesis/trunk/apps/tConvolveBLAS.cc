@@ -7,7 +7,7 @@
 // Strict-aliasing tells the compiler that there are no memory locations accessed through aliases.
 //
 // The challenge is to minimize the run time - specifically the time per grid addition. On a MacBookPro 
-// 2GHz Intel Core Duo this is about 5.9ns
+// 2GHz Intel Core Duo this is about 6.0ns. 
 //
 // For further details contact Tim.Cornwell@csiro.au
 // November 22, 2007
@@ -40,95 +40,99 @@ typedef double Coord;
 typedef float Real;
 typedef std::complex<Real> Value;
 
+/////////////////////////////////////////////////////////////////////////////////
+// The next two functions are the kernel of the gridding/degridding.
+// The data are presented as a vector. Offsets for the convolution function
+// and for the grid location are precalculated so that the kernel does
+// not need to know anything about world coordinates or the shape of
+// the convolution function. The ordering of cOffset and iu, iv is
+// random - some presorting might be advantageous.
+//
 // Perform gridding
 //
 // data - values to be gridded in a 1D vector
 // support - Total width of convolution function=2*support+1
-// overSample - Oversampling factor for the convolution function
-// C - convolution function
-// cOffset - offsets into convolution function per data point
+// C - convolution function shape: (2*support+1, 2*support+1, *)
+// cOffset - offset into convolution function per data point
 // iu, iv - integer locations of grid points
-// grid - Output grid
+// grid - Output grid: shape (gSize, *)
 // gSize - size of one axis of grid
 
-void gridData(const std::vector<Value>& data, const int support,
+void gridKernel(const std::vector<Value>& data, const int support,
     const std::vector<Value>& C, const std::vector<unsigned int>& cOffset,
     const std::vector<unsigned int>& iu, const std::vector<unsigned int>& iv,
     std::vector<Value>& grid, const int gSize)
 {
 
   int sSize=2*support+1;
-  for (unsigned int find=0; find<data.size(); find++)
+  for (unsigned int dind=0; dind<data.size(); dind++)
   {
-
-    int coff=cOffset[find];
-
+    // Nearly all the L2 cache misses originate here in the next
+    // two statements
     // The actual grid point
-    int gind=iu[find]+gSize*iv[find];
+    int gind=iu[dind]+gSize*iv[dind]-support;
+    // The Convoluton function point from which we offset
+    int cind=cOffset[dind];
+
     for (int suppv=0; suppv<sSize; suppv++)
     {
 #ifdef USEBLAS
-      cblas_caxpy(sSize, &data[find], &C[coff-support], 1, &grid[gind-support], 1);
+      cblas_caxpy(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
 #else
       for (int suppu=0; suppu<sSize; suppu++)
       {
-        grid[gind-support+suppu]+=data[find]*C[coff-support+suppu];
+        grid[gind+suppu]+=data[dind]*C[cind+suppu];
       }
 #endif
       gind+=gSize;
-      coff+=sSize;
+      cind+=sSize;
     }
   }
 }
 
 // Perform degridding
-//
-// grid - Input grid
-// gSize - size of one axis of grid
-// support - Total width of convolution function=2*support+1
-// overSample - Oversampling factor for the convolution function
-// C - convolution function
-// cOffset - offsets into convolution function per data point
-// iu, iv - integer locations of grid points
-// data - Output values in a 1D vector
-
-void degridData(const std::vector<Value>& grid, const int gSize, const int support,
+void degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
     const std::vector<Value>& C, const std::vector<unsigned int>& cOffset,
     const std::vector<unsigned int>& iu, const std::vector<unsigned int>& iv,
-    std::vector<Value>& outdata)
+    std::vector<Value>& data)
 {
 
   int sSize=2*support+1;
 
-  for (unsigned int find=0; find<outdata.size(); find++)
+  for (unsigned int dind=0; dind<data.size(); dind++)
   {
 
-    outdata[find]=0.0;
+    data[dind]=0.0;
+
+    // Nearly all the L2 cache misses originate here in the next
+    // two statements
     // The actual grid point from which we offset
-    int gind=iu[find]+gSize*iv[find];
+    int gind=iu[dind]+gSize*iv[dind]-support;
     // The Convoluton function point from which we offset
-    int coff=cOffset[find];
+    int cind=cOffset[dind];
     
     for (int suppv=0; suppv<sSize; suppv++)
     {
 #ifdef USEBLAS
       Value dot;
-      cblas_cdotu_sub(sSize, &grid[gind-support], 1, &C[coff-support], 1, &dot);
-      outdata[find]+=dot;
+      cblas_cdotu_sub(sSize, &grid[gind], 1, &C[cind], 1, &dot);
+      data[dind]+=dot;
 #else
       for (int suppu=0; suppu<sSize; suppu++)
       {
-        outdata[find]+=grid[gind-support+suppu]*C[coff-support+suppu];
+        data[dind]+=grid[gind+suppu]*C[cind+suppu];
       }
 #endif
       gind+=gSize;
-      coff+=sSize;
+      cind+=sSize;
     }
 
   }
 }
+/////////////////////////////////////////////////////////////////////////////////
 
-// Initialize W project convolution function
+// Initialize W project convolution function 
+// - This is application specific and should not need any changes.
 //
 // nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
@@ -210,6 +214,7 @@ void initC(const int nSamples, const std::vector<Coord>& w,
   }
 }
 // Initialize Lookup function
+// - This is application specific and should not need any changes.
 //
 // nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
@@ -240,43 +245,47 @@ void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
     for (int chan=0; chan<nChan; chan++)
     {
 
-      int find=i*nChan+chan;
+      int dind=i*nChan+chan;
 
       Coord uScaled=freq[chan]*u[i]/cellSize;
-      iu[find]=int(uScaled);
-      if (uScaled<Coord(iu[find]))
+      iu[dind]=int(uScaled);
+      if (uScaled<Coord(iu[dind]))
       {
-        iu[find]-=1;
+        iu[dind]-=1;
       }
-      int fracu=int(overSample*(uScaled-Coord(iu[find])));
-      iu[find]+=gSize/2;
+      int fracu=int(overSample*(uScaled-Coord(iu[dind])));
+      iu[dind]+=gSize/2;
 
       Coord vScaled=freq[chan]*v[i]/cellSize;
-      iv[find]=int(vScaled);
-      if (vScaled<Coord(iv[find]))
+      iv[dind]=int(vScaled);
+      if (vScaled<Coord(iv[dind]))
       {
-        iv[find]-=1;
+        iv[dind]-=1;
       }
-      int fracv=int(overSample*(vScaled-Coord(iv[find])));
-      iv[find]+=gSize/2;
+      int fracv=int(overSample*(vScaled-Coord(iv[dind])));
+      iv[dind]+=gSize/2;
 
       // The beginning of the convolution function for this point
       Coord wScaled=freq[chan]*w[i]/wCellSize;
       int woff=wSize/2+int(wScaled);
-      cOffset[find]=sSize*sSize*(fracu+overSample*(fracv+overSample*woff));
+      cOffset[dind]=sSize*sSize*(fracu+overSample*(fracv+overSample*woff));
     }
   }
 
 }
 
+// Main testing routine
 int main()
 {
-  const int baseline=2000; // Maximum baseline in meters
+  // Change these if necessary to adjust run time
   const int nSamples=10000; // Number of data samples
-  const int gSize=512; // Size of output grid in pixels
-  const Coord cellSize=40; // Cellsize of output grid in wavelengths
-  const int wSize=64; // Number of lookup planes in w projection
+  const int wSize=33; // Number of lookup planes in w projection
   const int nChan=16; // Number of spectral channels
+
+  // Don't change any of these numbers unless you know what you are doing!
+  const int gSize=512; // Size of output grid in pixels
+  const Coord cellSize=40.0; // Cellsize of output grid in wavelengths
+  const int baseline=2000; // Maximum baseline in meters
 
   // Initialize the data to be gridded
   std::vector<Coord> u(nSamples);
@@ -296,6 +305,9 @@ int main()
       outdata[i*nChan+chan]=0.0;
     }
   }
+  
+  std::vector<Value> grid(gSize*gSize);
+  grid.assign(grid.size(), Value(0.0));
 
   // Measure frequency in inverse wavelengths
   std::vector<Coord> freq(nChan);
@@ -318,29 +330,28 @@ int main()
   initCOffset(u, v, w, freq, cellSize, wCellSize, baseline, wSize, gSize,
       support, overSample, cOffset, iu, iv);
   int sSize=2*support+1;
-  
-  std::vector<Value> grid(gSize*gSize);
+
+  // Now we can do the timing
   cout << "+++++ Forward processing +++++" << endl;
 
   clock_t start, finish;
   double time;
 
   start = clock();
-  grid.assign(grid.size(), Value(0.0));
-  gridData(data, support, C, cOffset, iu, iv, grid, gSize);
+  gridKernel(data, support, C, cOffset, iu, iv, grid, gSize);
   finish = clock();
   // Report on timings
   // Report on timings
   time = (double(finish)-double(start))/CLOCKS_PER_SEC;
   cout << "    Time " << time << " (s) " << endl;
   cout << "    Time per visibility spectral sample " << 1e6*time/double(data.size()) << " (us) " << endl;
-  cout << "    Time per degridding " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
+  cout << "    Time per gridding   " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
 
   cout << "+++++ Reverse processing +++++" << endl;
-
   grid.assign(grid.size(), Value(1.0));
+  
   start = clock();
-  degridData(grid, gSize, support, C, cOffset, iu, iv, outdata);
+  degridKernel(grid, gSize, support, C, cOffset, iu, iv, outdata);
   finish = clock();
   // Report on timings
   time = (double(finish)-double(start))/CLOCKS_PER_SEC;
