@@ -54,7 +54,7 @@ GenericNormalEquations::GenericNormalEquations(const DesignMatrix& dm)
 }
       
 /// @brief reset the normal equation object
-/// @detail After a call to this method the object has the same pristine
+/// @details After a call to this method the object has the same pristine
 /// state as immediately after creation with the default constructor
 void GenericNormalEquations::reset()
 {
@@ -66,6 +66,7 @@ void GenericNormalEquations::reset()
 /// @details "Virtual constructor" - creates a copy of this object. Derived
 /// classes must override this method to instantiate the object of a proper 
 /// type.
+/// @return shared pointer on INormalEquation class
 GenericNormalEquations::ShPtr GenericNormalEquations::clone() const
 {
   return ShPtr(new GenericNormalEquations(*this));
@@ -313,7 +314,7 @@ void GenericNormalEquations::add(const DesignMatrix& dm)
 }
 
 /// @brief Extract derivatives from design matrix
-/// @detail This method extracts an appropriate derivative matrix
+/// @details This method extracts an appropriate derivative matrix
 /// from the given design matrix. Effectively, it implements
 /// dm.derivative(par)[dataPoint] with some additional validity checks
 /// @param[in] dm Design matrix to work with

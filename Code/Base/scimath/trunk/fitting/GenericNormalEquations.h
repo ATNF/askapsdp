@@ -56,7 +56,7 @@ struct GenericNormalEquations : public INormalEquations {
   explicit GenericNormalEquations(const DesignMatrix& dm);
       
   /// @brief reset the normal equation object
-  /// @detail After a call to this method the object has the same pristine
+  /// @details After a call to this method the object has the same pristine
   /// state as immediately after creation with the default constructor
   virtual void reset();
           
@@ -64,6 +64,7 @@ struct GenericNormalEquations : public INormalEquations {
   /// @details "Virtual constructor" - creates a copy of this object. Derived
   /// classes must override this method to instantiate the object of a proper 
   /// type.
+  /// @return shared pointer on INormalEquation class
   virtual GenericNormalEquations::ShPtr clone() const;
 
   /// @brief Merge these normal equations with another
@@ -124,9 +125,9 @@ struct GenericNormalEquations : public INormalEquations {
   virtual void readFromBlob(LOFAR::BlobIStream& is); 
 
 protected:
-  // @brief map of matrices (data element of each row map)
+  /// @brief map of matrices (data element of each row map)
   typedef std::map<std::string, casa::Matrix<double> > MapOfMatrices;
-  // @brief map of vectors (data vectors for all parameters)
+  /// @brief map of vectors (data vectors for all parameters)
   typedef std::map<std::string, casa::Vector<double> > MapOfVectors;
 
   /// @brief Add one parameter from another normal equations class
@@ -198,7 +199,7 @@ protected:
               const casa::Vector<double> &dv); 
   
   /// @brief Extract derivatives from design matrix
-  /// @detail This method extracts an appropriate derivative matrix
+  /// @details This method extracts an appropriate derivative matrix
   /// from the given design matrix. Effectively, it implements
   /// dm.derivative(par)[dataPoint] with some additional validity checks
   /// @param[in] dm Design matrix to work with

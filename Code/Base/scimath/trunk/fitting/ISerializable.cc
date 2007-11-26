@@ -19,20 +19,20 @@ namespace conrad {
 /// @brief an empty virtual destructor to keep the compiler happy
 ISerializable::~ISerializable() {}
 
-/// @brief operator to store the object in a blob stream
-/// @param[in] os the output stream
-/// @param[in] obj a serializable object
-/// @return the output steam to be able to use chain semantics
+// @brief operator to store the object in a blob stream
+// @param[in] os the output stream
+// @param[in] obj a serializable object
+// @return the output steam to be able to use chain semantics
 LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &os, const ISerializable& obj)
 {
   obj.writeToBlob(os);
   return os;
 }
 
-/// @brief operator to load an object from a blob stream
-/// @param[in] is the input stream
-/// @param[in] obj a serializable object
-/// @return the input steam to be able to use chain semantics
+// @brief operator to load an object from a blob stream
+// @param[in] is the input stream
+// @param[in] obj a serializable object
+// @return the input steam to be able to use chain semantics
 LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &is, ISerializable& obj)
 {
   obj.readFromBlob(is);

@@ -61,13 +61,13 @@ namespace conrad
       /// Return the specified parameters (const)
       const Params& parameters() const;
             
-      
-      /// @param normalmatrixslice Slice of normal matrix for this parameter
-      /// @param normalmatrixdiagonal Diagonal of normal matrix for
+      /// @param[in] name parameter name
+      /// @param[in] normalmatrixslice Slice of normal matrix for this parameter
+      /// @param[in] normalmatrixdiagonal Diagonal of normal matrix for
       ///        this parameter
-      /// @param datavector Data vector for this parameter
-      /// @param shape Shape of this parameter
-      /// @param reference Reference point for the slice
+      /// @param[in] datavector Data vector for this parameter
+      /// @param[in] shape Shape of this parameter
+      /// @param[in] reference Reference point for the slice
       void addSlice(const string& name,
                     const casa::Vector<double>& normalmatrixslice,
                     const casa::Vector<double>& normalmatrixdiagonal,

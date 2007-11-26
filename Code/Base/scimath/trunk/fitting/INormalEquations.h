@@ -49,7 +49,7 @@ struct INormalEquations : public ISerializable {
   virtual INormalEquations::ShPtr clone() const = 0;
 
   /// @brief reset the normal equation object
-  /// @detail After a call to this method the object has the same pristine
+  /// @details After a call to this method the object has the same pristine
   /// state as immediately after creation with the default constructor
   virtual void reset() = 0;
 
