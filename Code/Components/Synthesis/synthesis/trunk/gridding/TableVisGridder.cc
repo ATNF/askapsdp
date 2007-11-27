@@ -18,20 +18,27 @@ using namespace conrad;
 
 #include <ostream>
 
+#include <casa/OS/Timer.h>
+
 namespace conrad
 {
   namespace synthesis
   {
 
     TableVisGridder::TableVisGridder() :
-      itsName(""), itsModelIsEmpty(false)
+      itsName(""), itsModelIsEmpty(false),
+      itsNumberGridded(0), itsNumberDegridded(0),
+      itsTimeGridded(0.0), itsTimeDegridded(0.0)
+
     {
     }
 
     TableVisGridder::TableVisGridder(const int overSample, const int support,
         const std::string& name) :
-          itsSupport(support), itsOverSample(overSample), itsName(name),
-          itsModelIsEmpty(false)
+      itsSupport(support), itsOverSample(overSample), itsName(name),
+          itsModelIsEmpty(false),
+          itsNumberGridded(0), itsNumberDegridded(0),
+          itsTimeGridded(0.0), itsTimeDegridded(0.0)
     {
       CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
       CONRADCHECK(support>0, "Maximum support must be greater than 0");
@@ -39,6 +46,24 @@ namespace conrad
 
     TableVisGridder::~TableVisGridder()
     {
+      std::cout << "TableVisGridder statistics" << std::endl;
+      if (itsNumberGridded>0)
+      {
+        std::cout << "   Total time gridding   = " << itsTimeGridded << " (s)"
+            << std::endl;
+        std::cout << "   Number gridded        = " << itsNumberGridded
+            << std::endl;
+        std::cout << "   Time per grid         = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" << std::endl;
+      }
+
+      if (itsNumberDegridded>0)
+      {
+        std::cout << "   Total time degridding = " << itsTimeDegridded << " (s)"
+            << std::endl;
+        std::cout << "   Number degridded      = " << itsNumberDegridded
+            << std::endl;
+        std::cout << "   Time per degrid       = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" << std::endl;
+      }
     }
 
     /// Totally selfcontained gridding
@@ -64,7 +89,7 @@ namespace conrad
         int voff=suppv*overSample+fracv+cCenter;
         int uoff=-support*overSample+fracu+cCenter;
         casa::Complex *wtPtr=&convFunc(uoff, voff);
-        casa::Complex *gridPtr=&(grid(iu-support,iv+suppv));
+        casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
         for (int suppu=-support; suppu<+support; suppu++)
         {
           (*gridPtr)+=cVis*(*wtPtr);
@@ -103,7 +128,7 @@ namespace conrad
         int voff=suppv*overSample+fracv+cCenter;
         int uoff=-support*overSample+fracu+cCenter;
         const casa::Complex *wtPtr=&convFunc(uoff, voff);
-        const casa::Complex *gridPtr=&(grid(iu-support,iv+suppv));
+        const casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
         for (int suppu=-support; suppu<+support; suppu++)
         {
           cVis+=(*wtPtr)*conj(*gridPtr);
@@ -183,6 +208,10 @@ namespace conrad
       // Loop over the entire itsSupport, calculating weights from
       // the convolution function and adding the scaled
       // visibility to the grid.
+      casa::Timer timer;
+
+      timer.mark();
+
       for (int i=0; i<nSamples; i++)
       {
         /// Temporarily fix to do MFS only
@@ -269,6 +298,20 @@ namespace conrad
               }
             }
           }
+        }
+      }
+      if (forward)
+      {
+        itsTimeDegridded+=timer.real();
+        itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan
+            *nPol);
+      }
+      else
+      {
+        itsTimeGridded+=timer.real();
+        itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan*nPol);
+        if(itsDopsf) {
+          itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan*nPol);
         }
       }
     }
