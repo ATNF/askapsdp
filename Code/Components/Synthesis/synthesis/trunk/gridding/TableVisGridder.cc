@@ -30,7 +30,7 @@ namespace conrad
 
     TableVisGridder::TableVisGridder(const int overSample, const int support,
         const std::string& name) :
-      itsOverSample(overSample), itsSupport(support), itsName(name),
+          itsSupport(support), itsOverSample(overSample), itsName(name),
           itsModelIsEmpty(false)
     {
       CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -57,7 +57,22 @@ namespace conrad
           "Indexing outside of convolution function");
       CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1),
           "Indexing outside of convolution function");
-
+#define GRID_WITH_POINTERS 1
+#ifdef GRID_WITH_POINTERS
+      for (int suppv=-support; suppv<+support; suppv++)
+      {
+        int voff=suppv*overSample+fracv+cCenter;
+        int uoff=-support*overSample+fracu+cCenter;
+        casa::Complex *wtPtr=&convFunc(uoff, voff);
+        casa::Complex *gridPtr=&(grid(iu-support,iv+suppv));
+        for (int suppu=-support; suppu<+support; suppu++)
+        {
+          (*gridPtr)+=cVis*(*wtPtr);
+          wtPtr+=overSample;
+          gridPtr++;
+        }
+      }
+#else
       for (int suppv=-support; suppv<+support; suppv++)
       {
         int voff=suppv*overSample+fracv+cCenter;
@@ -68,6 +83,7 @@ namespace conrad
           grid(iu+suppu, iv+suppv)+=cVis*wt;
         }
       }
+#endif
       sumwt+=viswt;
     }
 
@@ -81,6 +97,21 @@ namespace conrad
       /// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
       /// data using the convolution function as the weighting function. 
       cVis=0.0;
+#ifdef GRID_WITH_POINTERS
+      for (int suppv=-support; suppv<+support; suppv++)
+      {
+        int voff=suppv*overSample+fracv+cCenter;
+        int uoff=-support*overSample+fracu+cCenter;
+        const casa::Complex *wtPtr=&convFunc(uoff, voff);
+        const casa::Complex *gridPtr=&(grid(iu-support,iv+suppv));
+        for (int suppu=-support; suppu<+support; suppu++)
+        {
+          cVis+=(*wtPtr)*conj(*gridPtr);
+          wtPtr+=overSample;
+          gridPtr++;
+        }
+      }
+#else
       for (int suppv=-support; suppv<+support; suppv++)
       {
         int voff=suppv*overSample+fracv+cCenter;
@@ -91,6 +122,7 @@ namespace conrad
           cVis+=wt*conj(grid(iu+suppu, iv+suppv));
         }
       }
+#endif
     }
 
     void TableVisGridder::save(const std::string& name)
