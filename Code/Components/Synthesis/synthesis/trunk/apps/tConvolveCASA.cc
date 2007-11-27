@@ -68,8 +68,6 @@ casa::Cube<Value>& grid)
 
   int cSize=2*(support+1)*overSample+1;
 
-  int cCenter=(cSize-1)/2;
-
 // Grid
   grid.set(Value(0));
 
@@ -106,15 +104,35 @@ casa::Cube<Value>& grid)
         int fracv=int(overSample*(vScaled-Coord(iv)));
         iv+=gSize/2;
 
+        casa::Complex& d=data(i,chan,pol);
+//#define USEPOINTERS 1
+#ifdef USEPOINTERS
+        casa::Complex *gptr;
+        const Real *cptr;
+        for (int suppu=-support;suppu<+support;suppu++)
+        {
+          gptr=&grid(iu+suppu,iv-support,pol);
+          cptr=&C(iu+suppu*overSample+fracu,iv-support*overSample+fracv,coff);
+          for (int suppv=-support;suppv<+support;suppv++)
+          {
+//            Real wt=C(iu+suppu*overSample+fracu,iu+suppv*overSample+fracu,coff);
+//            grid(iu+suppu,iv+suppv,pol)+=wt*data(i,chan,pol);
+            (*gptr)+=(*cptr)*d;
+            sumwt+=(*cptr);
+            gptr++;
+            cptr+=overSample;
+          }
+        }
+#else
         for (int suppu=-support;suppu<+support;suppu++)
         {
           for (int suppv=-support;suppv<+support;suppv++)
           {
-            Real wt=C(iu+suppu*overSample+fracu,iu+suppv*overSample+fracu,coff);
-            grid(iu+suppu,iv+suppv,pol)+=wt*data(i,chan,pol);
-            sumwt+=wt;
+            Real wt=C(iu+suppu*overSample+fracu,iv+suppv*overSample+fracv,coff);
+            grid(iu+suppu,iv+suppv,pol)+=wt*d;
           }
         }
+#endif
       }
     }
   }
@@ -155,15 +173,33 @@ casa::Cube<Value>& grid)
         iv+=gSize/2;
 
         double sumviswt=0.0;
+        casa::Complex& d=data(i,chan,pol);
+#ifdef USEPOINTERS
+        casa::Complex *gptr;
+        const Real *cptr;
+        for (int suppu=-support;suppu<+support;suppu++)
+        {
+          gptr=&grid(iu+suppu,iv-support,pol);
+          cptr=&C(iu+suppu*overSample+fracu,iv-support*overSample+fracv,coff);
+          for (int suppv=-support;suppv<+support;suppv++)
+          {
+            d+=(*cptr)*(*gptr);
+            sumviswt+=(*cptr);
+            gptr++;
+            cptr+=overSample;
+          }
+        }
+#else
         for (int suppu=-support;suppu<+support;suppu++)
         {
           for (int suppv=-support;suppv<+support;suppv++)
           {
-            Real wt=C(iu+fracu+cCenter,iu+fracu+cCenter,coff);
-            data(i,chan,pol)+=wt*grid(iu+suppu,iv+suppv,pol);
+            Real wt=C(iu+fracu+suppu*overSample,iv+fracv+suppv*overSample,coff);
+            d+=wt*grid(iu+suppu,iv+suppv,pol);
             sumviswt+=wt;
           }
         }
+#endif
         data(i,chan,pol)=data(i,chan,pol)/casa::Complex(sumviswt);
       }
     }
