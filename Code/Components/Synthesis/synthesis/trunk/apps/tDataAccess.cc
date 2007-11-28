@@ -70,7 +70,8 @@ void doReadWriteTest(const IDataSource &ds) {
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
-  for (IDataSharedIter it=ds.createIterator(sel,conv);it!=it.end();++it) {
+  IDataSharedIter it=ds.createIterator(sel,conv);
+  for (it.init();it!=it.end();++it) {
        //cout<<it.buffer("TEST").rwVisibility()<<endl;
        it.buffer("TEST").rwVisibility()=it->visibility();
        it.chooseBuffer("MODEL_DATA");
@@ -87,12 +88,12 @@ int main(int argc, char **argv) {
 	 return -2;
      }
 
-     //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
-     //                           TableDataSource::MEMORY_BUFFERS);     
-     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
+     TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
+                                TableDataSource::MEMORY_BUFFERS);     
+     //TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
      //timeDependentSubtableTest(argv[1],ds);
-     doReadOnlyTest(ds);
-     //doReadWriteTest(ds);    
+     //doReadOnlyTest(ds);
+     doReadWriteTest(ds);    
      
   }
   catch(const ConradError &ce) {
