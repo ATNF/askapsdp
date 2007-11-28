@@ -5,19 +5,19 @@ Csimulator.sources.names                        =       [10uJy]
 Csimulator.sources.10uJy.direction              =       [12h30m00.000, -45.00.00.000, J2000]
 Csimulator.sources.10uJy.model                  =       /work2/cor203/Projects/CONRAD/cptest2/cptest2.10uJy.model
 
-Csimulator.antennas.definition                  =       /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/cptest2/meerkat/MEERKAT80.in
-Csimulator.feeds.definition                     =       /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/cptest2/meerkat/MEERKAT1feeds.in
-Csimulator.spws.definition                      =       /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/cptest2/meerkat/MEERKATspws.in
+Csimulator.antennas.definition                  =       definitions/MEERKAT80.in
+Csimulator.feeds.definition                     =       definitions/MEERKAT1feeds.in
+Csimulator.spws.definition                      =       definitions/MEERKATspws.in
 
 Csimulator.simulation.blockage                  =       0.01
 Csimulator.simulation.elevationlimit            =       8deg
 Csimulator.simulation.autocorrwt                =       0.0
-Csimulator.simulation.integrationtime           =       3s
+Csimulator.simulation.integrationtime           =       6s
 Csimulator.simulation.usehourangles             =       True
 Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 
 Csimulator.observe.number                       =       1
-Csimulator.observe.scan0                        =       [10uJy, Continuum%w, -6h, 6h]
+Csimulator.observe.scan0                        =       [10uJy, Continuum%w, -4h, 4h]
 
 Csimulator.gridder                              = AProjectWStack
 Csimulator.gridder.AProjectWStack.wmax            	= 50000
@@ -32,13 +32,13 @@ Csimulator.gridder.AProjectWStack.cutoff		= 0.001
 Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack%w.ms
 
 Cimager.Images.Names                            = [image.i.10uJy_AProjectWStack]
-Cimager.Images.image.i.10uJy_AProjectWStack.shape		= [8192,8192]
-Cimager.Images.image.i.10uJy_AProjectWStack.cellsize	= [1arcsec, 1arcsec]
+Cimager.Images.image.i.10uJy_AProjectWStack.shape		= [4096,4096]
+Cimager.Images.image.i.10uJy_AProjectWStack.cellsize	= [2arcsec, 2arcsec]
 Cimager.Images.image.i.10uJy_AProjectWStack.frequency	= [1.245e9,1.420e9]
 Cimager.Images.image.i.10uJy_AProjectWStack.nchan		= 1
 Cimager.Images.image.i.10uJy_AProjectWStack.direction	= [12h30m00.00, -45.00.00.00, J2000]
 
-Cimager.gridder                          	= AProjectWStack
+Cimager.gridder                          	= WStack
 Cimager.gridder.AProjectWStack.wmax            	= 50000
 Cimager.gridder.AProjectWStack.nwplanes        	= 33
 Cimager.gridder.AProjectWStack.oversample     	= 8
