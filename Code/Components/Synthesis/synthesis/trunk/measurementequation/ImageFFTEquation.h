@@ -22,6 +22,8 @@
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Cube.h>
 
+#include <map>
+
 namespace conrad
 {
   namespace synthesis
@@ -80,10 +82,16 @@ namespace conrad
 
       private:
       
-      /// Pointer to gridder
+      /// Pointer to prototype gridder
         IVisGridder::ShPtr itsGridder;
         
-      /// Iterator giving access to the data
+        /// Map of gridders for the model
+        std::map<string, IVisGridder::ShPtr> itsModelGridders;
+        
+        /// Map of gridders for the residuals
+        std::map<string, IVisGridder::ShPtr> itsResidualGridders;
+
+        /// Iterator giving access to the data
         IDataSharedIter itsIdi;
 
         void init();

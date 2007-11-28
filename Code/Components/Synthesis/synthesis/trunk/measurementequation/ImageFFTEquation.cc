@@ -101,7 +101,6 @@ namespace conrad
       // switch between these. This optimization may not be sufficient in the long run.
 
       itsIdi.chooseOriginal();
-      std::map<string, IVisGridder::ShPtr> gridders;
       std::cout << "Initialising for model degridding" << std::endl;
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
@@ -109,8 +108,10 @@ namespace conrad
         const Axes axes(parameters().axes(imageName));
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
         const casa::IPosition imageShape(imagePixels.shape());
-        gridders[imageName]=itsGridder->clone();
-        gridders[imageName]->initialiseDegrid(axes, imagePixels);
+        if(itsModelGridders.count(imageName)==0) {
+          itsModelGridders[imageName]=itsGridder->clone();
+        }
+        itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
       }
       // Loop through degridding the data
       std::cout << "Starting to degrid model" << std::endl;
@@ -120,7 +121,7 @@ namespace conrad
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           string imageName("image.i"+(*it));
-          gridders[imageName]->degrid(itsIdi);
+          itsModelGridders[imageName]->degrid(itsIdi);
         }
       }
       std::cout << "Finished degridding model" << std::endl;
@@ -140,16 +141,18 @@ namespace conrad
       // Set up initial gridders for model and for the residuals. This enables us to 
       // do both at the same time.
 
-      std::map<string, IVisGridder::ShPtr> modelGridders;
-      std::map<string, IVisGridder::ShPtr> residualGridders;
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));
         const casa::IPosition imageShape(parameters().value(imageName).shape());
         const Axes axes(parameters().axes(imageName));
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
-        modelGridders[imageName]=itsGridder->clone();
-        residualGridders[imageName]=itsGridder->clone();
+        if(itsModelGridders.count(imageName)==0) {
+           itsModelGridders[imageName]=itsGridder->clone();
+        }
+        if(itsResidualGridders.count(imageName)==0) {
+          itsResidualGridders[imageName]=itsGridder->clone();
+        }
       }
       // Now we initialise appropriately
       std::cout << "Initialising for model degridding and residual gridding" << std::endl;
@@ -160,9 +163,9 @@ namespace conrad
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
         const casa::IPosition imageShape(imagePixels.shape());
         /// First the model
-        modelGridders[imageName]->initialiseDegrid(axes, imagePixels);
+        itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
         /// Now the residual images
-        residualGridders[imageName]->initialiseGrid(axes, imageShape, true);
+        itsResidualGridders[imageName]->initialiseGrid(axes, imageShape, true);
       }
       // Now we loop through all the data
       std::cout << "Starting degridding model and gridding residuals" << std::endl;
@@ -174,7 +177,7 @@ namespace conrad
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
         {
           string imageName("image.i"+(*it));
-          modelGridders[imageName]->degrid(itsIdi);
+          itsModelGridders[imageName]->degrid(itsIdi);
         }
         /// Now we can calculate the residual visibility and image
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
@@ -185,7 +188,7 @@ namespace conrad
             itsIdi.chooseOriginal();
             itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
             itsIdi.chooseBuffer("RESIDUAL_DATA");
-            residualGridders[imageName]->grid(itsIdi);
+            itsResidualGridders[imageName]->grid(itsIdi);
           }
         }
       }
@@ -204,9 +207,9 @@ namespace conrad
         casa::Array<double> imageWeight(imageShape);
         casa::Array<double> imageDeriv(imageShape);
 
-        residualGridders[imageName]->finaliseGrid(imageDeriv);
-        residualGridders[imageName]->finalisePSF(imagePSF);
-        residualGridders[imageName]->finaliseWeights(imageWeight);
+        itsResidualGridders[imageName]->finaliseGrid(imageDeriv);
+        itsResidualGridders[imageName]->finalisePSF(imagePSF);
+        itsResidualGridders[imageName]->finaliseWeights(imageWeight);
         {
           casa::IPosition reference(4, imageShape(0)/2, imageShape(1)/2, 0, 0);
           casa::IPosition vecShape(1, imagePSF.nelements());

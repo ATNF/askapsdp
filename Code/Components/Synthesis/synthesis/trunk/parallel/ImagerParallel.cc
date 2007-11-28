@@ -113,19 +113,27 @@ namespace conrad
       casa::Timer timer;
       timer.mark();
       os() << "Calculating normal equations for " << ms << std::endl;
-      TableDataSource ds(ms);
-      IDataSelectorPtr sel=ds.createSelector();
-      sel << itsParset;
-      IDataConverterPtr conv=ds.createConverter();
-      conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
-          "Hz");
-      conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
-      IDataSharedIter it=ds.createIterator(sel, conv);
-      /// @todo Keep equation around between calls
-      CONRADCHECK(itsModel, "Model not defined");
-      CONRADCHECK(itsNe, "NormalEquations not defined");
-      CONRADCHECK(itsGridder, "Gridder not defined");
-      itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+      // First time around we need to generate the equation, and choose to 
+      // always create for serial (for now)
+      if (!itsEquation||!isParallel())
+      {
+        os() << "Creating measurement equation" << std::endl;
+        TableDataSource ds(ms);
+        IDataSelectorPtr sel=ds.createSelector();
+        sel << itsParset;
+        IDataConverterPtr conv=ds.createConverter();
+        conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
+            "Hz");
+        conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+        IDataSharedIter it=ds.createIterator(sel, conv);
+        CONRADCHECK(itsModel, "Model not defined");
+        CONRADCHECK(itsNe, "NormalEquations not defined");
+        CONRADCHECK(itsGridder, "Gridder not defined");
+        itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+      }
+      else {
+        os() << "Reusing measurement equation" << std::endl;
+      }
       CONRADCHECK(itsEquation, "Equation not defined");
       itsEquation->calcEquations(*itsNe);
       os() << "Calculated normal equations for "<< ms << " in "<< timer.real()
