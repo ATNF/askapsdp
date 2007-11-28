@@ -228,6 +228,14 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
       {
         itsNormalMatrixDiagonal[name]+=normalmatrixdiagonal;
       }
+      if(normalmatrixslice.shape()!=itsNormalMatrixSlice[name].shape()) 
+      { 
+         itsNormalMatrixSlice[name]=normalmatrixslice; 
+      } 
+      else 
+      { 
+         itsNormalMatrixSlice[name]+=normalmatrixslice; 
+      }
       itsShape[name].resize(0);
       itsShape[name]=shape;
       itsReference[name].resize(0);

@@ -72,10 +72,10 @@ namespace conrad
     }
 
     void Solver::addNormalEquations(const INormalEquations& normeq)
-    {
+    { 
       if (itsNormalEquations) {
           itsNormalEquations->merge(normeq);
-      } else {
+      } else { 
           itsNormalEquations = normeq.clone();
       }
     }

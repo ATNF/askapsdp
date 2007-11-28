@@ -78,9 +78,9 @@ namespace conrad
 				const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 				double maxDiag(casa::max(diag));
 				std::cout << "Maximum of weights = " << maxDiag << std::endl;
-				double cutoff=tol()*maxDiag;
-				{
-					casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+				const double cutoff=tol()*maxDiag;
+				{   
+				    casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
 					for (uint elem=0; elem<dv.nelements(); elem++)
 					{
 						if (diag(elem)>cutoff)
@@ -95,16 +95,14 @@ namespace conrad
 				}
 
 			}
-
-			quality.setDOF(nParameters);
+            quality.setDOF(nParameters);
 			quality.setRank(0);
 			quality.setCond(0.0);
 			quality.setInfo("Scaled residual calculated");
-
-			/// Save the PSF and Weight
+            /// Save the PSF and Weight
 			saveWeights();
+			
       savePSF();
-
 			return true;
 		}
 
