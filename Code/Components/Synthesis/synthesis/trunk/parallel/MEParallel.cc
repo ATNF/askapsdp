@@ -36,7 +36,6 @@ namespace conrad
       SynParallel(argc, argv)
     {
       itsSolver = Solver::ShPtr(new Solver(*itsModel));
-      itsEquation = Equation::ShPtr(new Equation(*itsModel));
       itsNe = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
 
     }

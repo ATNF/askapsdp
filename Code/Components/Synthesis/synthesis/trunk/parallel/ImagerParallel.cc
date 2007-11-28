@@ -108,14 +108,13 @@ namespace conrad
       }
     }
 
-    void ImagerParallel::calcOne(const string& ms)
+    void ImagerParallel::calcOne(const string& ms, bool discard)
     {
       casa::Timer timer;
       timer.mark();
       os() << "Calculating normal equations for " << ms << std::endl;
-      // First time around we need to generate the equation, and choose to 
-      // always create for serial (for now)
-      if (!itsEquation||!isParallel())
+      // First time around we need to generate the equation 
+      if ((!itsEquation)||discard)
       {
         os() << "Creating measurement equation" << std::endl;
         TableDataSource ds(ms);
@@ -127,7 +126,6 @@ namespace conrad
         conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
         IDataSharedIter it=ds.createIterator(sel, conv);
         CONRADCHECK(itsModel, "Model not defined");
-        CONRADCHECK(itsNe, "NormalEquations not defined");
         CONRADCHECK(itsGridder, "Gridder not defined");
         itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
       }
@@ -135,6 +133,7 @@ namespace conrad
         os() << "Reusing measurement equation" << std::endl;
       }
       CONRADCHECK(itsEquation, "Equation not defined");
+      CONRADCHECK(itsNe, "NormalEquations not defined");
       itsEquation->calcEquations(*itsNe);
       os() << "Calculated normal equations for "<< ms << " in "<< timer.real()
           << " seconds "<< std::endl;
@@ -166,7 +165,7 @@ namespace conrad
           itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); iMs++)
           {
-            calcOne(itsMs[iMs]);
+            calcOne(itsMs[iMs], itsMs.size()>1);
             itsSolver->addNormalEquations(*itsNe);
           }
         }
