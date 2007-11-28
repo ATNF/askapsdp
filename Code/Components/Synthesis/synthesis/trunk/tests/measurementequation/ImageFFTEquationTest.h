@@ -1,5 +1,5 @@
 #include <measurementequation/ImageFFTEquation.h>
-#include <gridding/BoxVisGridder.h>
+//#include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/AWProjectVisGridder.h>
 #include <measurementequation/ImageSolver.h>
@@ -35,7 +35,6 @@ namespace conrad
       CPPUNIT_TEST_SUITE(ImageFFTEquationTest);
       CPPUNIT_TEST(testPredict);
       CPPUNIT_TEST(testSolveSphFun);
-      //      CPPUNIT_TEST(testSolveBox);
       CPPUNIT_TEST(testSolveAntIllum);
       CPPUNIT_TEST_EXCEPTION(testFixed, CheckError);
       CPPUNIT_TEST_SUITE_END();
@@ -44,13 +43,14 @@ namespace conrad
       boost::shared_ptr<ImageFFTEquation> p1, p2;
       boost::shared_ptr<Params> params1, params2;
       IDataSharedIter idi;
+      uint npix;
 
   public:
       void setUp()
       {
         idi = IDataSharedIter(new DataIteratorStub(1));
 
-        uint npix=1024;
+        npix=1024;
         Axes imageAxes;
         double arcsec=casa::C::pi/(3600.0*180.0);
         double cell=8.0*arcsec;
@@ -72,7 +72,6 @@ namespace conrad
         imagePixels2(casa::IPosition(4, npix/2, npix/2, 0, 0))=0.9;
         imagePixels2(casa::IPosition(4, 3*npix/8, 7*npix/16, 0, 0))=0.75;
         params2->add("image.i.cena", imagePixels2, imageAxes);
-
         p2.reset(new ImageFFTEquation(*params2, idi));
 
       }
@@ -83,10 +82,10 @@ namespace conrad
 
       void testPredict()
       {
-        {
-          ParamsCasaTable pt("ImageFFTEquationTest_original.tab", false);
-          pt.setParameters(*params1);
-        }
+        //        {
+        //          ParamsCasaTable pt("ImageFFTEquationTest_original.tab", false);
+        //          pt.setParameters(*params1);
+        //        }
         p1->predict();
       }
 
@@ -98,53 +97,15 @@ namespace conrad
         ImagingNormalEquations ne(*params1);
         p2->calcEquations(ne);
         Quality q;
-        ImageSolver solver1(*params2);
+        ImageSolver solver1(*params1);
         solver1.addNormalEquations(ne);
         solver1.solveNormalEquations(q);
-        const casa::Array<double> improved=params2->value("image.i.cena");
-        uint npix=512;
-        {
-          ParamsCasaTable pt("ImageFFTEquationTest_SphFun.tab", false);
-          pt.setParameters(*params2);
-        }
+        const casa::Array<double> improved=solver1.parameters().value("image.i.cena");
+        //        {
+        //          ParamsCasaTable pt("ImageFFTEquationTest_SphFun.tab", false);
+        //          pt.setParameters(solver1.parameters());
+        //        }
         // This only works for the pixels with emission but it's a good test nevertheless
-        std::cout << improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
-            << std::endl;
-        std::cout << improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0, 0))
-            << std::endl;
-        CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
-            -1.0)<0.003);
-        CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
-            0))-0.700)<0.003);
-      }
-
-      void testSolveBox()
-      {
-        // Predict with the "perfect" parameters"
-        ImagingNormalEquations ne(*params1);
-        IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new BoxVisGridder());
-        p1.reset(new ImageFFTEquation(*params1, idi, gridder));
-        p2.reset(new ImageFFTEquation(*params2, idi, gridder));
-
-        p1->predict();
-
-        // Calculate gradients using "imperfect" parameters"
-        p2->calcEquations(ne);
-        Quality q;
-        ImageSolver solver1(*params2);
-        solver1.addNormalEquations(ne);
-        solver1.solveNormalEquations(q);
-        casa::Array<double> improved=params2->value("image.i.cena");
-        uint npix=512;
-        {
-          ParamsCasaTable pt("ImageFFTEquationTest_Box.tab", false);
-          pt.setParameters(*params2);
-        }
-        // This only works for the pixels with emission but it's a good test nevertheless
-        std::cout << improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
-            << std::endl;
-        std::cout << improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0, 0))
-            << std::endl;
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
             -1.0)<0.003);
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
@@ -159,26 +120,19 @@ namespace conrad
             1.0, 8000, 9, 1e-3, 8, 256));
         p1.reset(new ImageFFTEquation(*params1, idi, gridder));
         p2.reset(new ImageFFTEquation(*params2, idi, gridder));
-
         p1->predict();
-
         // Calculate gradients using "imperfect" parameters"
         p2->calcEquations(ne);
         Quality q;
-        ImageSolver solver1(*params2);
+        ImageSolver solver1(*params1);
         solver1.addNormalEquations(ne);
         solver1.solveNormalEquations(q);
-        casa::Array<double> improved=params2->value("image.i.cena");
-        uint npix=512;
-        {
-          ParamsCasaTable pt("ImageFFTEquationTest_AntIllum.tab", false);
-          pt.setParameters(*params2);
-        }
+        const casa::Array<double> improved=solver1.parameters().value("image.i.cena");
+        //        {
+        //          ParamsCasaTable pt("ImageFFTEquationTest_AntIllum.tab", false);
+        //          pt.setParameters(solver1.parameters());
+        //        }
         // This only works for the pixels with emission but it's a good test nevertheless
-        std::cout << improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
-            << std::endl;
-        std::cout << improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0, 0))
-            << std::endl;
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
             -1.0)<0.005);
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
