@@ -100,7 +100,7 @@ namespace conrad
         ImageSolver solver1(*params1);
         solver1.addNormalEquations(ne);
         solver1.solveNormalEquations(q);
-        const casa::Array<double> improved=solver1.parameters().value("image.i.cena");
+        const casa::Array<double>& improved=solver1.parameters().value("image.i.cena");
         //        {
         //          ParamsCasaTable pt("ImageFFTEquationTest_SphFun.tab", false);
         //          pt.setParameters(solver1.parameters());
