@@ -46,9 +46,9 @@ namespace conrad
 
     TableVisGridder::~TableVisGridder()
     {
-      std::cout << "TableVisGridder statistics" << std::endl;
       if (itsNumberGridded>0)
       {
+        std::cout << "TableVisGridder gridding statistics" << std::endl;
         std::cout << "   Total time gridding   = " << itsTimeGridded << " (s)"
             << std::endl;
         std::cout << "   Number gridded        = " << itsNumberGridded
@@ -58,6 +58,7 @@ namespace conrad
 
       if (itsNumberDegridded>0)
       {
+        std::cout << "TableVisGridder degridding statistics" << std::endl;
         std::cout << "   Total time degridding = " << itsTimeDegridded << " (s)"
             << std::endl;
         std::cout << "   Number degridded      = " << itsNumberDegridded
