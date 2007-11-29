@@ -36,10 +36,10 @@ Csimulator.observe.scan0                        =       [10uJy, Wide0, -6h, 6h]
 #
 Csimulator.gridder                              = AWProject
 Csimulator.gridder.AWProject.wmax            	= 15000
-Csimulator.gridder.AWProject.nwplanes        	= 257
+Csimulator.gridder.AWProject.nwplanes        	= 33
 Csimulator.gridder.AWProject.oversample     	= 8
 Csimulator.gridder.AWProject.diameter		= 12m
-Csimulator.gridder.AWProject.blockage		= 4m
+Csimulator.gridder.AWProject.blockage		= 2m
 Csimulator.gridder.AWProject.maxfeeds		= 1
 Csimulator.gridder.AWProject.maxsupport		= 1024
 
@@ -57,10 +57,10 @@ Cimager.Images.image.i.10uJy_stdtest.direction	        = [12h30m00.00, -45.00.00
 #
 Cimager.gridder                          	= WProject
 Cimager.gridder.WProject.wmax            	= 15000
-Cimager.gridder.WProject.nwplanes        	= 257
+Cimager.gridder.WProject.nwplanes        	= 33
 Cimager.gridder.WProject.oversample     	= 8
 Cimager.gridder.WProject.diameter		= 12m
-Cimager.gridder.WProject.blockage		= 4m
+Cimager.gridder.WProject.blockage		= 2m
 Cimager.gridder.WProject.maxfeeds		= 1
 Cimager.gridder.WProject.maxsupport             = 1024
 
