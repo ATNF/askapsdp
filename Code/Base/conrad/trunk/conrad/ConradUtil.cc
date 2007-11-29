@@ -15,21 +15,21 @@ namespace conrad {
     std::transform(str.begin(), str.end(), str.begin(), toupper);
     return str;
   }
-
+  
   std::string toLower(std::string str)
   {
     std::transform(str.begin(), str.end(), str.begin(), tolower);
     return str;
   }
-
-	int nint(double x)
-	{
-		return x>0 ? int(x+0.5) : int(x-0.5);
-	}
-
-	int nint(float x)
-	{
-		return x>0 ? int(x+0.5) : int(x-0.5);
-	}
-
+  
+  int nint(double x)
+  {
+    return x>0 ? int(x+0.5) : int(x-0.5);
+  }
+  
+  int nint(float x)
+  {
+    return x>0 ? int(x+0.5) : int(x-0.5);
+  }
+  
 } // end namespaces
