@@ -126,7 +126,7 @@ void TableConstDataIterator::setUpIteration()
   itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
   
-  if (itsDirectionCache.isValid()) {
+  if (itsDirectionCache.isValid() && itsCurrentDataDescID>=0) {
       // extra checks make sense if the cache is valid (and this means it 
       // has been used before)
       const casa::MEpoch epoch = currentEpoch();
@@ -146,6 +146,7 @@ void TableConstDataIterator::setUpIteration()
       itsNumberOfChannels=0;
       itsNumberOfPols=0;
       itsCurrentDataDescID=-100;
+      itsDirectionCache.invalidate();
   }  
 }
 
@@ -165,6 +166,7 @@ void TableConstDataIterator::makeUniformDataDescID()
 
   ROScalarColumn<Int> dataDescCol(itsCurrentIteration,"DATA_DESC_ID");
   const Int newDataDescID=dataDescCol(itsCurrentTopRow);
+  CONRADDEBUGASSERT(newDataDescID>=0);
   if (itsCurrentDataDescID!=newDataDescID) {      
       itsAccessor.invalidateSpectralCaches();
       itsCurrentDataDescID=newDataDescID;
@@ -267,6 +269,7 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
 /// @return current spectral window ID
 casa::uInt TableConstDataIterator::currentSpWindowID() const
 {
+  CONRADDEBUGASSERT(itsCurrentDataDescID>=0);
   const int spWindowIndex = subtableInfo().getDataDescription().
                             getSpectralWindowID(itsCurrentDataDescID);
   if (spWindowIndex<0) {
@@ -284,6 +287,7 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
 {  
   CONRADDEBUGASSERT(itsConverter);
   const ITableSpWindowHolder& spWindowSubtable=subtableInfo().getSpWindow();
+  CONRADDEBUGASSERT(itsCurrentDataDescID>=0);
   const casa::uInt spWindowID = currentSpWindowID();
   
   if (itsConverter->isVoid(spWindowSubtable.getReferenceFrame(spWindowID),
@@ -419,6 +423,7 @@ casa::MEpoch TableConstDataIterator::currentEpoch() const
 void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const
 {
   const casa::MEpoch epoch=currentEpoch();
+  CONRADDEBUGASSERT(itsCurrentDataDescID>=0);
   const casa::uInt spWindowID = currentSpWindowID();
   // antenna and feed IDs here are those in the FEED subtable, rather than
   // in the current accessor
@@ -441,7 +446,7 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
                subtableInfo().getFeed().getAllBeamOffsets(epoch,spWindowID);
   for (casa::uInt element=0;element<antIDs.nelements();++element) {
        const casa::uInt ant=antIDs[element];
-       const casa::uInt feed=feedIDs[element];
+       //const casa::uInt feed=feedIDs[element];
        const casa::String &antMount=subtableInfo().getAntenna().
                                             getMount(ant);
        // if we decide to be paranoid about performance, we can add a method

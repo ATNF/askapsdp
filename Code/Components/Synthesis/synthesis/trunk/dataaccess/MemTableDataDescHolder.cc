@@ -41,7 +41,7 @@ MemTableDataDescHolder::MemTableDataDescHolder(const casa::Table &ms)
 /// the negative values
 int MemTableDataDescHolder::getSpectralWindowID(size_t dataDescriptionID)
                   const
-{
+{ 
   CONRADASSERT(dataDescriptionID<itsDataDescription.size());
   return itsDataDescription[dataDescriptionID].first;
 }
