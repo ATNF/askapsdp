@@ -60,11 +60,11 @@ void TableConstDataIterator::init()
               itsSelector->getTableSelector(itsConverter);
   if (exprNode.isNull()) {
       itsTabIterator=casa::TableIterator(table(),"TIME",
-	   casa::TableIterator::DontCare,casa::TableIterator::NoSort);
+	     casa::TableIterator::DontCare,casa::TableIterator::NoSort);
   } else {
       itsTabIterator=casa::TableIterator(table()(itsSelector->
                                getTableSelector(itsConverter)),"TIME",
-	   casa::TableIterator::DontCare,casa::TableIterator::NoSort);
+	     casa::TableIterator::DontCare,casa::TableIterator::NoSort);
   }  
   setUpIteration();
 }
@@ -96,6 +96,7 @@ casa::Bool TableConstDataIterator::next()
 {
   itsCurrentTopRow+=itsNumberOfRows;
   if (itsCurrentTopRow>=itsCurrentIteration.nrow()) {
+      CONRADDEBUGASSERT(!itsTabIterator.pastEnd());
       itsCurrentTopRow=0;
       // need to advance table iterator further
       itsTabIterator.next();      

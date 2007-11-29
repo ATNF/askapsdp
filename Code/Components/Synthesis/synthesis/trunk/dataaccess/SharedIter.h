@@ -195,19 +195,20 @@ public:
     ///
     inline bool operator==(const SharedIter<T> &cmp) const {
          if (cmp.itsSharedPtr) {
-	     // this class should be null
-	     if (itsSharedPtr)
-	         throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
+	         // this class should be null
+	          if (itsSharedPtr) {
+	              throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
 	                  "for the case where one of the objects is empty.");	     
-	     return !cmp.hasMore(); // == the empty object means that
+	          }
+	          return !cmp.hasMore(); // == the empty object means that
 	                           // it is at the end	     
-	 } else if (itsSharedPtr) {
-	     return !hasMore(); // == the empty object means that
+	     } else if (itsSharedPtr) {
+	          return !hasMore(); // == the empty object means that
 	                        // it is at the end
-	 } 
-	 throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
-	                 "for the case where one of the objects is not empty.");
-	 return false; 
+	     } 
+	     throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
+	                   "for the case where one of the objects is not empty.");
+	     return false; 
     }
 
     /// @param[in] cmp a reference to another SharedIter<T> object
@@ -217,18 +218,19 @@ public:
     inline bool operator!=(const SharedIter<T> &cmp) const {
          if (cmp.itsSharedPtr) {
 	     // this class should be null
-	     if (itsSharedPtr)
-	         throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
+	         if (itsSharedPtr) {
+	             throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
 	                  "for the case where one of the objects is empty.");	     
-	     return cmp.hasMore(); // != the empty object means that
+	          } 
+	          return cmp.hasMore(); // != the empty object means that
 	                           // it is not at the end	     
-	 } else if (itsSharedPtr) {
-	     return hasMore(); // == the empty object means that
+	      } else if (itsSharedPtr) {
+	          return hasMore(); // == the empty object means that
 	                        // it is not at the end
-	 } 
-	 throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
+	      } 
+	      throw DataAccessLogicError("A comparison of SharedIter has only been implemented "
 	                 "for the case where one of the objects is not empty.");
-	 return true;
+	      return true;
     }
 
     /// return an empty SharedIter of the same type as the current object
