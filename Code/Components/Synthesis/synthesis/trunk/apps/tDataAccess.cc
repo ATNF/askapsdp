@@ -71,8 +71,15 @@ void doReadWriteTest(const IDataSource &ds) {
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   IDataSharedIter it=ds.createIterator(sel,conv);
-  for (it.init();it!=it.end();++it) {
+  //for (size_t run=0;run<10;++run)
+  for (it.init();it!=it.end();it.next()) {
        //cout<<it.buffer("TEST").rwVisibility()<<endl;
+       it->frequency();
+       it->pointingDir1();
+       it->time();
+       it->antenna1();
+       it->feed1();
+       it->uvw();
        it.buffer("TEST").rwVisibility()=it->visibility();
        it.chooseBuffer("MODEL_DATA");
        it->rwVisibility()=it.buffer("TEST").visibility();

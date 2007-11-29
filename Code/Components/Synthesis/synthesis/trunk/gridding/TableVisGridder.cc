@@ -290,6 +290,7 @@ namespace conrad
                 /// Grid PSF?
                 if (itsDopsf)
                 {
+                  CONRADDEBUGASSERT(gInd<itsGridPSF.size());
                   casa::Array<casa::Complex> aGridPSF(itsGridPSF[gInd](slicer));
                   casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
                   const casa::Complex uVis(1.0);

@@ -128,16 +128,27 @@ namespace conrad
         // Create a lattice cleaner to do the dirty work :)
         /// @todo More checks on reuse of LatticeCleaner
         boost::shared_ptr<casa::LatticeCleaner<float> > lc;
-        std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > >::iterator it;
-        it=itsCleaners.find(indit->first);
+        std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > >::const_iterator it =
+                                       itsCleaners.find(indit->first);
+        
+        
+        // temporary commented out to see whether local variables cause the bug
+        /*
         if(it!=itsCleaners.end()) {
-          lc=it->second;
+          lc=it->second; 
+          CONRADDEBUGASSERT(lc);
           lc->update(dirty);
         }
         else {
-          lc=boost::shared_ptr<casa::LatticeCleaner<float> > (new casa::LatticeCleaner<float>(psf, dirty));
+          lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
         }
+        */
+        lc.reset(new casa::LatticeCleaner<float>(psf, dirty));          
+        // end of the temporary altered section, the previous line to be removed
+        // when uncommented
+        
+        CONRADDEBUGASSERT(lc);
         if(algorithm()=="Hogbom") {
           casa::Vector<float> scales(1);
           scales(0)=0.0;
