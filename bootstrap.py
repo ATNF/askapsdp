@@ -35,8 +35,9 @@ def update_tree(thePath):
     pathvisited += pkgdir
     update_command(pathvisited, recursive=True)
 
-update_tree("Tools/Dev")
+update_tree("Tools")
 os.system("cd Tools/Dev/setuptools; python bootstrap.py")
 os.system("python initenv.py >/dev/null")
 os.system(". initconrad.sh; cd Tools/Dev/recursivebuild; python setup.py -q install")
+os.system(". initconrad.sh; cd Tools; python setup.py -q install")
 
