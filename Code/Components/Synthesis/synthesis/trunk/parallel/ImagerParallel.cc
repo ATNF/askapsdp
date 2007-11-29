@@ -142,7 +142,7 @@ namespace conrad
     /// Calculate the normal equations for a given measurement set
     void ImagerParallel::calcNE()
     {
-      // Discard any old parameters
+      /// Now we need to recreate the normal equations
       itsNe=ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
 
       if (isWorker())
