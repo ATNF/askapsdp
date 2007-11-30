@@ -1,4 +1,4 @@
-Csimulator.dataset                              =       /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AProjectWStack%w.ms
+Csimulator.dataset                              =       /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AWProject%w.ms
 
 Csimulator.sources.names                        =       [10uJy]
 
@@ -19,47 +19,50 @@ Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 Csimulator.observe.number                       =       1
 Csimulator.observe.scan0                        =       [10uJy, Continuum%w, -6h, 6h]
 
-Csimulator.gridder                              = AProjectWStack
-Csimulator.gridder.AProjectWStack.wmax            	= 12000
-Csimulator.gridder.AProjectWStack.nwplanes        	= 9
-Csimulator.gridder.AProjectWStack.oversample     	= 8
-Csimulator.gridder.AProjectWStack.diameter		= 12m
-Csimulator.gridder.AProjectWStack.blockage		= 4m
-Csimulator.gridder.AProjectWStack.maxfeeds		= 32
-Csimulator.gridder.AProjectWStack.maxsupport		= 1024
-Csimulator.gridder.AProjectWStack.cutoff		= 0.001
+Csimulator.gridder                              = AWProject
+Csimulator.gridder.AWProject.wmax            	= 12000
+Csimulator.gridder.AWProject.nwplanes        	= 33
+Csimulator.gridder.AWProject.oversample     	= 4
+Csimulator.gridder.AWProject.diameter		= 12m
+Csimulator.gridder.AWProject.blockage		= 2m
+Csimulator.gridder.AWProject.maxfeeds		= 32
+Csimulator.gridder.AWProject.maxsupport		= 2048
+Csimulator.gridder.AWProject.frequencydependent = false
+Csimulator.gridder.AWProject.cutoff		= 0.001
 
-Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AProjectWStack%w.ms
+Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AWProject%w.ms
 
-Cimager.Images.Names                            = [image.i.10uJy_AProjectWStack_Clean]
-Cimager.Images.image.i.10uJy_AProjectWStack_Clean.shape		= [4096,4096]
-Cimager.Images.image.i.10uJy_AProjectWStack_Clean.cellsize	= [6.0arcsec, 6.0arcsec]
-Cimager.Images.image.i.10uJy_AProjectWStack_Clean.frequency	= [1.245e9,1.420e9]
-Cimager.Images.image.i.10uJy_AProjectWStack_Clean.nchan		= 1
-Cimager.Images.image.i.10uJy_AProjectWStack_Clean.direction	= [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.Names                            = [image.i.10uJy_AWProject_Clean]
+Cimager.Images.image.i.10uJy_AWProject_Clean.shape		= [4096,4096]
+Cimager.Images.image.i.10uJy_AWProject_Clean.cellsize	= [8.0arcsec, 8.0arcsec]
+Cimager.Images.image.i.10uJy_AWProject_Clean.frequency	= [1.245e9,1.420e9]
+Cimager.Images.image.i.10uJy_AWProject_Clean.nchan		= 1
+Cimager.Images.image.i.10uJy_AWProject_Clean.direction	= [12h30m00.00, -45.00.00.00, J2000]
 
-Cimager.gridder                          	= AProjectWStack
-Cimager.gridder.AProjectWStack.wmax            	= 12000
-Cimager.gridder.AProjectWStack.nwplanes        	= 9
-Cimager.gridder.AProjectWStack.oversample     	= 8
-Cimager.gridder.AProjectWStack.diameter		= 12m
-Cimager.gridder.AProjectWStack.blockage		= 4m
-Cimager.gridder.AProjectWStack.maxfeeds		= 32
-Cimager.gridder.AProjectWStack.maxsupport       = 1024
-Cimager.gridder.AProjectWStack.cutoff		= 0.001
+Cimager.gridder                          	= AWProject
+Cimager.gridder.AWProject.wmax            	= 12000
+Cimager.gridder.AWProject.nwplanes        	= 33
+Cimager.gridder.AWProject.oversample     	= 4
+Cimager.gridder.AWProject.diameter		= 12m
+Cimager.gridder.AWProject.blockage		= 2m
+Cimager.gridder.AWProject.maxfeeds		= 32
+Cimager.gridder.AWProject.maxsupport       	= 2048
+Cimager.gridder.AWProject.frequencydependent 	= false
+Cimager.gridder.AWProject.cutoff		= 0.001
 
 Cimager.solver.Dirty.threshold			= 10%
 Cimager.solver.Dirty.verbose                   	= True
 
-Cimager.solver                           	= Clean
+Cimager.solver                           	= Dirty
 Cimager.solver.Clean.algorithm                 	= MultiScale
 Cimager.solver.Clean.niter                     	= 1000
 Cimager.solver.Clean.gain                      	= 0.9
 Cimager.solver.Clean.cycles                    	= 3
 Cimager.solver.Clean.threshold                	= 0.1mJy
+Cimager.solver.Clean.tolerance			= 0.1
 Cimager.solver.Clean.verbose                   	= True
 Cimager.solver.Clean.scales			= [0., 3.0, 10.0]
 
-Cimager.ncycles                                 = 3
-Cimager.restore                          	= True
+Cimager.ncycles                                 = 0
+Cimager.restore                          	= False
 Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
