@@ -57,10 +57,8 @@ namespace conrad
       /// row and channel to plane of the w-dependent convolution
       /// function
       const int nSamples = idi->uvw().size();
-      int nChan=1;
-      if(itsFreqDep) {
-        nChan = idi->frequency().size();
-      }
+      int nChan = idi->frequency().size();
+
       const int nPol = idi->rwVisibility().shape()(2);
       itsCMap.resize(nSamples, nPol, nChan);
       itsCMap.set(0);
@@ -91,7 +89,13 @@ namespace conrad
           for (int pol=0; pol<nPol; pol++)
           {
             /// Order is (iw, chan, feed)
-            itsCMap(i, pol, chan)=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
+            if(itsFreqDep) {
+              itsCMap(i, pol, chan)=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
+            }
+            else {
+              itsCMap(i, pol, chan)=iw+itsNWPlanes*feed;
+            }
+
           }
         }
       }

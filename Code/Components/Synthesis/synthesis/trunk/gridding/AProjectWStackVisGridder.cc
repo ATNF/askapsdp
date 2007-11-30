@@ -63,11 +63,8 @@ namespace conrad
       /// row and channel to plane of the w-dependent convolution
       /// function
       const int nSamples = idi->uvw().size();
-      int nChan=1;
-      if (itsFreqDep)
-      {
-        nChan = idi->frequency().size();
-      }
+      int nChan = idi->frequency().size();
+
       const int nPol = idi->rwVisibility().shape()(2);
       itsCMap.resize(nSamples, nPol, nChan);
       itsCMap.set(0);
@@ -92,7 +89,12 @@ namespace conrad
           {
             /// Calculate the index into the convolution functions
             /// Order is (chan, feed)
-            itsCMap(i, pol, chan)=chan+nChan*feed;
+            if(itsFreqDep) {
+              itsCMap(i, pol, chan)=chan+nChan*feed;
+            }
+            else {
+              itsCMap(i, pol, chan)=feed;
+            }
 
             /// Calculate the index into the grids
             double freq=idi->frequency()[chan];
@@ -230,6 +232,8 @@ namespace conrad
             itsSumWeights.resize(itsMaxFeeds*nChan, itsShape(2), itsShape(3));
             itsSumWeights.set(casa::Complex(0.0));
           }
+          /// Calculate the index into the convolution functions
+          /// Order is (chan, feed)
           zIndex=chan+nChan*feed;
 
           itsConvFunc[zIndex].resize(itsCSize, itsCSize);
