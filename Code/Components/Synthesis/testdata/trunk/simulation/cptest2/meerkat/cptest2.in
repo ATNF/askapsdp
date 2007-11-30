@@ -1,4 +1,4 @@
-Csimulator.dataset                              =       /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack%w.ms
+Csimulator.dataset                              =       /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AWProject%w.ms
 
 Csimulator.sources.names                        =       [10uJy]
 
@@ -12,41 +12,43 @@ Csimulator.spws.definition                      =       definitions/MEERKATspws.
 Csimulator.simulation.blockage                  =       0.01
 Csimulator.simulation.elevationlimit            =       8deg
 Csimulator.simulation.autocorrwt                =       0.0
-Csimulator.simulation.integrationtime           =       6s
+Csimulator.simulation.integrationtime           =       60s
 Csimulator.simulation.usehourangles             =       True
 Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 
 Csimulator.observe.number                       =       1
 Csimulator.observe.scan0                        =       [10uJy, Continuum%w, -4h, 4h]
 
-Csimulator.gridder                              = AProjectWStack
-Csimulator.gridder.AProjectWStack.wmax            	= 50000
-Csimulator.gridder.AProjectWStack.nwplanes        	= 33
-Csimulator.gridder.AProjectWStack.oversample     	= 8
-Csimulator.gridder.AProjectWStack.diameter		= 12m
-Csimulator.gridder.AProjectWStack.blockage		= 1m
-Csimulator.gridder.AProjectWStack.maxfeeds		= 1
-Csimulator.gridder.AProjectWStack.maxsupport		= 1024
-Csimulator.gridder.AProjectWStack.cutoff		= 0.001
+Csimulator.gridder                              = AWProject
+Csimulator.gridder.AWProject.wmax            	= 50000
+Csimulator.gridder.AWProject.nwplanes        	= 33
+Csimulator.gridder.AWProject.oversample     	= 8
+Csimulator.gridder.AWProject.diameter		= 12m
+Csimulator.gridder.AWProject.blockage		= 2m
+Csimulator.gridder.AWProject.maxfeeds		= 1
+Csimulator.gridder.AWProject.frequencydependent = false
+Csimulator.gridder.AWProject.maxsupport		= 1024
+Csimulator.gridder.AWProject.cutoff		= 0.001
 
-Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AProjectWStack%w.ms
+Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/meerkat/10uJy_AWProject%w.ms
 
-Cimager.Images.Names                            = [image.i.10uJy_AProjectWStack]
-Cimager.Images.image.i.10uJy_AProjectWStack.shape		= [4096,4096]
-Cimager.Images.image.i.10uJy_AProjectWStack.cellsize	= [2arcsec, 2arcsec]
-Cimager.Images.image.i.10uJy_AProjectWStack.frequency	= [1.245e9,1.420e9]
-Cimager.Images.image.i.10uJy_AProjectWStack.nchan		= 1
-Cimager.Images.image.i.10uJy_AProjectWStack.direction	= [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.Names                            = [image.i.10uJy_AWProject]
+Cimager.Images.image.i.10uJy_AWProject.shape		= [4096,4096]
+Cimager.Images.image.i.10uJy_AWProject.cellsize	= [2arcsec, 2arcsec]
+Cimager.Images.image.i.10uJy_AWProject.frequency	= [1.245e9,1.420e9]
+Cimager.Images.image.i.10uJy_AWProject.nchan		= 1
+Cimager.Images.image.i.10uJy_AWProject.direction	= [12h30m00.00, -45.00.00.00, J2000]
 
 Cimager.gridder                          	= WStack
-Cimager.gridder.AProjectWStack.wmax            	= 50000
-Cimager.gridder.AProjectWStack.nwplanes        	= 33
-Cimager.gridder.AProjectWStack.oversample     	= 8
-Cimager.gridder.AProjectWStack.diameter		= 12m
-Cimager.gridder.AProjectWStack.blockage		= 1m
-Cimager.gridder.AProjectWStack.maxfeeds		= 1
-Cimager.gridder.AProjectWStack.maxsupport       = 1024
-Cimager.gridder.AProjectWStack.cutoff		= 0.001
+Cimager.gridder.AWProject.wmax            	= 50000
+Cimager.gridder.AWProject.nwplanes        	= 33
+Cimager.gridder.AWProject.oversample     	= 4
+Cimager.gridder.AWProject.diameter		= 12m
+Cimager.gridder.AWProject.blockage		= 2m
+Cimager.gridder.AWProject.maxfeeds		= 1
+Cimager.gridder.AWProject.maxsupport       = 1024
+Cimager.gridder.AWProject.frequencydependent 	= false
+Cimager.gridder.AWProject.cutoff		= 0.001
 
 Cimager.solver                           	= Dirty
 Cimager.solver.Dirty.threshold			= 10%
