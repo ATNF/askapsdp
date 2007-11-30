@@ -165,7 +165,7 @@ namespace conrad
           itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); iMs++)
           {
-            calcOne(itsMs[iMs], itsMs.size()>1);
+            calcOne(itsMs[iMs]);
             itsSolver->addNormalEquations(*itsNe);
           }
         }

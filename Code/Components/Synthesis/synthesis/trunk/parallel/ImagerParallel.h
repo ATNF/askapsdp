@@ -103,7 +103,7 @@ namespace conrad
       /// Calculate normal equations for one data set
       /// @param ms Name of data set
     /// @param discard Discard old equation?
-      void calcOne(const string& dataset, bool discard=false);
+      void calcOne(const string& dataset, bool discard=true);
 
       /// ParameterSet
       LOFAR::ACC::APS::ParameterSet itsParset;
