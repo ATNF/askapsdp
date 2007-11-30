@@ -21,460 +21,468 @@ using namespace conrad;
 
 namespace conrad
 {
-	namespace synthesis
-	{
+  namespace synthesis
+  {
 
-		AWProjectVisGridder::AWProjectVisGridder(const double diameter,
-		    const double blockage, const double wmax, const int nwplanes,
-		    const double cutoff, const int overSample, const int maxSupport,
-		    const int maxFeeds, const std::string& name) :
-			WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, name),
-			    itsReferenceFrequency(0.0), itsDiameter(diameter),
-			    itsBlockage(blockage), itsMaxFeeds(maxFeeds)
+    AWProjectVisGridder::AWProjectVisGridder(const double diameter,
+        const double blockage, const double wmax, const int nwplanes,
+        const double cutoff, const int overSample, const int maxSupport,
+        const int maxFeeds, const bool frequencyDependent, const std::string& name) :
+      WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, name),
+          itsReferenceFrequency(0.0), itsDiameter(diameter),
+          itsBlockage(blockage), itsMaxFeeds(maxFeeds), itsFreqDep(frequencyDependent)
 
-		{
-			CONRADCHECK(diameter>0.0, "Blockage must be positive");
-			CONRADCHECK(diameter>blockage,
-					"Antenna diameter must be greater than blockage");
-			CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
-			CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
-		}
+    {
+      CONRADCHECK(diameter>0.0, "Blockage must be positive");
+      CONRADCHECK(diameter>blockage,
+          "Antenna diameter must be greater than blockage");
+      CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
+      CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
+    }
 
-		AWProjectVisGridder::~AWProjectVisGridder()
-		{
-		}
+    AWProjectVisGridder::~AWProjectVisGridder()
+    {
+    }
 
-		/// Clone a copy of this Gridder
-		IVisGridder::ShPtr AWProjectVisGridder::clone()
-		{
-			return IVisGridder::ShPtr(new AWProjectVisGridder(*this));
-		}
+    /// Clone a copy of this Gridder
+    IVisGridder::ShPtr AWProjectVisGridder::clone()
+    {
+      return IVisGridder::ShPtr(new AWProjectVisGridder(*this));
+    }
 
-		/// Initialize the indices into the cube.
-		void AWProjectVisGridder::initIndices(IDataSharedIter& idi)
-		{
-			/// We have to calculate the lookup function converting from
-			/// row and channel to plane of the w-dependent convolution
-			/// function
-			const int nSamples = idi->uvw().size();
-			const int nChan = idi->frequency().size();
-			const int nPol = idi->rwVisibility().shape()(2);
-			itsCMap.resize(nSamples, nPol, nChan);
-			itsCMap.set(0);
-			/// @todo Select max feeds more carefully
+    /// Initialize the indices into the cube.
+    void AWProjectVisGridder::initIndices(IDataSharedIter& idi)
+    {
+      /// We have to calculate the lookup function converting from
+      /// row and channel to plane of the w-dependent convolution
+      /// function
+      const int nSamples = idi->uvw().size();
+      int nChan=1;
+      if(itsFreqDep) {
+        nChan = idi->frequency().size();
+      }
+      const int nPol = idi->rwVisibility().shape()(2);
+      itsCMap.resize(nSamples, nPol, nChan);
+      itsCMap.set(0);
+      /// @todo Select max feeds more carefully
 
-			int cenw=(itsNWPlanes-1)/2;
-			for (int i=0; i<nSamples; i++)
-			{
-				int feed=idi->feed1()(i);
-				CONRADCHECK(feed<itsMaxFeeds, "Exceeded specified maximum number of feeds");
-				CONRADCHECK(feed>-1, "Illegal negative feed number");
+      int cenw=(itsNWPlanes-1)/2;
+      for (int i=0; i<nSamples; i++)
+      {
+        int feed=idi->feed1()(i);
+        CONRADCHECK(feed<itsMaxFeeds,
+            "Exceeded specified maximum number of feeds");
+        CONRADCHECK(feed>-1, "Illegal negative feed number");
 
-				for (int chan=0; chan<nChan; chan++)
-				{
-					double freq=idi->frequency()[chan];
-					double w=(idi->uvw()(i)(2))/(casa::C::c);
-					int iw=0;
-					if(itsNWPlanes>1) {
-					  iw=cenw+int(w*freq/itsWScale);
-					}
-					CONRADCHECK(iw<itsNWPlanes,
-							"W scaling error: recommend allowing larger range of w");
-					CONRADCHECK(iw>-1,
-							"W scaling error: recommend allowing larger range of w");
+        for (int chan=0; chan<nChan; chan++)
+        {
+          double freq=idi->frequency()[chan];
+          double w=(idi->uvw()(i)(2))/(casa::C::c);
+          int iw=0;
+          if (itsNWPlanes>1)
+          {
+            iw=cenw+int(w*freq/itsWScale);
+          }
+          CONRADCHECK(iw<itsNWPlanes,
+              "W scaling error: recommend allowing larger range of w");
+          CONRADCHECK(iw>-1,
+              "W scaling error: recommend allowing larger range of w");
 
-					for (int pol=0; pol<nPol; pol++)
-					{
-						/// Order is (iw, chan, feed)
-						itsCMap(i, pol, chan)=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
-					}
-				}
-			}
-		}
+          for (int pol=0; pol<nPol; pol++)
+          {
+            /// Order is (iw, chan, feed)
+            itsCMap(i, pol, chan)=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
+          }
+        }
+      }
+    }
 
-		/// Initialize the convolution function into the cube. If necessary this
-		/// could be optimized by using symmetries.
-		/// @todo Make initConvolutionFunction more robust
-		void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi)
-		{
-			if (itsSupport!=0)
-				return;
+    /// Initialize the convolution function into the cube. If necessary this
+    /// could be optimized by using symmetries.
+    /// @todo Make initConvolutionFunction more robust
+    void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi)
+    {
+      if (itsSupport!=0)
+        return;
 
-			/// We have to calculate the lookup function converting from
-			/// row and channel to plane of the w-dependent convolution
-			/// function
-			const int nSamples = idi->uvw().size();
-			const int nChan = idi->frequency().size();
-			int cenw=(itsNWPlanes-1)/2;
+      /// We have to calculate the lookup function converting from
+      /// row and channel to plane of the w-dependent convolution
+      /// function
+      const int nSamples = idi->uvw().size();
+      int nChan=1;
+      if(itsFreqDep) {
+        nChan = idi->frequency().size();
+      }
+      int cenw=(itsNWPlanes-1)/2;
 
-			/// Get the pointing direction
-			casa::Matrix<double> slope;
-			findCollimation(idi, slope);
-			int nFeeds=slope.nrow();
+      /// Get the pointing direction
+      casa::Matrix<double> slope;
+      findCollimation(idi, slope);
+      int nFeeds=slope.nrow();
 
-			itsSupport=0;
+      itsSupport=0;
 
-			/// These are the actual image pixel sizes used
-			double cellx=1.0/(double(itsShape(0))*itsUVCellSize(0));
-			double celly=1.0/(double(itsShape(1))*itsUVCellSize(1));
+      /// These are the actual image pixel sizes used
+      double cellx=1.0/(double(itsShape(0))*itsUVCellSize(0));
+      double celly=1.0/(double(itsShape(1))*itsUVCellSize(1));
 
-			/// Limit the size of the convolution function since
-			/// we don't need it finely sampled in image space. This
-			/// will reduce the time taken to calculate it.
-			int nx=std::min(itsMaxSupport, itsShape(0));
-			int ny=std::min(itsMaxSupport, itsShape(1));
+      /// Limit the size of the convolution function since
+      /// we don't need it finely sampled in image space. This
+      /// will reduce the time taken to calculate it.
+      int nx=std::min(itsMaxSupport, itsShape(0));
+      int ny=std::min(itsMaxSupport, itsShape(1));
 
-			int qnx=nx/itsOverSample;
-			int qny=ny/itsOverSample;
+      int qnx=nx/itsOverSample;
+      int qny=ny/itsOverSample;
 
-			// Find the actual cellsizes in x and y (radians) 
-			// corresponding to the limited support
-			double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
-			double ccelly=1.0/(double(qny)*itsUVCellSize(1));
+      // Find the actual cellsizes in x and y (radians) 
+      // corresponding to the limited support
+      double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
+      double ccelly=1.0/(double(qny)*itsUVCellSize(1));
 
-			casa::Vector<float> ccfx(qnx);
-			casa::Vector<float> ccfy(qny);
-			for (int ix=0; ix<qnx; ix++)
-			{
-				float nux=std::abs(float(ix-qnx/2))/float(qnx/2);
-				ccfx(ix)=grdsf(nux)/float(qnx);
-			}
-			for (int iy=0; iy<qny; iy++)
-			{
-				float nuy=std::abs(float(iy-qny/2))/float(qny/2);
-				ccfy(iy)=grdsf(nuy)/float(qny);
-			}
+      casa::Vector<float> ccfx(qnx);
+      casa::Vector<float> ccfy(qny);
+      for (int ix=0; ix<qnx; ix++)
+      {
+        float nux=std::abs(float(ix-qnx/2))/float(qnx/2);
+        ccfx(ix)=grdsf(nux)/float(qnx);
+      }
+      for (int iy=0; iy<qny; iy++)
+      {
+        float nuy=std::abs(float(iy-qny/2))/float(qny/2);
+        ccfy(iy)=grdsf(nuy)/float(qny);
+      }
 
-			int zIndex=0;
-			for (int feed=0; feed<itsMaxFeeds; feed++)
-			{
+      int zIndex=0;
+      for (int feed=0; feed<itsMaxFeeds; feed++)
+      {
 
-				for (int chan=0; chan<nChan; chan++)
-				{
-					double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed);
-					double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed);
+        for (int chan=0; chan<nChan; chan++)
+        {
+          double ax=2.0f*casa::C::pi*itsUVCellSize(0)*slope(0, feed);
+          double ay=2.0f*casa::C::pi*itsUVCellSize(1)*slope(1, feed);
 
-					/// Make the disk for this channel
-					casa::Matrix<casa::Complex> disk(qnx, qny);
-					disk.set(0.0);
+          /// Make the disk for this channel
+          casa::Matrix<casa::Complex> disk(qnx, qny);
+          disk.set(0.0);
 
-					/// Calculate the size of one cell in m.
-					double cell=std::abs(itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan]));
-					double rmax=std::pow(itsDiameter/(2.0*cell), 2);
-					double rmin=std::pow(itsBlockage/(2.0*cell), 2);
+          /// Calculate the size of one cell in m.
+          double cell=std::abs(itsUVCellSize(0)*(casa::C::c/idi->frequency()[chan]));
+          double rmax=std::pow(itsDiameter/(2.0*cell), 2);
+          double rmin=std::pow(itsBlockage/(2.0*cell), 2);
 
-					/// Calculate the antenna voltage pattern, including the
-					/// phase shift due to pointing
-					double sumdisk=0.0;
-					for (int ix=0; ix<qnx; ix++)
-					{
-						double nux=double(ix-qnx/2);
-						double nux2=nux*nux;
-						for (int iy=0; iy<qny; iy++)
-						{
-							double nuy=double(iy-qny/2);
-							double nuy2=nuy*nuy;
-							double r=nux2+nuy2;
-							if ((r>=rmin)&&(r<=rmax))
-							{
-								double phase=ax*nux+ay*nuy;
-								disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
-								sumdisk+=1.0;
-							}
-						}
-					}
-					CONRADCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
-					disk*=casa::Complex(float(qnx)*float(qny)/sumdisk);
-					fft2d(disk, false);
+          /// Calculate the antenna voltage pattern, including the
+          /// phase shift due to pointing
+          double sumdisk=0.0;
+          for (int ix=0; ix<qnx; ix++)
+          {
+            double nux=double(ix-qnx/2);
+            double nux2=nux*nux;
+            for (int iy=0; iy<qny; iy++)
+            {
+              double nuy=double(iy-qny/2);
+              double nuy2=nuy*nuy;
+              double r=nux2+nuy2;
+              if ((r>=rmin)&&(r<=rmax))
+              {
+                double phase=ax*nux+ay*nuy;
+                disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
+                sumdisk+=1.0;
+              }
+            }
+          }
+          CONRADCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
+          disk*=casa::Complex(float(qnx)*float(qny)/sumdisk);
+          fft2d(disk, false);
 
-					/// Calculate the total convolution function including
-					/// the w term and the antenna convolution function
-					casa::Matrix<casa::Complex> thisPlane(nx, ny);
+          /// Calculate the total convolution function including
+          /// the w term and the antenna convolution function
+          casa::Matrix<casa::Complex> thisPlane(nx, ny);
 
-					for (int iw=0; iw<itsNWPlanes; iw++)
-					{
-						thisPlane.set(0.0);
+          for (int iw=0; iw<itsNWPlanes; iw++)
+          {
+            thisPlane.set(0.0);
 
-						// Loop over the central nx, ny region, setting it to the product
-						// of the phase screen and the spheroidal function
-						double maxCF=0.0;
-						double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
-						double freq=idi->frequency()[chan];
-						for (int iy=0; iy<qny; iy++)
-						{
-							double y2=double(iy-qny/2)*ccelly;
-							y2*=y2;
-							for (int ix=0; ix<qnx; ix++)
-							{
-								double x2=double(ix-qnx/2)*ccellx;
-								x2*=x2;
-								double r2=x2+y2;
-								double phase=w*(1.0-sqrt(1.0-r2));
-								casa::Complex wt=disk(ix, iy)*conj(disk(ix,iy))
-								  *casa::Complex(ccfx(iy)*ccfy(ix));
-								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(
-								    cos(phase), -sin(phase));
-								maxCF+=casa::abs(wt);
-							}
-						}
-						// At this point, we have the phase screen multiplied by the spheroidal
-						// function, sampled on larger cellsize (itsOverSample larger) in image
-						// space. Only the inner qnx, qny pixels have a non-zero value
+            // Loop over the central nx, ny region, setting it to the product
+            // of the phase screen and the spheroidal function
+            double maxCF=0.0;
+            double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
+            double freq=idi->frequency()[chan];
+            for (int iy=0; iy<qny; iy++)
+            {
+              double y2=double(iy-qny/2)*ccelly;
+              y2*=y2;
+              for (int ix=0; ix<qnx; ix++)
+              {
+                double x2=double(ix-qnx/2)*ccellx;
+                x2*=x2;
+                double r2=x2+y2;
+                double phase=w*(1.0-sqrt(1.0-r2));
+                casa::Complex wt=disk(ix, iy)*conj(disk(ix, iy))
+                    *casa::Complex(ccfx(iy)*ccfy(ix));
+                thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(
+                    cos(phase), -sin(phase));
+                maxCF+=casa::abs(wt);
+              }
+            }
+            // At this point, we have the phase screen multiplied by the spheroidal
+            // function, sampled on larger cellsize (itsOverSample larger) in image
+            // space. Only the inner qnx, qny pixels have a non-zero value
 
-						// Now we have to calculate the Fourier transform to get the
-						// convolution function in uv space
-						fft2d(thisPlane, true);
+            // Now we have to calculate the Fourier transform to get the
+            // convolution function in uv space
+            fft2d(thisPlane, true);
 
-						// If the support is not yet set, find it and size the
-						// convolution function appropriately
-						if (itsSupport==0)
-						{
-							// Find the support by starting from the edge and
-							// working in
-							for (int ix=0; ix<nx/2; ix++)
-							{
-								/// Check on horizontal axis
-								if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF))
-								{
-									itsSupport=abs(ix-nx/2)/itsOverSample;
-									break;
-								}
-								///  Check on diagonal
-								if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF))
-								{
-									itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
-									break;
-								}
-								if (nx==ny)
-								{
-									/// Check on vertical axis
-									if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF))
-									{
-										itsSupport=abs(ix-ny/2)/itsOverSample;
-										break;
-									}
-								}
-							}
-							CONRADCHECK(itsSupport>0,
-									"Unable to determine support of convolution function");
-							CONRADCHECK(itsSupport*itsOverSample<nx/2,
-									"Overflowing convolution function - increase maxSupport or decrease overSample")
-							itsCSize=2*(itsSupport+1)*itsOverSample+1;
-							std::cout << "Convolution function support = "<< itsSupport
-							    << " pixels, convolution function size = "<< itsCSize
-							    << " pixels"<< std::endl;
-							std::cout << "Maximum extent = "<< itsSupport*cell
-							    << " (m) sampled at "<< cell/itsOverSample << " (m)"
-							    << std::endl;
-							itsCCenter=(itsSupport+1)*itsOverSample;
-							itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
-							itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
-							    itsShape(3));
-							itsSumWeights.set(casa::Complex(0.0));
-						}
-						zIndex=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
+            // If the support is not yet set, find it and size the
+            // convolution function appropriately
+            if (itsSupport==0)
+            {
+              // Find the support by starting from the edge and
+              // working in
+              for (int ix=0; ix<nx/2; ix++)
+              {
+                /// Check on horizontal axis
+                if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF))
+                {
+                  itsSupport=abs(ix-nx/2)/itsOverSample;
+                  break;
+                }
+                ///  Check on diagonal
+                if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF))
+                {
+                  itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
+                  break;
+                }
+                if (nx==ny)
+                {
+                  /// Check on vertical axis
+                  if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF))
+                  {
+                    itsSupport=abs(ix-ny/2)/itsOverSample;
+                    break;
+                  }
+                }
+              }
+              CONRADCHECK(itsSupport>0,
+                  "Unable to determine support of convolution function");
+              CONRADCHECK(itsSupport*itsOverSample<nx/2,
+                  "Overflowing convolution function - increase maxSupport or decrease overSample")
+              itsCSize=2*(itsSupport+1)*itsOverSample+1;
+              std::cout << "Convolution function support = "<< itsSupport
+                  << " pixels, convolution function size = "<< itsCSize
+                  << " pixels"<< std::endl;
+              std::cout << "Maximum extent = "<< itsSupport*cell
+                  << " (m) sampled at "<< cell/itsOverSample << " (m)"
+                  << std::endl;
+              itsCCenter=(itsSupport+1)*itsOverSample;
+              itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
+              itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
+                  itsShape(3));
+              itsSumWeights.set(casa::Complex(0.0));
+            }
+            zIndex=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
 
-						itsConvFunc[zIndex].resize(itsCSize, itsCSize);
-						itsConvFunc[zIndex].set(0.0);
-						// Now cut out the inner part of the convolution function and
-						// insert it into the convolution function
-						for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
-						{
-							for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample
-							    *itsSupport; ix++)
-							{
-								itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix
-								    +nx/2, iy+ny/2);
-							}
-						}
-					} // w loop
-				} // chan loop
-			} // feed loop
-			std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
-			    << " by "<< itsConvFunc.size()<< " planes"<< std::endl;
-			if (itsName!="")
-				save(itsName);
-		}
+            itsConvFunc[zIndex].resize(itsCSize, itsCSize);
+            itsConvFunc[zIndex].set(0.0);
+            // Now cut out the inner part of the convolution function and
+            // insert it into the convolution function
+            for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
+            {
+              for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample
+                  *itsSupport; ix++)
+              {
+                itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix
+                    +nx/2, iy+ny/2);
+              }
+            }
+          } // w loop
+        } // chan loop
+      } // feed loop
+      std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
+          << " by "<< itsConvFunc.size()<< " planes"<< std::endl;
+      if (itsName!="")
+        save(itsName);
+    }
 
-		/// To finalize the transform of the weights, we use the following steps:
-		/// 1. For each plane of the convolution function, transform to image plane
-		/// and multiply by conjugate to get abs value squared.
-		/// 2. Sum all planes weighted by the weight for that convolution function.
-		void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
-		{
+    /// To finalize the transform of the weights, we use the following steps:
+    /// 1. For each plane of the convolution function, transform to image plane
+    /// and multiply by conjugate to get abs value squared.
+    /// 2. Sum all planes weighted by the weight for that convolution function.
+    void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
+    {
 
-			std::cout << "Calculating sum of weights image" << std::endl;
+      std::cout << "Calculating sum of weights image" << std::endl;
 
-			int nx=itsShape(0);
-			int ny=itsShape(1);
-			int nPol=itsShape(2);
-			int nChan=itsShape(3);
+      int nx=itsShape(0);
+      int ny=itsShape(1);
+      int nPol=itsShape(2);
+      int nChan=itsShape(3);
 
-			int nZ=itsSumWeights.shape()(0);
+      int nZ=itsSumWeights.shape()(0);
 
-			/// We must pad the convolution function to full size, reverse transform
-			/// square, and sum multiplied by the corresponding weight
-			int cnx=std::min(itsMaxSupport, nx);
-			int cny=std::min(itsMaxSupport, ny);
-			int ccenx=cnx/2;
-			int cceny=cny/2;
+      /// We must pad the convolution function to full size, reverse transform
+      /// square, and sum multiplied by the corresponding weight
+      int cnx=std::min(itsMaxSupport, nx);
+      int cny=std::min(itsMaxSupport, ny);
+      int ccenx=cnx/2;
+      int cceny=cny/2;
 
-			/// This is the output array before sinc padding
-			casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
-			cOut.set(0.0);
+      /// This is the output array before sinc padding
+      casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
+      cOut.set(0.0);
 
-			/// Work space
-			casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+      /// Work space
+      casa::Matrix<casa::Complex> thisPlane(cnx, cny);
 
-			for (int iz=0; iz<nZ; iz++)
-			{
-				thisPlane.set(0.0);
+      for (int iz=0; iz<nZ; iz++)
+      {
+        thisPlane.set(0.0);
 
-				// Now fill the inner part of the uv plane with the convolution function
-				// and transform to obtain the image. The uv sampling is fixed here
-				// so the total field of view is itsOverSample times larger than the
-				// original field of view.
-				for (int iy=-itsSupport; iy<+itsSupport; iy++)
-				{
-					for (int ix=-itsSupport; ix<+itsSupport; ix++)
-					{
-						thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample
-						    +itsCCenter, iy*itsOverSample+itsCCenter);
-					}
-				}
+        // Now fill the inner part of the uv plane with the convolution function
+        // and transform to obtain the image. The uv sampling is fixed here
+        // so the total field of view is itsOverSample times larger than the
+        // original field of view.
+        for (int iy=-itsSupport; iy<+itsSupport; iy++)
+        {
+          for (int ix=-itsSupport; ix<+itsSupport; ix++)
+          {
+            thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample
+                +itsCCenter, iy*itsOverSample+itsCCenter);
+          }
+        }
 
-				thisPlane*=casa::Complex(double(cnx)*double(cny));
-				/// The peak here should be unity
-				fft2d(thisPlane, false);
+        thisPlane*=casa::Complex(double(cnx)*double(cny));
+        /// The peak here should be unity
+        fft2d(thisPlane, false);
 
-				// Now we need to cut out only the part inside the field of view
-				for (int chan=0; chan<nChan; chan++)
-				{
-					for (int pol=0; pol<nPol; pol++)
-					{
-						casa::IPosition ip(4, 0, 0, pol, chan);
-						casa::Complex wt=itsSumWeights(iz, pol, chan);
-						for (int ix=0; ix<cnx; ix++)
-						{
-							ip(0)=ix;
-							for (int iy=0; iy<cny; iy++)
-							{
-								ip(1)=iy;
-								cOut(ip)+=casa::real(wt*thisPlane(ix, iy)
-								    *conj(thisPlane(ix, iy)));
-							}
-						}
-					}
-				}
-			}
-			fftPad(cOut, out);
-			// We have to correct twice since this is the square!
-			correctConvolution(out);
-			correctConvolution(out);
-		}
+        // Now we need to cut out only the part inside the field of view
+        for (int chan=0; chan<nChan; chan++)
+        {
+          for (int pol=0; pol<nPol; pol++)
+          {
+            casa::IPosition ip(4, 0, 0, pol, chan);
+            casa::Complex wt=itsSumWeights(iz, pol, chan);
+            for (int ix=0; ix<cnx; ix++)
+            {
+              ip(0)=ix;
+              for (int iy=0; iy<cny; iy++)
+              {
+                ip(1)=iy;
+                cOut(ip)+=casa::real(wt*thisPlane(ix, iy) *conj(thisPlane(ix,
+                    iy)));
+              }
+            }
+          }
+        }
+      }
+      fftPad(cOut, out);
+      // We have to correct twice since this is the square!
+      correctConvolution(out);
+      correctConvolution(out);
+    }
 
-		void AWProjectVisGridder::fftPad(const casa::Array<double>& in,
-		    casa::Array<double>& out)
-		{
+    void AWProjectVisGridder::fftPad(const casa::Array<double>& in,
+        casa::Array<double>& out)
+    {
 
-			int inx=in.shape()(0);
-			int iny=in.shape()(1);
+      int inx=in.shape()(0);
+      int iny=in.shape()(1);
 
-			int onx=out.shape()(0);
-			int ony=out.shape()(1);
+      int onx=out.shape()(0);
+      int ony=out.shape()(1);
 
-			// Shortcut no-op
-			if ((inx==onx)&&(iny==ony))
-			{
-				out=in.copy();
-				return;
-			}
+      // Shortcut no-op
+      if ((inx==onx)&&(iny==ony))
+      {
+        out=in.copy();
+        return;
+      }
 
-			CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
-			CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");
+      CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
+      CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");
 
-			/// Make an iterator that returns plane by plane
-			casa::ReadOnlyArrayIterator<double> inIt(in, 2);
-			casa::ArrayIterator<double> outIt(out, 2);
-			while (!inIt.pastEnd()&&!outIt.pastEnd())
-			{
-				casa::Matrix<casa::DComplex> inPlane(inx, iny);
-				casa::Matrix<casa::DComplex> outPlane(onx, ony);
-				casa::convertArray(inPlane, inIt.array());
-				outPlane.set(0.0);
-				fft2d(inPlane, false);
-				for (int iy=0; iy<iny; iy++)
-				{
-					for (int ix=0; ix<inx; ix++)
-					{
-						outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
-					}
-				}
-				fft2d(outPlane, true);
-				const casa::Array<casa::DComplex> constOutPlane(outPlane);
-				casa::Array<double> outArray(outIt.array());
+      /// Make an iterator that returns plane by plane
+      casa::ReadOnlyArrayIterator<double> inIt(in, 2);
+      casa::ArrayIterator<double> outIt(out, 2);
+      while (!inIt.pastEnd()&&!outIt.pastEnd())
+      {
+        casa::Matrix<casa::DComplex> inPlane(inx, iny);
+        casa::Matrix<casa::DComplex> outPlane(onx, ony);
+        casa::convertArray(inPlane, inIt.array());
+        outPlane.set(0.0);
+        fft2d(inPlane, false);
+        for (int iy=0; iy<iny; iy++)
+        {
+          for (int ix=0; ix<inx; ix++)
+          {
+            outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
+          }
+        }
+        fft2d(outPlane, true);
+        const casa::Array<casa::DComplex> constOutPlane(outPlane);
+        casa::Array<double> outArray(outIt.array());
 
-				casa::real(outArray, constOutPlane);
+        casa::real(outArray, constOutPlane);
 
-				inIt.next();
-				outIt.next();
-			}
-		}
+        inIt.next();
+        outIt.next();
+      }
+    }
 
-		int AWProjectVisGridder::cIndex(int row, int pol, int chan)
-		{
-			return itsCMap(row, pol, chan);
-		}
+    int AWProjectVisGridder::cIndex(int row, int pol, int chan)
+    {
+      return itsCMap(row, pol, chan);
+    }
 
-		void AWProjectVisGridder::findCollimation(IDataSharedIter& idi,
-		    casa::Matrix<double>& slope)
-		{
-			casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
-			    "rad");
-			casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC"))
-			    /2.0, "rad");
-			casa::MVDirection out(refLon, refLat);
-			const int nSamples = idi->uvw().size();
-			slope.resize(2, itsMaxFeeds);
-			slope.set(0.0);
-			casa::Vector<bool> done(itsMaxFeeds);
-			done.set(false);
+    void AWProjectVisGridder::findCollimation(IDataSharedIter& idi,
+        casa::Matrix<double>& slope)
+    {
+      casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
+          "rad");
+      casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC"))
+          /2.0, "rad");
+      casa::MVDirection out(refLon, refLat);
+      const int nSamples = idi->uvw().size();
+      slope.resize(2, itsMaxFeeds);
+      slope.set(0.0);
+      casa::Vector<bool> done(itsMaxFeeds);
+      done.set(false);
 
-			/// @todo Deal with changing pointing
-			casa::Vector<double> uvw(3);
-			int nDone=0;
-			for (int row=0; row<nSamples; row++)
-			{
-				int feed=idi->feed1()(row);
-				CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
-				if (!done(feed))
-				{
-					casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
-					casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-					std::cout << "Feed "<< feed << " points at Right Ascension ";
-					std::cout << mvLong.string(casa::MVAngle::TIME, 8)
-					    << ", Declination ";
-					std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
-					std::cout << " (J2000)";
-					casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
-					slope(0, feed)=sin(offset.getLong()-out.getLong())
-					    *cos(offset.getLat());
-					slope(1, feed)=sin(offset.getLat())*cos(out.getLat())
-					    - cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()
-					        -out.getLong());
-					std::cout << ", offset by " << 180.0*slope(0, feed)/casa::C::pi
-					    << " " << 180.0*slope(1, feed)/casa::C::pi << " degrees"
-					    << std::endl;
+      /// @todo Deal with changing pointing
+      casa::Vector<double> uvw(3);
+      int nDone=0;
+      for (int row=0; row<nSamples; row++)
+      {
+        int feed=idi->feed1()(row);
+        CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
+        if (!done(feed))
+        {
+          casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
+          casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
+          std::cout << "Feed "<< feed << " points at Right Ascension ";
+          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
+              << ", Declination ";
+          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
+          std::cout << " (J2000)";
+          casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
+          slope(0, feed)=sin(offset.getLong()-out.getLong())
+              *cos(offset.getLat());
+          slope(1, feed)=sin(offset.getLat())*cos(out.getLat())
+              - cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()
+                  -out.getLong());
+          std::cout << ", offset by " << 180.0*slope(0, feed)/casa::C::pi
+              << " " << 180.0*slope(1, feed)/casa::C::pi << " degrees"
+              << std::endl;
 
-					done(feed)=true;
-					nDone++;
-					if (nDone==itsMaxFeeds)
-						break;
-				}
-			}
-			CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
-		}
+          done(feed)=true;
+          nDone++;
+          if (nDone==itsMaxFeeds)
+            break;
+        }
+      }
+      CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
+    }
 
-	}
+  }
 
 }
