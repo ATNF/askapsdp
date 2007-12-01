@@ -59,6 +59,12 @@ namespace conrad
         std::cout
             << "Gridding with Using Antenna Illumination and W projection"
             << std::endl;
+        if(freqDep) {
+          std::cout << "Antenna illumination scales with frequency" << std::endl;
+        }
+        else {
+          std::cout << "Antenna illumination independent of frequency" << std::endl;
+        }
         gridder=IVisGridder::ShPtr(new AWProjectVisGridder(diameter, blockage,
             wmax, nwplanes, cutoff, oversample,
             maxSupport, maxFeeds, freqDep, tablename));
@@ -79,6 +85,12 @@ namespace conrad
         std::cout
             << "Gridding with Antenna Illumination projection and W stacking"
             << std::endl;
+        if(freqDep) {
+          std::cout << "Antenna illumination scales with frequency" << std::endl;
+        }
+        else {
+          std::cout << "Antenna illumination independent of frequency" << std::endl;
+        }
         gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(diameter, blockage,
             wmax, nwplanes, oversample,
             maxSupport, maxFeeds, freqDep, tablename));
