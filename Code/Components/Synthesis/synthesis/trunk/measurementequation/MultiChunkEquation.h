@@ -19,6 +19,7 @@
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/IDataAccessor.h>
+#include <fitting/GenericNormalEquations.h>
 
 #include <measurementequation/IMeasurementEquation.h>
 
