@@ -59,13 +59,13 @@ typedef std::complex<Real> Value;
 // gSize - size of one axis of grid
 
 void gridKernel(const std::vector<Value>& data, const int support,
-    const std::vector<Value>& C, const std::vector<unsigned int>& cOffset,
-    const std::vector<unsigned int>& iu, const std::vector<unsigned int>& iv,
+    const std::vector<Value>& C, const std::vector<int>& cOffset,
+    const std::vector<int>& iu, const std::vector<int>& iv,
     std::vector<Value>& grid, const int gSize)
 {
 
   int sSize=2*support+1;
-  for (unsigned int dind=0; dind<data.size(); dind++)
+  for (int dind=0; dind<data.size(); dind++)
   {
     // Nearly all the L2 cache misses originate here in the next
     // two statements
@@ -92,14 +92,14 @@ void gridKernel(const std::vector<Value>& data, const int support,
 
 // Perform degridding
 void degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
-    const std::vector<Value>& C, const std::vector<unsigned int>& cOffset,
-    const std::vector<unsigned int>& iu, const std::vector<unsigned int>& iv,
+    const std::vector<Value>& C, const std::vector<int>& cOffset,
+    const std::vector<int>& iu, const std::vector<int>& iv,
     std::vector<Value>& data)
 {
 
   int sSize=2*support+1;
 
-  for (unsigned int dind=0; dind<data.size(); dind++)
+  for (int dind=0; dind<data.size(); dind++)
   {
 
     data[dind]=0.0;
@@ -227,8 +227,8 @@ void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
     const std::vector<Coord>& w, const std::vector<Coord>& freq,
     const Coord cellSize, const Coord wCellSize, const Coord baseline,
     const int wSize, const int gSize, const int support, const int overSample,
-    std::vector<unsigned int>& cOffset, std::vector<unsigned int>& iu,
-    std::vector<unsigned int>& iv)
+    std::vector<int>& cOffset, std::vector<int>& iu,
+    std::vector<int>& iv)
 {
 
   const int nSamples = u.size();
@@ -319,10 +319,10 @@ int main()
   // Initialize convolution function and offsets
   std::vector<std::complex<float> > C;
   int support, overSample;
-  std::vector<unsigned int> cOffset;
+  std::vector<int> cOffset;
   // Vectors of grid centers
-  std::vector<unsigned int> iu;
-  std::vector<unsigned int> iv;
+  std::vector<int> iu;
+  std::vector<int> iv;
   Coord wCellSize;
   
   initC(nSamples, w, freq, cellSize, baseline, wSize, gSize, support,
