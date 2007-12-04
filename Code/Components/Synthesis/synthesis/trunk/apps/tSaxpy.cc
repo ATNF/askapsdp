@@ -60,31 +60,25 @@
 // factor close to two at the high end, presumably when the data no 
 // longer fits in the L2 cache
 #include <iostream>
-#include <cmath>
 #include <ctime>
 #include <complex>
-
-#ifdef USEBLAS
-
-#ifdef __APPLE_CC__
-#include <vecLib/cblas.h>
-#endif
-
-#endif
 
 using std::cout;
 using std::endl;
 using std::complex;
-using std::abs;
 
-template<class T> void saxpy(const int n, const T* x, const T a, T* y)
+// Saxpy function
+template<class T> 
+void saxpy(const int n, const T* x, const T a, T* y)
 {
   for (int i=0; i<n; i++)
   {
-    y[i]=y[i]+a*x[i];
+    (*(y++))+=a*(*(x++));
   }
 }
 
+// Function to time saxpy by running it a number of times. The number of repeats is
+// chosen to balance the increasing number of elements
 template <class T>
 void timeSaxpy()
 {
@@ -94,23 +88,23 @@ void timeSaxpy()
   {
     T* x=(T*)malloc(n*sizeof(T));
     T* y=(T*)malloc(n*sizeof(T));
-    T a=T(10.0);
+    T a=T(10);
     for (int i=0; i<n; i++)
     {
       x[i]=T(i);
-      y[i]=T(0.0);
+      y[i]=T(0);
     }
+    int repeat=128*4194304/n;
+
     clock_t start, finish;
-    double time;
 
     start = clock();
-    int repeat=1024*1024*512/n;
     for (int r=0; r<repeat; r++)
     saxpy<T>(n, x, a, y);
     finish = clock();
+
     // Report on timings
-    // Report on timings
-    time = (double(finish)-double(start))/CLOCKS_PER_SEC;
+    double time = (double(finish)-double(start))/CLOCKS_PER_SEC;
     cout << "2^" << ex << ": " << n << " " << 1e9*time/(double(repeat)*double(n)) << " (ns)" << endl;
     n*=2;
   }
@@ -118,6 +112,8 @@ void timeSaxpy()
 
 main(int argc, char** argv)
 {
+  cout << "Int" << endl;
+  timeSaxpy<int>();
   cout << "Float" << endl;
   timeSaxpy<float>();
   cout << "Double" << endl;
