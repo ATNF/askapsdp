@@ -112,11 +112,13 @@ void timeSaxpy()
 
 main(int argc, char** argv)
 {
-  cout << "Int" << endl;
-  timeSaxpy<int>();
   cout << "Float" << endl;
   timeSaxpy<float>();
   cout << "Double" << endl;
   timeSaxpy<double>();
+  cout << "Complex" << endl;
+  timeSaxpy<std::complex<float> >();
+  cout << "DComplex" << endl;
+  timeSaxpy<std::complex<double> >();
   return 0;
 }
