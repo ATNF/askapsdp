@@ -91,9 +91,13 @@ namespace conrad
             /// Order is (chan, feed)
             if(itsFreqDep) {
               itsCMap(i, pol, chan)=chan+nChan*feed;
+	      CONRADCHECK(itsCMap(i, 0, chan)<itsMaxFeeds*nChan, "CMap index too large");
+	      CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
             else {
               itsCMap(i, pol, chan)=feed;
+	      CONRADCHECK(itsCMap(i, 0, chan)<itsMaxFeeds, "CMap index too large");
+	      CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
 
             /// Calculate the index into the grids

@@ -91,11 +91,14 @@ namespace conrad
             /// Order is (iw, chan, feed)
             if(itsFreqDep) {
               itsCMap(i, pol, chan)=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
+	      CONRADCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds*nChan, "CMap index too large");
+	      CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
             else {
               itsCMap(i, pol, chan)=iw+itsNWPlanes*feed;
+	      CONRADCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds, "CMap index too large");
+	      CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
-
           }
         }
       }
