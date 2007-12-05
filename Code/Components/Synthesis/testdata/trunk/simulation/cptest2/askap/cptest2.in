@@ -1,4 +1,4 @@
-Csimulator.dataset                              =       /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AWProject%w.ms
+Csimulator.dataset                              =       /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AWProject.ms
 
 Csimulator.sources.names                        =       [10uJy]
 
@@ -12,7 +12,7 @@ Csimulator.spws.definition                      =       definitions/ASKAPspws.in
 Csimulator.simulation.blockage                  =       0.01
 Csimulator.simulation.elevationlimit            =       8deg
 Csimulator.simulation.autocorrwt                =       0.0
-Csimulator.simulation.integrationtime           =       150s
+Csimulator.simulation.integrationtime           =       1500s
 Csimulator.simulation.usehourangles             =       True
 Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 
@@ -22,15 +22,15 @@ Csimulator.observe.scan0                        =       [10uJy, Continuum%w, -6h
 Csimulator.gridder                              = AWProject
 Csimulator.gridder.AWProject.wmax            	= 12000
 Csimulator.gridder.AWProject.nwplanes        	= 33
-Csimulator.gridder.AWProject.oversample     	= 4
+Csimulator.gridder.AWProject.oversample     	= 2
 Csimulator.gridder.AWProject.diameter		= 12m
 Csimulator.gridder.AWProject.blockage		= 2m
 Csimulator.gridder.AWProject.maxfeeds		= 32
-Csimulator.gridder.AWProject.maxsupport		= 2048
+Csimulator.gridder.AWProject.maxsupport		= 512
 Csimulator.gridder.AWProject.frequencydependent = false
 Csimulator.gridder.AWProject.cutoff		= 0.001
 
-Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AWProject%w.ms
+Cimager.dataset                                 = /work2/cor203/Projects/CONRAD/cptest2/askap/10uJy_AWProject.ms
 
 Cimager.Images.Names                            = [image.i.10uJy_AWProject_Clean]
 Cimager.Images.image.i.10uJy_AWProject_Clean.shape		= [4096,4096]
@@ -42,11 +42,11 @@ Cimager.Images.image.i.10uJy_AWProject_Clean.direction	= [12h30m00.00, -45.00.00
 Cimager.gridder                          	= AWProject
 Cimager.gridder.AWProject.wmax            	= 12000
 Cimager.gridder.AWProject.nwplanes        	= 33
-Cimager.gridder.AWProject.oversample     	= 4
+Cimager.gridder.AWProject.oversample     	= 2
 Cimager.gridder.AWProject.diameter		= 12m
 Cimager.gridder.AWProject.blockage		= 2m
 Cimager.gridder.AWProject.maxfeeds		= 32
-Cimager.gridder.AWProject.maxsupport       	= 2048
+Cimager.gridder.AWProject.maxsupport       	= 512
 Cimager.gridder.AWProject.frequencydependent 	= false
 Cimager.gridder.AWProject.cutoff		= 0.001
 
