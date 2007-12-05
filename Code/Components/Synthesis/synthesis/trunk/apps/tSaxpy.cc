@@ -67,9 +67,9 @@ using std::cout;
 using std::endl;
 using std::complex;
 
-// Saxpy function
-template<class T> 
-void saxpy(const int n, const T* x, const T a, T* y)
+// Generic Saxpy function
+template<class T, class U> 
+void saxpy(const int n, const T* x, const U a, T* y)
 {
   for (int i=0; i<n; i++)
   {
@@ -79,8 +79,8 @@ void saxpy(const int n, const T* x, const T a, T* y)
 
 // Function to time saxpy by running it a number of times. The number of repeats is
 // chosen to balance the increasing number of elements
-template <class T>
-void timeSaxpy()
+template <class T, class U>
+void timeFunction(void (*timedFunction)(const int, const T*, const U, T*))
 {
 
   int n=1;
@@ -88,19 +88,19 @@ void timeSaxpy()
   {
     T* x=(T*)malloc(n*sizeof(T));
     T* y=(T*)malloc(n*sizeof(T));
-    T a=T(10);
+    U a=U(10);
     for (int i=0; i<n; i++)
     {
       x[i]=T(i);
       y[i]=T(0);
     }
-    int repeat=128*4194304/n;
+    int repeat=32*4194304/n;
 
     clock_t start, finish;
 
     start = clock();
     for (int r=0; r<repeat; r++)
-    saxpy<T>(n, x, a, y);
+    (*timedFunction)(n, x, a, y);
     finish = clock();
 
     // Report on timings
@@ -113,12 +113,14 @@ void timeSaxpy()
 main(int argc, char** argv)
 {
   cout << "Float" << endl;
-  timeSaxpy<float>();
+  timeFunction<float, float>(&saxpy<float, float>);
   cout << "Double" << endl;
-  timeSaxpy<double>();
+  timeFunction<double, float>(&saxpy<double>);
   cout << "Complex" << endl;
-  timeSaxpy<std::complex<float> >();
+  timeFunction<std::complex<float>, std::complex<float> >(&saxpy<std::complex<float>, std::complex<float> >);
+  cout << "Float * Complex" << endl;
+  timeFunction<std::complex<float>, float >(&saxpy<std::complex<float>, float >);
   cout << "DComplex" << endl;
-  timeSaxpy<std::complex<double> >();
+  timeFunction<std::complex<double>, std::complex<double> >(&saxpy<std::complex<double>, std::complex<double> >);
   return 0;
 }
