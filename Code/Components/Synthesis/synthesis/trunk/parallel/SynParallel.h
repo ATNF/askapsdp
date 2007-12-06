@@ -13,7 +13,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
-#include <parallel/ConradParallel.h>
+#include <conradparallel/ConradParallel.h>
 
 namespace conrad
 {
