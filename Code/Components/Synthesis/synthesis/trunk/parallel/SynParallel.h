@@ -13,7 +13,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
-#include <mwcommon/MPIConnectionSet.h>
+#include <parallel/ConradParallel.h>
 
 namespace conrad
 {
@@ -31,7 +31,7 @@ namespace conrad
     /// no overall for transmission of model.
     ///
     /// @ingroup parallel
-    class SynParallel
+    class SynParallel : public conrad::cp::ConradParallel
     {
   public:
 
@@ -44,22 +44,6 @@ namespace conrad
 
       ~SynParallel();
 
-      /// @brief Return an output stream suitable for use in parallel environment
-      /// @details Sending messages to std::cout can be error prone in a parallel
-      /// environment. Hence one should write to this stream, which is currently
-      /// connected to a file tagged with the rank number. Eventually the conrad
-      /// logging system will be used.
-      std::ostream& os();
-
-      /// Is this running in parallel?
-      bool isParallel();
-
-      /// Is this the master?
-      bool isMaster();
-
-      /// Is this a worker?
-      bool isWorker();
-
       /// Return the model
       conrad::scimath::Params::ShPtr& params();
 
@@ -70,35 +54,9 @@ namespace conrad
       void receiveModel();
 
   protected:
-      /// Initialize the MPI connections
-      void initConnections();
-
-      /// The set of all connections between processes. For the master, there
-      /// are connections to every worker, but each worker has only one
-      /// connection, which is to the master.
-      conrad::cp::MPIConnectionSet::ShPtr itsConnectionSet;
 
       /// The model
       conrad::scimath::Params::ShPtr itsModel;
-
-      /// Rank of this process : 0 for the master, >0 for workers
-      int itsRank;
-
-      /// Number of nodes
-      int itsNNode;
-
-      /// Is this parallel? itsNNode > 1?
-      bool itsIsParallel;
-
-      /// Is this the Master?
-      bool itsIsMaster;
-
-      /// Is this a worker?
-      bool itsIsWorker;
-
-      /// Substitute %w by worker number. This allows workers to do different work!
-      std::string substituteWorkerNumber(const std::string& s);
-
     };
 
   }

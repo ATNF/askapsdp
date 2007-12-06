@@ -79,9 +79,12 @@ void gridKernel(const std::vector<Value>& data, const int support,
 #ifdef USEBLAS
       cblas_caxpy(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
 #else
+      Value* gptr=&grid[gind];
+      const Value* cptr=&C[cind];
+      const Value d=data[dind];
       for (int suppu=0; suppu<sSize; suppu++)
       {
-        grid[gind+suppu]+=data[dind]*C[cind+suppu];
+        *(gptr++)+=d*(*(cptr++));
       }
 #endif
       gind+=gSize;
@@ -118,9 +121,12 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
       cblas_cdotu_sub(sSize, &grid[gind], 1, &C[cind], 1, &dot);
       data[dind]+=dot;
 #else
+      Value* d=&data[dind];
+      const Value* gptr=&grid[gind];
+      const Value* cptr=&C[cind];
       for (int suppu=0; suppu<sSize; suppu++)
       {
-        data[dind]+=grid[gind+suppu]*C[cind+suppu];
+        (*d)+=(*(gptr++))*(*(cptr++));
       }
 #endif
       gind+=gSize;
