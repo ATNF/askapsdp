@@ -69,6 +69,18 @@ public:
   
   /// @brief Choose crosscorrelations only
   virtual void chooseCrossCorrelations();
+  
+  /// @brief Choose samples corresponding to a uv-distance larger than threshold
+  /// @details This effectively rejects the baselines giving a smaller
+  /// uv-distance than the specified threshold
+  /// @param[in] uvDist threshold (in metres)
+  virtual void chooseMinUVDistance(casa::Double uvDist);
+
+  /// @brief Choose samples corresponding to a uv-distance smaller than threshold
+  /// @details This effectively rejects the baselines giving a larger
+  /// uv-distance than the specified threshold
+  /// @param[in] uvDist threshold (in metres)
+  virtual void chooseMaxUVDistance(casa::Double uvDist);
       
 protected:
   /// Obtain a table expression node for selection. This method is

@@ -38,6 +38,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TableDataAccessTest);
   //CPPUNIT_TEST(readOnlyTest);
   CPPUNIT_TEST(corrTypeSelectionTest);
+  CPPUNIT_TEST(uvDistanceSelectionTest);
   CPPUNIT_TEST_EXCEPTION(bufferManagerExceptionTest,casa::TableError);
   CPPUNIT_TEST(bufferManagerTest);
   CPPUNIT_TEST(dataDescTest);
@@ -55,6 +56,8 @@ public:
   void tearDown();
   /// test of correlation type selection
   void corrTypeSelectionTest();
+  /// test of selection based on uv-distance
+  void uvDistanceSelectionTest();
   /// test of read only operations of the whole table-based implementation
   void readOnlyTest() {}
   /// test exception if disk-based buffers are requested for a read-only table  
@@ -108,6 +111,33 @@ void TableDataAccessTest::corrTypeSelectionTest()
                            (it->feed1()[row] != it->feed2()[row])); 
        }
   }
+}
+
+/// test of selection based on the minimum/maximum uv distance
+void TableDataAccessTest::uvDistanceSelectionTest() 
+{
+  TableConstDataSource ds(TableTestRunner::msName());
+  IDataSelectorPtr sel = ds.createSelector();   
+  sel->chooseMinUVDistance(1000.);
+  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {  
+       for (casa::uInt row=0;row<it->nRow();++row) {
+            const casa::RigidVector<casa::Double, 3> &uvw = it->uvw()(row);
+            const casa::Double uvDist = sqrt(casa::square(uvw(0))+
+                                             casa::square(uvw(1)));
+            CPPUNIT_ASSERT(uvDist>=1000.);                                 
+       }
+  }
+  sel = ds.createSelector();
+  sel->chooseCrossCorrelations();
+  sel->chooseMaxUVDistance(3000.);
+  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {  
+       for (casa::uInt row=0;row<it->nRow();++row) {
+            const casa::RigidVector<casa::Double, 3> &uvw = it->uvw()(row);
+            const casa::Double uvDist = sqrt(casa::square(uvw(0))+
+                                             casa::square(uvw(1)));
+            CPPUNIT_ASSERT(uvDist<=3000.);                                 
+       }
+  }  
 }
 
 

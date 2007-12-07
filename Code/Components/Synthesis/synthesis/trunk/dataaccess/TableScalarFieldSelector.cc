@@ -17,6 +17,8 @@
 /// own include
 #include <dataaccess/TableScalarFieldSelector.h>
 #include <dataaccess/DataAccessError.h>
+#include <tables/Tables/ExprNodeSet.h>
+
 
 using namespace conrad;
 using namespace conrad::synthesis;
@@ -55,6 +57,47 @@ void TableScalarFieldSelector::chooseBaseline(casa::uInt ant1,
 	   static_cast<casa::Int>(ant2));
    }
 }
+
+/// @brief Choose samples corresponding to a uv-distance larger than threshold
+/// @details This effectively rejects the baselines giving a smaller
+/// uv-distance than the specified threshold
+/// @param[in] uvDist threshold
+void TableScalarFieldSelector::chooseMinUVDistance(casa::Double uvDist)
+{
+  TableExprNode uvwExprNode = table().col("UVW");
+  const TableExprNode uExprNode = uvwExprNode(IPosition(1,0));
+  const TableExprNode vExprNode = uvwExprNode(IPosition(1,1));
+  
+  if (itsTableSelector.isNull()) {
+      itsTableSelector = (ndim(uvwExprNode) == 1) && (nelements(uvwExprNode) >= 2) 
+                    && (sqrt(square(uExprNode)+square(vExprNode)) >= uvDist);
+  } else {
+      itsTableSelector = itsTableSelector && (ndim(uvwExprNode) == 1) && 
+                 (nelements(uvwExprNode) >= 2) && 
+                 (sqrt(square(uExprNode) + square(vExprNode)) >= uvDist);
+  }
+}
+
+/// @brief Choose samples corresponding to a uv-distance smaller than threshold
+/// @details This effectively rejects the baselines giving a larger
+/// uv-distance than the specified threshold
+/// @param[in] uvDist threshold
+void TableScalarFieldSelector::chooseMaxUVDistance(casa::Double uvDist)
+{
+  TableExprNode uvwExprNode = table().col("UVW");
+  const TableExprNode uExprNode = uvwExprNode(IPosition(1,0));
+  const TableExprNode vExprNode = uvwExprNode(IPosition(1,1));
+  
+  if (itsTableSelector.isNull()) {
+      itsTableSelector = (ndim(uvwExprNode) == 1) && (nelements(uvwExprNode) >= 2) 
+                  && (sqrt(square(uExprNode) + square(vExprNode)) <= uvDist);
+  } else {
+      itsTableSelector = itsTableSelector && (ndim(uvwExprNode) == 1) &&
+                 (nelements(uvwExprNode) > 2) && 
+                 (sqrt(square(uExprNode) + square(vExprNode)) <= uvDist);
+  }
+}
+
 
 /// @brief Choose autocorrelations only
 void TableScalarFieldSelector::chooseAutoCorrelations()

@@ -82,4 +82,10 @@ void conrad::synthesis::operator<<(const boost::shared_ptr<IDataSelector> &sel,
           CONRADTHROW(DataAccessError, "CorrelationType can either be cross, auto or all (default)");
       }
   }
+  if (parset.isDefined("MinUV")) {
+      sel->chooseMinUVDistance(parset.getDouble("MinUV"));
+  }
+  if (parset.isDefined("MaxUV")) {
+      sel->chooseMaxUVDistance(parset.getDouble("MaxUV"));
+  }
 }

@@ -49,6 +49,18 @@ public:
     /// @brief Choose crosscorrelations only
     virtual void chooseCrossCorrelations() = 0;
 	
+    /// @brief Choose samples corresponding to a uv-distance larger than threshold
+    /// @details This effectively rejects the baselines giving a smaller
+    /// uv-distance than the specified threshold (in metres)
+    /// @param[in] uvDist threshold
+    virtual void chooseMinUVDistance(casa::Double uvDist) = 0;
+
+    /// @brief Choose samples corresponding to a uv-distance smaller than threshold
+    /// @details This effectively rejects the baselines giving a larger
+    /// uv-distance than the specified threshold (in metres)
+    /// @param[in] uvDist threshold
+    virtual void chooseMaxUVDistance(casa::Double uvDist) = 0;
+	
 	
 	/// Choose a subset of spectral channels
 	/// @param[in] nChan a number of spectral channels wanted in the output
