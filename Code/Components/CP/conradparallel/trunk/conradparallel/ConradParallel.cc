@@ -112,8 +112,8 @@ namespace conrad
       {
         if (isWorker())
         {
-          MWCOUT << "WORKER " << itsRank << " : ";
-          return MWCOUT;
+          std::cout << "WORKER " << itsRank << " : ";
+          return std::cout;
         }
         else
         {
