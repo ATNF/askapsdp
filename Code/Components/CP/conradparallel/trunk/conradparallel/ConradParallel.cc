@@ -149,20 +149,35 @@ namespace conrad
       }
     }
 
-    string ConradParallel::substituteWorkerNumber(const string& s)
+    string ConradParallel::substitute(const string& s)
     {
-      casa::Regex reg("\%w");
-      ostringstream oos;
-      if (itsNNode>1)
-      {
-        oos << itsRank-1;
-      }
-      else
-      {
-        oos << 0;
-      }
       casa::String cs(s);
-      cs.gsub(reg, oos.str());
+      {
+	casa::Regex regWork("\%w");
+	ostringstream oos;
+	if (itsNNode>1)
+	  {
+	    oos << itsRank-1;
+	  }
+	else
+	  {
+	    oos << 0;
+	  }
+	cs.gsub(regWork, oos.str());
+      }
+      casa::Regex regNode("\%n");
+      {
+	ostringstream oos;
+	if (itsNNode>1)
+	  {
+	    oos << itsNNode-1;
+	  }
+	else
+	  {
+	    oos << 0;
+	  }
+	cs.gsub(regNode, oos.str());
+      }
       return string(cs);
     }
 

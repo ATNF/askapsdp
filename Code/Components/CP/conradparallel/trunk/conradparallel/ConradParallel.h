@@ -80,8 +80,8 @@ namespace conrad
       /// Is this a worker?
       bool itsIsWorker;
 
-      /// Substitute %w by worker number. This allows workers to do different work!
-      std::string substituteWorkerNumber(const std::string& s);
+      /// Substitute %w by worker number, and %n by number of workers (one less than the number of nodes) This allows workers to do different work!
+      std::string substitute(const std::string& s);
 
     };
 
