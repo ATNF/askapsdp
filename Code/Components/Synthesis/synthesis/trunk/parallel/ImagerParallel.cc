@@ -92,7 +92,7 @@ namespace conrad
           }
           for (int i=0; i<itsNNode-1; i++)
           {
-            itsMs[i]=substituteWorkerNumber(tmpl);
+            itsMs[i]=substitute(tmpl);
           }
         }
         if (itsNNode>1)

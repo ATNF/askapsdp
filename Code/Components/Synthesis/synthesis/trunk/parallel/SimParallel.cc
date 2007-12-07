@@ -46,7 +46,7 @@ namespace conrad
     {
       if (isWorker())
       {
-        string msname(substituteWorkerNumber(parset.getString("dataset",
+        string msname(substitute(parset.getString("dataset",
             "test%w.ms")));
         itsSim=boost::shared_ptr<Simulator> (new Simulator(msname));
 
@@ -83,7 +83,7 @@ namespace conrad
           ParameterSet parset(itsParset);
           if(itsParset.isDefined("antennas.definition"))
           {
-            parset=ParameterSet(substituteWorkerNumber(itsParset.getString("antennas.definition")));
+            parset=ParameterSet(substitute(itsParset.getString("antennas.definition")));
           }
 
           /// Csimulator.name = ASKAP
@@ -154,7 +154,7 @@ namespace conrad
           ParameterSet parset(itsParset);
           if(itsParset.isDefined("feeds.definition"))
           {
-            parset=ParameterSet(substituteWorkerNumber(itsParset.getString("feeds.definition")));
+            parset=ParameterSet(substitute(itsParset.getString("feeds.definition")));
           }
 
           vector<string> feedNames(parset.getStringVector("feeds.names"));
@@ -195,7 +195,7 @@ namespace conrad
           ParameterSet parset(itsParset);
           if(itsParset.isDefined("sources.definition"))
           {
-            parset=ParameterSet(substituteWorkerNumber(itsParset.getString("sources.definition")));
+            parset=ParameterSet(substitute(itsParset.getString("sources.definition")));
           }
 
           const vector<string> sources=parset.getStringVector("sources.names");
@@ -229,7 +229,7 @@ namespace conrad
           ParameterSet parset(itsParset);
           if(itsParset.isDefined("spws.definition"))
           {
-            parset=ParameterSet(substituteWorkerNumber(itsParset.getString("spws.definition")));
+            parset=ParameterSet(substitute(itsParset.getString("spws.definition")));
           }
 
           vector<string> names(parset.getStringVector("spws.names"));
@@ -254,7 +254,7 @@ namespace conrad
           ParameterSet parset(itsParset);
           if(itsParset.isDefined("simulation.definition"))
           {
-            parset=ParameterSet(substituteWorkerNumber(itsParset.getString("simulation.definition")));
+            parset=ParameterSet(substitute(itsParset.getString("simulation.definition")));
           }
 
           /// Csimulator.simulate.blockage=0.1
@@ -291,7 +291,7 @@ namespace conrad
             ParameterSet parset(itsParset);
             if(itsParset.isDefined("observe.definition"))
             {
-              parset=ParameterSet(substituteWorkerNumber(itsParset.getString("observe.definition")));
+              parset=ParameterSet(substitute(itsParset.getString("observe.definition")));
             }
 
             int nScans=parset.getInt32("observe.number", 0);
@@ -302,8 +302,8 @@ namespace conrad
               ostringstream oos;
               oos << "observe.scan"<< scan;
               vector<string> line=parset.getStringVector(oos.str());
-              string source=substituteWorkerNumber(line[0]);
-              string spw=substituteWorkerNumber(line[1]);
+              string source=substitute(line[0]);
+              string spw=substitute(line[1]);
               os() << "Observing scan "<< scan << " on source " << source
               << " at band " << spw << " from "
               << MEParsetInterface::asQuantity(line[2]) << " to "

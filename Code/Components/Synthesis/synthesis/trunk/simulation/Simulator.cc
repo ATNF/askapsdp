@@ -689,8 +689,8 @@ namespace conrad
 							feedPol(1, iRow) = "R";
 						}
 						polResp(0, 0, iRow)=polResp(1, 1, iRow)=Complex(1.0, 0.0);
-						std::cout << "Row "<< iRow+1<< " : Feed "<< j+1<< " on antenna "
-						    << i+1<< " "<< x(j) << " "<< y(j) << " "<< pol(j) << std::endl;
+						//						std::cout << "Row "<< iRow+1<< " : Feed "<< j+1<< " on antenna "
+						//						    << i+1<< " "<< x(j) << " "<< y(j) << " "<< pol(j) << std::endl;
 						iRow++;
 					}
 				}
@@ -1025,7 +1025,7 @@ namespace conrad
 				// Size of scratch columns
 				double thisChunk=16.0*double(nChan)*double(nCorr)*double(nNewRows);
 				dataWritten_p+=thisChunk;
-				std::cout << "Written " << thisChunk/(1024.0*1024.0) << " Mbytes to scratch columns" << std::endl;
+				std::cout << "Written " << thisChunk/(1024.0*1024.0*1024) << " Gbytes to scratch columns" << std::endl;
 			}
 
 			Matrix<Complex> data(nCorr,nChan);
@@ -1071,10 +1071,6 @@ namespace conrad
 				// Start of loop over feed
 				for(Int feed=0; feed<nFeed; feed++)
 				{
-					if ((nFeed>0)&&(integration==0))
-					{
-						std::cout << "Processing feed "<<feed<< std::endl;
-					}
 					// for now assume that all feeds have the same offsets w.r.t.
 					// antenna frame for all antennas
 					RigidVector<double, 2> beamOffset=beam_offsets(0,0,feed);
