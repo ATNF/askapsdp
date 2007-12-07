@@ -174,7 +174,7 @@ namespace conrad
 	  }
 	else
 	  {
-	    oos << 0;
+	    oos << 1;
 	  }
 	cs.gsub(regNode, oos.str());
       }
