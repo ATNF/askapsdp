@@ -8,6 +8,10 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 #include <conrad/ConradError.h>
 
+#include <conrad_analysis.h>
+
+#include <conrad/ConradLogging.h>
+
 #include <parallelanalysis/DuchampParallel.h>
 
 #include <APS/ParameterSet.h>
@@ -48,6 +52,8 @@ int main(int argc, const char** argv)
   try
   {
 
+    CONRADLOG_INIT("cduchamp.log_cfg");
+    
     casa::Timer timer;
 
     timer.mark();
@@ -58,7 +64,7 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("Cduchamp."));
 
     DuchampParallel duchamp(argc, argv, subset);
-    duchamp.os() << "parset file " << parsetFile << std::endl;
+    CONRADLOG_INFO_STR( "parset file " << parsetFile );
     
     duchamp.findLists();
     duchamp.condenseLists();
@@ -68,11 +74,13 @@ int main(int argc, const char** argv)
   }
   catch (conrad::ConradError& x)
   {
+    CONRADLOG_FATAL_STR("Conrad error in " << argv[0] << ": " << x.what());
     std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
   catch (std::exception& x)
   {
+    CONRADLOG_FATAL_STR("Unexpected exception in " << argv[0] << ": " << x.what());
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
