@@ -40,13 +40,6 @@ namespace conrad
 
       ~ConradParallel();
 
-      /// @brief Return an output stream suitable for use in parallel environment
-      /// @details Sending messages to std::cout can be error prone in a parallel
-      /// environment. Hence one should write to this stream, which is currently
-      /// connected to a file tagged with the rank number. Eventually the conrad
-      /// logging system will be used.
-      std::ostream& os();
-
       /// Is this running in parallel?
       bool isParallel();
 

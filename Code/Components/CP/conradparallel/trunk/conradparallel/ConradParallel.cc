@@ -24,6 +24,10 @@
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 
+#include <conrad_conradparallel.h>
+
+#include <conrad/ConradLogging.h>
+
 #include <conrad/ConradError.h>
 
 #include <conradparallel/ConradParallel.h>
@@ -54,28 +58,23 @@ namespace conrad
 
       if (isParallel())
       {
-        // For MPI, send all output to separate log files. Eventually we'll do this
-        // using the log system.
-        std::ostringstream ostr;
-        casa::Path progname(argv[0]);
-        ostr << progname.baseName() << "_tmp.cout" << itsRank;
-        MWIos::setName(ostr.str());
-
         if (isMaster())
         {
-          os() << "CONRAD program (parallel) running on "<< itsNNode
-              << " nodes (master/master)"<< std::endl;
+          CONRADLOG_INFO_STR( "CONRAD program (parallel) running on "<< itsNNode
+                              << " nodes (master/master)");
         }
         else
         {
-          os() << "CONRAD program (parallel) running on "<< itsNNode
-              << " nodes (worker "<< itsRank << ")"<< std::endl;
+          CONRADLOG_INFO_STR( "CONRAD program (parallel) running on "<< itsNNode
+                              << " nodes (worker "<< itsRank << ")");
         }
       }
       else
       {
-        os() << "CONRAD program (serial)"<< std::endl;
+        CONRADLOG_INFO_STR( "CONRAD program (serial)");
       }
+
+      CONRADLOG_INFO_STR(CONRAD_PACKAGE_VERSION);
 
     }
 
@@ -83,7 +82,7 @@ namespace conrad
     {
       if (isParallel())
       {
-        os() << "Exiting MPI"<< std::endl;
+        CONRADLOG_INFO_STR( "Exiting MPI");
         MPIConnection::endMPI();
       }
     }
@@ -104,27 +103,6 @@ namespace conrad
     bool ConradParallel::isWorker()
     {
       return itsIsWorker;
-    }
-
-    std::ostream& ConradParallel::os()
-    {
-      if (isParallel())
-      {
-        if (isWorker())
-        {
-          std::cout << "WORKER " << itsRank << " : ";
-          return std::cout;
-        }
-        else
-        {
-          std::cout << "MASTER : ";
-          return std::cout;
-        }
-      }
-      else
-      {
-        return std::cout;
-      }
     }
 
     // Initialize connections
