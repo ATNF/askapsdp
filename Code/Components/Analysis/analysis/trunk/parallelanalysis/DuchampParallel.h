@@ -8,7 +8,7 @@
 #ifndef CONRAD_CP_DUCHAMPPARALLEL_H_
 #define CONRAD_CP_DUCHAMPPARALLEL_H_
 
-#include <parallel/ConradParallel.h>
+#include <conradparallel/ConradParallel.h>
 
 #include <APS/ParameterSet.h>
 
@@ -48,7 +48,12 @@ namespace conrad
       // Find the statistics (on the workers)
       void findStatistics();
 
+      // Print the statistics (on the master)
+      void printStatistics();
+
   protected:
+
+      std::string itsImage;
     };
 
   }

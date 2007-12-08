@@ -8,7 +8,7 @@
 from conradenv import env
 
 # create build object with library name
-pkg = env.ConradPackage("parallel")
+pkg = env.ConradPackage("analysis")
 # add sub packages 
 pkg.AddSubPackage("parallelanalysis")
 

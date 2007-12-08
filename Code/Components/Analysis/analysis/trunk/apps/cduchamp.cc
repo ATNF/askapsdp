@@ -52,7 +52,7 @@ int main(int argc, const char** argv)
   try
   {
 
-    CONRADLOG_INIT("cduchamp.log_cfg");
+    CONRADLOG_INIT("");
     
     casa::Timer timer;
 
@@ -69,6 +69,7 @@ int main(int argc, const char** argv)
     duchamp.findLists();
     duchamp.condenseLists();
     duchamp.findStatistics();
+    duchamp.printStatistics();
 
     ///==============================================================================
   }

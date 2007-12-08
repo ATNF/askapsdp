@@ -15,9 +15,13 @@
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 
+#include <conrad_analysis.h>
+
+#include <conrad/ConradLogging.h>
+
 #include <conrad/ConradError.h>
 
-#include <parallel/DuchampParallel.h>
+#include <parallelanalysis/DuchampParallel.h>
 
 #include <sstream>
 
@@ -34,8 +38,9 @@ namespace conrad
         const LOFAR::ACC::APS::ParameterSet& parset)
     : ConradParallel(argc, argv)
     {
- 
-      os() << "Construct me here" << std::endl;
+      if(isWorker()) {
+        itsImage = substitute(parset.getString("image"));
+      }
 
     }
 
@@ -43,7 +48,8 @@ namespace conrad
     void DuchampParallel::findLists()
     {
       if(isWorker()) {
-        os() << "Finding lists" << std::endl;
+        CONRADLOG_INFO_STR( "Finding lists from image " << itsImage);
+        // Send the lists to the master here
       }
       else {
       }
@@ -54,7 +60,11 @@ namespace conrad
     void DuchampParallel::condenseLists() 
     {
       if(isMaster()) {
-        os() << "Condensing lists" << std::endl;
+        // Get the lists from the workers here
+        // ....
+        // Now process the lists
+        CONRADLOG_INFO_STR( "Condensing lists" );
+        // Send the region specifications to the workers
       }
       else {
       }
@@ -64,7 +74,21 @@ namespace conrad
     void DuchampParallel::findStatistics()
     {
       if(isWorker()) {
-        os() << "Finding Statistics" << std::endl;
+        // Get the region specifications from the master
+        CONRADLOG_INFO_STR( "Finding Statistics" );
+        // Send back the statistics to the master
+      }
+      else {
+      }
+    }
+
+    // Print the statistics (on the master)
+    void DuchampParallel::printStatistics()
+    {
+      if(isMaster()) {
+        // Get the statistics from the workers
+        CONRADLOG_INFO_STR( "Receiving Statistics" );
+        // Print out
       }
       else {
       }
