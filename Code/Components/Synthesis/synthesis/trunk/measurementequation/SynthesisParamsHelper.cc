@@ -1,6 +1,8 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Axes.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 
 #include <casa/aips.h>
@@ -36,7 +38,7 @@ namespace conrad
 			vector<string> images=parset.getStringVector(baseKey+"Names");
 			for (vector<string>::iterator it=images.begin(); it!=images.end(); it++)
 			{
-				std::cout << "Defining image "<< *it << std::endl;
+                          CONRADLOG_INFO_STR("Defining image "<< *it );
 				std::vector<int> shape=parset.getInt32Vector(baseKey+*it+".shape");
 				int nchan=parset.getInt32("Images."+*it+".nchan");
 				std::vector<double> freq=parset.getDoubleVector(baseKey+*it

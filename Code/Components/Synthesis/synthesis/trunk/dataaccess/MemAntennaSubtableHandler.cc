@@ -10,6 +10,8 @@
 
 // own includes
 #include <dataaccess/MemAntennaSubtableHandler.h>
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
 

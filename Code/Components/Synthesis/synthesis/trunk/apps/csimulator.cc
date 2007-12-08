@@ -5,6 +5,8 @@
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 
 #include <parallel/SimParallel.h>
@@ -12,9 +14,6 @@
 #include <APS/ParameterSet.h>
 
 #include <casa/OS/Timer.h>
-
-using std::cout;
-using std::endl;
 
 using namespace std;
 using namespace conrad;
@@ -42,7 +41,11 @@ int main(int argc, const char** argv)
 {
 	try
 	{
+
+    CONRADLOG_INIT("");
+
 		casa::Timer timer;
+    
 
 		timer.mark();
 
@@ -51,25 +54,27 @@ int main(int argc, const char** argv)
 		LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
 
 		SimParallel sim(argc, argv, subset);
-		sim.os() << "CONRAD simulation program" << std::endl;
-		sim.os() << "parset file " << parsetFile << std::endl;
+                CONRADLOG_INFO_STR( "CONRAD simulation program" );
+                CONRADLOG_INFO_STR( "parset file " << parsetFile );
 
 		sim.simulate();
-		sim.os() << "user:   " << timer.user () << " system: " << timer.system ()
-		<<" real:   " << timer.real () << std::endl;
+                CONRADLOG_INFO_STR( "user:   " << timer.user () << " system: " << timer.system ()
+                                    <<" real:   " << timer.real () );
 
 		///==============================================================================
 	}
-	catch (conrad::ConradError& x)
-	{
-		std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
-		exit(1);
-	}
-	catch (std::exception& x)
-	{
-		std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-		exit(1);
-	}
-	exit(0);
+  catch (conrad::ConradError& x)
+  {
+    CONRADLOG_FATAL_STR("Conrad error in " << argv[0] << ": " << x.what());
+    std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
+    exit(1);
+  }
+  catch (std::exception& x)
+  {
+    CONRADLOG_FATAL_STR("Unexpected exception in " << argv[0] << ": " << x.what());
+    std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+    exit(1);
+  }
+  exit(0);
 }
 

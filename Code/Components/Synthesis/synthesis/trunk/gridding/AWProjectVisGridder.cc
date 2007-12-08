@@ -12,6 +12,8 @@
 #include <casa/Quanta/MVAngle.h>
 #include <casa/Quanta/MVTime.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 
@@ -275,12 +277,12 @@ namespace conrad
               CONRADCHECK(itsSupport*itsOverSample<nx/2,
                   "Overflowing convolution function - increase maxSupport or decrease overSample")
               itsCSize=2*(itsSupport+1)*itsOverSample+1;
-              std::cout << "Convolution function support = "<< itsSupport
+              CONRADLOG_INFO_STR("Convolution function support = "<< itsSupport
                   << " pixels, convolution function size = "<< itsCSize
-                  << " pixels"<< std::endl;
-              std::cout << "Maximum extent = "<< itsSupport*cell
+                                 << " pixels");
+              CONRADLOG_INFO_STR("Maximum extent = "<< itsSupport*cell
                   << " (m) sampled at "<< cell/itsOverSample << " (m)"
-                  << std::endl;
+                                 );
               itsCCenter=(itsSupport+1)*itsOverSample;
               itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
               itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
@@ -305,8 +307,8 @@ namespace conrad
           } // w loop
         } // chan loop
       } // feed loop
-      std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
-          << " by "<< itsConvFunc.size()<< " planes"<< std::endl;
+      CONRADLOG_INFO_STR("Shape of convolution function = "<< itsConvFunc[0].shape()
+                         << " by "<< itsConvFunc.size()<< " planes");
       if (itsName!="")
         save(itsName);
     }
@@ -318,7 +320,7 @@ namespace conrad
     void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
     {
 
-      std::cout << "Calculating sum of weights image" << std::endl;
+      CONRADLOG_INFO_STR("Calculating sum of weights image" );
 
       int nx=itsShape(0);
       int ny=itsShape(1);
@@ -466,20 +468,17 @@ namespace conrad
         {
           casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
           casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-          std::cout << "Feed "<< feed << " points at Right Ascension ";
-          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
-              << ", Declination ";
-          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
-          std::cout << " (J2000)";
           casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
           slope(0, feed)=sin(offset.getLong()-out.getLong())
               *cos(offset.getLat());
           slope(1, feed)=sin(offset.getLat())*cos(out.getLat())
               - cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()
                   -out.getLong());
-          std::cout << ", offset by " << 180.0*slope(0, feed)/casa::C::pi
-              << " " << 180.0*slope(1, feed)/casa::C::pi << " degrees"
-              << std::endl;
+          CONRADLOG_INFO_STR("Feed "<< feed << " points at Right Ascension "
+                             << mvLong.string(casa::MVAngle::TIME, 8) << ", Declination "
+                             << mvLat.string(casa::MVAngle::DIG2, 8) << " (J2000)"
+                             << ", offset by " << 180.0*slope(0, feed)/casa::C::pi
+                             << " " << 180.0*slope(1, feed)/casa::C::pi << " degrees" );
 
           done(feed)=true;
           nDone++;

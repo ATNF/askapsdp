@@ -11,6 +11,8 @@
 
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/TableManager.h>
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 
 using namespace conrad;

@@ -1,5 +1,7 @@
 #include <gridding/WStackVisGridder.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 
@@ -63,8 +65,7 @@ namespace conrad
             itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
             if (itsGMap(i, pol, chan)<0)
             {
-              std::cout << w << " "<< freq << " "<< itsWScale << " "<< itsGMap(
-                  i, pol, chan) << std::endl;
+              CONRADLOG_INFO_STR(w << " "<< freq << " "<< itsWScale << " "<< itsGMap(i, pol, chan) );
             }
             CONRADCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
                 "W scaling error: recommend allowing larger range of w");
@@ -160,8 +161,8 @@ namespace conrad
     void WStackVisGridder::finaliseGrid(casa::Array<double>& out)
     {
 
-      std::cout << "Stacking " << itsNWPlanes
-          << " planes of W stack to get final image"<< std::endl;
+      CONRADLOG_INFO_STR("Stacking " << itsNWPlanes
+                         << " planes of W stack to get final image");
 
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
@@ -247,8 +248,8 @@ namespace conrad
       if (casa::max(casa::abs(in))>0.0)
       {
         itsModelIsEmpty=false;
-        std::cout << "Filling " << itsNWPlanes
-            << " planes of W stack with model"<< std::endl;
+        CONRADLOG_INFO_STR("Filling " << itsNWPlanes
+                           << " planes of W stack with model");
         casa::Array<double> scratch(in.copy());
         correctConvolution(scratch);
         for (int i=0; i<itsNWPlanes; i++)
@@ -264,7 +265,7 @@ namespace conrad
       else
       {
         itsModelIsEmpty=true;
-        std::cout << "No need to fill W stack: model is empty"<< std::endl;
+        CONRADLOG_INFO_STR("No need to fill W stack: model is empty");
         for (int i=0; i<itsNWPlanes; i++)
         {
           itsGrid[i].resize(casa::IPosition(1, 1));

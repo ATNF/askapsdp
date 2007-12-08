@@ -1,5 +1,7 @@
 #include <gridding/WProjectVisGridder.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 
@@ -80,8 +82,8 @@ namespace conrad
             }
             if (itsCMap(i, pol, chan)<0)
             {
-              std::cout << w << " "<< freq << " "<< itsWScale << " "<< itsCMap(
-                  i, pol, chan) << std::endl;
+              CONRADLOG_WARN_STR(w << " "<< freq << " "<< itsWScale << " "<< itsCMap(
+                                                                                     i, pol, chan) );
             }
             CONRADCHECK(itsCMap(i, pol, chan)<itsNWPlanes,
                 "W scaling error: recommend allowing larger range of w");
@@ -219,9 +221,9 @@ namespace conrad
           CONRADCHECK(itsSupport*itsOverSample<nx/2,
               "Overflowing convolution function - increase maxSupport or decrease overSample")
           itsCSize=2*(itsSupport+1)*itsOverSample;
-          std::cout << "Convolution function support = "<< itsSupport
+          CONRADLOG_INFO_STR("Convolution function support = "<< itsSupport
               << " pixels, convolution function size = "<< itsCSize<< " pixels"
-              << std::endl;
+                             );
           itsCCenter=itsCSize/2-1;
           itsConvFunc.resize(itsNWPlanes);
           itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
@@ -241,8 +243,8 @@ namespace conrad
         }
         itsConvFunc[itsNWPlanes-1-iw]=casa::conj(itsConvFunc[iw]);
       }
-      std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
-          << " by "<< itsConvFunc.size() << " planes"<< std::endl;
+      CONRADLOG_INFO_STR("Shape of convolution function = "<< itsConvFunc[0].shape()
+                         << " by "<< itsConvFunc.size() << " planes");
       if (itsName!="")
         save(itsName);
     }

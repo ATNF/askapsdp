@@ -12,6 +12,8 @@
 #include <casa/Quanta/MVAngle.h>
 #include <casa/Quanta/MVTime.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 
@@ -192,8 +194,7 @@ namespace conrad
 
           /// Now convolve the disk with itself
           fft2d(disk, false);
-          //					std::cout << "Feed " << feed
-          //						  << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)) << std::endl;
+          //          CONRADLOG_DEBUG_STR("Feed " << feed << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)));
           for (int ix=0; ix<nx; ix++)
           {
             for (int iy=0; iy<ny; iy++)
@@ -201,13 +202,8 @@ namespace conrad
               disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
             }
           }
-          //					std::cout << "Feed " << feed
-          //						  <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk)))
-          //						  << std::endl;
+          //          CONRADLOG_DEBUG_STR("Feed " << feed <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk))));
           fft2d(disk, true);
-          //					std::cout << "Feed " << feed
-          //						  << ": Integral of primary beam power pattern = " << disk(nx/2,ny/2) 
-          //						  << " (pixels) " << std::endl;
           sumdisk=0.0;
           for (int ix=0; ix<nx; ix++)
           {
@@ -226,11 +222,11 @@ namespace conrad
             CONRADCHECK(itsSupport*itsOverSample<nx/2,
                 "Overflowing convolution function - increase maxSupport or decrease overSample")
             itsCSize=2*(itsSupport+1)*itsOverSample+1;
-            std::cout << "Convolution function support = "<< itsSupport
+            CONRADLOG_INFO_STR("Convolution function support = "<< itsSupport
                 << " pixels, convolution function size = "<< itsCSize
-                << " pixels"<< std::endl;
-            std::cout << "Maximum extent = "<< itsSupport*itsOverSample*cell
-                << " (m) sampled at "<< cell << " (m)"<< std::endl;
+                               << " pixels");
+            CONRADLOG_INFO_STR("Maximum extent = "<< itsSupport*itsOverSample*cell
+                               << " (m) sampled at "<< cell << " (m)");
             itsCCenter=(itsSupport+1)*itsOverSample;
             itsConvFunc.resize(itsMaxFeeds*nChan);
             itsSumWeights.resize(itsMaxFeeds*nChan, itsShape(2), itsShape(3));
@@ -254,8 +250,8 @@ namespace conrad
           }
         } // chan loop
                 } // feed loop
-                std::cout << "Shape of convolution function = "<< itsConvFunc[0].shape()
-                << " by "<< itsConvFunc.size()<< " planes"<< std::endl;
+      CONRADLOG_INFO_STR("Shape of convolution function = "<< itsConvFunc[0].shape()
+                         << " by "<< itsConvFunc.size()<< " planes");
                 if (itsName!="") save(itsName);
               }
 
@@ -266,7 +262,7 @@ namespace conrad
               void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out)
               {
 
-                std::cout << "Calculating sum of weights image"<< std::endl;
+                CONRADLOG_INFO_STR("Calculating sum of weights image");
 
                 int nx=itsShape(0);
                 int ny=itsShape(1);
@@ -413,7 +409,7 @@ namespace conrad
                   {
                     casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
                     casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-                    //					          std::cout << "Feed " << feed << " points at Right Ascension ";
+                    //					          CONRADLOG_INFO_STR("Feed " << feed << " points at Right Ascension ";
                     //					          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
                     //					          << ", Declination ";
                     //					          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
@@ -422,8 +418,6 @@ namespace conrad
                     slope(0,feed)=sin(offset.getLong()-out.getLong())*cos(offset.getLat());
                     slope(1,feed)=sin(offset.getLat())*cos(out.getLat())-
                     cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()-out.getLong());
-                    //					          std::cout << ", offset by " << 180.0*slope(0,feed)/casa::C::pi << " "
-                    //					          << 180.0*slope(1,feed)/casa::C::pi << " degrees" << std::endl;
 
                     done(feed)=true;
                     nDone++;

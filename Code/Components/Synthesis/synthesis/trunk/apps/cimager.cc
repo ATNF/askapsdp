@@ -11,7 +11,10 @@
 ///
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
+
 
 #include <parallel/ImagerParallel.h>
 
@@ -23,9 +26,6 @@
 #include <iostream>
 
 #include <casa/OS/Timer.h>
-
-using std::cout;
-using std::endl;
 
 using namespace conrad;
 using namespace conrad::synthesis;
@@ -56,6 +56,8 @@ int main(int argc, const char** argv)
   try
   {
 
+    CONRADLOG_INIT("");
+
     casa::Timer timer;
 
     timer.mark();
@@ -66,7 +68,7 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("Cimager."));
 
     ImagerParallel imager(argc, argv, subset);
-    imager.os() << "parset file " << parsetFile << std::endl;
+    CONRADLOG_INFO_STR( "parset file " << parsetFile );
 
     int nCycles=subset.getInt32("ncycles", 0);
     if(nCycles==0)
@@ -82,16 +84,16 @@ int main(int argc, const char** argv)
       /// Perform multiple major cycles
       for (int cycle=0;cycle<nCycles;cycle++)
       {
-        imager.os() << "*** Starting major cycle " << cycle << " ***" << std::endl;
+        CONRADLOG_INFO_STR( "*** Starting major cycle " << cycle << " ***" );
         imager.broadcastModel();
         imager.receiveModel();
         imager.calcNE();
         imager.solveNE();
 
-        imager.os() << "user:   " << timer.user () << " system: " << timer.system ()
-        <<" real:   " << timer.real () << std::endl;
+        CONRADLOG_INFO_STR( "user:   " << timer.user () << " system: " << timer.system ()
+                            <<" real:   " << timer.real () );
       }
-      imager.os() << "*** Finished major cycles ***" << std::endl;
+      CONRADLOG_INFO_STR( "*** Finished major cycles ***" );
       imager.broadcastModel();
       imager.receiveModel();
       imager.calcNE();
@@ -105,11 +107,13 @@ int main(int argc, const char** argv)
   }
   catch (conrad::ConradError& x)
   {
+    CONRADLOG_FATAL_STR("Conrad error in " << argv[0] << ": " << x.what());
     std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
   catch (std::exception& x)
   {
+    CONRADLOG_FATAL_STR("Unexpected exception in " << argv[0] << ": " << x.what());
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }

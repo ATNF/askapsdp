@@ -1,3 +1,7 @@
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
+#include <conrad/ConradError.h>
+
 #include <dataaccess/SharedIter.h>
 #include <fitting/Params.h>
 #include <measurementequation/ImageDFTEquation.h>
@@ -73,7 +77,7 @@ namespace conrad
       vector<string>::iterator it;
 
       if(completions.size()==0) {
-        std::cerr << "No parameters appropriate for ImageFFTEquation" << std::endl;
+        CONRADLOG_WARN_STR("No parameters appropriate for ImageFFTEquation");
         return;
       }
 
@@ -133,7 +137,7 @@ namespace conrad
       vector<string>::iterator it;
 
       if(completions.size()==0) {
-        std::cerr << "No parameters appropriate for ImageDFTEquation" << std::endl;
+        CONRADLOG_WARN_STR("No parameters appropriate for ImageFFTEquation");
         return;
       }
 

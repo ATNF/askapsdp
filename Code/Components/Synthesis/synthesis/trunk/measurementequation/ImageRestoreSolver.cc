@@ -1,6 +1,8 @@
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 
 #include <casa/aips.h>
@@ -71,7 +73,7 @@ namespace conrad
 			for (map<string, uint>::const_iterator indit=indices.begin(); indit
 			    !=indices.end(); indit++)
 			{
-				std::cout << "Restoring " << indit->first << std::endl;
+                          CONRADLOG_INFO_STR("Restoring " << indit->first );
 
 				// Axes are dof, dof for each parameter
 				casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
@@ -82,7 +84,7 @@ namespace conrad
 				CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
 				const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 				double maxDiag(casa::max(diag));
-				std::cout << "Maximum of weights = " << maxDiag << std::endl;
+				CONRADLOG_INFO_STR("Maximum of weights = " << maxDiag );
 				double cutoff=tol()*maxDiag;
 
 				// Create a temporary image

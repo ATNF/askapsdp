@@ -24,7 +24,13 @@
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
+
+
 
 #include <parallel/SynParallel.h>
 
@@ -73,8 +79,8 @@ namespace conrad
         out << *itsModel;
         out.putEnd();
         itsConnectionSet->writeAll(bs);
-        os() << "Sent model to the workers via MPI in "<< timer.real()
-            << " seconds "<< std::endl;
+        CONRADLOG_INFO_STR("Sent model to the workers via MPI in "<< timer.real()
+                           << " seconds ");
       }
     }
 
@@ -86,7 +92,7 @@ namespace conrad
         CONRADCHECK(itsModel, "Model not defined prior to receiving")
         casa::Timer timer;
         timer.mark();
-        os() << "Receiving model from the master via MPI"<< std::endl;
+        CONRADLOG_INFO_STR("Receiving model from the master via MPI");
         LOFAR::BlobString bs;
         bs.resize(0);
         itsConnectionSet->read(0, bs);
@@ -96,8 +102,8 @@ namespace conrad
         CONRADASSERT(version==1);
         in >> *itsModel;
         in.getEnd();
-        os() << "Received model from the master via MPI in "<< timer.real()
-            << " seconds "<< std::endl;
+        CONRADLOG_INFO_STR("Received model from the master via MPI in "<< timer.real()
+                           << " seconds ");
       }
     }
 

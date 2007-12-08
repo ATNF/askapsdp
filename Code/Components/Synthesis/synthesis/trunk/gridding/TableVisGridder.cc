@@ -1,4 +1,6 @@
 #include <gridding/TableVisGridder.h>
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 #include <fft/FFTWrapper.h>
@@ -48,22 +50,22 @@ namespace conrad
     {
       if (itsNumberGridded>0)
       {
-        std::cout << "TableVisGridder gridding statistics" << std::endl;
-        std::cout << "   Total time gridding   = " << itsTimeGridded << " (s)"
-            << std::endl;
-        std::cout << "   Number gridded        = " << itsNumberGridded
-            << std::endl;
-        std::cout << "   Time per grid         = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" << std::endl;
+        CONRADLOG_INFO_STR("TableVisGridder gridding statistics" );
+        CONRADLOG_INFO_STR("   Total time gridding   = " << itsTimeGridded << " (s)"
+                           );
+        CONRADLOG_INFO_STR("   Number gridded        = " << itsNumberGridded
+                           );
+        CONRADLOG_INFO_STR("   Time per grid         = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" );
       }
 
       if (itsNumberDegridded>0)
       {
-        std::cout << "TableVisGridder degridding statistics" << std::endl;
-        std::cout << "   Total time degridding = " << itsTimeDegridded << " (s)"
-            << std::endl;
-        std::cout << "   Number degridded      = " << itsNumberDegridded
-            << std::endl;
-        std::cout << "   Time per degrid       = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" << std::endl;
+        CONRADLOG_INFO_STR("TableVisGridder degridding statistics" );
+        CONRADLOG_INFO_STR("   Total time degridding = " << itsTimeDegridded << " (s)"
+                           );
+        CONRADLOG_INFO_STR("   Number degridded      = " << itsNumberDegridded
+                           );
+        CONRADLOG_INFO_STR("   Time per degrid       = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" );
       }
     }
 
@@ -555,7 +557,7 @@ namespace conrad
       }
       else
       {
-        std::cout << "No need to degrid: model is empty" << std::endl;
+        CONRADLOG_INFO_STR("No need to degrid: model is empty" );
         itsModelIsEmpty=true;
         itsGrid[0].set(casa::Complex(0.0));
       }

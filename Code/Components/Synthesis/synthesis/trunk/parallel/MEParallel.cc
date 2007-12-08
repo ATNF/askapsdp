@@ -18,7 +18,13 @@
 
 #include <casa/OS/Timer.h>
 
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
+
+#include <conrad_synthesis.h>
+#include <conrad/ConradLogging.h>
+
 
 #include <parallel/MEParallel.h>
 #include <fitting/ImagingNormalEquations.h>
@@ -51,7 +57,7 @@ namespace conrad
       {
         casa::Timer timer;
         timer.mark();
-        os() << "Sending normal equations to the solver via MPI" << std::endl;
+        CONRADLOG_INFO_STR("Sending normal equations to the solver via MPI" );
 
         LOFAR::BlobString bs;
         bs.resize(0);
@@ -61,8 +67,8 @@ namespace conrad
         out << itsRank << *itsNe;
         out.putEnd();
         itsConnectionSet->write(0, bs);
-        os() << "Sent normal equations to the solver via MPI in "
-            << timer.real()<< " seconds "<< std::endl;
+        CONRADLOG_INFO_STR("Sent normal equations to the solver via MPI in "
+                           << timer.real()<< " seconds ");
       }
     }
 
@@ -72,11 +78,11 @@ namespace conrad
       CONRADCHECK(itsSolver, "Solver not yet defined");
       if (isParallel()&&isMaster())
       {
-        os() << "Initialising solver"<< std::endl;
+        CONRADLOG_INFO_STR("Initialising solver");
         itsSolver->init();
         itsSolver->setParameters(*itsModel);
 
-        os() << "Waiting for normal equations"<< std::endl;
+        CONRADLOG_INFO_STR("Waiting for normal equations");
         casa::Timer timer;
         timer.mark();
 
@@ -93,11 +99,11 @@ namespace conrad
           in >> rank >> *itsNe;
           in.getEnd();
           itsSolver->addNormalEquations(*itsNe);
-          os() << "Received normal equations from prediffer "<< rank
-              << " after "<< timer.real() << " seconds"<< std::endl;
+          CONRADLOG_INFO_STR("Received normal equations from prediffer "<< rank
+                             << " after "<< timer.real() << " seconds");
         }
-        os()<< "Received normal equations from all prediffers via MPI in "
-            << timer.real() << " seconds"<< std::endl;
+        CONRADLOG_INFO_STR("Received normal equations from all prediffers via MPI in "
+            << timer.real() << " seconds");
       }
     }
 
