@@ -20,6 +20,10 @@
 
 namespace conrad {
 
+  /// Get the hostname of the machine (as per unistd.h gethostname)
+  /// @param full get the full name with domain or base name
+  /// @return a string representing the hostname
+  std::string getHostName(bool full=false);
 
   /// Convert a string to uppercase.
   std::string toUpper(std::string s);

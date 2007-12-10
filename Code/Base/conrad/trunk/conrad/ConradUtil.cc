@@ -6,9 +6,25 @@
 
 
 #include <algorithm>
+#include <unistd.h>
 #include <conrad/ConradUtil.h>
 
 namespace conrad {
+
+  std::string getHostName(bool full) {
+    char hname[256];
+    if (gethostname(hname, 256) != 0) {
+      return std::string("localhost");
+    }
+    std::string hostname(hname);
+    if (!full) {
+      unsigned int dotloc = hostname.find_first_of(".");
+      if (  dotloc != hostname.npos ) {
+        return hostname.substr(0,dotloc);
+      }
+    }
+    return hostname;
+  }
 
   std::string toUpper(std::string str)
   {
