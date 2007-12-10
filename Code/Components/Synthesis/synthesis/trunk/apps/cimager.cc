@@ -56,7 +56,7 @@ int main(int argc, const char** argv)
   try
   {
 
-    CONRADLOG_INIT("");
+    CONRADLOG_INIT("cimager.log_cfg");
 
     casa::Timer timer;
 
