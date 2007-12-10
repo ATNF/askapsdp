@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include <conrad/ConradError.h>
+#include <conrad/ConradUtil.h>
 
 namespace conrad {
 
@@ -44,6 +45,7 @@ namespace conrad {
       if (logis.is_open()) {                                            \
         logis.close();                                                  \
         log4cxx::NDC::push(CONRAD_PACKAGE_NAME);                        \
+        log4cxx::NDC::push("["+getHostName() +  "]" );                  \
         log4cxx::PropertyConfigurator::configure(log4cxx::File(filename)); \
         break;                                                          \
       }                                                                 \
