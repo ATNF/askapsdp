@@ -49,11 +49,11 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
+  CONRADLOG_INIT("cduchamp.log_cfg");
+
   try
   {
 
-    CONRADLOG_INIT("");
-    
     casa::Timer timer;
 
     timer.mark();
