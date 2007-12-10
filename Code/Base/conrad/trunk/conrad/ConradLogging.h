@@ -13,7 +13,7 @@
 #include <log4cxx/logger.h>
 #include <log4cxx/propertyconfigurator.h>
 #include <log4cxx/basicconfigurator.h>
-#include <log4cxx/ndc.h>
+#include <log4cxx/mdc.h>
 
 #include <sstream>
 #include <fstream>
@@ -44,8 +44,8 @@ namespace conrad {
       logis.open(filename, std::ios::in);                               \
       if (logis.is_open()) {                                            \
         logis.close();                                                  \
-        log4cxx::NDC::push(CONRAD_PACKAGE_NAME);                        \
-        log4cxx::NDC::push("["+getHostName() +  "]" );                  \
+        log4cxx::MDC::put("package", CONRAD_PACKAGE_NAME);              \
+        log4cxx::MDC::put("hostname", getHostName());                   \
         log4cxx::PropertyConfigurator::configure(log4cxx::File(filename)); \
         break;                                                          \
       }                                                                 \
