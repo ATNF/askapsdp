@@ -30,6 +30,9 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
@@ -67,14 +70,15 @@ namespace conrad {
   }
   
 #ifdef HAVE_MPI
-#include <mpi.h>
   /// Return the MPI rank as a string
   /// @return std::string represenation of teh mpi rank number
   inline std::string getMpiRankString()
   {
-    int mprank;
+    int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    return std::string(rank);
+    std::ostringstream oss;
+    oss << rank;
+    return oss.str();
   }
 #else
   /// Return a blank value for MPI rank
