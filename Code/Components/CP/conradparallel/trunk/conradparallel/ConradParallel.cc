@@ -43,6 +43,8 @@ namespace conrad
   namespace cp
   {
 
+    CONRAD_LOGGER(logger, ".conradparallel");
+
     ConradParallel::ConradParallel(int argc, const char** argv)
     {
       // Initialize MPI (also succeeds if no MPI available).
@@ -60,21 +62,21 @@ namespace conrad
       {
         if (isMaster())
         {
-          CONRADLOG_INFO_STR( "CONRAD program (parallel) running on "<< itsNNode
+          CONRADLOG_INFO_STR(logger, "CONRAD program (parallel) running on "<< itsNNode
                               << " nodes (master/master)");
         }
         else
         {
-          CONRADLOG_INFO_STR( "CONRAD program (parallel) running on "<< itsNNode
+          CONRADLOG_INFO_STR(logger, "CONRAD program (parallel) running on "<< itsNNode
                               << " nodes (worker "<< itsRank << ")");
         }
       }
       else
       {
-        CONRADLOG_INFO_STR( "CONRAD program (serial)");
+        CONRADLOG_INFO_STR(logger, "CONRAD program (serial)");
       }
 
-      CONRADLOG_INFO_STR(CONRAD_PACKAGE_VERSION);
+      CONRADLOG_INFO_STR(logger, CONRAD_PACKAGE_VERSION);
 
     }
 
@@ -82,7 +84,7 @@ namespace conrad
     {
       if (isParallel())
       {
-        CONRADLOG_INFO_STR( "Exiting MPI");
+        CONRADLOG_INFO_STR(logger, "Exiting MPI");
         MPIConnection::endMPI();
       }
     }
