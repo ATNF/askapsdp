@@ -28,6 +28,8 @@ using namespace conrad;
 using namespace conrad::analysis;
 using namespace LOFAR::ACC::APS;
 
+CONRAD_LOGGER(logger, "");
+
 // Move to Conrad Util
 std::string getInputs(const std::string& key, const std::string& def, int argc,
     const char** argv)
@@ -64,7 +66,7 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("Cduchamp."));
 
     DuchampParallel duchamp(argc, argv, subset);
-    CONRADLOG_INFO_STR( "parset file " << parsetFile );
+    CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
     
     duchamp.findLists();
     duchamp.condenseLists();
@@ -75,13 +77,13 @@ int main(int argc, const char** argv)
   }
   catch (conrad::ConradError& x)
   {
-    CONRADLOG_FATAL_STR("Conrad error in " << argv[0] << ": " << x.what());
+    CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
     std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
   catch (std::exception& x)
   {
-    CONRADLOG_FATAL_STR("Unexpected exception in " << argv[0] << ": " << x.what());
+    CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }

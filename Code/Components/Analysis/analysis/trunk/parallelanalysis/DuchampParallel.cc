@@ -25,6 +25,8 @@
 
 #include <sstream>
 
+CONRAD_LOGGER(logger, ".parallelanalysis");
+
 using namespace std;
 using namespace conrad;
 using namespace conrad::cp;
@@ -48,7 +50,7 @@ namespace conrad
     void DuchampParallel::findLists()
     {
       if(isWorker()) {
-        CONRADLOG_INFO_STR( "Finding lists from image " << itsImage);
+        CONRADLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
         // Send the lists to the master here
       }
       else {
@@ -63,7 +65,7 @@ namespace conrad
         // Get the lists from the workers here
         // ....
         // Now process the lists
-        CONRADLOG_INFO_STR( "Condensing lists" );
+        CONRADLOG_INFO_STR(logger,  "Condensing lists" );
         // Send the region specifications to the workers
       }
       else {
@@ -75,7 +77,7 @@ namespace conrad
     {
       if(isWorker()) {
         // Get the region specifications from the master
-        CONRADLOG_INFO_STR( "Finding Statistics" );
+        CONRADLOG_INFO_STR(logger,  "Finding Statistics" );
         // Send back the statistics to the master
       }
       else {
@@ -87,7 +89,7 @@ namespace conrad
     {
       if(isMaster()) {
         // Get the statistics from the workers
-        CONRADLOG_INFO_STR( "Receiving Statistics" );
+        CONRADLOG_INFO_STR(logger,  "Receiving Statistics" );
         // Print out
       }
       else {
