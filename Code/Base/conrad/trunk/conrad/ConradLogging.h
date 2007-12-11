@@ -60,7 +60,6 @@ namespace conrad {
     const std::string name("conrad.");
     if (inname.length() > 0) {
       if (inname[0] == '.') {
-        std::cout << name << std::string(CONRAD_PACKAGE_NAME) << std::endl;
         return (name + std::string(CONRAD_PACKAGE_NAME) + inname);
       } else {
         return (name + inname);
