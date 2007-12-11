@@ -19,6 +19,45 @@ namespace conrad {};
 ///  - #CONRADASSERT
 ///
 /// @section Logging
-/// @todo Needs to be implemented on top of log4cxx
+///
+/// The logging has to be initialised in the main implimentation file via a call to
+/// #CONRADLOG_INIT. 
+/// 
+/// Individual loggers have to be set up in the implementation files with a call to
+/// #CONRAD_LOGGER. Mulitple loggers are possible.
+///
+///  The following macros are avialable for logging. The _STR version logs a stream, 
+/// which is slower than direct logging. see ConradLogging.h for details.
+///
+/// - #CONRADLOG_DEBUG
+/// - #CONRADLOG_INFO
+/// - #CONRADLOG_WARN
+/// - #CONRADLOG_ERROR
+/// - #CONRADLOG_FATAL
+///
+/// - #CONRADLOG_DEBUG_STR
+/// - #CONRADLOG_INFO_STR
+/// - #CONRADLOG_WARN_STR
+/// - #CONRADLOG_ERROR_STR
+/// - #CONRADLOG_FATAL_STR
+///
+/// Example:
+/// @code
+/// // Initialise the logger from a config file. This set log level thresholds and 
+/// // log appenders
+/// CONRADLOG_INIT("tLogging.log_cfg");
+/// int i = 1;
+/// // set up a local logger with handle 'locallog' as a sublogger of the current package
+/// CONRAD_LOGGER(locallog, ".test");
+/// CONRADLOG_WARN(locallog,"Warning. This is a warning.");
+/// CONRADLOG_INFO(locallog,"This is an automatic (subpackage) log");
+/// CONRADLOG_INFO_STR(locallog,"This is " << i << " log stream test.");
+/// 
+/// @endcode
+///
+/// @section Utilities
+///
+/// @todo Needs to be implemented on top of std::cout for platforms where log4cxx
+/// doesn't build 
 ///
 /// @copyright 2007 CONRAD, All Rights Reserved.
