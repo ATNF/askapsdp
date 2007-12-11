@@ -2,12 +2,12 @@
 log4j.rootLogger=DEBUG,STDOUT,R,xmlsocket
 
 log4j.appender.xmlsocket=org.apache.log4j.XMLSocketAppender
-log4j.appender.xmlsocket.RemoteHost=localhost
+log4j.appender.xmlsocket.RemoteHost=nattai.atnf.csiro.au
 log4j.appender.xmlsocket.Port=4448
 
 log4j.appender.STDOUT=org.apache.log4j.ConsoleAppender
 log4j.appender.STDOUT.layout=org.apache.log4j.PatternLayout
-log4j.appender.STDOUT.layout.ConversionPattern=%-5p %c{2} (%X{hostname}) [%d] - %m%n
+log4j.appender.STDOUT.layout.ConversionPattern=%-5p %c{2} (%X{mpirank}) [%d] - %m%n
 
 log4j.appender.R=org.apache.log4j.RollingFileAppender
 log4j.appender.R.File=example.log

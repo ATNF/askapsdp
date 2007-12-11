@@ -58,8 +58,6 @@ int main(int argc, const char** argv)
   try
   {
 
-    CONRADLOG_INIT("cimager.log_cfg");
-
     casa::Timer timer;
 
     timer.mark();
@@ -70,6 +68,8 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("Cimager."));
 
     ImagerParallel imager(argc, argv, subset);
+    CONRADLOG_INIT("cimager.log_cfg");
+
     CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
 
     int nCycles=subset.getInt32("ncycles", 0);

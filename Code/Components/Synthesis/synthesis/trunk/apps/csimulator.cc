@@ -45,8 +45,6 @@ int main(int argc, const char** argv)
 	try
 	{
 
-          CONRADLOG_INIT("csimulator.log_cfg");
-
 		casa::Timer timer;
     
 
@@ -57,6 +55,8 @@ int main(int argc, const char** argv)
 		LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
 
 		SimParallel sim(argc, argv, subset);
+		CONRADLOG_INIT("csimulator.log_cfg");
+
                 CONRADLOG_INFO_STR(logger,  "CONRAD simulation program" );
                 CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
 
