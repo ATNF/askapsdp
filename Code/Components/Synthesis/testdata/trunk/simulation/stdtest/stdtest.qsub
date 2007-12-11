@@ -1,0 +1,20 @@
+#!/bin/bash -l
+#PBS -l nodes=2:ppn=1
+#PBS -N stdtest
+#PBS -m e
+#PBS -v CONRAD_PROJECT_ROOT
+cd $PBS_O_WORKDIR
+
+module load openmpi
+
+echo "Extracting 10uJy model" > stdtest.out.$PBS_JOBID
+
+tar zxvf ${CONRAD_PROJECT_ROOT}/Code/Components/Synthesis/testdata/trunk/simulation/models/10uJy.model.small.tgz >> stdtest.out.$PBS_JOBID
+
+export AIPSPATH=${CONRAD_PROJECT_ROOT}/Code/Components/Synthesis/testdata/trunk
+
+echo "Running csimulator to create MeasurementSet for a single pointing" >> stdtest.out.$PBS_JOBID
+mpirun -x AIPSPATH time ${CONRAD_PROJECT_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/csimulator.sh -inputs stdtest.in >> stdtest.out.$PBS_JOBID
+
+echo "Running cimager to form Clean image of single pointing" >> stdtest.out.$PBS_JOBID
+mpirun -x AIPSPATH time ${CONRAD_PROJECT_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.in >> stdtest.out.$PBS_JOBID
