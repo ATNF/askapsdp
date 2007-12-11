@@ -12,10 +12,12 @@
 #include <casa/OS/Timer.h>
 
 #include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
+
 #include <conrad/ConradError.h>
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 
 
 #include <parallel/SimParallel.h>
@@ -93,7 +95,7 @@ namespace conrad
 
           /// Csimulator.name = ASKAP
           string telName=parset.getString("antennas.telescope");
-          CONRADLOG_INFO_STR("Simulating "<< telName );
+          CONRADLOG_INFO_STR(logger, "Simulating "<< telName );
           ostringstream oos;
           oos << "antennas." << telName << ".";
           ParameterSet antParset(parset.makeSubset(oos.str()));
@@ -150,7 +152,7 @@ namespace conrad
 
           itsSim->initAnt(telName, x, y, z, dishDiameter, offset, mounts, name,
               casa::String(coordinates), location);
-          CONRADLOG_INFO_STR("Successfully defined "<< nAnt << " antennas of "<< telName
+          CONRADLOG_INFO_STR(logger, "Successfully defined "<< nAnt << " antennas of "<< telName
                              );
         }
 
@@ -184,12 +186,12 @@ namespace conrad
           {
             casa::Quantity qspacing=MEParsetInterface::asQuantity(parset.getString("feeds.spacing"));
             double spacing=qspacing.getValue("rad");
-            CONRADLOG_INFO_STR("Scaling feed specifications by " << qspacing );
+            CONRADLOG_INFO_STR(logger, "Scaling feed specifications by " << qspacing );
             x*=spacing;
             y*=spacing;
           }
           itsSim->initFeeds(mode, x, y, pol);
-          CONRADLOG_INFO_STR("Successfully defined "<< nFeeds << " feeds");
+          CONRADLOG_INFO_STR(logger, "Successfully defined "<< nFeeds << " feeds");
         }
 
         /// Csimulator.sources.names = [3C273, 1934-638]
@@ -209,7 +211,7 @@ namespace conrad
             {
               ostringstream oos;
               oos << "sources." << sources[i]<< ".direction";
-              CONRADLOG_INFO_STR("Simulating source "<< sources[i] );
+              CONRADLOG_INFO_STR(logger, "Simulating source "<< sources[i] );
               casa::MDirection direction(MEParsetInterface::asMDirection(parset.getStringVector(oos.str())));
               itsSim->initFields(casa::String(sources[i]), direction, casa::String(""));
             }
@@ -219,14 +221,14 @@ namespace conrad
               if(parset.isDefined(oos.str()))
               {
                 string model=parset.getString(oos.str());
-                CONRADLOG_INFO_STR("Adding image " << model << " as model for "<< sources[i] );
+                CONRADLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
                 ostringstream paramName;
                 paramName << "image.i." << sources[i];
                 SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName.str(), model);
               }
             }
           }
-          CONRADLOG_INFO_STR("Successfully defined sources");
+          CONRADLOG_INFO_STR(logger, "Successfully defined sources");
         }
 
         void SimParallel::readSpws()
@@ -250,7 +252,7 @@ namespace conrad
                 MEParsetInterface::asQuantity(line[2]),
                 MEParsetInterface::asQuantity(line[2]), line[3]);
           }
-          CONRADLOG_INFO_STR("Successfully defined "<< nSpw << " spectral windows"
+          CONRADLOG_INFO_STR(logger, "Successfully defined "<< nSpw << " spectral windows"
                              );
         }
 
@@ -280,7 +282,7 @@ namespace conrad
           vector<string> refTimeString(parset.getStringVector("simulation.referencetime"));
           casa::MEpoch refTime(MEParsetInterface::asMEpoch(refTimeString));
           itsSim->settimes(integrationTime, useHourAngles, refTime);
-          CONRADLOG_INFO_STR("Successfully set simulation parameters");
+          CONRADLOG_INFO_STR(logger, "Successfully set simulation parameters");
         }
 
         /// Csimulator.observe.number=2
@@ -309,7 +311,7 @@ namespace conrad
               vector<string> line=parset.getStringVector(oos.str());
               string source=substitute(line[0]);
               string spw=substitute(line[1]);
-              CONRADLOG_INFO_STR("Observing scan "<< scan << " on source " << source
+              CONRADLOG_INFO_STR(logger, "Observing scan "<< scan << " on source " << source
               << " at band " << spw << " from "
               << MEParsetInterface::asQuantity(line[2]) << " to "
                                  << MEParsetInterface::asQuantity(line[3]) );
@@ -318,7 +320,7 @@ namespace conrad
                   MEParsetInterface::asQuantity(line[3]));
             }
 
-            CONRADLOG_INFO_STR("Successfully simulated "<< nScans << " scans");
+            CONRADLOG_INFO_STR(logger, "Successfully simulated "<< nScans << " scans");
             itsMs->flush();
 
             predict(itsMs->tableName());
@@ -331,8 +333,8 @@ namespace conrad
           {
             casa::Timer timer;
             timer.mark();
-            CONRADLOG_INFO_STR("Simulating data for " << ms );
-            CONRADLOG_INFO_STR("Model is " << *itsModel);
+            CONRADLOG_INFO_STR(logger, "Simulating data for " << ms );
+            CONRADLOG_INFO_STR(logger, "Model is " << *itsModel);
             TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED);
             IDataSelectorPtr sel=ds.createSelector();
             sel << itsParset;
@@ -346,7 +348,7 @@ namespace conrad
             CONRADCHECK(gridder, "Gridder not defined correctly");
             conrad::scimath::Equation::ShPtr equation(new ImageFFTEquation (*itsModel, it, gridder));
             equation->predict();
-            CONRADLOG_INFO_STR( "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
+            CONRADLOG_INFO_STR(logger,  "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
           }
         }
 

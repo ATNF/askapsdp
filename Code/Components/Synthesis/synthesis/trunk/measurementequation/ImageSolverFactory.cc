@@ -1,5 +1,7 @@
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <measurementequation/ImageSolverFactory.h>
@@ -33,7 +35,7 @@ namespace conrad
         defaultScales[2]=30.0;
         std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
         solver = Solver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
-        CONRADLOG_INFO_STR("Constructed image multiscale solver" );
+        CONRADLOG_INFO_STR(logger, "Constructed image multiscale solver" );
         solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));
         solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
         solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
@@ -49,7 +51,7 @@ namespace conrad
         casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
         solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
         solver->setThreshold(threshold);
-        CONRADLOG_INFO_STR("Constructed dirty image solver" );
+        CONRADLOG_INFO_STR(logger, "Constructed dirty image solver" );
       }
       return solver;
     }

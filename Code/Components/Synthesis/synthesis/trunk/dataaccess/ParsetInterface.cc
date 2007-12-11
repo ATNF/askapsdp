@@ -14,6 +14,8 @@
 #include <dataaccess/ParsetInterface.h>
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
 

@@ -13,6 +13,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <measurementequation/MEParsetInterface.h>
@@ -63,7 +65,7 @@ namespace conrad
 				defaultScales[2]=30.0;
 				std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 				solver = conrad::scimath::Solver::ShPtr(new ImageMultiScaleSolver(params, casa::Vector<float>(scales)));
-				CONRADLOG_INFO_STR("Constructed image multiscale solver" );
+				CONRADLOG_INFO_STR(logger, "Constructed image multiscale solver" );
 				solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
 				solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
 				solver->setVerbose(parset.getBool("solver.Clean.verbose", true));
@@ -78,7 +80,7 @@ namespace conrad
 				casa::Quantity threshold;
 				casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
 				solver->setThreshold(threshold);
-				CONRADLOG_INFO_STR("Constructed dirty image solver" );
+				CONRADLOG_INFO_STR(logger, "Constructed dirty image solver" );
 			}
 		}
 

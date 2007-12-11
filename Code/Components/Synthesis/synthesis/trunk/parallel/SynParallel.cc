@@ -26,11 +26,10 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-
-
 
 #include <parallel/SynParallel.h>
 
@@ -79,7 +78,7 @@ namespace conrad
         out << *itsModel;
         out.putEnd();
         itsConnectionSet->writeAll(bs);
-        CONRADLOG_INFO_STR("Sent model to the workers via MPI in "<< timer.real()
+        CONRADLOG_INFO_STR(logger, "Sent model to the workers via MPI in "<< timer.real()
                            << " seconds ");
       }
     }
@@ -92,7 +91,7 @@ namespace conrad
         CONRADCHECK(itsModel, "Model not defined prior to receiving")
         casa::Timer timer;
         timer.mark();
-        CONRADLOG_INFO_STR("Receiving model from the master via MPI");
+        CONRADLOG_INFO_STR(logger, "Receiving model from the master via MPI");
         LOFAR::BlobString bs;
         bs.resize(0);
         itsConnectionSet->read(0, bs);
@@ -102,7 +101,7 @@ namespace conrad
         CONRADASSERT(version==1);
         in >> *itsModel;
         in.getEnd();
-        CONRADLOG_INFO_STR("Received model from the master via MPI in "<< timer.real()
+        CONRADLOG_INFO_STR(logger, "Received model from the master via MPI in "<< timer.real()
                            << " seconds ");
       }
     }

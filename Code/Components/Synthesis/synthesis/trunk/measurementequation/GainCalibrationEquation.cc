@@ -16,6 +16,8 @@
 #include <measurementequation/GainCalibrationEquation.h>
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 #include <dataaccess/MemBufferDataAccessor.h>

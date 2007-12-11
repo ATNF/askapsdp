@@ -14,6 +14,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 
@@ -277,10 +279,10 @@ namespace conrad
               CONRADCHECK(itsSupport*itsOverSample<nx/2,
                   "Overflowing convolution function - increase maxSupport or decrease overSample")
               itsCSize=2*(itsSupport+1)*itsOverSample+1;
-              CONRADLOG_INFO_STR("Convolution function support = "<< itsSupport
+              CONRADLOG_INFO_STR(logger, "Convolution function support = "<< itsSupport
                   << " pixels, convolution function size = "<< itsCSize
                                  << " pixels");
-              CONRADLOG_INFO_STR("Maximum extent = "<< itsSupport*cell
+              CONRADLOG_INFO_STR(logger, "Maximum extent = "<< itsSupport*cell
                   << " (m) sampled at "<< cell/itsOverSample << " (m)"
                                  );
               itsCCenter=(itsSupport+1)*itsOverSample;
@@ -307,7 +309,7 @@ namespace conrad
           } // w loop
         } // chan loop
       } // feed loop
-      CONRADLOG_INFO_STR("Shape of convolution function = "<< itsConvFunc[0].shape()
+      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "<< itsConvFunc[0].shape()
                          << " by "<< itsConvFunc.size()<< " planes");
       if (itsName!="")
         save(itsName);
@@ -320,7 +322,7 @@ namespace conrad
     void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
     {
 
-      CONRADLOG_INFO_STR("Calculating sum of weights image" );
+      CONRADLOG_INFO_STR(logger, "Calculating sum of weights image" );
 
       int nx=itsShape(0);
       int ny=itsShape(1);
@@ -474,7 +476,7 @@ namespace conrad
           slope(1, feed)=sin(offset.getLat())*cos(out.getLat())
               - cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()
                   -out.getLong());
-          CONRADLOG_INFO_STR("Feed "<< feed << " points at Right Ascension "
+          CONRADLOG_INFO_STR(logger, "Feed "<< feed << " points at Right Ascension "
                              << mvLong.string(casa::MVAngle::TIME, 8) << ", Declination "
                              << mvLat.string(casa::MVAngle::DIG2, 8) << " (J2000)"
                              << ", offset by " << 180.0*slope(0, feed)/casa::C::pi

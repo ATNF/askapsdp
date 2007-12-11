@@ -16,9 +16,10 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
 
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableDataSource.h>
@@ -113,11 +114,11 @@ namespace conrad
     {
       casa::Timer timer;
       timer.mark();
-      CONRADLOG_INFO_STR("Calculating normal equations for " << ms );
+      CONRADLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
       // First time around we need to generate the equation 
       if ((!itsEquation)||discard)
       {
-        CONRADLOG_INFO_STR("Creating measurement equation" );
+        CONRADLOG_INFO_STR(logger, "Creating measurement equation" );
         TableDataSource ds(ms);
         IDataSelectorPtr sel=ds.createSelector();
         sel << itsParset;
@@ -131,12 +132,12 @@ namespace conrad
         itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
       }
       else {
-        CONRADLOG_INFO_STR("Reusing measurement equation" );
+        CONRADLOG_INFO_STR(logger, "Reusing measurement equation" );
       }
       CONRADCHECK(itsEquation, "Equation not defined");
       CONRADCHECK(itsNe, "NormalEquations not defined");
       itsEquation->calcEquations(*itsNe);
-      CONRADLOG_INFO_STR("Calculated normal equations for "<< ms << " in "<< timer.real()
+      CONRADLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()
                          << " seconds ");
     }
 
@@ -182,12 +183,12 @@ namespace conrad
         {
           receiveNE();
         }
-        CONRADLOG_INFO_STR("Solving normal equations");
+        CONRADLOG_INFO_STR(logger, "Solving normal equations");
         casa::Timer timer;
         timer.mark();
         Quality q;
         itsSolver->solveNormalEquations(q);
-        CONRADLOG_INFO_STR("Solved normal equations in "<< timer.real() << " seconds "
+        CONRADLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds "
                            );
         *itsModel=itsSolver->parameters();
       }
@@ -198,18 +199,18 @@ namespace conrad
     {
       if (isMaster())
       {
-        CONRADLOG_INFO_STR("Writing out results as CASA images");
+        CONRADLOG_INFO_STR(logger, "Writing out results as CASA images");
         vector<string> resultimages=itsModel->names();
         for (vector<string>::iterator it=resultimages.begin(); it
             !=resultimages.end(); it++)
         {
-          CONRADLOG_INFO_STR("Saving " << *it << " with name " << *it );
+          CONRADLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it );
           SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it);
         }
 
         if (itsRestore)
         {
-          CONRADLOG_INFO_STR("Writing out restored images as CASA images");
+          CONRADLOG_INFO_STR(logger, "Writing out restored images as CASA images");
           ImageRestoreSolver ir(*itsModel, itsQbeam);
           ir.setThreshold(itsSolver->threshold());
           ir.setVerbose(itsSolver->verbose());
@@ -221,7 +222,7 @@ namespace conrad
               !=resultimages.end(); it++)
           {
             string imageName("image"+(*it));
-            CONRADLOG_INFO_STR("Saving restored image " << imageName << " with name "
+            CONRADLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
                                << imageName+string(".restored") );
             SynthesisParamsHelper::saveAsCasaImage(*itsModel, imageName,
                 imageName+string(".restored"));

@@ -24,6 +24,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 
 
 #include <parallel/MEParallel.h>
@@ -57,7 +59,7 @@ namespace conrad
       {
         casa::Timer timer;
         timer.mark();
-        CONRADLOG_INFO_STR("Sending normal equations to the solver via MPI" );
+        CONRADLOG_INFO_STR(logger, "Sending normal equations to the solver via MPI" );
 
         LOFAR::BlobString bs;
         bs.resize(0);
@@ -67,7 +69,7 @@ namespace conrad
         out << itsRank << *itsNe;
         out.putEnd();
         itsConnectionSet->write(0, bs);
-        CONRADLOG_INFO_STR("Sent normal equations to the solver via MPI in "
+        CONRADLOG_INFO_STR(logger, "Sent normal equations to the solver via MPI in "
                            << timer.real()<< " seconds ");
       }
     }
@@ -78,11 +80,11 @@ namespace conrad
       CONRADCHECK(itsSolver, "Solver not yet defined");
       if (isParallel()&&isMaster())
       {
-        CONRADLOG_INFO_STR("Initialising solver");
+        CONRADLOG_INFO_STR(logger, "Initialising solver");
         itsSolver->init();
         itsSolver->setParameters(*itsModel);
 
-        CONRADLOG_INFO_STR("Waiting for normal equations");
+        CONRADLOG_INFO_STR(logger, "Waiting for normal equations");
         casa::Timer timer;
         timer.mark();
 
@@ -99,10 +101,10 @@ namespace conrad
           in >> rank >> *itsNe;
           in.getEnd();
           itsSolver->addNormalEquations(*itsNe);
-          CONRADLOG_INFO_STR("Received normal equations from prediffer "<< rank
+          CONRADLOG_INFO_STR(logger, "Received normal equations from prediffer "<< rank
                              << " after "<< timer.real() << " seconds");
         }
-        CONRADLOG_INFO_STR("Received normal equations from all prediffers via MPI in "
+        CONRADLOG_INFO_STR(logger, "Received normal equations from all prediffers via MPI in "
             << timer.real() << " seconds");
       }
     }

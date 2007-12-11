@@ -1,5 +1,7 @@
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <gridding/VisGridderFactory.h>
 #include <gridding/BoxVisGridder.h>
@@ -36,7 +38,7 @@ namespace conrad
         int oversample=parset.getInt32("gridder.WProject.oversample", 8);
         int maxSupport=parset.getInt32("gridder.WProject.maxsupport", 256);
         string tablename=parset.getString("gridder.WProject.tablename", "");
-        CONRADLOG_INFO_STR("Gridding using W projection");
+        CONRADLOG_INFO_STR(logger, "Gridding using W projection");
         gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
             maxSupport, tablename));
       }
@@ -44,7 +46,7 @@ namespace conrad
       {
         double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
         int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 64);
-        CONRADLOG_INFO_STR("Gridding using W stacking ");
+        CONRADLOG_INFO_STR(logger, "Gridding using W stacking ");
         gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
       }
       else if (parset.getString("gridder")=="AWProject")
@@ -59,13 +61,13 @@ namespace conrad
         bool freqDep=parset.getBool("gridder.AWProject.frequencydependent", true);
         int maxFeeds=parset.getInt32("gridder.AWProject.maxfeeds", 1);
         string tablename=parset.getString("gridder.AWProject.tablename", "");
-        CONRADLOG_INFO_STR( "Gridding with Using Antenna Illumination and W projection"
+        CONRADLOG_INFO_STR(logger,  "Gridding with Using Antenna Illumination and W projection"
                                     );
         if(freqDep) {
-          CONRADLOG_INFO_STR("Antenna illumination scales with frequency" );
+          CONRADLOG_INFO_STR(logger, "Antenna illumination scales with frequency" );
         }
         else {
-          CONRADLOG_INFO_STR("Antenna illumination independent of frequency" );
+          CONRADLOG_INFO_STR(logger, "Antenna illumination independent of frequency" );
         }
         gridder=IVisGridder::ShPtr(new AWProjectVisGridder(diameter, blockage,
             wmax, nwplanes, cutoff, oversample,
@@ -84,13 +86,13 @@ namespace conrad
         bool freqDep=parset.getBool("gridder.AProjectWStack.frequencydependent", true);
         string tablename=parset.getString("gridder.AProjectWStack.tablename",
             "");
-        CONRADLOG_INFO_STR("Gridding with Antenna Illumination projection and W stacking"
+        CONRADLOG_INFO_STR(logger, "Gridding with Antenna Illumination projection and W stacking"
                                     );
         if(freqDep) {
-          CONRADLOG_INFO_STR("Antenna illumination scales with frequency" );
+          CONRADLOG_INFO_STR(logger, "Antenna illumination scales with frequency" );
         }
         else {
-          CONRADLOG_INFO_STR("Antenna illumination independent of frequency" );
+          CONRADLOG_INFO_STR(logger, "Antenna illumination independent of frequency" );
         }
         gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(diameter, blockage,
             wmax, nwplanes, oversample,
@@ -98,12 +100,12 @@ namespace conrad
       }
       else if (parset.getString("gridder")=="Box")
       {
-        CONRADLOG_INFO_STR("Gridding with Box function");
+        CONRADLOG_INFO_STR(logger, "Gridding with Box function");
         gridder=IVisGridder::ShPtr(new BoxVisGridder());
       }
       else
       {
-        CONRADLOG_INFO_STR("Gridding with spheriodal function");
+        CONRADLOG_INFO_STR(logger, "Gridding with spheriodal function");
         gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
       }
       return gridder;

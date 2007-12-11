@@ -1,5 +1,7 @@
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <dataaccess/SharedIter.h>
@@ -77,7 +79,7 @@ namespace conrad
       vector<string>::iterator it;
 
       if(completions.size()==0) {
-        CONRADLOG_WARN_STR("No parameters appropriate for ImageFFTEquation");
+        CONRADLOG_WARN_STR(logger, "No parameters appropriate for ImageFFTEquation");
         return;
       }
 
@@ -137,7 +139,7 @@ namespace conrad
       vector<string>::iterator it;
 
       if(completions.size()==0) {
-        CONRADLOG_WARN_STR("No parameters appropriate for ImageFFTEquation");
+        CONRADLOG_WARN_STR(logger, "No parameters appropriate for ImageFFTEquation");
         return;
       }
 

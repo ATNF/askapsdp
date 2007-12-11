@@ -3,6 +3,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <casa/aips.h>
@@ -38,7 +40,7 @@ namespace conrad
 			vector<string> images=parset.getStringVector(baseKey+"Names");
 			for (vector<string>::iterator it=images.begin(); it!=images.end(); it++)
 			{
-                          CONRADLOG_INFO_STR("Defining image "<< *it );
+                          CONRADLOG_INFO_STR(logger, "Defining image "<< *it );
 				std::vector<int> shape=parset.getInt32Vector(baseKey+*it+".shape");
 				int nchan=parset.getInt32("Images."+*it+".nchan");
 				std::vector<double> freq=parset.getDoubleVector(baseKey+*it

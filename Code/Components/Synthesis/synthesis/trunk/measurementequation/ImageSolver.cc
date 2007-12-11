@@ -2,6 +2,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <casa/aips.h>
@@ -76,7 +78,7 @@ namespace conrad
 				CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
 				const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 				double maxDiag(casa::max(diag));
-				CONRADLOG_INFO_STR("Maximum of weights = " << maxDiag );
+				CONRADLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
 				const double cutoff=tol()*maxDiag;
 				{   
 				    casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));

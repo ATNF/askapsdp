@@ -1,5 +1,7 @@
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <dataaccess/SharedIter.h>
@@ -105,7 +107,7 @@ namespace conrad
       // switch between these. This optimization may not be sufficient in the long run.
 
       itsIdi.chooseOriginal();
-      CONRADLOG_INFO_STR("Initialising for model degridding" );
+      CONRADLOG_INFO_STR(logger, "Initialising for model degridding" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image.i"+(*it));
@@ -118,7 +120,7 @@ namespace conrad
         itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
       }
       // Loop through degridding the data
-      CONRADLOG_INFO_STR("Starting to degrid model" );
+      CONRADLOG_INFO_STR(logger, "Starting to degrid model" );
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         itsIdi->rwVisibility().set(0.0);
@@ -128,7 +130,7 @@ namespace conrad
           itsModelGridders[imageName]->degrid(itsIdi);
         }
       }
-      CONRADLOG_INFO_STR("Finished degridding model" );
+      CONRADLOG_INFO_STR(logger, "Finished degridding model" );
     };
 
     // Calculate the residual visibility and image. We transform the model on the fly
@@ -159,7 +161,7 @@ namespace conrad
         }
       }
       // Now we initialise appropriately
-      CONRADLOG_INFO_STR("Initialising for model degridding and residual gridding" );
+      CONRADLOG_INFO_STR(logger, "Initialising for model degridding and residual gridding" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image.i"+(*it));
@@ -172,7 +174,7 @@ namespace conrad
         itsResidualGridders[imageName]->initialiseGrid(axes, imageShape, true);
       }
       // Now we loop through all the data
-      CONRADLOG_INFO_STR("Starting degridding model and gridding residuals" );
+      CONRADLOG_INFO_STR(logger, "Starting degridding model and gridding residuals" );
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         /// Accumulate model visibility for all models
@@ -196,12 +198,12 @@ namespace conrad
           }
         }
       }
-      CONRADLOG_INFO_STR("Finished degridding model and gridding residuals" );
+      CONRADLOG_INFO_STR(logger, "Finished degridding model and gridding residuals" );
 
       // We have looped over all the data, so now we have to complete the 
       // transforms and fill in the normal equations with the results from the
       // residual gridders
-      CONRADLOG_INFO_STR("Adding residual image, PSF, and weights image to the normal equations" );
+      CONRADLOG_INFO_STR(logger, "Adding residual image, PSF, and weights image to the normal equations" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));

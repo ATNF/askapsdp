@@ -3,6 +3,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <casa/aips.h>
@@ -73,7 +75,7 @@ namespace conrad
 			for (map<string, uint>::const_iterator indit=indices.begin(); indit
 			    !=indices.end(); indit++)
 			{
-                          CONRADLOG_INFO_STR("Restoring " << indit->first );
+                          CONRADLOG_INFO_STR(logger, "Restoring " << indit->first );
 
 				// Axes are dof, dof for each parameter
 				casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
@@ -84,7 +86,7 @@ namespace conrad
 				CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
 				const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 				double maxDiag(casa::max(diag));
-				CONRADLOG_INFO_STR("Maximum of weights = " << maxDiag );
+				CONRADLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
 				double cutoff=tol()*maxDiag;
 
 				// Create a temporary image

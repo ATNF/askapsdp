@@ -2,6 +2,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 
@@ -82,7 +84,7 @@ namespace conrad
             }
             if (itsCMap(i, pol, chan)<0)
             {
-              CONRADLOG_WARN_STR(w << " "<< freq << " "<< itsWScale << " "<< itsCMap(
+              CONRADLOG_WARN_STR(logger, w << " "<< freq << " "<< itsWScale << " "<< itsCMap(
                                                                                      i, pol, chan) );
             }
             CONRADCHECK(itsCMap(i, pol, chan)<itsNWPlanes,
@@ -221,7 +223,7 @@ namespace conrad
           CONRADCHECK(itsSupport*itsOverSample<nx/2,
               "Overflowing convolution function - increase maxSupport or decrease overSample")
           itsCSize=2*(itsSupport+1)*itsOverSample;
-          CONRADLOG_INFO_STR("Convolution function support = "<< itsSupport
+          CONRADLOG_INFO_STR(logger, "Convolution function support = "<< itsSupport
               << " pixels, convolution function size = "<< itsCSize<< " pixels"
                              );
           itsCCenter=itsCSize/2-1;
@@ -243,7 +245,7 @@ namespace conrad
         }
         itsConvFunc[itsNWPlanes-1-iw]=casa::conj(itsConvFunc[iw]);
       }
-      CONRADLOG_INFO_STR("Shape of convolution function = "<< itsConvFunc[0].shape()
+      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "<< itsConvFunc[0].shape()
                          << " by "<< itsConvFunc.size() << " planes");
       if (itsName!="")
         save(itsName);

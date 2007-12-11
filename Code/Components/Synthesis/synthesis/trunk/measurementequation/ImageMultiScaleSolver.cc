@@ -2,6 +2,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <casa/aips.h>
@@ -101,7 +103,7 @@ namespace conrad
         casa::Array<float> cleanArray(valShape);
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
 				double maxDiag(casa::max(diag));
-				CONRADLOG_INFO_STR("Maximum of weights = " << maxDiag );
+				CONRADLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
 				double cutoff=tol()*maxDiag;
         {
           casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));

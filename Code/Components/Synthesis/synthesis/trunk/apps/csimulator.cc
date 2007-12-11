@@ -7,6 +7,7 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+
 #include <conrad/ConradError.h>
 
 #include <parallel/SimParallel.h>
@@ -14,6 +15,8 @@
 #include <APS/ParameterSet.h>
 
 #include <casa/OS/Timer.h>
+
+CONRAD_LOGGER(logger, ".csimulator");
 
 using namespace std;
 using namespace conrad;
@@ -42,7 +45,7 @@ int main(int argc, const char** argv)
 	try
 	{
 
-    CONRADLOG_INIT("csimulator.log_cfg");
+          CONRADLOG_INIT("csimulator.log_cfg");
 
 		casa::Timer timer;
     
@@ -54,24 +57,24 @@ int main(int argc, const char** argv)
 		LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
 
 		SimParallel sim(argc, argv, subset);
-                CONRADLOG_INFO_STR( "CONRAD simulation program" );
-                CONRADLOG_INFO_STR( "parset file " << parsetFile );
+                CONRADLOG_INFO_STR(logger,  "CONRAD simulation program" );
+                CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
 
 		sim.simulate();
-                CONRADLOG_INFO_STR( "user:   " << timer.user () << " system: " << timer.system ()
+                CONRADLOG_INFO_STR(logger,  "user:   " << timer.user () << " system: " << timer.system ()
                                     <<" real:   " << timer.real () );
 
 		///==============================================================================
 	}
   catch (conrad::ConradError& x)
   {
-    CONRADLOG_FATAL_STR("Conrad error in " << argv[0] << ": " << x.what());
+    CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
     std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
   catch (std::exception& x)
   {
-    CONRADLOG_FATAL_STR("Unexpected exception in " << argv[0] << ": " << x.what());
+    CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }

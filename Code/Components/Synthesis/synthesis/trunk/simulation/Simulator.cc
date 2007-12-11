@@ -3,6 +3,8 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 
 #include <ms/MeasurementSets/MSDerivedValues.h>
@@ -295,7 +297,7 @@ namespace conrad
 
 			ms_p = new MeasurementSet(theMS);
 
-			CONRADLOG_INFO_STR("Opening MeasurementSet "<< ms_p->tableName() << " with "
+			CONRADLOG_INFO_STR(logger, "Opening MeasurementSet "<< ms_p->tableName() << " with "
                                            << ms_p->nrow() << " rows");
 			dataWritten_p=ms_p->nrow();
 
@@ -312,7 +314,7 @@ namespace conrad
 
 				ScalarColumn<Int> hyperCubeIDColumn(*ms_p, dataTileId);
 				hyperCubeID_p=max(hyperCubeIDColumn.getColumn());
-				CONRADLOG_INFO_STR("   last hyper cube ID = "<< hyperCubeID_p );
+				CONRADLOG_INFO_STR(logger, "   last hyper cube ID = "<< hyperCubeID_p );
 			}
 			else
 			{
@@ -322,7 +324,7 @@ namespace conrad
 				MSColumns msc(*ms_p);
 				MSSpWindowColumns& spwc=msc.spectralWindow();
 				lastSpWID_p=spwc.nrow();
-				CONRADLOG_INFO_STR("   last spectral window ID = "<< lastSpWID_p );
+				CONRADLOG_INFO_STR(logger, "   last spectral window ID = "<< lastSpWID_p );
 			}
 		}
 
@@ -377,7 +379,7 @@ namespace conrad
 				xx = x;
 				yy = y;
 				zz = z;
-				CONRADLOG_INFO_STR("Using global coordinates for the antennas");
+				CONRADLOG_INFO_STR(logger, "Using global coordinates for the antennas");
 			}
 			else if (coordsystem == "local")
 			{
@@ -385,19 +387,19 @@ namespace conrad
 				MVAngle mvLong= mRefLocation.getAngle().getValue()(0);
 				MVAngle mvLat= mRefLocation.getAngle().getValue()(1);
 
-				CONRADLOG_INFO_STR("Using local coordinates for the antennas: Reference position = "
+				CONRADLOG_INFO_STR(logger, "Using local coordinates for the antennas: Reference position = "
                                                    << mvLong.string(MVAngle::ANGLE, 7) << " "
                                                    << mvLat.string(MVAngle::DIG2, 7));
 				local2global(xx, yy, zz, mRefLocation, x, y, z);
 			}
 			else if (coordsystem == "longlat")
 			{
-                          CONRADLOG_INFO_STR("Using longitude-latitude coordinates for the antennas");
+                          CONRADLOG_INFO_STR(logger, "Using longitude-latitude coordinates for the antennas");
 				longlat2global(xx, yy, zz, mRefLocation, x, y, z);
 			}
 			else
 			{
-                          CONRADLOG_INFO_STR("Unknown coordinate system type: "<< coordsystem);
+                          CONRADLOG_INFO_STR(logger, "Unknown coordinate system type: "<< coordsystem);
 			}
 
 			Vector<Int> antId(nAnt);
@@ -428,7 +430,7 @@ namespace conrad
 			antc.station().fillColumn("");
 			antc.flagRow().fillColumn(False);
 			antc.type().fillColumn("GROUND-BASED");
-			CONRADLOG_INFO_STR("Added rows to ANTENNA table");
+			CONRADLOG_INFO_STR(logger, "Added rows to ANTENNA table");
 		}
 
 		void Simulator::local2global(casa::Vector<double>& xGeo, casa::Vector<double>& yGeo,
@@ -474,7 +476,7 @@ namespace conrad
 		    const casa::MPosition& mRefLocation, const casa::Vector<double>& xIn,
 		    const casa::Vector<double>& yIn, const casa::Vector<double>& zIn)
 		{
-                  CONRADLOG_INFO_STR("Simulator::longlat2global not yet implemented");
+                  CONRADLOG_INFO_STR(logger, "Simulator::longlat2global not yet implemented");
 		}
 		;
 
@@ -486,7 +488,7 @@ namespace conrad
 			MSFieldColumns& fieldc=msc.field();
 			Int baseFieldID=fieldc.nrow();
 
-			CONRADLOG_INFO_STR("Creating new field "<< sourceName << ", ID "<< baseFieldID
+			CONRADLOG_INFO_STR(logger, "Creating new field "<< sourceName << ", ID "<< baseFieldID
                                            +1);
 
 			ms_p->field().addRow(1); //SINGLE DISH CASE
@@ -528,7 +530,7 @@ namespace conrad
 				nCorr = j+1;
 				if (stokesTypes(j)==Stokes::Undefined)
 				{
-                                  CONRADLOG_INFO_STR(" Undefined polarization type in input");
+                                  CONRADLOG_INFO_STR(logger, " Undefined polarization type in input");
 				}
 			}
 			MSColumns msc(*ms_p);
@@ -536,7 +538,7 @@ namespace conrad
 			MSDataDescColumns& ddc=msc.dataDescription();
 			MSPolarizationColumns& polc=msc.polarization();
 			Int baseSpWID=spwc.nrow();
-			CONRADLOG_INFO_STR("Creating new spectral window "<< spWindowName << ", ID "
+			CONRADLOG_INFO_STR(logger, "Creating new spectral window "<< spWindowName << ", ID "
                                            << baseSpWID+1);
 			// fill spectralWindow table
 			ms_p->spectralWindow().addRow(1);
@@ -609,7 +611,7 @@ namespace conrad
 
 			if (nAnt <= 0)
 			{
-                          CONRADLOG_INFO_STR("Simulator::initFeeds: must call initAnt() first");
+                          CONRADLOG_INFO_STR(logger, "Simulator::initFeeds: must call initAnt() first");
 			}
 
 			Int nFeed=x.nelements();
@@ -621,11 +623,11 @@ namespace conrad
 				isList=True;
 				if (x.nelements()!=y.nelements())
 				{
-                                  CONRADLOG_FATAL_STR("Feed x and y must be the same length");
+                                  CONRADLOG_FATAL_STR(logger, "Feed x and y must be the same length");
 				}
 				CONRADCHECK(pol.nelements()==x.nelements(),
 						"Feed polarization list must be same length as the number of positions");
-                                  CONRADLOG_INFO_STR("Constructing FEED table from list");
+                                CONRADLOG_INFO_STR(logger, "Constructing FEED table from list");
 			}
 			else
 			{
@@ -737,7 +739,7 @@ namespace conrad
 				feedc.time().put(i, 0.0);
 				feedc.interval().put(i, forever);
 			}
-			CONRADLOG_INFO_STR("Added rows to FEED table");
+			CONRADLOG_INFO_STR(logger, "Added rows to FEED table");
 		}
 		;
 
@@ -828,7 +830,7 @@ namespace conrad
 			polc.corrProduct().get(baseSpWID,corrProduct);
 			Int nCorr=corrProduct.ncolumn();
 			{
-                          CONRADLOG_INFO_STR("Spectral window : "<<spWindowName<<endl
+                          CONRADLOG_INFO_STR(logger, "Spectral window : "<<spWindowName<<endl
                                              << "     reference frequency : " << startFreq/1.0e9 << "GHz" << endl
                                              << "     number of channels : " << nChan << endl
                                              << "     total bandwidth : " << nChan*freqInc/1.0e9 << "GHz" << endl
@@ -865,7 +867,7 @@ namespace conrad
 			msd.setFieldCenter(fcs(0));
 			MDirection fieldCenter=fcs(0);
 			{
-                          CONRADLOG_INFO_STR("Observing source : "<<sourceName
+                          CONRADLOG_INFO_STR(logger, "Observing source : "<<sourceName
                                              << "     direction : " << formatDirection(fieldCenter));
 			}
 
@@ -896,8 +898,8 @@ namespace conrad
 					msd.setFieldCenter(fieldCenter);
 					t_offset_p = - msd.hourAngle() * 3600.0 * 180.0/C::pi / 15.0; // in seconds
 					hourAngleDefined_p=True;
-					CONRADLOG_INFO_STR("Times specified are interpreted as hour angles for first source observed");
-					CONRADLOG_INFO_STR("     offset in time = " << t_offset_p / 3600.0 << " hours from "
+					CONRADLOG_INFO_STR(logger, "Times specified are interpreted as hour angles for first source observed");
+					CONRADLOG_INFO_STR(logger, "     offset in time = " << t_offset_p / 3600.0 << " hours from "
                                                            << formatTime(taiRefTime.get("s").getValue("s")) );
 				}
 
@@ -905,7 +907,7 @@ namespace conrad
 				taiRefTime.get("s").getValue("s") + t_offset_p;
 				Tend = qStopTime.getValue("s") +
 				taiRefTime.get("s").getValue("s") + t_offset_p;
-				CONRADLOG_INFO_STR("Time range - start : " << formatTime(Tstart) << " stop  : " << formatTime(Tend) );
+				CONRADLOG_INFO_STR(logger, "Time range - start : " << formatTime(Tstart) << " stop  : " << formatTime(Tend) );
 			}
 
 			// fill Observation Table for every call. Eventually we should fill
@@ -989,13 +991,13 @@ namespace conrad
 			if(needNewHyperCube)
 			{
 				hyperCubeID_p++;
-				CONRADLOG_INFO_STR("Creating new hypercube " << hyperCubeID_p+1 );
+				CONRADLOG_INFO_STR(logger, "Creating new hypercube " << hyperCubeID_p+1 );
 				addHyperCubes(hyperCubeID_p, nBaselines, nChan, nCorr);
 				dataWritten_p=0;
 				lastSpWID_p=baseSpWID;
 			}
 			// ... Next extend the table
-			CONRADLOG_INFO_STR("Adding " << nNewRows << " rows" );
+			CONRADLOG_INFO_STR(logger, "Adding " << nNewRows << " rows" );
 			ms_p->addRow(nNewRows);
 
 			// ... Finally extend the hypercubes
@@ -1015,7 +1017,7 @@ namespace conrad
 				// Size of scratch columns
 				double thisChunk=16.0*double(nChan)*double(nCorr)*double(nNewRows);
 				dataWritten_p+=thisChunk;
-				CONRADLOG_INFO_STR("Written " << thisChunk/(1024.0*1024.0*1024) << " Gbytes to scratch columns" );
+				CONRADLOG_INFO_STR(logger, "Written " << thisChunk/(1024.0*1024.0*1024) << " Gbytes to scratch columns" );
 			}
 
 			Matrix<Complex> data(nCorr,nChan);
@@ -1027,7 +1029,7 @@ namespace conrad
 			Vector<Float> imagingWeight(nChan);
 			imagingWeight.set(1.0);
 
-			CONRADLOG_INFO_STR("Calculating uvw coordinates for " << nIntegrations << " integrations" );
+			CONRADLOG_INFO_STR(logger, "Calculating uvw coordinates for " << nIntegrations << " integrations" );
 
 			
 			// Start of loop over time
@@ -1219,12 +1221,12 @@ namespace conrad
 						{
 							firstTime = False;
 							double ha1 = msd.hourAngle() * 180.0/C::pi / 15.0;
-							CONRADLOG_INFO_STR("Starting conditions for antenna 1: " );
-							CONRADLOG_INFO_STR("     time = " << formatTime(Time) );
-							CONRADLOG_INFO_STR("     scan = " << scan+1 );
-							CONRADLOG_INFO_STR("     az   = " << azel(0) * 180.0/C::pi << " deg" );
-							CONRADLOG_INFO_STR("     el   = " << azel(1) * 180.0/C::pi<< " deg" );
-							CONRADLOG_INFO_STR("     ha   = " << ha1 << " hours" );
+							CONRADLOG_INFO_STR(logger, "Starting conditions for antenna 1: " );
+							CONRADLOG_INFO_STR(logger, "     time = " << formatTime(Time) );
+							CONRADLOG_INFO_STR(logger, "     scan = " << scan+1 );
+							CONRADLOG_INFO_STR(logger, "     az   = " << azel(0) * 180.0/C::pi << " deg" );
+							CONRADLOG_INFO_STR(logger, "     el   = " << azel(1) * 180.0/C::pi<< " deg" );
+							CONRADLOG_INFO_STR(logger, "     ha   = " << ha1 << " hours" );
 						}
 					}
 
@@ -1275,17 +1277,17 @@ namespace conrad
 				Vector<double> azel=msd.azel().getAngle("rad").getValue("rad");
 
 				double ha1 = msd.hourAngle() * 180.0/C::pi / 15.0;
-				CONRADLOG_INFO_STR("Stopping conditions for antenna 1: " );
-				CONRADLOG_INFO_STR("     time = " << formatTime(Time) );
-				CONRADLOG_INFO_STR("     scan = " << scan+1 );
-				CONRADLOG_INFO_STR("     az   = " << azel(0) * 180.0/C::pi << " deg" );
-				CONRADLOG_INFO_STR("     el   = " << azel(1) * 180.0/C::pi << " deg" );
-				CONRADLOG_INFO_STR("     ha   = " << ha1 << " hours" );
+				CONRADLOG_INFO_STR(logger, "Stopping conditions for antenna 1: " );
+				CONRADLOG_INFO_STR(logger, "     time = " << formatTime(Time) );
+				CONRADLOG_INFO_STR(logger, "     scan = " << scan+1 );
+				CONRADLOG_INFO_STR(logger, "     az   = " << azel(0) * 180.0/C::pi << " deg" );
+				CONRADLOG_INFO_STR(logger, "     el   = " << azel(1) * 180.0/C::pi << " deg" );
+				CONRADLOG_INFO_STR(logger, "     ha   = " << ha1 << " hours" );
 			}
 
-			CONRADLOG_INFO_STR((row+1) << " visibilities simulated " );
-			CONRADLOG_INFO_STR(nShadowed << " visibilities flagged due to shadowing " );
-			CONRADLOG_INFO_STR(nSubElevation << " visibilities flagged due to elevation limit of " <<
+			CONRADLOG_INFO_STR(logger, (row+1) << " visibilities simulated " );
+			CONRADLOG_INFO_STR(logger, nShadowed << " visibilities flagged due to shadowing " );
+			CONRADLOG_INFO_STR(logger, nSubElevation << " visibilities flagged due to elevation limit of " <<
                                            elevationLimit_p.getValue("deg") << " degrees " );
 
 		};

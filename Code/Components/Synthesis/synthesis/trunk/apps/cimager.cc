@@ -27,6 +27,8 @@
 
 #include <casa/OS/Timer.h>
 
+CONRAD_LOGGER(logger, ".cimager");
+
 using namespace conrad;
 using namespace conrad::synthesis;
 using namespace conrad::scimath;
@@ -68,7 +70,7 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("Cimager."));
 
     ImagerParallel imager(argc, argv, subset);
-    CONRADLOG_INFO_STR( "parset file " << parsetFile );
+    CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
 
     int nCycles=subset.getInt32("ncycles", 0);
     if(nCycles==0)
@@ -84,16 +86,16 @@ int main(int argc, const char** argv)
       /// Perform multiple major cycles
       for (int cycle=0;cycle<nCycles;cycle++)
       {
-        CONRADLOG_INFO_STR( "*** Starting major cycle " << cycle << " ***" );
+        CONRADLOG_INFO_STR(logger,  "*** Starting major cycle " << cycle << " ***" );
         imager.broadcastModel();
         imager.receiveModel();
         imager.calcNE();
         imager.solveNE();
 
-        CONRADLOG_INFO_STR( "user:   " << timer.user () << " system: " << timer.system ()
+        CONRADLOG_INFO_STR(logger,  "user:   " << timer.user () << " system: " << timer.system ()
                             <<" real:   " << timer.real () );
       }
-      CONRADLOG_INFO_STR( "*** Finished major cycles ***" );
+      CONRADLOG_INFO_STR(logger,  "*** Finished major cycles ***" );
       imager.broadcastModel();
       imager.receiveModel();
       imager.calcNE();
@@ -107,13 +109,13 @@ int main(int argc, const char** argv)
   }
   catch (conrad::ConradError& x)
   {
-    CONRADLOG_FATAL_STR("Conrad error in " << argv[0] << ": " << x.what());
+    CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
     std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
   catch (std::exception& x)
   {
-    CONRADLOG_FATAL_STR("Unexpected exception in " << argv[0] << ": " << x.what());
+    CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }

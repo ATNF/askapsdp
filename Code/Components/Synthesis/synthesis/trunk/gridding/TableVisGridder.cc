@@ -1,6 +1,8 @@
 #include <gridding/TableVisGridder.h>
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
+CONRAD_LOGGER(logger, "");
+
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 #include <fft/FFTWrapper.h>
@@ -50,22 +52,22 @@ namespace conrad
     {
       if (itsNumberGridded>0)
       {
-        CONRADLOG_INFO_STR("TableVisGridder gridding statistics" );
-        CONRADLOG_INFO_STR("   Total time gridding   = " << itsTimeGridded << " (s)"
+        CONRADLOG_INFO_STR(logger, "TableVisGridder gridding statistics" );
+        CONRADLOG_INFO_STR(logger, "   Total time gridding   = " << itsTimeGridded << " (s)"
                            );
-        CONRADLOG_INFO_STR("   Number gridded        = " << itsNumberGridded
+        CONRADLOG_INFO_STR(logger, "   Number gridded        = " << itsNumberGridded
                            );
-        CONRADLOG_INFO_STR("   Time per grid         = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "   Time per grid         = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" );
       }
 
       if (itsNumberDegridded>0)
       {
-        CONRADLOG_INFO_STR("TableVisGridder degridding statistics" );
-        CONRADLOG_INFO_STR("   Total time degridding = " << itsTimeDegridded << " (s)"
+        CONRADLOG_INFO_STR(logger, "TableVisGridder degridding statistics" );
+        CONRADLOG_INFO_STR(logger, "   Total time degridding = " << itsTimeDegridded << " (s)"
                            );
-        CONRADLOG_INFO_STR("   Number degridded      = " << itsNumberDegridded
+        CONRADLOG_INFO_STR(logger, "   Number degridded      = " << itsNumberDegridded
                            );
-        CONRADLOG_INFO_STR("   Time per degrid       = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "   Time per degrid       = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" );
       }
     }
 
@@ -557,7 +559,7 @@ namespace conrad
       }
       else
       {
-        CONRADLOG_INFO_STR("No need to degrid: model is empty" );
+        CONRADLOG_INFO_STR(logger, "No need to degrid: model is empty" );
         itsModelIsEmpty=true;
         itsGrid[0].set(casa::Complex(0.0));
       }
