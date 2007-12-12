@@ -25,11 +25,17 @@
 
 #include <sstream>
 
+#include <duchamp/duchamp.hh>
+#include <duchamp/Cubes/cubes.hh>
+#include <duchamp/Utils/Statistics.hh>
+
 CONRAD_LOGGER(logger, ".parallelanalysis");
 
 using namespace std;
 using namespace conrad;
 using namespace conrad::cp;
+
+using namespace duchamp;
 
 namespace conrad
 {
@@ -42,9 +48,40 @@ namespace conrad
     {
       if(isWorker()) {
         itsImage = substitute(parset.getString("image"));
+
+	itsCube.pars().setImageFile(itsImage);
+	itsCube.pars().setVerbosity(false);
+	CONRADLOG_INFO_STR(logger, "Defined the cube.");
+	//	CONRADLOG_INFO_STR(logger, "Defined the cube. Its Param set is :" << itsCube.pars());
+
+// 	ParameterSet subset(parset.makeSubset("param."));
+// 	std::string param; // use this for temporary storage of parameters.
+// 	param = subsitute(parset.getString("");
+	
+
       }
 
     }
+
+    // Read in the data from the image file (on the workers)
+    void DuchampParallel::readData()
+    {
+      if(isWorker()) {
+
+	if(itsCube.getCube()==duchamp::FAILURE){
+	  CONRADLOG_ERROR_STR(logger, "Could not read in data from image " << itsImage);
+	}
+	else {
+	  CONRADLOG_INFO_STR(logger,  "Read data from image " << itsImage);
+	}
+
+      }
+      else {
+      }
+
+    }
+      
+
 
     // Find the lists (on the workers)
     void DuchampParallel::findLists()
@@ -79,6 +116,10 @@ namespace conrad
         // Get the region specifications from the master
         CONRADLOG_INFO_STR(logger,  "Finding Statistics" );
         // Send back the statistics to the master
+	itsCube.setCubeStats();
+	CONRADLOG_INFO_STR(logger, "Mean = " << itsCube.stats().getMean() << ", RMS = " << itsCube.stats().getStddev() );
+	CONRADLOG_INFO_STR(logger, "Median = " << itsCube.stats().getMedian() << ", MADFM = " << itsCube.stats().getMadfm() );
+	CONRADLOG_INFO_STR(logger, "Noise level = " << itsCube.stats().getMiddle() << ", Noise spread = " << itsCube.stats().getSpread() );
       }
       else {
       }

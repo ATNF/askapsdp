@@ -68,8 +68,9 @@ int main(int argc, const char** argv)
     DuchampParallel duchamp(argc, argv, subset);
     CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
     
-    duchamp.findLists();
-    duchamp.condenseLists();
+    duchamp.readData();
+    //    duchamp.findLists();
+    //    duchamp.condenseLists();
     duchamp.findStatistics();
     duchamp.printStatistics();
 

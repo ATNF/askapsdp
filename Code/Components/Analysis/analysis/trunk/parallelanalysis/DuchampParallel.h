@@ -12,6 +12,8 @@
 
 #include <APS/ParameterSet.h>
 
+#include <duchamp/Cubes/cubes.hh>
+
 namespace conrad
 {
   namespace analysis
@@ -38,6 +40,9 @@ namespace conrad
       /// @param argc Number of command line inputs
       /// @param argv Command line inputs
       DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
+
+      // Read in the data from the image file (on the workers)
+      void readData();
       
       // Condense the lists (on the master)
       void condenseLists();
@@ -54,6 +59,9 @@ namespace conrad
   protected:
 
       std::string itsImage;
+
+      duchamp::Cube itsCube;
+
     };
 
   }
