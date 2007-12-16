@@ -80,14 +80,7 @@ namespace conrad
 			/// @todo Do something with the frame info in direction[2]
 			Axes axes;
 			axes.add("RA", ra-double(nx)*xcellsize/2.0, ra+double(nx)*xcellsize/2.0);
-			if (dec>0.0)
-			{
-				axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
-			}
-			else
-			{
-				axes.add("DEC", dec+double(ny)*ycellsize/2.0, dec-double(ny)*ycellsize/2.0);
-			}
+			axes.add("DEC", dec+double(ny)*ycellsize/2.0, dec-double(ny)*ycellsize/2.0);
 
 			axes.add("STOKES", 0.0, 0.0);
 
