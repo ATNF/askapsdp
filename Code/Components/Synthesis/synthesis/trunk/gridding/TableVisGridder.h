@@ -140,7 +140,9 @@ namespace conrad
 				/// Is the model empty? Used to shortcut degridding
 				bool itsModelIsEmpty;
 				
-				/// Number of grid cells gridded or degridder
+				/// Number of samples gridded or degridded
+				double itsSamplesGridded, itsSamplesDegridded;
+				/// Number of grid cells gridded or degridded
 				double itsNumberGridded, itsNumberDegridded;
 				/// Time for degridding or degridding
 				double itsTimeGridded, itsTimeDegridded;

@@ -31,6 +31,7 @@ namespace conrad
 
     TableVisGridder::TableVisGridder() :
       itsName(""), itsModelIsEmpty(false),
+      itsSamplesGridded(0), itsSamplesDegridded(0),
       itsNumberGridded(0), itsNumberDegridded(0),
       itsTimeGridded(0.0), itsTimeDegridded(0.0)
 
@@ -41,6 +42,7 @@ namespace conrad
         const std::string& name) :
       itsSupport(support), itsOverSample(overSample), itsName(name),
           itsModelIsEmpty(false),
+          itsSamplesGridded(0), itsSamplesDegridded(0),
           itsNumberGridded(0), itsNumberDegridded(0),
           itsTimeGridded(0.0), itsTimeDegridded(0.0)
     {
@@ -55,9 +57,12 @@ namespace conrad
         CONRADLOG_INFO_STR(logger, "TableVisGridder gridding statistics" );
         CONRADLOG_INFO_STR(logger, "   Total time gridding   = " << itsTimeGridded << " (s)"
                            );
-        CONRADLOG_INFO_STR(logger, "   Number gridded        = " << itsNumberGridded
+        CONRADLOG_INFO_STR(logger, "   Samples gridded       = " << itsSamplesGridded
                            );
-        CONRADLOG_INFO_STR(logger, "   Time per grid         = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9*itsTimeGridded/itsSamplesGridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "   Points gridded        = " << itsNumberGridded
+                           );
+        CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" );
       }
 
       if (itsNumberDegridded>0)
@@ -65,9 +70,12 @@ namespace conrad
         CONRADLOG_INFO_STR(logger, "TableVisGridder degridding statistics" );
         CONRADLOG_INFO_STR(logger, "   Total time degridding = " << itsTimeDegridded << " (s)"
                            );
-        CONRADLOG_INFO_STR(logger, "   Number degridded      = " << itsNumberDegridded
+        CONRADLOG_INFO_STR(logger, "   Samples degridded     = " << itsSamplesDegridded
                            );
-        CONRADLOG_INFO_STR(logger, "   Time per degrid       = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9*itsTimeDegridded/itsSamplesDegridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "   Points degridded      = " << itsNumberDegridded
+                           );
+        CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" );
       }
     }
 
@@ -309,14 +317,17 @@ namespace conrad
       if (forward)
       {
         itsTimeDegridded+=timer.real();
+        itsSamplesDegridded+=double(nSamples*nChan*nPol);
         itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan
             *nPol);
       }
       else
       {
         itsTimeGridded+=timer.real();
+        itsSamplesGridded+=double(nSamples*nChan*nPol);
         itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan*nPol);
         if(itsDopsf) {
+	  itsSamplesGridded+=double(nSamples*nChan*nPol);
           itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan*nPol);
         }
       }
@@ -354,8 +365,10 @@ namespace conrad
           uvw(i)=-idi->uvw()(row)(i);
         }
         uvw(2)=idi->uvw()(row)(2);
-        casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
-        machine.convertUVW(delay(row), uvw);
+
+	casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
+	machine.convertUVW(delay(row), uvw);
+
         for (int i=0; i<3; i++)
           outUVW(row)(i)=uvw(i);
       }
