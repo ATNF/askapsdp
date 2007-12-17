@@ -103,8 +103,8 @@ int main(int argc, char **argv) {
                                 TableDataSource::MEMORY_BUFFERS);     
      //TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
      //timeDependentSubtableTest(argv[1],ds);
-     //doReadOnlyTest(ds);
-     doReadWriteTest(ds);    
+     doReadOnlyTest(ds);
+     //doReadWriteTest(ds);    
      
   }
   catch(const ConradError &ce) {

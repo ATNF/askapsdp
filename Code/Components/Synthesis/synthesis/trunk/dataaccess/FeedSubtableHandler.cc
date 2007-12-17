@@ -22,8 +22,6 @@
 // own includes
 #include <dataaccess/FeedSubtableHandler.h>
 #include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
 
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
@@ -36,6 +34,9 @@ CONRAD_LOGGER(logger, "");
 #include <casa/Arrays/Array.h>
 #include <casa/BasicSL/String.h>
 
+// enable logger here, when it is used in the code
+//#include <conrad/ConradLogging.h>
+//CONRAD_LOGGER(logger, "");
 
 using namespace conrad;
 using namespace conrad::synthesis;
@@ -49,7 +50,7 @@ using namespace conrad::synthesis;
 FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
           TableHolder(ms.keywordSet().asTable("FEED")),
           itsCachedSpWindow(-2), itsIntervalFactor(1.)
-{
+{ 
   const casa::Array<casa::String> &intervalUnits=table().tableDesc().
           columnDesc("INTERVAL").keywordSet().asArrayString("QuantumUnits");
   if (intervalUnits.nelements()!=1 || intervalUnits.ndim()!=1) {
@@ -61,7 +62,7 @@ FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
   itsIntervalFactor = tableTime(1.).getValue().
             getTime(casa::Unit(intervalUnits(casa::IPosition(1,0)))).getValue();
   CONRADDEBUGASSERT(itsIntervalFactor != 0);
-  itsIntervalFactor = 1./itsIntervalFactor;          
+  itsIntervalFactor = 1./itsIntervalFactor;
 }
  
 /// obtain the offsets of each beam with respect to dish pointing

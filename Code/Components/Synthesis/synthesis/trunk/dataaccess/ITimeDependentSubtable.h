@@ -37,7 +37,6 @@ namespace synthesis {
 /// @ingroup dataaccess_tab
 struct ITimeDependentSubtable : virtual protected ITableHolder {
 
-  
   /// @brief obtain time epoch in the subtable's native format
   /// @details Convert a given epoch to the table's native frame/units
   /// @param[in] time an epoch specified as a measure
@@ -50,6 +49,8 @@ struct ITimeDependentSubtable : virtual protected ITableHolder {
   /// the time represented as double in the native table's reference frame/unit.
   /// It allows to extract frame/unit information and compare them with that of
   /// the other columns. 
+  /// @param[in] time time to translate into a full epoch
+  /// @return[in] full epoch corresponding to a given time
   virtual casa::MEpoch tableTime(casa::Double time) const = 0;
 };
 

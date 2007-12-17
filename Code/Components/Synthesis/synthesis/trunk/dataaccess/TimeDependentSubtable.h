@@ -21,6 +21,7 @@
 
 // casa includes
 #include <measures/Measures/MEpoch.h>
+#include <casa/BasicSL/String.h>
 
 // own includes
 #include <dataaccess/ITimeDependentSubtable.h>
@@ -53,12 +54,22 @@ struct TimeDependentSubtable : virtual public ITimeDependentSubtable {
   /// TIME and INTERVAL. This method allows to form a full MEpoch measure from
   /// the time represented as double in the native table's reference frame/unit.
   /// It allows to extract frame/unit information and compare them with that of
-  /// the other columns. 
+  /// the other columns.
+  /// @param[in] time time to translate into a full epoch
+  /// @return[in] full epoch corresponding to a given time
   virtual casa::MEpoch tableTime(casa::Double time) const;
 
 protected:
-   /// @brief initialize itsConverter
-   void initConverter() const;  
+  /// @brief initialize itsConverter
+  void initConverter() const;
+
+  /// @brief translate a name of the epoch reference frame to the type enum
+  /// @details Table store the reference frame as a string and one needs a
+  /// way to convert it to a enum used in the constructor of the epoch
+  /// object to be able to construct it. This method provides a required
+  /// translation.
+  /// @param[in] name a string name of the reference frame 
+  static casa::MEpoch::Types frameType(const casa::String &name);
 private:
   mutable boost::shared_ptr<IEpochConverter const> itsConverter;
 };

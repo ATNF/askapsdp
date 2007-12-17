@@ -16,9 +16,6 @@
 // own includes
 #include <dataaccess/TimeDependentSubtable.h>
 #include <dataaccess/EpochConverter.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
 
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
@@ -27,6 +24,11 @@ CONRAD_LOGGER(logger, "");
 #include <casa/Arrays/Array.h>
 #include <casa/BasicSL/String.h>
 #include <tables/Tables/TableRecord.h>
+
+// uncomment to use the logger, if it is really used somewhere.
+//#include <conrad_synthesis.h>
+//#include <conrad/ConradLogging.h>
+//CONRAD_LOGGER(logger, "");
 
 
 using namespace conrad;
@@ -81,15 +83,46 @@ void TimeDependentSubtable::initConverter() const
   const casa::RecordInterface &timeMeasInfo=table().tableDesc().
         columnDesc("TIME").keywordSet().asRecord("MEASINFO");
   CONRADASSERT(timeMeasInfo.asString("type")=="epoch");
-      
-  // to implement other frames than UTC we need here a conversion
-  // between the string and enum allowed by MEpoch::Ref.
-  // this is left aside because there is no a use case for this
-  // functionality in Conrad.
-  if (timeMeasInfo.asString("Ref")!="UTC") {
-      CONRADTHROW(DataAccessError, "The frame "<<timeMeasInfo.asString("Ref")<<
-       " is not supported, only UTC is supported");
-  }
-      
-  itsConverter.reset(new EpochConverter(casa::MEpoch(),timeUnits));
+            
+  itsConverter.reset(new EpochConverter(casa::MEpoch(casa::MVEpoch(),
+                     frameType(timeMeasInfo.asString("Ref"))),timeUnits));
 }  
+
+
+/// @brief translate a name of the epoch reference frame to the type enum
+/// @details Table store the reference frame as a string and one needs a
+/// way to convert it to a enum used in the constructor of the epoch
+/// object to be able to construct it. This method provides a required
+/// translation.
+/// @param[in] name a string name of the reference frame 
+casa::MEpoch::Types TimeDependentSubtable::frameType(const casa::String &name)
+{
+  if (name == "UTC") {
+      return casa::MEpoch::UTC;
+  } else if (name == "TAI" || name == "IAT") {
+      return casa::MEpoch::TAI;
+  } else if (name == "UT" || name == "UT1") {
+      return casa::MEpoch::UT1;
+  } else if (name == "UT2") {
+      return casa::MEpoch::UT2;   
+  } else if (name == "TDT" || name == "TT" || name == "ET") {
+      return casa::MEpoch::TDT;   
+  } else if (name == "GMST" || name == "GMST1") {
+      return casa::MEpoch::GMST;
+  } else if (name == "TCB") {
+      return casa::MEpoch::TCB;   
+  } else if (name == "TDB") {
+      return casa::MEpoch::TDB;   
+  } else if (name == "TCG") {
+      return casa::MEpoch::TCG;   
+  } else if (name == "LAST") {
+      return casa::MEpoch::LAST;   
+  } else if (name == "LMST") {
+      return casa::MEpoch::LMST;   
+  } else if (name == "GAST") {
+      return casa::MEpoch::GAST;   
+  } 
+  CONRADTHROW(DataAccessError, "The frame "<<name<<
+              " is not supported at the moment");
+  return casa::MEpoch::UTC; // to keep the compiler happy
+}

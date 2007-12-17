@@ -16,8 +16,6 @@
 // own includes
 #include <dataaccess/FieldSubtableHandler.h>
 #include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
 
 #include <conrad/ConradError.h>
 #include <dataaccess/DataAccessError.h>
@@ -28,6 +26,10 @@ CONRAD_LOGGER(logger, "");
 #include <measures/TableMeasures/ScalarMeasColumn.h>
 #include <casa/Arrays/Array.h>
 #include <casa/BasicSL/String.h>
+
+// uncomment logger when it is actually used
+//#include <conrad/ConradLogging.h>
+//CONRAD_LOGGER(logger, "");
 
 
 using namespace conrad;
