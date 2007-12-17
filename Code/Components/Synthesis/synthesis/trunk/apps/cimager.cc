@@ -104,6 +104,8 @@ int main(int argc, const char** argv)
 
     /// This is the final step - restore the image and write it out
     imager.writeModel();
+    CONRADLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
+		       <<" real:   " << timer.real () );
 
     ///==============================================================================
   }
