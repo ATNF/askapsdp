@@ -84,8 +84,8 @@ namespace conrad
             }
             if (itsCMap(i, pol, chan)<0)
             {
-              CONRADLOG_WARN_STR(logger, w << " "<< freq << " "<< itsWScale << " "<< itsCMap(
-                                                                                     i, pol, chan) );
+              CONRADLOG_WARN_STR(logger, w << " "<< freq << " "<< itsWScale
+                  << " "<< itsCMap(i, pol, chan) );
             }
             CONRADCHECK(itsCMap(i, pol, chan)<itsNWPlanes,
                 "W scaling error: recommend allowing larger range of w");
@@ -103,8 +103,6 @@ namespace conrad
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
-      const int nSamples = idi->uvw().size();
-      const int nChan = idi->frequency().size();
       int cenw=(itsNWPlanes-1)/2;
 
       if (itsSupport!=0)
@@ -154,7 +152,7 @@ namespace conrad
       // function in uv space
       casa::Matrix<casa::Complex> thisPlane(nx, ny);
 
-      for (int iw=0; iw<=cenw; iw++)
+      for (int iw=0; iw<itsNWPlanes; iw++)
       {
         thisPlane.set(0.0);
 
@@ -189,7 +187,6 @@ namespace conrad
         //
         // If the support is not yet set, find it and size the
         // convolution function appropriately
-        float maxPlane=abs(thisPlane(nx/2, ny/2));
         if (itsSupport==0)
         {
           // Find the support by starting from the edge and
@@ -222,31 +219,37 @@ namespace conrad
               "Unable to determine support of convolution function");
           CONRADCHECK(itsSupport*itsOverSample<nx/2,
               "Overflowing convolution function - increase maxSupport or decrease overSample")
-          itsCSize=2*(itsSupport+1)*itsOverSample;
-          CONRADLOG_INFO_STR(logger, "Convolution function support = "<< itsSupport
-              << " pixels, convolution function size = "<< itsCSize<< " pixels"
-                             );
-          itsCCenter=itsCSize/2-1;
-          itsConvFunc.resize(itsNWPlanes);
+          itsCSize=2*itsSupport+1;
+          CONRADLOG_INFO_STR(logger, "Convolution function support = "
+              << itsSupport << " pixels, convolution function size = "
+              << itsCSize<< " pixels");
+          itsCCenter=(itsCSize-1)/2;
+          itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
           itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
           itsSumWeights.set(casa::Complex(0.0));
         }
-        itsConvFunc[iw].resize(itsCSize, itsCSize);
-        itsConvFunc[iw].set(0.0);
-        // Now cut out the inner part of the convolution function and
-        // insert it into the convolution function
-        for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
+        for (int fracu=0; fracu<itsOverSample; fracu++)
         {
-          for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample*itsSupport; ix++)
+          for (int fracv=0; fracv<itsOverSample; fracv++)
           {
-            itsConvFunc[iw](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix+nx/2, iy
-                +ny/2);
+            int plane=fracu+itsOverSample*(fracv+itsOverSample*iw);
+            itsConvFunc[plane].resize(itsCSize, itsCSize);
+            itsConvFunc[plane].set(0.0);
+            // Now cut out the inner part of the convolution function and
+            // insert it into the convolution function
+            for (int iy=-itsSupport; iy<itsSupport; iy++)
+            {
+              for (int ix=-itsSupport; ix<itsSupport; ix++)
+              {
+                itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)=
+                  thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
+              }
+            }
           }
         }
-        itsConvFunc[itsNWPlanes-1-iw]=casa::conj(itsConvFunc[iw]);
       }
-      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "<< itsConvFunc[0].shape()
-                         << " by "<< itsConvFunc.size() << " planes");
+      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "
+          << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
       if (itsName!="")
         save(itsName);
     }

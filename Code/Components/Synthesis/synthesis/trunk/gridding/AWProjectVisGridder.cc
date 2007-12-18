@@ -31,10 +31,12 @@ namespace conrad
     AWProjectVisGridder::AWProjectVisGridder(const double diameter,
         const double blockage, const double wmax, const int nwplanes,
         const double cutoff, const int overSample, const int maxSupport,
-        const int maxFeeds, const bool frequencyDependent, const std::string& name) :
+        const int maxFeeds, const bool frequencyDependent,
+        const std::string& name) :
       WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, name),
           itsReferenceFrequency(0.0), itsDiameter(diameter),
-          itsBlockage(blockage), itsMaxFeeds(maxFeeds), itsFreqDep(frequencyDependent)
+          itsBlockage(blockage), itsMaxFeeds(maxFeeds),
+          itsFreqDep(frequencyDependent)
 
     {
       CONRADCHECK(diameter>0.0, "Blockage must be positive");
@@ -93,15 +95,19 @@ namespace conrad
           for (int pol=0; pol<nPol; pol++)
           {
             /// Order is (iw, chan, feed)
-            if(itsFreqDep) {
+            if (itsFreqDep)
+            {
               itsCMap(i, pol, chan)=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
-	      CONRADCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds*nChan, "CMap index too large");
-	      CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
+              CONRADCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds*nChan,
+                  "CMap index too large");
+              CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
-            else {
+            else
+            {
               itsCMap(i, pol, chan)=iw+itsNWPlanes*feed;
-	      CONRADCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds, "CMap index too large");
-	      CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
+              CONRADCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds,
+                  "CMap index too large");
+              CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
           }
         }
@@ -121,7 +127,8 @@ namespace conrad
       /// function
       const int nSamples = idi->uvw().size();
       int nChan=1;
-      if(itsFreqDep) {
+      if (itsFreqDep)
+      {
         nChan = idi->frequency().size();
       }
       int cenw=(itsNWPlanes-1)/2;
@@ -278,39 +285,44 @@ namespace conrad
                   "Unable to determine support of convolution function");
               CONRADCHECK(itsSupport*itsOverSample<nx/2,
                   "Overflowing convolution function - increase maxSupport or decrease overSample")
-              itsCSize=2*(itsSupport+1)*itsOverSample+1;
-              CONRADLOG_INFO_STR(logger, "Convolution function support = "<< itsSupport
-                  << " pixels, convolution function size = "<< itsCSize
-                                 << " pixels");
+              itsCSize=2*itsSupport+1;
+              CONRADLOG_INFO_STR(logger, "Convolution function support = "
+                  << itsSupport << " pixels, convolution function size = "
+                  << itsCSize << " pixels");
               CONRADLOG_INFO_STR(logger, "Maximum extent = "<< itsSupport*cell
-                  << " (m) sampled at "<< cell/itsOverSample << " (m)"
-                                 );
-              itsCCenter=(itsSupport+1)*itsOverSample;
-              itsConvFunc.resize(itsMaxFeeds*nChan*itsNWPlanes);
+                  << " (m) sampled at "<< cell/itsOverSample << " (m)");
+              itsCCenter=itsSupport;
+              itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*nChan*itsNWPlanes);
               itsSumWeights.resize(itsMaxFeeds*nChan*itsNWPlanes, itsShape(2),
                   itsShape(3));
               itsSumWeights.set(casa::Complex(0.0));
             }
             zIndex=iw+itsNWPlanes*chan+nChan*itsNWPlanes*feed;
 
-            itsConvFunc[zIndex].resize(itsCSize, itsCSize);
-            itsConvFunc[zIndex].set(0.0);
-            // Now cut out the inner part of the convolution function and
-            // insert it into the convolution function
-            for (int iy=-itsOverSample*itsSupport; iy<+itsOverSample*itsSupport; iy++)
+            for (int fracu=0; fracu<itsOverSample; fracu++)
             {
-              for (int ix=-itsOverSample*itsSupport; ix<+itsOverSample
-                  *itsSupport; ix++)
+              for (int fracv=0; fracv<itsOverSample; fracv++)
               {
-                itsConvFunc[zIndex](ix+itsCCenter, iy+itsCCenter)=thisPlane(ix
-                    +nx/2, iy+ny/2);
+                int plane=fracu+itsOverSample*(fracv+itsOverSample*zIndex);
+                itsConvFunc[plane].resize(itsCSize, itsCSize);
+                itsConvFunc[plane].set(0.0);
+                // Now cut out the inner part of the convolution function and
+                // insert it into the convolution function
+                for (int iy=-itsSupport; iy<itsSupport; iy++)
+                {
+                  for (int ix=-itsSupport; ix<itsSupport; ix++)
+                  {
+                    itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)
+                        = thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
+                  }
+                }
               }
             }
           } // w loop
         } // chan loop
       } // feed loop
-      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "<< itsConvFunc[0].shape()
-                         << " by "<< itsConvFunc.size()<< " planes");
+      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "
+          << itsConvFunc[0].shape() << " by "<< itsConvFunc.size()<< " planes");
       if (itsName!="")
         save(itsName);
     }
@@ -322,7 +334,7 @@ namespace conrad
     void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
     {
 
-      CONRADLOG_INFO_STR(logger, "Calculating sum of weights image" );
+      CONRADLOG_INFO_STR(logger, "Calculating sum of weights image");
 
       int nx=itsShape(0);
       int ny=itsShape(1);
@@ -476,11 +488,12 @@ namespace conrad
           slope(1, feed)=sin(offset.getLat())*cos(out.getLat())
               - cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()
                   -out.getLong());
-          CONRADLOG_INFO_STR(logger, "Feed "<< feed << " points at Right Ascension "
-                             << mvLong.string(casa::MVAngle::TIME, 8) << ", Declination "
-                             << mvLat.string(casa::MVAngle::DIG2, 8) << " (J2000)"
-                             << ", offset by " << 180.0*slope(0, feed)/casa::C::pi
-                             << " " << 180.0*slope(1, feed)/casa::C::pi << " degrees" );
+//          CONRADLOG_INFO_STR(logger, "Feed "<< feed
+//              << " points at Right Ascension " << mvLong.string(
+//              casa::MVAngle::TIME, 8) << ", Declination " << mvLat.string(
+//              casa::MVAngle::DIG2, 8) << " (J2000)" << ", offset by " << 180.0
+//              *slope(0, feed)/casa::C::pi << " " << 180.0*slope(1, feed)
+//              /casa::C::pi << " degrees");
 
           done(feed)=true;
           nDone++;

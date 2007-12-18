@@ -30,10 +30,9 @@ namespace conrad
   {
 
     TableVisGridder::TableVisGridder() :
-      itsName(""), itsModelIsEmpty(false),
-      itsSamplesGridded(0), itsSamplesDegridded(0),
-      itsNumberGridded(0), itsNumberDegridded(0),
-      itsTimeGridded(0.0), itsTimeDegridded(0.0)
+      itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
+          itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
+          itsTimeGridded(0.0), itsTimeDegridded(0.0)
 
     {
     }
@@ -41,10 +40,9 @@ namespace conrad
     TableVisGridder::TableVisGridder(const int overSample, const int support,
         const std::string& name) :
       itsSupport(support), itsOverSample(overSample), itsName(name),
-          itsModelIsEmpty(false),
-          itsSamplesGridded(0), itsSamplesDegridded(0),
-          itsNumberGridded(0), itsNumberDegridded(0),
-          itsTimeGridded(0.0), itsTimeDegridded(0.0)
+          itsModelIsEmpty(false), itsSamplesGridded(0), itsSamplesDegridded(0),
+          itsNumberGridded(0), itsNumberDegridded(0), itsTimeGridded(0.0),
+          itsTimeDegridded(0.0)
     {
       CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
       CONRADCHECK(support>0, "Maximum support must be greater than 0");
@@ -54,28 +52,32 @@ namespace conrad
     {
       if (itsNumberGridded>0)
       {
-        CONRADLOG_INFO_STR(logger, "TableVisGridder gridding statistics" );
-        CONRADLOG_INFO_STR(logger, "   Total time gridding   = " << itsTimeGridded << " (s)"
-                           );
-        CONRADLOG_INFO_STR(logger, "   Samples gridded       = " << itsSamplesGridded
-                           );
-        CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9*itsTimeGridded/itsSamplesGridded << " (ns)" );
-        CONRADLOG_INFO_STR(logger, "   Points gridded        = " << itsNumberGridded
-                           );
-        CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9*itsTimeGridded/itsNumberGridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
+        CONRADLOG_INFO_STR(logger, "   Total time gridding   = "
+            << itsTimeGridded << " (s)");
+        CONRADLOG_INFO_STR(logger, "   Samples gridded       = "
+            << itsSamplesGridded);
+        CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
+            *itsTimeGridded/itsSamplesGridded << " (ns)");
+        CONRADLOG_INFO_STR(logger, "   Points gridded        = "
+            << itsNumberGridded);
+        CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9
+            *itsTimeGridded/itsNumberGridded << " (ns)");
       }
 
       if (itsNumberDegridded>0)
       {
-        CONRADLOG_INFO_STR(logger, "TableVisGridder degridding statistics" );
-        CONRADLOG_INFO_STR(logger, "   Total time degridding = " << itsTimeDegridded << " (s)"
-                           );
-        CONRADLOG_INFO_STR(logger, "   Samples degridded     = " << itsSamplesDegridded
-                           );
-        CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9*itsTimeDegridded/itsSamplesDegridded << " (ns)" );
-        CONRADLOG_INFO_STR(logger, "   Points degridded      = " << itsNumberDegridded
-                           );
-        CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9*itsTimeDegridded/itsNumberDegridded << " (ns)" );
+        CONRADLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
+        CONRADLOG_INFO_STR(logger, "   Total time degridding = "
+            << itsTimeDegridded << " (s)");
+        CONRADLOG_INFO_STR(logger, "   Samples degridded     = "
+            << itsSamplesDegridded);
+        CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
+            *itsTimeDegridded/itsSamplesDegridded << " (ns)");
+        CONRADLOG_INFO_STR(logger, "   Points degridded      = "
+            << itsNumberDegridded);
+        CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9
+            *itsTimeDegridded/itsNumberDegridded << " (ns)");
       }
     }
 
@@ -83,40 +85,30 @@ namespace conrad
     void TableVisGridder::gridKernel(casa::Matrix<casa::Complex>& grid,
         casa::Complex& sumwt, casa::Matrix<casa::Complex>& convFunc,
         const casa::Complex& cVis, const float& viswt, const int iu,
-        const int iv, const int support, const int overSample,
-        const int cCenter, const int fracu, const int fracv)
+        const int iv, const int support)
     {
-      /// Gridding visibility to grid
-      CONRADCHECK(-overSample*support+fracu+cCenter>-1,
-          "Indexing outside of convolution function");
-      CONRADCHECK(+overSample*support+fracu+cCenter<convFunc.shape()(0),
-          "Indexing outside of convolution function");
-      CONRADCHECK(-overSample*support+fracv+cCenter>-1,
-          "Indexing outside of convolution function");
-      CONRADCHECK(+overSample*support+fracv+cCenter<convFunc.shape()(1),
-          "Indexing outside of convolution function");
 #define GRID_WITH_POINTERS 1
 #ifdef GRID_WITH_POINTERS
       for (int suppv=-support; suppv<+support; suppv++)
       {
-        int voff=suppv*overSample+fracv+cCenter;
-        int uoff=-support*overSample+fracu+cCenter;
+        int voff=suppv+support;
+        int uoff=-support+support;
         casa::Complex *wtPtr=&convFunc(uoff, voff);
         casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
         for (int suppu=-support; suppu<+support; suppu++)
         {
           (*gridPtr)+=cVis*(*wtPtr);
-          wtPtr+=overSample;
+          wtPtr+=1;
           gridPtr++;
         }
       }
 #else
       for (int suppv=-support; suppv<+support; suppv++)
       {
-        int voff=suppv*overSample+fracv+cCenter;
+        int voff=suppv+support;
         for (int suppu=-support; suppu<+support; suppu++)
         {
-          int uoff=suppu*overSample+fracu+cCenter;
+          int uoff=suppu+support;
           casa::Complex wt=convFunc(uoff, voff);
           grid(iu+suppu, iv+suppv)+=cVis*wt;
         }
@@ -129,8 +121,7 @@ namespace conrad
     void TableVisGridder::degridKernel(casa::Complex& cVis,
         const casa::Matrix<casa::Complex>& convFunc,
         const casa::Matrix<casa::Complex>& grid, const int iu, const int iv,
-        const int support, const int overSample, const int cCenter,
-        const int fracu, const int fracv)
+        const int support)
     {
       /// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
       /// data using the convolution function as the weighting function. 
@@ -138,24 +129,24 @@ namespace conrad
 #ifdef GRID_WITH_POINTERS
       for (int suppv=-support; suppv<+support; suppv++)
       {
-        int voff=suppv*overSample+fracv+cCenter;
-        int uoff=-support*overSample+fracu+cCenter;
+        int voff=suppv+support;
+        int uoff=-support+support;
         const casa::Complex *wtPtr=&convFunc(uoff, voff);
         const casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
         for (int suppu=-support; suppu<+support; suppu++)
         {
           cVis+=(*wtPtr)*conj(*gridPtr);
-          wtPtr+=overSample;
+          wtPtr+=1;
           gridPtr++;
         }
       }
 #else
       for (int suppv=-support; suppv<+support; suppv++)
       {
-        int voff=suppv*overSample+fracv+cCenter;
+        int voff=suppv+support;
         for (int suppu=-support; suppu<+support; suppu++)
         {
-          int uoff=suppu*overSample+fracu+cCenter;
+          int uoff=suppu+support;
           casa::Complex wt=convFunc(uoff, voff);
           cVis+=wt*conj(grid(iu+suppu, iv+suppv));
         }
@@ -236,12 +227,35 @@ namespace conrad
 
           /// Scale U,V to integer pixels plus fractional terms
           double uScaled=idi->frequency()[chan]*idi->uvw()(i)(0)/(casa::C::c *itsUVCellSize(0));
-          int iu = nint(uScaled);
-          const int fracu=nint(itsOverSample*(double(iu)-uScaled));
+          int iu = conrad::nint(uScaled);
+          int fracu=conrad::nint(itsOverSample*(double(iu)-uScaled)); 
+          if (fracu<0)
+          {
+            iu+=1;
+          }
+          if (fracu>=itsOverSample)
+          {
+            iu-=1;
+          }
+          fracu=conrad::nint(itsOverSample*(double(iu)-uScaled)); 
+          CONRADCHECK(fracu>-1, "Fractional offset in u is negative");
+          CONRADCHECK(fracu<itsOverSample, "Fractional offset in u exceeds oversampling");
           iu+=itsShape(0)/2;
+
           double vScaled=idi->frequency()[chan]*idi->uvw()(i)(1)/(casa::C::c *itsUVCellSize(1));
-          int iv = nint(vScaled);
-          const int fracv=nint(itsOverSample*(double(iv)-vScaled));
+          int iv = conrad::nint(vScaled);
+          int fracv=conrad::nint(itsOverSample*(double(iv)-vScaled));
+          if (fracv<0)
+          {
+            iv+=1;
+          }
+          if (fracv>=itsOverSample)
+          {
+            iv-=1;
+          }
+          fracv=conrad::nint(itsOverSample*(double(iv)-vScaled));
+          CONRADCHECK(fracv>-1, "Fractional offset in v is negative");
+          CONRADCHECK(fracv<itsOverSample, "Fractional offset in v exceeds oversampling");
           iv+=itsShape(1)/2;
 
           /// Calculate the delay phasor
@@ -270,7 +284,8 @@ namespace conrad
             CONRADCHECK(cInd<itsConvFunc.size(),
                 "Index into convolution functions exceeds number of planes");
 
-            casa::Matrix<casa::Complex> & convFunc(itsConvFunc[cInd]);
+            casa::Matrix<casa::Complex> & convFunc(
+                itsConvFunc[fracu+itsOverSample*(fracv+itsOverSample*cInd)]);
 
             casa::Array<casa::Complex> aGrid(itsGrid[gInd](slicer));
             casa::Matrix<casa::Complex> grid(aGrid.nonDegenerate());
@@ -283,8 +298,7 @@ namespace conrad
               if (forward)
               {
                 casa::Complex cVis(idi->visibility()(i, chan, pol));
-                degridKernel(cVis, convFunc, grid, iu, iv, itsSupport,
-                    itsOverSample, itsCCenter, fracu, fracv);
+                degridKernel(cVis, convFunc, grid, iu, iv, itsSupport);
                 idi->rwVisibility()(i, chan, pol)=cVis*phasor;
               }
               else
@@ -295,7 +309,7 @@ namespace conrad
                 casa::Complex sumwt=0.0;
                 const float wtVis(1.0);
                 gridKernel(grid, sumwt, convFunc, rVis, wtVis, iu, iv,
-                    itsSupport, itsOverSample, itsCCenter, fracu, fracv);
+                    itsSupport);
 
                 itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
 
@@ -307,7 +321,7 @@ namespace conrad
                   casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
                   const casa::Complex uVis(1.0);
                   gridKernel(gridPSF, sumwt, convFunc, uVis, wtVis, iu, iv,
-                      itsSupport, itsOverSample, itsCCenter, fracu, fracv);
+                      itsSupport);
                 }
               }
             }
@@ -326,8 +340,9 @@ namespace conrad
         itsTimeGridded+=timer.real();
         itsSamplesGridded+=double(nSamples*nChan*nPol);
         itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan*nPol);
-        if(itsDopsf) {
-	  itsSamplesGridded+=double(nSamples*nChan*nPol);
+        if (itsDopsf)
+        {
+          itsSamplesGridded+=double(nSamples*nChan*nPol);
           itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nSamples*nChan*nPol);
         }
       }
@@ -366,8 +381,8 @@ namespace conrad
         }
         uvw(2)=idi->uvw()(row)(2);
 
-	casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
-	machine.convertUVW(delay(row), uvw);
+        casa::UVWMachine machine(out, idi->pointingDir1()(row), false, true);
+        machine.convertUVW(delay(row), uvw);
 
         for (int i=0; i<3; i++)
           outUVW(row)(i)=uvw(i);
@@ -572,7 +587,7 @@ namespace conrad
       }
       else
       {
-        CONRADLOG_INFO_STR(logger, "No need to degrid: model is empty" );
+        CONRADLOG_INFO_STR(logger, "No need to degrid: model is empty");
         itsModelIsEmpty=true;
         itsGrid[0].set(casa::Complex(0.0));
       }
