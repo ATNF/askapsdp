@@ -1,13 +1,13 @@
 /// @file
 /// @brief A handler of the FIELD subtable
-/// @details This class derived provides access to
+/// @details This class is provides access to
 /// the content of the FIELD subtable (which provides delay, phase and
 /// reference centres for each time). The POINTING table gives the actual 
 /// pointing of the antennae. Although this implementation caches the values
 /// for the last requested time range, it reads the data on-demand. This is 
 /// a difference from subtable handler classes, whose name starts from Mem...
-/// The latter classes read all the subtable into memory in the constructor and
-/// later return cached values. 
+/// The latter classes read the whole subtable into memory in the constructor and
+/// later just return cached values. 
 ///
 /// @copyright (c) 2007 CONRAD, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
