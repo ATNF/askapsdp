@@ -137,7 +137,7 @@ casa::uInt FeedSubtableHandler::getIndex(casa::uInt antID, casa::uInt feedID) co
   }
   const casa::Int index=itsIndices(antID,feedID);
   if (index<0) {
-      CONRADTHROW(DataAccessError, "Requiested Antenna ID="<<antID<<
+      CONRADTHROW(DataAccessError, "Requested Antenna ID="<<antID<<
            " and Feed ID="<<feedID<<" are not found in the FEED subtable for "
            "the time range from "<<itsCachedStartTime<<" till "<<itsCachedStopTime<<
            " and spectral window "<<itsCachedSpWindow);             
@@ -180,15 +180,17 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
 {
   // if we really need to optimize the performance, we can cache dTime
   const casa::Double dTime=tableTime(time);
-  casa::TableExprNode expression= ((table().col("SPECTRAL_WINDOW_ID") ==
+  const casa::TableExprNode halfInterval = table().col("INTERVAL")*itsIntervalFactor/2.;
+  const casa::TableExprNode expression= ((table().col("SPECTRAL_WINDOW_ID") ==
                 static_cast<casa::Int>(spWinID)) || 
                     (table().col("SPECTRAL_WINDOW_ID") == -1)) &&
-               (table().col("TIME") <= dTime) &&
-                (table().col("TIME") + itsIntervalFactor*table().col("INTERVAL")>=
-                 dTime);
+               (table().col("TIME") - halfInterval <= dTime) &&
+                (table().col("TIME") + halfInterval >= dTime);
   casa::Table selection=table()(expression);
   if (selection.nrow()==0) {
-      CONRADTHROW(DataAccessError, "FEED subtable is empty");
+      CONRADTHROW(DataAccessError,
+                 "FEED subtable is empty or feed data missing for "
+                  <<time<<" and spectral window: "<<spWinID);
   }
   itsBeamOffsets.resize(selection.nrow());
   itsPositionAngles.resize(selection.nrow());
@@ -212,7 +214,7 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
   casa::ROArrayColumn<casa::Double>  rcptrOffsets(selection,"BEAM_OFFSET");
   casa::ROArrayColumn<casa::Double>  rcptrPAs(selection,"RECEPTOR_ANGLE");
   // update start and stop times as well as the spectral window ID 
-  // used the in cache management within the same loop
+  // used in the cache management within the same loop
   casa::ROScalarColumn<casa::Double> timeCol(selection,"TIME");
   casa::ROScalarColumn<casa::Double> intervalCol(selection,"INTERVAL");
   casa::ROScalarColumn<casa::Int> spWinCol(selection,"SPECTRAL_WINDOW_ID");
@@ -222,11 +224,12 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
        itsPositionAngles[row]=computePositionAngle(rcptrPAs(row));
        itsIndices(antIDs(row),feedIDs(row))=row;
        
-       const casa::Double cStartTime = timeCol(row);
-       const casa::Double cStopTime = cStartTime+
-                          intervalCol(row) * itsIntervalFactor;
+       const casa::Double cStartTime = timeCol(row) -
+                          intervalCol(row) * itsIntervalFactor/2.;
+       const casa::Double cStopTime = timeCol(row) +
+                          intervalCol(row) * itsIntervalFactor/2.;
        if (!row || itsCachedStartTime<cStartTime) {
-           itsCachedStartTime=cStartTime;
+           itsCachedStartTime=cStartTime;	   
        }
        if (!row || itsCachedStopTime>cStopTime) {
            itsCachedStopTime=cStopTime;
