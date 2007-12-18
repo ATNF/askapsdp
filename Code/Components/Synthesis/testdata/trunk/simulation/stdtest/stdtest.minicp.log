@@ -1,0 +1,514 @@
+Extracting 10uJy model
+10uJy.model.small/
+10uJy.model.small/logtable/
+10uJy.model.small/logtable/table.dat
+10uJy.model.small/logtable/table.f0
+10uJy.model.small/logtable/table.info
+10uJy.model.small/logtable/table.lock
+10uJy.model.small/table.dat
+10uJy.model.small/table.f0
+10uJy.model.small/table.f0_TSM0
+10uJy.model.small/table.info
+10uJy.model.small/table.lock
+Running csimulator to create MeasurementSet for a single pointing
+INFO  synthesis.csimulator (0) [2007-12-18 08:12:23,075] - CONRAD synthesis simulator synthesis==trunk r5318 (2007-12-18)
+INFO  synthesis.csimulator (0) [2007-12-18 08:12:23,076] - parset file stdtest.in
+INFO  synthesis.csimulator (0) [2007-12-18 08:12:23,076] - [Cimager.Images.Names],[[image.i.10uJy_stdtest]]
+[Cimager.Images.image.i.10uJy_stdtest.cellsize],[[8.0arcsec, 8.0arcsec]]
+[Cimager.Images.image.i.10uJy_stdtest.direction],[[12h30m00.00, -45.00.00.00, J2000]]
+[Cimager.Images.image.i.10uJy_stdtest.frequency],[[1.420e9,1.420e9]]
+[Cimager.Images.image.i.10uJy_stdtest.nchan],[1]
+[Cimager.Images.image.i.10uJy_stdtest.shape],[[2048,2048]]
+[Cimager.dataset],[10uJy_stdtest.ms]
+[Cimager.gridder],[WProject]
+[Cimager.gridder.WProject.blockage],[2m]
+[Cimager.gridder.WProject.diameter],[12m]
+[Cimager.gridder.WProject.frequencydependent],[false]
+[Cimager.gridder.WProject.maxfeeds],[1]
+[Cimager.gridder.WProject.maxsupport],[1024]
+[Cimager.gridder.WProject.nwplanes],[33]
+[Cimager.gridder.WProject.oversample],[8]
+[Cimager.gridder.WProject.wmax],[15000]
+[Cimager.ncycles],[5]
+[Cimager.restore],[True]
+[Cimager.restore.beam],[[30arcsec, 30arcsec, 0deg]]
+[Cimager.solver],[Clean]
+[Cimager.solver.Clean.algorithm],[MultiScale]
+[Cimager.solver.Clean.gain],[0.9]
+[Cimager.solver.Clean.niter],[100]
+[Cimager.solver.Clean.threshold],[0.1mJy]
+[Cimager.solver.Clean.tolerance],[0.1]
+[Cimager.solver.Clean.verbose],[True]
+[Csimulator.antennas.definition],[definitions/ASKAP45.in]
+[Csimulator.dataset],[10uJy_stdtest.ms]
+[Csimulator.feeds.definition],[definitions/ASKAP1feeds.in]
+[Csimulator.gridder],[AWProject]
+[Csimulator.gridder.AWProject.blockage],[2m]
+[Csimulator.gridder.AWProject.diameter],[12m]
+[Csimulator.gridder.AWProject.frequencydependent],[false]
+[Csimulator.gridder.AWProject.maxfeeds],[1]
+[Csimulator.gridder.AWProject.maxsupport],[1024]
+[Csimulator.gridder.AWProject.nwplanes],[33]
+[Csimulator.gridder.AWProject.oversample],[8]
+[Csimulator.gridder.AWProject.wmax],[15000]
+[Csimulator.observe.number],[1]
+[Csimulator.observe.scan0],[[10uJy, Continuum0, -6h, 6h]]
+[Csimulator.simulation.autocorrwt],[0.0]
+[Csimulator.simulation.blockage],[0.01]
+[Csimulator.simulation.elevationlimit],[8deg]
+[Csimulator.simulation.integrationtime],[1500s]
+[Csimulator.simulation.referencetime],[[2007Mar07, UTC]]
+[Csimulator.simulation.usehourangles],[True]
+[Csimulator.sources.10uJy.direction],[[12h30m00.000, -45.00.00.000, J2000]]
+[Csimulator.sources.10uJy.model],[10uJy.model.small]
+[Csimulator.sources.names],[[10uJy]]
+[Csimulator.spws.definition],[definitions/ASKAPspws.in]
+
+INFO  conradparallel.conradparallel (0) [2007-12-18 08:12:23,076] - Exiting MPI
+INFO  synthesis.csimulator (1) [2007-12-18 08:12:27,970] - CONRAD synthesis simulator synthesis==trunk r5318 (2007-12-18)
+INFO  synthesis.csimulator (1) [2007-12-18 08:12:27,971] - parset file stdtest.in
+INFO  synthesis.csimulator (1) [2007-12-18 08:12:27,971] - [Cimager.Images.Names],[[image.i.10uJy_stdtest]]
+[Cimager.Images.image.i.10uJy_stdtest.cellsize],[[8.0arcsec, 8.0arcsec]]
+[Cimager.Images.image.i.10uJy_stdtest.direction],[[12h30m00.00, -45.00.00.00, J2000]]
+[Cimager.Images.image.i.10uJy_stdtest.frequency],[[1.420e9,1.420e9]]
+[Cimager.Images.image.i.10uJy_stdtest.nchan],[1]
+[Cimager.Images.image.i.10uJy_stdtest.shape],[[2048,2048]]
+[Cimager.dataset],[10uJy_stdtest.ms]
+[Cimager.gridder],[WProject]
+[Cimager.gridder.WProject.blockage],[2m]
+[Cimager.gridder.WProject.diameter],[12m]
+[Cimager.gridder.WProject.frequencydependent],[false]
+[Cimager.gridder.WProject.maxfeeds],[1]
+[Cimager.gridder.WProject.maxsupport],[1024]
+[Cimager.gridder.WProject.nwplanes],[33]
+[Cimager.gridder.WProject.oversample],[8]
+[Cimager.gridder.WProject.wmax],[15000]
+[Cimager.ncycles],[5]
+[Cimager.restore],[True]
+[Cimager.restore.beam],[[30arcsec, 30arcsec, 0deg]]
+[Cimager.solver],[Clean]
+[Cimager.solver.Clean.algorithm],[MultiScale]
+[Cimager.solver.Clean.gain],[0.9]
+[Cimager.solver.Clean.niter],[100]
+[Cimager.solver.Clean.threshold],[0.1mJy]
+[Cimager.solver.Clean.tolerance],[0.1]
+[Cimager.solver.Clean.verbose],[True]
+[Csimulator.antennas.definition],[definitions/ASKAP45.in]
+[Csimulator.dataset],[10uJy_stdtest.ms]
+[Csimulator.feeds.definition],[definitions/ASKAP1feeds.in]
+[Csimulator.gridder],[AWProject]
+[Csimulator.gridder.AWProject.blockage],[2m]
+[Csimulator.gridder.AWProject.diameter],[12m]
+[Csimulator.gridder.AWProject.frequencydependent],[false]
+[Csimulator.gridder.AWProject.maxfeeds],[1]
+[Csimulator.gridder.AWProject.maxsupport],[1024]
+[Csimulator.gridder.AWProject.nwplanes],[33]
+[Csimulator.gridder.AWProject.oversample],[8]
+[Csimulator.gridder.AWProject.wmax],[15000]
+[Csimulator.observe.number],[1]
+[Csimulator.observe.scan0],[[10uJy, Continuum0, -6h, 6h]]
+[Csimulator.simulation.autocorrwt],[0.0]
+[Csimulator.simulation.blockage],[0.01]
+[Csimulator.simulation.elevationlimit],[8deg]
+[Csimulator.simulation.integrationtime],[1500s]
+[Csimulator.simulation.referencetime],[[2007Mar07, UTC]]
+[Csimulator.simulation.usehourangles],[True]
+[Csimulator.sources.10uJy.direction],[[12h30m00.000, -45.00.00.000, J2000]]
+[Csimulator.sources.10uJy.model],[10uJy.model.small]
+[Csimulator.sources.names],[[10uJy]]
+[Csimulator.spws.definition],[definitions/ASKAPspws.in]
+
+INFO  conrad.synthesis (1) [2007-12-18 08:12:27,972] - Observing scan 0 on source 10uJy at band Continuum0 from -6 h to 6 h
+INFO  conrad.synthesis (1) [2007-12-18 08:12:27,975] - Spectral window : Continuum0
+     reference frequency : 1.42GHz
+     number of channels : 16
+     total bandwidth : -0.016GHz
+     number of correlations : 4
+
+INFO  conrad.synthesis (1) [2007-12-18 08:12:27,975] - Observing source : 10uJy     direction : 12:30:00.00   -45.00.00.00       J2000
+INFO  conrad.synthesis (1) [2007-12-18 08:12:27,996] - Times specified are interpreted as hour angles for first source observed
+INFO  conrad.synthesis (1) [2007-12-18 08:12:27,996] -      offset in time = -6.28111 hours from 07-Mar-2007/00:00:33.0
+INFO  conrad.synthesis (1) [2007-12-18 08:12:27,996] - Time range - start : 06-Mar-2007/11:43:41.0 stop  : 06-Mar-2007/23:43:41.0
+INFO  conrad.synthesis (1) [2007-12-18 08:12:27,997] - Creating new hypercube 1
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,038] - Adding 28710 rows
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,038] - Written 0.02738 Gbytes to scratch columns
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,038] - Calculating uvw coordinates for 29 integrations
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,072] - Starting conditions for antenna 1: 
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,072] -      time = 06-Mar-2007/11:43:41.0
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,072] -      scan = 1
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,072] -      az   = 131.469 deg
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,072] -      el   = 19.626 deg
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,072] -      ha   = -5.81551 hours
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] - Stopping conditions for antenna 1: 
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] -      time = 06-Mar-2007/23:48:41.0
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] -      scan = 1
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] -      az   = -131.694 deg
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] -      el   = 18.942 deg
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] -      ha   = 5.88308 hours
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] - 28710 visibilities simulated 
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] - 0 visibilities flagged due to shadowing 
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,821] - 0 visibilities flagged due to elevation limit of 8 degrees 
+INFO  conrad.synthesis (1) [2007-12-18 08:12:28,822] - Successfully simulated 1 scans
+INFO  conrad.synthesis (1) [2007-12-18 08:12:29,035] - Simulating data for /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/10uJy_stdtest.ms
+INFO  conrad.synthesis (1) [2007-12-18 08:12:29,035] - Model is image.i.10uJy :  (array : shape [4096, 4096, 1, 1])  (free)
+
+INFO  conrad.synthesis (1) [2007-12-18 08:12:29,053] - Gridding with Using Antenna Illumination and W projection
+INFO  conrad.synthesis (1) [2007-12-18 08:12:29,053] - Antenna illumination independent of frequency
+INFO  conrad.synthesis (1) [2007-12-18 08:12:29,053] - Initialising for model degridding
+INFO  conrad.synthesis (1) [2007-12-18 08:12:45,187] - Starting to degrid model
+INFO  conrad.synthesis (1) [2007-12-18 08:12:45,258] - Feed 0 points at Right Ascension 12:30:00.00, Declination -45.00.00.00 (J2000), offset by 1.79919e-14 0 degrees
+INFO  conrad.synthesis (1) [2007-12-18 08:12:45,825] - Convolution function support = 42 pixels, convolution function size = 689 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:12:45,825] - Maximum extent = 99.228 (m) sampled at 0.295321 (m)
+INFO  conrad.synthesis (1) [2007-12-18 08:13:03,549] - Shape of convolution function = [689, 689] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,396] - Finished degridding model
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,396] - Predicted data for /exported/cor203/Projects/CONRAD/source/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/10uJy_stdtest.ms in 208.37 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,396] - TableVisGridder degridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,396] -    Total time degridding = 171.88 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,396] -    Samples degridded     = 1.83744e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,397] -    Time per Sample       = 93543.2 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,397] -    Points degridded      = 1.32755e+10
+INFO  conrad.synthesis (1) [2007-12-18 08:15:57,397] -    Time per point        = 12.9472 (ns)
+INFO  conradparallel.conradparallel (1) [2007-12-18 08:15:57,438] - Exiting MPI
+INFO  synthesis.csimulator (1) [2007-12-18 08:15:57,442] - Total times - user:   208.65 system: 1.34 real:   400.93
+INFO  synthesis.csimulator (0) [2007-12-18 08:15:54,914] - Total times - user:   0.03 system: 0.02 real:   400.91
+Running cimager to form Clean image of single pointing
+INFO  synthesis.cimager (1) [2007-12-18 08:19:06,801] - CONRAD synthesis imager synthesis==trunk r5318 (2007-12-18)
+INFO  synthesis.cimager (1) [2007-12-18 08:19:06,801] - parset file stdtest.in
+INFO  synthesis.cimager (1) [2007-12-18 08:19:06,801] - [Cimager.Images.Names],[[image.i.10uJy_stdtest]]
+[Cimager.Images.image.i.10uJy_stdtest.cellsize],[[8.0arcsec, 8.0arcsec]]
+[Cimager.Images.image.i.10uJy_stdtest.direction],[[12h30m00.00, -45.00.00.00, J2000]]
+[Cimager.Images.image.i.10uJy_stdtest.frequency],[[1.420e9,1.420e9]]
+[Cimager.Images.image.i.10uJy_stdtest.nchan],[1]
+[Cimager.Images.image.i.10uJy_stdtest.shape],[[2048,2048]]
+[Cimager.dataset],[10uJy_stdtest.ms]
+[Cimager.gridder],[WProject]
+[Cimager.gridder.WProject.blockage],[2m]
+[Cimager.gridder.WProject.diameter],[12m]
+[Cimager.gridder.WProject.frequencydependent],[false]
+[Cimager.gridder.WProject.maxfeeds],[1]
+[Cimager.gridder.WProject.maxsupport],[1024]
+[Cimager.gridder.WProject.nwplanes],[33]
+[Cimager.gridder.WProject.oversample],[8]
+[Cimager.gridder.WProject.wmax],[15000]
+[Cimager.ncycles],[5]
+[Cimager.restore],[True]
+[Cimager.restore.beam],[[30arcsec, 30arcsec, 0deg]]
+[Cimager.solver],[Clean]
+[Cimager.solver.Clean.algorithm],[MultiScale]
+[Cimager.solver.Clean.gain],[0.9]
+[Cimager.solver.Clean.niter],[100]
+[Cimager.solver.Clean.threshold],[0.1mJy]
+[Cimager.solver.Clean.tolerance],[0.1]
+[Cimager.solver.Clean.verbose],[True]
+[Csimulator.antennas.definition],[definitions/ASKAP45.in]
+[Csimulator.dataset],[10uJy_stdtest.ms]
+[Csimulator.feeds.definition],[definitions/ASKAP1feeds.in]
+[Csimulator.gridder],[AWProject]
+[Csimulator.gridder.AWProject.blockage],[2m]
+[Csimulator.gridder.AWProject.diameter],[12m]
+[Csimulator.gridder.AWProject.frequencydependent],[false]
+[Csimulator.gridder.AWProject.maxfeeds],[1]
+[Csimulator.gridder.AWProject.maxsupport],[1024]
+[Csimulator.gridder.AWProject.nwplanes],[33]
+[Csimulator.gridder.AWProject.oversample],[8]
+[Csimulator.gridder.AWProject.wmax],[15000]
+[Csimulator.observe.number],[1]
+[Csimulator.observe.scan0],[[10uJy, Continuum0, -6h, 6h]]
+[Csimulator.simulation.autocorrwt],[0.0]
+[Csimulator.simulation.blockage],[0.01]
+[Csimulator.simulation.elevationlimit],[8deg]
+[Csimulator.simulation.integrationtime],[1500s]
+[Csimulator.simulation.referencetime],[[2007Mar07, UTC]]
+[Csimulator.simulation.usehourangles],[True]
+[Csimulator.sources.10uJy.direction],[[12h30m00.000, -45.00.00.000, J2000]]
+[Csimulator.sources.10uJy.model],[10uJy.model.small]
+[Csimulator.sources.names],[[10uJy]]
+[Csimulator.spws.definition],[definitions/ASKAPspws.in]
+
+INFO  synthesis.cimager (1) [2007-12-18 08:19:06,802] - *** Starting major cycle 0 ***
+INFO  conrad.synthesis (1) [2007-12-18 08:19:06,802] - Receiving model from the master via MPI
+INFO  synthesis.cimager (0) [2007-12-18 08:19:04,415] - CONRAD synthesis imager synthesis==trunk r5318 (2007-12-18)
+INFO  synthesis.cimager (0) [2007-12-18 08:19:04,415] - parset file stdtest.in
+INFO  synthesis.cimager (0) [2007-12-18 08:19:04,415] - [Cimager.Images.Names],[[image.i.10uJy_stdtest]]
+[Cimager.Images.image.i.10uJy_stdtest.cellsize],[[8.0arcsec, 8.0arcsec]]
+[Cimager.Images.image.i.10uJy_stdtest.direction],[[12h30m00.00, -45.00.00.00, J2000]]
+[Cimager.Images.image.i.10uJy_stdtest.frequency],[[1.420e9,1.420e9]]
+[Cimager.Images.image.i.10uJy_stdtest.nchan],[1]
+[Cimager.Images.image.i.10uJy_stdtest.shape],[[2048,2048]]
+[Cimager.dataset],[10uJy_stdtest.ms]
+[Cimager.gridder],[WProject]
+[Cimager.gridder.WProject.blockage],[2m]
+[Cimager.gridder.WProject.diameter],[12m]
+[Cimager.gridder.WProject.frequencydependent],[false]
+[Cimager.gridder.WProject.maxfeeds],[1]
+[Cimager.gridder.WProject.maxsupport],[1024]
+[Cimager.gridder.WProject.nwplanes],[33]
+[Cimager.gridder.WProject.oversample],[8]
+[Cimager.gridder.WProject.wmax],[15000]
+[Cimager.ncycles],[5]
+[Cimager.restore],[True]
+[Cimager.restore.beam],[[30arcsec, 30arcsec, 0deg]]
+[Cimager.solver],[Clean]
+[Cimager.solver.Clean.algorithm],[MultiScale]
+[Cimager.solver.Clean.gain],[0.9]
+[Cimager.solver.Clean.niter],[100]
+[Cimager.solver.Clean.threshold],[0.1mJy]
+[Cimager.solver.Clean.tolerance],[0.1]
+[Cimager.solver.Clean.verbose],[True]
+[Csimulator.antennas.definition],[definitions/ASKAP45.in]
+[Csimulator.dataset],[10uJy_stdtest.ms]
+[Csimulator.feeds.definition],[definitions/ASKAP1feeds.in]
+[Csimulator.gridder],[AWProject]
+[Csimulator.gridder.AWProject.blockage],[2m]
+[Csimulator.gridder.AWProject.diameter],[12m]
+[Csimulator.gridder.AWProject.frequencydependent],[false]
+[Csimulator.gridder.AWProject.maxfeeds],[1]
+[Csimulator.gridder.AWProject.maxsupport],[1024]
+[Csimulator.gridder.AWProject.nwplanes],[33]
+[Csimulator.gridder.AWProject.oversample],[8]
+[Csimulator.gridder.AWProject.wmax],[15000]
+[Csimulator.observe.number],[1]
+[Csimulator.observe.scan0],[[10uJy, Continuum0, -6h, 6h]]
+[Csimulator.simulation.autocorrwt],[0.0]
+[Csimulator.simulation.blockage],[0.01]
+[Csimulator.simulation.elevationlimit],[8deg]
+[Csimulator.simulation.integrationtime],[1500s]
+[Csimulator.simulation.referencetime],[[2007Mar07, UTC]]
+[Csimulator.simulation.usehourangles],[True]
+[Csimulator.sources.10uJy.direction],[[12h30m00.000, -45.00.00.000, J2000]]
+[Csimulator.sources.10uJy.model],[10uJy.model.small]
+[Csimulator.sources.names],[[10uJy]]
+[Csimulator.spws.definition],[definitions/ASKAPspws.in]
+
+INFO  synthesis.cimager (0) [2007-12-18 08:19:04,415] - *** Starting major cycle 0 ***
+INFO  conrad.synthesis (0) [2007-12-18 08:19:04,789] - Sent model to the workers via MPI in 0.37 seconds 
+INFO  conrad.synthesis (0) [2007-12-18 08:19:04,792] - Initialising solver
+INFO  conrad.synthesis (0) [2007-12-18 08:19:04,792] - Waiting for normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:19:07,399] - Received model from the master via MPI in 0.6 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:19:07,402] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  conrad.synthesis (1) [2007-12-18 08:19:07,402] - Creating measurement equation
+INFO  conrad.synthesis (1) [2007-12-18 08:19:07,454] - Initialising for model degridding and residual gridding
+INFO  conrad.synthesis (1) [2007-12-18 08:19:07,600] - No need to degrid: model is empty
+INFO  conrad.synthesis (1) [2007-12-18 08:19:07,718] - Starting degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:19:08,407] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:19:17,721] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:22:37,712] - Finished degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:22:37,712] - Adding residual image, PSF, and weights image to the normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:22:43,682] - Calculated normal equations for 10uJy_stdtest.ms in 216.29 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:22:43,682] - Sending normal equations to the solver via MPI
+INFO  conrad.synthesis (1) [2007-12-18 08:22:45,312] - Sent normal equations to the solver via MPI in 1.63 seconds 
+INFO  synthesis.cimager (1) [2007-12-18 08:22:45,322] - user:   215.84 system: 2.47 real:   407.68
+INFO  synthesis.cimager (1) [2007-12-18 08:22:45,322] - *** Starting major cycle 1 ***
+INFO  conrad.synthesis (1) [2007-12-18 08:22:45,322] - Receiving model from the master via MPI
+INFO  conrad.synthesis (0) [2007-12-18 08:22:43,118] - Received normal equations from prediffer 1 after 218.34 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:22:43,119] - Received normal equations from all prediffers via MPI in 218.34 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:22:43,130] - Solving normal equations
+INFO  conrad.synthesis (0) [2007-12-18 08:22:43,230] - Maximum of weights = 1.83744e+06
+INFO  conrad.synthesis (0) [2007-12-18 08:24:24,166] - Solved normal equations in 101.04 seconds 
+INFO  synthesis.cimager (0) [2007-12-18 08:24:24,166] - user:   107.58 system: 212.35 real:   508.96
+INFO  synthesis.cimager (0) [2007-12-18 08:24:24,166] - *** Starting major cycle 1 ***
+INFO  conrad.synthesis (0) [2007-12-18 08:24:25,416] - Sent model to the workers via MPI in 1.25 seconds 
+INFO  conrad.synthesis (0) [2007-12-18 08:24:25,425] - Initialising solver
+INFO  conrad.synthesis (0) [2007-12-18 08:24:25,433] - Waiting for normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,174] - Received model from the master via MPI in 102.86 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,189] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,189] - Creating measurement equation
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,235] - TableVisGridder gridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,235] -    Total time gridding   = 198.12 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,235] -    Samples gridded       = 3.67488e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,235] -    Time per Sample       = 53912 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,235] -    Points gridded        = 1.74961e+10
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,235] -    Time per point        = 11.3237 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:24:28,293] - Initialising for model degridding and residual gridding
+INFO  conrad.synthesis (1) [2007-12-18 08:24:31,256] - Starting degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:24:31,888] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:24:40,842] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:24:45,174] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:24:54,065] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:29:58,458] - Finished degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:29:58,458] - Adding residual image, PSF, and weights image to the normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:30:04,524] - Calculated normal equations for 10uJy_stdtest.ms in 336.35 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:30:04,525] - Sending normal equations to the solver via MPI
+INFO  conrad.synthesis (1) [2007-12-18 08:30:07,120] - Sent normal equations to the solver via MPI in 2.6 seconds 
+INFO  synthesis.cimager (1) [2007-12-18 08:30:07,144] - user:   563.95 system: 95.7 real:   849.52
+INFO  synthesis.cimager (1) [2007-12-18 08:30:07,144] - *** Starting major cycle 2 ***
+INFO  conrad.synthesis (1) [2007-12-18 08:30:07,144] - Receiving model from the master via MPI
+INFO  conrad.synthesis (0) [2007-12-18 08:30:05,334] - Received normal equations from prediffer 1 after 339.92 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:30:05,334] - Received normal equations from all prediffers via MPI in 339.92 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:30:05,349] - Solving normal equations
+INFO  conrad.synthesis (0) [2007-12-18 08:30:05,465] - Maximum of weights = 1.83744e+06
+INFO  conrad.synthesis (0) [2007-12-18 08:31:52,711] - Solved normal equations in 107.37 seconds 
+INFO  synthesis.cimager (0) [2007-12-18 08:31:52,711] - user:   231.54 system: 536.97 real:   957.53
+INFO  synthesis.cimager (0) [2007-12-18 08:31:52,711] - *** Starting major cycle 2 ***
+INFO  conrad.synthesis (0) [2007-12-18 08:31:53,956] - Sent model to the workers via MPI in 1.25 seconds 
+INFO  conrad.synthesis (0) [2007-12-18 08:31:53,986] - Initialising solver
+INFO  conrad.synthesis (0) [2007-12-18 08:31:53,997] - Waiting for normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,751] - Received model from the master via MPI in 109.61 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,766] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,766] - Creating measurement equation
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,790] - TableVisGridder gridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,790] -    Total time gridding   = 197.29 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,790] -    Samples gridded       = 3.67488e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,790] -    Time per Sample       = 53686.1 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,790] -    Points gridded        = 1.74961e+10
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,791] -    Time per point        = 11.2762 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,801] - TableVisGridder degridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,801] -    Total time degridding = 107.25 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,801] -    Samples degridded     = 1.83744e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,801] -    Time per Sample       = 58369.3 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,801] -    Points degridded      = 8.74805e+09
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,801] -    Time per point        = 12.2599 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:31:56,864] - Initialising for model degridding and residual gridding
+INFO  conrad.synthesis (1) [2007-12-18 08:31:59,857] - Starting degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:32:00,494] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:32:09,479] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:32:13,806] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:32:22,716] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:37:27,092] - Finished degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:37:27,092] - Adding residual image, PSF, and weights image to the normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:37:33,124] - Calculated normal equations for 10uJy_stdtest.ms in 336.37 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:37:33,124] - Sending normal equations to the solver via MPI
+INFO  conrad.synthesis (1) [2007-12-18 08:37:35,692] - Sent normal equations to the solver via MPI in 2.57 seconds 
+INFO  synthesis.cimager (1) [2007-12-18 08:37:35,716] - user:   912.46 system: 195.34 real:   1298.11
+INFO  synthesis.cimager (1) [2007-12-18 08:37:35,717] - *** Starting major cycle 3 ***
+INFO  conrad.synthesis (1) [2007-12-18 08:37:35,717] - Receiving model from the master via MPI
+INFO  conrad.synthesis (0) [2007-12-18 08:37:33,808] - Received normal equations from prediffer 1 after 339.82 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:37:33,808] - Received normal equations from all prediffers via MPI in 339.82 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:37:33,823] - Solving normal equations
+INFO  conrad.synthesis (0) [2007-12-18 08:37:33,938] - Maximum of weights = 1.83744e+06
+INFO  conrad.synthesis (0) [2007-12-18 08:39:19,549] - Solved normal equations in 105.73 seconds 
+INFO  synthesis.cimager (0) [2007-12-18 08:39:19,549] - user:   354.49 system: 860.9 real:   1404.39
+INFO  synthesis.cimager (0) [2007-12-18 08:39:19,549] - *** Starting major cycle 3 ***
+INFO  conrad.synthesis (0) [2007-12-18 08:39:20,794] - Sent model to the workers via MPI in 1.25 seconds 
+INFO  conrad.synthesis (0) [2007-12-18 08:39:20,826] - Initialising solver
+INFO  conrad.synthesis (0) [2007-12-18 08:39:20,836] - Waiting for normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,557] - Received model from the master via MPI in 107.85 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,572] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,572] - Creating measurement equation
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,597] - TableVisGridder gridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,598] -    Total time gridding   = 197.18 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,598] -    Samples gridded       = 3.67488e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,598] -    Time per Sample       = 53656.2 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,598] -    Points gridded        = 1.74961e+10
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,598] -    Time per point        = 11.2699 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,609] - TableVisGridder degridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,610] -    Total time degridding = 107.37 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,610] -    Samples degridded     = 1.83744e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,610] -    Time per Sample       = 58434.6 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,610] -    Points degridded      = 8.74805e+09
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,610] -    Time per point        = 12.2736 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:39:23,674] - Initialising for model degridding and residual gridding
+INFO  conrad.synthesis (1) [2007-12-18 08:39:26,681] - Starting degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:39:27,318] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:39:36,369] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:39:40,707] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:39:49,734] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:44:54,319] - Finished degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:44:54,319] - Adding residual image, PSF, and weights image to the normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:45:00,356] - Calculated normal equations for 10uJy_stdtest.ms in 336.8 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:45:00,356] - Sending normal equations to the solver via MPI
+INFO  conrad.synthesis (1) [2007-12-18 08:45:02,929] - Sent normal equations to the solver via MPI in 2.57 seconds 
+INFO  synthesis.cimager (1) [2007-12-18 08:45:02,953] - user:   1262.5 system: 292.07 real:   1745.37
+INFO  synthesis.cimager (1) [2007-12-18 08:45:02,953] - *** Starting major cycle 4 ***
+INFO  conrad.synthesis (1) [2007-12-18 08:45:02,953] - Receiving model from the master via MPI
+INFO  conrad.synthesis (0) [2007-12-18 08:45:01,049] - Received normal equations from prediffer 1 after 340.23 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:45:01,049] - Received normal equations from all prediffers via MPI in 340.23 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:45:01,066] - Solving normal equations
+INFO  conrad.synthesis (0) [2007-12-18 08:45:01,182] - Maximum of weights = 1.83744e+06
+INFO  conrad.synthesis (0) [2007-12-18 08:46:43,941] - Solved normal equations in 102.88 seconds 
+INFO  synthesis.cimager (0) [2007-12-18 08:46:43,941] - user:   474.47 system: 1185.35 real:   1848.8
+INFO  synthesis.cimager (0) [2007-12-18 08:46:43,941] - *** Starting major cycle 4 ***
+INFO  conrad.synthesis (0) [2007-12-18 08:46:45,186] - Sent model to the workers via MPI in 1.25 seconds 
+INFO  conrad.synthesis (0) [2007-12-18 08:46:45,216] - Initialising solver
+INFO  conrad.synthesis (0) [2007-12-18 08:46:45,227] - Waiting for normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,954] - Received model from the master via MPI in 105 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,968] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,968] - Creating measurement equation
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,996] - TableVisGridder gridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,996] -    Total time gridding   = 197.26 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,996] -    Samples gridded       = 3.67488e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,996] -    Time per Sample       = 53677.9 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,996] -    Points gridded        = 1.74961e+10
+INFO  conrad.synthesis (1) [2007-12-18 08:46:47,996] -    Time per point        = 11.2745 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:46:48,007] - TableVisGridder degridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:46:48,007] -    Total time degridding = 107.51 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:46:48,007] -    Samples degridded     = 1.83744e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:46:48,007] -    Time per Sample       = 58510.8 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:46:48,007] -    Points degridded      = 8.74805e+09
+INFO  conrad.synthesis (1) [2007-12-18 08:46:48,007] -    Time per point        = 12.2896 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:46:48,075] - Initialising for model degridding and residual gridding
+INFO  conrad.synthesis (1) [2007-12-18 08:46:51,139] - Starting degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:46:51,782] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:47:00,929] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:47:05,278] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:47:14,449] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:52:18,987] - Finished degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:52:18,988] - Adding residual image, PSF, and weights image to the normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:52:25,074] - Calculated normal equations for 10uJy_stdtest.ms in 337.12 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:52:25,074] - Sending normal equations to the solver via MPI
+INFO  conrad.synthesis (1) [2007-12-18 08:52:27,661] - Sent normal equations to the solver via MPI in 2.58 seconds 
+INFO  synthesis.cimager (1) [2007-12-18 08:52:27,686] - user:   1611.93 system: 386.92 real:   2190.12
+INFO  synthesis.cimager (1) [2007-12-18 08:52:27,686] - *** Finished major cycles ***
+INFO  conrad.synthesis (1) [2007-12-18 08:52:27,686] - Receiving model from the master via MPI
+INFO  conrad.synthesis (0) [2007-12-18 08:52:25,782] - Received normal equations from prediffer 1 after 340.57 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:52:25,783] - Received normal equations from all prediffers via MPI in 340.57 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:52:25,798] - Solving normal equations
+INFO  conrad.synthesis (0) [2007-12-18 08:52:25,913] - Maximum of weights = 1.83744e+06
+INFO  conrad.synthesis (0) [2007-12-18 08:54:09,721] - Solved normal equations in 103.92 seconds 
+INFO  synthesis.cimager (0) [2007-12-18 08:54:09,721] - user:   595.95 system: 1509.7 real:   2294.6
+INFO  synthesis.cimager (0) [2007-12-18 08:54:09,721] - *** Finished major cycles ***
+INFO  conrad.synthesis (0) [2007-12-18 08:54:10,968] - Sent model to the workers via MPI in 1.25 seconds 
+INFO  conrad.synthesis (0) [2007-12-18 08:54:10,999] - Initialising solver
+INFO  conrad.synthesis (0) [2007-12-18 08:54:11,009] - Waiting for normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,733] - Received model from the master via MPI in 106.05 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,747] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,747] - Creating measurement equation
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,772] - TableVisGridder gridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,772] -    Total time gridding   = 197.33 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,772] -    Samples gridded       = 3.67488e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,772] -    Time per Sample       = 53697 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,772] -    Points gridded        = 1.74961e+10
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,772] -    Time per point        = 11.2785 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,783] - TableVisGridder degridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,784] -    Total time degridding = 107.39 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,784] -    Samples degridded     = 1.83744e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,784] -    Time per Sample       = 58445.4 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,784] -    Points degridded      = 8.74805e+09
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,784] -    Time per point        = 12.2759 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:54:13,848] - Initialising for model degridding and residual gridding
+INFO  conrad.synthesis (1) [2007-12-18 08:54:16,916] - Starting degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:54:17,554] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:54:26,639] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:54:30,982] - Convolution function support = 34 pixels, convolution function size = 560 pixels
+INFO  conrad.synthesis (1) [2007-12-18 08:54:40,003] - Shape of convolution function = [560, 560] by 33 planes
+INFO  conrad.synthesis (1) [2007-12-18 08:59:44,260] - Finished degridding model and gridding residuals
+INFO  conrad.synthesis (1) [2007-12-18 08:59:44,260] - Adding residual image, PSF, and weights image to the normal equations
+INFO  conrad.synthesis (1) [2007-12-18 08:59:50,343] - Calculated normal equations for 10uJy_stdtest.ms in 336.61 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:59:50,343] - Sending normal equations to the solver via MPI
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,905] - Sent normal equations to the solver via MPI in 2.56 seconds 
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,969] - TableVisGridder gridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,969] -    Total time gridding   = 197.03 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,969] -    Samples gridded       = 3.67488e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,969] -    Time per Sample       = 53615.4 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,969] -    Points gridded        = 1.74961e+10
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,969] -    Time per point        = 11.2614 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,980] - TableVisGridder degridding statistics
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,980] -    Total time degridding = 107.49 (s)
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,980] -    Samples degridded     = 1.83744e+06
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,980] -    Time per Sample       = 58499.9 (ns)
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,980] -    Points degridded      = 8.74805e+09
+INFO  conrad.synthesis (1) [2007-12-18 08:59:52,980] -    Time per point        = 12.2873 (ns)
+INFO  conradparallel.conradparallel (1) [2007-12-18 08:59:53,010] - Exiting MPI
+INFO  conrad.synthesis (0) [2007-12-18 08:59:51,023] - Received normal equations from prediffer 1 after 340.03 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:59:51,024] - Received normal equations from all prediffers via MPI in 340.03 seconds
+INFO  conrad.synthesis (0) [2007-12-18 08:59:51,039] - Writing out results as CASA images
+INFO  conrad.synthesis (0) [2007-12-18 08:59:51,039] - Saving image.i.10uJy_stdtest with name image.i.10uJy_stdtest
+INFO  conrad.synthesis (0) [2007-12-18 08:59:51,972] - Saving psf.i.10uJy_stdtest with name psf.i.10uJy_stdtest
+INFO  conrad.synthesis (0) [2007-12-18 08:59:53,040] - Saving weights.i.10uJy_stdtest with name weights.i.10uJy_stdtest
+INFO  conrad.synthesis (0) [2007-12-18 08:59:54,066] - Writing out restored images as CASA images
+INFO  conrad.synthesis (0) [2007-12-18 08:59:54,066] - Restoring image.i.10uJy_stdtest
+INFO  conrad.synthesis (0) [2007-12-18 08:59:54,090] - Maximum of weights = 1.83744e+06
+INFO  conrad.synthesis (0) [2007-12-18 08:59:56,207] - Saving restored image image.i.10uJy_stdtest with name image.i.10uJy_stdtest.restored
+INFO  conradparallel.conradparallel (0) [2007-12-18 08:59:57,135] - Exiting MPI
+INFO  synthesis.cimager (0) [2007-12-18 08:59:57,139] - Total times - user:   629.6 system: 1820.04 real:   2642.04
+INFO  synthesis.cimager (1) [2007-12-18 08:59:59,666] - Total times - user:   1959.75 system: 484.02 real:   2642.12
