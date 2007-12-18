@@ -26,7 +26,7 @@ namespace synthesis {
 /// derived iterators, which support a read/write access (e.g. for buffers 
 /// associated with visibility chunks).
 /// @ingroup dataaccess_i
-class IDataAccessor : public IConstDataAccessor
+class IDataAccessor : virtual public IConstDataAccessor
 {
 public:
 	

@@ -21,6 +21,7 @@
 
 // own includes
 #include <dataaccess/MetaDataAccessor.h>
+#include <dataaccess/IDataAccessor.h>
 
 
 namespace conrad {
@@ -44,7 +45,8 @@ namespace synthesis {
 /// both read-only and read-write visibility access methods (the buffer is
 /// resized automatically to match the cube provided by the accessor). 
 /// @ingroup dataaccess_hlp
-class MemBufferDataAccessor : virtual public MetaDataAccessor
+class MemBufferDataAccessor : virtual public MetaDataAccessor,
+                              virtual public IDataAccessor
 {
 public:
   /// construct an object linked with the given const accessor

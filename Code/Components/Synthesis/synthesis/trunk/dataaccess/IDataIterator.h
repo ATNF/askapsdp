@@ -39,7 +39,7 @@ namespace synthesis {
 /// in the situation when the iterators with different selection access
 /// the same buffer (this behavior is still TBD).
 /// @ingroup dataaccess_i
-class IDataIterator : public IConstDataIterator
+class IDataIterator : virtual public IConstDataIterator
 {
 public:
 	/// the type of the value pointed by this iterator

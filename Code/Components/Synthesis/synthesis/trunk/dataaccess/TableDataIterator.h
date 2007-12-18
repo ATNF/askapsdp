@@ -105,14 +105,6 @@ public:
 
   /// Restart the iteration from the beginning
   void init();
-
-  /// @brief Checks whether there are more data available.
-  /// @details
-  /// @return True if there are more data available
-  /// @note this method can be removed from this class
-  /// when we migrate to g++-4.1 and inheritance of
-  /// interfaces is made virtual.
-  virtual casa::Bool hasMore() const throw();
 	
   /// advance the iterator one step further 
   /// @return True if there are more data (so constructions like 

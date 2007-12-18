@@ -38,12 +38,9 @@ class TableDataIterator;
 /// methods of the iterator. To be able to return a persistent reference,
 /// the iterator must maintain a collection of these accessors, one for
 /// each buffer.
-/// @note conceptually, the class should be derived from MetaDataAccessor and
-/// IDataAccessor and MetaDataAccessor should be derived from IConstDataAccessor
-/// rather then from IDataAccessor. However, the correct approach requires
-/// a virtual inheritance from all interfaces and it won't work with g++-3.3
 /// @ingroup dataaccess_tab
-class TableBufferDataAccessor : virtual public MetaDataAccessor
+class TableBufferDataAccessor : virtual public MetaDataAccessor,
+                                virtual public IDataAccessor
 {
 public:
   /// construct an object linked with the given const accessor and

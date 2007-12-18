@@ -18,6 +18,7 @@
 // own includes
 #include <dataaccess/TableDataIterator.h>
 #include <dataaccess/MetaDataAccessor.h>
+#include <dataaccess/IDataAccessor.h>
 
 namespace conrad {
 	
@@ -43,12 +44,9 @@ class TableDataIterator;
 /// are not supported by this class. It is not trivial and probably we don't 
 /// even have a use case in CONRAD to support such operations. 
 ///
-/// @note conceptually, the class should be derived from MetaDataAccessor and
-/// IDataAccessor, and MetaDataAccessor should be derived from IConstDataAccessor
-/// rather then from IDataAccessor. However, the correct approach requires
-/// a virtual inheritance from all interfaces and it won't work with g++-3.3
 /// @ingroup dataaccess_tab
-class TableDataAccessor : virtual public MetaDataAccessor
+class TableDataAccessor : virtual public MetaDataAccessor,
+                          virtual public IDataAccessor
 {
 public:
   /// construct an object linked with the given read-write iterator

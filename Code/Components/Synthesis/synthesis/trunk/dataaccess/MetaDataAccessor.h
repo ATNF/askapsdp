@@ -25,7 +25,7 @@
 #include <boost/shared_ptr.hpp>
 
 // own includes
-#include <dataaccess/IDataAccessor.h>
+#include <dataaccess/IConstDataAccessor.h>
 
 
 namespace conrad {
@@ -48,10 +48,8 @@ namespace synthesis {
 /// read-write accessor to original data.
 /// @note an alternative approach is to split out all code managing metadata
 /// into a separate class and to hold it in a shared pointer.
-/// Conceptually, this class has to be derived from IConstDataAccessor.
-/// However, it would cause problems with g++-3.3 later. 
 /// @ingroup dataaccess_hlp
-class MetaDataAccessor : virtual public IDataAccessor
+class MetaDataAccessor : virtual public IConstDataAccessor
 {
 public:
   /// construct an object linked with the given const accessor

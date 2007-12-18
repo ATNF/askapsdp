@@ -19,7 +19,7 @@ namespace synthesis {
 
 /// @brief An iterator stub to work in pair with DataAccessorStub
 /// @ingroup dataaccess_hlp
-class DataIteratorStub : public IDataIterator
+class DataIteratorStub : virtual public IDataIterator
 {
 public:
         /// initialize stubbed iterator,
