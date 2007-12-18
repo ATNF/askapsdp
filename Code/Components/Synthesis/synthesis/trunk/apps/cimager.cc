@@ -36,19 +36,19 @@ using namespace LOFAR::ACC::APS;
 
 // Move to Conrad Util
 std::string getInputs(const std::string& key, const std::string& def, int argc,
-    const char** argv)
+		      const char** argv)
 {
   if (argc>2)
-  {
-    for (int arg=0; arg<(argc-1); arg++)
     {
-      std::string argument=string(argv[arg]);
-      if (argument==key)
-      {
-        return string(argv[arg+1]);
-      }
+      for (int arg=0; arg<(argc-1); arg++)
+	{
+	  std::string argument=string(argv[arg]);
+	  if (argument==key)
+	    {
+	      return string(argv[arg+1]);
+	    }
+	}
     }
-  }
   return def;
 }
 
@@ -56,71 +56,79 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 int main(int argc, const char** argv)
 {
   try
-  {
-
-    casa::Timer timer;
-
-    timer.mark();
-
-    std::string parsetFile(getInputs("-inputs", "cimager.in", argc, argv));
-
-    ParameterSet parset(parsetFile);
-    ParameterSet subset(parset.makeSubset("Cimager."));
-
-    ImagerParallel imager(argc, argv, subset);
-    CONRADLOG_INIT("cimager.log_cfg");
-
-    CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
-
-    int nCycles=subset.getInt32("ncycles", 0);
-    if(nCycles==0)
     {
-      /// No cycling - just make a dirty image
-      imager.broadcastModel();
-      imager.receiveModel();
-      imager.calcNE();
-      imager.solveNE();
-    }
-    else
-    {
-      /// Perform multiple major cycles
-      for (int cycle=0;cycle<nCycles;cycle++)
+      
+      casa::Timer timer;
+      
+      timer.mark();
+      
+      // Put everything in scope to ensure that all destructors are called 
+      // before the final message
       {
-        CONRADLOG_INFO_STR(logger,  "*** Starting major cycle " << cycle << " ***" );
-        imager.broadcastModel();
-        imager.receiveModel();
-        imager.calcNE();
-        imager.solveNE();
-
-        CONRADLOG_INFO_STR(logger,  "user:   " << timer.user () << " system: " << timer.system ()
-                            <<" real:   " << timer.real () );
+	std::string parsetFile(getInputs("-inputs", "cimager.in", argc, argv));
+	
+	ParameterSet parset(parsetFile);
+	ParameterSet subset(parset.makeSubset("Cimager."));
+	
+	ImagerParallel imager(argc, argv, subset);
+	CONRADLOG_INIT("cimager.log_cfg");
+	
+	CONRADLOG_INFO_STR(logger, "CONRAD synthesis imager " << CONRAD_PACKAGE_VERSION);
+	
+	CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
+	
+	CONRADLOG_INFO_STR(logger,  parset);
+	
+	int nCycles=subset.getInt32("ncycles", 0);
+	if(nCycles==0)
+	  {
+	    /// No cycling - just make a dirty image
+	    imager.broadcastModel();
+	    imager.receiveModel();
+	    imager.calcNE();
+	    imager.solveNE();
+	  }
+	else
+	  {
+	    /// Perform multiple major cycles
+	    for (int cycle=0;cycle<nCycles;cycle++)
+	      {
+		CONRADLOG_INFO_STR(logger,  "*** Starting major cycle " << cycle << " ***" );
+		imager.broadcastModel();
+		imager.receiveModel();
+		imager.calcNE();
+		imager.solveNE();
+		
+		CONRADLOG_INFO_STR(logger,  "user:   " << timer.user () << " system: " << timer.system ()
+				   <<" real:   " << timer.real () );
+	      }
+	    CONRADLOG_INFO_STR(logger,  "*** Finished major cycles ***" );
+	    imager.broadcastModel();
+	    imager.receiveModel();
+	    imager.calcNE();
+	    imager.receiveNE();
+	  }
+	
+	/// This is the final step - restore the image and write it out
+	imager.writeModel();
       }
-      CONRADLOG_INFO_STR(logger,  "*** Finished major cycles ***" );
-      imager.broadcastModel();
-      imager.receiveModel();
-      imager.calcNE();
-      imager.receiveNE();
+      CONRADLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
+			 <<" real:   " << timer.real () );
+      
+      ///==============================================================================
     }
-
-    /// This is the final step - restore the image and write it out
-    imager.writeModel();
-    CONRADLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
-		       <<" real:   " << timer.real () );
-
-    ///==============================================================================
-  }
   catch (conrad::ConradError& x)
-  {
-    CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
-    std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  }
+    {
+      CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
+      std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
+      exit(1);
+    }
   catch (std::exception& x)
-  {
-    CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-    std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  }
+    {
+      CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+      std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+      exit(1);
+    }
   exit(0);
 }
 
