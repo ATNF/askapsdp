@@ -26,12 +26,14 @@ using namespace conrad::synthesis;
 /// @param[in] fname file name of the measurement set to use
 /// @param[in] opt, options from TableDataSourceOptions, can be or'ed
 /// removed, if it already exists.   
+/// @param[in] dataColumn a name of the data column used by default
+///                       (default is DATA)
 TableDataSource::TableDataSource(const std::string &fname,
-                int opt) :
+                int opt, const std::string &dataColumn) :
          TableInfoAccessor(casa::Table(fname, (opt & MEMORY_BUFFERS) && 
 				  !(opt & REMOVE_BUFFERS) && !(opt & WRITE_PERMITTED) ? 
 				      casa::Table::Old : casa::Table::Update),
-						opt & MEMORY_BUFFERS)
+						opt & MEMORY_BUFFERS, dataColumn)
 {
   if (opt & REMOVE_BUFFERS) {
       if (table().keywordSet().isDefined("BUFFERS")) {

@@ -42,6 +42,9 @@ struct ITableInfoAccessor : virtual public ITableHolder {
   virtual const boost::shared_ptr<ITableManager const>&
                         getTableManager() const throw() = 0;
 
+  /// @return a reference to IMiscTableInfoHolder
+  virtual const IMiscTableInfoHolder& miscTableInfo() const = 0;
+
 };
 
 } // namespace synthesis

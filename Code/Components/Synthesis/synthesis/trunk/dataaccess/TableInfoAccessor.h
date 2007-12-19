@@ -52,13 +52,18 @@ struct TableInfoAccessor : virtual public ITableInfoAccessor {
   /// @param tab a measurement set table to work with
   /// @param useMemBuffers if true, buffers in memory will be created
   /// instead of the disk-based buffers
-  TableInfoAccessor(const casa::Table &tab, bool useMemBuffers=false); 
+  /// @param[in] dataColumn a name of the data column used by default
+  TableInfoAccessor(const casa::Table &tab, bool useMemBuffers=false,
+                    const std::string &dataColumn = "DATA"); 
   
   /// @return a non-const reference to Table held by this object
   virtual casa::Table& table() const throw();
 
   /// @return a reference to ISubtableInfoHolder
   virtual const ISubtableInfoHolder& subtableInfo() const;
+  
+  /// @return a reference to IMiscTableInfoHolder
+  virtual const IMiscTableInfoHolder& miscTableInfo() const;
 
   /// @return a shared pointer on infoHolder
   virtual const boost::shared_ptr<ITableManager const>&

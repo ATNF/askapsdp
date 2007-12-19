@@ -25,10 +25,18 @@ using namespace casa;
 /// via a smart pointer 
 /// @param[in] msManager a shared pointer to the manager of the measurement set
 /// (a derivative of ISubtableInfoHolder)
-///
 TableDataSelector::TableDataSelector(const
        boost::shared_ptr<ITableManager const> &msManager) :
-       TableInfoAccessor(msManager) {}
+       TableInfoAccessor(msManager) 
+#ifndef CONRAD_DEBUG
+       ,itsDataColumnName(msManager->defaultDataColumnName()) 
+#endif       
+{
+  CONRADDEBUGASSERT(msManager);
+#ifdef CONRAD_DEBUG
+  itsDataColumnName = msManager->defaultDataColumnName();
+#endif 
+}
 
 /// Choose a time range. Both start and stop times are given via
 /// casa::MVEpoch object. The reference frame is specified by
@@ -132,5 +140,39 @@ void TableDataSelector::chooseVelocities(casa::uInt nChan,
 void TableDataSelector::choosePolarizations(const casa::String &pols)
 {
    throw DataAccessLogicError("not yet implemented");
+}
+
+/// @brief choose data column
+/// @details This method allows to choose any table column as the visibility
+/// data column (e.g. DATA, CORRECTED_DATA, etc). Because this is a
+/// table-specific operation, this method is defined in a table-specific
+/// selector interface and is not present in IDataSelector (therefore,
+/// a dynamic_pointer_cast is likely required).
+/// @param[in] dataColumn column name, which contains visibility data 
+void TableDataSelector::chooseDataColumn(const std::string &dataColumn)
+{
+   itsDataColumnName = dataColumn;
+}  
+
+/// @brief clone a selector
+/// @details The same selector can be used to create a number of iterators.
+/// Selector stores a name of the data column to use and, therefore, it can
+/// be changed after some iterators are created. To avoid bugs due to this
+/// reference semantics, the iterator will clone selector in its constructor.
+/// @note This functionality is not exposed to the end user, which
+/// normally interacts with the IDataSelector class only. This is because
+/// cloning is done at the low level (e.g. inside the iterator)
+boost::shared_ptr<ITableDataSelectorImpl const> TableDataSelector::clone() const
+{
+  return boost::shared_ptr<ITableDataSelectorImpl const>(new TableDataSelector(*this));
+}
+
+/// @brief obtain the name of data column
+/// @details This method returns the current name of the data column, set 
+/// either in the constructor or by the chooseDataColumn method
+/// @return the name of the data column
+const std::string& TableDataSelector::getDataColumnName() const throw() 
+{
+  return itsDataColumnName;
 }
 

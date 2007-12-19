@@ -37,10 +37,14 @@ class TableConstDataSource : virtual public IConstDataSource,
                              virtual protected TableInfoAccessor
 {
 public:
-  /// construct a read-only data source object
+  /// @brief construct a read-only data source object
+  /// @details All iterators obtained from this object will be read-only
+  /// iterators.
   /// @param[in] fname file name of the measurement set to use
-  ///
-  TableConstDataSource(const std::string &fname);
+  /// @param[in] dataColumn a name of the data column used by default
+  ///                       (default is DATA)
+  explicit TableConstDataSource(const std::string &fname, 
+                                const std::string &dataColumn = "DATA");
   
   /// create a converter object corresponding to this type of the
   /// DataSource. The user can change converting policies (units,

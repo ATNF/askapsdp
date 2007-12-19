@@ -13,6 +13,9 @@
 #ifndef TABLE_CONST_DATA_ITERATOR_H
 #define TABLE_CONST_DATA_ITERATOR_H
 
+// std includes
+#include <string>
+
 // boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -208,6 +211,14 @@ protected:
   /// accessor at this iteration
   inline casa::uInt getCurrentTopRow() const throw() {return itsCurrentTopRow;}
   
+  /// @brief obtain the name of the data column
+  /// @details The visibility data can be taken not only from the DATA column,
+  /// but from any other appropriate column, e.g. CORRECTED_DATA. This method
+  /// returns the name of the column used to store such data. We need it in
+  /// derived classes to perform writing
+  /// @return name of the table column with visibility data
+  const std::string& getDataColumnName() const throw();
+  
 private:
   /// accessor (a chunk of data) 
   /// although the accessor type can be different
@@ -236,7 +247,7 @@ private:
   
   /// internal buffer for pointing offsets for the whole current cache
   /// of the Feed subtable handler
-  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDirectionCache;
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDirectionCache;  
 };
 
 

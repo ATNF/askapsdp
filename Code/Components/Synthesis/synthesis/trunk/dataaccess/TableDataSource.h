@@ -44,8 +44,10 @@ public:
   /// construct a read-write data source object
   /// @param[in] fname file name of the measurement set to use
   /// @param[in] opt options from TableDataSourceOptions, can be or'ed
-  TableDataSource(const std::string &fname, int opt =
-                                            TableDataSource::DEFAULT);
+  /// @param[in] dataColumn a name of the data column used by default
+  ///                       (default is DATA)
+  explicit TableDataSource(const std::string &fname, int opt =
+              TableDataSource::DEFAULT, const std::string &dataColumn = "DATA");
 
   /// @brief obtain a read/write iterator
   /// @details 

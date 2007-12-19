@@ -34,22 +34,28 @@ using namespace conrad::synthesis;
 /// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector
 /// @param[in] conv shared pointer to converter
+/// @param[in] dataColumn column name, which contains visibility data 
+///                       default is DATA, but can be, e.g., CORRECTED_DATA
 /// @param[in] maxChunkSize maximum number of rows per accessor
 TableConstDataIterator::TableConstDataIterator(
             const boost::shared_ptr<ITableManager const> &msManager,
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
-	    casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
-	    itsAccessor(*this), itsSelector(sel),
-#ifndef CONRAD_DEBUG	     
+            casa::uInt maxChunkSize) : 
+        TableInfoAccessor(msManager),
+	    itsAccessor(*this),
+#ifndef CONRAD_DEBUG	    
+        itsSelector(sel->clone()), 
 	    itsConverter(conv->clone()),
 #endif 
 	    itsMaxChunkSize(maxChunkSize)
 	   
 { 
   CONRADDEBUGASSERT(conv);
+  CONRADDEBUGASSERT(sel);
   #ifdef CONRAD_DEBUG
     itsConverter = conv->clone();
+    itsSelector  = sel->clone();
   #endif
   init();
 }
@@ -156,7 +162,7 @@ void TableConstDataIterator::setUpIteration()
 }
 
 /// @brief method ensures that the chunk has uniform DATA_DESC_ID
-/// @details This method reduces itsNumberOfRows to the achieve
+/// @details This method reduces itsNumberOfRows to achieve
 /// uniform DATA_DESC_ID reading for all rows in the current chunk.
 /// The resulting itsNumberOfRows will be 1 or more.
 /// theirAccessor's spectral axis cache is reset if new DATA_DESC_ID is
@@ -188,7 +194,7 @@ void TableConstDataIterator::makeUniformDataDescID()
       }
       
       // determine the shape of the visibility cube
-      ROArrayColumn<Complex> visCol(itsCurrentIteration,"DATA");
+      ROArrayColumn<Complex> visCol(itsCurrentIteration,getDataColumnName());
       const casa::IPosition &shape=visCol.shape(itsCurrentTopRow);
       CONRADASSERT(shape.size() && (shape.size()<3));
       itsNumberOfPols=shape[0];
@@ -210,7 +216,7 @@ void TableConstDataIterator::makeUniformDataDescID()
 void TableConstDataIterator::fillVisibility(casa::Cube<casa::Complex> &vis) const
 {
   vis.resize(itsNumberOfRows,itsNumberOfChannels,itsNumberOfPols);
-  ROArrayColumn<Complex> visCol(itsCurrentIteration,"DATA");
+  ROArrayColumn<Complex> visCol(itsCurrentIteration,getDataColumnName());
   // temporary buffer and position in this buffer, declared outside the loop
   IPosition curPos(2,itsNumberOfPols,itsNumberOfChannels);
   Array<Complex> buf(curPos);
@@ -549,4 +555,16 @@ void TableConstDataIterator::fillVectorOfPointings(
        CONRADDEBUGASSERT(index < directionCache.nelements());             
        dirs[row]=directionCache[index];             
   }                    
+}
+
+/// @brief obtain the name of the data column
+/// @details The visibility data can be taken not only from the DATA column,
+/// but from any other appropriate column, e.g. CORRECTED_DATA. This method
+/// returns the name of the column used to store such data. We need it in
+/// derived classes to perform writing
+/// @return name of the table column with visibility data
+const std::string& TableConstDataIterator::getDataColumnName() const throw() 
+{ 
+  CONRADDEBUGASSERT(itsSelector);
+  return itsSelector->getDataColumnName();
 }

@@ -34,7 +34,11 @@ namespace synthesis {
 
 /// @brief an adapter to use stl functions with maps.
 /// @details
-/// can be moved in its own file, if found useful in other parts of the code
+/// STL provides adapters to use pointers to member functions as an object
+/// function. However, they won't work with maps, because map has an iterator
+/// returning a pair rather than the value itself. This adapter implements the
+/// same thing as one of the mem_fun STL adapters, but for maps.
+/// It can be moved in its own file, if found useful in other parts of the code
 /// @ingroup dataaccess_hlp
 template<typename X>
 struct MapMemFun : public std::unary_function<X*, void> {
@@ -76,8 +80,9 @@ TableDataIterator::TableDataIterator(
             const boost::shared_ptr<ITableManager const> &msManager,
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
-            casa::uInt maxChunkSize) : TableInfoAccessor(msManager),
-              TableConstDataIterator(msManager,sel,conv,maxChunkSize),
+            casa::uInt maxChunkSize) : 
+         TableInfoAccessor(msManager),
+           TableConstDataIterator(msManager,sel,conv,maxChunkSize),
 	      itsOriginalVisAccessor(new TableDataAccessor(*this)),
 	      itsIterationCounter(0)
 {
@@ -258,7 +263,7 @@ void TableDataIterator::writeOriginalVis() const
   CONRADASSERT(originalVis.nrow() == nRow() &&
                originalVis.ncolumn() == nChannel() &&
                originalVis.nplane() == nPol());
-  casa::ArrayColumn<casa::Complex> visCol(getCurrentIteration(), "DATA");
+  casa::ArrayColumn<casa::Complex> visCol(getCurrentIteration(), getDataColumnName());
   CONRADDEBUGASSERT(getCurrentIteration().nrow() >= getCurrentTopRow()+
                     nRow());
   casa::uInt tableRow = getCurrentTopRow();

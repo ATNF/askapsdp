@@ -22,11 +22,15 @@ using namespace conrad;
 using namespace conrad::synthesis;
 using namespace casa;
 
-/// construct a read-only data source object
+/// @brief construct a read-only data source object
+/// @details All iterators obtained from this object will be read-only
+/// iterators.
 /// @param[in] fname file name of the measurement set to use
-///
-TableConstDataSource::TableConstDataSource(const std::string &fname) :
-         TableInfoAccessor(casa::Table(fname)) {}
+/// @param[in] dataColumn a name of the data column used by default
+///                       (default is DATA)
+TableConstDataSource::TableConstDataSource(const std::string &fname,
+               const std::string &dataColumn) :
+         TableInfoAccessor(casa::Table(fname), false, dataColumn) {}
 
 /// construct a part of the read only object for use in the
 /// derived classes

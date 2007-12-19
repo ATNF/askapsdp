@@ -12,8 +12,10 @@
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/TableManager.h>
 #include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+
+// logging is not yet used in this file
+//#include <conrad/ConradLogging.h>
+//CONRAD_LOGGER(logger, "");
 
 #include <conrad/ConradError.h>
 
@@ -37,9 +39,11 @@ TableInfoAccessor::TableInfoAccessor(const
 /// @param tab a measurement set table to work with
 /// @param useMemBuffers if true, buffers in memory will be created
 /// instead of the disk-based buffers
+/// @param[in] dataColumn a name of the data column used by default
+///                       (default is DATA)
 TableInfoAccessor::TableInfoAccessor(const casa::Table &tab, 
-                  bool useMemBuffer) :
-        itsTableManager(new TableManager(tab,useMemBuffer)) {}
+                  bool useMemBuffer, const std::string &dataColumn) :
+        itsTableManager(new TableManager(tab,useMemBuffer,dataColumn)) {}
 
 
 /// @return a non-const reference to Table held by this object
@@ -55,6 +59,14 @@ const ISubtableInfoHolder& TableInfoAccessor::subtableInfo() const
   CONRADDEBUGASSERT(itsTableManager);
   return *itsTableManager;
 }
+
+/// @return a reference to IMiscTableInfoHolder
+const IMiscTableInfoHolder& TableInfoAccessor::miscTableInfo() const
+{
+  CONRADDEBUGASSERT(itsTableManager);
+  return *itsTableManager;
+}
+
 
 /// @return a shared pointer on infoHolder
 const boost::shared_ptr<ITableManager const>& 
