@@ -169,7 +169,7 @@ namespace conrad
             x2*=x2;
             float r2=x2+y2;
             float phase=w*(1.0-sqrt(1.0-r2));
-            float wt=ccfx(iy)*ccfy(ix);
+            float wt=ccfx(ix)*ccfy(iy);
             thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(
                 wt*cos(phase), -wt*sin(phase));
           }

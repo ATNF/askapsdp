@@ -237,7 +237,7 @@ namespace conrad
                 double r2=x2+y2;
                 double phase=w*(1.0-sqrt(1.0-r2));
                 casa::Complex wt=disk(ix, iy)*conj(disk(ix, iy))
-                    *casa::Complex(ccfx(iy)*ccfy(ix));
+                    *casa::Complex(ccfx(ix)*ccfy(iy));
                 thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(
                     cos(phase), -sin(phase));
                 maxCF+=casa::abs(wt);
