@@ -24,6 +24,8 @@
 
 #ifdef __APPLE_CC__
 #include <vecLib/cblas.h>
+#else
+#include <cblas.h>
 #endif
 
 #endif
