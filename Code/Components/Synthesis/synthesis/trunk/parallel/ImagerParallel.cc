@@ -16,7 +16,7 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+CONRAD_LOGGER(logger, ".measurementequation");
 
 #include <conrad/ConradError.h>
 #include <conrad_synthesis.h>
@@ -61,13 +61,15 @@ namespace conrad
       {
         itsRestore=itsParset.getBool("restore", true);
 
-        itsQbeam.resize(3);
-        vector<string> beam=itsParset.getStringVector("restore.beam");
-        CONRADCHECK(beam.size()==3, "Need three elements for beam");
-        for (int i=0; i<3; i++)
-        {
-          casa::Quantity::read(itsQbeam(i), beam[i]);
-        }
+	if(itsRestore) {
+	  itsQbeam.resize(3);
+	  vector<string> beam=itsParset.getStringVector("restore.beam");
+	  CONRADCHECK(beam.size()==3, "Need three elements for beam");
+	  for (int i=0; i<3; i++)
+	    {
+	      casa::Quantity::read(itsQbeam(i), beam[i]);
+	    }
+	}
 
         /// Create the specified images from the definition in the
         /// parameter set. We can solve for any number of images

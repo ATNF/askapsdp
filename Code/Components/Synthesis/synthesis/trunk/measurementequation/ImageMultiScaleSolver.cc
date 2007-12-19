@@ -2,7 +2,7 @@
 
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+CONRAD_LOGGER(logger, ".measurementequation");
 
 #include <conrad/ConradError.h>
 

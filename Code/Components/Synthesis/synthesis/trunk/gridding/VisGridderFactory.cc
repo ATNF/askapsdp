@@ -1,6 +1,6 @@
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+CONRAD_LOGGER(logger, ".gridding");
 
 #include <conrad/ConradError.h>
 #include <gridding/VisGridderFactory.h>
