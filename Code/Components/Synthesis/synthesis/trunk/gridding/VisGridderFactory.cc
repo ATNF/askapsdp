@@ -33,7 +33,7 @@ namespace conrad
       if (parset.getString("gridder")=="WProject")
       {
         double wmax=parset.getDouble("gridder.WProject.wmax", 35000.0);
-        int nwplanes=parset.getInt32("gridder.WProject.nwplanes", 64);
+        int nwplanes=parset.getInt32("gridder.WProject.nwplanes", 65);
         double cutoff=parset.getDouble("gridder.WProject.cutoff", 1e-3);
         int oversample=parset.getInt32("gridder.WProject.oversample", 8);
         int maxSupport=parset.getInt32("gridder.WProject.maxsupport", 256);
@@ -45,7 +45,7 @@ namespace conrad
       else if (parset.getString("gridder")=="WStack")
       {
         double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
-        int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 64);
+        int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 65);
         CONRADLOG_INFO_STR(logger, "Gridding using W stacking ");
         gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
       }
