@@ -96,8 +96,6 @@ namespace conrad
 			public:
 
 				/// @brief Constructor from ParameterSet
-				/// @details The parset is used to construct the internal state. We could
-				/// also support construction from a python dictionary (for example).
 				/// The command line inputs are needed solely for MPI - currently no
 				/// application specific information is passed on the command line.
 				/// @param argc Number of command line inputs
@@ -107,6 +105,11 @@ namespace conrad
 				    const LOFAR::ACC::APS::ParameterSet& parset);
 
 				~SimParallel();
+
+				/// @brief Initialize simulator
+				/// @details The parset is used to construct the internal state. We could
+				/// also support construction from a python dictionary (for example).
+				void init();
 
 				/// @brief Perform simulation, writing result to disk at the end
 				/// @details The measurement set is constructed but not filled with data.
@@ -126,8 +129,11 @@ namespace conrad
 				/// Read the telescope info from the parset specified in the main parset
 				void readAntennas();
 
-				/// Read the sources from the parset file
+				/// Read the sources from the parset file (Worker only)
 				void readSources();
+
+				/// Read the models from the parset file (Master only)
+				void readModels();
 
 				/// Read the spectral window definitions
 				void readSpws();

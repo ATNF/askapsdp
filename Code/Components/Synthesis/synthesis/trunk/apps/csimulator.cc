@@ -57,11 +57,13 @@ int main(int argc, const char** argv)
 	
 	SimParallel sim(argc, argv, subset);
 	CONRADLOG_INIT("csimulator.log_cfg");
-	
+
 	CONRADLOG_INFO_STR(logger, "CONRAD synthesis simulator " << CONRAD_PACKAGE_VERSION);
 	
 	CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
 	CONRADLOG_INFO_STR(logger,  parset);
+	
+	sim.init();
 	
 	sim.simulate();
       }
