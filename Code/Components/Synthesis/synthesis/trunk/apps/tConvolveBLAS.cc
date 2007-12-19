@@ -22,6 +22,9 @@
 
 #ifdef USEBLAS
 
+#define CAXPY cblas_caxpy
+#define CDOTU_SUB cblas_cdotu_sub
+
 #ifdef __APPLE_CC__
 #include <vecLib/cblas.h>
 #else
@@ -79,7 +82,7 @@ void gridKernel(const std::vector<Value>& data, const int support,
     for (int suppv=0; suppv<sSize; suppv++)
     {
 #ifdef USEBLAS
-      cblas_caxpy(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
+      CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
 #else
       Value* gptr=&grid[gind];
       const Value* cptr=&C[cind];
@@ -120,7 +123,7 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
     {
 #ifdef USEBLAS
       Value dot;
-      cblas_cdotu_sub(sSize, &grid[gind], 1, &C[cind], 1, &dot);
+      CDOTU_SUB(sSize, &grid[gind], 1, &C[cind], 1, &dot);
       data[dind]+=dot;
 #else
       Value* d=&data[dind];
