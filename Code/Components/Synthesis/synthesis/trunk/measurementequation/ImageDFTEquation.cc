@@ -72,6 +72,13 @@ namespace conrad
       ip.add("image");
       return ip;
     }
+    
+    /// Clone this into a shared pointer
+    /// @return shared pointer to a copy
+    ImageDFTEquation::ShPtr ImageDFTEquation::clone() const
+    {
+      return ImageDFTEquation::ShPtr(new ImageDFTEquation(*this));
+    }
 
     void ImageDFTEquation::predict()
     {

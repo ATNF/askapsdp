@@ -110,8 +110,8 @@ namespace conrad
 /// @param ip Parameters
         virtual void setParameters(const Params& ip);
 
-/// Predict the data from the parameters. This changes the internal state.
-        virtual void predict() {};
+/// Predict the data from the parameters.
+        virtual void predict() {} ;
 
 /// Calculate the normal equations for the given data and parameters
 /// @param ne Normal equations to be filled
@@ -121,7 +121,8 @@ namespace conrad
         typedef boost::shared_ptr<Equation> ShPtr;
 
 /// Clone this into a shared pointer
-        virtual Equation::ShPtr clone() const;
+/// @return shared pointer to a copy
+        virtual Equation::ShPtr clone() const = 0;
     protected:
       /// @brief non-const reference to paramters
       /// @details Due to caching, derived classes may need to know when

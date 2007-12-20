@@ -47,7 +47,7 @@ namespace conrad
         virtual void calcEquations(INormalEquations& ne);
 
 /// Clone this
-        virtual CompositeEquation::ShPtr clone();
+        virtual CompositeEquation::ShPtr clone() const;
 
 /// @brief Add an equation to the composite
 ///

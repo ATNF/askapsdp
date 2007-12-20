@@ -88,6 +88,10 @@ public:
   /// @param[in] ne Normal equations
   virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne);
   
+  /// Clone this into a shared pointer
+  /// @return shared pointer to a copy
+  virtual GainCalibrationEquation::ShPtr clone() const;
+  
 protected:
   
   /// @brief obtain a name of the parameter

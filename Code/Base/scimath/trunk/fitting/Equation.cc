@@ -58,11 +58,6 @@ namespace conrad
     {
        return itsParams;
     }
-    
-    Equation::ShPtr Equation::clone() const
-    {
-      return Equation::ShPtr(new Equation(*this));
-    }
 
   }
 

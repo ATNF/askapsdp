@@ -98,6 +98,14 @@ namespace conrad
     void ImageFFTEquation::init()
     {
     }
+    
+    /// Clone this into a shared pointer
+    /// @return shared pointer to a copy
+    ImageFFTEquation::ShPtr ImageFFTEquation::clone() const
+    {
+      return ImageFFTEquation::ShPtr(new ImageFFTEquation(*this));
+    }
+    
 
     void ImageFFTEquation::predict()
     {

@@ -97,6 +97,9 @@ namespace conrad
         /// @param[in] ne Normal equations
         virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne);
         
+        /// Clone this into a shared pointer
+        /// @return shared pointer to a copy
+        virtual ComponentEquation::ShPtr clone() const;
         
       private:
         /// Initialize this object

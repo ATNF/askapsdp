@@ -80,6 +80,10 @@ namespace conrad
 /// @param ne Normal equations
         virtual void calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne);
 
+        /// Clone this into a shared pointer
+        /// @return shared pointer to a copy
+        virtual ImageFFTEquation::ShPtr clone() const;
+
       private:
       
       /// Pointer to prototype gridder

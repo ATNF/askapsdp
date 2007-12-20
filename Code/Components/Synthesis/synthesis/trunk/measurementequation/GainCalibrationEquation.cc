@@ -286,3 +286,10 @@ void GainCalibrationEquation::calcGenericEquations(conrad::scimath::GenericNorma
   MultiChunkEquation::calcGenericEquations(ne);
 }
 
+/// Clone this into a shared pointer
+/// @return shared pointer to a copy
+GainCalibrationEquation::ShPtr GainCalibrationEquation::clone() const
+{
+  return GainCalibrationEquation::ShPtr(new GainCalibrationEquation(*this));
+}
+

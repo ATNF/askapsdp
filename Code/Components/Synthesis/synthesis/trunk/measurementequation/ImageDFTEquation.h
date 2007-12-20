@@ -62,6 +62,11 @@ namespace conrad
 /// @param ne Normal equations
         virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne);
 
+        /// Clone this into a shared pointer
+        /// @return shared pointer to a copy
+        virtual ImageDFTEquation::ShPtr clone() const;
+      
+
       private:
       /// Iterator giving access to the visibility data
         IDataSharedIter itsIdi;

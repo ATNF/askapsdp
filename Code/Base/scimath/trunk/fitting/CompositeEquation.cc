@@ -63,7 +63,7 @@ namespace conrad
       itsList.push_back(eq.clone());
     }
 
-    Equation::ShPtr CompositeEquation::clone()
+    Equation::ShPtr CompositeEquation::clone() const
     {
       return Equation::ShPtr(new CompositeEquation(*this));
     }

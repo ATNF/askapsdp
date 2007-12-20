@@ -374,6 +374,14 @@ void ComponentEquation::calcGenericEquations(conrad::scimath::GenericNormalEquat
   MultiChunkEquation::calcGenericEquations(ne);
 }
 
+/// Clone this into a shared pointer
+/// @return shared pointer to a copy
+ComponentEquation::ShPtr ComponentEquation::clone() const
+{
+  return ComponentEquation::ShPtr(new ComponentEquation(*this));
+}
+
+
 } // namespace synthesis
 
 } // namespace conrad
