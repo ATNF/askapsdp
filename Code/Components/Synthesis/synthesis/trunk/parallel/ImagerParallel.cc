@@ -84,7 +84,8 @@ namespace conrad
       }
       if (isWorker())
       {
-        /// Get the list of measurement sets
+        /// Get the list of measurement sets and the column to use.
+        itsColName=itsParset.getString("datacolumn", "DATA");
         itsMs=itsParset.getStringVector("dataset");
         CONRADCHECK(itsMs.size()>0, "Need dataset specification");
         if (itsMs.size()==1)
@@ -121,7 +122,7 @@ namespace conrad
       if ((!itsEquation)||discard)
       {
         CONRADLOG_INFO_STR(logger, "Creating measurement equation" );
-        TableDataSource ds(ms);
+        TableDataSource ds(ms, TableDataSource::DEFAULT, itsColName);
         IDataSelectorPtr sel=ds.createSelector();
         sel << itsParset;
         IDataConverterPtr conv=ds.createConverter();

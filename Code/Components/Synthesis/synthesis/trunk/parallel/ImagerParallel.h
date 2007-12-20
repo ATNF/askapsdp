@@ -27,6 +27,7 @@ namespace conrad
     ///
     /// The control parameters are specified in a parset file. For example:
     /// @code
+    ///  	Cimager.datacolumnset           = DATACOL     # default is DATA
     ///  	Cimager.dataset                 = [data/spw_1/sim.ms]
     ///  	#Feed                           = 5
     ///
@@ -110,6 +111,9 @@ namespace conrad
 
       /// Do we want a restored image?
       bool itsRestore;
+
+      /// Name of data column to use.
+      string itsColName;
 
       /// Names of measurement sets, one per prediffer
       vector<string> itsMs;
