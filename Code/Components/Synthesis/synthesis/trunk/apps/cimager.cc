@@ -75,9 +75,10 @@ int main(int argc, const char** argv)
 	
 	CONRADLOG_INFO_STR(logger, "CONRAD synthesis imager " << CONRAD_PACKAGE_VERSION);
 	
-	CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
-	
-	CONRADLOG_INFO_STR(logger,  parset);
+	if(imager.isMaster()) {
+	  CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
+	  CONRADLOG_INFO_STR(logger,  parset);
+	}
 	
 	int nCycles=subset.getInt32("ncycles", 0);
 	if(nCycles==0)

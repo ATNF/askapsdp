@@ -60,8 +60,10 @@ int main(int argc, const char** argv)
 
 	CONRADLOG_INFO_STR(logger, "CONRAD synthesis simulator " << CONRAD_PACKAGE_VERSION);
 	
-	CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
-	CONRADLOG_INFO_STR(logger,  parset);
+	if(sim.isMaster()) {
+	  CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
+	  CONRADLOG_INFO_STR(logger,  parset);
+	}
 	
 	sim.init();
 	
