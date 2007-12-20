@@ -168,10 +168,11 @@ namespace conrad
             float x2=float(ix-qnx/2)*ccellx;
             x2*=x2;
             float r2=x2+y2;
-            float phase=w*(1.0-sqrt(1.0-r2));
-            float wt=ccfx(ix)*ccfy(iy);
-            thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(
-                wt*cos(phase), -wt*sin(phase));
+	    if(r2<1.0) {
+	      float phase=w*(1.0-sqrt(1.0-r2));
+	      float wt=ccfx(ix)*ccfy(iy);
+	      thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(wt*cos(phase), -wt*sin(phase));
+	    }
           }
         }
         // At this point, we have the phase screen multiplied by the spheroidal

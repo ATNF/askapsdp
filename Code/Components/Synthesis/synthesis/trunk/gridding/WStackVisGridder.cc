@@ -150,8 +150,10 @@ namespace conrad
               float x2=float(ix-nx/2)*cellx;
               x2*=x2;
               float r2=x2+y2;
-              float phase=w*(1.0-sqrt(1.0-r2));
-              mat(ix, iy)*=casa::Complex(cos(phase), -sin(phase));
+	      if(r2<1.0) {
+		float phase=w*(1.0-sqrt(1.0-r2));
+		mat(ix, iy)*=casa::Complex(cos(phase), -sin(phase));
+	      }
             }
           }
         }
