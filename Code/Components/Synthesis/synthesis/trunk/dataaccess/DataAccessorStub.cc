@@ -19,6 +19,7 @@
 
 // own includes
 #include <dataaccess/DataAccessorStub.h>
+#include <dataaccess/DataAccessError.h>
 
 using std::vector;
 
@@ -237,6 +238,7 @@ namespace conrad
                 ///         information. If True, the corresponding element is flagged.
                 casa::Cube<casa::Bool>& DataAccessorStub::rwFlag()
                 {
+                  throw DataAccessLogicError("Not yet implemented");
                   return itsFlag;
                 }
 

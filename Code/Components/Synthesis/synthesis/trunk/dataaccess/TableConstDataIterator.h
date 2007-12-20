@@ -93,6 +93,14 @@ public:
   /// @param[in] vis a reference to the nRow x nChannel x nPol buffer
   ///            cube to fill with the complex visibility data
   void fillVisibility(casa::Cube<casa::Complex> &vis) const;
+  
+  /// @brief read flagging information
+  /// @details populate the buffer of flags with the information
+  /// read in the current iteration
+  /// @param[in] flag a reference to the nRow x nChannel x nPol buffer
+  ///            cube to fill with the flag information (each element has
+  ///            bool type)
+  void fillFlag(casa::Cube<casa::Bool> &flag) const;
 
   /// populate the buffer with uvw
   /// @param[in] uvw a reference to vector of rigid vectors (3 elemets,

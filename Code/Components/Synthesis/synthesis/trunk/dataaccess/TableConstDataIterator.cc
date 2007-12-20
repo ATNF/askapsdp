@@ -250,6 +250,51 @@ void TableConstDataIterator::fillVisibility(casa::Cube<casa::Complex> &vis) cons
   }
 }
 
+/// @brief read flagging information
+/// @details populate the buffer of flags with the information
+/// read in the current iteration
+/// @param[in] flag a reference to the nRow x nChannel x nPol buffer
+///            cube to fill with the flag information (each element has
+///            bool type)
+void TableConstDataIterator::fillFlag(casa::Cube<casa::Bool> &flag) const
+{
+  flag.resize(itsNumberOfRows,itsNumberOfChannels,itsNumberOfPols);
+  ROArrayColumn<Bool> flagCol(itsCurrentIteration,"FLAG");
+  // temporary buffer and position in this buffer, declared outside the loop
+  IPosition curPos(2,itsNumberOfPols,itsNumberOfChannels);
+  Array<Bool> buf(curPos);
+  for (uInt row=0;row<itsNumberOfRows;++row) {
+       const casa::IPosition &shape=flagCol.shape(row);
+       CONRADASSERT(shape.size() && (shape.size()<3));
+       const casa::uInt thisRowNumberOfPols=shape[0];
+       const casa::uInt thisRowNumberOfChannels=shape.size()>1?shape[1]:1;
+       if (thisRowNumberOfPols!=itsNumberOfPols) {
+           CONRADTHROW(DataAccessError,"Number of polarizations is not "
+	               "conformant for row "<<row<<" in the FLAG column");           	       
+       }
+       if (thisRowNumberOfChannels!=itsNumberOfChannels) {
+           CONRADTHROW(DataAccessError,"Number of channels is not "
+	               "conformant for row "<<row<<" in the FLAG column");           	       
+       }
+       // for now just copy. In the future we will pass this array through
+       // the transformation which will propagate effects of averaging, selection,
+       // polarization conversion
+
+       // extract data record for this row, no resizing
+       flagCol.get(row+itsCurrentTopRow,buf,False); 
+       
+       for (uInt chan=0;chan<itsNumberOfChannels;++chan) {
+            curPos[1]=chan;
+            for (uInt pol=0;pol<itsNumberOfPols;++pol) {
+	         curPos[0]=pol;
+	         flag(row,chan,pol)=buf(curPos);
+	    }
+       }
+  }
+  
+}
+
+
 /// populate the buffer with uvw
 /// @param[in] uvw a reference to vector of rigid vectors (3 elemets,
 ///            u,v and w for each row) to fill

@@ -76,6 +76,11 @@ public:
   /// all visibility data
   virtual const casa::Cube<casa::Complex>& visibility() const;
 
+  /// Cube of flags corresponding to the output of visibility() 
+  /// @return a reference to nRow x nChannel x nPol cube with flag 
+  ///         information. If True, the corresponding element is flagged.
+  virtual const casa::Cube<casa::Bool>& flag() const;
+
   /// UVW
   /// @return a reference to vector containing uvw-coordinates
   /// packed into a 3-D rigid vector
@@ -144,6 +149,9 @@ private:
   
   /// internal buffer for visibility
   CachedAccessorField<casa::Cube<casa::Complex> > itsVisibility;
+  
+  /// internal buffer for flag
+  CachedAccessorField<casa::Cube<casa::Bool> > itsFlag;
  
   /// internal buffer for uvw
   CachedAccessorField<casa::Vector<casa::RigidVector<casa::Double, 3> > > itsUVW;

@@ -57,6 +57,14 @@ const casa::Cube<casa::Complex>& TableConstDataAccessor::visibility() const
                         &TableConstDataIterator::fillVisibility);
 }
 
+/// Cube of flags corresponding to the output of visibility() 
+/// @return a reference to nRow x nChannel x nPol cube with flag 
+///         information. If True, the corresponding element is flagged.
+const casa::Cube<casa::Bool>& TableConstDataAccessor::flag() const
+{
+  return itsFlag.value(itsIterator, &TableConstDataIterator::fillFlag);
+}
+
 /// UVW
 /// @return a reference to vector containing uvw-coordinates
 /// packed into a 3-D rigid vector
@@ -153,6 +161,7 @@ const casa::Vector<casa::MVDirection>& TableConstDataAccessor::pointingDir2()
 void TableConstDataAccessor::invalidateIterationCaches() const throw()
 {
   itsVisibility.invalidate();
+  itsFlag.invalidate();
   itsUVW.invalidate();
   itsTime.invalidate();
   itsAntenna1.invalidate();
