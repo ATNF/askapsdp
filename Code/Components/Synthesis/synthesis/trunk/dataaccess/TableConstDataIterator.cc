@@ -31,6 +31,81 @@ using namespace casa;
 using namespace conrad;
 using namespace conrad::synthesis;
 
+namespace conrad {
+
+namespace synthesis {
+
+/// @brief a helper class to flag the whole row on the basis of FLAG_ROW
+/// @details The method to read a cube (i.e. visibility or flag info) from
+/// the table has been templated to allow the same code to work for both
+/// casa::Complex visibilities and casa::Bool flags. There is, however, an
+/// important difference. For flagging information, there is an extra
+/// column, FLAG_ROW. If the appropriate element is True, all row should be
+/// flagged. This is a helper template, which does nothing in the Complex
+/// case, but performs required checks for casa::Bool. 
+/// @ingroup dataaccess_tab
+template<typename T>
+struct WholeRowFlagger
+{
+  /// @brief constructor
+  /// @details in the default version input parameter is not used
+  inline WholeRowFlagger(const casa::Table &) {}
+  
+  /// @brief determine whether element by element copy is needed
+  /// @details This method analyses other columns of the table specific
+  /// for a particular type and fills the cube with appropriate data.
+  /// If it can't to this, it returns true, which forces an element by element 
+  /// processing. By default parameters are not used
+  inline bool copyRequired(casa::uInt, casa::Cube<T> &) { return true;}
+};
+
+template<>
+struct WholeRowFlagger<casa::Bool>
+{
+  /// @brief constructor
+  /// @details in the default version input parameter is not used
+  /// @param[in] iteration current iteration (table returned by the iterator)
+  inline WholeRowFlagger(const casa::Table &iteration);
+  
+  /// @brief determine whether element by element copy is needed
+  /// @details This method analyses other columns of the table specific
+  /// for a particular type and fills the cube with appropriate data.
+  /// If it can't to this, it returns true, which forces an element by element 
+  /// processing. By default parameters are not used
+  /// @param[in] row a row to work with 
+  inline bool copyRequired(casa::uInt row, casa::Cube<casa::Bool> &cube);
+private:
+  /// @brief accessor to the FLAG_ROW column
+  ROScalarColumn<casa::Bool> itsFlagRowCol;
+  /// @brief true if the dataset has FLAG_ROW column
+  bool itsHasFlagRow;
+};
+
+WholeRowFlagger<casa::Bool>::WholeRowFlagger(const casa::Table &iteration) :
+    itsHasFlagRow(iteration.tableDesc().isColumn("FLAG_ROW")) 
+{
+  if (itsHasFlagRow) {
+      itsFlagRowCol.attach(iteration, "FLAG_ROW"); 
+  }
+}
+
+bool WholeRowFlagger<casa::Bool>::copyRequired(casa::uInt row, 
+                 casa::Cube<casa::Bool> &cube)
+{
+  CONRADDEBUGASSERT(!itsFlagRowCol.isNull());
+  if (itsHasFlagRow) {
+      if (itsFlagRowCol.asBool(row)) {
+          cube.yzPlane(row) = true;
+          return false;
+      } 
+  }
+  return true;
+}
+
+} // namespace synthesis
+
+} // namespace conrad
+
 /// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector
 /// @param[in] conv shared pointer to converter
@@ -208,6 +283,60 @@ void TableConstDataIterator::makeUniformDataDescID()
   }
 }
 
+/// @brief read an array column of the table into a cube
+/// @details populate the buffer provided with the information
+/// read in the current iteration. This method is templated and can be
+/// used for both visibility and flag data fillers.
+/// @param[in] cube a reference to the nRow x nChannel x nPol buffer
+///            cube to fill with the information from table
+/// @param[in] columnName a name of the column to read
+template<typename T>
+void TableConstDataIterator::fillCube(casa::Cube<T> &cube, 
+               const std::string &columnName) const
+{
+  cube.resize(itsNumberOfRows,itsNumberOfChannels,itsNumberOfPols);
+  ROArrayColumn<T> tableCol(itsCurrentIteration,columnName);
+  
+  // helper class, which does nothing for visibility cube, but checks
+  // FLAG_ROW for flagging
+  WholeRowFlagger<T> wrFlagger(itsCurrentIteration);
+  
+  // temporary buffer and position in this buffer, declared outside the loop
+  IPosition curPos(2,itsNumberOfPols,itsNumberOfChannels);
+  Array<T> buf(curPos);
+  for (uInt row=0;row<itsNumberOfRows;++row) {
+       const casa::IPosition &shape=tableCol.shape(row);
+       CONRADASSERT(shape.size() && (shape.size()<3));
+       const casa::uInt thisRowNumberOfPols=shape[0];
+       const casa::uInt thisRowNumberOfChannels=shape.size()>1?shape[1]:1;
+       if (thisRowNumberOfPols!=itsNumberOfPols) {
+           CONRADTHROW(DataAccessError,"Number of polarizations is not "
+	               "conformant for row "<<row<<" of the "<<columnName<<
+	               "column");           	       
+       }
+       if (thisRowNumberOfChannels!=itsNumberOfChannels) {
+           CONRADTHROW(DataAccessError,"Number of channels is not "
+	               "conformant for row "<<row<<" of the "<<columnName<<
+	               "column");           	       
+       }
+       // for now just copy. In the future we will pass this array through
+       // the transformation which will do averaging, selection,
+       // polarization conversion
+
+       if (wrFlagger.copyRequired(row+itsCurrentTopRow,cube)) {
+           // extract data record for this row, no resizing
+           tableCol.get(row+itsCurrentTopRow,buf,False); 
+       
+           for (uInt chan=0;chan<itsNumberOfChannels;++chan) {
+                curPos[1]=chan;
+                for (uInt pol=0;pol<itsNumberOfPols;++pol) {
+	                 curPos[0]=pol;
+	                 cube(row,chan,pol)=buf(curPos);
+	            }
+           }
+       }
+  }
+}               
 
 /// populate the buffer of visibilities with the values of current
 /// iteration
@@ -215,39 +344,7 @@ void TableConstDataIterator::makeUniformDataDescID()
 ///            cube to fill with the complex visibility data
 void TableConstDataIterator::fillVisibility(casa::Cube<casa::Complex> &vis) const
 {
-  vis.resize(itsNumberOfRows,itsNumberOfChannels,itsNumberOfPols);
-  ROArrayColumn<Complex> visCol(itsCurrentIteration,getDataColumnName());
-  // temporary buffer and position in this buffer, declared outside the loop
-  IPosition curPos(2,itsNumberOfPols,itsNumberOfChannels);
-  Array<Complex> buf(curPos);
-  for (uInt row=0;row<itsNumberOfRows;++row) {
-       const casa::IPosition &shape=visCol.shape(row);
-       CONRADASSERT(shape.size() && (shape.size()<3));
-       const casa::uInt thisRowNumberOfPols=shape[0];
-       const casa::uInt thisRowNumberOfChannels=shape.size()>1?shape[1]:1;
-       if (thisRowNumberOfPols!=itsNumberOfPols) {
-           CONRADTHROW(DataAccessError,"Number of polarizations is not "
-	               "conformant for row "<<row);           	       
-       }
-       if (thisRowNumberOfChannels!=itsNumberOfChannels) {
-           CONRADTHROW(DataAccessError,"Number of channels is not "
-	               "conformant for row "<<row);           	       
-       }
-       // for now just copy. In the future we will pass this array through
-       // the transformation which will do averaging, selection,
-       // polarization conversion
-
-       // extract data record for this row, no resizing
-       visCol.get(row+itsCurrentTopRow,buf,False); 
-       
-       for (uInt chan=0;chan<itsNumberOfChannels;++chan) {
-            curPos[1]=chan;
-            for (uInt pol=0;pol<itsNumberOfPols;++pol) {
-	         curPos[0]=pol;
-	         vis(row,chan,pol)=buf(curPos);
-	    }
-       }
-  }
+  fillCube(vis, getDataColumnName());
 }
 
 /// @brief read flagging information
@@ -258,40 +355,7 @@ void TableConstDataIterator::fillVisibility(casa::Cube<casa::Complex> &vis) cons
 ///            bool type)
 void TableConstDataIterator::fillFlag(casa::Cube<casa::Bool> &flag) const
 {
-  flag.resize(itsNumberOfRows,itsNumberOfChannels,itsNumberOfPols);
-  ROArrayColumn<Bool> flagCol(itsCurrentIteration,"FLAG");
-  // temporary buffer and position in this buffer, declared outside the loop
-  IPosition curPos(2,itsNumberOfPols,itsNumberOfChannels);
-  Array<Bool> buf(curPos);
-  for (uInt row=0;row<itsNumberOfRows;++row) {
-       const casa::IPosition &shape=flagCol.shape(row);
-       CONRADASSERT(shape.size() && (shape.size()<3));
-       const casa::uInt thisRowNumberOfPols=shape[0];
-       const casa::uInt thisRowNumberOfChannels=shape.size()>1?shape[1]:1;
-       if (thisRowNumberOfPols!=itsNumberOfPols) {
-           CONRADTHROW(DataAccessError,"Number of polarizations is not "
-	               "conformant for row "<<row<<" in the FLAG column");           	       
-       }
-       if (thisRowNumberOfChannels!=itsNumberOfChannels) {
-           CONRADTHROW(DataAccessError,"Number of channels is not "
-	               "conformant for row "<<row<<" in the FLAG column");           	       
-       }
-       // for now just copy. In the future we will pass this array through
-       // the transformation which will propagate effects of averaging, selection,
-       // polarization conversion
-
-       // extract data record for this row, no resizing
-       flagCol.get(row+itsCurrentTopRow,buf,False); 
-       
-       for (uInt chan=0;chan<itsNumberOfChannels;++chan) {
-            curPos[1]=chan;
-            for (uInt pol=0;pol<itsNumberOfPols;++pol) {
-	         curPos[0]=pol;
-	         flag(row,chan,pol)=buf(curPos);
-	    }
-       }
-  }
-  
+  fillCube(flag,"FLAG");
 }
 
 

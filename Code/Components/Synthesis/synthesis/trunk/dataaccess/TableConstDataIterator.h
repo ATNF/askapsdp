@@ -147,6 +147,16 @@ public:
   void fillPointingDir2(casa::Vector<casa::MVDirection> &dirs) const;
 
 protected:
+  /// @brief read an array column of the table into a cube
+  /// @details populate the buffer provided with the information
+  /// read in the current iteration. This method is templated and can be
+  /// used for both visibility and flag data fillers.
+  /// @param[in] cube a reference to the nRow x nChannel x nPol buffer
+  ///            cube to fill with the information from table
+  /// @param[in] columnName a name of the column to read
+  template<typename T>
+  void fillCube(casa::Cube<T> &cube, const std::string &columnName) const;
+
   /// @brief A helper method to fill a given vector with pointingdirections.
   /// @details fillPointingDir1 and fillPointingDir2 methods do very similar
   /// operations, which differ only by the feedIDs and antennaIDs used.
