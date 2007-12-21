@@ -87,6 +87,8 @@ namespace conrad
         uint nPol(1);
         this->itsVisibility.resize(nRows, nChan, nPol);
         this->itsVisibility.set(casa::Complex(0.0, 0.0));
+        this->itsFlag.resize(nRows, nChan, nPol);
+        this->itsFlag.set(casa::False);
         this->itsTime=0;
         this->itsUVW.resize(nRows);
         this->itsAntenna1.resize(nRows);
