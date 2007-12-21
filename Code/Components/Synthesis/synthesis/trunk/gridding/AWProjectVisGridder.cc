@@ -370,8 +370,7 @@ namespace conrad
         {
           for (int ix=-itsSupport; ix<+itsSupport; ix++)
           {
-            thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample
-                +itsCCenter, iy*itsOverSample+itsCCenter);
+            thisPlane(ix*itsOverSample+ccenx, iy*itsOverSample+cceny)=itsConvFunc[iz](ix+itsCCenter, iy+itsCCenter);
           }
         }
 
