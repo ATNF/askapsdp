@@ -1,4 +1,4 @@
-#include <gridding/BoxVisGridder.h>
+//#include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/AWProjectVisGridder.h>
 #include <gridding/AProjectWStackVisGridder.h>
@@ -31,8 +31,8 @@ namespace conrad
     {
 
       CPPUNIT_TEST_SUITE(TableVisGridderTest);
-      CPPUNIT_TEST(testForwardBox);
-      CPPUNIT_TEST(testReverseBox);
+      //      CPPUNIT_TEST(testForwardBox);
+      //      CPPUNIT_TEST(testReverseBox);
       CPPUNIT_TEST(testForwardSph);
       CPPUNIT_TEST(testReverseSph);
       CPPUNIT_TEST(testForwardAWProject);
@@ -48,7 +48,7 @@ namespace conrad
       CPPUNIT_TEST_SUITE_END();
 
   private:
-      boost::shared_ptr<BoxVisGridder> itsBox;
+      //      boost::shared_ptr<BoxVisGridder> itsBox;
       boost::shared_ptr<SphFuncVisGridder> itsSphFunc;
       boost::shared_ptr<AWProjectVisGridder> itsAWProject;
       boost::shared_ptr<WProjectVisGridder> itsWProject;
@@ -77,10 +77,10 @@ namespace conrad
         ComponentEquation ce(ip, idi);
         ce.predict();
 
-        itsBox.reset(new BoxVisGridder());
+	//        itsBox.reset(new BoxVisGridder());
         itsSphFunc.reset(new SphFuncVisGridder());
-        itsAWProject.reset(new AWProjectVisGridder(12.0, 1.0, 10000.0, 9, 1e-3, 1, 128, 1));
-        itsAProjectWStack.reset(new AProjectWStackVisGridder(12.0, 1.0, 10000.0, 8, 1, 128, 1));
+        itsAWProject.reset(new AWProjectVisGridder(120.0, 10.0, 10000.0, 9, 1e-3, 1, 128, 1));
+        itsAProjectWStack.reset(new AProjectWStackVisGridder(120.0, 10.0, 10000.0, 9, 1, 128, 1));
         itsWProject.reset(new WProjectVisGridder(10000.0, 9, 1e-3, 1, 128, ""));
         itsWStack.reset(new WStackVisGridder(10000.0, 9));
 
@@ -102,19 +102,19 @@ namespace conrad
       {
       }
 
-      void testReverseBox()
-      {
-        itsBox->initialiseGrid(*itsAxes, itsModel->shape(), true);
-        itsBox->grid(idi);
-        itsBox->finaliseGrid(*itsModel);
-        itsBox->finalisePSF(*itsModelPSF);
-        itsBox->finaliseWeights(*itsModelWeights);
-      }
-      void testForwardBox()
-      {
-        itsBox->initialiseDegrid(*itsAxes, *itsModel);
-        itsBox->degrid(idi);
-      }
+      //      void testReverseBox()
+      //      {
+      //        itsBox->initialiseGrid(*itsAxes, itsModel->shape(), true);
+      //        itsBox->grid(idi);
+      //        itsBox->finaliseGrid(*itsModel);
+      //        itsBox->finalisePSF(*itsModelPSF);
+      //        itsBox->finaliseWeights(*itsModelWeights);
+      //      }
+      //      void testForwardBox()
+      //      {
+      //        itsBox->initialiseDegrid(*itsAxes, *itsModel);
+      //        itsBox->degrid(idi);
+      //      }
       void testReverseSph()
       {
         itsSphFunc->initialiseGrid(*itsAxes, itsModel->shape(), true);
