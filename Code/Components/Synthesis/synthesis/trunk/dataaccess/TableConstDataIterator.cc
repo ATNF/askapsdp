@@ -16,8 +16,6 @@
 #include <measures/TableMeasures/ScalarMeasColumn.h>
 #include <scimath/Mathematics/SquareMatrix.h>
 #include <measures/Measures/MeasFrame.h>
-#include <measures/Measures/MCDirection.h>
-
 
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
@@ -582,13 +580,11 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
        casa::RigidVector<casa::Double, 2> offset = offsets[element];
        if (antMount == "ALT-AZ" || antMount == "alt-az")  {
            // need to do parallactic angle rotation
-           casa::MDirection celestialPole;
-           celestialPole.set(MDirection::Ref(MDirection::HADEC));
-           MDirection::Convert conv2(celestialPole.getRef(),MDirection::AZEL);
+           const casa::MVDirection zenith(0.,1.);
            dirConv.setMeasFrame(casa::MeasFrame(subtableInfo().getAntenna().
                                 getPosition(ant),epoch));
            const casa::Double posAngle=dirConv(antReferenceDir).
-                                        positionAngle(conv2(celestialPole).getValue());
+                                        positionAngle(zenith);
            casa::SquareMatrix<casa::Double, 2> 
                        rotMatrix(casa::SquareMatrix<casa::Double, 2>::General);
            const casa::Double cpa=cos(posAngle);
