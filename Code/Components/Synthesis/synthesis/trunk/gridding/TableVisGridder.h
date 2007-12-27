@@ -183,18 +183,6 @@ namespace conrad
       /// need to be overridden
       void generic(IDataSharedIter& idi, bool forward);
 
-      /// Gridding kernel
-      static void gridKernel(casa::Matrix<casa::Complex>& grid,
-          casa::Complex& sumwt, casa::Matrix<casa::Complex>& convFunc,
-          const casa::Complex& cVis, const float& wtVis, const int iu,
-          const int iv, const int support);
-
-      /// Degridding kernel
-      static void degridKernel(casa::Complex& cVis,
-          const casa::Matrix<casa::Complex>& convFunc,
-          const casa::Matrix<casa::Complex>& grid, const int iu, const int iv,
-          const int support);
-
       /// Find the cellsize from the image shape and axis definitions
       /// @param cellsize cellsize in wavelengths
       void findCellsize(casa::Vector<double>& cellsize);
