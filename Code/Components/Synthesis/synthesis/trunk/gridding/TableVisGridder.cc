@@ -17,6 +17,8 @@ CONRAD_LOGGER(logger, ".gridding");
 #include <fitting/Params.h>
 #include <fitting/ParamsCasaTable.h>
 
+#include <gridding/GridKernel.h>
+
 using namespace conrad::scimath;
 using namespace conrad;
 
@@ -53,6 +55,7 @@ namespace conrad
       if (itsNumberGridded>0)
 	{
 	  CONRADLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
+	  CONRADLOG_INFO_STR(logger, "   " << GridKernel::info());
 	  CONRADLOG_INFO_STR(logger, "   Total time gridding   = "
 			     << itsTimeGridded << " (s)");
 	  CONRADLOG_INFO_STR(logger, "   Samples gridded       = "
@@ -68,6 +71,7 @@ namespace conrad
       if (itsNumberDegridded>0)
 	{
 	  CONRADLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
+	  CONRADLOG_INFO_STR(logger, "   " << GridKernel::info());
 	  CONRADLOG_INFO_STR(logger, "   Total time degridding = "
 			     << itsTimeDegridded << " (s)");
 	  CONRADLOG_INFO_STR(logger, "   Samples degridded     = "
@@ -79,79 +83,6 @@ namespace conrad
 	  CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 			     *itsTimeDegridded/itsNumberDegridded << " (ns)");
 	}
-    }
-    
-    /// Totally selfcontained gridding
-    void TableVisGridder::gridKernel(casa::Matrix<casa::Complex>& grid,
-				     casa::Complex& sumwt, casa::Matrix<casa::Complex>& convFunc,
-				     const casa::Complex& cVis, const float& viswt, const int iu,
-				     const int iv, const int support)
-    {
-#define GRID_WITH_POINTERS 1
-#ifdef GRID_WITH_POINTERS
-      for (int suppv=-support; suppv<+support; suppv++)
-	{
-	  int voff=suppv+support;
-	  int uoff=-support+support;
-	  casa::Complex *wtPtr=&convFunc(uoff, voff);
-	  casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
-	  for (int suppu=-support; suppu<+support; suppu++)
-	    {
-	      (*gridPtr)+=cVis*(*wtPtr);
-	      wtPtr+=1;
-	      gridPtr++;
-	    }
-	}
-#else
-      for (int suppv=-support; suppv<+support; suppv++)
-	{
-	  int voff=suppv+support;
-	  for (int suppu=-support; suppu<+support; suppu++)
-	    {
-	      int uoff=suppu+support;
-	      casa::Complex wt=convFunc(uoff, voff);
-	      grid(iu+suppu, iv+suppv)+=cVis*wt;
-	    }
-	}
-#endif
-      sumwt+=viswt;
-    }
-    
-    /// Totally selfcontained degridding
-    void TableVisGridder::degridKernel(casa::Complex& cVis,
-				       const casa::Matrix<casa::Complex>& convFunc,
-				       const casa::Matrix<casa::Complex>& grid, const int iu, const int iv,
-				       const int support)
-    {
-      /// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
-      /// data using the convolution function as the weighting function. 
-      cVis=0.0;
-#ifdef GRID_WITH_POINTERS
-      for (int suppv=-support; suppv<+support; suppv++)
-	{
-	  int voff=suppv+support;
-	  int uoff=-support+support;
-	  const casa::Complex *wtPtr=&convFunc(uoff, voff);
-	  const casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
-	  for (int suppu=-support; suppu<+support; suppu++)
-	    {
-	      cVis+=(*wtPtr)*conj(*gridPtr);
-	      wtPtr+=1;
-	      gridPtr++;
-	    }
-	}
-#else
-      for (int suppv=-support; suppv<+support; suppv++)
-	{
-	  int voff=suppv+support;
-	  for (int suppu=-support; suppu<+support; suppu++)
-	    {
-	      int uoff=suppu+support;
-	      casa::Complex wt=convFunc(uoff, voff);
-	      cVis+=wt*conj(grid(iu+suppu, iv+suppv));
-	    }
-	}
-#endif
     }
     
     void TableVisGridder::save(const std::string& name)
@@ -275,12 +206,12 @@ namespace conrad
 		    
 		    const int gInd=gIndex(i, pol, chan);
 		    CONRADCHECK(gInd>-1, "Index into image grid is less than zero");
-		    CONRADCHECK(gInd<itsGrid.size(),
+		    CONRADCHECK(gInd<int(itsGrid.size()),
 				"Index into image grid exceeds number of planes");
 		    const int cInd=cIndex(i, pol, chan);
 		    CONRADCHECK(cInd>-1,
 				"Index into convolution functions is less than zero");
-		    CONRADCHECK(cInd<itsConvFunc.size(),
+		    CONRADCHECK(cInd<int(itsConvFunc.size()),
 				"Index into convolution functions exceeds number of planes");
 		    
 		    casa::Matrix<casa::Complex> & convFunc(
@@ -298,7 +229,7 @@ namespace conrad
 			if (forward)
 			  {
 			    casa::Complex cVis(idi->visibility()(i, chan, pol));
-			    degridKernel(cVis, convFunc, grid, iu, iv, itsSupport);
+                            GridKernel::degrid(cVis, convFunc, grid, iu, iv, itsSupport);
 			    idi->rwVisibility()(i, chan, pol)=cVis*phasor;
 			  }
 			else
@@ -308,7 +239,7 @@ namespace conrad
 										    chan, pol));
 			    casa::Complex sumwt=0.0;
 			    const float wtVis(1.0);
-			    gridKernel(grid, sumwt, convFunc, rVis, wtVis, iu, iv,
+                            GridKernel::grid(grid, sumwt, convFunc, rVis, wtVis, iu, iv,
 				       itsSupport);
 			    
 			    itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
@@ -316,11 +247,11 @@ namespace conrad
 			    /// Grid PSF?
 			    if (itsDopsf)
 			      {
-				CONRADDEBUGASSERT(gInd<itsGridPSF.size());
+				CONRADDEBUGASSERT(gInd<int(itsGridPSF.size()));
 				casa::Array<casa::Complex> aGridPSF(itsGridPSF[gInd](slicer));
 				casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
 				const casa::Complex uVis(1.0);
-				gridKernel(gridPSF, sumwt, convFunc, uVis, wtVis, iu, iv,
+                                GridKernel::grid(gridPSF, sumwt, convFunc, uVis, wtVis, iu, iv,
 					   itsSupport);
 			      }
 			  }
