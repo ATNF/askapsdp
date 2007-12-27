@@ -170,7 +170,7 @@ namespace conrad
 
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
-      for (int i=0; i<itsGrid.size(); i++)
+      for (unsigned int i=0; i<itsGrid.size(); i++)
       {
         if (casa::max(casa::amplitude(itsGrid[i]))>0.0)
         {
@@ -202,7 +202,7 @@ namespace conrad
 
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
-      for (int i=0; i<itsGrid.size(); i++)
+      for (unsigned int i=0; i<itsGrid.size(); i++)
       {
         if (casa::max(casa::amplitude(itsGridPSF[i]))>0.0)
         {

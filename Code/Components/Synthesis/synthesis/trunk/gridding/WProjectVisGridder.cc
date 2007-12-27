@@ -119,8 +119,10 @@ namespace conrad
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
       /// will reduce the time taken to calculate it.
-      int nx=std::min(itsMaxSupport, itsShape(0));
-      int ny=std::min(itsMaxSupport, itsShape(1));
+      //      int nx=std::min(itsMaxSupport, itsShape(0));
+      //      int ny=std::min(itsMaxSupport, itsShape(1));
+      int nx=itsMaxSupport;
+      int ny=itsMaxSupport;
       /// We want nx * ccellx = overSample * itsShape(0) * cellx
 
       int qnx=nx/itsOverSample;

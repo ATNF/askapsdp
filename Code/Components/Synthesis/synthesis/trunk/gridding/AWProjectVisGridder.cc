@@ -35,8 +35,7 @@ namespace conrad
         const std::string& name) :
       WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, name),
           itsReferenceFrequency(0.0), itsDiameter(diameter),
-          itsBlockage(blockage), itsMaxFeeds(maxFeeds),
-          itsFreqDep(frequencyDependent)
+      itsBlockage(blockage), itsFreqDep(frequencyDependent), itsMaxFeeds(maxFeeds)
 
     {
       CONRADCHECK(diameter>0.0, "Blockage must be positive");
@@ -125,7 +124,6 @@ namespace conrad
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
-      const int nSamples = idi->uvw().size();
       int nChan=1;
       if (itsFreqDep)
       {
@@ -136,13 +134,8 @@ namespace conrad
       /// Get the pointing direction
       casa::Matrix<double> slope;
       findCollimation(idi, slope);
-      int nFeeds=slope.nrow();
 
       itsSupport=0;
-
-      /// These are the actual image pixel sizes used
-      double cellx=1.0/(double(itsShape(0))*itsUVCellSize(0));
-      double celly=1.0/(double(itsShape(1))*itsUVCellSize(1));
 
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
@@ -225,7 +218,6 @@ namespace conrad
             // of the phase screen and the spheroidal function
             double maxCF=0.0;
             double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
-            double freq=idi->frequency()[chan];
             for (int iy=0; iy<qny; iy++)
             {
               double y2=double(iy-qny/2)*ccelly;

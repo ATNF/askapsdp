@@ -172,9 +172,6 @@ namespace conrad
       casa::Vector<double> start(2);
       casa::Vector<double> end(2);
       
-      int nx=imagePixels.shape()(0);
-      int ny=imagePixels.shape()(1);
-      
       for (int i=0;i<2;++i)
 	{
 	  start(i)=refValue(i)+refInc(i)*(refPix(i)-0.0);

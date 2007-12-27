@@ -26,7 +26,11 @@
 #define CDOTU_SUB cblas_cdotu_sub
 
 #ifdef __APPLE_CC__
+#ifdef USEMKLLIB
+#include <mkl_cblas.h>
+#else
 #include <vecLib/cblas.h>
+#endif
 #else
 #include <cblas.h>
 #endif
