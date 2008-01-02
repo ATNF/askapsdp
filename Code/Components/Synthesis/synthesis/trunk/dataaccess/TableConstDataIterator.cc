@@ -562,7 +562,6 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
   // we need a separate converter for parallactic angle calculations
   DirectionConverter dirConv((casa::MDirection::Ref(casa::MDirection::AZEL)));
   dirConv.setMeasFrame(epoch);                  
-  
   const casa::Vector<casa::RigidVector<casa::Double, 2> > &offsets =
                subtableInfo().getFeed().getAllBeamOffsets(epoch,spWindowID);
   for (casa::uInt element=0;element<antIDs.nelements();++element) {

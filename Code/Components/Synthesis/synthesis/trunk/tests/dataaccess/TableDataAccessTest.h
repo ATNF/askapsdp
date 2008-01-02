@@ -36,7 +36,6 @@ namespace synthesis {
 class TableDataAccessTest : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(TableDataAccessTest);
-  //CPPUNIT_TEST(readOnlyTest);
   CPPUNIT_TEST(corrTypeSelectionTest);
   CPPUNIT_TEST(uvDistanceSelectionTest);
   CPPUNIT_TEST_EXCEPTION(bufferManagerExceptionTest,casa::TableError);
@@ -47,6 +46,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(fieldTest);
   CPPUNIT_TEST(antennaTest);
   CPPUNIT_TEST(originalVisRewriteTest);
+  CPPUNIT_TEST(readOnlyTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   
@@ -59,7 +59,7 @@ public:
   /// test of selection based on uv-distance
   void uvDistanceSelectionTest();
   /// test of read only operations of the whole table-based implementation
-  void readOnlyTest() {}
+  void readOnlyTest();
   /// test exception if disk-based buffers are requested for a read-only table  
   void bufferManagerExceptionTest();
   /// extensive test of buffer operations
@@ -90,6 +90,36 @@ void TableDataAccessTest::tearDown()
 { 
   itsTableInfoAccessor.reset();
 }
+
+/// test of read only operations of the whole table-based implementation
+void TableDataAccessTest::readOnlyTest()
+{
+  TableConstDataSource ds(TableTestRunner::msName());
+ 
+  IDataConverterPtr conv=ds.createConverter();  
+  conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::BARY),"MHz");
+  conv->setEpochFrame(casa::MEpoch(casa::Quantity(50257.29,"d"),
+                      casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
+  conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::AZEL));                    
+  
+  int maxiter=4; // we don't need to go through the whole dataset as it
+                 // may take a long time. A few iterations should be sufficient.   
+  for (IConstDataSharedIter it=ds.createConstIterator(conv);it!=it.end();++it) {
+       if (maxiter<0) {
+           continue;
+       }  
+       --maxiter;
+       // just call several accessor methods to ensure that no exception is 
+       // thrown 
+       it->visibility().nrow();
+       it->frequency();
+       it->flag();
+       it->pointingDir2();
+       it->antenna1();
+       it->time();
+  }
+}
+
 
 /// test of correlation type selection
 void TableDataAccessTest::corrTypeSelectionTest() 
