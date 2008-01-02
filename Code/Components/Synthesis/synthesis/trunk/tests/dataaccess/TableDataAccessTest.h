@@ -102,8 +102,11 @@ void TableDataAccessTest::readOnlyTest()
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::AZEL));                    
   
-  int maxiter=4; // we don't need to go through the whole dataset as it
-                 // may take a long time. A few iterations should be sufficient.   
+  int maxiter=4; // we don't need to read the whole dataset as it
+                 // may take a long time. A few iterations should be sufficient.
+                 // It is however useful to check that iteration finishes
+                 // properly at the end of the measurement set. Hence, we
+                 // continue iterating through the dataset without reading.    
   for (IConstDataSharedIter it=ds.createConstIterator(conv);it!=it.end();++it) {
        if (maxiter<0) {
            continue;
