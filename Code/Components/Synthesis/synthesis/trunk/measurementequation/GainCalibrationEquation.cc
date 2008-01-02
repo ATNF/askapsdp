@@ -122,8 +122,6 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
        casa::uInt ant2 = chunk.antenna2()[row];
        CONRADASSERT(ant1!=ant2); // not yet implemented
        
-       //parameters to be added to a design matrix (separate for each row)
-       scimath::Params thisRowParams;
        
        casa::Vector<double> residual(nDataPerPol*nPol);
        
@@ -149,14 +147,12 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             // gains for antenna 1, polarisation pol
             const std::string g1name = paramName(ant1,pol);
             names.push_back(g1name);
-            copyParameter(g1name,thisRowParams);
-            const casa::Complex g1 = thisRowParams.complexValue(g1name);
+            const casa::Complex g1 = parameters().complexValue(g1name);
             
             // gains for antenna 2, polarisation pol
             const std::string g2name = paramName(ant2,pol);
             names.push_back(g2name);
-            copyParameter(g2name,thisRowParams);
-            const casa::Complex g2 = thisRowParams.complexValue(g2name);
+            const casa::Complex g2 = parameters().complexValue(g2name);
             
             const casa::uInt offset=pol*nDataPerPol;
              
@@ -214,33 +210,6 @@ std::string GainCalibrationEquation::paramName(casa::uInt ant,
 
   return res+utility::toString<casa::uInt>(ant);
 }                                               
-
-/// @brief a helper method to copy parameter to a temporary list
-/// @details The current implementation of the design matrix implies
-/// that derivatives have to be defined for all parameters, passed at
-/// the construction. We always have extra parameters, which have to be
-/// ignored. This method copies a given parameter from the parameter class 
-/// this equation has been initialized with to a new parameter container, 
-/// or updates the value, if a parameter with such name already exists.
-/// @param[in] name name of the parameter to add/update
-/// @param[in] par parameter class to work with
-void GainCalibrationEquation::copyParameter(const std::string &name, 
-                                            scimath::Params &par) const
-{
-  if (!par.has(name)) {
-      par.add(name,parameters().value(name));
-  } else {
-      par.update(name,parameters().value(name));
-  }
-       
-  // I'm not sure we need to fix 'fixed' parameters at all,
-  // because they will be used for the design matrix only, not for a solver.
-  // Do it just in case, and we'll have a true copy of a subset of parameters.
-  if (!parameters().isFree(name)) {
-      par.fix(name);
-  }
-}                                            
-
 
 /// @brief helper method to split parameter string
 /// @details Parameters have a form similar to "gain.g11.dt0.25",

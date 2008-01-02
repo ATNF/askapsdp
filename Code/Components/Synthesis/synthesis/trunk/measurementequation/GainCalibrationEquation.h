@@ -101,17 +101,7 @@ protected:
   /// @param[in] ant antenna number (0-based)
   /// @param[in] pol index of the polarisation product
   static std::string paramName(casa::uInt ant, casa::uInt pol);
-  
-  /// @brief a helper method to copy parameter to a temporary list
-  /// @details The current implementation of the design matrix implies
-  /// that derivatives have to be defined for all parameters, passed at
-  /// the construction. We always have extra parameters, which have to be
-  /// ignored. This method copies a given parameter from the parameter class 
-  /// this equation has been initialized with to a new parameter container, 
-  /// or updates the value, if a parameter with such name already exists.
-  /// @param[in] name name of the parameter to add/update
-  /// @param[in] par parameter class to work with
-  void copyParameter(const std::string &name, scimath::Params &par) const;
+ 
      
   /// @brief helper method to split parameter string
   /// @details Parameters have a form similar to "gain.g11.dt0.25",
