@@ -2,7 +2,7 @@
 /// @brief A read-only iterator across preselected data.
 /// @details Each  iteration step is represented by the IDataAccessor
 /// interface. The idea is that an iterator object will be obtained via
-/// IDataSource which will take care of the actual method to access the \
+/// IDataSource which will take care of the actual method to access the
 /// data and the source (a MeasurementSet or a stream). Any class
 /// controlling data selection is likely to be held by a real
 /// implementation of the iterator. However,
