@@ -135,25 +135,24 @@ void ComplexDiff::binaryOperationInSitu(Op &operation,
   }
 }
 
-/// @brief helper method to perform in situ addition
-/// @details It is used in conjunction with binaryOperationsInSitu
-/// @param[in] derivative1 a non-const reference to derivative of the 
-///            first operand
-/// @param[in] derivative2 a const reference to derivative of the second operand
-void ComplexDiff::additionInSitu(const casa::Complex &, 
-                   casa::Complex &derivative1,
-                   const casa::Complex &, const casa::Complex &derivative2)
-{  
-  derivative1 += derivative2;
-}
   
 /// @brief add up another autodifferentiator
 /// @param[in] other autodifferentiator to add up
 void ComplexDiff::operator+=(const ComplexDiff &other)
 {
   // process derivatives
-  binaryOperationInSitu(additionInSitu,itsDerivRe,other.itsDerivRe,other.itsValue);
-  binaryOperationInSitu(additionInSitu,itsDerivIm,other.itsDerivIm,other.itsValue);
+  binaryOperationInSitu(additionInSitu,other);
   // process value
   itsValue+=other.itsValue;
 }
+
+/// @brief multiply to another autodifferentiator
+/// @param[in] other autodifferentiator to multiply this one to
+void ComplexDiff::operator*=(const ComplexDiff &other)
+{
+  // process derivatives
+  binaryOperationInSitu(multiplicationInSitu,other);
+  // process value
+  itsValue*=other.itsValue;
+}
+

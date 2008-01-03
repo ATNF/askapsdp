@@ -86,9 +86,30 @@ struct ComplexDiff {
   /// @brief add up another autodifferentiator
   /// @param[in] other autodifferentiator to add up
   void operator+=(const ComplexDiff &other);
+
+  /// @brief multiply to another autodifferentiator
+  /// @param[in] other autodifferentiator to multiply this one to
+  void operator*=(const ComplexDiff &other);
   
-  /// @brief form a sum of two parts 
-  //friend ComplexDiff operator+(const ComplexDiff &in1, constComplexDiff &in2);
+  /// @brief form a sum of two parts
+  /// @details At this stage operator is implemented via appropriate in situ
+  /// operator. If it ever becomes performance critical (there is an extra copying
+  /// involved), a separate code can be written for operations with two constant
+  /// operands. 
+  /// @param[in] in1 the first operand
+  /// @param[in] in2 the second operand
+  friend inline ComplexDiff operator+(const ComplexDiff &in1, 
+                                      const ComplexDiff &in2);
+
+  /// @brief form a product of two parts
+  /// @details At this stage operator is implemented via appropriate in situ
+  /// operator. If it ever becomes performance critical (there is an extra copying
+  /// involved), a separate code can be written for operations with two constant
+  /// operands. 
+  /// @param[in] in1 the first operand
+  /// @param[in] in2 the second operand
+  friend inline ComplexDiff operator*(const ComplexDiff &in1, 
+                                      const ComplexDiff &in2);
    
 protected:  
 
@@ -113,16 +134,43 @@ protected:
               const std::map<std::string, casa::Complex> &otherDer,
               const casa::Complex &otherVal) const;
 
+  /// @brief perform an arbitrary binary operation on derivatives
+  /// @details See another overloaded version of the method for details.
+  /// This version executes the required operation for each of two
+  /// type of derivatives (derivatives by real part of the parameter and
+  /// that by imaginary part of the parameter).
+  /// @param[in] operation type performing actual operation
+  /// @param[in] other a second operand
+  /// @note This variant is not const, because it updates the current object
+  /// by storing the result into maps of derivatives.
+  template<typename Op> inline void binaryOperationInSitu(Op &operation,
+              const ComplexDiff &other);
+    
+
   /// @brief helper method to perform in situ addition
+  /// @details It is used in conjunction with binaryOperationsInSitu
+  /// @param[in] derivative1 a non-const reference to derivative of the 
+  ///            first operand
+  /// @param[in] derivative2 a const reference to derivative of the second operand
+  /// @note parameters value1 and value2 are not used
+  inline void static additionInSitu(const casa::Complex &, 
+                 casa::Complex &derivative1, const casa::Complex &, 
+                 const casa::Complex &derivative2)
+             {   derivative1 += derivative2;  }
+             
+
+  /// @brief helper method to perform in situ multiplication
   /// @details It is used in conjunction with binaryOperationsInSitu
   /// @param[in] value1 a const reference to the value of the first operand
   /// @param[in] derivative1 a non-const reference to derivative of the 
   ///            first operand
   /// @param[in] value2 a const reference to the value of the second operand
   /// @param[in] derivative2 a const reference to derivative of the second operand
-  /// @note parameters value1 and value2 are not used
-  void static additionInSitu(const casa::Complex &value1, casa::Complex &derivative1,
-                   const casa::Complex &value2, const casa::Complex &derivative2);
+  inline void static multiplicationInSitu(const casa::Complex &value1, 
+                   casa::Complex &derivative1, const casa::Complex &value2,
+                   const casa::Complex &derivative2) 
+             { derivative1 = value2*derivative1 + value1*derivative2; }
+
   
 private:
   
@@ -137,6 +185,52 @@ private:
   /// @brief the value of the function represented by this differentiator
   casa::Complex itsValue;
 };
+
+/// @brief perform an arbitrary binary operation on derivatives
+/// @details See another overloaded version of the method for details.
+/// This version executes the required operation for each of two
+/// type of derivatives (derivatives by real part of the parameter and
+/// that by imaginary part of the parameter).
+/// @param[in] operation type performing actual operation
+/// @param[in] other a second operand
+/// @note This variant is not const, because it updates the current object
+/// by storing the result into maps of derivatives.
+template<typename Op> void ComplexDiff::binaryOperationInSitu(Op &operation,
+              const ComplexDiff &other)
+{
+  // process derivatives by real part of each parameter
+  binaryOperationInSitu(operation,itsDerivRe,other.itsDerivRe,other.itsValue);
+  // now derivatives by imaginary part of each parameter
+  binaryOperationInSitu(operation,itsDerivIm,other.itsDerivIm,other.itsValue);
+}
+
+/// @brief form a sum of two parts
+/// @details At this stage operator is implemented via appropriate in situ
+/// operator. If it ever becomes performance critical (there is an extra copying
+/// involved), a separate code can be written for operations with two constant
+/// operands. 
+/// @param[in] in1 the first operand
+/// @param[in] in2 the second operand
+inline ComplexDiff operator+(const ComplexDiff &in1, const ComplexDiff &in2)
+{
+  ComplexDiff result(in1);
+  result+=in2;
+  return result;
+}
+
+/// @brief form a product of two parts
+/// @details At this stage operator is implemented via appropriate in situ
+/// operator. If it ever becomes performance critical (there is an extra copying
+/// involved), a separate code can be written for operations with two constant
+/// operands. 
+/// @param[in] in1 the first operand
+/// @param[in] in2 the second operand
+inline ComplexDiff operator*(const ComplexDiff &in1, const ComplexDiff &in2)
+{
+  ComplexDiff result(in1);
+  result*=in2;
+  return result;
+}
 
 } // namespace scimath
 

@@ -25,6 +25,7 @@ class ComplexDiffTest : public CppUnit::TestFixture
 
   CPPUNIT_TEST_SUITE(ComplexDiffTest);
   CPPUNIT_TEST(testAdd);
+  CPPUNIT_TEST(testMultiply);
   CPPUNIT_TEST_SUITE_END();
 private:
   ComplexDiff f,g;
@@ -32,6 +33,7 @@ private:
 public:
   void setUp();
   void testAdd();
+  void testMultiply();
 };
 
 void ComplexDiffTest::setUp() 
@@ -49,14 +51,46 @@ void ComplexDiffTest::testAdd()
   CPPUNIT_ASSERT(abs(f.derivIm("g1")-casa::Complex(0.,1.))<1e-7);
   CPPUNIT_ASSERT(abs(f.derivIm("g2")-casa::Complex(0.,1.))<1e-7);
   g+=f;
+  CPPUNIT_ASSERT(abs(g.value()-casa::Complex(-35.,15.))<1e-7);
   CPPUNIT_ASSERT(abs(g.derivRe("g1")-casa::Complex(1.,0.))<1e-7);
   CPPUNIT_ASSERT(abs(g.derivIm("g1")-casa::Complex(0.,1.))<1e-7);
   CPPUNIT_ASSERT(abs(g.derivRe("g2")-casa::Complex(2.,0.))<1e-7);
   CPPUNIT_ASSERT(abs(g.derivIm("g2")-casa::Complex(0.,2.))<1e-7);
   
-  //std::cout<<g.derivRe("g2")<<" "<<g.derivIm("g2")<<std::endl;
+  ComplexDiff d = g+f+1+casa::Complex(0.,-2.);
+  
+  CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-34.,13.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(2.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(0.,2.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(3.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(0.,3.))<1e-7);  
 }
 
+void ComplexDiffTest::testMultiply()
+{
+  ComplexDiff d = g*f;
+  CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-1000.,1050.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(-35.,15.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(-15.,-35.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(35.,-15.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(15.,35.))<1e-7);
+  
+  g*=f;
+  
+  CPPUNIT_ASSERT(abs(g.value()-casa::Complex(-1000.,1050.))<1e-7);
+  CPPUNIT_ASSERT(abs(g.derivRe("g1")-casa::Complex(-35.,15.))<1e-7);
+  CPPUNIT_ASSERT(abs(g.derivIm("g1")-casa::Complex(-15.,-35.))<1e-7);
+  CPPUNIT_ASSERT(abs(g.derivRe("g2")-casa::Complex(35.,-15.))<1e-7);
+  CPPUNIT_ASSERT(abs(g.derivIm("g2")-casa::Complex(15.,35.))<1e-7);
+  
+  d = g*casa::Complex(0.,1.);
+
+  CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-1050.,-1000.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(-15,-35.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(35.,-15.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(15,35.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(-35.,15.))<1e-7);
+}
 
 } // namespace scimath
 
