@@ -90,9 +90,42 @@ struct ComplexDiff {
   /// @brief form a sum of two parts 
   //friend ComplexDiff operator+(const ComplexDiff &in1, constComplexDiff &in2);
    
-  
+protected:  
+
+  /// @brief perform an arbitrary binary operation on derivatives
+  /// @details This method can be used to implement operations like +=, *=, etc.
+  /// The common point is that the result is stored in this class, while its
+  /// previous value is lost. Op is a type, which knows how to do the operation.
+  /// It should have the operator() accepting 4 parameters: value1, derivative1,
+  /// value2 and derivative2 (all parameters are complex). It doesn't matter at
+  /// this stage whether the derivative is by real or imaginary part as the
+  /// formulae are always the same. A number of optimizations are possible here,
+  /// e.g. special handling of the cases where some parameters are undefined
+  /// instead of always computing the full formula. It can be implemented later,
+  /// if found necessary. Currently Op::operator() will be called with 
+  /// the appropriate derivative set to zero. 
+  /// @param[in] operation type performing actual operation
+  /// @param[inout] thisDer this operand's derivatives
+  /// @param[in] otherDer a second operand's derivatives 
+  /// @param[in] otherVal a second operand's value
+  template<typename Op> void binaryOperationInSitu(Op &operation,
+              std::map<std::string, casa::Complex> &thisDer,
+              const std::map<std::string, casa::Complex> &otherDer,
+              const casa::Complex &otherVal) const;
+
+  /// @brief helper method to perform in situ addition
+  /// @details It is used in conjunction with binaryOperationsInSitu
+  /// @param[in] value1 a const reference to the value of the first operand
+  /// @param[in] derivative1 a non-const reference to derivative of the 
+  ///            first operand
+  /// @param[in] value2 a const reference to the value of the second operand
+  /// @param[in] derivative2 a const reference to derivative of the second operand
+  /// @note parameters value1 and value2 are not used
+  void static additionInSitu(const casa::Complex &value1, casa::Complex &derivative1,
+                   const casa::Complex &value2, const casa::Complex &derivative2);
   
 private:
+  
   /// @brief derivatives by real part of the parameters
   std::map<std::string, casa::Complex> itsDerivRe;
   

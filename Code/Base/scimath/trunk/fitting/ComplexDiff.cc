@@ -20,6 +20,8 @@
 #include <fitting/ComplexDiff.h>
 #include <conrad/ConradError.h>
 
+#include <iostream>
+
 using namespace conrad;
 using namespace conrad::scimath;
 
@@ -88,40 +90,70 @@ casa::Complex ComplexDiff::derivIm(const std::string &name) const
   return ci->second;
 }
 
+/// @brief perform an arbitrary binary operation on derivatives
+/// @details This method can be used to implement operations like +=, *=, etc.
+/// The common point is that the result is stored in this class, while its
+/// previous value is lost. Op is a type, which knows how to do the operation.
+/// It should have the operator() accepting 4 parameters: value1, derivative1,
+/// value2 and derivative2 (all parameters are complex). It doesn't matter at
+/// this stage whether the derivative is by real or imaginary part as the
+/// formulae are always the same. A number of optimizations are possible here,
+/// e.g. special handling of the cases where some parameters are undefined
+/// instead of always computing the full formula. It can be implemented later,
+/// if found necessary. Currently Op::operator() will be called with 
+/// the appropriate derivative set to zero. 
+/// @param[in] operation type performing actual operation
+/// @param[inout] thisDer this operand's derivatives
+/// @param[in] otherDer a second operand's derivatives 
+/// @param[in] otherVal a second operand's value
+template<typename Op> 
+void ComplexDiff::binaryOperationInSitu(Op &operation,
+            std::map<std::string, casa::Complex> &thisDer, 
+            const std::map<std::string, casa::Complex> &otherDer,
+            const casa::Complex &otherVal) const
+{ 
+  for (std::map<std::string, casa::Complex>::const_iterator otherIt = 
+       otherDer.begin(); otherIt!=otherDer.end(); ++otherIt) {
+       
+       const std::map<std::string, casa::Complex>::iterator thisIt = 
+                  thisDer.insert(std::pair<std::string, casa::Complex>(
+                              otherIt->first, casa::Complex(0.,0.))).first;
+                              
+       operation(itsValue, thisIt->second, otherVal, otherIt->second);
+  }  
+  
+  // now account for this class parameters which are absent in the second 
+  // operand
+  for (std::map<std::string, casa::Complex>::iterator thisIt = thisDer.begin();
+       thisIt != thisDer.end(); ++thisIt) {
+       
+       const std::map<std::string, casa::Complex>::const_iterator otherIt = 
+                                 otherDer.find(thisIt->first);
+       if (otherIt == otherDer.end()) {
+           operation(itsValue,thisIt->second, otherVal, casa::Complex(0.,0.));
+       }                         
+  }
+}
+
+/// @brief helper method to perform in situ addition
+/// @details It is used in conjunction with binaryOperationsInSitu
+/// @param[in] derivative1 a non-const reference to derivative of the 
+///            first operand
+/// @param[in] derivative2 a const reference to derivative of the second operand
+void ComplexDiff::additionInSitu(const casa::Complex &, 
+                   casa::Complex &derivative1,
+                   const casa::Complex &, const casa::Complex &derivative2)
+{  
+  derivative1 += derivative2;
+}
   
 /// @brief add up another autodifferentiator
 /// @param[in] other autodifferentiator to add up
 void ComplexDiff::operator+=(const ComplexDiff &other)
 {
-  // process real parts
-  for (std::map<std::string, casa::Complex>::const_iterator ci = 
-       other.itsDerivRe.begin(); ci!=other.itsDerivRe.end(); ++ci) {
-
-       std::map<std::string, casa::Complex>::iterator it = 
-                    itsDerivRe.find(ci->first);
-       if (it != itsDerivRe.end()) {
-           // this is a known parameter
-           it->second += ci->second;
-       } else {
-           // this is a brand new parameter
-           itsDerivRe.insert(*ci);
-       }
-  }
-
-  // porcess imaginary parts
-  for (std::map<std::string, casa::Complex>::const_iterator ci = 
-       other.itsDerivIm.begin(); ci!=other.itsDerivIm.end(); ++ci) {
-
-       std::map<std::string, casa::Complex>::iterator it = 
-                    itsDerivIm.find(ci->first);
-       if (it != itsDerivIm.end()) {
-           // this is a known parameter
-           it->second += ci->second;
-       } else {
-           // this is a brand new parameter
-           itsDerivIm.insert(*ci);
-       }
-  }
+  // process derivatives
+  binaryOperationInSitu(additionInSitu,itsDerivRe,other.itsDerivRe,other.itsValue);
+  binaryOperationInSitu(additionInSitu,itsDerivIm,other.itsDerivIm,other.itsValue);
   // process value
   itsValue+=other.itsValue;
 }
