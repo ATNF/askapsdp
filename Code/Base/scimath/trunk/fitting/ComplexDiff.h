@@ -91,6 +91,15 @@ struct ComplexDiff {
   /// @param[in] other autodifferentiator to multiply this one to
   void operator*=(const ComplexDiff &other);
   
+  /// @brief multiply to a constant
+  /// @details Although this functionality is implemented by the method
+  /// working with another autodifferentiator (via implicit construction of
+  /// an autodifferentiator from a constant), having a separate method 
+  /// working with a constant is good from the performance point of view.
+  /// Otherwise, a search for matching parmeters will be done on each
+  /// multiplication.
+  void operator*=(const casa::Complex &other);
+  
   /// @brief form a sum of two parts
   /// @details At this stage the operator is implemented via appropriate in situ
   /// operator. If it ever becomes performance critical (there is an extra copying

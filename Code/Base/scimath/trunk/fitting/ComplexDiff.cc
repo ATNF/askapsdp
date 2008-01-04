@@ -180,6 +180,34 @@ void ComplexDiff::operator*=(const ComplexDiff &other)
   itsValue*=other.itsValue;
 }
 
+/// a helper class to multiply all derivatives by a given constant
+struct ConstantMultiplier {
+  /// @brief constructor
+  /// @param[in] in a const reference to the constant
+  ConstantMultiplier(const casa::Complex &in) : itsConstant(in) {}
+  
+  /// @brief multiply given derivative by the constant
+  /// @param[in] der reference to a value of derivative to multiply
+  inline void operator()(const casa::Complex&, casa::Complex& der) 
+      { der *= itsConstant; }
+private:
+  const casa::Complex &itsConstant;
+}; 
+
+/// @brief multiply to a constant
+/// @details Although this functionality is implemented by the method
+/// working with another autodifferentiator (via implicit construction of
+/// an autodifferentiator from a constant), having a separate method 
+/// working with a constant is good from the performance point of view.
+/// Otherwise, a search for matching parmeters will be done on each
+/// multiplication.
+void ComplexDiff::operator*=(const casa::Complex &other)
+{
+  ConstantMultiplier cm(other);
+  unaryOperationInSitu(cm);
+  itsValue *= other;
+}
+
 /// @brief perform complex conjugation in situ
 void ComplexDiff::conjugate() 
 {  
