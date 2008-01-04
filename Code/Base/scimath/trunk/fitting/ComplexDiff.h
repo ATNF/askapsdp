@@ -92,24 +92,38 @@ struct ComplexDiff {
   void operator*=(const ComplexDiff &other);
   
   /// @brief form a sum of two parts
-  /// @details At this stage operator is implemented via appropriate in situ
+  /// @details At this stage the operator is implemented via appropriate in situ
   /// operator. If it ever becomes performance critical (there is an extra copying
   /// involved), a separate code can be written for operations with two constant
   /// operands. 
   /// @param[in] in1 the first operand
   /// @param[in] in2 the second operand
+  /// @return result 
   friend inline ComplexDiff operator+(const ComplexDiff &in1, 
                                       const ComplexDiff &in2);
 
   /// @brief form a product of two parts
-  /// @details At this stage operator is implemented via appropriate in situ
+  /// @details At this stage the operator is implemented via appropriate in situ
   /// operator. If it ever becomes performance critical (there is an extra copying
   /// involved), a separate code can be written for operations with two constant
   /// operands. 
   /// @param[in] in1 the first operand
   /// @param[in] in2 the second operand
+  /// @return result 
   friend inline ComplexDiff operator*(const ComplexDiff &in1, 
                                       const ComplexDiff &in2);
+   
+  /// @brief perform complex conjugation
+  /// @details At this stage the operator is implemented via appropriate in situ
+  /// operator. If it ever becomes performance critical (there is an extra copying
+  /// involved), a separate code can be written for operations with a constant
+  /// operand.
+  /// @param[in] in an operand to conjugate
+  /// @return result
+  friend inline ComplexDiff conj(const ComplexDiff &in); 
+   
+  /// @brief perform complex conjugation in situ
+  void conjugate(); 
    
 protected:  
 
@@ -145,10 +159,36 @@ protected:
   /// by storing the result into maps of derivatives.
   template<typename Op> inline void binaryOperationInSitu(Op &operation,
               const ComplexDiff &other);
-    
+
+  /// @brief perform an arbitrary unary operation on derivatives
+  /// @details This method can be used to implement operations like conjugation.
+  /// The common point is that the content of this class is updated. Note, 
+  /// however, that this method accepts a map of derivatives as its parameter.
+  /// This is done because we need to repeat the same operation for both
+  /// derivatives by real and imaginary part. Therefore, this method doesn't 
+  /// change the content of this class directly. It only happens when this method
+  /// is called, because this class' members are passed as non-const parameter.
+  /// This is why this method is made const-method.
+  /// Op is a type, which knows how to do the operation.
+  /// It should have the operator() accepting 2 parameters: value and derivative. 
+  /// It doesn't matter at this stage whether the derivative is by real or 
+  /// imaginary part as the formulae are always the same. 
+  /// @param[in] operation type performing actual operation
+  /// @param[inout] der operand's derivatives
+  template<typename Op> void unaryOperationInSitu(Op &operation,
+              std::map<std::string, casa::Complex> &der) const;
+  
+  /// @brief perform an arbitrary unary operation on derivatives
+  /// @details See another overloaded version of this method for details.
+  /// This version calls another one for each of two derivative maps
+  /// this class holds. 
+  /// @note This method is not const, because it passes non-const references
+  /// to data members as parameters to another overloaded method. 
+  /// @param[in] operation type performing actual operation
+  template<typename Op> inline void unaryOperationInSitu(Op &operation);
 
   /// @brief helper method to perform in situ addition
-  /// @details It is used in conjunction with binaryOperationsInSitu
+  /// @details It is used in conjunction with binaryOperationInSitu
   /// @param[in] derivative1 a non-const reference to derivative of the 
   ///            first operand
   /// @param[in] derivative2 a const reference to derivative of the second operand
@@ -160,7 +200,7 @@ protected:
              
 
   /// @brief helper method to perform in situ multiplication
-  /// @details It is used in conjunction with binaryOperationsInSitu
+  /// @details It is used in conjunction with binaryOperationInSitu
   /// @param[in] value1 a const reference to the value of the first operand
   /// @param[in] derivative1 a non-const reference to derivative of the 
   ///            first operand
@@ -171,6 +211,13 @@ protected:
                    const casa::Complex &derivative2) 
              { derivative1 = value2*derivative1 + value1*derivative2; }
 
+  /// @brief helper method to perform in situ conjugation
+  /// @details It is used in conjunction with unaryOperationInSitu
+  /// @param[in] derivative a non-const reference to derivative to update
+  /// @note The first argument (value) is not used
+  inline void static conjugationInSitu(const casa::Complex&, 
+                  casa::Complex &derivative)
+             { derivative = conj(derivative); } 
   
 private:
   
@@ -204,6 +251,21 @@ template<typename Op> void ComplexDiff::binaryOperationInSitu(Op &operation,
   binaryOperationInSitu(operation,itsDerivIm,other.itsDerivIm,other.itsValue);
 }
 
+/// @brief perform an arbitrary unary operation on derivatives
+/// @details See another overloaded version of this method for details.
+/// This version calls another one for each of two derivative maps
+/// this class holds. 
+/// @note This method is not const, because it passes non-const references
+/// to data members as parameters to another overloaded method. 
+/// @param[in] operation type performing actual operation
+template<typename Op> inline void ComplexDiff::unaryOperationInSitu(Op &operation)
+{
+  // process derivatives by real part of each parameter
+  unaryOperationInSitu(operation,itsDerivRe);
+  // process derivatives by imaginary part of each parameter
+  unaryOperationInSitu(operation,itsDerivIm);
+}
+
 /// @brief form a sum of two parts
 /// @details At this stage operator is implemented via appropriate in situ
 /// operator. If it ever becomes performance critical (there is an extra copying
@@ -229,6 +291,20 @@ inline ComplexDiff operator*(const ComplexDiff &in1, const ComplexDiff &in2)
 {
   ComplexDiff result(in1);
   result*=in2;
+  return result;
+}
+
+/// @brief perform complex conjugation
+/// @details At this stage the operator is implemented via appropriate in situ
+/// operator. If it ever becomes performance critical (there is an extra copying
+/// involved), a separate code can be written for operations with a constant
+/// operand.
+/// @param[in] in an operand to conjugate
+/// @return result
+inline ComplexDiff conj(const ComplexDiff &in) 
+{
+  ComplexDiff result(in);
+  result.conjugate();
   return result;
 }
 

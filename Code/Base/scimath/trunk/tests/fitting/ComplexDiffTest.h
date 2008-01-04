@@ -26,6 +26,7 @@ class ComplexDiffTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(ComplexDiffTest);
   CPPUNIT_TEST(testAdd);
   CPPUNIT_TEST(testMultiply);
+  CPPUNIT_TEST(testConjugate);
   CPPUNIT_TEST_SUITE_END();
 private:
   ComplexDiff f,g;
@@ -34,6 +35,7 @@ public:
   void setUp();
   void testAdd();
   void testMultiply();
+  void testConjugate();
 };
 
 void ComplexDiffTest::setUp() 
@@ -90,6 +92,14 @@ void ComplexDiffTest::testMultiply()
   CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(35.,-15.))<1e-7);
   CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(15,35.))<1e-7);
   CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(-35.,15.))<1e-7);
+}
+
+void ComplexDiffTest::testConjugate()
+{
+  ComplexDiff d = conj(g);
+  CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-35.,-15.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(1.,0.))<1e-7);
+  CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(0.,-1.))<1e-7);
 }
 
 } // namespace scimath

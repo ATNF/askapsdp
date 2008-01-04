@@ -135,6 +135,30 @@ void ComplexDiff::binaryOperationInSitu(Op &operation,
   }
 }
 
+/// @brief perform an arbitrary unary operation on derivatives
+/// @details This method can be used to implement operations like conjugation.
+/// The common point is that the content of this class is updated. Note, 
+/// however, that this method accepts a map of derivatives as its parameter.
+/// This is done because we need to repeat the same operation for both
+/// derivatives by real and imaginary part. Therefore, this method doesn't 
+/// change the content of this class directly. It only happens when this method
+/// is called, because this class' members are passed as non-const parameter.
+/// This is why this method is made const-method.
+/// Op is a type, which knows how to do the operation.
+/// It should have the operator() accepting 2 parameters: value and derivative. 
+/// It doesn't matter at this stage whether the derivative is by real or 
+/// imaginary part as the formulae are always the same. 
+/// @param[in] operation type performing actual operation
+/// @param[inout] der operand's derivatives
+template<typename Op> void ComplexDiff::unaryOperationInSitu(Op &operation,
+              std::map<std::string, casa::Complex> &der) const
+{
+   for (std::map<std::string, casa::Complex>::iterator it = der.begin();
+       it != der.end(); ++it) {
+       operation(itsValue, it->second);
+   }
+}
+
   
 /// @brief add up another autodifferentiator
 /// @param[in] other autodifferentiator to add up
@@ -156,3 +180,9 @@ void ComplexDiff::operator*=(const ComplexDiff &other)
   itsValue*=other.itsValue;
 }
 
+/// @brief perform complex conjugation in situ
+void ComplexDiff::conjugate() 
+{  
+  unaryOperationInSitu(ComplexDiff::conjugationInSitu);
+  itsValue = conj(itsValue);
+}
