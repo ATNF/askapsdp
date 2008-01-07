@@ -10,6 +10,12 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 
+#include <Blob/BlobString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
+
 #include <casa/OS/Timer.h>
 #include <casa/Utilities/Regex.h>
 #include <casa/BasicSL/String.h>
@@ -18,7 +24,6 @@
 #include <conrad_analysis.h>
 
 #include <conrad/ConradLogging.h>
-
 #include <conrad/ConradError.h>
 
 #include <parallelanalysis/DuchampParallel.h>
@@ -115,15 +120,41 @@ namespace conrad
       if(isWorker()) {
         // Get the region specifications from the master
         CONRADLOG_INFO_STR(logger,  "Finding Statistics" );
-        // Send back the statistics to the master
+        // Find the statistics for the local cube
 	itsCube.setCubeStats();
 	CONRADLOG_INFO_STR(logger, "Mean = " << itsCube.stats().getMean() << ", RMS = " << itsCube.stats().getStddev() );
 	CONRADLOG_INFO_STR(logger, "Median = " << itsCube.stats().getMedian() << ", MADFM = " << itsCube.stats().getMadfm() );
 	CONRADLOG_INFO_STR(logger, "Noise level = " << itsCube.stats().getMiddle() << ", Noise spread = " << itsCube.stats().getSpread() );
+
+        // Send back the statistics to the master	
+	// copying the structure from MEParallel.cc
+	LOFAR::BlobString bs;
+	bs.resize(0);
+	LOFAR::BlobOBufString bob(bs);
+	LOFAR::BlobOStream out(bob);
+	out.putStart("stat",1);
+	double mean = itsCube.stats().getMean(), rms = itsCube.stats().getStddev();
+	int size = itsCube.getSize();
+	out << itsRank << mean << rms << size;
+	out.putEnd();
+	itsConnectionSet->write(0,bs);
+        CONRADLOG_INFO_STR(logger, "Sent stats to the master via MPI from worker " << itsRank );
+
       }
       else {
       }
     }
+
+//     void DuchampParallel::aggregateStatistics()
+//     {
+//       if(isMaster()) {
+// 	// get the stats from each of the workers and aggregate them
+
+//       }
+//       else{
+//       }
+
+//     }
 
     // Print the statistics (on the master)
     void DuchampParallel::printStatistics()
@@ -131,7 +162,35 @@ namespace conrad
       if(isMaster()) {
         // Get the statistics from the workers
         CONRADLOG_INFO_STR(logger,  "Receiving Statistics" );
+ 
+	// copying the structure from MEParallel.cc
+	LOFAR::BlobString bs;
+        int rank, size;
+	double av=0,rms=0;
+        for (int i=1; i<itsNNode; i++)
+        {
+          itsConnectionSet->read(i-1, bs);
+          LOFAR::BlobIBufString bib(bs);
+          LOFAR::BlobIStream in(bib);
+          int version=in.getStart("ne");
+          CONRADASSERT(version==1);
+	  double newav, newrms;
+	  int newsize;
+          in >> rank >> newav >> newrms >> newsize;
+          in.getEnd();
+          CONRADLOG_INFO_STR(logger, "Received stats from worker "<< rank);
+
+	  size += newsize;
+	  av += newav * newsize;
+	  rms += newrms * newsize;
+        }
+	
+	av /= double(size);
+	rms /= double(size);
+
         // Print out
+	CONRADLOG_INFO_STR(logger, "Aggregated stats: mean = " << av << ", rms = " << rms);
+
       }
       else {
       }
