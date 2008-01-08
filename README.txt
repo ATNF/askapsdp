@@ -22,13 +22,39 @@ point for the repository is $CONRAD_PROJECT_ROOT.
    handles the build process.
 
 cd svnCONRAD
-python initenv.py      # only once
+python bootstrap.py      # only once
 . initconrad.sh		   # execute everytime a new session is started
-python bootstrap.py    # only once
 
 The above steps make installs go to the local directories
 $CONRAD_PROJECT_ROOT/{bin, lib/python<version>} which do not require
 root permission.
+
+rbuild
+=====
+
+The 'rbuild' command is the main build command for developers. It has the ability of updating from the subversion repository and also recursively resolve, update and build dependencies.
+
+To get help for 'rbuild' simply type 
+
+rbuild -h
+
+which results in
+ 
+usage: rbuild [options] <package_path>
+
+The CONRAD build command for users/developers. It handles dependencies and
+performs updates from subversion
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         suppress all output except errors and warnings
+  -t TARGET, --target=TARGET
+                        Select TARGET from: install, doc, test, clean, pylint,
+                        release [default=install]
+  -n, --no-update       Don't update from subversion.
+  -p EXTRAOPTS, --pass-options=EXTRAOPTS
+                        Pass on package specific build options, e.g. 'mpich=1'
+
 
 recursivebuild
 ==============
