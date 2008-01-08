@@ -1,9 +1,9 @@
 # Configure the rootLogger
 log4j.rootLogger=DEBUG,STDOUT,R #,xmlsocket
 
-log4j.appender.xmlsocket=org.apache.log4j.XMLSocketAppender
-log4j.appender.xmlsocket.RemoteHost=localhost
-log4j.appender.xmlsocket.Port=4448
+#log4j.appender.xmlsocket=org.apache.log4j.XMLSocketAppender
+#log4j.appender.xmlsocket.RemoteHost=localhost
+#log4j.appender.xmlsocket.Port=4448
 
 log4j.appender.STDOUT=org.apache.log4j.ConsoleAppender
 log4j.appender.STDOUT.layout=org.apache.log4j.PatternLayout

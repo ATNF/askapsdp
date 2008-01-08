@@ -57,7 +57,7 @@ namespace conrad
 	itsCube.pars().setImageFile(itsImage);
 	itsCube.pars().setVerbosity(false);
 	CONRADLOG_INFO_STR(logger, "Defined the cube.");
-	//	CONRADLOG_INFO_STR(logger, "Defined the cube. Its Param set is :" << itsCube.pars());
+	//CONRADLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
 
 // 	ParameterSet subset(parset.makeSubset("param."));
 // 	std::string param; // use this for temporary storage of parameters.
@@ -126,19 +126,21 @@ namespace conrad
 	CONRADLOG_INFO_STR(logger, "Median = " << itsCube.stats().getMedian() << ", MADFM = " << itsCube.stats().getMadfm() );
 	CONRADLOG_INFO_STR(logger, "Noise level = " << itsCube.stats().getMiddle() << ", Noise spread = " << itsCube.stats().getSpread() );
 
-        // Send back the statistics to the master	
-	// copying the structure from MEParallel.cc
-	LOFAR::BlobString bs;
-	bs.resize(0);
-	LOFAR::BlobOBufString bob(bs);
-	LOFAR::BlobOStream out(bob);
-	out.putStart("stat",1);
-	double mean = itsCube.stats().getMean(), rms = itsCube.stats().getStddev();
-	int size = itsCube.getSize();
-	out << itsRank << mean << rms << size;
-	out.putEnd();
-	itsConnectionSet->write(0,bs);
-        CONRADLOG_INFO_STR(logger, "Sent stats to the master via MPI from worker " << itsRank );
+	if(isParallel()) {
+	  // Send back the statistics to the master	
+	  // copying the structure from MEParallel.cc
+	  LOFAR::BlobString bs;
+	  bs.resize(0);
+	  LOFAR::BlobOBufString bob(bs);
+	  LOFAR::BlobOStream out(bob);
+	  out.putStart("stat",1);
+	  double mean = itsCube.stats().getMean(), rms = itsCube.stats().getStddev();
+	  int size = itsCube.getSize();
+	  out << itsRank << mean << rms << size;
+	  out.putEnd();
+	  itsConnectionSet->write(0,bs);
+	  CONRADLOG_INFO_STR(logger, "Sent stats to the master via MPI from worker " << itsRank );
+	}
 
       }
       else {
@@ -149,7 +151,7 @@ namespace conrad
     // Print the statistics (on the master)
     void DuchampParallel::printStatistics()
     {
-      if(isMaster()) {
+      if(isMaster()&&isParallel()) {
         // Get the statistics from the workers
         CONRADLOG_INFO_STR(logger,  "Receiving Statistics" );
  
