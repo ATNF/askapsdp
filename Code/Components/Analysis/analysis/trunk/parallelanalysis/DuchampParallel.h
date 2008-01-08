@@ -53,9 +53,6 @@ namespace conrad
       // Find the statistics (on the workers)
       void findStatistics();
 
-/*       // Aggregate the statistics (on the master) */
-/*       void aggregateStatistics(); */
-
       // Print the statistics (on the master)
       void printStatistics();
 

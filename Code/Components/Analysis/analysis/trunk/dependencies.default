@@ -1,7 +1,9 @@
+scimath=Code/Base/scimath/trunk
+mwcommon=Code/Components/CP/mwcommon/trunk
 conradparallel=Code/Components/CP/conradparallel/trunk
-duchamp=3rdParty/Duchamp/tags/Duchamp-1.1.2
-log4cxx=3rdParty/log4cxx/default
-aps=3rdParty/LOFAR/APS/tags/APS-2.1
+casacore=3rdParty/casacore/tags/casacore-0.2.0
 blob=3rdParty/LOFAR/Blob/tags/Blob-1.0
-ms=3rdParty/LOFAR/MS/tags/MS-0.1
+boost=3rdParty/boost/tags/boost-1.34.1
+conrad=Code/Base/conrad/trunk
+duchamp=3rdParty/Duchamp/tags/Duchamp-1.1.2
 

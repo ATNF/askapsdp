@@ -145,16 +145,6 @@ namespace conrad
       }
     }
 
-//     void DuchampParallel::aggregateStatistics()
-//     {
-//       if(isMaster()) {
-// 	// get the stats from each of the workers and aggregate them
-
-//       }
-//       else{
-//       }
-
-//     }
 
     // Print the statistics (on the master)
     void DuchampParallel::printStatistics()
@@ -165,14 +155,14 @@ namespace conrad
  
 	// copying the structure from MEParallel.cc
 	LOFAR::BlobString bs;
-        int rank, size;
+        int rank, size=0;
 	double av=0,rms=0;
         for (int i=1; i<itsNNode; i++)
         {
           itsConnectionSet->read(i-1, bs);
           LOFAR::BlobIBufString bib(bs);
           LOFAR::BlobIStream in(bib);
-          int version=in.getStart("ne");
+          int version=in.getStart("stat");
           CONRADASSERT(version==1);
 	  double newav, newrms;
 	  int newsize;
@@ -185,8 +175,10 @@ namespace conrad
 	  rms += newrms * newsize;
         }
 	
-	av /= double(size);
-	rms /= double(size);
+	if(size>0){
+	  av /= double(size);
+	  rms /= double(size);
+	}
 
         // Print out
 	CONRADLOG_INFO_STR(logger, "Aggregated stats: mean = " << av << ", rms = " << rms);
