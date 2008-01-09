@@ -5,5 +5,5 @@ casacore=3rdParty/casacore/tags/casacore-0.2.0
 blob=3rdParty/LOFAR/Blob/tags/Blob-1.0
 boost=3rdParty/boost/tags/boost-1.34.1
 conrad=Code/Base/conrad/trunk
-duchamp=3rdParty/Duchamp/default
+duchamp=3rdParty/Duchamp/tags/Duchamp-1.1.3
 
