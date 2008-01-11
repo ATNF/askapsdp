@@ -33,6 +33,7 @@
 #include <duchamp/duchamp.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Statistics.hh>
+#include <duchamp/Utils/utils.hh>
 
 CONRAD_LOGGER(logger, ".parallelanalysis");
 
@@ -114,6 +115,77 @@ namespace conrad
       }
     }
     
+    void DuchampParallel::findMeans()
+    {
+      if(isWorker()) {
+	CONRADLOG_INFO_STR(logger, "Finding mean: worker " << itsRank);
+	int size = itsCube.getSize();
+	double mean = findMean(itsCube.getArray(),size);
+	CONRADLOG_INFO_STR(logger, "#" << itsRank << ": Mean = " << mean );
+	
+	if(isParallel()) {
+	  LOFAR::BlobString bs;
+	  bs.resize(0);
+	  LOFAR::BlobOBufString bob(bs);
+	  LOFAR::BlobOStream out(bob);
+	  out.putStart("meanW2M",1);
+	  out << itsRank << mean << size;
+	  out.putEnd();
+	  itsConnectionSet->write(0,bs);
+	  CONRADLOG_INFO_STR(logger, "Sent mean to the master from worker " << itsRank );
+	}
+
+      }
+      else {
+      }
+    }
+    
+    void DuchampParallel::findRMSs() 
+    {
+      if(isWorker()) {
+	CONRADLOG_INFO_STR(logger, "About to calculate rms on worker " << itsRank);
+
+	// first read in the overall mean for the cube
+	double mean=0;
+	if(isParallel()) {
+	  LOFAR::BlobString bs1;
+	  itsConnectionSet->read(0, bs1);
+	  LOFAR::BlobIBufString bib(bs1);
+	  LOFAR::BlobIStream in(bib);
+	  int version=in.getStart("meanM2W");
+	  CONRADASSERT(version==1);
+	  in >> mean;
+	  in.getEnd();
+	  CONRADLOG_INFO_STR(logger, "Here " << itsRank);
+	  CONRADLOG_INFO_STR(logger, "Worker " << itsRank << " read overall mean (" << mean << ") from the master" );
+	}
+	// use it to calculate the rms for this section
+	double rms = 0.;
+	int size = itsCube.getSize();
+	float *array = itsCube.getArray();
+	for(int i=0;i<size;i++) rms += (array[i]-mean)*(array[i]-mean);
+	rms = sqrt(rms / double(size-1));
+	CONRADLOG_INFO_STR(logger, "#" << itsRank << ": rms = " << rms );
+
+	// return it to the master
+	if(isParallel()) {
+	  LOFAR::BlobString bs2;
+	  bs2.resize(0);
+	  LOFAR::BlobOBufString bob(bs2);
+	  LOFAR::BlobOStream out(bob);
+	  out.putStart("rmsW2M",1);
+	  out << itsRank << rms << size;
+	  out.putEnd();
+	  itsConnectionSet->write(0,bs2);
+	  CONRADLOG_INFO_STR(logger, "Sent local rms to the master from worker " << itsRank );
+	}
+
+      }
+      else {
+      }
+
+    }
+
     // Find the statistics (on the workers)
     void DuchampParallel::findStatistics()
     {
@@ -147,6 +219,98 @@ namespace conrad
       }
     }
 
+    void DuchampParallel::combineMeans()
+    {
+      if(isMaster()&&isParallel()) {
+	// get the means from the workers
+        CONRADLOG_INFO_STR(logger,  "Receiving Means and combining" );
+
+	LOFAR::BlobString bs1;
+        int rank, size=0;
+	double av=0;
+        for (int i=1; i<itsNNode; i++)
+        {
+          itsConnectionSet->read(i-1, bs1);
+          LOFAR::BlobIBufString bib(bs1);
+          LOFAR::BlobIStream in(bib);
+          int version=in.getStart("meanW2M");
+          CONRADASSERT(version==1);
+	  double newav;
+	  int newsize;
+          in >> rank >> newav >> newsize;
+          in.getEnd();
+          CONRADLOG_INFO_STR(logger, "Received mean from worker "<< rank);
+
+	  size += newsize;
+	  av += newav * newsize;
+        }
+
+	if(size>0){
+	  av /= double(size);
+	}
+
+	CONRADLOG_INFO_STR(logger, "OVERALL SIZE = " << size);
+	CONRADLOG_INFO_STR(logger, "OVERALL MEAN = " << av);
+	itsCube.stats().setMean(av);
+      }
+      else {
+      }
+    }
+	
+    void DuchampParallel::broadcastMean() 
+    {
+      if(isMaster()&&isParallel()) {
+	// now send the overall mean to the workers so they can calculate the rms
+	double av = itsCube.stats().getMean();
+	LOFAR::BlobString bs2;
+	bs2.resize(0);
+	LOFAR::BlobOBufString bob(bs2);
+	LOFAR::BlobOStream out(bob);
+	out.putStart("meanM2W",1);
+	out << av;
+	out.putEnd();
+	itsConnectionSet->writeAll(bs2);
+	CONRADLOG_INFO_STR(logger, 
+			   "Sent local rms to the master from worker " << itsRank );
+	
+      }
+
+    }
+
+    void DuchampParallel::combineRMSs()
+    {
+      if(isMaster()&&isParallel()) {
+	// get the means from the workers
+        CONRADLOG_INFO_STR(logger,  "Receiving RMS values and combining" );
+
+	LOFAR::BlobString bs;
+        int rank, size=0;
+	double rms=0;
+        for (int i=1; i<itsNNode; i++)
+        {
+          itsConnectionSet->read(i-1, bs);
+          LOFAR::BlobIBufString bib(bs);
+          LOFAR::BlobIStream in(bib);
+          int version=in.getStart("rmsW2M");
+          CONRADASSERT(version==1);
+	  double newrms;
+	  int newsize;
+          in >> rank >> newrms >> newsize;
+          in.getEnd();
+          CONRADLOG_INFO_STR(logger, "Received RMS from worker "<< rank);
+
+	  size += newsize;
+	  rms += (newrms * newrms * (newsize-1));
+        }
+
+	if(size>0){
+	  rms = sqrt( rms / double(size-1) );
+	}
+
+	CONRADLOG_INFO_STR(logger, "OVERALL RMS = " << rms);
+
+      }
+    }
 
     // Print the statistics (on the master)
     void DuchampParallel::printStatistics()
@@ -170,16 +334,16 @@ namespace conrad
 	  int newsize;
           in >> rank >> newav >> newrms >> newsize;
           in.getEnd();
-          CONRADLOG_INFO_STR(logger, "Received stats from worker "<< rank);
+          CONRADLOG_INFO_STR(logger, i-1 << ": Received stats from worker "<< rank);
 
 	  size += newsize;
 	  av += newav * newsize;
-	  rms += newrms * newsize;
+	  rms += (newrms * newrms * newsize);
         }
 	
 	if(size>0){
 	  av /= double(size);
-	  rms /= double(size);
+	  rms = sqrt( rms / double(size) );
 	}
 
         // Print out

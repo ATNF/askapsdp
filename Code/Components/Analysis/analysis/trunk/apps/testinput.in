@@ -1,4 +1,4 @@
 #Cduchamp.image       = /Users/whi550/PROJECTS/CONRAD/svnCONRAD/Code//Components/Synthesis/testdata/trunk/testdataset.ms
-#Cduchamp.image       = /Users/whi550/PROJECTS/CONRAD/svnCONRAD/3rdParty/Duchamp/tags/Duchamp-1.1.2/Duchamp-1.1.2/verification/verificationCube.fits
+#Cduchamp.image       = /Users/whi550/PROJECTS/CONRAD/svnCONRAD/3rdParty/Duchamp/tags/Duchamp-1.1.3/Duchamp-1.1.3/verification/verificationCube.fits
 Cduchamp.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 

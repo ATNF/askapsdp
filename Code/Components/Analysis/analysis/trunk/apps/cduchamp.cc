@@ -71,8 +71,13 @@ int main(int argc, const char** argv)
     duchamp.readData();
     //    duchamp.findLists();
     //    duchamp.condenseLists();
-    duchamp.findStatistics();
-    duchamp.printStatistics();
+//     duchamp.findStatistics();
+//     duchamp.printStatistics();
+    duchamp.findMeans();
+    duchamp.combineMeans();
+    duchamp.broadcastMean();
+    duchamp.findRMSs();
+    duchamp.combineRMSs();
 
     ///==============================================================================
   }

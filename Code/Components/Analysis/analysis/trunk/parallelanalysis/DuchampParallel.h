@@ -56,6 +56,19 @@ namespace conrad
       // Print the statistics (on the master)
       void printStatistics();
 
+
+      // Better ones:
+      // Find the mean (on the workers)
+      void findMeans();
+      // Find the RMS (on the workers)
+      void findRMSs();
+      // Combine and print the mean (on the master)
+      void combineMeans();
+      // Send the overall mean to the workers (on the master)
+      void broadcastMean();
+      // Combine and print the RMS (on the master)
+      void combineRMSs();
+
   protected:
 
       std::string itsImage;
