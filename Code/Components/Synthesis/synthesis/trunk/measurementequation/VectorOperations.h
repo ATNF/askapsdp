@@ -14,6 +14,7 @@
 #define VECTOR_OPERATIONS_H
 
 #include <scimath/Mathematics/AutoDiff.h>
+#include <fitting/ComplexDiff.h>
 
 
 namespace conrad {
@@ -163,6 +164,20 @@ struct InputValueAccessor<casa::Complex> : public ComplexNumberIncrementor {
       { return isRealNow()? real(in) : imag(in); }
 };
 
+/// @brief InputValueAccessor specialization for ComplexDiff
+/// @ingroup measurementequation
+template<>
+struct InputValueAccessor<scimath::ComplexDiff> : public ComplexNumberIncrementor {
+   
+   /// @brief access to the value
+   /// @details This access method of this specialization returns real or
+   /// imaginary part of the value of the input ComplexDiff object, depending on 
+   /// whether it is an even or odd call to the increment operator.
+   /// @param[in] in input complex number
+   inline casa::Double operator()(const scimath::ComplexDiff &in) const 
+      { return isRealNow()? real(in.value()) : imag(in.value()); }
+};
+
 
 /// @brief Helper class to wrap around output iterator
 /// @details The purpose of this class is to store the required value 
@@ -203,7 +218,7 @@ template<>
 struct OutputValueAccessor<casa::Complex> : public ComplexNumberIncrementor {
    /// @brief default constructor
    /// @details strictly speaking, this method is not required for correct
-   /// operations. However, it the compiler gives a
+   /// operations. However, the compiler gives a
    /// warning that itsRealPart data member can be uninitialized, if this
    /// constructor is not present. 
    OutputValueAccessor() : itsRealPart(0.) {}
