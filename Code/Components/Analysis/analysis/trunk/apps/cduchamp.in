@@ -1,1 +1,6 @@
-Cduchamp.image  = Testimage%w
+#Cduchamp.image     = Testimage%w
+Cduchamp.image      = /Users/whi550/ObsData/cubes/verifyCube%w.fits
+Cduchamp.flagRobust = false
+
+Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
+Cimstat.flagRobust  = true

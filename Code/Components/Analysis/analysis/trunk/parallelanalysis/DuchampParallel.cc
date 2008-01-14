@@ -29,8 +29,10 @@
 #include <parallelanalysis/DuchampParallel.h>
 
 #include <sstream>
+#include <algorithm>
 
 #include <duchamp/duchamp.hh>
+#include <duchamp/param.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/utils.hh>
@@ -59,6 +61,9 @@ namespace conrad
 	itsCube.pars().setVerbosity(false);
 	CONRADLOG_INFO_STR(logger, "Defined the cube.");
 	//CONRADLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
+
+	string flagRobust = substitute(parset.getString("flagRobust"));
+	itsCube.pars().setFlagRobustStats(flagRobust=="true" || flagRobust=="1");
 
 // 	ParameterSet subset(parset.makeSubset("param."));
 // 	std::string param; // use this for temporary storage of parameters.
@@ -120,7 +125,11 @@ namespace conrad
       if(isWorker()) {
 	CONRADLOG_INFO_STR(logger, "Finding mean: worker " << itsRank);
 	int size = itsCube.getSize();
-	double mean = findMean(itsCube.getArray(),size);
+	double mean;
+	if(itsCube.pars().getFlagRobustStats())
+	  mean = findMedian(itsCube.getArray(),size);
+	else
+	  mean = findMean(itsCube.getArray(),size);
 	CONRADLOG_INFO_STR(logger, "#" << itsRank << ": Mean = " << mean );
 	
 	if(isParallel()) {
@@ -140,6 +149,26 @@ namespace conrad
       }
     }
     
+    double findSpread(bool robust, double middle, int size, float *array)
+    {
+      double spread=0;
+      if(robust){
+	float *arrayCopy = new float[size];
+	for(int i=0;i<size;i++) arrayCopy[i] = fabs(array[i]-middle);
+	std::sort(arrayCopy,arrayCopy+size);
+	if((size%2)==0) spread = (arrayCopy[size/2-1]+arrayCopy[size/2])/2;
+	else spread = arrayCopy[size/2];
+	delete [] arrayCopy;
+	spread = Statistics::madfmToSigma(spread);
+      }
+      else{
+	for(int i=0;i<size;i++) spread += (array[i]-middle)*(array[i]-middle);
+	spread = sqrt(spread / double(size-1));
+      }
+      return spread;
+    }
+
+
     void DuchampParallel::findRMSs() 
     {
       if(isWorker()) {
@@ -156,15 +185,14 @@ namespace conrad
 	  CONRADASSERT(version==1);
 	  in >> mean;
 	  in.getEnd();
-	  CONRADLOG_INFO_STR(logger, "Here " << itsRank);
-	  CONRADLOG_INFO_STR(logger, "Worker " << itsRank << " read overall mean (" << mean << ") from the master" );
 	}
 	// use it to calculate the rms for this section
-	double rms = 0.;
-	int size = itsCube.getSize();
-	float *array = itsCube.getArray();
-	for(int i=0;i<size;i++) rms += (array[i]-mean)*(array[i]-mean);
-	rms = sqrt(rms / double(size-1));
+// 	double rms = 0.;
+ 	int size = itsCube.getSize();
+ 	float *array = itsCube.getArray();
+// 	for(int i=0;i<size;i++) rms += (array[i]-mean)*(array[i]-mean);
+// 	rms = sqrt(rms / double(size-1));
+	double rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
 	CONRADLOG_INFO_STR(logger, "#" << itsRank << ": rms = " << rms );
 
 	// return it to the master
@@ -272,9 +300,9 @@ namespace conrad
 	itsConnectionSet->writeAll(bs2);
 	CONRADLOG_INFO_STR(logger, 
 			   "Sent local rms to the master from worker " << itsRank );
-	
       }
-
+      else {
+      }
     }
 
     void DuchampParallel::combineRMSs()
