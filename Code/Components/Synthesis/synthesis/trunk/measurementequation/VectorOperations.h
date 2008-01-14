@@ -276,7 +276,7 @@ private:
    mutable casa::Double itsRealPart;
 };
 
-}
+} // namespace vector_operations
 
 /// @brief copy 1D-vector and flatten it on demand
 /// @details A number of situation requires copying 1D vectors of different
@@ -372,6 +372,96 @@ inline void copyDerivativeVector(size_t par, const InType& inVec,
   typename vector_operations::ValueTypeExtractor<OutType>::container_type 
                                                         OutVecRef(outVec);
   copyDerivativeVector(par, inVec, OutVecRef); 
+}
+
+/// @brief copy 1D-vector of derivatives by real parts
+/// @details This is a special case of copyVector, which extracts a
+/// derivative by real part of paramters instead of the value from ComplexDiff. 
+/// @param[in] par a name of the parameter/derivative of interest
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType,typename OutType>
+inline void copyReDerivativeVector(const std::string &par, const InType& inVec, 
+                                   OutType& outVec) 
+{
+  typename InType::const_iterator ci = inVec.begin();
+  typename OutType::iterator it = outVec.begin();
+  vector_operations::InputValueAccessor<typename 
+                vector_operations::ValueTypeExtractor<InType>::type> iva;
+  vector_operations::OutputValueAccessor<typename 
+                vector_operations::ValueTypeExtractor<OutType>::type> ova;
+  for (; ci!=inVec.end() && it != outVec.end(); 
+       iva.increment(ci),ova.increment(it)) {
+       ova.write(iva(ci->derivRe(par)),*it);
+  }
+}
+
+/// @brief copy 1D-vector of derivatives by real parts
+/// @details This version is intended for slices of casa containers, which
+/// use reference semantics and can be temporary objects.
+/// @param[in] par a name of the parameter/derivative of interest
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType, typename OutType>
+inline void copyReDerivativeVector(const std::string &par, const InType& inVec, 
+                                 const OutType &outVec)
+{
+  // use this to ensure that no STL containers are called with this
+  // syntax. Passing const reference is necessary for casa containers 
+  // only, which use reference semantics. If we allow the following code
+  // for STL containers, it would modify the copy and the changes would not
+  // propagate to the destination container.
+  typename vector_operations::ValueTypeExtractor<OutType>::container_type 
+                                                        OutVecRef(outVec);
+  copyReDerivativeVector(par, inVec, OutVecRef); 
+}
+
+
+/// @brief copy 1D-vector of derivatives by imaginary parts
+/// @details This is a special case of copyVector, which extracts a
+/// derivative by imaginary part of paramters instead of the value 
+/// from ComplexDiff. 
+/// @param[in] par a name of the parameter/derivative of interest
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType,typename OutType>
+inline void copyImDerivativeVector(const std::string &par, const InType& inVec, 
+                                   OutType& outVec) 
+{
+  typename InType::const_iterator ci = inVec.begin();
+  typename OutType::iterator it = outVec.begin();
+  vector_operations::InputValueAccessor<typename 
+                vector_operations::ValueTypeExtractor<InType>::type> iva;
+  vector_operations::OutputValueAccessor<typename 
+                vector_operations::ValueTypeExtractor<OutType>::type> ova;
+  for (; ci!=inVec.end() && it != outVec.end(); 
+       iva.increment(ci),ova.increment(it)) {
+       ova.write(iva(ci->derivIm(par)),*it);
+  }
+}
+
+/// @brief copy 1D-vector of derivatives by imaginary parts
+/// @details This version is intended for slices of casa containers, which
+/// use reference semantics and can be temporary objects.
+/// @param[in] par a name of the parameter/derivative of interest
+/// @param[in] inVec input vector
+/// @param[in] outVec output vector
+/// @ingroup measurementequation
+template<typename InType, typename OutType>
+inline void copyImDerivativeVector(const std::string &par, const InType& inVec, 
+                                 const OutType &outVec)
+{
+  // use this to ensure that no STL containers are called with this
+  // syntax. Passing const reference is necessary for casa containers 
+  // only, which use reference semantics. If we allow the following code
+  // for STL containers, it would modify the copy and the changes would not
+  // propagate to the destination container.
+  typename vector_operations::ValueTypeExtractor<OutType>::container_type 
+                                                        OutVecRef(outVec);
+  copyImDerivativeVector(par, inVec, OutVecRef); 
 }
  
 

@@ -17,6 +17,7 @@
 #include <casa/BasicSL/Complex.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <conrad/ConradError.h>
+#include <fitting/ComplexDiff.h>
 
 
 // std includes
@@ -68,6 +69,19 @@ namespace conrad
           CPPUNIT_ASSERT(fabs(vec[0])<1e-10 && fabs(vec[1]-1)<1e-10);
           copyDerivativeVector(0,autoDiffVec,vec);
           CPPUNIT_ASSERT(fabs(vec[0]-1)<1e-10 && fabs(vec[1]+1)<1e-10);
+          vector<scimath::ComplexDiff> complexDiffVec(1,
+                        scimath::ComplexDiff("par1",casa::Complex(0.,-1.)));
+          complexDiffVec[0] *= scimath::ComplexDiff("par2", casa::Complex(2.,0.));
+          copyVector(complexDiffVec,vec);
+          CPPUNIT_ASSERT(fabs(vec[0])<1e-10 && fabs(vec[1]+2.)<1e-10);
+          copyReDerivativeVector("par1",complexDiffVec,vec);
+          CPPUNIT_ASSERT(fabs(vec[0]-2)<1e-10 && fabs(vec[1])<1e-10);
+          copyReDerivativeVector("par2",complexDiffVec,vec);
+          CPPUNIT_ASSERT(fabs(vec[0])<1e-10 && fabs(vec[1]+1)<1e-10);
+          copyImDerivativeVector("par1",complexDiffVec,vec);
+          CPPUNIT_ASSERT(fabs(vec[0])<1e-10 && fabs(vec[1]-2)<1e-10);
+          copyImDerivativeVector("par2",complexDiffVec,vec);
+          CPPUNIT_ASSERT(fabs(vec[0]-1)<1e-10 && fabs(vec[1])<1e-10);
         }
         
         void testSubtract()
