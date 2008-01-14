@@ -49,6 +49,9 @@ namespace conrad
       
       // Find the lists (on the workers)
       void findLists();
+
+      // Print out the resulting source list (on the master)
+      void printResults();
       
       // Find the statistics (on the workers)
       void findStatistics();

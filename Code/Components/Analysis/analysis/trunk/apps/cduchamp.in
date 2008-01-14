@@ -1,6 +1,8 @@
 #Cduchamp.image     = Testimage%w
 Cduchamp.image      = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 Cduchamp.flagRobust = false
+Cduchamp.snrCut     = 4
+Cduchamp.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits
 
 Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 Cimstat.flagRobust  = true

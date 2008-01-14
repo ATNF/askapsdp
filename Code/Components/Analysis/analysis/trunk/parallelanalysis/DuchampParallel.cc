@@ -21,6 +21,9 @@
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 
+// boost includes
+#include <boost/shared_ptr.hpp>
+
 #include <conrad_analysis.h>
 
 #include <conrad/ConradLogging.h>
@@ -36,6 +39,8 @@
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/utils.hh>
+#include <duchamp/Detection/detection.hh>
+#include <duchamp/PixelMap/Voxel.hh>
 
 CONRAD_LOGGER(logger, ".parallelanalysis");
 
@@ -58,19 +63,28 @@ namespace conrad
         itsImage = substitute(parset.getString("image"));
 
 	itsCube.pars().setImageFile(itsImage);
-	itsCube.pars().setVerbosity(false);
 	CONRADLOG_INFO_STR(logger, "Defined the cube.");
 	//CONRADLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
 
-	string flagRobust = substitute(parset.getString("flagRobust"));
-	itsCube.pars().setFlagRobustStats(flagRobust=="true" || flagRobust=="1");
 
 // 	ParameterSet subset(parset.makeSubset("param."));
 // 	std::string param; // use this for temporary storage of parameters.
-// 	param = subsitute(parset.getString("");
+// 	param = substitute(parset.getString("");
 	
 
       }
+      else{
+	itsImage = substitute(parset.getString("masterImage"));
+	itsCube.pars().setImageFile(itsImage);
+      }
+
+      itsCube.pars().setVerbosity(false);
+
+      string flagRobust = substitute(parset.getString("flagRobust"));
+      itsCube.pars().setFlagRobustStats(flagRobust=="true" || flagRobust=="1");
+      
+      float cutlevel = parset.getFloat("snrCut");
+      itsCube.pars().setCut(cutlevel);
 
     }
 
@@ -88,6 +102,10 @@ namespace conrad
 
       }
       else {
+	if(itsCube.getCube()==duchamp::FAILURE){
+	  CONRADLOG_ERROR_STR(logger, "Master: Could not read in data from image " << itsImage << ".");
+	}
+
       }
 
     }
@@ -99,7 +117,35 @@ namespace conrad
     {
       if(isWorker()) {
         CONRADLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
+
+	itsCube.setCubeStats();
+	itsCube.CubicSearch();
+	int num = itsCube.getNumObj();
+        CONRADLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << itsRank);
+	
         // Send the lists to the master here
+	if(isParallel()) {
+	  LOFAR::BlobString bs;
+	  bs.resize(0);
+	  LOFAR::BlobOBufString bob(bs);
+	  LOFAR::BlobOStream out(bob);
+	  out.putStart("detW2M",1);
+	  //	  out << itsRank << itsCube.getNumObj() << int(itsCube.pObjectList());
+	  out << itsRank << num;
+	  for(int i=0;i<itsCube.getNumObj();i++){
+	    int size = itsCube.getObject(i).getSize();
+	    out << size;
+	    for(int p=0;p<size;p++){
+	      PixelInfo::Voxel vox = itsCube.getObject(i).getPixel(p);
+	      int x = vox.getX(), y=vox.getY(), z=vox.getZ();
+	      out << x << y << z;
+	    }
+	  }
+	  out.putEnd();
+	  itsConnectionSet->write(0,bs);
+	  CONRADLOG_INFO_STR(logger, "Sent detection list to the master from worker " << itsRank );
+	}
+	
       }
       else {
       }
@@ -111,12 +157,67 @@ namespace conrad
     {
       if(isMaster()) {
         // Get the lists from the workers here
-        // ....
-        // Now process the lists
-        CONRADLOG_INFO_STR(logger,  "Condensing lists" );
-        // Send the region specifications to the workers
-      }
+        CONRADLOG_INFO_STR(logger,  "Retrieving lists from workers" );
+
+ 	LOFAR::BlobString bs;
+        int rank, numObj;
+	//	std::vector<duchamp::Detection> *workerList;
+        for (int i=1; i<itsNNode; i++)
+        {
+          itsConnectionSet->read(i-1, bs);
+          LOFAR::BlobIBufString bib(bs);
+          LOFAR::BlobIStream in(bib);
+          int version=in.getStart("detW2M");
+          CONRADASSERT(version==1);
+	  //          in >> rank >> numObj >> workerList;
+	  in >> rank >> numObj;
+	  for(int obj=0;obj<numObj;obj++){
+	    duchamp::Detection object;
+	    int objsize,x,y,z;
+	    in >> objsize;
+	    for(int p=0;p<objsize;p++){
+	      in >> x >> y >> z;
+	      object.addPixel(x,y,z);
+	    }
+	    itsCube.addObject(object);
+	  }
+          in.getEnd();
+          CONRADLOG_INFO_STR(logger, "Received list from worker "<< rank);
+	  CONRADLOG_INFO_STR(logger, "Now have " << itsCube.getNumObj() << " objects");
+	  //	  itsCube.addObjectList(*workerList);
+        }
+
+	//	std::cout << itsCube;
+// 	std::ofstream logfile("duchampLog.txt");
+// 	logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
+// 	logfile << itsCube;
+// 	logfile.close();
+
+	// Now process the lists
+        CONRADLOG_INFO_STR(logger,  "Condensing lists..." );
+	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
+        CONRADLOG_INFO_STR(logger,  "Condensing lists done" );
+
+       }
       else {
+      }
+    }
+
+    void DuchampParallel::printResults()
+    {
+      if(isMaster()) {
+	CONRADLOG_INFO_STR(logger, "Found " << itsCube.getNumObj() << " sources.");
+	
+	itsCube.prepareOutputFile();
+	if(itsCube.getNumObj()>0){
+ 	  itsCube.calcObjectWCSparams();
+	  itsCube.setObjectFlags();
+	  itsCube.sortDetections();
+	}
+	itsCube.outputDetectionList();
+	//itsCube.logDetectionList();
+      }
+      else{
       }
     }
     

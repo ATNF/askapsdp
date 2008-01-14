@@ -28,7 +28,7 @@ using namespace conrad;
 using namespace conrad::analysis;
 using namespace LOFAR::ACC::APS;
 
-CONRAD_LOGGER(logger, "");
+CONRAD_LOGGER(logger, "cduchamp.log");
 
 // Move to Conrad Util
 std::string getInputs(const std::string& key, const std::string& def, int argc,
@@ -69,15 +69,9 @@ int main(int argc, const char** argv)
     CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
     
     duchamp.readData();
-    //    duchamp.findLists();
-    //    duchamp.condenseLists();
-//     duchamp.findStatistics();
-//     duchamp.printStatistics();
-    duchamp.findMeans();
-    duchamp.combineMeans();
-    duchamp.broadcastMean();
-    duchamp.findRMSs();
-    duchamp.combineRMSs();
+    duchamp.findLists();
+    duchamp.condenseLists();
+    duchamp.printResults();
 
     ///==============================================================================
   }
