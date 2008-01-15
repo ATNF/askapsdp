@@ -83,6 +83,9 @@ namespace conrad
       string flagRobust = substitute(parset.getString("flagRobust"));
       itsCube.pars().setFlagRobustStats(flagRobust=="true" || flagRobust=="1");
       
+      string pixelcentre = substitute(parset.getString("pixelCentre"));
+      itsCube.pars().setPixelCentre(pixelcentre);
+      
       float cutlevel = parset.getFloat("snrCut");
       itsCube.pars().setCut(cutlevel);
 
@@ -130,15 +133,19 @@ namespace conrad
 	  LOFAR::BlobOBufString bob(bs);
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("detW2M",1);
-	  //	  out << itsRank << itsCube.getNumObj() << int(itsCube.pObjectList());
 	  out << itsRank << num;
 	  for(int i=0;i<itsCube.getNumObj();i++){
 	    int size = itsCube.getObject(i).getSize();
 	    out << size;
 	    for(int p=0;p<size;p++){
 	      PixelInfo::Voxel vox = itsCube.getObject(i).getPixel(p);
-	      int x = vox.getX(), y=vox.getY(), z=vox.getZ();
-	      out << x << y << z;
+	      double *pix=new double[3];
+	      double *wld=new double[3];
+	      pix[0] = vox.getX(); pix[1]=vox.getY(); pix[2]=vox.getZ();
+	      itsCube.header().pixToWCS(pix,wld);
+	      out << wld[0] << wld[1] << wld[2];
+	      delete [] pix;
+	      delete [] wld;
 	    }
 	  }
 	  out.putEnd();
@@ -169,36 +176,38 @@ namespace conrad
           LOFAR::BlobIStream in(bib);
           int version=in.getStart("detW2M");
           CONRADASSERT(version==1);
-	  //          in >> rank >> numObj >> workerList;
 	  in >> rank >> numObj;
 	  for(int obj=0;obj<numObj;obj++){
-	    duchamp::Detection object;
+	    duchamp::Detection *object = new duchamp::Detection;
 	    int objsize,x,y,z;
 	    in >> objsize;
 	    for(int p=0;p<objsize;p++){
-	      in >> x >> y >> z;
-	      object.addPixel(x,y,z);
+	      double *pix=new double[3];
+	      double *wld=new double[3];
+	      in >> wld[0] >> wld[1] >> wld[2];
+	      itsCube.header().wcsToPix(wld,pix);
+	      object->addPixel(pix[0],pix[1],pix[2]);
+	      delete [] pix;
+	      delete [] wld;
 	    }
-	    itsCube.addObject(object);
+	    itsCube.addObject(*object);
+	    delete object;
 	  }
           in.getEnd();
           CONRADLOG_INFO_STR(logger, "Received list from worker "<< rank);
 	  CONRADLOG_INFO_STR(logger, "Now have " << itsCube.getNumObj() << " objects");
-	  //	  itsCube.addObjectList(*workerList);
         }
 
-	//	std::cout << itsCube;
-// 	std::ofstream logfile("duchampLog.txt");
-// 	logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
-// 	logfile << itsCube;
-// 	logfile.close();
+ 	std::ofstream logfile(itsCube.pars().getLogFile().c_str());
+ 	logfile.close();
+	itsCube.logDetectionList();
 
 	// Now process the lists
         CONRADLOG_INFO_STR(logger,  "Condensing lists..." );
 	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
         CONRADLOG_INFO_STR(logger,  "Condensing lists done" );
 
-       }
+      }
       else {
       }
     }
@@ -215,7 +224,6 @@ namespace conrad
 	  itsCube.sortDetections();
 	}
 	itsCube.outputDetectionList();
-	//itsCube.logDetectionList();
       }
       else{
       }
