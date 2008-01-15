@@ -26,6 +26,7 @@ class ComplexDiffTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(ComplexDiffTest);
   CPPUNIT_TEST(testAdd);
   CPPUNIT_TEST(testMultiply);
+  CPPUNIT_TEST(testMultiplyVector);
   CPPUNIT_TEST(testConjugate);
   CPPUNIT_TEST_SUITE_END();
 private:
@@ -35,6 +36,7 @@ public:
   void setUp();
   void testAdd();
   void testMultiply();
+  void testMultiplyVector();
   void testConjugate();
 };
 
@@ -92,6 +94,42 @@ void ComplexDiffTest::testMultiply()
   CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(35.,-15.))<1e-7);
   CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(15,35.))<1e-7);
   CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(-35.,15.))<1e-7);
+}
+
+void ComplexDiffTest::testMultiplyVector()
+{
+  casa::Vector<casa::Complex> vec(10.,casa::Complex(0.,-2.));
+  casa::Vector<ComplexDiff> cdVec = vec * f;
+  
+  for (casa::uInt i = 0; i< vec.nelements(); ++i) {
+       CONRADASSERT(i < cdVec.nelements());
+       const ComplexDiff &d = cdVec[i]; 
+       CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-30.,-70.))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(0,-2.))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(2.,0.))<1e-7);
+  }
+  
+  cdVec = g * vec;
+
+  for (casa::uInt i = 0; i< vec.nelements(); ++i) {
+       CONRADASSERT(i < cdVec.nelements());
+       const ComplexDiff &d = cdVec[i]; 
+       CPPUNIT_ASSERT(abs(d.value()-casa::Complex(30.,70.))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(0,-2.))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(2.,0.))<1e-7);
+  } 
+  
+  cdVec*= f;  
+
+  for (casa::uInt i = 0; i< vec.nelements(); ++i) {
+       CONRADASSERT(i < cdVec.nelements());
+       const ComplexDiff &d = cdVec[i]; 
+       CPPUNIT_ASSERT(abs(d.value()-casa::Complex(2100.,2000))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(30.,70.))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(-70.,30.))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(-30.,-70.))<1e-7);
+       CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(70.,-30.))<1e-7);
+  } 
 }
 
 void ComplexDiffTest::testConjugate()

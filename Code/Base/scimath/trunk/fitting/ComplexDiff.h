@@ -20,6 +20,7 @@
 
 // casa includes
 #include <casa/BasicSL/Complex.h>
+#include <casa/Arrays/Vector.h>
 
 // std includes
 #include <map>
@@ -302,6 +303,38 @@ inline ComplexDiff operator*(const ComplexDiff &in1, const ComplexDiff &in2)
   result*=in2;
   return result;
 }
+
+/// @brief a product of a vector and a ComplexDiff scalar
+/// @details Each ComplexDiff object represent a scalar. However, sometimes
+/// it is necessary to form a collection of ComplexDiff objects (e.g. one for
+/// each spectral channel). This method is required to avoid manually expanding
+/// loops in the code if a scalar is multiplied to a vector of ComplexDiffs
+/// @param[in] scalar a scalar multiplier
+/// @param[in[ vec a vector multiplier
+inline casa::Vector<ComplexDiff> operator*(const ComplexDiff &scalar,
+                  const casa::Vector<casa::Complex> &vec)
+{
+  casa::Vector<ComplexDiff> result(vec.nelements(),scalar);
+  for (casa::uInt elem = 0; elem<vec.nelements(); ++elem) {
+       result[elem] *= vec[elem];
+  }
+  return result;
+}
+
+/// @brief a product of a vector and a ComplexDiff scalar
+/// @details Each ComplexDiff object represent a scalar. However, sometimes
+/// it is necessary to form a collection of ComplexDiff objects (e.g. one for
+/// each spectral channel). This method is required to avoid manually expanding
+/// loops in the code if a scalar is multiplied to a vector of ComplexDiffs.
+/// This variant of the method caters for the case of swapped arguments.
+/// @param[in[ vec a vector multiplier
+/// @param[in] scalar a scalar multiplier
+inline casa::Vector<ComplexDiff> operator*(const casa::Vector<casa::Complex> &vec,
+                          const ComplexDiff &scalar)
+{
+  return scalar*vec;
+}
+
 
 /// @brief perform complex conjugation
 /// @details At this stage the operator is implemented via appropriate in situ
