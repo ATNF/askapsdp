@@ -276,6 +276,16 @@ private:
    mutable casa::Double itsRealPart;
 };
 
+/// @brief OutputValueAccessor specialization for ComplexDiff
+/// @details this is an empty class to prevent compilation with the output to
+/// a container of ComplexDiffs (because splitting into real and imaginary values
+/// would loose derivative information) 
+/// @ingroup measurementequation
+template<>
+struct OutputValueAccessor<scimath::ComplexDiff>  {
+};
+
+
 } // namespace vector_operations
 
 /// @brief copy 1D-vector and flatten it on demand
@@ -393,7 +403,7 @@ inline void copyReDerivativeVector(const std::string &par, const InType& inVec,
                 vector_operations::ValueTypeExtractor<OutType>::type> ova;
   for (; ci!=inVec.end() && it != outVec.end(); 
        iva.increment(ci),ova.increment(it)) {
-       ova.write(iva(ci->derivRe(par)),*it);
+       ova.write(iva((*ci).derivRe(par)),*it);
   }
 }
 
@@ -439,7 +449,7 @@ inline void copyImDerivativeVector(const std::string &par, const InType& inVec,
                 vector_operations::ValueTypeExtractor<OutType>::type> ova;
   for (; ci!=inVec.end() && it != outVec.end(); 
        iva.increment(ci),ova.increment(it)) {
-       ova.write(iva(ci->derivIm(par)),*it);
+       ova.write(iva((*ci).derivIm(par)),*it);
   }
 }
 

@@ -25,6 +25,7 @@ CONRAD_LOGGER(logger, "");
 #include <fitting/GenericNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
+#include <fitting/ComplexDiff.h>
 
 
 // std includes
@@ -155,7 +156,37 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             const casa::Complex g2 = parameters().complexValue(g2name);
             
             const casa::uInt offset=pol*nDataPerPol;
-             
+            casa::Vector<scimath::ComplexDiff> diffBuf(modelVis.ncolumn());
+            const casa::Vector<casa::Complex> thisRowThisPolVis = 
+                                             modelVis.xyPlane(pol).row(row); 
+            for (casa::uInt ch = 0; ch<thisRowThisPolVis.nelements(); ++ch) {
+                diffBuf[ch]=thisRowThisPolVis[ch];
+            }
+            diffBuf *= scimath::ComplexDiff(g1name,g1)*
+                       conj(scimath::ComplexDiff(g2name,g2));
+            
+            copyReDerivativeVector(g1name, diffBuf, 
+                    derivatives(IPosition(3,offset,0,pol*2), 
+                               IPosition(3,offset+nDataPerPol-1,0,pol*2)));
+            
+            copyImDerivativeVector(g1name, diffBuf, 
+                    derivatives(IPosition(3,offset,1,pol*2), 
+                               IPosition(3,offset+nDataPerPol-1,1,pol*2)));
+
+            copyReDerivativeVector(g2name, diffBuf, 
+                    derivatives(IPosition(3,offset,0,pol*2+1), 
+                               IPosition(3,offset+nDataPerPol-1,0,pol*2+1)));
+            
+            copyImDerivativeVector(g2name, diffBuf, 
+                    derivatives(IPosition(3,offset,1,pol*2+1), 
+                               IPosition(3,offset+nDataPerPol-1,1,pol*2+1)));
+
+            copyVector(measuredVis.xyPlane(pol).row(row),
+                 residual(IPosition(1,offset),IPosition(1,offset+nDataPerPol-1)));
+            subtractVector(diffBuf, residual(IPosition(1,offset),
+                           IPosition(1,offset+nDataPerPol-1)));           
+                                                              
+            /*
             // it is better to flatten the last index instead of increasing
             // dimensionality to 4, because polarisation effects, when
             // implemented, would introduce cross-terms in derivatives
@@ -163,7 +194,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             casa::Vector<casa::Complex> buf = modelVis.xyPlane(pol).row(row)*
                                               conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,0,pol*2), 
-                               IPosition(3,offset+nDataPerPol-1,0,pol*2)));
+                               IPosition(3,offset+nDataPerPol-1,0,pol*2)));     
             buf = modelVis.xyPlane(pol).row(row)*casa::Complex(0.,1.)*conj(g2);
             copyVector(buf, derivatives(IPosition(3,offset,1,pol*2), 
                                IPosition(3,offset+nDataPerPol-1,1,pol*2)));
@@ -177,7 +208,8 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             copyVector(measuredVis.xyPlane(pol).row(row),
                  residual(IPosition(1,offset),IPosition(1,offset+nDataPerPol-1)));
             subtractVector(buf, residual(IPosition(1,offset),
-                           IPosition(1,offset+nDataPerPol-1)));           
+                           IPosition(1,offset+nDataPerPol-1)));
+            */           
        }
        DesignMatrix designmatrix;// old parameters: thisRowParams;
        for (casa::uInt par=0; par<names.size(); ++par) {
