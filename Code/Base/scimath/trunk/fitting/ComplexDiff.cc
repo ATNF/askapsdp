@@ -76,8 +76,7 @@ casa::Complex ComplexDiff::value() const throw()
 casa::Complex ComplexDiff::derivRe(const std::string &name) const
 {
   std::map<std::string, casa::Complex>::const_iterator ci = itsDerivRe.find(name);
-  CONRADDEBUGASSERT(ci!=itsDerivRe.end());
-  return ci->second;
+  return ci!=itsDerivRe.end() ? ci->second : casa::Complex(0.,0.);
 }
   
 /// @brief obtain derivatives by imaginary part of the parameter
@@ -86,8 +85,7 @@ casa::Complex ComplexDiff::derivRe(const std::string &name) const
 casa::Complex ComplexDiff::derivIm(const std::string &name) const
 {
   std::map<std::string, casa::Complex>::const_iterator ci = itsDerivIm.find(name);
-  CONRADDEBUGASSERT(ci!=itsDerivIm.end());
-  return ci->second;
+  return ci!=itsDerivIm.end()? ci->second : casa::Complex(0.,0.);
 }
 
 /// @brief perform an arbitrary binary operation on derivatives
