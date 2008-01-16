@@ -53,14 +53,6 @@ namespace conrad
       // Print out the resulting source list (on the master)
       void printResults();
       
-      // Find the statistics (on the workers)
-      void findStatistics();
-
-      // Print the statistics (on the master)
-      void printStatistics();
-
-
-      // Better ones:
       // Find the mean (on the workers)
       void findMeans();
       // Find the RMS (on the workers)
@@ -71,6 +63,13 @@ namespace conrad
       void broadcastMean();
       // Combine and print the RMS (on the master)
       void combineRMSs();
+      // Front end for all the above.
+      void gatherStats();
+
+      // Send the desired threshold to each of the workers (on the master)
+      void broadcastThreshold();
+      // Read the threshold to be used (on the workers)
+      void receiveThreshold();
 
   protected:
 

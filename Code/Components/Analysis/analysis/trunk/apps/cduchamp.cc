@@ -69,6 +69,9 @@ int main(int argc, const char** argv)
     CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
     
     duchamp.readData();
+    duchamp.gatherStats();
+    duchamp.broadcastThreshold();
+    duchamp.receiveThreshold();
     duchamp.findLists();
     duchamp.condenseLists();
     duchamp.printResults();

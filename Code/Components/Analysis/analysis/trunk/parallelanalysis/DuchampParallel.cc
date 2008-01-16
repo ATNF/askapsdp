@@ -15,6 +15,7 @@
 #include <Blob/BlobOBufString.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
+#include <APS/Exceptions.h>
 
 #include <casa/OS/Timer.h>
 #include <casa/Utilities/Regex.h>
@@ -61,7 +62,6 @@ namespace conrad
     {
       if(isWorker()) {
         itsImage = substitute(parset.getString("image"));
-
 	itsCube.pars().setImageFile(itsImage);
 	CONRADLOG_INFO_STR(logger, "Defined the cube.");
 	//CONRADLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
@@ -80,14 +80,16 @@ namespace conrad
 
       itsCube.pars().setVerbosity(false);
 
-      string flagRobust = substitute(parset.getString("flagRobust"));
-      itsCube.pars().setFlagRobustStats(flagRobust=="true" || flagRobust=="1");
-      
-      string pixelcentre = substitute(parset.getString("pixelCentre"));
+      bool flagRobust = parset.getBool("flagRobust",true);
+      itsCube.pars().setFlagRobustStats(flagRobust);
+
+      string pixelcentre = parset.getString("pixelCentre", "centroid");
       itsCube.pars().setPixelCentre(pixelcentre);
       
-      float cutlevel = parset.getFloat("snrCut");
+      float cutlevel = parset.getFloat("snrCut", 4.);
       itsCube.pars().setCut(cutlevel);
+
+      itsCube.pars().setFlagUserThreshold(true);
 
     }
 
@@ -179,7 +181,7 @@ namespace conrad
 	  in >> rank >> numObj;
 	  for(int obj=0;obj<numObj;obj++){
 	    duchamp::Detection *object = new duchamp::Detection;
-	    int objsize,x,y,z;
+	    int objsize;
 	    in >> objsize;
 	    for(int p=0;p<objsize;p++){
 	      double *pix=new double[3];
@@ -229,6 +231,18 @@ namespace conrad
       }
     }
     
+    
+    void DuchampParallel::gatherStats()
+    {
+      readData();
+      findMeans();
+      combineMeans();
+      broadcastMean();
+      findRMSs();
+      combineRMSs();
+    }
+
+
     void DuchampParallel::findMeans()
     {
       if(isWorker()) {
@@ -323,39 +337,6 @@ namespace conrad
 
     }
 
-    // Find the statistics (on the workers)
-    void DuchampParallel::findStatistics()
-    {
-      if(isWorker()) {
-        // Get the region specifications from the master
-        CONRADLOG_INFO_STR(logger,  "Finding Statistics" );
-        // Find the statistics for the local cube
-	itsCube.setCubeStats();
-	CONRADLOG_INFO_STR(logger, "Mean = " << itsCube.stats().getMean() << ", RMS = " << itsCube.stats().getStddev() );
-	CONRADLOG_INFO_STR(logger, "Median = " << itsCube.stats().getMedian() << ", MADFM = " << itsCube.stats().getMadfm() );
-	CONRADLOG_INFO_STR(logger, "Noise level = " << itsCube.stats().getMiddle() << ", Noise spread = " << itsCube.stats().getSpread() );
-
-	if(isParallel()) {
-	  // Send back the statistics to the master	
-	  // copying the structure from MEParallel.cc
-	  LOFAR::BlobString bs;
-	  bs.resize(0);
-	  LOFAR::BlobOBufString bob(bs);
-	  LOFAR::BlobOStream out(bob);
-	  out.putStart("stat",1);
-	  double mean = itsCube.stats().getMean(), rms = itsCube.stats().getStddev();
-	  int size = itsCube.getSize();
-	  out << itsRank << mean << rms << size;
-	  out.putEnd();
-	  itsConnectionSet->write(0,bs);
-	  CONRADLOG_INFO_STR(logger, "Sent stats to the master via MPI from worker " << itsRank );
-	}
-
-      }
-      else {
-      }
-    }
-
     void DuchampParallel::combineMeans()
     {
       if(isMaster()&&isParallel()) {
@@ -443,53 +424,56 @@ namespace conrad
 	if(size>0){
 	  rms = sqrt( rms / double(size-1) );
 	}
+	itsCube.stats().setStddev(rms);
 
 	CONRADLOG_INFO_STR(logger, "OVERALL RMS = " << rms);
 
       }
     }
 
-    // Print the statistics (on the master)
-    void DuchampParallel::printStatistics()
+    void DuchampParallel::broadcastThreshold() 
     {
       if(isMaster()&&isParallel()) {
-        // Get the statistics from the workers
-        CONRADLOG_INFO_STR(logger,  "Receiving Statistics" );
- 
-	// copying the structure from MEParallel.cc
+	// now send the overall mean to the workers so they can calculate the rms
+	double av = itsCube.stats().getMean();
+	double rms = itsCube.stats().getStddev();
+	double threshold = av + rms * itsCube.pars().getCut();
+	itsCube.stats().setThreshold(threshold);
 	LOFAR::BlobString bs;
-        int rank, size=0;
-	double av=0,rms=0;
-        for (int i=1; i<itsNNode; i++)
-        {
-          itsConnectionSet->read(i-1, bs);
-          LOFAR::BlobIBufString bib(bs);
-          LOFAR::BlobIStream in(bib);
-          int version=in.getStart("stat");
-          CONRADASSERT(version==1);
-	  double newav, newrms;
-	  int newsize;
-          in >> rank >> newav >> newrms >> newsize;
-          in.getEnd();
-          CONRADLOG_INFO_STR(logger, i-1 << ": Received stats from worker "<< rank);
-
-	  size += newsize;
-	  av += newav * newsize;
-	  rms += (newrms * newrms * newsize);
-        }
-	
-	if(size>0){
-	  av /= double(size);
-	  rms = sqrt( rms / double(size) );
-	}
-
-        // Print out
-	CONRADLOG_INFO_STR(logger, "Aggregated stats: mean = " << av << ", rms = " << rms);
-
+	bs.resize(0);
+	LOFAR::BlobOBufString bob(bs);
+	LOFAR::BlobOStream out(bob);
+	out.putStart("threshM2W",1);
+	out << threshold;
+	out.putEnd();
+	itsConnectionSet->writeAll(bs);
+	CONRADLOG_INFO_STR(logger, "Sent threshold (" << threshold << ") from the master" );
       }
       else {
       }
     }
+
+
+    void DuchampParallel::receiveThreshold()
+    {
+     if(isWorker()) {
+	CONRADLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank);
+
+	double threshold;
+	if(isParallel()) {
+	  LOFAR::BlobString bs;
+	  itsConnectionSet->read(0, bs);
+	  LOFAR::BlobIBufString bib(bs);
+	  LOFAR::BlobIStream in(bib);
+	  int version=in.getStart("threshM2W");
+	  CONRADASSERT(version==1);
+	  in >> threshold;
+	  in.getEnd();
+	}
+	itsCube.pars().setThreshold(threshold);
+     }
+    }
+
 
   }
 }
