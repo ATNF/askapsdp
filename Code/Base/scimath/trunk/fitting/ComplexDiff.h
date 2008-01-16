@@ -18,6 +18,8 @@
 #ifndef COMPLEX_DIFF_H
 #define COMPLEX_DIFF_H
 
+#include <conrad/MapKeyIterator.h>
+
 // casa includes
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Vector.h>
@@ -134,6 +136,24 @@ struct ComplexDiff {
    
   /// @brief perform complex conjugation in situ
   void conjugate(); 
+  
+  /// @brief type of the parameter iterator
+  typedef utility::MapKeyIterator<std::map<std::string, 
+                    casa::Complex>::const_iterator> parameter_iterator;
+  
+  /// @brief origin iterator for parameters
+  /// @details This method returns an stl-compatible iterator, which iterates
+  /// over parameter names known to this ComplexDiff object.
+  /// @return iterator over parameter names corresponding to the origin of the
+  /// sequence
+  inline parameter_iterator begin() const { return utility::mapKeyBegin(itsDerivRe);}                   
+   
+  /// @brief end-mark iterator for parameters
+  /// @details This method returns an stl-compatible iterator, which 
+  /// corresponds to the end of the sequence.
+  /// @return iterator over parameter names corresponding to the end of the 
+  /// sequence
+  inline parameter_iterator end() const { return utility::mapKeyEnd(itsDerivRe);}                   
    
 protected:  
 

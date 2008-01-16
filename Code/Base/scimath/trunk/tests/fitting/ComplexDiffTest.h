@@ -17,6 +17,9 @@
 
 #include <conrad/ConradError.h>
 
+#include <algorithm>
+#include <set>
+
 namespace conrad {
 
 namespace scimath {
@@ -29,6 +32,7 @@ class ComplexDiffTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testMultiply);
   CPPUNIT_TEST(testMultiplyVector);
   CPPUNIT_TEST(testConjugate);
+  CPPUNIT_TEST(testParameterList);
   CPPUNIT_TEST_SUITE_END();
 private:
   ComplexDiff f,g;
@@ -39,6 +43,7 @@ public:
   void testMultiply();
   void testMultiplyVector();
   void testConjugate();
+  void testParameterList();
 };
 
 void ComplexDiffTest::setUp() 
@@ -139,6 +144,17 @@ void ComplexDiffTest::testConjugate()
   CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-35.,-15.))<1e-7);
   CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(1.,0.))<1e-7);
   CPPUNIT_ASSERT(abs(d.derivIm("g2")-casa::Complex(0.,-1.))<1e-7);
+}
+
+void ComplexDiffTest::testParameterList()
+{
+  ComplexDiff d = g*f+1+casa::Complex(0.,-2.);
+  std::vector<std::string> buf;
+  std::copy(d.begin(),d.end(),std::back_insert_iterator<std::vector<std::string> >(buf));
+  CPPUNIT_ASSERT(buf[0] == "g1");
+  CPPUNIT_ASSERT(buf[1] == "g2");
+  CPPUNIT_ASSERT(buf.size() == 2);
+    
 }
 
 } // namespace scimath
