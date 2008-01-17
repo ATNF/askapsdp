@@ -66,7 +66,7 @@ namespace conrad
       casa::Quantity q;
       
       casa::Quantity::read(q, cellsize[0]);
-      double xcellsize=q.getValue("rad");
+      double xcellsize=-1.0*q.getValue("rad");
       
       casa::Quantity::read(q, cellsize[1]);
       double ycellsize=q.getValue("rad");
@@ -79,7 +79,7 @@ namespace conrad
       
       /// @todo Do something with the frame info in direction[2]
       Axes axes;
-      axes.add("RA", ra+double(nx)*xcellsize/2.0, ra-double(nx)*xcellsize/2.0);
+      axes.add("RA", ra-double(nx)*xcellsize/2.0, ra+double(nx)*xcellsize/2.0);
       axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
       
       axes.add("STOKES", 0.0, 0.0);
@@ -90,8 +90,7 @@ namespace conrad
       ip.add(name, pixels, axes);
     }
     
-    void SynthesisParamsHelper::saveAsCasaImage(
-						const conrad::scimath::Params& ip, const string& name,
+    void SynthesisParamsHelper::saveAsCasaImage(const conrad::scimath::Params& ip, const string& name,
 						const string& imagename)
     {
       const casa::Array<double> imagePixels(ip.value(name));
@@ -107,8 +106,8 @@ namespace conrad
       casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
       casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
       
-      casa::Quantum<double> incLon((axes.start("RA")-axes.end("RA"))/double(nx), "rad");
-      casa::Quantum<double> incLat((axes.start("DEC")-axes.end("DEC"))/double(ny), "rad");
+      casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
+      casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
       
       casa::DirectionCoordinate radec(MDirection::J2000,
 				      Projection(Projection::SIN),
@@ -129,7 +128,7 @@ namespace conrad
       double restfreq = 0.0;
       double crpix = (nchan-1)/2;
       double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
-      double cdelt = (axes.start("FREQUENCY")-axes.end("FREQUENCY"))/double(nchan);
+      double cdelt = (axes.end("FREQUENCY")-axes.start("FREQUENCY"))/double(nchan);
       casa::SpectralCoordinate freq(casa::MFrequency::TOPO, crval, cdelt, crpix, restfreq);
       imageCoords.addCoordinate(freq);
       
@@ -239,7 +238,7 @@ namespace conrad
       double restfreq = 0.0;
       double crpix = (nchan-1)/2;
       double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
-      double cdelt = (axes.start("FREQUENCY")-axes.end("FREQUENCY"))/double(nchan);
+      double cdelt = (axes.end("FREQUENCY")-axes.start("FREQUENCY"))/double(nchan);
       casa::SpectralCoordinate freq(casa::MFrequency::TOPO, crval, cdelt, crpix, restfreq);
       imageCoords.addCoordinate(freq);
       
@@ -259,9 +258,8 @@ namespace conrad
       casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
       casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
       
-      casa::Quantum<double> incLon((axes.start("RA")-axes.end("RA"))/double(nx), "rad");
-      casa::Quantum<double> incLat;
-      incLat=casa::Quantum<double>((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
+      casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
+      casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
       
       casa::DirectionCoordinate radec(MDirection::J2000,
 				      Projection(Projection::SIN),
