@@ -11,7 +11,6 @@
 #define COMPLEX_DIFF_TEST
 
 #include <fitting/ComplexDiff.h>
-#include <fitting/ComplexDiffMatrix.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 

@@ -8,6 +8,7 @@
 #include <PolynomialEquationTest.h>
 #include <GeneralFittingTest.h>
 #include <ComplexDiffTest.h>
+#include <ComplexDiffMatrixTest.h>
 
 int main( int argc, char **argv)
 {
@@ -20,6 +21,7 @@ int main( int argc, char **argv)
   runner.addTest( conrad::scimath::PolynomialEquationTest::suite() );
   runner.addTest( conrad::scimath::GeneralFittingTest::suite() );
   runner.addTest( conrad::scimath::ComplexDiffTest::suite() );
+  runner.addTest( conrad::scimath::ComplexDiffMatrixTest::suite() );
   runner.run();
   return 0;
 }

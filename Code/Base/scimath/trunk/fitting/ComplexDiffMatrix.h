@@ -28,6 +28,7 @@
 // std includes
 #include <vector>
 #include <string>
+#include <set>
 
 // own includes
 #include <fitting/ComplexDiff.h>
@@ -65,20 +66,23 @@ struct ComplexDiffMatrix {
    /// @param[in] nrow number of rows
    /// @param[in] ncol number of columns
    explicit inline ComplexDiffMatrix(size_t nrow, size_t ncol = 1) : itsNRows(nrow),
-               itsNColumns(ncol), itsElements(nrow*ncol) {}
+               itsNColumns(ncol), itsElements(nrow*ncol), 
+               itsParameterSetInvalid(true) {}
    
    /// @brief constructor of an initialized matrix with the given dimensions
    /// @param[in] nrow number of rows
    /// @param[in] ncol number of columns
    /// @param[in] val value
    inline ComplexDiffMatrix(size_t nrow, size_t ncol, const ComplexDiff &val) : 
-         itsNRows(nrow), itsNColumns(ncol), itsElements(nrow*ncol, val) {}
+         itsNRows(nrow), itsNColumns(ncol), itsElements(nrow*ncol, val),
+         itsParameterSetInvalid(true) {}
    
    /// @brief constructor of an initialized vector with the given length
    /// @param[in] nrow number of rows
    /// @param[in] val value
    inline ComplexDiffMatrix(size_t nrow, const ComplexDiff &val) : 
-         itsNRows(nrow), itsNColumns(1), itsElements(nrow, val) {}
+         itsNRows(nrow), itsNColumns(1), itsElements(nrow, val),
+         itsParameterSetInvalid(true) {}
          
    /// @brief constructor from casa::Matrix
    /// @param[in] matr input matrix
@@ -123,7 +127,31 @@ struct ComplexDiffMatrix {
    /// @brief obtain number of columns
    /// @return number of columns
    inline size_t nColumn() const {return itsNColumns;}
+   
+   /// @brief type of the parameter iterator
+   typedef std::set<std::string>::const_iterator parameter_iterator;
+   
+   /// @brief iterator for the start of the parameter sequence
+   /// @details This method serves as STL's begin() for a sequence of
+   /// parameters known for all elements of this matrix.
+   inline parameter_iterator paramBegin() const;
+   
+   /// @brief iterator for the end of the parameter sequence
+   /// @details This method serves as STL's end() for a sequence of
+   /// parameters known for all elements of this matrix.
+   inline parameter_iterator paramEnd() const;
+   
+   
+protected:
     
+   /// @brief build the list of all known parameters
+   /// @details This method makes the cache up to date. It iterates through
+   /// all elements of this matrix and builds a set of parameters they know
+   /// about. The flag itsParameterSetInvalid is reset to false at the end.
+   /// @note This method is conseptually constant as it works with the cache
+   /// only.
+   void buildParameterSet() const;
+       
 private:
    /// @brief number of rows (channels in the calibration framework)
    size_t itsNRows;
@@ -131,6 +159,10 @@ private:
    size_t itsNColumns; 
    /// @brief flattened storage for the matrix elements
    std::vector<ComplexDiff> itsElements;
+   /// @brief a set of all parameters known to the elements of this matrix
+   mutable std::set<std::string> itsParameterSet;
+   /// @brief a flag showing that itsParameterSet needs to be updated
+   mutable bool itsParameterSetInvalid;
 };
 
 
@@ -151,6 +183,7 @@ inline const ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col) 
 inline ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col)
 {
    CONRADDEBUGASSERT(row<itsNRows && col<itsNColumns);
+   itsParameterSetInvalid = true;
    return itsElements[itsNRows*col+row];
 }
 
@@ -158,7 +191,7 @@ inline ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col)
 /// @param[in] matr input matrix
 inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<casa::Complex> &matr) :
      itsNRows(matr.nrow()), itsNColumns(matr.ncolumn()), 
-     itsElements(matr.nrow()*matr.ncolumn())    
+     itsElements(matr.nrow()*matr.ncolumn()), itsParameterSetInvalid(true)    
 {
    std::vector<ComplexDiff>::iterator it = itsElements.begin();
    for (casa::uInt col=0; col<itsNColumns; ++col) {
@@ -171,7 +204,8 @@ inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<casa::Complex> &m
 /// @brief constructor from casa::Vector
 /// @param[in] vec input vector
 inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Vector<casa::Complex> &vec) :
-     itsNRows(vec.nelements()), itsNColumns(1), itsElements(vec.nelements())    
+     itsNRows(vec.nelements()), itsNColumns(1), itsElements(vec.nelements()),
+     itsParameterSetInvalid(true)    
 {
    std::vector<ComplexDiff>::iterator it = itsElements.begin();
    for (casa::uInt row=0; row<itsNRows; ++row,++it) {
@@ -201,7 +235,6 @@ inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &in1,
              *it += in1(curRow,index)*in2(index,curCol);
         }
    }
-   
    return result;
 }
 
@@ -221,6 +254,29 @@ inline ComplexDiffMatrix operator+(const ComplexDiffMatrix &in1,
              it != result.itsElements.end(); ++it,++ci) {
        *it += *ci;
   }
+  return result;
+}
+
+/// @brief iterator for the start of the parameter sequence
+/// @details This method serves as STL's begin() for a sequence of
+/// parameters known for all elements of this matrix.
+inline ComplexDiffMatrix::parameter_iterator ComplexDiffMatrix::paramBegin() const
+{
+  if (itsParameterSetInvalid) {
+      buildParameterSet();
+  }
+  return itsParameterSet.begin();
+}
+   
+/// @brief iterator for the end of the parameter sequence
+/// @details This method serves as STL's end() for a sequence of
+/// parameters known for all elements of this matrix.
+inline ComplexDiffMatrix::parameter_iterator ComplexDiffMatrix::paramEnd() const
+{
+  if (itsParameterSetInvalid) {
+      buildParameterSet();
+  }
+  return itsParameterSet.end();
 }
 
 } // namepace scimath
