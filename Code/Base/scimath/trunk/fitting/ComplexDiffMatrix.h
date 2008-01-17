@@ -111,7 +111,28 @@ struct ComplexDiffMatrix {
    /// @return product of the first and the second matrices
    friend inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &in1,
                 const ComplexDiffMatrix &in2);
-
+   
+   /// @brief multiplication by a scalar
+   /// @details This is an overloaded version of the multiplication operator,
+   /// which is responsible for the case where the whole matrix is multiplied
+   /// by a scalar from the right.
+   /// @param[in] matr a ComplexDiffMatrix 
+   /// @param[in] scalar a ComplexDiff scalar
+   /// @return the product of the matrix and a scalar
+   friend inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &matr,
+                 const ComplexDiff &scalar);
+   
+   /// @brief multiplication by a scalar
+   /// @details This is an overloaded version of the multiplication operator,
+   /// which is responsible for the case where the whole matrix is multiplied
+   /// by a scalar from the left. 
+   /// @param[in] scalar a ComplexDiff scalar
+   /// @param[in] matr a ComplexDiffMatrix 
+   /// @return the product of the matrix and a scalar
+   friend inline ComplexDiffMatrix operator*(const ComplexDiff &scalar, 
+                 const ComplexDiffMatrix &matr) { return matr*scalar;}
+   
+   
    /// @brief matrix addition
    /// @details
    /// @param[in] in1 first matrix
@@ -236,6 +257,24 @@ inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &in1,
         }
    }
    return result;
+}
+
+/// @brief multiplication by a scalar
+/// @details This is an overloaded version of the multiplication operator,
+/// which is responsible for the case where the whole matrix is multiplied
+/// by a scalar from the right.
+/// @param[in] matr a ComplexDiffMatrix 
+/// @param[in] scalar a ComplexDiff scalar
+/// @return the product of the matrix and a scalar
+inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &matr,
+                 const ComplexDiff &scalar)
+{
+  ComplexDiffMatrix result(matr);
+  for (std::vector<ComplexDiff>::iterator it = result.itsElements.begin();
+             it != result.itsElements.end(); ++it) {
+       *it *= scalar;
+  }
+  return result;  
 }
 
 /// @brief matrix addition
