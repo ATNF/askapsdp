@@ -32,6 +32,7 @@ class ComplexDiffTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testMultiplyVector);
   CPPUNIT_TEST(testConjugate);
   CPPUNIT_TEST(testParameterList);
+  CPPUNIT_TEST(testParameterType);
   CPPUNIT_TEST_SUITE_END();
 private:
   ComplexDiff f,g;
@@ -43,6 +44,7 @@ public:
   void testMultiplyVector();
   void testConjugate();
   void testParameterList();
+  void testParameterType();
 };
 
 void ComplexDiffTest::setUp() 
@@ -152,8 +154,20 @@ void ComplexDiffTest::testParameterList()
   std::copy(d.begin(),d.end(),std::back_insert_iterator<std::vector<std::string> >(buf));
   CPPUNIT_ASSERT(buf[0] == "g1");
   CPPUNIT_ASSERT(buf[1] == "g2");
-  CPPUNIT_ASSERT(buf.size() == 2);
-    
+  CPPUNIT_ASSERT(buf.size() == 2);  
+}
+
+void ComplexDiffTest::testParameterType()
+{
+  ComplexDiff d("real",5);
+  CPPUNIT_ASSERT(!g.isReal("g2"));
+  CPPUNIT_ASSERT(!f.isReal("g1"));
+  CPPUNIT_ASSERT(d.isReal("real"));
+  ComplexDiff product = g*f*d;
+  CPPUNIT_ASSERT(!product.isReal("g2"));
+  CPPUNIT_ASSERT(!product.isReal("g1"));
+  CPPUNIT_ASSERT(product.isReal("real"));
+  
 }
 
 } // namespace scimath

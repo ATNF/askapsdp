@@ -133,6 +133,36 @@ void ComplexDiff::binaryOperationInSitu(Op &operation,
   }
 }
 
+/// @brief a helper method to perform conformance checks
+/// @details Some parameters may be conceptually real. In this case
+/// ComplexDiff doesn't track derivatives by imaginary part. These
+/// conformance checks are done during binary operations in debug
+/// mode to ensure that a parameter doesn't change its real or
+/// complex status implicitly.
+/// @param[in] other another ComplexDiff object to check conformance of
+///            parameters
+/// @return true if parameters have the same type (dimension) for this
+/// and another class
+bool ComplexDiff::isConformant(const ComplexDiff &other) const
+{
+  // we basically need to check that all real parameters are also real in another
+  // ComplexDiff, and all complex parameters are complex there too.
+  for (parameter_iterator pit = utility::mapKeyBegin(itsDerivRe);
+                     pit != utility::mapKeyEnd(itsDerivRe); ++pit) {
+       if (other.itsDerivRe.find(*pit) != other.itsDerivRe.end()) {
+           // this parameter is known to another ComplexDiff,
+           // check conformance
+           if (isReal(*pit) != other.isReal(*pit)) {
+               // this parameter is non-conformant, hence check failed
+               return false;
+           }
+       }
+  }
+  // all parameters are conformant if we reach this part of the code
+  return true;
+}
+
+
 /// @brief perform an arbitrary unary operation on derivatives
 /// @details This method can be used to implement operations like conjugation.
 /// The common point is that the content of this class is updated. Note, 

@@ -19,6 +19,8 @@
 #define COMPLEX_DIFF_H
 
 #include <conrad/MapKeyIterator.h>
+#include <conrad/ConradError.h>
+
 
 // casa includes
 #include <casa/BasicSL/Complex.h>
@@ -155,7 +157,32 @@ struct ComplexDiff {
   /// sequence
   inline parameter_iterator end() const { return utility::mapKeyEnd(itsDerivRe);}                   
    
+  /// @brief check whether given parameter is conceptually real
+  /// @details Some parameters may be conceptually real (i.e. created from a 
+  /// double, rather than a complex constant). In this case ComplexDiff doesn't
+  /// track derivatives by imaginary part. Elements of design and normal 
+  /// matrices have different dimensions depending on whether corresponding
+  /// parameter is real or not. This method provides a capability to check this.
+  /// @note The ComplexDiff class checks conformance of the parameters during
+  /// operation in debug mode only. The result of this method makes sense only
+  /// if the parameter is known to ComplexDiff.
+  /// @param[in] param the name of the parameter in question
+  /// @return true if the given parameter is conceptually real
+  inline bool isReal(const std::string &param) const 
+     { return itsDerivIm.find(param) == itsDerivIm.end(); } 
+  
 protected:  
+  /// @brief a helper method to perform conformance checks
+  /// @details Some parameters may be conceptually real. In this case
+  /// ComplexDiff doesn't track derivatives by imaginary part. These
+  /// conformance checks are done during binary operations in debug
+  /// mode to ensure that a parameter doesn't change its real or
+  /// complex status implicitly.
+  /// @param[in] other another ComplexDiff object to check conformance of
+  ///            parameters
+  /// @return true if parameters have the same type (dimension) for this
+  /// and another class
+  bool isConformant(const ComplexDiff &other) const;
 
   /// @brief perform an arbitrary binary operation on derivatives
   /// @details This method can be used to implement operations like +=, *=, etc.
@@ -275,6 +302,12 @@ private:
 template<typename Op> void ComplexDiff::binaryOperationInSitu(Op &operation,
               const ComplexDiff &other)
 {
+  #ifdef CONRAD_DEBUG
+  // check conformance
+  CONRADCHECK(isConformant(other), "At least one of the parameters of two "
+      "ComplexDiff objects passed to a binary operation is conceptually real "
+      "for one ComplexDiff only (should not change real/complex status");
+  #endif // CONRAD_DEBUG
   // process derivatives by real part of each parameter
   binaryOperationInSitu(operation,itsDerivRe,other.itsDerivRe,other.itsValue);
   // now derivatives by imaginary part of each parameter
