@@ -26,19 +26,36 @@ namespace scimath {
 /// @brief build the list of all known parameters
 /// @details This method makes the cache up to date. It iterates through
 /// all elements of this matrix and builds a set of parameters they know
-/// about. The flag itsParameterSetInvalid is reset to false at the end.
+/// about. The flag itsParameterMapInvalid is reset to false at the end.
 /// @note This method is conseptually constant as it works with the cache
 /// only.
-void ComplexDiffMatrix::buildParameterSet() const
+void ComplexDiffMatrix::buildParameterMap() const
 {
-  itsParameterSet.clear(); // start from scratch
+  itsParameters.clear(); // start from scratch
   
   // iterate over elements in a flattened storage, actual shape doesn't matter
   // as we're building a union of individual sets anyway.
   for (const_iterator elem=begin(); elem!=end(); ++elem) {
-       itsParameterSet.insert(elem->begin(),elem->end());     
+       for (ComplexDiff::parameter_iterator param = elem->begin();
+            param != elem->end(); ++param) {
+            
+            std::pair<std::map<std::string, bool>::iterator, bool> res = 
+                 itsParameters.insert(std::pair<std::string, bool>(*param, true)); 
+            
+            if (res.second) {
+                // the parameter was actually insterted, so it is new
+                // we need to corrent real vs. complex flag.
+                res.first->second = elem->isReal(*param);
+            }  else  {
+                // parameter already exists, check conformance in the debug mode
+                #ifdef CONRAD_DEBUG
+                CONRADCHECK(res.first->second == elem->isReal(*param), "Parameter "<<
+                       *param<<" changes type (real/complex) within ComplexDiffMatrix");
+                #endif // CONRAD_DEBUG
+            } 
+       }
   }
-  itsParameterSetInvalid = false;
+  itsParameterMapInvalid = false;
 }
 
 } // namespace scimath

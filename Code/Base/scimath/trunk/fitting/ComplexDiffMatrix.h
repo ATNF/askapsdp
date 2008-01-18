@@ -28,11 +28,12 @@
 // std includes
 #include <vector>
 #include <string>
-#include <set>
+#include <map>
 
 // own includes
 #include <fitting/ComplexDiff.h>
 #include <conrad/ConradError.h>
+#include <conrad/MapKeyIterator.h>
 
 namespace conrad {
 
@@ -67,7 +68,7 @@ struct ComplexDiffMatrix {
    /// @param[in] ncol number of columns
    explicit inline ComplexDiffMatrix(size_t nrow, size_t ncol = 1) : itsNRows(nrow),
                itsNColumns(ncol), itsElements(nrow*ncol), 
-               itsParameterSetInvalid(true) {}
+               itsParameterMapInvalid(true) {}
    
    /// @brief constructor of an initialized matrix with the given dimensions
    /// @param[in] nrow number of rows
@@ -75,14 +76,14 @@ struct ComplexDiffMatrix {
    /// @param[in] val value
    inline ComplexDiffMatrix(size_t nrow, size_t ncol, const ComplexDiff &val) : 
          itsNRows(nrow), itsNColumns(ncol), itsElements(nrow*ncol, val),
-         itsParameterSetInvalid(true) {}
+         itsParameterMapInvalid(true) {}
    
    /// @brief constructor of an initialized vector with the given length
    /// @param[in] nrow number of rows
    /// @param[in] val value
    inline ComplexDiffMatrix(size_t nrow, const ComplexDiff &val) : 
          itsNRows(nrow), itsNColumns(1), itsElements(nrow, val),
-         itsParameterSetInvalid(true) {}
+         itsParameterMapInvalid(true) {}
          
    /// @brief constructor from casa::Matrix
    /// @param[in] matr input matrix
@@ -150,7 +151,8 @@ struct ComplexDiffMatrix {
    inline size_t nColumn() const {return itsNColumns;}
    
    /// @brief type of the parameter iterator
-   typedef std::set<std::string>::const_iterator parameter_iterator;
+   typedef utility::MapKeyIterator<std::map<std::string, bool>::const_iterator > 
+           parameter_iterator;
    
    /// @brief iterator for the start of the parameter sequence
    /// @details This method serves as STL's begin() for a sequence of
@@ -162,6 +164,14 @@ struct ComplexDiffMatrix {
    /// parameters known for all elements of this matrix.
    inline parameter_iterator paramEnd() const;
    
+   /// @brief checks whether a given parameter is conceptually real
+   /// @details Some parameters are conceptually real. Underlying 
+   /// ComplexDiff classes don't track derivatives by imaginary part
+   /// for these parameters. This method allows to check the type of
+   /// a given parameter.
+   /// @param[in] param parameter name
+   /// @return true if the given parameter is always real
+   inline bool isReal(const std::string &param) const { return itsParameters[param];}
    
 protected:
     
@@ -171,7 +181,7 @@ protected:
    /// about. The flag itsParameterSetInvalid is reset to false at the end.
    /// @note This method is conseptually constant as it works with the cache
    /// only.
-   void buildParameterSet() const;
+   void buildParameterMap() const;
        
 private:
    /// @brief number of rows (channels in the calibration framework)
@@ -180,10 +190,14 @@ private:
    size_t itsNColumns; 
    /// @brief flattened storage for the matrix elements
    std::vector<ComplexDiff> itsElements;
-   /// @brief a set of all parameters known to the elements of this matrix
-   mutable std::set<std::string> itsParameterSet;
-   /// @brief a flag showing that itsParameterSet needs to be updated
-   mutable bool itsParameterSetInvalid;
+   
+   /// @brief a list of all parameters known to the elements of this matrix
+   /// @details The value of the map is true if corresponding parameter is
+   /// conceptually real and false otherwise.
+   mutable std::map<std::string, bool> itsParameters;
+   
+   /// @brief a flag showing that itsParameterMap needs to be updated
+   mutable bool itsParameterMapInvalid;
 };
 
 
@@ -204,7 +218,7 @@ inline const ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col) 
 inline ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col)
 {
    CONRADDEBUGASSERT(row<itsNRows && col<itsNColumns);
-   itsParameterSetInvalid = true;
+   itsParameterMapInvalid = true;
    return itsElements[itsNRows*col+row];
 }
 
@@ -212,7 +226,7 @@ inline ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col)
 /// @param[in] matr input matrix
 inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<casa::Complex> &matr) :
      itsNRows(matr.nrow()), itsNColumns(matr.ncolumn()), 
-     itsElements(matr.nrow()*matr.ncolumn()), itsParameterSetInvalid(true)    
+     itsElements(matr.nrow()*matr.ncolumn()), itsParameterMapInvalid(true)    
 {
    std::vector<ComplexDiff>::iterator it = itsElements.begin();
    for (casa::uInt col=0; col<itsNColumns; ++col) {
@@ -226,7 +240,7 @@ inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<casa::Complex> &m
 /// @param[in] vec input vector
 inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Vector<casa::Complex> &vec) :
      itsNRows(vec.nelements()), itsNColumns(1), itsElements(vec.nelements()),
-     itsParameterSetInvalid(true)    
+     itsParameterMapInvalid(true)    
 {
    std::vector<ComplexDiff>::iterator it = itsElements.begin();
    for (casa::uInt row=0; row<itsNRows; ++row,++it) {
@@ -301,10 +315,10 @@ inline ComplexDiffMatrix operator+(const ComplexDiffMatrix &in1,
 /// parameters known for all elements of this matrix.
 inline ComplexDiffMatrix::parameter_iterator ComplexDiffMatrix::paramBegin() const
 {
-  if (itsParameterSetInvalid) {
-      buildParameterSet();
+  if (itsParameterMapInvalid) {
+      buildParameterMap();
   }
-  return itsParameterSet.begin();
+  return utility::mapKeyBegin(itsParameters);
 }
    
 /// @brief iterator for the end of the parameter sequence
@@ -312,10 +326,10 @@ inline ComplexDiffMatrix::parameter_iterator ComplexDiffMatrix::paramBegin() con
 /// parameters known for all elements of this matrix.
 inline ComplexDiffMatrix::parameter_iterator ComplexDiffMatrix::paramEnd() const
 {
-  if (itsParameterSetInvalid) {
-      buildParameterSet();
+  if (itsParameterMapInvalid) {
+      buildParameterMap();
   }
-  return itsParameterSet.end();
+  return utility::mapKeyEnd(itsParameters);
 }
 
 } // namepace scimath
