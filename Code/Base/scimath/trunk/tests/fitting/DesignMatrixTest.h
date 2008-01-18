@@ -1,4 +1,6 @@
 #include <fitting/DesignMatrix.h>
+#include <fitting/ComplexDiffMatrix.h>
+#include <fitting/ComplexDiff.h>
 #include <conrad/ConradError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -15,6 +17,7 @@ namespace conrad
       CPPUNIT_TEST_EXCEPTION(testInvalidArgument, conrad::CheckError);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testAdd);
+      CPPUNIT_TEST(testComplexDiffMatrix);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -87,6 +90,35 @@ namespace conrad
           p1->addResidual(casa::Vector<casa::Double>(100, 0.0), casa::Vector<double>(100, 1.0));
           CPPUNIT_ASSERT(p1->nData()==100);
           CPPUNIT_ASSERT(p1->nParameters()==3);
+          
+          /*
+          // this is a test of the order, in which different dimensions are stored
+          // by casa array. It is not used, but left here in case I forget
+          // the result in the future. 
+          casa::Matrix<double> mtr(2,2,0.);
+          mtr(0,1)=1;
+          mtr(1,0)=2;
+          mtr(1,1)=3;
+          for (int i=0;i<2;++i) for (int j=0;j<2;++j)
+          std::cout<<i<<" "<<j<<" "<<mtr(i,j)<<std::endl;
+          casa::Vector<double> vec = mtr.reform(casa::IPosition(1,4));
+          for (int i=0;i<4;++i)
+          std::cout<<vec[i]<<std::endl;
+          */
+        }
+        
+        void testComplexDiffMatrix()
+        {
+           ComplexDiffMatrix cdm(5,5, casa::Complex(0.,-1.));
+           cdm(0,0) = ComplexDiff("g1", casa::Complex(110.,0.));
+           cdm(3,3) = ComplexDiff("amp", 50.);
+           cdm(4,3) = ComplexDiff("g2", casa::Complex(10.,-10.)) *
+                        ComplexDiff("mult", casa::Complex(0.,-1.)); 
+           casa::Matrix<casa::Complex> data(5,5,casa::Complex(0.,-1.));
+           casa::Matrix<double> weight(5,5,1.);
+           p1->addModel(cdm,data,weight);
+           CPPUNIT_ASSERT(p1->nData() == 50);
+           CPPUNIT_ASSERT(p1->nParameters() == 7);
         }
 
         void testInvalidArgument()

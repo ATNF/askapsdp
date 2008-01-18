@@ -33,6 +33,8 @@
 #include <casa/Arrays/Matrix.h>
 
 #include <fitting/Params.h>
+#include <fitting/ComplexDiff.h>
+#include <fitting/ComplexDiffMatrix.h>
 
 namespace conrad {
   
@@ -85,6 +87,18 @@ public:
   /// @param[in] residual Residual vector
   /// @param[in] weight Weight vector
   void addResidual(const casa::Vector<casa::Double>& residual, const casa::Vector<double>& weight);
+
+  /// @brief add derivatives and residual constraint
+  /// @details This method extracts all information about derivatives and
+  /// model values from ComplexDiffMatrix as well as the name of all parameters
+  /// involved. Other arguments of the method are the data matrix conforming
+  /// with the ComplexDiffMatrix and a matrix of weights.
+  /// @param[in] cdm a ComplexDiffMatrix defining derivatives and model values
+  /// @param[in] measured a matrix with measured data
+  /// @param[in] weights a matrix with weights
+  void addModel(const ComplexDiffMatrix &cdm, const casa::Matrix<casa::Complex> &measured, 
+                const casa::Matrix<double> &weights);
+     
 
   /// @brief Reset to empty
   void reset();
