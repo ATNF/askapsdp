@@ -26,6 +26,7 @@ CONRAD_LOGGER(logger, "");
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 #include <fitting/ComplexDiff.h>
+#include <fitting/ComplexDiffMatrix.h>
 
 
 // std includes
@@ -109,21 +110,34 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
   
   CONRADDEBUGASSERT(buffChunk.nPol());
+  CONRADDEBUGASSERT(buffChunk.nChannel());
   
   // we don't do cross-pols at the moment. Maximum allowed number of 
   // polarisation products is 2.
   const casa::uInt nPol = buffChunk.nPol()>1? 2: 1;
-  // the following assumes that no parameters are missed, i.e. gains.size()
-  // is the number of antennae 
+  
   const casa::uInt nDataPerPol = 2*buffChunk.nChannel();
   
   
   for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
        casa::uInt ant1 = chunk.antenna1()[row];
        casa::uInt ant2 = chunk.antenna2()[row];
+   
        CONRADASSERT(ant1!=ant2); // not yet implemented
+   
+       casa::Matrix<casa::Complex> modelSlice = modelVis.yzPlane(row);
+       // it will probably go away in future, when we will work with
+       // all polarisation data
+       const casa::Matrix<casa::Complex> modelPolSlice = 
+            modelSlice(casa::IPosition(2,0,0), casa::IPosition(2,
+                     buffChunk.nChannel()-1,nPol-1));
+                     
+       // matrix of autodifferentiation objects describing this row
+       scimath::ComplexDiffMatrix cdm = modelPolSlice;
        
-       
+       //
+       //
+       //
        casa::Vector<double> residual(nDataPerPol*nPol);
        
        // there is probably an unnecessary copying, but it can't be
@@ -142,9 +156,12 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
        std::vector<std::string> names;
        names.reserve(nPol*2);
         
+       // effectively a Jones matrix at this stage
+       scimath::ComplexDiffMatrix calFactor(nPol,nPol, casa::Complex(0.,0.));
+       
        for (casa::uInt pol=0; pol<nPol; ++pol) {
             CONRADDEBUGASSERT(pol<2);
-            
+             
             // gains for antenna 1, polarisation pol
             const std::string g1name = paramName(ant1,pol);
             names.push_back(g1name);
@@ -154,6 +171,9 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
             const std::string g2name = paramName(ant2,pol);
             names.push_back(g2name);
             const casa::Complex g2 = parameters().complexValue(g2name);
+            
+            calFactor(pol,pol) = scimath::ComplexDiff(g1name,g1)*
+                 conj(scimath::ComplexDiff(g2name,g2));
             
             const casa::uInt offset=pol*nDataPerPol;
             casa::Vector<scimath::ComplexDiff> diffBuf =
@@ -183,13 +203,32 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                                                               
                        
        }
+       
        DesignMatrix designmatrix;// old parameters: thisRowParams;
+       
        for (casa::uInt par=0; par<names.size(); ++par) {
             CONRADDEBUGASSERT(par<derivatives.nplane());
             designmatrix.addDerivative(names[par],derivatives.xyPlane(par));
        }
        designmatrix.addResidual(residual,
                     casa::Vector<double>(residual.size(),1.));
+       
+       
+       /*
+       
+       // new way of building design matrix
+       casa::Matrix<casa::Complex> measuredSlice = measuredVis.yzPlane(row);
+       
+       // it will probably go away in future, when we will work with
+       // all polarisation data
+       const casa::Matrix<casa::Complex> measuredPolSlice = 
+            measuredSlice(casa::IPosition(2,0,0), casa::IPosition(2,
+                     buffChunk.nChannel()-1,nPol-1));
+       
+       designmatrix.addModel(cdm * calFactor, measuredPolSlice, 
+                 casa::Matrix<double>(measuredPolSlice.nrow(),
+                 measuredPolSlice.ncolumn(),1.));
+       */
        ne.add(designmatrix);
   }
 }                                   
