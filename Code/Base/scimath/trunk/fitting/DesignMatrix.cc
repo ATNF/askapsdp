@@ -22,6 +22,8 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <fstream>
+
 using std::string;
 using std::vector;
 using std::map;
@@ -140,7 +142,6 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
    CONRADDEBUGASSERT(cdm.nRow() == measured.nrow());
    CONRADDEBUGASSERT(cdm.nRow() == weights.nrow());
    
-   
    // buffer for derivatives of complex Parameters. Each complex value 
    // corresponds to two adjacent double elements. The first row is 
    // a derivative by real part, the second - that by imaginary part of the
@@ -159,7 +160,7 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
    
         const bool isComplex = !cdm.isReal(*pit);
         size_t index = 0;
-   
+      
         for (ComplexDiffMatrix::const_iterator elem = cdm.begin();
              elem != cdm.end(); ++elem, index+=2) {
         
@@ -172,6 +173,15 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
                  derivatives(index+1,1) = imag(derivIm);
              }             
         }
+        /*{
+          std::ofstream os("dbg.dat");
+          for (size_t i=0;i<derivatives.nrow(); ++i) {
+               for (size_t j=0;j<derivatives.ncolumn();++j) 
+                    os<<derivatives(i,j)<<" ";
+               os<<std::endl;
+          }
+          throw 1;
+        } */
         if (isComplex) {
             addDerivative(*pit, derivatives);
         } else {
@@ -195,13 +205,12 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
    casa::Vector<casa::Double> reformedWeights(nDataPoints*2);
    
    casa::Vector<casa::Double>::contiter rwtIt = reformedWeights.cbegin();
-   
-   casa::Vector<casa::Double>::const_contiter wtIt = weights.cbegin();
+                 
+   casa::Vector<casa::Double>::const_iterator wtIt = weights.begin();
    
    // iteration happens in the same order as the data are stored in the
    // ComplexDiffMatrix (because reform gives the same order)  
-   casa::Vector<casa::Complex>::const_contiter measIt = measured.cbegin();
-   
+   casa::Matrix<casa::Complex>::const_iterator measIt = measured.begin();
    
    for (ComplexDiffMatrix::const_iterator elem = cdm.begin();
               elem != cdm.end(); ++elem, ++resIt, ++rwtIt, ++wtIt, ++measIt) {
@@ -215,6 +224,7 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
         *rwtIt = *wtIt;
         *(++rwtIt) = *wtIt;
    }
+   
    addResidual(residual, reformedWeights);
 }                
 

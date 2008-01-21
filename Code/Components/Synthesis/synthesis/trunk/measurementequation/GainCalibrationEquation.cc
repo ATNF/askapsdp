@@ -115,9 +115,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
   // we don't do cross-pols at the moment. Maximum allowed number of 
   // polarisation products is 2.
   const casa::uInt nPol = buffChunk.nPol()>1? 2: 1;
-  
-  const casa::uInt nDataPerPol = 2*buffChunk.nChannel();
-  
+   
   
   for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
        casa::uInt ant1 = chunk.antenna1()[row];
@@ -126,6 +124,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
        CONRADASSERT(ant1!=ant2); // not yet implemented
    
        casa::Matrix<casa::Complex> modelSlice = modelVis.yzPlane(row);
+
        // it will probably go away in future, when we will work with
        // all polarisation data
        const casa::Matrix<casa::Complex> modelPolSlice = 
@@ -134,89 +133,28 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
                      
        // matrix of autodifferentiation objects describing this row
        scimath::ComplexDiffMatrix cdm = modelPolSlice;
-       
-       //
-       //
-       //
-       casa::Vector<double> residual(nDataPerPol*nPol);
-       
-       // there is probably an unnecessary copying, but it can't be
-       // fixed while we have to convert each complex number to a pair
-       // of real numbers
-            
-       // second axis distinguishes between derivatives by real part of gains and
-       // that by imaginary part, the first axis has double the size of elements 
-       // because each pair of adjacent elements corresponds to real and imaginary
-       // parts of the value of derivative. The last axis of the cube is the 
-       // parameter. 
-       casa::Cube<double> derivatives(nDataPerPol*nPol,2,nPol*2,0.);
-       
-       // a vector with parameter names in the same order as they are present
-       // in the cube of derivatives (last axis)
-       std::vector<std::string> names;
-       names.reserve(nPol*2);
-        
+               
        // effectively a Jones matrix at this stage
        scimath::ComplexDiffMatrix calFactor(nPol,nPol, casa::Complex(0.,0.));
+       
        
        for (casa::uInt pol=0; pol<nPol; ++pol) {
             CONRADDEBUGASSERT(pol<2);
              
             // gains for antenna 1, polarisation pol
             const std::string g1name = paramName(ant1,pol);
-            names.push_back(g1name);
             const casa::Complex g1 = parameters().complexValue(g1name);
             
             // gains for antenna 2, polarisation pol
             const std::string g2name = paramName(ant2,pol);
-            names.push_back(g2name);
             const casa::Complex g2 = parameters().complexValue(g2name);
             
             calFactor(pol,pol) = scimath::ComplexDiff(g1name,g1)*
-                 conj(scimath::ComplexDiff(g2name,g2));
-            
-            const casa::uInt offset=pol*nDataPerPol;
-            casa::Vector<scimath::ComplexDiff> diffBuf =
-                 modelVis.xyPlane(pol).row(row) * scimath::ComplexDiff(g1name,g1)*
-                 conj(scimath::ComplexDiff(g2name,g2));
-            
-            copyReDerivativeVector(g1name, diffBuf, 
-                    derivatives(IPosition(3,offset,0,pol*2), 
-                               IPosition(3,offset+nDataPerPol-1,0,pol*2)));
-            
-            copyImDerivativeVector(g1name, diffBuf, 
-                    derivatives(IPosition(3,offset,1,pol*2), 
-                               IPosition(3,offset+nDataPerPol-1,1,pol*2)));
-
-            copyReDerivativeVector(g2name, diffBuf, 
-                    derivatives(IPosition(3,offset,0,pol*2+1), 
-                               IPosition(3,offset+nDataPerPol-1,0,pol*2+1)));
-            
-            copyImDerivativeVector(g2name, diffBuf, 
-                    derivatives(IPosition(3,offset,1,pol*2+1), 
-                               IPosition(3,offset+nDataPerPol-1,1,pol*2+1)));
-
-            copyVector(measuredVis.xyPlane(pol).row(row),
-                 residual(IPosition(1,offset),IPosition(1,offset+nDataPerPol-1)));
-            subtractVector(diffBuf, residual(IPosition(1,offset),
-                           IPosition(1,offset+nDataPerPol-1)));           
-                                                              
-                       
+                 conj(scimath::ComplexDiff(g2name,g2));            
        }
        
        DesignMatrix designmatrix;// old parameters: thisRowParams;
-       
-       for (casa::uInt par=0; par<names.size(); ++par) {
-            CONRADDEBUGASSERT(par<derivatives.nplane());
-            designmatrix.addDerivative(names[par],derivatives.xyPlane(par));
-       }
-       designmatrix.addResidual(residual,
-                    casa::Vector<double>(residual.size(),1.));
-       
-       
-       /*
-       
-       // new way of building design matrix
+     
        casa::Matrix<casa::Complex> measuredSlice = measuredVis.yzPlane(row);
        
        // it will probably go away in future, when we will work with
@@ -228,7 +166,7 @@ void GainCalibrationEquation::calcEquations(const IConstDataAccessor &chunk,
        designmatrix.addModel(cdm * calFactor, measuredPolSlice, 
                  casa::Matrix<double>(measuredPolSlice.nrow(),
                  measuredPolSlice.ncolumn(),1.));
-       */
+      
        ne.add(designmatrix);
   }
 }                                   
