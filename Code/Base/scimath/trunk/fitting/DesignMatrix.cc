@@ -173,15 +173,6 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
                  derivatives(index+1,1) = imag(derivIm);
              }             
         }
-        /*{
-          std::ofstream os("dbg.dat");
-          for (size_t i=0;i<derivatives.nrow(); ++i) {
-               for (size_t j=0;j<derivatives.ncolumn();++j) 
-                    os<<derivatives(i,j)<<" ";
-               os<<std::endl;
-          }
-          throw 1;
-        } */
         if (isComplex) {
             addDerivative(*pit, derivatives);
         } else {
