@@ -5,6 +5,7 @@
 #include <ImageDFTEquationTest.h>
 #include <ImageFFTEquationTest.h>
 #include <GainCalibrationEquationTest.h>
+#include <CalibrationMETest.h>
 
 int main( int argc, char **argv)
 {
@@ -12,6 +13,7 @@ int main( int argc, char **argv)
   runner.addTest( conrad::synthesis::VectorOperationsTest::suite() );
   runner.addTest( conrad::synthesis::ComponentEquationTest::suite() );
   runner.addTest( conrad::synthesis::GainCalibrationEquationTest::suite() );
+  runner.addTest( conrad::synthesis::CalibrationMETest::suite() );
   //runner.addTest( conrad::synthesis::ImageDFTEquationTest::suite() );
   runner.addTest( conrad::synthesis::ImageFFTEquationTest::suite() );
   runner.run();
