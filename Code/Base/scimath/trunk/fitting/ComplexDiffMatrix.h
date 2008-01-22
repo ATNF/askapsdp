@@ -105,6 +105,26 @@ struct ComplexDiffMatrix {
    /// @return element
    inline ComplexDiff& operator()(size_t row, size_t col);
    
+   /// @brief access to given matrix element for a vector
+   /// @param[in] index index of the element (row number)
+   /// @return a const reference to the element
+   inline const ComplexDiff& operator[](size_t index) const;
+   
+   /// @brief read-write access to a vector element
+   /// @param[in] index index of the element (row number)
+   /// @return a non-const reference to the element
+   inline ComplexDiff& operator[](size_t index);
+   
+   /// @brief in-situ multiplication by a scalar
+   /// @details 
+   /// @param[in] scalar a ComplexDiff scalar
+   inline void operator*=(const ComplexDiff &scalar);
+   
+   /// @brief in-situ multiplication by another ComplexDiffMatrix
+   /// @details 
+   /// @param[in] matr another ComplexDiffMatrix
+   inline void operator*=(const ComplexDiffMatrix &matr);
+   
    /// @brief matrix multiplication
    /// @details
    /// @param[in] in1 first matrix
@@ -149,6 +169,9 @@ struct ComplexDiffMatrix {
    /// @brief obtain number of columns
    /// @return number of columns
    inline size_t nColumn() const {return itsNColumns;}
+   
+   /// @brief return a total number of elements
+   inline size_t nElements() const { return itsNRows*itsNColumns; }
    
    /// @brief type of the parameter iterator
    typedef utility::MapKeyIterator<std::map<std::string, bool>::const_iterator > 
@@ -222,6 +245,25 @@ inline ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col)
    return itsElements[itsNRows*col+row];
 }
 
+/// @brief access to given matrix element for a vector
+/// @param[in] index index of the element (row number)
+/// @return a const reference to the element
+inline const ComplexDiff& ComplexDiffMatrix::operator[](size_t index) const
+{
+   CONRADDEBUGASSERT(itsNColumns == 1);
+   return operator()(index,0);
+}
+   
+/// @brief read-write access to a vector element
+/// @param[in] index index of the element (row number)
+/// @return a non-const reference to the element
+inline ComplexDiff& ComplexDiffMatrix::operator[](size_t index)
+{
+   CONRADDEBUGASSERT(itsNColumns == 1);
+   return operator()(index,0);
+}
+
+
 /// @brief constructor from casa::Matrix
 /// @param[in] matr input matrix
 inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<casa::Complex> &matr) :
@@ -289,6 +331,25 @@ inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &matr,
        *it *= scalar;
   }
   return result;  
+}
+
+/// @brief in-situ multiplication by a scalar
+/// @details 
+/// @param[in] scalar a ComplexDiff scalar
+inline void ComplexDiffMatrix::operator*=(const ComplexDiff &scalar)
+{
+  for (std::vector<ComplexDiff>::iterator it = itsElements.begin(); 
+                       it != itsElements.end(); ++it) {
+       *it *= scalar;
+  }  
+}
+   
+/// @brief in-situ multiplication by another ComplexDiffMatrix
+/// @details 
+/// @param[in] matr another ComplexDiffMatrix
+inline void ComplexDiffMatrix::operator*=(const ComplexDiffMatrix &matr)
+{
+   operator=(*this * matr);
 }
 
 /// @brief matrix addition

@@ -177,7 +177,7 @@ void ComplexDiffMatrixTest::testCreateFromVector()
        CPPUNIT_ASSERT(abs(cdm(i,0).value()-casa::Complex(10.,-5.))<1e-7);   
   }
   
-  ComplexDiffMatrix cdm2 = g * ComplexDiffMatrix(vec);
+  ComplexDiffMatrix cdm2 = g * vec;
   ComplexDiffMatrix cdm3 = cdm * g;
   
   ComplexDiffMatrix::const_iterator cdm3It = cdm3.begin();
@@ -207,7 +207,7 @@ void ComplexDiffMatrixTest::testCreateFromMatrix()
        }
   }
   
-  ComplexDiffMatrix cdm2 = g * ComplexDiffMatrix(matr);
+  ComplexDiffMatrix cdm2 = g * matr;
   ComplexDiffMatrix cdm3 = cdm * g;
   
   ComplexDiffMatrix::const_iterator cdm3It = cdm3.begin();

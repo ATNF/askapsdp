@@ -11,6 +11,7 @@
 #define COMPLEX_DIFF_TEST
 
 #include <fitting/ComplexDiff.h>
+#include <fitting/ComplexDiffMatrix.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -106,10 +107,10 @@ void ComplexDiffTest::testMultiply()
 void ComplexDiffTest::testMultiplyVector()
 {
   casa::Vector<casa::Complex> vec(10.,casa::Complex(0.,-2.));
-  casa::Vector<ComplexDiff> cdVec = vec * f;
+  ComplexDiffMatrix cdVec = vec * f;
   
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {
-       CONRADASSERT(i < cdVec.nelements());
+       CONRADASSERT(i < cdVec.nElements());
        const ComplexDiff &d = cdVec[i]; 
        CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-30.,-70.))<1e-7);
        CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(0,-2.))<1e-7);
@@ -119,7 +120,7 @@ void ComplexDiffTest::testMultiplyVector()
   cdVec = g * vec;
 
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {
-       CONRADASSERT(i < cdVec.nelements());
+       CONRADASSERT(i < cdVec.nElements());
        const ComplexDiff &d = cdVec[i]; 
        CPPUNIT_ASSERT(abs(d.value()-casa::Complex(30.,70.))<1e-7);
        CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(0,-2.))<1e-7);
@@ -129,7 +130,7 @@ void ComplexDiffTest::testMultiplyVector()
   cdVec*= f;  
 
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {
-       CONRADASSERT(i < cdVec.nelements());
+       CONRADASSERT(i < cdVec.nElements());
        const ComplexDiff &d = cdVec[i]; 
        CPPUNIT_ASSERT(abs(d.value()-casa::Complex(2100.,2000))<1e-7);
        CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(30.,70.))<1e-7);
