@@ -41,8 +41,8 @@ namespace conrad
       CPPUNIT_TEST_SUITE_END();
       
       private:
-        //typedef CalibrationME<NoXPolGain> METype;
-        typedef GainCalibrationEquation METype;
+        typedef CalibrationME<NoXPolGain> METype;
+        //typedef GainCalibrationEquation METype;
         boost::shared_ptr<ComponentEquation> p1, p2;
         boost::shared_ptr<METype> eq1,eq2;
         boost::shared_ptr<Params> params1, params2;
