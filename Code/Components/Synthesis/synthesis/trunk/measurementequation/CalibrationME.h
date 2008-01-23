@@ -86,10 +86,7 @@ protected:
   ///         equation corresponding to the given row
   virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const IConstDataAccessor &acc,
                     casa::uInt row) const
-  //{ return ComplexDiffMatrix(acc.visibility().yzPlane(row)) * 
-  //         Effect::get(parameters(),acc,row); }
-  { return Effect::get(parameters(),acc,row)*ComplexDiffMatrix(transpose(acc.visibility().yzPlane(row))); 
-           }
+  { return Effect::get(parameters(),acc,row)*ComplexDiffMatrix(transpose(acc.visibility().yzPlane(row))); }
 };
 
 
