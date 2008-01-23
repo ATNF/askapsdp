@@ -17,6 +17,7 @@
 // own includes
 #include <measurementequation/CalibrationMEBase.h>
 
+#include <casa/Arrays/MatrixMath.h>
 #include <conrad/ConradError.h>
 #include <conrad/ConradUtil.h>
 #include <dataaccess/MemBufferDataAccessor.h>
@@ -63,7 +64,7 @@ CalibrationMEBase::CalibrationMEBase(const conrad::scimath::Params& ip,
 /// predict() without parameters will be deprecated.
 /// @param[in] chunk a read-write accessor to work with
 void CalibrationMEBase::predict(IDataAccessor &chunk) const
-{
+{ 
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
   CONRADDEBUGASSERT(rwVis.nelements());
 
@@ -74,7 +75,9 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
        
        for (casa::uInt chan = 0; chan < chunk.nChannel(); ++chan) {
             for (casa::uInt pol = 0; pol < chunk.nPol(); ++pol) {
-                 rwVis(row, chan, pol) = cdm(chan, pol).value();
+                 // cdm is transposed! because we need a vector for
+                 // each spectral channel for a proper matrix multiplication
+                 rwVis(row, chan, pol) = cdm(pol, chan).value();
             }
        }
   }
@@ -91,7 +94,7 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 /// @param[in] ne Normal equations
 void CalibrationMEBase::calcEquations(const IConstDataAccessor &chunk,
                               conrad::scimath::GenericNormalEquations& ne) const
-{
+{  
   MemBufferDataAccessor  buffChunk(chunk);
   CONRADDEBUGASSERT(buffChunk.visibility().nelements());
   
@@ -100,7 +103,7 @@ void CalibrationMEBase::calcEquations(const IConstDataAccessor &chunk,
   
   for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
        ComplexDiffMatrix cdm = buildComplexDiffMatrix(buffChunk, row);
-       casa::Matrix<casa::Complex> measuredSlice = measuredVis.yzPlane(row);
+       casa::Matrix<casa::Complex> measuredSlice = transpose(measuredVis.yzPlane(row));
        
        DesignMatrix designmatrix;
        // we can probably add below actual weights taken from the data accessor
