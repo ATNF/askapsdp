@@ -32,6 +32,7 @@
 
 // own includes
 #include <fitting/ComplexDiff.h>
+#include <fitting/ComplexDiffMatrix.h>
 #include <conrad/ConradError.h>
 #include <conrad/MapKeyIterator.h>
 
