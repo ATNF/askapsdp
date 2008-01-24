@@ -6,7 +6,6 @@
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 
-using namespace LOFAR;
 
 #include <conrad/ConradError.h>
 

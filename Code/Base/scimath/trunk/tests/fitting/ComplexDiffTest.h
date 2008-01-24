@@ -106,7 +106,7 @@ void ComplexDiffTest::testMultiply()
 
 void ComplexDiffTest::testMultiplyVector()
 {
-  casa::Vector<casa::Complex> vec(10.,casa::Complex(0.,-2.));
+  casa::Vector<casa::Complex> vec(10,casa::Complex(0.,-2.));
   ComplexDiffMatrix cdVec = vec * f;
   
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {

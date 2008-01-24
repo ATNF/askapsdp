@@ -82,8 +82,8 @@ namespace scimath
          // correction factor to apply a phase shift to get a correct
          // absolute phase, which we can't determine in the calibration solution.
          // Antenna 0 is a reference.
-         itsRefPhase = polar(casa::Float(1.), 
-                             -arg(itsTrueGains.complexValue(parName(0))));
+         itsRefPhase = casa::polar(casa::Float(1.), 
+                             -casa::arg(itsTrueGains.complexValue(parName(0))));
          
          predictComplex();
          const double guessedGainsReal[] = {1.,1.,1.,1.,1.,1.};
