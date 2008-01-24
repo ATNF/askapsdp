@@ -116,8 +116,9 @@ void ComplexDiffTest::testMultiplyVector()
        CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(0,-2.))<1e-7);
        CPPUNIT_ASSERT(abs(d.derivIm("g1")-casa::Complex(2.,0.))<1e-7);
   }
-  
-  cdVec = g * vec;
+
+  ComplexDiff g1(g);
+  cdVec = g1 * vec;
 
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {
        CONRADASSERT(i < cdVec.nElements());

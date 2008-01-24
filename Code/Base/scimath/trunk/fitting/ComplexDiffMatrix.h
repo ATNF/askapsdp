@@ -142,44 +142,7 @@ struct ComplexDiffMatrix {
    /// @return the product of the matrix and a scalar
    friend inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &matr,
                  const ComplexDiff &scalar);
-   
-   /// @brief multiplication by a scalar
-   /// @details This is an overloaded version of the multiplication operator,
-   /// which is responsible for the case where the whole matrix is multiplied
-   /// by a scalar from the left. 
-   /// @param[in] scalar a ComplexDiff scalar
-   /// @param[in] matr a ComplexDiffMatrix 
-   /// @return the product of the matrix and a scalar
-   friend inline ComplexDiffMatrix operator*(const ComplexDiff &scalar, 
-                 const ComplexDiffMatrix &matr) { return matr*scalar;}
- 
-   /// @brief multiplication by a scalar
-   /// @details This is an overloaded version of the multiplication operator,
-   /// which is responsible for the case where the whole matrix is multiplied
-   /// by a scalar from the left. Although appropriate constructor is 
-   /// supposed to handle type conversion, it fails with g++-4.1 for some 
-   /// reason. This method does explicit type conversion from casa::Matrix.
-   /// @param[in] scalar a ComplexDiff scalar
-   /// @param[in] matr a casa::Matrix
-   /// @return the product of the matrix and a scalar
-   friend inline ComplexDiffMatrix operator*(const ComplexDiff &scalar, 
-                 const casa::Matrix<casa::Complex> &matr) 
-             { return ComplexDiffMatrix(matr)*scalar;}
-
-   /// @brief multiplication by a scalar
-   /// @details This is an overloaded version of the multiplication operator,
-   /// which is responsible for the case where the whole matrix is multiplied
-   /// by a scalar from the left. Although appropriate constructor is 
-   /// supposed to handle type conversion, it fails with g++-4.1 for some 
-   /// reason. This method does explicit type conversion from casa::Vector.
-   /// @param[in] scalar a ComplexDiff scalar
-   /// @param[in] vec a casa::Vector 
-   /// @return the product of the matrix and a scalar
-   friend inline ComplexDiffMatrix operator*(const ComplexDiff &scalar, 
-                 const casa::Vector<casa::Complex> &vec) 
-             { return ComplexDiffMatrix(vec)*scalar;}
-   
-   
+      
    /// @brief matrix addition
    /// @details
    /// @param[in] in1 first matrix
@@ -248,6 +211,16 @@ private:
    /// @brief a flag showing that itsParameterMap needs to be updated
    mutable bool itsParameterMapInvalid;
 };
+
+   /// @brief multiplication by a scalar
+   /// @details This is an overloaded version of the multiplication operator,
+   /// which is responsible for the case where the whole matrix is multiplied
+   /// by a scalar from the left. 
+   /// @param[in] scalar a ComplexDiff scalar
+   /// @param[in] matr a ComplexDiffMatrix 
+   /// @return the product of the matrix and a scalar
+inline  ComplexDiffMatrix operator*(const ComplexDiff &scalar, 
+                 const ComplexDiffMatrix &matr) { return matr*scalar;}	 
 
 
 /// @brief access to given matrix element
