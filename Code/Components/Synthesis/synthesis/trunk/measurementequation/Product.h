@@ -37,7 +37,8 @@ struct Product : public MEComponent {
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
    inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
-                                casa::uInt row) const;
+                                casa::uInt row) const
+   { return itsEffect1.get(chunk,row)*itsEffect2.get(chunk,row); }
 
    
 private:
@@ -47,17 +48,4 @@ private:
    Effect2 itsEffect2;
 };
 
-/// @brief main method returning Mueller matrix and derivatives
-/// @details This method has to be overloaded (in the template sense) for
-/// all classes representing various calibration effects. CalibrationME
-/// template will call it when necessary. It returns 
-/// @param[in] chunk accessor to work with
-/// @param[in] row row of the chunk to work with
-/// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
-/// this effect
-inline scimath::ComplexDiffMatrix Product::get(const IConstDataAccessor &chunk, 
-                                casa::uInt row) const
-{
-   return itsEffect1.get(chunk,row)*itsEffect2.get(chunk,row);
-}
 #endif // #ifndef PRODUCT_H
