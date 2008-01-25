@@ -74,6 +74,7 @@ int main(int argc, const char** argv)
     duchamp.receiveThreshold();
     duchamp.findLists();
     duchamp.condenseLists();
+    duchamp.calcFluxes();
     duchamp.printResults();
 
     ///==============================================================================

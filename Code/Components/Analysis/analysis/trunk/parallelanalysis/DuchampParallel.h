@@ -13,6 +13,10 @@
 #include <APS/ParameterSet.h>
 
 #include <duchamp/Cubes/cubes.hh>
+#include <duchamp/PixelMap/Voxel.hh>
+
+#include <vector>
+#include <string>
 
 namespace conrad
 {
@@ -50,6 +54,9 @@ namespace conrad
       // Find the lists (on the workers)
       void findLists();
 
+      // Sort out the fluxes for all detected objects (on the master)
+      void calcFluxes();
+
       // Print out the resulting source list (on the master)
       void printResults();
       
@@ -76,6 +83,10 @@ namespace conrad
       std::string itsImage;
 
       duchamp::Cube itsCube;
+
+      std::vector<PixelInfo::Voxel> itsVoxelList;
+
+      std::vector<duchamp::Section> itsSectionList;
 
     };
 

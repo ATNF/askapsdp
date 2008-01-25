@@ -13,6 +13,7 @@ env.Append(CCFLAGS=['-O2', '-DHAVE_LONG_LONG', '-DCONRAD_DEBUG', '-g'])
 pkg = env.ConradPackage("analysis")
 # add sub packages 
 pkg.AddSubPackage("parallelanalysis")
+pkg.AddSubPackage("analysisutilities")
 
 # run the build process
 pkg()

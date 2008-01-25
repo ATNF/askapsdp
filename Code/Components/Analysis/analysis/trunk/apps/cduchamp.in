@@ -1,11 +1,17 @@
 #Cduchamp.image     = Testimage%w
 #Cduchamp.image      = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 Cduchamp.image      = /Users/whi550/ObsData/cubes/test%w.fits
-Cduchamp.flagRobust = false
-Cduchamp.snrCut     = 4
+#Cduchamp.image      = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-%w.fits
 #Cduchamp.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits
 Cduchamp.masterImage = /Users/whi550/ObsData/cubes/test0.fits
+#Cduchamp.masterImage = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-0.fits
+Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/verifyCube.sectionInfo
+#Cduchamp.flagRobust = false
+#Cduchamp.snrCut     = 6
 Cduchamp.pixelCentre = average
 
-Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
-Cimstat.flagRobust  = true
+#Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
+#Cimstat.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits
+Cimstat.image       = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-%w.fits
+Cimstat.masterImage = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-0.fits
+Cimstat.flagRobust  = false

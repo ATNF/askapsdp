@@ -31,6 +31,7 @@
 #include <conrad/ConradError.h>
 
 #include <parallelanalysis/DuchampParallel.h>
+#include <analysisutilities/AnalysisUtilities.h>
 
 #include <sstream>
 #include <algorithm>
@@ -42,6 +43,7 @@
 #include <duchamp/Utils/utils.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/PixelMap/Voxel.hh>
+#include <duchamp/PixelMap/Object3D.hh>
 
 CONRAD_LOGGER(logger, ".parallelanalysis");
 
@@ -60,6 +62,23 @@ namespace conrad
         const LOFAR::ACC::APS::ParameterSet& parset)
     : ConradParallel(argc, argv)
     {
+
+      // First do the setup needed for both workers and master
+      itsCube.pars().setVerbosity(false);
+      itsCube.pars().setFlagLog(true);
+
+      bool flagRobust = parset.getBool("flagRobust",true);
+      itsCube.pars().setFlagRobustStats(flagRobust);
+
+      string pixelcentre = parset.getString("pixelCentre", "centroid");
+      itsCube.pars().setPixelCentre(pixelcentre);
+      
+      float cutlevel = parset.getFloat("snrCut", 4.);
+      itsCube.pars().setCut(cutlevel);
+
+      itsCube.pars().setFlagUserThreshold(true);
+
+      // Now read the correct image name according to worker/master state.
       if(isWorker()) {
         itsImage = substitute(parset.getString("image"));
 	itsCube.pars().setImageFile(itsImage);
@@ -76,20 +95,28 @@ namespace conrad
       else{
 	itsImage = substitute(parset.getString("masterImage"));
 	itsCube.pars().setImageFile(itsImage);
+	
+	string sectionInfo = substitute(parset.getString("sectionInfo"));
+	itsSectionList = readSectionInfo(sectionInfo);
+	if(itsSectionList.size() != (itsNNode-1) )
+	  CONRADLOG_ERROR_STR(logger, "Number of sections provided by " 
+			      << sectionInfo 
+			      << " does not match the number of images being processed.");
+
+	if(itsCube.pars().getFlagLog()){
+	  CONRADLOG_INFO_STR(logger, "Setting up logfile " << itsCube.pars().getLogFile() );
+	  std::ofstream logfile(itsCube.pars().getLogFile().c_str());
+	  logfile << "New run of the Duchamp sourcefinder: ";
+	  time_t now = time(NULL);
+	  logfile << asctime( localtime(&now) );
+	  // Write out the command-line statement
+	  logfile << "Executing statement : ";
+	  for(int i=0;i<argc;i++) logfile << argv[i] << " ";
+	  logfile << std::endl;
+	  logfile << itsCube.pars();
+	  logfile.close();
+	} 
       }
-
-      itsCube.pars().setVerbosity(false);
-
-      bool flagRobust = parset.getBool("flagRobust",true);
-      itsCube.pars().setFlagRobustStats(flagRobust);
-
-      string pixelcentre = parset.getString("pixelCentre", "centroid");
-      itsCube.pars().setPixelCentre(pixelcentre);
-      
-      float cutlevel = parset.getFloat("snrCut", 4.);
-      itsCube.pars().setCut(cutlevel);
-
-      itsCube.pars().setFlagUserThreshold(true);
 
     }
 
@@ -110,6 +137,8 @@ namespace conrad
 	if(itsCube.getCube()==duchamp::FAILURE){
 	  CONRADLOG_ERROR_STR(logger, "Master: Could not read in data from image " << itsImage << ".");
 	}
+// 	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
+// 	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
 
       }
 
@@ -137,17 +166,16 @@ namespace conrad
 	  out.putStart("detW2M",1);
 	  out << itsRank << num;
 	  for(int i=0;i<itsCube.getNumObj();i++){
-	    int size = itsCube.getObject(i).getSize();
-	    out << size;
-	    for(int p=0;p<size;p++){
-	      PixelInfo::Voxel vox = itsCube.getObject(i).getPixel(p);
-	      double *pix=new double[3];
-	      double *wld=new double[3];
-	      pix[0] = vox.getX(); pix[1]=vox.getY(); pix[2]=vox.getZ();
-	      itsCube.header().pixToWCS(pix,wld);
-	      out << wld[0] << wld[1] << wld[2];
+	    std::vector<PixelInfo::Voxel> voxlist = itsCube.getObject(i).getPixelSet();
+	    out << int(voxlist.size());
+	    for(int p=0;p<voxlist.size();p++){
+	      int *pix=new int[3];  // should be long but problem with Blobs
+	      pix[0] = voxlist[p].getX(); 
+	      pix[1] = voxlist[p].getY(); 
+	      pix[2] = voxlist[p].getZ();
+ 	      out << pix[0] << pix[1] << pix[2] 
+		  << itsCube.getPixValue(pix[0],pix[1],pix[2]);
 	      delete [] pix;
-	      delete [] wld;
 	    }
 	  }
 	  out.putEnd();
@@ -171,6 +199,7 @@ namespace conrad
  	LOFAR::BlobString bs;
         int rank, numObj;
 	//	std::vector<duchamp::Detection> *workerList;
+	int ct=0,numbad=0;
         for (int i=1; i<itsNNode; i++)
         {
           itsConnectionSet->read(i-1, bs);
@@ -184,13 +213,17 @@ namespace conrad
 	    int objsize;
 	    in >> objsize;
 	    for(int p=0;p<objsize;p++){
-	      double *pix=new double[3];
-	      double *wld=new double[3];
-	      in >> wld[0] >> wld[1] >> wld[2];
-	      itsCube.header().wcsToPix(wld,pix);
+	      int *pix=new int[3]; // should be long but problem with Blobs
+	      float flux;
+ 	      in >> pix[0] >> pix[1] >> pix[2] >> flux;
+	      for(int j=0;j<3;j++){
+		pix[j] += itsSectionList[i-1].getStart(j);
+	      }
 	      object->addPixel(pix[0],pix[1],pix[2]);
+	      PixelInfo::Voxel vox(pix[0],pix[1],pix[2],flux);
+	      itsVoxelList.push_back(vox);
 	      delete [] pix;
-	      delete [] wld;
+	      ct++;
 	    }
 	    itsCube.addObject(*object);
 	    delete object;
@@ -200,17 +233,58 @@ namespace conrad
 	  CONRADLOG_INFO_STR(logger, "Now have " << itsCube.getNumObj() << " objects");
         }
 
- 	std::ofstream logfile(itsCube.pars().getLogFile().c_str());
- 	logfile.close();
-	itsCube.logDetectionList();
-
 	// Now process the lists
+	itsCube.logDetectionList();
         CONRADLOG_INFO_STR(logger,  "Condensing lists..." );
 	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
         CONRADLOG_INFO_STR(logger,  "Condensing lists done" );
 
-      }
+	std::ofstream logfile("/Users/whi550/pixels1.dat");
+	logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
+	logfile << itsCube;
+	logfile.close();
+     }
       else {
+      }
+    }
+
+    void DuchampParallel::calcFluxes()
+    {
+      if(isMaster()){
+	int numVox = itsVoxelList.size();
+	int numObj = itsCube.getNumObj();
+	std::vector<PixelInfo::Voxel> templist[numObj];
+
+	for(int i=0;i<itsCube.getNumObj();i++){ // for each object
+	  
+	  std::vector<PixelInfo::Voxel> 
+	    objVoxList=itsCube.getObject(i).getPixelSet();
+
+	  // get the fluxes of each voxel
+	  for(int v=0;v<objVoxList.size();v++){
+	    int ct=0;
+	    while(ct<numVox && !objVoxList[v].match(itsVoxelList[ct])){
+	      ct++;
+	    }
+	    if(ct==numVox){ // there has been no match -- problem!
+	      CONRADLOG_ERROR(logger, "Found a voxel in the object lists that doesn't appear in the base list: ");// << objVoxList[v]);
+	    }
+	    else objVoxList[v].setF( itsVoxelList[ct].getF() );
+	  }
+
+	  templist[i] = objVoxList;
+
+	}
+	std::vector< std::vector<PixelInfo::Voxel> > 
+	  bigVoxSet (templist, templist + numObj);
+
+	itsCube.prepareOutputFile();
+	if(itsCube.getNumObj()>0){
+	  itsCube.calcObjectWCSparams(bigVoxSet);
+	  itsCube.setObjectFlags();
+	  itsCube.sortDetections();
+	}
+
       }
     }
 
@@ -219,12 +293,6 @@ namespace conrad
       if(isMaster()) {
 	CONRADLOG_INFO_STR(logger, "Found " << itsCube.getNumObj() << " sources.");
 	
-	itsCube.prepareOutputFile();
-	if(itsCube.getNumObj()>0){
- 	  itsCube.calcObjectWCSparams();
-	  itsCube.setObjectFlags();
-	  itsCube.sortDetections();
-	}
 	itsCube.outputDetectionList();
       }
       else{
@@ -271,26 +339,6 @@ namespace conrad
       else {
       }
     }
-    
-    double findSpread(bool robust, double middle, int size, float *array)
-    {
-      double spread=0;
-      if(robust){
-	float *arrayCopy = new float[size];
-	for(int i=0;i<size;i++) arrayCopy[i] = fabs(array[i]-middle);
-	std::sort(arrayCopy,arrayCopy+size);
-	if((size%2)==0) spread = (arrayCopy[size/2-1]+arrayCopy[size/2])/2;
-	else spread = arrayCopy[size/2];
-	delete [] arrayCopy;
-	spread = Statistics::madfmToSigma(spread);
-      }
-      else{
-	for(int i=0;i<size;i++) spread += (array[i]-middle)*(array[i]-middle);
-	spread = sqrt(spread / double(size-1));
-      }
-      return spread;
-    }
-
 
     void DuchampParallel::findRMSs() 
     {
@@ -310,11 +358,8 @@ namespace conrad
 	  in.getEnd();
 	}
 	// use it to calculate the rms for this section
-// 	double rms = 0.;
  	int size = itsCube.getSize();
  	float *array = itsCube.getArray();
-// 	for(int i=0;i<size;i++) rms += (array[i]-mean)*(array[i]-mean);
-// 	rms = sqrt(rms / double(size-1));
 	double rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
 	CONRADLOG_INFO_STR(logger, "#" << itsRank << ": rms = " << rms );
 
@@ -448,6 +493,7 @@ namespace conrad
 	out.putEnd();
 	itsConnectionSet->writeAll(bs);
 	CONRADLOG_INFO_STR(logger, "Sent threshold (" << threshold << ") from the master" );
+	itsCube.pars().setThreshold(threshold);
       }
       else {
       }
