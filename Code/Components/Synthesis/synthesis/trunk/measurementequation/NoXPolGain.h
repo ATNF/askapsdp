@@ -16,7 +16,7 @@
 #include <fitting/Params.h>
 #include <dataaccess/IConstDataAccessor.h>
 #include <conrad/ConradError.h>
-
+#include <measurementequation/MEComponent.h>
 
 
 // std includes
@@ -30,18 +30,22 @@ namespace synthesis {
 /// @details This is a simple effect which can be used in conjunction
 /// with the CalibrationME template (as its template argument)
 /// @ingroup measurementequation
-struct NoXPolGain {
+struct NoXPolGain : public MEComponent {
+   
+   /// @brief constructor, store reference to paramters
+   /// @param[in] par const reference to parameters
+   inline explicit NoXPolGain(const scimath::Params &par) : MEComponent(par) {}
+   
    /// @brief main method returning Mueller matrix and derivatives
    /// @details This method has to be overloaded (in the template sense) for
    /// all classes representing various calibration effects. CalibrationME
    /// template will call it when necessary. It returns 
-   /// @param[in] par current parameters
    /// @param[in] chunk accessor to work with
    /// @param[in] row row of the chunk to work with
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
-   static inline scimath::ComplexDiffMatrix get(const scimath::Params &par,
-          const IConstDataAccessor &chunk, casa::uInt row);
+   inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
+                                casa::uInt row) const;
 protected:
    /// @brief obtain a name of the parameter
    /// @details This method returns the parameter name for a gain of the
@@ -56,13 +60,12 @@ protected:
 /// @details This method has to be overloaded (in the template sense) for
 /// all classes representing various calibration effects. CalibrationME
 /// template will call it when necessary. It returns 
-/// @param[in] par current parameters
 /// @param[in] chunk accessor to work with
 /// @param[in] row row of the chunk to work with
 /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
 /// this effect
-inline scimath::ComplexDiffMatrix NoXPolGain::get(const scimath::Params &par,
-          const IConstDataAccessor &chunk, casa::uInt row)
+inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chunk, 
+                                      casa::uInt row) const
 {
    CONRADDEBUGASSERT(chunk.nPol());   
    if (chunk.nPol()>2) {
@@ -81,11 +84,11 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const scimath::Params &par,
              
         // gains for antenna 1, polarisation pol
         const std::string g1name = paramName(ant1,pol);
-        const casa::Complex g1 = par.complexValue(g1name);
+        const casa::Complex g1 = parameters().complexValue(g1name);
             
         // gains for antenna 2, polarisation pol
         const std::string g2name = paramName(ant2,pol);
-        const casa::Complex g2 = par.complexValue(g2name);
+        const casa::Complex g2 = parameters().complexValue(g2name);
             
         calFactor(pol,pol) = scimath::ComplexDiff(g1name,g1)*
                  conj(scimath::ComplexDiff(g2name,g2));            

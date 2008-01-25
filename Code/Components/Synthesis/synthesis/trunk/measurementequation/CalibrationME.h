@@ -70,7 +70,7 @@ public:
   CalibrationME(const conrad::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
             MultiChunkEquation(idi), conrad::scimath::GenericEquation(ip),
-            CalibrationMEBase(ip, idi, ime) {}
+            CalibrationMEBase(ip, idi, ime), itsEffect(ip) {}
   
   /// Clone this into a shared pointer
   /// @return shared pointer to a copy
@@ -86,7 +86,14 @@ protected:
   ///         equation corresponding to the given row
   virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const IConstDataAccessor &acc,
                     casa::uInt row) const
-  { return Effect::get(parameters(),acc,row)*ComplexDiffMatrix(transpose(acc.visibility().yzPlane(row))); }
+  { return itsEffect.get(acc,row)*ComplexDiffMatrix(transpose(acc.visibility().yzPlane(row))); }
+
+private:
+   /// @brief effectively a measurement equation
+   /// @details The measurement equation is assembled at compile time. It is
+   /// initialized with the reference to paramters in the constructor of this
+   /// class and then used inside buildComplexDiffMatrix method.
+   Effect itsEffect;
 };
 
 
