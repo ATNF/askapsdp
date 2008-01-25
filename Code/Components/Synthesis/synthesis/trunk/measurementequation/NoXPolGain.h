@@ -16,7 +16,7 @@
 #include <fitting/Params.h>
 #include <dataaccess/IConstDataAccessor.h>
 #include <conrad/ConradError.h>
-#include <measurementequation/MEComponent.h>
+#include <measurementequation/ParameterizedMEComponent.h>
 
 
 // std includes
@@ -30,11 +30,12 @@ namespace synthesis {
 /// @details This is a simple effect which can be used in conjunction
 /// with the CalibrationME template (as its template argument)
 /// @ingroup measurementequation
-struct NoXPolGain : public MEComponent {
+struct NoXPolGain : public ParameterizedMEComponent {
    
    /// @brief constructor, store reference to paramters
    /// @param[in] par const reference to parameters
-   inline explicit NoXPolGain(const scimath::Params &par) : MEComponent(par) {}
+   inline explicit NoXPolGain(const scimath::Params &par) : 
+                              ParameterizedMEComponent(par) {}
    
    /// @brief main method returning Mueller matrix and derivatives
    /// @details This method has to be overloaded (in the template sense) for
