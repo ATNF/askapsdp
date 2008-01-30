@@ -60,6 +60,11 @@ struct WholeRowFlagger
   inline bool copyRequired(casa::uInt, casa::Cube<T> &) { return true;}
 };
 
+
+/// @brief a helper class to flag the whole row on the basis of FLAG_ROW
+/// @details This is a specialization for casa::Bool (i.e. flagging information)
+/// see the main template for details
+/// @ingroup dataaccess_tab
 template<>
 struct WholeRowFlagger<casa::Bool>
 {
@@ -74,6 +79,7 @@ struct WholeRowFlagger<casa::Bool>
   /// If it can't to this, it returns true, which forces an element by element 
   /// processing. By default parameters are not used
   /// @param[in] row a row to work with 
+  /// @param[in] cube cube to work with
   inline bool copyRequired(casa::uInt row, casa::Cube<casa::Bool> &cube);
 private:
   /// @brief accessor to the FLAG_ROW column
