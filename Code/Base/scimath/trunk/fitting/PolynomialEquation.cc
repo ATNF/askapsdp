@@ -92,7 +92,7 @@ namespace conrad
       }
     }
 
-    void PolynomialEquation::calcGenericEquations(GenericNormalEquations& ne)
+    void PolynomialEquation::calcGenericEquations(GenericNormalEquations& ne) const
     {
     	itsModel.set(0.0);
 

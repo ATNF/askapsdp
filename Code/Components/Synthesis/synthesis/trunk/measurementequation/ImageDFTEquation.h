@@ -60,7 +60,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne);
+        virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
 
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy
@@ -86,7 +86,7 @@ namespace conrad
         /// @param doDeriv Do we want to calculate the derivative of the 
         /// visibility with respect to each pixel?
         /// @param imageDeriv Image derivative with respect to each pixel
-        void calcVisDFT(const casa::Array<double>& imagePixels,
+        static void calcVisDFT(const casa::Array<double>& imagePixels,
           const double raStart, const double raEnd, const int raCells,
           const double decStart, const double decEnd, const int decCells,
           const casa::Vector<double>& freq,

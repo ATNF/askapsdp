@@ -47,7 +47,7 @@ struct GenericEquation : public Equation {
     /// This class implements calcEquations via this method checking whether
     /// the type of normal equations class supplied is compatible.
     /// @param[in] ne normal equations to update
-    virtual void calcGenericEquations(GenericNormalEquations &ne) = 0;
+    virtual void calcGenericEquations(GenericNormalEquations &ne) const = 0;
     
     /// @brief calculate normal equations
     /// @details This is the main method defined in the base class which can

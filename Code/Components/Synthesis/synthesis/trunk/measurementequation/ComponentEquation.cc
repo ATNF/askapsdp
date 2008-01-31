@@ -369,7 +369,7 @@ scimath::Params::ShPtr& ComponentEquation::rwParameters() throw()
 /// @note there is probably a problem with constness here. Hope this method is
 /// only temporary here.
 /// @param[in] ne Normal equations
-void ComponentEquation::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne)
+void ComponentEquation::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const
 {
   MultiChunkEquation::calcGenericEquations(ne);
 }

@@ -95,7 +95,7 @@ namespace conrad
         /// @note I hope this method is temporary, untill a proper constness of the
         /// method is restored.
         /// @param[in] ne Normal equations
-        virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne);
+        virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
         
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy

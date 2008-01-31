@@ -144,7 +144,7 @@ namespace conrad
     // Calculate the residual visibility and image. We transform the model on the fly
     // so that we only have to read (and write) the data once. This uses more memory
     // but cuts down on IO
-    void ImageFFTEquation::calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne)
+    void ImageFFTEquation::calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne) const
     {
 
       // We will need to loop over all completions i.e. all sources

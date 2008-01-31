@@ -115,6 +115,7 @@ void CalibrationMEBase::calcEquations(const IConstDataAccessor &chunk,
   }
 }                                   
 
+
 /// @brief Calculate the normal equations for the iterator
 /// @details This version iterates through all chunks of data and
 /// calls an abstract method declared in IMeasurementEquation for each 
@@ -122,7 +123,7 @@ void CalibrationMEBase::calcEquations(const IConstDataAccessor &chunk,
 /// @note there is probably a problem with constness here. Hope this method is
 /// only temporary here.
 /// @param[in] ne Normal equations
-void CalibrationMEBase::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne)
+void CalibrationMEBase::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const
 {
   MultiChunkEquation::calcGenericEquations(ne);
 }

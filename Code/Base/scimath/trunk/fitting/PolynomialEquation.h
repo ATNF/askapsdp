@@ -66,7 +66,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcGenericEquations(GenericNormalEquations& ne);
+        virtual void calcGenericEquations(GenericNormalEquations& ne) const;
 
 /// Clone this
         virtual Equation::ShPtr clone() const;
@@ -78,7 +78,7 @@ namespace conrad
         /// @param arguments Arguments to the equation i.e. set of values x
         /// @param parameters Parameters to the equation
         /// @param values Returned values i.e. set of f(x;P) for all x
-        void calcPoly(const casa::Vector<double>& arguments, 
+        static void calcPoly(const casa::Vector<double>& arguments, 
           const casa::Vector<double>& parameters,
           casa::Vector<double>& values);
 
@@ -86,7 +86,7 @@ namespace conrad
         /// @param arguments Arguments to the equation i.e. set of values x
         /// @param parameters Parameters to the equation
         /// @param valueDerivs Returned derivatives i.e. set of df(x;P)/dP for all x and P
-        void calcPolyDeriv(const casa::Vector<double>& arguments, const casa::Vector<double>& parameters,
+        static void calcPolyDeriv(const casa::Vector<double>& arguments, const casa::Vector<double>& parameters,
           casa::Matrix<double>& valueDerivs);
         /// Data
         casa::Vector<double> itsData;
@@ -95,7 +95,7 @@ namespace conrad
         /// Arguments
         casa::Vector<double> itsArguments;
         /// Model
-        casa::Vector<double> itsModel;
+        mutable casa::Vector<double> itsModel;
     };
 
   }

@@ -78,7 +78,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne);
+        virtual void calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne) const;
 
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy
@@ -90,13 +90,13 @@ namespace conrad
         IVisGridder::ShPtr itsGridder;
         
         /// Map of gridders for the model
-        std::map<string, IVisGridder::ShPtr> itsModelGridders;
+        mutable std::map<string, IVisGridder::ShPtr> itsModelGridders;
         
         /// Map of gridders for the residuals
-        std::map<string, IVisGridder::ShPtr> itsResidualGridders;
+        mutable std::map<string, IVisGridder::ShPtr> itsResidualGridders;
 
         /// Iterator giving access to the data
-        IDataSharedIter itsIdi;
+        mutable IDataSharedIter itsIdi;
 
         void init();
 
