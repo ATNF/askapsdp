@@ -14,12 +14,12 @@ namespace conrad::synthesis {};
 
 /// @mainpage CONRAD synthesis package
 ///
-/// @section Introduction
+/// @section synth_intro Introduction
 /// The synthesis package supports processing of radio synthesis observations,
 /// including calibration, editing, and imaging. The emphasis is on the
 /// processing of ASKAP and KAT scale data sets i.e. TBs per hour.
 ///
-/// @section Assumptions and goals
+/// @section synth_assumptions Assumptions and goals
 ///
 /// The large data volumes to be processed require that I/O of data be
 /// minimized. Hence the goal is to write algorithms that require only
@@ -35,7 +35,7 @@ namespace conrad::synthesis {};
 /// We assume that the problem can be (and is) partitioned such that the
 /// image data always fits in memory during the processing.
 ///
-/// @section Dependencies
+/// @section synth_dependencies Dependencies
 /// The synthesis package makes extensive use of the CONRAD @ref fitting 
 /// framework. 
 ///
@@ -44,7 +44,42 @@ namespace conrad::synthesis {};
 /// Matrix, and Cube). Non-numerical data are usually held in standard
 /// containers such as vectors, and maps.
 ///
-/// @section Subpackages
+/// @section synth_status Current status of the code
+///
+/// @subsection synth_dataaccess 1. Dataaccess subpackage
+/// @li The subpackage defines interfaces and implements them for a casa measurement set table
+/// @li Selection of a subset of spectral channels (in channels/velocity or frequency) is not implemented
+/// @li On-the-fly averaging is not implemented
+/// @li Polarisation conversion is not implemented
+/// @li Iterface to write flagging information to the measurement set is not implemented
+/// @li Working on the calibration framework suggests that it may be useful to convert polarisations at the accessor level somehow, 
+///rather than for all accessors of a given iterator.
+/// @li There is no methods so far, which support beamforming
+/// 
+/// @subsection synth_measurementequation 2. Measurement Equation
+/// @li The subpackage contains calibration and imaging framework (equations which can be solved with the solver from the fitting package)
+/// @li Class diagram could still be a bit untidy mainly because of an early decision to apply the equation to the
+///whole iterator, rather than a single iteration (accessor). Imaging code requires conversion to
+///use MultiChunkEquation instead of doing this iteration within each class. Then the code using measurementequation can be
+///converted to call calcEquations and predict methods for an accessor, rather than iterator.
+/// @li It may be tricky to implement situations where domain and range are different for calibration equation.
+///For example, the case with the beamformer where one tries to calibrate LNA gains, which are
+///contributing to the measured visibilities indirectly after some transform. Probably a specialization of the
+///CalibrationME template is the way to go. 
+///
+/// @subsection synth_gridding 3. Gridding
+/// @li The subpackage contains classes performing gridding and degridding operations using various kernels
+/// @li It is beleived to be largely complete
+/// 
+/// @subsection synth_parallel 4. Parallel application support
+/// @li The subpackage is intended to parallelise measurement equation
+///
+/// @subsection synth_fft 5. FFT interfaces
+///  
+///
+/// @subsection synth_simulate 6. Data simulation
+///
+/// @section synth_subpackages Subpackages
 ///
 /// @li @ref dataaccess_i
 /// @li @ref dataaccess_conv
