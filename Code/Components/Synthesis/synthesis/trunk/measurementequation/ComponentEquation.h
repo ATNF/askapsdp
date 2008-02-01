@@ -80,7 +80,7 @@ namespace conrad
         /// the variant of the method without parameters will be deprecated.
         /// @param[in] chunk a read-write accessor to work with
         /// @param[in] ne Normal equations
-        virtual void calcEquations(const IConstDataAccessor &chunk,
+        virtual void calcGenericEquations(const IConstDataAccessor &chunk,
                               conrad::scimath::GenericNormalEquations& ne) const;
         
         using MultiChunkEquation::predict;

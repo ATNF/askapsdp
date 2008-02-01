@@ -47,15 +47,44 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
   /// @brief Calculate the normal equations for the iterator
   /// @details This version iterates through all chunks of data and
   /// calls an abstract method declared in IMeasurementEquation for each 
-  /// individual accessor (each iteration of the iterator)
+  /// individual accessor (each iteration of the iterator). This method is
+  /// overriden in this class to do a proper type conversion.
   /// @param[in] ne Normal equations
   virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
+
+  /// @brief Calculate the normal equation for one accessor (chunk).
+  /// @details This calculation is done for a single chunk of
+  /// data only (one iteration).It seems that all measurement
+  /// equations should work with accessors rather than iterators
+  /// (i.e. the iteration over chunks should be moved to the higher
+  /// level, outside this class). This method overrides an abstract method
+  /// of MultiChunkEquation. It calls calcGenericEquation  with ne converted
+  /// to GenericNormalEquations
+  /// @param[in] chunk a read-write accessor to work with
+  /// @param[in] ne Normal equations
+  virtual void calcEquations(const IConstDataAccessor &chunk,
+                          conrad::scimath::INormalEquations& ne) const;
+  
+  /// @brief Calculate the normal equation for one accessor (chunk).
+  /// @details This calculation is done for a single chunk of
+  /// data only (one iteration).It seems that all measurement
+  /// equations should work with accessors rather than iterators
+  /// (i.e. the iteration over chunks should be moved to the higher
+  /// level, outside this class). 
+  /// This class translates calls to calcEquations(chunk, ne) to 
+  /// this method and does type conversion.
+  /// @param[in] chunk a read-write accessor to work with
+  /// @param[in] ne Normal equations
+  virtual void calcGenericEquations(const IConstDataAccessor &chunk,
+                          conrad::scimath::GenericNormalEquations& ne) const = 0;
 
   /// @brief Predict model visibility for the iterator.
   /// @details This version of the predict method iterates
   /// over all chunks of data and calls an abstract method declared
   /// in IMeasurementEquation for each accessor. 
-  virtual void predict() const;      
+  virtual void predict() const;  
+ 
+  using MultiChunkEquation::calcEquations;
 };
 
 

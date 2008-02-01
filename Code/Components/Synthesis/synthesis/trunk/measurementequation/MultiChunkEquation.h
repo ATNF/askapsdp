@@ -19,7 +19,7 @@
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/IDataAccessor.h>
-#include <fitting/GenericNormalEquations.h>
+#include <fitting/INormalEquations.h>
 
 #include <measurementequation/IMeasurementEquation.h>
 
@@ -48,7 +48,7 @@ public:
   /// calls an abstract method declared in IMeasurementEquation for each 
   /// individual accessor (each iteration of the iterator)
   /// @param[in] ne Normal equations
-  virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
+  virtual void calcEquations(conrad::scimath::INormalEquations& ne) const;
 
   /// @brief Predict model visibility for the iterator.
   /// @details This version of the predict method iterates
@@ -56,6 +56,7 @@ public:
   /// in IMeasurementEquation for each accessor. 
   virtual void predict() const;
    
+  // make versions working with a single accessor visible here 
   using IMeasurementEquation::predict;
   using IMeasurementEquation::calcEquations;
   

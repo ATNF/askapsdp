@@ -15,6 +15,7 @@
 
 
 #include <measurementequation/GenericMultiChunkEquation.h>
+#include <conrad/ConradError.h>
 
 namespace conrad {
 
@@ -33,7 +34,32 @@ GenericMultiChunkEquation::GenericMultiChunkEquation(const IDataSharedIter& idi)
 /// @param[in] ne Normal equations
 void GenericMultiChunkEquation::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const
 {
-  MultiChunkEquation::calcGenericEquations(ne);
+  MultiChunkEquation::calcEquations(ne);
+}
+
+/// @brief Calculate the normal equation for one accessor (chunk).
+/// @details This calculation is done for a single chunk of
+/// data only (one iteration).It seems that all measurement
+/// equations should work with accessors rather than iterators
+/// (i.e. the iteration over chunks should be moved to the higher
+/// level, outside this class). This method overrides an abstract method
+/// of MultiChunkEquation. It calls calcGenericEquation  with ne converted
+/// to GenericNormalEquations
+/// @param[in] chunk a read-write accessor to work with
+/// @param[in] ne Normal equations
+void GenericMultiChunkEquation::calcEquations(const IConstDataAccessor &chunk,
+                   conrad::scimath::INormalEquations& ne) const
+{
+  try {
+     calcGenericEquations(chunk, 
+             dynamic_cast<conrad::scimath::GenericNormalEquations&>(ne));
+  }
+  catch (const std::bad_cast &bc) {
+     CONRADTHROW(ConradError, "An attempt to use incompatible type of "
+                 "the normal equations class with a derivative from "
+                 "GenericMultiChunkEquation. It accepts only GenericNormalEquations "
+                 "and derivatives. This exception probably indicates a logic error");    
+  }
 }
 
 /// @brief Predict model visibility for the iterator.
@@ -44,6 +70,7 @@ void GenericMultiChunkEquation::predict() const
 {
   MultiChunkEquation::predict();
 }
+
 
 } // namespace synthesis
 

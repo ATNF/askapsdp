@@ -308,7 +308,7 @@ void ComponentEquation::updateDesignMatrixAndResiduals(
 /// the variant of the method without parameters will be deprecated.
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
-void ComponentEquation::calcEquations(const IConstDataAccessor &chunk,
+void ComponentEquation::calcGenericEquations(const IConstDataAccessor &chunk,
                    conrad::scimath::GenericNormalEquations& ne) const
 {
   const std::vector<IParameterizedComponentPtr> &compList = 

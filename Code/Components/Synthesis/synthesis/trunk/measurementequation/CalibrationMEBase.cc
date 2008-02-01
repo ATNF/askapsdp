@@ -92,7 +92,7 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 /// the variant of the method without parameters will be deprecated.
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
-void CalibrationMEBase::calcEquations(const IConstDataAccessor &chunk,
+void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
                               conrad::scimath::GenericNormalEquations& ne) const
 {  
   MemBufferDataAccessor  buffChunk(chunk);
