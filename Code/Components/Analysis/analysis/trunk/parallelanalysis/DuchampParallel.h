@@ -22,70 +22,76 @@ namespace conrad
 {
   namespace analysis
   {
-    /// @brief Support for parallel algorithms 
+    /// @brief Support for parallel source finding 
     ///
-    /// @details Support for parallel applications in the area.
-    /// An application is derived from this abstract base. The model used is that the
-    /// application has many workers and one master, running in separate MPI processes
-    /// or in one single thread. The master is the master so the number of processes
-    /// is one more than the number of workers. 
+    /// @details This class allows the source finding to be carried out in a
+    /// parallel setting.
+    /// The model used is that the application has many workers and
+    /// one master, running in separate MPI processes or in one single
+    /// thread. The master is the master so the number of processes is one
+    /// more than the number of workers.
     ///
     /// If the number of nodes is 1 then everything occurs in the same process with
     /// no overall for transmission of model.
     ///
-    /// @ingroup parallel
+    /// @ingroup parallelanalysis
     class DuchampParallel : public conrad::cp::ConradParallel
     {
-  public:
+    public:
 
       /// @brief Constructor 
       /// @details The command line inputs are needed solely for MPI - currently no
       /// application specific information is passed on the command line.
       /// @param argc Number of command line inputs
       /// @param argv Command line inputs
+      /// @param parset The parameter set to read Duchamp and other parameters from.
       DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
 
-      // Read in the data from the image file (on the workers)
+      /// @brief Read in the data from the image file (on the workers)
       void readData();
       
-      // Condense the lists (on the master)
+      /// @brief Condense the lists (on the master)
       void condenseLists();
       
-      // Find the lists (on the workers)
+      /// @brief Find the lists (on the workers)
       void findLists();
 
-      // Sort out the fluxes for all detected objects (on the master)
+      /// @brief Sort out the fluxes for all detected objects (on the master)
       void calcFluxes();
 
-      // Print out the resulting source list (on the master)
+      /// @brief Print out the resulting source list (on the master)
       void printResults();
       
-      // Find the mean (on the workers)
+      /// @brief Find the mean (on the workers)
       void findMeans();
-      // Find the RMS (on the workers)
+      /// @brief Find the RMS (on the workers)
       void findRMSs();
-      // Combine and print the mean (on the master)
+      /// @brief Combine and print the mean (on the master)
       void combineMeans();
-      // Send the overall mean to the workers (on the master)
+      /// @brief Send the overall mean to the workers (on the master)
       void broadcastMean();
-      // Combine and print the RMS (on the master)
+      /// @brief Combine and print the RMS (on the master)
       void combineRMSs();
-      // Front end for all the above.
+      /// @brief Front end for the statistics functions
       void gatherStats();
 
-      // Send the desired threshold to each of the workers (on the master)
+      /// @brief Send the desired threshold to each of the workers (on the master)
       void broadcastThreshold();
-      // Read the threshold to be used (on the workers)
+      /// @brief Read the threshold to be used (on the workers)
       void receiveThreshold();
 
-  protected:
+    protected:
 
+      /// The name of the file containing the image data.
       std::string itsImage;
 
+      /// The Cube of data
       duchamp::Cube itsCube;
 
+      /// The list of detected voxels, with fluxes.
       std::vector<PixelInfo::Voxel> itsVoxelList;
 
+      /// The list of sections corresponding to all workers' images (only used by the master).
       std::vector<duchamp::Section> itsSectionList;
 
     };

@@ -18,10 +18,12 @@ namespace conrad
   namespace analysis
   {
 
-    // Find an rms for an array given a mean value
+    /// @brief Find an rms for an array given a mean value
+    /// @ingroup analysisutilities
     double findSpread(bool robust, double middle, int size, float *array);
 
-    // Read in image sections and return a duchamp::Section object;
+    /// @brief Read in image sections and return a vector of duchamp::Section objects;
+    /// @ingroup analysisutilities
     std::vector<duchamp::Section> readSectionInfo(std::string filename);
 
   }

@@ -1,0 +1,44 @@
+/// @defgroup parallelanalysis Parallel processing routines
+/// @defgroup analysisutilities Utility functions to support analysis package
+
+/// The package namespace
+namespace conrad::analysis {};
+
+/// @mainpage CONRAD analysis package
+///
+/// @section Introduction
+/// The analysis package supports analysis of processed radio synthesis 
+/// observations, including source detection and extraction, profile
+/// fitting, and writing to the database. The emphasis is on the
+/// processing of ASKAP and KAT scale data sets i.e. TBs per hour.
+///
+/// @section Assumptions and goals
+///
+/// As for the synthesis package, the large data volumes to be
+/// processed require that I/O of data be minimized. The analysis
+/// processes are assumed to be run immediately after the imaging
+/// process (synthesis imaging & cleaning).
+///
+/// We assume that the problem can be (and is) partitioned such that the
+/// image data always fits in memory during the processing.
+///
+/// The analysis package itself is designed to run in one process. 
+/// We envisage that OpenMP-type multi-threading may be supported by
+/// some classes in this package, to take account of the distributed
+/// data. Message passing parallel execution is supported in the 
+/// @ref parallelanalysis classes.
+///
+/// @section Dependencies
+/// The analysis package makes extensive use of the Duchamp 3D source
+/// finding package to do the source detection and extraction. This
+/// package currently only reads FITS data, so
+///
+/// Source fitting will be largely done by casa Gaussian Fitting
+/// routines. 
+///
+/// @section Subpackages
+///
+/// @li @ref parallelanalysis
+/// @li @ref analysisutilities
+///
+/// @copyright 2007 CONRAD, All Rights Reserved.

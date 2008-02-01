@@ -27,6 +27,7 @@ namespace conrad
     
     double findSpread(bool robust, double middle, int size, float *array)
     {
+      /// @details
       /// Finds the "spread" (ie. the rms or standard deviation) of an
       /// array of values using a given mean value. The option exists
       /// to use the standard deviation, or, by setting robust=true,
@@ -55,6 +56,27 @@ namespace conrad
 
     std::vector<duchamp::Section> readSectionInfo(std::string filename)
     {
+      /// @details
+      /// Record the section information that details what pixels are
+      /// covered by each of the distributed images/cubes. This is
+      /// designed for the case where the data to be searched is
+      /// spread over a number of data files (potentially on a number
+      /// of nodes).
+      ///
+      /// The information is read from a "sectionInfo" file that has the following format:
+      /// @li Number of axes
+      /// @li Dimension of axis 1
+      /// @li Dimension of axis 2
+      /// @li ... [repeat for all axes]
+      /// @li Pixel section for image 1, e.g. [a:b,c:d,e:f] or [*,*,a:b]
+      /// @li Pixel section for image 2
+      /// @li ... [repeat for all images -- typically one image per node]
+      /// 
+      /// The pixel sections are parsed by the duchamp::Section class.
+      ///
+      /// @param filename The name of the sectionInfo file.
+      /// @return A std::vector containing a duchamp::Section object for each image.
+
       std::ifstream fin(filename.c_str());
       int numAxes;
       fin >> numAxes;

@@ -62,13 +62,15 @@ namespace conrad
         const LOFAR::ACC::APS::ParameterSet& parset)
     : ConradParallel(argc, argv)
     {
+      /// @details The constructor reads parameters from the parameter
+      /// set parset. This set can include Duchamp parameters, as well
+      /// as particular cduchamp parameters such as masterImage and
+      /// sectionInfo.
+
 
       // First do the setup needed for both workers and master
       itsCube.pars().setVerbosity(false);
       itsCube.pars().setFlagLog(true);
-
-      bool flagRobust = parset.getBool("flagRobust",true);
-      itsCube.pars().setFlagRobustStats(flagRobust);
 
       string pixelcentre = parset.getString("pixelCentre", "centroid");
       itsCube.pars().setPixelCentre(pixelcentre);
@@ -85,6 +87,8 @@ namespace conrad
 	CONRADLOG_INFO_STR(logger, "Defined the cube.");
 	//CONRADLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
 
+	bool flagRobust = parset.getBool("flagRobust",true);
+	itsCube.pars().setFlagRobustStats(flagRobust);
 
 // 	ParameterSet subset(parset.makeSubset("param."));
 // 	std::string param; // use this for temporary storage of parameters.
@@ -96,6 +100,8 @@ namespace conrad
 	itsImage = substitute(parset.getString("masterImage"));
 	itsCube.pars().setImageFile(itsImage);
 	
+	itsCube.pars().setFlagRobustStats(false);
+
 	string sectionInfo = substitute(parset.getString("sectionInfo"));
 	itsSectionList = readSectionInfo(sectionInfo);
 	if(itsSectionList.size() != (itsNNode-1) )
@@ -123,6 +129,9 @@ namespace conrad
     // Read in the data from the image file (on the workers)
     void DuchampParallel::readData()
     {
+      /// @details Reads in the data using duchamp functionality and
+      /// the image name defined in the constructor.
+
       if(isWorker()) {
 
 	if(itsCube.getCube()==duchamp::FAILURE){
@@ -149,6 +158,13 @@ namespace conrad
     // Find the lists (on the workers)
     void DuchampParallel::findLists()
     {
+      ///@details Searches the image/cube for objects, using the
+      ///duchamp::Cube::CubicSearch function. The detected objects are
+      ///then sent to the master using LOFAR Blobs. This is done
+      ///pixel-by-pixel, sending the pixel flux as well.
+      ///
+      /// This is only done on the workers.
+
       if(isWorker()) {
         CONRADLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
 
@@ -192,6 +208,15 @@ namespace conrad
     // Condense the lists (on the master)
     void DuchampParallel::condenseLists() 
     {
+      /// @details Done only on the master. Receive the list of
+      /// detected pixels from the workers and store the objects in
+      /// itsCube's objectList. Also store the detected voxels in
+      /// itsVoxelList so that the fluxes are available for later use.
+      ///
+      /// Once all the objects are read, merge the object list to
+      /// combine adjacent/overlapping objects and remove unacceptable
+      /// ones.
+
       if(isMaster()) {
         // Get the lists from the workers here
         CONRADLOG_INFO_STR(logger,  "Retrieving lists from workers" );
@@ -250,6 +275,12 @@ namespace conrad
 
     void DuchampParallel::calcFluxes()
     {
+      /// @details Done on the master. Calculate the fluxes for each
+      /// of the objects by constructing voxelLists. The WCS
+      /// parameters for each object are also calculated here, so the
+      /// WCS header information stored by the master must be
+      /// correct. The objects are then ordered by velocity.
+
       if(isMaster()){
 	int numVox = itsVoxelList.size();
 	int numObj = itsCube.getNumObj();
@@ -290,6 +321,10 @@ namespace conrad
 
     void DuchampParallel::printResults()
     {
+      /// @details The final list of detected objects is written to
+      /// the terminal and to the results file in the standard Duchamp
+      /// manner.
+
       if(isMaster()) {
 	CONRADLOG_INFO_STR(logger, "Found " << itsCube.getNumObj() << " sources.");
 	
@@ -302,6 +337,11 @@ namespace conrad
     
     void DuchampParallel::gatherStats()
     {
+      /// @details A front-end function that calls all the statistics
+      /// functions. Net effect is to find the mean/median and
+      /// rms/MADFM for the entire dataset and store these values in
+      /// the master's itsCube statsContainer.
+
       readData();
       findMeans();
       combineMeans();
@@ -313,6 +353,10 @@ namespace conrad
 
     void DuchampParallel::findMeans()
     {
+      /// @details Find the mean or median (according to the
+      /// flagRobustStats parameter) of the worker's image/cube, then
+      /// send to the master via LOFAR Blobs.
+
       if(isWorker()) {
 	CONRADLOG_INFO_STR(logger, "Finding mean: worker " << itsRank);
 	int size = itsCube.getSize();
@@ -342,6 +386,14 @@ namespace conrad
 
     void DuchampParallel::findRMSs() 
     {
+      /// @details Find the rms or the median absolute deviation from
+      /// the median (MADFM) (dictated by the flagRobustStats
+      /// parameter) of the worker's image/cube, then send to the
+      /// master via LOFAR Blobs. To calculate the rms/MADFM, the mean
+      /// of the full dataset must be read from the master (again
+      /// passed via LOFAR Blobs). The calculation uses the
+      /// findSpread() function.
+
       if(isWorker()) {
 	CONRADLOG_INFO_STR(logger, "About to calculate rms on worker " << itsRank);
 
@@ -384,6 +436,15 @@ namespace conrad
 
     void DuchampParallel::combineMeans()
     {
+      /// @details The master reads the mean/median values from each
+      /// of the workers, and combines them to form the mean/median of
+      /// the full dataset. Note that if the median of the workers
+      /// data has been provided, the values are treated as estimates
+      /// of the mean, and are combined as if they were means (ie. the
+      /// overall value is the weighted (by size) average of the
+      /// means/medians of the individual images). The value is stored
+      /// in the StatsContainer in itsCube.
+
       if(isMaster()&&isParallel()) {
 	// get the means from the workers
         CONRADLOG_INFO_STR(logger,  "Receiving Means and combining" );
@@ -422,6 +483,9 @@ namespace conrad
 	
     void DuchampParallel::broadcastMean() 
     {
+      /// @details The mean/median value of the full dataset is sent
+      /// via LOFAR Blobs to the workers.
+
       if(isMaster()&&isParallel()) {
 	// now send the overall mean to the workers so they can calculate the rms
 	double av = itsCube.stats().getMean();
@@ -442,6 +506,13 @@ namespace conrad
 
     void DuchampParallel::combineRMSs()
     {
+      /// @details The master reads the rms/MADFM values from each of
+      /// the workers, and combines them to produce an estimate of the
+      /// rms for the full cube. Again, if MADFM values have been
+      /// calculated on the workers, they are treated as estimates of
+      /// the rms and are combined as if they are rms values. The
+      /// overall value is stored in the StatsContainer in itsCube.
+
       if(isMaster()&&isParallel()) {
 	// get the means from the workers
         CONRADLOG_INFO_STR(logger,  "Receiving RMS values and combining" );
@@ -478,6 +549,11 @@ namespace conrad
 
     void DuchampParallel::broadcastThreshold() 
     {
+      /// @details The master values of the mean and rms are used,
+      /// along with the snrCut parameter to generate a detection
+      /// threshold. This threshold value is then sent to the workers
+      /// via LOFAR Blobs.
+
       if(isMaster()&&isParallel()) {
 	// now send the overall mean to the workers so they can calculate the rms
 	double av = itsCube.stats().getMean();
@@ -502,6 +578,8 @@ namespace conrad
 
     void DuchampParallel::receiveThreshold()
     {
+      /// @details The workers read the detection threshold sent via LOFAR Blobs from the master.
+      
      if(isWorker()) {
 	CONRADLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank);
 
