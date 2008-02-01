@@ -242,3 +242,4 @@ void ComplexDiff::conjugate()
   unaryOperationInSitu(ComplexDiff::conjugationInSitu);
   itsValue = conj(itsValue);
 }
+
