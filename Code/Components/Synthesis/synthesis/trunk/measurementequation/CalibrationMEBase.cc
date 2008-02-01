@@ -53,7 +53,7 @@ using namespace conrad::synthesis;
 CalibrationMEBase::CalibrationMEBase(const conrad::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
             MultiChunkEquation(idi), conrad::scimath::GenericEquation(ip),
-            itsPerfectVisME(ime) {}
+            GenericMultiChunkEquation(idi), itsPerfectVisME(ime) {}
   
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This version of the predict method works with
@@ -114,18 +114,5 @@ void CalibrationMEBase::calcEquations(const IConstDataAccessor &chunk,
        ne.add(designmatrix);
   }
 }                                   
-
-
-/// @brief Calculate the normal equations for the iterator
-/// @details This version iterates through all chunks of data and
-/// calls an abstract method declared in IMeasurementEquation for each 
-/// individual accessor (each iteration of the iterator)
-/// @note there is probably a problem with constness here. Hope this method is
-/// only temporary here.
-/// @param[in] ne Normal equations
-void CalibrationMEBase::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const
-{
-  MultiChunkEquation::calcGenericEquations(ne);
-}
 
 

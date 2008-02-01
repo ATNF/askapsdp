@@ -76,7 +76,7 @@ namespace conrad
     {
     }
 
-    void PolynomialEquation::predict()
+    void PolynomialEquation::predict() const
     {
     	itsModel.set(0.0);
 

@@ -56,7 +56,7 @@ namespace conrad
 
 
 /// Predict model visibility
-        virtual void predict();
+        virtual void predict() const;
 
 /// Calculate the normal equations
 /// @param ne Normal equations

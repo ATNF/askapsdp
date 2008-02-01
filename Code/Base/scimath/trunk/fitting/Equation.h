@@ -111,11 +111,11 @@ namespace conrad
         virtual void setParameters(const Params& ip);
 
 /// Predict the data from the parameters.
-        virtual void predict() {} ;
+        virtual void predict() const = 0;
 
 /// Calculate the normal equations for the given data and parameters
 /// @param ne Normal equations to be filled
-        virtual void calcEquations(INormalEquations& ne) {};
+        virtual void calcEquations(INormalEquations& ne) const = 0;
 
 /// Shared pointer definition
         typedef boost::shared_ptr<Equation> ShPtr;

@@ -39,18 +39,18 @@ namespace conrad
       return ip;
     }
 
-    void CompositeEquation::predict()
+    void CompositeEquation::predict() const
     {
-      for (std::list<Equation::ShPtr>::iterator it=itsList.begin();
+      for (std::list<Equation::ShPtr>::const_iterator it=itsList.begin();
         it!=itsList.end();it++)
       {
         (*it)->predict();
       }
     }
 
-    void CompositeEquation::calcEquations(INormalEquations& ne)
+    void CompositeEquation::calcEquations(INormalEquations& ne) const
     {
-      for (std::list<Equation::ShPtr>::iterator it=itsList.begin();
+      for (std::list<Equation::ShPtr>::const_iterator it=itsList.begin();
         it!=itsList.end();it++)
       {
         (*it)->calcEquations(ne);

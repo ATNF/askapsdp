@@ -40,11 +40,11 @@ namespace conrad
         static Params defaultParameters();
 
 /// Predict the data from the parameters. This changes the internal state.
-        virtual void predict();
+        virtual void predict() const;
 
 /// Calculate the normal equations for the given data and parameters
 /// @param ne Normal equations to be filled
-        virtual void calcEquations(INormalEquations& ne);
+        virtual void calcEquations(INormalEquations& ne) const;
 
 /// Clone this
         virtual CompositeEquation::ShPtr clone() const;

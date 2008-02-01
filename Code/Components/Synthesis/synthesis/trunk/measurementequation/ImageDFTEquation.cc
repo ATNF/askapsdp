@@ -80,10 +80,10 @@ namespace conrad
       return ImageDFTEquation::ShPtr(new ImageDFTEquation(*this));
     }
 
-    void ImageDFTEquation::predict()
+    void ImageDFTEquation::predict() const
     {
       vector<string> completions(parameters().completions("image.i"));
-      vector<string>::iterator it;
+      vector<string>::const_iterator it;
 
       if(completions.size()==0) {
         CONRADLOG_WARN_STR(logger, "No parameters appropriate for ImageFFTEquation");

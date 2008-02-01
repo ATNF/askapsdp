@@ -36,7 +36,7 @@ GenericEquation::GenericEquation(const Params &ip) : Equation(ip) {}
 /// calcGenericEquations if the type is appropriate. Override that method 
 /// in the derived classes.
 /// @param[in] ne normal equations to update
-void GenericEquation::calcEquations(INormalEquations &ne) 
+void GenericEquation::calcEquations(INormalEquations &ne) const
 {
   try {
      calcGenericEquations(dynamic_cast<GenericNormalEquations&>(ne));

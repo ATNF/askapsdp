@@ -62,7 +62,7 @@ namespace conrad
         virtual ~PolynomialEquation();
 
 /// Predict the model data
-        virtual void predict();
+        virtual void predict() const;
 
 /// Calculate the normal equations
 /// @param ne Normal equations

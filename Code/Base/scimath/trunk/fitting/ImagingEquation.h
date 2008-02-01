@@ -63,7 +63,7 @@ struct ImagingEquation : public Equation {
     /// calcImagingEquations, if the type is appropriate. Override that method 
     /// in derived classes.
     /// @param[in] ne normal equations to update
-    virtual void calcEquations(INormalEquations &ne);
+    virtual void calcEquations(INormalEquations &ne) const;
 };
 
 } // namespace scimath

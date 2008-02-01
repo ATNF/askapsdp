@@ -20,7 +20,7 @@
 #include <fitting/Params.h>
 #include <fitting/GenericNormalEquations.h>
 
-#include <measurementequation/MultiChunkEquation.h>
+#include <measurementequation/GenericMultiChunkEquation.h>
 #include <dataaccess/IDataAccessor.h>
 #include <fitting/ComplexDiffMatrix.h>
 #include <fitting/ComplexDiff.h>
@@ -40,8 +40,7 @@ namespace synthesis {
 /// See CalibrationME template for more details. This class contains all
 /// functionality, which doesn't depend on the template parameter.
 /// @ingroup measurementequation
-class CalibrationMEBase : virtual public MultiChunkEquation,
-                      virtual public conrad::scimath::GenericEquation
+class CalibrationMEBase : public GenericMultiChunkEquation
 {
 public:
 
@@ -82,17 +81,7 @@ public:
   using MultiChunkEquation::calcEquations;
   using conrad::scimath::GenericEquation::calcEquations;
        
-  
-  /// @brief Calculate the normal equations for the iterator
-  /// @details This version iterates through all chunks of data and
-  /// calls an abstract method declared in IMeasurementEquation for each 
-  /// individual accessor (each iteration of the iterator)
-  /// @note I hope this method is temporary, untill a proper constness of the
-  /// method is restored.
-  /// @param[in] ne Normal equations
-  virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
-  
-
+ 
 protected:  
   /// @brief a helper method to form a ComplexDiffMatrix for a given row
   /// @details This is the only method which depends on the template type.

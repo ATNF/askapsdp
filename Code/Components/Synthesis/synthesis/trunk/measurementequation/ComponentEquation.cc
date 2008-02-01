@@ -32,14 +32,15 @@ namespace conrad
   {
 
     ComponentEquation::ComponentEquation(const conrad::scimath::Params& ip,
-          const IDataSharedIter& idi) :   MultiChunkEquation(idi),  
-           conrad::scimath::GenericEquation(ip), itsAllComponentsUnpolarised(false)
+          const IDataSharedIter& idi) :  MultiChunkEquation(idi),  
+           conrad::scimath::GenericEquation(ip), GenericMultiChunkEquation(idi),
+           itsAllComponentsUnpolarised(false)
     {
       init();
     };
 
     ComponentEquation::ComponentEquation(const IDataSharedIter& idi) :
-           MultiChunkEquation(idi),  
+           MultiChunkEquation(idi), GenericMultiChunkEquation(idi),
            itsAllComponentsUnpolarised(false) 
     {
       setParameters(defaultParameters());
@@ -360,18 +361,6 @@ scimath::Params::ShPtr& ComponentEquation::rwParameters() throw()
 { 
   itsComponents.invalidate();
   return scimath::Equation::rwParameters();
-}
-
-/// @brief Calculate the normal equations for the iterator
-/// @details This version iterates through all chunks of data and
-/// calls an abstract method declared in IMeasurementEquation for each 
-/// individual accessor (each iteration of the iterator)
-/// @note there is probably a problem with constness here. Hope this method is
-/// only temporary here.
-/// @param[in] ne Normal equations
-void ComponentEquation::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const
-{
-  MultiChunkEquation::calcGenericEquations(ne);
 }
 
 /// Clone this into a shared pointer

@@ -38,7 +38,7 @@ ImagingEquation::ImagingEquation(const Params &ip) : Equation(ip) {}
 /// calcImagingEquations, if the type is appropriate. Override that method 
 /// in derived classes.
 /// @param[in] ne normal equations to update
-void ImagingEquation::calcEquations(INormalEquations &ne) 
+void ImagingEquation::calcEquations(INormalEquations &ne) const
 {
   try {
      calcImagingEquations(dynamic_cast<ImagingNormalEquations&>(ne));

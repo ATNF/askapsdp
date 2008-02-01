@@ -107,7 +107,7 @@ namespace conrad
     }
     
 
-    void ImageFFTEquation::predict()
+    void ImageFFTEquation::predict() const
     {
       const vector<string> completions(parameters().completions("image.i"));
 

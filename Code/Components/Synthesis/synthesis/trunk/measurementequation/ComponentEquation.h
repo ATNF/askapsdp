@@ -11,7 +11,6 @@
 #define SYNCOMPONENTEQUATION_H_
 
 // own include
-#include <fitting/GenericEquation.h>
 #include <fitting/Params.h>
 #include <fitting/DesignMatrix.h>
 
@@ -20,7 +19,7 @@
 
 #include <measurementequation/IParameterizedComponent.h>
 #include <measurementequation/IUnpolarizedComponent.h>
-#include <measurementequation/MultiChunkEquation.h>
+#include <measurementequation/GenericMultiChunkEquation.h>
 
 
 // casa includes
@@ -44,8 +43,7 @@ namespace conrad
     ///
     /// @ingroup measurementequation
     
-    class ComponentEquation : virtual public MultiChunkEquation,
-                              virtual public conrad::scimath::GenericEquation
+    class ComponentEquation : public GenericMultiChunkEquation
     {
       public:
 
@@ -88,15 +86,6 @@ namespace conrad
         using MultiChunkEquation::predict;
         using conrad::scimath::GenericEquation::calcEquations;
        
-        /// @brief Calculate the normal equations for the iterator
-        /// @details This version iterates through all chunks of data and
-        /// calls an abstract method declared in IMeasurementEquation for each 
-        /// individual accessor (each iteration of the iterator)
-        /// @note I hope this method is temporary, untill a proper constness of the
-        /// method is restored.
-        /// @param[in] ne Normal equations
-        virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
-        
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy
         virtual ComponentEquation::ShPtr clone() const;
