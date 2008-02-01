@@ -4,9 +4,9 @@
 /// @details Because we deal here with double inheritance, we need to overload
 /// explicitly predict and calcGenericEquation methods, otherwise the methods
 /// in the scimath::Equation tree are left pure abstract. Theoretically, we can
-/// get rid of the double inheritance here and the need of this method would 
+/// get rid of the double inheritance here and the need of this class would 
 /// disappear. However, MultiChunkEquation is envisaged to be a temporary
-/// method before we start to work with accessors only. Therefore, the inheritance
+/// class before we start to work with accessors only. Therefore, the inheritance
 /// is left double to highlight the future interface 
 /// (derived from IMeasurementEquation).
 ///
@@ -31,9 +31,9 @@ namespace synthesis {
 /// @details Because we deal here with double inheritance, we need to overload
 /// explicitly predict and calcGenericEquation methods, otherwise the methods
 /// in the scimath::Equation tree are left pure abstract. Theoretically, we can
-/// get rid of the double inheritance here and the need of this method would 
+/// get rid of the double inheritance here and the need of this class would 
 /// disappear. However, MultiChunkEquation is envisaged to be a temporary
-/// method before we start to work with accessors only. Therefore, the inheritance
+/// class before we start to work with accessors only. Therefore, the inheritance
 /// is left double to highlight the future interface 
 /// (derived from IMeasurementEquation).
 /// @ingroup measurementequation

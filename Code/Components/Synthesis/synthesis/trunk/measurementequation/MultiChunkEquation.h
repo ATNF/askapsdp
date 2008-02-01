@@ -46,7 +46,7 @@ public:
   /// @brief Calculate the normal equations for the iterator
   /// @details This version iterates through all chunks of data and
   /// calls an abstract method declared in IMeasurementEquation for each 
-  //// individual accessor (each iteration of the iterator)
+  /// individual accessor (each iteration of the iterator)
   /// @param[in] ne Normal equations
   virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
 

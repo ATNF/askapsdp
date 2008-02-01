@@ -27,9 +27,6 @@ namespace synthesis {
 /// measurement equaiton used (i.e. ComponentEquation, ImageFFTEquation, etc)
 /// we need a common ancestor of the measurement equation classes.
 /// conrad::scimath::Equation is not specialised enough for this purpose.
-/// @note Conceptually, it is probably correct to make predict and calcEquations
-/// 'const' methods. However, the rest of the code has not written this way.
-/// I still hope to retrofit the correct constness later.  
 /// @ingroup measurementequation
 struct IMeasurementEquation
 {
