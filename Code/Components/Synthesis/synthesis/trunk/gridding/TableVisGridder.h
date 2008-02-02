@@ -140,12 +140,18 @@ namespace conrad
       /// Is the model empty? Used to shortcut degridding
       bool itsModelIsEmpty;
 
-      /// Number of samples gridded or degridded
-      double itsSamplesGridded, itsSamplesDegridded;
-      /// Number of grid cells gridded or degridded
-      double itsNumberGridded, itsNumberDegridded;
-      /// Time for degridding or degridding
-      double itsTimeGridded, itsTimeDegridded;
+      /// Number of samples gridded
+      double itsSamplesGridded;
+      /// Number of samples degridded
+      double itsSamplesDegridded;
+      /// Number of grid cells gridded
+      double itsNumberGridded;
+      /// Number of grid cells degridded
+      double itsNumberDegridded;
+      /// Time for gridding
+      double itsTimeGridded;
+      /// Time for degridding
+      double itsTimeDegridded;
 
       /// The grid is stored as a cube as well so we can index into that as well.
       std::vector<casa::Array<casa::Complex> > itsGrid;

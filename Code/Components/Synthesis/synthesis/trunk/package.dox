@@ -69,15 +69,27 @@ namespace conrad::synthesis {};
 ///
 /// @subsection synth_gridding 3. Gridding
 /// @li The subpackage contains classes performing gridding and degridding operations using various kernels
-/// @li It is beleived to be largely complete
+/// @li It currently works only for MFS and polarization I. The addition of both should be straightforward.
+/// @li The class GridKernel is a bare bones gridder/degridder. This should be adapted for various
+/// architectures such as Cell or multicore.
+/// @li There is some duplicated code in the VisGridder classes, especially in dealing with the 
+/// calculation of convolution functions for W projection and antenna primary beam. Fairly straightforward
+/// refactoring will be helpful.
+/// @li Different primary beams per feed are yet to be included.
 /// 
 /// @subsection synth_parallel 4. Parallel application support
 /// @li The subpackage is intended to parallelise measurement equation
+/// @li It uses a simpler version of Ger's Master/Worker framework. It is largely complete and
+/// has not been changed much recently. 
 ///
 /// @subsection synth_fft 5. FFT interfaces
-///  
+/// @li This is an interface to the FFTW classes. Currently these are bypassed and the 
+/// casacore classes are used instead. We should switch these on soon since FFTW will be
+/// substantially faster.
 ///
 /// @subsection synth_simulate 6. Data simulation
+/// @li The Simulator class is a port of the CASA simulator code to conrad. It has similar but not
+/// identical functionality. It is used by the csimulator app.
 ///
 /// @section synth_subpackages Subpackages
 ///

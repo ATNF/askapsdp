@@ -34,7 +34,7 @@ struct IdentityComponent : public MEComponent {
    
    /// @brief constructor, parameters are actually ignored
    /// @param[in] par const reference to parameters
-   inline explicit IdentityComponent(const scimath::Params &)  {}
+   inline explicit IdentityComponent(const scimath::Params & par)  {}
    
    /// @brief main method returning Mueller matrix and derivatives
    /// @details This method has to be overloaded (in the template sense) for

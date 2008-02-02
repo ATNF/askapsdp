@@ -55,7 +55,7 @@ namespace conrad
 
       /// Offset into convolution function
       /// @param row Row number
-      /// @param row Polarisation
+      /// @param pol Polarisation
       /// @param chan Channel number
       virtual int cIndex(int row, int pol, int chan);
 
