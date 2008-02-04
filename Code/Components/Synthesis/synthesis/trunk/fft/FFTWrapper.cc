@@ -8,6 +8,7 @@
 #include <fft/FFTWrapper.h>
 
 #include <conrad/ConradTypes.h>
+#include <conrad/ConradError.h>
 #include <complex>
 #ifdef CONRAD_USE_FFTW
 #include <fftw3.h>
@@ -91,12 +92,14 @@ namespace conrad
             while (!it.pastEnd())
               {
                 casa::Matrix<casa::Complex> mat(it.array());
-                for (uint iy=0; iy<arr.shape()(1); iy++)
+                CONRADDEBUGASSERT(arr.shape()(1)>=0);
+                for (uint iy=0; iy<uint(arr.shape()(1)); iy++)
                   {
                     casa::Vector<casa::Complex> vec(mat.column(iy));
                     fft(vec, forward);
                   }
-                for (uint ix=0; ix<arr.shape()(0); ix++)
+                CONRADDEBUGASSERT(arr.shape()(0)>=0);  
+                for (uint ix=0; ix<uint(arr.shape()(0)); ix++)
                   {
                     casa::Vector<casa::Complex> vec(mat.row(ix));
                     fft(vec, forward);
@@ -111,12 +114,14 @@ namespace conrad
             while (!it.pastEnd())
               {
                 casa::Matrix<casa::DComplex> mat(it.array());
-                for (uint iy=0; iy<arr.shape()(1); iy++)
+                CONRADDEBUGASSERT(arr.shape()(1));
+                for (uint iy=0; iy<uint(arr.shape()(1)); iy++)
                   {
                     casa::Vector<casa::DComplex> vec(mat.column(iy));
                     fft(vec, forward);
                   }
-                for (uint ix=0; ix<arr.shape()(0); ix++)
+                CONRADDEBUGASSERT(arr.shape()(0));
+                for (uint ix=0; ix<uint(arr.shape()(0)); ix++)
                   {
                     casa::Vector<casa::DComplex> vec(mat.row(ix));
                     fft(vec, forward);
