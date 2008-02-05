@@ -90,9 +90,10 @@ namespace conrad
 	bool flagRobust = parset.getBool("flagRobust",true);
 	itsCube.pars().setFlagRobustStats(flagRobust);
 
-// 	ParameterSet subset(parset.makeSubset("param."));
-// 	std::string param; // use this for temporary storage of parameters.
-// 	param = substitute(parset.getString("");
+	// TODO:
+	// 	ParameterSet subset(parset.makeSubset("param."));
+	// 	std::string param; // use this for temporary storage of parameters.
+	// 	param = substitute(parset.getString("");
 	
 
       }
@@ -102,9 +103,14 @@ namespace conrad
 	
 	itsCube.pars().setFlagRobustStats(false);
 
+	/// The sectionInfo, read by the master, is interpreted by the
+	/// function readSectionInfo(). See its description for a
+	/// description of the format of the sectionInfo file, and how
+	/// the separated data is interpreted.
 	string sectionInfo = substitute(parset.getString("sectionInfo"));
 	itsSectionList = readSectionInfo(sectionInfo);
-	if(itsSectionList.size() != (itsNNode-1) )
+	CONRADLOG_INFO_STR(logger, "Read in the sectionInfo.");
+	if(int(itsSectionList.size()) != (itsNNode-1) )
 	  CONRADLOG_ERROR_STR(logger, "Number of sections provided by " 
 			      << sectionInfo 
 			      << " does not match the number of images being processed.");
@@ -183,15 +189,14 @@ namespace conrad
 	  out << itsRank << num;
 	  for(int i=0;i<itsCube.getNumObj();i++){
 	    std::vector<PixelInfo::Voxel> voxlist = itsCube.getObject(i).getPixelSet();
+	    std::vector<PixelInfo::Voxel>::iterator vox;
 	    out << int(voxlist.size());
-	    for(int p=0;p<voxlist.size();p++){
-	      int *pix=new int[3];  // should be long but problem with Blobs
-	      pix[0] = voxlist[p].getX(); 
-	      pix[1] = voxlist[p].getY(); 
-	      pix[2] = voxlist[p].getZ();
- 	      out << pix[0] << pix[1] << pix[2] 
-		  << itsCube.getPixValue(pix[0],pix[1],pix[2]);
-	      delete [] pix;
+	    for(vox=voxlist.begin();vox<voxlist.end();vox++){
+	      int x,y,z;  // should be long but problem with Blobs
+	      x = vox->getX(); 
+	      y = vox->getY(); 
+	      z = vox->getZ();
+ 	      out << x << y << z << itsCube.getPixValue(x,y,z);
 	    }
 	  }
 	  out.putEnd();
@@ -221,53 +226,48 @@ namespace conrad
         // Get the lists from the workers here
         CONRADLOG_INFO_STR(logger,  "Retrieving lists from workers" );
 
- 	LOFAR::BlobString bs;
-        int rank, numObj;
-	//	std::vector<duchamp::Detection> *workerList;
-	int ct=0,numbad=0;
-        for (int i=1; i<itsNNode; i++)
-        {
-          itsConnectionSet->read(i-1, bs);
-          LOFAR::BlobIBufString bib(bs);
-          LOFAR::BlobIStream in(bib);
-          int version=in.getStart("detW2M");
-          CONRADASSERT(version==1);
-	  in >> rank >> numObj;
-	  for(int obj=0;obj<numObj;obj++){
-	    duchamp::Detection *object = new duchamp::Detection;
-	    int objsize;
-	    in >> objsize;
-	    for(int p=0;p<objsize;p++){
-	      int *pix=new int[3]; // should be long but problem with Blobs
-	      float flux;
- 	      in >> pix[0] >> pix[1] >> pix[2] >> flux;
-	      for(int j=0;j<3;j++){
-		pix[j] += itsSectionList[i-1].getStart(j);
+	if(isParallel()) {
+	  LOFAR::BlobString bs;
+	  int rank, numObj;
+	  int ct=0;
+	  for (int i=1; i<itsNNode; i++)
+	    {
+	      itsConnectionSet->read(i-1, bs);
+	      LOFAR::BlobIBufString bib(bs);
+	      LOFAR::BlobIStream in(bib);
+	      int version=in.getStart("detW2M");
+	      CONRADASSERT(version==1);
+	      in >> rank >> numObj;
+	      for(int obj=0;obj<numObj;obj++){
+		duchamp::Detection *object = new duchamp::Detection;
+		int objsize;
+		in >> objsize;
+		for(int p=0;p<objsize;p++){
+		  int *pix=new int[3]; // should be long but problem with Blobs & longs
+		  float flux;
+		  in >> pix[0] >> pix[1] >> pix[2] >> flux;
+		  for(int j=0;j<3;j++){
+		    pix[j] += itsSectionList[i-1].getStart(j);
+		  }
+		  object->addPixel(pix[0],pix[1],pix[2]);
+		  PixelInfo::Voxel vox(pix[0],pix[1],pix[2],flux);
+		  itsVoxelList.push_back(vox);
+		  delete [] pix;
+		  ct++;
+		}
+		itsCube.addObject(*object);
+		delete object;
 	      }
-	      object->addPixel(pix[0],pix[1],pix[2]);
-	      PixelInfo::Voxel vox(pix[0],pix[1],pix[2],flux);
-	      itsVoxelList.push_back(vox);
-	      delete [] pix;
-	      ct++;
+	      in.getEnd();
+	      CONRADLOG_INFO_STR(logger, "Received list from worker "<< rank);
+	      CONRADLOG_INFO_STR(logger, "Now have " << itsCube.getNumObj() << " objects");
 	    }
-	    itsCube.addObject(*object);
-	    delete object;
-	  }
-          in.getEnd();
-          CONRADLOG_INFO_STR(logger, "Received list from worker "<< rank);
-	  CONRADLOG_INFO_STR(logger, "Now have " << itsCube.getNumObj() << " objects");
-        }
-
+	}
 	// Now process the lists
-	itsCube.logDetectionList();
         CONRADLOG_INFO_STR(logger,  "Condensing lists..." );
 	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
         CONRADLOG_INFO_STR(logger,  "Condensing lists done" );
 
-	std::ofstream logfile("/Users/whi550/pixels1.dat");
-	logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
-	logfile << itsCube;
-	logfile.close();
      }
       else {
       }
@@ -282,41 +282,53 @@ namespace conrad
       /// correct. The objects are then ordered by velocity.
 
       if(isMaster()){
-	int numVox = itsVoxelList.size();
-	int numObj = itsCube.getNumObj();
-	std::vector<PixelInfo::Voxel> templist[numObj];
 
-	for(int i=0;i<itsCube.getNumObj();i++){ // for each object
+	if(isParallel()) {
+	  int numVox = itsVoxelList.size();
+	  int numObj = itsCube.getNumObj();
+	  std::vector<PixelInfo::Voxel> templist[numObj];
+
+	  for(int i=0;i<itsCube.getNumObj();i++){ // for each object
 	  
-	  std::vector<PixelInfo::Voxel> 
-	    objVoxList=itsCube.getObject(i).getPixelSet();
+	    std::vector<PixelInfo::Voxel> 
+	      objVoxList=itsCube.getObject(i).getPixelSet();
+	    std::vector<PixelInfo::Voxel>::iterator vox;
+	    // get the fluxes of each voxel
+	    for(vox=objVoxList.begin();vox<objVoxList.end();vox++){
+	      int ct=0;
+	      while(ct<numVox && !vox->match(itsVoxelList[ct])){
+		ct++;
+	      }
+	      if(numVox!=0 && ct==numVox){ // there has been no match -- problem!
+		CONRADLOG_ERROR(logger, "Found a voxel in the object lists that doesn't appear in the base list.");
+	      }
+	      else vox->setF( itsVoxelList[ct].getF() );
+	    }
 
-	  // get the fluxes of each voxel
-	  for(int v=0;v<objVoxList.size();v++){
-	    int ct=0;
-	    while(ct<numVox && !objVoxList[v].match(itsVoxelList[ct])){
-	      ct++;
-	    }
-	    if(ct==numVox){ // there has been no match -- problem!
-	      CONRADLOG_ERROR(logger, "Found a voxel in the object lists that doesn't appear in the base list: ");// << objVoxList[v]);
-	    }
-	    else objVoxList[v].setF( itsVoxelList[ct].getF() );
+	    templist[i] = objVoxList;
+
+	  }
+	  std::vector< std::vector<PixelInfo::Voxel> > 
+	    bigVoxSet (templist, templist + numObj);
+
+	  itsCube.prepareOutputFile();
+	  if(itsCube.getNumObj()>0){
+	    itsCube.calcObjectWCSparams(bigVoxSet);
+	    itsCube.setObjectFlags();
+	    itsCube.sortDetections();
 	  }
 
-	  templist[i] = objVoxList;
-
 	}
-	std::vector< std::vector<PixelInfo::Voxel> > 
-	  bigVoxSet (templist, templist + numObj);
-
-	itsCube.prepareOutputFile();
-	if(itsCube.getNumObj()>0){
-	  itsCube.calcObjectWCSparams(bigVoxSet);
-	  itsCube.setObjectFlags();
-	  itsCube.sortDetections();
+	else {
+	  
+	  itsCube.prepareOutputFile();
+	  if(itsCube.getNumObj()>0){
+	    itsCube.calcObjectWCSparams();
+	    itsCube.setObjectFlags();
+	    itsCube.sortDetections();
+	  }
 	}
-
-      }
+      }      
     }
 
     void DuchampParallel::printResults()
@@ -378,6 +390,12 @@ namespace conrad
 	  itsConnectionSet->write(0,bs);
 	  CONRADLOG_INFO_STR(logger, "Sent mean to the master from worker " << itsRank );
 	}
+	else {
+	  // serial case
+	  if(itsCube.pars().getFlagRobustStats()) itsCube.stats().setMedian(mean);
+	  else itsCube.stats().setMean(mean);
+	  itsCube.stats().setRobust(itsCube.pars().getFlagRobustStats());
+	}
 
       }
       else {
@@ -409,6 +427,9 @@ namespace conrad
 	  in >> mean;
 	  in.getEnd();
 	}
+	else{
+	  mean = itsCube.stats().getMiddle();
+	}
 	// use it to calculate the rms for this section
  	int size = itsCube.getSize();
  	float *array = itsCube.getArray();
@@ -426,6 +447,11 @@ namespace conrad
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs2);
 	  CONRADLOG_INFO_STR(logger, "Sent local rms to the master from worker " << itsRank );
+	}
+	else{
+	  //serial case
+	  if(itsCube.pars().getFlagRobustStats()) itsCube.stats().setMadfm(rms);
+	  else itsCube.stats().setStddev(rms);
 	}
 
       }
@@ -581,7 +607,6 @@ namespace conrad
       /// @details The workers read the detection threshold sent via LOFAR Blobs from the master.
       
      if(isWorker()) {
-	CONRADLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank);
 
 	double threshold;
 	if(isParallel()) {
@@ -594,6 +619,12 @@ namespace conrad
 	  in >> threshold;
 	  in.getEnd();
 	}
+	else{
+	  threshold = itsCube.stats().getMiddle() + itsCube.stats().getSpread()*itsCube.pars().getCut();
+	}
+
+	CONRADLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank << " to be " << threshold);
+
 	itsCube.pars().setThreshold(threshold);
      }
     }
