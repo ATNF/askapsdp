@@ -93,7 +93,7 @@ shmap = { "bash" : { "suffix": "sh",
 
 shell =  shmap[opts.shell]
 
-filename = "initaskap.%s" % shell["suffix"]
+filename = "initconrad.%s" % shell["suffix"]
 if os.path.exists(filename):
     print "%s has already been generated. Remove it first to force regeneration." % filename
     sys.exit(0)
@@ -106,4 +106,4 @@ if not os.path.exists(pylibdir):
 if not os.path.exists("bin"):
     os.mkdir("bin")
 
-print "Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
+print "Created initconrad.%s, please run '%s initconrad.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
