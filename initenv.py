@@ -44,10 +44,10 @@ PATH=`echo $PATH | sed "s#:*$CONRAD_PROJECT_ROOT/bin:*##"`
 PATH="${CONRAD_PROJECT_ROOT}/bin:${PATH}"
 export PATH
 
-psset=`echo $PS1 |grep conrad`
+psset=`echo $PS1 |grep askap`
 if [ "$psset" == "" ]
 then
-   export PS1="(conrad)${PS1}"
+   export PS1="(askap)${PS1}"
 fi
 
 MANPATH=`echo $MANPATH | sed "s#:*$CONRAD_PROJECT_ROOT/man:*##"`
@@ -93,7 +93,7 @@ shmap = { "bash" : { "suffix": "sh",
 
 shell =  shmap[opts.shell]
 
-filename = "initconrad.%s" % shell["suffix"]
+filename = "initaskap.%s" % shell["suffix"]
 if os.path.exists(filename):
     print "%s has already been generated. Remove it first to force regeneration." % filename
     sys.exit(0)
@@ -106,4 +106,4 @@ if not os.path.exists(pylibdir):
 if not os.path.exists("bin"):
     os.mkdir("bin")
 
-print "Created initconrad.%s, please run '%s initconrad.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
+print "Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
