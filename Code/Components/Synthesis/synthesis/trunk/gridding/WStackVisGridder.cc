@@ -29,7 +29,10 @@ namespace conrad
       CONRADCHECK(nwplanes%2==1, "Number of w planes must be odd");
 
       itsNWPlanes=nwplanes;
-      itsWScale=wmax/double((nwplanes-1)/2);
+      itsWScale=wmax;
+      if (nwplanes>1) {
+          itsWScale/=double((nwplanes-1)/2);
+      }
     }
 
     WStackVisGridder::~WStackVisGridder()
