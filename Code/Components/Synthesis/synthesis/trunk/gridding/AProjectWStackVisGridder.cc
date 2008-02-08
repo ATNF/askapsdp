@@ -306,12 +306,22 @@ namespace conrad
                       // and transform to obtain the image. The uv sampling is fixed here
                       // so the total field of view is itsOverSample times larger than the
                       // original field of view.
+                      const casa::Matrix<casa::Complex> &convFunc = itsConvFunc[iz];
                       for (int iy=-itsSupport; iy<+itsSupport; iy++)
                       {
                         for (int ix=-itsSupport; ix<+itsSupport; ix++)
-                        {
-                          thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[iz](ix*itsOverSample
-                              +itsCCenter, iy*itsOverSample+itsCCenter);
+                        { 
+                          CONRADDEBUGASSERT(ix+ccenx>0 && iy+cceny>0);
+                          CONRADDEBUGASSERT(ix+ccenx<int(thisPlane.nrow()) && iy+cceny<int(thisPlane.ncolumn()));
+                          const int xIndex = ix*itsOverSample+itsCCenter;
+                          const int yIndex = iy*itsOverSample+itsCCenter;
+                          
+                          if (xIndex>0 && yIndex>0 && xIndex<int(convFunc.nrow()) && 
+                              yIndex<int(convFunc.ncolumn())) {
+                              
+                              thisPlane(ix+ccenx, iy+cceny)=convFunc(ix*itsOverSample
+                                        +itsCCenter, iy*itsOverSample+itsCCenter);
+                          }
                         }
                       }
 
