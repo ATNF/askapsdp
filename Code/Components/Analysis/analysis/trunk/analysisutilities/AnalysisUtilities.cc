@@ -18,12 +18,59 @@
 
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/Section.hh>
+#include <duchamp/param.hh>
 
 namespace conrad
 {
   namespace analysis
   {
 
+    duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset)
+    {
+      /// @details 
+      /// Takes a ParameterSet and reads in the necessary Duchamp
+      /// parameters. It checks many of the duchamp::param parameters,
+      /// and if they are not present, a default value, defined
+      /// herein, is set (note that this is not necessarily the
+      /// standard Duchamp default value).
+      /// 
+      /// The excpetions are the image names, as these will in general
+      /// depend on the node and on whether the current node is a
+      /// master or worker. These should be set by the calling
+      /// function.
+
+      duchamp::Param par;
+
+      par.setPixelCentre( parset.getString("pixelCentre", "centroid") );
+
+      par.setCut( parset.getFloat("snrCut", 4.) );
+      par.setMinPix( parset.getInt16("minPix", par.getMinPix()) );
+      float threshold = parset.getFloat("threshold", -99999.9);
+      if(threshold < -99999.){ // if "threshold" was not in the parset
+	par.setFlagUserThreshold(false);
+      }
+      else{
+	par.setFlagUserThreshold(true);
+	par.setThreshold(threshold);
+      }
+
+      par.setFlagATrous( parset.getBool("flagATrous",false) );
+      par.setReconDim( parset.getInt16("reconDim", par.getReconDim()) );
+      par.setMinScale( parset.getInt16("scaleMin", par.getMinScale()) );
+      par.setMaxScale( parset.getInt16("scaleMax", par.getMaxScale()) );
+      par.setAtrousCut( parset.getFloat("snrRecon", par.getAtrousCut()) );
+      par.setFilterCode( parset.getInt16("filterCode", par.getFilterCode()) );
+      par.filter().define(par.getFilterCode());
+
+      par.setFlagSmooth( parset.getBool("flagSmooth",false) );
+      par.setSmoothType( parset.getString("smoothType", par.getSmoothType()) );
+      par.setHanningWidth( parset.getInt16("hanningWidth", par.getHanningWidth()) );
+      par.setKernMaj( parset.getFloat("kernMaj", par.getKernMaj()) );
+      par.setKernMin( parset.getFloat("kernMin", par.getKernMin()) );
+      par.setKernPA( parset.getFloat("kernPA", par.getKernPA()) );
+      
+      return par;
+    }
     
     double findSpread(bool robust, double middle, int size, float *array)
     {

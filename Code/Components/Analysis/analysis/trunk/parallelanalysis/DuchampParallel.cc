@@ -10,6 +10,8 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 
+#include <Common/LofarTypedefs.h>
+using namespace LOFAR::TYPES;
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
 #include <Blob/BlobOBufString.h>
@@ -69,16 +71,11 @@ namespace conrad
 
 
       // First do the setup needed for both workers and master
+
+      itsCube.pars() = parseParset(parset);
+
       itsCube.pars().setVerbosity(false);
       itsCube.pars().setFlagLog(true);
-
-      string pixelcentre = parset.getString("pixelCentre", "centroid");
-      itsCube.pars().setPixelCentre(pixelcentre);
-      
-      float cutlevel = parset.getFloat("snrCut", 4.);
-      itsCube.pars().setCut(cutlevel);
-
-      itsCube.pars().setFlagUserThreshold(true);
 
       // Now read the correct image name according to worker/master state.
       if(isWorker()) {
@@ -87,8 +84,7 @@ namespace conrad
 	CONRADLOG_INFO_STR(logger, "Defined the cube.");
 	//CONRADLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
 
-	bool flagRobust = parset.getBool("flagRobust",true);
-	itsCube.pars().setFlagRobustStats(flagRobust);
+	itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
 
 	// TODO:
 	// 	ParameterSet subset(parset.makeSubset("param."));
@@ -150,7 +146,7 @@ namespace conrad
       }
       else {
 	if(itsCube.getCube()==duchamp::FAILURE){
-	  CONRADLOG_ERROR_STR(logger, "Master: Could not read in data from image " << itsImage << ".");
+	  CONRADLOG_ERROR_STR(logger, "MASTER: Could not read in data from image " << itsImage << ".");
 	}
 // 	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
 // 	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
@@ -175,9 +171,21 @@ namespace conrad
         CONRADLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
 
 	itsCube.setCubeStats();
-	itsCube.CubicSearch();
-	int num = itsCube.getNumObj();
-        CONRADLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << itsRank);
+	if(itsCube.pars().getFlagATrous()){
+	  CONRADLOG_INFO_STR(logger,  "Searching with reconstruction first");
+	  itsCube.ReconSearch();
+	}
+	else if(itsCube.pars().getFlagSmooth()) {
+	  CONRADLOG_INFO_STR(logger,  "Searching with smoothing first");	  
+	  itsCube.SmoothSearch();
+	}
+	else {
+	  CONRADLOG_INFO_STR(logger,  "Searching, no smoothing or reconstruction done.");
+	  itsCube.CubicSearch();
+	}
+
+	int16 num = itsCube.getNumObj(), rank=this->itsRank;
+        CONRADLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << this->itsRank);
 	
         // Send the lists to the master here
 	if(isParallel()) {
@@ -186,13 +194,14 @@ namespace conrad
 	  LOFAR::BlobOBufString bob(bs);
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("detW2M",1);
-	  out << itsRank << num;
+	  out << rank << num;
 	  for(int i=0;i<itsCube.getNumObj();i++){
 	    std::vector<PixelInfo::Voxel> voxlist = itsCube.getObject(i).getPixelSet();
 	    std::vector<PixelInfo::Voxel>::iterator vox;
-	    out << int(voxlist.size());
+	    int32 size = voxlist.size();
+	    out << size;
 	    for(vox=voxlist.begin();vox<voxlist.end();vox++){
-	      int x,y,z;  // should be long but problem with Blobs
+	      int32 x,y,z;  // should be long but problem with Blobs
 	      x = vox->getX(); 
 	      y = vox->getY(); 
 	      z = vox->getZ();
@@ -201,7 +210,8 @@ namespace conrad
 	  }
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs);
-	  CONRADLOG_INFO_STR(logger, "Sent detection list to the master from worker " << itsRank );
+	  //	  itsConnectionSet->write(this->itsRank,bs);
+	  CONRADLOG_INFO_STR(logger, "Sent detection list to the master from worker " << this->itsRank );
 	}
 	
       }
@@ -224,11 +234,11 @@ namespace conrad
 
       if(isMaster()) {
         // Get the lists from the workers here
-        CONRADLOG_INFO_STR(logger,  "Retrieving lists from workers" );
+        CONRADLOG_INFO_STR(logger,  "MASTER: Retrieving lists from workers" );
 
 	if(isParallel()) {
 	  LOFAR::BlobString bs;
-	  int rank, numObj;
+	  int16 rank, numObj;
 	  int ct=0;
 	  for (int i=1; i<itsNNode; i++)
 	    {
@@ -238,35 +248,39 @@ namespace conrad
 	      int version=in.getStart("detW2M");
 	      CONRADASSERT(version==1);
 	      in >> rank >> numObj;
+	      CONRADLOG_INFO_STR(logger, "MASTER: Starting to read " 
+				 << numObj << " objects from worker #"<< rank);
 	      for(int obj=0;obj<numObj;obj++){
 		duchamp::Detection *object = new duchamp::Detection;
-		int objsize;
+		int32 objsize;
 		in >> objsize;
 		for(int p=0;p<objsize;p++){
-		  int *pix=new int[3]; // should be long but problem with Blobs & longs
+		  int32 x,y,z; 
 		  float flux;
-		  in >> pix[0] >> pix[1] >> pix[2] >> flux;
-		  for(int j=0;j<3;j++){
-		    pix[j] += itsSectionList[i-1].getStart(j);
-		  }
-		  object->addPixel(pix[0],pix[1],pix[2]);
-		  PixelInfo::Voxel vox(pix[0],pix[1],pix[2],flux);
+		  in >> x >> y >> z >> flux;
+		  x += itsSectionList[i-1].getStart(0);
+		  y += itsSectionList[i-1].getStart(1);
+		  z += itsSectionList[i-1].getStart(2);
+		  object->addPixel(x,y,z);
+		  PixelInfo::Voxel vox(x,y,z,flux);
 		  itsVoxelList.push_back(vox);
-		  delete [] pix;
 		  ct++;
 		}
 		itsCube.addObject(*object);
 		delete object;
 	      }
 	      in.getEnd();
-	      CONRADLOG_INFO_STR(logger, "Received list from worker "<< rank);
-	      CONRADLOG_INFO_STR(logger, "Now have " << itsCube.getNumObj() << " objects");
+
+	      CONRADLOG_INFO_STR(logger, "MASTER: Received list of size " 
+				 << numObj << " from worker #"<< rank);
+	      CONRADLOG_INFO_STR(logger, "MASTER: Now have " 
+				 << itsCube.getNumObj() << " objects");
 	    }
 	}
 	// Now process the lists
-        CONRADLOG_INFO_STR(logger,  "Condensing lists..." );
+        CONRADLOG_INFO_STR(logger,  "MASTER: Condensing lists..." );
 	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
-        CONRADLOG_INFO_STR(logger,  "Condensing lists done" );
+        CONRADLOG_INFO_STR(logger,  "MASTER: Condensing lists done" );
 
      }
       else {
@@ -284,9 +298,13 @@ namespace conrad
       if(isMaster()){
 
 	if(isParallel()) {
+
 	  int numVox = itsVoxelList.size();
 	  int numObj = itsCube.getNumObj();
 	  std::vector<PixelInfo::Voxel> templist[numObj];
+
+	  CONRADLOG_INFO_STR(logger, "MASTER: Calculating fluxes of " 
+			     << numObj << " detected objects.");
 
 	  for(int i=0;i<itsCube.getNumObj();i++){ // for each object
 	  
@@ -300,7 +318,7 @@ namespace conrad
 		ct++;
 	      }
 	      if(numVox!=0 && ct==numVox){ // there has been no match -- problem!
-		CONRADLOG_ERROR(logger, "Found a voxel in the object lists that doesn't appear in the base list.");
+		CONRADLOG_ERROR(logger, "MASTER: Found a voxel in the object lists that doesn't appear in the base list.");
 	      }
 	      else vox->setF( itsVoxelList[ct].getF() );
 	    }
@@ -338,7 +356,7 @@ namespace conrad
       /// manner.
 
       if(isMaster()) {
-	CONRADLOG_INFO_STR(logger, "Found " << itsCube.getNumObj() << " sources.");
+	CONRADLOG_INFO_STR(logger, "MASTER: Found " << itsCube.getNumObj() << " sources.");
 	
 	itsCube.outputDetectionList();
       }
@@ -354,12 +372,14 @@ namespace conrad
       /// rms/MADFM for the entire dataset and store these values in
       /// the master's itsCube statsContainer.
 
-      readData();
-      findMeans();
-      combineMeans();
-      broadcastMean();
-      findRMSs();
-      combineRMSs();
+      if(!itsCube.pars().getFlagUserThreshold()){
+	findMeans();
+	combineMeans();
+	broadcastMean();
+	findRMSs();
+	combineRMSs();
+      }
+      else itsCube.stats().setThreshold( itsCube.pars().getThreshold() );
     }
 
 
@@ -370,14 +390,22 @@ namespace conrad
       /// send to the master via LOFAR Blobs.
 
       if(isWorker()) {
-	CONRADLOG_INFO_STR(logger, "Finding mean: worker " << itsRank);
-	int size = itsCube.getSize();
+	CONRADLOG_INFO_STR(logger, "Finding mean: worker " << this->itsRank);
+
+	if(itsCube.pars().getFlagATrous()) itsCube.ReconCube();
+	else if(itsCube.pars().getFlagSmooth()) itsCube.SmoothCube();
+
+	int32 size = itsCube.getSize();
 	double mean;
-	if(itsCube.pars().getFlagRobustStats())
-	  mean = findMedian(itsCube.getArray(),size);
-	else
-	  mean = findMean(itsCube.getArray(),size);
-	CONRADLOG_INFO_STR(logger, "#" << itsRank << ": Mean = " << mean );
+	float *array;
+	if(itsCube.pars().getFlagATrous())       array = itsCube.getArray();
+	else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
+	else                                     array = itsCube.getArray();
+
+	if(itsCube.pars().getFlagRobustStats()) mean = findMedian(array,size);
+	else                                    mean = findMean(array,size);
+
+	CONRADLOG_INFO_STR(logger, "#" << this->itsRank << ": Mean = " << mean );
 	
 	if(isParallel()) {
 	  LOFAR::BlobString bs;
@@ -385,10 +413,12 @@ namespace conrad
 	  LOFAR::BlobOBufString bob(bs);
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("meanW2M",1);
-	  out << itsRank << mean << size;
+	  int16 rank = this->itsRank;
+	  out << rank << mean << size;
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs);
-	  CONRADLOG_INFO_STR(logger, "Sent mean to the master from worker " << itsRank );
+	  //	  itsConnectionSet->write(this->itsRank,bs);
+	  CONRADLOG_INFO_STR(logger, "Sent mean to the master from worker " << this->itsRank );
 	}
 	else {
 	  // serial case
@@ -413,7 +443,7 @@ namespace conrad
       /// findSpread() function.
 
       if(isWorker()) {
-	CONRADLOG_INFO_STR(logger, "About to calculate rms on worker " << itsRank);
+	CONRADLOG_INFO_STR(logger, "About to calculate rms on worker " << this->itsRank);
 
 	// first read in the overall mean for the cube
 	double mean=0;
@@ -431,10 +461,16 @@ namespace conrad
 	  mean = itsCube.stats().getMiddle();
 	}
 	// use it to calculate the rms for this section
- 	int size = itsCube.getSize();
- 	float *array = itsCube.getArray();
+ 	int32 size = itsCube.getSize();
+	float *array;
+	if(itsCube.pars().getFlagATrous()){
+	  array = new float[size];
+	  for(int i=0;i<size;i++) array[i] = itsCube.getPixValue(i) - itsCube.getReconValue(i);
+	}
+	else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
+	else array = itsCube.getArray();
 	double rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
-	CONRADLOG_INFO_STR(logger, "#" << itsRank << ": rms = " << rms );
+	CONRADLOG_INFO_STR(logger, "#" << this->itsRank << ": rms = " << rms );
 
 	// return it to the master
 	if(isParallel()) {
@@ -443,10 +479,12 @@ namespace conrad
 	  LOFAR::BlobOBufString bob(bs2);
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("rmsW2M",1);
-	  out << itsRank << rms << size;
+	  int16 rank = this->itsRank;
+	  out << rank << rms << size;
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs2);
-	  CONRADLOG_INFO_STR(logger, "Sent local rms to the master from worker " << itsRank );
+	  //	  itsConnectionSet->write(this->itsRank,bs2);
+	  CONRADLOG_INFO_STR(logger, "Sent local rms to the master from worker " << this->itsRank );
 	}
 	else{
 	  //serial case
@@ -473,10 +511,10 @@ namespace conrad
 
       if(isMaster()&&isParallel()) {
 	// get the means from the workers
-        CONRADLOG_INFO_STR(logger,  "Receiving Means and combining" );
+        CONRADLOG_INFO_STR(logger,  "MASTER: Receiving Means and combining" );
 
 	LOFAR::BlobString bs1;
-        int rank, size=0;
+        int size=0;
 	double av=0;
         for (int i=1; i<itsNNode; i++)
         {
@@ -486,10 +524,11 @@ namespace conrad
           int version=in.getStart("meanW2M");
           CONRADASSERT(version==1);
 	  double newav;
-	  int newsize;
+	  int32 newsize;
+	  int16 rank;
           in >> rank >> newav >> newsize;
           in.getEnd();
-          CONRADLOG_INFO_STR(logger, "Received mean from worker "<< rank);
+          CONRADLOG_INFO_STR(logger, "MASTER: Received mean from worker "<< rank);
 
 	  size += newsize;
 	  av += newav * newsize;
@@ -499,8 +538,8 @@ namespace conrad
 	  av /= double(size);
 	}
 
-	CONRADLOG_INFO_STR(logger, "OVERALL SIZE = " << size);
-	CONRADLOG_INFO_STR(logger, "OVERALL MEAN = " << av);
+	CONRADLOG_INFO_STR(logger, "MASTER: OVERALL SIZE = " << size);
+	CONRADLOG_INFO_STR(logger, "MASTER: OVERALL MEAN = " << av);
 	itsCube.stats().setMean(av);
       }
       else {
@@ -523,8 +562,7 @@ namespace conrad
 	out << av;
 	out.putEnd();
 	itsConnectionSet->writeAll(bs2);
-	CONRADLOG_INFO_STR(logger, 
-			   "Sent local rms to the master from worker " << itsRank );
+	CONRADLOG_INFO_STR(logger, "MASTER: Broadcast overal mean from master to workers." );
       }
       else {
       }
@@ -541,10 +579,10 @@ namespace conrad
 
       if(isMaster()&&isParallel()) {
 	// get the means from the workers
-        CONRADLOG_INFO_STR(logger,  "Receiving RMS values and combining" );
+        CONRADLOG_INFO_STR(logger,  "MASTER: Receiving RMS values and combining" );
 
 	LOFAR::BlobString bs;
-        int rank, size=0;
+        int size=0;
 	double rms=0;
         for (int i=1; i<itsNNode; i++)
         {
@@ -554,10 +592,11 @@ namespace conrad
           int version=in.getStart("rmsW2M");
           CONRADASSERT(version==1);
 	  double newrms;
-	  int newsize;
+	  int32 newsize;
+	  int16 rank;
           in >> rank >> newrms >> newsize;
           in.getEnd();
-          CONRADLOG_INFO_STR(logger, "Received RMS from worker "<< rank);
+          CONRADLOG_INFO_STR(logger, "MASTER: Received RMS from worker "<< rank);
 
 	  size += newsize;
 	  rms += (newrms * newrms * (newsize-1));
@@ -568,34 +607,35 @@ namespace conrad
 	}
 	itsCube.stats().setStddev(rms);
 
-	CONRADLOG_INFO_STR(logger, "OVERALL RMS = " << rms);
+	double av = itsCube.stats().getMean();
+	double threshold = av + rms * itsCube.pars().getCut();
+	itsCube.stats().setThreshold(threshold);
+	itsCube.pars().setFlagUserThreshold(true);
+	itsCube.pars().setThreshold(threshold);
+
+	CONRADLOG_INFO_STR(logger, "MASTER: OVERALL RMS = " << rms);
 
       }
     }
 
     void DuchampParallel::broadcastThreshold() 
     {
-      /// @details The master values of the mean and rms are used,
-      /// along with the snrCut parameter to generate a detection
-      /// threshold. This threshold value is then sent to the workers
-      /// via LOFAR Blobs.
+      /// @details The detection threshold value (which has been
+      /// already calculated) is sent to the workers via LOFAR Blobs.
 
       if(isMaster()&&isParallel()) {
 	// now send the overall mean to the workers so they can calculate the rms
-	double av = itsCube.stats().getMean();
-	double rms = itsCube.stats().getStddev();
-	double threshold = av + rms * itsCube.pars().getCut();
-	itsCube.stats().setThreshold(threshold);
 	LOFAR::BlobString bs;
 	bs.resize(0);
 	LOFAR::BlobOBufString bob(bs);
 	LOFAR::BlobOStream out(bob);
 	out.putStart("threshM2W",1);
+	double threshold = itsCube.stats().getThreshold();
 	out << threshold;
 	out.putEnd();
 	itsConnectionSet->writeAll(bs);
-	CONRADLOG_INFO_STR(logger, "Sent threshold (" << threshold << ") from the master" );
-	itsCube.pars().setThreshold(threshold);
+	CONRADLOG_INFO_STR(logger, "MASTER: Sent threshold (" 
+			   << itsCube.stats().getThreshold() << ") from the master" );
       }
       else {
       }
@@ -626,6 +666,7 @@ namespace conrad
 	CONRADLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank << " to be " << threshold);
 
 	itsCube.pars().setThreshold(threshold);
+	itsCube.pars().setFlagUserThreshold(true);
      }
     }
 

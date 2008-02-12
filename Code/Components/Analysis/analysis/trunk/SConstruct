@@ -7,7 +7,7 @@
 # Always import this
 from conradenv import env
 
-env.Append(CCFLAGS=['-O2', '-DHAVE_LONG_LONG', '-DCONRAD_DEBUG', '-g'])
+env.Append(CCFLAGS=['-O2', '-g', '-DHAVE_LONG_LONG', '-DCONRAD_DEBUG', '-g'])
 
 # create build object with library name
 pkg = env.ConradPackage("analysis")

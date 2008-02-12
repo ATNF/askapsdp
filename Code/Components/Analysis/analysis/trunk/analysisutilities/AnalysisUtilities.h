@@ -11,12 +11,19 @@
 #include <string>
 #include <vector>
 
+#include <APS/ParameterSet.h>
+
 #include <duchamp/Utils/Section.hh>
+#include <duchamp/param.hh>
 
 namespace conrad
 {
   namespace analysis
   {
+
+    /// @brief Parse a ParameterSet and define duchamp::param parameters.
+    /// @ingroup analysisutilities
+    duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset);
 
     /// @brief Find an rms for an array given a mean value
     /// @ingroup analysisutilities

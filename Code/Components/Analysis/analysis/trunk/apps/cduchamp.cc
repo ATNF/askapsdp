@@ -77,6 +77,8 @@ int main(int argc, const char** argv)
     duchamp.calcFluxes();
     duchamp.printResults();
 
+    CONRADLOG_INFO_STR(logger, "Time for execution of cduchamp = " << timer.real() << " sec");
+
     ///==============================================================================
   }
   catch (conrad::ConradError& x)
