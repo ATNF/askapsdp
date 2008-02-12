@@ -293,7 +293,13 @@ namespace conrad
       /// of the objects by constructing voxelLists. The WCS
       /// parameters for each object are also calculated here, so the
       /// WCS header information stored by the master must be
-      /// correct. The objects are then ordered by velocity.
+      /// correct. The objects are then ordered by velocity. 
+      ///
+      /// In the parallel case, we do not set any object flags, as we
+      /// don't have all the flux information. This may be possible if
+      /// we pass all surrounding pixels as well as detected pixels,
+      /// but at the moment, no flags are set. In the serial case,
+      /// they are.
 
       if(isMaster()){
 
@@ -331,8 +337,9 @@ namespace conrad
 
 	  itsCube.prepareOutputFile();
 	  if(itsCube.getNumObj()>0){
+	    // no flag-setting, as it's hard to do when we don't have
+	    // all the pixels. Particularly the negative flux flags
 	    itsCube.calcObjectWCSparams(bigVoxSet);
-	    itsCube.setObjectFlags();
 	    itsCube.sortDetections();
 	  }
 

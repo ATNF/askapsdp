@@ -15,9 +15,12 @@ Cduchamp.image      = /Users/whi550/ObsData/cubes/H201-sub%w.fits
 #Cduchamp.flagRobust = false   #This applies to the workers only.
 #Cduchamp.snrCut     = 6
 Cduchamp.pixelCentre = average
-Cduchamp.flagATrous  = true
+Cduchamp.flagATrous  = false
 Cduchamp.reconDim    = 1
 Cduchamp.snrRecon    = 3.
+Cduchamp.flagSmooth  = true
+Cduchamp.smoothType  = spectral
+Cduchamp.hanningWidth = 5.
 Cduchamp.threshold   = 0.06
 
 #Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
