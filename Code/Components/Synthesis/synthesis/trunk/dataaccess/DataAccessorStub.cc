@@ -232,6 +232,7 @@ namespace conrad
                 ///         information. If True, the corresponding element is flagged.
                 const casa::Cube<casa::Bool>& DataAccessorStub::flag() const
                 {
+		  CONRADASSERT(itsFlag.shape() == itsVisibility.shape());
                   return itsFlag;
                 }
 
