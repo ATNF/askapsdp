@@ -11,11 +11,15 @@
 #include <conrad/ConradUtil.h>
 #include <conrad/ConradError.h>
 
+// command line parser
+#include <CommandLineParser.h>
+
 // std includes
 #include <fstream>
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <stdexcept>
 
 /// @brief generator of random complex numbers 
 /// @details Amplitude is confined in the given bounds
@@ -117,28 +121,66 @@ std::string gainParameterName(casa::uInt ant, casa::uInt pol,
   return res;
 }
 
-int main()
+
+int main(int argc, char **argv)
 {
-   const size_t nAnt = 45;
-   const size_t nPol = 2;
-   const int nFeed = -1;
-   ComplexRandomGainGenerator gen(0.7,1.3);
-   std::ofstream os("rndgains.in");
-   os<<std::endl;
-   os<<"# This is an automatically generated file with random complex gains"<<std::endl;
-   os<<"# for "<<nAnt<<" antennae and "<<nPol<<" polarisation products"<<std::endl;
-   if (nFeed>=0) {
-       os<<"# "<<nFeed<<" feeds will be simulated"<<std::endl;
-   }
-   os<<std::endl;
+   using namespace conrad;
+
+   try {
+      cmdlineparser::Parser parser; // a command line parser
+      // command line parameters
+      cmdlineparser::GenericParameter<std::string> outputName;
+      cmdlineparser::FlaggedParameter<int> nFeedPar("-f",-1);
+      cmdlineparser::FlaggedParameter<size_t> nAntPar("-a",45);
+      cmdlineparser::FlaggedParameter<size_t> nPolPar("-p",2);
+      cmdlineparser::FlaggedParameter<double> minPar("-min",0.7);
+      cmdlineparser::FlaggedParameter<double> maxPar("-max",1.3);
    
-   for (size_t ant = 0; ant<nAnt; ++ant) {
-        for (size_t pol = 0; pol<nPol; ++pol) {
-             for (int feed = 0; feed<(nFeed<0 ? 1 : nFeed); ++feed) { 
-                  casa::Complex gain = gen();
-                  os<<gainParameterName(ant,pol, nFeed<0 ? nFeed : feed)<<" = ["
-                    <<real(gain)<<","<<imag(gain)<<"]"<<std::endl;
-             }
-        }
+      // optional parameters
+      parser.add(nFeedPar,cmdlineparser::Parser::return_default);
+      parser.add(nAntPar,cmdlineparser::Parser::return_default);
+      parser.add(nPolPar,cmdlineparser::Parser::return_default);
+      parser.add(minPar,cmdlineparser::Parser::return_default);
+      parser.add(maxPar,cmdlineparser::Parser::return_default);
+      // required parameters
+      parser.add(outputName);
+      
+      parser.process(argc,argv);
+   
+      const size_t nAnt = nAntPar;
+      const size_t nPol = nPolPar;
+      const int nFeed = nFeedPar;
+      CONRADCHECK(minPar<maxPar,"Minimum amplitude should be less than maximum amplitude");
+      ComplexRandomGainGenerator gen(minPar,maxPar);
+      std::ofstream os(outputName.getValue().c_str());
+      os<<std::endl;
+      os<<"# This is an automatically generated file with random complex gains"<<std::endl;
+      os<<"# for "<<nAnt<<" antennae and "<<nPol<<" polarisation products"<<std::endl;
+      if (nFeed>=0) {
+          os<<"# "<<nFeed<<" feeds will be simulated"<<std::endl;
+      }
+      os<<std::endl;
+   
+      for (size_t ant = 0; ant<nAnt; ++ant) {
+           for (size_t pol = 0; pol<nPol; ++pol) {
+                for (int feed = 0; feed<(nFeed<0 ? 1 : nFeed); ++feed) { 
+                     casa::Complex gain = gen();
+                     os<<gainParameterName(ant,pol, nFeed<0 ? nFeed : feed)<<" = ["
+                       <<real(gain)<<","<<imag(gain)<<"]"<<std::endl;
+                }
+           }
+      }
+   }
+   catch (const cmdlineparser::XParser &ex) {
+      std::cerr<<"Usage: "<<argv[0]<<" [-f nFeed] [-a nAnt] [-p nPol] [-min minAmp] [-max maxAmp] outputName"<<std::endl;
+      std::cerr<<"-f nFeed    number of feeds, default is feed independent output"<<std::endl;
+      std::cerr<<"-a nAnt     number of antennae, default is 45"<<std::endl;
+      std::cerr<<"-p nPol     number of polarisations, default is 2"<<std::endl;
+      std::cerr<<"-min minAmp minimum amplitude of simulated gains, default is 0.7"<<std::endl;
+      std::cerr<<"-max maxAmp maximum amplitude of simulated gains, default is 1.3"<<std::endl;
+      std::cerr<<"outputName  output parset file name"<<std::endl;
+   }
+   catch (const std::exception &ex) {
+      std::cerr<<ex.what()<<std::endl;
    }
 }
