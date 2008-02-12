@@ -15,6 +15,8 @@
 #include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 
+#include <CommandLineParser.h>
+
 
 #include <parallel/ImagerParallel.h>
 
@@ -34,24 +36,6 @@ using namespace conrad::synthesis;
 using namespace conrad::scimath;
 using namespace LOFAR::ACC::APS;
 
-// Move to Conrad Util
-std::string getInputs(const std::string& key, const std::string& def, int argc,
-		      const char** argv)
-{
-  if (argc>2)
-    {
-      for (int arg=0; arg<(argc-1); arg++)
-	{
-	  std::string argument=string(argv[arg]);
-	  if (argument==key)
-	    {
-	      return string(argv[arg+1]);
-	    }
-	}
-    }
-  return def;
-}
-
 // Main function
 int main(int argc, const char** argv)
 {
@@ -65,7 +49,18 @@ int main(int argc, const char** argv)
       // Put everything in scope to ensure that all destructors are called 
       // before the final message
       {
-	std::string parsetFile(getInputs("-inputs", "cimager.in", argc, argv));
+        
+        cmdlineparser::Parser parser; // a command line parser
+        // command line parameter
+        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", 
+                                                           "cimager.in");
+        // this parameter is optional                                                   
+        parser.add(inputsPar, cmdlineparser::Parser::return_default);                                                           
+        
+        // I hope const_cast is temporary here
+        parser.process(argc,const_cast<char**>(argv));
+ 
+        const std::string parsetFile = inputsPar;
 	
 	ParameterSet parset(parsetFile);
 	ParameterSet subset(parset.makeSubset("Cimager."));
@@ -118,13 +113,18 @@ int main(int argc, const char** argv)
       
       ///==============================================================================
     }
-  catch (conrad::ConradError& x)
+  catch (const cmdlineparser::XParser &ex) {
+      CONRADLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
+      std::cerr<<"Usage: "<<argv[0]<<" [-inputs parsetFile]"<<std::endl;     
+  }  
+    
+  catch (const conrad::ConradError& x)
     {
       CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
       std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
       exit(1);
     }
-  catch (std::exception& x)
+  catch (const std::exception& x)
     {
       CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
       std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
