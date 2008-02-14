@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#PBS -l nodes=minicp00:ppn=2+7:ppn=1
+#PBS -l nodes=7:ppn=2
 #PBS -N cduchamp
 #PBS -m ae
 #PBS -v CONRAD_PROJECT_ROOT
@@ -7,4 +7,4 @@ cd $PBS_O_WORKDIR
 
 module load openmpi
 
-mpirun -x AIPSPATH $CONRAD_PROJECT_ROOT/Code/Components/Analysis/analysis/trunk/bin/cduchamp.sh > cduchamp.out
+mpirun -np 13 $CONRAD_PROJECT_ROOT/Code/Components/Analysis/analysis/trunk/bin/cduchamp.sh -inputs $CONRAD_PROJECT_ROOT/Code/Components/Analysis/analysis/trunk/apps/cduchamp.in > cduchamp.out

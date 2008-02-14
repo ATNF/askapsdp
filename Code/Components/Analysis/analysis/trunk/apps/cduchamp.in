@@ -8,20 +8,24 @@
 #Cduchamp.masterImage = /Users/whi550/ObsData/cubes/test0.fits
 #Cduchamp.image      = /Users/whi550/ObsData/cubes/test%w.fits
 
-Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/H201-sectionInfo
-Cduchamp.masterImage = /Users/whi550/ObsData/cubes/H201-sub0.fits
-Cduchamp.image      = /Users/whi550/ObsData/cubes/H201-sub%w.fits
+#Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/H201-sectionInfo
+#Cduchamp.masterImage = /Users/whi550/ObsData/cubes/H201-sub0.fits
+#Cduchamp.image      = /Users/whi550/ObsData/cubes/H201-sub%w.fits
+
+Cduchamp.sectionInfo = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sectionInfo
+Cduchamp.masterImage = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sub0-12.fits
+Cduchamp.image       = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sub%w-12.fits
 
 #Cduchamp.flagRobust = false   #This applies to the workers only.
-#Cduchamp.snrCut     = 6
+Cduchamp.snrCut     = 4
 Cduchamp.pixelCentre = average
-Cduchamp.flagATrous  = false
-Cduchamp.reconDim    = 1
+Cduchamp.flagATrous  = true
+Cduchamp.reconDim    = 2
 Cduchamp.snrRecon    = 3.
-Cduchamp.flagSmooth  = true
+Cduchamp.flagSmooth  = false
 Cduchamp.smoothType  = spectral
 Cduchamp.hanningWidth = 5.
-Cduchamp.threshold   = 0.06
+#Cduchamp.threshold   = 0.06
 
 #Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 #Cimstat.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits

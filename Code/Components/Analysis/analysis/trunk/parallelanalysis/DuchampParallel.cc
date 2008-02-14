@@ -32,6 +32,8 @@ using namespace LOFAR::TYPES;
 #include <conrad/ConradLogging.h>
 #include <conrad/ConradError.h>
 
+#include <conradparallel/ConradParallel.h>
+
 #include <parallelanalysis/DuchampParallel.h>
 #include <analysisutilities/AnalysisUtilities.h>
 
@@ -86,6 +88,8 @@ namespace conrad
 
 	itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
 
+	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
+
 	// TODO:
 	// 	ParameterSet subset(parset.makeSubset("param."));
 	// 	std::string param; // use this for temporary storage of parameters.
@@ -99,6 +103,8 @@ namespace conrad
 	
 	itsCube.pars().setFlagRobustStats(false);
 
+	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile.txt")) );
+
 	/// The sectionInfo, read by the master, is interpreted by the
 	/// function readSectionInfo(). See its description for a
 	/// description of the format of the sectionInfo file, and how
@@ -106,7 +112,11 @@ namespace conrad
 	string sectionInfo = substitute(parset.getString("sectionInfo"));
 	itsSectionList = readSectionInfo(sectionInfo);
 	CONRADLOG_INFO_STR(logger, "Read in the sectionInfo.");
-	if(int(itsSectionList.size()) != (itsNNode-1) )
+	if(itsSectionList.size() == 0){
+	  CONRADLOG_ERROR_STR(logger, "No SectionInfo file found. Exiting.");
+	  exit(0);
+	}
+	else if(int(itsSectionList.size()) != (itsNNode-1) )
 	  CONRADLOG_ERROR_STR(logger, "Number of sections provided by " 
 			      << sectionInfo 
 			      << " does not match the number of images being processed.");
@@ -140,7 +150,10 @@ namespace conrad
 	  CONRADLOG_ERROR_STR(logger, "Could not read in data from image " << itsImage);
 	}
 	else {
-	  CONRADLOG_INFO_STR(logger,  "Read data from image " << itsImage);
+	  CONRADLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << itsImage);
+	  std::stringstream ss;
+	  ss << itsCube.getDimX() << " " << itsCube.getDimY() << " " << itsCube.getDimZ();
+	  CONRADLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
 	}
 
       }
@@ -366,6 +379,13 @@ namespace conrad
 	CONRADLOG_INFO_STR(logger, "MASTER: Found " << itsCube.getNumObj() << " sources.");
 	
 	itsCube.outputDetectionList();
+
+	if(itsCube.pars().getFlagKarma()){
+	  std::ofstream karmafile(itsCube.pars().getKarmaFile().c_str());
+	  itsCube.outputDetectionsKarma(karmafile);
+	  karmafile.close();
+	}
+
       }
       else{
       }

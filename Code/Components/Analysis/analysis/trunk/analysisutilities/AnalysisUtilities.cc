@@ -9,6 +9,13 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 /// 
 
+#include <conrad_analysis.h>
+
+#include <conrad/ConradLogging.h>
+#include <conrad/ConradError.h>
+
+#include <conradparallel/ConradParallel.h>
+
 #include <analysisutilities/AnalysisUtilities.h>
 
 #include <iostream>
@@ -19,6 +26,8 @@
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
+
+CONRAD_LOGGER(logger, ".analysisutilities");
 
 namespace conrad
 {
@@ -53,6 +62,8 @@ namespace conrad
 	par.setFlagUserThreshold(true);
 	par.setThreshold(threshold);
       }
+
+      par.setFlagKarma( parset.getBool("flagKarma", true) );
 
       par.setFlagATrous( parset.getBool("flagATrous",false) );
       par.setReconDim( parset.getInt16("reconDim", par.getReconDim()) );
@@ -123,23 +134,27 @@ namespace conrad
       ///
       /// @param filename The name of the sectionInfo file.
       /// @return A std::vector containing a duchamp::Section object for each image.
-
+      std::vector<duchamp::Section> sectionlist; 
       std::ifstream fin(filename.c_str());
-      int numAxes;
-      fin >> numAxes;
-      std::vector<long> dimAxes(numAxes);
-      for(int i=0;i<numAxes;i++) fin>>dimAxes[i];
-      std::vector<duchamp::Section> sectionlist;
-      while(!fin.eof()){
-	std::string image,sectionString;
-	fin >> image >> sectionString;
-	if(!fin.eof()){
-	  duchamp::Section section(sectionString);
-	  section.parse(dimAxes);
-	  sectionlist.push_back(section);
+      int numAxes=0;
+      if(!fin.is_open()) 
+	CONRADLOG_ERROR_STR(logger, "SectionInfo file " << filename.c_str() << " not found!"); 
+      else{	
+	fin >> numAxes;	
+	std::vector<long> dimAxes(numAxes);	
+	for(int i=0;i<numAxes;i++) fin>>dimAxes[i];	
+	while(!fin.eof()){
+	  std::string image,sectionString;
+	  fin >> image >> sectionString;
+	  if(!fin.eof()){
+	    duchamp::Section section(sectionString);
+	    section.parse(dimAxes);
+	    sectionlist.push_back(section);
+	  }
 	}
+	fin.close();
       }
-      fin.close();
+
       return sectionlist;
 
     }
