@@ -41,8 +41,8 @@ struct Product  : public MEComponent {
    /// this effect
    inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
                                 casa::uInt row) const
-   { return itsEffect1.get(chunk,row)*itsEffect2.get(chunk,row)*
-            itsEffect3.get(chunk,row); }
+   { using namespace scimath; return itsEffect1.get(chunk,row)*
+          itsEffect2.get(chunk,row)*itsEffect3.get(chunk,row); }
 
    
 private:
@@ -74,7 +74,7 @@ struct Product<Effect1, Effect2, MEComponent> : public MEComponent {
    /// this effect
    inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
                                 casa::uInt row) const
-   { return itsEffect1.get(chunk,row)*itsEffect2.get(chunk,row); }
+   { using namespace scimath; return itsEffect1.get(chunk,row)*itsEffect2.get(chunk,row); }
 
    
 private:
