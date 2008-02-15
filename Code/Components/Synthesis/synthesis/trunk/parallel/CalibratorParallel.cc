@@ -39,6 +39,7 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/CalibrationME.h>
 #include <measurementequation/NoXPolGain.h>
+#include <measurementequation/ImagingEquationAdapter.h>
 #include <gridding/VisGridderFactory.h>
 
 #include <APS/ParameterSet.h>
@@ -159,7 +160,9 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       CONRADCHECK(itsPerfectModel, "Uncorrupted model not defined");
       CONRADCHECK(itsModel, "Initial assumption of parameters is not defined");
       CONRADCHECK(itsGridder, "Gridder not defined");
-      //itsPerfectME.reset(new ImageFFTEquation (*itsPerfectModel, it, itsGridder));
+      boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
+      ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, itsGridder);
+      itsPerfectME = ieAdapter;
       itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,*itsPerfectME));
   } else {
       CONRADLOG_INFO_STR(logger, "Reusing measurement equation" );

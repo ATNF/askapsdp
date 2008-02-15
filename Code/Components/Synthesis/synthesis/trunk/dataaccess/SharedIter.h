@@ -266,6 +266,15 @@ public:
     {
        return itsSharedPtr;
     }
+    
+    /// @brief check validity of the iterator
+    /// @details This method allows to use the shared iterator in expressions
+    /// @return true, if shared iterator has been initialized, false otherwise
+    inline operator bool() const throw()
+    {
+       return itsSharedPtr;
+    }
+    
 private:
    // actual shared pointer to the iterator
    boost::shared_ptr<T> itsSharedPtr;
