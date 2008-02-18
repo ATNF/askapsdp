@@ -19,13 +19,14 @@
 
 #include <CommandLineParser.h>
 #include <APS/ParameterSet.h>
+#include <parallel/CalibratorParallel.h>
 
 
 CONRAD_LOGGER(logger, ".ccalibrator");
 
 using namespace std;
 using namespace conrad;
-//using namespace conrad::synthesis;
+using namespace conrad::synthesis;
 using namespace cmdlineparser;
 
 // Main function
@@ -54,14 +55,41 @@ int main(int argc, const char** argv)
 	  LOFAR::ACC::APS::ParameterSet parset(inputsPar);
 	  LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Ccalibrator."));
 	
-	  //SimParallel sim(argc, argv, subset);
+	  CalibratorParallel calib(argc, argv, subset);
+	  
 	  CONRADLOG_INIT("ccalibrator.log_cfg");
-
+	 
 	  CONRADLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << CONRAD_PACKAGE_VERSION);
+      
+      if (calib.isMaster()) {
+          CONRADLOG_INFO_STR(logger, "parset file "<<inputsPar.getValue());
+          CONRADLOG_INFO_STR(logger, parset);
+      }
+      
+      int nCycles = subset.getInt32("ncycles", 1);
+      CONRADCHECK(nCycles>=0, " Number of calibration iterations should be a non-negative number, you have "<<
+                  nCycles);
+                  
+      for (int cycle = 0; cycle<nCycles; ++cycle) {
+           CONRADLOG_INFO_STR(logger, "*** Starting calibration iteration "<<cycle<<" ***");
+           calib.broadcastModel();
+           calib.receiveModel();
+           calib.calcNE();
+           calib.solveNE();
+           CONRADLOG_INFO_STR(logger,  "user:   " << timer.user () << " system: " << timer.system ()
+                                   <<" real:   " << timer.real () );
+      }
+      CONRADLOG_INFO_STR(logger,  "*** Finished calibration cycles ***" );
+      /*
+      calib.broadcastModel();
+      calib.receiveModel();
+      calib.calcNE();
+      calib.receiveNE();
+      */
+      calib.writeModel();  
     }
     CONRADLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
 			 <<" real:   " << timer.real () );
-      
     ///==============================================================================
   }
   catch (const cmdlineparser::XParser &ex) {
