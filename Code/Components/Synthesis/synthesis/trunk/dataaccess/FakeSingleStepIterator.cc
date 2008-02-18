@@ -27,7 +27,7 @@ FakeSingleStepIterator::FakeSingleStepIterator() : itsOriginFlag(true) {}
 ///
 /// @return a reference to the current chunk
 IDataAccessor& FakeSingleStepIterator::operator*() const
-{
+{ 
   CONRADCHECK(itsDataAccessor,
               "Data accessor has to be assigned first to FakeSingleStepIterator");
   CONRADDEBUGASSERT(itsOriginFlag);

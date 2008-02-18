@@ -33,6 +33,7 @@ CONRAD_LOGGER(logger, ".measurementequation");
 
 #include <fitting/LinearSolver.h>
 #include <fitting/GenericNormalEquations.h>
+#include <fitting/Params.h>
 
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
@@ -69,7 +70,8 @@ using namespace conrad::cp;
 /// @param[in] parset ParameterSet for inputs
 CalibratorParallel::CalibratorParallel(int argc, const char** argv,
         const LOFAR::ACC::APS::ParameterSet& parset) :
-      MEParallel(argc, argv), itsParset(parset)
+      MEParallel(argc, argv), itsParset(parset), 
+      itsPerfectModel(new scimath::Params())
 {
   if (isMaster()) {
       // load sky model, propulate itsPerfectModel
@@ -135,7 +137,7 @@ void CalibratorParallel::readModels()
            CONRADLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
            std::ostringstream paramName;
            paramName << "image.i." << sources[i];
-           SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName.str(), model);
+           SynthesisParamsHelper::getFromCasaImage(*itsPerfectModel, paramName.str(), model);
        }
   }
   CONRADLOG_INFO_STR(logger, "Successfully read models");

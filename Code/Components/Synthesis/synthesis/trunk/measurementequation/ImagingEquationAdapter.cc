@@ -54,7 +54,6 @@ void ImagingEquationAdapter::predict() const
 {
   CONRADCHECK(itsActualEquation, 
      "assign method should be called before first usage of ImagingEquationAdapter");
-  
   // there will be an exception if this class is initialized with the type,
   // which works with the iterator directly and bypasses accessor-based method.
   itsActualEquation->predict();
@@ -64,7 +63,7 @@ void ImagingEquationAdapter::predict() const
 /// @details This call is translated to itsActualEquation.
 /// @params[in] ne normal equations to be updated
 void ImagingEquationAdapter::calcEquations(scimath::INormalEquations &ne) const
-{
+{ 
   CONRADCHECK(itsActualEquation, 
      "assign method should be called before first usage of ImagingEquationAdapter");
   
@@ -84,7 +83,12 @@ scimath::Equation::ShPtr ImagingEquationAdapter::clone() const
   boost::shared_ptr<ImagingEquationAdapter> result(new ImagingEquationAdapter(*this));
   try {
      if (itsIterAdapter) {
-         const FakeSingleStepIterator &it = dynamic_cast<const FakeSingleStepIterator&>(*itsIterAdapter);
+         // we need an explicit type conversion, because shared iter would
+         // dereference the iterator according to its interface
+         const boost::shared_ptr<IDataIterator> basicIt = itsIterAdapter;
+         CONRADDEBUGASSERT(basicIt);
+     
+         const FakeSingleStepIterator &it = dynamic_cast<const FakeSingleStepIterator&>(*basicIt);
          result->itsIterAdapter = IDataSharedIter(new FakeSingleStepIterator(it));
      }
      if (itsActualEquation) {
@@ -103,11 +107,14 @@ scimath::Equation::ShPtr ImagingEquationAdapter::clone() const
 /// version of itsIterAdapter.
 /// @params[in] chunk a chunk to be filled with predicted data
 void ImagingEquationAdapter::predict(IDataAccessor &chunk) const
-{
-  CONRADDEBUGASSERT(itsIterAdapter);
+{     
   try {
+      // we need an explicit type conversion, because shared iter would
+      // dereference the iterator according to its interface
+      const boost::shared_ptr<IDataIterator> basicIt = itsIterAdapter;
+      CONRADDEBUGASSERT(basicIt);
       FakeSingleStepIterator &it = 
-              dynamic_cast<FakeSingleStepIterator&>(*itsIterAdapter);
+              dynamic_cast<FakeSingleStepIterator&>(*basicIt);
       it.assignDataAccessor(chunk);  
       predict();
       it.detachAccessor();      
@@ -126,10 +133,13 @@ void ImagingEquationAdapter::predict(IDataAccessor &chunk) const
 void ImagingEquationAdapter::calcEquations(const IConstDataAccessor &chunk,
              scimath::INormalEquations &ne) const
 {
-  CONRADDEBUGASSERT(itsIterAdapter);
   try {
+      // we need an explicit type conversion, because shared iter would
+      // dereference the iterator according to its interface
+      const boost::shared_ptr<IDataIterator> basicIt = itsIterAdapter;
+      CONRADDEBUGASSERT(basicIt);
       FakeSingleStepIterator &it = 
-              dynamic_cast<FakeSingleStepIterator&>(*itsIterAdapter);
+              dynamic_cast<FakeSingleStepIterator&>(*basicIt);
       it.assignConstDataAccessor(chunk);  
       calcEquations(ne);
       it.detachAccessor();      
