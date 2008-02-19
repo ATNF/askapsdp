@@ -45,8 +45,9 @@ namespace conrad
       try {
         int x=0;
         CONRADCHECK(x==1, "check1");
-      } catch (conrad::CheckError& ex) {
-        CPPUNIT_ASSERT(std::string(ex.what()) == std::string("check1 ('x==1' failed)"));
+      } catch (const conrad::CheckError& ex) {
+        CPPUNIT_ASSERT(std::string(ex.what()).find(std::string("check1 ('x==1' failed)"))
+                != std::string::npos);
       }
     }
 

@@ -50,7 +50,8 @@ namespace conrad {
 #define CONRADTHROW(exc,messageStream)   \
     {					 \
       std::ostringstream conrad_log_oss; \
-      conrad_log_oss << messageStream;	 \
+      conrad_log_oss << messageStream <<" (thrown in "<<__FILE__  \
+		   << ':' << __LINE__<<") ";	 \
       throw exc(conrad_log_oss.str());   \
     }
 
@@ -64,9 +65,8 @@ namespace conrad {
 
   /// Do an assert and throw an exception with the file and line if it fails.
 #define CONRADASSERT(condition) \
-    if (!(condition)) {							\
-      CONRADTHROW(AssertError, #condition << " failed in " <<  __FILE__  \
-		   << ':' << __LINE__);					  \
+    if (!(condition)) {	\
+      CONRADTHROW(AssertError, #condition << " failed");  \
     }
 
   /// Do an assert only if in debug mode.
