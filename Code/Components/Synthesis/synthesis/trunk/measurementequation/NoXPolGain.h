@@ -69,10 +69,14 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
                                       casa::uInt row) const
 {
    CONRADDEBUGASSERT(chunk.nPol());   
+   const casa::uInt nPol = chunk.nPol()<=2 ? chunk.nPol() : 2;
+   
+   /*
    if (chunk.nPol()>2) {
        CONRADTHROW(ConradError, "Cross pols are not supported at the moment, you have nPol="<<
                    chunk.nPol());
    }
+   */
    
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
@@ -81,7 +85,7 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
    
    scimath::ComplexDiffMatrix calFactor(chunk.nPol(), chunk.nPol(), 0.);
 
-   for (casa::uInt pol=0; pol<chunk.nPol(); ++pol) {
+   for (casa::uInt pol=0; pol<nPol; ++pol) {
              
         // gains for antenna 1, polarisation pol
         const std::string g1name = paramName(ant1,pol);
