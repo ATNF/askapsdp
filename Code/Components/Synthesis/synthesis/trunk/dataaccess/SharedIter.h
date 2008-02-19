@@ -275,6 +275,20 @@ public:
        return itsSharedPtr;
     }
     
+    /// @brief dynamic cast operator
+    /// @details Sometimes it is necessary to convert the shared 
+    /// iterator to a different type. This method performs such
+    /// conversion. The output type is in fact boost::shared_ptr,
+    /// which can either be converted explicitly to SharedIter 
+    /// holding the same type or used directly.
+    /// @return shared pointer to a new type
+    template<typename Y>
+    inline boost::shared_ptr<Y> dynamicCast() const throw()
+    {
+       return boost::dynamic_pointer_cast<Y>(itsSharedPtr);
+    }
+        
+    
 private:
    // actual shared pointer to the iterator
    boost::shared_ptr<T> itsSharedPtr;

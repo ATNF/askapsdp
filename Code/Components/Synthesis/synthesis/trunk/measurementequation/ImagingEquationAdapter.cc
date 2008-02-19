@@ -108,21 +108,15 @@ scimath::Equation::ShPtr ImagingEquationAdapter::clone() const
 /// @params[in] chunk a chunk to be filled with predicted data
 void ImagingEquationAdapter::predict(IDataAccessor &chunk) const
 {     
-  try {
-      // we need an explicit type conversion, because shared iter would
-      // dereference the iterator according to its interface
-      const boost::shared_ptr<IDataIterator> basicIt = itsIterAdapter;
-      CONRADDEBUGASSERT(basicIt);
-      FakeSingleStepIterator &it = 
-              dynamic_cast<FakeSingleStepIterator&>(*basicIt);
-      it.assignDataAccessor(chunk);  
-      predict();
-      it.detachAccessor();      
-  }
-  catch (const std::bad_cast &bc) {
-     CONRADTHROW(ConradError, "Bad cast inside ImagingEquationAdapter::predict, most likely this means "
-                 "there is a logical error");
-  }
+   boost::shared_ptr<FakeSingleStepIterator> it = 
+             itsIterAdapter.dynamicCast<FakeSingleStepIterator>();
+   if (!it) {
+       CONRADTHROW(ConradError, "Bad cast inside ImagingEquationAdapter::predict, most likely this means "
+              "there is a logical error"); 
+   }
+   it->assignDataAccessor(chunk);  
+   predict();
+   it->detachAccessor();      
 }
    
 /// @brief accessor-based version of calcEquations
@@ -133,19 +127,14 @@ void ImagingEquationAdapter::predict(IDataAccessor &chunk) const
 void ImagingEquationAdapter::calcEquations(const IConstDataAccessor &chunk,
              scimath::INormalEquations &ne) const
 {
-  try {
-      // we need an explicit type conversion, because shared iter would
-      // dereference the iterator according to its interface
-      const boost::shared_ptr<IDataIterator> basicIt = itsIterAdapter;
-      CONRADDEBUGASSERT(basicIt);
-      FakeSingleStepIterator &it = 
-              dynamic_cast<FakeSingleStepIterator&>(*basicIt);
-      it.assignConstDataAccessor(chunk);  
-      calcEquations(ne);
-      it.detachAccessor();      
-  }
-  catch (const std::bad_cast &bc) {
-     CONRADTHROW(ConradError, "Bad cast inside ImagingEquationAdapter::calcEquations, most likely this means "
+  boost::shared_ptr<FakeSingleStepIterator> it = 
+            itsIterAdapter.dynamicCast<FakeSingleStepIterator>();
+  if (!it) {
+      CONRADTHROW(ConradError, "Bad cast inside ImagingEquationAdapter::calcEquations, most likely this means "
                  "there is a logical error");
   }
-}        
+  it->assignConstDataAccessor(chunk);  
+  calcEquations(ne);
+  it->detachAccessor();      
+}       
+ 
