@@ -31,7 +31,8 @@ IDataAccessor& FakeSingleStepIterator::operator*() const
   CONRADCHECK(itsDataAccessor,
               "Data accessor has to be assigned first to FakeSingleStepIterator");
   CONRADDEBUGASSERT(itsOriginFlag);
-  return *itsDataAccessor;
+  CONRADDEBUGASSERT(itsActiveAccessor);
+  return *itsActiveAccessor;
 }
 		
 /// Switch the output of operator* and operator-> to one of 
@@ -51,7 +52,21 @@ IDataAccessor& FakeSingleStepIterator::operator*() const
 ///
 void FakeSingleStepIterator::chooseBuffer(const std::string &bufferID)
 {
-  CONRADTHROW(ConradError,"chooseBuffer is not implemented for FakeSingleStepIterator");
+  CONRADCHECK(itsDataAccessor,
+              "Data accessor has to be assigned first to FakeSingleStepIterator");
+  std::map<std::string,
+     boost::shared_ptr<IDataAccessor> >::const_iterator bufferIt =
+                      itsBuffers.find(bufferID);
+		      
+  if (bufferIt==itsBuffers.end()) {
+      // deal with new buffer
+      itsActiveAccessor = itsBuffers[bufferID] =
+            boost::shared_ptr<MemBufferDataAccessor>(
+	          new MemBufferDataAccessor(*itsDataAccessor));
+  } else {
+      itsActiveAccessor=bufferIt->second;
+  }
+  itsActiveBufferName = bufferID;
 }
 
 /// Switch the output of operator* and operator-> to the original
@@ -61,7 +76,10 @@ void FakeSingleStepIterator::chooseBuffer(const std::string &bufferID)
 ///
 void FakeSingleStepIterator::chooseOriginal()
 {
-  CONRADTHROW(ConradError,"chooseOriginal is not implemented for FakeSingleStepIterator");
+  CONRADCHECK(itsDataAccessor,
+              "Data accessor has to be assigned first to FakeSingleStepIterator");
+  itsActiveAccessor = itsDataAccessor;
+  itsActiveBufferName.clear();
 }
 
 /// return any associated buffer for read/write access. The 
@@ -77,8 +95,20 @@ void FakeSingleStepIterator::chooseOriginal()
 /// write operation took place and implement a delayed writing
 IDataAccessor& FakeSingleStepIterator::buffer(const std::string &bufferID) const
 {
-  CONRADTHROW(ConradError,"buffer is not implemented for FakeSingleStepIterator, "
-              "attempting to access "<<bufferID);
+  CONRADCHECK(itsDataAccessor,
+              "Data accessor has to be assigned first to FakeSingleStepIterator");
+
+  std::map<std::string,
+      boost::shared_ptr<IDataAccessor> >::const_iterator bufferIt =
+                      itsBuffers.find(bufferID);
+  if (bufferIt!=itsBuffers.end()) {
+      // this buffer already exists
+      return *(bufferIt->second);
+  }
+  // this is a request for a new buffer
+  return *(itsBuffers[bufferID] =
+      boost::shared_ptr<IDataAccessor>(new MemBufferDataAccessor(
+                                       *itsDataAccessor)));
 }
 
 /// advance the iterator one step further
@@ -134,6 +164,36 @@ struct NullDeleter {
 
 } // namespace conrad
 
+/// @brief helper method to reassign all buffers to a new accessor
+/// @details With the calls to assign/detach accessor it can be replaced
+///	with a new reference. This method iterates over all buffers and reassigns
+/// them to the new accessor corresponding to the original visibilities.
+void FakeSingleStepIterator::reassignBuffers()
+{
+  std::map<std::string,
+      boost::shared_ptr<IDataAccessor> >::iterator it =
+                      itsBuffers.begin();
+                      
+  #ifdef CONRAD_DEBUG
+  bool activeBufferEncountered = false;
+  #endif              
+        
+  for (; it!=itsBuffers.end(); ++it) {
+       if (itsDataAccessor) {
+           it->second.reset(new MemBufferDataAccessor(*itsDataAccessor));
+       } else {
+           it->second.reset();
+       }
+       if (itsActiveBufferName == it->first) {
+           itsActiveAccessor = it->second;
+           #ifdef CONRAD_DEBUG
+           activeBufferEncountered = true;
+           #endif                 
+       }
+  }
+  CONRADDEBUGASSERT(!itsActiveBufferName.size() || activeBufferEncountered);
+}
+
 /// @brief assign a read/write accessor to this iterator
 /// @details itsDataAccessor is initialized with a reference
 /// to the given accessor. Note, reference semantics is used.
@@ -143,6 +203,7 @@ struct NullDeleter {
 void FakeSingleStepIterator::assignDataAccessor(IDataAccessor &acc)
 {
   itsDataAccessor.reset(&acc,utility::NullDeleter());
+  reassignBuffers();
 }
 
 /// @brief assign a const accessor to this iterator
@@ -157,6 +218,7 @@ void FakeSingleStepIterator::assignDataAccessor(IDataAccessor &acc)
 void FakeSingleStepIterator::assignConstDataAccessor(const IConstDataAccessor &acc)
 {
   itsDataAccessor.reset(new MemBufferDataAccessor(acc));
+  reassignBuffers();
 }
 
 /// @brief detach this iterator from current accessor
@@ -171,4 +233,9 @@ void FakeSingleStepIterator::assignConstDataAccessor(const IConstDataAccessor &a
 void FakeSingleStepIterator::detachAccessor()
 {
   itsDataAccessor.reset();
+  if (itsActiveBufferName.size()) {
+      reassignBuffers();
+  } else {
+      itsBuffers.clear();
+  }
 }

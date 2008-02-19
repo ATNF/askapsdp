@@ -15,6 +15,7 @@
 #define FAKE_SINGLE_STEP_ITERATOR_H
 
 #include <string>
+#include <map>
 
 #include <boost/shared_ptr.hpp>
 
@@ -127,12 +128,35 @@ public:
 	/// associated accessor is not valid (i.e. there is no logical error in the
 	/// other places of the code).
 	void detachAccessor();
-	
-public:
+protected:
+    /// @brief helper method to reassign all buffers to a new accessor
+    /// @details With the calls to assign/detach accessor it can be replaced
+    ///	with a new reference. This method iterates over all buffers and reassigns
+    /// them to the new accessor corresponding to the original visibilities.
+    void reassignBuffers();
+private:
     /// @brief flag whether this iterator is still at origin
     bool itsOriginFlag;
-	/// active accessor
+    
+    /// @brief the name of the active buffer
+    /// @details This data member is required because the iterator may have
+    /// one of the buffers active, while it is made associated with a new 
+    /// accessor. An empty string means that the original visibilities are 
+    /// active (i.e. buffers are shadowed). It is a limitation of this class
+    /// that empty buffer names are not allowed.
+    std::string itsActiveBufferName;
+	
+	/// assigned data accessor
 	boost::shared_ptr<IDataAccessor> itsDataAccessor;
+	
+	/// shared pointer to the data accessor associated with either an
+	/// active buffer or the original accessor (default). The actual
+	/// type held by pointer may vary.
+	boost::shared_ptr<IDataAccessor> itsActiveAccessor;
+	
+	/// a container of buffers
+	mutable std::map<std::string, 
+	       boost::shared_ptr<IDataAccessor> > itsBuffers;
 };
 
 } // end of namespace synthesis
