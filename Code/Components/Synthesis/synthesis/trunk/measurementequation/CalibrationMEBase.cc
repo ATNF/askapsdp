@@ -97,8 +97,6 @@ void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
 {  
   MemBufferDataAccessor  buffChunk(chunk);
   CONRADDEBUGASSERT(buffChunk.visibility().nelements());
-  std::cout<<"initial shape: "<<buffChunk.visibility().shape()<<std::endl;
-  std::cout<<".yzPlane: "<<buffChunk.visibility().yzPlane(0).shape()<<std::endl;
   
   itsPerfectVisME.predict(buffChunk);
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
