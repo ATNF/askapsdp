@@ -196,7 +196,6 @@ void CalibratorParallel::calcNE()
           itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); ++iMs) {
             calcOne(itsMs[iMs]);
-            CONRADLOG_INFO_STR(logger, "before add itsNe");
             itsSolver->addNormalEquations(*itsNe);
           }
       }
