@@ -87,7 +87,8 @@ protected:
   virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const IConstDataAccessor &acc,
                     casa::uInt row) const
   { using namespace scimath;  return itsEffect.get(acc,row) * 
-         ComplexDiffMatrix(casa::transpose(acc.visibility().yzPlane(row))); }
+         ComplexDiffMatrix(casa::transpose(acc.visibility().yzPlane(row))); 
+          }
 
 private:
    /// @brief effectively a measurement equation

@@ -71,7 +71,7 @@ int main(int argc, const char** argv)
                   nCycles);
                   
       for (int cycle = 0; cycle<nCycles; ++cycle) {
-           CONRADLOG_INFO_STR(logger, "*** Starting calibration iteration "<<cycle<<" ***");
+           CONRADLOG_INFO_STR(logger, "*** Starting calibration iteration "<<cycle+1<<" ***");
            calib.broadcastModel();
            calib.receiveModel();
            calib.calcNE();

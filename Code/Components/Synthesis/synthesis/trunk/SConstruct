@@ -14,6 +14,7 @@ env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 #env.Append(CCFLAGS=['-O2', '-DCONRAD_DEBUG', '-DCONRAD_GRID_WITH_BLAS', '-g'])
 env.Append(CCFLAGS=['-O2', '-DCONRAD_DEBUG', '-g'])
+env.Append(universal=0)
 
 # create build object with library name
 pkg = env.ConradPackage("synthesis")

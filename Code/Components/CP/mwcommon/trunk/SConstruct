@@ -7,6 +7,8 @@
 # Always import this
 from conradenv import env
 
+env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g', '-DUSE_NOSOCKETS'])
+
 # create build object with library name
 pkg = env.ConradPackage("mwcommon")
 # add sub packages 

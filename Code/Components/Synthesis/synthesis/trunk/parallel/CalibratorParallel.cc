@@ -21,7 +21,7 @@
 // logging stuff
 #include <conrad_synthesis.h>
 #include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+CONRAD_LOGGER(logger, ".parallel");
 
 // own includes
 #include <parallel/CalibratorParallel.h>
@@ -83,8 +83,8 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
       // initial assumption of the parameters
       const casa::uInt nAnt = 45; // hard coded at this stage 
       for (casa::uInt ant = 0; ant<nAnt; ++ant) {
-           itsModel->add("gain.g11"+utility::toString(ant),casa::Complex(1.,0.));
-           itsModel->add("gain.g22"+utility::toString(ant),casa::Complex(1.,0.));
+           itsModel->add("gain.g11."+utility::toString(ant),casa::Complex(1.,0.));
+           itsModel->add("gain.g22."+utility::toString(ant),casa::Complex(1.,0.));
       }
       
       
@@ -196,6 +196,7 @@ void CalibratorParallel::calcNE()
           itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); ++iMs) {
             calcOne(itsMs[iMs]);
+            CONRADLOG_INFO_STR(logger, "before add itsNe");
             itsSolver->addNormalEquations(*itsNe);
           }
       }
@@ -203,7 +204,7 @@ void CalibratorParallel::calcNE()
 }
 
 void CalibratorParallel::solveNE()
-{
+{ 
   if (isMaster()) {
       // Receive the normal equations
       if (isParallel()) {

@@ -28,6 +28,7 @@ using std::string;
 using std::vector;
 using std::map;
 using namespace conrad;
+using namespace casa;
 
 namespace conrad
 {
@@ -205,10 +206,10 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
    
    for (ComplexDiffMatrix::const_iterator elem = cdm.begin();
               elem != cdm.end(); ++elem, ++resIt, ++rwtIt, ++wtIt, ++measIt) {
-        CONRADDEBUGASSERT(measIt != measured.cend());
+        CONRADDEBUGASSERT(measIt != measured.end());
         CONRADDEBUGASSERT(resIt != residual.cend());
         CONRADDEBUGASSERT(rwtIt != reformedWeights.cend());
-        CONRADDEBUGASSERT(wtIt != weights.cend());
+        CONRADDEBUGASSERT(wtIt != weights.end());
         const casa::Complex value = *measIt - elem->value();
         *resIt = real(value);
         *(++resIt) = imag(value);
