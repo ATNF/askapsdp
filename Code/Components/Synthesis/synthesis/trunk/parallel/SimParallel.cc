@@ -28,6 +28,10 @@ CONRAD_LOGGER(logger, ".parallel");
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/MEParsetInterface.h>
+#include <measurementequation/CalibrationME.h>
+#include <measurementequation/NoXPolGain.h>
+#include <measurementequation/ImagingEquationAdapter.h>
+
 
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
@@ -350,27 +354,50 @@ namespace conrad
     }
     void SimParallel::predict(const string& ms)
     {
-      if(isWorker())
-	{
-	  casa::Timer timer;
-	  timer.mark();
-	  CONRADLOG_INFO_STR(logger, "Simulating data for " << ms );
-	  CONRADLOG_INFO_STR(logger, "Model is " << *itsModel);
-	  TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED);
-	  IDataSelectorPtr sel=ds.createSelector();
-	  sel << itsParset;
-	  IDataConverterPtr conv=ds.createConverter();
-	  conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
-	  conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
-	  IDataSharedIter it=ds.createIterator(sel, conv);
-	  /// Create the gridder using a factory acting on a
-	  /// parameterset
-	  IVisGridder::ShPtr gridder=VisGridderFactory::make(itsParset);
-	  CONRADCHECK(gridder, "Gridder not defined correctly");
-	  conrad::scimath::Equation::ShPtr equation(new ImageFFTEquation (*itsModel, it, gridder));
-	  equation->predict();
-	  CONRADLOG_INFO_STR(logger,  "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
-	}
+      if(isWorker()) {
+	     casa::Timer timer;
+	     timer.mark();
+	     CONRADLOG_INFO_STR(logger, "Simulating data for " << ms );
+	     CONRADLOG_INFO_STR(logger, "Model is " << *itsModel);
+	     TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED);
+	     IDataSelectorPtr sel=ds.createSelector();
+	     sel << itsParset;
+	     IDataConverterPtr conv=ds.createConverter();
+	     conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+	     conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+	     IDataSharedIter it=ds.createIterator(sel, conv);
+	     /// Create the gridder using a factory acting on a
+	     /// parameterset
+	     IVisGridder::ShPtr gridder=VisGridderFactory::make(itsParset);
+	     CONRADCHECK(gridder, "Gridder not defined correctly");
+	     
+	     // the measurement equation used for prediction 
+	     // actual type depends on what we are simulating
+	     // therefore it is uninitialized at the moment
+	     conrad::scimath::Equation::ShPtr equation;
+	     // an adapter to use imaging equation with the calibration framework
+	     // we may not need it (if data corruption is off) at all, therefore
+	     // it is uninitialized. We can't move it inside the if-block because
+	     // the shared pointer must be valid at the time predict is called
+	     // (a destructor is be called when it goes out of scope)
+	     boost::shared_ptr<ImagingEquationAdapter> ieAdapter;
+	     
+	     if (itsParset.getBool("corrupt", false)) {
+	        CONRADLOG_INFO_STR(logger, "Making equation to simulate calibration effects");
+	        // initialize the adapter
+	        ieAdapter.reset(new ImagingEquationAdapter);
+	        ieAdapter->assign<ImageFFTEquation>(*itsModel, gridder);
+	        scimath::Params gainModel; // to be filled later
+	        // need to fill gainModel here after we fix ParsetInterface
+            equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,*ieAdapter));
+	     } else {
+	       CONRADLOG_INFO_STR(logger, "Calibration effects are not simulated");
+	       equation.reset(new ImageFFTEquation (*itsModel, it, gridder));
+	     }
+	     CONRADCHECK(equation, "Equation is not defined correctly");
+	     equation->predict();
+	     CONRADLOG_INFO_STR(logger,  "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
+	  }
     }
     
   }
