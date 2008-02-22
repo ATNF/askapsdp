@@ -74,7 +74,8 @@ namespace conrad
         /// Create the specified images from the definition in the
         /// parameter set. We can solve for any number of images
         /// at once (but you may/will run out of memory!)
-        itsModel << itsParset.makeSubset("Images.");
+        SynthesisParamsHelper::setUpImages(itsModel, 
+                                           itsParset.makeSubset("Images."));
         CONRADCHECK(itsModel, "Model not defined correctly");
 
         /// Create the solver from the parameterset definition and the existing

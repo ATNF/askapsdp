@@ -34,11 +34,6 @@ namespace conrad
 	namespace synthesis
 	{
 
-		/// @brief set up images according to the parset file
-		/// @param[in] params Images to be created here
-		/// @param[in] parset a parset object to read the parameters from
-		/// @ingroup measurementequation
-		void operator<<(conrad::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
 
 		/// @brief set up solver according to the parset file
 		/// @param[in] solver Pointer to solver to be created

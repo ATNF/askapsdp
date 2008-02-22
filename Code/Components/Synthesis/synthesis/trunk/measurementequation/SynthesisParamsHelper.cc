@@ -23,8 +23,12 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <coordinates/Coordinates/Projection.h>
 
 #include <APS/ParameterSet.h>
+#include <Common/Exception.h>
 
 #include <measures/Measures/Stokes.h>
+
+#include <vector>
+#include <algorithm>
 
 using namespace conrad::scimath;
 using namespace casa;
@@ -33,6 +37,50 @@ namespace conrad
 {
   namespace synthesis
   {
+  
+    /// @brief populate scimath parameters from a LOFAR Parset object
+    /// @details One needs often needs a possibility to populate 
+    /// scimath::Params class from a Parset file (e.g. to load 
+    /// initial gains from an external file). A number of add methods
+    /// collected in this class happen to be image-specific. This is
+    /// a generic method, which just copies all numeric fields
+    /// @param[in] params a reference to scimath parameter object, where the
+    /// parameters from parset file will be added
+    /// @param[in] parset a const reference to a parset object
+    /// @return a reference to params passed as an input (for chaining)
+    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ACC::APS::ParameterSet &parset)
+    {
+       for (LOFAR::ACC::APS::ParameterSet::const_iterator ci = parset.begin();
+            ci != parset.end();++ci) {
+            try {
+               vector<double> vec = parset.getDoubleVector(ci->first);
+               casa::Vector<double> arr(vec.size());
+               std::copy(vec.begin(),vec.end(),arr.cbegin());
+               params.add(ci->first, arr);
+            }
+            catch (const LOFAR::Exception &) {
+               // ignore non-numeric parameters
+            }
+       }
+       return params;
+    }
+    
+    void SynthesisParamsHelper::setUpImages(conrad::scimath::Params::ShPtr& params,
+				const LOFAR::ACC::APS::ParameterSet &parset)
+    {
+	  vector<string> images=parset.getStringVector("Names");
+      for (vector<string>::iterator it=images.begin();it!=images.end();it++) {
+           std::vector<int> shape=parset.getInt32Vector(*it+".shape");
+           int nchan=parset.getInt32(*it+".nchan");
+           std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
+           std::vector<std::string> direction=parset.getStringVector(*it+".direction");
+           std::vector<std::string> cellsize=parset.getStringVector(*it+".cellsize");
+
+		   add(*params, *it, direction, cellsize, shape,
+						freq[0], freq[1], nchan);
+	   }
+	}
+    
     
     void SynthesisParamsHelper::add(conrad::scimath::Params& ip,
 				    const LOFAR::ACC::APS::ParameterSet& parset, const std::string& baseKey)

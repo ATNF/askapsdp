@@ -18,7 +18,6 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <conrad/ConradError.h>
 
 #include <measurementequation/MEParsetInterface.h>
-#include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageSolver.h>
 #include <measurementequation/ImageMultiScaleSolver.h>
 
@@ -35,23 +34,6 @@ namespace conrad
 {
 	namespace synthesis
 	{
-
-		void operator<<(conrad::scimath::Params::ShPtr& params,
-				const LOFAR::ACC::APS::ParameterSet &parset)
-		{
-			vector<string> images=parset.getStringVector("Names");
-			for (vector<string>::iterator it=images.begin();it!=images.end();it++)
-			{
-				std::vector<int> shape=parset.getInt32Vector(*it+".shape");
-				int nchan=parset.getInt32(*it+".nchan");
-				std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
-				std::vector<std::string> direction=parset.getStringVector(*it+".direction");
-				std::vector<std::string> cellsize=parset.getStringVector(*it+".cellsize");
-
-				SynthesisParamsHelper::add(*params, *it, direction, cellsize, shape,
-						freq[0], freq[1], nchan);
-			}
-		}
 
 		void operator<<(conrad::scimath::Solver::ShPtr& solver, 
 				const LOFAR::ACC::APS::ParameterSet &parset)

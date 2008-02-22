@@ -21,11 +21,31 @@ namespace conrad
 {
   namespace synthesis
   {
+    /// @brief populate scimath parameters from a LOFAR Parset object
+    /// @details One needs often needs a possibility to populate 
+    /// scimath::Params class from a Parset file (e.g. to load 
+    /// initial gains from an external file). A number of add methods
+    /// collected in this class happen to be image-specific. This is
+    /// a generic method, which just copies all numeric fields
+    /// @param[in] params a reference to scimath parameter object, where the
+    /// parameters from parset file will be added
+    /// @param[in] parset a const reference to a parset object
+    /// @return a reference to params passed as an input (for chaining)
+    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ACC::APS::ParameterSet &parset);
+  
     /// @brief Helper functions for synthesis processing using Params
     /// @ingroup measurementequation
     class SynthesisParamsHelper 
     {
       public:
+        
+        /// @brief set up images according to the parset file
+		/// @param[in] params Images to be created here
+		/// @param[in] parset a parset object to read the parameters from
+		/// @note (MV)This method is probably a duplication of the one of 
+		/// add methods - needs to be cleared
+		static void setUpImages(conrad::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+      
         /// @brief Add a parameter as an image
         /// @param ip Parameters
         /// @param name Name of parameter

@@ -387,9 +387,13 @@ namespace conrad
 	        // initialize the adapter
 	        ieAdapter.reset(new ImagingEquationAdapter);
 	        ieAdapter->assign<ImageFFTEquation>(*itsModel, gridder);
-	        scimath::Params gainModel; // to be filled later
-	        // need to fill gainModel here after we fix ParsetInterface
-            equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,*ieAdapter));
+	        scimath::Params gainModel; 
+	        CONRADCHECK(itsParset.isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");   
+	        const std::string gainsfile = itsParset.getString("corrupt.gainsfile");
+	        CONRADLOG_INFO_STR(logger, "Loading gains from file '"<<gainsfile<<"'");
+	        gainModel << ParameterSet(gainsfile);
+	        CONRADDEBUGASSERT(ieAdapter);
+	        equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,*ieAdapter));
 	     } else {
 	       CONRADLOG_INFO_STR(logger, "Calibration effects are not simulated");
 	       equation.reset(new ImageFFTEquation (*itsModel, it, gridder));
