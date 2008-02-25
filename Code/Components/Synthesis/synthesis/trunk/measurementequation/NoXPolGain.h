@@ -77,7 +77,6 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
                    chunk.nPol());
    }
    */
-   
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
    

@@ -23,7 +23,7 @@ namespace synthesis {
 /// @brief A Calibration component (i.e. individual effect).
 /// @details The easiest way of creating individual components is
 /// by deriving from this class. This class is mainly a structural
-/// unit, but it holds the reference to parameters, which are passed
+/// unit, but it holds a reference to parameters, which are passed
 /// around to all components of the measurement equation.
 /// @ingroup measurementequation
 struct ParameterizedMEComponent : public MEComponent {

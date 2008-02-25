@@ -70,7 +70,7 @@ public:
   CalibrationME(const conrad::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
             MultiChunkEquation(idi), conrad::scimath::GenericEquation(ip),
-            CalibrationMEBase(ip, idi, ime), itsEffect(ip) {}
+            CalibrationMEBase(parameters(), idi, ime), itsEffect(parameters()) {}
   
   /// Clone this into a shared pointer
   /// @return shared pointer to a copy
