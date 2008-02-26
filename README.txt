@@ -125,3 +125,9 @@ The following assumptions are made:
 More details are provided with the different versions of releaseprocess at 
 Tools/releaseprocess. They can be read by executing python setup.py doc or examining the 
 source code directly for the relevant version.
+
+Troubleshooting
+===============
+
+Make sure that you don't have a ~/.pydistutils.cfg because thsi conflict with workingenv.
+
