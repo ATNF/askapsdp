@@ -55,6 +55,17 @@ protected:
    /// @param[in] ant antenna number (0-based)
    /// @param[in] pol index of the polarisation product
    static std::string paramName(casa::uInt ant, casa::uInt pol);
+   
+   /// @brief obtain polarisation index
+   /// @details We really need a better way of handling orders of polarisation
+   /// products. I hope this method is temporary. It translates polarisation
+   /// plane number in the visibility cube to polarisation index (i.e. 0 or 1).
+   /// The method returns nPol, if this polarisation corresponds to a 
+   /// cross-product.
+   /// @param[in] pol polarisation plane number in the visibility cube 
+   /// @param[in] nPol total number of polarisation planes
+   /// @return polarisation index
+   static casa::uInt polIndex(casa::uInt pol, casa::uInt nPol);
 };
 
 /// @brief main method returning Mueller matrix and derivatives
@@ -68,34 +79,31 @@ protected:
 inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chunk, 
                                       casa::uInt row) const
 {
-   CONRADDEBUGASSERT(chunk.nPol());   
-   const casa::uInt nPol = chunk.nPol()<=2 ? chunk.nPol() : 2;
+   const casa::uInt nPol = chunk.nPol();
+   CONRADDEBUGASSERT(nPol);   
    
-   /*
-   if (chunk.nPol()>2) {
-       CONRADTHROW(ConradError, "Cross pols are not supported at the moment, you have nPol="<<
-                   chunk.nPol());
-   }
-   */
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
    
    CONRADASSERT(ant1!=ant2); // not yet implemented
    
-   scimath::ComplexDiffMatrix calFactor(chunk.nPol(), chunk.nPol(), 0.);
+   scimath::ComplexDiffMatrix calFactor(nPol, nPol, 0.);
 
    for (casa::uInt pol=0; pol<nPol; ++pol) {
              
-        // gains for antenna 1, polarisation pol
-        const std::string g1name = paramName(ant1,pol);
-        const casa::Complex g1 = parameters().complexValue(g1name);
+        const casa::uInt pInd = polIndex(pol, nPol);
+        if (pInd < nPol) {
+           // gains for antenna 1, polarisation pInd
+           const std::string g1name = paramName(ant1,pInd);
+           const casa::Complex g1 = parameters().complexValue(g1name);
             
-        // gains for antenna 2, polarisation pol
-        const std::string g2name = paramName(ant2,pol);
-        const casa::Complex g2 = parameters().complexValue(g2name);
+           // gains for antenna 2, polarisation polIndex
+           const std::string g2name = paramName(ant2,pInd);
+           const casa::Complex g2 = parameters().complexValue(g2name);
             
-        calFactor(pol,pol) = scimath::ComplexDiff(g1name,g1)*
-                 conj(scimath::ComplexDiff(g2name,g2));            
+           calFactor(pol,pol) = scimath::ComplexDiff(g1name,g1)*
+                    conj(scimath::ComplexDiff(g2name,g2));            
+        }
    }
    return calFactor;
 }

@@ -124,6 +124,7 @@ namespace conrad
       const int nChan = idi->frequency().size();
       const int nPol = idi->visibility().shape()(2);
       
+      CONRADDEBUGASSERT(itsShape.nelements()>=2);
       const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
       const casa::IPosition onePlane(2, itsShape(0), itsShape(1));
       
@@ -196,18 +197,49 @@ namespace conrad
 		  /// Ensure that we only use unflagged data
 		  /// @todo Be more careful about matching polarizations
 		  if(allPolGood) {
+		    // Lookup the portion of grid to be
+		    // used for this row, polarisation and channel
+		    const int gInd=gIndex(i, pol, chan);
+		    CONRADCHECK(gInd>-1, "Index into image grid is less than zero");
+		    CONRADCHECK(gInd<int(itsGrid.size()),
+				"Index into image grid exceeds number of planes");
+
+                    // MFS override of imagePol applies to gridding only
+                    // degridding should treat polarisations independently
+                    if (forward) {
+                        imagePol = pol;
+                        const casa::IPosition gridShape = itsGrid[gInd].shape();
+                        bool noXPols = false;
+                        if (gridShape.nelements()<=2) {
+                            // grid is a 2D image, treat the source as unpolarised
+                            noXPols = true;
+                            imagePol = 0;
+                        } else {
+                            // we need a better way to handle the order of polarisations
+                            CONRADCHECK((gridShape[2] == 1) || (gridShape[2] == 2) || (gridShape[2] == 4), 
+                                        "only 1,2 and 4 polarisations are supported, "
+                                        "current grid shape is "<<gridShape); 
+                            if (gridShape[2] == 1) {
+                                noXPols = true; // unpolarized source
+                                imagePol = 0;
+                            }
+                            if (gridShape[2] == 2) {
+                                noXPols = true; // grid has 2 polarisations, treat them as parallel-hand products
+                                imagePol = (pol == 3) ? 1 : 0;
+                            }
+                        }
+                        // we need a better way to handle the order of polarisations
+                        if (((pol == 1) || (pol == 2)) && noXPols) {
+                            continue; // skip polarisation, nothing is degridded
+                        }
+                    }
 		    /// Make a slicer to extract just this plane
 		    /// @todo Enable pol and chan maps
 		    const casa::IPosition ipStart(4, 0, 0, imagePol, imageChan);
 		    const casa::Slicer slicer(ipStart, onePlane4D);
 		    
-		    /// Lookup the portion of grid and convolution function to be
-		    /// used for this row, polarisation and channel
-		    
-		    const int gInd=gIndex(i, pol, chan);
-		    CONRADCHECK(gInd>-1, "Index into image grid is less than zero");
-		    CONRADCHECK(gInd<int(itsGrid.size()),
-				"Index into image grid exceeds number of planes");
+		    // Lookup the convolution function to be
+		    // used for this row, polarisation and channel
 		    const int cInd=cIndex(i, pol, chan);
 		    CONRADCHECK(cInd>-1,
 				"Index into convolution functions is less than zero");

@@ -38,6 +38,31 @@ std::string NoXPolGain::paramName(casa::uInt ant, casa::uInt pol)
   return res+utility::toString<casa::uInt>(ant);
 }
 
+
+/// @brief obtain polarisation index
+/// @details We really need a better way of handling orders of polarisation
+/// products. I hope this method is temporary. It translates polarisation
+/// plane number in the visibility cube to polarisation index (i.e. 0 or 1).
+/// The method returns nPol, if this polarisation corresponds to a 
+/// cross-product.
+/// @param[in] pol polarisation plane number in the visibility cube 
+/// @param[in] nPol total number of polarisation planes
+/// @return polarisation index
+casa::uInt NoXPolGain::polIndex(casa::uInt pol, casa::uInt nPol)
+{
+  CONRADDEBUGASSERT((nPol == 1) || (nPol == 2) || (nPol == 4));
+  CONRADDEBUGASSERT(pol<nPol);
+  if (nPol < 4) {
+      return pol; // no polarisation handling is required (either single plane
+                  // or two planes corresponding to two orthogonal polarisations)
+  }
+  // full polarisations case
+  if ((pol == 1) || (pol == 2)) {
+      return nPol; // these are cross-products - exclude them
+  } 
+  return (pol == 3) ? 1 : 0;
+}
+
 } // namespace synthesis
 
 } // namespace conrad

@@ -70,13 +70,14 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 
   itsPerfectVisME.predict(chunk);
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
+       // buildComplexDiffMatrix multiplies the effect matrix and visibilities
        ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row);
        
        for (casa::uInt chan = 0; chan < chunk.nChannel(); ++chan) {
             for (casa::uInt pol = 0; pol < chunk.nPol(); ++pol) {
-                 // cdm is transposed! because we need a vector for
-                 // each spectral channel for a proper matrix multiplication
-                 rwVis(row, chan, pol) *= cdm(pol, chan).value();
+               // cdm is transposed! because we need a vector for
+               // each spectral channel for a proper matrix multiplication
+               rwVis(row, chan, pol) = cdm(pol, chan).value();
             }
        }
   }
@@ -101,6 +102,7 @@ void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
   
   for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
+       // buildComplexDiffMatrix multiplies the effect matrix and visibilities
        ComplexDiffMatrix cdm = buildComplexDiffMatrix(buffChunk, row);
        casa::Matrix<casa::Complex> measuredSlice = transpose(measuredVis.yzPlane(row));
        

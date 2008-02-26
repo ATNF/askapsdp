@@ -379,7 +379,7 @@ namespace conrad
 	     // we may not need it (if data corruption is off) at all, therefore
 	     // it is uninitialized. We can't move it inside the if-block because
 	     // the shared pointer must be valid at the time predict is called
-	     // (a destructor is be called when it goes out of scope)
+	     // (a destructor is called when it goes out of scope)
 	     boost::shared_ptr<ImagingEquationAdapter> ieAdapter;
 	     
 	     if (itsParset.getBool("corrupt", false)) {
