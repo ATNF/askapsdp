@@ -11,7 +11,6 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <fitting/DesignMatrix.h>
 #include <fitting/Axes.h>
 
-#include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
 #include <casa/BasicSL/Constants.h>
 #include <casa/BasicSL/Complex.h>

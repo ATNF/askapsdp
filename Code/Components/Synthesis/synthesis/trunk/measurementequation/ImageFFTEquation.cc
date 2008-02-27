@@ -14,7 +14,6 @@ CONRAD_LOGGER(logger, ".measurementequation");
 
 #include <gridding/SphFuncVisGridder.h>
 
-#include <msvis/MSVis/StokesVector.h>
 #include <scimath/Mathematics/RigidVector.h>
 
 #include <casa/BasicSL/Constants.h>
