@@ -4,7 +4,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/DesignMatrix.h>
 
-#include <msvis/MSVis/StokesVector.h>
+#include <measures/Measures/Stokes.h>
 #include <scimath/Mathematics/RigidVector.h>
 #include <casa/BasicSL/Constants.h>
 #include <casa/BasicSL/Complex.h>
