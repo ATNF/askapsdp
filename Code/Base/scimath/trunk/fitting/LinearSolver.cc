@@ -136,9 +136,14 @@ namespace conrad
       if(algorithm()=="SVD")
       {  
         gsl_matrix * V = gsl_matrix_alloc (nParameters, nParameters);
+        CONRADDEBUGASSERT(V!=NULL);
         gsl_vector * S = gsl_vector_alloc (nParameters);
+        CONRADDEBUGASSERT(S!=NULL);
         gsl_vector * work = gsl_vector_alloc (nParameters);
+        CONRADDEBUGASSERT(work!=NULL);
+        
         //gsl_linalg_SV_decomp (A, V, S, work);
+        
         SVDecomp (A, V, S);
         
         // code to put a limit on the condition number of the system
@@ -162,7 +167,10 @@ namespace conrad
         */
         
         gsl_vector * X = gsl_vector_alloc(nParameters);
+        CONRADDEBUGASSERT(X!=NULL);
+        
         gsl_linalg_SV_solve (A, V, S, B, X);
+        
 // Now find the statistics for the decomposition
         int rank=0;
         double smin=1e50;
@@ -190,8 +198,8 @@ namespace conrad
         }
 // Update the parameters for the calculated changes. Exploit reference
 // semantics of casa::Array.
-        map<string, int>::iterator indit;
-        for (indit=indices.begin();indit!=indices.end();indit++)
+        map<string, int>::const_iterator indit;
+        for (indit=indices.begin();indit!=indices.end();++indit)
         {
           casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
@@ -211,8 +219,8 @@ namespace conrad
         gsl_linalg_cholesky_decomp(A);
         gsl_linalg_cholesky_solve(A, B, X);
 // Update the parameters for the calculated changes
-        map<string, int>::iterator indit;
-        for (indit=indices.begin();indit!=indices.end();indit++)
+        map<string, int>::const_iterator indit;
+        for (indit=indices.begin();indit!=indices.end();++indit)
         {
           casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
@@ -227,7 +235,7 @@ namespace conrad
       gsl_vector_free(B);
       gsl_matrix_free(A);
       gsl_vector_free(X);
-
+        
       return true;
     };
 

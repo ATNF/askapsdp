@@ -1,7 +1,7 @@
 #include <cppunit/ui/text/TestRunner.h>
 
 #include <conrad_conrad.h>
-#include <IndexedLessTest.h>
+#include <IndexedCompareTest.h>
 #include <ConradErrorTest.h>
 #include <MapKeyIteratorTest.h>
 

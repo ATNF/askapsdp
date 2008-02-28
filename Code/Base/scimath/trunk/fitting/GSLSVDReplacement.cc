@@ -13,7 +13,7 @@
 // own includes
 #include <fitting/GSLSVDReplacement.h>
 #include <conrad/ConradError.h>
-#include <conrad/IndexedLess.h>
+#include <conrad/IndexedCompare.h>
 
 // main SVD code, taken from another project
 #include <fitting/SVDecompose.h>
@@ -24,7 +24,6 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
-
 
 namespace conrad {
 
@@ -53,7 +52,6 @@ private:
 } // namespace utility
 
 namespace scimath {
-
 
 /// @brief main method - do SVD (in a symmetric case)
 /// @details The routine does decomposition: A=UWV^T
@@ -95,9 +93,21 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
   std::vector<size_t> VectorSIndices(VectorS.size());
   std::generate(VectorSIndices.begin(), VectorSIndices.end(), 
                 utility::Counter<size_t>());
-  std::sort(VectorSIndices.begin(), VectorSIndices.end(), 
-            not2(utility::indexedLess<size_t>(VectorS.begin())));
   
+  /*
+  std::ofstream os("dbg.dat");
+  os<<"   double Vals["<<VectorSIndices.size()<<"]={";
+  for (size_t ii=0;ii<VectorS.size();++ii) {
+       os<<std::setprecision(15)<<VectorS[ii];
+       if (ii+1!=VectorS.size()) os<<",";
+       if (ii%5==0 && ii) os<<std::endl<<"                    ";
+  }
+  os<<"};"<<std::endl;
+  */
+  
+  std::sort(VectorSIndices.begin(), VectorSIndices.end(), 
+        utility::indexedCompare<size_t>(VectorS.begin(),std::greater<double>()));
+          
   CONRADDEBUGASSERT(VectorS.size() == VectorSIndices.size());
   for (size_t row=0;row<MatrixV.nrow();++row) {
        for (size_t col=0;col<MatrixV.ncol();++col) {
