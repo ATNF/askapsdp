@@ -448,7 +448,8 @@ namespace conrad
                         break;
                       }
                     }
-                    CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds");
+                    CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds, nDone="<<
+                                nDone<<" itsMaxFeeds="<<itsMaxFeeds);
                   }
 
                   void AProjectWStackVisGridder::correctConvolution(casa::Array<double>& grid)

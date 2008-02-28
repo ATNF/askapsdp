@@ -131,6 +131,12 @@ namespace conrad
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         itsIdi->rwVisibility().set(0.0);
+        /*
+        CONRADDEBUGASSERT(itsIdi->nPol() == 4);
+        for (casa::uInt p=1;p<3;++p) {
+             itsIdi->rwVisibility().xyPlane(p).set(0.);
+        }
+        */
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           string imageName("image.i"+(*it));

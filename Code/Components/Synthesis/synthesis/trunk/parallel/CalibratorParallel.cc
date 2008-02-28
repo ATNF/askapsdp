@@ -53,6 +53,7 @@ CONRAD_LOGGER(logger, ".parallel");
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 using namespace conrad;
 using namespace conrad::scimath;
@@ -85,12 +86,14 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
       for (casa::uInt ant = 0; ant<nAnt; ++ant) {
            itsModel->add("gain.g11."+utility::toString(ant),casa::Complex(1.,0.));
            itsModel->add("gain.g22."+utility::toString(ant),casa::Complex(1.,0.));
+           //itsModel->fix("gain.g11."+utility::toString(ant));
       }
       
       
       /// Create the solver  
       itsSolver.reset(new LinearSolver(*itsModel));
       CONRADCHECK(itsSolver, "Solver not defined correctly");
+      itsRefGain = itsParset.getString("refgain","");
   }
   if (isWorker()) {
       /// Get the list of measurement sets and the column to use.
@@ -215,10 +218,44 @@ void CalibratorParallel::solveNE()
       timer.mark();
       Quality q;
       CONRADDEBUGASSERT(itsSolver);
+      itsSolver->setAlgorithm("SVD");     
       itsSolver->solveNormalEquations(q);
       CONRADLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds ");
       *itsModel=itsSolver->parameters();
+      if (itsRefGain != "") {
+          CONRADLOG_INFO_STR(logger, "Rotating phases to have that of "<<itsRefGain<<" equal to 0");
+          rotatePhases();
+      }
   }
+}
+
+/// @brief helper method to rotate all phases
+/// @details This method rotates the phases of all gains in itsModel
+/// to have the phase of itsRefGain exactly 0. This operation does
+/// not seem to be necessary for SVD solvers, however it simplifies
+/// "human eye" analysis of the results (otherwise the phase degeneracy
+/// would make the solution different from the simulated gains).
+/// @note The method throws exception if itsRefGain is not among
+/// the parameters of itsModel
+void CalibratorParallel::rotatePhases()
+{
+  CONRADDEBUGASSERT(isMaster());
+  CONRADDEBUGASSERT(itsModel);
+  CONRADCHECK(itsModel->has(itsRefGain), "phase rotation to `"<<itsRefGain<<
+              "` is impossible because this parameter is not present in the model");
+  
+  const casa::Complex refPhaseTerm = casa::polar(1.f,
+                -arg(itsModel->complexValue(itsRefGain)));
+                       
+  std::vector<std::string> names(itsModel->freeNames());
+  for (std::vector<std::string>::const_iterator it=names.begin();
+               it!=names.end();++it)  {
+       const std::string parname = *it;
+       if (parname.find("gain") != std::string::npos) {                    
+           itsModel->update(parname,
+                 itsModel->complexValue(parname)*refPhaseTerm);                                 
+       } 
+  }             
 }
 
 /// Write the results out

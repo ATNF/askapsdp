@@ -85,6 +85,17 @@ namespace conrad
       /// @details The solution (calibration parameters) is written into 
       /// an external file in the parset file format.
       virtual void writeModel();
+
+  protected:      
+      /// @brief helper method to rotate all phases
+      /// @details This method rotates the phases of all gains in itsModel
+      /// to have the phase of itsRefGain exactly 0. This operation does
+      /// not seem to be necessary for SVD solvers, however it simplifies
+      /// "human eye" analysis of the results (otherwise the phase degeneracy
+      /// would make the solution different from the simulated gains).
+      /// @note The method throws exception if itsRefGain is not among
+      /// the parameters of itsModel
+      void rotatePhases();
       
   private:
       /// @brief read the model from parset file and populate itsPerfectModel
@@ -114,6 +125,10 @@ namespace conrad
 
       /// uncorrupted model
       conrad::scimath::Params::ShPtr itsPerfectModel;
+      
+      /// @brief name of the parameter taken as a reference
+      /// @details empty string means no referencing is required
+      std::string itsRefGain;
     };
 
   }
