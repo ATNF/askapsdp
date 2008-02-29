@@ -45,6 +45,8 @@ CONRAD_LOGGER(logger, ".measurementequation");
 
 #include <stdexcept>
 #include <iostream>
+#include <vector>
+#include <string>
 
 using namespace conrad;
 using namespace conrad::scimath;
@@ -147,6 +149,21 @@ namespace conrad
             
             scimath::Params gainModel; 
 	        gainModel << ParameterSet(itsGainsFile);
+	        // temporary "matrix inversion". we need to do it properly in the
+	        // CalibrationME class. The code below won't work for cross-pols
+	        std::vector<std::string> names = gainModel.names();
+	        for (std::vector<std::string>::const_iterator nameIt = names.begin();
+	             nameIt != names.end(); ++nameIt) {
+	                casa::Complex gain = gainModel.complexValue(*nameIt);
+	                if (abs(gain)<1e-3) {
+	                    CONRADLOG_INFO_STR(logger, "Very small gain has been encountered "<<*nameIt
+	                           <<"="<<gain);
+	                    continue;       
+	                } else {
+	                  gainModel.update(*nameIt, casa::Complex(1.,0.)/gain);
+	                }
+	             }
+	        //
 	        if (!itsVoidME) {
 	            itsVoidME.reset(new VoidMeasurementEquation);
 	        }
