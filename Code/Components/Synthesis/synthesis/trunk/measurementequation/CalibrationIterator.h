@@ -106,6 +106,9 @@ public:
     /// write operation took place and implement a delayed writing
     virtual IDataAccessor& buffer(const std::string &bufferID) const;
 	
+    /// Restart the iteration from the beginning
+    virtual void init();
+	
     /// Checks whether there are more data available.
     /// @return True if there are more data available
     virtual casa::Bool hasMore() const throw();

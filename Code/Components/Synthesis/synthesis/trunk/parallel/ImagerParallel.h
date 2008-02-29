@@ -16,6 +16,7 @@
 #include <fitting/Solver.h>
 
 #include <APS/ParameterSet.h>
+#include <measurementequation/IMeasurementEquation.h>
 
 namespace conrad
 {
@@ -124,6 +125,15 @@ namespace conrad
       /// Gridder to be used
       IVisGridder::ShPtr itsGridder;
 
+      /// @brief name of external file with gains to be used
+      /// @details An empty string means no calibration
+      std::string itsGainsFile;
+      
+      /// @brief void measurement equation
+      /// @details Does nothing, just returns calls to predict and 
+      /// calcNormalEquations. We have to hold such an object in a shared
+      /// pointer because of the reference semantics used in CalibrationME.
+      boost::shared_ptr<IMeasurementEquation> itsVoidME;
     };
 
   }

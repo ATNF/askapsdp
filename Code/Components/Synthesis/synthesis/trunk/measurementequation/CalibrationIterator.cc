@@ -130,6 +130,13 @@ IDataAccessor& CalibrationIterator::buffer(const std::string &bufferID) const
   CONRADDEBUGASSERT(itsWrappedIterator)
   return itsWrappedIterator.buffer(bufferID);
 }
+
+/// Restart the iteration from the beginning
+void CalibrationIterator::init()
+{
+  CONRADDEBUGASSERT(itsWrappedIterator)
+  itsWrappedIterator.init();
+}
 	
 /// Checks whether there are more data available.
 /// @return True if there are more data available

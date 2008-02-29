@@ -29,6 +29,11 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/MEParsetInterface.h>
+#include <measurementequation/CalibrationIterator.h>
+#include <measurementequation/VoidMeasurementEquation.h>
+#include <measurementequation/CalibrationME.h>
+#include <measurementequation/NoXPolGain.h>
+#include <fitting/Params.h>
 
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
@@ -88,6 +93,7 @@ namespace conrad
         /// Get the list of measurement sets and the column to use.
         itsColName=itsParset.getString("datacolumn", "DATA");
         itsMs=itsParset.getStringVector("dataset");
+        itsGainsFile = itsParset.getString("gainsfile","");
         CONRADCHECK(itsMs.size()>0, "Need dataset specification");
         if (itsMs.size()==1)
         {
@@ -133,7 +139,26 @@ namespace conrad
         IDataSharedIter it=ds.createIterator(sel, conv);
         CONRADCHECK(itsModel, "Model not defined");
         CONRADCHECK(itsGridder, "Gridder not defined");
-        itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+        if (!itsGainsFile.size()) {
+            CONRADLOG_INFO_STR(logger, "No calibration is applied" );
+            itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+        } else {
+            CONRADLOG_INFO_STR(logger, "Calibration will be performed using gains from '"<<itsGainsFile<<"'");
+            
+            scimath::Params gainModel; 
+	        gainModel << ParameterSet(itsGainsFile);
+	        if (!itsVoidME) {
+	            itsVoidME.reset(new VoidMeasurementEquation);
+	        }
+	        // in the following statement it doesn't matter which iterator is passed
+	        // to the class as long as it is valid (it is not used at all).
+	        boost::shared_ptr<IMeasurementEquation> 
+	               calME(new CalibrationME<NoXPolGain>(gainModel,it,*itsVoidME));
+            
+            IDataSharedIter calIter(new CalibrationIterator(it,calME));
+            itsEquation = conrad::scimath::Equation::ShPtr(
+                          new ImageFFTEquation (*itsModel, calIter, itsGridder));
+        }
       }
       else {
         CONRADLOG_INFO_STR(logger, "Reusing measurement equation" );
