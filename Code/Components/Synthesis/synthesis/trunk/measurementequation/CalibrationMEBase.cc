@@ -70,8 +70,8 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 
   itsPerfectVisME.predict(chunk);
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
-       // buildComplexDiffMatrix multiplies the effect matrix and visibilities
-       ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row);
+       ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row) * 
+            ComplexDiffMatrix(casa::transpose(chunk.visibility().yzPlane(row)));
        
        for (casa::uInt chan = 0; chan < chunk.nChannel(); ++chan) {
             for (casa::uInt pol = 0; pol < chunk.nPol(); ++pol) {
@@ -80,6 +80,56 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
                rwVis(row, chan, pol) = cdm(pol, chan).value();
             }
        }
+  }
+}
+
+/// @brief correct model visibilities for one accessor (chunk).
+/// @detals This method corrects the data in the given accessor
+/// (accessed via rwVisibility) for the calibration errors 
+/// represented by this measurement equation (i.e. an inversion of
+/// the matrix has been performed). 
+/// @param[in] chunk a read-write accessor to work with
+/// @note Need to think what to do in the inversion is unsuccessful
+/// e.g. amend flagging information? This is not yet implemented as
+/// existing accessors would throw an exception if flagging info is 
+/// changed.
+void CalibrationMEBase::correct(IDataAccessor &chunk) const
+{
+  casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
+  CONRADDEBUGASSERT(rwVis.nelements());
+
+  for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
+       ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row);
+                    
+       CONRADASSERT(cdm.nRow()==cdm.nColumn()); // need to fix it in the future
+       
+       // cdm is transposed! because we need a vector for
+       // each spectral channel for a proper matrix multiplication
+       casa::Matrix<casa::Complex> effect(cdm.nRow(),cdm.nColumn());
+       casa::Matrix<casa::Complex> reciprocal;
+       casa::Complex det=0;
+       for (casa::uInt i = 0; i <effect.nrow(); ++i) {
+            for (casa::uInt j = 0; j < effect.ncolumn(); ++j) {
+               effect(i, j) = cdm(j, i).value();
+            }
+       }
+       invertSymPosDef(reciprocal, det, effect);
+       if (abs(det)<1e-5) {
+           CONRADTHROW(ConradError, "Unable to apply gains, determinate too close to 0. D="<<abs(det));           
+       }
+       casa::Matrix<casa::Complex> thisRow = chunk.visibility().yzPlane(row);
+       
+       casa::Matrix<casa::Complex> temp(thisRow.nrow(),reciprocal.ncolumn(),
+                                     casa::Complex(0.,0.)); // = thisRow*reciprocal;
+       for (casa::uInt i = 0; i < temp.nrow(); ++i) {
+            for (casa::uInt j = 0; j < temp.ncolumn(); ++j) {
+                 for (casa::uInt k = 0; k < thisRow.ncolumn(); ++k) {
+                      temp(i,j) += thisRow(i,k)*reciprocal(k,j);
+                 }  
+            }
+       }
+       
+       thisRow = temp;
   }
 }
 
@@ -102,8 +152,8 @@ void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
   
   for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
-       // buildComplexDiffMatrix multiplies the effect matrix and visibilities
-       ComplexDiffMatrix cdm = buildComplexDiffMatrix(buffChunk, row);
+       ComplexDiffMatrix cdm = buildComplexDiffMatrix(buffChunk, row) * 
+            ComplexDiffMatrix(casa::transpose(buffChunk.visibility().yzPlane(row)));
        casa::Matrix<casa::Complex> measuredSlice = transpose(measuredVis.yzPlane(row));
        
        DesignMatrix designmatrix;

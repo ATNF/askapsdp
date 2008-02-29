@@ -149,6 +149,7 @@ namespace conrad
             
             scimath::Params gainModel; 
 	        gainModel << ParameterSet(itsGainsFile);
+	        /*
 	        // temporary "matrix inversion". we need to do it properly in the
 	        // CalibrationME class. The code below won't work for cross-pols
 	        std::vector<std::string> names = gainModel.names();
@@ -164,6 +165,7 @@ namespace conrad
 	                }
 	             }
 	        //
+	        */
 	        if (!itsVoidME) {
 	            itsVoidME.reset(new VoidMeasurementEquation);
 	        }

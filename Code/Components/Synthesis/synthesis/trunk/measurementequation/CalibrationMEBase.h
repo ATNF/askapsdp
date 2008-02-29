@@ -64,6 +64,18 @@ public:
   /// @param[in] chunk a read-write accessor to work with
   virtual void predict(IDataAccessor &chunk) const;
 
+  /// @brief correct model visibilities for one accessor (chunk).
+  /// @detals This method corrects the data in the given accessor
+  /// (accessed via rwVisibility) for the calibration errors 
+  /// represented by this measurement equation (i.e. an inversion of
+  /// the matrix has been performed). 
+  /// @param[in] chunk a read-write accessor to work with
+  /// @note Need to think what to do in the inversion is unsuccessful
+  /// e.g. amend flagging information? This is not yet implemented as
+  /// existing accessors would throw an exception if flagging info is 
+  /// changed.
+  virtual void correct(IDataAccessor &chunk) const;
+
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This version of the method works on a single chunk of
   /// data only (one iteration).It seems that all measurement

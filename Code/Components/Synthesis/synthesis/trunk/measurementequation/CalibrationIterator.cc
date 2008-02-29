@@ -21,6 +21,8 @@
 #include <dataaccess/MemBufferDataAccessor.h>
 #include <conrad/ConradError.h>
 
+#include <measurementequation/CalibrationMEBase.h>
+
 using namespace conrad;
 using namespace conrad::synthesis;
 
@@ -71,9 +73,13 @@ IDataAccessor& CalibrationIterator::operator*() const
       // copy perfect data
       itsDataAccessor->rwVisibility() = itsWrappedIterator->visibility().copy();
       
-      // corrupt them
+      // correct data
       CONRADDEBUGASSERT(itsCalibrationME);
-      itsCalibrationME->predict(*itsDataAccessor);
+      boost::shared_ptr<CalibrationMEBase> calME = 
+              boost::dynamic_pointer_cast<CalibrationMEBase>(itsCalibrationME);
+      CONRADCHECK(calME, "An attempt to use CalibrationIterator with a wrong type of the calibration ME");
+              
+      calME->correct(*itsDataAccessor);
   }
   return *itsDataAccessor;
 }
