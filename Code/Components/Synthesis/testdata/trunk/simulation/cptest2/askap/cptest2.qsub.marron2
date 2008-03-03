@@ -1,10 +1,10 @@
 #!/bin/csh
 # Change this next list to run on a different number of nodes
 #PBS -N cptest2
-#PBS -v CONRAD_PROJECT_ROOT
+#PBS -v ASKAP_ROOT
 cd $PBS_O_WORKDIR
 
-setenv AIPSPATH $CONRAD_PROJECT_ROOT/Code/Components/Synthesis/testdata/trunk
+setenv AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk
 
 yod -sz all -x AIPSPATH ./csimulator -inputs cptest2.in > cptest2.out.$PBS_JOBID
 

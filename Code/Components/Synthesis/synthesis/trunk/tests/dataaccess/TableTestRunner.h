@@ -60,8 +60,8 @@ TableTestRunner::TableTestRunner() {
   theirTestMSName="./.test.ms";
 
   std::string path2TestMS="../../testdata/trunk/testdataset.ms";
-  if (casa::EnvironmentVariable::isDefined("CONRAD_PROJECT_ROOT")) {
-      path2TestMS=casa::EnvironmentVariable::get("CONRAD_PROJECT_ROOT")+
+  if (casa::EnvironmentVariable::isDefined("ASKAP_ROOT")) {
+      path2TestMS=casa::EnvironmentVariable::get("ASKAP_ROOT")+
                 "/Code/Components/Synthesis/testdata/trunk/testdataset.ms";
   }
   try {

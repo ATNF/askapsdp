@@ -3,13 +3,13 @@
 #PBS -l nodes=1:ppn=2+7:ppn=1
 #PBS -N cptest2
 #PBS -m e
-#PBS -v CONRAD_PROJECT_ROOT
+#PBS -v ASKAP_ROOT
 cd $PBS_O_WORKDIR
 
 module load openmpi
 
-export AIPSPATH=$CONRAD_PROJECT_ROOT/Code/Components/Synthesis/testdata/trunk
+export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk
 
-mpirun -x AIPSPATH $CONRAD_PROJECT_ROOT/Code/Components/Synthesis/synthesis/trunk/bin/csimulator.sh -inputs cptest2.in > cptest2.out.$PBS_JOBID
+mpirun -x AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/synthesis/trunk/bin/csimulator.sh -inputs cptest2.in > cptest2.out.$PBS_JOBID
 
-mpirun -x AIPSPATH $CONRAD_PROJECT_ROOT/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs cptest2.in >> cptest2.out.$PBS_JOBID
+mpirun -x AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs cptest2.in >> cptest2.out.$PBS_JOBID

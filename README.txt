@@ -10,9 +10,9 @@ Setting up the CONRAD environment
 =================================
 
 This procedure sets up the environment for development. The entry
-point for the repository is $CONRAD_PROJECT_ROOT.
+point for the repository is $ASKAP_ROOT.
 
- * create a initconrad.sh script which sets up the unix environment
+ * create a initaskap.sh script which sets up the unix environment
    variables. This should be executed every time a user logs in.
 
  * install the python tools necessary to build the system.  This is
@@ -26,7 +26,7 @@ python bootstrap.py      # only once
 . initconrad.sh		   # execute everytime a new session is started
 
 The above steps make installs go to the local directories
-$CONRAD_PROJECT_ROOT/{bin, lib/python<version>} which do not require
+$ASKAP_ROOT/{bin, lib/python<version>} which do not require
 root permission.
 
 rbuild
@@ -75,21 +75,21 @@ The following will (hopefully) automatically install Tools, 3rdParty
 and Code. If you don't want to do it all at once then skip this and
 move to the next step.  
 
-cd $CONRAD_PROJECT_ROOT; python setup.py -q install
+cd $ASKAP_ROOT; python setup.py -q install
 
 Installing Tools
 ================
-cd $CONRAD_PROJECT_ROOT/Tools
+cd $ASKAP_ROOT/Tools
 python setup.py -q install
 
 Installing 3rdParty
 ===================
-cd $CONRAD_PROJECT_ROOT/3rdParty
+cd $ASKAP_ROOT/3rdParty
 python setup.py -q install
 
 Install Code
 ============
-cd $CONRAD_PROJECT_ROOT/Code
+cd $ASKAP_ROOT/Code
 python setup.py -q install
 
 Release Process

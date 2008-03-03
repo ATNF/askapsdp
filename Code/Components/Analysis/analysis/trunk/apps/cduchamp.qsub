@@ -2,9 +2,9 @@
 #PBS -l nodes=7:ppn=2
 #PBS -N cduchamp
 #PBS -m ae
-#PBS -v CONRAD_PROJECT_ROOT
+#PBS -v ASKAP_ROOT
 cd $PBS_O_WORKDIR
 
 module load openmpi
 
-mpirun -np 13 $CONRAD_PROJECT_ROOT/Code/Components/Analysis/analysis/trunk/bin/cduchamp.sh -inputs $CONRAD_PROJECT_ROOT/Code/Components/Analysis/analysis/trunk/apps/cduchamp.in > cduchamp.out
+mpirun -np 13 $ASKAP_ROOT/Code/Components/Analysis/analysis/trunk/bin/cduchamp.sh -inputs $ASKAP_ROOT/Code/Components/Analysis/analysis/trunk/apps/cduchamp.in > cduchamp.out

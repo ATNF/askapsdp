@@ -38,6 +38,5 @@ def update_tree(thePath):
 update_tree("Tools")
 os.system("cd Tools/Dev/setuptools; python bootstrap.py")
 os.system("python initenv.py >/dev/null")
-os.system(". initconrad.sh; cd Tools/Dev/recursivebuild; python setup.py -q install")
-os.system(". initconrad.sh; cd Tools; python setup.py -q install")
-
+os.system(". initaskap.sh; cd Tools/Dev/recursivebuild; python setup.py -q install")
+os.system(". initaskap.sh; cd Tools; python setup.py -q install")
