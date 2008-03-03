@@ -59,6 +59,7 @@ export MANPATH
 
 tcshinit = """\
 setenv ASKAP_ROOT %s
+setenv CONRAD_PROJECT_ROOT "$ASKAP_ROOT"
 set pypath="${ASKAP_ROOT}/lib/%s:${ASKAP_ROOT}/Tools/Dev/scons-tools"
 
 if ($?PYTHONPATH) then
