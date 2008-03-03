@@ -73,9 +73,9 @@ setenv PATH `echo $PATH | sed "s#:*$ASKAP_ROOT/bin:*##"`
 setenv PATH "${ASKAP_ROOT}/bin:${PATH}"
 
 
-set psset=`echo $prompt |grep conrad`
+set psset=`echo $prompt |grep askap`
 if ("$psset" == "") then
-   set prompt="\(conrad\)${prompt}"
+   set prompt="\(askap\)${prompt}"
 endif
 
 setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
