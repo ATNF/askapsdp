@@ -5,12 +5,12 @@
 #
 
 # Always import this
-from conradenv import env
+from askapenv import env
 
 env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g', '-DUSE_NOSOCKETS'])
 
 # create build object with library name
-pkg = env.ConradPackage("mwcommon")
+pkg = env.AskapPackage("mwcommon")
 # add sub packages 
 pkg.AddSubPackage("mwcommon")
 

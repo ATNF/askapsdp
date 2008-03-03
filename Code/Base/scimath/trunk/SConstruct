@@ -6,7 +6,7 @@
 #
 
 # Always import this
-from conradenv import env
+from askapenv import env
 
 #env.Append(CCFLAGS=['-O2'])
 env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG'])
@@ -15,7 +15,7 @@ env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG'])
 env.Append(universal=0)
 
 # create build object with library name
-pkg = env.ConradPackage("scimath")
+pkg = env.AskapPackage("scimath")
 
 # add sub packages 
 pkg.AddSubPackage("fitting")

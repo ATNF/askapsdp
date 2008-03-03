@@ -6,10 +6,10 @@
 #
 
 # Always import this
-from conradenv import env
+from askapenv import env
 
 # create build object with library name
-pkg = env.ConradPackage("conrad")
+pkg = env.AskapPackage("conrad")
 
 # add sub packages 
 pkg.AddSubPackage("conrad")

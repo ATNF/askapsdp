@@ -6,10 +6,10 @@
 #
 
 # Always import this
-from conradenv import env
+from askapenv import env
 import os
 
-os.environ['AIPSPATH']=os.environ['CONRAD_PROJECT_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
+os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 #env.Append(CCFLAGS=['-O2', '-DCONRAD_DEBUG', '-DCONRAD_GRID_WITH_BLAS', '-g'])
@@ -17,7 +17,7 @@ env.Append(CCFLAGS=['-O2', '-DCONRAD_DEBUG', '-g'])
 env.Append(universal=0)
 
 # create build object with library name
-pkg = env.ConradPackage("synthesis")
+pkg = env.AskapPackage("synthesis")
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 # add sub packages 

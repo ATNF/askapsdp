@@ -5,10 +5,10 @@
 #
 
 # Always import this
-from conradenv import env
+from askapenv import env
 
 # create build object with library name
-pkg = env.ConradPackage("mwcontrol")
+pkg = env.AskapPackage("mwcontrol")
 # add sub packages 
 pkg.AddSubPackage("mwcontrol")
 
