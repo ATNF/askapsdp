@@ -1,0 +1,18 @@
+# @file
+# SConstruct build script for this module.
+# Package dependencies are read from 'dependencies.default'
+#
+# @author Malte Marquarding <Malte.Marquarding@csiro.au>
+#
+
+# Always import this
+from conradenv import env
+
+# create build object with library name
+pkg = env.ConradPackage("conrad")
+
+# add sub packages 
+pkg.AddSubPackage("conrad")
+
+# run the build process
+pkg()
