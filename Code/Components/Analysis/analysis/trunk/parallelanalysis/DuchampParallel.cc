@@ -36,6 +36,7 @@ using namespace LOFAR::TYPES;
 
 #include <parallelanalysis/DuchampParallel.h>
 #include <analysisutilities/AnalysisUtilities.h>
+#include <sourcefitting/RadioSource.h>
 
 #include <sstream>
 #include <algorithm>
@@ -116,7 +117,8 @@ namespace conrad
 	  CONRADLOG_ERROR_STR(logger, "No SectionInfo file found. Exiting.");
 	  exit(0);
 	}
-	else if(int(itsSectionList.size()) != (itsNNode-1) )
+	else if( (isParallel() && (int(itsSectionList.size()) != (itsNNode-1) ))
+		 || (!isParallel() && (int(itsSectionList.size()) != (itsNNode))) )
 	  CONRADLOG_ERROR_STR(logger, "Number of sections provided by " 
 			      << sectionInfo 
 			      << " does not match the number of images being processed.");
@@ -183,18 +185,21 @@ namespace conrad
       if(isWorker()) {
         CONRADLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
 
-	itsCube.setCubeStats();
-	if(itsCube.pars().getFlagATrous()){
-	  CONRADLOG_INFO_STR(logger,  "Searching with reconstruction first");
-	  itsCube.ReconSearch();
-	}
-	else if(itsCube.pars().getFlagSmooth()) {
-	  CONRADLOG_INFO_STR(logger,  "Searching with smoothing first");	  
-	  itsCube.SmoothSearch();
-	}
-	else {
-	  CONRADLOG_INFO_STR(logger,  "Searching, no smoothing or reconstruction done.");
-	  itsCube.CubicSearch();
+	if(itsCube.getSize()>0){
+
+	  itsCube.setCubeStats();
+	  if(itsCube.pars().getFlagATrous()){
+	    CONRADLOG_INFO_STR(logger,  "Searching with reconstruction first");
+	    itsCube.ReconSearch();
+	  }
+	  else if(itsCube.pars().getFlagSmooth()) {
+	    CONRADLOG_INFO_STR(logger,  "Searching with smoothing first");	  
+	    itsCube.SmoothSearch();
+	  }
+	  else {
+	    CONRADLOG_INFO_STR(logger,  "Searching, no smoothing or reconstruction done.");
+	    itsCube.CubicSearch();
+	  }
 	}
 
 	int16 num = itsCube.getNumObj(), rank=this->itsRank;
@@ -209,6 +214,7 @@ namespace conrad
 	  out.putStart("detW2M",1);
 	  out << rank << num;
 	  for(int i=0;i<itsCube.getNumObj();i++){
+	    /*
 	    std::vector<PixelInfo::Voxel> voxlist = itsCube.getObject(i).getPixelSet();
 	    std::vector<PixelInfo::Voxel>::iterator vox;
 	    int32 size = voxlist.size();
@@ -220,12 +226,59 @@ namespace conrad
 	      z = vox->getZ();
  	      out << x << y << z << itsCube.getPixValue(x,y,z);
 	    }
+	    */
+
+	    int border = sourcefitting::detectionBorder;
+
+	    int numVox = (itsCube.getObject(i).getXmax() - itsCube.getObject(i).getXmin() + 1 + 2*border) *
+	      (itsCube.getObject(i).getYmax() - itsCube.getObject(i).getYmin() + 1 + 2*border) *
+	      (itsCube.getObject(i).getZmax() - itsCube.getObject(i).getZmin() + 1 + 2*border);
+	    out << numVox;
+	    
+	    for(int32 x=itsCube.getObject(i).getXmin()-border; x<=itsCube.getObject(i).getXmax()+border; x++){
+	      for(int32 y=itsCube.getObject(i).getYmin()-border; y<=itsCube.getObject(i).getYmax()+border; y++){
+		for(int32 z=itsCube.getObject(i).getZmin()-border; z<=itsCube.getObject(i).getZmax()+border; z++){
+		  
+		  bool inObject = itsCube.getObject(i).pixels().isInObject(x,y,z);
+		  float flux = 0.;
+		  if( (x>=0 && x<itsCube.getDimX()) && 
+		      (y>=0 && y<itsCube.getDimY()) && 
+		      (z>=0 && z<itsCube.getDimZ()) )  flux = itsCube.getPixValue(x,y,z);
+
+		  out << inObject << x << y << z << flux;
+
+		}
+	      }
+	    }
+
 	  }
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs);
 	  //	  itsConnectionSet->write(this->itsRank,bs);
 	  CONRADLOG_INFO_STR(logger, "Sent detection list to the master from worker " << this->itsRank );
 	}
+	else{ // if not parallel, still want to make the voxelList
+
+	  for(int i=0;i<itsCube.getNumObj();i++){
+	    int32 border = sourcefitting::detectionBorder;
+
+	    for(int32 x=itsCube.getObject(i).getXmin()-border; x<=itsCube.getObject(i).getXmax()+border; x++){
+	      for(int32 y=itsCube.getObject(i).getYmin()-border; y<=itsCube.getObject(i).getYmax()+border; y++){
+		for(int32 z=itsCube.getObject(i).getZmin()-border; z<=itsCube.getObject(i).getZmax()+border; z++){
+		  
+		  float flux = 0.;
+		  if( (x>=0 && x<itsCube.getDimX()) && 
+		      (y>=0 && y<itsCube.getDimY()) && 
+		      (z>=0 && z<itsCube.getDimZ()) )  flux = itsCube.getPixValue(x,y,z);
+
+		  PixelInfo::Voxel vox(x,y,z,flux);
+		  itsVoxelList.push_back(vox);
+		  
+		}
+	      }
+	    }
+	  }
+	}	  
 	
       }
       else {
@@ -252,7 +305,6 @@ namespace conrad
 	if(isParallel()) {
 	  LOFAR::BlobString bs;
 	  int16 rank, numObj;
-	  int ct=0;
 	  for (int i=1; i<itsNNode; i++)
 	    {
 	      itsConnectionSet->read(i-1, bs);
@@ -270,14 +322,15 @@ namespace conrad
 		for(int p=0;p<objsize;p++){
 		  int32 x,y,z; 
 		  float flux;
-		  in >> x >> y >> z >> flux;
+		  bool inObj;
+		  /*  in >> x >> y >> z >> flux; */
+		  in >> inObj >> x >> y >> z >> flux; 
 		  x += itsSectionList[i-1].getStart(0);
 		  y += itsSectionList[i-1].getStart(1);
 		  z += itsSectionList[i-1].getStart(2);
-		  object->addPixel(x,y,z);
+		  if(inObj) object->addPixel(x,y,z);
 		  PixelInfo::Voxel vox(x,y,z,flux);
 		  itsVoxelList.push_back(vox);
-		  ct++;
 		}
 		itsCube.addObject(*object);
 		delete object;
@@ -391,6 +444,43 @@ namespace conrad
       }
     }
     
+    void DuchampParallel::fitSources()
+    {
+      /// @details The final list of detected objects is fitted with
+      /// Gaussians (or other functions) using the RadioSource class.
+
+      if(isMaster()) {
+	CONRADLOG_INFO_STR(logger, "MASTER: Fitting source profiles.");
+
+	duchamp::FitsHeader head = itsCube.getHead();
+
+ 	for(int i=0;i<itsCube.getNumObj();i++){
+	  CONRADLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i<<".");
+
+	  sourcefitting::RadioSource src;
+	  src.setDetection( itsCube.pObject(i) );
+	  src.setNoiseLevel( itsCube.stats().getStddev() );
+	  src.setDetectionThreshold( itsCube.stats().getThreshold() );
+	  src.setHeader( &head );
+	  src.setFluxArray( &(this->itsVoxelList) );
+	  src.fitGauss();
+	  itsSourceList.push_back(src);
+
+	}
+
+	std::cout << "-------\n";
+	for(int i=0;i<itsSourceList.size();i++){
+	  std::cout << "Object #" << i+1 << ":\n";
+	  itsSourceList[i].printFit();
+	}
+
+      }
+      else {
+      }
+      
+
+    }
+
     
     void DuchampParallel::gatherStats()
     {
@@ -423,14 +513,19 @@ namespace conrad
 	else if(itsCube.pars().getFlagSmooth()) itsCube.SmoothCube();
 
 	int32 size = itsCube.getSize();
-	double mean;
+	double mean = 0.;
 	float *array;
-	if(itsCube.pars().getFlagATrous())       array = itsCube.getArray();
-	else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
-	else                                     array = itsCube.getArray();
 
-	if(itsCube.pars().getFlagRobustStats()) mean = findMedian(array,size);
-	else                                    mean = findMean(array,size);
+	if(size>0){
+	  
+	  if(itsCube.pars().getFlagATrous())       array = itsCube.getArray();
+	  else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
+	  else                                     array = itsCube.getArray();
+	  
+	  if(itsCube.pars().getFlagRobustStats()) mean = findMedian(array,size);
+	  else                                    mean = findMean(array,size);
+
+	}
 
 	CONRADLOG_INFO_STR(logger, "#" << this->itsRank << ": Mean = " << mean );
 	
@@ -489,14 +584,21 @@ namespace conrad
 	}
 	// use it to calculate the rms for this section
  	int32 size = itsCube.getSize();
+	double rms = 0.;
 	float *array;
-	if(itsCube.pars().getFlagATrous()){
-	  array = new float[size];
-	  for(int i=0;i<size;i++) array[i] = itsCube.getPixValue(i) - itsCube.getReconValue(i);
+
+	if(size > 0){
+	  
+	  if(itsCube.pars().getFlagATrous()){
+	    array = new float[size];
+	    for(int i=0;i<size;i++) array[i] = itsCube.getPixValue(i) - itsCube.getReconValue(i);
+	  }
+	  else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
+	  else array = itsCube.getArray();
+	  rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
+
 	}
-	else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
-	else array = itsCube.getArray();
-	double rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
+
 	CONRADLOG_INFO_STR(logger, "#" << this->itsRank << ": rms = " << rms );
 
 	// return it to the master
@@ -685,6 +787,8 @@ namespace conrad
 	  CONRADASSERT(version==1);
 	  in >> threshold;
 	  in.getEnd();
+
+	  itsCube.pars().setFlagUserThreshold(true);
 	}
 	else{
 	  threshold = itsCube.stats().getMiddle() + itsCube.stats().getSpread()*itsCube.pars().getCut();
@@ -693,7 +797,6 @@ namespace conrad
 	CONRADLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank << " to be " << threshold);
 
 	itsCube.pars().setThreshold(threshold);
-	itsCube.pars().setFlagUserThreshold(true);
      }
     }
 

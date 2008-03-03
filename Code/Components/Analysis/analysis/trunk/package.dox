@@ -1,5 +1,6 @@
 /// @defgroup parallelanalysis Parallel processing routines
 /// @defgroup analysisutilities Utility functions to support analysis package
+/// @defgroup sourcefitting Source fitting routines and classes
 
 /// The package namespace
 namespace conrad::analysis {};
@@ -40,5 +41,6 @@ namespace conrad::analysis {};
 ///
 /// @li @ref parallelanalysis
 /// @li @ref analysisutilities
+/// @li @ref sourcefitting
 ///
 /// @copyright 2007 CONRAD, All Rights Reserved.

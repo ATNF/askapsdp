@@ -73,7 +73,8 @@ namespace conrad
       par.setFilterCode( parset.getInt16("filterCode", par.getFilterCode()) );
       par.filter().define(par.getFilterCode());
 
-      par.setFlagSmooth( parset.getBool("flagSmooth",false) );
+      if(par.getFlagATrous()) par.setFlagSmooth(false);
+      else par.setFlagSmooth( parset.getBool("flagSmooth",false) );
       par.setSmoothType( parset.getString("smoothType", par.getSmoothType()) );
       par.setHanningWidth( parset.getInt16("hanningWidth", par.getHanningWidth()) );
       par.setKernMaj( parset.getFloat("kernMaj", par.getKernMaj()) );

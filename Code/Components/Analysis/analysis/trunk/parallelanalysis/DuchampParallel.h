@@ -5,8 +5,10 @@
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_CP_DUCHAMPPARALLEL_H_
-#define CONRAD_CP_DUCHAMPPARALLEL_H_
+#ifndef CONRAD_ANALYSIS_DUCHAMPPARALLEL_H_
+#define CONRAD_ANALYSIS_DUCHAMPPARALLEL_H_
+
+#include <sourcefitting/RadioSource.h>
 
 #include <conradparallel/ConradParallel.h>
 
@@ -31,8 +33,7 @@ namespace conrad
     /// thread. The master is the master so the number of processes is one
     /// more than the number of workers.
     ///
-    /// If the number of nodes is 1 then everything occurs in the same process with
-    /// no overall for transmission of model.
+    /// If the number of nodes is 1 then everything occurs in the same process.
     ///
     /// @ingroup parallelanalysis
     class DuchampParallel : public conrad::cp::ConradParallel
@@ -61,6 +62,9 @@ namespace conrad
 
       /// @brief Print out the resulting source list (on the master)
       void printResults();
+
+      /// @brief Fit the detected sources (on the master)
+      void fitSources();
       
       /// @brief Find the mean (on the workers)
       void findMeans();
@@ -85,11 +89,14 @@ namespace conrad
       /// The name of the file containing the image data.
       std::string itsImage;
 
-      /// The Cube of data
+      /// The Cube of data, which contains the list of Detections.
       duchamp::Cube itsCube;
 
-      /// The list of detected voxels, with fluxes.
+      /// The list of voxels encompassing detected sources, with fluxes.
       std::vector<PixelInfo::Voxel> itsVoxelList;
+
+      /// The list of fits to the detected sources.
+      std::vector<conrad::sourcefitting::RadioSource> itsSourceList;
 
       /// The list of sections corresponding to all workers' images (only used by the master).
       std::vector<duchamp::Section> itsSectionList;

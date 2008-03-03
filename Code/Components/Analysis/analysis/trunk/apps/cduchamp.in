@@ -1,8 +1,8 @@
+### These images are test cubes, that can test the three dimensional
+### source-finding. Only use with "mpirun -np 3"
+
 #Cduchamp.image      = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 #Cduchamp.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits
-
-#Cduchamp.image      = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-%w.fits
-#Cduchamp.masterImage = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-0.fits
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/verifyCube.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/cubes/test0.fits
@@ -12,14 +12,32 @@
 #Cduchamp.masterImage = /Users/whi550/ObsData/cubes/H201-sub0.fits
 #Cduchamp.image      = /Users/whi550/ObsData/cubes/H201-sub%w.fits
 
-Cduchamp.sectionInfo = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sectionInfo
-Cduchamp.masterImage = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sub0-12.fits
-Cduchamp.image       = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sub%w-12.fits
+### The next bunch test 2-dimensional source finding.
+### The ones with /replicated filenames are for use with minicp: do
+### "mpirun -np 13", as they have been divided into 12 subimages.
+### Otherwise, it's for bilby, with "mpirun -np 3"
+
+#Cduchamp.image      = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-%w.fits
+#Cduchamp.masterImage = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-mod-0.fits
+
+#Cduchamp.sectionInfo = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sectionInfo
+#Cduchamp.masterImage = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sub0-12.fits
+#Cduchamp.image       = /replicated1/whi550/ASKAP/testData/atlas-cdfs-sub%w-12.fits
+
+#Cduchamp.sectionInfo = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-sectionInfo-2
+#Cduchamp.masterImage = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-sub0-12.fits
+#Cduchamp.image       = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-sub%w-2.fits
+
+### This is a single image, for running in serial mode
+Cduchamp.sectionInfo = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-small-sectionInfo
+Cduchamp.masterImage = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-small.fits
+Cduchamp.image       = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-small.fits
+
 
 #Cduchamp.flagRobust = false   #This applies to the workers only.
-Cduchamp.snrCut     = 4
+Cduchamp.snrCut     = 6
 Cduchamp.pixelCentre = average
-Cduchamp.flagATrous  = true
+Cduchamp.flagATrous  = false
 Cduchamp.reconDim    = 2
 Cduchamp.snrRecon    = 3.
 Cduchamp.flagSmooth  = false

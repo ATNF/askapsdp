@@ -14,6 +14,8 @@
 
 #include <parallelanalysis/DuchampParallel.h>
 
+#include <duchamp/duchamp.hh>
+
 #include <APS/ParameterSet.h>
 
 #include <stdexcept>
@@ -76,7 +78,8 @@ int main(int argc, const char** argv)
     duchamp.condenseLists();
     duchamp.calcFluxes();
     duchamp.printResults();
-
+    duchamp.fitSources();
+    
     CONRADLOG_INFO_STR(logger, "Time for execution of cduchamp = " << timer.real() << " sec");
 
     ///==============================================================================

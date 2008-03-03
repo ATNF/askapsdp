@@ -5,8 +5,8 @@
 /// (c) 2007 CONRAD, All Rights Reserved.
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef CONRAD_CP_ANALYSISUTILS_H_
-#define CONRAD_CP_ANALYSISUTILS_H_
+#ifndef CONRAD_ANALYSIS_ANALYSISUTILS_H_
+#define CONRAD_ANALYSIS_ANALYSISUTILS_H_
 
 #include <string>
 #include <vector>
