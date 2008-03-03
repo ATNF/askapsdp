@@ -6,7 +6,7 @@ versions of the same libraries will exist. To accommodate this it has been
 decided that python packages will be deployed using eggs. In order for this
 to work it is necessary to install the 'setuptools' package.
 
-Setting up the CONRAD environment
+Setting up the ASKAP environment
 =================================
 
 This procedure sets up the environment for development. The entry
@@ -18,10 +18,10 @@ point for the repository is $ASKAP_ROOT.
  * install the python tools necessary to build the system.  This is
    using a modified version of 'working-env' to provide a python
    environment independent of the system, 'setuptools' to install
-   python packages and the CONRAD package 'recursivebuild', which
+   python packages and the ASKAP package 'recursivebuild', which
    handles the build process.
 
-cd svnCONRAD
+cd svnASKAP
 python bootstrap.py      # only once
 . initconrad.sh		   # execute everytime a new session is started
 
@@ -42,7 +42,7 @@ which results in
  
 usage: rbuild [options] <package_path>
 
-The CONRAD build command for users/developers. It handles dependencies and
+The ASKAP build command for users/developers. It handles dependencies and
 performs updates from subversion
 
 options:
