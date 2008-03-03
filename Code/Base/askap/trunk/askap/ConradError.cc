@@ -4,7 +4,7 @@
 //#
 //#  $Id$
 
-#include <conrad/ConradError.h>
+#include <askap/ConradError.h>
 
 namespace conrad {
 

@@ -9,7 +9,7 @@
 #ifndef CONRAD_ERROR_TEST_H
 #define CONRAD_ERROR_TEST_H
 
-#include <conrad/ConradError.h>
+#include <askap/ConradError.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace conrad

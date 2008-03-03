@@ -4,8 +4,8 @@
 //#
 //#  $Id$
 
-#include <conrad/ConradUtil.h>
-#include <conrad/ConradError.h>
+#include <askap/ConradUtil.h>
+#include <askap/ConradError.h>
 #include <iostream>
 #include <sstream>
 #include <vector>

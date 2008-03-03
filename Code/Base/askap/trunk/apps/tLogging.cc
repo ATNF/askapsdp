@@ -1,5 +1,5 @@
 #include <conrad_conrad.h>
-#include <conrad/ConradLogging.h>
+#include <askap/ConradLogging.h>
 
 using namespace conrad;
 

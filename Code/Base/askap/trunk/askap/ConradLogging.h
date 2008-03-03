@@ -34,8 +34,8 @@
 #include <mpi.h>
 #endif
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/ConradError.h>
+#include <askap/ConradUtil.h>
 
 namespace conrad {
 

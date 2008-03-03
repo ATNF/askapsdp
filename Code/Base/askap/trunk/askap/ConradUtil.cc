@@ -7,7 +7,7 @@
 
 #include <algorithm>
 #include <unistd.h>
-#include <conrad/ConradUtil.h>
+#include <askap/ConradUtil.h>
 
 namespace conrad {
 

@@ -9,9 +9,9 @@
 #ifndef MAP_KEY_ITERATOR_TEST_H
 #define MAP_KEY_ITERATOR_TEST_H
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
-#include <conrad/MapKeyIterator.h>
+#include <askap/ConradError.h>
+#include <askap/ConradUtil.h>
+#include <askap/MapKeyIterator.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 

@@ -9,9 +9,9 @@
 #ifndef INDEXED_COMPARE_TEST_H
 #define INDEXED_COMPARE_TEST_H
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
-#include <conrad/IndexedCompare.h>
+#include <askap/ConradError.h>
+#include <askap/ConradUtil.h>
+#include <askap/IndexedCompare.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 

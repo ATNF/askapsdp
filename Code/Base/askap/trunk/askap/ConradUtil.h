@@ -8,7 +8,7 @@
 #ifndef CONRAD_UTIL_H
 #define CONRAD_UTIL_H
 
-#include <conrad/ConradError.h>
+#include <askap/ConradError.h>
 
 
 #include <ostream>

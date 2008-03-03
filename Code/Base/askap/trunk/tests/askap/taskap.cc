@@ -1,6 +1,6 @@
 #include <cppunit/ui/text/TestRunner.h>
 
-#include <conrad_conrad.h>
+#include <askap_askap.h>
 #include <IndexedCompareTest.h>
 #include <ConradErrorTest.h>
 #include <MapKeyIteratorTest.h>
