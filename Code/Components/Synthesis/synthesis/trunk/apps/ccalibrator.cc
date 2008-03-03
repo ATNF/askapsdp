@@ -59,7 +59,7 @@ int main(int argc, const char** argv)
 	  
 	  CONRADLOG_INIT("ccalibrator.log_cfg");
 	 
-	  CONRADLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << CONRAD_PACKAGE_VERSION);
+	  CONRADLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << ASKAP_PACKAGE_VERSION);
       
       if (calib.isMaster()) {
           CONRADLOG_INFO_STR(logger, "parset file "<<inputsPar.getValue());

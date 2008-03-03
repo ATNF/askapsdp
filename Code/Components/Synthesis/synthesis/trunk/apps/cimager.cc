@@ -68,7 +68,7 @@ int main(int argc, const char** argv)
 	ImagerParallel imager(argc, argv, subset);
 	CONRADLOG_INIT("cimager.log_cfg");
 	
-	CONRADLOG_INFO_STR(logger, "CONRAD synthesis imager " << CONRAD_PACKAGE_VERSION);
+	CONRADLOG_INFO_STR(logger, "CONRAD synthesis imager " << ASKAP_PACKAGE_VERSION);
 	
 	if(imager.isMaster()) {
 	  CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
