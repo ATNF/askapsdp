@@ -18,6 +18,7 @@ env.Append(universal=0)
 
 # create build object with library name
 pkg = env.ConradPackage("synthesis")
+env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 # add sub packages 
 pkg.AddSubPackage("measurementequation")
