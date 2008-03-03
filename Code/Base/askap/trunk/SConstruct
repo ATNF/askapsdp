@@ -9,10 +9,10 @@
 from conradenv import env
 
 # create build object with library name
-pkg = env.ConradPackage("conrad")
+pkg = env.ConradPackage("askap")
 
 # add sub packages 
-pkg.AddSubPackage("conrad")
+pkg.AddSubPackage("askap")
 
 # run the build process
 pkg()
