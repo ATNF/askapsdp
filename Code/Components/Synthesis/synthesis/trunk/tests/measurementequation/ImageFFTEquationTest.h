@@ -13,7 +13,7 @@
 #include <casa/Quanta/MVPosition.h>
 #include <casa/BasicSL/Constants.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -21,10 +21,10 @@
 
 #include <boost/shared_ptr.hpp>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

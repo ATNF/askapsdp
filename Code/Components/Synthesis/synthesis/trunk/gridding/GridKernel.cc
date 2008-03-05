@@ -1,13 +1,13 @@
 #include "GridKernel.h"
 
 /// Use pointers instead of casa::Matrix operators to grid
-#define CONRAD_GRID_WITH_POINTERS 1
+#define ASKAP_GRID_WITH_POINTERS 1
 
 /// Use BLAS 
 /// @todo Ensure that BLAS gridding works on all platforms
-///#define CONRAD_GRID_WITH_BLAS 1
+///#define ASKAP_GRID_WITH_BLAS 1
 
-#ifdef CONRAD_GRID_WITH_BLAS
+#ifdef ASKAP_GRID_WITH_BLAS
 #ifdef __APPLE_CC__
 #include <vecLib/cblas.h>
 #else
@@ -15,16 +15,16 @@
 #endif
 #endif
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
 
     std::string GridKernel::info() {
-#ifdef CONRAD_GRID_WITH_BLAS
+#ifdef ASKAP_GRID_WITH_BLAS
       return std::string("Gridding with BLAS");
 #else
-#ifdef CONRAD_GRID_WITH_POINTERS
+#ifdef ASKAP_GRID_WITH_POINTERS
       return std::string("Gridding with casa::Matrix pointers");
 #else
       return std::string("Standard gridding/degridding with casa::Matrix");
@@ -38,14 +38,14 @@ namespace conrad
 				     const casa::Complex& cVis, const float& viswt, const int iu,
 				     const int iv, const int support)
     {
-#ifdef CONRAD_GRID_WITH_POINTERS || CONRAD_GRID_WITH_BLAS
+#ifdef ASKAP_GRID_WITH_POINTERS || ASKAP_GRID_WITH_BLAS
       for (int suppv=-support; suppv<+support; suppv++)
 	{
 	  int voff=suppv+support;
 	  int uoff=-support+support;
 	  casa::Complex *wtPtr=&convFunc(uoff, voff);
 	  casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
-#ifdef CONRAD_GRID_WITH_BLAS
+#ifdef ASKAP_GRID_WITH_BLAS
           cblas_caxpy(2*support+1, &cVis, wtPtr, 1, gridPtr, 1);
 #else
 	  for (int suppu=-support; suppu<+support; suppu++)
@@ -80,7 +80,7 @@ namespace conrad
       /// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
       /// data using the convolution function as the weighting function. 
       cVis=0.0;
-#ifdef CONRAD_GRID_WITH_POINTERS
+#ifdef ASKAP_GRID_WITH_POINTERS
       for (int suppv=-support; suppv<+support; suppv++)
 	{
 	  int voff=suppv+support;

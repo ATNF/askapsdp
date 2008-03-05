@@ -3,7 +3,7 @@
 /// @details This file contains a class implementing the ITableDataDescHolder
 /// interface by reading the appropriate subtable into memory in the constructor.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -20,7 +20,7 @@
 // own includes
 #include <dataaccess/ITableDataDescHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -65,6 +65,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef MEM_TABLE_DATA_DESC_HOLDER_H

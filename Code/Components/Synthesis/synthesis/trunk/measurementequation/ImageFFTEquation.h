@@ -3,7 +3,7 @@
 /// ImageDFTEquation: Equation for discrete Fourier transform of an image
 /// using gridding and FFTs.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SYNIMAGEFFTEQUATION_H_
@@ -24,7 +24,7 @@
 
 #include <map>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -35,14 +35,14 @@ namespace conrad
     /// images. Parameter names are image.{i,q,u,v}.*
     /// The transforms are done using gridding and FFTs.
     /// @ingroup measurementequation
-    class ImageFFTEquation : public conrad::scimath::ImagingEquation
+    class ImageFFTEquation : public askap::scimath::ImagingEquation
     {
       public:
 
         /// Standard constructor
         /// @param ip Parameters
         /// @param idi Data iterator
-        ImageFFTEquation(const conrad::scimath::Params& ip,
+        ImageFFTEquation(const askap::scimath::Params& ip,
           IDataSharedIter& idi);
         
         /// Constructor with default parameters
@@ -53,7 +53,7 @@ namespace conrad
         /// @param ip Parameters
         /// @param idi Data iterator
         /// @param gridder Shared pointer to a gridder
-        ImageFFTEquation(const conrad::scimath::Params& ip,
+        ImageFFTEquation(const askap::scimath::Params& ip,
           IDataSharedIter& idi, IVisGridder::ShPtr gridder);
         
         /// Constructor with default parameters with specified gridder
@@ -71,14 +71,14 @@ namespace conrad
         virtual ~ImageFFTEquation();
         
         /// Return the default parameters
-        static conrad::scimath::Params defaultParameters();
+        static askap::scimath::Params defaultParameters();
 
 /// Predict model visibility
         virtual void predict() const;
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne) const;
+        virtual void calcImagingEquations(askap::scimath::ImagingNormalEquations& ne) const;
 
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy

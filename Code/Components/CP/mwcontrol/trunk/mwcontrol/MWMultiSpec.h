@@ -1,19 +1,19 @@
 /// @file
 /// @brief Specification of a step containing multiple other steps.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWMULTISPEC_H
-#define CONRAD_MWCONTROL_MWMULTISPEC_H
+#ifndef ASKAP_MWCONTROL_MWMULTISPEC_H
+#define ASKAP_MWCONTROL_MWMULTISPEC_H
 
 //# Includes
 #include <mwcontrol/MWSpec.h>
 #include <list>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief Specification of a step containing multiple other steps.

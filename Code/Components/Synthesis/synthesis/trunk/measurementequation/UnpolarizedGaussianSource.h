@@ -7,7 +7,7 @@
 ///     The source is assumed unpolarized with a flat spectrum
 ///     (i.e. spectral index 0).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -20,7 +20,7 @@
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -89,7 +89,7 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 

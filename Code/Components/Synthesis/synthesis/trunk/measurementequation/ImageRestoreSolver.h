@@ -4,7 +4,7 @@
 /// and adding the residuals. Note that the units will be changed from
 /// Jy/pixel to Jy/beam.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SYNIMAGERESTORESOLVER_H_
@@ -14,7 +14,7 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/Quanta.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -33,7 +33,7 @@ namespace conrad
         /// solutions formed by the method described.
         /// @param ip Parameters
         /// @param beam Major, minor, pa of beam as Quanta
-        ImageRestoreSolver(const conrad::scimath::Params& ip,
+        ImageRestoreSolver(const askap::scimath::Params& ip,
           const casa::Vector<casa::Quantum<double> >& beam);
 
         /// @brief Initialize this solver
@@ -42,10 +42,10 @@ namespace conrad
         /// @brief Solve for parameters, updating the values kept internally
         /// The solution is constructed from the normal equations
         /// @param q Solution quality information
-        virtual bool solveNormalEquations(conrad::scimath::Quality& q);
+        virtual bool solveNormalEquations(askap::scimath::Quality& q);
         
     /// @brief Clone this object
-        virtual conrad::scimath::Solver::ShPtr clone() const;
+        virtual askap::scimath::Solver::ShPtr clone() const;
       private:
         /// @brief Major, minor axes, and position angle of beam
         casa::Vector<casa::Quantum<double> > itsBeam;

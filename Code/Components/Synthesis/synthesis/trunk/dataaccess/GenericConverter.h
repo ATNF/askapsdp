@@ -7,7 +7,7 @@
 /// a subtraction of origin is not required. For MEpoch, where such
 /// subtraction is required, there is a separate class EpochConverter
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -21,7 +21,7 @@
 // own includes
 #include <dataaccess/IConverterBase.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -78,6 +78,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // GENERIC_CONVERTER_H

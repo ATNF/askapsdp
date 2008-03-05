@@ -8,7 +8,7 @@
 /// See CalibrationME template for more details. This class contains all
 /// functionality, which doesn't depend on the template parameter.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 // casa includes
@@ -18,8 +18,8 @@
 #include <measurementequation/CalibrationMEBase.h>
 
 #include <casa/Arrays/MatrixMath.h>
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 #include <dataaccess/MemBufferDataAccessor.h>
 #include <fitting/GenericNormalEquations.h>
 #include <fitting/DesignMatrix.h>
@@ -36,12 +36,12 @@
 
 
 using casa::IPosition;
-using conrad::scimath::DesignMatrix;
-using conrad::scimath::ComplexDiffMatrix;
+using askap::scimath::DesignMatrix;
+using askap::scimath::ComplexDiffMatrix;
 
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief Standard constructor using the parameters and the
 /// data iterator.
@@ -50,9 +50,9 @@ using namespace conrad::synthesis;
 /// @param[in] ime measurement equation describing perfect visibilities
 /// @note In the future, measurement equations will work with accessors
 /// only, and, therefore, the dependency on iterator will be removed
-CalibrationMEBase::CalibrationMEBase(const conrad::scimath::Params& ip,
+CalibrationMEBase::CalibrationMEBase(const askap::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
-            MultiChunkEquation(idi), conrad::scimath::GenericEquation(ip),
+            MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
             GenericMultiChunkEquation(idi), itsPerfectVisME(ime) {}
   
 /// @brief Predict model visibilities for one accessor (chunk).
@@ -66,7 +66,7 @@ CalibrationMEBase::CalibrationMEBase(const conrad::scimath::Params& ip,
 void CalibrationMEBase::predict(IDataAccessor &chunk) const
 { 
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
-  CONRADDEBUGASSERT(rwVis.nelements());
+  ASKAPDEBUGASSERT(rwVis.nelements());
 
   itsPerfectVisME.predict(chunk);
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
@@ -96,12 +96,12 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 void CalibrationMEBase::correct(IDataAccessor &chunk) const
 {
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
-  CONRADDEBUGASSERT(rwVis.nelements());
+  ASKAPDEBUGASSERT(rwVis.nelements());
 
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
        ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row);
                     
-       CONRADASSERT(cdm.nRow()==cdm.nColumn()); // need to fix it in the future
+       ASKAPASSERT(cdm.nRow()==cdm.nColumn()); // need to fix it in the future
        
        // cdm is transposed! because we need a vector for
        // each spectral channel for a proper matrix multiplication
@@ -115,7 +115,7 @@ void CalibrationMEBase::correct(IDataAccessor &chunk) const
        }
        invertSymPosDef(reciprocal, det, effect);
        if (abs(det)<1e-5) {
-           CONRADTHROW(ConradError, "Unable to apply gains, determinate too close to 0. D="<<abs(det));           
+           ASKAPTHROW(AskapError, "Unable to apply gains, determinate too close to 0. D="<<abs(det));           
        }
        casa::Matrix<casa::Complex> thisRow = chunk.visibility().yzPlane(row);
        
@@ -143,10 +143,10 @@ void CalibrationMEBase::correct(IDataAccessor &chunk) const
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
 void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
-                              conrad::scimath::GenericNormalEquations& ne) const
+                              askap::scimath::GenericNormalEquations& ne) const
 {  
   MemBufferDataAccessor  buffChunk(chunk);
-  CONRADDEBUGASSERT(buffChunk.visibility().nelements());
+  ASKAPDEBUGASSERT(buffChunk.visibility().nelements());
   
   itsPerfectVisME.predict(buffChunk);
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();

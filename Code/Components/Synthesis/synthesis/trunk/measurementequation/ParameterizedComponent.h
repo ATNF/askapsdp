@@ -7,7 +7,7 @@
 ///     on a number of free parameters. It holds the parameters in a
 ///     RigidVector.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -16,12 +16,12 @@
 
 // own includes
 #include <measurementequation/IParameterizedComponent.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -51,7 +51,7 @@ public:
   /// @return a const reference to the string name of the parameter 
   virtual const std::string& parameterName(size_t index) const
       { 
-        CONRADDEBUGASSERT(index<NComp); 
+        ASKAPDEBUGASSERT(index<NComp); 
         return itsParameterNames(index);
       } 
       
@@ -124,7 +124,7 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef PARAMETERIZED_COMPONENT_H

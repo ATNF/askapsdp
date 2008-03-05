@@ -7,7 +7,7 @@
 /// @li in the destructor this scratch measurement set is removed
 /// @li there is a method to obtain the name of the measurement set
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -20,8 +20,8 @@
 // std includes
 #include <string>
 
-// conrad includes
-#include <conrad/ConradError.h>
+// askap includes
+#include <askap/AskapError.h>
 
 // casa includes
 #include <tables/Tables/Table.h>
@@ -29,7 +29,7 @@
 #include <casa/OS/EnvVar.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -41,7 +41,7 @@ namespace synthesis {
 /// @li in the destructor this scratch measurement set is removed
 struct TableTestRunner : public CppUnit::TextUi::TestRunner
 {
-  /// @brief copy the table from the location within the CONRAD tree
+  /// @brief copy the table from the location within the ASKAP tree
   TableTestRunner();
   
   /// @brief delete the scratch table
@@ -55,7 +55,7 @@ private:
 
 TableTestRunner::TableTestRunner() {
   if (theirTestMSName!="") {
-      throw ConradError("There supposed to be only one instance of TableTestRunner");
+      throw AskapError("There supposed to be only one instance of TableTestRunner");
   }
   theirTestMSName="./.test.ms";
 
@@ -69,7 +69,7 @@ TableTestRunner::TableTestRunner() {
     originalMS.deepCopy(theirTestMSName,casa::Table::New);
   }
   catch (const casa::AipsError &ae) {
-      CONRADTHROW(ConradError, "Problems in making a copy of the test measurement set. "<<
+      ASKAPTHROW(AskapError, "Problems in making a copy of the test measurement set. "<<
                   "Either the current directory is not writable, or the test measurement set "<<
                   "doesn't exist. AipsError: "<<ae.what());
   }  
@@ -83,7 +83,7 @@ TableTestRunner::~TableTestRunner()
     copiedMS.markForDelete();
   }
   catch (const casa::AipsError &ae) {
-      CONRADTHROW(ConradError, "Problems deleting the scratch table");
+      ASKAPTHROW(AskapError, "Problems deleting the scratch table");
   }
 }
 
@@ -91,6 +91,6 @@ std::string TableTestRunner::theirTestMSName;
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef __TABLE_TEST_RUNNER_H

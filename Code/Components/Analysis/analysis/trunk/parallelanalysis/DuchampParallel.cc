@@ -6,7 +6,7 @@
 /// of MPI connections, sending and models around.
 /// There is assumed to be one master and many workers.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 
@@ -27,12 +27,12 @@ using namespace LOFAR::TYPES;
 // boost includes
 #include <boost/shared_ptr.hpp>
 
-#include <conrad_analysis.h>
+#include <askap_analysis.h>
 
-#include <conrad/ConradLogging.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
-#include <conradparallel/ConradParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <parallelanalysis/DuchampParallel.h>
 #include <analysisutilities/AnalysisUtilities.h>
@@ -50,22 +50,22 @@ using namespace LOFAR::TYPES;
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object3D.hh>
 
-CONRAD_LOGGER(logger, ".parallelanalysis");
+ASKAP_LOGGER(logger, ".parallelanalysis");
 
 using namespace std;
-using namespace conrad;
-using namespace conrad::cp;
+using namespace askap;
+using namespace askap::cp;
 
 using namespace duchamp;
 
-namespace conrad
+namespace askap
 {
   namespace analysis
   {
 
     DuchampParallel::DuchampParallel(int argc, const char** argv,
         const LOFAR::ACC::APS::ParameterSet& parset)
-    : ConradParallel(argc, argv)
+    : AskapParallel(argc, argv)
     {
       /// @details The constructor reads parameters from the parameter
       /// set parset. This set can include Duchamp parameters, as well
@@ -86,8 +86,8 @@ namespace conrad
       if(isWorker()) {
         itsImage = substitute(parset.getString("image"));
 	itsCube.pars().setImageFile(itsImage);
-	CONRADLOG_INFO_STR(logger, "Defined the cube.");
-	//CONRADLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
+	ASKAPLOG_INFO_STR(logger, "Defined the cube.");
+	//ASKAPLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
 
 	itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
 
@@ -114,19 +114,19 @@ namespace conrad
 	/// the separated data is interpreted.
 	string sectionInfo = substitute(parset.getString("sectionInfo"));
 	itsSectionList = readSectionInfo(sectionInfo);
-	CONRADLOG_INFO_STR(logger, "Read in the sectionInfo.");
+	ASKAPLOG_INFO_STR(logger, "Read in the sectionInfo.");
 	if(itsSectionList.size() == 0){
-	  CONRADLOG_ERROR_STR(logger, "No SectionInfo file found. Exiting.");
+	  ASKAPLOG_ERROR_STR(logger, "No SectionInfo file found. Exiting.");
 	  exit(0);
 	}
 	else if( (isParallel() && (int(itsSectionList.size()) != (itsNNode-1) ))
 		 || (!isParallel() && (int(itsSectionList.size()) != (itsNNode))) )
-	  CONRADLOG_ERROR_STR(logger, "Number of sections provided by " 
+	  ASKAPLOG_ERROR_STR(logger, "Number of sections provided by " 
 			      << sectionInfo 
 			      << " does not match the number of images being processed.");
 
 	if(itsCube.pars().getFlagLog()){
-	  CONRADLOG_INFO_STR(logger, "Setting up logfile " << itsCube.pars().getLogFile() );
+	  ASKAPLOG_INFO_STR(logger, "Setting up logfile " << itsCube.pars().getLogFile() );
 	  std::ofstream logfile(itsCube.pars().getLogFile().c_str());
 	  logfile << "New run of the Duchamp sourcefinder: ";
 	  time_t now = time(NULL);
@@ -151,19 +151,19 @@ namespace conrad
       if(isWorker()) {
 
 	if(itsCube.getCube()==duchamp::FAILURE){
-	  CONRADLOG_ERROR_STR(logger, "Could not read in data from image " << itsImage);
+	  ASKAPLOG_ERROR_STR(logger, "Could not read in data from image " << itsImage);
 	}
 	else {
-	  CONRADLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << itsImage);
+	  ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << itsImage);
 	  std::stringstream ss;
 	  ss << itsCube.getDimX() << " " << itsCube.getDimY() << " " << itsCube.getDimZ();
-	  CONRADLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
+	  ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
 	}
 
       }
       else {
 	if(itsCube.getCube()==duchamp::FAILURE){
-	  CONRADLOG_ERROR_STR(logger, "MASTER: Could not read in data from image " << itsImage << ".");
+	  ASKAPLOG_ERROR_STR(logger, "MASTER: Could not read in data from image " << itsImage << ".");
 	}
 // 	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
 // 	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
@@ -185,27 +185,27 @@ namespace conrad
       /// This is only done on the workers.
 
       if(isWorker()) {
-        CONRADLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
+        ASKAPLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
 
 	if(itsCube.getSize()>0){
 
 	  itsCube.setCubeStats();
 	  if(itsCube.pars().getFlagATrous()){
-	    CONRADLOG_INFO_STR(logger,  "Searching with reconstruction first");
+	    ASKAPLOG_INFO_STR(logger,  "Searching with reconstruction first");
 	    itsCube.ReconSearch();
 	  }
 	  else if(itsCube.pars().getFlagSmooth()) {
-	    CONRADLOG_INFO_STR(logger,  "Searching with smoothing first");	  
+	    ASKAPLOG_INFO_STR(logger,  "Searching with smoothing first");	  
 	    itsCube.SmoothSearch();
 	  }
 	  else {
-	    CONRADLOG_INFO_STR(logger,  "Searching, no smoothing or reconstruction done.");
+	    ASKAPLOG_INFO_STR(logger,  "Searching, no smoothing or reconstruction done.");
 	    itsCube.CubicSearch();
 	  }
 	}
 
 	int16 num = itsCube.getNumObj(), rank=this->itsRank;
-        CONRADLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << this->itsRank);
+        ASKAPLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << this->itsRank);
 	
         // Send the lists to the master here
 	if(isParallel()) {
@@ -257,7 +257,7 @@ namespace conrad
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs);
 	  //	  itsConnectionSet->write(this->itsRank,bs);
-	  CONRADLOG_INFO_STR(logger, "Sent detection list to the master from worker " << this->itsRank );
+	  ASKAPLOG_INFO_STR(logger, "Sent detection list to the master from worker " << this->itsRank );
 	}
 	else{ // if not parallel, still want to make the voxelList
 
@@ -302,7 +302,7 @@ namespace conrad
 
       if(isMaster()) {
         // Get the lists from the workers here
-        CONRADLOG_INFO_STR(logger,  "MASTER: Retrieving lists from workers" );
+        ASKAPLOG_INFO_STR(logger,  "MASTER: Retrieving lists from workers" );
 
 	if(isParallel()) {
 	  LOFAR::BlobString bs;
@@ -313,9 +313,9 @@ namespace conrad
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version=in.getStart("detW2M");
-	      CONRADASSERT(version==1);
+	      ASKAPASSERT(version==1);
 	      in >> rank >> numObj;
-	      CONRADLOG_INFO_STR(logger, "MASTER: Starting to read " 
+	      ASKAPLOG_INFO_STR(logger, "MASTER: Starting to read " 
 				 << numObj << " objects from worker #"<< rank);
 	      for(int obj=0;obj<numObj;obj++){
 		duchamp::Detection *object = new duchamp::Detection;
@@ -339,16 +339,16 @@ namespace conrad
 	      }
 	      in.getEnd();
 
-	      CONRADLOG_INFO_STR(logger, "MASTER: Received list of size " 
+	      ASKAPLOG_INFO_STR(logger, "MASTER: Received list of size " 
 				 << numObj << " from worker #"<< rank);
-	      CONRADLOG_INFO_STR(logger, "MASTER: Now have " 
+	      ASKAPLOG_INFO_STR(logger, "MASTER: Now have " 
 				 << itsCube.getNumObj() << " objects");
 	    }
 	}
 	// Now process the lists
-        CONRADLOG_INFO_STR(logger,  "MASTER: Condensing lists..." );
+        ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists..." );
 	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
-        CONRADLOG_INFO_STR(logger,  "MASTER: Condensing lists done" );
+        ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists done" );
 
      }
       else {
@@ -377,7 +377,7 @@ namespace conrad
 	  int numObj = itsCube.getNumObj();
 	  std::vector<PixelInfo::Voxel> templist[numObj];
 
-	  CONRADLOG_INFO_STR(logger, "MASTER: Calculating fluxes of " 
+	  ASKAPLOG_INFO_STR(logger, "MASTER: Calculating fluxes of " 
 			     << numObj << " detected objects.");
 
 	  for(int i=0;i<itsCube.getNumObj();i++){ // for each object
@@ -392,7 +392,7 @@ namespace conrad
 		ct++;
 	      }
 	      if(numVox!=0 && ct==numVox){ // there has been no match -- problem!
-		CONRADLOG_ERROR(logger, "MASTER: Found a voxel in the object lists that doesn't appear in the base list.");
+		ASKAPLOG_ERROR(logger, "MASTER: Found a voxel in the object lists that doesn't appear in the base list.");
 	      }
 	      else vox->setF( itsVoxelList[ct].getF() );
 	    }
@@ -431,7 +431,7 @@ namespace conrad
       /// manner.
 
       if(isMaster()) {
-	CONRADLOG_INFO_STR(logger, "MASTER: Found " << itsCube.getNumObj() << " sources.");
+	ASKAPLOG_INFO_STR(logger, "MASTER: Found " << itsCube.getNumObj() << " sources.");
 	
 	itsCube.outputDetectionList();
 
@@ -452,12 +452,12 @@ namespace conrad
       /// Gaussians (or other functions) using the RadioSource class.
 
       if(isMaster() && itsFlagDoFit) {
-	CONRADLOG_INFO_STR(logger, "MASTER: Fitting source profiles.");
+	ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source profiles.");
 
 	duchamp::FitsHeader head = itsCube.getHead();
 
  	for(int i=0;i<itsCube.getNumObj();i++){
-	  CONRADLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i<<".");
+	  ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i<<".");
 
 	  sourcefitting::RadioSource src;
 	  src.setDetection( itsCube.pObject(i) );
@@ -510,7 +510,7 @@ namespace conrad
       /// send to the master via LOFAR Blobs.
 
       if(isWorker()) {
-	CONRADLOG_INFO_STR(logger, "Finding mean: worker " << this->itsRank);
+	ASKAPLOG_INFO_STR(logger, "Finding mean: worker " << this->itsRank);
 
 	if(itsCube.pars().getFlagATrous()) itsCube.ReconCube();
 	else if(itsCube.pars().getFlagSmooth()) itsCube.SmoothCube();
@@ -530,7 +530,7 @@ namespace conrad
 
 	}
 
-	CONRADLOG_INFO_STR(logger, "#" << this->itsRank << ": Mean = " << mean );
+	ASKAPLOG_INFO_STR(logger, "#" << this->itsRank << ": Mean = " << mean );
 	
 	if(isParallel()) {
 	  LOFAR::BlobString bs;
@@ -543,7 +543,7 @@ namespace conrad
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs);
 	  //	  itsConnectionSet->write(this->itsRank,bs);
-	  CONRADLOG_INFO_STR(logger, "Sent mean to the master from worker " << this->itsRank );
+	  ASKAPLOG_INFO_STR(logger, "Sent mean to the master from worker " << this->itsRank );
 	}
 	else {
 	  // serial case
@@ -568,7 +568,7 @@ namespace conrad
       /// findSpread() function.
 
       if(isWorker()) {
-	CONRADLOG_INFO_STR(logger, "About to calculate rms on worker " << this->itsRank);
+	ASKAPLOG_INFO_STR(logger, "About to calculate rms on worker " << this->itsRank);
 
 	// first read in the overall mean for the cube
 	double mean=0;
@@ -578,7 +578,7 @@ namespace conrad
 	  LOFAR::BlobIBufString bib(bs1);
 	  LOFAR::BlobIStream in(bib);
 	  int version=in.getStart("meanM2W");
-	  CONRADASSERT(version==1);
+	  ASKAPASSERT(version==1);
 	  in >> mean;
 	  in.getEnd();
 	}
@@ -602,7 +602,7 @@ namespace conrad
 
 	}
 
-	CONRADLOG_INFO_STR(logger, "#" << this->itsRank << ": rms = " << rms );
+	ASKAPLOG_INFO_STR(logger, "#" << this->itsRank << ": rms = " << rms );
 
 	// return it to the master
 	if(isParallel()) {
@@ -616,7 +616,7 @@ namespace conrad
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs2);
 	  //	  itsConnectionSet->write(this->itsRank,bs2);
-	  CONRADLOG_INFO_STR(logger, "Sent local rms to the master from worker " << this->itsRank );
+	  ASKAPLOG_INFO_STR(logger, "Sent local rms to the master from worker " << this->itsRank );
 	}
 	else{
 	  //serial case
@@ -643,7 +643,7 @@ namespace conrad
 
       if(isMaster()&&isParallel()) {
 	// get the means from the workers
-        CONRADLOG_INFO_STR(logger,  "MASTER: Receiving Means and combining" );
+        ASKAPLOG_INFO_STR(logger,  "MASTER: Receiving Means and combining" );
 
 	LOFAR::BlobString bs1;
         int size=0;
@@ -654,13 +654,13 @@ namespace conrad
           LOFAR::BlobIBufString bib(bs1);
           LOFAR::BlobIStream in(bib);
           int version=in.getStart("meanW2M");
-          CONRADASSERT(version==1);
+          ASKAPASSERT(version==1);
 	  double newav;
 	  int32 newsize;
 	  int16 rank;
           in >> rank >> newav >> newsize;
           in.getEnd();
-          CONRADLOG_INFO_STR(logger, "MASTER: Received mean from worker "<< rank);
+          ASKAPLOG_INFO_STR(logger, "MASTER: Received mean from worker "<< rank);
 
 	  size += newsize;
 	  av += newav * newsize;
@@ -670,8 +670,8 @@ namespace conrad
 	  av /= double(size);
 	}
 
-	CONRADLOG_INFO_STR(logger, "MASTER: OVERALL SIZE = " << size);
-	CONRADLOG_INFO_STR(logger, "MASTER: OVERALL MEAN = " << av);
+	ASKAPLOG_INFO_STR(logger, "MASTER: OVERALL SIZE = " << size);
+	ASKAPLOG_INFO_STR(logger, "MASTER: OVERALL MEAN = " << av);
 	itsCube.stats().setMean(av);
       }
       else {
@@ -694,7 +694,7 @@ namespace conrad
 	out << av;
 	out.putEnd();
 	itsConnectionSet->writeAll(bs2);
-	CONRADLOG_INFO_STR(logger, "MASTER: Broadcast overal mean from master to workers." );
+	ASKAPLOG_INFO_STR(logger, "MASTER: Broadcast overal mean from master to workers." );
       }
       else {
       }
@@ -711,7 +711,7 @@ namespace conrad
 
       if(isMaster()&&isParallel()) {
 	// get the means from the workers
-        CONRADLOG_INFO_STR(logger,  "MASTER: Receiving RMS values and combining" );
+        ASKAPLOG_INFO_STR(logger,  "MASTER: Receiving RMS values and combining" );
 
 	LOFAR::BlobString bs;
         int size=0;
@@ -722,13 +722,13 @@ namespace conrad
           LOFAR::BlobIBufString bib(bs);
           LOFAR::BlobIStream in(bib);
           int version=in.getStart("rmsW2M");
-          CONRADASSERT(version==1);
+          ASKAPASSERT(version==1);
 	  double newrms;
 	  int32 newsize;
 	  int16 rank;
           in >> rank >> newrms >> newsize;
           in.getEnd();
-          CONRADLOG_INFO_STR(logger, "MASTER: Received RMS from worker "<< rank);
+          ASKAPLOG_INFO_STR(logger, "MASTER: Received RMS from worker "<< rank);
 
 	  size += newsize;
 	  rms += (newrms * newrms * (newsize-1));
@@ -745,7 +745,7 @@ namespace conrad
 	itsCube.pars().setFlagUserThreshold(true);
 	itsCube.pars().setThreshold(threshold);
 
-	CONRADLOG_INFO_STR(logger, "MASTER: OVERALL RMS = " << rms);
+	ASKAPLOG_INFO_STR(logger, "MASTER: OVERALL RMS = " << rms);
 
       }
     }
@@ -766,7 +766,7 @@ namespace conrad
 	out << threshold;
 	out.putEnd();
 	itsConnectionSet->writeAll(bs);
-	CONRADLOG_INFO_STR(logger, "MASTER: Sent threshold (" 
+	ASKAPLOG_INFO_STR(logger, "MASTER: Sent threshold (" 
 			   << itsCube.stats().getThreshold() << ") from the master" );
       }
       else {
@@ -787,7 +787,7 @@ namespace conrad
 	  LOFAR::BlobIBufString bib(bs);
 	  LOFAR::BlobIStream in(bib);
 	  int version=in.getStart("threshM2W");
-	  CONRADASSERT(version==1);
+	  ASKAPASSERT(version==1);
 	  in >> threshold;
 	  in.getEnd();
 
@@ -797,7 +797,7 @@ namespace conrad
 	  threshold = itsCube.stats().getMiddle() + itsCube.stats().getSpread()*itsCube.pars().getCut();
 	}
 
-	CONRADLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank << " to be " << threshold);
+	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank << " to be " << threshold);
 
 	itsCube.pars().setThreshold(threshold);
      }

@@ -11,7 +11,7 @@ using namespace LOFAR;
 using namespace LOFAR::ACC::APS;
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWSingleSpec::~MWSingleSpec()
   {}

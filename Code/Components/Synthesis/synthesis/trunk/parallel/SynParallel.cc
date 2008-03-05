@@ -6,7 +6,7 @@
 /// of MPI connections, sending and models around.
 /// There is assumed to be one master and many workers.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 #include <mwcommon/MPIConnection.h>
@@ -24,31 +24,31 @@
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".parallel");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".parallel");
 
-#include <conrad/ConradError.h>
-#include <conrad_synthesis.h>
+#include <askap/AskapError.h>
+#include <askap_synthesis.h>
 
 #include <parallel/SynParallel.h>
 
 #include <sstream>
 
 using namespace std;
-using namespace conrad;
-using namespace conrad::cp;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::cp;
+using namespace askap::scimath;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
 
-    SynParallel::SynParallel(int argc, const char** argv) : ConradParallel(argc, argv)
+    SynParallel::SynParallel(int argc, const char** argv) : AskapParallel(argc, argv)
     {
       itsModel = Params::ShPtr(new Params());
-      CONRADCHECK(itsModel, "Model not defined correctly");
+      ASKAPCHECK(itsModel, "Model not defined correctly");
 
     }
 
@@ -56,7 +56,7 @@ namespace conrad
     {
     }
 
-    conrad::scimath::Params::ShPtr& SynParallel::params()
+    askap::scimath::Params::ShPtr& SynParallel::params()
     {
       return itsModel;
     }
@@ -66,7 +66,7 @@ namespace conrad
     {
       if (isParallel()&&isMaster())
       {
-        CONRADCHECK(itsModel, "Model not defined prior to broadcast")
+        ASKAPCHECK(itsModel, "Model not defined prior to broadcast")
         casa::Timer timer;
         timer.mark();
 
@@ -78,7 +78,7 @@ namespace conrad
         out << *itsModel;
         out.putEnd();
         itsConnectionSet->writeAll(bs);
-        CONRADLOG_INFO_STR(logger, "Sent model to the workers via MPI in "<< timer.real()
+        ASKAPLOG_INFO_STR(logger, "Sent model to the workers via MPI in "<< timer.real()
                            << " seconds ");
       }
     }
@@ -88,20 +88,20 @@ namespace conrad
     {
       if (isParallel()&&isWorker())
       {
-        CONRADCHECK(itsModel, "Model not defined prior to receiving")
+        ASKAPCHECK(itsModel, "Model not defined prior to receiving")
         casa::Timer timer;
         timer.mark();
-        CONRADLOG_INFO_STR(logger, "Receiving model from the master via MPI");
+        ASKAPLOG_INFO_STR(logger, "Receiving model from the master via MPI");
         LOFAR::BlobString bs;
         bs.resize(0);
         itsConnectionSet->read(0, bs);
         LOFAR::BlobIBufString bib(bs);
         LOFAR::BlobIStream in(bib);
         int version=in.getStart("model");
-        CONRADASSERT(version==1);
+        ASKAPASSERT(version==1);
         in >> *itsModel;
         in.getEnd();
-        CONRADLOG_INFO_STR(logger, "Received model from the master via MPI in "<< timer.real()
+        ASKAPLOG_INFO_STR(logger, "Received model from the master via MPI in "<< timer.real()
                            << " seconds ");
       }
     }

@@ -2,16 +2,16 @@
 ///
 /// Provides generic methods for parallel algorithms
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_CP_CONRADPARALLEL_H_
-#define CONRAD_CP_CONRADPARALLEL_H_
+#ifndef ASKAP_CP_ASKAPPARALLEL_H_
+#define ASKAP_CP_ASKAPPARALLEL_H_
 
 #include <mwcommon/MPIConnectionSet.h>
 
 
-namespace conrad
+namespace askap
 {
   namespace cp
   {
@@ -27,7 +27,7 @@ namespace conrad
     /// no overall for transmission of model.
     ///
     /// @ingroup parallel
-    class ConradParallel
+    class AskapParallel
     {
   public:
 
@@ -36,9 +36,9 @@ namespace conrad
       /// application specific information is passed on the command line.
       /// @param argc Number of command line inputs
       /// @param argv Command line inputs
-      ConradParallel(int argc, const char** argv);
+      AskapParallel(int argc, const char** argv);
 
-      ~ConradParallel();
+      ~AskapParallel();
 
       /// Is this running in parallel?
       bool isParallel();
@@ -56,7 +56,7 @@ namespace conrad
       /// The set of all connections between processes. For the master, there
       /// are connections to every worker, but each worker has only one
       /// connection, which is to the master.
-      conrad::cp::MPIConnectionSet::ShPtr itsConnectionSet;
+      askap::cp::MPIConnectionSet::ShPtr itsConnectionSet;
 
       /// Rank of this process : 0 for the master, >0 for workers
       int itsRank;

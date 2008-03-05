@@ -4,7 +4,7 @@
 /// TableConstDataSource: Allow read-only access to the data stored in the
 /// measurement set. This class implements IConstDataSource interface.
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -18,8 +18,8 @@
 #include <dataaccess/BasicDataConverter.h>
 #include <dataaccess/DataAccessError.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 using namespace casa;
 
 /// @brief construct a read-only data source object
@@ -88,7 +88,7 @@ TableConstDataSource::createConstIterator(const IDataSelectorConstPtr &sel,
            boost::dynamic_pointer_cast<IDataConverterImpl const>(conv);
    	   
    if (!implSel || !implConv) {
-       CONRADTHROW(DataAccessLogicError, "Incompatible selector and/or "<<
+       ASKAPTHROW(DataAccessLogicError, "Incompatible selector and/or "<<
                  "converter are received by the createConstIterator method");
    }
    return boost::shared_ptr<IConstDataIterator>(new TableConstDataIterator(

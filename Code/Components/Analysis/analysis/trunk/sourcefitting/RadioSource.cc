@@ -5,8 +5,8 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
 
-#include <conrad/ConradLogging.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
 #include <sourcefitting/RadioSource.h>
 
@@ -25,9 +25,9 @@
 #include <string>
 #include <map>
 
-CONRAD_LOGGER(logger, ".sourcefitting");
+ASKAP_LOGGER(logger, ".sourcefitting");
 
-namespace conrad
+namespace askap
 {
 
   namespace sourcefitting
@@ -60,7 +60,7 @@ namespace conrad
       float failure = false;
 
       if(z!=this->itsDetection->getZmin() || z != this->itsDetection->getZmax()){
-	CONRADLOG_ERROR(logger,"Can only do fitting for two-dimensional objects!");
+	ASKAPLOG_ERROR(logger,"Can only do fitting for two-dimensional objects!");
       }
       else{
 
@@ -80,7 +80,7 @@ namespace conrad
 
 	if(failure){
 	  delete this->itsFluxArray;
-	  CONRADLOG_ERROR(logger, "RadioSource: Failed to allocate flux array");
+	  ASKAPLOG_ERROR(logger, "RadioSource: Failed to allocate flux array");
 	}
 
       }
@@ -184,7 +184,7 @@ void printparameters(Matrix<Double> &m)
       float noise;
       if(this->itsNoiseLevel < 0){
 	noise = 1.;
-	CONRADLOG_INFO_STR(logger, "Fitting: Noise level not defined. Not doing scaling.");
+	ASKAPLOG_INFO_STR(logger, "Fitting: Noise level not defined. Not doing scaling.");
       }
       else{
 	noise = this->itsNoiseLevel;
@@ -288,7 +288,7 @@ void printparameters(Matrix<Double> &m)
 	} catch (AipsError err) {
 	  std::string message = err.getMesg().chars();
 	  message = "FIT ERROR: " + message;
-	  CONRADLOG_ERROR(logger, message);
+	  ASKAPLOG_ERROR(logger, message);
 	  thisFitGood = false;
 	}
 

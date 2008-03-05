@@ -11,7 +11,7 @@
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -26,7 +26,7 @@
 #include <dataaccess/ITableHolder.h>
 #include <dataaccess/ITableDataDescHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -123,6 +123,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef SUBTABLE_INFO_HOLDER_H

@@ -2,7 +2,7 @@
 ///
 /// DataAccessTestImpl: Implementation of the Data Access test class
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 #ifndef I_DATA_ACCESS_TEST_IMPL_H
@@ -15,7 +15,7 @@
 #include <dataaccess/SharedIter.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -32,6 +32,6 @@ struct DataAccessTestImpl {
 };
 
 } // namespace synthesis
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_DATA_ACCESS_TEST_IMPL_H

@@ -4,7 +4,7 @@
 /// of buffers to store scratch data. This class stores buffers in the
 /// BUFFERS subtable 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -20,8 +20,8 @@
 #include <iostream>
 using namespace std;
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// construct the object and link it to the given buffers subtable
 /// @param[in] tab  subtable to use
@@ -40,10 +40,10 @@ void TableBufferManager::readBuffer(casa::Cube<casa::Complex> &vis,
                         const std::string &name,
 			   casa::uInt index) const
 { 
- CONRADDEBUGASSERT(table().actualTableDesc().isColumn(name));
- CONRADDEBUGASSERT(index<table().nrow());
+ ASKAPDEBUGASSERT(table().actualTableDesc().isColumn(name));
+ ASKAPDEBUGASSERT(index<table().nrow());
  casa::ROArrayColumn<casa::Complex> bufCol(table(),name);
- CONRADASSERT(bufCol.ndim(index) == 3); // only cubes should be in buffers
+ ASKAPASSERT(bufCol.ndim(index) == 3); // only cubes should be in buffers
  bufCol.get(index,vis,casa::True);
 }
 

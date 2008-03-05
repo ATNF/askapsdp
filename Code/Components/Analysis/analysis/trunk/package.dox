@@ -3,9 +3,9 @@
 /// @defgroup sourcefitting Source fitting routines and classes
 
 /// The package namespace
-namespace conrad::analysis {};
+namespace askap::analysis {};
 
-/// @mainpage CONRAD analysis package
+/// @mainpage ASKAP analysis package
 ///
 /// @section Introduction
 /// The analysis package supports analysis of processed radio synthesis 
@@ -43,4 +43,4 @@ namespace conrad::analysis {};
 /// @li @ref analysisutilities
 /// @li @ref sourcefitting
 ///
-/// @copyright 2007 CONRAD, All Rights Reserved.
+/// @copyright 2007 ASKAP, All Rights Reserved.

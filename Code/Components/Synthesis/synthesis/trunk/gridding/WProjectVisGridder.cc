@@ -1,11 +1,11 @@
 #include <gridding/WProjectVisGridder.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".gridding");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -13,11 +13,11 @@ CONRAD_LOGGER(logger, ".gridding");
 #include <casa/BasicSL/Constants.h>
 #include <fft/FFTWrapper.h>
 
-using namespace conrad;
+using namespace askap;
 
 #include <cmath>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -26,13 +26,13 @@ namespace conrad
         const int nwplanes, const double cutoff, const int overSample,
         const int maxSupport, const std::string& name)
     {
-      CONRADCHECK(wmax>0.0, "Baseline length must be greater than zero");
-      CONRADCHECK(nwplanes>0, "Number of w planes must be greater than zero");
-      CONRADCHECK(nwplanes%2==1, "Number of w planes must be odd");
-      CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
-      CONRADCHECK(cutoff>0.0, "Cutoff must be positive");
-      CONRADCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
-      CONRADCHECK(maxSupport>0, "Maximum support must be greater than 0")
+      ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
+      ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
+      ASKAPCHECK(nwplanes%2==1, "Number of w planes must be odd");
+      ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
+      ASKAPCHECK(cutoff>0.0, "Cutoff must be positive");
+      ASKAPCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
+      ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
       itsNWPlanes=nwplanes;
       itsWScale=wmax/double((nwplanes-1)/2);
@@ -84,12 +84,12 @@ namespace conrad
             }
             if (itsCMap(i, pol, chan)<0)
             {
-              CONRADLOG_WARN_STR(logger, w << " "<< freq << " "<< itsWScale
+              ASKAPLOG_WARN_STR(logger, w << " "<< freq << " "<< itsWScale
                   << " "<< itsCMap(i, pol, chan) );
             }
-            CONRADCHECK(itsCMap(i, pol, chan)<itsNWPlanes,
+            ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes,
                 "W scaling error: recommend allowing larger range of w");
-            CONRADCHECK(itsCMap(i, pol, chan)>-1,
+            ASKAPCHECK(itsCMap(i, pol, chan)>-1,
                 "W scaling error: recommend allowing larger range of w");
           }
         }
@@ -218,12 +218,12 @@ namespace conrad
               }
             }
           }
-          CONRADCHECK(itsSupport>0,
+          ASKAPCHECK(itsSupport>0,
               "Unable to determine support of convolution function");
-          CONRADCHECK(itsSupport*itsOverSample<nx/2,
+          ASKAPCHECK(itsSupport*itsOverSample<nx/2,
               "Overflowing convolution function - increase maxSupport or decrease overSample")
           itsCSize=2*itsSupport+1;
-          CONRADLOG_INFO_STR(logger, "Convolution function support = "
+          ASKAPLOG_INFO_STR(logger, "Convolution function support = "
               << itsSupport << " pixels, convolution function size = "
               << itsCSize<< " pixels");
           itsCCenter=(itsCSize-1)/2;
@@ -251,7 +251,7 @@ namespace conrad
           }
         }
       }
-      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "
+      ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
           << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
       if (itsName!="")
         save(itsName);
@@ -279,8 +279,8 @@ namespace conrad
         return;
       }
 
-      CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
-      CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");
+      ASKAPCHECK(onx>=inx, "Attempting to pad to smaller array");
+      ASKAPCHECK(ony>=iny, "Attempting to pad to smaller array");
 
       /// Make an iterator that returns plane by plane
       casa::ReadOnlyArrayIterator<double> inIt(in, 2);

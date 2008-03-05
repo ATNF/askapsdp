@@ -11,7 +11,7 @@
 /// the transformation itself). Hence, we will use a class derived from
 /// this interface instead of the VelocityMachine
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -25,7 +25,7 @@
 // own includes
 #include <dataaccess/IConverterBase.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -61,6 +61,6 @@ struct IDopplerConverter : virtual public IConverterBase {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // I_DOPPLER_CONVERTER_H

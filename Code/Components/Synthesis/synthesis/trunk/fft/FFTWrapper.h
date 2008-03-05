@@ -2,7 +2,7 @@
 ///
 /// FFTWrapper: This class provides limited wrapper (adapter) functionality for the FFTW library
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Rudolph van der Merwe <rudolph@ska.ac.za>
 ///
 
@@ -11,7 +11,7 @@
 
 #include <casa/Arrays/Vector.h>
 
-namespace conrad
+namespace askap
 {
     namespace synthesis
     {

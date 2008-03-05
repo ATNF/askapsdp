@@ -1,18 +1,18 @@
 /// @file
 /// @brief Base class for BBSKernel prediffer behaviour.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_PREDIFFERPROXY_H
-#define CONRAD_MWCONTROL_PREDIFFERPROXY_H
+#ifndef ASKAP_MWCONTROL_PREDIFFERPROXY_H
+#define ASKAP_MWCONTROL_PREDIFFERPROXY_H
 
 #include <mwcontrol/BBSProxy.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief Base class for BBSKernel prediffer behaviour.

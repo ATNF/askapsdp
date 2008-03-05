@@ -8,8 +8,8 @@
 #include <casa/BasicSL/Complex.h>
 
 // own includes
-#include <conrad/ConradUtil.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapUtil.h>
+#include <askap/AskapError.h>
 
 // command line parser
 #include <CommandLineParser.h>
@@ -111,12 +111,12 @@ std::string gainParameterName(casa::uInt ant, casa::uInt pol,
   } else if (pol == 1) {
       res+="g22.";
   } else {
-     CONRADTHROW(conrad::ConradError, 
+     ASKAPTHROW(askap::AskapError, 
                  "Only parallel hand polarisations are currently supported");
   }
-  res+=conrad::utility::toString<casa::uInt>(ant);
+  res+=askap::utility::toString<casa::uInt>(ant);
   if (feed>=0) {
-      res+="."+conrad::utility::toString<casa::uInt>(casa::uInt(feed));
+      res+="."+askap::utility::toString<casa::uInt>(casa::uInt(feed));
   }
   return res;
 }
@@ -124,7 +124,7 @@ std::string gainParameterName(casa::uInt ant, casa::uInt pol,
 
 int main(int argc, char **argv)
 {
-   using namespace conrad;
+   using namespace askap;
 
    try {
       cmdlineparser::Parser parser; // a command line parser
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
       const size_t nAnt = nAntPar;
       const size_t nPol = nPolPar;
       const int nFeed = nFeedPar;
-      CONRADCHECK(minPar<maxPar,"Minimum amplitude should be less than maximum amplitude");
+      ASKAPCHECK(minPar<maxPar,"Minimum amplitude should be less than maximum amplitude");
       ComplexRandomGainGenerator gen(minPar,maxPar);
       std::ofstream os(outputName.getValue().c_str());
       os<<std::endl;

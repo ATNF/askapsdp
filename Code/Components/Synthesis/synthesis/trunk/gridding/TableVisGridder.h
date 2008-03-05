@@ -4,7 +4,7 @@
 /// and the unimplemented methods provided. In some cases, it may be 
 /// necessary or more efficient to override the provided methods as well.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef TABLEVISGRIDDER_H_
@@ -16,7 +16,7 @@
 
 #include <casa/BasicSL/Complex.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -100,7 +100,7 @@ namespace conrad
   protected:
 
       /// Axes definition for image
-      conrad::scimath::Axes itsAxes;
+      askap::scimath::Axes itsAxes;
 
       /// Shape of image
       casa::IPosition itsShape;

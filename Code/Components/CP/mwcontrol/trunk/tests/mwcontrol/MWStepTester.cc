@@ -8,12 +8,12 @@
 #include "MWIos.h"
 #include <mwcommon/MasterControl.h>
 #include <mwcontrol/MWSolveStepBBS.h>
-#include <mwcommon/ConradUtil.h>
+#include <mwcommon/AskapUtil.h>
 
 using namespace std;
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWStepTester::MWStepTester (int streamId, LOFAR::BlobOStream* out)
     : itsStreamId  (streamId),

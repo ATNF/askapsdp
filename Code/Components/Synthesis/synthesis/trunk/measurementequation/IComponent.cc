@@ -6,14 +6,14 @@
 /// examples of components include, e.g. Gaussian or point sources.
 /// 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
 #include <measurementequation/IComponent.h>
 
 /// virtual destructor to keep the compiler happy
-conrad::synthesis::IComponent::~IComponent()  {} 
+askap::synthesis::IComponent::~IComponent()  {} 
 
 /// @brief convert StokesTypes into an index 0..3
 /// @details It is decided that all components have to be defined in
@@ -27,9 +27,9 @@ conrad::synthesis::IComponent::~IComponent()  {}
 /// other values an exception is thrown.
 /// @param[in] pol required polarization
 /// @return an index (I: 0, Q: 1, U: 2 and V: 3)
-size_t conrad::synthesis::IComponent::stokesIndex(casa::Stokes::StokesTypes pol) 
-                    throw(ConradError)
+size_t askap::synthesis::IComponent::stokesIndex(casa::Stokes::StokesTypes pol) 
+                    throw(AskapError)
 {
-  CONRADDEBUGASSERT(pol!=casa::Stokes::Undefined && pol<=casa::Stokes::V);
+  ASKAPDEBUGASSERT(pol!=casa::Stokes::Undefined && pol<=casa::Stokes::V);
   return static_cast<size_t>(pol-casa::Stokes::I);
 }

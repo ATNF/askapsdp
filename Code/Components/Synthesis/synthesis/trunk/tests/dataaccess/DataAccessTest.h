@@ -7,7 +7,7 @@
 ///                 called from here when the DataSource implementation
 ///                 is ready.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 #ifndef I_DATA_ACCESS_TEST_H
@@ -20,7 +20,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-namespace conrad {
+namespace askap {
 namespace synthesis {
 
 class DataAccessTest : public CppUnit::TestFixture,
@@ -45,6 +45,6 @@ public:
 };
  
 } // namespace synthesis
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_DATA_ACCESS_TEST_H

@@ -10,14 +10,14 @@
 /// is left double to highlight the future interface 
 /// (derived from IMeasurementEquation).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
 #include <measurementequation/GenericMultiChunkEquation.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -32,7 +32,7 @@ GenericMultiChunkEquation::GenericMultiChunkEquation(const IDataSharedIter& idi)
 /// calls an abstract method declared in IMeasurementEquation for each 
 /// individual accessor (each iteration of the iterator)
 /// @param[in] ne Normal equations
-void GenericMultiChunkEquation::calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const
+void GenericMultiChunkEquation::calcGenericEquations(askap::scimath::GenericNormalEquations& ne) const
 {
   MultiChunkEquation::calcEquations(ne);
 }
@@ -48,14 +48,14 @@ void GenericMultiChunkEquation::calcGenericEquations(conrad::scimath::GenericNor
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
 void GenericMultiChunkEquation::calcEquations(const IConstDataAccessor &chunk,
-                   conrad::scimath::INormalEquations& ne) const
+                   askap::scimath::INormalEquations& ne) const
 {
   try {
      calcGenericEquations(chunk, 
-             dynamic_cast<conrad::scimath::GenericNormalEquations&>(ne));
+             dynamic_cast<askap::scimath::GenericNormalEquations&>(ne));
   }
   catch (const std::bad_cast &bc) {
-     CONRADTHROW(ConradError, "An attempt to use incompatible type of "
+     ASKAPTHROW(AskapError, "An attempt to use incompatible type of "
                  "the normal equations class with a derivative from "
                  "GenericMultiChunkEquation. It accepts only GenericNormalEquations "
                  "and derivatives. This exception probably indicates a logic error");    
@@ -74,4 +74,4 @@ void GenericMultiChunkEquation::predict() const
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap

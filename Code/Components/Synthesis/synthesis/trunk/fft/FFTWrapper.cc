@@ -2,15 +2,15 @@
 ///
 /// FFTWrapper: This class provides limited wrapper (adapter) functionality for the FFTW library
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Rudolph van der Merwe <rudolph@ska.ac.za>
 ///
 #include <fft/FFTWrapper.h>
 
-#include <conrad/ConradTypes.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapTypes.h>
+#include <askap/AskapError.h>
 #include <complex>
-#ifdef CONRAD_USE_FFTW
+#ifdef ASKAP_USE_FFTW
 #include <fftw3.h>
 #else 
 #include <scimath/Mathematics/FFTServer.h>
@@ -22,14 +22,14 @@
 
 using namespace casa;
 
-namespace conrad
+namespace askap
   {
     namespace synthesis
       {
 
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)
           {
-#ifdef CONRAD_USE_FFTW
+#ifdef ASKAP_USE_FFTW
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
             Bool deleteIt;
@@ -58,7 +58,7 @@ namespace conrad
 
         void fft(casa::Vector<casa::Complex>& vec, const bool forward)
           {
-#ifdef CONRAD_USE_FFTW
+#ifdef ASKAP_USE_FFTW
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
             Bool deleteIt;
@@ -92,13 +92,13 @@ namespace conrad
             while (!it.pastEnd())
               {
                 casa::Matrix<casa::Complex> mat(it.array());
-                CONRADDEBUGASSERT(arr.shape()(1)>=0);
+                ASKAPDEBUGASSERT(arr.shape()(1)>=0);
                 for (uint iy=0; iy<uint(arr.shape()(1)); iy++)
                   {
                     casa::Vector<casa::Complex> vec(mat.column(iy));
                     fft(vec, forward);
                   }
-                CONRADDEBUGASSERT(arr.shape()(0)>=0);  
+                ASKAPDEBUGASSERT(arr.shape()(0)>=0);  
                 for (uint ix=0; ix<uint(arr.shape()(0)); ix++)
                   {
                     casa::Vector<casa::Complex> vec(mat.row(ix));
@@ -114,13 +114,13 @@ namespace conrad
             while (!it.pastEnd())
               {
                 casa::Matrix<casa::DComplex> mat(it.array());
-                CONRADDEBUGASSERT(arr.shape()(1));
+                ASKAPDEBUGASSERT(arr.shape()(1));
                 for (uint iy=0; iy<uint(arr.shape()(1)); iy++)
                   {
                     casa::Vector<casa::DComplex> vec(mat.column(iy));
                     fft(vec, forward);
                   }
-                CONRADDEBUGASSERT(arr.shape()(0));
+                ASKAPDEBUGASSERT(arr.shape()(0));
                 for (uint ix=0; ix<uint(arr.shape()(0)); ix++)
                   {
                     casa::Vector<casa::DComplex> vec(mat.row(ix));

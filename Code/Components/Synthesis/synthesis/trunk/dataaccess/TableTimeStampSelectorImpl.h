@@ -4,7 +4,7 @@
 /// various types used to specify the time range. Currently, specializations
 /// exists for Double and casa::MVEpoch
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef TABLE_TIME_STAMP_SELECTOR_IMPL_H
@@ -17,7 +17,7 @@
 #include <dataaccess/TableTimeStampSelector.h>
 #include <dataaccess/TableHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -55,7 +55,7 @@ private:
 };
 
 } // namespace synthesis
-} // namespace conrad
+} // namespace askap
 
 
 #include <dataaccess/TableTimeStampSelectorImpl.tcc>

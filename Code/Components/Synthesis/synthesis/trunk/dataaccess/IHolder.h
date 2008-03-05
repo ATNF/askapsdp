@@ -6,7 +6,7 @@
 /// for any methods here. It just has an empty virtual destructor to
 /// avoid specifying it for a number of the next level classes.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -14,7 +14,7 @@
 #define I_HOLDER_H
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -33,6 +33,6 @@ struct IHolder {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_TABLE_HOLDER_H

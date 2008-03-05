@@ -7,7 +7,7 @@
 #include <mwcontrol/PredifferProxy.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   PredifferProxy::~PredifferProxy()
   {}

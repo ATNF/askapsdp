@@ -4,7 +4,7 @@
 /// TableDataSource: Allow read-write access to the data stored in the
 /// measurement set. This class implements IConstDataSource interface.
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -14,7 +14,7 @@
 #include <dataaccess/TableConstDataSource.h>
 #include <dataaccess/IDataSource.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -79,6 +79,6 @@ public:
  
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_DATA_SOURCE_H

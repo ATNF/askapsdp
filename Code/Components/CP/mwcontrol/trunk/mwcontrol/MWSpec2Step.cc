@@ -19,7 +19,7 @@
 using namespace std;
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWSpec2Step::~MWSpec2Step()
   {}

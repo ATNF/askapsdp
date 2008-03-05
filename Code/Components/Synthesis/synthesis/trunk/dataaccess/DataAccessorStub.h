@@ -1,7 +1,7 @@
 /// @file DataAccessorStub.h 
 /// @brief a stub to debug the code, which uses DataAccessor
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef DATA_ACCESSOR_STUB_H
@@ -9,7 +9,7 @@
 
 #include <dataaccess/IFlagDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -177,7 +177,7 @@ struct DataAccessorStub : virtual public IFlagDataAccessor
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef DATA_ACCESSOR_STUB_H
 

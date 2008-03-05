@@ -1,13 +1,13 @@
 //# ObsDomain.cc: Define the shape of a domain
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/ObsDomain.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   ObsDomain::ObsDomain()
     : itsStartFreq (-1),

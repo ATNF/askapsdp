@@ -1,6 +1,6 @@
 //# MWStepVisitor.cc: Base visitor class to visit an MWStep hierarchy
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -11,7 +11,7 @@
 #include <mwcommon/MWSimpleStep.h>
 #include <mwcommon/MWError.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWStepVisitor::~MWStepVisitor()
   {}
@@ -68,7 +68,7 @@ namespace conrad { namespace cp {
 
   void MWStepVisitor::visitStep (const MWStep& step)
   {
-    CONRADTHROW (MWError,
+    ASKAPTHROW (MWError,
                  "No visit function available for MWStep of type "
                  << step.className());
   }

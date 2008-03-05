@@ -1,6 +1,6 @@
 //# SocketConnection.cc: Connection to workers based on a socket
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -10,7 +10,7 @@
 #include <unistd.h>             // for gethostname
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   SocketConnection::SocketConnection (const std::string& hostName,
                                       const std::string& port)
@@ -47,7 +47,7 @@ namespace conrad { namespace cp {
     char* cbuf = static_cast<char*>(buf);
     while (size > 0) {
       int sz = itsDataSocket->read (cbuf, size);
-      CONRADCHECK (sz>=0,
+      ASKAPCHECK (sz>=0,
                    "Read on socket failed: " << itsDataSocket->errstr());
       cbuf += sz;
       size -= sz;
@@ -77,13 +77,13 @@ namespace conrad { namespace cp {
       }
       sleep (1);
     }
-    CONRADCHECK (status == LOFAR::Socket::SK_OK,
+    ASKAPCHECK (status == LOFAR::Socket::SK_OK,
                  "SocketConnection client could not connect to host "
                  << itsConnSocket.host() << ", port "
                  << itsConnSocket.port()
                  << ", LOFAR::Socket status " << status << ' '
                  << itsConnSocket.errstr());
-    CONRADASSERT (isConnected());
+    ASKAPASSERT (isConnected());
   }
 
   std::string SocketConnection::getHostName()

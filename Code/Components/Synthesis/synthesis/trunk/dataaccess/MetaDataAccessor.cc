@@ -15,14 +15,14 @@
 /// @note an alternative approach is to split out all code managing metadata
 /// into a separate class and to hold it in a shared pointer.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 
 #include <dataaccess/MetaDataAccessor.h>
 
-using namespace conrad::synthesis;
+using namespace askap::synthesis;
 
 /// construct an object linked with the given const accessor
 /// @param acc a reference to the associated accessor

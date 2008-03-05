@@ -1,6 +1,6 @@
 //# WorkDomainSpec.cc: Define the specifications of the work domain
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -12,7 +12,7 @@
 using namespace std;
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   void WorkDomainSpec::setAntennas (const vector<int>& antNrs)
   {
@@ -48,7 +48,7 @@ namespace conrad { namespace cp {
 				  WorkDomainSpec& wds)
   {
     int vers = bs.getStart ("WDS");
-    CONRADASSERT (vers == 1);
+    ASKAPASSERT (vers == 1);
     bs >> wds.itsInColumn
        >> wds.itsAntNrs
        >> wds.itsAntNames

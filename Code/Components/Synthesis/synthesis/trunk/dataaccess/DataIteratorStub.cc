@@ -3,13 +3,13 @@
 ///
 /// 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #include <dataaccess/DataIteratorStub.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -113,4 +113,4 @@ casa::Bool DataIteratorStub::next()
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap

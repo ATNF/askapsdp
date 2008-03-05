@@ -9,11 +9,11 @@
 ///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-#include <conrad/ConradError.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
 #include <CommandLineParser.h>
 
@@ -29,11 +29,11 @@
 
 #include <casa/OS/Timer.h>
 
-CONRAD_LOGGER(logger, ".cimager");
+ASKAP_LOGGER(logger, ".cimager");
 
-using namespace conrad;
-using namespace conrad::synthesis;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::synthesis;
+using namespace askap::scimath;
 using namespace LOFAR::ACC::APS;
 
 // Main function
@@ -66,13 +66,13 @@ int main(int argc, const char** argv)
 	ParameterSet subset(parset.makeSubset("Cimager."));
 	
 	ImagerParallel imager(argc, argv, subset);
-	CONRADLOG_INIT("cimager.log_cfg");
+	ASKAPLOG_INIT("cimager.log_cfg");
 	
-	CONRADLOG_INFO_STR(logger, "CONRAD synthesis imager " << ASKAP_PACKAGE_VERSION);
+	ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
 	
 	if(imager.isMaster()) {
-	  CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
-	  CONRADLOG_INFO_STR(logger,  parset);
+	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
+	  ASKAPLOG_INFO_STR(logger,  parset);
 	}
 	
 	int nCycles=subset.getInt32("ncycles", 0);
@@ -89,16 +89,16 @@ int main(int argc, const char** argv)
 	    /// Perform multiple major cycles
 	    for (int cycle=0;cycle<nCycles;cycle++)
 	      {
-		CONRADLOG_INFO_STR(logger,  "*** Starting major cycle " << cycle << " ***" );
+		ASKAPLOG_INFO_STR(logger,  "*** Starting major cycle " << cycle << " ***" );
 		imager.broadcastModel();
 		imager.receiveModel();
 		imager.calcNE();
 		imager.solveNE();
 		
-		CONRADLOG_INFO_STR(logger,  "user:   " << timer.user () << " system: " << timer.system ()
+		ASKAPLOG_INFO_STR(logger,  "user:   " << timer.user () << " system: " << timer.system ()
 				   <<" real:   " << timer.real () );
 	      }
-	    CONRADLOG_INFO_STR(logger,  "*** Finished major cycles ***" );
+	    ASKAPLOG_INFO_STR(logger,  "*** Finished major cycles ***" );
 	    imager.broadcastModel();
 	    imager.receiveModel();
 	    imager.calcNE();
@@ -108,25 +108,25 @@ int main(int argc, const char** argv)
 	/// This is the final step - restore the image and write it out
 	imager.writeModel();
       }
-      CONRADLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
+      ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
 			 <<" real:   " << timer.real () );
       
       ///==============================================================================
     }
   catch (const cmdlineparser::XParser &ex) {
-      CONRADLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
+      ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
       std::cerr<<"Usage: "<<argv[0]<<" [-inputs parsetFile]"<<std::endl;     
   }  
     
-  catch (const conrad::ConradError& x)
+  catch (const askap::AskapError& x)
     {
-      CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
-      std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
+      ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+      std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
       exit(1);
     }
   catch (const std::exception& x)
     {
-      CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+      ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
       std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
       exit(1);
     }

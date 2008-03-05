@@ -9,7 +9,7 @@
 /// Derived classes will provide required functionality. Building derived
 /// information on-demand is also expected to be implemented.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -19,7 +19,7 @@
 // own includes
 #include <dataaccess/ITableHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -50,6 +50,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_HOLDER_H

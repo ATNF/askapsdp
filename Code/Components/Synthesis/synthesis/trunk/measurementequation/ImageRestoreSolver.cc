@@ -1,11 +1,11 @@
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -16,8 +16,8 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <images/Images/TempImage.h>
 #include <images/Images/Image2DConvolver.h>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
 #include <iostream>
 
@@ -32,12 +32,12 @@ using std::map;
 using std::vector;
 using std::string;
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{
 
-		ImageRestoreSolver::ImageRestoreSolver(const conrad::scimath::Params& ip,
+		ImageRestoreSolver::ImageRestoreSolver(const askap::scimath::Params& ip,
 		    const casa::Vector<casa::Quantum<double> >& beam) :
 			ImageSolver(ip), itsBeam(beam)
 		{
@@ -51,7 +51,7 @@ namespace conrad
 		// Solve for update simply by scaling the data vector by the diagonal term of the
 		// normal equations i.e. the residual image
 		bool ImageRestoreSolver::solveNormalEquations(
-		    conrad::scimath::Quality& quality)
+		    askap::scimath::Quality& quality)
 		{
 
 			// Solving A^T Q^-1 V = (A^T Q^-1 A) P
@@ -70,23 +70,23 @@ namespace conrad
 					nParameters+=itsParams->value(name).nelements();
 				}
 			}
-			CONRADCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
+			ASKAPCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
 
 			for (map<string, uint>::const_iterator indit=indices.begin(); indit
 			    !=indices.end(); indit++)
 			{
-                          CONRADLOG_INFO_STR(logger, "Restoring " << indit->first );
+                          ASKAPLOG_INFO_STR(logger, "Restoring " << indit->first );
 
 				// Axes are dof, dof for each parameter
 				casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
 
-				CONRADCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+				ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
 				const casa::Vector<double>
 				    & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
-				CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
+				ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
 				const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 				double maxDiag(casa::max(diag));
-				CONRADLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
+				ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
 				double cutoff=tol()*maxDiag;
 
 				// Create a temporary image

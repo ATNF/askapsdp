@@ -8,7 +8,7 @@
 /// See CalibrationME template for more details. This class contains all
 /// functionality, which doesn't depend on the template parameter.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef CALIBRATION_ME_BASE_H
@@ -27,7 +27,7 @@
 #include <fitting/Equation.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -51,7 +51,7 @@ public:
   /// @param[in] ime measurement equation describing perfect visibilities
   /// @note In the future, measurement equations will work with accessors
   /// only, and, therefore, the dependency on iterator will be removed
-  CalibrationMEBase(const conrad::scimath::Params& ip,
+  CalibrationMEBase(const askap::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime);
   
   /// @brief Predict model visibilities for one accessor (chunk).
@@ -86,7 +86,7 @@ public:
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcGenericEquations(const IConstDataAccessor &chunk,
-                         conrad::scimath::GenericNormalEquations& ne) const;
+                         askap::scimath::GenericNormalEquations& ne) const;
   
     
   using GenericMultiChunkEquation::predict;
@@ -115,6 +115,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef CALIBRATION_ME_BASE_H

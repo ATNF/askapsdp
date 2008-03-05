@@ -4,9 +4,9 @@
 /// @details To be able to use common code regardless on the type of the
 /// measurement equaiton used (i.e. ComponentEquation, ImageFFTEquation, etc)
 /// we need a common ancestor of the measurement equation classes.
-/// conrad::scimath::Equation is not specialised enough for this purpose.
+/// askap::scimath::Equation is not specialised enough for this purpose.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef I_MEASUREMENT_EQUATION_H
@@ -17,7 +17,7 @@
 #include <dataaccess/IDataAccessor.h>
 #include <dataaccess/IConstDataAccessor.h>
 
-namespace conrad {
+namespace askap {
  
 namespace synthesis {
 
@@ -26,7 +26,7 @@ namespace synthesis {
 /// @details To be able to use common code regardless on the type of the
 /// measurement equaiton used (i.e. ComponentEquation, ImageFFTEquation, etc)
 /// we need a common ancestor of the measurement equation classes.
-/// conrad::scimath::Equation is not specialised enough for this purpose.
+/// askap::scimath::Equation is not specialised enough for this purpose.
 /// @ingroup measurementequation
 struct IMeasurementEquation
 {
@@ -50,12 +50,12 @@ struct IMeasurementEquation
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                          conrad::scimath::INormalEquations& ne) const = 0;
+                          askap::scimath::INormalEquations& ne) const = 0;
 };
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_MEASUREMENT_EQUATION_H
 

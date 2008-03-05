@@ -10,7 +10,7 @@
 /// the same way as the table itself and associated derived information,
 /// allows to avoid creating multiple copies for data source and iterators
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -23,7 +23,7 @@
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -64,6 +64,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef MISC_TABLE_INFO_HOLDER_H

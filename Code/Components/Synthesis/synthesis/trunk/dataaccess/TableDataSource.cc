@@ -4,7 +4,7 @@
 /// TableDataSource: Allow read-write access to the data stored in the
 /// measurement set. This class implements IConstDataSource interface.
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -19,8 +19,8 @@
 #include <dataaccess/ITableDataSelectorImpl.h>
 #include <dataaccess/SubtableInfoHolder.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// construct a read-write data source object
 /// @param[in] fname file name of the measurement set to use
@@ -77,7 +77,7 @@ boost::shared_ptr<IDataIterator> TableDataSource::createIterator(const
            boost::dynamic_pointer_cast<IDataConverterImpl const>(conv);
    	   
    if (!implSel || !implConv) {
-       CONRADTHROW(DataAccessLogicError, "Incompatible selector and/or "<<
+       ASKAPTHROW(DataAccessLogicError, "Incompatible selector and/or "<<
                  "converter are received by the createIterator method");
    }
    return boost::shared_ptr<IDataIterator>(new TableDataIterator(

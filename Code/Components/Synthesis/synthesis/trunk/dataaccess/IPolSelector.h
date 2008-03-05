@@ -3,14 +3,14 @@
 /// @details Examples of the polarization selection are, e.g. circulars
 /// with cross products, full stokes, stokes I only, etc.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #ifndef I_POL_SELECTOR_H
 #define I_POL_SELECTOR_H
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -45,6 +45,6 @@ public:
 };
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_POL_SELECTOR_H

@@ -5,7 +5,7 @@
 /// reference centres for each time). The POINTING table gives the actual 
 /// pointing of the antennae. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -19,7 +19,7 @@
 // own includes
 #include <dataaccess/IHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -61,6 +61,6 @@ struct IFieldSubtableHandler : virtual public IHolder {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_FIELD_SUBTABLE_HANLDER_H

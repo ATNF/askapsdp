@@ -6,8 +6,8 @@
 /// (c) 2008 ASKAP, All Rights Reserved
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef CONRAD_ANALYSIS_RADIOSOURCE_H_
-#define CONRAD_ANALYSIS_RADIOSOURCE_H_
+#ifndef ASKAP_ANALYSIS_RADIOSOURCE_H_
+#define ASKAP_ANALYSIS_RADIOSOURCE_H_
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
@@ -24,7 +24,7 @@
 #include <map>
 #include <vector>
 
-namespace conrad
+namespace askap
 {
 
   namespace sourcefitting

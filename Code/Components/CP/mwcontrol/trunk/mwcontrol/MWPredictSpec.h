@@ -1,18 +1,18 @@
 /// @file
 /// @brief Specification of a predict step (simulation).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWPREDICTSPEC_H
-#define CONRAD_MWCONTROL_MWPREDICTSPEC_H
+#ifndef ASKAP_MWCONTROL_MWPREDICTSPEC_H
+#define ASKAP_MWCONTROL_MWPREDICTSPEC_H
 
 //# Includes
 #include <mwcontrol/MWSingleSpec.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief Specification of a predict step (simulation).

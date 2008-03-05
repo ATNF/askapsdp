@@ -24,7 +24,7 @@
 #include <mwcontrol/ParameterHandlerBBS.h>
 
 using namespace LOFAR::ACC::APS;
-using namespace conrad::cp;
+using namespace askap::cp;
 using namespace std;
 
 int main()

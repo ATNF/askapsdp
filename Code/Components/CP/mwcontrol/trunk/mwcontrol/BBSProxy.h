@@ -1,18 +1,18 @@
 /// @file
 /// @brief Base class for BBSKernel worker proxies.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_BBSPROXY_H
-#define CONRAD_MWCONTROL_BBSPROXY_H
+#ifndef ASKAP_MWCONTROL_BBSPROXY_H
+#define ASKAP_MWCONTROL_BBSPROXY_H
 
 #include <mwcommon/WorkerProxy.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief Base class for BBSKernel worker proxies.

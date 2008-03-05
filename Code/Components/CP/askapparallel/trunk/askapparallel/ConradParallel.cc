@@ -6,7 +6,7 @@
 /// of MPI connections, sending and models around.
 /// There is assumed to be one master and many workers.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 #include <mwcommon/MPIConnection.h>
@@ -24,28 +24,28 @@
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 
-#include <conrad_conradparallel.h>
+#include <askap_askapparallel.h>
 
-#include <conrad/ConradLogging.h>
+#include <askap/AskapLogging.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-#include <conradparallel/ConradParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <sstream>
 
 using namespace std;
-using namespace conrad;
-using namespace conrad::cp;
+using namespace askap;
+using namespace askap::cp;
 
-namespace conrad
+namespace askap
 {
   namespace cp
   {
 
-    CONRAD_LOGGER(logger, ".conradparallel");
+    ASKAP_LOGGER(logger, ".askapparallel");
 
-    ConradParallel::ConradParallel(int argc, const char** argv)
+    AskapParallel::AskapParallel(int argc, const char** argv)
     {
       // Initialize MPI (also succeeds if no MPI available).
       MPIConnection::initMPI(argc, argv);
@@ -62,53 +62,53 @@ namespace conrad
       {
         if (isMaster())
         {
-          CONRADLOG_INFO_STR(logger, "CONRAD program (parallel) running on "<< itsNNode
+          ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on "<< itsNNode
                               << " nodes (master/master)");
         }
         else
         {
-          CONRADLOG_INFO_STR(logger, "CONRAD program (parallel) running on "<< itsNNode
+          ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on "<< itsNNode
                               << " nodes (worker "<< itsRank << ")");
         }
       }
       else
       {
-        CONRADLOG_INFO_STR(logger, "CONRAD program (serial)");
+        ASKAPLOG_INFO_STR(logger, "ASKAP program (serial)");
       }
 
-      CONRADLOG_INFO_STR(logger, CONRAD_PACKAGE_VERSION);
+      ASKAPLOG_INFO_STR(logger, ASKAP_PACKAGE_VERSION);
 
     }
 
-    ConradParallel::~ConradParallel()
+    AskapParallel::~AskapParallel()
     {
       if (isParallel())
       {
-        CONRADLOG_INFO_STR(logger, "Exiting MPI");
+        ASKAPLOG_INFO_STR(logger, "Exiting MPI");
         MPIConnection::endMPI();
       }
     }
 
     /// Is this running in parallel?
-    bool ConradParallel::isParallel()
+    bool AskapParallel::isParallel()
     {
       return itsIsParallel;
     }
 
     /// Is this the master?
-    bool ConradParallel::isMaster()
+    bool AskapParallel::isMaster()
     {
       return itsIsMaster;
     }
 
     /// Is this a worker?
-    bool ConradParallel::isWorker()
+    bool AskapParallel::isWorker()
     {
       return itsIsWorker;
     }
 
     // Initialize connections
-    void ConradParallel::initConnections()
+    void AskapParallel::initConnections()
     {
       if (isParallel())
       {
@@ -129,7 +129,7 @@ namespace conrad
       }
     }
 
-    string ConradParallel::substitute(const string& s)
+    string AskapParallel::substitute(const string& s)
     {
       casa::String cs(s);
       {

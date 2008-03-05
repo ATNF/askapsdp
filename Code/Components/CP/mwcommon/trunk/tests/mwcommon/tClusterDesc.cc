@@ -5,36 +5,36 @@
 //# $Id$
 
 #include <mwcommon/ClusterDesc.h>
-#include <mwcommon/ConradError.h>
+#include <mwcommon/AskapError.h>
 #include <ostream>
 #include <fstream>
 
-using namespace conrad::cp;
+using namespace askap::cp;
 using namespace std;
 
 void check (const ClusterDesc& cl)
 {
-  CONRADASSERT (cl.getName() == "cl");
-  CONRADASSERT (cl.getNodes().size() == 2);
+  ASKAPASSERT (cl.getName() == "cl");
+  ASKAPASSERT (cl.getNodes().size() == 2);
   const vector<NodeDesc>& nodes = cl.getNodes();
-  CONRADASSERT (nodes[0].getFileSys().size() == 2);
-  CONRADASSERT (nodes[0].getFileSys()[0] == "fs0");
-  CONRADASSERT (nodes[0].getFileSys()[1] == "fs1");
-  CONRADASSERT (nodes[1].getFileSys().size() == 2);
-  CONRADASSERT (nodes[1].getFileSys()[0] == "fs1");
-  CONRADASSERT (nodes[1].getFileSys()[1] == "fs2");
-  CONRADASSERT (cl.getMap().size() == 3);
+  ASKAPASSERT (nodes[0].getFileSys().size() == 2);
+  ASKAPASSERT (nodes[0].getFileSys()[0] == "fs0");
+  ASKAPASSERT (nodes[0].getFileSys()[1] == "fs1");
+  ASKAPASSERT (nodes[1].getFileSys().size() == 2);
+  ASKAPASSERT (nodes[1].getFileSys()[0] == "fs1");
+  ASKAPASSERT (nodes[1].getFileSys()[1] == "fs2");
+  ASKAPASSERT (cl.getMap().size() == 3);
   map<string,vector<string> >::const_iterator fsmap;
   fsmap = cl.getMap().find("fs0");
-  CONRADASSERT (fsmap->second.size() == 1);
-  CONRADASSERT (fsmap->second[0] == "node1");
+  ASKAPASSERT (fsmap->second.size() == 1);
+  ASKAPASSERT (fsmap->second[0] == "node1");
   fsmap = cl.getMap().find("fs1");
-  CONRADASSERT (fsmap->second.size() == 2);
-  CONRADASSERT (fsmap->second[0] == "node1");
-  CONRADASSERT (fsmap->second[1] == "node2");
+  ASKAPASSERT (fsmap->second.size() == 2);
+  ASKAPASSERT (fsmap->second[0] == "node1");
+  ASKAPASSERT (fsmap->second[1] == "node2");
   fsmap = cl.getMap().find("fs2");
-  CONRADASSERT (fsmap->second.size() == 1);
-  CONRADASSERT (fsmap->second[0] == "node2");
+  ASKAPASSERT (fsmap->second.size() == 1);
+  ASKAPASSERT (fsmap->second[0] == "node2");
 }
 
 void doIt()

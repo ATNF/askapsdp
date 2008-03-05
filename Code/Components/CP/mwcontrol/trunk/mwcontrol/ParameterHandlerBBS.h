@@ -1,17 +1,17 @@
 /// @file
 /// @brief Handle the BBS part of a LOFAR .parset file
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_PARAMETERHANDLERBBS_H
-#define CONRAD_MWCONTROL_PARAMETERHANDLERBBS_H
+#ifndef ASKAP_MWCONTROL_PARAMETERHANDLERBBS_H
+#define ASKAP_MWCONTROL_PARAMETERHANDLERBBS_H
 
 #include <mwcommon/ParameterHandler.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// Forward Declarations
   class MWMultiSpec;

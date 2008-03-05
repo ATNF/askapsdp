@@ -2,15 +2,15 @@
 ///
 /// Provides generic methods for parallel algorithms
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_ANALYSIS_DUCHAMPPARALLEL_H_
-#define CONRAD_ANALYSIS_DUCHAMPPARALLEL_H_
+#ifndef ASKAP_ANALYSIS_DUCHAMPPARALLEL_H_
+#define ASKAP_ANALYSIS_DUCHAMPPARALLEL_H_
 
 #include <sourcefitting/RadioSource.h>
 
-#include <conradparallel/ConradParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <APS/ParameterSet.h>
 
@@ -20,7 +20,7 @@
 #include <vector>
 #include <string>
 
-namespace conrad
+namespace askap
 {
   namespace analysis
   {
@@ -36,7 +36,7 @@ namespace conrad
     /// If the number of nodes is 1 then everything occurs in the same process.
     ///
     /// @ingroup parallelanalysis
-    class DuchampParallel : public conrad::cp::ConradParallel
+    class DuchampParallel : public askap::cp::AskapParallel
     {
     public:
 
@@ -99,7 +99,7 @@ namespace conrad
       bool itsFlagDoFit;
       
       /// The list of fits to the detected sources.
-      std::vector<conrad::sourcefitting::RadioSource> itsSourceList;
+      std::vector<askap::sourcefitting::RadioSource> itsSourceList;
 
       /// The list of sections corresponding to all workers' images (only used by the master).
       std::vector<duchamp::Section> itsSectionList;

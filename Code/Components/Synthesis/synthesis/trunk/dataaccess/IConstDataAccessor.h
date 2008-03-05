@@ -1,7 +1,7 @@
 /// @file IConstDataAccessor.h
 /// @brief Interface class for read-only access to visibility data
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 #ifndef I_CONST_DATA_ACCESSOR_H
@@ -15,7 +15,7 @@
 #include <scimath/Mathematics/RigidVector.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -138,6 +138,6 @@ public:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 
 #endif // #ifndef I_CONST_DATA_ACCESSOR_H

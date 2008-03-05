@@ -1,20 +1,20 @@
 /// @file
 /// @brief Set of Memory connections.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_MEMCONNECTIONSET_H
-#define CONRAD_MWCOMMON_MEMCONNECTIONSET_H
+#ifndef ASKAP_MWCOMMON_MEMCONNECTIONSET_H
+#define ASKAP_MWCOMMON_MEMCONNECTIONSET_H
 
 #include <mwcommon/MWConnectionSet.h>
 #include <mwcommon/MemConnection.h>
 #include <vector>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Set of Memory connections.

@@ -1,16 +1,16 @@
 /// @file
 /// @brief Base visitor class to visit an MWSpec hierarchy.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWSPECVISITOR_H
-#define CONRAD_MWCONTROL_MWSPECVISITOR_H
+#ifndef ASKAP_MWCONTROL_MWSPECVISITOR_H
+#define ASKAP_MWCONTROL_MWSPECVISITOR_H
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   //# Forward Declarations
   class MWMultiSpec;

@@ -1,18 +1,18 @@
 #include <measurementequation/ImageSolver.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Vector.h>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
 #include <iostream>
 
@@ -28,13 +28,13 @@ using std::map;
 using std::vector;
 using std::string;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
 
-    ImageSolver::ImageSolver(const conrad::scimath::Params& ip) :
-      conrad::scimath::Solver(ip)
+    ImageSolver::ImageSolver(const askap::scimath::Params& ip) :
+      askap::scimath::Solver(ip)
     {
     }
 
@@ -45,7 +45,7 @@ namespace conrad
 
     // Solve for update simply by scaling the data vector by the diagonal term of the
     // normal equations i.e. the residual image
-    bool ImageSolver::solveNormalEquations(conrad::scimath::Quality& quality)
+    bool ImageSolver::solveNormalEquations(askap::scimath::Quality& quality)
     {
 
       // Solving A^T Q^-1 V = (A^T Q^-1 A) P
@@ -64,7 +64,7 @@ namespace conrad
           nParameters+=itsParams->value(name).nelements();
         }
       }
-      CONRADCHECK(nParameters>0, "No free parameters in ImageSolver");
+      ASKAPCHECK(nParameters>0, "No free parameters in ImageSolver");
 
       for (map<string, uint>::const_iterator indit=indices.begin(); indit
           !=indices.end(); indit++)
@@ -72,12 +72,12 @@ namespace conrad
         // Axes are dof, dof for each parameter
         casa::IPosition arrShape(itsParams->value(indit->first).shape());
         casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-        CONRADCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
+        ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
         const casa::Vector<double> & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
-        CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
+        ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
         const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
         double maxDiag(casa::max(diag));
-        CONRADLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag);
+        ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag);
         const double cutoff=tol()*maxDiag;
         {
           casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
@@ -174,7 +174,7 @@ namespace conrad
       }
       catch (const std::bad_cast &bc)
       {
-        CONRADTHROW(ConradError, "An attempt to use incompatible normal "
+        ASKAPTHROW(AskapError, "An attempt to use incompatible normal "
             "equations class with image solver");
       }
     }

@@ -7,7 +7,7 @@
 /// a void measurement equation in the sense that it does nothing to the 
 /// data or normal equations given to it.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef VOID_MEASUREMENT_EQUATION_H
@@ -15,7 +15,7 @@
 
 #include <measurementequation/IMeasurementEquation.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -45,11 +45,11 @@ struct VoidMeasurementEquation : public IMeasurementEquation
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                          conrad::scimath::INormalEquations& ne) const;
+                          askap::scimath::INormalEquations& ne) const;
 };
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef VOID_MEASUREMENT_EQUATION_H

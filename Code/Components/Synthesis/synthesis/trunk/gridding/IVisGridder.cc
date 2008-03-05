@@ -1,6 +1,6 @@
 #include "IVisGridder.h"
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

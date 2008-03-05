@@ -6,7 +6,7 @@
 /// iteration step is represented by the IConstDataAccessor interface.
 /// This is an implementation in the table-based case.
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -20,19 +20,19 @@
 
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, "");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/DirectionConverter.h>
 
 using namespace casa;
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -99,7 +99,7 @@ WholeRowFlagger<casa::Bool>::WholeRowFlagger(const casa::Table &iteration) :
 bool WholeRowFlagger<casa::Bool>::copyRequired(casa::uInt row, 
                  casa::Cube<casa::Bool> &cube)
 {
-  CONRADDEBUGASSERT(!itsFlagRowCol.isNull());
+  ASKAPDEBUGASSERT(!itsFlagRowCol.isNull());
   if (itsHasFlagRow) {
       if (itsFlagRowCol.asBool(row)) {
           cube.yzPlane(row) = true;
@@ -111,7 +111,7 @@ bool WholeRowFlagger<casa::Bool>::copyRequired(casa::uInt row,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 /// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector
@@ -126,16 +126,16 @@ TableConstDataIterator::TableConstDataIterator(
             casa::uInt maxChunkSize) : 
         TableInfoAccessor(msManager),
 	    itsAccessor(*this),
-#ifndef CONRAD_DEBUG	    
+#ifndef ASKAP_DEBUG	    
         itsSelector(sel->clone()), 
 	    itsConverter(conv->clone()),
 #endif 
 	    itsMaxChunkSize(maxChunkSize)
 	   
 { 
-  CONRADDEBUGASSERT(conv);
-  CONRADDEBUGASSERT(sel);
-  #ifdef CONRAD_DEBUG
+  ASKAPDEBUGASSERT(conv);
+  ASKAPDEBUGASSERT(sel);
+  #ifdef ASKAP_DEBUG
     itsConverter = conv->clone();
     itsSelector  = sel->clone();
   #endif
@@ -188,7 +188,7 @@ casa::Bool TableConstDataIterator::next()
 {
   itsCurrentTopRow+=itsNumberOfRows;
   if (itsCurrentTopRow>=itsCurrentIteration.nrow()) {
-      CONRADDEBUGASSERT(!itsTabIterator.pastEnd());
+      ASKAPDEBUGASSERT(!itsTabIterator.pastEnd());
       itsCurrentTopRow=0;
       // need to advance table iterator further
       itsTabIterator.next();      
@@ -253,13 +253,13 @@ void TableConstDataIterator::setUpIteration()
 /// when DATA_DESC_ID changes (and therefore at the first run as well)
 void TableConstDataIterator::makeUniformDataDescID()
 {
-  CONRADDEBUGASSERT(itsNumberOfRows);  
-  CONRADDEBUGASSERT(itsCurrentTopRow+itsNumberOfRows<=
+  ASKAPDEBUGASSERT(itsNumberOfRows);  
+  ASKAPDEBUGASSERT(itsCurrentTopRow+itsNumberOfRows<=
                     itsCurrentIteration.nrow());
 
   ROScalarColumn<Int> dataDescCol(itsCurrentIteration,"DATA_DESC_ID");
   const Int newDataDescID=dataDescCol(itsCurrentTopRow);
-  CONRADDEBUGASSERT(newDataDescID>=0);
+  ASKAPDEBUGASSERT(newDataDescID>=0);
   if (itsCurrentDataDescID!=newDataDescID) {      
       itsAccessor.invalidateSpectralCaches();
       itsCurrentDataDescID=newDataDescID;
@@ -278,7 +278,7 @@ void TableConstDataIterator::makeUniformDataDescID()
       // determine the shape of the visibility cube
       ROArrayColumn<Complex> visCol(itsCurrentIteration,getDataColumnName());
       const casa::IPosition &shape=visCol.shape(itsCurrentTopRow);
-      CONRADASSERT(shape.size() && (shape.size()<3));
+      ASKAPASSERT(shape.size() && (shape.size()<3));
       itsNumberOfPols=shape[0];
       itsNumberOfChannels=shape.size()>1?shape[1]:1;      
   }
@@ -313,16 +313,16 @@ void TableConstDataIterator::fillCube(casa::Cube<T> &cube,
   Array<T> buf(curPos);
   for (uInt row=0;row<itsNumberOfRows;++row) {
        const casa::IPosition &shape=tableCol.shape(row);
-       CONRADASSERT(shape.size() && (shape.size()<3));
+       ASKAPASSERT(shape.size() && (shape.size()<3));
        const casa::uInt thisRowNumberOfPols=shape[0];
        const casa::uInt thisRowNumberOfChannels=shape.size()>1?shape[1]:1;
        if (thisRowNumberOfPols!=itsNumberOfPols) {
-           CONRADTHROW(DataAccessError,"Number of polarizations is not "
+           ASKAPTHROW(DataAccessError,"Number of polarizations is not "
 	               "conformant for row "<<row<<" of the "<<columnName<<
 	               "column");           	       
        }
        if (thisRowNumberOfChannels!=itsNumberOfChannels) {
-           CONRADTHROW(DataAccessError,"Number of channels is not "
+           ASKAPTHROW(DataAccessError,"Number of channels is not "
 	               "conformant for row "<<row<<" of the "<<columnName<<
 	               "column");           	       
        }
@@ -379,8 +379,8 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
   Array<Double> buf(curPos);
   for (uInt row=0;row<itsNumberOfRows;++row) {
        const casa::IPosition &shape=uvwCol.shape(row);
-       CONRADASSERT(shape.size()==1);
-       CONRADASSERT(shape[0]==3);
+       ASKAPASSERT(shape.size()==1);
+       ASKAPASSERT(shape[0]==3);
        // extract data record for this row, no resizing     
        uvwCol.get(row+itsCurrentTopRow,buf,False);
        RigidVector<Double, 3> &thisRowUVW=uvw(row);
@@ -396,11 +396,11 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
 /// @return current spectral window ID
 casa::uInt TableConstDataIterator::currentSpWindowID() const
 {
-  CONRADDEBUGASSERT(itsCurrentDataDescID>=0);
+  ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
   const int spWindowIndex = subtableInfo().getDataDescription().
                             getSpectralWindowID(itsCurrentDataDescID);
   if (spWindowIndex<0) {
-      CONRADTHROW(DataAccessError,"A negative spectral window index ("<<
+      ASKAPTHROW(DataAccessError,"A negative spectral window index ("<<
               spWindowIndex<<") is encountered for Data Description ID="<<
 	      itsCurrentDataDescID);
   }
@@ -412,9 +412,9 @@ casa::uInt TableConstDataIterator::currentSpWindowID() const
 /// @param[in] freq a reference to a vector to fill
 void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) const
 {  
-  CONRADDEBUGASSERT(itsConverter);
+  ASKAPDEBUGASSERT(itsConverter);
   const ITableSpWindowHolder& spWindowSubtable=subtableInfo().getSpWindow();
-  CONRADDEBUGASSERT(itsCurrentDataDescID>=0);
+  ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
   const casa::uInt spWindowID = currentSpWindowID();
   
   if (itsConverter->isVoid(spWindowSubtable.getReferenceFrame(spWindowID),
@@ -423,7 +423,7 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
       // we need for output. This simplifies things a lot.
       freq.reference(spWindowSubtable.getFrequencies(spWindowID));
       if (itsNumberOfChannels!=freq.nelements()) {
-          CONRADTHROW(DataAccessError,"The measurement set has bad or corrupted "<<
+          ASKAPTHROW(DataAccessError,"The measurement set has bad or corrupted "<<
 	       "SPECTRAL_WINDOW subtable. The number of spectral channels for data "<<
 	       itsNumberOfChannels<<" doesn't match the number of channels in the "<<
 	       "frequency axis ("<<freq.nelements()<<")");
@@ -458,7 +458,7 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
 casa::Double TableConstDataIterator::getTime() const 
 { 
   // add additional checks in debug mode
-  #ifdef CONRAD_DEBUG
+  #ifdef ASKAP_DEBUG
    ROScalarColumn<Double> timeCol(itsCurrentIteration,"TIME");
    Double time=timeCol(itsCurrentTopRow);
     Vector<Double> allTimes=timeCol.getColumnRange(Slicer(IPosition(1,
@@ -518,13 +518,13 @@ void TableConstDataIterator::fillVectorOfIDs(casa::Vector<casa::uInt> &ids,
   ids.resize(itsNumberOfRows);
   Vector<Int> buf=col.getColumnRange(Slicer(IPosition(1,
                       itsCurrentTopRow),IPosition(1,itsNumberOfRows)));
-  CONRADDEBUGASSERT(buf.nelements()==ids.nelements());
+  ASKAPDEBUGASSERT(buf.nelements()==ids.nelements());
   // need a copy because the type is different. There are no
   // appropriate cast operators for casa::Vectors
   Vector<Int>::const_iterator ci=buf.begin();
   Vector<uInt>::iterator it=ids.begin();
   for (; ci!=buf.end() && it!=ids.end() ; ++ci,++it) {
-       CONRADDEBUGASSERT(*ci>=0);
+       ASKAPDEBUGASSERT(*ci>=0);
 	   *it=static_cast<uInt>(*ci);
   }
 }
@@ -534,7 +534,7 @@ void TableConstDataIterator::fillVectorOfIDs(casa::Vector<casa::uInt> &ids,
 /// is returned as an epoch measure.
 casa::MEpoch TableConstDataIterator::currentEpoch() const 
 { 
-  CONRADDEBUGASSERT(itsConverter);
+  ASKAPDEBUGASSERT(itsConverter);
   return itsConverter->epochMeasure(itsAccessor.time());
 }  
 
@@ -550,7 +550,7 @@ casa::MEpoch TableConstDataIterator::currentEpoch() const
 void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const
 {
   const casa::MEpoch epoch=currentEpoch();
-  CONRADDEBUGASSERT(itsCurrentDataDescID>=0);
+  ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
   const casa::uInt spWindowID = currentSpWindowID();
   // antenna and feed IDs here are those in the FEED subtable, rather than
   // in the current accessor
@@ -558,7 +558,7 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
                              getAntennaIDs(epoch,spWindowID);                             
   const casa::Vector<casa::Int> &feedIDs=subtableInfo().getFeed().
                              getFeedIDs(epoch,spWindowID);
-  CONRADDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());                           
+  ASKAPDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());                           
   dirs.resize(antIDs.nelements());
   // we currently use FIELD table to get the pointing direction. This table
   // does not depend on the antenna.
@@ -602,7 +602,7 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
            rotMatrix(1,1)=cpa;
            offset*=rotMatrix;                                        
        } else if (antMount != "EQUATORIAL" && antMount != "equatorial") {
-           CONRADTHROW(DataAccessError,"Unknown mount type "<<antMount<<
+           ASKAPTHROW(DataAccessError,"Unknown mount type "<<antMount<<
                 " for antenna "<<ant);
        }
        casa::MDirection feedPointingCentre(antReferenceDir);
@@ -648,7 +648,7 @@ void TableConstDataIterator::fillVectorOfPointings(
                const casa::Vector<casa::uInt> &antIDs,
                const casa::Vector<casa::uInt> &feedIDs) const
 {
-  CONRADDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());
+  ASKAPDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());
   const casa::Vector<casa::MVDirection> &directionCache = itsDirectionCache.
                       value(*this,&TableConstDataIterator::fillDirectionCache);
   const casa::Matrix<casa::Int> &directionCacheIndices = 
@@ -658,17 +658,17 @@ void TableConstDataIterator::fillVectorOfPointings(
   for (casa::uInt row=0; row<itsNumberOfRows; ++row) {
        if ((feedIDs[row]>=directionCacheIndices.ncolumn()) ||
            (antIDs[row]>=directionCacheIndices.nrow())) {
-              CONRADTHROW(DataAccessError, "antID="<<antIDs[row]<<
+              ASKAPTHROW(DataAccessError, "antID="<<antIDs[row]<<
                    " and/or feedID="<<feedIDs[row]<<
                    " are beyond the range of the FEED table");
            }
        if (directionCacheIndices(antIDs[row],feedIDs[row])<0) {
-           CONRADTHROW(DataAccessError, "The pair andID="<<antIDs[row]<<
+           ASKAPTHROW(DataAccessError, "The pair andID="<<antIDs[row]<<
                    " feedID="<<feedIDs[row]<<" doesn't have beam parameters defined"); 
        }    
        const casa::uInt index = static_cast<casa::uInt>(
                     directionCacheIndices(antIDs[row],feedIDs[row]));
-       CONRADDEBUGASSERT(index < directionCache.nelements());             
+       ASKAPDEBUGASSERT(index < directionCache.nelements());             
        dirs[row]=directionCache[index];             
   }                    
 }
@@ -681,6 +681,6 @@ void TableConstDataIterator::fillVectorOfPointings(
 /// @return name of the table column with visibility data
 const std::string& TableConstDataIterator::getDataColumnName() const throw() 
 { 
-  CONRADDEBUGASSERT(itsSelector);
+  ASKAPDEBUGASSERT(itsSelector);
   return itsSelector->getDataColumnName();
 }

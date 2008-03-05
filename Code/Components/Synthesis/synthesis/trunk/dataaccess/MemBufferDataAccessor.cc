@@ -12,15 +12,15 @@
 /// alternatively to pass around this buffer with associated metadata supplied
 /// by the original accessor. This adapter can help in both situations.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 // own includes
 #include <dataaccess/MemBufferDataAccessor.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 
 /// construct an object linked with the given const accessor

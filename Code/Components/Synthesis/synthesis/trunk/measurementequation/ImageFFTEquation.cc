@@ -1,8 +1,8 @@
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <dataaccess/SharedIter.h>
 #include <fitting/Params.h>
@@ -24,19 +24,19 @@ CONRAD_LOGGER(logger, ".measurementequation");
 
 #include <stdexcept>
 
-using conrad::scimath::Params;
-using conrad::scimath::Axes;
-using conrad::scimath::ImagingNormalEquations;
-using conrad::scimath::DesignMatrix;
+using askap::scimath::Params;
+using askap::scimath::Axes;
+using askap::scimath::ImagingNormalEquations;
+using askap::scimath::DesignMatrix;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
 
-    ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
+    ImageFFTEquation::ImageFFTEquation(const askap::scimath::Params& ip,
         IDataSharedIter& idi) :
-      conrad::scimath::ImagingEquation(ip), itsIdi(idi)
+      askap::scimath::ImagingEquation(ip), itsIdi(idi)
     {
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
       init();
@@ -51,9 +51,9 @@ namespace conrad
       init();
     }
 
-    ImageFFTEquation::ImageFFTEquation(const conrad::scimath::Params& ip,
+    ImageFFTEquation::ImageFFTEquation(const askap::scimath::Params& ip,
         IDataSharedIter& idi, IVisGridder::ShPtr gridder) :
-      conrad::scimath::ImagingEquation(ip), itsGridder(gridder), itsIdi(idi)
+      askap::scimath::ImagingEquation(ip), itsGridder(gridder), itsIdi(idi)
     {
       init();
     }
@@ -71,7 +71,7 @@ namespace conrad
     {
     }
 
-    conrad::scimath::Params ImageFFTEquation::defaultParameters()
+    askap::scimath::Params ImageFFTEquation::defaultParameters()
     {
       Params ip;
       ip.add("image");
@@ -87,7 +87,7 @@ namespace conrad
     {
       if(this!=&other)
       {
-        static_cast<conrad::scimath::Equation*>(this)->operator=(other);
+        static_cast<askap::scimath::Equation*>(this)->operator=(other);
         itsIdi=other.itsIdi;
         itsGridder = other.itsGridder;
       }
@@ -114,7 +114,7 @@ namespace conrad
       // switch between these. This optimization may not be sufficient in the long run.
 
       itsIdi.chooseOriginal();
-      CONRADLOG_INFO_STR(logger, "Initialising for model degridding" );
+      ASKAPLOG_INFO_STR(logger, "Initialising for model degridding" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image.i"+(*it));
@@ -127,12 +127,12 @@ namespace conrad
         itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
       }
       // Loop through degridding the data
-      CONRADLOG_INFO_STR(logger, "Starting to degrid model" );
+      ASKAPLOG_INFO_STR(logger, "Starting to degrid model" );
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         itsIdi->rwVisibility().set(0.0);
         /*
-        CONRADDEBUGASSERT(itsIdi->nPol() == 4);
+        ASKAPDEBUGASSERT(itsIdi->nPol() == 4);
         for (casa::uInt p=1;p<3;++p) {
              itsIdi->rwVisibility().xyPlane(p).set(0.);
         }
@@ -143,13 +143,13 @@ namespace conrad
           itsModelGridders[imageName]->degrid(itsIdi);
         }
       }
-      CONRADLOG_INFO_STR(logger, "Finished degridding model" );
+      ASKAPLOG_INFO_STR(logger, "Finished degridding model" );
     };
 
     // Calculate the residual visibility and image. We transform the model on the fly
     // so that we only have to read (and write) the data once. This uses more memory
     // but cuts down on IO
-    void ImageFFTEquation::calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne) const
+    void ImageFFTEquation::calcImagingEquations(askap::scimath::ImagingNormalEquations& ne) const
     {
 
       // We will need to loop over all completions i.e. all sources
@@ -174,7 +174,7 @@ namespace conrad
         }
       }
       // Now we initialise appropriately
-      CONRADLOG_INFO_STR(logger, "Initialising for model degridding and residual gridding" );
+      ASKAPLOG_INFO_STR(logger, "Initialising for model degridding and residual gridding" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image.i"+(*it));
@@ -187,7 +187,7 @@ namespace conrad
         itsResidualGridders[imageName]->initialiseGrid(axes, imageShape, true);
       }
       // Now we loop through all the data
-      CONRADLOG_INFO_STR(logger, "Starting degridding model and gridding residuals" );
+      ASKAPLOG_INFO_STR(logger, "Starting degridding model and gridding residuals" );
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         /// Accumulate model visibility for all models
@@ -211,12 +211,12 @@ namespace conrad
           }
         }
       }
-      CONRADLOG_INFO_STR(logger, "Finished degridding model and gridding residuals" );
+      ASKAPLOG_INFO_STR(logger, "Finished degridding model and gridding residuals" );
 
       // We have looped over all the data, so now we have to complete the 
       // transforms and fill in the normal equations with the results from the
       // residual gridders
-      CONRADLOG_INFO_STR(logger, "Adding residual image, PSF, and weights image to the normal equations" );
+      ASKAPLOG_INFO_STR(logger, "Adding residual image, PSF, and weights image to the normal equations" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));

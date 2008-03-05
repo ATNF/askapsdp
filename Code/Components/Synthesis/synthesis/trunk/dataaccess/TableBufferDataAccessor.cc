@@ -6,7 +6,7 @@
 /// writable buffers only. Another class TableDataAccessor is
 /// intended to write to the original visibility data.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -15,8 +15,8 @@
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableDataIterator.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// construct an object linked with the given const accessor and
 /// non-const iterator (which provides a read/write functionality)
@@ -44,7 +44,7 @@ const casa::Cube<casa::Complex>& TableBufferDataAccessor::visibility() const
 void TableBufferDataAccessor::fillBufferIfNeeded() const
 {
   if (itsScratchBuffer.needsRead) {
-      CONRADDEBUGASSERT(!itsScratchBuffer.needsFlush);
+      ASKAPDEBUGASSERT(!itsScratchBuffer.needsFlush);
       itsIterator.readBuffer(itsScratchBuffer.vis, itsName);      
       itsScratchBuffer.needsRead=false;
   }

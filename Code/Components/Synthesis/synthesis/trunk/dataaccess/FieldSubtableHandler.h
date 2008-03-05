@@ -9,7 +9,7 @@
 /// The latter classes read the whole subtable into memory in the constructor and
 /// later just return cached values. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -26,7 +26,7 @@
 #include <dataaccess/TimeDependentSubtable.h>
 #include <dataaccess/TableHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -116,7 +116,7 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef FIELD_SUBTABLE_HANDLER_H
 

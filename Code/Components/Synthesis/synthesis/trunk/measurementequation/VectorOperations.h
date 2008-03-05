@@ -6,7 +6,7 @@
 /// templates, which make this operation more clearly visible in the code 
 /// and assist structuring of the program.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au
 ///
 
@@ -17,13 +17,13 @@
 #include <fitting/ComplexDiff.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
 /// this namespace contains a set of helper classes to manipulate containers
 /// of an arbitrary type. The main functionality, which is intended for
-/// external use is still in the conrad::synthesis namespace 
+/// external use is still in the askap::synthesis namespace 
 namespace vector_operations {
 
 /// @brief A helper template to extract type of the template parameter
@@ -557,6 +557,6 @@ inline void addVector(const InType& inVec, const OutType &outVec)
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif //#ifndef VECTOR_OPERATIONS_H

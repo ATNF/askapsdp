@@ -12,18 +12,18 @@
 #include <casa/Quanta/MVAngle.h>
 #include <casa/Quanta/MVTime.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".gridding");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <fft/FFTWrapper.h>
 
-using namespace conrad;
+using namespace askap;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -37,13 +37,13 @@ namespace conrad
           itsFreqDep(frequencyDependent)
 
     {
-      CONRADCHECK(diameter>0.0, "Blockage must be positive");
-      CONRADCHECK(diameter>blockage,
+      ASKAPCHECK(diameter>0.0, "Blockage must be positive");
+      ASKAPCHECK(diameter>blockage,
           "Antenna diameter must be greater than blockage");
-      CONRADCHECK(blockage>=0.0, "Blockage must be non-negative");
-      CONRADCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
-      CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
-      CONRADCHECK(maxSupport>0, "Maximum support must be greater than 0")
+      ASKAPCHECK(blockage>=0.0, "Blockage must be non-negative");
+      ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
+      ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
+      ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
       itsOverSample=overSample;
       itsMaxSupport=maxSupport;
@@ -81,9 +81,9 @@ namespace conrad
       for (int i=0; i<nSamples; i++)
       {
         int feed=idi->feed1()(i);
-        CONRADCHECK(feed<itsMaxFeeds,
+        ASKAPCHECK(feed<itsMaxFeeds,
             "Exceeded specified maximum number of feeds");
-        CONRADCHECK(feed>-1, "Illegal negative feed number");
+        ASKAPCHECK(feed>-1, "Illegal negative feed number");
 
         double w=(idi->uvw()(i)(2))/(casa::C::c);
 
@@ -96,16 +96,16 @@ namespace conrad
             if (itsFreqDep)
             {
               itsCMap(i, pol, chan)=chan+nChan*feed;
-              CONRADCHECK(itsCMap(i, 0, chan)<itsMaxFeeds*nChan,
+              ASKAPCHECK(itsCMap(i, 0, chan)<itsMaxFeeds*nChan,
                   "CMap index too large");
-              CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
+              ASKAPCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
             else
             {
               itsCMap(i, pol, chan)=feed;
-              CONRADCHECK(itsCMap(i, 0, chan)<itsMaxFeeds,
+              ASKAPCHECK(itsCMap(i, 0, chan)<itsMaxFeeds,
                   "CMap index too large");
-              CONRADCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
+              ASKAPCHECK(itsCMap(i, 0, chan)>-1, "CMap index less than zero");
             }
 
             /// Calculate the index into the grids
@@ -118,9 +118,9 @@ namespace conrad
             {
               itsGMap(i, pol, chan)=0;
             }
-            CONRADCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
+            ASKAPCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
                 "W scaling error: recommend allowing larger range of w");
-            CONRADCHECK(itsGMap(i, pol, chan)>-1,
+            ASKAPCHECK(itsGMap(i, pol, chan)>-1,
                 "W scaling error: recommend allowing larger range of w");
           }
         }
@@ -195,12 +195,12 @@ namespace conrad
               }
             }
           }
-          CONRADCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
+          ASKAPCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
           disk*=casa::Complex(float(nx)*float(ny)/sumdisk);
 
           /// Now convolve the disk with itself
           fft2d(disk, false);
-          //          CONRADLOG_DEBUG_STR(logger, "Feed " << feed << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)));
+          //          ASKAPLOG_DEBUG_STR(logger, "Feed " << feed << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)));
           for (int ix=0; ix<nx; ix++)
           {
             for (int iy=0; iy<ny; iy++)
@@ -208,7 +208,7 @@ namespace conrad
               disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
             }
           }
-          //          CONRADLOG_DEBUG_STR(logger, "Feed " << feed <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk))));
+          //          ASKAPLOG_DEBUG_STR(logger, "Feed " << feed <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk))));
           fft2d(disk, true);
           sumdisk=0.0;
           for (int ix=0; ix<nx; ix++)
@@ -223,15 +223,15 @@ namespace conrad
           if (itsSupport==0)
           {
             itsSupport=1+2*nint(casa::sqrt(rmax))/itsOverSample;
-            CONRADCHECK(itsSupport>0,
+            ASKAPCHECK(itsSupport>0,
                 "Unable to determine support of convolution function");
-            CONRADCHECK(itsSupport*itsOverSample<nx/2,
+            ASKAPCHECK(itsSupport*itsOverSample<nx/2,
                 "Overflowing convolution function - increase maxSupport or decrease overSample")
             itsCSize=2*itsSupport+1;
-            CONRADLOG_INFO_STR(logger, "Convolution function support = "
+            ASKAPLOG_INFO_STR(logger, "Convolution function support = "
                 << itsSupport << " pixels, convolution function size = "
                 << itsCSize << " pixels");
-            CONRADLOG_INFO_STR(logger, "Maximum extent = "<< itsSupport
+            ASKAPLOG_INFO_STR(logger, "Maximum extent = "<< itsSupport
                 *itsOverSample*cell << " (m) sampled at "<< cell << " (m)");
             itsCCenter=itsSupport;
             itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*nChan);
@@ -263,7 +263,7 @@ namespace conrad
           }
         }
       }
-      CONRADLOG_INFO_STR(logger, "Shape of convolution function = "<< itsConvFunc[0].shape()
+      ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "<< itsConvFunc[0].shape()
           << " by "<< itsConvFunc.size()<< " planes");
       if (itsName!="") save(itsName);
     }
@@ -275,7 +275,7 @@ namespace conrad
                   void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out)
                   {
 
-                    CONRADLOG_INFO_STR(logger, "Calculating sum of weights image");
+                    ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
 
                     int nx=itsShape(0);
                     int ny=itsShape(1);
@@ -311,8 +311,8 @@ namespace conrad
                       {
                         for (int ix=-itsSupport; ix<+itsSupport; ix++)
                         { 
-                          CONRADDEBUGASSERT(ix+ccenx>0 && iy+cceny>0);
-                          CONRADDEBUGASSERT(ix+ccenx<int(thisPlane.nrow()) && iy+cceny<int(thisPlane.ncolumn()));
+                          ASKAPDEBUGASSERT(ix+ccenx>0 && iy+cceny>0);
+                          ASKAPDEBUGASSERT(ix+ccenx<int(thisPlane.nrow()) && iy+cceny<int(thisPlane.ncolumn()));
                           const int xIndex = ix*itsOverSample+itsCCenter;
                           const int yIndex = iy*itsOverSample+itsCCenter;
                           
@@ -369,8 +369,8 @@ namespace conrad
                       return;
                     }
 
-                    CONRADCHECK(onx>=inx, "Attempting to pad to smaller array");
-                    CONRADCHECK(ony>=iny, "Attempting to pad to smaller array");
+                    ASKAPCHECK(onx>=inx, "Attempting to pad to smaller array");
+                    ASKAPCHECK(ony>=iny, "Attempting to pad to smaller array");
 
                     /// Make an iterator that returns plane by plane
                     casa::ReadOnlyArrayIterator<double> inIt(in, 2);
@@ -427,12 +427,12 @@ namespace conrad
                     for (int row=0; row<nSamples; row++)
                     {
                       int feed=idi->feed1()(row);
-                      CONRADCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
+                      ASKAPCHECK(feed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
                       if (!done(feed))
                       {
                         casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
                         casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-                        //					          CONRADLOG_INFO_STR(logger, "Feed " << feed << " points at Right Ascension ";
+                        //					          ASKAPLOG_INFO_STR(logger, "Feed " << feed << " points at Right Ascension ";
                         //					          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
                         //					          << ", Declination ";
                         //					          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
@@ -448,7 +448,7 @@ namespace conrad
                         break;
                       }
                     }
-                    CONRADCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds, nDone="<<
+                    ASKAPCHECK(nDone==itsMaxFeeds, "Failed to find pointing for all feeds, nDone="<<
                                 nDone<<" itsMaxFeeds="<<itsMaxFeeds);
                   }
 

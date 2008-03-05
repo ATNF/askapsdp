@@ -1,10 +1,10 @@
 #include <measurementequation/ImageMultiScaleSolver.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -17,8 +17,8 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <lattices/Lattices/ArrayLattice.h>
 
 using namespace casa;
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
 #include <iostream>
 
@@ -33,13 +33,13 @@ using std::map;
 using std::vector;
 using std::string;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
     
       
-    ImageMultiScaleSolver::ImageMultiScaleSolver(const conrad::scimath::Params& ip) : 
+    ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip) : 
           ImageSolver(ip) 
     {
       itsScales.resize(3);
@@ -48,7 +48,7 @@ namespace conrad
       itsScales(2)=30;
     }
 
-    ImageMultiScaleSolver::ImageMultiScaleSolver(const conrad::scimath::Params& ip,
+    ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip,
       const casa::Vector<float>& scales) : 
           ImageSolver(ip) 
     {
@@ -63,7 +63,7 @@ namespace conrad
 
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
-    bool ImageMultiScaleSolver::solveNormalEquations(conrad::scimath::Quality& quality)
+    bool ImageMultiScaleSolver::solveNormalEquations(askap::scimath::Quality& quality)
     {
 
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
@@ -81,7 +81,7 @@ namespace conrad
           nParameters+=itsParams->value(name).nelements();
         }
       }
-      CONRADCHECK(nParameters>0, "No free parameters in ImageMultiScaleSolver");
+      ASKAPCHECK(nParameters>0, "No free parameters in ImageMultiScaleSolver");
       
       for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
       {
@@ -89,11 +89,11 @@ namespace conrad
         const casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
         const casa::IPosition valShape(itsParams->value(indit->first).shape());
         
-        CONRADCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+        ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
         const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
-        CONRADCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
+        ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
         const casa::Vector<double>& dv = normalEquations().dataVector(indit->first);
-        CONRADCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
+        ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
         const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
         
         casa::Array<float> dirtyArray(valShape);
@@ -103,7 +103,7 @@ namespace conrad
         casa::Array<float> cleanArray(valShape);
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
 				double maxDiag(casa::max(diag));
-				CONRADLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
+				ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
 				double cutoff=tol()*maxDiag;
         {
           casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
@@ -140,7 +140,7 @@ namespace conrad
         /*
         if(it!=itsCleaners.end()) {
           lc=it->second; 
-          CONRADDEBUGASSERT(lc);
+          ASKAPDEBUGASSERT(lc);
           lc->update(dirty);
         }
         else {
@@ -152,7 +152,7 @@ namespace conrad
         // end of the temporary altered section, the previous line to be removed
         // when uncommented
         
-        CONRADDEBUGASSERT(lc);
+        ASKAPDEBUGASSERT(lc);
         if(algorithm()=="Hogbom") {
           casa::Vector<float> scales(1);
           scales(0)=0.0;

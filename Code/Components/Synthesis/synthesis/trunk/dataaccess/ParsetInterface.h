@@ -7,7 +7,7 @@
 /// which returns selectors and converters with the defaults alread
 /// applied according to the parset file).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -22,7 +22,7 @@
 // boost includes
 #include <boost/shared_ptr.hpp>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -36,7 +36,7 @@ void operator<<(const boost::shared_ptr<IDataSelector> &sel,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef PARSET_INTERFACE_H

@@ -10,7 +10,7 @@
 /// is left double to highlight the future interface 
 /// (derived from IMeasurementEquation).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef GENERIC_MULTI_CHUNK_EQUATION_H
@@ -22,7 +22,7 @@
 #include <fitting/GenericNormalEquations.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -38,7 +38,7 @@ namespace synthesis {
 /// (derived from IMeasurementEquation).
 /// @ingroup measurementequation
 struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
-                              virtual public conrad::scimath::GenericEquation    
+                              virtual public askap::scimath::GenericEquation    
 {  
   /// @brief Standard constructor, which remembers data iterator.
   /// @param[in] idi data iterator
@@ -50,7 +50,7 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
   /// individual accessor (each iteration of the iterator). This method is
   /// overriden in this class to do a proper type conversion.
   /// @param[in] ne Normal equations
-  virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
+  virtual void calcGenericEquations(askap::scimath::GenericNormalEquations& ne) const;
 
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This calculation is done for a single chunk of
@@ -63,7 +63,7 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                          conrad::scimath::INormalEquations& ne) const;
+                          askap::scimath::INormalEquations& ne) const;
   
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This calculation is done for a single chunk of
@@ -76,7 +76,7 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcGenericEquations(const IConstDataAccessor &chunk,
-                          conrad::scimath::GenericNormalEquations& ne) const = 0;
+                          askap::scimath::GenericNormalEquations& ne) const = 0;
 
   /// @brief Predict model visibility for the iterator.
   /// @details This version of the predict method iterates
@@ -90,6 +90,6 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef GENERIC_MULTI_CHUNK_EQUATION_H

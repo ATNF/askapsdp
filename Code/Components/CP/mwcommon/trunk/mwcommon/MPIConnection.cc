@@ -1,6 +1,6 @@
 //# MPIConnection.cc: Connection to workers based on MPI
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -17,7 +17,7 @@
 #include <iostream>
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MPIConnection::MPIConnection (int destinationRank, int tag)
     : itsDestRank   (destinationRank),
@@ -49,7 +49,7 @@ namespace conrad { namespace cp {
     result = MPI_Recv (buf, size, MPI_BYTE,
 		       itsDestRank, itsTag, MPI_COMM_WORLD, &status);
     if (result != MPI_SUCCESS) {
-      CONRADTHROW (MWError, "MPIConnection::receive on rank " << getRank()
+      ASKAPTHROW (MWError, "MPIConnection::receive on rank " << getRank()
 		   << " failed: " << size << " bytes from rank " << itsDestRank
 		   << " using tag " << itsTag);
     }
@@ -63,7 +63,7 @@ namespace conrad { namespace cp {
     result = MPI_Send (const_cast<void*>(buf), size, MPI_BYTE,
 		       itsDestRank, itsTag, MPI_COMM_WORLD);
     if (result != MPI_SUCCESS) {
-      CONRADTHROW (MWError, "MPIConnection::send on rank " << getRank()
+      ASKAPTHROW (MWError, "MPIConnection::send on rank " << getRank()
 		   << " failed: " << size << " bytes to rank " << itsDestRank
 		   << " using tag " << itsTag);
     }
@@ -114,19 +114,19 @@ namespace conrad { namespace cp {
 
   int MPIConnection::getMessageLength()
   {
-    CONRADTHROW (MWError, "MPIConnection::getMessageLength cannot be used: "
+    ASKAPTHROW (MWError, "MPIConnection::getMessageLength cannot be used: "
 		 "configured without MPI");
   }
 
   void MPIConnection::receive (void*, unsigned)
   {
-    CONRADTHROW (MWError, "MPIConnection::receive cannot be used: "
+    ASKAPTHROW (MWError, "MPIConnection::receive cannot be used: "
 		 "configured without MPI");
   }
 
   void MPIConnection::send (const void*, unsigned)
   {
-    CONRADTHROW (MWError, "MPIConnection::send cannot be used: "
+    ASKAPTHROW (MWError, "MPIConnection::send cannot be used: "
 		 "configured without MPI");
   }
 

@@ -9,7 +9,7 @@
 ///        IDataIterator interface.
 ///        
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef I_FLAG_DATA_ACCESSOR_H
@@ -17,7 +17,7 @@
 
 #include <dataaccess/IDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -42,6 +42,6 @@ public:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 
 #endif // #ifndef I_FLAG_DATA_ACCESSOR_H

@@ -7,7 +7,7 @@
 /// a (temporary) adapter, which just returns supplied accessor as its value.
 /// Only one chunk is defined.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -22,7 +22,7 @@
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/IDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -161,5 +161,5 @@ private:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 #endif // #ifndef FAKE_SINGLE_STEP_ITERATOR_H

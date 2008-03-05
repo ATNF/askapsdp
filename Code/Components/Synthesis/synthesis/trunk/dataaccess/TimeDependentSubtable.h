@@ -9,7 +9,7 @@
 /// selection on the TIME column (which is a measure column). The class
 /// reads units and the reference frame and sets up the converter.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -27,7 +27,7 @@
 #include <dataaccess/ITimeDependentSubtable.h>
 #include <dataaccess/IEpochConverter.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -77,7 +77,7 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TIME_DEPENDENT_SUBTABLE_H
 

@@ -3,7 +3,7 @@
 /// @details Interface class representing a selection of visibility
 ///                data according to some criterion. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef I_DATA_SELECTOR_H
@@ -15,7 +15,7 @@
 #include <casa/Quanta/MVEpoch.h>
 #include <casa/BasicSL/String.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -134,6 +134,6 @@ public:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 
 #endif /*I_DATA_SELECTOR_H*/

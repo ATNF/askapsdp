@@ -8,7 +8,7 @@
 #include <mwcommon/MasterControl.h>
 #include <Blob/BlobIStream.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   BBSProxy::~BBSProxy()
   {}

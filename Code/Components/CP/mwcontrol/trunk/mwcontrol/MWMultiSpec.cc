@@ -12,7 +12,7 @@ using namespace LOFAR;
 using namespace LOFAR::ACC::APS;
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWMultiSpec::MWMultiSpec()
     : MWSpec()
@@ -54,7 +54,7 @@ namespace conrad { namespace cp {
   void MWMultiSpec::infiniteRecursionCheck(const string& name) const
   {
     if (name == getName()) {
-      CONRADTHROW (MWError, 
+      ASKAPTHROW (MWError, 
 		   "Infinite recursion detected in definition of MWSpec \""
 		   << name << "\". Please check your ParameterSet file.");
     }

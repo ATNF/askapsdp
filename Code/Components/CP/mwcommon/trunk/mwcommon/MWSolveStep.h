@@ -1,17 +1,17 @@
 /// @file
 /// @brief Base class for a step to process an MW solve command.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_MWSOLVESTEP_H
-#define CONRAD_MWCOMMON_MWSOLVESTEP_H
+#ifndef ASKAP_MWCOMMON_MWSOLVESTEP_H
+#define ASKAP_MWCOMMON_MWSOLVESTEP_H
 
 #include <mwcommon/MWStep.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Base class for a step to process an MW solve command.

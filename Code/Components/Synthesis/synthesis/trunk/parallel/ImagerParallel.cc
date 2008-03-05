@@ -9,17 +9,17 @@
 ///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 
 #include <parallel/ImagerParallel.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
-#include <conrad_synthesis.h>
+#include <askap/AskapError.h>
+#include <askap_synthesis.h>
 
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableDataSource.h>
@@ -48,13 +48,13 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <vector>
 #include <string>
 
-using namespace conrad;
-using namespace conrad::scimath;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::scimath;
+using namespace askap::synthesis;
 using namespace LOFAR::ACC::APS;
-using namespace conrad::cp;
+using namespace askap::cp;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -71,7 +71,7 @@ namespace conrad
 	if(itsRestore) {
 	  itsQbeam.resize(3);
 	  vector<string> beam=itsParset.getStringVector("restore.beam");
-	  CONRADCHECK(beam.size()==3, "Need three elements for beam");
+	  ASKAPCHECK(beam.size()==3, "Need three elements for beam");
 	  for (int i=0; i<3; i++)
 	    {
 	      casa::Quantity::read(itsQbeam(i), beam[i]);
@@ -83,12 +83,12 @@ namespace conrad
         /// at once (but you may/will run out of memory!)
         SynthesisParamsHelper::setUpImages(itsModel, 
                                            itsParset.makeSubset("Images."));
-        CONRADCHECK(itsModel, "Model not defined correctly");
+        ASKAPCHECK(itsModel, "Model not defined correctly");
 
         /// Create the solver from the parameterset definition and the existing
         /// definition of the parameters. 
         itsSolver=ImageSolverFactory::make(*itsModel, itsParset);
-        CONRADCHECK(itsSolver, "Solver not defined correctly");
+        ASKAPCHECK(itsSolver, "Solver not defined correctly");
       }
       if (isWorker())
       {
@@ -96,7 +96,7 @@ namespace conrad
         itsColName=itsParset.getString("datacolumn", "DATA");
         itsMs=itsParset.getStringVector("dataset");
         itsGainsFile = itsParset.getString("gainsfile","");
-        CONRADCHECK(itsMs.size()>0, "Need dataset specification");
+        ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
         if (itsMs.size()==1)
         {
           string tmpl=itsMs[0];
@@ -111,14 +111,14 @@ namespace conrad
         }
         if (itsNNode>1)
         {
-          CONRADCHECK(int(itsMs.size()) == (itsNNode-1),
+          ASKAPCHECK(int(itsMs.size()) == (itsNNode-1),
               "When running in parallel, need one data set per node");
         }
 
         /// Create the gridder using a factory acting on a
         /// parameterset
         itsGridder=VisGridderFactory::make(itsParset);
-        CONRADCHECK(itsGridder, "Gridder not defined correctly");
+        ASKAPCHECK(itsGridder, "Gridder not defined correctly");
       }
     }
 
@@ -126,11 +126,11 @@ namespace conrad
     {
       casa::Timer timer;
       timer.mark();
-      CONRADLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
+      ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
       // First time around we need to generate the equation 
       if ((!itsEquation)||discard)
       {
-        CONRADLOG_INFO_STR(logger, "Creating measurement equation" );
+        ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
         TableDataSource ds(ms, TableDataSource::DEFAULT, itsColName);
         IDataSelectorPtr sel=ds.createSelector();
         sel << itsParset;
@@ -139,13 +139,13 @@ namespace conrad
             "Hz");
         conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
         IDataSharedIter it=ds.createIterator(sel, conv);
-        CONRADCHECK(itsModel, "Model not defined");
-        CONRADCHECK(itsGridder, "Gridder not defined");
+        ASKAPCHECK(itsModel, "Model not defined");
+        ASKAPCHECK(itsGridder, "Gridder not defined");
         if (!itsGainsFile.size()) {
-            CONRADLOG_INFO_STR(logger, "No calibration is applied" );
-            itsEquation = conrad::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+            ASKAPLOG_INFO_STR(logger, "No calibration is applied" );
+            itsEquation = askap::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
         } else {
-            CONRADLOG_INFO_STR(logger, "Calibration will be performed using gains from '"<<itsGainsFile<<"'");
+            ASKAPLOG_INFO_STR(logger, "Calibration will be performed using gains from '"<<itsGainsFile<<"'");
             
             scimath::Params gainModel; 
 	        gainModel << ParameterSet(itsGainsFile);
@@ -157,7 +157,7 @@ namespace conrad
 	             nameIt != names.end(); ++nameIt) {
 	                casa::Complex gain = gainModel.complexValue(*nameIt);
 	                if (abs(gain)<1e-3) {
-	                    CONRADLOG_INFO_STR(logger, "Very small gain has been encountered "<<*nameIt
+	                    ASKAPLOG_INFO_STR(logger, "Very small gain has been encountered "<<*nameIt
 	                           <<"="<<gain);
 	                    continue;       
 	                } else {
@@ -175,17 +175,17 @@ namespace conrad
 	               calME(new CalibrationME<NoXPolGain>(gainModel,it,*itsVoidME));
             
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
-            itsEquation = conrad::scimath::Equation::ShPtr(
+            itsEquation = askap::scimath::Equation::ShPtr(
                           new ImageFFTEquation (*itsModel, calIter, itsGridder));
         }
       }
       else {
-        CONRADLOG_INFO_STR(logger, "Reusing measurement equation" );
+        ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
       }
-      CONRADCHECK(itsEquation, "Equation not defined");
-      CONRADCHECK(itsNe, "NormalEquations not defined");
+      ASKAPCHECK(itsEquation, "Equation not defined");
+      ASKAPCHECK(itsNe, "NormalEquations not defined");
       itsEquation->calcEquations(*itsNe);
-      CONRADLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()
+      ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()
                          << " seconds ");
     }
 
@@ -197,11 +197,11 @@ namespace conrad
 
       if (isWorker())
       {
-        CONRADCHECK(itsGridder, "Gridder not defined");
-        CONRADCHECK(itsModel, "Model not defined");
-        //				CONRADCHECK(itsMs.size()>0, "Data sets not defined");
+        ASKAPCHECK(itsGridder, "Gridder not defined");
+        ASKAPCHECK(itsModel, "Model not defined");
+        //				ASKAPCHECK(itsMs.size()>0, "Data sets not defined");
 
-        CONRADCHECK(itsNe, "NormalEquations not defined");
+        ASKAPCHECK(itsNe, "NormalEquations not defined");
 
         if (isParallel())
         {
@@ -210,7 +210,7 @@ namespace conrad
         }
         else
         {
-          CONRADCHECK(itsSolver, "Solver not defined correctly");
+          ASKAPCHECK(itsSolver, "Solver not defined correctly");
           itsSolver->init();
           itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); iMs++)
@@ -231,12 +231,12 @@ namespace conrad
         {
           receiveNE();
         }
-        CONRADLOG_INFO_STR(logger, "Solving normal equations");
+        ASKAPLOG_INFO_STR(logger, "Solving normal equations");
         casa::Timer timer;
         timer.mark();
         Quality q;
         itsSolver->solveNormalEquations(q);
-        CONRADLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds "
+        ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds "
                            );
         *itsModel=itsSolver->parameters();
       }
@@ -247,18 +247,18 @@ namespace conrad
     {
       if (isMaster())
       {
-        CONRADLOG_INFO_STR(logger, "Writing out results as CASA images");
+        ASKAPLOG_INFO_STR(logger, "Writing out results as CASA images");
         vector<string> resultimages=itsModel->names();
         for (vector<string>::iterator it=resultimages.begin(); it
             !=resultimages.end(); it++)
         {
-          CONRADLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it );
+          ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it );
           SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it);
         }
 
         if (itsRestore)
         {
-          CONRADLOG_INFO_STR(logger, "Writing out restored images as CASA images");
+          ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
           ImageRestoreSolver ir(*itsModel, itsQbeam);
           ir.setThreshold(itsSolver->threshold());
           ir.setVerbose(itsSolver->verbose());
@@ -270,7 +270,7 @@ namespace conrad
               !=resultimages.end(); it++)
           {
             string imageName("image"+(*it));
-            CONRADLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
+            ASKAPLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
                                << imageName+string(".restored") );
             SynthesisParamsHelper::saveAsCasaImage(*itsModel, imageName,
                 imageName+string(".restored"));

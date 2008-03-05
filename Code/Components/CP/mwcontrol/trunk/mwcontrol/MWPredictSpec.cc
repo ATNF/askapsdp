@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   void MWPredictSpec::visit (MWSpecVisitor& visitor) const
   {

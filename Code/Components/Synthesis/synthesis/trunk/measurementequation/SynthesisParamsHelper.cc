@@ -1,11 +1,11 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Axes.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <casa/aips.h>
 #include <casa/BasicSL/Constants.h>
@@ -30,10 +30,10 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <vector>
 #include <algorithm>
 
-using namespace conrad::scimath;
+using namespace askap::scimath;
 using namespace casa;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -65,7 +65,7 @@ namespace conrad
        return params;
     }
     
-    void SynthesisParamsHelper::setUpImages(conrad::scimath::Params::ShPtr& params,
+    void SynthesisParamsHelper::setUpImages(askap::scimath::Params::ShPtr& params,
 				const LOFAR::ACC::APS::ParameterSet &parset)
     {
 	  vector<string> images=parset.getStringVector("Names");
@@ -82,13 +82,13 @@ namespace conrad
 	}
     
     
-    void SynthesisParamsHelper::add(conrad::scimath::Params& ip,
+    void SynthesisParamsHelper::add(askap::scimath::Params& ip,
 				    const LOFAR::ACC::APS::ParameterSet& parset, const std::string& baseKey)
     {
       vector<string> images=parset.getStringVector(baseKey+"Names");
       for (vector<string>::iterator it=images.begin(); it!=images.end(); it++)
 	{
-	  CONRADLOG_INFO_STR(logger, "Defining image "<< *it );
+	  ASKAPLOG_INFO_STR(logger, "Defining image "<< *it );
 	  std::vector<int> shape=parset.getInt32Vector(baseKey+*it+".shape");
 	  int nchan=parset.getInt32("Images."+*it+".nchan");
 	  std::vector<double> freq=parset.getDoubleVector(baseKey+*it
@@ -103,7 +103,7 @@ namespace conrad
 	}
     }
     
-    void SynthesisParamsHelper::add(conrad::scimath::Params& ip,
+    void SynthesisParamsHelper::add(askap::scimath::Params& ip,
 				    const string& name, const vector<string>& direction,
 				    const vector<string>& cellsize, const vector<int>& shape,
 				    const double freqmin, const double freqmax, const int nchan)
@@ -138,7 +138,7 @@ namespace conrad
       ip.add(name, pixels, axes);
     }
     
-    void SynthesisParamsHelper::saveAsCasaImage(const conrad::scimath::Params& ip, const string& name,
+    void SynthesisParamsHelper::saveAsCasaImage(const askap::scimath::Params& ip, const string& name,
 						const string& imagename)
     {
       const casa::Array<double> imagePixels(ip.value(name));
@@ -188,7 +188,7 @@ namespace conrad
       
     }
     
-    void SynthesisParamsHelper::getFromCasaImage(conrad::scimath::Params& ip, const string& name,
+    void SynthesisParamsHelper::getFromCasaImage(askap::scimath::Params& ip, const string& name,
 						 const string& imagename)
     {
       
@@ -205,7 +205,7 @@ namespace conrad
       Axes axes;
       /// First do the direction
       int whichDir=imageCoords.findCoordinate(Coordinate::DIRECTION);
-      CONRADCHECK(whichDir>-1, "No direction coordinate present in model");
+      ASKAPCHECK(whichDir>-1, "No direction coordinate present in model");
       casa::DirectionCoordinate radec(imageCoords.directionCoordinate(whichDir));
       
       casa::Vector<casa::String> units(2);
@@ -231,7 +231,7 @@ namespace conrad
       axes.add("STOKES", 0.0, 0.0);
       
       int whichSpectral=imageCoords.findCoordinate(Coordinate::SPECTRAL);
-      CONRADCHECK(whichSpectral>-1, "No spectral coordinate present in model");
+      ASKAPCHECK(whichSpectral>-1, "No spectral coordinate present in model");
       casa::SpectralCoordinate freq(imageCoords.spectralCoordinate(whichSpectral));
       int nChan=imagePixels.shape()(whichSpectral);
       double startFreq, endFreq;
@@ -245,7 +245,7 @@ namespace conrad
     }
     
     boost::shared_ptr<casa::TempImage<float> >
-    SynthesisParamsHelper::tempImage(const conrad::scimath::Params& ip,
+    SynthesisParamsHelper::tempImage(const askap::scimath::Params& ip,
 				     const string& name)
     {
       const casa::Array<double> imagePixels(ip.value(name));
@@ -266,7 +266,7 @@ namespace conrad
     }
     
     casa::CoordinateSystem
-    SynthesisParamsHelper::coordinateSystem(const conrad::scimath::Params& ip,
+    SynthesisParamsHelper::coordinateSystem(const askap::scimath::Params& ip,
 					    const string& name)
     {
       const Axes axes(ip.axes(name));
@@ -294,7 +294,7 @@ namespace conrad
     }
     
     casa::DirectionCoordinate
-    SynthesisParamsHelper::directionCoordinate(const conrad::scimath::Params& ip,
+    SynthesisParamsHelper::directionCoordinate(const askap::scimath::Params& ip,
 					       const string& name)
     {
       const Axes axes(ip.axes(name));
@@ -318,7 +318,7 @@ namespace conrad
       return radec;
     }
     
-    void SynthesisParamsHelper::update(conrad::scimath::Params& ip, const string& name,
+    void SynthesisParamsHelper::update(askap::scimath::Params& ip, const string& name,
 				       const casa::ImageInterface<float>& im)
     {
       /// This next copy should be a reference unless it is too big

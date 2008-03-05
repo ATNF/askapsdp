@@ -4,7 +4,7 @@
 /// TableConstDataSource: Allow read-only access to the data stored in the
 /// measurement set. This class implements IConstDataSource interface.
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -24,7 +24,7 @@
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -112,6 +112,6 @@ protected:
  
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_CONST_DATA_SOURCE_H

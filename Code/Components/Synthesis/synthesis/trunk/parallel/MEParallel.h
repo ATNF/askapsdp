@@ -2,15 +2,15 @@
 ///
 /// Provides generic methods for parallel algorithms using the measurement equation
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_SYNTHESIS_MEPARALLEL_H_
-#define CONRAD_SYNTHESIS_MEPARALLEL_H_
+#ifndef ASKAP_SYNTHESIS_MEPARALLEL_H_
+#define ASKAP_SYNTHESIS_MEPARALLEL_H_
 
 #include <parallel/SynParallel.h>
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{
@@ -83,13 +83,13 @@ namespace conrad
 			
 			 
 				/// Holder for the normal equations
-				conrad::scimath::INormalEquations::ShPtr itsNe;
+				askap::scimath::INormalEquations::ShPtr itsNe;
 
 				/// Holder for the solver
-				conrad::scimath::Solver::ShPtr itsSolver;
+				askap::scimath::Solver::ShPtr itsSolver;
 				
 				/// Holder for the equation
-				conrad::scimath::Equation::ShPtr itsEquation;
+				askap::scimath::Equation::ShPtr itsEquation;
 
 		};
 

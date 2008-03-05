@@ -8,7 +8,7 @@
 /// Each iteration step is represented by the IDataAccessor interface in this
 /// case. 
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -28,7 +28,7 @@
 // casa includes
 #include <tables/Tables/ArrayColumn.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -51,7 +51,7 @@ struct MapMemFun : public std::unary_function<X*, void> {
   template<typename P>
   void operator()(const P &in) const    
     {
-      CONRADDEBUGASSERT(in.second);
+      ASKAPDEBUGASSERT(in.second);
       return ((*in.second).*func)();
     }
 private:
@@ -69,8 +69,8 @@ MapMemFun<X> mapMemFun(void (X::*in)()) {
 }
 }
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector
@@ -98,7 +98,7 @@ TableDataIterator::TableDataIterator(
 ///
 IDataAccessor& TableDataIterator::operator*() const
 {
-  CONRADDEBUGASSERT(itsActiveBufferPtr);
+  ASKAPDEBUGASSERT(itsActiveBufferPtr);
   return *itsActiveBufferPtr;
 }
 
@@ -168,7 +168,7 @@ void TableDataIterator::init()
   // call sync() member function for all accessors in itsBuffers
   std::for_each(itsBuffers.begin(),itsBuffers.end(),
            mapMemFun(&TableBufferDataAccessor::sync));
-  CONRADDEBUGASSERT(itsOriginalVisAccessor);         
+  ASKAPDEBUGASSERT(itsOriginalVisAccessor);         
   itsOriginalVisAccessor->sync();
 
   TableConstDataIterator::init();
@@ -191,7 +191,7 @@ casa::Bool TableDataIterator::next()
   // call sync() member function for all accessors in itsBuffers
   std::for_each(itsBuffers.begin(),itsBuffers.end(),
            mapMemFun(&TableBufferDataAccessor::sync));
-  CONRADDEBUGASSERT(itsOriginalVisAccessor);         
+  ASKAPDEBUGASSERT(itsOriginalVisAccessor);         
   itsOriginalVisAccessor->sync();
 
   ++itsIterationCounter;
@@ -260,21 +260,21 @@ void TableDataIterator::writeOriginalVis() const
 {
   const casa::Cube<casa::Complex> &originalVis=getAccessor().visibility();
   // no change of shape is permitted
-  CONRADASSERT(originalVis.nrow() == nRow() &&
+  ASKAPASSERT(originalVis.nrow() == nRow() &&
                originalVis.ncolumn() == nChannel() &&
                originalVis.nplane() == nPol());
   casa::ArrayColumn<casa::Complex> visCol(getCurrentIteration(), getDataColumnName());
-  CONRADDEBUGASSERT(getCurrentIteration().nrow() >= getCurrentTopRow()+
+  ASKAPDEBUGASSERT(getCurrentIteration().nrow() >= getCurrentTopRow()+
                     nRow());
   casa::uInt tableRow = getCurrentTopRow();
   for (casa::uInt row=0;row<originalVis.nrow();++row,++tableRow) {
        const casa::IPosition &shape = visCol.shape(row);
-       CONRADDEBUGASSERT(shape.size() && (shape.size())<3);
+       ASKAPDEBUGASSERT(shape.size() && (shape.size())<3);
        const casa::uInt thisRowNumberOfPols = shape[0];
        const casa::uInt thisRowNumberOfChannels = shape.size()>1 ? shape[1] : 1;
        if (thisRowNumberOfPols != originalVis.nplane() ||
            thisRowNumberOfChannels != originalVis.ncolumn()) {
-           CONRADTHROW(DataAccessError, "Current implementation of the writing to original "
+           ASKAPTHROW(DataAccessError, "Current implementation of the writing to original "
                 "visibilities does not support partial selection of the data");                 
        }
        // for now just copy

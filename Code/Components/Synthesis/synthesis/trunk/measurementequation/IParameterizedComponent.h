@@ -7,7 +7,7 @@
 ///     allowing to hold a number of derived objects, which potentially
 ///     depend on a different number of parameters, in a container.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -20,7 +20,7 @@
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -48,7 +48,7 @@ struct IParameterizedComponent : virtual public IComponent {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef I_PARAMETERIZED_COMPONENT_H

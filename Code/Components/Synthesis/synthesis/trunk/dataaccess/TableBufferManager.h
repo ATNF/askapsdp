@@ -4,7 +4,7 @@
 /// of buffers to store scratch data. This class stores buffers in the
 /// BUFFERS subtable 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -14,7 +14,7 @@
 #include <dataaccess/IBufferManager.h>
 #include <dataaccess/TableHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -61,6 +61,6 @@ struct TableBufferManager : virtual public IBufferManager,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_BUFFER_MANAGER_H

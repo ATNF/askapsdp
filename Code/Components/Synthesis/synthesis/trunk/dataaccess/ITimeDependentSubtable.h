@@ -8,7 +8,7 @@
 /// interface and derived classes is to provide data necessary for a table
 /// selection on the TIME column (which is a measure column)
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -21,7 +21,7 @@
 // own includes
 #include <dataaccess/ITableHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -57,7 +57,7 @@ struct ITimeDependentSubtable : virtual protected ITableHolder {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_TIME_DEPENDENT_SUBTABLE_H
 

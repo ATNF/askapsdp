@@ -1,13 +1,13 @@
 /// @file
 /// @brief Step to process the MW solve command using BBSKernel.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWSOLVESTEP_H
-#define CONRAD_MWCONTROL_MWSOLVESTEP_H
+#ifndef ASKAP_MWCONTROL_MWSOLVESTEP_H
+#define ASKAP_MWCONTROL_MWSOLVESTEP_H
 
 #include <mwcommon/MWSolveStep.h>
 #include <mwcontrol/MWStepBBSProp.h>
@@ -15,7 +15,7 @@
 #include <vector>
 #include <string>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Step to process the MW solve command using BBSKernel.

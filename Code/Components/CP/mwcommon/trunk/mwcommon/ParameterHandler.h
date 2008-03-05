@@ -1,19 +1,19 @@
 /// @file
 /// @brief Handle a LOFAR .parset file
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_PARAMETERHANDLER_H
-#define CONRAD_MWCOMMON_PARAMETERHANDLER_H
+#ifndef ASKAP_MWCOMMON_PARAMETERHANDLER_H
+#define ASKAP_MWCOMMON_PARAMETERHANDLER_H
 
 #include <APS/ParameterSet.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief Handle a LOFAR .parset file

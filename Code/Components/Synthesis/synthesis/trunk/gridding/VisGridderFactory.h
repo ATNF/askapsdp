@@ -3,7 +3,7 @@
 /// VisGridderFactory: Factory class for visibility
 //  gridders.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef VISGRIDDERFACTORY_H_
@@ -13,7 +13,7 @@
 
 #include <APS/ParameterSet.h>
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{

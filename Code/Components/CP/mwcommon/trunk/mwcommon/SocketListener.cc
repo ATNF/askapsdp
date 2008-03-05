@@ -1,6 +1,6 @@
 //# SocketListener.cc: Class that creates a socket and accepts connections
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -9,7 +9,7 @@
 #include <mwcommon/MWError.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   SocketListener::SocketListener (const std::string& port)
     : itsConnSocket (new LOFAR::Socket("mwsck", port))
@@ -20,12 +20,12 @@ namespace conrad { namespace cp {
     LOFAR::Socket* socket = itsConnSocket->accept();
     SocketConnection::ShPtr dataConn(new SocketConnection(socket));
     int status = itsConnSocket->errcode();
-    CONRADCHECK (socket  &&  status == LOFAR::Socket::SK_OK,
+    ASKAPCHECK (socket  &&  status == LOFAR::Socket::SK_OK,
                  "SocketConnection server did not accept on host "
                  << itsConnSocket->host() << ", port " << itsConnSocket->port()
                  << ", LOFAR::Socket status " << status << ' '
                  << itsConnSocket->errstr());
-    CONRADASSERT (dataConn->isConnected());
+    ASKAPASSERT (dataConn->isConnected());
     return dataConn;
   }
 

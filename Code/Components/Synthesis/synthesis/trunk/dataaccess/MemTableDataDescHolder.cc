@@ -3,22 +3,22 @@
 /// @details This file contains a class implementing the ITableDataDescHolder
 /// interface by reading the appropriate subtable into memory in the constructor.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #include <dataaccess/MemTableDataDescHolder.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, "");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <tables/Tables/ScalarColumn.h>
 #include <tables/Tables/TableRecord.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 using namespace std;
 using namespace casa;
 
@@ -46,7 +46,7 @@ MemTableDataDescHolder::MemTableDataDescHolder(const casa::Table &ms)
 int MemTableDataDescHolder::getSpectralWindowID(size_t dataDescriptionID)
                   const
 { 
-  CONRADASSERT(dataDescriptionID<itsDataDescription.size());
+  ASKAPASSERT(dataDescriptionID<itsDataDescription.size());
   return itsDataDescription[dataDescriptionID].first;
 }
 
@@ -58,7 +58,7 @@ int MemTableDataDescHolder::getSpectralWindowID(size_t dataDescriptionID)
 /// the negative values
 int MemTableDataDescHolder::getPolarizationID(size_t dataDescriptionID) const
 {
-  CONRADASSERT(dataDescriptionID<itsDataDescription.size());
+  ASKAPASSERT(dataDescriptionID<itsDataDescription.size());
   return itsDataDescription[dataDescriptionID].second;
 }
 

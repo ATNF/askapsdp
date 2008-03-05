@@ -5,7 +5,7 @@
 /// frequencies for each channel). The table is indexed with the
 /// spectral window ID.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -19,7 +19,7 @@
 // own includes
 #include <dataaccess/IHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -66,6 +66,6 @@ struct ITableSpWindowHolder : virtual public IHolder {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_TABLE_SP_WINDOW_HOLDER_H

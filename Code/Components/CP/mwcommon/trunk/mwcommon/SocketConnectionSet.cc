@@ -1,6 +1,6 @@
 //# SocketConnectionSet.cc: Set of socket connections
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -9,7 +9,7 @@
 #include <mwcommon/MWError.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   SocketConnectionSet::SocketConnectionSet (const std::string& port)
     : itsListener (port)
@@ -32,7 +32,7 @@ namespace conrad { namespace cp {
          it!=inx.end();
          ++it) {
       int i = *it;
-      CONRADASSERT (i>=0 && i<nrconn);
+      ASKAPASSERT (i>=0 && i<nrconn);
       set->itsConns.push_back (itsConns[i]);
     }
     return mwset;

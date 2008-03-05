@@ -3,7 +3,7 @@
 /// @details IConstDataSource allows access to a source of visibility data,
 /// probably either a MeasurementSet or a stream.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -24,7 +24,7 @@
 #include <dataaccess/IDataConverter.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 	
@@ -186,5 +186,5 @@ public:
 };
 
 } // end of namespace synthesis
-} // end of namespace conrad
+} // end of namespace askap
 #endif // I_CONST_DATA_SOURCE_H

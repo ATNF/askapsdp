@@ -1,7 +1,7 @@
 #include <gridding/SphFuncVisGridder.h>
 #include <casa/Arrays/ArrayIter.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -57,7 +57,7 @@ namespace conrad
         }
       }
       float volume=casa::sum(casa::real(itsConvFunc[0]));
-      CONRADCHECK(volume>0.0, "Integral of convolution function is zero");
+      ASKAPCHECK(volume>0.0, "Integral of convolution function is zero");
       for (int fracv=0; fracv<itsOverSample; fracv++)
       {
         for (int fracu=0; fracu<itsOverSample; fracu++)

@@ -6,7 +6,7 @@
 /// from the parallel framework middleware. Current version is basically an
 /// adapted ImagerParallel clas
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef CALIBRATOR_PARALLEL_H
@@ -29,7 +29,7 @@
 #include <fitting/Solver.h>
 
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -124,7 +124,7 @@ namespace conrad
       boost::shared_ptr<IMeasurementEquation> itsPerfectME;
 
       /// uncorrupted model
-      conrad::scimath::Params::ShPtr itsPerfectModel;
+      askap::scimath::Params::ShPtr itsPerfectModel;
       
       /// @brief name of the parameter taken as a reference
       /// @details empty string means no referencing is required

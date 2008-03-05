@@ -10,7 +10,7 @@
 ///        write to the same data accessor, which is currently read or
 ///        its associated buffers.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef I_DATA_ADAPTER_H
@@ -19,7 +19,7 @@
 #include <casa/Arrays/Cube.h>
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -244,6 +244,6 @@ DataAdapter<Iter, BufferSelector, Incremented>
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_DATA_ADAPTER_H

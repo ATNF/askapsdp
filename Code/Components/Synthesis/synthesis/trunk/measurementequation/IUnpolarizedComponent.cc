@@ -9,7 +9,7 @@
 ///     type allows to avoid unnecessary loops in polarization in
 ///     ComponentEquation, by testing the type with dynamic_cast. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -27,7 +27,7 @@
 /// @param[in] freq vector of frequencies to do calculations for
 /// @param[in] pol required polarization 
 /// @param[out] result an output buffer used to store values
-void conrad::synthesis::IUnpolarizedComponent::calculate(
+void askap::synthesis::IUnpolarizedComponent::calculate(
                     const casa::RigidVector<casa::Double, 3> &uvw,
                     const casa::Vector<casa::Double> &freq,
                     casa::Stokes::StokesTypes pol,
@@ -51,7 +51,7 @@ void conrad::synthesis::IUnpolarizedComponent::calculate(
 /// @param[in] freq vector of frequencies to do calculations for
 /// @param[in] pol required polarization 
 /// @param[out] result an output buffer used to store values
-void conrad::synthesis::IUnpolarizedComponent::calculate(
+void askap::synthesis::IUnpolarizedComponent::calculate(
                     const casa::RigidVector<casa::Double, 3> &uvw,
                     const casa::Vector<casa::Double> &freq,
                     casa::Stokes::StokesTypes pol,
@@ -59,8 +59,8 @@ void conrad::synthesis::IUnpolarizedComponent::calculate(
 {
   if (stokesIndex(pol)) {
       // Q,U or V requested
-      const conrad::synthesis::IParameterizedComponent *pc = 
-             dynamic_cast<const conrad::synthesis::IParameterizedComponent*>(this);
+      const askap::synthesis::IParameterizedComponent *pc = 
+             dynamic_cast<const askap::synthesis::IParameterizedComponent*>(this);
       if (pc != NULL) {
           result.resize(2*freq.nelements(), casa::AutoDiff<double>(0.,
                         pc->nParameters()));

@@ -7,7 +7,7 @@
 ///        pointer. It allows to avoid an ugly syntax like *(*it), etc.
 ///        
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef I_SHARED_ITER_H
@@ -22,7 +22,7 @@
 // own includes
 #include <dataaccess/DataAccessError.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -90,7 +90,7 @@ public:
     /// iterator which can be used in conjunction with this class
     /// @return a T:value_type (i.e. a reference to the result)
     inline typename T::value_type operator*() const {
-       CONRADDEBUGASSERT(itsSharedPtr);
+       ASKAPDEBUGASSERT(itsSharedPtr);
        return *(*itsSharedPtr);
     }
 
@@ -98,7 +98,7 @@ public:
     /// iterator which can be used in conjunction with this class
     /// @return T::pointer_type (i.e. a pointer to the result)
     inline typename T::pointer_type operator->() const {
-       CONRADDEBUGASSERT(itsSharedPtr);
+       ASKAPDEBUGASSERT(itsSharedPtr);
        return (*itsSharedPtr).operator->();
     }
 
@@ -114,7 +114,7 @@ public:
     /// highlight that it does an initialization of existing object.
     inline const SharedIter<T>& init() const
     {
-      CONRADDEBUGASSERT(itsSharedPtr);
+      ASKAPDEBUGASSERT(itsSharedPtr);
       itsSharedPtr->init();
       return *this;
     }
@@ -133,7 +133,7 @@ public:
     ///         while (it.next()) {} are possible)
     inline bool next() const
     {
-      CONRADDEBUGASSERT(itsSharedPtr);
+      ASKAPDEBUGASSERT(itsSharedPtr);
       return itsSharedPtr->next();      
     }
 
@@ -157,7 +157,7 @@ public:
     ///
     inline void chooseBuffer(const std::string &bufferID) const
     {
-      CONRADDEBUGASSERT(itsSharedPtr);
+      ASKAPDEBUGASSERT(itsSharedPtr);
       itsSharedPtr->chooseBuffer(bufferID);
     }
 
@@ -165,7 +165,7 @@ public:
     /// by this iterator and the original visibilities
     /// (see IDataIterator::chooseOriginal() for more details)
     inline void chooseOriginal() const {
-      CONRADDEBUGASSERT(itsSharedPtr);
+      ASKAPDEBUGASSERT(itsSharedPtr);
       itsSharedPtr->chooseOriginal(); 
     }
 
@@ -179,7 +179,7 @@ public:
     ///         buffer requested
     ///
     inline typename T::value_type buffer(const std::string &bufferID) const {
-       CONRADDEBUGASSERT(itsSharedPtr);
+       ASKAPDEBUGASSERT(itsSharedPtr);
        return itsSharedPtr->buffer(bufferID);
     }
     
@@ -305,6 +305,6 @@ typedef SharedIter<IConstDataIterator> IConstDataSharedIter;
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 
 #endif // #ifndef I_SHARED_ITER_H

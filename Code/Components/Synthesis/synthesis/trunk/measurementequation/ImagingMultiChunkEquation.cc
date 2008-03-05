@@ -10,14 +10,14 @@
 /// is left double to highlight the future interface 
 /// (derived from IMeasurementEquation).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
 #include <measurementequation/ImagingMultiChunkEquation.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -32,7 +32,7 @@ ImagingMultiChunkEquation::ImagingMultiChunkEquation(const IDataSharedIter& idi)
 /// calls an abstract method declared in IMeasurementEquation for each 
 /// individual accessor (each iteration of the iterator). 
 /// @param[in] ne Normal equations
-void ImagingMultiChunkEquation::calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne) const
+void ImagingMultiChunkEquation::calcImagingEquations(askap::scimath::ImagingNormalEquations& ne) const
 {
   MultiChunkEquation::calcEquations(ne);
 }
@@ -48,14 +48,14 @@ void ImagingMultiChunkEquation::calcImagingEquations(conrad::scimath::ImagingNor
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
 void ImagingMultiChunkEquation::calcEquations(const IConstDataAccessor &chunk,
-                   conrad::scimath::INormalEquations& ne) const
+                   askap::scimath::INormalEquations& ne) const
 {
   try {
      calcImagingEquations(chunk, 
-             dynamic_cast<conrad::scimath::ImagingNormalEquations&>(ne));
+             dynamic_cast<askap::scimath::ImagingNormalEquations&>(ne));
   }
   catch (const std::bad_cast &bc) {
-     CONRADTHROW(ConradError, "An attempt to use incompatible type of "
+     ASKAPTHROW(AskapError, "An attempt to use incompatible type of "
                  "the normal equations class with a derivative from "
                  "ImagingMultiChunkEquation. It accepts only ImagingNormalEquations "
                  "and derivatives. This exception probably indicates a logic error");    
@@ -74,4 +74,4 @@ void ImagingMultiChunkEquation::predict() const
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap

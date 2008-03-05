@@ -6,15 +6,15 @@
 /// fully defined converter for processing
 /// (base interface is ITableMeasureSelector)
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 /// own includes
 #include <dataaccess/TableMeasureFieldSelector.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// set the converter to use. It should be fully specified somewhere
 /// else before the actual selection can take place. This method

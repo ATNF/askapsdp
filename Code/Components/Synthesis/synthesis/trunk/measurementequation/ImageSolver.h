@@ -3,7 +3,7 @@
 /// ImageSolver: This solver calculates the dirty image (or equivalent)
 /// for all parameters called image*
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SYNIMAGESOLVER_H_
@@ -14,7 +14,7 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -25,14 +25,14 @@ namespace conrad
     /// is analogous to making the dirty image or a linear mosaic
     /// of dirty images.
     /// @ingroup measurementequation
-    class ImageSolver : public conrad::scimath::Solver
+    class ImageSolver : public askap::scimath::Solver
     {
       public:
 
         /// @brief Constructor from parameters.
         /// The parameters named image* will be interpreted as images and
         /// solutions formed by the method described.
-        ImageSolver(const conrad::scimath::Params& ip);
+        ImageSolver(const askap::scimath::Params& ip);
 
         /// @brief Initialize this solver
         virtual void init();
@@ -40,10 +40,10 @@ namespace conrad
         /// @brief Solve for parameters, updating the values kept internally
         /// The solution is constructed from the normal equations
         /// @param q Solution quality information
-        virtual bool solveNormalEquations(conrad::scimath::Quality& q);
+        virtual bool solveNormalEquations(askap::scimath::Quality& q);
         
 /// @brief Clone this object
-        virtual conrad::scimath::Solver::ShPtr clone() const;
+        virtual askap::scimath::Solver::ShPtr clone() const;
         
         /// @brief Save the weights as a parameter
         virtual void saveWeights();

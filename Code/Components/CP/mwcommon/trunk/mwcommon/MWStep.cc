@@ -1,13 +1,13 @@
 //# MWStep.cc: Step to process the MW commands
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/MWStep.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWStep::~MWStep()
   {}

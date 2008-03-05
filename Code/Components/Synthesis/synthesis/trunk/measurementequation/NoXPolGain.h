@@ -4,7 +4,7 @@
 /// @details This is a simple effect which can be used in conjunction
 /// with the CalibrationME template (as its template argument)
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef NO_X_POL_GAIN_H
@@ -15,7 +15,7 @@
 #include <fitting/ComplexDiff.h>
 #include <fitting/Params.h>
 #include <dataaccess/IConstDataAccessor.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <measurementequation/ParameterizedMEComponent.h>
 
 
@@ -23,7 +23,7 @@
 #include <string>
 #include <utility>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -79,12 +79,12 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
                                       casa::uInt row) const
 {
    const casa::uInt nPol = chunk.nPol();
-   CONRADDEBUGASSERT(nPol);   
+   ASKAPDEBUGASSERT(nPol);   
    
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
    
-   CONRADASSERT(ant1!=ant2); // not yet implemented
+   ASKAPASSERT(ant1!=ant2); // not yet implemented
    
    scimath::ComplexDiffMatrix calFactor(nPol, nPol, 0.);
 
@@ -107,7 +107,7 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 

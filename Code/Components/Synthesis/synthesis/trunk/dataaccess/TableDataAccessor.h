@@ -6,7 +6,7 @@
 /// At this moment this class just throws an exception if a write is
 /// attempted and mirrors all const functions.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef TABLE_DATA_ACCESSOR_H
@@ -20,7 +20,7 @@
 #include <dataaccess/MetaDataAccessor.h>
 #include <dataaccess/IDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 	
 namespace synthesis {
 
@@ -42,7 +42,7 @@ class TableDataIterator;
 /// feed ID, baseline, time range) can be used together with the write operation.
 /// However, polarization and spectral selections and on-the-fly averaging
 /// are not supported by this class. It is not trivial and probably we don't 
-/// even have a use case in CONRAD to support such operations. 
+/// even have a use case in ASKAP to support such operations. 
 ///
 /// @ingroup dataaccess_tab
 class TableDataAccessor : virtual public MetaDataAccessor,
@@ -87,6 +87,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_DATA_ACCESSOR_H

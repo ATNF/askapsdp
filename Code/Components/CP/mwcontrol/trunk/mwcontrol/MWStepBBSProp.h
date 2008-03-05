@@ -1,19 +1,19 @@
 /// @file
 /// @brief The properties for a BBSKernel step.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWBBSSTEPPROP_H
-#define CONRAD_MWCONTROL_MWBBSSTEPPROP_H
+#ifndef ASKAP_MWCONTROL_MWBBSSTEPPROP_H
+#define ASKAP_MWCONTROL_MWBBSSTEPPROP_H
 
 #include <mwcommon/DomainShape.h>
 #include <vector>
 #include <string>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief The properties for a BBSKernel step.

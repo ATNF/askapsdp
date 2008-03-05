@@ -1,13 +1,13 @@
 //# MWConnectionSet.cc: Abstract base class for all MWConnectionSets
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/MWConnectionSet.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWConnectionSet::~MWConnectionSet()
   {}

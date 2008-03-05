@@ -6,7 +6,7 @@
 /// iteration step is represented by the IConstDataAccessor interface.
 /// This is an implementation in the table-based case.
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -32,7 +32,7 @@
 #include <dataaccess/ITableManager.h>
 #include <dataaccess/CachedAccessorField.tcc>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -271,5 +271,5 @@ private:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 #endif // #ifndef TABLE_CONST_DATA_ITERATOR_H

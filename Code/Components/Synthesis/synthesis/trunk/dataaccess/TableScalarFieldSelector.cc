@@ -10,7 +10,7 @@
 ///         because a fully defined converter is required to
 ///         perform such selection.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -20,8 +20,8 @@
 #include <tables/Tables/ExprNodeSet.h>
 
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 using namespace casa;
 
 

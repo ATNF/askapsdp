@@ -14,7 +14,7 @@
 /// squints together with other image plane effects and therefore need just
 /// a reference position (i.e. an average offset if there is any squint). 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -34,7 +34,7 @@
 #include <dataaccess/TableHolder.h>
 #include <dataaccess/TimeDependentSubtable.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -247,6 +247,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef FEED_SUBTABLE_HANDLER_H

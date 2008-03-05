@@ -5,16 +5,16 @@
 /// These functions are unattached to any classes, but provide simple
 /// support for the rest of the analysis package.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 /// 
 
-#include <conrad_analysis.h>
+#include <askap_analysis.h>
 
-#include <conrad/ConradLogging.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
-#include <conradparallel/ConradParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <analysisutilities/AnalysisUtilities.h>
 
@@ -27,9 +27,9 @@
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
 
-CONRAD_LOGGER(logger, ".analysisutilities");
+ASKAP_LOGGER(logger, ".analysisutilities");
 
-namespace conrad
+namespace askap
 {
   namespace analysis
   {
@@ -139,7 +139,7 @@ namespace conrad
       std::ifstream fin(filename.c_str());
       int numAxes=0;
       if(!fin.is_open()) 
-	CONRADLOG_ERROR_STR(logger, "SectionInfo file " << filename.c_str() << " not found!"); 
+	ASKAPLOG_ERROR_STR(logger, "SectionInfo file " << filename.c_str() << " not found!"); 
       else{	
 	fin >> numAxes;	
 	std::vector<long> dimAxes(numAxes);	

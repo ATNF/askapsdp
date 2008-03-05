@@ -6,7 +6,7 @@
 /// At this moment this class just throws an exception if a write is
 /// attempted and mirrors all const functions.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -14,8 +14,8 @@
 #include <dataaccess/TableDataAccessor.h>
 #include <dataaccess/DataAccessError.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// construct an object linked with the given read-write iterator
 /// @param iter a reference to the associated read-write iterator

@@ -1,7 +1,7 @@
 /// @file TableDataAccessTest.h
 /// $brief Tests of the table-based Data Accessor classes
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 #ifndef TABLE_DATA_ACCESS_TEST_H
@@ -29,7 +29,7 @@
 #include <dataaccess/IConstDataSource.h>
 #include "TableTestRunner.h"
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -203,7 +203,7 @@ void TableDataAccessTest::dataDescTest()
   // and read-only table should be enough.
   itsTableInfoAccessor.reset(new TableInfoAccessor(
               casa::Table(TableTestRunner::msName()),false));
-  CONRADASSERT(itsTableInfoAccessor);
+  ASKAPASSERT(itsTableInfoAccessor);
   const ITableDataDescHolder &dataDescription=itsTableInfoAccessor->
                     subtableInfo().getDataDescription();
   CPPUNIT_ASSERT(dataDescription.getSpectralWindowID(0)==0);
@@ -220,7 +220,7 @@ void TableDataAccessTest::spWindowTest()
   // and read-only table should be enough.
   itsTableInfoAccessor.reset(new TableInfoAccessor(
               casa::Table(TableTestRunner::msName()),false));
-  CONRADASSERT(itsTableInfoAccessor);
+  ASKAPASSERT(itsTableInfoAccessor);
   const ITableSpWindowHolder &spWindow=itsTableInfoAccessor->
                     subtableInfo().getSpWindow();
   CPPUNIT_ASSERT(spWindow.getReferenceFrame(0).getType() ==
@@ -311,9 +311,9 @@ void TableDataAccessTest::doBufferTest() const
   bufferMgr.readBuffer(vis2,"TEST",index);
   CPPUNIT_ASSERT(vis.shape()==casa::IPosition(3,5,1,2));
   CPPUNIT_ASSERT(vis2.shape()==casa::IPosition(3,5,10,2));
-  CONRADDEBUGASSERT(vis.shape()[0]>=0);  
-  CONRADDEBUGASSERT(vis.shape()[1]>=0);
-  CONRADDEBUGASSERT(vis.shape()[2]>=0);
+  ASKAPDEBUGASSERT(vis.shape()[0]>=0);  
+  ASKAPDEBUGASSERT(vis.shape()[1]>=0);
+  ASKAPDEBUGASSERT(vis.shape()[2]>=0);
   for (casa::uInt x=0;x<casa::uInt(vis.shape()[0]);++x) {
        for (casa::uInt y=0;y<casa::uInt(vis.shape()[1]);++y) {
             for (casa::uInt z=0;z<casa::uInt(vis.shape()[2]);++z) {	         
@@ -401,6 +401,6 @@ void TableDataAccessTest::originalVisRewriteTest()
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_DATA_ACCESS_TEST_H

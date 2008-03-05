@@ -9,14 +9,14 @@
 /// it will be set up via the IDataSource object and IS NOT a part of this
 /// interface.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #include <dataaccess/IConstDataIterator.h>
 #include <dataaccess/IConstDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -52,4 +52,4 @@ IConstDataIterator& IConstDataIterator::operator++()
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap

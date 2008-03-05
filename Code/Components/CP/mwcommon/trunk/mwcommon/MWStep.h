@@ -1,20 +1,20 @@
 /// @file
 /// @brief Abstract base class for steps to process MW commands.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_MWSTEP_H
-#define CONRAD_MWCOMMON_MWSTEP_H
+#ifndef ASKAP_MWCOMMON_MWSTEP_H
+#define ASKAP_MWCOMMON_MWSTEP_H
 
 #include <mwcommon/MWStepVisitor.h>
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 #include <boost/shared_ptr.hpp>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Abstract base class for steps to process MW commands.

@@ -5,7 +5,7 @@
 /// level of wrapping is used to ship around the measurement set table
 /// with its derived information.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -22,7 +22,7 @@
 #include <dataaccess/ITableInfoAccessor.h>
 #include <dataaccess/TableManager.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -75,6 +75,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #define TABLE_INFO_ACCESSOR_H

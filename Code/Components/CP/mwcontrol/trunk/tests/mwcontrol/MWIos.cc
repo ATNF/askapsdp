@@ -6,7 +6,7 @@
 
 #include "MWIos.h"
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   std::string MWIos::itsName = std::string("pgm.out");
   std::ofstream* MWIos::itsIos = 0;

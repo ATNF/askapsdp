@@ -8,7 +8,7 @@
 /// ITableDataAccessor, which represents one scratch buffer used to
 /// cache disk information for each current iteration.
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -18,7 +18,7 @@
 #include <casa/Arrays/Cube.h>
 #include <casa/BasicSL/Complex.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -46,6 +46,6 @@ struct ScratchBuffer {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef SCRATCH_BUFFER_H

@@ -4,7 +4,7 @@
 /// the content of the DATA_DESCRIPTION table (which connects data
 /// description id with spectral window id and polarization id
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -17,7 +17,7 @@
 // own includes
 #include <dataaccess/IHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -56,6 +56,6 @@ struct ITableDataDescHolder : virtual public IHolder {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_TABLE_DATA_DESC_HOLDER_H

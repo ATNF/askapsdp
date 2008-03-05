@@ -26,7 +26,7 @@
 #include <APS/ParameterSet.h>
 #include <iostream>
 
-using namespace conrad::cp;
+using namespace askap::cp;
 using namespace LOFAR;
 using namespace std;
 
@@ -116,7 +116,7 @@ void doMaster (const string& port,
   setAllWorkers (prediffers, solvers, *workers, nworkers, factory);
   // Check if there are enough prediffers.
   if (prediffers->size() < nparts) {
-    CONRADTHROW(MWError, "The Visibility Data Set is split into "
+    ASKAPTHROW(MWError, "The Visibility Data Set is split into "
                 << nparts << " parts, so mwcontrol has to have at least "
                 << nparts+1 << " prediffers, but only " << prediffers->size()
                 << " are available");
@@ -172,7 +172,7 @@ void doSolver (const string& host, const string& port,
 void findSocket (int argc, const char** argv,
                  string& host, string& port, int& nnode, int& rank)
 {
-  CONRADCHECK (argc >= 6, "Using sockets run as: tMWControl socket <host> "
+  ASKAPCHECK (argc >= 6, "Using sockets run as: tMWControl socket <host> "
                "<port> <#nodes> <rank>");
   host = argv[2];
   port = argv[3];

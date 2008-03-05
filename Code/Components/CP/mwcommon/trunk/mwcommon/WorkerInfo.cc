@@ -1,6 +1,6 @@
 //# WorkerInfo.cc: 
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -13,7 +13,7 @@
 
 using namespace LOFAR;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   WorkerInfo::WorkerInfo()
   {}
@@ -43,7 +43,7 @@ namespace conrad { namespace cp {
   BlobIStream& operator>> (BlobIStream& bs, WorkerInfo& info)
   {
     int version = bs.getStart ("info");
-    CONRADASSERT (version == 1);
+    ASKAPASSERT (version == 1);
     bs >> info.itsHostName >> info.itsWorkTypes;
     bs.getEnd();
     return bs;

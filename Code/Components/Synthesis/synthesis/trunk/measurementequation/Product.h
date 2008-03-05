@@ -5,7 +5,7 @@
 /// Mueller matrix equal to the matrix product of two input Mueller matrices.
 /// @note There are plans to extend the interface to several multipliers
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef PRODUCT_H
@@ -14,7 +14,7 @@
 #include <measurementequation/MEComponent.h>
 #include <dataaccess/IConstDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -86,6 +86,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef PRODUCT_H

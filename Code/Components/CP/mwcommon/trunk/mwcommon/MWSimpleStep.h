@@ -1,17 +1,17 @@
 /// @file
 /// @brief Base classes for simple MW commands (like subtract)
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_MWSIMPLESTEP_H
-#define CONRAD_MWCOMMON_MWSIMPLESTEP_H
+#ifndef ASKAP_MWCOMMON_MWSIMPLESTEP_H
+#define ASKAP_MWCOMMON_MWSIMPLESTEP_H
 
 #include <mwcommon/MWStep.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Base class for a step to process a simple MW command.

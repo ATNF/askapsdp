@@ -4,7 +4,7 @@
 /// of buffers to store scratch data. This is an abstract interface
 /// to operations with such buffers.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -21,7 +21,7 @@
 #include <casa/Arrays/Cube.h>
 #include <casa/BasicSL/Complex.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -63,6 +63,6 @@ struct IBufferManager : virtual public IHolder
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_BUFFER_MANAGER_H

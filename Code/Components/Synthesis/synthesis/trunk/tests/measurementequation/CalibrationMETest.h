@@ -8,7 +8,7 @@
 /// with some calibration errors and then solve for them.
 /// 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef CALIBRATION_ME_TEST_H
@@ -23,13 +23,13 @@
 #include <dataaccess/DataIteratorStub.h>
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <boost/shared_ptr.hpp>
 
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -144,7 +144,7 @@ namespace conrad
           // checking that solved gains should be close to 1 for g11 
           // and to 0.9 for g22 (we don't have data to solve for the second
           // polarisation, so it should be left unchanged)
-          CONRADASSERT(params2);
+          ASKAPASSERT(params2);
           std::vector<std::string> completions(params2->completions("gain"));
           for (std::vector<std::string>::const_iterator it=completions.begin();
                                                 it!=completions.end();++it)  {
@@ -158,14 +158,14 @@ namespace conrad
                    //std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
                    CPPUNIT_ASSERT(abs(diff)<1e-7);
                } else {
-                 CONRADTHROW(ConradError, "an invalid gain parameter "<<parname<<" has been detected");
+                 ASKAPTHROW(AskapError, "an invalid gain parameter "<<parname<<" has been detected");
                }
           }
         }
    };
     
   } // namespace synthesis
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef CALIBRATION_ME_TEST_H
 

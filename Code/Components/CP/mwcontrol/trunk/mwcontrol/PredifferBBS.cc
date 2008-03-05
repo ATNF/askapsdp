@@ -12,7 +12,7 @@
 using namespace LOFAR::BBS;
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   PredifferBBS::PredifferBBS()
     : itsPrediffer (0)

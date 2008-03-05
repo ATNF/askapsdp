@@ -14,16 +14,16 @@
 /// squints together with other image plane effects and therefore need just
 /// a reference position (i.e. an average offset if there is any squint). 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 
 // own includes
 #include <dataaccess/FeedSubtableHandler.h>
-#include <conrad_synthesis.h>
+#include <askap_synthesis.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
 
 // casa includes
@@ -35,11 +35,11 @@
 #include <casa/BasicSL/String.h>
 
 // enable logger here, when it is used in the code
-//#include <conrad/ConradLogging.h>
-//CONRAD_LOGGER(logger, "");
+//#include <askap/AskapLogging.h>
+//ASKAP_LOGGER(logger, "");
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief construct the object
 /// @details
@@ -54,14 +54,14 @@ FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
   const casa::Array<casa::String> &intervalUnits=table().tableDesc().
           columnDesc("INTERVAL").keywordSet().asArrayString("QuantumUnits");
   if (intervalUnits.nelements()!=1 || intervalUnits.ndim()!=1) {
-      CONRADTHROW(DataAccessError, "Unable to interpret the QuantumUnits keyword for "
+      ASKAPTHROW(DataAccessError, "Unable to interpret the QuantumUnits keyword for "
                   "the INTERVAL column of the FEED subtable. It should be a 1D Array of "
                   "exactly 1 String element and the table has "<<intervalUnits.nelements()<<
                   " elements and "<<intervalUnits.ndim()<<" dimensions");
   }
   itsIntervalFactor = tableTime(1.).getValue().
             getTime(casa::Unit(intervalUnits(casa::IPosition(1,0)))).getValue();
-  CONRADDEBUGASSERT(itsIntervalFactor != 0);
+  ASKAPDEBUGASSERT(itsIntervalFactor != 0);
   itsIntervalFactor = 1./itsIntervalFactor;
 }
  
@@ -82,7 +82,7 @@ const casa::RigidVector<casa::Double, 2>&
 {
   fillCacheOnDemand(time,spWinID);
   const casa::uInt index=getIndex(antID,feedID);
-  CONRADDEBUGASSERT(index<=itsBeamOffsets.nelements());
+  ASKAPDEBUGASSERT(index<=itsBeamOffsets.nelements());
   return itsBeamOffsets[index];
 }    
 
@@ -126,18 +126,18 @@ const casa::Vector<casa::Double>& FeedSubtableHandler::getAllBeamPAs(
 casa::uInt FeedSubtableHandler::getIndex(casa::uInt antID, casa::uInt feedID) const
 {
  if (antID>=itsIndices.nrow()) {
-      CONRADTHROW(DataAccessError, "Antenna ID requested ("<<antID<<
+      ASKAPTHROW(DataAccessError, "Antenna ID requested ("<<antID<<
           ") is outside the range of the FEED table (max. antenna number is "<<
           itsIndices.nrow());
   }
   if (feedID>=itsIndices.ncolumn()) {
-      CONRADTHROW(DataAccessError, "Feed ID requested ("<<feedID<<
+      ASKAPTHROW(DataAccessError, "Feed ID requested ("<<feedID<<
           ") is outside the range of the FEED table (max. antenna number is "<<
           itsIndices.ncolumn());
   }
   const casa::Int index=itsIndices(antID,feedID);
   if (index<0) {
-      CONRADTHROW(DataAccessError, "Requested Antenna ID="<<antID<<
+      ASKAPTHROW(DataAccessError, "Requested Antenna ID="<<antID<<
            " and Feed ID="<<feedID<<" are not found in the FEED subtable for "
            "the time range from "<<itsCachedStartTime<<" till "<<itsCachedStopTime<<
            " and spectral window "<<itsCachedSpWindow);             
@@ -188,7 +188,7 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
                 (table().col("TIME") + halfInterval >= dTime);
   casa::Table selection=table()(expression);
   if (selection.nrow()==0) {
-      CONRADTHROW(DataAccessError,
+      ASKAPTHROW(DataAccessError,
                  "FEED subtable is empty or feed data missing for "
                   <<time<<" and spectral window: "<<spWinID);
   }
@@ -203,11 +203,11 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
   casa::Int minFeedID=-1,maxFeedID=-1;
   casa::minMax(minFeedID,maxFeedID,itsFeedIDs);
   if (minAntID<0 || maxAntID<0 || minFeedID<0 || maxFeedID<0) {
-      CONRADTHROW(DataAccessError,"Negative indices in FEED_ID and ANTENNA_ID "
+      ASKAPTHROW(DataAccessError,"Negative indices in FEED_ID and ANTENNA_ID "
          "columns of the FEED subtable are not allowed");
   }
   ++maxAntID; ++maxFeedID; // now we have numbers of feeds and antennae
-  CONRADDEBUGASSERT(maxAntID*maxFeedID == casa::Int(selection.nrow()));
+  ASKAPDEBUGASSERT(maxAntID*maxFeedID == casa::Int(selection.nrow()));
   itsIndices.resize(maxAntID,maxFeedID);
   itsIndices.set(-2); // negative value is a flag, which means an 
                       // uninitialized index
@@ -235,7 +235,7 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
            itsCachedStopTime=cStopTime;
        }
        if (spWinCol(row) != -1) {
-           CONRADDEBUGASSERT((itsCachedSpWindow == -1) || 
+           ASKAPDEBUGASSERT((itsCachedSpWindow == -1) || 
                              (spWinCol(row) == itsCachedSpWindow));
            itsCachedSpWindow = spWinCol(row);
        }
@@ -253,17 +253,17 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
 void FeedSubtableHandler::computeBeamOffset(const casa::Array<casa::Double> &rcptOffsets,
                       casa::RigidVector<casa::Double, 2> &beamOffsets)
 {
-  CONRADASSERT(rcptOffsets.ndim()<3);
+  ASKAPASSERT(rcptOffsets.ndim()<3);
   if (rcptOffsets.ndim()==1) {
       // this means that have just one receptor and nothing, but copying
       // of values is required
-      CONRADASSERT(rcptOffsets.nelements()==2);
+      ASKAPASSERT(rcptOffsets.nelements()==2);
       beamOffsets(0)=rcptOffsets(casa::IPosition(1,0));
       beamOffsets(1)=rcptOffsets(casa::IPosition(1,1));
   } else {
       const casa::IPosition &shape=rcptOffsets.shape();
-      CONRADASSERT(shape[0] == 2);
-      CONRADASSERT(shape[1] > 0);
+      ASKAPASSERT(shape[0] == 2);
+      ASKAPASSERT(shape[1] > 0);
       beamOffsets(0)=beamOffsets(1)=0.;
       const casa::uInt nReceptors=shape[1];
       for (casa::uInt rcpt=0; rcpt<nReceptors; ++rcpt) {
@@ -284,8 +284,8 @@ void FeedSubtableHandler::computeBeamOffset(const casa::Array<casa::Double> &rcp
 casa::Double FeedSubtableHandler::computePositionAngle(const casa::Array<casa::Double>
                                &rcptAngles)
 {
-  CONRADDEBUGASSERT(rcptAngles.ndim()==1);
-  CONRADASSERT(rcptAngles.nelements()>=1);
+  ASKAPDEBUGASSERT(rcptAngles.ndim()==1);
+  ASKAPASSERT(rcptAngles.nelements()>=1);
   return rcptAngles(casa::IPosition(1,0));
 }                               
                   
@@ -305,7 +305,7 @@ casa::Double FeedSubtableHandler::getBeamPA(const casa::MEpoch &time,
 {
   fillCacheOnDemand(time,spWinID);
   const casa::uInt index=getIndex(antID,feedID);
-  CONRADDEBUGASSERT(index<=itsPositionAngles.nelements());
+  ASKAPDEBUGASSERT(index<=itsPositionAngles.nelements());
   return itsPositionAngles[index];
 }                                 
   
@@ -317,7 +317,7 @@ casa::Double FeedSubtableHandler::getBeamPA(const casa::MEpoch &time,
 void FeedSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time, 
                                             casa::uInt spWinID) const
 {
-  CONRADDEBUGASSERT(spWinID>=0);
+  ASKAPDEBUGASSERT(spWinID>=0);
   if (newBeamDetails(time,spWinID)) {
       fillCache(time,spWinID);
   }

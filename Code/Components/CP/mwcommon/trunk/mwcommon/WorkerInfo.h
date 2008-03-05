@@ -1,13 +1,13 @@
 /// @file
 /// @brief Information about a worker.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_WORKERINFO_H
-#define CONRAD_MWCOMMON_WORKERINFO_H
+#ifndef ASKAP_MWCOMMON_WORKERINFO_H
+#define ASKAP_MWCOMMON_WORKERINFO_H
 
 #include <string>
 #include <vector>
@@ -19,7 +19,7 @@ namespace LOFAR {
 }
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Information about a worker.

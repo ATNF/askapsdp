@@ -1,6 +1,6 @@
 #include <gridding/BoxVisGridder.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

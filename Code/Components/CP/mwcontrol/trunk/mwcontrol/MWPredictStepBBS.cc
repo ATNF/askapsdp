@@ -1,6 +1,6 @@
 //# MWPredictStepBBS.cc
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -11,7 +11,7 @@
 
 using namespace LOFAR;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWPredictStepBBS::MWPredictStepBBS()
   {}
@@ -55,7 +55,7 @@ namespace conrad { namespace cp {
   void MWPredictStepBBS::fromBlob (BlobIStream& bs)
   {
     int vers = bs.getStart (className());
-    CONRADASSERT (vers == 1);
+    ASKAPASSERT (vers == 1);
     itsProp.fromBlob (bs);
     bs.getEnd();
   }

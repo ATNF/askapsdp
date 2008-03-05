@@ -1,20 +1,20 @@
 /// @file
 /// @brief Description of all workers.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_WORKERSDESC_H
-#define CONRAD_MWCOMMON_WORKERSDESC_H
+#ifndef ASKAP_MWCOMMON_WORKERSDESC_H
+#define ASKAP_MWCOMMON_WORKERSDESC_H
 
 //# Includes
 #include <mwcommon/ClusterDesc.h>
 #include <string>
 #include <vector>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Description of all workers.

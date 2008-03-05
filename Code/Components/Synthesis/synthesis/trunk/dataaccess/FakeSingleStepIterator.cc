@@ -7,16 +7,16 @@
 /// a (temporary) adapter, which just returns supplied accessor as its value.
 /// Only one chunk is defined.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #include <dataaccess/FakeSingleStepIterator.h>
 #include <dataaccess/MemBufferDataAccessor.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief initialize stubbed iterator
 FakeSingleStepIterator::FakeSingleStepIterator() : itsOriginFlag(true) {}
@@ -28,10 +28,10 @@ FakeSingleStepIterator::FakeSingleStepIterator() : itsOriginFlag(true) {}
 /// @return a reference to the current chunk
 IDataAccessor& FakeSingleStepIterator::operator*() const
 { 
-  CONRADCHECK(itsDataAccessor,
+  ASKAPCHECK(itsDataAccessor,
               "Data accessor has to be assigned first to FakeSingleStepIterator");
-  CONRADDEBUGASSERT(itsOriginFlag);
-  CONRADDEBUGASSERT(itsActiveAccessor);
+  ASKAPDEBUGASSERT(itsOriginFlag);
+  ASKAPDEBUGASSERT(itsActiveAccessor);
   return *itsActiveAccessor;
 }
 		
@@ -52,7 +52,7 @@ IDataAccessor& FakeSingleStepIterator::operator*() const
 ///
 void FakeSingleStepIterator::chooseBuffer(const std::string &bufferID)
 {
-  CONRADCHECK(itsDataAccessor,
+  ASKAPCHECK(itsDataAccessor,
               "Data accessor has to be assigned first to FakeSingleStepIterator");
   std::map<std::string,
      boost::shared_ptr<IDataAccessor> >::const_iterator bufferIt =
@@ -76,7 +76,7 @@ void FakeSingleStepIterator::chooseBuffer(const std::string &bufferID)
 ///
 void FakeSingleStepIterator::chooseOriginal()
 {
-  CONRADCHECK(itsDataAccessor,
+  ASKAPCHECK(itsDataAccessor,
               "Data accessor has to be assigned first to FakeSingleStepIterator");
   itsActiveAccessor = itsDataAccessor;
   itsActiveBufferName.clear();
@@ -95,7 +95,7 @@ void FakeSingleStepIterator::chooseOriginal()
 /// write operation took place and implement a delayed writing
 IDataAccessor& FakeSingleStepIterator::buffer(const std::string &bufferID) const
 {
-  CONRADCHECK(itsDataAccessor,
+  ASKAPCHECK(itsDataAccessor,
               "Data accessor has to be assigned first to FakeSingleStepIterator");
 
   std::map<std::string,
@@ -121,7 +121,7 @@ IDataAccessor& FakeSingleStepIterator::buffer(const std::string &bufferID) const
 /// class to return the correct type 
 IDataIterator& FakeSingleStepIterator::operator++()
 {
-  CONRADDEBUGASSERT(itsOriginFlag);
+  ASKAPDEBUGASSERT(itsOriginFlag);
   itsOriginFlag = false;
   return *this;
 }
@@ -148,7 +148,7 @@ casa::Bool FakeSingleStepIterator::next()
   return false; // we have just one element to iterate over
 }
 
-namespace conrad {
+namespace askap {
 
 namespace utility {
 
@@ -162,7 +162,7 @@ struct NullDeleter {
 
 } // namespace utility
 
-} // namespace conrad
+} // namespace askap
 
 /// @brief helper method to reassign all buffers to a new accessor
 /// @details With the calls to assign/detach accessor it can be replaced
@@ -174,7 +174,7 @@ void FakeSingleStepIterator::reassignBuffers()
       boost::shared_ptr<IDataAccessor> >::iterator it =
                       itsBuffers.begin();
                       
-  #ifdef CONRAD_DEBUG
+  #ifdef ASKAP_DEBUG
   bool activeBufferEncountered = false;
   #endif              
         
@@ -186,12 +186,12 @@ void FakeSingleStepIterator::reassignBuffers()
        }
        if (itsActiveBufferName == it->first) {
            itsActiveAccessor = it->second;
-           #ifdef CONRAD_DEBUG
+           #ifdef ASKAP_DEBUG
            activeBufferEncountered = true;
            #endif                 
        }
   }
-  CONRADDEBUGASSERT(!itsActiveBufferName.size() || activeBufferEncountered);
+  ASKAPDEBUGASSERT(!itsActiveBufferName.size() || activeBufferEncountered);
 }
 
 /// @brief assign a read/write accessor to this iterator

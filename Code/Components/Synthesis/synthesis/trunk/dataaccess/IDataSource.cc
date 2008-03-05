@@ -10,7 +10,7 @@
 ///
 #include <dataaccess/IDataSource.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -73,4 +73,4 @@ boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap

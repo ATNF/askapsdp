@@ -6,7 +6,7 @@
 /// of MPI connections, sending normal equations and models around.
 /// There is assumed to be one solver and many prediffers.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 
@@ -18,24 +18,24 @@
 
 #include <casa/OS/Timer.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-#include <conrad/ConradError.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".parallel");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".parallel");
 
 
 
 #include <parallel/MEParallel.h>
 #include <fitting/ImagingNormalEquations.h>
 
-using namespace conrad;
-using namespace conrad::cp;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::cp;
+using namespace askap::scimath;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -59,7 +59,7 @@ namespace conrad
       {
         casa::Timer timer;
         timer.mark();
-        CONRADLOG_INFO_STR(logger, "Sending normal equations to the solver via MPI" );
+        ASKAPLOG_INFO_STR(logger, "Sending normal equations to the solver via MPI" );
 
         LOFAR::BlobString bs;
         bs.resize(0);
@@ -69,7 +69,7 @@ namespace conrad
         out << itsRank << *itsNe;
         out.putEnd();
         itsConnectionSet->write(0, bs);
-        CONRADLOG_INFO_STR(logger, "Sent normal equations to the solver via MPI in "
+        ASKAPLOG_INFO_STR(logger, "Sent normal equations to the solver via MPI in "
                            << timer.real()<< " seconds ");
       }
     }
@@ -77,14 +77,14 @@ namespace conrad
     // Receive the normal equations as a blob
     void MEParallel::receiveNE()
     {
-      CONRADCHECK(itsSolver, "Solver not yet defined");
+      ASKAPCHECK(itsSolver, "Solver not yet defined");
       if (isParallel()&&isMaster())
       {
-        CONRADLOG_INFO_STR(logger, "Initialising solver");
+        ASKAPLOG_INFO_STR(logger, "Initialising solver");
         itsSolver->init();
         itsSolver->setParameters(*itsModel);
 
-        CONRADLOG_INFO_STR(logger, "Waiting for normal equations");
+        ASKAPLOG_INFO_STR(logger, "Waiting for normal equations");
         casa::Timer timer;
         timer.mark();
 
@@ -97,14 +97,14 @@ namespace conrad
           LOFAR::BlobIBufString bib(bs);
           LOFAR::BlobIStream in(bib);
           int version=in.getStart("ne");
-          CONRADASSERT(version==1);
+          ASKAPASSERT(version==1);
           in >> rank >> *itsNe;
           in.getEnd();
           itsSolver->addNormalEquations(*itsNe);
-          CONRADLOG_INFO_STR(logger, "Received normal equations from prediffer "<< rank
+          ASKAPLOG_INFO_STR(logger, "Received normal equations from prediffer "<< rank
                              << " after "<< timer.real() << " seconds");
         }
-        CONRADLOG_INFO_STR(logger, "Received normal equations from all prediffers via MPI in "
+        ASKAPLOG_INFO_STR(logger, "Received normal equations from all prediffers via MPI in "
             << timer.real() << " seconds");
       }
     }

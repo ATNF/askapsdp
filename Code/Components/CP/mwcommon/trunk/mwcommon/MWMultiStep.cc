@@ -1,6 +1,6 @@
 //# MWMultiStep.cc: A step consisting of several other steps.
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -11,7 +11,7 @@
 
 using namespace LOFAR;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWMultiStep::~MWMultiStep()
   {}
@@ -62,7 +62,7 @@ namespace conrad { namespace cp {
   void MWMultiStep::fromBlob (BlobIStream& bs)
   {
     int vers = bs.getStart ("MWMultiStep");
-    CONRADASSERT (vers == 1);
+    ASKAPASSERT (vers == 1);
     uint32 nr;
     bs >> nr;
     for (uint32 i=0; i<nr; ++i) {

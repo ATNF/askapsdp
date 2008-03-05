@@ -1,13 +1,13 @@
 /// @file
 /// @brief A WorkerProxy to handle BBSKernel solver commands.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_SOLVERBBS_H
-#define CONRAD_MWCONTROL_SOLVERBBS_H
+#ifndef ASKAP_MWCONTROL_SOLVERBBS_H
+#define ASKAP_MWCONTROL_SOLVERBBS_H
 
 #include <mwcontrol/SolverProxy.h>
 
@@ -17,7 +17,7 @@ namespace LOFAR { namespace BBS {
 }}
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief A WorkerProxy to handle BBSKernel solver commands.

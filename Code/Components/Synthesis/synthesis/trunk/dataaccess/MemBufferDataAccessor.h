@@ -12,7 +12,7 @@
 /// alternatively to pass around this buffer with associated metadata supplied
 /// by the original accessor. This adapter can help in both situations.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -24,7 +24,7 @@
 #include <dataaccess/IDataAccessor.h>
 
 
-namespace conrad {
+namespace askap {
 	
 namespace synthesis {
 
@@ -80,7 +80,7 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef MEM_BUFFER_DATA_ACCESSOR_H

@@ -1,6 +1,6 @@
 //# MWSolveStepBBS.cc: StepBBS to process the MW solve command
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -12,7 +12,7 @@
 
 using namespace LOFAR;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWSolveStepBBS::MWSolveStepBBS()
     : itsMaxIter(10), itsEpsilon(1e-5), itsFraction(0.95)
@@ -59,7 +59,7 @@ namespace conrad { namespace cp {
   void MWSolveStepBBS::fromBlob (BlobIStream& bs)
   {
     int vers = bs.getStart (className());
-    CONRADASSERT (vers == 1);
+    ASKAPASSERT (vers == 1);
     itsProp.fromBlob (bs);
     bs >> itsParmPatterns >> itsExclPatterns >> itsShape;
     bs >> itsMaxIter >> itsEpsilon >> itsFraction;

@@ -9,7 +9,7 @@
 ///     type allows to avoid unnecessary loops in polarization in
 ///     ComponentEquation, by testing the type with dynamic_cast. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -18,7 +18,7 @@
 
 #include <measurementequation/IComponent.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -94,6 +94,6 @@ struct IUnpolarizedComponent : virtual public IComponent {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_UNPOLARIZED_COMPONENT_H

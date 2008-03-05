@@ -6,7 +6,7 @@
 /// unit, but it holds the reference to parameters, which are passed
 /// around to all components of the measurement equation.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef PARAMETERIZED_ME_COMPONENT_H
@@ -16,7 +16,7 @@
 #include <fitting/Params.h>
 #include <measurementequation/MEComponent.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -42,7 +42,7 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #define PARAMETERIZED_ME_COMPONENT_H

@@ -8,7 +8,7 @@
 /// Each iteration step is represented by the IDataAccessor interface in this
 /// case. 
 /// 
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -30,7 +30,7 @@
 #include <dataaccess/TableBufferDataAccessor.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -161,7 +161,7 @@ private:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 
 
 #endif  // #ifndef TABLE_DATA_ITERATOR_H

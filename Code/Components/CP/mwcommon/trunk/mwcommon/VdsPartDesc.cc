@@ -1,17 +1,17 @@
 //# VdsPartDesc.cc: Description of a visibility data set or part thereof
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/VdsPartDesc.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapUtil.h>
 #include <ostream>
 
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   VdsPartDesc::VdsPartDesc (const LOFAR::ACC::APS::ParameterSet& parset)
   {

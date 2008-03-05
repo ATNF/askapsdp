@@ -5,7 +5,7 @@
 /// the data accessor. The end user interacts with the IDataConverter
 /// class. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -18,7 +18,7 @@
 // own includes
 #include <dataaccess/IEpochConverter.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -66,6 +66,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // EPOCH_CONVERTER_H

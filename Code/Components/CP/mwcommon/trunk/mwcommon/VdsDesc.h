@@ -1,19 +1,19 @@
 /// @file
 /// @brief Describe an entire visibility data set
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_VDSDESC_H
-#define CONRAD_MWCOMMON_VDSDESC_H
+#ifndef ASKAP_MWCOMMON_VDSDESC_H
+#define ASKAP_MWCOMMON_VDSDESC_H
 
 //# Includes
 #include <mwcommon/VdsPartDesc.h>
 #include <casa/Utilities/Regex.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Describe an entire visibility data set

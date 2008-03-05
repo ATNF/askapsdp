@@ -4,15 +4,15 @@
 //#
 //#  $Id$
 
-#ifndef CONRAD_MWCONTROL_MWSTEPTESTER_H
-#define CONRAD_MWCONTROL_MWSTEPTESTER_H
+#ifndef ASKAP_MWCONTROL_MWSTEPTESTER_H
+#define ASKAP_MWCONTROL_MWSTEPTESTER_H
 
 #include <mwcommon/MWStepVisitor.h>
 #include <mwcommon/MWStep.h>
 #include <Blob/BlobOStream.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   class MWStepTester: public MWStepVisitor
   {

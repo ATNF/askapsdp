@@ -2,20 +2,20 @@
 ///
 /// Provides generic methods for parallel algorithms
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_SYNTHESIS_SYNPARALLEL_H_
-#define CONRAD_SYNTHESIS_SYNPARALLEL_H_
+#ifndef ASKAP_SYNTHESIS_SYNPARALLEL_H_
+#define ASKAP_SYNTHESIS_SYNPARALLEL_H_
 
 #include <fitting/Equation.h>
 #include <fitting/Solver.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
-#include <conradparallel/ConradParallel.h>
+#include <askapparallel/AskapParallel.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -31,7 +31,7 @@ namespace conrad
     /// no overall for transmission of model.
     ///
     /// @ingroup parallel
-    class SynParallel : public conrad::cp::ConradParallel
+    class SynParallel : public askap::cp::AskapParallel
     {
   public:
 
@@ -45,7 +45,7 @@ namespace conrad
       ~SynParallel();
 
       /// Return the model
-      conrad::scimath::Params::ShPtr& params();
+      askap::scimath::Params::ShPtr& params();
 
       /// @brief Broadcast the model to all workers
       void broadcastModel();
@@ -56,7 +56,7 @@ namespace conrad
   protected:
 
       /// The model
-      conrad::scimath::Params::ShPtr itsModel;
+      askap::scimath::Params::ShPtr itsModel;
     };
 
   }

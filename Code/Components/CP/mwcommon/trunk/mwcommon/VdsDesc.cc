@@ -1,17 +1,17 @@
 //# VdsDesc.cc: Describe an entire visibility data set
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/VdsDesc.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapUtil.h>
 #include <ostream>
 
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   VdsDesc::VdsDesc (const VdsPartDesc& desc,
                     const vector<string>& antNames)

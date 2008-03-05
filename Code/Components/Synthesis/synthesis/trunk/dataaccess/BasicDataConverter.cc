@@ -14,7 +14,7 @@
 /// return the data in the requested frame/units. The end user interacts
 /// with the IDataConverter interface only.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -25,8 +25,8 @@
 #include <dataaccess/DopplerConverter.h>
 #include <dataaccess/DataAccessError.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 BasicDataConverter::BasicDataConverter() :
      itsEpochConverter(new EpochConverter),

@@ -10,7 +10,7 @@
 /// is left double to highlight the future interface 
 /// (derived from IMeasurementEquation).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef IMAGING_MULTI_CHUNK_EQUATION_H
@@ -22,7 +22,7 @@
 #include <fitting/ImagingNormalEquations.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -38,7 +38,7 @@ namespace synthesis {
 /// (derived from IMeasurementEquation).
 /// @ingroup measurementequation
 struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
-                                   virtual public conrad::scimath::ImagingEquation    
+                                   virtual public askap::scimath::ImagingEquation    
 {  
   /// @brief Standard constructor, which remembers data iterator.
   /// @param[in] idi data iterator
@@ -49,7 +49,7 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
   /// calls an abstract method declared in IMeasurementEquation for each 
   /// individual accessor (each iteration of the iterator). 
   /// @param[in] ne Normal equations
-  virtual void calcImagingEquations(conrad::scimath::ImagingNormalEquations& ne) const;
+  virtual void calcImagingEquations(askap::scimath::ImagingNormalEquations& ne) const;
 
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This calculation is done for a single chunk of
@@ -62,7 +62,7 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
-                          conrad::scimath::INormalEquations& ne) const;
+                          askap::scimath::INormalEquations& ne) const;
   
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This calculation is done for a single chunk of
@@ -75,7 +75,7 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
   virtual void calcImagingEquations(const IConstDataAccessor &chunk,
-                          conrad::scimath::ImagingNormalEquations& ne) const = 0;
+                          askap::scimath::ImagingNormalEquations& ne) const = 0;
 
   /// @brief Predict model visibility for the iterator.
   /// @details This version of the predict method iterates
@@ -89,6 +89,6 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef IMAGING_MULTI_CHUNK_EQUATION_H

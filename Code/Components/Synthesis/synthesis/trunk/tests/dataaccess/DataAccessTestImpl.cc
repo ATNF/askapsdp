@@ -2,7 +2,7 @@
 ///
 /// DataAccessTestImpl: Implementation of the Data Access test class
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -20,7 +20,7 @@
 
 #include <dataaccess/DataAdapter.h>
 
-using namespace conrad;
+using namespace askap;
 using namespace boost;
 using namespace casa;
 using namespace synthesis;

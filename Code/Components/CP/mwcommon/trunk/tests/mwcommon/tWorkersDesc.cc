@@ -5,10 +5,10 @@
 //# $Id$
 
 #include <mwcommon/WorkersDesc.h>
-#include <mwcommon/ConradError.h>
+#include <mwcommon/AskapError.h>
 #include <ostream>
 
-using namespace conrad::cp;
+using namespace askap::cp;
 using namespace std;
 
 void doIt1()
@@ -44,32 +44,32 @@ void doIt1()
   // Now find a worker for a specific task on a file system.
   int worker;
   worker = wdesc.findWorker (0, "fs0");
-  CONRADASSERT (worker == 0);
+  ASKAPASSERT (worker == 0);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs2");
-  CONRADASSERT (worker == 1);
+  ASKAPASSERT (worker == 1);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs1");
-  CONRADASSERT (worker == 2);
+  ASKAPASSERT (worker == 2);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs2");
-  CONRADASSERT (worker == 1);
+  ASKAPASSERT (worker == 1);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs1");
-  CONRADASSERT (worker == 0);
+  ASKAPASSERT (worker == 0);
   worker = wdesc.findWorker (0, "fs0");
-  CONRADASSERT (worker == 0);
+  ASKAPASSERT (worker == 0);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs0");
-  CONRADASSERT (worker == 2);
+  ASKAPASSERT (worker == 2);
   wdesc.incrLoad (worker);
   wdesc.incrLoad (0);
   wdesc.incrLoad (1);
   worker = wdesc.findWorker (1, "");
-  CONRADASSERT (worker == 2);
+  ASKAPASSERT (worker == 2);
   wdesc.incrLoad (worker);
-  CONRADASSERT (wdesc.findWorker (2, "") == -1);
-  CONRADASSERT (wdesc.findWorker (0, "fs3") == -1);
+  ASKAPASSERT (wdesc.findWorker (2, "") == -1);
+  ASKAPASSERT (wdesc.findWorker (0, "fs3") == -1);
 }
 
 void doIt2()
@@ -101,28 +101,28 @@ void doIt2()
   // Now find a worker for a specific task on a file system.
   int worker;
   worker = wdesc.findWorker (0, "fs0");
-  CONRADASSERT (worker == 0);
+  ASKAPASSERT (worker == 0);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs0");
-  CONRADASSERT (worker == 0);
+  ASKAPASSERT (worker == 0);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs2");
-  CONRADASSERT (worker == 2);
+  ASKAPASSERT (worker == 2);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (0, "fs1");
-  CONRADASSERT (worker == 1);
+  ASKAPASSERT (worker == 1);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (1, "");
-  CONRADASSERT (worker == 1);
+  ASKAPASSERT (worker == 1);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (1, "");
-  CONRADASSERT (worker == 2);
+  ASKAPASSERT (worker == 2);
   wdesc.incrLoad (worker);
   worker = wdesc.findWorker (1, "");
-  CONRADASSERT (worker == 0);
+  ASKAPASSERT (worker == 0);
   wdesc.incrLoad (worker);
-  CONRADASSERT (wdesc.findWorker (2, "") == -1);
-  CONRADASSERT (wdesc.findWorker (0, "fs4") == -1);
+  ASKAPASSERT (wdesc.findWorker (2, "") == -1);
+  ASKAPASSERT (wdesc.findWorker (0, "fs4") == -1);
 }
 
 int main()

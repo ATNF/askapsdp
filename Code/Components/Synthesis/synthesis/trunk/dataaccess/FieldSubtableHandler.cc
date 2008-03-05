@@ -9,15 +9,15 @@
 /// The latter classes read the whole subtable into memory in the constructor and
 /// later just return cached values. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 // own includes
 #include <dataaccess/FieldSubtableHandler.h>
-#include <conrad_synthesis.h>
+#include <askap_synthesis.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
 
 // casa includes
@@ -28,12 +28,12 @@
 #include <casa/BasicSL/String.h>
 
 // uncomment logger when it is actually used
-//#include <conrad/ConradLogging.h>
-//CONRAD_LOGGER(logger, "");
+//#include <askap/AskapLogging.h>
+//ASKAP_LOGGER(logger, "");
 
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief construct the object
 /// @details 
@@ -45,7 +45,7 @@ FieldSubtableHandler::FieldSubtableHandler(const casa::Table &ms) :
                    casa::TableIterator::NoSort), itsNeverAccessedFlag(true)
 {
   if (!table().nrow()) {
-      CONRADTHROW(DataAccessError, "The FIELD subtable is empty");
+      ASKAPTHROW(DataAccessError, "The FIELD subtable is empty");
   }  
   fillCacheWithCurrentIteration();  
 }         
@@ -74,14 +74,14 @@ void FieldSubtableHandler::fillCacheWithCurrentIteration() const
 {
   casa::Table curIt=itsIterator.table(); 
   if (curIt.nrow()>1) {
-      CONRADTHROW(DataAccessError, "Multiple rows for the same TIME in the FIELD table "
+      ASKAPTHROW(DataAccessError, "Multiple rows for the same TIME in the FIELD table "
           "(e.g. polynomial interpolation) are not yet supported");
   }
   casa::ROScalarColumn<casa::Double> timeCol(curIt,"TIME");
   itsCachedStartTime=timeCol(0);
   casa::ROScalarMeasColumn<casa::MDirection> refDirCol(curIt,"REFERENCE_DIR");
   itsReferenceDir=refDirCol(0);
-  CONRADDEBUGASSERT(!itsIterator.pastEnd());
+  ASKAPDEBUGASSERT(!itsIterator.pastEnd());
   itsIterator.next();
   if (!itsIterator.pastEnd()) {
       itsCachedStopTime=timeCol(0);
@@ -126,7 +126,7 @@ void FieldSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time) const
       fillCacheWithCurrentIteration();
   } 
   if (dTime<itsCachedStartTime) {
-      CONRADTHROW(DataAccessError, "An earlier time is requested ("<<time<<") than "
+      ASKAPTHROW(DataAccessError, "An earlier time is requested ("<<time<<") than "
              "the FIELD table has data for");
   }
   if ((table().nrow() == 1) || 
@@ -137,5 +137,5 @@ void FieldSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time) const
          (dTime>itsCachedStopTime))) {
      fillCacheWithCurrentIteration(); 
   }
-  CONRADDEBUGASSERT(dTime>=itsCachedStartTime);
+  ASKAPDEBUGASSERT(dTime>=itsCachedStartTime);
 }

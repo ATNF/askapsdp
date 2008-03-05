@@ -1,11 +1,11 @@
 #include <gridding/WStackVisGridder.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".gridding");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -13,20 +13,20 @@ CONRAD_LOGGER(logger, ".gridding");
 #include <casa/BasicSL/Constants.h>
 #include <fft/FFTWrapper.h>
 
-using namespace conrad;
+using namespace askap;
 
 #include <cmath>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
 
     WStackVisGridder::WStackVisGridder(const double wmax, const int nwplanes)
     {
-      CONRADCHECK(wmax>0.0, "Baseline length must be greater than zero");
-      CONRADCHECK(nwplanes>0, "Number of w planes must be greater than zero");
-      CONRADCHECK(nwplanes%2==1, "Number of w planes must be odd");
+      ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
+      ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
+      ASKAPCHECK(nwplanes%2==1, "Number of w planes must be odd");
 
       itsNWPlanes=nwplanes;
       itsWScale=wmax;
@@ -70,11 +70,11 @@ namespace conrad
             itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
             if (itsGMap(i, pol, chan)<0)
             {
-              CONRADLOG_INFO_STR(logger, w << " "<< freq << " "<< itsWScale << " "<< itsGMap(i, pol, chan) );
+              ASKAPLOG_INFO_STR(logger, w << " "<< freq << " "<< itsWScale << " "<< itsGMap(i, pol, chan) );
             }
-            CONRADCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
+            ASKAPCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
                 "W scaling error: recommend allowing larger range of w");
-            CONRADCHECK(itsGMap(i, pol, chan)>-1,
+            ASKAPCHECK(itsGMap(i, pol, chan)>-1,
                 "W scaling error: recommend allowing larger range of w");
           }
         }
@@ -108,7 +108,7 @@ namespace conrad
       itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
       itsSumWeights.set(casa::Complex(0.0));
 
-      CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
+      ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
           "RA and DEC specification not present in axes");
 
       double raStart=itsAxes.start("RA");
@@ -168,7 +168,7 @@ namespace conrad
     void WStackVisGridder::finaliseGrid(casa::Array<double>& out)
     {
 
-      CONRADLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
+      ASKAPLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
                          << " planes of W stack to get final image");
 
       /// Loop over all grids Fourier transforming and accumulating
@@ -238,7 +238,7 @@ namespace conrad
       itsAxes=axes;
       itsShape=in.shape();
 
-      CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
+      ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
           "RA and DEC specification not present in axes");
 
       double raStart=itsAxes.start("RA");
@@ -255,7 +255,7 @@ namespace conrad
       if (casa::max(casa::abs(in))>0.0)
       {
         itsModelIsEmpty=false;
-        CONRADLOG_INFO_STR(logger, "Filling " << itsNWPlanes
+        ASKAPLOG_INFO_STR(logger, "Filling " << itsNWPlanes
                            << " planes of W stack with model");
         casa::Array<double> scratch(in.copy());
         correctConvolution(scratch);
@@ -272,7 +272,7 @@ namespace conrad
       else
       {
         itsModelIsEmpty=true;
-        CONRADLOG_INFO_STR(logger, "No need to fill W stack: model is empty");
+        ASKAPLOG_INFO_STR(logger, "No need to fill W stack: model is empty");
         for (int i=0; i<itsNWPlanes; i++)
         {
           itsGrid[i].resize(casa::IPosition(1, 1));

@@ -7,7 +7,7 @@
 /// which returns selectors and converters with the defaults alread
 /// applied according to the parset file).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -28,7 +28,7 @@
 #include <fitting/Solver.h>
 #include <APS/ParameterSet.h>
 
-namespace conrad
+namespace askap
 {
 
 	namespace synthesis
@@ -39,7 +39,7 @@ namespace conrad
 		/// @param[in] solver Pointer to solver to be created
 		/// @param[in] parset a parset object to read the parameters from
 		/// @ingroup measurementequation
-		void operator<<(conrad::scimath::Solver::ShPtr& solver, const LOFAR::ACC::APS::ParameterSet &parset);
+		void operator<<(askap::scimath::Solver::ShPtr& solver, const LOFAR::ACC::APS::ParameterSet &parset);
 
 		/// @brief Conversion functions for parset entries
 		class MEParsetInterface
@@ -68,7 +68,7 @@ namespace conrad
 
 	} // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif

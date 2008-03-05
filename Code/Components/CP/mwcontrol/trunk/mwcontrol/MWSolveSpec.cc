@@ -6,13 +6,13 @@
 
 #include <mwcontrol/MWSolveSpec.h>
 #include <mwcommon/MWError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapUtil.h>
 #include <APS/ParameterSet.h>
 
 using namespace LOFAR::ACC::APS;
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWSolveSpec::MWSolveSpec(const string& name, 
 			   const ParameterSet& parset,

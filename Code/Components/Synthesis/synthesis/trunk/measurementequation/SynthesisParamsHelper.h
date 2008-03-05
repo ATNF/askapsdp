@@ -5,7 +5,7 @@
 /// @todo Function to output nicely formatted axes
 /// @todo Functions to read/write images
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SYNSYNTHESISPARAMSHELPER_H_
@@ -17,7 +17,7 @@
 #include <images/Images/TempImage.h>
 #include <images/Images/ImageInterface.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -44,7 +44,7 @@ namespace conrad
 		/// @param[in] parset a parset object to read the parameters from
 		/// @note (MV)This method is probably a duplication of the one of 
 		/// add methods - needs to be cleared
-		static void setUpImages(conrad::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+		static void setUpImages(askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
       
         /// @brief Add a parameter as an image
         /// @param ip Parameters
@@ -55,7 +55,7 @@ namespace conrad
         /// @param freqmin Minimum frequency (Hz)
         /// @param freqmax Maximum frequency (Hz)
         /// @param nchan Number of spectral channels
-        static void add(conrad::scimath::Params& ip, const string& name, 
+        static void add(askap::scimath::Params& ip, const string& name, 
           const vector<string>& direction, 
           const vector<string>& cellsize, 
           const vector<int>& shape,
@@ -65,7 +65,7 @@ namespace conrad
         /// @param ip Parameters
         /// @param parset ParameterSet
         /// @param baseKey basekey for parameters e.g. "Images."
-        static void add(conrad::scimath::Params& ip,
+        static void add(askap::scimath::Params& ip,
           const LOFAR::ACC::APS::ParameterSet& parset,
           const std::string& baseKey);
           
@@ -73,21 +73,21 @@ namespace conrad
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param image Name of image file
-        static void add(conrad::scimath::Params& ip, const string& name, 
+        static void add(askap::scimath::Params& ip, const string& name, 
           const string& image);
           
         /// @brief Get a parameter from a CASA image
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param imagename Name of image file
-        static void getFromCasaImage(conrad::scimath::Params& ip, const string& name,
+        static void getFromCasaImage(askap::scimath::Params& ip, const string& name,
           const string& imagename);
         
         /// @brief Save a parameter as a CASA image
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param imagename Name of image file
-        static void saveAsCasaImage(const conrad::scimath::Params& ip, const string& name,
+        static void saveAsCasaImage(const askap::scimath::Params& ip, const string& name,
           const string& imagename);
         
         /// @brief Copy a parameter to a CASA TempImage
@@ -95,28 +95,28 @@ namespace conrad
         /// @param ip Parameters
         /// @param name Name of parameter
         static boost::shared_ptr<casa::TempImage<float> > 
-          tempImage(const conrad::scimath::Params& ip, 
+          tempImage(const askap::scimath::Params& ip, 
           const string& name);
        
         /// @brief Create a coordinate system for a parameter
         /// @param ip Parameters
         /// @param name Name of parameter
         static casa::CoordinateSystem 
-          coordinateSystem(const conrad::scimath::Params& ip, 
+          coordinateSystem(const askap::scimath::Params& ip, 
           const string& name);
        
         /// @brief Create a direction coordinate for a parameter
         /// @param ip Parameters
         /// @param name Name of parameter
         static casa::DirectionCoordinate 
-          directionCoordinate(const conrad::scimath::Params& ip, 
+          directionCoordinate(const askap::scimath::Params& ip, 
           const string& name);
        
         /// @brief Update a parameter from an image
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param image Image to be drawn from 
-        static void update(conrad::scimath::Params& ip, const string& name, 
+        static void update(askap::scimath::Params& ip, const string& name, 
           const casa::ImageInterface<float>& image);
         
     };

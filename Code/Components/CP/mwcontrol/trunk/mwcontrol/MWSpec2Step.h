@@ -1,20 +1,20 @@
 /// @file
 /// @brief Convert an MWSpec object to an MWStep object.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWSPEC2STEP_H
-#define CONRAD_MWCONTROL_MWSPEC2STEP_H
+#ifndef ASKAP_MWCONTROL_MWSPEC2STEP_H
+#define ASKAP_MWCONTROL_MWSPEC2STEP_H
 
 //# Includes
 #include <mwcontrol/MWSpecVisitor.h>
 #include <mwcommon/MWMultiStep.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   //# Forward Declarations
   class MWSingleSpec;

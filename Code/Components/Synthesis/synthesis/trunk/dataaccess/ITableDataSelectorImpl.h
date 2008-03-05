@@ -9,7 +9,7 @@
 /// separate interface (i.e. IDataSelectorImpl), which could
 /// be a base class for this one.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef I_TABLE_DATA_SELECTOR_IMPL_H
@@ -28,7 +28,7 @@
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -86,6 +86,6 @@ public:
   
 } // namespace synthesis
   
-} // namespace conrad
+} // namespace askap
   
 #endif // #ifndef I_TABLE_DATA_SELECTOR_IMPL_H

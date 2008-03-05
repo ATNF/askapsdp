@@ -9,7 +9,7 @@
 /// selection on the TIME column (which is a measure column). The class
 /// reads units and the reference frame and sets up the converter.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -17,7 +17,7 @@
 #include <dataaccess/TimeDependentSubtable.h>
 #include <dataaccess/EpochConverter.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
 
 // casa includes
@@ -26,13 +26,13 @@
 #include <tables/Tables/TableRecord.h>
 
 // uncomment to use the logger, if it is really used somewhere.
-//#include <conrad_synthesis.h>
-//#include <conrad/ConradLogging.h>
-//CONRAD_LOGGER(logger, "");
+//#include <askap_synthesis.h>
+//#include <askap/AskapLogging.h>
+//ASKAP_LOGGER(logger, "");
 
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief obtain time epoch in the subtable's native format
 /// @details Convert a given epoch to the table's native frame/units
@@ -45,7 +45,7 @@ casa::Double TimeDependentSubtable::tableTime(const casa::MEpoch &time) const
       // converter
       initConverter();
    }
-  CONRADDEBUGASSERT(itsConverter);
+  ASKAPDEBUGASSERT(itsConverter);
   return (*itsConverter)(time);
 }
 
@@ -62,7 +62,7 @@ casa::MEpoch TimeDependentSubtable::tableTime(casa::Double time) const
       // converter
       initConverter();
    }
-  CONRADDEBUGASSERT(itsConverter);
+  ASKAPDEBUGASSERT(itsConverter);
   return itsConverter->toMeasure(time);  
 }
 
@@ -72,7 +72,7 @@ void TimeDependentSubtable::initConverter() const
   const casa::Array<casa::String> &tabUnits=table().tableDesc().
       columnDesc("TIME").keywordSet().asArrayString("QuantumUnits");
   if (tabUnits.nelements()!=1 || tabUnits.ndim()!=1) {
-      CONRADTHROW(DataAccessError, "Unable to interpret the QuantumUnits "
+      ASKAPTHROW(DataAccessError, "Unable to interpret the QuantumUnits "
         "keyword for the TIME column of a time-dependent subtable (type="<<
          table().tableInfo().type()<<"). It should be a 1D Array of exactly "
         "one String element and the table has "<<tabUnits.nelements()<<
@@ -82,7 +82,7 @@ void TimeDependentSubtable::initConverter() const
   
   const casa::RecordInterface &timeMeasInfo=table().tableDesc().
         columnDesc("TIME").keywordSet().asRecord("MEASINFO");
-  CONRADASSERT(timeMeasInfo.asString("type")=="epoch");
+  ASKAPASSERT(timeMeasInfo.asString("type")=="epoch");
             
   itsConverter.reset(new EpochConverter(casa::MEpoch(casa::MVEpoch(),
                      frameType(timeMeasInfo.asString("Ref"))),timeUnits));
@@ -122,7 +122,7 @@ casa::MEpoch::Types TimeDependentSubtable::frameType(const casa::String &name)
   } else if (name == "GAST") {
       return casa::MEpoch::GAST;   
   } 
-  CONRADTHROW(DataAccessError, "The frame "<<name<<
+  ASKAPTHROW(DataAccessError, "The frame "<<name<<
               " is not supported at the moment");
   return casa::MEpoch::UTC; // to keep the compiler happy
 }

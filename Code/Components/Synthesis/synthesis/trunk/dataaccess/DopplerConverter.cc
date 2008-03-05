@@ -11,7 +11,7 @@
 /// the transformation itself). Hence, we will use this class 
 /// instead of the VelocityMachine
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -23,8 +23,8 @@
 /// own includes
 #include <dataaccess/DopplerConverter.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 
 /// constructor
@@ -59,8 +59,8 @@ DopplerConverter::operator()(const casa::MFrequency &freq) const
 {  
   casa::Double t=freq.getValue().getValue(); // extract frequency in Hz
 
-  // need to change the next line to a proper Conrad error when available
-  CONRADDEBUGASSERT(t!=0);
+  // need to change the next line to a proper Askap error when available
+  ASKAPDEBUGASSERT(t!=0);
   
   t/=itsRestFrequency; // form nu/nu_0
   t*=t; // form (nu/nu_0)^2  

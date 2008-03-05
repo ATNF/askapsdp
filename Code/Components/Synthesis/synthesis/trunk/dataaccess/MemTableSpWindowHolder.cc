@@ -5,17 +5,17 @@
 /// frequencies for each channel). The table is indexed with the
 /// spectral window ID.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 // own includes
 #include <dataaccess/MemTableSpWindowHolder.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, "");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
 
 // casa includes
@@ -26,8 +26,8 @@ CONRAD_LOGGER(logger, "");
 #include <casa/Quanta/MVFrequency.h>
 
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 using namespace casa;
 
 /// read all required information from the SPECTRAL_WINDOW subtable
@@ -41,7 +41,7 @@ MemTableSpWindowHolder::MemTableSpWindowHolder(const casa::Table &ms)
   const Array<String> &tabUnits=spWindowSubtable.tableDesc().
           columnDesc("CHAN_FREQ").keywordSet().asArrayString("QuantumUnits");
   if (tabUnits.nelements()!=1 || tabUnits.ndim()!=1) {
-      CONRADTHROW(DataAccessError,"Unable to interpret the QuantumUnits keyword "<<
+      ASKAPTHROW(DataAccessError,"Unable to interpret the QuantumUnits keyword "<<
                   "for the CHAN_FREQ column of the SPECTRAL_WINDOW subtable. "<<
 		  "It should be an 1D Array of 1 String element and it has "<<
 		  tabUnits.nelements()<<" elements and "<<tabUnits.ndim()<<
@@ -55,10 +55,10 @@ MemTableSpWindowHolder::MemTableSpWindowHolder(const casa::Table &ms)
   
   // load channel frequencies
   ROArrayColumn<Double> chanFreqCol(spWindowSubtable,"CHAN_FREQ");
-  CONRADDEBUGASSERT(measRefCol.nrow()==chanFreqCol.nrow());
+  ASKAPDEBUGASSERT(measRefCol.nrow()==chanFreqCol.nrow());
   itsChanFreqs.resize(spWindowSubtable.nrow());
   for (uInt row=0;row<spWindowSubtable.nrow();++row) {
-       CONRADASSERT(chanFreqCol.ndim(row)==1);
+       ASKAPASSERT(chanFreqCol.ndim(row)==1);
        chanFreqCol.get(row,itsChanFreqs[row]); 
   }  
 }
@@ -69,7 +69,7 @@ MemTableSpWindowHolder::MemTableSpWindowHolder(const casa::Table &ms)
 casa::MFrequency::Ref
     MemTableSpWindowHolder::getReferenceFrame(casa::uInt spWindowID) const
 {
- CONRADDEBUGASSERT(spWindowID<itsMeasRefIDs.nelements());
+ ASKAPDEBUGASSERT(spWindowID<itsMeasRefIDs.nelements());
  return MFrequency::Ref(itsMeasRefIDs[spWindowID]);
 }
 
@@ -91,7 +91,7 @@ const casa::Unit& MemTableSpWindowHolder::getFrequencyUnit() const throw()
 const casa::Vector<casa::Double>&
 MemTableSpWindowHolder::getFrequencies(casa::uInt spWindowID) const
 {
-  CONRADDEBUGASSERT(spWindowID<itsChanFreqs.nelements());
+  ASKAPDEBUGASSERT(spWindowID<itsChanFreqs.nelements());
   return itsChanFreqs[spWindowID];
 }
 
@@ -105,8 +105,8 @@ MemTableSpWindowHolder::getFrequencies(casa::uInt spWindowID) const
 casa::MFrequency MemTableSpWindowHolder::getFrequency(casa::uInt spWindowID,
                           casa::uInt channel) const
 {
-  CONRADDEBUGASSERT(spWindowID<itsChanFreqs.nelements());  
-  CONRADDEBUGASSERT(channel<itsChanFreqs[spWindowID].nelements());
+  ASKAPDEBUGASSERT(spWindowID<itsChanFreqs.nelements());  
+  ASKAPDEBUGASSERT(channel<itsChanFreqs[spWindowID].nelements());
   const casa::Double freqAsDouble=itsChanFreqs[spWindowID][channel];
   const casa::MVFrequency result(Quantity(freqAsDouble,itsFreqUnits));
   return MFrequency(result,MFrequency::Ref(itsMeasRefIDs[spWindowID]));

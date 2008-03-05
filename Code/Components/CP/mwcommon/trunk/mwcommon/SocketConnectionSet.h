@@ -1,13 +1,13 @@
 /// @file
 /// @brief Set of socket connections.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_SOCKETCONNECTIONSET_H
-#define CONRAD_MWCOMMON_SOCKETCONNECTIONSET_H
+#ifndef ASKAP_MWCOMMON_SOCKETCONNECTIONSET_H
+#define ASKAP_MWCOMMON_SOCKETCONNECTIONSET_H
 
 #include <mwcommon/MWConnectionSet.h>
 #include <mwcommon/SocketListener.h>
@@ -15,7 +15,7 @@
 #include <vector>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Set of socket connections.

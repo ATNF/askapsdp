@@ -3,11 +3,11 @@
 /// ImagerParallel: Support for parallel applications using the measurement equation
 /// classes.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_SYNTHESIS_IMAGERPARALLEL_H_
-#define CONRAD_SYNTHESIS_IMAGERPARALLEL_H_
+#ifndef ASKAP_SYNTHESIS_IMAGERPARALLEL_H_
+#define ASKAP_SYNTHESIS_IMAGERPARALLEL_H_
 
 #include <parallel/MEParallel.h>
 
@@ -18,7 +18,7 @@
 #include <APS/ParameterSet.h>
 #include <measurementequation/IMeasurementEquation.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

@@ -1,13 +1,13 @@
 /// @file
 /// @brief Base component class of the MWSpec composite pattern.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWSPEC_H
-#define CONRAD_MWCONTROL_MWSPEC_H
+#ifndef ASKAP_MWCONTROL_MWSPEC_H
+#define ASKAP_MWCONTROL_MWSPEC_H
 
 //# Includes
 #include <mwcontrol/MWSpecVisitor.h>
@@ -19,7 +19,7 @@
 //# Forward Declarations.
 namespace LOFAR { namespace ACC { namespace APS { class ParameterSet; }}}
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief Base component class of the MWSpec composite pattern.

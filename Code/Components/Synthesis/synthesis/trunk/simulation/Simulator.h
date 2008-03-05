@@ -1,10 +1,10 @@
 /// @file
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 
-#ifndef CONRAD_SYNTHESIS_SIMULATOR_H
-#define CONRAD_SYNTHESIS_SIMULATOR_H
+#ifndef ASKAP_SYNTHESIS_SIMULATOR_H
+#define ASKAP_SYNTHESIS_SIMULATOR_H
 
 //# Includes
 #include <casa/BasicSL/String.h>
@@ -16,7 +16,7 @@
 #include <tables/Tables/TiledDataStManAccessor.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{

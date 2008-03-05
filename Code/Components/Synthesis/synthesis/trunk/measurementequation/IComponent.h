@@ -6,14 +6,14 @@
 /// examples of components include, e.g. Gaussian or point sources.
 /// 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 #ifndef I_COMPONENT_H
 #define I_COMPONENT_H
 
 // own includes
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 // std includes
 #include <vector>
@@ -26,7 +26,7 @@
 #include <measures/Measures/Stokes.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -87,13 +87,13 @@ struct IComponent {
   /// other values an exception is thrown.
   /// @param[in] pol required polarization
   /// @return an index (I: 0, Q: 1, U: 2 and V: 3)
-  static size_t stokesIndex(casa::Stokes::StokesTypes pol) throw(ConradError);
+  static size_t stokesIndex(casa::Stokes::StokesTypes pol) throw(AskapError);
   
 }; 
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef I_COMPONENT_H

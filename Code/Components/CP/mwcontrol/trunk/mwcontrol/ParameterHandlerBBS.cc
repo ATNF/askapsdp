@@ -11,7 +11,7 @@
 using namespace LOFAR::ACC::APS;
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   ParameterHandlerBBS::ParameterHandlerBBS (const ParameterSet& parSet)
     : ParameterHandler (parSet)

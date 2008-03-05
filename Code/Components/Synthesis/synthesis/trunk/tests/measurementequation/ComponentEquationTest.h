@@ -10,7 +10,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <cmath>
 
@@ -18,10 +18,10 @@ using std::abs;
 
 #include <boost/shared_ptr.hpp>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -36,7 +36,7 @@ namespace conrad
       CPPUNIT_TEST(testConstructNormalEquations);
       CPPUNIT_TEST(testSolveNormalEquations);
       CPPUNIT_TEST(testSolveNormalEquationsFix);
-      CPPUNIT_TEST_EXCEPTION(testNoFree, ConradError);
+      CPPUNIT_TEST_EXCEPTION(testNoFree, AskapError);
       CPPUNIT_TEST_SUITE_END();
 
       private:

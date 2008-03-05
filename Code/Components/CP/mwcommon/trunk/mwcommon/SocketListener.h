@@ -1,20 +1,20 @@
 /// @file
 /// @brief Class that creates a socket and accepts connections.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_SOCKETLISTENER_H
-#define CONRAD_MWCOMMON_SOCKETLISTENER_H
+#ifndef ASKAP_MWCOMMON_SOCKETLISTENER_H
+#define ASKAP_MWCOMMON_SOCKETLISTENER_H
 
 #include <mwcommon/SocketConnection.h>
 #include <Common/Net/Socket.h>
 #include <boost/shared_ptr.hpp>
 #include <string>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Class that creates a socket and accepts connections.

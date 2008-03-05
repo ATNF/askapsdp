@@ -3,12 +3,12 @@
 ///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <parallel/SimParallel.h>
 
@@ -18,11 +18,11 @@
 
 #include <CommandLineParser.h>
 
-CONRAD_LOGGER(logger, ".csimulator");
+ASKAP_LOGGER(logger, ".csimulator");
 
 using namespace std;
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 // Main function
 
@@ -54,37 +54,37 @@ int main(int argc, const char** argv)
 	LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
 	
 	SimParallel sim(argc, argv, subset);
-	CONRADLOG_INIT("csimulator.log_cfg");
+	ASKAPLOG_INIT("csimulator.log_cfg");
 
-	CONRADLOG_INFO_STR(logger, "CONRAD synthesis simulator " << ASKAP_PACKAGE_VERSION);
+	ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
 	
 	if(sim.isMaster()) {
-	  CONRADLOG_INFO_STR(logger,  "parset file " << parsetFile );
-	  CONRADLOG_INFO_STR(logger,  parset);
+	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
+	  ASKAPLOG_INFO_STR(logger,  parset);
 	}
 	
 	sim.init();
 	
 	sim.simulate();
       }
-      CONRADLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
+      ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
 			 <<" real:   " << timer.real () );
       
       ///==============================================================================
     }
   catch (const cmdlineparser::XParser &ex) {
-      CONRADLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
+      ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
       std::cerr<<"Usage: "<<argv[0]<<" [-inputs parsetFile]"<<std::endl;     
   }  
-  catch (const conrad::ConradError& x)
+  catch (const askap::AskapError& x)
     {
-      CONRADLOG_FATAL_STR(logger, "Conrad error in " << argv[0] << ": " << x.what());
-      std::cerr << "Conrad error in " << argv[0] << ": " << x.what() << std::endl;
+      ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+      std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
       exit(1);
     }
   catch (const std::exception& x)
     {
-      CONRADLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+      ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
       std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
       exit(1);
     }

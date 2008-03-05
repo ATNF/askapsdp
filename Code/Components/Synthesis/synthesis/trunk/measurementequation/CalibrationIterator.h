@@ -14,7 +14,7 @@
 /// @note I hope this adapter is temporary, and a better way of handling 
 /// composite equations will be adopted in the future.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef CALIBRATION_ITERATOR_H
@@ -24,7 +24,7 @@
 #include <dataaccess/SharedIter.h>
 #include <measurementequation/IMeasurementEquation.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -134,6 +134,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef CALIBRATION_ITERATOR_H

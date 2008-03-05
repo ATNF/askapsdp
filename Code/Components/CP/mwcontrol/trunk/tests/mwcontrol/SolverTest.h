@@ -4,13 +4,13 @@
 //#
 //#  $Id$
 
-#ifndef CONRAD_MWCONTROL_SOLVERTEST_H
-#define CONRAD_MWCONTROL_SOLVERTEST_H
+#ifndef ASKAP_MWCONTROL_SOLVERTEST_H
+#define ASKAP_MWCONTROL_SOLVERTEST_H
 
 #include <mwcontrol/SolverProxy.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   class SolverTest: public SolverProxy
   {

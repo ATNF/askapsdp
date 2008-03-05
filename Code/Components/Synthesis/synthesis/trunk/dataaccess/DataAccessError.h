@@ -1,7 +1,7 @@
 /// @file DataAccessError.h
 /// @brief Exception classes used at the data access layer
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -12,15 +12,15 @@
 #include <string>
 
 /// own includes
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
 /// @brief general exception class used in the data access layer
 /// @ingroup dataaccess_i
-struct DataAccessError : public ConradError
+struct DataAccessError : public AskapError
 {
   /// constructor - pass the message to the base class
   ///
@@ -39,8 +39,8 @@ struct DataAccessLogicError : public DataAccessError
   explicit DataAccessLogicError(const std::string& message);
 };
 
-} // namespace conrad
+} // namespace askap
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef DATA_ACCESS_ERROR_H

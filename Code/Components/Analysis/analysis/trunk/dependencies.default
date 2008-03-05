@@ -1,9 +1,9 @@
 scimath=Code/Base/scimath/trunk
 mwcommon=Code/Components/CP/mwcommon/trunk
-conradparallel=Code/Components/CP/conradparallel/trunk
+askapparallel=Code/Components/CP/askapparallel/trunk
 casacore=3rdParty/casacore/tags/casacore-0.3.0;casa_casa casa_scimath
 blob=3rdParty/LOFAR/Blob/tags/Blob-1.0
 boost=3rdParty/boost/tags/boost-1.34.1
-conrad=Code/Base/conrad/trunk
+askap=Code/Base/askap/trunk
 duchamp=3rdParty/Duchamp/default
 

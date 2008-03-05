@@ -20,9 +20,9 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 
-using namespace conrad::scimath;
+using namespace askap::scimath;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

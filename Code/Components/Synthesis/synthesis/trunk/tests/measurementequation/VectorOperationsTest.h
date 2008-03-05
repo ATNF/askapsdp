@@ -3,7 +3,7 @@
 /// @brief Tests of the functionality provided by VectorOperations
 /// @details This file contains appropriate unit tests
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au
 ///
 
@@ -16,7 +16,7 @@
 #include <scimath/Mathematics/AutoDiff.h>
 #include <casa/BasicSL/Complex.h>
 #include <cppunit/extensions/HelperMacros.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <fitting/ComplexDiff.h>
 
 
@@ -31,10 +31,10 @@ using std::abs;
 
 #include <boost/shared_ptr.hpp>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -142,6 +142,6 @@ namespace conrad
     };
 
   } // namespace synthesis
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef VECTOR_OPERATIONS_TEST_H

@@ -7,7 +7,7 @@
 ///                interface, which can be done with the table selection
 ///                mechanism in the table based case 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -16,8 +16,8 @@
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableTimeStampSelectorImpl.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 using namespace casa;
 
 
@@ -28,12 +28,12 @@ using namespace casa;
 TableDataSelector::TableDataSelector(const
        boost::shared_ptr<ITableManager const> &msManager) :
        TableInfoAccessor(msManager) 
-#ifndef CONRAD_DEBUG
+#ifndef ASKAP_DEBUG
        ,itsDataColumnName(msManager->defaultDataColumnName()) 
 #endif       
 {
-  CONRADDEBUGASSERT(msManager);
-#ifdef CONRAD_DEBUG
+  ASKAPDEBUGASSERT(msManager);
+#ifdef ASKAP_DEBUG
   itsDataColumnName = msManager->defaultDataColumnName();
 #endif 
 }

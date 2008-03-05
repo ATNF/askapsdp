@@ -5,19 +5,19 @@
 //# $Id$
 
 #include <mwcommon/NodeDesc.h>
-#include <mwcommon/ConradError.h>
+#include <mwcommon/AskapError.h>
 #include <ostream>
 #include <fstream>
 
-using namespace conrad::cp;
+using namespace askap::cp;
 using namespace std;
 
 void check (const NodeDesc& node)
 {
-  CONRADASSERT (node.getName() == "node1");
-  CONRADASSERT (node.getFileSys().size() == 2);
-  CONRADASSERT (node.getFileSys()[0] == "fs0");
-  CONRADASSERT (node.getFileSys()[1] == "fs1");
+  ASKAPASSERT (node.getName() == "node1");
+  ASKAPASSERT (node.getFileSys().size() == 2);
+  ASKAPASSERT (node.getFileSys()[0] == "fs0");
+  ASKAPASSERT (node.getFileSys()[1] == "fs1");
 }
 
 void doIt()

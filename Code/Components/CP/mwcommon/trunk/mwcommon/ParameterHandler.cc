@@ -9,7 +9,7 @@
 using namespace LOFAR::ACC::APS;
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   ParameterHandler::ParameterHandler (const ParameterSet& parSet)
     : itsParms (parSet)

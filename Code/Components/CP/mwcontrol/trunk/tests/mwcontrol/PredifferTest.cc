@@ -16,7 +16,7 @@
 using namespace std;
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   PredifferTest::PredifferTest()
   {}
@@ -88,7 +88,7 @@ namespace conrad { namespace cp {
       break;
     }
     default:
-      CONRADTHROW (MWError, "PredifferTest::doProcess: operation "
+      ASKAPTHROW (MWError, "PredifferTest::doProcess: operation "
 		   << operation << " is unknown");
     }
     return resOper;

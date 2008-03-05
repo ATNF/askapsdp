@@ -8,7 +8,7 @@
 ///          column in the table. These two methods are specified
 ///          in the derived classes.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef TABLE_TIME_STAMP_SELECTOR_H
@@ -27,7 +27,7 @@
 #include <dataaccess/ITableHolder.h>
 #include <dataaccess/TimeDependentSubtable.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -66,8 +66,8 @@ protected:
            getStartAndStop() const = 0;       
 };
 
-} // namespace conrad
+} // namespace askap
 
-} // namespace conrad
+} // namespace askap
 
 #endif /// #ifndef TABLE_TIME_STAMP_SELECTOR_H

@@ -1,7 +1,7 @@
 /// @file BasicDataConverter.h
 /// @brief An implementation of the data converter
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -28,7 +28,7 @@
 #include <dataaccess/IDopplerConverter.h>
 #include <dataaccess/IDataConverterImpl.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -212,5 +212,5 @@ private:
   
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 #endif // BASIC_DATA_CONVERTER_H

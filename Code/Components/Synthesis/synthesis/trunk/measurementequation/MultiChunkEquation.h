@@ -9,7 +9,7 @@
 /// class allows to simplify this transition, by factoring out the old
 /// interface and implementing it via the new one.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef MULTI_CHUNK_EQUATION_H
@@ -23,7 +23,7 @@
 
 #include <measurementequation/IMeasurementEquation.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -48,7 +48,7 @@ public:
   /// calls an abstract method declared in IMeasurementEquation for each 
   /// individual accessor (each iteration of the iterator)
   /// @param[in] ne Normal equations
-  virtual void calcEquations(conrad::scimath::INormalEquations& ne) const;
+  virtual void calcEquations(askap::scimath::INormalEquations& ne) const;
 
   /// @brief Predict model visibility for the iterator.
   /// @details This version of the predict method iterates
@@ -71,7 +71,7 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef MULTI_CHUNK_EQUATION_H

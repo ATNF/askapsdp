@@ -2,7 +2,7 @@
 ///
 /// This file runs the test suite coded in DataAccessTest/DataAccsessTestImpl
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -19,14 +19,14 @@ int main(int, char **)
 {
  try {
    //CppUnit::TextUi::TestRunner runner;
-   conrad::synthesis::TableTestRunner runner;
-   runner.addTest(conrad::synthesis::DataConverterTest::suite());
-   runner.addTest(conrad::synthesis::DataAccessTest::suite());
-   runner.addTest(conrad::synthesis::TableDataAccessTest::suite());
+   askap::synthesis::TableTestRunner runner;
+   runner.addTest(askap::synthesis::DataConverterTest::suite());
+   runner.addTest(askap::synthesis::DataAccessTest::suite());
+   runner.addTest(askap::synthesis::TableDataAccessTest::suite());
    runner.run();
    return 0;
  }
- catch (const conrad::ConradError &ce) {
+ catch (const askap::AskapError &ce) {
 	 std::cerr<<ce.what()<<std::endl;
  }
 }

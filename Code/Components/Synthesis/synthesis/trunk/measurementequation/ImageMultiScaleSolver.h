@@ -3,7 +3,7 @@
 /// ImageMultiScaleSolver: This solver calculates the dirty image (or equivalent)
 /// for all parameters called image*
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SYNIMAGEMULTISCALESOLVER_H_
@@ -16,7 +16,7 @@
 
 #include <map>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -35,14 +35,14 @@ namespace conrad
         /// solutions formed by the method described.
         /// The default scales are 0, 10, 30 pixels
         /// @param ip Parameters i.e. the images
-        ImageMultiScaleSolver(const conrad::scimath::Params& ip);
+        ImageMultiScaleSolver(const askap::scimath::Params& ip);
 
         /// @brief Constructor from parameters and scales.
         /// The parameters named image* will be interpreted as images and
         /// solutions formed by the method described.
         /// @param ip Parameters i.e. the images
         /// @param scales Scales to be solved in pixels
-        ImageMultiScaleSolver(const conrad::scimath::Params& ip,
+        ImageMultiScaleSolver(const askap::scimath::Params& ip,
           const casa::Vector<float>& scales);
           
         /// @brief Initialize this solver
@@ -51,10 +51,10 @@ namespace conrad
         /// @brief Solve for parameters, updating the values kept internally
         /// The solution is constructed from the normal equations
         /// @param q Solution quality information
-        virtual bool solveNormalEquations(conrad::scimath::Quality& q);
+        virtual bool solveNormalEquations(askap::scimath::Quality& q);
         
 /// @brief Clone this object
-        virtual conrad::scimath::Solver::ShPtr clone() const;
+        virtual askap::scimath::Solver::ShPtr clone() const;
         
         /// Set the scales
         void setScales(const casa::Vector<float>& scales);

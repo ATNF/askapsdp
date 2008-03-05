@@ -2,11 +2,11 @@
 ///
 /// Provides general utility functions to support the analysis code
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef CONRAD_ANALYSIS_ANALYSISUTILS_H_
-#define CONRAD_ANALYSIS_ANALYSISUTILS_H_
+#ifndef ASKAP_ANALYSIS_ANALYSISUTILS_H_
+#define ASKAP_ANALYSIS_ANALYSISUTILS_H_
 
 #include <string>
 #include <vector>
@@ -16,7 +16,7 @@
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
 
-namespace conrad
+namespace askap
 {
   namespace analysis
   {

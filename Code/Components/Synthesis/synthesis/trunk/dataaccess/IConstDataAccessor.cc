@@ -1,13 +1,13 @@
 /// @file IConstDataAccessor.cc
 /// @brief Interface class for read-only access to visibility data
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 //
 #include <dataaccess/IConstDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 /// an empty virtual destructor is required to make the
 /// compiler happy for all derived classes, which don't 
@@ -17,4 +17,4 @@ synthesis::IConstDataAccessor::~IConstDataAccessor()
 {
 }
 
-} // end of namespace conrad
+} // end of namespace askap

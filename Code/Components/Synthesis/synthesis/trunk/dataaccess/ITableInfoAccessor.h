@@ -7,7 +7,7 @@
 /// store the class actually holding the table & its derived
 /// data by pointer (managed by a smart pointer template).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -22,7 +22,7 @@
 #include <dataaccess/ISubtableInfoHolder.h>
 #include <dataaccess/ITableManager.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -49,6 +49,6 @@ struct ITableInfoAccessor : virtual public ITableHolder {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #define I_TABLE_INFO_ACCESSOR_H

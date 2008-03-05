@@ -3,7 +3,7 @@
 /// ComponentEquation: Equation for dealing with discrete components such
 /// as point sources and Gaussians.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
@@ -29,7 +29,7 @@
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Cube.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -51,7 +51,7 @@ namespace conrad
         /// data iterator.
         /// @param ip Parameters
         /// @param idi data iterator
-        ComponentEquation(const conrad::scimath::Params& ip,
+        ComponentEquation(const askap::scimath::Params& ip,
           const IDataSharedIter& idi);
 
         /// @brief Constructor using default parameters
@@ -59,7 +59,7 @@ namespace conrad
         ComponentEquation(const IDataSharedIter& idi);
         
         /// Return the default parameters
-        static conrad::scimath::Params defaultParameters();
+        static askap::scimath::Params defaultParameters();
         
         /// @brief Predict model visibilities for one accessor (chunk).
         /// @details This version of the predict method works with
@@ -81,10 +81,10 @@ namespace conrad
         /// @param[in] chunk a read-write accessor to work with
         /// @param[in] ne Normal equations
         virtual void calcGenericEquations(const IConstDataAccessor &chunk,
-                              conrad::scimath::GenericNormalEquations& ne) const;
+                              askap::scimath::GenericNormalEquations& ne) const;
         
         using MultiChunkEquation::predict;
-        using conrad::scimath::GenericEquation::calcEquations;
+        using askap::scimath::GenericEquation::calcEquations;
        
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy

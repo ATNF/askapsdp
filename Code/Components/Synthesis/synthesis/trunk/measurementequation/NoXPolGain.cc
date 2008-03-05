@@ -4,16 +4,16 @@
 /// @details This is a simple effect which can be used in conjunction
 /// with the CalibrationME template (as its template argument)
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
 #include <measurementequation/NoXPolGain.h>
-#include <conrad/ConradUtil.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapUtil.h>
+#include <askap/AskapError.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -32,7 +32,7 @@ std::string NoXPolGain::paramName(casa::uInt ant, casa::uInt pol)
   } else if (pol == 1) {
       res+="g22.";
   } else {
-      CONRADTHROW(ConradError, "Only parallel hand polarisation products are supported at the moment, you have pol="<<pol);
+      ASKAPTHROW(AskapError, "Only parallel hand polarisation products are supported at the moment, you have pol="<<pol);
   }
 
   return res+utility::toString<casa::uInt>(ant);
@@ -47,8 +47,8 @@ std::string NoXPolGain::paramName(casa::uInt ant, casa::uInt pol)
 /// @return a pair with polarisation indices
 std::pair<casa::uInt, casa::uInt> NoXPolGain::polIndices(casa::uInt pol, casa::uInt nPol)
 {
-  CONRADDEBUGASSERT((nPol == 1) || (nPol == 2) || (nPol == 4));
-  CONRADDEBUGASSERT(pol<nPol);
+  ASKAPDEBUGASSERT((nPol == 1) || (nPol == 2) || (nPol == 4));
+  ASKAPDEBUGASSERT(pol<nPol);
   if (nPol < 4) {
       // no special polarisation handling is required (either a single plane
       // or two planes corresponding to the orthogonal polarisations)
@@ -61,4 +61,4 @@ std::pair<casa::uInt, casa::uInt> NoXPolGain::polIndices(casa::uInt pol, casa::u
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap

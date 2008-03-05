@@ -8,7 +8,7 @@
 /// it should become a separate class derived
 /// directly from its interface
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef TABLE_CONST_DATA_ACCESSOR_H
@@ -20,7 +20,7 @@
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/CachedAccessorField.tcc>
 
-namespace conrad {
+namespace askap {
 	
 namespace synthesis {
 
@@ -184,6 +184,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_CONST_DATA_ACCESSOR_H

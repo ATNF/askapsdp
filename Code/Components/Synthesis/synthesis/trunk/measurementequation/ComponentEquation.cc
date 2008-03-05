@@ -23,17 +23,17 @@
 
 #include <stdexcept>
 
-using conrad::scimath::INormalEquations;
-using conrad::scimath::DesignMatrix;
+using askap::scimath::INormalEquations;
+using askap::scimath::DesignMatrix;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
 
-    ComponentEquation::ComponentEquation(const conrad::scimath::Params& ip,
+    ComponentEquation::ComponentEquation(const askap::scimath::Params& ip,
           const IDataSharedIter& idi) :  MultiChunkEquation(idi),  
-           conrad::scimath::GenericEquation(ip), GenericMultiChunkEquation(idi),
+           askap::scimath::GenericEquation(ip), GenericMultiChunkEquation(idi),
            itsAllComponentsUnpolarised(false)
     {
       init();
@@ -51,11 +51,11 @@ namespace conrad
     {
     }
 
-conrad::scimath::Params ComponentEquation::defaultParameters()
+askap::scimath::Params ComponentEquation::defaultParameters()
 {
 // The default parameters serve as a holder for the patterns to match the actual
 // parameters. Shell pattern matching rules apply.
-      conrad::scimath::Params ip;
+      askap::scimath::Params ip;
       ip.add("flux.i");
       ip.add("direction.ra");
       ip.add("direction.dec");
@@ -125,15 +125,15 @@ void ComponentEquation::addModelToCube(const IParameterizedComponent& comp,
        const casa::Vector<casa::Double>& freq,
        casa::Cube<casa::Complex> &rwVis)
 {
-  CONRADDEBUGASSERT(rwVis.nrow() == uvw.nelements());
-  CONRADDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
+  ASKAPDEBUGASSERT(rwVis.nrow() == uvw.nelements());
+  ASKAPDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
 
   // in the future we need to ensure that polarisation 
   // products appear in this order and as Stokes parameters
   const casa::Stokes::StokesTypes polVect[4] =
        { casa::Stokes::I, casa::Stokes::Q, casa::Stokes::U, casa::Stokes::V };
                                 
-  CONRADDEBUGASSERT(rwVis.nplane()<=4);
+  ASKAPDEBUGASSERT(rwVis.nplane()<=4);
   
   // flattened buffer for visibilities 
   std::vector<double> vis(2*freq.nelements()); 
@@ -166,9 +166,9 @@ void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
        const casa::Vector<casa::Double>& freq,
        casa::Cube<casa::Complex> &rwVis)
 {
-  CONRADDEBUGASSERT(rwVis.nrow() == uvw.nelements());
-  CONRADDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
-  CONRADDEBUGASSERT(rwVis.nplane() >= 1);
+  ASKAPDEBUGASSERT(rwVis.nrow() == uvw.nelements());
+  ASKAPDEBUGASSERT(rwVis.ncolumn() == freq.nelements());
+  ASKAPDEBUGASSERT(rwVis.nplane() >= 1);
   
   // in the future, we have to ensure that the first polarisation product is
   // stokes I. 
@@ -210,7 +210,7 @@ void ComponentEquation::predict(IDataAccessor &chunk) const
   for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
        compList.begin(); compIt!=compList.end();++compIt) {
        
-       CONRADDEBUGASSERT(*compIt); 
+       ASKAPDEBUGASSERT(*compIt); 
        // current component
        const IParameterizedComponent& curComp = *(*compIt);
        try {
@@ -254,9 +254,9 @@ void ComponentEquation::updateDesignMatrixAndResiduals(
   const size_t nParameters = comp.nParameters();
   // number of data points  in the flattened vector
   const casa::uInt nData=nPol*uvw.nelements()*freq.nelements()*2;
-  CONRADDEBUGASSERT(nData!=0);
-  CONRADDEBUGASSERT(nPol<=4);
-  CONRADDEBUGASSERT(residual.nelements() == nData);
+  ASKAPDEBUGASSERT(nData!=0);
+  ASKAPDEBUGASSERT(nPol<=4);
+  ASKAPDEBUGASSERT(residual.nelements() == nData);
       
   // Define AutoDiffs to buffer the output of a single call to the calculate 
   // method of the component.
@@ -309,13 +309,13 @@ void ComponentEquation::updateDesignMatrixAndResiduals(
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
 void ComponentEquation::calcGenericEquations(const IConstDataAccessor &chunk,
-                   conrad::scimath::GenericNormalEquations& ne) const
+                   askap::scimath::GenericNormalEquations& ne) const
 {
   const std::vector<IParameterizedComponentPtr> &compList = 
          itsComponents.value(*this,&ComponentEquation::fillComponentCache);
   
   const casa::Vector<double>& freq=chunk.frequency();
-  CONRADDEBUGASSERT(freq.nelements()!=0);
+  ASKAPDEBUGASSERT(freq.nelements()!=0);
   const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = chunk.uvw();
   const casa::Cube<casa::Complex> &visCube = chunk.visibility();
                  
@@ -323,12 +323,12 @@ void ComponentEquation::calcGenericEquations(const IConstDataAccessor &chunk,
   // the number of planes in the visibility cube, if all components are
   // unpolarised
   const casa::uInt nPol = itsAllComponentsUnpolarised ? 1 : chunk.nPol();
-  CONRADDEBUGASSERT(nPol <= chunk.visibility().nplane());
+  ASKAPDEBUGASSERT(nPol <= chunk.visibility().nplane());
       
   // Set up arrays to hold the output values
   // Two values (complex) per row, channel, pol
   const casa::uInt nData=chunk.nRow()*freq.nelements()*2*nPol;
-  CONRADDEBUGASSERT(nData!=0);
+  ASKAPDEBUGASSERT(nData!=0);
   casa::Vector<casa::Double> residual(nData);
       
   // initialize residuals with the observed visibilities          
@@ -345,7 +345,7 @@ void ComponentEquation::calcGenericEquations(const IConstDataAccessor &chunk,
   DesignMatrix designmatrix; // old parameters: parameters();
   for (std::vector<IParameterizedComponentPtr>::const_iterator compIt = 
             compList.begin(); compIt!=compList.end();++compIt) {
-       CONRADDEBUGASSERT(*compIt); 
+       ASKAPDEBUGASSERT(*compIt); 
        updateDesignMatrixAndResiduals(*(*compIt),uvw,freq,designmatrix,
                            residual,nPol);
   }
@@ -373,4 +373,4 @@ ComponentEquation::ShPtr ComponentEquation::clone() const
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap

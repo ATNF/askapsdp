@@ -4,17 +4,17 @@
 /// antenna mounts and positions for all antennas). It caches the whole table
 /// in constructor and then returns cached values. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 // own includes
 #include <dataaccess/MemAntennaSubtableHandler.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, "");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
 
 // casa includes
@@ -23,8 +23,8 @@ CONRAD_LOGGER(logger, "");
 #include <measures/TableMeasures/ScalarMeasColumn.h>
 #include <casa/Arrays/Array.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// read all required information from the ANTENNA subtable
 /// @param[in] ms an input measurement set (a table which has an
@@ -34,7 +34,7 @@ MemAntennaSubtableHandler::MemAntennaSubtableHandler(const casa::Table &ms) :
 {
   casa::Table antennaSubtable=ms.keywordSet().asTable("ANTENNA");
   if (!antennaSubtable.nrow()) {
-      CONRADTHROW(DataAccessError, "The ANTENNA subtable is empty");      
+      ASKAPTHROW(DataAccessError, "The ANTENNA subtable is empty");      
   }
   casa::ROScalarColumn<casa::String> mountCol(antennaSubtable,"MOUNT");
   casa::ROScalarMeasColumn<casa::MPosition> posCol(antennaSubtable,"POSITION");
@@ -58,7 +58,7 @@ MemAntennaSubtableHandler::MemAntennaSubtableHandler(const casa::Table &ms) :
 const casa::MPosition& MemAntennaSubtableHandler::getPosition(casa::uInt antID) 
                            const
 {
-  CONRADDEBUGASSERT(antID<itsPositions.nelements());
+  ASKAPDEBUGASSERT(antID<itsPositions.nelements());
   return itsPositions[antID];
 }                           
   
@@ -68,7 +68,7 @@ const casa::MPosition& MemAntennaSubtableHandler::getPosition(casa::uInt antID)
 /// @return a string describing the mount type
 const casa::String& MemAntennaSubtableHandler::getMount(casa::uInt antID) const
 {
-  CONRADDEBUGASSERT(antID<itsMounts.nelements());
+  ASKAPDEBUGASSERT(antID<itsMounts.nelements());
   return itsMounts[antID];
 }
 

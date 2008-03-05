@@ -4,13 +4,13 @@
 //#
 //#  $Id$
 
-#ifndef CONRAD_MWCONTROL_PREDIFFERTEST_H
-#define CONRAD_MWCONTROL_PREDIFFERTEST_H
+#ifndef ASKAP_MWCONTROL_PREDIFFERTEST_H
+#define ASKAP_MWCONTROL_PREDIFFERTEST_H
 
 #include <mwcontrol/PredifferProxy.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   class PredifferTest: public PredifferProxy
   {

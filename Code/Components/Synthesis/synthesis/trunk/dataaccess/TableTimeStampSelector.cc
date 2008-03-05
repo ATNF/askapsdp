@@ -8,7 +8,7 @@
 ///          column in the table. These two methods are specified
 ///          in the derived classes.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -23,8 +23,8 @@
 #include <dataaccess/TableTimeStampSelector.h>
 #include <dataaccess/DataAccessError.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 
 /// main method, updates table expression node to narrow down the selection
@@ -48,7 +48,7 @@ void TableTimeStampSelector::updateTableExpression(casa::TableExprNode &tex)
     }
   }
   catch(const casa::AipsError &ae) {
-    CONRADTHROW(DataAccessError, "casa::AipsError is caught inside "
+    ASKAPTHROW(DataAccessError, "casa::AipsError is caught inside "
          "TableTimeStampSelector::updateTableExpression: "<<ae.what());
   }
 }

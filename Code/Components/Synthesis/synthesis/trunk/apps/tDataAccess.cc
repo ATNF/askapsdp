@@ -4,11 +4,11 @@
 //
 
 #include <dataaccess/TableDataSource.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, "");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, "");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/ParsetInterface.h>
 
@@ -27,7 +27,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-using namespace conrad;
+using namespace askap;
 using namespace synthesis;
 
 void timeDependentSubtableTest(const string &ms, const IConstDataSource &ds) 
@@ -108,8 +108,8 @@ int main(int argc, char **argv) {
      //doReadWriteTest(ds);    
      
   }
-  catch(const ConradError &ce) {
-     cerr<<"ConradError has been caught. "<<ce.what()<<endl;
+  catch(const AskapError &ce) {
+     cerr<<"AskapError has been caught. "<<ce.what()<<endl;
      return -1;
   }
   catch(const std::exception &ex) {

@@ -1,19 +1,19 @@
 /// @file
 /// @brief Define the shape of a domain.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_DOMAINSHAPE_H
-#define CONRAD_MWCOMMON_DOMAINSHAPE_H
+#ifndef ASKAP_MWCOMMON_DOMAINSHAPE_H
+#define ASKAP_MWCOMMON_DOMAINSHAPE_H
 
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 #include <iosfwd>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Define the shape of a domain.

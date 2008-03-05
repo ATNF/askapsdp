@@ -1,18 +1,18 @@
 //# MWError.cc: Basic exception for mwcontrol related errors
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/MWError.h>
 
-using namespace conrad;
+using namespace askap;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWError::MWError (const std::string& message)
-    : ConradError (message)
+    : AskapError (message)
   {}
 
   MWError::~MWError() throw()

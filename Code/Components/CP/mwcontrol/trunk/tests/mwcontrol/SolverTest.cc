@@ -15,7 +15,7 @@
 using namespace std;
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   SolverTest::SolverTest()
   {}
@@ -64,7 +64,7 @@ namespace conrad { namespace cp {
     {
       // A step has to be processed.
       // Only a solve can be processed.
-      CONRADCHECK (in.getNextType() == "MWSolveStepBBS",
+      ASKAPCHECK (in.getNextType() == "MWSolveStepBBS",
 		   "SolverTest can only handle an MWSolveStepBBS step");
       MWSolveStepBBS step;
       // Fill it from the blobstream.
@@ -101,7 +101,7 @@ namespace conrad { namespace cp {
       break;
     }
     default:
-      CONRADTHROW (MWError, "SolverTest::doProcess: operation "
+      ASKAPTHROW (MWError, "SolverTest::doProcess: operation "
 		   << operation << " is unknown");
     }
     return resOper;

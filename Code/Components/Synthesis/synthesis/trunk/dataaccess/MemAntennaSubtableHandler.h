@@ -4,7 +4,7 @@
 /// antenna mounts and positions for all antennas). It caches the whole table
 /// in constructor and then returns cached values. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -18,7 +18,7 @@
 // own includes
 #include <dataaccess/IAntennaSubtableHandler.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -69,6 +69,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef MEM_ANTENNA_SUBTABLE_HANLDER_H

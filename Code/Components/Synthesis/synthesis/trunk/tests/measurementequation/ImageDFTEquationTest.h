@@ -10,7 +10,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <cmath>
 
@@ -18,10 +18,10 @@ using std::abs;
 
 #include <boost/shared_ptr.hpp>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -32,7 +32,7 @@ namespace conrad
       CPPUNIT_TEST_SUITE(ImageDFTEquationTest);
       CPPUNIT_TEST(testPredict);
       CPPUNIT_TEST(testSVD);
-      CPPUNIT_TEST_EXCEPTION(testFixed, ConradError);
+      CPPUNIT_TEST_EXCEPTION(testFixed, AskapError);
       CPPUNIT_TEST_SUITE_END();
 
       private:

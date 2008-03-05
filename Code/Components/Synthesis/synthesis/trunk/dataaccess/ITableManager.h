@@ -8,7 +8,7 @@
 /// processing options and cached derived information. See its description 
 /// for more details on how this part of the class tree is organized.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -20,7 +20,7 @@
 #include <dataaccess/ITableHolder.h>
 #include <dataaccess/IMiscTableInfoHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -41,6 +41,6 @@ struct ITableManager : virtual public ITableHolder,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #define TABLE_MANAGER_H

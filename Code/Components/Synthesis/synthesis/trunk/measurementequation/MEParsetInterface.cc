@@ -1,6 +1,6 @@
 /// @file
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
@@ -11,11 +11,11 @@
 #include <measures/Measures/MEpoch.h>
 #include <measures/Measures/Measure.h>
 
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/ImageSolver.h>
@@ -28,17 +28,17 @@ CONRAD_LOGGER(logger, ".measurementequation");
 #include <sstream>
 
 using namespace std;
-using namespace conrad;
+using namespace askap;
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{
 
-		void operator<<(conrad::scimath::Solver::ShPtr& solver, 
+		void operator<<(askap::scimath::Solver::ShPtr& solver, 
 				const LOFAR::ACC::APS::ParameterSet &parset)
 		{
-			conrad::scimath::Params params;
+			askap::scimath::Params params;
 			if(parset.getString("solver")=="Clean")
 			{
 				std::vector<float> defaultScales(3);
@@ -46,8 +46,8 @@ namespace conrad
 				defaultScales[1]=10.0;
 				defaultScales[2]=30.0;
 				std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
-				solver = conrad::scimath::Solver::ShPtr(new ImageMultiScaleSolver(params, casa::Vector<float>(scales)));
-				CONRADLOG_INFO_STR(logger, "Constructed image multiscale solver" );
+				solver = askap::scimath::Solver::ShPtr(new ImageMultiScaleSolver(params, casa::Vector<float>(scales)));
+				ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
 				solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
 				solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
 				solver->setVerbose(parset.getBool("solver.Clean.verbose", true));
@@ -58,11 +58,11 @@ namespace conrad
 			}
 			else
 			{
-				solver = conrad::scimath::Solver::ShPtr(new ImageSolver(params));
+				solver = askap::scimath::Solver::ShPtr(new ImageSolver(params));
 				casa::Quantity threshold;
 				casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
 				solver->setThreshold(threshold);
-				CONRADLOG_INFO_STR(logger, "Constructed dirty image solver" );
+				ASKAPLOG_INFO_STR(logger, "Constructed dirty image solver" );
 			}
 		}
 
@@ -83,7 +83,7 @@ namespace conrad
 
 		casa::MEpoch MEParsetInterface::asMEpoch(const vector<string>& epoch)
 		{
-			CONRADCHECK(epoch.size()==2, "Not a valid epoch");
+			ASKAPCHECK(epoch.size()==2, "Not a valid epoch");
 
 			casa::Quantity datetime;
 			casa::Quantity::read(datetime, epoch[0]);
@@ -95,7 +95,7 @@ namespace conrad
 
 		casa::MDirection MEParsetInterface::asMDirection(const vector<string>& direction)
 		{
-			CONRADCHECK(direction.size()==3, "Not a valid direction");
+			ASKAPCHECK(direction.size()==3, "Not a valid direction");
 
 			casa::Quantity lng;
 			casa::Quantity::read(lng, direction[0]);
@@ -109,7 +109,7 @@ namespace conrad
 
 		casa::MPosition MEParsetInterface::asMPosition(const vector<string>& position)
 		{
-			CONRADCHECK(position.size()==4, "Not a valid position");
+			ASKAPCHECK(position.size()==4, "Not a valid position");
 
 			casa::Quantity lng;
 			casa::Quantity::read(lng, position[0]);

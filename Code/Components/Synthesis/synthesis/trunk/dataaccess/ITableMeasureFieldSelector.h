@@ -5,7 +5,7 @@
 /// based on some measure-type field (e.g. time range). This interface
 /// provide appropriate methods.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -22,7 +22,7 @@
 // boost includes
 #include <boost/shared_ptr.hpp>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -53,8 +53,8 @@ public:
    virtual void updateTableExpression(casa::TableExprNode &tex) const = 0;
 };
 
-} // namespace conrad
+} // namespace askap
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_TABLE_MEASURE_FIELD_SELECTOR_H

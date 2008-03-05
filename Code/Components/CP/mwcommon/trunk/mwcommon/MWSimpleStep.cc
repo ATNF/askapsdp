@@ -1,13 +1,13 @@
 //# MWSubtractStep.cc: Step to process the MW solve command
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/MWSimpleStep.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWSimpleStep::~MWSimpleStep()
   {}

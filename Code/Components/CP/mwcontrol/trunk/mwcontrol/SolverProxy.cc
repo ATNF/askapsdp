@@ -7,7 +7,7 @@
 #include <mwcontrol/SolverProxy.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   SolverProxy::~SolverProxy()
   {}

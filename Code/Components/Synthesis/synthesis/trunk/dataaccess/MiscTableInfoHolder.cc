@@ -10,7 +10,7 @@
 /// the same way as the table itself and associated derived information,
 /// allows to avoid creating multiple copies for data source and iterators
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -18,8 +18,8 @@
 // own includes
 #include <dataaccess/MiscTableInfoHolder.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief construct a holder of miscellaneous table processing information
 /// @details The class just remembers the default column name passed in

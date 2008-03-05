@@ -1,6 +1,6 @@
 //# MWStepBBSProp.cc
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -12,7 +12,7 @@
 using namespace LOFAR;
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWStepBBSProp::MWStepBBSProp()
   {}
@@ -54,7 +54,7 @@ namespace conrad { namespace cp {
   void MWStepBBSProp::fromBlob (BlobIStream& bs)
   {
     int vers = bs.getStart ("MWStepBBSProp");
-    CONRADASSERT (vers == 1);
+    ASKAPASSERT (vers == 1);
     bs >> itsStation1 >> itsStation2
        >> itsIntegration >> itsCorrType >> itsCorrSelection
        >> itsSources >> itsExtraSources >> itsInstrumentModel

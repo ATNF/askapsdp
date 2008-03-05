@@ -1,13 +1,13 @@
 /// @file
 /// @brief Classes to convert a message to/from a blob.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_MWBLOBIO_H
-#define CONRAD_MWCOMMON_MWBLOBIO_H
+#ifndef ASKAP_MWCOMMON_MWBLOBIO_H
+#define ASKAP_MWCOMMON_MWBLOBIO_H
 
 #include <Blob/BlobString.h>
 #include <Blob/BlobOBufString.h>
@@ -17,7 +17,7 @@
 #include <casa/OS/Timer.h>
 #include <Common/Timer.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Class to convert a message from a blob.

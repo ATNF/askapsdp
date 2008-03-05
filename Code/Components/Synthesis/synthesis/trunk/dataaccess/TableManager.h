@@ -27,7 +27,7 @@
 ///    from TableInfoAccessor. Its constructor accepts a smart pointer
 ///    to ITableManager, which TableManager is derived from.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -46,7 +46,7 @@
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -96,6 +96,6 @@ struct TableManager : virtual public ITableManager,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #define TABLE_MANAGER_H

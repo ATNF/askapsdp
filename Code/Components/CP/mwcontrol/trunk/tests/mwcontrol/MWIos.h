@@ -4,8 +4,8 @@
 //#
 //#  $Id$
 
-#ifndef CONRAD_MWCONTROL_MWIOSTREAM_H
-#define CONRAD_MWCONTROL_MWIOSTREAM_H
+#ifndef ASKAP_MWCONTROL_MWIOSTREAM_H
+#define ASKAP_MWCONTROL_MWIOSTREAM_H
 
 #include <iostream>
 #include <fstream>
@@ -13,7 +13,7 @@
 
 #define MWCOUT MWIos::os()
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   // MPI has the problem that the output of cout is unpredictable.
   // Therefore the output of tMWControl is using a separate output

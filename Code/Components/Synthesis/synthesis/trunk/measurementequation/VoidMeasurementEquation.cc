@@ -7,14 +7,14 @@
 /// a void measurement equation in the sense that it does nothing to the 
 /// data or normal equations given to it.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
 #include <measurementequation/VoidMeasurementEquation.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This prediction is done for single chunk of data only. 
@@ -30,4 +30,4 @@ void VoidMeasurementEquation::predict(IDataAccessor &) const {}
 /// (i.e. the iteration over chunks should be moved to the higher
 /// level, outside this class). 
 void VoidMeasurementEquation::calcEquations(const IConstDataAccessor &,
-                          conrad::scimath::INormalEquations&) const {}
+                          askap::scimath::INormalEquations&) const {}

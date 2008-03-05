@@ -1,8 +1,8 @@
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".measurementequation");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <dataaccess/SharedIter.h>
 #include <fitting/Params.h>
@@ -20,17 +20,17 @@ CONRAD_LOGGER(logger, ".measurementequation");
 
 #include <stdexcept>
 
-using conrad::scimath::Params;
-using conrad::scimath::Axes;
-using conrad::scimath::DesignMatrix;
+using askap::scimath::Params;
+using askap::scimath::Axes;
+using askap::scimath::DesignMatrix;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
 
-    ImageDFTEquation::ImageDFTEquation(const conrad::scimath::Params& ip,
-      IDataSharedIter& idi) : conrad::scimath::GenericEquation(ip), itsIdi(idi) 
+    ImageDFTEquation::ImageDFTEquation(const askap::scimath::Params& ip,
+      IDataSharedIter& idi) : askap::scimath::GenericEquation(ip), itsIdi(idi) 
       {
         init();
       };
@@ -55,7 +55,7 @@ namespace conrad
     {
       if(this!=&other)
       {
-        static_cast<conrad::scimath::GenericEquation*>(this)->operator=(other);
+        static_cast<askap::scimath::GenericEquation*>(this)->operator=(other);
         itsIdi=other.itsIdi;
       }
       return *this;
@@ -65,7 +65,7 @@ namespace conrad
     {
     }
     
-    conrad::scimath::Params ImageDFTEquation::defaultParameters()
+    askap::scimath::Params ImageDFTEquation::defaultParameters()
     {
       Params ip;
       ip.add("image");
@@ -85,7 +85,7 @@ namespace conrad
       vector<string>::const_iterator it;
 
       if(completions.size()==0) {
-        CONRADLOG_WARN_STR(logger, "No parameters appropriate for ImageFFTEquation");
+        ASKAPLOG_WARN_STR(logger, "No parameters appropriate for ImageFFTEquation");
         return;
       }
 
@@ -145,7 +145,7 @@ namespace conrad
       vector<string>::iterator it;
 
       if(completions.size()==0) {
-        CONRADLOG_WARN_STR(logger, "No parameters appropriate for ImageFFTEquation");
+        ASKAPLOG_WARN_STR(logger, "No parameters appropriate for ImageFFTEquation");
         return;
       }
 
@@ -234,8 +234,8 @@ namespace conrad
         double u=uvw(row)(0);
         double v=uvw(row)(1);
         double w=uvw(row)(2);
-        CONRADDEBUGASSERT(decCells>=0);
-        CONRADDEBUGASSERT(raCells>=0);
+        ASKAPDEBUGASSERT(decCells>=0);
+        ASKAPDEBUGASSERT(raCells>=0);
         
         for (uint m=0;m<uint(decCells);++m)
         {

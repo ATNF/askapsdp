@@ -2,7 +2,7 @@
 ///
 /// ImageDFTEquation: Equation for discrete Fourier transform of an image
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SYNIMAGEDFTEQUATION_H_
@@ -20,7 +20,7 @@
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Cube.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -30,13 +30,13 @@ namespace conrad
     /// @details This class does predictions and calculates normal equations
     /// images. Parameter names are image.{i,q,u,v}.*
     /// @ingroup measurementequation
-    class ImageDFTEquation : public conrad::scimath::GenericEquation
+    class ImageDFTEquation : public askap::scimath::GenericEquation
     {
       public:
         /// Standard constructor
         /// @param ip Parameters
         /// @param idi Data iterator
-        ImageDFTEquation(const conrad::scimath::Params& ip,
+        ImageDFTEquation(const askap::scimath::Params& ip,
           IDataSharedIter& idi);
         
         /// Constructor with default parameters
@@ -52,7 +52,7 @@ namespace conrad
         virtual ~ImageDFTEquation();
 
         /// Return the default parameters
-        static conrad::scimath::Params defaultParameters();
+        static askap::scimath::Params defaultParameters();
 
 
 /// Predict model visibility
@@ -60,7 +60,7 @@ namespace conrad
 
 /// Calculate the normal equations
 /// @param ne Normal equations
-        virtual void calcGenericEquations(conrad::scimath::GenericNormalEquations& ne) const;
+        virtual void calcGenericEquations(askap::scimath::GenericNormalEquations& ne) const;
 
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy

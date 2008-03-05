@@ -26,13 +26,13 @@
 // from *.cc
 #include <mwcommon/MasterControl.h>
 #include <mwcontrol/MWSolveStepBBS.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapUtil.h>
 #include <mwcommon/MWStepFactory.h>
 #include <Blob/BlobIStream.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-using namespace conrad;
-using namespace conrad::cp;
+using namespace askap;
+using namespace askap::cp;
 using namespace LOFAR;
 using namespace std;
 
@@ -167,7 +167,7 @@ void MWStepTester::writeResult (bool result)
       break;
     }
     default:
-      CONRADTHROW (MWError, "PredifferTest::doProcess: operation "
+      ASKAPTHROW (MWError, "PredifferTest::doProcess: operation "
 		   << operation << " is unknown");
     }
     return resOper;
@@ -221,7 +221,7 @@ void MWStepTester::writeResult (bool result)
     {
       // A step has to be processed.
       // Only a solve can be processed.
-      CONRADCHECK (in.getNextType() == "MWSolveStepBBS",
+      ASKAPCHECK (in.getNextType() == "MWSolveStepBBS",
 		   "SolverTest can only handle an MWSolveStepBBS step");
       MWSolveStepBBS step;
       // Fill it from the blobstream.
@@ -258,7 +258,7 @@ void MWStepTester::writeResult (bool result)
       break;
     }
     default:
-      CONRADTHROW (MWError, "SolverTest::doProcess: operation "
+      ASKAPTHROW (MWError, "SolverTest::doProcess: operation "
 		   << operation << " is unknown");
     }
     return resOper;
@@ -350,7 +350,7 @@ void doMaster (const string& port,
   setAllWorkers (prediffers, solvers, *workers, nworkers, factory);
   // Check if there are enough prediffers.
   if (prediffers->size() < nparts) {
-    CONRADTHROW(MWError, "The Visibility Data Set is split into "
+    ASKAPTHROW(MWError, "The Visibility Data Set is split into "
                 << nparts << " parts, so mwcontrol has to have at least "
                 << nparts+1 << " prediffers, but only " << prediffers->size()
                 << " are available");
@@ -406,7 +406,7 @@ void doSolver (const string& host, const string& port,
 void findSocket (int argc, const char** argv,
                  string& host, string& port, int& nnode, int& rank)
 {
-  CONRADCHECK (argc >= 6, "Using sockets run as: tMWControl socket <host> <port> <#nodes> <rank>");
+  ASKAPCHECK (argc >= 6, "Using sockets run as: tMWControl socket <host> <port> <#nodes> <rank>");
 
   host = argv[2];
   port = argv[3];

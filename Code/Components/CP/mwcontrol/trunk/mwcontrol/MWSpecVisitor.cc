@@ -8,7 +8,7 @@
 #include <mwcontrol/MWMultiSpec.h>
 #include <mwcommon/MWError.h>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWSpecVisitor::~MWSpecVisitor()
   {}
@@ -24,25 +24,25 @@ namespace conrad { namespace cp {
 
   void MWSpecVisitor::visitSolve (const MWSolveSpec&)
   {
-    CONRADTHROW (MWError,
+    ASKAPTHROW (MWError,
 	       "visitSolve not implemented in derived MWSpecVisitor class");
   }
 
   void MWSpecVisitor::visitSubtract (const MWSubtractSpec&)
   {
-    CONRADTHROW (MWError,
+    ASKAPTHROW (MWError,
 	       "visitSubtract not implemented in derived MWSpecVisitor class");
   }
 
   void MWSpecVisitor::visitCorrect (const MWCorrectSpec&)
   {
-    CONRADTHROW (MWError,
+    ASKAPTHROW (MWError,
 	       "visitCorrect not implemented in derived MWSpecVisitor class");
   }
 
   void MWSpecVisitor::visitPredict (const MWPredictSpec&)
   {
-    CONRADTHROW (MWError,
+    ASKAPTHROW (MWError,
 	       "visitPredict not implemented in derived MWSpecVisitor class");
   }
 

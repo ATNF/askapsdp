@@ -15,7 +15,7 @@
 /// implements predict/calcEquations methods and can be used with the solvers
 /// in the usual way.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef CALIBRATION_ME_H
@@ -35,7 +35,7 @@
 #include <measurementequation/CalibrationMEBase.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -67,9 +67,9 @@ public:
   /// @param[in] ime measurement equation describing perfect visibilities
   /// @note In the future, measurement equations will work with accessors
   /// only, and, therefore, the dependency on iterator will be removed
-  CalibrationME(const conrad::scimath::Params& ip,
+  CalibrationME(const askap::scimath::Params& ip,
           const IDataSharedIter& idi, const IMeasurementEquation &ime) :
-            MultiChunkEquation(idi), conrad::scimath::GenericEquation(ip),
+            MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
             CalibrationMEBase(parameters(), idi, ime), itsEffect(parameters()) {}
   
   /// Clone this into a shared pointer
@@ -99,6 +99,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef CALIBRATION_ME_H

@@ -12,7 +12,7 @@
 /// Additional read/write buffers can be used via the IDataIterator, which
 /// implements a read/write interface
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -21,7 +21,7 @@
 
 #include <dataaccess/IDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -87,5 +87,5 @@ public:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 #endif // #ifndef I_CONST_DATA_ITERATOR_H

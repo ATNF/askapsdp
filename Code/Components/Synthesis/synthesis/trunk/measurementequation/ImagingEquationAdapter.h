@@ -9,7 +9,7 @@
 /// methods of IMeasurementEquation to the appropriate call of the 
 /// iterator-dependent measurement equation. I hope this adapter is temporary.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef IMAGING_EQUATION_ADAPTER_H
@@ -23,7 +23,7 @@
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -37,7 +37,7 @@ namespace synthesis {
 /// iterator-dependent measurement equation. I hope this adapter is temporary.
 /// @ingroup measurementequation
 struct ImagingEquationAdapter : virtual public IMeasurementEquation,
-                      virtual public conrad::scimath::Equation
+                      virtual public askap::scimath::Equation
 {
    /// @brief constructor
    /// @details This constructor initializes a fake iterator. Actual measurement
@@ -116,6 +116,6 @@ private:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef IMAGING_EQUATION_ADAPTER_H

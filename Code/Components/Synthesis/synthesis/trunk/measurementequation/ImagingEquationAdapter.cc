@@ -9,16 +9,16 @@
 /// methods of IMeasurementEquation to the appropriate call of the 
 /// iterator-dependent measurement equation. I hope this adapter is temporary.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <measurementequation/ImagingEquationAdapter.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 #include <dataaccess/FakeSingleStepIterator.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 /// @brief constructor
 /// @details This constructor initializes a fake iterator. Actual measurement
@@ -33,7 +33,7 @@ ImagingEquationAdapter::ImagingEquationAdapter() :
 /// @return const reference to paramters of this equation
 const scimath::Params& ImagingEquationAdapter::parameters() const
 {
-  CONRADCHECK(itsActualEquation, 
+  ASKAPCHECK(itsActualEquation, 
      "assign method should be called before first usage of ImagingEquationAdapter");
   return itsActualEquation->parameters();
 }
@@ -43,7 +43,7 @@ const scimath::Params& ImagingEquationAdapter::parameters() const
 /// @params[in] par new parameters
 void ImagingEquationAdapter::setParameters(const scimath::Params &par)
 {
-  CONRADCHECK(itsActualEquation, 
+  ASKAPCHECK(itsActualEquation, 
      "assign method should be called before first usage of ImagingEquationAdapter");
   itsActualEquation->setParameters(par);  
 }
@@ -52,7 +52,7 @@ void ImagingEquationAdapter::setParameters(const scimath::Params &par)
 /// @details This call is translated to itsActualEquation.
 void ImagingEquationAdapter::predict() const
 {
-  CONRADCHECK(itsActualEquation, 
+  ASKAPCHECK(itsActualEquation, 
      "assign method should be called before first usage of ImagingEquationAdapter");
   // there will be an exception if this class is initialized with the type,
   // which works with the iterator directly and bypasses accessor-based method.
@@ -64,7 +64,7 @@ void ImagingEquationAdapter::predict() const
 /// @params[in] ne normal equations to be updated
 void ImagingEquationAdapter::calcEquations(scimath::INormalEquations &ne) const
 { 
-  CONRADCHECK(itsActualEquation, 
+  ASKAPCHECK(itsActualEquation, 
      "assign method should be called before first usage of ImagingEquationAdapter");
   
   // there will be an exception if this class is initialized with the type,
@@ -86,7 +86,7 @@ scimath::Equation::ShPtr ImagingEquationAdapter::clone() const
          // we need an explicit type conversion, because shared iter would
          // dereference the iterator according to its interface
          const boost::shared_ptr<IDataIterator> basicIt = itsIterAdapter;
-         CONRADDEBUGASSERT(basicIt);
+         ASKAPDEBUGASSERT(basicIt);
      
          const FakeSingleStepIterator &it = dynamic_cast<const FakeSingleStepIterator&>(*basicIt);
          result->itsIterAdapter = IDataSharedIter(new FakeSingleStepIterator(it));
@@ -96,7 +96,7 @@ scimath::Equation::ShPtr ImagingEquationAdapter::clone() const
      }
   }
   catch (const std::bad_cast &bc) {
-     CONRADTHROW(ConradError, "Bad cast inside ImagingEquationAdapter::clone, most likely this means "
+     ASKAPTHROW(AskapError, "Bad cast inside ImagingEquationAdapter::clone, most likely this means "
                  "there is a logical error");
   }
   return result;
@@ -111,7 +111,7 @@ void ImagingEquationAdapter::predict(IDataAccessor &chunk) const
    boost::shared_ptr<FakeSingleStepIterator> it = 
              itsIterAdapter.dynamicCast<FakeSingleStepIterator>();
    if (!it) {
-       CONRADTHROW(ConradError, "Bad cast inside ImagingEquationAdapter::predict, most likely this means "
+       ASKAPTHROW(AskapError, "Bad cast inside ImagingEquationAdapter::predict, most likely this means "
               "there is a logical error"); 
    }
    it->assignDataAccessor(chunk);  
@@ -130,7 +130,7 @@ void ImagingEquationAdapter::calcEquations(const IConstDataAccessor &chunk,
   boost::shared_ptr<FakeSingleStepIterator> it = 
             itsIterAdapter.dynamicCast<FakeSingleStepIterator>();
   if (!it) {
-      CONRADTHROW(ConradError, "Bad cast inside ImagingEquationAdapter::calcEquations, most likely this means "
+      ASKAPTHROW(AskapError, "Bad cast inside ImagingEquationAdapter::calcEquations, most likely this means "
                  "there is a logical error");
   }
   it->assignConstDataAccessor(chunk);  

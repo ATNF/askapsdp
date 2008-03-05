@@ -1,17 +1,17 @@
 //# NodeDesc.cc: Description of a node
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
 
 #include <mwcommon/NodeDesc.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapUtil.h>
 #include <ostream>
 
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   NodeDesc::NodeDesc (const LOFAR::ACC::APS::ParameterSet& parset)
   {

@@ -4,7 +4,7 @@
 /// which is used within the implementation of the data accessor.
 /// The end user interacts with the  IDataConverter class. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -16,8 +16,8 @@
 // own includes
 #include <dataaccess/DirectionConverter.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 using namespace casa;
 
 /// create a converter to the target frame

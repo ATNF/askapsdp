@@ -10,9 +10,9 @@
 /// @defgroup simulation Data simulation
 
 /// The package namespace
-namespace conrad::synthesis {};
+namespace askap::synthesis {};
 
-/// @mainpage CONRAD synthesis package
+/// @mainpage ASKAP synthesis package
 ///
 /// @section synth_intro Introduction
 /// The synthesis package supports processing of radio synthesis observations,
@@ -36,7 +36,7 @@ namespace conrad::synthesis {};
 /// image data always fits in memory during the processing.
 ///
 /// @section synth_dependencies Dependencies
-/// The synthesis package makes extensive use of the CONRAD @ref fitting 
+/// The synthesis package makes extensive use of the ASKAP @ref fitting 
 /// framework. 
 ///
 /// Data access is via a set of classes that make use of the casa measures
@@ -88,7 +88,7 @@ namespace conrad::synthesis {};
 /// substantially faster.
 ///
 /// @subsection synth_simulate 6. Data simulation
-/// @li The Simulator class is a port of the CASA simulator code to conrad. It has similar but not
+/// @li The Simulator class is a port of the CASA simulator code to askap. It has similar but not
 /// identical functionality. It is used by the csimulator app.
 ///
 /// @section synth_subpackages Subpackages
@@ -104,4 +104,4 @@ namespace conrad::synthesis {};
 /// @li @ref fft
 /// @li @ref simulation
 ///
-/// @copyright 2007 CONRAD, All Rights Reserved.
+/// @copyright 2007 ASKAP, All Rights Reserved.

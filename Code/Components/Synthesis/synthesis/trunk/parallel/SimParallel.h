@@ -2,11 +2,11 @@
 ///
 /// SimParallel: Support for parallel simulation
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_SYNTHESIS_SIMPARALLEL_H_
-#define CONRAD_SYNTHESIS_SIMPARALLEL_H_
+#ifndef ASKAP_SYNTHESIS_SIMPARALLEL_H_
+#define ASKAP_SYNTHESIS_SIMPARALLEL_H_
 
 #include <parallel/SynParallel.h>
 
@@ -17,7 +17,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{

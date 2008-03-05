@@ -5,12 +5,12 @@
 #include <mwcontrol/MWStrategySpec.h>
 #include <mwcontrol/MWSpec.h>
 #include <mwcontrol/ParameterHandlerBBS.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapUtil.h>
 #include <ostream>
 
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   MWStrategySpec::MWStrategySpec (const std::string& name,
 				  const LOFAR::ACC::APS::ParameterSet& parset)

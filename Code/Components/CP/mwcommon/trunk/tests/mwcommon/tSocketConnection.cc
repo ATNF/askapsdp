@@ -6,12 +6,12 @@
 
 #include <mwcommon/SocketConnection.h>
 #include <mwcommon/SocketListener.h>
-#include <mwcommon/ConradError.h>
+#include <mwcommon/AskapError.h>
 #include <iostream>
 #include <unistd.h>
 
-using namespace conrad;
-using namespace conrad::cp;
+using namespace askap;
+using namespace askap::cp;
 using namespace std;
 
 void doClient (const string& host, const string& port)
@@ -25,11 +25,11 @@ void doClient (const string& host, const string& port)
   cout << "sent " << dv << endl;
   float fv = 0;
   socket.receive (&fv, sizeof(fv));
-  CONRADASSERT (fv == 2);
+  ASKAPASSERT (fv == 2);
   cout << "received " << fv << endl;
   sleep(2);
   socket.receive (&fv, sizeof(fv));
-  CONRADASSERT (fv == 3);
+  ASKAPASSERT (fv == 3);
   cout << "received " << fv << endl;
   dv = 2;
   socket.send (&dv, sizeof(dv));
@@ -43,7 +43,7 @@ void doServer (const string& port)
   SocketConnection::ShPtr socket = listener.accept();
   double dv = 0;
   socket->receive (&dv, sizeof(dv));
-  CONRADASSERT (dv == 1);
+  ASKAPASSERT (dv == 1);
   cout << "received " << dv << endl;
   float fv = 2;
   socket->send (&fv, sizeof(fv));
@@ -52,7 +52,7 @@ void doServer (const string& port)
   socket->send (&fv, sizeof(fv));
   cout << "sent " << fv << endl;
   socket->receive (&dv, sizeof(dv));
-  CONRADASSERT (dv == 2);
+  ASKAPASSERT (dv == 2);
   cout << "received " << dv << endl;
 }
 

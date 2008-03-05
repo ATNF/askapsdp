@@ -2,15 +2,15 @@
 ///
 /// WProjectVisGridder: W projection gridding
 
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_SYNTHESIS_WPROJECTVISGRIDDER_H_
-#define CONRAD_SYNTHESIS_WPROJECTVISGRIDDER_H_
+#ifndef ASKAP_SYNTHESIS_WPROJECTVISGRIDDER_H_
+#define ASKAP_SYNTHESIS_WPROJECTVISGRIDDER_H_
 
 #include <gridding/SphFuncVisGridder.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

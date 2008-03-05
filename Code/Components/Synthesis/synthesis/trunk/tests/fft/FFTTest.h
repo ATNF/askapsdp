@@ -5,7 +5,7 @@
 #include <casa/Arrays/Matrix.h>
 #include <fft/FFTWrapper.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <stdexcept>
@@ -43,7 +43,7 @@ static double calc_error(const casa::Array<T>& A, const casa::Array<T>& B, Metri
                 totalError += pow(abs(A(iPos)-B(iPos)) / abs(B(iPos)),2);
                 break;
             default:
-                CONRADTHROW(conrad::ConradError, "Action is not defined for metric "<<metric);
+                ASKAPTHROW(askap::AskapError, "Action is not defined for metric "<<metric);
         }
     }
 
@@ -54,7 +54,7 @@ static double calc_error(const casa::Array<T>& A, const casa::Array<T>& B, Metri
             totalError = sqrt(totalError);
             break;
         default:
-            CONRADTHROW(conrad::ConradError, "Action is not defined for metric "<<metric);
+            ASKAPTHROW(askap::AskapError, "Action is not defined for metric "<<metric);
     }
     return totalError;
 }
@@ -90,11 +90,11 @@ static bool forward_backward_test(const int N, casa::Matrix<T>& mat, MetricNames
     // Forward FFT
     for(int c=0; c<N; c++){
         casa::Vector<T> y = mat.column(c);
-        conrad::synthesis::fft(y, FFT);                    
+        askap::synthesis::fft(y, FFT);                    
     }
     for(int r=0; r<N; r++){
         casa::Vector<T> y = mat.row(r);
-        conrad::synthesis::fft(y, FFT);                            
+        askap::synthesis::fft(y, FFT);                            
     }
     
     returnVal = !(test_for_equality(mat, original, metric, diffP, diff));
@@ -103,11 +103,11 @@ static bool forward_backward_test(const int N, casa::Matrix<T>& mat, MetricNames
     // Inverse FFT
     for(int c=0; c<N; c++){
         casa::Vector<T> y = mat.column(c);
-        conrad::synthesis::fft(y, IFFT);                    
+        askap::synthesis::fft(y, IFFT);                    
     }
     for(int r=0; r<N; r++){
         casa::Vector<T> y = mat.row(r);
-        conrad::synthesis::fft(y, IFFT);                            
+        askap::synthesis::fft(y, IFFT);                            
     }
 
     returnVal = returnVal && test_for_equality(mat, original, metric, diffP, diff);
@@ -117,7 +117,7 @@ static bool forward_backward_test(const int N, casa::Matrix<T>& mat, MetricNames
 
 //===============================================================================================
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

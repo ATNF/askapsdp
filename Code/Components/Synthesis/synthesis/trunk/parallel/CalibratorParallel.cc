@@ -14,19 +14,19 @@
 ///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 // logging stuff
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".parallel");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".parallel");
 
 // own includes
 #include <parallel/CalibratorParallel.h>
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
@@ -55,11 +55,11 @@ CONRAD_LOGGER(logger, ".parallel");
 #include <sstream>
 #include <vector>
 
-using namespace conrad;
-using namespace conrad::scimath;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::scimath;
+using namespace askap::synthesis;
 using namespace LOFAR::ACC::APS;
-using namespace conrad::cp;
+using namespace askap::cp;
 
 /// @brief Constructor from ParameterSet
 /// @details The parset is used to construct the internal state. We could
@@ -79,7 +79,7 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
       readModels();
       // itsModel has gain parameters for calibration, populate them with
       // an initial guess
-      CONRADDEBUGASSERT(itsModel); // should be initialized in SynParallel
+      ASKAPDEBUGASSERT(itsModel); // should be initialized in SynParallel
       
       // initial assumption of the parameters
       const casa::uInt nAnt = 45; // hard coded at this stage 
@@ -92,14 +92,14 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
       
       /// Create the solver  
       itsSolver.reset(new LinearSolver(*itsModel));
-      CONRADCHECK(itsSolver, "Solver not defined correctly");
+      ASKAPCHECK(itsSolver, "Solver not defined correctly");
       itsRefGain = itsParset.getString("refgain","");
   }
   if (isWorker()) {
       /// Get the list of measurement sets and the column to use.
       itsColName=itsParset.getString("datacolumn", "DATA");
       itsMs=itsParset.getStringVector("dataset");
-      CONRADCHECK(itsMs.size()>0, "Need dataset specification");
+      ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
       if (itsMs.size()==1) {
           string tmpl=itsMs[0];
           if (itsNNode>2) {
@@ -110,14 +110,14 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
           }
       }
       if (itsNNode>1) {
-          CONRADCHECK(int(itsMs.size()) == (itsNNode-1),
+          ASKAPCHECK(int(itsMs.size()) == (itsNNode-1),
               "When running in parallel, need one data set per node");
       }
 
       /// Create the gridder using a factory acting on a
       /// parameterset
       itsGridder=VisGridderFactory::make(itsParset);
-      CONRADCHECK(itsGridder, "Gridder not defined correctly");
+      ASKAPCHECK(itsGridder, "Gridder not defined correctly");
   }
 }
 
@@ -137,23 +137,23 @@ void CalibratorParallel::readModels()
 	   oos << "sources." << sources[i]<< ".model";
 	   if (parset.isDefined(oos.str())) {
            string model=parset.getString(oos.str());
-           CONRADLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
+           ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
            std::ostringstream paramName;
            paramName << "image.i." << sources[i];
            SynthesisParamsHelper::getFromCasaImage(*itsPerfectModel, paramName.str(), model);
        }
   }
-  CONRADLOG_INFO_STR(logger, "Successfully read models");
+  ASKAPLOG_INFO_STR(logger, "Successfully read models");
 }
 
 void CalibratorParallel::calcOne(const std::string& ms, bool discard)
 {
   casa::Timer timer;
   timer.mark();
-  CONRADLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
+  ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
   // First time around we need to generate the equation 
   if ((!itsEquation)|| (!itsPerfectME) || discard) {
-      CONRADLOG_INFO_STR(logger, "Creating measurement equation" );
+      ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
       TableDataSource ds(ms, TableDataSource::DEFAULT, itsColName);
       IDataSelectorPtr sel=ds.createSelector();
       sel << itsParset;
@@ -162,21 +162,21 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
           "Hz");
       conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
       IDataSharedIter it=ds.createIterator(sel, conv);
-      CONRADCHECK(itsPerfectModel, "Uncorrupted model not defined");
-      CONRADCHECK(itsModel, "Initial assumption of parameters is not defined");
-      CONRADCHECK(itsGridder, "Gridder not defined");
+      ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
+      ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");
+      ASKAPCHECK(itsGridder, "Gridder not defined");
       boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
       ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, itsGridder);
       itsPerfectME = ieAdapter;
       itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,*itsPerfectME));
   } else {
-      CONRADLOG_INFO_STR(logger, "Reusing measurement equation" );
+      ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
   }
-  CONRADCHECK(itsEquation, "Equation not defined");
-  CONRADCHECK(itsPerfectME, "PerfectME not defined");
-  CONRADCHECK(itsNe, "NormalEquations not defined");
+  ASKAPCHECK(itsEquation, "Equation not defined");
+  ASKAPCHECK(itsPerfectME, "PerfectME not defined");
+  ASKAPCHECK(itsNe, "NormalEquations not defined");
   itsEquation->calcEquations(*itsNe);
-  CONRADLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()
+  ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()
                      << " seconds ");
 }
 
@@ -188,13 +188,13 @@ void CalibratorParallel::calcNE()
 
   if (isWorker()) {
         
-      CONRADDEBUGASSERT(itsNe);
+      ASKAPDEBUGASSERT(itsNe);
 
       if (isParallel()) {
           calcOne(itsMs[itsRank-1]);
           sendNE();
       } else {
-          CONRADCHECK(itsSolver, "Solver not defined correctly");
+          ASKAPCHECK(itsSolver, "Solver not defined correctly");
           itsSolver->init();
           itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); ++iMs) {
@@ -213,17 +213,17 @@ void CalibratorParallel::solveNE()
           receiveNE();
       }
         
-      CONRADLOG_INFO_STR(logger, "Solving normal equations");
+      ASKAPLOG_INFO_STR(logger, "Solving normal equations");
       casa::Timer timer;
       timer.mark();
       Quality q;
-      CONRADDEBUGASSERT(itsSolver);
+      ASKAPDEBUGASSERT(itsSolver);
       itsSolver->setAlgorithm("SVD");     
       itsSolver->solveNormalEquations(q);
-      CONRADLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds ");
+      ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds ");
       *itsModel=itsSolver->parameters();
       if (itsRefGain != "") {
-          CONRADLOG_INFO_STR(logger, "Rotating phases to have that of "<<itsRefGain<<" equal to 0");
+          ASKAPLOG_INFO_STR(logger, "Rotating phases to have that of "<<itsRefGain<<" equal to 0");
           rotatePhases();
       }
   }
@@ -239,9 +239,9 @@ void CalibratorParallel::solveNE()
 /// the parameters of itsModel
 void CalibratorParallel::rotatePhases()
 {
-  CONRADDEBUGASSERT(isMaster());
-  CONRADDEBUGASSERT(itsModel);
-  CONRADCHECK(itsModel->has(itsRefGain), "phase rotation to `"<<itsRefGain<<
+  ASKAPDEBUGASSERT(isMaster());
+  ASKAPDEBUGASSERT(itsModel);
+  ASKAPCHECK(itsModel->has(itsRefGain), "phase rotation to `"<<itsRefGain<<
               "` is impossible because this parameter is not present in the model");
   
   const casa::Complex refPhaseTerm = casa::polar(1.f,
@@ -262,8 +262,8 @@ void CalibratorParallel::rotatePhases()
 void CalibratorParallel::writeModel()
 {
   if (isMaster()) {
-      CONRADLOG_INFO_STR(logger, "Writing out results into a parset file");
-      CONRADDEBUGASSERT(itsModel);
+      ASKAPLOG_INFO_STR(logger, "Writing out results into a parset file");
+      ASKAPDEBUGASSERT(itsModel);
       std::vector<std::string> parlist = itsModel->names();
       std::ofstream os("result.dat"); // for now just hard code it
       for (std::vector<std::string>::const_iterator it = parlist.begin(); 

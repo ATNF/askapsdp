@@ -11,7 +11,7 @@
 /// in the situation when the iterators with different selection access
 /// the same buffer (this behavior is still TBD).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -23,7 +23,7 @@
 #include <dataaccess/IConstDataIterator.h>
 #include <dataaccess/IDataAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -124,5 +124,5 @@ public:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 #endif // #ifndef I_DATA_ITERATOR_H

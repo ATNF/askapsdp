@@ -4,7 +4,7 @@
 /// @details This is a simple effect which doesn't change anything.
 /// it is used mainly for debugging. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef IDENTITY_COMPONENT_H
@@ -15,14 +15,14 @@
 #include <fitting/ComplexDiff.h>
 #include <fitting/Params.h>
 #include <dataaccess/IConstDataAccessor.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <measurementequation/MEComponent.h>
 
 
 // std includes
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -70,7 +70,7 @@ inline scimath::ComplexDiffMatrix IdentityComponent::get(const IConstDataAccesso
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 
 

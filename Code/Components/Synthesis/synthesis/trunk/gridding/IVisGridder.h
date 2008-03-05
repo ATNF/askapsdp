@@ -2,11 +2,11 @@
 ///
 /// IVisGridder: Interface definition for visibility gridders
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CONRAD_SYNTHESIS_IVISGRIDDER_H_
-#define CONRAD_SYNTHESIS_IVISGRIDDER_H_
+#ifndef ASKAP_SYNTHESIS_IVISGRIDDER_H_
+#define ASKAP_SYNTHESIS_IVISGRIDDER_H_
 
 #include <casa/aips.h>
 #include <casa/Arrays/Vector.h>
@@ -21,7 +21,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{

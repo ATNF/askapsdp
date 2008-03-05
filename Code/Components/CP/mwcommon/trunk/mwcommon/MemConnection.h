@@ -1,13 +1,13 @@
 /// @file
 /// @brief Connection to workers based on memory.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_MEMCONNECTION_H
-#define CONRAD_MWCOMMON_MEMCONNECTION_H
+#ifndef ASKAP_MWCOMMON_MEMCONNECTION_H
+#define ASKAP_MWCOMMON_MEMCONNECTION_H
 
 #include <mwcommon/MWConnection.h>
 #include <mwcommon/WorkerProxy.h>
@@ -15,7 +15,7 @@
 #include <boost/shared_ptr.hpp>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Connection to workers based on memory.

@@ -4,10 +4,10 @@
 /// the content of the ANTENNA subtable (which provides antenna mounts and
 /// positions). It looks like the measurement set can't easily handle 
 /// time-dependent antenna tables and this case is definitely out of scope for
-/// CONRAD. Therefore, the interface doesn't allow the information to change in
+/// ASKAP. Therefore, the interface doesn't allow the information to change in
 /// time. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -21,7 +21,7 @@
 // own includes
 #include <dataaccess/IHolder.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -30,7 +30,7 @@ namespace synthesis {
 /// the content of the ANTENNA subtable (which provides antenna mounts and
 /// positions). It looks like the measurement set can't easily handle 
 /// time-dependent antenna tables and this case is definitely out of scope for
-/// CONRAD. Therefore, the interface doesn't allow the information to change
+/// ASKAP. Therefore, the interface doesn't allow the information to change
 /// with time. 
 /// @ingroup dataaccess_tab
 struct IAntennaSubtableHandler : virtual public IHolder {
@@ -59,6 +59,6 @@ struct IAntennaSubtableHandler : virtual public IHolder {
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_ANTENNA_SUBTABLE_HANLDER_H

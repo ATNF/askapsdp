@@ -5,7 +5,7 @@
 /// interface contains methods used within the implementation part of the
 /// data access layer, which are not exposed to the end user.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -24,7 +24,7 @@
 // own includes
 #include <dataaccess/IDataConverter.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -116,5 +116,5 @@ public:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 #endif // I_DATA_CONVERTER_IMPL_H

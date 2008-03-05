@@ -1,13 +1,13 @@
 /// @file
 /// @brief Specification of a BBS strategy
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCONTROL_MWSTRATEGYSPEC_H
-#define CONRAD_MWCONTROL_MWSTRATEGYSPEC_H
+#ifndef ASKAP_MWCONTROL_MWSTRATEGYSPEC_H
+#define ASKAP_MWCONTROL_MWSTRATEGYSPEC_H
 
 //# Includes
 #include <mwcontrol/MWMultiSpec.h>
@@ -15,7 +15,7 @@
 #include <vector>
 #include <iosfwd>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcontrol
   /// @brief Specification of a BBS strategy

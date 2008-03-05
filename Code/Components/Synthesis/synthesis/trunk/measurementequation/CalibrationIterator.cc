@@ -14,17 +14,17 @@
 /// @note I hope this adapter is temporary, and a better way of handling 
 /// composite equations will be adopted in the future.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <measurementequation/CalibrationIterator.h>
 #include <dataaccess/MemBufferDataAccessor.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <measurementequation/CalibrationMEBase.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief construct iterator
 /// @details The input iterator is remembered and switched to the 
@@ -41,9 +41,9 @@ CalibrationIterator::CalibrationIterator(const IDataSharedIter &iter,
               const boost::shared_ptr<IMeasurementEquation> &calME) :
     itsWrappedIterator(iter), itsCalibrationME(calME), itsBufferFlag(false)
 {
-  CONRADASSERT(itsWrappedIterator);
+  ASKAPASSERT(itsWrappedIterator);
   itsWrappedIterator.chooseOriginal();
-  CONRADASSERT(itsCalibrationME);
+  ASKAPASSERT(itsCalibrationME);
 }
 	
 /// Return the data accessor (current chunk) in various ways
@@ -56,7 +56,7 @@ CalibrationIterator::CalibrationIterator(const IDataSharedIter &iter,
 ///
 IDataAccessor& CalibrationIterator::operator*() const
 {
-  CONRADDEBUGASSERT(itsWrappedIterator);
+  ASKAPDEBUGASSERT(itsWrappedIterator);
   if (itsBufferFlag) {
       // buffer is active, just return what wrapped iterator points to
       return *itsWrappedIterator;
@@ -69,15 +69,15 @@ IDataAccessor& CalibrationIterator::operator*() const
       // changes.
       itsDataAccessor.reset(new MemBufferDataAccessor(*itsWrappedIterator));
 
-      CONRADDEBUGASSERT(itsDataAccessor);
+      ASKAPDEBUGASSERT(itsDataAccessor);
       // copy perfect data
       itsDataAccessor->rwVisibility() = itsWrappedIterator->visibility().copy();
       
       // correct data
-      CONRADDEBUGASSERT(itsCalibrationME);
+      ASKAPDEBUGASSERT(itsCalibrationME);
       boost::shared_ptr<CalibrationMEBase> calME = 
               boost::dynamic_pointer_cast<CalibrationMEBase>(itsCalibrationME);
-      CONRADCHECK(calME, "An attempt to use CalibrationIterator with a wrong type of the calibration ME");
+      ASKAPCHECK(calME, "An attempt to use CalibrationIterator with a wrong type of the calibration ME");
               
       calME->correct(*itsDataAccessor);
   }
@@ -103,7 +103,7 @@ void CalibrationIterator::chooseBuffer(const std::string &bufferID)
 {
   itsBufferFlag = true; // a buffer is active
   itsDataAccessor.reset(); // invalidate cache of calibrated visibilities
-  CONRADDEBUGASSERT(itsWrappedIterator)
+  ASKAPDEBUGASSERT(itsWrappedIterator)
   itsWrappedIterator.chooseBuffer(bufferID);
 }
 
@@ -116,7 +116,7 @@ void CalibrationIterator::chooseOriginal()
 {
   itsBufferFlag = false; // original is active
   itsDataAccessor.reset(); // invalidate cache of calibrated visibilities
-  CONRADDEBUGASSERT(itsWrappedIterator)
+  ASKAPDEBUGASSERT(itsWrappedIterator)
   itsWrappedIterator.chooseOriginal();
 }
 
@@ -133,14 +133,14 @@ void CalibrationIterator::chooseOriginal()
 /// write operation took place and implement a delayed writing
 IDataAccessor& CalibrationIterator::buffer(const std::string &bufferID) const
 {
-  CONRADDEBUGASSERT(itsWrappedIterator)
+  ASKAPDEBUGASSERT(itsWrappedIterator)
   return itsWrappedIterator.buffer(bufferID);
 }
 
 /// Restart the iteration from the beginning
 void CalibrationIterator::init()
 {
-  CONRADDEBUGASSERT(itsWrappedIterator)
+  ASKAPDEBUGASSERT(itsWrappedIterator)
   itsWrappedIterator.init();
 }
 	
@@ -148,7 +148,7 @@ void CalibrationIterator::init()
 /// @return True if there are more data available
 casa::Bool CalibrationIterator::hasMore() const throw()
 {
-  #ifdef CONRAD_DEBUG
+  #ifdef ASKAP_DEBUG
   if (!itsWrappedIterator) {
       return false;
   }
@@ -162,6 +162,6 @@ casa::Bool CalibrationIterator::hasMore() const throw()
 casa::Bool CalibrationIterator::next()
 {
   itsDataAccessor.reset(); // invalidate cache of calibrated visibilities
-  CONRADDEBUGASSERT(itsWrappedIterator)
+  ASKAPDEBUGASSERT(itsWrappedIterator)
   return itsWrappedIterator.next();
 }

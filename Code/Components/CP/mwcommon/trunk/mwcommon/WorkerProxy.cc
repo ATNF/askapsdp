@@ -1,6 +1,6 @@
 //# WorkerProxy.cc: Base class for the proxy of a worker
 //#
-//# @copyright (c) 2007 CONRAD, All Rights Reserved.
+//# @copyright (c) 2007 ASKAP, All Rights Reserved.
 //# @author Ger van Diepen <diepen AT astron nl>
 //#
 //# $Id$
@@ -14,7 +14,7 @@
 #include <Blob/BlobArray.h>
 
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   WorkerProxy::WorkerProxy()
     : itsWorkerId (-1)
@@ -36,7 +36,7 @@ namespace conrad { namespace cp {
   {
     // Read back from blob string.
     MWBlobIn bin(in);
-    CONRADASSERT (bin.getOperation() == 0);
+    ASKAPASSERT (bin.getOperation() == 0);
     WorkerInfo info;
     bin.blobStream() >> info;
     return info;

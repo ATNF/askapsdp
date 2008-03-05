@@ -9,15 +9,15 @@
 /// class allows to simplify this transition, by factoring out the old
 /// interface and implementing it via the new one.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
 // own includes
 #include <measurementequation/MultiChunkEquation.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief Standard constructor, which remembers data iterator.
 /// @param idi data iterator
@@ -29,7 +29,7 @@ MultiChunkEquation::MultiChunkEquation(const IDataSharedIter& idi) :
 /// calls an abstract method declared in IMeasurementEquation for each 
 //// individual accessor (each iteration of the iterator)
 /// @param[in] ne Normal equations
-void MultiChunkEquation::calcEquations(conrad::scimath::INormalEquations& ne) const
+void MultiChunkEquation::calcEquations(askap::scimath::INormalEquations& ne) const
 { 
   for (itsSharedIterator.init(); itsSharedIterator.hasMore(); 
                                  itsSharedIterator.next()) {

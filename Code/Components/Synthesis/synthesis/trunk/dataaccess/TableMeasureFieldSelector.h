@@ -6,7 +6,7 @@
 /// fully defined converter for processing
 /// (base interface is ITableMeasureSelector)
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -16,7 +16,7 @@
 // own includes
 #include <dataaccess/ITableMeasureFieldSelector.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -49,9 +49,9 @@ private:
 };
 
 
-} // namespace conrad
+} // namespace askap
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef TABLE_MEASURE_FIELD_SELECTOR_H
 

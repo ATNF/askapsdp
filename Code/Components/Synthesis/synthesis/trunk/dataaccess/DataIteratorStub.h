@@ -1,7 +1,7 @@
 /// @file DataIteratorStub.h
 /// @brief A stub to work in pair with DataAccessorStub
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -13,7 +13,7 @@
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/DataAccessorStub.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -109,5 +109,5 @@ public:
 
 } // end of namespace synthesis
 
-} // end of namespace conrad
+} // end of namespace askap
 #endif // #ifndef I_DATA_ITERATOR_H

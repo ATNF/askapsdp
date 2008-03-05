@@ -2,7 +2,7 @@
 ///
 /// DataConverterTest: Tests of the DataConverter class(es)
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 #ifndef I_DATA_CONVERTER_TEST_IMPL_H
@@ -31,7 +31,7 @@ using namespace std;
 // cppunit includes
 #include <cppunit/extensions/HelperMacros.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -177,7 +177,7 @@ public:
                                      casa::MFrequency::LSRK),"GHz");
      const casa::Double buf=itsConverter->frequency(lsrkVel);
      // to keep the compiler happy that this variable is used
-     CONRADASSERT(true || buf==0);     
+     ASKAPASSERT(true || buf==0);     
    }
    
    /// test missing rest frequency for frequency to velocity conversion
@@ -189,7 +189,7 @@ public:
                                     casa::MRadialVelocity::LSRK),"km/s");
      const casa::Double buf=itsConverter->velocity(lsrkFreq);     
      // to keep the compiler happy that this variable is used
-     CONRADASSERT(true || buf==0);     
+     ASKAPASSERT(true || buf==0);     
    }
 
    /// test velocity to frequency conversion
@@ -283,6 +283,6 @@ private:
 };
 
 } // namespace synthesis
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_DATA_CONVERTER_TEST_IMPL_H

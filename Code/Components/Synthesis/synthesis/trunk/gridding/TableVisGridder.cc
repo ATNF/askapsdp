@@ -1,10 +1,10 @@
 #include <gridding/TableVisGridder.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".gridding");
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 #include <fft/FFTWrapper.h>
 
 #include <casa/BasicSL/Constants.h>
@@ -19,14 +19,14 @@ CONRAD_LOGGER(logger, ".gridding");
 
 #include <gridding/GridKernel.h>
 
-using namespace conrad::scimath;
-using namespace conrad;
+using namespace askap::scimath;
+using namespace askap;
 
 #include <ostream>
 
 #include <casa/OS/Timer.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -46,49 +46,49 @@ namespace conrad
       itsNumberGridded(0), itsNumberDegridded(0), itsTimeGridded(0.0),
       itsTimeDegridded(0.0)
     {
-      CONRADCHECK(overSample>0, "Oversampling must be greater than 0");
-      CONRADCHECK(support>0, "Maximum support must be greater than 0");
+      ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
+      ASKAPCHECK(support>0, "Maximum support must be greater than 0");
     }
     
     TableVisGridder::~TableVisGridder()
     {
       if (itsNumberGridded>0)
 	{
-	  CONRADLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
-	  CONRADLOG_INFO_STR(logger, "   " << GridKernel::info());
-	  CONRADLOG_INFO_STR(logger, "   Total time gridding   = "
+	  ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
+	  ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
+	  ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
 			     << itsTimeGridded << " (s)");
-	  CONRADLOG_INFO_STR(logger, "   Samples gridded       = "
+	  ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
 			     << itsSamplesGridded);
-	  CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
+	  ASKAPLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
 			     *itsTimeGridded/itsSamplesGridded << " (ns)");
-	  CONRADLOG_INFO_STR(logger, "   Points gridded        = "
+	  ASKAPLOG_INFO_STR(logger, "   Points gridded        = "
 			     << itsNumberGridded);
-	  CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9
+	  ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 			     *itsTimeGridded/itsNumberGridded << " (ns)");
 	}
       
       if (itsNumberDegridded>0)
 	{
-	  CONRADLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
-	  CONRADLOG_INFO_STR(logger, "   " << GridKernel::info());
-	  CONRADLOG_INFO_STR(logger, "   Total time degridding = "
+	  ASKAPLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
+	  ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
+	  ASKAPLOG_INFO_STR(logger, "   Total time degridding = "
 			     << itsTimeDegridded << " (s)");
-	  CONRADLOG_INFO_STR(logger, "   Samples degridded     = "
+	  ASKAPLOG_INFO_STR(logger, "   Samples degridded     = "
 			     << itsSamplesDegridded);
-	  CONRADLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
+	  ASKAPLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
 			     *itsTimeDegridded/itsSamplesDegridded << " (ns)");
-	  CONRADLOG_INFO_STR(logger, "   Points degridded      = "
+	  ASKAPLOG_INFO_STR(logger, "   Points degridded      = "
 			     << itsNumberDegridded);
-	  CONRADLOG_INFO_STR(logger, "   Time per point        = " << 1e9
+	  ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 			     *itsTimeDegridded/itsNumberDegridded << " (ns)");
 	}
     }
     
     void TableVisGridder::save(const std::string& name)
     {
-      conrad::scimath::ParamsCasaTable iptable(name, false);
-      conrad::scimath::Params ip;
+      askap::scimath::ParamsCasaTable iptable(name, false);
+      askap::scimath::Params ip;
       for (unsigned int i=0; i<itsConvFunc.size(); i++)
 	{
 	  {
@@ -118,13 +118,13 @@ namespace conrad
       initIndices(idi);
       initConvolutionFunction(idi);
       
-      CONRADCHECK(itsSupport>0, "Support must be greater than 0");
+      ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
       
       const int nSamples = idi->uvw().size();
       const int nChan = idi->frequency().size();
       const int nPol = idi->visibility().shape()(2);
       
-      CONRADDEBUGASSERT(itsShape.nelements()>=2);
+      ASKAPDEBUGASSERT(itsShape.nelements()>=2);
       const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
       const casa::IPosition onePlane(2, itsShape(0), itsShape(1));
       
@@ -151,8 +151,8 @@ namespace conrad
 	      
 	      /// Scale U,V to integer pixels plus fractional terms
 	      double uScaled=idi->frequency()[chan]*idi->uvw()(i)(0)/(casa::C::c *itsUVCellSize(0));
-	      int iu = conrad::nint(uScaled);
-	      int fracu=conrad::nint(itsOverSample*(double(iu)-uScaled)); 
+	      int iu = askap::nint(uScaled);
+	      int fracu=askap::nint(itsOverSample*(double(iu)-uScaled)); 
 	      if (fracu<0)
 		{
 		  iu+=1;
@@ -161,14 +161,14 @@ namespace conrad
 		{
 		  iu-=1;
 		}
-	      fracu=conrad::nint(itsOverSample*(double(iu)-uScaled)); 
-	      CONRADCHECK(fracu>-1, "Fractional offset in u is negative");
-	      CONRADCHECK(fracu<itsOverSample, "Fractional offset in u exceeds oversampling");
+	      fracu=askap::nint(itsOverSample*(double(iu)-uScaled)); 
+	      ASKAPCHECK(fracu>-1, "Fractional offset in u is negative");
+	      ASKAPCHECK(fracu<itsOverSample, "Fractional offset in u exceeds oversampling");
 	      iu+=itsShape(0)/2;
 	      
 	      double vScaled=idi->frequency()[chan]*idi->uvw()(i)(1)/(casa::C::c *itsUVCellSize(1));
-	      int iv = conrad::nint(vScaled);
-	      int fracv=conrad::nint(itsOverSample*(double(iv)-vScaled));
+	      int iv = askap::nint(vScaled);
+	      int fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
 	      if (fracv<0)
 		{
 		  iv+=1;
@@ -177,9 +177,9 @@ namespace conrad
 		{
 		  iv-=1;
 		}
-	      fracv=conrad::nint(itsOverSample*(double(iv)-vScaled));
-	      CONRADCHECK(fracv>-1, "Fractional offset in v is negative");
-	      CONRADCHECK(fracv<itsOverSample, "Fractional offset in v exceeds oversampling");
+	      fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
+	      ASKAPCHECK(fracv>-1, "Fractional offset in v is negative");
+	      ASKAPCHECK(fracv<itsOverSample, "Fractional offset in v exceeds oversampling");
 	      iv+=itsShape(1)/2;
 	      
 	      /// Calculate the delay phasor
@@ -200,8 +200,8 @@ namespace conrad
 		    // Lookup the portion of grid to be
 		    // used for this row, polarisation and channel
 		    const int gInd=gIndex(i, pol, chan);
-		    CONRADCHECK(gInd>-1, "Index into image grid is less than zero");
-		    CONRADCHECK(gInd<int(itsGrid.size()),
+		    ASKAPCHECK(gInd>-1, "Index into image grid is less than zero");
+		    ASKAPCHECK(gInd<int(itsGrid.size()),
 				"Index into image grid exceeds number of planes");
 
                     // MFS override of imagePol applies to gridding only
@@ -216,7 +216,7 @@ namespace conrad
                             imagePol = 0;
                         } else {
                             // we need a better way to handle the order of polarisations
-                            CONRADCHECK((gridShape[2] == 1) || (gridShape[2] == 2) || (gridShape[2] == 4), 
+                            ASKAPCHECK((gridShape[2] == 1) || (gridShape[2] == 2) || (gridShape[2] == 4), 
                                         "only 1,2 and 4 polarisations are supported, "
                                         "current grid shape is "<<gridShape); 
                             if (gridShape[2] == 1) {
@@ -241,9 +241,9 @@ namespace conrad
 		    // Lookup the convolution function to be
 		    // used for this row, polarisation and channel
 		    const int cInd=cIndex(i, pol, chan);
-		    CONRADCHECK(cInd>-1,
+		    ASKAPCHECK(cInd>-1,
 				"Index into convolution functions is less than zero");
-		    CONRADCHECK(cInd<int(itsConvFunc.size()),
+		    ASKAPCHECK(cInd<int(itsConvFunc.size()),
 				"Index into convolution functions exceeds number of planes");
 		    
 		    casa::Matrix<casa::Complex> & convFunc(
@@ -279,7 +279,7 @@ namespace conrad
 			    /// Grid PSF?
 			    if (itsDopsf)
 			      {
-				CONRADDEBUGASSERT(gInd<int(itsGridPSF.size()));
+				ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
 				casa::Array<casa::Complex> aGridPSF(itsGridPSF[gInd](slicer));
 				casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
 				const casa::Complex uVis(1.0);
@@ -427,7 +427,7 @@ namespace conrad
       itsSumWeights.resize(1, itsShape(2), itsShape(3));
       itsSumWeights.set(casa::Complex(0.0));
       
-      CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
+      ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 		  "RA and DEC specification not present in axes");
       
       double raStart=itsAxes.start("RA");
@@ -523,7 +523,7 @@ namespace conrad
       itsAxes=axes;
       itsShape=in.shape();
       
-      CONRADCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
+      ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 		  "RA and DEC specification not present in axes");
       
       double raStart=itsAxes.start("RA");
@@ -550,7 +550,7 @@ namespace conrad
 	}
       else
 	{
-	  CONRADLOG_INFO_STR(logger, "No need to degrid: model is empty");
+	  ASKAPLOG_INFO_STR(logger, "No need to degrid: model is empty");
 	  itsModelIsEmpty=true;
 	  itsGrid[0].set(casa::Complex(0.0));
 	}

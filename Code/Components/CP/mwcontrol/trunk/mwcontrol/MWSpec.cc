@@ -14,14 +14,14 @@
 #include <mwcontrol/MWMultiSpec.h>
 #include <mwcommon/ParameterHandler.h>
 #include <mwcommon/MWError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapUtil.h>
 #include <APS/ParameterSet.h>
 #include <ostream>
 
 using namespace LOFAR::ACC::APS;
 using namespace std;
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
 
   MWSpec::~MWSpec()
@@ -63,7 +63,7 @@ namespace conrad { namespace cp {
       ////      } else if (oper == "REFIT") {
       ////	spec = new MWRefitSpec(name, parset, parent);
       } else {
-	CONRADTHROW (MWError, "Operation \"" << oper << 
+	ASKAPTHROW (MWError, "Operation \"" << oper << 
 		     "\" is not a valid Step operation");
       }
     }

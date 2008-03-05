@@ -4,8 +4,8 @@
 //#
 //#  $Id$
 
-#ifndef CONRAD_tMWCONTROL_H
-#define CONRAD_tMWCONTROL_H
+#ifndef ASKAP_tMWCONTROL_H
+#define ASKAP_tMWCONTROL_H
 
 #include <iostream>
 #include <fstream>
@@ -18,7 +18,7 @@
 
 #define MWCOUT MWIos::os()
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   // MPI has the problem that the output of cout is unpredictable.
   // Therefore the output of tMWControl is using a separate output
@@ -47,7 +47,7 @@ namespace conrad { namespace cp {
 //#
 //#  $Id$
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   class MWStepTester: public MWStepVisitor
   {
@@ -85,7 +85,7 @@ namespace conrad { namespace cp {
 //#  Copyright (C) 2007
 //#
 //#  $Id$
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   class PredifferTest: public PredifferProxy
   {
@@ -117,7 +117,7 @@ namespace conrad { namespace cp {
 //#
 //#  $Id$
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   class SolverTest: public SolverProxy
   {

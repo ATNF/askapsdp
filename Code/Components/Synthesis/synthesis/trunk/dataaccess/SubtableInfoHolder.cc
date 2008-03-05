@@ -11,7 +11,7 @@
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -32,8 +32,8 @@
 #include <dataaccess/FieldSubtableHandler.h>
 #include <dataaccess/MemAntennaSubtableHandler.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 /// @brief construct SubtableInfoHolder
 /// @details The idea is that this constructor is the point where one can choose
@@ -109,7 +109,7 @@ void SubtableInfoHolder::initBufferManager() const
 	        table().rwKeywordSet().removeField("BUFFERS");
 	     }
 	     catch (const casa::TableError &te) {
-	        CONRADTHROW(DataAccessError,"Unable to remove corrupted BUFFERS keyword. AipsError: "<<
+	        ASKAPTHROW(DataAccessError,"Unable to remove corrupted BUFFERS keyword. AipsError: "<<
 		            te.what());
 	     }
 	  }

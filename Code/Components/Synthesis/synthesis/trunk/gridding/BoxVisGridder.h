@@ -2,7 +2,7 @@
 ///
 /// BoxVisGridder: Box-based visibility gridder.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef BOXVISGRIDDER_H_
@@ -10,7 +10,7 @@
 
 #include <gridding/TableVisGridder.h>
 
-namespace conrad
+namespace askap
 {
 	namespace synthesis
 	{

@@ -9,13 +9,13 @@
 /// Derived classes will provide required functionality. Building derived
 /// information on-demand is also expected to be implemented.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #include <dataaccess/TableHolder.h>
 
-using namespace conrad::synthesis;
+using namespace askap::synthesis;
 
 /// constructor - set the table to work with
 /// @param[in] tab table to work with

@@ -6,7 +6,7 @@
 ///     The point source is assumed unpolarized with a flat spectrum
 ///     (i.e. spectral index 0).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
@@ -14,7 +14,7 @@
 
 #include <scimath/Mathematics/RigidVector.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -106,7 +106,7 @@ void UnpolarizedPointSource::calculate(
   calcPoint(uvw,freq,paramsAutoDiff,result);
 }
 
-} // namespace conrad
+} // namespace askap
 
 } // namespace synthesis
               

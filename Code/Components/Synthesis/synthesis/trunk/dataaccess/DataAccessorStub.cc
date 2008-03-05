@@ -1,7 +1,7 @@
 /// @file DataAccessorStub.cc
 /// @brief a stub to debug the code, which uses DataAccessor
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -25,7 +25,7 @@ using std::vector;
 
 using namespace casa;
 
-namespace conrad
+namespace askap
 {
 
   namespace synthesis
@@ -232,7 +232,7 @@ namespace conrad
                 ///         information. If True, the corresponding element is flagged.
                 const casa::Cube<casa::Bool>& DataAccessorStub::flag() const
                 {
-		  CONRADASSERT(itsFlag.shape() == itsVisibility.shape());
+		  ASKAPASSERT(itsFlag.shape() == itsVisibility.shape());
                   return itsFlag;
                 }
 
@@ -293,4 +293,4 @@ namespace conrad
 
               } // namespace synthesis
 
-            } // namespace conrad
+            } // namespace askap

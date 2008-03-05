@@ -10,7 +10,7 @@
 ///         because a fully defined converter is required to
 ///         perform such selection.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef TABLE_SCALAR_FIELD_SELECTOR_H
@@ -26,7 +26,7 @@
 #include <dataaccess/ITableHolder.h>
 #include <dataaccess/ITableInfoAccessor.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 	
@@ -99,6 +99,6 @@ private:
   
 } // namespace synthesis
   
-} // namespace conrad
+} // namespace askap
   
 #endif // #ifndef TABLE_SCALAR_FIELD_SELECTOR_H

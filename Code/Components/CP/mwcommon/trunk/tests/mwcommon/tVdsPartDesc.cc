@@ -5,36 +5,36 @@
 //# $Id$
 
 #include <mwcommon/VdsPartDesc.h>
-#include <mwcommon/ConradError.h>
+#include <mwcommon/AskapError.h>
 #include <ostream>
 #include <fstream>
 
-using namespace conrad::cp;
+using namespace askap::cp;
 using namespace std;
 
 void check (const VdsPartDesc& vds)
 {
-  CONRADASSERT (vds.getName() == "/usr/local/xyx");
-  CONRADASSERT (vds.getFileSys() == "node1:/usr");
-  CONRADASSERT (vds.getStartTime() == 0);
-  CONRADASSERT (vds.getEndTime() == 1);
-  CONRADASSERT (vds.getNChan().size() == 2);
-  CONRADASSERT (vds.getNChan()[0] == 64);
-  CONRADASSERT (vds.getNChan()[1] == 128);
-  CONRADASSERT (vds.getStartFreqs().size() == 2);
-  CONRADASSERT (vds.getStartFreqs()[0] == 20);
-  CONRADASSERT (vds.getStartFreqs()[1] == 120);
-  CONRADASSERT (vds.getEndFreqs().size() == 2);
-  CONRADASSERT (vds.getEndFreqs()[0] == 100);
-  CONRADASSERT (vds.getEndFreqs()[1] == 300);
-  CONRADASSERT (vds.getAnt1().size() == 3);
-  CONRADASSERT (vds.getAnt1()[0] == 0);
-  CONRADASSERT (vds.getAnt1()[1] == 1);
-  CONRADASSERT (vds.getAnt1()[2] == 2);
-  CONRADASSERT (vds.getAnt2().size() == 3);
-  CONRADASSERT (vds.getAnt2()[0] == 0);
-  CONRADASSERT (vds.getAnt2()[1] == 1);
-  CONRADASSERT (vds.getAnt2()[2] == 3);
+  ASKAPASSERT (vds.getName() == "/usr/local/xyx");
+  ASKAPASSERT (vds.getFileSys() == "node1:/usr");
+  ASKAPASSERT (vds.getStartTime() == 0);
+  ASKAPASSERT (vds.getEndTime() == 1);
+  ASKAPASSERT (vds.getNChan().size() == 2);
+  ASKAPASSERT (vds.getNChan()[0] == 64);
+  ASKAPASSERT (vds.getNChan()[1] == 128);
+  ASKAPASSERT (vds.getStartFreqs().size() == 2);
+  ASKAPASSERT (vds.getStartFreqs()[0] == 20);
+  ASKAPASSERT (vds.getStartFreqs()[1] == 120);
+  ASKAPASSERT (vds.getEndFreqs().size() == 2);
+  ASKAPASSERT (vds.getEndFreqs()[0] == 100);
+  ASKAPASSERT (vds.getEndFreqs()[1] == 300);
+  ASKAPASSERT (vds.getAnt1().size() == 3);
+  ASKAPASSERT (vds.getAnt1()[0] == 0);
+  ASKAPASSERT (vds.getAnt1()[1] == 1);
+  ASKAPASSERT (vds.getAnt1()[2] == 2);
+  ASKAPASSERT (vds.getAnt2().size() == 3);
+  ASKAPASSERT (vds.getAnt2()[0] == 0);
+  ASKAPASSERT (vds.getAnt2()[1] == 1);
+  ASKAPASSERT (vds.getAnt2()[2] == 3);
 }
 
 void doIt()

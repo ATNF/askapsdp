@@ -8,7 +8,7 @@
 /// it should become a separate class derived
 /// directly from its interface
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -16,8 +16,8 @@
 #include <dataaccess/TableConstDataAccessor.h>
 #include <dataaccess/TableConstDataIterator.h>
 
-using namespace conrad;
-using namespace conrad::synthesis;
+using namespace askap;
+using namespace askap::synthesis;
 
 
 /// construct an object linked with the given iterator

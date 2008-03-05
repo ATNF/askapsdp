@@ -1,19 +1,19 @@
 /// @file
 /// @brief Factory pattern to generate a WorkerProxy object.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
 //# $Id$
 
-#ifndef CONRAD_MWCOMMON_WORKERFACTORY_H
-#define CONRAD_MWCOMMON_WORKERFACTORY_H
+#ifndef ASKAP_MWCOMMON_WORKERFACTORY_H
+#define ASKAP_MWCOMMON_WORKERFACTORY_H
 
 #include <mwcommon/WorkerProxy.h>
 #include <map>
 #include <string>
 
-namespace conrad { namespace cp {
+namespace askap { namespace cp {
 
   /// @ingroup mwcommon
   /// @brief Factory pattern to generate a WorkerProxy object.

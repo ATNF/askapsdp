@@ -2,7 +2,7 @@
 ///
 /// @brief Class for parallel simulation using CASA NewMSSimulator
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 
@@ -11,12 +11,12 @@
 
 #include <casa/OS/Timer.h>
 
-#include <conrad_synthesis.h>
+#include <askap_synthesis.h>
 
-#include <conrad/ConradError.h>
-#include <conrad_synthesis.h>
-#include <conrad/ConradLogging.h>
-CONRAD_LOGGER(logger, ".parallel");
+#include <askap/AskapError.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".parallel");
 
 #include <parallel/SimParallel.h>
 
@@ -40,11 +40,11 @@ CONRAD_LOGGER(logger, ".parallel");
 
 using namespace std;
 
-using namespace conrad;
-using namespace conrad::cp;
+using namespace askap;
+using namespace askap::cp;
 using namespace LOFAR::ACC::APS;
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {
@@ -106,7 +106,7 @@ namespace conrad
       
       /// Csimulator.name = ASKAP
       string telName=parset.getString("antennas.telescope");
-      CONRADLOG_INFO_STR(logger, "Simulating "<< telName );
+      ASKAPLOG_INFO_STR(logger, "Simulating "<< telName );
       ostringstream oos;
       oos << "antennas." << telName << ".";
       ParameterSet antParset(parset.makeSubset(oos.str()));
@@ -114,19 +114,19 @@ namespace conrad
       /// Csimulator.ASKAP.number=45
       vector<string> antNames(antParset.getStringVector("names"));
       int nAnt=antNames.size();
-      CONRADCHECK(nAnt>0, "No antennas defined in parset file");
+      ASKAPCHECK(nAnt>0, "No antennas defined in parset file");
       
       /// Csimulator.ASKAP.mount=equatorial
       string mount=antParset.getString("mount", "equatorial");
-      CONRADCHECK((mount=="equatorial")||(mount=="alt-az"), "Antenna mount unknown");
+      ASKAPCHECK((mount=="equatorial")||(mount=="alt-az"), "Antenna mount unknown");
       
       /// Csimulator.ASKAP.mount=equatorial
       double diameter=MEParsetInterface::asQuantity(antParset.getString("diameter", "12m")).getValue("m");
-      CONRADCHECK(diameter>0.0, "Antenna diameter not positive");
+      ASKAPCHECK(diameter>0.0, "Antenna diameter not positive");
       
       /// Csimulator.ASKAP.coordinates=local
       string coordinates=antParset.getString("coordinates", "local");
-      CONRADCHECK((coordinates=="local")||(coordinates=="global"), "Coordinates type unknown");
+      ASKAPCHECK((coordinates=="local")||(coordinates=="global"), "Coordinates type unknown");
       
       /// Csimulator.ASKAP.scale=0.333
       float scale=antParset.getFloat("scale", 1.0);
@@ -163,7 +163,7 @@ namespace conrad
       
       itsSim->initAnt(telName, x, y, z, dishDiameter, offset, mounts, name,
 		      casa::String(coordinates), location);
-      CONRADLOG_INFO_STR(logger, "Successfully defined "<< nAnt << " antennas of "<< telName
+      ASKAPLOG_INFO_STR(logger, "Successfully defined "<< nAnt << " antennas of "<< telName
 			 );
     }
     
@@ -177,7 +177,7 @@ namespace conrad
       
       vector<string> feedNames(parset.getStringVector("feeds.names"));
       int nFeeds=feedNames.size();
-      CONRADCHECK(nFeeds>0, "No feeds specified");
+      ASKAPCHECK(nFeeds>0, "No feeds specified");
       
       casa::Vector<double> x(nFeeds);
       casa::Vector<double> y(nFeeds);
@@ -197,12 +197,12 @@ namespace conrad
 	{
 	  casa::Quantity qspacing=MEParsetInterface::asQuantity(parset.getString("feeds.spacing"));
 	  double spacing=qspacing.getValue("rad");
-	  CONRADLOG_INFO_STR(logger, "Scaling feed specifications by " << qspacing );
+	  ASKAPLOG_INFO_STR(logger, "Scaling feed specifications by " << qspacing );
 	  x*=spacing;
 	  y*=spacing;
 	}
       itsSim->initFeeds(mode, x, y, pol);
-      CONRADLOG_INFO_STR(logger, "Successfully defined "<< nFeeds << " feeds");
+      ASKAPLOG_INFO_STR(logger, "Successfully defined "<< nFeeds << " feeds");
     }
     
     /// Csimulator.sources.names = [3C273, 1934-638]
@@ -222,12 +222,12 @@ namespace conrad
 	  {
 	    ostringstream oos;
 	    oos << "sources." << sources[i]<< ".direction";
-	    CONRADLOG_INFO_STR(logger, "Simulating source "<< sources[i] );
+	    ASKAPLOG_INFO_STR(logger, "Simulating source "<< sources[i] );
 	    casa::MDirection direction(MEParsetInterface::asMDirection(parset.getStringVector(oos.str())));
 	    itsSim->initFields(casa::String(sources[i]), direction, casa::String(""));
 	  }
 	}
-      CONRADLOG_INFO_STR(logger, "Successfully defined sources");
+      ASKAPLOG_INFO_STR(logger, "Successfully defined sources");
     }
     
     void SimParallel::readModels()
@@ -247,14 +247,14 @@ namespace conrad
 	    if(parset.isDefined(oos.str()))
               {
                 string model=parset.getString(oos.str());
-                CONRADLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
+                ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
                 ostringstream paramName;
                 paramName << "image.i." << sources[i];
                 SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName.str(), model);
               }
 	  }
 	}
-      CONRADLOG_INFO_STR(logger, "Successfully read models");
+      ASKAPLOG_INFO_STR(logger, "Successfully read models");
     }
     
     void SimParallel::readSpws()
@@ -267,7 +267,7 @@ namespace conrad
       
       vector<string> names(parset.getStringVector("spws.names"));
       int nSpw=names.size();
-      CONRADCHECK(nSpw>0, "No spectral windows defined");
+      ASKAPCHECK(nSpw>0, "No spectral windows defined");
       for (int spw=0; spw<nSpw; spw++)
 	{
 	  ostringstream os;
@@ -278,7 +278,7 @@ namespace conrad
 				MEParsetInterface::asQuantity(line[2]),
 				MEParsetInterface::asQuantity(line[2]), line[3]);
 	}
-      CONRADLOG_INFO_STR(logger, "Successfully defined "<< nSpw << " spectral windows");
+      ASKAPLOG_INFO_STR(logger, "Successfully defined "<< nSpw << " spectral windows");
     }
     
     void SimParallel::readSimulation()
@@ -307,7 +307,7 @@ namespace conrad
       vector<string> refTimeString(parset.getStringVector("simulation.referencetime"));
       casa::MEpoch refTime(MEParsetInterface::asMEpoch(refTimeString));
       itsSim->settimes(integrationTime, useHourAngles, refTime);
-      CONRADLOG_INFO_STR(logger, "Successfully set simulation parameters");
+      ASKAPLOG_INFO_STR(logger, "Successfully set simulation parameters");
     }
     
     /// Csimulator.observe.number=2
@@ -327,7 +327,7 @@ namespace conrad
             }
 	  
 	  int nScans=parset.getInt32("observe.number", 0);
-	  CONRADCHECK(nScans>0, "No scans defined");
+	  ASKAPCHECK(nScans>0, "No scans defined");
 	  
 	  for (int scan=0; scan<nScans; scan++)
             {
@@ -336,7 +336,7 @@ namespace conrad
               vector<string> line=parset.getStringVector(oos.str());
               string source=substitute(line[0]);
               string spw=substitute(line[1]);
-              CONRADLOG_INFO_STR(logger, "Observing scan "<< scan << " on source " << source
+              ASKAPLOG_INFO_STR(logger, "Observing scan "<< scan << " on source " << source
 				 << " at band " << spw << " from "
 				 << MEParsetInterface::asQuantity(line[2]) << " to "
                                  << MEParsetInterface::asQuantity(line[3]) );
@@ -345,7 +345,7 @@ namespace conrad
 			      MEParsetInterface::asQuantity(line[3]));
             }
 	  
-	  CONRADLOG_INFO_STR(logger, "Successfully simulated "<< nScans << " scans");
+	  ASKAPLOG_INFO_STR(logger, "Successfully simulated "<< nScans << " scans");
 	  itsMs->flush();
 	  
 	  predict(itsMs->tableName());
@@ -357,8 +357,8 @@ namespace conrad
       if(isWorker()) {
 	     casa::Timer timer;
 	     timer.mark();
-	     CONRADLOG_INFO_STR(logger, "Simulating data for " << ms );
-	     CONRADLOG_INFO_STR(logger, "Model is " << *itsModel);
+	     ASKAPLOG_INFO_STR(logger, "Simulating data for " << ms );
+	     ASKAPLOG_INFO_STR(logger, "Model is " << *itsModel);
 	     TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED);
 	     IDataSelectorPtr sel=ds.createSelector();
 	     sel << itsParset;
@@ -369,12 +369,12 @@ namespace conrad
 	     /// Create the gridder using a factory acting on a
 	     /// parameterset
 	     IVisGridder::ShPtr gridder=VisGridderFactory::make(itsParset);
-	     CONRADCHECK(gridder, "Gridder not defined correctly");
+	     ASKAPCHECK(gridder, "Gridder not defined correctly");
 	     
 	     // the measurement equation used for prediction 
 	     // actual type depends on what we are simulating
 	     // therefore it is uninitialized at the moment
-	     conrad::scimath::Equation::ShPtr equation;
+	     askap::scimath::Equation::ShPtr equation;
 	     // an adapter to use imaging equation with the calibration framework
 	     // we may not need it (if data corruption is off) at all, therefore
 	     // it is uninitialized. We can't move it inside the if-block because
@@ -383,24 +383,24 @@ namespace conrad
 	     boost::shared_ptr<ImagingEquationAdapter> ieAdapter;
 	     
 	     if (itsParset.getBool("corrupt", false)) {
-	        CONRADLOG_INFO_STR(logger, "Making equation to simulate calibration effects");
+	        ASKAPLOG_INFO_STR(logger, "Making equation to simulate calibration effects");
 	        // initialize the adapter
 	        ieAdapter.reset(new ImagingEquationAdapter);
 	        ieAdapter->assign<ImageFFTEquation>(*itsModel, gridder);
 	        scimath::Params gainModel; 
-	        CONRADCHECK(itsParset.isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");   
+	        ASKAPCHECK(itsParset.isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");   
 	        const std::string gainsfile = itsParset.getString("corrupt.gainsfile");
-	        CONRADLOG_INFO_STR(logger, "Loading gains from file '"<<gainsfile<<"'");
+	        ASKAPLOG_INFO_STR(logger, "Loading gains from file '"<<gainsfile<<"'");
 	        gainModel << ParameterSet(gainsfile);
-	        CONRADDEBUGASSERT(ieAdapter);
+	        ASKAPDEBUGASSERT(ieAdapter);
 	        equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,*ieAdapter));
 	     } else {
-	       CONRADLOG_INFO_STR(logger, "Calibration effects are not simulated");
+	       ASKAPLOG_INFO_STR(logger, "Calibration effects are not simulated");
 	       equation.reset(new ImageFFTEquation (*itsModel, it, gridder));
 	     }
-	     CONRADCHECK(equation, "Equation is not defined correctly");
+	     ASKAPCHECK(equation, "Equation is not defined correctly");
 	     equation->predict();
-	     CONRADLOG_INFO_STR(logger,  "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
+	     ASKAPLOG_INFO_STR(logger,  "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
 	  }
     }
     

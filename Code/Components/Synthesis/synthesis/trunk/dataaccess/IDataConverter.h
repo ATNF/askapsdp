@@ -12,7 +12,7 @@
 /// an iterator is requested from the DataSource object. The iterator will
 /// return the data in the requested frame/units.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -29,7 +29,7 @@
 // own includes
 #include <dataaccess/IConverterBase.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -111,5 +111,5 @@ public:
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 #endif // I_DATA_CONVERTER_H

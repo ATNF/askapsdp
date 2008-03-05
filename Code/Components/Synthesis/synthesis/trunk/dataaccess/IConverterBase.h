@@ -6,7 +6,7 @@
 /// The only method defined is a virtual destructor to make the compiler
 /// happy and reduce the number of *.cc files for the derived interfaces
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -16,7 +16,7 @@
 // CASA includes
 #include <measures/Measures/MeasFrame.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -43,6 +43,6 @@ protected: // the following method(s) are not for a general framework user,
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_CONVERTER_BASE_H

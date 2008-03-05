@@ -3,7 +3,7 @@
 /// AWProjectVisGridder: Grids visibility data using the self-convolution of 
 /// the antenna illumination pattern.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef AWPROJECTVISGRIDDER_H_
@@ -11,7 +11,7 @@
 
 #include <gridding/WProjectVisGridder.h>
 
-namespace conrad
+namespace askap
 {
   namespace synthesis
   {

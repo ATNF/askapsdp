@@ -6,7 +6,7 @@
 ///                implementation of the IDataSelector interface 
 ///                in the table-based case. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 #ifndef TABLE_DATA_SELECTOR_H
@@ -27,7 +27,7 @@
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/ITableManager.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 	
@@ -155,6 +155,6 @@ private:
   
 } // namespace synthesis
   
-} // namespace conrad
+} // namespace askap
   
 #endif // #ifndef TABLE_DATA_SELECTOR_H
