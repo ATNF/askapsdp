@@ -11,7 +11,7 @@
 #ifndef CACHED_ACCESSOR_FIELD_TCC
 #define CACHED_ACCESSOR_FIELD_TCC
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -90,6 +90,6 @@ const T& CachedAccessorField<T>::value(Reader reader) const
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef CACHED_ACCESSOR_FIELD_TCC

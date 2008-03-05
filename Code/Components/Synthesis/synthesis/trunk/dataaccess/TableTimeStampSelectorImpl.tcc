@@ -10,7 +10,7 @@
 #include <casa/Quanta/MVEpoch.h>
 #include <dataaccess/IDataConverterImpl.h>
 
-namespace conrad {
+namespace askap {
 
 namespace synthesis {
 
@@ -35,4 +35,4 @@ std::pair<casa::MEpoch, casa::MEpoch>
 
 } // namespace synthesis
 
-} // namespace conrad
+} // namespace askap

@@ -117,7 +117,7 @@ void CalibrationMEBase::correct(IDataAccessor &chunk) const
        if (abs(det)<1e-5) {
            ASKAPTHROW(AskapError, "Unable to apply gains, determinate too close to 0. D="<<abs(det));           
        }
-       casa::Matrix<casa::Complex> thisRow = chunk.visibility().yzPlane(row);
+       casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
        
        casa::Matrix<casa::Complex> temp(thisRow.nrow(),reciprocal.ncolumn(),
                                      casa::Complex(0.,0.)); // = thisRow*reciprocal;
