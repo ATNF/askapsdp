@@ -76,7 +76,7 @@ namespace conrad
         CONRADLOG_INFO_STR(logger, "CONRAD program (serial)");
       }
 
-      CONRADLOG_INFO_STR(logger, ASKAP_PACKAGE_VERSION);
+      CONRADLOG_INFO_STR(logger, CONRAD_PACKAGE_VERSION);
 
     }
 
