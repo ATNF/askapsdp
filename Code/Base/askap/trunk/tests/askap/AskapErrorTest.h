@@ -1,7 +1,7 @@
 /// @file
 /// 
 /// @brief This file contains tests for macros defined in AskapError.
-/// @details The tests cover the ASKAPASSERT and CONRADCHECK macros
+/// @details The tests cover the ASKAPASSERT and ASKAPCHECK macros
 ///
 /// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Malte Marquarding <Malte.Marquarding@csiro.au>

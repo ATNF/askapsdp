@@ -4,8 +4,8 @@
 /// @author Malte Marquarding <Malte.Marquarding@csiro.au>
 /// @copyright 2007 ASKAP, All Rights Reserved.
 
-#ifndef ASKAP_CONRADTYPES_H
-#define ASKAP_CONRADTYPES_H
+#ifndef ASKAP_ASKAPTYPES_H
+#define ASKAP_ASKAPTYPES_H
 
 #include <sys/types.h>
 

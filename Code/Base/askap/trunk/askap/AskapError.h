@@ -71,7 +71,7 @@ namespace askap {
 
   /// Do an assert only if in debug mode.
 #ifdef ASKAP_DEBUG
-#define ASKAPDEBUGASSERT(condition) CONRADASSERT(condition)
+#define ASKAPDEBUGASSERT(condition) ASKAPASSERT(condition)
 #else
 #define ASKAPDEBUGASSERT(condition)
 #endif
