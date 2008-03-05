@@ -12,8 +12,8 @@ import os
 os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
-#env.Append(CCFLAGS=['-O2', '-DCONRAD_DEBUG', '-DCONRAD_GRID_WITH_BLAS', '-g'])
-env.Append(CCFLAGS=['-O2', '-DCONRAD_DEBUG', '-g'])
+#env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-DASKAP_GRID_WITH_BLAS', '-g'])
+env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-g'])
 env.Append(universal=0)
 
 # create build object with library name
