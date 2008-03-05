@@ -4,7 +4,7 @@
 /// @details TableConstDataAccessor manages a number of cached fields.
 /// This class represents a single such field
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 

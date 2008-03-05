@@ -3,7 +3,7 @@
 /// @details This file contain implementation and explicit specializations
 /// of the TableTimeStampSelectorImpl template
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
