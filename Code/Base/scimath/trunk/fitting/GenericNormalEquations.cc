@@ -9,14 +9,14 @@
 /// matrix is done. Implementation of this class is largely taken from the
 /// old NormalEquation (revisions up to 4637) written by Tim Cornwell.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 // own includes
 #include <fitting/GenericNormalEquations.h>
 #include <fitting/DesignMatrix.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
@@ -32,8 +32,8 @@
 
 
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 using namespace LOFAR;
 
 using casa::product;
@@ -94,11 +94,11 @@ void GenericNormalEquations::merge(const INormalEquations& src)
            mergeParameter(ci->first, gne);
       }          
    }
-   catch (const ConradError &) {
+   catch (const AskapError &) {
       throw;
    }
    catch (const std::bad_cast &) {
-      throw ConradError("Attempt to use GenericNormalEquation::merge with "
+      throw AskapError("Attempt to use GenericNormalEquation::merge with "
                         "incompatible type of the normal equation class");
    }
 }
@@ -123,10 +123,10 @@ void GenericNormalEquations::mergeParameter(const std::string &par,
    // by analogy, destItCol is an iterator over columns in the destination matrix
    const std::map<std::string, MapOfMatrices>::const_iterator srcItRow = 
                          src.itsNormalMatrix.find(par);
-   CONRADDEBUGASSERT(srcItRow != src.itsNormalMatrix.end());
+   ASKAPDEBUGASSERT(srcItRow != src.itsNormalMatrix.end());
    
    const MapOfVectors::const_iterator srcItData = src.itsDataVector.find(par);
-   CONRADDEBUGASSERT(srcItData != src.itsDataVector.end());
+   ASKAPDEBUGASSERT(srcItData != src.itsDataVector.end());
    
    addParameter(par, srcItRow->second, srcItData->second);                        
 }
@@ -154,7 +154,7 @@ void GenericNormalEquations::addParameter(const std::string &par,
                          itsNormalMatrix.find(par);
   if (nmRowIt != itsNormalMatrix.end()) {
       // this parameter is already present in the normal matrix held by this class
-      CONRADDEBUGASSERT(nmRowIt->second.find(par) != nmRowIt->second.end());
+      ASKAPDEBUGASSERT(nmRowIt->second.find(par) != nmRowIt->second.end());
        
       // first, process normal matrix 
       for (MapOfMatrices::iterator nmColIt = nmRowIt->second.begin();
@@ -164,7 +164,7 @@ void GenericNormalEquations::addParameter(const std::string &par,
            MapOfMatrices::const_iterator inNMIt = inNM.find(nmColIt->first);           
            // work with cross-terms only if the input matrix have them
            if (inNMIt != inNM.end()) {
-               CONRADCHECK(inNMIt->second.shape() == nmColIt->second.shape(),
+               ASKAPCHECK(inNMIt->second.shape() == nmColIt->second.shape(),
                         "shape mismatch for normal matrix, parameters ("<<
                         nmRowIt->first<<" , "<<nmColIt->first<<")");
                 nmColIt->second += inNMIt->second; // add up a matrix         
@@ -173,8 +173,8 @@ void GenericNormalEquations::addParameter(const std::string &par,
       
       // now process the data vector
       MapOfVectors::const_iterator dvIt = itsDataVector.find(par);
-      CONRADDEBUGASSERT(dvIt != itsDataVector.end());
-      CONRADCHECK(inDV.shape() == dvIt->second.shape(),
+      ASKAPDEBUGASSERT(dvIt != itsDataVector.end());
+      ASKAPCHECK(inDV.shape() == dvIt->second.shape(),
                "shape mismatch for data vector, parameter: "<<dvIt->first);
       // we have to instantiate explicitly a casa::Vector object because
       // otherwise, for some reason, the compiler can't figure out the type 
@@ -221,7 +221,7 @@ void GenericNormalEquations::addParameter(const std::string &par,
      
        
      // process data vector
-     CONRADDEBUGASSERT(itsDataVector.find(par) == itsDataVector.end());
+     ASKAPDEBUGASSERT(itsDataVector.find(par) == itsDataVector.end());
      itsDataVector.insert(std::make_pair(par, inDV));
   }                       
 }           
@@ -229,7 +229,7 @@ void GenericNormalEquations::addParameter(const std::string &par,
 /// @brief extract dimension of a parameter from the given row
 /// @details This helper method analyses the matrices stored in the supplied
 /// map (effectively a row of a sparse matrix) and extracts the dimension of
-/// the parameter this row corresponds to. If compiled with CONRAD_DEBUG, 
+/// the parameter this row corresponds to. If compiled with ASKAP_DEBUG, 
 /// this method does an additional consistency check that all elements of
 /// the sparse matrix give the same dimension (number of rows is the same for
 /// all elements).
@@ -238,13 +238,13 @@ void GenericNormalEquations::addParameter(const std::string &par,
 casa::uInt GenericNormalEquations::parameterDimension(const MapOfMatrices &nmRow)
 {
   const MapOfMatrices::const_iterator it = nmRow.begin();
-  CONRADDEBUGASSERT(it != nmRow.end());
+  ASKAPDEBUGASSERT(it != nmRow.end());
   const casa::uInt dim = it->second.nrow();
-#ifdef CONRAD_DEBUG
+#ifdef ASKAP_DEBUG
   for (MapOfMatrices::const_iterator cur = it; cur != nmRow.end(); ++cur) {
-       CONRADASSERT(cur->second.nrow() == dim);
+       ASKAPASSERT(cur->second.nrow() == dim);
   }     
-#endif // CONRAD_DEBUG
+#endif // ASKAP_DEBUG
   return dim;
 }  
 
@@ -268,10 +268,10 @@ void GenericNormalEquations::add(const DesignMatrix& dm)
        iterRow != names.end(); ++iterRow) {
        const DMAMatrix &derivMatrices = dm.derivative(*iterRow);
        DMAMatrix::const_iterator derivMatricesIt = derivMatrices.begin();
-       CONRADDEBUGASSERT(derivMatricesIt != derivMatrices.end());
+       ASKAPDEBUGASSERT(derivMatricesIt != derivMatrices.end());
        DMBVector::const_iterator residualIt = dm.residual().begin();
-       CONRADDEBUGASSERT(residualIt != dm.residual().end());
-       CONRADDEBUGASSERT(derivMatricesIt->ncolumn());
+       ASKAPDEBUGASSERT(residualIt != dm.residual().end());
+       ASKAPDEBUGASSERT(derivMatricesIt->ncolumn());
        
        casa::Vector<double> dataVector; // data vector buffer for this row 
        
@@ -329,7 +329,7 @@ const casa::Matrix<double>&
   const DMAMatrix &derivMatrices = dm.derivative(par);
   // there is no benefit here from introducing an iterator as
   // only one specific offset is always taken
-  CONRADDEBUGASSERT(dataPoint < derivMatrices.size());
+  ASKAPDEBUGASSERT(dataPoint < derivMatrices.size());
   return derivMatrices[dataPoint];
 }  
   
@@ -345,8 +345,8 @@ const casa::Matrix<double>&
 casa::Matrix<double> GenericNormalEquations::nmElement(const casa::Matrix<double> &matrix1,
                const casa::Matrix<double> &matrix2)
 {
-  CONRADDEBUGASSERT(matrix1.ncolumn() && matrix2.ncolumn());
-  CONRADDEBUGASSERT(matrix1.nrow() == matrix2.nrow());
+  ASKAPDEBUGASSERT(matrix1.ncolumn() && matrix2.ncolumn());
+  ASKAPDEBUGASSERT(matrix1.nrow() == matrix2.nrow());
   if (matrix1.ncolumn() == 1 && matrix2.ncolumn() == 1) {
       const casa::Vector<double> &m1ColVec = matrix1.column(0);
       const casa::Vector<double> &m2ColVec = matrix2.column(0);
@@ -369,8 +369,8 @@ casa::Matrix<double> GenericNormalEquations::nmElement(const casa::Matrix<double
 casa::Vector<double> GenericNormalEquations::dvElement(const casa::Matrix<double> &dm,
               const casa::Vector<double> &dv)
 {
-  CONRADDEBUGASSERT(dm.ncolumn() && dv.nelements());
-  CONRADDEBUGASSERT(dm.nrow() == dv.nelements());
+  ASKAPDEBUGASSERT(dm.ncolumn() && dv.nelements());
+  ASKAPDEBUGASSERT(dm.nrow() == dv.nelements());
   if (dm.ncolumn() == 1) {
       const casa::Vector<double> &dmColVec = dm.column(0);
       return casa::Vector<double>(1, sum(dmColVec*dv));
@@ -409,10 +409,10 @@ const casa::Matrix<double>& GenericNormalEquations::normalMatrix(const std::stri
 {
   std::map<string,std::map<string, casa::Matrix<double> > >::const_iterator cIt1 = 
                                    itsNormalMatrix.find(par1);
-  CONRADASSERT(cIt1 != itsNormalMatrix.end());
+  ASKAPASSERT(cIt1 != itsNormalMatrix.end());
   std::map<string, casa::Matrix<double> >::const_iterator cIt2 = 
                                    cIt1->second.find(par2);
-  CONRADASSERT(cIt2 != cIt1->second.end());
+  ASKAPASSERT(cIt2 != cIt1->second.end());
   return cIt2->second;                             
 }
 
@@ -428,7 +428,7 @@ const casa::Vector<double>& GenericNormalEquations::dataVector(const std::string
 {
   std::map<string, casa::Vector<double> >::const_iterator cIt = 
                                            itsDataVector.find(par);
-  CONRADASSERT(cIt != itsDataVector.end());
+  ASKAPASSERT(cIt != itsDataVector.end());
   return cIt->second;                                  
 }                          
   
@@ -449,7 +449,7 @@ void GenericNormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
 void GenericNormalEquations::readFromBlob(LOFAR::BlobIStream& is)
 { 
   const int version = is.getStart("GenericNormalEquations");
-  CONRADCHECK(version == 1, 
+  ASKAPCHECK(version == 1, 
               "Attempting to read from a blob stream an object of the wrong "
               "version: expect version 1, found version "<<version);
   is>>itsNormalMatrix>>itsDataVector;

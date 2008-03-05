@@ -13,7 +13,7 @@
 /// unnecessarily. Such functionality is in the future plans, but it is
 /// hidden behind the interface of this class.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
@@ -32,10 +32,10 @@
 
 // own includes
 #include <fitting/ComplexDiff.h>
-#include <conrad/ConradError.h>
-#include <conrad/MapKeyIterator.h>
+#include <askap/AskapError.h>
+#include <askap/MapKeyIterator.h>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -229,7 +229,7 @@ inline  ComplexDiffMatrix operator*(const ComplexDiff &scalar,
 /// @return element
 inline const ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col) const
 {
-   CONRADDEBUGASSERT(row<itsNRows && col<itsNColumns);
+   ASKAPDEBUGASSERT(row<itsNRows && col<itsNColumns);
    return itsElements[itsNRows*col+row];
 }
 
@@ -239,7 +239,7 @@ inline const ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col) 
 /// @return element
 inline ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col)
 {
-   CONRADDEBUGASSERT(row<itsNRows && col<itsNColumns);
+   ASKAPDEBUGASSERT(row<itsNRows && col<itsNColumns);
    itsParameterMapInvalid = true;
    return itsElements[itsNRows*col+row];
 }
@@ -249,7 +249,7 @@ inline ComplexDiff& ComplexDiffMatrix::operator()(size_t row, size_t col)
 /// @return a const reference to the element
 inline const ComplexDiff& ComplexDiffMatrix::operator[](size_t index) const
 {
-   CONRADDEBUGASSERT(itsNColumns == 1);
+   ASKAPDEBUGASSERT(itsNColumns == 1);
    return operator()(index,0);
 }
    
@@ -258,7 +258,7 @@ inline const ComplexDiff& ComplexDiffMatrix::operator[](size_t index) const
 /// @return a non-const reference to the element
 inline ComplexDiff& ComplexDiffMatrix::operator[](size_t index)
 {
-   CONRADDEBUGASSERT(itsNColumns == 1);
+   ASKAPDEBUGASSERT(itsNColumns == 1);
    return operator()(index,0);
 }
 
@@ -297,7 +297,7 @@ inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Vector<casa::Complex> &v
 inline ComplexDiffMatrix operator*(const ComplexDiffMatrix &in1,
                 const ComplexDiffMatrix &in2)
 {
-   CONRADDEBUGASSERT(in1.nColumn() == in2.nRow());
+   ASKAPDEBUGASSERT(in1.nColumn() == in2.nRow());
    ComplexDiffMatrix result(in1.nRow(), in2.nColumn());
    size_t curCol = 0, curRow = 0;
    for (std::vector<ComplexDiff>::iterator it = result.itsElements.begin();
@@ -359,8 +359,8 @@ inline void ComplexDiffMatrix::operator*=(const ComplexDiffMatrix &matr)
 inline ComplexDiffMatrix operator+(const ComplexDiffMatrix &in1,
                 const ComplexDiffMatrix &in2)
 {
-  CONRADDEBUGASSERT(in1.nColumn() == in2.nColumn());
-  CONRADDEBUGASSERT(in1.nRow() == in2.nRow());
+  ASKAPDEBUGASSERT(in1.nColumn() == in2.nColumn());
+  ASKAPDEBUGASSERT(in1.nRow() == in2.nRow());
   ComplexDiffMatrix result(in1);
   ComplexDiffMatrix::const_iterator ci = in2.begin();
   for (std::vector<ComplexDiff>::iterator it = result.itsElements.begin();
@@ -394,6 +394,6 @@ inline ComplexDiffMatrix::parameter_iterator ComplexDiffMatrix::paramEnd() const
 
 } // namepace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef COMPLEXDIFFMATRIX_H

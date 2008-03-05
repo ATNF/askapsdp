@@ -3,11 +3,11 @@
 
 #include <tables/Tables/TableError.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

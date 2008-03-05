@@ -2,10 +2,10 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <vector>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -16,7 +16,7 @@ namespace conrad
       CPPUNIT_TEST_SUITE(DomainTest);
       CPPUNIT_TEST(testIndices);
       CPPUNIT_TEST(testValues);
-      CPPUNIT_TEST_EXCEPTION(testDuplError, conrad::CheckError);
+      CPPUNIT_TEST_EXCEPTION(testDuplError, askap::CheckError);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST_SUITE_END();
 

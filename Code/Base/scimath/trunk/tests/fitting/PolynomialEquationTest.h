@@ -5,12 +5,12 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 #include <cmath>
 
 using std::abs;
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

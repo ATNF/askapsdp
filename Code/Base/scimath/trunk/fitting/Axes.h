@@ -14,7 +14,7 @@
 ///
 /// @todo Add tabulated axes
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHAXES_H_
@@ -28,7 +28,7 @@
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 
-namespace conrad
+namespace askap
 {
   
   namespace scimath

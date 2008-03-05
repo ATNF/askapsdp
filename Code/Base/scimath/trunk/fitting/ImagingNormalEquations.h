@@ -8,7 +8,7 @@
 /// This class represents the approximated case, and is used with imaging 
 /// algorithms.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef IMAGING_NORMAL_EQUATIONS_H
@@ -29,7 +29,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -202,5 +202,5 @@ namespace conrad
     };
     
   }  // namespace scimath
-} // namespace conrad
+} // namespace askap
 #endif // #ifndef IMAGING_NORMAL_EQUATIONS_H

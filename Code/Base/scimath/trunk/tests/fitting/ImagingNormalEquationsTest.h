@@ -9,10 +9,10 @@
 #include <Blob/BlobIStream.h>
 
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

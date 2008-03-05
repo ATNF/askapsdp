@@ -2,7 +2,7 @@
 ///
 /// Class to handle design equations for the fitting classes
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 #include <fitting/DesignMatrix.h>
@@ -15,7 +15,7 @@
 #include <casa/Arrays/MatrixMath.h>
 #include <casa/Arrays/ArrayMath.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <iostream>
 #include <string>
@@ -27,10 +27,10 @@
 using std::string;
 using std::vector;
 using std::map;
-using namespace conrad;
+using namespace askap;
 using namespace casa;
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -114,13 +114,13 @@ namespace conrad
     void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv)
     { 
       itsParameterNamesInvalid = true;
-      //CONRADCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
+      //ASKAPCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
       itsAMatrix[name].push_back(deriv.copy());
     }
 
     void DesignMatrix::addResidual(const casa::Vector<casa::Double>& residual, const casa::Vector<double>& weight)
     {
-      CONRADDEBUGASSERT(residual.nelements() == weight.nelements());
+      ASKAPDEBUGASSERT(residual.nelements() == weight.nelements());
       itsBVector.push_back(residual.copy());
       itsWeight.push_back(weight.copy());
     }
@@ -138,10 +138,10 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
                 const casa::Matrix<double> &weights)
 {
    const size_t nDataPoints = cdm.nRow()*cdm.nColumn();
-   CONRADDEBUGASSERT(measured.nelements() == nDataPoints);
-   CONRADDEBUGASSERT(weights.nelements() == nDataPoints);
-   CONRADDEBUGASSERT(cdm.nRow() == measured.nrow());
-   CONRADDEBUGASSERT(cdm.nRow() == weights.nrow());
+   ASKAPDEBUGASSERT(measured.nelements() == nDataPoints);
+   ASKAPDEBUGASSERT(weights.nelements() == nDataPoints);
+   ASKAPDEBUGASSERT(cdm.nRow() == measured.nrow());
+   ASKAPDEBUGASSERT(cdm.nRow() == weights.nrow());
    
    // buffer for derivatives of complex Parameters. Each complex value 
    // corresponds to two adjacent double elements. The first row is 
@@ -206,10 +206,10 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
    
    for (ComplexDiffMatrix::const_iterator elem = cdm.begin();
               elem != cdm.end(); ++elem, ++resIt, ++rwtIt, ++wtIt, ++measIt) {
-        CONRADDEBUGASSERT(measIt != measured.end());
-        CONRADDEBUGASSERT(resIt != residual.cend());
-        CONRADDEBUGASSERT(rwtIt != reformedWeights.cend());
-        CONRADDEBUGASSERT(wtIt != weights.end());
+        ASKAPDEBUGASSERT(measIt != measured.end());
+        ASKAPDEBUGASSERT(resIt != residual.cend());
+        ASKAPDEBUGASSERT(rwtIt != reformedWeights.cend());
+        ASKAPDEBUGASSERT(wtIt != weights.end());
         const casa::Complex value = *measIt - elem->value();
         *resIt = real(value);
         *(++resIt) = imag(value);
@@ -239,8 +239,8 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
 
     const DMAMatrix& DesignMatrix::derivative(const string& name) const
     {
-      //CONRADCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
-      CONRADCHECK(itsAMatrix.count(name)>0, "Parameter "+name+" does not exist in the assigned values");
+      //ASKAPCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
+      ASKAPCHECK(itsAMatrix.count(name)>0, "Parameter "+name+" does not exist in the assigned values");
       return itsAMatrix[name];
     }
 
@@ -272,7 +272,7 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
         sumwt+=casa::sum(*wIt);
         sum+=casa::sum((*wIt)*((*bIt)*(*bIt)));
       }
-      CONRADCHECK(sumwt>0.0, "Sum of weights is zero");
+      ASKAPCHECK(sumwt>0.0, "Sum of weights is zero");
       return sqrt(sum/sumwt);
     }
 

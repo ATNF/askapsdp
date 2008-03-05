@@ -10,7 +10,7 @@
 /// case as well. This will allow to do some tests with the full matrix for
 /// small images, where we can afford such calculations.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -24,7 +24,7 @@
 // boost includes
 #include <boost/shared_ptr.hpp>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -91,6 +91,6 @@ struct INormalEquations : public ISerializable {
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_NORMAL_EQUATIONS_H

@@ -2,7 +2,7 @@
 ///
 /// Quality: Encapsulate quality of a solution
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHQUALITY_H_
@@ -11,7 +11,7 @@
 #include <iostream>
 #include <string>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

@@ -4,7 +4,7 @@
 /// @details One of the examples is an equation, which appear in
 /// the gain calibration problem (Vmeas= g1*conj(g2)*Vtrue).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef GENERAL_FITTING_TEST_H
@@ -17,8 +17,8 @@
 #include <fitting/LinearSolver.h>
 #include <fitting/GenericNormalEquations.h>
 
-#include <conrad/ConradError.h>
-#include <conrad/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -26,7 +26,7 @@
 
 using std::abs;
 
-namespace conrad
+namespace askap
 {
 
 namespace scimath
@@ -46,7 +46,7 @@ namespace scimath
         itsBaselines.resize(nBaselines);
         for (casa::uInt ant1=0,baseline=0;ant1<itsNAnt;++ant1) {
              for (casa::uInt ant2=ant1+1;ant2<itsNAnt;++ant2,++baseline) {
-                  CONRADASSERT(baseline<nBaselines);
+                  ASKAPASSERT(baseline<nBaselines);
                   itsBaselines[baseline].first=ant1;
                   itsBaselines[baseline].second=ant2;
              }
@@ -175,7 +175,7 @@ namespace scimath
      /// @param[in] ant antenna number
      /// @return string with parameter name
      std::string parName(casa::uInt ant) const {
-         CONRADASSERT(ant<itsNAnt);
+         ASKAPASSERT(ant<itsNAnt);
          return std::string("gain.")+utility::toString(ant);
      }
      
@@ -184,9 +184,9 @@ namespace scimath
      /// @param[in] par parameter name
      /// @return antenna number [0..itsNAnt-1]
      casa::uInt antNumber(const std::string &par) const {
-         CONRADASSERT(par.find("gain.") == 0 && par.size()>5);
+         ASKAPASSERT(par.find("gain.") == 0 && par.size()>5);
          casa::uInt ant = utility::fromString<casa::uInt>(par.substr(5));
-         CONRADASSERT(ant<itsNAnt);
+         ASKAPASSERT(ant<itsNAnt);
          return ant;
      }
      
@@ -207,11 +207,11 @@ namespace scimath
      /// of real-valued gains (i.e. just amplitudes). 
      /// @param[in] ne a reference to normal equations object
      void calcEquationsReal(GenericNormalEquations &ne) {
-         CONRADASSERT(itsBaselines.size() == itsRealMeasuredValues.size());
+         ASKAPASSERT(itsBaselines.size() == itsRealMeasuredValues.size());
          casa::Matrix<double> derivatives(itsBaselines.size(),itsNAnt,0.);
          for (size_t baseline=0; baseline<itsBaselines.size(); ++baseline) {
-              CONRADASSERT(itsBaselines[baseline].first<itsNAnt);
-              CONRADASSERT(itsBaselines[baseline].second<itsNAnt);
+              ASKAPASSERT(itsBaselines[baseline].first<itsNAnt);
+              ASKAPASSERT(itsBaselines[baseline].second<itsNAnt);
               derivatives(baseline,itsBaselines[baseline].first) = 
                     itsGuessedGains.scalarValue(parName(itsBaselines[baseline].second));
               derivatives(baseline,itsBaselines[baseline].second) = 
@@ -248,7 +248,7 @@ namespace scimath
      /// of complex-valued gains (i.e. amplitudes and phases) 
      /// @param[in] ne a reference to normal equations object
      void calcEquationsComplex(GenericNormalEquations &ne) {
-         CONRADASSERT(itsBaselines.size() == itsComplexMeasuredValues.size());
+         ASKAPASSERT(itsBaselines.size() == itsComplexMeasuredValues.size());
          
          // the first axis has double length because each pair of consequitive
          // elements corresponds to real and imaginary part of the complex-valued
@@ -258,8 +258,8 @@ namespace scimath
          casa::Cube<double> derivatives(itsBaselines.size()*2+1,2,itsNAnt,0.);
          casa::Vector<double> residual(itsBaselines.size()*2+1);
          for (size_t baseline=0; baseline<itsBaselines.size(); ++baseline) {
-              CONRADASSERT(itsBaselines[baseline].first<itsNAnt);
-              CONRADASSERT(itsBaselines[baseline].second<itsNAnt);
+              ASKAPASSERT(itsBaselines[baseline].first<itsNAnt);
+              ASKAPASSERT(itsBaselines[baseline].second<itsNAnt);
               casa::Complex g2 = itsGuessedGains.complexValue(parName(
                                         itsBaselines[baseline].second));
               casa::Complex g1 = itsGuessedGains.complexValue(parName(
@@ -322,6 +322,6 @@ namespace scimath
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef GENERAL_FITTING_TEST_H

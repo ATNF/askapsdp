@@ -12,18 +12,18 @@
 /// complex-valued parameters properly. 
 /// 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
 // own includes
 #include <fitting/ComplexDiff.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <iostream>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
 /// @brief default constructor -  a constant (0.,0.)
 ComplexDiff::ComplexDiff() : itsValue(0.,0.) {}

@@ -12,14 +12,14 @@
 /// complex-valued parameters properly. 
 /// 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef COMPLEX_DIFF_H
 #define COMPLEX_DIFF_H
 
-#include <conrad/MapKeyIterator.h>
-#include <conrad/ConradError.h>
+#include <askap/MapKeyIterator.h>
+#include <askap/AskapError.h>
 
 
 // casa includes
@@ -30,7 +30,7 @@
 #include <map>
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -302,12 +302,12 @@ private:
 template<typename Op> void ComplexDiff::binaryOperationInSitu(Op &operation,
               const ComplexDiff &other)
 {
-  #ifdef CONRAD_DEBUG
+  #ifdef ASKAP_DEBUG
   // check conformance
-  CONRADCHECK(isConformant(other), "At least one of the parameters of two "
+  ASKAPCHECK(isConformant(other), "At least one of the parameters of two "
       "ComplexDiff objects passed to a binary operation is conceptually real "
       "for one ComplexDiff only (should not change real/complex status");
-  #endif // CONRAD_DEBUG
+  #endif // ASKAP_DEBUG
   // process derivatives by real part of each parameter
   binaryOperationInSitu(operation,itsDerivRe,other.itsDerivRe,other.itsValue);
   // now derivatives by imaginary part of each parameter
@@ -374,6 +374,6 @@ inline ComplexDiff conj(const ComplexDiff &in)
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef COMPLEX_DIFF_H

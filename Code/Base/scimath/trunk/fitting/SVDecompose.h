@@ -5,11 +5,11 @@
 /// the singular value decomposition, I quickly adapted this file
 /// (which I wrote long time ago for another project). The algorithm
 /// originates initially from the Numerical Recipies in C.
-/// The code doesn't conform with the CONRAD coding standards, because
-/// it wasn't written originally for CONRAD. If necessary, it will be 
+/// The code doesn't conform with the ASKAP coding standards, because
+/// it wasn't written originally for ASKAP. If necessary, it will be 
 /// fully converted later.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef __SVDECOMPOSE_H

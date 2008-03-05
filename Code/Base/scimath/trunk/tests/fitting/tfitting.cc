@@ -13,15 +13,15 @@
 int main( int argc, char **argv)
 {
   CppUnit::TextUi::TestRunner runner;
-  runner.addTest( conrad::scimath::ParamsTest::suite() );
-  runner.addTest( conrad::scimath::ParamsTableTest::suite() );
-  runner.addTest( conrad::scimath::DesignMatrixTest::suite() );
-  runner.addTest( conrad::scimath::GenericNormalEquationsTest::suite() );
-  runner.addTest( conrad::scimath::ImagingNormalEquationsTest::suite() );
-  runner.addTest( conrad::scimath::PolynomialEquationTest::suite() );
-  runner.addTest( conrad::scimath::GeneralFittingTest::suite() );
-  runner.addTest( conrad::scimath::ComplexDiffTest::suite() );
-  runner.addTest( conrad::scimath::ComplexDiffMatrixTest::suite() );
+  runner.addTest( askap::scimath::ParamsTest::suite() );
+  runner.addTest( askap::scimath::ParamsTableTest::suite() );
+  runner.addTest( askap::scimath::DesignMatrixTest::suite() );
+  runner.addTest( askap::scimath::GenericNormalEquationsTest::suite() );
+  runner.addTest( askap::scimath::ImagingNormalEquationsTest::suite() );
+  runner.addTest( askap::scimath::PolynomialEquationTest::suite() );
+  runner.addTest( askap::scimath::GeneralFittingTest::suite() );
+  runner.addTest( askap::scimath::ComplexDiffTest::suite() );
+  runner.addTest( askap::scimath::ComplexDiffMatrixTest::suite() );
   runner.run();
   return 0;
 }

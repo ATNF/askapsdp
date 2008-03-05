@@ -7,7 +7,7 @@
 /// I hope that eventually this file will be dropped, as either the GSL
 /// will be fixed or the code will be rewritten to completely avoid using GSL.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef GSLSVD_REPLACEMENT_H
@@ -17,7 +17,7 @@
 #include <gsl/gsl_vector.h>
 
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -30,7 +30,7 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S);
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef GSLSVD_REPLACEMENT_H

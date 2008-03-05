@@ -8,7 +8,7 @@
 ///    - Some axes for the array
 ///    - Free or fixed status
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHPARAMS_H_
@@ -29,7 +29,7 @@
 #include <string>
 #include <ostream>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

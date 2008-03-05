@@ -11,17 +11,17 @@
 /// to fill a normal equation class appropriate for imaging.
 /// @note Some imaging equations use generic normal equations. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #include <fitting/ImagingEquation.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <stdexcept>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
 /// @brief default constructor
 ImagingEquation::ImagingEquation() {}
@@ -44,7 +44,7 @@ void ImagingEquation::calcEquations(INormalEquations &ne) const
      calcImagingEquations(dynamic_cast<ImagingNormalEquations&>(ne));
   }
   catch (const std::bad_cast &bc) {
-     CONRADTHROW(ConradError, "An attempt to use incompatible type of "
+     ASKAPTHROW(AskapError, "An attempt to use incompatible type of "
                  "the normal equations class with a derivative from "
                  "ImagingEquation. It accepts only NormalEquations "
                  "and derivatives. It probably indicates a logic error");    

@@ -3,7 +3,7 @@
 /// LinearSolver: This solver uses SVD to solve the normal
 /// equations.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHLINEARSOLVER_H_
@@ -14,7 +14,7 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

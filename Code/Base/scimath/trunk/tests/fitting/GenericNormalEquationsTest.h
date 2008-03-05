@@ -4,7 +4,7 @@
 /// (the one, which implements normal equation in the very basic
 /// form without any approximation).
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef GENERIC_NORMAL_EQUATION_TEST_H
@@ -28,12 +28,12 @@
 #include <Blob/BlobIStream.h>
 
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <boost/shared_ptr.hpp>
 #include <algorithm>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -47,7 +47,7 @@ namespace conrad
       CPPUNIT_TEST(testAddIndependentParameter);
       CPPUNIT_TEST(testMerge);
       CPPUNIT_TEST(testConstructorFromDesignMatrix);
-      CPPUNIT_TEST_EXCEPTION(testNonConformanceError, conrad::CheckError);
+      CPPUNIT_TEST_EXCEPTION(testNonConformanceError, askap::CheckError);
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_SUITE_END();
 

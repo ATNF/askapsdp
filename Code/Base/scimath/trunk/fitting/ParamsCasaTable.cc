@@ -2,7 +2,7 @@
 ///
 /// Holds the parameters in a CASA table
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 #include <fitting/ParamsCasaTable.h>
@@ -35,13 +35,13 @@
 #include <casa/Utilities/GenSort.h>
 #include <casa/BasicMath/Math.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-using namespace conrad;
+using namespace askap;
 
 using namespace casa;
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -91,7 +91,7 @@ namespace conrad
 
     void ParamsCasaTable::openTable(const std::string& tablename)
     {
-      CONRADCHECK(Table::isReadable(tablename), "Parameters table " << tablename << " is not readable");
+      ASKAPCHECK(Table::isReadable(tablename), "Parameters table " << tablename << " is not readable");
 
       itsTableName=tablename;
       itsTable=Table(itsTableName);
@@ -112,7 +112,7 @@ namespace conrad
 
     void ParamsCasaTable::getParameters(Params& ip, const Domain& domain) const
     {
-      CONRADCHECK(Table::isReadable(itsTable.tableName()), "Parameters table " << itsTable.tableName() << " is not readable");
+      ASKAPCHECK(Table::isReadable(itsTable.tableName()), "Parameters table " << itsTable.tableName() << " is not readable");
 
       ROScalarColumn<String> nameCol (itsTable, colName);
       ROArrayColumn<double> valCol (itsTable, colValues);
@@ -124,7 +124,7 @@ namespace conrad
       ROArrayColumn<double> domainEndCol (itsTable, colDomainEnd);
       ROScalarColumn<bool> freeCol (itsTable, colFree);
 
-      CONRADCHECK(itsTable.nrow()>0, "Parameters table " << itsTable.tableName() << " is empty");
+      ASKAPCHECK(itsTable.nrow()>0, "Parameters table " << itsTable.tableName() << " is empty");
 
       for (size_t rownr=0; rownr<itsTable.nrow(); ++rownr)
       {

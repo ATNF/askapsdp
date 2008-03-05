@@ -13,13 +13,13 @@
 /// unnecessarily. Such functionality is in the future plans, but it is
 /// hidden behind the interface of this class.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 // own includes
 #include <fitting/ComplexDiffMatrix.h>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -48,10 +48,10 @@ void ComplexDiffMatrix::buildParameterMap() const
                 res.first->second = elem->isReal(*param);
             }  else  {
                 // parameter already exists, check conformance in the debug mode
-                #ifdef CONRAD_DEBUG
-                CONRADCHECK(res.first->second == elem->isReal(*param), "Parameter "<<
+                #ifdef ASKAP_DEBUG
+                ASKAPCHECK(res.first->second == elem->isReal(*param), "Parameter "<<
                        *param<<" changes type (real/complex) within ComplexDiffMatrix");
-                #endif // CONRAD_DEBUG
+                #endif // ASKAP_DEBUG
             } 
        }
   }
@@ -60,4 +60,4 @@ void ComplexDiffMatrix::buildParameterMap() const
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap

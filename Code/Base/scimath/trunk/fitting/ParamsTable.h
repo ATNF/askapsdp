@@ -2,7 +2,7 @@
 ///
 /// ParamsTable: Base class for storing and retrieving Params
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 #ifndef SCIMATHPARAMSTABLE_H_
 #define SCIMATHPARAMSTABLE_H_
@@ -10,7 +10,7 @@
 #include <fitting/Params.h>
 #include <fitting/Axes.h>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

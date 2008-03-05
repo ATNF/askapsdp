@@ -8,7 +8,7 @@
 /// This class represents the generic case, where no approximation to the normal
 /// matrix is done.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -27,7 +27,7 @@
 #include <map>
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -164,7 +164,7 @@ protected:
   /// @brief extract dimension of a parameter from the given row
   /// @details This helper method analyses the matrices stored in the supplied
   /// map (effectively a row of a sparse matrix) and extracts the dimension of
-  /// the parameter this row corresponds to. If compiled with CONRAD_DEBUG, 
+  /// the parameter this row corresponds to. If compiled with ASKAP_DEBUG, 
   /// this method does an additional consistency check that all elements of
   /// the sparse matrix give the same dimension (number of rows is the same for
   /// all elements).
@@ -226,6 +226,6 @@ private:
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef GENERIC_NORMAL_EQUATIONS_H

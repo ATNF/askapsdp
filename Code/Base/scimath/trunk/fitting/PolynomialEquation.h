@@ -10,7 +10,7 @@
 ///
 /// @todo Use axes if present to normalize before fitting
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHPOLYEQUATION_H
@@ -18,7 +18,7 @@
 
 #include <fitting/GenericEquation.h>
 
-namespace conrad
+namespace askap
 {
 
   namespace scimath

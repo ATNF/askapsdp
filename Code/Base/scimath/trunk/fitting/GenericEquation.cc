@@ -9,17 +9,17 @@
 /// approximation to the normal matrix is done. It uses GenericNormalEquation as
 /// opposed to ImagingNormalEquation
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 #include <fitting/GenericEquation.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <stdexcept>
 
-using namespace conrad;
-using namespace conrad::scimath;
+using namespace askap;
+using namespace askap::scimath;
 
 /// @brief default constructor
 GenericEquation::GenericEquation() {}
@@ -42,7 +42,7 @@ void GenericEquation::calcEquations(INormalEquations &ne) const
      calcGenericEquations(dynamic_cast<GenericNormalEquations&>(ne));
   }
   catch (const std::bad_cast &bc) {
-     CONRADTHROW(ConradError, "An attempt to use incompatible type of "
+     ASKAPTHROW(AskapError, "An attempt to use incompatible type of "
                  "the normal equations class with a derivative from "
                  "GenericEquation. It accepts only GenericNormalEquations "
                  "and derivatives. It probably indicates a logic error");    

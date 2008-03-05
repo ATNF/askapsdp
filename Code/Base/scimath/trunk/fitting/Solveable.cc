@@ -2,14 +2,14 @@
 ///
 /// Holds common control parameters for Solvers
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 #include <fitting/Solveable.h>
 
 using std::string;
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

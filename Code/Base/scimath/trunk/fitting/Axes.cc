@@ -2,14 +2,14 @@
 ///
 /// Axes: Provides Axes definitions for fitting parameters
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 #include <fitting/Axes.h>
 #include <casa/aips.h>
 #include <casa/Exceptions/Error.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <vector>
 #include <string>
@@ -24,7 +24,7 @@ using std::ostream;
 using std::string;
 using std::vector;
 
-namespace conrad
+namespace askap
 {
 	namespace scimath
 	{
@@ -58,7 +58,7 @@ namespace conrad
 
 		void Axes::add(const std::string& name, const double start, const double end)
 		{
-			CONRADCHECK(!has(name), "Axis " + name + " already exists");
+			ASKAPCHECK(!has(name), "Axis " + name + " already exists");
 			itsNames.push_back(name);
 			itsStart.push_back(start);
 			itsEnd.push_back(end);
@@ -76,7 +76,7 @@ namespace conrad
 
 		int Axes::order(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Axis " + name + " does not exist");
+			ASKAPCHECK(has(name), "Axis " + name + " does not exist");
 			for (uint i=0;i<itsNames.size();i++)
 			{
 				if(itsNames[i]==name) return i;
@@ -91,13 +91,13 @@ namespace conrad
 
 		double Axes::start(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Axis " + name + " does not exist");
+			ASKAPCHECK(has(name), "Axis " + name + " does not exist");
 			return itsStart[order(name)];
 		}
 
 		double Axes::end(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Axis " + name + " does not exist");
+			ASKAPCHECK(has(name), "Axis " + name + " does not exist");
 			return itsEnd[order(name)];
 		}
 

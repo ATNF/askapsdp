@@ -8,7 +8,7 @@
 /// This class represents the approximated case, and is used with imaging 
 /// algorithms.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 
@@ -26,7 +26,7 @@
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <stdexcept>
 #include <string>
@@ -41,7 +41,7 @@ using std::map;
 using std::string;
 using std::vector;
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -118,7 +118,7 @@ namespace conrad
       }
     }
     catch (const std::bad_cast &bc) {
-        CONRADTHROW(ConradError, "An attempt to merge NormalEquations with an "
+        ASKAPTHROW(AskapError, "An attempt to merge NormalEquations with an "
                     "equation of incompatible type");
     }
   }
@@ -146,7 +146,7 @@ namespace conrad
 const casa::Matrix<double>& ImagingNormalEquations::normalMatrix(const std::string &par1, 
                         const std::string &par2) const
 {
-   CONRADTHROW(ConradError, 
+   ASKAPTHROW(AskapError, 
                "ImagingNormalEquations::normalMatrix has not yet been implemented");
    const casa::Matrix<double> *buf = 0;
    return *buf; // the code shouldn't get this far.                             
@@ -165,7 +165,7 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
 {
    std::map<string, casa::Vector<double> >::const_iterator cIt = 
                                      itsDataVector.find(par);
-   CONRADASSERT(cIt != itsDataVector.end());                                  
+   ASKAPASSERT(cIt != itsDataVector.end());                                  
    return cIt->second;
 }
 
@@ -212,7 +212,7 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
 
       if(datavector.size()!=itsDataVector[name].size())
       {
-        CONRADDEBUGASSERT(itsDataVector[name].size() == 0);
+        ASKAPDEBUGASSERT(itsDataVector[name].size() == 0);
         itsDataVector[name]=datavector;
       }
       else
@@ -221,7 +221,7 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
       }
       if(normalmatrixdiagonal.shape()!=itsNormalMatrixDiagonal[name].shape())
       {
-        CONRADDEBUGASSERT(itsNormalMatrixDiagonal[name].size() == 0);
+        ASKAPDEBUGASSERT(itsNormalMatrixDiagonal[name].size() == 0);
         itsNormalMatrixDiagonal[name]=normalmatrixdiagonal;
       }
       else
@@ -248,7 +248,7 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
 
       if(datavector.size()!=itsDataVector[name].size())
       {
-        CONRADDEBUGASSERT(itsDataVector[name].size() == 0);
+        ASKAPDEBUGASSERT(itsDataVector[name].size() == 0);
         itsDataVector[name]=datavector;
       }
       else
@@ -257,7 +257,7 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
       }
       if(normalmatrixdiagonal.shape()!=itsNormalMatrixDiagonal[name].shape())
       {
-        CONRADDEBUGASSERT(itsNormalMatrixDiagonal[name].size() == 0);
+        ASKAPDEBUGASSERT(itsNormalMatrixDiagonal[name].size() == 0);
         itsNormalMatrixDiagonal[name]=normalmatrixdiagonal;
       }
       else

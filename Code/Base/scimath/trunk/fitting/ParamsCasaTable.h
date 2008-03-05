@@ -3,7 +3,7 @@
 /// ParamsCasaTable: Concrete class for storing and retrieving Params by
 /// domain specification to and from a Casa table.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 #ifndef SCIMATHPARAMSCasaTABLE_H_
 #define SCIMATHPARAMSCasaTABLE_H_
@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

@@ -7,7 +7,7 @@
 /// place for such a general interface. At this stage just declare it outside
 /// the scimath namespace.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -17,7 +17,7 @@
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 
-namespace conrad {
+namespace askap {
 
 /// @brief An interface responsible for serialization to/from a blob stream
 /// @details Methods to read from / write to a blob stream must present in
@@ -55,6 +55,6 @@ LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &os, const ISerializable& obj)
 LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &is, ISerializable& obj);
 
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef I_SERIALIZABLE_H

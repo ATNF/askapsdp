@@ -67,7 +67,7 @@
 ///
 /// These two changes are needed to allow imaging.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHEQUATION_H
@@ -78,7 +78,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace conrad
+namespace askap
 {
 
   namespace scimath

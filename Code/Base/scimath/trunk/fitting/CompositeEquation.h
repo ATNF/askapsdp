@@ -5,7 +5,7 @@
 /// the composite pattern to allow a set of equations to be
 /// assembled and used the same as a single equation.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHCOMPOSITEEQUATION_H
@@ -15,7 +15,7 @@
 
 #include <list>
 
-namespace conrad
+namespace askap
 {
 
   namespace scimath

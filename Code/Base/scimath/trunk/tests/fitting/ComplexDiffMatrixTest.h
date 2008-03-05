@@ -4,7 +4,7 @@
 /// @details See ComplexDiff for description of what this class  
 /// is supposed to do. This file contains appropriate unit tests.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef COMPLEX_DIFF_MATRIX_TEST
@@ -20,7 +20,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 // stl includes
 
@@ -28,7 +28,7 @@
 #include <set>
 #include <string>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -240,7 +240,7 @@ void ComplexDiffMatrixTest::testParameterList()
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef COMPLEX_DIFF_MATRIX_TEST
 

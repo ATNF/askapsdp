@@ -7,14 +7,14 @@
 /// place for such a general interface. At this stage just declare it outside
 /// the scimath namespace.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
 // own includes
 #include <fitting/ISerializable.h>
 
-namespace conrad {
+namespace askap {
 
 /// @brief an empty virtual destructor to keep the compiler happy
 ISerializable::~ISerializable() {}
@@ -40,4 +40,4 @@ LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &is, ISerializable& obj)
 }
 
 
-} // namespace conrad
+} // namespace askap

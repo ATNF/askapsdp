@@ -9,7 +9,7 @@
 /// approximation to the normal matrix is done. It uses GenericNormalEquation as
 /// opposed to ImagingNormalEquation
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -20,7 +20,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/GenericNormalEquations.h>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -62,7 +62,7 @@ struct GenericEquation : public Equation {
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef GENERIC_EQUATION_H
 

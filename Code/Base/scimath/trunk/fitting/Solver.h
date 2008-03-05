@@ -6,7 +6,7 @@
 /// The base class holds the parameters and the normal equations.
 /// Derived classes perform the solution of the normal equations.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHSOLVER_H_
@@ -17,7 +17,7 @@
 #include <fitting/Solveable.h>
 #include <fitting/Quality.h>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {

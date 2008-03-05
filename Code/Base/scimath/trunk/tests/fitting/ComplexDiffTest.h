@@ -4,7 +4,7 @@
 /// @details See ComplexDiff for description of what this class  
 /// is supposed to do. This file contains appropriate unit tests.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef COMPLEX_DIFF_TEST
@@ -15,12 +15,12 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <algorithm>
 #include <set>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -110,7 +110,7 @@ void ComplexDiffTest::testMultiplyVector()
   ComplexDiffMatrix cdVec = vec * f;
   
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {
-       CONRADASSERT(i < cdVec.nElements());
+       ASKAPASSERT(i < cdVec.nElements());
        const ComplexDiff &d = cdVec[i]; 
        CPPUNIT_ASSERT(abs(d.value()-casa::Complex(-30.,-70.))<1e-7);
        CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(0,-2.))<1e-7);
@@ -121,7 +121,7 @@ void ComplexDiffTest::testMultiplyVector()
   cdVec = g1 * vec;
 
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {
-       CONRADASSERT(i < cdVec.nElements());
+       ASKAPASSERT(i < cdVec.nElements());
        const ComplexDiff &d = cdVec[i]; 
        CPPUNIT_ASSERT(abs(d.value()-casa::Complex(30.,70.))<1e-7);
        CPPUNIT_ASSERT(abs(d.derivRe("g2")-casa::Complex(0,-2.))<1e-7);
@@ -131,7 +131,7 @@ void ComplexDiffTest::testMultiplyVector()
   cdVec*= f;  
 
   for (casa::uInt i = 0; i< vec.nelements(); ++i) {
-       CONRADASSERT(i < cdVec.nElements());
+       ASKAPASSERT(i < cdVec.nElements());
        const ComplexDiff &d = cdVec[i]; 
        CPPUNIT_ASSERT(abs(d.value()-casa::Complex(2100.,2000))<1e-7);
        CPPUNIT_ASSERT(abs(d.derivRe("g1")-casa::Complex(30.,70.))<1e-7);
@@ -174,7 +174,7 @@ void ComplexDiffTest::testParameterType()
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef COMPLEX_DIFF_TEST
 

@@ -1,5 +1,5 @@
 gsl=3rdParty/gsl/default
-conrad=Code/Base/conrad/trunk
+askap=Code/Base/askap/trunk
 blob=3rdParty/LOFAR/Blob/tags/Blob-1.0;blob
 aps=3rdParty/LOFAR/APS/tags/APS-2.1
 casacore=3rdParty/casacore/tags/casacore-0.3.0; casa_tables casa_casa

@@ -1,10 +1,10 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/ComplexDiffMatrix.h>
 #include <fitting/ComplexDiff.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -14,7 +14,7 @@ namespace conrad
 
       CPPUNIT_TEST_SUITE(DesignMatrixTest);
       CPPUNIT_TEST(testConstructors);
-      CPPUNIT_TEST_EXCEPTION(testInvalidArgument, conrad::CheckError);
+      CPPUNIT_TEST_EXCEPTION(testInvalidArgument, askap::CheckError);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testAdd);
       CPPUNIT_TEST(testComplexDiffMatrix);

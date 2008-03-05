@@ -7,11 +7,11 @@
 #include <Blob/BlobIStream.h>
 
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -28,8 +28,8 @@ namespace conrad
       CPPUNIT_TEST(testCompletions);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testBlobStream);
-      CPPUNIT_TEST_EXCEPTION(testDuplicate, conrad::CheckError);
-      CPPUNIT_TEST_EXCEPTION(testNotScalar, conrad::CheckError);
+      CPPUNIT_TEST_EXCEPTION(testDuplicate, askap::CheckError);
+      CPPUNIT_TEST_EXCEPTION(testNotScalar, askap::CheckError);
       CPPUNIT_TEST_SUITE_END();
 
       private:

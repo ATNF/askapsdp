@@ -2,7 +2,7 @@
 ///
 /// Holds the parameters for a set of linear equations
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 
@@ -17,8 +17,8 @@
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
 
-#include <conrad/ConradUtil.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapUtil.h>
+#include <askap/AskapError.h>
 
 #include <iostream>
 #include <map>
@@ -28,7 +28,7 @@ using std::map;
 using std::string;
 using std::ostream;
 
-namespace conrad
+namespace askap
 {
 	namespace scimath
 	{
@@ -80,7 +80,7 @@ namespace conrad
 
 		void Params::add(const std::string& name, const double ip)
 		{
-			CONRADCHECK(!has(name), "Parameter " + name + " already exists");
+			ASKAPCHECK(!has(name), "Parameter " + name + " already exists");
 			casa::Array<double> ipArray(casa::IPosition(1,1));
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
@@ -91,7 +91,7 @@ namespace conrad
 
 		void Params::add(const std::string& name, const casa::Array<double>& ip)
 		{
-			CONRADCHECK(!has(name), "Parameter " + name + " already exists");
+			ASKAPCHECK(!has(name), "Parameter " + name + " already exists");
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsAxes[name]=Axes();
@@ -101,7 +101,7 @@ namespace conrad
 		void Params::add(const std::string& name, const casa::Array<double>& ip,
 				const Axes& axes)
 		{
-			CONRADCHECK(!has(name), "Parameter " + name + " already exists");
+			ASKAPCHECK(!has(name), "Parameter " + name + " already exists");
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsAxes[name]=axes;
@@ -125,7 +125,7 @@ namespace conrad
 
 		void Params::add(const std::string& name, const double ip, const Axes& axes)
 		{
-			CONRADCHECK(!has(name), "Parameter " + name + " already exists");
+			ASKAPCHECK(!has(name), "Parameter " + name + " already exists");
 			casa::Array<double> ipArray(casa::IPosition(1,1));
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
@@ -136,7 +136,7 @@ namespace conrad
 
 		void Params::update(const std::string& name, const casa::Array<double>& ip)
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsCounts[name]++;
@@ -159,7 +159,7 @@ namespace conrad
 
 		void Params::update(const std::string& name, const double ip)
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			casa::Array<double> ipArray(casa::IPosition(1,1));
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
@@ -179,27 +179,27 @@ namespace conrad
 
 		bool Params::isScalar(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			return value(name).nelements()==1;
 		}
 
 		const casa::Array<double>& Params::value(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			return itsArrays.find(name)->second;
 		}
 
 		casa::Array<double>& Params::value(const std::string& name)
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			itsCounts[name]++;
 			return itsArrays.find(name)->second;
 		}
 
 		double Params::scalarValue(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
-			CONRADCHECK(isScalar(name), "Parameter " + name + " is not scalar");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(isScalar(name), "Parameter " + name + " is not scalar");
 			return value(name)(casa::IPosition(1,0));
 		}
 		
@@ -215,9 +215,9 @@ namespace conrad
         /// @return value of the parameter
         casa::Complex Params::complexValue(const std::string &name) const
 		{
-		    CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+		    ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			const casa::Array<double> &arrVal = value(name);
-			CONRADCHECK(arrVal.nelements() != 0 && arrVal.nelements()<3 &&
+			ASKAPCHECK(arrVal.nelements() != 0 && arrVal.nelements()<3 &&
 			            arrVal.ndim() ==1, "Parameter " + name + 
 			            " cannot be converted to a complex number");
 			if (arrVal.nelements() == 1) {
@@ -229,7 +229,7 @@ namespace conrad
 
 		const Axes& Params::axes(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			return itsAxes.find(name)->second;
 		}
 
@@ -317,7 +317,7 @@ namespace conrad
         /// @param[in] name parameter name
         void Params::remove(const std::string &name)
         {
-          CONRADDEBUGASSERT(has(name));
+          ASKAPDEBUGASSERT(has(name));
           itsArrays.erase(name);
           itsAxes.erase(name);
           itsFree.erase(name);
@@ -367,7 +367,7 @@ namespace conrad
 
 		int Params::count(const std::string& name) const
 		{
-			CONRADCHECK(has(name), "Parameter " + name + " does not already exist");
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			return itsCounts[name];
 		}
 

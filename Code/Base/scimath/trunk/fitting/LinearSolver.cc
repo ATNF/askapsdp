@@ -2,13 +2,13 @@
 ///
 /// A linear solver for parameters from the normal equations
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 #include <fitting/LinearSolver.h>
 #include <fitting/GSLSVDReplacement.h>
 
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -29,7 +29,7 @@ using std::abs;
 using std::map;
 using std::string;
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -50,7 +50,7 @@ namespace conrad
     LinearSolver::LinearSolver(const Params& ip, double maxCondNumber) : 
            Solver(ip), itsMaxCondNumber(maxCondNumber) 
     {
-      CONRADASSERT(itsMaxCondNumber!=0);
+      ASKAPASSERT(itsMaxCondNumber!=0);
     };
 
     LinearSolver::~LinearSolver() {
@@ -71,7 +71,7 @@ namespace conrad
 
 // Find all the free parameters
       const vector<string> names(itsParams->freeNames());
-      CONRADCHECK(names.size()>0, "No free parameters in Linear Solver");
+      ASKAPCHECK(names.size()>0, "No free parameters in Linear Solver");
 
       map<string, int> indices;
       for (vector<string>::const_iterator it=names.begin();it!=names.end();it++)
@@ -79,7 +79,7 @@ namespace conrad
         indices[*it]=nParameters;
         nParameters+=itsParams->value(*it).nelements();
       }
-      CONRADCHECK(nParameters>0, "No free parameters in Linear Solver");
+      ASKAPCHECK(nParameters>0, "No free parameters in Linear Solver");
 
 // Convert the normal equations to gsl format
       gsl_matrix * A = gsl_matrix_alloc (nParameters, nParameters);
@@ -136,11 +136,11 @@ namespace conrad
       if(algorithm()=="SVD")
       {  
         gsl_matrix * V = gsl_matrix_alloc (nParameters, nParameters);
-        CONRADDEBUGASSERT(V!=NULL);
+        ASKAPDEBUGASSERT(V!=NULL);
         gsl_vector * S = gsl_vector_alloc (nParameters);
-        CONRADDEBUGASSERT(S!=NULL);
+        ASKAPDEBUGASSERT(S!=NULL);
         gsl_vector * work = gsl_vector_alloc (nParameters);
-        CONRADDEBUGASSERT(work!=NULL);
+        ASKAPDEBUGASSERT(work!=NULL);
         
         //gsl_linalg_SV_decomp (A, V, S, work);
         
@@ -167,7 +167,7 @@ namespace conrad
         */
         
         gsl_vector * X = gsl_vector_alloc(nParameters);
-        CONRADDEBUGASSERT(X!=NULL);
+        ASKAPDEBUGASSERT(X!=NULL);
         
         gsl_linalg_SV_solve (A, V, S, B, X);
         

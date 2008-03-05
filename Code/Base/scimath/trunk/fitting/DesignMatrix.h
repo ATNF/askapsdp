@@ -18,7 +18,7 @@
 /// The parameters are intrinisically casa::Array's but we convert them
 /// to casa::Vector's to avoid indexing hell.
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 #ifndef SCIMATHDESIGNMATRIX_H
@@ -36,7 +36,7 @@
 #include <fitting/ComplexDiff.h>
 #include <fitting/ComplexDiffMatrix.h>
 
-namespace conrad {
+namespace askap {
   
 namespace scimath {
 
@@ -155,5 +155,5 @@ private:
 };
 
 } // namespace scimath
-} // namespace conrad
+} // namespace askap
 #endif

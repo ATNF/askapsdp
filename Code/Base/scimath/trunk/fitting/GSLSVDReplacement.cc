@@ -7,13 +7,13 @@
 /// I hope that eventually this file will be dropped, as either the GSL
 /// will be fixed or the code will be rewritten to completely avoid using GSL.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 // own includes
 #include <fitting/GSLSVDReplacement.h>
-#include <conrad/ConradError.h>
-#include <conrad/IndexedCompare.h>
+#include <askap/AskapError.h>
+#include <askap/IndexedCompare.h>
 
 // main SVD code, taken from another project
 #include <fitting/SVDecompose.h>
@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace conrad {
+namespace askap {
 
 namespace utility {
 /// @brief a helper object function to populate an array of indices
@@ -64,9 +64,9 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
   // routine with that stolen from another project (in SVDecompose.h)
   // this adapter method does additional copying (i.e. the goal is
   // quick implementation rather than a performance)
-  CONRADDEBUGASSERT(A!=NULL);
-  CONRADDEBUGASSERT(V!=NULL);
-  CONRADDEBUGASSERT(S!=NULL);
+  ASKAPDEBUGASSERT(A!=NULL);
+  ASKAPDEBUGASSERT(V!=NULL);
+  ASKAPDEBUGASSERT(S!=NULL);
  
   std::vector<double> MatrixABuffer;
   svd::Matrix2D<std::vector<double> > MatrixA(MatrixABuffer,A->size1,A->size2);
@@ -84,10 +84,10 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
      computeSVD(MatrixA,VectorS,MatrixV);
   }
   catch(const std::string &str) {
-      CONRADTHROW(ConradError, "SVD failed to converge: "<<str);
+      ASKAPTHROW(AskapError, "SVD failed to converge: "<<str);
   }
-  CONRADDEBUGASSERT(MatrixV.nrow() == V->size1);
-  CONRADDEBUGASSERT(MatrixV.ncol() == V->size2);
+  ASKAPDEBUGASSERT(MatrixV.nrow() == V->size1);
+  ASKAPDEBUGASSERT(MatrixV.ncol() == V->size2);
   // we need to sort singular values to get them in the descending order
   // with appropriate permutations of the A and V matrices
   std::vector<size_t> VectorSIndices(VectorS.size());
@@ -108,13 +108,13 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
   std::sort(VectorSIndices.begin(), VectorSIndices.end(), 
         utility::indexedCompare<size_t>(VectorS.begin(),std::greater<double>()));
           
-  CONRADDEBUGASSERT(VectorS.size() == VectorSIndices.size());
+  ASKAPDEBUGASSERT(VectorS.size() == VectorSIndices.size());
   for (size_t row=0;row<MatrixV.nrow();++row) {
        for (size_t col=0;col<MatrixV.ncol();++col) {
             gsl_matrix_set(V,row,col,MatrixV(row,VectorSIndices[col]));
        }
   }
-  CONRADDEBUGASSERT(VectorS.size() == S->size);
+  ASKAPDEBUGASSERT(VectorS.size() == S->size);
   for (size_t item=0;item<VectorS.size();++item) {
        gsl_vector_set(S,item,VectorS[VectorSIndices[item]]);
   }
@@ -128,5 +128,5 @@ void SVDecomp(gsl_matrix *A, gsl_matrix *V, gsl_vector *S)
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 

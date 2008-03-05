@@ -2,14 +2,14 @@
 ///
 /// Solves equations from normal equations
 ///
-/// (c) 2007 CONRAD, All Rights Reserved.
+/// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Tim Cornwell tim.cornwel@csiro.au
 ///
 
 #include <fitting/Solver.h>
-#include <conrad/ConradError.h>
+#include <askap/AskapError.h>
 
-namespace conrad
+namespace askap
 {
   namespace scimath
   {
@@ -39,7 +39,7 @@ namespace conrad
     /// @return a reference to normal equations object
     const INormalEquations& Solver::normalEquations() const
     {
-      CONRADDEBUGASSERT(itsNormalEquations);
+      ASKAPDEBUGASSERT(itsNormalEquations);
       return *itsNormalEquations;
     }
     
@@ -60,15 +60,15 @@ namespace conrad
 /// Return current values of params
     const Params& Solver::parameters() const
     {
-    	CONRADCHECK(itsParams, "Params not defined in Solver");
+    	ASKAPCHECK(itsParams, "Params not defined in Solver");
       return *itsParams;
     };
 
     void Solver::copyNormalEquations(const Solver& other)
     {
-    	CONRADCHECK(other.itsNormalEquations, "NormalEquations not defined in other Solver");
+    	ASKAPCHECK(other.itsNormalEquations, "NormalEquations not defined in other Solver");
       itsNormalEquations=other.itsNormalEquations->clone();
-    	CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver after copy");
+    	ASKAPCHECK(itsNormalEquations, "NormalEquations not defined in Solver after copy");
     }
 
     void Solver::addNormalEquations(const INormalEquations& normeq)
@@ -80,7 +80,7 @@ namespace conrad
       }
     }
     
-    bool Solver::solveNormalEquations(conrad::scimath::Quality& q)
+    bool Solver::solveNormalEquations(askap::scimath::Quality& q)
     {
      return false;
     }
@@ -94,7 +94,7 @@ namespace conrad
     {
       if (itsNormalEquations) {
          itsNormalEquations->reset();
-       	 CONRADCHECK(itsNormalEquations, "NormalEquations not defined in Solver after reset");
+       	 ASKAPCHECK(itsNormalEquations, "NormalEquations not defined in Solver after reset");
       }
     }
     

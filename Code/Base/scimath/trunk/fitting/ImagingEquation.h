@@ -11,7 +11,7 @@
 /// to fill a normal equation class appropriate for imaging.
 /// @note Some imaging equations use generic normal equations. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
@@ -22,7 +22,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
 
-namespace conrad {
+namespace askap {
 
 namespace scimath {
 
@@ -68,7 +68,7 @@ struct ImagingEquation : public Equation {
 
 } // namespace scimath
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef IMAGING_EQUATION_H
 
