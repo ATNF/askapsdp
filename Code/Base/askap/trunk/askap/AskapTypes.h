@@ -1,15 +1,15 @@
 /// @file
-/// @brief CONRAD global types
+/// @brief ASKAP global types
 ///
 /// @author Malte Marquarding <Malte.Marquarding@csiro.au>
-/// @copyright 2007 CONRAD, All Rights Reserved.
+/// @copyright 2007 ASKAP, All Rights Reserved.
 
-#ifndef CONRAD_CONRADTYPES_H
-#define CONRAD_CONRADTYPES_H
+#ifndef ASKAP_CONRADTYPES_H
+#define ASKAP_CONRADTYPES_H
 
 #include <sys/types.h>
 
-namespace conrad {
+namespace askap {
   // Use sys/types.h where available
   /// @name Sized types
   /// typedefs and imports for sized types

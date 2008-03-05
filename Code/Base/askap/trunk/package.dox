@@ -1,57 +1,57 @@
-/// @brief The global CONRAD namespace. 
+/// @brief The global ASKAP namespace. 
 ///
-/// Any CONRAD package needs to be in this namespace
+/// Any ASKAP package needs to be in this namespace
 ///
-namespace conrad {};
+namespace askap {};
 
-/// @mainpage The standard CONRAD package
+/// @mainpage The standard ASKAP package
 ///
 /// @section Introduction
 /// This package provides essential c++ functionality, e.g. exception handling and
 /// operator<< extensions.
 /// @section Errors
-/// This package provides a base class for exceptions all othe packages should derive their specific exceptions from (conrad::ConradError).
+/// This package provides a base class for exceptions all othe packages should derive their specific exceptions from (askap::ConradError).
 ///
 /// Three macros are provided for throwing exceptions:
 /// 
-///  - #CONRADTHROW
-///  - #CONRADCHECK
-///  - #CONRADASSERT
+///  - #ASKAPTHROW
+///  - #ASKAPCHECK
+///  - #ASKAPASSERT
 ///
 /// @section Logging
 ///
-/// The logging has to be initialised in the main implimentation file via a call to
-/// #CONRADLOG_INIT. 
+/// The logging has to be initialised in the main implementation file via a call to
+/// #ASKAPLOG_INIT. 
 /// 
 /// Individual loggers have to be set up in the implementation files with a call to
-/// #CONRAD_LOGGER. Mulitple loggers are possible.
+/// #ASKAP_LOGGER. Mulitple loggers are possible.
 ///
 ///  The following macros are avialable for logging. The _STR version logs a stream, 
 /// which is slower than direct logging. see ConradLogging.h for details.
 ///
-/// - #CONRADLOG_DEBUG
-/// - #CONRADLOG_INFO
-/// - #CONRADLOG_WARN
-/// - #CONRADLOG_ERROR
-/// - #CONRADLOG_FATAL
+/// - #ASKAPLOG_DEBUG
+/// - #ASKAPLOG_INFO
+/// - #ASKAPLOG_WARN
+/// - #ASKAPLOG_ERROR
+/// - #ASKAPLOG_FATAL
 ///
-/// - #CONRADLOG_DEBUG_STR
-/// - #CONRADLOG_INFO_STR
-/// - #CONRADLOG_WARN_STR
-/// - #CONRADLOG_ERROR_STR
-/// - #CONRADLOG_FATAL_STR
+/// - #ASKAPLOG_DEBUG_STR
+/// - #ASKAPLOG_INFO_STR
+/// - #ASKAPLOG_WARN_STR
+/// - #ASKAPLOG_ERROR_STR
+/// - #ASKAPLOG_FATAL_STR
 ///
 /// Example:
 /// @code
 /// // Initialise the logger from a config file. This set log level thresholds and 
 /// // log appenders
-/// CONRADLOG_INIT("tLogging.log_cfg");
+/// ASKAPLOG_INIT("tLogging.log_cfg");
 /// int i = 1;
 /// // set up a local logger with handle 'locallog' as a sublogger of the current package
-/// CONRAD_LOGGER(locallog, ".test");
-/// CONRADLOG_WARN(locallog,"Warning. This is a warning.");
-/// CONRADLOG_INFO(locallog,"This is an automatic (subpackage) log");
-/// CONRADLOG_INFO_STR(locallog,"This is " << i << " log stream test.");
+/// ASKAP_LOGGER(locallog, ".test");
+/// ASKAPLOG_WARN(locallog,"Warning. This is a warning.");
+/// ASKAPLOG_INFO(locallog,"This is an automatic (subpackage) log");
+/// ASKAPLOG_INFO_STR(locallog,"This is " << i << " log stream test.");
 /// 
 /// @endcode
 ///
@@ -60,4 +60,4 @@ namespace conrad {};
 /// @todo Needs to be implemented on top of std::cout for platforms where log4cxx
 /// doesn't build 
 ///
-/// @copyright 2007 CONRAD, All Rights Reserved.
+/// @copyright 2007 ASKAP, All Rights Reserved.

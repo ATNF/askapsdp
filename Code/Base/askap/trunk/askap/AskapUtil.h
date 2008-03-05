@@ -1,14 +1,14 @@
 /// @file
-/// @brief Common CONRAD utility functions and classes
+/// @brief Common ASKAP utility functions and classes
 ///
 /// @author Ger van Diepen (gvd AT astron DOT nl)
 ///
 /// @copyright
 
-#ifndef CONRAD_UTIL_H
-#define CONRAD_UTIL_H
+#ifndef ASKAP_UTIL_H
+#define ASKAP_UTIL_H
 
-#include <askap/ConradError.h>
+#include <askap/AskapError.h>
 
 
 #include <ostream>
@@ -18,7 +18,7 @@
 #include <sstream>
 
 
-namespace conrad {
+namespace askap {
 
   /// Get the hostname of the machine (as per unistd.h gethostname)
   /// @param full get the full name with domain or base name
@@ -66,7 +66,7 @@ namespace utility {
 // I grabbed this code from one of my old programs to speed up the development.
 // It sat for a while inside GainCalibrationEquation, but now I need it in
 // other unrelated classes, so the code has been moved here.
-// If the appropriate code existing somewhere else in conrad,
+// If the appropriate code existing somewhere else in askap,
 // we can switch to use that code instead. 
 
 /// @brief helper method to interpret string
@@ -74,13 +74,13 @@ namespace utility {
 /// using this method (e.g. string to numbers)
 /// @param[in] str input string
 /// @return result of the conversion
-/// @exception ConradError is thrown if the conversion failed
-template<class T> T fromString(const std::string &str) throw(ConradError) {
+/// @exception AskapError is thrown if the conversion failed
+template<class T> T fromString(const std::string &str) throw(AskapError) {
          std::istringstream is(str);
          T buf;
          is>>buf;
          if (!is) {
-             CONRADTHROW(ConradError, "Unable to convert "<<str);
+             ASKAPTHROW(AskapError, "Unable to convert "<<str);
          } 
          return buf;
 }
@@ -90,12 +90,12 @@ template<class T> T fromString(const std::string &str) throw(ConradError) {
 /// using this method.
 /// @param[in] in a const reference to the value to convert
 /// @return resulting string
-/// @exception ConradError is thrown if the conversion failed
-template<class T> std::string toString(const T &in) throw(ConradError) {
+/// @exception AskapError is thrown if the conversion failed
+template<class T> std::string toString(const T &in) throw(AskapError) {
          std::ostringstream os;
          os<<in;
          if (!os) {
-             CONRADTHROW(ConradError, "Unable to convert "<<in<<" to string");
+             ASKAPTHROW(AskapError, "Unable to convert "<<in<<" to string");
          }
          return os.str();
 }
@@ -103,7 +103,7 @@ template<class T> std::string toString(const T &in) throw(ConradError) {
 } // namespace utility
 
 
-} // end namespace conrad
+} // end namespace askap
 
 
 namespace std {
@@ -116,13 +116,13 @@ namespace std {
   template<typename T>
   inline ostream& operator<<(ostream& os, const vector<T>& c)
   {
-    conrad::printContainer(os, c, ",", "[", "]");
+    askap::printContainer(os, c, ",", "[", "]");
     return os;
   }
   template<typename T>
   inline ostream& operator<<(ostream& os, const list<T>& c)
   {
-    conrad::printContainer(os, c, ",", "[", "]");
+    askap::printContainer(os, c, ",", "[", "]");
     return os;
   }
   //@}

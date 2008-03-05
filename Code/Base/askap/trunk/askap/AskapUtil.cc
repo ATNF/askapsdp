@@ -1,4 +1,4 @@
-//#  ConradUtil.h: Common CONRAD utility functions and classes
+//#  AskapUtil.h: Common ASKAP utility functions and classes
 //#
 //#  Copyright (C) 2007
 //#
@@ -7,9 +7,9 @@
 
 #include <algorithm>
 #include <unistd.h>
-#include <askap/ConradUtil.h>
+#include <askap/AskapUtil.h>
 
-namespace conrad {
+namespace askap {
 
   std::string getHostName(bool full) {
     char hname[256];

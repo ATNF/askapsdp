@@ -3,14 +3,14 @@
 /// @brief This file contains tests for IndexedLess predicate
 /// @details Test includes sorting a vector with index information.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef INDEXED_COMPARE_TEST_H
 #define INDEXED_COMPARE_TEST_H
 
-#include <askap/ConradError.h>
-#include <askap/ConradUtil.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 #include <askap/IndexedCompare.h>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -20,7 +20,7 @@
 #include <vector>
 #include <algorithm>
 
-namespace conrad
+namespace askap
 {
 
 namespace utility
@@ -128,6 +128,6 @@ namespace utility
 
 } // namespace utility
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #ifndef INDEXED_COMPARE_TEST_H

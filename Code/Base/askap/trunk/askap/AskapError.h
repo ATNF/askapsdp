@@ -1,29 +1,29 @@
 /// @file
-/// @brief Base class for CONRAD exceptions
+/// @brief Base class for ASKAP exceptions
 /// @author Ger van Diepen (gvd AT astron DOT nl)
 
-#ifndef CONRAD_ERROR_H
-#define CONRAD_ERROR_H
+#ifndef ASKAP_ERROR_H
+#define ASKAP_ERROR_H
 
 #include <string>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
 
-namespace conrad {
+namespace askap {
 
-  /// Define the base conrad exception class.
-  class ConradError: public std::runtime_error
+  /// Define the base askap exception class.
+  class AskapError: public std::runtime_error
   {
   public:
     /// Constructor taking a message
-    explicit ConradError(const std::string& message);
+    explicit AskapError(const std::string& message);
     /// empty destructor
-    virtual ~ConradError() throw();
+    virtual ~AskapError() throw();
   };
 
-  /// Define the conrad check exception class.
-  class CheckError: public ConradError
+  /// Define the askap check exception class.
+  class CheckError: public AskapError
   {
   public:
     /// Constructor taking a message
@@ -32,8 +32,8 @@ namespace conrad {
     virtual ~CheckError() throw();
   };
 
-  /// Define the conrad assert exception class.
-  class AssertError: public ConradError
+  /// Define the askap assert exception class.
+  class AssertError: public AskapError
   {
   public:
     /// Constructor taking a message
@@ -45,35 +45,35 @@ namespace conrad {
 
   /// Macro to throw an exception where the exception text can be formatted.
   /// For example:
-  /// CONRADTHROW(ConradError, "File " << fileName << " could not be opened");
+  /// ASKAPTHROW(AskapError, "File " << fileName << " could not be opened");
   //  Note that a do/while is used to be able to use the macro everywhere.
-#define CONRADTHROW(exc,messageStream)   \
+#define ASKAPTHROW(exc,messageStream)   \
     {					 \
-      std::ostringstream conrad_log_oss; \
-      conrad_log_oss << messageStream <<" (thrown in "<<__FILE__  \
+      std::ostringstream askap_log_oss; \
+      askap_log_oss << messageStream <<" (thrown in "<<__FILE__  \
 		   << ':' << __LINE__<<") ";	 \
-      throw exc(conrad_log_oss.str());   \
+      throw exc(askap_log_oss.str());   \
     }
 
   /// Check a condition and throw an exception if it fails.
   /// It appends the confdition text to the message stream.
-#define CONRADCHECK(condition,messageStream) \
+#define ASKAPCHECK(condition,messageStream) \
     if (!(condition)) {			     \
-      CONRADTHROW(CheckError, messageStream \
+      ASKAPTHROW(CheckError, messageStream \
                    << " ('" << #condition << "' failed)");	\
     }
 
   /// Do an assert and throw an exception with the file and line if it fails.
-#define CONRADASSERT(condition) \
+#define ASKAPASSERT(condition) \
     if (!(condition)) {	\
-      CONRADTHROW(AssertError, #condition << " failed");  \
+      ASKAPTHROW(AssertError, #condition << " failed");  \
     }
 
   /// Do an assert only if in debug mode.
-#ifdef CONRAD_DEBUG
-#define CONRADDEBUGASSERT(condition) CONRADASSERT(condition)
+#ifdef ASKAP_DEBUG
+#define ASKAPDEBUGASSERT(condition) CONRADASSERT(condition)
 #else
-#define CONRADDEBUGASSERT(condition)
+#define ASKAPDEBUGASSERT(condition)
 #endif
 
 

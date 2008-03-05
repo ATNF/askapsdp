@@ -1,23 +1,23 @@
-//#  ConradError.cc: Base class for CONRAD exceptions
+//#  AskapError.cc: Base class for ASKAP exceptions
 //#
 //#  Copyright (C) 2007
 //#
 //#  $Id$
 
-#include <askap/ConradError.h>
+#include <askap/AskapError.h>
 
-namespace conrad {
+namespace askap {
 
-  ConradError::ConradError(const std::string& message)
+  AskapError::AskapError(const std::string& message)
     : std::runtime_error(message)
   {}
 
-  ConradError::~ConradError() throw()
+  AskapError::~AskapError() throw()
   {}
 
 
   CheckError::CheckError(const std::string& message)
-    : ConradError(message)
+    : AskapError(message)
   {}
 
   CheckError::~CheckError() throw()
@@ -25,7 +25,7 @@ namespace conrad {
 
 
   AssertError::AssertError(const std::string& message)
-    : ConradError(message)
+    : AskapError(message)
   {}
 
   AssertError::~AssertError() throw()

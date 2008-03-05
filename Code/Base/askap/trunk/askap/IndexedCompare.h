@@ -12,7 +12,7 @@
 /// each time it is asked to compare two indicies. Each instance of the class
 /// holds a copy of the rangom access iterator.
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef INDEXED_COMPARE_H
@@ -20,7 +20,7 @@
 
 #include <functional>
 
-namespace conrad {
+namespace askap {
 
 namespace utility {
 
@@ -95,7 +95,7 @@ IndexedCompare<IndexType,Iter> indexedCompare(const Iter &iter)
 
 } // namespace utility
 
-} // namespace conrad
+} // namespace askap
 
 #endif // #define INDEXED_COMPARE_H
 

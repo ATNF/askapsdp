@@ -10,7 +10,7 @@
 /// used, e.g. if a list of parameters have to be build form maps storing some
 /// data. 
 ///
-/// @copyright (c) 2007 CONRAD, All Rights Reserved.
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #ifndef MAP_KEY_ITERATOR_H
@@ -18,7 +18,7 @@
 
 #include <iterator>
 
-namespace conrad {
+namespace askap {
 
 namespace utility {
 
@@ -125,7 +125,7 @@ inline MapKeyIterator<typename Cont::const_iterator> mapKeyEnd(const Cont &cont)
 
 } // namespace utility
 
-} // namespace conrad
+} // namespace askap
 
 
 #endif // #ifndef MAP_KEY_ITERATOR_H

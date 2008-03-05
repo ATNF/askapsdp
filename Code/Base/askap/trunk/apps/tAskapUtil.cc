@@ -1,26 +1,26 @@
-//#  tConradUtil.cc: Test program for ConradUtil.h
+//#  tAskapUtil.cc: Test program for ConradUtil.h
 //#
 //#  Copyright (C) 2007
 //#
 //#  $Id$
 
-#include <askap/ConradUtil.h>
-#include <askap/ConradError.h>
+#include <askap/AskapUtil.h>
+#include <askap/AskapError.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
 #include <list>
 
-using namespace conrad;
+using namespace askap;
 using namespace std;
 
 void testCase()
 {
   cout << "Test toUpper and toLower..." << endl;
   string s("The zip code of North Ryde in NSW is 2113");
-  CONRADASSERT (toUpper(s) == "THE ZIP CODE OF NORTH RYDE IN NSW IS 2113");
-  CONRADASSERT (toLower(s) == "the zip code of north ryde in nsw is 2113");
-  CONRADASSERT (s == "The zip code of North Ryde in NSW is 2113");
+  ASKAPASSERT (toUpper(s) == "THE ZIP CODE OF NORTH RYDE IN NSW IS 2113");
+  ASKAPASSERT (toLower(s) == "the zip code of north ryde in nsw is 2113");
+  ASKAPASSERT (s == "The zip code of North Ryde in NSW is 2113");
 }
 
 void testStream()
@@ -31,14 +31,14 @@ void testStream()
     for (int i=0; i<5; ++i) vi.push_back(i-1);
     ostringstream os;
     os << vi;
-    CONRADASSERT (os.str() == "[-1,0,1,2,3]");
+    ASKAPASSERT (os.str() == "[-1,0,1,2,3]");
   }
   {
     list<double> vi;
     for (int i=0; i<5; ++i) vi.push_back(i-0.5);
     ostringstream os;
     os << vi;
-    CONRADASSERT (os.str() == "[-0.5,0.5,1.5,2.5,3.5]");
+    ASKAPASSERT (os.str() == "[-0.5,0.5,1.5,2.5,3.5]");
   }
   {
     list<string> vs;
@@ -46,7 +46,7 @@ void testStream()
     vs.push_back("wim");   vs.push_back("zus");     vs.push_back("jet");
     ostringstream os;
     printContainer (os, vs, "  ", "(", ")");
-    CONRADASSERT (os.str() == "(aap  noot  mies  wim  zus  jet)");
+    ASKAPASSERT (os.str() == "(aap  noot  mies  wim  zus  jet)");
   }
 }
 
