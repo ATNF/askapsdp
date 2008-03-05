@@ -9,7 +9,7 @@
 from askapenv import env
 
 #env.Append(CCFLAGS=['-O2'])
-env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG'])
+env.Append(CCFLAGS=['-O2','-DASKAP_DEBUG'])
 #env.Append(CCFLAGS=['-Wall'])
 #env.Append(CCFLAGS=['-DHAVE_AIPSPP'])
 env.Append(universal=0)
