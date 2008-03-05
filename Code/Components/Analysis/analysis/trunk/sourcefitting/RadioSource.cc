@@ -335,8 +335,9 @@ void printparameters(Matrix<Double> &m)
     {
       std::cout << "Fitted " << itsGaussFitSet.size() << " Gaussians\n";
       for(int g=0;g<itsGaussFitSet.size();g++){
-	itsGaussFitSet[g].parameters().print(std::cout);
-	std::cout << "\n";
+// 	itsGaussFitSet[g].parameters().print(std::cout);
+// 	std::cout << "\n";
+	std::cout << itsGaussFitSet[g] << "\n";
       }
 
     }

@@ -36,6 +36,7 @@ Cduchamp.image       = /Users/whi550/ObsData/atca/atlas/atlas-cdfs-small.fits
 
 #Cduchamp.flagRobust = false   #This applies to the workers only.
 Cduchamp.snrCut     = 6
+#Cduchamp.threshold   = 0.06
 Cduchamp.pixelCentre = average
 Cduchamp.flagATrous  = false
 Cduchamp.reconDim    = 2
@@ -43,7 +44,8 @@ Cduchamp.snrRecon    = 3.
 Cduchamp.flagSmooth  = false
 Cduchamp.smoothType  = spectral
 Cduchamp.hanningWidth = 5.
-#Cduchamp.threshold   = 0.06
+
+Cduchamp.doFit        = true
 
 #Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 #Cimstat.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits

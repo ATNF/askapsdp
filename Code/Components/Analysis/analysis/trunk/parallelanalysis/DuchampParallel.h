@@ -95,6 +95,9 @@ namespace conrad
       /// The list of voxels encompassing detected sources, with fluxes.
       std::vector<PixelInfo::Voxel> itsVoxelList;
 
+      /// Shall we fit to the sources?
+      bool itsFlagDoFit;
+      
       /// The list of fits to the detected sources.
       std::vector<conrad::sourcefitting::RadioSource> itsSourceList;
 

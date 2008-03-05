@@ -77,6 +77,8 @@ namespace conrad
 
       itsCube.pars() = parseParset(parset);
 
+      itsFlagDoFit = parset.getBool("doFit", false);
+
       itsCube.pars().setVerbosity(false);
       itsCube.pars().setFlagLog(true);
 
@@ -449,7 +451,7 @@ namespace conrad
       /// @details The final list of detected objects is fitted with
       /// Gaussians (or other functions) using the RadioSource class.
 
-      if(isMaster()) {
+      if(isMaster() && itsFlagDoFit) {
 	CONRADLOG_INFO_STR(logger, "MASTER: Fitting source profiles.");
 
 	duchamp::FitsHeader head = itsCube.getHead();
@@ -469,6 +471,7 @@ namespace conrad
 	}
 
 	std::cout << "-------\n";
+	std::cout.precision(6);
 	for(int i=0;i<itsSourceList.size();i++){
 	  std::cout << "Object #" << i+1 << ":\n";
 	  itsSourceList[i].printFit();

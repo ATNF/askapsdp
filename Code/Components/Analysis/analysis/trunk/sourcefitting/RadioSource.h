@@ -62,7 +62,7 @@ namespace conrad
       bool setFluxArray(std::vector<PixelInfo::Voxel> *voxelList);
 
       /// @brief Find the local maxima in the flux distribution of the Detection.
-      std::multimap<int,PixelInfo::Voxel> RadioSource::findDistinctPeaks();
+      std::multimap<int,PixelInfo::Voxel> findDistinctPeaks();
 
       /// @brief Fit Gaussian components to the Detection.
       bool fitGauss();
