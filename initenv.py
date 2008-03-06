@@ -8,7 +8,7 @@
 #
 import sys
 import os
-from distutils.sysconfig import get_python_version
+from distutils.sysconfig import get_python_inc
 
 from optparse import OptionParser
 
@@ -97,5 +97,12 @@ if os.path.exists(filename):
 f = file(filename, "w")
 f.write(shell["file"])
 f.close()
+
+pyvers = os.path.split(get_python_inc())[-1]
+
+if not os.path.exists("include"):
+    os.mkdir("include")
+if not os.path.exists("include/%s" % pyvers):
+    os.symlink(get_python_inc(), "include/%s" % pyvers)
 
 print "Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
