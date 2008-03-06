@@ -16,10 +16,9 @@ point for the repository is $ASKAP_ROOT.
    variables. This should be executed every time a user logs in.
 
  * install the python tools necessary to build the system.  This is
-   using a modified version of 'working-env' to provide a python
-   environment independent of the system, 'setuptools' to install
-   python packages and the ASKAP package 'recursivebuild', which
-   handles the build process.
+   using 'virtualenv' to provide a python environment independent of 
+   the system, 'setuptools' to install python packages and the ASKAP 
+   package 'recursivebuild', which handles the build process.
 
 cd svnASKAP
 python bootstrap.py      # only once
