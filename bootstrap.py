@@ -36,7 +36,7 @@ def update_tree(thePath):
     update_command(pathvisited, recursive=True)
 
 update_tree("Tools")
-os.system("cd Tools/Dev/setuptools; python bootstrap.py")
+os.system("cd Tools/Dev/virtualenv; python bootstrap.py")
 os.system("python initenv.py >/dev/null")
 os.system(". initaskap.sh; cd Tools/Dev/recursivebuild; python setup.py -q install")
 os.system(". initaskap.sh; cd Tools; python setup.py -q install")

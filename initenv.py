@@ -23,13 +23,9 @@ parser.add_option("-s", "--shell",
 
 (opts, args) = parser.parse_args()
 
-pyvers = "python%s" % get_python_version()
-pylibdir = "lib/%s" % pyvers
-
 bashinit = """\
 export ASKAP_ROOT=%s
-export CONRAD_PROJECT_ROOT="$ASKAP_ROOT"
-pypath="${ASKAP_ROOT}/lib/%s:${ASKAP_ROOT}/Tools/Dev/scons-tools"
+pypath="${ASKAP_ROOT}/Tools/Dev/scons-tools"
 
 if [ "${PYTHONPATH}" !=  "" ]
 then
@@ -55,12 +51,11 @@ MANPATH=`echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
 MANPATH="${ASKAP_ROOT}/man:${MANPATH}"
 export MANPATH
 
-""" % (os.getcwd(), pyvers)
+""" % (os.getcwd())
 
 tcshinit = """\
 setenv ASKAP_ROOT %s
-setenv CONRAD_PROJECT_ROOT "$ASKAP_ROOT"
-set pypath="${ASKAP_ROOT}/lib/%s:${ASKAP_ROOT}/Tools/Dev/scons-tools"
+set pypath="${ASKAP_ROOT}/Tools/Dev/scons-tools"
 
 if ($?PYTHONPATH) then
     setenv PYTHONPATH `echo ${PYTHONPATH} | sed "s#:*${pypath}:*##"`
@@ -81,7 +76,7 @@ endif
 
 setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
-"""  % (os.getcwd(), pyvers)
+"""  % (os.getcwd())
 
 
 shmap = { "bash" : { "suffix": "sh",
@@ -102,10 +97,5 @@ if os.path.exists(filename):
 f = file(filename, "w")
 f.write(shell["file"])
 f.close()
-
-if not os.path.exists(pylibdir):
-    os.makedirs(pylibdir)
-if not os.path.exists("bin"):
-    os.mkdir("bin")
 
 print "Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
