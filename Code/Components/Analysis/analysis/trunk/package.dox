@@ -5,6 +5,9 @@
 /// The package namespace
 namespace askap::analysis {};
 
+/// The namespace covering source fitting.
+namespace askap::analysis::sourcefitting {};
+
 /// @mainpage ASKAP analysis package
 ///
 /// @section Introduction

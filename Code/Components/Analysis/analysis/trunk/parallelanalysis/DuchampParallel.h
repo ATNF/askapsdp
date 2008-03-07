@@ -24,6 +24,7 @@ namespace askap
 {
   namespace analysis
   {
+
     /// @brief Support for parallel source finding 
     ///
     /// @details This class allows the source finding to be carried out in a

@@ -30,6 +30,7 @@ namespace askap
   namespace analysis
   {
 
+    /// @ingroup sourcefitting
     namespace sourcefitting
     {
 
@@ -46,6 +47,8 @@ namespace askap
       /// (peak flux, total flux, etc). However the RadioSource class is
       /// designed to be able to fit an object with known functions (primarily
       /// gaussians) and store the fitted parameters.
+      ///
+      /// @ingroup sourcefitting
       class RadioSource
       {
       public:
@@ -85,8 +88,10 @@ namespace askap
 	/// @brief Print information on the fitted components
 	void printFit();
       
+	/// @brief Return the set of fits
 	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
       
+	/// @brief Write the description of the fits to an annotation file.
 	void writeFitToAnnotationFile(std::ostream &stream);
       
       protected:

@@ -26,6 +26,7 @@
 #include <map>
 #include <math.h>
 
+///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".sourcefitting");
 
 namespace askap
@@ -154,6 +155,7 @@ namespace askap
 
       }
     
+      /// @brief A simple way of printing fitted parameters
       void printparameters(Matrix<Double> &m)
       {
 	cout.precision(6);

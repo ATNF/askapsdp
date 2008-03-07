@@ -27,6 +27,7 @@
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
 
+///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".analysisutilities");
 
 namespace askap
