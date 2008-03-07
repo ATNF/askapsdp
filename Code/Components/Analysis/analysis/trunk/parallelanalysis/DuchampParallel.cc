@@ -476,7 +476,7 @@ namespace askap
 
 	std::cout << "-------\n";
 	std::cout.precision(6);
-	std::vector<askap::sourcefitting::RadioSource>::iterator src;
+	std::vector<sourcefitting::RadioSource>::iterator src;
 	int nobj=1;
 	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
 	  std::cout << "Object #" << ++nobj << ":\n";
@@ -507,7 +507,7 @@ namespace askap
       outfile << "COLOR BLUE\n";
       outfile << "COORD W\n";
       outfile << "PA SKY\n";
-      std::vector<askap::sourcefitting::RadioSource>::iterator src;
+      std::vector<sourcefitting::RadioSource>::iterator src;
       for(src=itsSourceList.begin();src<itsSourceList.end();src++){
 	src->writeFitToAnnotationFile(outfile);
       }

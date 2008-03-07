@@ -105,7 +105,7 @@ namespace askap
       std::string itsFitAnnotationFile;
       
       /// The list of fits to the detected sources.
-      std::vector<askap::sourcefitting::RadioSource> itsSourceList;
+      std::vector<sourcefitting::RadioSource> itsSourceList;
 
       /// The list of sections corresponding to all workers' images (only used by the master).
       std::vector<duchamp::Section> itsSectionList;
