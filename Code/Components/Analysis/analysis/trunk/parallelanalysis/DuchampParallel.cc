@@ -38,6 +38,8 @@ using namespace LOFAR::TYPES;
 #include <analysisutilities/AnalysisUtilities.h>
 #include <sourcefitting/RadioSource.h>
 
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <algorithm>
 
@@ -107,6 +109,8 @@ namespace askap
 	itsCube.pars().setFlagRobustStats(false);
 
 	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile.txt")) );
+
+	this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
 
 	/// The sectionInfo, read by the master, is interpreted by the
 	/// function readSectionInfo(). See its description for a
@@ -457,7 +461,7 @@ namespace askap
 	duchamp::FitsHeader head = itsCube.getHead();
 
  	for(int i=0;i<itsCube.getNumObj();i++){
-	  ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i<<".");
+	  ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
 
 	  sourcefitting::RadioSource src;
 	  src.setDetection( itsCube.pObject(i) );
@@ -472,15 +476,43 @@ namespace askap
 
 	std::cout << "-------\n";
 	std::cout.precision(6);
-	for(int i=0;i<itsSourceList.size();i++){
-	  std::cout << "Object #" << i+1 << ":\n";
-	  itsSourceList[i].printFit();
+	std::vector<askap::sourcefitting::RadioSource>::iterator src;
+	int nobj=1;
+	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
+	  std::cout << "Object #" << ++nobj << ":\n";
+	  src->printFit();
 	}
+
+	this->writeFitAnnotation();
 
       }
       else {
       }
       
+    }
+
+
+    void DuchampParallel::writeFitAnnotation()
+    {
+      /// @details This function writes a Karma annotation file
+      /// showing the location and shape of the fitted 2D Gaussian
+      /// components. It makes use of the
+      /// RadioSource::writeFitToAnnotationFile() function. The file
+      /// written to is given by the input parameter
+      /// fitAnnotationFile.
+
+
+      std::ofstream outfile(this->itsFitAnnotationFile.c_str());
+      
+      outfile << "COLOR BLUE\n";
+      outfile << "COORD W\n";
+      outfile << "PA SKY\n";
+      std::vector<askap::sourcefitting::RadioSource>::iterator src;
+      for(src=itsSourceList.begin();src<itsSourceList.end();src++){
+	src->writeFitToAnnotationFile(outfile);
+      }
+
+      outfile.close();
 
     }
 

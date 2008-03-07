@@ -82,6 +82,10 @@ namespace askap
       /// @brief Print information on the fitted components
       void printFit();
       
+      std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
+      
+      void writeFitToAnnotationFile(std::ostream &stream);
+      
     protected:
 
       /// @brief The object produced by Duchamp-like source-detection.

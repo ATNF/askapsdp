@@ -65,6 +65,9 @@ namespace askap
 
       /// @brief Fit the detected sources (on the master)
       void fitSources();
+
+      /// @brief Write a Karma annotation file showing the fits (on the master).
+      void writeFitAnnotation();
       
       /// @brief Find the mean (on the workers)
       void findMeans();
@@ -97,6 +100,9 @@ namespace askap
 
       /// Shall we fit to the sources?
       bool itsFlagDoFit;
+
+      /// Name of the Karma annotation file with the fitted Gaussian components
+      std::string itsFitAnnotationFile;
       
       /// The list of fits to the detected sources.
       std::vector<askap::sourcefitting::RadioSource> itsSourceList;

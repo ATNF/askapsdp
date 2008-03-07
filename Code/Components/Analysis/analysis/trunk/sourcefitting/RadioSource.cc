@@ -24,6 +24,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <math.h>
 
 ASKAP_LOGGER(logger, ".sourcefitting");
 
@@ -252,14 +253,14 @@ void printparameters(Matrix<Double> &m)
 
       for(int ctr=0;ctr<4;ctr++){
 
-	int numGauss = ctr + 1;
+	uint numGauss = ctr + 1;
 	fitgauss[ctr].setDimensions(2);
 	fitgauss[ctr].setNumGaussians(numGauss);
     
 
 	estimate.resize(numGauss,6);
 	pk = peakList.rbegin();
-	for(int g=0;g<numGauss;g++){
+	for(uint g=0;g<numGauss;g++){
 	  estimate(g,0) = baseEstimate(0,0);
 	  if(g<peakList.size()){
 	    estimate(g,1) = pk->second.getX();
@@ -276,7 +277,7 @@ void printparameters(Matrix<Double> &m)
 	//	std::cerr << "First estimate of Parameters: "; printparameters(estimate);
 
 	retryfactors.resize(numGauss,6);
-	for(int g=0;g<numGauss;g++)
+	for(uint g=0;g<numGauss;g++)
 	  for(int i=0;i<6;i++)
 	    retryfactors(g,i) = baseRetryfactors(0,i);
 	fitgauss[ctr].setRetryFactors(retryfactors);
@@ -295,13 +296,17 @@ void printparameters(Matrix<Double> &m)
 	chisq[ctr] = fitgauss[ctr].chisquared();
 	float rchisq = chisq[ctr] / float(size - numGauss*6 - 1);
 	
+	cout.precision(6);
 //  	cout << "Solution Parameters: "; printparameters(solution[ctr]);
-// 	cout << "chisq = " << chisq[ctr]
-// 	     << ", chisq/nu =  "  << rchisq
-// 	     << ", RMS = " << fitgauss[ctr].RMS() << endl;
+	cout << "Num Gaussians = " << numGauss;
+	if( fitgauss[ctr].converged()) cout << ", Converged";
+	else cout << ", Failed";
+	cout << ", chisq = " << chisq[ctr]
+	     << ", chisq/nu =  "  << rchisq
+	     << ", RMS = " << fitgauss[ctr].RMS() << endl;
 	
 	thisFitGood = fitgauss[ctr].converged() && (rchisq < 50.);
-	for(int i=0;i<numGauss;i++){
+	for(uint i=0;i<numGauss;i++){
 	  thisFitGood = thisFitGood && (solution[ctr](i,1)>xmin) && (solution[ctr](i,1)<xmax);
 	  thisFitGood = thisFitGood && (solution[ctr](i,2)>ymin) && (solution[ctr](i,2)<ymax);
 	  thisFitGood = thisFitGood && (solution[ctr](i,0) > 0.5*this->itsDetectionThreshold/noise);
@@ -324,6 +329,12 @@ void printparameters(Matrix<Double> &m)
 		  solution[bestFit](i,3),solution[bestFit](i,4),solution[bestFit](i,5));
 	  this->itsGaussFitSet.push_back(gauss);
 	}
+	cout << "BEST FIT: " << bestFit+1 << " Gaussians"
+	     << ", chisq = " << bestRChisq * (size - 6*(bestFit+1) - 1)
+	     << ", chisq/nu =  "  << bestRChisq << endl;
+      }
+      else{
+	cout << "No good fit found.\n";
       }
 
       return fitIsGood;
@@ -334,12 +345,66 @@ void printparameters(Matrix<Double> &m)
     void RadioSource::printFit()
     {
       std::cout << "Fitted " << itsGaussFitSet.size() << " Gaussians\n";
-      for(int g=0;g<itsGaussFitSet.size();g++){
+      for(uint g=0;g<itsGaussFitSet.size();g++){
 // 	itsGaussFitSet[g].parameters().print(std::cout);
 // 	std::cout << "\n";
 	std::cout << itsGaussFitSet[g] << "\n";
       }
 
+    }
+
+
+    void RadioSource::writeFitToAnnotationFile(std::ostream &stream)
+    {
+      /// @details
+      ///
+      /// This function writes the information about the fitted
+      /// Gaussian components to a Karma annotation file. There are
+      /// two different elements drawn for each RadioSource object.
+      ///
+      /// For each fitted component, an ellipse is drawn indicating
+      /// the size and orientation of the Gaussian. The central
+      /// position is converted to world coordinates, and the major
+      /// and minor axes are converted to elliptical
+      /// semimajor/semiminor axes by halving and dividing by 2*ln(2).
+      ///
+      /// Finally, a box is drawn around the detection, indicating the
+      /// area used in the fitting. It includes the border around the
+      /// detection fiven by sourcefitting::detectionBorder.
+
+      std::vector<casa::Gaussian2D<Double> >::iterator fit;
+      
+      double *pix = new double[3];
+      double *world = new double[3];
+      pix[2] = 0.;
+
+      for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
+	
+	pix[0] = fit->xCenter();
+	pix[1] = fit->yCenter();
+	this->itsHeader->pixToWCS(pix,world);
+	
+	stream.precision(6);
+	stream << "ELLIPSE " 
+	       << world[0] << " " 
+	       << world[1] << " "
+	       << fit->majorAxis() * this->itsHeader->getAvPixScale() / (2.*sqrt(2.*M_LN2)) << " "
+	       << fit->minorAxis() * this->itsHeader->getAvPixScale() / (2.*sqrt(2.*M_LN2)) << " "
+	       << fit->PA() * 180. / M_PI << "\n";
+	  
+      }
+
+      pix[0] = this->itsDetection->getXmin()-sourcefitting::detectionBorder;
+      pix[1] = this->itsDetection->getYmin()-sourcefitting::detectionBorder;
+      this->itsHeader->pixToWCS(pix,world);
+      stream << "BOX " << world[0] << " " << world[1] << " ";
+	
+      pix[0] = this->itsDetection->getXmax()+sourcefitting::detectionBorder;
+      pix[1] = this->itsDetection->getYmax()+sourcefitting::detectionBorder;
+      this->itsHeader->pixToWCS(pix,world);
+      stream << world[0] << " " << world[1] << "\n";
+	
+      
     }
 
 
