@@ -21,6 +21,11 @@ namespace askap
   namespace analysis
   {
 
+    /// @brief Return the probability of obtaining a chisq value by
+    ///        chance, for a certain number of degrees of freedom.
+    /// @ingroup analysisutilities
+    float chisqProb(float ndof, float chisq);
+
     /// @brief Parse a ParameterSet and define duchamp::param parameters.
     /// @ingroup analysisutilities
     duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset);

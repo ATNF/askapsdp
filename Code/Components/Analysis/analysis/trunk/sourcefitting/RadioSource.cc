@@ -9,6 +9,7 @@
 #include <askap/AskapError.h>
 
 #include <sourcefitting/RadioSource.h>
+#include <analysisutilities/AnalysisUtilities.h>
 
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object2D.hh>
@@ -24,6 +25,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
 #include <math.h>
 
 ///@brief Where the log messages go.
@@ -218,6 +220,7 @@ namespace askap
 
 	float boxFlux = 0.;
 	for(int i=0;i<xsize*ysize;i++) boxFlux += f(i);
+	float peakFlux = *std::max_element(this->itsFluxArray, this->itsFluxArray+xsize*ysize);
 
 	std::multimap<int,PixelInfo::Voxel> peakList = this->findDistinctPeaks();
 	std::cerr << peakList.size();
@@ -307,7 +310,8 @@ namespace askap
 	  }
 
 	  chisq[ctr] = fitgauss[ctr].chisquared();
-	  float rchisq = chisq[ctr] / float(size - numGauss*6 - 1);
+	  int ndof = size - numGauss*6 - 1;
+	  float rchisq = chisq[ctr] / float(ndof);
 	
 	  cout.precision(6);
 	  cout << "Solution Parameters: "; printparameters(solution[ctr]);
@@ -316,48 +320,57 @@ namespace askap
 	  else cout << ", Failed";
 	  cout << ", chisq = " << chisq[ctr]
 	       << ", chisq/nu =  "  << rchisq
-	       << ", dof = " << size-numGauss*6-1
+	       << ", dof = " << ndof
 	       << ", RMS = " << fitgauss[ctr].RMS() << endl;
-	
 
 	  /// Acceptance criteria for a fit are as follows (after the
 	  /// FIRST survey criteria, White et al 1997, ApJ 475, 479):
 	  /// @li Fit must have converged
 	  /// @li Fit must be acceptable according to its chisq value
 	  /// @li The centre of each component must be inside the box
-	  /// @li The flux of each component must be positive and more than half the detection threshold
 	  /// @li The separation between any pair of components must be more than 2 pixels.
+	  /// @li The flux of each component must be positive and more than half the detection threshold
+	  /// @li No component's peak flux can exceed twice the highest pixel in the box
 	  /// @li The sum of the integrated fluxes of all components must not be more than twice the total flux in the box.
 
-	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux;
+	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux, passPeak;
 
 	  passConv  = fitgauss[ctr].converged();
-	  passChisq = rchisq < 50.;  // Replace with actual evaluation of chisq function?
+	  //	  passChisq = rchisq < 50.;  // Replace with actual evaluation of chisq function?
+	  if(ndof<343)
+	     passChisq = chisqProb(ndof,chisq[ctr]) > 0.01; // Test acceptance at 99% level
+	  else 
+	    passChisq = (rchisq < 1.2);
 	  
-	  passXLoc = passYLoc = passFlux = passSep = true;
+	  passXLoc = passYLoc = passFlux = passSep = passPeak = true;
 	  float intFlux = 0.;
 	  for(uint i=0;i<numGauss;i++){
 	    passXLoc = passXLoc && (solution[ctr](i,1)>xmin) && (solution[ctr](i,1)<xmax);
 	    passYLoc = passYLoc && (solution[ctr](i,2)>ymin) && (solution[ctr](i,2)<ymax);
 	    passFlux = passFlux && (solution[ctr](i,0) > 0.);
 	    passFlux = passFlux && (solution[ctr](i,0) > 0.5*this->itsDetectionThreshold);///noise);
+	    passPeak = passPeak && (solution[ctr](i,0) < 2.*peakFlux);	    
 	    
 	    if(passConv){ // only do this if the fit worked.
-	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
+	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),
+					   solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
 	      intFlux += component.flux();
 	    }
-	    
+
 	    for(uint j=i+1;j<numGauss;j++){
-	      float sep = hypot( solution[ctr](i,1)-solution[ctr](j,1) , solution[ctr](i,2)-solution[ctr](j,2) );
+	      float sep = hypot( solution[ctr](i,1)-solution[ctr](j,1) , 
+				 solution[ctr](i,2)-solution[ctr](j,2) );
 	      passSep = passSep && (sep > 2.);
 	    }
 	  }
 
 	  passIntFlux = (intFlux < 2.*boxFlux);
 
-	  std::cout<<"Passes: "<<passConv<<passChisq<<passFlux<<passXLoc<<passYLoc<<passSep<<passIntFlux<<"\n";;
+	  std::cout<<"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
+		   <<passFlux<<passPeak<<passIntFlux<<"\n";;
 
-	  thisFitGood = passConv && passChisq && passFlux && passXLoc && passYLoc && passSep && passIntFlux;
+	  thisFitGood = passConv && passChisq && passXLoc && passYLoc && passSep && 
+	    passFlux && passPeak && passIntFlux;
 
 	  if(thisFitGood){
 	    if((ctr==0) || (rchisq < bestRChisq)){

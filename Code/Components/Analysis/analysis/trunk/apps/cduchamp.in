@@ -45,7 +45,7 @@ Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
 
 
 #Cduchamp.flagRobust = false   #This applies to the workers only.
-Cduchamp.snrCut     = 4
+Cduchamp.snrCut     = 6# 3
 #Cduchamp.threshold   = 0.06
 Cduchamp.pixelCentre = average
 Cduchamp.flagATrous  = false

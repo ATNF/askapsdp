@@ -18,6 +18,8 @@
 
 #include <analysisutilities/AnalysisUtilities.h>
 
+#include <gsl/gsl_sf_gamma.h>
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -34,6 +36,25 @@ namespace askap
 {
   namespace analysis
   {
+
+    float chisqProb(float ndof, float chisq)
+    {
+      /// @details Returns the probability of exceeding the given
+      /// value of chisq by chance. If it comes from a fit, this
+      /// probability is assuming the fit is valid.
+      ///
+      /// Typical use: say you have a fit with ndof=5 degrees of
+      /// freedom that gives a chisq value of 12. You call this
+      /// function via chisqProb(5,12.), which will return
+      /// 0.0347878. If your confidence limit is 95% (ie. you can
+      /// tolerate a 1-in-20 chance that a valid fit will produce a
+      /// chisq value that high), you would reject that fit (since
+      /// 0.0347878 < 0.05), but if it is 99%, you would accept it
+      /// (since 0.0347878 > 0.01).
+
+      return gsl_sf_gamma_inc(ndof/2.,chisq/2.)/gsl_sf_gamma(ndof/2.);
+
+    }
 
     duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset)
     {
