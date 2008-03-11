@@ -66,6 +66,7 @@ namespace askap
 
 	if(z!=this->itsDetection->getZmin() || z != this->itsDetection->getZmax()){
 	  ASKAPLOG_ERROR(logger,"Can only do fitting for two-dimensional objects!");
+	  return failure;
 	}
 	else{
 
@@ -198,19 +199,25 @@ namespace askap
 
 	casa::Matrix<casa::Double> pos;
 	casa::Vector<casa::Double> f;
+ 	casa::Vector<casa::Double> sigma;
 	pos.resize(xsize*ysize,2);
 	f.resize(xsize*ysize);
+	sigma.resize(xsize*ysize);
 	casa::Vector<casa::Double> curpos(2);
 	curpos=0;
 	for(int x=xmin;x<=xmax;x++){
 	  for(int y=ymin;y<=ymax;y++){
 	    int i = (x-xmin) + (y-ymin)*xsize;
-	    f(i) = this->itsFluxArray[i] / noise;
+	    f(i) = this->itsFluxArray[i];// / noise;
+ 	    sigma(i) = noise;
 	    curpos(0)=x;
 	    curpos(1)=y;
 	    pos.row(i)=curpos;
 	  }
 	}
+
+	float boxFlux = 0.;
+	for(int i=0;i<xsize*ysize;i++) boxFlux += f(i);
 
 	std::multimap<int,PixelInfo::Voxel> peakList = this->findDistinctPeaks();
 	std::cerr << peakList.size();
@@ -247,7 +254,7 @@ namespace askap
 	baseRetryfactors(0,1) = 0.1; 
 	baseRetryfactors(0,2) = 0.1;
 	baseRetryfactors(0,3) = 1.1; 
-	baseRetryfactors(0,4) = 1.1;
+	baseRetryfactors(0,4) = 1.01;
 	baseRetryfactors(0,5) = M_PI/180.;
 
 	float chisq[4];
@@ -290,7 +297,8 @@ namespace askap
 	  solution[ctr].resize();
 	  bool thisFitGood = true;
 	  try {
-	    solution[ctr] = fitgauss[ctr].fit(pos, f, maxRMS);
+// 	    solution[ctr] = fitgauss[ctr].fit(pos, f, maxRMS);
+ 	    solution[ctr] = fitgauss[ctr].fit(pos, f, sigma, maxRMS);
 	  } catch (AipsError err) {
 	    std::string message = err.getMesg().chars();
 	    message = "FIT ERROR: " + message;
@@ -302,21 +310,55 @@ namespace askap
 	  float rchisq = chisq[ctr] / float(size - numGauss*6 - 1);
 	
 	  cout.precision(6);
-	  //  	cout << "Solution Parameters: "; printparameters(solution[ctr]);
+	  cout << "Solution Parameters: "; printparameters(solution[ctr]);
 	  cout << "Num Gaussians = " << numGauss;
 	  if( fitgauss[ctr].converged()) cout << ", Converged";
 	  else cout << ", Failed";
 	  cout << ", chisq = " << chisq[ctr]
 	       << ", chisq/nu =  "  << rchisq
+	       << ", dof = " << size-numGauss*6-1
 	       << ", RMS = " << fitgauss[ctr].RMS() << endl;
 	
-	  thisFitGood = fitgauss[ctr].converged() && (rchisq < 50.);
+
+	  /// Acceptance criteria for a fit are as follows (after the
+	  /// FIRST survey criteria, White et al 1997, ApJ 475, 479):
+	  /// @li Fit must have converged
+	  /// @li Fit must be acceptable according to its chisq value
+	  /// @li The centre of each component must be inside the box
+	  /// @li The flux of each component must be positive and more than half the detection threshold
+	  /// @li The separation between any pair of components must be more than 2 pixels.
+	  /// @li The sum of the integrated fluxes of all components must not be more than twice the total flux in the box.
+
+	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux;
+
+	  passConv  = fitgauss[ctr].converged();
+	  passChisq = rchisq < 50.;  // Replace with actual evaluation of chisq function?
+	  
+	  passXLoc = passYLoc = passFlux = passSep = true;
+	  float intFlux = 0.;
 	  for(uint i=0;i<numGauss;i++){
-	    thisFitGood = thisFitGood && (solution[ctr](i,1)>xmin) && (solution[ctr](i,1)<xmax);
-	    thisFitGood = thisFitGood && (solution[ctr](i,2)>ymin) && (solution[ctr](i,2)<ymax);
-	    thisFitGood = thisFitGood && (solution[ctr](i,0) > 0.5*this->itsDetectionThreshold/noise);
+	    passXLoc = passXLoc && (solution[ctr](i,1)>xmin) && (solution[ctr](i,1)<xmax);
+	    passYLoc = passYLoc && (solution[ctr](i,2)>ymin) && (solution[ctr](i,2)<ymax);
+	    passFlux = passFlux && (solution[ctr](i,0) > 0.);
+	    passFlux = passFlux && (solution[ctr](i,0) > 0.5*this->itsDetectionThreshold);///noise);
+	    
+	    if(passConv){ // only do this if the fit worked.
+	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
+	      intFlux += component.flux();
+	    }
+	    
+	    for(uint j=i+1;j<numGauss;j++){
+	      float sep = hypot( solution[ctr](i,1)-solution[ctr](j,1) , solution[ctr](i,2)-solution[ctr](j,2) );
+	      passSep = passSep && (sep > 2.);
+	    }
 	  }
-	
+
+	  passIntFlux = (intFlux < 2.*boxFlux);
+
+	  std::cout<<"Passes: "<<passConv<<passChisq<<passFlux<<passXLoc<<passYLoc<<passSep<<passIntFlux<<"\n";;
+
+	  thisFitGood = passConv && passChisq && passFlux && passXLoc && passYLoc && passSep && passIntFlux;
+
 	  if(thisFitGood){
 	    if((ctr==0) || (rchisq < bestRChisq)){
 	      fitIsGood = true;

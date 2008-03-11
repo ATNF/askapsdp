@@ -81,37 +81,17 @@ namespace askap
       itsCube.pars() = parseParset(parset);
 
       itsFlagDoFit = parset.getBool("doFit", false);
+      this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
 
       itsCube.pars().setVerbosity(false);
       itsCube.pars().setFlagLog(true);
 
       // Now read the correct image name according to worker/master state.
-      if(isWorker()) {
-        itsImage = substitute(parset.getString("image"));
-	itsCube.pars().setImageFile(itsImage);
-	ASKAPLOG_INFO_STR(logger, "Defined the cube.");
-	//ASKAPLOG_DEBUG_STR(logger, "Its Param set is :" << itsCube.pars());
-
-	itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
-
-	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
-
-	// TODO:
-	// 	ParameterSet subset(parset.makeSubset("param."));
-	// 	std::string param; // use this for temporary storage of parameters.
-	// 	param = substitute(parset.getString("");
-	
-
-      }
-      else{
+      if(isMaster()){
 	itsImage = substitute(parset.getString("masterImage"));
 	itsCube.pars().setImageFile(itsImage);
-	
+	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
 	itsCube.pars().setFlagRobustStats(false);
-
-	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile.txt")) );
-
-	this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
 
 	/// The sectionInfo, read by the master, is interpreted by the
 	/// function readSectionInfo(). See its description for a
@@ -129,21 +109,29 @@ namespace askap
 	  ASKAPLOG_ERROR_STR(logger, "Number of sections provided by " 
 			      << sectionInfo 
 			      << " does not match the number of images being processed.");
-
-	if(itsCube.pars().getFlagLog()){
-	  ASKAPLOG_INFO_STR(logger, "Setting up logfile " << itsCube.pars().getLogFile() );
-	  std::ofstream logfile(itsCube.pars().getLogFile().c_str());
-	  logfile << "New run of the Duchamp sourcefinder: ";
-	  time_t now = time(NULL);
-	  logfile << asctime( localtime(&now) );
-	  // Write out the command-line statement
-	  logfile << "Executing statement : ";
-	  for(int i=0;i<argc;i++) logfile << argv[i] << " ";
-	  logfile << std::endl;
-	  logfile << itsCube.pars();
-	  logfile.close();
-	} 
       }
+
+      if(isWorker()) {
+        itsImage = substitute(parset.getString("image"));
+	itsCube.pars().setImageFile(itsImage);
+	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
+	itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
+      }
+
+      if(itsCube.pars().getFlagLog()){
+	ASKAPLOG_INFO_STR(logger, "Setting up logfile " << itsCube.pars().getLogFile() );
+	std::ofstream logfile(itsCube.pars().getLogFile().c_str());
+	logfile << "New run of the CDuchamp sourcefinder: ";
+	time_t now = time(NULL);
+	logfile << asctime( localtime(&now) );
+	// Write out the command-line statement
+	logfile << "Executing statement : ";
+	for(int i=0;i<argc;i++) logfile << argv[i] << " ";
+	logfile << std::endl;
+	logfile << itsCube.pars();
+	logfile.close();
+      } 
+	
 
     }
 
@@ -469,10 +457,10 @@ namespace askap
 	  src.setNoiseLevel( itsCube.stats().getStddev() );
 	  src.setDetectionThreshold( itsCube.stats().getThreshold() );
 	  src.setHeader( &head );
-	  src.setFluxArray( &(this->itsVoxelList) );
-	  src.fitGauss();
-	  itsSourceList.push_back(src);
-
+	  if( src.setFluxArray(&(this->itsVoxelList)) ){
+	    src.fitGauss();
+	    itsSourceList.push_back(src);
+	  }
 	}
 
 	std::cout << "-------\n";
@@ -480,7 +468,7 @@ namespace askap
 	std::vector<sourcefitting::RadioSource>::iterator src;
 	int nobj=1;
 	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
-	  std::cout << "Object #" << ++nobj << ":\n";
+	  std::cout << "Object #" << nobj++ << ":\n";
 	  src->printFit();
 	}
 
@@ -502,18 +490,22 @@ namespace askap
       /// written to is given by the input parameter
       /// fitAnnotationFile.
 
-
-      std::ofstream outfile(this->itsFitAnnotationFile.c_str());
-      
-      outfile << "COLOR BLUE\n";
-      outfile << "COORD W\n";
-      outfile << "PA SKY\n";
-      std::vector<sourcefitting::RadioSource>::iterator src;
-      for(src=itsSourceList.begin();src<itsSourceList.end();src++){
-	src->writeFitToAnnotationFile(outfile);
+      if(itsSourceList.size()>0){
+	
+	std::ofstream outfile(this->itsFitAnnotationFile.c_str());
+	ASKAPLOG_INFO_STR(logger, "Writing to annotation file: " << this->itsFitAnnotationFile );
+	outfile << "COLOR BLUE\n";
+	outfile << "COORD W\n";
+	outfile << "PA SKY\n";
+	std::vector<sourcefitting::RadioSource>::iterator src;
+	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
+	  outfile << "# Source " << int(src-itsSourceList.begin())+1 << ":\n";
+	  src->writeFitToAnnotationFile(outfile);
+	}
+	
+	outfile.close();
+	
       }
-
-      outfile.close();
 
     }
 
