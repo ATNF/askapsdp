@@ -71,7 +71,7 @@ setenv PATH "${ASKAP_ROOT}/bin:${PATH}"
 
 set noglob
 set psset=`echo $prompt |grep askap`
-set glob
+unset noglob
 if ("$psset" == "") then
    set prompt="\(askap\)${prompt}"
 endif
