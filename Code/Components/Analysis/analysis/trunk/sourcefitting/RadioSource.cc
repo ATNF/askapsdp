@@ -161,7 +161,8 @@ namespace askap
       /// @brief A simple way of printing fitted parameters
       void printparameters(Matrix<Double> &m)
       {
-	cout.precision(6);
+	cout.precision(3);
+	cout.setf(ios::scientific);
 	uInt g,p;
 	for (g = 0; g < m.nrow(); g++)
 	  {
@@ -210,7 +211,8 @@ namespace askap
 	for(int x=xmin;x<=xmax;x++){
 	  for(int y=ymin;y<=ymax;y++){
 	    int i = (x-xmin) + (y-ymin)*xsize;
-	    f(i) = this->itsFluxArray[i];// / noise;
+	    f(i) = this->itsFluxArray[i] // / noise
+	      ;
  	    sigma(i) = noise;
 	    curpos(0)=x;
 	    curpos(1)=y;
@@ -221,6 +223,7 @@ namespace askap
 	float boxFlux = 0.;
 	for(int i=0;i<xsize*ysize;i++) boxFlux += f(i);
 	float peakFlux = *std::max_element(this->itsFluxArray, this->itsFluxArray+xsize*ysize);
+// 	peakFlux /= noise;
 
 	std::multimap<int,PixelInfo::Voxel> peakList = this->findDistinctPeaks();
 	std::cerr << peakList.size();
@@ -235,7 +238,8 @@ namespace askap
 	casa::Matrix<casa::Double> solution[4];
 
 	baseEstimate.resize(1,6);
-	baseEstimate(0,0)=this->itsDetection->getPeakFlux() / noise;   // height of Gaussian
+	baseEstimate(0,0)=this->itsDetection->getPeakFlux()//  / noise
+	  ;   // height of Gaussian
 	baseEstimate(0,1)=this->itsDetection->getXcentre();    // x centre
 	baseEstimate(0,2)=this->itsDetection->getYcentre();    // y centre
 	// get beam information from the FITSheader, if present.
@@ -300,8 +304,8 @@ namespace askap
 	  solution[ctr].resize();
 	  bool thisFitGood = true;
 	  try {
-// 	    solution[ctr] = fitgauss[ctr].fit(pos, f, maxRMS);
- 	    solution[ctr] = fitgauss[ctr].fit(pos, f, sigma, maxRMS);
+ 	    solution[ctr] = fitgauss[ctr].fit(pos, f, maxRMS);
+// 	    solution[ctr] = fitgauss[ctr].fit(pos, f, sigma, maxRMS);
 	  } catch (AipsError err) {
 	    std::string message = err.getMesg().chars();
 	    message = "FIT ERROR: " + message;
@@ -336,35 +340,45 @@ namespace askap
 	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux, passPeak;
 
 	  passConv  = fitgauss[ctr].converged();
-	  //	  passChisq = rchisq < 50.;  // Replace with actual evaluation of chisq function?
-	  if(ndof<343)
-	     passChisq = chisqProb(ndof,chisq[ctr]) > 0.01; // Test acceptance at 99% level
-	  else 
-	    passChisq = (rchisq < 1.2);
-	  
-	  passXLoc = passYLoc = passFlux = passSep = passPeak = true;
-	  float intFlux = 0.;
+	  passConv  = passConv && (chisq[ctr]>0.);
 	  for(uint i=0;i<numGauss;i++){
-	    passXLoc = passXLoc && (solution[ctr](i,1)>xmin) && (solution[ctr](i,1)<xmax);
-	    passYLoc = passYLoc && (solution[ctr](i,2)>ymin) && (solution[ctr](i,2)<ymax);
-	    passFlux = passFlux && (solution[ctr](i,0) > 0.);
-	    passFlux = passFlux && (solution[ctr](i,0) > 0.5*this->itsDetectionThreshold);///noise);
-	    passPeak = passPeak && (solution[ctr](i,0) < 2.*peakFlux);	    
+	    passConv = passConv && ( fabs(solution[ctr](i,5))<2.*M_PI );
+	  }
+
+	  //	  passChisq = rchisq < 50.;  // Replace with actual evaluation of chisq function?
+	  passChisq = false;
+	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
+
+	  if(passConv){
+
+	    if(ndof<343)
+	       passChisq = chisqProb(ndof,chisq[ctr]) > 0.01; // Test acceptance at 99% level
+	    else 
+	      passChisq = (rchisq < 1.2);
 	    
-	    if(passConv){ // only do this if the fit worked.
+	    float intFlux = 0.;
+	    for(uint i=0;i<numGauss;i++){
+	      passXLoc = passXLoc && (solution[ctr](i,1)>xmin) && (solution[ctr](i,1)<xmax);
+	      passYLoc = passYLoc && (solution[ctr](i,2)>ymin) && (solution[ctr](i,2)<ymax);
+	      passFlux = passFlux && (solution[ctr](i,0) > 0.);
+	      passFlux = passFlux && (solution[ctr](i,0)// *noise
+				      > 0.5*this->itsDetectionThreshold);
+	      passPeak = passPeak && (solution[ctr](i,0) < 2.*peakFlux);	    
+	      
 	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),
 					   solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
 	      intFlux += component.flux();
+	      
+	      for(uint j=i+1;j<numGauss;j++){
+		float sep = hypot( solution[ctr](i,1)-solution[ctr](j,1) , 
+				   solution[ctr](i,2)-solution[ctr](j,2) );
+		passSep = passSep && (sep > 2.);
+	      }
 	    }
+	    
+	    passIntFlux = (intFlux < 2.*boxFlux);
 
-	    for(uint j=i+1;j<numGauss;j++){
-	      float sep = hypot( solution[ctr](i,1)-solution[ctr](j,1) , 
-				 solution[ctr](i,2)-solution[ctr](j,2) );
-	      passSep = passSep && (sep > 2.);
-	    }
 	  }
-
-	  passIntFlux = (intFlux < 2.*boxFlux);
 
 	  std::cout<<"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
 		   <<passFlux<<passPeak<<passIntFlux<<"\n";;
@@ -385,7 +399,8 @@ namespace askap
 	if(fitIsGood){
 	  for(int i=0;i<=bestFit;i++){
 	    casa::Gaussian2D<casa::Double> 
-	      gauss(solution[bestFit](i,0)*noise,solution[bestFit](i,1),solution[bestFit](i,2),
+	      gauss(solution[bestFit](i,0)// *noise
+		    ,solution[bestFit](i,1),solution[bestFit](i,2),
 		    solution[bestFit](i,3),solution[bestFit](i,4),solution[bestFit](i,5));
 	    this->itsGaussFitSet.push_back(gauss);
 	  }

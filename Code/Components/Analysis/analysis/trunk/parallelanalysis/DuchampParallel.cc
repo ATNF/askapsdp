@@ -448,14 +448,20 @@ namespace askap
 	ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source profiles.");
 
 	duchamp::FitsHeader head = itsCube.getHead();
+	float noise;
+	if(itsCube.pars().getFlagUserThreshold()) noise = 1.;
+	else noise = itsCube.stats().getStddev();
+	float threshold;
+	if(itsCube.pars().getFlagUserThreshold()) threshold = itsCube.pars().getThreshold();
+	else threshold = itsCube.stats().getThreshold();
 
  	for(int i=0;i<itsCube.getNumObj();i++){
 	  ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
 
 	  sourcefitting::RadioSource src;
 	  src.setDetection( itsCube.pObject(i) );
-	  src.setNoiseLevel( itsCube.stats().getStddev() );
-	  src.setDetectionThreshold( itsCube.stats().getThreshold() );
+	  src.setNoiseLevel( noise );
+	  src.setDetectionThreshold( threshold );
 	  src.setHeader( &head );
 	  if( src.setFluxArray(&(this->itsVoxelList)) ){
 	    src.fitGauss();
@@ -819,7 +825,10 @@ namespace askap
 	  itsCube.pars().setFlagUserThreshold(true);
 	}
 	else{
-	  threshold = itsCube.stats().getMiddle() + itsCube.stats().getSpread()*itsCube.pars().getCut();
+	  if(itsCube.pars().getFlagUserThreshold())
+	    threshold = itsCube.pars().getThreshold();
+	  else
+	    threshold = itsCube.stats().getMiddle() + itsCube.stats().getSpread()*itsCube.pars().getCut();
 	}
 
 	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank << " to be " << threshold);

@@ -83,6 +83,7 @@ namespace askap
       else{
 	par.setFlagUserThreshold(true);
 	par.setThreshold(threshold);
+	ASKAPLOG_INFO_STR(logger, "Setting threshold to " << threshold << ".");
       }
 
       par.setFlagKarma( parset.getBool("flagKarma", true) );
