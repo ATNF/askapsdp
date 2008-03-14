@@ -19,6 +19,8 @@
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/IdentityComponent.h>
 #include <measurementequation/Product.h>
+#include <measurementequation/Sum.h>
+#include <measurementequation/ZeroComponent.h>
 #include <fitting/LinearSolver.h>
 #include <dataaccess/DataIteratorStub.h>
 #include <cppunit/extensions/HelperMacros.h>
@@ -42,7 +44,8 @@ namespace askap
       CPPUNIT_TEST_SUITE_END();
       
       private:
-        typedef CalibrationME<Product<NoXPolGain,IdentityComponent,IdentityComponent> > METype;
+        typedef CalibrationME<Sum<Product<NoXPolGain, IdentityComponent,
+                  IdentityComponent>, ZeroComponent> > METype;
         boost::shared_ptr<ComponentEquation> p1, p2;
         boost::shared_ptr<METype> eq1,eq2;
         boost::shared_ptr<Params> params1, params2;

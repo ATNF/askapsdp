@@ -1,18 +1,17 @@
 /// @file
 /// 
-/// @brief Calibration effect: Identity Mueller matrix.
-/// @details This is a simple effect which doesn't change anything.
-/// it is used mainly for debugging. 
+/// @brief Calibration effect: Mueller matrix filled with zeros
+/// @details This is a simple effect which doesn't change anything
+/// after an addition to another effect. It is mainly intended for debugging. 
 ///
 /// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#ifndef IDENTITY_COMPONENT_H
-#define IDENTITY_COMPONENT_H
+#ifndef ZERO_COMPONENT_H
+#define ZERO_COMPONENT_H
 
 // own includes
 #include <fitting/ComplexDiffMatrix.h>
-#include <fitting/ComplexDiff.h>
 #include <fitting/Params.h>
 #include <dataaccess/IConstDataAccessor.h>
 #include <askap/AskapError.h>
@@ -26,15 +25,16 @@ namespace askap {
 
 namespace synthesis {
 
-/// @brief Calibration effect: antenna gains without cross-pol
-/// @details This is a simple effect which can be used in conjunction
-/// with the CalibrationME template (as its template argument)
+
+/// @brief Calibration effect: Mueller matrix filled with zeros
+/// @details This is a simple effect which doesn't change anything
+/// after an addition to another effect. It is mainly intended for debugging. 
 /// @ingroup measurementequation
-struct IdentityComponent : public MEComponent {
+struct ZeroComponent : public MEComponent {
    
    /// @brief constructor, parameters are actually ignored
    /// @param[in] par const reference to parameters
-   inline explicit IdentityComponent(const scimath::Params & par)  {}
+   inline explicit ZeroComponent(const scimath::Params & par)  {}
    
    /// @brief main method returning Mueller matrix and derivatives
    /// @details This method has to be overloaded (in the template sense) for
@@ -56,16 +56,10 @@ struct IdentityComponent : public MEComponent {
 /// @param[in] row row of the chunk to work with
 /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
 /// this effect
-inline scimath::ComplexDiffMatrix IdentityComponent::get(const IConstDataAccessor &chunk, 
-                                      casa::uInt row) const
+inline scimath::ComplexDiffMatrix ZeroComponent::get(const IConstDataAccessor &chunk, 
+                                      casa::uInt) const
 {
-   
-   scimath::ComplexDiffMatrix calFactor(chunk.nPol(), chunk.nPol(), 0.);
-
-   for (casa::uInt pol=0; pol<chunk.nPol(); ++pol) {            
-        calFactor(pol,pol) = scimath::ComplexDiff(1.);            
-   }
-   return calFactor;
+  return scimath::ComplexDiffMatrix(chunk.nPol(), chunk.nPol(), 0.);
 }
 
 } // namespace synthesis
@@ -74,4 +68,4 @@ inline scimath::ComplexDiffMatrix IdentityComponent::get(const IConstDataAccesso
 
 
 
-#endif // #ifndef IDENTITY_COMPONENT_H
+#endif // #ifndef ZERO_COMPONENT_H
