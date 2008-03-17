@@ -172,7 +172,7 @@ namespace askap
 	        // in the following statement it doesn't matter which iterator is passed
 	        // to the class as long as it is valid (it is not used at all).
 	        boost::shared_ptr<IMeasurementEquation> 
-	               calME(new CalibrationME<NoXPolGain>(gainModel,it,*itsVoidME));
+	               calME(new CalibrationME<NoXPolGain>(gainModel,it,itsVoidME));
             
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
             itsEquation = askap::scimath::Equation::ShPtr(

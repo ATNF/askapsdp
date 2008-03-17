@@ -120,9 +120,6 @@ namespace askap
       /// Gridder to be used
       IVisGridder::ShPtr itsGridder;
       
-      /// uncorrupted measurement equation
-      boost::shared_ptr<IMeasurementEquation> itsPerfectME;
-
       /// uncorrupted model
       askap::scimath::Params::ShPtr itsPerfectModel;
       

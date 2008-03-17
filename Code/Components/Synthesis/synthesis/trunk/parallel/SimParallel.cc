@@ -393,7 +393,7 @@ namespace askap
 	        ASKAPLOG_INFO_STR(logger, "Loading gains from file '"<<gainsfile<<"'");
 	        gainModel << ParameterSet(gainsfile);
 	        ASKAPDEBUGASSERT(ieAdapter);
-	        equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,*ieAdapter));
+	        equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,ieAdapter));
 	     } else {
 	       ASKAPLOG_INFO_STR(logger, "Calibration effects are not simulated");
 	       equation.reset(new ImageFFTEquation (*itsModel, it, gridder));

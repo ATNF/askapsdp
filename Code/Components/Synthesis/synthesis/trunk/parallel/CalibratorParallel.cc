@@ -152,7 +152,7 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
   timer.mark();
   ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
   // First time around we need to generate the equation 
-  if ((!itsEquation)|| (!itsPerfectME) || discard) {
+  if ((!itsEquation) || discard) {
       ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
       TableDataSource ds(ms, TableDataSource::DEFAULT, itsColName);
       IDataSelectorPtr sel=ds.createSelector();
@@ -167,13 +167,11 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       ASKAPCHECK(itsGridder, "Gridder not defined");
       boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
       ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, itsGridder);
-      itsPerfectME = ieAdapter;
-      itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,*itsPerfectME));
+      itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,ieAdapter));
   } else {
       ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
   }
   ASKAPCHECK(itsEquation, "Equation not defined");
-  ASKAPCHECK(itsPerfectME, "PerfectME not defined");
   ASKAPCHECK(itsNe, "NormalEquations not defined");
   itsEquation->calcEquations(*itsNe);
   ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()

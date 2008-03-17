@@ -84,7 +84,7 @@ namespace askap
           }
 
           p1.reset(new ComponentEquation(*params1, idi));
-          eq1.reset(new METype(*params1,idi,*p1));
+          eq1.reset(new METype(*params1,idi,p1));
 
           params2.reset(new Params);
           params2->add("flux.i.cena", 100.);
@@ -100,7 +100,7 @@ namespace askap
           }
        
           p2.reset(new ComponentEquation(*params2, idi));
-          eq2.reset(new METype(*params2,idi,*p2));
+          eq2.reset(new METype(*params2,idi,p2));
 
         }
 

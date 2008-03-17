@@ -26,6 +26,8 @@
 #include <fitting/ComplexDiff.h>
 #include <fitting/Equation.h>
 
+// boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
@@ -52,7 +54,8 @@ public:
   /// @note In the future, measurement equations will work with accessors
   /// only, and, therefore, the dependency on iterator will be removed
   CalibrationMEBase(const askap::scimath::Params& ip,
-          const IDataSharedIter& idi, const IMeasurementEquation &ime);
+          const IDataSharedIter& idi, 
+          const boost::shared_ptr<IMeasurementEquation const> &ime);
   
   /// @brief Predict model visibilities for one accessor (chunk).
   /// @details This version of the predict method works with
@@ -109,7 +112,7 @@ protected:
       
 private:
   /// @brief measurement equation giving perfect visibilities
-  const IMeasurementEquation &itsPerfectVisME;  
+  boost::shared_ptr<IMeasurementEquation const> itsPerfectVisME;  
 };
 
 

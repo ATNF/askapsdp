@@ -131,8 +131,9 @@ namespace askap
       
       /// @brief void measurement equation
       /// @details Does nothing, just returns calls to predict and 
-      /// calcNormalEquations. We have to hold such an object in a shared
-      /// pointer because of the reference semantics used in CalibrationME.
+      /// calcNormalEquations. This shared pointer is initialized at the
+      /// first use and then passed as the perfect MeasurementEquation, if
+      /// required. We could have created a brand new object each time.
       boost::shared_ptr<IMeasurementEquation> itsVoidME;
     };
 

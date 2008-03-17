@@ -51,7 +51,8 @@ using namespace askap::synthesis;
 /// @note In the future, measurement equations will work with accessors
 /// only, and, therefore, the dependency on iterator will be removed
 CalibrationMEBase::CalibrationMEBase(const askap::scimath::Params& ip,
-          const IDataSharedIter& idi, const IMeasurementEquation &ime) :
+          const IDataSharedIter& idi, 
+          const boost::shared_ptr<IMeasurementEquation const> &ime) :
             MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
             GenericMultiChunkEquation(idi), itsPerfectVisME(ime) {}
   
@@ -67,8 +68,9 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 { 
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
   ASKAPDEBUGASSERT(rwVis.nelements());
-
-  itsPerfectVisME.predict(chunk);
+  ASKAPCHECK(itsPerfectVisME, "Perfect ME should be defined before calling CalibrationMEBase::predict");
+ 
+  itsPerfectVisME->predict(chunk);
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
        ComplexDiffMatrix cdm = buildComplexDiffMatrix(chunk, row) * 
             ComplexDiffMatrix(casa::transpose(chunk.visibility().yzPlane(row)));
@@ -147,8 +149,9 @@ void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
 {  
   MemBufferDataAccessor  buffChunk(chunk);
   ASKAPDEBUGASSERT(buffChunk.visibility().nelements());
+  ASKAPCHECK(itsPerfectVisME, "Perfect ME should be defined before calling CalibrationMEBase::predict");
   
-  itsPerfectVisME.predict(buffChunk);
+  itsPerfectVisME->predict(buffChunk);
   const casa::Cube<casa::Complex> &measuredVis = chunk.visibility();
   
   for (casa::uInt row = 0; row < buffChunk.nRow(); ++row) { 
