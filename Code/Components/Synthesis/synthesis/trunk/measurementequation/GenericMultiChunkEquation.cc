@@ -14,8 +14,13 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
+// own includes
 #include <measurementequation/GenericMultiChunkEquation.h>
 #include <askap/AskapError.h>
+#include <measurementequation/NormalEquationsTypeError.h>
+
+// std includes
+#include <stdexcept>
 
 namespace askap {
 
@@ -55,7 +60,7 @@ void GenericMultiChunkEquation::calcEquations(const IConstDataAccessor &chunk,
              dynamic_cast<askap::scimath::GenericNormalEquations&>(ne));
   }
   catch (const std::bad_cast &bc) {
-     ASKAPTHROW(AskapError, "An attempt to use incompatible type of "
+     ASKAPTHROW(NormalEquationsTypeError, "An attempt to use incompatible type of "
                  "the normal equations class with a derivative from "
                  "GenericMultiChunkEquation. It accepts only GenericNormalEquations "
                  "and derivatives. This exception probably indicates a logic error");    

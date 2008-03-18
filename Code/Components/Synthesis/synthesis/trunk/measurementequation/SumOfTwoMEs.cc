@@ -22,6 +22,7 @@
 
 #include <measurementequation/SumOfTwoMEs.h>
 #include <dataaccess/MemBufferDataAccessor.h>
+#include <measurementequation/NormalEquationsTypeError.h>
 #include <askap/AskapError.h>
 
 #include <stdexcept>
@@ -98,8 +99,7 @@ void SumOfTwoMEs::calcEquations(const IConstDataAccessor &chunk,
   // the given normal equations. This just means that there is no dependency
   // of this part of the composite equation on the parameters represented by
   // the normal equations.
-  catch (const AskapError &) 
-  {}
+  catch (const NormalEquationsTypeError &) {}
  
   itsFirstME->predict(resultOfOtherPart);
   resultOfCalculatedPart.rwVisibility() = 
@@ -111,6 +111,5 @@ void SumOfTwoMEs::calcEquations(const IConstDataAccessor &chunk,
   // the given normal equations. This just means that there is no dependency
   // of this part of the composite equation on the parameters represented by
   // the normal equations.
-  catch (const AskapError &) 
-  {}
+  catch (const NormalEquationsTypeError &) {}
 }

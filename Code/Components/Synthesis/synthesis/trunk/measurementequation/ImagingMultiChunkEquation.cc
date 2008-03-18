@@ -14,8 +14,13 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 
+// own includes
 #include <measurementequation/ImagingMultiChunkEquation.h>
 #include <askap/AskapError.h>
+#include <measurementequation/NormalEquationsTypeError.h>
+
+// std includes
+#include <stdexcept>
 
 namespace askap {
 
@@ -55,7 +60,7 @@ void ImagingMultiChunkEquation::calcEquations(const IConstDataAccessor &chunk,
              dynamic_cast<askap::scimath::ImagingNormalEquations&>(ne));
   }
   catch (const std::bad_cast &bc) {
-     ASKAPTHROW(AskapError, "An attempt to use incompatible type of "
+     ASKAPTHROW(NormalEquationsTypeError, "An attempt to use incompatible type of "
                  "the normal equations class with a derivative from "
                  "ImagingMultiChunkEquation. It accepts only ImagingNormalEquations "
                  "and derivatives. This exception probably indicates a logic error");    
