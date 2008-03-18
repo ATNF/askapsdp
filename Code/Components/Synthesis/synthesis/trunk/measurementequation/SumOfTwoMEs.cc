@@ -76,16 +76,36 @@ void SumOfTwoMEs::predict(IDataAccessor &chunk) const
 void SumOfTwoMEs::calcEquations(const IConstDataAccessor &chunk,
                           askap::scimath::INormalEquations &ne) const 
 {
-  ASKAPTHROW(AskapError,"Not yet implemented. Implementation below is probably wrong.");
-  
   ASKAPDEBUGASSERT(itsFirstME);
   ASKAPDEBUGASSERT(itsSecondME);
+  
+  // each calcEquations assumes that the target visibilities are given in
+  // the chunk supplied as the input parameter. However, in a composite
+  // equation the chunk passed as input corresponds to the whole equation.
+  // Therefore, it can not be simply passed to the individual parts.
+  // The value produced by another part has to be subtracted from the 
+  // chunk's visibility cube before calling calcEquations for the 
+  // individual parts.
+  MemBufferDataAccessor resultOfCalculatedPart(chunk);
+  MemBufferDataAccessor resultOfOtherPart(chunk);
+  itsSecondME->predict(resultOfOtherPart);
+  resultOfCalculatedPart.rwVisibility() = 
+                 chunk.visibility() - resultOfOtherPart.visibility();
   try {
-     itsFirstME->calcEquations(chunk,ne);
-     itsSecondME->calcEquations(chunk, ne);
-     // probably residuals will be wrong because each calcEquations assume
-     // it is the only one (i.e. visibilities represented by the chunk are
-     // the visibilities resulting from the given part of equation)
+     itsFirstME->calcEquations(resultOfCalculatedPart,ne);
+  }
+  // ignore the error, if type of the measurement equation is incompatible with
+  // the given normal equations. This just means that there is no dependency
+  // of this part of the composite equation on the parameters represented by
+  // the normal equations.
+  catch (const AskapError &) 
+  {}
+ 
+  itsFirstME->predict(resultOfOtherPart);
+  resultOfCalculatedPart.rwVisibility() = 
+                 chunk.visibility() - resultOfOtherPart.visibility();
+  try {
+     itsSecondME->calcEquations(resultOfCalculatedPart, ne);
   }
   // ignore the error, if type of the measurement equation is incompatible with
   // the given normal equations. This just means that there is no dependency
