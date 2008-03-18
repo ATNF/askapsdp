@@ -1,0 +1,96 @@
+/// @file
+/// 
+/// @brief A measurement equation, which is a sum of two measurement
+/// equations.
+/// @details For simulation it is necessary to be able to add noise 
+/// to the simulated visibilities. One way of doing this is to write
+/// a special measurement equation which predict noise and use a 
+/// composite equation when a prediction must be made. Such an equation
+/// can't be solved with a regular solver (due to a stochastic nature
+/// of the problem statistical estimators are needed), but prediction
+/// would work. Another application of this class is a composite imaging
+/// equation where the model is composed from an image and a list of 
+/// components. If there are many other additive effects to be implemented
+/// and/or solution for parameters is required, the measurement equation
+/// corresponding to the random visibility noise generator can be reorganized
+/// into a template + individual effects in a similar way to that how 
+/// CalibrationME template is written. 
+///
+/// @copyright (c) 2007 ASKAP, All Rights Reserved.
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
+
+
+#include <measurementequation/SumOfTwoMEs.h>
+#include <dataaccess/MemBufferDataAccessor.h>
+#include <askap/AskapError.h>
+
+#include <stdexcept>
+
+using namespace askap;
+using namespace askap::synthesis;
+
+/// @brief Constructor   
+/// @details Creates a new composite measurement equation equivalent
+/// to a sum of the given equations. Equations passed as parameters 
+/// are not changed.
+/// @param[in] first a shared pointer to the first equation
+/// @param[in] second a shared pointer to the second equation
+SumOfTwoMEs::SumOfTwoMEs(
+              const boost::shared_ptr<IMeasurementEquation const> &first,
+              const boost::shared_ptr<IMeasurementEquation const> &second) :
+                itsFirstME(first), itsSecondME(second) {}
+
+/// @brief Predict model visibilities for one accessor (chunk).
+/// @details This prediction is done for single chunk of data only. 
+/// It seems that all measurement equations should work with accessors 
+/// rather than iterators (i.e. the iteration over chunks should be 
+/// moved to the higher level, outside this class).
+/// @param[in] chunk a read-write accessor to work with 
+void SumOfTwoMEs::predict(IDataAccessor &chunk) const 
+{
+  MemBufferDataAccessor secondResult(chunk);
+  ASKAPDEBUGASSERT(itsFirstME);
+  ASKAPDEBUGASSERT(itsSecondME);
+  itsSecondME->predict(secondResult);
+  itsFirstME->predict(chunk);
+  casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
+  rwVis += secondResult.visibility();
+}
+
+/// @brief Calculate the normal equation for one accessor (chunk).
+/// @details This calculation is done for a single chunk of
+/// data only (one iteration).It seems that all measurement
+/// equations should work with accessors rather than iterators
+/// (i.e. the iteration over chunks should be moved to the higher
+/// level, outside this class). 
+/// @note This method will work correctly only if two parts of the
+/// equation are completely independent. If there is a common 
+/// parameter for both parts, normal equations on that parameter will be
+/// wrong because the cross terms are omitted. This class is currently
+/// seen to be used for simulations (where only predict method is used),
+/// therefore it is not an issue. However, if a proper functionality is 
+/// required, the only way to achieve it is to use a similar approach
+/// to CalibrationME template and plug in effects.
+/// @param[in] chunk a read-write accessor to work with
+/// @param[in] ne Normal equations
+void SumOfTwoMEs::calcEquations(const IConstDataAccessor &chunk,
+                          askap::scimath::INormalEquations &ne) const 
+{
+  ASKAPTHROW(AskapError,"Not yet implemented. Implementation below is probably wrong.");
+  
+  ASKAPDEBUGASSERT(itsFirstME);
+  ASKAPDEBUGASSERT(itsSecondME);
+  try {
+     itsFirstME->calcEquations(chunk,ne);
+     itsSecondME->calcEquations(chunk, ne);
+     // probably residuals will be wrong because each calcEquations assume
+     // it is the only one (i.e. visibilities represented by the chunk are
+     // the visibilities resulting from the given part of equation)
+  }
+  // ignore the error, if type of the measurement equation is incompatible with
+  // the given normal equations. This just means that there is no dependency
+  // of this part of the composite equation on the parameters represented by
+  // the normal equations.
+  catch (const AskapError &) 
+  {}
+}
