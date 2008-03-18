@@ -49,6 +49,7 @@ using namespace LOFAR::TYPES;
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/utils.hh>
 #include <duchamp/Detection/detection.hh>
+#include <duchamp/Detection/columns.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object3D.hh>
 
@@ -81,6 +82,7 @@ namespace askap
       itsCube.pars() = parseParset(parset);
 
       itsFlagDoFit = parset.getBool("doFit", false);
+      this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
 
       itsCube.pars().setVerbosity(false);
@@ -469,13 +471,32 @@ namespace askap
 	  }
 	}
 
-	std::cout << "-------\n";
-	std::cout.precision(6);
 	std::vector<sourcefitting::RadioSource>::iterator src;
-	int nobj=1;
+	std::ofstream summaryFile(this->itsSummaryFile.c_str());
+	std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+	int prec=columns[duchamp::Column::FINT].getPrecision();
+	if(prec < 6)
+	  for(int i=prec;i<6;i++) columns[duchamp::Column::FINT].upPrec();
+	prec=columns[duchamp::Column::FPEAK].getPrecision();
+	if(prec < 6)
+	  for(int i=prec;i<6;i++) columns[duchamp::Column::FPEAK].upPrec();
+	columns[duchamp::Column::NUM].printTitle(summaryFile);
+	columns[duchamp::Column::RA].printTitle(summaryFile);
+	columns[duchamp::Column::DEC].printTitle(summaryFile);
+	columns[duchamp::Column::VEL].printTitle(summaryFile);
+	columns[duchamp::Column::FINT].printTitle(summaryFile);
+	columns[duchamp::Column::FPEAK].printTitle(summaryFile);
+	int width = columns[duchamp::Column::NUM].getWidth() + 
+	  columns[duchamp::Column::RA].getWidth() + 
+	  columns[duchamp::Column::DEC].getWidth() +
+	  columns[duchamp::Column::VEL].getWidth() +
+	  columns[duchamp::Column::FINT].getWidth() +
+	  columns[duchamp::Column::FPEAK].getWidth();
+	summaryFile << " #Fit  F_int (fit)   F_pk (fit)\n";
+	summaryFile << std::setfill('-') << std::setw(width) << '-'
+		    << "-------------------------------\n";
 	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
-	  std::cout << "Object #" << nobj++ << ":\n";
-	  src->printFit();
+ 	  src->printSummary(summaryFile, columns);
 	}
 
 	this->writeFitAnnotation();

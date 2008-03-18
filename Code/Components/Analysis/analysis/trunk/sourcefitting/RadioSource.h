@@ -12,6 +12,7 @@
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/Detection/detection.hh>
+#include <duchamp/Detection/columns.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
@@ -90,7 +91,10 @@ namespace askap
       
 	/// @brief Return the set of fits
 	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
-      
+
+	/// @brief Print summary of detection & fit
+	void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns);
+
 	/// @brief Write the description of the fits to an annotation file.
 	void writeFitToAnnotationFile(std::ostream &stream);
       

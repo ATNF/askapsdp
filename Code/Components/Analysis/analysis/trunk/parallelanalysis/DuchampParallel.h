@@ -102,6 +102,9 @@ namespace askap
       /// Shall we fit to the sources?
       bool itsFlagDoFit;
 
+      /// Name of the summary file
+      std::string itsSummaryFile;
+      
       /// Name of the Karma annotation file with the fitted Gaussian components
       std::string itsFitAnnotationFile;
       

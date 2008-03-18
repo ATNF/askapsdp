@@ -15,6 +15,7 @@
 #include <duchamp/PixelMap/Object2D.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Detection/detection.hh>
+#include <duchamp/Detection/columns.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
@@ -425,6 +426,44 @@ namespace askap
 	  // 	std::cout << "\n";
 	  std::cout << itsGaussFitSet[g] << "\n";
 	}
+
+      }
+
+      void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns)
+      {
+	/// @details
+	///
+	/// This function writes out the position and flux information
+	/// for the detected object and its fitted componenets. The
+	/// information includes:
+	/// @li RA & Dec & Vel
+	/// @li Detected peak flux (from duchamp::Detection object)
+	/// @li Detected integrated flux (from duchamp::Detection)
+	/// @li Number of fitted componente
+	/// @li Peak & Integrated flux of fitted components (using all components) 
+
+	stream.setf(std::ios::fixed);
+	
+	columns[duchamp::Column::NUM].printEntry(stream,this->itsDetection->getID());
+	columns[duchamp::Column::RA].printEntry(stream,this->itsDetection->getRAs());
+	columns[duchamp::Column::DEC].printEntry(stream,this->itsDetection->getDecs());
+	columns[duchamp::Column::VEL].printEntry(stream,this->itsDetection->getVel());
+	columns[duchamp::Column::FINT].printEntry(stream,this->itsDetection->getIntegFlux());
+	columns[duchamp::Column::FPEAK].printEntry(stream,this->itsDetection->getPeakFlux());
+
+	stream << " " << std::setw(4) << this->itsGaussFitSet.size() << " ";
+
+	float peakflux=0.,intflux=0.;
+	std::vector<casa::Gaussian2D<Double> >::iterator fit;
+	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
+	  if((fit==this->itsGaussFitSet.begin()) || (fit->height()>peakflux)) 
+	    peakflux = fit->height();
+	  intflux += fit->flux();
+	}
+	if(this->itsHeader->needBeamSize()) 
+	  intflux /= this->itsHeader->getBeamSize(); // Convert from Jy/beam to Jy
+	stream << std::setw(12) << std::setprecision(6) << intflux << " ";
+	stream << std::setw(12) << std::setprecision(6) << peakflux << "\n";
 
       }
 
