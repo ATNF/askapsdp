@@ -53,3 +53,4 @@ struct VoidMeasurementEquation : public IMeasurementEquation
 } // namespace askap
 
 #endif // #ifndef VOID_MEASUREMENT_EQUATION_H
+

@@ -31,6 +31,8 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/CalibrationME.h>
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/ImagingEquationAdapter.h>
+#include <measurementequation/SumOfTwoMEs.h>
+#include <measurementequation/GaussianNoiseME.h>
 
 
 #include <measurementequation/ImageSolverFactory.h>
@@ -375,17 +377,13 @@ namespace askap
 	     // actual type depends on what we are simulating
 	     // therefore it is uninitialized at the moment
 	     askap::scimath::Equation::ShPtr equation;
-	     // an adapter to use imaging equation with the calibration framework
-	     // we may not need it (if data corruption is off) at all, therefore
-	     // it is uninitialized. We can't move it inside the if-block because
-	     // the shared pointer must be valid at the time predict is called
-	     // (a destructor is called when it goes out of scope)
-	     boost::shared_ptr<ImagingEquationAdapter> ieAdapter;
 	     
 	     if (itsParset.getBool("corrupt", false)) {
 	        ASKAPLOG_INFO_STR(logger, "Making equation to simulate calibration effects");
 	        // initialize the adapter
-	        ieAdapter.reset(new ImagingEquationAdapter);
+	        // an adapter to use imaging equation with the calibration framework
+	        boost::shared_ptr<ImagingEquationAdapter> 
+	                         ieAdapter(new ImagingEquationAdapter);
 	        ieAdapter->assign<ImageFFTEquation>(*itsModel, gridder);
 	        scimath::Params gainModel; 
 	        ASKAPCHECK(itsParset.isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");   
@@ -399,6 +397,27 @@ namespace askap
 	       equation.reset(new ImageFFTEquation (*itsModel, it, gridder));
 	     }
 	     ASKAPCHECK(equation, "Equation is not defined correctly");
+	     if (itsParset.getBool("noise", false)) {
+	         ASKAPCHECK(itsParset.isDefined("noise.variance"), "noise.variance  is missing in the input parset. It should contain a variance of the noise to be simulated.");   
+	         const double variance = itsParset.getDouble("noise.variance");
+	         ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance="<<variance<<
+	                                   ") will be added to visibilities");
+	         casa::Int seed1 = itsParset.getInt32("noise.seed1",0);
+	         casa::Int seed2 = itsParset.getInt32("noise.seed2",10);
+	         if (itsParset.isDefined("noise.seed1")) {
+	             ASKAPLOG_INFO_STR(logger, "Set seed1 to "<<seed1);
+	         }
+	         if (itsParset.isDefined("noise.seed2")) {
+	             ASKAPLOG_INFO_STR(logger, "Set seed2 to "<<seed2);
+	         }
+	         boost::shared_ptr<IMeasurementEquation> accessorBasedEquation = 
+	                boost::dynamic_pointer_cast<IMeasurementEquation>(equation);
+	         if (accessorBasedEquation) {
+	             boost::shared_ptr<GaussianNoiseME const> noiseME(new
+	                        GaussianNoiseME(variance,seed1,seed2));
+	            // equation.reset(new SumOfTwoMEs(accessorBasedEquation,noiseME));
+	         }       
+	     }
 	     equation->predict();
 	     ASKAPLOG_INFO_STR(logger,  "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
 	  }
