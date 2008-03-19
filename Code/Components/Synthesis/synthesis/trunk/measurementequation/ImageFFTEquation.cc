@@ -35,7 +35,7 @@ namespace askap
   {
 
     ImageFFTEquation::ImageFFTEquation(const askap::scimath::Params& ip,
-        IDataSharedIter& idi) :
+        IDataSharedIter& idi) : scimath::Equation(ip),
       askap::scimath::ImagingEquation(ip), itsIdi(idi)
     {
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());

@@ -30,7 +30,8 @@ namespace askap
   {
 
     ImageDFTEquation::ImageDFTEquation(const askap::scimath::Params& ip,
-      IDataSharedIter& idi) : askap::scimath::GenericEquation(ip), itsIdi(idi) 
+      IDataSharedIter& idi) : scimath::Equation(ip),
+                  askap::scimath::GenericEquation(ip), itsIdi(idi) 
       {
         init();
       };

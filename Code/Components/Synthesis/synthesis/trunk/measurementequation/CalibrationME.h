@@ -70,7 +70,7 @@ public:
   CalibrationME(const askap::scimath::Params& ip,
           const IDataSharedIter& idi, 
           const boost::shared_ptr<IMeasurementEquation const> &ime) :
-            MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
+            scimath::Equation(ip), MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
             CalibrationMEBase(parameters(), idi, ime), itsEffect(parameters()) {}
   
   /// Clone this into a shared pointer

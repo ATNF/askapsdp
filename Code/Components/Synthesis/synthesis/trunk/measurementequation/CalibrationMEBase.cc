@@ -53,7 +53,7 @@ using namespace askap::synthesis;
 CalibrationMEBase::CalibrationMEBase(const askap::scimath::Params& ip,
           const IDataSharedIter& idi, 
           const boost::shared_ptr<IMeasurementEquation const> &ime) :
-            MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
+            scimath::Equation(ip), MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
             GenericMultiChunkEquation(idi), itsPerfectVisME(ime) {}
   
 /// @brief Predict model visibilities for one accessor (chunk).

@@ -28,7 +28,7 @@ ImagingEquation::ImagingEquation() {}
     
 /// @brief construct from specified parameters
 /// @param[in] ip parameters
-ImagingEquation::ImagingEquation(const Params &ip) : Equation(ip) {}
+ImagingEquation::ImagingEquation(const Params &ip) : Equation(ip) {setParameters(ip);}
 
 /// @brief calculate normal equations
 /// @details This is the main method defined in the base class which can

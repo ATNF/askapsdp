@@ -32,7 +32,7 @@ namespace askap
   {
 
     ComponentEquation::ComponentEquation(const askap::scimath::Params& ip,
-          const IDataSharedIter& idi) :  MultiChunkEquation(idi),  
+          const IDataSharedIter& idi) :  scimath::Equation(ip), MultiChunkEquation(idi),  
            askap::scimath::GenericEquation(ip), GenericMultiChunkEquation(idi),
            itsAllComponentsUnpolarised(false)
     {
