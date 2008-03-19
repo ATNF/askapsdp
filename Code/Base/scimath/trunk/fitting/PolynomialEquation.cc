@@ -30,7 +30,7 @@ namespace askap
       casa::Vector<double>& data,
       casa::Vector<double>& weights,
       casa::Vector<double>& arguments,
-      casa::Vector<double>& model) : GenericEquation(ip), itsData(data),
+      casa::Vector<double>& model) : Equation(ip), GenericEquation(ip), itsData(data),
       itsWeights(weights), itsArguments(arguments), itsModel(model)
     {
     };

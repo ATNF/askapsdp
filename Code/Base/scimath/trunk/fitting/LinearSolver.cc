@@ -161,10 +161,15 @@ namespace askap
           std::ofstream os("dbg2.dat");
           for (int i=0; i<nParameters; ++i) {
                os<<i<<" "<<gsl_vector_get(S,i)<<std::endl;
-          }
-        }
+          } */
+          /*
+          std::cout<<"new singular value spectrum is ready"<<std::endl;
+          char tst;
+          std::cin>>tst;
+          */
+        //}
         // end of temporary code
-        */
+        
         
         gsl_vector * X = gsl_vector_alloc(nParameters);
         ASKAPDEBUGASSERT(X!=NULL);

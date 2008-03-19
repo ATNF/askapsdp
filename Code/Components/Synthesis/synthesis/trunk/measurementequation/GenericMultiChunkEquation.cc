@@ -76,6 +76,16 @@ void GenericMultiChunkEquation::predict() const
   MultiChunkEquation::predict();
 }
 
+/// @brief Calculate the normal equations for the iterator
+/// @details This version iterates through all chunks of data and
+/// calls an abstract method declared in IMeasurementEquation for each 
+/// individual accessor (each iteration of the iterator)
+/// @param[in] ne Normal equations
+void GenericMultiChunkEquation::calcEquations(askap::scimath::INormalEquations& ne) const
+{
+  MultiChunkEquation::calcEquations(ne);
+}
+
 
 } // namespace synthesis
 

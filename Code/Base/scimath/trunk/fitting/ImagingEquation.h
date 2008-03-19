@@ -37,7 +37,7 @@ namespace scimath {
 /// diagram and converts a call to generic calcEquation into a specific call
 /// to fill a normal equation class appropriate for imaging.
 /// @note Some imaging equations use generic normal equations. 
-struct ImagingEquation : public Equation {
+struct ImagingEquation : virtual public Equation {
     /// @brief default constructor
     ImagingEquation();
     

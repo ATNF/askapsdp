@@ -22,6 +22,7 @@
 #include <fitting/INormalEquations.h>
 
 #include <measurementequation/IMeasurementEquation.h>
+#include <fitting/Equation.h>
 
 namespace askap {
 
@@ -36,7 +37,8 @@ namespace synthesis {
 /// class allows to simplify this transition, by factoring out the old
 /// interface and implementing it via the new one.
 /// @ingroup measurementequation
-class MultiChunkEquation : virtual public IMeasurementEquation
+class MultiChunkEquation : virtual public IMeasurementEquation,
+                           virtual public scimath::Equation
 {
 public:
   /// @brief Standard constructor, which remembers data iterator.

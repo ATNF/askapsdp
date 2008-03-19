@@ -33,7 +33,7 @@ namespace scimath {
 /// This class represents a measurement equation in the general case, where no 
 /// approximation to the normal matrix is done. It uses GenericNormalEquation as
 /// opposed to ImagingNormalEquation
-struct GenericEquation : public Equation {
+struct GenericEquation : virtual public Equation {
     /// @brief default constructor
     GenericEquation();
     
