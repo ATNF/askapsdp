@@ -24,6 +24,10 @@
 
 // own includes
 #include <measurementequation/IMeasurementEquation.h>
+// just to be able to benefit from polymorphism
+#include <fitting/Equation.h>
+#include <fitting/INormalEquations.h>
+
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -49,7 +53,8 @@ namespace synthesis {
 /// into a template + individual effects in a similar way to that how 
 /// CalibrationME template is written. 
 /// @ingroup measurementequation
-struct SumOfTwoMEs : public IMeasurementEquation
+struct SumOfTwoMEs : virtual public IMeasurementEquation,
+                     virtual public scimath::Equation
 {
   /// @brief Constructor   
   /// @details Creates a new composite measurement equation equivalent
@@ -86,6 +91,18 @@ struct SumOfTwoMEs : public IMeasurementEquation
   /// @param[in] ne Normal equations
   virtual void calcEquations(const IConstDataAccessor &chunk,
                           askap::scimath::INormalEquations& ne) const;
+
+  /// Clone this into a shared pointer
+  /// @return shared pointer to a copy
+  virtual scimath::Equation::ShPtr clone() const;
+
+  /// Predict the data from the parameters.
+  virtual void predict() const;
+
+  /// Calculate the normal equations for the given data and parameters
+  /// @param ne Normal equations to be filled
+  virtual void calcEquations(scimath::INormalEquations& ne) const;
+
 private:
   /// @brief first measurement equation
   boost::shared_ptr<IMeasurementEquation const>  itsFirstME;

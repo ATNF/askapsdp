@@ -113,3 +113,24 @@ void SumOfTwoMEs::calcEquations(const IConstDataAccessor &chunk,
   // the normal equations.
   catch (const NormalEquationsTypeError &) {}
 }
+
+
+/// Clone this into a shared pointer
+/// @return shared pointer to a copy
+scimath::Equation::ShPtr SumOfTwoMEs::clone() const 
+{
+  return scimath::Equation::ShPtr(new SumOfTwoMEs(*this));
+}
+
+/// Predict the data from the parameters.
+void SumOfTwoMEs::predict() const
+{
+  ASKAPTHROW(AskapError, "SumOfTwoMEs::predict is not supposed to be called");
+}
+
+/// Calculate the normal equations for the given data and parameters
+/// @param ne Normal equations to be filled
+void SumOfTwoMEs::calcEquations(scimath::INormalEquations& ne) const
+{
+  ASKAPTHROW(AskapError, "SumOfTwoMEs::calcEquations is not supposed to be called");
+}

@@ -415,7 +415,7 @@ namespace askap
 	         if (accessorBasedEquation) {
 	             boost::shared_ptr<GaussianNoiseME const> noiseME(new
 	                        GaussianNoiseME(variance,seed1,seed2));
-	            // equation.reset(new SumOfTwoMEs(accessorBasedEquation,noiseME));
+	             equation.reset(new SumOfTwoMEs(accessorBasedEquation,noiseME));
 	         }       
 	     }
 	     equation->predict();
