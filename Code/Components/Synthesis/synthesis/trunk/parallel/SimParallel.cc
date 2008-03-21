@@ -410,12 +410,21 @@ namespace askap
 	         if (itsParset.isDefined("noise.seed2")) {
 	             ASKAPLOG_INFO_STR(logger, "Set seed2 to "<<seed2);
 	         }
+	         boost::shared_ptr<GaussianNoiseME const> noiseME(new
+	                        GaussianNoiseME(variance,seed1,seed2));
 	         boost::shared_ptr<IMeasurementEquation> accessorBasedEquation = 
 	                boost::dynamic_pointer_cast<IMeasurementEquation>(equation);
 	         if (accessorBasedEquation) {
-	             boost::shared_ptr<GaussianNoiseME const> noiseME(new
-	                        GaussianNoiseME(variance,seed1,seed2));
 	             equation.reset(new SumOfTwoMEs(accessorBasedEquation,noiseME));
+	         } else {
+	             // form a replacement equation first
+	             const boost::shared_ptr<ImagingEquationAdapter> 
+	                          new_equation(new ImagingEquationAdapter);
+	             // the actual equation is locked inside ImagingEquationAdapter
+	             // in a shared pointer. We can change equation variable
+	             // after next line              
+	             new_equation->assign(equation);       
+	             equation.reset(new SumOfTwoMEs(new_equation,noiseME));
 	         }       
 	     }
 	     equation->predict();

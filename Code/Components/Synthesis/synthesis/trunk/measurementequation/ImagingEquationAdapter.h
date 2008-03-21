@@ -63,6 +63,12 @@ struct ImagingEquationAdapter : virtual public IMeasurementEquation,
    void assign(const scimath::Params &par, const IVisGridder::ShPtr &gridder) 
    { itsActualEquation.reset(new ME(par, itsIterAdapter, gridder)); }
    
+   /// @brief assign the actual measurement equation to an adapter
+   /// @details This method assigns a measurement set equation, which has 
+   /// already been constructed. Templated methods construct a new object.
+   /// @param[in] me a shared pointer to a measurement set
+   void assign(const scimath::Equation::ShPtr &me);
+   
    /// @brief access to parameters
    /// @details This call is translated to itsActualEquation. We need to override
    /// this method of scimath::Equation, as otherwise an empty parameter class

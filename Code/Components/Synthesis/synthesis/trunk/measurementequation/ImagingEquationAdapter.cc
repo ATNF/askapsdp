@@ -138,3 +138,14 @@ void ImagingEquationAdapter::calcEquations(const IConstDataAccessor &chunk,
   it->detachAccessor();      
 }       
  
+ 
+/// @brief assign the actual measurement equation to an adapter
+/// @details This method assigns a measurement set equation, which has 
+/// already been constructed. Templated methods construct a new object.
+/// @param[in] me a shared pointer to a measurement set
+void ImagingEquationAdapter::assign(const scimath::Equation::ShPtr &me)
+{ 
+  ASKAPDEBUGASSERT(me);
+  itsActualEquation = me; 
+}
+ 
