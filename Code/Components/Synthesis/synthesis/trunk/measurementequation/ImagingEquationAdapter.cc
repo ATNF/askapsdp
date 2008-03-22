@@ -18,6 +18,8 @@ using namespace askap;
 using namespace askap::synthesis;
 
 #include <dataaccess/FakeSingleStepIterator.h>
+#include <measurementequation/MultiChunkEquation.h>
+#include <measurementEquation/ImageFFTEquation.h>
 #include <askap/AskapError.h>
 
 /// @brief constructor
@@ -147,5 +149,20 @@ void ImagingEquationAdapter::assign(const scimath::Equation::ShPtr &me)
 { 
   ASKAPDEBUGASSERT(me);
   itsActualEquation = me; 
+  boost::shared_ptr<MultiChunkEquation> multiChunkME = 
+                 boost::dynamic_pointer_cast<MultiChunkEquation>(me);
+  if (multiChunkME) {
+      // multi-chunk MEs hold own copies of the iterator, which has to be
+      // substituted to a fake iterator here
+      multiChunkME->setIterator(itsIterAdapter);
+  } else {
+     // a bit ugly solution, but it should go away when we stop using
+     // iterator-based measurement equations
+     boost::shared_ptr<ImageFFTEquation> imageFFTME = 
+                 boost::dynamic_pointer_cast<ImageFFTEquation>(me);
+     // an instance of ImageFFTEquation holds own copy of the iterator, which
+     // has to be substituted to a fake iterator here
+     imageFFTME->setIterator(itsIterAdapter);        
+  }
 }
  

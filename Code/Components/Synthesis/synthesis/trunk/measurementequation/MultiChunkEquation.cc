@@ -56,3 +56,13 @@ const IDataSharedIter& MultiChunkEquation::iterator() const throw()
   return itsSharedIterator;
 }
 
+/// @brief replace iterator to a new one
+/// @details This method is probably more temporary than the whole class.
+/// It is necessary for composite measurement equations to be able to 
+/// substitute the iterator to something else to beat accessor-based/
+/// iterator-based ME problem.
+/// @param idi data iterator
+void MultiChunkEquation::setIterator(const IDataSharedIter& idi)
+{
+  itsSharedIterator = idi;
+}

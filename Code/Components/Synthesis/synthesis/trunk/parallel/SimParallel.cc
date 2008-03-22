@@ -415,7 +415,7 @@ namespace askap
 	         boost::shared_ptr<IMeasurementEquation> accessorBasedEquation = 
 	                boost::dynamic_pointer_cast<IMeasurementEquation>(equation);
 	         if (accessorBasedEquation) {
-	             equation.reset(new SumOfTwoMEs(accessorBasedEquation,noiseME));
+	             equation.reset(new SumOfTwoMEs(accessorBasedEquation,noiseME,it));
 	         } else {
 	             // form a replacement equation first
 	             const boost::shared_ptr<ImagingEquationAdapter> 
@@ -424,7 +424,7 @@ namespace askap
 	             // in a shared pointer. We can change equation variable
 	             // after next line              
 	             new_equation->assign(equation);       
-	             equation.reset(new SumOfTwoMEs(new_equation,noiseME));
+	             equation.reset(new SumOfTwoMEs(new_equation,noiseME,it));
 	         }       
 	     }
 	     equation->predict();

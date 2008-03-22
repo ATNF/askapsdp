@@ -38,7 +38,8 @@ using namespace askap::synthesis;
 /// @param[in] second a shared pointer to the second equation
 SumOfTwoMEs::SumOfTwoMEs(
               const boost::shared_ptr<IMeasurementEquation const> &first,
-              const boost::shared_ptr<IMeasurementEquation const> &second) :
+              const boost::shared_ptr<IMeasurementEquation const> &second,
+              const IDataSharedIter &it) : MultiChunkEquation(it),
                 itsFirstME(first), itsSecondME(second) {}
 
 /// @brief Predict model visibilities for one accessor (chunk).
@@ -125,12 +126,14 @@ scimath::Equation::ShPtr SumOfTwoMEs::clone() const
 /// Predict the data from the parameters.
 void SumOfTwoMEs::predict() const
 {
-  ASKAPTHROW(AskapError, "SumOfTwoMEs::predict is not supposed to be called");
+  // probably we could get away with just "using" keyword
+  MultiChunkEquation::predict();
 }
 
 /// Calculate the normal equations for the given data and parameters
 /// @param ne Normal equations to be filled
 void SumOfTwoMEs::calcEquations(scimath::INormalEquations& ne) const
-{
-  ASKAPTHROW(AskapError, "SumOfTwoMEs::calcEquations is not supposed to be called");
+{ 
+  // probably we could get away with just "using" keyword
+  MultiChunkEquation::calcEquations(ne);
 }

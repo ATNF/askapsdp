@@ -84,6 +84,13 @@ namespace askap
         /// @return shared pointer to a copy
         virtual ImageFFTEquation::ShPtr clone() const;
 
+        /// @brief assign a different iterator
+        /// @details This is a temporary method to assign a different iterator.
+        /// All this business is a bit ugly, but should go away when all
+        /// measurement equations are converted to work with accessors.
+        /// @param idi shared pointer to a new iterator
+        void setIterator(IDataSharedIter& idi);
+        
       private:
       
       /// Pointer to prototype gridder

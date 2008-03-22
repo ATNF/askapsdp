@@ -24,6 +24,7 @@
 
 // own includes
 #include <measurementequation/IMeasurementEquation.h>
+#include <measurementequation/MultiChunkEquation.h>
 // just to be able to benefit from polymorphism
 #include <fitting/Equation.h>
 #include <fitting/INormalEquations.h>
@@ -52,9 +53,12 @@ namespace synthesis {
 /// corresponding to the random visibility noise generator can be reorganized
 /// into a template + individual effects in a similar way to that how 
 /// CalibrationME template is written. 
+/// @note The dependence on MultiChunkEquation and an extra parameter
+/// in the constructor are added temporarily while we still have 
+/// iterator-based interface in the imaging code. I expect this to be
+/// removed some time in the future.
 /// @ingroup measurementequation
-struct SumOfTwoMEs : virtual public IMeasurementEquation,
-                     virtual public scimath::Equation
+struct SumOfTwoMEs : virtual public MultiChunkEquation
 {
   /// @brief Constructor   
   /// @details Creates a new composite measurement equation equivalent
@@ -62,8 +66,10 @@ struct SumOfTwoMEs : virtual public IMeasurementEquation,
   /// are not changed.
   /// @param[in] first a shared pointer to the first equation
   /// @param[in] second a shared pointer to the second equation
+  /// @param[in] it iterator to work with (temporary)
   SumOfTwoMEs(const boost::shared_ptr<IMeasurementEquation const> &first,
-              const boost::shared_ptr<IMeasurementEquation const> &second);
+              const boost::shared_ptr<IMeasurementEquation const> &second,
+              const IDataSharedIter &it);
   
   /// @brief Predict model visibilities for one accessor (chunk).
   /// @details This prediction is done for single chunk of data only. 

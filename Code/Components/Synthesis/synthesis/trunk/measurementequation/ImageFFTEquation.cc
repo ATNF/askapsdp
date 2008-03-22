@@ -145,6 +145,17 @@ namespace askap
       }
       ASKAPLOG_INFO_STR(logger, "Finished degridding model" );
     };
+    
+    /// @brief assign a different iterator
+    /// @details This is a temporary method to assign a different iterator.
+    /// All this business is a bit ugly, but should go away when all
+    /// measurement equations are converted to work with accessors.
+    /// @param idi shared pointer to a new iterator
+    void ImageFFTEquation::setIterator(IDataSharedIter& idi)
+    {
+      itsIdi = idi;
+    }
+    
 
     // Calculate the residual visibility and image. We transform the model on the fly
     // so that we only have to read (and write) the data once. This uses more memory

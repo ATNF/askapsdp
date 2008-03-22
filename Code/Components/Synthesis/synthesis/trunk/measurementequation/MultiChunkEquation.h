@@ -62,6 +62,14 @@ public:
   using IMeasurementEquation::predict;
   using IMeasurementEquation::calcEquations;
   
+  /// @brief replace iterator to a new one
+  /// @details This method is probably more temporary than the whole class.
+  /// It is necessary for composite measurement equations to be able to 
+  /// substitute the iterator to something else to beat accessor-based/
+  /// iterator-based ME problem.
+  /// @param idi data iterator
+  void setIterator(const IDataSharedIter& idi);
+    
 protected:
   /// @brief access to the iterator associated with this equation
   /// @return a const reference to the iterator held by this object
