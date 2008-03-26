@@ -19,7 +19,7 @@ using namespace askap::synthesis;
 
 #include <dataaccess/FakeSingleStepIterator.h>
 #include <measurementequation/MultiChunkEquation.h>
-#include <measurementEquation/ImageFFTEquation.h>
+#include <measurementequation/ImageFFTEquation.h>
 #include <askap/AskapError.h>
 
 /// @brief constructor

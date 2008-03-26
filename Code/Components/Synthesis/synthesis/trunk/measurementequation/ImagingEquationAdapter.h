@@ -125,3 +125,4 @@ private:
 } // namespace askap
 
 #endif // #ifndef IMAGING_EQUATION_ADAPTER_H
+
