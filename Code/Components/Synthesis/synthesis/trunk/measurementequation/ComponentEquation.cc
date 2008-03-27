@@ -92,9 +92,12 @@ void ComponentEquation::fillComponentCache(
           const double ra=parameters().scalarValue("direction.ra"+cur);
           const double dec=parameters().scalarValue("direction.dec"+cur);
           const double fluxi=parameters().scalarValue("flux.i"+cur);
-          const double bmaj=parameters().scalarValue("shape.bmaj"+cur);
-          const double bmin=parameters().scalarValue("shape.bmin"+cur);
-          const double bpa=parameters().scalarValue("shape.bpa"+cur);
+          const double bmaj = parameters().has("shape.bmaj") ? 
+                   parameters().scalarValue("shape.bmaj"+cur) : 0.;
+          const double bmin = parameters().has("shape.bmin") ? 
+                   parameters().scalarValue("shape.bmin"+cur) : 0.;
+          const double bpa = parameters().has("shape.bpa") ? 
+                   parameters().scalarValue("shape.bpa"+cur) : 0.;
           
           if((bmaj>0.0)&&(bmin>0.0)) {
              // this is a gaussian

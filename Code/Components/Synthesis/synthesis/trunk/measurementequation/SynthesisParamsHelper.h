@@ -44,7 +44,40 @@ namespace askap
 		/// @param[in] parset a parset object to read the parameters from
 		/// @note (MV)This method is probably a duplication of the one of 
 		/// add methods - needs to be cleared
-		static void setUpImages(askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+		static void setUpImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+        
+        /// @brief load component-related parameters from a parset file
+        /// @details Parameter layout is different in scimath::Params and
+        /// parset files for some reason. Typically a source is defined with
+        /// parameters like flux.i.name, direction.ra.name, ... within the
+        /// scimath::Params, but in the parset file the names of the parameters
+        /// are sources.name.flux.i, sources.name.direction.ra, etc). This
+        /// method translates the parameter names and copies the values accross.
+        /// @param[in] params a shared pointer to the parameter container
+        /// @param[in] parset a parset object to read the data from
+        /// @param[in] srcName name of the source
+        /// @param[in] baseKey a prefix added to parset parameter names (default
+        /// is "sources.", wich matches the current layout of the parset file)
+        static void copyComponent(const askap::scimath::Params::ShPtr &params,
+                 const LOFAR::ACC::APS::ParameterSet &parset, 
+                 const std::string &srcName, const std::string &baseKey = "sources.");
+        
+        /// @brief check whether parameter list defines at least one component
+        /// @details Parameter lists can have a mixture of components and
+        /// images defined. This method checks whether the given parameter
+        /// list defines at least one component.
+        /// @param[in] params a shared pointer to the parameter container
+        /// @return true, if at least one component is defined
+        static bool hasComponent(const askap::scimath::Params::ShPtr &params);
+       
+        /// @brief check whether parameter list defines at least one image
+        /// @details Parameter lists can have a mixture of components and
+        /// images defined. This method checks whether the given parameter
+        /// list defines at least one image.
+        /// @param[in] params a shared pointer to the parameter container
+        /// @return true, if at least one image is defined
+        static bool hasImage(const askap::scimath::Params::ShPtr &params);
+        
       
         /// @brief Add a parameter as an image
         /// @param ip Parameters

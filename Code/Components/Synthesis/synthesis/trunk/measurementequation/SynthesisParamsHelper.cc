@@ -65,7 +65,7 @@ namespace askap
        return params;
     }
     
-    void SynthesisParamsHelper::setUpImages(askap::scimath::Params::ShPtr& params,
+    void SynthesisParamsHelper::setUpImages(const askap::scimath::Params::ShPtr& params,
 				const LOFAR::ACC::APS::ParameterSet &parset)
     {
 	  vector<string> images=parset.getStringVector("Names");
@@ -329,6 +329,75 @@ namespace askap
       casa::Array<double> imagePixels(im.shape());
       casa::convertArray<double, float>(imagePixels, floatImagePixels);
       ip.update(name, imagePixels);
+    }
+    
+    /// @brief check whether parameter list defines at least one component
+    /// @details Parameter lists can have a mixture of components and
+    /// images defined. This method checks whether the given parameter
+    /// list defines at least one component.
+    /// @param[in] params a shared pointer to the parameter container
+    /// @return true, if at least one component is defined
+    bool SynthesisParamsHelper::hasComponent(const askap::scimath::Params::ShPtr &params)
+    {
+       ASKAPDEBUGASSERT(params);
+       return params->completions("flux.i").size()!=0;
+    }
+    
+    /// @brief check whether parameter list defines at least one image
+    /// @details Parameter lists can have a mixture of components and
+    /// images defined. This method checks whether the given parameter
+    /// list defines at least one image.
+    /// @param[in] params a shared pointer to the parameter container
+    /// @return true, if at least one image is defined
+    bool SynthesisParamsHelper::hasImage(const askap::scimath::Params::ShPtr &params)
+    {
+       ASKAPDEBUGASSERT(params);
+       return params->completions("image.i").size()!=0;
+    }
+    
+    /// @brief load component-related parameters from a parset file
+    /// @details Parameter layout is different in scimath::Params and
+    /// parset files for some reason. Typically a source is defined with
+    /// parameters like flux.i.name, direction.ra.name, ... within the
+    /// scimath::Params, but in the parset file the names of the parameters
+    /// are sources.name.flux.i, sources.name.direction.ra, etc). This
+    /// method translates the parameter names and copies the values accross.
+    /// @param[in] params a shared pointer to the parameter container
+    /// @param[in] parset a parset object to read the data from
+    /// @param[in] srcName name of the source
+    /// @param[in] baseKey a prefix added to parset parameter names (default
+    /// is "sources.", wich matches the current layout of the parset file)
+    void SynthesisParamsHelper::copyComponent(const askap::scimath::Params::ShPtr &params,
+           const LOFAR::ACC::APS::ParameterSet &parset, 
+           const std::string &srcName, const std::string &baseKey)
+    {
+       ASKAPDEBUGASSERT(params);
+       // first, create a list of parameters describing the component
+       // if the value of the map is true, the parameter is mandatory
+       // (in the future we may have a more flexible code here filling this map)
+       std::map<std::string, bool>  parameterList;
+       parameterList["flux.i"] = true;
+       parameterList["direction.ra"] = true;
+       parameterList["direction.dec"] = true;
+       parameterList["shape.bmaj"] = false;
+       parameterList["shape.bmin"] = false;
+       parameterList["shape.bpa"] = false;
+       
+       // now iterate through all parameters
+       for (std::map<std::string, bool>::const_iterator ci = parameterList.begin();
+            ci!=parameterList.end(); ++ci) {
+            const std::string parName = baseKey+srcName+"."+ci->first;
+            if (parset.isDefined(parName)) {
+                const double val = parset.getDouble(parName);
+                params->add(ci->first+"."+srcName, val);
+            } else {
+                if (ci->second) {
+                    ASKAPTHROW(AskapError, "Parameter "<<parName<<
+                           " is required to define the source "<<srcName<<
+                           ", baseKey="<<baseKey);
+                }
+            }
+       }
     }
   }
 }

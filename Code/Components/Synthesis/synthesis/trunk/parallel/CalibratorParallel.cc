@@ -39,6 +39,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/CalibrationME.h>
+#include <measurementequation/ComponentEquation.h>
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <gridding/VisGridderFactory.h>
@@ -133,14 +134,17 @@ void CalibratorParallel::readModels()
       
   const std::vector<std::string> sources = parset.getStringVector("sources.names");
   for (size_t i=0; i<sources.size(); ++i) {
-	   std::ostringstream oos;
-	   oos << "sources." << sources[i]<< ".model";
-	   if (parset.isDefined(oos.str())) {
-           string model=parset.getString(oos.str());
+	   const std::string modelPar = std::string("sources.")+sources[i]+".model";
+	   
+	   if (parset.isDefined(modelPar)) {
+           const std::string model=parset.getString(modelPar);
            ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
-           std::ostringstream paramName;
-           paramName << "image.i." << sources[i];
-           SynthesisParamsHelper::getFromCasaImage(*itsPerfectModel, paramName.str(), model);
+           const std::string paramName = "image.i."+sources[i];
+           SynthesisParamsHelper::getFromCasaImage(*itsPerfectModel, paramName, model);
+       } else {
+          // this is an individual component, rather then a model defined by image
+          ASKAPLOG_INFO_STR(logger, "Adding component description as model for "<< sources[i] );
+          SynthesisParamsHelper::copyComponent(itsPerfectModel, parset,sources[i],"sources.");
        }
   }
   ASKAPLOG_INFO_STR(logger, "Successfully read models");
@@ -165,9 +169,21 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
       ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");
       ASKAPCHECK(itsGridder, "Gridder not defined");
-      boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
-      ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, itsGridder);
-      itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,ieAdapter));
+      if (SynthesisParamsHelper::hasImage(itsPerfectModel)) {
+         ASKAPCHECK(!SynthesisParamsHelper::hasComponent(itsPerfectModel),
+                 "Image + component case has not yet been implemented");
+         // have to create an image-specific equation        
+         boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
+         ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, itsGridder);
+         itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,ieAdapter));
+      } else {
+         // model is a number of components, don't need an adapter here
+         
+         // it doesn't matter which iterator is passed below. It is not used
+         boost::shared_ptr<ComponentEquation> 
+                  compEq(new ComponentEquation(*itsPerfectModel,it));
+         itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,compEq));         
+      }
   } else {
       ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
   }
