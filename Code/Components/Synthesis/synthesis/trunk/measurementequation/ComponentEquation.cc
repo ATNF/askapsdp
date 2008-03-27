@@ -92,11 +92,11 @@ void ComponentEquation::fillComponentCache(
           const double ra=parameters().scalarValue("direction.ra"+cur);
           const double dec=parameters().scalarValue("direction.dec"+cur);
           const double fluxi=parameters().scalarValue("flux.i"+cur);
-          const double bmaj = parameters().has("shape.bmaj") ? 
+          const double bmaj = parameters().has("shape.bmaj"+cur) ? 
                    parameters().scalarValue("shape.bmaj"+cur) : 0.;
-          const double bmin = parameters().has("shape.bmin") ? 
+          const double bmin = parameters().has("shape.bmin"+cur) ? 
                    parameters().scalarValue("shape.bmin"+cur) : 0.;
-          const double bpa = parameters().has("shape.bpa") ? 
+          const double bpa = parameters().has("shape.bpa"+cur) ? 
                    parameters().scalarValue("shape.bpa"+cur) : 0.;
           
           if((bmaj>0.0)&&(bmin>0.0)) {
