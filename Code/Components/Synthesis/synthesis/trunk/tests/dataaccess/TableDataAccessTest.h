@@ -288,7 +288,13 @@ void TableDataAccessTest::fieldTest()
   CPPUNIT_ASSERT(fieldSubtable.getReferenceDir(time).getRef().getType() ==
                  casa::MDirection::J2000);
   CPPUNIT_ASSERT(fieldSubtable.getReferenceDir(time).getValue().
-                 separation(refDir)<1e-7);       
+                 separation(refDir)<1e-7);
+
+  // test random access (for row=0)
+  CPPUNIT_ASSERT(fieldSubtable.getReferenceDir(0).getRef().getType() ==
+                 casa::MDirection::J2000);
+  CPPUNIT_ASSERT(fieldSubtable.getReferenceDir(0).getValue().
+                 separation(refDir)<1e-7);  
 }
 
 

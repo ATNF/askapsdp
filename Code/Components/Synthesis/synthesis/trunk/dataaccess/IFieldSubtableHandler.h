@@ -56,6 +56,22 @@ struct IFieldSubtableHandler : virtual public IHolder {
   /// pointings.
   /// @return true if the field information have been changed
   virtual bool newField(const casa::MEpoch &time) const = 0;
+
+  /// @brief obtain the reference direction stored in a given row
+  /// @details The measurement set format looks a bit redundant: individual
+  /// pointings can be discriminated by time of observations or by a
+  /// FIELD_ID. The latter is interpreted as a row number in the FIELD
+  /// table and can be used for a quick access to the direction information.
+  /// For ASKAP we will probably end up using just time, but the measurement
+  /// sets with real data (e.g. converted from fits) all have FIELD_ID column.
+  /// For simple measurement sets either method works fine. However, the
+  /// discrimination by time breaks for ATCA mosaicing datasets. This method
+  /// allows to avoid this problem. The current code uses FIELD_ID if
+  /// it is present in the main table of the dataset.
+  /// @param[in] fieldID  a row number of interest
+  /// @return a reference to direction measure
+  virtual const casa::MDirection& getReferenceDir(casa::uInt fieldID) 
+                                                  const = 0;
 };
 
 

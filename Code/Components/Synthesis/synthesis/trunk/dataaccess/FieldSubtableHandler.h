@@ -78,6 +78,22 @@ struct FieldSubtableHandler : virtual public IFieldSubtableHandler,
   /// @return true if the field information have been changed
   virtual bool newField(const casa::MEpoch &time) const;
 
+  /// @brief obtain the reference direction stored in a given row
+  /// @details The measurement set format looks a bit redundant: individual
+  /// pointings can be discriminated by time of observations or by a
+  /// FIELD_ID. The latter is interpreted as a row number in the FIELD
+  /// table and can be used for a quick access to the direction information.
+  /// For ASKAP we will probably end up using just time, but the measurement
+  /// sets with real data (e.g. converted from fits) all have FIELD_ID column.
+  /// For simple measurement sets either method works fine. However, the
+  /// discrimination by time breaks for ATCA mosaicing datasets. This method
+  /// allows to avoid this problem. The current code uses FIELD_ID if
+  /// it is present in the main table of the dataset.
+  /// @param[in] fieldID  a row number of interest
+  /// @return a reference to direction measure
+  virtual const casa::MDirection& getReferenceDir(casa::uInt fieldID) 
+                                                  const;
+
 protected:
   /// read the data if cache is outdated
   /// @param[in] time a full epoch of interest (field table can have many
@@ -101,8 +117,11 @@ private:
   /// see itsCachedStartTime for more details.
   mutable casa::Double itsCachedStopTime;
   
-  /// cache of the reference direction
+  /// cache of the reference direction (time-based selection of rows)
   mutable casa::MDirection itsReferenceDir;
+
+  /// cache of the reference direction (direct row-based access)
+  mutable casa::MDirection itsRandomlyAccessedReferenceDir;
   
   /// @brief flag showing that no data has been obtained yet via this class
   /// @details It is necessary that newField always returns true before 
@@ -110,6 +129,8 @@ private:
   /// information can be complicated. With this flag the meaning of newField
   /// method is to test whether the field is new since the last access to
   /// its parameters.
+  /// @note This flag is used only for time-based selection. It is not
+  /// updated, nor checked for a row-based access
   mutable bool itsNeverAccessedFlag;
 };
 

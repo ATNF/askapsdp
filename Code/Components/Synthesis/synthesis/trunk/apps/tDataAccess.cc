@@ -100,9 +100,9 @@ int main(int argc, char **argv) {
 	 return -2;
      }
 
-     TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
-                                TableDataSource::MEMORY_BUFFERS);     
-     //TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
+     //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
+     //                           TableDataSource::MEMORY_BUFFERS);     
+     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
      //timeDependentSubtableTest(argv[1],ds);
      doReadOnlyTest(ds);
      //doReadWriteTest(ds);    
