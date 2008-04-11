@@ -186,6 +186,8 @@ void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
        /// appropriate slice of the visibility cube. Conversions
        /// between complex and two doubles are handled automatically
        addVector(vis,rwVis.xyPlane(0).row(row));
+       // temporary hardcoded polarisation workaround
+       if (rwVis.nplane()>=4) addVector(vis,rwVis.xyPlane(3).row(row));
   }           
 }
 

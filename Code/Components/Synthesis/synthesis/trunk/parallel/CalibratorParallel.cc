@@ -285,6 +285,19 @@ void CalibratorParallel::writeModel()
            const casa::Complex gain = itsModel->complexValue(*it);
            os<<*it<<" = ["<<real(gain)<<","<<imag(gain)<<"]"<<std::endl;
       }
+      /*
+      // temporary for debugging/research
+      std::ofstream os2("deviation.dat"); // for now just hard code it
+      LOFAR::ACC::APS::ParameterSet trueGains("rndgains.in");
+      scimath::Params par;
+      par<<trueGains;
+      for (std::vector<std::string>::const_iterator it = parlist.begin(); 
+           it != parlist.end(); ++it) {
+           const casa::Complex gain = itsModel->complexValue(*it);
+           const casa::Complex diff = gain - par.complexValue(*it);
+           os2<<*it<<" "<<real(diff)<<" "<<imag(diff)<<" "<<abs(diff)<<" "<<arg(diff)/M_PI*180.<<std::endl;
+      }
+      */
   }
 }
 
