@@ -90,32 +90,39 @@ namespace askap
 
       // Now read the correct image name according to worker/master state.
       if(isMaster()){
-	itsImage = substitute(parset.getString("masterImage"));
-	itsCube.pars().setImageFile(itsImage);
 	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
 	itsCube.pars().setFlagRobustStats(false);
+	if(isParallel()) itsSectionList = makeSubImages(itsNNode-1,parset);
+// 	itsImage = substitute(parset.getString("masterImage"));
+	itsImage = substitute(parset.getString("image"));
+	itsCube.pars().setImageFile(itsImage);
 
 	/// The sectionInfo, read by the master, is interpreted by the
 	/// function readSectionInfo(). See its description for a
 	/// description of the format of the sectionInfo file, and how
 	/// the separated data is interpreted.
-	string sectionInfo = substitute(parset.getString("sectionInfo"));
-	itsSectionList = readSectionInfo(sectionInfo);
-	ASKAPLOG_INFO_STR(logger, "Read in the sectionInfo.");
-	if(itsSectionList.size() == 0){
-	  ASKAPLOG_ERROR_STR(logger, "No SectionInfo file found. Exiting.");
-	  exit(0);
-	}
-	else if( (isParallel() && (int(itsSectionList.size()) != (itsNNode-1) ))
-		 || (!isParallel() && (int(itsSectionList.size()) != (itsNNode))) )
-	  ASKAPLOG_ERROR_STR(logger, "Number of sections provided by " 
-			      << sectionInfo 
-			      << " does not match the number of images being processed.");
+// 	string sectionInfo = substitute(parset.getString("sectionInfo"));
+// 	itsSectionList = readSectionInfo(sectionInfo);
+// 	ASKAPLOG_INFO_STR(logger, "Read in the sectionInfo.");
+// 	if(itsSectionList.size() == 0){
+// 	  ASKAPLOG_ERROR_STR(logger, "No SectionInfo file found. Exiting.");
+// 	  exit(0);
+// 	}
+// 	else if( (isParallel() && (int(itsSectionList.size()) != (itsNNode-1) ))
+// 		 || (!isParallel() && (int(itsSectionList.size()) != (itsNNode))) )
+// 	  ASKAPLOG_ERROR_STR(logger, "Number of sections provided by " 
+// 			      << sectionInfo 
+// 			      << " does not match the number of images being processed.");
+
       }
 
       if(isWorker()) {
-        itsImage = substitute(parset.getString("image"));
+ 	 itsImage = substitute(parset.getString("image"));
+	if(isParallel()) itsImage = getSubImageName(itsImage,itsRank-1,itsNNode-1);
+	
 	itsCube.pars().setImageFile(itsImage);
+	//	splitImage(parset);
+
 	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
 	itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
       }
@@ -137,6 +144,71 @@ namespace askap
 
     }
 
+    void DuchampParallel::splitImage(const LOFAR::ACC::APS::ParameterSet& parset)
+    {
+      /// @details Generates a subsection string for the current
+      /// worker based on the number of nodes and the requested
+      /// distribution of subimages.
+      ///
+      /// @todo Enable the overlap to be based on the beam size?
+
+      if(isParallel() && isWorker()){
+
+	int nsubx = parset.getInt16("nsubx",1);
+	int nsuby = parset.getInt16("nsuby",1);
+	int nsubz = parset.getInt16("nsubz",1);
+      
+	int overlapx = parset.getInt16("overlapx",0);
+	int overlapy = parset.getInt16("overlapy",0);
+	int overlapz = parset.getInt16("overlapz",0);
+
+	int numRequestedSubs = nsubx * nsuby * nsubz;
+	int numWorkers = itsNNode - 1;
+
+	if( numWorkers != numRequestedSubs )
+	  ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<numRequestedSubs
+			    <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
+
+	else {
+
+	  long *dimAxes = getFITSdimensions(itsImage);
+	  /// @todo Note that we are assuming a particular axis setup here. Make this more robust!
+	  long start = 0;
+	  std::stringstream section;
+	  section << "[";
+	  if(nsubx>1){
+	    int x1 = std::max( start , (itsRank-1)*dimAxes[0]/nsubx - overlapx/2 );
+	    int x2 = std::min( dimAxes[0] , itsRank*dimAxes[0]/nsubx + overlapx/2 );
+	    section << x1+1 << ":" << x2 << ",";
+	  }
+	  else section << "*,";
+
+	  if(nsuby>1){
+	    int y1 = std::max( start , (itsRank-1)*dimAxes[1]/nsuby - overlapy/2 );
+	    int y2 = std::min( dimAxes[1] , itsRank*dimAxes[1]/nsuby + overlapy/2 );
+	    section << y1+1 << ":" << y2 << "," ;
+	  }
+	  else section << "*,";
+
+	  if(nsubz>1){
+	    int z1 = std::max( start , (itsRank-1)*dimAxes[2]/nsubz - overlapz/2 );
+	    int z2 = std::min( dimAxes[2] , itsRank*dimAxes[2]/nsubz + overlapz/2 );
+	    section << z1+1 << ":" << z2 << "]";
+	  }
+	  else section << "*]";
+
+	  itsCube.pars().setFlagSubsection(true);
+	  itsCube.pars().setSubsection(section.str());
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank<<" is using subsection " << section.str());
+
+	}
+
+      }
+      
+
+    }
+
+
     // Read in the data from the image file (on the workers)
     void DuchampParallel::readData()
     {
@@ -144,24 +216,79 @@ namespace askap
       /// the image name defined in the constructor.
 
       if(isWorker()) {
-
-	if(itsCube.getCube()==duchamp::FAILURE){
-	  ASKAPLOG_ERROR_STR(logger, "Could not read in data from image " << itsImage);
+	
+	bool OK=true; 
+	if(isParallel()){
+	  LOFAR::BlobString bs;
+	  bs.resize(0);
+	  itsConnectionSet->read(0, bs);
+	  LOFAR::BlobIBufString bib(bs);
+	  LOFAR::BlobIStream in(bib);
+	  int version=in.getStart("goInput");
+	  ASKAPASSERT(version==1);
+	  in >> OK;
+	  in.getEnd();
 	}
-	else {
-	  ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << itsImage);
-	  std::stringstream ss;
-	  ss << itsCube.getDimX() << " " << itsCube.getDimY() << " " << itsCube.getDimZ();
-	  ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
+	if(OK){
+	  ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": About to read data from image " << itsCube.pars().getFullImageFile());
+	  if(itsCube.getCube()==duchamp::FAILURE){
+	    ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read in data from image " << itsImage);
+	  }
+	  else {
+	    ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << itsImage);
+	    std::stringstream ss;
+	    ss << itsCube.getDimX() << " " << itsCube.getDimY() << " " << itsCube.getDimZ();
+	    ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
+	  }
 	}
 
+// 	if(isParallel()){
+// 	  LOFAR::BlobString bs;
+// 	  bs.resize(0);
+// 	  LOFAR::BlobOBufString bob(bs);
+// 	  LOFAR::BlobOStream out(bob);
+// 	  out.putStart("inputDone",1);
+// 	  out << true;
+// 	  out.putEnd();
+// 	  itsConnectionSet->write(0,bs);
+// 	}
       }
       else {
-	if(itsCube.getCube()==duchamp::FAILURE){
-	  ASKAPLOG_ERROR_STR(logger, "MASTER: Could not read in data from image " << itsImage << ".");
+	//	if(itsCube.getCube()==duchamp::FAILURE){
+	if(itsCube.getMetadata()==duchamp::FAILURE){
+	  ASKAPLOG_ERROR_STR(logger, "MASTER: Could not read in metadata from image " << itsImage << ".");
 	}
-// 	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
-// 	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
+	else {
+	  ASKAPLOG_INFO_STR(logger,  "MASTER: Read metadata from image " << itsImage);
+	}
+	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
+	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
+
+	LOFAR::BlobString bs;
+	bool OK=true;
+// 	for(int i=1;i<itsNNode && OK;i++){
+
+	  bs.resize(0);
+	  LOFAR::BlobOBufString bob(bs);
+	  LOFAR::BlobOStream out(bob);
+	  out.putStart("goInput",1);
+	  out << true;
+	  out.putEnd();
+// 	  itsConnectionSet->write(i-1,bs);
+	  itsConnectionSet->writeAll(bs);
+
+// 	  bs.resize(0);
+//           itsConnectionSet->read(i-1, bs);
+//           LOFAR::BlobIBufString bib(bs);
+//           LOFAR::BlobIStream in(bib);
+//           int version=in.getStart("inputDone");
+//           ASKAPASSERT(version==1);
+//           in >> OK;
+//           in.getEnd();
+	  
+// 	}
+
+	if(!OK) ASKAPLOG_ERROR(logger, "MASTER: Error in splitting image.");
 
       }
 
@@ -227,20 +354,24 @@ namespace askap
 
 	    int border = sourcefitting::detectionBorder;
 
-	    int numVox = (itsCube.getObject(i).getXmax() - itsCube.getObject(i).getXmin() + 1 + 2*border) *
-	      (itsCube.getObject(i).getYmax() - itsCube.getObject(i).getYmin() + 1 + 2*border) *
-	      (itsCube.getObject(i).getZmax() - itsCube.getObject(i).getZmin() + 1 + 2*border);
+	    /// TODO -- abstract this getting-the-surrounding-area into a class?
+	    int xmin,xmax,ymin,ymax,zmin,zmax;
+	    xmin = std::max(0 , int(itsCube.getObject(i).getXmin()-border));
+	    xmax = std::min(itsCube.getDimX()-1, itsCube.getObject(i).getXmax()+border);
+	    ymin = std::max(0 , int(itsCube.getObject(i).getYmin()-border));
+	    ymax = std::min(itsCube.getDimY()-1, itsCube.getObject(i).getYmax()+border);
+	    zmin = std::max(0 , int(itsCube.getObject(i).getZmin()-border));
+	    zmax = std::min(itsCube.getDimZ()-1, itsCube.getObject(i).getZmax()+border);
+
+	    int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
 	    out << numVox;
 	    
-	    for(int32 x=itsCube.getObject(i).getXmin()-border; x<=itsCube.getObject(i).getXmax()+border; x++){
-	      for(int32 y=itsCube.getObject(i).getYmin()-border; y<=itsCube.getObject(i).getYmax()+border; y++){
-		for(int32 z=itsCube.getObject(i).getZmin()-border; z<=itsCube.getObject(i).getZmax()+border; z++){
+	    for(int32 x=xmin; x<=xmax; x++){
+	      for(int32 y=ymin; y<=ymax; y++){
+		for(int32 z=zmin; z<=zmax; z++){
 		  
 		  bool inObject = itsCube.getObject(i).pixels().isInObject(x,y,z);
-		  float flux = 0.;
-		  if( (x>=0 && x<itsCube.getDimX()) && 
-		      (y>=0 && y<itsCube.getDimY()) && 
-		      (z>=0 && z<itsCube.getDimZ()) )  flux = itsCube.getPixValue(x,y,z);
+		  float flux = itsCube.getPixValue(x,y,z);
 
 		  out << inObject << x << y << z << flux;
 

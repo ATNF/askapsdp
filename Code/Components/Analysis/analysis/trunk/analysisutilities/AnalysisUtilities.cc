@@ -29,6 +29,10 @@
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
 
+#define WCSLIB_GETWCSTAB // define this so that we don't try and redefine 
+                         //  wtbarr (this is a problem when using gcc v.4+)
+#include <fitsio.h>
+
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".analysisutilities");
 
@@ -36,6 +40,47 @@ namespace askap
 {
   namespace analysis
   {
+
+    long * getFITSdimensions(std::string filename)
+    {
+      /// @details A simple function to open a FITS file and read the
+      /// axis dimensions, returning the array of values.
+
+      int numAxes, status = 0;  /* MUST initialize status */
+      fitsfile *fptr;  
+      long *dimAxes;
+
+      // Open the FITS file
+      status = 0;
+      if( fits_open_file(&fptr,filename.c_str(),READONLY,&status) ){
+	fits_report_error(stderr, status);
+      }
+      else{
+
+	// Read the size of the FITS file -- number and sizes of the axes
+	status = 0;
+	if(fits_get_img_dim(fptr, &numAxes, &status)){
+	  fits_report_error(stderr, status);
+	}
+	
+	dimAxes = new long[numAxes];
+	for(int i=0;i<numAxes;i++) dimAxes[i]=1;
+	status = 0;
+	if(fits_get_img_size(fptr, numAxes, dimAxes, &status)){
+	  fits_report_error(stderr, status);
+	}
+	
+	// Close the FITS file -- not needed any more in this function.
+	status = 0;
+	fits_close_file(fptr, &status);
+	if (status){
+	  fits_report_error(stderr, status);
+	}
+
+      }
+      return dimAxes;
+      
+    }
 
     float chisqProb(float ndof, float chisq)
     {
@@ -87,6 +132,8 @@ namespace askap
       }
 
       par.setFlagKarma( parset.getBool("flagKarma", true) );
+
+      par.setNewFluxUnits( parset.getString("newFluxUnits", "") );
 
       par.setFlagATrous( parset.getBool("flagATrous",false) );
       par.setReconDim( parset.getInt16("reconDim", par.getReconDim()) );
@@ -179,9 +226,126 @@ namespace askap
 	fin.close();
       }
 
+      for(int i=0;i<sectionlist.size();i++)
+	std::cerr << sectionlist[i].getSection() << "\n";
+
       return sectionlist;
 
     }
+
+    std::string getSubImageName(std::string image, int rank, int numWorkers)
+    {
+      
+      std::stringstream file;
+      bool isFits = (image.substr(image.size()-5,image.size())==".fits");
+      if(isFits) file << image.substr(0,image.size()-5);
+      else file << image;
+      file << ".sub" << rank << "." << numWorkers;
+      if(isFits) file << ".fits";
+      return file.str();
+
+    }
+
+
+    std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
+    {
+
+      std::vector<duchamp::Section> sectionlist; 
+      std::string image = parset.getString("image");
+      fitsfile *fin;
+      int status=0;
+      fits_open_file(&fin,image.c_str(),READONLY,&status);
+
+      int nsubx = parset.getInt16("nsubx",1);
+      int nsuby = parset.getInt16("nsuby",1);
+      int nsubz = parset.getInt16("nsubz",1);
+  
+      int overlapx = parset.getInt16("overlapx",0);
+      int overlapy = parset.getInt16("overlapy",0);
+      int overlapz = parset.getInt16("overlapz",0);
+  
+      int numRequestedSubs = nsubx * nsuby * nsubz;
+  
+      if( numWorkers != numRequestedSubs ){
+	ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<numRequestedSubs
+			  <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
+	return sectionlist;
+      }  
+      else {
+    
+	int numAxes;
+	long *dimAxes;
+	status = 0;
+	if(fits_get_img_dim(fin, &numAxes, &status)){
+	  fits_report_error(stderr, status);
+	}
+	
+	dimAxes = new long[numAxes];
+	for(int i=0;i<numAxes;i++) dimAxes[i]=1;
+	status = 0;
+	if(fits_get_img_size(fin, numAxes, dimAxes, &status)){
+	  fits_report_error(stderr, status);
+	}
+	/// @todo Note that we are assuming a particular axis setup here. Make this more robust!
+	long start = 0;
+
+	for(int i=0;i<numWorkers;i++){
+
+	  std::string subimage = "!"+getSubImageName(image,i,numWorkers);
+	  
+	  std::stringstream section;
+	  //      section << "[";
+	  if(nsubx>1){
+	    int x1 = std::max( start , i*dimAxes[0]/nsubx - overlapx/2 );
+	    int x2 = std::min( dimAxes[0] , (i+1)*dimAxes[0]/nsubx + overlapx/2 );
+	    section << x1+1 << ":" << x2 << ",";
+	  }
+	  else section << "*,";
+      
+	  if(nsuby>1){
+	    int y1 = std::max( start , i*dimAxes[1]/nsuby - overlapy/2 );
+	    int y2 = std::min( dimAxes[1] , (i+1)*dimAxes[1]/nsuby + overlapy/2 );
+	    section << y1+1 << ":" << y2 << "," ;
+	  }
+	  else section << "*,";
+      
+	  if(nsubz>1){
+	    int z1 = std::max( start , i*dimAxes[2]/nsubz - overlapz/2 );
+	    int z2 = std::min( dimAxes[2] , (i+1)*dimAxes[2]/nsubz + overlapz/2 );
+	    section << z1+1 << ":" << z2;// << "]";
+	  }
+	  else section << "*";//]";
+      
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<i+1<<" is using subsection " << section.str());
+      
+	  fitsfile *fout;
+	  status=0;
+	  fits_create_file(&fout,subimage.c_str(),&status);
+	  status=0;
+	  ASKAPLOG_INFO_STR(logger, "Creating SubImage: " << subimage);
+	  fits_copy_image_section(fin,fout,(char *)section.str().c_str(),&status);
+	  status=0;
+	  fits_close_file(fout,&status);
+
+	  std::string secstring = "["+section.str()+"]";
+	  duchamp::Section sec(secstring);
+	  std::vector<long> dim(numAxes);
+	  for(int i=0;i<numAxes;i++) dim[i] = dimAxes[i];
+	  sec.parse(dim);
+	  sectionlist.push_back(sec);
+	}
+
+	status=0;
+	fits_close_file(fin,&status);
+
+	return sectionlist;
+
+      }
+  
+
+
+    }
+
 
 
   }

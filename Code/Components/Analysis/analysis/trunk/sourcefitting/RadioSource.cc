@@ -88,7 +88,7 @@ namespace askap
 	  }
 
 	  if(failure){
-	    delete this->itsFluxArray;
+	    delete [] this->itsFluxArray;
 	    ASKAPLOG_ERROR(logger, "RadioSource: Failed to allocate flux array");
 	  }
 

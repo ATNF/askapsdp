@@ -7,6 +7,9 @@
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/verifyCube.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/cubes/test0.fits
 #Cduchamp.image      = /Users/whi550/ObsData/cubes/test%w.fits
+Cduchamp.image      = /Users/whi550/ObsData/cubes/verificationCube.fits
+Cduchamp.nsubz      = 3
+#Cduchamp.overlapz   = 10
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/H201-sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/cubes/H201-sub0.fits
@@ -43,16 +46,16 @@
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
 #Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
 
-Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.sectionInfo
-Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
-Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
+#Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.sectionInfo
+#Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
+#Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 #Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 
 #Cduchamp.flagRobust = false   #This applies to the workers only.
-Cduchamp.snrCut     = 15
+Cduchamp.snrCut     = 4
 #Cduchamp.threshold   = 0.005
 Cduchamp.pixelCentre = average
 Cduchamp.flagATrous  = false
@@ -62,7 +65,9 @@ Cduchamp.flagSmooth  = false
 Cduchamp.smoothType  = spectral
 Cduchamp.hanningWidth = 5.
 
-Cduchamp.doFit        = true
+Cduchamp.newFluxUnits = mJy/beam
+
+#Cduchamp.doFit        = true
 
 #Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 #Cimstat.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits

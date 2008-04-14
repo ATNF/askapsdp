@@ -21,6 +21,10 @@ namespace askap
   namespace analysis
   {
 
+    /// @brief Return an array of axis dimensions for a FITS file.
+    /// @ingroup analysisutilities
+    long * getFITSdimensions(std::string filename);
+
     /// @brief Return the probability of obtaining a chisq value by
     ///        chance, for a certain number of degrees of freedom.
     /// @ingroup analysisutilities
@@ -37,6 +41,9 @@ namespace askap
     /// @brief Read in image sections and return a vector of duchamp::Section objects;
     /// @ingroup analysisutilities
     std::vector<duchamp::Section> readSectionInfo(std::string filename);
+
+    std::string getSubImageName(std::string image, int rank, int numWorkers);
+    std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
 
   }
 }
