@@ -38,6 +38,10 @@ namespace askap
     /// @ingroup analysisutilities
     double findSpread(bool robust, double middle, int size, float *array);
 
+    /// @brief Find an rms for an array given a mean value, with masking of pixels.
+    /// @ingroup analysisutilities
+    double findSpread(bool robust, double middle, int size, float *array, bool *mask);
+
     /// @brief Read in image sections and return a vector of duchamp::Section objects;
     /// @ingroup analysisutilities
     std::vector<duchamp::Section> readSectionInfo(std::string filename);
