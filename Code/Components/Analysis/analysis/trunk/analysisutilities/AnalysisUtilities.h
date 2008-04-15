@@ -42,7 +42,12 @@ namespace askap
     /// @ingroup analysisutilities
     std::vector<duchamp::Section> readSectionInfo(std::string filename);
 
+    /// @brief Return a filename for a subimage
+    /// @ingroup analysisutilities
     std::string getSubImageName(std::string image, int rank, int numWorkers);
+
+    /// @brief Make subimages and return a vector list of subsections.
+    /// @ingroup analysisutilities
     std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
 
   }

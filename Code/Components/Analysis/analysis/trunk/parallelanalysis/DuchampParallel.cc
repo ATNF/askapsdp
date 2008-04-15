@@ -76,7 +76,6 @@ namespace askap
       /// as particular cduchamp parameters such as masterImage and
       /// sectionInfo.
 
-
       // First do the setup needed for both workers and master
 
       itsCube.pars() = parseParset(parset);
@@ -85,7 +84,7 @@ namespace askap
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
 
-      itsCube.pars().setVerbosity(false);
+      //      itsCube.pars().setVerbosity(false);
       itsCube.pars().setFlagLog(true);
 
       // Now read the correct image name according to worker/master state.
@@ -93,26 +92,8 @@ namespace askap
 	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
 	itsCube.pars().setFlagRobustStats(false);
 	if(isParallel()) itsSectionList = makeSubImages(itsNNode-1,parset);
-// 	itsImage = substitute(parset.getString("masterImage"));
 	itsImage = substitute(parset.getString("image"));
 	itsCube.pars().setImageFile(itsImage);
-
-	/// The sectionInfo, read by the master, is interpreted by the
-	/// function readSectionInfo(). See its description for a
-	/// description of the format of the sectionInfo file, and how
-	/// the separated data is interpreted.
-// 	string sectionInfo = substitute(parset.getString("sectionInfo"));
-// 	itsSectionList = readSectionInfo(sectionInfo);
-// 	ASKAPLOG_INFO_STR(logger, "Read in the sectionInfo.");
-// 	if(itsSectionList.size() == 0){
-// 	  ASKAPLOG_ERROR_STR(logger, "No SectionInfo file found. Exiting.");
-// 	  exit(0);
-// 	}
-// 	else if( (isParallel() && (int(itsSectionList.size()) != (itsNNode-1) ))
-// 		 || (!isParallel() && (int(itsSectionList.size()) != (itsNNode))) )
-// 	  ASKAPLOG_ERROR_STR(logger, "Number of sections provided by " 
-// 			      << sectionInfo 
-// 			      << " does not match the number of images being processed.");
 
       }
 
@@ -148,7 +129,12 @@ namespace askap
     {
       /// @details Generates a subsection string for the current
       /// worker based on the number of nodes and the requested
-      /// distribution of subimages.
+      /// distribution of subimages. This is designed for enabling
+      /// access to a subsection of an existing image. This differs
+      /// from makeSubImages() in that it does not create new images,
+      /// but rather saves the subsection in the itsCube parameter
+      /// file so that the duchamp::Cube::getCube() function just
+      /// reads the requested subsection.
       ///
       /// @todo Enable the overlap to be based on the beam size?
 
@@ -217,6 +203,7 @@ namespace askap
 
       if(isWorker()) {
 	
+	// Get the OK from the Master so that we know that the subimages have been created.
 	bool OK=true; 
 	if(isParallel()){
 	  LOFAR::BlobString bs;
@@ -239,22 +226,15 @@ namespace askap
 	    std::stringstream ss;
 	    ss << itsCube.getDimX() << " " << itsCube.getDimY() << " " << itsCube.getDimZ();
 	    ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
+	    if(itsCube.getDimZ()==1) itsCube.pars().setMinChannels(0);  
 	  }
 	}
-
-// 	if(isParallel()){
-// 	  LOFAR::BlobString bs;
-// 	  bs.resize(0);
-// 	  LOFAR::BlobOBufString bob(bs);
-// 	  LOFAR::BlobOStream out(bob);
-// 	  out.putStart("inputDone",1);
-// 	  out << true;
-// 	  out.putEnd();
-// 	  itsConnectionSet->write(0,bs);
-// 	}
+	else{
+	  ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read data from image " << itsImage << " as it's not ready.");
+	}
       }
       else {
-	//	if(itsCube.getCube()==duchamp::FAILURE){
+
 	if(itsCube.getMetadata()==duchamp::FAILURE){
 	  ASKAPLOG_ERROR_STR(logger, "MASTER: Could not read in metadata from image " << itsImage << ".");
 	}
@@ -263,34 +243,24 @@ namespace askap
 	}
 	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
 	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
-
+	if(itsCube.getDimZ()==1) itsCube.pars().setMinChannels(0);  
+	for(int i=0;i<itsCube.getNumDim();i++) ASKAPLOG_INFO_STR(logger, "MASTER: Dim["<<i<<"] = " << itsCube.getDimArray()[i]);
+	ASKAPLOG_INFO_STR(logger, "MASTER: canUseThirdAxis() = " << itsCube.header().canUseThirdAxis());
+	ASKAPLOG_INFO_STR(logger, "MASTER: isSpecOK() = " << itsCube.header().isSpecOK());
+	
+	// Send out the OK to the workers, so that they know that the subimages have been created.
 	LOFAR::BlobString bs;
-	bool OK=true;
-// 	for(int i=1;i<itsNNode && OK;i++){
-
-	  bs.resize(0);
-	  LOFAR::BlobOBufString bob(bs);
-	  LOFAR::BlobOStream out(bob);
-	  out.putStart("goInput",1);
-	  out << true;
-	  out.putEnd();
-// 	  itsConnectionSet->write(i-1,bs);
-	  itsConnectionSet->writeAll(bs);
-
-// 	  bs.resize(0);
-//           itsConnectionSet->read(i-1, bs);
-//           LOFAR::BlobIBufString bib(bs);
-//           LOFAR::BlobIStream in(bib);
-//           int version=in.getStart("inputDone");
-//           ASKAPASSERT(version==1);
-//           in >> OK;
-//           in.getEnd();
-	  
-// 	}
-
-	if(!OK) ASKAPLOG_ERROR(logger, "MASTER: Error in splitting image.");
+	bs.resize(0);
+	LOFAR::BlobOBufString bob(bs);
+	LOFAR::BlobOStream out(bob);
+	out.putStart("goInput",1);
+	out << true;
+	out.putEnd();
+	itsConnectionSet->writeAll(bs);
 
       }
+
+      ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": flagBlankPix = " << itsCube.pars().getFlagBlankPix());
 
     }
       
@@ -354,7 +324,7 @@ namespace askap
 
 	    int border = sourcefitting::detectionBorder;
 
-	    /// TODO -- abstract this getting-the-surrounding-area into a class?
+	    /// @todo -- abstract this getting-the-surrounding-area into a class?
 	    int xmin,xmax,ymin,ymax,zmin,zmax;
 	    xmin = std::max(0 , int(itsCube.getObject(i).getXmin()-border));
 	    xmax = std::min(itsCube.getDimX()-1, itsCube.getObject(i).getXmax()+border);
@@ -472,6 +442,7 @@ namespace askap
 	    }
 	}
 	// Now process the lists
+	ASKAPLOG_INFO_STR(logger, "MASTER: minChannels = " << itsCube.pars().getMinChannels());
         ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists..." );
 	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
         ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists done" );
@@ -699,8 +670,10 @@ namespace askap
 	else if(itsCube.pars().getFlagSmooth()) itsCube.SmoothCube();
 
 	int32 size = itsCube.getSize();
-	double mean = 0.;
+	float mean = 0.,rms;
 	float *array;
+	// make a mask in case there are blank pixels.
+	bool *mask = itsCube.pars().makeBlankMask(itsCube.getArray(), itsCube.getSize());
 
 	if(size>0){
 	  
@@ -708,10 +681,12 @@ namespace askap
 	  else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
 	  else                                     array = itsCube.getArray();
 	  
-	  if(itsCube.pars().getFlagRobustStats()) mean = findMedian(array,size);
-	  else                                    mean = findMean(array,size);
+	  // calculate both mean & rms, but ignore rms for the moment.
+	  if(itsCube.pars().getFlagRobustStats()) findMedianStats(array,size,mask,mean,rms);
+	  else                                    findNormalStats(array,size,mask,mean,rms);
 
 	}
+	double dmean = mean;
 
 	ASKAPLOG_INFO_STR(logger, "#" << this->itsRank << ": Mean = " << mean );
 	
@@ -722,7 +697,7 @@ namespace askap
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("meanW2M",1);
 	  int16 rank = this->itsRank;
-	  out << rank << mean << size;
+	  out << rank << dmean << size;
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs);
 	  //	  itsConnectionSet->write(this->itsRank,bs);
@@ -781,7 +756,11 @@ namespace askap
 	  }
 	  else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
 	  else array = itsCube.getArray();
-	  rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
+	  if(itsCube.pars().getFlagBlankPix()){
+	    bool *mask = itsCube.pars().makeBlankMask(array, itsCube.getSize());
+	    rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array,mask);
+	  }
+	  else rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
 
 	}
 

@@ -1,19 +1,12 @@
 ### These images are test cubes, that can test the three dimensional
 ### source-finding. Only use with "mpirun -np 3"
 
-#Cduchamp.image      = /Users/whi550/ObsData/cubes/verifyCube%w.fits
-#Cduchamp.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits
-
-#Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/verifyCube.sectionInfo
-#Cduchamp.masterImage = /Users/whi550/ObsData/cubes/test0.fits
-#Cduchamp.image      = /Users/whi550/ObsData/cubes/test%w.fits
-Cduchamp.image      = /Users/whi550/ObsData/cubes/verificationCube.fits
-Cduchamp.nsubz      = 3
+#Cduchamp.image      = /Users/whi550/ObsData/cubes/verificationCube.fits
+#Cduchamp.nsubz      = 3
 #Cduchamp.overlapz   = 10
 
-#Cduchamp.sectionInfo = /Users/whi550/ObsData/cubes/H201-sectionInfo
-#Cduchamp.masterImage = /Users/whi550/ObsData/cubes/H201-sub0.fits
-#Cduchamp.image      = /Users/whi550/ObsData/cubes/H201-sub%w.fits
+#Cduchamp.image       = /Users/whi550/ObsData/cubes/H201_abcde_luther_chop.fits
+#Cduchamp.nsubz      = 2
 
 ### The next bunch test 2-dimensional source finding.
 ### The ones with /replicated filenames are for use with minicp: do
@@ -44,7 +37,8 @@ Cduchamp.nsubz      = 3
 ### This is a single image, for running in serial mode
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/first.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
-#Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
+Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
+Cduchamp.nsubx       = 2
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits

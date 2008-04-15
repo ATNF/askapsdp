@@ -25,6 +25,7 @@
 #include <vector>
 #include <string>
 
+#include <duchamp/fitsHeader.hh>
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
@@ -183,6 +184,38 @@ namespace askap
     }
 
 
+    double findSpread(bool robust, double middle, int size, float *array, bool *mask)
+    {
+      /// @details
+      /// Finds the "spread" (ie. the rms or standard deviation) of an
+      /// array of values using a given mean value. The option exists
+      /// to use the standard deviation, or, by setting robust=true,
+      /// the median absolute deviation from the median. In the latter
+      /// case, the middle value given is assumed to be the median,
+      /// and the returned value is the median absolute difference of
+      /// the data values from the median.
+
+      int goodSize=0;
+      for(int i=0;i<size;i++) if(mask[i]) goodSize++;
+      double spread=0.;
+      if(robust){
+	float *arrayCopy = new float[goodSize];
+	int j=0;
+	for(int i=0;i<size;i++) if(mask[i]) arrayCopy[j++] = fabs(array[i]-middle);
+	std::sort(arrayCopy,arrayCopy+size);
+	if((goodSize%2)==0) spread = (arrayCopy[goodSize/2-1]+arrayCopy[goodSize/2])/2;
+	else spread = arrayCopy[goodSize/2];
+	delete [] arrayCopy;
+	spread = Statistics::madfmToSigma(spread);
+      }
+      else{
+	for(int i=0;i<size;i++) if(mask[i]) spread += (array[i]-middle)*(array[i]-middle);
+	spread = sqrt(spread / double(goodSize-1));
+      }
+      return spread;
+    }
+
+
     std::vector<duchamp::Section> readSectionInfo(std::string filename)
     {
       /// @details
@@ -235,7 +268,20 @@ namespace askap
 
     std::string getSubImageName(std::string image, int rank, int numWorkers)
     {
-      
+     
+      /// @details A standard way for producing the filename for a
+      /// subimage, coded according to the number of workers and the
+      /// rank of the particular worker in question. If the input
+      /// image is image.fits, then for the first worker (rank=0) out
+      /// of 5, the filename returned will be image.sub0.5.fits. If
+      /// the input image does not end in ".fits", the sub0.5 is
+      /// appended: e.g image.fts.sub0.5
+      /// @param image The existing disk image
+      /// @param rank The rank of the worker desiring the subimage
+      /// @param numWorkers The total number of workers (ie. total
+      /// number of subimages.)
+      /// @return The filename for the subimage.
+ 
       std::stringstream file;
       bool isFits = (image.substr(image.size()-5,image.size())==".fits");
       if(isFits) file << image.substr(0,image.size()-5);
@@ -249,6 +295,24 @@ namespace askap
 
     std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
     {
+
+      /// @details This function takes an existing FITS image on disk,
+      /// and creates a number of subimages, one for each worker. The
+      /// division of the image is governed by the parameter set,
+      /// specifically the nsubx/y/z and overlapx/y/z parameters. The
+      /// image to be split is given by the image parameter. The new
+      /// files are always written, and will overwrite any
+      /// pre-existing files (by using a "!" at the start of the
+      /// filename).
+      ///
+      /// The section strings are stored in duchamp::Section objects,
+      /// and are parsed so that they can provide offsets etc. These
+      /// are stored in a std::vector, and returned by the fuction
+      /// upon completion.
+      ///
+      /// @param numWorkers The number of workers and the number of subimages. 
+      /// @param parset The parameter set holding info on how to divide the image.
+      /// @return A std::vector of duchamp::Section objects.
 
       std::vector<duchamp::Section> sectionlist; 
       std::string image = parset.getString("image");
@@ -272,51 +336,85 @@ namespace askap
 	return sectionlist;
       }  
       else {
-    
-	int numAxes;
-	long *dimAxes;
-	status = 0;
-	if(fits_get_img_dim(fin, &numAxes, &status)){
-	  fits_report_error(stderr, status);
+
+	duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
+	duchamp::FitsHeader imageHeader;
+	imageHeader.defineWCS(image,tempPar);
+	int naxis = imageHeader.WCS().naxis;
+	const int lng = imageHeader.WCS().lng;
+	const int lat = imageHeader.WCS().lat;
+	const int spec = imageHeader.WCS().spec;
+
+	int *nsub = new int[naxis];
+	int *overlap = new int[naxis];
+	for(int i=0;i<naxis;i++){
+	  if(i==lng){ 
+	    nsub[i]=nsubx; 
+	    overlap[i]=overlapx; 
+	  }
+	  else if(i==lat){
+	    nsub[i]=nsuby; 
+	    overlap[i]=overlapy;
+	  }
+	  else if(i==spec){
+	    nsub[i]=nsubz;
+	    overlap[i]=overlapz; 
+	  }
+	  else{
+	    nsub[i] = 1; 
+	    overlap[i] = 0;
+	  }
 	}
-	
-	dimAxes = new long[numAxes];
-	for(int i=0;i<numAxes;i++) dimAxes[i]=1;
+
+	long *dimAxes = new long[naxis];
+	for(int i=0;i<naxis;i++) dimAxes[i]=1;
 	status = 0;
-	if(fits_get_img_size(fin, numAxes, dimAxes, &status)){
+	if(fits_get_img_size(fin, naxis, dimAxes, &status)){
 	  fits_report_error(stderr, status);
 	}
 	/// @todo Note that we are assuming a particular axis setup here. Make this more robust!
 	long start = 0;
 
-	for(int i=0;i<numWorkers;i++){
+	for(int w=0;w<numWorkers;w++){
 
-	  std::string subimage = "!"+getSubImageName(image,i,numWorkers);
+	  std::string subimage = "!"+getSubImageName(image,w,numWorkers);
 	  
 	  std::stringstream section;
-	  //      section << "[";
-	  if(nsubx>1){
-	    int x1 = std::max( start , i*dimAxes[0]/nsubx - overlapx/2 );
-	    int x2 = std::min( dimAxes[0] , (i+1)*dimAxes[0]/nsubx + overlapx/2 );
-	    section << x1+1 << ":" << x2 << ",";
+
+	  for(int i=0;i<naxis;i++){
+	    
+	    if(nsub[i] > 1){
+	      int min = std::max( start, w*dimAxes[i]/nsub[i] - overlap[i]/2 ) + 1;
+	      int max = std::min( dimAxes[i], (w+1)*dimAxes[i]/nsub[i] + overlap[i]/2 );
+	      section << min << ":" << max;
+	    }
+	    else section << "*";
+	    if(i != naxis-1) section << ",";
+
 	  }
-	  else section << "*,";
+
+// 	  if(nsubx>1){
+// 	    int x1 = std::max( start , i*dimAxes[0]/nsubx - overlapx/2 );
+// 	    int x2 = std::min( dimAxes[0] , (i+1)*dimAxes[0]/nsubx + overlapx/2 );
+// 	    section << x1+1 << ":" << x2 << ",";
+// 	  }
+// 	  else section << "*,";
       
-	  if(nsuby>1){
-	    int y1 = std::max( start , i*dimAxes[1]/nsuby - overlapy/2 );
-	    int y2 = std::min( dimAxes[1] , (i+1)*dimAxes[1]/nsuby + overlapy/2 );
-	    section << y1+1 << ":" << y2 << "," ;
-	  }
-	  else section << "*,";
+// 	  if(nsuby>1){
+// 	    int y1 = std::max( start , i*dimAxes[1]/nsuby - overlapy/2 );
+// 	    int y2 = std::min( dimAxes[1] , (i+1)*dimAxes[1]/nsuby + overlapy/2 );
+// 	    section << y1+1 << ":" << y2 << "," ;
+// 	  }
+// 	  else section << "*,";
       
-	  if(nsubz>1){
-	    int z1 = std::max( start , i*dimAxes[2]/nsubz - overlapz/2 );
-	    int z2 = std::min( dimAxes[2] , (i+1)*dimAxes[2]/nsubz + overlapz/2 );
-	    section << z1+1 << ":" << z2;// << "]";
-	  }
-	  else section << "*";//]";
+// 	  if(nsubz>1){
+// 	    int z1 = std::max( start , i*dimAxes[2]/nsubz - overlapz/2 );
+// 	    int z2 = std::min( dimAxes[2] , (i+1)*dimAxes[2]/nsubz + overlapz/2 );
+// 	    section << z1+1 << ":" << z2;
+// 	  }
+// 	  else section << "*";
       
-	  ASKAPLOG_INFO_STR(logger, "Worker #"<<i+1<<" is using subsection " << section.str());
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<w+1<<" is using subsection " << section.str());
       
 	  fitsfile *fout;
 	  status=0;
@@ -329,8 +427,8 @@ namespace askap
 
 	  std::string secstring = "["+section.str()+"]";
 	  duchamp::Section sec(secstring);
-	  std::vector<long> dim(numAxes);
-	  for(int i=0;i<numAxes;i++) dim[i] = dimAxes[i];
+	  std::vector<long> dim(naxis);
+	  for(int i=0;i<naxis;i++) dim[i] = dimAxes[i];
 	  sec.parse(dim);
 	  sectionlist.push_back(sec);
 	}
