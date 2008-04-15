@@ -191,8 +191,7 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
                     (table().col("SPECTRAL_WINDOW_ID") == -1)) &&
                (((table().col("TIME") - halfInterval <= dTime) &&
                 (table().col("TIME") + halfInterval >= dTime)) ||
-		((table().col("TIME") <= dTime) &&
-		 (halfInterval == 0.)));
+                (halfInterval == 0.));
   casa::Table selection=table()(expression);
   if (selection.nrow()==0) {
       ASKAPTHROW(DataAccessError,
@@ -239,9 +238,10 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
        // probably an appropriate filler has to be fixed as it doesn't
        // seem to conform with the measurement set standard
        if (intervalCol(row) == 0.) {
-           cStartTime = timeCol(row);
-	   cStopTime = timeCol(row) + 1e30; // not a very clean way, but
-	                        // we need something large here
+           // not a very clean way, but
+	       // we need large offsets here
+           cStartTime = timeCol(row) - 1e30;
+	       cStopTime = timeCol(row) + 1e30; 
        }
        if (!row || itsCachedStartTime<cStartTime) {
            itsCachedStartTime=cStartTime;	   
