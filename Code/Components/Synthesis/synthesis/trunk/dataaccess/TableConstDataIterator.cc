@@ -55,7 +55,7 @@ struct WholeRowFlagger
   /// @brief determine whether element by element copy is needed
   /// @details This method analyses other columns of the table specific
   /// for a particular type and fills the cube with appropriate data.
-  /// If it can't to this, it returns true, which forces an element by element 
+  /// If it can't do this, it returns true, which forces an element by element 
   /// processing. By default parameters are not used
   inline bool copyRequired(casa::uInt, casa::Cube<T> &) { return true;}
 };
@@ -76,7 +76,7 @@ struct WholeRowFlagger<casa::Bool>
   /// @brief determine whether element by element copy is needed
   /// @details This method analyses other columns of the table specific
   /// for a particular type and fills the cube with appropriate data.
-  /// If it can't to this, it returns true, which forces an element by element 
+  /// If it can't do this, it returns true, which forces an element by element 
   /// processing. By default parameters are not used
   /// @param[in] row a row to work with 
   /// @param[in] cube cube to work with
@@ -148,6 +148,12 @@ void TableConstDataIterator::init()
   itsCurrentTopRow=0;
   itsCurrentDataDescID=-100; // this value can't be in the table,
                              // therefore it is a flag of a new data descriptor
+  itsCurrentFieldID = -100; // this value can't be in the table,
+                            // therefore it is a flag of a new field ID
+  // by default use FIELD_ID column if it exists, otherwise use time to select
+  // pointings
+  itsUseFieldID = table().actualTableDesc().isColumn("FIELD_ID");  
+  
   const casa::TableExprNode &exprNode =
               itsSelector->getTableSelector(itsConverter);
   if (exprNode.isNull()) {
@@ -206,6 +212,12 @@ casa::Bool TableConstDataIterator::next()
       // determine whether DATA_DESC_ID is uniform in the whole chunk
       // and reduce itsNumberOfRows if necessary
       makeUniformDataDescID();      
+      
+      // determine whether FIELD_ID is uniform in the whole chink
+      // and reduce itsNumberOfRows if necessary
+      // invalidate direction cache if necessary.
+      // do nothing if itsUseFieldID is false
+      makeUniformFieldID();
   }  
   return hasMore();
 }
@@ -223,8 +235,9 @@ void TableConstDataIterator::setUpIteration()
       // extra checks make sense if the cache is valid (and this means it 
       // has been used before)
       const casa::MEpoch epoch = currentEpoch();
-      if (subtableInfo().getField().newField(epoch) ||
-          !subtableInfo().getAntenna().allEquatorial() ||
+      const bool newField = itsUseFieldID ? false : subtableInfo().getField().newField(epoch);
+      // a case where fieldID changes is dealt with separately.
+      if ( newField || !subtableInfo().getAntenna().allEquatorial() ||
           subtableInfo().getFeed().newBeamDetails(epoch,currentSpWindowID())) {
               itsDirectionCache.invalidate();
       }
@@ -235,16 +248,23 @@ void TableConstDataIterator::setUpIteration()
       // and reduce itsNumberOfRows if necessary
       // set up visibility cube shape if necessary
       makeUniformDataDescID();
+      
+      // determine whether FIELD_ID is uniform in the whole chink
+      // and reduce itsNumberOfRows if necessary
+      // invalidate direction cache if necessary.
+      // do nothing if itsUseFieldID is false
+      makeUniformFieldID();
   } else {
-      itsNumberOfChannels=0;
-      itsNumberOfPols=0;
-      itsCurrentDataDescID=-100;
+      itsNumberOfChannels = 0;
+      itsNumberOfPols = 0;
+      itsCurrentDataDescID = -100;
+      itsCurrentFieldID = -100;
       itsDirectionCache.invalidate();
   }  
 }
 
 /// @brief method ensures that the chunk has uniform DATA_DESC_ID
-/// @details This method reduces itsNumberOfRows to achieve
+/// @details This method reduces itsNumberOfRows to achieve a
 /// uniform DATA_DESC_ID reading for all rows in the current chunk.
 /// The resulting itsNumberOfRows will be 1 or more.
 /// theirAccessor's spectral axis cache is reset if new DATA_DESC_ID is
@@ -287,6 +307,37 @@ void TableConstDataIterator::makeUniformDataDescID()
            itsNumberOfRows=row;
 	   break;
        }
+  }
+}
+
+/// @brief method ensures that the chunk has a uniform FIELD_ID
+/// @details This method reduces itsNumberOfRows until FIELD_ID is
+/// the same for all rows in the current chunk. The resulting 
+/// itsNumberOfRows will be 1 or more. If itsUseFieldID is false,
+/// the method returns without doing anything. itsAccessor's direction
+/// cache is reset if new FIELD_ID is different from itsCurrentFieldID
+/// (and it sets it up at the first run as well)
+void TableConstDataIterator::makeUniformFieldID()
+{
+  if (itsUseFieldID) {
+      ASKAPDEBUGASSERT(itsNumberOfRows);  
+      ASKAPDEBUGASSERT(itsCurrentTopRow+itsNumberOfRows<=
+                       itsCurrentIteration.nrow());
+                       
+      ROScalarColumn<Int> fieldIDCol(itsCurrentIteration,"FIELD_ID");
+      const Int newFieldID=fieldIDCol(itsCurrentTopRow);
+      ASKAPDEBUGASSERT(newFieldID>=0);
+      if (newFieldID != itsCurrentFieldID) {
+          itsCurrentFieldID = newFieldID;
+          itsDirectionCache.invalidate();
+      }
+      // break the iteration if necessary
+      for (uInt row=1;row<itsNumberOfRows;++row) {
+           if (fieldIDCol(row+itsCurrentTopRow)!=itsCurrentFieldID) {
+               itsNumberOfRows=row;
+	           break;
+           }
+      }
   }
 }
 
@@ -543,9 +594,9 @@ casa::MEpoch TableConstDataIterator::currentEpoch() const
 /// the FEED subtable for current time and spectral window. 
 /// getAntennaIDs and getFeedIDs methods of the 
 /// subtable handler can be used to unwrap this 1D array. 
-/// The buffer can invalidated if the time changes (i.e. for an alt-az array),
+/// The buffer can be invalidated if the time changes (i.e. for an alt-az array),
 /// for an equatorial array this happends only if the FEED or FIELD subtable
-/// are time-dependent
+/// are time-dependent or if FIELD_ID changes
 /// @param[in] dirs a reference to a vector to fill
 void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const
 {
@@ -560,10 +611,18 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
                              getFeedIDs(epoch,spWindowID);
   ASKAPDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());                           
   dirs.resize(antIDs.nelements());
+  
   // we currently use FIELD table to get the pointing direction. This table
   // does not depend on the antenna.
-  casa::MDirection antReferenceDir=subtableInfo().getField().
-                                   getReferenceDir(epoch);
+#ifdef ASKAP_DEBUG
+  if (itsUseFieldID) {
+      ASKAPCHECK(itsCurrentFieldID>=0, "Elements of FIELD_ID column should be 0 or positive. You have "<<
+                 itsCurrentFieldID);
+  }   
+#endif 
+  const casa::MDirection antReferenceDir= itsUseFieldID ? 
+               subtableInfo().getField().getReferenceDir(itsCurrentFieldID) :
+               subtableInfo().getField().getReferenceDir(epoch);
                                    
   // we need a separate converter for parallactic angle calculations
   DirectionConverter dirConv((casa::MDirection::Ref(casa::MDirection::AZEL)));
@@ -636,7 +695,7 @@ void TableConstDataIterator::fillPointingDir2(
 }
 
 
-/// @brief A helper method to fill a given vector with pointingdirections.
+/// @brief A helper method to fill a given vector with pointing directions.
 /// @details fillPointingDir1 and fillPointingDir2 methods do very similar
 /// operations, which differ only by the feedIDs and antennaIDs used.
 /// This method encapsulates these common operations

@@ -181,8 +181,8 @@ protected:
   /// setup accessor for a new iteration
   void setUpIteration();
 
-  /// @brief method ensures that the chunk has uniform DATA_DESC_ID
-  /// @details This method reduces itsNumberOfRows to the achieve
+  /// @brief method ensures that the chunk has a uniform DATA_DESC_ID
+  /// @details This method reduces itsNumberOfRows to achieve
   /// uniform DATA_DESC_ID reading for all rows in the current chunk.
   /// The resulting itsNumberOfRows will be 1 or more.
   /// itsAccessor's spectral axis cache is reset if new DATA_DESC_ID is
@@ -190,6 +190,15 @@ protected:
   /// This method also sets up itsNumberOfPols and itsNumberOfChannels
   /// when DATA_DESC_ID changes (and therefore at the first run as well)
   void makeUniformDataDescID();
+
+  /// @brief method ensures that the chunk has a uniform FIELD_ID
+  /// @details This method reduces itsNumberOfRows until FIELD_ID is
+  /// the same for all rows in the current chunk. The resulting 
+  /// itsNumberOfRows will be 1 or more. If itsUseFieldID is false,
+  /// the method returns without doing anything. itsAccessor's direction
+  /// cache is reset if new FIELD_ID is different from itsCurrentFieldID
+  /// (and it sets it up at the first run as well)
+  void makeUniformFieldID();
 
   /// obtain a reference to the accessor (for derived classes)
   inline const TableConstDataAccessor& getAccessor() const throw()
@@ -262,6 +271,21 @@ private:
   /// current DATA_DESC_ID, the iteration is broken if this
   /// ID changes
   casa::Int itsCurrentDataDescID;
+  
+  /// @brief current FIELD_ID.
+  /// @details This ID is tracked if FIELD_ID column is present in the 
+  /// table. The iteration is broken if this ID changes.
+  casa::Int itsCurrentFieldID;
+  
+  /// @brief a flag showing that FIELD_ID column should be used.
+  /// @details There are two ways to discriminate between different pointings:
+  /// use FIELD_ID column, if it is present in the table, and check times. If
+  /// this flag is set, the iterator will check FIELD_ID column (an exception is
+  /// raised if the column doesn't exist). The constructor checks the presence
+  /// of the FIELD_ID column and set this flag if it exists. The flag is introduced
+  /// to allow in the future to force the code to use time instead of FIELD_ID, even
+  /// if the latter is present.
+  bool itsUseFieldID;
   
   /// internal buffer for pointing offsets for the whole current cache
   /// of the Feed subtable handler
