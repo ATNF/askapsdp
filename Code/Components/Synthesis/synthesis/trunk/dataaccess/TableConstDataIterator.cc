@@ -163,7 +163,7 @@ void TableConstDataIterator::init()
       itsTabIterator=casa::TableIterator(table()(itsSelector->
                                getTableSelector(itsConverter)),"TIME",
 	     casa::TableIterator::DontCare,casa::TableIterator::NoSort);
-  }  
+  }
   setUpIteration();
 }
 
@@ -458,6 +458,24 @@ casa::uInt TableConstDataIterator::currentSpWindowID() const
   return static_cast<const uInt>(spWindowIndex);
 }  
 
+/// @brief obtain a reference direction for the current iteration
+/// @details Currently we assume that the dish pointing centre stays
+/// fixed for the whole chunk. We break the iteration, if necessary
+/// to achieve this. This helper method extracts the reference direction
+/// from the FIELD subtable using either FIELD_ID, or current time if
+/// the former is not supported by the main table.
+/// @return a reference to direction measure
+const casa::MDirection& TableConstDataIterator::getCurrentReferenceDir() const
+{
+  const IFieldSubtableHandler &fieldSubtable = subtableInfo().getField();
+  if (itsUseFieldID) {
+      ASKAPCHECK(itsCurrentFieldID>=0, "Elements of FIELD_ID column should be 0 or positive. You have "<<
+                 itsCurrentFieldID);
+      return fieldSubtable.getReferenceDir(itsCurrentFieldID);      
+  }
+  const casa::MEpoch epoch = currentEpoch();
+  return fieldSubtable.getReferenceDir(epoch);
+}
 
 /// populate the buffer with frequencies
 /// @param[in] freq a reference to a vector to fill
@@ -488,14 +506,13 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
       // Currently use the FIELD table, not the actual pointing. It is probably
       // correct to use the phase centre for conversion as opposed to the
       // pointing centre.
-      const casa::MDirection &antReferenceDir=subtableInfo().getField().
-                                   getReferenceDir(epoch);
+      const casa::MDirection& antReferenceDir = getCurrentReferenceDir();
       // currently use the position of the first antenna for convertion.
       // we may need some average position + a check that they are close
       // enough to throw an exception if someone gives a VLBI measurement set.                             
       itsConverter->setMeasFrame(casa::MeasFrame(epoch, subtableInfo().
                      getAntenna().getPosition(0), antReferenceDir));
-  
+                                                        
       freq.resize(itsNumberOfChannels);
       for (uInt ch=0;ch<itsNumberOfChannels;++ch) {
            freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequency(
@@ -614,15 +631,7 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
   
   // we currently use FIELD table to get the pointing direction. This table
   // does not depend on the antenna.
-#ifdef ASKAP_DEBUG
-  if (itsUseFieldID) {
-      ASKAPCHECK(itsCurrentFieldID>=0, "Elements of FIELD_ID column should be 0 or positive. You have "<<
-                 itsCurrentFieldID);
-  }   
-#endif 
-  const casa::MDirection antReferenceDir= itsUseFieldID ? 
-               subtableInfo().getField().getReferenceDir(itsCurrentFieldID) :
-               subtableInfo().getField().getReferenceDir(epoch);
+  const casa::MDirection& antReferenceDir = getCurrentReferenceDir();
                                    
   // we need a separate converter for parallactic angle calculations
   DirectionConverter dirConv((casa::MDirection::Ref(casa::MDirection::AZEL)));
@@ -665,7 +674,7 @@ void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> 
                 " for antenna "<<ant);
        }
        casa::MDirection feedPointingCentre(antReferenceDir);
-       // x direction is fliped to convert az-el type frame to ra-dec           
+       // x direction is fliped to convert az-el type frame to ra-dec
        feedPointingCentre.shift(casa::MVDirection(-offset(0),
                              offset(1)),casa::True);
        itsConverter->direction(feedPointingCentre,dirs[element]);

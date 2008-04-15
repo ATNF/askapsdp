@@ -245,6 +245,15 @@ protected:
   /// derived classes to perform writing
   /// @return name of the table column with visibility data
   const std::string& getDataColumnName() const throw();
+
+  /// @brief obtain a reference direction for the current iteration
+  /// @details Currently we assume that the dish pointing centre stays
+  /// fixed for the whole chunk. We break the iteration, if necessary
+  /// to achieve this. This helper method extracts the reference direction
+  /// from the FIELD subtable using either FIELD_ID, or current time if
+  /// the former is not supported by the main table.
+  /// @return a reference to direction measure
+  const casa::MDirection& getCurrentReferenceDir() const;
   
 private:
   /// accessor (a chunk of data) 
