@@ -37,31 +37,33 @@
 ### This is a single image, for running in serial mode
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/first.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
-Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
-Cduchamp.nsubx       = 2
+#Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/first.fits
+#Cduchamp.nsubx       = 2
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
-#Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
+Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
+Cduchamp.nsubx       = 2
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 #Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 
-#Cduchamp.flagRobust = false   #This applies to the workers only.
-Cduchamp.snrCut     = 4
+Cduchamp.verbose      = false
+#Cduchamp.flagRobust  = false   #This applies to the workers only.
+Cduchamp.snrCut       = 10
 #Cduchamp.threshold   = 0.005
-Cduchamp.pixelCentre = average
-Cduchamp.flagATrous  = false
-Cduchamp.reconDim    = 2
-Cduchamp.snrRecon    = 3.
-Cduchamp.flagSmooth  = false
-Cduchamp.smoothType  = spectral
+Cduchamp.pixelCentre  = average
+Cduchamp.flagATrous   = false
+Cduchamp.reconDim     = 2
+Cduchamp.snrRecon     = 3.
+Cduchamp.flagSmooth   = false
+Cduchamp.smoothType   = spectral
 Cduchamp.hanningWidth = 5.
 
 Cduchamp.newFluxUnits = mJy/beam
 
-#Cduchamp.doFit        = true
+Cduchamp.doFit        = true
 
 #Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 #Cimstat.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits

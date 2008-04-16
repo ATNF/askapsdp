@@ -768,8 +768,6 @@ namespace askap
 	  else itsCube.stats().setStddev(rms);
 	}
 
-	if(itsCube.pars().getFlagATrous()) delete [] array;
-
       }
       else {
       }

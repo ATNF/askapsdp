@@ -41,16 +41,9 @@ namespace askap
     namespace sourcefitting
     {
 
-      RadioSource::RadioSource()
-      {
-	this->itsNoiseLevel = -1.;
-	this->fluxArrayAllocated = false;
-      }
+      RadioSource::RadioSource(){itsNoiseLevel = -1.;};
 
-      RadioSource::~RadioSource()
-      {
-	if(this->fluxArrayAllocated) delete [] this->itsFluxArray;
-      }
+      //    RadioSource::~RadioSource(){};
 
 
       bool RadioSource::setFluxArray(std::vector<PixelInfo::Voxel> *voxelList)
@@ -81,7 +74,6 @@ namespace askap
 	else{
 
 	  this->itsFluxArray = new float[size];
-	  this->fluxArrayAllocated = true;
 
 	  for(long x=xmin;x<=xmax && !failure;x++){
 	    for(long y=ymin;y<=ymax && !failure;y++){
@@ -97,7 +89,6 @@ namespace askap
 
 	  if(failure){
 	    delete [] this->itsFluxArray;
-	    this->fluxArrayAllocated = false;
 	    ASKAPLOG_ERROR(logger, "RadioSource: Failed to allocate flux array");
 	  }
 
@@ -527,8 +518,6 @@ namespace askap
 	this->itsHeader->pixToWCS(pix,world);
 	stream << world[0] << " " << world[1] << "\n";
 	
-	delete [] pix;
-	delete [] world;
       
       }
 

@@ -392,7 +392,7 @@ namespace askap
 	    if(i != naxis-1) section << ",";
 
 	  }
-      
+
 	  ASKAPLOG_INFO_STR(logger, "Worker #"<<w+1<<" is using subsection " << section.str());
       
 	  fitsfile *fout;
@@ -408,16 +408,12 @@ namespace askap
 	  duchamp::Section sec(secstring);
 	  std::vector<long> dim(naxis);
 	  for(int i=0;i<naxis;i++) dim[i] = dimAxes[i];
- 	  sec.parse(dim);
+	  sec.parse(dim);
 	  sectionlist.push_back(sec);
 	}
 
 	status=0;
 	fits_close_file(fin,&status);
-
-	delete [] nsub;
-	delete [] overlap;
-	delete [] dimAxes;
 
 	return sectionlist;
 
