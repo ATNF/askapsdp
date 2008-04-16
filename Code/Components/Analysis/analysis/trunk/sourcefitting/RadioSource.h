@@ -63,7 +63,7 @@ namespace askap
 	//RadioSource& operator= (const RadioSource& r);
       
 	/// @brief Destructor
-	virtual ~RadioSource(){};
+	virtual ~RadioSource();
 
 	/// @brief Defind the array of fluxes surrounding the Detection.
 	bool setFluxArray(std::vector<PixelInfo::Voxel> *voxelList);
@@ -120,6 +120,9 @@ namespace askap
 
 	/// @brief The array of flux values for the detection
 	float *itsFluxArray;
+	
+	/// @brief Keep track of whether memory has been allocated.
+	bool fluxArrayAllocated;
 
       };
     }

@@ -84,7 +84,7 @@ namespace askap
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
 
-      //      itsCube.pars().setVerbosity(false);
+      itsCube.pars().setVerbosity( parset.getBool("verbose", false) );
       itsCube.pars().setFlagLog(true);
 
       // Now read the correct image name according to worker/master state.
@@ -244,9 +244,6 @@ namespace askap
 	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
 	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
 	if(itsCube.getDimZ()==1) itsCube.pars().setMinChannels(0);  
-	for(int i=0;i<itsCube.getNumDim();i++) ASKAPLOG_INFO_STR(logger, "MASTER: Dim["<<i<<"] = " << itsCube.getDimArray()[i]);
-	ASKAPLOG_INFO_STR(logger, "MASTER: canUseThirdAxis() = " << itsCube.header().canUseThirdAxis());
-	ASKAPLOG_INFO_STR(logger, "MASTER: isSpecOK() = " << itsCube.header().isSpecOK());
 	
 	// Send out the OK to the workers, so that they know that the subimages have been created.
 	LOFAR::BlobString bs;
@@ -259,8 +256,6 @@ namespace askap
 	itsConnectionSet->writeAll(bs);
 
       }
-
-      ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": flagBlankPix = " << itsCube.pars().getFlagBlankPix());
 
     }
       
@@ -308,19 +303,6 @@ namespace askap
 	  out.putStart("detW2M",1);
 	  out << rank << num;
 	  for(int i=0;i<itsCube.getNumObj();i++){
-	    /*
-	    std::vector<PixelInfo::Voxel> voxlist = itsCube.getObject(i).getPixelSet();
-	    std::vector<PixelInfo::Voxel>::iterator vox;
-	    int32 size = voxlist.size();
-	    out << size;
-	    for(vox=voxlist.begin();vox<voxlist.end();vox++){
-	      int32 x,y,z;  // should be long but problem with Blobs
-	      x = vox->getX(); 
-	      y = vox->getY(); 
-	      z = vox->getZ();
- 	      out << x << y << z << itsCube.getPixValue(x,y,z);
-	    }
-	    */
 
 	    int border = sourcefitting::detectionBorder;
 
@@ -785,6 +767,8 @@ namespace askap
 	  if(itsCube.pars().getFlagRobustStats()) itsCube.stats().setMadfm(rms);
 	  else itsCube.stats().setStddev(rms);
 	}
+
+	if(itsCube.pars().getFlagATrous()) delete [] array;
 
       }
       else {

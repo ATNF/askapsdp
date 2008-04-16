@@ -392,27 +392,6 @@ namespace askap
 	    if(i != naxis-1) section << ",";
 
 	  }
-
-// 	  if(nsubx>1){
-// 	    int x1 = std::max( start , i*dimAxes[0]/nsubx - overlapx/2 );
-// 	    int x2 = std::min( dimAxes[0] , (i+1)*dimAxes[0]/nsubx + overlapx/2 );
-// 	    section << x1+1 << ":" << x2 << ",";
-// 	  }
-// 	  else section << "*,";
-      
-// 	  if(nsuby>1){
-// 	    int y1 = std::max( start , i*dimAxes[1]/nsuby - overlapy/2 );
-// 	    int y2 = std::min( dimAxes[1] , (i+1)*dimAxes[1]/nsuby + overlapy/2 );
-// 	    section << y1+1 << ":" << y2 << "," ;
-// 	  }
-// 	  else section << "*,";
-      
-// 	  if(nsubz>1){
-// 	    int z1 = std::max( start , i*dimAxes[2]/nsubz - overlapz/2 );
-// 	    int z2 = std::min( dimAxes[2] , (i+1)*dimAxes[2]/nsubz + overlapz/2 );
-// 	    section << z1+1 << ":" << z2;
-// 	  }
-// 	  else section << "*";
       
 	  ASKAPLOG_INFO_STR(logger, "Worker #"<<w+1<<" is using subsection " << section.str());
       
@@ -429,12 +408,16 @@ namespace askap
 	  duchamp::Section sec(secstring);
 	  std::vector<long> dim(naxis);
 	  for(int i=0;i<naxis;i++) dim[i] = dimAxes[i];
-	  sec.parse(dim);
+ 	  sec.parse(dim);
 	  sectionlist.push_back(sec);
 	}
 
 	status=0;
 	fits_close_file(fin,&status);
+
+	delete [] nsub;
+	delete [] overlap;
+	delete [] dimAxes;
 
 	return sectionlist;
 
