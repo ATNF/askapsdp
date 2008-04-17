@@ -155,6 +155,28 @@ const casa::Vector<casa::MVDirection>& TableConstDataAccessor::pointingDir2()
   return itsPointingDir2.value(itsIterator,
                                &TableConstDataIterator::fillPointingDir2);
 }   
+
+/// pointing direction for the centre of the first antenna 
+/// @details The same as pointingDir1, if the feed offsets are zero
+/// @return a vector with direction measures (coordinate system
+/// is is set via IDataConverter), one direction for each
+/// visibility/row
+const casa::Vector<casa::MVDirection>& TableConstDataAccessor::dishPointing1() const
+{
+  return itsDishPointing1.value(itsIterator,
+                               &TableConstDataIterator::fillDishPointing1);
+}
+
+/// pointing direction for the centre of the first antenna 
+/// @details The same as pointingDir2, if the feed offsets are zero
+/// @return a vector with direction measures (coordinate system
+/// is is set via IDataConverter), one direction for each
+/// visibility/row
+const casa::Vector<casa::MVDirection>& TableConstDataAccessor::dishPointing2() const
+{
+  return itsDishPointing2.value(itsIterator,
+                               &TableConstDataIterator::fillDishPointing2);
+}
                                      
 
 /// invalidate fields  updated on each iteration
@@ -170,6 +192,8 @@ void TableConstDataAccessor::invalidateIterationCaches() const throw()
   itsFeed2.invalidate();
   itsPointingDir1.invalidate();
   itsPointingDir2.invalidate();
+  itsDishPointing1.invalidate();
+  itsDishPointing2.invalidate();
 }
 
 /// @brief invalidate all fields  corresponding to the spectral axis

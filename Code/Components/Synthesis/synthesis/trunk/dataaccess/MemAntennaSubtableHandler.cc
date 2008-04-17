@@ -50,6 +50,19 @@ MemAntennaSubtableHandler::MemAntennaSubtableHandler(const casa::Table &ms) :
        }
   }  
 }
+
+/// @brief get the number of antennae
+/// @details
+/// This method returns the number of antennae (i.e. all antID indices
+/// are expected to be less than this number). Following the general
+/// assumptions about ANTENNA subtable, this number is assumed to be
+/// fixed.
+/// @return total number of antennae 
+casa::uInt MemAntennaSubtableHandler::getNumberOfAntennae() const
+{
+  return itsMounts.nelements();
+}
+
   
 /// @brief obtain the position of the given antenna
 /// @details

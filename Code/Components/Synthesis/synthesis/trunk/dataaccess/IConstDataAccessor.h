@@ -89,7 +89,21 @@ public:
 	/// visibility/row
 	virtual const casa::Vector<casa::MVDirection>& pointingDir2() const = 0;
 
-        /// Visibilities (a cube is nRow x nChannel x nPol; each element is
+    /// pointing direction for the centre of the first antenna 
+    /// @details The same as pointingDir1, if the feed offsets are zero
+    /// @return a vector with direction measures (coordinate system
+	/// is is set via IDataConverter), one direction for each
+	/// visibility/row
+	virtual const casa::Vector<casa::MVDirection>& dishPointing1() const = 0;
+
+    /// pointing direction for the centre of the first antenna 
+    /// @details The same as pointingDir2, if the feed offsets are zero
+    /// @return a vector with direction measures (coordinate system
+	/// is is set via IDataConverter), one direction for each
+	/// visibility/row
+	virtual const casa::Vector<casa::MVDirection>& dishPointing2() const = 0;
+
+    /// Visibilities (a cube is nRow x nChannel x nPol; each element is
 	/// a complex visibility)
 	/// @return a reference to nRow x nChannel x nPol cube, containing
 	/// all visibility data

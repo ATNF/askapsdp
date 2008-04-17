@@ -70,6 +70,21 @@ public:
   /// visibility/row
   virtual const casa::Vector<casa::MVDirection>& pointingDir2() const;
 
+  /// pointing direction for the centre of the first antenna 
+  /// @details The same as pointingDir1, if the feed offsets are zero
+  /// @return a vector with direction measures (coordinate system
+  /// is is set via IDataConverter), one direction for each
+  /// visibility/row
+  virtual const casa::Vector<casa::MVDirection>& dishPointing1() const;
+
+  /// pointing direction for the centre of the first antenna 
+  /// @details The same as pointingDir2, if the feed offsets are zero
+  /// @return a vector with direction measures (coordinate system
+  /// is is set via IDataConverter), one direction for each
+  /// visibility/row
+  virtual const casa::Vector<casa::MVDirection>& dishPointing2() const;
+
+
   /// Visibilities (a cube is nRow x nChannel x nPol; each element is
   /// a complex visibility)
   /// @return a reference to nRow x nChannel x nPol cube, containing
@@ -174,11 +189,17 @@ private:
   /// internal buffer for the second feed ids
   CachedAccessorField<casa::Vector<casa::uInt> > itsFeed2;
   
-  /// internal buffer for the pointing directions of the first antenna
+  /// internal buffer for the pointing directions of the first antenna/feed
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsPointingDir1;
 
-  /// internal buffer for the pointing directions of the second antenna
+  /// internal buffer for the pointing directions of the second antenna/feed
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsPointingDir2;
+
+  /// internal buffer for the pointing directions of the centre of the first antenna
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointing1;
+
+  /// internal buffer for the pointing directions of the centre of the second antenna
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointing2;
 };
 
 

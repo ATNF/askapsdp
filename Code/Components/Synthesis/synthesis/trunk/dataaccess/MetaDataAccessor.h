@@ -110,6 +110,20 @@ public:
   /// visibility/row
   virtual const casa::Vector<casa::MVDirection>& pointingDir2() const;
 
+  /// pointing direction for the centre of the first antenna 
+  /// @details The same as pointingDir1, if the feed offsets are zero
+  /// @return a vector with direction measures (coordinate system
+  /// is is set via IDataConverter), one direction for each
+  /// visibility/row
+  virtual const casa::Vector<casa::MVDirection>& dishPointing1() const;
+
+  /// pointing direction for the centre of the first antenna 
+  /// @details The same as pointingDir2, if the feed offsets are zero
+  /// @return a vector with direction measures (coordinate system
+  /// is is set via IDataConverter), one direction for each
+  /// visibility/row
+  virtual const casa::Vector<casa::MVDirection>& dishPointing2() const;
+
   /// Cube of flags corresponding to the output of visibility() 
   /// @return a reference to nRow x nChannel x nPol cube with flag 
   ///         information. If True, the corresponding element is flagged.

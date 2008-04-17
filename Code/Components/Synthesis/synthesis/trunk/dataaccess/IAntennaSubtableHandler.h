@@ -53,7 +53,16 @@ struct IAntennaSubtableHandler : virtual public IHolder {
   /// either EQUATORIAL or equatorial. This mount type doesn't require
   /// parallactic angle rotation and can be trated separately.
   /// @return true, if all antennae are equatorially mounted
-  virtual bool allEquatorial() const = 0;   
+  virtual bool allEquatorial() const = 0; 
+  
+  /// @brief get the number of antennae
+  /// @details
+  /// This method returns the number of antennae (i.e. all antID indices
+  /// are expected to be less than this number). Following the general
+  /// assumptions about ANTENNA subtable, this number is assumed to be
+  /// fixed.
+  /// @return total number of antennae 
+  virtual casa::uInt getNumberOfAntennae() const = 0;
 };
 
 

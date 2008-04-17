@@ -77,6 +77,20 @@ struct DataAccessorStub : virtual public IFlagDataAccessor
      /// visibility/row
      virtual const casa::Vector<casa::MVDirection>& pointingDir2() const;
 
+     /// pointing direction for the centre of the first antenna 
+     /// @details The same as pointingDir1, if the feed offsets are zero
+     /// @return a vector with direction measures (coordinate system
+     /// is is set via IDataConverter), one direction for each
+     /// visibility/row
+     virtual const casa::Vector<casa::MVDirection>& dishPointing1() const;
+
+     /// pointing direction for the centre of the first antenna 
+     /// @details The same as pointingDir2, if the feed offsets are zero
+     /// @return a vector with direction measures (coordinate system
+     /// is is set via IDataConverter), one direction for each
+     /// visibility/row
+     virtual const casa::Vector<casa::MVDirection>& dishPointing2() const;
+     
      /// Visibilities (a cube is nRow x nChannel x nPol; each element is
      /// a complex visibility)
      /// @return a reference to nRow x nChannel x nPol cube, containing
@@ -154,10 +168,14 @@ struct DataAccessorStub : virtual public IFlagDataAccessor
      mutable casa::Vector<casa::Float> itsFeed1PA;
      /// cached feed2 position angle
      mutable casa::Vector<casa::Float> itsFeed2PA;
-     /// cached pointing direction of the first antenna
+     /// cached pointing direction of the first antenna/feed
      mutable casa::Vector<casa::MVDirection> itsPointingDir1;
-     /// cached pointing direction of the second antenna
+     /// cached pointing direction of the second antenna/feed
      mutable casa::Vector<casa::MVDirection> itsPointingDir2;
+     /// cached pointing direction of the centre of the first antenna
+     mutable casa::Vector<casa::MVDirection> itsDishPointing1;
+     /// cached pointing direction of the centre of the second antenna
+     mutable casa::Vector<casa::MVDirection> itsDishPointing2;
      /// cached visibility
      mutable casa::Cube<casa::Complex> itsVisibility;
      /// cached flag

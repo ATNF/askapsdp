@@ -145,7 +145,18 @@ public:
   /// fill the buffer with the pointing directions of the second antenna/feed
   /// @param[in] dirs a reference to a vector to fill
   void fillPointingDir2(casa::Vector<casa::MVDirection> &dirs) const;
-
+  
+  /// @brief fill the buffer with the pointing directions for the first antenna centre
+  /// @details The difference from fillPointingDir1 is that no feed offset is applied.
+  /// @param[in] dirs a reference to a vector to fill
+  void fillDishPointing1(casa::Vector<casa::MVDirection> &dirs) const;
+  
+  /// @brief fill the buffer with the pointing directions for the second antenna centre
+  /// @details The difference from fillPointingDir2 is that no feed offset is applied.
+  /// @param[in] dirs a reference to a vector to fill
+  void fillDishPointing2(casa::Vector<casa::MVDirection> &dirs) const;
+  
+  
 protected:
   /// @brief read an array column of the table into a cube
   /// @details populate the buffer provided with the information
@@ -157,7 +168,7 @@ protected:
   template<typename T>
   void fillCube(casa::Cube<T> &cube, const std::string &columnName) const;
 
-  /// @brief A helper method to fill a given vector with pointingdirections.
+  /// @brief A helper method to fill a given vector with pointing directions.
   /// @details fillPointingDir1 and fillPointingDir2 methods do very similar
   /// operations, which differ only by the feedIDs and antennaIDs used.
   /// This method encapsulates these common operations
@@ -168,6 +179,17 @@ protected:
                const casa::Vector<casa::uInt> &antIDs,
                const casa::Vector<casa::uInt> &feedIDs) const;
   
+  /// @brief a helper method to get dish pointings 
+  /// @details fillDishPointing1 and fillDishPointing2 methods do very
+  /// similar operations, which differ only by the antennaIDs used.
+  /// This method encapsulated these common operations.
+  /// @note fillVectorOfPointings computes pointing directions for 
+  /// individual feeds, not for the centre of the dish as this method
+  /// does
+  /// @param[in] dirs a reference to a vector to fill
+  /// @param[in] antIDs a vector with antenna IDs  
+  void fillVectorOfDishPointings(casa::Vector<casa::MVDirection> &dirs,
+               const casa::Vector<casa::uInt> &antIDs) const;
   
   /// @brief a helper method to read a column with IDs of some sort
   /// @details It reads the column of casa::Int and fills a Vector of
@@ -214,6 +236,19 @@ protected:
   /// are time-dependent
   /// @param[in] dirs a reference to a vector to fill
   void fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const;
+
+  /// @brief fill the buffer with the dish pointing directions
+  /// @details The difference from fillDirectionCache is that
+  /// this method computes the pointing directions for the dish centre, not for
+  /// individual feeds (or synthetic beams, strictly speaking). The number of elements
+  /// in the buffer equals to the number of antennae. This is also different from
+  /// fillDirectionCache, which projects feeds to the same 1D array as well. 
+  /// @note At this stage we use FIELD subtable to get the pointing directions.
+  /// Therefore, these directions do not depend on antenna/feed. This method writes
+  /// the same value for all elements of the array. It will be used for both antennae
+  /// in the pair. 
+  /// @param[in] dirs a reference to a vector to fill
+  void fillDishPointingCache(casa::Vector<casa::MVDirection> &dirs) const;
 
   /// @brief obtain a current spectral window ID
   /// @details This method obtains a spectral window ID corresponding to the
@@ -298,7 +333,10 @@ private:
   
   /// internal buffer for pointing offsets for the whole current cache
   /// of the Feed subtable handler
-  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDirectionCache;  
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDirectionCache;
+  
+  /// internal buffer for dish pointings for all antennae
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointingCache;   
 };
 
 

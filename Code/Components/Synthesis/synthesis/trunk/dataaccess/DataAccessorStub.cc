@@ -108,6 +108,8 @@ namespace askap
             this->itsFeed2(row)=0;
             this->itsPointingDir1(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
             this->itsPointingDir2(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+            itsDishPointing1(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+            itsDishPointing2(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
             this->itsUVW(row)=casa::RigidVector<casa::Double, 3>(0.0, 0.0, 0.0);
             for (uint dim=0;dim<3;dim++) this->itsUVW(row)(dim)=mPos[iant1].get("m").getValue()(dim)-mPos[iant2].get("m").getValue()(dim);
             row++;
@@ -204,7 +206,27 @@ namespace askap
                 {
                   return itsPointingDir2;
                 }
+                
+                /// pointing direction for the centre of the first antenna 
+                /// @details The same as pointingDir1, if the feed offsets are zero
+                /// @return a vector with direction measures (coordinate system
+                /// is is set via IDataConverter), one direction for each
+                /// visibility/row
+                const casa::Vector<casa::MVDirection>& DataAccessorStub::dishPointing1() const
+                {
+                  return itsDishPointing1;
+                }
 
+                /// pointing direction for the centre of the first antenna 
+                /// @details The same as pointingDir2, if the feed offsets are zero
+                /// @return a vector with direction measures (coordinate system
+                /// is is set via IDataConverter), one direction for each
+                /// visibility/row
+                const casa::Vector<casa::MVDirection>& DataAccessorStub::dishPointing2() const
+                {
+                  return itsDishPointing2;
+                }
+                
                 /// Visibilities (a cube is nRow x nChannel x nPol; each element is
                 /// a complex visibility)
                 /// @return a reference to nRow x nChannel x nPol cube, containing

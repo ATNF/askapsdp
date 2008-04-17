@@ -240,6 +240,7 @@ void TableConstDataIterator::setUpIteration()
       if ( newField || !subtableInfo().getAntenna().allEquatorial() ||
           subtableInfo().getFeed().newBeamDetails(epoch,currentSpWindowID())) {
               itsDirectionCache.invalidate();
+              // itsDishPointingCache doesn't depend on feeds
       }
   }
   // retreive the number of channels and polarizations from the table
@@ -260,6 +261,7 @@ void TableConstDataIterator::setUpIteration()
       itsCurrentDataDescID = -100;
       itsCurrentFieldID = -100;
       itsDirectionCache.invalidate();
+      itsDishPointingCache.invalidate();
   }  
 }
 
@@ -330,6 +332,7 @@ void TableConstDataIterator::makeUniformFieldID()
       if (newFieldID != itsCurrentFieldID) {
           itsCurrentFieldID = newFieldID;
           itsDirectionCache.invalidate();
+          itsDishPointingCache.invalidate();
       }
       // break the iteration if necessary
       for (uInt row=1;row<itsNumberOfRows;++row) {
@@ -703,6 +706,80 @@ void TableConstDataIterator::fillPointingDir2(
   fillVectorOfPointings(dirs,antIDs,feedIDs);
 }
 
+/// @brief a helper method to get dish pointings 
+/// @details fillDishPointing1 and fillDishPointing2 methods do very
+/// similar operations, which differ only by the antennaIDs used.
+/// This method encapsulated these common operations.
+/// @note fillVectorOfPointings computes pointing directions for 
+/// individual feeds, not for the centre of the dish as this method
+/// does
+/// @param[in] dirs a reference to a vector to fill
+/// @param[in] antIDs a vector with antenna IDs  
+void TableConstDataIterator::fillVectorOfDishPointings(casa::Vector<casa::MVDirection> &dirs,
+               const casa::Vector<casa::uInt> &antIDs) const
+{
+  ASKAPDEBUGASSERT(itsNumberOfRows == antIDs.nelements());
+  const casa::Vector<casa::MVDirection> &dishPointingCache = itsDishPointingCache.
+                      value(*this,&TableConstDataIterator::fillDishPointingCache);
+  dirs.resize(itsNumberOfRows);
+  for (casa::uInt row=0; row<itsNumberOfRows; ++row) {
+       ASKAPDEBUGASSERT(antIDs[row] < dishPointingCache.nelements());
+       dirs[row] = dishPointingCache[antIDs[row]];
+  }
+}
+
+/// @brief fill the buffer with the pointing directions for the first antenna centre
+/// @details The difference from fillPointingDir1 is that no feed offset is applied.
+/// @param[in] dirs a reference to a vector to fill
+void TableConstDataIterator::fillDishPointing1(casa::Vector<casa::MVDirection> &dirs) const
+{
+  const casa::Vector<casa::uInt> &antIDs=itsAccessor.antenna1();
+  fillVectorOfDishPointings(dirs,antIDs);
+}
+  
+/// @brief fill the buffer with the pointing directions for the second antenna centre
+/// @details The difference from fillPointingDir2 is that no feed offset is applied.
+/// @param[in] dirs a reference to a vector to fill
+void TableConstDataIterator::fillDishPointing2(casa::Vector<casa::MVDirection> &dirs) const
+{
+  const casa::Vector<casa::uInt> &antIDs=itsAccessor.antenna2();
+  fillVectorOfDishPointings(dirs,antIDs);
+}
+
+/// @brief fill the buffer with the dish pointing directions
+/// @details The difference from fillDirectionCache is that
+/// this method computes the pointing directions for the dish centre, not for
+/// individual feeds (or synthetic beams, strictly speaking). The number of elements
+/// in the buffer equals to the number of antennae. This is also different from
+/// fillDirectionCache, which projects feeds to the same 1D array as well. 
+/// @note At this stage we use FIELD subtable to get the pointing directions.
+/// Therefore, these directions do not depend on antenna/feed. This method writes
+/// the same value for all elements of the array. It will be used for both antennae
+/// in the pair. 
+/// @param[in] dirs a reference to a vector to fill
+void TableConstDataIterator::fillDishPointingCache(casa::Vector<casa::MVDirection> &dirs) const
+{
+  ASKAPDEBUGASSERT(itsConverter);
+  const casa::MEpoch epoch = currentEpoch();
+  
+  dirs.resize(subtableInfo().getAntenna().getNumberOfAntennae());
+  
+  // we currently use FIELD table to get the pointing direction. This table
+  // does not depend on the antenna. However, the reference frame can introduce such
+  // a dependence (i.e. a large array and AZEL frame requested)
+  const casa::MDirection& antReferenceDir = getCurrentReferenceDir();
+  
+  for (casa::uInt ant = 0; ant<dirs.nelements(); ++ant) {     
+       // if we decide to be paranoid about performance, we can add a method
+       // to the converter to test whether antenna position and/or epoch are
+       // really required to the requested convertion. Because the antenna 
+       // position are cached, the overhead of the present straightforward
+       // approach should be relatively minor.                                                             
+       itsConverter->setMeasFrame(casa::MeasFrame(epoch,subtableInfo().
+                  getAntenna().getPosition(ant)));
+       itsConverter->direction(antReferenceDir,dirs[ant]);           
+  }
+}
 
 /// @brief A helper method to fill a given vector with pointing directions.
 /// @details fillPointingDir1 and fillPointingDir2 methods do very similar

@@ -122,6 +122,25 @@ const casa::Vector<casa::MVDirection>& MetaDataAccessor::pointingDir2() const
   return itsROAccessor.pointingDir2();
 }
 
+/// pointing direction for the centre of the first antenna 
+/// @details The same as pointingDir1, if the feed offsets are zero
+/// @return a vector with direction measures (coordinate system
+/// is is set via IDataConverter), one direction for each
+/// visibility/row
+const casa::Vector<casa::MVDirection>& MetaDataAccessor::dishPointing1() const
+{
+  return itsROAccessor.dishPointing1();
+}
+
+/// pointing direction for the centre of the first antenna 
+/// @details The same as pointingDir2, if the feed offsets are zero
+/// @return a vector with direction measures (coordinate system
+/// is is set via IDataConverter), one direction for each
+/// visibility/row
+const casa::Vector<casa::MVDirection>& MetaDataAccessor::dishPointing2() const
+{
+  return itsROAccessor.dishPointing2();
+}
 
 /// Cube of flags corresponding to the output of visibility() 
 /// @return a reference to nRow x nChannel x nPol cube with flag 
