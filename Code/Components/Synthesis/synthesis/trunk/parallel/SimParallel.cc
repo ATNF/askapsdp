@@ -33,6 +33,8 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <measurementequation/SumOfTwoMEs.h>
 #include <measurementequation/GaussianNoiseME.h>
+#include <measurementequation/ComponentEquation.h>
+
 
 
 #include <measurementequation/ImageSolverFactory.h>
@@ -360,6 +362,7 @@ namespace askap
 	     casa::Timer timer;
 	     timer.mark();
 	     ASKAPLOG_INFO_STR(logger, "Simulating data for " << ms );
+	     ASKAPDEBUGASSERT(itsModel);
 	     ASKAPLOG_INFO_STR(logger, "Model is " << *itsModel);
 	     TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED);
 	     IDataSelectorPtr sel=ds.createSelector();
@@ -372,12 +375,41 @@ namespace askap
 	     /// parameterset
 	     IVisGridder::ShPtr gridder=VisGridderFactory::make(itsParset);
 	     ASKAPCHECK(gridder, "Gridder not defined correctly");
-	     
-	     // the measurement equation used for prediction 
+	     	     
+	     // a part of the equation defined via image
+	     askap::scimath::Equation::ShPtr imgEquation;
+	     if (SynthesisParamsHelper::hasImage(itsModel)) {
+	         ASKAPLOG_INFO_STR(logger, "Sky model contains at least one image, building an image-specific equation");
+	         // it should ignore parameters which are not applicable (e.g. components)
+	         imgEquation.reset(new ImageFFTEquation (*itsModel, it, gridder));
+         } 
+         // a part of the equation defined via components
+         boost::shared_ptr<ComponentEquation> compEquation;
+         if (SynthesisParamsHelper::hasComponent(itsModel)) {
+            // model is a number of components
+            ASKAPLOG_INFO_STR(logger, "Sky model contains at least one component, building a component-specific equation");
+	        // it doesn't matter which iterator is passed below. It is not used
+	       // it should ignore parameters which are not applicable (e.g. images)
+            compEquation.reset(new ComponentEquation(*itsModel,it));
+         }
+         // the measurement equation used for prediction 
 	     // actual type depends on what we are simulating
 	     // therefore it is uninitialized at the moment
 	     askap::scimath::Equation::ShPtr equation;
-	     equation.reset(new ImageFFTEquation (*itsModel, it, gridder));
+         
+         if (imgEquation && !compEquation) {
+             ASKAPLOG_INFO_STR(logger, "Pure image-based model (no components defined)");
+             equation = imgEquation;
+         } else if (compEquation && !imgEquation) {
+             ASKAPLOG_INFO_STR(logger, "Pure component-based model (no images defined)");
+             equation = compEquation;
+         } else if (imgEquation && compEquation) {
+             ASKAPLOG_INFO_STR(logger, "Making a sum of image-based and component-based equations");
+             equation = imgEquation;
+             addEquation(equation,compEquation,it);
+         } else {
+            ASKAPTHROW(AskapError, "No sky models are defined");
+         }
 	     
 	     if (itsParset.getBool("corrupt", false)) {
  	         corruptEquation(equation, it);
