@@ -8,6 +8,8 @@
 #ifndef ASKAP_SYNTHESIS_SIMPARALLEL_H_
 #define ASKAP_SYNTHESIS_SIMPARALLEL_H_
 
+#include <dataaccess/SharedIter.h>
+#include <measurementequation/IMeasurementEquation.h>
 #include <parallel/SynParallel.h>
 
 #include <ms/MeasurementSets/MeasurementSet.h>
@@ -115,7 +117,41 @@ namespace askap
 				/// @details The measurement set is constructed but not filled with data.
 				/// At the end, the measurement set is written to disk.
 				void simulate();
-
+            protected:
+                /// @brief a helper method to add up an equation
+                /// @details Some times it is necessary to replace a measurement equation
+                /// with a sum of two equations. Typical use cases are adding noise to
+                /// the visibility data and simulating using a composite model containing
+                /// both components and images. This method replaces the input equation
+                /// with the sum of the input equation and some other equation also passed
+                /// as a parameter. It takes care of equation types and instantiates 
+                /// adapters if necessary.
+                /// @param[in] equation a non-const reference to the shared pointer holding
+                /// an equation to update
+                /// @param[in] other a const reference to the shared pointer holding
+                /// an equation to be added
+                /// @param[in] it iterator over the dataset (this is a legacy of the current
+                /// design of the imaging code, when equation requires an iterator. It should 
+                /// get away at some stage)
+                /// @note This method can be moved somewhere else, as it may be needed in
+                /// some other places as well
+                static void addEquation(boost::shared_ptr<scimath::Equation> &equation,
+                       const boost::shared_ptr<IMeasurementEquation const> &other, 
+                       const IDataSharedIter &it);
+                
+                /// @brief a helper method to corrupt the data (opposite to calibration)
+                /// @details Applying gains require different operations depending on
+                /// the type of the measurement equation (accessor-based or iterator-based).
+                /// It is encapsulated in this method. The method accesses itsParset to
+                /// extract the information about calibration model.
+                /// @param[in] equation a non-const reference to the shared pointer holding
+                /// an equation to update
+                /// @param[in] it iterator over the dataset (this is a legacy of the current
+                /// design of the imaging code, when equation requires an iterator. It should 
+                /// get away at some stage)
+                void corruptEquation(boost::shared_ptr<scimath::Equation> &equation,
+                       const IDataSharedIter &it);
+                
 			private:
 				/// Simulator
 				boost::shared_ptr<Simulator> itsSim;

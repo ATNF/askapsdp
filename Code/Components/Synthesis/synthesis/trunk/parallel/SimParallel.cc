@@ -377,26 +377,15 @@ namespace askap
 	     // actual type depends on what we are simulating
 	     // therefore it is uninitialized at the moment
 	     askap::scimath::Equation::ShPtr equation;
+	     equation.reset(new ImageFFTEquation (*itsModel, it, gridder));
 	     
 	     if (itsParset.getBool("corrupt", false)) {
-	        ASKAPLOG_INFO_STR(logger, "Making equation to simulate calibration effects");
-	        // initialize the adapter
-	        // an adapter to use imaging equation with the calibration framework
-	        boost::shared_ptr<ImagingEquationAdapter> 
-	                         ieAdapter(new ImagingEquationAdapter);
-	        ieAdapter->assign<ImageFFTEquation>(*itsModel, gridder);
-	        scimath::Params gainModel; 
-	        ASKAPCHECK(itsParset.isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");   
-	        const std::string gainsfile = itsParset.getString("corrupt.gainsfile");
-	        ASKAPLOG_INFO_STR(logger, "Loading gains from file '"<<gainsfile<<"'");
-	        gainModel << ParameterSet(gainsfile);
-	        ASKAPDEBUGASSERT(ieAdapter);
-	        equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,ieAdapter));
+ 	         corruptEquation(equation, it);
 	     } else {
-	       ASKAPLOG_INFO_STR(logger, "Calibration effects are not simulated");
-	       equation.reset(new ImageFFTEquation (*itsModel, it, gridder));
+	         ASKAPLOG_INFO_STR(logger, "Calibration effects are not simulated");
 	     }
 	     ASKAPCHECK(equation, "Equation is not defined correctly");
+	     
 	     if (itsParset.getBool("noise", false)) {
 	         ASKAPCHECK(itsParset.isDefined("noise.variance"), "noise.variance  is missing in the input parset. It should contain a variance of the noise to be simulated.");   
 	         const double variance = itsParset.getDouble("noise.variance");
@@ -412,25 +401,93 @@ namespace askap
 	         }
 	         boost::shared_ptr<GaussianNoiseME const> noiseME(new
 	                        GaussianNoiseME(variance,seed1,seed2));
-	         boost::shared_ptr<IMeasurementEquation> accessorBasedEquation = 
-	                boost::dynamic_pointer_cast<IMeasurementEquation>(equation);
-	         if (accessorBasedEquation) {
-	             equation.reset(new SumOfTwoMEs(accessorBasedEquation,noiseME,it));
-	         } else {
-	             // form a replacement equation first
-	             const boost::shared_ptr<ImagingEquationAdapter> 
-	                          new_equation(new ImagingEquationAdapter);
-	             // the actual equation is locked inside ImagingEquationAdapter
-	             // in a shared pointer. We can change equation variable
-	             // after next line              
-	             new_equation->assign(equation);       
-	             equation.reset(new SumOfTwoMEs(new_equation,noiseME,it));
-	         }       
+	         addEquation(equation, noiseME,it);               
 	     }
 	     equation->predict();
 	     ASKAPLOG_INFO_STR(logger,  "Predicted data for "<< ms << " in "<< timer.real() << " seconds ");
 	  }
     }
     
+    /// @brief a helper method to corrupt the data (opposite to calibration)
+    /// @details Applying gains require different operations depending on
+    /// the type of the measurement equation (accessor-based or iterator-based).
+    /// It is encapsulated in this method. The method accesses itsParset to
+    /// extract the information about calibration model.
+    /// @param[in] equation a non-const reference to the shared pointer holding
+    /// an equation to update
+    /// @param[in] it iterator over the dataset (this is a legacy of the current
+    /// design of the imaging code, when equation requires an iterator. It should 
+    /// get away at some stage)
+    void SimParallel::corruptEquation(boost::shared_ptr<scimath::Equation> &equation,
+                                      const IDataSharedIter &it)
+    {
+	   ASKAPLOG_INFO_STR(logger, "Making equation to simulate calibration effects");
+	   boost::shared_ptr<IMeasurementEquation> accessorBasedEquation = 
+	             boost::dynamic_pointer_cast<IMeasurementEquation>(equation);
+       if (!accessorBasedEquation) {
+	       // initialize an adapter
+	       // to use imaging equation with the calibration framework
+           // form a replacement equation first
+	       const boost::shared_ptr<ImagingEquationAdapter> 
+	                      new_equation(new ImagingEquationAdapter);
+
+	       // the actual equation is locked inside ImagingEquationAdapter
+	       // in a shared pointer. We can change equation variable
+	       // after the next line              
+	       new_equation->assign(equation);       	            
+           accessorBasedEquation = new_equation;	   
+       }     
+	   scimath::Params gainModel; 
+	   ASKAPCHECK(itsParset.isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");   
+	   const std::string gainsfile = itsParset.getString("corrupt.gainsfile");
+	   ASKAPLOG_INFO_STR(logger, "Loading gains from file '"<<gainsfile<<"'");
+	   gainModel << ParameterSet(gainsfile);
+	   ASKAPDEBUGASSERT(accessorBasedEquation);
+	   
+	   equation.reset(new CalibrationME<NoXPolGain>(gainModel,it,accessorBasedEquation));      
+    }
+    
+    /// @brief a helper method to add up an equation
+    /// @details Some times it is necessary to replace a measurement equation
+    /// with a sum of two equations. Typical use cases are adding noise to
+    /// the visibility data and simulating using a composite model containing
+    /// both components and images. This method replaces the input equation
+    /// with the sum of the input equation and some other equation also passed
+    /// as a parameter. It takes care of equation types and instantiates 
+    /// adapters if necessary.
+    /// @param[in] equation a non-const reference to the shared pointer holding
+    /// an equation to update
+    /// @param[in] other a const reference to the shared pointer holding
+    /// an equation to be added
+    /// @param[in] it iterator over the dataset (this is a legacy of the current
+    /// design of the imaging code, when equation requires an iterator. It should 
+    /// get away at some stage)            
+    /// @note This method can be moved somewhere else, as it may be needed in
+    /// some other places as well
+    void SimParallel::addEquation(boost::shared_ptr<scimath::Equation> &equation,
+                       const boost::shared_ptr<IMeasurementEquation const> &other,
+                       const IDataSharedIter &it)
+    {
+	   boost::shared_ptr<IMeasurementEquation> accessorBasedEquation = 
+	             boost::dynamic_pointer_cast<IMeasurementEquation>(equation);
+       if (!accessorBasedEquation) {
+           // form a replacement equation first
+	       const boost::shared_ptr<ImagingEquationAdapter> 
+	                      new_equation(new ImagingEquationAdapter);
+	       // the actual equation is locked inside ImagingEquationAdapter
+	       // in a shared pointer. We can change equation variable
+	       // after the next line              
+	       new_equation->assign(equation);       	            
+           accessorBasedEquation = new_equation;
+       }
+
+       // we need to instantiate a new variable and then assign it to avoid 
+       // assigning a pointer to itself behind the scene, which would happen if 
+       /// everything is accessor-based up front (although 
+       // such situations are probably dealt with correctly inside the shared pointer)
+       const boost::shared_ptr<scimath::Equation> result(new 
+                SumOfTwoMEs(accessorBasedEquation,other,it));
+       equation = result;         
+    }
   }
 }
