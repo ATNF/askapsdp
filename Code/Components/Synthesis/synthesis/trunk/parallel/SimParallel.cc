@@ -234,30 +234,31 @@ namespace askap
       ASKAPLOG_INFO_STR(logger, "Successfully defined sources");
     }
     
-    void SimParallel::readModels()
-    {
+    void SimParallel::readModels() {
       ParameterSet parset(itsParset);
-      if(itsParset.isDefined("sources.definition"))
-	{
-	  parset=ParameterSet(substitute(itsParset.getString("sources.definition")));
-	}
+      if(itsParset.isDefined("sources.definition")) {
+	     parset=ParameterSet(substitute(itsParset.getString("sources.definition")));
+	  }
       
       const vector<string> sources=parset.getStringVector("sources.names");
-      for (size_t i=0; i<sources.size(); ++i)
-	{
-	  {
-	    ostringstream oos;
-	    oos << "sources." << sources[i]<< ".model";
-	    if(parset.isDefined(oos.str()))
-              {
-                string model=parset.getString(oos.str());
-                ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
-                ostringstream paramName;
-                paramName << "image.i." << sources[i];
-                SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName.str(), model);
-              }
+      for (vector<string>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
+	       const std::string modelPar = "sources."+*it+".model";
+	       if (parset.isDefined(modelPar)) {
+               string model=parset.getString(modelPar);
+               ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< *it );
+               const string paramName = "image.i." + *it;
+               SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName, model);
+           }
+           const std::string compListPar = "sources."+*it+".components";
+           if (parset.isDefined(compListPar)) {
+               const vector<string> compList = parset.getStringVector(compListPar);
+               for (vector<string>::const_iterator cmp = compList.begin(); 
+                    cmp != compList.end(); ++cmp) {
+                    ASKAPLOG_INFO_STR(logger, "Loading component "<<*cmp<<" as part of the model for "<<*it);
+                    SynthesisParamsHelper::copyComponent(itsModel, parset, *cmp);
+               }
+           }
 	  }
-	}
       ASKAPLOG_INFO_STR(logger, "Successfully read models");
     }
     
