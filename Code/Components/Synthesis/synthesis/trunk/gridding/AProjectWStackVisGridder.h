@@ -41,12 +41,15 @@ namespace askap
       /// @param overSample Oversampling (currently limited to <=1)
       /// @param maxSupport Maximum support to be allowed
       /// @param maxFeeds Maximum number of feeds allowed
+      /// @param maxFields Maximum number of fields allowed
+      /// @param pointingTol Pointing tolerance in radians
       /// @param frequencyDependent Frequency dependent gridding?
       /// @param name Name of table to save convolution function into
       AProjectWStackVisGridder(const double diameter, const double blockage,
           const double wmax, const int nwplanes, const int overSample,
-          const int maxSupport, const int maxFeeds=1,
-          const bool frequencyDependent=true, const std::string& name=std::string(""));
+          const int maxSupport, const int maxFeeds=1, const int maxFields=1,
+          const double pointingTol=0.0001, const bool frequencyDependent=true, 
+          const std::string& name=std::string(""));
 
       virtual ~AProjectWStackVisGridder();
 
@@ -85,17 +88,25 @@ namespace askap
       double itsBlockage;
       /// Maximum number of feeds
       int itsMaxFeeds;
+      /// Maximum number of fields
+      int itsMaxFields;
+      /// Pointing tolerance in radians
+      double itsPointingTolerance;
+      /// Last field processed
+      int itsLastField;
       /// Is the convolution function frequency dependent?
       bool itsFreqDep;
       /// Maximum support to test
       int itsMaxSupport;
       /// Mapping from row, pol, and channel to planes of convolution function
       casa::Cube<int> itsCMap;
+      /// Cube of slopes
+      casa::Cube<double> itsSlopes;
+      /// Has this feed and field been filled in?
+      casa::Matrix<bool> itsDone;
+      /// Pointing for this feed and field
+      casa::Matrix<casa::MVDirection> itsPointings;
 
-      /// Find the slopes needed to repoint the antenna
-      /// @param idi Data iterator
-      /// @param slope Matrix of slopes at 1m east and north
-      void findCollimation(IDataSharedIter& idi, casa::Matrix<double>& slope);
       /// Pad up in size using FFT
       /// @param in Input Array
       /// @param out Output Array
