@@ -10,10 +10,14 @@
 #ifndef TABLEVISGRIDDER_H_
 #define TABLEVISGRIDDER_H_
 
+// own includes
 #include <gridding/IVisGridder.h>
+#include <dataaccess/IConstDataAccessor.h>
 
+// std includes
 #include <string>
 
+// casa includes
 #include <casa/BasicSL/Complex.h>
 
 namespace askap
@@ -193,13 +197,15 @@ namespace askap
       /// @param cellsize cellsize in wavelengths
       void findCellsize(casa::Vector<double>& cellsize);
 
-      /// Find the change in delay required
-      /// @param idi Data iterator
-      /// @param outUVW Rotated uvw
-      /// @param delay Delay change (m)
-      void rotateUVW(IDataSharedIter& idi,
+      /// @brief Find the change in delay required
+      /// @details
+      /// @param[in] acc data accessor to take the input data from
+      /// @param[out] outUVW Rotated uvw
+      /// @param[out] delay Delay change (m)
+      /// @note output vectors are resized to match the accessor's number of rows
+      void rotateUVW(const IConstDataAccessor& acc,
           casa::Vector<casa::RigidVector<double, 3> >& outUVW,
-          casa::Vector<double>& delay);
+          casa::Vector<double>& delay) const;
 
     };
   }
