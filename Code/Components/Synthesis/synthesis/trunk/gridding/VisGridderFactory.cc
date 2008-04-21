@@ -76,7 +76,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		int maxSupport= parset.getInt32("gridder.AProjectWStack.maxsupport",
 				128);
 		int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
-		int maxFields=parset.getInt32("gridder.AWProject.maxfields", 1);
+		int maxFields=parset.getInt32("gridder.AProjectWStack.maxfields", 1);
 		bool freqDep=parset.getBool(
 				"gridder.AProjectWStack.frequencydependent", true);
 		string tablename=parset.getString("gridder.AProjectWStack.tablename",

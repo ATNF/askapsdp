@@ -91,6 +91,8 @@ namespace askap
       int itsMaxFields;
       /// Pointing tolerance in radians
       double itsPointingTolerance;
+      /// Current field processed
+      int itsCurrentField;
       /// Last field processed
       int itsLastField;
       /// Pointing for this feed and field

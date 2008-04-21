@@ -52,7 +52,8 @@ AWProjectVisGridder::AWProjectVisGridder(const double diameter,
 	itsDone.set(false);
 	itsPointings.resize(itsMaxFeeds, itsMaxFields);
 	itsPointings.set(casa::MVDirection());
-	itsLastField=0;
+	itsLastField=-1;
+	itsCurrentField=0;
 }
 
 AWProjectVisGridder::~AWProjectVisGridder() {
@@ -65,6 +66,34 @@ IVisGridder::ShPtr AWProjectVisGridder::clone() {
 
 /// Initialize the indices into the cube.
 void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
+
+	// Validate cache using first row only
+	bool newField=true;
+
+	int firstFeed=idi->feed1()(0);
+	ASKAPCHECK(firstFeed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
+	casa::MVDirection firstPointing=idi->pointingDir1()(0);
+
+	for (int field=itsLastField; field>-1; field--) {
+		if (firstPointing.separation(itsPointings(firstFeed, field))
+				<itsPointingTolerance) {
+			itsCurrentField=field;
+			newField=false;
+			break;
+		}
+	}
+	if (newField) {
+		itsLastField++;
+		itsCurrentField=itsLastField;
+		ASKAPCHECK(itsCurrentField<itsMaxFields,
+				"Too many fields: increase maxfields " << itsMaxFields);
+		itsPointings(firstFeed, itsCurrentField)=firstPointing;
+		ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField);
+	} else {
+//		ASKAPLOG_INFO_STR(logger, "Found previous field " << itsCurrentField 
+//				<< " separation " << firstPointing.separation(itsPointings(firstFeed, itsCurrentField)));
+	}
+
 	/// We have to calculate the lookup function converting from
 	/// row and channel to plane of the w-dependent convolution
 	/// function
@@ -99,13 +128,13 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 			for (int pol=0; pol<nPol; pol++) {
 				/// Order is (iw, chan, feed)
 				if (itsFreqDep) {
-					itsCMap(i, pol, chan)=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsLastField));
+					itsCMap(i, pol, chan)=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsCurrentField));
 					ASKAPCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds
 							*itsMaxFields*nChan, "CMap index too large");
 					ASKAPCHECK(itsCMap(i, 0, chan)>-1,
 							"CMap index less than zero");
 				} else {
-					itsCMap(i, pol, chan)=iw+itsNWPlanes*(feed+itsMaxFeeds*itsLastField);
+					itsCMap(i, pol, chan)=iw+itsNWPlanes*(feed+itsMaxFeeds*itsCurrentField);
 					ASKAPCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds
 							*itsMaxFields, "CMap index too large");
 					ASKAPCHECK(itsCMap(i, 0, chan)>-1,
@@ -163,53 +192,24 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 		ccfy(iy)=grdsf(nuy)/float(qny);
 	}
 
-	// Validate cache using first row only
-	bool newField=true;
-
-	int firstFeed=idi->feed1()(0);
-	ASKAPCHECK(firstFeed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
-	casa::MVDirection firstPointing=idi->pointingDir1()(0);
-
-	for (int field=0; field<itsLastField; field++) {
-		if (firstPointing.separation(itsPointings(firstFeed, field))
-				<itsPointingTolerance) {
-			itsLastField=field;
-			newField=false;
-			break;
-		}
-	}
-	if (newField) {
-		ASKAPLOG_INFO_STR(logger, "Found new field");
-		ASKAPCHECK(itsLastField<itsMaxFields,
-				"Too many fields: increase maxfields");
-	} else {
-		ASKAPLOG_INFO_STR(logger, "Found previous field" << itsLastField);
-	}
-
 	int nDone=0;
 	for (int row=0; row<nSamples; row++) {
 		int feed=idi->feed1()(row);
-		int zIndex=0;
-		if (newField&&!itsDone(feed, itsLastField)) {
+
+		if (!itsDone(feed, itsCurrentField)) {
+			itsDone(feed, itsCurrentField)=true;
 			nDone++;
-			//			casa::MVAngle mvLong=idi->pointingDir1()(row).getAngle().getValue()(0);
-			// casa::MVAngle mvLat=idi->pointingDir1()(row).getAngle().getValue()(1);
-			//					          ASKAPLOG_INFO_STR(logger, "Feed " << feed << " points at Right Ascension ";
-			//					          std::cout << mvLong.string(casa::MVAngle::TIME, 8)
-			//					          << ", Declination ";
-			//					          std::cout << mvLat.string(casa::MVAngle::DIG2, 8);
-			//					          std::cout << " (J2000)";
 			casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
-			itsSlopes(0, feed, itsLastField) =sin(offset.getLong()
+			itsSlopes(0, feed, itsCurrentField) =sin(offset.getLong()
 					-out.getLong()) *cos(offset.getLat());
-			itsSlopes(1, feed, itsLastField)=sin(offset.getLat())
+			itsSlopes(1, feed, itsCurrentField)=sin(offset.getLat())
 					*cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
 					*cos(offset.getLong()-out.getLong());
 
 			double ax=2.0f*casa::C::pi*itsUVCellSize(0) *itsSlopes(0, feed,
-					itsLastField);
+					itsCurrentField);
 			double ay=2.0f*casa::C::pi*itsUVCellSize(1) *itsSlopes(1, feed,
-					itsLastField);
+					itsCurrentField);
 
 			for (int chan=0; chan<nChan; chan++) {
 
@@ -321,14 +321,11 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 								<< itsSupport*cell << " (m) sampled at "<< cell
 								/itsOverSample << " (m)");
 						itsCCenter=itsSupport;
-						itsConvFunc.resize(itsOverSample*itsOverSample
-								*itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes);
-						itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan
-								*itsNWPlanes, itsShape(2), itsShape(3));
+						itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes);
+						itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes, itsShape(2), itsShape(3));
 						itsSumWeights.set(casa::Complex(0.0));
 					}
-					zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds
-							*itsLastField));
+					int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsCurrentField));
 
 					for (int fracu=0; fracu<itsOverSample; fracu++) {
 						for (int fracv=0; fracv<itsOverSample; fracv++) {
@@ -356,8 +353,9 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 		ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
 				<< itsConvFunc[0].shape() << " by "<< itsConvFunc.size()
 				<< " planes");
-		if (itsName!="")
+		if (itsName!="") {
 			save(itsName);
+		}
 	}
 }
 

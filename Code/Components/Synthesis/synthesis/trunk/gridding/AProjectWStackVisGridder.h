@@ -94,6 +94,8 @@ namespace askap
       double itsPointingTolerance;
       /// Last field processed
       int itsLastField;
+      /// Current field processed
+      int itsCurrentField;
       /// Is the convolution function frequency dependent?
       bool itsFreqDep;
       /// Maximum support to test
