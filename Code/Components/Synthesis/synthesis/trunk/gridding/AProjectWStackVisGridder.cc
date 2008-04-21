@@ -126,10 +126,19 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 			for (int pol=0; pol<nPol; pol++) {
 				/// Calculate the index into the convolution functions
 				/// Order is (chan, feed)
-				itsCMap(i, pol, chan)=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
-				ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds*nChan,
-						"CMap index too large");
-				ASKAPCHECK(itsCMap(i, pol, chan)>-1, "CMap index less than zero");
+				if(itsFreqDep) {
+					itsCMap(i, pol, chan)=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
+					ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds
+							*nChan, "CMap index too large");
+					ASKAPCHECK(itsCMap(i, pol, chan)>-1,
+							"CMap index less than zero");
+				}
+				else {
+					itsCMap(i, pol, chan)=(feed+itsMaxFeeds*itsCurrentField);
+					ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds*nChan,
+							"CMap index too large");
+					ASKAPCHECK(itsCMap(i, pol, chan)>-1, "CMap index less than zero");					
+				}
 
 				/// Calculate the index into the grids
 				double freq=idi->frequency()[chan];
