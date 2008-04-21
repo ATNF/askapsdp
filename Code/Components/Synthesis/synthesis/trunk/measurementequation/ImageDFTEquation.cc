@@ -139,7 +139,7 @@ namespace askap
       }
     };
 
-    void ImageDFTEquation::calcGenericEquations(scimath::GenericNormalEquations& ne) const
+    void ImageDFTEquation::calcGenericEquations(askap::scimath::GenericNormalEquations& ne) const
     {
 // Loop over all completions i.e. all sources
       vector<string> completions(parameters().completions("image.i"));

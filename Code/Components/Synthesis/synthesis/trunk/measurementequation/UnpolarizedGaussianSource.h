@@ -9,7 +9,6 @@
 ///
 /// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
-/// 
 
 #ifndef UNPOLARIZED_GAUSSIAN_SOURCE_H
 #define UNPOLARIZED_GAUSSIAN_SOURCE_H

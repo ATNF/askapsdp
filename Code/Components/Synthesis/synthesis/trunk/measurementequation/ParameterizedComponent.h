@@ -9,7 +9,6 @@
 ///
 /// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
-/// 
 
 #ifndef PARAMETERIZED_COMPONENT_H
 #define PARAMETERIZED_COMPONENT_H

@@ -11,8 +11,10 @@
 // own includes
 #include <dataaccess/MemAntennaSubtableHandler.h>
 #include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, "");
+
+// enable logging when it is actually used
+// #include <askap/AskapLogging.h>
+// ASKAP_LOGGER(logger, "");
 
 #include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>

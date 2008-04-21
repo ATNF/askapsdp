@@ -9,8 +9,10 @@
 
 #include <dataaccess/MemTableDataDescHolder.h>
 #include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, "");
+
+// enable logging when it is actually used
+//#include <askap/AskapLogging.h>
+//ASKAP_LOGGER(logger, "");
 
 #include <askap/AskapError.h>
 

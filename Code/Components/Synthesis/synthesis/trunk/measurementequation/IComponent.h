@@ -8,7 +8,7 @@
 ///
 /// @copyright (c) 2007 ASKAP, All Rights Reserved.
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
-/// 
+
 #ifndef I_COMPONENT_H
 #define I_COMPONENT_H
 

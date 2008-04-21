@@ -92,11 +92,15 @@ namespace askap
 		/// Name of imaging weight hypercube id column
 		const String imweightTileId = "IMAGING_WEIGHT_HYPERCUBE_ID";
 
-		// a but ugly solution to use the feed table parser of MSIter
-		// to extract antennaMounts and BeamOffsets.
+		/// a but ugly solution to use the feed table parser of MSIter
+		/// to extract antennaMounts and BeamOffsets.
+		/// @note (from MV) the same thing can probably be done via accessor feed table
+		/// handler (and it would work with time dependent tables correctly)
 		struct MSFeedParameterExtractor : protected MSIter
 		{
 
+                /// @brief constructor
+                /// @param[in] ms measurement set
 				MSFeedParameterExtractor(const casa::MeasurementSet &ms)
 				{
 					msc_p=new ROMSColumns(ms);
@@ -104,16 +108,16 @@ namespace askap
 					checkFeed_p=True;
 					setFeedInfo();
 				}
-				// Return a string mount identifier for each antenna
+				/// Return a string mount identifier for each antenna
 				using MSIter::antennaMounts;
 
-				// Return a cube containing pairs of coordinate offset for each receptor
-				// of each feed (values are in radians, coordinate system is fixed with
-				// antenna and is the same as used to define the BEAM_OFFSET parameter
-				// in the feed table). The cube axes are receptor, antenna, feed.
+				/// Return a cube containing pairs of coordinate offset for each receptor
+				/// of each feed (values are in radians, coordinate system is fixed with
+				/// antenna and is the same as used to define the BEAM_OFFSET parameter
+				/// in the feed table). The cube axes are receptor, antenna, feed.
 				using MSIter::getBeamOffsets;
 
-				// True if all elements of the cube returned by getBeamOffsets are zero
+				/// True if all elements of the cube returned by getBeamOffsets are zero
 				using MSIter::allBeamOffsetsZero;
 
 		};
