@@ -85,33 +85,38 @@ namespace askap
         for (uint chan=0; chan<nChan; chan++)
           this->itsFrequency(chan)=1.400e9-20e6*chan;
         uint nPol(1);
-        this->itsVisibility.resize(nRows, nChan, nPol);
-        this->itsVisibility.set(casa::Complex(0.0, 0.0));
-        this->itsFlag.resize(nRows, nChan, nPol);
-        this->itsFlag.set(casa::False);
-        this->itsTime=0;
-        this->itsUVW.resize(nRows);
-        this->itsAntenna1.resize(nRows);
-        this->itsAntenna2.resize(nRows);
-        this->itsFeed1.resize(nRows);
-        this->itsFeed2.resize(nRows);
-        this->itsPointingDir1.resize(nRows);
-        this->itsPointingDir2.resize(nRows);
+        itsVisibility.resize(nRows, nChan, nPol);
+        itsVisibility.set(casa::Complex(0.0, 0.0));
+        itsFlag.resize(nRows, nChan, nPol);
+        itsFlag.set(casa::False);
+        itsTime=0;
+        itsUVW.resize(nRows);
+        itsAntenna1.resize(nRows);
+        itsAntenna2.resize(nRows);
+        itsFeed1.resize(nRows);
+        itsFeed2.resize(nRows);
+        itsPointingDir1.resize(nRows);
+        itsPointingDir2.resize(nRows);
+        itsDishPointing1.resize(nRows);
+        itsDishPointing2.resize(nRows);
         uint row=0;
         for (uint iant1=0; iant1<nAnt; iant1++)
         {
           for (uint iant2=iant1+1; iant2<nAnt; iant2++)
           {
-            this->itsAntenna1(row)=iant1;
-            this->itsAntenna2(row)=iant2;
-            this->itsFeed1(row)=0;
-            this->itsFeed2(row)=0;
-            this->itsPointingDir1(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
-            this->itsPointingDir2(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+            ASKAPDEBUGASSERT(row<nRows);
+            itsAntenna1(row)=iant1;
+            itsAntenna2(row)=iant2;
+            itsFeed1(row)=0;
+            itsFeed2(row)=0;
+            itsPointingDir1(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+            itsPointingDir2(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
             itsDishPointing1(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
             itsDishPointing2(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
-            this->itsUVW(row)=casa::RigidVector<casa::Double, 3>(0.0, 0.0, 0.0);
-            for (uint dim=0;dim<3;dim++) this->itsUVW(row)(dim)=mPos[iant1].get("m").getValue()(dim)-mPos[iant2].get("m").getValue()(dim);
+            itsUVW(row)=casa::RigidVector<casa::Double, 3>(0.0, 0.0, 0.0);
+            for (uint dim=0;dim<3;dim++) {
+                 itsUVW(row)(dim)=mPos[iant1].get("m").getValue()(dim)-mPos[iant2].get("m").getValue()(dim);
+            }
             row++;
           }
         }
@@ -254,7 +259,7 @@ namespace askap
                 ///         information. If True, the corresponding element is flagged.
                 const casa::Cube<casa::Bool>& DataAccessorStub::flag() const
                 {
-		  ASKAPASSERT(itsFlag.shape() == itsVisibility.shape());
+		          ASKAPASSERT(itsFlag.shape() == itsVisibility.shape());
                   return itsFlag;
                 }
 
