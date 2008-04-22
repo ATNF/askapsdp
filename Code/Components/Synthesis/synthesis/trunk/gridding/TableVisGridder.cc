@@ -134,6 +134,9 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 
 	long int nGood=0;
 
+    ASKAPDEBUGASSERT(casa::uInt(nChan) <= idi->frequency().nelements());
+    ASKAPDEBUGASSERT(casa::uInt(nSamples) <= idi->uvw().nelements());
+    
 	for (int i=0; i<nSamples; i++) {
 		/// Temporarily fix to do MFS only
 		int imageChan=0;
