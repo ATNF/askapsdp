@@ -353,7 +353,7 @@ void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
 		const casa::Array<double>& in) {
 	out.resize(in.shape());
 	int nx=in.shape()(0);
-	int ny=in.shape()(0);
+	int ny=in.shape()(1);
 
 	casa::ReadOnlyArrayIterator<double> inIt(in, 2);
 	casa::ArrayIterator<casa::Complex> outIt(out, 2);
@@ -376,7 +376,7 @@ void TableVisGridder::toDouble(casa::Array<double>& out,
 		const casa::Array<casa::Complex>& in) {
 	out.resize(in.shape());
 	int nx=in.shape()(0);
-	int ny=in.shape()(0);
+	int ny=in.shape()(1);
 
 	casa::ReadOnlyArrayIterator<casa::Complex> inIt(in, 2);
 	casa::ArrayIterator<double> outIt(out, 2);
