@@ -269,8 +269,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 					itsCCenter=itsSupport;
 					itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds
 							*itsMaxFields*nChan);
-					itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan,
-							itsShape(2), itsShape(3));
+					itsSumWeights.resize(itsOverSample*itsOverSample*itsMaxFeeds
+							     *itsMaxFields*nChan, itsShape(2), itsShape(3));
 					itsSumWeights.set(casa::Complex(0.0));
 				}
 				int zIndex=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);

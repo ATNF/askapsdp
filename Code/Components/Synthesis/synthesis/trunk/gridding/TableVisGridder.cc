@@ -263,8 +263,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							GridKernel::grid(grid, sumwt, convFunc, rVis,
 									wtVis, iu, iv, itsSupport);
 
-							itsSumWeights(cIndex(i, pol, chan), imagePol,
-									imageChan)+=sumwt;
+							itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
 
 							/// Grid PSF?
 							if (itsDopsf) {
