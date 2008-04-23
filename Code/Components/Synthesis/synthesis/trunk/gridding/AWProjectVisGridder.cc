@@ -89,7 +89,7 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 				"Too many fields: increase maxfields " << itsMaxFields);
 		itsPointings(firstFeed, itsCurrentField)=firstPointing;
 		ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField);
-	} else {
+//	} else {
 //		ASKAPLOG_INFO_STR(logger, "Found previous field " << itsCurrentField 
 //				<< " separation " << firstPointing.separation(itsPointings(firstFeed, itsCurrentField)));
 	}
@@ -273,6 +273,7 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 							}
 						}
 					}
+					ASKAPCHECK(maxCF>0.0, "Convolution function is empty");
 					// At this point, we have the phase screen multiplied by the spheroidal
 					// function, sampled on larger cellsize (itsOverSample larger) in image
 					// space. Only the inner qnx, qny pixels have a non-zero value
@@ -294,14 +295,12 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 							}
 							///  Check on diagonal
 							if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF)) {
-								itsSupport
-										=int(1.414*float(abs(ix-nx/2)/itsOverSample));
+								itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
 								break;
 							}
 							if (nx==ny) {
 								/// Check on vertical axis
-								if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff
-										*maxCF)) {
+								if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF)) {
 									itsSupport=abs(ix-ny/2)/itsOverSample;
 									break;
 								}

@@ -161,10 +161,8 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 /// @todo Make initConvolutionFunction more robust
 void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 
-	casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
-			"rad");
-	casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0,
-			"rad");
+	casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
+	casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
 	casa::MVDirection out(refLon, refLat);
 	const int nSamples = idi->uvw().size();
 	// exact formulae for l and m 
@@ -345,16 +343,16 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 		const casa::Matrix<casa::Complex> &convFunc = itsConvFunc[iz];
 		for (int iy=-itsSupport; iy<+itsSupport; iy++) {
 			for (int ix=-itsSupport; ix<+itsSupport; ix++) {
+
 				ASKAPDEBUGASSERT(ix+ccenx>0 && iy+cceny>0);
 				ASKAPDEBUGASSERT(ix+ccenx<int(thisPlane.nrow()) && iy+cceny<int(thisPlane.ncolumn()));
+
 				const int xIndex = ix*itsOverSample+itsCCenter;
 				const int yIndex = iy*itsOverSample+itsCCenter;
 
-				if (xIndex>0 && yIndex>0 && xIndex<int(convFunc.nrow()) && yIndex<int(convFunc.ncolumn())) {
-
-					thisPlane(ix+ccenx, iy+cceny)=convFunc(ix*itsOverSample
-							+itsCCenter, iy*itsOverSample+itsCCenter);
-				}
+				ASKAPDEBUGASSERT(xIndex>0 && yIndex>0 && xIndex<int(convFunc.nrow()) && yIndex<int(convFunc.ncolumn()));
+				
+				thisPlane(ix+ccenx, iy+cceny)=convFunc(ix*itsOverSample+itsCCenter, iy*itsOverSample+itsCCenter);
 			}
 		}
 
@@ -371,8 +369,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 					ip(0)=ix;
 					for (int iy=0; iy<cny; iy++) {
 						ip(1)=iy;
-						cOut(ip)+=casa::real(wt*thisPlane(ix, iy)
-								*conj(thisPlane(ix, iy)));
+						cOut(ip)+=casa::real(wt*thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
 					}
 				}
 			}

@@ -110,6 +110,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 	initConvolutionFunction(idi);
 
 	ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
+	ASKAPCHECK(itsUVCellSize.size()==2, "UV cell sizes not yet set");
 
 	const int nSamples = idi->uvw().size();
 	ASKAPDEBUGASSERT(nSamples>0);
@@ -134,9 +135,9 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 
 	long int nGood=0;
 
-    ASKAPDEBUGASSERT(casa::uInt(nChan) <= idi->frequency().nelements());
-    ASKAPDEBUGASSERT(casa::uInt(nSamples) <= idi->uvw().nelements());
-    
+	ASKAPDEBUGASSERT(casa::uInt(nChan) <= idi->frequency().nelements());
+	ASKAPDEBUGASSERT(casa::uInt(nSamples) == idi->uvw().nelements());
+
 	for (int i=0; i<nSamples; i++) {
 		/// Temporarily fix to do MFS only
 		int imageChan=0;
@@ -315,36 +316,36 @@ void TableVisGridder::grid(IDataSharedIter& idi) {
 /// @param[out] delay Delay change (m)
 /// @note output vectors are resized to match the accessor's number of rows
 void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
-     casa::Vector<casa::RigidVector<double, 3> >& outUVW,
-	casa::Vector<double>& delay) const
-{
-   const casa::Quantum<double> refLon( (itsAxes.start("RA") +itsAxes.end("RA"))
-		    /2.0, "rad");
-   const casa::Quantum<double> refLat( (itsAxes.start("DEC") +itsAxes.end("DEC"))
-   	        /2.0, "rad");
-   const casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
-   const casa::uInt nSamples = acc.uvw().size();
-   delay.resize(nSamples);
-   outUVW.resize(nSamples);
-      
-   const casa::Vector<casa::RigidVector<double, 3> >& uvwVector = acc.uvw();
-   const casa::Vector<casa::MVDirection>& pointingDir1Vector = acc.pointingDir1();
-   for (casa::uInt row=0; row<nSamples; ++row) {
-        const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
-        casa::Vector<double> uvw(3);
-	    /// @todo Decide what to do about pointingDir1!=pointingDir2
-	    for (int i=0; i<2; ++i) {
-	         uvw(i)=-uvwRow(i);
-	    }
-	    uvw(2)=uvwRow(2);
-	  
-	    casa::UVWMachine machine(out, pointingDir1Vector(row), false, true);
-	    machine.convertUVW(delay(row), uvw);
-	  
-	    for (int i=0; i<3; ++i) {
-	         outUVW(row)(i)=uvw(i);
-	    }
-   }
+		casa::Vector<casa::RigidVector<double, 3> >& outUVW,
+		casa::Vector<double>& delay) const {
+	const casa::Quantum<double> refLon( (itsAxes.start("RA") +itsAxes.end("RA"))
+			/2.0, "rad");
+	const casa::Quantum<double> refLat( (itsAxes.start("DEC")
+			+itsAxes.end("DEC")) /2.0, "rad");
+	const casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
+	const casa::uInt nSamples = acc.uvw().size();
+	delay.resize(nSamples);
+	outUVW.resize(nSamples);
+
+	const casa::Vector<casa::RigidVector<double, 3> >& uvwVector = acc.uvw();
+	const casa::Vector<casa::MVDirection>& pointingDir1Vector =
+			acc.pointingDir1();
+	for (casa::uInt row=0; row<nSamples; ++row) {
+		const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
+		casa::Vector<double> uvw(3);
+		/// @todo Decide what to do about pointingDir1!=pointingDir2
+		for (int i=0; i<2; ++i) {
+			uvw(i)=-uvwRow(i);
+		}
+		uvw(2)=uvwRow(2);
+
+		casa::UVWMachine machine(out, pointingDir1Vector(row), false, true);
+		machine.convertUVW(delay(row), uvw);
+
+		for (int i=0; i<3; ++i) {
+			outUVW(row)(i)=uvw(i);
+		}
+	}
 }
 
 /// Convert from a double array to a casa::Complex array of the
