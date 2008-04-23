@@ -50,6 +50,9 @@ namespace askap
     /// @ingroup analysisutilities
     std::string getSubImageName(std::string image, int rank, int numWorkers);
 
+    /// @brief Return a vector list of subsections, one for each worker.
+    /// @ingroup analysisutilities
+    std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
     /// @brief Make subimages and return a vector list of subsections.
     /// @ingroup analysisutilities
     std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);

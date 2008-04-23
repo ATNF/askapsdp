@@ -49,9 +49,11 @@ Cduchamp.nsubx       = 2
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 #Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 
-Cduchamp.verbose      = false
+Cduchamp.verbose      = true
 #Cduchamp.flagRobust  = false   #This applies to the workers only.
 Cduchamp.snrCut       = 10
+#Cduchamp.flagGrowth   = true
+Cduchamp.growthCut    = 5.
 #Cduchamp.threshold   = 0.005
 Cduchamp.pixelCentre  = average
 Cduchamp.flagATrous   = false

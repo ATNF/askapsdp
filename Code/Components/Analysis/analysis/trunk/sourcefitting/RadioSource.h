@@ -25,6 +25,8 @@
 #include <map>
 #include <vector>
 
+//using namespace duchamp;
+
 namespace askap
 {
 
@@ -42,20 +44,23 @@ namespace askap
       /// @brief Class to store all information on a detected source.
       ///
       /// @details This class is designed to hold all appropriate
-      /// information on a source detected in an image or cube. A
-      /// duchamp::Detection class is used to record the pixel and world
+      /// information on a source detected in an image or cube. It derives from the
+      /// duchamp::Detection class, and so records the pixel and world
       /// coordinate information, as well as the pixel-based flux information
       /// (peak flux, total flux, etc). However the RadioSource class is
       /// designed to be able to fit an object with known functions (primarily
       /// gaussians) and store the fitted parameters.
       ///
       /// @ingroup sourcefitting
-      class RadioSource
+      class RadioSource : public duchamp::Detection
       {
       public:
 	/// @brief Constructor
 	RadioSource();
-      
+
+	/// @brief Constructor using information in a duchamp::Detection object.
+	RadioSource(duchamp::Detection obj);
+
 	/// @briefCopy constructor for RadioSource.
 	//      RadioSource(const RadioSource& r);
       
@@ -73,9 +78,6 @@ namespace askap
 
 	/// @brief Fit Gaussian components to the Detection.
 	bool fitGauss();
-
-	/// @brief Store a Detection
-	void setDetection(duchamp::Detection *object){itsDetection = object;};
 
 	/// @brief Store the FITS header information
 	void setHeader(duchamp::FitsHeader *head){itsHeader = head;};
@@ -99,9 +101,6 @@ namespace askap
 	void writeFitToAnnotationFile(std::ostream &stream);
       
       protected:
-
-	/// @brief The object produced by Duchamp-like source-detection.
-	duchamp::Detection *itsDetection;
 
 	/// @brief The dimensions of the data structure the object comes from.
 	std::vector<int> itsArrayDim;

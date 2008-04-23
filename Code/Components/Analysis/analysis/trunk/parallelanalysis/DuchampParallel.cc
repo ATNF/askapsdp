@@ -140,52 +140,14 @@ namespace askap
 
       if(isParallel() && isWorker()){
 
-	int nsubx = parset.getInt16("nsubx",1);
-	int nsuby = parset.getInt16("nsuby",1);
-	int nsubz = parset.getInt16("nsubz",1);
-      
-	int overlapx = parset.getInt16("overlapx",0);
-	int overlapy = parset.getInt16("overlapy",0);
-	int overlapz = parset.getInt16("overlapz",0);
+	std::vector<duchamp::Section> sectionlist = getSectionList(itsNNode-1, parset);
 
-	int numRequestedSubs = nsubx * nsuby * nsubz;
-	int numWorkers = itsNNode - 1;
-
-	if( numWorkers != numRequestedSubs )
-	  ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<numRequestedSubs
-			    <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
-
-	else {
-
-	  long *dimAxes = getFITSdimensions(itsImage);
-	  /// @todo Note that we are assuming a particular axis setup here. Make this more robust!
-	  long start = 0;
-	  std::stringstream section;
-	  section << "[";
-	  if(nsubx>1){
-	    int x1 = std::max( start , (itsRank-1)*dimAxes[0]/nsubx - overlapx/2 );
-	    int x2 = std::min( dimAxes[0] , itsRank*dimAxes[0]/nsubx + overlapx/2 );
-	    section << x1+1 << ":" << x2 << ",";
-	  }
-	  else section << "*,";
-
-	  if(nsuby>1){
-	    int y1 = std::max( start , (itsRank-1)*dimAxes[1]/nsuby - overlapy/2 );
-	    int y2 = std::min( dimAxes[1] , itsRank*dimAxes[1]/nsuby + overlapy/2 );
-	    section << y1+1 << ":" << y2 << "," ;
-	  }
-	  else section << "*,";
-
-	  if(nsubz>1){
-	    int z1 = std::max( start , (itsRank-1)*dimAxes[2]/nsubz - overlapz/2 );
-	    int z2 = std::min( dimAxes[2] , itsRank*dimAxes[2]/nsubz + overlapz/2 );
-	    section << z1+1 << ":" << z2 << "]";
-	  }
-	  else section << "*]";
+	if(sectionlist.size()>0){
 
 	  itsCube.pars().setFlagSubsection(true);
-	  itsCube.pars().setSubsection(section.str());
-	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank<<" is using subsection " << section.str());
+	  itsCube.pars().setSubsection(sectionlist[itsRank-1].getSection());
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank<<" is using subsection " 
+			    << sectionlist[itsRank-1].getSection());
 
 	}
 
@@ -424,7 +386,6 @@ namespace askap
 	    }
 	}
 	// Now process the lists
-	ASKAPLOG_INFO_STR(logger, "MASTER: minChannels = " << itsCube.pars().getMinChannels());
         ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists..." );
 	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
         ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists done" );
@@ -544,8 +505,7 @@ namespace askap
  	for(int i=0;i<itsCube.getNumObj();i++){
 	  ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
 
-	  sourcefitting::RadioSource src;
-	  src.setDetection( itsCube.pObject(i) );
+	  sourcefitting::RadioSource src(itsCube.getObject(i));
 	  src.setNoiseLevel( noise );
 	  src.setDetectionThreshold( threshold );
 	  src.setHeader( &head );

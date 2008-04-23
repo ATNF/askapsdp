@@ -32,6 +32,8 @@
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".sourcefitting");
 
+using namespace duchamp;
+
 namespace askap
 {
 
@@ -41,7 +43,13 @@ namespace askap
     namespace sourcefitting
     {
 
-      RadioSource::RadioSource(){itsNoiseLevel = -1.;};
+      RadioSource::RadioSource(){itsNoiseLevel = -1.;}
+
+      RadioSource::RadioSource(duchamp::Detection obj):
+	duchamp::Detection(obj)
+      {
+	itsNoiseLevel = -1.;
+      }
 
       //    RadioSource::~RadioSource(){};
 
@@ -56,18 +64,18 @@ namespace askap
 	///
 	/// @return True if all necessary voxels were present. False otherwise. 
 
-	long xmin = this->itsDetection->getXmin()-detectionBorder;
-	long xmax = this->itsDetection->getXmax()+detectionBorder;
-	long ymin = this->itsDetection->getYmin()-detectionBorder;
-	long ymax = this->itsDetection->getYmax()+detectionBorder;
-	long z = this->itsDetection->getZcentre();
+	long xmin = this->getXmin()-detectionBorder;
+	long xmax = this->getXmax()+detectionBorder;
+	long ymin = this->getYmin()-detectionBorder;
+	long ymax = this->getYmax()+detectionBorder;
+	long z    = this->getZcentre();
 	long xsize = xmax-xmin+1;
 	long ysize = ymax-ymin+1;
 	long size = xsize*ysize;
 
 	float failure = false;
 
-	if(z!=this->itsDetection->getZmin() || z != this->itsDetection->getZmax()){
+	if(z!=this->getZmin() || z != this->getZmax()){
 	  ASKAPLOG_ERROR(logger,"Can only do fitting for two-dimensional objects!");
 	  return failure;
 	}
@@ -115,10 +123,10 @@ namespace askap
 	/// times), and the Value element being the location of the
 	/// peak, stored as a PixelInfo::Voxel.
 
-	long xmin = this->itsDetection->getXmin()-detectionBorder;
-	long xmax = this->itsDetection->getXmax()+detectionBorder;
-	long ymin = this->itsDetection->getYmin()-detectionBorder;
-	long ymax = this->itsDetection->getYmax()+detectionBorder;
+	long xmin = this->getXmin()-detectionBorder;
+	long xmax = this->getXmax()+detectionBorder;
+	long ymin = this->getYmin()-detectionBorder;
+	long ymax = this->getYmax()+detectionBorder;
 	long xsize = xmax-xmin+1;
 	long ysize = ymax-ymin+1;
 
@@ -133,7 +141,7 @@ namespace askap
 	smlIm.setMinSize(1);
 
 	for(int i=0;i<numThresh;i++){
-	  float thresh = (this->itsDetection->getPeakFlux()-this->itsDetectionThreshold)*(i+1)/float(numThresh+1);
+	  float thresh = (this->peakFlux-this->itsDetectionThreshold)*(i+1)/float(numThresh+1);
 	  smlIm.stats().setThreshold(thresh);
 	  std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
 	  std::vector<PixelInfo::Object2D>::iterator o;
@@ -163,7 +171,7 @@ namespace askap
       void printparameters(Matrix<Double> &m)
       {
 	cout.precision(3);
-	cout.setf(ios::scientific);
+	cout.setf(ios::fixed);
 	uInt g,p;
 	for (g = 0; g < m.nrow(); g++)
 	  {
@@ -184,10 +192,10 @@ namespace askap
 	/// detection plus the border given by detectionBorder are
 	/// included in the fit.
  
-	long xmin = this->itsDetection->getXmin()-detectionBorder;
-	long xmax = this->itsDetection->getXmax()+detectionBorder;
-	long ymin = this->itsDetection->getYmin()-detectionBorder;
-	long ymax = this->itsDetection->getYmax()+detectionBorder;
+	long xmin = this->getXmin()-detectionBorder;
+	long xmax = this->getXmax()+detectionBorder;
+	long ymin = this->getYmin()-detectionBorder;
+	long ymax = this->getYmax()+detectionBorder;
 	long xsize = xmax-xmin+1;
 	long ysize = ymax-ymin+1;
 	long size = xsize*ysize;
@@ -221,6 +229,8 @@ namespace askap
 	  }
 	}
 
+	std::cerr << "pos.nrow = " << pos.nrow() << "\n";
+
 	float boxFlux = 0.;
 	for(int i=0;i<xsize*ysize;i++) boxFlux += f(i);
 	float peakFlux = *std::max_element(this->itsFluxArray, this->itsFluxArray+xsize*ysize);
@@ -239,10 +249,10 @@ namespace askap
 	casa::Matrix<casa::Double> solution[4];
 
 	baseEstimate.resize(1,6);
-	baseEstimate(0,0)=this->itsDetection->getPeakFlux()//  / noise
+	baseEstimate(0,0)=this->peakFlux//  / noise
 	  ;   // height of Gaussian
-	baseEstimate(0,1)=this->itsDetection->getXcentre();    // x centre
-	baseEstimate(0,2)=this->itsDetection->getYcentre();    // y centre
+	baseEstimate(0,1)=this->getXcentre();    // x centre
+	baseEstimate(0,2)=this->getYcentre();    // y centre
 	// get beam information from the FITSheader, if present.
 	if(this->itsHeader->getBmajKeyword()>0){
 	  baseEstimate(0,3)=this->itsHeader->getBmajKeyword()/this->itsHeader->getAvPixScale();
@@ -250,20 +260,24 @@ namespace askap
 	  baseEstimate(0,5)=this->itsHeader->getBpaKeyword();
 	}
 	else {
-	  float xwidth=(this->itsDetection->getXmax()-this->itsDetection->getXmin() + 1)/2.;
-	  float ywidth=(this->itsDetection->getYmax()-this->itsDetection->getYmin() + 1)/2.;
+	  float xwidth=(this->getXmax()-this->getXmin() + 1)/2.;
+	  float ywidth=(this->getYmax()-this->getYmin() + 1)/2.;
 	  baseEstimate(0,3)=std::max(xwidth,ywidth);// x width (doesn't have to be x...)
 	  baseEstimate(0,4)=std::min(xwidth,ywidth)/std::max(xwidth,ywidth); // axial ratio
 	  baseEstimate(0,5)=0.;                  // position angle
 	}
+	cout << "Estimated Parameters: "; printparameters(baseEstimate);
 
 	baseRetryfactors.resize(1,6);
 	baseRetryfactors(0,0) = 1.1; 
 	baseRetryfactors(0,1) = 0.1; 
 	baseRetryfactors(0,2) = 0.1;
-	baseRetryfactors(0,3) = 1.1; 
-	baseRetryfactors(0,4) = 1.01;
+ 	baseRetryfactors(0,3) = 1.1; 
+ 	baseRetryfactors(0,4) = 1.01;
 	baseRetryfactors(0,5) = M_PI/180.;
+// 	baseRetryfactors(0,3) = 1.;    // don't change the main width
+// 	baseRetryfactors(0,4) = 1.;    // don't change the width ratio
+// 	baseRetryfactors(0,5) = 0.;    // don't change the position angle
 
 	float chisq[4];
 	FitGaussian<casa::Double> fitgauss[4];
@@ -276,7 +290,6 @@ namespace askap
 	  uint numGauss = ctr + 1;
 	  fitgauss[ctr].setDimensions(2);
 	  fitgauss[ctr].setNumGaussians(numGauss);
-    
 
 	  estimate.resize(numGauss,6);
 	  pk = peakList.rbegin();
@@ -294,13 +307,24 @@ namespace askap
 	    for(int i=3;i<6;i++) estimate(g,i) = baseEstimate(0,i);
 	  }
 	  fitgauss[ctr].setFirstEstimate(estimate);
-	  //	std::cerr << "First estimate of Parameters: "; printparameters(estimate);
 
 	  retryfactors.resize(numGauss,6);
 	  for(uint g=0;g<numGauss;g++)
 	    for(int i=0;i<6;i++)
 	      retryfactors(g,i) = baseRetryfactors(0,i);
 	  fitgauss[ctr].setRetryFactors(retryfactors);
+
+	  // mask the beam parameters
+	  std::cerr << "Mask values:\n";
+	  for(uint g=0;g<numGauss;g++){
+ 	    fitgauss[ctr].mask(g,3) = false;
+ 	    fitgauss[ctr].mask(g,4) = false;
+ 	    fitgauss[ctr].mask(g,5) = false;
+// 	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i)=false;
+//	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i) = !fitgauss[ctr].mask(g,i);
+	    for(int i=0;i<6;i++) std::cerr << fitgauss[ctr].mask(g,i);
+	    std::cerr << "\n";
+	  }	      
     
 	  solution[ctr].resize();
 	  bool thisFitGood = true;
@@ -444,12 +468,12 @@ namespace askap
 
 	stream.setf(std::ios::fixed);
 	
-	columns[duchamp::Column::NUM].printEntry(stream,this->itsDetection->getID());
-	columns[duchamp::Column::RA].printEntry(stream,this->itsDetection->getRAs());
-	columns[duchamp::Column::DEC].printEntry(stream,this->itsDetection->getDecs());
-	columns[duchamp::Column::VEL].printEntry(stream,this->itsDetection->getVel());
-	columns[duchamp::Column::FINT].printEntry(stream,this->itsDetection->getIntegFlux());
-	columns[duchamp::Column::FPEAK].printEntry(stream,this->itsDetection->getPeakFlux());
+	columns[duchamp::Column::NUM].printEntry(stream,this->getID());
+	columns[duchamp::Column::RA].printEntry(stream,this->getRAs());
+	columns[duchamp::Column::DEC].printEntry(stream,this->getDecs());
+	columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
+	columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
+	columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
 
 	stream << " " << std::setw(4) << this->itsGaussFitSet.size() << " ";
 
@@ -508,13 +532,13 @@ namespace askap
 	  
 	}
 
-	pix[0] = this->itsDetection->getXmin()-sourcefitting::detectionBorder;
-	pix[1] = this->itsDetection->getYmin()-sourcefitting::detectionBorder;
+	pix[0] = this->getXmin()-sourcefitting::detectionBorder;
+	pix[1] = this->getYmin()-sourcefitting::detectionBorder;
 	this->itsHeader->pixToWCS(pix,world);
 	stream << "BOX " << world[0] << " " << world[1] << " ";
 	
-	pix[0] = this->itsDetection->getXmax()+sourcefitting::detectionBorder;
-	pix[1] = this->itsDetection->getYmax()+sourcefitting::detectionBorder;
+	pix[0] = this->getXmax()+sourcefitting::detectionBorder;
+	pix[1] = this->getYmax()+sourcefitting::detectionBorder;
 	this->itsHeader->pixToWCS(pix,world);
 	stream << world[0] << " " << world[1] << "\n";
 	

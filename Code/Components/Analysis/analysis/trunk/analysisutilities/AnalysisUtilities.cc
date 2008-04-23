@@ -136,6 +136,9 @@ namespace askap
 
       par.setNewFluxUnits( parset.getString("newFluxUnits", "") );
 
+      par.setFlagGrowth( parset.getBool("flagGrowth", false) );
+      par.setGrowthCut( parset.getFloat("growthCut", par.getGrowthCut()) );
+
       par.setFlagATrous( parset.getBool("flagATrous",false) );
       par.setReconDim( parset.getInt16("reconDim", par.getReconDim()) );
       par.setMinScale( parset.getInt16("scaleMin", par.getMinScale()) );
@@ -293,17 +296,21 @@ namespace askap
     }
 
 
-    std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
+    std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
     {
 
-      /// @details This function takes an existing FITS image on disk,
-      /// and creates a number of subimages, one for each worker. The
-      /// division of the image is governed by the parameter set,
-      /// specifically the nsubx/y/z and overlapx/y/z parameters. The
-      /// image to be split is given by the image parameter. The new
-      /// files are always written, and will overwrite any
-      /// pre-existing files (by using a "!" at the start of the
-      /// filename).
+      /// @details This generates a list of subsection strings for a
+      /// set of workers. The image (given by the parameter "image" in
+      /// the parset) is to be split up according to the nsubx/y/z
+      /// parameters, with overlaps in each direction given by the
+      /// overlapx/y/z parameters (these are in pixels).
+      ///
+      /// The Duchamp function duchamp::FitsHeader::defineWCS() is
+      /// used to extract the WCS parameters from the FITS
+      /// header. These determine which axes are the x, y and z
+      /// axes. The number of axes is also determined from the WCS
+      /// parameter set, while the size of each axis is determined by
+      /// the getFITSdimensions() function.
       ///
       /// The section strings are stored in duchamp::Section objects,
       /// and are parsed so that they can provide offsets etc. These
@@ -316,9 +323,6 @@ namespace askap
 
       std::vector<duchamp::Section> sectionlist; 
       std::string image = parset.getString("image");
-      fitsfile *fin;
-      int status=0;
-      fits_open_file(&fin,image.c_str(),READONLY,&status);
 
       int nsubx = parset.getInt16("nsubx",1);
       int nsuby = parset.getInt16("nsuby",1);
@@ -366,13 +370,7 @@ namespace askap
 	  }
 	}
 
-	long *dimAxes = new long[naxis];
-	for(int i=0;i<naxis;i++) dimAxes[i]=1;
-	status = 0;
-	if(fits_get_img_size(fin, naxis, dimAxes, &status)){
-	  fits_report_error(stderr, status);
-	}
-	/// @todo Note that we are assuming a particular axis setup here. Make this more robust!
+	long *dimAxes = getFITSdimensions(image);
 	long start = 0;
 
 	for(int w=0;w<numWorkers;w++){
@@ -393,16 +391,7 @@ namespace askap
 
 	  }
 
-	  ASKAPLOG_INFO_STR(logger, "Worker #"<<w+1<<" is using subsection " << section.str());
-      
-	  fitsfile *fout;
-	  status=0;
-	  fits_create_file(&fout,subimage.c_str(),&status);
-	  status=0;
-	  ASKAPLOG_INFO_STR(logger, "Creating SubImage: " << subimage);
-	  fits_copy_image_section(fin,fout,(char *)section.str().c_str(),&status);
-	  status=0;
-	  fits_close_file(fout,&status);
+ 	  ASKAPLOG_INFO_STR(logger, "Worker #"<<w+1<<" is using subsection " << section.str());
 
 	  std::string secstring = "["+section.str()+"]";
 	  duchamp::Section sec(secstring);
@@ -412,9 +401,6 @@ namespace askap
 	  sectionlist.push_back(sec);
 	}
 
-	status=0;
-	fits_close_file(fin,&status);
-
 	return sectionlist;
 
       }
@@ -423,7 +409,54 @@ namespace askap
 
     }
 
+    std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
+    {
 
+      /// @details This function takes an existing FITS image on disk,
+      /// and creates a number of subimages, one for each worker. The
+      /// division of the image is governed by the parameter set,
+      /// specifically the nsubx/y/z and overlapx/y/z parameters, but
+      /// the transformation of these into subsection strings is done
+      /// by getSectionList(). The image to be split is given by the
+      /// image parameter. The new files are always written, and will
+      /// overwrite any pre-existing files (by using a "!" at the
+      /// start of the filename).
+      ///
+      /// @param numWorkers The number of workers and the number of subimages. 
+      /// @param parset The parameter set holding info on how to divide the image.
+      /// @return A std::vector of duchamp::Section objects.
+
+ 
+      std::string image = parset.getString("image");
+      std::vector<duchamp::Section> sectionlist = getSectionList(numWorkers, parset);
+      fitsfile *fin;
+      int status=0;
+      fits_open_file(&fin,image.c_str(),READONLY,&status);
+
+      for(int w=0; w<numWorkers; w++){
+
+	std::string subimage = "!"+getSubImageName(image,w,numWorkers);
+	
+	std::string secstring = sectionlist[w].getSection();
+	std::string section = secstring.substr(1,secstring.size()-2);
+	
+	ASKAPLOG_INFO_STR(logger, "Creating SubImage " << subimage << " using section " << section);
+
+	fitsfile *fout;
+	status=0;
+	fits_create_file(&fout,subimage.c_str(),&status);
+	status=0;
+	fits_copy_image_section(fin,fout,(char *)section.c_str(),&status);
+	status=0;
+	fits_close_file(fout,&status);
+	
+      }
+      status=0;
+      fits_close_file(fin,&status);
+      
+      return sectionlist;
+
+    }
 
   }
 }
