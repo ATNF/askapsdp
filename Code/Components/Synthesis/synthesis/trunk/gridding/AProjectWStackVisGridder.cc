@@ -94,9 +94,6 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 				"Too many fields: increase maxfields " << itsMaxFields);
 		itsPointings(firstFeed, itsCurrentField)=firstPointing;
 		ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField);
-	} else {
-//		ASKAPLOG_INFO_STR(logger, "Found previous field " << itsCurrentField 
-//				<< " separation " << firstPointing.separation(itsPointings(firstFeed, itsCurrentField)));
 	}
 
 	/// We have to calculate the lookup function converting from
@@ -112,6 +109,7 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 
 	itsGMap.resize(nSamples, nPol, nChan);
 	itsGMap.set(0);
+
 	int cenw=(itsNWPlanes-1)/2;
 
 	for (int i=0; i<nSamples; i++) {
@@ -123,8 +121,8 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 		double w=(idi->uvw()(i)(2))/(casa::C::c);
 
 		for (int chan=0; chan<nChan; chan++) {
+		  double freq=idi->frequency()[chan];
 			for (int pol=0; pol<nPol; pol++) {
-				/// Calculate the index into the convolution functions
 				/// Order is (chan, feed)
 				if(itsFreqDep) {
 					itsCMap(i, pol, chan)=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
@@ -141,7 +139,6 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 				}
 
 				/// Calculate the index into the grids
-				double freq=idi->frequency()[chan];
 				if (itsNWPlanes>1) {
 					itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
 				} else {
@@ -235,13 +232,13 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 
 				/// Now convolve the disk with itself
 				fft2d(disk, false);
-				//          ASKAPLOG_DEBUG_STR(logger, "Feed " << feed << ": Peak of primary beam voltage pattern = " << casa::max(casa::abs(disk)));
+
 				for (int ix=0; ix<nx; ix++) {
 					for (int iy=0; iy<ny; iy++) {
 						disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
 					}
 				}
-				//          ASKAPLOG_DEBUG_STR(logger, "Feed " << feed <<": Peak of primary beam power pattern = " << casa::real(casa::max(casa::abs(disk))));
+
 				fft2d(disk, true);
 				sumdisk=0.0;
 				for (int ix=0; ix<nx; ix++) {

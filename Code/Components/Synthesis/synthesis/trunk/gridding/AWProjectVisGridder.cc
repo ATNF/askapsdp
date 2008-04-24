@@ -44,7 +44,13 @@ AWProjectVisGridder::AWProjectVisGridder(const double diameter,
 	ASKAPCHECK(blockage>=0.0, "Blockage must be non-negative");
 	ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
 	ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
+	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
+	ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
 	ASKAPCHECK(pointingTol>0.0, "Pointing tolerance must be greater than 0.0");
+	itsSupport=0;
+	itsOverSample=overSample;
+	itsMaxSupport=maxSupport;
+	itsName=name;
 
 	itsSlopes.resize(2, itsMaxFeeds, itsMaxFields);
 	itsSlopes.set(0.0);
@@ -89,9 +95,6 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 				"Too many fields: increase maxfields " << itsMaxFields);
 		itsPointings(firstFeed, itsCurrentField)=firstPointing;
 		ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField);
-//	} else {
-//		ASKAPLOG_INFO_STR(logger, "Found previous field " << itsCurrentField 
-//				<< " separation " << firstPointing.separation(itsPointings(firstFeed, itsCurrentField)));
 	}
 
 	/// We have to calculate the lookup function converting from
@@ -106,6 +109,7 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 	/// @todo Select max feeds more carefully
 
 	int cenw=(itsNWPlanes-1)/2;
+
 	for (int i=0; i<nSamples; i++) {
 		int feed=idi->feed1()(i);
 
@@ -113,9 +117,10 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 				"Exceeded specified maximum number of feeds");
 		ASKAPCHECK(feed>-1, "Illegal negative feed number");
 
+		double w=(idi->uvw()(i)(2))/(casa::C::c);
+
 		for (int chan=0; chan<nChan; chan++) {
 			double freq=idi->frequency()[chan];
-			double w=(idi->uvw()(i)(2))/(casa::C::c);
 			int iw=0;
 			if (itsNWPlanes>1) {
 				iw=cenw+int(w*freq/itsWScale);
@@ -129,15 +134,15 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 				/// Order is (iw, chan, feed)
 				if (itsFreqDep) {
 					itsCMap(i, pol, chan)=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsCurrentField));
-					ASKAPCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds
+					ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds
 							*itsMaxFields*nChan, "CMap index too large");
-					ASKAPCHECK(itsCMap(i, 0, chan)>-1,
+					ASKAPCHECK(itsCMap(i, pol, chan)>-1,
 							"CMap index less than zero");
 				} else {
 					itsCMap(i, pol, chan)=iw+itsNWPlanes*(feed+itsMaxFeeds*itsCurrentField);
-					ASKAPCHECK(itsCMap(i, 0, chan)<itsNWPlanes*itsMaxFeeds
+					ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds
 							*itsMaxFields, "CMap index too large");
-					ASKAPCHECK(itsCMap(i, 0, chan)>-1,
+					ASKAPCHECK(itsCMap(i, pol, chan)>-1,
 							"CMap index less than zero");
 				}
 			}
@@ -150,10 +155,8 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 /// @todo Make initConvolutionFunction more robust
 void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 
-	casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0,
-			"rad");
-	casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0,
-			"rad");
+	casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
+	casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
 	casa::MVDirection out(refLon, refLat);
 	const int nSamples = idi->uvw().size();
 	// exact formulae for l and m 
@@ -293,7 +296,7 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 								itsSupport=abs(ix-nx/2)/itsOverSample;
 								break;
 							}
-							///  Check on diagonal
+							///  Check on diagonal: ix, ix is correct!
 							if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF)) {
 								itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
 								break;
