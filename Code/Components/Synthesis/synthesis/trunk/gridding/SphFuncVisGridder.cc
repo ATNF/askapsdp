@@ -32,7 +32,7 @@ namespace askap
       if (itsSupport==3)
         return;
       itsSupport=3;
-      itsOverSample=128;
+      itsOverSample=32;
       itsCSize=2*itsSupport+1; // 7;
       itsCCenter=itsSupport; // 3
       itsConvFunc.resize(itsOverSample*itsOverSample);
@@ -41,6 +41,7 @@ namespace askap
         for (int fracu=0; fracu<itsOverSample; fracu++)
         {
           const int plane=fracu+itsOverSample*fracv;
+          ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
           itsConvFunc[plane].resize(itsCSize, itsCSize);
           itsConvFunc[plane].set(0.0);
           for (int ix=0; ix<itsCSize; ix++)
@@ -58,11 +59,12 @@ namespace askap
       }
       float volume=casa::sum(casa::real(itsConvFunc[0]));
       ASKAPCHECK(volume>0.0, "Integral of convolution function is zero");
-      for (int fracv=0; fracv<itsOverSample; fracv++)
+      for (int fracv=0; fracv<int(itsOverSample); fracv++)
       {
-        for (int fracu=0; fracu<itsOverSample; fracu++)
+        for (int fracu=0; fracu<int(itsOverSample); fracu++)
         {
           const int plane=fracu+itsOverSample*fracv;
+          ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
           itsConvFunc[plane]*=casa::Complex(1.0/volume);
         }
       }

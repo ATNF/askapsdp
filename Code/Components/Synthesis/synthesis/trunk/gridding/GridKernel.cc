@@ -3,6 +3,8 @@
 /// Use pointers instead of casa::Matrix operators to grid
 #define ASKAP_GRID_WITH_POINTERS 1
 
+//#include <askap/AskapError.h>
+
 /// Use BLAS 
 /// @todo Ensure that BLAS gridding works on all platforms
 ///#define ASKAP_GRID_WITH_BLAS 1
@@ -38,6 +40,7 @@ namespace askap
 				     const casa::Complex& cVis, const float& viswt, const int iu,
 				     const int iv, const int support)
     {
+      
 #ifdef ASKAP_GRID_WITH_POINTERS || ASKAP_GRID_WITH_BLAS
       for (int suppv=-support; suppv<+support; suppv++)
 	{
@@ -76,7 +79,7 @@ namespace askap
 				       const casa::Matrix<casa::Complex>& convFunc,
 				       const casa::Matrix<casa::Complex>& grid, const int iu, const int iv,
 				       const int support)
-    {
+    {  
       /// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
       /// data using the convolution function as the weighting function. 
       cVis=0.0;

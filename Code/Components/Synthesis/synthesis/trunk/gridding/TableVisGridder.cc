@@ -99,7 +99,7 @@ void TableVisGridder::save(const std::string& name) {
 
 /// This is a generic grid/degrid
 void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
-	if (forward&&itsModelIsEmpty)
+   if (forward&&itsModelIsEmpty)
 		return;
 
 	casa::Vector<casa::RigidVector<double, 3> > outUVW;
@@ -108,17 +108,13 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 
 	initIndices(idi);
 	initConvolutionFunction(idi);
-
-	ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
+   ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
 	ASKAPCHECK(itsUVCellSize.size()==2, "UV cell sizes not yet set");
 
-	const int nSamples = idi->uvw().size();
-	ASKAPDEBUGASSERT(nSamples>0);
-	const int nChan = idi->frequency().size();
-	ASKAPDEBUGASSERT(nChan>0);
-	const int nPol = idi->visibility().shape()(2);
-	ASKAPDEBUGASSERT(nPol>0);
-
+	const uint nSamples = idi->nRow();
+	const uint nChan = idi->nChannel();
+	const uint nPol = idi->nPol();
+	
 	ASKAPDEBUGASSERT(itsShape.nelements()>=2);
 	const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
 	const casa::IPosition onePlane(2, itsShape(0), itsShape(1));
@@ -138,14 +134,14 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 	ASKAPDEBUGASSERT(casa::uInt(nChan) <= idi->frequency().nelements());
 	ASKAPDEBUGASSERT(casa::uInt(nSamples) == idi->uvw().nelements());
 
-	for (int i=0; i<nSamples; i++) {
+	for (uint i=0; i<nSamples; ++i) { //std::cout<<"doing sample "<<i<<" out of "<<nSamples<<std::endl;
 		/// Temporarily fix to do MFS only
 		int imageChan=0;
 		int imagePol=0;
 
-		for (int chan=0; chan<nChan; chan++) {
+		for (uint chan=0; chan<nChan; ++chan) {
 
-			/// Scale U,V to integer pixels plus fractional terms
+           /// Scale U,V to integer pixels plus fractional terms
 			double uScaled=idi->frequency()[chan]*idi->uvw()(i)(0)/(casa::C::c *itsUVCellSize(0));
 			int iu = askap::nint(uScaled);
 			int fracu=askap::nint(itsOverSample*(double(iu)-uScaled));
@@ -175,18 +171,18 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 			ASKAPCHECK(fracv<itsOverSample,
 					"Fractional offset in v exceeds oversampling");
 			iv+=itsShape(1)/2;
-
+			
 			/// Calculate the delay phasor
 			const double phase=2.0f*casa::C::pi*idi->frequency()[chan]*delay(i)/(casa::C::c);
 			const casa::Complex phasor(cos(phase), sin(phase));
 
 			bool allPolGood=true;
-			for (int pol=0; pol<nPol; pol++) {
+			for (uint pol=0; pol<nPol; ++pol) {
 				if (idi->flag()(i, chan, pol))
 					allPolGood=false;
 			}
 			/// Now loop over all visibility polarizations
-			for (int pol=0; pol<nPol; pol++) {
+			for (uint pol=0; pol<nPol; ++pol) {
 				/// Ensure that we only use unflagged data
 				/// @todo Be more careful about matching polarizations
 				if (allPolGood) {
@@ -232,7 +228,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 					/// @todo Enable pol and chan maps
 					const casa::IPosition ipStart(4, 0, 0, imagePol, imageChan);
 					const casa::Slicer slicer(ipStart, onePlane4D);
-
+				
 					// Lookup the convolution function to be
 					// used for this row, polarisation and channel
 					const int cInd=fracu+itsOverSample*(fracv+itsOverSample
@@ -264,22 +260,32 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 									*conj(idi->visibility()(i, chan, pol));
 							casa::Complex sumwt=0.0;
 							const float wtVis(1.0);
+			
 							GridKernel::grid(grid, sumwt, convFunc, rVis,
-									wtVis, iu, iv, itsSupport);
-
-							itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
-
+				                     wtVis, iu, iv, itsSupport);
+			
+			                //ASKAPDEBUGASSERT(cIndex(i,pol,chan) < int(itsSumWeights.nrow()));
+			                ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.ncolumn()));
+			                ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.nplane()));
+			                
+			                //itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
+			                // if-statement is temporary
+			                if (cIndex(i,pol,chan) < int(itsSumWeights.nrow())) 
+			                itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=sumwt;
+                            
+	        			
 							/// Grid PSF?
 							if (itsDopsf) {
 								ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
 								casa::Array<casa::Complex>
 										aGridPSF(itsGridPSF[gInd](slicer));
-								casa::Matrix<casa::Complex>
+							    casa::Matrix<casa::Complex>
 										gridPSF(aGridPSF.nonDegenerate());
 								const casa::Complex uVis(1.0);
 								GridKernel::grid(gridPSF, sumwt, convFunc,
 										uVis, wtVis, iu, iv, itsSupport);
 							}
+							
 						}
 					}
 				}
