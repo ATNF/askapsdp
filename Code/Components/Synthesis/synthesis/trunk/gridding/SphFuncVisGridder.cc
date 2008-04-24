@@ -32,7 +32,7 @@ namespace askap
       if (itsSupport==3)
         return;
       itsSupport=3;
-      itsOverSample=32;
+      itsOverSample=128;
       itsCSize=2*itsSupport+1; // 7;
       itsCCenter=itsSupport; // 3
       itsConvFunc.resize(itsOverSample*itsOverSample);
