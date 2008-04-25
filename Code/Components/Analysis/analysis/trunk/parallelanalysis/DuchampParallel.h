@@ -58,8 +58,8 @@ namespace askap
       /// @brief Condense the lists (on the master)
       void condenseLists();
       
-      /// @brief Find the lists (on the workers)
-      void findLists();
+/*       /// @brief Find the lists (on the workers) */
+/*       void findLists(); */
 
       /// @brief Sort out the fluxes for all detected objects (on the master)
       void calcFluxes();
@@ -69,6 +69,12 @@ namespace askap
 
       /// @brief Fit the detected sources (on the master)
       void fitSources();
+
+      void findSources();
+      void sendObjects();
+      void receiveObjects();
+      void cleanup();
+      void calcObjectParams();
 
       /// @brief Write a Karma annotation file showing the fits (on the master).
       void writeFitAnnotation();

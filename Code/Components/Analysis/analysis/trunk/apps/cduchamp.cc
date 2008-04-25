@@ -74,11 +74,19 @@ int main(int argc, const char** argv)
     duchamp.gatherStats();
     duchamp.broadcastThreshold();
     duchamp.receiveThreshold();
-    duchamp.findLists();
-    duchamp.condenseLists();
-    duchamp.calcFluxes();
-    duchamp.printResults();
+
+    duchamp.findSources();
     duchamp.fitSources();
+    duchamp.sendObjects();
+    duchamp.receiveObjects();
+    duchamp.cleanup();
+    duchamp.printResults();
+
+    //    duchamp.findLists();
+    //    duchamp.condenseLists();
+    //    duchamp.calcFluxes();
+    //    duchamp.printResults();
+    //    duchamp.fitSources();
     
     ASKAPLOG_INFO_STR(logger, "Time for execution of cduchamp = " << timer.real() << " sec");
 

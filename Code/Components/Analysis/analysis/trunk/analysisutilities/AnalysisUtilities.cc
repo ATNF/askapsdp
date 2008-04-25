@@ -118,6 +118,9 @@ namespace askap
 
       duchamp::Param par;
 
+      par.setVerbosity( parset.getBool("verbose", false) );
+      par.setFlagLog(true);
+
       par.setPixelCentre( parset.getString("pixelCentre", "centroid") );
 
       par.setCut( parset.getFloat("snrCut", 4.) );
