@@ -324,8 +324,7 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 								/itsOverSample << " (m)");
 						itsCCenter=itsSupport;
 						itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes);
-						itsSumWeights.resize(itsOverSample*itsOverSample*itsMaxFeeds
-								     *itsMaxFields*nChan, itsShape(2), itsShape(3));
+						itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
 						itsSumWeights.set(casa::Complex(0.0));
 					}
 					int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsCurrentField));
@@ -391,8 +390,25 @@ void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out) {
 	/// Work space
 	casa::Matrix<casa::Complex> thisPlane(cnx, cny);
 
+	/// itsSumWeights has one element for each separate data plane (feed, field, chan)
+	/// itsConvFunc has overSampling**2 planes for each separate data plane (feed, field, chan)
+	/// We choose the convolution function at zero fractional offset in u,v 
 	for (int iz=0; iz<nZ; iz++) {
+	  int plane=itsOverSample*itsOverSample*iz;
 		thisPlane.set(0.0);
+
+		bool hasData=false;
+		for (int chan=0; chan<nChan; chan++) {
+			for (int pol=0; pol<nPol; pol++) {
+				casa::Complex wt=itsSumWeights(iz, pol, chan);
+				if(abs(wt)>0.0) {
+				  hasData=true;
+				  break;
+				}
+			}
+		}
+
+		if(hasData) {
 
 		// Now fill the inner part of the uv plane with the convolution function
 		// and transform to obtain the image. The uv sampling is fixed here
@@ -400,8 +416,7 @@ void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out) {
 		// original field of view.
 		for (int iy=-itsSupport; iy<+itsSupport; iy++) {
 			for (int ix=-itsSupport; ix<+itsSupport; ix++) {
-				thisPlane(ix*itsOverSample+ccenx, iy*itsOverSample+cceny)
-						=itsConvFunc[iz](ix+itsCCenter, iy+itsCCenter);
+				thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter);
 			}
 		}
 
@@ -423,6 +438,7 @@ void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out) {
 					}
 				}
 			}
+		}
 		}
 	}
 	fftPad(cOut, out);

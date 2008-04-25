@@ -231,8 +231,10 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 				
 					// Lookup the convolution function to be
 					// used for this row, polarisation and channel
-					const int cInd=fracu+itsOverSample*(fracv+itsOverSample
-							*cIndex(i, pol, chan));
+					// cIndex gives the index for this row, polarization and channel. On top of
+					// that, we need to adjust for the oversampling since each oversampled
+					// plane is kept as a separate matrix.
+					const int cInd=fracu+itsOverSample*(fracv+itsOverSample*cIndex(i, pol, chan));
 					ASKAPCHECK(cInd>-1,
 							"Index into convolution functions is less than zero");
 					ASKAPCHECK(cInd<int(itsConvFunc.size()),
@@ -264,13 +266,10 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							GridKernel::grid(grid, sumwt, convFunc, rVis,
 				                     wtVis, iu, iv, itsSupport);
 			
-			                //ASKAPDEBUGASSERT(cIndex(i,pol,chan) < int(itsSumWeights.nrow()));
-			                ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.ncolumn()));
-			                ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.nplane()));
+			                ASKAPDEBUGASSERT(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)));
+			                ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
+			                ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 			                
-			                //itsSumWeights(cInd, imagePol, imageChan)+=sumwt;
-			                // if-statement is temporary
-			                if (cIndex(i,pol,chan) < int(itsSumWeights.nrow())) 
 			                itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=sumwt;
                             
 	        			

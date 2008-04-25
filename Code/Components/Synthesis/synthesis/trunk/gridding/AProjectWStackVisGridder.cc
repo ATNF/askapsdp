@@ -264,16 +264,14 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 					itsCCenter=itsSupport;
 					itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds
 							*itsMaxFields*nChan);
-					itsSumWeights.resize(itsOverSample*itsOverSample*itsMaxFeeds
-							     *itsMaxFields*nChan, itsShape(2), itsShape(3));
+					itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
 					itsSumWeights.set(casa::Complex(0.0));
 				}
 				int zIndex=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
 
 				for (int fracu=0; fracu<itsOverSample; fracu++) {
 					for (int fracv=0; fracv<itsOverSample; fracv++) {
-						int plane=fracu+itsOverSample*(fracv+itsOverSample
-								*zIndex);
+						int plane=fracu+itsOverSample*(fracv+itsOverSample*zIndex);
 						itsConvFunc[plane].resize(itsCSize, itsCSize);
 						itsConvFunc[plane].set(0.0);
 						// Now cut out the inner part of the convolution function and
@@ -330,26 +328,33 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 	/// Work space
 	casa::Matrix<casa::Complex> thisPlane(cnx, cny);
 
+	/// itsSumWeights has one element for each separate data plane (feed, field, chan)
+	/// itsConvFunc has overSampling**2 planes for each separate data plane (feed, field, chan)
+	/// We choose the convolution function at zero fractional offset in u,v 
 	for (int iz=0; iz<nZ; iz++) {
+	  int plane=itsOverSample*itsOverSample*iz;
 		thisPlane.set(0.0);
+
+		bool hasData=false;
+		for (int chan=0; chan<nChan; chan++) {
+			for (int pol=0; pol<nPol; pol++) {
+				casa::Complex wt=itsSumWeights(iz, pol, chan);
+				if(abs(wt)>0.0) {
+				  hasData=true;
+				  break;
+				}
+			}
+		}
+
+		if(hasData) {
 
 		// Now fill the inner part of the uv plane with the convolution function
 		// and transform to obtain the image. The uv sampling is fixed here
 		// so the total field of view is itsOverSample times larger than the
 		// original field of view.
-		const casa::Matrix<casa::Complex> &convFunc = itsConvFunc[iz];
 		for (int iy=-itsSupport; iy<+itsSupport; iy++) {
 			for (int ix=-itsSupport; ix<+itsSupport; ix++) {
-
-				ASKAPDEBUGASSERT(ix+ccenx>0 && iy+cceny>0);
-				ASKAPDEBUGASSERT(ix+ccenx<int(thisPlane.nrow()) && iy+cceny<int(thisPlane.ncolumn()));
-
-				const int xIndex = ix*itsOverSample+itsCCenter;
-				const int yIndex = iy*itsOverSample+itsCCenter;
-
-				ASKAPDEBUGASSERT(xIndex>0 && yIndex>0 && xIndex<int(convFunc.nrow()) && yIndex<int(convFunc.ncolumn()));
-				
-				thisPlane(ix+ccenx, iy+cceny)=convFunc(ix*itsOverSample+itsCCenter, iy*itsOverSample+itsCCenter);
+				thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter);
 			}
 		}
 
@@ -370,6 +375,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 					}
 				}
 			}
+		}
 		}
 	}
 	fftPad(cOut, out);
