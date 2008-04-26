@@ -111,7 +111,6 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 
 	for (int i=0; i<nSamples; i++) {
 		int feed=idi->feed1()(i);
-
 		ASKAPCHECK(feed<itsMaxFeeds,
 				"Exceeded specified maximum number of feeds");
 		ASKAPCHECK(feed>-1, "Illegal negative feed number");
@@ -358,6 +357,8 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 			save(itsName);
 		}
 	}
+	ASKAPCHECK(nDone>0, "Could not find information for convolution functions");
+	ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
 }
 
 /// To finalize the transform of the weights, we use the following steps:

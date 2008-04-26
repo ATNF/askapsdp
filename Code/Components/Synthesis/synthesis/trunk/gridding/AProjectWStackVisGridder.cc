@@ -297,6 +297,9 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 			save(itsName);
 		}
 	}
+	ASKAPCHECK(nDone>0, "Could not find information for convolution functions");
+	ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
+
 }
 
 // To finalize the transform of the weights, we use the following steps:

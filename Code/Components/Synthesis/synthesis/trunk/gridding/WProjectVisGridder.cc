@@ -255,6 +255,8 @@ namespace askap
           << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
       if (itsName!="")
         save(itsName);
+      ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
+
     }
 
     int WProjectVisGridder::cIndex(int row, int pol, int chan)
