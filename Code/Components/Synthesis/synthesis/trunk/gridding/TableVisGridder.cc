@@ -274,6 +274,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
                             
 	        			
 							/// Grid PSF?
+			                /// @todo Fix calculation of PSF
 							if (itsDopsf) {
 								ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
 								casa::Array<casa::Complex>
