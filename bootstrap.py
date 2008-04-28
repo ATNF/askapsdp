@@ -35,6 +35,10 @@ def update_tree(thePath):
     pathvisited += pkgdir
     update_command(pathvisited, recursive=True)
 
+invoked_path = sys.argv[0]
+absolute_path = os.path.abspath(invoked_path)
+os.chdir(os.path.dirname(absolute_path))
+
 update_tree("Tools")
 os.system("cd Tools/Dev/virtualenv; python bootstrap.py")
 os.system("python initenv.py >/dev/null")

@@ -23,6 +23,10 @@ parser.add_option("-s", "--shell",
 
 (opts, args) = parser.parse_args()
 
+invoked_path = sys.argv[0]
+absolute_path = os.path.abspath(invoked_path)
+os.chdir(os.path.dirname(absolute_path))
+
 bashinit = """\
 export ASKAP_ROOT=%s
 pypath="${ASKAP_ROOT}/Tools/Dev/scons-tools"
