@@ -20,32 +20,32 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <askap/AskapUtil.h>
 
 #include <fft/FFTWrapper.h>
+#include <gridding/UVPattern.h>
+#include <gridding/IBasicIllumination.h>
 
 using namespace askap;
 
 namespace askap {
 namespace synthesis {
 
-AProjectWStackVisGridder::AProjectWStackVisGridder(const double diameter,
-		const double blockage, const double wmax, const int nwplanes,
+AProjectWStackVisGridder::AProjectWStackVisGridder(
+        const boost::shared_ptr<IBasicIllumination const> &illum,
+        const double wmax, const int nwplanes,
 		const int overSample, const int maxSupport, const int maxFeeds,
 		const int maxFields, const double pointingTol,
 		const bool frequencyDependent, const std::string& name) :
 	WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
-			itsDiameter(diameter), itsBlockage(blockage),
+			itsIllumination(illum),
 			itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
 			itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent)
 
-{
-	ASKAPCHECK(diameter>0.0, "Blockage must be positive");
-	ASKAPCHECK(diameter>blockage,
-			"Antenna diameter must be greater than blockage");
-	ASKAPCHECK(blockage>=0.0, "Blockage must be non-negative");
+{	
 	ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
 	ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
 	ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
 	ASKAPCHECK(pointingTol>0.0, "Pointing tolerance must be greater than 0.0");
+	ASKAPDEBUGASSERT(itsIllumination);
 	itsSupport=0;
 	itsOverSample=overSample;
 	itsMaxSupport=maxSupport;
@@ -175,12 +175,12 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 	/// Limit the size of the convolution function since
 	/// we don't need it finely sampled in image space. This
 	/// will reduce the time taken to calculate it.
-	int nx=std::min(itsMaxSupport, itsShape(0));
-	int ny=std::min(itsMaxSupport, itsShape(1));
-
-	double cellu=itsUVCellSize(0)/itsOverSample;
-	double cellv=itsUVCellSize(1)/itsOverSample;
-
+	casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
+	casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+    
+    // this is just a buffer in the uv-space
+    UVPattern pattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
+    
 	int nDone=0;
 	for (int row=0; row<nSamples; row++) {
 		int feed=idi->feed1()(row);
@@ -195,66 +195,43 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 					*cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
 					*cos(offset.getLong()-out.getLong());
 
-			double ax=2.0f*casa::C::pi*cellu *itsSlopes(0, feed,
-					itsCurrentField);
-			double ay=2.0f*casa::C::pi*cellv *itsSlopes(1, feed,
-					itsCurrentField);
 
 			for (int chan=0; chan<nChan; chan++) {
-				/// Make the disk for this channel
-				casa::Matrix<casa::Complex> disk(nx, ny);
-				disk.set(0.0);
-
-				/// Calculate the size of one cell in m.
-				double cell=std::abs(cellu*(casa::C::c/idi->frequency()[chan]));
-				double rmax=std::pow(itsDiameter/(2.0*cell), 2);
-				double rmin=std::pow(itsBlockage/(2.0*cell), 2);
-
-				/// Calculate the antenna voltage pattern, including the
-				/// phase shift due to pointing
-				double sumdisk=0.0;
-				for (int ix=0; ix<nx; ix++) {
-					double nux=double(ix-nx/2);
-					double nux2=nux*nux;
-					for (int iy=0; iy<ny; iy++) {
-						double nuy=double(iy-ny/2);
-						double nuy2=nuy*nuy;
-						double r=nux2+nuy2;
-						if ((r>=rmin)&&(r<=rmax)) {
-							double phase=ax*nux+ay*nuy;
-							disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
-							sumdisk+=1.0;
-						}
-					}
-				}
-				ASKAPCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
-				disk*=casa::Complex(float(nx)*float(ny)/sumdisk);
-
+				/// Extract illumination pattern for this channel
+				itsIllumination->getPattern(idi->frequency()[chan], pattern,
+				         itsSlopes(0, feed, itsCurrentField),
+				         itsSlopes(1, feed, itsCurrentField));
+				         
 				/// Now convolve the disk with itself
-				fft2d(disk, false);
+				fft2d(pattern.pattern(), false);
 
-				for (int ix=0; ix<nx; ix++) {
-					for (int iy=0; iy<ny; iy++) {
-						disk(ix, iy)=disk(ix,iy)*conj(disk(ix,iy));
+				for (casa::uInt ix=0; ix<nx; ++ix) {
+					for (casa::uInt iy=0; iy<ny; ++iy) {
+						pattern(ix, iy)=pattern(ix,iy)*conj(pattern(ix,iy));
 					}
 				}
 
-				fft2d(disk, true);
-				sumdisk=0.0;
-				for (int ix=0; ix<nx; ix++) {
-					for (int iy=0; iy<ny; iy++) {
-						sumdisk+=casa::abs(disk(ix, iy));
+				fft2d(pattern.pattern(), true);
+				
+				double sumdisk=0.0;
+				for (casa::uInt ix=0; ix<nx; ++ix) {
+					for (casa::uInt iy=0; iy<ny; ++iy) {
+						sumdisk+=casa::abs(pattern(ix, iy));
 					}
 				}
-				disk*=casa::Complex(float(itsOverSample)*float(itsOverSample)/casa::Complex(sumdisk));
+				pattern.pattern() *= casa::Complex(float(itsOverSample)*float(itsOverSample)/casa::Complex(sumdisk));
 
 				if (itsSupport==0) {
-					itsSupport=1+2*nint(casa::sqrt(rmax))/itsOverSample;
+				    // we probably need a proper support search here
+				    // it can be encapsulated in a method of the UVPattern class
+					itsSupport = pattern.maxSupport();
 					ASKAPCHECK(itsSupport>0,
 							"Unable to determine support of convolution function");
-					ASKAPCHECK(itsSupport*itsOverSample<nx/2,
+					ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
 							"Overflowing convolution function - increase maxSupport or decrease overSample")
 					itsCSize=2*itsSupport+1;
+					// just for logging
+					const double cell = std::abs(pattern.uCellSize())*(casa::C::c/idi->frequency()[chan]);
 					ASKAPLOG_INFO_STR(logger, "Convolution function support = "
 							<< itsSupport << " pixels, size = " << itsCSize
 							<< " pixels");
@@ -279,7 +256,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 						for (int iy=-itsSupport; iy<itsSupport; iy++) {
 							for (int ix=-itsSupport; ix<itsSupport; ix++) {
 								itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)
-										= disk(itsOverSample*ix+fracu+nx/2,
+										= pattern(itsOverSample*ix+fracu+nx/2,
 												itsOverSample*iy+fracv+ny/2);
 							}
 						}

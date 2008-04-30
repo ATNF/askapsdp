@@ -10,6 +10,7 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/AWProjectVisGridder.h>
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AProjectWStackVisGridder.h>
+#include <gridding/DiskIllumination.h>
 
 using namespace LOFAR::ACC::APS;
 namespace askap {
@@ -90,7 +91,8 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
-		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(diameter, blockage,
+		boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(diameter,blockage)); 
+		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(illum,
 				wmax, nwplanes, oversample,
 				maxSupport, maxFeeds, maxFields, pointingTol, freqDep, tablename));
 	} else if (parset.getString("gridder")=="Box") {

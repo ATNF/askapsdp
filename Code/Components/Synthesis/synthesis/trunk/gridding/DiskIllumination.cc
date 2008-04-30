@@ -22,7 +22,12 @@ using namespace askap::synthesis;
 /// @param[in] diam disk diameter in metres
 /// @param[in] blockage a diameter of the central hole in metres
 DiskIllumination::DiskIllumination(double diam, double blockage) :
-   itsDiameter(diam), itsBlockage(blockage) {}
+   itsDiameter(diam), itsBlockage(blockage) 
+{
+  ASKAPDEBUGASSERT(diam>0);
+  ASKAPDEBUGASSERT(blockage>=0);  
+  ASKAPDEBUGASSERT(diam > blockage);
+}
 
 /// @brief obtain illumination pattern
 /// @details This is the main method which populates the 
@@ -38,10 +43,8 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
                           double m) const
 {
     const casa::uInt oversample = pattern.overSample();
-  	const double cellU = pattern.uCellSize()/oversample;
-	const double cellV = pattern.vCellSize()/oversample;
-	ASKAPDEBUGASSERT(cellU > 0.);
-	ASKAPDEBUGASSERT(cellV > 0.);
+    const double cellU = pattern.uCellSize()/oversample;
+    const double cellV = pattern.vCellSize()/oversample;
     
     // scaled l and m to take the calculations out of the loop
     // these quantities are effectively dimensionless 
@@ -52,25 +55,30 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
     pattern.pattern().set(0.);
     
     // currently don't work with rectangular cells.
-    ASKAPCHECK(std::abs(cellU/cellV-1.)<1e-7, 
+    ASKAPCHECK(std::abs(std::abs(cellU/cellV)-1.)<1e-7, 
                "Rectangular cells are not supported at the moment");
     
-    const double cell = cellU*(casa::C::c/freq);
+    const double cell = std::abs(cellU*(casa::C::c/freq));
+    
+    const double dishRadiusInCells = itsDiameter/(2.0*cell);  
     
     // squares of the disk and blockage area radii
-	const double rMaxSquared = casa::square(itsDiameter/(2.0*cell));
+	const double rMaxSquared = casa::square(dishRadiusInCells);
 	const double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
 	
 	// sizes of the grid to fill with pattern values
 	const casa::uInt nU = pattern.uSize();
 	const casa::uInt nV = pattern.vSize();
 	
-	ASKAPCHECK((casa::square(double(nU)) < rMaxSquared) || 
-	           (casa::square(double(nV))<rMaxSquared),
+	ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) || 
+	           (casa::square(double(nV)) > rMaxSquared),
 	           "The pattern buffer passed to DiskIllumination::getPattern is too small for the given model. "
-	           "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis");
-	           
+	           "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis, you have "
+	            <<nU<<" x "<<nV);
 	
+	// maximum possible support for this class corresponds to the dish size
+	pattern.setMaxSupport(1+2*casa::uInt(dishRadiusInCells)/oversample);
+	           
 	double sum=0.; // normalisation factor
 	for (casa::uInt iU=0; iU<nU; ++iU) {
 	     const double offsetU = double(iU)-double(nU)/2.;

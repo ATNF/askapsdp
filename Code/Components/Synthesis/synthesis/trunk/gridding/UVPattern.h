@@ -59,7 +59,8 @@ struct UVPattern {
    UVPattern(casa::uInt uSize, casa::uInt vSize, double uCellSize,
              double vCellSize, casa::uInt overSample = 1) :
       itsArray(uSize,vSize), itsUCellSize(uCellSize),
-      itsVCellSize(vCellSize), itsOverSample(overSample) {} 
+      itsVCellSize(vCellSize), itsOverSample(overSample),
+      itsMaxSupport(uSize > vSize ? uSize : vSize) {} 
    
    /// @brief construct a default pattern array
    /// @details This constructor initializes the data members with their
@@ -117,6 +118,14 @@ struct UVPattern {
    /// @return a size of the array in the v-direction
    inline casa::uInt vSize() const { return itsArray.ncolumn(); }
    
+   /// @brief obtain the upper limit on the support
+   /// @return maximum possible support size (known a priori, e.g. dish size)
+   inline casa::uInt maxSupport() const { return itsMaxSupport; }
+   
+   /// @brief assign a new value to the upper limit of the support
+   /// @param[in] supp support size (always assume that it is centred)
+   inline void setMaxSupport(casa::uInt supp) { itsMaxSupport = supp; }
+   
 private:
    /// @brief array of values describing the pattern
    casa::Matrix<casa::Complex> itsArray;
@@ -129,6 +138,14 @@ private:
    
    /// @brief oversampling factor
    casa::uInt itsOverSample;
+   
+   /// @brief max support
+   /// @details The upper limit can often be placed on the support a priori
+   /// All routines filling this buffer class with actual numbers, can
+   /// amend this field to speed up calculations of the actual support.
+   /// By default it is the largest size of the buffer.
+   /// @note Do we need two values, one for each axis?
+   casa::uInt itsMaxSupport;
 };
 		
 } // namespace synthesis

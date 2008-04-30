@@ -5,6 +5,7 @@
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AWProjectVisGridder.h>
 #include <gridding/WProjectVisGridder.h>
+#include <gridding/DiskIllumination.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
 #include <dataaccess/DataIteratorStub.h>
@@ -80,7 +81,8 @@ namespace askap
 	//        itsBox.reset(new BoxVisGridder());
         itsSphFunc.reset(new SphFuncVisGridder());
         itsAWProject.reset(new AWProjectVisGridder(120.0, 10.0, 10000.0, 9, 1e-3, 1, 128, 1));
-        itsAProjectWStack.reset(new AProjectWStackVisGridder(120.0, 10.0, 10000.0, 9, 1, 128, 1));
+        boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(120.0, 10.0));
+        itsAProjectWStack.reset(new AProjectWStackVisGridder(illum, 10000.0, 9, 1, 128, 1));
         itsWProject.reset(new WProjectVisGridder(10000.0, 9, 1e-3, 1, 128, ""));
         itsWStack.reset(new WStackVisGridder(10000.0, 9));
 

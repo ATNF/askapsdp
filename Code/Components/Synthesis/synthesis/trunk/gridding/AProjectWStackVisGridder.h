@@ -10,6 +10,9 @@
 #define APROJECTWSTACKVISGRIDDER_H_
 
 #include <gridding/WStackVisGridder.h>
+#include <gridding/IBasicIllumination.h>
+
+#include <boost/shared_ptr.hpp>
 
 namespace askap
 {
@@ -34,8 +37,7 @@ namespace askap
   public:
 
       /// @brief Construct antenna illumination pattern gridder
-      /// @param diameter Antenna diameter (meters)
-      /// @param blockage Antenna blockage (meters)
+      /// @param illum Antenna illumination model
       /// @param wmax Maximum baseline (wavelengths)
       /// @param nwplanes Number of w planes
       /// @param overSample Oversampling (currently limited to <=1)
@@ -45,7 +47,7 @@ namespace askap
       /// @param pointingTol Pointing tolerance in radians
       /// @param frequencyDependent Frequency dependent gridding?
       /// @param name Name of table to save convolution function into
-      AProjectWStackVisGridder(const double diameter, const double blockage,
+      AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
           const double wmax, const int nwplanes, const int overSample,
           const int maxSupport, const int maxFeeds=1, const int maxFields=1,
           const double pointingTol=0.0001, const bool frequencyDependent=true, 
@@ -82,10 +84,8 @@ namespace askap
   private:
       /// Reference frequency for illumination pattern. 
       double itsReferenceFrequency;
-      /// Antenna diameter
-      double itsDiameter;
-      /// Antenna blockage
-      double itsBlockage;
+      /// Antenna illumination model
+      boost::shared_ptr<IBasicIllumination const> itsIllumination;
       /// Maximum number of feeds
       int itsMaxFeeds;
       /// Maximum number of fields
