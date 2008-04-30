@@ -61,7 +61,7 @@ namespace askap
 	/// @brief Constructor using information in a duchamp::Detection object.
 	RadioSource(duchamp::Detection obj);
 
-	/// @briefCopy constructor for RadioSource.
+	/// @brief Copy constructor for RadioSource.
 	RadioSource(const RadioSource& r);
       
 	/// @brief Assignment operator for RadioSource.
@@ -70,24 +70,22 @@ namespace askap
 	/// @brief Destructor
 	virtual ~RadioSource(){};
 
-	/// @brief Defind the array of fluxes surrounding the Detection.
-	//	bool setFluxArray(std::vector<PixelInfo::Voxel> *voxelList);
-	//	bool setFluxArray(float *pixelarray);
-
 	/// @brief Find the local maxima in the flux distribution of the Detection.
 	std::multimap<int,PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
 
+	//@{
 	/// @brief Fit Gaussian components to the Detection.
 	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 		      casa::Vector<casa::Double> sigma);
 	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList);
 	bool fitGauss(float *fluxArray, long *dimArray);
+	//@}
 
 	/// @brief Store the FITS header information
 	void setHeader(duchamp::FitsHeader head){itsHeader = head;};
-	
-	duchamp::FitsHeader getHeader(){return itsHeader;};
 
+	/// @brief Get the FITS header information
+	duchamp::FitsHeader getHeader(){return itsHeader;};
 
 	/// @brief Set the noise level
 	void setNoiseLevel(float noise){itsNoiseLevel = noise;};
@@ -108,34 +106,61 @@ namespace askap
 	/// @brief Write the description of the fits to an annotation file.
 	void writeFitToAnnotationFile(std::ostream &stream);
 
+	/// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
+	// @{
 	friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, RadioSource& src);
 	friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, RadioSource& src);
-      
+	// @}
+
+	/// @brief Is the object at the edge of a subimage
 	bool isAtEdge(){return atEdge;};
+	/// @brief Set the atEdge flag.
 	void setAtEdge(bool b){atEdge = b;};
 
+	/// @brief Commands to return the extent and size of the box
+	/// surrounding the object. Uses the detectionBorder parameter.
+	/// @name 
+	// @{
+	/// Minimum x-value
 	long boxXmin(){return getXmin() - detectionBorder;};
+	/// Maximum x-value
 	long boxXmax(){return getXmax() + detectionBorder;};
+	/// Minimum y-value
 	long boxYmin(){return getYmin() - detectionBorder;};
+	/// Maximum y-value
 	long boxYmax(){return getYmax() + detectionBorder;};
+	/// Minimum z-value
 	long boxZmin(){return getZmin() - detectionBorder;};
+	/// Maximum z-value
 	long boxZmax(){return getZmax() + detectionBorder;};
+	/// X-width
 	long boxXsize(){return boxXmax()-boxXmin()+1;};
+	/// Y-width
 	long boxYsize(){return boxYmax()-boxYmin()+1;};
+	/// Number of pixels in box
 	long boxSize(){return boxXsize()*boxYsize();};
+	// @}
 
+	/// @brief Comparison operator, using the name field
 	friend bool operator< (RadioSource lhs, RadioSource rhs)
 	{
 	  if(lhs.getZcentre()==rhs.getZcentre()) return (lhs.name<rhs.name);
 	  else return (lhs.getZcentre()<rhs.getZcentre());
 	}
 
+	/// @brief Return a reference to the set of Gaussian fits.
+	std::vector<casa::Gaussian2D<Double> >& fitset(){
+	  std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;};
+
       protected:
 
+	/// @brief A flag indicating whether the source is on the boundary of a subimage.
 	bool atEdge;
+
+	/// @brief A flag indicating whether a fit has been made to the source.
 	bool hasFit;
 	
-	/// @brief A pointer to the FITS header information (including WCS and beam info).
+	/// @brief The FITS header information (including WCS and beam info).
 	duchamp::FitsHeader itsHeader;
 
 	/// @brief The noise level in the cube, used for scaling fluxes.
@@ -146,9 +171,6 @@ namespace askap
 
 	/// @brief A two-dimensional Gaussian fit to the object.
 	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
-
-	/// @brief The array of flux values for the detection
-	//	float *itsFluxArray;
 
       };
     }

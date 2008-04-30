@@ -12,6 +12,7 @@
 #include <sourcefitting/RadioSource.h>
 #include <analysisutilities/AnalysisUtilities.h>
 
+#include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object2D.hh>
 #include <duchamp/Cubes/cubes.hh>
@@ -87,58 +88,6 @@ namespace askap
       //    RadioSource::~RadioSource(){};
 
 
-      // //       bool RadioSource::setFluxArray(std::vector<PixelInfo::Voxel> *voxelList)
-      // //       {
-      // // 	/// @details
-      // // 	///
-      // // 	/// This function takes a list of voxels, and defines an array
-      // // 	/// of floats representing the fluxes of pixels surrounding the
-      // // 	/// detected object. 
-      // // 	///
-      // // 	/// @return True if all necessary voxels were present. False otherwise. 
-
-      // // 	long xmin = this->getXmin()-detectionBorder;
-      // // 	long xmax = this->getXmax()+detectionBorder;
-      // // 	long ymin = this->getYmin()-detectionBorder;
-      // // 	long ymax = this->getYmax()+detectionBorder;
-      // // 	long z    = this->getZcentre();
-      // // 	long xsize = xmax-xmin+1;
-      // // 	long ysize = ymax-ymin+1;
-      // // 	long size = xsize*ysize;
-
-      // // 	float failure = false;
-
-      // // 	if(z!=this->getZmin() || z != this->getZmax()){
-      // // 	  ASKAPLOG_ERROR(logger,"Can only do fitting for two-dimensional objects!");
-      // // 	  return failure;
-      // // 	}
-      // // 	else{
-
-      // // 	  this->itsFluxArray = new float[size];
-
-      // // 	  for(long x=xmin;x<=xmax && !failure;x++){
-      // // 	    for(long y=ymin;y<=ymax && !failure;y++){
-      // // 	      int i = (x-xmin) + (y-ymin)*xsize;
-      // // 	      PixelInfo::Voxel tempvox(x,y,z,0.);
-      // // 	      std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
-      // // 	      while( !tempvox.match(*vox) && vox!=voxelList->end() ) vox++;
-      // // 	      if(vox == voxelList->end()) failure = true;
-      // // 	      else this->itsFluxArray[i] = vox->getF();
-	  
-      // // 	    }
-      // // 	  }
-
-      // // 	  if(failure){
-      // // 	    delete [] this->itsFluxArray;
-      // // 	    ASKAPLOG_ERROR(logger, "RadioSource: Failed to allocate flux array");
-      // // 	  }
-
-      // // 	}
-      
-      // // 	return !failure;
-
-      // //       }
-
       std::multimap<int,PixelInfo::Voxel> RadioSource::findDistinctPeaks(casa::Vector<casa::Double> f)
       {
 
@@ -155,13 +104,6 @@ namespace askap
 	/// location was found (the overall peak will be found 10
 	/// times), and the Value element being the location of the
 	/// peak, stored as a PixelInfo::Voxel.
-
-// // 	long xmin = this->getXmin()-detectionBorder;
-// // 	long xmax = this->getXmax()+detectionBorder;
-// // 	long ymin = this->getYmin()-detectionBorder;
-// // 	long ymax = this->getYmax()+detectionBorder;
-// // 	long xsize = xmax-xmin+1;
-// // 	long ysize = ymax-ymin+1;
 
 	const int numThresh = 10;
 
@@ -225,7 +167,13 @@ namespace askap
       bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList)
       {
 
-	ASKAPLOG_INFO_STR(logger, "fitGauss1");
+	/// @details First defines the pixel array with the flux
+	/// values by extracting the voxels from voxelList that are
+	/// within the box surrounding the object. Their flux values
+	/// are placed in the flux matrix, which is passed to
+	/// fitGauss(casa::Matrix<casa::Double> pos,
+	/// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
+	/// sigma).
 
 	casa::Matrix<casa::Double> pos;
 	casa::Vector<casa::Double> f;
@@ -243,8 +191,6 @@ namespace askap
 	  return failure;
 	}
 
-	ASKAPLOG_INFO_STR(logger, "Voxellist size = " << voxelList->size());
-	
 	long z = this->getZcentre();
 	for(long x=this->boxXmin();x<=this->boxXmax() && !failure;x++){
 	  for(long y=this->boxYmin();y<=this->boxYmax() && !failure;y++){
@@ -262,7 +208,6 @@ namespace askap
 	}
 	
 	if(failure){
-	  //	  delete [] this->itsFluxArray;
 	  ASKAPLOG_ERROR(logger, "RadioSource: Failed to allocate flux array");
 	  return !failure;
 	}
@@ -275,7 +220,13 @@ namespace askap
       bool RadioSource::fitGauss(float *fluxArray, long *dimArray)
       {
 
-	ASKAPLOG_INFO_STR(logger, "fitGauss2");
+	/// @details First defines the pixel array with the flux
+	/// values by extracting the voxels from fluxArray that are
+	/// within the box surrounding the object. Their flux values
+	/// are placed in the flux matrix, which is passed to
+	/// fitGauss(casa::Matrix<casa::Double> pos,
+	/// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
+	/// sigma).
 
 	casa::Matrix<casa::Double> pos;
 	casa::Vector<casa::Double> f;
@@ -285,7 +236,6 @@ namespace askap
 	sigma.resize(this->boxSize());
 	casa::Vector<casa::Double> curpos(2);
 	curpos=0;
-	ASKAPLOG_INFO_STR(logger, this->boxXmin()<<","<<this->boxXmax()<<","<<this->boxYmin()<<","<<this->boxYmax()<<","<<this->boxXsize()<<","<<this->boxYsize()<<","<<this->boxSize());
 	for(int x=this->boxXmin();x<=this->boxXmax();x++){
 	  for(int y=this->boxYmin();y<=this->boxYmax();y++){
 	    int i = (x-this->boxXmin()) + (y-this->boxYmin())*this->boxXsize();
@@ -314,47 +264,6 @@ namespace askap
 	/// detection plus the border given by detectionBorder are
 	/// included in the fit.
  
-	ASKAPLOG_INFO_STR(logger, "fitGauss");
-
-	// // 	long xmin = this->getXmin()-detectionBorder;
-	// // 	long xmax = this->getXmax()+detectionBorder;
-	// // 	long ymin = this->getYmin()-detectionBorder;
-	// // 	long ymax = this->getYmax()+detectionBorder;
-	// // 	long xsize = xmax-xmin+1;
-	// // 	long ysize = ymax-ymin+1;
-	// // 	long size = xsize*ysize;
-
-	// // 	float noise;
-	// // 	if(this->itsNoiseLevel < 0){
-	// // 	  noise = 1.;
-	// // 	  ASKAPLOG_INFO_STR(logger, "Fitting: Noise level not defined. Not doing scaling.");
-	// // 	}
-	// // 	else{
-	// // 	  noise = this->itsNoiseLevel;
-	// // 	}
-
-	// // 	casa::Matrix<casa::Double> pos;
-	// // 	casa::Vector<casa::Double> f;
-	// //  	casa::Vector<casa::Double> sigma;
-	// // 	pos.resize(xsize*ysize,2);
-	// // 	f.resize(xsize*ysize);
-	// // 	sigma.resize(xsize*ysize);
-	// // 	casa::Vector<casa::Double> curpos(2);
-	// // 	curpos=0;
-	// // 	for(int x=xmin;x<=xmax;x++){
-	// // 	  for(int y=ymin;y<=ymax;y++){
-	// // 	    int i = (x-xmin) + (y-ymin)*xsize;
-	// // 	    f(i) = this->itsFluxArray[i] // / noise
-	// // 	      ;
-	// //  	    sigma(i) = noise;
-	// // 	    curpos(0)=x;
-	// // 	    curpos(1)=y;
-	// // 	    pos.row(i)=curpos;
-	// // 	  }
-	// // 	}
-
-	// // 	std::cerr << "pos.nrow = " << pos.nrow() << "\n";
-
 	float boxFlux = 0.;
 	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
 	std::vector<Double> fluxes;
@@ -380,7 +289,7 @@ namespace askap
 	if(this->itsHeader.getBmajKeyword()>0){
 	  baseEstimate(0,3)=this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale();
 	  baseEstimate(0,4)=this->itsHeader.getBminKeyword()/this->itsHeader.getBmajKeyword();
-	  baseEstimate(0,5)=this->itsHeader.getBpaKeyword();
+	  baseEstimate(0,5)=this->itsHeader.getBpaKeyword() * M_PI / 180.;
 	}
 	else {
 	  float xwidth=(this->getXmax()-this->getXmin() + 1)/2.;
@@ -491,7 +400,6 @@ namespace askap
 	    passConv = passConv && ( fabs(solution[ctr](i,5))<2.*M_PI );
 	  }
 
-	  //	  passChisq = rchisq < 50.;  // Replace with actual evaluation of chisq function?
 	  passChisq = false;
 	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
 

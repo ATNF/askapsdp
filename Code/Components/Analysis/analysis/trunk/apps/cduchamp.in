@@ -53,12 +53,14 @@ Cduchamp.verbose      = true
 #Cduchamp.flagRobust  = false   #This applies to the workers only.
 Cduchamp.snrCut       = 10
 Cduchamp.flagGrowth   = true
-Cduchamp.growthCut    = 6.
+Cduchamp.growthCut    = 3
 #Cduchamp.threshold   = 0.005
 Cduchamp.pixelCentre  = average
+
 Cduchamp.flagATrous   = false
 Cduchamp.reconDim     = 2
 Cduchamp.snrRecon     = 3.
+
 Cduchamp.flagSmooth   = false
 Cduchamp.smoothType   = spectral
 Cduchamp.hanningWidth = 5.

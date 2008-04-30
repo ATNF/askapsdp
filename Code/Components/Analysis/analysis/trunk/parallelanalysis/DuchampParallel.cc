@@ -158,7 +158,6 @@ namespace askap
 
       }
       
-
     }
 
     //**************************************************************//
@@ -231,19 +230,19 @@ namespace askap
 
     void DuchampParallel::findSources()
     {
-      ///@details Searches the image/cube for objects, using the
-      ///duchamp::Cube::CubicSearch function. The detected objects are
-      ///then sent to the master using LOFAR Blobs. This is done
-      ///pixel-by-pixel, sending the pixel flux as well.
+      /// @details Searches the image/cube for objects, using the
+      /// appropriate search function given the user
+      /// parameters. Merging of neighbouring objects is then done,
+      /// and all WCS parameters are calculated.
       ///
       /// This is only done on the workers.
 
       if(isWorker()) {
         ASKAPLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
 
+	ASKAPLOG_INFO_STR(logger, "B#"<<itsRank<<": Stats summary:\n"<<itsCube.stats()<<itsCube.stats().getRobust()<<"\n");
 	if(itsCube.getSize()>0){
 
-	  itsCube.setCubeStats();
 	  if(itsCube.pars().getFlagATrous()){
 	    ASKAPLOG_INFO_STR(logger,  "Searching with reconstruction first");
 	    itsCube.ReconSearch();
@@ -258,12 +257,13 @@ namespace askap
 	  }
 	}
 
+	ASKAPLOG_INFO_STR(logger, "C#"<<itsRank<<": Stats summary:\n"<<itsCube.stats()<<itsCube.stats().getRobust()<<"\n");
 	// merge the objects, and grow them if necessary.
 	itsCube.ObjectMerger();
 
 	itsCube.calcObjectWCSparams();
 
-	int16 num = itsCube.getNumObj(), rank=this->itsRank;
+	int16 num = itsCube.getNumObj();
         ASKAPLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << this->itsRank);
 	
       }
@@ -274,6 +274,17 @@ namespace askap
     void DuchampParallel::fitSources()
     {
 
+      /// @details The list of RadioSource objects is populated: one
+      /// for each of the detected objects. If the 2D profile fitting
+      /// is requested, all sources that are not on the image boundary
+      /// are fitted by the RadioSource::fitGauss(float *, long *)
+      /// function. The fitting for those on the boundary is left for
+      /// the master to do after they have been combined with objects
+      /// from other subimages.
+      ///
+      /// @todo Make the boundary determination smart enough to know
+      /// which side is adjacent to another subimage.
+
       if(isWorker()){
 	
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source profiles.");
@@ -281,9 +292,7 @@ namespace askap
 	float noise;
 	if(itsCube.pars().getFlagUserThreshold()) noise = 1.;
 	else noise = itsCube.stats().getStddev();
-	float threshold;
-	if(itsCube.pars().getFlagUserThreshold()) threshold = itsCube.pars().getThreshold();
-	else threshold = itsCube.stats().getThreshold();
+	float threshold = itsCube.stats().getThreshold();
 
  	for(int i=0;i<itsCube.getNumObj();i++){
 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
@@ -323,10 +332,6 @@ namespace askap
 			    );
 	  src.setAtEdge(flagBoundary);
 	  if(!flagBoundary && itsFlagDoFit){
-	    //	    if( src.setFluxArray(&(this->itsVoxelList)) ){
-// 	    if( src.setFluxArray(itsCube.getArray()) ){
-// 	      src.fitGauss();
-// 	    }
 	    src.fitGauss(itsCube.getArray(),itsCube.getDimArray());
 	  }
 	  itsSourceList.push_back(src);
@@ -341,6 +346,15 @@ namespace askap
     void DuchampParallel::sendObjects() 
     {
 
+      /// @details The RadioSource objects on each worker, which
+      /// contain each detected object, are sent to the Master node
+      /// via LOFAR Blobs.
+      /// @todo Voxellist is really only needed for the boundary sources.
+      ///
+      /// In the non-parallel case, we put together a voxel list. Not
+      /// sure whether this is necessary at this point.
+      /// @todo Sort out voxelList necessity.
+
       if(isWorker()){
 
 	int16 num = itsCube.getNumObj(), rank=this->itsRank;
@@ -354,18 +368,18 @@ namespace askap
 	  out.putStart("detW2M",1);
 	  out << rank << num;
 	  for(int i=0;i<itsSourceList.size();i++){
+
 	    // for each RadioSource object, send to master
 	    out << itsSourceList[i];
 
-	    int border = sourcefitting::detectionBorder;
 	    /// @todo -- abstract this getting-the-surrounding-area into a class?
 	    int xmin,xmax,ymin,ymax,zmin,zmax;
-	    xmin = std::max(0 , int(itsSourceList[i].getXmin()-border));
-	    xmax = std::min(itsCube.getDimX()-1, itsSourceList[i].getXmax()+border);
-	    ymin = std::max(0 , int(itsSourceList[i].getYmin()-border));
-	    ymax = std::min(itsCube.getDimY()-1, itsSourceList[i].getYmax()+border);
-	    zmin = std::max(0 , int(itsSourceList[i].getZmin()-border));
-	    zmax = std::min(itsCube.getDimZ()-1, itsSourceList[i].getZmax()+border);
+	    xmin = std::max(0 , int(itsSourceList[i].boxXmin()));
+	    xmax = std::min(itsCube.getDimX()-1, itsSourceList[i].boxXmax());
+	    ymin = std::max(0 , int(itsSourceList[i].boxYmin()));
+	    ymax = std::min(itsCube.getDimY()-1, itsSourceList[i].boxYmax());
+	    zmin = std::max(0 , int(itsSourceList[i].boxZmin()));
+	    zmax = std::min(itsCube.getDimZ()-1, itsSourceList[i].boxZmax());
 	  
 	    int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
 	    out << numVox;
@@ -391,10 +405,18 @@ namespace askap
         else{ // if not parallel, still want to make the voxelList
 	  
 	  for(int i=0;i<itsSourceList.size();i++){
-	    for(int32 x=this->itsSourceList[i].boxXmin(); x<=this->itsSourceList[i].boxXmax(); x++){
-	      for(int32 y=this->itsSourceList[i].boxYmin(); y<=this->itsSourceList[i].boxYmax(); y++){
-		for(int32 z=this->itsSourceList[i].boxZmin(); z<=this->itsSourceList[i].boxZmax(); z++){
-	                 
+
+	    int xmin,xmax,ymin,ymax,zmin,zmax;
+	    xmin = std::max(0 , int(itsSourceList[i].boxXmin()));
+	    xmax = std::min(itsCube.getDimX()-1, itsSourceList[i].boxXmax());
+	    ymin = std::max(0 , int(itsSourceList[i].boxYmin()));
+	    ymax = std::min(itsCube.getDimY()-1, itsSourceList[i].boxYmax());
+	    zmin = std::max(0 , int(itsSourceList[i].boxZmin()));
+	    zmax = std::min(itsCube.getDimZ()-1, itsSourceList[i].boxZmax());
+	    for(int32 x=xmin; x<=xmax; x++){
+	      for(int32 y=ymin; y<=ymax; y++){
+		for(int32 z=zmin; z<=zmax; z++){
+	  
 		  float flux = 0.;
 		  if( (x>=0 && x<itsCube.getDimX()) &&
 		      (y>=0 && y<itsCube.getDimY()) &&
@@ -417,6 +439,11 @@ namespace askap
 
     void DuchampParallel::receiveObjects()
     {
+      /// @details On the Master node, receive the list of RadioSource
+      /// objects sent by the workers. Also receives the list of
+      /// detected and surrounding voxels - these will be used to
+      /// calculate parameters of any merged boundary sources.
+      /// @todo Voxellist is really only needed for the boundary sources.
       
       if(isMaster()){
  
@@ -441,7 +468,14 @@ namespace askap
 	      src.setXOffset(itsSectionList[i-1].getStart(0));
 	      src.setYOffset(itsSectionList[i-1].getStart(1));
 	      src.setZOffset(itsSectionList[i-1].getStart(2));
-	      //	      src.addOffsets();
+
+	      // Correct for any offsets;
+	      src.addOffsets();
+	      for(int f=0;f<src.fitset().size();f++){
+		src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
+		src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
+	      }
+
 	      itsSourceList.push_back(src);
 	      int numVox;
 	      in >> numVox;
@@ -453,7 +487,6 @@ namespace askap
 		x += itsSectionList[i-1].getStart(0);
 		y += itsSectionList[i-1].getStart(1);
 		z += itsSectionList[i-1].getStart(2);
-		//		if(inObj) object->addPixel(x,y,z);
 		PixelInfo::Voxel vox(x,y,z,flux);
 		itsVoxelList.push_back(vox);
 	      }
@@ -475,6 +508,18 @@ namespace askap
 
     void DuchampParallel::cleanup()
     {
+      /// @details Done on the Master node. This function gathers the
+      /// sources that are marked as on the boundary of subimages, and
+      /// combines them via the duchamp::Cubes::ObjectMerger()
+      /// function. The resulting sources are then fitted (if so
+      /// required) and have their WCS parameters calculated by the
+      /// calcObjectParams() function.
+      ///
+      /// Once this is done, these sources are added to the cube
+      /// detection list, along with the non-boundary objects. The
+      /// final list of RadioSource objects is then sorted (by the
+      /// Name field) and given object IDs.
+
 
       if(isMaster()){
 	
@@ -500,13 +545,10 @@ namespace askap
 
 	if(edgeSources.size()>0){ // if there are edge sources
 
-	  for(int i=0;i<edgeSources.size();i++){
-	    duchamp::Detection obj = edgeSources[i];
-	    obj.addOffsets();
-	    itsCube.addObject(obj);
-	  }
+	  for(int i=0;i<edgeSources.size();i++) itsCube.addObject(edgeSources[i]);
 	  
 	  ASKAPLOG_INFO_STR(logger, "MASTER: num sources in cube = "<<itsCube.getNumObj());
+	  itsCube.pars().setFlagGrowth(false);
 	  itsCube.ObjectMerger();
 	  this->calcObjectParams();
 	  ASKAPLOG_INFO_STR(logger, "MASTER: num sources in cube = "<<itsCube.getNumObj());
@@ -518,18 +560,15 @@ namespace askap
 	    src.setDetectionThreshold( threshold );
 	    src.setHeader( head );
 	    
-	    if(itsFlagDoFit){
-// 	      if( src.setFluxArray(&(this->itsVoxelList)) ){
-// 		src.fitGauss();
-// 	      }
-	      src.fitGauss(&this->itsVoxelList);
-	    }
+	    if(itsFlagDoFit) src.fitGauss(&this->itsVoxelList);
+	    
 	    itsSourceList.push_back(src);
 	  }
 	  
 	}
 
 	for(int i=0;i<goodSources.size();i++){
+	  goodSources[i].setHeader(head);
 	  itsSourceList.push_back(goodSources[i]);
 	}
 
@@ -546,12 +585,17 @@ namespace askap
 
     }
 
-
-
     //**************************************************************//
 
     void DuchampParallel::calcObjectParams()
     {
+
+      /// @details A function to calculate object parameters
+      /// (including WCS parameters), making use of the itsVoxelList
+      /// set of voxels. The function finds the voxels that appear in
+      /// each object in itsCube, making a vector of vectors of
+      /// voxels, then passes this vector to
+      /// duchamp::Cube::calcObjectWCSparams().
 
       int numVox = itsVoxelList.size();
       int numObj = itsCube.getNumObj();
@@ -604,7 +648,6 @@ namespace askap
 
 	if(itsCube.pars().getFlagKarma()){
 	  std::ofstream karmafile(itsCube.pars().getKarmaFile().c_str());
-	  for(int i=0;i<itsCube.getNumObj();i++) itsCube.pObject(i)->addOffsets();
 	  itsCube.outputDetectionsKarma(karmafile);
 	  karmafile.close();
 	}
@@ -615,6 +658,8 @@ namespace askap
 	  for(int i=0;i<itsSourceList.size();i++)
 	    itsSourceList[i].printSummary(summaryFile, columns, i==0);
 	  summaryFile.close();
+
+	  this->writeFitAnnotation();
 	}
 
       }
@@ -624,231 +669,7 @@ namespace askap
 
     //**************************************************************//
 
-    
-    // Condense the lists (on the master)
-    void DuchampParallel::condenseLists() 
-    {
-      /// @details Done only on the master. Receive the list of
-      /// detected pixels from the workers and store the objects in
-      /// itsCube's objectList. Also store the detected voxels in
-      /// itsVoxelList so that the fluxes are available for later use.
-      ///
-      /// Once all the objects are read, merge the object list to
-      /// combine adjacent/overlapping objects and remove unacceptable
-      /// ones.
-
-      if(isMaster()) {
-        // Get the lists from the workers here
-        ASKAPLOG_INFO_STR(logger,  "MASTER: Retrieving lists from workers" );
-
-	if(isParallel()) {
-	  LOFAR::BlobString bs;
-	  int16 rank, numObj;
-	  for (int i=1; i<itsNNode; i++)
-	    {
-	      itsConnectionSet->read(i-1, bs);
-	      LOFAR::BlobIBufString bib(bs);
-	      LOFAR::BlobIStream in(bib);
-	      int version=in.getStart("detW2M");
-	      ASKAPASSERT(version==1);
-	      in >> rank >> numObj;
-	      ASKAPLOG_INFO_STR(logger, "MASTER: Starting to read " 
-				 << numObj << " objects from worker #"<< rank);
-	      for(int obj=0;obj<numObj;obj++){
-		duchamp::Detection *object = new duchamp::Detection;
-		int32 objsize;
-		in >> objsize;
-		for(int p=0;p<objsize;p++){
-		  int32 x,y,z; 
-		  float flux;
-		  bool inObj;
-		  /*  in >> x >> y >> z >> flux; */
-		  in >> inObj >> x >> y >> z >> flux; 
-		  x += itsSectionList[i-1].getStart(0);
-		  y += itsSectionList[i-1].getStart(1);
-		  z += itsSectionList[i-1].getStart(2);
-		  if(inObj) object->addPixel(x,y,z);
-		  PixelInfo::Voxel vox(x,y,z,flux);
-		  itsVoxelList.push_back(vox);
-		}
-		itsCube.addObject(*object);
-		delete object;
-	      }
-	      in.getEnd();
-
-	      ASKAPLOG_INFO_STR(logger, "MASTER: Received list of size " 
-				 << numObj << " from worker #"<< rank);
-	      ASKAPLOG_INFO_STR(logger, "MASTER: Now have " 
-				 << itsCube.getNumObj() << " objects");
-	    }
-	}
-	// Now process the lists
-        ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists..." );
-	if(itsCube.getNumObj()>1) itsCube.ObjectMerger(); 
-        ASKAPLOG_INFO_STR(logger,  "MASTER: Condensing lists done" );
-
-     }
-      else {
-      }
-    }
-
-    void DuchampParallel::calcFluxes()
-    {
-      /// @details Done on the master. Calculate the fluxes for each
-      /// of the objects by constructing voxelLists. The WCS
-      /// parameters for each object are also calculated here, so the
-      /// WCS header information stored by the master must be
-      /// correct. The objects are then ordered by velocity. 
-      ///
-      /// In the parallel case, we do not set any object flags, as we
-      /// don't have all the flux information. This may be possible if
-      /// we pass all surrounding pixels as well as detected pixels,
-      /// but at the moment, no flags are set. In the serial case,
-      /// they are.
-
-      if(isMaster()){
-
-	if(isParallel()) {
-
-	  int numVox = itsVoxelList.size();
-	  int numObj = itsCube.getNumObj();
-	  std::vector<PixelInfo::Voxel> templist[numObj];
-
-	  ASKAPLOG_INFO_STR(logger, "MASTER: Calculating fluxes of " 
-			     << numObj << " detected objects.");
-
-	  for(int i=0;i<itsCube.getNumObj();i++){ // for each object
-	  
-	    std::vector<PixelInfo::Voxel> 
-	      objVoxList=itsCube.getObject(i).getPixelSet();
-	    std::vector<PixelInfo::Voxel>::iterator vox;
-	    // get the fluxes of each voxel
-	    for(vox=objVoxList.begin();vox<objVoxList.end();vox++){
-	      int ct=0;
-	      while(ct<numVox && !vox->match(itsVoxelList[ct])){
-		ct++;
-	      }
-	      if(numVox!=0 && ct==numVox){ // there has been no match -- problem!
-		ASKAPLOG_ERROR(logger, "MASTER: Found a voxel in the object lists that doesn't appear in the base list.");
-	      }
-	      else vox->setF( itsVoxelList[ct].getF() );
-	    }
-
-	    templist[i] = objVoxList;
-
-	  }
-	  std::vector< std::vector<PixelInfo::Voxel> > 
-	    bigVoxSet (templist, templist + numObj);
-
-	  itsCube.prepareOutputFile();
-	  if(itsCube.getNumObj()>0){
-	    // no flag-setting, as it's hard to do when we don't have
-	    // all the pixels. Particularly the negative flux flags
-	    itsCube.calcObjectWCSparams(bigVoxSet);
-	    itsCube.sortDetections();
-	  }
-
-	}
-	else {
-	  
-	  itsCube.prepareOutputFile();
-	  if(itsCube.getNumObj()>0){
-	    itsCube.calcObjectWCSparams();
-	    itsCube.setObjectFlags();
-	    itsCube.sortDetections();
-	  }
-	}
-      }      
-    }
-
-//     void DuchampParallel::printResults()
-//     {
-//       /// @details The final list of detected objects is written to
-//       /// the terminal and to the results file in the standard Duchamp
-//       /// manner.
-
-//       if(isMaster()) {
-// 	ASKAPLOG_INFO_STR(logger, "MASTER: Found " << itsCube.getNumObj() << " sources.");
-	
-// 	itsCube.outputDetectionList();
-
-// 	if(itsCube.pars().getFlagKarma()){
-// 	  std::ofstream karmafile(itsCube.pars().getKarmaFile().c_str());
-// 	  itsCube.outputDetectionsKarma(karmafile);
-// 	  karmafile.close();
-// 	}
-
-//       }
-//       else{
-//       }
-//     }
-    
-//     void DuchampParallel::fitSources()
-//     {
-//       /// @details The final list of detected objects is fitted with
-//       /// Gaussians (or other functions) using the RadioSource class.
-
-//       if(isMaster() && itsFlagDoFit) {
-// 	ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source profiles.");
-
-// 	duchamp::FitsHeader head = itsCube.getHead();
-// 	float noise;
-// 	if(itsCube.pars().getFlagUserThreshold()) noise = 1.;
-// 	else noise = itsCube.stats().getStddev();
-// 	float threshold;
-// 	if(itsCube.pars().getFlagUserThreshold()) threshold = itsCube.pars().getThreshold();
-// 	else threshold = itsCube.stats().getThreshold();
-
-//  	for(int i=0;i<itsCube.getNumObj();i++){
-// 	  ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
-
-// 	  sourcefitting::RadioSource src(itsCube.getObject(i));
-// 	  src.setNoiseLevel( noise );
-// 	  src.setDetectionThreshold( threshold );
-// 	  src.setHeader( &head );
-// 	  if( src.setFluxArray(&(this->itsVoxelList)) ){
-// 	    src.fitGauss();
-// 	    itsSourceList.push_back(src);
-// 	  }
-// 	}
-
-// 	std::vector<sourcefitting::RadioSource>::iterator src;
-// 	std::ofstream summaryFile(this->itsSummaryFile.c_str());
-// 	std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
-// 	int prec=columns[duchamp::Column::FINT].getPrecision();
-// 	if(prec < 6)
-// 	  for(int i=prec;i<6;i++) columns[duchamp::Column::FINT].upPrec();
-// 	prec=columns[duchamp::Column::FPEAK].getPrecision();
-// 	if(prec < 6)
-// 	  for(int i=prec;i<6;i++) columns[duchamp::Column::FPEAK].upPrec();
-// 	columns[duchamp::Column::NUM].printTitle(summaryFile);
-// 	columns[duchamp::Column::RA].printTitle(summaryFile);
-// 	columns[duchamp::Column::DEC].printTitle(summaryFile);
-// 	columns[duchamp::Column::VEL].printTitle(summaryFile);
-// 	columns[duchamp::Column::FINT].printTitle(summaryFile);
-// 	columns[duchamp::Column::FPEAK].printTitle(summaryFile);
-// 	int width = columns[duchamp::Column::NUM].getWidth() + 
-// 	  columns[duchamp::Column::RA].getWidth() + 
-// 	  columns[duchamp::Column::DEC].getWidth() +
-// 	  columns[duchamp::Column::VEL].getWidth() +
-// 	  columns[duchamp::Column::FINT].getWidth() +
-// 	  columns[duchamp::Column::FPEAK].getWidth();
-// 	summaryFile << " #Fit  F_int (fit)   F_pk (fit)\n";
-// 	summaryFile << std::setfill('-') << std::setw(width) << '-'
-// 		    << "-------------------------------\n";
-// 	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
-//  	  src->printSummary(summaryFile, columns);
-// 	}
-
-// 	this->writeFitAnnotation();
-
-//       }
-//       else {
-//       }
-      
-//     }
-
-
+ 
     void DuchampParallel::writeFitAnnotation()
     {
       /// @details This function writes a Karma annotation file
@@ -877,6 +698,7 @@ namespace askap
 
     }
 
+    //**************************************************************//
     
     void DuchampParallel::gatherStats()
     {
@@ -885,51 +707,62 @@ namespace askap
       /// rms/MADFM for the entire dataset and store these values in
       /// the master's itsCube statsContainer.
 
-      if(!itsCube.pars().getFlagUserThreshold()){
+//       if(!itsCube.pars().getFlagUserThreshold()){
 	findMeans();
 	combineMeans();
 	broadcastMean();
 	findRMSs();
 	combineRMSs();
-      }
-      else itsCube.stats().setThreshold( itsCube.pars().getThreshold() );
+	//      }
+	if(itsCube.pars().getFlagUserThreshold())//{
+	  //      else 
+	  itsCube.stats().setThreshold( itsCube.pars().getThreshold() );
     }
 
 
+    //**************************************************************//
+
     void DuchampParallel::findMeans()
     {
-      /// @details Find the mean or median (according to the
-      /// flagRobustStats parameter) of the worker's image/cube, then
-      /// send to the master via LOFAR Blobs.
+      /// @details In the parallel case, this finds the mean or median
+      /// (according to the flagRobustStats parameter) of the worker's
+      /// image/cube, then sends that value to the master via LOFAR
+      /// Blobs.
+      ///
+      /// In the serial (non-parallel) case, all stats for the cube
+      /// are calculated in the standard manner via the
+      /// duchamp::Cube::setCubeStats() function.
 
       if(isWorker()) {
-	ASKAPLOG_INFO_STR(logger, "Finding mean: worker " << this->itsRank);
-
-	if(itsCube.pars().getFlagATrous()) itsCube.ReconCube();
-	else if(itsCube.pars().getFlagSmooth()) itsCube.SmoothCube();
-
-	int32 size = itsCube.getSize();
-	float mean = 0.,rms;
-	float *array;
-	// make a mask in case there are blank pixels.
-	bool *mask = itsCube.pars().makeBlankMask(itsCube.getArray(), itsCube.getSize());
-
-	if(size>0){
-	  
-	  if(itsCube.pars().getFlagATrous())       array = itsCube.getArray();
-	  else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
-	  else                                     array = itsCube.getArray();
-	  
-	  // calculate both mean & rms, but ignore rms for the moment.
-	  if(itsCube.pars().getFlagRobustStats()) findMedianStats(array,size,mask,mean,rms);
-	  else                                    findNormalStats(array,size,mask,mean,rms);
-
-	}
-	double dmean = mean;
-
-	ASKAPLOG_INFO_STR(logger, "#" << this->itsRank << ": Mean = " << mean );
 	
-	if(isParallel()) {
+	if(isParallel()){
+
+	  ASKAPLOG_INFO_STR(logger, "Finding mean: worker " << this->itsRank);
+
+	  if(itsCube.pars().getFlagATrous()) itsCube.ReconCube();
+	  else if(itsCube.pars().getFlagSmooth()) itsCube.SmoothCube();
+
+	  int32 size = itsCube.getSize();
+	  float mean = 0.,rms;
+	  float *array;
+	  // make a mask in case there are blank pixels.
+	  bool *mask = itsCube.pars().makeBlankMask(itsCube.getArray(), itsCube.getSize());
+
+	  if(size>0){
+	  
+	    if(itsCube.pars().getFlagATrous())       array = itsCube.getArray();
+	    else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
+	    else                                     array = itsCube.getArray();
+	  
+	    // calculate both mean & rms, but ignore rms for the moment.
+	    if(itsCube.pars().getFlagRobustStats()) findMedianStats(array,size,mask,mean,rms);
+	    else                                    findNormalStats(array,size,mask,mean,rms);
+
+	  }
+	  double dmean = mean;
+
+	  ASKAPLOG_INFO_STR(logger, "#" << this->itsRank << ": Mean = " << mean );
+	
 	  LOFAR::BlobString bs;
 	  bs.resize(0);
 	  LOFAR::BlobOBufString bob(bs);
@@ -943,10 +776,8 @@ namespace askap
 	  ASKAPLOG_INFO_STR(logger, "Sent mean to the master from worker " << this->itsRank );
 	}
 	else {
-	  // serial case
-	  if(itsCube.pars().getFlagRobustStats()) itsCube.stats().setMedian(mean);
-	  else itsCube.stats().setMean(mean);
-	  itsCube.stats().setRobust(itsCube.pars().getFlagRobustStats());
+	  // serial case -- can just calculate all stats at once.
+	  this->itsCube.setCubeStats();
 	}
 
       }
@@ -954,17 +785,22 @@ namespace askap
       }
     }
 
+    //**************************************************************//
+
     void DuchampParallel::findRMSs() 
     {
-      /// @details Find the rms or the median absolute deviation from
-      /// the median (MADFM) (dictated by the flagRobustStats
-      /// parameter) of the worker's image/cube, then send to the
-      /// master via LOFAR Blobs. To calculate the rms/MADFM, the mean
-      /// of the full dataset must be read from the master (again
-      /// passed via LOFAR Blobs). The calculation uses the
-      /// findSpread() function.
+      /// @details In the parallel case, this finds the rms or the
+      /// median absolute deviation from the median (MADFM) (dictated
+      /// by the flagRobustStats parameter) of the worker's
+      /// image/cube, then sends that value to the master via LOFAR
+      /// Blobs. To calculate the rms/MADFM, the mean of the full
+      /// dataset must be read from the master (again passed via LOFAR
+      /// Blobs). The calculation uses the findSpread() function.
+      ///
+      /// In the serial case, nothing is done, as we have already
+      /// calculated the rms in the findMeans() function.
 
-      if(isWorker()) {
+      if(isWorker() && isParallel()) {
 	ASKAPLOG_INFO_STR(logger, "About to calculate rms on worker " << this->itsRank);
 
 	// first read in the overall mean for the cube
@@ -1006,7 +842,6 @@ namespace askap
 	ASKAPLOG_INFO_STR(logger, "#" << this->itsRank << ": rms = " << rms );
 
 	// return it to the master
-	if(isParallel()) {
 	  LOFAR::BlobString bs2;
 	  bs2.resize(0);
 	  LOFAR::BlobOBufString bob(bs2);
@@ -1016,20 +851,15 @@ namespace askap
 	  out << rank << rms << size;
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs2);
-	  //	  itsConnectionSet->write(this->itsRank,bs2);
 	  ASKAPLOG_INFO_STR(logger, "Sent local rms to the master from worker " << this->itsRank );
-	}
-	else{
-	  //serial case
-	  if(itsCube.pars().getFlagRobustStats()) itsCube.stats().setMadfm(rms);
-	  else itsCube.stats().setStddev(rms);
-	}
 
       }
       else {
       }
 
     }
+
+    //**************************************************************//
 
     void DuchampParallel::combineMeans()
     {
@@ -1079,6 +909,8 @@ namespace askap
       }
     }
 	
+    //**************************************************************//
+
     void DuchampParallel::broadcastMean() 
     {
       /// @details The mean/median value of the full dataset is sent
@@ -1100,6 +932,8 @@ namespace askap
       else {
       }
     }
+
+    //**************************************************************//
 
     void DuchampParallel::combineRMSs()
     {
@@ -1141,15 +975,19 @@ namespace askap
 	itsCube.stats().setStddev(rms);
 
 	double av = itsCube.stats().getMean();
-	double threshold = av + rms * itsCube.pars().getCut();
-	itsCube.stats().setThreshold(threshold);
-	itsCube.pars().setFlagUserThreshold(true);
-	itsCube.pars().setThreshold(threshold);
+	itsCube.stats().setRobust(false);
+	if(!this->itsCube.pars().getFlagUserThreshold()){
+	  itsCube.stats().setThresholdSNR(itsCube.pars().getCut());	
+	  itsCube.pars().setFlagUserThreshold(true);
+	  itsCube.pars().setThreshold(itsCube.stats().getThreshold());
+	}
 
 	ASKAPLOG_INFO_STR(logger, "MASTER: OVERALL RMS = " << rms);
 
       }
     }
+
+    //**************************************************************//
 
     void DuchampParallel::broadcastThreshold() 
     {
@@ -1164,7 +1002,9 @@ namespace askap
 	LOFAR::BlobOStream out(bob);
 	out.putStart("threshM2W",1);
 	double threshold = itsCube.stats().getThreshold();
-	out << threshold;
+	double mean = itsCube.stats().getMiddle();
+	double rms = itsCube.stats().getSpread();
+	out << threshold << mean << rms;
 	out.putEnd();
 	itsConnectionSet->writeAll(bs);
 	ASKAPLOG_INFO_STR(logger, "MASTER: Sent threshold (" 
@@ -1175,13 +1015,15 @@ namespace askap
     }
 
 
+    //**************************************************************//
+
     void DuchampParallel::receiveThreshold()
     {
       /// @details The workers read the detection threshold sent via LOFAR Blobs from the master.
       
-     if(isWorker()) {
+      if(isWorker()) {
 
-	double threshold;
+	double threshold, mean, rms;
 	if(isParallel()) {
 	  LOFAR::BlobString bs;
 	  itsConnectionSet->read(0, bs);
@@ -1189,10 +1031,14 @@ namespace askap
 	  LOFAR::BlobIStream in(bib);
 	  int version=in.getStart("threshM2W");
 	  ASKAPASSERT(version==1);
-	  in >> threshold;
+	  in >> threshold >> mean >> rms;
 	  in.getEnd();
 
-	  itsCube.pars().setFlagUserThreshold(true);
+	  this->itsCube.stats().setRobust(false);
+	  this->itsCube.stats().setMean(mean);
+	  this->itsCube.stats().setStddev(rms);
+	  this->itsCube.pars().setFlagUserThreshold(true);
+	  ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Setting mean to be " << mean << " and rms " << rms);
 	}
 	else{
 	  if(itsCube.pars().getFlagUserThreshold())
@@ -1201,10 +1047,13 @@ namespace askap
 	    threshold = itsCube.stats().getMiddle() + itsCube.stats().getSpread()*itsCube.pars().getCut();
 	}
 
-	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker " << itsRank << " to be " << threshold);
+	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker  " << itsRank << " to be " << threshold);
 
 	itsCube.pars().setThreshold(threshold);
-     }
+
+	ASKAPLOG_INFO_STR(logger, "A#"<<itsRank<<": Stats summary:\n"<<itsCube.stats()<<itsCube.stats().getRobust()<<"\n");
+
+      }
     }
 
 
