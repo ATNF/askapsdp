@@ -29,10 +29,14 @@ struct IBasicIllumination {
   /// @details This is the main method which populates the 
   /// supplied uv-pattern with the values corresponding to the model
   /// represented by this object. It has to be overridden in the 
-  /// derived classes.
+  /// derived classes. An optional phase slope can be applied to
+  /// simulate offset pointing.
   /// @param[in] freq frequency in Hz for which an illumination pattern is required
   /// @param[in] pattern a UVPattern object to fill
-  virtual void getPattern(double freq, UVPattern &pattern) const = 0;
+  /// @param[in] l angular offset in the u-direction (in radians)
+  /// @param[in] m angular offset in the v-direction (in radians)
+  virtual void getPattern(double freq, UVPattern &pattern, double l = 0., 
+                          double m = 0.) const = 0;
   
   /// @brief empty virtual destructor to keep the compiler happy
   virtual ~IBasicIllumination();
