@@ -29,6 +29,26 @@ using namespace askap;
 namespace askap {
 namespace synthesis {
 
+
+/// @brief a helper method for a deep copy of casa arrays held in
+/// stl vectors
+/// @param[in] in input array
+/// @param[out] out output array (will be resized)
+template<typename T>
+void deepCopyOfSTDVector(const std::vector<T> &in,
+                         std::vector<T> &out)
+{
+   out.resize(in.size());
+
+   const typename std::vector<T>::const_iterator inEnd = in.end();
+   typename std::vector<T>::iterator outIt = out.begin();
+   for (typename std::vector<T>::const_iterator inIt = in.begin();
+        inIt != inEnd; ++inIt,++outIt) {
+        *outIt = inIt->copy();
+   }
+}
+
+
 TableVisGridder::TableVisGridder() :
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
@@ -46,6 +66,27 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
 	ASKAPCHECK(support>0, "Maximum support must be greater than 0");
 }
+
+/// @brief copy constructor
+/// @details it is required to decouple arrays between the input object
+/// and the copy.
+/// @param[in] other input object
+TableVisGridder::TableVisGridder(const TableVisGridder &other) : 
+     itsAxes(other.itsAxes), itsShape(other.itsShape), itsDopsf(other.itsDopsf),
+     itsUVCellSize(other.itsUVCellSize.copy()), 
+     itsSumWeights(other.itsSumWeights.copy()), 
+     itsSupport(other.itsSupport), itsOverSample(other.itsOverSample),
+     itsCSize(other.itsCSize), itsCCenter(other.itsCCenter), itsName(other.itsName),
+     itsModelIsEmpty(other.itsModelIsEmpty), itsSamplesGridded(other.itsSamplesGridded),
+     itsSamplesDegridded(other.itsSamplesDegridded), itsNumberGridded(other.itsNumberGridded),
+     itsNumberDegridded(other.itsNumberDegridded), itsTimeGridded(other.itsTimeGridded),
+     itsTimeDegridded(other.itsTimeDegridded)
+{
+   deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
+   deepCopyOfSTDVector(other.itsGrid, itsGrid);   
+   deepCopyOfSTDVector(other.itsGridPSF, itsGridPSF);
+}
+     
 
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {

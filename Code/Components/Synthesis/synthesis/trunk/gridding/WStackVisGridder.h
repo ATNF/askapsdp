@@ -35,6 +35,12 @@ namespace askap
 				WStackVisGridder(const double wmax, const int nwplanes);
 
 				virtual ~WStackVisGridder();
+				
+				/// @brief copy constructor
+				/// @details It is required to decouple internal arrays between
+				/// input object and the copy
+				/// @param[in] other input object
+				WStackVisGridder(const WStackVisGridder &other);
 
 				/// @brief Initialise the gridding
 				/// @param axes axes specifications

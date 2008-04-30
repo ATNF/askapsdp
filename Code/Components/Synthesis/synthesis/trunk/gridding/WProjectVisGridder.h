@@ -45,6 +45,12 @@ namespace askap
           const std::string& name=std::string(""));
 
       virtual ~WProjectVisGridder();
+      
+      /// @brief copy constructor
+      /// @details It is required to decouple internal arrays in the input
+      /// object and the copy.
+      /// @param[in] other input object
+      WProjectVisGridder(const WProjectVisGridder &other);
 
       /// Clone a copy of this Gridder
       virtual IVisGridder::ShPtr clone();

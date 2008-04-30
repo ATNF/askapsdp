@@ -55,6 +55,12 @@ namespace askap
       TableVisGridder(const int overSample, const int support,
           const std::string& name=std::string(""));
 
+      /// @brief copy constructor
+      /// @details it is required to decouple arrays between the input object
+      /// and the copy.
+      /// @param[in] other input object
+      TableVisGridder(const TableVisGridder &other);
+      
       virtual ~TableVisGridder();
 
       /// @brief Save to a table (for debugging)

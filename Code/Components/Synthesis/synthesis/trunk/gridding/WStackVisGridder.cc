@@ -38,6 +38,15 @@ namespace askap
     WStackVisGridder::~WStackVisGridder()
     {
     }
+    
+    /// @brief copy constructor
+	/// @details It is required to decouple internal arrays between
+	/// input object and the copy
+	/// @param[in] other input object
+	WStackVisGridder::WStackVisGridder(const WStackVisGridder &other) :
+	     SphFuncVisGridder(other), itsWScale(other.itsWScale),
+	     itsNWPlanes(other.itsNWPlanes), itsGMap(other.itsGMap.copy()) {}
+    
 
     /// Clone a copy of this Gridder
     IVisGridder::ShPtr WStackVisGridder::clone()
