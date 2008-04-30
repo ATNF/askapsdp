@@ -64,7 +64,10 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
-		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(diameter, blockage,
+		
+		boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(diameter,blockage)); 
+		
+		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(illum,
 				wmax, nwplanes, cutoff, oversample,
 				maxSupport, maxFeeds, maxFields, pointingTol, freqDep, tablename));
 	} else if (parset.getString("gridder")=="AProjectWStack") {

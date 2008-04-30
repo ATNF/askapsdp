@@ -61,6 +61,22 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(
 	itsCurrentField=0;
 }
 
+/// @brief copy constructor
+/// @details It is required to decouple internal arrays between input object
+/// and this copy.
+/// @param[in] other input object
+/// @note illumination pattern is copied as a shared pointer, hence referencing
+/// the same model
+AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridder &other) :
+       WStackVisGridder(other), itsReferenceFrequency(other.itsReferenceFrequency),
+       itsIllumination(other.itsIllumination), itsMaxFeeds(other.itsMaxFeeds),
+       itsMaxFields(other.itsMaxFields), itsPointingTolerance(other.itsPointingTolerance),
+       itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),
+       itsFreqDep(other.itsFreqDep), itsMaxSupport(other.itsMaxSupport),
+       itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
+       itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()) {}
+
+
 AProjectWStackVisGridder::~AProjectWStackVisGridder() {
 }
 
@@ -266,7 +282,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 		}
 	}
 
-	if (nDone==itsMaxFeeds*itsMaxFields) {
+	if (nDone == itsMaxFeeds*itsMaxFields) {
 		ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
 				<< itsConvFunc[0].shape() << " by " << itsConvFunc.size()
 				<< " planes");
@@ -274,7 +290,6 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 			save(itsName);
 		}
 	}
-	ASKAPCHECK(nDone>0, "Could not find information for convolution functions");
 	ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
 
 }

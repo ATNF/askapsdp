@@ -80,8 +80,10 @@ namespace askap
 
 	//        itsBox.reset(new BoxVisGridder());
         itsSphFunc.reset(new SphFuncVisGridder());
-        itsAWProject.reset(new AWProjectVisGridder(120.0, 10.0, 10000.0, 9, 1e-3, 1, 128, 1));
         boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(120.0, 10.0));
+        // illumination models can easily be shared between gridders if parameters,
+        // like dish size and blockage are the same
+        itsAWProject.reset(new AWProjectVisGridder(illum, 10000.0, 9, 1e-3, 1, 128, 1));
         itsAProjectWStack.reset(new AProjectWStackVisGridder(illum, 10000.0, 9, 1, 128, 1));
         itsWProject.reset(new WProjectVisGridder(10000.0, 9, 1e-3, 1, 128, ""));
         itsWStack.reset(new WStackVisGridder(10000.0, 9));

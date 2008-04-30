@@ -49,7 +49,7 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
     // scaled l and m to take the calculations out of the loop
     // these quantities are effectively dimensionless 
     const double lScaled = 2.*casa::C::pi*cellU *l;
-	const double mScaled = 2.*casa::C::pi*cellV *m;
+    const double mScaled = 2.*casa::C::pi*cellV *m;
     
     // zero value of the pattern by default
     pattern.pattern().set(0.);

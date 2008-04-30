@@ -10,6 +10,9 @@
 #define AWPROJECTVISGRIDDER_H_
 
 #include <gridding/WProjectVisGridder.h>
+#include <gridding/IBasicIllumination.h>
+
+#include <boost/shared_ptr.hpp>
 
 namespace askap
 {
@@ -33,8 +36,7 @@ namespace askap
   public:
 
       /// @brief Construct antenna illumination pattern/W term gridder
-      /// @param diameter Antenna diameter (meters)
-      /// @param blockage Antenna blockage (meters)
+      /// @param illum  Antenna illumination model
       /// @param wmax Maximum baseline (wavelengths)
       /// @param nwplanes Number of w planes
       /// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
@@ -45,12 +47,19 @@ namespace askap
       /// @param pointingTol Pointing tolerance in radians
       /// @param frequencyDependent Frequency dependent gridding?
       /// @param name Name of table to save convolution function into
-      AWProjectVisGridder(const double diameter, const double blockage,
+      AWProjectVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
           const double wmax, const int nwplanes, const double cutoff,
           const int overSample, const int maxSupport,
           const int maxFeeds=1, const int maxFields=1, const double pointingTol=0.0001,
           const bool frequencyDependent=true, 
           const std::string& name=std::string(""));
+
+      /// @brief copy constructor
+      /// @details It is required to decouple internal array arrays, otherwise
+      /// those arrays are shared between all cloned gridders of this type
+      /// @param[in] other input object
+      /// @note illumination model is copied as a pointer, so the same model is referenced
+      AWProjectVisGridder(const AWProjectVisGridder &other);
 
       virtual ~AWProjectVisGridder();
 
@@ -79,10 +88,8 @@ namespace askap
   private:
       /// Reference frequency for illumination pattern. 
       double itsReferenceFrequency;
-      /// Antenna diameter
-      double itsDiameter;
-      /// Antenna blockage
-      double itsBlockage;
+      /// Antenna illumination model
+      boost::shared_ptr<IBasicIllumination const> itsIllumination;
       /// Is the convolution function frequency dependent?
       bool itsFreqDep;
       /// Maximum number of feeds

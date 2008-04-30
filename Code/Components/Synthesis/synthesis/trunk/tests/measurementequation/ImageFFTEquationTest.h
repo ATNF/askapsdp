@@ -2,6 +2,7 @@
 //#include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/AWProjectVisGridder.h>
+#include <gridding/DiskIllumination.h>
 #include <measurementequation/ImageSolver.h>
 #include <dataaccess/DataIteratorStub.h>
 #include <fitting/ParamsCasaTable.h>
@@ -116,8 +117,10 @@ namespace askap
       {
         // Predict with the "perfect" parameters"
         ImagingNormalEquations ne(*params1);
-        IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AWProjectVisGridder(12.0,
-            1.0, 8000, 9, 1e-3, 8, 256));
+        boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(12.0, 1.0));
+        
+        IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AWProjectVisGridder(illum,
+            8000, 9, 1e-3, 8, 256));
         p1.reset(new ImageFFTEquation(*params1, idi, gridder));
         p2.reset(new ImageFFTEquation(*params2, idi, gridder));
         p1->predict();

@@ -53,6 +53,12 @@ namespace askap
           const double pointingTol=0.0001, const bool frequencyDependent=true, 
           const std::string& name=std::string(""));
 
+      /// @brief copy constructor
+      /// @details It is required to decouple internal arrays between input object
+      /// and this copy.
+      /// @param[in] other input object
+      AProjectWStackVisGridder(const AProjectWStackVisGridder &other);
+    
       virtual ~AProjectWStackVisGridder();
 
       /// Clone a copy of this Gridder

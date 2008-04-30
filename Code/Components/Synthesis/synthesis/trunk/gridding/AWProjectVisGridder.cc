@@ -26,22 +26,19 @@ using namespace askap;
 namespace askap {
 namespace synthesis {
 
-AWProjectVisGridder::AWProjectVisGridder(const double diameter,
-		const double blockage, const double wmax, const int nwplanes,
+AWProjectVisGridder::AWProjectVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
+        const double wmax, const int nwplanes,
 		const double cutoff, const int overSample, const int maxSupport,
 		const int maxFeeds, const int maxFields, const double pointingTol,
 		const bool frequencyDependent, const std::string& name) :
 	WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, name),
-			itsReferenceFrequency(0.0), itsDiameter(diameter),
-			itsBlockage(blockage), itsFreqDep(frequencyDependent),
+			itsReferenceFrequency(0.0), itsIllumination(illum),
+			itsFreqDep(frequencyDependent),
 			itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
 			itsPointingTolerance(pointingTol)
 
 {
-	ASKAPCHECK(diameter>0.0, "Blockage must be positive");
-	ASKAPCHECK(diameter>blockage,
-			"Antenna diameter must be greater than blockage");
-	ASKAPCHECK(blockage>=0.0, "Blockage must be non-negative");
+	ASKAPDEBUGASSERT(itsIllumination);
 	ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
 	ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -61,6 +58,20 @@ AWProjectVisGridder::AWProjectVisGridder(const double diameter,
 	itsLastField=-1;
 	itsCurrentField=0;
 }
+
+/// @brief copy constructor
+/// @details It is required to decouple internal array arrays, otherwise
+/// those arrays are shared between all cloned gridders of this type
+/// @note illumination model is copied as a pointer, so the same model is referenced
+/// @param[in] other input object
+AWProjectVisGridder::AWProjectVisGridder(const AWProjectVisGridder &other) :
+   WProjectVisGridder(other), itsReferenceFrequency(other.itsReferenceFrequency),
+   itsIllumination(other.itsIllumination), itsFreqDep(other.itsFreqDep),
+   itsMaxFeeds(other.itsMaxFeeds), itsMaxFields(other.itsMaxFields),
+   itsPointingTolerance(other.itsPointingTolerance), 
+   itsCurrentField(other.itsCurrentField), itsLastField(other.itsLastField),
+   itsPointings(other.itsPointings.copy()), itsSlopes(other.itsSlopes.copy()),
+   itsDone(other.itsDone.copy()) {}
 
 AWProjectVisGridder::~AWProjectVisGridder() {
 }
@@ -152,8 +163,7 @@ void AWProjectVisGridder::initIndices(IDataSharedIter& idi) {
 /// could be optimized by using symmetries.
 /// @todo Make initConvolutionFunction more robust
 void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
-
-	casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
+    casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
 	casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
 	casa::MVDirection out(refLon, refLat);
 	const int nSamples = idi->uvw().size();
@@ -171,11 +181,11 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 	/// Limit the size of the convolution function since
 	/// we don't need it finely sampled in image space. This
 	/// will reduce the time taken to calculate it.
-	int nx=std::min(itsMaxSupport, itsShape(0));
-	int ny=std::min(itsMaxSupport, itsShape(1));
+	casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
+	casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
 
-	int qnx=nx/itsOverSample;
-	int qny=ny/itsOverSample;
+	casa::uInt qnx=nx/itsOverSample;
+	casa::uInt qny=ny/itsOverSample;
 
 	// Find the actual cellsizes in x and y (radians) 
 	// corresponding to the limited support
@@ -184,14 +194,18 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 
 	casa::Vector<float> ccfx(qnx);
 	casa::Vector<float> ccfy(qny);
-	for (int ix=0; ix<qnx; ix++) {
-		float nux=std::abs(float(ix-qnx/2))/float(qnx/2);
+	for (casa::uInt ix=0; ix<qnx; ++ix) {
+		float nux=std::abs(float(ix)-float(qnx/2))/float(qnx/2);
 		ccfx(ix)=grdsf(nux)/float(qnx);
 	}
-	for (int iy=0; iy<qny; iy++) {
-		float nuy=std::abs(float(iy-qny/2))/float(qny/2);
+	for (casa::uInt iy=0; iy<qny; ++iy) {
+		float nuy=std::abs(float(iy)-float(qny/2))/float(qny/2);
 		ccfy(iy)=grdsf(nuy)/float(qny);
 	}
+
+    // this is just a buffer in the uv-space, oversampling has already been
+    // taken into account by using qnx,qny instead of nx and ny
+    UVPattern pattern(qnx,qny, itsUVCellSize(0),itsUVCellSize(1),1);
 
 	int nDone=0;
 	for (int row=0; row<nSamples; row++) {
@@ -207,43 +221,14 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 					*cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
 					*cos(offset.getLong()-out.getLong());
 
-			double ax=2.0f*casa::C::pi*itsUVCellSize(0) *itsSlopes(0, feed,
-					itsCurrentField);
-			double ay=2.0f*casa::C::pi*itsUVCellSize(1) *itsSlopes(1, feed,
-					itsCurrentField);
-
 			for (int chan=0; chan<nChan; chan++) {
+					
+				/// Extract illumination pattern for this channel
+				itsIllumination->getPattern(idi->frequency()[chan], pattern,
+				         itsSlopes(0, feed, itsCurrentField),
+				         itsSlopes(1, feed, itsCurrentField));
 
-				/// Make the disk for this channel
-				casa::Matrix<casa::Complex> disk(qnx, qny);
-				disk.set(0.0);
-
-				/// Calculate the size of one cell in m.
-				double cell=std::abs(itsUVCellSize(0)*(casa::C::c
-						/idi->frequency()[chan]));
-				double rmax=std::pow(itsDiameter/(2.0*cell), 2);
-				double rmin=std::pow(itsBlockage/(2.0*cell), 2);
-
-				/// Calculate the antenna voltage pattern, including the
-				/// phase shift due to pointing
-				double sumdisk=0.0;
-				for (int ix=0; ix<qnx; ix++) {
-					double nux=double(ix-qnx/2);
-					double nux2=nux*nux;
-					for (int iy=0; iy<qny; iy++) {
-						double nuy=double(iy-qny/2);
-						double nuy2=nuy*nuy;
-						double r=nux2+nuy2;
-						if ((r>=rmin)&&(r<=rmax)) {
-							double phase=ax*nux+ay*nuy;
-							disk(ix, iy)=casa::Complex(cos(phase), -sin(phase));
-							sumdisk+=1.0;
-						}
-					}
-				}
-				ASKAPCHECK(sumdisk>0.0, "Integral of disk should be non-zero");
-				disk*=casa::Complex(float(qnx)*float(qny)/sumdisk);
-				fft2d(disk, false);
+				fft2d(pattern.pattern(), false);
 
 				/// Calculate the total convolution function including
 				/// the w term and the antenna convolution function
@@ -251,22 +236,23 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 
 				for (int iw=0; iw<itsNWPlanes; iw++) {
 					thisPlane.set(0.0);
+				
 
 					// Loop over the central nx, ny region, setting it to the product
 					// of the phase screen and the spheroidal function
 					double maxCF=0.0;
 					double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
-					for (int iy=0; iy<qny; iy++) {
-						double y2=double(iy-qny/2)*ccelly;
+					for (int iy=0; iy<int(qny); ++iy) {
+						double y2=(double(iy)-double(qny)/2)*ccelly;
 						y2*=y2;
-						for (int ix=0; ix<qnx; ix++) {
-							double x2=double(ix-qnx/2)*ccellx;
+						for (int ix=0; ix<int(qnx); ++ix) {
+							double x2=(double(ix)-double(qnx)/2)*ccellx;
 							x2*=x2;
 							double r2=x2+y2;
 							if (r2<1.0) {
 								double phase=w*(1.0-sqrt(1.0-r2));
-								casa::Complex wt=disk(ix, iy)
-										*conj(disk(ix, iy))
+								casa::Complex wt=pattern(ix, iy)
+										*conj(pattern(ix, iy))
 										*casa::Complex(ccfx(ix)*ccfy(iy));
 								thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt
 										*casa::Complex(cos(phase), -sin(phase));
@@ -288,28 +274,28 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 					if (itsSupport==0) {
 						// Find the support by starting from the edge and
 						// working in
-						for (int ix=0; ix<nx/2; ix++) {
+						for (int ix=0; ix<int(nx)/2; ix++) {
 							/// Check on horizontal axis
 							if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF)) {
-								itsSupport=abs(ix-nx/2)/itsOverSample;
+								itsSupport=abs(ix-int(nx)/2)/itsOverSample;
 								break;
 							}
 							///  Check on diagonal: ix, ix is correct!
 							if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF)) {
-								itsSupport=int(1.414*float(abs(ix-nx/2)/itsOverSample));
+								itsSupport=int(1.414*float(abs(ix-int(nx)/2)/itsOverSample));
 								break;
 							}
 							if (nx==ny) {
 								/// Check on vertical axis
 								if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF)) {
-									itsSupport=abs(ix-ny/2)/itsOverSample;
+									itsSupport=abs(ix-int(ny)/2)/itsOverSample;
 									break;
 								}
 							}
 						}
 						ASKAPCHECK(itsSupport>0,
 								"Unable to determine support of convolution function");
-						ASKAPCHECK(itsSupport*itsOverSample<nx/2,
+						ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
 								"Overflowing convolution function - increase maxSupport or decrease overSample")
 						itsCSize=2*itsSupport+1;
 						ASKAPLOG_INFO_STR(
@@ -317,6 +303,9 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 								"Convolution function support = " << itsSupport
 										<< " pixels, convolution function size = "
 										<< itsCSize << " pixels");
+					    // just for log output					
+						const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
+						                   /idi->frequency()[chan]));
 						ASKAPLOG_INFO_STR(logger, "Maximum extent = "
 								<< itsSupport*cell << " (m) sampled at "<< cell
 								/itsOverSample << " (m)");
@@ -349,7 +338,7 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 			} // chan loop
 		}
 	}
-	if (nDone==itsMaxFeeds*itsMaxFields*itsNWPlanes) {
+	if (nDone == itsMaxFeeds*itsMaxFields*itsNWPlanes) {
 		ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
 				<< itsConvFunc[0].shape() << " by "<< itsConvFunc.size()
 				<< " planes");
@@ -357,7 +346,7 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 			save(itsName);
 		}
 	}
-	ASKAPCHECK(nDone>0, "Could not find information for convolution functions");
+	
 	ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
 }
 
