@@ -52,7 +52,7 @@ Cduchamp.nsubx       = 2
 Cduchamp.verbose      = true
 #Cduchamp.flagRobust  = false   #This applies to the workers only.
 Cduchamp.snrCut       = 10
-Cduchamp.flagGrowth   = true
+#Cduchamp.flagGrowth   = true
 Cduchamp.growthCut    = 3
 #Cduchamp.threshold   = 0.005
 Cduchamp.pixelCentre  = average
@@ -66,6 +66,8 @@ Cduchamp.smoothType   = spectral
 Cduchamp.hanningWidth = 5.
 
 Cduchamp.newFluxUnits = mJy/beam
+
+Cduchamp.minPix       = 5
 
 Cduchamp.doFit        = true
 

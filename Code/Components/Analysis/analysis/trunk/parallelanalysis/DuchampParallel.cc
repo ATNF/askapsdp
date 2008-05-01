@@ -241,6 +241,13 @@ namespace askap
         ASKAPLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
 
 	ASKAPLOG_INFO_STR(logger, "B#"<<itsRank<<": Stats summary:\n"<<itsCube.stats()<<itsCube.stats().getRobust()<<"\n");
+
+	// remove mininum size criteria, so we don't miss anything on the borders.
+	int minpix = itsCube.pars().getMinPix();
+	itsCube.pars().setMinPix(1);
+	int minchan = itsCube.pars().getMinChannels();
+	itsCube.pars().setMinChannels(1);
+
 	if(itsCube.getSize()>0){
 
 	  if(itsCube.pars().getFlagATrous()){
@@ -265,6 +272,9 @@ namespace askap
 
 	int16 num = itsCube.getNumObj();
         ASKAPLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << this->itsRank);
+
+	itsCube.pars().setMinPix(minpix);
+	itsCube.pars().setMinChannels(minchan);
 	
       }
     }
@@ -372,63 +382,40 @@ namespace askap
 	    // for each RadioSource object, send to master
 	    out << itsSourceList[i];
 
-	    /// @todo -- abstract this getting-the-surrounding-area into a class?
-	    int xmin,xmax,ymin,ymax,zmin,zmax;
-	    xmin = std::max(0 , int(itsSourceList[i].boxXmin()));
-	    xmax = std::min(itsCube.getDimX()-1, itsSourceList[i].boxXmax());
-	    ymin = std::max(0 , int(itsSourceList[i].boxYmin()));
-	    ymax = std::min(itsCube.getDimY()-1, itsSourceList[i].boxYmax());
-	    zmin = std::max(0 , int(itsSourceList[i].boxZmin()));
-	    zmax = std::min(itsCube.getDimZ()-1, itsSourceList[i].boxZmax());
+	    if( itsSourceList[i].isAtEdge() ){
+
+	      /// @todo -- abstract this getting-the-surrounding-area into a class?
+	      int xmin,xmax,ymin,ymax,zmin,zmax;
+	      xmin = std::max(0 , int(itsSourceList[i].boxXmin()));
+	      xmax = std::min(itsCube.getDimX()-1, itsSourceList[i].boxXmax());
+	      ymin = std::max(0 , int(itsSourceList[i].boxYmin()));
+	      ymax = std::min(itsCube.getDimY()-1, itsSourceList[i].boxYmax());
+	      zmin = std::max(0 , int(itsSourceList[i].boxZmin()));
+	      zmax = std::min(itsCube.getDimZ()-1, itsSourceList[i].boxZmax());
 	  
-	    int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
-	    out << numVox;
+	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
+	      out << numVox;
 	  
-	    for(int32 x=xmin; x<=xmax; x++){
-	      for(int32 y=ymin; y<=ymax; y++){
-		for(int32 z=zmin; z<=zmax; z++){
+	      for(int32 x=xmin; x<=xmax; x++){
+		for(int32 y=ymin; y<=ymax; y++){
+		  for(int32 z=zmin; z<=zmax; z++){
 		
-		  bool inObject = itsSourceList[i].pixels().isInObject(x,y,z);
-		  float flux = itsCube.getPixValue(x,y,z);
+		    bool inObject = itsSourceList[i].pixels().isInObject(x,y,z);
+		    float flux = itsCube.getPixValue(x,y,z);
 		
-		  out << inObject << x << y << z << flux;
+		    out << inObject << x << y << z << flux;
 		
+		  }
 		}
 	      }
 	    }
-	  }
 
+	  }
 	  out.putEnd();
 	  itsConnectionSet->write(0,bs);
 	  ASKAPLOG_INFO_STR(logger, "Sent detection list to the master from worker " << this->itsRank );
 	}
-        else{ // if not parallel, still want to make the voxelList
-	  
-	  for(int i=0;i<itsSourceList.size();i++){
-
-	    int xmin,xmax,ymin,ymax,zmin,zmax;
-	    xmin = std::max(0 , int(itsSourceList[i].boxXmin()));
-	    xmax = std::min(itsCube.getDimX()-1, itsSourceList[i].boxXmax());
-	    ymin = std::max(0 , int(itsSourceList[i].boxYmin()));
-	    ymax = std::min(itsCube.getDimY()-1, itsSourceList[i].boxYmax());
-	    zmin = std::max(0 , int(itsSourceList[i].boxZmin()));
-	    zmax = std::min(itsCube.getDimZ()-1, itsSourceList[i].boxZmax());
-	    for(int32 x=xmin; x<=xmax; x++){
-	      for(int32 y=ymin; y<=ymax; y++){
-		for(int32 z=zmin; z<=zmax; z++){
-	  
-		  float flux = 0.;
-		  if( (x>=0 && x<itsCube.getDimX()) &&
-		      (y>=0 && y<itsCube.getDimY()) &&
-		      (z>=0 && z<itsCube.getDimZ()) )  flux = itsCube.getPixValue(x,y,z);
-	
-		  PixelInfo::Voxel vox(x,y,z,flux);
-		  itsVoxelList.push_back(vox);
-	                 
-		}
-	      }
-	    }
-	  }
+        else{ 
 
 	}     
 
@@ -477,18 +464,23 @@ namespace askap
 	      }
 
 	      itsSourceList.push_back(src);
-	      int numVox;
-	      in >> numVox;
-	      for(int p=0;p<numVox;p++){
-		int32 x,y,z; 
-		float flux;
-		bool inObj;
-		in >> inObj >> x >> y >> z >> flux; 
-		x += itsSectionList[i-1].getStart(0);
-		y += itsSectionList[i-1].getStart(1);
-		z += itsSectionList[i-1].getStart(2);
-		PixelInfo::Voxel vox(x,y,z,flux);
-		itsVoxelList.push_back(vox);
+	      
+	      if( src.isAtEdge() ){
+	      
+		int numVox;
+		in >> numVox;
+		for(int p=0;p<numVox;p++){
+		  int32 x,y,z; 
+		  float flux;
+		  bool inObj;
+		  in >> inObj >> x >> y >> z >> flux; 
+		  x += itsSectionList[i-1].getStart(0);
+		  y += itsSectionList[i-1].getStart(1);
+		  z += itsSectionList[i-1].getStart(2);
+		  PixelInfo::Voxel vox(x,y,z,flux);
+		  itsVoxelList.push_back(vox);
+		}
+
 	      }
 
 	    }
@@ -569,7 +561,10 @@ namespace askap
 
 	for(int i=0;i<goodSources.size();i++){
 	  goodSources[i].setHeader(head);
-	  itsSourceList.push_back(goodSources[i]);
+	  // Need to check that there are no small sources present that violate the minimum size criteria
+	  if( (goodSources[i].hasEnoughChannels(itsCube.pars().getMinChannels()))
+	  && (goodSources[i].getSpatialSize() >= itsCube.pars().getMinPix()) )
+	    itsSourceList.push_back(goodSources[i]);
 	}
 
 	std::stable_sort(this->itsSourceList.begin(), this->itsSourceList.end());

@@ -125,6 +125,7 @@ namespace askap
 
       par.setCut( parset.getFloat("snrCut", 4.) );
       par.setMinPix( parset.getInt16("minPix", par.getMinPix()) );
+      par.setMinChannels( parset.getInt16("minChannels", par.getMinChannels()) );
       float threshold = parset.getFloat("threshold", -99999.9);
       if(threshold < -99999.){ // if "threshold" was not in the parset
 	par.setFlagUserThreshold(false);
