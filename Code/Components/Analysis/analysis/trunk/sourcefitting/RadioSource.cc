@@ -316,13 +316,13 @@ namespace askap
 
 	for(int ctr=0;ctr<4;ctr++){
 
-	  int numGauss = ctr + 1;
+	  unsigned int numGauss = ctr + 1;
 	  fitgauss[ctr].setDimensions(2);
 	  fitgauss[ctr].setNumGaussians(numGauss);
 
 	  estimate.resize(numGauss,6);
 	  pk = peakList.rbegin();
-	  for(int g=0;g<numGauss;g++){
+	  for(unsigned int g=0;g<numGauss;g++){
 	    estimate(g,0) = baseEstimate(0,0);
 	    if(g<peakList.size()){
 	      estimate(g,1) = pk->second.getX();
@@ -338,14 +338,14 @@ namespace askap
 	  fitgauss[ctr].setFirstEstimate(estimate);
 
 	  retryfactors.resize(numGauss,6);
-	  for(int g=0;g<numGauss;g++)
-	    for(int i=0;i<6;i++)
+	  for(unsigned int g=0;g<numGauss;g++)
+	    for(unsigned int i=0;i<6;i++)
 	      retryfactors(g,i) = baseRetryfactors(0,i);
 	  fitgauss[ctr].setRetryFactors(retryfactors);
 
 	  // mask the beam parameters
 	  std::cout << "Mask values:\n";
-	  for(int g=0;g<numGauss;g++){
+	  for(unsigned int g=0;g<numGauss;g++){
 	    fitgauss[ctr].mask(g,3) = false;
 	    fitgauss[ctr].mask(g,4) = false;
 	    fitgauss[ctr].mask(g,5) = false;
@@ -396,7 +396,7 @@ namespace askap
 
 	  passConv  = fitgauss[ctr].converged();
 	  passConv  = passConv && (chisq[ctr]>0.);
-	  for(int i=0;i<numGauss;i++){
+	  for(unsigned int i=0;i<numGauss;i++){
 	    passConv = passConv && ( fabs(solution[ctr](i,5))<2.*M_PI );
 	  }
 
@@ -411,7 +411,7 @@ namespace askap
 	      passChisq = (rchisq < 1.2);
 	    
 	    float intFlux = 0.;
-	    for(int i=0;i<numGauss;i++){
+	    for(unsigned int i=0;i<numGauss;i++){
 	      passXLoc = passXLoc && (solution[ctr](i,1)>this->boxXmin()) && 
 		(solution[ctr](i,1)<this->boxXmax());
 	      passYLoc = passYLoc && (solution[ctr](i,2)>this->boxYmin()) && 
@@ -425,7 +425,7 @@ namespace askap
 					   solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
 	      intFlux += component.flux();
 	      
-	      for(int j=i+1;j<numGauss;j++){
+	      for(unsigned int j=i+1;j<numGauss;j++){
 		float sep = hypot( solution[ctr](i,1)-solution[ctr](j,1) , 
 				   solution[ctr](i,2)-solution[ctr](j,2) );
 		passSep = passSep && (sep > 2.);
@@ -477,7 +477,7 @@ namespace askap
       void RadioSource::printFit()
       {
 	std::cout << "Fitted " << itsGaussFitSet.size() << " Gaussians\n";
-	for(int g=0;g<itsGaussFitSet.size();g++){
+	for(unsigned int g=0;g<itsGaussFitSet.size();g++){
 	  // 	itsGaussFitSet[g].parameters().print(std::cout);
 	  // 	std::cout << "\n";
 	  std::cout << itsGaussFitSet[g] << "\n";

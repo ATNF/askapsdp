@@ -377,21 +377,22 @@ namespace askap
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("detW2M",1);
 	  out << rank << num;
-	  for(int i=0;i<itsSourceList.size();i++){
+	  std::vector<sourcefitting::RadioSource>::iterator src = itsSourceList.begin();
+	  for(;src<itsSourceList.end();src++){
 
 	    // for each RadioSource object, send to master
-	    out << itsSourceList[i];
-
-	    if( itsSourceList[i].isAtEdge() ){
+	    out << *src;
+   
+	    if( src->isAtEdge() ){
 
 	      /// @todo -- abstract this getting-the-surrounding-area into a class?
 	      int xmin,xmax,ymin,ymax,zmin,zmax;
-	      xmin = std::max(0 , int(itsSourceList[i].boxXmin()));
-	      xmax = std::min(itsCube.getDimX()-1, itsSourceList[i].boxXmax());
-	      ymin = std::max(0 , int(itsSourceList[i].boxYmin()));
-	      ymax = std::min(itsCube.getDimY()-1, itsSourceList[i].boxYmax());
-	      zmin = std::max(0 , int(itsSourceList[i].boxZmin()));
-	      zmax = std::min(itsCube.getDimZ()-1, itsSourceList[i].boxZmax());
+	      xmin = std::max(0 , int(src->boxXmin()));
+	      xmax = std::min(itsCube.getDimX()-1, src->boxXmax());
+	      ymin = std::max(0 , int(src->boxYmin()));
+	      ymax = std::min(itsCube.getDimY()-1, src->boxYmax());
+	      zmin = std::max(0 , int(src->boxZmin() ));
+	      zmax = std::min(itsCube.getDimZ()-1, src->boxZmax());
 	  
 	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
 	      out << numVox;
@@ -400,7 +401,7 @@ namespace askap
 		for(int32 y=ymin; y<=ymax; y++){
 		  for(int32 z=zmin; z<=zmax; z++){
 		
-		    bool inObject = itsSourceList[i].pixels().isInObject(x,y,z);
+		    bool inObject = src->pixels().isInObject(x,y,z);
 		    float flux = itsCube.getPixValue(x,y,z);
 		
 		    out << inObject << x << y << z << flux;
@@ -458,7 +459,7 @@ namespace askap
 
 	      // Correct for any offsets;
 	      src.addOffsets();
-	      for(int f=0;f<src.fitset().size();f++){
+	      for(unsigned int f=0;f<src.fitset().size();f++){
 		src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
 		src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
 	      }
@@ -519,9 +520,10 @@ namespace askap
 
 	std::vector<sourcefitting::RadioSource> backuplist = itsSourceList;
 	std::vector<sourcefitting::RadioSource> edgeSources, goodSources;
-	for(int i=0;i<itsSourceList.size();i++){
-	  if(itsSourceList[i].isAtEdge()) edgeSources.push_back(itsSourceList[i]);
-	  else goodSources.push_back(itsSourceList[i]);
+	std::vector<sourcefitting::RadioSource>::iterator src;
+	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
+	  if(src->isAtEdge()) edgeSources.push_back(*src);
+	  else goodSources.push_back(*src);
 	}
 	ASKAPLOG_INFO_STR(logger, "MASTER: edgeSources.size="<<edgeSources.size()<<
 			  " goodSources.size="<<goodSources.size());
@@ -537,7 +539,7 @@ namespace askap
 
 	if(edgeSources.size()>0){ // if there are edge sources
 
-	  for(int i=0;i<edgeSources.size();i++) itsCube.addObject(edgeSources[i]);
+	  for(src=edgeSources.begin();src<edgeSources.end();src++) itsCube.addObject(*src);
 	  
 	  ASKAPLOG_INFO_STR(logger, "MASTER: num sources in cube = "<<itsCube.getNumObj());
 	  itsCube.pars().setFlagGrowth(false);
@@ -559,20 +561,20 @@ namespace askap
 	  
 	}
 
-	for(int i=0;i<goodSources.size();i++){
-	  goodSources[i].setHeader(head);
+	for(src=goodSources.begin();src<goodSources.end();src++){
+	  src->setHeader(head);
 	  // Need to check that there are no small sources present that violate the minimum size criteria
-	  if( (goodSources[i].hasEnoughChannels(itsCube.pars().getMinChannels()))
-	  && (goodSources[i].getSpatialSize() >= itsCube.pars().getMinPix()) )
-	    itsSourceList.push_back(goodSources[i]);
+	  if( (src->hasEnoughChannels(itsCube.pars().getMinChannels()))
+	  && (src->getSpatialSize() >= itsCube.pars().getMinPix()) )
+	    itsSourceList.push_back(*src);
 	}
 
 	std::stable_sort(this->itsSourceList.begin(), this->itsSourceList.end());
 
 	itsCube.clearDetectionList();
-	for(int i=0;i<this->itsSourceList.size();i++){
-	  this->itsSourceList[i].setID(i+1);
-	  itsCube.addObject(duchamp::Detection(itsSourceList[i]));
+	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
+	  src->setID(src-itsSourceList.begin()+1);
+	  itsCube.addObject(duchamp::Detection(*src));
 	}
 
       }
@@ -650,8 +652,9 @@ namespace askap
 	if(itsFlagDoFit){
 	  std::ofstream summaryFile(this->itsSummaryFile.c_str());
 	  std::vector<duchamp::Column::Col> columns = itsCube.getFullCols();
-	  for(int i=0;i<itsSourceList.size();i++)
-	    itsSourceList[i].printSummary(summaryFile, columns, i==0);
+	  std::vector<sourcefitting::RadioSource>::iterator src=itsSourceList.begin();
+	  for(;src<itsSourceList.end();src++)
+	    src->printSummary(summaryFile, columns, src==itsSourceList.begin());
 	  summaryFile.close();
 
 	  this->writeFitAnnotation();
@@ -969,7 +972,6 @@ namespace askap
 	}
 	itsCube.stats().setStddev(rms);
 
-	double av = itsCube.stats().getMean();
 	itsCube.stats().setRobust(false);
 	if(!this->itsCube.pars().getFlagUserThreshold()){
 	  itsCube.stats().setThresholdSNR(itsCube.pars().getCut());	

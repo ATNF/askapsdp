@@ -266,7 +266,7 @@ namespace askap
 	fin.close();
       }
 
-      for(int i=0;i<sectionlist.size();i++)
+      for(unsigned int i=0;i<sectionlist.size();i++)
 	std::cerr << sectionlist[i].getSection() << "\n";
 
       return sectionlist;
