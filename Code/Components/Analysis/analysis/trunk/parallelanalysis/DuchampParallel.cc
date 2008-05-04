@@ -240,8 +240,6 @@ namespace askap
       if(isWorker()) {
         ASKAPLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
 
-	ASKAPLOG_INFO_STR(logger, "B#"<<itsRank<<": Stats summary:\n"<<itsCube.stats()<<itsCube.stats().getRobust()<<"\n");
-
 	// remove mininum size criteria, so we don't miss anything on the borders.
 	int minpix = itsCube.pars().getMinPix();
 	itsCube.pars().setMinPix(1);
@@ -264,7 +262,6 @@ namespace askap
 	  }
 	}
 
-	ASKAPLOG_INFO_STR(logger, "C#"<<itsRank<<": Stats summary:\n"<<itsCube.stats()<<itsCube.stats().getRobust()<<"\n");
 	// merge the objects, and grow them if necessary.
 	itsCube.ObjectMerger();
 
@@ -705,16 +702,16 @@ namespace askap
       /// rms/MADFM for the entire dataset and store these values in
       /// the master's itsCube statsContainer.
 
-//       if(!itsCube.pars().getFlagUserThreshold()){
+      if(!itsCube.pars().getFlagUserThreshold() || itsCube.pars().getFlagGrowth()){
 	findMeans();
 	combineMeans();
 	broadcastMean();
 	findRMSs();
 	combineRMSs();
-	//      }
-	if(itsCube.pars().getFlagUserThreshold())//{
-	  //      else 
-	  itsCube.stats().setThreshold( itsCube.pars().getThreshold() );
+      }
+      //	if(itsCube.pars().getFlagUserThreshold())//{
+      else 
+	itsCube.stats().setThreshold( itsCube.pars().getThreshold() );
     }
 
 
@@ -1047,8 +1044,6 @@ namespace askap
 	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker  " << itsRank << " to be " << threshold);
 
 	itsCube.pars().setThreshold(threshold);
-
-	ASKAPLOG_INFO_STR(logger, "A#"<<itsRank<<": Stats summary:\n"<<itsCube.stats()<<itsCube.stats().getRobust()<<"\n");
 
       }
     }
