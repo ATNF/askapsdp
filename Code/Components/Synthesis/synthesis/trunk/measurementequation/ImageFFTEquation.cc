@@ -124,6 +124,7 @@ namespace askap
         if(itsModelGridders.count(imageName)==0) {
           itsModelGridders[imageName]=itsGridder->clone();
         }
+	itsModelGridders[imageName]->customiseForContext(*it);
         itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
       }
       // Loop through degridding the data
@@ -193,8 +194,10 @@ namespace askap
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
         const casa::IPosition imageShape(imagePixels.shape());
         /// First the model
+	itsModelGridders[imageName]->customiseForContext(*it);
         itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
         /// Now the residual images
+	itsResidualGridders[imageName]->customiseForContext(*it);
         itsResidualGridders[imageName]->initialiseGrid(axes, imageShape, true);
       }
       // Now we loop through all the data

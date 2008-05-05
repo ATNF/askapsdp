@@ -8,6 +8,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <measurementequation/ImageSolver.h>
 #include <measurementequation/ImageMultiScaleSolver.h>
+#include <measurementequation/ImageMSMFSolver.h>
 
 using namespace askap::scimath;
 
@@ -33,12 +34,25 @@ namespace askap
         defaultScales[0]=0.0;
         defaultScales[1]=10.0;
         defaultScales[2]=30.0;
-        std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
-        solver = Solver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
-        ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
-        solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));
+        
+	string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
+	std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
+	
+	if(algorithm=="MSMFS"){
+          int nterms=parset.getInt32("solver.Clean.nterms",2);
+          solver = Solver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms)));
+          ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
+          solver->setAlgorithm(algorithm);
+	}
+	else{
+          solver = Solver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
+          ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
+          //solver->setAlgorithm(algorithm);
+          solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
+	}
+        
+	solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));
         solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
-        solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
         solver->setVerbose(parset.getBool("solver.Clean.verbose", true));
         solver->setNiter(parset.getInt32("solver.Clean.niter", 100));
         casa::Quantity threshold;
