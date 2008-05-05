@@ -395,6 +395,32 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 	}
 }
 
+/// @brief obtain the centre of the image
+/// @details This method extracts RA and DEC axes from itsAxes and
+/// forms a direction measure corresponding to the middle of each axis.
+/// @return direction measure corresponding to the image centre
+casa::MVDirection TableVisGridder::getImageCentre() const
+{
+   casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
+   casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
+   casa::MVDirection out(refLon, refLat);
+   return out;	
+}
+
+/// @brief return primary beam attenuation factor for PSF calculation
+/// @details The PSF is calculated by gridding visibilities corresponding
+/// to a model point source in the centre. We need to attenuate this 
+/// source to provide a proper primary beam taper. This method has to
+/// be overriden in derived classes for any non-trivial correction. By
+/// default it returns 1.0
+/// @note In the future we may need to add feed indices in the parameters,
+/// if we treat the feeds separately
+/// @return primary beam decorrelation factor
+double TableVisGridder::getPBFactor(double, double) const
+{
+  return 1.0;
+}
+
 /// Convert from a double array to a casa::Complex array of the
 /// same size. No limits on dimensions.
 void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,

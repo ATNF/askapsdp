@@ -174,9 +174,7 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 /// @todo Make initConvolutionFunction more robust
 void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 
-	casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
-	casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
-	casa::MVDirection out(refLon, refLat);
+	casa::MVDirection out = getImageCentre();
 	const int nSamples = idi->uvw().size();
 	// exact formulae for l and m 
 
