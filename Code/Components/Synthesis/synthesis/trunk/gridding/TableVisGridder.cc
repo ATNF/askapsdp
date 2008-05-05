@@ -85,6 +85,8 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
    deepCopyOfSTDVector(other.itsGrid, itsGrid);   
    deepCopyOfSTDVector(other.itsGridPSF, itsGridPSF);
+   if(other.itsVisWeight) itsVisWeight = other.itsVisWeight->clone();
+   else itsVisWeight = other.itsVisWeight;
 }
      
 
@@ -155,6 +157,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 	const uint nSamples = idi->nRow();
 	const uint nChan = idi->nChannel();
 	const uint nPol = idi->nPol();
+	const casa::Vector<casa::Double>& frequencyList = idi->frequency();
 	
 	ASKAPDEBUGASSERT(itsShape.nelements()>=2);
 	const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
@@ -296,14 +299,17 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							casa::Complex cVis(idi->visibility()(i, chan, pol));
 							GridKernel::degrid(cVis, convFunc, grid, iu, iv,
 									itsSupport);
-							idi->rwVisibility()(i, chan, pol)=cVis*phasor;
+							if(itsVisWeight)
+								cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+							idi->rwVisibility()(i, chan, pol)+=cVis*phasor;
 						} else {
 							/// Gridding visibility data onto grid
 							const casa::Complex rVis=phasor
 									*conj(idi->visibility()(i, chan, pol));
 							casa::Complex sumwt=0.0;
-							const float wtVis(1.0);
-			
+							float wtVis = 1.0;
+							if(itsVisWeight)
+								wtVis = itsVisWeight->getWeight(i,frequencyList[chan],pol);
 							GridKernel::grid(grid, sumwt, convFunc, rVis,
 				                     wtVis, iu, iv, itsSupport);
 			
@@ -601,6 +607,31 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 void TableVisGridder::finaliseDegrid() {
 	/// Nothing to do
 }
+
+// This ShPtr should get deep-copied during cloning.
+void TableVisGridder::initVisWeights(IVisWeights::ShPtr viswt)
+{
+	itsVisWeight = viswt;
+}
+
+// Customize for the specific type of Visibility weight.
+// Input string is whatever is after " image.i " => " image.i.0.xxx " gives " .0.xxx "
+void TableVisGridder::customiseForContext(casa::String context)
+{
+	// RVU : Set up model dependant gridder behaviour
+	//       For MFS, gridders for each Taylor term need different VisWeights.
+	//  parse the 'context' string, and generate the "order" parameter.
+	char corder[2];
+	corder[0] = *(context.data()+1); // read the second character to get the order of the Taylor coefficient.
+	corder[1] = '\n';
+	int order = atoi(corder);
+	//std::cout << context << "->  Order : " << order << std::endl;
+	if(order <0 || order >9) order = 0;
+	if(itsVisWeight)
+		itsVisWeight->setParameters(order);
+}
+
+
 
 /// This is the default implementation
 int TableVisGridder::cIndex(int row, int pol, int chan) {

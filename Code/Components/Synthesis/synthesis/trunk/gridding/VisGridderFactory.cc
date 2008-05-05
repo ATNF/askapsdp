@@ -12,6 +12,9 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/AProjectWStackVisGridder.h>
 #include <gridding/DiskIllumination.h>
 
+// RVU
+#include <gridding/VisWeightsMultiFrequency.h>
+
 using namespace LOFAR::ACC::APS;
 namespace askap {
 namespace synthesis {
@@ -104,6 +107,17 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	} else {
 		ASKAPLOG_INFO_STR(logger, "Gridding with spheriodal function");
 		gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
+	}
+	
+	// Initialize the Visibility Weights
+	if (parset.getString("visweights")=="MFS")
+	{
+		double reffreq=parset.getDouble("visweights.MFS.reffreq", 1.405e+09);
+		gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency(reffreq)));
+	}
+	else // Null....
+	{
+		gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency()));
 	}
 	return gridder;
 }

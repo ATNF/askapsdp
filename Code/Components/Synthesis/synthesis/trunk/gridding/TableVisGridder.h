@@ -100,6 +100,11 @@ namespace askap
       virtual void initialiseDegrid(const scimath::Axes& axes,
           const casa::Array<double>& image);
 
+      /// @brief Make context-dependant changes to the gridder behaviour
+      /// @param xxx xxx
+      virtual void customiseForContext(casa::String context);
+      virtual void initVisWeights(IVisWeights::ShPtr viswt);
+      
       /// Degrid the visibility data.
       /// @param idi DataIterator
       virtual void degrid(IDataSharedIter& idi);
@@ -234,6 +239,9 @@ namespace askap
           casa::Vector<casa::RigidVector<double, 3> >& outUVW,
           casa::Vector<double>& delay) const;
 
+      /// Visibility Weights
+      IVisWeights::ShPtr itsVisWeight;
+      
     };
   }
 }

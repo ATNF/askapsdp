@@ -21,6 +21,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <gridding/IVisWeights.h>
+
 namespace askap
 {
 	namespace synthesis
@@ -75,6 +77,11 @@ namespace askap
 			/// @param image Input image: cube: u,v,pol,chan
 			virtual void initialiseDegrid(const scimath::Axes& axes,
 					const casa::Array<double>& image) = 0;
+
+			/// @brief Make context-dependant changes to the gridder behaviour
+			/// @param xxx xxx
+			virtual void customiseForContext(casa::String context)=0;
+			virtual void initVisWeights(IVisWeights::ShPtr viswt)=0;
 
 			/// Degrid the visibility data.
 			/// @param idi DataIterator

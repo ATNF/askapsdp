@@ -49,11 +49,12 @@ namespace askap
 	  casa::Complex *wtPtr=&convFunc(uoff, voff);
 	  casa::Complex *gridPtr=&(grid(iu-support, iv+suppv));
 #ifdef ASKAP_GRID_WITH_BLAS
+	  // RVU : need to send in viswt here.
           cblas_caxpy(2*support+1, &cVis, wtPtr, 1, gridPtr, 1);
 #else
 	  for (int suppu=-support; suppu<+support; suppu++)
 	    {
-	      (*gridPtr)+=cVis*(*wtPtr);
+	      (*gridPtr)+=cVis*(*wtPtr)*viswt;
 	      wtPtr+=1;
 	      gridPtr++;
 	    }
@@ -67,7 +68,7 @@ namespace askap
 	    {
 	      int uoff=suppu+support;
 	      casa::Complex wt=convFunc(uoff, voff);
-	      grid(iu+suppu, iv+suppv)+=cVis*wt;
+	      grid(iu+suppu, iv+suppv)+=cVis*wt*viswt;
 	    }
 	}
 #endif
