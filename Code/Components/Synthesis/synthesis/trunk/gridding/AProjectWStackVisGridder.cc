@@ -252,7 +252,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 							<< itsSupport << " pixels, size = " << itsCSize
 							<< " pixels");
 					ASKAPLOG_INFO_STR(logger, "Maximum extent = "<< itsSupport
-							*itsOverSample*cell << " (m) sampled at "<< cell
+							*cell << " (m) sampled at "<< cell
 							<< " (m)");
 					itsCCenter=itsSupport;
 					itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds
