@@ -22,7 +22,7 @@ point for the repository is $ASKAP_ROOT.
 
 cd svnASKAP
 python bootstrap.py      # only once
-. initconrad.sh		   # execute everytime a new session is started
+. initaskap.sh		   # execute everytime a new session is started
 
 The above steps make installs go to the local directories
 $ASKAP_ROOT/{bin, lib/python<version>} which do not require
