@@ -151,7 +151,7 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 					itsCMap(i, pol, chan)=(feed+itsMaxFeeds*itsCurrentField);
 					ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds*nChan,
 							"CMap index too large");
-					ASKAPCHECK(itsCMap(i, pol, chan)>-1, "CMap index less than zero");					
+					ASKAPCHECK(itsCMap(i, pol, chan)>-1, "CMap index less than zero");
 				}
 
 				/// Calculate the index into the grids
@@ -257,6 +257,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 							*itsMaxFields*nChan);
 					itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
 					itsSumWeights.set(casa::Complex(0.0));
+					ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
+							  << itsConvFunc.size());
 				}
 				int zIndex=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
 
@@ -280,14 +282,6 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 		}
 	}
 
-	if (nDone == itsMaxFeeds*itsMaxFields) {
-		ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
-				<< itsConvFunc[0].shape() << " by " << itsConvFunc.size()
-				<< " planes");
-		if (itsName!="") {
-			save(itsName);
-		}
-	}
 	ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
 
 }

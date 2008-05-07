@@ -311,6 +311,8 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 						itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes);
 						itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes, itsShape(2), itsShape(3));
 						itsSumWeights.set(casa::Complex(0.0));
+						ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
+								  << itsConvFunc.size());
 					}
 					int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsCurrentField));
 

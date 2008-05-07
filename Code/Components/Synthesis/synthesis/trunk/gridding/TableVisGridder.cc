@@ -145,13 +145,17 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    if (forward&&itsModelIsEmpty)
 		return;
 
+	casa::Timer timer;
+
+	timer.mark();
+
 	casa::Vector<casa::RigidVector<double, 3> > outUVW;
 	casa::Vector<double> delay;
 	rotateUVW(*idi, outUVW, delay);
 
 	initIndices(idi);
 	initConvolutionFunction(idi);
-   ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
+	ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
 	ASKAPCHECK(itsUVCellSize.size()==2, "UV cell sizes not yet set");
 
 	const uint nSamples = idi->nRow();
@@ -169,9 +173,6 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 	// Loop over the entire itsSupport, calculating weights from
 	// the convolution function and adding the scaled
 	// visibility to the grid.
-	casa::Timer timer;
-
-	timer.mark();
 
 	long int nGood=0;
 
@@ -313,9 +314,10 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							GridKernel::grid(grid, sumwt, convFunc, rVis,
 				                     wtVis, iu, iv, itsSupport);
 			
-			                ASKAPDEBUGASSERT(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)));
-			                ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
-			                ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
+							ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+							ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
+							ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
+							ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 			                
 			                itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=sumwt;
                             
@@ -489,7 +491,8 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		itsGridPSF[0].set(0.0);
 	}
 
-	itsSumWeights.resize(1, itsShape(2), itsShape(3));
+	ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
+
 	itsSumWeights.set(casa::Complex(0.0));
 
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),

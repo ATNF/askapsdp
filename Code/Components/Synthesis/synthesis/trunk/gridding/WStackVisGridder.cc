@@ -114,7 +114,6 @@ namespace askap
         }
       }
 
-      itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
       itsSumWeights.set(casa::Complex(0.0));
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
