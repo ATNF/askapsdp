@@ -110,7 +110,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	}
 	
 	// Initialize the Visibility Weights
-	if (parset.getString("visweights")=="MFS")
+	if (parset.getString("visweights","")=="MFS")
 	{
 		double reffreq=parset.getDouble("visweights.MFS.reffreq", 1.405e+09);
 		gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency(reffreq)));
