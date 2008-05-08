@@ -1,5 +1,6 @@
 #include  "GrothTriangles.h"
 #include <assert.h>
+#include <iostream>
 
 using namespace askap::analysis::matching;
 
@@ -16,7 +17,7 @@ int main()
   // this one is t4 scaled by 2
   t5 = new Triangle(2.,44.,8.,48.,10.,34.);
 
-  // get this one by rotating t4 around by 90 and translating to new axes
+  // get this one by rotating t4 by 90 and translating to new axes
   t6 = new Triangle(4., 1., 2., 4., 9., 5.);
   
   assert( (pow(10,t1->perimeter())-17.079)<0.001 );

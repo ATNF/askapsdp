@@ -101,7 +101,7 @@ namespace askap
 
 	/// @brief Print summary of detection & fit
 	void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-			  bool doHeader);
+			  bool doHeader=false);
 
 	/// @brief Write the description of the fits to an annotation file.
 	void writeFitToAnnotationFile(std::ostream &stream);

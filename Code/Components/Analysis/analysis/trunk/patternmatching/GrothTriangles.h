@@ -8,8 +8,6 @@
 #ifndef ASKAP_ANALYSIS_GROTHTRIANGLES_H_
 #define ASKAP_ANALYSIS_GROTHTRIANGLES_H_
 
-#include <duchamp/PixelMap/Voxel.hh>
-
 #include <vector>
 #include <string>
 #include <math.h>
@@ -22,20 +20,48 @@ namespace askap
     namespace matching
     {
 
+      class Point
+      {
+      public:
+	Point(){itsFlux=0.; itsID="";};
+	Point(double x, double y){itsX=x; itsY=y; itsFlux=0.; itsID="";};
+	Point(double x, double y, double f){itsX=x; itsY=y; itsFlux=f;};
+	Point(double x, double y, double f, std::string id){itsX=x; itsY=y; itsFlux=f; itsID=id;};
+	Point(const Point& p){operator=(p);};
+	Point& operator= (const Point& p);
+	~Point(){};
+	void setX(double x){itsX=x;};
+	double x(){return itsX;};
+	void setY(double y){itsY=y;};
+	double y(){return itsY;};
+	void setFlux(double f){itsFlux=f;};
+	double flux(){return itsFlux;};
+	void setID(std::string id){itsID=id;};
+	std::string ID(){return itsID;};
+
+      protected:
+	double itsX;
+	double itsY;
+	double itsFlux;
+	std::string itsID;
+      };
+
       class Side
       {
       public:
 	Side(){};
-	Side(float run, float rise){dx=run; dy=rise;};
-	void define(float run, float rise){dx=run; dy=rise;};
-	float rise(){return dy;};
-	float run(){return dx;};
-	float length(){return hypot(dx,dy);};
+	Side(double run, double rise){dx=run; dy=rise;};
+	~Side(){};
+	void define(double run, double rise){dx=run; dy=rise;};
+	void define(Point a, Point b){dx=a.x()-b.x(); dy=a.y()-b.y();};
+	double rise(){return dy;};
+	double run(){return dx;};
+	double length(){return hypot(dx,dy);};
 	friend bool operator<(Side lhs, Side rhs){return lhs.length()<rhs.length();};
 
       protected:
-	float dx;
-	float dy;
+	double dx;
+	double dy;
       };
 
 
@@ -52,11 +78,17 @@ namespace askap
       class Triangle
       {
       public:
-	Triangle(PixelInfo::Voxel a, PixelInfo::Voxel b, PixelInfo::Voxel c);
-	Triangle(float x1, float y1, float x2, float y2, float x3, float y3);
-	void define(float x1, float y1, float x2, float y2, float x3, float y3);
+	Triangle();
+	Triangle(Point pt1, Point pt2, Point pt3);
+	Triangle(double x1, double y1, double x2, double y2, double x3, double y3);
+	Triangle(const Triangle& t){operator=(t);};
+	Triangle& operator= (const Triangle& t);
+	~Triangle(){};
+	void define(Point pt1, Point pt2, Point pt3);
 
-	bool isMatch(Triangle &comp);
+	void defineTolerances(double tolerance=posTolerance);
+
+	bool isMatch(Triangle &comp, double epsilon=posTolerance);
 
 	double ratio(){return itsRatio;};
 	double ratioTol(){return itsRatioTolerance;};
@@ -65,7 +97,12 @@ namespace askap
 	double isClockwise(){return itIsClockwise;};
 	double perimeter(){return itsLogPerimeter;};
 
-	friend operator< (Triangle lhs, Triangle rhs){return lhs.ratio()<rhs.ratio();};
+	Point one(){return itsPts[0];};
+	Point two(){return itsPts[1];};
+	Point three(){return itsPts[2];};
+	std::vector<Point> getPtList(){return itsPts;};
+
+	friend bool operator< (Triangle lhs, Triangle rhs){return lhs.ratio()<rhs.ratio();};
 
       protected:
 
@@ -75,6 +112,8 @@ namespace askap
 	double itsRatioTolerance;
 	double itsAngle;
 	double itsAngleTolerance;
+
+	std::vector<Point> itsPts;
       
       };
 

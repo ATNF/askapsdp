@@ -486,7 +486,7 @@ namespace askap
       }
 
       void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-				     bool doHeader=false)
+				     bool doHeader)
       {
 	/// @details
 	///
