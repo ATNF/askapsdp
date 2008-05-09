@@ -55,6 +55,9 @@ TableVisGridder::TableVisGridder() :
 			itsTimeGridded(0.0), itsTimeDegridded(0.0)
 
 {
+
+  itsSumWeights.resize(1,1,1);
+  itsSumWeights.set(casa::Complex(0.0));
 }
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
@@ -155,6 +158,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 
 	initIndices(idi);
 	initConvolutionFunction(idi);
+
 	ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
 	ASKAPCHECK(itsUVCellSize.size()==2, "UV cell sizes not yet set");
 
@@ -312,7 +316,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							if(itsVisWeight)
 								wtVis = itsVisWeight->getWeight(i,frequencyList[chan],pol);
 							GridKernel::grid(grid, sumwt, convFunc, rVis,
-				                     wtVis, iu, iv, itsSupport);
+									 wtVis, iu, iv, itsSupport);
 			
 							ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
 							ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
@@ -492,7 +496,6 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	}
 
 	ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
-
 	itsSumWeights.set(casa::Complex(0.0));
 
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
@@ -553,6 +556,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 	int nPol=itsShape(2);
 	int nChan=itsShape(3);
 
+	ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
 	int nZ=itsSumWeights.shape()(0);
 
 	for (int chan=0; chan<nChan; chan++) {

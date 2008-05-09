@@ -265,6 +265,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 				for (int fracu=0; fracu<itsOverSample; fracu++) {
 					for (int fracv=0; fracv<itsOverSample; fracv++) {
 						int plane=fracu+itsOverSample*(fracv+itsOverSample*zIndex);
+						ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
 						itsConvFunc[plane].resize(itsCSize, itsCSize);
 						itsConvFunc[plane].set(0.0);
 						// Now cut out the inner part of the convolution function and

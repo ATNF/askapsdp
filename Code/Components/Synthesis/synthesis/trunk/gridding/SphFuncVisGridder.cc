@@ -8,34 +8,15 @@ namespace askap
 
     SphFuncVisGridder::SphFuncVisGridder()
     {
-      itsSupport=0;
-    }
-
-    SphFuncVisGridder::~SphFuncVisGridder()
-    {
-    }
-
-    /// Clone a copy of this Gridder
-    IVisGridder::ShPtr SphFuncVisGridder::clone()
-    {
-      return IVisGridder::ShPtr(new SphFuncVisGridder(*this));
-    }
-
-    void SphFuncVisGridder::initIndices(IDataSharedIter& idi)
-    {
-    }
-
-    /// Initialize the convolution function into the cube. If necessary this
-    /// could be optimized by using symmetries.
-    void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi)
-    {
-      if (itsSupport==3)
-        return;
       itsSupport=3;
       itsOverSample=128;
+      itsConvFunc.resize(itsOverSample*itsOverSample);
+
       itsCSize=2*itsSupport+1; // 7;
       itsCCenter=itsSupport; // 3
-      itsConvFunc.resize(itsOverSample*itsOverSample);
+
+      /// This must be changed for non-MFS
+
       for (int fracv=0; fracv<itsOverSample; fracv++)
       {
         for (int fracu=0; fracu<itsOverSample; fracu++)
@@ -68,6 +49,26 @@ namespace askap
           itsConvFunc[plane]*=casa::Complex(1.0/volume);
         }
       }
+    }
+
+    SphFuncVisGridder::~SphFuncVisGridder()
+    {
+    }
+
+    /// Clone a copy of this Gridder
+    IVisGridder::ShPtr SphFuncVisGridder::clone()
+    {
+      return IVisGridder::ShPtr(new SphFuncVisGridder(*this));
+    }
+
+    void SphFuncVisGridder::initIndices(IDataSharedIter& idi)
+    {
+    }
+
+    /// Initialize the convolution function into the cube. If necessary this
+    /// could be optimized by using symmetries.
+    void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi)
+    {
     }
 
     void SphFuncVisGridder::correctConvolution(casa::Array<double>& grid)

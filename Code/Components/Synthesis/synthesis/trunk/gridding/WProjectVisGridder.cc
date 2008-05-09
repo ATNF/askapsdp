@@ -40,6 +40,11 @@ namespace askap
       itsCutoff=cutoff;
       itsMaxSupport=maxSupport;
       itsName=name;
+
+      itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
+      itsSumWeights.resize(itsNWPlanes, 1, 1);
+      itsSumWeights.set(casa::Complex(0.0));
+
     }
 
     WProjectVisGridder::~WProjectVisGridder()
@@ -115,7 +120,7 @@ namespace askap
       /// function
       int cenw=(itsNWPlanes-1)/2;
 
-      if (itsSupport!=0)
+      if (itsSupport>0)
       {
         return;
       }
@@ -237,10 +242,8 @@ namespace askap
               << itsSupport << " pixels, convolution function size = "
               << itsCSize<< " pixels");
           itsCCenter=(itsCSize-1)/2;
-          itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
-          itsSumWeights.resize(itsNWPlanes, itsShape(2), itsShape(3));
-          itsSumWeights.set(casa::Complex(0.0));
         }
+	ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
         for (int fracu=0; fracu<itsOverSample; fracu++)
         {
           for (int fracv=0; fracv<itsOverSample; fracv++)

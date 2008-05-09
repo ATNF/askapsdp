@@ -65,6 +65,9 @@ namespace askap
       const int nChan = idi->frequency().size();
       const int nPol = idi->visibility().shape()(2);
 
+      itsSumWeights.resize(1, 1, 1);
+      itsSumWeights.set(casa::Complex(0.0));
+
       itsGMap.resize(nSamples, nPol, nChan);
       int cenw=(itsNWPlanes-1)/2;
       for (int i=0; i<nSamples; i++)
