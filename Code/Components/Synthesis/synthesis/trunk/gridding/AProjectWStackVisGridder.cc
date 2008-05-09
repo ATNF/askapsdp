@@ -186,6 +186,10 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 		nChan = idi->frequency().size();
 	}
 
+	itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan);
+	itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
+	itsSumWeights.set(casa::Complex(0.0));
+
 	/// Limit the size of the convolution function since
 	/// we don't need it finely sampled in image space. This
 	/// will reduce the time taken to calculate it.
@@ -253,10 +257,6 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 							*cell << " (m) sampled at "<< cell
 							<< " (m)");
 					itsCCenter=itsSupport;
-					itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds
-							*itsMaxFields*nChan);
-					itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
-					itsSumWeights.set(casa::Complex(0.0));
 					ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
 							  << itsConvFunc.size());
 				}

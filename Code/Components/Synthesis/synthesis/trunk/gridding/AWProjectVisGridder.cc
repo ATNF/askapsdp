@@ -174,6 +174,11 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 	if (itsFreqDep) {
 		nChan = idi->frequency().size();
 	}
+
+	itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan);
+	itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
+	itsSumWeights.set(casa::Complex(0.0));
+
 	int cenw=(itsNWPlanes-1)/2;
 
 	/// Limit the size of the convolution function since
@@ -308,9 +313,6 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 								<< itsSupport*cell << " (m) sampled at "<< cell
 								/itsOverSample << " (m)");
 						itsCCenter=itsSupport;
-						itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes);
-						itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan*itsNWPlanes, itsShape(2), itsShape(3));
-						itsSumWeights.set(casa::Complex(0.0));
 						ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
 								  << itsConvFunc.size());
 					}
