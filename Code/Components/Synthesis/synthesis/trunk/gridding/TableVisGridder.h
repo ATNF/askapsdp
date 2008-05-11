@@ -120,7 +120,7 @@ namespace askap
       /// @return direction measure corresponding to the image centre
       casa::MVDirection getImageCentre() const;
       
-      /// @brief return primary beam attenuation factor for PSF calculation
+      /// @brief return voltage pattern attenuation factor for PSF calculation
       /// @details The PSF is calculated by gridding visibilities corresponding
       /// to a model point source in the centre. We need to attenuate this 
       /// source to provide a proper primary beam taper. This method has to
@@ -131,7 +131,7 @@ namespace askap
       /// @param[in] offset in l-direction (radians)
       /// @param[in] offset in m-direction (radians)
       /// @return primary beam decorrelation factor
-      virtual double getPBFactor(double l, double m) const;
+      virtual double getVPFactor(double l, double m) const;
   
       // data members should be made private in the future!
 

@@ -419,7 +419,7 @@ casa::MVDirection TableVisGridder::getImageCentre() const
    return out;	
 }
 
-/// @brief return primary beam attenuation factor for PSF calculation
+/// @brief return voltage pattern attenuation factor for PSF calculation
 /// @details The PSF is calculated by gridding visibilities corresponding
 /// to a model point source in the centre. We need to attenuate this 
 /// source to provide a proper primary beam taper. This method has to
@@ -428,7 +428,7 @@ casa::MVDirection TableVisGridder::getImageCentre() const
 /// @note In the future we may need to add feed indices in the parameters,
 /// if we treat the feeds separately
 /// @return primary beam decorrelation factor
-double TableVisGridder::getPBFactor(double, double) const
+double TableVisGridder::getVPFactor(double, double) const
 {
   return 1.0;
 }
