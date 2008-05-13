@@ -405,7 +405,7 @@ namespace askap
 	    
 	if(this->itsNSub[i] > 1){
 	  int min = std::max( start, sub[i]*(dimAxes[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
-	  int max = std::min( dimAxes[i], (sub[i]+1)*(dimAxes[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 ) + 1;
+	  int max = std::min( dimAxes[i], (sub[i]+1)*(dimAxes[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 );
 	  section << min << ":" << max;
 	}
 	else section << "*";
