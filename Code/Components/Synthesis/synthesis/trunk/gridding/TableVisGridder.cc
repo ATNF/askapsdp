@@ -309,12 +309,12 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							idi->rwVisibility()(i, chan, pol)+=cVis*phasor;
 						} else {
 							/// Gridding visibility data onto grid
-							const casa::Complex rVis=phasor
-									*conj(idi->visibility()(i, chan, pol));
+							casa::Complex rVis=phasor
+								*conj(idi->visibility()(i, chan, pol));
 							casa::Complex sumwt=0.0;
 							float wtVis = 1.0;
 							if(itsVisWeight)
-								wtVis = itsVisWeight->getWeight(i,frequencyList[chan],pol);
+								rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 							GridKernel::grid(grid, sumwt, convFunc, rVis,
 									 wtVis, iu, iv, itsSupport);
 			
@@ -334,7 +334,9 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 										aGridPSF(itsGridPSF[gInd](slicer));
 							    casa::Matrix<casa::Complex>
 										gridPSF(aGridPSF.nonDegenerate());
-								const casa::Complex uVis(1.0);
+								casa::Complex uVis(1.0);
+							        if(itsVisWeight)
+									uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 								GridKernel::grid(gridPSF, sumwt, convFunc,
 										uVis, wtVis, iu, iv, itsSupport);
 							}
