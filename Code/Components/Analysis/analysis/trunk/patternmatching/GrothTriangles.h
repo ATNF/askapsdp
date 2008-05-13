@@ -117,6 +117,13 @@ namespace askap
       
       };
 
+
+      std::vector<Triangle> getTriList(std::vector<Point> pixlist);
+      std::vector<std::pair<Triangle,Triangle> > matchLists(std::vector<Triangle> list1, std::vector<Triangle> list2, double epsilon);
+      void trimTriList(std::vector<std::pair<Triangle,Triangle> > &trilist);
+      std::vector<std::pair<Point,Point> > vote(std::vector<std::pair<Triangle,Triangle> > trilist);
+
+
     }
   }
 }

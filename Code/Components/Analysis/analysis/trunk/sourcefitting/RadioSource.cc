@@ -72,6 +72,8 @@ namespace askap
 	this->itsGaussFitSet = src.itsGaussFitSet;
       }
 
+      //**************************************************************//
+
       RadioSource& RadioSource::operator= (const RadioSource& src)
       {
 	((duchamp::Detection &) *this) = src;
@@ -84,9 +86,7 @@ namespace askap
 	return *this;
       }
 
-
-      //    RadioSource::~RadioSource(){};
-
+      //**************************************************************//
 
       std::multimap<int,PixelInfo::Voxel> RadioSource::findDistinctPeaks(casa::Vector<casa::Double> f)
       {
@@ -148,6 +148,8 @@ namespace askap
 
       }
     
+      //**************************************************************//
+
       /// @brief A simple way of printing fitted parameters
       void printparameters(Matrix<Double> &m)
       {
@@ -163,6 +165,7 @@ namespace askap
 
       }
 
+      //**************************************************************//
 
       bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList)
       {
@@ -174,6 +177,8 @@ namespace askap
 	/// fitGauss(casa::Matrix<casa::Double> pos,
 	/// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
 	/// sigma).
+
+	if(this->getSpatialSize() < minFitSize) return false;
 
 	casa::Matrix<casa::Double> pos;
 	casa::Vector<casa::Double> f;
@@ -216,6 +221,7 @@ namespace askap
 
       }
 
+      //**************************************************************//
 
       bool RadioSource::fitGauss(float *fluxArray, long *dimArray)
       {
@@ -227,6 +233,8 @@ namespace askap
 	/// fitGauss(casa::Matrix<casa::Double> pos,
 	/// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
 	/// sigma).
+
+	if(this->getSpatialSize() < minFitSize) return false;
 
 	casa::Matrix<casa::Double> pos;
 	casa::Vector<casa::Double> f;
@@ -253,6 +261,7 @@ namespace askap
 
       }
 
+      //**************************************************************//
 	
       bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 				 casa::Vector<casa::Double> sigma)
@@ -264,6 +273,8 @@ namespace askap
 	/// detection plus the border given by detectionBorder are
 	/// included in the fit.
  
+	if(this->getSpatialSize() < minFitSize) return false;
+
 	float boxFlux = 0.;
 	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
 	std::vector<Double> fluxes;
@@ -473,6 +484,7 @@ namespace askap
 
       }
 
+      //**************************************************************//
 
       void RadioSource::printFit()
       {
@@ -484,6 +496,8 @@ namespace askap
 	}
 
       }
+
+      //**************************************************************//
 
       void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
 				     bool doHeader)
@@ -550,6 +564,7 @@ namespace askap
 
       }
 
+      //**************************************************************//
 
       void RadioSource::writeFitToAnnotationFile(std::ostream &stream)
       {

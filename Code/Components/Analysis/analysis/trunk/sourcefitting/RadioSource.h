@@ -41,6 +41,9 @@ namespace askap
       /// @brief Width of border to put around detections for fitting purposes, in pixels
       const int detectionBorder = 3;
 
+      /// @brief Minimum spatial size [pixels] a source must have to be fit
+      const int minFitSize = 3;
+
       /// @brief Class to store all information on a detected source.
       ///
       /// @details This class is designed to hold all appropriate
