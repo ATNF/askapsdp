@@ -180,7 +180,8 @@ namespace askap
         }
       }
       else {
-        ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
+        ASKAPLOG_INFO_STR(logger, "Reusing measurement equation and updating with latest model images" );
+	itsEquation->setParameters(*itsModel);
       }
       ASKAPCHECK(itsEquation, "Equation not defined");
       ASKAPCHECK(itsNe, "NormalEquations not defined");
