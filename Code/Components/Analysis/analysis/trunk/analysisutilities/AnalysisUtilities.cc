@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <string>
 
@@ -299,13 +300,33 @@ namespace askap
 
     }
 
+    SubimageDef& SubimageDef::operator= (const SubimageDef& s)
+    {
+      /// @details Copy constructor for SubimageDef, that does a deep
+      /// copy of the itsNSub and itsOverlap arrays.
 
-    std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
+      if(this==&s) return *this;
+      this->itsNSubX = s.itsNSubX;
+      this->itsNSubY = s.itsNSubY;
+      this->itsNSubZ = s.itsNSubZ;
+      this->itsOverlapX = s.itsOverlapX;
+      this->itsOverlapY = s.itsOverlapY;
+      this->itsOverlapZ = s.itsOverlapZ;
+      this->itsNAxis = s.itsNAxis;
+      for(int i=0;i<this->itsNAxis;i++){
+	this->itsNSub[i] = s.itsNSub[i];
+	this->itsOverlap[i] = s.itsOverlap[i];
+      }
+      return *this;
+    }
+
+
+    void SubimageDef::define(const LOFAR::ACC::APS::ParameterSet& parset)
     {
 
-      /// @details This generates a list of subsection strings for a
-      /// set of workers. The image (given by the parameter "image" in
-      /// the parset) is to be split up according to the nsubx/y/z
+      /// @details Define all the necessary variables within the
+      /// SubimageDef class. The image (given by the parameter "image"
+      /// in the parset) is to be split up according to the nsubx/y/z
       /// parameters, with overlaps in each direction given by the
       /// overlapx/y/z parameters (these are in pixels).
       ///
@@ -313,102 +334,137 @@ namespace askap
       /// used to extract the WCS parameters from the FITS
       /// header. These determine which axes are the x, y and z
       /// axes. The number of axes is also determined from the WCS
-      /// parameter set, while the size of each axis is determined by
-      /// the getFITSdimensions() function.
-      ///
-      /// The section strings are stored in duchamp::Section objects,
-      /// and are parsed so that they can provide offsets etc. These
-      /// are stored in a std::vector, and returned by the fuction
-      /// upon completion.
+      /// parameter set.
       ///
       /// @param numWorkers The number of workers and the number of subimages. 
       /// @param parset The parameter set holding info on how to divide the image.
+
+      this->itsImageName = parset.getString("image");
+
+      this->itsNSubX = parset.getInt16("nsubx",1);
+      this->itsNSubY = parset.getInt16("nsuby",1);
+      this->itsNSubZ = parset.getInt16("nsubz",1);
+      this->itsOverlapX = parset.getInt16("overlapx",0);
+      this->itsOverlapY = parset.getInt16("overlapy",0);
+      this->itsOverlapZ = parset.getInt16("overlapz",0);  
+
+      duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
+      duchamp::FitsHeader imageHeader;
+      imageHeader.defineWCS(this->itsImageName,tempPar);
+      this->itsNAxis = imageHeader.WCS().naxis;
+      const int lng = imageHeader.WCS().lng;
+      const int lat = imageHeader.WCS().lat;
+      const int spec = imageHeader.WCS().spec;
+
+      this->itsNSub = new int[this->itsNAxis];
+      this->itsOverlap = new int[this->itsNAxis];
+      for(int i=0;i<this->itsNAxis;i++){
+	if(i==lng){ 
+	  this->itsNSub[i]=this->itsNSubX; 
+	  this->itsOverlap[i]=this->itsOverlapX; 
+	}
+	else if(i==lat){
+	  this->itsNSub[i]=this->itsNSubY; 
+	  this->itsOverlap[i]=this->itsOverlapY;
+	}
+	else if(i==spec){
+	  this->itsNSub[i]=this->itsNSubZ;
+	  this->itsOverlap[i]=this->itsOverlapZ; 
+	}
+	else{
+	  this->itsNSub[i] = 1; 
+	  this->itsOverlap[i] = 0;
+	}
+      }
+
+    }
+
+
+    duchamp::Section SubimageDef::section(int workerNum)
+    {
+
+      /// @define Return the subsection object for the given worker
+      /// number. (These start at 0). The subimages are tiled across
+      /// the cube with the x-direction varying quickest, then y, then
+      /// z. The dimensions of the array are obtained with the
+      /// getFITSdimensions(std::string) function.
+      /// @return A duchamp::Section object containing all information
+      /// on the subsection.
+
+      long *dimAxes = getFITSdimensions(this->itsImageName);
+      long start = 0;
+      
+      long sub[3];
+      sub[0] = workerNum % this->itsNSub[0];
+      sub[1] = (workerNum % (this->itsNSub[0]*this->itsNSub[1])) / this->itsNSub[0];
+      sub[2] = workerNum / (this->itsNSub[0]*this->itsNSub[1]);
+
+      std::stringstream section;
+
+      for(int i=0;i<this->itsNAxis;i++){
+	    
+	if(this->itsNSub[i] > 1){
+	  int min = std::max( start, sub[i]*(dimAxes[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
+	  int max = std::min( dimAxes[i], (sub[i]+1)*(dimAxes[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 ) + 1;
+	  section << min << ":" << max;
+	}
+	else section << "*";
+	if(i != this->itsNAxis-1) section << ",";
+	  
+      }
+      std::string secstring = "["+section.str()+"]";
+      duchamp::Section sec(secstring);
+      std::vector<long> dim(this->itsNAxis);
+      for(int i=0;i<this->itsNAxis;i++) dim[i] = dimAxes[i];
+      sec.parse(dim);
+
+      return sec;
+    }
+
+
+    duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset)
+    {
+      
+      /// @details Use the SubimageDef class to return the
+      /// duchamp::Section object for the given worker number.
+      /// @param workerNum The number of the subimage (starting at 0);
+      /// @param parset The set of parameters.
+      /// @return A duchamp::Section object containing all info on the
+      /// desired subimage.
+
+      SubimageDef subDef;
+      subDef.define(parset);
+      return subDef.section(workerNum);
+      
+    }
+
+    std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
+    {
+
+      /// @details Use the SubimageDef class to return the full list
+      /// of subimage specifications for all workers.
+      /// @param workerNum The number of the subimage (starting at 0);
+      /// @param parset The set of parameters.
       /// @return A std::vector of duchamp::Section objects.
 
       std::vector<duchamp::Section> sectionlist; 
-      std::string image = parset.getString("image");
 
-      int nsubx = parset.getInt16("nsubx",1);
-      int nsuby = parset.getInt16("nsuby",1);
-      int nsubz = parset.getInt16("nsubz",1);
-  
-      int overlapx = parset.getInt16("overlapx",0);
-      int overlapy = parset.getInt16("overlapy",0);
-      int overlapz = parset.getInt16("overlapz",0);
-  
-      int numRequestedSubs = nsubx * nsuby * nsubz;
-  
-      if( numWorkers != numRequestedSubs ){
-	ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<numRequestedSubs
+      SubimageDef subDef;
+      subDef.define(parset);
+      if( numWorkers != subDef.numSubs() ){
+	ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<subDef.numSubs()
 			  <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
 	return sectionlist;
       }  
       else {
-
-	duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
-	duchamp::FitsHeader imageHeader;
-	imageHeader.defineWCS(image,tempPar);
-	int naxis = imageHeader.WCS().naxis;
-	const int lng = imageHeader.WCS().lng;
-	const int lat = imageHeader.WCS().lat;
-	const int spec = imageHeader.WCS().spec;
-
-	int *nsub = new int[naxis];
-	int *overlap = new int[naxis];
-	for(int i=0;i<naxis;i++){
-	  if(i==lng){ 
-	    nsub[i]=nsubx; 
-	    overlap[i]=overlapx; 
-	  }
-	  else if(i==lat){
-	    nsub[i]=nsuby; 
-	    overlap[i]=overlapy;
-	  }
-	  else if(i==spec){
-	    nsub[i]=nsubz;
-	    overlap[i]=overlapz; 
-	  }
-	  else{
-	    nsub[i] = 1; 
-	    overlap[i] = 0;
-	  }
-	}
-
-	long *dimAxes = getFITSdimensions(image);
-	long start = 0;
-
-	for(int w=0;w<numWorkers;w++){
-
-	  std::string subimage = "!"+getSubImageName(image,w,numWorkers);
-	  
-	  std::stringstream section;
-
-	  for(int i=0;i<naxis;i++){
-	    
-	    if(nsub[i] > 1){
-	      int min = std::max( start, w*dimAxes[i]/nsub[i] - overlap[i]/2 ) + 1;
-	      int max = std::min( dimAxes[i], (w+1)*dimAxes[i]/nsub[i] + overlap[i]/2 );
-	      section << min << ":" << max;
-	    }
-	    else section << "*";
-	    if(i != naxis-1) section << ",";
-
-	  }
-
- 	  ASKAPLOG_INFO_STR(logger, "Worker #"<<w+1<<" is using subsection " << section.str());
-
-	  std::string secstring = "["+section.str()+"]";
-	  duchamp::Section sec(secstring);
-	  std::vector<long> dim(naxis);
-	  for(int i=0;i<naxis;i++) dim[i] = dimAxes[i];
-	  sec.parse(dim);
-	  sectionlist.push_back(sec);
+	
+	for(int w=0; w<numWorkers; w++){
+	  sectionlist.push_back( subDef.section(w) );
 	}
 
 	return sectionlist;
 
       }
-  
 
 
     }

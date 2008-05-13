@@ -21,6 +21,28 @@ namespace askap
   namespace analysis
   {
 
+    class SubimageDef
+    {
+    public:
+      SubimageDef(){itsNAxis=0; itsNSubX=itsNSubY=itsNSubZ=1;};
+      SubimageDef& operator= (const SubimageDef& s);
+      virtual ~SubimageDef(){};
+      void define(const LOFAR::ACC::APS::ParameterSet& parset);
+      duchamp::Section section(int workerNum);
+      int numSubs(){return itsNSubX*itsNSubY*itsNSubZ;};
+    protected:
+      int itsNSubX;
+      int itsNSubY;
+      int itsNSubZ;
+      int itsOverlapX;
+      int itsOverlapY;
+      int itsOverlapZ;
+      int *itsNSub;
+      int *itsOverlap;
+      int itsNAxis;
+      std::string itsImageName;
+    };
+
     /// @brief Return an array of axis dimensions for a FITS file.
     /// @ingroup analysisutilities
     long * getFITSdimensions(std::string filename);
@@ -53,6 +75,7 @@ namespace askap
     /// @brief Return a vector list of subsections, one for each worker.
     /// @ingroup analysisutilities
     std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
+    duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset);
     /// @brief Make subimages and return a vector list of subsections.
     /// @ingroup analysisutilities
     std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);

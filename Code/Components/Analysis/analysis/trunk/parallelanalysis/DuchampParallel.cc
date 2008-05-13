@@ -103,8 +103,8 @@ namespace askap
 
 	// get the list of subsections so that all nodes can access it.
 	if(isParallel()){
-	  std::vector<duchamp::Section> sectionList = getSectionList(this->itsNNode-1,parset);
-	  itsCube.pars().setSubsection(sectionList[itsRank-1].getSection());
+ 	  itsCube.pars().setSubsection( getSection(itsRank-1,parset).getSection() );
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank-1<<" is using subsection " << itsCube.pars().getSubsection());
 	}
 
 	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	

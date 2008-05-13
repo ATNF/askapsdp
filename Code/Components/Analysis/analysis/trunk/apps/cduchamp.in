@@ -43,7 +43,9 @@
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
 Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
-Cduchamp.nsubx       = 2
+#Cduchamp.nsubx       = 2
+Cduchamp.nsubx       = 3
+Cduchamp.nsuby       = 3
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
