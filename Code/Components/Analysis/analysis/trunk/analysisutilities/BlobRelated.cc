@@ -105,6 +105,13 @@ namespace askap
 	d = fit->PA();         blob << d;
       }
 
+      l = src.itsBoxMargins[0].first;    blob << l;
+      l = src.itsBoxMargins[0].second;   blob << l;
+      l = src.itsBoxMargins[1].first;    blob << l;
+      l = src.itsBoxMargins[1].second;   blob << l;
+      l = src.itsBoxMargins[2].first;    blob << l;
+      l = src.itsBoxMargins[2].second;   blob << l;
+
       return blob;
     }
 
@@ -180,7 +187,14 @@ namespace askap
 	blob >> d; fit.setPA(d);
 	src.itsGaussFitSet.push_back(fit);
       }
-     
+
+      std::vector<std::pair<long,long> > box;
+      int32 l2;
+      blob >> l; blob >> l2; box[0] = std::pair<long,long>(l,l2);
+      blob >> l; blob >> l2; box[1] = std::pair<long,long>(l,l2);
+      blob >> l; blob >> l2; box[2] = std::pair<long,long>(l,l2);
+      src.itsBoxMargins = box;
+
       return blob;
     }
 

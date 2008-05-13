@@ -307,6 +307,7 @@ namespace askap
 // 	  src.setNoiseLevel( noise );
 	  src.setDetectionThreshold( threshold );
 	  src.setHeader( head );
+	  src.defineBox(itsCube.getDimArray());
 
 	  // Only do fit if object is not next to boundary
 	  bool flagBoundary = false;
@@ -382,16 +383,19 @@ namespace askap
    
 	    if( src->isAtEdge() ){
 
-	      /// @todo -- abstract this getting-the-surrounding-area into a class?
 	      int xmin,xmax,ymin,ymax,zmin,zmax;
-	      xmin = std::max(0 , int(src->boxXmin()));
-	      xmax = std::min(itsCube.getDimX()-1, src->boxXmax());
-	      ymin = std::max(0 , int(src->boxYmin()));
-	      ymax = std::min(itsCube.getDimY()-1, src->boxYmax());
-	      zmin = std::max(0 , int(src->boxZmin() ));
-	      zmax = std::min(itsCube.getDimZ()-1, src->boxZmax());
+// 	      xmin = std::max(0 , int(src->boxXmin()));
+// 	      xmax = std::min(itsCube.getDimX()-1, src->boxXmax());
+// 	      ymin = std::max(0 , int(src->boxYmin()));
+// 	      ymax = std::min(itsCube.getDimY()-1, src->boxYmax());
+// 	      zmin = std::max(0 , int(src->boxZmin() ));
+// 	      zmax = std::min(itsCube.getDimZ()-1, src->boxZmax());
+	      xmin = src->boxXmin(); xmax = src->boxXmax();
+	      ymin = src->boxYmin(); ymax = src->boxYmax();
+	      zmin = src->boxZmin(); zmax = src->boxZmax();
 	  
-	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
+// 	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
+	      int numVox = src->boxSize();
 	      out << numVox;
 	  
 	      for(int32 x=xmin; x<=xmax; x++){
@@ -550,7 +554,8 @@ namespace askap
 	    //	    src.setNoiseLevel( noise );
 	    src.setDetectionThreshold( threshold );
 	    src.setHeader( head );
-	    
+	    src.defineBox(itsCube.getDimArray());
+
 	    if(itsFlagDoFit) src.fitGauss(&this->itsVoxelList);
 	    
 	    itsSourceList.push_back(src);
@@ -560,6 +565,7 @@ namespace askap
 
 	for(src=goodSources.begin();src<goodSources.end();src++){
 	  src->setHeader(head);
+	  src->defineBox(itsCube.getDimArray());
 	  // Need to check that there are no small sources present that violate the minimum size criteria
 	  if( (src->hasEnoughChannels(itsCube.pars().getMinChannels()))
 	  && (src->getSpatialSize() >= itsCube.pars().getMinPix()) )

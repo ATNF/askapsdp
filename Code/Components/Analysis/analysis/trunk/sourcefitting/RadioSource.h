@@ -120,28 +120,38 @@ namespace askap
 	/// @brief Set the atEdge flag.
 	void setAtEdge(bool b){atEdge = b;};
 
+	/// @brief Define the boundaries of the box
+	void defineBox(long *axes);
+
 	/// @brief Commands to return the extent and size of the box
 	/// surrounding the object. Uses the detectionBorder parameter.
 	/// @name 
 	// @{
 	/// Minimum x-value
-	long boxXmin(){return getXmin() - detectionBorder;};
+/* 	long boxXmin(){return getXmin() - detectionBorder;}; */
+	long boxXmin(){return itsBoxMargins[0].first;};
 	/// Maximum x-value
-	long boxXmax(){return getXmax() + detectionBorder;};
+/* 	long boxXmax(){return getXmax() + detectionBorder;}; */
+	long boxXmax(){return itsBoxMargins[0].second;};
 	/// Minimum y-value
-	long boxYmin(){return getYmin() - detectionBorder;};
+/* 	long boxYmin(){return getYmin() - detectionBorder;}; */
+	long boxYmin(){return itsBoxMargins[1].first;};
 	/// Maximum y-value
-	long boxYmax(){return getYmax() + detectionBorder;};
+/* 	long boxYmax(){return getYmax() + detectionBorder;}; */
+	long boxYmax(){return itsBoxMargins[1].second;};
 	/// Minimum z-value
-	long boxZmin(){return getZmin() - detectionBorder;};
+/* 	long boxZmin(){return getZmin() - detectionBorder;}; */
+	long boxZmin(){return itsBoxMargins[2].first;};
 	/// Maximum z-value
-	long boxZmax(){return getZmax() + detectionBorder;};
+/* 	long boxZmax(){return getZmax() + detectionBorder;}; */
+	long boxZmax(){return itsBoxMargins[2].second;};
 	/// X-width
 	long boxXsize(){return boxXmax()-boxXmin()+1;};
 	/// Y-width
 	long boxYsize(){return boxYmax()-boxYmin()+1;};
 	/// Number of pixels in box
 	long boxSize(){return boxXsize()*boxYsize();};
+	
 	// @}
 
 	/// @brief Comparison operator, using the name field
@@ -174,6 +184,9 @@ namespace askap
 
 	/// @brief A two-dimensional Gaussian fit to the object.
 	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
+
+	/// @brief The min & max points of the box, taking into account the borders of the data array
+	std::vector<std::pair<long,long> > itsBoxMargins;
 
       };
     }

@@ -70,6 +70,7 @@ namespace askap
 	this->itsDetectionThreshold = src.itsDetectionThreshold;
 	this->itsHeader = src.itsHeader;
 	this->itsGaussFitSet = src.itsGaussFitSet;
+	this->itsBoxMargins = src.itsBoxMargins;
       }
 
       //**************************************************************//
@@ -83,8 +84,35 @@ namespace askap
 	this->itsDetectionThreshold = src.itsDetectionThreshold;
 	this->itsHeader = src.itsHeader;
 	this->itsGaussFitSet = src.itsGaussFitSet;
+	this->itsBoxMargins = src.itsBoxMargins;
 	return *this;
       }
+
+      //**************************************************************//
+
+      void RadioSource::defineBox(long *axes)
+      {
+	/// @details Defines the maximum and minimum points of the box
+	/// in each axis direction. The size of the image array is
+	/// taken into account, using the axes array, so that the box
+	/// does not go outside the allowed pixel area.
+
+	this->itsBoxMargins.clear();
+	long zero = 0;
+	long xmin = std::max(zero, this->getXmin() - detectionBorder);
+	long xmax = std::min(axes[0], this->getXmax() + detectionBorder);
+ 	long ymin = std::max(zero, this->getYmin() - detectionBorder);
+ 	long ymax = std::min(axes[1], this->getYmax() + detectionBorder);
+ 	long zmin = std::max(zero, this->getZmin() - detectionBorder);
+ 	long zmax = std::min(axes[2], this->getZmax() + detectionBorder);
+	std::vector<std::pair<long,long> > vec(3);
+	vec[0] = std::pair<long,long>(xmin,xmax);
+	vec[1] = std::pair<long,long>(ymin,ymax);
+	vec[2] = std::pair<long,long>(zmin,zmax);
+	this->itsBoxMargins = vec;
+
+      }
+
 
       //**************************************************************//
 
