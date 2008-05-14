@@ -235,12 +235,18 @@ void TableConstDataIterator::setUpIteration()
       // extra checks make sense if the cache is valid (and this means it 
       // has been used before)
       const casa::MEpoch epoch = currentEpoch();
+      const casa::uInt spWindow = currentSpWindowID();
       const bool newField = itsUseFieldID ? false : subtableInfo().getField().newField(epoch);
       // a case where fieldID changes is dealt with separately.
-      if ( newField || !subtableInfo().getAntenna().allEquatorial() ||
-          subtableInfo().getFeed().newBeamDetails(epoch,currentSpWindowID())) {
+      const IFeedSubtableHandler &feedSubtable = subtableInfo().getFeed();
+      if ( newField || ((!subtableInfo().getAntenna().allEquatorial() ||
+           feedSubtable.newBeamDetails(epoch,spWindow)) &&
+           !feedSubtable.allBeamOffsetsZero(epoch,spWindow))) {
               itsDirectionCache.invalidate();
               // itsDishPointingCache doesn't depend on feeds
+              if (newField) {
+                  itsDishPointingCache.invalidate();
+              }
       }
   }
   // retreive the number of channels and polarizations from the table
@@ -291,9 +297,13 @@ void TableConstDataIterator::makeUniformDataDescID()
           // the time change. In addition, checks require an access to the table,
           // which we want to avoid if, e.g., we don't need pointing direction 
           // at all
-          if (subtableInfo().getFeed().newBeamDetails(currentEpoch(),
-                                       currentSpWindowID())) {
-              itsDirectionCache.invalidate();
+          const casa::uInt spWindow = currentSpWindowID();
+          const casa::MEpoch epoch = currentEpoch();
+          const IFeedSubtableHandler &feedSubtable = subtableInfo().getFeed();
+          if (!feedSubtable.allBeamOffsetsZero(epoch,spWindow)) {
+              if (feedSubtable.newBeamDetails(epoch,spWindow)) {
+                  itsDirectionCache.invalidate();
+              }
           }
       }
       
