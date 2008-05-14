@@ -135,6 +135,20 @@ struct IFeedSubtableHandler : virtual public IHolder {
   /// @return a reference to matrix with indicies
   virtual const casa::Matrix<casa::Int>& getIndices() const throw() = 0;
 
+  /// @brief check whether all beam offsets are zero
+  /// @details Non-zero beam offsets cause heavy calculations when a pointing
+  /// direction is requested for each particular feed. This method allows to
+  /// check whether all offsets are zero for the current time and spectral window. 
+  /// There is no need to invalidate a cache of pointing directions if we have 
+  /// an on-axis feed only. The issue is complicated by the fact that the feed
+  /// table could be time- and spectral window-dependent. 
+  /// @param[in] time a full epoch of interest (feed table can be time-
+  /// dependent
+  /// @param[in] spWinID spectral window ID of interest (feed table can be
+  /// spectral window-dependent
+  /// @return true if all beam offsets are zero for the given time/epoch.
+  virtual bool allBeamOffsetsZero(const casa::MEpoch &time, casa::uInt spWinID) const = 0;
+
 };
 
 

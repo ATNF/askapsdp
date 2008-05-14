@@ -49,7 +49,7 @@ using namespace askap::synthesis;
 /// initial value of -2 serves as such flag.
 FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
           TableHolder(ms.keywordSet().asTable("FEED")),
-          itsCachedSpWindow(-2), itsIntervalFactor(1.)
+          itsCachedSpWindow(-2), itsAllCachedOffsetsZero(false), itsIntervalFactor(1.)
 { 
   const casa::Array<casa::String> &intervalUnits=table().tableDesc().
           columnDesc("INTERVAL").keywordSet().asArrayString("QuantumUnits");
@@ -225,8 +225,15 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
   casa::ROScalarColumn<casa::Double> intervalCol(selection,"INTERVAL");
   casa::ROScalarColumn<casa::Int> spWinCol(selection,"SPECTRAL_WINDOW_ID");
   itsCachedSpWindow = spWinCol(0);
+  // we will set this flag to false later, if a non-zero offset is found
+  itsAllCachedOffsetsZero = true; 
   for (casa::uInt row=0; row<selection.nrow(); ++row) {
-       computeBeamOffset(rcptrOffsets(row),itsBeamOffsets[row]);
+       casa::RigidVector<casa::Double, 2> &cOffset = itsBeamOffsets[row];
+       computeBeamOffset(rcptrOffsets(row),cOffset);
+       if ((std::abs(cOffset(0)) < 1e-15) || (std::abs(cOffset(1)) < 1e-15)) {
+           itsAllCachedOffsetsZero = false;
+           //std::cerr<<"non zero offset "<<cOffset(0)<<" "<<cOffset(1)<<std::endl; 
+       }
        itsPositionAngles[row]=computePositionAngle(rcptrPAs(row));
        itsIndices(antIDs(row),feedIDs(row))=row;
        
@@ -337,6 +344,24 @@ void FeedSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time,
       fillCache(time,spWinID);
   }
 }                                            
+
+/// @brief check whether all beam offsets are zero
+/// @details Non-zero beam offsets cause heavy calculations when a pointing
+/// direction is requested for each particular feed. This method allows to
+/// check whether all offsets are zero for the current time and spectral window. 
+/// There is no need to invalidate a cache of pointing directions if we have 
+/// an on-axis feed only. The issue is complicated by the fact that the feed
+/// table could be time- and spectral window-dependent. 
+/// @param[in] time a full epoch of interest (feed table can be time-
+/// dependent
+/// @param[in] spWinID spectral window ID of interest (feed table can be
+/// spectral window-dependent
+/// @return true if all beam offsets are zero for the given time/epoch.
+bool FeedSubtableHandler::allBeamOffsetsZero(const casa::MEpoch &time, casa::uInt spWinID) const
+{
+  fillCacheOnDemand(time,spWinID);
+  return itsAllCachedOffsetsZero;
+}
 
 /// obtain feed IDs for the given time and spectral window
 /// @param[in] time a full epoch of interest (feed table can be time-
