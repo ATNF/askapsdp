@@ -146,12 +146,13 @@ namespace askap
 	smlIm.saveArray(fluxarray,this->boxSize());
 	smlIm.setMinSize(1);
 
-	for(int i=0;i<numThresh;i++){
-	  float thresh = (this->peakFlux-this->itsDetectionThreshold)*(i+1)/float(numThresh+1);
+	float threshIncrement = (this->peakFlux-this->itsDetectionThreshold)/float(numThresh);
+	for(int i=1;i<=numThresh;i++){
+	  float thresh = this->itsDetectionThreshold + i * threshIncrement;
 	  smlIm.stats().setThreshold(thresh);
 	  std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
 	  std::vector<PixelInfo::Object2D>::iterator o;
-	  for(o=objlist.begin();o<objlist.end();o++){
+	  for(o=objlist.begin();o<objlist.end();o++){	    
 	    duchamp::Detection tempobj;
 	    tempobj.pixels().addChannel(0,*o);
 	    tempobj.calcFluxes(fluxarray,dim);
@@ -160,13 +161,21 @@ namespace askap
 				     tempobj.getZPeak(),
 				     tempobj.getPeakFlux());
 	    int freq = 1;
-	    for(pk=peakMap.begin();pk!=peakMap.end();pk++){
-	      if(pk->second==peakLoc){
-		freq = pk->first + 1;
-		peakMap.erase(pk);
+	    
+	    bool finished = false;
+	    if(peakMap.size()>0){
+	      pk = peakMap.begin();
+	      while(!finished && pk!=peakMap.end()){
+		if(!(pk->second==peakLoc)) pk++;
+		else{
+		  freq = pk->first+1;
+		  peakMap.erase(pk);
+		  finished=true;
+		}
 	      }
 	    }
 	    peakMap.insert( std::pair<int,PixelInfo::Voxel>(freq,peakLoc) );
+
 	  }
 
 	}
