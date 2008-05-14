@@ -242,7 +242,20 @@ namespace askap
 	// Make sure that the next set of minor cycles does not redo unnecessary things.
 	// Also "fix" parameters for order >= itsNTaylor. so that the gridding doesn't get done
 	// for these extra terms.
-	firsttime = False;
+
+	if(firsttime)
+	{
+	  // Fix the params corresponding to extra Taylor terms.
+	  
+	  for (vector<string>::const_iterator  it=names.begin();it!=names.end();it++)
+	  {
+		  string name="image"+*it;
+		  int torder = getOrder(name);
+		  if(torder >= itsNTaylor && itsParams->isFree(name)) itsParams->fix(name);
+	  }
+	  
+	  firsttime = False;
+	}
       }
       catch( AipsError &x )
       {

@@ -63,10 +63,10 @@ namespace askap
       protected:
 
 	/// Parse the image parameter name to get out the Stokes information
-        //inline std::string getStokes(const std::string& paramstring){return paramstring.substr(6,1);};
+        inline std::string getStokes(const std::string& paramstring){return paramstring.substr(6,1);};
 	/// Parse the image parameter name to get out the Order information
 	/// Order == enumeration index (e.x. second-order Taylor coefficient)
-        //inline int getOrder(const std::string& paramstring){return atoi(paramstring.substr(8,1).data());};
+        inline int getOrder(const std::string& paramstring){return atoi(paramstring.substr(8,1).data());};
         /// Create an image parameter string, from stokes and order parameters
 	inline std::string makeImageString(const std::string& samplestring, const std::string& stokes, const int& order){std::string newstring(samplestring);newstring.replace(6,1,stokes);newstring.replace(8,1,(casa::String::toString(order)).data());return newstring;};
 	

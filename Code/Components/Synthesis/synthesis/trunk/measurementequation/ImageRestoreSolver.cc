@@ -70,21 +70,14 @@ namespace askap
 	}
 	ASKAPCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
 
-	// Extract the diagonal vector, to normalize against.
-	// This is primarily for MFS, and is an interim solution until stokes parameters
-	// are handled and multiple output images are formed.
-	ASKAPCHECK(normalEquations().normalMatrixDiagonal().count((indices.begin())->first)>0, "Diagonal not present");
-	const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find((indices.begin())->first)->second);
-	ASKAPLOG_INFO_STR(logger, "Normalizing by the diagonal from the first image on the list " );
-	
 	for (map<string, uint>::const_iterator indit=indices.begin(); indit !=indices.end(); indit++)
 	{
 	  ASKAPLOG_INFO_STR(logger, "Restoring " << indit->first );
 	  // Axes are dof, dof for each parameter
 	  casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
 	  
-	  //ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
-	  //const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
+	  ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+	  const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
 	  ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
 	  const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
 	  double maxDiag(casa::max(diag));
