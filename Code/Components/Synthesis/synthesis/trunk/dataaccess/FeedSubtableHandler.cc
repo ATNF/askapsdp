@@ -230,7 +230,7 @@ void FeedSubtableHandler::fillCache(const casa::MEpoch &time,
   for (casa::uInt row=0; row<selection.nrow(); ++row) {
        casa::RigidVector<casa::Double, 2> &cOffset = itsBeamOffsets[row];
        computeBeamOffset(rcptrOffsets(row),cOffset);
-       if ((std::abs(cOffset(0)) < 1e-15) || (std::abs(cOffset(1)) < 1e-15)) {
+       if ((std::abs(cOffset(0)) > 1e-15) || (std::abs(cOffset(1)) > 1e-15)) {
            itsAllCachedOffsetsZero = false;
            //std::cerr<<"non zero offset "<<cOffset(0)<<" "<<cOffset(1)<<std::endl; 
        }
