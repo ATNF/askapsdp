@@ -9,6 +9,7 @@
 #define ASKAP_ANALYSIS_GROTHTRIANGLES_H_
 
 #include <vector>
+#include <utility>
 #include <string>
 #include <math.h>
 

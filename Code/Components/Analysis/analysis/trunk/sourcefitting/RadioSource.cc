@@ -29,6 +29,7 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <utility>
 #include <math.h>
 
 ///@brief Where the log messages go.
@@ -383,15 +384,15 @@ namespace askap
 	  fitgauss[ctr].setRetryFactors(retryfactors);
 
 	  // mask the beam parameters
-	  std::cout << "Mask values:\n";
+	  //	  std::cout << "Mask values:\n";
 	  for(unsigned int g=0;g<numGauss;g++){
 	    fitgauss[ctr].mask(g,3) = false;
 	    fitgauss[ctr].mask(g,4) = false;
 	    fitgauss[ctr].mask(g,5) = false;
 	    // 	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i)=false;
 	    //	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i) = !fitgauss[ctr].mask(g,i);
-	    for(int i=0;i<6;i++) std::cout << fitgauss[ctr].mask(g,i);
-	    std::cout << "\n";
+	    //	    for(int i=0;i<6;i++) std::cout << fitgauss[ctr].mask(g,i);
+	    //	    std::cout << "\n";
 	  }	      
     
 	  solution[ctr].resize();

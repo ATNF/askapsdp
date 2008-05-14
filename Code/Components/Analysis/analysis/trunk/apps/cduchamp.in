@@ -53,7 +53,7 @@ Cduchamp.nsuby       = 3
 
 Cduchamp.verbose      = true
 #Cduchamp.flagRobust  = false   #This applies to the workers only.
-Cduchamp.snrCut       = 10
+Cduchamp.snrCut       = 8
 #Cduchamp.flagGrowth   = true
 Cduchamp.growthCut    = 3
 #Cduchamp.threshold   = 0.005

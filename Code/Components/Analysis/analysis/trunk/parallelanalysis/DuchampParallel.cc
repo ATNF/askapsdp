@@ -162,7 +162,6 @@ namespace askap
 
     //**************************************************************//
 
-    // Read in the data from the image file (on the workers)
     void DuchampParallel::readData()
     {
       /// @details Reads in the data using duchamp functionality and
@@ -384,18 +383,18 @@ namespace askap
 	    if( src->isAtEdge() ){
 
 	      int xmin,xmax,ymin,ymax,zmin,zmax;
-// 	      xmin = std::max(0 , int(src->boxXmin()));
-// 	      xmax = std::min(itsCube.getDimX()-1, src->boxXmax());
-// 	      ymin = std::max(0 , int(src->boxYmin()));
-// 	      ymax = std::min(itsCube.getDimY()-1, src->boxYmax());
-// 	      zmin = std::max(0 , int(src->boxZmin() ));
-// 	      zmax = std::min(itsCube.getDimZ()-1, src->boxZmax());
-	      xmin = src->boxXmin(); xmax = src->boxXmax();
-	      ymin = src->boxYmin(); ymax = src->boxYmax();
-	      zmin = src->boxZmin(); zmax = src->boxZmax();
+	      xmin = std::max(0 , int(src->boxXmin()));
+	      xmax = std::min(itsCube.getDimX()-1, src->boxXmax());
+	      ymin = std::max(0 , int(src->boxYmin()));
+	      ymax = std::min(itsCube.getDimY()-1, src->boxYmax());
+	      zmin = std::max(0 , int(src->boxZmin() ));
+	      zmax = std::min(itsCube.getDimZ()-1, src->boxZmax());
+// 	      xmin = src->boxXmin(); xmax = src->boxXmax();
+// 	      ymin = src->boxYmin(); ymax = src->boxYmax();
+// 	      zmin = src->boxZmin(); zmax = src->boxZmax();
 	  
-// 	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
-	      int numVox = src->boxSize();
+ 	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
+// 	      int numVox = src->boxSize();
 	      out << numVox;
 	  
 	      for(int32 x=xmin; x<=xmax; x++){
@@ -449,21 +448,23 @@ namespace askap
 	    ASKAPASSERT(version==1);
 	    in >> rank >> numObj;
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Starting to read " 
-			      << numObj << " objects from worker #"<< rank);
+			      << numObj << " objects from worker #"<< rank-1);
 	    for(int obj=0;obj<numObj;obj++){
 	      sourcefitting::RadioSource src;
 	      in >> src;
-	      ASKAPLOG_INFO_STR(logger, "MASTER: Read Source " << obj+1 << " from worker#"<<rank);
+	      ASKAPLOG_INFO_STR(logger, "MASTER: Read Source " << obj+1 << " from worker#"<<rank-1);
+	      // Correct for any offsets;
 	      src.setXOffset(itsSectionList[i-1].getStart(0));
 	      src.setYOffset(itsSectionList[i-1].getStart(1));
 	      src.setZOffset(itsSectionList[i-1].getStart(2));
-
-	      // Correct for any offsets;
 	      src.addOffsets();
+	      src.defineBox(itsCube.getDimArray());
 	      for(unsigned int f=0;f<src.fitset().size();f++){
 		src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
 		src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
 	      }
+	      // And now set offsets to zero as we are in the master cube
+	      src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
 
 	      itsSourceList.push_back(src);
 	      
@@ -554,7 +555,7 @@ namespace askap
 	    //	    src.setNoiseLevel( noise );
 	    src.setDetectionThreshold( threshold );
 	    src.setHeader( head );
-	    src.defineBox(itsCube.getDimArray());
+ 	    src.defineBox(itsCube.getDimArray());
 
 	    if(itsFlagDoFit) src.fitGauss(&this->itsVoxelList);
 	    
@@ -565,7 +566,6 @@ namespace askap
 
 	for(src=goodSources.begin();src<goodSources.end();src++){
 	  src->setHeader(head);
-	  src->defineBox(itsCube.getDimArray());
 	  // Need to check that there are no small sources present that violate the minimum size criteria
 	  if( (src->hasEnoughChannels(itsCube.pars().getMinChannels()))
 	  && (src->getSpatialSize() >= itsCube.pars().getMinPix()) )
