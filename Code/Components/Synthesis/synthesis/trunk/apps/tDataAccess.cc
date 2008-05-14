@@ -18,6 +18,8 @@ ASKAP_LOGGER(logger, "");
 // casa
 #include <measures/Measures/MFrequency.h>
 #include <tables/Tables/Table.h>
+#include <casa/OS/Timer.h>
+
 
 // std
 #include <stdexcept>
@@ -101,12 +103,18 @@ int main(int argc, char **argv) {
 	 return -2;
      }
 
+     casa::Timer timer;
+
+     timer.mark();
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
      TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
+     std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      //timeDependentSubtableTest(argv[1],ds);
+     timer.mark();
      doReadOnlyTest(ds);
      //doReadWriteTest(ds);    
+     std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
   catch(const AskapError &ce) {
