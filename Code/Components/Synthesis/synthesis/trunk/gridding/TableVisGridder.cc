@@ -1,6 +1,7 @@
 #include <gridding/TableVisGridder.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
+#include <dataaccess/IDataAccessor.h>
 ASKAP_LOGGER(logger, ".gridding");
 
 #include <askap/AskapError.h>
@@ -154,7 +155,11 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    
    casa::Vector<casa::RigidVector<double, 3> > outUVW;
    casa::Vector<double> delay;
-   rotateUVW(*idi, outUVW, delay);
+   
+   // we don't need the whole iterator in most of the following code
+   IDataAccessor &acc = *idi; 
+   
+   rotateUVW(acc, outUVW, delay);
    
    initIndices(idi);
    initConvolutionFunction(idi);
@@ -162,10 +167,10 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
    ASKAPCHECK(itsUVCellSize.size()==2, "UV cell sizes not yet set");
    
-   const uint nSamples = idi->nRow();
-   const uint nChan = idi->nChannel();
-   const uint nPol = idi->nPol();
-   const casa::Vector<casa::Double>& frequencyList = idi->frequency();
+   const uint nSamples = acc.nRow();
+   const uint nChan = acc.nChannel();
+   const uint nPol = acc.nPol();
+   const casa::Vector<casa::Double>& frequencyList = acc.frequency();
 			      
    ASKAPDEBUGASSERT(itsShape.nelements()>=2);
    const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
@@ -180,10 +185,24 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    
    long int nGood=0;
    
-   ASKAPDEBUGASSERT(casa::uInt(nChan) <= idi->frequency().nelements());
-   ASKAPDEBUGASSERT(casa::uInt(nSamples) == idi->uvw().nelements());
+   ASKAPDEBUGASSERT(casa::uInt(nChan) <= frequencyList.nelements());
+   ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
    
-   for (uint i=0; i<nSamples; ++i) { //std::cout<<"doing sample "<<i<<" out of "<<nSamples<<std::endl;
+   // PSF should be calculated for one feed only. Current assumption is that
+   // it is the same for all feeds and fields.
+   casa::uInt feedUsedForPSF = 0;
+   // Mosaicing dataset have different pointing, but may have the same feed numbers
+   // (e.g. ATCA data), so one need to test the pointing direction as well.
+   casa::MVDirection pointingUsedForPSF;
+   for (uint i=0; i<nSamples; ++i) { 
+       if (i == 0) {
+           feedUsedForPSF = acc.feed1()(i);
+           pointingUsedForPSF = acc.dishPointing1()(i);
+           //if (itsDopsf) {
+           //    ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<i<<
+           //    " and field at "<<pointingUsedForPSF<<" to estimate the PSF");
+           //}
+       }
 	   /// Temporarily fix to do MFS only
 	   int imageChan=0;
 	   int imagePol=0;
@@ -191,7 +210,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 	   for (uint chan=0; chan<nChan; ++chan) {
 		   
 		   /// Scale U,V to integer pixels plus fractional terms
-		   double uScaled=idi->frequency()[chan]*idi->uvw()(i)(0)/(casa::C::c *itsUVCellSize(0));
+		   double uScaled=frequencyList[chan]*acc.uvw()(i)(0)/(casa::C::c *itsUVCellSize(0));
 		   int iu = askap::nint(uScaled);
 		   int fracu=askap::nint(itsOverSample*(double(iu)-uScaled));
 		   if (fracu<0) {
@@ -206,7 +225,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 				   "Fractional offset in u exceeds oversampling");
 		   iu+=itsShape(0)/2;
 		   
-		   double vScaled=idi->frequency()[chan]*idi->uvw()(i)(1)/(casa::C::c *itsUVCellSize(1));
+		   double vScaled=frequencyList[chan]*acc.uvw()(i)(1)/(casa::C::c *itsUVCellSize(1));
 		   int iv = askap::nint(vScaled);
 		   int fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
 		   if (fracv<0) {
@@ -222,12 +241,12 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 		   iv+=itsShape(1)/2;
 		   
 		   /// Calculate the delay phasor
-		   const double phase=2.0f*casa::C::pi*idi->frequency()[chan]*delay(i)/(casa::C::c);
+		   const double phase=2.0f*casa::C::pi*frequencyList[chan]*delay(i)/(casa::C::c);
 		   const casa::Complex phasor(cos(phase), sin(phase));
 		   
 		   bool allPolGood=true;
 		   for (uint pol=0; pol<nPol; ++pol) {
-			   if (idi->flag()(i, chan, pol))
+			   if (acc.flag()(i, chan, pol))
 				   allPolGood=false;
 		   }
 		   
@@ -337,17 +356,17 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							   <itsShape(1))) {
 			     nGood+=1;
 			     if (forward) {
-				casa::Complex cVis(idi->visibility()(i, chan, pol));
-				GridKernel::degrid(cVis, convFunc, grid, iu, iv,
-						itsSupport);
-				if(itsVisWeight)
-					cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				idi->rwVisibility()(i, chan, pol)+=cVis*phasor;
-			     } else 
-			     {
+                     casa::Complex cVis(acc.visibility()(i, chan, pol));
+                        GridKernel::degrid(cVis, convFunc, grid, iu, iv,
+						     itsSupport);
+				     if(itsVisWeight) {
+					    cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+				     }
+                     acc.rwVisibility()(i, chan, pol)+=cVis*phasor;
+			     } else {
 				/// Gridding visibility data onto grid
 				casa::Complex rVis=phasor
-					*conj(idi->visibility()(i, chan, pol));
+					*conj(acc.visibility()(i, chan, pol));
 				casa::Complex sumwt=0.0;
 				float wtVis = 1.0;
 				if(itsVisWeight)
@@ -365,20 +384,22 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 				
 				/// Grid PSF?
 				/// @todo Fix calculation of PSF					
-				if (itsDopsf) {
-				ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
-				casa::Array<casa::Complex>
-					aGridPSF(itsGridPSF[gInd](slicer));
-				casa::Matrix<casa::Complex>
-					gridPSF(aGridPSF.nonDegenerate());
-				casa::Complex uVis(1.0);
-				if(itsVisWeight)
-					uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				GridKernel::grid(gridPSF, sumwt, convFunc,
-						uVis, wtVis, iu, iv, itsSupport);
-			     }
+				if (itsDopsf && (feedUsedForPSF == acc.feed1()(i)) &&
+				             (pointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
+				
+				    ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
+				    casa::Array<casa::Complex>
+					   aGridPSF(itsGridPSF[gInd](slicer));
+				    casa::Matrix<casa::Complex>
+					   gridPSF(aGridPSF.nonDegenerate());
+				    casa::Complex uVis(1.0);
+				    if(itsVisWeight)
+					   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+				       GridKernel::grid(gridPSF, sumwt, convFunc,
+						    uVis, wtVis, iu, iv, itsSupport);
+			    }
 			     
-			     }
+			  }
 			   }
 		      }
 		   }//end of pol loop
@@ -415,11 +436,7 @@ void TableVisGridder::grid(IDataSharedIter& idi) {
 void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 		casa::Vector<casa::RigidVector<double, 3> >& outUVW,
 		casa::Vector<double>& delay) const {
-	const casa::Quantum<double> refLon( (itsAxes.start("RA") +itsAxes.end("RA"))
-			/2.0, "rad");
-	const casa::Quantum<double> refLat( (itsAxes.start("DEC")
-			+itsAxes.end("DEC")) /2.0, "rad");
-	const casa::MDirection out(refLon, refLat, casa::MDirection::J2000);
+	const casa::MDirection out(getImageCentre(), casa::MDirection::J2000);
 	const casa::uInt nSamples = acc.uvw().size();
 	delay.resize(nSamples);
 	outUVW.resize(nSamples);
@@ -553,7 +570,7 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 
 /// This is the default implementation
 void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
-	/// Loop over all grids Fourier transforming and accumulating
+    /// Loop over all grids Fourier transforming and accumulating
 	for (unsigned int i=0; i<itsGrid.size(); i++) {
 		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
 		fft2d(scratch, false);
@@ -572,7 +589,7 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 
 /// This is the default implementation
 void TableVisGridder::finalisePSF(casa::Array<double>& out) {
-	/// Loop over all grids Fourier transforming and accumulating
+    /// Loop over all grids Fourier transforming and accumulating
 	for (unsigned int i=0; i<itsGridPSF.size(); i++) {
 		casa::Array<casa::Complex> scratch(itsGridPSF[i].copy());
 		fft2d(scratch, false);

@@ -213,7 +213,6 @@ namespace askap
     /// This is the default implementation
     void WStackVisGridder::finalisePSF(casa::Array<double>& out)
     {
-
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
       for (unsigned int i=0; i<itsGrid.size(); i++)
