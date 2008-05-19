@@ -68,22 +68,35 @@ namespace askap
       {
         itsRestore=itsParset.getBool("restore", true);
 
-	if(itsRestore) {
-	  itsQbeam.resize(3);
-	  vector<string> beam=itsParset.getStringVector("restore.beam");
-	  ASKAPCHECK(beam.size()==3, "Need three elements for beam");
-	  for (int i=0; i<3; i++)
-	    {
-	      casa::Quantity::read(itsQbeam(i), beam[i]);
-	    }
-	}
+        if (itsRestore) {
+            itsQbeam.resize(3);
+            vector<string> beam = itsParset.getStringVector("restore.beam");
+            ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
+            for (int i=0; i<3; ++i) {
+                 casa::Quantity::read(itsQbeam(i), beam[i]);
+            }
+        }
+        
+        bool reuseModel = itsParset.getBool("Images.reuse", false);
 
-        /// Create the specified images from the definition in the
-        /// parameter set. We can solve for any number of images
-        /// at once (but you may/will run out of memory!)
-        SynthesisParamsHelper::setUpImages(itsModel, 
-                                           itsParset.makeSubset("Images."));
-        ASKAPCHECK(itsModel, "Model not defined correctly");
+        ASKAPCHECK(itsModel, "itsModel is supposed to be initialized at this stage");
+        
+        if (reuseModel) {
+            ASKAPLOG_INFO_STR(logger, "Reusing model images stored on disk");
+            const vector<string> images=parset.getStringVector("Images.Names");
+            for (vector<string>::const_iterator ci = images.begin(); ci != images.end(); ++ci) {
+                 ASKAPLOG_INFO_STR(logger, "Reading model image "<<*ci);
+                 SynthesisParamsHelper::getFromCasaImage(*itsModel,*ci,*ci);
+            }            
+        } else {
+            ASKAPLOG_INFO_STR(logger, "Initializing the model images");
+      
+            /// Create the specified images from the definition in the
+            /// parameter set. We can solve for any number of images
+            /// at once (but you may/will run out of memory!)
+            SynthesisParamsHelper::setUpImages(itsModel, 
+                                      itsParset.makeSubset("Images."));
+        }
 
         /// Create the solver from the parameterset definition and the existing
         /// definition of the parameters. 
