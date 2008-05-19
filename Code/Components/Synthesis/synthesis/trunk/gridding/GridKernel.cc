@@ -84,7 +84,7 @@ void GridKernel::degrid(casa::Complex& cVis,
 		const casa::Complex *gridPtr = &(grid(iu - support, iv + suppv));
 #ifdef ASKAP_GRID_WITH_BLAS
 		casa::Complex dot;
-		cblas_cdotc_sub(2*support+1, wtPtr, 1, gridPtr, 1, &dot);
+		cblas_cdotc_sub(2*support+1, gridPtr, 1, wtPtr, 1, &dot);
 		cVis+=dot;
 #else
 		for (int suppu = -support; suppu < +support; suppu++) {
