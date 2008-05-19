@@ -359,9 +359,6 @@ void FeedSubtableHandler::fillCacheOnDemand(const casa::MEpoch &time,
 /// @return true if all beam offsets are zero for the given time/epoch.
 bool FeedSubtableHandler::allBeamOffsetsZero(const casa::MEpoch &time, casa::uInt spWinID) const
 {
-  // this feature is temporary disabled
-  return false;
-  //
   fillCacheOnDemand(time,spWinID);
   return itsAllCachedOffsetsZero;
 }
