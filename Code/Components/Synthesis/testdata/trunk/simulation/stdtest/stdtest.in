@@ -69,7 +69,8 @@ Cimager.gridder.WProject.frequencydependent     = false
 #
 # Use a multiscale Clean solver
 #
-Cimager.solver                           	= Clean
+#Cimager.solver                           	= Clean
+Cimager.solver                           	= Dirty
 Cimager.solver.Clean.algorithm                 	= MultiScale
 Cimager.solver.Clean.niter                     	= 100
 Cimager.solver.Clean.gain                      	= 0.9
@@ -80,7 +81,7 @@ Cimager.solver.Clean.verbose                   	= True
 # 
 # There will be 5 major cycles
 #
-Cimager.ncycles                                 = 5
+Cimager.ncycles                                 = 0
 #
 # Restore the image at the end
 #
