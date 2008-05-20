@@ -273,7 +273,8 @@ namespace askap
         if (itsRestore)
         {
           ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
-          ImageRestoreSolver ir(*itsModel, itsQbeam);
+          const float weinerparam=itsParset.getFloat("solver.Clean.robust",0.0);
+          ImageRestoreSolver ir(*itsModel, itsQbeam, weinerparam);
           ir.setThreshold(itsSolver->threshold());
           ir.setVerbose(itsSolver->verbose());
           ir.copyNormalEquations(*itsSolver);
