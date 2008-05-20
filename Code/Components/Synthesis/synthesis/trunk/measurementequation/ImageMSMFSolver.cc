@@ -47,13 +47,14 @@ namespace askap
       itsScales(0)=0;
       itsScales(1)=10;
       itsScales(2)=30;
+      itsRobustness=0.0;
       itsNPsfTaylor = 2*itsNTaylor-1;
       dbg=True;
     }
 
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip,
-      const casa::Vector<float>& scales, const int& nterms) : 
-          ImageSolver(ip),itsNTaylor(nterms) 
+      const casa::Vector<float>& scales, const int& nterms, const float& robust) : 
+          ImageSolver(ip),itsNTaylor(nterms),itsRobustness(robust)
     {
       itsScales.resize(scales.size());
       itsScales=scales;
@@ -154,6 +155,11 @@ namespace askap
 	  ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
 	  double cutoff=tol()*maxDiag;
 
+	  // Array to store the Weiner filter
+	  //casa::ArrayLattice<casa::Complex> weinerfilter(valShape);
+	  casa::ArrayLattice<casa::Complex> scratch(valShape);
+	  float maxpsf = 1.0;
+
 	  if(firsttime) // Initialize everything only once.
 	  {
 	    // Initialize the latticecleaners
@@ -181,11 +187,54 @@ namespace askap
 	       for (uint elem=0;elem<normdiag.nelements();elem++) psfVector(elem)=slice(elem)/maxDiag;
 	      }
 	      casa::ArrayLattice<float> psf(psfArray);
+	      
+	      ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
+	      if( itsRobustness > 1e-06 )
+	      {
+	        if( order==0 )
+		{	  
+	          // For PSF0, construct the filter.
+	  	  itsWeinerFilter = casa::ArrayLattice<casa::Complex>(valShape);
+		  scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(psf)));
+		  LatticeFFT::cfft2d(scratch, True);
+		  casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsRobustness));
+		  itsWeinerFilter.copyData(wf);
+		}
+	        // Apply the filter
+		scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(psf)));
+		LatticeFFT::cfft2d(scratch, True);
+		scratch.copyData(casa::LatticeExpr<casa::Complex> (itsWeinerFilter * scratch));
+		LatticeFFT::cfft2d(scratch, False);	    
+		psf.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+		// Re-normalize
+	        if( order==0) 
+		{
+		  maxpsf = max(psfArray);
+		}
+		psfArray/=maxpsf;
+	      }
 	      itsCleaners[stokes]->setpsf(order,psf);
+	      
+	      // Write PSFs to disk.
+	      ASKAPLOG_INFO_STR(logger, "Writing psfs to disk");
+              Axes axes(itsParams->axes(imagename));
+	      string psfName="psf."+(imagename);
+	      casa::Array<double> aargh(valShape);
+	      casa::convertArray<double,float>(aargh,psfArray);
+	      const casa::Array<double> & APSF(aargh);
+	      //const casa::Array<double> & APSF(normalEquations().normalMatrixSlice().find(indit->first)->second.reform(arrShape));
+	      if (!itsParams->has(psfName))
+	      {
+		      itsParams->add(psfName, APSF, axes);
+	      }
+	      else
+	      {
+		      itsParams->update(psfName, APSF);
+	      }
 	    }
-	    
 	  }// end of firsttime 
 	    
+	  ASKAPLOG_INFO_STR(logger, "Setting up Residual images");
 	  // Setup the Residual Images and Model Images  - ( ntaylor ) of them
 	  for( int order=0; order < itsNTaylor; order++)
 	  {
@@ -214,6 +263,19 @@ namespace askap
 	    // no copying
 	    casa::ArrayLattice<float> dirty(dirtyArray);
 	    casa::ArrayLattice<float> clean(cleanArray);
+
+	    if( itsRobustness > 1e-06 )
+	    {
+	       ASKAPLOG_INFO_STR(logger, "Applying the Weiner filter to the resid images");
+	       // Apply the Weiner filter to the dirty images.
+	       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(dirty)));
+	       LatticeFFT::cfft2d(scratch, True);
+	       scratch.copyData(casa::LatticeExpr<casa::Complex> (itsWeinerFilter * scratch));
+	       LatticeFFT::cfft2d(scratch, False);
+	       dirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+	       // Re-normalize
+	       dirtyArray/=maxpsf;
+	    }
 	    
 	    // Send in Dirty images only for ntaylor terms
 	    itsCleaners[stokes]->setresidual(order,dirty);
@@ -259,7 +321,7 @@ namespace askap
       }
       catch( AipsError &x )
       {
-	      throw AskapError("Failed in the MSMFS Minor Cycle" + x.getMesg() );
+	      throw AskapError("Failed in the MSMFS Minor Cycle : " + x.getMesg() );
       }
       
       quality.setDOF(nParameters);

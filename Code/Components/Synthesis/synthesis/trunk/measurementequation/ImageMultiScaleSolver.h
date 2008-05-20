@@ -44,6 +44,14 @@ namespace askap
         /// @param scales Scales to be solved in pixels
         ImageMultiScaleSolver(const askap::scimath::Params& ip,
           const casa::Vector<float>& scales);
+        
+	/// @brief Constructor from parameters,scales and robustness.
+        /// The parameters named image* will be interpreted as images and
+        /// solutions formed by the method described.
+        /// @param ip Parameters i.e. the images
+        /// @param scales Scales to be solved in pixels
+        ImageMultiScaleSolver(const askap::scimath::Params& ip,
+          const casa::Vector<float>& scales, const float& robust);
           
         /// @brief Initialize this solver
         virtual void init();
@@ -60,8 +68,13 @@ namespace askap
         void setScales(const casa::Vector<float>& scales);
                
       protected:
+	/// Precondition the PSF and the dirty image
+	void preconditionNE(casa::ArrayLattice<float>& psf, casa::ArrayLattice<float>& dirty);
+	
         /// Scales in pixels
         casa::Vector<float> itsScales;
+	/// Robust Weighting parameter
+	float itsRobustness;
         /// Map of Cleaners
         std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > > itsCleaners;
 

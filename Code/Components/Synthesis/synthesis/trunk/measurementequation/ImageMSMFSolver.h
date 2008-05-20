@@ -44,10 +44,14 @@ namespace askap
         /// @param ip Parameters i.e. the images
         /// @param scales Scales to be solved in pixels
         ImageMSMFSolver(const askap::scimath::Params& ip,
-          const casa::Vector<float>& scales, const int& nterms);
+          const casa::Vector<float>& scales, const int& nterms, const float& robust);
           
         /// @brief Initialize this solver
         virtual void init();
+
+	/// @brief Precondition the normal equations prior to solving them
+	/// TODO Send in a parset to specify params for diff kinds of preconditioning.
+	///virtual void preconditionNormalEquations();
 
         /// @brief Solve for parameters, updating the values kept internally
         /// The solution is constructed from the normal equations
@@ -73,15 +77,19 @@ namespace askap
 
         /// Scales in pixels
         casa::Vector<float> itsScales;
-        
+
 	/// Number of terms in the Taylor expansion
         int itsNTaylor;
         int itsNPsfTaylor;
         
+	/// Robustness parameter
+	float itsRobustness;
+
+	/// Weiner filter to be re-used
+	casa::ArrayLattice<casa::Complex> itsWeinerFilter;
+        
 	/// Map of Cleaners - one for each "image type : i,q,u,v.."
         std::map<string, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
-
-	boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > itsLC;
 
 	bool dbg;
     };

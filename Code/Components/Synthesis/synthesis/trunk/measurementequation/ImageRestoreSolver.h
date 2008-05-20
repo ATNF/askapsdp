@@ -13,6 +13,7 @@
 #include <measurementequation/ImageSolver.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Quanta.h>
+#include <lattices/Lattices/ArrayLattice.h>
 
 namespace askap
 {
@@ -34,7 +35,8 @@ namespace askap
         /// @param ip Parameters
         /// @param beam Major, minor, pa of beam as Quanta
         ImageRestoreSolver(const askap::scimath::Params& ip,
-          const casa::Vector<casa::Quantum<double> >& beam);
+          const casa::Vector<casa::Quantum<double> >& beam,
+	  const float& weinerparam);
 
         /// @brief Initialize this solver
         virtual void init();
@@ -46,9 +48,17 @@ namespace askap
         
     /// @brief Clone this object
         virtual askap::scimath::Solver::ShPtr clone() const;
+ 
+      protected:
+	/// Apply a Weiner filter to the dirty image
+	void applyWeinerFilter(casa::ArrayLattice<float>& psf, casa::ArrayLattice<float>& dirty, float& noisepower);
+
       private:
         /// @brief Major, minor axes, and position angle of beam
         casa::Vector<casa::Quantum<double> > itsBeam;
+
+	/// Weiner filter Noise Power
+	float itsWeinerParam;
     };
 
   }

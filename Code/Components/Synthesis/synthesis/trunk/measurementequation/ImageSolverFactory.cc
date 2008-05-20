@@ -37,15 +37,16 @@ namespace askap
         
 	string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
 	std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
+	float robust = parset.getFloat("solver.Clean.robust",0.0);
 	
 	if(algorithm=="MSMFS"){
           int nterms=parset.getInt32("solver.Clean.nterms",2);
-          solver = Solver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms)));
+          solver = Solver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms),robust));
           ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
           solver->setAlgorithm(algorithm);
 	}
 	else{
-          solver = Solver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
+          solver = Solver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales),robust));
           ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
           //solver->setAlgorithm(algorithm);
           solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
