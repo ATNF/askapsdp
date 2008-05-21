@@ -39,6 +39,8 @@ int main(int argc, const char** argv)
       
       
     timer.mark();
+    ASKAPLOG_INIT("ccalibrator.log_cfg");
+    ASKAPLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << ASKAP_PACKAGE_VERSION);
       
     {
       cmdlineparser::Parser parser; // a command line parser
@@ -52,14 +54,10 @@ int main(int argc, const char** argv)
       parser.process(argc,const_cast<char**>(argv));
         
         
-	  LOFAR::ACC::APS::ParameterSet parset(inputsPar);
-	  LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Ccalibrator."));
+      LOFAR::ACC::APS::ParameterSet parset(inputsPar);
+      LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Ccalibrator."));
 	
-	  CalibratorParallel calib(argc, argv, subset);
-	  
-	  ASKAPLOG_INIT("ccalibrator.log_cfg");
-	 
-	  ASKAPLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << ASKAP_PACKAGE_VERSION);
+      CalibratorParallel calib(argc, argv, subset);
       
       if (calib.isMaster()) {
           ASKAPLOG_INFO_STR(logger, "parset file "<<inputsPar.getValue());

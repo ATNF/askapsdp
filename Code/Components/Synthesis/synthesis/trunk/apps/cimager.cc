@@ -44,6 +44,9 @@ int main(int argc, const char** argv) {
 
 		timer.mark();
 
+		ASKAPLOG_INIT("cimager.log_cfg");
+		ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
+
 		// Put everything in scope to ensure that all destructors are called 
 		// before the final message
 		{
@@ -64,9 +67,6 @@ int main(int argc, const char** argv) {
 			ParameterSet subset(parset.makeSubset("Cimager."));
 
 			ImagerParallel imager(argc, argv, subset);
-			ASKAPLOG_INIT("cimager.log_cfg");
-
-			ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
 
 			if (imager.isMaster()) {
 				ASKAPLOG_INFO_STR(logger, "parset file " << parsetFile );

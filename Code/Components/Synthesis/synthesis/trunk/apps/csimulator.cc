@@ -35,6 +35,9 @@ int main(int argc, const char** argv)
       
       
       timer.mark();
+
+      ASKAPLOG_INIT("csimulator.log_cfg");
+      ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
       
       {
         cmdlineparser::Parser parser; // a command line parser
@@ -54,9 +57,6 @@ int main(int argc, const char** argv)
 	LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
 	
 	SimParallel sim(argc, argv, subset);
-	ASKAPLOG_INIT("csimulator.log_cfg");
-
-	ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
 	
 	if(sim.isMaster()) {
 	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
