@@ -95,24 +95,71 @@ namespace askap
         const casa::Vector<double> & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
         ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
         const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
+	ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
+        const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
+
         double maxDiag(casa::max(diag));
         ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag);
         const double cutoff=tol()*maxDiag;
-        {
-          casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-          for (uint elem=0; elem<dv.nelements(); elem++)
-          {
-            if (diag(elem)>cutoff)
-            {
-              value(elem)+=dv(elem)/diag(elem);
-            }
-            else
-            {
-              value(elem)+=dv(elem)/cutoff;
-            }
-          }
-        }
+	
+	casa::Array<float> dirtyArray(arrShape);
+        casa::convertArray<float, double>(dirtyArray, dv.reform(arrShape));
+        casa::Array<float> psfArray(arrShape);
+        casa::convertArray<float, double>(psfArray, slice.reform(arrShape));
+	
+	casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
+	casa::Vector<float> psfVector(psfArray.reform(vecShape));
+	for (uint elem=0;elem<dv.nelements();elem++)
+	{
+          psfVector(elem)=slice(elem)/maxDiag;
+	  if(diag(elem)>cutoff)
+	  {
+		  dirtyVector(elem)=dv(elem)/diag(elem);
+	  }
+	  else {
+		  dirtyVector(elem)=dv(elem)/cutoff;
+	  }
+	}
+	
+	if(doPreconditioning(psfArray,dirtyArray))
+	{
+	 // Save the new PSFs to disk
+         Axes axes(itsParams->axes(indit->first));
+	 string psfName="psf."+(indit->first);
+	 casa::Array<double> anothertemp(arrShape);
+	 casa::convertArray<double,float>(anothertemp,psfArray);
+	 const casa::Array<double> & APSF(anothertemp);
+	 if (!itsParams->has(psfName)) {
+		 itsParams->add(psfName, APSF, axes);
+	 }
+	 else {
+		 itsParams->update(psfName, APSF);
+	 }
+	}
 
+	casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+	for (uint elem=0; elem<dv.nelements(); elem++)
+	{
+		value(elem) += dirtyVector(elem);
+	}
+	
+	/* 
+	   {
+	   casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+	   for (uint elem=0; elem<dv.nelements(); elem++)
+	   {
+	   if (diag(elem)>cutoff)
+	   {
+	   value(elem)+=dv(elem)/diag(elem);
+	   }
+	   else
+	   {
+	   value(elem)+=dv(elem)/cutoff;
+	   }
+	   }
+	   }
+	 */
+	
       }
       quality.setDOF(nParameters);
       quality.setRank(0);
@@ -120,11 +167,11 @@ namespace askap
       quality.setInfo("Scaled residual calculated");
       /// Save the PSF and Weight
       saveWeights();
-
+      
       savePSF();
       return true;
     }
-
+    
     void ImageSolver::saveWeights()
     {
       // Save weights image

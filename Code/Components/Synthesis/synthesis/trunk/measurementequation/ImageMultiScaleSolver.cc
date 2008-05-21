@@ -118,7 +118,7 @@ namespace askap
               dirtyVector(elem)=dv(elem)/diag(elem);
             }
             else {
-              dirtyVector(elem)=0.0;
+              dirtyVector(elem)=dv(elem)/cutoff;
             }
           }
         }
@@ -126,8 +126,6 @@ namespace askap
 	// Precondition the PSF and DIRTY images before solving.
 	if(doPreconditioning(psfArray,dirtyArray))
 	{
-	  //preconditionNE(psf,dirty);
-		
 	  // Save the new PSFs to disk
           Axes axes(itsParams->axes(indit->first));
           string psfName="psf."+(indit->first);

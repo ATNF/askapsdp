@@ -201,7 +201,7 @@ namespace askap
 	         dirtyVector(elem)=dv(elem)/normdiag(elem);
 	       }
 	       else {
- 	         dirtyVector(elem)=0.0;
+ 	         dirtyVector(elem)=dv(elem)/cutoff;
 	       }
 	     }
 	   } 
