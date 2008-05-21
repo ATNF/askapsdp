@@ -108,6 +108,8 @@ TableVisGridder::~TableVisGridder() {
 				<< itsNumberGridded);
 		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeGridded/itsNumberGridded << " (ns)");
+		ASKAPLOG_INFO_STR(logger, "   Performance           = "
+				<< 6.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " Gflops");
 	}
 
 	if (itsNumberDegridded>0) {
@@ -123,6 +125,8 @@ TableVisGridder::~TableVisGridder() {
 				<< itsNumberDegridded);
 		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeDegridded/itsNumberDegridded << " (ns)");
+		ASKAPLOG_INFO_STR(logger, "   Performance           = "
+				<< 6.0 * 1e-9 * itsNumberDegridded/itsTimeDegridded << " Gflops");
 	}
 }
 
