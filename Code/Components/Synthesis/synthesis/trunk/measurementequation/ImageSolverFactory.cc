@@ -9,6 +9,8 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/ImageSolver.h>
 #include <measurementequation/ImageMultiScaleSolver.h>
 #include <measurementequation/ImageMSMFSolver.h>
+#include <measurementequation/IImagePreconditioner.h>
+#include <measurementequation/WeinerPreconditioner.h>
 
 using namespace askap::scimath;
 
@@ -28,7 +30,7 @@ namespace askap
     }
     
     Solver::ShPtr ImageSolverFactory::make(askap::scimath::Params &ip, const LOFAR::ACC::APS::ParameterSet &parset) {
-      Solver::ShPtr solver;
+      ImageSolver::ShPtr solver;
       if(parset.getString("solver")=="Clean") {
         std::vector<float> defaultScales(3);
         defaultScales[0]=0.0;
@@ -37,16 +39,15 @@ namespace askap
         
 	string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
 	std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
-	float robust = parset.getFloat("solver.Clean.robust",0.0);
 	
 	if(algorithm=="MSMFS"){
           int nterms=parset.getInt32("solver.Clean.nterms",2);
-          solver = Solver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms),robust));
+          solver = ImageSolver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms)));
           ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
           solver->setAlgorithm(algorithm);
 	}
 	else{
-          solver = Solver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales),robust));
+          solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
           ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
           //solver->setAlgorithm(algorithm);
           solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
@@ -61,13 +62,43 @@ namespace askap
         solver->setThreshold(threshold);
       }
       else {
-        solver = Solver::ShPtr(new ImageSolver(ip));
+        solver = ImageSolver::ShPtr(new ImageSolver(ip));
         casa::Quantity threshold;
         casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
         solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
         solver->setThreshold(threshold);
         ASKAPLOG_INFO_STR(logger, "Constructed dirty image solver" );
       }
+      
+      // Set Up the Preconditioners - a whole list of 'em
+      const vector<string> preconditioners=parset.getStringVector("preconditioner.Names");
+      if(preconditioners.size())
+      {
+        for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) 
+        {
+          if( (*pc)=="Weiner" )
+	  {
+	    float noisepower = parset.getFloat("preconditioner.Weiner.noisepower",0.0);
+            solver->addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner(noisepower)));
+	  }
+	  /*
+	     if( (*pc)=="UVTaper" ) // take input in units of "klambda". Make this a "measures" thing...
+	     {
+	     float uvwidth = parset.getFloat("preconditioner.UVTaper.uvwidth",);
+	     solver->addPreconditioner(IPreconditioner::ShPtr(new UVTaperPreconditioner(uvwidth)));
+	     }
+	     if( (*pc)=="ApproxPsf" ) //later, add the option of specifying a beam, or fitting for it.
+	     {
+	     solver->addPreconditioner(IPreconditioner::ShPtr(new ApproxPsfPreconditioner()));
+	     }
+	   */
+	}
+      }
+      else
+      {
+        solver->addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner()));
+      }
+      
       return solver;
     }
   }

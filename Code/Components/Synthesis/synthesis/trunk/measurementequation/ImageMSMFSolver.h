@@ -44,7 +44,7 @@ namespace askap
         /// @param ip Parameters i.e. the images
         /// @param scales Scales to be solved in pixels
         ImageMSMFSolver(const askap::scimath::Params& ip,
-          const casa::Vector<float>& scales, const int& nterms, const float& robust);
+          const casa::Vector<float>& scales, const int& nterms);
           
         /// @brief Initialize this solver
         virtual void init();
@@ -81,12 +81,6 @@ namespace askap
 	/// Number of terms in the Taylor expansion
         int itsNTaylor;
         int itsNPsfTaylor;
-        
-	/// Robustness parameter
-	float itsRobustness;
-
-	/// Weiner filter to be re-used
-	casa::ArrayLattice<casa::Complex> itsWeinerFilter;
         
 	/// Map of Cleaners - one for each "image type : i,q,u,v.."
         std::map<string, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;

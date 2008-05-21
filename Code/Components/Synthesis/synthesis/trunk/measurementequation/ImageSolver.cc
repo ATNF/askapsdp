@@ -42,6 +42,25 @@ namespace askap
     {
       resetNormalEquations();
     }
+    
+    // Add a new element to a list of preconditioners
+    void ImageSolver::addPreconditioner(IImagePreconditioner::ShPtr pc)
+    {
+	    // Add a new element to the map of preconditioners
+	    int n = itsPreconditioners.size();
+	    itsPreconditioners[n+1] = pc;
+    }
+
+    // Apply all the preconditioners in the order in which they were created.
+    bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
+    {
+	    bool status=false;
+	    for(std::map<int, IImagePreconditioner::ShPtr>::const_iterator pciter=itsPreconditioners.begin(); pciter!=itsPreconditioners.end(); pciter++)
+	    {
+	      status = status | (pciter->second)->doPreconditioning(psf,dirty);
+	    }
+	    return status;
+    }
 
     // Solve for update simply by scaling the data vector by the diagonal term of the
     // normal equations i.e. the residual image
@@ -156,6 +175,7 @@ namespace askap
       }
     }
 
+    /// @note itsPreconditioner is not cloned, only the ShPtr is.
     Solver::ShPtr ImageSolver::clone() const
     {
       return Solver::ShPtr(new ImageSolver(*this));

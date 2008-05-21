@@ -40,8 +40,8 @@ namespace askap
   namespace synthesis
   {
     ImageRestoreSolver::ImageRestoreSolver(const askap::scimath::Params& ip,
-		    const casa::Vector<casa::Quantum<double> >& beam, const float& weinerparam) :
-	    ImageSolver(ip), itsBeam(beam), itsWeinerParam(weinerparam)
+		    const casa::Vector<casa::Quantum<double> >& beam) :
+	    ImageSolver(ip), itsBeam(beam)
     {
     }
     
@@ -112,17 +112,13 @@ namespace askap
 	     }
 	  }
 	  
+	  // Do the preconditioning
+	  doPreconditioning(psfArray,dirtyArray);
+	  
 	  // We need lattice equivalents. We can use ArrayLattice which involves
 	  // no copying
 	  casa::ArrayLattice<float> dirty(dirtyArray);
 	  casa::ArrayLattice<float> psf(psfArray);
-	  if(itsWeinerParam > 1e-06)
-	  {
-		  applyWeinerFilter(psf,dirty,itsWeinerParam);
-	  	  // Renormalize the PSF and dirty image
-		  float maxpsf = max(psfArray);
-		  dirtyArray/=maxpsf;
-	  }
 
 	  // Create a temporary image
 	  boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, indit->first));
@@ -158,6 +154,7 @@ namespace askap
 	    return Solver::ShPtr(new ImageRestoreSolver(*this));
     }
         
+    /*
     void ImageRestoreSolver::applyWeinerFilter(casa::ArrayLattice<float>& psf, 
 		                               casa::ArrayLattice<float>& dirty,
 					       float& noisepower)
@@ -186,6 +183,7 @@ namespace askap
        LatticeFFT::cfft2d(scratch, False);
        dirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
     };
+    */
     
 
   }

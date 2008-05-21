@@ -47,14 +47,13 @@ namespace askap
       itsScales(0)=0;
       itsScales(1)=10;
       itsScales(2)=30;
-      itsRobustness=0.0;
       itsNPsfTaylor = 2*itsNTaylor-1;
       dbg=True;
     }
 
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip,
-      const casa::Vector<float>& scales, const int& nterms, const float& robust) : 
-          ImageSolver(ip),itsNTaylor(nterms),itsRobustness(robust)
+      const casa::Vector<float>& scales, const int& nterms) : 
+          ImageSolver(ip),itsNTaylor(nterms)
     {
       itsScales.resize(scales.size());
       itsScales=scales;
@@ -134,7 +133,7 @@ namespace askap
       
         if(dbg)ASKAPLOG_INFO_STR(logger, "There are " << nstokes << " stokes parameters to solve for." );
 	
-	static bool firsttime=True;
+	static bool firstcycle=True;
 	
 	// Iterate through Stokes parameters.
 	for (int sindex=0;sindex<nstokes;sindex++)
@@ -144,7 +143,7 @@ namespace askap
 	  stokes = stokeslist[sindex];
 	  std::string samplename(indices.begin()->first);
 
-	  // Setup the psf and residual normalization vector
+	  // Setup the normalization vector
 	  std::string imagename(makeImageString(samplename,stokes,0));
 	  std::cout << "Reading the normalization vector from : " << imagename << std::endl;
 	  ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(imagename)>0, "Diagonal not present");
@@ -155,12 +154,7 @@ namespace askap
 	  ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
 	  double cutoff=tol()*maxDiag;
 
-	  // Array to store the Weiner filter
-	  //casa::ArrayLattice<casa::Complex> weinerfilter(valShape);
-	  casa::ArrayLattice<casa::Complex> scratch(valShape);
-	  float maxpsf = 1.0;
-
-	  if(firsttime) // Initialize everything only once.
+	  if(firstcycle) // Initialize everything only once.
 	  {
 	    // Initialize the latticecleaners
 	    if(dbg)ASKAPLOG_INFO_STR(logger, "Initialising the solver for Stokes " << stokes);
@@ -173,48 +167,55 @@ namespace askap
 	    (itsCleaners[stokes])->setscales(itsScales);
 	    (itsCleaners[stokes])->setntaylorterms(itsNTaylor);
 	    (itsCleaners[stokes])->initialise(); // allocates memory once....
+	  }
+          
+	  // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
+	  float maxpsf = 1.0;
+	  int nOrders = itsNTaylor;
+	  casa::Array<float> psfZeroArray(valShape);
+	  if(firstcycle)
+	  {
+		  nOrders = 2*itsNTaylor-1;
+	  }
+	  for( int order=0; order < nOrders; order++)
+	  {
+	   imagename = makeImageString(samplename,stokes,order);
+	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(imagename)>0, "PSF Slice not present");
+	   const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(imagename)->second);
+	   ASKAPCHECK(normalEquations().dataVector(imagename).size()>0, "Data vector not present");
+	   const casa::Vector<double>& dv = normalEquations().dataVector(imagename);
+	   
+	   casa::Array<float> psfArray(valShape);
+	   casa::convertArray<float, double>(psfArray, slice.reform(valShape));
+	   casa::Array<float> dirtyArray(valShape);
+	   casa::convertArray<float, double>(dirtyArray, normdiag.reform(valShape));
+	   casa::Array<float> cleanArray(valShape);
+	   casa::convertArray<float, double>(cleanArray, itsParams->value(imagename));
+	   {
+             casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
+	     casa::Vector<float> psfVector(psfArray.reform(vecShape));
+	     for (uint elem=0;elem<dv.nelements();elem++)
+	     {
+	       psfVector(elem)=slice(elem)/maxDiag;
+	       if(normdiag(elem)>cutoff) {
+	         dirtyVector(elem)=dv(elem)/normdiag(elem);
+	       }
+	       else {
+ 	         dirtyVector(elem)=0.0;
+	       }
+	     }
+	   } 
+	   
+	   ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
 
-            // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them
-	    for( int order=0; order < 2*itsNTaylor-1; order++)
-	    {
-	      imagename = makeImageString(samplename,stokes,order);
-	      ASKAPCHECK(normalEquations().normalMatrixSlice().count(imagename)>0, "PSF Slice not present");
-	      const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(imagename)->second);
-	      casa::Array<float> psfArray(valShape);
-	      casa::convertArray<float, double>(psfArray, slice.reform(valShape));
-	      {
-	       casa::Vector<float> psfVector(psfArray.reform(vecShape));
-	       for (uint elem=0;elem<normdiag.nelements();elem++) psfVector(elem)=slice(elem)/maxDiag;
-	      }
-	      casa::ArrayLattice<float> psf(psfArray);
-	      
-	      ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
-	      if( itsRobustness > 1e-06 )
-	      {
-	        if( order==0 )
-		{	  
-	          // For PSF0, construct the filter.
-	  	  itsWeinerFilter = casa::ArrayLattice<casa::Complex>(valShape);
-		  scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(psf)));
-		  LatticeFFT::cfft2d(scratch, True);
-		  casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsRobustness));
-		  itsWeinerFilter.copyData(wf);
-		}
-	        // Apply the filter
-		scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(psf)));
-		LatticeFFT::cfft2d(scratch, True);
-		scratch.copyData(casa::LatticeExpr<casa::Complex> (itsWeinerFilter * scratch));
-		LatticeFFT::cfft2d(scratch, False);	    
-		psf.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-		// Re-normalize
-	        if( order==0) 
-		{
-		  maxpsf = max(psfArray);
-		}
-		psfArray/=maxpsf;
-	      }
-	      itsCleaners[stokes]->setpsf(order,psf);
-	      
+	   string psfzeroname = makeImageString(samplename,stokes,0);
+	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(psfzeroname)>0, "PSF Slice not present");
+	   const casa::Vector<double>& zeroslice(normalEquations().normalMatrixSlice().find(psfzeroname)->second);
+	   casa::convertArray<float, double>(psfZeroArray, zeroslice.reform(valShape));
+	   psfZeroArray/= (float)maxDiag;
+	   
+	   if( doPreconditioning(psfZeroArray,psfArray) )
+   	   {
 	      // Write PSFs to disk.
 	      ASKAPLOG_INFO_STR(logger, "Writing psfs to disk");
               Axes axes(itsParams->axes(imagename));
@@ -222,69 +223,38 @@ namespace askap
 	      casa::Array<double> aargh(valShape);
 	      casa::convertArray<double,float>(aargh,psfArray);
 	      const casa::Array<double> & APSF(aargh);
-	      //const casa::Array<double> & APSF(normalEquations().normalMatrixSlice().find(indit->first)->second.reform(arrShape));
-	      if (!itsParams->has(psfName))
-	      {
-		      itsParams->add(psfName, APSF, axes);
+	      if (!itsParams->has(psfName)) {
+	         itsParams->add(psfName, APSF, axes);
 	      }
-	      else
-	      {
-		      itsParams->update(psfName, APSF);
+	      else{
+	         itsParams->update(psfName, APSF);
 	      }
-	    }
-	  }// end of firsttime 
-	    
-	  ASKAPLOG_INFO_STR(logger, "Setting up Residual images");
-	  // Setup the Residual Images and Model Images  - ( ntaylor ) of them
-	  for( int order=0; order < itsNTaylor; order++)
-	  {
-	    imagename = makeImageString(samplename,stokes,order);
-	    
-	    ASKAPCHECK(normalEquations().dataVector(imagename).size()>0, "Data vector not present");
-	    const casa::Vector<double>& dv = normalEquations().dataVector(imagename);
-	    
-	    casa::Array<float> dirtyArray(valShape);
-	    casa::convertArray<float, double>(dirtyArray, normdiag.reform(valShape));
-	    casa::Array<float> cleanArray(valShape);
-	    casa::convertArray<float, double>(cleanArray, itsParams->value(imagename));
+	   }
 	   
-	    {
-	     casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	     for (uint elem=0;elem<dv.nelements();elem++)
-	     {
-		    if(normdiag(elem)>cutoff)
-			    dirtyVector(elem)=dv(elem)/normdiag(elem);
-		    else 
-			    dirtyVector(elem)=0.0;
-	     }
-	    }
-	    
+	   casa::ArrayLattice<float> psf(psfArray);
+	   itsCleaners[stokes]->setpsf(order,psf);
+	   
+	   // Setup the Residual Images and Model Images  - ( ntaylor ) of them
+	   if(order < itsNTaylor)
+	   {
+	    // Now precondition the residual images
+	    casa::convertArray<float, double>(psfZeroArray, zeroslice.reform(valShape));
+	    psfZeroArray/=(float)maxDiag;
+	    doPreconditioning(psfZeroArray,dirtyArray);
+		   
 	    // We need lattice equivalents. We can use ArrayLattice which involves
 	    // no copying
 	    casa::ArrayLattice<float> dirty(dirtyArray);
 	    casa::ArrayLattice<float> clean(cleanArray);
 
-	    if( itsRobustness > 1e-06 )
-	    {
-	       ASKAPLOG_INFO_STR(logger, "Applying the Weiner filter to the resid images");
-	       // Apply the Weiner filter to the dirty images.
-	       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(dirty)));
-	       LatticeFFT::cfft2d(scratch, True);
-	       scratch.copyData(casa::LatticeExpr<casa::Complex> (itsWeinerFilter * scratch));
-	       LatticeFFT::cfft2d(scratch, False);
-	       dirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-	       // Re-normalize
-	       dirtyArray/=maxpsf;
-	    }
-	    
 	    // Send in Dirty images only for ntaylor terms
 	    itsCleaners[stokes]->setresidual(order,dirty);
 	    itsCleaners[stokes]->setmodel(order,clean);
-	    
-	  }// end of order iteration
+	   }
+	   
+	  }// end of 'order' loop
 	  
-	  
-	  ASKAPLOG_INFO_STR(logger, "Finished Setup. Starting Minor Cycles" );
+	  ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles" );
 	  itsCleaners[stokes]->mtclean();
 	  ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles." );
 	  
@@ -305,7 +275,7 @@ namespace askap
 	// Also "fix" parameters for order >= itsNTaylor. so that the gridding doesn't get done
 	// for these extra terms.
 
-	if(firsttime)
+	if(firstcycle)
 	{
 	  // Fix the params corresponding to extra Taylor terms.
 	  
@@ -316,7 +286,7 @@ namespace askap
 		  if(torder >= itsNTaylor && itsParams->isFree(name)) itsParams->fix(name);
 	  }
 	  
-	  firsttime = False;
+	  firstcycle = False;
 	}
       }
       catch( AipsError &x )

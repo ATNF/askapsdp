@@ -46,7 +46,6 @@ namespace askap
       itsScales(0)=0;
       itsScales(1)=10;
       itsScales(2)=30;
-      itsRobustness=0.0;
     }
 
     ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip,
@@ -55,17 +54,8 @@ namespace askap
     {
       itsScales.resize(scales.size());
       itsScales=scales;
-      itsRobustness=0.0;
     }
     
-    ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip,
-      const casa::Vector<float>& scales, const float& robust) : 
-          ImageSolver(ip),itsRobustness(robust)
-    {
-      itsScales.resize(scales.size());
-      itsScales=scales;
-    }
-
     void ImageMultiScaleSolver::init()
     {
       resetNormalEquations();
@@ -133,22 +123,11 @@ namespace askap
           }
         }
         
-        // We need lattice equivalents. We can use ArrayLattice which involves
-        // no copying
-        casa::ArrayLattice<float> dirty(dirtyArray);
-        casa::ArrayLattice<float> psf(psfArray);
-        casa::ArrayLattice<float> clean(cleanArray);
-      
 	// Precondition the PSF and DIRTY images before solving.
-	if(itsRobustness > 1e-06)
+	if(doPreconditioning(psfArray,dirtyArray))
 	{
-	  preconditionNE(psf,dirty);
-	  
-	  // Renormalize the PSF and dirty image
-	  float maxpsf = max(psfArray);
-	  psfArray/=maxpsf;
-	  dirtyArray/=maxpsf;
-	  
+	  //preconditionNE(psf,dirty);
+		
 	  // Save the new PSFs to disk
           Axes axes(itsParams->axes(indit->first));
           string psfName="psf."+(indit->first);
@@ -164,6 +143,12 @@ namespace askap
 	}
 	// preconditioning done.
 	
+        // We need lattice equivalents. We can use ArrayLattice which involves
+        // no copying
+        casa::ArrayLattice<float> dirty(dirtyArray);
+        casa::ArrayLattice<float> psf(psfArray);
+        casa::ArrayLattice<float> clean(cleanArray);
+      
         // Create a lattice cleaner to do the dirty work :)
         /// @todo More checks on reuse of LatticeCleaner
         boost::shared_ptr<casa::LatticeCleaner<float> > lc;
@@ -221,35 +206,6 @@ namespace askap
       return Solver::ShPtr(new ImageMultiScaleSolver(*this));
     }
 
-    
-    void ImageMultiScaleSolver::preconditionNE(casa::ArrayLattice<float>& psf, 
-		                               casa::ArrayLattice<float>& dirty)
-    {
-       // Setup work arrays.
-       IPosition valShape = psf.shape();
-       casa::ArrayLattice<casa::Complex> weinerfilter(valShape);
-       casa::ArrayLattice<casa::Complex> scratch(valShape);
-       
-       // Construct a Weiner filter
-       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(psf)));
-       LatticeFFT::cfft2d(scratch, True);
-       casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsRobustness));
-       weinerfilter.copyData(wf);
-       
-       // Apply the filter to the psf
-       // (reuse the ft(psf) currently held in 'scratch')
-       scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
-       LatticeFFT::cfft2d(scratch, False);
-       psf.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-       
-       // Apply the filter to the dirty image
-       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(dirty)));
-       LatticeFFT::cfft2d(scratch, True);
-       scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
-       LatticeFFT::cfft2d(scratch, False);
-       dirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-    };
-    
   }
 }
 

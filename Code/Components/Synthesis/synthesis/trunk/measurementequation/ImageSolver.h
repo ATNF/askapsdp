@@ -14,6 +14,12 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/Params.h>
 
+#include <measurementequation/IImagePreconditioner.h>
+#include <boost/shared_ptr.hpp>
+
+#include <map>
+using std::map;
+
 namespace askap
 {
   namespace synthesis
@@ -28,7 +34,8 @@ namespace askap
     class ImageSolver : public askap::scimath::Solver
     {
       public:
-
+	typedef boost::shared_ptr<ImageSolver> ShPtr;
+	
         /// @brief Constructor from parameters.
         /// The parameters named image* will be interpreted as images and
         /// solutions formed by the method described.
@@ -56,7 +63,18 @@ namespace askap
         /// by this method is narrowed to always provide image-specific 
         /// normal equations objects
         virtual const scimath::ImagingNormalEquations& normalEquations() const;
- 
+
+	/// @brief Setup the preconditioner
+	void addPreconditioner(askap::synthesis::IImagePreconditioner::ShPtr pc);
+
+	/// @brief Do the preconditioning
+	bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
+   
+      private:
+	/// Instance of a preconditioner
+	// IImagePreconditioner::ShPtr itsPreconditioner;
+        //std::map<std::int, boost::shared_ptr<askap::synthesis::IImagePreconditioner> > itsPreconditioners;
+        std::map<int, IImagePreconditioner::ShPtr> itsPreconditioners;
     };
 
   }
