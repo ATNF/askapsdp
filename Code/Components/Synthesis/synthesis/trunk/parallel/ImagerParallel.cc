@@ -35,6 +35,10 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/NoXPolGain.h>
 #include <fitting/Params.h>
 
+// These two includes can be removed when ImageRestoreSolver goes out of here
+#include <measurementequation/IImagePreconditioner.h>
+#include <measurementequation/WeinerPreconditioner.h>
+
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
 
@@ -273,10 +277,24 @@ namespace askap
         if (itsRestore)
         {
           ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
-          const float weinerparam=itsParset.getFloat("solver.Clean.robust",0.0);
-          ImageRestoreSolver ir(*itsModel, itsQbeam, weinerparam);
+          ImageRestoreSolver ir(*itsModel, itsQbeam);
           ir.setThreshold(itsSolver->threshold());
           ir.setVerbose(itsSolver->verbose());
+	  // Check for preconditioners. Same code as in ImageSolverFactory.
+	  // Will be neater if the RestoreSolver is also created in the ImageSolverFactory.
+	  const vector<string> preconditioners=itsParset.getStringVector("preconditioner.Names");
+	  if(preconditioners.size()) {
+	    for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) {
+	      if( (*pc)=="Weiner" ) {
+	        float noisepower = itsParset.getFloat("preconditioner.Weiner.noisepower",0.0);
+		ir.addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner(noisepower)));
+	      }
+	    }
+	  }
+	  else {
+		  ir.addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner()));
+	  }
+	  
           ir.copyNormalEquations(*itsSolver);
           Quality q;
           ir.solveNormalEquations(q);
