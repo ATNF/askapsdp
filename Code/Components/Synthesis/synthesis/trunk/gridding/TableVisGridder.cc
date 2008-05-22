@@ -98,40 +98,44 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
-		ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
-		ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
-				<< itsTimeGridded << " (s)");
 		ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
 				<< itsSamplesGridded);
-		ASKAPLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
-				*itsTimeGridded/itsSamplesGridded << " (ns)");
+		ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
+				<< itsTimeDegridded << " (s)");
+		ASKAPLOG_INFO_STR(logger, "   Gridding time         = " << 1e6
+				*itsTimeGridded/itsSamplesGridded << " (us) per sample");
+		ASKAPLOG_INFO_STR(logger, "   Total time converting = "
+				<< itsTimeCoordinates << " (s)");
+		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+				  << 1e6 * itsTimeCoordinates/itsSamplesGridded << " (us) per sample");
+		ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
 		ASKAPLOG_INFO_STR(logger, "   Points gridded        = "
 				<< itsNumberGridded);
 		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeGridded/itsNumberGridded << " (ns)");
 		ASKAPLOG_INFO_STR(logger, "   Performance           = "
 				<< 6.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " Gflops");
-		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
-				  << 1e9 * itsTimeCoordinates/itsSamplesGridded << " (ns) per sample");
 	}
 
 	if (itsNumberDegridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
-		ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
-		ASKAPLOG_INFO_STR(logger, "   Total time degridding = "
-				<< itsTimeDegridded << " (s)");
 		ASKAPLOG_INFO_STR(logger, "   Samples degridded     = "
 				<< itsSamplesDegridded);
-		ASKAPLOG_INFO_STR(logger, "   Time per Sample       = " << 1e9
-				*itsTimeDegridded/itsSamplesDegridded << " (ns)");
+		ASKAPLOG_INFO_STR(logger, "   Total time degridding = "
+				<< itsTimeDegridded << " (s)");
+		ASKAPLOG_INFO_STR(logger, "   Degridding time       = " << 1e6
+				*itsTimeDegridded/itsSamplesDegridded << " (us) per sample");
+		ASKAPLOG_INFO_STR(logger, "   Total time converting = "
+				<< itsTimeCoordinates << " (s)");
+		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+				  << 1e6 * itsTimeCoordinates/itsSamplesDegridded << " (us) per sample");
+		ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
 		ASKAPLOG_INFO_STR(logger, "   Points degridded      = "
 				<< itsNumberDegridded);
 		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeDegridded/itsNumberDegridded << " (ns)");
 		ASKAPLOG_INFO_STR(logger, "   Performance           = "
 				<< 6.0 * 1e-9 * itsNumberDegridded/itsTimeDegridded << " Gflops");
-		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
-				  << 1e9 * itsTimeCoordinates/itsSamplesDegridded << " (ns) per sample");
 	}
 }
 
@@ -158,15 +162,16 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    if (forward&&itsModelIsEmpty)
 		return;
 
-   casa::Timer timer;
-   
-   timer.mark();
-   
    casa::Vector<casa::RigidVector<double, 3> > outUVW;
    casa::Vector<double> delay;
    
    // we don't need the whole iterator in most of the following code
    IDataAccessor &acc = *idi; 
+   
+   casa::Timer timer;
+   
+   // Time the coordinate conversions, etc.
+   timer.mark();
    
    rotateUVW(acc, outUVW, delay);
    
@@ -174,6 +179,8 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    initConvolutionFunction(idi);
    
    itsTimeCoordinates+=timer.real();
+
+   // Now time the gridding
    timer.mark();
 
    ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
@@ -368,24 +375,28 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 							   <itsShape(1))) {
 			     nGood+=1;
 			     if (forward) {
-                     casa::Complex cVis(acc.visibility()(i, chan, pol));
-                        GridKernel::degrid(cVis, convFunc, grid, iu, iv,
-						     itsSupport);
+			       casa::Complex cVis(acc.visibility()(i, chan, pol));
+			       GridKernel::degrid(cVis, convFunc, grid, iu, iv,
+						  itsSupport);
+			       itsSamplesDegridded+=1.0;
+			       itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 				     if(itsVisWeight) {
-					    cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+				       cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				     }
-                     acc.rwVisibility()(i, chan, pol)+=cVis*phasor;
+				     acc.rwVisibility()(i, chan, pol)+=cVis*phasor;
 			     } else {
-				/// Gridding visibility data onto grid
-				casa::Complex rVis=phasor
-					*conj(acc.visibility()(i, chan, pol));
-				casa::Complex sumwt=0.0;
-				float wtVis = 1.0;
-				if(itsVisWeight)
-					rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				GridKernel::grid(grid, sumwt, convFunc, rVis,
+			       /// Gridding visibility data onto grid
+			       casa::Complex rVis=phasor
+				 *conj(acc.visibility()(i, chan, pol));
+			       casa::Complex sumwt=0.0;
+			       float wtVis = 1.0;
+			       if(itsVisWeight)
+				 rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+			       GridKernel::grid(grid, sumwt, convFunc, rVis,
 						wtVis, iu, iv, itsSupport);
-				
+			       itsSamplesGridded+=1.0;
+			       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
+			       
 				ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
 				ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
 				ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
@@ -409,6 +420,8 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 					   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       GridKernel::grid(gridPSF, sumwt, convFunc,
 						    uVis, wtVis, iu, iv, itsSupport);
+				       itsSamplesGridded+=1.0;
+				       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 			    }
 			     
 			  }
@@ -419,16 +432,8 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    }//end of i loop
    if (forward) {
 	   itsTimeDegridded+=timer.real();
-	   itsSamplesDegridded+=double(nGood);
-	   itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nGood);
    } else {
 	   itsTimeGridded+=timer.real();
-	   itsSamplesGridded+=double(nGood);
-	   itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nGood);
-	   if (itsDopsf) {
-		   itsSamplesGridded+=double(nGood);
-		   itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1))*double(nGood);
-	   }
    }
 }
 void TableVisGridder::degrid(IDataSharedIter& idi) {
