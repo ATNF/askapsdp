@@ -49,6 +49,10 @@ namespace askap
     {
       // Initialize MPI (also succeeds if no MPI available).
       MPIConnection::initMPI(argc, argv);
+
+      // Now we have to initialize the logger before we use it
+      ASKAPLOG_INIT("askap.log_cfg");
+
       itsNNode = MPIConnection::getNrNodes();
       itsRank = MPIConnection::getRank();
 
