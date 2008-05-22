@@ -68,7 +68,7 @@ namespace askap
 	void addPreconditioner(askap::synthesis::IImagePreconditioner::ShPtr pc);
 
 	/// @brief Do the preconditioning
-	bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
+	bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
    
       private:
 	/// Instance of a preconditioner
