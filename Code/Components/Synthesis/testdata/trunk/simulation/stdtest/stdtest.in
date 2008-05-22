@@ -87,3 +87,6 @@ Cimager.ncycles                                 = 5
 #
 Cimager.restore                          	= True
 Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
+
+Cimager.preconditioner.Names			= Wiener
+Cimager.preconditioner.Wiener.noisepower	= 100.0
