@@ -53,7 +53,6 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-  ASKAPLOG_INIT("cduchamp.log_cfg");
 
   try
   {
