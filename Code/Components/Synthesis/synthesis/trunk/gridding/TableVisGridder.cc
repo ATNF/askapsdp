@@ -53,7 +53,7 @@ void deepCopyOfSTDVector(const std::vector<T> &in,
 TableVisGridder::TableVisGridder() :
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
-			itsTimeGridded(0.0), itsTimeDegridded(0.0)
+	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0)
 
 {
 
@@ -66,7 +66,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	itsSupport(support), itsOverSample(overSample), itsName(name),
 			itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
-			itsTimeGridded(0.0), itsTimeDegridded(0.0) {
+	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0) {
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
 	ASKAPCHECK(support>0, "Maximum support must be greater than 0");
 }
@@ -83,7 +83,8 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
      itsCSize(other.itsCSize), itsCCenter(other.itsCCenter), itsName(other.itsName),
      itsModelIsEmpty(other.itsModelIsEmpty), itsSamplesGridded(other.itsSamplesGridded),
      itsSamplesDegridded(other.itsSamplesDegridded), itsNumberGridded(other.itsNumberGridded),
-     itsNumberDegridded(other.itsNumberDegridded), itsTimeGridded(other.itsTimeGridded),
+     itsNumberDegridded(other.itsNumberDegridded), itsTimeCoordinates(other.itsTimeCoordinates),
+     itsTimeGridded(other.itsTimeGridded),
      itsTimeDegridded(other.itsTimeDegridded)
 {
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
@@ -110,6 +111,8 @@ TableVisGridder::~TableVisGridder() {
 				*itsTimeGridded/itsNumberGridded << " (ns)");
 		ASKAPLOG_INFO_STR(logger, "   Performance           = "
 				<< 6.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " Gflops");
+		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+				  << 1e9 * itsTimeCoordinates/itsSamplesGridded << " (ns) per sample");
 	}
 
 	if (itsNumberDegridded>0) {
@@ -127,6 +130,8 @@ TableVisGridder::~TableVisGridder() {
 				*itsTimeDegridded/itsNumberDegridded << " (ns)");
 		ASKAPLOG_INFO_STR(logger, "   Performance           = "
 				<< 6.0 * 1e-9 * itsNumberDegridded/itsTimeDegridded << " Gflops");
+		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+				  << 1e9 * itsTimeCoordinates/itsSamplesDegridded << " (ns) per sample");
 	}
 }
 
@@ -168,6 +173,9 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    initIndices(idi);
    initConvolutionFunction(idi);
    
+   itsTimeCoordinates+=timer.real();
+   timer.mark();
+
    ASKAPCHECK(itsSupport>0, "Support must be greater than 0");
    ASKAPCHECK(itsUVCellSize.size()==2, "UV cell sizes not yet set");
    

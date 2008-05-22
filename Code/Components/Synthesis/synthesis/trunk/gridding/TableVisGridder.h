@@ -184,6 +184,8 @@ namespace askap
       double itsNumberGridded;
       /// Number of grid cells degridded
       double itsNumberDegridded;
+      /// Time for Coordinates
+      double itsTimeCoordinates;
       /// Time for gridding
       double itsTimeGridded;
       /// Time for degridding
