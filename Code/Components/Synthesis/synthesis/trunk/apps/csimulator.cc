@@ -36,9 +36,6 @@ int main(int argc, const char** argv)
       
       timer.mark();
 
-      ASKAPLOG_INIT("csimulator.log_cfg");
-      ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
-      
       {
         cmdlineparser::Parser parser; // a command line parser
         // command line parameter
@@ -56,7 +53,10 @@ int main(int argc, const char** argv)
 	LOFAR::ACC::APS::ParameterSet parset(parsetFile);
 	LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
 	
+	// We cannot issue log messages until MPI is initialized!
 	SimParallel sim(argc, argv, subset);
+
+	ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
 	
 	if(sim.isMaster()) {
 	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
