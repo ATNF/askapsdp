@@ -119,9 +119,9 @@ namespace askap
       //    latticecleaner[stokes]->setup();
       //    for ( order in [0:(2*ntaylor-1)-1] )
       //        latticecleaner[stokes]->setpsf(order,psf[order]);
-      //    for ( order in [0:ntaylor-1] )
-      //        latticecleaner[stokes]->setresidual(order,residual[order]);
-      //        latticecleaner[stokes]->setmodel(order,model[order]);
+      //        if ( order < ntaylor )
+      //           latticecleaner[stokes]->setresidual(order,residual[order]);
+      //           latticecleaner[stokes]->setmodel(order,model[order]);
       //    latticecleaner[stokes]->mtclean();
       //    for ( order in [0:ntaylor-1] )
       //        latticecleaner[stokes]->getmodel(order,model[order]);
@@ -150,10 +150,10 @@ namespace askap
 	  const casa::Vector<double>& normdiag(normalEquations().normalMatrixDiagonal().find(imagename)->second);
 	  const casa::IPosition vecShape(1, itsParams->value(imagename).nelements());
 	  const casa::IPosition valShape(itsParams->value(imagename).shape());
+	  
 	  double maxDiag(casa::max(normdiag));
 	  ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
-	  double cutoff=tol()*maxDiag;
-
+          
 	  if(firstcycle) // Initialize everything only once.
 	  {
 	    // Initialize the latticecleaners
@@ -170,7 +170,6 @@ namespace askap
 	  }
           
 	  // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
-	  float maxpsf = 1.0;
 	  int nOrders = itsNTaylor;
 	  casa::Array<float> psfZeroArray(valShape);
 	  if(firstcycle)
@@ -188,23 +187,11 @@ namespace askap
 	   casa::Array<float> psfArray(valShape);
 	   casa::convertArray<float, double>(psfArray, slice.reform(valShape));
 	   casa::Array<float> dirtyArray(valShape);
-	   casa::convertArray<float, double>(dirtyArray, normdiag.reform(valShape));
+	   casa::convertArray<float, double>(dirtyArray, dv.reform(valShape));
 	   casa::Array<float> cleanArray(valShape);
 	   casa::convertArray<float, double>(cleanArray, itsParams->value(imagename));
-	   {
-             casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	     casa::Vector<float> psfVector(psfArray.reform(vecShape));
-	     for (uint elem=0;elem<dv.nelements();elem++)
-	     {
-	       psfVector(elem)=slice(elem)/maxDiag;
-	       if(normdiag(elem)>cutoff) {
-	         dirtyVector(elem)=dv(elem)/normdiag(elem);
-	       }
-	       else {
- 	         dirtyVector(elem)=dv(elem)/cutoff;
-	       }
-	     }
-	   } 
+
+	   doNormalization(normdiag,tol(),psfArray,dirtyArray);
 	   
 	   ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
 

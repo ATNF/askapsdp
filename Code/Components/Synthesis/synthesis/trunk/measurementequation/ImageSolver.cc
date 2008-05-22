@@ -51,6 +51,30 @@ namespace askap
 	    itsPreconditioners[n+1] = pc;
     }
 
+    // Normalize the PSF and dirty image by the diagonal of the Hessian
+    bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, casa::Array<float>& dirty)
+    {
+        double maxDiag(casa::max(diag));
+        ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag);
+        const double cutoff=tolerance*maxDiag;
+
+	psf /= (float)maxDiag;
+	
+	casa::IPosition vecShape(1,diag.nelements());
+	casa::Vector<float> dirtyVector(dirty.reform(vecShape));
+	for (uint elem=0;elem<diag.nelements();elem++)
+	{
+	  if(diag(elem)>cutoff)
+	  {
+		  dirtyVector(elem)/=diag(elem);
+	  }
+	  else {
+		  dirtyVector(elem)/=cutoff;
+	  }
+	}
+	return true;
+    }
+
     // Apply all the preconditioners in the order in which they were created.
     bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
     {
@@ -98,29 +122,15 @@ namespace askap
 	ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
         const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
 
-        double maxDiag(casa::max(diag));
-        ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag);
-        const double cutoff=tol()*maxDiag;
-	
 	casa::Array<float> dirtyArray(arrShape);
         casa::convertArray<float, double>(dirtyArray, dv.reform(arrShape));
         casa::Array<float> psfArray(arrShape);
         casa::convertArray<float, double>(psfArray, slice.reform(arrShape));
 	
-	casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	casa::Vector<float> psfVector(psfArray.reform(vecShape));
-	for (uint elem=0;elem<dv.nelements();elem++)
-	{
-          psfVector(elem)=slice(elem)/maxDiag;
-	  if(diag(elem)>cutoff)
-	  {
-		  dirtyVector(elem)=dv(elem)/diag(elem);
-	  }
-	  else {
-		  dirtyVector(elem)=dv(elem)/cutoff;
-	  }
-	}
+	// Normalize by the diagonal
+	doNormalization(diag,tol(),psfArray,dirtyArray);
 	
+	// Do the preconditioning
 	if(doPreconditioning(psfArray,dirtyArray))
 	{
 	 // Save the new PSFs to disk
@@ -138,36 +148,19 @@ namespace askap
 	}
 
 	casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+	casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
 	for (uint elem=0; elem<dv.nelements(); elem++)
 	{
 		value(elem) += dirtyVector(elem);
 	}
-	
-	/* 
-	   {
-	   casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-	   for (uint elem=0; elem<dv.nelements(); elem++)
-	   {
-	   if (diag(elem)>cutoff)
-	   {
-	   value(elem)+=dv(elem)/diag(elem);
-	   }
-	   else
-	   {
-	   value(elem)+=dv(elem)/cutoff;
-	   }
-	   }
-	   }
-	 */
-	
       }
       quality.setDOF(nParameters);
       quality.setRank(0);
       quality.setCond(0.0);
       quality.setInfo("Scaled residual calculated");
+      
       /// Save the PSF and Weight
       saveWeights();
-      
       savePSF();
       return true;
     }
@@ -199,7 +192,7 @@ namespace askap
 
     void ImageSolver::savePSF()
     {
-      // Save weights image
+      // Save PSF image
       vector<string> names(itsParams->completions("image"));
       for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
       {

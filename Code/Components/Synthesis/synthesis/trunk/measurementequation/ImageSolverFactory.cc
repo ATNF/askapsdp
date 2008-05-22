@@ -71,7 +71,7 @@ namespace askap
       }
       
       // Set Up the Preconditioners - a whole list of 'em
-      const vector<string> preconditioners=parset.getStringVector("preconditioner.Names");
+      const vector<string> preconditioners=parset.getStringVector("preconditioner.Names",std::vector<std::string>());
       if(preconditioners.size())
       {
         for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) 

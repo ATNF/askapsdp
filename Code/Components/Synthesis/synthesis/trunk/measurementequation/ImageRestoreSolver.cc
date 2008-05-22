@@ -87,30 +87,13 @@ namespace askap
 	  ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
           const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
 
-	  double maxDiag(casa::max(diag));
-	  ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
-	  double cutoff=tol()*maxDiag;
-	  
-	  // Make the residual image, and apply the Weiner filter to it
 	  casa::Array<float> dirtyArray(valShape);
-          casa::convertArray<float, double>(dirtyArray, diag.reform(valShape));
+          casa::convertArray<float, double>(dirtyArray, dv.reform(valShape));
           casa::Array<float> psfArray(valShape);
           casa::convertArray<float, double>(psfArray, slice.reform(valShape));
-	  {
-	     casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	     casa::Vector<float> psfVector(psfArray.reform(vecShape));
-	     for (uint elem=0;elem<dv.nelements();elem++)
-	     {
-	       psfVector(elem)=slice(elem)/maxDiag;
-	       if(diag(elem)>cutoff)
-	       {
-		       dirtyVector(elem)=dv(elem)/diag(elem);
-	       }
-	       else {
-		       dirtyVector(elem)=0.0;
-	       }
-	     }
-	  }
+
+	  // Normalize by the diagonal
+	  doNormalization(diag,tol(),psfArray,dirtyArray);
 	  
 	  // Do the preconditioning
 	  doPreconditioning(psfArray,dirtyArray);
@@ -153,38 +136,6 @@ namespace askap
     {
 	    return Solver::ShPtr(new ImageRestoreSolver(*this));
     }
-        
-    /*
-    void ImageRestoreSolver::applyWeinerFilter(casa::ArrayLattice<float>& psf, 
-		                               casa::ArrayLattice<float>& dirty,
-					       float& noisepower)
-    {
-       // Setup work arrays.
-       casa::IPosition valShape(psf.shape());
-       casa::ArrayLattice<casa::Complex> weinerfilter(valShape);
-       casa::ArrayLattice<casa::Complex> scratch(valShape);
-       
-       // Construct a Weiner filter from the PSF
-       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(psf)));
-       LatticeFFT::cfft2d(scratch, True);
-       casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + noisepower));
-       weinerfilter.copyData(wf);
-
-       // Apply the filter to the psf
-       // (reuse the ft(psf) currently held in 'scratch')
-       scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
-       LatticeFFT::cfft2d(scratch, False);
-       psf.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-       
-       // Apply the filter to the dirty image
-       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(dirty)));
-       LatticeFFT::cfft2d(scratch, True);
-       scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
-       LatticeFFT::cfft2d(scratch, False);
-       dirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-    };
-    */
-    
 
   }
 }

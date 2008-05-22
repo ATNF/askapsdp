@@ -97,31 +97,14 @@ namespace askap
         const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
         
         casa::Array<float> dirtyArray(valShape);
-        casa::convertArray<float, double>(dirtyArray, diag.reform(valShape));
+        casa::convertArray<float, double>(dirtyArray, dv.reform(valShape));
         casa::Array<float> psfArray(valShape);
         casa::convertArray<float, double>(psfArray, slice.reform(valShape));
         casa::Array<float> cleanArray(valShape);
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
-				double maxDiag(casa::max(diag));
-				ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
-				double cutoff=tol()*maxDiag;
-        {
-          casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-          casa::Vector<float> psfVector(psfArray.reform(vecShape));
-          for (uint elem=0;elem<dv.nelements();elem++)
-          {
-	    // For the PSF, we really need a separate version for each pixel. However, 
-	    // a reasonable approximation is to just divide by the maximum weight.
-	    psfVector(elem)=slice(elem)/maxDiag;
-            if(diag(elem)>cutoff)
-            {
-              dirtyVector(elem)=dv(elem)/diag(elem);
-            }
-            else {
-              dirtyVector(elem)=dv(elem)/cutoff;
-            }
-          }
-        }
+
+	// Normalize by the diagonal
+	doNormalization(diag,tol(),psfArray,dirtyArray);
         
 	// Precondition the PSF and DIRTY images before solving.
 	if(doPreconditioning(psfArray,dirtyArray))
@@ -139,7 +122,6 @@ namespace askap
             itsParams->update(psfName, APSF);
           }
 	}
-	// preconditioning done.
 	
         // We need lattice equivalents. We can use ArrayLattice which involves
         // no copying
