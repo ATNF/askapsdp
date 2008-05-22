@@ -282,7 +282,7 @@ namespace askap
           ir.setVerbose(itsSolver->verbose());
 	  // Check for preconditioners. Same code as in ImageSolverFactory.
 	  // Will be neater if the RestoreSolver is also created in the ImageSolverFactory.
-	  const vector<string> preconditioners=itsParset.getStringVector("preconditioner.Names");
+	  const vector<string> preconditioners=itsParset.getStringVector("preconditioner.Names",std::vector<std::string>());
 	  if(preconditioners.size()) {
 	    for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) {
 	      if( (*pc)=="Weiner" ) {
