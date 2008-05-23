@@ -1,0 +1,8 @@
+imageQual.srcFile      = /Users/whi550/RESEARCH/Code/CodeTest/c++/TTest_resultlist.txt
+imageQual.srcPosRA     = 08:47:17.87
+imageQual.srcPosDec    = -51:58:59.31
+imageQual.refFile      = /Users/whi550/RESEARCH/Code/CodeTest/c++/TTest_base_10mJy_trim_3col.txt
+imageQual.refPosRA     = 08:47:17.87
+imageQual.refPosDec    = -51:58:59.31
+
+imageQual.epsilon      =  1
