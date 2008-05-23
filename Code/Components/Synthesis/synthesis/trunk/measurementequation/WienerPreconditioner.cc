@@ -1,4 +1,4 @@
-#include <measurementequation/WeinerPreconditioner.h>
+#include <measurementequation/WienerPreconditioner.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -26,26 +26,26 @@ namespace askap
   namespace synthesis
   {
 
-    WeinerPreconditioner::WeinerPreconditioner() :
+    WienerPreconditioner::WienerPreconditioner() :
 	    itsNoisePower(0.0)
     {
     }
     
-    WeinerPreconditioner::WeinerPreconditioner(float& noisepower) :
+    WienerPreconditioner::WienerPreconditioner(float& noisepower) :
 	    itsNoisePower(noisepower)
     {
     }
     
-    WeinerPreconditioner::~WeinerPreconditioner() 
+    WienerPreconditioner::~WienerPreconditioner() 
     {
     }
     
-    WeinerPreconditioner::ShPtr WeinerPreconditioner::clone()
+    WienerPreconditioner::ShPtr WienerPreconditioner::clone()
     {
-	    return IImagePreconditioner::ShPtr(new WeinerPreconditioner(*this));
+	    return IImagePreconditioner::ShPtr(new WienerPreconditioner(*this));
     }
     
-    bool WeinerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
+    bool WienerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
     {
       if(itsNoisePower > 1e-06)
       {
@@ -57,7 +57,7 @@ namespace askap
        casa::ArrayLattice<casa::Complex> weinerfilter(valShape);
        casa::ArrayLattice<casa::Complex> scratch(valShape);
        
-       // Construct a Weiner filter
+       // Construct a Wiener filter
        scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
        LatticeFFT::cfft2d(scratch, True);
        casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsNoisePower));

@@ -37,7 +37,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 // These two includes can be removed when ImageRestoreSolver goes out of here
 #include <measurementequation/IImagePreconditioner.h>
-#include <measurementequation/WeinerPreconditioner.h>
+#include <measurementequation/WienerPreconditioner.h>
 
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
@@ -285,14 +285,14 @@ namespace askap
 	  const vector<string> preconditioners=itsParset.getStringVector("preconditioner.Names",std::vector<std::string>());
 	  if(preconditioners.size()) {
 	    for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) {
-	      if( (*pc)=="Weiner" ) {
-	        float noisepower = itsParset.getFloat("preconditioner.Weiner.noisepower",0.0);
-		ir.addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner(noisepower)));
+	      if( (*pc)=="Wiener" ) {
+	        float noisepower = itsParset.getFloat("preconditioner.Wiener.noisepower",0.0);
+		ir.addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
 	      }
 	    }
 	  }
 	  else {
-		  ir.addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner()));
+		  ir.addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner()));
 	  }
 	  
           ir.copyNormalEquations(*itsSolver);

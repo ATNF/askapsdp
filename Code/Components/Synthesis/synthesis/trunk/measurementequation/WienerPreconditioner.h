@@ -1,7 +1,7 @@
 /// @file
 ///
-/// WeinerPreconditioner: Precondition the normal equations
-///                       by applying a Weiner filter
+/// WienerPreconditioner: Precondition the normal equations
+///                       by applying a Wiener filter
 ///
 /// (c) 2007 ASKAP, All Rights Reserved.
 /// @author Urvashi Rau <rurvashi@aoc.nrao.edu>
@@ -21,21 +21,21 @@ namespace askap
 {
   namespace synthesis
   {
-    /// @brief Precondition the normal equations via a Weiner filter
+    /// @brief Precondition the normal equations via a Wiener filter
     ///
-    /// @details It constructs a Weiner filter from the PSF 
+    /// @details It constructs a Wiener filter from the PSF 
     /// and applies it to the PSF and current Residual image
     /// @ingroup measurementequation
-    class WeinerPreconditioner : public IImagePreconditioner
+    class WienerPreconditioner : public IImagePreconditioner
     {
       public:
 
         /// @brief Constructor from parameters.
         /// The parameters named image* will be interpreted as images and
         /// solutions formed by the method described.
-        WeinerPreconditioner();
-        WeinerPreconditioner(float& noisepower);
-        ~WeinerPreconditioner();
+        WienerPreconditioner();
+        WienerPreconditioner(float& noisepower);
+        ~WienerPreconditioner();
 
         /// @brief Clone this object
         virtual IImagePreconditioner::ShPtr clone();

@@ -10,7 +10,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/ImageMultiScaleSolver.h>
 #include <measurementequation/ImageMSMFSolver.h>
 #include <measurementequation/IImagePreconditioner.h>
-#include <measurementequation/WeinerPreconditioner.h>
+#include <measurementequation/WienerPreconditioner.h>
 
 using namespace askap::scimath;
 
@@ -76,10 +76,10 @@ namespace askap
       {
         for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) 
         {
-          if( (*pc)=="Weiner" )
+          if( (*pc)=="Wiener" )
 	  {
-	    float noisepower = parset.getFloat("preconditioner.Weiner.noisepower",0.0);
-            solver->addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner(noisepower)));
+	    float noisepower = parset.getFloat("preconditioner.Wiener.noisepower",0.0);
+            solver->addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
 	  }
 	  /*
 	     if( (*pc)=="UVTaper" ) // take input in units of "klambda". Make this a "measures" thing...
@@ -96,7 +96,7 @@ namespace askap
       }
       else
       {
-        solver->addPreconditioner(IImagePreconditioner::ShPtr(new WeinerPreconditioner()));
+        solver->addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner()));
       }
       
       return solver;
