@@ -11,9 +11,11 @@ Extracting 10uJy model
 10uJy.model.small/table.info
 10uJy.model.small/table.lock
 Running csimulator to create MeasurementSet for a single pointing
-INFO  synthesis.csimulator () [2008-05-10 10:06:23,288] - ASKAP synthesis simulator synthesis==trunk r[5880-5881] (2008-05-09)
-INFO  synthesis.csimulator () [2008-05-10 10:06:23,289] - parset file stdtest.in
-INFO  synthesis.csimulator () [2008-05-10 10:06:23,289] - Cimager.Images.Names=[image.i.10uJy_stdtest]
+INFO  askapparallel.askapparallel () [2008-05-23 09:44:26,231] - ASKAP program (serial)
+INFO  askapparallel.askapparallel () [2008-05-23 09:44:26,232] - askapparallel==trunk r5949 (2008-05-22)
+INFO  synthesis.csimulator () [2008-05-23 09:44:26,232] - ASKAP synthesis simulator synthesis==trunk r5954 (2008-05-23)
+INFO  synthesis.csimulator () [2008-05-23 09:44:26,232] - parset file stdtest.in
+INFO  synthesis.csimulator () [2008-05-23 09:44:26,232] - Cimager.Images.Names=[image.i.10uJy_stdtest]
 Cimager.Images.image.i.10uJy_stdtest.cellsize=[8.0arcsec, 8.0arcsec]
 Cimager.Images.image.i.10uJy_stdtest.direction=[12h30m00.00, -45.00.00.00, J2000]
 Cimager.Images.image.i.10uJy_stdtest.frequency=[1.420e9,1.420e9]
@@ -30,12 +32,15 @@ Cimager.gridder.WProject.nwplanes=33
 Cimager.gridder.WProject.oversample=8
 Cimager.gridder.WProject.wmax=15000
 Cimager.ncycles=5
+Cimager.preconditioner.Names=Wiener
+Cimager.preconditioner.Wiener.noisepower=100.0
 Cimager.restore=True
 Cimager.restore.beam=[30arcsec, 30arcsec, 0deg]
 Cimager.solver=Clean
 Cimager.solver.Clean.algorithm=MultiScale
 Cimager.solver.Clean.gain=0.9
 Cimager.solver.Clean.niter=100
+Cimager.solver.Clean.robust=100.0
 Cimager.solver.Clean.threshold=0.1mJy
 Cimager.solver.Clean.tolerance=0.1
 Cimager.solver.Clean.verbose=True
@@ -64,129 +69,137 @@ Csimulator.sources.10uJy.model=10uJy.model.small
 Csimulator.sources.names=[10uJy]
 Csimulator.spws.definition=definitions/ASKAPspws.in
 
-INFO  synthesis.parallel () [2008-05-10 10:06:23,289] - Adding image 10uJy.model.small as model for 10uJy
-INFO  synthesis.parallel () [2008-05-10 10:06:25,019] - Successfully read models
-INFO  synthesis.parallel () [2008-05-10 10:06:25,102] - Simulating ASKAP45
-INFO  synthesis.parallel () [2008-05-10 10:06:25,102] - Using local coordinates for the antennas: Reference position = +117.28.15.6 -25.41.31.2
-INFO  synthesis.parallel () [2008-05-10 10:06:25,104] - Added rows to ANTENNA table
-INFO  synthesis.parallel () [2008-05-10 10:06:25,104] - Successfully defined 45 antennas of ASKAP45
-INFO  synthesis.parallel () [2008-05-10 10:06:25,104] - Simulating source 10uJy
-INFO  synthesis.parallel () [2008-05-10 10:06:25,106] - Creating new field 10uJy, ID 1
-INFO  synthesis.parallel () [2008-05-10 10:06:25,106] - Successfully defined sources
-INFO  synthesis.parallel () [2008-05-10 10:06:25,108] - Constructing FEED table from list
-INFO  synthesis.parallel () [2008-05-10 10:06:25,108] - Added rows to FEED table
-INFO  synthesis.parallel () [2008-05-10 10:06:25,109] - Successfully defined 1 feeds
-INFO  synthesis.parallel () [2008-05-10 10:06:25,110] - Creating new spectral window Continuum, ID 1
-INFO  synthesis.parallel () [2008-05-10 10:06:25,112] - Creating new spectral window Spectral, ID 2
-INFO  synthesis.parallel () [2008-05-10 10:06:25,116] - Creating new spectral window Temporal0, ID 3
-INFO  synthesis.parallel () [2008-05-10 10:06:25,117] - Creating new spectral window Temporal1, ID 4
-INFO  synthesis.parallel () [2008-05-10 10:06:25,119] - Creating new spectral window Temporal2, ID 5
-INFO  synthesis.parallel () [2008-05-10 10:06:25,121] - Creating new spectral window Temporal3, ID 6
-INFO  synthesis.parallel () [2008-05-10 10:06:25,123] - Creating new spectral window Temporal4, ID 7
-INFO  synthesis.parallel () [2008-05-10 10:06:25,125] - Creating new spectral window Temporal5, ID 8
-INFO  synthesis.parallel () [2008-05-10 10:06:25,127] - Creating new spectral window Temporal6, ID 9
-INFO  synthesis.parallel () [2008-05-10 10:06:25,129] - Creating new spectral window Temporal7, ID 10
-INFO  synthesis.parallel () [2008-05-10 10:06:25,131] - Creating new spectral window Temporal8, ID 11
-INFO  synthesis.parallel () [2008-05-10 10:06:25,133] - Creating new spectral window Temporal9, ID 12
-INFO  synthesis.parallel () [2008-05-10 10:06:25,135] - Creating new spectral window Temporal10, ID 13
-INFO  synthesis.parallel () [2008-05-10 10:06:25,137] - Creating new spectral window Temporal11, ID 14
-INFO  synthesis.parallel () [2008-05-10 10:06:25,139] - Creating new spectral window Temporal12, ID 15
-INFO  synthesis.parallel () [2008-05-10 10:06:25,141] - Creating new spectral window Temporal13, ID 16
-INFO  synthesis.parallel () [2008-05-10 10:06:25,143] - Creating new spectral window Temporal14, ID 17
-INFO  synthesis.parallel () [2008-05-10 10:06:25,145] - Creating new spectral window Temporal15, ID 18
-INFO  synthesis.parallel () [2008-05-10 10:06:25,147] - Creating new spectral window Wide0, ID 19
-INFO  synthesis.parallel () [2008-05-10 10:06:25,149] - Creating new spectral window Wide1, ID 20
-INFO  synthesis.parallel () [2008-05-10 10:06:25,151] - Creating new spectral window Wide2, ID 21
-INFO  synthesis.parallel () [2008-05-10 10:06:25,153] - Creating new spectral window Wide3, ID 22
-INFO  synthesis.parallel () [2008-05-10 10:06:25,155] - Creating new spectral window Wide4, ID 23
-INFO  synthesis.parallel () [2008-05-10 10:06:25,157] - Creating new spectral window Wide5, ID 24
-INFO  synthesis.parallel () [2008-05-10 10:06:25,159] - Creating new spectral window Wide6, ID 25
-INFO  synthesis.parallel () [2008-05-10 10:06:25,160] - Creating new spectral window Wide7, ID 26
-INFO  synthesis.parallel () [2008-05-10 10:06:25,162] - Creating new spectral window Wide8, ID 27
-INFO  synthesis.parallel () [2008-05-10 10:06:25,164] - Creating new spectral window Wide9, ID 28
-INFO  synthesis.parallel () [2008-05-10 10:06:25,166] - Creating new spectral window Wide10, ID 29
-INFO  synthesis.parallel () [2008-05-10 10:06:25,168] - Creating new spectral window Wide11, ID 30
-INFO  synthesis.parallel () [2008-05-10 10:06:25,170] - Creating new spectral window Wide12, ID 31
-INFO  synthesis.parallel () [2008-05-10 10:06:25,172] - Creating new spectral window Wide13, ID 32
-INFO  synthesis.parallel () [2008-05-10 10:06:25,174] - Creating new spectral window Wide14, ID 33
-INFO  synthesis.parallel () [2008-05-10 10:06:25,176] - Creating new spectral window Wide15, ID 34
-INFO  synthesis.parallel () [2008-05-10 10:06:25,178] - Creating new spectral window Continuum0, ID 35
-INFO  synthesis.parallel () [2008-05-10 10:06:25,180] - Creating new spectral window Continuum1, ID 36
-INFO  synthesis.parallel () [2008-05-10 10:06:25,182] - Creating new spectral window Continuum2, ID 37
-INFO  synthesis.parallel () [2008-05-10 10:06:25,184] - Creating new spectral window Continuum3, ID 38
-INFO  synthesis.parallel () [2008-05-10 10:06:25,186] - Creating new spectral window Continuum4, ID 39
-INFO  synthesis.parallel () [2008-05-10 10:06:25,188] - Creating new spectral window Continuum5, ID 40
-INFO  synthesis.parallel () [2008-05-10 10:06:25,190] - Creating new spectral window Continuum6, ID 41
-INFO  synthesis.parallel () [2008-05-10 10:06:25,192] - Creating new spectral window Continuum7, ID 42
-INFO  synthesis.parallel () [2008-05-10 10:06:25,194] - Creating new spectral window Continuum8, ID 43
-INFO  synthesis.parallel () [2008-05-10 10:06:25,196] - Creating new spectral window Continuum9, ID 44
-INFO  synthesis.parallel () [2008-05-10 10:06:25,198] - Creating new spectral window Continuum10, ID 45
-INFO  synthesis.parallel () [2008-05-10 10:06:25,200] - Creating new spectral window Continuum11, ID 46
-INFO  synthesis.parallel () [2008-05-10 10:06:25,202] - Creating new spectral window Continuum12, ID 47
-INFO  synthesis.parallel () [2008-05-10 10:06:25,204] - Creating new spectral window Continuum13, ID 48
-INFO  synthesis.parallel () [2008-05-10 10:06:25,206] - Creating new spectral window Continuum14, ID 49
-INFO  synthesis.parallel () [2008-05-10 10:06:25,208] - Creating new spectral window Continuum15, ID 50
-INFO  synthesis.parallel () [2008-05-10 10:06:25,208] - Successfully defined 50 spectral windows
-INFO  synthesis.parallel () [2008-05-10 10:06:25,208] - Successfully set simulation parameters
-INFO  synthesis.parallel () [2008-05-10 10:06:25,209] - Observing scan 0 on source 10uJy at band Continuum0 from -6 h to 6 h
-INFO  synthesis.parallel () [2008-05-10 10:06:25,211] - Spectral window : Continuum0
+INFO  synthesis.parallel () [2008-05-23 09:44:26,232] - Adding image 10uJy.model.small as model for 10uJy
+INFO  synthesis.parallel () [2008-05-23 09:44:27,961] - Successfully read models
+INFO  synthesis.parallel () [2008-05-23 09:44:28,034] - Simulating ASKAP45
+INFO  synthesis.parallel () [2008-05-23 09:44:28,035] - Using local coordinates for the antennas: Reference position = +117.28.15.6 -25.41.31.2
+INFO  synthesis.parallel () [2008-05-23 09:44:28,037] - Added rows to ANTENNA table
+INFO  synthesis.parallel () [2008-05-23 09:44:28,037] - Successfully defined 45 antennas of ASKAP45
+INFO  synthesis.parallel () [2008-05-23 09:44:28,037] - Simulating source 10uJy
+INFO  synthesis.parallel () [2008-05-23 09:44:28,038] - Creating new field 10uJy, ID 1
+INFO  synthesis.parallel () [2008-05-23 09:44:28,039] - Successfully defined sources
+INFO  synthesis.parallel () [2008-05-23 09:44:28,040] - Constructing FEED table from list
+INFO  synthesis.parallel () [2008-05-23 09:44:28,041] - Added rows to FEED table
+INFO  synthesis.parallel () [2008-05-23 09:44:28,041] - Successfully defined 1 feeds
+INFO  synthesis.parallel () [2008-05-23 09:44:28,043] - Creating new spectral window Continuum, ID 1
+INFO  synthesis.parallel () [2008-05-23 09:44:28,045] - Creating new spectral window Spectral, ID 2
+INFO  synthesis.parallel () [2008-05-23 09:44:28,048] - Creating new spectral window Temporal0, ID 3
+INFO  synthesis.parallel () [2008-05-23 09:44:28,050] - Creating new spectral window Temporal1, ID 4
+INFO  synthesis.parallel () [2008-05-23 09:44:28,052] - Creating new spectral window Temporal2, ID 5
+INFO  synthesis.parallel () [2008-05-23 09:44:28,054] - Creating new spectral window Temporal3, ID 6
+INFO  synthesis.parallel () [2008-05-23 09:44:28,056] - Creating new spectral window Temporal4, ID 7
+INFO  synthesis.parallel () [2008-05-23 09:44:28,058] - Creating new spectral window Temporal5, ID 8
+INFO  synthesis.parallel () [2008-05-23 09:44:28,060] - Creating new spectral window Temporal6, ID 9
+INFO  synthesis.parallel () [2008-05-23 09:44:28,062] - Creating new spectral window Temporal7, ID 10
+INFO  synthesis.parallel () [2008-05-23 09:44:28,064] - Creating new spectral window Temporal8, ID 11
+INFO  synthesis.parallel () [2008-05-23 09:44:28,066] - Creating new spectral window Temporal9, ID 12
+INFO  synthesis.parallel () [2008-05-23 09:44:28,068] - Creating new spectral window Temporal10, ID 13
+INFO  synthesis.parallel () [2008-05-23 09:44:28,070] - Creating new spectral window Temporal11, ID 14
+INFO  synthesis.parallel () [2008-05-23 09:44:28,072] - Creating new spectral window Temporal12, ID 15
+INFO  synthesis.parallel () [2008-05-23 09:44:28,074] - Creating new spectral window Temporal13, ID 16
+INFO  synthesis.parallel () [2008-05-23 09:44:28,076] - Creating new spectral window Temporal14, ID 17
+INFO  synthesis.parallel () [2008-05-23 09:44:28,078] - Creating new spectral window Temporal15, ID 18
+INFO  synthesis.parallel () [2008-05-23 09:44:28,080] - Creating new spectral window Wide0, ID 19
+INFO  synthesis.parallel () [2008-05-23 09:44:28,082] - Creating new spectral window Wide1, ID 20
+INFO  synthesis.parallel () [2008-05-23 09:44:28,084] - Creating new spectral window Wide2, ID 21
+INFO  synthesis.parallel () [2008-05-23 09:44:28,086] - Creating new spectral window Wide3, ID 22
+INFO  synthesis.parallel () [2008-05-23 09:44:28,088] - Creating new spectral window Wide4, ID 23
+INFO  synthesis.parallel () [2008-05-23 09:44:28,090] - Creating new spectral window Wide5, ID 24
+INFO  synthesis.parallel () [2008-05-23 09:44:28,092] - Creating new spectral window Wide6, ID 25
+INFO  synthesis.parallel () [2008-05-23 09:44:28,094] - Creating new spectral window Wide7, ID 26
+INFO  synthesis.parallel () [2008-05-23 09:44:28,096] - Creating new spectral window Wide8, ID 27
+INFO  synthesis.parallel () [2008-05-23 09:44:28,098] - Creating new spectral window Wide9, ID 28
+INFO  synthesis.parallel () [2008-05-23 09:44:28,100] - Creating new spectral window Wide10, ID 29
+INFO  synthesis.parallel () [2008-05-23 09:44:28,102] - Creating new spectral window Wide11, ID 30
+INFO  synthesis.parallel () [2008-05-23 09:44:28,104] - Creating new spectral window Wide12, ID 31
+INFO  synthesis.parallel () [2008-05-23 09:44:28,106] - Creating new spectral window Wide13, ID 32
+INFO  synthesis.parallel () [2008-05-23 09:44:28,108] - Creating new spectral window Wide14, ID 33
+INFO  synthesis.parallel () [2008-05-23 09:44:28,110] - Creating new spectral window Wide15, ID 34
+INFO  synthesis.parallel () [2008-05-23 09:44:28,112] - Creating new spectral window Continuum0, ID 35
+INFO  synthesis.parallel () [2008-05-23 09:44:28,114] - Creating new spectral window Continuum1, ID 36
+INFO  synthesis.parallel () [2008-05-23 09:44:28,116] - Creating new spectral window Continuum2, ID 37
+INFO  synthesis.parallel () [2008-05-23 09:44:28,118] - Creating new spectral window Continuum3, ID 38
+INFO  synthesis.parallel () [2008-05-23 09:44:28,120] - Creating new spectral window Continuum4, ID 39
+INFO  synthesis.parallel () [2008-05-23 09:44:28,122] - Creating new spectral window Continuum5, ID 40
+INFO  synthesis.parallel () [2008-05-23 09:44:28,124] - Creating new spectral window Continuum6, ID 41
+INFO  synthesis.parallel () [2008-05-23 09:44:28,126] - Creating new spectral window Continuum7, ID 42
+INFO  synthesis.parallel () [2008-05-23 09:44:28,128] - Creating new spectral window Continuum8, ID 43
+INFO  synthesis.parallel () [2008-05-23 09:44:28,130] - Creating new spectral window Continuum9, ID 44
+INFO  synthesis.parallel () [2008-05-23 09:44:28,132] - Creating new spectral window Continuum10, ID 45
+INFO  synthesis.parallel () [2008-05-23 09:44:28,134] - Creating new spectral window Continuum11, ID 46
+INFO  synthesis.parallel () [2008-05-23 09:44:28,136] - Creating new spectral window Continuum12, ID 47
+INFO  synthesis.parallel () [2008-05-23 09:44:28,138] - Creating new spectral window Continuum13, ID 48
+INFO  synthesis.parallel () [2008-05-23 09:44:28,140] - Creating new spectral window Continuum14, ID 49
+INFO  synthesis.parallel () [2008-05-23 09:44:28,142] - Creating new spectral window Continuum15, ID 50
+INFO  synthesis.parallel () [2008-05-23 09:44:28,143] - Successfully defined 50 spectral windows
+INFO  synthesis.parallel () [2008-05-23 09:44:28,143] - Successfully set simulation parameters
+INFO  synthesis.parallel () [2008-05-23 09:44:28,143] - Observing scan 0 on source 10uJy at band Continuum0 from -6 h to 6 h
+INFO  synthesis.parallel () [2008-05-23 09:44:28,146] - Spectral window : Continuum0
      reference frequency : 1.42GHz
      number of channels : 16
      total bandwidth : -0.016GHz
      number of correlations : 4
 
-INFO  synthesis.parallel () [2008-05-10 10:06:25,211] - Observing source : 10uJy     direction : 12:30:00.00   -45.00.00.00       J2000
-INFO  synthesis.parallel () [2008-05-10 10:06:25,217] - Times specified are interpreted as hour angles for first source observed
-INFO  synthesis.parallel () [2008-05-10 10:06:25,217] -      offset in time = -6.28111 hours from 07-Mar-2007/00:00:33.0
-INFO  synthesis.parallel () [2008-05-10 10:06:25,217] - Time range - start : 06-Mar-2007/11:43:41.0 stop  : 06-Mar-2007/23:43:41.0
-INFO  synthesis.parallel () [2008-05-10 10:06:25,217] - Creating new hypercube 1
-INFO  synthesis.parallel () [2008-05-10 10:06:25,217] - Adding 28710 rows
-INFO  synthesis.parallel () [2008-05-10 10:06:25,218] - Written 0.02738 Gbytes to scratch columns
-INFO  synthesis.parallel () [2008-05-10 10:06:25,218] - Calculating uvw coordinates for 29 integrations
-INFO  synthesis.parallel () [2008-05-10 10:06:25,233] - Starting conditions for antenna 1: 
-INFO  synthesis.parallel () [2008-05-10 10:06:25,233] -      time = 06-Mar-2007/11:43:41.0
-INFO  synthesis.parallel () [2008-05-10 10:06:25,233] -      scan = 1
-INFO  synthesis.parallel () [2008-05-10 10:06:25,233] -      az   = 131.469 deg
-INFO  synthesis.parallel () [2008-05-10 10:06:25,233] -      el   = 19.626 deg
-INFO  synthesis.parallel () [2008-05-10 10:06:25,233] -      ha   = -5.81551 hours
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] - Stopping conditions for antenna 1: 
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] -      time = 06-Mar-2007/23:48:41.0
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] -      scan = 1
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] -      az   = -131.694 deg
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] -      el   = 18.942 deg
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] -      ha   = 5.88308 hours
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] - 28710 visibilities simulated 
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] - 0 visibilities flagged due to shadowing 
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] - 0 visibilities flagged due to elevation limit of 8 degrees 
-INFO  synthesis.parallel () [2008-05-10 10:06:25,798] - Successfully simulated 1 scans
-INFO  synthesis.parallel () [2008-05-10 10:06:26,903] - Simulating data for /work/cor203/Projects/ASKAP/source/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/10uJy_stdtest.ms
-INFO  synthesis.parallel () [2008-05-10 10:06:26,903] - Model is image.i.10uJy :  (array : shape [4096, 4096, 1, 1])  (free)
+INFO  synthesis.parallel () [2008-05-23 09:44:28,146] - Observing source : 10uJy     direction : 12:30:00.00   -45.00.00.00       J2000
+INFO  synthesis.parallel () [2008-05-23 09:44:28,151] - Times specified are interpreted as hour angles for first source observed
+INFO  synthesis.parallel () [2008-05-23 09:44:28,152] -      offset in time = -6.28111 hours from 07-Mar-2007/00:00:33.0
+INFO  synthesis.parallel () [2008-05-23 09:44:28,152] - Time range - start : 06-Mar-2007/11:43:41.0 stop  : 06-Mar-2007/23:43:41.0
+INFO  synthesis.parallel () [2008-05-23 09:44:28,152] - Creating new hypercube 1
+INFO  synthesis.parallel () [2008-05-23 09:44:28,152] - Adding 28710 rows
+INFO  synthesis.parallel () [2008-05-23 09:44:28,153] - Written 0.02738 Gbytes to scratch columns
+INFO  synthesis.parallel () [2008-05-23 09:44:28,153] - Calculating uvw coordinates for 29 integrations
+INFO  synthesis.parallel () [2008-05-23 09:44:28,168] - Starting conditions for antenna 1: 
+INFO  synthesis.parallel () [2008-05-23 09:44:28,168] -      time = 06-Mar-2007/11:43:41.0
+INFO  synthesis.parallel () [2008-05-23 09:44:28,168] -      scan = 1
+INFO  synthesis.parallel () [2008-05-23 09:44:28,168] -      az   = 131.469 deg
+INFO  synthesis.parallel () [2008-05-23 09:44:28,168] -      el   = 19.626 deg
+INFO  synthesis.parallel () [2008-05-23 09:44:28,169] -      ha   = -5.81551 hours
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] - Stopping conditions for antenna 1: 
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] -      time = 06-Mar-2007/23:48:41.0
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] -      scan = 1
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] -      az   = -131.694 deg
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] -      el   = 18.942 deg
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] -      ha   = 5.88308 hours
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] - 28710 visibilities simulated 
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] - 0 visibilities flagged due to shadowing 
+INFO  synthesis.parallel () [2008-05-23 09:44:28,733] - 0 visibilities flagged due to elevation limit of 8 degrees 
+INFO  synthesis.parallel () [2008-05-23 09:44:28,734] - Successfully simulated 1 scans
+INFO  synthesis.parallel () [2008-05-23 09:44:29,846] - Simulating data for /work/cor203/Projects/ASKAP/source/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/10uJy_stdtest.ms
+INFO  synthesis.parallel () [2008-05-23 09:44:29,846] - Model is image.i.10uJy :  (array : shape [4096, 4096, 1, 1])  (free)
 
-INFO  synthesis.gridding () [2008-05-10 10:06:26,904] - Gridding with Using Antenna Illumination and W projection
-INFO  synthesis.gridding () [2008-05-10 10:06:26,904] - Antenna illumination independent of frequency
-INFO  synthesis.parallel () [2008-05-10 10:06:27,051] - Sky model contains at least one image, building an image-specific equation
-INFO  synthesis.parallel () [2008-05-10 10:06:27,051] - Pure image-based model (no components defined)
-INFO  synthesis.parallel () [2008-05-10 10:06:27,051] - Calibration effects are not simulated
-INFO  synthesis.measurementequation () [2008-05-10 10:06:27,051] - Initialising for model degridding
-INFO  synthesis.measurementequation () [2008-05-10 10:06:39,075] - Starting to degrid model
-INFO  synthesis.gridding () [2008-05-10 10:06:39,114] - Found new field 0
-INFO  synthesis.gridding () [2008-05-10 10:06:39,312] - Convolution function support = 42 pixels, convolution function size = 85 pixels
-INFO  synthesis.gridding () [2008-05-10 10:06:39,312] - Maximum extent = 99.228 (m) sampled at 0.295321 (m)
-INFO  synthesis.gridding () [2008-05-10 10:06:39,312] - Number of planes in convolution function = 2112
-INFO  synthesis.measurementequation () [2008-05-10 10:07:12,489] - Finished degridding model
-INFO  synthesis.parallel () [2008-05-10 10:07:12,490] - Predicted data for /work/cor203/Projects/ASKAP/source/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/10uJy_stdtest.ms in 45.59 seconds 
-INFO  synthesis.gridding () [2008-05-10 10:07:12,490] - TableVisGridder degridding statistics
-INFO  synthesis.gridding () [2008-05-10 10:07:12,490] -    Gridding with casa::Matrix pointers
-INFO  synthesis.gridding () [2008-05-10 10:07:12,490] -    Total time degridding = 33.21 (s)
-INFO  synthesis.gridding () [2008-05-10 10:07:12,490] -    Samples degridded     = 918720
-INFO  synthesis.gridding () [2008-05-10 10:07:12,490] -    Time per Sample       = 36148.1 (ns)
-INFO  synthesis.gridding () [2008-05-10 10:07:12,490] -    Points degridded      = 6.63775e+09
-INFO  synthesis.gridding () [2008-05-10 10:07:12,490] -    Time per point        = 5.0032 (ns)
-INFO  synthesis.csimulator () [2008-05-10 10:07:12,529] - Total times - user:   46.09 system: 0.8 real:   49.24
+INFO  synthesis.gridding () [2008-05-23 09:44:29,847] - Gridding with Using Antenna Illumination and W projection
+INFO  synthesis.gridding () [2008-05-23 09:44:29,847] - Antenna illumination independent of frequency
+INFO  synthesis.parallel () [2008-05-23 09:44:29,994] - Sky model contains at least one image, building an image-specific equation
+INFO  synthesis.parallel () [2008-05-23 09:44:29,995] - Pure image-based model (no components defined)
+INFO  synthesis.parallel () [2008-05-23 09:44:29,995] - Calibration effects are not simulated
+INFO  synthesis.measurementequation () [2008-05-23 09:44:29,995] - Initialising for model degridding
+INFO  synthesis.measurementequation () [2008-05-23 09:44:42,290] - Starting to degrid model
+INFO  synthesis.gridding () [2008-05-23 09:44:42,329] - Found new field 0
+INFO  synthesis.gridding () [2008-05-23 09:44:42,508] - Convolution function support = 42 pixels, convolution function size = 85 pixels
+INFO  synthesis.gridding () [2008-05-23 09:44:42,508] - Maximum extent = 99.228 (m) sampled at 0.295321 (m)
+INFO  synthesis.gridding () [2008-05-23 09:44:42,508] - Number of planes in convolution function = 2112
+INFO  synthesis.measurementequation () [2008-05-23 09:45:29,673] - Finished degridding model
+INFO  synthesis.parallel () [2008-05-23 09:45:29,673] - Predicted data for /work/cor203/Projects/ASKAP/source/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/10uJy_stdtest.ms in 59.83 seconds 
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] - TableVisGridder degridding statistics
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Samples degridded     = 918720
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Total time degridding = 40.27 (s)
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Degridding time       = 43.8327 (us) per sample
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Total time converting = 6.93 (s)
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Coord conversion      = 7.5431 (us) per sample
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Standard gridding/degridding with casa::Matrix
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Points degridded      = 6.63775e+09
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Time per point        = 6.06681 (ns)
+INFO  synthesis.gridding () [2008-05-23 09:45:29,673] -    Performance           = 0.988987 Gflops
+INFO  synthesis.csimulator () [2008-05-23 09:45:29,708] - Total times - user:   60.25 system: 0.91 real:   63.47
 Running cimager to form Clean image of single pointing
-INFO  synthesis.cimager () [2008-05-10 10:07:12,782] - ASKAP synthesis imager synthesis==trunk r[5880-5881] (2008-05-09)
-INFO  synthesis.cimager () [2008-05-10 10:07:12,782] - parset file stdtest.in
-INFO  synthesis.cimager () [2008-05-10 10:07:12,782] - Cimager.Images.Names=[image.i.10uJy_stdtest]
+INFO  askapparallel.askapparallel () [2008-05-23 09:45:29,736] - ASKAP program (serial)
+INFO  askapparallel.askapparallel () [2008-05-23 09:45:29,736] - askapparallel==trunk r5949 (2008-05-22)
+INFO  synthesis.measurementequation () [2008-05-23 09:45:29,736] - Initializing the model images
+INFO  synthesis.measurementequation () [2008-05-23 09:45:29,820] - Constructed image multiscale solver
+INFO  synthesis.gridding () [2008-05-23 09:45:29,821] - Gridding using W projection
+INFO  synthesis.cimager () [2008-05-23 09:45:29,970] - ASKAP synthesis imager synthesis==trunk r5954 (2008-05-23)
+INFO  synthesis.cimager () [2008-05-23 09:45:29,970] - parset file stdtest.in
+INFO  synthesis.cimager () [2008-05-23 09:45:29,970] - Cimager.Images.Names=[image.i.10uJy_stdtest]
 Cimager.Images.image.i.10uJy_stdtest.cellsize=[8.0arcsec, 8.0arcsec]
 Cimager.Images.image.i.10uJy_stdtest.direction=[12h30m00.00, -45.00.00.00, J2000]
 Cimager.Images.image.i.10uJy_stdtest.frequency=[1.420e9,1.420e9]
@@ -203,12 +216,15 @@ Cimager.gridder.WProject.nwplanes=33
 Cimager.gridder.WProject.oversample=8
 Cimager.gridder.WProject.wmax=15000
 Cimager.ncycles=5
+Cimager.preconditioner.Names=Wiener
+Cimager.preconditioner.Wiener.noisepower=100.0
 Cimager.restore=True
 Cimager.restore.beam=[30arcsec, 30arcsec, 0deg]
 Cimager.solver=Clean
 Cimager.solver.Clean.algorithm=MultiScale
 Cimager.solver.Clean.gain=0.9
 Cimager.solver.Clean.niter=100
+Cimager.solver.Clean.robust=100.0
 Cimager.solver.Clean.threshold=0.1mJy
 Cimager.solver.Clean.tolerance=0.1
 Cimager.solver.Clean.verbose=True
@@ -237,101 +253,106 @@ Csimulator.sources.10uJy.model=10uJy.model.small
 Csimulator.sources.names=[10uJy]
 Csimulator.spws.definition=definitions/ASKAPspws.in
 
-INFO  synthesis.cimager () [2008-05-10 10:07:12,782] - *** Starting major cycle 0 ***
-INFO  synthesis.measurementequation () [2008-05-10 10:07:12,782] - Calculating normal equations for 10uJy_stdtest.ms
-INFO  synthesis.measurementequation () [2008-05-10 10:07:12,782] - Creating measurement equation
-INFO  synthesis.measurementequation () [2008-05-10 10:07:12,785] - No calibration is applied
-INFO  synthesis.measurementequation () [2008-05-10 10:07:12,822] - Initialising for model degridding and residual gridding
-INFO  synthesis.gridding () [2008-05-10 10:07:12,935] - No need to degrid: model is empty
-INFO  synthesis.measurementequation () [2008-05-10 10:07:13,019] - Starting degridding model and gridding residuals
-INFO  synthesis.gridding () [2008-05-10 10:07:13,263] - Convolution function support = 34 pixels, convolution function size = 69 pixels
-INFO  synthesis.gridding () [2008-05-10 10:07:19,142] - Shape of convolution function = [69, 69] by 2112 planes
-INFO  synthesis.measurementequation () [2008-05-10 10:09:59,172] - Finished degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:09:59,172] - Adding residual image, PSF, and weights image to the normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:10:04,473] - Calculated normal equations for 10uJy_stdtest.ms in 171.69 seconds 
-INFO  synthesis.measurementequation () [2008-05-10 10:10:04,473] - Solving normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:10:04,551] - Maximum of weights = 9808.2
-INFO  synthesis.measurementequation () [2008-05-10 10:10:38,158] - Solved normal equations in 33.69 seconds 
-INFO  synthesis.cimager () [2008-05-10 10:10:38,158] - user:   201.82 system: 3.78 real:   205.61
-INFO  synthesis.cimager () [2008-05-10 10:10:38,158] - *** Starting major cycle 1 ***
-INFO  synthesis.measurementequation () [2008-05-10 10:10:38,163] - Calculating normal equations for 10uJy_stdtest.ms
-INFO  synthesis.measurementequation () [2008-05-10 10:10:38,163] - Reusing measurement equation
-INFO  synthesis.measurementequation () [2008-05-10 10:10:38,193] - Initialising for model degridding and residual gridding
-INFO  synthesis.measurementequation () [2008-05-10 10:10:40,704] - Starting degridding model and gridding residuals
-INFO  synthesis.gridding () [2008-05-10 10:10:40,948] - Convolution function support = 34 pixels, convolution function size = 69 pixels
-INFO  synthesis.gridding () [2008-05-10 10:10:47,348] - Shape of convolution function = [69, 69] by 2112 planes
-INFO  synthesis.measurementequation () [2008-05-10 10:13:45,765] - Finished degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:13:45,765] - Adding residual image, PSF, and weights image to the normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:13:51,042] - Calculated normal equations for 10uJy_stdtest.ms in 192.88 seconds 
-INFO  synthesis.measurementequation () [2008-05-10 10:13:51,183] - Solving normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:13:51,261] - Maximum of weights = 9808.2
-INFO  synthesis.measurementequation () [2008-05-10 10:14:24,848] - Solved normal equations in 33.67 seconds 
-INFO  synthesis.cimager () [2008-05-10 10:14:24,848] - user:   424.75 system: 7.54 real:   432.3
-INFO  synthesis.cimager () [2008-05-10 10:14:24,848] - *** Starting major cycle 2 ***
-INFO  synthesis.measurementequation () [2008-05-10 10:14:24,857] - Calculating normal equations for 10uJy_stdtest.ms
-INFO  synthesis.measurementequation () [2008-05-10 10:14:24,857] - Reusing measurement equation
-INFO  synthesis.measurementequation () [2008-05-10 10:14:24,887] - Initialising for model degridding and residual gridding
-INFO  synthesis.measurementequation () [2008-05-10 10:14:27,414] - Starting degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:17:25,952] - Finished degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:17:25,952] - Adding residual image, PSF, and weights image to the normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:17:31,227] - Calculated normal equations for 10uJy_stdtest.ms in 186.37 seconds 
-INFO  synthesis.measurementequation () [2008-05-10 10:17:31,312] - Solving normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:17:31,390] - Maximum of weights = 9808.2
-INFO  synthesis.measurementequation () [2008-05-10 10:18:05,372] - Solved normal equations in 34.06 seconds 
-INFO  synthesis.cimager () [2008-05-10 10:18:05,373] - user:   641.67 system: 11.15 real:   652.82
-INFO  synthesis.cimager () [2008-05-10 10:18:05,373] - *** Starting major cycle 3 ***
-INFO  synthesis.measurementequation () [2008-05-10 10:18:05,381] - Calculating normal equations for 10uJy_stdtest.ms
-INFO  synthesis.measurementequation () [2008-05-10 10:18:05,382] - Reusing measurement equation
-INFO  synthesis.measurementequation () [2008-05-10 10:18:05,411] - Initialising for model degridding and residual gridding
-INFO  synthesis.measurementequation () [2008-05-10 10:18:07,932] - Starting degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:21:06,486] - Finished degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:21:06,486] - Adding residual image, PSF, and weights image to the normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:21:11,786] - Calculated normal equations for 10uJy_stdtest.ms in 186.41 seconds 
-INFO  synthesis.measurementequation () [2008-05-10 10:21:11,871] - Solving normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:21:11,948] - Maximum of weights = 9808.2
-INFO  synthesis.measurementequation () [2008-05-10 10:21:46,218] - Solved normal equations in 34.35 seconds 
-INFO  synthesis.cimager () [2008-05-10 10:21:46,218] - user:   858.88 system: 14.78 real:   873.67
-INFO  synthesis.cimager () [2008-05-10 10:21:46,218] - *** Starting major cycle 4 ***
-INFO  synthesis.measurementequation () [2008-05-10 10:21:46,227] - Calculating normal equations for 10uJy_stdtest.ms
-INFO  synthesis.measurementequation () [2008-05-10 10:21:46,227] - Reusing measurement equation
-INFO  synthesis.measurementequation () [2008-05-10 10:21:46,257] - Initialising for model degridding and residual gridding
-INFO  synthesis.measurementequation () [2008-05-10 10:21:48,788] - Starting degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:24:47,355] - Finished degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:24:47,355] - Adding residual image, PSF, and weights image to the normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:24:52,568] - Calculated normal equations for 10uJy_stdtest.ms in 186.34 seconds 
-INFO  synthesis.measurementequation () [2008-05-10 10:24:52,653] - Solving normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:24:52,730] - Maximum of weights = 9808.2
-INFO  synthesis.measurementequation () [2008-05-10 10:25:27,004] - Solved normal equations in 34.36 seconds 
-INFO  synthesis.cimager () [2008-05-10 10:25:27,005] - user:   1076.03 system: 18.41 real:   1094.46
-INFO  synthesis.cimager () [2008-05-10 10:25:27,005] - *** Finished major cycles ***
-INFO  synthesis.measurementequation () [2008-05-10 10:25:27,013] - Calculating normal equations for 10uJy_stdtest.ms
-INFO  synthesis.measurementequation () [2008-05-10 10:25:27,014] - Reusing measurement equation
-INFO  synthesis.measurementequation () [2008-05-10 10:25:27,043] - Initialising for model degridding and residual gridding
-INFO  synthesis.measurementequation () [2008-05-10 10:25:29,564] - Starting degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:28:28,151] - Finished degridding model and gridding residuals
-INFO  synthesis.measurementequation () [2008-05-10 10:28:28,151] - Adding residual image, PSF, and weights image to the normal equations
-INFO  synthesis.measurementequation () [2008-05-10 10:28:33,389] - Calculated normal equations for 10uJy_stdtest.ms in 186.38 seconds 
-INFO  synthesis.measurementequation () [2008-05-10 10:28:33,474] - Writing out results as CASA images
-INFO  synthesis.measurementequation () [2008-05-10 10:28:33,474] - Saving image.i.10uJy_stdtest with name image.i.10uJy_stdtest
-INFO  synthesis.measurementequation () [2008-05-10 10:28:33,798] - Saving psf.i.10uJy_stdtest with name psf.i.10uJy_stdtest
-INFO  synthesis.measurementequation () [2008-05-10 10:28:34,514] - Saving weights.i.10uJy_stdtest with name weights.i.10uJy_stdtest
-INFO  synthesis.measurementequation () [2008-05-10 10:28:35,728] - Writing out restored images as CASA images
-INFO  synthesis.measurementequation () [2008-05-10 10:28:35,728] - Normalizing by the diagonal from the first image on the list 
-INFO  synthesis.measurementequation () [2008-05-10 10:28:35,728] - Restoring image.i.10uJy_stdtest
-INFO  synthesis.measurementequation () [2008-05-10 10:28:35,748] - Maximum of weights = 9808.2
-INFO  synthesis.measurementequation () [2008-05-10 10:28:37,044] - Saving restored image image.i.10uJy_stdtest with name image.i.10uJy_stdtest.restored
-INFO  synthesis.gridding () [2008-05-10 10:28:37,741] - TableVisGridder gridding statistics
-INFO  synthesis.gridding () [2008-05-10 10:28:37,741] -    Gridding with casa::Matrix pointers
-INFO  synthesis.gridding () [2008-05-10 10:28:37,741] -    Total time gridding   = 965.39 (s)
-INFO  synthesis.gridding () [2008-05-10 10:28:37,741] -    Samples gridded       = 2.20493e+07
-INFO  synthesis.gridding () [2008-05-10 10:28:37,741] -    Time per Sample       = 43783.3 (ns)
-INFO  synthesis.gridding () [2008-05-10 10:28:37,741] -    Points gridded        = 1.04977e+11
-INFO  synthesis.gridding () [2008-05-10 10:28:37,741] -    Time per point        = 9.19624 (ns)
-INFO  synthesis.gridding () [2008-05-10 10:28:37,746] - TableVisGridder degridding statistics
-INFO  synthesis.gridding () [2008-05-10 10:28:37,746] -    Gridding with casa::Matrix pointers
-INFO  synthesis.gridding () [2008-05-10 10:28:37,746] -    Total time degridding = 99.09 (s)
-INFO  synthesis.gridding () [2008-05-10 10:28:37,746] -    Samples degridded     = 4.5936e+06
-INFO  synthesis.gridding () [2008-05-10 10:28:37,746] -    Time per Sample       = 21571.3 (ns)
-INFO  synthesis.gridding () [2008-05-10 10:28:37,746] -    Points degridded      = 2.18701e+10
-INFO  synthesis.gridding () [2008-05-10 10:28:37,746] -    Time per point        = 4.53084 (ns)
-INFO  synthesis.cimager () [2008-05-10 10:28:37,775] - Total times - user:   1263.54 system: 19.12 real:   1285.22
+INFO  synthesis.cimager () [2008-05-23 09:45:29,970] - *** Starting major cycle 0 ***
+INFO  synthesis.measurementequation () [2008-05-23 09:45:29,970] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  synthesis.measurementequation () [2008-05-23 09:45:29,970] - Creating measurement equation
+INFO  synthesis.measurementequation () [2008-05-23 09:45:29,974] - No calibration is applied
+INFO  synthesis.measurementequation () [2008-05-23 09:45:30,011] - Initialising for model degridding and residual gridding
+INFO  synthesis.gridding () [2008-05-23 09:45:30,126] - No need to degrid: model is empty
+INFO  synthesis.measurementequation () [2008-05-23 09:45:30,211] - Starting degridding model and gridding residuals
+INFO  synthesis.gridding () [2008-05-23 09:45:30,463] - Convolution function support = 34 pixels, convolution function size = 69 pixels
+INFO  synthesis.gridding () [2008-05-23 09:45:36,612] - Shape of convolution function = [69, 69] by 2112 planes
+INFO  synthesis.measurementequation () [2008-05-23 09:49:04,703] - Finished degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 09:49:04,703] - Adding residual image, PSF, and weights image to the normal equations
+INFO  synthesis.measurementequation () [2008-05-23 09:49:10,004] - Calculated normal equations for 10uJy_stdtest.ms in 220.03 seconds 
+INFO  synthesis.measurementequation () [2008-05-23 09:49:10,004] - Solving normal equations
+INFO  synthesis.measurementequation () [2008-05-23 09:49:10,083] - Maximum of weights = 1.83744e+06
+INFO  synthesis.measurementequation () [2008-05-23 09:49:43,857] - Solved normal equations in 33.85 seconds 
+INFO  synthesis.cimager () [2008-05-23 09:49:43,857] - user:   250.05 system: 4.06 real:   254.12
+INFO  synthesis.cimager () [2008-05-23 09:49:43,857] - *** Starting major cycle 1 ***
+INFO  synthesis.measurementequation () [2008-05-23 09:49:43,863] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  synthesis.measurementequation () [2008-05-23 09:49:43,863] - Reusing measurement equation and updating with latest model images
+INFO  synthesis.measurementequation () [2008-05-23 09:49:43,893] - Initialising for model degridding and residual gridding
+INFO  synthesis.measurementequation () [2008-05-23 09:49:46,456] - Starting degridding model and gridding residuals
+INFO  synthesis.gridding () [2008-05-23 09:49:46,695] - Convolution function support = 34 pixels, convolution function size = 69 pixels
+INFO  synthesis.gridding () [2008-05-23 09:49:53,024] - Shape of convolution function = [69, 69] by 2112 planes
+INFO  synthesis.measurementequation () [2008-05-23 09:53:48,754] - Finished degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 09:53:48,754] - Adding residual image, PSF, and weights image to the normal equations
+INFO  synthesis.measurementequation () [2008-05-23 09:53:54,087] - Calculated normal equations for 10uJy_stdtest.ms in 250.22 seconds 
+INFO  synthesis.measurementequation () [2008-05-23 09:53:54,232] - Solving normal equations
+INFO  synthesis.measurementequation () [2008-05-23 09:53:54,311] - Maximum of weights = 1.83744e+06
+INFO  synthesis.measurementequation () [2008-05-23 09:54:27,853] - Solved normal equations in 33.62 seconds 
+INFO  synthesis.cimager () [2008-05-23 09:54:27,853] - user:   530.33 system: 7.78 real:   538.12
+INFO  synthesis.cimager () [2008-05-23 09:54:27,853] - *** Starting major cycle 2 ***
+INFO  synthesis.measurementequation () [2008-05-23 09:54:27,864] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  synthesis.measurementequation () [2008-05-23 09:54:27,864] - Reusing measurement equation and updating with latest model images
+INFO  synthesis.measurementequation () [2008-05-23 09:54:27,895] - Initialising for model degridding and residual gridding
+INFO  synthesis.measurementequation () [2008-05-23 09:54:30,450] - Starting degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 09:58:26,227] - Finished degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 09:58:26,227] - Adding residual image, PSF, and weights image to the normal equations
+INFO  synthesis.measurementequation () [2008-05-23 09:58:31,465] - Calculated normal equations for 10uJy_stdtest.ms in 243.6 seconds 
+INFO  synthesis.measurementequation () [2008-05-23 09:58:31,552] - Solving normal equations
+INFO  synthesis.measurementequation () [2008-05-23 09:58:31,631] - Maximum of weights = 1.83744e+06
+INFO  synthesis.measurementequation () [2008-05-23 09:59:05,180] - Solved normal equations in 33.63 seconds 
+INFO  synthesis.cimager () [2008-05-23 09:59:05,180] - user:   803.96 system: 11.48 real:   815.45
+INFO  synthesis.cimager () [2008-05-23 09:59:05,181] - *** Starting major cycle 3 ***
+INFO  synthesis.measurementequation () [2008-05-23 09:59:05,192] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  synthesis.measurementequation () [2008-05-23 09:59:05,192] - Reusing measurement equation and updating with latest model images
+INFO  synthesis.measurementequation () [2008-05-23 09:59:05,223] - Initialising for model degridding and residual gridding
+INFO  synthesis.measurementequation () [2008-05-23 09:59:07,769] - Starting degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 10:03:03,581] - Finished degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 10:03:03,581] - Adding residual image, PSF, and weights image to the normal equations
+INFO  synthesis.measurementequation () [2008-05-23 10:03:08,927] - Calculated normal equations for 10uJy_stdtest.ms in 243.73 seconds 
+INFO  synthesis.measurementequation () [2008-05-23 10:03:09,015] - Solving normal equations
+INFO  synthesis.measurementequation () [2008-05-23 10:03:09,093] - Maximum of weights = 1.83744e+06
+INFO  synthesis.measurementequation () [2008-05-23 10:03:42,877] - Solved normal equations in 33.86 seconds 
+INFO  synthesis.cimager () [2008-05-23 10:03:42,877] - user:   1077.98 system: 15.16 real:   1093.14
+INFO  synthesis.cimager () [2008-05-23 10:03:42,877] - *** Starting major cycle 4 ***
+INFO  synthesis.measurementequation () [2008-05-23 10:03:42,889] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  synthesis.measurementequation () [2008-05-23 10:03:42,889] - Reusing measurement equation and updating with latest model images
+INFO  synthesis.measurementequation () [2008-05-23 10:03:42,920] - Initialising for model degridding and residual gridding
+INFO  synthesis.measurementequation () [2008-05-23 10:03:45,478] - Starting degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 10:07:41,261] - Finished degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 10:07:41,262] - Adding residual image, PSF, and weights image to the normal equations
+INFO  synthesis.measurementequation () [2008-05-23 10:07:46,522] - Calculated normal equations for 10uJy_stdtest.ms in 243.64 seconds 
+INFO  synthesis.measurementequation () [2008-05-23 10:07:46,610] - Solving normal equations
+INFO  synthesis.measurementequation () [2008-05-23 10:07:46,688] - Maximum of weights = 1.83744e+06
+INFO  synthesis.measurementequation () [2008-05-23 10:08:20,407] - Solved normal equations in 33.8 seconds 
+INFO  synthesis.cimager () [2008-05-23 10:08:20,407] - user:   1351.93 system: 18.74 real:   1370.68
+INFO  synthesis.cimager () [2008-05-23 10:08:20,408] - *** Finished major cycles ***
+INFO  synthesis.measurementequation () [2008-05-23 10:08:20,419] - Calculating normal equations for 10uJy_stdtest.ms
+INFO  synthesis.measurementequation () [2008-05-23 10:08:20,419] - Reusing measurement equation and updating with latest model images
+INFO  synthesis.measurementequation () [2008-05-23 10:08:20,450] - Initialising for model degridding and residual gridding
+INFO  synthesis.measurementequation () [2008-05-23 10:08:22,999] - Starting degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 10:12:18,797] - Finished degridding model and gridding residuals
+INFO  synthesis.measurementequation () [2008-05-23 10:12:18,797] - Adding residual image, PSF, and weights image to the normal equations
+INFO  synthesis.measurementequation () [2008-05-23 10:12:24,110] - Calculated normal equations for 10uJy_stdtest.ms in 243.7 seconds 
+INFO  synthesis.measurementequation () [2008-05-23 10:12:24,197] - Writing out results as CASA images
+INFO  synthesis.measurementequation () [2008-05-23 10:12:24,197] - Saving image.i.10uJy_stdtest with name image.i.10uJy_stdtest
+INFO  synthesis.measurementequation () [2008-05-23 10:12:24,976] - Saving psf.i.10uJy_stdtest with name psf.i.10uJy_stdtest
+INFO  synthesis.measurementequation () [2008-05-23 10:12:26,607] - Saving weights.i.10uJy_stdtest with name weights.i.10uJy_stdtest
+INFO  synthesis.measurementequation () [2008-05-23 10:12:27,440] - Writing out restored images as CASA images
+INFO  synthesis.measurementequation () [2008-05-23 10:12:27,441] - Restoring image.i.10uJy_stdtest
+INFO  synthesis.measurementequation () [2008-05-23 10:12:27,499] - Maximum of weights = 1.83744e+06
+INFO  synthesis.measurementequation () [2008-05-23 10:12:28,836] - Saving restored image image.i.10uJy_stdtest with name image.i.10uJy_stdtest.restored
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] - TableVisGridder gridding statistics
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Samples gridded       = 2.20493e+07
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Total time gridding   = 0 (s)
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Gridding time         = 56.2608 (us) per sample
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Total time converting = 12.73 (s)
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Coord conversion      = 0.577343 (us) per sample
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Standard gridding/degridding with casa::Matrix
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Points gridded        = 1.04977e+11
+INFO  synthesis.gridding () [2008-05-23 10:12:29,534] -    Time per point        = 11.817 (ns)
+INFO  synthesis.gridding () [2008-05-23 10:12:29,535] -    Performance           = 0.507743 Gflops
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] - TableVisGridder degridding statistics
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] -    Samples degridded     = 4.5936e+06
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] -    Total time degridding = 133.62 (s)
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] -    Degridding time       = 29.0883 (us) per sample
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] -    Total time converting = 12.02 (s)
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] -    Coord conversion      = 2.61668 (us) per sample
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] -    Standard gridding/degridding with casa::Matrix
+INFO  synthesis.gridding () [2008-05-23 10:12:29,540] -    Points degridded      = 2.18701e+10
+INFO  synthesis.gridding () [2008-05-23 10:12:29,541] -    Time per point        = 6.1097 (ns)
+INFO  synthesis.gridding () [2008-05-23 10:12:29,541] -    Performance           = 0.982044 Gflops
+INFO  synthesis.cimager () [2008-05-23 10:12:29,575] - Total times - user:   1596.78 system: 19.51 real:   1619.84
