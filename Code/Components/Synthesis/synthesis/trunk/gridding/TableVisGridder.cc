@@ -101,7 +101,7 @@ TableVisGridder::~TableVisGridder() {
 		ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
 				<< itsSamplesGridded);
 		ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
-				<< itsTimeDegridded << " (s)");
+				<< itsTimeGridded << " (s)");
 		ASKAPLOG_INFO_STR(logger, "   Gridding time         = " << 1e6
 				*itsTimeGridded/itsSamplesGridded << " (us) per sample");
 		ASKAPLOG_INFO_STR(logger, "   Total time converting = "
@@ -201,8 +201,6 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    // Loop over the entire itsSupport, calculating weights from
    // the convolution function and adding the scaled
    // visibility to the grid.
-   
-   long int nGood=0;
    
    ASKAPDEBUGASSERT(casa::uInt(nChan) <= frequencyList.nelements());
    ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
@@ -373,7 +371,6 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 			   if (((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&((iu
 							   +itsSupport) <itsShape(0))&&((iv+itsSupport)
 							   <itsShape(1))) {
-			     nGood+=1;
 			     if (forward) {
 			       casa::Complex cVis(acc.visibility()(i, chan, pol));
 			       GridKernel::degrid(cVis, convFunc, grid, iu, iv,
