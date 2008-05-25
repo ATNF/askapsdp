@@ -55,11 +55,12 @@ namespace askap
     bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, casa::Array<float>& dirty)
     {
         double maxDiag(casa::max(diag));
-        ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag);
         const double cutoff=tolerance*maxDiag;
 
+        ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of weights = " << maxDiag);
 	psf /= (float)maxDiag;
 	
+	uint nAbove=0;
 	casa::IPosition vecShape(1,diag.nelements());
 	casa::Vector<float> dirtyVector(dirty.reform(vecShape));
 	for (uint elem=0;elem<diag.nelements();elem++)
@@ -67,11 +68,15 @@ namespace askap
 	  if(diag(elem)>cutoff)
 	  {
 		  dirtyVector(elem)/=diag(elem);
+		  nAbove++;
 	  }
 	  else {
 		  dirtyVector(elem)/=cutoff;
 	  }
 	}
+        ASKAPLOG_INFO_STR(logger, "Normalizing dirty image by truncated weights image");
+	ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
+
 	return true;
     }
 
@@ -90,6 +95,8 @@ namespace askap
     // normal equations i.e. the residual image
     bool ImageSolver::solveNormalEquations(askap::scimath::Quality& quality)
     {
+
+      ASKAPLOG_INFO_STR(logger, "Calculating principal solution");
 
       // Solving A^T Q^-1 V = (A^T Q^-1 A) P
       uint nParameters=0;
