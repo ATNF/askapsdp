@@ -41,7 +41,7 @@ namespace askap
 	ra = dmsToDec(raS)*15.;
 	dec = dmsToDec(decS);
 	xpt = angularSeparation(ra,decBase, raBase,decBase) * 3600.;
-	if(ra<raBase) xpt *= -1.;
+	if(ra>raBase) xpt *= -1.;
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
 	//    std::cerr << xpt << " " << ypt << "\n";
@@ -68,7 +68,7 @@ namespace askap
 	ra = dmsToDec(raS)*15.;
 	dec = dmsToDec(decS);
 	xpt = angularSeparation(ra,decBase, raBase,decBase) * 3600.;
-	if(ra<raBase) xpt *= -1.;
+	if(ra>raBase) xpt *= -1.;
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
 	matching::Point pix(xpt,ypt,flux,ss.str());

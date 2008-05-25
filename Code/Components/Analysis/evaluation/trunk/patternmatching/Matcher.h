@@ -31,8 +31,10 @@ namespace askap
     namespace matching
     {
 
-      const double defaultEpsilon=0.001;
+      /// @brief Default value of the error parameter used in pattern matching
+      const double defaultEpsilon=0.01;
 
+      /// @brief Class to handle matching of patterns of sources
       class Matcher
       {
       public:
