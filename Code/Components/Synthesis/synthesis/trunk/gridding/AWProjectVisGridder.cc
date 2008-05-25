@@ -175,9 +175,11 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 		nChan = idi->frequency().size();
 	}
 
-	itsConvFunc.resize(itsOverSample*itsOverSample*itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
-	itsSumWeights.resize(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
-	itsSumWeights.set(casa::Complex(0.0));
+	if(itsSupport==0) {
+	  itsConvFunc.resize(itsOverSample*itsOverSample*itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
+	  itsSumWeights.resize(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
+	  itsSumWeights.set(casa::Complex(0.0));
+	}
 
 	int cenw=(itsNWPlanes-1)/2;
 

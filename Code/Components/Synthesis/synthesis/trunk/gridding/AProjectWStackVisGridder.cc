@@ -186,9 +186,11 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 		nChan = idi->frequency().size();
 	}
 
-	itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan);
-	itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
-	itsSumWeights.set(casa::Complex(0.0));
+	if(itsSupport==0) {
+	  itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan);
+	  itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
+	  itsSumWeights.set(casa::Complex(0.0));
+	}
 
 	/// Limit the size of the convolution function since
 	/// we don't need it finely sampled in image space. This
