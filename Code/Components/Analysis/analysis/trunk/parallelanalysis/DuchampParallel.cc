@@ -652,7 +652,7 @@ namespace askap
 	  karmafile.close();
 	}
 
-	if(itsFlagDoFit){
+	//	if(itsFlagDoFit){
 	  std::ofstream summaryFile(this->itsSummaryFile.c_str());
 	  std::vector<duchamp::Column::Col> columns = itsCube.getFullCols();
 	  std::vector<sourcefitting::RadioSource>::iterator src=itsSourceList.begin();
@@ -660,8 +660,8 @@ namespace askap
 	    src->printSummary(summaryFile, columns, src==itsSourceList.begin());
 	  summaryFile.close();
 
-	  this->writeFitAnnotation();
-	}
+	  if(itsFlagDoFit) this->writeFitAnnotation();
+	  //	}
 
       }
       else{
