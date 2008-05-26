@@ -7,12 +7,14 @@
 ///
 #include <evaluationutilities/EvaluationUtilities.h>
 #include <patternmatching/GrothTriangles.h>
+#include <patternmatching/Matcher.h>
 
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 #include <string>
 
 namespace askap
@@ -37,6 +39,7 @@ namespace askap
       // now at start of object list
       while (fin >> id >> raS >> decS >> ddud >> flux >> ddud >> idud >> ddud >> ddud,
 	     !fin.eof()){
+	id += "_" + raS + "_" + decS;
 	std::stringstream ss;
 	ra = dmsToDec(raS)*15.;
 	dec = dmsToDec(decS);
@@ -48,6 +51,7 @@ namespace askap
 	matching::Point pix(xpt,ypt,flux,id);
 	pixlist.push_back(pix);
       }
+
       return pixlist;
 
     }
@@ -55,7 +59,7 @@ namespace askap
     std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr)
     {
       std::vector<matching::Point> pixlist;
-      std::string raS,decS;
+      std::string raS,decS,id;
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
       double ra,dec,xpt,ypt,flux;
@@ -64,6 +68,7 @@ namespace askap
 	     !fin.eof()) {
 	std::stringstream ss;
 	ss << ct;
+	id = ss.str() + "_" + raS + "_" + decS;
 	ct++;
 	ra = dmsToDec(raS)*15.;
 	dec = dmsToDec(decS);
@@ -71,11 +76,25 @@ namespace askap
 	if(ra>raBase) xpt *= -1.;
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
-	matching::Point pix(xpt,ypt,flux,ss.str());
+	matching::Point pix(xpt,ypt,flux,id);
 	pixlist.push_back(pix);
       }
+
       return pixlist;
     }
+
+
+    std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, const int maxSize)
+    {
+      std::vector<matching::Point> outList;
+      std::sort(inputList.begin(),inputList.end());  // sort by flux, ascending order
+      std::vector<matching::Point>::reverse_iterator pt;
+      for(pt=inputList.rbegin(); pt!=inputList.rend() && outList.size()<maxSize; pt++)
+	outList.push_back(*pt);
+
+      return outList;
+    }
+    
 
   
     std::string removeLeadingBlanks(std::string s)

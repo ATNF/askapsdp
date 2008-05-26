@@ -64,8 +64,12 @@ namespace askap
       void Matcher::setTriangleLists()
       {
 
-	this->itsSrcTriList = getTriList(this->itsSrcPixList);
-	this->itsRefTriList = getTriList(this->itsRefPixList);
+	std::vector<Point> srclist = trimList(this->itsSrcPixList);
+	std::vector<Point> reflist = trimList(this->itsRefPixList);
+
+	this->itsSrcTriList = getTriList(srclist);
+	this->itsRefTriList = getTriList(reflist);
+
 
 	this->itsMatchingTriList = matchLists(this->itsSrcTriList, this->itsRefTriList, this->itsEpsilon);
 
@@ -166,19 +170,6 @@ namespace askap
 	fout.setf(std::ios::fixed);
 	std::vector<Point>::iterator pt;
 	std::vector<std::pair<Point,Point> >::iterator match;
-	for(pt=this->itsSrcPixList.begin(); pt<this->itsSrcPixList.end(); pt++){
-	  bool isMatch=false;
-	  match = this->itsMatchingPixList.begin();
-	  for(;match<this->itsMatchingPixList.end()&&!isMatch;match++){
-	    isMatch = (pt->ID() == match->first.ID());
-	  }
-	  if(!isMatch){
-	    fout << "S\t[" << pt->ID() << "]\t"
-		 << std::setw(10) << pt->x()  << " "
-		 << std::setw(10) << pt->y()  << " "
-		 << std::setw(10) << pt->flux() << "\n";
-	  }
-	}
 	for(pt=this->itsRefPixList.begin(); pt<this->itsRefPixList.end(); pt++){
 	  bool isMatch=false;
 	  match = this->itsMatchingPixList.begin();
@@ -190,6 +181,19 @@ namespace askap
 		 << std::setw(10) << pt->x()  << " "
 		 << std::setw(10) << pt->y() << " "
 		 << std::setw(10) << pt->flux()  << "\n";
+	  }
+	}
+	for(pt=this->itsSrcPixList.begin(); pt<this->itsSrcPixList.end(); pt++){
+	  bool isMatch=false;
+	  match = this->itsMatchingPixList.begin();
+	  for(;match<this->itsMatchingPixList.end()&&!isMatch;match++){
+	    isMatch = (pt->ID() == match->first.ID());
+	  }
+	  if(!isMatch){
+	    fout << "S\t[" << pt->ID() << "]\t"
+		 << std::setw(10) << pt->x()  << " "
+		 << std::setw(10) << pt->y()  << " "
+		 << std::setw(10) << pt->flux() << "\n";
 	  }
 	}
 

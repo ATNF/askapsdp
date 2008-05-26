@@ -40,6 +40,7 @@ namespace askap
 	double flux(){return itsFlux;};
 	void setID(std::string id){itsID=id;};
 	std::string ID(){return itsID;};
+	friend bool operator<(Point lhs, Point rhs){return lhs.flux()<rhs.flux();};
 
       protected:
 	double itsX;

@@ -34,6 +34,9 @@ namespace askap
       /// @brief Default value of the error parameter used in pattern matching
       const double defaultEpsilon=0.01;
 
+      /// @brief Maximum size for list of points
+      const int maxSizePointList=30;
+
       /// @brief Class to handle matching of patterns of sources
       class Matcher
       {

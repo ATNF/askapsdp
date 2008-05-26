@@ -11,6 +11,7 @@
 #include <askap_evaluation.h>
 
 #include <patternmatching/GrothTriangles.h>
+#include <patternmatching/Matcher.h>
 
 #include <iostream>
 #include <fstream>
@@ -27,6 +28,8 @@ namespace askap
 
     std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr);
 
+    std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, 
+					  const int maxSize=matching::maxSizePointList);
 
     /// Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
     double dmsToDec(std::string input);   
