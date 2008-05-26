@@ -434,7 +434,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 					   aGridPSF(itsGridPSF[gInd](slicer));
 				    casa::Matrix<casa::Complex>
 					   gridPSF(aGridPSF.nonDegenerate());
-				    casa::Complex uVis(1.0);
+				    casa::Complex uVis(phasor);
 				    if(itsVisWeight)
 					   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       GridKernel::grid(gridPSF, sumwt, convFunc,
