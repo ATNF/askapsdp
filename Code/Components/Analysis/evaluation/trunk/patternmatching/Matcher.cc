@@ -145,10 +145,12 @@ namespace askap
 
 	  fout << "[" << match->first.ID() << "]\t"
 	       << std::setw(10) << match->first.x()  << " "
-	       << std::setw(10) << match->first.y()  << "\t"
+	       << std::setw(10) << match->first.y()  << " "
+	       << std::setw(10) << match->first.flux() << "\t"
 	       << "[" << match->second.ID() << "]\t"
 	       << std::setw(10) << match->second.x()  << " "
-	       << std::setw(10) << match->second.y()  << "\n";
+	       << std::setw(10) << match->second.y()  << " "
+	       << std::setw(10) << match->second.flux() << "\n";
 
 	}
 
@@ -173,7 +175,8 @@ namespace askap
 	  if(!isMatch){
 	    fout << "S\t[" << pt->ID() << "]\t"
 		 << std::setw(10) << pt->x()  << " "
-		 << std::setw(10) << pt->y()  << "\n";
+		 << std::setw(10) << pt->y()  << " "
+		 << std::setw(10) << pt->flux() << "\n";
 	  }
 	}
 	for(pt=this->itsRefPixList.begin(); pt<this->itsRefPixList.end(); pt++){
@@ -185,7 +188,8 @@ namespace askap
 	  if(!isMatch){
 	    fout << "R\t[" << pt->ID() << "]\t"
 		 << std::setw(10) << pt->x()  << " "
-		 << std::setw(10) << pt->y()  << "\n";
+		 << std::setw(10) << pt->y() << " "
+		 << std::setw(10) << pt->flux()  << "\n";
 	  }
 	}
 
