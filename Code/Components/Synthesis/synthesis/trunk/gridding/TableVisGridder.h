@@ -243,6 +243,24 @@ namespace askap
 
       /// Visibility Weights
       IVisWeights::ShPtr itsVisWeight;
+
+      /// @brief true if no visibilities have been gridded since the last initialize
+      /// @details For PSF calculations we need to take just the first feed and 
+      /// field (it is an approximation that they all considered the same). To be
+      /// able to extend this check over multiple calls of the generic routine this
+      /// flag is used. It is set to true in initialise and then reset to false when
+      /// the first visibility is gridded. 
+      bool itsFirstGriddedVis;
+
+      /// @brief an index of the feed, which provides data for the PSF calculations
+      /// @details This data member is initialized when the first visibility is gridded,
+      /// only this feed is used to calculate the PSF.
+      casa::uInt itsFeedUsedForPSF;
+
+      /// @brief pointing direction, which provides data for the PSF calculations
+      /// @details This data member is initialized when the first visibility is gridded,
+      /// only this field is used to calculate the PSF
+      casa::MVDirection itsPointingUsedForPSF;
       
     };
   }

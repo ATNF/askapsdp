@@ -53,7 +53,8 @@ void deepCopyOfSTDVector(const std::vector<T> &in,
 TableVisGridder::TableVisGridder() :
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
-	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0)
+	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
+	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 
 {
 
@@ -66,7 +67,9 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	itsSupport(support), itsOverSample(overSample), itsName(name),
 			itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
-	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0) {
+	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
+        itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
+{
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
 	ASKAPCHECK(support>0, "Maximum support must be greater than 0");
 }
@@ -85,7 +88,10 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
      itsSamplesDegridded(other.itsSamplesDegridded), itsNumberGridded(other.itsNumberGridded),
      itsNumberDegridded(other.itsNumberDegridded), itsTimeCoordinates(other.itsTimeCoordinates),
      itsTimeGridded(other.itsTimeGridded),
-     itsTimeDegridded(other.itsTimeDegridded)
+     itsTimeDegridded(other.itsTimeDegridded),
+     itsFirstGriddedVis(other.itsFirstGriddedVis),
+     itsFeedUsedForPSF(other.itsFeedUsedForPSF),
+     itsPointingUsedForPSF(other.itsPointingUsedForPSF)
 {
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
    deepCopyOfSTDVector(other.itsGrid, itsGrid);   
@@ -205,20 +211,15 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    ASKAPDEBUGASSERT(casa::uInt(nChan) <= frequencyList.nelements());
    ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
    
-   // PSF should be calculated for one feed only. Current assumption is that
-   // it is the same for all feeds and fields.
-   casa::uInt feedUsedForPSF = 0;
-   // Mosaicing dataset have different pointing, but may have the same feed numbers
-   // (e.g. ATCA data), so one need to test the pointing direction as well.
-   casa::MVDirection pointingUsedForPSF;
    for (uint i=0; i<nSamples; ++i) { 
-       if (i == 0) {
-           feedUsedForPSF = acc.feed1()(i);
-           pointingUsedForPSF = acc.dishPointing1()(i);
-           //if (itsDopsf) {
-           //    ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<i<<
-           //    " and field at "<<pointingUsedForPSF<<" to estimate the PSF");
-           //}
+       if (itsFirstGriddedVis) {
+           itsFeedUsedForPSF = acc.feed1()(i);
+           itsPointingUsedForPSF = acc.dishPointing1()(i);
+	   itsFirstGriddedVis = false;
+           if (itsDopsf) {
+               ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
+               " and field at "<<itsPointingUsedForPSF<<" to estimate the PSF");
+           }
        }
 	   /// Temporarily fix to do MFS only
 	   int imageChan=0;
@@ -404,9 +405,8 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 				
 				/// Grid PSF?
 				/// @todo Fix calculation of PSF					
-				if (itsDopsf && (feedUsedForPSF == acc.feed1()(i)) &&
-				             (pointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
-				
+				if (itsDopsf && (itsFeedUsedForPSF == acc.feed1()(i)) &&
+				             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
 				    ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
 				    casa::Array<casa::Complex>
 					   aGridPSF(itsGridPSF[gInd](slicer));
@@ -419,7 +419,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 						    uVis, wtVis, iu, iv, itsSupport);
 				       itsSamplesGridded+=1.0;
 				       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
-			    }
+                                }
 			     
 			  }
 			   }
@@ -553,6 +553,8 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	itsAxes=axes;
 	itsShape=shape;
 	itsDopsf=dopsf;
+	// for a proper PSF calculation
+	itsFirstGriddedVis = true;
 
 	/// We only need one grid
 	itsGrid.resize(1);
