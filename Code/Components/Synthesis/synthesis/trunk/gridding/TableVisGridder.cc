@@ -24,8 +24,11 @@ using namespace askap::scimath;
 using namespace askap;
 
 #include <ostream>
+#include <sstream>
+#include <iomanip>
 
 #include <casa/OS/Timer.h>
+#include <casa/Quanta/MVAngle.h>
 
 namespace askap {
 namespace synthesis {
@@ -49,6 +52,25 @@ void deepCopyOfSTDVector(const std::vector<T> &in,
    }
 }
 
+/// @brief a helper method to print directions nicely
+/// @details By default an instance of casa::MVDirection is printed
+/// as 3 direction cosines. It is not very convenient. This method
+/// allows to print it in a more log-reader-friendly way. We can move this
+/// method to a higher level if (when) it becomes necessary in other places.
+/// I (MV) didn't move it do askap just because it would introduce a
+/// dependency on casacore, although scimath may be a right place for this
+/// method.
+/// @param[in] dir MVDirection object to print
+/// @return a string containing a nice representation of the direction
+std::string printDirection(const casa::MVDirection &dir)
+{
+   std::ostringstream os;
+   os<<std::setprecision(8)<<casa::MVAngle::Format(casa::MVAngle::TIME)
+     <<casa::MVAngle(dir.getLong("deg"))
+     <<" "<<std::setprecision(8)<<casa::MVAngle::Format(casa::MVAngle::ANGLE)<<
+     casa::MVAngle(dir.getLat("deg"));
+   return os.str();
+}
 
 TableVisGridder::TableVisGridder() :
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
@@ -218,7 +240,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
 	   itsFirstGriddedVis = false;
            if (itsDopsf) {
                ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
-               " and field at "<<itsPointingUsedForPSF<<" to estimate the PSF");
+               " and field at "<<printDirection(itsPointingUsedForPSF)<<" to estimate the PSF");
            }
        }
 	   /// Temporarily fix to do MFS only
