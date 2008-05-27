@@ -12,7 +12,7 @@
 
 // own includes
 #include <gridding/IVisGridder.h>
-#include <dataaccess/IConstDataAccessor.h>
+#include <dataaccess/IDataAccessor.h>
 
 // std includes
 #include <string>
@@ -213,7 +213,13 @@ namespace askap
   private:
       /// Generic grid/degrid - this is the heart of this framework. It should never
       /// need to be overridden
-      void generic(IDataSharedIter& idi, bool forward);
+      /// @param[in] acc non-const data accessor to work with.  
+      /// @param[in] forward true for the model to visibility transform (degridding),
+      /// false for the visibility to dirty image transform (gridding)
+      /// @note We have to pass a non-const accessor because this method can either 
+      /// write or read. A bit better re-structuring of the code can help to deal with
+      /// constness properly.
+      void generic(IDataAccessor& acc, bool forward);
 
       /// Find the cellsize from the image shape and axis definitions
       /// @param cellsize cellsize in wavelengths

@@ -186,16 +186,13 @@ void TableVisGridder::save(const std::string& name) {
 }
 
 /// This is a generic grid/degrid
-void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
+void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    if (forward&&itsModelIsEmpty)
 		return;
 
    casa::Vector<casa::RigidVector<double, 3> > outUVW;
    casa::Vector<double> delay;
-   
-   // we don't need the whole iterator in most of the following code
-   IDataAccessor &acc = *idi; 
-   
+      
    casa::Timer timer;
    
    // Time the coordinate conversions, etc.
@@ -456,11 +453,11 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    }
 }
 void TableVisGridder::degrid(IDataSharedIter& idi) {
-	return generic(idi, true);
+	return generic(*idi, true);
 }
 
 void TableVisGridder::grid(IDataSharedIter& idi) {
-	return generic(idi, false);
+	return generic(*idi, false);
 }
 
 /// @brief Find the change in delay required
