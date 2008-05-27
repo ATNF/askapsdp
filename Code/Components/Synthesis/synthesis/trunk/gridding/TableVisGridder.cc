@@ -449,9 +449,9 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					    // need to encapsulate the following code somewhere
 					    const casa::MVDirection offset(acc.pointingDir1()(i));
 					    const casa::MVDirection out(getImageCentre());
-					    const double lScaled = sin(offset.getLong()-out.getLong())*cos(offset.getLat())*
+					    const double lScaled = 0.*sin(offset.getLong()-out.getLong())*cos(offset.getLat())*
 					       2.*casa::C::pi*itsUVCellSize(0)/itsOverSample;
-                        const double mScaled = (sin(offset.getLat())*cos(out.getLat()) - 
+                        const double mScaled = 0.*(sin(offset.getLat())*cos(out.getLat()) - 
                            cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()-out.getLong()))*
                            2.*casa::C::pi*itsUVCellSize(1)/itsOverSample;                           
 					    //
@@ -468,8 +468,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
 					          (psfConvFunc.ncolumn() == convFunc.ncolumn()));
 					
-				    //casa::Complex uVis(phasor);
-				    casa::Complex uVis(1.,0.);
+				    casa::Complex uVis(phasor);
+				    //casa::Complex uVis(1.,0.);
 				    if(itsVisWeight)
 					   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       GridKernel::grid(gridPSF, sumwt, psfConvFunc,
