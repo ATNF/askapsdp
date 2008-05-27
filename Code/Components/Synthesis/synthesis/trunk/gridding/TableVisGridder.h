@@ -191,8 +191,8 @@ namespace askap
       virtual int gIndex(int row, int pol, int chan);
 
       /// @brief Initialize the convolution function - this is the key function to override.
-      /// @param idi Data iterator
-      virtual void initConvolutionFunction(IDataSharedIter& idi) = 0;
+      /// @param[in] acc const accessor to work with
+      virtual void initConvolutionFunction(const IConstDataAccessor& acc) = 0;
 
       /// @brief Initialise the indices
       /// @param[in] acc const accessor to work with

@@ -172,19 +172,15 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
 /// Initialize the convolution function into the cube. If necessary this
 /// could be optimized by using symmetries.
 /// @todo Make initConvolutionFunction more robust
-void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
+void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
 
 	casa::MVDirection out = getImageCentre();
-	const int nSamples = idi->uvw().size();
-	// exact formulae for l and m 
+	const int nSamples = acc.nRow();
 
 	/// We have to calculate the lookup function converting from
 	/// row and channel to plane of the w-dependent convolution
 	/// function
-	int nChan=1;
-	if (itsFreqDep) {
-		nChan = idi->frequency().size();
-	}
+	const int nChan = itsFreqDep ? acc.nChannel() : 1;
 
 	if(itsSupport==0) {
 	  itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan);
@@ -202,13 +198,13 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
     UVPattern pattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
     
 	int nDone=0;
-	for (int row=0; row<nSamples; row++) {
-		int feed=idi->feed1()(row);
+	for (int row=0; row<nSamples; ++row) {
+		const int feed=acc.feed1()(row);
 
 		if (!itsDone(feed, itsCurrentField)) {
 			itsDone(feed, itsCurrentField)=true;
 			nDone++;
-			casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
+			casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
 			itsSlopes(0, feed, itsCurrentField) =sin(offset.getLong()
 					-out.getLong()) *cos(offset.getLat());
 			itsSlopes(1, feed, itsCurrentField)=sin(offset.getLat())
@@ -218,7 +214,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 
 			for (int chan=0; chan<nChan; chan++) {
 				/// Extract illumination pattern for this channel
-				itsIllumination->getPattern(idi->frequency()[chan], pattern,
+				itsIllumination->getPattern(acc.frequency()[chan], pattern,
 				         itsSlopes(0, feed, itsCurrentField),
 				         itsSlopes(1, feed, itsCurrentField));
 				         
@@ -251,7 +247,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 							"Overflowing convolution function - increase maxSupport or decrease overSample")
 					itsCSize=2*itsSupport+1;
 					// just for logging
-					const double cell = std::abs(pattern.uCellSize())*(casa::C::c/idi->frequency()[chan]);
+					const double cell = std::abs(pattern.uCellSize())*(casa::C::c/acc.frequency()[chan]);
 					ASKAPLOG_INFO_STR(logger, "Convolution function support = "
 							<< itsSupport << " pixels, size = " << itsCSize
 							<< " pixels");

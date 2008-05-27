@@ -204,7 +204,7 @@ void TableVisGridder::generic(IDataSharedIter& idi, bool forward) {
    rotateUVW(acc, outUVW, delay);
    
    initIndices(acc);
-   initConvolutionFunction(idi);
+   initConvolutionFunction(acc);
    
    itsTimeCoordinates+=timer.real();
 

@@ -162,18 +162,14 @@ void AWProjectVisGridder::initIndices(const IConstDataAccessor& acc) {
 /// Initialize the convolution function into the cube. If necessary this
 /// could be optimized by using symmetries.
 /// @todo Make initConvolutionFunction more robust
-void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
+void AWProjectVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
 	casa::MVDirection out = getImageCentre();
-	const int nSamples = idi->uvw().size();
-	// exact formulae for l and m 
+	const int nSamples = acc.nRow();
 
 	/// We have to calculate the lookup function converting from
 	/// row and channel to plane of the w-dependent convolution
 	/// function
-	int nChan=1;
-	if (itsFreqDep) {
-		nChan = idi->frequency().size();
-	}
+	int nChan=itsFreqDep ? acc.nChannel() : 1;
 
 	if(itsSupport==0) {
 	  itsConvFunc.resize(itsOverSample*itsOverSample*itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
@@ -213,23 +209,23 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
     UVPattern pattern(qnx,qny, itsUVCellSize(0),itsUVCellSize(1),1);
 
 	int nDone=0;
-	for (int row=0; row<nSamples; row++) {
-		int feed=idi->feed1()(row);
+	for (int row=0; row<nSamples; ++row) {
+		const int feed=acc.feed1()(row);
 
 		if (!itsDone(feed, itsCurrentField)) {
 			itsDone(feed, itsCurrentField)=true;
 			nDone++;
-			casa::MVDirection offset(idi->pointingDir1()(row).getAngle());
+			casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
 			itsSlopes(0, feed, itsCurrentField) =sin(offset.getLong()
 					-out.getLong()) *cos(offset.getLat());
 			itsSlopes(1, feed, itsCurrentField)=sin(offset.getLat())
 					*cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
 					*cos(offset.getLong()-out.getLong());
 
-			for (int chan=0; chan<nChan; chan++) {
+			for (int chan=0; chan<nChan; ++chan) {
 					
 				/// Extract illumination pattern for this channel
-				itsIllumination->getPattern(idi->frequency()[chan], pattern,
+				itsIllumination->getPattern(acc.frequency()[chan], pattern,
 				         itsSlopes(0, feed, itsCurrentField),
 				         itsSlopes(1, feed, itsCurrentField));
 
@@ -239,7 +235,7 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 				/// the w term and the antenna convolution function
 				casa::Matrix<casa::Complex> thisPlane(nx, ny);
 
-				for (int iw=0; iw<itsNWPlanes; iw++) {
+				for (int iw=0; iw<itsNWPlanes; ++iw) {
 					thisPlane.set(0.0);
 				
 
@@ -310,7 +306,7 @@ void AWProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi) {
 										<< itsCSize << " pixels");
 					    // just for log output					
 						const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
-						                   /idi->frequency()[chan]));
+						                   /acc.frequency()[chan]));
 						ASKAPLOG_INFO_STR(logger, "Maximum extent = "
 								<< itsSupport*cell << " (m) sampled at "<< cell
 								/itsOverSample << " (m)");

@@ -85,8 +85,8 @@ namespace askap
       virtual int cIndex(int row, int pol, int chan);
 
       /// Initialize convolution function
-      /// @param idi Data access iterator
-      virtual void initConvolutionFunction(IDataSharedIter& idi);
+      /// @param[in] acc const accessor to work with
+      virtual void initConvolutionFunction(const IConstDataAccessor& acc);
 
   private:
       /// Reference frequency for illumination pattern. 

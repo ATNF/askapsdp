@@ -23,7 +23,7 @@ namespace askap
 		{
 		}
 
-    void BoxVisGridder::initConvolutionFunction(IDataSharedIter& idi)
+    void BoxVisGridder::initConvolutionFunction(const IConstDataAccessor&)
     {
       itsSupport=0;
       itsOverSample=1;

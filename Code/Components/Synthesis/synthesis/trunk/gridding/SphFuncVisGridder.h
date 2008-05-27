@@ -40,8 +40,8 @@ namespace askap
 
 			protected:
 				/// @brief Initialize the convolution function
-				/// @param idi Data iterator
-				virtual void initConvolutionFunction(IDataSharedIter& idi);
+				/// @param[in] acc const data accessor to work with
+				virtual void initConvolutionFunction(const IConstDataAccessor& acc);
 
 				/// @brief Initialise the indices
 				/// @param[in] acc const data accessor to work with

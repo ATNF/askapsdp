@@ -67,7 +67,7 @@ namespace askap
 
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
-    void SphFuncVisGridder::initConvolutionFunction(IDataSharedIter& idi)
+    void SphFuncVisGridder::initConvolutionFunction(const IConstDataAccessor&)
     {
     }
 

@@ -113,12 +113,12 @@ namespace askap
 
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
-    void WProjectVisGridder::initConvolutionFunction(IDataSharedIter& idi)
+    void WProjectVisGridder::initConvolutionFunction(const IConstDataAccessor&)
     {
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
-      int cenw=(itsNWPlanes-1)/2;
+      const int cenw=(itsNWPlanes-1)/2;
 
       if (itsSupport>0)
       {
@@ -173,7 +173,7 @@ namespace askap
       {
         thisPlane.set(0.0);
 
-        float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
+        const float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
         // Loop over the central nx, ny region, setting it to the product
         // of the phase screen and the spheroidal function
         for (int iy=0; iy<qny; iy++)
