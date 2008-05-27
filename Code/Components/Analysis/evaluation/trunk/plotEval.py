@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """
 """
-from matplotlib import rcParams
-rcParams['ps.useafm'] = False
+from pkg_resources import require
+require('numpy')
+require('matplotlib')
 from pylab import *
 from numpy import *
 
