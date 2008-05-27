@@ -113,7 +113,7 @@ namespace askap
       virtual void finaliseDegrid();
 
   protected:
-  
+        
       /// @brief obtain the centre of the image
       /// @details This method extracts RA and DEC axes from itsAxes and
       /// forms a direction measure corresponding to the middle of each axis.
@@ -256,6 +256,15 @@ namespace askap
       /// only this field is used to calculate the PSF
       casa::MVDirection itsPointingUsedForPSF;
       
+      /// @brief a cache of convolution functions used for PSF
+      /// @details We need unshifted convolution function for PSF calculations.
+      /// This cache is initialised each time a gridding operation is initialised and
+      /// built on-demand using data for a representative feed/field. Alternatively,
+      /// we could keep all convolution functions in cache unshifted. and shift on-the-fly
+      /// for ordinary (non-PSF) gridding. The latter approach has probably some advantages
+      /// in inhomogeneous cases and moreover allows to build illumination patterns for
+      /// the offset feeds on-the-fly as well
+      std::vector<casa::Matrix<casa::Complex> > itsConvFuncForPSF;
     };
   }
 }

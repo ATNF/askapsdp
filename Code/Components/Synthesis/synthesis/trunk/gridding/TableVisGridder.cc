@@ -431,10 +431,48 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					   aGridPSF(itsGridPSF[gInd](slicer));
 				    casa::Matrix<casa::Complex>
 					   gridPSF(aGridPSF.nonDegenerate());
-				    casa::Complex uVis(phasor);
+					if (!itsConvFuncForPSF.size()) {
+					    // this cache has the same structure as for the 
+					    // ordinary convolution function
+					    itsConvFuncForPSF.resize(itsConvFunc.size());
+					}
+					
+					// next line should never cause problems if initialiseGrid is called
+					// with Dopsf = true before generic.
+					ASKAPDEBUGASSERT(cInd<int(itsConvFuncForPSF.size()));
+					
+					casa::Matrix<casa::Complex> &psfConvFunc = itsConvFuncForPSF[cInd];
+					
+					if (psfConvFunc.nelements() == 0) {
+					    // copy ordinary convolution function and remove the shift
+					    psfConvFunc = convFunc.copy();
+					    // need to encapsulate the following code somewhere
+					    const casa::MVDirection offset(acc.pointingDir1()(i));
+					    const casa::MVDirection out(getImageCentre());
+					    const double lScaled = sin(offset.getLong()-out.getLong())*cos(offset.getLat())*
+					       2.*casa::C::pi*itsUVCellSize(0)/itsOverSample;
+                        const double mScaled = (sin(offset.getLat())*cos(out.getLat()) - 
+                           cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()-out.getLong()))*
+                           2.*casa::C::pi*itsUVCellSize(1)/itsOverSample;                           
+					    //
+					    for (casa::uInt inx = 0; inx<psfConvFunc.nrow(); ++inx) {
+					         const double u_offset = double(inx) - double(psfConvFunc.nrow())/2;
+					         for (casa::uInt iny = 0; iny<psfConvFunc.ncolumn(); ++iny) {
+					              const double v_offset = double(iny) - double(psfConvFunc.ncolumn())/2;
+					              const double phase = lScaled*u_offset+mScaled*v_offset;
+					              const casa::Complex phasor(cos(phase),-sin(phase));
+					              psfConvFunc(inx,iny) *= phasor;
+					         }
+					    }
+					}
+					ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
+					          (psfConvFunc.ncolumn() == convFunc.ncolumn()));
+					
+				    //casa::Complex uVis(phasor);
+				    casa::Complex uVis(1.,0.);
 				    if(itsVisWeight)
 					   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				       GridKernel::grid(gridPSF, sumwt, convFunc,
+				       GridKernel::grid(gridPSF, sumwt, psfConvFunc,
 						    uVis, wtVis, iu, iv, itsSupport);
 				       itsSamplesGridded+=1.0;
 				       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
@@ -558,8 +596,6 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	itsAxes=axes;
 	itsShape=shape;
 	itsDopsf=dopsf;
-	// for a proper PSF calculation
-	itsFirstGriddedVis = true;
 
 	/// We only need one grid
 	itsGrid.resize(1);
@@ -569,6 +605,9 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		itsGridPSF.resize(1);
 		itsGridPSF[0].resize(shape);
 		itsGridPSF[0].set(0.0);
+		// for a proper PSF calculation
+	    itsFirstGriddedVis = true;
+		itsConvFuncForPSF.empty();
 	}
 
 	ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
