@@ -8,6 +8,7 @@
 #define SPHVISGRIDDER_H_
 
 #include <gridding/TableVisGridder.h>
+#include <dataaccess/IConstDataAccessor.h>
 
 namespace askap
 {
@@ -43,7 +44,8 @@ namespace askap
 				virtual void initConvolutionFunction(IDataSharedIter& idi);
 
 				/// @brief Initialise the indices
-				virtual void initIndices(IDataSharedIter& idi);
+				/// @param[in] acc const data accessor to work with
+				virtual void initIndices(const IConstDataAccessor& acc);
 
 				/// Correct for gridding convolution function
 				/// @param image image to be corrected

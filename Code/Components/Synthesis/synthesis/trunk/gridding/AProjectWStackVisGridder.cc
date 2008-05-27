@@ -86,16 +86,16 @@ IVisGridder::ShPtr AProjectWStackVisGridder::clone() {
 }
 
 /// Initialize the indices into the cube.
-void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
+void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
 
 	// Validate cache using first row only
 	bool newField=true;
 
-	int firstFeed=idi->feed1()(0);
+	int firstFeed=acc.feed1()(0);
 	ASKAPCHECK(firstFeed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
-	casa::MVDirection firstPointing=idi->pointingDir1()(0);
+	casa::MVDirection firstPointing=acc.pointingDir1()(0);
 
-	for (int field=itsLastField; field>-1; field--) {
+	for (int field=itsLastField; field>-1; --field) {
 		if (firstPointing.separation(itsPointings(firstFeed, field))
 				<itsPointingTolerance) {
 			itsCurrentField=field;
@@ -115,10 +115,10 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 	/// We have to calculate the lookup function converting from
 	/// row and channel to plane of the w-dependent convolution
 	/// function
-	const int nSamples = idi->uvw().size();
-	int nChan = idi->frequency().size();
+	const int nSamples = acc.nRow();
+	const int nChan = acc.nChannel();
 
-	const int nPol = idi->rwVisibility().shape()(2);
+	const int nPol = acc.nPol();
 	itsCMap.resize(nSamples, nPol, nChan);
 	itsCMap.set(0);
 	/// @todo Select max feeds more carefully
@@ -128,16 +128,16 @@ void AProjectWStackVisGridder::initIndices(IDataSharedIter& idi) {
 
 	int cenw=(itsNWPlanes-1)/2;
 
-	for (int i=0; i<nSamples; i++) {
-		int feed=idi->feed1()(i);
+	for (int i=0; i<nSamples; ++i) {
+		int feed=acc.feed1()(i);
 		ASKAPCHECK(feed<itsMaxFeeds,
 				"Exceeded specified maximum number of feeds");
 		ASKAPCHECK(feed>-1, "Illegal negative feed number");
 
-		double w=(idi->uvw()(i)(2))/(casa::C::c);
+		const double w=(acc.uvw()(i)(2))/(casa::C::c);
 
-		for (int chan=0; chan<nChan; chan++) {
-		  double freq=idi->frequency()[chan];
+		for (int chan=0; chan<nChan; ++chan) {
+		  const double freq=acc.frequency()[chan];
 			for (int pol=0; pol<nPol; pol++) {
 				/// Order is (chan, feed)
 				if(itsFreqDep) {

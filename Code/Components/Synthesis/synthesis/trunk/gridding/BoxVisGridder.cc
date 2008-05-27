@@ -19,7 +19,7 @@ namespace askap
 			return IVisGridder::ShPtr(new BoxVisGridder(*this));
 		}
 
-		void BoxVisGridder::initIndices(IDataSharedIter& idi) 
+		void BoxVisGridder::initIndices(const IConstDataAccessor&) 
 		{
 		}
 

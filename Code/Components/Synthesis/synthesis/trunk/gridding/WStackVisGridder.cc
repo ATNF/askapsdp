@@ -56,28 +56,28 @@ namespace askap
 
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
-    void WStackVisGridder::initIndices(IDataSharedIter& idi)
+    void WStackVisGridder::initIndices(const IConstDataAccessor& acc)
     {
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
-      const int nSamples = idi->uvw().size();
-      const int nChan = idi->frequency().size();
-      const int nPol = idi->visibility().shape()(2);
+      const int nSamples = acc.nRow();
+      const int nChan = acc.nChannel();
+      const int nPol = acc.nPol();
 
       itsSumWeights.resize(1, 1, 1);
       itsSumWeights.set(casa::Complex(0.0));
 
       itsGMap.resize(nSamples, nPol, nChan);
       int cenw=(itsNWPlanes-1)/2;
-      for (int i=0; i<nSamples; i++)
+      for (int i=0; i<nSamples; ++i)
       {
-        double w=(idi->uvw()(i)(2))/(casa::C::c);
-        for (int chan=0; chan<nChan; chan++)
+        const double w=(acc.uvw()(i)(2))/(casa::C::c);
+        for (int chan=0; chan<nChan; ++chan)
         {
           for (int pol=0; pol<nPol; pol++)
           {
-            double freq=idi->frequency()[chan];
+            const double freq=acc.frequency()[chan];
             /// Calculate the index into the grids
             itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
             if (itsGMap(i, pol, chan)<0)

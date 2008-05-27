@@ -11,8 +11,10 @@
 
 #include <gridding/WProjectVisGridder.h>
 #include <gridding/IBasicIllumination.h>
+#include <dataaccess/IConstDataAccessor.h>
 
 #include <boost/shared_ptr.hpp>
+
 
 namespace askap
 {
@@ -73,7 +75,8 @@ namespace askap
 
   protected:
       /// @brief Initialise the indices
-      virtual void initIndices(IDataSharedIter& idi);
+      /// @param[in] acc const accessor to work with
+      virtual void initIndices(const IConstDataAccessor& acc);
 
       /// Index into convolution function
       /// @param row Row number

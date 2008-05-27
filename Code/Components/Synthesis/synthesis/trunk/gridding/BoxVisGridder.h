@@ -9,6 +9,7 @@
 #define BOXVISGRIDDER_H_
 
 #include <gridding/TableVisGridder.h>
+#include <dataaccess/IConstDataAccessor.h>
 
 namespace askap
 {
@@ -31,7 +32,8 @@ namespace askap
 				virtual ~BoxVisGridder();
 
 				/// @brief Initialise the indices
-				virtual void initIndices(IDataSharedIter& idi);
+				/// @param[in] acc const data accessor to work with
+				virtual void initIndices(const IConstDataAccessor& acc);
 
 				/// @brief Correct for gridding convolution function
 				/// @param image image to be corrected

@@ -9,6 +9,7 @@
 #define ASKAP_SYNTHESIS_WPROJECTVISGRIDDER_H_
 
 #include <gridding/SphFuncVisGridder.h>
+#include <dataaccess/IConstDataAccessor.h>
 
 namespace askap
 {
@@ -57,7 +58,8 @@ namespace askap
 
   protected:
       /// @brief Initialise the indices
-      virtual void initIndices(IDataSharedIter& idi);
+      /// @param[in] acc const data accessor to work with
+      virtual void initIndices(const IConstDataAccessor& acc);
 
       /// Offset into convolution function
       /// @param row Row number

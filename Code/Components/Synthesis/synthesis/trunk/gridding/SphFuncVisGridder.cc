@@ -61,7 +61,7 @@ namespace askap
       return IVisGridder::ShPtr(new SphFuncVisGridder(*this));
     }
 
-    void SphFuncVisGridder::initIndices(IDataSharedIter& idi)
+    void SphFuncVisGridder::initIndices(const IConstDataAccessor&)
     {
     }
 

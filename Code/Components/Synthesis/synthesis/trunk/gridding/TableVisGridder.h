@@ -195,7 +195,8 @@ namespace askap
       virtual void initConvolutionFunction(IDataSharedIter& idi) = 0;
 
       /// @brief Initialise the indices
-      virtual void initIndices(IDataSharedIter& idi) = 0;
+      /// @param[in] acc const accessor to work with
+      virtual void initIndices(const IConstDataAccessor& acc) = 0;
 
       /// @brief Correct for gridding convolution function
       /// @param image image to be corrected
