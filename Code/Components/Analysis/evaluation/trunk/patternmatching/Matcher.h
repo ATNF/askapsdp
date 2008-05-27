@@ -35,7 +35,7 @@ namespace askap
       const double defaultEpsilon=0.01;
 
       /// @brief Maximum size for list of points
-      const int maxSizePointList=30;
+      const unsigned int maxSizePointList=30;
 
       /// @brief Class to handle matching of patterns of sources
       class Matcher

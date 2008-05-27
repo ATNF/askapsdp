@@ -84,7 +84,7 @@ namespace askap
     }
 
 
-    std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, const int maxSize)
+    std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, const unsigned int maxSize)
     {
       std::vector<matching::Point> outList;
       std::sort(inputList.begin(),inputList.end());  // sort by flux, ascending order

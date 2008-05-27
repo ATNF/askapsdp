@@ -65,7 +65,9 @@ namespace askap
       {
 
 	std::vector<Point> srclist = trimList(this->itsSrcPixList);
+	ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
 	std::vector<Point> reflist = trimList(this->itsRefPixList);
+	ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
 
 	this->itsSrcTriList = getTriList(srclist);
 	this->itsRefTriList = getTriList(reflist);
@@ -110,10 +112,12 @@ namespace askap
 	  std::cout.setf(std::ios::fixed);
 	  std::cout << "[" << this->itsMatchingPixList[i].first.ID() << "]\t"
 		    << std::setw(10) << this->itsMatchingPixList[i].first.x()  << " "
-		    << std::setw(10) << this->itsMatchingPixList[i].first.y()  << "\t"
+		    << std::setw(10) << this->itsMatchingPixList[i].first.y()  << " "
+		    << std::setw(10) << this->itsMatchingPixList[i].first.flux() << "\t"
 		    << "[" << this->itsMatchingPixList[i].second.ID() << "]\t"
 		    << std::setw(10) << this->itsMatchingPixList[i].second.x()  << " "
-		    << std::setw(10) << this->itsMatchingPixList[i].second.y()  << "\t"
+		    << std::setw(10) << this->itsMatchingPixList[i].second.y()  << " "
+		    << std::setw(10) << this->itsMatchingPixList[i].second.flux() << "\t"
 		    << "dx = " << std::setw(7) << dx[i] <<"\t" << "dy = " << std::setw(7) << dy[i] <<"\n";
 
 	}
