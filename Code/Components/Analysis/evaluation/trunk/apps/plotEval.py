@@ -90,6 +90,7 @@ if __name__ == '__main__':
     subplot(221)
     plot(dx,dy,'ro')
     axis('equal')
+    axisrange = axis()
     axvline(color='k')
     axhline(color='k')
     axvline(meandx,color='r')
@@ -101,6 +102,9 @@ if __name__ == '__main__':
     plot( 2*cos(an), 2*sin(an), ':k' )
     plot( 4*cos(an), 4*sin(an), ':k' )
     plot( 6*cos(an), 6*sin(an), ':k' )
+    plot( 8*cos(an), 8*sin(an), ':k' )
+    plot(10*cos(an),10*sin(an), ':k' )
+    axis(axisrange)
 
 
 #    figure(2)
@@ -117,9 +121,9 @@ if __name__ == '__main__':
     title('Matches and misses across field',font)
     for i in range(len(x)):
         if(type[i]=='S'):
-            plot([x[i]],[y[i]],'gx')
+            plot([x[i]],[y[i]],'bx')
         else:
-            plot([x[i]],[y[i]],'b+')
+            plot([x[i]],[y[i]],'g+')
     axisrange = axis()
 
 #    subplot(223)
@@ -140,7 +144,7 @@ if __name__ == '__main__':
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)
     title('Flux differences across field',font)
-    tmp = -reldf
+    tmp = -abs(reldf)
     ind = argsort(tmp)
 #    for i in range(len(fS)):
     for i in ind:
