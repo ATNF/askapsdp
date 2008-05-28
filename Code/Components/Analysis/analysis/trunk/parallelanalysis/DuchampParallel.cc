@@ -210,7 +210,8 @@ namespace askap
 	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
 	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
 	if(itsCube.getDimZ()==1) itsCube.pars().setMinChannels(0);  
-	
+	this->itsCube.convertFluxUnits();
+
 	// Send out the OK to the workers, so that they know that the subimages have been created.
 	LOFAR::BlobString bs;
 	bs.resize(0);
