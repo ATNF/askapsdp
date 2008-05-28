@@ -141,6 +141,44 @@ namespace askap
 
       }
 
+      void Matcher::addNewMatches()
+      {
+
+	std::vector<Point>::iterator src,ref;
+	std::vector<std::pair<Point,Point> >::iterator match;
+	for(src=this->itsSrcPixList.begin(); src<this->itsSrcPixList.end(); src++){
+	  bool isMatch=false;
+	  match = this->itsMatchingPixList.begin();
+	  for(;match<this->itsMatchingPixList.end()&&!isMatch;match++){
+	    isMatch = (src->ID() == match->second.ID());
+	  }
+	  if(!isMatch){
+	    float minOffset;
+	    int minRef=-1;
+	    for(ref=this->itsRefPixList.begin(); ref<this->itsRefPixList.end(); ref++){
+	      float offset = hypot(src->x()-ref->x()-this->itsMeanDx,
+				   src->y()-ref->y()-this->itsMeanDy);
+	      if(offset < 10.*this->itsEpsilon){
+		if((minRef==-1)||(offset<minOffset)){
+		  minOffset = offset;
+		  minRef = int(ref-this->itsRefPixList.begin());
+		}
+	      }
+	    }
+
+	    if(minRef>=0){ // there was a match within errors
+	      ref = this->itsRefPixList.begin() + minRef;
+	      //	      ASKAPLOG_INFO_STR(logger, "New match: " << src->ID() << " <--> " << ref->ID() << " with offset = " << minOffset  << " cf. this->itsEpsilon=" << this->itsEpsilon);
+	      std::pair<Point,Point> newMatch(*src, *ref);
+	      this->itsMatchingPixList.push_back(newMatch);
+	    }
+
+	  }
+	}
+	
+
+      }
+
 
       void Matcher::outputMatches()
       {

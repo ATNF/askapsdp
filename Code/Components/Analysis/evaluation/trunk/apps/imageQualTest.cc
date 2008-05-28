@@ -75,6 +75,8 @@ int main(int argc, const char** argv)
 
     matcher.findOffsets();
 
+    matcher.addNewMatches();
+
     matcher.outputLists();
    
   }

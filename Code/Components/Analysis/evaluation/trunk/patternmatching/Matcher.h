@@ -56,6 +56,7 @@ namespace askap
 	void findMatches();
 
 	void findOffsets();
+	void addNewMatches();
 
 	void outputLists(){ outputMatches(); outputMisses(); };
 	void outputMatches();
