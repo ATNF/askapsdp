@@ -49,6 +49,8 @@ namespace askap
     {
       if(itsNoisePower > 1e-06)
       {
+	ASKAPLOG_INFO_STR(logger, "Applying Wiener filter with noise power " << itsNoisePower);
+
        casa::ArrayLattice<float> lpsf(psf);
        casa::ArrayLattice<float> ldirty(dirty);
        
