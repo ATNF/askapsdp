@@ -84,6 +84,9 @@ namespace askap
 	double itsRmsDx;
 	double itsRmsDy;
 
+	int itsNumMatch1;
+	int itsNumMatch2;
+
 	bool itsSenseMatch; // true for same sense, false for opposite sense
 
 	std::string itsOutputBestFile;

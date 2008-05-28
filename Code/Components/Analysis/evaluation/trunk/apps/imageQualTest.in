@@ -3,7 +3,8 @@ imageQual.srcFile      = ../../analysis/trunk/duchamp-Summary.txt
 imageQual.srcPosRA     = 08:47:17.87
 imageQual.srcPosDec    = -51:58:59.31
 #imageQual.refFile      = /Users/whi550/RESEARCH/Code/CodeTest/c++/TTest_base_10mJy_trim_3col.txt
-imageQual.refFile      = /Users/whi550/RESEARCH/Code/CodeTest/c++/TTest_base_trim_3col.txt
+#imageQual.refFile      = /Users/whi550/RESEARCH/Code/CodeTest/c++/TTest_base_trim_3col.txt
+imageQual.refFile      = /Users/whi550/ObsData/ASKAP/neeraj/first_trim.txt
 imageQual.refPosRA     = 08:47:17.87
 imageQual.refPosDec    = -51:58:59.31
 

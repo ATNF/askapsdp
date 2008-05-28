@@ -85,6 +85,7 @@ namespace askap
       {
 
 	this->itsMatchingPixList = vote(this->itsMatchingTriList);
+	this->itsNumMatch1 = this->itsMatchingPixList.size();
 	
 	this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() == 
 			       this->itsMatchingTriList[0].second.isClockwise()    );
@@ -95,10 +96,9 @@ namespace askap
       void Matcher::findOffsets()
       {
 
-	int size = this->itsMatchingPixList.size();
-	float *dx = new float[size];
-	float *dy = new float[size];
-	for(int i=0;i<size;i++){
+	float *dx = new float[this->itsNumMatch1];
+	float *dy = new float[this->itsNumMatch1];
+	for(int i=0;i<this->itsNumMatch1;i++){
 	  if(this->itsSenseMatch){
 	    dx[i] = this->itsMatchingPixList[i].first.x()-this->itsMatchingPixList[i].second.x();
 	    dy[i] = this->itsMatchingPixList[i].first.y()-this->itsMatchingPixList[i].second.y();
@@ -123,18 +123,18 @@ namespace askap
 	}
 
 
-	for(int i=0;i<size;i++){
+	for(int i=0;i<this->itsNumMatch1;i++){
 	  this->itsMeanDx += dx[i];
 	  this->itsMeanDy += dy[i];
 	}
-	this->itsMeanDx /= double(size);
-	this->itsMeanDy /= double(size);
-	for(int i=0;i<size;i++){
+	this->itsMeanDx /= double(this->itsNumMatch1);
+	this->itsMeanDy /= double(this->itsNumMatch1);
+	for(int i=0;i<this->itsNumMatch1;i++){
 	  this->itsRmsDx += (dx[i]-this->itsMeanDx)*(dx[i]-this->itsMeanDx);
 	  this->itsRmsDy += (dy[i]-this->itsMeanDy)*(dy[i]-this->itsMeanDy);
 	}
-	this->itsRmsDx = sqrt( this->itsRmsDx / (double(size-1)) );
-	this->itsRmsDy = sqrt( this->itsRmsDy / (double(size-1)) );
+	this->itsRmsDx = sqrt( this->itsRmsDx / (double(this->itsNumMatch1-1)) );
+	this->itsRmsDy = sqrt( this->itsRmsDy / (double(this->itsNumMatch1-1)) );
 	ASKAPLOG_INFO_STR(logger, "Offsets between the two is dx=" << this->itsMeanDx << "+-" << this->itsRmsDx 
 			  <<", dy=" << this->itsMeanDy << "+-" << this->itsRmsDy << "\n");
  
@@ -150,7 +150,7 @@ namespace askap
 	  bool isMatch=false;
 	  match = this->itsMatchingPixList.begin();
 	  for(;match<this->itsMatchingPixList.end()&&!isMatch;match++){
-	    isMatch = (src->ID() == match->second.ID());
+	    isMatch = (src->ID() == match->first.ID());
 	  }
 	  if(!isMatch){
 	    float minOffset;
@@ -158,7 +158,7 @@ namespace askap
 	    for(ref=this->itsRefPixList.begin(); ref<this->itsRefPixList.end(); ref++){
 	      float offset = hypot(src->x()-ref->x()-this->itsMeanDx,
 				   src->y()-ref->y()-this->itsMeanDy);
-	      if(offset < 10.*this->itsEpsilon){
+	      if(offset < 3.*this->itsEpsilon){
 		if((minRef==-1)||(offset<minOffset)){
 		  minOffset = offset;
 		  minRef = int(ref-this->itsRefPixList.begin());
@@ -176,6 +176,7 @@ namespace askap
 	  }
 	}
 	
+	this->itsNumMatch2 = this->itsMatchingPixList.size();
 
       }
 
@@ -187,9 +188,14 @@ namespace askap
 	fout.precision(3);
 	fout.setf(std::ios::fixed);
 	std::vector<std::pair<Point,Point> >::iterator match;
+	int ct=0;
+	char matchType;
 	for(match=this->itsMatchingPixList.begin(); match<this->itsMatchingPixList.end(); match++){
 
-	  fout << "[" << match->first.ID() << "]\t"
+	  if(ct++<this->itsNumMatch1) matchType = '1';
+	  else matchType = '2';
+	  fout << matchType << "\t"
+	       << "[" << match->first.ID() << "]\t"
 	       << std::setw(10) << match->first.x()  << " "
 	       << std::setw(10) << match->first.y()  << " "
 	       << std::setw(10) << match->first.flux() << "\t"
