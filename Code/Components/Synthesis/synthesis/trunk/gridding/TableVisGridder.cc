@@ -449,18 +449,18 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					    // need to encapsulate the following code somewhere
 					    const casa::MVDirection offset(acc.pointingDir1()(i));
 					    const casa::MVDirection out(getImageCentre());
-					    const double lScaled = 0.*sin(offset.getLong()-out.getLong())*cos(offset.getLat())*
-					       2.*casa::C::pi*itsUVCellSize(0)/itsOverSample;
-                        const double mScaled = 0.*(sin(offset.getLat())*cos(out.getLat()) - 
+					    const double lScaled = sin(offset.getLong()-out.getLong())*cos(offset.getLat())*
+					       2.*casa::C::pi*itsUVCellSize(0);
+                        const double mScaled = (sin(offset.getLat())*cos(out.getLat()) - 
                            cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()-out.getLong()))*
-                           2.*casa::C::pi*itsUVCellSize(1)/itsOverSample;                           
+                           2.*casa::C::pi*itsUVCellSize(1);                           
 					    //
 					    for (casa::uInt inx = 0; inx<psfConvFunc.nrow(); ++inx) {
-					         const double u_offset = double(inx) - double(psfConvFunc.nrow())/2;
+					         const double u_offset = double(inx) - double(psfConvFunc.nrow()-1)/2 + double(fracu)/itsOverSample;
 					         for (casa::uInt iny = 0; iny<psfConvFunc.ncolumn(); ++iny) {
-					              const double v_offset = double(iny) - double(psfConvFunc.ncolumn())/2;
+					              const double v_offset = double(iny) - double(psfConvFunc.ncolumn()-1)/2 + double(fracv)/itsOverSample;
 					              const double phase = lScaled*u_offset+mScaled*v_offset;
-					              const casa::Complex phasor(cos(phase),-sin(phase));
+					              const casa::Complex phasor(cos(phase),sin(phase));
 					              psfConvFunc(inx,iny) *= phasor;
 					         }
 					    }
@@ -468,8 +468,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
 					          (psfConvFunc.ncolumn() == convFunc.ncolumn()));
 					
-				    casa::Complex uVis(phasor);
-				    //casa::Complex uVis(1.,0.);
+				    //casa::Complex uVis(phasor);
+				    casa::Complex uVis(1.,0.);
 				    if(itsVisWeight)
 					   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       GridKernel::grid(gridPSF, sumwt, psfConvFunc,
