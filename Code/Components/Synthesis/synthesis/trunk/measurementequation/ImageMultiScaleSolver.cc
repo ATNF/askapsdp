@@ -102,9 +102,10 @@ namespace askap
         casa::convertArray<float, double>(psfArray, slice.reform(valShape));
         casa::Array<float> cleanArray(valShape);
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
+        casa::Array<float> maskArray(valShape);
 
 	// Normalize by the diagonal
-	doNormalization(diag,tol(),psfArray,dirtyArray);
+	doNormalization(diag,tol(),psfArray,dirtyArray, maskArray);
         
 	// Precondition the PSF and DIRTY images before solving.
 	if(doPreconditioning(psfArray,dirtyArray))
@@ -128,6 +129,7 @@ namespace askap
         casa::ArrayLattice<float> dirty(dirtyArray);
         casa::ArrayLattice<float> psf(psfArray);
         casa::ArrayLattice<float> clean(cleanArray);
+        casa::ArrayLattice<float> mask(maskArray);
       
         // Create a lattice cleaner to do the dirty work :)
         /// @todo More checks on reuse of LatticeCleaner
@@ -151,7 +153,9 @@ namespace askap
         lc.reset(new casa::LatticeCleaner<float>(psf, dirty));          
         // end of the temporary altered section, the previous line to be removed
         // when uncommented
-        
+
+        lc->setMask(mask);
+
         ASKAPDEBUGASSERT(lc);
         if(algorithm()=="Hogbom") {
           casa::Vector<float> scales(1);

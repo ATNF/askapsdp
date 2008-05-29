@@ -76,6 +76,13 @@ namespace askap
 			     casa::Array<float>& psf, 
 			     casa::Array<float>& dirty);
    
+	/// @brief Divide the PSF and dirty image by the diagonal of the Hessian
+	bool doNormalization(const casa::Vector<double>& diag, 
+			     const float& tolerance,
+			     casa::Array<float>& psf, 
+			     casa::Array<float>& dirty,
+			     casa::Array<float>& mask);
+   
       private:
 	/// Instance of a preconditioner
 	// IImagePreconditioner::ShPtr itsPreconditioner;

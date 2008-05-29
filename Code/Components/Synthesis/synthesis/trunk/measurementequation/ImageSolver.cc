@@ -52,7 +52,8 @@ namespace askap
     }
 
     // Normalize the PSF and dirty image by the diagonal of the Hessian
-    bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, casa::Array<float>& dirty)
+    bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, 
+				      casa::Array<float>& dirty)
     {
         double maxDiag(casa::max(diag));
         const double cutoff=tolerance*maxDiag;
@@ -75,6 +76,40 @@ namespace askap
 	  }
 	}
         ASKAPLOG_INFO_STR(logger, "Normalizing dirty image by truncated weights image");
+	ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
+
+	return true;
+    }
+
+    // Normalize the PSF and dirty image by the diagonal of the Hessian
+    bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, 
+				      casa::Array<float>& dirty, casa::Array<float>& mask)
+    {
+        double maxDiag(casa::max(diag));
+        const double cutoff=tolerance*maxDiag;
+
+        ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of weights = " << maxDiag);
+	psf /= (float)maxDiag;
+	
+	uint nAbove=0;
+	casa::IPosition vecShape(1,diag.nelements());
+	casa::Vector<float> dirtyVector(dirty.reform(vecShape));
+	casa::Vector<float> maskVector(mask.reform(vecShape));
+	for (uint elem=0;elem<diag.nelements();elem++)
+	{
+	  if(diag(elem)>cutoff)
+	  {
+		  dirtyVector(elem)/=diag(elem);
+		  maskVector(elem)=1.0;
+		  nAbove++;
+	  }
+	  else {
+		  maskVector(elem)=0.0;
+		  dirtyVector(elem)/=cutoff;
+	  }
+	}
+        ASKAPLOG_INFO_STR(logger, "Normalizing dirty image by truncated weights image");
+        ASKAPLOG_INFO_STR(logger, "Converting truncated weights image to clean mask");
 	ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
 
 	return true;
