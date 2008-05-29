@@ -1,5 +1,4 @@
 from recursivebuild import build
 
-build(['Antenna/setup.py',
-       'CTOS/setup.py',
-       'CDS/setup.py']) 
+build(['CDS/setup.py',
+       'Synthesis/setup.py']) 
