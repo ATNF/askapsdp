@@ -219,11 +219,10 @@ namespace askap
       casa::Vector<double> start(2);
       casa::Vector<double> end(2);
       
-      for (int i=0;i<2;++i)
-	{
-	  start(i)=refValue(i)+refInc(i)*(refPix(i)-0.0);
-	  end(i)=refValue(i)+refInc(i)*(refPix(i)-double(imagePixels.shape()(i)));
-	}
+      for (int i=0;i<2;++i) {
+	     start(i)=refValue(i)-refInc(i)*(refPix(i));
+	     end(i)=refValue(i)+refInc(i)*(double(imagePixels.shape()(i))-refPix(i));
+	  }
       
       axes.add("RA", start(0), end(0));
       axes.add("DEC", start(1), end(1));
