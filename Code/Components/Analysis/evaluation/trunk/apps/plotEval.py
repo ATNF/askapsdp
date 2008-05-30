@@ -85,6 +85,9 @@ if __name__ == '__main__':
     meandf = mean(df)
     meanreldf = mean(reldf)
 
+    print 'Overall mean offsets (x,y)=(',meandx,',',meandy,')'
+    print 'Mean flux diff = ', meandf
+
     figure(1, figsize=(10.,10.), dpi=72)
     font = {'fontsize' : '10'}
     rc('xtick', labelsize=8)
@@ -145,7 +148,7 @@ if __name__ == '__main__':
     axes([0.125,0.31,0.35,0.16])
     n, bins, patches = hist(reldf, 20)
     axvline(meanreldf, color='r')
-    xlabel(r'$\Delta F/F$',font)
+    xlabel(r'$\Delta F/F_R$',font)
     ylabel('Count',font)
     title('Flux differences: source - ref',font)
 
@@ -158,7 +161,7 @@ if __name__ == '__main__':
 #    for i in range(len(fS)):
     for i in ind:
 #        size = 5. + abs(df[i]/10.) * 3.
-        size = 5. + abs(reldf[i]/0.1) * 3.
+        size = 5. + abs(reldf[i]/0.1) * 2.
         if(df[i]>0):
             plot([xS[i]],[yS[i]],'ro',ms=size)
         else:

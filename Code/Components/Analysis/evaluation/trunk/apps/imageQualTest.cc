@@ -32,7 +32,7 @@ std::vector<Point> getResultsPixList(std::ifstream &fin);
 
 ASKAP_LOGGER(logger, "imageQualTest.log");
 
-// Move to Askap Util
+// Move to Askap Util?
 std::string getInputs(const std::string& key, const std::string& def, int argc,
     const char** argv)
 {
@@ -67,7 +67,7 @@ int main(int argc, const char** argv)
     ParameterSet parset(parsetFile);
     ParameterSet subset(parset.makeSubset("imageQual."));
 
-    Matcher matcher(argc,argv,subset);
+    Matcher matcher(subset);
 
     matcher.setTriangleLists();
 

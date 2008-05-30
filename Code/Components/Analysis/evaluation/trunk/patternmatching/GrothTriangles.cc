@@ -81,6 +81,15 @@ namespace askap
 
       void Triangle::define(Point a, Point b, Point c)
       {
+	/// @details Define a triangle from three points. The key part
+	///  of this function is to order the sides by their
+	///  length. The triangle is defined on the basis of the ratio
+	///  of the longest to smallest sides, and the angle between
+	///  them. The given points are used to define sides, which
+	///  are then ordered according to their length. The triangle
+	///  parameters are then calculated from the known side
+	///  parameters.
+
 	std::vector<Point> ptslist(3);
   	ptslist[0]=a;
 	ptslist[1]=b;
@@ -140,6 +149,14 @@ namespace askap
       void Triangle::defineTolerances(double epsilon)
       {
 
+	/// @details The tolerances for the triangle parameters are
+	/// calculated. These require the angle and ratio parameters
+	/// to have been calculated, so this should be done after the
+	/// triangle is defined.  
+	/// @param epsilon The parameter governing the size of the
+	/// acceptable error in matching. This defaults to the value
+	/// of posTolerance
+
 	Side side1_2(itsPts[0].x()-itsPts[1].x(),itsPts[0].y()-itsPts[1].y());
 	Side side1_3(itsPts[0].x()-itsPts[2].x(),itsPts[0].y()-itsPts[2].y());
 	double r2=side1_2.length(),r3=side1_3.length();
@@ -160,6 +177,16 @@ namespace askap
 
       bool Triangle::isMatch(Triangle &comp, double epsilon)
       {
+
+	/// @details Does the triangle match another. Compares the
+	/// ratios and angles to see whether they match to within the
+	/// respective tolerances. Triangle::defineTolerances is
+	/// called prior to testing, using the value of epsilon.
+	/// @param comp The comparison triangle
+	/// @param epsilon The error parameter used to define the
+	/// tolerances. Defaults to posTolerance.
+	/// @return True if triangles match
+
 	defineTolerances(epsilon);
 	
 	double ratioSep = this->itsRatio - comp.ratio();
@@ -177,6 +204,9 @@ namespace askap
 
       std::vector<Triangle> getTriList(std::vector<Point> pixlist)
       {
+
+	/// @details Create a list of triangles from a list of Points.
+
 	std::vector<Triangle> triList;
 	int npix = pixlist.size();
 	//	ASKAPLOG_INFO_STR(logger, "Pixel list of size "<<npix);
@@ -202,6 +232,20 @@ namespace askap
       std::vector<std::pair<Triangle,Triangle> > 
       matchLists(std::vector<Triangle> list1, std::vector<Triangle> list2, double epsilon)
       {
+
+	/// @details Finds a list of matching triangles from two
+	/// lists. The lists are both sorted in order of increasing
+	/// ratio, and the maximum ratio tolerance is found for each
+	/// list. Triangles from list1 are compared with a range from
+	/// list2, where the ratio of the comparison triangle falls
+	/// between the maximum acceptable range using the maximum
+	/// ratio tolerances (so that we don't look at every possible
+	/// triangle pair). The matching triangles are returned as a
+	/// vector of pairs of triangles.
+	/// @param list1 The first list of triangles
+	/// @param list2 The other list of triangles
+	/// @param epsilon The error parameter used to define the tolerances. Defaults to posTolerance.
+	/// @return A list of matching pairs of triangles.
 
 	int size1=list1.size(),size2=list2.size();
 
@@ -258,6 +302,30 @@ namespace askap
 
       void trimTriList(std::vector<std::pair<Triangle,Triangle> > &trilist)
       {
+
+	/// @details A list of triangle matches is trimmed of false
+	/// matches. First, the magnifications (the difference in the
+	/// log(perimeter) values of the two matching triangles) are
+	/// examined: the true matches will have mags in a small range
+	/// of values, while false matches will have a broader
+	/// distribution. Only those matches in a narrow range of mags
+	/// will be accepted: those with mean_mag +- rms_mag*scale,
+	/// where scale is determined based on the number of same- and
+	/// opposite-sense matches.
+	///
+	/// If n_same and n_opp are the numbers of matches with the
+	/// same sense (both clockwise or both anticlockwise) or
+	/// opposite sense, then we get estimates of the number of
+	/// true & false matches by m_t=|n_same-n_opp| and m_f =
+	/// n_same + n_opp - m_t. Then scale is :
+	/// @li 1 if m_f > m_t
+	/// @li 3 if 0.1 m_t > m_f
+	/// @li 2 otherwise
+	///
+	/// Finally, all matches should have the same sense, so if
+	/// n_same > n_opp, all opposite sense matches are discarded,
+	/// and vice versa.
+
 	double mean=0.,rms=0.,mag;
 	unsigned int nIter=0,size;
 	unsigned int nSame=0,nOpp=0;
@@ -325,6 +393,17 @@ namespace askap
 
       std::vector<std::pair<Point,Point> > vote(std::vector<std::pair<Triangle,Triangle> > trilist)
       {
+
+	/// @details The final step in removing false matches is the
+	/// voting. Each matched triangle votes for matched
+	/// points. The array of votes is ordered from max vote to min
+	/// vote. If no pair of points received more than one vote,
+	/// the lists don't match. Otherwise, successive points are 
+	/// accepted until one of :
+	/// @li The vote drops by a factor of 2
+	/// @li We try to accept a point already accepted
+	/// @li The vote drops to zero.
+
 	std::multimap<int,std::pair<Point,Point> > voteList;
 	std::multimap<int,std::pair<Point,Point> >::iterator vote;
 	std::multimap<int,std::pair<Point,Point> >::reverse_iterator rvote;
@@ -360,6 +439,10 @@ namespace askap
 	}
 
 	std::vector<std::pair<Point,Point> > outlist;
+
+	if(voteList.rbegin()->first == 1) // largest vote was 1 -- no match;
+	  return outlist;
+
 // 	for(vote=voteList.begin();vote!=voteList.end();vote++){
 // 	  std::cout << vote->first << ": "
 // 		    << "#"<<vote->second.first.ID() << " " 

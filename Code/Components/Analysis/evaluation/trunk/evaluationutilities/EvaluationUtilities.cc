@@ -26,6 +26,15 @@ namespace askap
  
     std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr)
     {
+      /// @details Read in a list of points from a duchamp-Summary.txt
+      /// file (that is, a summary file produced by cduchamp). The
+      /// base positions are used to convert each point's position
+      /// into an offset in arcsec. The ID of each point is generated
+      /// from the object number in the list, plus the ra and dec,
+      /// e.g. 2_12:34:56.78_-45:34:23.12
+      /// @param fin The file stream to read from
+      /// @param raBaseStr The base right ascension, in string form, e.g. 12:23:34.5
+      /// @param decBaseStr The base right ascension, in string form, e.g. -12:23:34.57
 
       std::vector<matching::Point> pixlist;
       std::string raS,decS,sdud,id;
@@ -58,6 +67,18 @@ namespace askap
    
     std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr)
     {
+      /// @details Reads in a list of points from a file, to serve as
+      /// a reference list. The file should have three columns: ra,
+      /// dec, flux. The ra and dec should be in string form:
+      /// 12:23:34.43 etc.The base positions are used to convert each
+      /// point's position into an offset in arcsec. The ID of each
+      /// point is generated from the object number in the list, plus
+      /// the ra and dec, e.g. 2_12:34:56.78_-45:34:23.12
+      /// @param fin The file stream to read from
+      /// @param raBaseStr The base right ascension, in string form, e.g. 12:23:34.5
+      /// @param decBaseStr The base right ascension, in string form, e.g. -12:23:34.57
+
+
       std::vector<matching::Point> pixlist;
       std::string raS,decS,id;
       double raBase = dmsToDec(raBaseStr)*15.;
@@ -86,6 +107,12 @@ namespace askap
 
     std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, const unsigned int maxSize)
     {
+      /// @details The list of points is sorted by flux, and only the
+      /// maxSize highest-flux points are returned.
+      /// @param inputList List of points to be trimmed
+      /// @param maxSize Number of points to be returned. Defaults to matching::maxSizePointList
+      /// @return The maxSize highest-flux points, in flux order.
+
       std::vector<matching::Point> outList;
       std::sort(inputList.begin(),inputList.end());  // sort by flux, ascending order
       std::vector<matching::Point>::reverse_iterator pt;
@@ -99,7 +126,7 @@ namespace askap
   
     std::string removeLeadingBlanks(std::string s)
     {
-      ///
+      /// @details
       /// All blank spaces from the start of the string to the first
       /// non-blank-space character are deleted.
       /// 
@@ -114,7 +141,7 @@ namespace askap
 
     double dmsToDec(std::string input)
     {
-      /// 
+      /// @details
       ///  Assumes the angle given is in degrees, so if passing RA as
       ///  the argument, need to multiply by 15 to get the result in
       ///  degrees rather than hours.  The sign of the angle is
@@ -143,7 +170,7 @@ namespace askap
 
     std::string decToDMS(const double input, std::string type, int secondPrecision, std::string separator)
     {
-      ///
+      /// @details
       ///  This is the general form, where one can specify the degree of
       ///  precision of the seconds, and the separating character. The format reflects the axis type:
       ///  @li RA   (right ascension):     hh:mm:ss.ss, with dec modulo 360. (24hrs)
@@ -207,7 +234,7 @@ namespace askap
     double angularSeparation(const std::string ra1, const std::string dec1, 
 			     const std::string ra2, const std::string dec2)
     {
-      ///
+      /// @details
       /// Calculates the angular separation between two sky positions,
       /// given as strings for RA and DEC. Uses the function
       /// angularSeparation(double,double,double,double).
@@ -232,7 +259,7 @@ namespace askap
 
     double angularSeparation(double ra1, double dec1, double ra2, double dec2)
     {
-      ///
+      /// @details
       /// Calculates the angular separation between two sky positions,
       /// where RA and DEC are given in decimal degrees.
       /// @param ra1 The right ascension for the first position.
@@ -255,7 +282,7 @@ namespace askap
 
     void equatorialToGalactic(double ra, double dec, double &gl, double &gb)
     {
-      ///
+      /// @details
       /// Converts an equatorial (ra,dec) position to galactic
       /// coordinates. The equatorial position is assumed to be J2000.0.
       ///

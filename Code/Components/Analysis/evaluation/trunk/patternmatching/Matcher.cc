@@ -33,11 +33,16 @@ namespace askap
     namespace matching
     {
 
-      Matcher::Matcher(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset)
+      Matcher::Matcher(const LOFAR::ACC::APS::ParameterSet& parset)
       {
+	/// @details The parameter file is examined for the relevant
+	/// parameters to define the input and output files, the base
+	/// positions for both lists, and the epsilon value. The input
+	/// files are read to obtain the source and reference point
+	/// lists.
 
-	this->itsSrcFile = parset.getString("srcFile");
-	this->itsRefFile = parset.getString("refFile");
+	this->itsSrcFile = parset.getString("srcFile","");
+	this->itsRefFile = parset.getString("refFile","");
 	this->itsSrcPosRA  = parset.getString("srcPosRA");
 	this->itsSrcPosDec = parset.getString("srcPosDec");
 	this->itsRefPosRA  = parset.getString("refPosRA");
@@ -49,20 +54,38 @@ namespace askap
 	this->itsRmsDy = 0.;
 	this->itsOutputBestFile = parset.getString("matchFile","matches.txt");
 	this->itsOutputMissFile = parset.getString("missFile","misses.txt");
-	
-	std::ifstream fsrc(this->itsSrcFile.c_str());
-	std::ifstream fref(this->itsRefFile.c_str());
 
-	this->itsSrcPixList = getSrcPixList(fsrc, this->itsSrcPosRA, this->itsSrcPosDec);
-	ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
+	bool filesOK = true;
+	if(this->itsSrcFile == "" ){
+	  ASKAPLOG_ERROR_STR(logger, "srcFile not defined. Cannot get pixel list!");
+	  filesOK = false;
+	}
+	if(this->itsRefFile == "" ){
+	  ASKAPLOG_ERROR_STR(logger, "refFile not defined. Cannot get pixel list!");
+	  filesOK = false;
+	}
 
-	this->itsRefPixList = getPixList(fref, this->itsRefPosRA, this->itsRefPosDec);
-	ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
-
+	if(filesOK){
+	  std::ifstream fsrc(this->itsSrcFile.c_str());
+	  std::ifstream fref(this->itsRefFile.c_str());
+	  
+	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsSrcPosRA, this->itsSrcPosDec);
+	  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
+	  
+	  this->itsRefPixList = getPixList(fref, this->itsRefPosRA, this->itsRefPosDec);
+	  ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
+	}
      }
+
+      //**************************************************************//
 
       void Matcher::setTriangleLists()
       {
+
+	/// @details The point lists are first shortened to the
+	/// appropriate size by trimList(). The shortened lists are then
+	/// converted into triangle lists, which are matched and
+	/// trimmed.
 
 	std::vector<Point> srclist = trimList(this->itsSrcPixList);
 	ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
@@ -81,9 +104,15 @@ namespace askap
 
       }
 
+      //**************************************************************//
+
       void Matcher::findMatches()
       {
 
+	/// @details Matching points are found via the Groth voting
+	/// function vote(). The number of matches and their sense are
+	/// recorded.
+	
 	this->itsMatchingPixList = vote(this->itsMatchingTriList);
 	this->itsNumMatch1 = this->itsMatchingPixList.size();
 	
@@ -93,8 +122,13 @@ namespace askap
       }
 
 
+      //**************************************************************//
+
       void Matcher::findOffsets()
       {
+
+	/// @details The mean and rms offsets in the x- and
+	/// y-directions are measured for the matching points.
 
 	float *dx = new float[this->itsNumMatch1];
 	float *dy = new float[this->itsNumMatch1];
@@ -141,9 +175,19 @@ namespace askap
 
       }
 
+      //**************************************************************//
+
       void Matcher::addNewMatches()
       {
 
+	/// @details The source point list is scanned for points that
+	/// were not initially matched, but have a reference
+	/// counterpart within a certain number of epsilon values
+	/// (currently set at 3). These points are added to the
+	/// itsMatchingPixList, and the new total number of matches is
+	/// recorded.
+
+	const float matchRadius = 3.;
 	std::vector<Point>::iterator src,ref;
 	std::vector<std::pair<Point,Point> >::iterator match;
 	for(src=this->itsSrcPixList.begin(); src<this->itsSrcPixList.end(); src++){
@@ -158,7 +202,7 @@ namespace askap
 	    for(ref=this->itsRefPixList.begin(); ref<this->itsRefPixList.end(); ref++){
 	      float offset = hypot(src->x()-ref->x()-this->itsMeanDx,
 				   src->y()-ref->y()-this->itsMeanDy);
-	      if(offset < 3.*this->itsEpsilon){
+	      if(offset < matchRadius*this->itsEpsilon){
 		if((minRef==-1)||(offset<minOffset)){
 		  minOffset = offset;
 		  minRef = int(ref-this->itsRefPixList.begin());
@@ -181,8 +225,17 @@ namespace askap
       }
 
 
+      //**************************************************************//
+
       void Matcher::outputMatches()
       {
+
+	/// @details The list of matching points is written to the
+	/// designated output file. The format is: type of match --
+	/// source ID -- source X -- source Y -- source Flux -- ref ID
+	/// -- ref X -- ref Y -- ref Flux. The "type of match" is
+	/// either 1 for points matched with the Groth algorithm, or 2
+	/// for those subsequently matched.
 
 	std::ofstream fout(this->itsOutputBestFile.c_str());
 	fout.precision(3);
@@ -210,8 +263,16 @@ namespace askap
 
       }
 
+      //**************************************************************//
+
       void Matcher::outputMisses()
       {
+
+	/// @details The points in the source and reference lists that
+	/// were not matched are written to the designated output
+	/// file. The format is: type of point -- ID -- X -- Y --
+	/// Flux. The "type of point" is either R for reference point
+	/// or S for source point.
 
 	std::ofstream fout(this->itsOutputMissFile.c_str());
 	fout.precision(3);

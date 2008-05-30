@@ -8,4 +8,4 @@ imageQual.refFile      = /Users/whi550/ObsData/ASKAP/neeraj/first_trim.txt
 imageQual.refPosRA     = 08:47:17.87
 imageQual.refPosDec    = -51:58:59.31
 
-imageQual.epsilon      =  1
+imageQual.epsilon      =  10

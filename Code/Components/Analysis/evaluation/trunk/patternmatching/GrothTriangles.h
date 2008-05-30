@@ -22,6 +22,12 @@ namespace askap
     namespace matching
     {
 
+      /// @brief A class to hold information about a 2D point
+      /// @details This class holds positional information that will
+      ///  be used by the pattern matching algorithms. It holds information about
+      ///  a single point in the plane: its X and Y coordinates, its flux (a
+      ///  measure of its brightness or importance), and an identification
+      ///  string.
       class Point
       {
       public:
@@ -43,12 +49,21 @@ namespace askap
 	friend bool operator<(Point lhs, Point rhs){return lhs.flux()<rhs.flux();};
 
       protected:
+	///@brief The X coordinate
 	double itsX;
+	///@brief The Y coordinate
 	double itsY;
+	///@brief The flux of the point
 	double itsFlux;
+	///@brief The identification string
 	std::string itsID;
       };
 
+
+      /// @brief A class to hold info on a triangle side (a straight line)
+      /// @details This class holds the necessary information on a
+      ///  line connecting two points, providing functions to access its length,
+      ///  dx and dy.
       class Side
       {
       public:
@@ -68,7 +83,9 @@ namespace askap
       };
 
 
+      /// @brief The default tolerance in the position for triangle matching
       const double posTolerance = 0.001;
+      /// @brief The default elimination threshold for culling lists prior to triangle matching
       const double elimThreshold = 0.003;
 
 
@@ -109,21 +126,36 @@ namespace askap
 
       protected:
 
+	/// @brief The log of the perimeter of the triangle
 	double itsLogPerimeter;
+	/// @brief Whether the sides increase in size in a clockwise fashion
 	bool   itIsClockwise;
+	/// @brief The ratio between the largest and smallest sides
 	double itsRatio;
+	/// @brief The tolerance in the ratio value
 	double itsRatioTolerance;
+	/// @brief The angle between the largest and smallest sides (actually cos(angle))
 	double itsAngle;
+	/// @brief The tolerance in the angle value
 	double itsAngleTolerance;
 
+	/// @brief The list of points making up the triangle
 	std::vector<Point> itsPts;
       
       };
 
 
+      /// @brief Create a list of triangles from a list of points
       std::vector<Triangle> getTriList(std::vector<Point> pixlist);
-      std::vector<std::pair<Triangle,Triangle> > matchLists(std::vector<Triangle> list1, std::vector<Triangle> list2, double epsilon);
+
+      /// @brief Match two lists of triangles
+      std::vector<std::pair<Triangle,Triangle> > 
+	matchLists(std::vector<Triangle> list1, std::vector<Triangle> list2, double epsilon);
+
+      /// @brief Eliminate likely false matches from a triangle list
       void trimTriList(std::vector<std::pair<Triangle,Triangle> > &trilist);
+
+      /// @brief Make the final assignment of matching points
       std::vector<std::pair<Point,Point> > vote(std::vector<std::pair<Triangle,Triangle> > trilist);
 
 
