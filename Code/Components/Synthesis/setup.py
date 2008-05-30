@@ -1,4 +1,4 @@
 from recursivebuild import build
 
-build(['synthesis/setup.py',
-       'testdata/setup.py'])
+build(['testdata/setup.py',
+       'synthesis/setup.py'])
