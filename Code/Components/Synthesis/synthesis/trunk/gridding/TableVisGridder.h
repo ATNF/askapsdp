@@ -24,6 +24,19 @@ namespace askap
 {
   namespace synthesis
   {
+  
+    /// @brief a helper method to print directions nicely
+    /// @details By default an instance of casa::MVDirection is printed
+    /// as 3 direction cosines. It is not very convenient. This method
+    /// allows to print it in a more log-reader-friendly way. We can move this
+    /// method to a higher level if (when) it becomes necessary in other places.
+    /// I (MV) didn't move it do askap just because it would introduce a
+    /// dependency on casacore. Although scimath may be a better place for this
+    /// method, which would solve the problem.
+    /// @param[in] dir MVDirection object to print
+    /// @return a string containing a nice representation of the direction
+    std::string printDirection(const casa::MVDirection &dir);
+    
 
     /// @brief Incomplete base class for table-based gridding of visibility data.
     ///

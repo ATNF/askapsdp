@@ -109,7 +109,8 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
 		ASKAPCHECK(itsCurrentField<itsMaxFields,
 				"Too many fields: increase maxfields " << itsMaxFields);
 		itsPointings(firstFeed, itsCurrentField)=firstPointing;
-		ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField);
+		ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField<<" at "<<
+		                  printDirection(firstPointing));
 	}
 
 	/// We have to calculate the lookup function converting from
