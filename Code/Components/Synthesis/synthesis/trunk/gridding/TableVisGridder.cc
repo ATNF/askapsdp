@@ -606,20 +606,7 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		itsGridPSF[0].resize(shape);
 		itsGridPSF[0].set(0.0);
 		// for a proper PSF calculation
-	        itsFirstGriddedVis = true;
-		/*
-		// temporary code for debuggig
-		   std::cout<<"initialiseGrid"<<std::endl;
-		   itsFirstGriddedVis = false;
-		   casa::Quantity ra(0.,"rad"), dec(0.,"rad");
-		   casa::MVAngle::read(ra,"13:32:22.48");
-		   casa::MVAngle::read(dec,"-042.16.56.93");
-		   itsPointingUsedForPSF = casa::MVDirection(ra,dec);
-                   ASKAPLOG_INFO_STR(logger, "Field override for PSF, will use "<<printDirection(itsPointingUsedForPSF));
-                   itsFeedUsedForPSF = 0;
-		// end of temporary code
-		*/
-		itsConvFuncForPSF.empty();
+		initRepresentativeFieldAndFeed();
 	}
 
 	ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
@@ -638,6 +625,34 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	itsUVCellSize(0)=1.0/(raEnd-raStart);
 	itsUVCellSize(1)=1.0/(decEnd-decStart);
 
+}
+
+/// @brief a helper method to initialize gridding of the PSF
+/// @details The PSF is calculated using the data for a
+/// representative field/feed only. By default, the first encountered
+/// feed/field is chosen. If the same gridder is reused for another
+/// sequence of data points a new representative feed/field have to be
+/// found. This is done by resetting the cache in initialiseGrid. However,
+/// the latter method can be overridden in the derived classes. To avoid
+/// a duplication of the code, this helper method resets the representative
+/// feed/field cache. It is called from initialiseGrid.
+void TableVisGridder::initRepresentativeFieldAndFeed()
+{
+  itsFirstGriddedVis = true;
+  itsConvFuncForPSF.empty();
+
+  /*
+  // temporary code for debuggig
+  std::cout<<"TableVisGridder::initRepresentativeFieldAndFeed"<<std::endl;
+  itsFirstGriddedVis = false;
+  casa::Quantity ra(0.,"rad"), dec(0.,"rad");
+  casa::MVAngle::read(ra,"13:32:22.48");
+  casa::MVAngle::read(dec,"-042.16.56.93");
+  itsPointingUsedForPSF = casa::MVDirection(ra,dec);
+  ASKAPLOG_INFO_STR(logger, "Field override for PSF, will use "<<printDirection(itsPointingUsedForPSF));
+  itsFeedUsedForPSF = 0;
+  // end of temporary code
+  */
 }
 
 /// This is the default implementation

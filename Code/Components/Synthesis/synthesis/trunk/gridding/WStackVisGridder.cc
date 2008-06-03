@@ -115,6 +115,8 @@ namespace askap
           itsGridPSF[i].resize(shape);
           itsGridPSF[i].set(0.0);
         }
+        // for a proper PSF calculation
+		initRepresentativeFieldAndFeed();
       }
 
       itsSumWeights.set(casa::Complex(0.0));

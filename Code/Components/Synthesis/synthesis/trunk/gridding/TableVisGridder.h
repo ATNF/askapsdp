@@ -223,6 +223,17 @@ namespace askap
       static void toDouble(casa::Array<double>& out,
           const casa::Array<casa::Complex>& in);
 
+      /// @brief a helper method to initialize gridding of the PSF
+      /// @details The PSF is calculated using the data for a
+      /// representative field/feed only. By default, the first encountered
+      /// feed/field is chosen. If the same gridder is reused for another
+      /// sequence of data points a new representative feed/field have to be
+      /// found. This is done by resetting the cache in initialiseGrid. However,
+      /// the latter method can be overridden in the derived classes. To avoid
+      /// a duplication of the code, this helper method resets the representative
+      /// feed/field cache. It is called from initialiseGrid.
+      void initRepresentativeFieldAndFeed();
+      
   private:
       /// Generic grid/degrid - this is the heart of this framework. It should never
       /// need to be overridden
