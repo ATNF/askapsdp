@@ -606,7 +606,19 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		itsGridPSF[0].resize(shape);
 		itsGridPSF[0].set(0.0);
 		// for a proper PSF calculation
-	    itsFirstGriddedVis = true;
+	        itsFirstGriddedVis = true;
+		/*
+		// temporary code for debuggig
+		   std::cout<<"initialiseGrid"<<std::endl;
+		   itsFirstGriddedVis = false;
+		   casa::Quantity ra(0.,"rad"), dec(0.,"rad");
+		   casa::MVAngle::read(ra,"13:32:22.48");
+		   casa::MVAngle::read(dec,"-042.16.56.93");
+		   itsPointingUsedForPSF = casa::MVDirection(ra,dec);
+                   ASKAPLOG_INFO_STR(logger, "Field override for PSF, will use "<<printDirection(itsPointingUsedForPSF));
+                   itsFeedUsedForPSF = 0;
+		// end of temporary code
+		*/
 		itsConvFuncForPSF.empty();
 	}
 
