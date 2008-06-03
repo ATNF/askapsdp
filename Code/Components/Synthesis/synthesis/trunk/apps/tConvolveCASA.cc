@@ -66,7 +66,7 @@ casa::Cube<Value>& grid)
   const int nChan = freq.size();
   const int nPol = data.shape()(2);
 
-  int cSize=2*(support+1)*overSample+1;
+  //int cSize=2*(support+1)*overSample+1;
 
 // Grid
   grid.set(Value(0));

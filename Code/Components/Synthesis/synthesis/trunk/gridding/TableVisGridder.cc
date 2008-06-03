@@ -234,7 +234,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
        if (itsFirstGriddedVis) {
            itsFeedUsedForPSF = acc.feed1()(i);
            itsPointingUsedForPSF = acc.dishPointing1()(i);
-	   itsFirstGriddedVis = false;
+           itsFirstGriddedVis = false;
            if (itsDopsf) {
                ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
                " and field at "<<printDirection(itsPointingUsedForPSF)<<" to estimate the PSF");

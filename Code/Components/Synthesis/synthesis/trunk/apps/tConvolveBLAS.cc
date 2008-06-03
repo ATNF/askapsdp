@@ -74,7 +74,7 @@ void gridKernel(const std::vector<Value>& data, const int support,
 {
 
   int sSize=2*support+1;
-  for (int dind=0; dind<data.size(); dind++)
+  for (int dind=0; dind<int(data.size()); ++dind)
   {
     // Nearly all the L2 cache misses originate here in the next
     // two statements
@@ -111,7 +111,7 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
 
   int sSize=2*support+1;
 
-  for (int dind=0; dind<data.size(); dind++)
+  for (int dind=0; dind<int(data.size()); ++dind)
   {
 
     data[dind]=0.0;
