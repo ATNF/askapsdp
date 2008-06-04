@@ -524,11 +524,12 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 		}
 		uvw(2)=uvwRow(2);
 
-		casa::UVWMachine machine(out, pointingDir1Vector(row), false, true);
+		casa::UVWMachine machine(pointingDir1Vector(row), out, false, true);
 		machine.convertUVW(delay(row), uvw);
 
+		delay(row)*=-1.0;
 		for (int i=0; i<3; ++i) {
-			outUVW(row)(i)=uvw(i);
+			outUVW(row)(i)=-1.0*uvw(i);
 		}
 	}
 }
