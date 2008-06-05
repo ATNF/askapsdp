@@ -6,7 +6,11 @@ Australia Telescope National Facility (ATNF) is copyright
 Commonwealth Scientific and Industrial Research Organisation (CSIRO).
 This code is mostly found in the Code subdirectory and some of the
 Tools/Dev subdirectory.
+
+The in-house code is released under the GPL version 2 licence.
+
 The open-source packages contained in the 3rdParty subdirectory
 and some of the Tools subdirectory have their own licencing conditions.
 
-The in-house code is released under the GPL version 2 licence.
+There is some proprietary software under Code/Systems/ptf
+whose license conditions are unclear.
