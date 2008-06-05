@@ -35,8 +35,10 @@ struct IBasicIllumination {
   /// @param[in] pattern a UVPattern object to fill
   /// @param[in] l angular offset in the u-direction (in radians)
   /// @param[in] m angular offset in the v-direction (in radians)
+  /// @param[in] pa parallactic angle, or strictly speaking the angle between 
+  /// uv-coordinate system and the system where the pattern is defined
   virtual void getPattern(double freq, UVPattern &pattern, double l = 0., 
-                          double m = 0.) const = 0;
+                          double m = 0., double pa = 0.) const = 0;
   
   /// @brief empty virtual destructor to keep the compiler happy
   virtual ~IBasicIllumination();

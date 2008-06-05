@@ -38,8 +38,10 @@ struct DiskIllumination : virtual public IBasicIllumination {
   /// @param[in] pattern a UVPattern object to fill
   /// @param[in] l angular offset in the u-direction (in radians)
   /// @param[in] m angular offset in the v-direction (in radians)
+  /// @param[in] pa parallactic angle, or strictly speaking the angle between 
+  /// uv-coordinate system and the system where the pattern is defined (unused)
   virtual void getPattern(double freq, UVPattern &pattern, double l = 0., 
-                          double m = 0.) const;
+                          double m = 0., double pa = 0.) const;
 private:
   /// @brief disk diameter in metres
   double itsDiameter;

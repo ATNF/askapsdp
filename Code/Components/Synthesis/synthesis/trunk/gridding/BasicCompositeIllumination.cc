@@ -14,6 +14,8 @@
 
 #include <casa/BasicSL/Constants.h>
 #include <casa/Arrays/ArrayMath.h>
+#include <scimath/Mathematics/SquareMatrix.h>
+
 
 
 #include <gridding/BasicCompositeIllumination.h>
@@ -48,10 +50,12 @@ BasicCompositeIllumination::BasicCompositeIllumination(const boost::shared_ptr<I
 /// @param[in] pattern a UVPattern object to fill
 /// @param[in] l angular offset in the u-direction (in radians)
 /// @param[in] m angular offset in the v-direction (in radians)
+/// @param[in] pa parallactic angle (in radians), or strictly speaking the angle between 
+/// uv-coordinate system and the system where the pattern is defined
 void BasicCompositeIllumination::getPattern(double freq, UVPattern &pattern, double l, 
-                           double m) const
+                           double m, double pa) const
 {
-   itsPattern->getPattern(freq,pattern,l,m);
+   itsPattern->getPattern(freq,pattern,l,m,pa);
    // now apply the phase screen appropriate to the feed configuration/weights
    
    const casa::uInt oversample = pattern.overSample();
@@ -66,6 +70,9 @@ void BasicCompositeIllumination::getPattern(double freq, UVPattern &pattern, dou
    
    double sum=0.; // normalisation factor
    
+   casa::SquareMatrix<casa::Double, 2> rotation(cos(pa));
+   rotation(0,1) = sin(pa);
+   rotation(1,0) = -rotation(0,1);
         
    for (casa::uInt iU=0; iU<nU; ++iU) {
 	    const double offsetU = double(iU)-double(nU)/2.;
@@ -73,11 +80,16 @@ void BasicCompositeIllumination::getPattern(double freq, UVPattern &pattern, dou
 	         const double offsetV = double(iV)-double(nV)/2.;
 	         casa::Complex weight(0.,0.);
              for (casa::uInt iFeed = 0; iFeed<nFeeds; ++iFeed) {
+                  // operator* is commented out in RigidVector.h due to problems with some
+                  // compilers. We have to use operator*= instead (operator*= is
+                  // equivalent to v=Mv, rather than v=vM according to inline doc).
+                  casa::RigidVector<casa::Double, 2> feedOffset(itsFeedOffsets[iFeed]);
+                  feedOffset *= rotation;
                   // don't need to multiply by wavelength here because the
 			      // illumination pattern is given
 			      // in a relative coordinates in frequency
-                  const double phase = 2.*casa::C::pi*(cellU *itsFeedOffsets[iFeed](0)*offsetU+
-                                    cellV *itsFeedOffsets[iFeed](1)*offsetV);
+                  const double phase = 2.*casa::C::pi*(cellU *feedOffset(0)*offsetU+
+                                    cellV *feedOffset(1)*offsetV);
                   weight+=itsWeights[iFeed]*casa::Complex(cos(phase), -sin(phase));
 			 }
 			 pattern(iU, iV) *= weight;

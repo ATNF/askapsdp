@@ -39,8 +39,10 @@ DiskIllumination::DiskIllumination(double diam, double blockage) :
 /// @param[in] pattern a UVPattern object to fill
 /// @param[in] l angular offset in the u-direction (in radians)
 /// @param[in] m angular offset in the v-direction (in radians)
+/// @param[in] pa parallactic angle, or strictly speaking the angle between 
+/// uv-coordinate system and the system where the pattern is defined (unused)
 void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l, 
-                          double m) const
+                          double m, double) const
 {
     const casa::uInt oversample = pattern.overSample();
     const double cellU = pattern.uCellSize()/oversample;
