@@ -1,0 +1,12 @@
+General Notes about Licensing Conditions.
+
+The ASKAP Software (ASKAPsoft) comprises of in-house ASKAP specific code
+and open-source code.  All code written by staff and collaborators at
+Australia Telescope National Facility (ATNF) is copyright
+Commonwealth Scientific and Industrial Research Organisation (CSIRO).
+This code is mostly found in the Code subdirectory and some of the
+Tools/Dev subdirectory.
+The open-source packages contained in the 3rdParty subdirectory
+and some of the Tools subdirectory have their own licencing conditions.
+
+The in-house code is released under the GPL version 2 licence.
