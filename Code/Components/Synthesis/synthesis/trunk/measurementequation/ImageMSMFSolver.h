@@ -41,8 +41,9 @@ namespace askap
         /// @brief Constructor from parameters and scales and ntaylorterms
         /// The parameters named image* will be interpreted as images and
         /// solutions formed by the method described.
-        /// @param ip Parameters i.e. the images
-        /// @param scales Scales to be solved in pixels
+        /// @param[in] ip Parameters i.e. the images
+        /// @param[in] scales Scales to be solved in pixels
+        /// @param[in] nterms number of terms
         ImageMSMFSolver(const askap::scimath::Params& ip,
           const casa::Vector<float>& scales, const int& nterms);
           
@@ -78,14 +79,16 @@ namespace askap
         /// Scales in pixels
         casa::Vector<float> itsScales;
 
-	/// Number of terms in the Taylor expansion
+	    /// @brief Number of terms in the Taylor expansion
         int itsNTaylor;
+        /// @brief number of terms in the Taylor expansion for PSF
         int itsNPsfTaylor;
         
 	/// Map of Cleaners - one for each "image type : i,q,u,v.."
         std::map<string, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
 
-	bool dbg;
+        /// @brief for debugging (MV - ?)
+	    bool dbg;
     };
 
   }

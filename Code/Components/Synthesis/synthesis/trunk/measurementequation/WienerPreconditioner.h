@@ -34,19 +34,28 @@ namespace askap
         /// The parameters named image* will be interpreted as images and
         /// solutions formed by the method described.
         WienerPreconditioner();
+        
+        /// @brief constructor with explicitly defined noise poiwer
+        /// @param[in] noisepower parameter of the 
         WienerPreconditioner(float& noisepower);
+        
+        /// @brief destructor
         ~WienerPreconditioner();
 
         /// @brief Clone this object
+        /// @return shared pointer to a cloned copy
         virtual IImagePreconditioner::ShPtr clone();
         
-	// @brief Apply preconditioning to Image Arrays
-	// It is applied to the PSF as well as the current residual image.
-	bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
+	    /// @brief Apply preconditioning to Image Arrays
+	    /// @details This is the actual method, which does preconditioning.
+	    /// It is applied to the PSF as well as the current residual image.
+	    /// @param[in] psf array with PSF
+	    /// @param[in] dirty array with dirty image
+	    bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
 
       private:
-	// Noise Power Spectrum
-	float itsNoisePower;
+  	    /// @brief Noise Power Spectrum
+	    float itsNoisePower;
     };
 
   }

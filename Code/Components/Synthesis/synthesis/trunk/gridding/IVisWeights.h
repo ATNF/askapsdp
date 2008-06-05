@@ -51,7 +51,7 @@ namespace askap
 			
 			/// @brief Calculate the visibility weight.
 			/// @param i Sample Index
-			/// @param chan Channel index
+			/// @param freq Frequency
 			/// @param pol Polarization index
 			virtual float getWeight(int i, double freq, int pol) = 0;
 

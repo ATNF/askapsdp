@@ -30,7 +30,7 @@ namespace askap
 		{
 			public:
 
-				// Standard two dimensional gridding
+				/// @brief Standard two dimensional gridding
 				SphFuncVisGridder();
 
 				virtual ~SphFuncVisGridder();

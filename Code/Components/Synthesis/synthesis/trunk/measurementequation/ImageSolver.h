@@ -34,7 +34,8 @@ namespace askap
     class ImageSolver : public askap::scimath::Solver
     {
       public:
-	typedef boost::shared_ptr<ImageSolver> ShPtr;
+        /// @brief typedef of the shared pointer to ImageSolver
+	    typedef boost::shared_ptr<ImageSolver> ShPtr;
 	
         /// @brief Constructor from parameters.
         /// The parameters named image* will be interpreted as images and

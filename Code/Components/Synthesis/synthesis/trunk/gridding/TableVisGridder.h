@@ -114,8 +114,11 @@ namespace askap
           const casa::Array<double>& image);
 
       /// @brief Make context-dependant changes to the gridder behaviour
-      /// @param xxx xxx
+      /// @param context context
       virtual void customiseForContext(casa::String context);
+      
+      /// @brief assign weights
+      /// @param viswt shared pointer to visibility weights
       virtual void initVisWeights(IVisWeights::ShPtr viswt);
       
       /// Degrid the visibility data.

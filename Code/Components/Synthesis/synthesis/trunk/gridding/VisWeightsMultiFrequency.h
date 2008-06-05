@@ -28,8 +28,11 @@ namespace askap
     {
   public:
 
-      /// @brief aaa
+      /// @brief default constructor
       VisWeightsMultiFrequency();
+      
+      /// @brief constructor 
+      /// @param[in] reffreq reference frequency
       VisWeightsMultiFrequency(casa::Double & reffreq);
 
       /// @brief copy constructor
@@ -47,7 +50,7 @@ namespace askap
 
       /// @brief Calculate the visibility weight.
       /// @param i Sample Index
-      /// @param chan Channel index
+      /// @param freq frequency
       /// @param pol Polarization index
       float getWeight(int i, double freq, int pol);
       
