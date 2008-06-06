@@ -231,7 +231,7 @@ namespace askap
 	float *arrayCopy = new float[goodSize];
 	int j=0;
 	for(int i=0;i<size;i++) if(mask[i]) arrayCopy[j++] = fabs(array[i]-middle);
-	std::sort(arrayCopy,arrayCopy+size);
+	std::sort(arrayCopy,arrayCopy+goodSize);
 	if((goodSize%2)==0) spread = (arrayCopy[goodSize/2-1]+arrayCopy[goodSize/2])/2;
 	else spread = arrayCopy[goodSize/2];
 	delete [] arrayCopy;

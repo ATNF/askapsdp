@@ -28,7 +28,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author Tim Cornwell <tim.cornwell@csiro.au>
+/// @author Matthew Whiting <matthew.whiting@csiro.au>
 /// 
 
 #include <Common/LofarTypedefs.h>
@@ -314,6 +314,9 @@ namespace askap
       /// which side is adjacent to another subimage.
 
       if(isWorker()){
+
+	// don't do fit if we have a spectral axis.
+	this->itsFlagDoFit = this->itsFlagDoFit && !this->itsCube.header().isSpecOK();
 	
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source profiles.");
 	duchamp::FitsHeader head = itsCube.getHead();
@@ -323,7 +326,7 @@ namespace askap
 	float threshold = itsCube.stats().getThreshold();
 
  	for(int i=0;i<itsCube.getNumObj();i++){
-	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
+// 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
 	  sourcefitting::RadioSource src(itsCube.getObject(i));
 // 	  src.setNoiseLevel( noise );
 	  src.setDetectionThreshold( threshold );
@@ -353,12 +356,13 @@ namespace askap
 	    flagBoundary = flagBoundary || ( src.getZmin()<threshV );
 	    flagBoundary = flagBoundary || ( (itsCube.getDimZ()-src.getZmax())<threshV ); 
 	  }
-	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<"("<<i+1
-			    <<") bdry="<<flagBoundary<<", doFit="<<itsFlagDoFit
-			    <<", xmin="<<src.getXmin()<<", xmax="<<src.getXmax()
-			    <<", ymin="<<src.getYmin()<<", ymax="<<src.getYmax()
-			    <<", zmin="<<src.getZmin()<<", zmax="<<src.getZmax()
-			    );
+	  if(this->itsNNode==1) flagBoundary=false;
+// 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<"("<<i+1
+// 			    <<") bdry="<<flagBoundary<<", doFit="<<itsFlagDoFit
+// 			    <<", xmin="<<src.getXmin()<<", xmax="<<src.getXmax()
+// 			    <<", ymin="<<src.getYmin()<<", ymax="<<src.getYmax()
+// 			    <<", zmin="<<src.getZmin()<<", zmax="<<src.getZmax()
+// 			    );
 	  src.setAtEdge(flagBoundary);
 	  if(!flagBoundary && itsFlagDoFit){
 	    src.fitGauss(itsCube.getArray(),itsCube.getDimArray());
@@ -621,32 +625,33 @@ namespace askap
 
       int numVox = itsVoxelList.size();
       int numObj = itsCube.getNumObj();
-      std::vector<PixelInfo::Voxel> templist[numObj];
-      for(int i=0;i<itsCube.getNumObj();i++){ 
-	// for each object, make a vector list of voxels that appear in it.
+      if(numObj>0){
+	std::vector<PixelInfo::Voxel> templist[numObj];
+	for(int i=0;i<itsCube.getNumObj();i++){ 
+	  // for each object, make a vector list of voxels that appear in it.
 	  
-	std::vector<PixelInfo::Voxel> 
-	  objVoxList=itsCube.getObject(i).getPixelSet();
-	std::vector<PixelInfo::Voxel>::iterator vox;
-	// get the fluxes of each voxel
-	for(vox=objVoxList.begin();vox<objVoxList.end();vox++){
-	  int ct=0;
-	  while(ct<numVox && !vox->match(itsVoxelList[ct])){
-	    ct++;
+	  std::vector<PixelInfo::Voxel> 
+	    objVoxList=itsCube.getObject(i).getPixelSet();
+	  std::vector<PixelInfo::Voxel>::iterator vox;
+	  // get the fluxes of each voxel
+	  for(vox=objVoxList.begin();vox<objVoxList.end();vox++){
+	    int ct=0;
+	    while(ct<numVox && !vox->match(itsVoxelList[ct])){
+	      ct++;
+	    }
+	    if(numVox!=0 && ct==numVox){ // there has been no match -- problem!
+	      ASKAPLOG_ERROR(logger, "MASTER: Found a voxel in the object lists that doesn't appear in the base list.");
+	    }
+	    else vox->setF( itsVoxelList[ct].getF() );
 	  }
-	  if(numVox!=0 && ct==numVox){ // there has been no match -- problem!
-	    ASKAPLOG_ERROR(logger, "MASTER: Found a voxel in the object lists that doesn't appear in the base list.");
-	  }
-	  else vox->setF( itsVoxelList[ct].getF() );
+	
+	  templist[i] = objVoxList;
+	
 	}
-	
-	templist[i] = objVoxList;
-	
-      }
-      std::vector< std::vector<PixelInfo::Voxel> > 
-	bigVoxSet (templist, templist + numObj);
-      itsCube.calcObjectWCSparams(bigVoxSet);
-      
+	std::vector< std::vector<PixelInfo::Voxel> > 
+	  bigVoxSet (templist, templist + numObj);
+	itsCube.calcObjectWCSparams(bigVoxSet);
+      }      
     }
 
     //**************************************************************//
