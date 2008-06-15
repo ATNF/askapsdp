@@ -133,7 +133,7 @@ void timeFunction(void (*timedFunction)(const int, const T*, const U, T*))
   }
 }
 
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
   cout << "Short int" << endl;
   timeFunction<short int, short int>(&saxpy<short int, short int>);
