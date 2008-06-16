@@ -64,7 +64,7 @@ BasicCompositeIllumination::BasicCompositeIllumination(const boost::shared_ptr<I
       for (casa::uInt iFeed = 0; iFeed<feedOffsets.nelements(); ++iFeed) {
            const casa::RigidVector<casa::Double, 2> &offset = feedOffsets[iFeed];
            // use tolerance around 1 nanoarcsecond
-           if ((abs(offset(0))>5e-15) || (abs(offset(1))>5e-15)) {
+           if ((std::abs(offset(0))>5e-15) || (std::abs(offset(1))>5e-15)) {
                itsSymmetricFlag = false;
                break;
            }
