@@ -197,7 +197,11 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
 /// could be optimized by using symmetries.
 /// @todo Make initConvolutionFunction more robust
 void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
-
+ 
+    ASKAPDEBUGASSERT(itsIllumination);
+    // just to avoid a repeated call to a virtual function from inside the loop
+    const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
+    
 	casa::MVDirection out = getImageCentre();
 	const int nSamples = acc.nRow();
 
@@ -235,12 +239,14 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 					*cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
 					*cos(offset.getLong()-out.getLong());
 
-
+            const double parallacticAngle = hasSymmetricIllumination ? 0. : acc.feed1PA()(row);
+            
 			for (int chan=0; chan<nChan; chan++) {
 				/// Extract illumination pattern for this channel
 				itsIllumination->getPattern(acc.frequency()[chan], pattern,
 				         itsSlopes(0, feed, itsCurrentField),
-				         itsSlopes(1, feed, itsCurrentField));
+				         itsSlopes(1, feed, itsCurrentField), 
+				         parallacticAngle);
 				         
 				/// Now convolve the disk with itself
 				fft2d(pattern.pattern(), false);

@@ -188,6 +188,11 @@ void AWProjectVisGridder::initIndices(const IConstDataAccessor& acc) {
 void AWProjectVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
 	casa::MVDirection out = getImageCentre();
 	const int nSamples = acc.nRow();
+	
+	ASKAPDEBUGASSERT(itsIllumination);
+    // just to avoid a repeated call to a virtual function from inside the loop
+    const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
+	
 
 	/// We have to calculate the lookup function converting from
 	/// row and channel to plane of the w-dependent convolution
@@ -245,12 +250,14 @@ void AWProjectVisGridder::initConvolutionFunction(const IConstDataAccessor& acc)
 					*cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
 					*cos(offset.getLong()-out.getLong());
 
+            const double parallacticAngle = hasSymmetricIllumination ? 0. : acc.feed1PA()(row);
+ 
 			for (int chan=0; chan<nChan; ++chan) {
 					
 				/// Extract illumination pattern for this channel
 				itsIllumination->getPattern(acc.frequency()[chan], pattern,
 				         itsSlopes(0, feed, itsCurrentField),
-				         itsSlopes(1, feed, itsCurrentField));
+				         itsSlopes(1, feed, itsCurrentField), parallacticAngle);
 
 				fft2d(pattern.pattern(), false);
 

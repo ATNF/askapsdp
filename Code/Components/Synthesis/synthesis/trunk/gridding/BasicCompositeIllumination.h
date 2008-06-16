@@ -57,7 +57,6 @@ namespace synthesis {
 /// inside gridders has to be generalised (i.e. main method should receive a full accessor
 /// with all the metadata instead of just the pointing offsets, frequency, etc). Such 
 /// transition would definitely require an interface change in this class.
-/// @todo Need proper handling of parallactic angle
 /// @ingroup gridding
 struct BasicCompositeIllumination : public IBasicIllumination {
    /// @brief construct the pattern using given weights and offsets
@@ -83,6 +82,14 @@ struct BasicCompositeIllumination : public IBasicIllumination {
    /// uv-coordinate system and the system where the pattern is defined
    virtual void getPattern(double freq, UVPattern &pattern, double l = 0., 
                            double m = 0., double pa = 0.) const;
+ 
+   /// @brief check whether the pattern is symmetric
+   /// @details Some illumination patterns are trivial and it may be known a priori that
+   /// the pattern does not depend on the parallactic angle. This method allows to check
+   /// whether such trivial case exists. If true is returned, getPattern ignores pa
+   /// parameter.
+   /// @return true if the pattern is symmetric, false otherwise
+   virtual bool isSymmetric() const;
             
 private:
    /// @brief single-feed illumination pattern (assumed the same for all feeds)
@@ -93,6 +100,12 @@ private:
    
    /// @brief complex weights for each physical feed
    casa::Vector<casa::Complex> itsWeights;
+   
+   /// @brief flag showing that this pattern is symmetric
+   /// @details Whether or not it is the case depends on the assigned offsets
+   /// (i.e. any non-zero offset means automatically that this pattern is asymmetric,
+   /// it is checked in the constructor)
+   bool itsSymmetricFlag;
 };
 
 } // namespace synthesis

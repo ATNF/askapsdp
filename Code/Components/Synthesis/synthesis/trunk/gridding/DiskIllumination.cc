@@ -124,3 +124,12 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
     ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
     pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
 }
+
+/// @brief check whether the pattern is symmetric
+/// @details Some illumination patterns like this one are trivial and known a priori to
+/// be symmetric. This method always returns true to reflect this
+/// @return always true 
+bool DiskIllumination::isSymmetric() const
+{
+  return true;
+}

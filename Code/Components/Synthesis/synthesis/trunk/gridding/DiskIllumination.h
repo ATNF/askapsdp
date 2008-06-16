@@ -63,6 +63,13 @@ struct DiskIllumination : virtual public IBasicIllumination {
   /// uv-coordinate system and the system where the pattern is defined (unused)
   virtual void getPattern(double freq, UVPattern &pattern, double l = 0., 
                           double m = 0., double pa = 0.) const;
+
+  /// @brief check whether the pattern is symmetric
+  /// @details Some illumination patterns like this one are trivial and known a priori to
+  /// be symmetric. This method always returns true to reflect this
+  /// @return always true 
+  virtual bool isSymmetric() const;
+
 private:
   /// @brief disk diameter in metres
   double itsDiameter;

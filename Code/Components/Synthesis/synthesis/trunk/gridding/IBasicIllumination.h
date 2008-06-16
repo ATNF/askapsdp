@@ -61,6 +61,14 @@ struct IBasicIllumination {
   virtual void getPattern(double freq, UVPattern &pattern, double l = 0., 
                           double m = 0., double pa = 0.) const = 0;
   
+  /// @brief check whether the pattern is symmetric
+  /// @details Some illumination patterns are trivial and it may be known a priori that
+  /// the pattern does not depend on the parallactic angle. This method allows to check
+  /// whether such trivial case exists. If true is returned, getPattern ignores pa
+  /// parameter.
+  /// @return true if the pattern is symmetric, false otherwise
+  virtual bool isSymmetric() const = 0;
+  
   /// @brief empty virtual destructor to keep the compiler happy
   virtual ~IBasicIllumination();
 };

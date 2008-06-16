@@ -55,10 +55,25 @@ namespace synthesis {
 BasicCompositeIllumination::BasicCompositeIllumination(const boost::shared_ptr<IBasicIllumination> &pattern,
             const casa::Vector<casa::RigidVector<casa::Double, 2> > &feedOffsets,
             const casa::Vector<casa::Complex> &weights) : itsPattern(pattern),
-            itsFeedOffsets(feedOffsets), itsWeights(weights)
+            itsFeedOffsets(feedOffsets), itsWeights(weights), itsSymmetricFlag(true)
 {
    ASKAPDEBUGASSERT(itsPattern);
    ASKAPDEBUGASSERT(itsFeedOffsets.nelements() == itsWeights.nelements());
+   if (itsPattern->isSymmetric()) {
+      // iterate through all offsets and check whether any of them is non-zero
+      for (casa::uInt iFeed = 0; iFeed<feedOffsets.nelements(); ++iFeed) {
+           const casa::RigidVector<casa::Double, 2> &offset = feedOffsets[iFeed];
+           // use tolerance around 1 nanoarcsecond
+           if ((abs(offset(0))>5e-15) || (abs(offset(1))>5e-15)) {
+               itsSymmetricFlag = false;
+               break;
+           }
+      }
+   } else {
+      // single-feed illumination pattern is asymmetric. Hence, the composite pattern is
+      // also asymmetric.
+      itsSymmetricFlag = false;
+   }
 }
 
 /// @brief obtain illumination pattern
@@ -91,9 +106,11 @@ void BasicCompositeIllumination::getPattern(double freq, UVPattern &pattern, dou
    
    double sum=0.; // normalisation factor
    
-   casa::SquareMatrix<casa::Double, 2> rotation(cos(pa));
-   rotation(0,1) = sin(pa);
-   rotation(1,0) = -rotation(0,1);
+   casa::SquareMatrix<casa::Double, 2> rotation(itsSymmetricFlag ? 0. : cos(pa));
+   if (!itsSymmetricFlag) {
+       rotation(0,1) = sin(pa);
+       rotation(1,0) = -rotation(0,1);
+   }
         
    for (casa::uInt iU=0; iU<nU; ++iU) {
 	    const double offsetU = double(iU)-double(nU)/2.;
@@ -105,7 +122,9 @@ void BasicCompositeIllumination::getPattern(double freq, UVPattern &pattern, dou
                   // compilers. We have to use operator*= instead (operator*= is
                   // equivalent to v=Mv, rather than v=vM according to inline doc).
                   casa::RigidVector<casa::Double, 2> feedOffset(itsFeedOffsets[iFeed]);
-                  feedOffset *= rotation;
+                  if (!itsSymmetricFlag) {
+                      feedOffset *= rotation;
+                  }
                   // don't need to multiply by wavelength here because the
 			      // illumination pattern is given
 			      // in a relative coordinates in frequency
@@ -121,6 +140,17 @@ void BasicCompositeIllumination::getPattern(double freq, UVPattern &pattern, dou
 	
     ASKAPCHECK(sum > 0., "Integral of the synthetic pattern should be non-zero");
     pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.); 
+}
+
+/// @brief check whether the pattern is symmetric
+/// @details Some illumination patterns are trivial and it may be known a priori that
+/// the pattern does not depend on the parallactic angle. This method allows to check
+/// whether such trivial case exists. If true is returned, getPattern ignores pa
+/// parameter.
+/// @return true if the pattern is symmetric, false otherwise
+bool BasicCompositeIllumination::isSymmetric() const
+{
+  return itsSymmetricFlag;
 }
 
 } // namespace synthesis
