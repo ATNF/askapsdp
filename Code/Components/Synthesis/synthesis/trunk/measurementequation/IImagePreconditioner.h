@@ -47,20 +47,18 @@ namespace askap
     class IImagePreconditioner 
     {
       public:
-	/// Shared pointer definition
-	typedef boost::shared_ptr<IImagePreconditioner> ShPtr;
-	
-        /// @brief Constructor from parameters.
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
-        IImagePreconditioner();
+   	    /// Shared pointer definition
+	    typedef boost::shared_ptr<IImagePreconditioner> ShPtr;
+	        
+        /// @brief empty virtual destructor to keep the compiler happy
         virtual ~IImagePreconditioner();
 
-	/// @brief Apply preconditioning to Image Arrays
-	/// @details It is applied to the PSF as well as the current residual image.
-	/// @param[in] psf an array with the PSF
-	/// @param[in] dirty an array with dirty image
-	virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
+	    /// @brief Apply preconditioning to Image Arrays
+	    /// @details It is applied to the PSF as well as the current residual image.
+	    /// @param[in] psf an array with the PSF
+	    /// @param[in] dirty an array with dirty image
+	    /// @return true if psf and dirty have been altered
+	    virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
     };
 
   }

@@ -27,16 +27,12 @@ namespace askap
 {
   namespace synthesis
   {
-
-    IImagePreconditioner::IImagePreconditioner() 
-    {
-    }
     
     IImagePreconditioner::~IImagePreconditioner() 
     {
     }
     
-    bool IImagePreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) 
+    bool IImagePreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
       return false;
     }

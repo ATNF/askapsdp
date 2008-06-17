@@ -51,18 +51,14 @@ namespace askap
     {
       public:
 
-        /// @brief Constructor from parameters.
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
+        /// @brief default constructor with zero noise power
+        /// @note do we really need it?
         WienerPreconditioner();
         
-        /// @brief constructor with explicitly defined noise poiwer
+        /// @brief constructor with explicitly defined noise power
         /// @param[in] noisepower parameter of the 
-        WienerPreconditioner(float& noisepower);
+        WienerPreconditioner(const float& noisepower);
         
-        /// @brief destructor
-        ~WienerPreconditioner();
-
         /// @brief Clone this object
         /// @return shared pointer to a cloned copy
         virtual IImagePreconditioner::ShPtr clone();
@@ -72,7 +68,8 @@ namespace askap
 	    /// It is applied to the PSF as well as the current residual image.
 	    /// @param[in] psf array with PSF
 	    /// @param[in] dirty array with dirty image
-	    bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
+	    /// @return true if psf and dirty have been altered
+	    bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
 
       private:
   	    /// @brief Noise Power Spectrum

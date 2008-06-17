@@ -54,25 +54,20 @@ namespace askap
     {
     }
     
-    WienerPreconditioner::WienerPreconditioner(float& noisepower) :
+    WienerPreconditioner::WienerPreconditioner(const float& noisepower) :
 	    itsNoisePower(noisepower)
     {
     }
-    
-    WienerPreconditioner::~WienerPreconditioner() 
-    {
-    }
-    
-    WienerPreconditioner::ShPtr WienerPreconditioner::clone()
+        
+    IImagePreconditioner::ShPtr WienerPreconditioner::clone()
     {
 	    return IImagePreconditioner::ShPtr(new WienerPreconditioner(*this));
     }
     
-    bool WienerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
+    bool WienerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
-      if(itsNoisePower > 1e-06)
-      {
-	ASKAPLOG_INFO_STR(logger, "Applying Wiener filter with noise power " << itsNoisePower);
+      if(itsNoisePower > 1e-06) {
+	   ASKAPLOG_INFO_STR(logger, "Applying Wiener filter with noise power " << itsNoisePower);
 
        casa::ArrayLattice<float> lpsf(psf);
        casa::ArrayLattice<float> ldirty(dirty);
@@ -108,9 +103,8 @@ namespace askap
 
        return true;
       }
-      else
-      {
-	return false;
+      else {
+	    return false;
       }
 
     }
