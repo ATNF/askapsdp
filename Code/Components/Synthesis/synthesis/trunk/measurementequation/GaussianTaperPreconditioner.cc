@@ -30,6 +30,21 @@
 
 #include <measurementequation/GaussianTaperPreconditioner.h>
 
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
+
+#include <askap/AskapError.h>
+
+#include <lattices/Lattices/ArrayLattice.h>
+#include <lattices/Lattices/LatticeFFT.h>
+#include <lattices/Lattices/LatticeExpr.h>
+#include <casa/BasicSL/Constants.h>
+#include <casa/Arrays/ArrayMath.h>
+#include <scimath/Mathematics/SquareMatrix.h>
+#include <scimath/Mathematics/RigidVector.h>
+
+
 namespace askap {
 
 namespace synthesis {
@@ -72,7 +87,77 @@ IImagePreconditioner::ShPtr GaussianTaperPreconditioner::clone()
 /// @return true if psf and dirty have been altered
 bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
 {
-  return false;
+  ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<itsMajorAxis*sqrt(8.*log(2.))<<" x "<<
+                    itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at position angle "<<itsPA/M_PI*180.<<" degrees");
+  ASKAPDEBUGASSERT(psf.shape() == dirty.shape());
+  
+  applyTaper(psf);
+  applyTaper(dirty);
+    
+  return true;
+}
+
+/// @brief a helper method to apply the taper to one given array
+/// @details We need exactly the same operation for psf and dirty image. This method
+/// encapsulates the code which is actually doing the job. It is called twice from
+/// doPreconditioning.
+/// @param[in] image an image to apply the taper to
+void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
+{
+  casa::ArrayLattice<float> lattice(image);
+  
+  // Setup work arrays.
+  const casa::IPosition shape = lattice.shape();
+  casa::ArrayLattice<casa::Complex> scratch(shape);
+  if (shape != itsTaperCache.shape()) {
+      initTaperCache(shape);
+  }
+  
+  // fft to transform the image into uv-domain
+  scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lattice)));
+  casa::LatticeFFT::cfft2d(scratch, true);
+  
+  // apply the taper
+  casa::ArrayLattice<casa::Complex> taper(itsTaperCache);
+  scratch.copyData(casa::LatticeExpr<casa::Complex> (taper * scratch));
+  
+  // transform back to the image domain
+  casa::LatticeFFT::cfft2d(scratch, false);
+  lattice.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+}
+
+/// @brief a helper method to build the lattice representing the taper
+/// @details applyTaper can be reused many times for the same taper. This 
+/// method populates the cached array with proper values corresponding
+/// to the taper.
+/// @param[in] shape shape of the required array
+void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) const
+{
+  ASKAPDEBUGASSERT(shape.nelements() == 2);
+  itsTaperCache.resize(shape);
+  const casa::Int nx = shape[0];
+  const casa::Int ny = shape[1];
+  casa::IPosition index(2,0);
+  casa::SquareMatrix<casa::Double, 2> rotation(cos(itsPA));
+  // rotation direction is flipped here as we rotate the gaussian, not
+  // the coordinate
+  rotation(1,0) = sin(itsPA);
+  rotation(0,1) = -rotation(1,0);
+  
+  const double normFactor = itsMajorAxis*itsMinorAxis/M_PI;
+  for (index[0] = 0; index[0]<nx; ++index[0]) {
+       for (index[1] = 0; index[1]<ny; ++index[1]) {
+            casa::RigidVector<casa::Double, 2> offset;
+            offset(0) = (double(index[0])-double(nx)/2.);
+            offset(1) = (double(index[1])-double(ny)/2.);
+            // operator* is commented out in RigidVector due to
+            // problems with some compilers. We have to use operator*= instead.
+            // according to manual it is equivalent to v=Mv, rather than to v=v*M
+            offset *= rotation;
+            itsTaperCache(index) = normFactor * exp(-casa::square(offset(0)/itsMajorAxis)/2.-
+                       casa::square(offset(1)/itsMinorAxis)/2.);
+       }
+  }
 }
 
 } // namespace synthesis

@@ -71,7 +71,21 @@ public:
    /// @param[in] dirty array with dirty image
    /// @return true if psf and dirty have been altered
    virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
-      
+protected:
+   /// @brief a helper method to apply the taper to one given array
+   /// @details We need exactly the same operation for psf and dirty image. This method
+   /// encapsulates the code which is actually doing the job. It is called twice from
+   /// doPreconditioning.
+   /// @param[in] image an image to apply the taper to
+   void applyTaper(casa::Array<float> &image) const;
+   
+   /// @brief a helper method to build the lattice representing the taper
+   /// @details applyTaper can be reused many times for the same taper. This 
+   /// method populates the cached array with proper values corresponding
+   /// to the taper.
+   /// @param[in] shape shape of the required array
+   void initTaperCache(const casa::IPosition &shape) const;
+   
 private:
    /// @brief Major axis (sigma, rather than FWHM) in the units of uv-cells
    double itsMajorAxis;
@@ -79,6 +93,9 @@ private:
    double itsMinorAxis;
    /// @brief position angle in radians
    double itsPA;
+   /// @brief cache of the taper image
+   /// @note May be we can make it float?
+   mutable casa::Array<casa::Complex> itsTaperCache;
 };
 
 } // namespace synthesis
