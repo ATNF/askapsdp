@@ -73,7 +73,7 @@ namespace askap
        casa::ArrayLattice<float> ldirty(dirty);
        
        // Setup work arrays.
-       IPosition valShape = lpsf.shape();
+       const IPosition valShape = lpsf.shape();
        casa::ArrayLattice<casa::Complex> weinerfilter(valShape);
        casa::ArrayLattice<casa::Complex> scratch(valShape);
        
