@@ -34,6 +34,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/ImageMSMFSolver.h>
 #include <measurementequation/IImagePreconditioner.h>
 #include <measurementequation/WienerPreconditioner.h>
+#include <measurementequation/GaussianTaperPreconditioner.h>
 
 using namespace askap::scimath;
 
@@ -99,20 +100,39 @@ namespace askap
       {
         for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) 
         {
-          if( (*pc)=="Wiener" )
-	  {
-	    float noisepower = parset.getFloat("preconditioner.Wiener.noisepower",0.0);
-            solver->addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
-	  }
+          if ( (*pc)=="Wiener" ) {
+	          float noisepower = parset.getFloat("preconditioner.Wiener.noisepower",0.0);
+              solver->addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
+	      }
+	      if ( (*pc) == "GaussianTaper") {
+	          // at this stage we have to define tapers in uv-cells, rather than in klambda
+	          // because the physical cell size is unknown to solver factory. 
+	          // Theoretically we could parse the parameters here and extract the cell size and
+	          // shape, but it can be defined separately for each image. We need to find
+	          // the way of dealing with this complication.
+	          ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper.fwhm"), 
+	                "preconditioner.GaussianTaper.fwhm should be defined to use GaussianTaper");
+	          const vector<double> fwhm = parset.getDoubleVector("preconditioner.GaussianTaper.fwhm");
+	          ASKAPCHECK((fwhm.size()<=2) && fwhm.size(), 
+	                     "preconditioner.GaussianTaper.fwhm can have either single element or "
+	                     " a vector of two elements. You supplied the vector of "<<fwhm.size()<<" elements");     
+	          if (fwhm.size() == 2) {
+	              ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper.pa"), 
+	                    "Position angle (preconditioner.GaussianTaper.pa) is required for non-circular gaussians");
+	                    
+	              const std::string pa = parset.getString("preconditioner.GaussianTaper.fwhm");
+	              casa::Quantity qpa;
+	              casa::Quantity::read(qpa, pa);
+	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(fwhm[0],fwhm[1],
+	                         qpa.getValue("rad"))));	                         
+	          } else {
+	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(fwhm[0])));	          
+	          }          
+	      }
 	  /*
-	     if( (*pc)=="UVTaper" ) // take input in units of "klambda". Make this a "measures" thing...
-	     {
-	     float uvwidth = parset.getFloat("preconditioner.UVTaper.uvwidth",);
-	     solver->addPreconditioner(IPreconditioner::ShPtr(new UVTaperPreconditioner(uvwidth)));
-	     }
 	     if( (*pc)=="ApproxPsf" ) //later, add the option of specifying a beam, or fitting for it.
 	     {
-	     solver->addPreconditioner(IPreconditioner::ShPtr(new ApproxPsfPreconditioner()));
+	     solver->addPreconditioner(IImagePreconditioner::ShPtr(new ApproxPsfPreconditioner()));
 	     }
 	   */
 	}
