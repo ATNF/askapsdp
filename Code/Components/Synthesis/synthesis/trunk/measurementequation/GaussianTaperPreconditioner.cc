@@ -158,8 +158,9 @@ void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) c
   
   // the following formula introduces some error if position angle is not 0
   // may be we need just to sum values?
-  const double normFactor = 2.*M_PI*itsMajorAxis*itsMinorAxis*erf(double(nx)/(2.*sqrt(2.)*itsMajorAxis))*
-              erf(double(ny)/(2.*sqrt(2.)*itsMinorAxis));
+  //const double normFactor = 2.*M_PI*itsMajorAxis*itsMinorAxis*erf(double(nx)/(2.*sqrt(2.)*itsMajorAxis))*
+  //            erf(double(ny)/(2.*sqrt(2.)*itsMinorAxis));
+  double sum = 0.;            
   for (index[0] = 0; index[0]<nx; ++index[0]) {
        for (index[1] = 0; index[1]<ny; ++index[1]) {
             casa::RigidVector<casa::Double, 2> offset;
@@ -169,10 +170,13 @@ void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) c
             // problems with some compilers. We have to use operator*= instead.
             // according to manual it is equivalent to v=Mv, rather than to v=v*M
             offset *= rotation;
-            itsTaperCache(index) = normFactor * exp(-casa::square(offset(0)/itsMajorAxis)/2.-
+            const double taperingFactor = exp(-casa::square(offset(0)/itsMajorAxis)/2.-
                        casa::square(offset(1)/itsMinorAxis)/2.);
+            sum += taperingFactor;
+            itsTaperCache(index) = taperingFactor;
        }
   }
+  itsTaperCache *= casa::Complex(sum,0.);
 }
 
 } // namespace synthesis
