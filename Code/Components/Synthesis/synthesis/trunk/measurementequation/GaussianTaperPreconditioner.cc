@@ -156,8 +156,10 @@ void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) c
   rotation(1,0) = sin(itsPA);
   rotation(0,1) = -rotation(1,0);
   
-  
-  const double normFactor = itsMajorAxis*itsMinorAxis/M_PI;
+  // the following formula introduces some error if position angle is not 0
+  // may be we need just to sum values?
+  const double normFactor = 2.*M_PI*itsMajorAxis*itsMinorAxis*erf(double(nx)/(2.*sqrt(2.)*itsMajorAxis))*
+              erf(double(ny)/(2.*sqrt(2.)*itsMinorAxis));
   for (index[0] = 0; index[0]<nx; ++index[0]) {
        for (index[1] = 0; index[1]<ny; ++index[1]) {
             casa::RigidVector<casa::Double, 2> offset;
