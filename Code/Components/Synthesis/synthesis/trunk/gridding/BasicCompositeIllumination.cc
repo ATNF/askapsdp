@@ -106,8 +106,9 @@ void BasicCompositeIllumination::getPattern(double freq, UVPattern &pattern, dou
    
    double sum=0.; // normalisation factor
    
-   casa::SquareMatrix<casa::Double, 2> rotation(itsSymmetricFlag ? 0. : cos(pa));
+   casa::SquareMatrix<casa::Double, 2> rotation(casa::SquareMatrix<casa::Double, 2>::General);
    if (!itsSymmetricFlag) {
+       rotation(0,0) = rotation(1,1) = cos(pa);
        rotation(0,1) = sin(pa);
        rotation(1,0) = -rotation(0,1);
    }

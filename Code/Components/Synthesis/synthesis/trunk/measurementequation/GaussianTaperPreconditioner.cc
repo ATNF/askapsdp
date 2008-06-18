@@ -89,7 +89,7 @@ bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, cas
 {
   ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<itsMajorAxis*sqrt(8.*log(2.))<<" x "<<
                     itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at position angle "<<itsPA/M_PI*180.<<" degrees");
-  ASKAPDEBUGASSERT(psf.shape() == dirty.shape());
+  ASKAPDEBUGASSERT(psf.shape().isEqual(dirty.shape()));
   
   applyTaper(psf);
   applyTaper(dirty);
@@ -109,7 +109,8 @@ void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
   // Setup work arrays.
   const casa::IPosition shape = lattice.shape();
   casa::ArrayLattice<casa::Complex> scratch(shape);
-  if (shape != itsTaperCache.shape()) {
+  
+  if (!shape.isEqual(itsTaperCache.shape())) {
       initTaperCache(shape);
   }
   
@@ -133,16 +134,28 @@ void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
 /// @param[in] shape shape of the required array
 void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) const
 {
-  ASKAPDEBUGASSERT(shape.nelements() == 2);
+  ASKAPDEBUGASSERT(shape.nelements() >= 2);
+
+#ifdef ASKAP_DEBUG
+  // if shape is exactly 2, nonDegenerate(2) would throw an exception. Hence, we need
+  // a special check to avoid this.
+  if (shape.nelements() > 2) {
+     ASKAPASSERT(shape.nonDegenerate(2).nelements() == 2);
+  }
+#endif  
+
   itsTaperCache.resize(shape);
   const casa::Int nx = shape[0];
   const casa::Int ny = shape[1];
-  casa::IPosition index(2,0);
-  casa::SquareMatrix<casa::Double, 2> rotation(cos(itsPA));
+  casa::IPosition index(shape.nelements(),0);
+  casa::SquareMatrix<casa::Double, 2> rotation(casa::SquareMatrix<casa::Double, 2>::General);
   // rotation direction is flipped here as we rotate the gaussian, not
   // the coordinate
+
+  rotation(0,0) = rotation(1,1) = cos(itsPA);
   rotation(1,0) = sin(itsPA);
   rotation(0,1) = -rotation(1,0);
+  
   
   const double normFactor = itsMajorAxis*itsMinorAxis/M_PI;
   for (index[0] = 0; index[0]<nx; ++index[0]) {
