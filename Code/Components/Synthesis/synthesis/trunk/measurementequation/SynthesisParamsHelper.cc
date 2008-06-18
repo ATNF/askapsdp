@@ -46,6 +46,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <coordinates/Coordinates/Projection.h>
 
 #include <APS/ParameterSet.h>
+#include <APS/Exceptions.h>
 #include <Common/Exception.h>
 
 #include <measures/Measures/Stokes.h>
@@ -91,17 +92,26 @@ namespace askap
     void SynthesisParamsHelper::setUpImages(const askap::scimath::Params::ShPtr& params,
 				const LOFAR::ACC::APS::ParameterSet &parset)
     {
-	  vector<string> images=parset.getStringVector("Names");
-      for (vector<string>::iterator it=images.begin();it!=images.end();it++) {
-           std::vector<int> shape=parset.getInt32Vector(*it+".shape");
-           int nchan=parset.getInt32(*it+".nchan");
-           std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
-           std::vector<std::string> direction=parset.getStringVector(*it+".direction");
-           std::vector<std::string> cellsize=parset.getStringVector(*it+".cellsize");
-
-		   add(*params, *it, direction, cellsize, shape,
-						freq[0], freq[1], nchan);
-	   }
+      try {
+	     vector<string> images=parset.getStringVector("Names");
+         std::vector<int> shape=parset.getInt32Vector("shape");
+         std::vector<std::string> cellsize=parset.getStringVector("cellsize");
+	  
+         for (vector<string>::iterator it=images.begin();it!=images.end();it++) {
+              int nchan=parset.getInt32(*it+".nchan");
+              std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
+              std::vector<std::string> direction=parset.getStringVector(*it+".direction");
+              ASKAPCHECK(!parset.isDefined(*it+".shape"), "Parameters like Cimager.Images."<<*it<<
+                         ".shape are deprecated. Use Cimager.Images.shape (same for all images)");
+              ASKAPCHECK(!parset.isDefined(*it+".cellsize"), "Parameters like Cimager.Images."<<*it<<
+                         ".cellsize are deprecated. Use Cimager.Images.cellsize (same for all images)");
+                      
+		      add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan);
+	     }
+	  }
+	  catch (const LOFAR::ACC::APS::APSException &ex) {
+	      throw AskapError(ex.what());
+	  }
 	}
     
     
