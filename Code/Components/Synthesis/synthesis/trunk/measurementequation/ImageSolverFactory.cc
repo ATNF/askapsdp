@@ -135,7 +135,7 @@ namespace askap
 	                    "Position angle (preconditioner.GaussianTaper.pa) is required for non-circular gaussians");
 	                    
 	              const double pa = SynthesisParamsHelper::convertQuantity(
-	                      parset.getString("preconditioner.GaussianTaper.fwhm"),"rad");
+	                      parset.getString("preconditioner.GaussianTaper.pa"),"rad");
 
 	              ASKAPDEBUGASSERT((fwhm[0]!=0) && (fwhm[1]!=0));              
 	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(

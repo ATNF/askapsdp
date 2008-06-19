@@ -176,6 +176,7 @@ void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) c
             itsTaperCache(index) = taperingFactor;
        }
   }
+  //std::cout<<"normFactor/sum: "<<normFactor/sum<<std::endl;
   itsTaperCache *= casa::Complex(sum,0.);
 }
 
