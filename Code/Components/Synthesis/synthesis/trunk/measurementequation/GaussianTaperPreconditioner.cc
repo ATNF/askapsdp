@@ -152,8 +152,8 @@ void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) c
   // rotation direction is flipped here as we rotate the gaussian, not
   // the coordinate
 
-  rotation(0,0) = rotation(1,1) = cos(itsPA);
-  rotation(1,0) = sin(itsPA);
+  rotation(0,0) = rotation(1,1) = sin(itsPA);
+  rotation(1,0) = cos(itsPA);
   rotation(0,1) = -rotation(1,0);
   
   // the following formula introduces some error if position angle is not 0

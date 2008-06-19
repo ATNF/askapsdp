@@ -141,9 +141,17 @@ namespace askap
 	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(
 	                     xFactor/fwhm[0],yFactor/fwhm[1],pa)));	                         
 	          } else {
-	              ASKAPCHECK(std::abs(xFactor-yFactor)<4e-15, "Image is not square. Please specify a non-circular gaussian taper.");
 	              ASKAPDEBUGASSERT(fwhm[0]!=0);              	              
-	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/fwhm[0])));	          
+                  if (std::abs(xFactor-yFactor)<4e-15) {
+                      // the image is square, can use the short cut
+	                  solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/fwhm[0])));	                                
+                  } else {
+                      // the image is rectangular. Although the gaussian taper is symmetric in
+                      // angular coordinates, it will be elongated along the vertical axis in 
+                      // the uv-coordinates.
+	                  solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/fwhm[0],
+	                         yFactor/fwhm[1],0.)));	                                                      
+                  } 
 	          }          
 	      }
 	  /*
