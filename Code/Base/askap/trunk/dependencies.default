@@ -1,1 +1,2 @@
 log4cxx=3rdParty/log4cxx/default
+casacore=3rdParty/casacore/tags/casacore-0.3.0; casa_casa
