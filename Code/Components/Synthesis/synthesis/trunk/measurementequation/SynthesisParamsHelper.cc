@@ -143,20 +143,15 @@ namespace askap
     {
       int nx=shape[0];
       int ny=shape[1];
+      ASKAPCHECK(cellsize.size() == 2, "Cell size should have exactly 2 parameters, you have "<<cellsize.size());
+      ASKAPCHECK(direction.size() == 3, "Direction should have exactly 3 parameters, you have "<<direction.size());
+      ASKAPCHECK(direction[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<direction[2]);
       
-      casa::Quantity q;
+      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
+      const double ycellsize = convertQuantity(cellsize[1],"rad");
       
-      casa::Quantity::read(q, cellsize[0]);
-      double xcellsize=-1.0*q.getValue("rad");
-      
-      casa::Quantity::read(q, cellsize[1]);
-      double ycellsize=q.getValue("rad");
-      
-      casa::Quantity::read(q, direction[0]);
-      double ra=q.getValue("rad");
-      
-      casa::Quantity::read(q, direction[1]);
-      double dec=q.getValue("rad");
+      const double ra = convertQuantity(direction[0],"rad");
+      const double dec = convertQuantity(direction[1],"rad");
       
       /// @todo Do something with the frame info in direction[2]
       Axes axes;
@@ -169,6 +164,44 @@ namespace askap
       pixels.set(0.0);
       axes.add("FREQUENCY", freqmin, freqmax);
       ip.add(name, pixels, axes);
+    }
+    
+    /// @brief A helper method to parse string of quantities
+    /// @details Many parameters in parset file are given as quantities or
+    /// vectors of quantities, e.g. [8.0arcsec,8.0arcsec]. This method allows
+    /// to parse vector of strings corresponding to such parameter and return
+    /// a vector of double values in the required units.
+    /// @param[in] strval input vector of strings
+    /// @param[in] unit required units (given as a string)
+    /// @return vector of doubles with converted values
+    std::vector<double> SynthesisParamsHelper::convertQuantity(const std::vector<std::string> &strval,
+                       const std::string &unit)
+    {
+       std::vector<double> result(strval.size());
+       std::vector<std::string>::const_iterator inIt = strval.begin();
+       for (std::vector<double>::iterator outIt = result.begin(); inIt != strval.end(); 
+                                                ++inIt,++outIt) {
+            ASKAPDEBUGASSERT(outIt != result.end());                                       
+            *outIt = convertQuantity(*inIt,unit);
+       }
+       return result;
+    }
+    
+    /// @brief A helper method to parse string of quantities
+    /// @details Many parameters in parset file are given as quantities or
+    /// vectors of quantities, e.g. 8.0arcsec. This method allows
+    /// to parse a single string corresponding to such a parameter and return
+    /// a double value converted to the requested units.
+    /// @param[in] strval input string
+    /// @param[in] unit required units (given as a string)
+    /// @return converted value
+    double SynthesisParamsHelper::convertQuantity(const std::string &strval,
+                       const std::string &unit)
+    {
+       casa::Quantity q;
+      
+       casa::Quantity::read(q, strval);
+       return q.getValue(casa::Unit(unit));
     }
     
     void SynthesisParamsHelper::saveAsCasaImage(const askap::scimath::Params& ip, const string& name,

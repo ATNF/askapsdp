@@ -35,6 +35,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/IImagePreconditioner.h>
 #include <measurementequation/WienerPreconditioner.h>
 #include <measurementequation/GaussianTaperPreconditioner.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 using namespace askap::scimath;
 
@@ -112,21 +113,37 @@ namespace askap
 	          // the way of dealing with this complication.
 	          ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper.fwhm"), 
 	                "preconditioner.GaussianTaper.fwhm should be defined to use GaussianTaper");
-	          const vector<double> fwhm = parset.getDoubleVector("preconditioner.GaussianTaper.fwhm");
+	          const vector<double> fwhm = SynthesisParamsHelper::convertQuantity(
+	                 parset.getStringVector("preconditioner.GaussianTaper.fwhm"),"rad");
 	          ASKAPCHECK((fwhm.size()<=2) && fwhm.size(), 
 	                     "preconditioner.GaussianTaper.fwhm can have either single element or "
 	                     " a vector of two elements. You supplied the vector of "<<fwhm.size()<<" elements");     
+	          ASKAPCHECK(parset.isDefined("Images.shape") && parset.isDefined("Images.cellsize"),
+	                 "Imager.shape and Imager.cellsize should be defined to convert the taper fwhm specified in "
+	                 "angular units in the image plane into uv cells");
+	          const std::vector<double> cellsize = SynthesisParamsHelper::convertQuantity(
+	                    parset.getStringVector("Images.cellsize"),"rad");
+	          const std::vector<int> shape = parset.getInt32Vector("Images.shape");
+	          ASKAPCHECK((cellsize.size() == 2) && (shape.size() == 2), 
+	              "Images.cellsize and Images.shape parameters should have exactly two values");
+	          // factors which appear in nominator are effectively half sizes in radians
+	          const double xFactor = cellsize[0]*double(shape[0])/2.;
+	          const double yFactor = cellsize[1]*double(shape[1])/2.;
+	          
 	          if (fwhm.size() == 2) {
 	              ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper.pa"), 
 	                    "Position angle (preconditioner.GaussianTaper.pa) is required for non-circular gaussians");
 	                    
-	              const std::string pa = parset.getString("preconditioner.GaussianTaper.fwhm");
-	              casa::Quantity qpa;
-	              casa::Quantity::read(qpa, pa);
-	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(fwhm[0],fwhm[1],
-	                         qpa.getValue("rad"))));	                         
+	              const double pa = SynthesisParamsHelper::convertQuantity(
+	                      parset.getString("preconditioner.GaussianTaper.fwhm"),"rad");
+
+	              ASKAPDEBUGASSERT((fwhm[0]!=0) && (fwhm[1]!=0));              
+	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(
+	                     xFactor/fwhm[0],yFactor/fwhm[1],pa)));	                         
 	          } else {
-	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(fwhm[0])));	          
+	              ASKAPCHECK(std::abs(xFactor-yFactor)<4e-15, "Image is not square. Please specify a non-circular gaussian taper.");
+	              ASKAPDEBUGASSERT(fwhm[0]!=0);              	              
+	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/fwhm[0])));	          
 	          }          
 	      }
 	  /*

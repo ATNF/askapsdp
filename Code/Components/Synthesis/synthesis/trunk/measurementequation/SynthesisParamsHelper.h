@@ -173,6 +173,27 @@ namespace askap
         static void update(askap::scimath::Params& ip, const string& name, 
           const casa::ImageInterface<float>& image);
         
+        /// @brief A helper method to parse strings of quantities
+        /// @details Many parameters in parset file are given as quantities or
+        /// vectors of quantities, e.g. [8.0arcsec,8.0arcsec]. This method allows
+        /// to parse vector of strings corresponding to such parameter and return
+        /// a vector of double values in the required units.
+        /// @param[in] strval input vector of strings
+        /// @param[in] unit required units (given as a string)
+        /// @return vector of doubles with converted values
+        static std::vector<double> convertQuantity(const std::vector<std::string> &strval,
+                       const std::string &unit);
+
+        /// @brief A helper method to parse string of quantities
+        /// @details Many parameters in parset file are given as quantities or
+        /// vectors of quantities, e.g. 8.0arcsec. This method allows
+        /// to parse a single string corresponding to such a parameter and return
+        /// a double value converted to the requested units.
+        /// @param[in] strval input string
+        /// @param[in] unit required units (given as a string)
+        /// @return converted value
+        static double convertQuantity(const std::string &strval,
+                       const std::string &unit);                       
     };
 
   }
