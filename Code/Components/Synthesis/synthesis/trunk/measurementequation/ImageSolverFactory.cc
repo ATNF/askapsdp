@@ -111,13 +111,13 @@ namespace askap
 	          // Theoretically we could parse the parameters here and extract the cell size and
 	          // shape, but it can be defined separately for each image. We need to find
 	          // the way of dealing with this complication.
-	          ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper.fwhm"), 
-	                "preconditioner.GaussianTaper.fwhm should be defined to use GaussianTaper");
-	          const vector<double> fwhm = SynthesisParamsHelper::convertQuantity(
-	                 parset.getStringVector("preconditioner.GaussianTaper.fwhm"),"rad");
-	          ASKAPCHECK((fwhm.size()<=2) && fwhm.size(), 
-	                     "preconditioner.GaussianTaper.fwhm can have either single element or "
-	                     " a vector of two elements. You supplied the vector of "<<fwhm.size()<<" elements");     
+	          ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper"), 
+	                "preconditioner.GaussianTaper showwing the taper size should be defined to use GaussianTaper");
+	          const vector<double> taper = SynthesisParamsHelper::convertQuantity(
+	                 parset.getStringVector("preconditioner.GaussianTaper"),"rad");
+	          ASKAPCHECK((taper.size() == 3) || (taper.size() == 1), 
+	                     "preconditioner.GaussianTaper can have either single element or "
+	                     " a vector of 3 elements. You supplied a vector of "<<taper.size()<<" elements");     
 	          ASKAPCHECK(parset.isDefined("Images.shape") && parset.isDefined("Images.cellsize"),
 	                 "Imager.shape and Imager.cellsize should be defined to convert the taper fwhm specified in "
 	                 "angular units in the image plane into uv cells");
@@ -130,27 +130,22 @@ namespace askap
 	          const double xFactor = cellsize[0]*double(shape[0])/2.;
 	          const double yFactor = cellsize[1]*double(shape[1])/2.;
 	          
-	          if (fwhm.size() == 2) {
-	              ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper.pa"), 
-	                    "Position angle (preconditioner.GaussianTaper.pa) is required for non-circular gaussians");
-	                    
-	              const double pa = SynthesisParamsHelper::convertQuantity(
-	                      parset.getString("preconditioner.GaussianTaper.pa"),"rad");
+	          if (taper.size() == 3) {
 
-	              ASKAPDEBUGASSERT((fwhm[0]!=0) && (fwhm[1]!=0));              
+	              ASKAPDEBUGASSERT((taper[0]!=0) && (taper[1]!=0));              
 	              solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(
-	                     xFactor/fwhm[0],yFactor/fwhm[1],pa)));	                         
+	                     xFactor/taper[0],yFactor/taper[1],taper[2])));	                         
 	          } else {
-	              ASKAPDEBUGASSERT(fwhm[0]!=0);              	              
+	              ASKAPDEBUGASSERT(taper[0]!=0);              	              
                   if (std::abs(xFactor-yFactor)<4e-15) {
                       // the image is square, can use the short cut
-	                  solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/fwhm[0])));	                                
+	                  solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/taper[0])));	                                
                   } else {
                       // the image is rectangular. Although the gaussian taper is symmetric in
                       // angular coordinates, it will be elongated along the vertical axis in 
                       // the uv-coordinates.
-	                  solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/fwhm[0],
-	                         yFactor/fwhm[1],0.)));	                                                      
+	                  solver->addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/taper[0],
+	                         yFactor/taper[0],0.)));	                                                      
                   } 
 	          }          
 	      }

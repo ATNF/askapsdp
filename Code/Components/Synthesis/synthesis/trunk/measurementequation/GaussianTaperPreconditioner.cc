@@ -88,7 +88,7 @@ IImagePreconditioner::ShPtr GaussianTaperPreconditioner::clone()
 bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
 {
   ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<itsMajorAxis*sqrt(8.*log(2.))<<" x "<<
-                    itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at position angle "<<itsPA/M_PI*180.<<" degrees");
+                    itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at the position angle of "<<itsPA/M_PI*180.<<" degrees");
   ASKAPDEBUGASSERT(psf.shape().isEqual(dirty.shape()));
   
   applyTaper(psf);

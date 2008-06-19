@@ -28,6 +28,7 @@
 #include <ImageDFTEquationTest.h>
 #include <ImageFFTEquationTest.h>
 #include <CalibrationMETest.h>
+#include <PreconditionerTests.h>
 
 int main( int argc, char **argv)
 {
@@ -37,6 +38,7 @@ int main( int argc, char **argv)
   runner.addTest( askap::synthesis::CalibrationMETest::suite() );
   //runner.addTest( askap::synthesis::ImageDFTEquationTest::suite() );
   runner.addTest( askap::synthesis::ImageFFTEquationTest::suite() );
+  runner.addTest( askap::synthesis::PreconditionerTests::suite() );
   runner.run();
   return 0;
 }
