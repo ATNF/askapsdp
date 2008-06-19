@@ -69,4 +69,4 @@ Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
 
 Cimager.preconditioner.Names			= [Wiener, GaussianTaper]
 Cimager.preconditioner.Wiener.noisepower	= 1000.0
-Cimager.preconditioner.GaussianTaper.fwhm	= 30arcsec
+Cimager.preconditioner.GaussianTaper            = 30arcsec
