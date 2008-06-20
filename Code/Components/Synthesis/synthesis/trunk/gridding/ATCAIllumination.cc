@@ -44,12 +44,65 @@ using namespace askap::synthesis;
 /// @param[in] diam disk diameter in metres
 /// @param[in] blockage a diameter of the central hole in metres
 ATCAIllumination::ATCAIllumination(double diam, double blockage) :
-   itsDiameter(diam), itsBlockage(blockage) 
+   itsDiameter(diam), itsBlockage(blockage), itsDoTapering(false), itsDoFeedLegs(false),
+   itsDoFeedLegWedges(false) 
 {
   ASKAPDEBUGASSERT(diam>0);
   ASKAPDEBUGASSERT(blockage>=0);  
   ASKAPDEBUGASSERT(diam > blockage);
 }
+
+/// @brief switch on the tapering simulation
+/// @details This method assigns defocusing phase and switches on the simulation of tapering.
+/// @param[in] maxDefocusingPhase the value of the phase in radians at the dish edge, it will
+/// be linearly increased with the radius to simulate defocusing
+void ATCAIllumination::simulateTapering(double maxDefocusingPhase)
+{
+  itsDoTapering = true;
+  itsMaxDefocusingPhase = maxDefocusingPhase;
+}
+  
+/// @brief switch on the feed leg simulation
+/// @details This method assigns parameters of the feed leg shadows and allows the
+/// simulation of feed legs. Calling this method also makes the pattern asymmetric.
+/// @param[in] width width in metres of each feed leg shadow
+/// @param[in] rotation angle in radians of the feed lag shadows with respect to u,v axes
+/// @param[in] shadowingFactor attenuation of the illumination caused by feed legs, assign
+/// zero to get a total blockage.
+void ATCAIllumination::simulateFeedLegShadows(double width, double rotation, 
+                                              double shadowingFactor)
+{
+  itsDoFeedLegs = true;
+  itsFeedLegsHalfWidth = width/2.;
+  itsFeedLegsRotation = rotation;
+  itsFeedLegsShadowing = shadowingFactor;
+  ASKAPCHECK((shadowingFactor<=1.) && (shadowingFactor>=0.), 
+          "shadowingFactor is supposed to be from [0,1] interval, you have "<<shadowingFactor); 
+}  
+
+/// @brief switch on the simulation of feed leg wedges
+/// @details This method assigns the parameters of the feed leg wedges and allows
+/// their simulation. 
+/// @param[in] wedgeShadowingFactor1 additional attenuation inside the wedge for the feed
+/// leg which is rotated to u axis by the angle specified in simulateFeedLegShadows.
+/// @param[in] wedgeShadowingFactor2 the same as wedgeShadowingFactor1, but for orthogonal
+/// feed legs
+/// @param[in] wedgeOpeningAngle opening angle of the wedge in radians
+/// @param[in] wedgeStartingRadius starting radius in metres of the wedge
+/// @note simulateFeedLegShadows should also be called prior to the first use of this object.
+void ATCAIllumination::simulateFeedLegWedges(double wedgeShadowingFactor1, double wedgeShadowingFactor2, 
+        double wedgeOpeningAngle, double wedgeStartingRadius)
+{
+  itsDoFeedLegWedges = true;
+  itsFeedLegsWedgeShadowing1 = wedgeShadowingFactor1;
+  itsFeedLegsWedgeShadowing2 = wedgeShadowingFactor2;
+  itsWedgeOpeningAngle = wedgeOpeningAngle;
+  itsWedgeStartingRadius = wedgeStartingRadius;
+  ASKAPCHECK((wedgeShadowingFactor1<=1.) && (wedgeShadowingFactor1>=0.), 
+          "wedgeShadowingFactor1 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor1); 
+  ASKAPCHECK((wedgeShadowingFactor2<=1.) && (wedgeShadowingFactor2>=0.), 
+          "wedgeShadowingFactor2 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor2); 
+}        
 
 /// @brief obtain illumination pattern
 /// @details This is the main method which populates the 
@@ -96,7 +149,7 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	
 	ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) || 
 	           (casa::square(double(nV)) > rMaxSquared),
-	           "The pattern buffer passed to DiskIllumination::getPattern is too small for the given model. "
+	           "The pattern buffer passed to ATCAIllumination::getPattern is too small for the given model. "
 	           "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis, you have "
 	            <<nU<<" x "<<nV);
 	
@@ -127,10 +180,10 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 }
 
 /// @brief check whether the pattern is symmetric
-/// @details Some illumination patterns like this one are trivial and known a priori to
-/// be symmetric. This method always returns true to reflect this
-/// @return always true 
+/// @details Some illumination patterns are known a priori to be symmetric.
+/// This method returns true if feed legs are not simulated to reflect this
+/// @return true if feed legs are not simulated
 bool ATCAIllumination::isSymmetric() const
 {
-  return true;
+  return !itsDoFeedLegs;
 }
