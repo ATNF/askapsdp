@@ -102,6 +102,8 @@ void ATCAIllumination::simulateFeedLegWedges(double wedgeShadowingFactor1, doubl
           "wedgeShadowingFactor1 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor1); 
   ASKAPCHECK((wedgeShadowingFactor2<=1.) && (wedgeShadowingFactor2>=0.), 
           "wedgeShadowingFactor2 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor2); 
+  ASKAPCHECK((wedgeOpeningAngle < M_PI/2.) && (wedgeOpeningAngle > 0), 
+          "Opening angle is supposed to be from the (0, pi/2) interval, you have "<<wedgeOpeningAngle);
 }   
 
 
@@ -233,6 +235,40 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 				      const double extraPhase = itsMaxDefocusingPhase * fractionalRadiusSquared;
 				      value *= float(jamesian(sqrt(fractionalRadiusSquared))) *
 				               casa::Complex(cos(extraPhase),sin(extraPhase));
+				  }
+				  if (itsDoFeedLegs) {
+				      // rotated offsets
+				      const double dU = cos(itsFeedLegsRotation)*offsetU + 
+				                        sin(itsFeedLegsRotation)*offsetV;
+				      const double dV = -sin(itsFeedLegsRotation)*offsetU + 
+				                        cos(itsFeedLegsRotation)*offsetV;				                        
+				      // decrease the illumination within the feed leg shadows                  
+                      if ((std::abs(dU) < feedLegsHalfWidthInCells) ||
+                          (std::abs(dV) < feedLegsHalfWidthInCells)) {
+                          value *= float(itsFeedLegsShadowing);
+                      }
+                      if (itsDoFeedLegWedges) {
+                          const double wedgeAngleTan = tan(itsWedgeOpeningAngle);
+                          if ((dU > wedgeStartingRadiusInCells) && (std::abs(dV) <
+                               wedgeAngleTan*std::abs(dU - wedgeStartingRadiusInCells))) {
+                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
+                          }
+                          
+                          if ((dU < -wedgeStartingRadiusInCells) && (std::abs(dV) <
+                               wedgeAngleTan*std::abs(dU + wedgeStartingRadiusInCells))) {
+                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
+                          }
+                          
+                          if ((dV > wedgeStartingRadiusInCells) && (std::abs(dU) <
+                               wedgeAngleTan*std::abs(dV - wedgeStartingRadiusInCells))) {
+                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
+                          }
+
+                          if ((dV < -wedgeStartingRadiusInCells) && (std::abs(dU) <
+                               wedgeAngleTan*std::abs(dV + wedgeStartingRadiusInCells))) {
+                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
+                          }                                                    
+                      }
 				  }
 				  
 				  // add up the norm contribution and assign the final value
