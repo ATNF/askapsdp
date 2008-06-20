@@ -81,7 +81,7 @@ struct ATCAIllumination : virtual public IBasicIllumination {
   /// @brief switch on the tapering simulation
   /// @details This method assigns defocusing phase and switches on the simulation of tapering.
   /// @param[in] maxDefocusingPhase the value of the phase in radians at the dish edge, it will
-  /// be linearly increased with the radius to simulate defocusing
+  /// be quadraticly increased with the radius to simulate defocusing
   void simulateTapering(double maxDefocusingPhase);
   
   /// @brief switch on the feed leg simulation
@@ -106,6 +106,29 @@ struct ATCAIllumination : virtual public IBasicIllumination {
   void simulateFeedLegWedges(double wedgeShadowingFactor1, double wedgeShadowingFactor2, 
         double wedgeOpeningAngle, double wedgeStartingRadius);
         
+protected:
+  /// @brief a helper method to return 1D illumination
+  /// @details There are some build in parameters of the taper. We may need to expose them
+  /// to the class interface in the future, but currently this method doesn't use the 
+  /// data members and hence made static.
+  /// @param[in] fractionalRadius radius given as a fraction of dish radius
+  /// @return amplitude of illumination
+  static double jamesian(double fractionalRadius);
+
+  /// @brief helper method used inside the calculation of Jamesian illumination
+  /// @details The pattern is modelled as two stiched functions, this method
+  /// represents a function applied at small radii.
+  /// @param[in] fractionalRadius radius given as a fraction of dish radius
+  /// @return amplitude of illumination
+  static double innerJamesian(double fractionalRadius);
+
+  /// @brief helper method used inside the calculation of Jamesian illumination
+  /// @details The pattern is modelled as two stiched functions, this method
+  /// represents a function applied at large radii.
+  /// @param[in] fractionalRadius radius given as a fraction of dish radius
+  /// @return amplitude of illumination
+  static double outerJamesian(double fractionalRadius);
+    
 private:
   /// @brief antenna diameter in metres
   double itsDiameter;
@@ -126,7 +149,7 @@ private:
   bool itsDoFeedLegWedges;
   
   /// @brief phase slope with radius
-  /// @details If the taper is applied, the code allows also to apply a linear phase
+  /// @details If the taper is applied, the code allows also to apply a quadratic phase
   /// slope with radius to simulate defocusing. This parameter is the value of phase
   /// in radians at the dish edge. It is not used if itsDoTaper is false. Assign zero 
   /// to switch the feature off.

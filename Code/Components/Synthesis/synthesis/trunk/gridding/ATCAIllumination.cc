@@ -102,7 +102,55 @@ void ATCAIllumination::simulateFeedLegWedges(double wedgeShadowingFactor1, doubl
           "wedgeShadowingFactor1 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor1); 
   ASKAPCHECK((wedgeShadowingFactor2<=1.) && (wedgeShadowingFactor2>=0.), 
           "wedgeShadowingFactor2 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor2); 
-}        
+}   
+
+
+/// @brief helper method used inside the calculation of Jamesian illumination
+/// @details The pattern is modelled as two stiched functions, this method
+/// represents a function applied at small radii.
+/// @param[in] fractionalRadius radius given as a fraction of dish radius
+/// @return amplitude of illumination
+double ATCAIllumination::innerJamesian(double fractionalRadius)
+{
+  // constants were taken from Tim's glish script
+  const double dsub = 1.8/11.0;
+  return 0.58+0.27*atan(130*(fractionalRadius-1.1*dsub));
+}
+
+/// @brief helper method used inside the calculation of Jamesian illumination
+/// @details The pattern is modelled as two stiched functions, this method
+/// represents a function applied at large radii.
+/// @param[in] fractionalRadius radius given as a fraction of dish radius
+/// @return amplitude of illumination
+double ATCAIllumination::outerJamesian(double fractionalRadius)
+{
+  // constants were taken from Tim's glish script
+  const double a2 = 0.95;
+  const double a1 = 8.;
+  return 1.-a2*exp(a1*(casa::square(fractionalRadius)-1.));
+}
+
+/// @brief a helper method to return 1D illumination
+/// @details There are some build in parameters of the taper. We may need to expose them
+/// to the class interface in the future, but currently this method doesn't use the 
+/// data members and hence made static.
+/// @param[in] fractionalRadius radius given as a fraction of dish radius
+/// @return amplitude of illumination
+double ATCAIllumination::jamesian(double fractionalRadius)
+{
+  if (fractionalRadius > 1.) {
+      return 0.;
+  }
+  // constants were taken from Tim's glish script
+  const double cd=0.3;
+  const double transitionFractionalRadius = 0.4;
+
+  const double value = (fractionalRadius < transitionFractionalRadius ? 
+                   innerJamesian(fractionalRadius) / innerJamesian(transitionFractionalRadius) :
+                   outerJamesian(fractionalRadius) / outerJamesian(transitionFractionalRadius));
+  return value * (1. - cd * (1. - fractionalRadius));
+}
+
 
 /// @brief obtain illumination pattern
 /// @details This is the main method which populates the 
@@ -123,6 +171,11 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
     const double cellU = pattern.uCellSize()/oversample;
     const double cellV = pattern.vCellSize()/oversample;
     
+    ASKAPCHECK(itsDoFeedLegWedges ? itsDoFeedLegs : true, 
+       "you can only switch on simulation of feed leg wedges with the simulation of feed legs");
+    ASKAPDEBUGASSERT(itsWedgeStartingRadius < itsDiameter/2.);
+    ASKAPDEBUGASSERT(itsFeedLegsHalfWidth < itsDiameter/2.);  
+    
     // scaled l and m to take the calculations out of the loop
     // these quantities are effectively dimensionless 
     const double lScaled = 2.*casa::C::pi*cellU *l;
@@ -142,6 +195,10 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
     // squares of the disk and blockage area radii
 	const double rMaxSquared = casa::square(dishRadiusInCells);
 	const double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
+	
+	// feed legs/wedges length parameters
+	const double feedLegsHalfWidthInCells = itsFeedLegsHalfWidth / cell;
+	const double wedgeStartingRadiusInCells = itsWedgeStartingRadius / cell;
 	
 	// sizes of the grid to fill with pattern values
 	const casa::uInt nU = pattern.uSize();
@@ -169,9 +226,19 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 			      // divided the radius (i.e. the illumination pattern is given
 			      // in a relative coordinates in frequency
 				  const double phase = lScaled*offsetU + mScaled*offsetV;
-				  pattern(iU, iV) = casa::Complex(cos(phase), -sin(phase));
-				  sum += 1.;
-			   }
+				  // initial value is just the phase slope related to pointing offset
+				  casa::Complex value(cos(phase), -sin(phase)); 
+				  if (itsDoTapering) {
+				      const double fractionalRadiusSquared = radiusSquared/rMaxSquared;
+				      const double extraPhase = itsMaxDefocusingPhase * fractionalRadiusSquared;
+				      value *= float(jamesian(sqrt(fractionalRadiusSquared))) *
+				               casa::Complex(cos(extraPhase),sin(extraPhase));
+				  }
+				  
+				  // add up the norm contribution and assign the final value
+				  sum += std::abs(value);
+				  pattern(iU, iV) = value;
+			  }
 		 }
 	}
 	
