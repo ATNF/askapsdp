@@ -35,6 +35,8 @@
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
 
 #include <CommandLineParser.h>
 
@@ -49,8 +51,8 @@
 
 #include <casa/OS/Timer.h>
 
-ASKAP_LOGGER(logger, ".cimager")
-;
+ASKAP_LOGGER(logger, ".cimager");
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -60,6 +62,10 @@ using namespace LOFAR::ACC::APS;
 // Main function
 int main(int argc, const char** argv) {
 	try {
+
+	  // Ensure that CASA log messages are captured
+	  casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+	  casa::LogSink::globalSink (globalSink);
 
 		casa::Timer timer;
 
