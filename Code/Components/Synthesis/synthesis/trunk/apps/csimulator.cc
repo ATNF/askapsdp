@@ -28,8 +28,9 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-
 #include <askap/AskapError.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
 
 #include <parallel/SimParallel.h>
 
@@ -56,6 +57,10 @@ int main(int argc, const char** argv)
       
       
       timer.mark();
+
+      // Ensure that CASA log messages are captured
+      casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+      casa::LogSink::globalSink (globalSink);
 
       {
         cmdlineparser::Parser parser; // a command line parser
