@@ -270,7 +270,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 	   for (uint chan=0; chan<nChan; ++chan) {
 		   
 		   /// Scale U,V to integer pixels plus fractional terms
-		   double uScaled=frequencyList[chan]*acc.uvw()(i)(0)/(casa::C::c *itsUVCellSize(0));
+		   double uScaled=frequencyList[chan]*outUVW(i)(0)/(casa::C::c *itsUVCellSize(0));
 		   int iu = askap::nint(uScaled);
 		   int fracu=askap::nint(itsOverSample*(double(iu)-uScaled));
 		   if (fracu<0) {
@@ -285,7 +285,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				   "Fractional offset in u exceeds oversampling");
 		   iu+=itsShape(0)/2;
 		   
-		   double vScaled=frequencyList[chan]*acc.uvw()(i)(1)/(casa::C::c *itsUVCellSize(1));
+		   double vScaled=frequencyList[chan]*outUVW(i)(1)/(casa::C::c *itsUVCellSize(1));
 		   int iv = askap::nint(vScaled);
 		   int fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
 		   if (fracv<0) {
@@ -542,17 +542,15 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 		const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
 		casa::Vector<double> uvw(3);
 		/// @todo Decide what to do about pointingDir1!=pointingDir2
-		for (int i=0; i<2; ++i) {
-			uvw(i)=-uvwRow(i);
+		for (int i=0; i<3; ++i) {
+			uvw(i)=uvwRow(i);
 		}
-		uvw(2)=uvwRow(2);
 
 		casa::UVWMachine machine(pointingDir1Vector(row), out, false, true);
 		machine.convertUVW(delay(row), uvw);
 
-		delay(row)*=-1.0;
 		for (int i=0; i<3; ++i) {
-			outUVW(row)(i)=-1.0*uvw(i);
+			outUVW(row)(i)=uvw(i);
 		}
 	}
 }
