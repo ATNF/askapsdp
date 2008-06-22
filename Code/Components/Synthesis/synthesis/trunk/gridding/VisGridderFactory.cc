@@ -72,7 +72,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		double diameter=parset.getDouble("gridder.AWProject.diameter");
 		double blockage=parset.getDouble("gridder.AWProject.blockage");
 		double wmax=parset.getDouble("gridder.AWProject.wmax", 10000.0);
-		int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 64);
+		int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 65);
 		double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
 		int oversample=parset.getInt32("gridder.AWProject.oversample", 8);
 		int maxSupport=parset.getInt32("gridder.AWProject.maxsupport", 128);
@@ -101,7 +101,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		double diameter=parset.getDouble("gridder.AProjectWStack.diameter");
 		double blockage=parset.getDouble("gridder.AProjectWStack.blockage");
 		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
-		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 64);
+		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 65);
 		int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
 		int maxSupport= parset.getInt32("gridder.AProjectWStack.maxsupport",
 				128);
