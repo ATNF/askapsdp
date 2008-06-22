@@ -28,6 +28,3 @@ Cimager.solver.Dirty.verbose                   	= True
 Cimager.ncycles                                 = 0
 
 Cimager.preconditioner.Names			= None
-#Cimager.preconditioner.Names			= [Wiener, GaussianTaper]
-Cimager.preconditioner.Wiener.noisepower	= 100.0
-Cimager.preconditioner.GaussianTaper		= [30arcsec, 30arcsec, 0deg]
