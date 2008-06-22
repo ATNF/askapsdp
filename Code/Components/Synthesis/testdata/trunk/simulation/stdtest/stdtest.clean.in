@@ -1,0 +1,45 @@
+Cimager.dataset                                 = 10uJy_stdtest.ms
+
+Cimager.Images.Names                            = [image.i.10uJy_dirty_stdtest]
+Cimager.Images.shape				= [2048,2048]
+Cimager.Images.cellsize	        		= [8.0arcsec, 8.0arcsec]
+Cimager.Images.image.i.10uJy_dirty_stdtest.frequency	= [1.420e9,1.420e9]
+Cimager.Images.image.i.10uJy_dirty_stdtest.nchan	= 1
+Cimager.Images.image.i.10uJy_dirty_stdtest.direction	= [12h30m00.00, -45.00.00.00, J2000]
+
+#
+# For the image, we just use W projection, so the primary beam is not corrected
+#
+Cimager.gridder                          	= WProject
+Cimager.gridder.WProject.wmax            	= 15000
+Cimager.gridder.WProject.nwplanes        	= 33
+Cimager.gridder.WProject.oversample     	= 8
+Cimager.gridder.WProject.diameter		= 12m
+Cimager.gridder.WProject.blockage		= 2m
+Cimager.gridder.WProject.maxfeeds		= 1
+Cimager.gridder.WProject.maxsupport             = 1024
+Cimager.gridder.WProject.frequencydependent     = false
+#
+# Use a multiscale Clean solver
+#
+Cimager.solver                           	= Clean
+Cimager.solver.Clean.algorithm                 	= MultiScale
+Cimager.solver.Clean.niter                     	= 100
+Cimager.solver.Clean.gain                      	= 0.9
+Cimager.solver.Clean.threshold                	= 1uJy
+Cimager.solver.Clean.tolerance                  = 0.1
+Cimager.solver.Clean.verbose                   	= True
+# 
+# There will be 5 major cycles
+#
+Cimager.ncycles                                 = 5
+#
+# Restore the image at the end
+#
+Cimager.restore                          	= True
+Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
+
+Cimager.preconditioner.Names			= None
+#Cimager.preconditioner.Names			= [Wiener, GaussianTaper]
+Cimager.preconditioner.Wiener.noisepower	= 100.0
+Cimager.preconditioner.GaussianTaper		= [30arcsec, 30arcsec, 0deg]
