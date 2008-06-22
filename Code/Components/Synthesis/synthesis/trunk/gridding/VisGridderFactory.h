@@ -31,8 +31,11 @@
 #define VISGRIDDERFACTORY_H_
 
 #include <gridding/IVisGridder.h>
+#include <gridding/IBasicIllumination.h>
 
 #include <APS/ParameterSet.h>
+
+#include <boost/shared_ptr.hpp>
 
 namespace askap
 {
@@ -53,6 +56,17 @@ namespace askap
 				/// gridder to be constructed
 				static IVisGridder::ShPtr make(
 				    const LOFAR::ACC::APS::ParameterSet& parset);
+				    
+			protected:
+			
+			    /// @brief a helper factory of illumination patterns
+			    /// @details Illumination model is required for a number of gridders. This
+			    /// method allows to avoid duplication of code and encapsulates all 
+			    /// functionality related to illumination patterns. 
+			    /// @param[in] parset ParameterSet containing description of illumination to use
+			    /// @return shared pointer to illumination interface
+			    static boost::shared_ptr<IBasicIllumination> 
+			         makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset);
 		};
 
 	}

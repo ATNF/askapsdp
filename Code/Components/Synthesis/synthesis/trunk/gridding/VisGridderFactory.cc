@@ -34,6 +34,8 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AProjectWStackVisGridder.h>
 #include <gridding/DiskIllumination.h>
+#include <gridding/ATCAIllumination.h>
+
 
 // RVU
 #include <gridding/VisWeightsMultiFrequency.h>
@@ -46,6 +48,42 @@ VisGridderFactory::VisGridderFactory() {
 }
 
 VisGridderFactory::~VisGridderFactory() {
+}
+
+/// @brief a helper factory of illumination patterns
+/// @details Illumination model is required for a number of gridders. This
+/// method allows to avoid duplication of code and encapsulates all 
+/// functionality related to illumination patterns. 
+/// @param[in] parset ParameterSet containing description of illumination to use
+/// @return shared pointer to illumination interface
+boost::shared_ptr<IBasicIllumination> 
+VisGridderFactory::makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset)
+{
+   const std::string illumType = parset.getString("illumination", "disk");
+   const double diameter=parset.getDouble("diameter");
+   const double blockage=parset.getDouble("blockage");
+
+   if (illumType == "disk") {
+   	    ASKAPLOG_INFO_STR(logger,
+					"Using disk illumination model, diameter="<<
+					diameter<<" metres, blockage="<<blockage<<" metres");
+   
+       	return boost::shared_ptr<IBasicIllumination>(new DiskIllumination(diameter,blockage));
+   } else if (illumType == "ATCA") {
+   	    ASKAPLOG_INFO_STR(logger,
+					"Using ATCA illumination model, diameter="<<
+					diameter<<" metres, blockage="<<blockage<<" metres");
+
+   	    boost::shared_ptr<ATCAIllumination> illum(new ATCAIllumination(diameter,blockage)); 
+   	    ASKAPDEBUGASSERT(illum);
+	    illum->simulateTapering(0.);
+	    illum->simulateFeedLegShadows(1.8,M_PI/4.,0.75);
+	    illum->simulateFeedLegWedges(0.6,0.5,M_PI/12.,3.5);
+	    return illum;
+   }
+   
+   ASKAPTHROW(AskapError, "Unknown illumination type "<<illumType);
+   return boost::shared_ptr<IBasicIllumination>(); // to keep the compiler happy
 }
 
 IVisGridder::ShPtr VisGridderFactory::make(
@@ -69,8 +107,6 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
 	} else if (parset.getString("gridder")=="AWProject") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
-		double diameter=parset.getDouble("gridder.AWProject.diameter");
-		double blockage=parset.getDouble("gridder.AWProject.blockage");
 		double wmax=parset.getDouble("gridder.AWProject.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 65);
 		double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
@@ -90,16 +126,13 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
-		
-		boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(diameter,blockage)); 
-		
-		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(illum,
+				
+		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(
+		        makeIllumination(parset.makeSubset("gridder.AWProject.")),
 				wmax, nwplanes, cutoff, oversample,
 				maxSupport, maxFeeds, maxFields, pointingTol, freqDep, tablename));
 	} else if (parset.getString("gridder")=="AProjectWStack") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
-		double diameter=parset.getDouble("gridder.AProjectWStack.diameter");
-		double blockage=parset.getDouble("gridder.AProjectWStack.blockage");
 		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 65);
 		int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
@@ -120,8 +153,9 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
-		boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(diameter,blockage)); 
-		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(illum,
+
+		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(
+		        makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
 				wmax, nwplanes, oversample,
 				maxSupport, maxFeeds, maxFields, pointingTol, freqDep, tablename));
 	} else if (parset.getString("gridder")=="Box") {
