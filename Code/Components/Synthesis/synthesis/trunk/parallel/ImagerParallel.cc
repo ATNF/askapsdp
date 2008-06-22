@@ -91,7 +91,7 @@ namespace askap
 
       if (isMaster())
       {
-        itsRestore=itsParset.getBool("restore", true);
+        itsRestore=itsParset.getBool("restore", false);
 
         if (itsRestore) {
             itsQbeam.resize(3);
