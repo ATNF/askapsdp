@@ -49,8 +49,8 @@ namespace askap
 
       /// Gridding kernel
       static void grid(casa::Matrix<casa::Complex>& grid,
-          casa::Complex& sumwt, casa::Matrix<casa::Complex>& convFunc,
-          const casa::Complex& cVis, const float& wtVis, const int iu,
+          casa::Matrix<casa::Complex>& convFunc,
+          const casa::Complex& cVis, const int iu,
           const int iv, const int support);
 
       /// Degridding kernel

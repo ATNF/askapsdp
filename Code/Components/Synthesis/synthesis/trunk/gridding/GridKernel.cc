@@ -55,9 +55,9 @@ std::string GridKernel::info() {
 }
 
 /// Totally selfcontained gridding
-void GridKernel::grid(casa::Matrix<casa::Complex>& grid, casa::Complex& sumwt,
+void GridKernel::grid(casa::Matrix<casa::Complex>& grid,
 		casa::Matrix<casa::Complex>& convFunc, const casa::Complex& cVis,
-		const float& viswt, const int iu, const int iv, const int support) {
+		const int iu, const int iv, const int support) {
 
 #if defined ( ASKAP_GRID_WITH_POINTERS ) || defined ( ASKAP_GRID_WITH_BLAS )
 	for (int suppv = -support; suppv < +support; suppv++) {
@@ -87,7 +87,6 @@ void GridKernel::grid(casa::Matrix<casa::Complex>& grid, casa::Complex& sumwt,
 		}
 	}
 #endif
-	sumwt += viswt;
 }
 
 /// Totally selfcontained degridding
