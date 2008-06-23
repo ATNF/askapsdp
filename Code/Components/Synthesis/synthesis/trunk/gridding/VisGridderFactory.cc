@@ -174,7 +174,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	}
 	else // Null....
 	{
-		gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency()));
+	  //		gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency()));
 	}
 	return gridder;
 }
