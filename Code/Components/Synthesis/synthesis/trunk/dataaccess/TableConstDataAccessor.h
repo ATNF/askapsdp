@@ -155,6 +155,16 @@ public:
   /// @return a vector with IDs of the second feed corresponding
   /// to each visibility (one for each row)
   virtual const casa::Vector<casa::uInt>& feed2() const;
+  
+  /// Position angles of the first feed for all rows
+  /// @return a vector with position angles (in radians) of the
+  /// first feed corresponding to each visibility
+  virtual const casa::Vector<casa::Float>& feed1PA() const;
+     
+  /// Position angles of the second feed for all rows
+  /// @return a vector with position angles (in radians) of the
+  /// second feed corresponding to each visibility
+  virtual const casa::Vector<casa::Float>& feed2PA() const;
 
   /// @brief invalidate fields updated on each iteration
   /// @details Such caches like visibility, uvw, noise and flags are updated
@@ -209,6 +219,12 @@ private:
   
   /// internal buffer for the second feed ids
   CachedAccessorField<casa::Vector<casa::uInt> > itsFeed2;
+  
+  /// internal buffer for the position angles of the first feed
+  CachedAccessorField<casa::Vector<casa::Double> > itsFeed1PA;
+  
+  /// internal buffer for the position angles of the second feed
+  CachedAccessorField<casa::Vector<casa::Double> > itsFeed2PA;
   
   /// internal buffer for the pointing directions of the first antenna/feed
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsPointingDir1;

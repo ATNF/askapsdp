@@ -155,6 +155,22 @@ const casa::Vector<casa::uInt>& TableConstDataAccessor::feed2() const
   return itsFeed1.value(itsIterator,&TableConstDataIterator::fillFeed2);
 }
 
+/// Position angles of the first feed for all rows
+/// @return a vector with position angles (in radians) of the
+/// first feed corresponding to each visibility
+const casa::Vector<casa::Float>& TableConstDataAccessor::feed1PA() const
+{
+  throw AskapError("feed1PA is not yet implemented");
+}
+     
+/// Position angles of the second feed for all rows
+/// @return a vector with position angles (in radians) of the
+/// second feed corresponding to each visibility
+const casa::Vector<casa::Float>& TableConstDataAccessor::feed2PA() const
+{
+  throw AskapError("feed1PA is not yet implemented");
+}
+
 /// Return pointing centre directions of the first antenna/feed
 /// @return a vector with direction measures (coordinate system
 /// is set via IDataConverter), one direction for each
