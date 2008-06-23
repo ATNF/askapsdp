@@ -141,6 +141,7 @@ void TableDataAccessTest::readOnlyTest()
        it->pointingDir2();
        it->antenna1();
        it->time();
+       it->feed1PA();
   }
 }
 

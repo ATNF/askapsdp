@@ -86,7 +86,8 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        //cout<<"flags: "<<it->flag()<<endl;
-       cout<<"direction: "<<it->pointingDir2()<<endl;
+       cout<<"feed1 pa: "<<it->feed1PA()<<endl;
+       //cout<<"direction: "<<it->pointingDir2()<<endl;
        //cout<<"direction: "<<it->dishPointing2()<<endl;
        //cout<<"ant1: "<<it->antenna1()<<endl;
        //cout<<"ant2: "<<it->antenna2()<<endl;

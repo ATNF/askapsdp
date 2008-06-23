@@ -221,10 +221,10 @@ private:
   CachedAccessorField<casa::Vector<casa::uInt> > itsFeed2;
   
   /// internal buffer for the position angles of the first feed
-  CachedAccessorField<casa::Vector<casa::Double> > itsFeed1PA;
+  CachedAccessorField<casa::Vector<casa::Float> > itsFeed1PA;
   
   /// internal buffer for the position angles of the second feed
-  CachedAccessorField<casa::Vector<casa::Double> > itsFeed2PA;
+  CachedAccessorField<casa::Vector<casa::Float> > itsFeed2PA;
   
   /// internal buffer for the pointing directions of the first antenna/feed
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsPointingDir1;

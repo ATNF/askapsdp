@@ -167,6 +167,14 @@ public:
   /// @param[in] dirs a reference to a vector to fill
   void fillPointingDir2(casa::Vector<casa::MVDirection> &dirs) const;
   
+  /// fill the buffer with the position angles of the first antenna/feed
+  /// @param[in] angles a reference to vector to be filled
+  void fillFeed1PA(casa::Vector<casa::Float> &angles) const;
+
+  /// fill the buffer with the position angles of the second antenna/feed
+  /// @param[in] angles a reference to vector to be filled
+  void fillFeed2PA(casa::Vector<casa::Float> &angles) const;
+    
   /// @brief fill the buffer with the pointing directions for the first antenna centre
   /// @details The difference from fillPointingDir1 is that no feed offset is applied.
   /// @param[in] dirs a reference to a vector to fill
@@ -179,6 +187,37 @@ public:
   
   
 protected:
+
+  /// @brief internal structure to hold both pointing direction and position angle
+  /// @details A lot of common code is used to compute pointing directions and 
+  /// position angles (parallactic angle + the angle each feed is mounted at).
+  /// This structure encapsulates a pair of direction + angle to be able to
+  /// cache it easily.
+  struct DirectionAndPA {
+     /// @brief constructor to simplify creating an object
+     /// @param[in] idir input pointing direction
+     /// @param[in] ipa input position angle
+     DirectionAndPA(const casa::MVDirection &idir, double ipa);
+     
+     /// @brief constructor to simplify creating an object
+     /// @param[in] idir input pointing direction
+     DirectionAndPA(const casa::MVDirection &idir);
+     
+     /// @brief constructor to simplify creating an object
+     /// @param[in] ipa input position angle
+     DirectionAndPA(double ipa);
+     
+     /// @brief default constructor to use stl-containers
+     DirectionAndPA();
+     
+     // deliberatly don't use itsXXX scheme here
+     
+     /// @brief pointing direction
+     casa::MVDirection dir;
+     /// @brief position angle
+     double pa;
+  };
+
   /// @brief read an array column of the table into a cube
   /// @details populate the buffer provided with the information
   /// read in the current iteration. This method is templated and can be
@@ -193,12 +232,27 @@ protected:
   /// @details fillPointingDir1 and fillPointingDir2 methods do very similar
   /// operations, which differ only by the feedIDs and antennaIDs used.
   /// This method encapsulates these common operations
-  /// @param[in] dirs a reference to a vector to fill
+  /// @param[in] dirs a reference to vector to fill
   /// @param[in] antIDs a vector with antenna IDs
   /// @param[in] feedIDs a vector with feed IDs
   void fillVectorOfPointings(casa::Vector<casa::MVDirection> &dirs,
                const casa::Vector<casa::uInt> &antIDs,
                const casa::Vector<casa::uInt> &feedIDs) const;
+               
+  /// @brief A helper method to fill a given vector with position angles.
+  /// @details fillFeedPA1 and fillFeedPA2 method do very similar operations,
+  /// which differ only by the feedIDs and antennaIDs used.
+  /// This method encapsulated these common operations
+  /// @param[in] angles a reference to vector to fill
+  /// @param[in] antIDs a vector with antenna IDs
+  /// @param[in] feedIDs a vector with feed IDs
+  /// @note There are some similarities between the code of this method and that
+  /// of fillVectorOfPointings. They are different with just a command called within
+  /// the loop. Theoretically, we can combine these two methods together, it would just
+  /// invovle some coding to make it look nice and probably some minor performance penalty.
+  void fillVectorOfPositionAngles(casa::Vector<casa::Float> &angles,
+                const casa::Vector<casa::uInt> &antIDs,
+                const casa::Vector<casa::uInt> &feedIDs) const;  
   
   /// @brief a helper method to get dish pointings 
   /// @details fillDishPointing1 and fillDishPointing2 methods do very
@@ -247,16 +301,16 @@ protected:
   inline const TableConstDataAccessor& getAccessor() const throw()
   { return itsAccessor;}
 
-  /// @brief Fill internal buffer with the pointing directions.
+  /// @brief Fill internal buffer with the pointing directions and position angles
   /// @details  The layout of this buffer is the same as the layout of
   /// the FEED subtable for current time and spectral window. 
   /// getAntennaIDs and getFeedIDs methods of the 
   /// subtable handler can be used to unwrap this 1D array. 
-  /// The buffer can invalidated if the time changes (i.e. for an alt-az array),
+  /// The buffer can be invalidated if the time changes (i.e. for an alt-az array),
   /// for an equatorial array this happends only if the FEED or FIELD subtable
-  /// are time-dependent
+  /// are time-dependent (i.e. when the pointing changes)
   /// @param[in] dirs a reference to a vector to fill
-  void fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const;
+  void fillDirectionAndPACache(casa::Vector<DirectionAndPA> &dirs) const;
 
   /// @brief fill the buffer with the dish pointing directions
   /// @details The difference from fillDirectionCache is that
@@ -351,10 +405,12 @@ private:
   /// to allow in the future to force the code to use time instead of FIELD_ID, even
   /// if the latter is present.
   bool itsUseFieldID;
-  
-  /// internal buffer for pointing offsets for the whole current cache
-  /// of the Feed subtable handler
-  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDirectionCache;
+    
+  /// @brief cache of pointing directions and parallactic angles for each feed
+  /// @details This is an internal buffer for pointing 
+  /// directions and parallactic angles for the whole 
+  /// current cache of the Feed subtable handler
+  CachedAccessorField<casa::Vector<DirectionAndPA> > itsDirectionAndPACache;
   
   /// internal buffer for dish pointings for all antennae
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointingCache;   
