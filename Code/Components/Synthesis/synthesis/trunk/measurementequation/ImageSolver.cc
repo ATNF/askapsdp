@@ -83,6 +83,7 @@ namespace askap
 
         ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of weights = " << maxDiag);
 	psf /= (float)maxDiag;
+        ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << casa::max(psf));
 	
 	uint nAbove=0;
 	casa::IPosition vecShape(1,diag.nelements());
@@ -113,6 +114,7 @@ namespace askap
 
         ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of weights = " << maxDiag);
 	psf /= (float)maxDiag;
+        ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << casa::max(psf));
 	
 	uint nAbove=0;
 	casa::IPosition vecShape(1,diag.nelements());
