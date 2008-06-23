@@ -432,8 +432,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       float wtVis = 1.0;
 			       if(itsVisWeight)
 				 rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-			       GridKernel::grid(grid, sumwt, convFunc, rVis,
-						wtVis, iu, iv, itsSupport);
+			       GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
+			       sumwt+=wtVis;
 			       itsSamplesGridded+=1.0;
 			       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 			       
@@ -449,6 +449,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				/// @todo Fix calculation of PSF					
 				if (itsDopsf && (itsFeedUsedForPSF == acc.feed1()(i)) &&
 				             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
+
 				    ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
 				    casa::Array<casa::Complex>
 					   aGridPSF(itsGridPSF[gInd](slicer));
@@ -494,9 +495,9 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				    //casa::Complex uVis(phasor);
 				    casa::Complex uVis(1.,0.);
 				    if(itsVisWeight)
-					   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				       GridKernel::grid(gridPSF, sumwt, psfConvFunc,
-						    uVis, wtVis, iu, iv, itsSupport);
+				      uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+				       GridKernel::grid(gridPSF, psfConvFunc,
+						    uVis, iu, iv, itsSupport);
 				       itsSamplesGridded+=1.0;
 				       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
                                 }
@@ -542,15 +543,17 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 		const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
 		casa::Vector<double> uvw(3);
 		/// @todo Decide what to do about pointingDir1!=pointingDir2
-		for (int i=0; i<3; ++i) {
-			uvw(i)=uvwRow(i);
+		for (int i=0; i<2; ++i) {
+			uvw(i)=-1.0*uvwRow(i);
 		}
+		uvw(2)=uvwRow(2);
 
 		casa::UVWMachine machine(pointingDir1Vector(row), out, false, true);
 		machine.convertUVW(delay(row), uvw);
+		delay*=-1.0;
 
 		for (int i=0; i<3; ++i) {
-			outUVW(row)(i)=uvw(i);
+		  outUVW(row)(i)=-1.0*uvw(i);
 		}
 	}
 }
@@ -727,6 +730,8 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 		for (int pol=0; pol<nPol; pol++) {
 			double sumwt=0.0;
 			for (int iz=0; iz<nZ; iz++) {
+			  //			  float sumConvFunc=real(casa::sum(casa::abs(itsConvFunc[iz])));
+			  //			  ASKAPLOG_INFO_STR(logger, "Sum of conv func " << sumConvFunc);
 				sumwt+=casa::real(itsSumWeights(iz, pol, chan));
 			}
 
