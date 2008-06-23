@@ -360,7 +360,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			      imagePol = pol; 
 
 			      // Two exceptions
-			      if(nImagePols==1 && (pol==1 || pol==3)) imagePol = 0;
+			      if(nImagePols==1 && (pol==0 || pol==3)) imagePol = 0;
 			      if(nImagePols==2 && pol==3) imagePol = 1;
 			      
 			      
