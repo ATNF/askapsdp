@@ -58,7 +58,12 @@ namespace askap
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
       itsNWPlanes=nwplanes;
-      itsWScale=wmax/double((nwplanes-1)/2);
+      if(nwplanes>1) {
+	itsWScale=wmax/double((nwplanes-1)/2);
+      }
+      else {
+	itsWScale=1.0;
+      }
       itsOverSample=overSample;
       itsCutoff=cutoff;
       itsMaxSupport=maxSupport;
