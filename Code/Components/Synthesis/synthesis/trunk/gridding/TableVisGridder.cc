@@ -418,6 +418,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       casa::Complex cVis(acc.visibility()(i, chan, pol));
 			       GridKernel::degrid(cVis, convFunc, grid, iu, iv,
 						  itsSupport);
+			       // Need this for consistency
+			       cVis*=casa::Complex(2.0);
 			       itsSamplesDegridded+=1.0;
 			       itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 				     if(itsVisWeight) {
