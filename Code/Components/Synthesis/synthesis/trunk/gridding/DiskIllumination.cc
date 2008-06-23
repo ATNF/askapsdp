@@ -133,3 +133,4 @@ bool DiskIllumination::isSymmetric() const
 {
   return true;
 }
+
