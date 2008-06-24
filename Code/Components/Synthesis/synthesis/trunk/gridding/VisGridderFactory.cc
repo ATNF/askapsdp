@@ -36,6 +36,7 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/DiskIllumination.h>
 #include <gridding/ATCAIllumination.h>
 
+#include <measurementequation/SynthesisParamsHelper.h>
 
 // RVU
 #include <gridding/VisWeightsMultiFrequency.h>
@@ -76,9 +77,52 @@ VisGridderFactory::makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset)
 
    	    boost::shared_ptr<ATCAIllumination> illum(new ATCAIllumination(diameter,blockage)); 
    	    ASKAPDEBUGASSERT(illum);
-	    illum->simulateTapering(0.);
-	    illum->simulateFeedLegShadows(1.8,M_PI/4.,0.75);
-	    illum->simulateFeedLegWedges(0.6,0.5,M_PI/12.,3.5);
+   	    if (parset.getBool("illumination.tapering", true)) {
+   	        const double maxDefocusingPhase =
+   	             SynthesisParamsHelper::convertQuantity(parset.getString("illumination.tapering.defocusing",
+   	                           "0rad"),"rad");
+	        illum->simulateTapering(maxDefocusingPhase);
+	        ASKAPLOG_INFO_STR(logger,"Tapering of the illumination is simulated, maximum defocusing phase = "<<
+	                  maxDefocusingPhase/M_PI*180.<<" deg."); 
+	    } else {
+	        ASKAPLOG_INFO_STR(logger,"Tapering of the illumination is not simulated");
+	    }
+	    if (parset.getBool("illumination.feedlegs", true)) {
+	        const double width = SynthesisParamsHelper::convertQuantity(
+	           parset.getString("illumination.feedlegs.width","1.8m"),"m");
+	        const double rotation = SynthesisParamsHelper::convertQuantity(
+	           parset.getString("illumination.feedlegs.rotation","45deg"),"rad");   
+	        const double shadowingFactor = 
+	           parset.getDouble("illumination.feedlegs.shadowing",0.75);   
+	        illum->simulateFeedLegShadows(width,rotation,shadowingFactor);
+	        ASKAPLOG_INFO_STR(logger,"Feed legs are simulated. Width = "<<width<<" metres, rotated at "<<
+	           rotation/M_PI*180.<<" deg, shadowing factor (how much attenuation caused) = "<<shadowingFactor);
+	        if (parset.getBool("illumination.feedlegs.wedges", true)) {
+	            const double defaultWedgeShadowing[2] = {0.6,0.5};
+	            std::vector<double> wedgeShadowing = 
+	                parset.getDoubleVector("illumination.feedlegs.wedges.shadowing", 
+	                std::vector<double>(defaultWedgeShadowing,defaultWedgeShadowing+2));
+	            const double angle = SynthesisParamsHelper::convertQuantity(
+	                parset.getString("illumination.feedlegs.wedges.angle","15deg"),"rad");    
+	            const double startRadius = SynthesisParamsHelper::convertQuantity(
+	                parset.getString("illumination.feedlegs.wedges.startradius","3.5m"),"m");
+	            ASKAPCHECK(wedgeShadowing.size() && wedgeShadowing.size()<3, 
+	                 "illumination.feedlegs.wedges.shadowing can have either 1 or 2 elements only, "
+	                 "you have "<<wedgeShadowing.size());
+	            if (wedgeShadowing.size() == 1) {
+	                wedgeShadowing.push_back(wedgeShadowing[0]);
+	            }     
+	            ASKAPDEBUGASSERT(wedgeShadowing.size() == 2);    
+          	    illum->simulateFeedLegWedges(wedgeShadowing[0],wedgeShadowing[1],angle,startRadius);	            
+          	    ASKAPLOG_INFO_STR(logger,"Feed leg wedges are simulated. Shadowing factors are "<<
+          	           wedgeShadowing<<", opening angle is "<<angle/M_PI*180.<<" deg, start radius is "<<
+          	           startRadius<<" metres");
+	        } else {
+	            ASKAPLOG_INFO_STR(logger,"Feed leg wedges are not simulated.");
+	        }
+	    } else {
+	       ASKAPLOG_INFO_STR(logger,"Feed legs are not simulated.");
+	    }
 	    return illum;
    }
    

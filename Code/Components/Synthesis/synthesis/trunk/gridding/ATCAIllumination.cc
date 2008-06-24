@@ -175,8 +175,8 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
     
     ASKAPCHECK(itsDoFeedLegWedges ? itsDoFeedLegs : true, 
        "you can only switch on simulation of feed leg wedges with the simulation of feed legs");
-    ASKAPDEBUGASSERT(itsWedgeStartingRadius < itsDiameter/2.);
-    ASKAPDEBUGASSERT(itsFeedLegsHalfWidth < itsDiameter/2.);  
+    ASKAPDEBUGASSERT(!itsDoFeedLegWedges || (itsWedgeStartingRadius < itsDiameter/2.));
+    ASKAPDEBUGASSERT(!itsDoFeedLegs || (itsFeedLegsHalfWidth < itsDiameter/2.));  
     
     // scaled l and m to take the calculations out of the loop
     // these quantities are effectively dimensionless 
