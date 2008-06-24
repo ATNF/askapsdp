@@ -37,7 +37,6 @@
 
 // own includes
 #include <dataaccess/IConstDataAccessor.h>
-#include <dataaccess/DataAccessorStub.h>
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/CachedAccessorField.tcc>
 
@@ -60,7 +59,7 @@ class TableConstDataIterator;
 /// it should become a separate class derived
 /// directly from its interface
 /// @ingroup dataaccess_tab
-class TableConstDataAccessor : public DataAccessorStub
+class TableConstDataAccessor : virtual public IConstDataAccessor
 {
 public:
   /// construct an object linked with the given iterator
