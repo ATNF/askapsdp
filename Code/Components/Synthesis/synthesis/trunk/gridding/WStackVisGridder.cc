@@ -56,6 +56,10 @@ namespace askap
       if (nwplanes>1) {
           itsWScale/=double((nwplanes-1)/2);
       }
+
+      itsSumWeights.resize(1, 1, 1);
+      itsSumWeights.set(casa::Complex(0.0));
+
     }
 
     WStackVisGridder::~WStackVisGridder()
@@ -87,9 +91,6 @@ namespace askap
       const int nSamples = acc.nRow();
       const int nChan = acc.nChannel();
       const int nPol = acc.nPol();
-
-      itsSumWeights.resize(1, 1, 1);
-      itsSumWeights.set(casa::Complex(0.0));
 
       itsGMap.resize(nSamples, nPol, nChan);
       int cenw=(itsNWPlanes-1)/2;
@@ -123,7 +124,7 @@ namespace askap
       itsShape=shape;
       itsDopsf=dopsf;
 
-      /// We only need one grid
+      /// We need one grid for each plane
       itsGrid.resize(itsNWPlanes);
       for (int i=0; i<itsNWPlanes; i++)
       {
@@ -142,10 +143,11 @@ namespace askap
 		initRepresentativeFieldAndFeed();
       }
 
+      ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
       itsSumWeights.set(casa::Complex(0.0));
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
-          "RA and DEC specification not present in axes");
+		 "RA and DEC specification not present in axes");
 
       double raStart=itsAxes.start("RA");
       double raEnd=itsAxes.end("RA");
