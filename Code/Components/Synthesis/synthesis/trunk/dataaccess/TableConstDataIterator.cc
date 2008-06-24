@@ -481,6 +481,37 @@ void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
   // default action first - just resize the cube and assign 1.
   noise.resize(itsNumberOfRows, itsNumberOfChannels, itsNumberOfPols);
   noise.set(casa::Complex(1.,0.));
+  if (table().actualTableDesc().isColumn("SIGMA")) {
+      ROArrayColumn<Float> sigmaCol(itsCurrentIteration,"SIGMA");
+      for (uInt row = 0; row<itsNumberOfRows; ++row) {
+           const casa::IPosition shape = sigmaCol.shape(row);
+           ASKAPASSERT((shape.size()<=2) && (shape.size()!=0));
+           if (shape.size() == 1) {
+               // noise is given per polarisation, same for all spectral channels
+               ASKAPASSERT(shape[0] == casa::Int(itsNumberOfPols));
+               casa::Array<Float> buf(casa::IPosition(1,itsNumberOfPols));
+               sigmaCol.get(row+itsCurrentTopRow,buf,False);
+               casa::Matrix<casa::Complex> slice = noise.yzPlane(row);
+               for (uInt chan = 0; chan<noise.ncolumn(); ++chan) {
+                    ASKAPDEBUGASSERT(chan<slice.nrow());
+                    casa::Vector<casa::Complex> polNoise = slice.row(chan);
+                    convertArray(polNoise,buf);
+               }
+           } else {
+               // noise is given per channel and polarisation
+               ASKAPASSERT((shape[0] == casa::Int(itsNumberOfChannels)) && 
+                           (shape[1] == casa::Int(itsNumberOfPols)));
+               
+               casa::Array<Float> buf(casa::IPosition(2,itsNumberOfChannels,itsNumberOfPols));
+               sigmaCol.get(row+itsCurrentTopRow,buf,False);
+                           
+               // not clear whether we need a transpose of the matrix. This
+               // case is not present in any available measurement set            
+               casa::Matrix<casa::Complex> rowNoise = noise.yzPlane(row);
+               convertArray(rowNoise, buf);            
+           }
+      } // loop over rows
+  } // if-statement checking that SIGMA column is present
 }
 
 /// populate the buffer with uvw
@@ -495,7 +526,7 @@ void TableConstDataIterator::fillUVW(casa::Vector<casa::RigidVector<casa::Double
   IPosition curPos(1,3);
   Array<Double> buf(curPos);
   for (uInt row=0;row<itsNumberOfRows;++row) {
-       const casa::IPosition &shape=uvwCol.shape(row);
+       const casa::IPosition shape=uvwCol.shape(row);
        ASKAPASSERT(shape.size()==1);
        ASKAPASSERT(shape[0]==3);
        // extract data record for this row, no resizing     
