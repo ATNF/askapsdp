@@ -214,6 +214,24 @@ const casa::Vector<casa::MVDirection>& TableConstDataAccessor::dishPointing2() c
   return itsDishPointing2.value(itsIterator,
                                &TableConstDataIterator::fillDishPointing2);
 }
+
+/// Noise level required for a proper weighting
+/// @return a reference to nRow x nChannel x nPol cube with
+///         complex noise estimates
+const casa::Cube<casa::Complex>& TableConstDataAccessor::noise() const
+{
+  return itsNoise.value(itsIterator, &TableConstDataIterator::fillNoise);
+}
+  
+/// Velocity for each channel
+/// @return a reference to vector containing velocities for each
+///         spectral channel (vector size is nChannel). Velocities
+///         are given as Doubles, the frame/units are specified by
+///         the DataSource object (via IDataConverter).
+const casa::Vector<casa::Double>& TableConstDataAccessor::velocity() const
+{
+  throw AskapError("TableConstDataAccessor::velocity has not been implemented.");
+}
                                      
 
 /// invalidate fields  updated on each iteration

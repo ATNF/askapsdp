@@ -87,6 +87,7 @@ void doReadOnlyTest(const IConstDataSource &ds) {
        cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        //cout<<"flags: "<<it->flag()<<endl;
        cout<<"feed1 pa: "<<it->feed1PA()<<endl;
+       cout<<"noise: "<<it->noise()<<endl;
        //cout<<"direction: "<<it->pointingDir2()<<endl;
        //cout<<"direction: "<<it->dishPointing2()<<endl;
        //cout<<"ant1: "<<it->antenna1()<<endl;

@@ -472,6 +472,16 @@ void TableConstDataIterator::fillFlag(casa::Cube<casa::Bool> &flag) const
   fillCube(flag,"FLAG");
 }
 
+/// populate the buffer of noise figures with the values of current
+/// iteration
+/// @param[in] noise a reference to the nRow x nChannel x nPol buffer
+///            cube to be filled with the noise figures
+void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
+{
+  // default action first - just resize the cube and assign 1.
+  noise.resize(itsNumberOfRows, itsNumberOfChannels, itsNumberOfPols);
+  noise.set(casa::Complex(1.,0.));
+}
 
 /// populate the buffer with uvw
 /// @param[in] uvw a reference to vector of rigid vectors (3 elemets,

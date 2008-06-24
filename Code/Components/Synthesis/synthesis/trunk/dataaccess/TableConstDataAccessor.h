@@ -165,6 +165,19 @@ public:
   /// @return a vector with position angles (in radians) of the
   /// second feed corresponding to each visibility
   virtual const casa::Vector<casa::Float>& feed2PA() const;
+  
+  /// Noise level required for a proper weighting
+  /// @return a reference to nRow x nChannel x nPol cube with
+  ///         complex noise estimates
+  virtual const casa::Cube<casa::Complex>& noise() const;
+  
+  /// Velocity for each channel
+  /// @return a reference to vector containing velocities for each
+  ///         spectral channel (vector size is nChannel). Velocities
+  ///         are given as Doubles, the frame/units are specified by
+  ///         the DataSource object (via IDataConverter).
+  virtual const casa::Vector<casa::Double>& velocity() const;
+  
 
   /// @brief invalidate fields updated on each iteration
   /// @details Such caches like visibility, uvw, noise and flags are updated
@@ -237,6 +250,9 @@ private:
 
   /// internal buffer for the pointing directions of the centre of the second antenna
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointing2;
+  
+  /// internal buffer for the noise figures
+  CachedAccessorField<casa::Cube<casa::Complex> > itsNoise;
 };
 
 

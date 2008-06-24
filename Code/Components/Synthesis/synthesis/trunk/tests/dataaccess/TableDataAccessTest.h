@@ -142,6 +142,7 @@ void TableDataAccessTest::readOnlyTest()
        it->antenna1();
        it->time();
        it->feed1PA();
+       it->noise();
   }
 }
 

@@ -115,6 +115,12 @@ public:
   ///            cube to fill with the complex visibility data
   void fillVisibility(casa::Cube<casa::Complex> &vis) const;
   
+  /// populate the buffer of noise figures with the values of current
+  /// iteration
+  /// @param[in] noise a reference to the nRow x nChannel x nPol buffer
+  ///            cube to be filled with the noise figures
+  void fillNoise(casa::Cube<casa::Complex> &noise) const;
+  
   /// @brief read flagging information
   /// @details populate the buffer of flags with the information
   /// read in the current iteration
