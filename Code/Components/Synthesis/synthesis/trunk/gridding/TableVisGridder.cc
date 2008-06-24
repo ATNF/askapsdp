@@ -345,8 +345,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			      //
 			      const casa::IPosition gridShape = itsGrid[gInd].shape();
 			      uint nImagePols = 1;
-			      if(gridShape.nelements()<=2) nImagePols = 1;
-			      else nImagePols = gridShape[2];
+			      nImagePols = (gridShape.nelements()<=2) ? 1 : gridShape[2];
 				      
 			      ASKAPCHECK(nImagePols <= nPol," Number of image planes should be <= number of visibility correlations,currently nImagePols = " << nImagePols << ", nVisPols = " << nPol);
 			      			      
@@ -354,38 +353,20 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				     "only 1,2 and 4 polarisations are supported,current grid shape is "<<gridShape);
 
 			      // If there are 4 visibility pols, but no cross pol images...
-			      if( (nPol==4) && (nImagePols != 4) && (pol==1 || pol==2) ) continue;
+			      if( (nPol==4) && (nImagePols != 4) && (pol==1 || pol==2) ) {
+			           continue;
+			      }
 				      
 			      // For most cases, imagepol and vispol indices will align
 			      imagePol = pol; 
 
 			      // Two exceptions
-			      if(nImagePols==1 && (pol==0 || pol==3)) imagePol = 0;
-			      if(nImagePols==2 && pol==3) imagePol = 1;
-			      
-			      
-			      /*
-			      bool noXPols = false;
-			      if (gridShape.nelements()<=2) {
-				      // grid is a 2D image, treat the source as unpolarised
-				      noXPols = true;
-				      imagePol = 0;
-			      } else {
-				      // we need a better way to handle the order of polarisations
-				      if (gridShape[2] == 1) {
-					      noXPols = true; // unpolarized source
-					      imagePol = 0;
-				      }
-				      if (gridShape[2] == 2) {
-					      noXPols = true; // grid has 2 polarisations, treat them as parallel-hand products
-					      imagePol = (pol == 3) ? 1 : 0;
-				      }
+			      if(nImagePols==1 && (pol==0 || pol==3)) {
+			         imagePol = 0;
 			      }
-			      // we need a better way to handle the order of polarisations
-			      if (((pol == 1) || (pol == 2)) && noXPols) {
-				      continue; // skip polarisation, nothing is degridded
+			      if(nImagePols==2 && pol==3) {
+			         imagePol = 1;
 			      }
-			      */
 			   }// end of if(forward)
 			   
 			   /// Make a slicer to extract just this plane
