@@ -6,7 +6,6 @@ Csimulator.dataset                              =       10uJy_stdtest.ms
 Csimulator.sources.names                        =       [10uJy]
 Csimulator.sources.10uJy.direction              =       [12h30m00.000, -45.00.00.000, J2000]
 Csimulator.sources.10uJy.model                  =       10uJy.model.small
-
 #
 # Define the antenna locations, feed locations, and spectral window definitions
 #
@@ -30,13 +29,12 @@ Csimulator.simulation.integrationtime           =       1500s
 #
 Csimulator.observe.number                       =       1
 Csimulator.observe.scan0                        =       [10uJy, Continuum0, -6h, 6h]
-
 #
 # Use a gridder to apply primary beam during the W projection step.
 #
 Csimulator.gridder                              = AWProject
 Csimulator.gridder.AWProject.wmax            	= 15000
-Csimulator.gridder.AWProject.nwplanes        	= 33
+Csimulator.gridder.AWProject.nwplanes        	= 129
 Csimulator.gridder.AWProject.oversample     	= 8
 Csimulator.gridder.AWProject.diameter		= 12m
 Csimulator.gridder.AWProject.blockage		= 2m
