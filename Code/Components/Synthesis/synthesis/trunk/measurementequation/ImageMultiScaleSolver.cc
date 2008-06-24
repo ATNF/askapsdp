@@ -161,8 +161,6 @@ namespace askap
                                        itsCleaners.find(indit->first);
         
         
-        // temporary commented out to see whether local variables cause the bug
-        /*
         if(it!=itsCleaners.end()) {
           lc=it->second; 
           ASKAPDEBUGASSERT(lc);
@@ -172,10 +170,6 @@ namespace askap
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
         }
-        */
-        lc.reset(new casa::LatticeCleaner<float>(psf, dirty));          
-        // end of the temporary altered section, the previous line to be removed
-        // when uncommented
 
         lc->setMask(mask);
 

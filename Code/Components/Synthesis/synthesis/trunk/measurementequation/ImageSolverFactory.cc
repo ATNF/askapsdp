@@ -96,6 +96,7 @@ namespace askap
       }
       
       // Set Up the Preconditioners - a whole list of 'em
+      // Any changes here must also be copied to ImagerParallel
       const vector<string> preconditioners=parset.getStringVector("preconditioner.Names",std::vector<std::string>());
       if(preconditioners.size())
       {

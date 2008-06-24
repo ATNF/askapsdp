@@ -85,7 +85,6 @@ namespace askap
 	/// we allowed to normalize the peak to unity.
         ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
 	psf /= casa::max(psf);
-        ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << casa::max(psf));
 	
 	uint nAbove=0;
 	casa::IPosition vecShape(1,diag.nelements());
@@ -114,10 +113,9 @@ namespace askap
         double maxDiag(casa::max(diag));
         const double cutoff=tolerance*maxDiag;
 
-        ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of weights = " << maxDiag);
+        ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
 	psf /= casa::max(psf);
-        ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << casa::max(psf));
-	
+
 	uint nAbove=0;
 	casa::IPosition vecShape(1,diag.nelements());
 	casa::Vector<float> dirtyVector(dirty.reform(vecShape));
