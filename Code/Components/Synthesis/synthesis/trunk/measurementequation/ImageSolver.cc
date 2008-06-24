@@ -81,8 +81,10 @@ namespace askap
         double maxDiag(casa::max(diag));
         const double cutoff=tolerance*maxDiag;
 
-        ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of weights = " << maxDiag);
-	psf /= (float)maxDiag;
+	/// The PSF is just an approximation calculated from a subset of the data. So we
+	/// we allowed to normalize the peak to unity.
+        ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
+	psf /= casa::max(psf);
         ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << casa::max(psf));
 	
 	uint nAbove=0;
