@@ -115,7 +115,7 @@ namespace askap
         const double cutoff=tolerance*maxDiag;
 
         ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of weights = " << maxDiag);
-	psf /= (float)maxDiag;
+	psf /= casa::max(psf);
         ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << casa::max(psf));
 	
 	uint nAbove=0;

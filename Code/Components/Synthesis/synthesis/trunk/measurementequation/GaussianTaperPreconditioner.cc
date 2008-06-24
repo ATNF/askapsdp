@@ -94,6 +94,11 @@ bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, cas
   applyTaper(psf);
   applyTaper(dirty);
     
+  // Renormalize the PSF and dirty image
+  float maxpsf = max(psf);
+  psf/=maxpsf;
+  dirty/=maxpsf;
+
   return true;
 }
 
@@ -125,6 +130,7 @@ void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
   // transform back to the image domain
   casa::LatticeFFT::cfft2d(scratch, false);
   lattice.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+
 }
 
 /// @brief a helper method to build the lattice representing the taper
