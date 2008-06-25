@@ -119,9 +119,9 @@ int main(int argc, const char** argv) {
 					ASKAPLOG_INFO_STR(logger, "user:   " << timer.user () << " system: " << timer.system ()
 							<<" real:   " << timer.real () );
 				}
-				ASKAPLOG_INFO_STR(logger, "*** Finished major cycles ***" );
 				imager.broadcastModel();
 				imager.receiveModel();
+				ASKAPLOG_INFO_STR(logger, "*** Finished major cycles ***" );
 				imager.calcNE();
 				imager.receiveNE();
 			}
