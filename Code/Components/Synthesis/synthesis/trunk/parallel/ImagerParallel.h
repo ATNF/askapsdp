@@ -120,7 +120,18 @@ namespace askap
       /// @details The model images are written as AIPS++ images. In addition,
       /// the images may be restored using the specified beam.
       virtual void writeModel();
-
+  protected:
+      
+      /// @brief a helper method to extract peak residual
+      /// @details This object actually manipulates with the normal equations. We need
+      /// to be able to stop iterations on the basis of maximum residual, which is a 
+      /// data vector of the normal equations. This helper method is designed to extract
+      /// peak residual. It is then added to a model as a parameter (the model is 
+      /// shipped around).
+      /// @return absolute value peak of the residuals corresponding to the current normal
+      /// equations
+      double getPeakResidual() const;
+      
   private:
 
       /// Calculate normal equations for one data set

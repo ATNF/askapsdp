@@ -281,6 +281,42 @@ namespace askap
         *itsModel=itsSolver->parameters();
       }
     }
+    
+    /// @brief a helper method to extract peak residual
+    /// @details This object actually manipulates with the normal equations. We need
+    /// to be able to stop iterations on the basis of maximum residual, which is a 
+    /// data vector of the normal equations. This helper method is designed to extract
+    /// peak residual. It is then added to a model as a parameter (the model is 
+    /// shipped around).
+    /// @return absolute value peak of the residuals corresponding to the current normal
+    /// equations
+    double ImagerParallel::getPeakResidual() const
+    {
+      ASKAPDEBUGASSERT(itsNe);
+      // we need a specialized method of the imaging normal equations to get the peak
+      // for all images. Multiple images can be represented by a single normal equations class.
+      // We could also use the dataVector method of the interface (INormalEquations). However,
+      // it is a bit cumbersome to iterate over all parameters. It is probably better to
+      // leave this full case for a future as there is no immediate use case.
+      boost::shared_ptr<ImagingNormalEquations> ine = 
+                    boost::dynamic_pointer_cast<ImagingNormalEquations>(itsNe);
+      // we could have returned some special value (e.g. negative), but throw exception for now              
+      ASKAPCHECK(ine, "Current code to calculate peak residuals works for imaging-specific normal equations only");              
+      double peak = -1.; 
+      const std::map<string, casa::Vector<double> >& dataVector = ine->dataVector();
+      for (std::map<string, casa::Vector<double> >::const_iterator ci = dataVector.begin();
+           ci!=dataVector.end(); ++ci) {
+           if (ci->first.find("image")!=std::string::npos) {
+               // this is an image
+               const double tempPeak = casa::max(std::abs(casa::max(ci->second)),
+                                                 std::abs(casa::min(ci->second)));
+               if (tempPeak > peak) {
+                   peak = tempPeak;
+               }
+           }
+      }
+      return peak;
+    }
 
     /// Write the results out
     void ImagerParallel::writeModel()
