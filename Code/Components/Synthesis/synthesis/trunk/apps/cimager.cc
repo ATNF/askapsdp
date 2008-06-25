@@ -110,9 +110,9 @@ int main(int argc, const char** argv) {
 			} else {
 				/// Perform multiple major cycles
 				for (int cycle = 0; cycle < nCycles; cycle++) {
-					ASKAPLOG_INFO_STR(logger, "*** Starting major cycle " << cycle << " ***" );
 					imager.broadcastModel();
 					imager.receiveModel();
+					ASKAPLOG_INFO_STR(logger, "*** Starting major cycle " << cycle << " ***" );
 					imager.calcNE();
 					imager.solveNE();
 

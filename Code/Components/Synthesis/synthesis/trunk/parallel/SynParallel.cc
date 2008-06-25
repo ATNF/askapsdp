@@ -112,7 +112,7 @@ namespace askap
         ASKAPCHECK(itsModel, "Model not defined prior to receiving")
         casa::Timer timer;
         timer.mark();
-        ASKAPLOG_INFO_STR(logger, "Receiving model from the master via MPI");
+        ASKAPLOG_INFO_STR(logger, "Wait to receive the model from the master via MPI");
         LOFAR::BlobString bs;
         bs.resize(0);
         itsConnectionSet->read(0, bs);

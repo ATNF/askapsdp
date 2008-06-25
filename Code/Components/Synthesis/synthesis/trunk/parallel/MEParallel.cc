@@ -105,7 +105,7 @@ namespace askap
         itsSolver->init();
         itsSolver->setParameters(*itsModel);
 
-        ASKAPLOG_INFO_STR(logger, "Waiting for normal equations");
+        ASKAPLOG_INFO_STR(logger, "Waiting to receive normal equations");
         casa::Timer timer;
         timer.mark();
 
