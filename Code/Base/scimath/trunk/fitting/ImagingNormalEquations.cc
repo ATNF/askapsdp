@@ -190,6 +190,11 @@ const casa::Vector<double>& ImagingNormalEquations::dataVector(const std::string
    return cIt->second;
 }
 
+const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::dataVector() const
+{
+  return itsDataVector;
+}
+
 /// Return shape
     const std::map<string, casa::IPosition >& ImagingNormalEquations::shape() const
     {
