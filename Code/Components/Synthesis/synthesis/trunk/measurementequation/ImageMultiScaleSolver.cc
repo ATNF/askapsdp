@@ -169,23 +169,22 @@ namespace askap
         else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
-        }
-
-        lc->setMask(mask);
-
-        ASKAPDEBUGASSERT(lc);
-        if(algorithm()=="Hogbom") {
-          casa::Vector<float> scales(1);
-          scales(0)=0.0;
-          lc->setscales(scales);
-          lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(), false);
-        }
-        else {
-          lc->setscales(itsScales);
-          lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), false);
-        }
-        lc->ignoreCenterBox(true);
-        lc->clean(clean);
+	  lc->setMask(mask);
+	  
+	  ASKAPDEBUGASSERT(lc);
+	  if(algorithm()=="Hogbom") {
+	    casa::Vector<float> scales(1);
+	    scales(0)=0.0;
+	    lc->setscales(scales);
+	    lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(), false);
+	  }
+	  else {
+	    lc->setscales(itsScales);
+	    lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), false);
+	  }
+	  lc->ignoreCenterBox(true);
+	}
+	lc->clean(clean);
 
         casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
       }
