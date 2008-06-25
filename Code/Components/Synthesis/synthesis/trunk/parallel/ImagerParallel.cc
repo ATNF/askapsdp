@@ -278,7 +278,16 @@ namespace askap
         itsSolver->solveNormalEquations(q);
         ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds "
                            );
+        ASKAPDEBUGASSERT(itsModel);
         *itsModel=itsSolver->parameters();
+        const double peak = getPeakResidual();
+        
+        if (itsModel->has("peak_residual")) {
+            itsModel->update("peak_residual",peak);
+        } else {
+            itsModel->add("peak_residual",peak);
+        }
+        itsModel->fix("peak_residual");
       }
     }
     
@@ -325,11 +334,12 @@ namespace askap
       {
         ASKAPLOG_INFO_STR(logger, "Writing out results as CASA images");
         vector<string> resultimages=itsModel->names();
-        for (vector<string>::iterator it=resultimages.begin(); it
-            !=resultimages.end(); it++)
-        {
-          ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it );
-          SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it);
+        for (vector<string>::const_iterator it=resultimages.begin(); it
+            !=resultimages.end(); it++) {
+            if (it->find("image") != std::string::npos) {
+                ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it );
+                SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it);
+            }
         }
 
         if (itsRestore)
