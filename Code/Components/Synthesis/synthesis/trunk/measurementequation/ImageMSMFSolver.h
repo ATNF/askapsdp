@@ -30,7 +30,7 @@
 #ifndef SYNIMAGEMSMFSSOLVER_H_
 #define SYNIMAGEMSMFSSOLVER_H_
 
-#include <measurementequation/ImageSolver.h>
+#include <measurementequation/ImageCleaningSolver.h>
 
 #include <boost/shared_ptr.hpp>
 #include <lattices/Lattices/LatticeCleaner.h>
@@ -48,7 +48,7 @@ namespace askap
     /// casa::LatticeCleaner classes
     ///
     /// @ingroup measurementequation
-    class ImageMSMFSolver : public ImageSolver
+    class ImageMSMFSolver : public ImageCleaningSolver
     {
       public:
 

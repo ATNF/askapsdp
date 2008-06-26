@@ -64,7 +64,7 @@ namespace askap
     
       
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip) : 
-          ImageSolver(ip),itsNTaylor(2)
+          ImageCleaningSolver(ip),itsNTaylor(2)
     {
       itsScales.resize(3);
       itsScales(0)=0;
@@ -76,7 +76,7 @@ namespace askap
 
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip,
       const casa::Vector<float>& scales, const int& nterms) : 
-          ImageSolver(ip),itsNTaylor(nterms)
+          ImageCleaningSolver(ip),itsNTaylor(nterms)
     {
       itsScales.resize(scales.size());
       itsScales=scales;

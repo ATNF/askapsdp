@@ -63,7 +63,7 @@ namespace askap
     
       
     ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip) : 
-          ImageSolver(ip) 
+          ImageCleaningSolver(ip) 
     {
       itsScales.resize(3);
       itsScales(0)=0;
@@ -73,7 +73,7 @@ namespace askap
 
     ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip,
       const casa::Vector<float>& scales) : 
-          ImageSolver(ip)
+          ImageCleaningSolver(ip)
     {
       itsScales.resize(scales.size());
       itsScales=scales;
@@ -106,7 +106,7 @@ namespace askap
       }
       ASKAPCHECK(nParameters>0, "No free parameters in ImageMultiScaleSolver");
       
-      for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();indit++)
+      for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();++indit)
       {
 // Axes are dof, dof for each parameter
         const casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
@@ -127,25 +127,23 @@ namespace askap
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
         casa::Array<float> maskArray(valShape);
 
-	// Normalize by the diagonal
-	doNormalization(diag,tol(),psfArray,dirtyArray, maskArray);
+  	    // Normalize by the diagonal
+	    doNormalization(diag,tol(),psfArray,dirtyArray, maskArray);
         
-	// Precondition the PSF and DIRTY images before solving.
-	if(doPreconditioning(psfArray,dirtyArray))
-	{
-	  // Save the new PSFs to disk
-          Axes axes(itsParams->axes(indit->first));
-          string psfName="psf."+(indit->first);
-          casa::Array<double> anothertemp(valShape);
-          casa::convertArray<double,float>(anothertemp,psfArray);
-          const casa::Array<double> & APSF(anothertemp);
-          if (!itsParams->has(psfName)) {
-            itsParams->add(psfName, APSF, axes);
-          }
-          else {
-            itsParams->update(psfName, APSF);
-          }
-	}
+	    // Precondition the PSF and DIRTY images before solving.
+	    if(doPreconditioning(psfArray,dirtyArray)) {
+	       // Save the new PSFs to disk
+           Axes axes(itsParams->axes(indit->first));
+           string psfName="psf."+(indit->first);
+           casa::Array<double> anothertemp(valShape);
+           casa::convertArray<double,float>(anothertemp,psfArray);
+           const casa::Array<double> & APSF(anothertemp);
+           if (!itsParams->has(psfName)) {
+               itsParams->add(psfName, APSF, axes);
+           } else {
+               itsParams->update(psfName, APSF);
+           }
+	    }
 	
         // We need lattice equivalents. We can use ArrayLattice which involves
         // no copying
