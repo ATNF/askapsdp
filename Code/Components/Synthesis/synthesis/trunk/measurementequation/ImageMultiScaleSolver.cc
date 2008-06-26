@@ -174,11 +174,13 @@ namespace askap
 	    casa::Vector<float> scales(1);
 	    scales(0)=0.0;
 	    lc->setscales(scales);
-	    lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(), false);
+	    lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
+	                   fractionalThreshold(), false);
 	  }
 	  else {
 	    lc->setscales(itsScales);
-	    lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), false);
+	    lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
+	                   fractionalThreshold(),false);
 	  }
 	  lc->ignoreCenterBox(true);
 	}

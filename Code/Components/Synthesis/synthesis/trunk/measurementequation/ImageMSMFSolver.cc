@@ -185,7 +185,8 @@ namespace askap
 	    (itsCleaners[stokes]).reset(new casa::MultiTermLatticeCleaner<float>());
 	    ASKAPDEBUGASSERT((itsCleaners[stokes]));
 	    
-	    (itsCleaners[stokes])->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), false);
+	    (itsCleaners[stokes])->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
+	                                      fractionalThreshold(), false);
 	    (itsCleaners[stokes])->ignoreCenterBox(true);
 	    (itsCleaners[stokes])->setscales(itsScales);
 	    (itsCleaners[stokes])->setntaylorterms(itsNTaylor);

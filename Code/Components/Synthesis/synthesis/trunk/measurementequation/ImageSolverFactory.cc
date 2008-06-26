@@ -57,42 +57,53 @@ namespace askap
     Solver::ShPtr ImageSolverFactory::make(askap::scimath::Params &ip, const LOFAR::ACC::APS::ParameterSet &parset) {
       ImageSolver::ShPtr solver;
       if(parset.getString("solver")=="Clean") {
-        std::vector<float> defaultScales(3);
-        defaultScales[0]=0.0;
-        defaultScales[1]=10.0;
-        defaultScales[2]=30.0;
+         std::vector<float> defaultScales(3);
+         defaultScales[0]=0.0;
+         defaultScales[1]=10.0;
+         defaultScales[2]=30.0;
         
-	string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
-	std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
+	     string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
+	     std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 	
-	if(algorithm=="MSMFS"){
-          int nterms=parset.getInt32("solver.Clean.nterms",2);
-          solver = ImageSolver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms)));
-          ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
-          solver->setAlgorithm(algorithm);
-	}
-	else{
-          solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
-          ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
-          //solver->setAlgorithm(algorithm);
-          solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
-	}
+	     if(algorithm=="MSMFS"){
+            int nterms=parset.getInt32("solver.Clean.nterms",2);
+            solver = ImageSolver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms)));
+            ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
+            solver->setAlgorithm(algorithm);
+	     } else {
+            solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
+            ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
+            //solver->setAlgorithm(algorithm);
+            solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
+	     }
         
-	solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));
-        solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
-        solver->setVerbose(parset.getBool("solver.Clean.verbose", true));
-        solver->setNiter(parset.getInt32("solver.Clean.niter", 100));
-        casa::Quantity threshold;
-        casa::Quantity::read(threshold, parset.getString("solver.Clean.threshold", "0Jy"));
-        solver->setThreshold(threshold);
-      }
-      else {
-        solver = ImageSolver::ShPtr(new ImageSolver(ip));
-        casa::Quantity threshold;
-        casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
-        solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
-        solver->setThreshold(threshold);
-        ASKAPLOG_INFO_STR(logger, "Constructed dirty image solver" );
+	     solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));
+         solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
+         solver->setVerbose(parset.getBool("solver.Clean.verbose", true));
+         solver->setNiter(parset.getInt32("solver.Clean.niter", 100));
+         casa::Quantity threshold;
+         casa::Quantity::read(threshold, parset.getString("solver.Clean.threshold", "0Jy"));
+         solver->setThreshold(threshold);
+         if (parset.isDefined("threshold.minorcycle")) {
+             boost::shared_ptr<ImageCleaningSolver> ics = 
+                   boost::dynamic_pointer_cast<ImageCleaningSolver>(solver);
+             if (ics) {
+                 const double fractionalThreshold = SynthesisParamsHelper::convertQuantity(
+	                            parset.getString("threshold.minorcycle"),"");
+                 ics->setFractionalThreshold(fractionalThreshold);
+	             ASKAPLOG_INFO_STR(logger, "Will stop minor cycle at the fractional threshold of "<<fractionalThreshold);
+             } else {
+                 ASKAPLOG_INFO_STR(logger, "The type of the image solver used does not allow to specify "
+                            "a fractional threshold, ignoring threshold.minorcycle = "<<parset.getString("threshold.minorcycle"));
+             }      
+         }
+      } else {
+          solver = ImageSolver::ShPtr(new ImageSolver(ip));
+          casa::Quantity threshold;
+          casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
+          solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
+          solver->setThreshold(threshold);
+          ASKAPLOG_INFO_STR(logger, "Constructed dirty image solver" );
       }
       
       // Set Up the Preconditioners - a whole list of 'em
