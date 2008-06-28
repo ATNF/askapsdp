@@ -167,7 +167,7 @@ double ATCAIllumination::jamesian(double fractionalRadius)
 /// @param[in] pa parallactic angle, or strictly speaking the angle between 
 /// uv-coordinate system and the system where the pattern is defined (unused)
 void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l, 
-                          double m, double) const
+                          double m, double pa) const
 {
     const casa::uInt oversample = pattern.overSample();
     const double cellU = pattern.uCellSize()/oversample;
@@ -238,10 +238,10 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 				  }
 				  if (itsDoFeedLegs) {
 				      // rotated offsets
-				      const double dU = cos(itsFeedLegsRotation)*offsetU + 
-				                        sin(itsFeedLegsRotation)*offsetV;
-				      const double dV = -sin(itsFeedLegsRotation)*offsetU + 
-				                        cos(itsFeedLegsRotation)*offsetV;				                        
+				      const double dU = cos(itsFeedLegsRotation+pa)*offsetU + 
+				                        sin(itsFeedLegsRotation+pa)*offsetV;
+				      const double dV = -sin(itsFeedLegsRotation+pa)*offsetU + 
+				                        cos(itsFeedLegsRotation+pa)*offsetV;				                        
 				      // decrease the illumination within the feed leg shadows                  
                       if ((std::abs(dU) < feedLegsHalfWidthInCells) ||
                           (std::abs(dV) < feedLegsHalfWidthInCells)) {
