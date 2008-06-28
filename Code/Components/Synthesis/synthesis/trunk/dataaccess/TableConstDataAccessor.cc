@@ -245,10 +245,13 @@ void TableConstDataAccessor::invalidateIterationCaches() const throw()
   itsAntenna2.invalidate();
   itsFeed1.invalidate();
   itsFeed2.invalidate();
+  itsFeed1PA.invalidate();
+  itsFeed2PA.invalidate();
   itsPointingDir1.invalidate();
   itsPointingDir2.invalidate();
   itsDishPointing1.invalidate();
   itsDishPointing2.invalidate();
+  itsNoise.invalidate();
 }
 
 /// @brief invalidate all fields  corresponding to the spectral axis
