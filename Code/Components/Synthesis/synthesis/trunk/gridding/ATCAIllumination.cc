@@ -169,6 +169,7 @@ double ATCAIllumination::jamesian(double fractionalRadius)
 void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l, 
                           double m, double pa) const
 {
+    //std::cout<<"ATCAIllumination::getPattern is called for pa = "<<pa/M_PI*180.<<std::endl;
     const casa::uInt oversample = pattern.overSample();
     const double cellU = pattern.uCellSize()/oversample;
     const double cellV = pattern.vCellSize()/oversample;
