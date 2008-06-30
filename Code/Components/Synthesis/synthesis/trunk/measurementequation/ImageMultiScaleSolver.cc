@@ -185,7 +185,7 @@ namespace askap
 	  lc->ignoreCenterBox(true);
 	}
 	lc->clean(clean);
-
+	
         casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
       }
 
@@ -195,9 +195,10 @@ namespace askap
       quality.setInfo("Multiscale Clean");
       
       /// Save the PSF and Weight
-      saveWeights();
+      
+      saveWeights();      
       savePSF();
-
+      
       return true;
     };
     

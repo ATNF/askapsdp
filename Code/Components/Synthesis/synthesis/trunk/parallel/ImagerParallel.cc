@@ -280,7 +280,9 @@ namespace askap
                            );
         ASKAPDEBUGASSERT(itsModel);
         *itsModel=itsSolver->parameters();
+                      
         const double peak = getPeakResidual();
+                
         
         if (itsModel->has("peak_residual")) {
             itsModel->update("peak_residual",peak);
@@ -315,8 +317,9 @@ namespace askap
       const std::map<string, casa::Vector<double> >& dataVector = ine->dataVector();
       for (std::map<string, casa::Vector<double> >::const_iterator ci = dataVector.begin();
            ci!=dataVector.end(); ++ci) {
-           if (ci->first.find("image")!=std::string::npos) {
+           if (ci->first.find("image") == 0) {
                // this is an image
+               ASKAPASSERT(ci->second.nelements() != 0);               
                const double tempPeak = casa::max(std::abs(casa::max(ci->second)),
                                                  std::abs(casa::min(ci->second)));
                if (tempPeak > peak) {
