@@ -274,7 +274,8 @@ void TableConstDataIterator::setUpIteration()
   itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
   
-  if (itsDirectionAndPACache.isValid() && itsCurrentDataDescID>=0) {
+  if ((itsDirectionAndPACache.isValid() || itsParallacticAngleCache.isValid()) 
+       && itsCurrentDataDescID>=0) {
       // extra checks make sense if the cache is valid (and this means it 
       // has been used before)
       const casa::MEpoch epoch = currentEpoch();
@@ -282,6 +283,9 @@ void TableConstDataIterator::setUpIteration()
       const bool newField = itsUseFieldID ? false : subtableInfo().getField().newField(epoch);
       // a case where fieldID changes is dealt with separately.
       const IFeedSubtableHandler &feedSubtable = subtableInfo().getFeed();
+      if ( newField || !subtableInfo().getAntenna().allEquatorial()) {
+          itsParallacticAngleCache.invalidate();
+      }
       if ( newField || ((!subtableInfo().getAntenna().allEquatorial() ||
            feedSubtable.newBeamDetails(epoch,spWindow)) &&
            !feedSubtable.allBeamOffsetsZero(epoch,spWindow))) {
@@ -310,6 +314,7 @@ void TableConstDataIterator::setUpIteration()
       itsCurrentDataDescID = -100;
       itsCurrentFieldID = -100;
       itsDirectionAndPACache.invalidate();
+      itsParallacticAngleCache.invalidate();
       itsDishPointingCache.invalidate();
   }  
 }
@@ -385,6 +390,7 @@ void TableConstDataIterator::makeUniformFieldID()
       if (newFieldID != itsCurrentFieldID) {
           itsCurrentFieldID = newFieldID;
           itsDirectionAndPACache.invalidate();
+          itsParallacticAngleCache.invalidate();          
           itsDishPointingCache.invalidate();
       }
       // break the iteration if necessary
@@ -703,6 +709,56 @@ casa::MEpoch TableConstDataIterator::currentEpoch() const
   return itsConverter->epochMeasure(itsAccessor.time());
 }  
 
+/// @brief Fill internal buffer with parallactic angles
+/// @details This buffer holds parallactic angles for all antennae. The buffer
+/// is invalidated when the time changes for an alt-az array, for an equatorial
+/// array it happens only if the pointing changes.
+/// @param[in] angles a reference to a vector to be filled
+void TableConstDataIterator::fillParallacticAngleCache(casa::Vector<Double> &angles) const
+{ 
+  angles.resize(subtableInfo().getAntenna().getNumberOfAntennae());
+  ASKAPDEBUGASSERT(angles.size());
+  if (subtableInfo().getAntenna().allEquatorial()) {
+      angles.set(0.);
+  } else {
+  
+  const casa::MEpoch epoch=currentEpoch();
+  
+  // we need a separate converter for parallactic angle calculations
+  DirectionConverter dirConv((casa::MDirection::Ref(casa::MDirection::AZEL)));
+  dirConv.setMeasFrame(epoch);                  
+
+  // we currently use FIELD table to get the pointing direction. This table
+  // does not depend on the antenna.
+  const casa::MDirection& antReferenceDir = getCurrentReferenceDir();
+
+
+  for (casa::uInt ant = 0; ant<angles.size(); ++ant) {
+       const casa::String &antMount=subtableInfo().getAntenna().
+                                          getMount(ant);
+
+       if (antMount == "ALT-AZ" || antMount == "alt-az")  {
+           casa::MDirection celestialPole;
+           celestialPole.set(MDirection::Ref(MDirection::HADEC));
+           dirConv.setMeasFrame(casa::MeasFrame(subtableInfo().getAntenna().
+                              getPosition(ant),epoch));
+           const casa::Double pAngle=dirConv(antReferenceDir).
+                               positionAngle(dirConv(celestialPole).getValue());
+           angles[ant] = pAngle;
+                                                    
+       } else if (antMount != "EQUATORIAL" && antMount != "equatorial") {
+           ASKAPTHROW(DataAccessError,"Unknown mount type "<<antMount<<
+              " for antenna "<<ant);
+       } else {
+           // just in case we ever have a mixed array with different mounts
+           angles[ant] = 0.;
+       }
+                  
+    }   
+  } // if all equatorial
+}
+
+
 /// @brief Fill internal buffer with the pointing directions and position angles
 /// @details  The layout of this buffer is the same as the layout of
 /// the FEED subtable for current time and spectral window. 
@@ -719,32 +775,37 @@ void TableConstDataIterator::fillDirectionAndPACache(
   // probably be a bit faster if we split these two operations between two methods, as
   // position angle will be fixed and will not need as much updating as the pointing.
   
+  // threshold (in radians) beyond which a proper parallactic angle rotation is done
+  // it is hard coded at the moment 
+  const double parallacticAngleThreshold = 1e-9;
+  
+  const casa::Vector<casa::Double> &parallacticAngles = itsParallacticAngleCache.value(*this,
+                 &TableConstDataIterator::fillParallacticAngleCache);  
+  
+  const IFeedSubtableHandler &feedSubtable = subtableInfo().getFeed();
+  
   const casa::MEpoch epoch=currentEpoch();
   ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
   const casa::uInt spWindowID = currentSpWindowID();
   // antenna and feed IDs here are those in the FEED subtable, rather than
   // in the current accessor
-  const casa::Vector<casa::Int> &antIDs=subtableInfo().getFeed().
-                             getAntennaIDs(epoch,spWindowID);                             
+  const casa::Vector<casa::Int> &antIDs = feedSubtable.getAntennaIDs(epoch,spWindowID);
   
   dirs.resize(antIDs.nelements());
   
   // we currently use FIELD table to get the pointing direction. This table
   // does not depend on the antenna.
   const casa::MDirection& antReferenceDir = getCurrentReferenceDir();
-                                   
-  // we need a separate converter for parallactic angle calculations
-  DirectionConverter dirConv((casa::MDirection::Ref(casa::MDirection::AZEL)));
-  dirConv.setMeasFrame(epoch);                  
+                                     
   const casa::Vector<casa::RigidVector<casa::Double, 2> > &offsets =
-               subtableInfo().getFeed().getAllBeamOffsets(epoch,spWindowID);
+               feedSubtable.getAllBeamOffsets(epoch,spWindowID);
   const casa::Vector<casa::Double> &feedAngles =
-               subtableInfo().getFeed().getAllBeamPAs(epoch, spWindowID);          
+               feedSubtable.getAllBeamPAs(epoch, spWindowID);          
+               
   for (casa::uInt element=0;element<antIDs.nelements();++element) {
        dirs[element].pa = feedAngles[element]; 
        const casa::uInt ant=antIDs[element];
-       const casa::String &antMount=subtableInfo().getAntenna().
-                                            getMount(ant);
+
        // if we decide to be paranoid about performance, we can add a method
        // to the converter to test whether antenna position and/or epoch are
        // really required to the requested convertion. Because the antenna 
@@ -754,14 +815,11 @@ void TableConstDataIterator::fillDirectionAndPACache(
                      getAntenna().getPosition(ant)));
        
        casa::RigidVector<casa::Double, 2> offset = offsets[element];
-       if (antMount == "ALT-AZ" || antMount == "alt-az")  {
-           // need to do parallactic angle rotation
-           casa::MDirection celestialPole;
-           celestialPole.set(MDirection::Ref(MDirection::HADEC));
-           dirConv.setMeasFrame(casa::MeasFrame(subtableInfo().getAntenna().
-                                getPosition(ant),epoch));
-           const casa::Double posAngle=dirConv(antReferenceDir).
-                                 positionAngle(dirConv(celestialPole).getValue());
+       ASKAPDEBUGASSERT(ant<parallacticAngles.nelements());
+       const casa::Double posAngle = parallacticAngles[ant];
+
+       if (std::abs(posAngle)>parallacticAngleThreshold)  {
+           // need to do a proper parallactic angle rotation
            dirs[element].pa += posAngle;
            casa::SquareMatrix<casa::Double, 2> 
                        rotMatrix(casa::SquareMatrix<casa::Double, 2>::General);
@@ -772,10 +830,7 @@ void TableConstDataIterator::fillDirectionAndPACache(
            rotMatrix(1,0)=spa;
            rotMatrix(1,1)=cpa;
            offset*=rotMatrix;                                        
-       } else if (antMount != "EQUATORIAL" && antMount != "equatorial") {
-           ASKAPTHROW(DataAccessError,"Unknown mount type "<<antMount<<
-                " for antenna "<<ant);
-       }
+       } 
        casa::MDirection feedPointingCentre(antReferenceDir);
        // x direction is fliped to convert az-el type frame to ra-dec
        feedPointingCentre.shift(casa::MVDirection(-offset(0),
@@ -952,27 +1007,21 @@ void TableConstDataIterator::fillVectorOfPositionAngles(casa::Vector<casa::Float
               const casa::Vector<casa::uInt> &feedIDs) const
 {
   ASKAPDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());
-  const casa::Vector<TableConstDataIterator::DirectionAndPA> &directionAndPACache = 
-      itsDirectionAndPACache.value(*this,&TableConstDataIterator::fillDirectionAndPACache);
-  const casa::Matrix<casa::Int> &directionAndPACacheIndices = 
-                 subtableInfo().getFeed().getIndices();
+  const casa::Vector<casa::Double> &parallacticAngles = itsParallacticAngleCache.value(*this,
+                 &TableConstDataIterator::fillParallacticAngleCache);  
+  
+  const casa::MEpoch epoch=currentEpoch();
+  ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
+  const casa::uInt spWindowID = currentSpWindowID();
+  
+  const IFeedSubtableHandler& feedSubtable = subtableInfo().getFeed();                                             
+                 
   angles.resize(itsNumberOfRows);
   
   for (casa::uInt row=0; row<itsNumberOfRows; ++row) {
-       if ((feedIDs[row]>=directionAndPACacheIndices.ncolumn()) ||
-           (antIDs[row]>=directionAndPACacheIndices.nrow())) {
-              ASKAPTHROW(DataAccessError, "antID="<<antIDs[row]<<
-                   " and/or feedID="<<feedIDs[row]<<
-                   " are beyond the range of the FEED table");
-           }
-       if (directionAndPACacheIndices(antIDs[row],feedIDs[row])<0) {
-           ASKAPTHROW(DataAccessError, "The pair andID="<<antIDs[row]<<
-                   " feedID="<<feedIDs[row]<<" doesn't have beam parameters defined"); 
-       }    
-       const casa::uInt index = static_cast<casa::uInt>(
-                    directionAndPACacheIndices(antIDs[row],feedIDs[row]));
-       ASKAPDEBUGASSERT(index < directionAndPACache.nelements());             
-       angles[row]=casa::Float(directionAndPACache[index].pa);             
+       ASKAPDEBUGASSERT(antIDs[row] < parallacticAngles.nelements());
+       angles[row] = casa::Float(feedSubtable.getBeamPA(epoch, spWindowID, antIDs[row],
+                               feedIDs[row]) + parallacticAngles[antIDs[row]]);
   }                    
 }
 

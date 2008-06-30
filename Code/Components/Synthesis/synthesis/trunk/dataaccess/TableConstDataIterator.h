@@ -315,8 +315,15 @@ protected:
   /// The buffer can be invalidated if the time changes (i.e. for an alt-az array),
   /// for an equatorial array this happends only if the FEED or FIELD subtable
   /// are time-dependent (i.e. when the pointing changes)
-  /// @param[in] dirs a reference to a vector to fill
+  /// @param[in] dirs a reference to a vector to be filled
   void fillDirectionAndPACache(casa::Vector<DirectionAndPA> &dirs) const;
+  
+  /// @brief Fill internal buffer with parallactic angles
+  /// @details This buffer holds parallactic angles for all antennae. The buffer
+  /// is invalidated when the time changes for an alt-az array, for an equatorial
+  /// array it happens only if the pointing changes.
+  /// @param[in] angles a reference to a vector to be filled
+  void fillParallacticAngleCache(casa::Vector<casa::Double> &angles) const;
 
   /// @brief fill the buffer with the dish pointing directions
   /// @details The difference from fillDirectionCache is that
@@ -370,7 +377,7 @@ protected:
   /// the former is not supported by the main table.
   /// @return a reference to direction measure
   const casa::MDirection& getCurrentReferenceDir() const;
-  
+    
 private:
   /// accessor (a chunk of data) 
   /// although the accessor type can be different
@@ -417,6 +424,11 @@ private:
   /// directions and parallactic angles for the whole 
   /// current cache of the Feed subtable handler
   CachedAccessorField<casa::Vector<DirectionAndPA> > itsDirectionAndPACache;
+  
+  /// @brief cache of parallactic angles for each antenna
+  /// @details This is an internal buffer for parallactic angles (in radians) for the whole
+  /// current cache of the antenna subtable handler
+  CachedAccessorField<casa::Vector<casa::Double> > itsParallacticAngleCache;
   
   /// internal buffer for dish pointings for all antennae
   CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointingCache;   
