@@ -130,27 +130,6 @@ bool WholeRowFlagger<casa::Bool>::copyRequired(casa::uInt row,
   return true;
 }
 
-// helper class to handle pointing direction and position angle together
-
-/// @brief constructor to simplify creating an object
-/// @param[in] idir input pointing direction
-/// @param[in] ipa input position angle
-TableConstDataIterator::DirectionAndPA::DirectionAndPA(const casa::MVDirection &idir, double ipa) :
-    dir(idir), pa(ipa) {}
-
-     
-/// @brief constructor to simplify creating an object
-/// @param[in] idir input pointing direction
-TableConstDataIterator::DirectionAndPA::DirectionAndPA(const casa::MVDirection &idir) : 
-    dir(idir), pa(0.) {}
-     
-/// @brief constructor to simplify creating an object
-/// @param[in] ipa input position angle
-TableConstDataIterator::DirectionAndPA::DirectionAndPA(double ipa) : pa(ipa) {}
-     
-/// @brief default constructor to use stl-containers
-TableConstDataIterator::DirectionAndPA::DirectionAndPA() : pa(0.) {}
-
 
 } // namespace synthesis
 
@@ -274,7 +253,7 @@ void TableConstDataIterator::setUpIteration()
   itsNumberOfRows=itsCurrentIteration.nrow()<=itsMaxChunkSize ?
                   itsCurrentIteration.nrow() : itsMaxChunkSize;
   
-  if ((itsDirectionAndPACache.isValid() || itsParallacticAngleCache.isValid()) 
+  if ((itsDirectionCache.isValid() || itsParallacticAngleCache.isValid()) 
        && itsCurrentDataDescID>=0) {
       // extra checks make sense if the cache is valid (and this means it 
       // has been used before)
@@ -289,7 +268,7 @@ void TableConstDataIterator::setUpIteration()
       if ( newField || ((!subtableInfo().getAntenna().allEquatorial() ||
            feedSubtable.newBeamDetails(epoch,spWindow)) &&
            !feedSubtable.allBeamOffsetsZero(epoch,spWindow))) {
-              itsDirectionAndPACache.invalidate();
+              itsDirectionCache.invalidate();
               // itsDishPointingCache doesn't depend on feeds
               if (newField) {
                   itsDishPointingCache.invalidate();
@@ -313,7 +292,7 @@ void TableConstDataIterator::setUpIteration()
       itsNumberOfPols = 0;
       itsCurrentDataDescID = -100;
       itsCurrentFieldID = -100;
-      itsDirectionAndPACache.invalidate();
+      itsDirectionCache.invalidate();
       itsParallacticAngleCache.invalidate();
       itsDishPointingCache.invalidate();
   }  
@@ -339,7 +318,7 @@ void TableConstDataIterator::makeUniformDataDescID()
   if (itsCurrentDataDescID!=newDataDescID) {      
       itsAccessor.invalidateSpectralCaches();
       itsCurrentDataDescID=newDataDescID;
-      if (itsDirectionAndPACache.isValid()) {
+      if (itsDirectionCache.isValid()) {
           // if-statement, because it is pointless to do further checks in the 
           // case when the cache is already invalid due to 
           // the time change. In addition, checks require an access to the table,
@@ -350,7 +329,7 @@ void TableConstDataIterator::makeUniformDataDescID()
           const IFeedSubtableHandler &feedSubtable = subtableInfo().getFeed();
           if (!feedSubtable.allBeamOffsetsZero(epoch,spWindow)) {
               if (feedSubtable.newBeamDetails(epoch,spWindow)) {
-                  itsDirectionAndPACache.invalidate();
+                  itsDirectionCache.invalidate();
               }
           }
       }
@@ -389,7 +368,7 @@ void TableConstDataIterator::makeUniformFieldID()
       ASKAPDEBUGASSERT(newFieldID>=0);
       if (newFieldID != itsCurrentFieldID) {
           itsCurrentFieldID = newFieldID;
-          itsDirectionAndPACache.invalidate();
+          itsDirectionCache.invalidate();
           itsParallacticAngleCache.invalidate();          
           itsDishPointingCache.invalidate();
       }
@@ -759,7 +738,7 @@ void TableConstDataIterator::fillParallacticAngleCache(casa::Vector<Double> &ang
 }
 
 
-/// @brief Fill internal buffer with the pointing directions and position angles
+/// @brief Fill internal buffer with the pointing directions
 /// @details  The layout of this buffer is the same as the layout of
 /// the FEED subtable for current time and spectral window. 
 /// getAntennaIDs and getFeedIDs methods of the 
@@ -768,8 +747,7 @@ void TableConstDataIterator::fillParallacticAngleCache(casa::Vector<Double> &ang
 /// for an equatorial array this happends only if the FEED or FIELD subtable
 /// are time-dependent or if FIELD_ID changes
 /// @param[in] dirs a reference to a vector to fill
-void TableConstDataIterator::fillDirectionAndPACache(
-                            casa::Vector<TableConstDataIterator::DirectionAndPA> &dirs) const
+void TableConstDataIterator::fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const
 {
   // the code fills both pointing directions and position angles. For ASKAP, it would
   // probably be a bit faster if we split these two operations between two methods, as
@@ -799,11 +777,8 @@ void TableConstDataIterator::fillDirectionAndPACache(
                                      
   const casa::Vector<casa::RigidVector<casa::Double, 2> > &offsets =
                feedSubtable.getAllBeamOffsets(epoch,spWindowID);
-  const casa::Vector<casa::Double> &feedAngles =
-               feedSubtable.getAllBeamPAs(epoch, spWindowID);          
                
   for (casa::uInt element=0;element<antIDs.nelements();++element) {
-       dirs[element].pa = feedAngles[element]; 
        const casa::uInt ant=antIDs[element];
 
        // if we decide to be paranoid about performance, we can add a method
@@ -820,7 +795,6 @@ void TableConstDataIterator::fillDirectionAndPACache(
 
        if (std::abs(posAngle)>parallacticAngleThreshold)  {
            // need to do a proper parallactic angle rotation
-           dirs[element].pa += posAngle;
            casa::SquareMatrix<casa::Double, 2> 
                        rotMatrix(casa::SquareMatrix<casa::Double, 2>::General);
            const casa::Double cpa=cos(posAngle);
@@ -835,7 +809,7 @@ void TableConstDataIterator::fillDirectionAndPACache(
        // x direction is fliped to convert az-el type frame to ra-dec
        feedPointingCentre.shift(casa::MVDirection(-offset(0),
                              offset(1)),casa::True);
-       itsConverter->direction(feedPointingCentre,dirs[element].dir);
+       itsConverter->direction(feedPointingCentre,dirs[element]);
   }
 }
                
@@ -967,27 +941,27 @@ void TableConstDataIterator::fillVectorOfPointings(
                const casa::Vector<casa::uInt> &feedIDs) const
 {
   ASKAPDEBUGASSERT(antIDs.nelements() == feedIDs.nelements());
-  const casa::Vector<TableConstDataIterator::DirectionAndPA> &directionAndPACache = 
-      itsDirectionAndPACache.value(*this,&TableConstDataIterator::fillDirectionAndPACache);
-  const casa::Matrix<casa::Int> &directionAndPACacheIndices = 
+  const casa::Vector<casa::MVDirection> &directionCache = 
+      itsDirectionCache.value(*this,&TableConstDataIterator::fillDirectionCache);
+  const casa::Matrix<casa::Int> &directionCacheIndices = 
                  subtableInfo().getFeed().getIndices();
   dirs.resize(itsNumberOfRows);
   
   for (casa::uInt row=0; row<itsNumberOfRows; ++row) {
-       if ((feedIDs[row]>=directionAndPACacheIndices.ncolumn()) ||
-           (antIDs[row]>=directionAndPACacheIndices.nrow())) {
+       if ((feedIDs[row]>=directionCacheIndices.ncolumn()) ||
+           (antIDs[row]>=directionCacheIndices.nrow())) {
               ASKAPTHROW(DataAccessError, "antID="<<antIDs[row]<<
                    " and/or feedID="<<feedIDs[row]<<
                    " are beyond the range of the FEED table");
            }
-       if (directionAndPACacheIndices(antIDs[row],feedIDs[row])<0) {
+       if (directionCacheIndices(antIDs[row],feedIDs[row])<0) {
            ASKAPTHROW(DataAccessError, "The pair andID="<<antIDs[row]<<
                    " feedID="<<feedIDs[row]<<" doesn't have beam parameters defined"); 
        }    
        const casa::uInt index = static_cast<casa::uInt>(
-                    directionAndPACacheIndices(antIDs[row],feedIDs[row]));
-       ASKAPDEBUGASSERT(index < directionAndPACache.nelements());             
-       dirs[row]=directionAndPACache[index].dir;             
+                    directionCacheIndices(antIDs[row],feedIDs[row]));
+       ASKAPDEBUGASSERT(index < directionCache.nelements());             
+       dirs[row]=directionCache[index];             
   }                    
 }
 

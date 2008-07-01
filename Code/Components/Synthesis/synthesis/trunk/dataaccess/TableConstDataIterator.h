@@ -194,36 +194,6 @@ public:
   
 protected:
 
-  /// @brief internal structure to hold both pointing direction and position angle
-  /// @details A lot of common code is used to compute pointing directions and 
-  /// position angles (parallactic angle + the angle each feed is mounted at).
-  /// This structure encapsulates a pair of direction + angle to be able to
-  /// cache it easily.
-  struct DirectionAndPA {
-     /// @brief constructor to simplify creating an object
-     /// @param[in] idir input pointing direction
-     /// @param[in] ipa input position angle
-     DirectionAndPA(const casa::MVDirection &idir, double ipa);
-     
-     /// @brief constructor to simplify creating an object
-     /// @param[in] idir input pointing direction
-     DirectionAndPA(const casa::MVDirection &idir);
-     
-     /// @brief constructor to simplify creating an object
-     /// @param[in] ipa input position angle
-     DirectionAndPA(double ipa);
-     
-     /// @brief default constructor to use stl-containers
-     DirectionAndPA();
-     
-     // deliberatly don't use itsXXX scheme here
-     
-     /// @brief pointing direction
-     casa::MVDirection dir;
-     /// @brief position angle
-     double pa;
-  };
-
   /// @brief read an array column of the table into a cube
   /// @details populate the buffer provided with the information
   /// read in the current iteration. This method is templated and can be
@@ -307,7 +277,7 @@ protected:
   inline const TableConstDataAccessor& getAccessor() const throw()
   { return itsAccessor;}
 
-  /// @brief Fill internal buffer with the pointing directions and position angles
+  /// @brief Fill an internal buffer with the pointing directions
   /// @details  The layout of this buffer is the same as the layout of
   /// the FEED subtable for current time and spectral window. 
   /// getAntennaIDs and getFeedIDs methods of the 
@@ -316,7 +286,7 @@ protected:
   /// for an equatorial array this happends only if the FEED or FIELD subtable
   /// are time-dependent (i.e. when the pointing changes)
   /// @param[in] dirs a reference to a vector to be filled
-  void fillDirectionAndPACache(casa::Vector<DirectionAndPA> &dirs) const;
+  void fillDirectionCache(casa::Vector<casa::MVDirection> &dirs) const;
   
   /// @brief Fill internal buffer with parallactic angles
   /// @details This buffer holds parallactic angles for all antennae. The buffer
@@ -419,11 +389,10 @@ private:
   /// if the latter is present.
   bool itsUseFieldID;
     
-  /// @brief cache of pointing directions and parallactic angles for each feed
+  /// @brief cache of pointing directions  for each feed
   /// @details This is an internal buffer for pointing 
-  /// directions and parallactic angles for the whole 
-  /// current cache of the Feed subtable handler
-  CachedAccessorField<casa::Vector<DirectionAndPA> > itsDirectionAndPACache;
+  /// directions for the whole current cache of the Feed subtable handler
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDirectionCache;
   
   /// @brief cache of parallactic angles for each antenna
   /// @details This is an internal buffer for parallactic angles (in radians) for the whole
