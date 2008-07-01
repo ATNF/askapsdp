@@ -89,7 +89,7 @@ int main(int argc, const char** argv) {
 
 			ParameterSet parset(parsetFile);
 			ParameterSet subset(parset.makeSubset("Cimager."));
-			double targetPeakResidual = subset.getDouble("threshold.majorcycle",-1.);
+			double targetPeakResidual = subset.getDouble("threshold.majorcycle",-1.);			
 
 			// We cannot issue log messages until MPI is initialized!
 			ImagerParallel imager(argc, argv, subset);
@@ -124,8 +124,14 @@ int main(int argc, const char** argv) {
 					        const double peak_residual = imager.params()->scalarValue("peak_residual");					        
 					        ASKAPLOG_INFO_STR(logger, "Reached peak residual of "<<peak_residual);
 					        if (peak_residual < targetPeakResidual) {
-					            ASKAPLOG_INFO_STR(logger, "It is below the major cycle threshold of "<<targetPeakResidual<<" Jy. Stopping");
+					            ASKAPLOG_INFO_STR(logger, "It is below the major cycle threshold of "<<targetPeakResidual<<" Jy. Stopping.");
 					            break;
+					        } else {
+					            if (targetPeakResidual < 0) {
+					                ASKAPLOG_INFO_STR(logger, "Major cycle flux threshold is not used.");
+					            } else {
+					                ASKAPLOG_INFO_STR(logger, "It is above the major cycle threshold of "<<targetPeakResidual<<" Jy. Continuing.");
+					            }
 					        }
 					    }					    
 					}		

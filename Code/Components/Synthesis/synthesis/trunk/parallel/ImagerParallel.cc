@@ -329,11 +329,12 @@ namespace askap
                const double cutoff=1e-5*maxDiag;
                ASKAPDEBUGASSERT(diagIt->second.nelements() == ci->second.nelements());               
                for (casa::uInt elem = 0; elem<diagIt->second.nelements(); ++elem) {
-                    const double tempPeak = std::abs(diagIt->second[elem] > cutoff ?
-                             ci->second[elem]/diagIt->second[elem] :
-                             ci->second[elem]/cutoff);
-                    if (tempPeak > peak) {
-                        peak = tempPeak;
+                    const double thisDiagElement = std::abs(diagIt->second[elem]);
+                    if (thisDiagElement > cutoff) {
+                        const double tempPeak =  ci->second[elem]/thisDiagElement;
+                        if (tempPeak > peak) {
+                            peak = tempPeak;
+                        }
                     }
                }
            }
