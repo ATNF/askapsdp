@@ -315,15 +315,26 @@ namespace askap
       ASKAPCHECK(ine, "Current code to calculate peak residuals works for imaging-specific normal equations only");              
       double peak = -1.; 
       const std::map<string, casa::Vector<double> >& dataVector = ine->dataVector();
+      const std::map<string, casa::Vector<double> >& diag = ine->normalMatrixDiagonal();
       for (std::map<string, casa::Vector<double> >::const_iterator ci = dataVector.begin();
            ci!=dataVector.end(); ++ci) {
            if (ci->first.find("image") == 0) {
                // this is an image
                ASKAPASSERT(ci->second.nelements() != 0);               
-               const double tempPeak = casa::max(std::abs(casa::max(ci->second)),
-                                                 std::abs(casa::min(ci->second)));
-               if (tempPeak > peak) {
-                   peak = tempPeak;
+               std::map<std::string, casa::Vector<double> >::const_iterator diagIt = 
+                            diag.find(ci->first);
+               ASKAPDEBUGASSERT(diagIt != diag.end());
+               const double maxDiag = casa::max(diagIt->second);
+               // hard coded at this stage
+               const double cutoff=1e-5*maxDiag;
+               ASKAPDEBUGASSERT(diagIt->second.nelements() == ci->second.nelements());               
+               for (casa::uInt elem = 0; elem<diagIt->second.nelements(); ++elem) {
+                    const double tempPeak = std::abs(diagIt->second[elem] > cutoff ?
+                             ci->second[elem]/diagIt->second[elem] :
+                             ci->second[elem]/cutoff);
+                    if (tempPeak > peak) {
+                        peak = tempPeak;
+                    }
                }
            }
       }
