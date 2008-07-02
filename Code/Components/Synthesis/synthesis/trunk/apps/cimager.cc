@@ -43,6 +43,7 @@
 #include <parallel/ImagerParallel.h>
 
 #include <measurementequation/MEParsetInterface.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 #include <fitting/Params.h>
 
@@ -89,7 +90,8 @@ int main(int argc, const char** argv) {
 
 			ParameterSet parset(parsetFile);
 			ParameterSet subset(parset.makeSubset("Cimager."));
-			double targetPeakResidual = subset.getDouble("threshold.majorcycle",-1.);			
+			double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
+			       subset.getString("threshold.majorcycle","-1Jy"),"Jy");			
 
 			// We cannot issue log messages until MPI is initialized!
 			ImagerParallel imager(argc, argv, subset);
@@ -110,7 +112,7 @@ int main(int argc, const char** argv) {
 				imager.solveNE();
 			} else {
 				/// Perform multiple major cycles
-				for (int cycle = 0; cycle < nCycles; cycle++) {
+				for (int cycle = 0; cycle < nCycles; ++cycle) {
 					imager.broadcastModel();
 					imager.receiveModel();
 					ASKAPLOG_INFO_STR(logger, "*** Starting major cycle " << cycle << " ***" );
@@ -135,6 +137,9 @@ int main(int argc, const char** argv) {
 					        }
 					    }					    
 					}		
+					if (cycle+1 >= nCycles) {
+					    ASKAPLOG_INFO_STR(logger, "Exceeded the maximum number of major cycles ("<<nCycles<<"). Stopping.");					    
+					}
 				}
 				imager.broadcastModel();
 				imager.receiveModel();
