@@ -33,6 +33,9 @@
 #include <fitting/Params.h>
 
 #include <APS/ParameterSet.h>
+#include <measurementequation/ImageSolver.h>
+
+#include <boost/shared_ptr.hpp>
 
 namespace askap
 {
@@ -51,8 +54,24 @@ namespace askap
         /// @param ip Params for the solver
         /// @param parset ParameterSet containing description of
         /// solver to be constructed
+        /// @return shared pointer to the solver
         static askap::scimath::Solver::ShPtr make(askap::scimath::Params& ip, 
           const LOFAR::ACC::APS::ParameterSet& parset); 
+        
+      protected:
+        /// @brief Helper method to configure minor cycle threshold(s)
+        /// @details This method parses threshold.minorcycle parameter
+        /// of the parset file. The parameter can be either a single string
+        /// or a vector of two strings. A number without units is interpreted
+        /// as a fractional stopping threshold (w.r.t the peak residual), 
+        /// so does the number with the percentage sign. An absolute flux given
+        /// in Jy or related units is interpreted as an absolute threshold.
+        /// Either one or both of these thresholds can be given in the same
+        /// time.
+        /// @param[in] parset parameter set to extract the input from
+        /// @param[in] solver shared pointer to the solver to be configured
+        static void configureThresholds(const LOFAR::ACC::APS::ParameterSet &parset,
+                     const boost::shared_ptr<ImageSolver> &solver);
     };
 
   }

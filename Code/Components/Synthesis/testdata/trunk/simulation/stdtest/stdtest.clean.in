@@ -20,9 +20,9 @@ Cimager.solver.Clean.algorithm                 	= MultiScale
 Cimager.solver.Clean.scales			= [0, 3, 10]
 Cimager.solver.Clean.niter                     	= 1000
 Cimager.solver.Clean.gain                      	= 0.9
-Cimager.solver.Clean.threshold                	= 1mJy
 Cimager.solver.Clean.tolerance                  = 0.1
 Cimager.solver.Clean.verbose                   	= True
+Cimager.threshold.minorcycle                    = [1mJy,1%]
 # 
 # There will be 2 major cycles
 #

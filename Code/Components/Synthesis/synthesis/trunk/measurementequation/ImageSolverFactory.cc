@@ -54,6 +54,65 @@ namespace askap
     {
     }
     
+    /// @brief Helper method to configure minor cycle threshold(s)
+    /// @details This method parses threshold.minorcycle parameter
+    /// of the parset file. The parameter can be either a single string
+    /// or a vector of two strings. A number without units is interpreted
+    /// as a fractional stopping threshold (w.r.t the peak residual), 
+    /// so does the number with the percentage sign. An absolute flux given
+    /// in Jy or related units is interpreted as an absolute threshold.
+    /// Either one or both of these thresholds can be given in the same
+    /// time.
+    /// @param[in] parset parameter set to extract the input from
+    /// @param[in] solver shared pointer to the solver to be configured
+    void ImageSolverFactory::configureThresholds(const LOFAR::ACC::APS::ParameterSet &parset,
+                     const boost::shared_ptr<ImageSolver> &solver)
+    {
+       ASKAPDEBUGASSERT(solver);
+       const std::string parName = "threshold.minorcycle";
+       if (parset.isDefined(parName)) {
+           const std::vector<std::string> thresholds = parset.getStringVector(parName);
+           ASKAPCHECK(thresholds.size() && (thresholds.size()<3), "Parameter "<<parName<<
+               " must contain either 1 element or a vector of two elements, you have "<<
+               thresholds.size()<<" elements");
+           bool absoluteThresholdDefined = false;
+           bool relativeThresholdDefined = false;    
+           for (std::vector<std::string>::const_iterator ci = thresholds.begin();
+                ci != thresholds.end(); ++ci) {
+                
+                casa::Quantity cThreshold;
+                casa::Quantity::read(cThreshold, *ci);
+                cThreshold.convert();
+                if (cThreshold.isConform("Jy")) {
+                    ASKAPCHECK(!absoluteThresholdDefined, "Parameter "<<parName<<
+                        " defines absolute threshold twice ("<<*ci<<")");
+                    absoluteThresholdDefined = true;    
+                    solver->setThreshold(cThreshold);
+                    ASKAPLOG_INFO_STR(logger, "Will stop the minor cycle at the absolute threshold of "<<
+                               cThreshold.getValue("mJy")<<" mJy");
+                } else if (cThreshold.isConform("")) {
+                    ASKAPCHECK(!relativeThresholdDefined, "Parameter "<<parName<<
+                        " defines relative threshold twice ("<<*ci<<")");
+                    relativeThresholdDefined = true;    
+                                     
+                    boost::shared_ptr<ImageCleaningSolver> ics = 
+                        boost::dynamic_pointer_cast<ImageCleaningSolver>(solver);
+                    if (ics) {
+                        ics->setFractionalThreshold(cThreshold.getValue());
+	                    ASKAPLOG_INFO_STR(logger, "Will stop minor cycle at the relative threshold of "<<
+	                             cThreshold.getValue()*100.<<"\%");
+                    } else {
+                        ASKAPLOG_INFO_STR(logger, "The type of the image solver used does not allow to specify "
+                            "a fractional threshold, ignoring "<<*ci<<" in "<<parName);
+                    }      
+                } else {
+                    ASKAPTHROW(AskapError, "Unable to convert units in the quantity "<<
+                            cThreshold<<" to either Jy or a dimensionless quantity");
+                } // if - isConform
+           } // for - parameter loop
+       } // if - parameter defined     
+    } // method
+    
     Solver::ShPtr ImageSolverFactory::make(askap::scimath::Params &ip, const LOFAR::ACC::APS::ParameterSet &parset) {
       ImageSolver::ShPtr solver;
       if(parset.getString("solver")=="Clean") {
@@ -61,6 +120,11 @@ namespace askap
          defaultScales[0]=0.0;
          defaultScales[1]=10.0;
          defaultScales[2]=30.0;
+         
+         // temporary
+         ASKAPCHECK(!parset.isDefined("solver.Clean.threshold"), 
+               "The use of the parameter solver.Clean.threshold is deprecated, use threshold.minorcycle instead");
+         //
         
 	     string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
 	     std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
@@ -81,30 +145,19 @@ namespace askap
          solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
          solver->setVerbose(parset.getBool("solver.Clean.verbose", true));
          solver->setNiter(parset.getInt32("solver.Clean.niter", 100));
-         casa::Quantity threshold;
-         casa::Quantity::read(threshold, parset.getString("solver.Clean.threshold", "0Jy"));
-         solver->setThreshold(threshold);
-         if (parset.isDefined("threshold.minorcycle")) {
-             boost::shared_ptr<ImageCleaningSolver> ics = 
-                   boost::dynamic_pointer_cast<ImageCleaningSolver>(solver);
-             if (ics) {
-                 const double fractionalThreshold = SynthesisParamsHelper::convertQuantity(
-	                            parset.getString("threshold.minorcycle"),"");
-                 ics->setFractionalThreshold(fractionalThreshold);
-	             ASKAPLOG_INFO_STR(logger, "Will stop minor cycle at the fractional threshold of "<<fractionalThreshold);
-             } else {
-                 ASKAPLOG_INFO_STR(logger, "The type of the image solver used does not allow to specify "
-                            "a fractional threshold, ignoring threshold.minorcycle = "<<parset.getString("threshold.minorcycle"));
-             }      
-         }
       } else {
-          solver = ImageSolver::ShPtr(new ImageSolver(ip));
-          casa::Quantity threshold;
-          casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
-          solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
-          solver->setThreshold(threshold);
-          ASKAPLOG_INFO_STR(logger, "Constructed dirty image solver" );
+         // temporary
+         ASKAPCHECK(!parset.isDefined("solver.Dirty.threshold"), 
+               "The use of the parameter solver.Dirty.threshold is deprecated, use threshold.minorcycle instead");
+         //
+      
+         ASKAPLOG_INFO_STR(logger, "Constructing dirty image solver" );
+         solver = ImageSolver::ShPtr(new ImageSolver(ip));
+         solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
+                  configureThresholds(parset, solver);         
       }
+      configureThresholds(parset, solver);         
+      
       
       // Set Up the Preconditioners - a whole list of 'em
       // Any changes here must also be copied to ImagerParallel
