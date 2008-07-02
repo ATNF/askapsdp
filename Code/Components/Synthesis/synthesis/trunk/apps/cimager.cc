@@ -138,7 +138,7 @@ int main(int argc, const char** argv) {
 					    }					    
 					}		
 					if (cycle+1 >= nCycles) {
-					    ASKAPLOG_INFO_STR(logger, "Exceeded the maximum number of major cycles ("<<nCycles<<"). Stopping.");					    
+					    ASKAPLOG_INFO_STR(logger, "Reached "<<nCycles<<" cycle(s), the maximum number of major cycles. Stopping.");					    
 					}
 				}
 				imager.broadcastModel();
