@@ -130,7 +130,7 @@ namespace askap
       }
     }
 
-    void MEParallel::writeModel()
+    void MEParallel::writeModel(const std::string &)
     {
     }
 

@@ -119,7 +119,9 @@ namespace askap
       /// @brief Write the results (runs in the solver)
       /// @details The model images are written as AIPS++ images. In addition,
       /// the images may be restored using the specified beam.
-      virtual void writeModel();
+      /// @param[in] postfix this string is added to the end of each name
+      /// (used to separate images at different iterations)
+      virtual void writeModel(const std::string &postfix = std::string());
   protected:
       
       /// @brief a helper method to extract peak residual

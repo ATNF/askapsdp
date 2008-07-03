@@ -92,7 +92,8 @@ namespace askap
 				virtual void solveNE() = 0;
 
 				/// Write the model (runs only in the master)
-				virtual void writeModel() = 0;
+				/// @param[in] postfix a string to be added to the file name
+				virtual void writeModel(const std::string &postfix = std::string()) = 0;
 
 				/// @brief Send the normal equations from this worker to the master
 				void sendNE();

@@ -343,7 +343,9 @@ namespace askap
     }
 
     /// Write the results out
-    void ImagerParallel::writeModel()
+    /// @param[in] postfix this string is added to the end of each name
+    /// (used to separate images at different iterations)
+    void ImagerParallel::writeModel(const std::string &postfix)
     {
       if (isMaster())
       {
@@ -352,8 +354,8 @@ namespace askap
         for (vector<string>::const_iterator it=resultimages.begin(); it
             !=resultimages.end(); it++) {
             if (it->find("image") != std::string::npos) {
-                ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it );
-                SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it);
+                ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
+                SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it+postfix);
             }
         }
 
@@ -432,10 +434,10 @@ namespace askap
           for (vector<string>::iterator it=resultimages.begin(); it
               !=resultimages.end(); it++)
           {
-            string imageName("image"+(*it));
+            string imageName("image"+(*it)+postfix);
             ASKAPLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
                                << imageName+string(".restored") );
-            SynthesisParamsHelper::saveAsCasaImage(*itsModel, imageName,
+            SynthesisParamsHelper::saveAsCasaImage(*itsModel, "image"+(*it),
                 imageName+string(".restored"));
           }
         }

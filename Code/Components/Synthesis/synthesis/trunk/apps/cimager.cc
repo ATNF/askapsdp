@@ -92,7 +92,8 @@ int main(int argc, const char** argv) {
 			ParameterSet subset(parset.makeSubset("Cimager."));
 			double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
 			       subset.getString("threshold.majorcycle","-1Jy"),"Jy");			
-
+            const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle",false);
+             
 			// We cannot issue log messages until MPI is initialized!
 			ImagerParallel imager(argc, argv, subset);
 
@@ -139,6 +140,9 @@ int main(int argc, const char** argv) {
 					}		
 					if (cycle+1 >= nCycles) {
 					    ASKAPLOG_INFO_STR(logger, "Reached "<<nCycles<<" cycle(s), the maximum number of major cycles. Stopping.");					    
+					} 
+					if (writeAtMajorCycle) {
+					    imager.writeModel(std::string(".majorcycle.")+utility::toString(cycle+1));
 					}
 				}
 				imager.broadcastModel();

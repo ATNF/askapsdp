@@ -293,11 +293,16 @@ void CalibratorParallel::rotatePhases()
   }             
 }
 
-/// Write the results out
-void CalibratorParallel::writeModel()
+/// @brief Write the results (runs in the solver)
+/// @details The solution (calibration parameters) is written into 
+/// an external file in the parset file format.
+/// @param[in] postfix a string to be added to the file name
+void CalibratorParallel::writeModel(const std::string &postfix)
 {
   if (isMaster()) {
       ASKAPLOG_INFO_STR(logger, "Writing out results into a parset file");
+      ASKAPCHECK(postfix == "", "postfix parameter is not supposed to be used in the calibration code");
+      
       ASKAPDEBUGASSERT(itsModel);
       std::vector<std::string> parlist = itsModel->names();
       std::ofstream os("result.dat"); // for now just hard code it

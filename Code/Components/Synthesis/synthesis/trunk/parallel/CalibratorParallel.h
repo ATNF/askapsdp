@@ -105,7 +105,9 @@ namespace askap
       /// @brief Write the results (runs in the solver)
       /// @details The solution (calibration parameters) is written into 
       /// an external file in the parset file format.
-      virtual void writeModel();
+      /// @param[in] postfix a string to be added to the file name
+	  virtual void writeModel(const std::string &postfix = std::string());
+      
 
   protected:      
       /// @brief helper method to rotate all phases
