@@ -195,7 +195,6 @@ namespace askap
       quality.setInfo("Multiscale Clean");
       
       /// Save the PSF and Weight
-      
       saveWeights();      
       savePSF();
       
