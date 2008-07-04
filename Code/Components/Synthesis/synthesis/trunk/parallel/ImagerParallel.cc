@@ -360,7 +360,7 @@ namespace askap
             }
         }
 
-        if (itsRestore)
+        if (itsRestore && postfix == "")
         {
           ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
           ImageRestoreSolver ir(*itsModel, itsQbeam);
