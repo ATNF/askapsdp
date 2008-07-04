@@ -167,24 +167,32 @@ namespace askap
         else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
-	  lc->setMask(mask);
+	      lc->setMask(mask);
 	  
-	  ASKAPDEBUGASSERT(lc);
-	  if(algorithm()=="Hogbom") {
-	    casa::Vector<float> scales(1);
-	    scales(0)=0.0;
-	    lc->setscales(scales);
-	    lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
+	      ASKAPDEBUGASSERT(lc);
+	      if(algorithm()=="Hogbom") {
+	         casa::Vector<float> scales(1);
+	         scales(0)=0.0;
+	         lc->setscales(scales);
+	         lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
 	                   fractionalThreshold(), false);
-	  }
-	  else {
-	    lc->setscales(itsScales);
-	    lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
+	      } else {
+	         lc->setscales(itsScales);
+	         lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
 	                   fractionalThreshold(),false);
-	  }
-	  lc->ignoreCenterBox(true);
-	}
-	lc->clean(clean);
+	      }
+	      lc->ignoreCenterBox(true);
+	    }
+	    lc->clean(clean);
+	    ASKAPDEBUGASSERT(itsParams);
+	    
+	    const std::string peakResParam = std::string("peak_residual.") + indit->first;
+	    if (itsParams->has(peakResParam)) {
+            itsParams->update(peakResParam, lc->strengthOptimum());
+        } else {
+            itsParams->add(peakResParam, lc->strengthOptimum());
+        }
+        itsParams->fix(peakResParam);	    
 	
         casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
       }

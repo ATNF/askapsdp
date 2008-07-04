@@ -280,9 +280,19 @@ namespace askap
                            );
         ASKAPDEBUGASSERT(itsModel);
         *itsModel=itsSolver->parameters();
-                      
-        const double peak = getPeakResidual();
-                
+        
+        // we will probably send all of them out in the future, but for now
+        // let's extract the largest residual
+        const std::vector<std::string> peakParams = itsModel->completions("peak_residual.");
+        
+        double peak = peakParams.size() == 0 ? getPeakResidual() : -1.;
+        for (std::vector<std::string>::const_iterator peakParIt = peakParams.begin();
+             peakParIt != peakParams.end(); ++peakParIt) {
+             const double tempval = std::abs(itsModel->scalarValue("peak_residual."+*peakParIt));
+             if (tempval > peak) {
+                 peak = tempval;
+             }
+        }
         
         if (itsModel->has("peak_residual")) {
             itsModel->update("peak_residual",peak);
@@ -353,8 +363,8 @@ namespace askap
         vector<string> resultimages=itsModel->names();
         for (vector<string>::const_iterator it=resultimages.begin(); it
             !=resultimages.end(); it++) {
-            if ((it->find("image") != std::string::npos) ||
-                (it->find("weights") != std::string::npos)) {
+            if ((it->find("image") == 0) ||
+                (it->find("weights") == 0)) {
                 ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
                 SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it+postfix);
             }
