@@ -376,7 +376,6 @@ namespace askap
           ImageRestoreSolver ir(*itsModel, itsQbeam);
           ir.setThreshold(itsSolver->threshold());
           ir.setVerbose(itsSolver->verbose());
-	  /*
 	  /// @todo Fix copying of preconditioners
 	  // Check for preconditioners. Same code as in ImageSolverFactory.
 	  // Will be neater if the RestoreSolver is also created in the ImageSolverFactory.
@@ -436,7 +435,7 @@ namespace askap
 	  else {
 		  ir.addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner()));
 	  }
-	  */
+
 	  
           ir.copyNormalEquations(*itsSolver);
           Quality q;
