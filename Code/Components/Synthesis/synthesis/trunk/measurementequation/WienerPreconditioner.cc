@@ -96,11 +96,6 @@ namespace askap
        LatticeFFT::cfft2d(scratch, False);
        ldirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
 	  
-       // Renormalize the PSF and dirty image
-       float maxpsf = max(psf);
-       psf/=maxpsf;
-       dirty/=maxpsf;
-
        return true;
       }
       else {

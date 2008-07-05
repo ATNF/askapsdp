@@ -95,9 +95,9 @@ bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, cas
   applyTaper(dirty);
     
   // Renormalize the PSF and dirty image
-  float maxpsf = max(psf);
-  psf/=maxpsf;
-  dirty/=maxpsf;
+  //  float maxpsf = max(psf);
+  //  psf/=maxpsf;
+  //  dirty/=maxpsf;
 
   return true;
 }

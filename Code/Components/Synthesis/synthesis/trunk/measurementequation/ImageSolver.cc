@@ -83,8 +83,9 @@ namespace askap
 
 	/// The PSF is just an approximation calculated from a subset of the data. So we
 	/// we allowed to normalize the peak to unity.
-        ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
-	psf /= casa::max(psf);
+        ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal");
+	psf /= float(maxDiag);
+        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
 	uint nAbove=0;
 	casa::IPosition vecShape(1,diag.nelements());
@@ -97,7 +98,7 @@ namespace askap
 		  nAbove++;
 	  }
 	  else {
-		  dirtyVector(elem)/=cutoff;
+	    dirtyVector(elem)/=maxDiag;
 	  }
 	}
         ASKAPLOG_INFO_STR(logger, "Normalizing dirty image by truncated weights image");
@@ -129,8 +130,8 @@ namespace askap
 		  nAbove++;
 	  }
 	  else {
+	    dirtyVector(elem)/=maxDiag;
 		  maskVector(elem)=0.0;
-		  dirtyVector(elem)/=cutoff;
 	  }
 	}
         ASKAPLOG_INFO_STR(logger, "Normalizing dirty image by truncated weights image");
