@@ -172,7 +172,7 @@ namespace askap
       casa::Vector<double> itsUVCellSize;
 
       /// @brief Sum of weights (axes are index, pol, chan) 
-      casa::Cube<casa::Complex> itsSumWeights;
+      casa::Cube<double> itsSumWeights;
 
       /// @brief Convolution function
       /// The convolution function is stored as a vector of arrays so that we can
