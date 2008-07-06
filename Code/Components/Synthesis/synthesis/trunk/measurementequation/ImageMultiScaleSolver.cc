@@ -127,23 +127,23 @@ namespace askap
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
         casa::Array<float> maskArray(valShape);
 
-  	    // Normalize by the diagonal
-	    doNormalization(diag,tol(),psfArray,dirtyArray, maskArray);
+	// Normalize
+	doNormalization(diag,tol(),psfArray,dirtyArray, maskArray);
         
-	    // Precondition the PSF and DIRTY images before solving.
-	    if(doPreconditioning(psfArray,dirtyArray)) {
-	       // Save the new PSFs to disk
-           Axes axes(itsParams->axes(indit->first));
-           string psfName="psf."+(indit->first);
-           casa::Array<double> anothertemp(valShape);
-           casa::convertArray<double,float>(anothertemp,psfArray);
-           const casa::Array<double> & APSF(anothertemp);
-           if (!itsParams->has(psfName)) {
-               itsParams->add(psfName, APSF, axes);
-           } else {
-               itsParams->update(psfName, APSF);
-           }
-	    }
+	// Precondition the PSF and DIRTY images before solving.
+	if(doPreconditioning(psfArray,dirtyArray)) {
+	  // Save the new PSFs to disk
+	  Axes axes(itsParams->axes(indit->first));
+	  string psfName="psf."+(indit->first);
+	  casa::Array<double> anothertemp(valShape);
+	  casa::convertArray<double,float>(anothertemp,psfArray);
+	  const casa::Array<double> & APSF(anothertemp);
+	  if (!itsParams->has(psfName)) {
+	    itsParams->add(psfName, APSF, axes);
+	  } else {
+	    itsParams->update(psfName, APSF);
+	  }
+	}
 	
         // We need lattice equivalents. We can use ArrayLattice which involves
         // no copying
@@ -151,12 +151,12 @@ namespace askap
         casa::ArrayLattice<float> psf(psfArray);
         casa::ArrayLattice<float> clean(cleanArray);
         casa::ArrayLattice<float> mask(maskArray);
-      
+	
         // Create a lattice cleaner to do the dirty work :)
         /// @todo More checks on reuse of LatticeCleaner
         boost::shared_ptr<casa::LatticeCleaner<float> > lc;
         std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > >::const_iterator it =
-                                       itsCleaners.find(indit->first);
+	  itsCleaners.find(indit->first);
         
         
         if(it!=itsCleaners.end()) {
@@ -167,36 +167,36 @@ namespace askap
         else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
-	      lc->setMask(mask);
+	  lc->setMask(mask);
 	  
-	      ASKAPDEBUGASSERT(lc);
-	      if(algorithm()=="Hogbom") {
-	         casa::Vector<float> scales(1);
-	         scales(0)=0.0;
-	         lc->setscales(scales);
-	         lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
+	  ASKAPDEBUGASSERT(lc);
+	  if(algorithm()=="Hogbom") {
+	    casa::Vector<float> scales(1);
+	    scales(0)=0.0;
+	    lc->setscales(scales);
+	    lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
 	                   fractionalThreshold(), false);
-	      } else {
-	         lc->setscales(itsScales);
-	         lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
+	  } else {
+	    lc->setscales(itsScales);
+	    lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
 	                   fractionalThreshold(),false);
-	      }
-	      lc->ignoreCenterBox(true);
-	    }
-	    lc->clean(clean);
-	    ASKAPDEBUGASSERT(itsParams);
-	    
-	    const std::string peakResParam = std::string("peak_residual.") + indit->first;
-	    if (itsParams->has(peakResParam)) {
-            itsParams->update(peakResParam, lc->strengthOptimum());
+	  }
+	  lc->ignoreCenterBox(true);
+	}
+	lc->clean(clean);
+	ASKAPDEBUGASSERT(itsParams);
+	
+	const std::string peakResParam = std::string("peak_residual.") + indit->first;
+	if (itsParams->has(peakResParam)) {
+	  itsParams->update(peakResParam, lc->strengthOptimum());
         } else {
-            itsParams->add(peakResParam, lc->strengthOptimum());
+	  itsParams->add(peakResParam, lc->strengthOptimum());
         }
         itsParams->fix(peakResParam);	    
 	
         casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
       }
-
+      
       quality.setDOF(nParameters);
       quality.setRank(0);
       quality.setCond(0.0);
@@ -213,7 +213,7 @@ namespace askap
     {
       return Solver::ShPtr(new ImageMultiScaleSolver(*this));
     }
-
+    
   }
 }
 

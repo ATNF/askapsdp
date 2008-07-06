@@ -83,7 +83,7 @@ namespace askap
 
 	/// The PSF is just an approximation calculated from a subset of the data. So we
 	/// we allowed to normalize the peak to unity.
-        ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal");
+	ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal");
 	psf /= float(maxDiag);
         ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
@@ -114,9 +114,12 @@ namespace askap
         double maxDiag(casa::max(diag));
         const double cutoff=tolerance*maxDiag;
 
-        ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
-	psf /= casa::max(psf);
-
+	/// The PSF is just an approximation calculated from a subset of the data. So we
+	/// we allowed to normalize the peak to unity.
+	ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal");
+	psf /= float(maxDiag);
+        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
+	
 	uint nAbove=0;
 	casa::IPosition vecShape(1,diag.nelements());
 	casa::Vector<float> dirtyVector(dirty.reform(vecShape));
@@ -197,10 +200,11 @@ namespace askap
 	
 	// Normalize by the diagonal
 	doNormalization(diag,tol(),psfArray,dirtyArray);
-	
+
 	// Do the preconditioning
 	if(doPreconditioning(psfArray,dirtyArray))
 	{
+	
 	 // Save the new PSFs to disk
          Axes axes(itsParams->axes(indit->first));
 	 string psfName="psf."+(indit->first);

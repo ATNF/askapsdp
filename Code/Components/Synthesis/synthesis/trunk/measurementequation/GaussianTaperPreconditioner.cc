@@ -87,18 +87,26 @@ IImagePreconditioner::ShPtr GaussianTaperPreconditioner::clone()
 /// @return true if psf and dirty have been altered
 bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
 {
+
+  float maxPSFBefore=casa::max(psf);
+  ASKAPLOG_INFO_STR(logger, "Peak of PSF before Wiener filtering = " << maxPSFBefore);
+
   ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<itsMajorAxis*sqrt(8.*log(2.))<<" x "<<
                     itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at the position angle of "<<itsPA/M_PI*180.<<" degrees");
   ASKAPDEBUGASSERT(psf.shape().isEqual(dirty.shape()));
   
   applyTaper(psf);
-  applyTaper(dirty);
-    
-  // Renormalize the PSF and dirty image
-  //  float maxpsf = max(psf);
-  //  psf/=maxpsf;
-  //  dirty/=maxpsf;
 
+  float maxPSFAfter=casa::max(psf);
+
+  ASKAPLOG_INFO_STR(logger, "Peak of PSF after Wiener filtering  = " << maxPSFAfter);
+  psf*=maxPSFBefore/maxPSFAfter;
+  ASKAPLOG_INFO_STR(logger, "Renormalizing peak to " << maxPSFBefore);
+
+  applyTaper(dirty);
+
+  dirty*=maxPSFBefore/maxPSFAfter;
+    
   return true;
 }
 
@@ -125,6 +133,7 @@ void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
   
   // apply the taper
   casa::ArrayLattice<casa::Complex> taper(itsTaperCache);
+  
   scratch.copyData(casa::LatticeExpr<casa::Complex> (taper * scratch));
   
   // transform back to the image domain
@@ -183,7 +192,7 @@ void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) c
        }
   }
   //std::cout<<"normFactor/sum: "<<normFactor/sum<<std::endl;
-  itsTaperCache *= casa::Complex(sum,0.);
+  //  itsTaperCache /= casa::Complex(sum,0.);
 }
 
 } // namespace synthesis

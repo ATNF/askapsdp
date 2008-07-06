@@ -69,6 +69,8 @@ namespace askap
       if(itsNoisePower > 1e-06) {
 	   ASKAPLOG_INFO_STR(logger, "Applying Wiener filter with noise power " << itsNoisePower);
 
+       float maxPSFBefore=casa::max(psf);
+       ASKAPLOG_INFO_STR(logger, "Peak of PSF before Wiener filtering = " << maxPSFBefore);
        casa::ArrayLattice<float> lpsf(psf);
        casa::ArrayLattice<float> ldirty(dirty);
        
@@ -88,6 +90,10 @@ namespace askap
        scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
        lpsf.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+       float maxPSFAfter=casa::max(psf);
+       ASKAPLOG_INFO_STR(logger, "Peak of PSF after Wiener filtering  = " << maxPSFAfter);
+       psf*=maxPSFBefore/maxPSFAfter;
+       ASKAPLOG_INFO_STR(logger, "Renormalizing peak to " << maxPSFBefore);
        
        // Apply the filter to the dirty image
        scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));
@@ -95,6 +101,7 @@ namespace askap
        scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
        ldirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+       dirty*=maxPSFBefore/maxPSFAfter;
 	  
        return true;
       }
