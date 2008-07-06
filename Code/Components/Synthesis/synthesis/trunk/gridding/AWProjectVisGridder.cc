@@ -202,7 +202,7 @@ void AWProjectVisGridder::initConvolutionFunction(const IConstDataAccessor& acc)
 	if(itsSupport==0) {
 	  itsConvFunc.resize(itsOverSample*itsOverSample*itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
 	  itsSumWeights.resize(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
-	  itsSumWeights.set(casa::Complex(0.0));
+	  itsSumWeights.set(0.0);
 	}
 
 	int cenw=(itsNWPlanes-1)/2;
@@ -420,8 +420,8 @@ void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out) {
 		bool hasData=false;
 		for (int chan=0; chan<nChan; chan++) {
 			for (int pol=0; pol<nPol; pol++) {
-				casa::Complex wt=itsSumWeights(iz, pol, chan);
-				if(abs(wt)>0.0) {
+				double wt=itsSumWeights(iz, pol, chan);
+				if(wt>0.0) {
 				  hasData=true;
 				  break;
 				}
@@ -448,12 +448,12 @@ void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out) {
 		for (int chan=0; chan<nChan; chan++) {
 			for (int pol=0; pol<nPol; pol++) {
 				casa::IPosition ip(4, 0, 0, pol, chan);
-				casa::Complex wt=itsSumWeights(iz, pol, chan);
+				double wt=itsSumWeights(iz, pol, chan);
 				for (int ix=0; ix<cnx; ix++) {
 					ip(0)=ix;
 					for (int iy=0; iy<cny; iy++) {
 						ip(1)=iy;
-						cOut(ip)+=casa::real(wt*thisPlane(ix, iy)
+						cOut(ip)+=float(wt)*casa::real(thisPlane(ix, iy)
 								*conj(thisPlane(ix, iy)));
 					}
 				}

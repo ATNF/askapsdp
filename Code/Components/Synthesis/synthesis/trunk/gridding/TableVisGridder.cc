@@ -104,7 +104,7 @@ TableVisGridder::TableVisGridder() :
 {
 
   itsSumWeights.resize(1,1,1);
-  itsSumWeights.set(casa::Complex(0.0));
+  itsSumWeights.set(0.0);
 }
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
@@ -411,12 +411,9 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       /// Gridding visibility data onto grid
 			       casa::Complex rVis=phasor
 				 *conj(acc.visibility()(i, chan, pol));
-			       casa::Complex sumwt=0.0;
-			       float wtVis = 1.0;
 			       if(itsVisWeight)
 				 rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 			       GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
-			       sumwt+=wtVis;
 			       itsSamplesGridded+=1.0;
 			       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 			       
@@ -425,7 +422,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
 				ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				
-				itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=sumwt;
+				itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
 				
 				
 				/// Grid PSF?
@@ -618,7 +615,7 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	}
 
 	ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
-	itsSumWeights.set(casa::Complex(0.0));
+	itsSumWeights.set(0.0);
 
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 			"RA and DEC specification not present in axes");
@@ -715,7 +712,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 			for (int iz=0; iz<nZ; iz++) {
 			  //			  float sumConvFunc=real(casa::sum(casa::abs(itsConvFunc[iz])));
 			  //			  ASKAPLOG_INFO_STR(logger, "Sum of conv func " << sumConvFunc);
-				sumwt+=casa::real(itsSumWeights(iz, pol, chan));
+				sumwt+=itsSumWeights(iz, pol, chan);
 			}
 
 			casa::IPosition ipStart(4, 0, 0, pol, chan);

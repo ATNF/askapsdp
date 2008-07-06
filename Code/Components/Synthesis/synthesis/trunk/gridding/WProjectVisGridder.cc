@@ -71,7 +71,7 @@ namespace askap
 
       itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
       itsSumWeights.resize(itsNWPlanes, 1, 1);
-      itsSumWeights.set(casa::Complex(0.0));
+      itsSumWeights.set(0.0);
 
     }
 

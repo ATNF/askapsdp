@@ -58,7 +58,7 @@ namespace askap
       }
 
       itsSumWeights.resize(1, 1, 1);
-      itsSumWeights.set(casa::Complex(0.0));
+      itsSumWeights.set(0.0);
 
     }
 
@@ -144,7 +144,7 @@ namespace askap
       }
 
       ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
-      itsSumWeights.set(casa::Complex(0.0));
+      itsSumWeights.set(0.0);
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 		 "RA and DEC specification not present in axes");
