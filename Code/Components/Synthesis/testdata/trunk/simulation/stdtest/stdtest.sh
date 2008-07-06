@@ -77,11 +77,9 @@ Cimager.gridder.AWProject.maxsupport       = 1024
 Cimager.gridder.AWProject.frequencydependent = true
 #
 Cimager.solver                           	= Dirty
-Cimager.solver.Dirty.threshold                	= 1uJy
 Cimager.solver.Dirty.tolerance                  = 0.1
 Cimager.solver.Dirty.verbose                   	= True
 Cimager.ncycles                                 = 0
-Cimager.threshold.minorcycle                	= 1uJy
 
 Cimager.preconditioner.Names			= None
 
