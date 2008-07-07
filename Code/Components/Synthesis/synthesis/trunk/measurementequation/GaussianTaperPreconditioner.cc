@@ -89,7 +89,7 @@ bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, cas
 {
 
   float maxPSFBefore=casa::max(psf);
-  ASKAPLOG_INFO_STR(logger, "Peak of PSF before Wiener filtering = " << maxPSFBefore);
+  ASKAPLOG_INFO_STR(logger, "Peak of PSF before Gaussian taper = " << maxPSFBefore);
 
   ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<itsMajorAxis*sqrt(8.*log(2.))<<" x "<<
                     itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at the position angle of "<<itsPA/M_PI*180.<<" degrees");
@@ -99,7 +99,7 @@ bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, cas
 
   float maxPSFAfter=casa::max(psf);
 
-  ASKAPLOG_INFO_STR(logger, "Peak of PSF after Wiener filtering  = " << maxPSFAfter);
+  ASKAPLOG_INFO_STR(logger, "Peak of PSF after Gaussian taper  = " << maxPSFAfter);
   psf*=maxPSFBefore/maxPSFAfter;
   ASKAPLOG_INFO_STR(logger, "Renormalizing peak to " << maxPSFBefore);
 
