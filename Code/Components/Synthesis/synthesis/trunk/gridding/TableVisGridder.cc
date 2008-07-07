@@ -409,45 +409,42 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				     acc.rwVisibility()(i, chan, pol)+=cVis*phasor;
 			     } else {
 			       /// Gridding visibility data onto grid
-			       casa::Complex rVis=phasor
-				 *conj(acc.visibility()(i, chan, pol));
-			       if(itsVisWeight)
-				 rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+			       casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
+			       if(itsVisWeight) {
+				      rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+				   }
 			       GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
 			       itsSamplesGridded+=1.0;
 			       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 			       
-				ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
-				ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
-				ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
-				ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
+				   ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+				   ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
+				   ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
+				   ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				
-				itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
+				   itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
 				
 				
-				/// Grid PSF?
-				/// @todo Fix calculation of PSF					
-				if (itsDopsf && (itsFeedUsedForPSF == acc.feed1()(i)) &&
+				   /// Grid PSF?
+				   if (itsDopsf && (itsFeedUsedForPSF == acc.feed1()(i)) &&
 				             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
 
-				    ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
-				    casa::Array<casa::Complex>
-					   aGridPSF(itsGridPSF[gInd](slicer));
-				    casa::Matrix<casa::Complex>
-					   gridPSF(aGridPSF.nonDegenerate());
-					if (!itsConvFuncForPSF.size()) {
-					    // this cache has the same structure as for the 
-					    // ordinary convolution function
-					    itsConvFuncForPSF.resize(itsConvFunc.size());
-					}
+				       ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
+				       casa::Array<casa::Complex> aGridPSF(itsGridPSF[gInd](slicer));
+				       casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
+                       if (!itsConvFuncForPSF.size()) {
+					       // this cache has the same structure as for the 
+					       // ordinary convolution function
+					       itsConvFuncForPSF.resize(itsConvFunc.size());
+					   }
 					
-					// next line should never cause problems if initialiseGrid is called
-					// with Dopsf = true before generic.
-					ASKAPDEBUGASSERT(cInd<int(itsConvFuncForPSF.size()));
+					  // next line should never cause problems if initialiseGrid is called
+					  // with Dopsf = true before generic.
+					  ASKAPDEBUGASSERT(cInd<int(itsConvFuncForPSF.size()));
 					
-					casa::Matrix<casa::Complex> &psfConvFunc = itsConvFuncForPSF[cInd];
+					  casa::Matrix<casa::Complex> &psfConvFunc = itsConvFuncForPSF[cInd];
 					
-					if (psfConvFunc.nelements() == 0) {
+					  if (psfConvFunc.nelements() == 0) {
 					    // copy ordinary convolution function and remove the shift
 					    psfConvFunc = convFunc.copy();
 					    // need to encapsulate the following code somewhere
@@ -468,21 +465,21 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					              psfConvFunc(inx,iny) *= phasor;
 					         }
 					    }
-					}
-					ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
+					  }
+					  ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
 					          (psfConvFunc.ncolumn() == convFunc.ncolumn()));
 					
-				    //casa::Complex uVis(phasor);
-				    casa::Complex uVis(1.,0.);
-				    if(itsVisWeight)
-				      uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				       GridKernel::grid(gridPSF, psfConvFunc,
-						    uVis, iu, iv, itsSupport);
-				       itsSamplesGridded+=1.0;
-				       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
-                                }
+				      //casa::Complex uVis(phasor);
+				      casa::Complex uVis(1.,0.);
+				      if(itsVisWeight) {
+                         uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+                      }
+                      GridKernel::grid(gridPSF, psfConvFunc, uVis, iu, iv, itsSupport);
+                      itsSamplesGridded+=1.0;
+                      itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
+                   }
 			     
-			  }
+			     }
 			   }
 		      }
 		   }//end of pol loop

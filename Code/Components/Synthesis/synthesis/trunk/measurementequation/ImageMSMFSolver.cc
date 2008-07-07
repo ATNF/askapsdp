@@ -229,7 +229,7 @@ namespace askap
    	   {
 	      // Write PSFs to disk.
 	      ASKAPLOG_INFO_STR(logger, "Writing psfs to disk");
-              Axes axes(itsParams->axes(imagename));
+          Axes axes(itsParams->axes(imagename));
 	      string psfName="psf."+(imagename);
 	      casa::Array<double> aargh(valShape);
 	      casa::convertArray<double,float>(aargh,psfArray);

@@ -156,7 +156,7 @@ namespace askap
         /// @todo More checks on reuse of LatticeCleaner
         boost::shared_ptr<casa::LatticeCleaner<float> > lc;
         std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > >::const_iterator it =
-	  itsCleaners.find(indit->first);
+                         itsCleaners.find(indit->first);
         
         
         if(it!=itsCleaners.end()) {
@@ -167,7 +167,7 @@ namespace askap
         else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
-	  lc->setMask(mask);
+          lc->setMask(mask);
 	  
 	  ASKAPDEBUGASSERT(lc);
 	  if(algorithm()=="Hogbom") {
