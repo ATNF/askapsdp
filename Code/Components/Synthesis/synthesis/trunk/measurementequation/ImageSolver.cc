@@ -111,12 +111,13 @@ namespace askap
     bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, 
 				      casa::Array<float>& dirty, casa::Array<float>& mask)
     {
-        double maxDiag(casa::max(diag));
+        const double maxDiag(casa::max(diag));
         const double cutoff=tolerance*maxDiag;
 
 	/// The PSF is just an approximation calculated from a subset of the data. So we
 	/// we allowed to normalize the peak to unity.
-	ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal");
+	
+	ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal equal to "<<maxDiag);
 	psf /= float(maxDiag);
         ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
