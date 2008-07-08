@@ -84,9 +84,17 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::AZEL));                    
     
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
-       cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
+       //cout<<"this is a test "<<it->visibility().nrow()<<" "<<it->frequency()<<endl;
        //cout<<"flags: "<<it->flag()<<endl;
-       cout<<"feed1 pa: "<<it->feed1PA()<<endl;
+       //cout<<"feed1 pa: "<<it->feed1PA()<<endl;
+       cout<<"w: [";
+       for (casa::uInt row = 0; row<it->nRow(); ++row) {
+            cout<<it->uvw()[row](2);
+	    if (row + 1 != it->nRow()) {
+	        cout<<", ";
+	    }
+       }
+       cout<<"]"<<endl;
        //cout<<"noise: "<<it->noise().shape()<<endl;
        //cout<<"direction: "<<it->pointingDir2()<<endl;
        //cout<<"direction: "<<it->dishPointing2()<<endl;
