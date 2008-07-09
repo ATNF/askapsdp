@@ -29,6 +29,9 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <askap/AskapError.h>
 
+// need it just for null deleter
+#include <askap/AskapUtil.h>
+
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -128,7 +131,8 @@ namespace askap
         casa::Array<float> maskArray(valShape);
 
 	// Normalize
-	doNormalization(diag,tol(),psfArray,dirtyArray, maskArray);
+	doNormalization(diag,tol(),psfArray,dirtyArray, 
+	        boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
         
 	// Precondition the PSF and DIRTY images before solving.
 	if(doPreconditioning(psfArray,dirtyArray)) {

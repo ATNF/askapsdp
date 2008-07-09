@@ -91,39 +91,30 @@ namespace askap
 
 	/// @brief Do the preconditioning
 	bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
-
-	/// @brief perform normalization of the dirty image and psf
-	/// @details This method divides the PSF and dirty image by the diagonal of the Hessian.
-	/// @param[in] diag diagonal of the Hessian (i.e. weights), dirty image will be
-	///            divided by an appropriate element of the diagonal or by a cutoff
-	///            value
-	/// @param[in] tolerance cutoff value given as a fraction of the largest diagonal element
-	/// @param[in] psf  point spread function, which is normalized to unity
-	/// @param[in] dirty dirty image which is normalized by truncated weights (diagonal)
-	bool doNormalization(const casa::Vector<double>& diag, 
-			     const float& tolerance,
-			     casa::Array<float>& psf, 
-			     casa::Array<float>& dirty);
    
 	/// @brief perform normalization of the dirty image and psf
 	/// @details This method divides the PSF and dirty image by the diagonal of the Hessian.
-	/// The difference from the variant without a mask parameter is that this method forms
-	/// the mask by assigning 0. for those elements where truncation of the weights 
-	/// has been performed and 1. otherwise. 
+	/// If a non-void shared pointer is specified for the mask parameter, this method assigns
+	/// 0. for those elements where truncation of the weights has been performed and 1. 
+	/// otherwise. 
 	/// @param[in] diag diagonal of the Hessian (i.e. weights), dirty image will be
 	///            divided by an appropriate element of the diagonal or by a cutoff
 	///            value
 	/// @param[in] tolerance cutoff value given as a fraction of the largest diagonal element
 	/// @param[in] psf  point spread function, which is normalized to unity
 	/// @param[in] dirty dirty image which is normalized by truncated weights (diagonal)
-	/// @param[out] mask output mask showing where the truncation has been performed.
+	/// @param[out] mask shared pointer to the output mask showing where the truncation has 
+	///             been performed.
 	/// @note although mask is filled in inside this method it should already have a correct 
-	/// size before this method is called
-	bool doNormalization(const casa::Vector<double>& diag, 
+	/// size before this method is called. Pass a void shared pointer (default) to skip 
+	/// mask-related functionality. Hint: use utility::NullDeleter to wrap a shared pointer
+	/// over an existing array reference.
+	void doNormalization(const casa::Vector<double>& diag, 
 			     const float& tolerance,
 			     casa::Array<float>& psf, 
 			     casa::Array<float>& dirty,
-			     casa::Array<float>& mask);
+			     const boost::shared_ptr<casa::Array<float> >& mask = 
+			               boost::shared_ptr<casa::Array<float> >());
    
       private:
 	/// Instance of a preconditioner

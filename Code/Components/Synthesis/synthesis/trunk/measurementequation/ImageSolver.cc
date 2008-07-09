@@ -74,75 +74,62 @@ namespace askap
 	    itsPreconditioners[n+1] = pc;
     }
 
-    // Normalize the PSF and dirty image by the diagonal of the Hessian
-    bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, 
-				      casa::Array<float>& dirty)
-    {
-        double maxDiag(casa::max(diag));
-        const double cutoff=tolerance*maxDiag;
-
-	/// The PSF is just an approximation calculated from a subset of the data. So we
-	/// we allowed to normalize the peak to unity.
-	ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal");
-	psf /= float(maxDiag);
-        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
-	
-	uint nAbove=0;
-	casa::IPosition vecShape(1,diag.nelements());
-	casa::Vector<float> dirtyVector(dirty.reform(vecShape));
-	for (uint elem=0;elem<diag.nelements();elem++)
-	{
-	  if(diag(elem)>cutoff)
-	  {
-		  dirtyVector(elem)/=diag(elem);
-		  nAbove++;
-	  }
-	  else {
-	    dirtyVector(elem)/=maxDiag;
-	  }
-	}
-        ASKAPLOG_INFO_STR(logger, "Normalizing dirty image by truncated weights image");
-	ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
-
-	return true;
-    }
-
-    // Normalize the PSF and dirty image by the diagonal of the Hessian
-    bool ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, 
-				      casa::Array<float>& dirty, casa::Array<float>& mask)
+    /// @brief perform normalization of the dirty image and psf
+	/// @details This method divides the PSF and dirty image by the diagonal of the Hessian.
+	/// If a non-void shared pointer is specified for the mask parameter, this method assigns
+	/// 0. for those elements where truncation of the weights has been performed and 1. 
+	/// otherwise. 
+	/// @param[in] diag diagonal of the Hessian (i.e. weights), dirty image will be
+	///            divided by an appropriate element of the diagonal or by a cutoff
+	///            value
+	/// @param[in] tolerance cutoff value given as a fraction of the largest diagonal element
+	/// @param[in] psf  point spread function, which is normalized to unity
+	/// @param[in] dirty dirty image which is normalized by truncated weights (diagonal)
+	/// @param[out] mask shared pointer to the output mask showing where the truncation has 
+	///             been performed.
+	/// @note although mask is filled in inside this method it should already have a correct 
+	/// size before this method is called. Pass a void shared pointer (default) to skip 
+	/// mask-related functionality. Hint: use utility::NullDeleter to wrap a shared pointer
+	/// over an existing array reference.
+    void ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, 
+				      casa::Array<float>& dirty, 
+				      const boost::shared_ptr<casa::Array<float> > &mask)
     {
         const double maxDiag(casa::max(diag));
         const double cutoff=tolerance*maxDiag;
 
-	/// The PSF is just an approximation calculated from a subset of the data. So we
-	/// we allowed to normalize the peak to unity.
+	    /// The PSF is just an approximation calculated from a subset of the data. So we
+	    /// we allowed to normalize the peak to unity.
 	
-	ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal equal to "<<maxDiag);
-	psf /= float(maxDiag);
+	    ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal equal to "<<maxDiag<<
+	                ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
+	    ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
+        psf /= float(maxDiag);
         ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
-	uint nAbove=0;
-	casa::IPosition vecShape(1,diag.nelements());
-	casa::Vector<float> dirtyVector(dirty.reform(vecShape));
-	casa::Vector<float> maskVector(mask.reform(vecShape));
-	for (uint elem=0;elem<diag.nelements();elem++)
-	{
-	  if(diag(elem)>cutoff)
-	  {
-		  dirtyVector(elem)/=diag(elem);
-		  maskVector(elem)=1.0;
-		  nAbove++;
-	  }
-	  else {
-	    dirtyVector(elem)/=maxDiag;
-		  maskVector(elem)=0.0;
-	  }
-	}
-        ASKAPLOG_INFO_STR(logger, "Normalizing dirty image by truncated weights image");
-        ASKAPLOG_INFO_STR(logger, "Converting truncated weights image to clean mask");
-	ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
-
-	return true;
+	    uint nAbove = 0;
+        casa::IPosition vecShape(1,diag.nelements());
+        casa::Vector<float> dirtyVector(dirty.reform(vecShape));
+        casa::Vector<float> maskVector(mask ? mask->reform(vecShape) : casa::Vector<float>());
+        for (casa::uInt elem=0; elem<diag.nelements(); ++elem) {
+             if(diag(elem)>cutoff) {
+                dirtyVector(elem)/=diag(elem);
+                if (mask) {
+                    maskVector(elem)=1.0;
+                }
+                nAbove++;
+             } else {
+                dirtyVector(elem)/=maxDiag;
+                if (mask) {
+                    maskVector(elem)=0.0;
+                } // if mask required
+             }  // if element > cutoff
+        } // loop over elements (image pixels)
+        ASKAPLOG_INFO_STR(logger, "Normalized dirty image by truncated weights image");
+        if (mask) {
+            ASKAPLOG_INFO_STR(logger, "Converted truncated weights image to clean mask");
+        } // if mask required
+        ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
     }
 
     // Apply all the preconditioners in the order in which they were created.
