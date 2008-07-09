@@ -121,6 +121,17 @@ template<class T> std::string toString(const T &in) throw(AskapError) {
          return os.str();
 }
 
+/// @brief helper class - null deleter
+/// @details To prevent boost::shared_ptr from disposing of an object
+/// passed by reference. This class used to be declared inside the data accessor, but
+/// apparently there is a need for a wider visibility of this method. We can strip the
+/// code into a separate file later, if it is really needed.
+struct NullDeleter {
+   /// @brief dummy method, does nothing
+   void operator()(void const *) const {}
+};
+
+
 } // namespace utility
 
 

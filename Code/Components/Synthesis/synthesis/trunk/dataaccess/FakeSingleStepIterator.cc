@@ -36,6 +36,9 @@
 #include <dataaccess/MemBufferDataAccessor.h>
 #include <askap/AskapError.h>
 
+// we need it just for NullDeleter
+#include <askap/AskapUtil.h>
+
 using namespace askap;
 using namespace askap::synthesis;
 
@@ -169,21 +172,6 @@ casa::Bool FakeSingleStepIterator::next()
   return false; // we have just one element to iterate over
 }
 
-namespace askap {
-
-namespace utility {
-
-/// @brief helper class - null deleter
-/// @details To prevent boost::shared_ptr from disposing of an object
-/// passed by reference. Can be moved to the upper level, if needed somewhere else
-struct NullDeleter {
-   /// @brief dummy method
-   void operator()(void const *) const {}
-};
-
-} // namespace utility
-
-} // namespace askap
 
 /// @brief helper method to reassign all buffers to a new accessor
 /// @details With the calls to assign/detach accessor it can be replaced
