@@ -54,13 +54,13 @@ namespace synthesis {
 AProjectWStackVisGridder::AProjectWStackVisGridder(
         const boost::shared_ptr<IBasicIllumination const> &illum,
         const double wmax, const int nwplanes,
-		const int overSample, const int maxSupport, const int maxFeeds,
-		const int maxFields, const double pointingTol,
-		const bool frequencyDependent, const std::string& name) :
-	WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
-			itsIllumination(illum),
-			itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
-			itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent)
+	const int overSample, const int maxSupport, const int limitSupport, const int maxFeeds,
+	const int maxFields, const double pointingTol,
+	const bool frequencyDependent, const std::string& name) :
+  WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
+  itsIllumination(illum),
+  itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
+  itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent)
 
 {	
 	ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
@@ -72,6 +72,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(
 	itsSupport=0;
 	itsOverSample=overSample;
 	itsMaxSupport=maxSupport;
+	itsLimitSupport=limitSupport;
 	itsName=name;
 
 	itsSlopes.resize(2, itsMaxFeeds, itsMaxFields);
@@ -96,6 +97,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridde
        itsMaxFields(other.itsMaxFields), itsPointingTolerance(other.itsPointingTolerance),
        itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),
        itsFreqDep(other.itsFreqDep), itsMaxSupport(other.itsMaxSupport),
+       itsLimitSupport(other.itsLimitSupport),
        itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
        itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()) {}
 
@@ -275,6 +277,12 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 							"Unable to determine support of convolution function");
 					ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
 							"Overflowing convolution function - increase maxSupport or decrease overSample")
+					if (itsLimitSupport > 0  &&  itsSupport > itsLimitSupport) {
+					  ASKAPLOG_INFO_STR(logger, "Convolution function support = "
+							    << itsSupport << " pixels exceeds upper support limit; "
+							    << "set to limit = " << itsLimitSupport << " pixels");
+					  itsSupport = itsLimitSupport;
+					}
 					itsCSize=2*itsSupport+1;
 					// just for logging
 					const double cell = std::abs(pattern.uCellSize())*(casa::C::c/acc.frequency()[chan]);

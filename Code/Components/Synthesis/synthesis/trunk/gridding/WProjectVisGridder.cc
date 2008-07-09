@@ -47,7 +47,7 @@ namespace askap
 
     WProjectVisGridder::WProjectVisGridder(const double wmax,
         const int nwplanes, const double cutoff, const int overSample,
-        const int maxSupport, const std::string& name)
+	const int maxSupport, const int limitSupport, const std::string& name)
     {
       ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
       ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
@@ -67,6 +67,7 @@ namespace askap
       itsOverSample=overSample;
       itsCutoff=cutoff;
       itsMaxSupport=maxSupport;
+      itsLimitSupport=limitSupport;
       itsName=name;
 
       itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
@@ -265,6 +266,12 @@ namespace askap
               "Unable to determine support of convolution function");
           ASKAPCHECK(itsSupport*itsOverSample<nx/2,
               "Overflowing convolution function - increase maxSupport or decrease overSample")
+	  if (itsLimitSupport > 0  &&  itsSupport > itsLimitSupport) {
+	    ASKAPLOG_INFO_STR(logger, "Convolution function support = "
+	      << itsSupport << " pixels exceeds upper support limit; "
+	      << "set to limit = " << itsLimitSupport << " pixels");
+	    itsSupport = itsLimitSupport;
+	  }
           itsCSize=2*itsSupport+1;
           ASKAPLOG_INFO_STR(logger, "Convolution function support = "
               << itsSupport << " pixels, convolution function size = "

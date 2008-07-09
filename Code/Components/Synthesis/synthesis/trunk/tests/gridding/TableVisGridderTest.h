@@ -108,7 +108,7 @@ namespace askap
         // like dish size and blockage are the same
         itsAWProject.reset(new AWProjectVisGridder(illum, 10000.0, 9, 1e-3, 1, 128, 1));
         itsAProjectWStack.reset(new AProjectWStackVisGridder(illum, 10000.0, 9, 1, 128, 1));
-        itsWProject.reset(new WProjectVisGridder(10000.0, 9, 1e-3, 1, 128, ""));
+        itsWProject.reset(new WProjectVisGridder(10000.0, 9, 1e-3, 1, 128, 0, ""));
         itsWStack.reset(new WStackVisGridder(10000.0, 9));
 
         double cellSize=10*casa::C::arcsec;

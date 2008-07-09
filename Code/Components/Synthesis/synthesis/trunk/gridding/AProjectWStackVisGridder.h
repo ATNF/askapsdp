@@ -64,6 +64,7 @@ namespace askap
       /// @param nwplanes Number of w planes
       /// @param overSample Oversampling (currently limited to <=1)
       /// @param maxSupport Maximum support to be allowed
+      /// @param limitSupport Upper limit of support
       /// @param maxFeeds Maximum number of feeds allowed
       /// @param maxFields Maximum number of fields allowed
       /// @param pointingTol Pointing tolerance in radians
@@ -71,7 +72,7 @@ namespace askap
       /// @param name Name of table to save convolution function into
       AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
           const double wmax, const int nwplanes, const int overSample,
-          const int maxSupport, const int maxFeeds=1, const int maxFields=1,
+          const int maxSupport, const int limitSupport, const int maxFeeds=1, const int maxFields=1,
           const double pointingTol=0.0001, const bool frequencyDependent=true, 
           const std::string& name=std::string(""));
 
@@ -129,6 +130,8 @@ namespace askap
       bool itsFreqDep;
       /// Maximum support to test
       int itsMaxSupport;
+      /// Upper limit of support
+      int itsLimitSupport;
       /// Mapping from row, pol, and channel to planes of convolution function
       casa::Cube<int> itsCMap;
       /// Cube of slopes

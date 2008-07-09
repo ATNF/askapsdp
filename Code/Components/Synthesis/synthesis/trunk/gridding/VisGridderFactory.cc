@@ -140,10 +140,11 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		double cutoff=parset.getDouble("gridder.WProject.cutoff", 1e-3);
 		int oversample=parset.getInt32("gridder.WProject.oversample", 8);
 		int maxSupport=parset.getInt32("gridder.WProject.maxsupport", 256);
+		int limitSupport=parset.getInt32("gridder.WProject.limitsupport", 0);
 		string tablename=parset.getString("gridder.WProject.tablename", "");
 		ASKAPLOG_INFO_STR(logger, "Gridding using W projection");
 		gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
-				maxSupport, tablename));
+								  maxSupport, limitSupport, tablename));
 	} else if (parset.getString("gridder")=="WStack") {
 		double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
 		int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 65);
@@ -156,6 +157,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
 		int oversample=parset.getInt32("gridder.AWProject.oversample", 8);
 		int maxSupport=parset.getInt32("gridder.AWProject.maxsupport", 128);
+		int limitSupport=parset.getInt32("gridder.AWProject.limitsupport", 0);
 		bool freqDep=parset.getBool("gridder.AWProject.frequencydependent",
 				true);
 		int maxFeeds=parset.getInt32("gridder.AWProject.maxfeeds", 1);
@@ -174,7 +176,8 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(
 		        makeIllumination(parset.makeSubset("gridder.AWProject.")),
 				wmax, nwplanes, cutoff, oversample,
-				maxSupport, maxFeeds, maxFields, pointingTol, freqDep, tablename));
+				maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
+			        freqDep, tablename));
 	} else if (parset.getString("gridder")=="AProjectWStack") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
 		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
@@ -182,6 +185,8 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
 		int maxSupport= parset.getInt32("gridder.AProjectWStack.maxsupport",
 				128);
+		int limitSupport= parset.getInt32("gridder.AProjectWStack.limitsupport",
+						  0);
 		int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
 		int maxFields=parset.getInt32("gridder.AProjectWStack.maxfields", 1);
 		bool freqDep=parset.getBool(
@@ -201,7 +206,8 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(
 		        makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
 				wmax, nwplanes, oversample,
-				maxSupport, maxFeeds, maxFields, pointingTol, freqDep, tablename));
+			        maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
+			        freqDep, tablename));
 	} else if (parset.getString("gridder")=="Box") {
 		ASKAPLOG_INFO_STR(logger, "Gridding with Box function");
 		gridder=IVisGridder::ShPtr(new BoxVisGridder());

@@ -51,10 +51,11 @@ namespace synthesis {
 
 AWProjectVisGridder::AWProjectVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
         const double wmax, const int nwplanes,
-		const double cutoff, const int overSample, const int maxSupport,
+		const double cutoff, const int overSample,
+	        const int maxSupport, const int limitSupport,
 		const int maxFeeds, const int maxFields, const double pointingTol,
 		const bool frequencyDependent, const std::string& name) :
-	WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, name),
+                        WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, limitSupport, name),
 			itsReferenceFrequency(0.0), itsIllumination(illum),
 			itsFreqDep(frequencyDependent),
 			itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
@@ -70,6 +71,7 @@ AWProjectVisGridder::AWProjectVisGridder(const boost::shared_ptr<IBasicIlluminat
 	itsSupport=0;
 	itsOverSample=overSample;
 	itsMaxSupport=maxSupport;
+	itsLimitSupport=limitSupport;
 	itsName=name;
 
 	itsSlopes.resize(2, itsMaxFeeds, itsMaxFields);
@@ -328,6 +330,12 @@ void AWProjectVisGridder::initConvolutionFunction(const IConstDataAccessor& acc)
 								"Unable to determine support of convolution function");
 						ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
 								"Overflowing convolution function - increase maxSupport or decrease overSample")
+						if (itsLimitSupport > 0  &&  itsSupport > itsLimitSupport) {
+						  ASKAPLOG_INFO_STR(logger, "Convolution function support = "
+								    << itsSupport << " pixels exceeds upper support limit; "
+								    << "set to limit = " << itsLimitSupport << " pixels");
+						  itsSupport = itsLimitSupport;
+						}
 						itsCSize=2*itsSupport+1;
 						ASKAPLOG_INFO_STR(
 								logger,

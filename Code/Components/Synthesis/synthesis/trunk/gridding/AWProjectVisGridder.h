@@ -65,6 +65,7 @@ namespace askap
       /// @param cutoff Cutoff in determining support e.g. 10^-3 of the peak
       /// @param overSample Oversampling (currently limited to <=1)
       /// @param maxSupport Maximum support to be allowed
+      /// @param limitSupport Upper limit of support
       /// @param maxFeeds Maximum number of feeds allowed
       /// @param maxFields Maximum number of fields allowed
       /// @param pointingTol Pointing tolerance in radians
@@ -72,7 +73,7 @@ namespace askap
       /// @param name Name of table to save convolution function into
       AWProjectVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
           const double wmax, const int nwplanes, const double cutoff,
-          const int overSample, const int maxSupport,
+	  const int overSample, const int maxSupport, const int limitSupport,
           const int maxFeeds=1, const int maxFields=1, const double pointingTol=0.0001,
           const bool frequencyDependent=true, 
           const std::string& name=std::string(""));
