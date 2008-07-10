@@ -249,7 +249,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 				         itsSlopes(0, feed, itsCurrentField),
 				         itsSlopes(1, feed, itsCurrentField), 
 				         parallacticAngle);
-				         
+				
 				/// Now convolve the disk with itself
 				fft2d(pattern.pattern(), false);
 
@@ -267,8 +267,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 						sumdisk+=casa::abs(pattern(ix, iy));
 					}
 				}
-				pattern.pattern() *= casa::Complex(float(itsOverSample)*float(itsOverSample)/casa::Complex(sumdisk));
-
+				pattern.pattern() *= casa::Complex(float(itsOverSample)*float(itsOverSample))/casa::Complex(sumdisk);
+				
 				if (itsSupport==0) {
 				    // we probably need a proper support search here
 				    // it can be encapsulated in a method of the UVPattern class
@@ -295,7 +295,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 					itsCCenter=itsSupport;
 					ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
 							  << itsConvFunc.size());
-				}
+				} // if itsSupport uninitialized
 				int zIndex=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
 
 				for (int fracu=0; fracu<itsOverSample; fracu++) {
@@ -311,13 +311,24 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 								itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)
 										= pattern(itsOverSample*ix+fracu+nx/2,
 												itsOverSample*iy+fracv+ny/2);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+							} // for ix
+						} // for iy
+						  //
+						  //ASKAPLOG_INFO_STR(logger, "convolution function for channel "<<chan<<
+				          //   " plane="<<plane<<" has an integral of "<<sum(itsConvFunc[plane]));						
+				          //
+					} // for fracv
+				} // for fracu								
+				// force normalization for all fractional offsets (or planes), only the full
+				// unsplit convolution function is normalized by itsOversampling squared
+				for (size_t plane = 0; plane<itsConvFunc.size(); ++plane) {
+				     double norm = casa::abs(sum(itsConvFunc[plane]));
+				     ASKAPDEBUGASSERT(norm>0.);
+				     itsConvFunc[plane]/=casa::Complex(norm);
+				} // for plane
+			} // for chan
+		} // if !isDone
+	} // for row
 
 	ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
 
