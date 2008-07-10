@@ -331,19 +331,19 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 
 	ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
 
-	int nx=itsShape(0);
-	int ny=itsShape(1);
-	int nPol=itsShape(2);
-	int nChan=itsShape(3);
+	const int nx=itsShape(0);
+	const int ny=itsShape(1);
+	const int nPol=itsShape(2);
+	const int nChan=itsShape(3);
 
-	int nZ=itsSumWeights.shape()(0);
+	const int nZ=itsSumWeights.shape()(0);
 
 	/// We must pad the convolution function to full size, reverse transform
 	/// square, and sum multiplied by the corresponding weight
-	int cnx=std::min(itsMaxSupport, nx);
-	int cny=std::min(itsMaxSupport, ny);
-	int ccenx=cnx/2;
-	int cceny=cny/2;
+	const int cnx=std::min(itsMaxSupport, nx);
+	const int cny=std::min(itsMaxSupport, ny);
+	const int ccenx = cnx/2;
+	const int cceny = cny/2;
 
 	/// This is the output array before sinc padding
 	casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
@@ -351,21 +351,24 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 
 	/// Work space
 	casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+	// for debugging
+	double totSumWt = 0.;
 
 	/// itsSumWeights has one element for each separate data plane (feed, field, chan)
 	/// itsConvFunc has overSampling**2 planes for each separate data plane (feed, field, chan)
 	/// We choose the convolution function at zero fractional offset in u,v 
-	for (int iz=0; iz<nZ; iz++) {
-	  int plane=itsOverSample*itsOverSample*iz;
-		thisPlane.set(0.0);
+	for (int iz=0; iz<nZ; ++iz) {
+	     const int plane=itsOverSample*itsOverSample*iz;
+		 thisPlane.set(0.0);
 
 		bool hasData=false;
-		for (int chan=0; chan<nChan; chan++) {
-			for (int pol=0; pol<nPol; pol++) {
-				float wt=itsSumWeights(iz, pol, chan);
-				if(wt>0.0) {
+		for (int chan=0; chan<nChan; ++chan) {
+			for (int pol=0; pol<nPol; ++pol) {
+				const double wt = itsSumWeights(iz, pol, chan);
+				if(wt > 0.0) {
 				  hasData=true;
-				  break;
+				  totSumWt += wt;
+				  //break;
 				}
 			}
 		}
@@ -376,33 +379,44 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 		// and transform to obtain the image. The uv sampling is fixed here
 		// so the total field of view is itsOverSample times larger than the
 		// original field of view.
-		for (int iy=-itsSupport; iy<+itsSupport; iy++) {
-			for (int ix=-itsSupport; ix<+itsSupport; ix++) {
+		for (int iy=-itsSupport; iy<+itsSupport; ++iy) {
+			for (int ix=-itsSupport; ix<+itsSupport; ++ix) {
 				thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter);
 			}
 		}
 
+		//ASKAPLOG_INFO_STR(logger, "Sum of the "<<iz<<" convolution function is "<<
+		//        sum(thisPlane));
+  
 		thisPlane*=casa::Complex(double(cnx)*double(cny));
 		/// The peak here should be unity
 		fft2d(thisPlane, false);
-
+		if (iz<10) {
+		    ASKAPLOG_INFO_STR(logger, "Transform of the "<<iz<<" convolution function has peak "<<
+		        max(thisPlane));
+        } else if (iz == 10) {
+            ASKAPLOG_INFO_STR(logger, "Transform peaks are shown only for 10 first convolution functions");
+        }
+        
 		// Now we need to cut out only the part inside the field of view
-		for (int chan=0; chan<nChan; chan++) {
-			for (int pol=0; pol<nPol; pol++) {
+		for (int chan=0; chan<nChan; ++chan) {
+			for (int pol=0; pol<nPol; ++pol) {
 				casa::IPosition ip(4, 0, 0, pol, chan);
-				double wt=itsSumWeights(iz, pol, chan);
-				for (int ix=0; ix<cnx; ix++) {
+				const double wt=itsSumWeights(iz, pol, chan);
+				for (int ix=0; ix<cnx; ++ix) {
 					ip(0)=ix;
-					for (int iy=0; iy<cny; iy++) {
+					for (int iy=0; iy<cny; ++iy) {
 						ip(1)=iy;
-						cOut(ip)+=float(wt)*casa::real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
+						cOut(ip)+=wt*casa::real(thisPlane(ix, iy)*conj(thisPlane(ix, iy)));
 					}
 				}
 			}
 		}
-		}
-	}
+		} // if has data
+	} // loop over convolution functions
 	fftPad(cOut, out);
+	ASKAPLOG_INFO_STR(logger, 
+	    "Finished finilasing the weights, the sum over all convolution functions is "<<totSumWt);	
 }
 
 void AProjectWStackVisGridder::fftPad(const casa::Array<double>& in,

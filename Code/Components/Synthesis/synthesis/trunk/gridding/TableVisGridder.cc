@@ -712,7 +712,6 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 			  //			  ASKAPLOG_INFO_STR(logger, "Sum of conv func " << sumConvFunc);
 				sumwt+=itsSumWeights(iz, pol, chan);
 			}
-
 			casa::IPosition ipStart(4, 0, 0, pol, chan);
 			casa::IPosition onePlane(4, itsShape(0), itsShape(1), 1, 1);
 			casa::Slicer slicer(ipStart, onePlane);
