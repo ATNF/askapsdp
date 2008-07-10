@@ -87,7 +87,8 @@ namespace askap
     WProjectVisGridder::WProjectVisGridder(const WProjectVisGridder &other) :
          SphFuncVisGridder(other), itsWScale(other.itsWScale), 
          itsNWPlanes(other.itsNWPlanes), itsCutoff(other.itsCutoff),
-         itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport) {}
+         itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
+	 itsLimitSupport(other.itsLimitSupport) {}
            
 
     /// Clone a copy of this Gridder
