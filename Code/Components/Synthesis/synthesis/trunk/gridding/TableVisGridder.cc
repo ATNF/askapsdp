@@ -300,7 +300,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				   "Fractional offset in v exceeds oversampling");
 		   iv+=itsShape(1)/2;
 		   
-		   /// Calculate the delay phasor
+		   // Calculate the delay phasor
 		   const double phase=2.0f*casa::C::pi*frequencyList[chan]*delay(i)/(casa::C::c);
 		   const casa::Complex phasor(cos(phase), sin(phase));
 		   
@@ -309,12 +309,14 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			   if (acc.flag()(i, chan, pol))
 				   allPolGood=false;
 		   }
+
+		   // Ensure that we only use unflagged data, incomplete polarisation vectors are 
+		   // ignored
+		   // @todo Be more careful about matching polarizations
+		   if (allPolGood) {
 		   
-		   /// Now loop over all visibility polarizations
-		   for (uint pol=0; pol<nPol; ++pol) {
-		      /// Ensure that we only use unflagged data
-		      /// @todo Be more careful about matching polarizations
-		      if (allPolGood) {
+		     // Now loop over all visibility polarizations
+		     for (uint pol=0; pol<nPol; ++pol) {
 			   // Lookup the portion of grid to be
 			   // used for this row, polarisation and channel
 			   const int gInd=gIndex(i, pol, chan);
@@ -481,8 +483,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			     
 			     }
 			   }
-		      }
-		   }//end of pol loop
+		     }//end of pol loop
+		   } // end of if (allPolGood)
 	   }//end of chan loop
    }//end of i loop
    if (forward) {
