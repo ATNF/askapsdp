@@ -467,7 +467,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					              psfConvFunc(inx,iny) *= phasor;
 					         }
 					    }
-					  }
+					  } // end if psfConvFunc needs initialization
 					  ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
 					          (psfConvFunc.ncolumn() == convFunc.ncolumn()));
 					
@@ -477,11 +477,10 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                          uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                       }
                       GridKernel::grid(gridPSF, psfConvFunc, uVis, iu, iv, itsSupport);
-                      itsSamplesGridded+=1.0;
-                      itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
-                   }
-			     
-			     }
+                   } // end if psf needs to be done
+                   itsSamplesGridded+=1.0;
+                   itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));			     
+			     } // end if forward (else case, reverse operation)
 			   }
 		     }//end of pol loop
 		   } // end of if (allPolGood)
