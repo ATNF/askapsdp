@@ -219,12 +219,20 @@ namespace askap
       int ny=imagePixels.shape()(1);
       casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
       casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
+      double lat((axes.start("DEC")+axes.end("DEC"))/2.0);
       
       casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
       casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
       
+      Projection projection(Projection::SIN);
+      if(sin(lat)!=0.0) {
+	casa::Vector<double> pp(2);
+	pp(0)=0.0;
+	pp(1)=cos(lat)/sin(lat);
+	projection=Projection(Projection::SIN, pp);
+      }
       casa::DirectionCoordinate radec(MDirection::J2000,
-				      Projection(Projection::SIN),
+				      projection,
 				      refLon, refLat,
 				      incLon, incLat,
 				      xform, nx/2, nx/2);
