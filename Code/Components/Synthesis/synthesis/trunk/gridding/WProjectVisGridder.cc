@@ -58,11 +58,10 @@ namespace askap
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
       itsNWPlanes=nwplanes;
-      if(nwplanes>1) {
-	itsWScale=wmax/double((nwplanes-1)/2);
-      }
-      else {
-	itsWScale=1.0;
+      if (nwplanes>1) {
+         itsWScale=wmax/double((nwplanes-1)/2);
+      } else {
+         itsWScale=1.0;
       }
       itsOverSample=overSample;
       itsCutoff=cutoff;
@@ -88,7 +87,7 @@ namespace askap
          SphFuncVisGridder(other), itsWScale(other.itsWScale), 
          itsNWPlanes(other.itsNWPlanes), itsCutoff(other.itsCutoff),
          itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
-	 itsLimitSupport(other.itsLimitSupport) {}
+         itsLimitSupport(other.itsLimitSupport) {}
            
 
     /// Clone a copy of this Gridder
@@ -280,26 +279,32 @@ namespace askap
           itsCCenter=(itsCSize-1)/2;
         }
 	ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
-        for (int fracu=0; fracu<itsOverSample; fracu++)
-        {
-          for (int fracv=0; fracv<itsOverSample; fracv++)
-          {
-            int plane=fracu+itsOverSample*(fracv+itsOverSample*iw);
+        for (int fracu=0; fracu<itsOverSample; ++fracu) {
+          for (int fracv=0; fracv<itsOverSample; ++fracv) {
+            const int plane=fracu+itsOverSample*(fracv+itsOverSample*iw);
             itsConvFunc[plane].resize(itsCSize, itsCSize);
             itsConvFunc[plane].set(0.0);
             // Now cut out the inner part of the convolution function and
             // insert it into the convolution function
-            for (int iy=-itsSupport; iy<itsSupport; iy++)
-            {
-              for (int ix=-itsSupport; ix<itsSupport; ix++)
-              {
-                itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)=
-                  thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
-              }
-            }
-          }
-        }
-      }
+            for (int iy=-itsSupport; iy<itsSupport; ++iy) {
+                 for (int ix=-itsSupport; ix<itsSupport; ++ix) {
+                      itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)=
+                      thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
+                 } // for ix
+            } // for iy
+          } // for fracv
+        } // for fracu
+        // force normalization for all fractional offsets (or planes)
+		for (size_t plane = 0; plane<itsConvFunc.size(); ++plane) {
+	         if (itsConvFunc[plane].nelements() == 0) {
+				 // this plane of the cache is unused
+				 continue;
+             }
+             const double norm = casa::abs(sum(itsConvFunc[plane]));
+             ASKAPDEBUGASSERT(norm>0.);
+			 itsConvFunc[plane]/=casa::Complex(norm);
+        } // for plane					        
+      } // for iw
       ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
           << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
       if (itsName!="")

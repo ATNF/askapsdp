@@ -40,38 +40,35 @@ namespace askap
 
       /// This must be changed for non-MFS
 
-      for (int fracv=0; fracv<itsOverSample; fracv++)
-      {
-        for (int fracu=0; fracu<itsOverSample; fracu++)
-        {
+      for (int fracv=0; fracv<itsOverSample; ++fracv) {
+        for (int fracu=0; fracu<itsOverSample; ++fracu) {
           const int plane=fracu+itsOverSample*fracv;
           ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
           itsConvFunc[plane].resize(itsCSize, itsCSize);
           itsConvFunc[plane].set(0.0);
-          for (int ix=0; ix<itsCSize; ix++)
-          {
+          for (int ix=0; ix<itsCSize; ++ix) {
             double nux=std::abs(double(itsOverSample*(ix-itsCCenter)+fracu))/double(itsSupport*itsOverSample);
             double fx=grdsf(nux)*(1.0-std::pow(nux, 2));
-            for (int iy=0; iy<itsCSize; iy++)
-            {
+            for (int iy=0; iy<itsCSize; ++iy) {
               double nuy=std::abs(double(itsOverSample*(iy-itsCCenter)+fracv))/double(itsSupport*itsOverSample);
               double fy=grdsf(nuy)*(1.0-std::pow(nuy, 2));
               itsConvFunc[plane](ix, iy)=fx*fy;
-            }
-          }
-        }
-      }
-      float volume=casa::sum(casa::real(itsConvFunc[0]));
-      ASKAPCHECK(volume>0.0, "Integral of convolution function is zero");
-      for (int fracv=0; fracv<int(itsOverSample); fracv++)
-      {
-        for (int fracu=0; fracu<int(itsOverSample); fracu++)
-        {
-          const int plane=fracu+itsOverSample*fracv;
-          ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
-          itsConvFunc[plane]*=casa::Complex(1.0/volume);
-        }
-      }
+            } // for iy
+          } // for ix
+        } // for fracu
+      } // for fracv
+      
+      // force normalization for all fractional offsets (or planes)
+      for (size_t plane = 0; plane<itsConvFunc.size(); ++plane) {
+           if (itsConvFunc[plane].nelements() == 0) {
+               // this plane of the cache is unused
+               continue;
+           }
+           const double norm = casa::abs(sum(itsConvFunc[plane]));
+           ASKAPDEBUGASSERT(norm>0.);
+           itsConvFunc[plane]/=casa::Complex(norm);
+      } // for plane					        
+      
     }
 
     SphFuncVisGridder::~SphFuncVisGridder()
