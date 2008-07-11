@@ -369,10 +369,20 @@ void AWProjectVisGridder::initConvolutionFunction(const IConstDataAccessor& acc)
 											+itsCCenter) = thisPlane(ix
 											*itsOverSample+fracu+nx/2, iy
 											*itsOverSample+fracv+ny/2);
-								}
-							}
-						}
-					}
+								} // for ix
+							} // for iy 
+						} // for fracv
+					} // for fracu
+					// force normalization for all fractional offsets (or planes)
+				    for (size_t plane = 0; plane<itsConvFunc.size(); ++plane) {
+				         if (itsConvFunc[plane].nelements() == 0) {
+				             // this plane of the cache is unused
+				             continue;
+				         }
+				         const double norm = casa::abs(sum(itsConvFunc[plane]));
+				         ASKAPDEBUGASSERT(norm>0.);
+				         itsConvFunc[plane]/=casa::Complex(norm);
+				    } // for plane					
 				} // w loop
 			} // chan loop
 		}

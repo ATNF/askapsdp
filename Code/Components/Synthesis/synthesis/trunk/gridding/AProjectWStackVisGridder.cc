@@ -261,6 +261,10 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 
 				fft2d(pattern.pattern(), true);
 				
+				// strictly speaking we don't need normalization here any more as each
+				// slice of the convolution function is normalized separately. However, this
+				// code may be useful for debugging, so we leave it here commented out.
+				/*
 				double sumdisk=0.0;
 				for (casa::uInt ix=0; ix<nx; ++ix) {
 					for (casa::uInt iy=0; iy<ny; ++iy) {
@@ -268,6 +272,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 					}
 				}
 				pattern.pattern() *= casa::Complex(float(itsOverSample)*float(itsOverSample))/casa::Complex(sumdisk);
+				*/
 				
 				if (itsSupport==0) {
 				    // we probably need a proper support search here
@@ -305,7 +310,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 						itsConvFunc[plane].resize(itsCSize, itsCSize);
 						itsConvFunc[plane].set(0.0);
 						// Now cut out the inner part of the convolution function and
-						// insert it into the convolution function
+						// insert it into the cache
 						for (int iy=-itsSupport; iy<itsSupport; iy++) {
 							for (int ix=-itsSupport; ix<itsSupport; ix++) {
 								itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)
@@ -319,10 +324,15 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 				          //
 					} // for fracv
 				} // for fracu								
-				// force normalization for all fractional offsets (or planes), only the full
-				// unsplit convolution function is normalized by itsOversampling squared
+				// force normalization for all fractional offsets (or planes), 
+				// only the full unsplit convolution function was normalized before to
+				// itsOversampling squared
 				for (size_t plane = 0; plane<itsConvFunc.size(); ++plane) {
-				     double norm = casa::abs(sum(itsConvFunc[plane]));
+					 if (itsConvFunc[plane].nelements() == 0) {
+				         // this plane of the cache is unused
+				         continue;
+				     }				
+				     const double norm = casa::abs(sum(itsConvFunc[plane]));
 				     ASKAPDEBUGASSERT(norm>0.);
 				     itsConvFunc[plane]/=casa::Complex(norm);
 				} // for plane
