@@ -317,6 +317,13 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 		   
 		     // Now loop over all visibility polarizations
 		     for (uint pol=0; pol<nPol; ++pol) {
+		          // temporary fix as we always do MFS-like operation for polarisations
+		          // at the moment. Otherwise, the weight would be incremented for cross-pols
+		          // as if we would have two more measurements for the same point (causing 
+		          // resulting flux to be reduced.
+		          if ((pol == 1) || (pol == 2)) {
+		              continue;
+		          }
 			   // Lookup the portion of grid to be
 			   // used for this row, polarisation and channel
 			   const int gInd=gIndex(i, pol, chan);
@@ -398,11 +405,11 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 							   +itsSupport) <itsShape(0))&&((iv+itsSupport)
 							   <itsShape(1))) {
 			     if (forward) {
+			       // the code never reaches this point for cross-pols due to a continue
+			       // operator upstream
 			       casa::Complex cVis(acc.visibility()(i, chan, pol));
 			       GridKernel::degrid(cVis, convFunc, grid, iu, iv,
 						  itsSupport);
-			       // Need this for consistency
-			       cVis*=casa::Complex(2.0);
 			       itsSamplesDegridded+=1.0;
 			       itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 				     if(itsVisWeight) {
@@ -415,6 +422,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       if(itsVisWeight) {
 				      rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				   }
+				   
 			       GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
 			       itsSamplesGridded+=1.0;
 			       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
@@ -425,7 +433,6 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				   ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				
 				   itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
-				
 				
 				   /// Grid PSF?
 				   if (itsDopsf && (itsFeedUsedForPSF == acc.feed1()(i)) &&

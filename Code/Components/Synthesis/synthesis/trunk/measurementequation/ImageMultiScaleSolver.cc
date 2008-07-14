@@ -130,25 +130,26 @@ namespace askap
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
         casa::Array<float> maskArray(valShape);
 
-	// Normalize
-	doNormalization(diag,tol(),psfArray,dirtyArray, 
+	    // Normalize
+	    doNormalization(diag,tol(),psfArray,dirtyArray, 
 	        boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-        
-	// Precondition the PSF and DIRTY images before solving.
-	if(doPreconditioning(psfArray,dirtyArray)) {
-	  // Save the new PSFs to disk
-	  Axes axes(itsParams->axes(indit->first));
-	  string psfName="psf."+(indit->first);
-	  casa::Array<double> anothertemp(valShape);
-	  casa::convertArray<double,float>(anothertemp,psfArray);
-	  const casa::Array<double> & APSF(anothertemp);
-	  if (!itsParams->has(psfName)) {
-	    itsParams->add(psfName, APSF, axes);
-	  } else {
-	    itsParams->update(psfName, APSF);
-	  }
-	}
-	
+    
+	    // Precondition the PSF and DIRTY images before solving.
+        if(doPreconditioning(psfArray,dirtyArray)) {
+	       // Save the new PSFs to disk
+	       Axes axes(itsParams->axes(indit->first));
+	       string psfName="psf."+(indit->first);
+	       casa::Array<double> anothertemp(valShape);
+	       casa::convertArray<double,float>(anothertemp,psfArray);
+	       const casa::Array<double> & APSF(anothertemp);
+	       if (!itsParams->has(psfName)) {
+	           itsParams->add(psfName, APSF, axes);
+	       } else {
+	           itsParams->update(psfName, APSF);
+	       }
+	    } // if there was preconditioning
+	    ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
+		
         // We need lattice equivalents. We can use ArrayLattice which involves
         // no copying
         casa::ArrayLattice<float> dirty(dirtyArray);
@@ -167,39 +168,40 @@ namespace askap
           lc=it->second; 
           ASKAPDEBUGASSERT(lc);
           lc->update(dirty);
-        }
-        else {
+        } else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
           lc->setMask(mask);
 	  
-	  ASKAPDEBUGASSERT(lc);
-	  if(algorithm()=="Hogbom") {
-	    casa::Vector<float> scales(1);
-	    scales(0)=0.0;
-	    lc->setscales(scales);
-	    lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
+	      ASKAPDEBUGASSERT(lc);
+	      if(algorithm()=="Hogbom") {
+	         casa::Vector<float> scales(1);
+	         scales(0)=0.0;
+	         lc->setscales(scales);
+	         lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
 	                   fractionalThreshold(), false);
-	  } else {
-	    lc->setscales(itsScales);
-	    lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
+	      } else {
+	           lc->setscales(itsScales);
+	           lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
 	                   fractionalThreshold(),false);
-	  }
-	  lc->ignoreCenterBox(true);
-	}
-	lc->clean(clean);
-	ASKAPDEBUGASSERT(itsParams);
+	      } // if algorithm == Hogbom, else case (other algorithm)
+	      lc->ignoreCenterBox(true);
+	    } // if cleaner found in the cache, else case - new cleaner needed
+	    lc->clean(clean);
+	    ASKAPLOG_INFO_STR(logger, "Peak flux of the clean image "<<max(cleanArray));
+
+	    ASKAPDEBUGASSERT(itsParams);
 	
-	const std::string peakResParam = std::string("peak_residual.") + indit->first;
-	if (itsParams->has(peakResParam)) {
-	  itsParams->update(peakResParam, lc->strengthOptimum());
+	    const std::string peakResParam = std::string("peak_residual.") + indit->first;
+	    if (itsParams->has(peakResParam)) {
+	        itsParams->update(peakResParam, lc->strengthOptimum());
         } else {
-	  itsParams->add(peakResParam, lc->strengthOptimum());
+	        itsParams->add(peakResParam, lc->strengthOptimum());
         }
         itsParams->fix(peakResParam);	    
 	
         casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
-      }
+      } // loop over map of indices
       
       quality.setDOF(nParameters);
       quality.setRank(0);
