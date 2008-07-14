@@ -332,7 +332,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 				         // this plane of the cache is unused
 				         continue;
 				     }				
-				     const double norm = casa::abs(sum(itsConvFunc[plane]));
+				     const double norm = real(sum(casa::abs(itsConvFunc[plane])));
 				     ASKAPDEBUGASSERT(norm>0.);
 				     itsConvFunc[plane]/=casa::Complex(norm);
 				} // for plane
