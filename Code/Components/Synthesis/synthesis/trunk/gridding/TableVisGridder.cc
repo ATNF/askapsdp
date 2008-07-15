@@ -412,9 +412,9 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 						  itsSupport);
 			       itsSamplesDegridded+=1.0;
 			       itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
-				     if(itsVisWeight) {
-				       cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				     }
+                   if(itsVisWeight) {
+                      cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+                   }
 				     acc.rwVisibility()(i, chan, pol)+=cVis*phasor;
 			     } else {
 			       /// Gridding visibility data onto grid

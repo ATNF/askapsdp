@@ -91,8 +91,8 @@ namespace askap
 	/// size before this method is called. Pass a void shared pointer (default) to skip 
 	/// mask-related functionality. Hint: use utility::NullDeleter to wrap a shared pointer
 	/// over an existing array reference.
-    void ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, casa::Array<float>& psf, 
-				      casa::Array<float>& dirty, 
+    void ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, 
+                      casa::Array<float>& psf, casa::Array<float>& dirty, 
 				      const boost::shared_ptr<casa::Array<float> > &mask)
     {
         const double maxDiag(casa::max(diag));
