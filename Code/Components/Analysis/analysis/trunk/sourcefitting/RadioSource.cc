@@ -32,6 +32,7 @@
 
 #include <sourcefitting/RadioSource.h>
 #include <analysisutilities/AnalysisUtilities.h>
+#include <evaluationutilities/EvaluationUtilities.h>
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
@@ -46,6 +47,9 @@
 #include <scimath/Functionals/Gaussian3D.h>
 #include <casa/namespace.h>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <string>
 #include <map>
@@ -155,6 +159,7 @@ namespace askap
 	/// times), and the Value element being the location of the
 	/// peak, stored as a PixelInfo::Voxel.
 
+	//	const int numThresh = 50;
 	const int numThresh = 10;
 
 	std::multimap<int,PixelInfo::Voxel> peakMap;
@@ -167,37 +172,62 @@ namespace askap
 	smlIm.saveArray(fluxarray,this->boxSize());
 	smlIm.setMinSize(1);
 
-	float threshIncrement = (this->peakFlux-this->itsDetectionThreshold)/float(numThresh);
+// 	float baseThresh = this->itsDetectionThreshold / this->itsNoiseLevel;
+	float baseThresh = log10(this->itsDetectionThreshold/this->itsNoiseLevel);
+
+	float threshIncrement = (log10(this->peakFlux/this->itsNoiseLevel)-baseThresh)/float(numThresh);
+
+	std::cerr << "detect thresh = " << this->itsDetectionThreshold
+		  << "  peak = " << this->peakFlux << "\n";
+	std::cerr << "Thresholds: ";
+	for(int i=0;i<numThresh;i++)
+	  std::cerr << pow(10.,baseThresh + i * threshIncrement) * this->itsNoiseLevel << " ";
+	std::cerr << "\n";
+
+	PixelInfo::Object2D spatMap = this->pixelArray.getSpatialMap();
+	std::cerr << spatMap.getXmin() << " " << spatMap.getXmax() << "  " << spatMap.getYmin() << " " << spatMap.getYmax() << "\n";
+
 	for(int i=1;i<=numThresh;i++){
-	  float thresh = this->itsDetectionThreshold + i * threshIncrement;
+	  float thresh = pow(10.,baseThresh + i * threshIncrement);
+// 	  float thresh = baseThresh + i * threshIncrement;
 	  smlIm.stats().setThreshold(thresh);
 	  std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
+	  std::cerr << thresh*this->itsNoiseLevel << "   \t" << objlist.size() << "\t";
 	  std::vector<PixelInfo::Object2D>::iterator o;
 	  for(o=objlist.begin();o<objlist.end();o++){	    
 	    duchamp::Detection tempobj;
 	    tempobj.pixels().addChannel(0,*o);
 	    tempobj.calcFluxes(fluxarray,dim);
-	    PixelInfo::Voxel peakLoc(tempobj.getXPeak()+this->boxXmin(),
-				     tempobj.getYPeak()+this->boxYmin(),
-				     tempobj.getZPeak(),
-				     tempobj.getPeakFlux());
-	    int freq = 1;
+	    std::cerr << "("
+		      <<tempobj.getXPeak()+this->boxXmin()<<","
+		      <<tempobj.getYPeak()+this->boxYmin()<<")";
+	    bool pkInObj = spatMap.isInObject(tempobj.getXPeak()+this->boxXmin(),
+					      tempobj.getYPeak()+this->boxYmin());
+	    if(pkInObj){
+	      std::cerr << " y\t";
+	      PixelInfo::Voxel peakLoc(tempobj.getXPeak()+this->boxXmin(),
+				       tempobj.getYPeak()+this->boxYmin(),
+				       tempobj.getZPeak(),
+				       tempobj.getPeakFlux());
+	      int freq = 1;
 	    
-	    bool finished = false;
-	    if(peakMap.size()>0){
-	      pk = peakMap.begin();
-	      while(!finished && pk!=peakMap.end()){
-		if(!(pk->second==peakLoc)) pk++;
-		else{
-		  freq = pk->first+1;
-		  peakMap.erase(pk);
-		  finished=true;
+	      bool finished = false;
+	      if(peakMap.size()>0){
+		pk = peakMap.begin();
+		while(!finished && pk!=peakMap.end()){
+		  if(!(pk->second==peakLoc)) pk++;
+		  else{
+		    freq = pk->first+1;
+		    peakMap.erase(pk);
+		    finished=true;
+		  }
 		}
 	      }
+	      peakMap.insert( std::pair<int,PixelInfo::Voxel>(freq,peakLoc) );
 	    }
-	    peakMap.insert( std::pair<int,PixelInfo::Voxel>(freq,peakLoc) );
-
+	    else std::cerr << " n\t";
 	  }
+	  std::cerr << "\n";
 
 	}
 	
@@ -343,7 +373,7 @@ namespace askap
 	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
 	std::vector<Double> fluxes;
 	f.tovector(fluxes);
-	float peakFlux = *std::max_element(fluxes.begin(), fluxes.end()) / this->itsNoiseLevel;
+	//	float peakFlux = *std::max_element(fluxes.begin(), fluxes.end()) / this->itsNoiseLevel;
 
 	std::multimap<int,PixelInfo::Voxel> peakList = this->findDistinctPeaks(f);
 	std::multimap<int,PixelInfo::Voxel>::reverse_iterator pk;
@@ -357,7 +387,7 @@ namespace askap
 	casa::Matrix<casa::Double> solution[4];
 
 	baseEstimate.resize(1,6);
-	baseEstimate(0,0)=this->peakFlux  / this->itsNoiseLevel;   // height of Gaussian
+	baseEstimate(0,0)=this->peakFlux / this->itsNoiseLevel;   // height of Gaussian
 	baseEstimate(0,1)=this->getXcentre();    // x centre
 	baseEstimate(0,2)=this->getYcentre();    // y centre
 	// get beam information from the FITSheader, if present.
@@ -411,6 +441,7 @@ namespace askap
 	    for(int i=3;i<6;i++) estimate(g,i) = baseEstimate(0,i);
 	  }
 	  fitgauss[ctr].setFirstEstimate(estimate);
+	  cout << "Estimate: "; printparameters(estimate);
 
 	  retryfactors.resize(numGauss,6);
 	  for(unsigned int g=0;g<numGauss;g++)
@@ -418,17 +449,17 @@ namespace askap
 	      retryfactors(g,i) = baseRetryfactors(0,i);
 	  fitgauss[ctr].setRetryFactors(retryfactors);
 
-	  // mask the beam parameters
-	  //	  std::cout << "Mask values:\n";
-	  for(unsigned int g=0;g<numGauss;g++){
-	    fitgauss[ctr].mask(g,3) = false;
-	    fitgauss[ctr].mask(g,4) = false;
-	    fitgauss[ctr].mask(g,5) = false;
-	    // 	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i)=false;
-	    //	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i) = !fitgauss[ctr].mask(g,i);
-	    //	    for(int i=0;i<6;i++) std::cout << fitgauss[ctr].mask(g,i);
-	    //	    std::cout << "\n";
-	  }	      
+// 	  // mask the beam parameters
+// 	  //	  std::cout << "Mask values:\n";
+// 	  for(unsigned int g=0;g<numGauss;g++){
+// 	    fitgauss[ctr].mask(g,3) = false;
+// 	    fitgauss[ctr].mask(g,4) = false;
+// 	    fitgauss[ctr].mask(g,5) = false;
+// 	    // 	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i)=false;
+// 	    //	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i) = !fitgauss[ctr].mask(g,i);
+// 	    //	    for(int i=0;i<6;i++) std::cout << fitgauss[ctr].mask(g,i);
+// 	    //	    std::cout << "\n";
+// 	  }	      
     
 	  solution[ctr].resize();
 	  bool thisFitGood = true;
@@ -440,6 +471,10 @@ namespace askap
 	    message = "FIT ERROR: " + message;
 	    ASKAPLOG_ERROR(logger, message);
 	    thisFitGood = false;
+	  }
+
+	  for(unsigned int i=0;i<numGauss;i++){
+	    solution[ctr](i,5) = remainder(solution[ctr](i,5), 2.*M_PI);
 	  }
 
 	  chisq[ctr] = fitgauss[ctr].chisquared();
@@ -471,9 +506,9 @@ namespace askap
 
 	  passConv  = fitgauss[ctr].converged();
 	  passConv  = passConv && (chisq[ctr]>0.);
-	  for(unsigned int i=0;i<numGauss;i++){
-	    passConv = passConv && ( fabs(solution[ctr](i,5))<2.*M_PI );
-	  }
+// 	  for(unsigned int i=0;i<numGauss;i++){
+// 	    passConv = passConv && ( fabs(solution[ctr](i,5))<2.*M_PI );
+// 	  }
 
 	  passChisq = false;
 	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
@@ -494,7 +529,7 @@ namespace askap
 	      passFlux = passFlux && (solution[ctr](i,0) > 0.);
 	      passFlux = passFlux && (solution[ctr](i,0) * this->itsNoiseLevel
 				      > 0.5*this->itsDetectionThreshold);
-	      passPeak = passPeak && (solution[ctr](i,0) < 2.*peakFlux);	    
+	      passPeak = passPeak && (solution[ctr](i,0) < 2.*this->peakFlux);	    
 	      
 	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),
 					   solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
@@ -579,6 +614,9 @@ namespace askap
 
 	stream.setf(std::ios::fixed);
 	
+	int suffixCtr=0;
+	char suffix[4]  = {'a','b','c','d'};
+
 	int prec=columns[duchamp::Column::FINT].getPrecision();
 	if(prec < 6)
 	  for(int i=prec;i<6;i++) columns[duchamp::Column::FINT].upPrec();
@@ -594,7 +632,8 @@ namespace askap
 	  columns[duchamp::Column::VEL].printTitle(stream);
 	  columns[duchamp::Column::FINT].printTitle(stream);
 	  columns[duchamp::Column::FPEAK].printTitle(stream);
-	  stream << " #Fit  F_int (fit)   F_pk (fit)\n";
+	  // 	  stream << " #Fit  F_int (fit)   F_pk (fit)\n";
+	  stream << " F_int (fit)   F_pk (fit)\n";
 	  int width = columns[duchamp::Column::NUM].getWidth() + 
 	    columns[duchamp::Column::RA].getWidth() + 
 	    columns[duchamp::Column::DEC].getWidth() +
@@ -602,29 +641,63 @@ namespace askap
 	    columns[duchamp::Column::FINT].getWidth() +
 	    columns[duchamp::Column::FPEAK].getWidth();
 	  stream << std::setfill('-') << std::setw(width) << '-'
-		      << "-------------------------------\n";
+		 << "-------------------------\n";
 	}
 
-	columns[duchamp::Column::NUM].printEntry(stream,this->getID());
-	columns[duchamp::Column::RA].printEntry(stream,this->getRAs());
-	columns[duchamp::Column::DEC].printEntry(stream,this->getDecs());
-	columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
-	columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
-	columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
+	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
+	  columns[duchamp::Column::NUM].printEntry(stream,this->getID());
+	  columns[duchamp::Column::RA].printEntry(stream,this->getRAs());
+	  columns[duchamp::Column::DEC].printEntry(stream,this->getDecs());
+	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
+	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
+	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
+	  float peakflux=0.,intflux=0.;
+	  stream << std::setw(12) << std::setprecision(6) << intflux << " ";
+	  stream << std::setw(12) << std::setprecision(6) << peakflux << "\n";
+	}
 
-	stream << " " << std::setw(4) << this->itsGaussFitSet.size() << " ";
-
-	float peakflux=0.,intflux=0.;
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
 	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
-	  if((fit==this->itsGaussFitSet.begin()) || (fit->height()>peakflux)) 
-	    peakflux = fit->height();
-	  intflux += fit->flux();
+
+
+	  std::stringstream id;
+	  id << this->getID() << suffix[suffixCtr++];
+	  //	  columns[duchamp::Column::NUM].printEntry(stream,this->getID();
+	  columns[duchamp::Column::NUM].printEntry(stream, id.str());
+	  //	  columns[duchamp::Column::RA].printEntry(stream,this->getRAs());
+	  //	  columns[duchamp::Column::DEC].printEntry(stream,this->getDecs());
+
+	  double *pix = new double[3];
+	  pix[0] = fit->xCenter();
+	  pix[1] = fit->yCenter();
+	  pix[2] = this->getZcentre();
+	  double *wld = new double[3];
+	  this->itsHeader.pixToWCS(pix,wld);
+	  columns[duchamp::Column::RA].printEntry(stream,  evaluation::decToDMS(wld[0],"RA"));
+	  columns[duchamp::Column::DEC].printEntry(stream, evaluation::decToDMS(wld[1]));
+
+	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
+	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
+	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
+
+	  // 	stream << " " << std::setw(4) << this->itsGaussFitSet.size() << " ";
+	  stream << " " ;
+
+	  float peakflux=0.,intflux=0.;
+	  // 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
+	  // 	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
+	  // 	  if((fit==this->itsGaussFitSet.begin()) || (fit->height()>peakflux)) 
+	  // 	    peakflux = fit->height();
+	  // 	  intflux += fit->flux();
+	  // 	}
+	  peakflux = fit->height();
+	  intflux  = fit->flux();
+	  if(this->itsHeader.needBeamSize()) 
+	    intflux /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
+	  stream << std::setw(12) << std::setprecision(6) << intflux << " ";
+	  stream << std::setw(12) << std::setprecision(6) << peakflux << "\n";
+
 	}
-	if(this->itsHeader.needBeamSize()) 
-	  intflux /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
-	stream << std::setw(12) << std::setprecision(6) << intflux << " ";
-	stream << std::setw(12) << std::setprecision(6) << peakflux << "\n";
 
       }
 

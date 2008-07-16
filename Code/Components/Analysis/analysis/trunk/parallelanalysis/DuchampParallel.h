@@ -118,6 +118,13 @@ namespace askap
       /// @brief Read the threshold to be used (on the workers)
       void receiveThreshold();
 
+      bool is2D(){
+	int numDim=0;
+	long *dim = itsCube.getDimArray();
+	for(int i=0;i<itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
+	return numDim<=2;
+      }
+
     protected:
 
       /// The name of the file containing the image data.

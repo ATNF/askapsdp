@@ -316,7 +316,14 @@ namespace askap
       if(isWorker()){
 
 	// don't do fit if we have a spectral axis.
-	this->itsFlagDoFit = this->itsFlagDoFit && !this->itsCube.header().isSpecOK();
+	bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
+// 	  this->itsCube.getNumDim() <= 2;
+
+	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": flagDoFit = " << this->itsFlagDoFit
+			  << ", thirdAxis = " << this->itsCube.header().canUseThirdAxis()
+			  << ", numDim = " << this->itsCube.getNumDim());
+	this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
+	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": flagDoFit = " << this->itsFlagDoFit);
 	
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source profiles.");
 	duchamp::FitsHeader head = itsCube.getHead();
@@ -328,7 +335,7 @@ namespace askap
  	for(int i=0;i<itsCube.getNumObj();i++){
 // 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
 	  sourcefitting::RadioSource src(itsCube.getObject(i));
-// 	  src.setNoiseLevel( noise );
+	  src.setNoiseLevel( noise );
 	  src.setDetectionThreshold( threshold );
 	  src.setHeader( head );
 	  src.defineBox(itsCube.getDimArray());
@@ -365,6 +372,7 @@ namespace askap
 // 			    );
 	  src.setAtEdge(flagBoundary);
 	  if(!flagBoundary && itsFlagDoFit){
+	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
 	    src.fitGauss(itsCube.getArray(),itsCube.getDimArray());
 	  }
 	  itsSourceList.push_back(src);
