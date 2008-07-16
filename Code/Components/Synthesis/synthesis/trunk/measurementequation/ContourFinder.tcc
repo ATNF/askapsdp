@@ -15,8 +15,14 @@
 /// generalize the class to be able to get several contours at once. In this case
 /// iterator can return IPosition and the contour index.
 
+#include <casa/Arrays/ArrayMath.h>
+
 #ifndef CONTOUR_FINDER_TCC
 #define CONTOUR_FINDER_TCC
+
+namespace askap {
+
+namespace synthesis {
 
 /// @brief initialize the finder to work with the given array
 /// @details This is a basic constructor, which stores a reference to the 
@@ -35,19 +41,27 @@
 /// @param[in] clip if true, a contour will always be closed by returning edge pixels if
 ///            contour goes beyond the array 
 template<typename T, typename P> 
-ContourFinder::ContourFinder(const casa::Array<T> &array, const P &pred,
+ContourFinder<T,P>::ContourFinder(const casa::Array<T> &array, const P &pred,
                 const casa::IPosition &peak, bool clip) : itsArray(array),
                 itsPredicate(pred), itsPeak(peak), itsDoClip(clip),
                 itsIsEndMark(false) 
 {
-  init();
+  ASKAPASSERT(array.shape().size());
+  ASKAPASSERT(array.shape()[0]>1);
+  if (this->itsPeak == casa::IPosition(1,-1)) {
+      T minVal, maxVal;
+      casa::IPosition minPos, maxPos;
+      minMax(minVal,maxVal,minPos,maxPos,this->itsArray);
+      this->itsPeak = abs(minVal) > abs(maxVal) ? minPos : maxPos;
+  }
+  this->init();
 }
 
 /// @brief default constructor, serves as an end-mark
 /// @details This constructor makes an iterator, which is equivalent to the end method 
 /// for stl containers.
 template<typename T, typename P> 
-ContourFinder::ContourFinder() : itsEndMark(true) {}
+ContourFinder<T,P>::ContourFinder() : itsIsEndMark(true) {}
 
 /// @brief Comparison operator
 /// @details It checks whether the iterator reached an end. Only comparison with an end-mark
@@ -55,9 +69,9 @@ ContourFinder::ContourFinder() : itsEndMark(true) {}
 /// @param[in] other another iterator (e.g. an end mark)
 /// @return true, if iterators are equal
 template<typename T, typename P> 
-bool ContourFinder::operator==(const ContourFinder<T,P> &other) const
+bool ContourFinder<T,P>::operator==(const ContourFinder<T,P> &other) const
 {
-  if (itsIsEndMark) {
+  if (this->itsIsEndMark) {
       return other.itsEndMark;
   } 
   return !other.itsEndMark;
@@ -69,9 +83,9 @@ bool ContourFinder::operator==(const ContourFinder<T,P> &other) const
 /// @param[in] other another iterator (e.g. an end mark)
 /// @return true, if iterators are not equal
 template<typename T, typename P> 
-bool ContourFinder::operator!=(const ContourFinder<T,P> &other) const
+bool ContourFinder<T,P>::operator!=(const ContourFinder<T,P> &other) const
 {
-  if (itsIsEndMark) {
+  if (this->itsIsEndMark) {
       return !other.itsEndMark;
   } 
   return other.itsEndMark;  
@@ -81,18 +95,18 @@ bool ContourFinder::operator!=(const ContourFinder<T,P> &other) const
 /// @details It returns IPosition for the current point of the contour.
 /// @return const reference to the currnt point of the contour.
 template<typename T, typename P> 
-const IPosition& ContourFinder::operator*() const
+const casa::IPosition& ContourFinder<T,P>::operator*() const
 {
-  return itsTestedPosition;
+  return this->itsTestedPosition;
 }
    
 /// @brief access operator
 /// @details It returns IPosition for the current point of the contour by pointer.
 /// @return const pointer to the currnt point of the contour.
 template<typename T, typename P> 
-const IPosition* ContourFinder::operator->() const
+const casa::IPosition* ContourFinder<T,P>::operator->() const
 {
-  return &itsTestedPosition;
+  return &(this->itsTestedPosition);
 }
   
 /// @brief rewind the iterator
@@ -100,18 +114,83 @@ const IPosition* ContourFinder::operator->() const
 /// for an end-mark iterator.
 /// @return a reference to itself (to be able to call stl algorithms in a more concise way)
 template<typename T, typename P> 
-ContourFinder<T,P>& ContourFinder::init()
+ContourFinder<T,P>& ContourFinder<T,P>::init()
 {
+  this->itsIncrements = casa::IPosition(itsArray.shape().size(),1);
+  this->itsTestedPosition = itsPeak;
+  if (!this->searchAlongFirstAxis()) {
+      this->operator++();
+  } // if tested position beyond the image and the clipping option is unused
   return *this;
 }
+
+/// @brief a helper method to find a contour point searching along the first coordinate
+/// @details This method is called from both init() and operator++() methods.
+/// It modifies itsTestedPosition, which can be left beyond the image on the first coordinate
+/// @return true if a contour point is found, false if the edge is reached.
+template<typename T, typename P> 
+bool ContourFinder<T,P>::searchAlongFirstAxis()
+{
+  for (this->itsTestedPosition[0] = this->itsPeak[0]; (this->itsTestedPosition[0] < this->itsArray.shape()[0]) && 
+          (this->itsTestedPosition[0]>=0); this->itsTestedPosition[0] += this->itsIncrements[0]) {
+       if (this->itsPredicate(this->itsArray(this->itsTestedPosition))) {
+           return  true;
+       } 
+  }
+  // reached the end of the image
+  if (this->itsDoClip) {
+      // result is the edge
+      this->itsTestedPosition[0] = this->itsIncrements[0]<0 ? 0 : this->itsArray.shape()[0]-1;
+      return true;
+  }
+  return false;
+}
+
   
 /// @brief increment operator
 /// @details It makes a step to the next contour point.
 /// @return a reference to itself (to allow chaining)
 template<typename T, typename P> 
-ContourFinder<T,P>& ContourFinder::operator++()
+ContourFinder<T,P>& ContourFinder<T,P>::operator++()
 {
+  this->itsTestedPosition[0] = this->itsPeak[0];
+  // loop until all points are found
+  // the code would normally exist by a return operator inside the loop
+  while (!this->itsIsEndMark) {
+     if (this->itsIncrements[0] == 1) {
+         // reverse the direction of the search
+         this->itsIncrements[0] = -1;
+         if (this->searchAlongFirstAxis()) {
+             return *this;
+         }
+     } else {
+       this->itsIncrements[0] = 1;
+       // need increment of the other coordinate
+       if (this->itsArray.ndim() == 1) {
+           this->itsIsEndMark = true;
+       } else {
+           this->itsTestedPosition[1] += this->itsIncrements[1];
+           if (this->itsTestedPosition[1] >= this->itsArray.shape()[1]) {
+               this->itsTestedPosition[1] = this->itsPeak[1]-1;
+               this->itsIncrements[1] = -1;
+           } 
+           if (this->itsTestedPosition[1]<0) {
+               this->itsIsEndMark = true;
+           }
+       }
+       if (!this->itsIsEndMark) {
+           if (this->searchAlongFirstAxis()) {
+               return *this;
+           }       
+       }
+     }
+  }
   return *this;
 }
+
+
+} // namespace synthesis
+
+} // namespace askap
 
 #endif // #ifndef CONTOUR_FINDER_TCC

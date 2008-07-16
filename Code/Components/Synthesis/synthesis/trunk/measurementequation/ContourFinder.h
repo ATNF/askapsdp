@@ -119,12 +119,12 @@ public:
   /// @brief access operator
   /// @details It returns IPosition for the current point of the contour.
   /// @return const reference to the currnt point of the contour.
-  const IPosition& operator*() const;
+  const casa::IPosition& operator*() const;
    
   /// @brief access operator
   /// @details It returns IPosition for the current point of the contour by pointer.
   /// @return const pointer to the currnt point of the contour.
-  const IPosition* operator->() const;
+  const casa::IPosition* operator->() const;
   
   /// @brief rewind the iterator
   /// @details This method rewinds the iterator to its initial state. It should not be called
@@ -136,6 +136,14 @@ public:
   /// @details It makes a step to the next contour point.
   /// @return a reference to itself (to allow chaining)
   ContourFinder<T,P>& operator++();
+protected:
+  
+  /// @brief a helper method to find a contour point searching along the first coordinate
+  /// @details This method is called from both init() and operator++() methods.
+  /// It modifies itsTestedPosition, which can be left beyond the image on the first coordinate
+  /// @return true if a contour point is found, false if the edge is reached.
+  bool searchAlongFirstAxis();
+    
 private:
   /// @brief array to work with
   casa::Array<T> itsArray;
@@ -161,6 +169,7 @@ private:
   /// @brief true, if this object is an end-mark
   bool itsIsEndMark;
 };
+
 
 } // namespace synthesis
 
