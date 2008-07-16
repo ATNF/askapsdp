@@ -67,7 +67,7 @@ namespace askap
       fin.getline(line,500);
       fin.getline(line,500);
       // now at start of object list
-      while (fin >> id >> raS >> decS >> ddud >> flux >> ddud >> idud >> ddud >> ddud,
+      while (fin >> id >> raS >> decS >> ddud >> ddud >> flux >> idud >> ddud >> ddud,
 	     !fin.eof()){
 	id += "_" + raS + "_" + decS;
 	std::stringstream ss;

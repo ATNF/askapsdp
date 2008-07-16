@@ -29,8 +29,6 @@
 #ifndef ASKAP_EVALUATION_MATCHER_H_
 #define ASKAP_EVALUATION_MATCHER_H_
 
-#include <askap_evaluation.h>
-
 #include <patternmatching/GrothTriangles.h>
 
 #include <APS/ParameterSet.h>
