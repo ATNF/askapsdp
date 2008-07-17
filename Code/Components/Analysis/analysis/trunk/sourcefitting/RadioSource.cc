@@ -177,34 +177,36 @@ namespace askap
 
 	float threshIncrement = (log10(this->peakFlux/this->itsNoiseLevel)-baseThresh)/float(numThresh);
 
-	std::cerr << "detect thresh = " << this->itsDetectionThreshold
-		  << "  peak = " << this->peakFlux << "\n";
-	std::cerr << "Thresholds: ";
+	std::cout << "detect thresh = " << this->itsDetectionThreshold
+		  << "  peak = " << this->peakFlux 
+		  << "  noise level = " << this->itsNoiseLevel 
+		  << "\n";
+	std::cout << "Thresholds: ";
 	for(int i=0;i<numThresh;i++)
-	  std::cerr << pow(10.,baseThresh + i * threshIncrement) * this->itsNoiseLevel << " ";
-	std::cerr << "\n";
+	  std::cout << pow(10.,baseThresh + i * threshIncrement) * this->itsNoiseLevel << " ";
+	std::cout << "\n";
 
 	PixelInfo::Object2D spatMap = this->pixelArray.getSpatialMap();
-	std::cerr << spatMap.getXmin() << " " << spatMap.getXmax() << "  " << spatMap.getYmin() << " " << spatMap.getYmax() << "\n";
+	std::cout << spatMap.getXmin() << " " << spatMap.getXmax() << "  " << spatMap.getYmin() << " " << spatMap.getYmax() << "\n";
 
 	for(int i=1;i<=numThresh;i++){
 	  float thresh = pow(10.,baseThresh + i * threshIncrement);
 // 	  float thresh = baseThresh + i * threshIncrement;
 	  smlIm.stats().setThreshold(thresh);
 	  std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
-	  std::cerr << thresh*this->itsNoiseLevel << "   \t" << objlist.size() << "\t";
+	  std::cout << thresh*this->itsNoiseLevel << "   \t" << objlist.size() << "\t";
 	  std::vector<PixelInfo::Object2D>::iterator o;
 	  for(o=objlist.begin();o<objlist.end();o++){	    
 	    duchamp::Detection tempobj;
 	    tempobj.pixels().addChannel(0,*o);
 	    tempobj.calcFluxes(fluxarray,dim);
-	    std::cerr << "("
+	    std::cout << "("
 		      <<tempobj.getXPeak()+this->boxXmin()<<","
 		      <<tempobj.getYPeak()+this->boxYmin()<<")";
 	    bool pkInObj = spatMap.isInObject(tempobj.getXPeak()+this->boxXmin(),
 					      tempobj.getYPeak()+this->boxYmin());
 	    if(pkInObj){
-	      std::cerr << " y\t";
+	      std::cout << " y\t";
 	      PixelInfo::Voxel peakLoc(tempobj.getXPeak()+this->boxXmin(),
 				       tempobj.getYPeak()+this->boxYmin(),
 				       tempobj.getZPeak(),
@@ -225,9 +227,9 @@ namespace askap
 	      }
 	      peakMap.insert( std::pair<int,PixelInfo::Voxel>(freq,peakLoc) );
 	    }
-	    else std::cerr << " n\t";
+	    else std::cout << " n\t";
 	  }
-	  std::cerr << "\n";
+	  std::cout << "\n";
 
 	}
 	
@@ -529,7 +531,7 @@ namespace askap
 	      passFlux = passFlux && (solution[ctr](i,0) > 0.);
 	      passFlux = passFlux && (solution[ctr](i,0) * this->itsNoiseLevel
 				      > 0.5*this->itsDetectionThreshold);
-	      passPeak = passPeak && (solution[ctr](i,0) < 2.*this->peakFlux);	    
+	      passPeak = passPeak && (solution[ctr](i,0) * this->itsNoiseLevel < 2.*this->peakFlux);	    
 	      
 	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),
 					   solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
@@ -652,13 +654,12 @@ namespace askap
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
 	  float peakflux=0.,intflux=0.;
-	  stream << std::setw(12) << std::setprecision(6) << intflux << " ";
+	  stream << " " << std::setw(12) << std::setprecision(6) << intflux << " ";
 	  stream << std::setw(12) << std::setprecision(6) << peakflux << "\n";
 	}
 
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
 	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
-
 
 	  std::stringstream id;
 	  id << this->getID() << suffix[suffixCtr++];
