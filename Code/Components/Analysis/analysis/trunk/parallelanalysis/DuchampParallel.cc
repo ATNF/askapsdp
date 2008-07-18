@@ -263,9 +263,12 @@ namespace askap
 
 	// remove mininum size criteria, so we don't miss anything on the borders.
 	int minpix = itsCube.pars().getMinPix();
-	itsCube.pars().setMinPix(1);
 	int minchan = itsCube.pars().getMinChannels();
-	itsCube.pars().setMinChannels(1);
+
+	if(isParallel()){
+	  itsCube.pars().setMinPix(1);
+	  itsCube.pars().setMinChannels(1);
+	}
 
 	if(itsCube.getSize()>0){
 
@@ -291,9 +294,10 @@ namespace askap
 	int16 num = itsCube.getNumObj();
         ASKAPLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << this->itsRank);
 
-	itsCube.pars().setMinPix(minpix);
-	itsCube.pars().setMinChannels(minchan);
-	
+	if(isParallel()){
+	  itsCube.pars().setMinPix(minpix);
+	  itsCube.pars().setMinChannels(minchan);
+	}
       }
     }
 

@@ -99,6 +99,9 @@ namespace askap
 	/// @brief Find the local maxima in the flux distribution of the Detection.
 	std::multimap<int,PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
 
+	/// @brief Estimate the FWHM of the Detection.
+	double getFWHMestimate(casa::Vector<casa::Double> f);
+
 	//@{
 	/// @brief Fit Gaussian components to the Detection.
 	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
