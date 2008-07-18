@@ -88,6 +88,9 @@ if __name__ == '__main__':
     print 'Overall mean offsets (x,y)=(',meandx,',',meandy,')'
     print 'Mean flux diff = ', meandf
 
+    #####
+    ## First figure: plotting the positional offsets for each match
+    #####
     figure(1, figsize=(10.,10.), dpi=72)
     font = {'fontsize' : '10'}
     rc('xtick', labelsize=8)
@@ -108,6 +111,7 @@ if __name__ == '__main__':
     ylabel(r'$\Delta y\ [\prime\prime]$',font)
     title('Positional offsets of matches',font)
     an = linspace(0,2*pi,100)
+    plot( 1*cos(an), 1*sin(an), ':k' )
     plot( 2*cos(an), 2*sin(an), ':k' )
     plot( 4*cos(an), 4*sin(an), ':k' )
     plot( 6*cos(an), 6*sin(an), ':k' )
@@ -116,7 +120,9 @@ if __name__ == '__main__':
     axis(axisrange)
 
 
-#    figure(2)
+    #####
+    ## Second figure: plotting the positions of matching and non-matching sources
+    #####
     subplot(222)
 #    plot(xS,yS,'ro')
     tmp = -offset
@@ -138,20 +144,57 @@ if __name__ == '__main__':
             plot([x[i]],[y[i]],'g+')
     axisrange = axis()
 
+    #####
+    ## Third figure: histogram of the absolute flux differences
+    #####
 #    subplot(223)
     axes([0.125,0.1,0.35,0.16])
     n, bins, patches = hist(df, 20)
-    axvline(meandf, color='r')
     xlabel(r'$\Delta F$',font)
     ylabel('Count',font)
 #    title('Flux differences: source - ref')
+    mu=meandf
+    rms=std(df)
+    axvline(mu, color='r')
+    print 'Mean DF = ',mu,', RMS = ',rms
+    y = normpdf( bins, mu, rms)
+    y = y * max(n) / max(y)
+    l = plot(bins, y, 'r--')
+    mu=median(df)
+    adfm=abs(df-mu)
+    rms=median(adfm)
+    axvline(mu, color='g')
+    print 'Median DF = ',mu,', MADFM = ',rms
+    y = normpdf( bins, mu, rms/0.6744888)
+    y = y * max(n) / max(y)
+    l = plot(bins, y, 'g--')
+    #####
+    ## Fourth figure: histogram of the relative flux differences
+    #####
     axes([0.125,0.31,0.35,0.16])
     n, bins, patches = hist(reldf, 20)
-    axvline(meanreldf, color='r')
     xlabel(r'$\Delta F/F_R$',font)
     ylabel('Count',font)
     title('Flux differences: source - ref',font)
+    mu=meanreldf
+    rms=std(reldf)
+    axvline(mu, color='r')
+    print 'Mean DF/F = ',mu,', RMS = ',rms
+    y = normpdf( bins, mu, rms)
+    y = y * max(n) / max(y)
+    l = plot(bins, y, 'r--')
+    mu=median(reldf)
+    adfm=abs(reldf-mu)
+    rms=median(adfm)
+    axvline(mu, color='g')
+    print 'Median DF/F = ',mu,', MADFM = ',rms
+    y = normpdf( bins, mu, rms/0.6744888)
+    y = y * max(n) / max(y)
+    l = plot(bins, y, 'g--')
 
+    #####
+    ## Fifth figure: flux differences for matching sources as a function of their position
+    #####
     subplot(224)
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)

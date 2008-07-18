@@ -68,6 +68,7 @@ namespace askap
 	void setID(std::string id){itsID=id;};
 	std::string ID(){return itsID;};
 	friend bool operator<(Point lhs, Point rhs){return lhs.flux()<rhs.flux();};
+	double sep(Point pt){return hypot(itsX-pt.x(),itsY-pt.y());};
 
       protected:
 	///@brief The X coordinate
@@ -164,7 +165,6 @@ namespace askap
 	std::vector<Point> itsPts;
       
       };
-
 
       /// @brief Create a list of triangles from a list of points
       std::vector<Triangle> getTriList(std::vector<Point> pixlist);

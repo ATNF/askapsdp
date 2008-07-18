@@ -116,7 +116,6 @@ namespace askap
 	this->itsSrcTriList = getTriList(srclist);
 	this->itsRefTriList = getTriList(reflist);
 
-
 	this->itsMatchingTriList = matchLists(this->itsSrcTriList, this->itsRefTriList, this->itsEpsilon);
 
 	trimTriList(this->itsMatchingTriList);
@@ -177,7 +176,6 @@ namespace askap
 
 	}
 
-
 	for(int i=0;i<this->itsNumMatch1;i++){
 	  this->itsMeanDx += dx[i];
 	  this->itsMeanDy += dy[i];
@@ -208,6 +206,8 @@ namespace askap
 	/// itsMatchingPixList, and the new total number of matches is
 	/// recorded.
 
+ 	this->rejectMultipleMatches();
+
 	const float matchRadius = 3.;
 	std::vector<Point>::iterator src,ref;
 	std::vector<std::pair<Point,Point> >::iterator match;
@@ -235,15 +235,85 @@ namespace askap
 	      ref = this->itsRefPixList.begin() + minRef;
 	      //	      ASKAPLOG_INFO_STR(logger, "New match: " << src->ID() << " <--> " << ref->ID() << " with offset = " << minOffset  << " cf. this->itsEpsilon=" << this->itsEpsilon);
 	      std::pair<Point,Point> newMatch(*src, *ref);
-	      this->itsMatchingPixList.push_back(newMatch);
+
+ 	      this->itsMatchingPixList.push_back(newMatch);
+
+// 	      // Want to check whether we have matched a reference point that is already matched to an object.
+// 	      bool alreadyHave = false;
+// 	      match = this->itsMatchingPixList.begin();
+// 	      std::cout << src->ID() << ":\n";
+// 	      for(;match<this->itsMatchingPixList.end()&&!alreadyHave;match++){
+// 		std::cout << ref->ID() << "   " << match->second.ID() << " (" << match->first.ID()<<")\n";
+// 		alreadyHave = (ref->ID() == match->second.ID());
+// 	      }
+// 	      // If the reference object is not already taken, we add the pair to the list of matches.
+// 	      if(!alreadyHave) this->itsMatchingPixList.push_back(newMatch);
+// 	      else{ // if it is, keep the one with the best match in flux
+// 		match--;
+// 		if( fabs(ref->flux()-src->flux()) < fabs(match->second.flux()-match->first.flux()) ){
+// 		  std::cout << "Removing " << match->first.ID() << " (matches " << match->second.ID() 
+// 			    << ") and replacing with " << src->ID() << " (matches " << ref->ID() << ")\n";;
+// 		  // in this case, the new match has a closer match in flux than the one already in the list
+// 		  // So we remove the one in the list
+// 		  this->itsMatchingPixList.erase(match);
+// 		  this->itsMatchingPixList.push_back(newMatch);
+// 		}
+// 	      }
+// 	      std::cout << "\n";
+	      
 	    }
 
 	  }
 	}
-	
+
+ 	this->rejectMultipleMatches();
+
 	this->itsNumMatch2 = this->itsMatchingPixList.size();
 
       }
+
+
+      //**************************************************************//
+
+      void Matcher::rejectMultipleMatches()
+      {
+
+	if(this->itsMatchingPixList.size()<2) return;
+
+	std::vector<std::pair<Point,Point> >::iterator alice,bob;
+	alice = this->itsMatchingPixList.begin();
+	
+	while(alice<this->itsMatchingPixList.end()-1){
+
+	  bool bobGone = false;
+	  bool aliceGone = false;
+	  bob = alice+1;
+	  while(bob<this->itsMatchingPixList.end() && !aliceGone){
+
+	    if(alice->second.ID() == bob->second.ID()) { // alice & bob have the same reference source
+
+	      if(fabs(alice->first.flux()-alice->second.flux()) < fabs(bob->first.flux()-bob->second.flux())){
+		// delete bob
+		this->itsMatchingPixList.erase(bob);
+		bobGone = true;
+	      }
+	      else{
+		// delete alice
+		this->itsMatchingPixList.erase(alice);
+		aliceGone = true;
+	      }
+	    }
+
+	    if(!bobGone) bob++;
+	    else bobGone = false;
+	  }
+	  
+	  if(!aliceGone) alice++;
+
+	}
+
+      }
+
 
 
       //**************************************************************//
@@ -276,7 +346,9 @@ namespace askap
 	       << "[" << match->second.ID() << "]\t"
 	       << std::setw(10) << match->second.x()  << " "
 	       << std::setw(10) << match->second.y()  << " "
-	       << std::setw(10) << match->second.flux() << "\n";
+	       << std::setw(10) << match->second.flux() << "\t"
+	       << std::setw(8)  << match->first.sep(match->second) << " "
+	       << std::setw(8)  << fabs(match->first.flux()-match->second.flux())<<"\n";
 
 	}
 

@@ -54,7 +54,7 @@ namespace askap
       const double defaultEpsilon=1.0;
 
       /// @brief Maximum size for list of points
-      const unsigned int maxSizePointList=30;
+      const unsigned int maxSizePointList=25;
 
       /// @brief Class to handle matching of patterns of sources
       /// @details This class uses Triangle and Point classes to match
@@ -85,6 +85,7 @@ namespace askap
 
 	/// @brief Using the known offsets, find matches that were missed by the pattern matching.
 	void addNewMatches();
+	void rejectMultipleMatches();
 
 	/// @brief Output lists of matching and isolated points.
 	void outputLists(){ outputMatches(); outputMisses(); };

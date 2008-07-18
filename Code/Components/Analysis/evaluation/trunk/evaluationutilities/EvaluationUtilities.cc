@@ -62,13 +62,16 @@ namespace askap
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
       int idud;
-      double xpt,ypt,ddud,ra,dec,flux;
+      double xpt,ypt,ddud,ra,dec,flux,flux1,flux2;
       char line[501];
       fin.getline(line,500);
       fin.getline(line,500);
       // now at start of object list
-      while (fin >> id >> raS >> decS >> ddud >> ddud >> flux >> idud >> ddud >> ddud,
+//       while (fin >> id >> raS >> decS >> ddud >> ddud >> flux >> ddud >> ddud,
+      while (fin >> id >> raS >> decS >> ddud >> flux1 >> ddud >> flux2,
 	     !fin.eof()){
+	if(flux2>0) flux = flux2;
+	else flux = flux1;
 	id += "_" + raS + "_" + decS;
 	std::stringstream ss;
 	ra = dmsToDec(raS)*15.;
@@ -82,7 +85,16 @@ namespace askap
 	pixlist.push_back(pix);
       }
 
+      stable_sort(pixlist.begin(),pixlist.end());
+      reverse(pixlist.begin(),pixlist.end());
+      for(int i=0;i<pixlist.size();i++) std::cout << pixlist[i].ID() << " " << pixlist[i].flux() << "\n";
       return pixlist;
+      
+//       std::vector<matching::Point> pixlist2();
+//       std::vector<matching::Point>::reverse_iterator pix=pixlist.rbegin();
+//       for(;pix!=pixlist.rend();pix++) pixlist2.push_back(*pix);
+
+//       return pixlist2;
 
     }
    
@@ -122,7 +134,16 @@ namespace askap
 	pixlist.push_back(pix);
       }
 
+      stable_sort(pixlist.begin(),pixlist.end());
+      reverse(pixlist.begin(),pixlist.end());
+      for(int i=0;i<pixlist.size();i++) std::cout << pixlist[i].ID() << " " << pixlist[i].flux() << "\n";
       return pixlist;
+
+//       std::vector<matching::Point> pixlist2();
+//       std::vector<matching::Point>::reverse_iterator pix=pixlist.rbegin();
+//       for(;pix!=pixlist.rend();pix++) pixlist2.push_back(*pix);
+
+//       return pixlist2;
     }
 
 
@@ -135,7 +156,7 @@ namespace askap
       /// @return The maxSize highest-flux points, in flux order.
 
       std::vector<matching::Point> outList;
-      std::sort(inputList.begin(),inputList.end());  // sort by flux, ascending order
+      std::sort(inputList.begin(),inputList.end()); // sort by flux, ascending order
       std::vector<matching::Point>::reverse_iterator pt;
       for(pt=inputList.rbegin(); pt!=inputList.rend() && outList.size()<maxSize; pt++)
 	outList.push_back(*pt);
