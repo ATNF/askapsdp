@@ -157,17 +157,19 @@ if __name__ == '__main__':
     rms=std(df)
     axvline(mu, color='r')
     print 'Mean DF = ',mu,', RMS = ',rms
-    y = normpdf( bins, mu, rms)
+    ax=axis()
+    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
+    y = normpdf( x, mu, rms)
     y = y * max(n) / max(y)
-    l = plot(bins, y, 'r--')
+    l = plot(x, y, 'r--')
     mu=median(df)
     adfm=abs(df-mu)
     rms=median(adfm)
     axvline(mu, color='g')
     print 'Median DF = ',mu,', MADFM = ',rms
-    y = normpdf( bins, mu, rms/0.6744888)
+    y = normpdf( x, mu, rms/0.6744888)
     y = y * max(n) / max(y)
-    l = plot(bins, y, 'g--')
+    l = plot(x, y, 'g--')
     #####
     ## Fourth figure: histogram of the relative flux differences
     #####
@@ -180,17 +182,19 @@ if __name__ == '__main__':
     rms=std(reldf)
     axvline(mu, color='r')
     print 'Mean DF/F = ',mu,', RMS = ',rms
-    y = normpdf( bins, mu, rms)
+    ax=axis()
+    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
+    y = normpdf( x, mu, rms)
     y = y * max(n) / max(y)
-    l = plot(bins, y, 'r--')
+    l = plot(x, y, 'r--')
     mu=median(reldf)
     adfm=abs(reldf-mu)
     rms=median(adfm)
     axvline(mu, color='g')
     print 'Median DF/F = ',mu,', MADFM = ',rms
-    y = normpdf( bins, mu, rms/0.6744888)
+    y = normpdf( x, mu, rms/0.6744888)
     y = y * max(n) / max(y)
-    l = plot(bins, y, 'g--')
+    l = plot(x, y, 'g--')
 
     #####
     ## Fifth figure: flux differences for matching sources as a function of their position

@@ -68,7 +68,7 @@ namespace askap
       fin.getline(line,500);
       // now at start of object list
 //       while (fin >> id >> raS >> decS >> ddud >> ddud >> flux >> ddud >> ddud,
-      while (fin >> id >> raS >> decS >> ddud >> flux1 >> ddud >> flux2,
+      while (fin >> id >> raS >> decS >> ddud >> flux1 >> ddud >> flux2 >> ddud >> ddud >> ddud,
 	     !fin.eof()){
 	if(flux2>0) flux = flux2;
 	else flux = flux1;
@@ -87,15 +87,15 @@ namespace askap
 
       stable_sort(pixlist.begin(),pixlist.end());
       reverse(pixlist.begin(),pixlist.end());
-      for(int i=0;i<pixlist.size();i++) std::cout << pixlist[i].ID() << " " << pixlist[i].flux() << "\n";
+//       std::vector<matching::Point>::iterator pt;
+//       for(pt=pixlist.begin(); pt<pixlist.end(); pt++)
+// 	std::cout << "S\t[" << pt->ID() << "]\t"
+// 		  << std::setw(10) << pt->x()  << " "
+// 		  << std::setw(10) << pt->y()  << " "
+// 		  << std::setw(10) << pt->flux() << "\n";
+
       return pixlist;
       
-//       std::vector<matching::Point> pixlist2();
-//       std::vector<matching::Point>::reverse_iterator pix=pixlist.rbegin();
-//       for(;pix!=pixlist.rend();pix++) pixlist2.push_back(*pix);
-
-//       return pixlist2;
-
     }
    
     std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr)
@@ -117,13 +117,12 @@ namespace askap
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
       double ra,dec,xpt,ypt,flux;
-      int ct=0;
+      int ct=1;
       while (fin >> raS >> decS >> flux,
 	     !fin.eof()) {
 	std::stringstream ss;
-	ss << ct;
+	ss << ct++;
 	id = ss.str() + "_" + raS + "_" + decS;
-	ct++;
 	ra = dmsToDec(raS)*15.;
 	dec = dmsToDec(decS);
 	xpt = angularSeparation(ra,decBase, raBase,decBase) * 3600.;
@@ -136,14 +135,14 @@ namespace askap
 
       stable_sort(pixlist.begin(),pixlist.end());
       reverse(pixlist.begin(),pixlist.end());
-      for(int i=0;i<pixlist.size();i++) std::cout << pixlist[i].ID() << " " << pixlist[i].flux() << "\n";
+//       std::vector<matching::Point>::iterator pt;
+//       for(pt=pixlist.begin(); pt<pixlist.end(); pt++)
+// 	std::cout << "R\t[" << pt->ID() << "]\t"
+// 		  << std::setw(10) << pt->x()  << " "
+// 		  << std::setw(10) << pt->y()  << " "
+// 		  << std::setw(10) << pt->flux() << "\n";
       return pixlist;
 
-//       std::vector<matching::Point> pixlist2();
-//       std::vector<matching::Point>::reverse_iterator pix=pixlist.rbegin();
-//       for(;pix!=pixlist.rend();pix++) pixlist2.push_back(*pix);
-
-//       return pixlist2;
     }
 
 
@@ -155,11 +154,16 @@ namespace askap
       /// @param maxSize Number of points to be returned. Defaults to matching::maxSizePointList
       /// @return The maxSize highest-flux points, in flux order.
 
-      std::vector<matching::Point> outList;
-      std::sort(inputList.begin(),inputList.end()); // sort by flux, ascending order
-      std::vector<matching::Point>::reverse_iterator pt;
-      for(pt=inputList.rbegin(); pt!=inputList.rend() && outList.size()<maxSize; pt++)
-	outList.push_back(*pt);
+      std::vector<matching::Point> outList=inputList;
+      std::sort(outList.begin(),outList.end()); // sort by flux, ascending order
+      std::reverse(outList.begin(),outList.end());
+//       std::vector<matching::Point>::reverse_iterator pt;
+//       for(pt=outList.rbegin(); pt!=outList.rend() && outList.size()<maxSize; pt++)
+// 	outList.push_back(*pt);
+      if(outList.size()>maxSize){
+	std::vector<matching::Point>::iterator pt = outList.begin()+maxSize;
+	while(pt!=outList.end()) outList.erase(pt);
+      }
 
       return outList;
     }

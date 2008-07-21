@@ -281,8 +281,14 @@ namespace askap
 	if(this->itsMatchingPixList.size()<2) return;
 
 	std::vector<std::pair<Point,Point> >::iterator alice,bob;
-	alice = this->itsMatchingPixList.begin();
-	
+
+	for(alice=this->itsMatchingPixList.begin(); alice<this->itsMatchingPixList.end(); alice++)
+	  std::cout << alice->first.ID() << "\t" << alice->first.flux() << "\t"
+		    << alice->second.ID() << "\t" << alice->second.flux() << "\n";
+	std::cout << "\n";
+
+
+	alice = this->itsMatchingPixList.begin();	
 	while(alice<this->itsMatchingPixList.end()-1){
 
 	  bool bobGone = false;
