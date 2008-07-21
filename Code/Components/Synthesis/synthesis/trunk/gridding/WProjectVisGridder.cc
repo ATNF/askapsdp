@@ -302,8 +302,8 @@ namespace askap
              }
              const double norm = real(sum(casa::abs(itsConvFunc[plane])));
              
-             ASKAPDEBUGASSERT(norm>0.);
-			 itsConvFunc[plane]/=casa::Complex(norm);
+	     //             ASKAPDEBUGASSERT(norm>0.);
+	     if(norm>0.) itsConvFunc[plane]/=casa::Complex(norm);
         } // for plane					        
       } // for iw
       ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
