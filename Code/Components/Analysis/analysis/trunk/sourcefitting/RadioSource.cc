@@ -684,7 +684,7 @@ namespace askap
 // 	  columns[duchamp::Column::VEL].printTitle(stream);
 	  columns[duchamp::Column::FINT].printTitle(stream);
 	  columns[duchamp::Column::FPEAK].printTitle(stream);
-	  stream << " F_int (fit)   F_pk (fit)\n";
+	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit)\n";
 	  int width = columns[duchamp::Column::NUM].getWidth() + 
 	    columns[duchamp::Column::RA].getWidth() + 
 	    columns[duchamp::Column::DEC].getWidth() +
@@ -692,7 +692,7 @@ namespace askap
 	    columns[duchamp::Column::FINT].getWidth() +
 	    columns[duchamp::Column::FPEAK].getWidth();
 	  stream << std::setfill('-') << std::setw(width) << '-'
-		 << "-------------------------\n";
+		 << "-----------------------------------------------------------\n";
 	}
 
 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
@@ -702,9 +702,12 @@ namespace askap
 // 	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
-	  float peakflux=0.,intflux=0.;
+	  float peakflux=0.,intflux=0.,maj=0.,min=0.,pa=0.;
 	  stream << " " << std::setw(12) << std::setprecision(6) << intflux << " ";
-	  stream << std::setw(12) << std::setprecision(6) << peakflux << "\n";
+	  stream << std::setw(12) << std::setprecision(6) << peakflux << " ";
+	  stream << std::setw(10) << std::setprecision(6) << maj << " ";
+	  stream << std::setw(10) << std::setprecision(6) << min << " ";
+	  stream << std::setw(7) << std::setprecision(2) << pa << "\n";
 	}
 
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
@@ -727,13 +730,19 @@ namespace askap
 
 	  stream << " " ;
 
-	  float peakflux=0.,intflux=0.;
+	  float peakflux=0.,intflux=0.,maj=0.,min=0.,pa=0.;
 	  peakflux = fit->height();
 	  intflux  = fit->flux();
 	  if(this->itsHeader.needBeamSize()) 
 	    intflux /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
+	  maj = fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.; // convert from pixels to arcsec
+	  min = fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.;
+	  pa = fit->PA()*180./M_PI;
 	  stream << std::setw(12) << std::setprecision(6) << intflux << " ";
-	  stream << std::setw(12) << std::setprecision(6) << peakflux << "\n";
+	  stream << std::setw(12) << std::setprecision(6) << peakflux << " ";
+	  stream << std::setw(10) << std::setprecision(6) << maj << " ";
+	  stream << std::setw(10) << std::setprecision(6) << min << " ";
+	  stream << std::setw(7) << std::setprecision(2) << pa << "\n";
 
 	}
 

@@ -215,6 +215,16 @@ namespace askap
 	    ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
 	    if(itsCube.getDimZ()==1) itsCube.pars().setMinChannels(0);  
 	  }
+
+	  if(itsCube.pars().getFlagATrous()){
+	    ASKAPLOG_INFO_STR(logger,  "Reconstructing");
+	    itsCube.ReconCube();
+	  }
+	  else if(itsCube.pars().getFlagSmooth()) {
+	    ASKAPLOG_INFO_STR(logger,  "Smoothing");	  
+	    itsCube.SmoothCube();
+	  }
+
 	}
 	else{
 	  ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read data from image " << itsImage << " as it's not ready.");
