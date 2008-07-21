@@ -156,7 +156,21 @@ namespace askap
         casa::ArrayLattice<float> psf(psfArray);
         casa::ArrayLattice<float> clean(cleanArray);
         casa::ArrayLattice<float> mask(maskArray);
-	
+        /*
+        // uncomment the code below to save the mask
+        {
+           Axes axes(itsParams->axes(indit->first));
+	       string maskName="mask."+(indit->first);
+	       casa::Array<double> anothertemp(valShape);
+	       casa::convertArray<double,float>(anothertemp,maskArray);
+	       const casa::Array<double> & AMask(anothertemp);
+	       if (!itsParams->has(maskName)) {
+	           itsParams->add(maskName, AMask, axes);
+	       } else {
+	           itsParams->update(maskName, AMask);
+	       }        
+        }
+        */
         // Create a lattice cleaner to do the dirty work :)
         /// @todo More checks on reuse of LatticeCleaner
         boost::shared_ptr<casa::LatticeCleaner<float> > lc;
@@ -171,7 +185,7 @@ namespace askap
         } else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
-          lc->setMask(mask);
+          lc->setMask(mask,-1.);
 	  
 	      ASKAPDEBUGASSERT(lc);
 	      if(algorithm()=="Hogbom") {
