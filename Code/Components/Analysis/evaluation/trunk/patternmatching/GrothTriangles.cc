@@ -57,6 +57,9 @@ namespace askap
 	this->itsY = p.itsY;
 	this->itsFlux = p.itsFlux;
 	this->itsID = p.itsID;
+	this->itsMajAxis = p.itsMajAxis;
+	this->itsMinAxis = p.itsMinAxis;
+	this->itsPA = p.itsPA;
 	return *this;
       }
 

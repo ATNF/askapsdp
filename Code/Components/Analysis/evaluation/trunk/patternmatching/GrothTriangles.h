@@ -56,6 +56,7 @@ namespace askap
 	Point(double x, double y){itsX=x; itsY=y; itsFlux=0.; itsID="";};
 	Point(double x, double y, double f){itsX=x; itsY=y; itsFlux=f;};
 	Point(double x, double y, double f, std::string id){itsX=x; itsY=y; itsFlux=f; itsID=id;};
+	Point(double x, double y, double f, std::string id, double maj, double min, double pa){itsX=x; itsY=y; itsFlux=f; itsID=id; itsMajAxis=maj; itsMinAxis=min; itsPA=pa;};
 	Point(const Point& p){operator=(p);};
 	Point& operator= (const Point& p);
 	~Point(){};
@@ -65,6 +66,12 @@ namespace askap
 	double y(){return itsY;};
 	void setFlux(double f){itsFlux=f;};
 	double flux(){return itsFlux;};
+	void setMajorAxis(double a){itsMajAxis=a;};
+	double majorAxis(){return itsMajAxis;};
+	void setMinorAxis(double a){itsMinAxis=a;};
+	double minorAxis(){return itsMinAxis;};
+	void setPA(double a){itsPA=a;};
+	double PA(){return itsPA;};
 	void setID(std::string id){itsID=id;};
 	std::string ID(){return itsID;};
 	friend bool operator<(Point lhs, Point rhs){return lhs.flux()<rhs.flux();};
@@ -79,6 +86,12 @@ namespace askap
 	double itsFlux;
 	///@brief The identification string
 	std::string itsID;
+	///@brief The major axis of a Gaussian fit
+	double itsMajAxis;
+	///@brief The minor axis of a Gaussian fit
+	double itsMinAxis;
+	///@brief The position angle of a Gaussian fit
+	double itsPA;
       };
 
 

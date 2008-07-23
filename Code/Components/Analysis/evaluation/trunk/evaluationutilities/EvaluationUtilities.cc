@@ -62,13 +62,13 @@ namespace askap
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
       int idud;
-      double xpt,ypt,ddud,ra,dec,flux,flux1,flux2;
+      double xpt,ypt,ddud,ra,dec,flux,flux1,flux2,maj,min,pa;
       char line[501];
       fin.getline(line,500);
       fin.getline(line,500);
       // now at start of object list
 //       while (fin >> id >> raS >> decS >> ddud >> ddud >> flux >> ddud >> ddud,
-      while (fin >> id >> raS >> decS >> ddud >> flux1 >> ddud >> flux2 >> ddud >> ddud >> ddud,
+      while (fin >> id >> raS >> decS >> ddud >> flux1 >> ddud >> flux2 >> maj >> min >> pa,
 	     !fin.eof()){
 	if(flux2>0) flux = flux2;
 	else flux = flux1;
@@ -81,7 +81,7 @@ namespace askap
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
 	//    std::cerr << xpt << " " << ypt << "\n";
-	matching::Point pix(xpt,ypt,flux,id);
+	matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
 	pixlist.push_back(pix);
       }
 
@@ -116,9 +116,9 @@ namespace askap
       std::string raS,decS,id;
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
-      double ra,dec,xpt,ypt,flux;
+      double ra,dec,xpt,ypt,flux,maj,min,pa;
       int ct=1;
-      while (fin >> raS >> decS >> flux,
+      while (fin >> raS >> decS >> flux >> maj >> min >> pa,
 	     !fin.eof()) {
 	std::stringstream ss;
 	ss << ct++;
@@ -129,7 +129,7 @@ namespace askap
 	if(ra>raBase) xpt *= -1.;
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
-	matching::Point pix(xpt,ypt,flux,id);
+	matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
 	pixlist.push_back(pix);
       }
 

@@ -162,17 +162,17 @@ namespace askap
 	    dy[i] = this->itsMatchingPixList[i].first.y()+this->itsMatchingPixList[i].second.y();
 	  }
 
-	  std::cout.precision(3);
-	  std::cout.setf(std::ios::fixed);
-	  std::cout << "[" << this->itsMatchingPixList[i].first.ID() << "]\t"
-		    << std::setw(10) << this->itsMatchingPixList[i].first.x()  << " "
-		    << std::setw(10) << this->itsMatchingPixList[i].first.y()  << " "
-		    << std::setw(10) << this->itsMatchingPixList[i].first.flux() << "\t"
-		    << "[" << this->itsMatchingPixList[i].second.ID() << "]\t"
-		    << std::setw(10) << this->itsMatchingPixList[i].second.x()  << " "
-		    << std::setw(10) << this->itsMatchingPixList[i].second.y()  << " "
-		    << std::setw(10) << this->itsMatchingPixList[i].second.flux() << "\t"
-		    << "dx = " << std::setw(7) << dx[i] <<"\t" << "dy = " << std::setw(7) << dy[i] <<"\n";
+// 	  std::cout.precision(3);
+// 	  std::cout.setf(std::ios::fixed);
+// 	  std::cout << "[" << this->itsMatchingPixList[i].first.ID() << "]\t"
+// 		    << std::setw(10) << this->itsMatchingPixList[i].first.x()  << " "
+// 		    << std::setw(10) << this->itsMatchingPixList[i].first.y()  << " "
+// 		    << std::setw(10) << this->itsMatchingPixList[i].first.flux() << "\t"
+// 		    << "[" << this->itsMatchingPixList[i].second.ID() << "]\t"
+// 		    << std::setw(10) << this->itsMatchingPixList[i].second.x()  << " "
+// 		    << std::setw(10) << this->itsMatchingPixList[i].second.y()  << " "
+// 		    << std::setw(10) << this->itsMatchingPixList[i].second.flux() << "\t"
+// 		    << "dx = " << std::setw(7) << dx[i] <<"\t" << "dy = " << std::setw(7) << dy[i] <<"\n";
 
 	}
 
@@ -282,10 +282,11 @@ namespace askap
 
 	std::vector<std::pair<Point,Point> >::iterator alice,bob;
 
-	for(alice=this->itsMatchingPixList.begin(); alice<this->itsMatchingPixList.end(); alice++)
-	  std::cout << alice->first.ID() << "\t" << alice->first.flux() << "\t"
-		    << alice->second.ID() << "\t" << alice->second.flux() << "\n";
-	std::cout << "\n";
+// 	// DEBUG OUTPUT
+// 	for(alice=this->itsMatchingPixList.begin(); alice<this->itsMatchingPixList.end(); alice++)
+// 	  std::cout << alice->first.ID() << "\t" << alice->first.flux() << "\t"
+// 		    << alice->second.ID() << "\t" << alice->second.flux() << "\n";
+// 	std::cout << "\n";
 
 
 	alice = this->itsMatchingPixList.begin();	
@@ -340,6 +341,26 @@ namespace askap
 	std::vector<std::pair<Point,Point> >::iterator match;
 	int ct=0;
 	char matchType;
+
+	std::cout << "Matching sources:\n"
+		  << "Type\tSource ID\t\t\t"
+		  << std::setw(10) << "x_pix" << " "
+		  << std::setw(10) << "y_pix" << " "
+		  << std::setw(10) << "flux"  << " "
+		  << std::setw(10) << "maj"  << " "
+		  << std::setw(10) << "min"  << " "
+		  << std::setw(10) << "pa" << "\t"
+		  << "Reference ID\t\t\t"
+		  << std::setw(10) << "x_pix" << " "
+		  << std::setw(10) << "y_pix" << " "
+		  << std::setw(10) << "flux" << " "
+		  << std::setw(10) << "maj"  << " "
+		  << std::setw(10) << "min"  << " "
+		  << std::setw(10) << "pa" << "\t"
+		  << std::setw(8) << "dist" << " "
+		  << std::setw(8) << "f_s-f_r" << "\n";
+
+
 	for(match=this->itsMatchingPixList.begin(); match<this->itsMatchingPixList.end(); match++){
 
 	  if(ct++<this->itsNumMatch1) matchType = '1';
@@ -348,13 +369,36 @@ namespace askap
 	       << "[" << match->first.ID() << "]\t"
 	       << std::setw(10) << match->first.x()  << " "
 	       << std::setw(10) << match->first.y()  << " "
-	       << std::setw(10) << match->first.flux() << "\t"
+	       << std::setw(10) << match->first.flux() << " "
+	       << std::setw(10) << match->first.majorAxis() << " "
+	       << std::setw(10) << match->first.minorAxis() << " "
+	       << std::setw(10) << match->first.PA()  << "\t"
 	       << "[" << match->second.ID() << "]\t"
 	       << std::setw(10) << match->second.x()  << " "
 	       << std::setw(10) << match->second.y()  << " "
-	       << std::setw(10) << match->second.flux() << "\t"
+	       << std::setw(10) << match->second.flux() << " "
+	       << std::setw(10) << match->second.majorAxis() << " "
+	       << std::setw(10) << match->second.minorAxis() << " "
+	       << std::setw(10) << match->second.PA() << "\t"
 	       << std::setw(8)  << match->first.sep(match->second) << " "
 	       << std::setw(8)  << fabs(match->first.flux()-match->second.flux())<<"\n";
+	  std::cout << matchType << "\t"
+		    << "[" << match->first.ID() << "]\t"
+		    << std::setw(10) << match->first.x()  << " "
+		    << std::setw(10) << match->first.y()  << " "
+		    << std::setw(10) << match->first.flux() << " "
+		    << std::setw(10) << match->first.majorAxis() << " "
+		    << std::setw(10) << match->first.minorAxis() << " "
+		    << std::setw(10) << match->first.PA()  << "\t"
+		    << "[" << match->second.ID() << "]\t"
+		    << std::setw(10) << match->second.x()  << " "
+		    << std::setw(10) << match->second.y()  << " "
+		    << std::setw(10) << match->second.flux() << " "
+		    << std::setw(10) << match->second.majorAxis() << " "
+		    << std::setw(10) << match->second.minorAxis() << " "
+		    << std::setw(10) << match->second.PA() << "\t"
+		    << std::setw(8)  << match->first.sep(match->second) << " "
+		    << std::setw(8)  << fabs(match->first.flux()-match->second.flux())<<"\n";
 
 	}
 
@@ -391,6 +435,13 @@ namespace askap
 		 << std::setw(10) << pt->flux()  << "\n";
 	  }
 	}
+
+	std::cout << "\nSources with no match:\n"
+		  << "Source ID\t\t\t"
+		  << std::setw(10) << "x_pix" << " "
+		  << std::setw(10) << "y_pix" << " "
+		  << std::setw(10) << "flux" << "\n";
+
 	for(pt=this->itsSrcPixList.begin(); pt<this->itsSrcPixList.end(); pt++){
 	  bool isMatch=false;
 	  match = this->itsMatchingPixList.begin();
@@ -402,6 +453,10 @@ namespace askap
 		 << std::setw(10) << pt->x()  << " "
 		 << std::setw(10) << pt->y()  << " "
 		 << std::setw(10) << pt->flux() << "\n";
+	    std::cout << "[" << pt->ID() << "]\t"
+		      << std::setw(10) << pt->x()  << " "
+		      << std::setw(10) << pt->y()  << " "
+		      << std::setw(10) << pt->flux() << "\n";
 	  }
 	}
 
