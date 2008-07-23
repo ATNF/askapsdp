@@ -248,10 +248,8 @@ if __name__ == '__main__':
     ## Second figure: plotting the positions of matching and non-matching sources
     #####
     subplot(222)
-#    plot(xS,yS,'ro')
     tmp = -offset
     ind = argsort(tmp)
-#    for i in range(len(xS)):
     for i in ind:
         size = 5. + (floor(offset[i]/2.)) * 3.
         if(matchType[i]==1):
@@ -271,241 +269,16 @@ if __name__ == '__main__':
 
     doHistSpatPlot(fS, fR, xS, yS, True, name='F', plotTitle='Flux difference', position='b')
 
-##    #####
-##    ## Third figure: histogram of the absolute flux differences
-##    #####
-###    subplot(223)
-##    ax1=axes([0.125,0.1,0.35,0.16])
-##    dfmax = max(abs(max(df)),abs(min(df))) * 1.1
-##    n, bins, patches = hist(df, 20)
-##    axis([-dfmax,dfmax,0,max(n)])
-##    ax = axis()
-##    xlabel(r'$\Delta F$',font)
-##    ylabel('Count',font)
-###    title('Flux differences: source - ref')
-##    mu=meandf
-##    rms=std(df)
-##    axvline(mu, color='r')
-##    print 'Mean DF = ',mu,', RMS = ',rms
-##    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-##    y = normpdf( x, mu, rms)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'r--')
-##    mu=median(df)
-##    adfm=abs(df-mu)
-##    rms=median(adfm)
-##    axvline(mu, color='g')
-##    print 'Median DF = ',mu,', MADFM = ',rms
-##    y = normpdf( x, mu, rms/0.6744888)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'g--')
-##    axis(ax)
-##    #####
-##    ## Fourth figure: histogram of the relative flux differences
-##    #####
-##    axes([0.125,0.31,0.35,0.16])
-##    n, bins, patches = hist(reldf, 20)
-##    reldfmax = max(abs(max(reldf)),abs(min(reldf))) * 1.1
-##    axis([-reldfmax,reldfmax,0,max(n)])
-##    ax = axis()
-##    xlabel(r'$\Delta F/F_R$',font)
-##    ylabel('Count',font)
-##    title('Flux differences: source - ref',font)
-##    mu=meanreldf
-##    rms=std(reldf)
-##    axvline(mu, color='r')
-##    print 'Mean DF/F = ',mu,', RMS = ',rms
-##    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-##    y = normpdf( x, mu, rms)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'r--')
-##    mu=median(reldf)
-##    adfm=abs(reldf-mu)
-##    rms=median(adfm)
-##    axvline(mu, color='g')
-##    print 'Median DF/F = ',mu,', MADFM = ',rms
-##    y = normpdf( x, mu, rms/0.6744888)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'g--')
-##    axis(ax)
-##    #####
-##    ## Fifth figure: flux differences for matching sources as a function of their position
-##    #####
-##    subplot(224)
-##    xlabel(r'$x\ [\prime\prime]$',font)
-##    ylabel(r'$y\ [\prime\prime]$',font)
-##    title('Flux differences across field',font)
-##    tmp = -abs(reldf)
-##    ind = argsort(tmp)
-###    for i in range(len(fS)):
-##    for i in ind:
-###        size = 5. + abs(df[i]/10.) * 3.
-##        size = 5. + abs(reldf[i]/0.1) * 2.
-##        if(df[i]>0):
-##            plot([xS[i]],[yS[i]],'ro',ms=size)
-##        else:
-##            plot([xS[i]],[yS[i]],'rs',ms=size)
-##    axis(axisrange)
-
     savefig('imageQualTest')
 
     figure(2, figsize=(10.,10.), dpi=72)
     font = {'fontsize' : '10'}
     rc('xtick', labelsize=8)
     rc('ytick', labelsize=8)
-#    subplot(221)
-
-    
-##    ind = aS != 0
-##    da = aS[ind] - aR[ind]
-##    relda = da / aR[ind]
-##
-##    axes([0.125,0.55,0.35,0.16])
-###    subplot(423)
-##    n, bins, patches = hist(da, 20)
-##    xlabel(r'$\Delta a$',font)
-##    ylabel('Count',font)
-##    mu=mean(da)
-##    rms=std(da)
-##    axvline(mu, color='r')
-##    print 'Mean Da = ',mu,', RMS = ',rms
-##    ax=axis()
-##    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-##    y = normpdf( x, mu, rms)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'r--')
-##    mu=median(da)
-##    adfm=abs(da-mu)
-##    rms=median(adfm)
-##    axvline(mu, color='g')
-##    print 'Median Da = ',mu,', MADFM = ',rms
-##    y = normpdf( x, mu, rms/0.6744888)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'g--')
-##    #####
-##    ## Fourth figure: histogram of the relative major axis differences
-##    #####
-##    axes([0.125,0.76,0.35,0.16])
-###    subplot(421)
-##    n, bins, patches = hist(relda, 20)
-##    xlabel(r'$\Delta A/A_R$',font)
-##    ylabel('Count',font)
-##    title('Major Axis differences: source - ref',font)
-##    mu=mean(relda)
-##    rms=std(relda)
-##    axvline(mu, color='r')
-##    print 'Mean DA/A = ',mu,', RMS = ',rms
-##    ax=axis()
-##    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-##    y = normpdf( x, mu, rms)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'r--')
-##    mu=median(relda)
-##    adfm=abs(relda-mu)
-##    rms=median(adfm)
-##    axvline(mu, color='g')
-##    print 'Median DA/A = ',mu,', MADFM = ',rms
-##    y = normpdf( x, mu, rms/0.6744888)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'g--')
-##
-##    #####
-##    ## Fifth figure: major axis differences for matching sources as a function of their position
-##    #####
-##    subplot(222)
-##    xlabel(r'$x\ [\prime\prime]$',font)
-##    ylabel(r'$y\ [\prime\prime]$',font)
-##    title('Minor axis differences across field',font)
-##    tmp = -abs(relda)
-##    ind = argsort(tmp)
-###    for i in range(len(fS)):
-##    for i in ind:
-###        size = 5. + abs(df[i]/10.) * 3.
-##        size = 5. + abs(relda[i]/0.1) * 2.
-##        if(df[i]>0):
-##            plot([xS[i]],[yS[i]],'ro',ms=size)
-##        else:
-##            plot([xS[i]],[yS[i]],'rs',ms=size)
-##    axis(axisrange)
 
     doHistSpatPlot(aS, aR, xS, yS, True, 't', 'A', 'Major axis differences')
     doHistSpatPlot(bS, bR, xS, yS, True, 'b', 'B', 'Minor axis differences')
-
-##    ind = bS != 0
-##    db = bS[ind] - bR[ind]
-##    reldb = db / bR[ind]
-##
-##    axes([0.125,0.1,0.35,0.16])
-###    subplot(427)
-##    n, bins, patches = hist(db, 20)
-##    xlabel(r'$\Delta B$',font)
-##    ylabel('Count',font)
-##    mu=mean(db)
-##    rms=std(db)
-##    axvline(mu, color='r')
-##    print 'Mean Db = ',mu,', RMS = ',rms
-##    ax=axis()
-##    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-##    y = normpdf( x, mu, rms)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'r--')
-##    mu=median(db)
-##    adfm=abs(db-mu)
-##    rms=median(adfm)
-##    axvline(mu, color='g')
-##    print 'Median DB = ',mu,', MADFM = ',rms
-##    y = normpdf( x, mu, rms/0.6744888)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'g--')
-##    #####
-##    ## Fourth figure: histogram of the relative minor axis differences
-##    #####
-##    axes([0.125,0.31,0.35,0.16])
-###    subplot(425);
-##    n, bins, patches = hist(reldb, 20)
-##    xlabel(r'$\Delta B/B_R$',font)
-##    ylabel('Count',font)
-##    title('Minor Axis differences: source - ref',font)
-##    mu=mean(reldb)
-##    rms=std(reldb)
-##    axvline(mu, color='r')
-##    print 'Mean DB/B = ',mu,', RMS = ',rms
-##    ax=axis()
-##    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-##    y = normpdf( x, mu, rms)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'r--')
-##    mu=median(reldb)
-##    adfm=abs(reldb-mu)
-##    rms=median(adfm)
-##    axvline(mu, color='g')
-##    print 'Median DB/B = ',mu,', MADFM = ',rms
-##    y = normpdf( x, mu, rms/0.6744888)
-##    y = y * max(n) / max(y)
-##    l = plot(x, y, 'g--')
-##
-##    #####
-##    ## Fifth figure: minor axis differences for matching sources as a function of their position
-##    #####
-##    subplot(224)
-##    xlabel(r'$x\ [\prime\prime]$',font)
-##    ylabel(r'$y\ [\prime\prime]$',font)
-##    title('Minor axis differences across field',font)
-##    tmp = -abs(reldb)
-##    tempX = xS[ind]
-##    tempY = yS[ind]
-##    ind = argsort(tmp)
-###    for i in range(len(fS)):
-##    for i in ind:
-###        size = 5. + abs(df[i]/10.) * 3.
-##        size = 5. + abs(reldb[i]/0.1) * 2.
-##        if(df[i]>0):
-##            plot([tempX[i]],[tempY[i]],'ro',ms=size)
-##        else:
-##            plot([tempX[i]],[tempY[i]],'rs',ms=size)
-##    axis(axisrange)
-
-
+#    doHistSpatPlot(pS, pR, xS, yS, True, 't', 'PA', 'Position angle differences')
 
     show()
 
