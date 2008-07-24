@@ -332,9 +332,9 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 				         // this plane of the cache is unused
 				         continue;
 				     }				
-				     const double norm = real(sum(casa::abs(itsConvFunc[plane])));
-				     ASKAPDEBUGASSERT(norm>0.);
-				     itsConvFunc[plane]/=casa::Complex(norm);
+					 //				     const double norm = real(sum(casa::abs(itsConvFunc[plane])));
+					 //				     ASKAPDEBUGASSERT(norm>0.);
+					 //				     itsConvFunc[plane]/=casa::Complex(norm);
 				} // for plane
 			} // for chan
 		} // if !isDone
@@ -437,7 +437,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 	} // loop over convolution functions
 	fftPad(cOut, out);
 	ASKAPLOG_INFO_STR(logger, 
-	    "Finished finilasing the weights, the sum over all convolution functions is "<<totSumWt);	
+	    "Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
 }
 
 void AProjectWStackVisGridder::fftPad(const casa::Array<double>& in,
