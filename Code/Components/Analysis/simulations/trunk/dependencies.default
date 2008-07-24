@@ -1,0 +1,8 @@
+askap=Code/Base/askap/trunk
+aps=3rdParty/LOFAR/APS/tags/APS-2.1
+analysis=Code/Components/Analysis/analysis/trunk
+evaluation=Code/Components/Analysis/evaluation/trunk
+cfitsio=3rdParty/cfitsio/default
+wcslib=3rdParty/wcslib/default
+duchamp=3rdParty/Duchamp/default
+
