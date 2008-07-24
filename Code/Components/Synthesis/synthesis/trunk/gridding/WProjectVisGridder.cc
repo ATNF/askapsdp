@@ -300,7 +300,8 @@ namespace askap
 				 // this plane of the cache is unused
 				 continue;
              }
-             const double norm = real(sum(casa::abs(itsConvFunc[plane])));
+		 const double norm = sum(casa::real(itsConvFunc[plane]));
+		 //		 ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm);
              
 	     //             ASKAPDEBUGASSERT(norm>0.);
 	     if(norm>0.) itsConvFunc[plane]/=casa::Complex(norm);
