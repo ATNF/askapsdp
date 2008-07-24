@@ -363,7 +363,7 @@ namespace askap
         vector<string> resultimages=itsModel->names();
         for (vector<string>::const_iterator it=resultimages.begin(); it
             !=resultimages.end(); it++) {
-            if ((it->find("image") == 0) ||
+            if ((it->find("image") == 0) || (it->find("psf") == 0) ||
                 (it->find("weights") == 0) || (it->find("mask") == 0)) {
                 ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
                 SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it+postfix);
