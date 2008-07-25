@@ -297,6 +297,7 @@ namespace askap {
 	      }
 	      ASKAPCHECK(maxCF>0.0, "Convolution function is empty");
 	      thisPlane*=casa::Complex(1.0/peak);
+	      maxCF/=peak;
 	      
 	      // At this point, we have the phase screen multiplied by the spheroidal
 	      // function, sampled on larger cellsize (itsOverSample larger) in image
@@ -390,9 +391,6 @@ namespace askap {
 	ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
 			  << itsConvFunc[0].shape() << " by "<< itsConvFunc.size()
 			  << " planes");
-	if (itsName!="") {
-	  save(itsName);
-	}
       }
       
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
@@ -424,15 +422,14 @@ namespace askap {
       casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
       cOut.set(0.0);
       
-      /// Work space
-      casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+      // for debugging
+      double totSumWt = 0.;
       
       /// itsSumWeights has one element for each separate data plane (feed, field, chan)
       /// itsConvFunc has overSampling**2 planes for each separate data plane (feed, field, chan)
       /// We choose the convolution function at zero fractional offset in u,v 
       for (int iz=0; iz<nZ; iz++) {
 	int plane=itsOverSample*itsOverSample*iz;
-	thisPlane.set(0.0);
 	
 	bool hasData=false;
 	for (int chan=0; chan<nChan; chan++) {
@@ -440,7 +437,8 @@ namespace askap {
 	    double wt=itsSumWeights(iz, pol, chan);
 	    if(wt>0.0) {
 	      hasData=true;
-	      break;
+	      totSumWt += wt;
+	      //	      break;
 	    }
 	  }
 	}
@@ -451,19 +449,27 @@ namespace askap {
 	  // and transform to obtain the image. The uv sampling is fixed here
 	  // so the total field of view is itsOverSample times larger than the
 	  // original field of view.
+	  /// Work space
+	  casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+	  thisPlane.set(0.0);
 	  for (int iy=-itsSupport; iy<+itsSupport; iy++) {
 	    for (int ix=-itsSupport; ix<+itsSupport; ix++) {
 	      thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter);
 	    }
 	  }
 	  
-	  //	  thisPlane*=casa::Complex(nx*ny);
-	  /// The peak here should be unity
-	  fft2d(thisPlane, false);
 	  float peak=real(casa::max(casa::abs(thisPlane)));
+	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
+	  fft2d(thisPlane, false);
+	  thisPlane*=casa::Complex(nx*ny);
+	  peak=real(casa::max(casa::abs(thisPlane)));
+	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
+			    << "] peak = "<< peak);
 	  if(peak>0.0) {
-	    thisPlane*=casa::Complex(float(nx*ny)/peak);
+	    //	    thisPlane*=casa::Complex(float(nx*ny)/peak);
+	    thisPlane*=casa::Complex(1.0/peak);
 	  }
+	  
 	  
 	  // Now we need to cut out only the part inside the field of view
 	  for (int chan=0; chan<nChan; chan++) {
@@ -486,6 +492,8 @@ namespace askap {
       // We have to correct twice since this is the square!
       correctConvolution(out);
       correctConvolution(out);
+      ASKAPLOG_INFO_STR(logger, 
+			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }
     
     void AWProjectVisGridder::fftPad(const casa::Array<double>& in,

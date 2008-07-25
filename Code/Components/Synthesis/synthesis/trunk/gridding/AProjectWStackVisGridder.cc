@@ -401,13 +401,12 @@ namespace askap {
 	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  fft2d(thisPlane, false);
 	  thisPlane*=casa::Complex(nx*ny);
-	  peak=real(casa::max(casa::abs(thisPlane)));
-	  /// The peak here really has to be be unity
-	  if(peak>0.0) {
-	    thisPlane*=casa::Complex(1.0/peak);
-	  }
 	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
 			    << "] peak = "<< peak);
+	  peak=real(casa::max(casa::abs(thisPlane)));
+	  if(peak>0.0) {
+	    thisPlane*=casa::Complex(float(nx*ny)/peak);
+	  }
 	  
 	  // Now we need to cut out only the part inside the field of view
 	  for (int chan=0; chan<nChan; ++chan) {
