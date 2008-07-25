@@ -205,7 +205,7 @@ void TableVisGridder::save(const std::string& name) {
 		{
 			casa::Array<double> realC(itsConvFunc[i].shape());
 			toDouble(realC, itsConvFunc[i]);
-			ASKAPLOG_INFO_STR(logger, "Entry[" <<  i <<  "] has shape " <<  itsConvFunc[i].shape());
+			//			ASKAPLOG_INFO_STR(logger, "Entry[" <<  i <<  "] has shape " <<  itsConvFunc[i].shape());
 			std::ostringstream os;
 			os<<"Real.Convolution";
 			os.width(5);

@@ -175,6 +175,7 @@ namespace askap
       int ny=itsShape(1);
 
       int cenw=(itsNWPlanes-1)/2;
+      if(cenw==0) return;
       if(i==cenw) return;
 
       float w=2.0f*casa::C::pi*float(i-cenw)*itsWScale;
