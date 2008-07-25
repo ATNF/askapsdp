@@ -398,11 +398,11 @@ namespace askap {
 	  }
 	  
 	  float peak=real(casa::max(casa::abs(thisPlane)));
-	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
+	  //	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  fft2d(thisPlane, false);
 	  thisPlane*=casa::Complex(nx*ny);
-	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
-			    << "] peak = "<< peak);
+	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
+	  //			    << "] peak = "<< peak);
 	  peak=real(casa::max(casa::abs(thisPlane)));
 	  if(peak>0.0) {
 	    thisPlane*=casa::Complex(float(nx*ny)/peak);
