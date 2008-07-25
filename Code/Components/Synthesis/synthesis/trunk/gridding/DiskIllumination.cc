@@ -120,7 +120,7 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 			   }
 		 }
 	}
-	
+
     ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
     pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
 }

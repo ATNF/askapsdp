@@ -67,14 +67,16 @@ namespace askap
     }
     
     /// @brief copy constructor
-	/// @details It is required to decouple internal arrays between
-	/// input object and the copy
-	/// @param[in] other input object
-	WStackVisGridder::WStackVisGridder(const WStackVisGridder &other) :
-	     SphFuncVisGridder(other), itsWScale(other.itsWScale),
-	     itsNWPlanes(other.itsNWPlanes), itsGMap(other.itsGMap.copy()) {}
+    /// @details It is required to decouple internal arrays between
+    /// input object and the copy
+    /// @param[in] other input object
+    WStackVisGridder::WStackVisGridder(const WStackVisGridder &other) :
+      SphFuncVisGridder(other), itsWScale(other.itsWScale),
+      itsNWPlanes(other.itsNWPlanes), itsGMap(other.itsGMap.copy()) 
+    {
+    }
     
-
+    
     /// Clone a copy of this Gridder
     IVisGridder::ShPtr WStackVisGridder::clone()
     {
@@ -163,6 +165,8 @@ namespace askap
 
     void WStackVisGridder::multiply(casa::Array<casa::Complex>& scratch, int i)
     {
+      if(itsWScale==0.0) return;
+
       /// These are the actual cell sizes used
       float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
       float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
@@ -171,9 +175,9 @@ namespace askap
       int ny=itsShape(1);
 
       int cenw=(itsNWPlanes-1)/2;
+      if(i==cenw) return;
 
       float w=2.0f*casa::C::pi*float(i-cenw)*itsWScale;
-
       casa::ArrayIterator<casa::Complex> it(scratch, 2);
       while (!it.pastEnd())
       {

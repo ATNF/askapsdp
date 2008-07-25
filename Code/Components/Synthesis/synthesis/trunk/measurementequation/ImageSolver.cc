@@ -101,13 +101,20 @@ namespace askap
 	    /// The PSF is just an approximation calculated from a subset of the data. So we
 	    /// we allowed to normalize the peak to unity.
 	
-	    ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal equal to "<<maxDiag<<
-	                ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
-	    ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
-        psf /= float(maxDiag);
+	//	ASKAPLOG_INFO_STR(logger, "Normalizing PSF by maximum of diagonal equal to "<<maxDiag<<
+	//			  ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
+	//	ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
+	//        psf /= float(maxDiag);
+	//        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
+	
+	ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
+	ASKAPLOG_INFO_STR(logger, "Maximum diagonal element " <<maxDiag<<
+			  ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
+	ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
+        psf /= float(casa::max(psf));
         ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
-	    uint nAbove = 0;
+	uint nAbove = 0;
         casa::IPosition vecShape(1,diag.nelements());
         casa::Vector<float> dirtyVector(dirty.reform(vecShape));
         casa::Vector<float> maskVector(mask ? mask->reform(vecShape) : casa::Vector<float>());

@@ -31,6 +31,27 @@ namespace askap
 
     SphFuncVisGridder::SphFuncVisGridder()
     {
+    }
+
+    SphFuncVisGridder::~SphFuncVisGridder()
+    {
+    }
+
+    /// Clone a copy of this Gridder
+    IVisGridder::ShPtr SphFuncVisGridder::clone()
+    {
+      return IVisGridder::ShPtr(new SphFuncVisGridder(*this));
+    }
+
+    void SphFuncVisGridder::initIndices(const IConstDataAccessor&)
+    {
+    }
+
+    /// Initialize the convolution function into the cube. If necessary this
+    /// could be optimized by using symmetries.
+    void SphFuncVisGridder::initConvolutionFunction(const IConstDataAccessor&)
+    {
+      if(itsSupport==3) return;
       itsSupport=3;
       itsOverSample=128;
       itsConvFunc.resize(itsOverSample*itsOverSample);
@@ -69,26 +90,6 @@ namespace askap
            itsConvFunc[plane]/=casa::Complex(norm);
       } // for plane					        
       
-    }
-
-    SphFuncVisGridder::~SphFuncVisGridder()
-    {
-    }
-
-    /// Clone a copy of this Gridder
-    IVisGridder::ShPtr SphFuncVisGridder::clone()
-    {
-      return IVisGridder::ShPtr(new SphFuncVisGridder(*this));
-    }
-
-    void SphFuncVisGridder::initIndices(const IConstDataAccessor&)
-    {
-    }
-
-    /// Initialize the convolution function into the cube. If necessary this
-    /// could be optimized by using symmetries.
-    void SphFuncVisGridder::initConvolutionFunction(const IConstDataAccessor&)
-    {
     }
 
     void SphFuncVisGridder::correctConvolution(casa::Array<double>& grid)

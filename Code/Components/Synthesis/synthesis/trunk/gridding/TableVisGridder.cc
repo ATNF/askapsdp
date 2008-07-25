@@ -165,9 +165,8 @@ TableVisGridder::~TableVisGridder() {
 		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeGridded/itsNumberGridded << " (ns)");
 		ASKAPLOG_INFO_STR(logger, "   Performance           = "
-				<< 6.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " Gflops");
+				<< 8.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " GFlops");
 	}
-
 	if (itsNumberDegridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
 		ASKAPLOG_INFO_STR(logger, "   Samples degridded     = "
@@ -186,17 +185,27 @@ TableVisGridder::~TableVisGridder() {
 		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeDegridded/itsNumberDegridded << " (ns)");
 		ASKAPLOG_INFO_STR(logger, "   Performance           = "
-				<< 6.0 * 1e-9 * itsNumberDegridded/itsTimeDegridded << " Gflops");
+				<< 8.0 * 1e-9 * itsNumberDegridded/itsTimeDegridded << " GFlops");
+	}
+	if((itsNumberGridded<1) && (itsNumberDegridded<1)) {
+	  ASKAPLOG_WARN_STR(logger, "Unused gridder");
+	}
+	else {
+	  if(itsName!="") {
+	    save(itsName);
+	  }
 	}
 }
 
 void TableVisGridder::save(const std::string& name) {
 	askap::scimath::ParamsCasaTable iptable(name, false);
 	askap::scimath::Params ip;
+	ASKAPLOG_INFO_STR(logger, "Saving " << itsConvFunc.size() << " entries in convolution function");
 	for (unsigned int i=0; i<itsConvFunc.size(); i++) {
 		{
 			casa::Array<double> realC(itsConvFunc[i].shape());
 			toDouble(realC, itsConvFunc[i]);
+			ASKAPLOG_INFO_STR(logger, "Entry[" <<  i <<  "] has shape " <<  itsConvFunc[i].shape());
 			std::ostringstream os;
 			os<<"Real.Convolution";
 			os.width(5);

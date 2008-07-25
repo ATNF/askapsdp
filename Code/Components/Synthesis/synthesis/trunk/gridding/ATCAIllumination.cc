@@ -44,8 +44,8 @@ using namespace askap::synthesis;
 /// @param[in] diam disk diameter in metres
 /// @param[in] blockage a diameter of the central hole in metres
 ATCAIllumination::ATCAIllumination(double diam, double blockage) :
-   itsDiameter(diam), itsBlockage(blockage), itsDoTapering(false), itsDoFeedLegs(false),
-   itsDoFeedLegWedges(false) 
+  itsDiameter(diam), itsBlockage(blockage), itsDoTapering(false), itsDoFeedLegs(false),
+  itsDoFeedLegWedges(false) 
 {
   ASKAPDEBUGASSERT(diam>0);
   ASKAPDEBUGASSERT(blockage>=0);  
@@ -61,7 +61,7 @@ void ATCAIllumination::simulateTapering(double maxDefocusingPhase)
   itsDoTapering = true;
   itsMaxDefocusingPhase = maxDefocusingPhase;
 }
-  
+
 /// @brief switch on the feed leg simulation
 /// @details This method assigns parameters of the feed leg shadows and allows the
 /// simulation of feed legs. Calling this method also makes the pattern asymmetric.
@@ -77,7 +77,7 @@ void ATCAIllumination::simulateFeedLegShadows(double width, double rotation,
   itsFeedLegsRotation = rotation;
   itsFeedLegsShadowing = shadowingFactor;
   ASKAPCHECK((shadowingFactor<=1.) && (shadowingFactor>=0.), 
-          "shadowingFactor is supposed to be from [0,1] interval, you have "<<shadowingFactor); 
+	     "shadowingFactor is supposed to be from [0,1] interval, you have "<<shadowingFactor); 
 }  
 
 /// @brief switch on the simulation of feed leg wedges
@@ -91,7 +91,7 @@ void ATCAIllumination::simulateFeedLegShadows(double width, double rotation,
 /// @param[in] wedgeStartingRadius starting radius in metres of the wedge
 /// @note simulateFeedLegShadows should also be called prior to the first use of this object.
 void ATCAIllumination::simulateFeedLegWedges(double wedgeShadowingFactor1, double wedgeShadowingFactor2, 
-        double wedgeOpeningAngle, double wedgeStartingRadius)
+					     double wedgeOpeningAngle, double wedgeStartingRadius)
 {
   itsDoFeedLegWedges = true;
   itsFeedLegsWedgeShadowing1 = wedgeShadowingFactor1;
@@ -99,11 +99,11 @@ void ATCAIllumination::simulateFeedLegWedges(double wedgeShadowingFactor1, doubl
   itsWedgeOpeningAngle = wedgeOpeningAngle;
   itsWedgeStartingRadius = wedgeStartingRadius;
   ASKAPCHECK((wedgeShadowingFactor1<=1.) && (wedgeShadowingFactor1>=0.), 
-          "wedgeShadowingFactor1 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor1); 
+	     "wedgeShadowingFactor1 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor1); 
   ASKAPCHECK((wedgeShadowingFactor2<=1.) && (wedgeShadowingFactor2>=0.), 
-          "wedgeShadowingFactor2 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor2); 
+	     "wedgeShadowingFactor2 is supposed to be from [0,1] interval, you have "<<wedgeShadowingFactor2); 
   ASKAPCHECK((wedgeOpeningAngle < M_PI/2.) && (wedgeOpeningAngle > 0), 
-          "Opening angle is supposed to be from the (0, pi/2) interval, you have "<<wedgeOpeningAngle);
+	     "Opening angle is supposed to be from the (0, pi/2) interval, you have "<<wedgeOpeningAngle);
 }   
 
 
@@ -141,15 +141,15 @@ double ATCAIllumination::outerJamesian(double fractionalRadius)
 double ATCAIllumination::jamesian(double fractionalRadius)
 {
   if (fractionalRadius > 1.) {
-      return 0.;
+    return 0.;
   }
   // constants were taken from Tim's glish script
   const double cd=0.3;
   const double transitionFractionalRadius = 0.4;
-
+  
   const double value = (fractionalRadius < transitionFractionalRadius ? 
-                   innerJamesian(fractionalRadius) / innerJamesian(transitionFractionalRadius) :
-                   outerJamesian(fractionalRadius) / outerJamesian(transitionFractionalRadius));
+			innerJamesian(fractionalRadius) / innerJamesian(transitionFractionalRadius) :
+			outerJamesian(fractionalRadius) / outerJamesian(transitionFractionalRadius));
   return value * (1. - cd * (1. - fractionalRadius));
 }
 
@@ -167,120 +167,124 @@ double ATCAIllumination::jamesian(double fractionalRadius)
 /// @param[in] pa parallactic angle, or strictly speaking the angle between 
 /// uv-coordinate system and the system where the pattern is defined (unused)
 void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l, 
-                          double m, double pa) const
+				  double m, double pa) const
 {
-    //std::cout<<"ATCAIllumination::getPattern is called for pa = "<<pa/M_PI*180.<<std::endl;
-    const casa::uInt oversample = pattern.overSample();
-    const double cellU = pattern.uCellSize()/oversample;
-    const double cellV = pattern.vCellSize()/oversample;
-    
-    ASKAPCHECK(itsDoFeedLegWedges ? itsDoFeedLegs : true, 
-       "you can only switch on simulation of feed leg wedges with the simulation of feed legs");
-    ASKAPDEBUGASSERT(!itsDoFeedLegWedges || (itsWedgeStartingRadius < itsDiameter/2.));
-    ASKAPDEBUGASSERT(!itsDoFeedLegs || (itsFeedLegsHalfWidth < itsDiameter/2.));  
-    
-    // scaled l and m to take the calculations out of the loop
-    // these quantities are effectively dimensionless 
-    const double lScaled = 2.*casa::C::pi*cellU *l;
-    const double mScaled = 2.*casa::C::pi*cellV *m;
-    
-    // zero value of the pattern by default
-    pattern.pattern().set(0.);
-    
-    // currently don't work with rectangular cells.
-    ASKAPCHECK(std::abs(std::abs(cellU/cellV)-1.)<1e-7, 
-               "Rectangular cells are not supported at the moment");
-    
-    const double cell = std::abs(cellU*(casa::C::c/freq));
-    
-    const double dishRadiusInCells = itsDiameter/(2.0*cell);  
-    
-    // squares of the disk and blockage area radii
-	const double rMaxSquared = casa::square(dishRadiusInCells);
-	const double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
-	
-	// feed legs/wedges length parameters
-	const double feedLegsHalfWidthInCells = itsFeedLegsHalfWidth / cell;
-	const double wedgeStartingRadiusInCells = itsWedgeStartingRadius / cell;
-	
-	// sizes of the grid to fill with pattern values
-	const casa::uInt nU = pattern.uSize();
-	const casa::uInt nV = pattern.vSize();
-	
-	ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) || 
-	           (casa::square(double(nV)) > rMaxSquared),
-	           "The pattern buffer passed to ATCAIllumination::getPattern is too small for the given model. "
-	           "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis, you have "
-	            <<nU<<" x "<<nV);
-	
-	// maximum possible support for this class corresponds to the dish size
-	pattern.setMaxSupport(1+2*casa::uInt(dishRadiusInCells)/oversample);
-	           
-	double sum=0.; // normalisation factor
-	for (casa::uInt iU=0; iU<nU; ++iU) {
-	     const double offsetU = double(iU)-double(nU)/2.;
-		 const double offsetUSquared = casa::square(offsetU);
-		 for (casa::uInt iV=0; iV<nV; ++iV) {
-		      const double offsetV = double(iV)-double(nV)/2.;
-		      const double offsetVSquared = casa::square(offsetV);
-		   	  const double radiusSquared = offsetUSquared + offsetVSquared;
-			  if ( (radiusSquared >= rMinSquared) && (radiusSquared <= rMaxSquared)) {
-			      // don't need to multiply by wavelength here because we
-			      // divided the radius (i.e. the illumination pattern is given
-			      // in a relative coordinates in frequency
-				  const double phase = lScaled*offsetU + mScaled*offsetV;
-				  // initial value is just the phase slope related to pointing offset
-				  casa::Complex value(cos(phase), -sin(phase)); 
-				  if (itsDoTapering) {
-				      const double fractionalRadiusSquared = radiusSquared/rMaxSquared;
-				      const double extraPhase = itsMaxDefocusingPhase * fractionalRadiusSquared;
-				      value *= float(jamesian(sqrt(fractionalRadiusSquared))) *
-				               casa::Complex(cos(extraPhase),sin(extraPhase));
-				  }
-				  if (itsDoFeedLegs) {
-				      // rotated offsets
-				      const double dU = cos(itsFeedLegsRotation+pa)*offsetU + 
-				                        sin(itsFeedLegsRotation+pa)*offsetV;
-				      const double dV = -sin(itsFeedLegsRotation+pa)*offsetU + 
-				                        cos(itsFeedLegsRotation+pa)*offsetV;				                        
-				      // decrease the illumination within the feed leg shadows                  
-                      if ((std::abs(dU) < feedLegsHalfWidthInCells) ||
-                          (std::abs(dV) < feedLegsHalfWidthInCells)) {
-                          value *= float(itsFeedLegsShadowing);
-                      }
-                      if (itsDoFeedLegWedges) {
-                          const double wedgeAngleTan = tan(itsWedgeOpeningAngle);
-                          if ((dU > wedgeStartingRadiusInCells) && (std::abs(dV) <
-                               wedgeAngleTan*std::abs(dU - wedgeStartingRadiusInCells))) {
-                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
-                          }
-                          
-                          if ((dU < -wedgeStartingRadiusInCells) && (std::abs(dV) <
-                               wedgeAngleTan*std::abs(dU + wedgeStartingRadiusInCells))) {
-                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
-                          }
-                          
-                          if ((dV > wedgeStartingRadiusInCells) && (std::abs(dU) <
-                               wedgeAngleTan*std::abs(dV - wedgeStartingRadiusInCells))) {
-                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
-                          }
+  //std::cout<<"ATCAIllumination::getPattern is called for pa = "<<pa/M_PI*180.<<std::endl;
+  const casa::uInt oversample = pattern.overSample();
+  const double cellU = pattern.uCellSize()/oversample;
+  const double cellV = pattern.vCellSize()/oversample;
+  
+  ASKAPCHECK(itsDoFeedLegWedges ? itsDoFeedLegs : true, 
+	     "you can only switch on simulation of feed leg wedges with the simulation of feed legs");
+  ASKAPDEBUGASSERT(!itsDoFeedLegWedges || (itsWedgeStartingRadius < itsDiameter/2.));
+  ASKAPDEBUGASSERT(!itsDoFeedLegs || (itsFeedLegsHalfWidth < itsDiameter/2.));  
+  
+  // scaled l and m to take the calculations out of the loop
+  // these quantities are effectively dimensionless 
+  const double lScaled = 2.*casa::C::pi*cellU *l;
+  const double mScaled = 2.*casa::C::pi*cellV *m;
+  
+  // zero value of the pattern by default
+  pattern.pattern().set(0.);
+  
+  // currently don't work with rectangular cells.
+  ASKAPCHECK(std::abs(std::abs(cellU/cellV)-1.)<1e-7, 
+	     "Rectangular cells are not supported at the moment");
+  
+  const double cell = std::abs(cellU*(casa::C::c/freq));
+  
+  const double dishRadiusInCells = itsDiameter/(2.0*cell);  
+  
+  // squares of the disk and blockage area radii
+  const double rMaxSquared = casa::square(dishRadiusInCells);
+  const double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
+  
+  // feed legs/wedges length parameters
+  const double feedLegsHalfWidthInCells = itsFeedLegsHalfWidth / cell;
+  const double wedgeStartingRadiusInCells = itsWedgeStartingRadius / cell;
+  
+  // sizes of the grid to fill with pattern values
+  const casa::uInt nU = pattern.uSize();
+  const casa::uInt nV = pattern.vSize();
+  
+  ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) || 
+	     (casa::square(double(nV)) > rMaxSquared),
+	     "The pattern buffer passed to ATCAIllumination::getPattern is too small for the given model. "
+	     "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis, you have "
+	     <<nU<<" x "<<nV);
+  
+  // maximum possible support for this class corresponds to the dish size
+  pattern.setMaxSupport(1+2*casa::uInt(dishRadiusInCells)/oversample);
+  
+  double sum=0.; // normalisation factor
+  for (casa::uInt iU=0; iU<nU; ++iU) {
+    const double offsetU = double(iU)-double(nU)/2.;
+    const double offsetUSquared = casa::square(offsetU);
+    for (casa::uInt iV=0; iV<nV; ++iV) {
+      const double offsetV = double(iV)-double(nV)/2.;
+      const double offsetVSquared = casa::square(offsetV);
+      const double radiusSquared = offsetUSquared + offsetVSquared;
+      if ( (radiusSquared >= rMinSquared) && (radiusSquared <= rMaxSquared)) {
+	// don't need to multiply by wavelength here because we
+	// divided the radius (i.e. the illumination pattern is given
+	// in a relative coordinates in frequency
 
-                          if ((dV < -wedgeStartingRadiusInCells) && (std::abs(dU) <
-                               wedgeAngleTan*std::abs(dV + wedgeStartingRadiusInCells))) {
-                               value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
-                          }                                                    
-                      }
-				  }
-				  
-				  // add up the norm contribution and assign the final value
-				  sum += std::abs(value);
-				  pattern(iU, iV) = value;
-			  }
-		 }
+	// initial value is just the phase slope related to pointing offset
+	casa::Complex value(1.0);
+	if (itsDoTapering) {
+	  const double fractionalRadiusSquared = radiusSquared/rMaxSquared;
+	  const double extraPhase = itsMaxDefocusingPhase * fractionalRadiusSquared;
+	  value *= float(jamesian(sqrt(fractionalRadiusSquared))) *
+	    casa::Complex(cos(extraPhase),sin(extraPhase));
+	}
+	if (itsDoFeedLegs) {
+	  // rotated offsets
+	  const double dU = cos(itsFeedLegsRotation+pa)*offsetU + 
+	    sin(itsFeedLegsRotation+pa)*offsetV;
+	  const double dV = -sin(itsFeedLegsRotation+pa)*offsetU + 
+	    cos(itsFeedLegsRotation+pa)*offsetV;				                        
+	  // decrease the illumination within the feed leg shadows                  
+	  if ((std::abs(dU) < feedLegsHalfWidthInCells) ||
+	      (std::abs(dV) < feedLegsHalfWidthInCells)) {
+	    value *= float(itsFeedLegsShadowing);
+	  }
+	  if (itsDoFeedLegWedges) {
+	    const double wedgeAngleTan = tan(itsWedgeOpeningAngle);
+	    if ((dU > wedgeStartingRadiusInCells) && (std::abs(dV) <
+						      wedgeAngleTan*std::abs(dU - wedgeStartingRadiusInCells))) {
+	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
+	    }
+	    
+	    if ((dU < -wedgeStartingRadiusInCells) && (std::abs(dV) <
+						       wedgeAngleTan*std::abs(dU + wedgeStartingRadiusInCells))) {
+	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
+	    }
+	    
+	    if ((dV > wedgeStartingRadiusInCells) && (std::abs(dU) <
+						      wedgeAngleTan*std::abs(dV - wedgeStartingRadiusInCells))) {
+	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
+	    }
+	    
+	    if ((dV < -wedgeStartingRadiusInCells) && (std::abs(dU) <
+						       wedgeAngleTan*std::abs(dV + wedgeStartingRadiusInCells))) {
+	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
+	    }                                                    
+	  }
 	}
 	
-    ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
-    pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
+	
+	// add up the norm contribution and assign the final value
+	sum += casa::real(value);
+	// Now apply the phase slope related to pointing offset
+	const double phase = lScaled*offsetU + mScaled*offsetV;
+	pattern(iU, iV) = value*casa::Complex(cos(phase), -sin(phase));
+      }
+    }
+  }
+  
+  // We need to divide by the sum squared so that the convolution is normalized to unity
+  ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
+  pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
 }
 
 /// @brief check whether the pattern is symmetric
