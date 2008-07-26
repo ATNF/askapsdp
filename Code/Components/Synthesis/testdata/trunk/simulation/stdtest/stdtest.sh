@@ -3,14 +3,14 @@ export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
 
 HOSTNAME=`hostname -s`
 
-echo "This is the ASKAPsoft stdtest. It will run for about 20-30 minutes."  | tee stdtest.$HOSTNAME.out
+echo "This is the ASKAPsoft stdtest. It will run for about 40-50 minutes."  | tee stdtest.$HOSTNAME.out
+echo "Started " `date` " on " $HOSTNAME  | tee -a stdtest.$HOSTNAME.out
 
 echo "Extracting 10uJy model" | tee -a stdtest.$HOSTNAME.out
 tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk/simulation/models/10uJy.model.small.tgz | tee -a stdtest.$HOSTNAME.out
 
 cat > stdtest.simulator.in <<EOF 
 Csimulator.dataset                              =       10uJy_stdtest.ms
-
 #
 # The name of the model source is 10uJy. Specify direction and model file
 #
@@ -34,7 +34,7 @@ Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 #
 # Undersample in time by ~ 10 to make the processing run quickly
 #
-Csimulator.simulation.integrationtime           =       1500s
+Csimulator.simulation.integrationtime           =       150s
 #
 # Observe source 10uJy for 12 hours with a single channel spectral window
 #
@@ -52,6 +52,7 @@ Csimulator.gridder.AWProject.blockage		= 2m
 Csimulator.gridder.AWProject.maxfeeds		= 1
 Csimulator.gridder.AWProject.maxsupport		= 1024
 Csimulator.gridder.AWProject.frequencydependent = false
+Csimulator.gridder.AWProject.tablename		= AWProject.tab
 EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
@@ -66,15 +67,16 @@ Cimager.Images.image.i.10uJy_dirty_stdtest.frequency	= [1.420e9,1.420e9]
 Cimager.Images.image.i.10uJy_dirty_stdtest.nchan	= 1
 Cimager.Images.image.i.10uJy_dirty_stdtest.direction	= [12h30m00.00, -45.00.00.00, J2000]
 #
-Cimager.gridder                          	= AWProject
-Cimager.gridder.AWProject.wmax            	= 15000
-Cimager.gridder.AWProject.nwplanes        	= 33
-Cimager.gridder.AWProject.oversample     	= 8
-Cimager.gridder.AWProject.diameter		= 12m
-Cimager.gridder.AWProject.blockage		= 2m
-Cimager.gridder.AWProject.maxfeeds		= 1
-Cimager.gridder.AWProject.maxsupport       = 1024
-Cimager.gridder.AWProject.frequencydependent = true
+Cimager.gridder                          	= AProjectWStack
+Cimager.gridder.AProjectWStack.wmax            	= 15000
+Cimager.gridder.AProjectWStack.nwplanes        	= 33
+Cimager.gridder.AProjectWStack.oversample     	= 4
+Cimager.gridder.AProjectWStack.diameter		= 12m
+Cimager.gridder.AProjectWStack.blockage		= 2m
+Cimager.gridder.AProjectWStack.maxfeeds		= 1
+Cimager.gridder.AProjectWStack.maxsupport       = 512
+Cimager.gridder.AProjectWStack.frequencydependent = false
+Cimager.gridder.AProjectWStack.tablename = AProjectWStack.tab
 #
 Cimager.solver                           	= Dirty
 Cimager.solver.Dirty.tolerance                  = 0.1
@@ -102,20 +104,20 @@ Cimager.gridder.WProject.wmax            	= 15000
 Cimager.gridder.WProject.nwplanes        	= 129
 Cimager.gridder.WProject.oversample     	= 8
 Cimager.gridder.WProject.maxsupport       = 1024
+Cimager.gridder.WProject.tablename = WProject.tab
 #
 # Use a multiscale Clean solver
 #
 Cimager.solver                           	= Clean
 Cimager.solver.Clean.algorithm                 	= MultiScale
 Cimager.solver.Clean.scales			= [0, 3, 10]
-Cimager.solver.Clean.niter                     	= 1000
-Cimager.solver.Clean.gain                      	= 1.0
+Cimager.solver.Clean.niter                     	= 10000
+Cimager.solver.Clean.gain                      	= 0.1
 Cimager.solver.Clean.tolerance                  = 0.1
 Cimager.solver.Clean.verbose                   	= True
-Cimager.threshold.minorcycle                    = [0.3mJy, 10%]
+Cimager.threshold.minorcycle                    = [0.27mJy, 10%]
+Cimager.threshold.majorcycle                    = 0.3mJy
 # 
-# There will be 2 major cycles
-#
 Cimager.ncycles                                 = 10
 #
 # Restore the image at the end
@@ -132,3 +134,4 @@ Cimager.preconditioner.GaussianTaper		= [20arcsec, 20arcsec, 0deg]
 EOF
 echo "Running cimager to form Clean image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
+echo "Ended " `date` " on " $HOSTNAME  | tee -a stdtest.$HOSTNAME.out

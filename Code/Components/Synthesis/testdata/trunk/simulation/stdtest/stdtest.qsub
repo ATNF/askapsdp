@@ -1,27 +1,143 @@
 #!/bin/bash -l
-#PBS -l nodes=2:ppn=1
+##PBS -l nodes=5:ppn=2
 #PBS -N stdtest
 #PBS -m e
 #PBS -v ASKAP_ROOT
+
 cd $PBS_O_WORKDIR
 
 module load openmpi
 
 export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
 
-echo "This is the ASKAPsoft stdtest. It will run for about 20-30 minutes."  | tee stdtest.$PBS_JOBID.out
-
-echo "Extracting 10uJy model" | tee -a stdtest.$PBS_JOBID.out
-
+echo "This is the ASKAPsoft stdtest. It will run for about 50 minutes."  | tee stdtest.$PBS_JOBID.out
 tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk/simulation/models/10uJy.model.small.tgz  | tee -a stdtest.$PBS_JOBID.out
 
-export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
+prun="mpirun -np 10 -x AIPSPATH time"
 
-echo "Running csimulator to create MeasurementSet for a single pointing"  | tee -a stdtest.$PBS_JOBID.out
-mpirun -x AIPSPATH time ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/csimulator.sh -inputs stdtest.simulator.in  | tee -a stdtest.$PBS_JOBID.out
+cat > stdtest.simulator.in <<EOF 
+Csimulator.dataset                              =       10uJy_stdtest_%w.ms
 
-echo "Running cimager to form Clean image of single pointing"  | tee -a stdtest.$PBS_JOBID.out
-mpirun -x AIPSPATH time ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.dirty.in  | tee -a stdtest.$PBS_JOBID.out
+#
+# The name of the model source is 10uJy. Specify direction and model file
+#
+Csimulator.sources.names                        =       [10uJy]
+Csimulator.sources.10uJy.direction              =       [12h30m00.000, -45.00.00.000, J2000]
+Csimulator.sources.10uJy.model                  =       10uJy.model.small
+#
+# Define the antenna locations, feed locations, and spectral window definitions
+#
+Csimulator.antennas.definition                  =       definitions/ASKAP45.in
+Csimulator.feeds.definition                     =       definitions/ASKAP1feeds.in
+Csimulator.spws.definition                      =       definitions/ASKAPspws.in
+#
+# Standard settings for the simulaton step
+#
+Csimulator.simulation.blockage                  =       0.01
+Csimulator.simulation.elevationlimit            =       8deg
+Csimulator.simulation.autocorrwt                =       0.0
+Csimulator.simulation.usehourangles             =       True
+Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
+#
+# Undersample in time by ~ 10 to make the processing run quickly
+#
+Csimulator.simulation.integrationtime           =       1500s
+#
+# Observe source 10uJy for 12 hours with a single channel spectral window
+#
+Csimulator.observe.number                       =       1
+Csimulator.observe.scan0                        =       [10uJy, Continuum%w, -6h, 6h]
+#
+# Use a gridder to apply primary beam during the W projection step.
+#
+Csimulator.gridder                              = AWProject
+Csimulator.gridder.AWProject.wmax            	= 15000
+Csimulator.gridder.AWProject.nwplanes        	= 129
+Csimulator.gridder.AWProject.oversample     	= 8
+Csimulator.gridder.AWProject.diameter		= 12m
+Csimulator.gridder.AWProject.blockage		= 2m
+Csimulator.gridder.AWProject.maxfeeds		= 1
+Csimulator.gridder.AWProject.maxsupport		= 1024
+Csimulator.gridder.AWProject.frequencydependent = false
+EOF
+echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
 
-echo "Running cimager to form Dirty image of single pointing"  | tee -a stdtest.$PBS_JOBID.out
-mpirun -x AIPSPATH time ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.clean.in  | tee -a stdtest.$PBS_JOBID.out
+cat > stdtest.dirty.in <<EOF
+Cimager.dataset                                 = 10uJy_stdtest_%w.ms
+
+Cimager.Images.Names                            = [image.i.10uJy_dirty_stdtest]
+Cimager.Images.shape				= [2048,2048]
+Cimager.Images.cellsize	        		= [6.0arcsec, 6.0arcsec]
+Cimager.Images.image.i.10uJy_dirty_stdtest.frequency	= [1.420e9,1.420e9]
+Cimager.Images.image.i.10uJy_dirty_stdtest.nchan	= 1
+Cimager.Images.image.i.10uJy_dirty_stdtest.direction	= [12h30m00.00, -45.00.00.00, J2000]
+#
+Cimager.gridder                          	= AWProject
+Cimager.gridder.AWProject.wmax            	= 15000
+Cimager.gridder.AWProject.nwplanes        	= 33
+Cimager.gridder.AWProject.oversample     	= 8
+Cimager.gridder.AWProject.diameter		= 12m
+Cimager.gridder.AWProject.blockage		= 2m
+Cimager.gridder.AWProject.maxfeeds		= 1
+Cimager.gridder.AWProject.maxsupport       = 1024
+Cimager.gridder.AWProject.frequencydependent = true
+#
+Cimager.solver                           	= Dirty
+Cimager.solver.Dirty.tolerance                  = 0.1
+Cimager.solver.Dirty.verbose                   	= True
+
+Cimager.ncycles                                 = 0
+
+Cimager.preconditioner.Names			= None
+
+EOF
+echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
+
+cat > stdtest.clean.in <<EOF
+Cimager.dataset                                 = 10uJy_stdtest_%w.ms
+
+Cimager.Images.Names                            = [image.i.10uJy_clean_stdtest]
+Cimager.Images.shape				= [2048,2048]
+Cimager.Images.cellsize	        		= [6.0arcsec, 6.0arcsec]
+Cimager.Images.image.i.10uJy_clean_stdtest.frequency	= [1.420e9,1.420e9]
+Cimager.Images.image.i.10uJy_clean_stdtest.nchan	= 1
+Cimager.Images.image.i.10uJy_clean_stdtest.direction	= [12h30m00.00, -45.00.00.00, J2000]
+#
+Cimager.gridder                          	= WProject
+Cimager.gridder.WProject.wmax            	= 15000
+Cimager.gridder.WProject.nwplanes        	= 129
+Cimager.gridder.WProject.oversample     	= 8
+Cimager.gridder.WProject.maxsupport       = 1024
+#
+# Use a multiscale Clean solver
+#
+Cimager.solver                           	= Clean
+Cimager.solver.Clean.algorithm                 	= MultiScale
+Cimager.solver.Clean.scales			= [0, 3, 10]
+Cimager.solver.Clean.niter                     	= 10000
+Cimager.solver.Clean.gain                      	= 0.1
+Cimager.solver.Clean.tolerance                  = 0.1
+Cimager.solver.Clean.verbose                   	= True
+Cimager.threshold.minorcycle                    = [0.27mJy, 10%]
+Cimager.threshold.majorcycle                    = 0.3mJy
+# 
+#
+Cimager.ncycles                                 = 10
+#
+# Restore the image at the end
+#
+Cimager.restore                          	= True
+Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
+#
+# Use preconditioning for deconvolution
+#
+Cimager.preconditioner.Names			= [Wiener, GaussianTaper]
+Cimager.preconditioner.Wiener.noisepower	= 100.0
+Cimager.preconditioner.GaussianTaper		= [20arcsec, 20arcsec, 0deg]
+
+EOF
+echo "Running cimager to form Clean image of single pointing" | tee -a  stdtest.$HOSTNAME.out
+
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
