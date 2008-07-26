@@ -102,7 +102,6 @@ TableVisGridder::TableVisGridder() :
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 
 {
-
   itsSumWeights.resize(1,1,1);
   itsSumWeights.set(0.0);
 }
@@ -115,6 +114,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
         itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 {
+        
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
 	ASKAPCHECK(support>0, "Maximum support must be greater than 0");
 }
@@ -262,10 +262,12 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    ASKAPDEBUGASSERT(casa::uInt(nChan) <= frequencyList.nelements());
    ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
    
-   for (uint i=0; i<nSamples; ++i) { 
-       if (itsFirstGriddedVis) {
+   for (uint i=0; i<nSamples; ++i) {
+       if (itsFirstGriddedVis && !forward) {
+           // data members related to representative feed and field are used for
+           // reverse problem only (from visibilities to image). 
            itsFeedUsedForPSF = acc.feed1()(i);
-           itsPointingUsedForPSF = acc.dishPointing1()(i);
+           itsPointingUsedForPSF = acc.dishPointing1()(i);    
            itsFirstGriddedVis = false;
            if (itsDopsf) {
                ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<

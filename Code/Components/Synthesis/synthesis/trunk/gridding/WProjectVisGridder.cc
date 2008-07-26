@@ -217,6 +217,11 @@ namespace askap
 	    if(r2<1.0) {
 	      float phase=w*(1.0-sqrt(1.0-r2));
 	      float wt=ccfx(ix)*ccfy(iy);
+	      ASKAPDEBUGASSERT(ix-qnx/2+nx/2 < nx);
+	      ASKAPDEBUGASSERT(iy-qny/2+ny/2 < ny);
+	      ASKAPDEBUGASSERT(ix+nx/2 >= qnx/2);
+	      ASKAPDEBUGASSERT(iy+ny/2 >= qny/2);
+	      
 	      thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(wt*cos(phase), -wt*sin(phase));
 	    }
           }
@@ -282,14 +287,22 @@ namespace askap
         for (int fracu=0; fracu<itsOverSample; ++fracu) {
           for (int fracv=0; fracv<itsOverSample; ++fracv) {
             const int plane=fracu+itsOverSample*(fracv+itsOverSample*iw);
+            ASKAPDEBUGASSERT(plane < int(itsConvFunc.size()));
             itsConvFunc[plane].resize(itsCSize, itsCSize);
             itsConvFunc[plane].set(0.0);
             // Now cut out the inner part of the convolution function and
             // insert it into the convolution function
             for (int iy=-itsSupport; iy<itsSupport; ++iy) {
                  for (int ix=-itsSupport; ix<itsSupport; ++ix) {
-                      itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)=
-                      thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
+                      ASKAPDEBUGASSERT((ix + itsCCenter >= 0) && (iy + itsCCenter >= 0));
+                      ASKAPDEBUGASSERT(ix+itsCCenter < int(itsConvFunc[plane].nrow()));
+                      ASKAPDEBUGASSERT(iy+itsCCenter < int(itsConvFunc[plane].ncolumn()));
+                      ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 >= 0);
+                      ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 >= 0);
+                      ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 < int(thisPlane.nrow()));
+                      ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 < int(thisPlane.ncolumn()));                      
+                      itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter) =
+                          thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
                  } // for ix
             } // for iy
           } // for fracv
@@ -303,8 +316,10 @@ namespace askap
 		 const double norm = sum(casa::real(itsConvFunc[plane]));
 		 //		 ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm);
              
-	     //             ASKAPDEBUGASSERT(norm>0.);
-	     if(norm>0.) itsConvFunc[plane]/=casa::Complex(norm);
+	         ASKAPDEBUGASSERT(norm>0.);
+	         if(norm>0.) {
+	            itsConvFunc[plane]/=casa::Complex(norm);
+	         }
         } // for plane					        
       } // for iw
       ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
@@ -354,6 +369,10 @@ namespace askap
         {
           for (int ix=0; ix<inx; ix++)
           {
+            ASKAPDEBUGASSERT(ix+(onx-inx)/2 < int(outPlane.nrow()));
+            ASKAPDEBUGASSERT(iy+(ony-iny)/2 < int(outPlane.ncolumn()));
+            ASKAPDEBUGASSERT(ix+(onx-inx)/2 >= 0);
+            ASKAPDEBUGASSERT(iy+(ony-iny)/2 >= 0);            
             outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
           }
         }
