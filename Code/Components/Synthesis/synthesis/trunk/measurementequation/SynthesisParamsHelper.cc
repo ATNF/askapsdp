@@ -225,12 +225,6 @@ namespace askap
       casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
       
       Projection projection(Projection::SIN);
-      if(sin(lat)!=0.0) {
-	casa::Vector<double> pp(2);
-	pp(0)=0.0;
-	pp(1)=cos(lat)/sin(lat);
-	projection=Projection(Projection::SIN, pp);
-      }
       casa::DirectionCoordinate radec(MDirection::J2000,
 				      projection,
 				      refLon, refLat,
