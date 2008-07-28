@@ -135,12 +135,6 @@ namespace askap
       }
       if (itsDopsf)
       {
-        itsGridPSF.resize(itsNWPlanes);
-        for (int i=0; i<itsNWPlanes; i++)
-        {
-          itsGridPSF[i].resize(shape);
-          itsGridPSF[i].set(0.0);
-        }
         // for a proper PSF calculation
 		initRepresentativeFieldAndFeed();
       }
@@ -245,13 +239,14 @@ namespace askap
     /// This is the default implementation
     void WStackVisGridder::finalisePSF(casa::Array<double>& out)
     {
+      ASKAPDEBUGASSERT(itsDopsf);
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
       for (unsigned int i=0; i<itsGrid.size(); i++)
       {
-        if (casa::max(casa::amplitude(itsGridPSF[i]))>0.0)
+        if (casa::max(casa::amplitude(itsGrid[i]))>0.0)
         {
-          casa::Array<casa::Complex> scratch(itsGridPSF[i].copy());
+          casa::Array<casa::Complex> scratch(itsGrid[i].copy());
           fft2d(scratch, false);
           multiply(scratch, i);
 
@@ -279,6 +274,7 @@ namespace askap
 
       itsAxes=axes;
       itsShape=in.shape();
+      itsDopsf = false;
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
           "RA and DEC specification not present in axes");

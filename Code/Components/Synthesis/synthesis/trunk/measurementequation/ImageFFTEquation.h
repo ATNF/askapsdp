@@ -122,6 +122,9 @@ namespace askap
         
         /// Map of gridders for the residuals
         mutable std::map<string, IVisGridder::ShPtr> itsResidualGridders;
+        
+        /// Map of PSF gridders
+        mutable std::map<string, IVisGridder::ShPtr> itsPSFGridders;
 
         /// Iterator giving access to the data
         mutable IDataSharedIter itsIdi;

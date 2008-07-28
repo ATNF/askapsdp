@@ -217,9 +217,7 @@ namespace askap
 
       /// The grid is stored as a cube as well so we can index into that as well.
       std::vector<casa::Array<casa::Complex> > itsGrid;
-      /// Grid for PSF
-      std::vector<casa::Array<casa::Complex> > itsGridPSF;
-
+      
       /// Return the index into the grid for a given
       /// row and channel
       /// @param row Row of accessor

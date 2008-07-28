@@ -96,7 +96,7 @@ std::string printDirection(const casa::MVDirection &dir)
 }
 
 TableVisGridder::TableVisGridder() :
-	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
+	itsDopsf(false),itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
@@ -108,7 +108,7 @@ TableVisGridder::TableVisGridder() :
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
 		const std::string& name) :
-	itsSupport(support), itsOverSample(overSample), itsName(name),
+	itsDopsf(false), itsSupport(support), itsOverSample(overSample), itsName(name),
 			itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
@@ -140,32 +140,54 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
 {
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
    deepCopyOfSTDVector(other.itsGrid, itsGrid);   
-   deepCopyOfSTDVector(other.itsGridPSF, itsGridPSF);
-   if(other.itsVisWeight) itsVisWeight = other.itsVisWeight->clone();
-   else itsVisWeight = other.itsVisWeight;
+   if(other.itsVisWeight) {
+      itsVisWeight = other.itsVisWeight->clone();
+   } else {
+      itsVisWeight = other.itsVisWeight;
+   }
 }
      
 
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
-		ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
-				<< itsSamplesGridded);
-		ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
+		if (itsDopsf) {
+		    ASKAPLOG_INFO_STR(logger, "   PSF samples gridded       = "
+                              << itsSamplesGridded);
+		    ASKAPLOG_INFO_STR(logger, "   Total time for PSF gridding   = "
 				<< itsTimeGridded << " (s)");
-		ASKAPLOG_INFO_STR(logger, "   Gridding time         = " << 1e6
-				*itsTimeGridded/itsSamplesGridded << " (us) per sample");
-		ASKAPLOG_INFO_STR(logger, "   Total time converting = "
-				<< itsTimeCoordinates << " (s)");
-		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+		    ASKAPLOG_INFO_STR(logger, "   PSF gridding time         = " << 1e6
+			 	*itsTimeGridded/itsSamplesGridded << " (us) per sample");
+		    ASKAPLOG_INFO_STR(logger, "   Total time converting for PSF = "
+	            << itsTimeCoordinates << " (s)");
+		    ASKAPLOG_INFO_STR(logger, "   PSF coord conversion      = "
 				  << 1e6 * itsTimeCoordinates/itsSamplesGridded << " (us) per sample");
-		ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
-		ASKAPLOG_INFO_STR(logger, "   Points gridded        = "
-				<< itsNumberGridded);
-		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
-				*itsTimeGridded/itsNumberGridded << " (ns)");
-		ASKAPLOG_INFO_STR(logger, "   Performance           = "
+		    ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
+		    ASKAPLOG_INFO_STR(logger, "   Points gridded (psf)        = "
+	              << itsNumberGridded);
+		    ASKAPLOG_INFO_STR(logger, "   Time per point (psf)        = " << 1e9
+	              *itsTimeGridded/itsNumberGridded << " (ns)");
+		    ASKAPLOG_INFO_STR(logger, "   Performance for PSF         = "
 				<< 8.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " GFlops");
+		} else {
+		    ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
+                         << itsSamplesGridded);		
+		    ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
+			             << itsTimeGridded << " (s)");
+		    ASKAPLOG_INFO_STR(logger, "   Gridding time         = " << 1e6
+			  	*itsTimeGridded/itsSamplesGridded << " (us) per sample");
+		    ASKAPLOG_INFO_STR(logger, "   Total time converting = "
+				<< itsTimeCoordinates << " (s)");
+		    ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+				  << 1e6 * itsTimeCoordinates/itsSamplesGridded << " (us) per sample");
+		    ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
+		    ASKAPLOG_INFO_STR(logger, "   Points gridded        = "
+				<< itsNumberGridded);
+		    ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
+				*itsTimeGridded/itsNumberGridded << " (ns)");
+		    ASKAPLOG_INFO_STR(logger, "   Performance           = "
+				<< 8.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " GFlops");
+	    }			
 	}
 	if (itsNumberDegridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
@@ -221,6 +243,10 @@ void TableVisGridder::save(const std::string& name) {
 void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    if (forward&&itsModelIsEmpty)
 		return;
+   
+   if (forward && itsDopsf) {
+       ASKAPTHROW(AskapError, "Logic error: the gridder is not supposed to be used for degridding in the PSF mode")
+   }
 
    casa::Vector<casa::RigidVector<double, 3> > outUVW;
    casa::Vector<double> delay;
@@ -263,16 +289,14 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
    
    for (uint i=0; i<nSamples; ++i) {
-       if (itsFirstGriddedVis && !forward) {
+       if (itsFirstGriddedVis && itsDopsf) {
            // data members related to representative feed and field are used for
            // reverse problem only (from visibilities to image). 
            itsFeedUsedForPSF = acc.feed1()(i);
            itsPointingUsedForPSF = acc.dishPointing1()(i);    
            itsFirstGriddedVis = false;
-           if (itsDopsf) {
-               ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
-               " and field at "<<printDirection(itsPointingUsedForPSF)<<" to estimate the PSF");
-           }
+           ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
+             " and field at "<<printDirection(itsPointingUsedForPSF)<<" to estimate the PSF");
        }
 	   /// Temporarily fix to do MFS only
 	   int imageChan=0;
@@ -428,31 +452,32 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                    }
 				     acc.rwVisibility()(i, chan, pol)+=cVis*phasor;
 			     } else {
-			       /// Gridding visibility data onto grid
-			       casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
-			       if(itsVisWeight) {
-				      rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-				   }
+			       if (!itsDopsf) {
+			           /// Gridding visibility data onto grid
+			           casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
+			           if(itsVisWeight) {
+				          rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+				       }
 				   
-			       GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
-			       itsSamplesGridded+=1.0;
-			       itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
+			           GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
+			           itsSamplesGridded+=1.0;
+			           itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 			       
-				   ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
-				   ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
-				   ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
-				   ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
+				       ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+				       ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
+				       ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
+				       ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				
-				   itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
-				
+				       itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
+
+                       //itsSamplesGridded+=1.0;
+                       //itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));			     
+				   }
 				   /// Grid PSF?
 				   if (itsDopsf && (itsFeedUsedForPSF == acc.feed1()(i)) &&
 				             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
 
-				       ASKAPDEBUGASSERT(gInd<int(itsGridPSF.size()));
-				       casa::Array<casa::Complex> aGridPSF(itsGridPSF[gInd](slicer));
-				       casa::Matrix<casa::Complex> gridPSF(aGridPSF.nonDegenerate());
-                       if (!itsConvFuncForPSF.size()) {
+				       if (!itsConvFuncForPSF.size()) {
 					       // this cache has the same structure as for the 
 					       // ordinary convolution function
 					       itsConvFuncForPSF.resize(itsConvFunc.size());
@@ -489,15 +514,23 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					  ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
 					          (psfConvFunc.ncolumn() == convFunc.ncolumn()));
 					
-				      //casa::Complex uVis(phasor);
 				      casa::Complex uVis(1.,0.);
 				      if(itsVisWeight) {
                          uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                       }
-                      GridKernel::grid(gridPSF, psfConvFunc, uVis, iu, iv, itsSupport);
+                      GridKernel::grid(grid, psfConvFunc, uVis, iu, iv, itsSupport);
+                      
+                      itsSamplesGridded+=1.0;
+			          itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
+			       
+				      ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+				      ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
+				      ASKAPDEBUGASSERT(imagePol < int(itsSumWeights.shape()(1)));
+				      ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
+				
+				      itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
+                      
                    } // end if psf needs to be done
-                   itsSamplesGridded+=1.0;
-                   itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));			     
 			     } // end if forward (else case, reverse operation)
 			   }
 		     }//end of pol loop
@@ -623,9 +656,6 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	itsGrid[0].resize(shape);
 	itsGrid[0].set(0.0);
 	if (itsDopsf) {
-		itsGridPSF.resize(1);
-		itsGridPSF[0].resize(shape);
-		itsGridPSF[0].set(0.0);
 		// for a proper PSF calculation
 		initRepresentativeFieldAndFeed();
 	}
@@ -697,9 +727,10 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 
 /// This is the default implementation
 void TableVisGridder::finalisePSF(casa::Array<double>& out) {
+    ASKAPDEBUGASSERT(itsDopsf);
     /// Loop over all grids Fourier transforming and accumulating
-	for (unsigned int i=0; i<itsGridPSF.size(); i++) {
-		casa::Array<casa::Complex> scratch(itsGridPSF[i].copy());
+	for (unsigned int i=0; i<itsGrid.size(); i++) {
+		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
 		fft2d(scratch, false);
 		if (i==0) {
 			toDouble(out, scratch);
@@ -740,7 +771,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 
 void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
-
+    itsDopsf = false;
 	itsAxes=axes;
 	itsShape=in.shape();
 

@@ -147,7 +147,7 @@ namespace askap
         if(itsModelGridders.count(imageName)==0) {
           itsModelGridders[imageName]=itsGridder->clone();
         }
-	itsModelGridders[imageName]->customiseForContext(*it);
+	    itsModelGridders[imageName]->customiseForContext(*it);
         itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
       }
       // Loop through degridding the data
@@ -207,6 +207,9 @@ namespace askap
         if(itsResidualGridders.count(imageName)==0) {
           itsResidualGridders[imageName]=itsGridder->clone();
         }
+        if(itsPSFGridders.count(imageName)==0) {
+          itsPSFGridders[imageName]=itsGridder->clone();
+        }
       }
       // Now we initialise appropriately
       ASKAPLOG_INFO_STR(logger, "Initialising for model degridding and residual gridding" );
@@ -219,9 +222,12 @@ namespace askap
         /// First the model
         itsModelGridders[imageName]->customiseForContext(*it);
         itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
-        /// Now the residual images
+        /// Now the residual images, dopsf=false
         itsResidualGridders[imageName]->customiseForContext(*it);
-        itsResidualGridders[imageName]->initialiseGrid(axes, imageShape, true);
+        itsResidualGridders[imageName]->initialiseGrid(axes, imageShape, false);
+        // and PSF gridders, dopsf=true
+        itsPSFGridders[imageName]->customiseForContext(*it);
+        itsPSFGridders[imageName]->initialiseGrid(axes, imageShape, true);        
       }
       // Now we loop through all the data
       ASKAPLOG_INFO_STR(logger, "Starting degridding model and gridding residuals" );
@@ -245,6 +251,7 @@ namespace askap
             itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
             itsIdi.chooseBuffer("RESIDUAL_DATA");
             itsResidualGridders[imageName]->grid(itsIdi);
+            itsPSFGridders[imageName]->grid(itsIdi);
           }
         }
       }
@@ -264,8 +271,19 @@ namespace askap
         casa::Array<double> imageDeriv(imageShape);
 
         itsResidualGridders[imageName]->finaliseGrid(imageDeriv);
-        itsResidualGridders[imageName]->finalisePSF(imagePSF);
+        itsPSFGridders[imageName]->finalisePSF(imagePSF);
         itsResidualGridders[imageName]->finaliseWeights(imageWeight);
+        { 
+          casa::Array<double> imagePSFWeight(imageShape);
+          itsPSFGridders[imageName]->finaliseWeights(imagePSFWeight);
+          const double maxPSFWeight = casa::max(imagePSFWeight);
+          ASKAPCHECK(maxPSFWeight>0, "PSF weight is 0, most likely no data were gridded");
+          const double psfScalingFactor = casa::max(imageWeight)/maxPSFWeight;
+          //std::cout<<"psf peak = "<<casa::max(imagePSF)<<" maxPSFWeight = "<<maxPSFWeight<<" factor="<<
+          //     psfScalingFactor<<std::endl;
+          imagePSF *= psfScalingFactor;
+          // now psf has the same peak as the weight image
+        }
         {
           casa::IPosition reference(4, imageShape(0)/2, imageShape(1)/2, 0, 0);
           casa::IPosition vecShape(1, imagePSF.nelements());
