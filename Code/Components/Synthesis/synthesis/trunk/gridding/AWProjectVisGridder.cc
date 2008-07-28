@@ -143,7 +143,7 @@ namespace askap {
       itsCMap.resize(nSamples, nPol, nChan);
       itsCMap.set(0);
       
-      int cenw=(itsNWPlanes-1)/2;
+      const int cenw=(itsNWPlanes-1)/2;
       
       for (int i=0; i<nSamples; ++i) {
 	const int feed=acc.feed1()(i);
@@ -151,7 +151,7 @@ namespace askap {
 		   "Exceeded specified maximum number of feeds");
 	ASKAPCHECK(feed>-1, "Illegal negative feed number");
 	
-	double w=(acc.uvw()(i)(2))/(casa::C::c);
+	const double w=(acc.uvw()(i)(2))/(casa::C::c);
 	
 	for (int chan=0; chan<nChan; ++chan) {
 	  const double freq=acc.frequency()[chan];
@@ -199,7 +199,7 @@ namespace askap {
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
-      int nChan=itsFreqDep ? acc.nChannel() : 1;
+      const int nChan=itsFreqDep ? acc.nChannel() : 1;
       
       if(itsSupport==0) {
 	itsConvFunc.resize(itsOverSample*itsOverSample*itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
@@ -207,7 +207,7 @@ namespace askap {
 	itsSumWeights.set(0.0);
       }
       
-      int cenw=(itsNWPlanes-1)/2;
+      const int cenw=(itsNWPlanes-1)/2;
       
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
@@ -404,19 +404,19 @@ namespace askap {
       
       ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
       
-      int nx=itsShape(0);
-      int ny=itsShape(1);
-      int nPol=itsShape(2);
-      int nChan=itsShape(3);
+      const int nx=itsShape(0);
+      const int ny=itsShape(1);
+      const int nPol=itsShape(2);
+      const int nChan=itsShape(3);
       
-      int nZ=itsSumWeights.shape()(0);
+      const int nZ=itsSumWeights.shape()(0);
       
       /// We must pad the convolution function to full size, reverse transform
       /// square, and sum multiplied by the corresponding weight
-      int cnx=std::min(itsMaxSupport, nx);
-      int cny=std::min(itsMaxSupport, ny);
-      int ccenx=cnx/2;
-      int cceny=cny/2;
+      const int cnx=std::min(itsMaxSupport, nx);
+      const int cny=std::min(itsMaxSupport, ny);
+      const int ccenx=cnx/2;
+      const int cceny=cny/2;
       
       /// This is the output array before sinc padding
       casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
@@ -429,7 +429,7 @@ namespace askap {
       /// itsConvFunc has overSampling**2 planes for each separate data plane (feed, field, chan)
       /// We choose the convolution function at zero fractional offset in u,v 
       for (int iz=0; iz<nZ; iz++) {
-	int plane=itsOverSample*itsOverSample*iz;
+	const int plane=itsOverSample*itsOverSample*iz;
 	
 	bool hasData=false;
 	for (int chan=0; chan<nChan; chan++) {
@@ -499,11 +499,11 @@ namespace askap {
     void AWProjectVisGridder::fftPad(const casa::Array<double>& in,
 				     casa::Array<double>& out) {
       
-      int inx=in.shape()(0);
-      int iny=in.shape()(1);
+      const int inx=in.shape()(0);
+      const int iny=in.shape()(1);
       
-      int onx=out.shape()(0);
-      int ony=out.shape()(1);
+      const int onx=out.shape()(0);
+      const int ony=out.shape()(1);
       
       // Shortcut no-op
       if ((inx==onx)&&(iny==ony)) {
