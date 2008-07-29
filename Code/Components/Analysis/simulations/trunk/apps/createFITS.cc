@@ -26,7 +26,7 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
-#include <askap_evaluation.h>
+#include <askap_simulations.h>
 
 #include <FITS/FITSfile.h>
 

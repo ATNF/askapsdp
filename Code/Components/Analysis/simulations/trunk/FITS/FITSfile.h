@@ -27,7 +27,7 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
 #ifndef ASKAP_SIMULATIONS_FITS_H_
-#define ASKAP_SIMLUATIONS_FITS_H_
+#define ASKAP_SIMULATIONS_FITS_H_
 
 #include <wcslib/wcs.h>
 
@@ -86,7 +86,7 @@ namespace askap
 	bool itsArrayAllocated;
 	float itsNoiseRMS;
 	
-	int itsDim;
+	unsigned int itsDim;
 	std::vector<int> itsAxes;
 	int itsNumPix;
 	

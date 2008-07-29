@@ -26,8 +26,7 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMULATIONS_UTILS_H_
-#define ASKAP_SIMULATIONS_UTILS_H_
+#include <simulationutilities/SimulationUtilities.h>
 
 #include <APS/ParameterSet.h>
 
@@ -39,10 +38,16 @@
 #include <scimath/Functionals/Gaussian3D.h>
 #include <casa/namespace.h>
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 #include <vector>
 #include <utility>
 #include <string>
+#include <stdlib.h>
 #include <math.h>
+
+ASKAP_LOGGER(logger, ".simutils");
 
 namespace askap
 {
@@ -50,15 +55,36 @@ namespace askap
   namespace simulations
   {
 
-    float normalRandomVariable();
 
-    float normalRandomVariable(float mean, float rms);
+    float normalRandomVariable(float mean, float sigma)
+    {
+      float v1,v2,s;
+      // simulate a standard normal RV via polar method
+      do{
+	v1 = 2.*(1.*rand())/(RAND_MAX+1.0) - 1.;
+	v2 = 2.*(1.*rand())/(RAND_MAX+1.0) - 1.;
+	s = v1*v1+v2*v2;
+      }while(s>1);
+      float z = sqrt(-2.*log(s)/s)*v1;
+      return z*sigma + mean;
+    }
+    
+    void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss)
+    {
+      
+      for(int x=0;x<axes[0];x++){
+	for(int y=0;y<axes[1];y++){
+	  Vector<Double> loc(2);
+	  loc(0) = x; loc(1) = y;
+	  int pix = x + y * axes[0];
+	  array[pix] += gauss(loc);
+	}
+      }
 
-    float addGaussian(float *array, casa::Gaussian2D<float> gauss);
+    }
+
+
 
   }
 
 }
-
-
-#endif

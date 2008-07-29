@@ -27,7 +27,7 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
 #include <FITS/FITSfile.h>
-#include <simutils/simUtils.h>
+#include <simulationutilities/SimulationUtilities.h>
 #include <evaluationutilities/EvaluationUtilities.h>
 
 #include <APS/ParameterSet.h>
@@ -80,7 +80,7 @@ namespace askap
 	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
 		     << ", but axes has " << this->itsAxes.size() << " dimensions.");
 	this->itsNumPix = this->itsAxes[0];
-	for(int i=1;i<this->itsNumPix;i++) this->itsNumPix *= this->itsAxes[i];
+	for(uint i=1;i<this->itsDim;i++) this->itsNumPix *= this->itsAxes[i];
 
 	this->itsBeamInfo = parset.getFloatVector("beam");
 
@@ -118,11 +118,13 @@ namespace askap
 
       void FITSfile::setWCS()
       {
-
-	wcsini(1,this->itsDim,this->itsWCS);
+	
+	this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	this->itsWCS->flag = -1;
+	wcsini(true ,this->itsDim,this->itsWCS);
 	this->itsWCS->flag = 0;
 
-	for(int i=0;i<this->itsDim;i++){
+	for(uint i=0;i<this->itsDim;i++){
 	  this->itsWCS->crpix[i] = this->itsCRPIX[i];
 	  this->itsWCS->cdelt[i] = this->itsCDELT[i];
 	  this->itsWCS->crval[i] = this->itsCRVAL[i];
@@ -131,6 +133,8 @@ namespace askap
 	  strcpy(this->itsWCS->ctype[i], this->itsCTYPE[i].c_str());
 	}
 	this->itsWCS->equinox = this->itsEquinox;
+
+	wcsset(this->itsWCS);
 
       }
 
@@ -142,8 +146,9 @@ namespace askap
 
 	this->itsArray = new float[this->itsNumPix];
 
-	for(int i=0;i<this->itsNumPix;i++)
+	for(int i=0;i<this->itsNumPix;i++){
 	  this->itsArray[i] = normalRandomVariable(0., this->itsNoiseRMS);
+	}
 
       }
 
@@ -160,17 +165,22 @@ namespace askap
 	std::vector<casa::Gaussian2D<casa::Double> > sources;
 	while(srclist >> ra >> dec >> flux >> maj >> min >> pa,
 	      !srclist.eof()) {
+	  // convert sky position to pixels
 	  wld[0] = evaluation::dmsToDec(ra)*15.;
 	  wld[1] = evaluation::dmsToDec(dec);
 	  wcsToPixSingle(this->itsWCS,wld,pix);
-	  casa::Gaussian2D<casa::Double> gauss(pix[0],pix[1],flux,maj,min,pa);
+	  // convert widths from arcsec to pixels
+	  maj = maj / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
+	  min = min / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
+	  casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
 	  sources.push_back(gauss);
 	}
 
 	// for each source, add to array
 
-	for(int i=0;i<sources.size();i++) 
-	  addGaussian(this->itsArray, sources[i]);
+	std::vector<casa::Gaussian2D<casa::Double> >::iterator src=sources.begin();
+	for(; src<sources.end();src++)
+	  addGaussian(this->itsArray, this->itsAxes, *src);
 
       }
 
@@ -185,7 +195,7 @@ namespace askap
       void FITSfile::saveFile()
       {
 
-	int status = 0,bitpix;
+	int status = 0;
 	long *fpixel = new long[2];
 	for(int i=0;i<2;i++) fpixel[i]=1;
 	fitsfile *fptr;         
@@ -194,14 +204,10 @@ namespace askap
 	
 	status = 0;
 	long *dim = new long[this->itsDim];
-	for(int i=0;i<this->itsDim;i++) dim[i]=this->itsAxes[i];
-	if( fits_create_img(fptr, FLOAT_IMG, this->itsNumPix, dim, &status) ) 
+	for(uint i=0;i<this->itsDim;i++) dim[i]=this->itsAxes[i];
+	if( fits_create_img(fptr, FLOAT_IMG, this->itsDim, dim, &status) ) 
 	  fits_report_error(stderr, status);
 	
-	status = 0;
-	if( fits_write_pix(fptr, TFLOAT, fpixel, this->itsNumPix, this->itsArray, &status) )
-	  fits_report_error(stderr, status);
-
 
 	status=0; 
 	if( fits_update_key(fptr, TFLOAT, "EQUINOX", &(this->itsEquinox), NULL, &status) ) 
@@ -219,25 +225,32 @@ namespace askap
 	if( fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.c_str(),  NULL, &status) )
 	  fits_report_error(stderr, status);
 
-	for(int d=0;d<this->itsDim;d++){
+	for(uint d=0;d<this->itsDim;d++){
 	  
 	  status=0;
-	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE1",d), (char *)this->itsCTYPE[d].c_str(),  NULL, &status) ) 
+	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE",d+1), (char *)this->itsCTYPE[d].c_str(),  NULL, &status) ) 
+	    fits_report_error(stderr, status);
+// 	  status=0;
+// 	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT",d+1), (char *)this->itsCUNIT[d].c_str(),  NULL, &status) ) 
+// 	    fits_report_error(stderr, status);
+	  status=0; 
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL",d+1), &this->itsCRVAL[d], NULL, &status) )
 	    fits_report_error(stderr, status);
 	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL1",d), &this->itsCRVAL[d], NULL, &status) )
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT",d+1), &this->itsCDELT[d], NULL, &status) ) 
 	    fits_report_error(stderr, status);
 	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT1",d), &this->itsCDELT[d], NULL, &status) ) 
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX",d+1), &this->itsCRPIX[d], NULL, &status) ) 
 	    fits_report_error(stderr, status);
 	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX1",d), &this->itsCRPIX[d], NULL, &status) ) 
-	    fits_report_error(stderr, status);
-	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA1",d), &this->itsCROTA[d], NULL, &status) ) 
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA",d+1), &this->itsCROTA[d], NULL, &status) ) 
 	    fits_report_error(stderr, status);
 	}
  
+	status = 0;
+	if( fits_write_pix(fptr, TFLOAT, fpixel, this->itsNumPix, this->itsArray, &status) )
+	  fits_report_error(stderr, status);
+
 	status = 0;
 	fits_close_file(fptr, &status);
 	if (status){
