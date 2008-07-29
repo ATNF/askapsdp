@@ -100,7 +100,7 @@ namespace askap
 	std::multimap<int,PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
 
 	/// @brief Estimate the FWHM of the Detection.
-	double getFWHMestimate(casa::Vector<casa::Double> f);
+	void getFWHMestimate(casa::Vector<casa::Double> f, double &angle, double &maj, double &min);
 
 	//@{
 	/// @brief Fit Gaussian components to the Detection.

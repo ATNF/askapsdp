@@ -343,7 +343,8 @@ namespace askap
 	duchamp::FitsHeader head = itsCube.getHead();
 	float noise;
 	if(itsCube.pars().getFlagUserThreshold()) noise = 1.;
-	else noise = itsCube.stats().getStddev();
+	else noise = itsCube.stats().getSpread();
+	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
 	float threshold = itsCube.stats().getThreshold();
 
  	for(int i=0;i<itsCube.getNumObj();i++){
@@ -357,8 +358,8 @@ namespace askap
 	  // Only do fit if object is not next to boundary
 	  bool flagBoundary = false;
 	  bool flagAdj = itsCube.pars().getFlagAdjacent();
-	  int threshS = itsCube.pars().getThreshS();
-	  int threshV = itsCube.pars().getThreshV();
+	  float threshS = itsCube.pars().getThreshS();
+	  float threshV = itsCube.pars().getThreshV();
 	  if(flagAdj){
 	    flagBoundary = flagBoundary || ( src.getXmin()==0 );
 	    flagBoundary = flagBoundary || ( src.getXmax()==itsCube.getDimX()-1 ); 
@@ -827,7 +828,10 @@ namespace askap
 	}
 	else {
 	  // serial case -- can just calculate all stats at once.
+	  ASKAPLOG_INFO_STR(logger, "Calculating stats: worker " << this->itsRank);
 	  this->itsCube.setCubeStats();
+	  ASKAPLOG_INFO_STR(logger, "Stats are as follows:");
+	  std::cout << this->itsCube.stats();
 	}
 
       }

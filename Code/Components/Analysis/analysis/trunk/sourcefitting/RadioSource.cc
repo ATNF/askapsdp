@@ -142,18 +142,25 @@ namespace askap
 
       //**************************************************************//
 
-      double RadioSource::getFWHMestimate(casa::Vector<casa::Double> f)
+      void RadioSource::getFWHMestimate(casa::Vector<casa::Double> f, double &angle, double &maj, double &min)
       {
-	/// @details This returns an estimate of an object's spatial
-	/// FWHM. This is done by using the array of flux values given
-	/// by f, thresholding at half the object's peak flux value,
-	/// and averaging the x- and y-widths that the Duchamp code
-	/// gives.
+	/// @details This returns an estimate of an object's shape,
+	/// using the principle axes and position angle calculated in
+	/// the duchamp::PixelInfo code. This is done by using the
+	/// array of flux values given by f, thresholding at half the
+	/// object's peak flux value, and averaging the x- and
+	/// y-widths that the Duchamp code gives.
 	///
 	/// It may be that the thresholding returns more than one
 	/// object. In this case, we only look at the one with the
 	/// same peak location as the base object.
 	
+	angle = this->pixelArray.getSpatialMap().getPositionAngle();
+	std::pair<double,double> axes = this->pixelArray.getSpatialMap().getPrincipleAxes();
+	maj = std::max(axes.first,axes.second);
+	min = std::min(axes.first,axes.second);
+	return;
+
 	long dim[2]; dim[0]=this->boxXsize(); dim[1]=this->boxYsize();
 	duchamp::Image smlIm(dim);
 	float *fluxarray = new float[this->boxSize()];
@@ -164,21 +171,21 @@ namespace askap
 	thresh /= this->itsNoiseLevel;
 	smlIm.stats().setThreshold(thresh);
 	std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
-	std::cout << "FWHM calc: no. obj = " << objlist.size() << ": ";
-	double FWHM=0.;
 	std::vector<PixelInfo::Object2D>::iterator o;
 	for(o=objlist.begin();o<objlist.end();o++){	    
-	  std::cout << o->getXmin() << " " << o->getXmax() << " ";
-	  std::cout << o->getXmin() << " " << o->getXmax() << " ";
 	  duchamp::Detection tempobj;
 	  tempobj.pixels().addChannel(0,*o);
 	  tempobj.calcFluxes(fluxarray,dim);  // we need to know where the peak is.
-	  std::cout << "(" << tempobj.getXPeak()+this->boxXmin() << "," << tempobj.getYPeak()+this->boxYmin() << ") || ";
-	  if( (tempobj.getXPeak()+this->boxXmin())==this->getXPeak()  &&  (tempobj.getYPeak()+this->boxYmin())==this->getYPeak() )
-	    FWHM = 0.5*(tempobj.getXmax()-tempobj.getXmin() + tempobj.getYmax()-tempobj.getYmin());
+	  if((tempobj.getXPeak()+this->boxXmin())==this->getXPeak()  &&  
+	     (tempobj.getYPeak()+this->boxYmin())==this->getYPeak()){
+	    angle = tempobj.pixels().getSpatialMap().getPositionAngle();
+	    std::pair<double,double> axes = tempobj.pixels().getSpatialMap().getPrincipleAxes();
+	    maj = std::max(axes.first,axes.second);
+	    min = std::min(axes.first,axes.second);
+	  }	  
+
 	}
-	std::cout << "\n";
-	return FWHM;
+	
       }
 
       //**************************************************************//
@@ -321,7 +328,7 @@ namespace askap
 	casa::Vector<casa::Double> curpos(2);
 	curpos=0;
 
-	float failure = false;
+	bool failure = false;
 
 	if(this->getZcentre()!=this->getZmin() || this->getZcentre() != this->getZmax()){
 	  ASKAPLOG_ERROR(logger,"Can only do fitting for two-dimensional objects!");
@@ -416,7 +423,6 @@ namespace askap
 	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
 	std::vector<Double> fluxes;
 	f.tovector(fluxes);
-	//	float peakFlux = *std::max_element(fluxes.begin(), fluxes.end()) / this->itsNoiseLevel;
 
 	std::multimap<int,PixelInfo::Voxel> peakList = this->findDistinctPeaks(f);
 	std::multimap<int,PixelInfo::Voxel>::reverse_iterator pk;
@@ -433,28 +439,25 @@ namespace askap
 	baseEstimate(0,0)=this->peakFlux / this->itsNoiseLevel;   // height of Gaussian
 	baseEstimate(0,1)=this->getXcentre();    // x centre
 	baseEstimate(0,2)=this->getYcentre();    // y centre
-	// get beam information from the FITSheader, if present.
-	double FWHM = this->getFWHMestimate(f);
-	std::cout << "FWHM = " << FWHM << "\n";
+
+	// For the widths, use the measured principle axes and
+	// position angle, unless the major axis is smaller than the
+	// beam (and we have the beam info)
+	double angle,maj,min;
+ 	this->getFWHMestimate(f,angle,maj,min);
+	std::cout << "Major axis fwhm = " << maj << ", Minor axis fwhm = " << min << ", pos angle = " << angle << "\n";
+	std::cout << "Noise level = " << this->itsNoiseLevel << "\n";
 	if(this->itsHeader.getBmajKeyword()>0 && 
-	   (this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale() > FWHM)){
+ 	   (this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale() > maj)){
 	  baseEstimate(0,3)=this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale();
 	  baseEstimate(0,4)=this->itsHeader.getBminKeyword()/this->itsHeader.getBmajKeyword();
 	  baseEstimate(0,5)=this->itsHeader.getBpaKeyword() * M_PI / 180.;
 	}
 	else{
-	  baseEstimate(0,3)=FWHM;
-	  baseEstimate(0,4)=1;
-	  baseEstimate(0,5)=0.;
+	  baseEstimate(0,3)=maj;
+	  baseEstimate(0,4)=min/maj;
+	  baseEstimate(0,5)=angle;
 	}
-// 	}
-// 	else {
-// 	  float xwidth=(this->getXmax()-this->getXmin() + 1)/2.;
-// 	  float ywidth=(this->getYmax()-this->getYmin() + 1)/2.;
-// 	  baseEstimate(0,3)=std::max(xwidth,ywidth);// x width (doesn't have to be x...)
-// 	  baseEstimate(0,4)=std::min(xwidth,ywidth)/std::max(xwidth,ywidth); // axial ratio
-// 	  baseEstimate(0,5)=0.;                  // position angle
-// 	}
 	cout << "Estimated Parameters: "; printparameters(baseEstimate);
 
 	baseRetryfactors.resize(1,6);
@@ -722,8 +725,10 @@ namespace askap
 	  pix[2] = this->getZcentre();
 	  double *wld = new double[3];
 	  this->itsHeader.pixToWCS(pix,wld);
-	  columns[duchamp::Column::RA].printEntry(stream,  evaluation::decToDMS(wld[0],"RA"));
-	  columns[duchamp::Column::DEC].printEntry(stream, evaluation::decToDMS(wld[1]));
+	  std::string thisRA = evaluation::decToDMS(wld[0],"RA");
+	  std::string thisDec = evaluation::decToDMS(wld[1],"DEC");
+	  columns[duchamp::Column::RA].printEntry(stream,  thisRA);
+	  columns[duchamp::Column::DEC].printEntry(stream, thisDec);
 // 	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());

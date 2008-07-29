@@ -71,7 +71,7 @@ namespace askap
 
       int numAxes, status = 0;  /* MUST initialize status */
       fitsfile *fptr;  
-      long *dimAxes;
+      long *dimAxes=0;
 
       // Open the FITS file
       status = 0;
