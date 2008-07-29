@@ -219,7 +219,7 @@ namespace askap
       int ny=imagePixels.shape()(1);
       casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
       casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
-      double lat((axes.start("DEC")+axes.end("DEC"))/2.0);
+      //double lat((axes.start("DEC")+axes.end("DEC"))/2.0);
       
       casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
       casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
