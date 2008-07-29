@@ -267,7 +267,7 @@ namespace askap
       output.setf(std::ios::fixed);
       output << sign
 	     << std::setw(degSize) << std::setfill('0') << std::setprecision(0)
-	     << hourOrDeg << separator 
+	     << fabs(hourOrDeg) << separator 
 	     << std::setw(2) << std::setfill('0') << std::setprecision(0)
 	     << min  << separator ;
       output << std::setw(secondWidth) << std::setfill('0') 

@@ -269,7 +269,7 @@ if __name__ == '__main__':
 
     doHistSpatPlot(fS, fR, xS, yS, True, name='F', plotTitle='Flux difference', position='b')
 
-    savefig('imageQualTest')
+    savefig('imageQualTest1')
 
     figure(2, figsize=(10.,10.), dpi=72)
     font = {'fontsize' : '10'}
@@ -279,6 +279,8 @@ if __name__ == '__main__':
     doHistSpatPlot(aS, aR, xS, yS, True, 't', 'A', 'Major axis differences')
     doHistSpatPlot(bS, bR, xS, yS, True, 'b', 'B', 'Minor axis differences')
 #    doHistSpatPlot(pS, pR, xS, yS, True, 't', 'PA', 'Position angle differences')
+
+    savefig('imageQualTest2')
 
     show()
 
