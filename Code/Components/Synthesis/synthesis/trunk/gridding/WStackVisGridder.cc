@@ -138,7 +138,7 @@ namespace askap
         // for a proper PSF calculation
 		initRepresentativeFieldAndFeed();
       }
-
+      
       ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
       itsSumWeights.set(0.0);
 

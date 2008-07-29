@@ -368,20 +368,19 @@ namespace askap {
       /// itsConvFunc has overSampling**2 planes for each separate data plane (feed, field, chan)
       /// We choose the convolution function at zero fractional offset in u,v 
       for (int iz=0; iz<nZ; ++iz) {
-	const int plane=itsOverSample*itsOverSample*iz;
+           const int plane=itsOverSample*itsOverSample*iz;
 	
-	bool hasData=false;
-	for (int chan=0; chan<nChan; ++chan) {
-	  for (int pol=0; pol<nPol; ++pol) {
-	    const double wt = itsSumWeights(iz, pol, chan);
-	    if(wt > 0.0) {
-	      hasData=true;
-	      totSumWt += wt;
-	      //break;
-	    }
-	  }
-	}
-	
+           bool hasData=false;
+	       for (int chan=0; chan<nChan; ++chan) {
+	            for (int pol=0; pol<nPol; ++pol) {
+                     const double wt = itsSumWeights(iz, pol, chan);
+	                 if (wt > 0.0) {
+                         hasData=true;
+                         totSumWt += wt;
+                         //break;
+                     }
+                }
+           }
 	if(hasData) {
 	  
 	  // Now fill the inner part of the uv plane with the convolution function
@@ -398,12 +397,13 @@ namespace askap {
 	  }
 	  
 	  float peak=real(casa::max(casa::abs(thisPlane)));
-	  //	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
+	  	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  fft2d(thisPlane, false);
 	  thisPlane*=casa::Complex(nx*ny);
 	  peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
 	  //			    << "] peak = "<< peak);
+
 	  if(peak>0.0) {
 	    thisPlane*=casa::Complex(1.0/peak);
 	  }
@@ -440,8 +440,8 @@ namespace askap {
       
       // Shortcut no-op
       if ((inx==onx)&&(iny==ony)) {
-	out=in.copy();
-	return;
+          out=in.copy();
+          return;
       }
       
       ASKAPCHECK(onx>=inx, "Attempting to pad to smaller array");

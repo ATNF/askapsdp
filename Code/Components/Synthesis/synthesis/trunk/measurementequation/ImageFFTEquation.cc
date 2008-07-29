@@ -280,7 +280,7 @@ namespace askap
           ASKAPCHECK(maxPSFWeight>0, "PSF weight is 0, most likely no data were gridded");
           const double psfScalingFactor = casa::max(imageWeight)/maxPSFWeight;
           //std::cout<<"psf peak = "<<casa::max(imagePSF)<<" maxPSFWeight = "<<maxPSFWeight<<" factor="<<
-          //     psfScalingFactor<<std::endl;
+          //     psfScalingFactor<<" maxImageWeight="<<casa::max(imageWeight)<<std::endl;
           imagePSF *= psfScalingFactor;
           // now psf has the same peak as the weight image
         }
