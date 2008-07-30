@@ -77,7 +77,7 @@ try {
    ImplCalWeightSolver solver;
    MDirection pc(Quantity(0.,"deg"),Quantity(-50.,"deg"),
                  MDirection::J2000);
-   solver.setSky(pc,"../mysrc.cl");
+   solver.setSky(pc,"mysrc.cl");
    //solver.setSky(pc,"singlesrc.cl");
    solver.setVP("xntd.element.vbeam.real","xntd.element.vbeam.imag");
    Matrix<Double> feed_offsets(5,2,0.);
