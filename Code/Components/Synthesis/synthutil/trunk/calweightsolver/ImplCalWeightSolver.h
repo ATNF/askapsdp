@@ -42,6 +42,9 @@
 #include <casa/BasicSL/Complex.h>
 
 
+#include <boost/shared_ptr.hpp>
+#include <gridding/IBasicIllumination.h>
+
 class ImplCalWeightSolver {
     casa::MDirection pc; // dish pointing centre
     casa::ComponentList cl; // model of sky brightness
@@ -49,6 +52,7 @@ class ImplCalWeightSolver {
                                            // and measurement (row)
     casa::ImageInterface<casa::Float> *vp_real; // voltage pattern of a single element
     casa::ImageInterface<casa::Float> *vp_imag; // voltage pattern of a single element
+       
 public:
     //static const double lambda=0.2;   // wavelength in metres
     ImplCalWeightSolver() throw();
@@ -56,6 +60,14 @@ public:
     // set up calculation for a given pointing centre and sky model
     void setSky(const casa::MDirection &ipc, 
 		const casa::String &clname) throw(casa::AipsError);
+		
+	/// @brief make synthetic beam
+	/// @details This method constructs synthetic primary beam for the given weights.
+	/// @param[in] name output image name
+	/// @param[in] weights vector of weights
+	void makeSyntheticPB(const std::string &name, 
+	                     const casa::Vector<casa::Complex> &weights);
+		
     // set up the voltage pattern from a disk-based image
     void setVP(const casa::String &namer,const casa::String &namei) 
 	      throw(casa::AipsError); 
@@ -115,5 +127,6 @@ protected:
     // False if the requested offset lies outside the model
     casa::Bool getVPValue(casa::Complex &val, casa::Double l, casa::Double m)
                             const throw(casa::AipsError);
-    
+private:
+    boost::shared_ptr<askap::synthesis::IBasicIllumination> itsIllumination;
 };

@@ -5,3 +5,4 @@ boost=3rdParty/boost/tags/boost-1.34.1
 askap=Code/Base/askap/trunk
 cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.0
 gsl=3rdParty/gsl/default
+synthesis=Code/Components/Synthesis/synthesis/trunk

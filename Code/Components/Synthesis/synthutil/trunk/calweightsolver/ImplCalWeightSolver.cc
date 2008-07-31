@@ -47,9 +47,12 @@
 #include <calweightsolver/SkyCatalogTabWriter.h>
 #include <iomanip>
 
+#include <askap/AskapError.h>
 
 using namespace casa;
 using namespace std;
+
+using namespace askap;
 
 // ImplCalWeightSolver
 
@@ -83,6 +86,21 @@ void ImplCalWeightSolver::setVP(const casa::String &namer,
       throw AipsError("The shape of real and imagingary parts should be identical");
   if (vp_real->shape().nelements()<2) 
       throw AipsError("VP image should have at least 2 directional axes");
+}
+
+/// @brief make synthetic beam
+/// @details This method constructs synthetic primary beam for the given weights.
+/// @param[in] name output image name
+/// @param[in] weights vector of weights
+void ImplCalWeightSolver::makeSyntheticPB(const std::string &name, 
+	                     const casa::Vector<casa::Complex> &weights)
+{
+  ASKAPASSERT(vp_real!=NULL);
+  ASKAPASSERT(vp_imag!=NULL);
+  const casa::CoordinateSystem cs = vp_real->coordinates();
+  PagedImage<float> result(name);
+  result.setCoordinateInfo(cs);
+  
 }
 
 // calculate visibility matrix for given feed_offsets
@@ -139,10 +157,10 @@ void ImplCalWeightSolver::formVisMatrix(const Matrix<Double> &feed_offsets,
 	    Double m=m0-feed_offsets(feed,1);
 	    if (!getVPValue(visbuf,l,m)) continue;
 
-	    Double phasor=2*M_PI*(uvw[0]*l+uvw[1]*m+
-		   uvw[2]*(sqrt(1.-square(l)-square(m))-1.));
             
 	    /*  // Full interferometric visibility
+	    Double phasor=2*M_PI*(uvw[0]*l+uvw[1]*m+
+		   uvw[2]*(sqrt(1.-square(l)-square(m))-1.));
 	    visbuf*=Complex(cos(phasor),sin(phasor))*
 	           casa::Double(real(flux.value()[0])/
 		        sqrt(1.-square(l)-square(m)));
