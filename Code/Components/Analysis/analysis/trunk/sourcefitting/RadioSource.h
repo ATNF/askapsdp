@@ -31,6 +31,8 @@
 #ifndef ASKAP_ANALYSIS_RADIOSOURCE_H_
 #define ASKAP_ANALYSIS_RADIOSOURCE_H_
 
+#include <sourcefitting/Component.h>
+
 #include <analysisutilities/BlobRelated.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
@@ -100,7 +102,9 @@ namespace askap
 	std::multimap<int,PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
 
 	/// @brief Estimate the FWHM of the Detection.
-	void getFWHMestimate(casa::Vector<casa::Double> f, double &angle, double &maj, double &min);
+	void getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min);
+
+	std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
 
 	//@{
 	/// @brief Fit Gaussian components to the Detection.
@@ -177,6 +181,9 @@ namespace askap
 	long boxYsize(){return boxYmax()-boxYmin()+1;};
 	/// Number of pixels in box
 	long boxSize(){return boxXsize()*boxYsize();};
+
+	std::vector<std::pair<long,long> > box(){return itsBoxMargins;};
+	void setBox(std::vector<std::pair<long,long> > box){itsBoxMargins = box;};
 	
 	// @}
 

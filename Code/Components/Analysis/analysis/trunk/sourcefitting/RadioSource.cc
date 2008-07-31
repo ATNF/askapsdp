@@ -1,4 +1,4 @@
-/// @file
+// @file
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -31,12 +31,14 @@
 #include <askap/AskapError.h>
 
 #include <sourcefitting/RadioSource.h>
+#include <sourcefitting/Component.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <evaluationutilities/EvaluationUtilities.h>
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object2D.hh>
+#include <duchamp/PixelMap/Object3D.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Detection/columns.hh>
@@ -142,7 +144,7 @@ namespace askap
 
       //**************************************************************//
 
-      void RadioSource::getFWHMestimate(casa::Vector<casa::Double> f, double &angle, double &maj, double &min)
+      void RadioSource::getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min)
       {
 	/// @details This returns an estimate of an object's shape,
 	/// using the principle axes and position angle calculated in
@@ -155,20 +157,17 @@ namespace askap
 	/// object. In this case, we only look at the one with the
 	/// same peak location as the base object.
 	
-	angle = this->pixelArray.getSpatialMap().getPositionAngle();
-	std::pair<double,double> axes = this->pixelArray.getSpatialMap().getPrincipleAxes();
-	maj = std::max(axes.first,axes.second);
-	min = std::min(axes.first,axes.second);
-	return;
+// 	angle = this->pixelArray.getSpatialMap().getPositionAngle();
+// 	std::pair<double,double> axes = this->pixelArray.getSpatialMap().getPrincipleAxes();
+// 	maj = std::max(axes.first,axes.second);
+// 	min = std::min(axes.first,axes.second);
+// 	return;
 
 	long dim[2]; dim[0]=this->boxXsize(); dim[1]=this->boxYsize();
 	duchamp::Image smlIm(dim);
-	float *fluxarray = new float[this->boxSize()];
-	for(int i=0;i<this->boxSize();i++) fluxarray[i] = f(i);
 	smlIm.saveArray(fluxarray,this->boxSize());
 	smlIm.setMinSize(1);
 	float thresh = (this->itsDetectionThreshold + this->peakFlux) / 2.;
-	thresh /= this->itsNoiseLevel;
 	smlIm.stats().setThreshold(thresh);
 	std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
 	std::vector<PixelInfo::Object2D>::iterator o;
@@ -178,15 +177,89 @@ namespace askap
 	  tempobj.calcFluxes(fluxarray,dim);  // we need to know where the peak is.
 	  if((tempobj.getXPeak()+this->boxXmin())==this->getXPeak()  &&  
 	     (tempobj.getYPeak()+this->boxYmin())==this->getYPeak()){
-	    angle = tempobj.pixels().getSpatialMap().getPositionAngle();
-	    std::pair<double,double> axes = tempobj.pixels().getSpatialMap().getPrincipleAxes();
+	    angle = o->getPositionAngle();
+	    std::pair<double,double> axes = o->getPrincipleAxes();
 	    maj = std::max(axes.first,axes.second);
 	    min = std::min(axes.first,axes.second);
 	  }	  
 
+
 	}
 	
       }
+
+      //**************************************************************//
+
+      std::vector<SubComponent> RadioSource::getSubComponentList(casa::Vector<casa::Double> &f)
+      {
+	std::vector<SubComponent> fullList;
+
+	long dim[2]; dim[0]=this->boxXsize(); dim[1]=this->boxYsize();
+	duchamp::Image smlIm(dim);
+	float *fluxarray = new float[this->boxSize()];
+	PixelInfo::Object2D spatMap = this->pixelArray.getSpatialMap();
+	for(int i=0;i<this->boxSize();i++){
+	  if(spatMap.isInObject(i%this->boxXsize()+this->boxXmin(),i/this->boxXsize()+this->boxYmin())) 
+	    fluxarray[i] = f(i);
+	  else fluxarray[i] = 0.;
+	}
+	smlIm.saveArray(fluxarray,this->boxSize());
+	smlIm.setMinSize(1);
+	
+	SubComponent base;
+	base.setPeak(this->peakFlux);
+	base.setX(this->xpeak);
+	base.setY(this->ypeak);
+	double a,b,c;
+	this->getFWHMestimate(fluxarray,a,b,c);
+	base.setPA(a);
+	base.setMajor(b);
+	base.setMinor(c);
+// 	base.setPA(this->pixelArray.getSpatialMap().getPositionAngle());
+// 	std::pair<double,double> axes = this->pixelArray.getSpatialMap().getPrincipleAxes();
+// 	base.setMajor(std::max(axes.first,axes.second));
+// 	base.setMinor(std::min(axes.first,axes.second));
+
+	const int numThresh = 10;
+	float baseThresh = log10(this->itsDetectionThreshold);
+	float threshIncrement = (log10(this->peakFlux)-baseThresh)/float(numThresh+1);
+	float thresh;
+	int threshCtr = 0;
+	std::vector<PixelInfo::Object2D> objlist;
+	std::vector<PixelInfo::Object2D>::iterator obj;
+	bool keepGoing;
+	do{
+	  threshCtr++;
+	  thresh = pow(10.,baseThresh + threshCtr * threshIncrement);
+	  smlIm.stats().setThreshold(thresh);
+	  objlist = smlIm.lutz_detect();
+	  keepGoing = (objlist.size()==1);
+	}while(keepGoing && (threshCtr < numThresh));
+
+	if(!keepGoing){
+	  for(obj=objlist.begin();obj<objlist.end();obj++){
+	    RadioSource newsrc;
+	    newsrc.setDetectionThreshold(thresh);
+	    newsrc.pixels().addChannel(0,*obj);
+	    newsrc.calcFluxes(fluxarray,dim);
+	    newsrc.setBox(this->box());
+	    newsrc.pixels().addOffsets(this->boxXmin(),this->boxYmin(),0);
+	    newsrc.xpeak += this->boxXmin();
+	    newsrc.ypeak += this->boxYmin();
+	    std::vector<SubComponent> newlist = newsrc.getSubComponentList(f);
+	    for(uInt i=0;i<newlist.size();i++) fullList.push_back(newlist[i]);
+	  }
+	}
+	else fullList.push_back(base);
+
+	std::sort(fullList.begin(),fullList.end());
+	std::reverse(fullList.begin(),fullList.end());
+
+	delete [] fluxarray;
+
+	return fullList;
+      }
+
 
       //**************************************************************//
 
@@ -207,7 +280,6 @@ namespace askap
 	/// times), and the Value element being the location of the
 	/// peak, stored as a PixelInfo::Voxel.
 
-	//	const int numThresh = 50;
 	const int numThresh = 10;
 
 	std::multimap<int,PixelInfo::Voxel> peakMap;
@@ -220,41 +292,23 @@ namespace askap
 	smlIm.saveArray(fluxarray,this->boxSize());
 	smlIm.setMinSize(1);
 
-// 	float baseThresh = this->itsDetectionThreshold / this->itsNoiseLevel;
-	float baseThresh = log10(this->itsDetectionThreshold/this->itsNoiseLevel);
-
-	float threshIncrement = (log10(this->peakFlux/this->itsNoiseLevel)-baseThresh)/float(numThresh);
-
-	std::cout << "detect thresh = " << this->itsDetectionThreshold
-		  << "  peak = " << this->peakFlux 
-		  << "  noise level = " << this->itsNoiseLevel 
-		  << "\n";
-	std::cout << "Thresholds: ";
-	for(int i=0;i<numThresh;i++)
-	  std::cout << pow(10.,baseThresh + i * threshIncrement) * this->itsNoiseLevel << " ";
-	std::cout << "\n";
+	float baseThresh = log10(this->itsDetectionThreshold);
+	float threshIncrement = (log10(this->peakFlux)-baseThresh)/float(numThresh);
 
 	PixelInfo::Object2D spatMap = this->pixelArray.getSpatialMap();
-	std::cout << spatMap.getXmin() << " " << spatMap.getXmax() << "  " << spatMap.getYmin() << " " << spatMap.getYmax() << "\n";
 
 	for(int i=1;i<=numThresh;i++){
 	  float thresh = pow(10.,baseThresh + i * threshIncrement);
-// 	  float thresh = baseThresh + i * threshIncrement;
 	  smlIm.stats().setThreshold(thresh);
 	  std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
-	  std::cout << thresh*this->itsNoiseLevel << "   \t" << objlist.size() << "\t";
 	  std::vector<PixelInfo::Object2D>::iterator o;
 	  for(o=objlist.begin();o<objlist.end();o++){	    
 	    duchamp::Detection tempobj;
 	    tempobj.pixels().addChannel(0,*o);
 	    tempobj.calcFluxes(fluxarray,dim);
-	    std::cout << "("
-		      <<tempobj.getXPeak()+this->boxXmin()<<","
-		      <<tempobj.getYPeak()+this->boxYmin()<<")";
 	    bool pkInObj = spatMap.isInObject(tempobj.getXPeak()+this->boxXmin(),
 					      tempobj.getYPeak()+this->boxYmin());
 	    if(pkInObj){
-	      std::cout << " y\t";
 	      PixelInfo::Voxel peakLoc(tempobj.getXPeak()+this->boxXmin(),
 				       tempobj.getYPeak()+this->boxYmin(),
 				       tempobj.getZPeak(),
@@ -275,9 +329,7 @@ namespace askap
 	      }
 	      peakMap.insert( std::pair<int,PixelInfo::Voxel>(freq,peakLoc) );
 	    }
-	    else std::cout << " n\t";
 	  }
-	  std::cout << "\n";
 
 	}
 	
@@ -335,7 +387,7 @@ namespace askap
 	  return failure;
 	}
 
-	long z = this->getZcentre();
+	long z = this->getZPeak();
 	for(long x=this->boxXmin();x<=this->boxXmax() && !failure;x++){
 	  for(long y=this->boxYmin();y<=this->boxYmax() && !failure;y++){
 	    int i = (x-this->boxXmin()) + (y-this->boxYmin())*this->boxXsize();
@@ -343,7 +395,7 @@ namespace askap
 	    std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
 	    while( !tempvox.match(*vox) && vox!=voxelList->end() ) vox++;
 	    if(vox == voxelList->end()) failure = true;
-	    else f(i) = vox->getF() / this->itsNoiseLevel;
+	    else f(i) = vox->getF();
  	    sigma(i) = this->itsNoiseLevel;
 	    curpos(0)=x;
 	    curpos(1)=y;
@@ -392,7 +444,7 @@ namespace askap
 	  for(int y=this->boxYmin();y<=this->boxYmax();y++){
 	    int i = (x-this->boxXmin()) + (y-this->boxYmin())*this->boxXsize();
 	    int j = x + y*dimArray[0];
-	    if((j>=0)&&(j<dimArray[0]*dimArray[1])) f(i) = fluxArray[j] / this->itsNoiseLevel;
+	    if((j>=0)&&(j<dimArray[0]*dimArray[1])) f(i) = fluxArray[j];
 	    else f(i)=0.;
 	    sigma(i) = this->itsNoiseLevel;
 	    curpos(0)=x;
@@ -419,46 +471,22 @@ namespace askap
  
 	if(this->getSpatialSize() < minFitSize) return false;
 
+	std::cout << "detect thresh = " << this->itsDetectionThreshold
+		  << "  peak = " << this->peakFlux 
+		  << "  noise level = " << this->itsNoiseLevel 
+		  << "\n";
+
 	float boxFlux = 0.;
 	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
 	std::vector<Double> fluxes;
 	f.tovector(fluxes);
 
-	std::multimap<int,PixelInfo::Voxel> peakList = this->findDistinctPeaks(f);
-	std::multimap<int,PixelInfo::Voxel>::reverse_iterator pk;
-
 	Double maxRMS = 5.;
 	casa::Matrix<casa::Double> components;
 	casa::Matrix<casa::Double> estimate;
-	casa::Matrix<casa::Double> baseEstimate;
 	casa::Matrix<casa::Double> retryfactors;
 	casa::Matrix<casa::Double> baseRetryfactors;
 	casa::Matrix<casa::Double> solution[4];
-
-	baseEstimate.resize(1,6);
-	baseEstimate(0,0)=this->peakFlux / this->itsNoiseLevel;   // height of Gaussian
-	baseEstimate(0,1)=this->getXcentre();    // x centre
-	baseEstimate(0,2)=this->getYcentre();    // y centre
-
-	// For the widths, use the measured principle axes and
-	// position angle, unless the major axis is smaller than the
-	// beam (and we have the beam info)
-	double angle,maj,min;
- 	this->getFWHMestimate(f,angle,maj,min);
-	std::cout << "Major axis fwhm = " << maj << ", Minor axis fwhm = " << min << ", pos angle = " << angle << "\n";
-	std::cout << "Noise level = " << this->itsNoiseLevel << "\n";
-	if(this->itsHeader.getBmajKeyword()>0 && 
- 	   (this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale() > maj)){
-	  baseEstimate(0,3)=this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale();
-	  baseEstimate(0,4)=this->itsHeader.getBminKeyword()/this->itsHeader.getBmajKeyword();
-	  baseEstimate(0,5)=this->itsHeader.getBpaKeyword() * M_PI / 180.;
-	}
-	else{
-	  baseEstimate(0,3)=maj;
-	  baseEstimate(0,4)=min/maj;
-	  baseEstimate(0,5)=angle;
-	}
-	cout << "Estimated Parameters: "; printparameters(baseEstimate);
 
 	baseRetryfactors.resize(1,6);
 	baseRetryfactors(0,0) = 1.1; 
@@ -474,6 +502,11 @@ namespace askap
 	int bestFit = 0;
 	float bestRChisq = 9999.;
 
+	std::vector<SubComponent> cmpntList = this->getSubComponentList(f);
+	std::cout << "Found " << cmpntList.size() << " subcomponents\n";
+	for(uInt i=0;i<cmpntList.size();i++)
+	  std::cout << "SubComponent: " << cmpntList[i];
+
 	for(int ctr=0;ctr<4;ctr++){
 
 	  unsigned int numGauss = ctr + 1;
@@ -481,20 +514,26 @@ namespace askap
 	  fitgauss[ctr].setNumGaussians(numGauss);
 
 	  estimate.resize(numGauss,6);
-	  pk = peakList.rbegin();
-	  for(unsigned int g=0;g<numGauss;g++){
-	    estimate(g,0) = baseEstimate(0,0);
-	    if(g<peakList.size()){
-	      estimate(g,1) = pk->second.getX();
-	      estimate(g,2) = pk->second.getY();
-	      pk++;
+
+	  uInt nCmpnt = cmpntList.size();
+	  for(uInt g=0;g<numGauss;g++){
+	    uInt cmpnt = g % nCmpnt;
+	    estimate(g,0) = cmpntList[cmpnt].peak();
+	    estimate(g,1) = cmpntList[cmpnt].x();
+	    estimate(g,2) = cmpntList[cmpnt].y();
+	    if(this->itsHeader.getBmajKeyword()>0 && 
+	       (this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale() > cmpntList[cmpnt].maj())){
+	      estimate(g,3)=this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale();
+	      estimate(g,4)=this->itsHeader.getBminKeyword()/this->itsHeader.getBmajKeyword();
+	      estimate(g,5)=this->itsHeader.getBpaKeyword() * M_PI / 180.;
 	    }
 	    else{
-	      estimate(g,1) = baseEstimate(0,1);
-	      estimate(g,2) = baseEstimate(0,2);
+	      estimate(g,3) = cmpntList[cmpnt].maj();
+	      estimate(g,4) = cmpntList[cmpnt].min()/cmpntList[cmpnt].maj();
+	      estimate(g,5) = cmpntList[cmpnt].pa();
 	    }
-	    for(int i=3;i<6;i++) estimate(g,i) = baseEstimate(0,i);
 	  }
+
 	  fitgauss[ctr].setFirstEstimate(estimate);
 	  cout << "Estimate: "; printparameters(estimate);
 
@@ -518,14 +557,21 @@ namespace askap
     
 	  solution[ctr].resize();
 	  bool thisFitGood = true;
-	  try {
-	    solution[ctr] = fitgauss[ctr].fit(pos, f, maxRMS);
-	    // 	    solution[ctr] = fitgauss[ctr].fit(pos, f, sigma, maxRMS);
-	  } catch (AipsError err) {
-	    std::string message = err.getMesg().chars();
-	    message = "FIT ERROR: " + message;
-	    ASKAPLOG_ERROR(logger, message);
-	    thisFitGood = false;
+	  for(int fitloop=0;fitloop<3;fitloop++){
+	    try {
+	      solution[ctr] = fitgauss[ctr].fit(pos, f, sigma, maxRMS);
+	    } catch (AipsError err) {
+	      std::string message = err.getMesg().chars();
+	      message = "FIT ERROR: " + message;
+	      ASKAPLOG_ERROR(logger, message);
+	      thisFitGood = false;
+	    }
+	    for(unsigned int i=0;i<numGauss;i++){
+	      solution[ctr](i,5) = remainder(solution[ctr](i,5), 2.*M_PI);
+	    }
+	    cout << "Int. Solution #" << fitloop+1<<": chisq=" << fitgauss[ctr].chisquared()<<": "; printparameters(solution[ctr]);
+	    if(!fitgauss[ctr].converged()) fitloop=9999;
+	    else fitgauss[ctr].setFirstEstimate(solution[ctr]);
 	  }
 
 	  for(unsigned int i=0;i<numGauss;i++){
@@ -561,9 +607,6 @@ namespace askap
 
 	  passConv  = fitgauss[ctr].converged();
 	  passConv  = passConv && (chisq[ctr]>0.);
-// 	  for(unsigned int i=0;i<numGauss;i++){
-// 	    passConv = passConv && ( fabs(solution[ctr](i,5))<2.*M_PI );
-// 	  }
 
 	  passChisq = false;
 	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
@@ -582,9 +625,8 @@ namespace askap
 	      passYLoc = passYLoc && (solution[ctr](i,2)>this->boxYmin()) && 
 		(solution[ctr](i,2)<this->boxYmax());
 	      passFlux = passFlux && (solution[ctr](i,0) > 0.);
-	      passFlux = passFlux && (solution[ctr](i,0) * this->itsNoiseLevel
-				      > 0.5*this->itsDetectionThreshold);
-	      passPeak = passPeak && (solution[ctr](i,0) * this->itsNoiseLevel < 2.*this->peakFlux);	    
+	      passFlux = passFlux && (solution[ctr](i,0) > 0.5*this->itsDetectionThreshold);
+ 	      passPeak = passPeak && (solution[ctr](i,0) < 2.*this->peakFlux);	    
 	      
 	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),
 					   solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
@@ -621,7 +663,7 @@ namespace askap
 	  this->hasFit = true;
 	  for(int i=0;i<=bestFit;i++){
 	    casa::Gaussian2D<casa::Double> 
-	      gauss(solution[bestFit](i,0) * this->itsNoiseLevel,
+	      gauss(solution[bestFit](i,0),
 		    solution[bestFit](i,1),solution[bestFit](i,2),
 		    solution[bestFit](i,3),solution[bestFit](i,4),solution[bestFit](i,5));
 	    this->itsGaussFitSet.push_back(gauss);

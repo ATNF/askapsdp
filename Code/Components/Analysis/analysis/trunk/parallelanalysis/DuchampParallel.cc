@@ -331,7 +331,6 @@ namespace askap
 
 	// don't do fit if we have a spectral axis.
 	bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
-// 	  this->itsCube.getNumDim() <= 2;
 
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": flagDoFit = " << this->itsFlagDoFit
 			  << ", thirdAxis = " << this->itsCube.header().canUseThirdAxis()
@@ -348,7 +347,7 @@ namespace askap
 	float threshold = itsCube.stats().getThreshold();
 
  	for(int i=0;i<itsCube.getNumObj();i++){
-// 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
+	  // 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
 	  sourcefitting::RadioSource src(itsCube.getObject(i));
 	  src.setNoiseLevel( noise );
 	  src.setDetectionThreshold( threshold );
@@ -438,12 +437,8 @@ namespace askap
 	      ymax = std::min(itsCube.getDimY()-1, src->boxYmax());
 	      zmin = std::max(0 , int(src->boxZmin() ));
 	      zmax = std::min(itsCube.getDimZ()-1, src->boxZmax());
-// 	      xmin = src->boxXmin(); xmax = src->boxXmax();
-// 	      ymin = src->boxYmin(); ymax = src->boxYmax();
-// 	      zmin = src->boxZmin(); zmax = src->boxZmax();
 	  
  	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
-// 	      int numVox = src->boxSize();
 	      out << numVox;
 	  
 	      for(int32 x=xmin; x<=xmax; x++){
@@ -601,7 +596,7 @@ namespace askap
 	  for(int i=0;i<itsCube.getNumObj();i++){
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
 	    sourcefitting::RadioSource src(itsCube.getObject(i));
-	    //	    src.setNoiseLevel( noise );
+	    src.setNoiseLevel( noise );
 	    src.setDetectionThreshold( threshold );
 	    src.setHeader( head );
  	    src.defineBox(itsCube.getDimArray());
