@@ -52,6 +52,12 @@ public:
    IlluminationUtils(const boost::shared_ptr<synthesis::IBasicIllumination> &illum,
                      size_t size, double cellsize, size_t oversample);
    
+   /// @brief constructor from a parset file 
+   /// @details
+   /// This version extracts all required parameters from the supplied parset file 
+   /// using the same factory, which provides illumination patterns for gridders.
+   /// @param[in] parset parset file name 
+   IlluminationUtils(const std::string &parset);
    
    /// @brief save the pattern into an image
    /// @details name file name

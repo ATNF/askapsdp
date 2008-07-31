@@ -28,6 +28,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <calweightsolver/IlluminationUtils.h>
+
 #include <images/Images/PagedImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 //#include <coordinates/Coordinates/StokesCoordinate.h>
@@ -37,8 +38,11 @@
 #include <measures/Measures/MDirection.h>
 #include <lattices/Lattices/ArrayLattice.h>
 
+#include <APS/ParameterSet.h>
+
 
 #include <gridding/UVPattern.h>
+#include <gridding/VisGridderFactory.h>
 
 #include <askap/AskapError.h>
 
@@ -57,6 +61,27 @@ IlluminationUtils::IlluminationUtils(const boost::shared_ptr<IBasicIllumination>
         size_t size, double cellsize, size_t oversample) :
         itsIllumination(illum), itsSize(size), itsCellSize(cellsize), itsOverSample(oversample)
 {}
+
+/// @brief constructor from a parset file 
+/// @details
+/// This version extracts all required parameters from the supplied parset file 
+/// using the same factory, which provides illumination patterns for gridders.
+/// @param[in] parset parset file name 
+IlluminationUtils::IlluminationUtils(const std::string &parset)
+{
+  LOFAR::ACC::APS::ParameterSet params(parset);
+  itsIllumination = VisGridderFactory::makeIllumination(params);
+  itsCellSize = params.getDouble("cellsize");
+
+
+  const int size = params.getInt32("size"); 
+  ASKAPCHECK(size>0,"Size is supposed to be positive, you have "<<size);
+  itsSize = size_t(size);
+  
+  const int oversample = params.getInt32("oversample");
+  ASKAPCHECK(oversample>0,"Oversample is supposed to be positive, you have "<<oversample);
+  itsOverSample = size_t(oversample);  
+}
    
 /// @brief save the pattern into an image
 /// @details name file name

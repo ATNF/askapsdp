@@ -57,8 +57,6 @@ namespace askap
 				static IVisGridder::ShPtr make(
 				    const LOFAR::ACC::APS::ParameterSet& parset);
 				    
-			protected:
-			
 			    /// @brief a helper factory of illumination patterns
 			    /// @details Illumination model is required for a number of gridders. This
 			    /// method allows to avoid duplication of code and encapsulates all 
