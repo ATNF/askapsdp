@@ -78,7 +78,7 @@ try {
    return 0;
    */
    askap::synthutils::IlluminationUtils ilutils("test.in");
-   ilutils.save("test.img");
+   ilutils.save("test.img","amp");
    
    // old main.cc
    ImplCalWeightSolver solver;

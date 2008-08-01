@@ -60,8 +60,11 @@ public:
    IlluminationUtils(const std::string &parset);
    
    /// @brief save the pattern into an image
-   /// @details name file name
-   void save(const std::string &name);
+   /// @details 
+   /// @param[in] name file name
+   /// @param[in] what type of the image requested, e.g. amplitude (default),
+   /// real, imag, phase, complex. Minimum match applies.
+   void save(const std::string &name, const std::string &what = "amp");
    
 private:
    /// @brief illumination pattern corresponding to the single feed

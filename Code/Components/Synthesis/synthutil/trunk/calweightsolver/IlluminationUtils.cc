@@ -87,8 +87,11 @@ IlluminationUtils::IlluminationUtils(const std::string &parset)
 }
    
 /// @brief save the pattern into an image
-/// @details name file name
-void IlluminationUtils::save(const std::string &name)
+/// @details 
+/// @param[in] name file name
+/// @param[in] what type of the image requested, e.g. amplitude (default),
+/// real, imag, phase, complex. Minimum match applies.
+void IlluminationUtils::save(const std::string &name, const std::string &what)
 {
    ASKAPDEBUGASSERT(itsIllumination);
    const double freq=1.4e9;
@@ -103,8 +106,8 @@ void IlluminationUtils::save(const std::string &name)
    names[0]="U"; names[1]="V";
    
    casa::Vector<double> increment(2);
-   increment[0]=itsCellSize/double(itsOverSample);
-   increment[1]=-itsCellSize/double(itsOverSample);
+   increment[0]=-itsCellSize/double(itsOverSample);
+   increment[1]=itsCellSize/double(itsOverSample);
    
    casa::LinearCoordinate linear(names, casa::Vector<casa::String>(2,"lambda"),
           casa::Vector<double>(2,0.), increment, xform, 
@@ -113,15 +116,29 @@ void IlluminationUtils::save(const std::string &name)
    casa::CoordinateSystem coords;
    coords.addCoordinate(linear);    
    //coords.addCoordinate(azel);    
-/*
-   casa::PagedImage<casa::Complex> result(casa::TiledShape(casa::IPosition(2,itsSize,
-             itsSize)), coords, name);
-   casa::ArrayLattice<casa::Complex> patternLattice(pattern.pattern());                
-  */
-   casa::PagedImage<casa::Float> result(casa::TiledShape(casa::IPosition(2,itsSize,
-             itsSize)), coords, name);
-   const casa::Array<casa::Float> patternAmpArray(casa::amplitude(pattern.pattern()));   
-   casa::ArrayLattice<casa::Float> patternLattice(patternAmpArray);
-   result.copyData(patternLattice);
-   result.setUnits("Jy/pixel");             
+   if (what.find("complex") == 0) {
+       casa::PagedImage<casa::Complex> result(casa::TiledShape(casa::IPosition(2,itsSize,
+               itsSize)), coords, name);
+       casa::ArrayLattice<casa::Complex> patternLattice(pattern.pattern());                
+       result.setUnits("Jy/pixel");             
+   } else {
+       casa::PagedImage<casa::Float> result(casa::TiledShape(casa::IPosition(2,itsSize,
+               itsSize)), coords, name);
+       casa::Array<casa::Float> workArray;
+       if (what.find("amp")==0) {
+           workArray = casa::amplitude(pattern.pattern());
+       } else if (what.find("real") == 0) {
+           workArray = casa::real(pattern.pattern());
+       } else if (what.find("imag") == 0) {
+           workArray = casa::imag(pattern.pattern());
+       } else if (what.find("phase") == 0) {
+           workArray = casa::phase(pattern.pattern());
+       } else {
+          ASKAPTHROW(AskapError, "Unknown type of image requested from IlluminationUtils::save ("<<
+                     what<<")");
+       }
+       casa::ArrayLattice<casa::Float> patternLattice(workArray);
+       result.copyData(patternLattice);
+       result.setUnits("Jy/pixel");             
+   }
 }
