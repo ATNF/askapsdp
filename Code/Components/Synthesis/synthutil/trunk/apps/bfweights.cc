@@ -34,6 +34,10 @@
 #include <casa/BasicSL/Complex.h>
 #include <calweightsolver/ImplCalWeightSolver.h>
 #include <calweightsolver/EigenSolve.h>
+
+#include <calweightsolver/IlluminationUtils.h>
+#include <askap/AskapError.h>
+
 #include <fstream>
 
 using namespace casa;
@@ -73,6 +77,9 @@ try {
    cout<<"Peak ampl. is "<<pkval<<endl;
    return 0;
    */
+   askap::synthutils::IlluminationUtils ilutils("test.in");
+   ilutils.save("test.img");
+   
    // old main.cc
    ImplCalWeightSolver solver;
    MDirection pc(Quantity(0.,"deg"),Quantity(-50.,"deg"),
@@ -100,6 +107,10 @@ try {
    }
 }
 catch (const AipsError &ae) {
+   cerr<<ae.what()<<endl;
+   return -1;
+}
+catch (askap::AskapError &ae) {
    cerr<<ae.what()<<endl;
    return -1;
 }

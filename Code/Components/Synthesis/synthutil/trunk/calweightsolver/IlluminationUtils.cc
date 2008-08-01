@@ -34,9 +34,12 @@
 //#include <coordinates/Coordinates/StokesCoordinate.h>
 //#include <coordinates/Coordinates/SpectralCoordinate.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <coordinates/Coordinates/LinearCoordinate.h>
 #include <coordinates/Coordinates/Projection.h>
 #include <measures/Measures/MDirection.h>
 #include <lattices/Lattices/ArrayLattice.h>
+#include <casa/Arrays/ArrayMath.h>
+
 
 #include <APS/ParameterSet.h>
 
@@ -94,13 +97,31 @@ void IlluminationUtils::save(const std::string &name)
    
    casa::Matrix<double> xform(2,2);
    xform = 0.; xform.diagonal() = 1.;
-   casa::DirectionCoordinate azel(casa::MDirection::AZEL, casa::Projection::SIN, 0.,0.,
-                 -itsCellSize, itsCellSize, xform, itsSize/2, itsSize/2);
+  // casa::DirectionCoordinate azel(casa::MDirection::AZEL, casa::Projection::SIN, 0.,0.,
+  //               -itsCellSize, itsCellSize, xform, itsSize/2, itsSize/2);
+   casa::Vector<casa::String> names(2);
+   names[0]="U"; names[1]="V";
+   
+   casa::Vector<double> increment(2);
+   increment[0]=itsCellSize/double(itsOverSample);
+   increment[1]=-itsCellSize/double(itsOverSample);
+   
+   casa::LinearCoordinate linear(names, casa::Vector<casa::String>(2,"lambda"),
+          casa::Vector<double>(2,0.), increment, xform, 
+          casa::Vector<double>(2,double(itsSize)/2));
+   
    casa::CoordinateSystem coords;
-   coords.addCoordinate(azel);    
-   casa::PagedImage<casa::Complex> result(casa::TiledShape(casa::IPosition(itsSize,
+   coords.addCoordinate(linear);    
+   //coords.addCoordinate(azel);    
+/*
+   casa::PagedImage<casa::Complex> result(casa::TiledShape(casa::IPosition(2,itsSize,
              itsSize)), coords, name);
    casa::ArrayLattice<casa::Complex> patternLattice(pattern.pattern());                
+  */
+   casa::PagedImage<casa::Float> result(casa::TiledShape(casa::IPosition(2,itsSize,
+             itsSize)), coords, name);
+   const casa::Array<casa::Float> patternAmpArray(casa::amplitude(pattern.pattern()));   
+   casa::ArrayLattice<casa::Float> patternLattice(patternAmpArray);
    result.copyData(patternLattice);
    result.setUnits("Jy/pixel");             
 }
