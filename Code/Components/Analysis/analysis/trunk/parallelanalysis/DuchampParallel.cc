@@ -88,6 +88,19 @@ namespace askap
   namespace analysis
   {
 
+    bool DuchampParallel::is2D()
+    {
+      /// @details Check whether the image is 2-dimensional, by
+      /// looking at the dim array in the Cube object, and counting
+      /// the number of dimensions that are greater than 1
+      int numDim=0;
+      long *dim = itsCube.getDimArray();
+      for(int i=0;i<itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
+      return numDim<=2;
+    }
+    
+    //**************************************************************//
+
     DuchampParallel::DuchampParallel(int argc, const char** argv,
         const LOFAR::ACC::APS::ParameterSet& parset)
     : AskapParallel(argc, argv)

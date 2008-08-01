@@ -192,6 +192,22 @@ namespace askap
 
       std::vector<SubComponent> RadioSource::getSubComponentList(casa::Vector<casa::Double> &f)
       {
+	
+	/// @details This function returns a vector list of
+	/// subcomponents that make up the Detection. The pixel array
+	/// f is searched at a series of thresholds spaced
+	/// logarithmically between the Detection's peak flux and the
+	/// original detection threshold. If more than one object is
+	/// detected at any of these searches, getSubComponentList()
+	/// is called on each of these objects. This recursive
+	/// exectution will continue until only one object is left, at
+	/// which point we return a SubComponent object that holds all
+	/// parameters necessary to specify a 2D Gaussian (the shape
+	/// parameters are determined using getFWHMestimate()).  The
+	/// ultimate returned object is a vector list of
+	/// SubComponents, ordered from highest to lowest peak flux.
+
+
 	std::vector<SubComponent> fullList;
 
 	long dim[2]; dim[0]=this->boxXsize(); dim[1]=this->boxYsize();
@@ -469,6 +485,8 @@ namespace askap
 	/// detection plus the border given by detectionBorder are
 	/// included in the fit.
  
+	const int maxNumGauss = 4;
+
 	if(this->getSpatialSize() < minFitSize) return false;
 
 	std::cout << "detect thresh = " << this->itsDetectionThreshold
@@ -486,7 +504,7 @@ namespace askap
 	casa::Matrix<casa::Double> estimate;
 	casa::Matrix<casa::Double> retryfactors;
 	casa::Matrix<casa::Double> baseRetryfactors;
-	casa::Matrix<casa::Double> solution[4];
+	casa::Matrix<casa::Double> solution[maxNumGauss];
 
 	baseRetryfactors.resize(1,6);
 	baseRetryfactors(0,0) = 1.1; 
@@ -496,8 +514,8 @@ namespace askap
 	baseRetryfactors(0,4) = 1.01;
 	baseRetryfactors(0,5) = M_PI/180.;
 
-	float chisq[4];
-	FitGaussian<casa::Double> fitgauss[4];
+	float chisq[maxNumGauss];
+	FitGaussian<casa::Double> fitgauss[maxNumGauss];
 	bool fitIsGood = false;
 	int bestFit = 0;
 	float bestRChisq = 9999.;
@@ -507,7 +525,7 @@ namespace askap
 	for(uInt i=0;i<cmpntList.size();i++)
 	  std::cout << "SubComponent: " << cmpntList[i];
 
-	for(int ctr=0;ctr<4;ctr++){
+	for(int ctr=0;ctr<maxNumGauss;ctr++){
 
 	  unsigned int numGauss = ctr + 1;
 	  fitgauss[ctr].setDimensions(2);
@@ -569,7 +587,9 @@ namespace askap
 	    for(unsigned int i=0;i<numGauss;i++){
 	      solution[ctr](i,5) = remainder(solution[ctr](i,5), 2.*M_PI);
 	    }
-	    cout << "Int. Solution #" << fitloop+1<<": chisq=" << fitgauss[ctr].chisquared()<<": "; printparameters(solution[ctr]);
+	    cout << "Int. Solution #" << fitloop+1
+		 <<": chisq=" << fitgauss[ctr].chisquared()
+		 <<": "; printparameters(solution[ctr]);
 	    if(!fitgauss[ctr].converged()) fitloop=9999;
 	    else fitgauss[ctr].setFirstEstimate(solution[ctr]);
 	  }

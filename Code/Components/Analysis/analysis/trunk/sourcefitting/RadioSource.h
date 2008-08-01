@@ -33,7 +33,6 @@
 
 #include <sourcefitting/Component.h>
 
-#include <analysisutilities/BlobRelated.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
 
@@ -59,13 +58,14 @@ namespace askap
   namespace analysis
   {
 
-    /// @ingroup sourcefitting
     namespace sourcefitting
     {
 
+      /// @ingroup sourcefitting
       /// @brief Width of border to put around detections for fitting purposes, in pixels
       const int detectionBorder = 3;
 
+      /// @ingroup sourcefitting
       /// @brief Minimum spatial size [pixels] a source must have to be fit
       const int minFitSize = 3;
 
@@ -104,6 +104,7 @@ namespace askap
 	/// @brief Estimate the FWHM of the Detection.
 	void getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min);
 
+	/// @brief Return a list of subcomponents.
 	std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
 
 	//@{
@@ -141,7 +142,9 @@ namespace askap
 
 	/// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
 	// @{
+	/// Pass a RadioSource object into a Blob
 	friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, RadioSource& src);
+	/// Receive a RadioSource object from a Blob
 	friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, RadioSource& src);
 	// @}
 
@@ -182,7 +185,9 @@ namespace askap
 	/// Number of pixels in box
 	long boxSize(){return boxXsize()*boxYsize();};
 
+	/// Return the full box description
 	std::vector<std::pair<long,long> > box(){return itsBoxMargins;};
+	/// Define the box in one shot
 	void setBox(std::vector<std::pair<long,long> > box){itsBoxMargins = box;};
 	
 	// @}

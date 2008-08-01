@@ -88,13 +88,22 @@ namespace askap
       /// @brief Print out the resulting source list (on the master)
       void printResults();
 
-      /// @brief Fit the detected sources (on the master)
+      /// @brief Fit the detected sources (on the workers)
       void fitSources();
 
+      /// @brief Find the sources on each worker
       void findSources();
+
+      /// @brief Send the detected sources from the workers to the master
       void sendObjects();
+
+      /// @brief Receive the detected sources from the workers (on the master)
       void receiveObjects();
+
+      /// @brief Fit the sources on the boundaries between workers' subimages (on the master)
       void cleanup();
+
+      /// @brief Calculate the object parameters on the master.
       void calcObjectParams();
 
       /// @brief Write a Karma annotation file showing the fits (on the master).
@@ -118,12 +127,8 @@ namespace askap
       /// @brief Read the threshold to be used (on the workers)
       void receiveThreshold();
 
-      bool is2D(){
-	int numDim=0;
-	long *dim = itsCube.getDimArray();
-	for(int i=0;i<itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
-	return numDim<=2;
-      }
+      /// @brief Is the dataset a 2-dimensional image?
+      bool is2D();
 
     protected:
 

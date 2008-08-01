@@ -357,7 +357,6 @@ namespace askap
       /// axes. The number of axes is also determined from the WCS
       /// parameter set.
       ///
-      /// @param numWorkers The number of workers and the number of subimages. 
       /// @param parset The parameter set holding info on how to divide the image.
 
       this->itsImageName = parset.getString("image");
@@ -404,7 +403,7 @@ namespace askap
     duchamp::Section SubimageDef::section(int workerNum)
     {
 
-      /// @define Return the subsection object for the given worker
+      /// @details Return the subsection object for the given worker
       /// number. (These start at 0). The subimages are tiled across
       /// the cube with the x-direction varying quickest, then y, then
       /// z. The dimensions of the array are obtained with the
@@ -464,7 +463,7 @@ namespace askap
 
       /// @details Use the SubimageDef class to return the full list
       /// of subimage specifications for all workers.
-      /// @param workerNum The number of the subimage (starting at 0);
+      /// @param numWorkers The number of workers 
       /// @param parset The set of parameters.
       /// @return A std::vector of duchamp::Section objects.
 
