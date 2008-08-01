@@ -39,6 +39,8 @@
 #include <measures/Measures/MDirection.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <casa/Arrays/ArrayMath.h>
+#include <gridding/BasicCompositeIllumination.h>
+#include <scimath/Mathematics/RigidVector.h>
 
 
 #include <APS/ParameterSet.h>
@@ -62,8 +64,10 @@ using namespace askap::synthesis;
 /// @param[in] oversample oversampling factor (default 1) 
 IlluminationUtils::IlluminationUtils(const boost::shared_ptr<IBasicIllumination> &illum,
         size_t size, double cellsize, size_t oversample) :
-        itsIllumination(illum), itsSize(size), itsCellSize(cellsize), itsOverSample(oversample)
+        itsElementIllumination(illum), itsIllumination(illum), itsSize(size), 
+        itsCellSize(cellsize), itsOverSample(oversample)
 {}
+
 
 /// @brief constructor from a parset file 
 /// @details
@@ -73,7 +77,7 @@ IlluminationUtils::IlluminationUtils(const boost::shared_ptr<IBasicIllumination>
 IlluminationUtils::IlluminationUtils(const std::string &parset)
 {
   LOFAR::ACC::APS::ParameterSet params(parset);
-  itsIllumination = VisGridderFactory::makeIllumination(params);
+  itsElementIllumination = itsIllumination = VisGridderFactory::makeIllumination(params);
   itsCellSize = params.getDouble("cellsize");
 
 
@@ -84,6 +88,32 @@ IlluminationUtils::IlluminationUtils(const std::string &parset)
   const int oversample = params.getInt32("oversample");
   ASKAPCHECK(oversample>0,"Oversample is supposed to be positive, you have "<<oversample);
   itsOverSample = size_t(oversample);  
+}
+
+/// @brief switch to the single element case
+void IlluminationUtils::useSingleElement()
+{
+  itsIllumination = itsElementIllumination;
+}
+
+/// @brief switch the code to synthetic pattern
+/// @details
+/// @param[in] offsets a matrix with offsets of the elements (number of columns should be 2,
+/// number of rows is the number of elements).
+/// @param[in] weights a vector of complex weights
+void IlluminationUtils::useSyntheticPattern(const casa::Matrix<double> &offsets, 
+                            const casa::Vector<casa::Complex> &weights)
+{
+  ASKAPASSERT(itsElementIllumination);
+  ASKAPASSERT(offsets.ncolumn() == 2);
+  ASKAPASSERT(offsets.nrow() == weights.nelements());
+  casa::Vector<casa::RigidVector<casa::Double, 2> > elementOffsets(offsets.nrow());
+  for (casa::uInt elem = 0; elem<elementOffsets.nelements(); ++elem) {
+       elementOffsets[elem](0) = offsets(elem,0);
+       elementOffsets[elem](1) = offsets(elem,1);
+  }
+  itsIllumination.reset(new BasicCompositeIllumination(itsElementIllumination,
+                   elementOffsets, weights));
 }
    
 /// @brief save the pattern into an image

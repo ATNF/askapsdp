@@ -66,9 +66,23 @@ public:
    /// real, imag, phase, complex. Minimum match applies.
    void save(const std::string &name, const std::string &what = "amp");
    
+   /// @brief switch to the single element case
+   void useSingleElement(); 
+   
+   /// @brief switch the code to synthetic pattern
+   /// @details
+   /// @param[in] offsets a matrix with offsets of the elements (number of columns should be 2,
+   /// number of rows is the number of elements).
+   /// @param[in] weights a vector of complex weights
+   void useSyntheticPattern(const casa::Matrix<double> &offsets, 
+                            const casa::Vector<casa::Complex> &weights);
+   
 private:
    /// @brief illumination pattern corresponding to the single feed
-   boost::shared_ptr<synthesis::IBasicIllumination> itsIllumination;
+   boost::shared_ptr<synthesis::IBasicIllumination> itsElementIllumination;
+
+   /// @brief illumination pattern to use (may be synthetic)
+   boost::shared_ptr<synthesis::IBasicIllumination> itsIllumination;   
    
    /// @brief size of the pattern to work with 
    size_t itsSize;

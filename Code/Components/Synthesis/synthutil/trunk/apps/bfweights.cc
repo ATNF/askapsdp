@@ -78,7 +78,6 @@ try {
    return 0;
    */
    askap::synthutils::IlluminationUtils ilutils("test.in");
-   ilutils.save("test.img","amp");
    
    // old main.cc
    ImplCalWeightSolver solver;
@@ -105,6 +104,9 @@ try {
         for (uInt f=0;f<res.nrow();++f)
              cout<<res(f,j)<<endl;
    }
+   ilutils.useSyntheticPattern(feed_offsets, res.column(0));
+   ilutils.save("test.img","phase");
+   
 }
 catch (const AipsError &ae) {
    cerr<<ae.what()<<endl;
