@@ -445,6 +445,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       casa::Complex cVis(acc.visibility()(i, chan, pol));
 			       GridKernel::degrid(cVis, convFunc, grid, iu, iv,
 						  itsSupport);
+                               cVis*=0.5;
 			       itsSamplesDegridded+=1.0;
 			       itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
                    if(itsVisWeight) {
@@ -455,6 +456,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       if (!itsDopsf) {
 			           /// Gridding visibility data onto grid
 			           casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
+                                   rVis*=2.0;
 			           if(itsVisWeight) {
 				          rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       }
