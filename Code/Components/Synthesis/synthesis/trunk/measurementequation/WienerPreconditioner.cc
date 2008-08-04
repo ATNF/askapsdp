@@ -76,18 +76,18 @@ namespace askap
        
        // Setup work arrays.
        const IPosition valShape = lpsf.shape();
-       casa::ArrayLattice<casa::Complex> weinerfilter(valShape);
+       casa::ArrayLattice<casa::Complex> wienerfilter(valShape);
        casa::ArrayLattice<casa::Complex> scratch(valShape);
        
        // Construct a Wiener filter
        scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
        LatticeFFT::cfft2d(scratch, True);
        casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsNoisePower));
-       weinerfilter.copyData(wf);
-       
+       wienerfilter.copyData(wf);
+              
        // Apply the filter to the lpsf
        // (reuse the ft(lpsf) currently held in 'scratch')
-       scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
+       scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
        lpsf.copyData(casa::LatticeExpr<float> ( real(scratch) ));
        float maxPSFAfter=casa::max(psf);
@@ -98,7 +98,8 @@ namespace askap
        // Apply the filter to the dirty image
        scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));
        LatticeFFT::cfft2d(scratch, True);
-       scratch.copyData(casa::LatticeExpr<casa::Complex> (weinerfilter * scratch));
+ 
+       scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
        ldirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
        dirty*=maxPSFBefore/maxPSFAfter;
