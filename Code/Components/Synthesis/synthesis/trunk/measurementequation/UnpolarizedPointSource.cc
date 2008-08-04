@@ -66,8 +66,8 @@ void UnpolarizedPointSource::calcPoint(
        ci!=freq.end();++ci,++it)
       {
         const T phase = delay * (*ci);
-        *it = flux * cos(phase);
-        *(++it) = flux * sin(phase);
+        *it = flux * cos(phase)/n;
+        *(++it) = flux * sin(phase)/n;
       }
 }
 
