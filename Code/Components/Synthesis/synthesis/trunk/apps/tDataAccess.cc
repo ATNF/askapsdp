@@ -106,7 +106,7 @@ void doReadOnlyTest(const IConstDataSource &ds) {
 
 void doReadWriteTest(const IDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseFeed(1);  
+  //sel->chooseFeed(1);  
   IDataConverterPtr conv=ds.createConverter();
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),
@@ -121,11 +121,11 @@ void doReadWriteTest(const IDataSource &ds) {
        it->antenna1();
        it->feed1();
        it->uvw();
-       it.buffer("TEST").rwVisibility()=it->visibility();
-       it.chooseBuffer("MODEL_DATA");
-       it->rwVisibility()=it.buffer("TEST").visibility();
+       //it.buffer("TEST").rwVisibility()=it->visibility();
+       //it.chooseBuffer("MODEL_DATA");
+       //it->rwVisibility()=it.buffer("TEST").visibility();
        it.chooseOriginal();
-       it->rwVisibility().set(casa::Complex(1.,0.5));
+       it->rwVisibility().set(casa::Complex(1.,0.0));
   }
 }
 
@@ -141,12 +141,12 @@ int main(int argc, char **argv) {
      timer.mark();
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
-     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
+     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS | TableDataSource::WRITE_PERMITTED);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      //timeDependentSubtableTest(argv[1],ds);
      timer.mark();
-     doReadOnlyTest(ds);
-     //doReadWriteTest(ds);    
+     //doReadOnlyTest(ds);
+     doReadWriteTest(ds);    
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
