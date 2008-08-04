@@ -1,5 +1,5 @@
 from recursivebuild import build
 
-build(['analysis/setup.py',
-       'evaluation/setup.py',
+build(['evaluation/setup.py',
+       'analysis/setup.py',
        'simulations/setup.py'])
