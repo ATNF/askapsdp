@@ -141,12 +141,13 @@ int main(int argc, char **argv) {
      timer.mark();
      //TableDataSource ds(argv[1],TableDataSource::REMOVE_BUFFERS |
      //                           TableDataSource::MEMORY_BUFFERS);     
-     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS | TableDataSource::WRITE_PERMITTED);     
+     //TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS | TableDataSource::WRITE_PERMITTED);     
+     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      //timeDependentSubtableTest(argv[1],ds);
      timer.mark();
-     //doReadOnlyTest(ds);
-     doReadWriteTest(ds);    
+     doReadOnlyTest(ds);
+     //doReadWriteTest(ds);    
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
