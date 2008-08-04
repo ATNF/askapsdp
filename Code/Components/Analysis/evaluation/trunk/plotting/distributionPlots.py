@@ -8,112 +8,7 @@ require('matplotlib')
 from pylab import *
 from numpy import *
 
-def doHistSpatPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', removeZeros=False, position='b', name="X", plotTitle=""):
-    """
-    Utility function to plot, for a particular parameter, histograms
-    of the absolute and relative differences in the values of the
-    parameter between the source list and the reference list. The
-    spatial positions of the sources are then plotted with symbols
-    scaled by the size of the relative difference.
-    """
-
-    font = {'fontsize' : '10'}
-
-    # Remove any src values of zero -- these have probably not been fitted and should be ignored
-    ind = not(removeZeros) or (source != 0)
-    src = source[ind]
-    ref = reference[ind]
-    xS  = xloc[ind]
-    yS  = yloc[ind]
-
-    diff = src - ref
-    reldiff = diff / ref
-
-    #####
-    ## histogram of the absolute flux differences
-    #####
-    if(position=='b'):
-        ax1=axes([0.125,0.1,0.35,0.16])
-    else:
-        ax1=axes([0.125,0.55,0.35,0.16])
-    maxval = max(abs(max(diff)),abs(min(diff))) * 1.1
-    n, bins, patches = hist(diff, 20)
-    axis([-maxval,maxval,0,max(n)])
-    ax = axis()
-    xlabel(r'$\Delta %s$'%(name),font)
-    ylabel('Count',font)
-    mu=mean(diff)
-    rms=std(diff)
-    axvline(mu, color='r')
-    print '%s (absolute):'%(plotTitle)
-    print 'Mean = %f, RMS = %f'%(mu,rms)
-    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-    y = normpdf( x, mu, rms)
-    y = y * max(n) / max(y)
-    l = plot(x, y, 'r--')
-    mu=median(diff)
-    adfm=abs(diff-mu)
-    rms=median(adfm)
-    axvline(mu, color='g')
-    print 'Median = %f, MADFM = %f'%(mu,rms)
-    y = normpdf( x, mu, rms/0.6744888)
-    y = y * max(n) / max(y)
-    l = plot(x, y, 'g--')
-    axis(ax)
-
-    #####
-    ## histogram of the relative flux differences
-    #####
-    if(position=='b'):
-        ax2=axes([0.125,0.31,0.35,0.16])
-    else:
-        ax2=axes([0.125,0.76,0.35,0.16])
-    n, bins, patches = hist(reldiff, 20)
-    reldiffmax = max(abs(max(reldiff)),abs(min(reldiff))) * 1.1
-    axis([-reldiffmax,reldiffmax,0,max(n)])
-    ax = axis()
-    xlabel(r'$\Delta %s/%s_R$'%(name,name),font)
-    ylabel('Count',font)
-    title('%s: source - ref'%(plotTitle),font)
-    mu=mean(reldiff)
-    rms=std(reldiff)
-    print '%s (relative):'%(plotTitle)
-    print 'Mean = %7.3f%%, RMS = %7.3f%%'%(mu*100,rms*100)
-    axvline(mu, color='r')
-    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.)
-    y = normpdf( x, mu, rms)
-    y = y * max(n) / max(y)
-    l = plot(x, y, 'r--')
-    mu=median(reldiff)
-    adfm=abs(reldiff-mu)
-    rms=median(adfm)
-    print 'Median = %7.3f%%, MADFM = %7.3f%%\n'%(mu*100,rms*100)
-    axvline(mu, color='g')
-    y = normpdf( x, mu, rms/0.6744888)
-    y = y * max(n) / max(y)
-    l = plot(x, y, 'g--')
-    axis(ax)
-
-    #####
-    ## differences for matching sources as a function of their position
-    #####
-    if(position=='b'):
-        subplot(224)
-    else:
-        subplot(222)
-    tmp = -abs(reldiff)
-    indSort = argsort(tmp)
-    for i in indSort:
-        size = 5. + abs(reldiff[i]/0.05) * 2.
-        if(diff[i]>0):
-            plot([xS[i]],[yS[i]],'ro',ms=size)
-        else:
-            plot([xS[i]],[yS[i]],'rs',ms=size)
-    title(r'%s across field'%(plotTitle),font)
-    xlabel(r'$x\ [\prime\prime]$',font)
-    ylabel(r'$y\ [\prime\prime]$',font)
-#    if(spatialAxis!=[0,0,0,0]):
-    axis(spatialAxis)
+font = {'fontsize' : '10'}
 
 #############################################################################
 
@@ -155,7 +50,30 @@ def setBox(locationCode=231, side='l'):
 
 #############################################################################
 
-def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=5., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", plotHistRel=True, plotHistAbs=True):
+def plotHistRel(array=None, locationCode=232, name="X"):
+
+    axes(setBox(locationCode,'l'))
+    maxval = max(abs(max(array)),abs(min(array))) * 1.1
+    n, bins, patches = hist(array, 20)
+    axis([-maxval,maxval,0,max(n)])
+    xlabel(r'$\Delta %s/%s_R [%%]$'%(name,name),font)
+
+
+#############################################################################
+
+def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
+
+    axes(setBox(locationCode,'r'))
+    maxval = max(abs(max(array)),abs(min(array))) * 1.1
+    n, bins, patches = hist(array, 20)
+    axis([-maxval,maxval,0,max(n)])
+    xlabel(r'$\Delta %s [\rm{%s}]$'%(name,unit),font)
+    
+
+
+#############################################################################
+
+def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=5., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
     """
     """
     
@@ -200,20 +118,11 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     rc('xtick', labelsize=6)
     rc('ytick', labelsize=6)
-    if(plotHistRel):
-        axes(setBox(locationCode,'l'))
-        maxval = max(abs(max(reldiff)),abs(min(reldiff))) * 1.1
-        n, bins, patches = hist(reldiff, 20)
-        axis([-maxval,maxval,0,max(n)])
-        xlabel(r'$\Delta %s/%s_R [%%]$'%(name,name),font)
-    
-    if(plotHistAbs):
-        axes(setBox(locationCode,'r'))
-        maxval = max(abs(max(diff)),abs(min(diff))) * 1.1
-        n, bins, patches = hist(diff, 20)
-        axis([-maxval,maxval,0,max(n)])
-        xlabel(r'$\Delta %s [\rm{%s}]$'%(name,unit),font)
+    if(doHistRel):
+        plotHistRel(reldiff,locationCode,name)
 
+    if(doHistAbs):
+        plotHistAbs(diff,locationCode,name,unit)
     
 #############################################################################
 
@@ -221,7 +130,6 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
     """
     """
     
-    font = {'fontsize' : '10'}
     rc('xtick', labelsize=10)
     rc('ytick', labelsize=10)
 
@@ -298,7 +206,8 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
     rc('ytick', labelsize=6)
     axes(setBox(232,'l'))
     n, bins, patches = hist(offset, max(offset)/0.1)
-    
+    xlabel(r'$Offset [\prime\prime]$',font)
+
     return axNew
 
     
