@@ -1,6 +1,6 @@
 size = 2048
-cellsize  = 0.2
-oversample = 4
+cellsize  = 3.2
+oversample = 8
 diameter         = 12m
 blockage         = 2m
 illumination     = ATCA

@@ -104,8 +104,9 @@ try {
         for (uInt f=0;f<res.nrow();++f)
              cout<<res(f,j)<<endl;
    }
-   ilutils.useSyntheticPattern(feed_offsets, res.column(0));
-   ilutils.save("test.img","phase");
+   ilutils.useSyntheticPattern(feed_offsets, res.column(2));
+   ilutils.save("test1.img","amp");   
+   ilutils.saveVP("test.img","amp");
    
 }
 catch (const AipsError &ae) {

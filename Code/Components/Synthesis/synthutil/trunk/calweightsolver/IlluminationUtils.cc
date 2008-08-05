@@ -30,7 +30,6 @@
 #include <calweightsolver/IlluminationUtils.h>
 
 #include <images/Images/PagedImage.h>
-#include <coordinates/Coordinates/CoordinateSystem.h>
 //#include <coordinates/Coordinates/StokesCoordinate.h>
 //#include <coordinates/Coordinates/SpectralCoordinate.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
@@ -41,7 +40,7 @@
 #include <casa/Arrays/ArrayMath.h>
 #include <gridding/BasicCompositeIllumination.h>
 #include <scimath/Mathematics/RigidVector.h>
-
+#include <fft/FFTWrapper.h>
 
 #include <APS/ParameterSet.h>
 
@@ -130,8 +129,6 @@ void IlluminationUtils::save(const std::string &name, const std::string &what)
    
    casa::Matrix<double> xform(2,2);
    xform = 0.; xform.diagonal() = 1.;
-  // casa::DirectionCoordinate azel(casa::MDirection::AZEL, casa::Projection::SIN, 0.,0.,
-  //               -itsCellSize, itsCellSize, xform, itsSize/2, itsSize/2);
    casa::Vector<casa::String> names(2);
    names[0]="U"; names[1]="V";
    
@@ -145,26 +142,73 @@ void IlluminationUtils::save(const std::string &name, const std::string &what)
    
    casa::CoordinateSystem coords;
    coords.addCoordinate(linear);    
-   //coords.addCoordinate(azel);    
-   if (what.find("complex") == 0) {
-       casa::PagedImage<casa::Complex> result(casa::TiledShape(casa::IPosition(2,itsSize,
-               itsSize)), coords, name);
-       casa::ArrayLattice<casa::Complex> patternLattice(pattern.pattern());                
+   
+   saveComplexImage(name,coords,pattern.pattern(),what);
+}
+
+/// @brief save the voltage pattern into an image
+/// @details 
+/// @param[in] name file name
+/// @param[in] what type of the image requested, e.g. amplitude (default),
+/// real, imag, phase, complex. Minimum match applies.
+void IlluminationUtils::saveVP(const std::string &name, const std::string &what)
+{
+   ASKAPDEBUGASSERT(itsIllumination);
+   ASKAPASSERT(itsOverSample>=1);
+   ASKAPASSERT(itsSize%2 == 0);
+   const double freq=1.4e9;
+   UVPattern pattern(itsSize, itsSize, itsCellSize, itsCellSize, itsOverSample);
+   itsIllumination->getPattern(freq, pattern);
+   casa::Array<casa::Complex> scratch(pattern.pattern().copy());
+   fft2d(scratch,false);
+   scratch/=casa::max(casa::abs(scratch));
+   
+   casa::Matrix<double> xform(2,2);
+   xform = 0.; xform.diagonal() = 1.;
+   double angularCellSize = double(itsOverSample)/itsCellSize/double(itsSize);
+   casa::IPosition blc(scratch.shape().nelements(),0);
+   blc[0]=blc[1]=itsSize*(itsOverSample-1)/itsOverSample/2;
+   casa::IPosition length(scratch.shape());
+   length[0]=length[1]=itsSize/itsOverSample;
+   casa::Array<casa::Complex> slice = scratch(casa::Slicer(blc,length));
+   casa::DirectionCoordinate azel(casa::MDirection::AZEL, casa::Projection::SIN, 0.,0.,
+                 -angularCellSize, angularCellSize, 
+                 xform, length[0]/2, length[1]/2);
+      
+   casa::CoordinateSystem coords;
+   coords.addCoordinate(azel);    
+   saveComplexImage(name,coords,slice,what);
+ }
+
+/// @brief save complex array into an image
+/// @details 
+/// @param[in] name file name
+/// @param[in] coords coordinate system
+/// @param[in] arr array to take the data from
+/// @param[in] what type of the image requested, e.g. amplitude (default),
+/// real, imag, phase, complex. Minimum match applies.
+void IlluminationUtils::saveComplexImage(const std::string &name, 
+            const casa::CoordinateSystem &coords, 
+            const casa::Array<casa::Complex> &arr,
+            const std::string &what)
+{
+  if (what.find("complex") == 0) {
+       casa::PagedImage<casa::Complex> result(casa::TiledShape(arr.shape()), coords, name);
+       casa::ArrayLattice<casa::Complex> patternLattice(arr);                
        result.setUnits("Jy/pixel");             
    } else {
-       casa::PagedImage<casa::Float> result(casa::TiledShape(casa::IPosition(2,itsSize,
-               itsSize)), coords, name);
+       casa::PagedImage<casa::Float> result(casa::TiledShape(arr.shape()), coords, name);
        casa::Array<casa::Float> workArray;
        if (what.find("amp")==0) {
-           workArray = casa::amplitude(pattern.pattern());
+           workArray = casa::amplitude(arr);
        } else if (what.find("real") == 0) {
-           workArray = casa::real(pattern.pattern());
+           workArray = casa::real(arr);
        } else if (what.find("imag") == 0) {
-           workArray = casa::imag(pattern.pattern());
+           workArray = casa::imag(arr);
        } else if (what.find("phase") == 0) {
-           workArray = casa::phase(pattern.pattern());
+           workArray = casa::phase(arr);
        } else {
-          ASKAPTHROW(AskapError, "Unknown type of image requested from IlluminationUtils::save ("<<
+          ASKAPTHROW(AskapError, "Unknown type of image requested from IlluminationUtils::saveComplexImage ("<<
                      what<<")");
        }
        casa::ArrayLattice<casa::Float> patternLattice(workArray);

@@ -32,6 +32,8 @@
 
 #include <boost/shared_ptr.hpp>
 #include <gridding/IBasicIllumination.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+
 
 #include <string>
 
@@ -65,6 +67,13 @@ public:
    /// @param[in] what type of the image requested, e.g. amplitude (default),
    /// real, imag, phase, complex. Minimum match applies.
    void save(const std::string &name, const std::string &what = "amp");
+
+   /// @brief save the voltage pattern into an image
+   /// @details 
+   /// @param[in] name file name
+   /// @param[in] what type of the image requested, e.g. amplitude (default),
+   /// real, imag, phase, complex. Minimum match applies.
+   void saveVP(const std::string &name, const std::string &what = "amp");
    
    /// @brief switch to the single element case
    void useSingleElement(); 
@@ -76,7 +85,18 @@ public:
    /// @param[in] weights a vector of complex weights
    void useSyntheticPattern(const casa::Matrix<double> &offsets, 
                             const casa::Vector<casa::Complex> &weights);
-   
+protected:
+   /// @brief save complex array into an image
+   /// @details 
+   /// @param[in] name file name
+   /// @param[in] coords coordinate system
+   /// @param[in] arr array to take the data from
+   /// @param[in] what type of the image requested, e.g. amplitude (default),
+   /// real, imag, phase, complex. Minimum match applies.
+   void saveComplexImage(const std::string &name, const casa::CoordinateSystem &coords,
+                         const casa::Array<casa::Complex> &arr,
+                         const std::string &what = "amp");
+      
 private:
    /// @brief illumination pattern corresponding to the single feed
    boost::shared_ptr<synthesis::IBasicIllumination> itsElementIllumination;
