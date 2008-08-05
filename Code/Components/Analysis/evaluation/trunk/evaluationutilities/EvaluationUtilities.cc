@@ -61,7 +61,6 @@ namespace askap
       std::string raS,decS,sdud,id;
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
-      int idud;
       double xpt,ypt,ddud,ra,dec,flux,flux1,flux2,maj,min,pa;
       char line[501];
       fin.getline(line,500);
@@ -141,6 +140,7 @@ namespace askap
 // 		  << std::setw(10) << pt->x()  << " "
 // 		  << std::setw(10) << pt->y()  << " "
 // 		  << std::setw(10) << pt->flux() << "\n";
+
       return pixlist;
 
     }
@@ -168,10 +168,9 @@ namespace askap
       return outList;
     }
     
-
-  
     std::string removeLeadingBlanks(std::string s)
     {
+      /// @brief Remove blank spaces from the beginning of a string
       /// @details
       /// All blank spaces from the start of the string to the first
       /// non-blank-space character are deleted.

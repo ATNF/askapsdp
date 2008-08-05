@@ -53,6 +53,9 @@ namespace askap
     std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, 
 					  const unsigned int maxSize=matching::maxSizePointList);
 
+    /// @brief Remove blank spaces from the beginning of a string
+    std::string removeLeadingBlanks(std::string s);
+
     /// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
     double dmsToDec(std::string input);   
     

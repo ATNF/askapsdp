@@ -43,6 +43,7 @@
 #include <string>
 #include <math.h>
 
+///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".matching");
 
 namespace askap
@@ -135,6 +136,7 @@ namespace askap
 	
 	this->itsMatchingPixList = vote(this->itsMatchingTriList);
 	this->itsNumMatch1 = this->itsMatchingPixList.size();
+	ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points\n");
 	
 	this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() == 
 			       this->itsMatchingTriList[0].second.isClockwise()    );
@@ -212,7 +214,7 @@ namespace askap
 	std::vector<Point>::iterator src,ref;
 	std::vector<std::pair<Point,Point> >::iterator match;
 	for(src=this->itsSrcPixList.begin(); src<this->itsSrcPixList.end(); src++){
-	  bool isMatch=false;
+	  bool isMatch=false; 
 	  match = this->itsMatchingPixList.begin();
 	  for(;match<this->itsMatchingPixList.end()&&!isMatch;match++){
 	    isMatch = (src->ID() == match->first.ID());
@@ -223,6 +225,7 @@ namespace askap
 	    for(ref=this->itsRefPixList.begin(); ref<this->itsRefPixList.end(); ref++){
 	      float offset = hypot(src->x()-ref->x()-this->itsMeanDx,
 				   src->y()-ref->y()-this->itsMeanDy);
+// 	      std::cout << src->ID() << "\t" << ref->ID() << "\t" << offset << "\n";
 	      if(offset < matchRadius*this->itsEpsilon){
 		if((minRef==-1)||(offset<minOffset)){
 		  minOffset = offset;
@@ -248,7 +251,7 @@ namespace askap
 // 	      }
 // 	      // If the reference object is not already taken, we add the pair to the list of matches.
 // 	      if(!alreadyHave) this->itsMatchingPixList.push_back(newMatch);
-// 	      else{ // if it is, keep the one with the best match in flux
+ // 	      else{ // if it is, keep the one with the best match in flux
 // 		match--;
 // 		if( fabs(ref->flux()-src->flux()) < fabs(match->second.flux()-match->first.flux()) ){
 // 		  std::cout << "Removing " << match->first.ID() << " (matches " << match->second.ID() 
@@ -277,6 +280,9 @@ namespace askap
 
       void Matcher::rejectMultipleMatches()
       {
+	/// @details Objects that appear twice in the match list are
+	/// examined, and the one with the largest flux value is
+	/// kept. All others are removed from the list.
 
 	if(this->itsMatchingPixList.size()<2) return;
 
@@ -338,6 +344,8 @@ namespace askap
 	std::ofstream fout(this->itsOutputBestFile.c_str());
 	fout.precision(3);
 	fout.setf(std::ios::fixed);
+	std::cout.precision(3);
+	std::cout.setf(std::ios::fixed);
 	std::vector<std::pair<Point,Point> >::iterator match;
 	int ct=0;
 	char matchType;
@@ -358,7 +366,8 @@ namespace askap
 		  << std::setw(10) << "min"  << " "
 		  << std::setw(10) << "pa" << "\t"
 		  << std::setw(8) << "dist" << " "
-		  << std::setw(8) << "f_s-f_r" << "\n";
+		  << std::setw(8) << "f_s-f_r" << " "
+		  << std::setw(8) << "(f_s-f_r)/f_r" << "\n";
 
 
 	for(match=this->itsMatchingPixList.begin(); match<this->itsMatchingPixList.end(); match++){
@@ -381,7 +390,8 @@ namespace askap
 	       << std::setw(10) << match->second.minorAxis() << " "
 	       << std::setw(10) << match->second.PA() << "\t"
 	       << std::setw(8)  << match->first.sep(match->second) << " "
-	       << std::setw(8)  << fabs(match->first.flux()-match->second.flux())<<"\n";
+	       << std::setw(8)  << match->first.flux()-match->second.flux()<<" "
+	       << std::setw(8)  << (match->first.flux()-match->second.flux())/match->second.flux()<<"\n";
 	  std::cout << matchType << "\t"
 		    << "[" << match->first.ID() << "]\t"
 		    << std::setw(10) << match->first.x()  << " "
@@ -398,7 +408,8 @@ namespace askap
 		    << std::setw(10) << match->second.minorAxis() << " "
 		    << std::setw(10) << match->second.PA() << "\t"
 		    << std::setw(8)  << match->first.sep(match->second) << " "
-		    << std::setw(8)  << fabs(match->first.flux()-match->second.flux())<<"\n";
+		    << std::setw(8)  << (match->first.flux()-match->second.flux())<<" "
+		    << std::setw(8)  << (match->first.flux()-match->second.flux())/match->second.flux()<<"\n";
 
 	}
 
@@ -459,6 +470,8 @@ namespace askap
 		      << std::setw(10) << pt->flux() << "\n";
 	  }
 	}
+
+	std::cout << "\n\n";
 
 
       }

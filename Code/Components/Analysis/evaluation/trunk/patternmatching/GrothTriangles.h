@@ -52,29 +52,56 @@ namespace askap
       class Point
       {
       public:
+	/// @brief Default constructor
 	Point(){itsFlux=0.; itsID="";};
+	/// @brief Constructor from position
 	Point(double x, double y){itsX=x; itsY=y; itsFlux=0.; itsID="";};
+	/// @brief Constructor from position & flux
 	Point(double x, double y, double f){itsX=x; itsY=y; itsFlux=f;};
+	/// @brief Constructor from position, flux, ID
 	Point(double x, double y, double f, std::string id){itsX=x; itsY=y; itsFlux=f; itsID=id;};
+	/// @brief Constructor from position, flux, ID and elliptical shape
 	Point(double x, double y, double f, std::string id, double maj, double min, double pa){itsX=x; itsY=y; itsFlux=f; itsID=id; itsMajAxis=maj; itsMinAxis=min; itsPA=pa;};
+	/// @brief Copy Constructor
 	Point(const Point& p){operator=(p);};
+	/// @brief Copy function
 	Point& operator= (const Point& p);
+	/// @brief Destructor
 	~Point(){};
+
+	/// @brief Set the x coordinate
 	void setX(double x){itsX=x;};
+	/// @brief Return the x coordinate
 	double x(){return itsX;};
+	/// @brief Set the y coordinate
 	void setY(double y){itsY=y;};
+	/// @brief Return the y coordinate
 	double y(){return itsY;};
+	/// @brief Set the flux
 	void setFlux(double f){itsFlux=f;};
+	/// @brief Return the flux
 	double flux(){return itsFlux;};
+	/// @brief Set the major axis
 	void setMajorAxis(double a){itsMajAxis=a;};
+	/// @brief Return the major axis
 	double majorAxis(){return itsMajAxis;};
+	/// @brief Set the minor axis
 	void setMinorAxis(double a){itsMinAxis=a;};
+	/// @brief Return the minor axis
 	double minorAxis(){return itsMinAxis;};
+	/// @brief Set the position angle
 	void setPA(double a){itsPA=a;};
+	/// @brief Return the position angle
 	double PA(){return itsPA;};
+	/// @brief Set the ID string
 	void setID(std::string id){itsID=id;};
+	/// @brief Return the ID string
 	std::string ID(){return itsID;};
+
+	/// @brief Less-than function, operating on the flux
 	friend bool operator<(Point lhs, Point rhs){return lhs.flux()<rhs.flux();};
+
+	/// @brief Return the separation from another Point.
 	double sep(Point pt){return hypot(itsX-pt.x(),itsY-pt.y());};
 
       protected:
@@ -82,7 +109,7 @@ namespace askap
 	double itsX;
 	///@brief The Y coordinate
 	double itsY;
-	///@brief The flux of the point
+	///@brief The peak flux of the point
 	double itsFlux;
 	///@brief The identification string
 	std::string itsID;
@@ -102,18 +129,31 @@ namespace askap
       class Side
       {
       public:
+	/// @brief Default constructor
 	Side(){};
+	/// @brief Constructor using rise over run
 	Side(double run, double rise){dx=run; dy=rise;};
+	/// @brief Destructor
 	~Side(){};
+
+	/// @brief Definition function, using slope (defined by rise and run)
 	void define(double run, double rise){dx=run; dy=rise;};
+	/// @brief Definition function, using two points
 	void define(Point a, Point b){dx=a.x()-b.x(); dy=a.y()-b.y();};
+
+	/// @brief Return the rise (delta-y)
 	double rise(){return dy;};
+	/// @brief Return the run (delta-x)
 	double run(){return dx;};
+	/// @brief Return the length of the side
 	double length(){return hypot(dx,dy);};
+	/// @brief Less-than function, working on length of the sides.
 	friend bool operator<(Side lhs, Side rhs){return lhs.length()<rhs.length();};
 
       protected:
+	/// @brief Length in x-direction
 	double dx;
+	/// @brief Length in y-direction
 	double dy;
       };
 
@@ -133,30 +173,50 @@ namespace askap
       class Triangle
       {
       public:
+	/// @brief Default constructor
 	Triangle();
+	/// @brief Constructor from three Points
 	Triangle(Point pt1, Point pt2, Point pt3);
+	/// @brief Constructor from three positions
 	Triangle(double x1, double y1, double x2, double y2, double x3, double y3);
+	/// @brief Copy constructor
 	Triangle(const Triangle& t){operator=(t);};
+	/// @brief Copy function
 	Triangle& operator= (const Triangle& t);
+	/// @brief Destructor
 	~Triangle(){};
+	/// @brief Definition function using three Points
 	void define(Point pt1, Point pt2, Point pt3);
 
-	void defineTolerances(double tolerance=posTolerance);
+	/// @brief Calculate tolerances for triangle parameters.
+	void defineTolerances(double epsilon=posTolerance);
 
+	/// @brief Does this triangle match another?
 	bool isMatch(Triangle &comp, double epsilon=posTolerance);
 
+	/// @brief Return the ratio of longest to shortest sides
 	double ratio(){return itsRatio;};
+	/// @brief Return the tolerance for the ratio value
 	double ratioTol(){return itsRatioTolerance;};
+	/// @brief Return the angle
 	double angle(){return itsAngle;};
+	/// @brief Return the tolerance for the angle value
 	double angleTol(){return itsAngleTolerance;};
+	/// @brief Is the sense of the triangle clockwise?
 	double isClockwise(){return itIsClockwise;};
+	/// @brief Return the log of the perimeter
 	double perimeter(){return itsLogPerimeter;};
 
+	/// @brief Return the first point
 	Point one(){return itsPts[0];};
+	/// @brief Return the second point
 	Point two(){return itsPts[1];};
+	/// @brief Return the third point
 	Point three(){return itsPts[2];};
+	/// @brief Return the list of Points
 	std::vector<Point> getPtList(){return itsPts;};
 
+	/// @brief Less-than function, working on ratio values.
 	friend bool operator< (Triangle lhs, Triangle rhs){return lhs.ratio()<rhs.ratio();};
 
       protected:

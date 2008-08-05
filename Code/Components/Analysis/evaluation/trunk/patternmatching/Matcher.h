@@ -85,6 +85,8 @@ namespace askap
 
 	/// @brief Using the known offsets, find matches that were missed by the pattern matching.
 	void addNewMatches();
+
+	/// @brief Remove multiple references to objects in the match list.
 	void rejectMultipleMatches();
 
 	/// @brief Output lists of matching and isolated points.

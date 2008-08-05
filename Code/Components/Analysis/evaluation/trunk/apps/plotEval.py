@@ -30,6 +30,7 @@ if __name__ == '__main__':
     posOffsetPlot(xS,yS,xR,yR,matchType)
     axisrange=spatPosPlot(xS,yS,xR,yR,matchType,x,y,missType)
     
+#    spatHistPlot(fS,fR,xS,yS, axisrange, removeZeros=True, name='F', unit='mJy', locationCode=233, plotTitle='Flux difference', scaleByRel=False, scaleStep=0.2)
     spatHistPlot(fS,fR,xS,yS, axisrange, removeZeros=True, name='F', unit='mJy', locationCode=233, plotTitle='Flux difference')
     spatHistPlot(aS,aR,xS,yS, axisrange, removeZeros=True, name='A', unit='\prime\prime', locationCode=234, plotTitle='Major axis difference')
     spatHistPlot(bS,bR,xS,yS, axisrange, removeZeros=True, name='B', unit='\prime\prime', locationCode=235, plotTitle='Minor axis difference')

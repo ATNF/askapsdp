@@ -1,5 +1,6 @@
 /// @defgroup patternmatching Functions for matching points/lists
-/// @defgroup evalutationutilities Utility functions to support evaluation package
+/// @defgroup evaluationutilities Utility functions to support evaluation package
+/// @defgroup plotting Python functions for plotting
 
 /// The package namespace
 namespace askap::evaluation {};
@@ -7,8 +8,8 @@ namespace askap::evaluation {};
 /// @mainpage ASKAP evaluation package
 ///
 /// @section Introduction
-
-/// The evaluation package supports quality evaluation of the results from the analysis package
+/// The evaluation package supports quality evaluation of the results
+/// from the analysis package 
 ///
 /// @section Assumptions and goals
 ///
@@ -27,5 +28,6 @@ namespace askap::evaluation {};
 ///
 /// @li @ref patternmatching
 /// @li @ref evaluationutilities
+/// @li @ref plotting
 ///
 /// @copyright 2007 ASKAP, All Rights Reserved.

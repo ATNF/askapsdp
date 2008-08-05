@@ -40,6 +40,7 @@
 #include <utility>
 #include <string>
 
+///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".matching");
 
 namespace askap
