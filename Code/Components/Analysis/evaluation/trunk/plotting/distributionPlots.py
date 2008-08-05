@@ -1,19 +1,112 @@
 #!/usr/bin/env python
-"""
-A file containing functions to plot distributions (spatially and as histograms) of a given variable.
-"""
+
+## @file
+# A file containing functions to plot distributions (spatially and as histograms) of a given variable.
+
+## @namespace distributionPlots
+#  Plotting functions.
+#  A set of functions to make quality evaluation plots, comparing a
+#  source list to a reference list and looking at quantities such as
+#  position, flux and spatial profile shape.
+
 from pkg_resources import require
 require('numpy')
 require('matplotlib')
 from pylab import *
 from numpy import *
+import gc
 
 font = {'fontsize' : '10'}
 
+## @ingroup plotting
+# Convert an rms value to a MADFM (median absolute deviation from
+# median), assuming Gaussian statistics
+# @param rms The rms value to be converted
+def rmsToMADFM(rms=None):
+    """ 
+    Convert an rms value to a MADFM (median absolute deviation from
+    median), assuming Gaussian statistics
+    """
+    return rms * 0.6744888
+
+## @ingroup plotting
+# Convert a MADFM (median absolute deviation from median) value to
+# an rms, assuming Gaussian statistics
+# @param madfm The MADFM value to be converted
+def madfmToRMS(madfm=None):
+    """ 
+    Convert a MADFM (median absolute deviation from median) value to
+    an rms, assuming Gaussian statistics
+    """
+    return madfm / 0.6744888
+
 #############################################################################
 
+## @ingroup plotting
+#    Take an array, calculate the mean, rms, median and median absolute
+#    deviation from the median, and overplot Normal distributions for
+#    the two cases (mean/rms & median/madfm). In the robust case, the
+#    madfm is scaled by the madfmToRMS() function to the equivalent
+#    Gaussian rms. The values of these quantities are also written to screen. 
+#    @param array The array of values
+#    @param name The name of the quantity (for writing to screen)
+#    @param unit The units of the quantity
+
+def drawNormalDist(array=None, name='X', unit=''):
+    """
+    Take an array, calculate the mean, rms, median and median absolute
+    deviation from the median, and overplot Normal distributions for
+    the two cases (mean/rms & median/madfm). In the robust case, the
+    madfm is scaled by the madfmToRMS() function to the equivalent
+    Gaussian rms. The values of these quantities are also written to screen. 
+
+    Arguments:
+       array: The array of values
+       name: The name of the quantity (for writing to screen)
+       unit: The units of the quantity
+    """
+
+    mu=mean(array) 
+    rms=std(array) 
+    med=median(array) 
+    adfm=abs(array-mu) 
+    madfm=median(adfm)  # median absolute deviation from median
+
+    ax=axis()
+    axvline(mu, color='r') 
+    x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.) 
+    y = normpdf( x, mu, rms) 
+    y = y * ax[3] / max(y) 
+    l = plot(x, y, 'r--') 
+    axvline(med, color='g') 
+    y = normpdf( x, med, madfmToRMS(madfm)) 
+    y = y * ax[3] / max(y) 
+    l = plot(x, y, 'g--') 
+    axis(ax)
+
+    print '%s:'%(name) 
+    print 'Mean = %5.3f %s, RMS = %5.3f %s'%(mu,unit,rms,unit) 
+    print 'Median = %5.3f %s, MADFM = %5.3f %s (or RMS=%5.3f)'%(med,unit,madfm,unit,madfmToRMS(madfm)) 
+    
+
+#############################################################################
+
+## @ingroup plotting
+#    A function to define where to place the histogram plot. The
+#    function starts with a subplot and a side, and returns an array
+#    suitable for use with axes() (ie. [xmin,ymin,width,height])
+#    @param locationCode The locationCode used by the subplot() function
+#    @param side Either 'l' or 'r' (for left or right)
+#    @return Array defining an axes location ([xmin,ymin,width,height])
 def setBox(locationCode=231, side='l'):
     """
+    A function to define where to place the histogram plot. The
+    function starts with a subplot and a side, and returns an array
+    suitable for use with axes() (ie. [xmin,ymin,width,height])
+
+    Arguments:
+       locationCode: The locationCode used by the subplot() function
+       side: Either 'l' or 'r' (for left or right)
     """
 
     xR = [0.15,0.42,0.69]
@@ -50,7 +143,26 @@ def setBox(locationCode=231, side='l'):
 
 #############################################################################
 
+## @ingroup plotting
+#    Draw a histogram of difference values given in the array. The
+#    horizontal axis label is written as the relative differences of
+#    the quantity. The location of the histogram is given by the
+#    setBox() function.
+#    @param array The array of relative difference values.
+#    @param locationCode Where on the page to place the histogram -- used by setBox()
+#    @param name The name of the quantity    
 def plotHistRel(array=None, locationCode=232, name="X"):
+    """
+    Draw a histogram of difference values given in the array. The
+    horizontal axis label is written as the relative differences of
+    the quantity. The location of the histogram is given by the
+    setBox() function.
+
+    Arguments:
+       array: The array of relative difference values.
+       locationCode: Where on the page to place the histogram -- used by setBox()
+       name: The name of the quantity
+    """
 
     axes(setBox(locationCode,'l'))
     maxval = max(abs(max(array)),abs(min(array))) * 1.1
@@ -61,7 +173,28 @@ def plotHistRel(array=None, locationCode=232, name="X"):
 
 #############################################################################
 
+## @ingroup plotting
+#    Draw a histogram of difference values given in the array. The
+#    horizontal axis label is written as the absolute differences of
+#    the quantity. The location of the histogram is given by the
+#    setBox() function.
+#    @param array The array of absolute difference values.
+#    @param locationCode Where on the page to place the histogram -- used by setBox()
+#    @param name The name of the quantity
+#    @param unit The units of the quantity
 def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
+    """
+    Draw a histogram of difference values given in the array. The
+    horizontal axis label is written as the absolute differences of
+    the quantity. The location of the histogram is given by the
+    setBox() function.
+
+    Arguments:
+       array: The array of absolute difference values.
+       locationCode: Where on the page to place the histogram -- used by setBox()
+       name: The name of the quantity
+       unit: The units of the quantity
+    """
 
     axes(setBox(locationCode,'r'))
     maxval = max(abs(max(array)),abs(min(array))) * 1.1
@@ -70,11 +203,58 @@ def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
     xlabel(r'$\Delta %s [\rm{%s}]$'%(name,unit),font)
     
 
-
 #############################################################################
 
+## @ingroup plotting
+#    Plots the spatial distribution of matched sources, with the size
+#    and shape of each point governed by the size of the difference of
+#    a particular quantity between the Source and Reference
+#    lists. Positive differences (in the sense of source-reference) are
+#    shown as circles, and negative ones as squares. Also shown are
+#    distributions of the absolute and relative differences of the
+#    quantities.
+#    @param source: List of values for the source objects
+#    @param reference: List of values for the reference objects
+#    @param xloc, yloc: x- and y- positions for the objects (either reference or source positions)
+#    @param spatialAxis: An argument for the axis(...) function. Designed to be an array as produced by ax=axis(), such as the output from spatPosPlot().
+#    @param scaleByRel: Scale the symbols by the relative difference (ie. (source-reference)/reference). If False, scale by the absolute difference
+#    @param scaleStep: The step in difference values that increase the symbol size (each step increases the size of the symbol by 2, starting at 5)
+#    @param removeZeros: If True, all Source values that are zero are removed before plotting. This removes any spurious differences that may appear due to non-fitted components.
+#    @param locationCode: The code used by subplot() to draw the graph, indicating where on the page the plot should go.
+#    @param name: String with the quantity's name to be used in plotting
+#    @param unit: String with the units of the quantity. Can be formatted in LaTeX for display purposes.
+#    @param plotTitle: Title for overall plot
+#    @param doHistRel: Draw the histogram of relative differences
+#    @param doHistAbs: Draw the histogram of absolute differences
 def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=5., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
     """
+    Plots the spatial distribution of matched sources, with the size
+    and shape of each point governed by the size of the difference of
+    a particular quantity between the Source and Reference
+    lists. Positive differences (in the sense of source-reference) are
+    shown as circles, and negative ones as squares. Also shown are
+    distributions of the absolute and relative differences of the
+    quantities.
+
+    Arguments:
+       source: List of values for the source objects
+       reference: List of values for the reference objects
+       xloc, yloc: x- and y- positions for the objects (either reference or source positions)
+       spatialAxis: An argument for the axis(...) function. Designed to be an array as produced 
+                    by ax=axis(), such as the output from spatPosPlot().
+       scaleByRel: Scale the symbols by the relative difference (ie. (source-reference)/reference).
+                   If False, scale by the absolute difference
+       scaleStep: The step in difference values that increase the symbol size (each step increases
+                  the size of the symbol by 2, starting at 5)
+       removeZeros: If True, all Source values that are zero are removed before plotting. This
+                    removes any spurious differences that may appear due to non-fitted components.
+       locationCode: The code used by subplot() to draw the graph, indicating where on the page
+                     the plot should go.
+       name: String with the quantity's name to be used in plotting
+       unit: String with the units of the quantity. Can be formatted in LaTeX for display purposes.
+       plotTitle: Title for overall plot
+       doHistRel: Draw the histogram of relative differences
+       doHistAbs: Draw the histogram of absolute differences
     """
     
     font = {'fontsize' : '10'}
@@ -120,14 +300,35 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
     rc('ytick', labelsize=6)
     if(doHistRel):
         plotHistRel(reldiff,locationCode,name)
+        drawNormalDist(reldiff,name+' (rel)','%')
 
     if(doHistAbs):
         plotHistAbs(diff,locationCode,name,unit)
+        if(unit=='\prime\prime'):
+            newunit='arcsec'
+        else:
+            newunit=unit
+        drawNormalDist(diff,name+' (abs)',newunit)
     
 #############################################################################
 
+## @ingroup plotting
+#    Plots the offsets in position of matched sources, along with
+#    circles of fixed radius and lines indicating the mean offset. 
+#    @param xS, yS: x- and y-positions of Source objects
+#    @param xR, yR: x- and y-positions of Reference objects
+#    @param flag: A numerical label indicating the quality of the match. Those with quality 1 will be coloured red, and those with other values magenta.
+#    @param minPlottedOff: The minimum offset shown on the axes.
 def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5):
     """
+    Plots the offsets in position of matched sources, along with
+    circles of fixed radius and lines indicating the mean offset. 
+    Arguments:
+       xS, yS: x- and y-positions of Source objects
+       xR, yR: x- and y-positions of Reference objects
+       flag: A numerical label indicating the quality of the match. 
+             Those with quality 1 will be coloured red, and those with other values magenta.
+       minPlottedOff: The minimum offset shown on the axes.
     """
     
     rc('xtick', labelsize=10)
@@ -137,6 +338,7 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
         
     dx = xS - xR
     dy = yS - yR
+    print 'Overall mean offsets (x,y)=(%6.4f,%6.4f)\n'%(mean(dx),mean(dy)) 
 
     for i in range(len(dx)):
         if(flag[i]==1):
@@ -166,10 +368,45 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
 
 #############################################################################
 
-def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, yMiss=None, missFlag=None, minPlottedOff=5):
+## @ingroup plotting
+#    Plots the spatial location of all sources, indicating those that
+#    have been matched to the reference list, and those in either list
+#    that weren't matched. The matches are colour-coded according to
+#    the matchFlag array (a value of 1 is red, otherwise magenta), and
+#    their size scales with the offset in position. The Source objects
+#    not matched are indicated by blue crosses, while the Reference
+#    objects not matched are green plus-signs. Also shown in a
+#    histogram showing the distribution of offsets for the matching
+#    sources.
+#    @return An array describing the axis dimensions, as produced by ax=axis().
+#    @param xS: x-positions of Source objects
+#    @param yS: y-positions of Source objects
+#    @param xR: x-positions of Reference objects
+#    @param yR: y-positions of Reference objects
+#    @param matchFlag: Flags indicating quality of the match
+#    @param xMiss: x-positions of un-matched objects
+#    @param yMiss: y-positions of un-matched objects
+#    @param missFlag: A letter indicating the object type: 'R'=reference object, 'S'=source object
+def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, yMiss=None, missFlag=None):
     """
+    Plots the spatial location of all sources, indicating those that
+    have been matched to the reference list, and those in either list
+    that weren't matched. The matches are colour-coded according to
+    the matchFlag array (a value of 1 is red, otherwise magenta), and
+    their size scales with the offset in position. The Source objects
+    not matched are indicated by blue crosses, while the Reference
+    objects not matched are green plus-signs. Also shown in a
+    histogram showing the distribution of offsets for the matching
+    sources.
+    Returns an array describing the axis dimensions.
+    Arguments:
+       xS, yS: x- and y-positions of Source objects
+       xR, yR: x- and y-positions of Reference objects
+       matchFlag: Flags indicating quality of the match
+       xMiss, yMiss: x- and y-positions of un-matched objects
+       missFlag: A letter indicating the object type: 'R'=reference object, 'S'=source object
     """
-    font = {'fontsize' : '10'}
+
     rc('xtick', labelsize=10)
     rc('ytick', labelsize=10)
 
@@ -192,7 +429,7 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
     title('Matches and misses across field',font)
     for i in range(len(xMiss)):
         if(missFlag[i]=='S'):
-            plot([xMiss[i]],[yMiss[i]],'bx')
+            plot([xMiss[i]],[yMiss[i]],'bx',ms=10)
         else:
             plot([xMiss[i]],[yMiss[i]],'g+')
     ax = axis()
@@ -204,9 +441,9 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
 
     rc('xtick', labelsize=6)
     rc('ytick', labelsize=6)
-    axes(setBox(232,'l'))
+    axes(setBox(232,'r'))
     n, bins, patches = hist(offset, max(offset)/0.1)
-    xlabel(r'$Offset [\prime\prime]$',font)
+    xlabel(r"$\rm{Offset} [\prime\prime]$",font)
 
     return axNew
 

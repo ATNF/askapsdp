@@ -1,7 +1,15 @@
 #!/usr/bin/env python
-"""
-A file containing functions to read in data ready for plotting
-"""
+
+## @file
+#  A file containing functions to read in data ready for plotting. It
+#  can read data for matching sources and sources that didn't match.
+
+## @namespace readData
+#  Data I/O for python scripts.
+#  A set of functions to read in the results of the pattern matching,
+#  so that we can produce nice plots showing how well the source list
+#  matches the reference list.
+
 from pkg_resources import require
 require('numpy')
 require('matplotlib')
@@ -10,6 +18,15 @@ from numpy import *
 
 #############################################################################
 
+## @ingroup plotting
+#    Utility function to read the positions of matching source and
+#    reference points.  It returns, in order, the type of fit
+#    (1=original match, 2=subsequent match), the ID, X and Y position,
+#    the flux, the major and minor axes and the position angle for the
+#    source point, and the matching reference point. This is designed to 
+#    read from the "matches.txt" file produced by imageQualTest.
+#    @param filename The file to read the data from
+#    @return A list of numpy arrays as detailed above
 def read_match_data(filename=None):
     """
     Utility function to read the positions of matching source and
@@ -56,6 +73,15 @@ def read_match_data(filename=None):
     return cast[Int](array(type)),idS,cast[Float](array(xS)),cast[Float](array(yS)),cast[Float](array(fS)),cast[Float](array(aS)),cast[Float](array(bS)),cast[Float](array(pS)),idR,cast[Float](array(xR)),cast[Float](array(yR)),cast[Float](array(fR)),cast[Float](array(aR)),cast[Float](array(bR)),cast[Float](array(pR))
 
 #############################################################################
+
+## @ingroup plotting
+#   Utility function to read the positions of source and reference
+#    points that weren't matched It returns, in order, the ID, X and Y
+#    position of the source point, and ID, X & Y position of the
+#    matching reference point. This is designed to read from the
+#    "misses.txt" file produced by imageQualTest
+#    @param filename The file to read from 
+#    @return A list of numpy arrays as described above.
 
 def read_miss_data(filename=None):
     """
