@@ -35,6 +35,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/MatrixMath.h>
 #include <casa/Arrays/Vector.h>
+#include <lattices/Lattices/SubLattice.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <lattices/Lattices/LatticeFFT.h>
 #include <lattices/Lattices/LatticeExpr.h>
@@ -64,6 +65,34 @@ namespace askap
 	    return IImagePreconditioner::ShPtr(new WienerPreconditioner(*this));
     }
     
+    // Inject source into the centre quarter of the target
+    void WienerPreconditioner::inject(casa::Lattice<casa::Complex>& target, casa::Lattice<float>& source) const
+    {
+      target.set(0.0);
+      casa::IPosition corner(target.shape());
+      corner(0)/=4;
+      corner(1)/=4;
+      corner-=1;
+      casa::Slicer slicer(corner, source.shape());
+      casa::SubLattice<casa::Complex> inner(target, slicer, True);
+      inner.copyData(casa::LatticeExpr<casa::Complex>(toComplex(source)));
+      //      ASKAPLOG_INFO_STR(logger, "Injected " << source.shape() << " into " << target.shape() << " starting at " << corner);
+    }
+
+    // Extract target from the center quarter of the source 
+    void WienerPreconditioner::extract(casa::Lattice<float>& target, casa::Lattice<casa::Complex>& source) const
+    {
+      target.set(0.0);
+      casa::IPosition corner(source.shape());
+      corner(0)/=4;
+      corner(1)/=4;
+      corner-=1;
+      casa::Slicer slicer(corner, target.shape());
+      casa::SubLattice<casa::Complex> inner(source, slicer, True);
+      target.copyData(casa::LatticeExpr<float>(real(inner)));
+      //      ASKAPLOG_INFO_STR(logger, "Extracted " << target.shape() << " from " << source.shape() << " starting at " << corner);
+    }
+
     bool WienerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
       if(itsNoisePower > 1e-06) {
@@ -74,14 +103,18 @@ namespace askap
        casa::ArrayLattice<float> lpsf(psf);
        casa::ArrayLattice<float> ldirty(dirty);
        
-       // Setup work arrays.
-       const IPosition valShape = lpsf.shape();
-       casa::ArrayLattice<casa::Complex> wienerfilter(valShape);
-       casa::ArrayLattice<casa::Complex> scratch(valShape);
+       // Setup work arrays. We need to pad to twice the size in order to avoid
+       // wraparound.
+       IPosition paddedShape = lpsf.shape();
+       paddedShape(0)*=2;
+       paddedShape(1)*=2;
+       casa::ArrayLattice<casa::Complex> scratch(paddedShape);
+       scratch.set(0.0);
+       inject(scratch, lpsf);
+       LatticeFFT::cfft2d(scratch, True);
        
        // Construct a Wiener filter
-       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
-       LatticeFFT::cfft2d(scratch, True);
+       casa::ArrayLattice<casa::Complex> wienerfilter(scratch.shape());
        casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsNoisePower));
        wienerfilter.copyData(wf);
               
@@ -89,19 +122,19 @@ namespace askap
        // (reuse the ft(lpsf) currently held in 'scratch')
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
-       lpsf.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+       extract(lpsf, scratch);
        float maxPSFAfter=casa::max(psf);
        ASKAPLOG_INFO_STR(logger, "Peak of PSF after Wiener filtering  = " << maxPSFAfter);
        psf*=maxPSFBefore/maxPSFAfter;
        ASKAPLOG_INFO_STR(logger, "Renormalizing peak to " << maxPSFBefore);
        
        // Apply the filter to the dirty image
-       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));
+       inject(scratch, ldirty);
        LatticeFFT::cfft2d(scratch, True);
  
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
-       ldirty.copyData(casa::LatticeExpr<float> ( real(scratch) ));
+       extract(ldirty, scratch);
        maxPSFBefore*=4.0;
        dirty*=maxPSFBefore/maxPSFAfter;
 	  

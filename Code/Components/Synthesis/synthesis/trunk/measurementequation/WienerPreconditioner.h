@@ -74,7 +74,14 @@ namespace askap
       private:
   	    /// @brief Noise Power Spectrum
 	    float itsNoisePower;
-    };
+
+      /// @brief Inject source into the centre quarter of the target
+      void inject(casa::Lattice<casa::Complex>& target, casa::Lattice<float>& source) const;
+      
+      /// @brief Extract target from the center quarter of the source 
+      void extract(casa::Lattice<float>& target, casa::Lattice<casa::Complex>& source) const;
+
+   };
 
   }
 }
