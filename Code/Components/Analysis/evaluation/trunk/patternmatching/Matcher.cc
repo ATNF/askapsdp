@@ -220,12 +220,11 @@ namespace askap
 	    isMatch = (src->ID() == match->first.ID());
 	  }
 	  if(!isMatch){
-	    float minOffset;
+	    float minOffset=0.;
 	    int minRef=-1;
 	    for(ref=this->itsRefPixList.begin(); ref<this->itsRefPixList.end(); ref++){
 	      float offset = hypot(src->x()-ref->x()-this->itsMeanDx,
 				   src->y()-ref->y()-this->itsMeanDy);
-// 	      std::cout << src->ID() << "\t" << ref->ID() << "\t" << offset << "\n";
 	      if(offset < matchRadius*this->itsEpsilon){
 		if((minRef==-1)||(offset<minOffset)){
 		  minOffset = offset;
@@ -236,34 +235,8 @@ namespace askap
 
 	    if(minRef>=0){ // there was a match within errors
 	      ref = this->itsRefPixList.begin() + minRef;
-	      //	      ASKAPLOG_INFO_STR(logger, "New match: " << src->ID() << " <--> " << ref->ID() << " with offset = " << minOffset  << " cf. this->itsEpsilon=" << this->itsEpsilon);
 	      std::pair<Point,Point> newMatch(*src, *ref);
-
  	      this->itsMatchingPixList.push_back(newMatch);
-
-// 	      // Want to check whether we have matched a reference point that is already matched to an object.
-// 	      bool alreadyHave = false;
-// 	      match = this->itsMatchingPixList.begin();
-// 	      std::cout << src->ID() << ":\n";
-// 	      for(;match<this->itsMatchingPixList.end()&&!alreadyHave;match++){
-// 		std::cout << ref->ID() << "   " << match->second.ID() << " (" << match->first.ID()<<")\n";
-// 		alreadyHave = (ref->ID() == match->second.ID());
-// 	      }
-// 	      // If the reference object is not already taken, we add the pair to the list of matches.
-// 	      if(!alreadyHave) this->itsMatchingPixList.push_back(newMatch);
- // 	      else{ // if it is, keep the one with the best match in flux
-// 		match--;
-// 		if( fabs(ref->flux()-src->flux()) < fabs(match->second.flux()-match->first.flux()) ){
-// 		  std::cout << "Removing " << match->first.ID() << " (matches " << match->second.ID() 
-// 			    << ") and replacing with " << src->ID() << " (matches " << ref->ID() << ")\n";;
-// 		  // in this case, the new match has a closer match in flux than the one already in the list
-// 		  // So we remove the one in the list
-// 		  this->itsMatchingPixList.erase(match);
-// 		  this->itsMatchingPixList.push_back(newMatch);
-// 		}
-// 	      }
-// 	      std::cout << "\n";
-	      
 	    }
 
 	  }
