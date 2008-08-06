@@ -117,6 +117,7 @@ namespace askap
       this->itsFlagDoFit = parset.getBool("doFit", false);
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
+      this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize",sourcefitting::noiseBoxSize);
 
       // Now read the correct image name according to worker/master state.
       if(isMaster()){
@@ -362,7 +363,8 @@ namespace askap
  	for(int i=0;i<itsCube.getNumObj();i++){
 	  // 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
 	  sourcefitting::RadioSource src(itsCube.getObject(i));
-	  src.setNoiseLevel( noise );
+	  //	  src.setNoiseLevel( noise );
+	  src.setNoiseLevel( this->itsCube, this->itsNoiseBoxSize );
 	  src.setDetectionThreshold( threshold );
 	  src.setHeader( head );
 	  src.defineBox(itsCube.getDimArray());

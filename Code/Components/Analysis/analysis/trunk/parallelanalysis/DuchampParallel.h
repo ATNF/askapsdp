@@ -144,6 +144,9 @@ namespace askap
       /// Shall we fit to the sources?
       bool itsFlagDoFit;
 
+      /// The size of the box put around an object to calculate its local noise value
+      int itsNoiseBoxSize;
+
       /// Name of the summary file
       std::string itsSummaryFile;
       

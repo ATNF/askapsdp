@@ -144,6 +144,64 @@ namespace askap
 
       //**************************************************************//
 
+      void RadioSource::setNoiseLevel(duchamp::Cube &cube, int boxSize)
+      {
+	/// @details Sets the value of the local noise level by taking
+	/// the MADFM of the surrounding pixels from the Cube's array. 
+	/// Calls setNoiseLevel(float *, long *, int).
+	/// @param cube The duchamp::Cube object containing the pixel array
+	/// @param boxSize The side length of the box used.
+
+	this->setNoiseLevel(cube.getArray(), cube.getDimArray(), boxSize);
+      }
+
+      void RadioSource::setNoiseLevel(float *array, long *dim, int boxSize)
+      {
+	/// @details Sets the value of the local noise level by taking
+	/// the MADFM of the surrounding pixels from the Cube's array.
+	/// A box of side length boxSize is centred on the peak pixel
+	/// of the detection, and the MADFM of the pixels therein is
+	/// found. This is converted to a Gaussian rms, and stored as
+	/// the RadioSource::itsNoiseLevel value.
+	/// @param array Array of pixel values
+	/// @param dim Set of dimensions for array
+	/// @param boxSize The side length of the box used.
+
+	int hw = boxSize/2;
+	
+	float *localArray = new float[boxSize*boxSize];
+	
+	long xmin = max(0,this->xpeak-hw);
+	long ymin = max(0,this->ypeak-hw);
+	long xmax = min(dim[0]-1,this->xpeak+hw);
+	long ymax = min(dim[1]-1,this->ypeak+hw);
+	int size=0;
+	for(int x=xmin;x<=xmax;x++){
+	  for(int y=ymin;y<=ymax;y++){
+	    int pos = x + y*dim[0];
+	    localArray[size++] = array[pos];
+	  }
+	}
+	std::sort(localArray,localArray+size);
+	
+	float median,madfm;
+	if(size%2==0) median = (localArray[size/2]+localArray[size/2-1])/2.;
+	else median = localArray[size/2];
+
+	for(int i=0;i<size;i++) localArray[i] = fabs(localArray[i]-median);
+	std::sort(localArray,localArray+size);
+
+	if((size%2)==0) madfm = (localArray[size/2]+localArray[size/2-1])/2.;
+	else madfm = localArray[size/2];
+	this->itsNoiseLevel = Statistics::madfmToSigma(madfm);
+
+	delete [] localArray;
+
+      }
+
+
+      //**************************************************************//
+
       void RadioSource::getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min)
       {
 	/// @details This returns an estimate of an object's shape,
@@ -681,11 +739,17 @@ namespace askap
 
 	if(fitIsGood){
 	  this->hasFit = true;
-	  for(int i=0;i<=bestFit;i++){
+	  // Make a map so that we can output the fitted components in order of peak flux
+	  std::multimap<double,int> fitMap;
+	  for(int i=0;i<=bestFit;i++) fitMap.insert(std::pair<double,int>(solution[bestFit](i,0),i));
+	  // Need to use reverse_iterator so that brightest component's listed first
+	  std::multimap<double,int>::reverse_iterator fit=fitMap.rbegin();
+	  for(;fit!=fitMap.rend();fit++){
+	    int ifit = fit->second;
 	    casa::Gaussian2D<casa::Double> 
-	      gauss(solution[bestFit](i,0),
-		    solution[bestFit](i,1),solution[bestFit](i,2),
-		    solution[bestFit](i,3),solution[bestFit](i,4),solution[bestFit](i,5));
+	      gauss(solution[bestFit](ifit,0),
+		    solution[bestFit](ifit,1),solution[bestFit](ifit,2),
+		    solution[bestFit](ifit,3),solution[bestFit](ifit,4),solution[bestFit](ifit,5));
 	    this->itsGaussFitSet.push_back(gauss);
 	  }
 	  cout << "BEST FIT: " << bestFit+1 << " Gaussians"

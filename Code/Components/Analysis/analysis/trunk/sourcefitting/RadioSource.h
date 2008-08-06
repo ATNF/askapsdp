@@ -40,6 +40,7 @@
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Detection/columns.hh>
+#include <duchamp/Cubes/cubes.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian2D.h>
@@ -60,6 +61,10 @@ namespace askap
 
     namespace sourcefitting
     {
+
+      /// @ingroup sourcefitting
+      /// @brief Default side length of box used to estimate noise for a detection
+      const int noiseBoxSize = 101;
 
       /// @ingroup sourcefitting
       /// @brief Width of border to put around detections for fitting purposes, in pixels
@@ -107,13 +112,14 @@ namespace askap
 	/// @brief Return a list of subcomponents.
 	std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
 
-	//@{
 	/// @brief Fit Gaussian components to the Detection.
+	/// @name
+	///@{
 	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 		      casa::Vector<casa::Double> sigma);
 	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList);
 	bool fitGauss(float *fluxArray, long *dimArray);
-	//@}
+	///@}
 
 	/// @brief Store the FITS header information
 	void setHeader(duchamp::FitsHeader head){itsHeader = head;};
@@ -121,9 +127,20 @@ namespace askap
 	/// @brief Get the FITS header information
 	duchamp::FitsHeader getHeader(){return itsHeader;};
 
+	/// @brief Functions to set the object's noise level
+	/// @name 
+	/// @{
+
+	/// @brief Set the noise level to the local value, using an array.
+	void setNoiseLevel(float *array, long *dim, int boxSize=noiseBoxSize);
+
+	/// @brief Set the noise level to the local value, using a Duchamp::Cube object
+	void setNoiseLevel(duchamp::Cube &cube, int boxSize=noiseBoxSize);
+
 	/// @brief Set the noise level
 	void setNoiseLevel(float noise){itsNoiseLevel = noise;};
-      
+	/// @}
+
 	/// @brief Set the detection threshold
 	void setDetectionThreshold(float threshold){itsDetectionThreshold = threshold;};
 
@@ -141,12 +158,15 @@ namespace askap
 	void writeFitToAnnotationFile(std::ostream &stream);
 
 	/// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
-	// @{
+	/// @name
+	/// @{
+
 	/// Pass a RadioSource object into a Blob
 	friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, RadioSource& src);
 	/// Receive a RadioSource object from a Blob
 	friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, RadioSource& src);
-	// @}
+	
+	/// @}
 
 	/// @brief Is the object at the edge of a subimage
 	bool isAtEdge(){return atEdge;};
@@ -160,23 +180,18 @@ namespace askap
 	/// surrounding the object. Uses the detectionBorder parameter.
 	/// @name 
 	// @{
+
 	/// Minimum x-value
-/* 	long boxXmin(){return getXmin() - detectionBorder;}; */
 	long boxXmin(){return itsBoxMargins[0].first;};
 	/// Maximum x-value
-/* 	long boxXmax(){return getXmax() + detectionBorder;}; */
 	long boxXmax(){return itsBoxMargins[0].second;};
 	/// Minimum y-value
-/* 	long boxYmin(){return getYmin() - detectionBorder;}; */
 	long boxYmin(){return itsBoxMargins[1].first;};
 	/// Maximum y-value
-/* 	long boxYmax(){return getYmax() + detectionBorder;}; */
 	long boxYmax(){return itsBoxMargins[1].second;};
 	/// Minimum z-value
-/* 	long boxZmin(){return getZmin() - detectionBorder;}; */
 	long boxZmin(){return itsBoxMargins[2].first;};
 	/// Maximum z-value
-/* 	long boxZmax(){return getZmax() + detectionBorder;}; */
 	long boxZmax(){return itsBoxMargins[2].second;};
 	/// X-width
 	long boxXsize(){return boxXmax()-boxXmin()+1;};
@@ -214,7 +229,7 @@ namespace askap
 	/// @brief The FITS header information (including WCS and beam info).
 	duchamp::FitsHeader itsHeader;
 
-	/// @brief The noise level in the cube, used for scaling fluxes.
+	/// @brief The noise level in the vicinity of the object, used for Gaussian fitting
 	float itsNoiseLevel;
 
 	/// @brief The detection threshold used for the object

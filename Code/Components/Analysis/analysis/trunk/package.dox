@@ -14,7 +14,7 @@ namespace askap::analysis::sourcefitting {};
 /// The analysis package supports analysis of processed radio synthesis 
 /// observations, including source detection and extraction, profile
 /// fitting, and writing to the database. The emphasis is on the
-/// processing of ASKAP and KAT scale data sets i.e. TBs per hour.
+/// processing of ASKAP-scale data sets i.e. TBs per hour.
 ///
 /// @section Assumptions and goals
 ///
@@ -35,10 +35,10 @@ namespace askap::analysis::sourcefitting {};
 /// @section Dependencies
 /// The analysis package makes extensive use of the Duchamp 3D source
 /// finding package to do the source detection and extraction. This
-/// package currently only reads FITS data, so
+/// package currently only reads FITS data, so currently this is the
+/// only data type able to be analysed.
 ///
-/// Source fitting will be largely done by casa Gaussian Fitting
-/// routines. 
+/// Source fitting is largely done by casa Gaussian Fitting routines. 
 ///
 /// @section Subpackages
 ///
