@@ -207,6 +207,7 @@ void ImplCalWeightSolver::formVPMatrix(const casa::Matrix<casa::Double> &feed_of
   vismatrix.resize(feed_offsets.nrow(),feed_offsets.nrow());
   vismatrix=0.;
 
+  ofstream os("comps.dat");
   for (uInt comp=0;comp<cl.nelements();++comp) {
        const SkyComponent &skc=cl.component(comp);
        if (skc.spectrum().type()!=ComponentType::CONSTANT_SPECTRUM)
@@ -228,6 +229,16 @@ void ImplCalWeightSolver::formVPMatrix(const casa::Matrix<casa::Double> &feed_of
        Double l0=l0_buf*cos(pa)+m0_buf*sin(pa);
        Double m0=-l0_buf*sin(pa)+m0_buf*cos(pa);
        
+       /*
+       // to use the code with some dummy model instead of the one
+       // loaded from component list (mainly for debugging)
+       if (comp==0) {
+           l0=M_PI/180.; m0=-M_PI/180.;
+       } else if (comp==1) {
+           l0=-M_PI/180.; m0=M_PI/180.;       
+       } else break;
+       */
+       
        cout<<"Source "<<comp+1<<" is at "<<setw(10)<<l0/M_PI*180.<<
              " "<<m0/M_PI*180.<<endl;
        
@@ -235,6 +246,8 @@ void ImplCalWeightSolver::formVPMatrix(const casa::Matrix<casa::Double> &feed_of
        Flux<Double> flux=skc.flux();
        flux.convertPol(ComponentType::STOKES);
        flux.convertUnit("Jy");
+       os<<setw(10)<<l0/M_PI*180*3600<<" "<<m0/M_PI*180*3600<<" "<<real(flux.value()[0])<<endl;
+
        if (psctwr.get()!=NULL && real(flux.value()[0])>0.3)
            psctwr->addComponent(l0/M_PI*180.,m0/M_PI*180.,
 	                      real(flux.value()[0]),"AzEl");
@@ -305,6 +318,12 @@ ImplCalWeightSolver::eigenWeights(const casa::Matrix<casa::Double>
 
    EigenSolver es;
    es.solveEigen(vismatrix);
+   
+   Vector<Double> eval = es.getEigenValues();
+   ofstream os("eval.dat");
+   for (uInt k=0;k<eval.nelements();++k) {
+        os<<k+1<<" "<<eval[k]<<std::endl;
+   }
    /*
    Vector<Complex> vec=es.getEigenVectors().column(0);
    Vector<Complex> tst(vec.nelements(),0.);

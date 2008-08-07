@@ -42,6 +42,7 @@
 
 using namespace casa;
 using namespace std;
+using namespace askap;
 
 int main() {
 try {
@@ -81,33 +82,48 @@ try {
    
    // old main.cc
    ImplCalWeightSolver solver;
-   MDirection pc(Quantity(0.,"deg"),Quantity(-50.,"deg"),
+   MDirection pc(Quantity(187.,"deg"),Quantity(-45.,"deg"),
                  MDirection::J2000);
-   solver.setSky(pc,"mysrc.cl");
+   solver.setSky(pc,"nvss.cl");
+   //solver.setSky(pc,"grid10x10os2tp60.cl");
    //solver.setSky(pc,"singlesrc.cl");
-   solver.setVP("xntd.element.vbeam.real","xntd.element.vbeam.imag");
+   //solver.setVP("xntd.element.vbeam.real","xntd.element.vbeam.imag");
+   solver.setVP("askap.elem.real.img","askap.elem.imag.img");
+   /*
    Matrix<Double> feed_offsets(5,2,0.);
    feed_offsets(1,0)=-M_PI/180./3.; feed_offsets(1,1)=-M_PI/180./3.;
    feed_offsets(2,0)=M_PI/180./3.; feed_offsets(2,1)=-M_PI/180./3.;
    feed_offsets(3,0)=M_PI/180./3.; feed_offsets(3,1)=M_PI/180./3.;
    feed_offsets(4,0)=-M_PI/180./3.; feed_offsets(4,1)=M_PI/180./3.;
-
+   */
+   const double feedStep = M_PI/180./3.;
+   Matrix<Double> feed_offsets(100,2,0.);
+   size_t cnt = 0;
+   for (size_t x = 0; x<10; ++x) {
+        for (size_t y = 0; y<10; ++y,++cnt) {
+             ASKAPDEBUGASSERT(cnt<feed_offsets.nrow());
+             feed_offsets(cnt,0) = (double(x)-4.5)*feedStep;
+             feed_offsets(cnt,1) = (double(y)-4.5)*feedStep;
+        }
+   }
+   
    /*
    Vector<Double> uvw(3,0.);
    uvw[0]=1e3; uvw[1]=0.; uvw[2]=0.;
    Matrix<Complex> res=solver.solveWeights(feed_offsets,uvw);
    */
-   Matrix<Complex> res=solver.eigenWeights(feed_offsets);
+   Matrix<Complex> res=solver.eigenWeights(feed_offsets,0.,"skycat.tab");
 
    for (uInt j=0;j<res.ncolumn();++j) {
         cout<<"Weight configuration number "<<j+1<<endl;
         for (uInt f=0;f<res.nrow();++f)
              cout<<res(f,j)<<endl;
    }
-   ilutils.useSyntheticPattern(feed_offsets, res.column(2));
+   ilutils.useSyntheticPattern(feed_offsets, res.column(0));
    ilutils.save("test1.img","amp");   
    ilutils.saveVP("test.img","amp");
-   
+   //ilutils.saveVP("askap.elem.real.img","real");
+   //ilutils.saveVP("askap.elem.imag.img","imag");    
 }
 catch (const AipsError &ae) {
    cerr<<ae.what()<<endl;
