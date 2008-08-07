@@ -80,7 +80,7 @@ void deepCopyOfSTDVector(const std::vector<T> &in,
 /// as 3 direction cosines. It is not very convenient. This method
 /// allows to print it in a more log-reader-friendly way. We can move this
 /// method to a higher level if (when) it becomes necessary in other places.
-/// I (MV) didn't move it do askap just because it would introduce a
+/// I (MV) didn't move it to askap just because it would introduce a
 /// dependency on casacore, although scimath may be a right place for this
 /// method.
 /// @param[in] dir MVDirection object to print
@@ -97,7 +97,7 @@ std::string printDirection(const casa::MVDirection &dir)
 
 TableVisGridder::TableVisGridder() :
 	itsDopsf(false),itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
-			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
+			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 
@@ -110,7 +110,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 		const std::string& name) :
 	itsDopsf(false), itsSupport(support), itsOverSample(overSample), itsName(name),
 			itsModelIsEmpty(false), itsSamplesGridded(0),
-			itsSamplesDegridded(0), itsNumberGridded(0), itsNumberDegridded(0),
+			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
         itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 {
@@ -130,7 +130,8 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
      itsSupport(other.itsSupport), itsOverSample(other.itsOverSample),
      itsCSize(other.itsCSize), itsCCenter(other.itsCCenter), itsName(other.itsName),
      itsModelIsEmpty(other.itsModelIsEmpty), itsSamplesGridded(other.itsSamplesGridded),
-     itsSamplesDegridded(other.itsSamplesDegridded), itsNumberGridded(other.itsNumberGridded),
+     itsSamplesDegridded(other.itsSamplesDegridded), itsVectorsFlagged(other.itsVectorsFlagged),
+     itsNumberGridded(other.itsNumberGridded),
      itsNumberDegridded(other.itsNumberDegridded), itsTimeCoordinates(other.itsTimeCoordinates),
      itsTimeGridded(other.itsTimeGridded),
      itsTimeDegridded(other.itsTimeDegridded),
@@ -154,6 +155,8 @@ TableVisGridder::~TableVisGridder() {
 		if (itsDopsf) {
 		    ASKAPLOG_INFO_STR(logger, "   PSF samples gridded       = "
                               << itsSamplesGridded);
+            ASKAPLOG_INFO_STR(logger, "   Visibility vectors flagged (psf)     = "
+                              << itsVectorsFlagged);                  
 		    ASKAPLOG_INFO_STR(logger, "   Total time for PSF gridding   = "
 				<< itsTimeGridded << " (s)");
 		    ASKAPLOG_INFO_STR(logger, "   PSF gridding time         = " << 1e6
@@ -172,6 +175,8 @@ TableVisGridder::~TableVisGridder() {
 		} else {
 		    ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
                          << itsSamplesGridded);		
+            ASKAPLOG_INFO_STR(logger, "   Visibility vectors flagged       = "
+                          << itsVectorsFlagged);                                           
 		    ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
 			             << itsTimeGridded << " (s)");
 		    ASKAPLOG_INFO_STR(logger, "   Gridding time         = " << 1e6
@@ -445,7 +450,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       casa::Complex cVis(acc.visibility()(i, chan, pol));
 			       GridKernel::degrid(cVis, convFunc, grid, iu, iv,
 						  itsSupport);
-                               cVis*=0.5;
+                   cVis*=0.5;
 			       itsSamplesDegridded+=1.0;
 			       itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
                    if(itsVisWeight) {
@@ -456,7 +461,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       if (!itsDopsf) {
 			           /// Gridding visibility data onto grid
 			           casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
-                                   rVis*=2.0;
+                       rVis*=2.0;
 			           if(itsVisWeight) {
 				          rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       }
@@ -536,7 +541,11 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			     } // end if forward (else case, reverse operation)
 			   }
 		     }//end of pol loop
-		   } // end of if (allPolGood)
+		   } else { 
+		       if (!forward) {
+		           itsVectorsFlagged+=1;
+		       } 
+		   } // end of if (allPolGood), else statement
 	   }//end of chan loop
    }//end of i loop
    if (forward) {
@@ -571,6 +580,7 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 	const casa::Vector<casa::MVDirection>& pointingDir1Vector =
 			acc.pointingDir1();
 	for (casa::uInt row=0; row<nSamples; ++row) {
+	    //std::cout<<printDirection(pointingDir1Vector(row))<<" "<<printDirection(out.getValue())<<std::endl;
 		const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
 		casa::Vector<double> uvw(3);
 		/// @todo Decide what to do about pointingDir1!=pointingDir2

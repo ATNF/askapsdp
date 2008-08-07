@@ -231,6 +231,7 @@ namespace askap
       }
       // Now we loop through all the data
       ASKAPLOG_INFO_STR(logger, "Starting degridding model and gridding residuals" );
+      size_t counterGrid = 0, counterDegrid = 0;
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         /// Accumulate model visibility for all models
@@ -240,6 +241,7 @@ namespace askap
         {
           string imageName("image.i"+(*it));
           itsModelGridders[imageName]->degrid(itsIdi);
+          counterDegrid+=itsIdi->nRow();
         }
         /// Now we can calculate the residual visibility and image
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
@@ -252,10 +254,13 @@ namespace askap
             itsIdi.chooseBuffer("RESIDUAL_DATA");
             itsResidualGridders[imageName]->grid(itsIdi);
             itsPSFGridders[imageName]->grid(itsIdi);
+            counterGrid+=itsIdi->nRow();
           }
         }
       }
       ASKAPLOG_INFO_STR(logger, "Finished degridding model and gridding residuals" );
+      ASKAPLOG_INFO_STR(logger, "Number of accessor rows iterated through is "<<counterGrid<<" (gridding) and "<<
+                        counterDegrid<<" (degridding)");
 
       // We have looped over all the data, so now we have to complete the 
       // transforms and fill in the normal equations with the results from the

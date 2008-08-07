@@ -204,6 +204,8 @@ namespace askap
       double itsSamplesGridded;
       /// Number of samples degridded
       double itsSamplesDegridded;
+      /// Number of flagged visibility vectors (all pols.)
+      double itsVectorsFlagged;
       /// Number of grid cells gridded
       double itsNumberGridded;
       /// Number of grid cells degridded
