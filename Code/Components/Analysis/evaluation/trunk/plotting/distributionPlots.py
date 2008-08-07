@@ -199,7 +199,7 @@ def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
 #    @param plotTitle: Title for overall plot
 #    @param doHistRel: Draw the histogram of relative differences
 #    @param doHistAbs: Draw the histogram of absolute differences
-def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=5., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
+def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=1., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
     """
     Plots the spatial distribution of matched sources, with the size
     and shape of each point governed by the size of the difference of
@@ -254,10 +254,10 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     if(scaleByRel):
         ind = argsort(-abs(reldiff))
-        size = 5. + abs(reldiff/scaleStep) * 2.
+        size = 5. + abs(reldiff/scaleStep)*2
     else:
         ind = argsort(-abs(diff))
-        size = 5. + abs(diff/scaleStep) * 2.
+        size = 5. + abs(diff/scaleStep)*2
 
     for i in ind:
         if(diff[i]>0):
@@ -284,6 +284,80 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
             newunit=unit
         drawNormalDist(diff,name+' (abs)',newunit)
     
+#############################################################################
+
+## @ingroup plotting
+#    @param axisSrc The array of major axis values. This is used to tell whether a fit was not made, for use with the removeZeros parameter
+#    @param paSrc The array of position angle values for the source list
+#    @param paRef: Array of position angle values for the reference objects
+#    @param xloc, yloc: x- and y- positions for the objects (either reference or source positions)
+#    @param spatialAxis: An argument for the axis(...) function. Designed to be an array as produced by ax=axis(), such as the output from spatPosPlot().
+#    @param removeZeros: If True, all Source values that are zero are removed before plotting. This removes any spurious differences that may appear due to non-fitted components.
+#    @param locationCode: The code used by subplot() to draw the graph, indicating where on the page the plot should go.
+def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, spatialAxis='auto', removeZeros=False, locationCode=236,):
+    """
+    An optimised version of spatHistPlot for use with position angle
+    values. These are special as the values can be zero even if the
+    fit worked, and because, for the size of the symbols, a difference
+    of 5 degrees and 175 degrees should be treated the same.  Net
+    effect is a spatial distribution of matched sources, scaled in
+    size according to the position angle difference (maximum size is
+    at diff=90). Also drawn is a distribution of the absolute
+    differences in position angle
+
+    Arguments:
+       axisSrc: List of major axis values that go with the position angle values for the source objects. Used to tell whether a fit was made or not (in combination with the removeZeros parameter).
+       paSrc: List of position angle values for the source objects
+       paRef: List of position angle values for the reference objects
+       xloc, yloc: x- and y- positions for the objects (either reference or source positions)
+       spatialAxis: An argument for the axis(...) function. Designed to be an array as produced 
+                    by ax=axis(), such as the output from spatPosPlot().
+       scaleByRel: Scale the symbols by the relative difference (ie. (source-reference)/reference).
+                   If False, scale by the absolute difference
+       scaleStep: The step in difference values that increase the symbol size (each step increases
+                  the size of the symbol by 2, starting at 5)
+       removeZeros: If True, all Source values that are zero are removed before plotting. This
+                    removes any spurious differences that may appear due to non-fitted components.
+       locationCode: The code used by subplot() to draw the graph, indicating where on the page
+                     the plot should go.
+       name: String with the quantity's name to be used in plotting
+       unit: String with the units of the quantity. Can be formatted in LaTeX for display purposes.
+       plotTitle: Title for overall plot
+       doHistRel: Draw the histogram of relative differences
+       doHistAbs: Draw the histogram of absolute differences
+    """
+
+    if(removeZeros):
+        ind = axisSrc != 0
+        src = paSrc[ind]
+        ref = paRef[ind]
+        x = xloc[ind]
+        y = yloc[ind]
+    else:
+        src = paSrc
+        ref = paRef
+        x = xloc
+        y = yloc
+
+    paDiff = (src-ref+90)%180 - 90
+    paNewRef = ref-ref
+
+    spatHistPlot(paDiff,paNewRef,x,y,spatialAxis, removeZeros=False, scaleByRel=False, scaleStep=5, name='PA', unit='deg', locationCode=locationCode, plotTitle='Position angle difference',doHistRel=False, doHistAbs=False)
+
+    if(removeZeros):
+        ind = axisSrc != 0
+        src = paSrc[ind]
+        ref = paRef[ind]
+    else:
+        src = paSrc
+        ref = paRef
+
+    diff = src - ref
+
+    plotHistAbs(diff,locationCode,'PA','deg')
+    drawNormalDist(diff,'PA (abs)','deg')
+    
+
 #############################################################################
 
 ## @ingroup plotting
@@ -384,7 +458,7 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
     offset = sqrt(dx**2+dy**2)
 
     for i in argsort(-offset):
-        size = 5. + (floor(offset[i]/2.)) * 3.
+        size = 5. + (floor(offset[i]*2)) * 2
         if(matchFlag[i]==1):
             plot([xS[i]],[yS[i]],'ro',ms=size)
         else:
