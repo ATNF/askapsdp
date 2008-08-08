@@ -450,7 +450,6 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       casa::Complex cVis(acc.visibility()(i, chan, pol));
 			       GridKernel::degrid(cVis, convFunc, grid, iu, iv,
 						  itsSupport);
-                   cVis*=0.5;
 			       itsSamplesDegridded+=1.0;
 			       itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
                    if(itsVisWeight) {
@@ -461,8 +460,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			       if (!itsDopsf) {
 			           /// Gridding visibility data onto grid
 			           casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
-                       rVis*=2.0;
-			           if(itsVisWeight) {
+                       if(itsVisWeight) {
 				          rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       }
 				   
@@ -581,6 +579,7 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 			acc.pointingDir1();
 	for (casa::uInt row=0; row<nSamples; ++row) {
 	    //std::cout<<printDirection(pointingDir1Vector(row))<<" "<<printDirection(out.getValue())<<std::endl;
+	    
 		const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
 		casa::Vector<double> uvw(3);
 		/// @todo Decide what to do about pointingDir1!=pointingDir2
@@ -591,7 +590,7 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 
 		casa::UVWMachine machine(pointingDir1Vector(row), out, false, true);
 		machine.convertUVW(delay(row), uvw);
-		delay*=-1.0;
+		delay(row)*=-1.0;
 
 		for (int i=0; i<3; ++i) {
 		  outUVW(row)(i)=-1.0*uvw(i);
