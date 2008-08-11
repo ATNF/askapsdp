@@ -32,6 +32,8 @@
 #ifndef SYNSYNTHESISPARAMSHELPER_H_
 #define SYNSYNTHESISPARAMSHELPER_H_
 
+#include <casa/Arrays/Array.h>
+
 #include <fitting/Params.h>
 
 #include <APS/ParameterSet.h>
@@ -143,6 +145,13 @@ namespace askap
         /// @param imagename Name of image file
         static void saveAsCasaImage(const askap::scimath::Params& ip, const string& name,
           const string& imagename);
+          
+        /// @brief save a 2D array as a CASA image
+        /// @details This method is intended to be used largely for debugging. To save image from
+        /// parameter class use another saveAsCasaImage method
+        /// @param[in] imagename name of the output image file
+        /// @param[in] arr input array
+        static void saveAsCasaImage(const std::string &imagename, const casa::Array<casa::Float> &arr);
         
         /// @brief Copy a parameter to a CASA TempImage
         /// Note that this will be a reference if possible

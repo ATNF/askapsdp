@@ -40,6 +40,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <images/Images/TempImage.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/LinearCoordinate.h>
 #include <coordinates/Coordinates/StokesCoordinate.h>
 #include <coordinates/Coordinates/SpectralCoordinate.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
@@ -202,6 +203,30 @@ namespace askap
       
        casa::Quantity::read(q, strval);
        return q.getValue(casa::Unit(unit));
+    }
+    
+    /// @brief save a 2D array as a CASA image
+    /// @details This method is intended to be used largely for debugging. To save image from
+    /// parameter class use another saveAsCasaImage method
+    /// @param[in] imagename name of the output image file
+    /// @param[in] arr input array
+    void SynthesisParamsHelper::saveAsCasaImage(const std::string &imagename, const casa::Array<casa::Float> &arr)
+    {
+      ASKAPASSERT(arr.shape().nonDegenerate().nelements()==2);
+      casa::Vector<casa::String> names(2);
+      names[0]="x"; names[1]="y";
+      casa::Vector<double> increment(2,1.);
+      
+      casa::Matrix<double> xform(2,2,0.);
+      xform.diagonal() = 1.;
+      casa::LinearCoordinate linear(names, casa::Vector<casa::String>(2,"pixel"),
+             casa::Vector<double>(2,0.),increment, xform, casa::Vector<double>(2,0.));
+      
+      casa::CoordinateSystem coords;
+      coords.addCoordinate(linear);
+      casa::PagedImage<casa::Float> result(casa::TiledShape(arr.shape().nonDegenerate()), coords, imagename);
+      casa::ArrayLattice<casa::Float> lattice(arr.nonDegenerate());
+      result.copyData(lattice);
     }
     
     void SynthesisParamsHelper::saveAsCasaImage(const askap::scimath::Params& ip, const string& name,
