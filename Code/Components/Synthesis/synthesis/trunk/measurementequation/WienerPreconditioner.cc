@@ -28,6 +28,7 @@
 ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <askap/AskapError.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -116,6 +117,12 @@ namespace askap
        casa::ArrayLattice<casa::Complex> scratch(paddedShape);
        scratch.set(0.0);
        inject(scratch, lpsf);
+       
+       /*
+       SynthesisParamsHelper::saveAsCasaImage("dbg.img",casa::amplitude(scratch.asArray()));       
+       //SynthesisParamsHelper::saveAsCasaImage("dbg.img",lpsf.asArray());
+       throw AskapError("This is a debug exception");
+       */
        
        LatticeFFT::cfft2d(scratch, True);
        

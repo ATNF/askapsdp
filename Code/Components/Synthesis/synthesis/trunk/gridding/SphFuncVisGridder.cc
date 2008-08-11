@@ -93,17 +93,20 @@ namespace askap
     }
 
     void SphFuncVisGridder::correctConvolution(casa::Array<double>& grid)
-    {
+    { 
+      ASKAPDEBUGASSERT(itsShape.nelements()>=2);      
+      const casa::Int xHalfSize = itsShape(0)/2;
+      const casa::Int yHalfSize = itsShape(1)/2;
       casa::Vector<double> ccfx(itsShape(0));
       casa::Vector<double> ccfy(itsShape(1));
-      for (int ix=0; ix<itsShape(0); ix++)
+      for (int ix=0; ix<itsShape(0); ++ix)
       {
-        double nux=std::abs(double(ix-itsShape(0)/2))/double(itsShape(0)/2);
+        const double nux=std::abs(double(ix-xHalfSize))/double(xHalfSize);
         ccfx(ix)=1.0/grdsf(nux);
       }
-      for (int iy=0; iy<itsShape(1); iy++)
+      for (int iy=0; iy<itsShape(1); ++iy)
       {
-        double nuy=std::abs(double(iy-itsShape(1)/2))/double(itsShape(1)/2);
+        const double nuy=std::abs(double(iy-yHalfSize))/double(yHalfSize);
         ccfy(iy)=1.0/grdsf(nuy);
       }
 
