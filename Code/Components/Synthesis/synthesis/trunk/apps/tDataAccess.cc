@@ -42,6 +42,7 @@ ASKAP_LOGGER(logger, "");
 #include <measures/Measures/MFrequency.h>
 #include <tables/Tables/Table.h>
 #include <casa/OS/Timer.h>
+#include <casa/Arrays/ArrayMath.h>
 
 
 // std
@@ -126,6 +127,13 @@ void doReadWriteTest(const IDataSource &ds) {
        //it->rwVisibility()=it.buffer("TEST").visibility();
        it.chooseOriginal();
        it->rwVisibility().set(casa::Complex(1.,0.0));
+       const double l=0.004, m=0.;
+       for (casa::uInt row = 0; row<it->nRow(); ++row) {
+            const double phase = 2.*casa::C::pi*(it->uvw()(row)(0)*l+it->uvw()(row)(1)*m)/casa::C::c*it->frequency()[0]*1e6;
+            const casa::Complex phasor(cos(phase),sin(phase));
+            casa::Array<casa::Complex> tmp = it->rwVisibility().yzPlane(row);
+            tmp *= phasor;
+       }
   }
 }
 
