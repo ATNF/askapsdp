@@ -150,6 +150,16 @@ namespace askap
       virtual void finaliseDegrid();
 
   protected:
+      /// @brief gridder configured to calculate PSF?
+      /// @details
+      /// @return true if this gridder is configured to calculate PSF, false otherwise
+      bool inline isPSFGridder() const { return itsDopsf; }
+      
+      /// @brief configure gridder to calculate PSF or residuals
+      /// @details This method is expected to be called from overridden initialiseGrid method
+      /// @param[in] dopsf if true, the gridder is configured to calculate PSF, otherwise
+      /// a normal residual grid is calculated.
+      void inline configureForPSF(bool dopsf) { itsDopsf = dopsf;}
         
       /// @brief obtain the centre of the image
       /// @details This method extracts RA and DEC axes from itsAxes and
@@ -164,9 +174,6 @@ namespace askap
 
       /// Shape of image
       casa::IPosition itsShape;
-
-      /// Do we want a PSF?
-      bool itsDopsf;
 
       /// Cell sizes in wavelengths
       casa::Vector<double> itsUVCellSize;
@@ -259,6 +266,9 @@ namespace askap
       void initRepresentativeFieldAndFeed();
       
   private:
+      /// @brief is this gridder a PSF gridder?
+      bool itsDopsf;
+  
       /// Generic grid/degrid - this is the heart of this framework. It should never
       /// need to be overridden
       /// @param[in] acc non-const data accessor to work with.  

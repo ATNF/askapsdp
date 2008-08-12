@@ -124,7 +124,7 @@ namespace askap
     {
       itsAxes=axes;
       itsShape=shape;
-      itsDopsf=dopsf;
+      configureForPSF(dopsf);
 
       /// We need one grid for each plane
       itsGrid.resize(itsNWPlanes);
@@ -133,7 +133,7 @@ namespace askap
         itsGrid[i].resize(shape);
         itsGrid[i].set(0.0);
       }
-      if (itsDopsf)
+      if (isPSFGridder())
       {
         // for a proper PSF calculation
 		initRepresentativeFieldAndFeed();
@@ -239,7 +239,7 @@ namespace askap
     /// This is the default implementation
     void WStackVisGridder::finalisePSF(casa::Array<double>& out)
     {
-      ASKAPDEBUGASSERT(itsDopsf);
+      ASKAPDEBUGASSERT(isPSFGridder());
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
       for (unsigned int i=0; i<itsGrid.size(); i++)
@@ -274,7 +274,7 @@ namespace askap
 
       itsAxes=axes;
       itsShape=in.shape();
-      itsDopsf = false;
+      configureForPSF(false);
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
           "RA and DEC specification not present in axes");

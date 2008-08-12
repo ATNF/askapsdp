@@ -96,10 +96,10 @@ std::string printDirection(const casa::MVDirection &dir)
 }
 
 TableVisGridder::TableVisGridder() :
-	itsDopsf(false),itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
+	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
-	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
+	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsDopsf(false)
 
 {
   itsSumWeights.resize(1,1,1);
@@ -108,11 +108,11 @@ TableVisGridder::TableVisGridder() :
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
 		const std::string& name) :
-	itsDopsf(false), itsSupport(support), itsOverSample(overSample), itsName(name),
+	 itsSupport(support), itsOverSample(overSample), itsName(name),
 			itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
-        itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
+        itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsDopsf(false)
 {
         
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -124,7 +124,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 /// and the copy.
 /// @param[in] other input object
 TableVisGridder::TableVisGridder(const TableVisGridder &other) : 
-     itsAxes(other.itsAxes), itsShape(other.itsShape), itsDopsf(other.itsDopsf),
+     itsAxes(other.itsAxes), itsShape(other.itsShape), 
      itsUVCellSize(other.itsUVCellSize.copy()), 
      itsSumWeights(other.itsSumWeights.copy()), 
      itsSupport(other.itsSupport), itsOverSample(other.itsOverSample),
@@ -135,6 +135,7 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
      itsNumberDegridded(other.itsNumberDegridded), itsTimeCoordinates(other.itsTimeCoordinates),
      itsTimeGridded(other.itsTimeGridded),
      itsTimeDegridded(other.itsTimeDegridded),
+     itsDopsf(other.itsDopsf),
      itsFirstGriddedVis(other.itsFirstGriddedVis),
      itsFeedUsedForPSF(other.itsFeedUsedForPSF),
      itsPointingUsedForPSF(other.itsPointingUsedForPSF)
