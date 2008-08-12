@@ -127,20 +127,8 @@ namespace askap
        LatticeFFT::cfft2d(scratch, True);
        
        // Construct a Wiener filter
-       /*
-       casa::IPosition corner(paddedShape.nelements(),0);
-       corner(0) = paddedShape(0)/4;
-       corner(1) = paddedShape(1)/4;
-       casa::Slicer slicer(corner, lpsf.shape());
-       casa::SubLattice<casa::Complex> inner(scratch, slicer, True);      
-       */
        casa::ArrayLattice<casa::Complex> wienerfilter(scratch.shape());
        wienerfilter.set(0.);
-       /*
-       casa::SubLattice<casa::Complex> innerWF(wienerfilter, slicer, True);             
-       casa::LatticeExpr<casa::Complex> wf(conj(inner)/(inner*conj(inner) + itsNoisePower));
-       innerWF.copyData(wf);
-       */
        casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsNoisePower));
        wienerfilter.copyData(wf);
        
