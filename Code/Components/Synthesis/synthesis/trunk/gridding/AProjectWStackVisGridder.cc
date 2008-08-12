@@ -241,9 +241,9 @@ namespace askap {
 	  itsDone(feed, itsCurrentField)=true;
 	  nDone++;
 	  casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
-	  itsSlopes(0, feed, itsCurrentField) =sin(offset.getLong()
+	  itsSlopes(0, feed, itsCurrentField) = isPSFGridder() ? 0. : sin(offset.getLong()
 						   -out.getLong()) *cos(offset.getLat());
-	  itsSlopes(1, feed, itsCurrentField)=sin(offset.getLat())
+	  itsSlopes(1, feed, itsCurrentField)= isPSFGridder() ? 0. : sin(offset.getLat())
 	    *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
 	    *cos(offset.getLong()-out.getLong());
 	  

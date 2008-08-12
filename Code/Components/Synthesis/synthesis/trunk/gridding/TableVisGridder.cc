@@ -98,8 +98,8 @@ std::string printDirection(const casa::MVDirection &dir)
 TableVisGridder::TableVisGridder() :
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
-	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
-	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsDopsf(false)
+	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
+	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 
 {
   itsSumWeights.resize(1,1,1);
@@ -111,8 +111,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	 itsSupport(support), itsOverSample(overSample), itsName(name),
 			itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
-	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0),
-        itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsDopsf(false)
+	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
+        itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 {
         
 	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -153,7 +153,7 @@ TableVisGridder::TableVisGridder(const TableVisGridder &other) :
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
-		if (itsDopsf) {
+		if (isPSFGridder()) {
 		    ASKAPLOG_INFO_STR(logger, "   PSF samples gridded       = "
                               << itsSamplesGridded);
             ASKAPLOG_INFO_STR(logger, "   Visibility vectors flagged (psf)     = "
@@ -250,7 +250,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    if (forward&&itsModelIsEmpty)
 		return;
    
-   if (forward && itsDopsf) {
+   if (forward && isPSFGridder()) {
        ASKAPTHROW(AskapError, "Logic error: the gridder is not supposed to be used for degridding in the PSF mode")
    }
 
@@ -295,7 +295,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
    
    for (uint i=0; i<nSamples; ++i) {
-       if (itsFirstGriddedVis && itsDopsf) {
+       if (itsFirstGriddedVis && isPSFGridder()) {
            // data members related to representative feed and field are used for
            // reverse problem only (from visibilities to image). 
            itsFeedUsedForPSF = acc.feed1()(i);
@@ -458,7 +458,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                    }
 				     acc.rwVisibility()(i, chan, pol)+=cVis*phasor;
 			     } else {
-			       if (!itsDopsf) {
+			       if (!isPSFGridder()) {
 			           /// Gridding visibility data onto grid
 			           casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
                        if(itsVisWeight) {
@@ -475,56 +475,15 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				       ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				
 				       itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
-
-                       //itsSamplesGridded+=1.0;
-                       //itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));			     
 				   }
 				   /// Grid PSF?
-				   if (itsDopsf && (itsFeedUsedForPSF == acc.feed1()(i)) &&
+				   if (isPSFGridder() && (itsFeedUsedForPSF == acc.feed1()(i)) &&
 				             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
-
-				       if (!itsConvFuncForPSF.size()) {
-					       // this cache has the same structure as for the 
-					       // ordinary convolution function
-					       itsConvFuncForPSF.resize(itsConvFunc.size());
-					   }
-					
-					  // next line should never cause problems if initialiseGrid is called
-					  // with Dopsf = true before generic.
-					  ASKAPDEBUGASSERT(cInd<int(itsConvFuncForPSF.size()));
-					
-					  casa::Matrix<casa::Complex> &psfConvFunc = itsConvFuncForPSF[cInd];
-					
-					  if (psfConvFunc.nelements() == 0) {
-					    // copy ordinary convolution function and remove the shift
-					    psfConvFunc = convFunc.copy();
-					    // need to encapsulate the following code somewhere
-					    const casa::MVDirection offset(acc.pointingDir1()(i));
-					    const casa::MVDirection out(getImageCentre());
-					    const double lScaled = sin(offset.getLong()-out.getLong())*cos(offset.getLat())*
-					       2.*casa::C::pi*itsUVCellSize(0);
-                        const double mScaled = (sin(offset.getLat())*cos(out.getLat()) - 
-                           cos(offset.getLat())*sin(out.getLat())*cos(offset.getLong()-out.getLong()))*
-                           2.*casa::C::pi*itsUVCellSize(1);                           
-					    //
-					    for (casa::uInt inx = 0; inx<psfConvFunc.nrow(); ++inx) {
-					         const double u_offset = double(inx) - double(psfConvFunc.nrow()-1)/2 + double(fracu)/itsOverSample;
-					         for (casa::uInt iny = 0; iny<psfConvFunc.ncolumn(); ++iny) {
-					              const double v_offset = double(iny) - double(psfConvFunc.ncolumn()-1)/2 + double(fracv)/itsOverSample;
-					              const double phase = lScaled*u_offset+mScaled*v_offset;
-					              const casa::Complex phasor(cos(phase),sin(phase));
-					              psfConvFunc(inx,iny) *= phasor;
-					         }
-					    }
-					  } // end if psfConvFunc needs initialization
-					  ASKAPDEBUGASSERT((psfConvFunc.nrow() == convFunc.nrow()) &&
-					          (psfConvFunc.ncolumn() == convFunc.ncolumn()));
-					
 				      casa::Complex uVis(1.,0.);
 				      if(itsVisWeight) {
                          uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                       }
-                      GridKernel::grid(grid, psfConvFunc, uVis, iu, iv, itsSupport);
+                      GridKernel::grid(grid, convFunc, uVis, iu, iv, itsSupport);
                       
                       itsSamplesGridded+=1.0;
 			          itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
@@ -661,13 +620,13 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		const casa::IPosition& shape, const bool dopsf) {
 	itsAxes=axes;
 	itsShape=shape;
-	itsDopsf=dopsf;
+	configureForPSF(dopsf);
 
 	/// We only need one grid
 	itsGrid.resize(1);
 	itsGrid[0].resize(shape);
 	itsGrid[0].set(0.0);
-	if (itsDopsf) {
+	if (isPSFGridder()) {
 		// for a proper PSF calculation
 		initRepresentativeFieldAndFeed();
 	}
@@ -702,7 +661,6 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 void TableVisGridder::initRepresentativeFieldAndFeed()
 {
   itsFirstGriddedVis = true;
-  itsConvFuncForPSF.empty();
 
   /*
   // temporary code for debuggig
@@ -739,7 +697,7 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 
 /// This is the default implementation
 void TableVisGridder::finalisePSF(casa::Array<double>& out) {
-    ASKAPDEBUGASSERT(itsDopsf);
+    ASKAPDEBUGASSERT(isPSFGridder());
     /// Loop over all grids Fourier transforming and accumulating
 	for (unsigned int i=0; i<itsGrid.size(); i++) {
 		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
@@ -783,7 +741,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 
 void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
-    itsDopsf = false;
+    configureForPSF(false);
 	itsAxes=axes;
 	itsShape=in.shape();
 
