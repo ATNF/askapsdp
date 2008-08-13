@@ -39,7 +39,7 @@ namespace askap {
     }
     std::string hostname(hname);
     if (!full) {
-      unsigned int dotloc = hostname.find_first_of(".");
+      std::string::size_type dotloc = hostname.find_first_of(".");
       if (  dotloc != hostname.npos ) {
         return hostname.substr(0,dotloc);
       }
