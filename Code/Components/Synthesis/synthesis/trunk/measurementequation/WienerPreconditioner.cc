@@ -116,16 +116,27 @@ namespace askap
        paddedShape(1)*=2;
        casa::ArrayLattice<casa::Complex> scratch(paddedShape);
        scratch.set(0.0);
-       inject(scratch, lpsf);
+       // psf and dirty image were both formed by FFT without padding. To avoid sinc-line artefacts
+       // we do the first FFT on the inner quarter only and double the size only for construction
+       // of the filter and its application (where the convolution happens and hence we need higher
+       // frequencies)
+       casa::IPosition corner(paddedShape.nelements(),0);
+       corner(0) = paddedShape(0)/4;
+       corner(1) = paddedShape(1)/4;
+       casa::Slicer slicer(corner, lpsf.shape());
+       casa::SubLattice<casa::Complex> innerScratch(scratch, slicer, True);
+       innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));              
+       //inject(scratch, lpsf);
+       
+       LatticeFFT::cfft2d(innerScratch, True);
+
        
        /*
        SynthesisParamsHelper::saveAsCasaImage("dbg.img",casa::amplitude(scratch.asArray()));       
        //SynthesisParamsHelper::saveAsCasaImage("dbg.img",lpsf.asArray());
        throw AskapError("This is a debug exception");
        */
-       
-       LatticeFFT::cfft2d(scratch, True);
-       
+              
        // Construct a Wiener filter
        casa::ArrayLattice<casa::Complex> wienerfilter(scratch.shape());
        wienerfilter.set(0.);
@@ -145,8 +156,10 @@ namespace askap
        
        // Apply the filter to the dirty image
        scratch.set(0.);
-       inject(scratch, ldirty);
-       LatticeFFT::cfft2d(scratch, True);
+       //inject(scratch, ldirty);
+       innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
+       
+       LatticeFFT::cfft2d(innerScratch, True);
  
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
