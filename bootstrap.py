@@ -1,4 +1,5 @@
 import os
+import optparse
 import sys
 import subprocess
 
@@ -35,12 +36,50 @@ def update_tree(thePath):
     pathvisited += pkgdir
     update_command(pathvisited, recursive=True)
 
-invoked_path = sys.argv[0]
+##
+# main
+#
+usage = "usage: python bootstrap.py [options]"
+desc  = "Bootstrap the ASKAP build environment"
+parser = optparse.OptionParser(usage, description=desc)
+parser.add_option('-n', '--nosvn', dest='nosvn',
+                  action="store_true", default=False,
+                  help='Do not use svn to checkout anything.')
+
+recursivebuild_path = "Tools/Dev/recursivebuild"
+virtualenv_path     = "Tools/Dev/virtualenv"
+
+invoked_path  = sys.argv[0]
 absolute_path = os.path.abspath(invoked_path)
+
 os.chdir(os.path.dirname(absolute_path))
 
-update_tree("Tools")
-os.system("cd Tools/Dev/virtualenv; python bootstrap.py")
+(opts, args) = parser.parse_args()
+
+if opts.nosvn:
+    print ">>> No svn updates as requested but this requires that the"
+    print ">>> Tool tree already exists."
+else:
+    print ">>> Updating Tools tree."
+    update_tree("Tools")
+
+if os.path.exists(virtualenv_path):
+    print ">>> Attempting to create python virtual environment."
+    os.system("cd %s && python bootstrap.py" % virtualenv_path)
+else:
+    print ">>> %s does not exist." % os.path.abspath(virtualenv_path)
+    sys.exit()
+
+print ">>> Attempting to create initaskap.sh."
 os.system("python initenv.py >/dev/null")
-os.system(". initaskap.sh; cd Tools/Dev/recursivebuild; python setup.py -q install")
-os.system(". initaskap.sh; cd Tools; python setup.py -q install")
+
+if os.path.exists(recursivebuild_path):
+    print ">>> Attempting to build recursivebuild."
+    os.system(". initaskap.sh && cd %s && python setup.py -q install"
+                % recursivebuild_path)
+else:
+    print ">>> %s does not exist." % os.path.abspath(recursivebuild_path)
+    sys.exit()
+
+print ">>> Attempting to build all the Tools."
+os.system(". initaskap.sh && cd Tools && python setup.py -q install")
