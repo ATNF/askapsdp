@@ -108,45 +108,52 @@ namespace askap
        ASKAPLOG_INFO_STR(logger, "Peak of PSF before Wiener filtering = " << maxPSFBefore);
        casa::ArrayLattice<float> lpsf(psf);
        casa::ArrayLattice<float> ldirty(dirty);
-       
-       // Setup work arrays. We need to pad to twice the size in order to avoid
-       // wraparound.
+
+       // we need to pad to twice the size in the image plane in order to avoid wraparound
        IPosition paddedShape = lpsf.shape();
        paddedShape(0)*=2;
-       paddedShape(1)*=2;
-       casa::ArrayLattice<casa::Complex> scratch(paddedShape);
-       scratch.set(0.0);
-       // psf and dirty image were both formed by FFT without padding. To avoid sinc-line artefacts
-       // we do the first FFT on the inner quarter only and double the size only for construction
-       // of the filter and its application (where the convolution happens and hence we need higher
-       // frequencies)
+       paddedShape(1)*=2;       
        casa::IPosition corner(paddedShape.nelements(),0);
        corner(0) = paddedShape(0)/4;
        corner(1) = paddedShape(1)/4;
+       // set up slicer to work with inner quarter of a padded lattice
        casa::Slicer slicer(corner, lpsf.shape());
-       casa::SubLattice<casa::Complex> innerScratch(scratch, slicer, True);
-       innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));              
-       //inject(scratch, lpsf);
+       casa::ArrayLattice<casa::Complex> scratch(paddedShape);
+       scratch.set(0.);
+       casa::SubLattice<casa::Complex> innerScratch(scratch, slicer, True);       
+       //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
+       inject(scratch, lpsf);
+      
        
        LatticeFFT::cfft2d(innerScratch, True);
-
+       
+       // Construct a Wiener filter
+       
+       casa::ArrayLattice<casa::Complex> wienerfilter(paddedShape);
+       wienerfilter.set(0.);
+       casa::SubLattice<casa::Complex> innerWF(wienerfilter, slicer, True);       
+       casa::LatticeExpr<casa::Complex> wf(conj(innerScratch)/(innerScratch*conj(innerScratch) + itsNoisePower));
+       innerWF.copyData(wf);
+       // two FTs to do padding in the image plane
+       LatticeFFT::cfft2d(innerWF, False);
+       LatticeFFT::cfft2d(wienerfilter, True);                
+              
+       // Apply the filter to the lpsf
+       // (reuse the ft(lpsf) currently held in 'scratch')
+       
+       // need to rebuild ft(lpsf) with padding, otherwise there is a scaling error
+       scratch.set(0.);
+       inject(scratch, lpsf);
+       LatticeFFT::cfft2d(scratch, True);      
+       //
+       scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        
        /*
        SynthesisParamsHelper::saveAsCasaImage("dbg.img",casa::amplitude(scratch.asArray()));       
        //SynthesisParamsHelper::saveAsCasaImage("dbg.img",lpsf.asArray());
        throw AskapError("This is a debug exception");
        */
-              
-       // Construct a Wiener filter
-       casa::ArrayLattice<casa::Complex> wienerfilter(scratch.shape());
-       wienerfilter.set(0.);
-       casa::LatticeExpr<casa::Complex> wf(conj(scratch)/(scratch*conj(scratch) + itsNoisePower));
-       wienerfilter.copyData(wf);
        
-              
-       // Apply the filter to the lpsf
-       // (reuse the ft(lpsf) currently held in 'scratch')
-       scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);       
        extract(lpsf, scratch);
        float maxPSFAfter=casa::max(psf);
@@ -156,10 +163,10 @@ namespace askap
        
        // Apply the filter to the dirty image
        scratch.set(0.);
-       //inject(scratch, ldirty);
-       innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
+       inject(scratch, ldirty);
+       //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
        
-       LatticeFFT::cfft2d(innerScratch, True);
+       LatticeFFT::cfft2d(scratch, True);
  
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
