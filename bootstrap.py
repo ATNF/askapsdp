@@ -42,7 +42,7 @@ def update_tree(thePath):
 usage = "usage: python bootstrap.py [options]"
 desc  = "Bootstrap the ASKAP build environment"
 parser = optparse.OptionParser(usage, description=desc)
-parser.add_option('-n', '--nosvn', dest='nosvn',
+parser.add_option('-n', '--no-update', dest='no_update',
                   action="store_true", default=False,
                   help='Do not use svn to checkout anything.')
 
@@ -56,9 +56,9 @@ os.chdir(os.path.dirname(absolute_path))
 
 (opts, args) = parser.parse_args()
 
-if opts.nosvn:
+if opts.no_update:
     print ">>> No svn updates as requested but this requires that the"
-    print ">>> Tool tree already exists."
+    print ">>> Tools tree already exists."
 else:
     print ">>> Updating Tools tree."
     update_tree("Tools")
