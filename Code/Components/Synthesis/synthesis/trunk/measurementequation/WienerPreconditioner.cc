@@ -171,7 +171,7 @@ namespace askap
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
        extract(ldirty, scratch);
-       maxPSFBefore*=4.0;
+       //maxPSFBefore*=4.0;
        dirty*=maxPSFBefore/maxPSFAfter;
 	  
        return true;
