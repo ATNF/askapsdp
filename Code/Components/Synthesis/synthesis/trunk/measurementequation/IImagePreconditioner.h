@@ -54,11 +54,12 @@ namespace askap
         virtual ~IImagePreconditioner();
 
 	    /// @brief Apply preconditioning to Image Arrays
-	    /// @details It is applied to the PSF as well as the current residual image.
+	    /// @details It is applied to the PSF as well as the current residual image. This method has to be
+	    /// overridden in the derived classes.
 	    /// @param[in] psf an array with the PSF
 	    /// @param[in] dirty an array with dirty image
 	    /// @return true if psf and dirty have been altered
-	    virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
+	    virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const = 0;
     };
 
   }

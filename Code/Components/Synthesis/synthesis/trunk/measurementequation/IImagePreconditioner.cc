@@ -32,11 +32,6 @@ namespace askap
     {
     }
     
-    bool IImagePreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
-    {
-      return false;
-    }
-
   }
 }
 

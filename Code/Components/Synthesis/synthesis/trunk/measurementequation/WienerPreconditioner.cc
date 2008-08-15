@@ -29,6 +29,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <askap/AskapError.h>
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/PaddingUtils.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -66,39 +67,6 @@ namespace askap
 	    return IImagePreconditioner::ShPtr(new WienerPreconditioner(*this));
     }
     
-    // Inject source into the centre quarter of the target
-    void WienerPreconditioner::inject(casa::Lattice<casa::Complex>& target, casa::Lattice<float>& source) const
-    {
-      target.set(0.0);
-      casa::IPosition corner(target.shape().nelements(),0);
-      ASKAPDEBUGASSERT(corner.nelements()>=2);
-      ASKAPDEBUGASSERT(target.shape()(0) == source.shape()(0)*2);
-      ASKAPDEBUGASSERT(target.shape()(1) == source.shape()(1)*2);
-      
-      corner(0) = target.shape()(0)/4;
-      corner(1) = target.shape()(1)/4;
-      casa::Slicer slicer(corner, source.shape());
-      casa::SubLattice<casa::Complex> inner(target, slicer, True);
-      inner.copyData(casa::LatticeExpr<casa::Complex>(toComplex(source)));
-      //      ASKAPLOG_INFO_STR(logger, "Injected " << source.shape() << " into " << target.shape() << " starting at " << corner);
-    }
-
-    // Extract target from the center quarter of the source 
-    void WienerPreconditioner::extract(casa::Lattice<float>& target, casa::Lattice<casa::Complex>& source) const
-    {
-      target.set(0.0);
-      casa::IPosition corner(source.shape().nelements(),0);
-      ASKAPDEBUGASSERT(corner.nelements()>=2);
-      ASKAPDEBUGASSERT(source.shape()(0) == target.shape()(0)*2);
-      ASKAPDEBUGASSERT(source.shape()(1) == target.shape()(1)*2);
-      corner(0) = source.shape()(0)/4;
-      corner(1) = source.shape()(1)/4;
-      casa::Slicer slicer(corner, target.shape());
-      casa::SubLattice<casa::Complex> inner(source, slicer, True);
-      target.copyData(casa::LatticeExpr<float>(real(inner)));
-      //      ASKAPLOG_INFO_STR(logger, "Extracted " << target.shape() << " from " << source.shape() << " starting at " << corner);
-    }
-
     bool WienerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
       if(itsNoisePower > 1e-06) {
@@ -122,7 +90,7 @@ namespace askap
        scratch.set(0.);
        casa::SubLattice<casa::Complex> innerScratch(scratch, slicer, True);       
        //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
-       inject(scratch, lpsf);
+       PaddingUtils::inject(scratch, lpsf);
       
        
        LatticeFFT::cfft2d(innerScratch, True);
@@ -143,7 +111,7 @@ namespace askap
        
        // need to rebuild ft(lpsf) with padding, otherwise there is a scaling error
        scratch.set(0.);
-       inject(scratch, lpsf);
+       PaddingUtils::inject(scratch, lpsf);
        LatticeFFT::cfft2d(scratch, True);      
        //
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
@@ -155,7 +123,7 @@ namespace askap
        */
        
        LatticeFFT::cfft2d(scratch, False);       
-       extract(lpsf, scratch);
+       PaddingUtils::extract(lpsf, scratch);
        float maxPSFAfter=casa::max(psf);
        ASKAPLOG_INFO_STR(logger, "Peak of PSF after Wiener filtering  = " << maxPSFAfter);
        psf*=maxPSFBefore/maxPSFAfter;
@@ -163,14 +131,14 @@ namespace askap
        
        // Apply the filter to the dirty image
        scratch.set(0.);
-       inject(scratch, ldirty);
+       PaddingUtils::inject(scratch, ldirty);
        //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
        
        LatticeFFT::cfft2d(scratch, True);
  
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
-       extract(ldirty, scratch);
+       PaddingUtils::extract(ldirty, scratch);
        //maxPSFBefore*=4.0;
        dirty*=maxPSFBefore/maxPSFAfter;
 	  
