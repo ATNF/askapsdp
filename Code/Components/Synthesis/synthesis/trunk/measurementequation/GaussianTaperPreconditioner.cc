@@ -44,6 +44,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <scimath/Mathematics/SquareMatrix.h>
 #include <scimath/Mathematics/RigidVector.h>
 
+#include <measurementequation/PaddingUtils.h>
 
 namespace askap {
 
@@ -119,16 +120,25 @@ void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
 {
   casa::ArrayLattice<float> lattice(image);
   
+  /*
+  casa::IPosition paddedShape = image.shape();
+  ASKAPDEBUGASSERT(paddedShape.nelements()>=2);
+  paddedShape[0] *= 2;
+  paddedShape[1] *= 2;
+  */
+  
   // Setup work arrays.
   const casa::IPosition shape = lattice.shape();
+  //const casa::IPosition shape = paddedShape;
   casa::ArrayLattice<casa::Complex> scratch(shape);
-  
+    
   if (!shape.isEqual(itsTaperCache.shape())) {
       initTaperCache(shape);
   }
   
   // fft to transform the image into uv-domain
   scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lattice)));
+  //PaddingUtils::inject(scratch, lattice);
   casa::LatticeFFT::cfft2d(scratch, true);
   
   // apply the taper
@@ -139,7 +149,7 @@ void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
   // transform back to the image domain
   casa::LatticeFFT::cfft2d(scratch, false);
   lattice.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-
+  //PaddingUtils::extract(lattice,scratch);
 }
 
 /// @brief a helper method to build the lattice representing the taper
