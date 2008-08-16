@@ -214,7 +214,7 @@ template<typename Op> void ComplexDiff::unaryOperationInSitu(Op &operation,
 void ComplexDiff::operator+=(const ComplexDiff &other)
 {
   // process derivatives
-  binaryOperationInSitu(additionInSitu,other);
+  binaryOperationInSitu(ComplexDiff::additionInSitu,other);
   // process value
   itsValue+=other.itsValue;
 }
@@ -224,7 +224,7 @@ void ComplexDiff::operator+=(const ComplexDiff &other)
 void ComplexDiff::operator*=(const ComplexDiff &other)
 {
   // process derivatives
-  binaryOperationInSitu(multiplicationInSitu,other);
+  binaryOperationInSitu(ComplexDiff::multiplicationInSitu,other);
   // process value
   itsValue*=other.itsValue;
 }
