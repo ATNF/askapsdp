@@ -152,7 +152,8 @@ def plotHistRel(array=None, locationCode=232, name="X"):
     maxval = max(abs(max(array)),abs(min(array))) * 1.1
     n, bins, patches = hist(array, 20)
     axis([-maxval,maxval,0,max(n)])
-    xlabel(r'$\Delta %s/%s_R [%%]$'%(name,name),font)
+    lab = r'$100\times\Delta %s/%s_R$'%(name,name)
+    xlabel(lab,font)
 
 
 #############################################################################
