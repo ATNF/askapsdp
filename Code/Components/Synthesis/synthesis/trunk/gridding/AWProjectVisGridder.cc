@@ -489,9 +489,7 @@ namespace askap {
 	}
       }
       fftPad(cOut, out);
-      // We have to correct twice since this is the square!
-      correctConvolution(out);
-      correctConvolution(out);
+
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }
