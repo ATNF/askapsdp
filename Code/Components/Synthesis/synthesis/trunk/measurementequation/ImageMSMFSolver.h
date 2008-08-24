@@ -31,6 +31,8 @@
 #define SYNIMAGEMSMFSSOLVER_H_
 
 #include <measurementequation/ImageCleaningSolver.h>
+#include <askap/AskapUtil.h>
+
 
 #include <boost/shared_ptr.hpp>
 #include <lattices/Lattices/LatticeCleaner.h>
@@ -94,7 +96,7 @@ namespace askap
 	/// Order == enumeration index (e.x. second-order Taylor coefficient)
         inline int getOrder(const std::string& paramstring){return atoi(paramstring.substr(8,1).data());};
         /// Create an image parameter string, from stokes and order parameters
-	inline std::string makeImageString(const std::string& samplestring, const std::string& stokes, const int& order){std::string newstring(samplestring);newstring.replace(6,1,stokes);newstring.replace(8,1,(casa::String::toString(order)).data());return newstring;};
+	inline std::string makeImageString(const std::string& samplestring, const std::string& stokes, const int& order){std::string newstring(samplestring);newstring.replace(6,1,stokes);newstring.replace(8,1,(utility::toString<int>(order)).data());return newstring;};
 	
 
         /// Scales in pixels
