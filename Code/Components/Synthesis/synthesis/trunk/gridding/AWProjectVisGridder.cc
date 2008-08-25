@@ -241,7 +241,6 @@ namespace askap {
       int nDone=0;
       for (int row=0; row<nSamples; ++row) {
 	const int feed=acc.feed1()(row);
-	
 	if (!itsDone(feed, itsCurrentField)) {
 	  itsDone(feed, itsCurrentField)=true;
 	  nDone++;
@@ -257,9 +256,10 @@ namespace askap {
 	  for (int chan=0; chan<nChan; ++chan) {
 	    
 	    /// Extract illumination pattern for this channel
+	    const double scalingDueToOversampling = 1.+1./double(itsOverSample);
 	    itsIllumination->getPattern(acc.frequency()[chan], pattern,
-					itsSlopes(0, feed, itsCurrentField),
-					itsSlopes(1, feed, itsCurrentField), parallacticAngle);
+					itsSlopes(0, feed, itsCurrentField)*scalingDueToOversampling,
+					itsSlopes(1, feed, itsCurrentField)*scalingDueToOversampling, parallacticAngle);
 	    
 	    fft2d(pattern.pattern(), false);
 	    
