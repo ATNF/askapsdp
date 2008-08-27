@@ -1,6 +1,6 @@
 #include <askap_analysis.h>
 
-#include <analysisutilities/casaImageUtil.h>
+#include <analysisutilities/CasaImageUtil.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
