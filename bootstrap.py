@@ -1,7 +1,8 @@
 import os
 import optparse
-import sys
+import shutil
 import subprocess
+import sys
 
 ## execute an svn up command
 #
@@ -36,6 +37,18 @@ def update_tree(thePath):
     pathvisited += pkgdir
     update_command(pathvisited, recursive=True)
 
+## remove files or directories
+#
+# @param paths The list of paths to remove.
+def remove_paths(paths):
+    for p in paths:
+        if os.path.exists(p) and p != ".":
+            print ">>> Attempting to remove %s" % p
+            if os.path.isdir(p):
+                shutil.rmtree(p)
+            else:
+                os.remove(p)
+
 ##
 # main
 #
@@ -44,8 +57,11 @@ desc  = "Bootstrap the ASKAP build environment"
 parser = optparse.OptionParser(usage, description=desc)
 parser.add_option('-n', '--no-update', dest='no_update',
                   action="store_true", default=False,
-                  help='Do not use svn to checkout anything.')
+                  help='Do not use svn to checkout anything. Default is to update and checkout Tools.')
 
+parser.add_option('-p', '--preserve', dest='preserve',
+                  action="store_true", default=False,
+                  help='Keep pre-existing bootstrap files (though they maybe overwritten). Default is to remove.')
 recursivebuild_path = "Tools/Dev/recursivebuild"
 virtualenv_path     = "Tools/Dev/virtualenv"
 
@@ -55,6 +71,13 @@ absolute_path = os.path.abspath(invoked_path)
 os.chdir(os.path.dirname(absolute_path))
 
 (opts, args) = parser.parse_args()
+
+if opts.preserve:
+    print ">>> No pre-clean up of existing bootstrap generated files."
+else:
+    print ">>> Attempting removal prexisting bootstrap files (if they exist)."
+    remove_paths(["lib",  "bin", "include", "initaskap.sh", "initaskap.csh",
+        ".Python"])
 
 if opts.no_update:
     print ">>> No svn updates as requested but this requires that the"
@@ -72,6 +95,8 @@ else:
 
 print ">>> Attempting to create initaskap.sh."
 os.system("python initenv.py >/dev/null")
+print ">>> Attempting to create initaskap.csh."
+os.system("python initenv.py -s tcsh >/dev/null")
 
 if os.path.exists(recursivebuild_path):
     print ">>> Attempting to build recursivebuild."
@@ -81,5 +106,8 @@ else:
     print ">>> %s does not exist." % os.path.abspath(recursivebuild_path)
     sys.exit()
 
+if not opts.preserve:
+    print ">>> Attempting to clean all the Tools."
+    os.system(". initaskap.sh && cd Tools && python setup.py -q clean > /dev/null 2>& 1")
 print ">>> Attempting to build all the Tools."
 os.system(". initaskap.sh && cd Tools && python setup.py -q install")
