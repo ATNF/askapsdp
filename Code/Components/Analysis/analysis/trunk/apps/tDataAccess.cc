@@ -51,41 +51,57 @@ using namespace casa;
 using namespace askap;
 using namespace askap::analysis;
 
+ASKAP_LOGGER(logger, "cduchamp.log");
+
 int main(int argc, char *argv[])
 {
 
-  std::string imageName;
-  if(argc==1) imageName = "/Users/whi550/PROJECTS/ASKAP/svnASKAPsoft/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
-  else imageName = argv[1];
+  try {
+    std::string imageName;
+    if(argc==1) imageName = "/Users/whi550/PROJECTS/ASKAP/svnASKAPsoft/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
+    else imageName = argv[1];
 
 
-//   std::cout << "Loading " << imageName << " into a casa::PagedImage\n";
-//   PagedImage<Float> image2(imageName);
-//   std::cout << "Success!\n";
-//   IPosition shape=image2.shape();
-//   std::cout << "Shape of image = " << shape << "\n";
-//   CoordinateSystem coords=image2.coordinates();
-//    Record hdr;
-//   Bool worked = coords.toFITSHeader(hdr,shape,true,'c',true);
-//   std::cout << worked << "\n"
-// 	    << hdr << "\n";
+    //   std::cout << "Loading " << imageName << " into a casa::PagedImage\n";
+    //   PagedImage<Float> image2(imageName);
+    //   std::cout << "Success!\n";
+    //   IPosition shape=image2.shape();
+    //   std::cout << "Shape of image = " << shape << "\n";
+    //   CoordinateSystem coords=image2.coordinates();
+    //    Record hdr;
+    //   Bool worked = coords.toFITSHeader(hdr,shape,true,'c',true);
+    //   std::cout << worked << "\n"
+    // 	    << hdr << "\n";
 
-  std::cout << "Loading " << imageName << " using askap::analysis::casaImageToWCS()\n";
-  wcsprm *wcs = casaImageToWCS(imageName);
-  std::cout << "Success! wcsprt gives:\n";
-  wcsprt(wcs);
+    std::cout << "Loading " << imageName << " using askap::analysis::casaImageToWCS()\n";
+    wcsprm *wcs = casaImageToWCS(imageName);
+    std::cout << "Success! wcsprt gives:\n";
+    wcsprt(wcs);
 
-  std::cout << "Loading " << imageName << " using casa::LatticeBase\n";
-  LatticeBase* lattPtr = ImageOpener::openImage (imageName);
-//   ASSERT (lattPtr);      // to be sure the image file could be opened
-  ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
-//   ASSERT (imagePtr);     // to be sure its data type is Float
-  CoordinateSystem coords2=imagePtr->coordinates();
-  Record hdr2;
-  IPosition shape2 = imagePtr->shape();
-  Bool worked2 = coords2.toFITSHeader(hdr2,shape2,true,'c',true);
-  std::cout << worked2 << "\n"
-	    << hdr2<< "\n";  std::cout << "Success!\n";
+    std::cout << "Loading " << imageName << " using casa::LatticeBase\n";
+    LatticeBase* lattPtr = ImageOpener::openImage (imageName);
+    //   ASSERT (lattPtr);      // to be sure the image file could be opened
+    ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+    //   ASSERT (imagePtr);     // to be sure its data type is Float
+    CoordinateSystem coords2=imagePtr->coordinates();
+    Record hdr2;
+    IPosition shape2 = imagePtr->shape();
+    Bool worked2 = coords2.toFITSHeader(hdr2,shape2,true,'c',true);
+    std::cout << worked2 << "\n"
+	      << hdr2<< "\n";  std::cout << "Success!\n";
 
-  return 0;
+  }
+  catch (askap::AskapError& x)
+    {
+      ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+      std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+      exit(1);
+    }
+  catch (std::exception& x)
+    {
+      ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+      std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+      exit(1);
+    }
+  exit(0);
 }

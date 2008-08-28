@@ -346,11 +346,7 @@ namespace askap
 	// don't do fit if we have a spectral axis.
 	bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
 
-	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": flagDoFit = " << this->itsFlagDoFit
-			  << ", thirdAxis = " << this->itsCube.header().canUseThirdAxis()
-			  << ", numDim = " << this->itsCube.getNumDim());
 	this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
-	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": flagDoFit = " << this->itsFlagDoFit);
 	
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source profiles.");
 	duchamp::FitsHeader head = itsCube.getHead();
@@ -360,7 +356,8 @@ namespace askap
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
 	float threshold = itsCube.stats().getThreshold();
 
- 	for(int i=0;i<itsCube.getNumObj();i++){
+	int numObj = this->itsCube.getNumObj();
+ 	for(int i=0;i<numObj;i++){
 	  // 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
 	  sourcefitting::RadioSource src(itsCube.getObject(i));
 	  //	  src.setNoiseLevel( noise );
@@ -401,7 +398,7 @@ namespace askap
 // 			    );
 	  src.setAtEdge(flagBoundary);
 	  if(!flagBoundary && itsFlagDoFit){
-	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
+	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<" / "<<numObj<<".");
 	    src.fitGauss(itsCube.getArray(),itsCube.getDimArray());
 	  }
 	  itsSourceList.push_back(src);
@@ -586,8 +583,9 @@ namespace askap
 	  if(src->isAtEdge()) edgeSources.push_back(*src);
 	  else goodSources.push_back(*src);
 	}
-	ASKAPLOG_INFO_STR(logger, "MASTER: edgeSources.size="<<edgeSources.size()<<
-			  " goodSources.size="<<goodSources.size());
+
+	//	ASKAPLOG_INFO_STR(logger, "MASTER: edgeSources.size="<<edgeSources.size()<<
+	//		  " goodSources.size="<<goodSources.size());
 	itsSourceList.clear();
 
 	duchamp::FitsHeader head = itsCube.getHead();
@@ -602,7 +600,6 @@ namespace askap
 
 	  for(src=edgeSources.begin();src<edgeSources.end();src++) itsCube.addObject(*src);
 	  
-	  ASKAPLOG_INFO_STR(logger, "MASTER: num sources in cube = "<<itsCube.getNumObj());
 	  itsCube.pars().setFlagGrowth(false);
 	  itsCube.ObjectMerger();
 	  this->calcObjectParams();

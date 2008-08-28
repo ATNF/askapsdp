@@ -164,6 +164,7 @@ namespace askap
 
       par.setFlagGrowth( parset.getBool("flagGrowth", false) );
       par.setGrowthCut( parset.getFloat("growthCut", par.getGrowthCut()) );
+      par.setGrowthThreshold( parset.getFloat("growththreshold", par.getGrowthThreshold()) );
 
       par.setFlagATrous( parset.getBool("flagATrous",false) );
       par.setReconDim( parset.getInt16("reconDim", par.getReconDim()) );

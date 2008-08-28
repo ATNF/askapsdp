@@ -430,6 +430,21 @@ namespace askap
 
       }
 
+      /// @brief A simple way of printing fitted parameters
+      void logparameters(Matrix<Double> &m)
+      {
+	uInt g,p;
+	for (g = 0; g < m.nrow(); g++)
+	  {
+	    std::stringstream outmsg;
+	    outmsg.precision(3);
+	    outmsg.setf(ios::fixed);
+	    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g,p) << ", ";
+	    ASKAPLOG_INFO_STR(logger, outmsg.str());
+	  }
+
+      }
+
       //**************************************************************//
 
       bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList)
@@ -547,10 +562,11 @@ namespace askap
 
 	if(this->getSpatialSize() < minFitSize) return false;
 
-	std::cout << "detect thresh = " << this->itsDetectionThreshold
-		  << "  peak = " << this->peakFlux 
-		  << "  noise level = " << this->itsNoiseLevel 
-		  << "\n";
+	ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
+
+	ASKAPLOG_INFO_STR(logger, "detect thresh = " << this->itsDetectionThreshold
+			  << "  peak = " << this->peakFlux 
+			  << "  noise level = " << this->itsNoiseLevel);
 
 	float boxFlux = 0.;
 	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
@@ -579,9 +595,9 @@ namespace askap
 	float bestRChisq = 9999.;
 
 	std::vector<SubComponent> cmpntList = this->getSubComponentList(f);
-	std::cout << "Found " << cmpntList.size() << " subcomponents\n";
+	ASKAPLOG_INFO_STR(logger, "Found " << cmpntList.size() << " subcomponents");
 	for(uInt i=0;i<cmpntList.size();i++)
-	  std::cout << "SubComponent: " << cmpntList[i];
+	  ASKAPLOG_INFO_STR(logger, "SubComponent: " << cmpntList[i]);
 
 	for(int ctr=0;ctr<maxNumGauss;ctr++){
 
@@ -611,7 +627,8 @@ namespace askap
 	  }
 
 	  fitgauss[ctr].setFirstEstimate(estimate);
-	  cout << "Estimate: "; printparameters(estimate);
+	  ASKAPLOG_INFO_STR(logger, "Estimated parameters follow: "); 
+	  logparameters(estimate);
 
 	  retryfactors.resize(numGauss,6);
 	  for(unsigned int g=0;g<numGauss;g++)
@@ -645,9 +662,10 @@ namespace askap
 	    for(unsigned int i=0;i<numGauss;i++){
 	      solution[ctr](i,5) = remainder(solution[ctr](i,5), 2.*M_PI);
 	    }
-	    cout << "Int. Solution #" << fitloop+1
-		 <<": chisq=" << fitgauss[ctr].chisquared()
-		 <<": "; printparameters(solution[ctr]);
+	    ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop+1
+			      <<": chisq=" << fitgauss[ctr].chisquared()
+			      <<": Parameters are:"); 
+	    logparameters(solution[ctr]);
 	    if(!fitgauss[ctr].converged()) fitloop=9999;
 	    else fitgauss[ctr].setFirstEstimate(solution[ctr]);
 	  }
@@ -661,14 +679,18 @@ namespace askap
 	  float rchisq = chisq[ctr] / float(ndof);
 	
 	  cout.precision(6);
-	  cout << "Solution Parameters: "; printparameters(solution[ctr]);
-	  cout << "Num Gaussians = " << numGauss;
-	  if( fitgauss[ctr].converged()) cout << ", Converged";
-	  else cout << ", Failed";
-	  cout << ", chisq = " << chisq[ctr]
-	       << ", chisq/nu =  "  << rchisq
-	       << ", dof = " << ndof
-	       << ", RMS = " << fitgauss[ctr].RMS() << endl;
+	  ASKAPLOG_INFO_STR(logger, "Solution Parameters follow: "); 
+	  logparameters(solution[ctr]);
+
+	  std::stringstream outmsg;
+	  outmsg << "Num Gaussians = " << numGauss;
+	  if( fitgauss[ctr].converged()) outmsg << ", Converged";
+	  else outmsg << ", Failed";
+	  outmsg << ", chisq = " << chisq[ctr]
+		 << ", chisq/nu =  "  << rchisq
+		 << ", dof = " << ndof
+		 << ", RMS = " << fitgauss[ctr].RMS();
+	  ASKAPLOG_INFO_STR(logger, outmsg.str());
 
 	  /// Acceptance criteria for a fit are as follows (after the
 	  /// FIRST survey criteria, White et al 1997, ApJ 475, 479):
@@ -721,8 +743,8 @@ namespace askap
 
 	  }
 
-	  std::cout<<"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
-		   <<passFlux<<passPeak<<passIntFlux<<"\n";;
+	  ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
+			    <<passFlux<<passPeak<<passIntFlux);
 
 	  thisFitGood = passConv && passChisq && passXLoc && passYLoc && passSep && 
 	    passFlux && passPeak && passIntFlux;
@@ -752,13 +774,15 @@ namespace askap
 		    solution[bestFit](ifit,3),solution[bestFit](ifit,4),solution[bestFit](ifit,5));
 	    this->itsGaussFitSet.push_back(gauss);
 	  }
-	  cout << "BEST FIT: " << bestFit+1 << " Gaussians"
-	       << ", chisq = " << bestRChisq * (this->boxSize() - 6*(bestFit+1) - 1)
-	       << ", chisq/nu =  "  << bestRChisq << endl;
+	  ASKAPLOG_INFO_STR(logger,"BEST FIT: " << bestFit+1 << " Gaussians"
+			    << ", chisq = " << bestRChisq * (this->boxSize() - 6*(bestFit+1) - 1)
+			    << ", chisq/nu =  "  << bestRChisq);
 	}
 	else{
-	  cout << "No good fit found.\n";
+	  ASKAPLOG_INFO_STR(logger, "No good fit found.");
 	}
+
+	ASKAPLOG_INFO_STR(logger, "-----------------------");
 
 	return fitIsGood;
 

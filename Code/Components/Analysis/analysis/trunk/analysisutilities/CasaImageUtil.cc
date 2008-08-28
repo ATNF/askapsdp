@@ -35,18 +35,16 @@ namespace askap
       long *dim = (long *)shape.storage();
       CoordinateSystem coords=imagePtr->coordinates();
       Record hdr;
-      Bool worked = coords.toFITSHeader(hdr,shape,true,'c',true);
-      std::cout << "casaImageToWCS:  read FITS header:\n" << hdr << "\n";
+      if(!coords.toFITSHeader(hdr,shape,true,'c',true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
+      else std::cout << "casaImageToWCS:  read FITS header:\n" << hdr << "\n";
 
       struct wcsprm *wcs;
       wcs = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
       wcs->flag = -1;
       int ndim = shape.size();
       int status = wcsini(1,ndim,wcs);
-      if(status){
-	std::cerr << "wcsini failed! Code=" << status
-		  << ": " << wcs_errmsg[status] << std::endl;
-      }
+      if(status)
+	ASKAPTHROW(AskapError,"casaImageToWCS: wcsini failed! Code=" << status << ": " << wcs_errmsg[status]);
 
       RecordFieldId ctypeID("ctype");
       Array<String> ctype = hdr.asArrayString(ctypeID);
@@ -110,19 +108,18 @@ namespace askap
       //  (missing cards, non-standard units or spectral types, ...)
       status = wcsfix(1, (const int*)dim, wcs, stat);
       if(status) {
-	std::cerr << "wcsfix failed:\nFunction status returns are:\n";
+	std::stringstream errmsg;
+	errmsg << "casaImageToWCS: wcsfix failed: Function status returns are:\n";
 	for(int i=0; i<NWCSFIX; i++)
 	  if (stat[i] > 0) 
-	    std::cerr << i+1 << ": WCSFIX error code=" << stat[i] << ": "
-		      << wcsfix_errmsg[stat[i]] << std::endl;
+	    errmsg << i+1 << ": WCSFIX error code=" << stat[i] << ": "
+		   << wcsfix_errmsg[stat[i]] << std::endl;
+	ASKAPTHROW(AskapError, errmsg.str());
       }
   
       status=wcsset(wcs);
-      if(status){
-	std::cerr <<"wcsset failed!\n"
-		  <<"WCSLIB error code=" << status 
-		  <<": "<<wcs_errmsg[status] << std::endl;
-      }
+      if(status)
+	ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  <<": "<<wcs_errmsg[status]);
 
 
       return wcs;
