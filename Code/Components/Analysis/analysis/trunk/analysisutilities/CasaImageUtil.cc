@@ -19,7 +19,12 @@
 #include <wcslib/wcs.h>
 #include <wcslib/wcsfix.h>
 
+#include <duchamp/duchamp.hh>
+#include <duchamp/fitsHeader.hh>
+#include <duchamp/param.hh>
+
 using namespace casa;
+using namespace duchamp;
 
 namespace askap
 {
@@ -27,10 +32,115 @@ namespace askap
   namespace analysis
   {
 
+    void getCasaImage(std::string imageName)
+    {
+
+      wcsprm *wcs = casaImageToWCS(imageName);
+
+      duchamp::FitsHeader head;
+      duchamp::Param par;
+      
+      storeWCStoHeader(head,par,wcs);
+
+      
+
+    }
+
+    void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs)
+    {
+      if(wcs->spec>=0){ //if there is a spectral axis
+
+	int index = wcs->spec;
+	std::string desiredType,specType = wcs->ctype[index];
+	std::string shortType = specType.substr(0,4);
+	if(shortType=="VELO" || shortType=="VOPT" || shortType=="ZOPT" 
+	   || shortType=="VRAD" || shortType=="BETA"){
+	  if(wcs->restfrq != 0){
+	    // Set the spectral axis to a standard specification: VELO-F2V
+	    desiredType = duchampVelocityType;
+	    if(wcs->restwav == 0) 
+	      wcs->restwav = 299792458.0 /  wcs->restfrq;
+	    head.setSpectralDescription(duchampSpectralDescription[VELOCITY]);
+	  }
+	  else{
+	    // No rest frequency defined, so put spectral dimension in frequency. 
+	    // Set the spectral axis to a standard specification: FREQ
+	    duchampWarning("Cube Reader",
+			   "No rest frequency defined. Using frequency units in spectral axis.\n");
+	    desiredType = duchampFrequencyType;
+	    par.setSpectralUnits("MHz");
+	    if(strcmp(wcs->cunit[index],"")==0){
+	      duchampWarning("Cube Reader",
+			     "No frequency unit given. Assuming frequency axis is in Hz.\n");
+	      strcpy(wcs->cunit[index],"Hz");
+	    }
+	    head.setSpectralDescription(duchampSpectralDescription[FREQUENCY]);
+	  }
+	}
+	else {
+	  desiredType = duchampFrequencyType;
+	  par.setSpectralUnits("MHz");
+	  if(strcmp(wcs->cunit[index],"")==0){
+	    duchampWarning("Cube Reader",
+			   "No frequency unit given. Assuming frequency axis is in Hz.\n");
+	    strcpy(wcs->cunit[index],"Hz");
+	  }
+	  head.setSpectralDescription(duchampSpectralDescription[FREQUENCY]);
+	}	
+
+	// Now we need to make sure the spectral axis has the correct setup.
+	//  We use wcssptr to translate it if it is not of the desired type,
+	//  or if the spectral units are not defined.
+
+	bool needToTranslate = false;
+
+	//       if(strncmp(specType.c_str(),desiredType.c_str(),4)!=0) 
+	// 	needToTranslate = true;
+
+	std::string blankstring = "";
+	if(strcmp(wcs->cunit[wcs->spec],blankstring.c_str())==0)
+	  needToTranslate = true;
+
+	if(needToTranslate){
+
+	  if(strcmp(wcs->ctype[wcs->spec],"VELO")==0)
+	    strcpy(wcs->ctype[wcs->spec],"VELO-F2V");
+
+	  index = wcs->spec;
+	
+	  int status = wcssptr(wcs, &index, (char *)desiredType.c_str());
+	  if(status){
+	    std::stringstream errmsg;
+	    errmsg<< "WCSSPTR failed! Code=" << status << ": "
+		  << wcs_errmsg[status] << std::endl
+		  << "(wanted to convert from type \"" << specType
+		  << "\" to type \"" << desiredType << "\")\n";
+	    duchampWarning("Cube Reader",errmsg.str());
+
+	  }
+
+	}
+    
+      } // end of if(wcs->spec>=0)
+
+	// Save the wcs to the FitsHeader class that is running this function
+      head.setWCS(wcs);
+      head.setNWCS(1);
+      
+
+    }
+
     wcsprm *casaImageToWCS(std::string imageName)
     {
       LatticeBase* lattPtr = ImageOpener::openImage (imageName);
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+
+      return casaImageToWCS(imagePtr);
+    }
+
+    wcsprm *casaImageToWCS(ImageInterface<Float>* imagePtr)
+    {
+
       IPosition shape=imagePtr->shape();
       long *dim = (long *)shape.storage();
       CoordinateSystem coords=imagePtr->coordinates();

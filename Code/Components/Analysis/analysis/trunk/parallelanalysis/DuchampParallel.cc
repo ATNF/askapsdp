@@ -94,8 +94,8 @@ namespace askap
       /// looking at the dim array in the Cube object, and counting
       /// the number of dimensions that are greater than 1
       int numDim=0;
-      long *dim = itsCube.getDimArray();
-      for(int i=0;i<itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
+      long *dim = this->itsCube.getDimArray();
+      for(int i=0;i<this->itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
       return numDim<=2;
     }
     
@@ -112,7 +112,7 @@ namespace askap
 
       // First do the setup needed for both workers and master
 
-      itsCube.pars() = parseParset(parset);
+      this->itsCube.pars() = parseParset(parset);
 
       this->itsFlagDoFit = parset.getBool("doFit", false);
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
@@ -121,34 +121,34 @@ namespace askap
 
       // Now read the correct image name according to worker/master state.
       if(isMaster()){
-	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
-	itsCube.pars().setFlagRobustStats(false);
+	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
+	this->itsCube.pars().setFlagRobustStats(false);
 	if(isParallel()) this->itsSectionList = makeSubImages(this->itsNNode-1,parset);
-	itsImage = substitute(parset.getString("image"));
-	itsCube.pars().setImageFile(itsImage);
+	this->itsImage = substitute(parset.getString("image"));
+	this->itsCube.pars().setImageFile(this->itsImage);
 
       }
 
       if(isWorker()) {
- 	 itsImage = substitute(parset.getString("image"));
-	if(isParallel()) itsImage = getSubImageName(itsImage,itsRank-1,itsNNode-1);
+ 	 this->itsImage = substitute(parset.getString("image"));
+	if(isParallel()) this->itsImage = getSubImageName(this->itsImage,itsRank-1,itsNNode-1);
 	
-	itsCube.pars().setImageFile(itsImage);
-	//	splitImage(parset);
+	this->itsCube.pars().setImageFile(this->itsImage);
+// 		splitImage(parset);
 
 	// get the list of subsections so that all nodes can access it.
 	if(isParallel()){
- 	  itsCube.pars().setSubsection( getSection(itsRank-1,parset).getSection() );
-	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank-1<<" is using subsection " << itsCube.pars().getSubsection());
+ 	  this->itsCube.pars().setSubsection( getSection(itsRank-1,parset).getSection() );
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank-1<<" is using subsection " << this->itsCube.pars().getSubsection());
 	}
 
-	itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
-	itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
+	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
+	this->itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
       }
 
-      if(itsCube.pars().getFlagLog()){
-	ASKAPLOG_INFO_STR(logger, "Setting up logfile " << itsCube.pars().getLogFile() );
-	std::ofstream logfile(itsCube.pars().getLogFile().c_str());
+      if(this->itsCube.pars().getFlagLog()){
+	ASKAPLOG_INFO_STR(logger, "Setting up logfile " << this->itsCube.pars().getLogFile() );
+	std::ofstream logfile(this->itsCube.pars().getLogFile().c_str());
 	logfile << "New run of the CDuchamp sourcefinder: ";
 	time_t now = time(NULL);
 	logfile << asctime( localtime(&now) );
@@ -156,7 +156,7 @@ namespace askap
 	logfile << "Executing statement : ";
 	for(int i=0;i<argc;i++) logfile << argv[i] << " ";
 	logfile << std::endl;
-	logfile << itsCube.pars();
+	logfile << this->itsCube.pars();
 	logfile.close();
       } 
 	
@@ -184,8 +184,8 @@ namespace askap
 
 	if(sectionlist.size()>0){
 
-	  itsCube.pars().setFlagSubsection(true);
-	  itsCube.pars().setSubsection(sectionlist[itsRank-1].getSection());
+	  this->itsCube.pars().setFlagSubsection(true);
+	  this->itsCube.pars().setSubsection(sectionlist[itsRank-1].getSection());
 	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank<<" is using subsection " 
 			    << sectionlist[itsRank-1].getSection());
 
@@ -218,43 +218,46 @@ namespace askap
 	  in.getEnd();
 	}
 	if(OK){
-	  ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": About to read data from image " << itsCube.pars().getFullImageFile());
-	  if(itsCube.getCube()==duchamp::FAILURE){
-	    ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read in data from image " << itsImage);
+	  ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": About to read data from image " << this->itsCube.pars().getFullImageFile());
+	  if(this->itsCube.getCube()==duchamp::FAILURE){
+	    ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read in data from image " << this->itsImage);
+	    ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage)
 	  }
 	  else {
-	    ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << itsImage);
+	    ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << this->itsImage);
 	    std::stringstream ss;
-	    ss << itsCube.getDimX() << " " << itsCube.getDimY() << " " << itsCube.getDimZ();
+	    ss << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ();
 	    ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
-	    if(itsCube.getDimZ()==1) itsCube.pars().setMinChannels(0);  
+	    if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
 	  }
 
-	  if(itsCube.pars().getFlagATrous()){
+	  if(this->itsCube.pars().getFlagATrous()){
 	    ASKAPLOG_INFO_STR(logger,  "Reconstructing");
-	    itsCube.ReconCube();
+	    this->itsCube.ReconCube();
 	  }
-	  else if(itsCube.pars().getFlagSmooth()) {
+	  else if(this->itsCube.pars().getFlagSmooth()) {
 	    ASKAPLOG_INFO_STR(logger,  "Smoothing");	  
-	    itsCube.SmoothCube();
+	    this->itsCube.SmoothCube();
 	  }
 
 	}
 	else{
-	  ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read data from image " << itsImage << " as it's not ready.");
+	  ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read data from image " << this->itsImage << " as it's not ready.");
+	  ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage)
 	}
       }
       else {
 
-	if(itsCube.getMetadata()==duchamp::FAILURE){
-	  ASKAPLOG_ERROR_STR(logger, "MASTER: Could not read in metadata from image " << itsImage << ".");
+	if(this->itsCube.getMetadata()==duchamp::FAILURE){
+	  ASKAPLOG_ERROR_STR(logger, "MASTER: Could not read in metadata from image " << this->itsImage << ".");
+	  ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage)
 	}
 	else {
-	  ASKAPLOG_INFO_STR(logger,  "MASTER: Read metadata from image " << itsImage);
+	  ASKAPLOG_INFO_STR(logger,  "MASTER: Read metadata from image " << this->itsImage);
 	}
-	itsCube.header().defineWCS(itsCube.pars().getImageFile(), itsCube.pars());
-	itsCube.header().readHeaderInfo(itsCube.pars().getImageFile(), itsCube.pars());
-	if(itsCube.getDimZ()==1) itsCube.pars().setMinChannels(0);  
+	this->itsCube.header().defineWCS(this->itsCube.pars().getImageFile(), this->itsCube.pars());
+	this->itsCube.header().readHeaderInfo(this->itsCube.pars().getImageFile(), this->itsCube.pars());
+	if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
 	this->itsCube.convertFluxUnits();
 
 	// Send out the OK to the workers, so that they know that the subimages have been created.
@@ -283,44 +286,44 @@ namespace askap
       /// This is only done on the workers.
 
       if(isWorker()) {
-        ASKAPLOG_INFO_STR(logger,  "Finding lists from image " << itsImage);
+        ASKAPLOG_INFO_STR(logger,  "Finding lists from image " << this->itsImage);
 
 	// remove mininum size criteria, so we don't miss anything on the borders.
-	int minpix = itsCube.pars().getMinPix();
-	int minchan = itsCube.pars().getMinChannels();
+	int minpix = this->itsCube.pars().getMinPix();
+	int minchan = this->itsCube.pars().getMinChannels();
 
 	if(isParallel()){
-	  itsCube.pars().setMinPix(1);
-	  itsCube.pars().setMinChannels(1);
+	  this->itsCube.pars().setMinPix(1);
+	  this->itsCube.pars().setMinChannels(1);
 	}
 
-	if(itsCube.getSize()>0){
+	if(this->itsCube.getSize()>0){
 
-	  if(itsCube.pars().getFlagATrous()){
+	  if(this->itsCube.pars().getFlagATrous()){
 	    ASKAPLOG_INFO_STR(logger,  "Searching with reconstruction first");
-	    itsCube.ReconSearch();
+	    this->itsCube.ReconSearch();
 	  }
-	  else if(itsCube.pars().getFlagSmooth()) {
+	  else if(this->itsCube.pars().getFlagSmooth()) {
 	    ASKAPLOG_INFO_STR(logger,  "Searching with smoothing first");	  
-	    itsCube.SmoothSearch();
+	    this->itsCube.SmoothSearch();
 	  }
 	  else {
 	    ASKAPLOG_INFO_STR(logger,  "Searching, no smoothing or reconstruction done.");
-	    itsCube.CubicSearch();
+	    this->itsCube.CubicSearch();
 	  }
 	}
 
 	// merge the objects, and grow them if necessary.
-	itsCube.ObjectMerger();
+	this->itsCube.ObjectMerger();
 
-	itsCube.calcObjectWCSparams();
+	this->itsCube.calcObjectWCSparams();
 
-	int16 num = itsCube.getNumObj();
+	int16 num = this->itsCube.getNumObj();
         ASKAPLOG_INFO_STR(logger,  "Found " << num << " objects in worker " << this->itsRank);
 
 	if(isParallel()){
-	  itsCube.pars().setMinPix(minpix);
-	  itsCube.pars().setMinChannels(minchan);
+	  this->itsCube.pars().setMinPix(minpix);
+	  this->itsCube.pars().setMinChannels(minchan);
 	}
       }
     }
@@ -349,59 +352,29 @@ namespace askap
 	this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
 	
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source profiles.");
-	duchamp::FitsHeader head = itsCube.getHead();
+	duchamp::FitsHeader head = this->itsCube.getHead();
 	float noise;
-	if(itsCube.pars().getFlagUserThreshold()) noise = 1.;
-	else noise = itsCube.stats().getSpread();
+	if(this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
+	else noise = this->itsCube.stats().getSpread();
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
-	float threshold = itsCube.stats().getThreshold();
+	float threshold = this->itsCube.stats().getThreshold();
 
 	int numObj = this->itsCube.getNumObj();
  	for(int i=0;i<numObj;i++){
-	  // 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<".");
-	  sourcefitting::RadioSource src(itsCube.getObject(i));
-	  //	  src.setNoiseLevel( noise );
+	  sourcefitting::RadioSource src(this->itsCube.getObject(i));
 	  src.setNoiseLevel( this->itsCube, this->itsNoiseBoxSize );
 	  src.setDetectionThreshold( threshold );
 	  src.setHeader( head );
-	  src.defineBox(itsCube.getDimArray());
+	  src.defineBox(this->itsCube.getDimArray());
 
 	  // Only do fit if object is not next to boundary
-	  bool flagBoundary = false;
-	  bool flagAdj = itsCube.pars().getFlagAdjacent();
-	  float threshS = itsCube.pars().getThreshS();
-	  float threshV = itsCube.pars().getThreshV();
-	  if(flagAdj){
-	    flagBoundary = flagBoundary || ( src.getXmin()==0 );
-	    flagBoundary = flagBoundary || ( src.getXmax()==itsCube.getDimX()-1 ); 
-	    flagBoundary = flagBoundary || ( src.getYmin()==0 );
-	    flagBoundary = flagBoundary || ( src.getYmax()==itsCube.getDimY()-1 ); 
-	    if(itsCube.getDimZ()>1){
-	      flagBoundary = flagBoundary || ( src.getZmin()==0 );
-	      flagBoundary = flagBoundary || ( src.getZmax()==itsCube.getDimZ()-1 ); 
-	    }
-	  }
-	  else{
-	    flagBoundary = flagBoundary || ( src.getXmin()<threshS );
-	    flagBoundary = flagBoundary || ( (itsCube.getDimX()-src.getXmax())<threshS ); 
-	    flagBoundary = flagBoundary || ( src.getYmin()<threshS );
-	    flagBoundary = flagBoundary || ( (itsCube.getDimY()-src.getYmax())<threshS ); 
-	    flagBoundary = flagBoundary || ( src.getZmin()<threshV );
-	    flagBoundary = flagBoundary || ( (itsCube.getDimZ()-src.getZmax())<threshV ); 
-	  }
-	  if(this->itsNNode==1) flagBoundary=false;
-// 	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<"("<<i+1
-// 			    <<") bdry="<<flagBoundary<<", doFit="<<itsFlagDoFit
-// 			    <<", xmin="<<src.getXmin()<<", xmax="<<src.getXmax()
-// 			    <<", ymin="<<src.getYmin()<<", ymax="<<src.getYmax()
-// 			    <<", zmin="<<src.getZmin()<<", zmax="<<src.getZmax()
-// 			    );
-	  src.setAtEdge(flagBoundary);
-	  if(!flagBoundary && itsFlagDoFit){
+	  src.setAtEdge(this->itsCube);
+	  if(this->itsNNode==1) src.setAtEdge(false);
+	  if(!src.isAtEdge() && this->itsFlagDoFit){
 	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<" / "<<numObj<<".");
-	    src.fitGauss(itsCube.getArray(),itsCube.getDimArray());
+	    src.fitGauss(this->itsCube.getArray(),this->itsCube.getDimArray());
 	  }
-	  itsSourceList.push_back(src);
+	  this->itsSourceList.push_back(src);
 	}
 	
       }
@@ -424,7 +397,7 @@ namespace askap
 
       if(isWorker()){
 
-	int16 num = itsCube.getNumObj(), rank=this->itsRank;
+	int16 num = this->itsCube.getNumObj(), rank=this->itsRank;
 
 	if(isParallel()){
 
@@ -434,8 +407,8 @@ namespace askap
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("detW2M",1);
 	  out << rank << num;
-	  std::vector<sourcefitting::RadioSource>::iterator src = itsSourceList.begin();
-	  for(;src<itsSourceList.end();src++){
+	  std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
+	  for(;src<this->itsSourceList.end();src++){
 
 	    // for each RadioSource object, send to master
 	    out << *src;
@@ -444,11 +417,11 @@ namespace askap
 
 	      int xmin,xmax,ymin,ymax,zmin,zmax;
 	      xmin = std::max(0 , int(src->boxXmin()));
-	      xmax = std::min(itsCube.getDimX()-1, src->boxXmax());
+	      xmax = std::min(this->itsCube.getDimX()-1, src->boxXmax());
 	      ymin = std::max(0 , int(src->boxYmin()));
-	      ymax = std::min(itsCube.getDimY()-1, src->boxYmax());
+	      ymax = std::min(this->itsCube.getDimY()-1, src->boxYmax());
 	      zmin = std::max(0 , int(src->boxZmin() ));
-	      zmax = std::min(itsCube.getDimZ()-1, src->boxZmax());
+	      zmax = std::min(this->itsCube.getDimZ()-1, src->boxZmax());
 	  
  	      int numVox = (xmax-xmin+1)*(ymax-ymin+1)*(zmax-zmin+1);
 	      out << numVox;
@@ -458,7 +431,7 @@ namespace askap
 		  for(int32 z=zmin; z<=zmax; z++){
 		
 		    bool inObject = src->pixels().isInObject(x,y,z);
-		    float flux = itsCube.getPixValue(x,y,z);
+		    float flux = this->itsCube.getPixValue(x,y,z);
 		
 		    out << inObject << x << y << z << flux;
 		
@@ -510,11 +483,11 @@ namespace askap
 	      in >> src;
 	      ASKAPLOG_INFO_STR(logger, "MASTER: Read Source " << obj+1 << " from worker#"<<rank-1);
 	      // Correct for any offsets;
-	      src.setXOffset(itsSectionList[i-1].getStart(0));
-	      src.setYOffset(itsSectionList[i-1].getStart(1));
-	      src.setZOffset(itsSectionList[i-1].getStart(2));
+	      src.setXOffset(this->itsSectionList[i-1].getStart(0));
+	      src.setYOffset(this->itsSectionList[i-1].getStart(1));
+	      src.setZOffset(this->itsSectionList[i-1].getStart(2));
 	      src.addOffsets();
-	      src.defineBox(itsCube.getDimArray());
+	      src.defineBox(this->itsCube.getDimArray());
 	      for(unsigned int f=0;f<src.fitset().size();f++){
 		src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
 		src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
@@ -522,7 +495,7 @@ namespace askap
 	      // And now set offsets to zero as we are in the master cube
 	      src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
 
-	      itsSourceList.push_back(src);
+	      this->itsSourceList.push_back(src);
 	      
 	      if( src.isAtEdge() ){
 	      
@@ -533,11 +506,11 @@ namespace askap
 		  float flux;
 		  bool inObj;
 		  in >> inObj >> x >> y >> z >> flux; 
-		  x += itsSectionList[i-1].getStart(0);
-		  y += itsSectionList[i-1].getStart(1);
-		  z += itsSectionList[i-1].getStart(2);
+		  x += this->itsSectionList[i-1].getStart(0);
+		  y += this->itsSectionList[i-1].getStart(1);
+		  z += this->itsSectionList[i-1].getStart(2);
 		  PixelInfo::Voxel vox(x,y,z,flux);
-		  itsVoxelList.push_back(vox);
+		  this->itsVoxelList.push_back(vox);
 		}
 
 	      }
@@ -546,7 +519,7 @@ namespace askap
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Received list of size " 
 			      << numObj << " from worker #"<< rank);
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Now have " 
-			      << itsSourceList.size() << " objects");
+			      << this->itsSourceList.size() << " objects");
 	    in.getEnd();
 
 	  }
@@ -576,46 +549,46 @@ namespace askap
 	
 	ASKAPLOG_INFO_STR(logger, "MASTER: Beginning the cleanup");
 
-	std::vector<sourcefitting::RadioSource> backuplist = itsSourceList;
+	std::vector<sourcefitting::RadioSource> backuplist = this->itsSourceList;
 	std::vector<sourcefitting::RadioSource> edgeSources, goodSources;
 	std::vector<sourcefitting::RadioSource>::iterator src;
-	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
+	for(src=this->itsSourceList.begin();src<this->itsSourceList.end();src++){
 	  if(src->isAtEdge()) edgeSources.push_back(*src);
 	  else goodSources.push_back(*src);
 	}
 
 	//	ASKAPLOG_INFO_STR(logger, "MASTER: edgeSources.size="<<edgeSources.size()<<
 	//		  " goodSources.size="<<goodSources.size());
-	itsSourceList.clear();
+	this->itsSourceList.clear();
 
-	duchamp::FitsHeader head = itsCube.getHead();
+	duchamp::FitsHeader head = this->itsCube.getHead();
 	float noise;
-	if(itsCube.pars().getFlagUserThreshold()) noise = 1.;
-	else noise = itsCube.stats().getStddev();
+	if(this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
+	else noise = this->itsCube.stats().getStddev();
 	float threshold;
-	if(itsCube.pars().getFlagUserThreshold()) threshold = itsCube.pars().getThreshold();
-	else threshold = itsCube.stats().getThreshold();
+	if(this->itsCube.pars().getFlagUserThreshold()) threshold = this->itsCube.pars().getThreshold();
+	else threshold = this->itsCube.stats().getThreshold();
 
 	if(edgeSources.size()>0){ // if there are edge sources
 
-	  for(src=edgeSources.begin();src<edgeSources.end();src++) itsCube.addObject(*src);
+	  for(src=edgeSources.begin();src<edgeSources.end();src++) this->itsCube.addObject(*src);
 	  
-	  itsCube.pars().setFlagGrowth(false);
-	  itsCube.ObjectMerger();
+	  this->itsCube.pars().setFlagGrowth(false);
+	  this->itsCube.ObjectMerger();
 	  this->calcObjectParams();
-	  ASKAPLOG_INFO_STR(logger, "MASTER: num sources in cube = "<<itsCube.getNumObj());
+	  ASKAPLOG_INFO_STR(logger, "MASTER: num sources in cube = "<<this->itsCube.getNumObj());
 
-	  for(int i=0;i<itsCube.getNumObj();i++){
+	  for(int i=0;i<this->itsCube.getNumObj();i++){
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
-	    sourcefitting::RadioSource src(itsCube.getObject(i));
+	    sourcefitting::RadioSource src(this->itsCube.getObject(i));
 	    src.setNoiseLevel( noise );
 	    src.setDetectionThreshold( threshold );
 	    src.setHeader( head );
- 	    src.defineBox(itsCube.getDimArray());
+ 	    src.defineBox(this->itsCube.getDimArray());
 
-	    if(itsFlagDoFit) src.fitGauss(&this->itsVoxelList);
+	    if(this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList);
 	    
-	    itsSourceList.push_back(src);
+	    this->itsSourceList.push_back(src);
 	  }
 	  
 	}
@@ -623,17 +596,17 @@ namespace askap
 	for(src=goodSources.begin();src<goodSources.end();src++){
 	  src->setHeader(head);
 	  // Need to check that there are no small sources present that violate the minimum size criteria
-	  if( (src->hasEnoughChannels(itsCube.pars().getMinChannels()))
-	  && (src->getSpatialSize() >= itsCube.pars().getMinPix()) )
-	    itsSourceList.push_back(*src);
+	  if( (src->hasEnoughChannels(this->itsCube.pars().getMinChannels()))
+	  && (src->getSpatialSize() >= this->itsCube.pars().getMinPix()) )
+	    this->itsSourceList.push_back(*src);
 	}
 
 	std::stable_sort(this->itsSourceList.begin(), this->itsSourceList.end());
 
-	itsCube.clearDetectionList();
-	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
-	  src->setID(src-itsSourceList.begin()+1);
-	  itsCube.addObject(duchamp::Detection(*src));
+	this->itsCube.clearDetectionList();
+	for(src=this->itsSourceList.begin();src<this->itsSourceList.end();src++){
+	  src->setID(src-this->itsSourceList.begin()+1);
+	  this->itsCube.addObject(duchamp::Detection(*src));
 	}
 
       }
@@ -647,32 +620,32 @@ namespace askap
     {
 
       /// @details A function to calculate object parameters
-      /// (including WCS parameters), making use of the itsVoxelList
+      /// (including WCS parameters), making use of the this->itsVoxelList
       /// set of voxels. The function finds the voxels that appear in
       /// each object in itsCube, making a vector of vectors of
       /// voxels, then passes this vector to
       /// duchamp::Cube::calcObjectWCSparams().
 
-      int numVox = itsVoxelList.size();
-      int numObj = itsCube.getNumObj();
+      int numVox = this->itsVoxelList.size();
+      int numObj = this->itsCube.getNumObj();
       if(numObj>0){
 	std::vector<PixelInfo::Voxel> templist[numObj];
-	for(int i=0;i<itsCube.getNumObj();i++){ 
+	for(int i=0;i<this->itsCube.getNumObj();i++){ 
 	  // for each object, make a vector list of voxels that appear in it.
 	  
 	  std::vector<PixelInfo::Voxel> 
-	    objVoxList=itsCube.getObject(i).getPixelSet();
+	    objVoxList=this->itsCube.getObject(i).getPixelSet();
 	  std::vector<PixelInfo::Voxel>::iterator vox;
 	  // get the fluxes of each voxel
 	  for(vox=objVoxList.begin();vox<objVoxList.end();vox++){
 	    int ct=0;
-	    while(ct<numVox && !vox->match(itsVoxelList[ct])){
+	    while(ct<numVox && !vox->match(this->itsVoxelList[ct])){
 	      ct++;
 	    }
 	    if(numVox!=0 && ct==numVox){ // there has been no match -- problem!
 	      ASKAPLOG_ERROR(logger, "MASTER: Found a voxel in the object lists that doesn't appear in the base list.");
 	    }
-	    else vox->setF( itsVoxelList[ct].getF() );
+	    else vox->setF( this->itsVoxelList[ct].getF() );
 	  }
 	
 	  templist[i] = objVoxList;
@@ -680,7 +653,7 @@ namespace askap
 	}
 	std::vector< std::vector<PixelInfo::Voxel> > 
 	  bigVoxSet (templist, templist + numObj);
-	itsCube.calcObjectWCSparams(bigVoxSet);
+	this->itsCube.calcObjectWCSparams(bigVoxSet);
       }      
     }
 
@@ -693,31 +666,31 @@ namespace askap
       /// manner.
 
       if(isMaster()) {
-	ASKAPLOG_INFO_STR(logger, "MASTER: Found " << itsCube.getNumObj() << " sources.");
+	ASKAPLOG_INFO_STR(logger, "MASTER: Found " << this->itsCube.getNumObj() << " sources.");
 	
-	itsCube.prepareOutputFile();
-// 	if(itsCube.getNumObj()>0){
+	this->itsCube.prepareOutputFile();
+// 	if(this->itsCube.getNumObj()>0){
 // 	  // no flag-setting, as it's hard to do when we don't have
 // 	  // all the pixels. Particularly the negative flux flags
-// 	  itsCube.sortDetections();
+// 	  this->itsCube.sortDetections();
 // 	}
-	itsCube.outputDetectionList();
+	this->itsCube.outputDetectionList();
 
-	if(itsCube.pars().getFlagKarma()){
-	  std::ofstream karmafile(itsCube.pars().getKarmaFile().c_str());
-	  itsCube.outputDetectionsKarma(karmafile);
+	if(this->itsCube.pars().getFlagKarma()){
+	  std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
+	  this->itsCube.outputDetectionsKarma(karmafile);
 	  karmafile.close();
 	}
 
-	//	if(itsFlagDoFit){
+	//	if(this->itsFlagDoFit){
 	  std::ofstream summaryFile(this->itsSummaryFile.c_str());
-	  std::vector<duchamp::Column::Col> columns = itsCube.getFullCols();
-	  std::vector<sourcefitting::RadioSource>::iterator src=itsSourceList.begin();
-	  for(;src<itsSourceList.end();src++)
-	    src->printSummary(summaryFile, columns, src==itsSourceList.begin());
+	  std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+	  std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList.begin();
+	  for(;src<this->itsSourceList.end();src++)
+	    src->printSummary(summaryFile, columns, src==this->itsSourceList.begin());
 	  summaryFile.close();
 
-	  if(itsFlagDoFit) this->writeFitAnnotation();
+	  if(this->itsFlagDoFit) this->writeFitAnnotation();
 	  //	}
 
       }
@@ -737,7 +710,7 @@ namespace askap
       /// written to is given by the input parameter
       /// fitAnnotationFile.
 
-      if(itsSourceList.size()>0){
+      if(this->itsSourceList.size()>0){
 	
 	std::ofstream outfile(this->itsFitAnnotationFile.c_str());
 	ASKAPLOG_INFO_STR(logger, "Writing to annotation file: " << this->itsFitAnnotationFile );
@@ -745,8 +718,8 @@ namespace askap
 	outfile << "COORD W\n";
 	outfile << "PA SKY\n";
 	std::vector<sourcefitting::RadioSource>::iterator src;
-	for(src=itsSourceList.begin();src<itsSourceList.end();src++){
-	  outfile << "# Source " << int(src-itsSourceList.begin())+1 << ":\n";
+	for(src=this->itsSourceList.begin();src<this->itsSourceList.end();src++){
+	  outfile << "# Source " << int(src-this->itsSourceList.begin())+1 << ":\n";
 	  src->writeFitToAnnotationFile(outfile);
 	}
 	
@@ -765,16 +738,16 @@ namespace askap
       /// rms/MADFM for the entire dataset and store these values in
       /// the master's itsCube statsContainer.
 
-      if(!itsCube.pars().getFlagUserThreshold() || itsCube.pars().getFlagGrowth()){
+      if(!this->itsCube.pars().getFlagUserThreshold() || this->itsCube.pars().getFlagGrowth()){
 	findMeans();
 	combineMeans();
 	broadcastMean();
 	findRMSs();
 	combineRMSs();
       }
-      //	if(itsCube.pars().getFlagUserThreshold())//{
+      //	if(this->itsCube.pars().getFlagUserThreshold())//{
       else 
-	itsCube.stats().setThreshold( itsCube.pars().getThreshold() );
+	this->itsCube.stats().setThreshold( this->itsCube.pars().getThreshold() );
     }
 
 
@@ -797,23 +770,23 @@ namespace askap
 
 	  ASKAPLOG_INFO_STR(logger, "Finding mean: worker " << this->itsRank);
 
-	  if(itsCube.pars().getFlagATrous()) itsCube.ReconCube();
-	  else if(itsCube.pars().getFlagSmooth()) itsCube.SmoothCube();
+	  if(this->itsCube.pars().getFlagATrous()) this->itsCube.ReconCube();
+	  else if(this->itsCube.pars().getFlagSmooth()) this->itsCube.SmoothCube();
 
-	  int32 size = itsCube.getSize();
+	  int32 size = this->itsCube.getSize();
 	  float mean = 0.,rms;
 	  float *array;
 	  // make a mask in case there are blank pixels.
-	  bool *mask = itsCube.pars().makeBlankMask(itsCube.getArray(), itsCube.getSize());
+	  bool *mask = this->itsCube.pars().makeBlankMask(this->itsCube.getArray(), this->itsCube.getSize());
 
 	  if(size>0){
 	  
-	    if(itsCube.pars().getFlagATrous())       array = itsCube.getArray();
-	    else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
-	    else                                     array = itsCube.getArray();
+	    if(this->itsCube.pars().getFlagATrous())       array = this->itsCube.getArray();
+	    else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
+	    else                                     array = this->itsCube.getArray();
 	  
 	    // calculate both mean & rms, but ignore rms for the moment.
-	    if(itsCube.pars().getFlagRobustStats()) findMedianStats(array,size,mask,mean,rms);
+	    if(this->itsCube.pars().getFlagRobustStats()) findMedianStats(array,size,mask,mean,rms);
 	    else                                    findNormalStats(array,size,mask,mean,rms);
 
 	  }
@@ -877,26 +850,26 @@ namespace askap
 	  in.getEnd();
 	}
 	else{
-	  mean = itsCube.stats().getMiddle();
+	  mean = this->itsCube.stats().getMiddle();
 	}
 	// use it to calculate the rms for this section
- 	int32 size = itsCube.getSize();
+ 	int32 size = this->itsCube.getSize();
 	double rms = 0.;
 	float *array;
 
 	if(size > 0){
 	  
-	  if(itsCube.pars().getFlagATrous()){
+	  if(this->itsCube.pars().getFlagATrous()){
 	    array = new float[size];
-	    for(int i=0;i<size;i++) array[i] = itsCube.getPixValue(i) - itsCube.getReconValue(i);
+	    for(int i=0;i<size;i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
 	  }
-	  else if (itsCube.pars().getFlagSmooth()) array = itsCube.getRecon();
-	  else array = itsCube.getArray();
-	  if(itsCube.pars().getFlagBlankPix()){
-	    bool *mask = itsCube.pars().makeBlankMask(array, itsCube.getSize());
-	    rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array,mask);
+	  else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
+	  else array = this->itsCube.getArray();
+	  if(this->itsCube.pars().getFlagBlankPix()){
+	    bool *mask = this->itsCube.pars().makeBlankMask(array, this->itsCube.getSize());
+	    rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array,mask);
 	  }
-	  else rms = findSpread(itsCube.pars().getFlagRobustStats(),mean,size,array);
+	  else rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array);
 
 	}
 
@@ -964,7 +937,7 @@ namespace askap
 
 	ASKAPLOG_INFO_STR(logger, "MASTER: OVERALL SIZE = " << size);
 	ASKAPLOG_INFO_STR(logger, "MASTER: OVERALL MEAN = " << av);
-	itsCube.stats().setMean(av);
+	this->itsCube.stats().setMean(av);
       }
       else {
       }
@@ -979,7 +952,7 @@ namespace askap
 
       if(isMaster()&&isParallel()) {
 	// now send the overall mean to the workers so they can calculate the rms
-	double av = itsCube.stats().getMean();
+	double av = this->itsCube.stats().getMean();
 	LOFAR::BlobString bs2;
 	bs2.resize(0);
 	LOFAR::BlobOBufString bob(bs2);
@@ -1033,13 +1006,13 @@ namespace askap
 	if(size>0){
 	  rms = sqrt( rms / double(size-1) );
 	}
-	itsCube.stats().setStddev(rms);
+	this->itsCube.stats().setStddev(rms);
 
-	itsCube.stats().setRobust(false);
+	this->itsCube.stats().setRobust(false);
 	if(!this->itsCube.pars().getFlagUserThreshold()){
-	  itsCube.stats().setThresholdSNR(itsCube.pars().getCut());	
-	  itsCube.pars().setFlagUserThreshold(true);
-	  itsCube.pars().setThreshold(itsCube.stats().getThreshold());
+	  this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());	
+	  this->itsCube.pars().setFlagUserThreshold(true);
+	  this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
 	}
 
 	ASKAPLOG_INFO_STR(logger, "MASTER: OVERALL RMS = " << rms);
@@ -1061,14 +1034,14 @@ namespace askap
 	LOFAR::BlobOBufString bob(bs);
 	LOFAR::BlobOStream out(bob);
 	out.putStart("threshM2W",1);
-	double threshold = itsCube.stats().getThreshold();
-	double mean = itsCube.stats().getMiddle();
-	double rms = itsCube.stats().getSpread();
+	double threshold = this->itsCube.stats().getThreshold();
+	double mean = this->itsCube.stats().getMiddle();
+	double rms = this->itsCube.stats().getSpread();
 	out << threshold << mean << rms;
 	out.putEnd();
 	itsConnectionSet->writeAll(bs);
 	ASKAPLOG_INFO_STR(logger, "MASTER: Sent threshold (" 
-			   << itsCube.stats().getThreshold() << ") from the master" );
+			   << this->itsCube.stats().getThreshold() << ") from the master" );
       }
       else {
       }
@@ -1101,15 +1074,15 @@ namespace askap
 	  ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Setting mean to be " << mean << " and rms " << rms);
 	}
 	else{
-	  if(itsCube.pars().getFlagUserThreshold())
-	    threshold = itsCube.pars().getThreshold();
+	  if(this->itsCube.pars().getFlagUserThreshold())
+	    threshold = this->itsCube.pars().getThreshold();
 	  else
-	    threshold = itsCube.stats().getMiddle() + itsCube.stats().getSpread()*itsCube.pars().getCut();
+	    threshold = this->itsCube.stats().getMiddle() + this->itsCube.stats().getSpread()*this->itsCube.pars().getCut();
 	}
 
 	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker  " << itsRank << " to be " << threshold);
 
-	itsCube.pars().setThreshold(threshold);
+	this->itsCube.pars().setThreshold(threshold);
 
       }
     }

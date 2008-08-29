@@ -144,6 +144,46 @@ namespace askap
 
       //**************************************************************//
 
+      void RadioSource::setAtEdge(duchamp::Cube &cube)
+      {
+	/// @details Sets the atEdge flag based on the dimensions of
+	/// the cube and the duchamp parameters flagAdjacent, threshS
+	/// and threshV. If flagAdjacent is true, then the source is
+	/// at the edge if it occupies a pixel on the boundary of the
+	/// image (the z-direction is only examined if there is more
+	/// than one channel). If flagAdjacent, the source must lie
+	/// within the appropriate threshold (threshS for the spatial
+	/// directions and threshV for the spectral/velocity) of the
+	/// image boundary.
+
+	bool flagBoundary=false;
+	bool flagAdj = cube.pars().getFlagAdjacent();
+	float threshS = cube.pars().getThreshS();
+	float threshV = cube.pars().getThreshV();
+	if(flagAdj){
+	  flagBoundary = flagBoundary || ( this->getXmin()==0 );
+	  flagBoundary = flagBoundary || ( this->getXmax()==cube.getDimX()-1 ); 
+	  flagBoundary = flagBoundary || ( this->getYmin()==0 );
+	  flagBoundary = flagBoundary || ( this->getYmax()==cube.getDimY()-1 ); 
+	  if(cube.getDimZ()>1){
+	    flagBoundary = flagBoundary || ( this->getZmin()==0 );
+	    flagBoundary = flagBoundary || ( this->getZmax()==cube.getDimZ()-1 ); 
+	  }
+	}
+	else{
+	  flagBoundary = flagBoundary || ( this->getXmin()<threshS );
+	  flagBoundary = flagBoundary || ( (cube.getDimX()-this->getXmax())<threshS ); 
+	  flagBoundary = flagBoundary || ( this->getYmin()<threshS );
+	  flagBoundary = flagBoundary || ( (cube.getDimY()-this->getYmax())<threshS ); 
+	  flagBoundary = flagBoundary || ( this->getZmin()<threshV );
+	  flagBoundary = flagBoundary || ( (cube.getDimZ()-this->getZmax())<threshV ); 
+	}
+	
+	this->atEdge = flagBoundary;
+
+      }
+      //**************************************************************//
+
       void RadioSource::setNoiseLevel(duchamp::Cube &cube, int boxSize)
       {
 	/// @details Sets the value of the local noise level by taking
@@ -602,6 +642,7 @@ namespace askap
 	for(int ctr=0;ctr<maxNumGauss;ctr++){
 
 	  unsigned int numGauss = ctr + 1;
+	  ASKAPLOG_INFO_STR(logger, "Attempting to fit " << numGauss << " Gaussians."); 
 	  fitgauss[ctr].setDimensions(2);
 	  fitgauss[ctr].setNumGaussians(numGauss);
 
@@ -627,7 +668,7 @@ namespace askap
 	  }
 
 	  fitgauss[ctr].setFirstEstimate(estimate);
-	  ASKAPLOG_INFO_STR(logger, "Estimated parameters follow: "); 
+	  ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
 	  logparameters(estimate);
 
 	  retryfactors.resize(numGauss,6);
@@ -679,8 +720,11 @@ namespace askap
 	  float rchisq = chisq[ctr] / float(ndof);
 	
 	  cout.precision(6);
-	  ASKAPLOG_INFO_STR(logger, "Solution Parameters follow: "); 
-	  logparameters(solution[ctr]);
+	  if(fitgauss[ctr].converged()){
+	    ASKAPLOG_INFO_STR(logger, "Fit converged. Solution Parameters follow: "); 
+	    logparameters(solution[ctr]);
+	  }
+	  else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
 
 	  std::stringstream outmsg;
 	  outmsg << "Num Gaussians = " << numGauss;

@@ -77,6 +77,7 @@ namespace askap
       status = 0;
       if( fits_open_file(&fptr,filename.c_str(),READONLY,&status) ){
 	fits_report_error(stderr, status);
+	ASKAPTHROW(AskapError, "FITS Error opening file")
       }
       else{
 
@@ -273,8 +274,10 @@ namespace askap
       std::vector<duchamp::Section> sectionlist; 
       std::ifstream fin(filename.c_str());
       int numAxes=0;
-      if(!fin.is_open()) 
-	ASKAPLOG_ERROR_STR(logger, "SectionInfo file " << filename.c_str() << " not found!"); 
+      if(!fin.is_open()) {
+	ASKAPLOG_ERROR_STR(logger, "SectionInfo file " << filename << " not found!"); 
+	ASKAPTHROW(AskapError, "Error opening SectionInfo file" << filename)
+	  }
       else{	
 	fin >> numAxes;	
 	std::vector<long> dimAxes(numAxes);	

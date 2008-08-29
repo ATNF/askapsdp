@@ -172,6 +172,8 @@ namespace askap
 	bool isAtEdge(){return atEdge;};
 	/// @brief Set the atEdge flag.
 	void setAtEdge(bool b){atEdge = b;};
+	/// @brief Set the atEdge flag using information from a Cube
+	void setAtEdge(duchamp::Cube &cube);
 
 	/// @brief Define the boundaries of the box
 	void defineBox(long *axes);
