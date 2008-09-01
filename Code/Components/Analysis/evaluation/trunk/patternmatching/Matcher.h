@@ -101,14 +101,12 @@ namespace askap
 	std::string itsSrcFile;
 	/// @brief The file with the list of reference points
 	std::string itsRefFile;
-	/// @brief The fiducial right ascension for the source list
-	std::string itsSrcPosRA;
-	/// @brief The fiducial declianation for the source list
-	std::string itsSrcPosDec; 
-	/// @brief The fiducial right ascencsion for the reference list
-	std::string itsRefPosRA;
-	/// @brief The fiducial declianation for the reference list
-	std::string itsRefPosDec;
+	/// @brief The fiducial right ascension for the lists
+	std::string itsRA;
+	/// @brief The fiducial declianation for the lists
+	std::string itsDec; 
+	/// @brief The radius within which to compare points. Negative value means use all points.
+	double itsRadius;
 
 	/// @brief The list of source points (those to be matched)
 	std::vector<Point> itsSrcPixList;

@@ -44,10 +44,10 @@ namespace askap
   {
 
     /// @brief Read in the list of points to be matched
-    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr);
+    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius);
 
     /// @brief Read in the reference list
-    std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr);
+    std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius);
 
     /// @brief Shorten the list of points to a given length
     std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, 

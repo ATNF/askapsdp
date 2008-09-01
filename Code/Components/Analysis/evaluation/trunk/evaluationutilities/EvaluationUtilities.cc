@@ -37,6 +37,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <math.h>
 
 namespace askap
 {
@@ -45,7 +46,7 @@ namespace askap
   {
 
  
-    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr)
+    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius)
     {
       /// @details Read in a list of points from a duchamp-Summary.txt
       /// file (that is, a summary file produced by cduchamp). The
@@ -80,8 +81,10 @@ namespace askap
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
 	//    std::cerr << xpt << " " << ypt << "\n";
-	matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
-	pixlist.push_back(pix);
+	if(radius>0 && hypot(xpy,ypt)<radius){
+	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
+	  pixlist.push_back(pix);
+	}
       }
 
       stable_sort(pixlist.begin(),pixlist.end());
@@ -97,7 +100,7 @@ namespace askap
       
     }
    
-    std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr)
+    std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius)
     {
       /// @details Reads in a list of points from a file, to serve as
       /// a reference list. The file should have three columns: ra,
@@ -128,8 +131,10 @@ namespace askap
 	if(ra>raBase) xpt *= -1.;
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
-	matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
-	pixlist.push_back(pix);
+	if(radius>0 && hypot(xpt,ypt)<radius){
+	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
+	  pixlist.push_back(pix);
+	}
       }
 
       stable_sort(pixlist.begin(),pixlist.end());

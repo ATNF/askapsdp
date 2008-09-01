@@ -65,10 +65,9 @@ namespace askap
 
 	this->itsSrcFile = parset.getString("srcFile","");
 	this->itsRefFile = parset.getString("refFile","");
-	this->itsSrcPosRA  = parset.getString("srcPosRA");
-	this->itsSrcPosDec = parset.getString("srcPosDec");
-	this->itsRefPosRA  = parset.getString("refPosRA");
-	this->itsRefPosDec = parset.getString("refPosDec");
+	this->itsRA  = parset.getString("RA");
+	this->itsDec = parset.getString("Dec");
+	this->itsRadius = parset.getDouble("radius", -1.);
 	this->itsEpsilon = parset.getDouble("epsilon",defaultEpsilon);
 	this->itsMeanDx = 0.;
 	this->itsMeanDy = 0.;
@@ -91,10 +90,10 @@ namespace askap
 	  std::ifstream fsrc(this->itsSrcFile.c_str());
 	  std::ifstream fref(this->itsRefFile.c_str());
 	  
-	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsSrcPosRA, this->itsSrcPosDec);
+	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsRadius);
 	  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
 	  
-	  this->itsRefPixList = getPixList(fref, this->itsRefPosRA, this->itsRefPosDec);
+	  this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRadius);
 	  ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
 	}
      }
