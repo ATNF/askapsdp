@@ -21,6 +21,8 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
+//#include <measurementequation/SynthesisParamsHelper.h>
+
 #include <gridding/AWProjectVisGridder.h>
 
 #include <casa/BasicSL/Complex.h>
@@ -226,12 +228,12 @@ namespace askap {
       casa::Vector<float> ccfx(qnx);
       casa::Vector<float> ccfy(qny);
       for (casa::uInt ix=0; ix<qnx; ++ix) {
-	float nux=std::abs(float(ix)-float(qnx/2))/float(qnx/2);
-	ccfx(ix)=grdsf(nux)/float(qnx);
+           const float nux=std::abs(float(ix)-float(qnx/2))/float(qnx/2);
+           ccfx(ix)=grdsf(nux); // /float(qnx);
       }
       for (casa::uInt iy=0; iy<qny; ++iy) {
-	float nuy=std::abs(float(iy)-float(qny/2))/float(qny/2);
-	ccfy(iy)=grdsf(nuy)/float(qny);
+           const float nuy=std::abs(float(iy)-float(qny/2))/float(qny/2);
+           ccfy(iy)=grdsf(nuy); // /float(qny);
       }
       
       // this is just a buffer in the uv-space, oversampling has already been
@@ -256,17 +258,20 @@ namespace askap {
 	  for (int chan=0; chan<nChan; ++chan) {
 	    
 	    /// Extract illumination pattern for this channel
-	    const double scalingDueToOversampling = 1.+1./double(itsOverSample);
 	    itsIllumination->getPattern(acc.frequency()[chan], pattern,
-					itsSlopes(0, feed, itsCurrentField)*scalingDueToOversampling,
-					itsSlopes(1, feed, itsCurrentField)*scalingDueToOversampling, parallacticAngle);
+					itsSlopes(0, feed, itsCurrentField),
+					itsSlopes(1, feed, itsCurrentField), parallacticAngle);
 	    
 	    fft2d(pattern.pattern(), false);
+	    
+	    //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(pattern.pattern()));
+	    //throw 1;
+	    
 	    
 	    /// Calculate the total convolution function including
 	    /// the w term and the antenna convolution function
 	    casa::Matrix<casa::Complex> thisPlane(nx, ny);
-	    
+	    	    
 	    for (int iw=0; iw<itsNWPlanes; ++iw) {
 	      thisPlane.set(0.0);
 	      
@@ -276,39 +281,48 @@ namespace askap {
 	      double maxCF=0.0;
 	      double peak=0.0;
 	      double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
+	      
 	      for (int iy=0; iy<int(qny); ++iy) {
-		double y2=(double(iy)-double(qny)/2)*ccelly;
-		y2*=y2;
-		for (int ix=0; ix<int(qnx); ++ix) {
-		  double x2=(double(ix)-double(qnx)/2)*ccellx;
-		  x2*=x2;
-		  double r2=x2+y2;
-		  if (r2<1.0) {
-		    double phase=w*(1.0-sqrt(1.0-r2));
-		    casa::Complex wt=pattern(ix, iy)
-		      *conj(pattern(ix, iy))
-		      *casa::Complex(ccfx(ix)*ccfy(iy));
-		    if(casa::abs(wt)>peak) peak=casa::abs(wt);
-		    thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt
-		      *casa::Complex(cos(phase), -sin(phase));
-		    maxCF+=casa::abs(wt);
-		  }
-		}
-	      }
+               double y2=(double(iy)-double(qny)/2)*ccelly;
+               y2*=y2;
+               for (int ix=0; ix<int(qnx); ++ix) {
+                    double x2=(double(ix)-double(qnx)/2)*ccellx;
+                    x2*=x2;
+                    double r2=x2+y2;
+                    if (r2<1.0) {
+                        double phase=w*(1.0-sqrt(1.0-r2));
+                        const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy));
+                                         // *casa::Complex(ccfx(ix)*ccfy(iy));
+                        if(casa::abs(wt)>peak) {
+                           peak=casa::abs(wt);
+                        }
+                        // this ensures the oversampling is done
+                        thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(cos(phase), -sin(phase));
+                        maxCF+=casa::abs(wt);
+                    }
+		       }
+	      }	
+
 	      ASKAPCHECK(maxCF>0.0, "Convolution function is empty");
 	      thisPlane*=casa::Complex(1.0/peak);
 	      maxCF/=peak;
 	      
+	      //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
+	      //throw 1;
+	    
+	      
 	      // At this point, we have the phase screen multiplied by the spheroidal
 	      // function, sampled on larger cellsize (itsOverSample larger) in image
 	      // space. Only the inner qnx, qny pixels have a non-zero value
-	      
+	      	      
 	      // Now we have to calculate the Fourier transform to get the
 	      // convolution function in uv space
 	      fft2d(thisPlane, true);
+	      
 	      // Now correct for normalization of FFT
 	      thisPlane*=casa::Complex(1.0/(double(nx)*double(ny)));
 	      maxCF/=double(nx)*double(ny);
+	      	      
 	      
 	      // If the support is not yet set, find it and size the
 	      // convolution function appropriately
@@ -380,7 +394,7 @@ namespace askap {
 			= rescale*thisPlane(ix*itsOverSample+fracu+nx/2,
 					    iy*itsOverSample+fracv+ny/2);
 		    } // for ix
-		  } // for iy 
+		  } // for iy 		  
 		} // for fracv
 	      } // for fracu
 	    } // w loop
@@ -452,16 +466,18 @@ namespace askap {
 	  /// Work space
 	  casa::Matrix<casa::Complex> thisPlane(cnx, cny);
 	  thisPlane.set(0.0);
+	  ASKAPDEBUGASSERT(itsCCenter == itsSupport);
 	  for (int iy=-itsSupport; iy<+itsSupport; iy++) {
 	    for (int ix=-itsSupport; ix<+itsSupport; ix++) {
 	      thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter);
 	    }
-	  }
+	  }	  
 	  
 	  float peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  fft2d(thisPlane, false);
 	  thisPlane*=casa::Complex(nx*ny);
+	  
 	  peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
 	  //			    << "] peak = "<< peak);
@@ -488,8 +504,9 @@ namespace askap {
 	  }
 	}
       }
+      
       fftPad(cOut, out);
-
+ 
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }
@@ -502,7 +519,7 @@ namespace askap {
       
       const int onx=out.shape()(0);
       const int ony=out.shape()(1);
-      
+            
       // Shortcut no-op
       if ((inx==onx)&&(iny==ony)) {
 	out=in.copy();
@@ -540,6 +557,7 @@ namespace askap {
     int AWProjectVisGridder::cIndex(int row, int pol, int chan) {
       return itsCMap(row, pol, chan);
     }
+    
     
   }
 }
