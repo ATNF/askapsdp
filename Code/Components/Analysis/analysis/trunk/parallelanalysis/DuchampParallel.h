@@ -30,6 +30,7 @@
 #define ASKAP_ANALYSIS_DUCHAMPPARALLEL_H_
 
 #include <sourcefitting/RadioSource.h>
+#include <sourcefitting/Fitter.h>
 
 #include <askapparallel/AskapParallel.h>
 
@@ -140,6 +141,9 @@ namespace askap
 
       /// The list of voxels encompassing detected sources, with fluxes.
       std::vector<PixelInfo::Voxel> itsVoxelList;
+
+      /// The Gaussian Fitting class
+      sourcefitting::Fitter itsFitter;
 
       /// Shall we fit to the sources?
       bool itsFlagDoFit;

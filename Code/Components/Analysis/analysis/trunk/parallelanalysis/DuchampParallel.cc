@@ -58,6 +58,7 @@ using namespace LOFAR::TYPES;
 #include <parallelanalysis/DuchampParallel.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <sourcefitting/RadioSource.h>
+#include <sourcefitting/Fitter.h>
 
 #include <iostream>
 #include <fstream>
@@ -118,6 +119,9 @@ namespace askap
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
       this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize",sourcefitting::noiseBoxSize);
+
+      this->itsFitter = sourcefitting::Fitter(parset.makeSubset("Fitter."));
+
 
       // Now read the correct image name according to worker/master state.
       if(isMaster()){
@@ -358,6 +362,8 @@ namespace askap
 	else noise = this->itsCube.stats().getSpread();
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
 	float threshold = this->itsCube.stats().getThreshold();
+	if(this->itsCube.pars().getFlagGrowth())
+	  threshold = this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut());
 
 	int numObj = this->itsCube.getNumObj();
  	for(int i=0;i<numObj;i++){
@@ -372,7 +378,8 @@ namespace askap
 	  if(this->itsNNode==1) src.setAtEdge(false);
 	  if(!src.isAtEdge() && this->itsFlagDoFit){
 	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source #"<<i+1<<" / "<<numObj<<".");
-	    src.fitGauss(this->itsCube.getArray(),this->itsCube.getDimArray());
+// 	    src.fitGauss(this->itsCube.getArray(),this->itsCube.getDimArray());
+	    src.fitGauss(this->itsCube.getArray(),this->itsCube.getDimArray(), this->itsFitter);
 	  }
 	  this->itsSourceList.push_back(src);
 	}

@@ -32,6 +32,7 @@
 #define ASKAP_ANALYSIS_RADIOSOURCE_H_
 
 #include <sourcefitting/Component.h>
+#include <sourcefitting/Fitter.h>
 
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
@@ -67,12 +68,12 @@ namespace askap
       const int noiseBoxSize = 101;
 
       /// @ingroup sourcefitting
-      /// @brief Width of border to put around detections for fitting purposes, in pixels
-      const int detectionBorder = 3;
-
-      /// @ingroup sourcefitting
       /// @brief Minimum spatial size [pixels] a source must have to be fit
       const int minFitSize = 3;
+
+      void logparameters(Matrix<Double> &m);
+
+      class Fitter;  // foreshadow Fitter so that we can make use of it in the following
 
       /// @brief Class to store all information on a detected source.
       ///
@@ -118,7 +119,10 @@ namespace askap
 	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 		      casa::Vector<casa::Double> sigma);
 	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList);
-	bool fitGauss(float *fluxArray, long *dimArray);
+/* 	bool fitGauss(float *fluxArray, long *dimArray); */
+	bool fitGauss(float *fluxArray, long *dimArray, Fitter &baseFitter);
+	bool fitGaussNew(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+			 casa::Vector<casa::Double> sigma, Fitter &baseFitter);
 	///@}
 
 	/// @brief Store the FITS header information
@@ -143,6 +147,8 @@ namespace askap
 
 	/// @brief Set the detection threshold
 	void setDetectionThreshold(float threshold){itsDetectionThreshold = threshold;};
+	/// @brief Return the detection threshold
+	float detectionThreshold(){return itsDetectionThreshold;};
 
 	/// @brief Print information on the fitted components
 	void printFit();

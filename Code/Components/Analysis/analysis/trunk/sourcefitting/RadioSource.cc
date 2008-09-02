@@ -1,4 +1,4 @@
-// @file
+/// @file
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -31,6 +31,7 @@
 #include <askap/AskapError.h>
 
 #include <sourcefitting/RadioSource.h>
+#include <sourcefitting/Fitter.h>
 #include <sourcefitting/Component.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <evaluationutilities/EvaluationUtilities.h>
@@ -543,7 +544,8 @@ namespace askap
 
       //**************************************************************//
 
-      bool RadioSource::fitGauss(float *fluxArray, long *dimArray)
+      bool RadioSource::fitGauss(float *fluxArray, long *dimArray, Fitter &baseFitter)
+//       bool RadioSource::fitGauss(float *fluxArray, long *dimArray)
       {
 
 	/// @details First defines the pixel array with the flux
@@ -582,7 +584,77 @@ namespace askap
 	  }
 	}
 
-	return fitGauss(pos,f,sigma);
+// 	return fitGauss(pos,f,sigma);
+	return fitGaussNew(pos,f,sigma,baseFitter);
+
+      }
+
+      //**************************************************************//
+      
+      bool RadioSource::fitGaussNew(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+				    casa::Vector<casa::Double> sigma, Fitter &baseFitter)
+      {
+
+	if(this->getSpatialSize() < minFitSize) return false;
+
+	ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
+
+	ASKAPLOG_INFO_STR(logger, "detect thresh = " << this->itsDetectionThreshold
+			  << "  peak = " << this->peakFlux 
+			  << "  noise level = " << this->itsNoiseLevel);
+	
+	std::vector<SubComponent> cmpntList = this->getSubComponentList(f);
+	ASKAPLOG_INFO_STR(logger, "Found " << cmpntList.size() << " subcomponents");
+	for(uInt i=0;i<cmpntList.size();i++)
+	  ASKAPLOG_INFO_STR(logger, "SubComponent: " << cmpntList[i]);
+
+	const int maxNumGauss = 4;
+	Fitter fit[maxNumGauss];
+
+	bool fitIsGood = false;
+	int bestFit = 0;
+	float bestRChisq = 9999.;
+
+	for(int ctr=0;ctr<maxNumGauss;ctr++){
+
+	  fit[ctr].setNumGauss(ctr+1);
+	  fit[ctr].setEstimates(cmpntList, this->itsHeader);
+	  fit[ctr].setRetries();
+	  fit[ctr].setMasks();
+	  fit[ctr].fit(pos, f, sigma);
+
+	  if(fit[ctr].acceptable(this)){
+	    if((ctr==0) || (fit[ctr].redChisq() < bestRChisq)){
+	      fitIsGood = true;
+	      bestFit = ctr;
+	      bestRChisq = fit[ctr].redChisq();
+	    }
+
+	  }
+
+	} // end of 'ctr' for-loop
+
+	if(fitIsGood){
+	  this->hasFit = true;
+	  // Make a map so that we can output the fitted components in order of peak flux
+	  std::multimap<double,int> fitMap = fit[bestFit].peakFluxList();
+	  // Need to use reverse_iterator so that brightest component's listed first
+	  std::multimap<double,int>::reverse_iterator rfit=fitMap.rbegin();
+	  for(;rfit!=fitMap.rend();rfit++)
+	    this->itsGaussFitSet.push_back(fit[bestFit].gaussian(rfit->second));
+
+	  ASKAPLOG_INFO_STR(logger,"BEST FIT: " << bestFit+1 << " Gaussians"
+			    << ", chisq = " << fit[bestFit].chisq()
+			    << ", chisq/nu =  "  << bestRChisq);
+	}
+	else{
+	  ASKAPLOG_INFO_STR(logger, "No good fit found.");
+	}
+
+	ASKAPLOG_INFO_STR(logger, "-----------------------");
+
+	return fitIsGood;
+
 
       }
 
@@ -610,11 +682,8 @@ namespace askap
 
 	float boxFlux = 0.;
 	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
-	std::vector<Double> fluxes;
-	f.tovector(fluxes);
 
 	Double maxRMS = 5.;
-	casa::Matrix<casa::Double> components;
 	casa::Matrix<casa::Double> estimate;
 	casa::Matrix<casa::Double> retryfactors;
 	casa::Matrix<casa::Double> baseRetryfactors;

@@ -13,6 +13,7 @@
 #include <casa/aipstype.h>
 #include <images/Images/ImageInterface.h>
 using namespace casa;
+
 namespace askap
 {
 
