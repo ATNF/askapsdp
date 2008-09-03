@@ -291,8 +291,8 @@ namespace askap {
                     double r2=x2+y2;
                     if (r2<1.0) {
                         double phase=w*(1.0-sqrt(1.0-r2));
-                        const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy));
-                                         // *casa::Complex(ccfx(ix)*ccfy(iy));
+                        const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
+                                         *casa::Complex(ccfx(ix)*ccfy(iy));
                         if(casa::abs(wt)>peak) {
                            peak=casa::abs(wt);
                         }
