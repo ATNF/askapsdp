@@ -319,7 +319,7 @@ namespace askap
 	centre.setMinor( antipus.min() );
 	centre.setX(this->getXAverage());
 	centre.setY(this->getYAverage());
-	pos = (this->getXAverage()-this->boxXmin()) + this->boxXsize()*(this->getYAverage()-this->boxYmin());
+	pos = int(this->getXAverage()-this->boxXmin()) + this->boxXsize()*int(this->getYAverage()-this->boxYmin());
 	centre.setPeak( f(pos) );
 	cmpntlist.push_back(centre);
 

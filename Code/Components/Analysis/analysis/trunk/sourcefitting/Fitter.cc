@@ -73,7 +73,7 @@ namespace askap
 	this->itsNumGauss = parset.getInt32("numGauss", defaultNumFittedGauss);
 	this->itsBoxPadSize = parset.getInt32("boxPadSize", detectionBorder);
 	this->itsChisqCutoff = parset.getFloat("chisqCutoff", defaultChisqCutoff);
-	this->itsNoiseBoxSize = parset.getFloat("noiseBoxSize", defaultNoiseBoxSize);
+	this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize", defaultNoiseBoxSize);
 	
 	this->itsFitter.setDimensions(2);
 
