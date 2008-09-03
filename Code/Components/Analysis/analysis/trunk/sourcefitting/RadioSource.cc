@@ -292,6 +292,43 @@ namespace askap
       std::vector<SubComponent> RadioSource::getSubComponentList(casa::Vector<casa::Double> &f)
       {
 	
+	std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(f);
+
+	SubComponent antipus;
+	if(this->itsHeader.getBmajKeyword()>0){
+	  antipus.setPA(this->itsHeader.getBpaKeyword() * M_PI / 180.);
+	  antipus.setMajor(this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale());
+	  antipus.setMinor(this->itsHeader.getBminKeyword()/this->itsHeader.getAvPixScale());
+	}
+	else{
+	  antipus.setPA(cmpntlist[0].pa());
+	  antipus.setMajor(cmpntlist[0].maj());
+	  antipus.setMinor(cmpntlist[0].min());
+	}
+	float dx = this->getXAverage() - this->getXPeak();
+	float dy = this->getYAverage() - this->getYPeak();
+	antipus.setX(this->getXAverage()+dx);
+	antipus.setY(this->getYAverage()+dy);
+	int pos = int(this->getXAverage()+dx-this->boxXmin()) + this->boxXsize()*int(this->getYAverage()+dy-this->boxYmin());
+	antipus.setPeak( f(pos) );
+	cmpntlist.push_back(antipus);
+	
+	SubComponent centre;
+	centre.setPA( antipus.pa() );
+	centre.setMajor( antipus.maj() );
+	centre.setMinor( antipus.min() );
+	centre.setX(this->getXAverage());
+	centre.setY(this->getYAverage());
+	pos = (this->getXAverage()-this->boxXmin()) + this->boxXsize()*(this->getYAverage()-this->boxYmin());
+	centre.setPeak( f(pos) );
+	cmpntlist.push_back(centre);
+
+	return cmpntlist;
+      }
+
+      std::vector<SubComponent> RadioSource::getThresholdedSubComponentList(casa::Vector<casa::Double> &f)
+      {
+	
 	/// @details This function returns a vector list of
 	/// subcomponents that make up the Detection. The pixel array
 	/// f is searched at a series of thresholds spaced
@@ -361,7 +398,7 @@ namespace askap
 	    newsrc.pixels().addOffsets(this->boxXmin(),this->boxYmin(),0);
 	    newsrc.xpeak += this->boxXmin();
 	    newsrc.ypeak += this->boxYmin();
-	    std::vector<SubComponent> newlist = newsrc.getSubComponentList(f);
+	    std::vector<SubComponent> newlist = newsrc.getThresholdedSubComponentList(f);
 	    for(uInt i=0;i<newlist.size();i++) fullList.push_back(newlist[i]);
 	  }
 	}
@@ -481,6 +518,7 @@ namespace askap
 	    outmsg.precision(3);
 	    outmsg.setf(ios::fixed);
 	    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g,p) << ", ";
+	    outmsg << m(g,p);
 	    ASKAPLOG_INFO_STR(logger, outmsg.str());
 	  }
 

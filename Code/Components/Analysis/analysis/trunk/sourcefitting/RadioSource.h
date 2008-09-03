@@ -112,6 +112,7 @@ namespace askap
 
 	/// @brief Return a list of subcomponents.
 	std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
+	std::vector<SubComponent> getThresholdedSubComponentList(casa::Vector<casa::Double> &f);
 
 	/// @brief Fit Gaussian components to the Detection.
 	/// @name
