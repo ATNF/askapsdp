@@ -21,7 +21,7 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-//#include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 #include <gridding/AWProjectVisGridder.h>
 
@@ -224,7 +224,8 @@ namespace askap {
       // corresponding to the limited support
       double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
       double ccelly=1.0/(double(qny)*itsUVCellSize(1));
-      
+
+      /*      
       casa::Vector<float> ccfx(qnx);
       casa::Vector<float> ccfy(qny);
       for (casa::uInt ix=0; ix<qnx; ++ix) {
@@ -235,10 +236,22 @@ namespace askap {
            const float nuy=std::abs(float(iy)-float(qny/2))/float(qny/2);
            ccfy(iy)=grdsf(nuy); // /float(qny);
       }
+      */
+      casa::Vector<float> ccfx(nx);
+      casa::Vector<float> ccfy(ny);
+      for (casa::uInt ix=0; ix<nx; ++ix) {
+           const float nux=std::abs(float(ix)-float(nx/2))/float(nx/2);
+           ccfx(ix)=grdsf(nux); // /float(qnx);
+      }
+      for (casa::uInt iy=0; iy<ny; ++iy) {
+           const float nuy=std::abs(float(iy)-float(ny/2))/float(ny/2);
+           ccfy(iy)=grdsf(nuy); // /float(qny);
+      }
       
       // this is just a buffer in the uv-space, oversampling has already been
       // taken into account by using qnx,qny instead of nx and ny
-      UVPattern pattern(qnx,qny, itsUVCellSize(0),itsUVCellSize(1),1);
+      //UVPattern pattern(qnx,qny, itsUVCellSize(0),itsUVCellSize(1),1);
+      UVPattern pattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
       
       int nDone=0;
       for (int row=0; row<nSamples; ++row) {
@@ -263,7 +276,7 @@ namespace askap {
 					itsSlopes(1, feed, itsCurrentField), parallacticAngle);
 	    
 	    fft2d(pattern.pattern(), false);
-	    
+	    	    
 	    //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(pattern.pattern()));
 	    //throw 1;
 	    
@@ -282,6 +295,7 @@ namespace askap {
 	      double peak=0.0;
 	      double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
 	      
+	      /*
 	      for (int iy=0; iy<int(qny); ++iy) {
                double y2=(double(iy)-double(qny)/2)*ccelly;
                y2*=y2;
@@ -298,6 +312,27 @@ namespace askap {
                         }
                         // this ensures the oversampling is done
                         thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(cos(phase), -sin(phase));
+                        maxCF+=casa::abs(wt);
+                    }
+		       }
+	      }	
+	      */
+	      for (int iy=0; iy<int(ny); ++iy) {
+               double y2=(double(iy)-double(ny)/2)*ccelly;
+               y2*=y2;
+               for (int ix=0; ix<int(nx); ++ix) {
+                    double x2=(double(ix)-double(nx)/2)*ccellx;
+                    x2*=x2;
+                    double r2=x2+y2;
+                    if (r2<1.0) {
+                        const double phase=w*(1.0-sqrt(1.0-r2));
+                        const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
+                                         *casa::Complex(ccfx(ix)*ccfy(iy));
+                        if(casa::abs(wt)>peak) {
+                           peak=casa::abs(wt);
+                        }
+                        // this ensures the oversampling is done
+                        thisPlane(ix, iy)=wt*casa::Complex(cos(phase), -sin(phase));
                         maxCF+=casa::abs(wt);
                     }
 		       }
@@ -348,6 +383,7 @@ namespace askap {
 		    }
 		  }
 		}
+		//std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;
 		ASKAPCHECK(itsSupport>0,
 			   "Unable to determine support of convolution function");
 		ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
