@@ -50,6 +50,7 @@ namespace askap
     /// The control parameters are specified in a parset file. For example:
     /// @code
     ///  	Cimager.datacolumnset           = DATACOL     # default is DATA
+    ///     Cimager.memorybuffers           = true      # default is false, i.e. write scratch data to the MS
     ///  	Cimager.dataset                 = [data/spw_1/sim.ms]
     ///  	#Feed                           = 5
     ///
@@ -146,6 +147,11 @@ namespace askap
 
       /// Do we want a restored image?
       bool itsRestore;
+      
+      /// @brief Do we want to keep scratch buffers in memory instead of writing them in a subtable?
+      /// @details Turining this flag to true allows to work with a read-only dataset
+      bool itsUseMemoryBuffers;
+      
 
       /// Name of data column to use.
       string itsColName;

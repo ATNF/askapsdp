@@ -104,7 +104,10 @@ namespace askap
         }
         
         bool reuseModel = itsParset.getBool("Images.reuse", false);
-
+        
+        itsUseMemoryBuffers = itsParset.getBool("memorybuffers", false);
+        
+        
         ASKAPCHECK(itsModel, "itsModel is supposed to be initialized at this stage");
         
         if (reuseModel) {
@@ -170,7 +173,16 @@ namespace askap
       if ((!itsEquation)||discard)
       {
         ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
-        TableDataSource ds(ms, TableDataSource::DEFAULT, itsColName);
+
+        // just to print the current mode to the log
+        if (itsUseMemoryBuffers) {
+            ASKAPLOG_INFO_STR(logger, "Scratch data will be held in memory" );
+        } else {
+            ASKAPLOG_INFO_STR(logger, "Scratch data will be written to the subtable of the original dataset" );
+        }
+        
+        TableDataSource ds(ms, (itsUseMemoryBuffers ? TableDataSource::MEMORY_BUFFERS : TableDataSource::DEFAULT), 
+                           itsColName);
         IDataSelectorPtr sel=ds.createSelector();
         sel << itsParset;
         IDataConverterPtr conv=ds.createConverter();
