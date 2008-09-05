@@ -22,6 +22,7 @@
 ///
 
 #include <measurementequation/ImageSolver.h>
+#include <measurementequation/PaddingUtils.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -33,6 +34,10 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Vector.h>
+
+#include <lattices/Lattices/ArrayLattice.h>
+#include <lattices/Lattices/LatticeFFT.h>
+
 
 using namespace askap;
 using namespace askap::scimath;
@@ -142,10 +147,18 @@ namespace askap
     // Apply all the preconditioners in the order in which they were created.
     bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
     {
+        casa::Array<float> oldPSF(psf.copy());
 	    bool status=false;
 	    for(std::map<int, IImagePreconditioner::ShPtr>::const_iterator pciter=itsPreconditioners.begin(); pciter!=itsPreconditioners.end(); pciter++)
 	    {
 	      status = status | (pciter->second)->doPreconditioning(psf,dirty);
+	    }
+	    // we could write the result to the file or return it as a parameter (but we need an image name
+	    // here to compose a proper parameter name)
+	    if (status) {
+	        sensitivityLoss(oldPSF, psf);
+	    } else {
+	        ASKAPLOG_INFO_STR(logger, "No preconditioning has been done, hence sensitivity loss factor is 1.");
 	    }
 	    return status;
     }
@@ -305,6 +318,68 @@ namespace askap
             "equations class with image solver");
       }
     }
+    
+    /// @brief estimate sensitivity loss due to preconditioning
+    /// @details Preconditioning (i.e. Wiener filter, tapering) makes the synthesized beam look nice, 
+    /// but the price paid is a sensitivity loss. This method gives an estimate (accurate calculations require
+    /// gridless weights, which we don't have in our current approach). The method just requires the two
+    /// PSFs before and after preconditioning.
+    /// @param[in] psfOld an array with original psf prior to preconditioning
+    /// @param[in] psfNew an array with the psf after preconditioning has been applied
+    /// @return sensitivity loss factor (should be grater than or equal to 1)
+    double ImageSolver::sensitivityLoss(const casa::Array<float>& psfOld, const casa::Array<float>& psfNew)
+    {
+       ASKAPLOG_INFO_STR(logger, "Estimating sensitivity loss due to preconditioning");
+       // current code can't handle cases where the noise is not uniform
+       // we need to think about a better approach
+       // we also assume that input PSFs are normalized to the same peak value (i.e. 1).
+       
+       casa::IPosition paddedShape = psfOld.shape();
+       ASKAPCHECK(paddedShape == psfNew.shape(), 
+            "sensitivityLoss: shapes of two PSFs are supposed to be the same, you have "<<paddedShape<<
+            " and "<<psfNew.shape());
+       ASKAPDEBUGASSERT(paddedShape.nonDegenerate().nelements() == 2);     
+       paddedShape(0) *= 2;     
+       paddedShape(1) *= 2;     
+       casa::ArrayLattice<casa::Complex> uvOld(paddedShape);
+       casa::ArrayLattice<casa::Complex> uvNew(paddedShape);
+       
+       casa::ArrayLattice<float> lpsfOld(psfOld);
+       casa::ArrayLattice<float> lpsfNew(psfNew);
+       
+       
+       PaddingUtils::inject(uvOld, lpsfOld);
+       PaddingUtils::inject(uvNew, lpsfNew);
+       
+       // ratio of FTs is an estimate of the gridded imaging weight. We have to use
+       // gridded weight because we don't form ungridded one.
+       casa::LatticeFFT::cfft2d(uvOld, casa::True);
+       casa::LatticeFFT::cfft2d(uvNew, casa::True);
+       
+       double sumwt = 0.;
+       double sumwt2 = 0.;
+       size_t cnt = 0;
+       casa::IPosition cursor(paddedShape.nelements(),0);
+       for (int nx = 0; nx<paddedShape(0); ++nx) {
+            cursor(0) = nx;
+            for (int ny = 0; ny<paddedShape(1); ++ny) {
+                 cursor(1)=ny;
+                 const double oldVal = casa::abs(uvOld(cursor));
+                 if (oldVal < 1e-6) {
+                     continue;
+                 }
+                 const double wt = casa::abs(uvNew(cursor))/oldVal;
+                 sumwt += wt;
+                 sumwt2 += casa::square(wt);
+                 ++cnt;
+            }
+       }
+       ASKAPCHECK(sumwt>0, "Sum of weights is zero in ImageSolver::sensitivityLoss");
+       const double loss = sqrt(double(cnt)*sumwt2)/sumwt;
+       ASKAPLOG_INFO_STR(logger, cnt<<" uv grid cells were accepted during calculation of the sensitivity loss.");
+       ASKAPLOG_INFO_STR(logger, "The estimate of the sensitivity loss is "<<loss);
+       return loss;
+    }
 
-  }
-}
+  } // namespace synthesis
+} // namespace askap

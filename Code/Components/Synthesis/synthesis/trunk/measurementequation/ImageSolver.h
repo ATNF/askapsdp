@@ -71,7 +71,7 @@ namespace askap
         /// @param q Solution quality information
         virtual bool solveNormalEquations(askap::scimath::Quality& q);
         
-/// @brief Clone this object
+        /// @brief Clone this object
         virtual askap::scimath::Solver::ShPtr clone() const;
         
         /// @brief Save the weights as a parameter
@@ -90,6 +90,9 @@ namespace askap
 	void addPreconditioner(askap::synthesis::IImagePreconditioner::ShPtr pc);
 
 	/// @brief Do the preconditioning
+        /// @details 
+        /// @param[in] psf point spread function do modify
+        /// @param[in] dirty dirty image to modify
 	bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty);
    
 	/// @brief perform normalization of the dirty image and psf
@@ -115,7 +118,18 @@ namespace askap
 			     casa::Array<float>& dirty,
 			     const boost::shared_ptr<casa::Array<float> >& mask = 
 			               boost::shared_ptr<casa::Array<float> >());
-   
+  protected:
+     
+    /// @brief estimate sensitivity loss due to preconditioning
+    /// @details Preconditioning (i.e. Wiener filter, tapering) makes the synthesized beam look nice, 
+    /// but the price paid is a sensitivity loss. This method gives an estimate (accurate calculations require
+    /// gridless weights, which we don't have in our current approach). The method just requires the two
+    /// PSFs before and after preconditioning.
+    /// @param[in] psfOld an array with original psf prior to preconditioning
+    /// @param[in] psfNew an array with the psf after preconditioning has been applied
+    /// @return sensitivity loss factor (should be grater than or equal to 1)
+    static double sensitivityLoss(const casa::Array<float>& psfOld, const casa::Array<float>& psfNew);
+             
       private:
 	/// Instance of a preconditioner
 	// IImagePreconditioner::ShPtr itsPreconditioner;
