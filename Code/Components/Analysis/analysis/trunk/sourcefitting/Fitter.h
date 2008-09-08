@@ -30,7 +30,6 @@
 #ifndef ASKAP_ANALYSIS_FITTER_H_
 #define ASKAP_ANALYSIS_FITTER_H_
 
-#include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Component.h>
 
 #include <scimath/Fitting/FitGaussian.h>
@@ -57,70 +56,217 @@ namespace askap
     {
 
       /// @ingroup sourcefitting
-      /// @brief Width of padding border to put around detections for fitting purposes, in pixels
-      const int detectionBorder = 3;
+      /// @brief Default values for various parameters
+      /// @{
 
-      /// @ingroup sourcefitting
+      /// @brief Minimum number of pixels that an object has for it to be fit.
+      const int defaultMinFitSize = 3;
+
+      /// @brief Width of padding border to put around detections for fitting purposes, in pixels
+      const int defaultBoxPadSize = 3;
+
       /// @brief Default side length of box used to estimate noise for a detection
       const int defaultNoiseBoxSize = 101;
 
+      /// @brief Default maximum number of Gaussian components to fit to a detection
+      const int defaultMaxNumFittedGauss = 4;
+
+      /// @brief Default value for the confidence level at which chi-squared values are accepted.
+      /// @details If the value is outside the range [0,1], this
+      /// method of acceptance is not used and the reduced chi-squared value is
+      /// used instead.
+      const float defaultChisqConfidence = -1.;
+
+      /// @brief Default value of the maximum permitted reduced chi-squared value for an acceptable fit.
+      const float defaultMaxReducedChisq = 5.;
+
+      /// @brief Default value for the maxRMS parameter passed to the casa::fitGaussian::fit() function.
+      const Double defaultMaxRMS = 1.;
+
+      /// @}
+
       /// @ingroup sourcefitting
-      const int defaultNumFittedGauss = 4;
+      /// @brief Simple function to write a list of parameters to the ASKAPLOG
+      void logparameters(Matrix<Double> &m);
 
-      const float defaultChisqCutoff = 0.01;
-
-      const Double defaultMaxRMS = 5.;
-
-      class RadioSource;  // foreshadow RadioSource so that we can make use of it in the following
-
-      class Fitter
+      /// @ingroup sourcefitting
+      /// @brief A class to store parameters that are used by the fitting routines.
+      /// @details It stores user-generated parameters, as well as
+      ///  things such as detection threshold and peak flux that come from the
+      ///  detected object being fitted.
+      class FittingParameters
       {
       public:
-	Fitter(){};
+	/// @brief Default constructor
+	FittingParameters(){};
 	/// @brief Constructor 
-	/// @param parset The parameter set to read Duchamp and other parameters from.
-	Fitter(const LOFAR::ACC::APS::ParameterSet& parset);
-	virtual ~Fitter(){};
+	/// @param parset The parameter set to read parameters from.
+	FittingParameters(const LOFAR::ACC::APS::ParameterSet& parset);
 
-	void setNumGauss(int i){itsNumGauss=i;};
+	/// @brief Default destructor
+	virtual ~FittingParameters(){};
+        /// @brief Copy constructor
+        FittingParameters(const FittingParameters& f);
+        /// @brief Copy function
+        FittingParameters& operator= (const FittingParameters& f);
+
+
+	/// @brief Commands to set and return the various parameters.
+	/// @name 
+	// @{
+
+	void setMaxNumGauss(int i){itsMaxNumGauss=i;};
 	void setBoxPadSize(int i){itsBoxPadSize=i;};
+	void setNoiseBoxSize(int i){itsNoiseBoxSize=i;};
 	void setMaxRMS(Double d){itsMaxRMS=d;};
-	void setChisqCutoff(float f){itsChisqCutoff=f;};
-	
-	float chisq(){return itsFitter.chisquared();};
-	float redChisq(){return itsRedChisq;};
+	void setChisqConfidence(float f){itsChisqConfidence=f;};
+	void setMaxReducedChisq(float f){itsMaxReducedChisq=f;};
+	void setPeakFlux(float f){itsSrcPeak = f;};
+	void setDetectThresh(float f){itsDetectThresh=f;};
 
-	int  numGauss(){return itsNumGauss;};
-	int  boxPadSize(){return itsBoxPadSize;};
+	int    maxNumGauss(){return itsMaxNumGauss;};	
+	int    boxPadSize(){return itsBoxPadSize;};
+	int    noiseBoxSize(){return itsNoiseBoxSize;};
 	Double maxRMS(){return itsMaxRMS;};
-	float chisqCutoff(){return itsChisqCutoff;};
+	float  chisqConfidence(){return itsChisqConfidence;};
+	float  maxReducedChisq(){return itsMaxReducedChisq;};
+	int    minFitSize(){return itsMinFitSize;};
 
-	void setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head);
-	void setRetries();
-	void setMasks();
-	void fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-		 casa::Vector<casa::Double> sigma);
-	bool acceptable(RadioSource *src);
+	// @}
 
-	std::multimap<double,int> peakFluxList();
-	casa::Gaussian2D<casa::Double> gaussian(int num);
+	/// @brief Define the box surrounding the detected object
+	/// @param box A list of pairs of minimum & maximum values,
+	/// one pair for each axis (only x- and y-axes required, as elements 0 and
+	/// 1 respectively).
+	void saveBox(std::vector<std::pair<long,long> > box){
+	  this->itsXmin = box[0].first;
+	  this->itsXmax = box[0].second;
+	  this->itsYmin = box[1].first;
+	  this->itsYmax = box[1].second;
+	};
+	
+	friend class Fitter;
 
       protected:
-	unsigned int itsNumGauss;
+	/// @brief The amount of pixels added to the extent of the object to form the box.
 	unsigned int itsBoxPadSize;
+
+	/// @brief The maxRMS parameter passed to the casa::FitGaussian::fit() function.
 	Double itsMaxRMS;
-	float itsChisqCutoff;
-	unsigned int itsNoiseBoxSize;
 
+	/// @brief The maximum number of Gaussian components to be fit.
+	unsigned int itsMaxNumGauss;
+
+	/// @brief The confidence level for the chi-squared test. If
+	/// outside the [0,1] range, the test is done with the reduced chi-squared
+	/// instead.
+	float itsChisqConfidence;
+	/// @brief The maximum permissible reduced chi-squared value for a fit to be accepted.
+	float itsMaxReducedChisq;
+
+	/// @brief The side length of a box centred on the peak pixel used to find the local noise.
+	int itsNoiseBoxSize;
+
+	/// @brief The minimum number of pixels an object must have to be fit.
+	unsigned int itsMinFitSize;
+
+	/// @brief The flux within the box used for fitting.
 	float itsBoxFlux;
-	FitGaussian<casa::Double> itsFitter;
-	int itsNDoF;
-	float itsRedChisq;
 
+	/// @brief The peak flux of the object being fit.
+	float itsSrcPeak;
+
+	/// @brief The detection threshold used to obtain the object.
+	float itsDetectThresh;
+
+	/// @brief The extent of the box surrounding the object used for the fitting
+	/// @{
 	int itsXmin;
 	int itsXmax;
 	int itsYmin;
 	int itsYmax;
+	/// @}
+      };
+
+
+      /// @ingroup sourcefitting
+      /// @brief A class to manage the 2D profile fitting.
+      /// @details The class handles the calling of the fitting
+      /// functions, and stores the results using the casa::FitGaussian class
+      /// and a casa::Matrix with the best fit. The FittingParameters class
+      /// holds the relevant parameters.
+      class Fitter
+      {
+      public:
+	/// @brief Default constructor
+	Fitter(){};
+	/// @brief Default destructor
+	virtual ~Fitter(){};
+        /// @brief Copy constructor
+        Fitter(const Fitter& f);
+        /// @brief Copy function
+        Fitter& operator= (const Fitter& f);
+
+	/// @brief Set and return the set of fitting parameters
+	/// @{
+	void setParams(FittingParameters p){itsParams=p;};
+	FittingParameters params(){return itsParams;};
+	///@}
+
+	/// @brief Set and return the number of Gaussian components to be fitted.
+	/// @{
+	void setNumGauss(int i){itsNumGauss=i;};
+	int  numGauss(){return itsNumGauss;};
+	/// @}
+
+	/// @brief Return the chi-squared value from the fit.
+	float chisq(){return itsFitter.chisquared();};
+	/// @brief Return the reduced chi-squared value from the fit.
+	float redChisq(){return itsRedChisq;};
+	/// @brief Return the RMS of the fit
+	float RMS(){return itsFitter.RMS();};
+
+	/// @brief Set the intial estimates for the Gaussian components.
+	void setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head);
+	/// @brief Set the retry factors
+	void setRetries();
+	/// @brief Set the mask values
+	void setMasks();
+	/// @brief Fit components to the data
+	void fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+		 casa::Vector<casa::Double> sigma);
+
+	/// @brief Functions to test the fit according to various criteria.
+	/// @{
+
+	/// @brief Has the fit converged?
+	bool passConverged();
+	/// @brief Does the fit have an acceptable chi-squared value?
+	bool passChisq();
+	/// @brief Are the fitted components suitably within the box?
+	bool passLocation();
+	/// @brief Are the component fluxes OK?
+	bool passComponentFlux();
+	bool passPeakFlux();
+	bool passIntFlux();
+	bool passSeparation();
+	/// @brief Is the fit acceptable overall?
+	bool acceptable();
+	/// @}
+
+	/// @brief Return an ordered list of peak fluxes
+	std::multimap<double,int> peakFluxList();
+
+	/// @brief Return a casa::Gaussian2D version of a particular component.
+	casa::Gaussian2D<casa::Double> gaussian(int num);
+
+      protected:
+	FittingParameters itsParams;
+
+	unsigned int itsNumGauss;
+	FitGaussian<casa::Double> itsFitter;
+	int itsNDoF;
+	float itsRedChisq;
 
 	casa::Matrix<casa::Double> itsSolution;
 

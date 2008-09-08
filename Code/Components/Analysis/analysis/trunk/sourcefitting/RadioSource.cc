@@ -100,6 +100,7 @@ namespace askap
 	this->itsHeader = src.itsHeader;
 	this->itsGaussFitSet = src.itsGaussFitSet;
 	this->itsBoxMargins = src.itsBoxMargins;
+	this->itsFitParams = src.itsFitParams;
       }
 
       //**************************************************************//
@@ -114,12 +115,13 @@ namespace askap
 	this->itsHeader = src.itsHeader;
 	this->itsGaussFitSet = src.itsGaussFitSet;
 	this->itsBoxMargins = src.itsBoxMargins;
+	this->itsFitParams = src.itsFitParams;
 	return *this;
       }
 
       //**************************************************************//
 
-      void RadioSource::defineBox(long *axes)
+      void RadioSource::defineBox(long *axes, FittingParameters &fitParams)
       {
 	/// @details Defines the maximum and minimum points of the box
 	/// in each axis direction. The size of the image array is
@@ -128,12 +130,12 @@ namespace askap
 
 	this->itsBoxMargins.clear();
 	long zero = 0;
-	long xmin = std::max(zero, this->getXmin() - detectionBorder);
-	long xmax = std::min(axes[0], this->getXmax() + detectionBorder);
- 	long ymin = std::max(zero, this->getYmin() - detectionBorder);
- 	long ymax = std::min(axes[1], this->getYmax() + detectionBorder);
- 	long zmin = std::max(zero, this->getZmin() - detectionBorder);
- 	long zmax = std::min(axes[2], this->getZmax() + detectionBorder);
+	long xmin = std::max(zero, this->getXmin() - fitParams.boxPadSize());
+	long xmax = std::min(axes[0], this->getXmax() + fitParams.boxPadSize());
+ 	long ymin = std::max(zero, this->getYmin() - fitParams.boxPadSize());
+ 	long ymax = std::min(axes[1], this->getYmax() + fitParams.boxPadSize());
+ 	long zmin = std::max(zero, this->getZmin() - fitParams.boxPadSize());
+ 	long zmax = std::min(axes[2], this->getZmax() + fitParams.boxPadSize());
 	std::vector<std::pair<long,long> > vec(3);
 	vec[0] = std::pair<long,long>(xmin,xmax);
 	vec[1] = std::pair<long,long>(ymin,ymax);
@@ -185,7 +187,7 @@ namespace askap
       }
       //**************************************************************//
 
-      void RadioSource::setNoiseLevel(duchamp::Cube &cube, int boxSize)
+      void RadioSource::setNoiseLevel(duchamp::Cube &cube, FittingParameters &fitparams)
       {
 	/// @details Sets the value of the local noise level by taking
 	/// the MADFM of the surrounding pixels from the Cube's array. 
@@ -193,7 +195,7 @@ namespace askap
 	/// @param cube The duchamp::Cube object containing the pixel array
 	/// @param boxSize The side length of the box used.
 
-	this->setNoiseLevel(cube.getArray(), cube.getDimArray(), boxSize);
+	this->setNoiseLevel(cube.getArray(), cube.getDimArray(), fitparams.noiseBoxSize());
       }
 
       void RadioSource::setNoiseLevel(float *array, long *dim, int boxSize)
@@ -209,7 +211,7 @@ namespace askap
 	/// @param boxSize The side length of the box used.
 
 	int hw = boxSize/2;
-	
+
 	float *localArray = new float[boxSize*boxSize];
 	
 	long xmin = max(0,this->xpeak-hw);
@@ -294,35 +296,39 @@ namespace askap
 	
 	std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(f);
 
-	SubComponent antipus;
-	if(this->itsHeader.getBmajKeyword()>0){
-	  antipus.setPA(this->itsHeader.getBpaKeyword() * M_PI / 180.);
-	  antipus.setMajor(this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale());
-	  antipus.setMinor(this->itsHeader.getBminKeyword()/this->itsHeader.getAvPixScale());
-	}
-	else{
-	  antipus.setPA(cmpntlist[0].pa());
-	  antipus.setMajor(cmpntlist[0].maj());
-	  antipus.setMinor(cmpntlist[0].min());
-	}
 	float dx = this->getXAverage() - this->getXPeak();
 	float dy = this->getYAverage() - this->getYPeak();
-	antipus.setX(this->getXAverage()+dx);
-	antipus.setY(this->getYAverage()+dy);
-	int pos = int(this->getXAverage()+dx-this->boxXmin()) + this->boxXsize()*int(this->getYAverage()+dy-this->boxYmin());
-	antipus.setPeak( f(pos) );
-	cmpntlist.push_back(antipus);
+	if(hypot(dx,dy)>2.){
+	  SubComponent antipus;
+	  // 	if(this->itsHeader.getBmajKeyword()>0){
+	  // 	  antipus.setPA(this->itsHeader.getBpaKeyword() * M_PI / 180.);
+	  // 	  antipus.setMajor(this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale());
+	  // 	  antipus.setMinor(this->itsHeader.getBminKeyword()/this->itsHeader.getAvPixScale());
+	  // 	}
+	  // 	else{
+	  // 	  antipus.setPA(cmpntlist[0].pa());
+	  // 	  antipus.setMajor(cmpntlist[0].maj());
+	  // 	  antipus.setMinor(cmpntlist[0].min());
+	  // 	}
+	  antipus.setPA( cmpntlist[0].pa() );
+	  antipus.setMajor( cmpntlist[0].maj() );
+	  antipus.setMinor( cmpntlist[0].min() );
+	  antipus.setX(this->getXAverage()+dx);
+	  antipus.setY(this->getYAverage()+dy);
+	  int pos = int(this->getXAverage()+dx-this->boxXmin()) + this->boxXsize()*int(this->getYAverage()+dy-this->boxYmin());
+	  antipus.setPeak( f(pos) );
+	  cmpntlist.push_back(antipus);
 	
-	SubComponent centre;
-	centre.setPA( antipus.pa() );
-	centre.setMajor( antipus.maj() );
-	centre.setMinor( antipus.min() );
-	centre.setX(this->getXAverage());
-	centre.setY(this->getYAverage());
-	pos = int(this->getXAverage()-this->boxXmin()) + this->boxXsize()*int(this->getYAverage()-this->boxYmin());
-	centre.setPeak( f(pos) );
-	cmpntlist.push_back(centre);
-
+	  SubComponent centre;
+	  centre.setPA( antipus.pa() );
+	  centre.setMajor( antipus.maj() );
+	  centre.setMinor( antipus.min() );
+	  centre.setX(this->getXAverage());
+	  centre.setY(this->getYAverage());
+	  pos = int(this->getXAverage()-this->boxXmin()) + this->boxXsize()*int(this->getYAverage()-this->boxYmin());
+	  centre.setPeak( f(pos) );
+	  cmpntlist.push_back(centre);
+	}
 	return cmpntlist;
       }
 
@@ -372,7 +378,7 @@ namespace askap
 // 	base.setMajor(std::max(axes.first,axes.second));
 // 	base.setMinor(std::min(axes.first,axes.second));
 
-	const int numThresh = 10;
+	const int numThresh = 20;
 	float baseThresh = log10(this->itsDetectionThreshold);
 	float threshIncrement = (log10(this->peakFlux)-baseThresh)/float(numThresh+1);
 	float thresh;
@@ -508,21 +514,21 @@ namespace askap
 
       }
 
-      /// @brief A simple way of printing fitted parameters
-      void logparameters(Matrix<Double> &m)
-      {
-	uInt g,p;
-	for (g = 0; g < m.nrow(); g++)
-	  {
-	    std::stringstream outmsg;
-	    outmsg.precision(3);
-	    outmsg.setf(ios::fixed);
-	    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g,p) << ", ";
-	    outmsg << m(g,p);
-	    ASKAPLOG_INFO_STR(logger, outmsg.str());
-	  }
+//       /// @brief A simple way of printing fitted parameters
+//       void logparameters(Matrix<Double> &m)
+//       {
+// 	uInt g,p;
+// 	for (g = 0; g < m.nrow(); g++)
+// 	  {
+// 	    std::stringstream outmsg;
+// 	    outmsg.precision(3);
+// 	    outmsg.setf(ios::fixed);
+// 	    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g,p) << ", ";
+// 	    outmsg << m(g,p);
+// 	    ASKAPLOG_INFO_STR(logger, outmsg.str());
+// 	  }
 
-      }
+//       }
 
       //**************************************************************//
 
@@ -537,7 +543,7 @@ namespace askap
 	/// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
 	/// sigma).
 
-	if(this->getSpatialSize() < minFitSize) return false;
+	if(this->getSpatialSize() < defaultMinFitSize) return false;
 
 	casa::Matrix<casa::Double> pos;
 	casa::Vector<casa::Double> f;
@@ -582,7 +588,7 @@ namespace askap
 
       //**************************************************************//
 
-      bool RadioSource::fitGauss(float *fluxArray, long *dimArray, Fitter &baseFitter)
+      bool RadioSource::fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter)
 //       bool RadioSource::fitGauss(float *fluxArray, long *dimArray)
       {
 
@@ -594,7 +600,7 @@ namespace askap
 	/// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
 	/// sigma).
 
-	if(this->getSpatialSize() < minFitSize) return false;
+	if(this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
 	if(this->getZcentre()!=this->getZmin() || this->getZcentre() != this->getZmax()){
 	  ASKAPLOG_ERROR(logger,"Can only do fitting for two-dimensional objects!");
@@ -630,10 +636,10 @@ namespace askap
       //**************************************************************//
       
       bool RadioSource::fitGaussNew(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-				    casa::Vector<casa::Double> sigma, Fitter &baseFitter)
+				    casa::Vector<casa::Double> sigma, FittingParameters &baseFitter)
       {
 
-	if(this->getSpatialSize() < minFitSize) return false;
+	if(this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
 	ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
 
@@ -653,15 +659,21 @@ namespace askap
 	int bestFit = 0;
 	float bestRChisq = 9999.;
 
+	this->itsFitParams = baseFitter;
+	this->itsFitParams.saveBox(this->itsBoxMargins);
+	this->itsFitParams.setPeakFlux(this->peakFlux);
+	this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
+	
 	for(int ctr=0;ctr<maxNumGauss;ctr++){
 
+	  fit[ctr].setParams(this->itsFitParams);
 	  fit[ctr].setNumGauss(ctr+1);
 	  fit[ctr].setEstimates(cmpntList, this->itsHeader);
 	  fit[ctr].setRetries();
 	  fit[ctr].setMasks();
 	  fit[ctr].fit(pos, f, sigma);
 
-	  if(fit[ctr].acceptable(this)){
+	  if(fit[ctr].acceptable()){
 	    if((ctr==0) || (fit[ctr].redChisq() < bestRChisq)){
 	      fitIsGood = true;
 	      bestFit = ctr;
@@ -674,6 +686,7 @@ namespace askap
 
 	if(fitIsGood){
 	  this->hasFit = true;
+	  this->itsFitParams = fit[bestFit].params();
 	  // Make a map so that we can output the fitted components in order of peak flux
 	  std::multimap<double,int> fitMap = fit[bestFit].peakFluxList();
 	  // Need to use reverse_iterator so that brightest component's listed first
@@ -683,9 +696,11 @@ namespace askap
 
 	  ASKAPLOG_INFO_STR(logger,"BEST FIT: " << bestFit+1 << " Gaussians"
 			    << ", chisq = " << fit[bestFit].chisq()
-			    << ", chisq/nu =  "  << bestRChisq);
+			    << ", chisq/nu =  "  << bestRChisq
+			    << ", RMS = " << fit[bestFit].RMS());
 	}
 	else{
+	  this->itsFitParams = baseFitter;
 	  ASKAPLOG_INFO_STR(logger, "No good fit found.");
 	}
 
@@ -710,7 +725,7 @@ namespace askap
  
 	const int maxNumGauss = 4;
 
-	if(this->getSpatialSize() < minFitSize) return false;
+	if(this->getSpatialSize() < defaultMinFitSize) return false;
 
 	ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
 
@@ -1096,13 +1111,13 @@ namespace askap
 	  
 	}
 
-	pix[0] = this->getXmin()-sourcefitting::detectionBorder;
-	pix[1] = this->getYmin()-sourcefitting::detectionBorder;
+	pix[0] = this->getXmin()-this->itsFitParams.boxPadSize();
+	pix[1] = this->getYmin()-this->itsFitParams.boxPadSize();
 	this->itsHeader.pixToWCS(pix,world);
 	stream << "BOX " << world[0] << " " << world[1] << " ";
 	
-	pix[0] = this->getXmax()+sourcefitting::detectionBorder;
-	pix[1] = this->getYmax()+sourcefitting::detectionBorder;
+	pix[0] = this->getXmax()+this->itsFitParams.boxPadSize();
+	pix[1] = this->getYmax()+this->itsFitParams.boxPadSize();
 	this->itsHeader.pixToWCS(pix,world);
 	stream << world[0] << " " << world[1] << "\n";
 	

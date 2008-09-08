@@ -118,9 +118,8 @@ namespace askap
       this->itsFlagDoFit = parset.getBool("doFit", false);
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
-      this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize",sourcefitting::noiseBoxSize);
 
-      this->itsFitter = sourcefitting::Fitter(parset.makeSubset("Fitter."));
+      this->itsFitter = sourcefitting::FittingParameters(parset.makeSubset("Fitter."));
 
 
       // Now read the correct image name according to worker/master state.
@@ -357,10 +356,10 @@ namespace askap
 	
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source profiles.");
 	duchamp::FitsHeader head = this->itsCube.getHead();
-	float noise;
-	if(this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
-	else noise = this->itsCube.stats().getSpread();
-	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
+// 	float noise;
+// 	if(this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
+// 	else noise = this->itsCube.stats().getSpread();
+// 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
 	float threshold = this->itsCube.stats().getThreshold();
 	if(this->itsCube.pars().getFlagGrowth())
 	  threshold = this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut());
@@ -368,10 +367,10 @@ namespace askap
 	int numObj = this->itsCube.getNumObj();
  	for(int i=0;i<numObj;i++){
 	  sourcefitting::RadioSource src(this->itsCube.getObject(i));
-	  src.setNoiseLevel( this->itsCube, this->itsNoiseBoxSize );
+	  src.setNoiseLevel( this->itsCube, this->itsFitter );
 	  src.setDetectionThreshold( threshold );
 	  src.setHeader( head );
-	  src.defineBox(this->itsCube.getDimArray());
+	  src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
 
 	  // Only do fit if object is not next to boundary
 	  src.setAtEdge(this->itsCube);
@@ -494,7 +493,7 @@ namespace askap
 	      src.setYOffset(this->itsSectionList[i-1].getStart(1));
 	      src.setZOffset(this->itsSectionList[i-1].getStart(2));
 	      src.addOffsets();
-	      src.defineBox(this->itsCube.getDimArray());
+	      src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
 	      for(unsigned int f=0;f<src.fitset().size();f++){
 		src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
 		src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
@@ -591,7 +590,7 @@ namespace askap
 	    src.setNoiseLevel( noise );
 	    src.setDetectionThreshold( threshold );
 	    src.setHeader( head );
- 	    src.defineBox(this->itsCube.getDimArray());
+ 	    src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
 
 	    if(this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList);
 	    

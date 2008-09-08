@@ -31,8 +31,8 @@
 #ifndef ASKAP_ANALYSIS_RADIOSOURCE_H_
 #define ASKAP_ANALYSIS_RADIOSOURCE_H_
 
-#include <sourcefitting/Component.h>
 #include <sourcefitting/Fitter.h>
+#include <sourcefitting/Component.h>
 
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
@@ -63,15 +63,6 @@ namespace askap
     namespace sourcefitting
     {
 
-      /// @ingroup sourcefitting
-      /// @brief Default side length of box used to estimate noise for a detection
-      const int noiseBoxSize = 101;
-
-      /// @ingroup sourcefitting
-      /// @brief Minimum spatial size [pixels] a source must have to be fit
-      const int minFitSize = 3;
-
-      void logparameters(Matrix<Double> &m);
 
       class Fitter;  // foreshadow Fitter so that we can make use of it in the following
 
@@ -121,9 +112,9 @@ namespace askap
 		      casa::Vector<casa::Double> sigma);
 	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList);
 /* 	bool fitGauss(float *fluxArray, long *dimArray); */
-	bool fitGauss(float *fluxArray, long *dimArray, Fitter &baseFitter);
+	bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter);
 	bool fitGaussNew(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-			 casa::Vector<casa::Double> sigma, Fitter &baseFitter);
+			 casa::Vector<casa::Double> sigma, FittingParameters &baseFitter);
 	///@}
 
 	/// @brief Store the FITS header information
@@ -137,10 +128,10 @@ namespace askap
 	/// @{
 
 	/// @brief Set the noise level to the local value, using an array.
-	void setNoiseLevel(float *array, long *dim, int boxSize=noiseBoxSize);
+	void setNoiseLevel(float *array, long *dim, int boxSize=defaultNoiseBoxSize);
 
 	/// @brief Set the noise level to the local value, using a Duchamp::Cube object
-	void setNoiseLevel(duchamp::Cube &cube, int boxSize=noiseBoxSize);
+	void setNoiseLevel(duchamp::Cube &cube, FittingParameters &fitparams);
 
 	/// @brief Set the noise level
 	void setNoiseLevel(float noise){itsNoiseLevel = noise;};
@@ -183,7 +174,7 @@ namespace askap
 	void setAtEdge(duchamp::Cube &cube);
 
 	/// @brief Define the boundaries of the box
-	void defineBox(long *axes);
+	void defineBox(long *axes, FittingParameters &fitParams);
 
 	/// @brief Commands to return the extent and size of the box
 	/// surrounding the object. Uses the detectionBorder parameter.
@@ -246,6 +237,9 @@ namespace askap
 
 	/// @brief A two-dimensional Gaussian fit to the object.
 	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
+
+	/// @brief The best fit to the object.
+	FittingParameters itsFitParams;
 
 	/// @brief The min & max points of the box, taking into account the borders of the data array
 	std::vector<std::pair<long,long> > itsBoxMargins;

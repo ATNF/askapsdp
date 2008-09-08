@@ -142,14 +142,11 @@ namespace askap
       /// The list of voxels encompassing detected sources, with fluxes.
       std::vector<PixelInfo::Voxel> itsVoxelList;
 
-      /// The Gaussian Fitting class
-      sourcefitting::Fitter itsFitter;
+      /// The Gaussian Fitting parameter class
+      sourcefitting::FittingParameters itsFitter;
 
       /// Shall we fit to the sources?
       bool itsFlagDoFit;
-
-      /// The size of the box put around an object to calculate its local noise value
-      int itsNoiseBoxSize;
 
       /// Name of the summary file
       std::string itsSummaryFile;

@@ -31,7 +31,6 @@
 #include <askap/AskapError.h>
 
 #include <sourcefitting/Fitter.h>
-#include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Component.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <evaluationutilities/EvaluationUtilities.h>
@@ -66,17 +65,63 @@ namespace askap
     namespace sourcefitting
     {
 
-      Fitter::Fitter(const LOFAR::ACC::APS::ParameterSet& parset)
+      FittingParameters::FittingParameters(const LOFAR::ACC::APS::ParameterSet& parset)
       {
 	
 	this->itsMaxRMS = parset.getDouble("maxRMS", defaultMaxRMS);
-	this->itsNumGauss = parset.getInt32("numGauss", defaultNumFittedGauss);
-	this->itsBoxPadSize = parset.getInt32("boxPadSize", detectionBorder);
-	this->itsChisqCutoff = parset.getFloat("chisqCutoff", defaultChisqCutoff);
+	this->itsMaxNumGauss = parset.getInt32("maxNumGauss", defaultMaxNumFittedGauss);
+	this->itsBoxPadSize = parset.getInt32("boxPadSize", defaultBoxPadSize);
+	this->itsChisqConfidence = parset.getFloat("chisqConfidence", defaultChisqConfidence);
+	this->itsMaxReducedChisq = parset.getFloat("maxReducedChisq", defaultMaxReducedChisq);
 	this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize", defaultNoiseBoxSize);
+	this->itsMinFitSize = parset.getInt32("minFitSize", defaultMinFitSize);
 	
-	this->itsFitter.setDimensions(2);
+      }
 
+
+      FittingParameters::FittingParameters(const FittingParameters& f)
+      {
+	operator=(f);
+      }
+
+
+      FittingParameters& FittingParameters::operator= (const FittingParameters& f)
+      {
+	if(this == &f) return *this;
+	this->itsBoxPadSize = f.itsBoxPadSize;
+	this->itsMaxRMS = f.itsMaxRMS;
+	this->itsMaxNumGauss = f.itsMaxNumGauss;
+	this->itsChisqConfidence = f.itsChisqConfidence;
+	this->itsMaxReducedChisq = f.itsMaxReducedChisq;
+	this->itsNoiseBoxSize = f.itsNoiseBoxSize;
+	this->itsMinFitSize = f.itsMinFitSize;
+	this->itsBoxFlux = f.itsBoxFlux;
+	this->itsXmin = f.itsXmin;
+	this->itsYmin = f.itsYmin;
+	this->itsXmax = f.itsXmax;
+	this->itsYmax = f.itsYmax;
+	this->itsSrcPeak = f.itsSrcPeak;
+	this->itsDetectThresh = f.itsDetectThresh;
+	return *this;
+      }
+
+
+      Fitter::Fitter(const Fitter& f)
+      {
+	operator=(f);
+      }
+
+
+      Fitter& Fitter::operator= (const Fitter& f)
+      {
+	if(this == &f) return *this;
+	this->itsNumGauss = f.itsNumGauss;
+	this->itsParams = f.itsParams;
+	this->itsFitter = f.itsFitter;
+	this->itsNDoF = f.itsNDoF;
+	this->itsRedChisq = f.itsRedChisq;
+	this->itsSolution = f.itsSolution;
+	return *this;
       }
 
 
@@ -113,7 +158,8 @@ namespace askap
 
 	this->itsFitter.setFirstEstimate(estimate);
 
-
+	ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
+	logparameters(estimate);
 
       }
 
@@ -158,19 +204,34 @@ namespace askap
 // 	  }	      
       }
 
+      /// @brief A simple way of printing fitted parameters
+      void logparameters(Matrix<Double> &m)
+      {
+	uInt g,p;
+	for (g = 0; g < m.nrow(); g++)
+	  {
+	    std::stringstream outmsg;
+	    outmsg.precision(3);
+	    outmsg.setf(ios::fixed);
+	    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g,p) << ", ";
+	    outmsg << m(g,p);
+	    ASKAPLOG_INFO_STR(logger, outmsg.str());
+	  }
+
+      }
 
       void Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 		       casa::Vector<casa::Double> sigma)
       {
 
-	this->itsBoxFlux = 0.;
-	for(uint i=0;i<f.size();i++) this->itsBoxFlux += f(i);
+	this->itsParams.itsBoxFlux = 0.;
+	for(uint i=0;i<f.size();i++) this->itsParams.itsBoxFlux += f(i);
 
 	this->itsSolution.resize();
 	  bool thisFitGood = true;
 	  for(int fitloop=0;fitloop<3;fitloop++){
 	    try {
-	      this->itsSolution = this->itsFitter.fit(pos, f, sigma, this->itsMaxRMS);
+	      this->itsSolution = this->itsFitter.fit(pos, f, sigma, this->itsParams.itsMaxRMS);
 	    } catch (AipsError err) {
 	      std::string message = err.getMesg().chars();
 	      message = "FIT ERROR: " + message;
@@ -184,8 +245,17 @@ namespace askap
 			      <<": chisq=" << this->itsFitter.chisquared()
 			      <<": Parameters are:"); 
 	    logparameters(this->itsSolution);
+
 	    if(!this->itsFitter.converged()) fitloop=9999;
-	    else this->itsFitter.setFirstEstimate(this->itsSolution);
+	    else{
+	      for(uint i=0;i<this->itsNumGauss;i++){
+		if(this->itsSolution(i,0)<0){
+		  this->itsSolution(i,0) = 0.;
+		  ASKAPLOG_INFO_STR(logger, "Setting negative component #"<<i+1<<" to zero flux.");
+		}
+	      }
+	      this->itsFitter.setFirstEstimate(this->itsSolution);
+	    }
 	  }
 
 
@@ -215,66 +285,153 @@ namespace askap
 
       }
 
-
-      bool Fitter::acceptable(RadioSource *src)
+      bool Fitter::passConverged()
       {
+	return this->itsFitter.converged() && (this->itsFitter.chisquared()>0.);
+      }
 
-	  /// Acceptance criteria for a fit are as follows (after the
-	  /// FIRST survey criteria, White et al 1997, ApJ 475, 479):
-	  /// @li Fit must have converged
-	  /// @li Fit must be acceptable according to its chisq value
-	  /// @li The centre of each component must be inside the box
-	  /// @li The separation between any pair of components must be more than 2 pixels.
-	  /// @li The flux of each component must be positive and more than half the detection threshold
-	  /// @li No component's peak flux can exceed twice the highest pixel in the box
-	  /// @li The sum of the integrated fluxes of all components
-	  /// must not be more than twice the total flux in the box.
+      bool Fitter::passChisq()
+      {
+	if(!this->passConverged()) return false;
 
-	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux, passPeak;
+	if(this->itsParams.itsChisqConfidence > 0 && this->itsParams.itsChisqConfidence < 1){
+	  if(this->itsNDoF<343)
+	    return chisqProb(this->itsNDoF,this->itsFitter.chisquared()) > this->itsParams.itsChisqConfidence;
+	  else 
+	    return (this->itsRedChisq < 1.2);
+	}
+	else return (this->itsRedChisq < this->itsParams.itsMaxReducedChisq);
+      }
 
-	  passConv  = this->itsFitter.converged();
-	  passConv  = passConv && (this->itsFitter.chisquared()>0.);
+      bool Fitter::passLocation()
+      {
+	if(!this->passConverged()) return false;
+	bool passXLoc=true,passYLoc=true;
+	for(unsigned int i=0;i<this->itsNumGauss;i++){
+	  passXLoc = passXLoc && (this->itsSolution(i,1)>this->itsParams.itsXmin) && 
+	    (this->itsSolution(i,1)<this->itsParams.itsXmax);
+	  passYLoc = passYLoc && (this->itsSolution(i,2)>this->itsParams.itsYmin) && 
+	    (this->itsSolution(i,2)<this->itsParams.itsYmax);
+	}
+	return passXLoc && passYLoc;
+      }
 
-	  passChisq = false;
-	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
+      bool Fitter::passComponentFlux()
+      {
+	if(!this->passConverged()) return false;
+	bool passFlux=true;
+	for(unsigned int i=0;i<this->itsNumGauss;i++){
+	  passFlux = passFlux && (this->itsSolution(i,0) > 0.);
+	  passFlux = passFlux && (this->itsSolution(i,0) > 0.5*this->itsParams.itsDetectThresh);
+	}
+	return passFlux;
+      }
 
-	  if(passConv){
+      bool Fitter::passPeakFlux()
+      {
+	if(!this->passConverged()) return false;
+	bool passPeak=true;
+	for(unsigned int i=0;i<this->itsNumGauss;i++)
+	  passPeak = passPeak && (this->itsSolution(i,0) < 2.*this->itsParams.itsSrcPeak);	    
+	return passPeak;
+      }
 
-	    if(this->itsNDoF<343)
-	      passChisq = chisqProb(this->itsNDoF,this->itsFitter.chisquared()) > this->itsChisqCutoff;
-	    else 
-	      passChisq = (this->itsRedChisq < 1.2);
-	    
-	    float intFlux = 0.;
-	    for(unsigned int i=0;i<this->itsNumGauss;i++){
-	      passXLoc = passXLoc && (this->itsSolution(i,1)>src->boxXmin()) && 
-		(this->itsSolution(i,1)<src->boxXmax());
-	      passYLoc = passYLoc && (this->itsSolution(i,2)>src->boxYmin()) && 
-		(this->itsSolution(i,2)<src->boxYmax());
-	      passFlux = passFlux && (this->itsSolution(i,0) > 0.);
-	      passFlux = passFlux && (this->itsSolution(i,0) > 0.5*src->detectionThreshold());
- 	      passPeak = passPeak && (this->itsSolution(i,0) < 2.*src->getPeakFlux());	    
-	      
-	      Gaussian2D<Double> component(this->itsSolution(i,0),this->itsSolution(i,1),this->itsSolution(i,2),
-					   this->itsSolution(i,3),this->itsSolution(i,4),this->itsSolution(i,5));
-	      intFlux += component.flux();
-	      
-	      for(unsigned int j=i+1;j<this->itsNumGauss;j++){
-		float sep = hypot( this->itsSolution(i,1)-this->itsSolution(j,1) , 
-				   this->itsSolution(i,2)-this->itsSolution(j,2) );
-		passSep = passSep && (sep > 2.);
-	      }
-	    }
-	    
-	    passIntFlux = (intFlux < 2.*this->itsBoxFlux);
+      bool Fitter::passIntFlux()
+      {
+	if(!this->passConverged()) return false;
+	float intFlux = 0.;
+	for(unsigned int i=0;i<this->itsNumGauss;i++){
+	  Gaussian2D<Double> component(this->itsSolution(i,0),this->itsSolution(i,1),this->itsSolution(i,2),
+				       this->itsSolution(i,3),this->itsSolution(i,4),this->itsSolution(i,5));
+	  intFlux += component.flux();
+	}
+	return (intFlux < 2.*this->itsParams.itsBoxFlux);
+      }
 
+      bool Fitter::passSeparation()
+      {
+	if(!this->passConverged()) return false;
+	bool passSep = true;
+	for(unsigned int i=0;i<this->itsNumGauss;i++){
+	  for(unsigned int j=i+1;j<this->itsNumGauss;j++){
+	    float sep = hypot( this->itsSolution(i,1)-this->itsSolution(j,1) , 
+			       this->itsSolution(i,2)-this->itsSolution(j,2) );
+	    passSep = passSep && (sep > 2.);
 	  }
+	}
+	return passSep;
+      }
 
-	  ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
+      bool Fitter::acceptable()
+      {
+	
+	/// Acceptance criteria for a fit are as follows (after the
+	/// FIRST survey criteria, White et al 1997, ApJ 475, 479):
+	/// @li Fit must have converged
+	/// @li Fit must be acceptable according to its chisq value
+	/// @li The centre of each component must be inside the box
+	/// @li The separation between any pair of components must be more than 2 pixels.
+	/// @li The flux of each component must be positive and more than half the detection threshold
+	/// @li No component's peak flux can exceed twice the highest pixel in the box
+	/// @li The sum of the integrated fluxes of all components
+	/// must not be more than twice the total flux in the box.
+	
+	bool passConv = this->passConverged();
+	bool passChisq = this->passChisq();
+	bool passFlux = this->passComponentFlux();
+	bool passLoc = this->passLocation();
+	bool passSep = this->passSeparation();
+	bool passPeak = this->passPeakFlux();
+	bool passIntFlux = this->passIntFlux();
+
+// 	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux, passPeak;
+
+// 	  passConv  = this->itsFitter.converged();
+// 	  passConv  = passConv && (this->itsFitter.chisquared()>0.);
+
+// 	  passChisq = false;
+// 	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
+
+// 	  if(passConv){
+
+// 	    if(this->itsNDoF<343)
+// 	      passChisq = chisqProb(this->itsNDoF,this->itsFitter.chisquared()) > this->itsParams.itsChisqCutoff;
+// 	    else 
+// 	      passChisq = (this->itsRedChisq < 1.2);
+
+// 	    passChisq = true;
+	    
+// 	    float intFlux = 0.;
+// 	    for(unsigned int i=0;i<this->itsNumGauss;i++){
+// 	      passXLoc = passXLoc && (this->itsSolution(i,1)>this->itsParams.itsXmin) && 
+// 		(this->itsSolution(i,1)<this->itsParams.itsXmax);
+// 	      passYLoc = passYLoc && (this->itsSolution(i,2)>this->itsParams.itsYmin) && 
+// 		(this->itsSolution(i,2)<this->itsParams.itsYmax);
+// 	      passFlux = passFlux && (this->itsSolution(i,0) > 0.);
+// 	      passFlux = passFlux && (this->itsSolution(i,0) > 0.5*this->itsParams.itsDetectThresh);
+//  	      passPeak = passPeak && (this->itsSolution(i,0) < 2.*this->itsParams.itsSrcPeak);	    
+	      
+// 	      Gaussian2D<Double> component(this->itsSolution(i,0),this->itsSolution(i,1),this->itsSolution(i,2),
+// 					   this->itsSolution(i,3),this->itsSolution(i,4),this->itsSolution(i,5));
+// 	      intFlux += component.flux();
+	      
+// 	      for(unsigned int j=i+1;j<this->itsNumGauss;j++){
+// 		float sep = hypot( this->itsSolution(i,1)-this->itsSolution(j,1) , 
+// 				   this->itsSolution(i,2)-this->itsSolution(j,2) );
+// 		passSep = passSep && (sep > 2.);
+// 	      }
+// 	    }
+	    
+// 	    passIntFlux = (intFlux < 2.*this->itsParams.itsBoxFlux);
+
+// 	  }
+
+// 	  ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
+// 			    <<passFlux<<passPeak<<passIntFlux);
+	  ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passLoc<<passSep
 			    <<passFlux<<passPeak<<passIntFlux);
 
-	  bool thisFitGood = passConv && passChisq && passXLoc && passYLoc && passSep && 
-	    passFlux && passPeak && passIntFlux;
+	  bool thisFitGood = passConv && passChisq && passLoc && passSep && passFlux && passPeak && passIntFlux;
 
 	  return thisFitGood;
       }
