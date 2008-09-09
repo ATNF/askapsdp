@@ -165,9 +165,7 @@ namespace askap
 
       par.setFlagGrowth( parset.getBool("flagGrowth", false) );
       par.setGrowthCut( parset.getFloat("growthCut", par.getGrowthCut()) );
-
-      // would like to use the following but haven't updated the ASKAPsoft version of duchamp yet...
-//       par.setGrowthThreshold( parset.getFloat("growththreshold", par.getGrowthThreshold()) );
+      par.setGrowthThreshold( parset.getFloat("growththreshold", par.getGrowthThreshold()) );
 
       par.setFlagATrous( parset.getBool("flagATrous",false) );
       par.setReconDim( parset.getInt16("reconDim", par.getReconDim()) );

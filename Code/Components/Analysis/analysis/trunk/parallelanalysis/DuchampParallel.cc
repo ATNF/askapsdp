@@ -361,8 +361,12 @@ namespace askap
 // 	else noise = this->itsCube.stats().getSpread();
 // 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
 	float threshold = this->itsCube.stats().getThreshold();
-	if(this->itsCube.pars().getFlagGrowth())
-	  threshold = this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut());
+	if(this->itsCube.pars().getFlagGrowth()){
+	  if(this->itsCube.pars().getFlagUserGrowthThreshold())
+	    threshold = this->itsCube.pars().getGrowthThreshold();
+	  else
+	    threshold = this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut());
+	}
 
 	int numObj = this->itsCube.getNumObj();
  	for(int i=0;i<numObj;i++){
