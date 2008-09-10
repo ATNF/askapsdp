@@ -225,7 +225,6 @@ namespace askap {
       double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
       double ccelly=1.0/(double(qny)*itsUVCellSize(1));
 
-      /*      
       casa::Vector<float> ccfx(qnx);
       casa::Vector<float> ccfy(qny);
       for (casa::uInt ix=0; ix<qnx; ++ix) {
@@ -236,7 +235,7 @@ namespace askap {
            const float nuy=std::abs(float(iy)-float(qny/2))/float(qny/2);
            ccfy(iy)=grdsf(nuy); // /float(qny);
       }
-      */
+      /*
       casa::Vector<float> ccfx(nx);
       casa::Vector<float> ccfy(ny);
       for (casa::uInt ix=0; ix<nx; ++ix) {
@@ -247,6 +246,7 @@ namespace askap {
            const float nuy=std::abs(float(iy)-float(ny/2))/float(ny/2);
            ccfy(iy)=grdsf(nuy); // /float(qny);
       }
+      */
       
       // this is just a buffer in the uv-space, oversampling has already been
       // taken into account by using qnx,qny instead of nx and ny
@@ -276,10 +276,6 @@ namespace askap {
 					itsSlopes(1, feed, itsCurrentField), parallacticAngle);
 	    
 	    fft2d(pattern.pattern(), false);
-	    	    
-	    //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(pattern.pattern()));
-	    //throw 1;
-	    
 	    
 	    /// Calculate the total convolution function including
 	    /// the w term and the antenna convolution function
@@ -295,7 +291,6 @@ namespace askap {
 	      double peak=0.0;
 	      double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
 	      
-	      /*
 	      for (int iy=0; iy<int(qny); ++iy) {
                double y2=(double(iy)-double(qny)/2)*ccelly;
                y2*=y2;
@@ -305,8 +300,8 @@ namespace askap {
                     double r2=x2+y2;
                     if (r2<1.0) {
                         double phase=w*(1.0-sqrt(1.0-r2));
-                        const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
-                                         *casa::Complex(ccfx(ix)*ccfy(iy));
+			const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
+			  *casa::Complex(ccfx(ix)*ccfy(iy));
                         if(casa::abs(wt)>peak) {
                            peak=casa::abs(wt);
                         }
@@ -316,7 +311,7 @@ namespace askap {
                     }
 		       }
 	      }	
-	      */
+	      /*
 	      for (int iy=0; iy<int(ny); ++iy) {
                double y2=(double(iy)-double(ny)/2)*ccelly;
                y2*=y2;
@@ -337,14 +332,12 @@ namespace askap {
                     }
 		       }
 	      }	
+	      */
 
 	      ASKAPCHECK(maxCF>0.0, "Convolution function is empty");
 	      thisPlane*=casa::Complex(1.0/peak);
 	      maxCF/=peak;
 	      
-	      //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
-	      //throw 1;
-	    
 	      
 	      // At this point, we have the phase screen multiplied by the spheroidal
 	      // function, sampled on larger cellsize (itsOverSample larger) in image
@@ -358,32 +351,70 @@ namespace askap {
 	      thisPlane*=casa::Complex(1.0/(double(nx)*double(ny)));
 	      maxCF/=double(nx)*double(ny);
 	      	      
-	      
+	      //	      throw 1;
+	    
 	      // If the support is not yet set, find it and size the
 	      // convolution function appropriately
-	      if (itsSupport==0) {
+	      if (itsSupport==0) {	
+		//		SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
 		// Find the support by starting from the edge and
-		// working in
-		for (int ix=0; ix<int(nx)/2; ix++) {
-		  /// Check on horizontal axis
-		  if ((casa::abs(thisPlane(ix, ny/2))>itsCutoff*maxCF)) {
-		    itsSupport=abs(ix-int(nx)/2)/itsOverSample;
-		    break;
+		// working in to the peak point
+		int px=0;
+		int py=0;
+		double peak=0.0;
+		for (int iy=0;iy<int(ny);iy++) {
+		  for (int ix=0;ix<int(nx);ix++) {
+		    if(peak<casa::abs(thisPlane(ix,iy))) {
+		      px=ix;
+		      py=iy;
+		      peak=casa::abs(thisPlane(ix,iy));
+		    }
 		  }
-		  ///  Check on diagonal: ix, ix is correct!
-		  if ((casa::abs(thisPlane(ix, ix))>itsCutoff*maxCF)) {
-		    itsSupport=int(1.414*float(abs(ix-int(nx)/2)/itsOverSample));
-		    break;
-		  }
-		  if (nx==ny) {
-		    /// Check on vertical axis
-		    if ((casa::abs(thisPlane(nx/2, ix))>itsCutoff*maxCF)) {
-		      itsSupport=abs(ix-int(ny)/2)/itsOverSample;
+		}
+		//		std::cout << "Peak of convolution function is " << peak << " at " << px << ", " << py << std::endl;
+		if(px<int(nx)/2) {
+		  for (int ix=0; ix<px; ix++) {
+		    /// Check on horizontal axis
+		    //		    std::cout << "H- " << casa::abs(thisPlane(ix, py)) << " " << itsCutoff << " " << peak << std::endl;
+		    if ((casa::abs(thisPlane(ix, py))>itsCutoff*peak)) {
+		      itsSupport=abs(ix-int(nx)/2)/itsOverSample;
 		      break;
 		    }
 		  }
 		}
-		//std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;
+		else {
+		  for (int ix=int(nx)-1; ix>px; ix--) {
+		    /// Check on horizontal axis
+		    //		    std::cout << "H+ " << casa::abs(thisPlane(ix, py)) << " " << itsCutoff << " " << peak << std::endl;
+		    if ((casa::abs(thisPlane(ix, py))>itsCutoff*peak)) {
+		      itsSupport=abs(ix-int(nx)/2)/itsOverSample;
+		      break;
+		    }
+		  }
+		}
+		if(itsSupport==0) {
+		  if(py<int(ny)/2) {
+		    for (int iy=0; iy<py; iy++) {
+		      /// Check on vertical axis
+		      //		      std::cout << "V- " << casa::abs(thisPlane(px, iy)) << " " << itsCutoff << " " << peak << std::endl;
+		      if ((casa::abs(thisPlane(px, iy))>itsCutoff*peak)) {
+			itsSupport=abs(iy-int(ny)/2)/itsOverSample;
+			break;
+		      }
+		    }
+		  }
+		  else {
+		    for (int iy=int(ny)-1; iy>py; iy--) {
+		      /// Check on vertical axis
+		      //		      std::cout << "V+ " << casa::abs(thisPlane(px, iy)) << " " << itsCutoff << " " << peak << std::endl;
+		      if ((casa::abs(thisPlane(px, iy))>itsCutoff*peak)) {
+			itsSupport=abs(iy-int(ny)/2)/itsOverSample;
+			break;
+		      }
+		    }
+		  }
+		}
+		//		std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;
 		ASKAPCHECK(itsSupport>0,
 			   "Unable to determine support of convolution function");
 		ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
