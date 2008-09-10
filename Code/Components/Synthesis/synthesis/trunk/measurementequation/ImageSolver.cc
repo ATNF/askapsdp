@@ -356,28 +356,34 @@ namespace askap
        casa::LatticeFFT::cfft2d(uvOld, casa::True);
        casa::LatticeFFT::cfft2d(uvNew, casa::True);
        
-       double sumwt = 0.;
-       double sumwt2 = 0.;
+       double sumwtOld = 0.;
+       double sumwt2Old = 0.;
+       double sumwtNew = 0.;
+       double sumwt2New = 0.;
        size_t cnt = 0;
        casa::IPosition cursor(paddedShape.nelements(),0);
        for (int nx = 0; nx<paddedShape(0); ++nx) {
             cursor(0) = nx;
             for (int ny = 0; ny<paddedShape(1); ++ny) {
                  cursor(1)=ny;
-                 const double oldVal = casa::abs(uvOld(cursor));
-                 if (oldVal < 1e-6) {
-                     continue;
-                 }
-                 const double wt = casa::abs(uvNew(cursor))/oldVal;
-                 sumwt += wt;
-                 sumwt2 += casa::square(wt);
+                 const double wtOld = casa::abs(uvOld(cursor));
+                 const double wtNew = casa::abs(uvNew(cursor));
+                 sumwtOld += wtOld;
+                 sumwt2Old += casa::square(wtOld);
+                 sumwtNew += wtNew;
+                 sumwt2New += casa::square(wtNew);
                  ++cnt;
             }
        }
-       ASKAPCHECK(sumwt>0, "Sum of weights is zero in ImageSolver::sensitivityLoss");
-       const double loss = sqrt(double(cnt)*sumwt2)/sumwt;
+       ASKAPCHECK(sumwtOld>0, "Sum of old weights is zero in ImageSolver::sensitivityLoss");
+       ASKAPCHECK(sumwtNew>0, "Sum of new weights is zero in ImageSolver::sensitivityLoss");
+       const double effOld = sumwtOld/sqrt(double(cnt)*sumwt2Old);
+       const double effNew = sumwtNew/sqrt(double(cnt)*sumwt2New);
        ASKAPLOG_INFO_STR(logger, cnt<<" uv grid cells were accepted during calculation of the sensitivity loss.");
-       ASKAPLOG_INFO_STR(logger, "The estimate of the sensitivity loss is "<<loss);
+       ASKAPLOG_INFO_STR(logger, "Efficiency before preconditioning is "<<effOld);
+       ASKAPLOG_INFO_STR(logger, "Efficiency after  preconditioning is "<<effNew);
+       double loss = effOld/effNew;
+       ASKAPLOG_INFO_STR(logger, "Estimate of the sensitivity loss is  "<< loss);
        return loss;
     }
 
