@@ -112,11 +112,12 @@ namespace askap
 	//        psf /= float(maxDiag);
 	//        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
-	ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
+	
+	//	ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
 	ASKAPLOG_INFO_STR(logger, "Maximum diagonal element " <<maxDiag<<
 			  ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
-	ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
-        psf /= float(casa::max(psf));
+	//	ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
+	//	psf /= float(casa::max(psf));
         ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
 	uint nAbove = 0;
@@ -142,25 +143,32 @@ namespace askap
             ASKAPLOG_INFO_STR(logger, "Converted truncated weights image to clean mask");
         } // if mask required
         ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
+
     }
 
     // Apply all the preconditioners in the order in which they were created.
     bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
     {
         casa::Array<float> oldPSF(psf.copy());
-	    bool status=false;
-	    for(std::map<int, IImagePreconditioner::ShPtr>::const_iterator pciter=itsPreconditioners.begin(); pciter!=itsPreconditioners.end(); pciter++)
-	    {
-	      status = status | (pciter->second)->doPreconditioning(psf,dirty);
-	    }
-	    // we could write the result to the file or return it as a parameter (but we need an image name
-	    // here to compose a proper parameter name)
-	    if (status) {
-	        sensitivityLoss(oldPSF, psf);
-	    } else {
-	        ASKAPLOG_INFO_STR(logger, "No preconditioning has been done, hence sensitivity loss factor is 1.");
-	    }
-	    return status;
+	bool status=false;
+	for(std::map<int, IImagePreconditioner::ShPtr>::const_iterator pciter=itsPreconditioners.begin(); pciter!=itsPreconditioners.end(); pciter++)
+	  {
+	    status = status | (pciter->second)->doPreconditioning(psf,dirty);
+	  }
+	// we could write the result to the file or return it as a parameter (but we need an image name
+	// here to compose a proper parameter name)
+	if (status) {
+	  sensitivityLoss(oldPSF, psf);
+	} else {
+	  ASKAPLOG_INFO_STR(logger, "No preconditioning has been done, hence sensitivity loss factor is 1.");
+	}
+	ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
+	ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
+	dirty /= float(casa::max(psf));
+	psf /= float(casa::max(psf));
+	ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
+	
+	return status;
     }
 
     // Solve for update simply by scaling the data vector by the diagonal term of the
@@ -357,10 +365,7 @@ namespace askap
        casa::LatticeFFT::cfft2d(uvNew, casa::True);
        
        double sumwtOld = 0.;
-       double sumwt2Old = 0.;
        double sumwtNew = 0.;
-       double sumwt2New = 0.;
-       size_t cnt = 0;
        casa::IPosition cursor(paddedShape.nelements(),0);
        for (int nx = 0; nx<paddedShape(0); ++nx) {
             cursor(0) = nx;
@@ -369,21 +374,15 @@ namespace askap
                  const double wtOld = casa::abs(uvOld(cursor));
                  const double wtNew = casa::abs(uvNew(cursor));
                  sumwtOld += wtOld;
-                 sumwt2Old += casa::square(wtOld);
                  sumwtNew += wtNew;
-                 sumwt2New += casa::square(wtNew);
-                 ++cnt;
             }
        }
        ASKAPCHECK(sumwtOld>0, "Sum of old weights is zero in ImageSolver::sensitivityLoss");
        ASKAPCHECK(sumwtNew>0, "Sum of new weights is zero in ImageSolver::sensitivityLoss");
-       const double effOld = sumwtOld/sqrt(double(cnt)*sumwt2Old);
-       const double effNew = sumwtNew/sqrt(double(cnt)*sumwt2New);
-       ASKAPLOG_INFO_STR(logger, cnt<<" uv grid cells were accepted during calculation of the sensitivity loss.");
-       ASKAPLOG_INFO_STR(logger, "Efficiency before preconditioning is "<<effOld);
-       ASKAPLOG_INFO_STR(logger, "Efficiency after  preconditioning is "<<effNew);
-       double loss = effOld/effNew;
-       ASKAPLOG_INFO_STR(logger, "Estimate of the sensitivity loss is  "<< loss);
+       ASKAPLOG_INFO_STR(logger, "Summed weight before preconditioning is "<<sumwtOld);
+       ASKAPLOG_INFO_STR(logger, "Summed weight after  preconditioning is "<<sumwtNew);
+       double loss = sqrt(sumwtOld/sumwtNew);
+       ASKAPLOG_INFO_STR(logger, "Sensitivity relative to natural weight is  "<< loss);
        return loss;
     }
 

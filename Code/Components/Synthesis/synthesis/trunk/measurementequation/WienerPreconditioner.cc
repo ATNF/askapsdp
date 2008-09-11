@@ -126,8 +126,6 @@ namespace askap
        PaddingUtils::extract(lpsf, scratch);
        float maxPSFAfter=casa::max(psf);
        ASKAPLOG_INFO_STR(logger, "Peak of PSF after Wiener filtering  = " << maxPSFAfter);
-       psf*=maxPSFBefore/maxPSFAfter;
-       ASKAPLOG_INFO_STR(logger, "Renormalizing peak to " << maxPSFBefore);
        
        // Apply the filter to the dirty image
        scratch.set(0.);
@@ -139,8 +137,6 @@ namespace askap
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
        PaddingUtils::extract(ldirty, scratch);
-       //maxPSFBefore*=4.0;
-       dirty*=maxPSFBefore/maxPSFAfter;
 	  
        return true;
       }
