@@ -136,6 +136,9 @@ namespace askap
       /// The name of the file containing the image data.
       std::string itsImage;
 
+      /// Is the image a FITS file or not (if not, probably a casa image...)
+      bool itsIsFITSFile;
+
       /// The Cube of data, which contains the list of Detections.
       duchamp::Cube itsCube;
 

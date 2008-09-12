@@ -9,10 +9,14 @@
 #include <images/Images/PagedImage.h>
 #include <images/Images/ImageOpener.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
+#include <casa/Arrays/Vector.h>
 #include <casa/Arrays/IPosition.h>
 #include <casa/Containers/RecordInterface.h>
 #include <casa/Containers/RecordField.h>
 #include <casa/Containers/RecordFieldId.h>
+#include <casa/Quanta.h>
+#include <casa/Quanta/Unit.h>
+
 #include <string>
 #include <stdlib.h>
 
@@ -22,9 +26,12 @@
 #include <duchamp/duchamp.hh>
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/param.hh>
+#include <duchamp/Cubes/cubes.hh>
 
 using namespace casa;
 using namespace duchamp;
+
+ASKAP_LOGGER(logger, ".analysisutilities");
 
 namespace askap
 {
@@ -45,6 +52,8 @@ namespace askap
       
 
     }
+
+
 
     void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs)
     {
@@ -123,10 +132,116 @@ namespace askap
     
       } // end of if(wcs->spec>=0)
 
+
 	// Save the wcs to the FitsHeader class that is running this function
       head.setWCS(wcs);
       head.setNWCS(1);
       
+    }
+
+    int casaImageToMetadata(ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
+    {
+      IPosition shape=imagePtr->shape();
+      long *dim = (long *)shape.storage();
+
+      // Set the number of good axes for the fitsHeader class.
+      uint naxis=0;
+      for(uint i=0;i<imagePtr->ndim();i++)
+	if(dim[i]>1) naxis++;
+      cube.header().setNumAxes(naxis);
+
+      if(cube.pars().isVerbose()){
+	std::cout << "Dimensions of casa image: ";
+	uint ndim = 0;
+	std::cout << dim[ndim++];
+	while(ndim<imagePtr->ndim()) std::cout << "x" << dim[ndim++];
+	std::cout << std::endl;
+      }
+
+      wcsprm *wcs = casaImageToWCS(imagePtr);
+
+      storeWCStoHeader(cube.header(), cube.pars(), wcs);
+      
+      readBeamInfo(imagePtr, cube.header(), cube.pars());
+
+      cube.header().setFluxUnits( imagePtr->units().getName() );
+
+      if(wcs->spec >= 0) cube.header().fixUnits(cube.pars());
+
+      return duchamp::SUCCESS;
+
+    }
+
+
+    int casaImageToCubeData(ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
+    {
+      IPosition shape=imagePtr->shape();
+      long *dim = (long *)shape.storage();
+
+      cube.initialiseCube(dim);
+
+      if(cube.pars().isVerbose()) std::cout << "Reading data ... "<<std::flush;
+      std::vector<float> array;
+      imagePtr->get().tovector(array);
+      cube.saveArray(array);
+      if(cube.pars().isVerbose()){
+	std::cout << "Done. Data array has dimensions: ";
+	std::cout << cube.getDimX();
+	if(cube.getDimY()>1) std::cout  <<"x"<< cube.getDimY();
+	if(cube.getDimZ()>1) std::cout  <<"x"<< cube.getDimZ();
+	std::cout << "\n";
+      }   
+
+      cube.convertFluxUnits();
+      
+      return duchamp::SUCCESS;
+    }
+
+
+    int casaImageToCube(duchamp::Cube &cube)
+    {
+      LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
+      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+
+      if( casaImageToMetadata(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
+
+      if( casaImageToCubeData(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
+      
+      return duchamp::SUCCESS;
+    }
+
+    int casaImageToMetadata(duchamp::Cube &cube)
+    {
+      LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
+      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+
+      if( casaImageToMetadata(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
+
+      return duchamp::SUCCESS;
+    }
+
+    void readBeamInfo(ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par)
+    {
+
+      casa::Vector<casa::Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
+
+      if(beam.size()==0){
+	std::stringstream errmsg;
+	ASKAPLOG_WARN_STR(logger, "Beam information not present\nUsing parameter beamSize to determine size of beam.\n");
+	head.setBeamSize(par.getBeamSize());
+	par.setFlagUsingBeam(true);
+      }
+      else{
+	double bmaj = beam[0].getValue("deg");
+	double bmin = beam[1].getValue("deg");
+	double bpa = beam[2].getValue("deg");
+	float pixScale = head.getAvPixScale();
+	head.setBeamSize( M_PI * (bmaj/2.) * (bmin/2.) / (M_LN2*pixScale*pixScale) );
+	head.setBmajKeyword(bmaj);
+	head.setBminKeyword(bmin);
+	head.setBpaKeyword(bpa);
+	par.setBeamSize(head.getBeamSize());
+      }
 
     }
 
@@ -142,11 +257,12 @@ namespace askap
     {
 
       IPosition shape=imagePtr->shape();
+      //      std::cout << "shape = " << shape << "\n";
       long *dim = (long *)shape.storage();
       CoordinateSystem coords=imagePtr->coordinates();
       Record hdr;
       if(!coords.toFITSHeader(hdr,shape,true,'c',true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
-      else std::cout << "casaImageToWCS:  read FITS header:\n" << hdr << "\n";
+      //      else std::cout << "casaImageToWCS:  read FITS header:\n" << hdr << "\n";
 
       struct wcsprm *wcs;
       wcs = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
@@ -156,62 +272,101 @@ namespace askap
       if(status)
 	ASKAPTHROW(AskapError,"casaImageToWCS: wcsini failed! Code=" << status << ": " << wcs_errmsg[status]);
 
-      RecordFieldId ctypeID("ctype");
-      Array<String> ctype = hdr.asArrayString(ctypeID);
       Array<String>::iterator it;
-      int i=0;
-      for(it=ctype.begin();it!=ctype.end();it++){
-	String str= *it;
-	strcpy(wcs->ctype[i++],str.c_str());
+      int i;
+
+      if(hdr.isDefined("ctype")){
+	RecordFieldId ctypeID("ctype");
+	Array<String> ctype = hdr.asArrayString(ctypeID);
+	Array<String>::iterator it;
+	i=0;
+	for(it=ctype.begin();it!=ctype.end();it++){
+	  String str= *it;
+	  strcpy(wcs->ctype[i++],str.c_str());
+	}
       }
 
-      RecordFieldId cunitID("cunit");
-      Array<String> cunit = hdr.asArrayString(cunitID);
-      i=0;
-      for(it=cunit.begin();it!=cunit.end();it++) {
-	String str = *it;
-	strcpy(wcs->cunit[i++],str.c_str());
+      if(hdr.isDefined("cunit")){
+	RecordFieldId cunitID("cunit");
+	Array<String> cunit = hdr.asArrayString(cunitID);
+	i=0;
+	for(it=cunit.begin();it!=cunit.end();it++) {
+	  String str = *it;
+	  strcpy(wcs->cunit[i++],str.c_str());
+	}
       }
 
       std::vector<Double> vals;
 
-      RecordFieldId crpixID("crpix");
-      Array<Double>::iterator it2;
-      Array<Double> crpix = hdr.asArrayDouble(crpixID);
-      crpix.tovector(vals);
-      for(uint i=0;i<vals.size();i++) wcs->crpix[i] = double(vals[i]);
+      if(hdr.isDefined("crpix")){
+	RecordFieldId crpixID("crpix");
+	Array<Double>::iterator it2;
+	Array<Double> crpix = hdr.asArrayDouble(crpixID);
+	crpix.tovector(vals);
+	for(uint i=0;i<vals.size();i++) wcs->crpix[i] = double(vals[i]);
+      }
 
-      RecordFieldId crvalID("crval");
-      Array<Double> crval = hdr.asArrayDouble(crvalID);
-      crval.tovector(vals);
-      for(uint i=0;i<vals.size();i++) wcs->crval[i] = double(vals[i]);
+      if(hdr.isDefined("crval")){
+	RecordFieldId crvalID("crval");
+	Array<Double> crval = hdr.asArrayDouble(crvalID);
+	crval.tovector(vals);
+	for(uint i=0;i<vals.size();i++) wcs->crval[i] = double(vals[i]);
+      }
 
-      RecordFieldId cdeltID("cdelt");
-      Array<Double> cdelt = hdr.asArrayDouble(cdeltID);
-      cdelt.tovector(vals);
-      for(uint i=0;i<vals.size();i++) wcs->cdelt[i] = double(vals[i]);
-      
-      RecordFieldId crotaID("crota");
-      Array<Double> crota = hdr.asArrayDouble(crotaID);
-      crota.tovector(vals);
-      for(uint i=0;i<vals.size();i++) {
-	wcs->crota[i] = double(vals[i]);
-	wcs->altlin |= 4;
+      if(hdr.isDefined("cdelt")){
+	RecordFieldId cdeltID("cdelt");
+	Array<Double> cdelt = hdr.asArrayDouble(cdeltID);
+	cdelt.tovector(vals);
+	for(uint i=0;i<vals.size();i++) wcs->cdelt[i] = double(vals[i]);
+      }
+
+      if(hdr.isDefined("crota")){
+	RecordFieldId crotaID("crota");
+	Array<Double> crota = hdr.asArrayDouble(crotaID);
+	crota.tovector(vals);
+	for(uint i=0;i<vals.size();i++) {
+	  wcs->crota[i] = double(vals[i]);
+	  wcs->altlin |= 4;
+	}
       }
 
 
-      RecordFieldId pcID("pc");
-      Array<Double> pc = hdr.asArrayDouble(pcID);
-      pc.tovector(vals);
-      for(uint i=0;i<vals.size();i++) wcs->pc[i] = double(vals[i]);
+      if(hdr.isDefined("pc")){
+	RecordFieldId pcID("pc");
+	Array<Double> pc = hdr.asArrayDouble(pcID);
+	pc.tovector(vals);
+	for(uint i=0;i<vals.size();i++) wcs->pc[i] = double(vals[i]);
+      }
 
-      RecordFieldId lonpoleID("lonpole"); 
-      Double lonpole = hdr.asDouble(lonpoleID);
-      wcs->lonpole = double(lonpole);
+      if(hdr.isDefined("lonpole")){
+	RecordFieldId lonpoleID("lonpole"); 
+	Double lonpole = hdr.asDouble(lonpoleID);
+	wcs->lonpole = double(lonpole);
+      }
+
+      if(hdr.isDefined("equinox")){
+	RecordFieldId equinoxID("equinox"); 
+	Double equinox = hdr.asDouble(equinoxID);
+	wcs->equinox = double(equinox);
+      }
+
+      if(hdr.isDefined("restfreq")){
+	RecordFieldId restfreqID("restfreq"); 
+	Double restfreq = hdr.asDouble(restfreqID);
+	wcs->restfrq = double(restfreq);
+      }
+
+      if(hdr.isDefined("restwave")){
+	RecordFieldId restwaveID("restwave"); 
+	Double restwave = hdr.asDouble(restwaveID);
+	wcs->restwav = double(restwave);
+      }
       
-      RecordFieldId equinoxID("equinox"); 
-      Double equinox = hdr.asDouble(equinoxID);
-      wcs->equinox = double(equinox);
+      if(hdr.isDefined("date-obs")){
+	RecordFieldId dateID("date-obs"); 
+	String date = hdr.asString(dateID);
+	strcpy(wcs->dateobs,date.c_str());
+      }
       
       int stat[NWCSFIX];
       // Applies all necessary corrections to the wcsprm structure

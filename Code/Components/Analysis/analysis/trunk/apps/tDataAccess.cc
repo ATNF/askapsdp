@@ -88,7 +88,12 @@ int main(int argc, char *argv[])
     IPosition shape2 = imagePtr->shape();
     Bool worked2 = coords2.toFITSHeader(hdr2,shape2,true,'c',true);
     std::cout << worked2 << "\n"
-	      << hdr2<< "\n";  std::cout << "Success!\n";
+	      << hdr2<< "\n"
+	      << imagePtr->imageInfo().restoringBeam() << "\n";
+    Vector<Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
+    std::cout << beam[0].getValue("deg") << "\n" << beam[1].getValue("deg") << "\n" << beam[2].getValue("deg") << "\n";
+
+    std::cout << "Success!\n";
 
   }
   catch (askap::AskapError& x)

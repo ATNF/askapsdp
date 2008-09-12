@@ -57,6 +57,7 @@ using namespace LOFAR::TYPES;
 
 #include <parallelanalysis/DuchampParallel.h>
 #include <analysisutilities/AnalysisUtilities.h>
+#include <analysisutilities/CasaImageUtil.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
 
@@ -115,6 +116,7 @@ namespace askap
 
       this->itsCube.pars() = parseParset(parset);
 
+      this->itsIsFITSFile = parset.getBool("isFITS", true);
       this->itsFlagDoFit = parset.getBool("doFit", false);
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
@@ -222,7 +224,16 @@ namespace askap
 	}
 	if(OK){
 	  ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": About to read data from image " << this->itsCube.pars().getFullImageFile());
-	  if(this->itsCube.getCube()==duchamp::FAILURE){
+
+	  int result;
+	  if(this->itsIsFITSFile) result = this->itsCube.getCube();
+	  else{
+	    result = casaImageToCube(this->itsCube);
+	    wcsprt(this->itsCube.header().getWCS());
+	  }
+
+// 	  if(this->itsCube.getCube()==duchamp::FAILURE){
+	  if(result==duchamp::FAILURE){
 	    ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read in data from image " << this->itsImage);
 	    ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage)
 	  }
@@ -251,15 +262,20 @@ namespace askap
       }
       else {
 
-	if(this->itsCube.getMetadata()==duchamp::FAILURE){
+	int result;
+	if(this->itsIsFITSFile) result = this->itsCube.getMetadata();
+	else result = casaImageToMetadata(this->itsCube);
+
+// 	if(this->itsCube.getMetadata()==duchamp::FAILURE){
+	if(result==duchamp::FAILURE){
 	  ASKAPLOG_ERROR_STR(logger, "MASTER: Could not read in metadata from image " << this->itsImage << ".");
 	  ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage)
 	}
 	else {
 	  ASKAPLOG_INFO_STR(logger,  "MASTER: Read metadata from image " << this->itsImage);
 	}
-	this->itsCube.header().defineWCS(this->itsCube.pars().getImageFile(), this->itsCube.pars());
-	this->itsCube.header().readHeaderInfo(this->itsCube.pars().getImageFile(), this->itsCube.pars());
+// 	this->itsCube.header().defineWCS(this->itsCube.pars().getImageFile(), this->itsCube.pars());
+// 	this->itsCube.header().readHeaderInfo(this->itsCube.pars().getImageFile(), this->itsCube.pars());
 	if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
 	this->itsCube.convertFluxUnits();
 
