@@ -101,7 +101,11 @@ bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, cas
   float maxPSFAfter=casa::max(psf);
 
   ASKAPLOG_INFO_STR(logger, "Peak of PSF after Gaussian taper  = " << maxPSFAfter);
+  psf*=maxPSFBefore/maxPSFAfter;
+  ASKAPLOG_INFO_STR(logger, "Normalized to unit peak");
+
   applyTaper(dirty);
+  dirty*=maxPSFBefore/maxPSFAfter;
 
   return true;
 }
