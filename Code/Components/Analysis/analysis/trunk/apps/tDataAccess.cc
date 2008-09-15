@@ -32,7 +32,8 @@
 
 #include <casa/aipstype.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
-#include <images/Images/PagedImage.h>
+#include <images/Images/ImageOpener.h>
+#include <images/Images/FITSImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/Arrays/IPosition.h>
 #include <casa/Containers/RecordInterface.h>
@@ -51,47 +52,38 @@ using namespace casa;
 using namespace askap;
 using namespace askap::analysis;
 
-ASKAP_LOGGER(logger, "cduchamp.log");
+ASKAP_LOGGER(logger, "tDataAccess.log");
 
 int main(int argc, char *argv[])
 {
 
   try {
     std::string imageName;
-    if(argc==1) imageName = "/Users/whi550/PROJECTS/ASKAP/svnASKAPsoft/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
+    if(argc==1) imageName = "$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
     else imageName = argv[1];
 
-
-    //   std::cout << "Loading " << imageName << " into a casa::PagedImage\n";
-    //   PagedImage<Float> image2(imageName);
-    //   std::cout << "Success!\n";
-    //   IPosition shape=image2.shape();
-    //   std::cout << "Shape of image = " << shape << "\n";
-    //   CoordinateSystem coords=image2.coordinates();
-    //    Record hdr;
-    //   Bool worked = coords.toFITSHeader(hdr,shape,true,'c',true);
-    //   std::cout << worked << "\n"
-    // 	    << hdr << "\n";
-
-    std::cout << "Loading " << imageName << " using askap::analysis::casaImageToWCS()\n";
-    wcsprm *wcs = casaImageToWCS(imageName);
-    std::cout << "Success! wcsprt gives:\n";
-    wcsprt(wcs);
-
     std::cout << "Loading " << imageName << " using casa::LatticeBase\n";
+    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
     LatticeBase* lattPtr = ImageOpener::openImage (imageName);
-    //   ASSERT (lattPtr);      // to be sure the image file could be opened
+    ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
     ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
     //   ASSERT (imagePtr);     // to be sure its data type is Float
     CoordinateSystem coords2=imagePtr->coordinates();
     Record hdr2;
     IPosition shape2 = imagePtr->shape();
     Bool worked2 = coords2.toFITSHeader(hdr2,shape2,true,'c',true);
-    std::cout << worked2 << "\n"
-	      << hdr2<< "\n"
-	      << imagePtr->imageInfo().restoringBeam() << "\n";
+    if(worked2) std::cout << "Success!\n";
+
+    std::cout << hdr2<< "\n"
+	      << "beam = " << imagePtr->imageInfo().restoringBeam() << "\n";
     Vector<Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
-    std::cout << beam[0].getValue("deg") << "\n" << beam[1].getValue("deg") << "\n" << beam[2].getValue("deg") << "\n";
+    if(beam.size()>0)
+      std::cout << beam[0].getValue("deg") << "\n" << beam[1].getValue("deg") << "\n" << beam[2].getValue("deg") << "\n";
+
+    std::cout << "Loading " << imageName << " using askap::analysis::casaImageToWCS()\n";
+    wcsprm *wcs = casaImageToWCS(imageName);
+    std::cout << "Success! wcsprt gives:\n";
+    wcsprt(wcs);
 
     std::cout << "Success!\n";
 

@@ -227,10 +227,7 @@ namespace askap
 
 	  int result;
 	  if(this->itsIsFITSFile) result = this->itsCube.getCube();
-	  else{
-	    result = casaImageToCube(this->itsCube);
-	    wcsprt(this->itsCube.header().getWCS());
-	  }
+	  else result = casaImageToCube(this->itsCube);
 
 // 	  if(this->itsCube.getCube()==duchamp::FAILURE){
 	  if(result==duchamp::FAILURE){

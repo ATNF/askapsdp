@@ -1,3 +1,31 @@
+/// @file
+///
+/// Provides methods to access data in casa images and store the information in duchamp classes.
+///
+/// @copyright (c) 2007 CSIRO
+/// Australia Telescope National Facility (ATNF)
+/// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+/// PO Box 76, Epping NSW 1710, Australia
+/// atnf-enquiries@csiro.au
+///
+/// This file is part of the ASKAP software distribution.
+///
+/// The ASKAP software distribution is free software: you can redistribute it
+/// and/or modify it under the terms of the GNU General Public License as
+/// published by the Free Software Foundation; either version 2 of the License,
+/// or (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program; if not, write to the Free Software
+/// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+///
+/// @author Matthew Whiting <matthew.whiting@csiro.au>
+///
 #include <askap_analysis.h>
 
 #include <analysisutilities/CasaImageUtil.h>
@@ -6,7 +34,7 @@
 #include <askap/AskapError.h>
 
 #include <casa/aipstype.h>
-#include <images/Images/PagedImage.h>
+#include <images/Images/FITSImage.h>
 #include <images/Images/ImageOpener.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/Arrays/Vector.h>
@@ -39,24 +67,16 @@ namespace askap
   namespace analysis
   {
 
-    void getCasaImage(std::string imageName)
-    {
-
-      wcsprm *wcs = casaImageToWCS(imageName);
-
-      duchamp::FitsHeader head;
-      duchamp::Param par;
-      
-      storeWCStoHeader(head,par,wcs);
-
-      
-
-    }
-
-
 
     void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs)
     {
+      /// @details Stores a wcsprm struct to a duchamp::FitsHeader,
+      /// setting the parameters such as spectralDescription
+      /// appropriately.
+      /// @param head The duchamp::FitsHeader object containing the header information
+      /// @param par The duchamp::Param object, use for information on the spectral units
+      /// @param wcs The WCS information
+
       if(wcs->spec>=0){ //if there is a spectral axis
 
 	int index = wcs->spec;
@@ -139,8 +159,18 @@ namespace askap
       
     }
 
+    //**************************************************************//
+
     int casaImageToMetadata(ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
     {
+      /// @details Read all relevant metadata from a casa image, and
+      /// store in a duchamp::Cube. The metadata read includes: WCS
+      /// info, beam info, flux units, number of axes (in
+      /// cube.header()). The duchamp::FitsHeader::fixUnits() function
+      /// is also called to make sure the spectral units are OK.
+      /// @param imagePtr The (already opened) image
+      /// @param The Cube
+
       IPosition shape=imagePtr->shape();
       long *dim = (long *)shape.storage();
 
@@ -172,9 +202,18 @@ namespace askap
 
     }
 
+    //**************************************************************//
 
     int casaImageToCubeData(ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
     {
+      /// @details Read the pixel data from a casa image, and store in
+      /// the array of a duchamp:Cube. The flux units are converted if
+      /// required. The cube is initialised using the dimensions
+      /// (imagePtr->shape()) and the flux array is accessed via the
+      /// Array::tovector() function.
+      /// @param imagePtr The (already opened) image
+      /// @param The Cube
+
       IPosition shape=imagePtr->shape();
       long *dim = (long *)shape.storage();
 
@@ -197,9 +236,23 @@ namespace askap
       return duchamp::SUCCESS;
     }
 
+    //**************************************************************//
 
     int casaImageToCube(duchamp::Cube &cube)
     {
+      /// @details Equivalent of duchamp::Cube::getImage(), but for
+      /// accessing casa images. Reads the pixel data and metadata
+      /// (ie. header information). Should also be able to read FITS,
+      /// so could be a more general way of accessing image
+      /// data. Opens the image using the casa::ImageOpener class, and
+      /// calls casaImageToMetadata(ImageInterface<Float> *,
+      /// duchamp::Cube &) and
+      /// casaImageToCubeData(ImageInterface<Float> *, duchamp::Cube
+      /// &) functions.  
+      /// @param cube The duchamp::Cube object in which info is stored
+      /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
+
+      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
       LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
 
@@ -210,8 +263,21 @@ namespace askap
       return duchamp::SUCCESS;
     }
 
+    //**************************************************************//
+
     int casaImageToMetadata(duchamp::Cube &cube)
     {
+      /// @details Equivalent of duchamp::Cube::getMetadata(), but for
+      /// accessing casa images, to read the metadata (ie. header
+      /// information). Should also be able to read FITS, so could be
+      /// a more general way of accessing image data. Opens the image
+      /// using the casa::ImageOpener class, and calls the
+      /// casaImageToMetadata(ImageInterface<Float> *, duchamp::Cube
+      /// &) function.
+      /// @param cube The duchamp::Cube object in which info is stored
+      /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
+
+      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
       LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
 
@@ -220,8 +286,18 @@ namespace askap
       return duchamp::SUCCESS;
     }
 
+    //**************************************************************//
+
     void readBeamInfo(ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par)
     {
+      /// @details Reads the beam information (major axis, minor axis,
+      /// position angle) from an already opened casa image and stores
+      /// in the duchamp::FitsHeader provided.
+      /// @param imagePtr The casa image
+      /// @param head The duchamp::FitsHeader, where the beam information is stored
+      /// @param par Used for default beam size in case there is no
+      /// beam info in the image, or to store the beam size (in
+      /// pixels) if there is.
 
       casa::Vector<casa::Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
 
@@ -245,16 +321,34 @@ namespace askap
 
     }
 
+    //**************************************************************//
+
     wcsprm *casaImageToWCS(std::string imageName)
     {
+      /// @details Read the WCS from an image using casacore methods
+      /// to access it. Calls casaImageToWCS(ImageInterface<Float> *).
+      /// @param imageName The name of the image to access
+      /// @return A wcsprm pointer containing the wcs information of the image.
+
+      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
       LatticeBase* lattPtr = ImageOpener::openImage (imageName);
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
 
       return casaImageToWCS(imagePtr);
     }
 
+    //**************************************************************//
+
     wcsprm *casaImageToWCS(ImageInterface<Float>* imagePtr)
     {
+      /// @details Read the WCS from a casa image. Uses the
+      /// CoordinateSystem::toFITSHeader() function to access the
+      /// header records, then explicitly copies each WCS header to a
+      /// WCSLIB wcsprm struct. Both wcsset() and wcsfix() are called
+      /// on this, and then it is returned.
+      /// @param imageName The already opened image.
+      /// @return A wcsprm pointer containing the wcs information of
+      /// the image.
 
       IPosition shape=imagePtr->shape();
       //      std::cout << "shape = " << shape << "\n";
