@@ -225,17 +225,6 @@ namespace askap {
       double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
       double ccelly=1.0/(double(qny)*itsUVCellSize(1));
 
-      casa::Vector<float> ccfx(qnx);
-      casa::Vector<float> ccfy(qny);
-      for (casa::uInt ix=0; ix<qnx; ++ix) {
-           const float nux=std::abs(float(ix)-float(qnx/2))/float(qnx/2);
-           ccfx(ix)=grdsf(nux); // /float(qnx);
-      }
-      for (casa::uInt iy=0; iy<qny; ++iy) {
-           const float nuy=std::abs(float(iy)-float(qny/2))/float(qny/2);
-           ccfy(iy)=grdsf(nuy); // /float(qny);
-      }
-      /*
       casa::Vector<float> ccfx(nx);
       casa::Vector<float> ccfy(ny);
       for (casa::uInt ix=0; ix<nx; ++ix) {
@@ -246,11 +235,12 @@ namespace askap {
            const float nuy=std::abs(float(iy)-float(ny/2))/float(ny/2);
            ccfy(iy)=grdsf(nuy); // /float(qny);
       }
-      */
       
-      // this is just a buffer in the uv-space, oversampling has already been
-      // taken into account by using qnx,qny instead of nx and ny
-      //UVPattern pattern(qnx,qny, itsUVCellSize(0),itsUVCellSize(1),1);
+      // this is just a buffer in the uv-space, oversampling is
+      // taken into account inside the UVPattern object (in the past we handled
+      // oversampling explicitly by using qnx and qny instead of nx and ny and
+      // passing 1 instead of itsOverSample, but it caused scaling problems for
+      // offset feeds).
       UVPattern pattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
       
       int nDone=0;
@@ -276,6 +266,7 @@ namespace askap {
 					itsSlopes(1, feed, itsCurrentField), parallacticAngle);
 	    
 	    fft2d(pattern.pattern(), false);
+	    	    
 	    
 	    /// Calculate the total convolution function including
 	    /// the w term and the antenna convolution function
@@ -290,7 +281,7 @@ namespace askap {
 	      double maxCF=0.0;
 	      double peak=0.0;
 	      double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
-	      
+	      /*
 	      for (int iy=0; iy<int(qny); ++iy) {
                double y2=(double(iy)-double(qny)/2)*ccelly;
                y2*=y2;
@@ -300,8 +291,8 @@ namespace askap {
                     double r2=x2+y2;
                     if (r2<1.0) {
                         double phase=w*(1.0-sqrt(1.0-r2));
-			const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
-			  *casa::Complex(ccfx(ix)*ccfy(iy));
+                        const casa::Complex patternVal = pattern(ix-qnx/2+nx/2, iy-qny/2+ny/2);
+			            const casa::Complex wt=patternVal*conj(patternVal)*casa::Complex(ccfx(ix)*ccfy(iy));
                         if(casa::abs(wt)>peak) {
                            peak=casa::abs(wt);
                         }
@@ -311,7 +302,8 @@ namespace askap {
                     }
 		       }
 	      }	
-	      /*
+	      */
+	      
 	      for (int iy=0; iy<int(ny); ++iy) {
                double y2=(double(iy)-double(ny)/2)*ccelly;
                y2*=y2;
@@ -322,7 +314,7 @@ namespace askap {
                     if (r2<1.0) {
                         const double phase=w*(1.0-sqrt(1.0-r2));
                         const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
-                                         *casa::Complex(ccfx(ix)*ccfy(iy));
+                                       *casa::Complex(ccfx(ix)*ccfy(iy));
                         if(casa::abs(wt)>peak) {
                            peak=casa::abs(wt);
                         }
@@ -332,7 +324,8 @@ namespace askap {
                     }
 		       }
 	      }	
-	      */
+	      
+	      	      
 
 	      ASKAPCHECK(maxCF>0.0, "Convolution function is empty");
 	      thisPlane*=casa::Complex(1.0/peak);
@@ -461,7 +454,8 @@ namespace askap {
 			= rescale*thisPlane(ix*itsOverSample+fracu+nx/2,
 					    iy*itsOverSample+fracv+ny/2);
 		    } // for ix
-		  } // for iy 		  
+		  } // for iy
+		   		  
 		} // for fracv
 	      } // for fracu
 	    } // w loop
