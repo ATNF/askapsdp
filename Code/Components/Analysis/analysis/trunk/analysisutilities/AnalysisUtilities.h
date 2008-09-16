@@ -29,6 +29,8 @@
 #ifndef ASKAP_ANALYSIS_ANALYSISUTILS_H_
 #define ASKAP_ANALYSIS_ANALYSISUTILS_H_
 
+#include <analysisutilities/SubimageDef.h>
+
 #include <string>
 #include <vector>
 
@@ -41,54 +43,6 @@ namespace askap
 {
   namespace analysis
   {
-
-    /// @ingroup analysisutilities
-    /// @brief A class to encapsulate a subimage definition
-    /// @details This class holds information to define the way the
-    /// full image should be subdivided amongst workers. It uses the
-    /// definitions from the parameter set and the image WCS to define
-    /// duchamp::Section objects for each desired subimage. 
-    class SubimageDef
-    {
-    public:
-      /// Default constructor
-      SubimageDef(){itsNAxis=0; itsNSubX=itsNSubY=itsNSubZ=1;};
-      /// Copy function
-      SubimageDef& operator= (const SubimageDef& s);
-      /// Default destructor
-      virtual ~SubimageDef(){};
-
-      /// @brief Set up the definition using a ParameterSet
-      void define(const LOFAR::ACC::APS::ParameterSet& parset);
-
-      /// @brief Return a subsection specification for a given worker
-      duchamp::Section section(int workerNum);
-
-      /// @brief Return the number of subimages.
-      int numSubs(){return itsNSubX*itsNSubY*itsNSubZ;};
-
-    protected:
-      /// Number of subdivisions in the x-direction
-      int itsNSubX;
-      /// Number of subdivisions in the y-direction
-      int itsNSubY;
-      /// Number of subdivisions in the z-direction
-      int itsNSubZ;
-      /// Size of the overlap between subimages in the x-direction
-      int itsOverlapX;
-      /// Size of the overlap between subimages in the y-direction
-      int itsOverlapY;
-      /// Size of the overlap between subimages in the z-direction
-      int itsOverlapZ;
-      /// The array of NSub(X,Y,Z) values, ordered in the appropriate sense according to the WCS
-      int *itsNSub;
-      /// The array of Overlap(X,Y,Z) values, ordered in the appropriate sense according to the WCS
-      int *itsOverlap;
-      /// The number of axes (the size of the itsNSub and itsOverlap arrays)
-      int itsNAxis;
-      /// The name of the image
-      std::string itsImageName;
-    };
 
     /// @brief Return an array of axis dimensions for a FITS file.
     /// @ingroup analysisutilities

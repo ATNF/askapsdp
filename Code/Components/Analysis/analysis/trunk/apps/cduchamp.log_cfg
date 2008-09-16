@@ -12,7 +12,7 @@ log4j.appender.STDOUT.layout.ConversionPattern=%-5p %c{2} (%X{mpirank}) [%d] - %
 log4j.appender.R=org.apache.log4j.RollingFileAppender
 log4j.appender.R.File=example.log
 log4j.appender.R.layout=org.apache.log4j.PatternLayout
-log4j.appender.R.layout.ConversionPattern=%-5p %x [%d] - %m%n
+log4j.appender.R.layout.ConversionPattern=%-5p %c{2} (%X{mpirank}) [%d] - %m%n
 log4j.appender.R.MaxFileSize=100KB
 log4j.appender.R.MaxBackupIndex=1
 

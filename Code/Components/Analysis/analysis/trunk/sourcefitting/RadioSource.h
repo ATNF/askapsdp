@@ -110,8 +110,9 @@ namespace askap
 	///@{
 	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 		      casa::Vector<casa::Double> sigma);
-	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList);
+/* 	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList); */
 /* 	bool fitGauss(float *fluxArray, long *dimArray); */
+	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
 	bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter);
 	bool fitGaussNew(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 			 casa::Vector<casa::Double> sigma, FittingParameters &baseFitter);
@@ -217,6 +218,10 @@ namespace askap
 	/// @brief Return a reference to the set of Gaussian fits.
 	std::vector<casa::Gaussian2D<Double> >& fitset(){
 	  std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;};
+
+	/// @brief Return a reference to the fitting parameters
+	FittingParameters &fitparams(){
+	  FittingParameters& rfitpars = itsFitParams; return rfitpars;};
 
       protected:
 

@@ -532,7 +532,8 @@ namespace askap
 
       //**************************************************************//
 
-      bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList)
+//       bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList)
+      bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter)
       {
 
 	/// @details First defines the pixel array with the flux
@@ -582,7 +583,8 @@ namespace askap
 	  return !failure;
 	}
 
-	return fitGauss(pos,f,sigma);
+// 	return fitGauss(pos,f,sigma);
+	return fitGaussNew(pos,f,sigma,baseFitter);
 
       }
 

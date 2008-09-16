@@ -155,7 +155,7 @@ namespace askap
 	int32 l;
 	bool b;
 	float f;
-	Double d;
+// 	Double d;
 	std::string s;
 	int32 size;
 	blob >> size;
@@ -211,13 +211,20 @@ namespace askap
 	blob >> size;
 	src.itsGaussFitSet.clear();
 	for(i=0;i<size;i++){
-	  casa::Gaussian2D<Double> fit;
-	  blob >> d; fit.setHeight(d);
-	  blob >> d; fit.setXcenter(d);
-	  blob >> d; fit.setYcenter(d);
-	  blob >> d; fit.setMajorAxis(d);
-	  blob >> d; fit.setAxialRatio(d);
-	  blob >> d; fit.setPA(d);
+	  Double d1,d2,d3,d4,d5,d6;
+	  blob >> d1;
+	  blob >> d2;
+	  blob >> d3;
+	  blob >> d4;
+	  blob >> d5;
+	  blob >> d6;
+	  casa::Gaussian2D<Double> fit(d1,d2,d3,d4,d5,d6);
+// 	  blob >> d; fit.setHeight(d);
+// 	  blob >> d; fit.setXcenter(d);
+// 	  blob >> d; fit.setYcenter(d);
+// 	  blob >> d; fit.setMajorAxis(d);
+// 	  blob >> d; fit.setAxialRatio(d);
+// 	  blob >> d; fit.setPA(d);
 	  src.itsGaussFitSet.push_back(fit);
 	}
 

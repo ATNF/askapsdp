@@ -141,7 +141,9 @@ namespace askap
 	this->itsCube.pars().setImageFile(this->itsImage);
 // 		splitImage(parset);
 
-	// get the list of subsections so that all nodes can access it.
+	// set the subsection string so that the worker knows what the offsets are.
+	// don't set the flagSubsection in the duchamp::Param, as we aren't actually reading a subsection, we
+	// are reading the entire image.
 	if(isParallel()){
  	  this->itsCube.pars().setSubsection( getSection(itsRank-1,parset).getSection() );
 	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank-1<<" is using subsection " << this->itsCube.pars().getSubsection());
@@ -518,6 +520,8 @@ namespace askap
 	      // And now set offsets to zero as we are in the master cube
 	      src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
 
+	      src.fitparams() = this->itsFitter;
+
 	      this->itsSourceList.push_back(src);
 	      
 	      if( src.isAtEdge() ){
@@ -596,10 +600,11 @@ namespace askap
 
 	  for(src=edgeSources.begin();src<edgeSources.end();src++) this->itsCube.addObject(*src);
 	  
+	  ASKAPLOG_INFO_STR(logger, "MASTER: num edge sources in cube = "<<this->itsCube.getNumObj());
 	  this->itsCube.pars().setFlagGrowth(false);
 	  this->itsCube.ObjectMerger();
 	  this->calcObjectParams();
-	  ASKAPLOG_INFO_STR(logger, "MASTER: num sources in cube = "<<this->itsCube.getNumObj());
+	  ASKAPLOG_INFO_STR(logger, "MASTER: num edge sources in cube = "<<this->itsCube.getNumObj());
 
 	  for(int i=0;i<this->itsCube.getNumObj();i++){
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
@@ -609,7 +614,7 @@ namespace askap
 	    src.setHeader( head );
  	    src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
 
-	    if(this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList);
+	    if(this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList, this->itsFitter);
 	    
 	    this->itsSourceList.push_back(src);
 	  }
