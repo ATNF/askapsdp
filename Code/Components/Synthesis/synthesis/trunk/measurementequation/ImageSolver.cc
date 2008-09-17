@@ -360,9 +360,8 @@ namespace askap
        double sumwtNew = 0.;
        double sumwtOld = 0.;
        double sumRatio2 = 0.;
-       const int pnx=psfOld.shape()(0);
-       const int pny=psfOld.shape()(1);
-       const double wtMin=casa::max(psfOld);
+
+       const double wtMin=casa::max(psfOld)/1e3;
        ASKAPLOG_INFO_STR(logger, "Minimum weight used in evaluating sensitivity = "<< wtMin);
        size_t cnt = 0;
        casa::IPosition cursor(paddedShape.nelements(),0);
