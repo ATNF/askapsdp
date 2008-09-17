@@ -32,6 +32,10 @@
 #include <mwcommon/MWError.h>
 
 #ifdef HAVE_MPI
+//# BG/P's mpi.h defines these macros and does not allow them to exist.
+#undef SEEK_SET
+#undef SEEK_CUR
+#undef SEEK_END
 # include <mpi.h>
 #endif
 
