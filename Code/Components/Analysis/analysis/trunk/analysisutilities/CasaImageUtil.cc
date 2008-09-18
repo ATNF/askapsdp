@@ -172,7 +172,8 @@ namespace askap
       /// @param The Cube
 
       IPosition shape=imagePtr->shape();
-      long *dim = (long *)shape.storage();
+      long *dim = new long[shape.size()];
+      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
 
       // Set the number of good axes for the fitsHeader class.
       uint naxis=0;
@@ -198,6 +199,8 @@ namespace askap
 
       if(wcs->spec >= 0) cube.header().fixUnits(cube.pars());
 
+      delete [] dim;
+
       return duchamp::SUCCESS;
 
     }
@@ -215,7 +218,8 @@ namespace askap
       /// @param The Cube
 
       IPosition shape=imagePtr->shape();
-      long *dim = (long *)shape.storage();
+      long *dim = new long[shape.size()];
+      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
 
       cube.initialiseCube(dim);
 
@@ -233,6 +237,8 @@ namespace askap
 
       cube.convertFluxUnits();
       
+      delete [] dim;
+
       return duchamp::SUCCESS;
     }
 
@@ -351,8 +357,8 @@ namespace askap
       /// the image.
 
       IPosition shape=imagePtr->shape();
-      //      std::cout << "shape = " << shape << "\n";
-      long *dim = (long *)shape.storage();
+      long *dim = new long[shape.size()];
+      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
       CoordinateSystem coords=imagePtr->coordinates();
       Record hdr;
       if(!coords.toFITSHeader(hdr,shape,true,'c',true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");

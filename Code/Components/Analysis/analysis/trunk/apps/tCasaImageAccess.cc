@@ -46,6 +46,8 @@
 #include <string>
 #include <iostream>
 
+#include <duchamp/Cubes/cubes.hh>
+
 #include <wcslib/wcs.h>
 
 using namespace casa;
