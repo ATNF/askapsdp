@@ -52,7 +52,7 @@ using namespace casa;
 using namespace askap;
 using namespace askap::analysis;
 
-ASKAP_LOGGER(logger, "tDataAccess.log");
+ASKAP_LOGGER(logger, "tCasaImageAccess.log");
 
 int main(int argc, char *argv[])
 {
@@ -85,6 +85,15 @@ int main(int argc, char *argv[])
     std::cout << "Success! wcsprt gives:\n";
     wcsprt(wcs);
 
+    std::cout << "Success!\n";
+
+    std::cout << "Loading a duchamp::Cube's metadata with " << imageName <<"\n";
+    duchamp::Cube cube;
+    casaImageToMetadata(imagePtr,cube);
+    std::cout << "Success!\n";
+
+    std::cout << "Loading a duchamp::Cube's data with " << imageName <<"\n";
+    casaImageToCubeData(imagePtr,cube);
     std::cout << "Success!\n";
 
   }
