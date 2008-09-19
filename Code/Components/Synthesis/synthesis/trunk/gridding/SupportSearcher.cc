@@ -93,7 +93,7 @@ casa::IPosition SupportSearcher::trc() const
 /// @return support size
 casa::uInt SupportSearcher::support() const
 { 
-  const casa::IPosition length = trc()-blc();
+  const casa::IPosition length = (trc()-blc());
   ASKAPDEBUGASSERT(length.nelements()==2);
   return casa::max(length(0),length(1));
 }
@@ -109,7 +109,7 @@ casa::uInt SupportSearcher::symmetricalSupport(const casa::IPosition &shape) con
   const casa::IPosition length2 = centre-blc();
   const int xMax = casa::max(abs(length1(0)),abs(length2(0)));
   const int yMax = casa::max(abs(length1(1)),abs(length2(1)));
-  return casa::uInt(casa::max(xMax,yMax));
+  return casa::uInt(casa::max(xMax,yMax)*2);
 }
 
 /// @brief search assuming the peak is in the centre
@@ -123,8 +123,9 @@ casa::uInt SupportSearcher::symmetricalSupport(const casa::IPosition &shape) con
 void SupportSearcher::searchCentered(casa::Matrix<casa::Complex> &in, double value)
 {
   itsPeakVal = value;
-  itsPeakPos = in.shape();
+  itsPeakPos.resize(in.shape().nelements(), casa::False);
   ASKAPDEBUGASSERT(itsPeakPos.nelements() == 2);
+  itsPeakPos = in.shape();
   itsPeakPos(0)/=2;
   itsPeakPos(1)/=2;
   doSupportSearch(in);  
@@ -172,8 +173,10 @@ void SupportSearcher::doSupportSearch(casa::Matrix<casa::Complex> &in)
 {
   ASKAPDEBUGASSERT(in.shape().nelements() == 2);
   ASKAPDEBUGASSERT(itsPeakPos.nelements() == 2);
-  itsBLC = casa::IPosition(2,-1);
-  itsTRC = casa::IPosition(2,-1);
+  itsBLC.resize(2,casa::False);
+  itsTRC.resize(2,casa::False);
+  itsBLC = -1;
+  itsTRC = -1;
   const double absCutoff = itsCutoff*itsPeakVal;
   for (int ix = 0; ix<itsPeakPos(0); ++ix) {
        if (casa::abs(in(ix, itsPeakPos(1))) > absCutoff) {

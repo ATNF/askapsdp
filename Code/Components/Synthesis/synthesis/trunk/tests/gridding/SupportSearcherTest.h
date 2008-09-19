@@ -57,8 +57,6 @@ public:
                 itsBuffer(row,col) = casa::Complex(5.*exp(-(x*x+y*y)/2),0.);
            }
       }
-      //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(itsBuffer));
-	  //throw 1;      
    }
    
    void testPeakFind() {
@@ -71,8 +69,21 @@ public:
    }
    
    void testSupportSearch() {
-      SupportSearcher ss(1e-2);
-      
+      const double cutoff = 1e-2;
+      SupportSearcher ss(cutoff);
+      ss.search(itsBuffer);
+      const double expectedHalfWidth = 5.*sqrt(-2.*log(cutoff));
+      CPPUNIT_ASSERT(abs(double(ss.support())-2.*expectedHalfWidth)<1.);
+      CPPUNIT_ASSERT(abs(double(ss.symmetricalSupport(itsBuffer.shape()))-
+                2.*(expectedHalfWidth+double(casa::max(itsXOffset,itsYOffset))))<1.);
+      CPPUNIT_ASSERT(abs(double(ss.blc()(0))-(double(itsBuffer.shape()(0))/2+
+            itsXOffset-expectedHalfWidth))<1.);
+      CPPUNIT_ASSERT(abs(double(ss.blc()(1))-(double(itsBuffer.shape()(1))/2+
+            itsYOffset-expectedHalfWidth))<1.);
+      CPPUNIT_ASSERT(abs(double(ss.trc()(0))-(double(itsBuffer.shape()(0))/2+
+            itsXOffset+expectedHalfWidth))<1.);
+      CPPUNIT_ASSERT(abs(double(ss.trc()(1))-(double(itsBuffer.shape()(1))/2+
+            itsYOffset+expectedHalfWidth))<1.);
    }
    
 private:
