@@ -24,11 +24,13 @@
 #include <cppunit/ui/text/TestRunner.h>
 
 #include <TableVisGridderTest.h>
+#include <SupportSearcherTest.h>
 
 int main( int argc, char **argv)
 {
   CppUnit::TextUi::TestRunner runner;
   runner.addTest( askap::synthesis::TableVisGridderTest::suite());
+  runner.addTest( askap::synthesis::SupportSearcherTest::suite());
   runner.run();
   return 0;
 }

@@ -281,6 +281,7 @@ namespace askap {
 	      double maxCF=0.0;
 	      double peak=0.0;
 	      double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
+	      //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
 	      /*
 	      for (int iy=0; iy<int(qny); ++iy) {
                double y2=(double(iy)-double(qny)/2)*ccelly;
@@ -343,9 +344,7 @@ namespace askap {
 	      // Now correct for normalization of FFT
 	      thisPlane*=casa::Complex(1.0/(double(nx)*double(ny)));
 	      maxCF/=double(nx)*double(ny);
-	      	      
-	      //	      throw 1;
-	    
+	      	      	    
 	      // If the support is not yet set, find it and size the
 	      // convolution function appropriately
 	      if (itsSupport==0) {	
@@ -412,6 +411,10 @@ namespace askap {
 			   "Unable to determine support of convolution function");
 		ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
 			   "Overflowing convolution function - increase maxSupport or decrease overSample")
+        
+        //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
+	    //throw 1;
+        	   
 		  if (itsLimitSupport > 0  &&  itsSupport > itsLimitSupport) {
 		    ASKAPLOG_INFO_STR(logger, "Convolution function support = "
 				      << itsSupport << " pixels exceeds upper support limit; "

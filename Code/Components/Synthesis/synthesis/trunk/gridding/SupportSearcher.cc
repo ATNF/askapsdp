@@ -136,8 +136,9 @@ void SupportSearcher::searchCentered(casa::Matrix<casa::Complex> &in, double val
 /// separately.
 /// @param[in] in input 2D matrix with an image
 void SupportSearcher::findPeak(casa::Matrix<casa::Complex> &in)
-{
-  itsPeakPos = casa::IPosition(in.shape().nelements(),0);
+{ 
+  itsPeakPos.resize(in.shape().nelements(),casa::False);
+  itsPeakPos = 0;
   itsPeakVal = -1.;
   for (int iy=0;iy<int(in.ncolumn());++iy) {
        for (int ix=0;ix<int(in.nrow());++ix) {
