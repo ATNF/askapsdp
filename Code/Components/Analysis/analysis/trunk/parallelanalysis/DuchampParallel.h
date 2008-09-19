@@ -76,6 +76,7 @@ namespace askap
 
       /// @brief Read in the data from the image file (on the workers)
       void readData();
+      void readDataOld();
       
       /// @brief Condense the lists (on the master)
       void condenseLists();

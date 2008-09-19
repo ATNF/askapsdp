@@ -514,25 +514,8 @@ namespace askap
 
       }
 
-//       /// @brief A simple way of printing fitted parameters
-//       void logparameters(Matrix<Double> &m)
-//       {
-// 	uInt g,p;
-// 	for (g = 0; g < m.nrow(); g++)
-// 	  {
-// 	    std::stringstream outmsg;
-// 	    outmsg.precision(3);
-// 	    outmsg.setf(ios::fixed);
-// 	    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g,p) << ", ";
-// 	    outmsg << m(g,p);
-// 	    ASKAPLOG_INFO_STR(logger, outmsg.str());
-// 	  }
-
-//       }
-
       //**************************************************************//
 
-//       bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList)
       bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter)
       {
 
@@ -583,15 +566,13 @@ namespace askap
 	  return !failure;
 	}
 
-// 	return fitGauss(pos,f,sigma);
-	return fitGaussNew(pos,f,sigma,baseFitter);
+	return fitGauss(pos,f,sigma,baseFitter);
 
       }
 
       //**************************************************************//
 
       bool RadioSource::fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter)
-//       bool RadioSource::fitGauss(float *fluxArray, long *dimArray)
       {
 
 	/// @details First defines the pixel array with the flux
@@ -630,15 +611,14 @@ namespace askap
 	  }
 	}
 
-// 	return fitGauss(pos,f,sigma);
-	return fitGaussNew(pos,f,sigma,baseFitter);
+	return fitGauss(pos,f,sigma,baseFitter);
 
       }
 
       //**************************************************************//
       
-      bool RadioSource::fitGaussNew(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-				    casa::Vector<casa::Double> sigma, FittingParameters &baseFitter)
+      bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+				 casa::Vector<casa::Double> sigma, FittingParameters &baseFitter)
       {
 
 	if(this->getSpatialSize() < baseFitter.minFitSize()) return false;
@@ -710,262 +690,6 @@ namespace askap
 
 	return fitIsGood;
 
-
-      }
-
-      //**************************************************************//
-	
-      bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-				 casa::Vector<casa::Double> sigma)
-      {
-	/// @details
-	///
-	/// This function fits a number of Gaussians to the
-	/// Detection. All pixels within a box encompassing the
-	/// detection plus the border given by detectionBorder are
-	/// included in the fit.
- 
-	const int maxNumGauss = 4;
-
-	if(this->getSpatialSize() < defaultMinFitSize) return false;
-
-	ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
-
-	ASKAPLOG_INFO_STR(logger, "detect thresh = " << this->itsDetectionThreshold
-			  << "  peak = " << this->peakFlux 
-			  << "  noise level = " << this->itsNoiseLevel);
-
-	float boxFlux = 0.;
-	for(int i=0;i<this->boxSize();i++) boxFlux += f(i);
-
-	Double maxRMS = 5.;
-	casa::Matrix<casa::Double> estimate;
-	casa::Matrix<casa::Double> retryfactors;
-	casa::Matrix<casa::Double> baseRetryfactors;
-	casa::Matrix<casa::Double> solution[maxNumGauss];
-
-	baseRetryfactors.resize(1,6);
-	baseRetryfactors(0,0) = 1.1; 
-	baseRetryfactors(0,1) = 0.1; 
-	baseRetryfactors(0,2) = 0.1;
-	baseRetryfactors(0,3) = 1.1; 
-	baseRetryfactors(0,4) = 1.01;
-	baseRetryfactors(0,5) = M_PI/180.;
-
-	float chisq[maxNumGauss];
-	FitGaussian<casa::Double> fitgauss[maxNumGauss];
-	bool fitIsGood = false;
-	int bestFit = 0;
-	float bestRChisq = 9999.;
-
-	std::vector<SubComponent> cmpntList = this->getSubComponentList(f);
-	ASKAPLOG_INFO_STR(logger, "Found " << cmpntList.size() << " subcomponents");
-	for(uInt i=0;i<cmpntList.size();i++)
-	  ASKAPLOG_INFO_STR(logger, "SubComponent: " << cmpntList[i]);
-
-	for(int ctr=0;ctr<maxNumGauss;ctr++){
-
-	  unsigned int numGauss = ctr + 1;
-	  ASKAPLOG_INFO_STR(logger, "Attempting to fit " << numGauss << " Gaussians."); 
-	  fitgauss[ctr].setDimensions(2);
-	  fitgauss[ctr].setNumGaussians(numGauss);
-
-	  estimate.resize(numGauss,6);
-
-	  uInt nCmpnt = cmpntList.size();
-	  for(uInt g=0;g<numGauss;g++){
-	    uInt cmpnt = g % nCmpnt;
-	    estimate(g,0) = cmpntList[cmpnt].peak();
-	    estimate(g,1) = cmpntList[cmpnt].x();
-	    estimate(g,2) = cmpntList[cmpnt].y();
-	    if(this->itsHeader.getBmajKeyword()>0 && 
-	       (this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale() > cmpntList[cmpnt].maj())){
-	      estimate(g,3)=this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale();
-	      estimate(g,4)=this->itsHeader.getBminKeyword()/this->itsHeader.getBmajKeyword();
-	      estimate(g,5)=this->itsHeader.getBpaKeyword() * M_PI / 180.;
-	    }
-	    else{
-	      estimate(g,3) = cmpntList[cmpnt].maj();
-	      estimate(g,4) = cmpntList[cmpnt].min()/cmpntList[cmpnt].maj();
-	      estimate(g,5) = cmpntList[cmpnt].pa();
-	    }
-	  }
-
-	  fitgauss[ctr].setFirstEstimate(estimate);
-	  ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
-	  logparameters(estimate);
-
-	  retryfactors.resize(numGauss,6);
-	  for(unsigned int g=0;g<numGauss;g++)
-	    for(unsigned int i=0;i<6;i++)
-	      retryfactors(g,i) = baseRetryfactors(0,i);
-	  fitgauss[ctr].setRetryFactors(retryfactors);
-
-// 	  // mask the beam parameters
-// 	  //	  std::cout << "Mask values:\n";
-// 	  for(unsigned int g=0;g<numGauss;g++){
-// 	    fitgauss[ctr].mask(g,3) = false;
-// 	    fitgauss[ctr].mask(g,4) = false;
-// 	    fitgauss[ctr].mask(g,5) = false;
-// 	    // 	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i)=false;
-// 	    //	    for(int i=0;i<6;i++) fitgauss[ctr].mask(g,i) = !fitgauss[ctr].mask(g,i);
-// 	    //	    for(int i=0;i<6;i++) std::cout << fitgauss[ctr].mask(g,i);
-// 	    //	    std::cout << "\n";
-// 	  }	      
-    
-	  solution[ctr].resize();
-	  bool thisFitGood = true;
-	  for(int fitloop=0;fitloop<3;fitloop++){
-	    try {
-	      solution[ctr] = fitgauss[ctr].fit(pos, f, sigma, maxRMS);
-	    } catch (AipsError err) {
-	      std::string message = err.getMesg().chars();
-	      message = "FIT ERROR: " + message;
-	      ASKAPLOG_ERROR(logger, message);
-	      thisFitGood = false;
-	    }
-	    for(unsigned int i=0;i<numGauss;i++){
-	      solution[ctr](i,5) = remainder(solution[ctr](i,5), 2.*M_PI);
-	    }
-	    ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop+1
-			      <<": chisq=" << fitgauss[ctr].chisquared()
-			      <<": Parameters are:"); 
-	    logparameters(solution[ctr]);
-	    if(!fitgauss[ctr].converged()) fitloop=9999;
-	    else fitgauss[ctr].setFirstEstimate(solution[ctr]);
-	  }
-
-	  for(unsigned int i=0;i<numGauss;i++){
-	    solution[ctr](i,5) = remainder(solution[ctr](i,5), 2.*M_PI);
-	  }
-
-	  chisq[ctr] = fitgauss[ctr].chisquared();
-	  int ndof = this->boxSize() - numGauss*6 - 1;
-	  float rchisq = chisq[ctr] / float(ndof);
-	
-	  cout.precision(6);
-	  if(fitgauss[ctr].converged()){
-	    ASKAPLOG_INFO_STR(logger, "Fit converged. Solution Parameters follow: "); 
-	    logparameters(solution[ctr]);
-	  }
-	  else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
-
-	  std::stringstream outmsg;
-	  outmsg << "Num Gaussians = " << numGauss;
-	  if( fitgauss[ctr].converged()) outmsg << ", Converged";
-	  else outmsg << ", Failed";
-	  outmsg << ", chisq = " << chisq[ctr]
-		 << ", chisq/nu =  "  << rchisq
-		 << ", dof = " << ndof
-		 << ", RMS = " << fitgauss[ctr].RMS();
-	  ASKAPLOG_INFO_STR(logger, outmsg.str());
-
-	  /// Acceptance criteria for a fit are as follows (after the
-	  /// FIRST survey criteria, White et al 1997, ApJ 475, 479):
-	  /// @li Fit must have converged
-	  /// @li Fit must be acceptable according to its chisq value
-	  /// @li The centre of each component must be inside the box
-	  /// @li The separation between any pair of components must be more than 2 pixels.
-	  /// @li The flux of each component must be positive and more than half the detection threshold
-	  /// @li No component's peak flux can exceed twice the highest pixel in the box
-	  /// @li The sum of the integrated fluxes of all components
-	  /// must not be more than twice the total flux in the box.
-
-	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux, passPeak;
-
-	  passConv  = fitgauss[ctr].converged();
-	  passConv  = passConv && (chisq[ctr]>0.);
-
-	  passChisq = false;
-	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
-
-	  if(passConv){
-
-	    if(ndof<343)
-	      passChisq = chisqProb(ndof,chisq[ctr]) > 0.01; // Test acceptance at 99% level
-	    else 
-	      passChisq = (rchisq < 1.2);
-	    
-	    float intFlux = 0.;
-	    for(unsigned int i=0;i<numGauss;i++){
-	      passXLoc = passXLoc && (solution[ctr](i,1)>this->boxXmin()) && 
-		(solution[ctr](i,1)<this->boxXmax());
-	      passYLoc = passYLoc && (solution[ctr](i,2)>this->boxYmin()) && 
-		(solution[ctr](i,2)<this->boxYmax());
-	      passFlux = passFlux && (solution[ctr](i,0) > 0.);
-	      passFlux = passFlux && (solution[ctr](i,0) > 0.5*this->itsDetectionThreshold);
- 	      passPeak = passPeak && (solution[ctr](i,0) < 2.*this->peakFlux);	    
-	      
-	      Gaussian2D<Double> component(solution[ctr](i,0),solution[ctr](i,1),solution[ctr](i,2),
-					   solution[ctr](i,3),solution[ctr](i,4),solution[ctr](i,5));
-	      intFlux += component.flux();
-	      
-	      for(unsigned int j=i+1;j<numGauss;j++){
-		float sep = hypot( solution[ctr](i,1)-solution[ctr](j,1) , 
-				   solution[ctr](i,2)-solution[ctr](j,2) );
-		passSep = passSep && (sep > 2.);
-	      }
-	    }
-	    
-	    passIntFlux = (intFlux < 2.*boxFlux);
-
-	  }
-
-	  ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
-			    <<passFlux<<passPeak<<passIntFlux);
-
-	  thisFitGood = passConv && passChisq && passXLoc && passYLoc && passSep && 
-	    passFlux && passPeak && passIntFlux;
-
-	  if(thisFitGood){
-	    if((ctr==0) || (rchisq < bestRChisq)){
-	      fitIsGood = true;
-	      bestFit = ctr;
-	      bestRChisq = rchisq;
-	    }
-	  }
-
-	} // end of 'ctr' for-loop
-
-	if(fitIsGood){
-	  this->hasFit = true;
-	  // Make a map so that we can output the fitted components in order of peak flux
-	  std::multimap<double,int> fitMap;
-	  for(int i=0;i<=bestFit;i++) fitMap.insert(std::pair<double,int>(solution[bestFit](i,0),i));
-	  // Need to use reverse_iterator so that brightest component's listed first
-	  std::multimap<double,int>::reverse_iterator fit=fitMap.rbegin();
-	  for(;fit!=fitMap.rend();fit++){
-	    int ifit = fit->second;
-	    casa::Gaussian2D<casa::Double> 
-	      gauss(solution[bestFit](ifit,0),
-		    solution[bestFit](ifit,1),solution[bestFit](ifit,2),
-		    solution[bestFit](ifit,3),solution[bestFit](ifit,4),solution[bestFit](ifit,5));
-	    this->itsGaussFitSet.push_back(gauss);
-	  }
-	  ASKAPLOG_INFO_STR(logger,"BEST FIT: " << bestFit+1 << " Gaussians"
-			    << ", chisq = " << bestRChisq * (this->boxSize() - 6*(bestFit+1) - 1)
-			    << ", chisq/nu =  "  << bestRChisq);
-	}
-	else{
-	  ASKAPLOG_INFO_STR(logger, "No good fit found.");
-	}
-
-	ASKAPLOG_INFO_STR(logger, "-----------------------");
-
-	return fitIsGood;
-
-      }
-
-      //**************************************************************//
-
-      void RadioSource::printFit()
-      {
-	std::cout << "Fitted " << itsGaussFitSet.size() << " Gaussians\n";
-	for(unsigned int g=0;g<itsGaussFitSet.size();g++){
-	  // 	itsGaussFitSet[g].parameters().print(std::cout);
-	  // 	std::cout << "\n";
-	  std::cout << itsGaussFitSet[g] << "\n";
-	}
 
       }
 

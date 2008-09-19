@@ -123,10 +123,13 @@ namespace askap
 
       this->itsFitter = sourcefitting::FittingParameters(parset.makeSubset("Fitter."));
 
+      if(isParallel() && !this->itsIsFITSFile)
+	ASKAPTHROW(AskapError, "In parallel mode you can only use FITS format images.");
+
 
       // Now read the correct image name according to worker/master state.
       if(isMaster()){
-	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );
+	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
 	this->itsCube.pars().setFlagRobustStats(false);
 	if(isParallel()) this->itsSectionList = makeSubImages(this->itsNNode-1,parset);
 	this->itsImage = substitute(parset.getString("image"));
@@ -136,7 +139,7 @@ namespace askap
 
       if(isWorker()) {
  	 this->itsImage = substitute(parset.getString("image"));
-	if(isParallel()) this->itsImage = getSubImageName(this->itsImage,itsRank-1,itsNNode-1);
+	if(isParallel()) this->itsImage = getSubImageName(this->itsImage,this->itsRank-1,itsNNode-1);
 	
 	this->itsCube.pars().setImageFile(this->itsImage);
 // 		splitImage(parset);
@@ -145,8 +148,8 @@ namespace askap
 	// don't set the flagSubsection in the duchamp::Param, as we aren't actually reading a subsection, we
 	// are reading the entire image.
 	if(isParallel()){
- 	  this->itsCube.pars().setSubsection( getSection(itsRank-1,parset).getSection() );
-	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank-1<<" is using subsection " << this->itsCube.pars().getSubsection());
+ 	  this->itsCube.pars().setSubsection( getSection(this->itsRank-1,parset).getSection() );
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<this->itsRank<<" is using subsection " << this->itsCube.pars().getSubsection());
 	}
 
 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
@@ -192,14 +195,111 @@ namespace askap
 	if(sectionlist.size()>0){
 
 	  this->itsCube.pars().setFlagSubsection(true);
-	  this->itsCube.pars().setSubsection(sectionlist[itsRank-1].getSection());
-	  ASKAPLOG_INFO_STR(logger, "Worker #"<<itsRank<<" is using subsection " 
-			    << sectionlist[itsRank-1].getSection());
+	  this->itsCube.pars().setSubsection(sectionlist[this->itsRank-1].getSection());
+	  ASKAPLOG_INFO_STR(logger, "Worker #"<<this->itsRank<<" is using subsection " 
+			    << sectionlist[this->itsRank-1].getSection());
 
 	}
 
       }
       
+    }
+
+    //**************************************************************//
+
+    void DuchampParallel::readDataOld()
+    {
+
+      if(isMaster() && isParallel()){
+
+	//	std::vector<duchamp::Section> sectionlist = getSectionList(this->itsNNode-1, parset);
+
+	bool OK;
+	int rank;
+	// Send out the subsection strings to the workers and wait for replies
+	for(unsigned int i=0;i<this->itsSectionList.size();i++) {
+	  
+	  LOFAR::BlobString bs1;
+	  bs1.resize(0);
+	  LOFAR::BlobOBufString bob(bs1);
+	  LOFAR::BlobOStream out(bob);
+	  out.putStart("goInput",1);
+	  out << i << this->itsSectionList[i].getSection();
+	  out.putEnd();
+	  itsConnectionSet->writeAll(bs1);
+
+	  LOFAR::BlobString bs2;
+	  itsConnectionSet->read(i-1, bs2);
+	  LOFAR::BlobIBufString bib(bs2);
+	  LOFAR::BlobIStream in(bib);
+	  int version=in.getStart("doneInput");
+	  ASKAPASSERT(version==1);
+	  in >> rank >> OK;
+	  in.getEnd();
+
+	}
+
+      }
+
+      if(isWorker()){
+
+	if(isParallel()){
+	  int rank;
+	  std::string section;
+	  bool OK;
+
+	  do{
+	    LOFAR::BlobString bs;
+	    bs.resize(0);
+	    itsConnectionSet->read(0, bs);
+	    LOFAR::BlobIBufString bib(bs);
+	    LOFAR::BlobIStream in(bib);
+	    int version=in.getStart("goInput");
+	    ASKAPASSERT(version==1);
+	    in >> rank >> section;
+	    in.getEnd();
+	    OK = (rank == this->itsRank-1);
+	  }while(!OK);
+
+	  if(OK){
+	    this->itsCube.pars().setFlagSubsection(true);
+	    this->itsCube.pars().setSubsection(section);
+	  }
+	}
+
+	if(this->itsCube.getCube()==duchamp::FAILURE){
+	  ASKAPLOG_ERROR_STR(logger, "#"<<this->itsRank<<": Could not read in data from image " << this->itsImage);
+	  ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage);
+	}
+	else {
+	  ASKAPLOG_INFO_STR(logger,  "#"<<this->itsRank<<": Read data from image " << this->itsImage);
+	  std::stringstream ss;
+	  ss << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ();
+	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Dimensions are " << ss.str() );
+	  if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
+	}
+	
+	if(this->itsCube.pars().getFlagATrous()){
+	  ASKAPLOG_INFO_STR(logger,  "Reconstructing");
+	  this->itsCube.ReconCube();
+	}
+	else if(this->itsCube.pars().getFlagSmooth()) {
+	  ASKAPLOG_INFO_STR(logger,  "Smoothing");	  
+	  this->itsCube.SmoothCube();
+	}
+
+	if(isParallel()){
+	  LOFAR::BlobString bs;
+	  bs.resize(0);
+	  LOFAR::BlobOBufString bob(bs);
+	  LOFAR::BlobOStream out(bob);
+	  out.putStart("doneInput",1);
+	  out << true;
+	  out.putEnd();
+	  itsConnectionSet->write(0,bs);
+	}
+      }
+
     }
 
     //**************************************************************//
@@ -225,7 +325,7 @@ namespace askap
 	  in.getEnd();
 	}
 	if(OK){
-	  ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": About to read data from image " << this->itsCube.pars().getFullImageFile());
+	  ASKAPLOG_INFO_STR(logger,  "#"<<this->itsRank<<": About to read data from image " << this->itsCube.pars().getFullImageFile());
 
 	  int result;
 	  if(this->itsIsFITSFile) result = this->itsCube.getCube();
@@ -233,14 +333,14 @@ namespace askap
 
 // 	  if(this->itsCube.getCube()==duchamp::FAILURE){
 	  if(result==duchamp::FAILURE){
-	    ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read in data from image " << this->itsImage);
-	    ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage)
+	    ASKAPLOG_ERROR_STR(logger, "#"<<this->itsRank<<": Could not read in data from image " << this->itsImage);
+	    ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage);
 	  }
 	  else {
-	    ASKAPLOG_INFO_STR(logger,  "#"<<itsRank<<": Read data from image " << this->itsImage);
+	    ASKAPLOG_INFO_STR(logger,  "#"<<this->itsRank<<": Read data from image " << this->itsImage);
 	    std::stringstream ss;
 	    ss << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ();
-	    ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Dimensions are " << ss.str() );
+	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Dimensions are " << ss.str() );
 	    if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
 	  }
 
@@ -255,7 +355,7 @@ namespace askap
 
 	}
 	else{
-	  ASKAPLOG_ERROR_STR(logger, "#"<<itsRank<<": Could not read data from image " << this->itsImage << " as it's not ready.");
+	  ASKAPLOG_ERROR_STR(logger, "#"<<this->itsRank<<": Could not read data from image " << this->itsImage << " as it's not ready.");
 	  ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage)
 	}
       }
@@ -1099,7 +1199,7 @@ namespace askap
 	  this->itsCube.stats().setMean(mean);
 	  this->itsCube.stats().setStddev(rms);
 	  this->itsCube.pars().setFlagUserThreshold(true);
-	  ASKAPLOG_INFO_STR(logger, "#"<<itsRank<<": Setting mean to be " << mean << " and rms " << rms);
+	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting mean to be " << mean << " and rms " << rms);
 	}
 	else{
 	  if(this->itsCube.pars().getFlagUserThreshold())
@@ -1108,7 +1208,7 @@ namespace askap
 	    threshold = this->itsCube.stats().getMiddle() + this->itsCube.stats().getSpread()*this->itsCube.pars().getCut();
 	}
 
-	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker  " << itsRank << " to be " << threshold);
+	ASKAPLOG_INFO_STR(logger, "Setting threshold on worker  " << this->itsRank << " to be " << threshold);
 
 	this->itsCube.pars().setThreshold(threshold);
 

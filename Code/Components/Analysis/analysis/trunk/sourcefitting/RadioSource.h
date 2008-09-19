@@ -108,14 +108,10 @@ namespace askap
 	/// @brief Fit Gaussian components to the Detection.
 	/// @name
 	///@{
-	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-		      casa::Vector<casa::Double> sigma);
-/* 	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList); */
-/* 	bool fitGauss(float *fluxArray, long *dimArray); */
 	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
 	bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter);
-	bool fitGaussNew(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-			 casa::Vector<casa::Double> sigma, FittingParameters &baseFitter);
+	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+		      casa::Vector<casa::Double> sigma, FittingParameters &baseFitter);
 	///@}
 
 	/// @brief Store the FITS header information
@@ -143,9 +139,6 @@ namespace askap
 	/// @brief Return the detection threshold
 	float detectionThreshold(){return itsDetectionThreshold;};
 
-	/// @brief Print information on the fitted components
-	void printFit();
-      
 	/// @brief Return the set of fits
 	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
 
