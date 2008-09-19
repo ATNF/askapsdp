@@ -164,7 +164,7 @@ namespace askap
 			ms_p(0), dataAcc_p(), scratchDataAcc_p(), sigmaAcc_p(), flagAcc_p(),
 			    imweightAcc_p(), maxData_p(2e9)
 		{
-
+		  try {
 			defaults();
 
 			// make MS with standard columns
@@ -313,6 +313,10 @@ namespace askap
 			hyperCubeID_p=-1;
 			lastSpWID_p=-1;
 			hasHyperCubes_p=True;
+		  } catch (std::exception& x) {
+		    ASKAPLOG_ERROR (logger, x.what());
+		    throw;
+		  }
 		}
 
 		Simulator::Simulator(casa::MeasurementSet& theMS) :

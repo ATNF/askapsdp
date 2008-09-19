@@ -255,32 +255,38 @@ namespace askap
       ASKAPLOG_INFO_STR(logger, "Successfully defined sources");
     }
     
-    void SimParallel::readModels() {
-      ParameterSet parset(itsParset);
-      if(itsParset.isDefined("sources.definition")) {
+    void SimParallel::readModels()
+    {
+      try {
+	ParameterSet parset(itsParset);
+	if(itsParset.isDefined("sources.definition")) {
 	     parset=ParameterSet(substitute(itsParset.getString("sources.definition")));
-	  }
+	}
       
-      const vector<string> sources=parset.getStringVector("sources.names");
-      for (vector<string>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
+	const vector<string> sources=parset.getStringVector("sources.names");
+	for (vector<string>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
 	       const std::string modelPar = "sources."+*it+".model";
 	       if (parset.isDefined(modelPar)) {
-               string model=parset.getString(modelPar);
-               ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< *it );
-               const string paramName = "image.i." + *it;
-               SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName, model);
-           }
-           const std::string compListPar = "sources."+*it+".components";
-           if (parset.isDefined(compListPar)) {
-               const vector<string> compList = parset.getStringVector(compListPar);
-               for (vector<string>::const_iterator cmp = compList.begin(); 
-                    cmp != compList.end(); ++cmp) {
-                    ASKAPLOG_INFO_STR(logger, "Loading component "<<*cmp<<" as part of the model for "<<*it);
-                    SynthesisParamsHelper::copyComponent(itsModel, parset, *cmp);
-               }
-           }
-	  }
-      ASKAPLOG_INFO_STR(logger, "Successfully read models");
+		 string model=parset.getString(modelPar);
+		 ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< *it );
+		 const string paramName = "image.i." + *it;
+		 SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName, model);
+	       }
+	       const std::string compListPar = "sources."+*it+".components";
+	       if (parset.isDefined(compListPar)) {
+		 const vector<string> compList = parset.getStringVector(compListPar);
+		 for (vector<string>::const_iterator cmp = compList.begin(); 
+		      cmp != compList.end(); ++cmp) {
+		   ASKAPLOG_INFO_STR(logger, "Loading component "<<*cmp<<" as part of the model for "<<*it);
+		   SynthesisParamsHelper::copyComponent(itsModel, parset, *cmp);
+		 }
+	       }
+	}
+	ASKAPLOG_INFO_STR(logger, "Successfully read models");
+      } catch (std::exception& x) {
+	ASKAPLOG_ERROR (logger, x.what());
+	throw;
+      }
     }
     
     void SimParallel::readSpws()
