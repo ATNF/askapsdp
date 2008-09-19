@@ -44,6 +44,8 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
+#include <gridding/SupportSearcher.h>
+
 #include <fft/FFTWrapper.h>
 
 using namespace askap;
@@ -282,28 +284,6 @@ namespace askap {
 	      double peak=0.0;
 	      double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
 	      //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
-	      /*
-	      for (int iy=0; iy<int(qny); ++iy) {
-               double y2=(double(iy)-double(qny)/2)*ccelly;
-               y2*=y2;
-               for (int ix=0; ix<int(qnx); ++ix) {
-                    double x2=(double(ix)-double(qnx)/2)*ccellx;
-                    x2*=x2;
-                    double r2=x2+y2;
-                    if (r2<1.0) {
-                        double phase=w*(1.0-sqrt(1.0-r2));
-                        const casa::Complex patternVal = pattern(ix-qnx/2+nx/2, iy-qny/2+ny/2);
-			            const casa::Complex wt=patternVal*conj(patternVal)*casa::Complex(ccfx(ix)*ccfy(iy));
-                        if(casa::abs(wt)>peak) {
-                           peak=casa::abs(wt);
-                        }
-                        // this ensures the oversampling is done
-                        thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=wt*casa::Complex(cos(phase), -sin(phase));
-                        maxCF+=casa::abs(wt);
-                    }
-		       }
-	      }	
-	      */
 	      
 	      for (int iy=0; iy<int(ny); ++iy) {
                double y2=(double(iy)-double(ny)/2)*ccelly;
@@ -348,69 +328,18 @@ namespace askap {
 	      // If the support is not yet set, find it and size the
 	      // convolution function appropriately
 	      if (itsSupport==0) {	
-		//		SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
-		// Find the support by starting from the edge and
-		// working in to the peak point
-		int px=0;
-		int py=0;
-		double peak=0.0;
-		for (int iy=0;iy<int(ny);iy++) {
-		  for (int ix=0;ix<int(nx);ix++) {
-		    if(peak<casa::abs(thisPlane(ix,iy))) {
-		      px=ix;
-		      py=iy;
-		      peak=casa::abs(thisPlane(ix,iy));
-		    }
-		  }
-		}
-		//		std::cout << "Peak of convolution function is " << peak << " at " << px << ", " << py << std::endl;
-		if(px<int(nx)/2) {
-		  for (int ix=0; ix<px; ix++) {
-		    /// Check on horizontal axis
-		    //		    std::cout << "H- " << casa::abs(thisPlane(ix, py)) << " " << itsCutoff << " " << peak << std::endl;
-		    if ((casa::abs(thisPlane(ix, py))>itsCutoff*peak)) {
-		      itsSupport=abs(ix-int(nx)/2)/itsOverSample;
-		      break;
-		    }
-		  }
-		}
-		else {
-		  for (int ix=int(nx)-1; ix>px; ix--) {
-		    /// Check on horizontal axis
-		    //		    std::cout << "H+ " << casa::abs(thisPlane(ix, py)) << " " << itsCutoff << " " << peak << std::endl;
-		    if ((casa::abs(thisPlane(ix, py))>itsCutoff*peak)) {
-		      itsSupport=abs(ix-int(nx)/2)/itsOverSample;
-		      break;
-		    }
-		  }
-		}
-		if(itsSupport==0) {
-		  if(py<int(ny)/2) {
-		    for (int iy=0; iy<py; iy++) {
-		      /// Check on vertical axis
-		      //		      std::cout << "V- " << casa::abs(thisPlane(px, iy)) << " " << itsCutoff << " " << peak << std::endl;
-		      if ((casa::abs(thisPlane(px, iy))>itsCutoff*peak)) {
-			itsSupport=abs(iy-int(ny)/2)/itsOverSample;
-			break;
-		      }
-		    }
-		  }
-		  else {
-		    for (int iy=int(ny)-1; iy>py; iy--) {
-		      /// Check on vertical axis
-		      //		      std::cout << "V+ " << casa::abs(thisPlane(px, iy)) << " " << itsCutoff << " " << peak << std::endl;
-		      if ((casa::abs(thisPlane(px, iy))>itsCutoff*peak)) {
-			itsSupport=abs(iy-int(ny)/2)/itsOverSample;
-			break;
-		      }
-		    }
-		  }
-		}
-		//		std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;
-		ASKAPCHECK(itsSupport>0,
-			   "Unable to determine support of convolution function");
-		ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
-			   "Overflowing convolution function - increase maxSupport or decrease overSample")
+              //  SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
+              SupportSearcher ss(itsCutoff);
+              ss.search(thisPlane);
+              
+              
+              itsSupport = ss.symmetricalSupport(thisPlane.shape())/2/itsOverSample;
+              //std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;
+
+              ASKAPCHECK(itsSupport>0,
+                         "Unable to determine support of convolution function");
+              ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
+                         "Overflowing convolution function - increase maxSupport or decrease overSample")
         
         //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
 	    //throw 1;

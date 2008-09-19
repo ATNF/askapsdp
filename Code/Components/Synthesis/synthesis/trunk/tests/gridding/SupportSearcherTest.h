@@ -34,7 +34,8 @@
 #include <casa/Arrays/IPosition.h>
 #include <casa/BasicSL/Complex.h>
 
-#include <measurementequation/SynthesisParamsHelper.h>
+//#include <measurementequation/SynthesisParamsHelper.h>
+
 namespace askap {
 
 namespace synthesis {
