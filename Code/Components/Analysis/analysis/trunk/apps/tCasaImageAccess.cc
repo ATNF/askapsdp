@@ -26,16 +26,21 @@
 #include <askap_analysis.h>
 
 #include <analysisutilities/CasaImageUtil.h>
+#include <parallelanalysis/DuchampParallel.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+
+#include <APS/ParameterSet.h>
 
 #include <casa/aipstype.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
 #include <images/Images/ImageOpener.h>
 #include <images/Images/FITSImage.h>
+#include <images/Images/SubImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 #include <casa/Containers/RecordInterface.h>
 #include <tables/Tables/Table.h>
 #include <tables/Tables/TableDesc.h>
@@ -47,16 +52,18 @@
 #include <iostream>
 
 #include <duchamp/Cubes/cubes.hh>
+#include <duchamp/Utils/Section.hh>
 
 #include <wcslib/wcs.h>
 
 using namespace casa;
 using namespace askap;
 using namespace askap::analysis;
+using namespace askap::cp;
 
 ASKAP_LOGGER(logger, "tCasaImageAccess.log");
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 
   try {
@@ -70,13 +77,13 @@ int main(int argc, char *argv[])
     ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
     ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
     //   ASSERT (imagePtr);     // to be sure its data type is Float
-    CoordinateSystem coords2=imagePtr->coordinates();
-    Record hdr2;
-    IPosition shape2 = imagePtr->shape();
-    Bool worked2 = coords2.toFITSHeader(hdr2,shape2,true,'c',true);
-    if(worked2) std::cout << "Success!\n";
+    CoordinateSystem coords=imagePtr->coordinates();
+    Record hdr;
+    IPosition shape = imagePtr->shape();
+    Bool worked = coords.toFITSHeader(hdr,shape,true,'c',true);
+    if(worked) std::cout << "Success!\n";
 
-    std::cout << hdr2<< "\n"
+    std::cout << hdr<< "\n"
 	      << "beam = " << imagePtr->imageInfo().restoringBeam() << "\n";
     Vector<Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
     if(beam.size()>0)
@@ -96,6 +103,26 @@ int main(int argc, char *argv[])
 
     std::cout << "Loading a duchamp::Cube's data with " << imageName <<"\n";
     casaImageToCubeData(imagePtr,cube);
+    std::cout << "Success!\n";
+
+    std::cout << "\n\nGetting a subsection of the casa image using casa::Slicer\n";
+    std::string sectionStr = "[11:50,25:56,*,*]";
+    duchamp::Section section(sectionStr);
+    std::vector<long> dim(shape.size());
+    for(uint i=0;i<shape.size();i++) dim[i]=shape(i);
+    section.parse(dim);
+    Slicer slicer = subsectionToSlicer(section);
+    std::cout << "Slicer = " << slicer << "\n";
+
+    SubImage<Float> subimage(*imagePtr, slicer, True);
+    ASKAPASSERT(&subimage);
+    std::cout << "Shape of subimage = " << subimage.shape() << "\n";
+    std::cout << "Success!\n";
+      
+    std::cout << "\nConverting this subimage to a duchamp::Cube\n";
+    duchamp::Cube subcube;
+    casaImageToMetadata(&subimage,subcube);
+    casaImageToCubeData(&subimage,subcube);
     std::cout << "Success!\n";
 
   }

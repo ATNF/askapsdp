@@ -40,6 +40,7 @@
 #include <duchamp/Cubes/cubes.hh>
 
 #include <casa/aipstype.h>
+#include <casa/Arrays/Slicer.h>
 #include <images/Images/ImageInterface.h>
 using namespace casa;
 
@@ -80,6 +81,10 @@ namespace askap
     wcsprm *casaImageToWCS(std::string imageName);
     wcsprm *casaImageToWCS(ImageInterface<Float>* imagePtr);
     /// @}
+
+    /// @ingroup analysisutilities
+    /// @brief Convert a duchamp subsection to a casa Slicer
+    Slicer subsectionToSlicer(duchamp::Section &subsection);
 
   }
 

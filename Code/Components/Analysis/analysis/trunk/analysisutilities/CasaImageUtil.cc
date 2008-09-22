@@ -39,6 +39,7 @@
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 #include <casa/Containers/RecordInterface.h>
 #include <casa/Containers/RecordField.h>
 #include <casa/Containers/RecordFieldId.h>
@@ -491,6 +492,27 @@ namespace askap
 
     }
 
+    //**************************************************************//
+
+    Slicer subsectionToSlicer(duchamp::Section &subsection)
+    {
+      std::vector<int> secStarts = subsection.getStartList();
+      std::vector<int> secLengths = subsection.getDimList();
+      int ndim = secStarts.size();
+
+//       IPosition start(secStarts),length(secLengths);
+
+      IPosition start(ndim),length(ndim);
+      for(int i=0;i<ndim;i++){
+	start(i) = secStarts[i];
+	length(i) = secLengths[i];
+      }
+
+      Slicer slicer(start,length);
+      return slicer;
+    }
+
+    //**************************************************************//
 
   }
 
