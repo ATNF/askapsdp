@@ -196,8 +196,8 @@ namespace askap
       {
 
 	int status = 0;
-	long *fpixel = new long[2];
-	for(int i=0;i<2;i++) fpixel[i]=1;
+	long *fpixel = new long[this->itsDim];
+	for(int i=0;i<this->itsDim;i++) fpixel[i]=1;
 	fitsfile *fptr;         
 	if( fits_create_file(&fptr,this->itsFileName.c_str(),&status) ) 
 	  fits_report_error(stderr, status);
