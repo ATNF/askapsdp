@@ -359,29 +359,24 @@ namespace askap
        // The following equation is from Dan Briggs' thesis page 41, eq 3.5
        double sumwtNew = 0.;
        double sumwtOld = 0.;
-       double sumRatio2 = 0.;
+       double sumwt2Old = 0.;
+       double sumwt2New = 0.;
 
-       const double wtMin=casa::max(psfOld)/1e3;
-       ASKAPLOG_INFO_STR(logger, "Minimum weight used in evaluating sensitivity = "<< wtMin);
-       size_t cnt = 0;
        casa::IPosition cursor(paddedShape.nelements(),0);
        for (int nx = 0; nx<paddedShape(0); ++nx) {
             cursor(0) = nx;
             for (int ny = 0; ny<paddedShape(1); ++ny) {
                  cursor(1)=ny;
                  const double wtOld = casa::abs(uvOld(cursor));
-                 if (wtOld > wtMin) {
-		   const double wtNew = casa::abs(uvNew(cursor));
-		   sumwtNew += wtNew;
-		   sumwtOld += wtOld;
-		   sumRatio2 += casa::square(wtNew)/wtOld;
-		   cnt++;
-		 }
+                 const double wtNew = casa::abs(uvNew(cursor));
+		 sumwtOld += wtOld;
+		 sumwtNew += wtNew;
+		 sumwt2Old += casa::square(wtOld);
+		 sumwt2New += casa::square(wtNew);
             }
        }
        ASKAPCHECK(sumwtNew>0, "Sum of weights is zero in ImageSolver::sensitivityLoss");
-       const double loss = sqrt(sumRatio2*sumwtOld)/sumwtNew;
-       ASKAPLOG_INFO_STR(logger, cnt<<" uv grid cells were accepted during calculation of the sensitivity loss.");
+       const double loss = sqrt(sumwt2New/sumwt2Old)*sumwtOld/sumwtNew;
        ASKAPLOG_INFO_STR(logger, "The estimate of the sensitivity loss is "<<loss);
        return loss;
     }
