@@ -94,6 +94,12 @@ namespace askap
       /// different convolution function. This is used in the evaluation of the second derivative.
       /// @param out Output double precision grid
       virtual void finaliseWeights(casa::Array<double>& out);
+      
+      /*
+      /// Form the final output PSF image
+      /// @param out Output double precision PSF
+      virtual void finalisePSF(casa::Array<double>& out);
+      */
 
   protected:
       /// @brief Initialise the indices
@@ -110,6 +116,9 @@ namespace askap
       /// @param[in] acc const accessor to work with
       virtual void initConvolutionFunction(const IConstDataAccessor& acc);
 
+      /// Correct for gridding convolution function
+      /// @param image image to be corrected
+      virtual void correctConvolution(casa::Array<double>& image);
   private:
       /// Reference frequency for illumination pattern. 
       double itsReferenceFrequency;

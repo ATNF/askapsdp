@@ -394,6 +394,8 @@ namespace askap {
 	  } // chan loop
 	}
       }
+      
+      
       if (nDone == itsMaxFeeds*itsMaxFields*itsNWPlanes) {
 	ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
 			  << itsConvFunc[0].shape() << " by "<< itsConvFunc.size()
@@ -402,6 +404,8 @@ namespace askap {
       
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
     }
+    
+    
     
     /// To finalize the transform of the weights, we use the following steps:
     /// 1. For each plane of the convolution function, transform to image plane
@@ -503,6 +507,54 @@ namespace askap {
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }
+
+/*
+// this is an experimental version in Max's tree. Commented out for a check in
+    /// This is the default implementation
+void AWProjectVisGridder::finalisePSF(casa::Array<double>& out) {
+   
+   ASKAPDEBUGASSERT(isPSFGridder());
+   // we need to do all calculations on a limited support (e.g. because the convolution correction is
+   // done for the image of that size)
+   casa::IPosition limitedSupportShape(out.shape());
+   ASKAPDEBUGASSERT(limitedSupportShape.nelements()>=2);
+   limitedSupportShape(0) = std::min(itsMaxSupport, limitedSupportShape(0));
+   limitedSupportShape(1) = std::min(itsMaxSupport, limitedSupportShape(1));
+   // a buffer, which will be padded to the full size at the end
+   casa::Array<double> cOut(limitedSupportShape);
+
+   /// Loop over all grids Fourier transforming and accumulating
+   for (unsigned int i=0; i<itsGrid.size(); i++) {
+		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
+        std::cout<<itsGrid[i].shape()<<std::endl;
+        
+		fft2d(scratch, false);
+		
+        if (i==0) {
+            toDouble(cOut, scratch);
+        } else {
+            casa::Array<double> work(out.shape());
+            toDouble(work, scratch);
+            cOut+=work;
+        }
+    }
+    // Now we can do the convolution correction    
+    correctConvolution(cOut);
+    cOut*=double(cOut.shape()(0))*double(cOut.shape()(1)); 
+    
+    casa::Array<float> test(cOut.shape());
+    convertArray(test,cOut);
+    SynthesisParamsHelper::saveAsCasaImage("dbg.img", test);
+	throw 1;
+    fftPad(cOut,out);
+}
+*/    
+
+/// Correct for gridding convolution function
+/// @param image image to be corrected
+void AWProjectVisGridder::correctConvolution(casa::Array<double>& image)
+{
+}
     
     void AWProjectVisGridder::fftPad(const casa::Array<double>& in,
 				     casa::Array<double>& out) {
