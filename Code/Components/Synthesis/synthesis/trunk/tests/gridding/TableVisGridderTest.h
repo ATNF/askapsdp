@@ -146,8 +146,10 @@ namespace askap
       {
         itsSphFunc->initialiseGrid(*itsAxes, itsModel->shape(), true);
         itsSphFunc->grid(idi);
+        itsSphFunc->finaliseGrid(*itsModelPSF);
+        itsSphFunc->initialiseGrid(*itsAxes, itsModel->shape(), false);
+        itsSphFunc->grid(idi);
         itsSphFunc->finaliseGrid(*itsModel);
-        itsSphFunc->finalisePSF(*itsModelPSF);
         itsSphFunc->finaliseWeights(*itsModelWeights);
       }
       void testForwardSph()
@@ -157,11 +159,13 @@ namespace askap
       }
       void testReverseAWProject()
       {
-        itsAWProject->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsAWProject->initialiseGrid(*itsAxes, itsModel->shape(), false);
         itsAWProject->grid(idi);
         itsAWProject->finaliseGrid(*itsModel);
-        itsAWProject->finalisePSF(*itsModelPSF);
         itsAWProject->finaliseWeights(*itsModelWeights);
+        itsAWProject->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsAWProject->grid(idi);
+        itsAWProject->finaliseGrid(*itsModelPSF);
       }
       void testForwardAWProject()
       {
@@ -170,11 +174,13 @@ namespace askap
       }
       void testReverseWProject()
       {
-        itsWProject->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsWProject->initialiseGrid(*itsAxes, itsModel->shape(), false);
         itsWProject->grid(idi);
         itsWProject->finaliseGrid(*itsModel);
-        itsWProject->finalisePSF(*itsModelPSF);
         itsWProject->finaliseWeights(*itsModelWeights);
+        itsWProject->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsWProject->grid(idi);
+        itsWProject->finaliseGrid(*itsModelPSF);
       }
       void testForwardWProject()
       {
@@ -183,11 +189,13 @@ namespace askap
       }
       void testReverseWStack()
       {
-        itsWStack->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsWStack->initialiseGrid(*itsAxes, itsModel->shape(), false);
         itsWStack->grid(idi);
         itsWStack->finaliseGrid(*itsModel);
-        itsWStack->finalisePSF(*itsModelPSF);
         itsWStack->finaliseWeights(*itsModelWeights);
+        itsWStack->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsWStack->grid(idi);
+        itsWStack->finaliseGrid(*itsModelPSF);
       }
       void testForwardWStack()
       {
@@ -196,11 +204,13 @@ namespace askap
       }
       void testReverseAProjectWStack()
       {
-        itsAProjectWStack->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsAProjectWStack->initialiseGrid(*itsAxes, itsModel->shape(), false);
         itsAProjectWStack->grid(idi);
         itsAProjectWStack->finaliseGrid(*itsModel);
-        itsAProjectWStack->finalisePSF(*itsModelPSF);
         itsAProjectWStack->finaliseWeights(*itsModelWeights);
+        itsAProjectWStack->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsAProjectWStack->grid(idi);
+        itsAProjectWStack->finaliseGrid(*itsModelPSF);
       }
       void testForwardAProjectWStack()
       {
