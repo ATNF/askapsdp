@@ -81,12 +81,8 @@ namespace askap
 			virtual void grid(IDataSharedIter& idi) = 0;
 
 			/// Form the final output image
-			/// @param out Output double precision image
+			/// @param out Output double precision image or PSF
 			virtual void finaliseGrid(casa::Array<double>& out) = 0;
-
-			/// Form the final output image
-			/// @param out Output double precision PSF
-			virtual void finalisePSF(casa::Array<double>& out) = 0;
 
 			/// Form the sum of the convolution function squared, multiplied by the weights for each
 			/// different convolution function. This is used in the evaluation of the second derivative.

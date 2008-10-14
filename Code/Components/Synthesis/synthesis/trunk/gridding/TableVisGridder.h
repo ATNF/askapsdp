@@ -113,12 +113,8 @@ namespace askap
       virtual void grid(IDataSharedIter& idi);
 
       /// Form the final output image
-      /// @param out Output double precision image
+      /// @param out Output double precision image or PSF
       virtual void finaliseGrid(casa::Array<double>& out);
-
-      /// Form the final output image
-      /// @param out Output double precision PSF
-      virtual void finalisePSF(casa::Array<double>& out);
 
       /// @brief Calculate weights image
       /// @details Form the sum of the convolution function squared, 

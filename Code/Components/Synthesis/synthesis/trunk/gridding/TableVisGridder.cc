@@ -695,25 +695,6 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 	out*=double(out.shape()(0))*double(out.shape()(1));
 }
 
-/// This is the default implementation
-void TableVisGridder::finalisePSF(casa::Array<double>& out) {
-    ASKAPDEBUGASSERT(isPSFGridder());
-    /// Loop over all grids Fourier transforming and accumulating
-	for (unsigned int i=0; i<itsGrid.size(); i++) {
-		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
-		fft2d(scratch, false);
-		if (i==0) {
-			toDouble(out, scratch);
-		} else {
-			casa::Array<double> work(out.shape());
-			toDouble(work, scratch);
-			out+=work;
-		}
-	}
-	// Now we can do the convolution correction
-	correctConvolution(out);
-	out*=double(out.shape()(0))*double(out.shape()(1));
-}
 
 /// This is the default implementation
 void TableVisGridder::finaliseWeights(casa::Array<double>& out) {

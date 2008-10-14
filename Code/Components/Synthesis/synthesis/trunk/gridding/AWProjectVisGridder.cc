@@ -511,7 +511,7 @@ namespace askap {
 /*
 // this is an experimental version in Max's tree. Commented out for a check in
     /// This is the default implementation
-void AWProjectVisGridder::finalisePSF(casa::Array<double>& out) {
+void AWProjectVisGridder::finaliseGrid(casa::Array<double>& out) {
    
    ASKAPDEBUGASSERT(isPSFGridder());
    // we need to do all calculations on a limited support (e.g. because the convolution correction is

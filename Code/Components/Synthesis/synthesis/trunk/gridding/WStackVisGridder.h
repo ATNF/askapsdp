@@ -72,12 +72,8 @@ namespace askap
 				    const casa::IPosition& shape, const bool dopsf=true);
 				
 				/// Form the final output image
-				/// @param out Output double precision image
+				/// @param out Output double precision image or PSF
 				virtual void finaliseGrid(casa::Array<double>& out);
-
-				/// Form the final output image
-				/// @param out Output double precision PSF
-				virtual void finalisePSF(casa::Array<double>& out);
 
 				/// @brief Initialise the degridding
 				/// @param axes axes specifications

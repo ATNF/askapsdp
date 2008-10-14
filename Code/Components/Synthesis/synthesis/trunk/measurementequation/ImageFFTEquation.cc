@@ -276,7 +276,7 @@ namespace askap
         casa::Array<double> imageDeriv(imageShape);
 
         itsResidualGridders[imageName]->finaliseGrid(imageDeriv);
-        itsPSFGridders[imageName]->finalisePSF(imagePSF);
+        itsPSFGridders[imageName]->finaliseGrid(imagePSF);
         itsResidualGridders[imageName]->finaliseWeights(imageWeight);
         { 
           casa::Array<double> imagePSFWeight(imageShape);

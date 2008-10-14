@@ -204,42 +204,13 @@ namespace askap
     /// This is the default implementation
     void WStackVisGridder::finaliseGrid(casa::Array<double>& out)
     {
-
-      ASKAPLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
-                         << " planes of W stack to get final image");
-
-      /// Loop over all grids Fourier transforming and accumulating
-      bool first=true;
-      for (unsigned int i=0; i<itsGrid.size(); i++)
-      {
-        if (casa::max(casa::amplitude(itsGrid[i]))>0.0)
-        {
-          casa::Array<casa::Complex> scratch(itsGrid[i].copy());
-          fft2d(scratch, false);
-          multiply(scratch, i);
-
-          if (first)
-          {
-            first=false;
-            toDouble(out, scratch);
-          }
-          else
-          {
-            casa::Array<double> work(out.shape());
-            toDouble(work, scratch);
-            out+=work;
-          }
-        }
+      if (!isPSFGridder()) {
+          ASKAPLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
+                          << " planes of W stack to get final image");
+      } else {
+          ASKAPLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
+                          << " planes of W stack to get final PSF");
       }
-      // Now we can do the convolution correction
-      correctConvolution(out);
-      out*=double(out.shape()(0))*double(out.shape()(1));
-    }
-
-    /// This is the default implementation
-    void WStackVisGridder::finalisePSF(casa::Array<double>& out)
-    {
-      ASKAPDEBUGASSERT(isPSFGridder());
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
       for (unsigned int i=0; i<itsGrid.size(); i++)

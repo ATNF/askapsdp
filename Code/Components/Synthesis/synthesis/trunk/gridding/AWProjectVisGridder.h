@@ -96,9 +96,9 @@ namespace askap
       virtual void finaliseWeights(casa::Array<double>& out);
       
       /*
-      /// Form the final output PSF image
-      /// @param out Output double precision PSF
-      virtual void finalisePSF(casa::Array<double>& out);
+      /// Form the final output image or PSF
+      /// @param out Output double precision image or PSF
+      virtual void finaliseGrid(casa::Array<double>& out);
       */
 
   protected:
