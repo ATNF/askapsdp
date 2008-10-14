@@ -48,6 +48,8 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <fft/FFTWrapper.h>
 
+#include <casa/Arrays/ArrayIter.h>
+
 using namespace askap;
 
 namespace askap {
@@ -554,6 +556,49 @@ void AWProjectVisGridder::finaliseGrid(casa::Array<double>& out) {
 /// @param image image to be corrected
 void AWProjectVisGridder::correctConvolution(casa::Array<double>& image)
 {
+   /*
+     ASKAPDEBUGASSERT(itsShape.nelements()>=2);      
+     
+     casa::IPosition limitedSupportShape(image.shape());
+     ASKAPDEBUGASSERT(limitedSupportShape.nelements()>=2);
+        
+      const casa::Int xHalfSize = limitedSupportShape(0)/2;
+      const casa::Int yHalfSize = limitedSupportShape(1)/2;
+      
+      
+      casa::Vector<double> ccfx(limitedSupportShape(0));
+      casa::Vector<double> ccfy(limitedSupportShape(1));
+      for (int ix=0; ix<limitedSupportShape(0); ++ix)
+      {
+        const double nux=std::abs(double(ix-xHalfSize))/double(xHalfSize*itsOverSample);
+        ccfx(ix)=1.0/grdsf(nux);
+      }
+      for (int iy=0; iy<limitedSupportShape(1); ++iy)
+      {
+        const double nuy=std::abs(double(iy-yHalfSize))/double(yHalfSize*itsOverSample);
+        ccfy(iy)=1.0/grdsf(nuy);
+      }
+
+      casa::ArrayIterator<double> it(image, 2);
+      while (!it.pastEnd())
+      {
+        casa::Matrix<double> mat(it.array());
+        for (int ix=0; ix<limitedSupportShape(0); ix++)
+        {
+          for (int iy=0; iy<limitedSupportShape(1); iy++)
+          {
+            mat(ix, iy)*=ccfx(ix)*ccfy(iy);
+          }
+        }
+        it.next();
+      }
+      */     
+      /*   
+      casa::Array<float> test(image.shape());
+      convertArray(test,image);
+      SynthesisParamsHelper::saveAsCasaImage("dbg.img", test);
+	  throw 1;
+*/
 }
     
     void AWProjectVisGridder::fftPad(const casa::Array<double>& in,
