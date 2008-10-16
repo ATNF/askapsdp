@@ -156,7 +156,7 @@ namespace askap
       else{
 	par.setFlagUserThreshold(true);
 	par.setThreshold(threshold);
-	ASKAPLOG_INFO_STR(logger, "Setting threshold to " << threshold << ".");
+// 	ASKAPLOG_INFO_STR(logger, "Setting threshold to " << threshold << ".");
       }
 
       par.setFlagKarma( parset.getBool("flagKarma", true) );
@@ -269,6 +269,9 @@ namespace askap
       ///
       /// @param filename The name of the sectionInfo file.
       /// @return A std::vector containing a duchamp::Section object for each image.
+      ///
+      /// @deprecated
+
       std::vector<duchamp::Section> sectionlist; 
       std::ifstream fin(filename.c_str());
       int numAxes=0;
@@ -314,6 +317,8 @@ namespace askap
       /// @param numWorkers The total number of workers (ie. total
       /// number of subimages.)
       /// @return The filename for the subimage.
+      ///
+      /// @deprecated
  
       std::stringstream file;
       bool isFits = (image.substr(image.size()-5,image.size())==".fits");
@@ -337,7 +342,7 @@ namespace askap
       std::vector<duchamp::Section> sectionlist; 
 
       SubimageDef subDef;
-      subDef.define(parset);
+//       subDef.define(parset);
       if( numWorkers != subDef.numSubs() ){
 	ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<subDef.numSubs()
 			  <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
@@ -367,7 +372,7 @@ namespace askap
       /// desired subimage.
 
       SubimageDef subDef;
-      subDef.define(parset);
+//       subDef.define(parset);
       return subDef.section(workerNum);
       
     }
@@ -388,7 +393,8 @@ namespace askap
       /// @param numWorkers The number of workers and the number of subimages. 
       /// @param parset The parameter set holding info on how to divide the image.
       /// @return A std::vector of duchamp::Section objects.
-
+      ///
+      /// @deprecated
  
       std::string image = parset.getString("image");
       std::vector<duchamp::Section> sectionlist = getSectionList(numWorkers, parset);

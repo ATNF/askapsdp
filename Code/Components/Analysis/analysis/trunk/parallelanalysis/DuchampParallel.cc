@@ -120,8 +120,6 @@ namespace askap
 
       ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsImage);
       this->itsIsFITSFile = (imageType == ImageOpener::FITS);
-      //this->itsIsFITSFile = false;
-      std::cerr << this->itsImage << ": this->itsIsFITSFile = " << this->itsIsFITSFile << "\n";
 
       this->itsFlagDoFit = parset.getBool("doFit", false);
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
@@ -129,39 +127,30 @@ namespace askap
 
       this->itsFitter = sourcefitting::FittingParameters(parset.makeSubset("Fitter."));
 
-//       if(isParallel() && !this->itsIsFITSFile)
-// 	ASKAPTHROW(AskapError, "In parallel mode you can only use FITS format images.");
-
-
       // Now read the correct image name according to worker/master state.
       if(isMaster()){
+	//	if(isParallel()) this->itsSectionList = getSectionList(this->itsNNode-1, parset);
 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
-	this->itsCube.pars().setFlagRobustStats(false);
-// 	if(isParallel() && this->itsIsFITSFile) this->itsSectionList = makeSubImages(this->itsNNode-1,parset);
+// 	this->itsCube.pars().setFlagRobustStats(false);
 	this->itsCube.pars().setImageFile(this->itsImage);
       }
 
       if(isWorker()) {
-	//	if(isParallel()) this->itsImage = getSubImageName(this->itsImage,this->itsRank-1,itsNNode-1);
-	
 	this->itsCube.pars().setImageFile(this->itsImage);
-// 	if(isParallel()//  && !this->itsIsFITSFile
-// 	   ) splitImage(parset);
 
-	// set the subsection string so that the worker knows what the offsets are.
-	// don't set the flagSubsection in the duchamp::Param, as we aren't actually reading a subsection, we
-	// are reading the entire image.
 	if(isParallel()){
+	  this->itsSubimageDef = SubimageDef(parset);
 	  this->itsCube.pars().setFlagSubsection(true);
- 	  this->itsCube.pars().setSubsection( getSection(this->itsRank-1,parset).getSection() );
-	  if(this->itsCube.pars().verifySubsection()==duchamp::FAILURE) 
-	    ASKAPTHROW(AskapError, "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
-	  ASKAPLOG_INFO_STR(logger, "Worker #"<<this->itsRank<<" is using subsection " << this->itsCube.pars().getSubsection());
+	  // 	  this->itsCube.pars().setSubsection( getSection(this->itsRank-1,parset).getSection() );
+// 	  if(this->itsCube.pars().verifySubsection()==duchamp::FAILURE) 
+// 	    ASKAPTHROW(AskapError, "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
+// 	  ASKAPLOG_INFO_STR(logger, "Worker #"<<this->itsRank<<" is using subsection " << this->itsCube.pars().getSubsection());
 	}
 
 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
-	this->itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
+// 	this->itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
       }
+      this->itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
 
       if(this->itsCube.pars().getFlagLog()){
 	ASKAPLOG_INFO_STR(logger, "Setting up logfile " << this->itsCube.pars().getLogFile() );
@@ -194,6 +183,8 @@ namespace askap
       /// reads the requested subsection.
       ///
       /// @todo Enable the overlap to be based on the beam size?
+      ///
+      /// @deprecated
 
       if(isParallel() && isWorker()){
 
@@ -216,6 +207,8 @@ namespace askap
 
     void DuchampParallel::readDataOld()
     {
+      ///
+      /// @deprecated
 
       if(isMaster() && isParallel()){
 
@@ -318,7 +311,6 @@ namespace askap
 
       if(isWorker()) {
 	
-	// Get the OK from the Master so that we know that the subimages have been created.
 	bool OK=true; 
 	int rank;
 	if(isParallel()){
@@ -349,25 +341,36 @@ namespace askap
 	  ASKAPLOG_INFO_STR(logger,  "#"<<this->itsRank
 			    <<": About to read data from image " << this->itsCube.pars().getFullImageFile());
 
-	  if(this->itsIsFITSFile) 
-	    ASKAPLOG_INFO_STR(logger, "Reading with FITS code");
-	  else ASKAPLOG_INFO_STR(logger, "Reading with CASA code");
+	  if(this->itsIsFITSFile) ASKAPLOG_INFO_STR(logger, "Reading with FITS code");
+	  else                    ASKAPLOG_INFO_STR(logger, "Reading with CASA code");
 
 	  int result;
- 	  if(this->itsIsFITSFile) result = this->itsCube.getCube();
- 	  else result = casaImageToCube(this->itsCube);
-// 	  result = casaImageToCube(this->itsCube);
+ 	  if(this->itsIsFITSFile){
+	    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
+	    this->itsSubimageDef.setImageDim( getFITSdimensions(this->itsCube.pars().getImageFile()) );
+	    duchamp::Section subsection=this->itsSubimageDef.section(this->itsRank-1);
+	    ASKAPLOG_INFO_STR(logger, "Worker #"<<this->itsRank<<" is using subsection " << subsection.getSection());
+	    this->itsCube.pars().setSubsection( subsection.getSection() );
+	    if(this->itsCube.pars().verifySubsection()==duchamp::FAILURE) 
+	      ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection() );
+	    ASKAPLOG_INFO_STR(logger, "Worker #"<<this->itsRank<<" is using subsection " << subsection.getSection());
+	    ASKAPLOG_INFO_STR(logger,  "#"<<this->itsRank
+			      <<": About to read data from image " << this->itsCube.pars().getFullImageFile());
+	    result = this->itsCube.getCube();
+	  }
+ 	  else{
+	    result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank-1);
+	  }
 
-// 	  if(this->itsCube.getCube()==duchamp::FAILURE){
+
 	  if(result==duchamp::FAILURE){
 	    ASKAPLOG_ERROR_STR(logger, "#"<<this->itsRank<<": Could not read in data from image " << this->itsImage);
 	    ASKAPTHROW(AskapError, "Unable to read image " << this->itsImage);
 	  }
 	  else {
 	    ASKAPLOG_INFO_STR(logger,  "#"<<this->itsRank<<": Read data from image " << this->itsImage);
-	    std::stringstream ss;
-	    ss << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ();
-	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Dimensions are " << ss.str() );
+	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Dimensions are "
+			      << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ() );
 	    if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
 	  }
 
@@ -391,30 +394,29 @@ namespace askap
 // 	    out.putEnd();
 // 	    this->itsConnectionSet->write(0,bs);
 // 	  }
-	  LOFAR::BlobString bs2;
-	  bs2.resize(0);
-	  LOFAR::BlobOBufString bob2(bs2);
-	  LOFAR::BlobOStream out2(bob2);
-	  out2.putStart("inputDone",1);
-	  out2 << OK;
-	  out2.putEnd();
-	  this->itsConnectionSet->write(0,bs2);
+ 	  if(isParallel()){
+	    LOFAR::BlobString bs2;
+	    bs2.resize(0);
+	    LOFAR::BlobOBufString bob2(bs2);
+	    LOFAR::BlobOStream out2(bob2);
+	    out2.putStart("inputDone",1);
+	    out2 << OK;
+	    out2.putEnd();
+	    this->itsConnectionSet->write(0,bs2);
 
-	  std::cerr << "WORKER #" << this->itsRank << " HAS READ THE IMAGE!\n";
-	  
-	  do{
-	    LOFAR::BlobString bs3;
-	    bs3.resize(0);
-	    this->itsConnectionSet->read(0, bs3);
-	    LOFAR::BlobIBufString bib3(bs3);
-	    LOFAR::BlobIStream in3(bib3);
-	    std::stringstream ss;
-	    int version=in3.getStart("goInput");
-	    ASKAPASSERT(version==1);
-	    in3 >> rank;
-	    in3.getEnd();
-	  }  while(rank != this->itsNNode);
-
+	    do{
+	      LOFAR::BlobString bs3;
+	      bs3.resize(0);
+	      this->itsConnectionSet->read(0, bs3);
+	      LOFAR::BlobIBufString bib3(bs3);
+	      LOFAR::BlobIStream in3(bib3);
+	      std::stringstream ss;
+	      int version=in3.getStart("goInput");
+	      ASKAPASSERT(version==1);
+	      in3 >> rank;
+	      in3.getEnd();
+	    }  while(rank != this->itsNNode);
+	  }
 	}
 	else{
 	  ASKAPLOG_ERROR_STR(logger, "#"<<this->itsRank<<": Could not read data from image " << this->itsImage << " as it's not ready.");
@@ -452,10 +454,12 @@ namespace askap
 	}
 // 	this->itsCube.header().defineWCS(this->itsCube.pars().getImageFile(), this->itsCube.pars());
 // 	this->itsCube.header().readHeaderInfo(this->itsCube.pars().getImageFile(), this->itsCube.pars());
+	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Dimensions are "
+			      << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ() );
 	if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
 	this->itsCube.convertFluxUnits();
 
-// 	// Send out the OK to the workers, so that they know that the subimages have been created.
+	// Send out the OK to the workers, so that they know that the subimages have been created.
 	bool OK;
 	for(int i=1;i<this->itsNNode;i++){
 	  LOFAR::BlobString bs5;
@@ -466,7 +470,6 @@ namespace askap
 	  out5 << i ;
 	  out5.putEnd();
 	  this->itsConnectionSet->writeAll(bs5);
-	  ASKAPLOG_INFO_STR(logger,"MASTER: Sent to worker #"<<i);
 	  
 	  LOFAR::BlobString bs6;
 	  this->itsConnectionSet->read(i-1, bs6);
@@ -476,7 +479,6 @@ namespace askap
 	  ASKAPASSERT(version==1);
 	  in6 >> OK;
 	  in6.getEnd();
-	  ASKAPLOG_INFO_STR(logger,"MASTER: Read from worker #"<<i<<": OK="<<OK);
 	}
 	
 	LOFAR::BlobString bs7;
@@ -531,7 +533,6 @@ namespace askap
       /// This is only done on the workers.
 
       if(isWorker()) {
-        ASKAPLOG_INFO_STR(logger,  "Finding lists from image " << this->itsImage);
 
 	// remove mininum size criteria, so we don't miss anything on the borders.
 	int minpix = this->itsCube.pars().getMinPix();
@@ -598,7 +599,7 @@ namespace askap
 	
 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Fitting source profiles.");
 	duchamp::FitsHeader head = this->itsCube.getHead();
-// 	float noise;
+	// 	float noise;
 // 	if(this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
 // 	else noise = this->itsCube.stats().getSpread();
 // 	ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
@@ -659,9 +660,13 @@ namespace askap
 	  LOFAR::BlobOStream out(bob);
 	  out.putStart("detW2M",1);
 	  out << rank << num;
+	  // send the start positions of the subimage
+	  out << this->itsCube.pars().section().getStart(0) 
+	      << this->itsCube.pars().section().getStart(1)
+	      << this->itsCube.pars().section().getStart(2);
+
 	  std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 	  for(;src<this->itsSourceList.end();src++){
-
 	    // for each RadioSource object, send to master
 	    out << *src;
    
@@ -730,15 +735,20 @@ namespace askap
 	    in >> rank >> numObj;
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Starting to read " 
 			      << numObj << " objects from worker #"<< rank);
+	    int xstart,ystart,zstart;
+	    in >> xstart >> ystart >> zstart;
 	    for(int obj=0;obj<numObj;obj++){
 	      sourcefitting::RadioSource src;
 	      in >> src;
-	      ASKAPLOG_INFO_STR(logger, "MASTER: Read Source " << obj+1 << " from worker#"<<rank);
 	      // Correct for any offsets;
-	      src.setXOffset(this->itsSectionList[i-1].getStart(0));
-	      src.setYOffset(this->itsSectionList[i-1].getStart(1));
-	      src.setZOffset(this->itsSectionList[i-1].getStart(2));
+// 	      src.setXOffset(this->itsSectionList[i-1].getStart(0));
+// 	      src.setYOffset(this->itsSectionList[i-1].getStart(1));
+// 	      src.setZOffset(this->itsSectionList[i-1].getStart(2));
+	      src.setXOffset(xstart);
+	      src.setYOffset(ystart);
+	      src.setZOffset(zstart);
 	      src.addOffsets();
+	      src.calcParams();
 	      src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
 	      for(unsigned int f=0;f<src.fitset().size();f++){
 		src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
@@ -760,9 +770,12 @@ namespace askap
 		  float flux;
 		  bool inObj;
 		  in >> inObj >> x >> y >> z >> flux; 
-		  x += this->itsSectionList[i-1].getStart(0);
-		  y += this->itsSectionList[i-1].getStart(1);
-		  z += this->itsSectionList[i-1].getStart(2);
+// 		  x += this->itsSectionList[i-1].getStart(0);
+// 		  y += this->itsSectionList[i-1].getStart(1);
+// 		  z += this->itsSectionList[i-1].getStart(2);
+		  x += xstart;
+		  y += ystart;
+		  z += zstart;
 		  PixelInfo::Voxel vox(x,y,z,flux);
 		  this->itsVoxelList.push_back(vox);
 		}
@@ -831,7 +844,7 @@ namespace askap
 	  this->itsCube.pars().setFlagGrowth(false);
 	  this->itsCube.ObjectMerger();
 	  this->calcObjectParams();
-	  ASKAPLOG_INFO_STR(logger, "MASTER: num edge sources in cube = "<<this->itsCube.getNumObj());
+	  ASKAPLOG_INFO_STR(logger, "MASTER: num edge sources in cube after merging = "<<this->itsCube.getNumObj());
 
 	  for(int i=0;i<this->itsCube.getNumObj();i++){
 	    ASKAPLOG_INFO_STR(logger, "MASTER: Fitting source #"<<i+1<<".");
@@ -1325,8 +1338,9 @@ namespace askap
 	  this->itsCube.stats().setRobust(false);
 	  this->itsCube.stats().setMean(mean);
 	  this->itsCube.stats().setStddev(rms);
+	  if(!this->itsCube.pars().getFlagUserThreshold())
+	    ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting mean to be " << mean << " and rms " << rms);
 	  this->itsCube.pars().setFlagUserThreshold(true);
-	  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting mean to be " << mean << " and rms " << rms);
 	}
 	else{
 	  if(this->itsCube.pars().getFlagUserThreshold())

@@ -42,8 +42,8 @@
 
 #Cduchamp.sectionInfo = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.sectionInfo
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
-Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
-Cduchamp.nsubx       = 2
+#Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2.fits
+#Cduchamp.nsubx       = 2
 #Cduchamp.nsubx       = 3
 #Cduchamp.nsuby       = 3
 
@@ -51,13 +51,19 @@ Cduchamp.nsubx       = 2
 #Cduchamp.masterImage = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 #Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 
+#Cduchamp.image              = /Users/whi550/ObsData/ASKAP/simulations/skymodel/1deg.model.smoothed.fits
+Cduchamp.image              = /Users/whi550/ObsData/ASKAP/simulations/skymodel/1deg.model.smoothed
+Cduchamp.nsubx       = 2
+
 Cduchamp.verbose      = true
 #Cduchamp.flagRobust  = false   #This applies to the workers only.
-Cduchamp.snrCut       = 5
+#Cduchamp.snrCut       = 15
 #Cduchamp.flagGrowth   = true
 Cduchamp.growthCut    = 3
 #Cduchamp.threshold   = 0.005
-Cduchamp.pixelCentre  = average
+Cduchamp.threshold   = 1.
+#Cduchamp.pixelCentre  = average
+Cduchamp.pixelCentre  = centroid
 
 Cduchamp.flagATrous   = false
 Cduchamp.reconDim     = 2
@@ -71,7 +77,7 @@ Cduchamp.newFluxUnits = mJy/beam
 
 Cduchamp.minPix       = 5
 
-Cduchamp.doFit        = true
+#Cduchamp.doFit        = true
 
 #Cimstat.image       = /Users/whi550/ObsData/cubes/verifyCube%w.fits
 #Cimstat.masterImage = /Users/whi550/ObsData/cubes/verifyCube0.fits

@@ -31,6 +31,7 @@
 
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
+#include <analysisutilities/SubimageDef.h>
 
 #include <askapparallel/AskapParallel.h>
 
@@ -163,6 +164,9 @@ namespace askap
 
       /// The list of sections corresponding to all workers' images (only used by the master).
       std::vector<duchamp::Section> itsSectionList;
+
+      /// The definition of the subimage being used (only relevant for the workers)
+      SubimageDef itsSubimageDef;
 
     };
 

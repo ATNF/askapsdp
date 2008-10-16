@@ -82,6 +82,44 @@ public:
 
 };
 
+bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
+{
+      LatticeBase* lattPtr = ImageOpener::openImage (name);
+      ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
+      bool OK = (lattPtr != 0);
+      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+      IPosition shape = imagePtr->shape();
+      std::cerr << shape << "\n";
+      IPosition newLength = shape;
+      newLength(0) = newLength(0) / (parl.nnode()-1);
+      std::cerr << newLength << "\n";
+      int startpos = (parl.rank()-1)*newLength(0);
+      IPosition start(shape.size(),0);
+      start(0) = startpos;
+      std::cerr << start << " " << newLength << "\n";
+      Slicer slice(start, newLength);
+      SubImage<Float> sub(*imagePtr, slice, True);
+
+      subimage = sub;
+
+      return OK;
+}
+
+Float subimageMean(const Lattice<Float>& lat) {
+  const uInt cursorSize = lat.advisedMaxPixels();
+  const IPosition cursorShape = lat.niceCursorShape(cursorSize);
+  const IPosition latticeShape = lat.shape();
+  Float currentSum = 0.0f;
+  uInt nPixels = 0u;
+  RO_LatticeIterator<Float> iter(lat, 
+                                   LatticeStepper(latticeShape, cursorShape));
+  for (iter.reset(); !iter.atEnd(); iter++){
+    currentSum += sum(iter.cursor());
+    nPixels += iter.cursor().nelements();
+  }
+  return currentSum/nPixels;
+}
+
 
 int main(int argc, const char *argv[])
 {
@@ -103,7 +141,6 @@ int main(int argc, const char *argv[])
 
       ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nnode() << ")");
       std::stringstream ss;
-      int rank;
       bool OK;
       for(int i=1;i<parl.nnode();i++){
 	LOFAR::BlobString bs1;
@@ -116,7 +153,6 @@ int main(int argc, const char *argv[])
 	parl.connectionSet()->writeAll(bs1);
 	ASKAPLOG_INFO_STR(logger,"Sent to worker #"<<i);
 	
-	//	while(parl.connectionSet()->size()<2*(i-1)){}
        	LOFAR::BlobString bs2;
 	parl.connectionSet()->read(i-1, bs2);
 	LOFAR::BlobIBufString bib(bs2);
@@ -127,6 +163,27 @@ int main(int argc, const char *argv[])
 	in.getEnd();
 	ASKAPLOG_INFO_STR(logger,"Read from worker #"<<i<<": OK="<<OK);
       }
+
+      LOFAR::BlobString bs3;
+      bs3.resize(0);
+      LOFAR::BlobOBufString bob3(bs3);
+      LOFAR::BlobOStream out3(bob3);
+      out3.putStart("mw",1);
+      out3 << parl.nnode();
+      out3.putEnd();
+      parl.connectionSet()->writeAll(bs3);
+
+      float mean = 77.;
+      LOFAR::BlobString bs4;
+      bs4.resize(0);
+      LOFAR::BlobOBufString bob4(bs4);
+      LOFAR::BlobOStream out4(bob4);
+      out4.putStart("mean",1);
+      out4 << mean ;
+      out4.putEnd();
+      parl.connectionSet()->writeAll(bs4);
+
+      std::cout << "Master done!\n";
 
     }
     else if(parl.isWorker()){
@@ -139,8 +196,6 @@ int main(int argc, const char *argv[])
       do{
 	LOFAR::BlobString bs1;
 	bs1.resize(0);
-	std::cerr << parl.connectionSet()->size() << " " << parl.rank() << "\n";
-	//      while(parl.connectionSet()->size()<2*(parl.rank()-1)){}
 	parl.connectionSet()->read(0, bs1);
 	LOFAR::BlobIBufString bib(bs1);
 	LOFAR::BlobIStream in(bib);
@@ -152,24 +207,14 @@ int main(int argc, const char *argv[])
       }	while(rank != parl.rank());
       
       ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" has the OK");
-
-      LatticeBase* lattPtr = ImageOpener::openImage (imageName);
-      ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
-      OK = (lattPtr != 0);
-      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
-      IPosition shape = imagePtr->shape();
-      std::cerr << shape << "\n";
-      IPosition newLength = shape;
-      newLength(0) = newLength(0) / (parl.nnode()-1);
-      std::cerr << newLength << "\n";
-      int startpos = (parl.rank()-1)*newLength(0);
-      IPosition start(shape.size(),0);
-      start(0) = startpos;
-      std::cerr << start << " " << newLength << "\n";
-      Slicer slice(start, newLength);
-      SubImage<Float> subimage(*imagePtr, slice, True);
-      ASKAPLOG_INFO_STR(logger,"Made a subimage with shape " << subimage.shape());
-
+      
+      SubImage<Float> subimage;
+      OK = getSubImage(imageName,subimage,parl);
+//       ASKAPASSERT(&subimage);
+      ASKAPLOG_INFO_STR(logger,"Worker #"<<parl.rank()<<": Made a subimage with shape " << subimage.shape());
+      ASKAPLOG_DEBUG_STR(logger,"Worker #"<<parl.rank()<<": sizeof(subimage) = " << sizeof(subimage));
+      ASKAPLOG_INFO_STR(logger,"Worker #"<<parl.rank()<<": subimage mean = " << subimageMean(subimage));
+      
       LOFAR::BlobString bs2;
       bs2.resize(0);
       LOFAR::BlobOBufString bob(bs2);
@@ -179,8 +224,33 @@ int main(int argc, const char *argv[])
       out.putEnd();
       parl.connectionSet()->write(0,bs2);
 
+      do{
+	LOFAR::BlobString bs3;
+	bs3.resize(0);
+	parl.connectionSet()->read(0, bs3);
+	LOFAR::BlobIBufString bib3(bs3);
+	LOFAR::BlobIStream in3(bib3);
+	std::stringstream ss;
+	int version=in3.getStart("mw");
+	ASKAPASSERT(version==1);
+	in3 >> rank;
+	in3.getEnd();
+      }	while(rank != parl.nnode());
 
 
+      float mean;
+	LOFAR::BlobString bs4;
+	bs4.resize(0);
+	parl.connectionSet()->read(0, bs4);
+	LOFAR::BlobIBufString bib4(bs4);
+	LOFAR::BlobIStream in4(bib4);
+	std::stringstream ss;
+	int version=in4.getStart("mean");
+	while(version!=1) {}
+	//	ASKAPASSERT(version==1);
+	in4 >> mean;
+	in4.getEnd();
+	ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" received mean of " << mean << " from Master.");
       
       std::cout << "Success! (" << parl.rank() <<")\n";
 

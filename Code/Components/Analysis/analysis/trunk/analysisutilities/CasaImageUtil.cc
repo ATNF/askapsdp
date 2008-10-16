@@ -29,6 +29,7 @@
 #include <askap_analysis.h>
 
 #include <analysisutilities/CasaImageUtil.h>
+#include <analysisutilities/SubimageDef.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -36,6 +37,8 @@
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
 #include <images/Images/ImageOpener.h>
+#include <images/Images/SubImage.h>
+#include <lattices/Lattices/LatticeLocker.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/IPosition.h>
@@ -200,10 +203,75 @@ namespace askap
 
       if(wcs->spec >= 0) cube.header().fixUnits(cube.pars());
 
+      cube.initialiseCube(dim,false);
+
       delete [] dim;
 
       return duchamp::SUCCESS;
 
+    }
+
+    //**************************************************************//
+
+    int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, std::string imageName)
+    {
+      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+      LatticeBase* lattPtr = ImageOpener::openImage (imageName);
+      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
+      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+      return casaDefineWCS(header,par,imagePtr);
+    }
+
+    int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, ImageInterface<Float> *imagePtr)
+    {
+      /// @details Designed to be the equivalent of duchamp::FitsHeader::defineWCS(), but for CASA images.
+
+      IPosition shape=imagePtr->shape();
+      long *dim = new long[shape.size()];
+      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+
+      // Set the number of good axes for the fitsHeader class.
+      uint naxis=0;
+      for(uint i=0;i<imagePtr->ndim();i++)
+	if(dim[i]>1) naxis++;
+      header.setNumAxes(naxis);
+
+      if(par.isVerbose()){
+	std::cout << "Dimensions of casa image: ";
+	uint ndim = 0;
+	std::cout << dim[ndim++];
+	while(ndim<imagePtr->ndim()) std::cout << "x" << dim[ndim++];
+	std::cout << std::endl;
+      }
+
+      wcsprm *wcs = casaImageToWCS(imagePtr);
+
+      storeWCStoHeader(header, par, wcs);
+      
+      readBeamInfo(imagePtr, header, par);
+
+      header.setFluxUnits( imagePtr->units().getName() );
+
+      if(wcs->spec >= 0) header.fixUnits(par);
+
+      delete [] dim;
+
+      return duchamp::SUCCESS;
+
+    }
+
+    //**************************************************************//
+
+    long *getCASAdimensions(std::string imageName)
+    {
+      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+      LatticeBase* lattPtr = ImageOpener::openImage (imageName);
+      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
+      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+      IPosition shape=imagePtr->shape();
+      long *dim = new long[shape.size()];
+      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+      return dim;
     }
 
     //**************************************************************//
@@ -236,6 +304,10 @@ namespace askap
 	std::cout << "\n";
       }   
 
+      if(cube.getDimZ() == 1){
+	cube.pars().setMinChannels(0);
+      }
+
       cube.convertFluxUnits();
       
       delete [] dim;
@@ -261,12 +333,65 @@ namespace askap
 
       ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
       LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
+      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
 
       if( casaImageToMetadata(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
 
       if( casaImageToCubeData(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
       
+      return duchamp::SUCCESS;
+    }
+
+    //**************************************************************//
+
+    int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber)
+    {
+      /// @details Equivalent of duchamp::Cube::getImage(), but for
+      /// accessing casa images. Reads the pixel data and metadata
+      /// (ie. header information). Should also be able to read FITS,
+      /// so could be a more general way of accessing image
+      /// data. Opens the image using the casa::ImageOpener class, and
+      /// calls casaImageToMetadata(ImageInterface<Float> *,
+      /// duchamp::Cube &) and
+      /// casaImageToCubeData(ImageInterface<Float> *, duchamp::Cube
+      /// &) functions.  
+      /// @param cube The duchamp::Cube object in which info is stored
+      /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
+
+      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+      LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
+      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
+      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+
+      IPosition shape=imagePtr->shape();
+      long *dim = new long[shape.size()];
+      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+
+      subDef.define(casaImageToWCS(imagePtr));
+      subDef.setImage(cube.pars().getImageFile());
+      subDef.setImageDim( dim );
+      duchamp::Section subsection=subDef.section(subimageNumber);
+      if(subsection.parse(dim,shape.size())==duchamp::FAILURE) 
+	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
+      cube.pars().setSubsection( subsection.getSection() );
+      if(cube.pars().section().parse(dim,shape.size())==duchamp::FAILURE) 
+	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection() );
+      ASKAPLOG_INFO_STR(logger, "Worker #"<<subimageNumber<<" is using subsection " << subsection.getSection());
+
+      Slicer slice = subsectionToSlicer( subsection );
+      SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice, True);
+
+
+      if( casaImageToMetadata(sub,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
+
+      if( casaImageToCubeData(sub,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
+      
+      delete lock1;
+      //      delete imagePtr;
+      delete lattPtr;
+      delete [] dim;
+
       return duchamp::SUCCESS;
     }
 
@@ -286,10 +411,12 @@ namespace askap
 
       ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
       LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
+      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
-
       if( casaImageToMetadata(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
-
+      delete lock1;
+      //      delete imagePtr;
+      delete lattPtr;
       return duchamp::SUCCESS;
     }
 
@@ -339,6 +466,7 @@ namespace askap
 
       ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
       LatticeBase* lattPtr = ImageOpener::openImage (imageName);
+      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
 
       return casaImageToWCS(imagePtr);

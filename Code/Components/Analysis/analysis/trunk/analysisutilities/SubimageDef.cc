@@ -35,6 +35,7 @@
 #include <askapparallel/AskapParallel.h>
 
 #include <analysisutilities/AnalysisUtilities.h>
+#include <analysisutilities/CasaImageUtil.h>
 
 #include <gsl/gsl_sf_gamma.h>
 
@@ -44,6 +45,10 @@
 #include <vector>
 #include <string>
 
+#include <casa/aipstype.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/ImageOpener.h>
+
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/Section.hh>
@@ -52,6 +57,8 @@
 #define WCSLIB_GETWCSTAB // define this so that we don't try and redefine 
                          //  wtbarr (this is a problem when using gcc v.4+)
 #include <fitsio.h>
+
+using namespace casa;
 
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".analysisutilities");
@@ -67,6 +74,17 @@ namespace askap
       itsNSubX = 1;
       itsNSubY = 1;
       itsNSubZ = 1;
+    }
+
+    SubimageDef::SubimageDef(const LOFAR::ACC::APS::ParameterSet& parset)
+    {
+      this->itsImageName = parset.getString("image");
+      this->itsNSubX = parset.getInt16("nsubx",1);
+      this->itsNSubY = parset.getInt16("nsuby",1);
+      this->itsNSubZ = parset.getInt16("nsubz",1);
+      this->itsOverlapX = parset.getInt16("overlapx",0);
+      this->itsOverlapY = parset.getInt16("overlapy",0);
+      this->itsOverlapZ = parset.getInt16("overlapz",0);  
     }
 
 
@@ -91,7 +109,7 @@ namespace askap
     }
 
 
-    void SubimageDef::define(const LOFAR::ACC::APS::ParameterSet& parset)
+    void SubimageDef::define(wcsprm *wcs)
     {
 
       /// @details Define all the necessary variables within the
@@ -108,23 +126,28 @@ namespace askap
       ///
       /// @param parset The parameter set holding info on how to divide the image.
 
-      this->itsImageName = parset.getString("image");
+//       duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
+//       duchamp::FitsHeader imageHeader;
 
-      this->itsNSubX = parset.getInt16("nsubx",1);
-      this->itsNSubY = parset.getInt16("nsuby",1);
-      this->itsNSubZ = parset.getInt16("nsubz",1);
-      this->itsOverlapX = parset.getInt16("overlapx",0);
-      this->itsOverlapY = parset.getInt16("overlapy",0);
-      this->itsOverlapZ = parset.getInt16("overlapz",0);  
+//       if(isFITSFile){
+// 	imageHeader.defineWCS(this->itsImageName,tempPar);
+// 	this->itsFullImageDim = getFITSdimensions(this->itsImageName);
+//       }
+//       else{
+// 	casaDefineWCS(imageHeader,tempPar,this->itsImageName);
+// 	this->itsFullImageDim = getCASAdimensions(this->itsImageName);
+//       }
 
-      duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
-      duchamp::FitsHeader imageHeader;
-      imageHeader.defineWCS(this->itsImageName,tempPar);
-      this->itsNAxis = imageHeader.WCS().naxis;
-      const int lng = imageHeader.WCS().lng;
-      const int lat = imageHeader.WCS().lat;
-      const int spec = imageHeader.WCS().spec;
+//       this->itsNAxis = imageHeader.WCS().naxis;
+//       const int lng = imageHeader.WCS().lng;
+//       const int lat = imageHeader.WCS().lat;
+//       const int spec = imageHeader.WCS().spec;
 
+      this->itsNAxis = wcs->naxis;
+      const int lng  = wcs->lng;
+      const int lat  = wcs->lat;
+      const int spec = wcs->spec;
+ 
       this->itsNSub = new int[this->itsNAxis];
       this->itsOverlap = new int[this->itsNAxis];
       for(int i=0;i<this->itsNAxis;i++){
@@ -148,6 +171,14 @@ namespace askap
 
     }
 
+    void SubimageDef::defineFITS(std::string FITSfilename)
+    {
+      duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
+      duchamp::FitsHeader imageHeader;
+      this->itsImageName = FITSfilename;
+      imageHeader.defineWCS(this->itsImageName,tempPar);
+      this->define(imageHeader.getWCS());
+    }
 
     duchamp::Section SubimageDef::section(int workerNum)
     {
@@ -160,7 +191,6 @@ namespace askap
       /// @return A duchamp::Section object containing all information
       /// on the subsection.
 
-      long *dimAxes = getFITSdimensions(this->itsImageName);
       long start = 0;
       
       long sub[3];
@@ -173,8 +203,8 @@ namespace askap
       for(int i=0;i<this->itsNAxis;i++){
 	    
 	if(this->itsNSub[i] > 1){
-	  int min = std::max( start, sub[i]*(dimAxes[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
-	  int max = std::min( dimAxes[i], (sub[i]+1)*(dimAxes[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 );
+	  int min = std::max( start, sub[i]*(this->itsFullImageDim[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
+	  int max = std::min( this->itsFullImageDim[i], (sub[i]+1)*(this->itsFullImageDim[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 );
 	  section << min << ":" << max;
 	}
 	else section << "*";
@@ -184,7 +214,7 @@ namespace askap
       std::string secstring = "["+section.str()+"]";
       duchamp::Section sec(secstring);
       std::vector<long> dim(this->itsNAxis);
-      for(int i=0;i<this->itsNAxis;i++) dim[i] = dimAxes[i];
+      for(int i=0;i<this->itsNAxis;i++) dim[i] = this->itsFullImageDim[i];
       sec.parse(dim);
 
       return sec;

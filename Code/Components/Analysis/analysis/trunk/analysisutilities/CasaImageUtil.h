@@ -28,6 +28,8 @@
 ///
 #include <askap_analysis.h>
 
+#include <analysisutilities/SubimageDef.h>
+
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -59,6 +61,7 @@ namespace askap
     /// @name
     /// @{
     int casaImageToCube(duchamp::Cube &cube);
+    int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber);
     int casaImageToCubeData(ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
     /// @}
 
@@ -85,6 +88,18 @@ namespace askap
     /// @ingroup analysisutilities
     /// @brief Convert a duchamp subsection to a casa Slicer
     Slicer subsectionToSlicer(duchamp::Section &subsection);
+
+    /// @ingroup analysisutilities
+    /// @brief Set up a FitsHeader object based on a CASA image
+    /// @name
+    /// @{
+    int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, std::string imageName);
+    int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, ImageInterface<Float> *imagePtr);
+    /// @}
+
+    /// @ingroup analysisutilites
+    /// @brief Return the list of axis lengths for a casa image.
+    long *getCASAdimensions(std::string imageName);
 
   }
 

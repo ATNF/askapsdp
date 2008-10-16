@@ -53,13 +53,20 @@ namespace askap
     public:
       /// Default constructor
       SubimageDef();
+      /// Constructor using parset.
+      SubimageDef(const LOFAR::ACC::APS::ParameterSet& parset);
       /// Copy function
       SubimageDef& operator= (const SubimageDef& s);
       /// Default destructor
       virtual ~SubimageDef(){};
 
       /// @brief Set up the definition using a ParameterSet
-      void define(const LOFAR::ACC::APS::ParameterSet& parset);
+      void define(wcsprm *wcs);
+      void defineFITS(std::string FITSfilename);
+
+      /// @brief Set the array of image dimensions
+      void setImageDim(long *dim){itsFullImageDim = dim;};
+      void setImage(std::string imageName){itsImageName = imageName;};
 
       /// @brief Return a subsection specification for a given worker
       duchamp::Section section(int workerNum);
@@ -86,6 +93,8 @@ namespace askap
       int *itsOverlap;
       /// The number of axes (the size of the itsNSub and itsOverlap arrays)
       int itsNAxis;
+      /// The dimensions of the full image
+      long *itsFullImageDim;
       /// The name of the image
       std::string itsImageName;
     };
