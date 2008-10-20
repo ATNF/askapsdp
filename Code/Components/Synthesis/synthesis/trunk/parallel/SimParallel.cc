@@ -213,7 +213,8 @@ namespace askap
 	{
 	  ostringstream os;
 	  os << "feeds."<< feedNames[feed];
-	  vector<double> xy(parset.getDoubleVector(os.str()));
+	  string subFeed(substitute(os.str()));
+	  vector<double> xy(parset.getDoubleVector(subFeed));
 	  x[feed]=xy[0];
 	  y[feed]=xy[1];
 	  pol[feed]="X Y";
