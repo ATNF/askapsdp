@@ -104,6 +104,18 @@ namespace askap {
     }
     
     AProjectWStackVisGridder::~AProjectWStackVisGridder() {
+         size_t nUsed = 0;
+         for (casa::uInt feed = 0; feed<itsDone.nrow(); ++feed) {
+              for (casa::uInt field = 0; field<itsDone.ncolumn(); ++field) {
+                   if (itsDone(feed,field)) {
+                       ++nUsed;
+                   }
+              }
+         }
+         if (itsDone.nelements()) {
+             ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder cache usage: "<<
+                         double(nUsed)/double(itsDone.nrow()*itsDone.ncolumn())*100<<"% of maxfeed*maxfield");
+         }    
     }
     
     /// Clone a copy of this Gridder
