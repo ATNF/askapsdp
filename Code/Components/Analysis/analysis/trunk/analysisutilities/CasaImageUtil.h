@@ -62,7 +62,7 @@ namespace askap
     /// @{
     int casaImageToCube(duchamp::Cube &cube);
     int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber);
-    int casaImageToCubeData(ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
+    int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
     /// @}
 
     /// @brief Save the metadata from a casa image to a duchamp::Cube object
@@ -70,19 +70,19 @@ namespace askap
     /// @ingroup analysisutilities
     /// @{
     int casaImageToMetadata(duchamp::Cube &cube);
-    int casaImageToMetadata(ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
+    int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
     /// @}
 
     /// @ingroup analysisutilities
     /// @brief Read the beam information from a casa image
-    void readBeamInfo(ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par);
+    void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par);
 
     /// @ingroup analysisutilities
     /// @brief Extract the WCS information from a casa image
     /// @name
     /// @{
     wcsprm *casaImageToWCS(std::string imageName);
-    wcsprm *casaImageToWCS(ImageInterface<Float>* imagePtr);
+    wcsprm *casaImageToWCS(const ImageInterface<Float>* imagePtr);
     /// @}
 
     /// @ingroup analysisutilities
@@ -94,7 +94,7 @@ namespace askap
     /// @name
     /// @{
     int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, std::string imageName);
-    int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, ImageInterface<Float> *imagePtr);
+    int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, const ImageInterface<Float> *imagePtr);
     /// @}
 
     /// @ingroup analysisutilites

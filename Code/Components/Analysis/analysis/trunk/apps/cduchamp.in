@@ -53,7 +53,7 @@
 
 #Cduchamp.image              = /Users/whi550/ObsData/ASKAP/simulations/skymodel/1deg.model.smoothed.fits
 Cduchamp.image              = /Users/whi550/ObsData/ASKAP/simulations/skymodel/1deg.model.smoothed
-Cduchamp.nsubx       = 2
+Cduchamp.nsubx       = 3
 
 Cduchamp.verbose      = true
 #Cduchamp.flagRobust  = false   #This applies to the workers only.
