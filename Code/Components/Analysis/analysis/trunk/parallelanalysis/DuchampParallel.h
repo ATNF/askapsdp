@@ -72,12 +72,8 @@ namespace askap
       /// @param parset The parameter set to read Duchamp and other parameters from.
       DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
 
-      /// @brief Work out desired subsections for workers
-      void splitImage(const LOFAR::ACC::APS::ParameterSet& parset);
-
       /// @brief Read in the data from the image file (on the workers)
       void readData();
-      void readDataOld();
       
       /// @brief Condense the lists (on the master)
       void condenseLists();
@@ -132,6 +128,9 @@ namespace askap
 
       /// @brief Is the dataset a 2-dimensional image?
       bool is2D();
+
+      /// @brief Print out the worker number in form useful for logging.
+      std::string workerPrefix();
 
     protected:
 
