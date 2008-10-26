@@ -130,6 +130,8 @@ namespace askap
       /// as particular cduchamp parameters such as masterImage and
       /// sectionInfo.
 
+      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting DuchampParallel constructor");
+
       // First do the setup needed for both workers and master
 
       this->itsCube.pars() = parseParset(parset);
@@ -147,35 +149,37 @@ namespace askap
       this->itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
 
       // Now read the correct image name according to worker/master state.
-      if(this->isMaster()){
-	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
-	this->itsCube.pars().setImageFile(this->itsImage);
-      }
-      else if(this->isWorker()) {
-	this->itsCube.pars().setImageFile(this->itsImage);
+      this->itsCube.pars().setImageFile(this->itsImage);
 
-	if(this->isParallel()){
+      if(this->isParallel()){
+	if(this->isMaster())
+	  this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
+	else if(this->isWorker()){
 	  this->itsSubimageDef = SubimageDef(parset);
 	  this->itsCube.pars().setFlagSubsection(true);
 	}
-
-	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
       }
 
-      if(this->itsCube.pars().getFlagLog()){
-	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up logfile " << this->itsCube.pars().getLogFile() );
-	std::ofstream logfile(this->itsCube.pars().getLogFile().c_str());
-	logfile << "New run of the CDuchamp sourcefinder: ";
-	time_t now = time(NULL);
-	logfile << asctime( localtime(&now) );
-	// Write out the command-line statement
-	logfile << "Executing statement : ";
-	for(int i=0;i<argc;i++) logfile << argv[i] << " ";
-	logfile << std::endl;
-	logfile << this->itsCube.pars();
-	logfile.close();
-      } 
+      if(this->isWorker())
+	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
+
+
+//       if(this->isParallel() && this->isMaster()){
+// 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
+// 	this->itsCube.pars().setImageFile(this->itsImage);
+//       }
+//       else if(this->isWorker()) {
+// 	this->itsCube.pars().setImageFile(this->itsImage);
+
+// 	if(this->isParallel()){
+// 	  this->itsSubimageDef = SubimageDef(parset);
+// 	  this->itsCube.pars().setFlagSubsection(true);
+// 	}
+
+// 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
+//       }
 	
+      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished DuchampParallel constructor");
 
     }
 
@@ -187,11 +191,68 @@ namespace askap
       /// @details Reads in the data using duchamp functionality and
       /// the image name defined in the constructor.
 
-      if(this->isWorker()) {
+      if(this->isParallel() && this->isMaster()) {
+
+	int result;
+	ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata");
+	if(this->itsIsFITSFile) result = this->itsCube.getMetadata();
+ 	else result = casaImageToMetadata(this->itsCube);
+
+	if(result==duchamp::FAILURE){
+	  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsImage << ".");
+	  ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage)
+	}
+	else {
+	  ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsImage);
+	}
+
+	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
+			      << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ() );
+	if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
+	this->itsCube.convertFluxUnits();
+
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "itsNNode="<<this->itsNNode<<", itsRank="<<this->itsRank);
+	// Send out the OK to the workers, so that they know that the subimages have been created.
+	bool OK;
+	for(int i=1;i<this->itsNNode;i++){
+	  LOFAR::BlobString bs5;
+	  bs5.resize(0);
+	  LOFAR::BlobOBufString bob5(bs5);
+	  LOFAR::BlobOStream out5(bob5);
+	  out5.putStart("goInput",1);
+	  out5 << i ;
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sent OK to #"<<i);
+	  out5.putEnd();
+	  this->itsConnectionSet->writeAll(bs5);
+	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " Sent OK to worker #" << i);
+	  
+	  LOFAR::BlobString bs6;
+	  this->itsConnectionSet->read(i-1, bs6);
+	  LOFAR::BlobIBufString bib6(bs6);
+	  LOFAR::BlobIStream in6(bib6);
+	  int version=in6.getStart("inputDone");
+	  ASKAPASSERT(version==1);
+	  in6 >> OK;
+	  in6.getEnd();
+	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " Received OK from worker #" << i<<": OK="<<OK);
+	}
+	
+	LOFAR::BlobString bs7;
+	bs7.resize(0);
+	LOFAR::BlobOBufString bob7(bs7);
+	LOFAR::BlobOStream out7(bob7);
+	out7.putStart("goInput",1);
+	out7 << this->itsNNode;
+	out7.putEnd();
+	this->itsConnectionSet->writeAll(bs7);
+
+      }
+      else if(this->isWorker()) {
 	
 	bool OK=true; 
 	int rank;
 	if(this->isParallel()){
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "itsNNode="<<this->itsNNode<<", itsRank="<<this->itsRank);
 	  do{
 	    LOFAR::BlobString bs1;
 	    bs1.resize(0);
@@ -203,6 +264,7 @@ namespace askap
 	    ASKAPASSERT(version==1);
 	    in1 >> rank;
 	    in1.getEnd();
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Read rank " << rank << " from Blob");
 	    OK = (rank==this->itsRank);
 	  } while(!OK);
 	}
@@ -252,7 +314,8 @@ namespace askap
 	  }
 
 	  // Return the OK to the master to say that we've read the image
- 	  if(isParallel()){
+ 	  if(this->isParallel()){
+
 	    LOFAR::BlobString bs2;
 	    bs2.resize(0);
 	    LOFAR::BlobOBufString bob2(bs2);
@@ -293,63 +356,28 @@ namespace askap
 	  }
 	}
 	
-
-      } // end of if(isWorker()){
-      else {
-
-	int result;
-	ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata");
-	if(this->itsIsFITSFile) result = this->itsCube.getMetadata();
- 	else result = casaImageToMetadata(this->itsCube);
-
-	if(result==duchamp::FAILURE){
-	  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsImage << ".");
-	  ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage)
-	}
-	else {
-	  ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsImage);
-	}
-
-	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
-			      << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ() );
-	if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
-	this->itsCube.convertFluxUnits();
-
-	// Send out the OK to the workers, so that they know that the subimages have been created.
-	bool OK;
-	for(int i=1;i<this->itsNNode;i++){
-	  LOFAR::BlobString bs5;
-	  bs5.resize(0);
-	  LOFAR::BlobOBufString bob5(bs5);
-	  LOFAR::BlobOStream out5(bob5);
-	  out5.putStart("goInput",1);
-	  out5 << i ;
-	  out5.putEnd();
-	  this->itsConnectionSet->writeAll(bs5);
-	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " Sent OK to worker #" << i);
-	  
-	  LOFAR::BlobString bs6;
-	  this->itsConnectionSet->read(i-1, bs6);
-	  LOFAR::BlobIBufString bib6(bs6);
-	  LOFAR::BlobIStream in6(bib6);
-	  int version=in6.getStart("inputDone");
-	  ASKAPASSERT(version==1);
-	  in6 >> OK;
-	  in6.getEnd();
-	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " Received OK from worker #" << i);
-	}
-	
-	LOFAR::BlobString bs7;
-	bs7.resize(0);
-	LOFAR::BlobOBufString bob7(bs7);
-	LOFAR::BlobOStream out7(bob7);
-	out7.putStart("goInput",1);
-	out7 << this->itsNNode;
-	out7.putEnd();
-	this->itsConnectionSet->writeAll(bs7);
-
-
       }
+
+    }
+
+    //**************************************************************//
+
+    void DuchampParallel::setupLogfile(int argc, const char** argv)
+    {
+
+      if(this->itsCube.pars().getFlagLog()){
+	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up logfile " << this->itsCube.pars().getLogFile() );
+	std::ofstream logfile(this->itsCube.pars().getLogFile().c_str());
+	logfile << "New run of the CDuchamp sourcefinder: ";
+	time_t now = time(NULL);
+	logfile << asctime( localtime(&now) );
+	// Write out the command-line statement
+	logfile << "Executing statement : ";
+	for(int i=0;i<argc;i++) logfile << argv[i] << " ";
+	logfile << std::endl;
+	logfile << this->itsCube.pars();
+	logfile.close();
+      } 
 
     }
       
@@ -551,71 +579,75 @@ namespace askap
       /// calculate parameters of any merged boundary sources.
       /// @todo Voxellist is really only needed for the boundary sources.
       
-      if(this->isMaster()){
+      if(!this->isParallel() || this->isMaster()){
  
 	ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Retrieving lists from workers" );
 
-	LOFAR::BlobString bs;
-	int16 rank, numObj;
-	for (int i=1; i<this->itsNNode; i++)
-	  {
-	    this->itsConnectionSet->read(i-1, bs);
-	    LOFAR::BlobIBufString bib(bs);
-	    LOFAR::BlobIStream in(bib);
-	    int version=in.getStart("detW2M");
-	    ASKAPASSERT(version==1);
-	    in >> rank >> numObj;
-	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Starting to read " 
-			      << numObj << " objects from worker #"<< rank);
-	    int xstart,ystart,zstart;
-	    in >> xstart >> ystart >> zstart;
-	    for(int obj=0;obj<numObj;obj++){
-	      sourcefitting::RadioSource src;
-	      in >> src;
-	      // Correct for any offsets;
-	      src.setXOffset(xstart);
-	      src.setYOffset(ystart);
-	      src.setZOffset(zstart);
-	      src.addOffsets();
-	      src.calcParams();
-	      src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
-	      for(unsigned int f=0;f<src.fitset().size();f++){
-		src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
-		src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
-	      }
-	      // And now set offsets to zero as we are in the master cube
-	      src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
+	if(this->isParallel()){
+	  
+	  LOFAR::BlobString bs;
+	  int16 rank, numObj;
+	  for (int i=1; i<this->itsNNode; i++)
+	    {
+	      this->itsConnectionSet->read(i-1, bs);
+	      LOFAR::BlobIBufString bib(bs);
+	      LOFAR::BlobIStream in(bib);
+	      int version=in.getStart("detW2M");
+	      ASKAPASSERT(version==1);
+	      in >> rank >> numObj;
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Starting to read " 
+				<< numObj << " objects from worker #"<< rank);
+	      int xstart,ystart,zstart;
+	      in >> xstart >> ystart >> zstart;
+	      for(int obj=0;obj<numObj;obj++){
+		sourcefitting::RadioSource src;
+		in >> src;
+		// Correct for any offsets;
+		src.setXOffset(xstart);
+		src.setYOffset(ystart);
+		src.setZOffset(zstart);
+		src.addOffsets();
+		src.calcParams();
+		src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+		for(unsigned int f=0;f<src.fitset().size();f++){
+		  src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
+		  src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
+		}
+		// And now set offsets to zero as we are in the master cube
+		src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
 
-	      src.fitparams() = this->itsFitter;
+		src.fitparams() = this->itsFitter;
 
-	      this->itsSourceList.push_back(src);
+		this->itsSourceList.push_back(src);
 	      
-	      if( src.isAtEdge() ){
+		if( src.isAtEdge() ){
 	      
-		int numVox;
-		in >> numVox;
-		for(int p=0;p<numVox;p++){
-		  int32 x,y,z; 
-		  float flux;
-		  bool inObj;
-		  in >> inObj >> x >> y >> z >> flux; 
-		  x += xstart;
-		  y += ystart;
-		  z += zstart;
-		  PixelInfo::Voxel vox(x,y,z,flux);
-		  this->itsVoxelList.push_back(vox);
+		  int numVox;
+		  in >> numVox;
+		  for(int p=0;p<numVox;p++){
+		    int32 x,y,z; 
+		    float flux;
+		    bool inObj;
+		    in >> inObj >> x >> y >> z >> flux; 
+		    x += xstart;
+		    y += ystart;
+		    z += zstart;
+		    PixelInfo::Voxel vox(x,y,z,flux);
+		    this->itsVoxelList.push_back(vox);
+		  }
+
 		}
 
 	      }
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size " 
+				<< numObj << " from worker #"<< rank);
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have " 
+				<< this->itsSourceList.size() << " objects");
+	      in.getEnd();
 
 	    }
-	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size " 
-			      << numObj << " from worker #"<< rank);
-	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have " 
-			      << this->itsSourceList.size() << " objects");
-	    in.getEnd();
-
-	  }
+	  
+	}
 	      
       }
 
@@ -638,7 +670,7 @@ namespace askap
       /// Name field) and given object IDs.
 
 
-      if(this->isMaster()){
+      if(!this->isParallel() || this->isMaster()){
 	
 	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Beginning the cleanup");
 

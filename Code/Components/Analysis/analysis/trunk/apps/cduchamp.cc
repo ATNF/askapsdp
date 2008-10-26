@@ -91,6 +91,7 @@ int main(int argc, const char** argv)
     ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
     
     duchamp.readData();
+    duchamp.setupLogfile(argc,argv);
     duchamp.gatherStats();
     duchamp.broadcastThreshold();
     duchamp.receiveThreshold();

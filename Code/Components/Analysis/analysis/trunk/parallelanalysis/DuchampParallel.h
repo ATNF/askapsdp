@@ -75,12 +75,11 @@ namespace askap
       /// @brief Read in the data from the image file (on the workers)
       void readData();
       
+      void setupLogfile(int argc, const char** argv);
+
       /// @brief Condense the lists (on the master)
       void condenseLists();
       
-/*       /// @brief Find the lists (on the workers) */
-/*       void findLists(); */
-
       /// @brief Sort out the fluxes for all detected objects (on the master)
       void calcFluxes();
 

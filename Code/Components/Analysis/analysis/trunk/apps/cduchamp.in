@@ -52,7 +52,8 @@
 #Cduchamp.image       = /Users/whi550/ObsData/ASKAP/neeraj/FIRST_CMP3T8B2_AIRY.fits
 
 #Cduchamp.image              = /Users/whi550/ObsData/ASKAP/simulations/skymodel/1deg.model.smoothed.fits
-Cduchamp.image              = /Users/whi550/ObsData/ASKAP/simulations/skymodel/1deg.model.smoothed
+#Cduchamp.image              = /Users/whi550/ObsData/ASKAP/simulations/skymodel/1deg.model.smoothed
+Cduchamp.image              = /replicated1/whi550/ASKAP/testData/skymodels/1deg.model.smoothed
 Cduchamp.nsubx       = 3
 
 Cduchamp.verbose      = true

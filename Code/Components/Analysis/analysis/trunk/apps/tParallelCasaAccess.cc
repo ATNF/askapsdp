@@ -151,7 +151,7 @@ int main(int argc, const char *argv[])
 	out << i ;
 	out.putEnd();
 	parl.connectionSet()->writeAll(bs1);
-	ASKAPLOG_INFO_STR(logger,"Sent to worker #"<<i);
+	ASKAPLOG_INFO_STR(logger,"Master: Sent to worker #"<<i);
 	
        	LOFAR::BlobString bs2;
 	parl.connectionSet()->read(i-1, bs2);
@@ -161,7 +161,7 @@ int main(int argc, const char *argv[])
 	ASKAPASSERT(version==1);
 	in >> OK;
 	in.getEnd();
-	ASKAPLOG_INFO_STR(logger,"Read from worker #"<<i<<": OK="<<OK);
+	ASKAPLOG_INFO_STR(logger,"Master: Read from worker #"<<i<<": OK="<<OK);
       }
 
       LOFAR::BlobString bs3;
