@@ -118,30 +118,11 @@ namespace askap
       /// parameters, with overlaps in each direction given by the
       /// overlapx/y/z parameters (these are in pixels).
       ///
-      /// The Duchamp function duchamp::FitsHeader::defineWCS() is
-      /// used to extract the WCS parameters from the FITS
-      /// header. These determine which axes are the x, y and z
+      /// The WCS parameters in wcs determine which axes are the x, y and z
       /// axes. The number of axes is also determined from the WCS
       /// parameter set.
       ///
-      /// @param parset The parameter set holding info on how to divide the image.
-
-//       duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
-//       duchamp::FitsHeader imageHeader;
-
-//       if(isFITSFile){
-// 	imageHeader.defineWCS(this->itsImageName,tempPar);
-// 	this->itsFullImageDim = getFITSdimensions(this->itsImageName);
-//       }
-//       else{
-// 	casaDefineWCS(imageHeader,tempPar,this->itsImageName);
-// 	this->itsFullImageDim = getCASAdimensions(this->itsImageName);
-//       }
-
-//       this->itsNAxis = imageHeader.WCS().naxis;
-//       const int lng = imageHeader.WCS().lng;
-//       const int lat = imageHeader.WCS().lat;
-//       const int spec = imageHeader.WCS().spec;
+      /// @param wcs The WCSLIB definition of the world coordinate system
 
       this->itsNAxis = wcs->naxis;
       const int lng  = wcs->lng;
@@ -173,6 +154,19 @@ namespace askap
 
     void SubimageDef::defineFITS(std::string FITSfilename)
     {
+      /// @details Define all the necessary variables within the
+      /// SubimageDef class. The image (given by the parameter "image"
+      /// in the parset) is to be split up according to the nsubx/y/z
+      /// parameters, with overlaps in each direction given by the
+      /// overlapx/y/z parameters (these are in pixels).
+      ///
+      /// This version is designed for FITS files. The Duchamp
+      /// function duchamp::FitsHeader::defineWCS() is used to extract
+      /// the WCS parameters from the FITS header. This is then sent
+      /// to SubimageDef::define(wcsprm *) to define everything.
+      ///
+      /// @param FITSfilename The name of the FITS file.
+
       duchamp::Param tempPar; // This is needed for defineWCS(), but we don't care about the contents.
       duchamp::FitsHeader imageHeader;
       this->itsImageName = FITSfilename;

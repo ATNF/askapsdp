@@ -75,6 +75,7 @@ namespace askap
       /// @brief Read in the data from the image file (on the workers)
       void readData();
       
+      /// @brief Set up the log file
       void setupLogfile(int argc, const char** argv);
 
       /// @brief Condense the lists (on the master)

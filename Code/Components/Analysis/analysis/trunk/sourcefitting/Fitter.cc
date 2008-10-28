@@ -204,7 +204,6 @@ namespace askap
 // 	  }	      
       }
 
-      /// @brief A simple way of printing fitted parameters
       void logparameters(Matrix<Double> &m)
       {
 	uInt g,p;

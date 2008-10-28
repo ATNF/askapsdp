@@ -188,8 +188,14 @@ namespace askap
 
     void DuchampParallel::readData()
     {
-      /// @details Reads in the data using duchamp functionality and
-      /// the image name defined in the constructor.
+      /// @details Reads in the data to the duchamp::Cube class. For
+      /// the workers, this either uses the duchamp functionality, in
+      /// the case of FITS data, or calls the routines in
+      /// CasaImageUtil.cc in the case of casa (or other) formats. If
+      /// reconstruction or smoothing are required, they are done in
+      /// this function. For the master, the metadata only is read
+      /// from the file, with the same choice based on the FITS status
+      /// of the data file.
 
       if(this->isParallel() && this->isMaster()) {
 
@@ -364,6 +370,8 @@ namespace askap
 
     void DuchampParallel::setupLogfile(int argc, const char** argv)
     {
+      /// @details Opens the log file and writes the execution
+      /// statement, the time, and the duchamp parameter set to it.
 
       if(this->itsCube.pars().getFlagLog()){
 	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up logfile " << this->itsCube.pars().getLogFile() );

@@ -51,21 +51,23 @@ namespace askap
     class SubimageDef
     {
     public:
-      /// Default constructor
+      /// @brief Default constructor
       SubimageDef();
-      /// Constructor using parset.
+      /// @brief Constructor using parset.
       SubimageDef(const LOFAR::ACC::APS::ParameterSet& parset);
-      /// Copy function
+      /// @brief Copy function
       SubimageDef& operator= (const SubimageDef& s);
-      /// Default destructor
+      /// @brief Default destructor
       virtual ~SubimageDef(){};
 
-      /// @brief Set up the definition using a ParameterSet
+      /// @brief Set up the definition using a WCSLIB definition
       void define(wcsprm *wcs);
+      /// @brief Set up the definition for a FITS file.
       void defineFITS(std::string FITSfilename);
 
       /// @brief Set the array of image dimensions
       void setImageDim(long *dim){itsFullImageDim = dim;};
+      /// @brief Set the image name.
       void setImage(std::string imageName){itsImageName = imageName;};
 
       /// @brief Return a subsection specification for a given worker
@@ -75,27 +77,27 @@ namespace askap
       int numSubs(){return itsNSubX*itsNSubY*itsNSubZ;};
 
     protected:
-      /// Number of subdivisions in the x-direction
+      /// @brief Number of subdivisions in the x-direction
       int itsNSubX;
-      /// Number of subdivisions in the y-direction
+      /// @brief Number of subdivisions in the y-direction
       int itsNSubY;
-      /// Number of subdivisions in the z-direction
+      /// @brief Number of subdivisions in the z-direction
       int itsNSubZ;
-      /// Size of the overlap between subimages in the x-direction
+      /// @brief Size of the overlap between subimages in the x-direction
       int itsOverlapX;
-      /// Size of the overlap between subimages in the y-direction
+      /// @brief Size of the overlap between subimages in the y-direction
       int itsOverlapY;
-      /// Size of the overlap between subimages in the z-direction
+      /// @brief Size of the overlap between subimages in the z-direction
       int itsOverlapZ;
-      /// The array of NSub(X,Y,Z) values, ordered in the appropriate sense according to the WCS
+      /// @brief The array of NSub(X,Y,Z) values, ordered in the appropriate sense according to the WCS
       int *itsNSub;
-      /// The array of Overlap(X,Y,Z) values, ordered in the appropriate sense according to the WCS
+      /// @brief The array of Overlap(X,Y,Z) values, ordered in the appropriate sense according to the WCS
       int *itsOverlap;
-      /// The number of axes (the size of the itsNSub and itsOverlap arrays)
+      /// @brief The number of axes (the size of the itsNSub and itsOverlap arrays)
       int itsNAxis;
-      /// The dimensions of the full image
+      /// @brief The dimensions of the full image
       long *itsFullImageDim;
-      /// The name of the image
+      /// @brief The name of the image
       std::string itsImageName;
     };
 

@@ -193,7 +193,7 @@ namespace askap
 	/// the MADFM of the surrounding pixels from the Cube's array. 
 	/// Calls setNoiseLevel(float *, long *, int).
 	/// @param cube The duchamp::Cube object containing the pixel array
-	/// @param boxSize The side length of the box used.
+	/// @param fitparams The set of parameters governing the fit
 
 	this->setNoiseLevel(cube.getArray(), cube.getDimArray(), fitparams.noiseBoxSize());
       }

@@ -103,6 +103,7 @@ namespace askap
 
 	/// @brief Return a list of subcomponents.
 	std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
+	/// @brief Return a list of subcomponents that lie above a flux threshold
 	std::vector<SubComponent> getThresholdedSubComponentList(casa::Vector<casa::Double> &f);
 
 	/// @brief Fit Gaussian components to the Detection.
@@ -153,9 +154,9 @@ namespace askap
 	/// @name
 	/// @{
 
-	/// Pass a RadioSource object into a Blob
+	/// @brief Pass a RadioSource object into a Blob
 	friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, RadioSource& src);
-	/// Receive a RadioSource object from a Blob
+	/// @brief Receive a RadioSource object from a Blob
 	friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, RadioSource& src);
 	
 	/// @}

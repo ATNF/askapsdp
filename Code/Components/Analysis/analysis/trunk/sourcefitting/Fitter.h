@@ -261,13 +261,19 @@ namespace askap
 	casa::Gaussian2D<casa::Double> gaussian(int num);
 
       protected:
+	/// @brief The set of parameters defining the fits
 	FittingParameters itsParams;
 
+	/// @brief The number of Gaussian functions to fit.
 	unsigned int itsNumGauss;
+	/// @brief The casa Gaussian Fitter
 	FitGaussian<casa::Double> itsFitter;
+	/// @brief The number of degrees of freedom in the fit
 	int itsNDoF;
+	/// @brief The reduced chi-squared of the fit
 	float itsRedChisq;
 
+	/// @brief The fitted components
 	casa::Matrix<casa::Double> itsSolution;
 
       };

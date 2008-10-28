@@ -63,6 +63,7 @@
 using namespace casa;
 using namespace duchamp;
 
+///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".analysisutilities");
 
 namespace askap
@@ -211,69 +212,6 @@ namespace askap
 
     }
 
-//     //**************************************************************//
-
-//     int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, std::string imageName)
-//     {
-//       ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-//       const LatticeBase* lattPtr = ImageOpener::openImage (imageName);
-//       //      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
-//       const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-//       return casaDefineWCS(header,par,imagePtr);
-//     }
-
-//     int casaDefineWCS(duchamp::FitsHeader &header, duchamp::Param &par, const ImageInterface<Float> *imagePtr)
-//     {
-//       /// @details Designed to be the equivalent of duchamp::FitsHeader::defineWCS(), but for CASA images.
-
-//       IPosition shape=imagePtr->shape();
-//       long *dim = new long[shape.size()];
-//       for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
-
-//       // Set the number of good axes for the fitsHeader class.
-//       uint naxis=0;
-//       for(uint i=0;i<imagePtr->ndim();i++)
-// 	if(dim[i]>1) naxis++;
-//       header.setNumAxes(naxis);
-
-//       if(par.isVerbose()){
-// 	std::cout << "Dimensions of casa image: ";
-// 	uint ndim = 0;
-// 	std::cout << dim[ndim++];
-// 	while(ndim<imagePtr->ndim()) std::cout << "x" << dim[ndim++];
-// 	std::cout << std::endl;
-//       }
-
-//       wcsprm *wcs = casaImageToWCS(imagePtr);
-
-//       storeWCStoHeader(header, par, wcs);
-      
-//       readBeamInfo(imagePtr, header, par);
-
-//       header.setFluxUnits( imagePtr->units().getName() );
-
-//       if(wcs->spec >= 0) header.fixUnits(par);
-
-//       delete [] dim;
-
-//       return duchamp::SUCCESS;
-
-//     }
-
-    //**************************************************************//
-
-//     long *getCASAdimensions(std::string imageName)
-//     {
-//       ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-//       const LatticeBase* lattPtr = ImageOpener::openImage (imageName);
-//       //      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
-//       const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-//       IPosition shape=imagePtr->shape();
-//       long *dim = new long[shape.size()];
-//       for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
-//       return dim;
-//     }
-
     //**************************************************************//
 
     int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
@@ -314,34 +252,6 @@ namespace askap
 
       return duchamp::SUCCESS;
     }
-
-    //**************************************************************//
-
-//     int casaImageToCube(duchamp::Cube &cube)
-//     {
-//       /// @details Equivalent of duchamp::Cube::getImage(), but for
-//       /// accessing casa images. Reads the pixel data and metadata
-//       /// (ie. header information). Should also be able to read FITS,
-//       /// so could be a more general way of accessing image
-//       /// data. Opens the image using the casa::ImageOpener class, and
-//       /// calls casaImageToMetadata(ImageInterface<Float> *,
-//       /// duchamp::Cube &) and
-//       /// casaImageToCubeData(ImageInterface<Float> *, duchamp::Cube
-//       /// &) functions.  
-//       /// @param cube The duchamp::Cube object in which info is stored
-//       /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
-
-//       ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-//       const LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
-//       //      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
-//       const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-
-//       if( casaImageToMetadata(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
-
-//       if( casaImageToCubeData(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
-      
-//       return duchamp::SUCCESS;
-//     }
 
     //**************************************************************//
 
@@ -633,8 +543,6 @@ namespace askap
       std::vector<int> secStarts = subsection.getStartList();
       std::vector<int> secLengths = subsection.getDimList();
       int ndim = secStarts.size();
-
-//       IPosition start(secStarts),length(secLengths);
 
       IPosition start(ndim),length(ndim);
       for(int i=0;i<ndim;i++){
