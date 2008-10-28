@@ -46,7 +46,7 @@ namespace askap
 
     /// @brief Return an array of axis dimensions for a FITS file.
     /// @ingroup analysisutilities
-    long * getFITSdimensions(std::string filename);
+    std::vector<long> getFITSdimensions(std::string filename);
 
     /// @brief Return the probability of obtaining a chisq value by
     ///        chance, for a certain number of degrees of freedom.

@@ -277,17 +277,17 @@ namespace askap
       //    imagePtr->unlock();
 
       IPosition shape=imagePtr->shape();
-      long *dim = new long[shape.size()];
+      std::vector<long> dim(shape.size());
       for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
 
       subDef.define(casaImageToWCS(imagePtr));
       subDef.setImage(cube.pars().getImageFile());
       subDef.setImageDim( dim );
       duchamp::Section subsection=subDef.section(subimageNumber);
-      if(subsection.parse(dim,shape.size())==duchamp::FAILURE) 
+      if(subsection.parse(dim)==duchamp::FAILURE) 
 	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
       cube.pars().setSubsection( subsection.getSection() );
-      if(cube.pars().section().parse(dim,shape.size())==duchamp::FAILURE) 
+      if(cube.pars().section().parse(dim)==duchamp::FAILURE) 
 	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection() );
       ASKAPLOG_INFO_STR(logger, "Worker #"<<subimageNumber+1<<" is using subsection " << subsection.getSection());
 
@@ -302,7 +302,7 @@ namespace askap
 //       delete lock1;
 //      delete imagePtr;
       delete lattPtr;
-      delete [] dim;
+      //      delete [] dim;
 
       return duchamp::SUCCESS;
     }
@@ -531,6 +531,7 @@ namespace askap
       if(status)
 	ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  <<": "<<wcs_errmsg[status]);
 
+      delete [] dim;
 
       return wcs;
 

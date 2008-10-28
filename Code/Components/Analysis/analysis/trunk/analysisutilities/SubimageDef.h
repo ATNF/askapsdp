@@ -58,7 +58,7 @@ namespace askap
       /// @brief Copy function
       SubimageDef& operator= (const SubimageDef& s);
       /// @brief Default destructor
-      virtual ~SubimageDef(){};
+      virtual ~SubimageDef();
 
       /// @brief Set up the definition using a WCSLIB definition
       void define(wcsprm *wcs);
@@ -66,7 +66,7 @@ namespace askap
       void defineFITS(std::string FITSfilename);
 
       /// @brief Set the array of image dimensions
-      void setImageDim(long *dim){itsFullImageDim = dim;};
+      void setImageDim(std::vector<long> dim){itsFullImageDim = dim;};
       /// @brief Set the image name.
       void setImage(std::string imageName){itsImageName = imageName;};
 
@@ -75,6 +75,7 @@ namespace askap
 
       /// @brief Return the number of subimages.
       int numSubs(){return itsNSubX*itsNSubY*itsNSubZ;};
+      int naxis(){return itsNAxis;};
 
     protected:
       /// @brief Number of subdivisions in the x-direction
@@ -96,7 +97,7 @@ namespace askap
       /// @brief The number of axes (the size of the itsNSub and itsOverlap arrays)
       int itsNAxis;
       /// @brief The dimensions of the full image
-      long *itsFullImageDim;
+      std::vector<long> itsFullImageDim;
       /// @brief The name of the image
       std::string itsImageName;
     };

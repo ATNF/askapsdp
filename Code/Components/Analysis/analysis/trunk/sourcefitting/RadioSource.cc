@@ -769,6 +769,9 @@ namespace askap
 	  this->itsHeader.pixToWCS(pix,wld);
 	  std::string thisRA = evaluation::decToDMS(wld[0],"RA");
 	  std::string thisDec = evaluation::decToDMS(wld[1],"DEC");
+	  delete [] pix;
+	  delete [] wld;
+
 	  columns[duchamp::Column::RA].printEntry(stream,  thisRA);
 	  columns[duchamp::Column::DEC].printEntry(stream, thisDec);
 // 	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
@@ -847,6 +850,8 @@ namespace askap
 	this->itsHeader.pixToWCS(pix,world);
 	stream << world[0] << " " << world[1] << "\n";
 	
+	delete [] pix;
+	delete [] world;
       
       }
 

@@ -64,14 +64,14 @@ namespace askap
   namespace analysis
   {
 
-    long * getFITSdimensions(std::string filename)
+    std::vector<long> getFITSdimensions(std::string filename)
     {
       /// @details A simple function to open a FITS file and read the
       /// axis dimensions, returning the array of values.
 
       int numAxes, status = 0;  /* MUST initialize status */
       fitsfile *fptr;  
-      long *dimAxes=0;
+      std::vector<long> dim;
 
       // Open the FITS file
       status = 0;
@@ -87,7 +87,7 @@ namespace askap
 	  fits_report_error(stderr, status);
 	}
 	
-	dimAxes = new long[numAxes];
+	long *dimAxes = new long[numAxes];
 	for(int i=0;i<numAxes;i++) dimAxes[i]=1;
 	status = 0;
 	if(fits_get_img_size(fptr, numAxes, dimAxes, &status)){
@@ -101,8 +101,15 @@ namespace askap
 	  fits_report_error(stderr, status);
 	}
 
+	dim = std::vector<long>(numAxes);
+	for(int i=0;i<numAxes;i++) dim[i] = dimAxes[i];
+	
+	delete [] dimAxes;
+
       }
-      return dimAxes;
+
+ 
+      return dim;
       
     }
 
@@ -330,102 +337,102 @@ namespace askap
 
     }
 
-    std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
-    {
+//     std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
+//     {
 
-      /// @details Use the SubimageDef class to return the full list
-      /// of subimage specifications for all workers.
-      /// @param numWorkers The number of workers 
-      /// @param parset The set of parameters.
-      /// @return A std::vector of duchamp::Section objects.
+//       /// @details Use the SubimageDef class to return the full list
+//       /// of subimage specifications for all workers.
+//       /// @param numWorkers The number of workers 
+//       /// @param parset The set of parameters.
+//       /// @return A std::vector of duchamp::Section objects.
 
-      std::vector<duchamp::Section> sectionlist; 
+//       std::vector<duchamp::Section> sectionlist; 
 
-      SubimageDef subDef;
-//       subDef.define(parset);
-      if( numWorkers != subDef.numSubs() ){
-	ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<subDef.numSubs()
-			  <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
-	return sectionlist;
-      }  
-      else {
+//       SubimageDef subDef;
+// //       subDef.define(parset);
+//       if( numWorkers != subDef.numSubs() ){
+// 	ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<subDef.numSubs()
+// 			  <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
+// 	return sectionlist;
+//       }  
+//       else {
 	
-	for(int w=0; w<numWorkers; w++){
-	  sectionlist.push_back( subDef.section(w) );
-	}
+// 	for(int w=0; w<numWorkers; w++){
+// 	  sectionlist.push_back( subDef.section(w) );
+// 	}
 
-	return sectionlist;
+// 	return sectionlist;
 
-      }
+//       }
 
 
-    }
+//     }
 
-    duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset)
-    {
+//     duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset)
+//     {
       
-      /// @details Use the SubimageDef class to return the
-      /// duchamp::Section object for the given worker number.
-      /// @param workerNum The number of the subimage (starting at 0);
-      /// @param parset The set of parameters.
-      /// @return A duchamp::Section object containing all info on the
-      /// desired subimage.
+//       /// @details Use the SubimageDef class to return the
+//       /// duchamp::Section object for the given worker number.
+//       /// @param workerNum The number of the subimage (starting at 0);
+//       /// @param parset The set of parameters.
+//       /// @return A duchamp::Section object containing all info on the
+//       /// desired subimage.
 
-      SubimageDef subDef;
-//       subDef.define(parset);
-      return subDef.section(workerNum);
+//       SubimageDef subDef;
+// //       subDef.define(parset);
+//       return subDef.section(workerNum);
       
-    }
+//     }
 
-    std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
-    {
+//     std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
+//     {
 
-      /// @details This function takes an existing FITS image on disk,
-      /// and creates a number of subimages, one for each worker. The
-      /// division of the image is governed by the parameter set,
-      /// specifically the nsubx/y/z and overlapx/y/z parameters, but
-      /// the transformation of these into subsection strings is done
-      /// by getSectionList(). The image to be split is given by the
-      /// image parameter. The new files are always written, and will
-      /// overwrite any pre-existing files (by using a "!" at the
-      /// start of the filename).
-      ///
-      /// @param numWorkers The number of workers and the number of subimages. 
-      /// @param parset The parameter set holding info on how to divide the image.
-      /// @return A std::vector of duchamp::Section objects.
-      ///
-      /// @deprecated
+//       /// @details This function takes an existing FITS image on disk,
+//       /// and creates a number of subimages, one for each worker. The
+//       /// division of the image is governed by the parameter set,
+//       /// specifically the nsubx/y/z and overlapx/y/z parameters, but
+//       /// the transformation of these into subsection strings is done
+//       /// by getSectionList(). The image to be split is given by the
+//       /// image parameter. The new files are always written, and will
+//       /// overwrite any pre-existing files (by using a "!" at the
+//       /// start of the filename).
+//       ///
+//       /// @param numWorkers The number of workers and the number of subimages. 
+//       /// @param parset The parameter set holding info on how to divide the image.
+//       /// @return A std::vector of duchamp::Section objects.
+//       ///
+//       /// @deprecated
  
-      std::string image = parset.getString("image");
-      std::vector<duchamp::Section> sectionlist = getSectionList(numWorkers, parset);
-      fitsfile *fin;
-      int status=0;
-      fits_open_file(&fin,image.c_str(),READONLY,&status);
+//       std::string image = parset.getString("image");
+//       std::vector<duchamp::Section> sectionlist = getSectionList(numWorkers, parset);
+//       fitsfile *fin;
+//       int status=0;
+//       fits_open_file(&fin,image.c_str(),READONLY,&status);
 
-      for(int w=0; w<numWorkers; w++){
+//       for(int w=0; w<numWorkers; w++){
 
-	std::string subimage = "!"+getSubImageName(image,w,numWorkers);
+// 	std::string subimage = "!"+getSubImageName(image,w,numWorkers);
 	
-	std::string secstring = sectionlist[w].getSection();
-	std::string section = secstring.substr(1,secstring.size()-2);
+// 	std::string secstring = sectionlist[w].getSection();
+// 	std::string section = secstring.substr(1,secstring.size()-2);
 	
-	ASKAPLOG_INFO_STR(logger, "Creating SubImage " << subimage << " using section " << section);
+// 	ASKAPLOG_INFO_STR(logger, "Creating SubImage " << subimage << " using section " << section);
 
-	fitsfile *fout;
-	status=0;
-	fits_create_file(&fout,subimage.c_str(),&status);
-	status=0;
-	fits_copy_image_section(fin,fout,(char *)section.c_str(),&status);
-	status=0;
-	fits_close_file(fout,&status);
+// 	fitsfile *fout;
+// 	status=0;
+// 	fits_create_file(&fout,subimage.c_str(),&status);
+// 	status=0;
+// 	fits_copy_image_section(fin,fout,(char *)section.c_str(),&status);
+// 	status=0;
+// 	fits_close_file(fout,&status);
 	
-      }
-      status=0;
-      fits_close_file(fin,&status);
+//       }
+//       status=0;
+//       fits_close_file(fin,&status);
       
-      return sectionlist;
+//       return sectionlist;
 
-    }
+//     }
 
   }
 }

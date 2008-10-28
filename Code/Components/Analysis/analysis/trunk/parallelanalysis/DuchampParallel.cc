@@ -59,6 +59,7 @@ using namespace LOFAR::TYPES;
 #include <parallelanalysis/DuchampParallel.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/CasaImageUtil.h>
+#include <analysisutilities/SubimageDef.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
 
@@ -144,40 +145,26 @@ namespace askap
       this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
       this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
 
-      this->itsFitter = sourcefitting::FittingParameters(parset.makeSubset("Fitter."));
+      LOFAR::ACC::APS::ParameterSet fitParset = parset.makeSubset("Fitter.");
+      this->itsFitter = sourcefitting::FittingParameters(fitParset);
 
       this->itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
 
       // Now read the correct image name according to worker/master state.
       this->itsCube.pars().setImageFile(this->itsImage);
 
+//       this->itsSubimageDef = SubimageDef(parset);
       if(this->isParallel()){
 	if(this->isMaster())
 	  this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
 	else if(this->isWorker()){
-	  this->itsSubimageDef = SubimageDef(parset);
+ 	  this->itsSubimageDef = SubimageDef(parset);
 	  this->itsCube.pars().setFlagSubsection(true);
 	}
       }
 
       if(this->isWorker())
 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
-
-
-//       if(this->isParallel() && this->isMaster()){
-// 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
-// 	this->itsCube.pars().setImageFile(this->itsImage);
-//       }
-//       else if(this->isWorker()) {
-// 	this->itsCube.pars().setImageFile(this->itsImage);
-
-// 	if(this->isParallel()){
-// 	  this->itsSubimageDef = SubimageDef(parset);
-// 	  this->itsCube.pars().setFlagSubsection(true);
-// 	}
-
-// 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
-//       }
 	
       ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished DuchampParallel constructor");
 
@@ -815,14 +802,14 @@ namespace askap
 	}
 
 	//	if(this->itsFlagDoFit){
-	  std::ofstream summaryFile(this->itsSummaryFile.c_str());
-	  std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
-	  std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList.begin();
-	  for(;src<this->itsSourceList.end();src++)
-	    src->printSummary(summaryFile, columns, src==this->itsSourceList.begin());
-	  summaryFile.close();
-
-	  if(this->itsFlagDoFit) this->writeFitAnnotation();
+	std::ofstream summaryFile(this->itsSummaryFile.c_str());
+	std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+	std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList.begin();
+	for(;src<this->itsSourceList.end();src++)
+	  src->printSummary(summaryFile, columns, src==this->itsSourceList.begin());
+	summaryFile.close();
+	
+	if(this->itsFlagDoFit) this->writeFitAnnotation();
 	  //	}
 
       }
@@ -1003,6 +990,8 @@ namespace askap
 	  else rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array);
 
 	}
+	
+	if(size>0 && this->itsCube.pars().getFlagATrous()) delete [] array;
 
 	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "rms = " << rms );
 

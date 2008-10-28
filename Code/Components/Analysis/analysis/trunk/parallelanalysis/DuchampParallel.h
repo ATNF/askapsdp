@@ -72,6 +72,8 @@ namespace askap
       /// @param parset The parameter set to read Duchamp and other parameters from.
       DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
 
+      virtual ~DuchampParallel(){};
+
       /// @brief Read in the data from the image file (on the workers)
       void readData();
       

@@ -70,14 +70,25 @@ namespace askap
 
     SubimageDef::SubimageDef()
     {
-      itsNAxis = 0; 
-      itsNSubX = 1;
-      itsNSubY = 1;
-      itsNSubZ = 1;
+      this->itsNAxis = 0; 
+      this->itsNSubX = 1;
+      this->itsNSubY = 1;
+      this->itsNSubZ = 1;
+      this->itsOverlapX = this->itsOverlapY = this->itsOverlapZ = 0;
+      this->itsImageName = "";
+    }
+    
+    SubimageDef::~SubimageDef()
+    {
+      if(this->itsNAxis > 0){
+	delete [] this->itsNSub;
+	delete [] this->itsOverlap;
+      }
     }
 
     SubimageDef::SubimageDef(const LOFAR::ACC::APS::ParameterSet& parset)
     {
+      this->itsNAxis = 0;
       this->itsImageName = parset.getString("image");
       this->itsNSubX = parset.getInt16("nsubx",1);
       this->itsNSubY = parset.getInt16("nsuby",1);
@@ -101,13 +112,16 @@ namespace askap
       this->itsOverlapY = s.itsOverlapY;
       this->itsOverlapZ = s.itsOverlapZ;
       this->itsNAxis = s.itsNAxis;
-      for(int i=0;i<this->itsNAxis;i++){
-	this->itsNSub[i] = s.itsNSub[i];
-	this->itsOverlap[i] = s.itsOverlap[i];
+      this->itsFullImageDim = s.itsFullImageDim;
+      this->itsImageName = s.itsImageName;
+      if(this->itsNAxis > 0){
+	for(int i=0;i<this->itsNAxis;i++){
+	  this->itsNSub[i] = s.itsNSub[i];
+	  this->itsOverlap[i] = s.itsOverlap[i];
+	}
       }
       return *this;
     }
-
 
     void SubimageDef::define(wcsprm *wcs)
     {
@@ -128,25 +142,27 @@ namespace askap
       const int lng  = wcs->lng;
       const int lat  = wcs->lat;
       const int spec = wcs->spec;
- 
-      this->itsNSub = new int[this->itsNAxis];
-      this->itsOverlap = new int[this->itsNAxis];
-      for(int i=0;i<this->itsNAxis;i++){
-	if(i==lng){ 
-	  this->itsNSub[i]=this->itsNSubX; 
-	  this->itsOverlap[i]=this->itsOverlapX; 
-	}
-	else if(i==lat){
-	  this->itsNSub[i]=this->itsNSubY; 
-	  this->itsOverlap[i]=this->itsOverlapY;
-	}
-	else if(i==spec){
-	  this->itsNSub[i]=this->itsNSubZ;
-	  this->itsOverlap[i]=this->itsOverlapZ; 
-	}
-	else{
-	  this->itsNSub[i] = 1; 
-	  this->itsOverlap[i] = 0;
+      
+      if(this->itsNAxis>0){
+	this->itsNSub = new int[this->itsNAxis];
+	this->itsOverlap = new int[this->itsNAxis];
+	for(int i=0;i<this->itsNAxis;i++){
+	  if(i==lng){ 
+	    this->itsNSub[i]=this->itsNSubX; 
+	    this->itsOverlap[i]=this->itsOverlapX; 
+	  }
+	  else if(i==lat){
+	    this->itsNSub[i]=this->itsNSubY; 
+	    this->itsOverlap[i]=this->itsOverlapY;
+	  }
+	  else if(i==spec){
+	    this->itsNSub[i]=this->itsNSubZ;
+	    this->itsOverlap[i]=this->itsOverlapZ; 
+	  }
+	  else{
+	    this->itsNSub[i] = 1; 
+	    this->itsOverlap[i] = 0;
+	  }
 	}
       }
 
@@ -207,9 +223,7 @@ namespace askap
       }
       std::string secstring = "["+section.str()+"]";
       duchamp::Section sec(secstring);
-      std::vector<long> dim(this->itsNAxis);
-      for(int i=0;i<this->itsNAxis;i++) dim[i] = this->itsFullImageDim[i];
-      sec.parse(dim);
+      sec.parse(this->itsFullImageDim);
 
       return sec;
     }
