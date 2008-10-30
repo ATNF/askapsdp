@@ -81,7 +81,7 @@ namespace askap
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
 	//    std::cerr << xpt << " " << ypt << "\n";
-	if(radius>0 && hypot(xpt,ypt)<radius*60.){
+	if(radius<0 || (radius>0 && hypot(xpt,ypt)<radius*60.) ){
 	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
 	  pixlist.push_back(pix);
 	}
@@ -131,7 +131,7 @@ namespace askap
 	if(ra>raBase) xpt *= -1.;
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
-	if(radius>0 && hypot(xpt,ypt)<radius*60.){
+	if(radius<0 || (radius>0 && hypot(xpt,ypt)<radius*60.) ){
 	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
 	  pixlist.push_back(pix);
 	}

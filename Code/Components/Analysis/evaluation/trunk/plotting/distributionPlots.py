@@ -67,11 +67,13 @@ def drawNormalDist(array=None, name='X', unit=''):
     axvline(mu, color='r') 
     x = arange(ax[0],ax[1],(ax[1]-ax[0])/100.) 
     y = normpdf( x, mu, rms) 
-    y = y * ax[3] / max(y) 
+    if(size(y)>0):
+        y = y * ax[3] / max(y) 
     l = plot(x, y, 'r--') 
     axvline(med, color='g') 
     y = normpdf( x, med, madfmToRMS(madfm)) 
-    y = y * ax[3] / max(y) 
+    if(size(y)>0):
+        y = y * ax[3] / max(y) 
     l = plot(x, y, 'g--') 
     axis(ax)
 

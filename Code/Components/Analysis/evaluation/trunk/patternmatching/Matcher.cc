@@ -314,11 +314,22 @@ namespace askap
 	/// for those subsequently matched.
 
 	std::ofstream fout(this->itsOutputBestFile.c_str());
-	fout.precision(3);
-	fout.setf(std::ios::fixed);
-	std::cout.precision(3);
-	std::cout.setf(std::ios::fixed);
 	std::vector<std::pair<Point,Point> >::iterator match;
+
+	int prec = 3;
+	
+	for(match=this->itsMatchingPixList.begin(); match<this->itsMatchingPixList.end(); match++){
+	  int newprec = ceil(log10(1./match->first.flux()))+1;
+	  prec = std::max( prec, newprec );
+	  newprec = ceil(log10(1./match->first.flux()))+1;
+	  prec = std::max( prec, newprec );
+	}
+
+
+	fout.precision(prec);
+	fout.setf(std::ios::fixed);
+	std::cout.precision(prec);
+	std::cout.setf(std::ios::fixed);
 	int ct=0;
 	char matchType;
 
