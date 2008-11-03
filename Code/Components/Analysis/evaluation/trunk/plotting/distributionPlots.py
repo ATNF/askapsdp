@@ -202,7 +202,7 @@ def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
 #    @param plotTitle: Title for overall plot
 #    @param doHistRel: Draw the histogram of relative differences
 #    @param doHistAbs: Draw the histogram of absolute differences
-def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=1., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
+def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=1., minRelVal=2., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
     """
     Plots the spatial distribution of matched sources, with the size
     and shape of each point governed by the size of the difference of
@@ -239,7 +239,7 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     # Remove any src values of zero -- these have probably not been fitted and should be ignored
     if(removeZeros):
-        ind = source != 0
+        ind = source != 0 
         src = source[ind]
         ref = reference[ind]
         xS  = xloc[ind]
@@ -257,16 +257,23 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     if(scaleByRel):
         ind = argsort(-abs(reldiff))
-        size = 5. + abs(reldiff/scaleStep)*2
+#        size = 5. + abs(reldiff/scaleStep)*2
+        size = 2+ floor((reldiff-mean(reldiff))/std(reldiff))*2
     else:
         ind = argsort(-abs(diff))
-        size = 5. + abs(diff/scaleStep)*2
+#        size = 5. + abs(diff/scaleStep)*2
+        size = 2+ floor((diff-mean(diff))/std(diff))*2
 
     for i in ind:
-        if(diff[i]>0):
-            plot([xS[i]],[yS[i]],'ro',ms=size[i])
+        if(scaleByRel):
+            thisval = abs((reldiff[i]-mean(reldiff))/std(reldiff))
         else:
-            plot([xS[i]],[yS[i]],'rs',ms=size[i])
+            thisval = abs((diff[i]-mean(diff))/std(diff))
+        if( thisval > minRelVal): 
+            if(diff[i]>0):
+                plot([xS[i]],[yS[i]],'ro',ms=size[i])
+            else:
+                plot([xS[i]],[yS[i]],'rs',ms=size[i])
 
     title(r'%s across field'%(plotTitle),font)
     xlabel(r'$x\ [\prime\prime]$',font)
@@ -387,7 +394,8 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
         
     dx = xS - xR
     dy = yS - yR
-    print 'Overall mean offsets (x,y)=(%6.4f,%6.4f)\n'%(mean(dx),mean(dy)) 
+    print 'Overall mean offsets (x,y)=(%6.4f,%6.4f)'%(mean(dx),mean(dy)) 
+    print '         rms offsets (x,y)=(%6.4f,%6.4f)'%(std(dx),std(dy)) 
 
     for i in range(len(dx)):
         if(flag[i]==1):
@@ -412,6 +420,10 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
     plot( 6*cos(an), 6*sin(an), ':k' )
     plot( 8*cos(an), 8*sin(an), ':k' )
     plot(10*cos(an),10*sin(an), ':k' )
+
+    #Plot the 1-sigma ellipse for the points.
+    plot(  std(dx)*cos(an)+mean(dx),   std(dy)*sin(an)+mean(dy), '-', color='r')
+    plot(2*std(dx)*cos(an)+mean(dx), 2*std(dy)*sin(an)+mean(dy), '-', color='r')
     axis(axisrange)
 
 
@@ -459,21 +471,42 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
     dx = xS - xR
     dy = yS - yR
     offset = sqrt(dx**2+dy**2)
+    arglist = argsort(-offset)
 
-    for i in argsort(-offset):
-        size = 5. + (floor(offset[i]*2)) * 2
-        if(matchFlag[i]==1):
+    meandx = mean(dx)
+    meandy = mean(dy)
+    rmsdx = std(dx)
+    rmsdy = std(dy)
+    reloff = sqrt((dx-meandx)**2 + (dy-meandy)**2)
+    reloff2 = reloff[reloff>2]
+    arglist = argsort(-reloff2)
+
+    for i in arglist:
+#        size = 5. + (floor(offset[i]*2)) * 2
+        size = 2+ floor(sqrt((dx[i]/rmsdx)**2 + (dy[i]/rmsdy)**2)) * 2
+        if(offset[i]<3.):
+#            plot([xS[i]],[yS[i]],'r,')
+            z=1
+        elif(matchFlag[i]==1):
             plot([xS[i]],[yS[i]],'ro',ms=size)
         else:
             plot([xS[i]],[yS[i]],'mo',ms=size)
+#        if(matchFlag[i]==1):
+#            plot([xS[i]],[yS[i]],'ro',ms=size)
+#        else:
+#            plot([xS[i]],[yS[i]],'mo',ms=size)
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)
     title('Matches and misses across field',font)
-    for i in range(len(xMiss)):
-        if(missFlag[i]=='S'):
-            plot([xMiss[i]],[yMiss[i]],'bx',ms=10)
-        else:
-            plot([xMiss[i]],[yMiss[i]],'g+')
+#    for i in range(len(xMiss)):
+##        if(missFlag[i]=='S'):
+##            plot([xMiss[i]],[yMiss[i]],'bx',ms=2)
+##        else:
+##            plot([xMiss[i]],[yMiss[i]],'g+')
+#        if(missFlag[i]=='S'):
+#            plot([xMiss[i]],[yMiss[i]],'b.')
+#        else:
+#            plot([xMiss[i]],[yMiss[i]],'g.')
     ax = axis()
     aspectRatio = (ax[1]-ax[0])/(ax[3]-ax[2])
     axNew = [ax[0],ax[1],(ax[2]-bottomFrac*ax[3])/(1.-bottomFrac),ax[3]]
@@ -486,8 +519,8 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
     axes(setBox(232,'r'))
     n, bins, patches = hist(offset, max(minPlottedOff,max(offset))/0.25)
     ax=axis()
-    ax2=[ax[0],ax[1],ax[2],max(minPlottedOff,max(offset))]
-    axis(ax2)
+#    ax2=[ax[0],ax[1],ax[2],max(minPlottedOff,max(offset))]
+#    axis(ax2)
     xlabel(r"$\rm{Offset} [\prime\prime]$",font)
 
     return axNew

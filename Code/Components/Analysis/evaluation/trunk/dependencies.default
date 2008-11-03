@@ -1,4 +1,5 @@
 askap=Code/Base/askap/trunk
 aps=3rdParty/LOFAR/APS/tags/APS-2.1
-numpy=3rdParty/numpy/tags/numpy-1.0.3.1
-matplotlib=3rdParty/matplotlib/tags/matplotlib-0.90.1
+numpy=3rdParty/numpy/tags/numpy-1.1.1
+matplotlib=3rdParty/matplotlib/tags/matplotlib-0.98.3
+
