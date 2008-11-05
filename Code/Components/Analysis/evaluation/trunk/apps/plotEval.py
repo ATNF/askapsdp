@@ -30,14 +30,12 @@ if __name__ == '__main__':
     figure(1, figsize=(16.5,11.7), dpi=72)
 
     posOffsetPlot(xS,yS,xR,yR,matchType)
-    axisrange=spatPosPlot(xS,yS,xR,yR,matchType,x,y,missType)
+    axisrange=spatPosPlot(xS,yS,xR,yR,matchType,x,y,missType,minRelVal=2.)
     
-#    spatHistPlot(fS,fR,xS,yS, axisrange, removeZeros=True, name='F', unit='mJy', locationCode=233, plotTitle='Flux difference', scaleByRel=False, scaleStep=0.2)
-    spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=2., scaleStep=10., removeZeros=True, name='F', unit='mJy', locationCode=233, plotTitle='Flux difference')
-    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=2., scaleStep=10., removeZeros=True, name='A', unit='\prime\prime', locationCode=234, plotTitle='Major axis difference')
-    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=2., scaleStep=10., removeZeros=True, name='B', unit='\prime\prime', locationCode=235, plotTitle='Minor axis difference')
-#    spatHistPlot(pS,pR,xS,yS, axisrange, removeZeros=True, scaleByRel=False, scaleStep=10, name='PA', unit='deg', locationCode=236, plotTitle='Position angle difference', doHistRel=False)
-    PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, removeZeros=True, locationCode=236)
+    spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=2., removeZeros=True, name='F', unit='mJy', locationCode=233, plotTitle='Flux difference')
+    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=2., removeZeros=True, name='A', unit='\prime\prime', locationCode=234, plotTitle='Major axis difference')
+    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=2., removeZeros=True, name='B', unit='\prime\prime', locationCode=235, plotTitle='Minor axis difference')
+    PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, minRelVal=1., removeZeros=True, locationCode=236)
 
     savefig('imageQualTest')
 

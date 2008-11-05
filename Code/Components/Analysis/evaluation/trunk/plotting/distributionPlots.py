@@ -194,7 +194,7 @@ def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
 #    @param xloc, yloc: x- and y- positions for the objects (either reference or source positions)
 #    @param spatialAxis: An argument for the axis(...) function. Designed to be an array as produced by ax=axis(), such as the output from spatPosPlot().
 #    @param scaleByRel: Scale the symbols by the relative difference (ie. (source-reference)/reference). If False, scale by the absolute difference
-#    @param scaleStep: The step in difference values that increase the symbol size (each step increases the size of the symbol by 2, starting at 5)
+#    @param minRelVal: The minimum value, in multiples of the rms above the mean of the distribution being considered, that is plotted on the spatial plot. Points with values less than this are not plotted.
 #    @param removeZeros: If True, all Source values that are zero are removed before plotting. This removes any spurious differences that may appear due to non-fitted components.
 #    @param locationCode: The code used by subplot() to draw the graph, indicating where on the page the plot should go.
 #    @param name: String with the quantity's name to be used in plotting
@@ -202,7 +202,7 @@ def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
 #    @param plotTitle: Title for overall plot
 #    @param doHistRel: Draw the histogram of relative differences
 #    @param doHistAbs: Draw the histogram of absolute differences
-def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, scaleStep=1., minRelVal=2., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
+def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, minRelVal=2., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
     """
     Plots the spatial distribution of matched sources, with the size
     and shape of each point governed by the size of the difference of
@@ -220,8 +220,9 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
                     by ax=axis(), such as the output from spatPosPlot().
        scaleByRel: Scale the symbols by the relative difference (ie. (source-reference)/reference).
                    If False, scale by the absolute difference
-       scaleStep: The step in difference values that increase the symbol size (each step increases
-                  the size of the symbol by 2, starting at 5)
+       minRelVal: The minimum value, in multiples of the rms above the mean of the distribution being 
+                  considered, that is plotted on the spatial plot. Points with values less than this
+                  are not plotted.
        removeZeros: If True, all Source values that are zero are removed before plotting. This
                     removes any spurious differences that may appear due to non-fitted components.
        locationCode: The code used by subplot() to draw the graph, indicating where on the page
@@ -257,11 +258,9 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     if(scaleByRel):
         ind = argsort(-abs(reldiff))
-#        size = 5. + abs(reldiff/scaleStep)*2
         size = 2+ floor((reldiff-mean(reldiff))/std(reldiff))*2
     else:
         ind = argsort(-abs(diff))
-#        size = 5. + abs(diff/scaleStep)*2
         size = 2+ floor((diff-mean(diff))/std(diff))*2
 
     for i in ind:
@@ -275,7 +274,7 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
             else:
                 plot([xS[i]],[yS[i]],'rs',ms=size[i])
 
-    title(r'%s across field'%(plotTitle),font)
+    title(r'%s across field, difference >%3.1f$\sigma$'%(plotTitle,minRelVal),font)
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)
     axis(spatialAxis)
@@ -302,9 +301,10 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 #    @param paRef: Array of position angle values for the reference objects
 #    @param xloc, yloc: x- and y- positions for the objects (either reference or source positions)
 #    @param spatialAxis: An argument for the axis(...) function. Designed to be an array as produced by ax=axis(), such as the output from spatPosPlot().
+#    @param minRelVal: The minimum value, in multiples of the rms above the mean of the distribution being considered, that is plotted on the spatial plot. Points with values less than this are not plotted.
 #    @param removeZeros: If True, all Source values that are zero are removed before plotting. This removes any spurious differences that may appear due to non-fitted components.
 #    @param locationCode: The code used by subplot() to draw the graph, indicating where on the page the plot should go.
-def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, spatialAxis='auto', removeZeros=False, locationCode=236,):
+def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, spatialAxis='auto', minRelVal=2., removeZeros=False, locationCode=236,):
     """
     An optimised version of spatHistPlot for use with position angle
     values. These are special as the values can be zero even if the
@@ -322,10 +322,9 @@ def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, s
        xloc, yloc: x- and y- positions for the objects (either reference or source positions)
        spatialAxis: An argument for the axis(...) function. Designed to be an array as produced 
                     by ax=axis(), such as the output from spatPosPlot().
-       scaleByRel: Scale the symbols by the relative difference (ie. (source-reference)/reference).
-                   If False, scale by the absolute difference
-       scaleStep: The step in difference values that increase the symbol size (each step increases
-                  the size of the symbol by 2, starting at 5)
+       minRelVal: The minimum value, in multiples of the rms above the mean of the distribution being 
+                  considered, that is plotted on the spatial plot. Points with values less than this
+                  are not plotted.
        removeZeros: If True, all Source values that are zero are removed before plotting. This
                     removes any spurious differences that may appear due to non-fitted components.
        locationCode: The code used by subplot() to draw the graph, indicating where on the page
@@ -352,7 +351,7 @@ def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, s
     paDiff = (src-ref+90)%180 - 90
     paNewRef = ref-ref
 
-    spatHistPlot(paDiff,paNewRef,x,y,spatialAxis, removeZeros=False, scaleByRel=False, scaleStep=5, name='PA', unit='deg', locationCode=locationCode, plotTitle='Position angle difference',doHistRel=False, doHistAbs=False)
+    spatHistPlot(paDiff,paNewRef,x,y,spatialAxis, removeZeros=False, scaleByRel=False, minRelVal=minRelVal, name='PA', unit='deg', locationCode=locationCode, plotTitle='Position angle difference',doHistRel=False, doHistAbs=False)
 
     if(removeZeros):
         ind = axisSrc != 0
@@ -439,8 +438,9 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
 #    @param xMiss x-positions of un-matched objects
 #    @param yMiss y-positions of un-matched objects
 #    @param missFlag A letter indicating the object type: 'R'=reference object, 'S'=source object
+#    @param minRelVal: The minimum value, in multiples of the rms above the mean of relative offset, that is plotted on the spatial plot. Points with values less than this are not plotted.
 #    @param minPlottedOff The minimum offset to be plotted on the histogram
-def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, yMiss=None, missFlag=None, minPlottedOff=5):
+def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, yMiss=None, missFlag=None, minRelVal=2., minPlottedOff=5):
     """
     Plots the spatial location of all sources, indicating those that
     have been matched to the reference list, and those in either list
@@ -458,6 +458,8 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
        matchFlag: Flags indicating quality of the match
        xMiss, yMiss: x- and y-positions of un-matched objects
        missFlag: A letter indicating the object type: 'R'=reference object, 'S'=source object
+       minRelVal: The minimum value, in multiples of the rms above the mean of relative offset,
+                  that is plotted on the spatial plot. Points with values less than this are not plotted.
        minPlottedOff The minimum offset to be plotted on the histogram
     """
 
@@ -477,27 +479,21 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
     meandy = mean(dy)
     rmsdx = std(dx)
     rmsdy = std(dy)
-    reloff = sqrt((dx-meandx)**2 + (dy-meandy)**2)
-    reloff2 = reloff[reloff>2]
-    arglist = argsort(-reloff2)
+    reloff = sqrt(((dx-meandx)/rmsdx)**2 + ((dy-meandy)/rmsdy)**2)
+    arglist = argsort(-reloff)
+
+    size = 2 + floor(reloff) * 2
 
     for i in arglist:
-#        size = 5. + (floor(offset[i]*2)) * 2
-        size = 2+ floor(sqrt((dx[i]/rmsdx)**2 + (dy[i]/rmsdy)**2)) * 2
-        if(offset[i]<3.):
-#            plot([xS[i]],[yS[i]],'r,')
-            z=1
-        elif(matchFlag[i]==1):
-            plot([xS[i]],[yS[i]],'ro',ms=size)
-        else:
-            plot([xS[i]],[yS[i]],'mo',ms=size)
-#        if(matchFlag[i]==1):
-#            plot([xS[i]],[yS[i]],'ro',ms=size)
-#        else:
-#            plot([xS[i]],[yS[i]],'mo',ms=size)
+        if(reloff[i] > minRelVal):
+            if(matchFlag[i]==1):
+                plot([xS[i]],[yS[i]],'ro',ms=size[i])
+            else:
+                plot([xS[i]],[yS[i]],'mo',ms=size[i])
+    
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)
-    title('Matches and misses across field',font)
+    title(r'Matches and misses across field, offset >%3.1f$\sigma$'%(minRelVal),font)
 #    for i in range(len(xMiss)):
 ##        if(missFlag[i]=='S'):
 ##            plot([xMiss[i]],[yMiss[i]],'bx',ms=2)
@@ -507,6 +503,7 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
 #            plot([xMiss[i]],[yMiss[i]],'b.')
 #        else:
 #            plot([xMiss[i]],[yMiss[i]],'g.')
+    axis([min(xS),max(xS),min(yS),max(yS)])
     ax = axis()
     aspectRatio = (ax[1]-ax[0])/(ax[3]-ax[2])
     axNew = [ax[0],ax[1],(ax[2]-bottomFrac*ax[3])/(1.-bottomFrac),ax[3]]
