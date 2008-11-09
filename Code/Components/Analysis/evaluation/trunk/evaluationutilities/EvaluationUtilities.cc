@@ -46,7 +46,7 @@ namespace askap
   {
 
  
-    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius)
+    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius, std::string fluxMethod)
     {
       /// @details Read in a list of points from a duchamp-Summary.txt
       /// file (that is, a summary file produced by cduchamp). The
@@ -62,16 +62,23 @@ namespace askap
       std::string raS,decS,sdud,id;
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
-      double xpt,ypt,ddud,ra,dec,flux,flux1,flux2,maj,min,pa;
+      double xpt,ypt,ddud,ra,dec,flux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms;
+      int ndof;
       char line[501];
       fin.getline(line,500);
       fin.getline(line,500);
       // now at start of object list
 //       while (fin >> id >> raS >> decS >> ddud >> ddud >> flux >> ddud >> ddud,
-      while (fin >> id >> raS >> decS >> ddud >> flux1 >> ddud >> flux2 >> maj >> min >> pa,
+      while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> rms >> ndof,
 	     !fin.eof()){
-	if(flux2>0) flux = flux2;
-	else flux = flux1;
+	if(fluxMethod == "integrated"){
+	  if(iflux2>0) flux= iflux2;
+	  else flux = iflux1;
+	}
+	else {
+	  if(pflux2>0) flux = pflux2;
+	  else flux = pflux1;
+	}
 	id += "_" + raS + "_" + decS;
 	std::stringstream ss;
 	ra = dmsToDec(raS)*15.;
@@ -83,6 +90,7 @@ namespace askap
 	//    std::cerr << xpt << " " << ypt << "\n";
 	if(radius<0 || (radius>0 && hypot(xpt,ypt)<radius*60.) ){
 	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
+	  pix.setStuff(chisq,rms,ndof);
 	  pixlist.push_back(pix);
 	}
       }

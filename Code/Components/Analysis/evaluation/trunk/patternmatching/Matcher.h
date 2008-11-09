@@ -107,6 +107,8 @@ namespace askap
 	std::string itsDec; 
 	/// @brief The radius within which to compare points. Negative value means use all points.
 	double itsRadius;
+	/// @brief Which flux measure to use: peak or integrated
+	std::string itsFluxMethod;
 
 	/// @brief The list of source points (those to be matched)
 	std::vector<Point> itsSrcPixList;

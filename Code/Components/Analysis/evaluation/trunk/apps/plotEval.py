@@ -22,7 +22,7 @@ if __name__ == '__main__':
         matchfile = argv[1]
         missfile = argv[2]
 
-    matchType,idS,xS,yS,fS,aS,bS,pS,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
+    matchType,idS,xS,yS,fS,aS,bS,pS,chisq,rms,ndof,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f = read_miss_data(missfile)
 
     print "Match list size = %d, Miss list size = %d"%(size(xS),size(x))
@@ -32,9 +32,9 @@ if __name__ == '__main__':
     posOffsetPlot(xS,yS,xR,yR,matchType)
     axisrange=spatPosPlot(xS,yS,xR,yR,matchType,x,y,missType,minRelVal=2.)
     
-    spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=2., removeZeros=True, name='F', unit='mJy', locationCode=233, plotTitle='Flux difference')
-    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=2., removeZeros=True, name='A', unit='\prime\prime', locationCode=234, plotTitle='Major axis difference')
-    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=2., removeZeros=True, name='B', unit='\prime\prime', locationCode=235, plotTitle='Minor axis difference')
+    spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=0., removeZeros=True, name='F', unit='mJy', locationCode=233, plotTitle='Flux difference')
+    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=0., removeZeros=True, name='A', unit='\prime\prime', locationCode=234, plotTitle='Major axis difference')
+    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., removeZeros=True, name='B', unit='\prime\prime', locationCode=235, plotTitle='Minor axis difference')
     PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, minRelVal=1., removeZeros=True, locationCode=236)
 
     savefig('imageQualTest')

@@ -51,6 +51,20 @@ namespace askap
     namespace matching
     {
 
+      Stuff& Stuff::operator=(const Stuff& s)
+      {
+	if(this==&s) return *this;
+	itsChisq=s.itsChisq;
+	itsRMS=s.itsRMS;
+	itsNDoF=s.itsNDoF;
+	return *this;
+      }
+	
+      std::ostream &operator<<(std::ostream& theStream, Stuff &s){
+	  theStream << std::setw(10) << s.itsChisq << " " << std::setw(10) << s.itsRMS << " " << std::setw(10) << s.itsNDoF;
+	  return theStream;
+	}
+
       Point& Point::operator=(const Point& p)
       {
 	if(this==&p) return *this;
@@ -61,6 +75,7 @@ namespace askap
 	this->itsMajAxis = p.itsMajAxis;
 	this->itsMinAxis = p.itsMinAxis;
 	this->itsPA = p.itsPA;
+	this->itsStuff = p.itsStuff;
 	return *this;
       }
 

@@ -45,6 +45,9 @@ def read_match_data(filename=None):
     aS=[]
     bS=[]
     pS=[]
+    chisq=[]
+    rms=[]
+    ndof=[]
     idR=[]
     xR=[]
     yR=[]
@@ -62,17 +65,18 @@ def read_match_data(filename=None):
         aS.append(fields[5])
         bS.append(fields[6])
         pS.append(fields[7])
-        idR.append(fields[8])
-        xR.append(fields[9])
-        yR.append(fields[10])
-        fR.append(fields[11])
-        aR.append(fields[12])
-        bR.append(fields[13])
-        pR.append(fields[14])
+        chisq.append(fields[8])
+        rms.append(fields[9])
+        ndof.append(fields[10])
+        idR.append(fields[11])
+        xR.append(fields[12])
+        yR.append(fields[13])
+        fR.append(fields[14])
+        aR.append(fields[15])
+        bR.append(fields[16])
+        pR.append(fields[17])
     
-#    return cast[Int](array(type)),idS,cast[Float](array(xS)),cast[Float](array(yS)),cast[Float](array(fS)),cast[Float](array(aS)),cast[Float](array(bS)),cast[Float](array(pS)),idR,cast[Float](array(xR)),cast[Float](array(yR)),cast[Float](array(fR)),cast[Float](array(aR)),cast[Float](array(bR)),cast[Float](array(pR))
-    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
-#    return array(type).astype(int),idS,array(xS).astype(float),array(yS).astype(float),array(fS).astype(float),array(aS).astype(float),array(bS).astype(float),array(pS).astype(float),idR,array(xR).astype(float),array(yR).astype(float),array(fR).astype(float),array(aR).astype(float),array(bR).astype(float),array(pR).astype(float)
+    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(rms)),cast[int](array(ndof)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
 
 #############################################################################
 
@@ -105,8 +109,6 @@ def read_miss_data(filename=None):
         y.append(fields[3])
         f.append(fields[4])
     
-#    return type,id,cast[Float](array(x)),cast[Float](array(y)),cast[Float](array(f))
     return type,id,cast[float](array(x)),cast[float](array(y)),cast[float](array(f))
-#    return type,id,array(x).astype(float),array(y).astype(float),array(f).astype(float)
 
 

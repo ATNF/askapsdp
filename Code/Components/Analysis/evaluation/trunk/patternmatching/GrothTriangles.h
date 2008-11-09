@@ -29,6 +29,8 @@
 #ifndef ASKAP_ANALYSIS_GROTHTRIANGLES_H_
 #define ASKAP_ANALYSIS_GROTHTRIANGLES_H_
 
+#include <iostream>
+#include <iomanip>
 #include <vector>
 #include <utility>
 #include <string>
@@ -42,6 +44,35 @@ namespace askap
 
     namespace matching
     {
+
+      /// @brief A class to hold additional information for a Point.
+      /// @details This class acts as a repository of information that
+      /// a Point has, but does not need for the purposes of the the
+      /// pattern matching. It currently holds information on the
+      /// Gaussian fit to a source, but this can be expanded in
+      /// future.
+      class Stuff
+      {
+      public:
+	/// @brief Default constructor
+	Stuff(){};
+	/// @brief Specific constructor
+	Stuff(float c, float r, int n){itsChisq=c; itsRMS=r; itsNDoF=n;};
+	/// @brief Destructor
+	~Stuff(){};
+	/// @brief Copy function
+	Stuff& operator=(const Stuff& s);
+	/// @brief Writing to a stream
+	friend std::ostream &operator<<(std::ostream& theStream, Stuff &s);
+      private:
+	/// @brief The chi-squared value of the fit
+	float itsChisq;
+	/// @brief The RMS of the fit
+	float itsRMS;
+	/// @brief The number of degrees of freedom of the fit
+	int itsNDoF;
+      };
+
 
       /// @brief A class to hold information about a 2D point
       /// @details This class holds positional information that will
@@ -104,6 +135,9 @@ namespace askap
 	/// @brief Return the separation from another Point.
 	double sep(Point pt){return hypot(itsX-pt.x(),itsY-pt.y());};
 
+	void setStuff(float c, float r, int n){itsStuff = Stuff(c,r,n);};
+	Stuff &stuff(){Stuff &rstuff=itsStuff; return rstuff;};
+
       protected:
 	///@brief The X coordinate
 	double itsX;
@@ -119,6 +153,8 @@ namespace askap
 	double itsMinAxis;
 	///@brief The position angle of a Gaussian fit
 	double itsPA;
+	///@brief Any additional information on the point
+	Stuff itsStuff;
       };
 
 

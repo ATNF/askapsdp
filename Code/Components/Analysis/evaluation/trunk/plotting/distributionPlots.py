@@ -258,10 +258,10 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     if(scaleByRel):
         ind = argsort(-abs(reldiff))
-        size = 2+ floor((reldiff-mean(reldiff))/std(reldiff))*2
+        size = 3 + floor(abs((reldiff-mean(reldiff))/std(reldiff)))*2
     else:
         ind = argsort(-abs(diff))
-        size = 2+ floor((diff-mean(diff))/std(diff))*2
+        size = 3 + floor(abs((diff-mean(diff))/std(diff)))*2
 
     for i in ind:
         if(scaleByRel):
@@ -493,17 +493,18 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
     
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)
+#    title(r'Matches across field, offset >%3.1f$\sigma$'%(minRelVal),font)
     title(r'Matches and misses across field, offset >%3.1f$\sigma$'%(minRelVal),font)
-#    for i in range(len(xMiss)):
-##        if(missFlag[i]=='S'):
-##            plot([xMiss[i]],[yMiss[i]],'bx',ms=2)
-##        else:
-##            plot([xMiss[i]],[yMiss[i]],'g+')
+    for i in range(len(xMiss)):
 #        if(missFlag[i]=='S'):
-#            plot([xMiss[i]],[yMiss[i]],'b.')
+#            plot([xMiss[i]],[yMiss[i]],'bx',ms=2)
 #        else:
-#            plot([xMiss[i]],[yMiss[i]],'g.')
-    axis([min(xS),max(xS),min(yS),max(yS)])
+#            plot([xMiss[i]],[yMiss[i]],'g+')
+        if(missFlag[i]=='S'):
+            plot([xMiss[i]],[yMiss[i]],'b,')
+        else:
+            plot([xMiss[i]],[yMiss[i]],'g,')
+    axis([min(min(xS),min(xMiss)),max(max(xS),max(xMiss)),min(min(yS),min(yMiss)),max(max(yS),max(yMiss))])
     ax = axis()
     aspectRatio = (ax[1]-ax[0])/(ax[3]-ax[2])
     axNew = [ax[0],ax[1],(ax[2]-bottomFrac*ax[3])/(1.-bottomFrac),ax[3]]

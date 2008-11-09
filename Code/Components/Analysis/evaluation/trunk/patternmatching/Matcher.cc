@@ -65,6 +65,7 @@ namespace askap
 
 	this->itsSrcFile = parset.getString("srcFile","");
 	this->itsRefFile = parset.getString("refFile","");
+	this->itsFluxMethod = parset.getString("fluxMethod","peak");
 	this->itsRA  = parset.getString("RA");
 	this->itsDec = parset.getString("Dec");
 	this->itsRadius = parset.getDouble("radius", -1.);
@@ -90,7 +91,7 @@ namespace askap
 	  std::ifstream fsrc(this->itsSrcFile.c_str());
 	  std::ifstream fref(this->itsRefFile.c_str());
 	  
-	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsRadius);
+	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsRadius, this->itsFluxMethod);
 	  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
 	  
 	  this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRadius);
@@ -340,7 +341,10 @@ namespace askap
 		  << std::setw(10) << "flux"  << " "
 		  << std::setw(10) << "maj"  << " "
 		  << std::setw(10) << "min"  << " "
-		  << std::setw(10) << "pa" << "\t"
+		  << std::setw(10) << "pa" << " "
+		  << std::setw(10) << "chisq" << " "
+		  << std::setw(10) << "rms" << " "
+		  << std::setw(10) << "ndof" << "\t"
 		  << "Reference ID\t\t\t"
 		  << std::setw(10) << "x_pix" << " "
 		  << std::setw(10) << "y_pix" << " "
@@ -364,7 +368,8 @@ namespace askap
 	       << std::setw(10) << match->first.flux() << " "
 	       << std::setw(10) << match->first.majorAxis() << " "
 	       << std::setw(10) << match->first.minorAxis() << " "
-	       << std::setw(10) << match->first.PA()  << "\t"
+	       << std::setw(10) << match->first.PA()  << " " 
+	       << std::setw(10) << match->first.stuff() << "\t"
 	       << "[" << match->second.ID() << "]\t"
 	       << std::setw(10) << match->second.x()  << " "
 	       << std::setw(10) << match->second.y()  << " "
@@ -382,7 +387,8 @@ namespace askap
 		    << std::setw(10) << match->first.flux() << " "
 		    << std::setw(10) << match->first.majorAxis() << " "
 		    << std::setw(10) << match->first.minorAxis() << " "
-		    << std::setw(10) << match->first.PA()  << "\t"
+		    << std::setw(10) << match->first.PA()  << " "
+		    << std::setw(10) << match->first.stuff() << "\t"
 		    << "[" << match->second.ID() << "]\t"
 		    << std::setw(10) << match->second.x()  << " "
 		    << std::setw(10) << match->second.y()  << " "
