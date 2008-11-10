@@ -215,6 +215,7 @@ namespace askap
 
 	/// @brief Return a reference to the fitting parameters
 	FittingParameters &fitparams(){
+	  /* return itsBestFit.rparams();}; */
 	  FittingParameters& rfitpars = itsFitParams; return rfitpars;};
 
       protected:
@@ -239,6 +240,11 @@ namespace askap
 
 	/// @brief The best fit to the object.
 	FittingParameters itsFitParams;
+/* 	Fitter itsBestFit; */
+
+	float itsChisq;
+	float itsRMS;
+	float itsNDoF;
 
 	/// @brief The min & max points of the box, taking into account the borders of the data array
 	std::vector<std::pair<long,long> > itsBoxMargins;

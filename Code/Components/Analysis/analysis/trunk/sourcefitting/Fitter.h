@@ -211,6 +211,7 @@ namespace askap
 	/// @{
 	void setParams(FittingParameters p){itsParams=p;};
 	FittingParameters params(){return itsParams;};
+	FittingParameters &rparams(){FittingParameters& rfitpars = itsParams; return rfitpars;};
 	///@}
 
 	/// @brief Set and return the number of Gaussian components to be fitted.
@@ -225,6 +226,8 @@ namespace askap
 	float redChisq(){return itsRedChisq;};
 	/// @brief Return the RMS of the fit
 	float RMS(){return itsFitter.RMS();};
+	/// @brief Return the number of degrees of freedom of the fit.
+	int ndof(){return itsNDoF;};
 
 	/// @brief Set the intial estimates for the Gaussian components.
 	void setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head);

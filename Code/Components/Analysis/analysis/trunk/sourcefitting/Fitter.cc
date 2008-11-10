@@ -161,6 +161,14 @@ namespace askap
 	ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
 	logparameters(estimate);
 
+	if(nCmpnt==1){
+	  casa::Gaussian2D<casa::Double> 
+	    gauss(estimate(0,0),
+		  estimate(0,1),estimate(0,2),
+		  estimate(0,3),estimate(0,4),estimate(0,5));
+	  ASKAPLOG_INFO_STR(logger,"Flux of single component estimate = " << gauss.flux()/head.getBeamSize(););
+	}
+
       }
 
 
@@ -383,56 +391,13 @@ namespace askap
 	bool passPeak = this->passPeakFlux();
 	bool passIntFlux = this->passIntFlux();
 
-// 	  bool passConv, passChisq, passFlux, passXLoc, passYLoc, passSep, passIntFlux, passPeak;
+	ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passLoc<<passSep
+			  <<passFlux<<passPeak<<passIntFlux);
+	
+	bool thisFitGood = passConv && passChisq && passLoc && passSep && passFlux && passPeak && passIntFlux;
+	
+	return thisFitGood;
 
-// 	  passConv  = this->itsFitter.converged();
-// 	  passConv  = passConv && (this->itsFitter.chisquared()>0.);
-
-// 	  passChisq = false;
-// 	  passXLoc = passYLoc = passFlux = passSep = passPeak = passIntFlux = true;
-
-// 	  if(passConv){
-
-// 	    if(this->itsNDoF<343)
-// 	      passChisq = chisqProb(this->itsNDoF,this->itsFitter.chisquared()) > this->itsParams.itsChisqCutoff;
-// 	    else 
-// 	      passChisq = (this->itsRedChisq < 1.2);
-
-// 	    passChisq = true;
-	    
-// 	    float intFlux = 0.;
-// 	    for(unsigned int i=0;i<this->itsNumGauss;i++){
-// 	      passXLoc = passXLoc && (this->itsSolution(i,1)>this->itsParams.itsXmin) && 
-// 		(this->itsSolution(i,1)<this->itsParams.itsXmax);
-// 	      passYLoc = passYLoc && (this->itsSolution(i,2)>this->itsParams.itsYmin) && 
-// 		(this->itsSolution(i,2)<this->itsParams.itsYmax);
-// 	      passFlux = passFlux && (this->itsSolution(i,0) > 0.);
-// 	      passFlux = passFlux && (this->itsSolution(i,0) > 0.5*this->itsParams.itsDetectThresh);
-//  	      passPeak = passPeak && (this->itsSolution(i,0) < 2.*this->itsParams.itsSrcPeak);	    
-	      
-// 	      Gaussian2D<Double> component(this->itsSolution(i,0),this->itsSolution(i,1),this->itsSolution(i,2),
-// 					   this->itsSolution(i,3),this->itsSolution(i,4),this->itsSolution(i,5));
-// 	      intFlux += component.flux();
-	      
-// 	      for(unsigned int j=i+1;j<this->itsNumGauss;j++){
-// 		float sep = hypot( this->itsSolution(i,1)-this->itsSolution(j,1) , 
-// 				   this->itsSolution(i,2)-this->itsSolution(j,2) );
-// 		passSep = passSep && (sep > 2.);
-// 	      }
-// 	    }
-	    
-// 	    passIntFlux = (intFlux < 2.*this->itsParams.itsBoxFlux);
-
-// 	  }
-
-// 	  ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passXLoc<<passYLoc<<passSep
-// 			    <<passFlux<<passPeak<<passIntFlux);
-	  ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passLoc<<passSep
-			    <<passFlux<<passPeak<<passIntFlux);
-
-	  bool thisFitGood = passConv && passChisq && passLoc && passSep && passFlux && passPeak && passIntFlux;
-
-	  return thisFitGood;
       }
 
 

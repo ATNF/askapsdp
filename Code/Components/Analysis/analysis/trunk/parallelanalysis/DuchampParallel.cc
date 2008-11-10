@@ -156,7 +156,7 @@ namespace askap
 //       this->itsSubimageDef = SubimageDef(parset);
       if(this->isParallel()){
 	if(this->isMaster())
-	  this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
+	  this->itsCube.pars().setLogFile( parset.getString("logFile", "duchamp-Logfile-Master.txt") );
 	else if(this->isWorker()){
  	  this->itsSubimageDef = SubimageDef(parset);
 	  this->itsCube.pars().setFlagSubsection(true);

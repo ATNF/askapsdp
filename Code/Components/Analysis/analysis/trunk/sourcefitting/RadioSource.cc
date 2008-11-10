@@ -93,14 +93,7 @@ namespace askap
       RadioSource::RadioSource(const RadioSource& src):
 	duchamp::Detection(src)
       {
-	this->atEdge = src.atEdge;
-	this->hasFit = src.hasFit;
-	this->itsNoiseLevel = src.itsNoiseLevel;
-	this->itsDetectionThreshold = src.itsDetectionThreshold;
-	this->itsHeader = src.itsHeader;
-	this->itsGaussFitSet = src.itsGaussFitSet;
-	this->itsBoxMargins = src.itsBoxMargins;
-	this->itsFitParams = src.itsFitParams;
+	operator=(src);
       }
 
       //**************************************************************//
@@ -116,6 +109,10 @@ namespace askap
 	this->itsGaussFitSet = src.itsGaussFitSet;
 	this->itsBoxMargins = src.itsBoxMargins;
 	this->itsFitParams = src.itsFitParams;
+// 	this->itsBestFit = src.itsBestFit;
+	this->itsChisq = src.itsChisq;
+	this->itsRMS = src.itsRMS;
+	this->itsNDoF = src.itsNDoF;
 	return *this;
       }
 
@@ -641,14 +638,20 @@ namespace askap
 	int bestFit = 0;
 	float bestRChisq = 9999.;
 
-	this->itsFitParams = baseFitter;
-	this->itsFitParams.saveBox(this->itsBoxMargins);
-	this->itsFitParams.setPeakFlux(this->peakFlux);
+ 	this->itsFitParams = baseFitter;
+ 	this->itsFitParams.saveBox(this->itsBoxMargins);
+ 	this->itsFitParams.setPeakFlux(this->peakFlux);
 	this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
+
+// 	FittingParameters fitpars = baseFitter;
+// 	fitpars.saveBox(this->itsBoxMargins);
+// 	fitpars.setPeakFlux(this->peakFlux);
+// 	fitpars.setDetectThresh(this->itsDetectionThreshold);
 	
 	for(int ctr=0;ctr<maxNumGauss;ctr++){
 
-	  fit[ctr].setParams(this->itsFitParams);
+ 	  fit[ctr].setParams(this->itsFitParams);
+//  	  fit[ctr].setParams(fitpars);
 	  fit[ctr].setNumGauss(ctr+1);
 	  fit[ctr].setEstimates(cmpntList, this->itsHeader);
 	  fit[ctr].setRetries();
@@ -669,6 +672,10 @@ namespace askap
 	if(fitIsGood){
 	  this->hasFit = true;
 	  this->itsFitParams = fit[bestFit].params();
+// 	  this->itsBestFit = fit[bestFit];
+	  this->itsChisq = fit[bestFit].chisq();
+	  this->itsRMS = fit[bestFit].RMS();
+	  this->itsNDoF = fit[bestFit].ndof();
 	  // Make a map so that we can output the fitted components in order of peak flux
 	  std::multimap<double,int> fitMap = fit[bestFit].peakFluxList();
 	  // Need to use reverse_iterator so that brightest component's listed first
@@ -683,6 +690,8 @@ namespace askap
 	}
 	else{
 	  this->itsFitParams = baseFitter;
+// 	  this->itsBestFit = Fitter();
+// 	  this->itsBestFit.setParams(baseFitter);
 	  ASKAPLOG_INFO_STR(logger, "No good fit found.");
 	}
 
@@ -729,7 +738,7 @@ namespace askap
 // 	  columns[duchamp::Column::VEL].printTitle(stream);
 	  columns[duchamp::Column::FINT].printTitle(stream);
 	  columns[duchamp::Column::FPEAK].printTitle(stream);
-	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit)\n";
+	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit) Chisq(fit)   RMS(fit)  NDoF(fit)\n";
 	  int width = columns[duchamp::Column::NUM].getWidth() + 
 	    columns[duchamp::Column::RA].getWidth() + 
 	    columns[duchamp::Column::DEC].getWidth() +
@@ -737,7 +746,7 @@ namespace askap
 	    columns[duchamp::Column::FINT].getWidth() +
 	    columns[duchamp::Column::FPEAK].getWidth();
 	  stream << std::setfill('-') << std::setw(width) << '-'
-		 << "-----------------------------------------------------------\n";
+		 << "--------------------------------------------------------------------------------------------\n";
 	}
 
 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
@@ -747,12 +756,15 @@ namespace askap
 // 	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
-	  float peakflux=0.,intflux=0.,maj=0.,min=0.,pa=0.;
-	  stream << " " << std::setw(12) << std::setprecision(6) << intflux << " ";
-	  stream << std::setw(12) << std::setprecision(6) << peakflux << " ";
-	  stream << std::setw(10) << std::setprecision(6) << maj << " ";
-	  stream << std::setw(10) << std::setprecision(6) << min << " ";
-	  stream << std::setw(7) << std::setprecision(2) << pa << "\n";
+	  float zero = 0.;
+	  stream << " " << std::setw(12) << std::setprecision(6) << zero << " ";
+	  stream << std::setw(12) << std::setprecision(6) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(6) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(6) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(0) << zero << "\n";
 	}
 
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
@@ -780,7 +792,8 @@ namespace askap
 
 	  stream << " " ;
 
-	  float peakflux=0.,intflux=0.,maj=0.,min=0.,pa=0.;
+	  float peakflux=0.,intflux=0.,maj=0.,min=0.,pa=0.,chisq=0.,rms=0.;
+	  int ndof=0;
 	  peakflux = fit->height();
 	  intflux  = fit->flux();
 	  if(this->itsHeader.needBeamSize()) 
@@ -788,11 +801,17 @@ namespace askap
 	  maj = fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.; // convert from pixels to arcsec
 	  min = fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.;
 	  pa = fit->PA()*180./M_PI;
+ 	  chisq = this->itsChisq;
+	  rms = this->itsRMS;
+	  ndof = this->itsNDoF;
 	  stream << std::setw(12) << std::setprecision(6) << intflux << " ";
 	  stream << std::setw(12) << std::setprecision(6) << peakflux << " ";
 	  stream << std::setw(10) << std::setprecision(6) << maj << " ";
 	  stream << std::setw(10) << std::setprecision(6) << min << " ";
-	  stream << std::setw(7) << std::setprecision(2) << pa << "\n";
+	  stream << std::setw(10) << std::setprecision(2) << pa << " ";
+	  stream << std::setw(10) << std::setprecision(4) << chisq << " ";
+	  stream << std::setw(10) << std::setprecision(4) << rms << " ";
+	  stream << std::setw(10) << std::setprecision(0) << ndof << "\n";
 
 	}
 
@@ -842,11 +861,15 @@ namespace askap
 
 	pix[0] = this->getXmin()-this->itsFitParams.boxPadSize();
 	pix[1] = this->getYmin()-this->itsFitParams.boxPadSize();
+// 	pix[0] = this->getXmin()-this->itsBestFit.rparams().boxPadSize();
+// 	pix[1] = this->getYmin()-this->itsBestFit.rparams().boxPadSize();
 	this->itsHeader.pixToWCS(pix,world);
 	stream << "BOX " << world[0] << " " << world[1] << " ";
 	
 	pix[0] = this->getXmax()+this->itsFitParams.boxPadSize();
 	pix[1] = this->getYmax()+this->itsFitParams.boxPadSize();
+// 	pix[0] = this->getXmax()+this->itsBestFit.rparams().boxPadSize();
+// 	pix[1] = this->getYmax()+this->itsBestFit.rparams().boxPadSize();
 	this->itsHeader.pixToWCS(pix,world);
 	stream << world[0] << " " << world[1] << "\n";
 	

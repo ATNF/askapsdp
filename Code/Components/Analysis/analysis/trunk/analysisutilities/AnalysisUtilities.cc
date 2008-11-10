@@ -148,6 +148,16 @@ namespace askap
 
       duchamp::Param par;
 
+      std::string outputfile;
+      outputfile = parset.getString("outfile", "" );
+      if(outputfile == "") outputfile =  parset.getString("resultsFile", "");
+      if(outputfile != "") par.setOutFile(outputfile);
+
+      par.setFlagSubsection( parset.getBool("flagSubsection", false) );
+      par.setSubsection( parset.getString("subsection", par.getSubsection()) );
+      par.setFlagStatSec( parset.getBool("flagStatSec", false) );
+      par.setStatSec( parset.getString("statsec", par.getStatSec()) );
+      
       par.setVerbosity( parset.getBool("verbose", false) );
       par.setFlagLog(true);
 
@@ -156,14 +166,13 @@ namespace askap
       par.setCut( parset.getFloat("snrCut", 4.) );
       par.setMinPix( parset.getInt16("minPix", par.getMinPix()) );
       par.setMinChannels( parset.getInt16("minChannels", par.getMinChannels()) );
-      float threshold = parset.getFloat("threshold", -99999.9);
-      if(threshold < -99999.){ // if "threshold" was not in the parset
-	par.setFlagUserThreshold(false);
-      }
-      else{
+      if(parset.isDefined("threshold")){
 	par.setFlagUserThreshold(true);
-	par.setThreshold(threshold);
-// 	ASKAPLOG_INFO_STR(logger, "Setting threshold to " << threshold << ".");
+	par.setThreshold(parset.getFloat("threshold"));
+	// 	ASKAPLOG_INFO_STR(logger, "Setting threshold to " << threshold << ".");
+      }
+      else {
+	par.setFlagUserThreshold(false);
       }
 
       par.setFlagKarma( parset.getBool("flagKarma", true) );
@@ -172,7 +181,10 @@ namespace askap
 
       par.setFlagGrowth( parset.getBool("flagGrowth", false) );
       par.setGrowthCut( parset.getFloat("growthCut", par.getGrowthCut()) );
-      par.setGrowthThreshold( parset.getFloat("growththreshold", par.getGrowthThreshold()) );
+      if(parset.isDefined("growthThreshold")){
+	par.setGrowthThreshold( parset.getFloat("growthThreshold") );
+	par.setFlagUserGrowthThreshold(true);
+      }
 
       par.setFlagATrous( parset.getBool("flagATrous",false) );
       par.setReconDim( parset.getInt16("reconDim", par.getReconDim()) );
@@ -190,6 +202,8 @@ namespace askap
       par.setKernMin( parset.getFloat("kernMin", par.getKernMin()) );
       par.setKernPA( parset.getFloat("kernPA", par.getKernPA()) );
       
+      par.checkPars();
+
       return par;
     }
     
@@ -254,185 +268,7 @@ namespace askap
     }
 
 
-    std::vector<duchamp::Section> readSectionInfo(std::string filename)
-    {
-      /// @details
-      /// Record the section information that details what pixels are
-      /// covered by each of the distributed images/cubes. This is
-      /// designed for the case where the data to be searched is
-      /// spread over a number of data files (potentially on a number
-      /// of nodes).
-      ///
-      /// The information is read from a "sectionInfo" file that has the following format:
-      /// @li Number of axes
-      /// @li Dimension of axis 1
-      /// @li Dimension of axis 2
-      /// @li ... [repeat for all axes]
-      /// @li Pixel section for image 1, e.g. [a:b,c:d,e:f] or [*,*,a:b]
-      /// @li Pixel section for image 2
-      /// @li ... [repeat for all images -- typically one image per node]
-      /// 
-      /// The pixel sections are parsed by the duchamp::Section class.
-      ///
-      /// @param filename The name of the sectionInfo file.
-      /// @return A std::vector containing a duchamp::Section object for each image.
-      ///
-      /// @deprecated
 
-      std::vector<duchamp::Section> sectionlist; 
-      std::ifstream fin(filename.c_str());
-      int numAxes=0;
-      if(!fin.is_open()) {
-	ASKAPLOG_ERROR_STR(logger, "SectionInfo file " << filename << " not found!"); 
-	ASKAPTHROW(AskapError, "Error opening SectionInfo file" << filename)
-	  }
-      else{	
-	fin >> numAxes;	
-	std::vector<long> dimAxes(numAxes);	
-	for(int i=0;i<numAxes;i++) fin>>dimAxes[i];	
-	while(!fin.eof()){
-	  std::string image,sectionString;
-	  fin >> image >> sectionString;
-	  if(!fin.eof()){
-	    duchamp::Section section(sectionString);
-	    section.parse(dimAxes);
-	    sectionlist.push_back(section);
-	  }
-	}
-	fin.close();
-      }
-
-      for(unsigned int i=0;i<sectionlist.size();i++)
-	std::cerr << sectionlist[i].getSection() << "\n";
-
-      return sectionlist;
-
-    }
-
-    std::string getSubImageName(std::string image, int rank, int numWorkers)
-    {
-     
-      /// @details A standard way for producing the filename for a
-      /// subimage, coded according to the number of workers and the
-      /// rank of the particular worker in question. If the input
-      /// image is image.fits, then for the first worker (rank=0) out
-      /// of 5, the filename returned will be image.sub0.5.fits. If
-      /// the input image does not end in ".fits", the sub0.5 is
-      /// appended: e.g image.fts.sub0.5
-      /// @param image The existing disk image
-      /// @param rank The rank of the worker desiring the subimage
-      /// @param numWorkers The total number of workers (ie. total
-      /// number of subimages.)
-      /// @return The filename for the subimage.
-      ///
-      /// @deprecated
  
-      std::stringstream file;
-      bool isFits = (image.substr(image.size()-5,image.size())==".fits");
-      if(isFits) file << image.substr(0,image.size()-5);
-      else file << image;
-      file << ".sub" << rank << "." << numWorkers;
-      if(isFits) file << ".fits";
-      return file.str();
-
-    }
-
-//     std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
-//     {
-
-//       /// @details Use the SubimageDef class to return the full list
-//       /// of subimage specifications for all workers.
-//       /// @param numWorkers The number of workers 
-//       /// @param parset The set of parameters.
-//       /// @return A std::vector of duchamp::Section objects.
-
-//       std::vector<duchamp::Section> sectionlist; 
-
-//       SubimageDef subDef;
-// //       subDef.define(parset);
-//       if( numWorkers != subDef.numSubs() ){
-// 	ASKAPLOG_INFO_STR(logger, "Requested number of subsections ("<<subDef.numSubs()
-// 			  <<") doesn't match number of workers (" << numWorkers<<"). Not doing splitting.");
-// 	return sectionlist;
-//       }  
-//       else {
-	
-// 	for(int w=0; w<numWorkers; w++){
-// 	  sectionlist.push_back( subDef.section(w) );
-// 	}
-
-// 	return sectionlist;
-
-//       }
-
-
-//     }
-
-//     duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset)
-//     {
-      
-//       /// @details Use the SubimageDef class to return the
-//       /// duchamp::Section object for the given worker number.
-//       /// @param workerNum The number of the subimage (starting at 0);
-//       /// @param parset The set of parameters.
-//       /// @return A duchamp::Section object containing all info on the
-//       /// desired subimage.
-
-//       SubimageDef subDef;
-// //       subDef.define(parset);
-//       return subDef.section(workerNum);
-      
-//     }
-
-//     std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset)
-//     {
-
-//       /// @details This function takes an existing FITS image on disk,
-//       /// and creates a number of subimages, one for each worker. The
-//       /// division of the image is governed by the parameter set,
-//       /// specifically the nsubx/y/z and overlapx/y/z parameters, but
-//       /// the transformation of these into subsection strings is done
-//       /// by getSectionList(). The image to be split is given by the
-//       /// image parameter. The new files are always written, and will
-//       /// overwrite any pre-existing files (by using a "!" at the
-//       /// start of the filename).
-//       ///
-//       /// @param numWorkers The number of workers and the number of subimages. 
-//       /// @param parset The parameter set holding info on how to divide the image.
-//       /// @return A std::vector of duchamp::Section objects.
-//       ///
-//       /// @deprecated
- 
-//       std::string image = parset.getString("image");
-//       std::vector<duchamp::Section> sectionlist = getSectionList(numWorkers, parset);
-//       fitsfile *fin;
-//       int status=0;
-//       fits_open_file(&fin,image.c_str(),READONLY,&status);
-
-//       for(int w=0; w<numWorkers; w++){
-
-// 	std::string subimage = "!"+getSubImageName(image,w,numWorkers);
-	
-// 	std::string secstring = sectionlist[w].getSection();
-// 	std::string section = secstring.substr(1,secstring.size()-2);
-	
-// 	ASKAPLOG_INFO_STR(logger, "Creating SubImage " << subimage << " using section " << section);
-
-// 	fitsfile *fout;
-// 	status=0;
-// 	fits_create_file(&fout,subimage.c_str(),&status);
-// 	status=0;
-// 	fits_copy_image_section(fin,fout,(char *)section.c_str(),&status);
-// 	status=0;
-// 	fits_close_file(fout,&status);
-	
-//       }
-//       status=0;
-//       fits_close_file(fin,&status);
-      
-//       return sectionlist;
-
-//     }
-
   }
 }
