@@ -320,9 +320,9 @@ namespace askap
 	int prec = 3;
 	
 	for(match=this->itsMatchingPixList.begin(); match<this->itsMatchingPixList.end(); match++){
-	  int newprec = ceil(log10(1./match->first.flux()))+1;
+	  int newprec = int(ceil(log10(1./match->first.flux())))+1;
 	  prec = std::max( prec, newprec );
-	  newprec = ceil(log10(1./match->first.flux()))+1;
+	  newprec = int(ceil(log10(1./match->first.flux())))+1;
 	  prec = std::max( prec, newprec );
 	}
 

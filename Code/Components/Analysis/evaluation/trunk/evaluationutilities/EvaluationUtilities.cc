@@ -62,13 +62,12 @@ namespace askap
       std::string raS,decS,sdud,id;
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
-      double xpt,ypt,ddud,ra,dec,flux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms;
+      double xpt,ypt,ra,dec,flux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms;
       int ndof;
       char line[501];
       fin.getline(line,500);
       fin.getline(line,500);
       // now at start of object list
-//       while (fin >> id >> raS >> decS >> ddud >> ddud >> flux >> ddud >> ddud,
       while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> rms >> ndof,
 	     !fin.eof()){
 	if(fluxMethod == "integrated"){
@@ -87,7 +86,6 @@ namespace askap
 	if(ra>raBase) xpt *= -1.;
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
-	//    std::cerr << xpt << " " << ypt << "\n";
 	if(radius<0 || (radius>0 && hypot(xpt,ypt)<radius*60.) ){
 	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
 	  pix.setStuff(chisq,rms,ndof);
@@ -97,12 +95,6 @@ namespace askap
 
       stable_sort(pixlist.begin(),pixlist.end());
       reverse(pixlist.begin(),pixlist.end());
-//       std::vector<matching::Point>::iterator pt;
-//       for(pt=pixlist.begin(); pt<pixlist.end(); pt++)
-// 	std::cout << "S\t[" << pt->ID() << "]\t"
-// 		  << std::setw(10) << pt->x()  << " "
-// 		  << std::setw(10) << pt->y()  << " "
-// 		  << std::setw(10) << pt->flux() << "\n";
 
       return pixlist;
       
@@ -147,13 +139,6 @@ namespace askap
 
       stable_sort(pixlist.begin(),pixlist.end());
       reverse(pixlist.begin(),pixlist.end());
-//       std::vector<matching::Point>::iterator pt;
-//       for(pt=pixlist.begin(); pt<pixlist.end(); pt++)
-// 	std::cout << "R\t[" << pt->ID() << "]\t"
-// 		  << std::setw(10) << pt->x()  << " "
-// 		  << std::setw(10) << pt->y()  << " "
-// 		  << std::setw(10) << pt->flux() << "\n";
-
       return pixlist;
 
     }

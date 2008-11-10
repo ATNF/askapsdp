@@ -244,7 +244,7 @@ namespace askap
 
 	float itsChisq;
 	float itsRMS;
-	float itsNDoF;
+	int itsNDoF;
 
 	/// @brief The min & max points of the box, taking into account the borders of the data array
 	std::vector<std::pair<long,long> > itsBoxMargins;
