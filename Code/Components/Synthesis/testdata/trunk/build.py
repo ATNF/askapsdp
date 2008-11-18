@@ -5,7 +5,7 @@ import shutil
 import md5
 
 from recursivebuild import run
-from recursivebuild.dependencies import q_print
+from recursivebuild.utils import q_print
 
 def create_sig():
     md5sig = md5.new(file("build.py").read())
