@@ -63,12 +63,12 @@ namespace askap
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
       double xpt,ypt,ra,dec,flux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms;
-      int ndof;
+      int ndof,npixfit,npixobj;
       char line[501];
       fin.getline(line,500);
       fin.getline(line,500);
       // now at start of object list
-      while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> rms >> ndof,
+      while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> rms >> ndof >> npixfit >> npixobj,
 	     !fin.eof()){
 	if(fluxMethod == "integrated"){
 	  if(iflux2>0) flux= iflux2;
@@ -88,7 +88,7 @@ namespace askap
 	ypt = (dec - decBase) * 3600.;
 	if(radius<0 || (radius>0 && hypot(xpt,ypt)<radius*60.) ){
 	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
-	  pix.setStuff(chisq,rms,ndof);
+	  pix.setStuff(chisq,rms,ndof,npixfit,npixobj);
 	  pixlist.push_back(pix);
 	}
       }

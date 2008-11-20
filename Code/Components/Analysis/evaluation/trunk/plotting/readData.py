@@ -48,6 +48,8 @@ def read_match_data(filename=None):
     chisq=[]
     rms=[]
     ndof=[]
+    npixfit=[]
+    npixobj=[]
     idR=[]
     xR=[]
     yR=[]
@@ -68,15 +70,17 @@ def read_match_data(filename=None):
         chisq.append(fields[8])
         rms.append(fields[9])
         ndof.append(fields[10])
-        idR.append(fields[11])
-        xR.append(fields[12])
-        yR.append(fields[13])
-        fR.append(fields[14])
-        aR.append(fields[15])
-        bR.append(fields[16])
-        pR.append(fields[17])
+        npixfit.append(fields[11])
+        npixobj.append(fields[12])
+        idR.append(fields[13])
+        xR.append(fields[14])
+        yR.append(fields[15])
+        fR.append(fields[16])
+        aR.append(fields[17])
+        bR.append(fields[18])
+        pR.append(fields[19])
     
-    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(rms)),cast[int](array(ndof)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
+    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(rms)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
 
 #############################################################################
 
@@ -112,3 +116,11 @@ def read_miss_data(filename=None):
     return type,id,cast[float](array(x)),cast[float](array(y)),cast[float](array(f))
 
 
+def read_ref_list(filename=None):
+
+    id=[]
+    for line in open(filename):
+        fields = line.split()
+        id.append('[%s_%s_%s]'%(fields[0],fields[1],fields[2]))
+
+    return id

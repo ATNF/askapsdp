@@ -57,7 +57,7 @@ namespace askap
 	/// @brief Default constructor
 	Stuff(){};
 	/// @brief Specific constructor
-	Stuff(float c, float r, int n){itsChisq=c; itsRMS=r; itsNDoF=n;};
+	Stuff(float c, float r, int n, int p1, int p2){itsChisq=c; itsRMS=r; itsNDoF=n; itsNpixFit=p1; itsNpixObj=p2;};
 	/// @brief Destructor
 	~Stuff(){};
 	/// @brief Copy function
@@ -71,6 +71,10 @@ namespace askap
 	float itsRMS;
 	/// @brief The number of degrees of freedom of the fit
 	int itsNDoF;
+	/// @brief The number of pixels used in the fitting
+	int itsNpixFit;
+	/// @brief THe number of pixels in the object
+	int itsNpixObj;
       };
 
 
@@ -135,7 +139,7 @@ namespace askap
 	/// @brief Return the separation from another Point.
 	double sep(Point pt){return hypot(itsX-pt.x(),itsY-pt.y());};
 
-	void setStuff(float c, float r, int n){itsStuff = Stuff(c,r,n);};
+	void setStuff(float c, float r, int n, int p1, int p2){itsStuff = Stuff(c,r,n,p1,p2);};
 	Stuff &stuff(){Stuff &rstuff=itsStuff; return rstuff;};
 
       protected:

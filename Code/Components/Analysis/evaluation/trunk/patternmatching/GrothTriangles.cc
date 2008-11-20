@@ -57,11 +57,17 @@ namespace askap
 	itsChisq=s.itsChisq;
 	itsRMS=s.itsRMS;
 	itsNDoF=s.itsNDoF;
+	itsNpixFit = s.itsNpixFit;
+	itsNpixObj = s.itsNpixObj;
 	return *this;
       }
 	
       std::ostream &operator<<(std::ostream& theStream, Stuff &s){
-	  theStream << std::setw(10) << s.itsChisq << " " << std::setw(10) << s.itsRMS << " " << std::setw(10) << s.itsNDoF;
+	  theStream << std::setw(10) << s.itsChisq << " " 
+		    << std::setw(10) << s.itsRMS << " " 
+		    << std::setw(10) << s.itsNDoF << " "
+		    << std::setw(10) << s.itsNpixFit << " "
+		    << std::setw(10) << s.itsNpixObj;
 	  return theStream;
 	}
 
