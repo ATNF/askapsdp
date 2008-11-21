@@ -42,6 +42,7 @@
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Detection/columns.hh>
 #include <duchamp/Cubes/cubes.hh>
+#include <duchamp/Utils/Section.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian2D.h>
@@ -169,7 +170,8 @@ namespace askap
 	void setAtEdge(duchamp::Cube &cube);
 
 	/// @brief Define the boundaries of the box
-	void defineBox(long *axes, FittingParameters &fitParams);
+/* 	void defineBox(long *axes, FittingParameters &fitParams); */
+	void defineBox(duchamp::Section &sec, FittingParameters &fitParams);
 
 	/// @brief Commands to return the extent and size of the box
 	/// surrounding the object. Uses the detectionBorder parameter.

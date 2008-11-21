@@ -123,6 +123,8 @@ namespace askap
 	void setMaxReducedChisq(float f){itsMaxReducedChisq=f;};
 	void setPeakFlux(float f){itsSrcPeak = f;};
 	void setDetectThresh(float f){itsDetectThresh=f;};
+	void setMinFitSize(int i){itsMinFitSize = i;};
+	void setBeamSize(float f){itsBeamSize = f;};
 
 	int    maxNumGauss(){return itsMaxNumGauss;};	
 	int    boxPadSize(){return itsBoxPadSize;};
@@ -131,6 +133,7 @@ namespace askap
 	float  chisqConfidence(){return itsChisqConfidence;};
 	float  maxReducedChisq(){return itsMaxReducedChisq;};
 	int    minFitSize(){return itsMinFitSize;};
+	float  beamSize(){return itsBeamSize;};
 
 	// @}
 
@@ -178,6 +181,9 @@ namespace askap
 
 	/// @brief The detection threshold used to obtain the object.
 	float itsDetectThresh;
+
+	/// @brief The beam size in the image, using BMIN
+	float itsBeamSize;
 
 	/// @brief The extent of the box surrounding the object used for the fitting
 	/// @{
@@ -248,6 +254,8 @@ namespace askap
 	bool passChisq();
 	/// @brief Are the fitted components suitably within the box?
 	bool passLocation();
+	/// @brief Are the component sizes big enough?
+	bool passComponentSize();
 	/// @brief Are the component fluxes OK?
 	bool passComponentFlux();
 	bool passPeakFlux();

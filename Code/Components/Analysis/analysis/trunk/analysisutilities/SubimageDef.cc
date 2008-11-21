@@ -143,6 +143,8 @@ namespace askap
       const int lat  = wcs->lat;
       const int spec = wcs->spec;
       
+      ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : " << this->itsNAxis << " axes, " << lng << " " << lat << " " << spec);
+
       if(this->itsNAxis>0){
 	this->itsNSub = new int[this->itsNAxis];
 	this->itsOverlap = new int[this->itsNAxis];
@@ -166,6 +168,9 @@ namespace askap
 	}
       }
 
+      for(int i=0;i<this->itsNAxis;i++){
+	ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : axis#" << i << ": " << this->itsNSub[i] << " " << this->itsOverlap[i]);
+      }
     }
 
     void SubimageDef::defineFITS(std::string FITSfilename)
@@ -190,7 +195,7 @@ namespace askap
       this->define(imageHeader.getWCS());
     }
 
-    duchamp::Section SubimageDef::section(int workerNum)
+    duchamp::Section SubimageDef::section(int workerNum, std::string inputSubsection)
     {
 
       /// @details Return the subsection object for the given worker
@@ -201,7 +206,12 @@ namespace askap
       /// @return A duchamp::Section object containing all information
       /// on the subsection.
 
-      long start = 0;
+      ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
+      duchamp::Section inputSec(inputSubsection);
+      inputSec.parse(this->itsFullImageDim);
+      ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
+
+//       long start = 0;
       
       long sub[3];
       sub[0] = workerNum % this->itsNSub[0];
@@ -210,18 +220,34 @@ namespace askap
 
       std::stringstream section;
 
-      for(int i=0;i<this->itsNAxis;i++){
+      int numAxes = this->itsFullImageDim.size();
+
+      for(int i=0;i<numAxes;i++){
 	    
 	if(this->itsNSub[i] > 1){
-	  int min = std::max( start, sub[i]*(this->itsFullImageDim[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
-	  int max = std::min( this->itsFullImageDim[i], (sub[i]+1)*(this->itsFullImageDim[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 );
+// 	  int min = std::max( start, sub[i]*(this->itsFullImageDim[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
+// 	  int max = std::min( this->itsFullImageDim[i], (sub[i]+1)*(this->itsFullImageDim[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 );
+	  int length = inputSec.getDim(i);
+	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : axis#" << i << " full length = " << this->itsFullImageDim[i]
+			     << ", length = " << length << ", inputSection = " << inputSec.getSection(i));
+	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : input min = " << inputSec.getStart(i) << ", input max = " << inputSec.getEnd(i));
+	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : sub min = " << inputSec.getStart(i) + sub[i]*(length/this->itsNSub[i]) - this->itsOverlap[i]/2
+			     << ", sub max = " << inputSec.getStart(i) + (sub[i]+1)*(length/this->itsNSub[i]) + this->itsOverlap[i]/2 );
+
+	  int min = std::max( long(inputSec.getStart(i)), inputSec.getStart(i) + sub[i]*(length/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
+	  int max = std::min( long(inputSec.getEnd(i)+1), inputSec.getStart(i) + (sub[i]+1)*(length/this->itsNSub[i]) + this->itsOverlap[i]/2 );
+
+	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : min = " << min << ", max = " << max);
 	  section << min << ":" << max;
 	}
-	else section << "*";
-	if(i != this->itsNAxis-1) section << ",";
+	else //section << "*";
+	  section << inputSec.getSection(i);
+// 	if(i != this->itsNAxis-1) section << ",";
+	if(i != numAxes-1) section << ",";
 	  
       }
       std::string secstring = "["+section.str()+"]";
+      ASKAPLOG_INFO_STR(logger, "New subsection to be used is " << secstring);
       duchamp::Section sec(secstring);
       sec.parse(this->itsFullImageDim);
 

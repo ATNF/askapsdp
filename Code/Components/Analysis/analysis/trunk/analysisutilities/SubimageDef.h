@@ -67,11 +67,12 @@ namespace askap
 
       /// @brief Set the array of image dimensions
       void setImageDim(std::vector<long> dim){itsFullImageDim = dim;};
+      std::vector<long> getImageDim(){return itsFullImageDim;};
       /// @brief Set the image name.
       void setImage(std::string imageName){itsImageName = imageName;};
 
       /// @brief Return a subsection specification for a given worker
-      duchamp::Section section(int workerNum);
+      duchamp::Section section(int workerNum, std::string inputSection);
 
       /// @brief Return the number of subimages.
       int numSubs(){return itsNSubX*itsNSubY*itsNSubZ;};

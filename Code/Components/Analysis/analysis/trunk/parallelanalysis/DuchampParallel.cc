@@ -156,14 +156,14 @@ namespace askap
 //       this->itsSubimageDef = SubimageDef(parset);
       if(this->isParallel()){
 	if(this->isMaster())
-	  this->itsCube.pars().setLogFile( parset.getString("logFile", "duchamp-Logfile-Master.txt") );
+	  this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")) );
 	else if(this->isWorker()){
  	  this->itsSubimageDef = SubimageDef(parset);
 	  this->itsCube.pars().setFlagSubsection(true);
 	}
       }
 
-      if(this->isWorker())
+      if(this->isWorker() )
 	this->itsCube.pars().setLogFile( substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")) );	
 	
       ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished DuchampParallel constructor");
@@ -188,7 +188,11 @@ namespace askap
 
 	int result;
 	ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata");
-	if(this->itsIsFITSFile) result = this->itsCube.getMetadata();
+	if(this->itsIsFITSFile){
+	  if(this->itsCube.pars().verifySubsection()==duchamp::FAILURE) 
+	    ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection() );
+	  result = this->itsCube.getMetadata();
+	}
  	else result = casaImageToMetadata(this->itsCube);
 
 	if(result==duchamp::FAILURE){
@@ -271,15 +275,35 @@ namespace askap
  	  if(this->itsIsFITSFile){
 	    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
 	    this->itsSubimageDef.setImageDim( getFITSdimensions(this->itsCube.pars().getImageFile()) );
-	    duchamp::Section subsection=this->itsSubimageDef.section(this->itsRank-1);
-	    ASKAPLOG_INFO_STR(logger, this->workerPrefix()<<"Using subsection " << subsection.getSection());
-	    this->itsCube.pars().setSubsection( subsection.getSection() );
+	    ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getFlagSubsection() << " " << this->itsCube.pars().getSubsection() 
+			       << " " << this->itsCube.getNumDim() << " " << this->itsSubimageDef.naxis() << " " << this->itsSubimageDef.getImageDim().size());
+	    if( !this->itsCube.pars().getFlagSubsection() ) {
+	      this->itsCube.pars().setFlagSubsection(true);
+	      this->itsCube.pars().setSubsection( nullSection(this->itsSubimageDef.getImageDim().size()) );
+	    }
+	    
+	    if(this->isParallel()){
+	      ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getFlagSubsection() << " " << this->itsCube.pars().getSubsection());
+	      duchamp::Section subsection=this->itsSubimageDef.section(this->itsRank-1, this->itsCube.pars().getSubsection());
+	      this->itsCube.pars().setSubsection( subsection.getSection() );
+	      ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getFlagSubsection() << " " << this->itsCube.pars().getSubsection());
+	    }
+
 	    if(this->itsCube.pars().verifySubsection()==duchamp::FAILURE) 
-	      ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << subsection.getSection() );
-	    ASKAPLOG_INFO_STR(logger, this->workerPrefix()<<"Using subsection " << subsection.getSection());
+	      ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection() );
+	    ASKAPLOG_INFO_STR(logger, this->workerPrefix()<<"Using subsection " << this->itsCube.pars().getSubsection());
+
 	    ASKAPLOG_INFO_STR(logger,  this->workerPrefix()
 			      <<"About to read data from image " << this->itsCube.pars().getFullImageFile());
 	    result = this->itsCube.getCube();
+	    ASKAPLOG_DEBUG_STR(logger, "num dim of cube = " << this->itsCube.getNumDim());
+	    ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getSubsection() <<":  "
+			       << this->itsCube.pars().section().getStart(0) << " " << this->itsCube.pars().section().getStart(1) << " " << this->itsCube.pars().section().getStart(2) << " " 
+			       << this->itsCube.pars().section().getEnd(0) << " " << this->itsCube.pars().section().getEnd(1) << " " << this->itsCube.pars().section().getEnd(2) << "   " 
+			       << this->itsCube.pars().section().getDim(0) << " " << this->itsCube.pars().section().getDim(1) << " " << this->itsCube.pars().section().getDim(2) << "   " );
+	    ASKAPLOG_DEBUG_STR(logger,  this->itsCube.getDimX());
+	    ASKAPLOG_DEBUG_STR(logger,  this->itsCube.getDimY());
+	    ASKAPLOG_DEBUG_STR(logger, this->itsCube.getDimZ());
 	  }
  	  else{
 	    result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank-1);
@@ -472,7 +496,8 @@ namespace askap
 	  src.setNoiseLevel( this->itsCube, this->itsFitter );
 	  src.setDetectionThreshold( threshold );
 	  src.setHeader( head );
-	  src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+// 	  src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+	  src.defineBox(this->itsCube.pars().section(), this->itsFitter);
 
 	  // Only do fit if object is not next to boundary
 	  src.setAtEdge(this->itsCube);
@@ -597,19 +622,22 @@ namespace askap
 	      for(int obj=0;obj<numObj;obj++){
 		sourcefitting::RadioSource src;
 		in >> src;
-		// Correct for any offsets;
-		src.setXOffset(xstart);
-		src.setYOffset(ystart);
-		src.setZOffset(zstart);
+		// Correct for any offsets. 
+		// If the full cube is a subsection of a larger one, then we need to correct for what the master offsets are.
+		src.setXOffset(xstart-this->itsCube.pars().getXOffset());
+		src.setYOffset(ystart-this->itsCube.pars().getYOffset());
+		src.setZOffset(zstart-this->itsCube.pars().getZOffset());
 		src.addOffsets();
 		src.calcParams();
-		src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+// 		src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+		src.defineBox(this->itsCube.pars().section(), this->itsFitter);
 		for(unsigned int f=0;f<src.fitset().size();f++){
 		  src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
 		  src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
 		}
-		// And now set offsets to zero as we are in the master cube
-		src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
+// 		// And now set offsets to zero as we are in the master cube
+		src.setOffsets(this->itsCube.pars());
+// 		src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
 
 		src.fitparams() = this->itsFitter;
 
@@ -624,9 +652,9 @@ namespace askap
 		    float flux;
 		    bool inObj;
 		    in >> inObj >> x >> y >> z >> flux; 
-		    x += xstart;
-		    y += ystart;
-		    z += zstart;
+		    x += xstart-this->itsCube.pars().getXOffset();
+		    y += ystart-this->itsCube.pars().getYOffset();
+		    z += zstart-this->itsCube.pars().getZOffset();
 		    PixelInfo::Voxel vox(x,y,z,flux);
 		    this->itsVoxelList.push_back(vox);
 		  }
@@ -672,11 +700,12 @@ namespace askap
 	std::vector<sourcefitting::RadioSource> backuplist = this->itsSourceList;
 	std::vector<sourcefitting::RadioSource> edgeSources, goodSources;
 	std::vector<sourcefitting::RadioSource>::iterator src;
+	ASKAPLOG_DEBUG_STR(logger, "Source list size = " << this->itsSourceList.size());
 	for(src=this->itsSourceList.begin();src<this->itsSourceList.end();src++){
 	  if(src->isAtEdge()) edgeSources.push_back(*src);
 	  else goodSources.push_back(*src);
 	}
-
+	
 	this->itsSourceList.clear();
 
 	duchamp::FitsHeader head = this->itsCube.getHead();
@@ -686,14 +715,17 @@ namespace askap
 	float threshold;
 	if(this->itsCube.pars().getFlagUserThreshold()) threshold = this->itsCube.pars().getThreshold();
 	else threshold = this->itsCube.stats().getThreshold();
+	ASKAPLOG_DEBUG_STR(logger, "Good list size = " << goodSources.size() << " Edge list size = " << edgeSources.size());
 
 	if(edgeSources.size()>0){ // if there are edge sources
 
 	  for(src=edgeSources.begin();src<edgeSources.end();src++) this->itsCube.addObject(*src);
 	  
 	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = "<<this->itsCube.getNumObj());
+	  bool growthflag = this->itsCube.pars().getFlagGrowth();
 	  this->itsCube.pars().setFlagGrowth(false);
 	  this->itsCube.ObjectMerger();
+	  this->itsCube.pars().setFlagGrowth(growthflag);
 	  this->calcObjectParams();
 	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = "<<this->itsCube.getNumObj());
 
@@ -703,7 +735,8 @@ namespace askap
 	    src.setNoiseLevel( noise );
 	    src.setDetectionThreshold( threshold );
 	    src.setHeader( head );
- 	    src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+//  	    src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+ 	    src.defineBox(this->itsCube.pars().section(), this->itsFitter);
 
 	    if(this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList, this->itsFitter);
 	    
@@ -714,6 +747,10 @@ namespace askap
 
 	for(src=goodSources.begin();src<goodSources.end();src++){
 	  src->setHeader(head);
+	  ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getMinChannels() << " "
+			     << src->hasEnoughChannels(this->itsCube.pars().getMinChannels()) << " " 
+			     << src->getSpatialSize() << " "
+			     << this->itsCube.pars().getMinPix());
 	  // Need to check that there are no small sources present that violate the minimum size criteria
 	  if( (src->hasEnoughChannels(this->itsCube.pars().getMinChannels()))
 	  && (src->getSpatialSize() >= this->itsCube.pars().getMinPix()) )
@@ -857,7 +894,8 @@ namespace askap
       /// rms/MADFM for the entire dataset and store these values in
       /// the master's itsCube statsContainer.
 
-      if(!this->itsCube.pars().getFlagUserThreshold() || this->itsCube.pars().getFlagGrowth()){
+      if(!this->itsCube.pars().getFlagUserThreshold() || 
+	 (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold())){
 	findMeans();
 	combineMeans();
 	broadcastMean();
@@ -895,7 +933,8 @@ namespace askap
 	  float mean = 0.,rms;
 	  float *array;
 	  // make a mask in case there are blank pixels.
-	  bool *mask = this->itsCube.pars().makeBlankMask(this->itsCube.getArray(), this->itsCube.getSize());
+// 	  bool *mask = this->itsCube.pars().makeBlankMask(this->itsCube.getArray(), this->itsCube.getSize());
+	  bool *mask = this->itsCube.pars().makeStatMask(this->itsCube.getArray(), this->itsCube.getDimArray());
 
 	  if(size>0){
 	  
@@ -983,11 +1022,13 @@ namespace askap
 	  }
 	  else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
 	  else array = this->itsCube.getArray();
-	  if(this->itsCube.pars().getFlagBlankPix()){
-	    bool *mask = this->itsCube.pars().makeBlankMask(array, this->itsCube.getSize());
-	    rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array,mask);
-	  }
-	  else rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array);
+
+// 	  if(this->itsCube.pars().getFlagBlankPix()){
+// 	    bool *mask = this->itsCube.pars().makeBlankMask(array, this->itsCube.getSize());
+	  bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
+	  rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array,mask);
+// 	  }
+// 	  else rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array);
 
 	}
 	

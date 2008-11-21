@@ -72,7 +72,6 @@ namespace askap
   namespace analysis
   {
 
-
     void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs)
     {
       /// @details Stores a wcsprm struct to a duchamp::FitsHeader,
@@ -283,7 +282,7 @@ namespace askap
       subDef.define(casaImageToWCS(imagePtr));
       subDef.setImage(cube.pars().getImageFile());
       subDef.setImageDim( dim );
-      duchamp::Section subsection=subDef.section(subimageNumber);
+      duchamp::Section subsection=subDef.section(subimageNumber, cube.pars().getSubsection());
       if(subsection.parse(dim)==duchamp::FAILURE) 
 	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
       cube.pars().setSubsection( subsection.getSection() );

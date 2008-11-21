@@ -43,6 +43,7 @@
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Detection/columns.hh>
+#include <duchamp/Utils/Section.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
@@ -118,7 +119,8 @@ namespace askap
 
       //**************************************************************//
 
-      void RadioSource::defineBox(long *axes, FittingParameters &fitParams)
+//       void RadioSource::defineBox(long *axes, FittingParameters &fitParams)
+      void RadioSource::defineBox(duchamp::Section &sec, FittingParameters &fitParams)
       {
 	/// @details Defines the maximum and minimum points of the box
 	/// in each axis direction. The size of the image array is
@@ -126,13 +128,30 @@ namespace askap
 	/// does not go outside the allowed pixel area.
 
 	this->itsBoxMargins.clear();
-	long zero = 0;
-	long xmin = std::max(zero, this->getXmin() - fitParams.boxPadSize());
-	long xmax = std::min(axes[0], this->getXmax() + fitParams.boxPadSize());
- 	long ymin = std::max(zero, this->getYmin() - fitParams.boxPadSize());
- 	long ymax = std::min(axes[1], this->getYmax() + fitParams.boxPadSize());
- 	long zmin = std::max(zero, this->getZmin() - fitParams.boxPadSize());
- 	long zmax = std::min(axes[2], this->getZmax() + fitParams.boxPadSize());
+// 	long zero = 0;
+
+// 	ASKAPLOG_DEBUG_STR(logger, "RadioSource::defineBox : " 
+// 			   << this->getXmin() << " " << this->getXmax() <<" " 
+// 			   << this->getYmin() << " " << this->getYmax() << "   "
+// 			   << fitParams.boxPadSize() << "   "
+// 			   << sec.getSection() << ": "
+// 			   << sec.getStart(0) << " " << sec.getStart(1) << " " << sec.getStart(2) << " " 
+// 			   << sec.getEnd(0) << " " << sec.getEnd(1) << " " << sec.getEnd(2) << "   " 
+// 			   << this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
+// 			   );
+
+// 	long xmin = std::max(zero, this->getXmin() - fitParams.boxPadSize());
+// 	long xmax = std::min(axes[0], this->getXmax() + fitParams.boxPadSize());
+//  	long ymin = std::max(zero, this->getYmin() - fitParams.boxPadSize());
+//  	long ymax = std::min(axes[1], this->getYmax() + fitParams.boxPadSize());
+//  	long zmin = std::max(zero, this->getZmin() - fitParams.boxPadSize());
+//  	long zmax = std::min(axes[2], this->getZmax() + fitParams.boxPadSize());
+	long xmin = std::max(long(sec.getStart(0)-this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
+	long xmax = std::min(long(sec.getEnd(0)-this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
+ 	long ymin = std::max(long(sec.getStart(1)-this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
+ 	long ymax = std::min(long(sec.getEnd(1)-this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
+ 	long zmin = std::max(long(sec.getStart(2)-this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
+ 	long zmax = std::min(long(sec.getEnd(2)-this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
 	std::vector<std::pair<long,long> > vec(3);
 	vec[0] = std::pair<long,long>(xmin,xmax);
 	vec[1] = std::pair<long,long>(ymin,ymax);
@@ -524,7 +543,7 @@ namespace askap
 	/// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
 	/// sigma).
 
-	if(this->getSpatialSize() < defaultMinFitSize) return false;
+	if(this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
 	casa::Matrix<casa::Double> pos;
 	casa::Vector<casa::Double> f;
@@ -738,7 +757,7 @@ namespace askap
 // 	  columns[duchamp::Column::VEL].printTitle(stream);
 	  columns[duchamp::Column::FINT].printTitle(stream);
 	  columns[duchamp::Column::FPEAK].printTitle(stream);
-	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit) Chisq(fit)   RMS(fit)  NDoF(fit)\n";
+	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit) Chisq(fit)   RMS(fit)  NDoF(fit)  Npix(fit)  Npix(obj)\n";
 	  int width = columns[duchamp::Column::NUM].getWidth() + 
 	    columns[duchamp::Column::RA].getWidth() + 
 	    columns[duchamp::Column::DEC].getWidth() +
@@ -746,7 +765,7 @@ namespace askap
 	    columns[duchamp::Column::FINT].getWidth() +
 	    columns[duchamp::Column::FPEAK].getWidth();
 	  stream << std::setfill('-') << std::setw(width) << '-'
-		 << "--------------------------------------------------------------------------------------------\n";
+		 << "------------------------------------------------------------------------------------------------------------------\n";
 	}
 
 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
@@ -764,7 +783,9 @@ namespace askap
 	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
 	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
 	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(0) << zero << "\n";
+	  stream << std::setw(10) << std::setprecision(0) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(0) << zero << " ";
+	  stream << std::setw(10) << std::setprecision(0) << this->getSize() << "\n";
 	}
 
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
@@ -811,7 +832,9 @@ namespace askap
 	  stream << std::setw(10) << std::setprecision(2) << pa << " ";
 	  stream << std::setw(10) << std::setprecision(4) << chisq << " ";
 	  stream << std::setw(10) << std::setprecision(4) << rms << " ";
-	  stream << std::setw(10) << std::setprecision(0) << ndof << "\n";
+	  stream << std::setw(10) << std::setprecision(0) << ndof << " ";
+	  stream << std::setw(10) << std::setprecision(0) << this->boxSize() << " ";
+	  stream << std::setw(10) << std::setprecision(0) << this->getSize() << "\n";
 
 	}
 

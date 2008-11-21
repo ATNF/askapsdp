@@ -106,6 +106,11 @@ namespace askap
 	
 	delete [] dimAxes;
 
+       std::stringstream ss;
+      for(int i=0;i<numAxes-1;i++) ss << dimAxes[i] << "x";
+      ss<<dimAxes[numAxes-1];
+      ASKAPLOG_DEBUG_STR(logger,"Fits dimensions = "<<ss.str());
+
       }
 
  
@@ -164,8 +169,6 @@ namespace askap
       par.setPixelCentre( parset.getString("pixelCentre", "centroid") );
 
       par.setCut( parset.getFloat("snrCut", 4.) );
-      par.setMinPix( parset.getInt16("minPix", par.getMinPix()) );
-      par.setMinChannels( parset.getInt16("minChannels", par.getMinChannels()) );
       if(parset.isDefined("threshold")){
 	par.setFlagUserThreshold(true);
 	par.setThreshold(parset.getFloat("threshold"));
@@ -174,6 +177,12 @@ namespace askap
       else {
 	par.setFlagUserThreshold(false);
       }
+
+      par.setFlagAdjacent( parset.getBool("flagAdjacent", par.getFlagAdjacent()) );
+      par.setThreshS( parset.getFloat("threshSpatial", par.getThreshS()) );
+      par.setThreshV( parset.getFloat("threshVelocity", par.getThreshV()) );
+      par.setMinPix( parset.getInt16("minPix", par.getMinPix()) );
+      par.setMinChannels( parset.getInt16("minChannels", par.getMinChannels()) );
 
       par.setFlagKarma( parset.getBool("flagKarma", true) );
 

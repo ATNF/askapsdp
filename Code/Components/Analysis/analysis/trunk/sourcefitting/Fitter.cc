@@ -102,6 +102,7 @@ namespace askap
 	this->itsYmax = f.itsYmax;
 	this->itsSrcPeak = f.itsSrcPeak;
 	this->itsDetectThresh = f.itsDetectThresh;
+	this->itsBeamSize = f.itsBeamSize;
 	return *this;
       }
 
@@ -157,6 +158,9 @@ namespace askap
 	}
 
 	this->itsFitter.setFirstEstimate(estimate);
+
+	if(head.getBminKeyword()>0) this->itsParams.setBeamSize( head.getBminKeyword()/head.getAvPixScale() );
+	else this->itsParams.setBeamSize(0.);
 
 	ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
 	logparameters(estimate);
@@ -323,6 +327,17 @@ namespace askap
 	return passXLoc && passYLoc;
       }
 
+      bool Fitter::passComponentSize()
+      {
+	if(!this->passConverged()) return false;
+	bool passSize=true;
+	for(unsigned int i=0;i<this->itsNumGauss;i++){
+	  passSize = passSize && (this->itsSolution(i,3) > 0.6*this->itsParams.beamSize() );
+	  passSize = passSize && ((this->itsSolution(i,4)*this->itsSolution(i,3)) > 0.6*this->itsParams.beamSize());
+	}
+	return passSize;
+      }
+
       bool Fitter::passComponentFlux()
       {
 	if(!this->passConverged()) return false;
@@ -378,6 +393,7 @@ namespace askap
 	/// @li Fit must be acceptable according to its chisq value
 	/// @li The centre of each component must be inside the box
 	/// @li The separation between any pair of components must be more than 2 pixels.
+	/// @li [new one] The FWHM of each component must be >60% of the minimum FWHM of the beam
 	/// @li The flux of each component must be positive and more than half the detection threshold
 	/// @li No component's peak flux can exceed twice the highest pixel in the box
 	/// @li The sum of the integrated fluxes of all components
@@ -388,13 +404,14 @@ namespace askap
 	bool passFlux = this->passComponentFlux();
 	bool passLoc = this->passLocation();
 	bool passSep = this->passSeparation();
+	bool passSize = this->passComponentSize();
 	bool passPeak = this->passPeakFlux();
 	bool passIntFlux = this->passIntFlux();
 
-	ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passLoc<<passSep
+	ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passLoc<<passSep<<passSize
 			  <<passFlux<<passPeak<<passIntFlux);
 	
-	bool thisFitGood = passConv && passChisq && passLoc && passSep && passFlux && passPeak && passIntFlux;
+	bool thisFitGood = passConv && passChisq && passLoc && passSep && passSize && passFlux && passPeak && passIntFlux;
 	
 	return thisFitGood;
 
