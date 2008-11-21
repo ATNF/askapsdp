@@ -277,7 +277,7 @@ namespace askap
 	    this->itsSubimageDef.setImageDim( getFITSdimensions(this->itsCube.pars().getImageFile()) );
 	    ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getFlagSubsection() << " " << this->itsCube.pars().getSubsection() 
 			       << " " << this->itsCube.getNumDim() << " " << this->itsSubimageDef.naxis() << " " << this->itsSubimageDef.getImageDim().size());
-	    if( !this->itsCube.pars().getFlagSubsection() ) {
+	    if( !this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection()=="" ) {
 	      this->itsCube.pars().setFlagSubsection(true);
 	      this->itsCube.pars().setSubsection( nullSection(this->itsSubimageDef.getImageDim().size()) );
 	    }
@@ -747,10 +747,6 @@ namespace askap
 
 	for(src=goodSources.begin();src<goodSources.end();src++){
 	  src->setHeader(head);
-	  ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getMinChannels() << " "
-			     << src->hasEnoughChannels(this->itsCube.pars().getMinChannels()) << " " 
-			     << src->getSpatialSize() << " "
-			     << this->itsCube.pars().getMinPix());
 	  // Need to check that there are no small sources present that violate the minimum size criteria
 	  if( (src->hasEnoughChannels(this->itsCube.pars().getMinChannels()))
 	  && (src->getSpatialSize() >= this->itsCube.pars().getMinPix()) )

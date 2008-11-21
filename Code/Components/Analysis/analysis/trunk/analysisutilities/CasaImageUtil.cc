@@ -197,6 +197,8 @@ namespace askap
 
       storeWCStoHeader(cube.header(), cube.pars(), wcs);
       
+      cube.pars().setOffsets(wcs);
+
       readBeamInfo(imagePtr, cube.header(), cube.pars());
 
       cube.header().setFluxUnits( imagePtr->units().getName() );
@@ -282,6 +284,10 @@ namespace askap
       subDef.define(casaImageToWCS(imagePtr));
       subDef.setImage(cube.pars().getImageFile());
       subDef.setImageDim( dim );
+      if( !cube.pars().getFlagSubsection() || cube.pars().getSubsection()=="" ) {
+	cube.pars().setFlagSubsection(true);
+	cube.pars().setSubsection( nullSection(subDef.getImageDim().size()) );
+      }
       duchamp::Section subsection=subDef.section(subimageNumber, cube.pars().getSubsection());
       if(subsection.parse(dim)==duchamp::FAILURE) 
 	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
@@ -326,6 +332,17 @@ namespace askap
        //      lattPtr->unlock();
       const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
       //      imagePtr->unlock();
+
+      IPosition shape=imagePtr->shape();
+      std::vector<long> dim(shape.size());
+      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+
+      if( !cube.pars().getFlagSubsection() || cube.pars().getSubsection()=="" ) {
+	cube.pars().setFlagSubsection(true);
+	cube.pars().setSubsection( nullSection(dim.size()) );
+      }
+      if(cube.pars().section().parse(dim)==duchamp::FAILURE) 
+	ASKAPTHROW(AskapError, "casaImageToMetadata: Cannot parse the subsection string " << cube.pars().getSubsection() );
 
       if( casaImageToMetadata(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
 

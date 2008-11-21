@@ -228,14 +228,16 @@ namespace askap
 // 	  int min = std::max( start, sub[i]*(this->itsFullImageDim[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
 // 	  int max = std::min( this->itsFullImageDim[i], (sub[i]+1)*(this->itsFullImageDim[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 );
 	  int length = inputSec.getDim(i);
+	  float sublength = float(length)/float(this->itsNSub[i]);
+
 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : axis#" << i << " full length = " << this->itsFullImageDim[i]
-			     << ", length = " << length << ", inputSection = " << inputSec.getSection(i));
+			     << ", length = " << length << ", inputSection = " << inputSec.getSection(i) <<", sublength = " << sublength);
 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : input min = " << inputSec.getStart(i) << ", input max = " << inputSec.getEnd(i));
 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : sub min = " << inputSec.getStart(i) + sub[i]*(length/this->itsNSub[i]) - this->itsOverlap[i]/2
 			     << ", sub max = " << inputSec.getStart(i) + (sub[i]+1)*(length/this->itsNSub[i]) + this->itsOverlap[i]/2 );
 
-	  int min = std::max( long(inputSec.getStart(i)), inputSec.getStart(i) + sub[i]*(length/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
-	  int max = std::min( long(inputSec.getEnd(i)+1), inputSec.getStart(i) + (sub[i]+1)*(length/this->itsNSub[i]) + this->itsOverlap[i]/2 );
+	  int min = std::max( long(inputSec.getStart(i)), long(inputSec.getStart(i) + sub[i]*sublength - this->itsOverlap[i]/2) ) + 1;
+	  int max = std::min( long(inputSec.getEnd(i)+1), long(inputSec.getStart(i) + (sub[i]+1)*sublength + this->itsOverlap[i]/2) );
 
 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : min = " << min << ", max = " << max);
 	  section << min << ":" << max;
