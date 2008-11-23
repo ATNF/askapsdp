@@ -27,14 +27,14 @@ if __name__ == '__main__':
     missType,id,x,y,f = read_miss_data(missfile)
     print "Match list size = %d, Miss list size = %d"%(size(xS),size(x))
 
-    idRef = read_ref_list("reflist_200uJy_1deg.txt")
-    hasRef = array(range(len(idS)))<0
-    for s in range(len(idS)):
-        for r in range(len(idRef)):
-            if(idR[s]==idRef[r]):
-                print 'Matched Ref (%d/%d): %s\t%s\t%s'%(s,r,idS[s],idR[s],idRef[r])
-                hasRef[s] = True
-
+    if(doRef):
+        idRef = read_ref_list("reflist_200uJy_1deg.txt")
+        hasRef = array(range(len(idS)))<0
+        for s in range(len(idS)):
+            for r in range(len(idRef)):
+                if(idR[s]==idRef[r]):
+                    print 'Matched Ref (%d/%d): %s\t%s\t%s'%(s,r,idS[s],idR[s],idRef[r])
+                    hasRef[s] = True
 
     dF = fS - fR
     rdF = 100.*dF/fR
@@ -57,11 +57,10 @@ if __name__ == '__main__':
     else:
         ind = argsort(rdF[goodfit])
 
-    print ind
-
     if(doRef):
+        print "Matches ordered by relative flux difference:"
         for i in ind:
-            print idS[i],idR[i],rdF[i]
+            print '%s\t%s\t%6.3f'%(idS[i],idR[i],rdF[i])
 
     subplot(451)
     for i in ind:
@@ -182,12 +181,20 @@ if __name__ == '__main__':
     title('Fitted flux vs major axis',font)
 
     subplot(4,5,17)
-    n, bins, patches = hist(dF, 20)
+    temp=[]
+    for i in ind:
+        temp.append(dF[i])
+    temp=array(temp)
+    n, bins, patches = hist(temp, 20)
     xlabel(r'$\Delta S$',font)
     savefig('fluxEval')
 
     subplot(4,5,18)
-    n, bins, patches = hist(rdF, 20)
+    temp=[]
+    for i in ind:
+        temp.append(rdF[i])
+    temp=array(temp)    
+    n, bins, patches = hist(temp, 20)
     xlabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
 
     subplot(4,5,19)
