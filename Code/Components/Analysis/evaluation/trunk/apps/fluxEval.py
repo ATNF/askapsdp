@@ -35,6 +35,8 @@ if __name__ == '__main__':
                 if(idR[s]==idRef[r]):
                     print 'Matched Ref (%d/%d): %s\t%s\t%s'%(s,r,idS[s],idR[s],idRef[r])
                     hasRef[s] = True
+    else:
+        hasRef = array(range(len(idS)))>=0
 
     dF = fS - fR
     rdF = 100.*dF/fR
@@ -47,20 +49,22 @@ if __name__ == '__main__':
 
     subplots_adjust(wspace=0.3,hspace=0.3)
 
-    goodfit = aS>0
+    goodfit = npf>0
+    ind = []
     if(doRef):
-        ind = []
-        for i in argsort(rdF[goodfit]):
-            if(hasRef[i]):
+        for i in argsort(rdF):
+            if(hasRef[i] and goodfit[i]):
                 ind.append(i)
-        ind = array(ind)
     else:
-        ind = argsort(rdF[goodfit])
+        for i in argsort(rdF):
+            if(goodfit[i]):
+                ind.append(i)
+    ind = array(ind)
 
     if(doRef):
         print "Matches ordered by relative flux difference:"
         for i in ind:
-            print '%s\t%s\t%6.3f'%(idS[i],idR[i],rdF[i])
+            print '%d\t%s\t%s\t%6.3f\t%6.3f\t%d'%(i,idS[i],idR[i],rdF[i],aS[i],npf[i])
 
     subplot(451)
     for i in ind:

@@ -19,6 +19,16 @@ import gc
 font = {'fontsize' : '10'}
 
 ## @ingroup plotting
+# @param array The array of values
+def madfm(array):
+    """
+    Return the median absolute deviation from the median for an array of values
+    """
+    med = median(array)
+    adfm = abs(array-med)
+    return median(adfm)
+
+## @ingroup plotting
 # @param rms The rms value to be converted
 def rmsToMADFM(rms=None):
     """ 
@@ -28,13 +38,13 @@ def rmsToMADFM(rms=None):
     return rms * 0.6744888
 
 ## @ingroup plotting
-# @param madfm The MADFM value to be converted
-def madfmToRMS(madfm=None):
+# @param mad The MADFM value to be converted
+def madfmToRMS(mad=None):
     """ 
     Convert a MADFM (median absolute deviation from median) value to
     an rms, assuming Gaussian statistics
     """
-    return madfm / 0.6744888
+    return mad / 0.6744888
 
 #############################################################################
 
@@ -60,8 +70,7 @@ def drawNormalDist(array=None, name='X', unit=''):
     mu=mean(array) 
     rms=std(array) 
     med=median(array) 
-    adfm=abs(array-mu) 
-    madfm=median(adfm)  # median absolute deviation from median
+    mad=madfm(array)  # median absolute deviation from median
 
     ax=axis()
     axvline(mu, color='r') 
@@ -71,7 +80,7 @@ def drawNormalDist(array=None, name='X', unit=''):
         y = y * ax[3] / max(y) 
     l = plot(x, y, 'r--') 
     axvline(med, color='g') 
-    y = normpdf( x, med, madfmToRMS(madfm)) 
+    y = normpdf( x, med, madfmToRMS(mad)) 
     if(size(y)>0):
         y = y * ax[3] / max(y) 
     l = plot(x, y, 'g--') 
@@ -79,7 +88,7 @@ def drawNormalDist(array=None, name='X', unit=''):
 
     print '%s:'%(name) 
     print 'Mean = %5.3f %s, RMS = %5.3f %s'%(mu,unit,rms,unit) 
-    print 'Median = %5.3f %s, MADFM = %5.3f %s (or RMS=%5.3f)'%(med,unit,madfm,unit,madfmToRMS(madfm)) 
+    print 'Median = %5.3f %s, MADFM = %5.3f %s (or RMS=%5.3f)'%(med,unit,mad,unit,madfmToRMS(mad)) 
     
 
 #############################################################################
@@ -202,7 +211,7 @@ def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
 #    @param plotTitle: Title for overall plot
 #    @param doHistRel: Draw the histogram of relative differences
 #    @param doHistAbs: Draw the histogram of absolute differences
-def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, minRelVal=2., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
+def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, minRelVal=2., absoluteSizes=True, sizeStep=5., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
     """
     Plots the spatial distribution of matched sources, with the size
     and shape of each point governed by the size of the difference of
@@ -258,10 +267,16 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 
     if(scaleByRel):
         ind = argsort(-abs(reldiff))
-        size = 3 + floor(abs((reldiff-mean(reldiff))/std(reldiff)))*2
+        if(absoluteSizes):
+            size = 3 + floor(reldiff/sizeStep)*2
+        else:
+            size = 3 + floor(abs((reldiff-mean(reldiff))/std(reldiff)))*2
     else:
         ind = argsort(-abs(diff))
-        size = 3 + floor(abs((diff-mean(diff))/std(diff)))*2
+        if(absoluteSizes):
+            size = 3 + floor(diff/sizeStep)*2
+        else:
+            size = 3 + floor(abs((diff-mean(diff))/std(diff)))*2
 
     for i in ind:
         if(scaleByRel):
@@ -304,7 +319,7 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 #    @param minRelVal: The minimum value, in multiples of the rms above the mean of the distribution being considered, that is plotted on the spatial plot. Points with values less than this are not plotted.
 #    @param removeZeros: If True, all Source values that are zero are removed before plotting. This removes any spurious differences that may appear due to non-fitted components.
 #    @param locationCode: The code used by subplot() to draw the graph, indicating where on the page the plot should go.
-def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, spatialAxis='auto', minRelVal=2., removeZeros=False, locationCode=236,):
+def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, spatialAxis='auto', minRelVal=2., absoluteSizes=True, removeZeros=False, locationCode=236,):
     """
     An optimised version of spatHistPlot for use with position angle
     values. These are special as the values can be zero even if the
@@ -351,7 +366,7 @@ def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, s
     paDiff = (src-ref+90)%180 - 90
     paNewRef = ref-ref
 
-    spatHistPlot(paDiff,paNewRef,x,y,spatialAxis, removeZeros=False, scaleByRel=False, minRelVal=minRelVal, name='PA', unit='deg', locationCode=locationCode, plotTitle='Position angle difference',doHistRel=False, doHistAbs=False)
+    spatHistPlot(paDiff,paNewRef,x,y,spatialAxis, removeZeros=False, scaleByRel=False, minRelVal=minRelVal, absoluteSizes=absoluteSizes, sizeStep=20., name='PA', unit='deg', locationCode=locationCode, plotTitle='Position angle difference',doHistRel=False, doHistAbs=False)
 
     if(removeZeros):
         ind = axisSrc != 0
@@ -393,8 +408,14 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
         
     dx = xS - xR
     dy = yS - yR
+
+
     print 'Overall mean offsets (x,y)=(%6.4f,%6.4f)'%(mean(dx),mean(dy)) 
     print '         rms offsets (x,y)=(%6.4f,%6.4f)'%(std(dx),std(dy)) 
+    print 'Overall   mean offsets (x,y)=(%6.4f,%6.4f)'%(mean(dx),mean(dy)) 
+    print '           rms offsets (x,y)=(%6.4f,%6.4f)'%(std(dx),std(dy)) 
+    print '        median offsets (x,y)=(%6.4f,%6.4f)'%(median(dx),median(dy)) 
+    print '         madfm offsets (x,y)=(%6.4f,%6.4f) = (%6.4f,%6.4f) as rms'%(madfm(dx),madfm(dy),madfmToRMS(madfm(dx)),madfmToRMS(madfm(dy))) 
 
     for i in range(len(dx)):
         if(flag[i]==1):
@@ -409,6 +430,8 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
     axhline(color='k')
     axvline(mean(dx),color='r')
     axhline(mean(dy),color='r')
+    axvline(median(dx),color='g')
+    axhline(median(dy),color='g')
     xlabel(r'$\Delta x\ [\prime\prime]$',font)
     ylabel(r'$\Delta y\ [\prime\prime]$',font)
     title('Positional offsets of matches',font)
@@ -423,6 +446,8 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
     #Plot the 1-sigma ellipse for the points.
     plot(  std(dx)*cos(an)+mean(dx),   std(dy)*sin(an)+mean(dy), '-', color='r')
     plot(2*std(dx)*cos(an)+mean(dx), 2*std(dy)*sin(an)+mean(dy), '-', color='r')
+    plot(  madfmToRMS(madfm(dx))*cos(an)+median(dx),   madfmToRMS(madfm(dy))*sin(an)+median(dy), '-', color='g')
+    plot(2*madfmToRMS(madfm(dx))*cos(an)+median(dx), 2*madfmToRMS(madfm(dy))*sin(an)+median(dy), '-', color='g')
     axis(axisrange)
 
 
@@ -490,6 +515,12 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
                 plot([xS[i]],[yS[i]],'ro',ms=size[i])
             else:
                 plot([xS[i]],[yS[i]],'mo',ms=size[i])
+        else:
+            if(matchFlag[i]==1):
+                plot([xS[i]],[yS[i]],'r,')
+            else:
+                plot([xS[i]],[yS[i]],'m,')
+           
     
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)
