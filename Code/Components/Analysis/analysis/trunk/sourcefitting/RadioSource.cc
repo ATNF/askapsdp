@@ -880,8 +880,8 @@ namespace askap
 	  stream << "ELLIPSE " 
 		 << world[0] << " " 
 		 << world[1] << " "
-		 << fit->majorAxis() * this->itsHeader.getAvPixScale() / (2.*sqrt(2.*M_LN2)) << " "
-		 << fit->minorAxis() * this->itsHeader.getAvPixScale() / (2.*sqrt(2.*M_LN2)) << " "
+		 << fit->majorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
+		 << fit->minorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
 		 << fit->PA() * 180. / M_PI << "\n";
 	  
 	}

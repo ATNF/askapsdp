@@ -875,6 +875,7 @@ namespace askap
 	outfile << "COLOR BLUE\n";
 	outfile << "COORD W\n";
 	outfile << "PA SKY\n";
+	outfile << "FONT lucidasans-12\n";
 	std::vector<sourcefitting::RadioSource>::iterator src;
 	for(src=this->itsSourceList.begin();src<this->itsSourceList.end();src++){
 	  outfile << "# Source " << int(src-this->itsSourceList.begin())+1 << ":\n";
