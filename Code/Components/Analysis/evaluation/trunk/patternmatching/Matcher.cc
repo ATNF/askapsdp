@@ -65,7 +65,7 @@ namespace askap
 
 	this->itsSrcFile = parset.getString("srcFile","");
 	this->itsRefFile = parset.getString("refFile","");
-	this->itsFluxMethod = parset.getString("fluxMethod","peak");
+	this->itsFluxMethod = parset.getString("fluxMethod","integrated");
 	this->itsRA  = parset.getString("RA");
 	this->itsDec = parset.getString("Dec");
 	this->itsRadius = parset.getDouble("radius", -1.);
@@ -361,11 +361,17 @@ namespace askap
 
 	  if(ct++<this->itsNumMatch1) matchType = '1';
 	  else matchType = '2';
+
+	  float flux;
+	  if(this->itsFluxMethod=="integrated") flux = match->first.stuff().flux();
+	  else flux = match->first.flux();
+
 	  fout << matchType << "\t"
 	       << "[" << match->first.ID() << "]\t"
 	       << std::setw(10) << match->first.x()  << " "
 	       << std::setw(10) << match->first.y()  << " "
-	       << std::setw(10) << match->first.flux() << " "
+// 	       << std::setw(10) << match->first.flux() << " "
+	       << std::setw(10) << flux << " "
 	       << std::setw(10) << match->first.majorAxis() << " "
 	       << std::setw(10) << match->first.minorAxis() << " "
 	       << std::setw(10) << match->first.PA()  << " " 

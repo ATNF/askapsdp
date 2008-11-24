@@ -57,13 +57,16 @@ namespace askap
 	/// @brief Default constructor
 	Stuff(){};
 	/// @brief Specific constructor
-	Stuff(float c, float r, int n, int p1, int p2){itsChisq=c; itsRMS=r; itsNDoF=n; itsNpixFit=p1; itsNpixObj=p2;};
+	Stuff(float c, float r, int n, int p1, int p2, float f){itsChisq=c; itsRMS=r; itsNDoF=n; itsNpixFit=p1; itsNpixObj=p2; itsDudFlux=f;};
 	/// @brief Destructor
 	~Stuff(){};
 	/// @brief Copy function
 	Stuff& operator=(const Stuff& s);
 	/// @brief Writing to a stream
 	friend std::ostream &operator<<(std::ostream& theStream, Stuff &s);
+
+	float flux(){return itsDudFlux;};
+	void setFlux(float f){itsDudFlux=f;};
       private:
 	/// @brief The chi-squared value of the fit
 	float itsChisq;
@@ -75,6 +78,8 @@ namespace askap
 	int itsNpixFit;
 	/// @brief THe number of pixels in the object
 	int itsNpixObj;
+	/// @brief The integrated or peak flux of the object (whichever is not needed -- this value is not printed)
+	float  itsDudFlux;
       };
 
 
@@ -139,7 +144,7 @@ namespace askap
 	/// @brief Return the separation from another Point.
 	double sep(Point pt){return hypot(itsX-pt.x(),itsY-pt.y());};
 
-	void setStuff(float c, float r, int n, int p1, int p2){itsStuff = Stuff(c,r,n,p1,p2);};
+	void setStuff(float c, float r, int n, int p1, int p2, float f){itsStuff = Stuff(c,r,n,p1,p2,f);};
 	Stuff &stuff(){Stuff &rstuff=itsStuff; return rstuff;};
 
       protected:

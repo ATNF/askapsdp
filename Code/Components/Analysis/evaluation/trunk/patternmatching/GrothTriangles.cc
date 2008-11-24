@@ -59,6 +59,7 @@ namespace askap
 	itsNDoF=s.itsNDoF;
 	itsNpixFit = s.itsNpixFit;
 	itsNpixObj = s.itsNpixObj;
+	itsDudFlux = s.itsDudFlux;
 	return *this;
       }
 	

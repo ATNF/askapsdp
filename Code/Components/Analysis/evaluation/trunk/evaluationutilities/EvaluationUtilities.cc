@@ -62,7 +62,7 @@ namespace askap
       std::string raS,decS,sdud,id;
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
-      double xpt,ypt,ra,dec,flux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms;
+      double xpt,ypt,ra,dec,flux,peakflux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms;
       int ndof,npixfit,npixobj;
       char line[501];
       fin.getline(line,500);
@@ -70,14 +70,12 @@ namespace askap
       // now at start of object list
       while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> rms >> ndof >> npixfit >> npixobj,
 	     !fin.eof()){
-	if(fluxMethod == "integrated"){
-	  if(iflux2>0) flux= iflux2;
-	  else flux = iflux1;
-	}
-	else {
-	  if(pflux2>0) flux = pflux2;
-	  else flux = pflux1;
-	}
+
+	if(iflux2>0) flux= iflux2;
+	else flux = iflux1;
+	if(pflux2>0) peakflux = pflux2;
+	else peakflux = pflux1;
+
 	id += "_" + raS + "_" + decS;
 	std::stringstream ss;
 	ra = dmsToDec(raS)*15.;
@@ -87,14 +85,24 @@ namespace askap
 	//    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
 	ypt = (dec - decBase) * 3600.;
 	if(radius<0 || (radius>0 && hypot(xpt,ypt)<radius*60.) ){
-	  matching::Point pix(xpt,ypt,flux,id,maj,min,pa);
-	  pix.setStuff(chisq,rms,ndof,npixfit,npixobj);
+	  matching::Point pix(xpt,ypt,peakflux,id,maj,min,pa);
+	  pix.setStuff(chisq,rms,ndof,npixfit,npixobj,flux);
 	  pixlist.push_back(pix);
 	}
       }
 
       stable_sort(pixlist.begin(),pixlist.end());
       reverse(pixlist.begin(),pixlist.end());
+
+//       // Have used the peak fluxes for ordering. Now, if the integrated flux was actually desired, swap the peak for the integrated.
+//       if(fluxMethod == "integrated"){
+// 	for(int i=0;i<pixlist.size();i++){
+// 	  peakflux = pixlist[i].flux();
+// 	  flux = pixlist[i].stuff().flux();
+// 	  pixlist[i].setFlux(flux);
+// 	  pixlist[i].stuff().setFlux(peakflux);
+// 	}
+//       }
 
       return pixlist;
       
