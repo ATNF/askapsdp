@@ -189,6 +189,12 @@ namespace askap
 	int result;
 	ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata");
 	if(this->itsIsFITSFile){
+	    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
+	    this->itsSubimageDef.setImageDim( getFITSdimensions(this->itsCube.pars().getImageFile()) );
+	    if( !this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection()=="" ) {
+	      this->itsCube.pars().setFlagSubsection(true);
+	      this->itsCube.pars().setSubsection( nullSection(this->itsSubimageDef.getImageDim().size()) );
+	    }
 	  if(this->itsCube.pars().verifySubsection()==duchamp::FAILURE) 
 	    ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection() );
 	  result = this->itsCube.getMetadata();
@@ -629,8 +635,6 @@ namespace askap
 		src.setZOffset(zstart-this->itsCube.pars().getZOffset());
 		src.addOffsets();
 		src.calcParams();
-// 		src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
-		src.defineBox(this->itsCube.pars().section(), this->itsFitter);
 		for(unsigned int f=0;f<src.fitset().size();f++){
 		  src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
 		  src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
@@ -639,6 +643,8 @@ namespace askap
 		src.setOffsets(this->itsCube.pars());
 // 		src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
 
+// 		src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
+		src.defineBox(this->itsCube.pars().section(), this->itsFitter);
 		src.fitparams() = this->itsFitter;
 
 		this->itsSourceList.push_back(src);

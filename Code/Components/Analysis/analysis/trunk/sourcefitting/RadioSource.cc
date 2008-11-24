@@ -158,6 +158,8 @@ namespace askap
 	vec[2] = std::pair<long,long>(zmin,zmax);
 	this->itsBoxMargins = vec;
 
+// 	ASKAPLOG_DEBUG_STR(logger,"RadioSource::defineBox : boxSize = " << this->boxSize() );
+
       }
 
 
@@ -194,8 +196,10 @@ namespace askap
 	  flagBoundary = flagBoundary || ( (cube.getDimX()-this->getXmax())<threshS ); 
 	  flagBoundary = flagBoundary || ( this->getYmin()<threshS );
 	  flagBoundary = flagBoundary || ( (cube.getDimY()-this->getYmax())<threshS ); 
-	  flagBoundary = flagBoundary || ( this->getZmin()<threshV );
-	  flagBoundary = flagBoundary || ( (cube.getDimZ()-this->getZmax())<threshV ); 
+	  if(cube.getDimZ()>1){
+	    flagBoundary = flagBoundary || ( this->getZmin()<threshV );
+	    flagBoundary = flagBoundary || ( (cube.getDimZ()-this->getZmax())<threshV ); 
+	  }
 	}
 	
 	this->atEdge = flagBoundary;
