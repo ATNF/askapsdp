@@ -79,17 +79,21 @@ namespace askap
 
 	bool filesOK = true;
 	if(this->itsSrcFile == "" ){
-	  ASKAPLOG_ERROR_STR(logger, "srcFile not defined. Cannot get pixel list!");
+	  ASKAPTHROW(AskapError,"srcFile not defined. Cannot get pixel list!");
 	  filesOK = false;
 	}
 	if(this->itsRefFile == "" ){
-	  ASKAPLOG_ERROR_STR(logger, "refFile not defined. Cannot get pixel list!");
+	  ASKAPTHROW(AskapError, "refFile not defined. Cannot get pixel list!");
 	  filesOK = false;
 	}
 
 	if(filesOK){
 	  std::ifstream fsrc(this->itsSrcFile.c_str());
+	  if(!fsrc.is_open())
+	    ASKAPTHROW(AskapError,"srcFile (" << this->itsSrcFile << ") not valid. Error opening file.");
 	  std::ifstream fref(this->itsRefFile.c_str());
+	  if(!fref.is_open())
+	    ASKAPTHROW(AskapError,"refFile (" << this->itsRefFile << ") not valid. Error opening file.");
 	  
 	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsRadius, this->itsFluxMethod);
 	  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
@@ -278,7 +282,18 @@ namespace askap
 
 	    if(alice->second.ID() == bob->second.ID()) { // alice & bob have the same reference source
 
-	      if(fabs(alice->first.flux()-alice->second.flux()) < fabs(bob->first.flux()-bob->second.flux())){
+	      float df_alice,df_bob;
+	      if(this->itsFluxMethod=="integrated"){
+		df_alice = alice->first.stuff().flux() - alice->second.flux();
+		df_bob   = bob->first.stuff().flux() - bob->second.flux();
+	      }
+	      else {
+		df_alice = alice->first.flux() - alice->second.flux();
+		df_bob   = bob->first.flux() - bob->second.flux();
+	      }
+
+// 	      if(fabs(alice->first.flux()-alice->second.flux()) < fabs(bob->first.flux()-bob->second.flux())){
+	      if(fabs(df_alice) < fabs(df_bob)){
 		// delete bob
 		this->itsMatchingPixList.erase(bob);
 		bobGone = true;
@@ -320,9 +335,12 @@ namespace askap
 	int prec = 3;
 	
 	for(match=this->itsMatchingPixList.begin(); match<this->itsMatchingPixList.end(); match++){
-	  int newprec = int(ceil(log10(1./match->first.flux())))+1;
+	  float flux;
+	  if(this->itsFluxMethod=="integrated") flux = match->first.stuff().flux();
+	  else flux = match->first.flux();
+	  int newprec = int(ceil(log10(1./flux)))+1;
 	  prec = std::max( prec, newprec );
-	  newprec = int(ceil(log10(1./match->first.flux())))+1;
+	  newprec = int(ceil(log10(1./flux)))+1;
 	  prec = std::max( prec, newprec );
 	}
 
