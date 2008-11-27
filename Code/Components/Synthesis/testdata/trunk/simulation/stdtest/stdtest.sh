@@ -55,7 +55,7 @@ Csimulator.gridder.AWProject.frequencydependent = false
 Csimulator.gridder.AWProject.tablename		= AWProject.tab
 EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
-${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
+${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
 
 cat > stdtest.dirty.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
@@ -87,7 +87,7 @@ Cimager.preconditioner.Names			= None
 
 EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
-${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
+${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
 
 cat > stdtest.clean.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
@@ -133,5 +133,5 @@ Cimager.preconditioner.GaussianTaper		= [20arcsec, 20arcsec, 0deg]
 
 EOF
 echo "Running cimager to form Clean image of single pointing" | tee -a  stdtest.$HOSTNAME.out
-${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
+${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
 echo "Ended " `date` " on " $HOSTNAME  | tee -a stdtest.$HOSTNAME.out
