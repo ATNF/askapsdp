@@ -66,7 +66,7 @@ public:
      CPPUNIT_ASSERT(ss.peakPos().nelements() == 2);
      CPPUNIT_ASSERT(ss.peakPos()(0) == (int(itsBuffer.nrow())/2+itsXOffset));
      CPPUNIT_ASSERT(ss.peakPos()(1) == (int(itsBuffer.ncolumn())/2+itsYOffset));
-     CPPUNIT_ASSERT(abs(ss.peakVal()-5.)<1e-7);
+     CPPUNIT_ASSERT(casa::abs(ss.peakVal()-5.)<1e-7);
    }
    
    void testSupportSearch() {
@@ -74,16 +74,16 @@ public:
       SupportSearcher ss(cutoff);
       ss.search(itsBuffer);
       const double expectedHalfWidth = 5.*sqrt(-2.*log(cutoff));
-      CPPUNIT_ASSERT(abs(double(ss.support())-2.*expectedHalfWidth)<1.);
-      CPPUNIT_ASSERT(abs(double(ss.symmetricalSupport(itsBuffer.shape()))-
+      CPPUNIT_ASSERT(casa::abs(double(ss.support())-2.*expectedHalfWidth)<1.);
+      CPPUNIT_ASSERT(casa::abs(double(ss.symmetricalSupport(itsBuffer.shape()))-
                 2.*(expectedHalfWidth+double(casa::max(itsXOffset,itsYOffset))))<1.);
-      CPPUNIT_ASSERT(abs(double(ss.blc()(0))-(double(itsBuffer.shape()(0))/2+
+      CPPUNIT_ASSERT(casa::abs(double(ss.blc()(0))-(double(itsBuffer.shape()(0))/2+
             itsXOffset-expectedHalfWidth))<1.);
-      CPPUNIT_ASSERT(abs(double(ss.blc()(1))-(double(itsBuffer.shape()(1))/2+
+      CPPUNIT_ASSERT(casa::abs(double(ss.blc()(1))-(double(itsBuffer.shape()(1))/2+
             itsYOffset-expectedHalfWidth))<1.);
-      CPPUNIT_ASSERT(abs(double(ss.trc()(0))-(double(itsBuffer.shape()(0))/2+
+      CPPUNIT_ASSERT(casa::abs(double(ss.trc()(0))-(double(itsBuffer.shape()(0))/2+
             itsXOffset+expectedHalfWidth))<1.);
-      CPPUNIT_ASSERT(abs(double(ss.trc()(1))-(double(itsBuffer.shape()(1))/2+
+      CPPUNIT_ASSERT(casa::abs(double(ss.trc()(1))-(double(itsBuffer.shape()(1))/2+
             itsYOffset+expectedHalfWidth))<1.);
    }
    
