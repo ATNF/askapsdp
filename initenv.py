@@ -48,7 +48,8 @@ export PATH
 psset=`echo $PS1 |grep askap`
 if [ "$psset" == "" ]
 then
-   export PS1="(askap)${PS1}"
+   PS1="(askap)${PS1}"
+   export PS1
 fi
 
 MANPATH=`echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
@@ -73,12 +74,17 @@ setenv PATH `echo $PATH | sed "s#:*$ASKAP_ROOT/bin:*##"`
 setenv PATH "${ASKAP_ROOT}/bin:${PATH}"
 
 
-set noglob
-set psset=`echo $prompt |grep askap`
-unset noglob
-if ("$psset" == "") then
-   set prompt="\(askap\)${prompt}"
+if ($?prompt) then
+    set noglob
+    set psset=`echo $prompt |grep askap`
+    unset noglob
+    if ("$psset" == "") then
+        set prompt="\(askap\)${prompt}"
+    endif
+else
+    set prompt="\(askap\) > "
 endif
+
 
 setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
