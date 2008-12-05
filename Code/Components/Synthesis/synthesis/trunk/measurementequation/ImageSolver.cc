@@ -127,7 +127,7 @@ namespace askap
              if(diag(elem)>cutoff) {
                 dirtyVector(elem)/=diag(elem);
                 if (mask) {
-                    maskVector(elem)=diag(elem)/float(maxDiag);
+                    maskVector(elem)=sqrt(diag(elem)/float(maxDiag));
                 }
                 nAbove++;
              } else {
