@@ -185,7 +185,7 @@ namespace askap
         } else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
           itsCleaners[indit->first]=lc;          
-          lc->setMask(mask,-1.);
+          lc->setMask(mask,maskingThreshold());
 	  
 	      ASKAPDEBUGASSERT(lc);
 	      if(algorithm()=="Hogbom") {

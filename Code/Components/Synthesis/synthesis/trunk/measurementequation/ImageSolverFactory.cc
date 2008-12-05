@@ -111,7 +111,18 @@ namespace askap
                             cThreshold<<" to either Jy or a dimensionless quantity");
                 } // if - isConform
            } // for - parameter loop
-       } // if - parameter defined     
+       } // if - parameter defined
+       const std::string parName2 = "threshold.masking";
+       if (parset.isDefined(parName2)) {     
+           boost::shared_ptr<ImageCleaningSolver> ics = 
+              boost::dynamic_pointer_cast<ImageCleaningSolver>(solver);
+           if (ics) {
+               ics->setMaskingThreshold(parset.getFloat(parName2, -1));
+           } else {
+               ASKAPLOG_INFO_STR(logger, "The type of the image solver used does not allow to specify "
+                            "masking threshold, ignoring "<<parName2);
+           }             
+       } // if - parameter defined
     } // method
     
     Solver::ShPtr ImageSolverFactory::make(askap::scimath::Params &ip, const LOFAR::ACC::APS::ParameterSet &parset) {
@@ -155,7 +166,6 @@ namespace askap
          ASKAPLOG_INFO_STR(logger, "Constructing dirty image solver" );
          solver = ImageSolver::ShPtr(new ImageSolver(ip));
          solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
-                  configureThresholds(parset, solver);         
       }
       configureThresholds(parset, solver);         
       

@@ -40,7 +40,7 @@ namespace synthesis {
 /// solutions formed by the solveNormalEquation method
 /// @param[in] ip input parameters
 ImageCleaningSolver::ImageCleaningSolver(const askap::scimath::Params &ip) :
-   ImageSolver(ip), itsFractionalThreshold(0.) {}
+   ImageSolver(ip), itsFractionalThreshold(0.), itsMaskingThreshold(-1.) {}
    
 /// @brief access to a fractional threshold
 /// @return current fractional threshold
@@ -55,6 +55,23 @@ double ImageCleaningSolver::fractionalThreshold() const
 void ImageCleaningSolver::setFractionalThreshold(double fThreshold)
 {
   itsFractionalThreshold = fThreshold;
+}
+
+/// @bried access to a masking threshold
+/// @return current masking threshold
+double ImageCleaningSolver::maskingThreshold() const
+{
+  return itsMaskingThreshold;
+}
+   
+/// @brief set a new masking threshold
+/// @param[in] mThreshold new masking threshold
+/// @note Assign -1. or any negative number to revert to a default behavior of the
+/// S/N based cleaning. The masking threshold value, which used to be hardcoded in
+/// the casacore when signal-based cleaning was the only available option, equals to 0.9.
+void ImageCleaningSolver::setMaskingThreshold(double mThreshold)
+{
+  itsMaskingThreshold = mThreshold;
 }
 
 } // namespace synthesis

@@ -61,11 +61,31 @@ public:
    /// @note Assign 0. to switch this option off.
    void setFractionalThreshold(double fThreshold);
    
+   /// @bried access to a masking threshold
+   /// @return current masking threshold
+   double maskingThreshold() const;
+   
+   /// @brief set a new masking threshold
+   /// @param[in] mThreshold new masking threshold
+   /// @note Assign -1. or any negative number to revert to a default behavior of the
+   /// S/N based cleaning. The masking threshold value, which used to be hardcoded in
+   /// the casacore when signal-based cleaning was the only available option, equals to 0.9.
+   void setMaskingThreshold(double mThreshold);
+   
 private:
    /// @brief Fractional cleaning threshold   
    /// @details it means it is defined with respect to the peak flux (i.e. 0.2 from the peak flux).
    /// Assign zero (default) if you don't want any fractional threshold applied.
    double itsFractionalThreshold;
+   
+   /// @brief threshold for cleaning mask
+   /// @details This value is passed in the setMask call to the LatticeCleaner. Negative 
+   /// value (default) means that no thresholding is used to the mask and the mask array
+   /// is treated as a weight providing a capability to do S/N-based cleaning. This is the
+   /// default approach. If a positive value is assigned, it is treated as a threshold.
+   /// If the mask value is lower than this threshold, the corresponding pixel is not cleaned.
+   /// This is a classical signal-based cleaning.
+   double itsMaskingThreshold;
 };
 
 } // namespace synthesis
