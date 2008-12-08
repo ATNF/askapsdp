@@ -50,7 +50,7 @@ Csimulator.gridder.AWProject.oversample     	= 8
 Csimulator.gridder.AWProject.diameter		= 12m
 Csimulator.gridder.AWProject.blockage		= 2m
 Csimulator.gridder.AWProject.maxfeeds		= 1
-Csimulator.gridder.AWProject.maxsupport		= 1024
+Csimulator.gridder.AWProject.maxsupport		= 2048
 Csimulator.gridder.AWProject.frequencydependent = false
 Csimulator.gridder.AWProject.tablename		= AWProject.tab
 EOF
