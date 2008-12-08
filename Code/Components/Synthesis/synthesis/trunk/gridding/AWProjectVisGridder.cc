@@ -353,7 +353,9 @@ namespace askap {
               ASKAPCHECK(itsSupport>0,
                          "Unable to determine support of convolution function");
               ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
-                         "Overflowing convolution function - increase maxSupport or decrease overSample")
+                         "Overflowing convolution function - increase maxSupport or decrease overSample. "<<
+                         "Current support size = "<<itsSupport<<" oversampling factor="<<itsOverSample<<
+                         " image size nx="<<nx)
         
         //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
 	    //throw 1;
