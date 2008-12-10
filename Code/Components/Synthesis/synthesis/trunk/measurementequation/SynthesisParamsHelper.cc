@@ -106,8 +106,20 @@ namespace askap
                          ".shape are deprecated. Use Cimager.Images.shape (same for all images)");
               ASKAPCHECK(!parset.isDefined(*it+".cellsize"), "Parameters like Cimager.Images."<<*it<<
                          ".cellsize are deprecated. Use Cimager.Images.cellsize (same for all images)");
-                      
-		      add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan);
+              const int nfacets = parset.getInt32(*it+".nfacets",1);
+              ASKAPCHECK(nfacets>0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
+              ASKAPCHECK(shape.size()>=2, "Image is supposed to be at least two dimensional. "<<
+                          "check shape parameter, you gave "<<shape);
+ 
+              if (nfacets == 1) {
+                  ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< *it );        
+		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan);
+		      } else {
+		          // this is a multi-facet case
+		          ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
+		                                    " new empty facets for image "<< *it );	
+		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, nfacets);		                                    	                                    
+		      }
 	     }
 	  }
 	  catch (const LOFAR::ACC::APS::APSException &ex) {
@@ -159,12 +171,81 @@ namespace askap
       axes.add("RA", ra-double(nx)*xcellsize/2.0, ra+double(nx)*xcellsize/2.0);
       axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
       
+      // we need to ship around the tangent point somehow as it affects the way this
+      // faceted images are used. One way is to specify an extra fixed parameter and another
+      // is to attach it to each facet itself. The latter has an advantage for parallel
+      // processing as all necessary info is readily available with any facet, although
+      // there is some minor duplication of the data.
+      // 
+      // In the future, we may allow having a keyword-type axis in the Axes object which 
+      // is essentially an axis with single pixel only. At this stage, we will just set up
+      // a normal axis with the same start and stop values
+      axes.add("RA-TANGENT",ra,ra);
+      axes.add("DEC-TANGENT",dec,dec);
+      
       axes.add("STOKES", 0.0, 0.0);
       
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
       pixels.set(0.0);
       axes.add("FREQUENCY", freqmin, freqmax);
       ip.add(name, pixels, axes);
+    }
+    
+    /// @brief Add a parameter as a faceted image
+    /// @param[in] ip Parameters
+    /// @param[in] name Name of parameter
+    /// @param[in] direction Strings containing [ra, dec, frame] (common tangent point)
+    /// @param[in] cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
+    /// @param[in] shape Number of pixels in RA and DEC for each facet e.g. [256, 256]
+    /// @param[in] freqmin Minimum frequency (Hz)
+    /// @param[in] freqmax Maximum frequency (Hz)
+    /// @param[in] nchan Number of spectral channels
+    /// @param[in] nfacets Number of facets in each axis (assumed the same for both axes)
+    void SynthesisParamsHelper::add(askap::scimath::Params& ip, const string& name, 
+       const vector<string>& direction, 
+       const vector<string>& cellsize, 
+       const vector<int>& shape,
+       const double freqmin, const double freqmax, const int nchan,
+       const int nfacets)
+    {
+      ASKAPDEBUGASSERT(nfacets>0);
+      const int nx=shape[0];
+      const int ny=shape[1];
+      ASKAPCHECK(cellsize.size() == 2, "Cell size should have exactly 2 parameters, you have "<<cellsize.size());
+      ASKAPCHECK(direction.size() == 3, "Direction should have exactly 3 parameters, you have "<<direction.size());
+      ASKAPCHECK(direction[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<direction[2]);
+      
+      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
+      const double ycellsize = convertQuantity(cellsize[1],"rad");
+      
+      const double ra = convertQuantity(direction[0],"rad");
+      const double dec = convertQuantity(direction[1],"rad");
+
+      // zero-filled array is the same for all facets as it is copied inside Params
+      // class
+      casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
+      pixels.set(0.0);
+      
+      // a loop over facets
+      for (int ix=0;ix<nfacets;++ix) {
+           for (int iy=0;iy<nfacets;++iy) {
+      
+                const double raCentre = ra+double(nx)*xcellsize*double(ix-nfacets/2);
+                const double decCentre = dec+double(ny)*ycellsize*double(iy-nfacets/2);
+                
+                /// @todo Do something with the frame info in direction[2]
+                Axes axes;
+                axes.add("RA", raCentre-double(nx)*xcellsize/2.0, raCentre+double(nx)*xcellsize/2.0);
+                axes.add("DEC", decCentre-double(ny)*ycellsize/2.0, decCentre+double(ny)*ycellsize/2.0);
+      
+                axes.add("STOKES", 0.0, 0.0);
+      
+                axes.add("FREQUENCY", freqmin, freqmax);
+                ip.add(name+".facet."+utility::toString<int>(ix)+"."+
+                            utility::toString<int>(iy), pixels, axes);    
+           }
+      }
+      
     }
     
     /// @brief A helper method to parse string of quantities

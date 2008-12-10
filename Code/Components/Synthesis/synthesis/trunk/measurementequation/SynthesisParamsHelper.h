@@ -116,6 +116,23 @@ namespace askap
           const vector<string>& cellsize, 
           const vector<int>& shape,
           const double freqmin, const double freqmax, const int nchan);
+
+        /// @brief Add a parameter as a faceted image
+        /// @param[in] ip Parameters
+        /// @param[in] name Name of parameter
+        /// @param[in] direction Strings containing [ra, dec, frame] (common tangent point)
+        /// @param[in] cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
+        /// @param[in] shape Number of pixels in RA and DEC for each facet e.g. [256, 256]
+        /// @param[in] freqmin Minimum frequency (Hz)
+        /// @param[in] freqmax Maximum frequency (Hz)
+        /// @param[in] nchan Number of spectral channels
+        /// @param[in] nfacets Number of facets in each axis (assumed the same for both axes)
+        static void add(askap::scimath::Params& ip, const string& name, 
+          const vector<string>& direction, 
+          const vector<string>& cellsize, 
+          const vector<int>& shape,
+          const double freqmin, const double freqmax, const int nchan,
+          const int nfacets);
           
         /// @brief Add a set of parameters from a parset
         /// @param ip Parameters
