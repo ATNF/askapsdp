@@ -25,7 +25,8 @@ if __name__ == '__main__':
 
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,rms,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f = read_miss_data(missfile)
-    print "Match list size = %d, Miss list size = %d"%(size(xS),size(x))
+
+    print "Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R']))
 
     if(doRef):
         idRef = read_ref_list("reflist_200uJy_1deg.txt")

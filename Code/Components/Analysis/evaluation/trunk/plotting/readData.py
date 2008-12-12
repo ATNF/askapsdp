@@ -113,7 +113,7 @@ def read_miss_data(filename=None):
         y.append(fields[3])
         f.append(fields[4])
     
-    return type,id,cast[float](array(x)),cast[float](array(y)),cast[float](array(f))
+    return array(type),array(id),cast[float](array(x)),cast[float](array(y)),cast[float](array(f))
 
 
 def read_ref_list(filename=None):
