@@ -62,17 +62,18 @@ namespace askap
 {
   namespace synthesis
   {
-  
-    /// @brief populate scimath parameters from a LOFAR Parset object
-    /// @details One needs often needs a possibility to populate 
-    /// scimath::Params class from a Parset file (e.g. to load 
-    /// initial gains from an external file). A number of add methods
-    /// collected in this class happen to be image-specific. This is
-    /// a generic method, which just copies all numeric fields
-    /// @param[in] params a reference to scimath parameter object, where the
-    /// parameters from parset file will be added
-    /// @param[in] parset a const reference to a parset object
-    /// @return a reference to params passed as an input (for chaining)
+    // use // deliberatly here to avoid doxygen complaining about duplicated documentation 
+    // here and in the header file
+    // @brief populate scimath parameters from a LOFAR Parset object
+    // @details One needs often needs a possibility to populate 
+    // scimath::Params class from a Parset file (e.g. to load 
+    // initial gains from an external file). A number of add methods
+    // collected in this class happen to be image-specific. This is
+    // a generic method, which just copies all numeric fields
+    // @param[in] params a reference to scimath parameter object, where the
+    // parameters from parset file will be added
+    // @param[in] parset a const reference to a parset object
+    // @return a reference to params passed as an input (for chaining)
     scimath::Params& operator<<(scimath::Params &params, const LOFAR::ACC::APS::ParameterSet &parset)
     {
        for (LOFAR::ACC::APS::ParameterSet::const_iterator ci = parset.begin();

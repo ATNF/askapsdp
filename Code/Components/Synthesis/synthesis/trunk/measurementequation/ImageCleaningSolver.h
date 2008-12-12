@@ -61,7 +61,7 @@ public:
    /// @note Assign 0. to switch this option off.
    void setFractionalThreshold(double fThreshold);
    
-   /// @bried access to a masking threshold
+   /// @brief access to a masking threshold
    /// @return current masking threshold
    double maskingThreshold() const;
    

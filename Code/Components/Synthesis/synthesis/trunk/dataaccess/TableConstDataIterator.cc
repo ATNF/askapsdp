@@ -693,7 +693,7 @@ casa::MEpoch TableConstDataIterator::currentEpoch() const
 /// is invalidated when the time changes for an alt-az array, for an equatorial
 /// array it happens only if the pointing changes.
 /// @param[in] angles a reference to a vector to be filled
-void TableConstDataIterator::fillParallacticAngleCache(casa::Vector<Double> &angles) const
+void TableConstDataIterator::fillParallacticAngleCache(casa::Vector<casa::Double> &angles) const
 { 
   angles.resize(subtableInfo().getAntenna().getNumberOfAntennae());
   ASKAPDEBUGASSERT(angles.size());
