@@ -530,7 +530,7 @@ void TableVisGridder::grid(IDataSharedIter& idi) {
 void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 		casa::Vector<casa::RigidVector<double, 3> >& outUVW,
 		casa::Vector<double>& delay) const {
-	const casa::MDirection out(getImageCentre(), casa::MDirection::J2000);
+	const casa::MDirection out(getTangentPoint(), casa::MDirection::J2000);
 	const casa::uInt nSamples = acc.uvw().size();
 	delay.resize(nSamples);
 	outUVW.resize(nSamples);
@@ -569,6 +569,27 @@ casa::MVDirection TableVisGridder::getImageCentre() const
    casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
    casa::MVDirection out(refLon, refLat);
    return out;	
+}
+
+/// @brief obtain the tangent point
+/// @details For faceting all images should be constructed for the same tangent
+/// point. We currently pass its coordinates in two specialised axes RA-TANGENT and
+/// DEC-TANGENT. If these axes are present a proper MVDirection quantity is 
+/// extracted and returned, otherwise this method does the same as getImageCentre()
+/// @return direction measure corresponding to the tangent point
+casa::MVDirection TableVisGridder::getTangentPoint() const
+{
+   ASKAPCHECK(itsAxes.has("RA-TANGENT") == itsAxes.has("DEC-TANGENT"), 
+       "Either both RA and DEC have to be defined for a tangent point or none of them");
+   if (itsAxes.has("RA-TANGENT")) {
+       // this is the faceting case
+       const casa::Quantum<double> refLon(itsAxes.start("RA-TANGENT"), "rad");
+       const casa::Quantum<double> refLat(itsAxes.start("DEC-TANGENT"), "rad");
+       const casa::MVDirection out(refLon, refLat);
+       return out;	     
+   }
+   // tangent point is not defined. This is not the faceting case - return the image centre
+   return getImageCentre();
 }
 
 /// Convert from a double array to a casa::Complex array of the

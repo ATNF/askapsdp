@@ -163,6 +163,14 @@ namespace askap
       /// @return direction measure corresponding to the image centre
       casa::MVDirection getImageCentre() const;
       
+      /// @brief obtain the tangent point
+      /// @details For faceting all images should be constructed for the same tangent
+      /// point. We currently pass its coordinates in two specialised axes RA-TANGENT and
+      /// DEC-TANGENT. If these axes are present a proper MVDirection quantity is 
+      /// extracted and returned, otherwise this method does the same as getImageCentre()
+      /// @return direction measure corresponding to the tangent point
+      casa::MVDirection getTangentPoint() const;
+      
       // data members should be made private in the future!
 
       /// Axes definition for image
