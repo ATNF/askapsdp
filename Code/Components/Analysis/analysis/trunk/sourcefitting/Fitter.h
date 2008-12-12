@@ -83,6 +83,9 @@ namespace askap
       /// @brief Default value for the maxRMS parameter passed to the casa::fitGaussian::fit() function.
       const Double defaultMaxRMS = 1.;
 
+      /// @brief Default value for the maxRetries parameters used by casa::fitGaussian
+      const int defaultMaxRetries = 0;
+
       /// @}
 
       /// @ingroup sourcefitting
@@ -102,7 +105,7 @@ namespace askap
 	/// @brief Constructor 
 	/// @param parset The parameter set to read parameters from.
 	FittingParameters(const LOFAR::ACC::APS::ParameterSet& parset);
-
+       
 	/// @brief Default destructor
 	virtual ~FittingParameters(){};
         /// @brief Copy constructor
@@ -125,6 +128,10 @@ namespace askap
 	void setDetectThresh(float f){itsDetectThresh=f;};
 	void setMinFitSize(int i){itsMinFitSize = i;};
 	void setBeamSize(float f){itsBeamSize = f;};
+	void setMaxRetries(int i){itsMaxRetries = i;};
+	void setCriterium(Double d){itsCriterium = d;};
+	void setMaxIter(uInt i){itsMaxIter = i;};
+	void setUseNoise(bool b){itsUseNoise = b;};
 
 	int    maxNumGauss(){return itsMaxNumGauss;};	
 	int    boxPadSize(){return itsBoxPadSize;};
@@ -134,6 +141,10 @@ namespace askap
 	float  maxReducedChisq(){return itsMaxReducedChisq;};
 	int    minFitSize(){return itsMinFitSize;};
 	float  beamSize(){return itsBeamSize;};
+	int    maxRetries(){return itsMaxRetries;};
+	Double criterium(){return itsCriterium;};
+	uInt   maxIter(){return itsMaxIter;};
+	bool   useNoise(){return itsUseNoise;};
 
 	// @}
 
@@ -184,6 +195,18 @@ namespace askap
 
 	/// @brief The beam size in the image, using BMIN
 	float itsBeamSize;
+
+	/// @brief The maximum number of retries used by casa::FitGaussian::fit
+	int itsMaxRetries;
+
+	/// @brief The convergence criterium
+	Double itsCriterium;
+
+	/// @brief The maximum number of iterations for casa::FitGaussian::fit()
+	uInt itsMaxIter;
+
+	/// @brief Whether to calculate the noise surrounding the object and use it as the sigma in casa::FitGaussian::fit()
+	bool itsUseNoise;
 
 	/// @brief The extent of the box surrounding the object used for the fitting
 	/// @{

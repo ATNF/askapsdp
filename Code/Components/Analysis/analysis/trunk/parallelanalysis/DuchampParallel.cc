@@ -93,17 +93,23 @@ namespace askap
   namespace analysis
   {
 
+    //**************************************************************//
+
     bool DuchampParallel::is2D()
     {
       /// @details Check whether the image is 2-dimensional, by
       /// looking at the dim array in the Cube object, and counting
       /// the number of dimensions that are greater than 1
+
+      /// @todo Make use of the new Cube::is2D() function.
+
       int numDim=0;
       long *dim = this->itsCube.getDimArray();
       for(int i=0;i<this->itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
       return numDim<=2;
     }
-
+ 
+    //**************************************************************//
 
     std::string DuchampParallel::workerPrefix()
     {
@@ -120,6 +126,11 @@ namespace askap
 
     }
     
+    DuchampParallel::DuchampParallel(int argc, const char** argv)
+      : AskapParallel(argc, argv)
+    {
+      this->itsFitter = sourcefitting::FittingParameters( LOFAR::ACC::APS::ParameterSet() );
+    }
     //**************************************************************//
 
     DuchampParallel::DuchampParallel(int argc, const char** argv,
@@ -446,7 +457,7 @@ namespace askap
 
 	// merge the objects, and grow them if necessary.
 	this->itsCube.ObjectMerger();
-
+	
 	this->itsCube.calcObjectWCSparams();
 
 	int16 num = this->itsCube.getNumObj();
@@ -482,7 +493,8 @@ namespace askap
 
 	this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
 	
-	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source profiles.");
+	if(this->itsFlagDoFit)
+	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source profiles.");
 	duchamp::FitsHeader head = this->itsCube.getHead();
 	// 	float noise;
 // 	if(this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
@@ -498,6 +510,7 @@ namespace askap
 
 	int numObj = this->itsCube.getNumObj();
  	for(int i=0;i<numObj;i++){
+	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #"<<i+1<<" / "<<numObj<<".");
 	  sourcefitting::RadioSource src(this->itsCube.getObject(i));
 	  src.setNoiseLevel( this->itsCube, this->itsFitter );
 	  src.setDetectionThreshold( threshold );

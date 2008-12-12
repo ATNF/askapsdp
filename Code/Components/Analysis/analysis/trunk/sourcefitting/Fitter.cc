@@ -75,7 +75,10 @@ namespace askap
 	this->itsMaxReducedChisq = parset.getFloat("maxReducedChisq", defaultMaxReducedChisq);
 	this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize", defaultNoiseBoxSize);
 	this->itsMinFitSize = parset.getInt32("minFitSize", defaultMinFitSize);
-	
+	this->itsMaxRetries = parset.getInt32("maxRetries", defaultMaxRetries);
+	this->itsCriterium = parset.getDouble("criterium", 0.0001);
+	this->itsMaxIter = parset.getUint32("maxIter",1024);
+	this->itsUseNoise = parset.getBool("useNoise",true);
       }
 
 
@@ -103,6 +106,10 @@ namespace askap
 	this->itsSrcPeak = f.itsSrcPeak;
 	this->itsDetectThresh = f.itsDetectThresh;
 	this->itsBeamSize = f.itsBeamSize;
+	this->itsMaxRetries = f.itsMaxRetries;
+	this->itsCriterium = f.itsCriterium;
+	this->itsMaxIter = f.itsMaxIter;
+	this->itsUseNoise = f.itsUseNoise;
 	return *this;
       }
 
@@ -195,25 +202,27 @@ namespace askap
 	  for(unsigned int i=0;i<6;i++)
 	    retryfactors(g,i) = baseRetryfactors(0,i);
 
-	this->itsFitter.setRetryFactors(retryfactors);
-
+	// 	this->itsFitter.setRetryFactors(retryfactors);
+	// Try not setting these for now and just use the defaults.
       }
 
       
       void Fitter::setMasks()
       {
 
-// 	  // mask the beam parameters
-// 	  //	  std::cout << "Mask values:\n";
-// 	  for(unsigned int g=0;g<this->itsNumGauss;g++){
-// 	    this->itsFitter.mask(g,3) = false;
-// 	    this->itsFitter.mask(g,4) = false;
-// 	    this->itsFitter.mask(g,5) = false;
-// 	    // 	    for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=false;
-// 	    //	    for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
-// 	    //	    for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
-// 	    //	    std::cout << "\n";
-// 	  }	      
+	// mask the beam parameters
+	//	  std::cout << "Mask values:\n";
+	for(unsigned int g=0;g<this->itsNumGauss;g++){
+	  this->itsFitter.mask(g,3) = false;
+	  this->itsFitter.mask(g,4) = false;
+	  this->itsFitter.mask(g,5) = false;
+	  //	  	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=false;   // set them all false
+	  // 	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=true;   // set them all true
+	  //	    for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
+	  //	    for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
+	  //	    std::cout << "\n";
+	}	      
+
       }
 
       void logparameters(Matrix<Double> &m)
@@ -239,60 +248,69 @@ namespace askap
 	for(uint i=0;i<f.size();i++) this->itsParams.itsBoxFlux += f(i);
 
 	this->itsSolution.resize();
-	  bool thisFitGood = true;
-	  for(int fitloop=0;fitloop<3;fitloop++){
-	    try {
-	      this->itsSolution = this->itsFitter.fit(pos, f, sigma, this->itsParams.itsMaxRMS);
-	    } catch (AipsError err) {
-	      std::string message = err.getMesg().chars();
-	      message = "FIT ERROR: " + message;
-	      ASKAPLOG_ERROR(logger, message);
-	      thisFitGood = false;
-	    }
-	    for(unsigned int i=0;i<this->itsNumGauss;i++){
-	      this->itsSolution(i,5) = remainder(this->itsSolution(i,5), 2.*M_PI);
-	    }
-	    ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop+1
-			      <<": chisq=" << this->itsFitter.chisquared()
-			      <<": Parameters are:"); 
-	    logparameters(this->itsSolution);
+	bool thisFitGood = true;
 
-	    if(!this->itsFitter.converged()) fitloop=9999;
-	    else{
-	      for(uint i=0;i<this->itsNumGauss;i++){
-		if(this->itsSolution(i,0)<0){
-		  this->itsSolution(i,0) = 0.;
-		  ASKAPLOG_INFO_STR(logger, "Setting negative component #"<<i+1<<" to zero flux.");
-		}
-	      }
-	      this->itsFitter.setFirstEstimate(this->itsSolution);
-	    }
+	//	int numLoops = 1;
+ 	int numLoops = 3;
+
+	this->itsFitter.setMaxRetries(this->itsParams.maxRetries());
+
+	for(int fitloop=0;fitloop<numLoops;fitloop++){
+	  try {
+	    if(this->itsParams.useNoise())
+	      this->itsSolution = this->itsFitter.fit(pos, f, sigma, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
+	    else
+	      this->itsSolution = this->itsFitter.fit(pos, f, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
+	  } catch (AipsError err) {
+	    std::string message = err.getMesg().chars();
+	    message = "FIT ERROR: " + message;
+	    ASKAPLOG_ERROR(logger, message);
+	    thisFitGood = false;
 	  }
-
-
 	  for(unsigned int i=0;i<this->itsNumGauss;i++){
 	    this->itsSolution(i,5) = remainder(this->itsSolution(i,5), 2.*M_PI);
 	  }
+	  ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop+1
+			    <<": chisq=" << this->itsFitter.chisquared()
+			    <<": Parameters are:"); 
+	  logparameters(this->itsSolution);
 
-	  this->itsNDoF = f.size() - this->itsNumGauss*6 - 1;
-	  this->itsRedChisq = this->itsFitter.chisquared() / float(this->itsNDoF);
-	
-	  cout.precision(6);
-	  if(this->itsFitter.converged()){
-	    ASKAPLOG_INFO_STR(logger, "Fit converged. Solution Parameters follow: "); 
-	    logparameters(this->itsSolution);
+	  if(!this->itsFitter.converged()) fitloop=9999;
+	  else{
+	    for(uint i=0;i<this->itsNumGauss;i++){
+	      if(this->itsSolution(i,0)<0){
+		this->itsSolution(i,0) = 0.;
+		ASKAPLOG_INFO_STR(logger, "Setting negative component #"<<i+1<<" to zero flux.");
+	      }
+	    }
+	    this->itsFitter.setFirstEstimate(this->itsSolution);
 	  }
-	  else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
+	}
 
-	  std::stringstream outmsg;
-	  outmsg << "Num Gaussians = " << this->itsNumGauss;
-	  if( this->itsFitter.converged()) outmsg << ", Converged";
-	  else outmsg << ", Failed";
-	  outmsg << ", chisq = " << this->itsFitter.chisquared()
-		 << ", chisq/nu =  "  << this->itsRedChisq
-		 << ", dof = " << this->itsNDoF
-		 << ", RMS = " << this->itsFitter.RMS();
-	  ASKAPLOG_INFO_STR(logger, outmsg.str());
+
+	for(unsigned int i=0;i<this->itsNumGauss;i++){
+	  this->itsSolution(i,5) = remainder(this->itsSolution(i,5), 2.*M_PI);
+	}
+
+	this->itsNDoF = f.size() - this->itsNumGauss*6 - 1;
+	this->itsRedChisq = this->itsFitter.chisquared() / float(this->itsNDoF);
+	
+	cout.precision(6);
+	if(this->itsFitter.converged()){
+	  ASKAPLOG_INFO_STR(logger, "Fit converged. Solution Parameters follow: "); 
+	  logparameters(this->itsSolution);
+	}
+	else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
+
+	std::stringstream outmsg;
+	outmsg << "Num Gaussians = " << this->itsNumGauss;
+	if( this->itsFitter.converged()) outmsg << ", Converged";
+	else outmsg << ", Failed";
+	outmsg << ", chisq = " << this->itsFitter.chisquared()
+	       << ", chisq/nu =  "  << this->itsRedChisq
+	       << ", dof = " << this->itsNDoF
+	       << ", RMS = " << this->itsFitter.RMS();
+	ASKAPLOG_INFO_STR(logger, outmsg.str());
 
       }
 

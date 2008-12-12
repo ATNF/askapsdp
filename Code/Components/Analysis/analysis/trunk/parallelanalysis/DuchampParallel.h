@@ -72,7 +72,12 @@ namespace askap
       /// @param parset The parameter set to read Duchamp and other parameters from.
       DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
 
+      /// @brief Default constructor
+      DuchampParallel(int argc, const char** argv);
+
       virtual ~DuchampParallel(){};
+
+      duchamp::Cube &cube(){duchamp::Cube &rcube = itsCube; return rcube;};
 
       /// @brief Read in the data from the image file (on the workers)
       void readData();
@@ -133,6 +138,12 @@ namespace askap
 
       /// @brief Print out the worker number in form useful for logging.
       std::string workerPrefix();
+
+      /// @brief Set the doFit flag
+      void setDoFitFlag(bool f){itsFlagDoFit = f;};
+
+      /// @brief Get a particular RadioSource
+      sourcefitting::RadioSource getSource(int i){return itsSourceList[i];};
 
     protected:
 

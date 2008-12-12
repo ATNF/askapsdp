@@ -215,7 +215,8 @@ namespace askap
 	/// @param cube The duchamp::Cube object containing the pixel array
 	/// @param fitparams The set of parameters governing the fit
 
-	this->setNoiseLevel(cube.getArray(), cube.getDimArray(), fitparams.noiseBoxSize());
+	if(fitparams.useNoise())
+	  this->setNoiseLevel(cube.getArray(), cube.getDimArray(), fitparams.noiseBoxSize());
       }
 
       void RadioSource::setNoiseLevel(float *array, long *dim, int boxSize)
@@ -368,7 +369,6 @@ namespace askap
 	/// parameters are determined using getFWHMestimate()).  The
 	/// ultimate returned object is a vector list of
 	/// SubComponents, ordered from highest to lowest peak flux.
-
 
 	std::vector<SubComponent> fullList;
 
@@ -654,9 +654,6 @@ namespace askap
 	for(uInt i=0;i<cmpntList.size();i++)
 	  ASKAPLOG_INFO_STR(logger, "SubComponent: " << cmpntList[i]);
 
-	const int maxNumGauss = 4;
-	Fitter fit[maxNumGauss];
-
 	bool fitIsGood = false;
 	int bestFit = 0;
 	float bestRChisq = 9999.;
@@ -666,15 +663,11 @@ namespace askap
  	this->itsFitParams.setPeakFlux(this->peakFlux);
 	this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
-// 	FittingParameters fitpars = baseFitter;
-// 	fitpars.saveBox(this->itsBoxMargins);
-// 	fitpars.setPeakFlux(this->peakFlux);
-// 	fitpars.setDetectThresh(this->itsDetectionThreshold);
-	
-	for(int ctr=0;ctr<maxNumGauss;ctr++){
+	Fitter fit[this->itsFitParams.maxNumGauss()];
+
+	for(int ctr=0;ctr<this->itsFitParams.maxNumGauss();ctr++){
 
  	  fit[ctr].setParams(this->itsFitParams);
-//  	  fit[ctr].setParams(fitpars);
 	  fit[ctr].setNumGauss(ctr+1);
 	  fit[ctr].setEstimates(cmpntList, this->itsHeader);
 	  fit[ctr].setRetries();
@@ -695,7 +688,6 @@ namespace askap
 	if(fitIsGood){
 	  this->hasFit = true;
 	  this->itsFitParams = fit[bestFit].params();
-// 	  this->itsBestFit = fit[bestFit];
 	  this->itsChisq = fit[bestFit].chisq();
 	  this->itsRMS = fit[bestFit].RMS();
 	  this->itsNDoF = fit[bestFit].ndof();
@@ -713,8 +705,6 @@ namespace askap
 	}
 	else{
 	  this->itsFitParams = baseFitter;
-// 	  this->itsBestFit = Fitter();
-// 	  this->itsBestFit.setParams(baseFitter);
 	  ASKAPLOG_INFO_STR(logger, "No good fit found.");
 	}
 
@@ -876,6 +866,7 @@ namespace askap
 	  pix[1] = fit->yCenter();
 	  this->itsHeader.pixToWCS(pix,world);
 	
+	  stream.setf(std::ios::fixed);
 	  stream.precision(6);
 	  stream << "ELLIPSE " 
 		 << world[0] << " " 
