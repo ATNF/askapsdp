@@ -170,19 +170,7 @@ namespace askap
       Axes axes;
       axes.add("RA", ra-double(nx)*xcellsize/2.0, ra+double(nx)*xcellsize/2.0);
       axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
-      
-      // we need to ship around the tangent point somehow as it affects the way this
-      // faceted images are used. One way is to specify an extra fixed parameter and another
-      // is to attach it to each facet itself. The latter has an advantage for parallel
-      // processing as all necessary info is readily available with any facet, although
-      // there is some minor duplication of the data.
-      // 
-      // In the future, we may allow having a keyword-type axis in the Axes object which 
-      // is essentially an axis with single pixel only. At this stage, we will just set up
-      // a normal axis with the same start and stop values
-      axes.add("RA-TANGENT",ra,ra);
-      axes.add("DEC-TANGENT",dec,dec);
-      
+            
       axes.add("STOKES", 0.0, 0.0);
       
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
@@ -237,6 +225,18 @@ namespace askap
                 Axes axes;
                 axes.add("RA", raCentre-double(nx)*xcellsize/2.0, raCentre+double(nx)*xcellsize/2.0);
                 axes.add("DEC", decCentre-double(ny)*ycellsize/2.0, decCentre+double(ny)*ycellsize/2.0);
+      
+                // we need to ship around the tangent point somehow as it affects the way this
+                // faceted images are used. One way is to specify an extra fixed parameter and another
+                // is to attach it to each facet itself. The latter has an advantage for parallel
+                // processing as all necessary info is readily available with any facet, although
+                // there is some minor duplication of the data.
+                // 
+                // In the future, we may allow having a keyword-type axis in the Axes object which 
+                // is essentially an axis with single pixel only. At this stage, we will just set up
+                // a normal axis with the same start and stop values
+                axes.add("RA-TANGENT",ra,ra);
+                axes.add("DEC-TANGENT",dec,dec);
       
                 axes.add("STOKES", 0.0, 0.0);
       
