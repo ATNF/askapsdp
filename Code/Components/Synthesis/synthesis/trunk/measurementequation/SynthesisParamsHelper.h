@@ -67,7 +67,17 @@ namespace askap
 		/// @param[in] parset a parset object to read the parameters from
 		/// @note (MV)This method is probably a duplication of the one of 
 		/// add methods - needs to be cleared
+		/// (MV, dec 2008) not any more. With faceting it is handy to have a separate method
 		static void setUpImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+		
+		/// @brief load images according to the parset file
+		/// @details This method is somewhat analogous to setUpImages, but it loads the images
+		/// from the dist instead of setting them up from the scratch. Encapsulation of all loading
+		/// of multiple images in a single method is required to provide a seamless handling of
+		/// the faceted image.
+		/// @param[in] params Images to be created here
+		/// @param[in] parset a parset object to read the parameters from		
+		static void loadImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
         
         /// @brief load component-related parameters from a parset file
         /// @details Parameter layout is different in scimath::Params and
@@ -155,6 +165,14 @@ namespace askap
         /// @param imagename Name of image file
         static void getFromCasaImage(askap::scimath::Params& ip, const string& name,
           const string& imagename);
+          
+        /// @brief Get parameters corresponding to all facets from a CASA image
+        /// @param[in] ip Parameters
+        /// @param[in] name Base name of the parameter (.facet.x.y will be added)
+        /// @param[in] fileName Base name of the image file (.facet.x.y will be added)
+        /// @param[in] nfacets Number of facets on each axis (assumed the same for both axes)
+        static void getMultiFacetImage(askap::scimath::Params &ip, const string &name,
+           const string &fileName, const int nfacets);
         
         /// @brief Save a parameter as a CASA image
         /// @param ip Parameters

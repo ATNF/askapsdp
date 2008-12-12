@@ -112,11 +112,7 @@ namespace askap
         
         if (reuseModel) {
             ASKAPLOG_INFO_STR(logger, "Reusing model images stored on disk");
-            const vector<string> images=parset.getStringVector("Images.Names");
-            for (vector<string>::const_iterator ci = images.begin(); ci != images.end(); ++ci) {
-                 ASKAPLOG_INFO_STR(logger, "Reading model image "<<*ci);
-                 SynthesisParamsHelper::getFromCasaImage(*itsModel,*ci,*ci);
-            }            
+            SynthesisParamsHelper::loadImages(itsModel,itsParset.makeSubset("Images."));
         } else {
             ASKAPLOG_INFO_STR(logger, "Initializing the model images");
       

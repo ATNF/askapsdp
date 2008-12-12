@@ -127,6 +127,38 @@ namespace askap
 	  }
 	}
     
+    /// @brief load images according to the parset file
+	/// @details This method is somewhat analogous to setUpImages, but it loads the images
+	/// from the dist instead of setting them up from the scratch. Encapsulation of all loading
+	/// of multiple images in a single method is required to provide a seamless handling of
+	/// the faceted image.
+	/// @param[in] params Images to be created here
+	/// @param[in] parset a parset object to read the parameters from		
+	void SynthesisParamsHelper::loadImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset)
+    {
+      ASKAPDEBUGASSERT(params);
+      try {
+         const vector<string> images=parset.getStringVector("Names");
+         for (vector<string>::const_iterator ci = images.begin(); ci != images.end(); ++ci) {
+              // @todo add more checking that the image loaded from the disk conforms with the
+              // parameters given in the parset file
+              
+              const int nfacets = parset.getInt32(*ci+".nfacets",1);
+              ASKAPCHECK(nfacets>0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
+              if (nfacets == 1) {
+                  ASKAPLOG_INFO_STR(logger, "Reading image "<<*ci);
+                  SynthesisParamsHelper::getFromCasaImage(*params,*ci,*ci);
+              } else {
+                  ASKAPLOG_INFO_STR(logger, "Loading multi-facet image image "<<*ci);
+                  SynthesisParamsHelper::getMultiFacetImage(*params,*ci,*ci, nfacets);
+              }
+         }            
+         
+	  }
+	  catch (const LOFAR::ACC::APS::APSException &ex) {
+	      throw AskapError(ex.what());
+	  }
+    }
     
     void SynthesisParamsHelper::add(askap::scimath::Params& ip,
 				    const LOFAR::ACC::APS::ParameterSet& parset, const std::string& baseKey)
@@ -415,6 +447,24 @@ namespace askap
       ip.add(name, imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)),
 	     axes);
       
+    }
+    
+    /// @brief Get parameters corresponding to all facets from a CASA image
+    /// @param[in] ip Parameters
+    /// @param[in] name Base name of the parameter (.facet.x.y will be added)
+    /// @param[in] fileName Base name of the image file (.facet.x.y will be added)
+    /// @param[in] nfacets Number of facets on each axis (assumed the same for both axes)    
+    void SynthesisParamsHelper::getMultiFacetImage(askap::scimath::Params &ip, const string &name,
+           const string &fileName, const int nfacets)
+    {
+      ASKAPCHECK(nfacets>0, "The number of facets is supposed to be positive, you have "<<nfacets);
+      for (int ix=0; ix<nfacets; ++ix) {
+           for (int iy=0; iy<nfacets; ++iy) {
+                const std::string &postfix = ".facet."+utility::toString<int>(ix)+"."+
+                            utility::toString<int>(iy);
+                getFromCasaImage(ip,name+postfix,fileName+postfix);                            
+           }
+      }
     }
     
     boost::shared_ptr<casa::TempImage<float> >
