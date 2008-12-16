@@ -119,7 +119,11 @@ namespace askap
 		          // this is a multi-facet case
 		          ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
 		                                    " new empty facets for image "<< *it );	
-		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, nfacets);		                                    	                                    
+		          const int facetstep = parset.getInt32(*it+".facetstep",casa::min(shape[0],shape[1]));
+		          ASKAPCHECK(facetstep>0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
+		          ASKAPLOG_INFO_STR(logger, "Facet centers will be "<<facetstep<<
+		                      " pixels apart, each facet size will be "<<shape[0]<<" x "<<shape[1]); 
+		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, nfacets,facetstep);		                                    	                                    
 		      }
 	     }
 	  }
@@ -222,14 +226,17 @@ namespace askap
     /// @param[in] freqmax Maximum frequency (Hz)
     /// @param[in] nchan Number of spectral channels
     /// @param[in] nfacets Number of facets in each axis (assumed the same for both axes)
+    /// @param[in] facetstep Offset in pixels between facet centres (equal to shape to
+    ///            have no overlap between adjacent facets), assumed the same for both axes    
     void SynthesisParamsHelper::add(askap::scimath::Params& ip, const string& name, 
        const vector<string>& direction, 
        const vector<string>& cellsize, 
        const vector<int>& shape,
        const double freqmin, const double freqmax, const int nchan,
-       const int nfacets)
+       const int nfacets, const int facetstep)
     {
       ASKAPDEBUGASSERT(nfacets>0);
+      ASKAPDEBUGASSERT(facetstep>0);
       const int nx=shape[0];
       const int ny=shape[1];
       ASKAPCHECK(cellsize.size() == 2, "Cell size should have exactly 2 parameters, you have "<<cellsize.size());
@@ -251,8 +258,8 @@ namespace askap
       for (int ix=0;ix<nfacets;++ix) {
            for (int iy=0;iy<nfacets;++iy) {
       
-                const double raCentre = ra+double(nx)*xcellsize*double(ix-nfacets/2);
-                const double decCentre = dec+double(ny)*ycellsize*double(iy-nfacets/2);
+                const double raCentre = ra+facetstep*xcellsize*double(ix-nfacets/2);
+                const double decCentre = dec+facetstep*ycellsize*double(iy-nfacets/2);
                 
                 /// @todo Do something with the frame info in direction[2]
                 Axes axes;

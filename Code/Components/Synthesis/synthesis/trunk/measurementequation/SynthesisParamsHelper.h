@@ -137,12 +137,14 @@ namespace askap
         /// @param[in] freqmax Maximum frequency (Hz)
         /// @param[in] nchan Number of spectral channels
         /// @param[in] nfacets Number of facets in each axis (assumed the same for both axes)
+        /// @param[in] facetstep Offset in pixels between facet centres (equal to shape to
+        ///            have no overlap between adjacent facets), assumed the same for both axes
         static void add(askap::scimath::Params& ip, const string& name, 
           const vector<string>& direction, 
           const vector<string>& cellsize, 
           const vector<int>& shape,
           const double freqmin, const double freqmax, const int nchan,
-          const int nfacets);
+          const int nfacets, const int facetstep);
           
         /// @brief Add a set of parameters from a parset
         /// @param ip Parameters
