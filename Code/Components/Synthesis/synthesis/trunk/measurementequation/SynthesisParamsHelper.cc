@@ -257,7 +257,10 @@ namespace askap
       // a loop over facets
       for (int ix=0;ix<nfacets;++ix) {
            for (int iy=0;iy<nfacets;++iy) {
-      
+
+                // for debugging to avoid running out of memory
+                //if (ix || iy) continue;
+                      
                 const double raCentre = ra+facetstep*xcellsize*double(ix-nfacets/2);
                 const double decCentre = dec+facetstep*ycellsize*double(iy-nfacets/2);
                 

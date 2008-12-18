@@ -530,7 +530,20 @@ void TableVisGridder::grid(IDataSharedIter& idi) {
 void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 		casa::Vector<casa::RigidVector<double, 3> >& outUVW,
 		casa::Vector<double>& delay) const {
-	const casa::MDirection out(getTangentPoint(), casa::MDirection::J2000);
+    const casa::MVDirection tangentPoint(getTangentPoint());
+	const casa::MDirection out(tangentPoint, casa::MDirection::J2000);
+
+    const casa::MVDirection imgCentre(getImageCentre());
+    
+	
+		
+	const double dl = sin(imgCentre.getLong()-tangentPoint.getLong())*cos(imgCentre.getLat());
+	const double dm = sin(imgCentre.getLat())*cos(tangentPoint.getLat()) - 
+	      cos(imgCentre.getLat())*sin(tangentPoint.getLat())
+	    *cos(imgCentre.getLong()-tangentPoint.getLong());
+
+    const casa::MVPosition imgOffset = casa::MVPosition(getImageCentre())-casa::MVPosition(getTangentPoint());
+
 	const casa::uInt nSamples = acc.uvw().size();
 	delay.resize(nSamples);
 	outUVW.resize(nSamples);
@@ -556,6 +569,11 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
 		for (int i=0; i<3; ++i) {
 		  outUVW(row)(i)=-1.0*uvw(i);
 		}
+		
+		// to account for situation where tangent point is not image centre
+		// the following doesn't work for some reason. Need to investigate
+		//delay(row)-=imgOffset*casa::MVPosition(uvw);
+		delay(row)+=outUVW(row)(0)*dl+outUVW(row)(1)*dm;
 	}
 }
 
