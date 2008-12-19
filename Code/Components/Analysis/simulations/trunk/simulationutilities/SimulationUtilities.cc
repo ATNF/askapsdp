@@ -61,8 +61,8 @@ namespace askap
       float v1,v2,s;
       // simulate a standard normal RV via polar method
       do{
-	v1 = 2.*(1.*rand())/(RAND_MAX+1.0) - 1.;
-	v2 = 2.*(1.*rand())/(RAND_MAX+1.0) - 1.;
+	v1 = 2.*(1.*random())/(RAND_MAX+1.0) - 1.;
+	v2 = 2.*(1.*random())/(RAND_MAX+1.0) - 1.;
 	s = v1*v1+v2*v2;
       }while(s>1);
       float z = sqrt(-2.*log(s)/s)*v1;

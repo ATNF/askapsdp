@@ -41,10 +41,13 @@
 #include <casa/namespace.h>
 
 #include <wcslib/wcs.h>
+#include <wcslib/wcsunits.h>
 #define WCSLIB_GETWCSTAB // define this so that we don't try to redefine wtbarr
                          // (this is a problem when using wcslib-4.2)
 #include <fitsio.h>
+#include <duchamp/duchamp.hh>
 #include <duchamp/Utils/utils.hh>
+#include <duchamp/Utils/GaussSmooth.hh>
 
 #include <iostream>
 #include <sstream>
@@ -70,8 +73,23 @@ namespace askap
       {
 
 	this->itsFileName = parset.getString("filename","");
+	this->itsBunit = parset.getString("bunit", "JY/BEAM");
 
 	this->itsSourceList = parset.getString("sourcelist","");
+	std::string sourceFluxUnits = parset.getString("sourceFluxUnits","");
+	if(sourceFluxUnits!=""){
+	  char *base = (char *)this->itsBunit.c_str();
+	  wcsutrn(0,base);
+	  char *src = (char *)sourceFluxUnits.c_str();
+	  wcsutrn(0,src);
+	  int status=wcsunits(src,base,&this->itsUnitScl, &this->itsUnitOff, &this->itsUnitPwr);
+	  if(status) ASKAPTHROW(AskapError, "The parameters bunit (\""<<base
+				<<"\") and sourceFluxUnits (\"" << src
+				<<"\") are not interconvertible.");
+	  ASKAPLOG_INFO_STR(logger,"Converting from " << src << " to " << base 
+			    << ": " << this->itsUnitScl<< "," <<this->itsUnitOff << "," <<this->itsUnitPwr);
+	}
+
 	this->itsNoiseRMS = parset.getFloat("noiserms",0.001);
 
 	this->itsDim = parset.getInt32("dim",2);
@@ -82,10 +100,13 @@ namespace askap
 	this->itsNumPix = this->itsAxes[0];
 	for(uint i=1;i<this->itsDim;i++) this->itsNumPix *= this->itsAxes[i];
 
+	this->itsArray = new float[this->itsNumPix];
+	for(int i=0;i<this->itsNumPix;i++) this->itsArray[i] = 0.;
+	this->itsArrayAllocated = true;
+
 	this->itsBeamInfo = parset.getFloatVector("beam");
 
 	this->itsEquinox = parset.getFloat("equinox", 2000.);
-	this->itsBunit = parset.getString("bunit", "JY/BEAM");
 
 	this->itsCTYPE = parset.getStringVector("ctype");
 	if(this->itsCTYPE.size() != this->itsDim)
@@ -142,16 +163,20 @@ namespace askap
       void FITSfile::makeNoiseArray()
       {
 
-	if(this->itsArrayAllocated) delete [] this->itsArray;
-
-	this->itsArray = new float[this->itsNumPix];
-
 	for(int i=0;i<this->itsNumPix;i++){
 	  this->itsArray[i] = normalRandomVariable(0., this->itsNoiseRMS);
 	}
 
       }
 
+      void FITSfile::addNoise()
+      {
+
+	for(int i=0;i<this->itsNumPix;i++){
+	  this->itsArray[i] += normalRandomVariable(0., this->itsNoiseRMS);
+	}
+
+      }
 
       void FITSfile::addSources()
       {
@@ -162,25 +187,49 @@ namespace askap
 	std::string ra,dec;
 	double flux,maj,min,pa;
 	double wld[2],pix[2];
-	std::vector<casa::Gaussian2D<casa::Double> > sources;
+	std::vector<casa::Gaussian2D<casa::Double> > gaussians;
 	while(srclist >> ra >> dec >> flux >> maj >> min >> pa,
 	      !srclist.eof()) {
+	  // convert fluxes to correct units
+	  flux = pow(this->itsUnitScl*flux+this->itsUnitOff, this->itsUnitPwr);
+
 	  // convert sky position to pixels
 	  wld[0] = evaluation::dmsToDec(ra)*15.;
 	  wld[1] = evaluation::dmsToDec(dec);
 	  wcsToPixSingle(this->itsWCS,wld,pix);
-	  // convert widths from arcsec to pixels
-	  maj = maj / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
-	  min = min / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
-	  casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
-	  sources.push_back(gauss);
+ 	  if(maj>0){
+	    // convert widths from arcsec to pixels
+	    maj = maj / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
+	    min = min / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
+	    casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
+	    gaussians.push_back(gauss);
+	  }
+	  else{
+	    int loc = floor(pix[0]) + this->itsAxes[0]*floor(pix[1]);
+	    this->itsArray[loc] += flux;
+	    ASKAPLOG_INFO_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
+			      << "," << floor(pix[1]) << "]");
+	  }
 	}
 
 	// for each source, add to array
 
-	std::vector<casa::Gaussian2D<casa::Double> >::iterator src=sources.begin();
-	for(; src<sources.end();src++)
+	std::vector<casa::Gaussian2D<casa::Double> >::iterator src=gaussians.begin();
+	for(; src<gaussians.end();src++)
 	  addGaussian(this->itsArray, this->itsAxes, *src);
+
+      }
+
+
+      void FITSfile::convolveWithBeam()
+      {
+	float maj = this->itsBeamInfo[0]/fabs(this->itsCDELT[0]);
+	float min = this->itsBeamInfo[1]/fabs(this->itsCDELT[1]);
+	float pa = this->itsBeamInfo[2];
+	GaussSmooth smoother(maj,min,pa);
+	float *newArray = smoother.smooth(this->itsArray,this->itsAxes[0],this->itsAxes[1]);
+	for(int i=0;i<this->itsNumPix;i++) this->itsArray[i] = newArray[i];
+	delete [] newArray;
 
       }
 
@@ -197,7 +246,7 @@ namespace askap
 
 	int status = 0;
 	long *fpixel = new long[this->itsDim];
-	for(int i=0;i<this->itsDim;i++) fpixel[i]=1;
+	for(uint i=0;i<this->itsDim;i++) fpixel[i]=1;
 	fitsfile *fptr;         
 	if( fits_create_file(&fptr,this->itsFileName.c_str(),&status) ) 
 	  fits_report_error(stderr, status);

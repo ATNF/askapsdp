@@ -68,7 +68,11 @@ namespace askap
 
 	void makeNoiseArray();
 
+	void addNoise();
+
 	void addSources();
+
+	void convolveWithBeam();
 
 	void saveFile();
 
@@ -94,6 +98,10 @@ namespace askap
 	
 	float itsEquinox;
 	std::string itsBunit;
+       
+	double itsUnitScl;
+	double itsUnitOff;
+	double itsUnitPwr;
 
 	struct wcsprm *itsWCS;
 

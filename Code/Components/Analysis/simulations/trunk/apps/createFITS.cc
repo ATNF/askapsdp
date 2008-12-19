@@ -81,17 +81,30 @@ int main(int argc, const char** argv)
 
     //    timer.mark();
 
-    srandom(time(0));
+    srandomdev();
 
     std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
 
     ParameterSet parset(parsetFile);
     ParameterSet subset(parset.makeSubset("createFITS."));
 
+    bool doNoise = subset.getBool("addNoise",true);
+    bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve",true);
+    bool doConvolution = subset.getBool("doConvolution",true);
+
     FITSfile file(subset);
 
-    file.makeNoiseArray();
     file.addSources();
+ 
+    if(doNoise && (noiseBeforeConvolve || !doConvolution)) 
+      file.addNoise();
+
+    if(doConvolution) 
+      file.convolveWithBeam();
+
+    if(doNoise && (!noiseBeforeConvolve && doConvolution)) 
+      file.addNoise();
+
     file.saveFile();
 
   }
