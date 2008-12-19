@@ -357,46 +357,13 @@ namespace askap
 						const string& imagename)
     {
       const casa::Array<double> imagePixels(ip.value(name));
-      const Axes axes(ip.axes(name));
+      const casa::CoordinateSystem imageCoords(coordinateSystem(ip,name));
+      
       casa::Array<float> floatImagePixels(imagePixels.shape());
       casa::convertArray<float, double>(floatImagePixels, imagePixels);
       
-      casa::ArrayLattice<float> latImagePixels(floatImagePixels);
-      casa::Matrix<double> xform(2,2);
-      xform = 0.0; xform.diagonal() = 1.0;
-      int nx=imagePixels.shape()(0);
-      int ny=imagePixels.shape()(1);
-      casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
-      casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
-      //double lat((axes.start("DEC")+axes.end("DEC"))/2.0);
-      
-      casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
-      casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
-      
-      Projection projection(Projection::SIN);
-      casa::DirectionCoordinate radec(MDirection::J2000,
-				      projection,
-				      refLon, refLat,
-				      incLon, incLat,
-				      xform, nx/2, nx/2);
-      
-      casa::CoordinateSystem imageCoords;
-      imageCoords.addCoordinate(radec);
-      
-      casa::Vector<int> iquv(1);
-      iquv(0) = Stokes::I;
-      
-      casa::StokesCoordinate stokes(iquv);
-      imageCoords.addCoordinate(stokes);
-      
-      int nchan=imagePixels.shape()(2);
-      double restfreq = 0.0;
-      double crpix = (nchan-1)/2;
-      double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
-      double cdelt = (axes.end("FREQUENCY")-axes.start("FREQUENCY"))/double(nchan);
-      casa::SpectralCoordinate freq(casa::MFrequency::TOPO, crval, cdelt, crpix, restfreq);
-      imageCoords.addCoordinate(freq);
-      
+      casa::ArrayLattice<float> latImagePixels(floatImagePixels);       
+            
       casa::PagedImage<float> imgImagePixels(TiledShape(imagePixels.shape()),
 					     imageCoords, casa::String(imagename));
       imgImagePixels.copyData(latImagePixels);
@@ -532,23 +499,39 @@ namespace askap
 					       const string& name)
     {
       const Axes axes(ip.axes(name));
+      ASKAPCHECK(axes.has("RA-TANGENT") == axes.has("DEC-TANGENT"), 
+          "Either both RA and DEC have to be defined for a tangent point or none of them");
       
       casa::Matrix<double> xform(2,2);
       xform = 0.0; xform.diagonal() = 1.0;
       int nx=ip.value(name).shape()(0);
       int ny=ip.value(name).shape()(1);
-      casa::Quantum<double> refLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
-      casa::Quantum<double> refLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
+      const casa::Quantum<double> centreLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
+      const casa::Quantum<double> centreLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
       
-      casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
-      casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
+      const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
+      const casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
       
-      casa::DirectionCoordinate radec(MDirection::J2000,
-				      Projection(Projection::SIN),
-				      refLon, refLat,
-				      incLon, incLat,
-				      xform, nx/2, nx/2);
-      
+      if (!axes.has("RA-TANGENT")) {
+          // this is not faceting, centre of the image is a tangent point
+          const casa::DirectionCoordinate radec(MDirection::J2000,Projection(Projection::SIN), 
+                                     centreLon, centreLat, incLon, incLat, xform, nx/2, ny/2);      
+          return radec;
+      }
+      // we have to deal with the user specified tangent point here as it may be 
+      // different from the image centre
+      const casa::Quantum<double> tangentLon(axes.start("RA-TANGENT"), "rad");
+      const casa::Quantum<double> tangentLat(axes.start("DEC-TANGENT"), "rad");
+      // need to find reference pixel, do it with a temporary coordinate class by
+      // getting the world coordinates for the image centre
+      const casa::DirectionCoordinate temp(MDirection::J2000,Projection(Projection::SIN), 
+                                      tangentLon, tangentLat, incLon, incLat, xform, 0, 0);      
+      casa::Vector<casa::Double> pixel;
+      temp.toPixel(pixel,casa::MVDirection(centreLon, centreLat));
+      ASKAPDEBUGASSERT(pixel.nelements()==2);
+      const casa::DirectionCoordinate radec(MDirection::J2000,Projection(Projection::SIN), 
+                                   tangentLon, tangentLat, incLon, incLat, xform, 
+                                   double(nx)/2.-pixel[0], double(ny)/2.-pixel[1]);      
       return radec;
     }
     
