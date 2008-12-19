@@ -2,16 +2,21 @@
 """
 """
 from pkg_resources import require
-require('numpy')
-require('matplotlib')
+#require('numpy==1.0.3.1')
+require('numpy==1.1.1')
+#require('matplotlib==0.90.1')
+require('matplotlib==0.98.3')
 from pylab import *
 from numpy import *
+import numpy
 
 import os
 root = os.environ["ASKAP_ROOT"]
 sys.path.append(os.path.abspath(os.path.join(root,'Code/Components/Analysis/evaluation/trunk/plotting')))
 from readData import *
 from distributionPlots import *
+
+#from parameterset import *
 
 if __name__ == '__main__':
     from sys import argv
@@ -41,6 +46,16 @@ if __name__ == '__main__':
 
     dF = fS - fR
     rdF = 100.*dF/fR
+
+    print "Fraction with |dS/S|<10%% = %5.2f%%"%(100.*size(rdF[abs(rdF)<10])/cast[float](size(rdF)))
+    print "Fraction with |dS/S|<20%% = %5.2f%%"%(100.*size(rdF[abs(rdF)<20])/cast[float](size(rdF)))
+    print "Fraction with |dS/S|<30%% = %5.2f%%"%(100.*size(rdF[abs(rdF)<30])/cast[float](size(rdF)))
+    print "Fraction with dS/S>30%%   = %5.2f%%"%(100.*size(rdF[rdF>30])/cast[float](size(rdF)))
+
+    print "Mean of dS = %8.4f"%(mean(dF))
+    print "Median of dS = %8.4f"%(median(dF))
+    print "RMS of dS = %8.4f"%(std(dF))
+    print "MADFM of dS = %8.4f = %8.4f as RMS"%(madfm(dF),madfmToRMS(madfm(dF)))
 
     figure(1, figsize=(16.5,11.7), dpi=72)
 
