@@ -84,7 +84,7 @@ namespace askap
 	// Find all the free parameters beginning with image
 	vector<string> names(itsParams->completions("image"));
 	map<string, uint> indices;
-	
+		
 	for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
 	{
 		string name="image"+*it;

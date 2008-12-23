@@ -23,7 +23,6 @@
 
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Axes.h>
-#include <askap/MapKeyIterator.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -127,7 +126,7 @@ namespace askap
 		          ASKAPCHECK(facetstep>0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
 		          ASKAPLOG_INFO_STR(logger, "Facet centers will be "<<facetstep<<
 		                      " pixels apart, each facet size will be "<<shape[0]<<" x "<<shape[1]); 
-		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, nfacets,facetstep);		                                    	                                    
+		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, nfacets,facetstep);
 		      }
 	     }
 	  }
@@ -603,7 +602,8 @@ namespace askap
                 // this is not a faceted image, just add it to the final list
                 facetmap[*ci] = 1; // one facet                
             } else {
-                const std::string parName = ci->substr(pos);
+                const std::string parName = ci->substr(0,pos);
+                ASKAPCHECK(parName.size(), "Parameter name is missing for the faceted image "<<*ci);
                 pos+=7; // to move it to the start of numbers
                 ASKAPCHECK(pos < ci->size(), 
                     "Name of the faceted parameter should contain facet indices at the end, you have "<<*ci);
@@ -630,8 +630,10 @@ namespace askap
                 ASKAPDEBUGASSERT(tempMapY[it->first].size());
                 
                 
-                const int nFacetX = *(tempMapX[it->first].rbegin());
-                const int nFacetY = *(tempMapY[it->first].rbegin());
+                const int nFacetX = *(std::max_element(tempMapX[it->first].begin(),
+                                      tempMapX[it->first].end()));
+                const int nFacetY = *(std::max_element(tempMapY[it->first].begin(),
+                                      tempMapY[it->first].end()));
                 const int nFacets = nFacetX > nFacetY ? nFacetX : nFacetY;      
                 
                 // doing checks
