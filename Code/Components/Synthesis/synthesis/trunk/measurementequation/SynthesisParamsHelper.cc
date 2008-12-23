@@ -23,6 +23,7 @@
 
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Axes.h>
+#include <askap/MapKeyIterator.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -54,6 +55,9 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <vector>
 #include <algorithm>
+#include <set>
+#include <map>
+#include <string>
 
 using namespace askap::scimath;
 using namespace casa;
@@ -570,6 +574,77 @@ namespace askap
     {
        ASKAPDEBUGASSERT(params);
        return params->completions("image.i").size()!=0;
+    }
+    
+    /// @brief A helper method to build a list of faceted images
+    /// @details All multi-facet images are split between a number of 
+    /// parameters named like "image.i.fieldname.facet.0.0". Single
+    /// facet images correspond to parameters named like "image.i.fieldname".
+    /// This method reads a supplied vector of names (may be either all names
+    /// or just free parameters extracted from Params object) and builds a map
+    /// of the image name (up to and including fieldname) and the number of
+    /// facets. It also does the necessary checks that all required facets are
+    /// defined and throws an exception if it is not the case.
+    /// @param[in] names parameter names to work with
+    /// @param[out] facetmap a map of (possibly truncated names) and the number of facets
+    /// @note 1. facetmap.size()<=names.size() after the call to this method
+    /// 2. This method just adds the content to the facet map without erasing the
+    /// existing information.
+    void SynthesisParamsHelper::listFacets(const std::vector<std::string> &names,
+                          std::map<std::string, int> &facetmap)
+    {       
+       // temporary maps, just to check that no facets were missed
+       std::map<std::string, std::set<int> >  tempMapX;
+       std::map<std::string, std::set<int> >  tempMapY;
+       
+       for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
+            size_t pos = ci->rfind(".facet.");
+            if (pos == std::string::npos) {
+                // this is not a faceted image, just add it to the final list
+                facetmap[*ci] = 1; // one facet                
+            } else {
+                const std::string parName = ci->substr(pos);
+                pos+=7; // to move it to the start of numbers
+                ASKAPCHECK(pos < ci->size(), 
+                    "Name of the faceted parameter should contain facet indices at the end, you have "<<*ci);
+                size_t pos2 = ci->find(".",pos);
+                ASKAPCHECK((pos2 != std::string::npos) && (pos2+1<ci->size()) && (pos2!=pos), 
+                    "Two numbers are expected in the parameter name for the faceted image, you have "<<*ci);
+                const int xFacet = utility::fromString<int>(ci->substr(pos,pos2-pos));
+                const int yFacet = utility::fromString<int>(ci->substr(pos2+1));
+     
+                tempMapX[parName].insert(xFacet);
+                tempMapY[parName].insert(yFacet);
+                facetmap[parName] = 0; // a flag that we need to figure out the exact number later
+            }
+       }
+       for (std::map<std::string, int>::iterator it = facetmap.begin(); it!=facetmap.end(); ++it) {
+            if (it->second == 0) {  
+                ASKAPDEBUGASSERT(hasValue(tempMapX, it->first));
+                ASKAPDEBUGASSERT(hasValue(tempMapY, it->first));
+                
+                // the code below assumes equal number of facets in both axes. It should be
+                // modified slightly to lift this restriction. 
+                
+                ASKAPDEBUGASSERT(tempMapX[it->first].size());
+                ASKAPDEBUGASSERT(tempMapY[it->first].size());
+                
+                
+                const int nFacetX = *(tempMapX[it->first].rbegin());
+                const int nFacetY = *(tempMapY[it->first].rbegin());
+                const int nFacets = nFacetX > nFacetY ? nFacetX : nFacetY;      
+                
+                // doing checks
+                for (int facet = 0; facet<nFacets; ++facet) {
+                     ASKAPCHECK(hasValue(tempMapX[it->first],facet), "Facet "<<facet<<
+                          " is missing for the first axis");                          
+                     ASKAPCHECK(hasValue(tempMapY[it->first],facet), "Facet "<<facet<<
+                          " is missing for the second axis");
+                }
+                
+                it->second = nFacets;
+            }
+       }
     }
     
     /// @brief load component-related parameters from a parset file

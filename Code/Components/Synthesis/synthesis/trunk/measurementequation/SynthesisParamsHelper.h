@@ -219,6 +219,17 @@ namespace askap
         static void update(askap::scimath::Params& ip, const string& name, 
           const casa::ImageInterface<float>& image);
         
+        /// @brief a helper template method to check whether the element is
+        /// present in a container.
+        /// @details This method is used to make the code more readable. It is very
+        /// generic and can be moved to Base if needed elsewhere.
+        /// @param[in] cont a container (stl)
+        /// @param[in] val value to check
+        /// @return true if an element equal to val is present in the container
+        template<typename C, typename V>
+        static bool hasValue(const C &cont, const V &val)
+           { return cont.find(val) != cont.end(); }        
+        
         /// @brief A helper method to parse strings of quantities
         /// @details Many parameters in parset file are given as quantities or
         /// vectors of quantities, e.g. [8.0arcsec,8.0arcsec]. This method allows
@@ -240,6 +251,24 @@ namespace askap
         /// @return converted value
         static double convertQuantity(const std::string &strval,
                        const std::string &unit);                       
+                               
+        /// @brief A helper method to build a list of faceted images
+        /// @details All multi-facet images are split between a number of 
+        /// parameters named like "image.i.fieldname.facet.0.0". Single
+        /// facet images correspond to parameters named like "image.i.fieldname".
+        /// This method reads a supplied vector of names (may be either all names
+        /// or just free parameters extracted from Params object) and builds a map
+        /// of the image name (up to and including fieldname) and the number of
+        /// facets. It also does the necessary checks that all required facets are
+        /// defined and throws an exception if it is not the case.
+        /// @param[in] names parameter names to work with
+        /// @param[out] facetmap a map of (possibly truncated names) and the number of facets
+        /// @note 1. facetmap.size()<=names.size() after the call to this method
+        /// 2. This method just adds the content to the facet map without erasing the
+        /// existing information.
+        static void listFacets(const std::vector<std::string> &names,
+                               std::map<std::string, int> &facetmap);
+
     };
 
   }
