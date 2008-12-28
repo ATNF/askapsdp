@@ -287,8 +287,7 @@ namespace askap
                 axes.add("STOKES", 0.0, 0.0);
       
                 axes.add("FREQUENCY", freqmin, freqmax);
-                ip.add(name+".facet."+utility::toString<int>(ix)+"."+
-                            utility::toString<int>(iy), pixels, axes);    
+                ip.add(facetParamName(name,ix,iy), pixels, axes);    
            }
       }
       
@@ -441,11 +440,24 @@ namespace askap
       ASKAPCHECK(nfacets>0, "The number of facets is supposed to be positive, you have "<<nfacets);
       for (int ix=0; ix<nfacets; ++ix) {
            for (int iy=0; iy<nfacets; ++iy) {
-                const std::string &postfix = ".facet."+utility::toString<int>(ix)+"."+
-                            utility::toString<int>(iy);
-                getFromCasaImage(ip,name+postfix,fileName+postfix);                            
+                getFromCasaImage(ip,facetParamName(name,ix,iy),facetParamName(fileName,ix,iy));                            
            }
       }
+    }
+    
+    /// @brief A helper method to form a parameter name representing a facet
+    /// @details All multi-facet images are split between a number of parameters
+    /// named like "image.i.fieldname.facet.0.0". This method forms a full string
+    /// name from the prefix name and two integer numbers (this operation is required
+    /// in a few places throughout the code).
+    /// @param[in] prefixName the name before ".facet.x.y"
+    /// @param[in] xFacet the first facet index
+    /// @param[in] yFacet the second facet index
+    /// @return the full parameter name corresponding to the given facet 
+    std::string SynthesisParamsHelper::facetParamName(const std::string &prefixName, int xFacet,
+                   int yFacet)
+    {
+       return prefixName+".facet."+utility::toString<int>(xFacet)+"."+utility::toString<int>(yFacet);
     }
     
     boost::shared_ptr<casa::TempImage<float> >
