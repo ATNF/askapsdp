@@ -36,6 +36,7 @@
 #include <measurementequation/ImageParamsHelper.h>
 
 #include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 namespace askap {
 
@@ -54,11 +55,41 @@ ImageParamsHelper::ImageParamsHelper(const std::string &name) : itsFacetX(-2), i
 {
   parse(name);
 }
+
+/// @brief direct constructor of a facet name from constituents
+/// @details This method constructs the object directly from the actual name
+/// of the image and facet indices.
+/// @param[in] name actual name of the image (without suffixes)
+/// @param[in] xFacet facet index along the first axis
+/// @param[in] yFacet facet index along the second axis
+ImageParamsHelper::ImageParamsHelper(const std::string &name, int xFacet, int yFacet) :
+              itsName(name), itsFacetX(xFacet), itsFacetY(yFacet)
+{  
+}
    
 /// @brief parse the given string
 /// @param[in] name full name to parse
 void ImageParamsHelper::parse(const std::string &name) 
 {
+  size_t pos = name.rfind(".facet.");
+  if (pos == std::string::npos) {
+      // this is not a faceted image, just set flags and copy full name
+      itsFacetX = -1;
+      itsFacetY = -1;
+      itsName = name;                      
+  } else {
+      // this is a single facet, we have to extract indices 
+      itsName = name.substr(0,pos);
+      pos+=7; // to move it to the start of numbers
+      ASKAPCHECK(pos < name.size(), 
+         "Name of the faceted parameter should contain facet indices at the end, you have "<<name);
+      const size_t pos2 = name.find(".",pos);
+      ASKAPCHECK((pos2 != std::string::npos) && (pos2+1<name.size()) && (pos2!=pos), 
+          "Two numbers are expected in the parameter name for the faceted image, you have "<<name);
+      itsFacetX = utility::fromString<int>(name.substr(pos,pos2-pos));
+      itsFacetY = utility::fromString<int>(name.substr(pos2+1));
+  }
+  // todo: further parsing of the parameter name should go here. 
 }
 
 /// @brief obtain the facet number along the first axis
@@ -77,6 +108,22 @@ int ImageParamsHelper::facetY() const
   return itsFacetY;
 }
 
+
+/// @brief obtain the full name of the image parameter
+/// @details This method composes the full name of the parameter from 
+/// the data stored internally. This returned full name should be the same 
+/// as one passed in the parse method or in the constructor. This method can
+/// be useful if this object is constructed directly without parsing a 
+/// string and effectively represents a reverse operation.
+std::string ImageParamsHelper::paramName() const
+{
+  ASKAPDEBUGASSERT(isValid());
+  if (isFacet()) {
+      return itsName+".facet."+utility::toString<int>(itsFacetX)+"."+
+                               utility::toString<int>(itsFacetY);
+  }
+  return itsName;                            
+}
 
 } // namespace synthesis
 

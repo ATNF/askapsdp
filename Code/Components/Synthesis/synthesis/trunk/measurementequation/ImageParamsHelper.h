@@ -63,6 +63,14 @@ public:
    /// @param[in] name full name to parse
    ImageParamsHelper(const std::string &name);
    
+   /// @brief direct constructor of a facet name from constituents
+   /// @details This method constructs the object directly from the actual name
+   /// of the image and facet indices.
+   /// @param[in] name actual name of the image (without suffixes)
+   /// @param[in] xFacet facet index along the first axis
+   /// @param[in] yFacet facet index along the second axis
+   ImageParamsHelper(const std::string &name, int xFacet, int yFacet);
+   
    /// @brief parse the given string
    /// @param[in] name full name to parse
    void parse(const std::string &name);
@@ -71,6 +79,14 @@ public:
    /// @return the name without suffixes
    inline const std::string& name() const { return itsName;}
    
+   /// @brief obtain the full name of the image parameter
+   /// @details This method composes the full name of the parameter from 
+   /// the data stored internally. This returned full name should be the same 
+   /// as one passed in the parse method or in the constructor. This method can
+   /// be useful if this object is constructed directly without parsing a 
+   /// string and effectively represents a reverse operation.
+   std::string paramName() const;
+   
    /// @brief obtain the facet number along the first axis
    /// @return the facet number along the first axis
    int facetX() const;  
@@ -78,6 +94,17 @@ public:
    /// @brief obtain the facet number along the second axis
    /// @return the facet number along the second axis
    int facetY() const;  
+   
+   /// @brief check whether this parameter corresponds to a facet
+   /// @details
+   /// @return true if this is a facet
+   inline bool isFacet() const { return itsFacetX >= 0;}
+   
+   /// @brief check whether this object is valid
+   /// @details Constructed with a default constructor an instance of this
+   /// class can not be used. This method would return false for such object.
+   /// @return true, if object was set up with some parameter name
+   inline bool isValid() const { return itsFacetX != -2; } 
    
 private:
    /// @brief name of the current parameter (cut before all suffixes)
