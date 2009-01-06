@@ -22,6 +22,7 @@
 ///
 
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/ImageParamsHelper.h>
 #include <fitting/Axes.h>
 
 #include <askap_synthesis.h>
@@ -291,6 +292,48 @@ namespace askap
            }
       }
       
+    }
+    
+    /// @brief add a parameter as a merged faceted image
+    /// @details Each facet is represented by a number of independent parameters with
+    /// the appropriate names. This method looks at the coordinate systems of all
+    /// subimages and forms a parameter representing merged image. It can then be
+    /// populated with the data from the appropriate slices.
+    /// @param[in] ip parameters
+    /// @param[in] name Base name of the parameter (i.e. without .facet.0.0)
+    /// @param[in] nfacets number of facets defined
+    void SynthesisParamsHelper::add(askap::scimath::Params& ip, const string &name,
+              const int nfacets) 
+    {
+       ASKAPDEBUGASSERT(nfacets>1);
+       // no consistency check of the coordinate systems of individual patches at this stage
+       ImageParamsHelper iph(name,0,0);
+       const askap::scimath::Axes axes(ip.axes(iph.paramName()));
+       ASKAPDEBUGASSERT(axes.has("RA") && axes.has("DEC") && axes.has("RA-TANGENT") &&
+                        axes.has("DEC-TANGENT") && axes.has("STOKES") && axes.has("FREQUENCY"));
+       const casa::IPosition shape = ip.value(iph.paramName()).shape();
+       ASKAPDEBUGASSERT(shape.nelements()>=2);
+       const double raCellSize = (axes.end("RA")-axes.start("RA"))/double(shape[0]);
+       const double decCellSize = (axes.end("DEC")-axes.start("DEC"))/double(shape[1]);
+       const double facetFactor = double(-nfacets/2);
+       ASKAPDEBUGASSERT(facetFactor!=0.);
+       const double raFacetStep = ((axes.start("RA")+axes.end("RA"))/2.-axes.start("RA-TANGENT"))/
+                            raCellSize/facetFactor;
+       const double decFacetStep = ((axes.start("DEC")+axes.end("DEC"))/2.-axes.start("DEC-TANGENT"))/
+                            decCellSize/facetFactor;
+       ASKAPCHECK(casa::abs(raFacetStep-decFacetStep)<0.5, "facet steps deduced from "<<
+                  iph.paramName()<<" are notably different for ra and dec axes. Should be the same integer number");
+       const int facetSize = int(raFacetStep);
+       
+       Axes newAxes(axes);
+       // need to update RA and DEC axes here (a change to Code/Base is required)
+       casa::IPosition newShape(shape);
+       newShape[0]=facetSize*nfacets;
+       newShape[1]=facetSize*nfacets;
+ 
+       casa::Array<double> pixels(newShape);
+       pixels.set(0.0);
+       ip.add(iph.name(), pixels, newAxes);
     }
     
     /// @brief A helper method to parse string of quantities

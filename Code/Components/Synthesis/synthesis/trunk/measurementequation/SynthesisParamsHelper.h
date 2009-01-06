@@ -145,6 +145,17 @@ namespace askap
           const vector<int>& shape,
           const double freqmin, const double freqmax, const int nchan,
           const int nfacets, const int facetstep);
+        
+        /// @brief add a parameter as a merged faceted image
+        /// @details Each facet is represented by a number of independent parameters with
+        /// the appropriate names. This method looks at the coordinate systems of all
+        /// subimages and forms a parameter representing merged image. It can then be
+        /// populated with the data from the appropriate slices.
+        /// @param[in] ip parameters
+        /// @param[in] name Base name of the parameter (i.e. without .facet.0.0)
+        /// @param[in] nfacets number of facets defined
+        static void add(askap::scimath::Params& ip, const string &name,
+              const int nfacets); 
           
         /// @brief Add a set of parameters from a parset
         /// @param ip Parameters

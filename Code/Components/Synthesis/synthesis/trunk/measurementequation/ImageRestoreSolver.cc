@@ -98,6 +98,12 @@ namespace askap
 	// result of a merge.
 	map<string,int> facetmap;
 	SynthesisParamsHelper::listFacets(names, facetmap);
+	for (map<string,int>::const_iterator ci=facetmap.begin();ci!=facetmap.end();++ci) {
+	     if (ci->second != 1) {
+	         // this is a multi-facet image, add a fixed parameter representing the whole image
+	         
+	     }
+	}
 	//
 		
 	// iterate over all free parameters (i.e. parts of the image for faceted case)
