@@ -79,36 +79,41 @@ namespace askap
 		    askap::scimath::Quality& quality)
     {
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
-	uint nParameters=0;
 	
 	// Find all the free parameters beginning with image
 	vector<string> names(itsParams->completions("image"));
-	map<string, uint> indices;
-		
-	for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
+	uint nParameters=0;
+	for (vector<string>::iterator it=names.begin(); it!=names.end(); ++it)
 	{
-		string name="image"+*it;
-		if (itsParams->isFree(name))
-		{
-			indices[name]=nParameters;
-			nParameters+=itsParams->value(name).nelements();
-		}
+		const string name="image"+*it;
+		// completions should return only free parameters according to its code in Code/Base
+		ASKAPDEBUGASSERT(itsParams->isFree(name));
+		*it = name; // append the common part to the front of the parameter name
+		nParameters+=itsParams->value(name).nelements();
 	}
-	ASKAPCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
 
-	for (map<string, uint>::const_iterator indit=indices.begin(); indit !=indices.end(); indit++)
+	ASKAPCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
+	
+	// determine which images are faceted and setup parameters representing the 
+	// result of a merge.
+	map<string,int> facetmap;
+	SynthesisParamsHelper::listFacets(names, facetmap);
+	//
+		
+	// iterate over all free parameters (i.e. parts of the image for faceted case)
+	for (vector<string>::const_iterator ci=names.begin(); ci !=names.end(); ++ci)
 	{
-	  ASKAPLOG_INFO_STR(logger, "Restoring " << indit->first );
+	  ASKAPLOG_INFO_STR(logger, "Restoring " << *ci );
 	  // Axes are dof, dof for each parameter
-	  casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-	  const casa::IPosition valShape(itsParams->value(indit->first).shape());
+	  casa::IPosition vecShape(1, itsParams->value(*ci).nelements());
+	  const casa::IPosition valShape(itsParams->value(*ci).shape());
  
-	  ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
-	  const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
-	  ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
-	  const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
-	  ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
-          const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
+	  ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(*ci)>0, "Diagonal not present");
+	  const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(*ci)->second);
+	  ASKAPCHECK(normalEquations().dataVector(*ci).size()>0, "Data vector not present");
+	  const casa::Vector<double> &dv = normalEquations().dataVector(*ci);
+	  ASKAPCHECK(normalEquations().normalMatrixSlice().count(*ci)>0, "PSF Slice not present");
+          const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(*ci)->second);
 
 	  casa::Array<float> dirtyArray(valShape);
           casa::convertArray<float, double>(dirtyArray, dv.reform(valShape));
@@ -127,19 +132,19 @@ namespace askap
 	  casa::ArrayLattice<float> psf(psfArray);
 
 	  // Create a temporary image
-	  boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, indit->first));
+	  boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, *ci));
 	  casa::Image2DConvolver<float> convolver;	
 	  const casa::IPosition pixelAxes(2, 0, 1);	
 	  casa::LogIO logio;
 	  convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			  pixelAxes, itsBeam, true, 1.0, false);
-	  SynthesisParamsHelper::update(*itsParams, indit->first, *image);
+	  SynthesisParamsHelper::update(*itsParams, *ci, *image);
 
 	  // Add the residual image        
 	  {
-	    casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+	    casa::Vector<double> value(itsParams->value(*ci).reform(vecShape));
 	    casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	    for (uint elem=0; elem<dv.nelements(); elem++)
+	    for (uint elem=0; elem<dv.nelements(); ++elem)
 	    {
 	      value(elem) += dirtyVector(elem);
 	    }
