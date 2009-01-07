@@ -325,8 +325,11 @@ namespace askap
                   iph.paramName()<<" are notably different for ra and dec axes. Should be the same integer number");
        const int facetSize = int(raFacetStep);
        
-       Axes newAxes(axes);
-       // need to update RA and DEC axes here (a change to Code/Base is required)
+       Axes newAxes(axes);       
+       newAxes.update("RA",newAxes.start("RA-TANGENT")+facetSize*raCellSize*(double(-nfacets/2)-0.5),
+                newAxes.start("RA-TANGENT")+facetSize*raCellSize*(double(nfacets-1-nfacets/2)+0.5));
+       newAxes.update("DEC",newAxes.start("DEC-TANGENT")+facetSize*raCellSize*(double(-nfacets/2)-0.5),
+                newAxes.start("DEC-TANGENT")+facetSize*raCellSize*(double(nfacets-1-nfacets/2)+0.5));
        casa::IPosition newShape(shape);
        newShape[0]=facetSize*nfacets;
        newShape[1]=facetSize*nfacets;
