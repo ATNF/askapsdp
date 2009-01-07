@@ -33,13 +33,14 @@ namespace askap
   namespace scimath
   {
 
-    class DomainTest : public CppUnit::TestFixture
+    class AxesTest : public CppUnit::TestFixture
     {
 
-      CPPUNIT_TEST_SUITE(DomainTest);
+      CPPUNIT_TEST_SUITE(AxesTest);
       CPPUNIT_TEST(testIndices);
       CPPUNIT_TEST(testValues);
       CPPUNIT_TEST_EXCEPTION(testDuplError, askap::CheckError);
+      CPPUNIT_TEST(testUpdate);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST_SUITE_END();
 
@@ -77,6 +78,7 @@ namespace askap
           CPPUNIT_ASSERT(p1->has("Time"));
           p1->add("Freq", 0.7e9, 1.7e9);
           Domain pnew(*p1);
+          p1->update("Time",-10.,10.);
 
           CPPUNIT_ASSERT(pnew.has("Time"));
           CPPUNIT_ASSERT(pnew.start("Time")==0.0);
@@ -103,6 +105,24 @@ namespace askap
           CPPUNIT_ASSERT(p1->has("Freq"));
           CPPUNIT_ASSERT(p1->start("Freq")==0.7e9);
           CPPUNIT_ASSERT(p1->end("Freq")==1.7e9);
+        }
+        
+        void testUpdate()
+        {
+          CPPUNIT_ASSERT( !p1->has("Time"));
+          p1->update("Time", -10.0, 10.0);
+          CPPUNIT_ASSERT(p1->has("Time"));
+          
+          p1->update("Time",0.0, 1.0);
+          CPPUNIT_ASSERT(p1->has("Time"));
+          CPPUNIT_ASSERT(casa::abs(p1->start("Time"))<1e-7);
+          CPPUNIT_ASSERT(casa::abs(p1->end("Time")-1.0)<1e-7);
+                    
+          p1->update("Freq", 0.7e9, 1.7e9);
+
+          CPPUNIT_ASSERT(p1->has("Freq"));
+          CPPUNIT_ASSERT(casa::abs(p1->start("Freq")-0.7e9)<1);
+          CPPUNIT_ASSERT(casa::abs(p1->end("Freq")-1.7e9)<1);          
         }
 
         void testIndices()

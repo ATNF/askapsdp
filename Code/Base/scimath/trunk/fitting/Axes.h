@@ -77,6 +77,15 @@ namespace askap
       /// @param start Start value
       /// @param end End value
       void add(const std::string& name, const double start, const double end);
+
+      /// @brief update an axis
+      /// @details Sometimes it is handy to modify one axis only without resorting to 
+      /// axis by axis copy. This method assigns new start and end values to a given
+      /// axis. It is equivalent to add if the required axis doesn't exist.
+      /// @param[in] name name of axis
+      /// @param[in] start start value 
+      /// @param[in] end end value
+      void update(const std::string &name, const double start, const double end); 
       
       /// Do it have this axis?
       /// @param name Name of axis

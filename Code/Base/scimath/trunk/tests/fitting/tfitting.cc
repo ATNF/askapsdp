@@ -32,10 +32,12 @@
 #include <GeneralFittingTest.h>
 #include <ComplexDiffTest.h>
 #include <ComplexDiffMatrixTest.h>
+#include <AxesTest.h>
 
 int main( int argc, char **argv)
 {
   CppUnit::TextUi::TestRunner runner;
+  runner.addTest( askap::scimath::AxesTest::suite() );
   runner.addTest( askap::scimath::ParamsTest::suite() );
   runner.addTest( askap::scimath::ParamsTableTest::suite() );
   runner.addTest( askap::scimath::DesignMatrixTest::suite() );
