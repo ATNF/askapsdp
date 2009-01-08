@@ -101,7 +101,7 @@ namespace askap
 	for (map<string,int>::const_iterator ci=facetmap.begin();ci!=facetmap.end();++ci) {
 	     if (ci->second != 1) {
 	         // this is a multi-facet image, add a fixed parameter representing the whole image
-	         
+	          
 	     }
 	}
 	//
@@ -110,32 +110,6 @@ namespace askap
 	for (vector<string>::const_iterator ci=names.begin(); ci !=names.end(); ++ci)
 	{
 	  ASKAPLOG_INFO_STR(logger, "Restoring " << *ci );
-	  // Axes are dof, dof for each parameter
-	  casa::IPosition vecShape(1, itsParams->value(*ci).nelements());
-	  const casa::IPosition valShape(itsParams->value(*ci).shape());
- 
-	  ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(*ci)>0, "Diagonal not present");
-	  const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(*ci)->second);
-	  ASKAPCHECK(normalEquations().dataVector(*ci).size()>0, "Data vector not present");
-	  const casa::Vector<double> &dv = normalEquations().dataVector(*ci);
-	  ASKAPCHECK(normalEquations().normalMatrixSlice().count(*ci)>0, "PSF Slice not present");
-          const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(*ci)->second);
-
-	  casa::Array<float> dirtyArray(valShape);
-          casa::convertArray<float, double>(dirtyArray, dv.reform(valShape));
-          casa::Array<float> psfArray(valShape);
-          casa::convertArray<float, double>(psfArray, slice.reform(valShape));
-
-	  // Normalize by the diagonal
-	  doNormalization(diag,tol(),psfArray,dirtyArray);
-	  
-	  // Do the preconditioning
-	  doPreconditioning(psfArray,dirtyArray);
-	  
-	  // We need lattice equivalents. We can use ArrayLattice which involves
-	  // no copying
-	  casa::ArrayLattice<float> dirty(dirtyArray);
-	  casa::ArrayLattice<float> psf(psfArray);
 
 	  // Create a temporary image
 	  boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, *ci));
@@ -145,17 +119,9 @@ namespace askap
 	  convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			  pixelAxes, itsBeam, true, 1.0, false);
 	  SynthesisParamsHelper::update(*itsParams, *ci, *image);
-
-	  // Add the residual image        
-	  {
-	    casa::Vector<double> value(itsParams->value(*ci).reform(vecShape));
-	    casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	    for (uint elem=0; elem<dv.nelements(); ++elem)
-	    {
-	      value(elem) += dirtyVector(elem);
-	    }
 	  
-	  }  
+	  addResiduals(*ci,itsParams->value(*ci).shape(),itsParams->value(*ci));
+
 	}
 	
 	quality.setDOF(nParameters);
@@ -165,6 +131,57 @@ namespace askap
 	
 	return true;
     };
+    
+    /// @brief solves for and adds residuals
+    /// @details Restore solver convolves the current model with the beam and adds the
+    /// residual image. The latter has to be "solved for" with a proper preconditioning and
+    /// normalisation using the normal equations stored in the base class. All operations
+    /// required to extract residuals from normal equations and fill an array with them
+    /// are encapsulated in this method. Faceting needs a subimage only, hence the array
+    /// to fill may not have exactly the same shape as the dirty (residual) image corresponding
+    /// to the given parameter. This method assumes that the centres of both images are the same
+    /// and extracts only data required (this feature is not yet implemented).
+    /// @param[in] name name of the parameter to work with
+    /// @param[in] shape shape of the parameter (we wouldn't need it if the shape of the
+    ///                   output was always the same as the shape of the paramter. It is not
+    ///                   the case for faceting).
+    /// @param[in] out output array
+    void ImageRestoreSolver::addResiduals(const std::string &name, const casa::IPosition &shape,
+                         casa::Array<double> &out)
+    {
+	   // Axes are dof, dof for each parameter
+	   casa::IPosition vecShape(1, shape.product());
+	   
+	   ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(name)>0, "Diagonal not present");
+	   const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(name)->second);
+	   ASKAPCHECK(normalEquations().dataVector(name).size()>0, "Data vector not present");
+	   const casa::Vector<double> &dv = normalEquations().dataVector(name);
+	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(name)>0, "PSF Slice not present");
+       const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(name)->second);
+
+	   casa::Array<float> dirtyArray(shape);
+       casa::convertArray<float, double>(dirtyArray, dv.reform(shape));
+       casa::Array<float> psfArray(shape);
+       casa::convertArray<float, double>(psfArray, slice.reform(shape));
+
+	   // Normalize by the diagonal
+	   doNormalization(diag,tol(),psfArray,dirtyArray);
+	  
+	   // Do the preconditioning
+	   doPreconditioning(psfArray,dirtyArray);
+	  
+	   // We need lattice equivalents. We can use ArrayLattice which involves
+	   // no copying
+	   casa::ArrayLattice<float> dirty(dirtyArray);
+	   casa::ArrayLattice<float> psf(psfArray);
+
+	   // Add the residual image        
+	   casa::Vector<double> value(out.reform(vecShape));
+	   casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
+	   for (uint elem=0; elem<dv.nelements(); ++elem) {
+	        value(elem) += dirtyVector(elem);
+	   }	    
+    }
 	
     Solver::ShPtr ImageRestoreSolver::clone() const
     {

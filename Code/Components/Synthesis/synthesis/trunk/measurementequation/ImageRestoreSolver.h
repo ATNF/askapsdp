@@ -64,11 +64,32 @@ namespace askap
         /// @brief Solve for parameters, updating the values kept internally
         /// The solution is constructed from the normal equations
         /// @param q Solution quality information
+        /// @return one needs to figure it out and write here
         virtual bool solveNormalEquations(askap::scimath::Quality& q);
         
-    /// @brief Clone this object
+        /// @brief Clone this object
+        /// @return a shared pointer to a cloned object
         virtual askap::scimath::Solver::ShPtr clone() const;
- 
+    
+      protected:
+      
+        /// @brief solves for and adds residuals
+        /// @details Restore solver convolves the current model with the beam and adds the
+        /// residual image. The latter has to be "solved for" with a proper preconditioning and
+        /// normalisation using the normal equations stored in the base class. All operations
+        /// required to extract residuals from normal equations and fill an array with them
+        /// are encapsulated in this method. Faceting needs a subimage only, hence the array
+        /// to fill may not have exactly the same shape as the dirty (residual) image corresponding
+        /// to the given parameter. This method assumes that the centres of both images are the same
+        /// and extracts only data required (this feature is not yet implemented).
+        /// @param[in] name name of the parameter to work with
+        /// @param[in] shape shape of the parameter (we wouldn't need it if the shape of the
+        ///                   output was always the same as the shape of the paramter. It is not
+        ///                   the case for faceting).
+        /// @param[in] out output array
+        void addResiduals(const std::string &name, const casa::IPosition &shape,
+                         casa::Array<double> &out);        
+        
       private:
         /// @brief Major, minor axes, and position angle of beam
         casa::Vector<casa::Quantum<double> > itsBeam;
