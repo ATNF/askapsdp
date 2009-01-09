@@ -156,6 +156,19 @@ namespace askap
         /// @param[in] nfacets number of facets defined
         static void add(askap::scimath::Params& ip, const string &name,
               const int nfacets); 
+              
+        /// @brief obtain an array corresponding to a single facet of a merged faceted image
+        /// @details Each facet is represented by a number of independent parameters with
+        /// the names containing .facet.x.y at the end. One of the add methods can add a 
+        /// parameter representing merged image (with the name without any suffixes). This 
+        /// method allows to translate the name of the facet (with suffixes) into a slice of
+        /// the merged array corresponding to this particular facet. The suffixes are removed
+        /// automatically to locate the merged image. This is the core method necessary for 
+        /// merging individual facets together (which happens inside ImageRestoreSolver).
+        /// @param[in] ip parameters
+        /// @param[in] name name of the facet parameter (with suffix like .facet.0.0)
+        /// @return an array of doubles representing a subimage of the merged image
+        static casa::Array<double> getFacet(askap::scimath::Params &ip, const string &name);                       
           
         /// @brief Add a set of parameters from a parset
         /// @param ip Parameters

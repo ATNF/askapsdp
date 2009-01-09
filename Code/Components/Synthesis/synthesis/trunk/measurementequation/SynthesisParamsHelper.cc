@@ -330,6 +330,10 @@ namespace askap
                 newAxes.start("RA-TANGENT")+facetSize*raCellSize*(double(nfacets-1-nfacets/2)+0.5));
        newAxes.update("DEC",newAxes.start("DEC-TANGENT")+facetSize*raCellSize*(double(-nfacets/2)-0.5),
                 newAxes.start("DEC-TANGENT")+facetSize*raCellSize*(double(nfacets-1-nfacets/2)+0.5));
+       // add a fake axis to peserve facetSize for futher operations with the merged image
+       // without it we would have to redetermine this value
+       newAxes.add("FACETSTEP", raFacetStep, decFacetStep);
+       
        casa::IPosition newShape(shape);
        newShape[0]=facetSize*nfacets;
        newShape[1]=facetSize*nfacets;
@@ -337,6 +341,70 @@ namespace askap
        casa::Array<double> pixels(newShape);
        pixels.set(0.0);
        ip.add(iph.name(), pixels, newAxes);
+    }
+
+    /// @brief obtain an array corresponding to a single facet of a merged faceted image
+    /// @details Each facet is represented by a number of independent parameters with
+    /// the names containing .facet.x.y at the end. One of the add methods can add a 
+    /// parameter representing merged image (with the name without any suffixes). This 
+    /// method allows to translate the name of the facet (with suffixes) into a slice of
+    /// the merged array corresponding to this particular facet. The suffixes are removed
+    /// automatically to locate the merged image. This is the core method necessary for 
+    /// merging individual facets together (which happens inside ImageRestoreSolver).
+    /// @param[in] ip parameters
+    /// @param[in] name name of the facet parameter (with suffix like .facet.0.0)
+    /// @return an array of doubles representing a subimage of the merged image
+    casa::Array<double> SynthesisParamsHelper::getFacet(askap::scimath::Params &ip, const string &name) 
+    {
+      ASKAPDEBUGASSERT(ip.has(name));
+      // parse the name
+      ImageParamsHelper iph(name);
+      ASKAPCHECK(ip.has(iph.name()), "Merged image ("<<iph.name()<<") doesn't exist");
+      // there is no consistency check that the given facet correspond to this particular
+      // merged image and coordinate systems match. 
+      const casa::DirectionCoordinate csPatch = directionCoordinate(ip,name);
+      const casa::DirectionCoordinate csFull = directionCoordinate(ip,iph.name());
+      
+      // now find blc and trc of the patch inside the big image
+      const askap::scimath::Axes axes(ip.axes(iph.name()));
+      ASKAPDEBUGASSERT(axes.has("FACETSTEP"));
+      ASKAPCHECK(casa::abs(axes.start("FACETSTEP")-axes.end("FACETSTEP"))<0.5, "facet steps extracted from "<<
+                 iph.name()<<" are notably different for ra and dec axes. Should be the same integer number");
+       const int facetSize = int(axes.start("FACETSTEP"));
+
+      casa::Array<double> mergedImage = ip.value(iph.name());
+      casa::IPosition blc(mergedImage.shape());
+      casa::IPosition trc(mergedImage.shape());
+      ASKAPDEBUGASSERT(blc.nelements()>=2);
+      // adjust extra dimensions
+      for (size_t i=2;i<blc.nelements();++i) {
+           blc[i] = 0;
+           ASKAPDEBUGASSERT(trc[i]!=0);
+           trc[i] -= 1;           
+      }
+      
+      casa::Vector<double> pixel(2), world(2);
+      casa::IPosition patchShape = ip.value(name).shape();
+      ASKAPDEBUGASSERT(patchShape.nelements()>=2);
+      ASKAPDEBUGASSERT((facetSize<=patchShape[0]) && (facetSize<=patchShape[1]));
+      // first get blc
+      pixel(0)=double((patchShape[0]-facetSize)/2);
+      pixel(1)=double((patchShape[1]-facetSize)/2);
+      csPatch.toWorld(world,pixel);
+      csFull.toPixel(pixel,world);
+      blc[0]=int(pixel[0]); 
+      blc[1]=int(pixel[1]);
+      // now get trc
+      pixel[0]=double((patchShape[0]+facetSize)/2-1);
+      pixel[1]=double((patchShape[1]+facetSize)/2-1);
+      ASKAPDEBUGASSERT((pixel[0]>0) && (pixel[1]>0));
+      csPatch.toWorld(world,pixel);
+      csFull.toPixel(pixel,world);
+      trc[0]=int(pixel[0]); 
+      trc[1]=int(pixel[1]);
+      // ready to make a slice
+      ASKAPDEBUGASSERT((trc[0]-blc[0] == facetSize) && (trc[1]-blc[1] == facetSize));
+      return mergedImage(blc,trc);
     }
     
     /// @brief A helper method to parse string of quantities
