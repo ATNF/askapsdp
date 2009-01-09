@@ -169,7 +169,7 @@ namespace askap
         /// @param[in] name name of the facet parameter (with suffix like .facet.0.0)
         /// @return an array of doubles representing a subimage of the merged image
         static casa::Array<double> getFacet(askap::scimath::Params &ip, const string &name);                       
-          
+                  
         /// @brief Add a set of parameters from a parset
         /// @param ip Parameters
         /// @param parset ParameterSet

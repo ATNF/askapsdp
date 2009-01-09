@@ -32,6 +32,7 @@
 #define PADDING_UTILS_H
 
 #include <lattices/Lattices/Lattice.h>
+#include <casa/Arrays/Array.h>
 
 namespace askap {
 
@@ -55,6 +56,14 @@ struct PaddingUtils {
   /// will be extracted
   /// @param[in] source input array
   static void extract(casa::Lattice<float>& target, casa::Lattice<casa::Complex>& source);  
+  
+  /// @brief Extract a centered subarray of a given shape
+  /// @details This helper method is used for faceted imaging with padding (and overlap) of facets.
+  /// It extracts a subarray of a given shape from the centre of the given array.
+  /// @param[in] source source array
+  /// @param[in] shape required shape
+  /// @return extracted subarray
+  static casa::Array<double> centeredSubArray(casa::Array<double> &source, const casa::IPosition &shape);  
 };
 
 } // namespace synthesis
