@@ -63,11 +63,15 @@ struct PaddingUtils {
   /// @param[in] source source array
   /// @param[in] shape required shape
   /// @return extracted subarray
-  static casa::Array<double> centeredSubArray(casa::Array<double> &source, const casa::IPosition &shape);  
+  template<typename T>
+  static casa::Array<T> centeredSubArray(casa::Array<T> &source, const casa::IPosition &shape);  
 };
+
 
 } // namespace synthesis
 
 } // namespace askap
+
+#include <measurementequation/PaddingUtils.tcc>
 
 #endif // #ifndef PADDING_UTILS_H

@@ -81,14 +81,14 @@ namespace askap
         /// are encapsulated in this method. Faceting needs a subimage only, hence the array
         /// to fill may not have exactly the same shape as the dirty (residual) image corresponding
         /// to the given parameter. This method assumes that the centres of both images are the same
-        /// and extracts only data required (this feature is not yet implemented).
+        /// and extracts only data required.
         /// @param[in] name name of the parameter to work with
         /// @param[in] shape shape of the parameter (we wouldn't need it if the shape of the
         ///                   output was always the same as the shape of the paramter. It is not
         ///                   the case for faceting).
         /// @param[in] out output array
         void addResiduals(const std::string &name, const casa::IPosition &shape,
-                         casa::Array<double> &out);        
+                         casa::Array<double> out);        
         
       private:
         /// @brief Major, minor axes, and position angle of beam

@@ -87,29 +87,5 @@ void PaddingUtils::extract(casa::Lattice<float>& target, casa::Lattice<casa::Com
   //      ASKAPLOG_INFO_STR(logger, "Extracted " << target.shape() << " from " << source.shape() << " starting at " << corner); 
 }
 
-/// @brief Extract a centered subarray of a given shape
-/// @details This helper method is used for faceted imaging with padding (and overlap) of facets.
-/// It extracts a subarray of a given shape from the centre of the given array.
-/// @param[in] source source array
-/// @param[in] shape required shape
-/// @return extracted subarray
-casa::Array<double> PaddingUtils::centeredSubArray(casa::Array<double> &source, 
-                                                   const casa::IPosition &shape)
-{
-  const casa::IPosition srcShape = source.shape();
-  ASKAPDEBUGASSERT(shape.nelements() == srcShape.nelements());
-  casa::IPosition blc(shape), trc(shape);
-  for (size_t i=0;i<blc.nelements();++i) {
-       blc[i] = (srcShape[i]-shape[i])/2;
-       ASKAPCHECK(blc[i]>=0, "A bigger array is requested from centeredSubArray, dimension "<<i<<
-                 " inputSize="<<srcShape[i]<<" outputSize="<<shape[i]);
-       ASKAPDEBUGASSERT(srcShape[i]>0);
-       ASKAPDEBUGASSERT(shape[i]>0);          
-       trc[i] = (srcShape[i]+shape[i])/2-1; 
-       
-       ASKAPDEBUGASSERT(trc[i]-blc[i] == shape[i]);
-  }
-  return source(blc,trc);
-}
 
   
