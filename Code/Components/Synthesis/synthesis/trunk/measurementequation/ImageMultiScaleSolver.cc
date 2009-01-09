@@ -156,6 +156,28 @@ namespace askap
         casa::ArrayLattice<float> psf(psfArray);
         casa::ArrayLattice<float> clean(cleanArray);
         casa::ArrayLattice<float> mask(maskArray);
+        
+        // uncomment the code below to save the residual image
+        // This takes up some memory and we have to ship the residual image out inside
+        // the parameter class. Therefore, we may not need this functionality in the 
+        // production version (or may need to implement it in a different way).
+        {
+           Axes axes(itsParams->axes(indit->first));
+           ASKAPDEBUGASSERT(indit->first.find("image")==0);
+           ASKAPCHECK(indit->first.size()>5, 
+                   "Image parameter name should have something appended to word image")           
+	       const string residName="residual"+indit->first.substr(5);
+	       casa::Array<double> anothertemp(valShape);
+	       casa::convertArray<double,float>(anothertemp,dirtyArray);
+	       const casa::Array<double> & AResidual(anothertemp);
+	       if (!itsParams->has(residName)) {
+	           itsParams->add(residName, AResidual, axes);
+	       } else {
+	           itsParams->update(residName, AResidual);
+	       }        
+        }
+        
+        
         /*
         // uncomment the code below to save the mask
         {
