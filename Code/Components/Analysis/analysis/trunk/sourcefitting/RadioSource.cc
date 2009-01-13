@@ -751,7 +751,7 @@ namespace askap
 // 	  columns[duchamp::Column::VEL].printTitle(stream);
 	  columns[duchamp::Column::FINT].printTitle(stream);
 	  columns[duchamp::Column::FPEAK].printTitle(stream);
-	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit) Chisq(fit)   RMS(fit)  NDoF(fit)  Npix(fit)  Npix(obj)\n";
+	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit) Chisq(fit) RMS(image)   RMS(fit)  NDoF(fit)  Npix(fit)  Npix(obj)\n";
 	  int width = columns[duchamp::Column::NUM].getWidth() + 
 	    columns[duchamp::Column::RA].getWidth() + 
 	    columns[duchamp::Column::DEC].getWidth() +
@@ -759,7 +759,7 @@ namespace askap
 	    columns[duchamp::Column::FINT].getWidth() +
 	    columns[duchamp::Column::FPEAK].getWidth();
 	  stream << std::setfill('-') << std::setw(width) << '-'
-		 << "------------------------------------------------------------------------------------------------------------------\n";
+		 << "-----------------------------------------------------------------------------------------------------------------------------\n";
 	}
 
 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
@@ -770,15 +770,16 @@ namespace askap
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
 	  float zero = 0.;
-	  stream << " " << std::setw(12) << std::setprecision(6) << zero << " ";
-	  stream << std::setw(12) << std::setprecision(6) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(6) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(6) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(2) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(0) << zero << " ";
-	  stream << std::setw(10) << std::setprecision(0) << zero << " ";
+	  stream << " " << std::setw(12) << std::setprecision(6) << zero << " "; //F_int
+	  stream << std::setw(12) << std::setprecision(6) << zero << " ";        //F_pk
+	  stream << std::setw(10) << std::setprecision(6) << zero << " ";        //Maj
+	  stream << std::setw(10) << std::setprecision(6) << zero << " ";        //Min
+	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //PA
+	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //Chisq
+	  stream << std::setw(10) << std::setprecision(4) << this->itsNoiseLevel << " ";
+	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //RMS
+	  stream << std::setw(10) << std::setprecision(0) << zero << " ";        //NDoF
+	  stream << std::setw(10) << std::setprecision(0) << zero << " ";        //Npix
 	  stream << std::setw(10) << std::setprecision(0) << this->getSize() << "\n";
 	}
 
@@ -825,6 +826,7 @@ namespace askap
 	  stream << std::setw(10) << std::setprecision(6) << min << " ";
 	  stream << std::setw(10) << std::setprecision(2) << pa << " ";
 	  stream << std::setw(10) << std::setprecision(4) << chisq << " ";
+	  stream << std::setw(10) << std::setprecision(4) << this->itsNoiseLevel << " ";
 	  stream << std::setw(10) << std::setprecision(4) << rms << " ";
 	  stream << std::setw(10) << std::setprecision(0) << ndof << " ";
 	  stream << std::setw(10) << std::setprecision(0) << this->boxSize() << " ";
