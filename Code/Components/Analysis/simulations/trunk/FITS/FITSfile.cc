@@ -226,7 +226,7 @@ namespace askap
 	float maj = this->itsBeamInfo[0]/fabs(this->itsCDELT[0]);
 	float min = this->itsBeamInfo[1]/fabs(this->itsCDELT[1]);
 	float pa = this->itsBeamInfo[2];
-	GaussSmooth smoother(maj,min,pa);
+	GaussSmooth<float> smoother(maj,min,pa);
 	float *newArray = smoother.smooth(this->itsArray,this->itsAxes[0],this->itsAxes[1]);
 	for(int i=0;i<this->itsNumPix;i++) this->itsArray[i] = newArray[i];
 	delete [] newArray;
