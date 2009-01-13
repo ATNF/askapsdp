@@ -97,6 +97,7 @@ std::string printDirection(const casa::MVDirection &dir)
 }
 
 TableVisGridder::TableVisGridder() :
+        itsSupport(-1), itsOverSample(-1),
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
@@ -109,25 +110,25 @@ TableVisGridder::TableVisGridder() :
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
 		const std::string& name) :
-	 itsSupport(support), itsOverSample(overSample), itsName(name),
-			itsModelIsEmpty(false), itsSamplesGridded(0),
-			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
-	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
-        itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
-{
-        
-	ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
-	ASKAPCHECK(support>0, "Maximum support must be greater than 0");
-}
+		 itsSupport(support), itsOverSample(overSample), itsName(name),
+				itsModelIsEmpty(false), itsSamplesGridded(0),
+				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
+		itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
+		itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
+	{
+		
+		ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
+		ASKAPCHECK(support>0, "Maximum support must be greater than 0");
+	}
 
-/// @brief copy constructor
-/// @details it is required to decouple arrays between the input object
-/// and the copy.
-/// @param[in] other input object
-TableVisGridder::TableVisGridder(const TableVisGridder &other) : 
-     itsAxes(other.itsAxes), itsShape(other.itsShape), 
-     itsUVCellSize(other.itsUVCellSize.copy()), 
-     itsSumWeights(other.itsSumWeights.copy()), 
+	/// @brief copy constructor
+	/// @details it is required to decouple arrays between the input object
+	/// and the copy.
+	/// @param[in] other input object
+	TableVisGridder::TableVisGridder(const TableVisGridder &other) : 
+	     itsAxes(other.itsAxes), itsShape(other.itsShape), 
+	     itsUVCellSize(other.itsUVCellSize.copy()), 
+	     itsSumWeights(other.itsSumWeights.copy()), 
      itsSupport(other.itsSupport), itsOverSample(other.itsOverSample),
      itsCSize(other.itsCSize), itsCCenter(other.itsCCenter), itsName(other.itsName),
      itsModelIsEmpty(other.itsModelIsEmpty), itsSamplesGridded(other.itsSamplesGridded),

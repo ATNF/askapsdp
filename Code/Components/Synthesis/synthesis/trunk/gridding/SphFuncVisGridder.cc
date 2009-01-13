@@ -51,7 +51,10 @@ namespace askap
     /// could be optimized by using symmetries.
     void SphFuncVisGridder::initConvolutionFunction(const IConstDataAccessor&)
     {
-      if(itsSupport==3) return;
+      if(itsSupport==3) {
+         // a rather poor way of checking that convolution function has already been initialised 
+         return;
+      }
       itsSupport=3;
       itsOverSample=128;
       itsConvFunc.resize(itsOverSample*itsOverSample);

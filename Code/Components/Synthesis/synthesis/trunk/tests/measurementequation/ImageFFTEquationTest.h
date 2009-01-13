@@ -80,6 +80,8 @@ namespace askap
         double cell=8.0*arcsec;
         imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0);
         imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
+        imageAxes.add("STOKES",0.,0.);
+        imageAxes.add("FREQUENCY",1.4e9,1.4e9);
 
         params1.reset(new Params);
         casa::Array<double> imagePixels1(casa::IPosition(4, npix, npix, 1, 1));
@@ -143,7 +145,7 @@ namespace askap
         boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(12.0, 1.0));
         
         IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AWProjectVisGridder(illum,
-									      8000, 9, 1e-3, 8, 256, 0));
+									      8000, 9, 1e-3, 8, 512, 0));
         p1.reset(new ImageFFTEquation(*params1, idi, gridder));
         p2.reset(new ImageFFTEquation(*params2, idi, gridder));
         p1->predict();
