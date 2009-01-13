@@ -756,11 +756,11 @@ namespace askap
                 ASKAPDEBUGASSERT(tempMapY[it->first].size());
                 
                 
-                const int nFacetX = *(std::max_element(tempMapX[it->first].begin(),
+                const int maxFacetX = *(std::max_element(tempMapX[it->first].begin(),
                                       tempMapX[it->first].end()));
-                const int nFacetY = *(std::max_element(tempMapY[it->first].begin(),
+                const int maxFacetY = *(std::max_element(tempMapY[it->first].begin(),
                                       tempMapY[it->first].end()));
-                const int nFacets = nFacetX > nFacetY ? nFacetX : nFacetY;      
+                const int nFacets = (maxFacetX > maxFacetY ? maxFacetX : maxFacetY)+1;      
                 
                 // doing checks
                 for (int facet = 0; facet<nFacets; ++facet) {

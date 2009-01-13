@@ -39,8 +39,9 @@
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <vector>
+#include <map>
+#include <string>
 
 namespace askap
 {
@@ -59,6 +60,19 @@ namespace askap
 
         void testListFacet()
         {
+           std::vector<std::string> names;
+           std::map<std::string,int> facetmap;
+           names.push_back("image.i.src.facet.0.0");
+           names.push_back("image.i.src.facet.0.1");
+           names.push_back("image.i.src.facet.1.0");
+           names.push_back("image.i.src.facet.1.1");
+           names.push_back("image.i.src2");
+           SynthesisParamsHelper::listFacets(names,facetmap);
+           CPPUNIT_ASSERT(facetmap.size()==2);
+           CPPUNIT_ASSERT(facetmap.find("image.i.src")!=facetmap.end());
+           CPPUNIT_ASSERT(facetmap["image.i.src"] == 2);
+           CPPUNIT_ASSERT(facetmap.find("image.i.src2")!=facetmap.end());
+           CPPUNIT_ASSERT(facetmap["image.i.src2"] == 1);           
         }
    };
     
