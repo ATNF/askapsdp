@@ -1,3 +1,11 @@
+/// @file
+/// 
+/// @brief Unit tests for SynthesisParamsHelper.
+/// @details SynthesisParamsHelper class contains utilities to simplify
+/// handling of parameters representing images. This unit test is intended to
+/// test this functionality.
+/// 
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,27 +28,42 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <cppunit/ui/text/TestRunner.h>
+#ifndef SYNTHESIS_PARAMS_HELPER_TEST_H
+#define SYNTHESIS_PARAMS_HELPER_TEST_H
 
-#include <ComponentEquationTest.h>
-#include <VectorOperationsTest.h>
-#include <ImageDFTEquationTest.h>
-#include <ImageFFTEquationTest.h>
-#include <CalibrationMETest.h>
-#include <PreconditionerTests.h>
-#include <SynthesisParamsHelperTest.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-int main( int argc, char **argv)
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
+
+#include <boost/shared_ptr.hpp>
+
+
+namespace askap
 {
-  CppUnit::TextUi::TestRunner runner;
-  runner.addTest( askap::synthesis::VectorOperationsTest::suite() );
-  runner.addTest( askap::synthesis::ComponentEquationTest::suite() );
-  runner.addTest( askap::synthesis::CalibrationMETest::suite() );
-  //runner.addTest( askap::synthesis::ImageDFTEquationTest::suite() );
-  runner.addTest( askap::synthesis::ImageFFTEquationTest::suite() );
-  runner.addTest( askap::synthesis::PreconditionerTests::suite() );
-  runner.addTest( askap::synthesis::SynthesisParamsHelperTest::suite() );
-  runner.run();
-  return 0;
-}
+  namespace synthesis
+  {
+    
+    class SynthesisParamsHelperTest : public CppUnit::TestFixture
+    {
+      CPPUNIT_TEST_SUITE(SynthesisParamsHelperTest);
+      CPPUNIT_TEST(testListFacet);
+      CPPUNIT_TEST_SUITE_END();
+      
+      private:
+
+      public:
+
+        void testListFacet()
+        {
+        }
+   };
+    
+  } // namespace synthesis
+} // namespace askap
+
+#endif // #ifndef SYNTHESIS_PARAMS_HELPER_TEST_H
+
