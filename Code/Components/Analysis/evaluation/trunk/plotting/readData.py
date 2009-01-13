@@ -35,7 +35,7 @@ def read_match_data(filename=None):
     the flux, the major and minor axes and the position angle for the
     source point, and the matching reference point.  
     Usage:
-    type,idS,xS,yS,fS,aS,bS,pS,idR,xR,yR,fR,aR,bR,pR = read_match_data("matches.txt")
+    type,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,fitrms,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data("matches.txt")
     """
     type=[]
     idS=[]
@@ -46,10 +46,12 @@ def read_match_data(filename=None):
     bS=[]
     pS=[]
     chisq=[]
+    imagerms=[]
     rms=[]
     ndof=[]
     npixfit=[]
     npixobj=[]
+    dudflux=[]
     idR=[]
     xR=[]
     yR=[]
@@ -68,19 +70,21 @@ def read_match_data(filename=None):
         bS.append(fields[6])
         pS.append(fields[7])
         chisq.append(fields[8])
-        rms.append(fields[9])
-        ndof.append(fields[10])
-        npixfit.append(fields[11])
-        npixobj.append(fields[12])
-        idR.append(fields[13])
-        xR.append(fields[14])
-        yR.append(fields[15])
-        fR.append(fields[16])
-        aR.append(fields[17])
-        bR.append(fields[18])
-        pR.append(fields[19])
+        imagerms.append(fields[9])
+        rms.append(fields[10])
+        ndof.append(fields[11])
+        npixfit.append(fields[12])
+        npixobj.append(fields[13])
+        dudflux.append(fields[14])
+        idR.append(fields[15])
+        xR.append(fields[16])
+        yR.append(fields[17])
+        fR.append(fields[18])
+        aR.append(fields[19])
+        bR.append(fields[20])
+        pR.append(fields[21])
     
-    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(rms)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
+    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(imagerms)),cast[float](array(rms)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
 
 #############################################################################
 

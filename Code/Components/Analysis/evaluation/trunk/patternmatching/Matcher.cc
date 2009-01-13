@@ -335,12 +335,17 @@ namespace askap
 	int prec = 3;
 	
 	for(match=this->itsMatchingPixList.begin(); match<this->itsMatchingPixList.end(); match++){
-	  float flux;
-	  if(this->itsFluxMethod=="integrated") flux = match->first.stuff().flux();
-	  else flux = match->first.flux();
-	  int newprec = int(ceil(log10(1./flux)))+1;
+
+	  if(this->itsFluxMethod=="integrated"){ // need to swap around since we have initially stored peak flux in object.
+	    float tmpflux;
+	    tmpflux = match->first.stuff().flux();
+	    match->first.stuff().setFlux(match->first.flux());
+	    match->first.setFlux(tmpflux);
+	  }
+
+	  int newprec = int(ceil(log10(1./match->first.flux())))+1;
 	  prec = std::max( prec, newprec );
-	  newprec = int(ceil(log10(1./flux)))+1;
+	  newprec = int(ceil(log10(1./match->first.flux())))+1;
 	  prec = std::max( prec, newprec );
 	}
 
@@ -359,10 +364,12 @@ namespace askap
 		  << std::setw(10) << "flux"  << " "
 		  << std::setw(10) << "maj"  << " "
 		  << std::setw(10) << "min"  << " "
-		  << std::setw(10) << "pa" << " "
-		  << std::setw(10) << "chisq" << " "
-		  << std::setw(10) << "rms" << " "
-		  << std::setw(10) << "ndof" << "\t"
+		  << std::setw(10) << "pa" << " ";
+	itsMatchingPixList[0].first.stuff().printTitle(std::cout);
+// 		  << std::setw(10) << "chisq" << " "
+// 		  << std::setw(10) << "rms" << " "
+// 		  << std::setw(10) << "ndof" << "\t"
+	std::cout <<"\t"
 		  << "Reference ID\t\t\t"
 		  << std::setw(10) << "x_pix" << " "
 		  << std::setw(10) << "y_pix" << " "
@@ -380,16 +387,16 @@ namespace askap
 	  if(ct++<this->itsNumMatch1) matchType = '1';
 	  else matchType = '2';
 
-	  float flux;
-	  if(this->itsFluxMethod=="integrated") flux = match->first.stuff().flux();
-	  else flux = match->first.flux();
+// 	  float flux;
+// 	  if(this->itsFluxMethod=="integrated") flux = match->first.stuff().flux();
+// 	  else flux = match->first.flux();
 
 	  fout << matchType << "\t"
 	       << "[" << match->first.ID() << "]\t"
 	       << std::setw(10) << match->first.x()  << " "
 	       << std::setw(10) << match->first.y()  << " "
-// 	       << std::setw(10) << match->first.flux() << " "
-	       << std::setw(10) << flux << " "
+ 	       << std::setw(10) << match->first.flux() << " "
+// 	       << std::setw(10) << flux << " "
 	       << std::setw(10) << match->first.majorAxis() << " "
 	       << std::setw(10) << match->first.minorAxis() << " "
 	       << std::setw(10) << match->first.PA()  << " " 

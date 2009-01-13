@@ -62,13 +62,13 @@ namespace askap
       std::string raS,decS,sdud,id;
       double raBase = dmsToDec(raBaseStr)*15.;
       double decBase = dmsToDec(decBaseStr);
-      double xpt,ypt,ra,dec,flux,peakflux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms;
+      double xpt,ypt,ra,dec,flux,peakflux,iflux1,iflux2,pflux1,pflux2,maj,min,pa,chisq,rms,noise;
       int ndof,npixfit,npixobj;
       char line[501];
       fin.getline(line,500);
       fin.getline(line,500);
       // now at start of object list
-      while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> rms >> ndof >> npixfit >> npixobj,
+      while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> noise >> rms >> ndof >> npixfit >> npixobj,
 	     !fin.eof()){
 
 	if(iflux2>0) flux= iflux2;
@@ -86,7 +86,7 @@ namespace askap
 	ypt = (dec - decBase) * 3600.;
 	if(radius<0 || (radius>0 && hypot(xpt,ypt)<radius*60.) ){
 	  matching::Point pix(xpt,ypt,peakflux,id,maj,min,pa);
-	  pix.setStuff(chisq,rms,ndof,npixfit,npixobj,flux);
+	  pix.setStuff(chisq,noise,rms,ndof,npixfit,npixobj,flux);
 	  pixlist.push_back(pix);
 	}
       }

@@ -28,10 +28,13 @@ if __name__ == '__main__':
     if(len(argv) == 2 and argv[1] == '-r'):
         doRef=True
 
-    matchType,idS,xS,yS,fS,aS,bS,pS,chisq,rms,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
+    matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f = read_miss_data(missfile)
 
-    print "Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R']))
+    if(size(x)>0):
+        print "Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R']))
+    else:
+        print "Match list size = %d, Miss list size = %d"%(size(xS),size(x))
 
     if(doRef):
         idRef = read_ref_list("reflist_200uJy_1deg.txt")
@@ -52,10 +55,10 @@ if __name__ == '__main__':
     print "Fraction with |dS/S|<30%% = %5.2f%%"%(100.*size(rdF[abs(rdF)<30])/cast[float](size(rdF)))
     print "Fraction with dS/S>30%%   = %5.2f%%"%(100.*size(rdF[rdF>30])/cast[float](size(rdF)))
 
-    print "Mean of dS = %8.4f"%(mean(dF))
+    print "Mean of dS   = %8.4f"%(mean(dF))
     print "Median of dS = %8.4f"%(median(dF))
-    print "RMS of dS = %8.4f"%(std(dF))
-    print "MADFM of dS = %8.4f = %8.4f as RMS"%(madfm(dF),madfmToRMS(madfm(dF)))
+    print "RMS of dS    = %8.4f"%(std(dF))
+    print "MADFM of dS  = %8.4f  = %8.4f as RMS"%(madfm(dF),madfmToRMS(madfm(dF)))
 
     figure(1, figsize=(16.5,11.7), dpi=72)
 
@@ -92,9 +95,12 @@ if __name__ == '__main__':
     subplot(452)
     for i in ind:
         plot([fS[i]],[rdF[i]],'o')
+#        plot([fS[i]/imagerms[i]],[rdF[i]],'o')
     xlabel(r'$S_{\rm Fit}$',font)
+#    xlabel(r'S/N (Fit)',font)
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs Fitted flux',font)
+#    title('Rel. Flux diff vs S/N',font)
 
     subplot(453)
     for i in ind:
@@ -218,12 +224,14 @@ if __name__ == '__main__':
     xlabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
 
     subplot(4,5,19)
-    logs = log10(fS)
     for i in ind:
-        plot([logs[i]],[rdF[i]],'o')
-    xlabel(r'$\log_{10}(S_{\rm fit})$',font)
+        plot([fS[i]/imagerms[i]],[rdF[i]],'o')
+    semilogx(basex=10.)
+    axisrange = axis()
+    axis([min(fS/imagerms)*0.9,max(fS/imagerms)*1.1,axisrange[2],axisrange[3]])
+    xlabel(r'$\log_{10}(S/N (Fit))$',font)
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
-    title('Rel. Flux diff vs log S',font)
+    title('Rel. Flux diff vs log(S/N)',font)
 
 
     numNeighbours = zeros(len(xS))

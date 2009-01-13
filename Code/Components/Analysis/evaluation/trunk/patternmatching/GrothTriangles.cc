@@ -55,6 +55,7 @@ namespace askap
       {
 	if(this==&s) return *this;
 	itsChisq=s.itsChisq;
+	itsImageNoise=s.itsImageNoise;
 	itsRMS=s.itsRMS;
 	itsNDoF=s.itsNDoF;
 	itsNpixFit = s.itsNpixFit;
@@ -63,15 +64,29 @@ namespace askap
 	return *this;
       }
 	
-      std::ostream &operator<<(std::ostream& theStream, Stuff &s){
-	  theStream << std::setw(10) << s.itsChisq << " " 
-		    << std::setw(10) << s.itsRMS << " " 
-		    << std::setw(10) << s.itsNDoF << " "
-		    << std::setw(10) << s.itsNpixFit << " "
-		    << std::setw(10) << s.itsNpixObj;
-	  return theStream;
-	}
+      void Stuff::printTitle(std::ostream& theStream)
+      {
+	theStream << std::setw(10) << "chisq" << " "
+		  << std::setw(10) << "RMS(image)" << " "
+		  << std::setw(10) << "RMS(fit)" << " "
+		  << std::setw(10) << "NDoF" << " "
+		  << std::setw(10) << "NpixFit" << " "
+		  << std::setw(10) << "NpixObj" << " "
+		  << std::setw(10) << "OtherFlux" << " ";
+      }
 
+      std::ostream &operator<<(std::ostream& theStream, Stuff &s)
+      {
+	theStream << std::setw(10) << s.itsChisq << " " 
+		  << std::setw(10) << s.itsImageNoise << " "
+		  << std::setw(10) << s.itsRMS << " " 
+		  << std::setw(10) << s.itsNDoF << " "
+		  << std::setw(10) << s.itsNpixFit << " "
+		  << std::setw(10) << s.itsNpixObj << " "
+		  << std::setw(10) << s.itsDudFlux << " ";
+	return theStream;
+      }
+      
       Point& Point::operator=(const Point& p)
       {
 	if(this==&p) return *this;
