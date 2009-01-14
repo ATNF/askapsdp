@@ -52,6 +52,7 @@ namespace askap
     {
       CPPUNIT_TEST_SUITE(SynthesisParamsHelperTest);
       CPPUNIT_TEST(testListFacet);
+      CPPUNIT_TEST(testFacetCreationAndMerging);
       CPPUNIT_TEST_SUITE_END();
       
       private:
@@ -73,6 +74,34 @@ namespace askap
            CPPUNIT_ASSERT(facetmap["image.i.src"] == 2);
            CPPUNIT_ASSERT(facetmap.find("image.i.src2")!=facetmap.end());
            CPPUNIT_ASSERT(facetmap["image.i.src2"] == 1);           
+        }
+        
+        void testFacetCreationAndMerging()
+        {
+           askap::scimath::Params params;
+           std::vector<std::string> direction(3);
+           direction[0]="12h30m00.0";
+           direction[1]="-15.00.00.00";
+           direction[2]="J2000";
+           std::vector<int> shape(2,256);
+           std::vector<std::string> cellsize(2,"8arcsec");
+           SynthesisParamsHelper::add(params,"testsrc",direction,cellsize,shape,1.4e9,
+                                      1.4e9,1,2,128);
+           // checking the content
+           std::map<std::string,int> facetmap;
+           SynthesisParamsHelper::listFacets(params.freeNames(),facetmap);
+           CPPUNIT_ASSERT(facetmap.find("testsrc")!=facetmap.end());
+           CPPUNIT_ASSERT(facetmap["testsrc"] == 2);
+           // adding a merged image
+           SynthesisParamsHelper::add(params,"testsrc",2);
+           params.fix("testsrc");
+           CPPUNIT_ASSERT(params.freeNames().size() == 4); 
+           CPPUNIT_ASSERT(params.names().size() == 5); 
+           const std::vector<std::string> &facets = params.freeNames();
+           for (std::vector<std::string>::const_iterator ci = facets.begin(); ci!=facets.end(); ++ci) {
+                 CPPUNIT_ASSERT(SynthesisParamsHelper::getFacet(params,*ci).shape() == 
+                          casa::IPosition(4,128,128,1,1));
+           }
         }
    };
     

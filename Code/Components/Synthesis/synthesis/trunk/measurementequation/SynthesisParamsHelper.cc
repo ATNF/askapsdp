@@ -362,8 +362,6 @@ namespace askap
       ASKAPCHECK(ip.has(iph.name()), "Merged image ("<<iph.name()<<") doesn't exist");
       // there is no consistency check that the given facet corresponds to this particular
       // merged image and coordinate systems match. 
-      const casa::DirectionCoordinate csPatch = directionCoordinate(ip,name);
-      const casa::DirectionCoordinate csFull = directionCoordinate(ip,iph.name());
       
       // now find blc and trc of the patch inside the big image
       const askap::scimath::Axes axes(ip.axes(iph.name()));
@@ -383,34 +381,47 @@ namespace askap
            trc[i] -= 1;           
       }
       
-      casa::Vector<double> world(2);
       casa::IPosition patchShape = ip.value(name).shape();
       ASKAPDEBUGASSERT(patchShape.nelements()>=2);
       ASKAPDEBUGASSERT((facetStep<=patchShape[0]) && (facetStep<=patchShape[1]));
+      
+      ASKAPDEBUGASSERT(facetStep>=1);
+      blc[0] = iph.facetX()*facetStep;
+      trc[0] = blc[0]+facetStep-1;
+      blc[1] = iph.facetY()*facetStep;
+      trc[1] = blc[1]+facetStep-1;
+
+      /*
+      const casa::DirectionCoordinate csPatch = directionCoordinate(ip,name);
+      const casa::DirectionCoordinate csFull = directionCoordinate(ip,iph.name());
+      casa::Vector<double> world(2);
       // first get blc
       casa::Vector<double> blcPixel(2);
       blcPixel(0)=double((patchShape[0]-facetStep)/2);
       blcPixel(1)=double((patchShape[1]-facetStep)/2);
+      std::cout<<blcPixel<<endl;
       csPatch.toWorld(world,blcPixel);
       csFull.toPixel(blcPixel,world);
+      std::cout<<blcPixel<<endl;
 
       // now get trc
       casa::Vector<double> trcPixel(2);
       trcPixel[0]=double((patchShape[0]+facetStep)/2-1);
       trcPixel[1]=double((patchShape[1]+facetStep)/2-1);
       ASKAPDEBUGASSERT((trcPixel[0]>0) && (trcPixel[1]>0));
-      //std::cout<<trcPixel<<endl;
+      std::cout<<trcPixel<<endl;
       csPatch.toWorld(world,trcPixel);
       csFull.toPixel(trcPixel,world);
-      //std::cout<<trcPixel<<endl;
+      std::cout<<trcPixel<<endl;
       for (size_t dim=0;dim<2;++dim) {
            const int pix1 = int(blcPixel[dim]);
            const int pix2 = int(trcPixel[dim]);
            blc[dim] = pix1>pix2 ? pix2 : pix1;
            trc[dim] = pix1>pix2 ? pix1 : pix2;
       }
+      */
       // ready to make a slice
-      std::cout<<blc<<" "<<trc<<" "<<facetStep<<" "<<mergedImage.shape()<<std::endl;
+      //std::cout<<blc<<" "<<trc<<" "<<facetStep<<" "<<mergedImage.shape()<<std::endl;
       ASKAPDEBUGASSERT((trc[0]-blc[0]+1 == facetStep) && (trc[1]-blc[1]+1 == facetStep));
       return mergedImage(blc,trc);
     }
