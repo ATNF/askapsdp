@@ -449,7 +449,9 @@ namespace askap
           ir.copyNormalEquations(*itsSolver);
           Quality q;
           ir.solveNormalEquations(q);
-          resultimages=ir.parameters().completions("image");
+          ASKAPDEBUGASSERT(itsModel);
+          *itsModel = ir.parameters();
+          resultimages=itsModel->completions("image");
           for (vector<string>::iterator it=resultimages.begin(); it
               !=resultimages.end(); it++)
           {

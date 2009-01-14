@@ -328,8 +328,8 @@ namespace askap
        Axes newAxes(axes);       
        newAxes.update("RA",newAxes.start("RA-TANGENT")+facetSize*raCellSize*(double(-nfacets/2)-0.5),
                 newAxes.start("RA-TANGENT")+facetSize*raCellSize*(double(nfacets-1-nfacets/2)+0.5));
-       newAxes.update("DEC",newAxes.start("DEC-TANGENT")+facetSize*raCellSize*(double(-nfacets/2)-0.5),
-                newAxes.start("DEC-TANGENT")+facetSize*raCellSize*(double(nfacets-1-nfacets/2)+0.5));
+       newAxes.update("DEC",newAxes.start("DEC-TANGENT")+facetSize*decCellSize*(double(-nfacets/2)-0.5),
+                newAxes.start("DEC-TANGENT")+facetSize*decCellSize*(double(nfacets-1-nfacets/2)+0.5));
        // add a fake axis to peserve facetSize for futher operations with the merged image
        // without it we would have to redetermine this value
        newAxes.add("FACETSTEP", raFacetStep, decFacetStep);
@@ -360,7 +360,7 @@ namespace askap
       // parse the name
       ImageParamsHelper iph(name);
       ASKAPCHECK(ip.has(iph.name()), "Merged image ("<<iph.name()<<") doesn't exist");
-      // there is no consistency check that the given facet correspond to this particular
+      // there is no consistency check that the given facet corresponds to this particular
       // merged image and coordinate systems match. 
       const casa::DirectionCoordinate csPatch = directionCoordinate(ip,name);
       const casa::DirectionCoordinate csFull = directionCoordinate(ip,iph.name());
@@ -370,7 +370,7 @@ namespace askap
       ASKAPDEBUGASSERT(axes.has("FACETSTEP"));
       ASKAPCHECK(casa::abs(axes.start("FACETSTEP")-axes.end("FACETSTEP"))<0.5, "facet steps extracted from "<<
                  iph.name()<<" are notably different for ra and dec axes. Should be the same integer number");
-       const int facetSize = int(axes.start("FACETSTEP"));
+      const int facetStep = int(axes.start("FACETSTEP"));
 
       casa::Array<double> mergedImage = ip.value(iph.name());
       casa::IPosition blc(mergedImage.shape());
@@ -383,27 +383,35 @@ namespace askap
            trc[i] -= 1;           
       }
       
-      casa::Vector<double> pixel(2), world(2);
+      casa::Vector<double> world(2);
       casa::IPosition patchShape = ip.value(name).shape();
       ASKAPDEBUGASSERT(patchShape.nelements()>=2);
-      ASKAPDEBUGASSERT((facetSize<=patchShape[0]) && (facetSize<=patchShape[1]));
+      ASKAPDEBUGASSERT((facetStep<=patchShape[0]) && (facetStep<=patchShape[1]));
       // first get blc
-      pixel(0)=double((patchShape[0]-facetSize)/2);
-      pixel(1)=double((patchShape[1]-facetSize)/2);
-      csPatch.toWorld(world,pixel);
-      csFull.toPixel(pixel,world);
-      blc[0]=int(pixel[0]); 
-      blc[1]=int(pixel[1]);
+      casa::Vector<double> blcPixel(2);
+      blcPixel(0)=double((patchShape[0]-facetStep)/2);
+      blcPixel(1)=double((patchShape[1]-facetStep)/2);
+      csPatch.toWorld(world,blcPixel);
+      csFull.toPixel(blcPixel,world);
+
       // now get trc
-      pixel[0]=double((patchShape[0]+facetSize)/2-1);
-      pixel[1]=double((patchShape[1]+facetSize)/2-1);
-      ASKAPDEBUGASSERT((pixel[0]>0) && (pixel[1]>0));
-      csPatch.toWorld(world,pixel);
-      csFull.toPixel(pixel,world);
-      trc[0]=int(pixel[0]); 
-      trc[1]=int(pixel[1]);
+      casa::Vector<double> trcPixel(2);
+      trcPixel[0]=double((patchShape[0]+facetStep)/2-1);
+      trcPixel[1]=double((patchShape[1]+facetStep)/2-1);
+      ASKAPDEBUGASSERT((trcPixel[0]>0) && (trcPixel[1]>0));
+      //std::cout<<trcPixel<<endl;
+      csPatch.toWorld(world,trcPixel);
+      csFull.toPixel(trcPixel,world);
+      //std::cout<<trcPixel<<endl;
+      for (size_t dim=0;dim<2;++dim) {
+           const int pix1 = int(blcPixel[dim]);
+           const int pix2 = int(trcPixel[dim]);
+           blc[dim] = pix1>pix2 ? pix2 : pix1;
+           trc[dim] = pix1>pix2 ? pix1 : pix2;
+      }
       // ready to make a slice
-      ASKAPDEBUGASSERT((trc[0]-blc[0] == facetSize) && (trc[1]-blc[1] == facetSize));
+      std::cout<<blc<<" "<<trc<<" "<<facetStep<<" "<<mergedImage.shape()<<std::endl;
+      ASKAPDEBUGASSERT((trc[0]-blc[0]+1 == facetStep) && (trc[1]-blc[1]+1 == facetStep));
       return mergedImage(blc,trc);
     }
     

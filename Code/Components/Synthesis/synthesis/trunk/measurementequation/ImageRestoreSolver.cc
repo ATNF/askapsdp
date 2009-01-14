@@ -132,7 +132,7 @@ namespace askap
           ASKAPLOG_INFO_STR(logger, "Inserting facet " << *ci<<" into merged image "<<iph.name());
           casa::Array<double> patch = SynthesisParamsHelper::getFacet(*itsParams,*ci);
           const casa::Array<double> model = PaddingUtils::centeredSubArray(itsParams->value(*ci),
-                                            patch.shape());
+                                          patch.shape());
           patch = model;                                  
       }
 	}
