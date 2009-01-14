@@ -217,17 +217,12 @@ namespace askap
 	   // Do the preconditioning
 	   doPreconditioning(psfArray,dirtyArray);
 	  
-	   // We need lattice equivalents. We can use ArrayLattice which involves
-	   // no copying
-	   casa::ArrayLattice<float> dirty(dirtyArray);
-	   casa::ArrayLattice<float> psf(psfArray);
-
 	   // Add the residual image        
-	   casa::Vector<double> value(out.reform(vecShape));
-	   casa::Vector<float> dirtyVector(PaddingUtils::centeredSubArray(dirtyArray,out.shape()).reform(vecShape));
-	   for (uint elem=0; elem<dv.nelements(); ++elem) {
-	        value(elem) += dirtyVector(elem);
-	   }	    
+	   // the code below involves an extra copying. We can replace it later with a copyless version
+	   // doing element by element adding explicitly.
+	   casa::Array<double> convertedResidual(out.shape());
+	   convertArray(convertedResidual, PaddingUtils::centeredSubArray(dirtyArray,out.shape()));
+	   out += convertedResidual;
     }
 	
     Solver::ShPtr ImageRestoreSolver::clone() const
