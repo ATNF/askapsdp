@@ -57,11 +57,29 @@ namespace askap
       CPPUNIT_TEST(testListFacet);
       CPPUNIT_TEST(testFacetCreationAndMerging);
       CPPUNIT_TEST(testCoordinates);
+      //CPPUNIT_TEST(test4Debugging);
       CPPUNIT_TEST_SUITE_END();
       
       private:
 
       public:
+        void test4Debugging()
+        {
+           ifstream is("temp.dat");
+           ASKAPASSERT(is);
+           int npoints;
+           is>>npoints;
+           casa::Matrix<casa::Float> arr(npoints,npoints,0.);
+           for (int x=0;x<npoints;++x) {
+                for (int y=0; y<npoints;++y) {
+                     ASKAPASSERT(is);
+                     float buf;
+                     is>>buf;
+                     arr(x,y)=buf;
+                }
+           }
+           SynthesisParamsHelper::saveAsCasaImage("temp.img",arr);
+        }
 
         void testListFacet()
         {
