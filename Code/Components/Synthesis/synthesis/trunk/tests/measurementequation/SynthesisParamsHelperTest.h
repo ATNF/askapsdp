@@ -34,7 +34,10 @@
 #define SYNTHESIS_PARAMS_HELPER_TEST_H
 
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/ImageParamsHelper.h>
 #include <cppunit/extensions/HelperMacros.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
@@ -53,6 +56,7 @@ namespace askap
       CPPUNIT_TEST_SUITE(SynthesisParamsHelperTest);
       CPPUNIT_TEST(testListFacet);
       CPPUNIT_TEST(testFacetCreationAndMerging);
+      CPPUNIT_TEST(testCoordinates);
       CPPUNIT_TEST_SUITE_END();
       
       private:
@@ -79,14 +83,7 @@ namespace askap
         void testFacetCreationAndMerging()
         {
            askap::scimath::Params params;
-           std::vector<std::string> direction(3);
-           direction[0]="12h30m00.0";
-           direction[1]="-15.00.00.00";
-           direction[2]="J2000";
-           std::vector<int> shape(2,256);
-           std::vector<std::string> cellsize(2,"8arcsec");
-           SynthesisParamsHelper::add(params,"testsrc",direction,cellsize,shape,1.4e9,
-                                      1.4e9,1,2,128);
+           makeParameter(params,"testsrc",2,128);
            // checking the content
            std::map<std::string,int> facetmap;
            SynthesisParamsHelper::listFacets(params.freeNames(),facetmap);
@@ -103,6 +100,150 @@ namespace askap
                           casa::IPosition(4,128,128,1,1));
            }
         }
+        
+        void testCoordinates()
+        {
+           doCoordinateAlignmentTest(128,2);
+           doCoordinateAlignmentTest(256,2);
+           doCoordinateAlignmentTest(64,3);           
+        }
+        
+      protected:
+        /// @brief actual test of coordinate alignment
+        /// @details
+        /// @param[in] facetStep offset between two adjacent facets in pixels
+        /// @param[in] nFacets number of facets along each axis
+        void doCoordinateAlignmentTest(const int facetStep, const int nFacets)
+        {
+           askap::scimath::Params params;
+           makeParameter(params,"testsrc",nFacets,facetStep);
+           // adding a merged image
+           SynthesisParamsHelper::add(params,"testsrc",nFacets);
+
+           for (int facetX = 0; facetX<nFacets; ++facetX) {
+                for (int facetY = 0; facetY<nFacets; ++facetY) {
+                     ImageParamsHelper iph("testsrc",facetX,facetY);
+                     
+                     casa::IPosition blc(4,0),trc(4,0);
+                     
+                     //std::cout<<std::endl<<"facet "<<facetX<<" "<<facetY<<std::endl;
+                     
+                     blc[0] = iph.facetX()*facetStep;
+                     trc[0] = blc[0]+facetStep-1;
+                     blc[1] = iph.facetY()*facetStep;
+                     trc[1] = blc[1]+facetStep-1;
+                     //std::cout<<"blc="<<blc<<" trc="<<trc<<std::endl;                     
+
+                     casa::IPosition blc2,trc2;
+                     getCorners(params,iph.name(),iph.paramName(),facetStep, blc2,trc2);
+                     CPPUNIT_ASSERT((blc2.nelements()>=2) && (trc2.nelements()>=2));
+                     //std::cout<<"blc="<<blc2<<" trc="<<trc2<<std::endl;               
+
+                     // there is no exact match between two images, although we're using
+                     // the same projection. Probably it is the second order effect 
+                     // resulted from approximation of the sphere by a plane.
+                     CPPUNIT_ASSERT(casa::abs(blc[0]-blc2[0])<=5);
+                     CPPUNIT_ASSERT(casa::abs(blc[1]-blc2[1])<=5);
+                     CPPUNIT_ASSERT(casa::abs(trc[0]-trc2[0])<=5);
+                     CPPUNIT_ASSERT(casa::abs(trc[1]-trc2[1])<=5);
+                     
+                }
+           }
+        }
+        
+        /// @brief a helper method to find corners of the patch in a bigger image
+        /// @details
+        /// If this method is proved to be useful, it can be moved to SynthesisParamsHelper.
+        /// @param[in] params parameter container
+        /// @param[in] fullName name of the full image
+        /// @param[in] patchName name of the patch
+        /// @param[in] patchSize the size of the patch to work with, the array stored under
+        ///                       patchName in the parameter container can have a larger size.
+        ///                      At this stage the same size is assumed for both directional axes
+        ///                      and the array is centered.
+        /// @param[out] blc bottom left corner of the patch inside the full image
+        /// @param[out] trc top right corner of the patch inside the full image
+        static void getCorners(askap::scimath::Params &params, const std::string &fullName,
+                     const std::string &patchName, const int patchSize, 
+                     casa::IPosition &blc, casa::IPosition &trc)
+        {
+           const casa::Array<double> fullImage = params.value(fullName);
+      
+           blc = fullImage.shape();
+           trc = fullImage.shape();
+           CPPUNIT_ASSERT(blc.nelements()>=2);
+           // adjust extra dimensions
+           for (size_t i=2;i<blc.nelements();++i) {
+                blc[i] = 0;
+                CPPUNIT_ASSERT(trc[i]!=0);
+                trc[i] -= 1;           
+           }
+      
+           const casa::IPosition patchShape = params.value(patchName).shape();
+           ASKAPDEBUGASSERT(patchShape.nelements()>=2);
+           ASKAPDEBUGASSERT((patchSize<=patchShape[0]) && (patchSize<=patchShape[1]));
+      
+           ASKAPDEBUGASSERT(patchSize>=1);
+
+           
+           const casa::DirectionCoordinate csPatch = 
+                    SynthesisParamsHelper::directionCoordinate(params,patchName);
+           const casa::DirectionCoordinate csFull = 
+                    SynthesisParamsHelper::directionCoordinate(params,fullName);
+           casa::Vector<double> world(2);
+      
+           // first get blc
+           casa::Vector<double> blcPixel(2);
+           blcPixel(0)=double((patchShape[0]-patchSize)/2);
+           blcPixel(1)=double((patchShape[1]-patchSize)/2);
+          
+           //std::cout<<blcPixel<<endl;
+          
+           csPatch.toWorld(world,blcPixel);
+           csFull.toPixel(blcPixel,world);
+          
+           //std::cout<<blcPixel<<endl;
+
+           // now get trc
+           casa::Vector<double> trcPixel(2);
+           trcPixel[0]=double((patchShape[0]+patchSize)/2-1);
+           trcPixel[1]=double((patchShape[1]+patchSize)/2-1);
+           ASKAPDEBUGASSERT((trcPixel[0]>0) && (trcPixel[1]>0));
+           
+           //std::cout<<trcPixel<<endl;
+           
+           csPatch.toWorld(world,trcPixel);
+           csFull.toPixel(trcPixel,world);
+           
+           //std::cout<<trcPixel<<endl;
+           
+           for (size_t dim=0;dim<2;++dim) {
+                const int pix1 = int(blcPixel[dim]);
+                const int pix2 = int(trcPixel[dim]);
+                blc[dim] = pix1>pix2 ? pix2 : pix1;
+                trc[dim] = pix1>pix2 ? pix1 : pix2;
+           }                                                    
+        }
+      
+        /// @brief a helper method to make a parameter representing a test faceted image
+        /// @details
+        /// @param[in] params parameter container
+        /// @param[in] name name of the parameter
+        /// @param[in] nfacets number of facets
+        /// @param[in] facetstep step in pixels between facet centres          
+        static void makeParameter(askap::scimath::Params &params, const std::string &name,
+                           const int nfacets, const int facetstep)  
+        {
+           std::vector<std::string> direction(3);
+           direction[0]="12h30m00.0";
+           direction[1]="-15.00.00.00";
+           direction[2]="J2000";
+           std::vector<int> shape(2,256);
+           std::vector<std::string> cellsize(2,"8arcsec");
+           SynthesisParamsHelper::add(params,name,direction,cellsize,shape,1.4e9,
+                                      1.4e9,1,nfacets,facetstep);           
+        }
+        
    };
     
   } // namespace synthesis

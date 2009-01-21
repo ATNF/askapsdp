@@ -133,7 +133,7 @@ namespace askap
           casa::Array<double> patch = SynthesisParamsHelper::getFacet(*itsParams,*ci);
           const casa::Array<double> model = PaddingUtils::centeredSubArray(itsParams->value(*ci),
                                           patch.shape());
-          patch = model;                                  
+          patch = model;
       }
 	}
 	
@@ -142,6 +142,7 @@ namespace askap
 	     if (ci->second != 1) {
 	         // this is a multi-facet image
 	         ASKAPLOG_INFO_STR(logger, "Restoring faceted image " << ci->first );
+            
              boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, ci->first));
 	         casa::Image2DConvolver<float> convolver;	
 	         const casa::IPosition pixelAxes(2, 0, 1);	
@@ -149,6 +150,7 @@ namespace askap
 	         convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			       pixelAxes, itsBeam, true, 1.0, false);
 	         SynthesisParamsHelper::update(*itsParams, ci->first, *image);
+	        /*
 	         // add residuals
 	         for (int xFacet = 0; xFacet<ci->second; ++xFacet) {
 	              for (int yFacet = 0; yFacet<ci->second; ++yFacet) {
@@ -160,6 +162,7 @@ namespace askap
 	                   
 	              }
 	         }
+	         */
 	     }
 	}
 
