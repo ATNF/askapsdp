@@ -150,7 +150,7 @@ namespace askap
 	         convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			       pixelAxes, itsBeam, true, 1.0, false);
 	         SynthesisParamsHelper::update(*itsParams, ci->first, *image);
-	        /*
+	        
 	         // add residuals
 	         for (int xFacet = 0; xFacet<ci->second; ++xFacet) {
 	              for (int yFacet = 0; yFacet<ci->second; ++yFacet) {
@@ -162,7 +162,7 @@ namespace askap
 	                   
 	              }
 	         }
-	         */
+	         
 	     }
 	}
 
