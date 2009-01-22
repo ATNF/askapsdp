@@ -297,6 +297,7 @@ namespace askap
         for (std::vector<std::string>::const_iterator peakParIt = peakParams.begin();
              peakParIt != peakParams.end(); ++peakParIt) {
              const double tempval = std::abs(itsModel->scalarValue("peak_residual."+*peakParIt));
+             ASKAPLOG_INFO_STR(logger, "Peak residual for "<< *peakParIt << " is "<<tempval);
              if (tempval > peak) {
                  peak = tempval;
              }
