@@ -490,8 +490,9 @@ namespace askap
     
     void SynthesisParamsHelper::saveAsCasaImage(const askap::scimath::Params& ip, const string& name,
 						const string& imagename)
-    {
+    {     
       const casa::Array<double> imagePixels(ip.value(name));
+      ASKAPDEBUGASSERT(imagePixels.ndim()!=0);
       const casa::CoordinateSystem imageCoords(coordinateSystem(ip,name));
       
       casa::Array<float> floatImagePixels(imagePixels.shape());
