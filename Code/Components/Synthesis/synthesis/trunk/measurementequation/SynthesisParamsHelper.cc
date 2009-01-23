@@ -284,6 +284,11 @@ namespace askap
                 // a normal axis with the same start and stop values
                 axes.add("RA-TANGENT",ra,ra);
                 axes.add("DEC-TANGENT",dec,dec);
+                // another fake axis to know which part of the image actually contains useful
+                // information. Otherwise, this parameter is impossible to derive from a
+                // single facet only (and we may need, e.g., to clip the outer edges in each
+                // major cycle)
+                axes.add("FACETSTEP",double(facetstep),double(facetstep));
       
                 axes.add("STOKES", 0.0, 0.0);
       
@@ -292,6 +297,66 @@ namespace askap
            }
       }
       
+    }
+    
+    /// @brief helper method to clip the outer edges of the image
+    /// @details For experiments with faceting we want to be able to clip the outer
+    /// edges of each model image (beyond the facet step) to zero. This is one way to
+    /// reduce cross-talk problem (when facets overlap). This method encapsulates all
+    /// the required operations. It takes facet step from the fake image axis FACETSTEP
+    /// and does nothing if such a parameter doesn't exist or is larger than the shape
+    /// along the directional axes.
+    /// @param[in] ip parameters
+    /// @param[in] name full name of the image (i.e. with .facet.x.y for facets)
+    void SynthesisParamsHelper::clipImage(askap::scimath::Params &ip, const string &name)
+    {
+       const askap::scimath::Axes axes(ip.axes(name));
+       if (!axes.has("FACETSTEP")) {
+           // it is not a facet image, do nothing.
+           return;
+       }
+       const int facetStep = int(axes.start("FACETSTEP"));
+       ASKAPDEBUGASSERT(facetStep>0);
+       casa::Array<double> pixels = ip.value(name);
+       const casa::IPosition shape = pixels.shape();
+       ASKAPDEBUGASSERT(shape.nelements()<2);
+       casa::IPosition end(shape.nelements());
+       for (uint index=0;index<end.nelements();++index) {
+            ASKAPDEBUGASSERT(end[index]>=1);
+            end[index]--;
+       }
+
+       if (shape[0]>facetStep+1) {
+           // need clipping along the first axis
+           casa::IPosition start(shape.nelements(),0);
+           end[0] = (shape[0]-facetStep)/2-1;
+           end[1] = shape[1]-1; // although this step is strictly speaking unnecessary
+           pixels(start,end).set(0.); 
+           
+           end[0] = shape[0]-1;
+           start[0] = (shape[0]+facetStep)/2;
+           pixels(start,end).set(0.);
+       }
+       
+       if (shape[1]>facetStep+1) {
+           // need clipping along the second axis
+           casa::IPosition start(shape.nelements(),0);
+           start[0]=(shape[0]-facetStep)/2;
+           end[0]=(shape[0]+facetStep)/2;
+           if (start[0]<0) {
+               start[0] = 0;
+           }
+           if (end[0]+1 > shape[0]) {
+               end[0] = shape[0] - 1;
+           }
+           start[1] = 0;
+           end[1] = (shape[1]-facetStep)/2-1;
+           pixels(start,end).set(0.);
+           
+           start[1] = (shape[1]+facetStep)/2;
+           end[1] = shape[1]-1;
+           pixels(start,end).set(0.);
+       }       
     }
     
     /// @brief add a parameter as a merged faceted image

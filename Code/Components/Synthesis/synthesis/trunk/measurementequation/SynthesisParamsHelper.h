@@ -157,6 +157,18 @@ namespace askap
         static void add(askap::scimath::Params& ip, const string &name,
               const int nfacets); 
               
+        /// @brief helper method to clip the outer edges of the image
+        /// @details For experiments with faceting we want to be able to clip the outer
+        /// edges of each model image (beyond the facet step) to zero. This is one way to
+        /// reduce cross-talk problem (when facets overlap). This method encapsulates all
+        /// the required operations. It takes facet step from the fake image axis FACETSTEP
+        /// and does nothing if such a parameter doesn't exist or is larger than the shape
+        /// along the directional axes.
+        /// @param[in] ip parameters
+        /// @param[in] name full name of the image (i.e. with .facet.x.y for facets)
+        static void clipImage(askap::scimath::Params &ip, const string &name);
+        
+              
         /// @brief obtain an array corresponding to a single facet of a merged faceted image
         /// @details Each facet is represented by a number of independent parameters with
         /// the names containing .facet.x.y at the end. One of the add methods can add a 
