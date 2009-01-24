@@ -397,7 +397,11 @@ namespace askap
                 newAxes.start("DEC-TANGENT")+facetSize*decCellSize*(double(nfacets-1-nfacets/2)+0.5));
        // add a fake axis to peserve facetSize for futher operations with the merged image
        // without it we would have to redetermine this value
-       newAxes.add("FACETSTEP", raFacetStep, decFacetStep);
+       if (newAxes.has("FACETSTEP")) {
+           newAxes.update("FACETSTEP", raFacetStep, decFacetStep);
+       } else {
+           newAxes.add("FACETSTEP", raFacetStep, decFacetStep);
+       }
        
        casa::IPosition newShape(shape);
        newShape[0]=facetSize*nfacets;
