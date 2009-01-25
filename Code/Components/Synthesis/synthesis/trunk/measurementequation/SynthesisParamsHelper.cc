@@ -308,7 +308,7 @@ namespace askap
     /// along the directional axes.
     /// @param[in] ip parameters
     /// @param[in] name full name of the image (i.e. with .facet.x.y for facets)
-    void SynthesisParamsHelper::clipImage(askap::scimath::Params &ip, const string &name)
+    void SynthesisParamsHelper::clipImage(const askap::scimath::Params &ip, const string &name)
     {
        const askap::scimath::Axes axes(ip.axes(name));
        if (!axes.has("FACETSTEP")) {
@@ -319,8 +319,8 @@ namespace askap
        ASKAPDEBUGASSERT(facetStep>0);
        casa::Array<double> pixels = ip.value(name);
        const casa::IPosition shape = pixels.shape();
-       ASKAPDEBUGASSERT(shape.nelements()<2);
-       casa::IPosition end(shape.nelements());
+       ASKAPDEBUGASSERT(shape.nelements()>=2);
+       casa::IPosition end(shape);
        for (uint index=0;index<end.nelements();++index) {
             ASKAPDEBUGASSERT(end[index]>=1);
             end[index]--;

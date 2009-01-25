@@ -57,6 +57,7 @@ namespace askap
       CPPUNIT_TEST(testListFacet);
       CPPUNIT_TEST(testFacetCreationAndMerging);
       CPPUNIT_TEST(testCoordinates);
+      CPPUNIT_TEST(testClipImage);
       //CPPUNIT_TEST(test4Debugging);
       CPPUNIT_TEST_SUITE_END();
       
@@ -116,6 +117,28 @@ namespace askap
            for (std::vector<std::string>::const_iterator ci = facets.begin(); ci!=facets.end(); ++ci) {
                  CPPUNIT_ASSERT(SynthesisParamsHelper::getFacet(params,*ci).shape() == 
                           casa::IPosition(4,128,128,1,1));
+           }
+        }
+        
+        void testClipImage()
+        {
+           askap::scimath::Params params;
+           const int facetStep = 128;
+           makeParameter(params,"testsrc",2,facetStep);
+           params.value("testsrc.facet.0.0").set(1.);
+           SynthesisParamsHelper::clipImage(params,"testsrc.facet.0.0");
+           casa::Array<double> arr = params.value("testsrc.facet.0.0");
+           const casa::IPosition shape = arr.shape(); 
+           ASKAPDEBUGASSERT(shape.nelements()>=2);
+           casa::IPosition index(shape.nelements(),0);                     
+           for (index[0]=0; index[0]<shape[0]; ++index[0]) {
+                for (index[1]=0; index[1]<shape[1]; ++index[1]) {
+                     const bool isCentre = (index[0]>=(shape[0]-facetStep)/2) && 
+                                     (index[0]<(shape[0]+facetStep)/2) &&
+                                     (index[1]>=(shape[1]-facetStep)/2) && 
+                                     (index[1]<(shape[1]+facetStep)/2);
+                     CPPUNIT_ASSERT((arr(index)>0.5) == isCentre);                
+                }
            }
         }
         

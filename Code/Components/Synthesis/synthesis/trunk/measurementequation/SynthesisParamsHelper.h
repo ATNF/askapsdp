@@ -166,7 +166,7 @@ namespace askap
         /// along the directional axes.
         /// @param[in] ip parameters
         /// @param[in] name full name of the image (i.e. with .facet.x.y for facets)
-        static void clipImage(askap::scimath::Params &ip, const string &name);
+        static void clipImage(const askap::scimath::Params &ip, const string &name);
         
               
         /// @brief obtain an array corresponding to a single facet of a merged faceted image

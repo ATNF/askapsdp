@@ -30,6 +30,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <dataaccess/SharedIter.h>
 #include <fitting/Params.h>
 #include <measurementequation/ImageFFTEquation.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/DesignMatrix.h>
@@ -141,6 +142,7 @@ namespace askap
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image.i"+(*it));
+        SynthesisParamsHelper::clipImage(parameters(),imageName);
         const Axes axes(parameters().axes(imageName));
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
         const casa::IPosition imageShape(imagePixels.shape());
@@ -198,6 +200,7 @@ namespace askap
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         const string imageName("image.i"+(*it));
+        SynthesisParamsHelper::clipImage(parameters(),imageName);
         const casa::IPosition imageShape(parameters().value(imageName).shape());
         const Axes axes(parameters().axes(imageName));
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
