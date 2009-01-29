@@ -149,7 +149,7 @@ namespace askap
 	  estimate(g,0) = cmpntList[cmpnt].peak();
 	  estimate(g,1) = cmpntList[cmpnt].x();
 	  estimate(g,2) = cmpntList[cmpnt].y();
-
+	  
 	  if(head.getBmajKeyword()>0 && 
 	     (head.getBmajKeyword()/head.getAvPixScale() > cmpntList[cmpnt].maj())){
 	    estimate(g,3)=head.getBmajKeyword()/head.getAvPixScale();
@@ -167,7 +167,7 @@ namespace askap
 	this->itsFitter.setFirstEstimate(estimate);
 
 	if(head.getBminKeyword()>0) this->itsParams.setBeamSize( head.getBminKeyword()/head.getAvPixScale() );
-	else this->itsParams.setBeamSize(0.);
+	else this->itsParams.setBeamSize(1.);
 
 	ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
 	logparameters(estimate);

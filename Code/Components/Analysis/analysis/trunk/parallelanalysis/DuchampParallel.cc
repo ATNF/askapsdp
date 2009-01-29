@@ -45,6 +45,7 @@ using namespace LOFAR::TYPES;
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 #include <images/Images/ImageOpener.h>
+#include <casa/aipstype.h>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -503,9 +504,9 @@ namespace askap
 	float threshold = this->itsCube.stats().getThreshold();
 	if(this->itsCube.pars().getFlagGrowth()){
 	  if(this->itsCube.pars().getFlagUserGrowthThreshold())
-	    threshold = this->itsCube.pars().getGrowthThreshold();
+	    threshold = std::min(threshold,this->itsCube.pars().getGrowthThreshold());
 	  else
-	    threshold = this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut());
+	    threshold = std::min(threshold,this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut()));
 	}
 
 	int numObj = this->itsCube.getNumObj();
