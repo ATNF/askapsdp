@@ -359,6 +359,34 @@ namespace askap
        }       
     }
     
+    /// @brief helper method to store restoring beam for an image
+    /// @details We have to carry restore beam parameters together with the image.
+    /// This is done by creating 2 fake axes MAJMIN (with start = maj and end = min)
+    /// and PA with position angle. All angles are given in radians. The presence of
+    /// this fake axes distinguishes a restored image from model image. Restored image
+    /// will have units Jy/beam instead of Jy/pixel and beam info will be added to the
+    /// image (in saveAsCasaImage).
+    /// @param[in] ip parameters
+    /// @param[in] name full name of the parameter representing this image
+    /// @param[in] beam major, minor axes and position anlge as quantities
+    void SynthesisParamsHelper::setBeam(askap::scimath::Params &ip, const string &name,
+                            const casa::Vector<casa::Quantum<double> > &beam)
+    {
+       askap::scimath::Axes &axes = ip.axes(name);
+       ASKAPDEBUGASSERT(beam.nelements()>=3);
+       if (axes.has("MAJMIN")) {
+           axes.update("MAJMIN",beam[0].getValue("rad"),beam[1].getValue("rad"));
+       } else {
+           axes.add("MAJMIN",beam[0].getValue("rad"),beam[1].getValue("rad"));
+       }
+       
+       if (axes.has("PA")) {
+           axes.update("PA",beam[2].getValue("rad"),0.);
+       } else {
+           axes.add("PA",beam[2].getValue("rad"),0.);
+       }       
+    }
+    
     /// @brief add a parameter as a merged faceted image
     /// @details Each facet is represented by a number of independent parameters with
     /// the appropriate names. This method looks at the coordinate systems of all
@@ -573,8 +601,18 @@ namespace askap
 					     imageCoords, casa::String(imagename));
       imgImagePixels.copyData(latImagePixels);
       
-      imgImagePixels.setUnits("Jy/pixel");
-      
+      const Axes &axes = ip.axes(name);
+      if (axes.has("MAJMIN")) {
+          // this is a restored image with beam parameters set
+          ASKAPCHECK(axes.has("PA"),"PA axis should always accompany MAJMIN");
+          imgImagePixels.setUnits("Jy/beam");          
+          ImageInfo ii = imgImagePixels.imageInfo();
+          ii.setRestoringBeam(Quantity(axes.start("MAJMIN"),"rad"), Quantity(axes.end("MAJMIN"),
+                              "rad"),Quantity(axes.start("PA"),"rad"));
+          imgImagePixels.setImageInfo(ii);
+      } else {
+          imgImagePixels.setUnits("Jy/pixel");
+      }
     }
     
     void SynthesisParamsHelper::getFromCasaImage(askap::scimath::Params& ip, const string& name,

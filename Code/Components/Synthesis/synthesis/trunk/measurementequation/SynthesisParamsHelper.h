@@ -168,6 +168,21 @@ namespace askap
         /// @param[in] name full name of the image (i.e. with .facet.x.y for facets)
         static void clipImage(const askap::scimath::Params &ip, const string &name);
         
+        
+        /// @brief helper method to store restoring beam for an image
+        /// @details We have to carry restore beam parameters together with the image.
+        /// This is done by creating 2 fake axes MAJMIN (with start = maj and end = min)
+        /// and PA with position angle. All angles are given in radians. The presence of
+        /// this fake axes distinguishes a restored image from model image. Restored image
+        /// will have units Jy/beam instead of Jy/pixel and beam info will be added to the
+        /// image.
+        /// @param[in] ip parameters
+        /// @param[in] name full name of the parameter representing this image
+        /// @param[in] beam major, minor axes and position anlge as quantities
+        static void setBeam(askap::scimath::Params &ip, const string &name,
+                            const casa::Vector<casa::Quantum<double> > &beam);
+        
+        
               
         /// @brief obtain an array corresponding to a single facet of a merged faceted image
         /// @details Each facet is represented by a number of independent parameters with

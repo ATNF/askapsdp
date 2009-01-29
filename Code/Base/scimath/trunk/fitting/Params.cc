@@ -254,6 +254,12 @@ namespace askap
 			return itsAxes.find(name)->second;
 		}
 
+		Axes& Params::axes(const std::string& name) 
+		{
+			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
+			return itsAxes.find(name)->second;
+		}
+
 		bool Params::isCongruent(const Params& other) const
 		{
 			for(std::map<string,bool>::const_iterator iter = itsFree.begin(); iter != itsFree.end(); iter++)

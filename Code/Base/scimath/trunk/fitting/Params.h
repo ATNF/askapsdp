@@ -178,6 +178,10 @@ namespace askap
 /// @param name Name of param
         const Axes& axes(const std::string& name) const;
 
+        /// Return the axes for the parameter with this name (non-const)
+        /// @param name Name of param
+        Axes& axes(const std::string& name);
+
 /// Return all the completions for this name
 /// @param match Match e.g. "flux.i.*"
         std::vector<std::string> completions(const std::string& match) const;

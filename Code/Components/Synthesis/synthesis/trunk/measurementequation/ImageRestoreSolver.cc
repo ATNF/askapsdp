@@ -127,6 +127,7 @@ namespace askap
 	      SynthesisParamsHelper::update(*itsParams, *ci, *image);
 	  
 	      addResiduals(*ci,itsParams->value(*ci).shape(),itsParams->value(*ci));
+	      SynthesisParamsHelper::setBeam(*itsParams, *ci, itsBeam);
       } else {
           // this is a single facet of a larger image, just fill in the bigger image with the model
           ASKAPLOG_INFO_STR(logger, "Inserting facet " << *ci<<" into merged image "<<iph.name());
@@ -162,6 +163,8 @@ namespace askap
 	                   
 	              }
 	         }
+	         
+	         SynthesisParamsHelper::setBeam(*itsParams, ci->first, itsBeam);
 	         
 	     }
 	}
