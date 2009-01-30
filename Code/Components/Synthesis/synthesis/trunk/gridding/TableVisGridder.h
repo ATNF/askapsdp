@@ -284,10 +284,6 @@ namespace askap
       /// constness properly.
       void generic(IDataAccessor& acc, bool forward);
 
-      /// Find the cellsize from the image shape and axis definitions
-      /// @param cellsize cellsize in wavelengths
-      void findCellsize(casa::Vector<double>& cellsize);
-
       /// @brief Find the change in delay required
       /// @details
       /// @param[in] acc data accessor to take the input data from
