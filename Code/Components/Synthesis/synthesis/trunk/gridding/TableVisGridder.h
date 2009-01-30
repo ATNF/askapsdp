@@ -83,10 +83,12 @@ namespace askap
       TableVisGridder();
       /// @brief Standard two dimensional gridding using a convolution function
       /// in a table
-      /// @param overSample Oversampling (currently limited to <=1)
-      /// @param support Support of function
+      /// @param[in] overSample Oversampling (currently limited to <=1)
+      /// @param[in] support Support of function
+      /// @param[in] padding padding factor (default is 1, i.e. no padding)
       /// @param name Name of table to save convolution function into
       TableVisGridder(const int overSample, const int support,
+          const int padding = 1, 
           const std::string& name=std::string(""));
 
       /// @brief copy constructor
@@ -146,6 +148,9 @@ namespace askap
       virtual void finaliseDegrid();
 
   protected:
+      /// @brief return padding factor
+      int inline paddingFactor() const { return itsPaddingFactor;}
+      
       /// @brief gridder configured to calculate PSF?
       /// @details
       /// @return true if this gridder is configured to calculate PSF, false otherwise
@@ -216,13 +221,23 @@ namespace askap
       /// @param image image to be corrected
       virtual void correctConvolution(casa::Array<double>& image) = 0;
 
-      /// Conversion helper function
-      static void toComplex(casa::Array<casa::Complex>& out,
-          const casa::Array<double>& in);
+      /// @brief Conversion helper function
+      /// @details Copies in to out expanding double into complex values and
+      /// padding appropriately if necessary (padding is more than 1)
+      /// @param[out] out complex output array
+      /// @param[in] in double input array
+      /// @param[in] padding padding factor
+      static void toComplex(casa::Array<casa::Complex>& out, const casa::Array<double>& in, 
+                     const int padding = 1);
 
-      /// Conversion helper function
-      static void toDouble(casa::Array<double>& out,
-          const casa::Array<casa::Complex>& in);
+      /// @brief Conversion helper function
+      /// @details Copies real part of in into double array and
+      /// extracting an inner rectangle if necessary (padding is more than 1)
+      /// @param[out] out real output array
+      /// @param[in] in complex input array      
+      /// @param[in] padding padding factor
+      static void toDouble(casa::Array<double>& out, const casa::Array<casa::Complex>& in,
+                    const int padding = 1);
 
       /// @brief a helper method to initialize gridding of the PSF
       /// @details The PSF is calculated using the data for a
@@ -273,6 +288,9 @@ namespace askap
 
       /// @brief is this gridder a PSF gridder?
       bool itsDopsf;
+      
+      /// @brief internal padding factor, 1 by default
+      int itsPaddingFactor;
   
       /// Generic grid/degrid - this is the heart of this framework. It should never
       /// need to be overridden

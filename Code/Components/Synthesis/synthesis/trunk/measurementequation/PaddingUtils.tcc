@@ -63,6 +63,25 @@ casa::Array<T> PaddingUtils::centeredSubArray(casa::Array<T> &source,
   return source(blc,trc);
 }
 
+/// @brief Extract a centered subarray, which is a given factor smaller
+/// @details Most padding applications in the ASKAPsoft require operations on just two
+/// axes. This method uses centeredSubArray to extract an array which is a padding times
+/// smaller on the first two axes. Other axes are not altered. The subarray and the original
+/// array have the same centre.
+/// @param[in] source input array
+/// @param[in] padding padding factor (should be a positive number)
+/// @return extracted subarray
+template<typename T>
+casa::Array<T> PaddingUtils::extract(casa::Array<T> &source, const int padding)
+{
+   casa::IPosition shape(source.shape());
+   ASKAPDEBUGASSERT(shape.nelements()>=2);
+   ASKAPDEBUGASSERT(padding>0);
+   // form desired shape
+   shape(0) /= padding;
+   shape(1) /= padding;
+   return centeredSubArray(source, shape);
+}
 
 } // namespace synthesis
 

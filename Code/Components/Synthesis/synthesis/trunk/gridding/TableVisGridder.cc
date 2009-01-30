@@ -43,6 +43,8 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <gridding/GridKernel.h>
 
+#include <measurementequation/PaddingUtils.h>
+
 using namespace askap::scimath;
 using namespace askap;
 
@@ -101,6 +103,7 @@ TableVisGridder::TableVisGridder() :
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
+	itsPaddingFactor(1),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 
 {
@@ -109,16 +112,18 @@ TableVisGridder::TableVisGridder() :
 }
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
-		const std::string& name) :
+        const int padding, const std::string& name) :
 		 itsSupport(support), itsOverSample(overSample), itsName(name),
 				itsModelIsEmpty(false), itsSamplesGridded(0),
 				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 		itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
+		itsPaddingFactor(padding),
 		itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
 	{
 		
 		ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
 		ASKAPCHECK(support>0, "Maximum support must be greater than 0");
+		ASKAPCHECK(padding>0, "Padding factor must be greater than 0");
 	}
 
 	/// @brief copy constructor
@@ -137,7 +142,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
      itsNumberDegridded(other.itsNumberDegridded), itsTimeCoordinates(other.itsTimeCoordinates),
      itsTimeGridded(other.itsTimeGridded),
      itsTimeDegridded(other.itsTimeDegridded),
-     itsDopsf(other.itsDopsf),
+     itsDopsf(other.itsDopsf), itsPaddingFactor(other.itsPaddingFactor),
      itsFirstGriddedVis(other.itsFirstGriddedVis),
      itsFeedUsedForPSF(other.itsFeedUsedForPSF),
      itsPointingUsedForPSF(other.itsPointingUsedForPSF)
@@ -611,13 +616,27 @@ casa::MVDirection TableVisGridder::getTangentPoint() const
    return getImageCentre();
 }
 
-/// Convert from a double array to a casa::Complex array of the
-/// same size. No limits on dimensions.
+/// @brief Conversion helper function
+/// @details Copies in to out expanding double into complex values and
+/// padding appropriately if necessary (itsPaddingFactor is more than 1)
+/// @param[out] out complex output array
+/// @param[in] in double input array
+/// @param[in] padding padding factor
 void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
-		const casa::Array<double>& in) {
-	out.resize(in.shape());
-	int nx=in.shape()(0);
-	int ny=in.shape()(1);
+		const casa::Array<double>& in, const int padding) {
+	casa::IPosition outShape(in.shape());
+    // effectively its in.shape
+	const int nx=outShape(0);
+	const int ny=outShape(1);
+
+	ASKAPDEBUGASSERT(outShape.nelements()>=2);
+	outShape(0) *= padding;
+	outShape(1) *= padding;
+	out.resize(outShape);
+	
+	const int xOffset = (outShape(0) - in.shape()(0))/2;
+	const int yOffset = (outShape(1) - in.shape()(1))/2;
+
 
 	casa::ReadOnlyArrayIterator<double> inIt(in, 2);
 	casa::ArrayIterator<casa::Complex> outIt(out, 2);
@@ -626,7 +645,7 @@ void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
 		casa::Matrix<casa::Complex> outMat(outIt.array());
 		for (int iy=0; iy<ny; iy++) {
 			for (int ix=0; ix<nx; ix++) {
-				outMat(ix, iy)=casa::Complex(float(inMat(ix,iy)));
+				outMat(ix + xOffset, iy + yOffset)=casa::Complex(float(inMat(ix,iy)));
 			}
 		}
 		inIt.next();
@@ -634,22 +653,33 @@ void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
 	}
 }
 
-/// Convert from a casa::Complex array to a double of the
-/// same size. No limits on dimensions.
+/// @brief Conversion helper function
+/// @details Copies real part of in into double array and
+/// extracting an inner rectangle if necessary (itsPaddingFactor is more than 1)
+/// @param[out] out real output array
+/// @param[in] in complex input array
+/// @param[in] padding padding factor      
 void TableVisGridder::toDouble(casa::Array<double>& out,
-		const casa::Array<casa::Complex>& in) {
-	out.resize(in.shape());
-	int nx=in.shape()(0);
-	int ny=in.shape()(1);
-
+		const casa::Array<casa::Complex>& in, const int padding) {
+	casa::IPosition outShape(in.shape());
+	ASKAPDEBUGASSERT(outShape.nelements()>=2);
+	outShape(0) /= padding;
+	outShape(1) /= padding;
+	out.resize(outShape);
+	const int nx=outShape(0);
+	const int ny=outShape(1);
+	
+	const int xOffset = (in.shape()(0) - outShape(0))/2;
+	const int yOffset = (in.shape()(1) - outShape(1))/2;
+	
 	casa::ReadOnlyArrayIterator<casa::Complex> inIt(in, 2);
 	casa::ArrayIterator<double> outIt(out, 2);
 	while (!inIt.pastEnd()&&!outIt.pastEnd()) {
 		casa::Matrix<casa::Complex> inMat(inIt.array());
 		casa::Matrix<double> outMat(outIt.array());
-		for (int iy=0; iy<ny; iy++) {
-			for (int ix=0; ix<nx; ix++) {
-				outMat(ix, iy)=double(casa::real(inMat(ix,iy)));
+		for (int iy=0; iy<ny; ++iy) {
+			for (int ix=0; ix<nx; ++ix) {
+				outMat(ix, iy)=double(casa::real(inMat(ix + xOffset,iy + yOffset)));
 			}
 		}
 		inIt.next();
@@ -661,11 +691,15 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		const casa::IPosition& shape, const bool dopsf) {
 	itsAxes=axes;
 	itsShape=shape;
+	ASKAPDEBUGASSERT(shape.nelements()>=2);
+	itsShape(0) *= itsPaddingFactor;
+	itsShape(1) *= itsPaddingFactor;
+	
 	configureForPSF(dopsf);
 
 	/// We only need one grid
 	itsGrid.resize(1);
-	itsGrid[0].resize(shape);
+	itsGrid[0].resize(itsShape);
 	itsGrid[0].set(0.0);
 	if (isPSFGridder()) {
 		// for a proper PSF calculation
@@ -685,8 +719,8 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	double decEnd=itsAxes.end("DEC");
 
 	itsUVCellSize.resize(2);
-	itsUVCellSize(0)=1.0/(raEnd-raStart);
-	itsUVCellSize(1)=1.0/(decEnd-decStart);
+	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor);
+	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
 
 }
 
@@ -719,26 +753,34 @@ void TableVisGridder::initRepresentativeFieldAndFeed()
 
 /// This is the default implementation
 void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
+	ASKAPDEBUGASSERT(itsGrid.size() > 0);
+	// buffer for result as doubles
+	casa::Array<double> dBuffer(itsGrid[0].shape());
+	ASKAPDEBUGASSERT(dBuffer.shape().nelements()>=2);
+
     /// Loop over all grids Fourier transforming and accumulating
 	for (unsigned int i=0; i<itsGrid.size(); i++) {
 		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
 		fft2d(scratch, false);
 		if (i==0) {
-			toDouble(out, scratch);
+			toDouble(dBuffer, scratch);
 		} else {
 			casa::Array<double> work(out.shape());
 			toDouble(work, scratch);
-			out+=work;
+			dBuffer+=work;
 		}
 	}
 	// Now we can do the convolution correction
-	correctConvolution(out);
-	out*=double(out.shape()(0))*double(out.shape()(1));
+	correctConvolution(dBuffer);
+	dBuffer*=double(dBuffer.shape()(0))*double(dBuffer.shape()(1));
+	out = PaddingUtils::extract(dBuffer,itsPaddingFactor);
 }
 
 
 /// This is the default implementation
 void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
+	ASKAPDEBUGASSERT(itsShape.nelements() >= 4);
+
 	int nPol=itsShape(2);
 	int nChan=itsShape(3);
 
@@ -753,8 +795,9 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 			  //			  ASKAPLOG_INFO_STR(logger, "Sum of conv func " << sumConvFunc);
 				sumwt+=itsSumWeights(iz, pol, chan);
 			}
+			ASKAPDEBUGASSERT(out.shape().nelements() == 4);
 			casa::IPosition ipStart(4, 0, 0, pol, chan);
-			casa::IPosition onePlane(4, itsShape(0), itsShape(1), 1, 1);
+			casa::IPosition onePlane(4, out.shape()(0), out.shape()(0), 1, 1);
 			casa::Slicer slicer(ipStart, onePlane);
 			out(slicer).set(sumwt);
 		}
@@ -765,7 +808,7 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
     configureForPSF(false);
 	itsAxes=axes;
-	itsShape=in.shape();
+	itsShape = PaddingUtils::paddedShape(in.shape(),itsPaddingFactor);
 
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 			"RA and DEC specification not present in axes");
@@ -777,8 +820,8 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	double decEnd=itsAxes.end("DEC");
 
 	itsUVCellSize.resize(2);
-	itsUVCellSize(0)=1.0/(raEnd-raStart);
-	itsUVCellSize(1)=1.0/(decEnd-decStart);
+	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor);
+	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
 
 	/// We only need one grid
 	itsGrid.resize(1);
@@ -786,7 +829,8 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 
 	if (casa::max(casa::abs(in))>0.0) {
 		itsModelIsEmpty=false;
-		casa::Array<double> scratch(in.copy());
+		casa::Array<double> scratch(itsShape);
+		PaddingUtils::extract(scratch, itsPaddingFactor) = in;
 		correctConvolution(scratch);
 		toComplex(itsGrid[0], scratch);
 		fft2d(itsGrid[0], true);

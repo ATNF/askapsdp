@@ -65,6 +65,26 @@ struct PaddingUtils {
   /// @return extracted subarray
   template<typename T>
   static casa::Array<T> centeredSubArray(casa::Array<T> &source, const casa::IPosition &shape);  
+  
+  /// @brief Extract a centered subarray, which is a given factor smaller
+  /// @details Most padding applications in the ASKAPsoft require operations on just two
+  /// axes. This method uses centeredSubArray to extract an array which is a padding times
+  /// smaller on the first two axes. Other axes are not altered. The subarray and the original
+  /// array have the same centre.
+  /// @param[in] source input array
+  /// @param[in] padding padding factor (should be a positive number)
+  /// @return extracted subarray
+  template<typename T>
+  static casa::Array<T> extract(casa::Array<T> &source, const int padding);
+  
+  /// @brief helper method to get padded shape
+  /// @details Most padding applications in the ASKAPsoft require operations on just two
+  /// axes. This method froms a shape of an array padded on first two axes with the given factor.
+  /// @param[in] shape shape of the original array
+  /// @param[in] padding padding factor
+  /// @return shape of the padded array
+  static casa::IPosition paddedShape(const casa::IPosition &shape, const int padding);
+  
 };
 
 

@@ -88,4 +88,20 @@ void PaddingUtils::extract(casa::Lattice<float>& target, casa::Lattice<casa::Com
 }
 
 
+/// @brief helper method to get padded shape
+/// @details Most padding applications in the ASKAPsoft require operations on just two
+/// axes. This method froms a shape of an array padded on first two axes with the given factor.
+/// @param[in] shape shape of the original array
+/// @param[in] padding padding factor
+/// @return shape of the padded array
+casa::IPosition PaddingUtils::paddedShape(const casa::IPosition &shape, const int padding)
+{
+  casa::IPosition result(shape);
+  ASKAPDEBUGASSERT(result.nelements()>=2);
+  ASKAPDEBUGASSERT(padding>0);
+  result(0) *= padding;
+  result(1) *= padding;
+  return result;
+}
+
  
