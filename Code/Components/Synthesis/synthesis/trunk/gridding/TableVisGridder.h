@@ -147,9 +147,15 @@ namespace askap
       /// @brief Finalise
       virtual void finaliseDegrid();
 
-  protected:
       /// @brief return padding factor
+      /// @return current padding factor
       int inline paddingFactor() const { return itsPaddingFactor;}
+
+      /// @brief set padding factor
+      /// @param[in[ padding new padding factor
+      void inline setPaddingFactor(int padding) { padding = itsPaddingFactor;}
+
+  protected:
       
       /// @brief gridder configured to calculate PSF?
       /// @details

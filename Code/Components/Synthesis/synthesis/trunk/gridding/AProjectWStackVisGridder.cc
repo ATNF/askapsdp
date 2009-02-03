@@ -354,9 +354,10 @@ namespace askap {
     void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
       
       ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
+      ASKAPDEBUGASSERT(itsShape.nelements()>=3);
       
-      const int nx=itsShape(0);
-      const int ny=itsShape(1);
+      const int nx=itsShape(0)/paddingFactor();
+      const int ny=itsShape(1)/paddingFactor();
       const int nPol=itsShape(2);
       const int nChan=itsShape(3);
       

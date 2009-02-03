@@ -430,9 +430,10 @@ namespace askap {
     void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out) {
       
       ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
+      ASKAPDEBUGASSERT(itsShape.nelements()>=3);
       
-      const int nx=itsShape(0);
-      const int ny=itsShape(1);
+      const int nx=itsShape(0)/paddingFactor();
+      const int ny=itsShape(1)/paddingFactor();
       const int nPol=itsShape(2);
       const int nChan=itsShape(3);
       
@@ -489,7 +490,7 @@ namespace askap {
 	  float peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  fft2d(thisPlane, false);
-	  thisPlane*=casa::Complex(nx*ny);
+	  thisPlane*=casa::Complex(cnx*cny);
 	  
 	  peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz

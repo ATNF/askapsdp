@@ -215,6 +215,16 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		ASKAPLOG_INFO_STR(logger, "Gridding with spheriodal function");
 		gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
 	}
+	ASKAPASSERT(gridder);
+	if (parset.isDefined("gridder.padding")) {
+	    const int padding =parset.getInt32("gridder.padding");
+	    ASKAPLOG_INFO_STR(logger, "Use padding at the gridder level, padding factor = "<<padding);
+	    boost::shared_ptr<TableVisGridder> tvg = 
+	        boost::dynamic_pointer_cast<TableVisGridder>(gridder);
+	    ASKAPCHECK(tvg, "Gridder type ("<<parset.getString("gridder")<<
+	               ") is incompatible with the padding option");
+	    tvg->setPaddingFactor(padding);           
+	}
 	
 	// Initialize the Visibility Weights
 	if (parset.getString("visweights","")=="MFS")
