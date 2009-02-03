@@ -35,6 +35,7 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <casa/BasicSL/Constants.h>
 #include <fft/FFTWrapper.h>
+#include <measurementequation/PaddingUtils.h>
 
 using namespace askap;
 
@@ -124,6 +125,10 @@ namespace askap
     {
       itsAxes=axes;
       itsShape=shape;
+      ASKAPDEBUGASSERT(shape.nelements()>=2);
+      itsShape(0) *= paddingFactor();
+      itsShape(1) *= paddingFactor();
+      
       configureForPSF(dopsf);
 
       /// We need one grid for each plane
@@ -145,15 +150,15 @@ namespace askap
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 		 "RA and DEC specification not present in axes");
 
-      double raStart=itsAxes.start("RA");
-      double raEnd=itsAxes.end("RA");
+      const double raStart=itsAxes.start("RA");
+      const double raEnd=itsAxes.end("RA");
 
-      double decStart=itsAxes.start("DEC");
-      double decEnd=itsAxes.end("DEC");
+      const double decStart=itsAxes.start("DEC");
+      const double decEnd=itsAxes.end("DEC");
 
       itsUVCellSize.resize(2);
-      itsUVCellSize(0)=1.0/(raEnd-raStart);
-      itsUVCellSize(1)=1.0/(decEnd-decStart);
+      itsUVCellSize(0)=1.0/(raEnd-raStart)/double(paddingFactor());
+      itsUVCellSize(1)=1.0/(decEnd-decStart)/double(paddingFactor());
 
     }
 
@@ -211,6 +216,11 @@ namespace askap
           ASKAPLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
                           << " planes of W stack to get final PSF");
       }
+      ASKAPDEBUGASSERT(itsGrid.size()>0);
+      // buffer for the result as doubles
+      casa::Array<double> dBuffer(itsGrid[0].shape());
+      ASKAPDEBUGASSERT(dBuffer.shape().nelements()>=2);
+      
       /// Loop over all grids Fourier transforming and accumulating
       bool first=true;
       for (unsigned int i=0; i<itsGrid.size(); i++)
@@ -224,19 +234,20 @@ namespace askap
           if (first)
           {
             first=false;
-            toDouble(out, scratch);
+            toDouble(dBuffer, scratch);
           }
           else
           {
-            casa::Array<double> work(out.shape());
+            casa::Array<double> work(dBuffer.shape());
             toDouble(work, scratch);
-            out+=work;
+            dBuffer+=work;
           }
         }
       }
       // Now we can do the convolution correction
-      correctConvolution(out);
-      out*=double(out.shape()(0))*double(out.shape()(1));
+      correctConvolution(dBuffer);
+      dBuffer *= double(dBuffer.shape()(0))*double(dBuffer.shape()(1));
+      out = PaddingUtils::extract(dBuffer, paddingFactor());
     }
 
     void WStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
@@ -244,7 +255,7 @@ namespace askap
     {
 
       itsAxes=axes;
-      itsShape=in.shape();
+      itsShape = PaddingUtils::paddedShape(in.shape(),paddingFactor());
       configureForPSF(false);
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
@@ -257,8 +268,8 @@ namespace askap
       double decEnd=itsAxes.end("DEC");
 
       itsUVCellSize.resize(2);
-      itsUVCellSize(0)=1.0/(raEnd-raStart);
-      itsUVCellSize(1)=1.0/(decEnd-decStart);
+      itsUVCellSize(0)=1.0/(raEnd-raStart)/double(paddingFactor());
+      itsUVCellSize(1)=1.0/(decEnd-decStart)/double(paddingFactor());
 
       itsGrid.resize(itsNWPlanes);
       if (casa::max(casa::abs(in))>0.0)
@@ -266,7 +277,8 @@ namespace askap
         itsModelIsEmpty=false;
         ASKAPLOG_INFO_STR(logger, "Filling " << itsNWPlanes
                            << " planes of W stack with model");
-        casa::Array<double> scratch(in.copy());
+        casa::Array<double> scratch(itsShape);
+        PaddingUtils::extract(scratch, paddingFactor()) = in;
         correctConvolution(scratch);
         for (int i=0; i<itsNWPlanes; i++)
         {

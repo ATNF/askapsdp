@@ -765,7 +765,7 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 		if (i==0) {
 			toDouble(dBuffer, scratch);
 		} else {
-			casa::Array<double> work(out.shape());
+			casa::Array<double> work(dBuffer.shape());
 			toDouble(work, scratch);
 			dBuffer+=work;
 		}
