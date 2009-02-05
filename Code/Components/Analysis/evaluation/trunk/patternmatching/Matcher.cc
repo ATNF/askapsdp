@@ -65,7 +65,7 @@ namespace askap
 
 	this->itsSrcFile = parset.getString("srcFile","");
 	this->itsRefFile = parset.getString("refFile","");
-	this->itsFluxMethod = parset.getString("fluxMethod","integrated");
+	this->itsFluxMethod = parset.getString("fluxMethod","peak");
 	this->itsRA  = parset.getString("RA");
 	this->itsDec = parset.getString("Dec");
 	this->itsRadius = parset.getDouble("radius", -1.);
