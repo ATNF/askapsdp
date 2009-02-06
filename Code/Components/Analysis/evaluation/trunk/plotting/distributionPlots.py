@@ -97,7 +97,7 @@ def drawNormalDist(array=None, name='X', unit=''):
 #    @param locationCode The locationCode used by the subplot() function
 #    @param side Either 'l' or 'r' (for left or right)
 #    @return Array defining an axes location ([xmin,ymin,width,height])
-def setBox(locationCode=231, side='l'):
+def setBox(locationCode=332, side='l'):
     """
     A function to define where to place the histogram plot. The
     function starts with a subplot and a side, and returns an array
@@ -110,31 +110,47 @@ def setBox(locationCode=231, side='l'):
 
     xR = [0.15,0.42,0.69]
     xA = [0.26,0.53,0.80]
-    y = [0.135,0.568]
+#    y = [0.135,0.568]
+    y = [0.13,0.415,0.695]
     width = 0.08
-    height = 0.05
+    height = 0.03
 
-    if(locationCode==232):
+    if(locationCode==332):
+        if(side=='l'):
+            return [xR[1],y[2],width,height]
+        else:
+            return [xA[1],y[2],width,height]
+    elif(locationCode==333):
+        if(side=='l'):
+            return [xR[2],y[2],width,height]
+        else:
+            return [xA[2],y[2],width,height]
+    elif(locationCode==334):
+        if(side=='l'):
+            return [xR[0],y[1],width,height]
+        else:
+            return [xA[0],y[1],width,height]
+    elif(locationCode==335):
         if(side=='l'):
             return [xR[1],y[1],width,height]
         else:
             return [xA[1],y[1],width,height]
-    elif(locationCode==233):
+    elif(locationCode==336):
         if(side=='l'):
             return [xR[2],y[1],width,height]
         else:
             return [xA[2],y[1],width,height]
-    elif(locationCode==234):
+    elif(locationCode==337):
         if(side=='l'):
             return [xR[0],y[0],width,height]
         else:
             return [xA[0],y[0],width,height]
-    elif(locationCode==235):
+    elif(locationCode==338):
         if(side=='l'):
             return [xR[1],y[0],width,height]
         else:
             return [xA[1],y[0],width,height]
-    elif(locationCode==236):
+    elif(locationCode==339):
         if(side=='l'):
             return [xR[2],y[0],width,height]
         else:
@@ -211,7 +227,7 @@ def plotHistAbs(array=None, locationCode=232, name="X", unit=""):
 #    @param plotTitle: Title for overall plot
 #    @param doHistRel: Draw the histogram of relative differences
 #    @param doHistAbs: Draw the histogram of absolute differences
-def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, minRelVal=2., absoluteSizes=True, sizeStep=5., removeZeros=False, locationCode=232, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
+def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis='auto', scaleByRel=True, minRelVal=2., absoluteSizes=True, sizeStep=5., removeZeros=False, locationCode=335, name="X", unit="", plotTitle="", doHistRel=True, doHistAbs=True):
     """
     Plots the spatial distribution of matched sources, with the size
     and shape of each point governed by the size of the difference of
@@ -289,7 +305,7 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
             else:
                 plot([xS[i]],[yS[i]],'rs',ms=size[i])
 
-    title(r'%s across field, difference >%3.1f$\sigma$'%(plotTitle,minRelVal),font)
+    title(r'%s across field, >%3.1f$\sigma$'%(plotTitle,minRelVal),font)
     xlabel(r'$x\ [\prime\prime]$',font)
     ylabel(r'$y\ [\prime\prime]$',font)
     axis(spatialAxis)
@@ -319,7 +335,7 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
 #    @param minRelVal: The minimum value, in multiples of the rms above the mean of the distribution being considered, that is plotted on the spatial plot. Points with values less than this are not plotted.
 #    @param removeZeros: If True, all Source values that are zero are removed before plotting. This removes any spurious differences that may appear due to non-fitted components.
 #    @param locationCode: The code used by subplot() to draw the graph, indicating where on the page the plot should go.
-def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, spatialAxis='auto', minRelVal=2., absoluteSizes=True, removeZeros=False, locationCode=236,):
+def PAspatHistPlot(axisSrc=None, paSrc=None, paRef=None, xloc=None, yloc=None, spatialAxis='auto', minRelVal=2., absoluteSizes=True, removeZeros=False, locationCode=339,):
     """
     An optimised version of spatHistPlot for use with position angle
     values. These are special as the values can be zero even if the
@@ -404,7 +420,8 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
     rc('xtick', labelsize=10)
     rc('ytick', labelsize=10)
 
-    subplot(231)
+#    subplot(231)
+    subplot(331)
         
     dx = xS - xR
     dy = yS - yR
@@ -493,7 +510,10 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
 
     bottomFrac = 0.25
 
-    subplot(232)
+    locationCode = 332
+
+#    subplot(232)
+    subplot(locationCode)
 
     dx = xS - xR
     dy = yS - yR
@@ -551,7 +571,8 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
 
     rc('xtick', labelsize=6)
     rc('ytick', labelsize=6)
-    axes(setBox(232,'r'))
+#    axes(setBox(232,'r'))
+    axes(setBox(locationCode,'r'))
     n, bins, patches = hist(offset, max(minPlottedOff,max(offset))/0.25)
     ax=axis()
 #    ax2=[ax[0],ax[1],ax[2],max(minPlottedOff,max(offset))]
@@ -560,4 +581,69 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
 
     return axNew
 
+#############################################################################
+
+## @ingroup plotting
+#  @param xS x-positions of the detections.
+#  @param yS y-positions of the detections.
+#  @param rmsS the imagerms value
+#  @param matchFlag: a flag indicating the type of symbol to use -- either the type of match made or the type of missed object (only the unmatched detections are plotted)
+#  @param spatialAxis: An argument for the axis(...) function. Designed to be an array as produced by ax=axis(), such as the output from spatPosPlot().
+#  @param locationCode: The code used by subplot() to draw the graph, indicating where on the page the plot should go.
+#  @param unit: The units for the RMS values.
+def rmsSpatPlot(x=None, y=None, rms=None, matchFlag=None, spatialAxis='auto', locationCode=333, unit='\mu Jy'):
+    '''
+    Plots symbols indicating the size of the local image RMS at the location 
+    of each matched point. The size scales directly with the RMS, with low 
+    RMS values having small symbols etc. 
+    Arguments:
+       x, y: x- and y-positions of the detections.
+       rms: the imagerms value
+       matchFlag: a flag indicating the type of symbol to use -- either the type
+                  of match made or the type of missed object (only the unmatched
+                  detections are plotted)
+       spatialAxis: An argument for the axis(...) function. Designed to be an array as produced 
+                    by ax=axis(), such as the output from spatPosPlot().
+       locationCode: The code used by subplot() to draw the graph, indicating where on the page
+                     the plot should go.
+       unit: The units for the RMS values.
+    '''
+    rc('xtick', labelsize=10)
+    rc('ytick', labelsize=10)
+
+    bottomFrac = 0.25
+
+    subplot(locationCode)
+
+    rmsmin=min(rms)
+    rmsmax=max(rms)
+    tenFactor = 10**floor(log10(mean(rms)))
+    maxval = (ceil(rmsmax/tenFactor))*tenFactor
+    minval = (floor(rmsmin/tenFactor))*tenFactor
+    print rmsmin,rmsmax,tenFactor,minval,maxval
+
+    arglist = argsort(-rms)
+
+#    size = 1 + 10.*(rms-rmsmin)/(rmsmax-rmsmin)
+    size = 1 + 20.*(rms-minval)/(maxval-minval)
+
+    for i in arglist:
+        if(matchFlag[i]=="1"):
+            plot([x[i]],[y[i]],'ro',ms=size[i])
+        elif(matchFlag[i]=="2"):
+            plot([x[i]],[y[i]],'mo',ms=size[i])
+        elif(matchFlag[i]=="S"):
+            plot([x[i]],[y[i]],'bo',ms=size[i])
     
+    xlabel(r'$x\ [\prime\prime]$',font)
+    ylabel(r'$y\ [\prime\prime]$',font)
+    title(r'Image RMS values across field',font)
+    axis(spatialAxis)
+
+    rc('xtick', labelsize=6)
+    rc('ytick', labelsize=6)
+    axes(setBox(locationCode,'r'))
+    n, bins, patches = hist(rms, 20)
+    axis([minval,maxval,0,max(n)])
+    xlabel(r'Image RMS [$%s$]'%(unit),font)
+        

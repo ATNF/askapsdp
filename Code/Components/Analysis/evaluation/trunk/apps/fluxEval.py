@@ -29,7 +29,7 @@ if __name__ == '__main__':
         doRef=True
 
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
-    missType,id,x,y,f = read_miss_data(missfile)
+    missType,id,x,y,f,chisq2,imagerms2,rms2,ndof2,npf2,npo2 = read_miss_data(missfile)
 
     if(size(x)>0):
         print "Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R']))

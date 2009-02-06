@@ -453,6 +453,7 @@ namespace askap
 	fout.setf(std::ios::fixed);
 	std::vector<Point>::iterator pt;
 	std::vector<std::pair<Point,Point> >::iterator match;
+	Stuff nullstuff(0.,0.,0.,0,0,0,0.);
 	for(pt=this->itsRefPixList.begin(); pt<this->itsRefPixList.end(); pt++){
 	  bool isMatch=false;
 	  match = this->itsMatchingPixList.begin();
@@ -463,7 +464,11 @@ namespace askap
 	    fout << "R\t[" << pt->ID() << "]\t"
 		 << std::setw(10) << pt->x()  << " "
 		 << std::setw(10) << pt->y() << " "
-		 << std::setw(10) << pt->flux()  << "\n";
+		 << std::setw(10) << pt->flux()  << " "
+		 << std::setw(10) << pt->majorAxis() << " "
+		 << std::setw(10) << pt->minorAxis() << " "
+		 << std::setw(10) << pt->PA()  << " "
+		 << std::setw(10) << nullstuff << "\n";
 	  }
 	}
 
@@ -483,7 +488,11 @@ namespace askap
 	    fout << "S\t[" << pt->ID() << "]\t"
 		 << std::setw(10) << pt->x()  << " "
 		 << std::setw(10) << pt->y()  << " "
-		 << std::setw(10) << pt->flux() << "\n";
+		 << std::setw(10) << pt->flux() << " "
+		 << std::setw(10) << pt->majorAxis() << " "
+		 << std::setw(10) << pt->minorAxis() << " "
+		 << std::setw(10) << pt->PA()  << " "
+		 << std::setw(10) << pt->stuff() << "\n";
 	    std::cout << "[" << pt->ID() << "]\t"
 		      << std::setw(10) << pt->x()  << " "
 		      << std::setw(10) << pt->y()  << " "

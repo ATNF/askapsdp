@@ -102,13 +102,23 @@ def read_miss_data(filename=None):
     Utility function to read the positions of source and reference points that weren't matched
     It returns, in order, the ID, X and Y position of the source point, and ID, X & Y position of the matching reference point.
     Usage:
-        type,id,x,y,f = read_miss_data("misses.txt")
+        type,id,x,y,f,chisq,imagerms,fitrms,ndof,npf,npo = read_miss_data("misses.txt")
     """
     type=[]
     id=[]
     x=[]
     y=[]
     f=[]
+    aS=[]
+    bS=[]
+    pS=[]
+    chisq=[]
+    imagerms=[]
+    rms=[]
+    ndof=[]
+    npixfit=[]
+    npixobj=[]
+    dudflux=[]
     for line in open(filename):
         fields = line.split()
         type.append(fields[0])
@@ -116,8 +126,18 @@ def read_miss_data(filename=None):
         x.append(fields[2])
         y.append(fields[3])
         f.append(fields[4])
+        aS.append(fields[5])
+        bS.append(fields[6])
+        pS.append(fields[7])
+        chisq.append(fields[8])
+        imagerms.append(fields[9])
+        rms.append(fields[10])
+        ndof.append(fields[11])
+        npixfit.append(fields[12])
+        npixobj.append(fields[13])
+        dudflux.append(fields[14])
     
-    return array(type),array(id),cast[float](array(x)),cast[float](array(y)),cast[float](array(f))
+    return array(type),array(id),cast[float](array(x)),cast[float](array(y)),cast[float](array(f)),cast[float](array(chisq)),cast[float](array(imagerms)),cast[float](array(rms)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj))
 
 
 def read_ref_list(filename=None):
