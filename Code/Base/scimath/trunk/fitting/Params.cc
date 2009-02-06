@@ -329,10 +329,12 @@ namespace askap
 			{
 				if(casa::String(iter->first).matches(regex))
 				{
-					casa::String complete(iter->first);
-					complete.gsub(sub, "");
-					completions.push_back(complete);
-					ncomplete++;
+                                   if (iter->second) {
+				       casa::String complete(iter->first);
+				       complete.gsub(sub, "");
+				       completions.push_back(complete);
+				       ncomplete++;
+                                   }
 				}
 			}
 			return completions;
