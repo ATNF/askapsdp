@@ -263,7 +263,7 @@ namespace askap
            for (int iy=0;iy<nfacets;++iy) {
 
                 // for debugging to avoid running out of memory
-                //if (ix || iy) continue;
+                //if (ix!=1 || iy!=1) continue;
                       
                 const double raCentre = ra+facetstep*xcellsize*double(ix-nfacets/2);
                 const double decCentre = dec+facetstep*ycellsize*double(iy-nfacets/2);
@@ -294,6 +294,9 @@ namespace askap
       
                 axes.add("FREQUENCY", freqmin, freqmax);
                 ip.add(facetParamName(name,ix,iy), pixels, axes);    
+                
+                // for debigging
+                //if (ix!=0 || iy!=0) ip.fix(facetParamName(name,ix,iy));
            }
       }
       

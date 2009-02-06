@@ -160,6 +160,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
+		ASKAPLOG_INFO_STR(logger, "   Padding factor    = " << itsPaddingFactor);
 		if (isPSFGridder()) {
 		    ASKAPLOG_INFO_STR(logger, "   PSF samples gridded       = "
                               << itsSamplesGridded);
@@ -797,7 +798,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 			}
 			ASKAPDEBUGASSERT(out.shape().nelements() == 4);
 			casa::IPosition ipStart(4, 0, 0, pol, chan);
-			casa::IPosition onePlane(4, out.shape()(0), out.shape()(0), 1, 1);
+			casa::IPosition onePlane(4, out.shape()(0), out.shape()(1), 1, 1);
 			casa::Slicer slicer(ipStart, onePlane);
 			out(slicer).set(sumwt);
 		}
