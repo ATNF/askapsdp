@@ -153,7 +153,7 @@ namespace askap
 
       /// @brief set padding factor
       /// @param[in[ padding new padding factor
-      void inline setPaddingFactor(int padding) { padding = itsPaddingFactor;}
+      void inline setPaddingFactor(const int padding) { itsPaddingFactor = padding;}
 
   protected:
       

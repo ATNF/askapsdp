@@ -224,7 +224,9 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	    ASKAPCHECK(tvg, "Gridder type ("<<parset.getString("gridder")<<
 	               ") is incompatible with the padding option");
 	    tvg->setPaddingFactor(padding);           
-	}
+	} else {
+            ASKAPLOG_INFO_STR(logger,"No padding at the gridder level");
+        }
 	
 	// Initialize the Visibility Weights
 	if (parset.getString("visweights","")=="MFS")
