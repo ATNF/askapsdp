@@ -160,7 +160,6 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {
 		ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
-		ASKAPLOG_INFO_STR(logger, "   Padding factor    = " << itsPaddingFactor);
 		if (isPSFGridder()) {
 		    ASKAPLOG_INFO_STR(logger, "   PSF samples gridded       = "
                               << itsSamplesGridded);
@@ -225,8 +224,8 @@ TableVisGridder::~TableVisGridder() {
 	}
 	if((itsNumberGridded<1) && (itsNumberDegridded<1)) {
 	  ASKAPLOG_WARN_STR(logger, "Unused gridder");
-	}
-	else {
+	} else {
+	  ASKAPLOG_INFO_STR(logger, "   Padding factor    = " << itsPaddingFactor);
 	  if(itsName!="") {
 	    save(itsName);
 	  }

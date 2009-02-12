@@ -135,7 +135,7 @@ namespace askap
       itsGrid.resize(itsNWPlanes);
       for (int i=0; i<itsNWPlanes; i++)
       {
-        itsGrid[i].resize(shape);
+        itsGrid[i].resize(itsShape);
         itsGrid[i].set(0.0);
       }
       if (isPSFGridder())

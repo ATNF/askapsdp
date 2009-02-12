@@ -108,7 +108,7 @@ namespace askap
       /// Pad up in size using FFT
       /// @param in Input Array
       /// @param out Output Array
-      void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
+      static void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
     };
   }
 }
