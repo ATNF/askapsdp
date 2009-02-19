@@ -46,6 +46,8 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/UVPattern.h>
 #include <gridding/IBasicIllumination.h>
 
+#include <measurementequation/PaddingUtils.h>
+
 using namespace askap;
 
 namespace askap {
@@ -356,8 +358,8 @@ namespace askap {
       ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
       ASKAPDEBUGASSERT(itsShape.nelements()>=3);
       
-      const int nx=itsShape(0)/paddingFactor();
-      const int ny=itsShape(1)/paddingFactor();
+      const int nx=itsShape(0);
+      const int ny=itsShape(1);
       const int nPol=itsShape(2);
       const int nChan=itsShape(3);
       
@@ -409,11 +411,10 @@ namespace askap {
 	    }
 	  }
 	  
-	  float peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  fft2d(thisPlane, false);
 	  thisPlane*=casa::Complex(nx*ny);
-	  peak=real(casa::max(casa::abs(thisPlane)));
+	  float peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
 	  //			    << "] peak = "<< peak);
 
@@ -437,6 +438,7 @@ namespace askap {
 	  }
 	} // if has data
       } // loop over convolution functions
+      
       fftPad(cOut, out);
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
@@ -457,8 +459,13 @@ namespace askap {
           return;
       }
       
-      ASKAPCHECK(onx>=inx, "Attempting to pad to smaller array");
-      ASKAPCHECK(ony>=iny, "Attempting to pad to smaller array");
+      ASKAPCHECK((onx>=inx)==(ony>=iny), "Attempting to pad to a rectangular array smaller on one axis");
+      if (onx<inx) {
+          // no fft padding required, the output array is smaller.
+          casa::Array<double> tempIn(in); // in is a conceptual const array here
+          out = PaddingUtils::centeredSubArray(tempIn,out.shape()).copy();
+          return;
+      }
       
       /// Make an iterator that returns plane by plane
       casa::ReadOnlyArrayIterator<double> inIt(in, 2);
