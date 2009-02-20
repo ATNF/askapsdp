@@ -140,11 +140,6 @@ namespace askap
       casa::Matrix<bool> itsDone;
       /// Pointing for this feed and field
       casa::Matrix<casa::MVDirection> itsPointings;
-    protected:
-      /// Pad up in size using FFT
-      /// @param in Input Array
-      /// @param out Output Array
-      static void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
     };
 
   }

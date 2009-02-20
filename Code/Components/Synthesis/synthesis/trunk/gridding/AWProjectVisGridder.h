@@ -144,10 +144,6 @@ namespace askap
       /// Has this feed and field been filled in?
       casa::Matrix<bool> itsDone;
 
-      /// Pad up in size using FFT
-      /// @param in Input Array
-      /// @param out Output Array
-      void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
     };
 
   }

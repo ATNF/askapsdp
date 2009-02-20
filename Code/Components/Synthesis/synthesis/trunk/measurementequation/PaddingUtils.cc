@@ -42,6 +42,9 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <lattices/Lattices/LatticeExpr.h>
 #include <lattices/Lattices/SubLattice.h>
 
+#include <fft/FFTWrapper.h>
+#include <casa/Arrays/ArrayIter.h>
+
 
 using namespace askap;
 using namespace synthesis;
@@ -104,4 +107,65 @@ casa::IPosition PaddingUtils::paddedShape(const casa::IPosition &shape, const in
   return result;
 }
 
- 
+/// @brief padding with fft
+/// @details Sometimes it is necessary to do padding in the other domain. This routine 
+/// does the Fourier transform, pad the result to the size of the output and then transforms 
+/// back to the original domain. It is done if the size of the output array along the first two
+/// axes is larger than the size of the input array. If the output array size is smaller, just 
+/// the inner subimage is copied and no fft is done. Equal size result in no operation.
+/// @note Both input and output arrays should be at least 2-dimensional, otherwise an exception
+/// is thrown. 
+/// @param[in] in input array 
+/// @param[in] out output array (should already be resized to a desired size) 
+void PaddingUtils::fftPad(const casa::Array<double>& in, casa::Array<double>& out)
+{
+  ASKAPDEBUGASSERT(in.shape().nelements()>=2);    
+  const int inx=in.shape()(0);
+  const int iny=in.shape()(1);
+
+  ASKAPDEBUGASSERT(out.shape().nelements()>=2);    
+      
+  const int onx=out.shape()(0);
+  const int ony=out.shape()(1);
+            
+  // Shortcut no-op
+  if ((inx == onx) && (iny == ony)) {
+       out = in.copy();
+       return;
+  }
+      
+  ASKAPCHECK((onx >= inx) == (ony >= iny), 
+             "Attempting to pad to a rectangular array smaller on one axis");
+  if (onx<inx) {
+      // no fft padding required, the output array is smaller.
+      casa::Array<double> tempIn(in); // in is a conceptual const array here
+      out = centeredSubArray(tempIn,out.shape()).copy();
+      return;
+  }
+      
+      
+  /// Make an iterator that returns plane by plane
+  casa::ReadOnlyArrayIterator<double> inIt(in, 2);
+  casa::ArrayIterator<double> outIt(out, 2);
+  while (!inIt.pastEnd()&&!outIt.pastEnd()) {
+         casa::Matrix<casa::DComplex> inPlane(inx, iny);
+         casa::Matrix<casa::DComplex> outPlane(onx, ony);
+         casa::convertArray(inPlane, inIt.array());
+         outPlane.set(0.0);
+         fft2d(inPlane, false);
+         for (int iy=0; iy<iny; ++iy) {
+              for (int ix=0; ix<inx; ++ix) {
+                   outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
+              }
+         }
+         
+         fft2d(outPlane, true);
+         const casa::Array<casa::DComplex> constOutPlane(outPlane);
+         casa::Array<double> outArray(outIt.array());
+	
+         casa::real(outArray, constOutPlane);
+	
+         inIt.next();
+         outIt.next();
+  }
+}

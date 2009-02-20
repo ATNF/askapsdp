@@ -439,59 +439,11 @@ namespace askap {
 	} // if has data
       } // loop over convolution functions
       
-      fftPad(cOut, out);
+      PaddingUtils::fftPad(cOut, out);
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }
-    
-    void AProjectWStackVisGridder::fftPad(const casa::Array<double>& in,
-					  casa::Array<double>& out) {
-      
-      int inx=in.shape()(0);
-      int iny=in.shape()(1);
-      
-      int onx=out.shape()(0);
-      int ony=out.shape()(1);
-      
-      // Shortcut no-op
-      if ((inx==onx)&&(iny==ony)) {
-          out=in.copy();
-          return;
-      }
-      
-      ASKAPCHECK((onx>=inx)==(ony>=iny), "Attempting to pad to a rectangular array smaller on one axis");
-      if (onx<inx) {
-          // no fft padding required, the output array is smaller.
-          casa::Array<double> tempIn(in); // in is a conceptual const array here
-          out = PaddingUtils::centeredSubArray(tempIn,out.shape()).copy();
-          return;
-      }
-      
-      /// Make an iterator that returns plane by plane
-      casa::ReadOnlyArrayIterator<double> inIt(in, 2);
-      casa::ArrayIterator<double> outIt(out, 2);
-      while (!inIt.pastEnd()&&!outIt.pastEnd()) {
-	casa::Matrix<casa::DComplex> inPlane(inx, iny);
-	casa::Matrix<casa::DComplex> outPlane(onx, ony);
-	casa::convertArray(inPlane, inIt.array());
-	outPlane.set(0.0);
-	fft2d(inPlane, false);
-	for (int iy=0; iy<iny; iy++) {
-	  for (int ix=0; ix<inx; ix++) {
-	    outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
-	  }
-	}
-	fft2d(outPlane, true);
-	const casa::Array<casa::DComplex> constOutPlane(outPlane);
-	casa::Array<double> outArray(outIt.array());
-	
-	casa::real(outArray, constOutPlane);
-	
-	inIt.next();
-	outIt.next();
-      }
-    }
-    
+        
     int AProjectWStackVisGridder::cIndex(int row, int pol, int chan) {
       return itsCMap(row, pol, chan);
     }

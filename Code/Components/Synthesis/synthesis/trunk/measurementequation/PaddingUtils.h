@@ -85,6 +85,18 @@ struct PaddingUtils {
   /// @return shape of the padded array
   static casa::IPosition paddedShape(const casa::IPosition &shape, const int padding);
   
+  /// @brief padding with fft
+  /// @details Sometimes it is necessary to do padding in the other domain. This routine 
+  /// does the Fourier transform, pad the result to the size of the output and then transforms 
+  /// back to the original domain. It is done if the size of the output array along the first two
+  /// axes is larger than the size of the input array. If the output array size is smaller, just 
+  /// the inner subimage is copied and no fft is done. Equal size result in no operation.
+  /// @note Both input and output arrays should be at least 2-dimensional, otherwise an exception
+  /// is thrown. 
+  /// @param[in] in input array 
+  /// @param[in] out output array (should already be resized to a desired size) 
+  static void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
+  
 };
 
 
