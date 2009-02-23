@@ -34,9 +34,9 @@ namespace askap::analysis::sourcefitting {};
 ///
 /// @section Dependencies
 /// The analysis package makes extensive use of the Duchamp 3D source
-/// finding package to do the source detection and extraction. This
-/// package currently only reads FITS data, so currently this is the
-/// only data type able to be analysed.
+/// finding package to do the source detection and extraction. While 
+/// Duchamp can only read FITS images, there are additional routines 
+/// provided by this package to read AIPS++/casa images as well.
 ///
 /// Source fitting is largely done by casa Gaussian Fitting routines. 
 ///

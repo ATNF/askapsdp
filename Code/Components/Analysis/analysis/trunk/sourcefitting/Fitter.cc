@@ -79,6 +79,7 @@ namespace askap
 	this->itsCriterium = parset.getDouble("criterium", 0.0001);
 	this->itsMaxIter = parset.getUint32("maxIter",1024);
 	this->itsUseNoise = parset.getBool("useNoise",true);
+	this->itsFlagFitThisParam = parset.getBoolVector("flagFitParam",std::vector<bool>(6,true));
       }
 
 
@@ -110,6 +111,7 @@ namespace askap
 	this->itsCriterium = f.itsCriterium;
 	this->itsMaxIter = f.itsMaxIter;
 	this->itsUseNoise = f.itsUseNoise;
+	this->itsFlagFitThisParam = f.itsFlagFitThisParam;
 	return *this;
       }
 
@@ -149,18 +151,37 @@ namespace askap
 	  estimate(g,0) = cmpntList[cmpnt].peak();
 	  estimate(g,1) = cmpntList[cmpnt].x();
 	  estimate(g,2) = cmpntList[cmpnt].y();
+	  estimate(g,3) = cmpntList[cmpnt].maj();
+	  estimate(g,4) = cmpntList[cmpnt].min()/cmpntList[cmpnt].maj();
+	  estimate(g,5) = cmpntList[cmpnt].pa();
 	  
-	  if(head.getBmajKeyword()>0 && 
-	     (head.getBmajKeyword()/head.getAvPixScale() > cmpntList[cmpnt].maj())){
-	    estimate(g,3)=head.getBmajKeyword()/head.getAvPixScale();
-	    estimate(g,4)=head.getBminKeyword()/head.getBmajKeyword();
-	    estimate(g,5)=head.getBpaKeyword() * M_PI / 180.;
+ 	  if(head.getBmajKeyword()>0 ){ // if the beam is known,
+
+	    bool size=(head.getBmajKeyword()/head.getAvPixScale() > cmpntList[cmpnt].maj());
+
+	    // if the subcomponent is smaller than the beam, or if we
+	    // don't want to fit the size parameters, change the
+	    // estimates of the parameters to the beam size
+	    if(size || !this->itsParams.flagFitThisParam(3)) 
+	      estimate(g,3) = head.getBmajKeyword()/head.getAvPixScale();
+	    if(size || !this->itsParams.flagFitThisParam(4)) 
+	      estimate(g,4)=head.getBminKeyword()/head.getBmajKeyword();
+	    if(size || !this->itsParams.flagFitThisParam(5)) 
+	      estimate(g,5)=head.getBpaKeyword() * M_PI / 180.;
+
 	  }
-	  else{
-	    estimate(g,3) = cmpntList[cmpnt].maj();
-	    estimate(g,4) = cmpntList[cmpnt].min()/cmpntList[cmpnt].maj();
-	    estimate(g,5) = cmpntList[cmpnt].pa();
-	  }
+
+// 	  if(head.getBmajKeyword()>0 && 
+// 	     (head.getBmajKeyword()/head.getAvPixScale() > cmpntList[cmpnt].maj())){
+// 	    estimate(g,3)=head.getBmajKeyword()/head.getAvPixScale();
+// 	    estimate(g,4)=head.getBminKeyword()/head.getBmajKeyword();
+// 	    estimate(g,5)=head.getBpaKeyword() * M_PI / 180.;
+// 	  }
+// 	  else{
+// 	    estimate(g,3) = cmpntList[cmpnt].maj();
+// 	    estimate(g,4) = cmpntList[cmpnt].min()/cmpntList[cmpnt].maj();
+// 	    estimate(g,5) = cmpntList[cmpnt].pa();
+// 	  }
 	
 	}
 
@@ -213,14 +234,16 @@ namespace askap
 	// mask the beam parameters
 	//	  std::cout << "Mask values:\n";
 	for(unsigned int g=0;g<this->itsNumGauss;g++){
-	  this->itsFitter.mask(g,3) = false;
-	  this->itsFitter.mask(g,4) = false;
-	  this->itsFitter.mask(g,5) = false;
-	  //	  	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=false;   // set them all false
-	  // 	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=true;   // set them all true
-	  //	    for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
-	  //	    for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
-	  //	    std::cout << "\n";
+	  for(unsigned int p=0; p<6; p++)
+	    this->itsFitter.mask(g,p) = this->itsParams.flagFitThisParam(p);
+// 	  this->itsFitter.mask(g,3) = false;
+// 	  this->itsFitter.mask(g,4) = false;
+// 	  this->itsFitter.mask(g,5) = false;
+// 	  //	  	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=false;   // set them all false
+// 	  // 	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=true;   // set them all true
+// 	  //	    for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
+// 	  //	    for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
+// 	  //	    std::cout << "\n";
 	}	      
 
       }

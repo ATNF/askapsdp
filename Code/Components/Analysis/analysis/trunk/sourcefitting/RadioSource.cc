@@ -734,7 +734,8 @@ namespace askap
 	stream.setf(std::ios::fixed);
 	
 	int suffixCtr=0;
-	char suffix[4]  = {'a','b','c','d'};
+	//	char suffix[4]  = {'a','b','c','d'};
+	char firstSuffix = 'a';
 
 	int prec=columns[duchamp::Column::FINT].getPrecision();
 	if(prec < 6)
@@ -787,7 +788,8 @@ namespace askap
 	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
 
 	  std::stringstream id;
-	  id << this->getID() << suffix[suffixCtr++];
+	  //	  id << this->getID() << suffix[suffixCtr++];
+	  id << this->getID() << char(firstSuffix + suffixCtr++);
 	  columns[duchamp::Column::NUM].printEntry(stream, id.str());
 	  double *pix = new double[3];
 	  pix[0] = fit->xCenter();

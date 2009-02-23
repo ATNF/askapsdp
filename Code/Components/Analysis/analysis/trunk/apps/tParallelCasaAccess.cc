@@ -45,6 +45,7 @@ using namespace LOFAR::TYPES;
 #include <casa/aipstype.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
 #include <images/Images/ImageOpener.h>
+#include <lattices/Lattices/LatticeLocker.h>
 #include <images/Images/FITSImage.h>
 #include <images/Images/SubImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
@@ -85,6 +86,8 @@ public:
 bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
 {
       LatticeBase* lattPtr = ImageOpener::openImage (name);
+      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
+      lattPtr->unlock();
       ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
       bool OK = (lattPtr != 0);
       ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
@@ -140,48 +143,48 @@ int main(int argc, const char *argv[])
     if(parl.isMaster()){
 
       ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nnode() << ")");
-      std::stringstream ss;
-      bool OK;
-      for(int i=1;i<parl.nnode();i++){
-	LOFAR::BlobString bs1;
-	bs1.resize(0);
-	LOFAR::BlobOBufString bob(bs1);
-	LOFAR::BlobOStream out(bob);
-	out.putStart("mw",1);
-	out << i ;
-	out.putEnd();
-	parl.connectionSet()->writeAll(bs1);
-	ASKAPLOG_INFO_STR(logger,"Master: Sent to worker #"<<i);
+//       std::stringstream ss;
+//       bool OK;
+//       for(int i=1;i<parl.nnode();i++){
+// 	LOFAR::BlobString bs1;
+// 	bs1.resize(0);
+// 	LOFAR::BlobOBufString bob(bs1);
+// 	LOFAR::BlobOStream out(bob);
+// 	out.putStart("mw",1);
+// 	out << i ;
+// 	out.putEnd();
+// 	parl.connectionSet()->writeAll(bs1);
+// 	ASKAPLOG_INFO_STR(logger,"Master: Sent to worker #"<<i);
 	
-       	LOFAR::BlobString bs2;
-	parl.connectionSet()->read(i-1, bs2);
-	LOFAR::BlobIBufString bib(bs2);
-	LOFAR::BlobIStream in(bib);
-	int version=in.getStart("wm");
-	ASKAPASSERT(version==1);
-	in >> OK;
-	in.getEnd();
-	ASKAPLOG_INFO_STR(logger,"Master: Read from worker #"<<i<<": OK="<<OK);
-      }
+//        	LOFAR::BlobString bs2;
+// 	parl.connectionSet()->read(i-1, bs2);
+// 	LOFAR::BlobIBufString bib(bs2);
+// 	LOFAR::BlobIStream in(bib);
+// 	int version=in.getStart("wm");
+// 	ASKAPASSERT(version==1);
+// 	in >> OK;
+// 	in.getEnd();
+// 	ASKAPLOG_INFO_STR(logger,"Master: Read from worker #"<<i<<": OK="<<OK);
+//       }
 
-      LOFAR::BlobString bs3;
-      bs3.resize(0);
-      LOFAR::BlobOBufString bob3(bs3);
-      LOFAR::BlobOStream out3(bob3);
-      out3.putStart("mw",1);
-      out3 << parl.nnode();
-      out3.putEnd();
-      parl.connectionSet()->writeAll(bs3);
+//       LOFAR::BlobString bs3;
+//       bs3.resize(0);
+//       LOFAR::BlobOBufString bob3(bs3);
+//       LOFAR::BlobOStream out3(bob3);
+//       out3.putStart("mw",1);
+//       out3 << parl.nnode();
+//       out3.putEnd();
+//       parl.connectionSet()->writeAll(bs3);
 
-      float mean = 77.;
-      LOFAR::BlobString bs4;
-      bs4.resize(0);
-      LOFAR::BlobOBufString bob4(bs4);
-      LOFAR::BlobOStream out4(bob4);
-      out4.putStart("mean",1);
-      out4 << mean ;
-      out4.putEnd();
-      parl.connectionSet()->writeAll(bs4);
+//       float mean = 77.;
+//       LOFAR::BlobString bs4;
+//       bs4.resize(0);
+//       LOFAR::BlobOBufString bob4(bs4);
+//       LOFAR::BlobOStream out4(bob4);
+//       out4.putStart("mean",1);
+//       out4 << mean ;
+//       out4.putEnd();
+//       parl.connectionSet()->writeAll(bs4);
 
       std::cout << "Master done!\n";
 
@@ -193,18 +196,18 @@ int main(int argc, const char *argv[])
       int rank;
       bool OK;
 
-      do{
-	LOFAR::BlobString bs1;
-	bs1.resize(0);
-	parl.connectionSet()->read(0, bs1);
-	LOFAR::BlobIBufString bib(bs1);
-	LOFAR::BlobIStream in(bib);
-	std::stringstream ss;
-	int version=in.getStart("mw");
-	ASKAPASSERT(version==1);
-	in >> rank;
-	in.getEnd();
-      }	while(rank != parl.rank());
+//       do{
+// 	LOFAR::BlobString bs1;
+// 	bs1.resize(0);
+// 	parl.connectionSet()->read(0, bs1);
+// 	LOFAR::BlobIBufString bib(bs1);
+// 	LOFAR::BlobIStream in(bib);
+// 	std::stringstream ss;
+// 	int version=in.getStart("mw");
+// 	ASKAPASSERT(version==1);
+// 	in >> rank;
+// 	in.getEnd();
+//       }	while(rank != parl.rank());
       
       ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" has the OK");
       
@@ -215,42 +218,42 @@ int main(int argc, const char *argv[])
       ASKAPLOG_DEBUG_STR(logger,"Worker #"<<parl.rank()<<": sizeof(subimage) = " << sizeof(subimage));
       ASKAPLOG_INFO_STR(logger,"Worker #"<<parl.rank()<<": subimage mean = " << subimageMean(subimage));
       
-      LOFAR::BlobString bs2;
-      bs2.resize(0);
-      LOFAR::BlobOBufString bob(bs2);
-      LOFAR::BlobOStream out(bob);
-      out.putStart("wm",1);
-      out << OK;
-      out.putEnd();
-      parl.connectionSet()->write(0,bs2);
+//       LOFAR::BlobString bs2;
+//       bs2.resize(0);
+//       LOFAR::BlobOBufString bob(bs2);
+//       LOFAR::BlobOStream out(bob);
+//       out.putStart("wm",1);
+//       out << OK;
+//       out.putEnd();
+//       parl.connectionSet()->write(0,bs2);
 
-      do{
-	LOFAR::BlobString bs3;
-	bs3.resize(0);
-	parl.connectionSet()->read(0, bs3);
-	LOFAR::BlobIBufString bib3(bs3);
-	LOFAR::BlobIStream in3(bib3);
-	std::stringstream ss;
-	int version=in3.getStart("mw");
-	ASKAPASSERT(version==1);
-	in3 >> rank;
-	in3.getEnd();
-      }	while(rank != parl.nnode());
+//       do{
+// 	LOFAR::BlobString bs3;
+// 	bs3.resize(0);
+// 	parl.connectionSet()->read(0, bs3);
+// 	LOFAR::BlobIBufString bib3(bs3);
+// 	LOFAR::BlobIStream in3(bib3);
+// 	std::stringstream ss;
+// 	int version=in3.getStart("mw");
+// 	ASKAPASSERT(version==1);
+// 	in3 >> rank;
+// 	in3.getEnd();
+//       }	while(rank != parl.nnode());
 
 
       float mean;
-	LOFAR::BlobString bs4;
-	bs4.resize(0);
-	parl.connectionSet()->read(0, bs4);
-	LOFAR::BlobIBufString bib4(bs4);
-	LOFAR::BlobIStream in4(bib4);
-	std::stringstream ss;
-	int version=in4.getStart("mean");
-	while(version!=1) {}
-	//	ASKAPASSERT(version==1);
-	in4 >> mean;
-	in4.getEnd();
-	ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" received mean of " << mean << " from Master.");
+// 	LOFAR::BlobString bs4;
+// 	bs4.resize(0);
+// 	parl.connectionSet()->read(0, bs4);
+// 	LOFAR::BlobIBufString bib4(bs4);
+// 	LOFAR::BlobIStream in4(bib4);
+// 	std::stringstream ss;
+// 	int version=in4.getStart("mean");
+// 	while(version!=1) {}
+// 	//	ASKAPASSERT(version==1);
+// 	in4 >> mean;
+// 	in4.getEnd();
+// 	ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" received mean of " << mean << " from Master.");
       
       std::cout << "Success! (" << parl.rank() <<")\n";
 

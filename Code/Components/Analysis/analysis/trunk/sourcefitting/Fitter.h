@@ -126,7 +126,7 @@ namespace askap
 	void setMaxReducedChisq(float f){itsMaxReducedChisq=f;};
 	void setPeakFlux(float f){itsSrcPeak = f;};
 	void setDetectThresh(float f){itsDetectThresh=f;};
-	void setMinFitSize(int i){itsMinFitSize = i;};
+	void setMinFitSize(unsigned int i){itsMinFitSize = i;};
 	void setBeamSize(float f){itsBeamSize = f;};
 	void setMaxRetries(int i){itsMaxRetries = i;};
 	void setCriterium(Double d){itsCriterium = d;};
@@ -139,12 +139,13 @@ namespace askap
 	Double maxRMS(){return itsMaxRMS;};
 	float  chisqConfidence(){return itsChisqConfidence;};
 	float  maxReducedChisq(){return itsMaxReducedChisq;};
-	int    minFitSize(){return itsMinFitSize;};
+	unsigned int   minFitSize(){return itsMinFitSize;};
 	float  beamSize(){return itsBeamSize;};
 	int    maxRetries(){return itsMaxRetries;};
 	Double criterium(){return itsCriterium;};
 	uInt   maxIter(){return itsMaxIter;};
 	bool   useNoise(){return itsUseNoise;};
+	bool   flagFitThisParam(int i){return itsFlagFitThisParam[i];};
 
 	// @}
 
@@ -215,6 +216,10 @@ namespace askap
 	int itsYmin;
 	int itsYmax;
 	/// @}
+
+	/// @brief Flags indicating whether to fit the corresponding parameter (if true), or whether to leave it untouched (false)
+	std::vector<bool> itsFlagFitThisParam;
+
       };
 
 
