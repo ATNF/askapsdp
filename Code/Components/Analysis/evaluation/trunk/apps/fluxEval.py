@@ -2,10 +2,12 @@
 """
 """
 from pkg_resources import require
+require('numpy')
+require('matplotlib')
 #require('numpy==1.0.3.1')
-require('numpy==1.1.1')
+#require('numpy==1.1.1')
 #require('matplotlib==0.90.1')
-require('matplotlib==0.98.3')
+#require('matplotlib==0.98.3')
 from pylab import *
 from numpy import *
 import numpy
@@ -121,7 +123,7 @@ if __name__ == '__main__':
     for i in ind:
         plot([numComp[i]],[rdF[i]],'o')
     axisrange = axis()
-    axis([0,5,axisrange[2],axisrange[3]])
+    axis([0,max(numComp)+1,axisrange[2],axisrange[3]])
     xlabel(r'Number of fitted components',font)
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs number of fitted components',font)
@@ -198,13 +200,18 @@ if __name__ == '__main__':
     xlabel(r'Number of pixels in object',font)
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs num pixels in object',font)
+#    for i in ind:
+#        plot([npo[i]],[dF[i]],'o')
+#    xlabel(r'Number of pixels in object',font)
+#    ylabel(r'$\Delta S$',font)
+#    title('Flux diff vs num pixels in object',font)
 
     subplot(4,5,16)
     for i in ind:
         plot([aS[i]],[dF[i]],'o')
     xlabel(r'Major axis of fit [arcsec]',font)
     ylabel(r'$\Delta S$',font)
-    title('Fitted flux vs major axis',font)
+    title('Flux diff vs major axis',font)
 
     subplot(4,5,17)
     temp=[]
@@ -233,7 +240,6 @@ if __name__ == '__main__':
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs log(S/N)',font)
 
-
     numNeighbours = zeros(len(xS))
     for i in range(len(xS)):
         for j in range(len(x)):
@@ -247,7 +253,7 @@ if __name__ == '__main__':
     for i in ind:
         plot([numNeighbours[i]],[rdF[i]],'o')
     axisrange = axis()
-    axis([-0.5,2.5,axisrange[2],axisrange[3]])
+    axis([-0.5,max(numNeighbours)+1.5,axisrange[2],axisrange[3]])
     xlabel(r'No. of unmatched nearby catalogue sources',font)
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs Num neighbours',font)

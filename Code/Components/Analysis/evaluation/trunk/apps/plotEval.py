@@ -47,8 +47,15 @@ if __name__ == '__main__':
 #    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=True, removeZeros=True, name='A', unit='\prime\prime', locationCode=234, plotTitle='Major axis difference')
 #    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=True, removeZeros=True, name='B', unit='\prime\prime', locationCode=235, plotTitle='Minor axis difference')
 #    PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, minRelVal=1., removeZeros=True, locationCode=236)
-    spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=False, removeZeros=True, name='S', unit='\mu Jy', locationCode=334, plotTitle='Flux difference')
+    spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=100., removeZeros=True, name='S', unit='\mu Jy', locationCode=334, plotTitle='Flux difference')
     spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=False, removeZeros=True, name='S', unit='\mu Jy', locationCode=335, plotTitle='Rel. Flux difference')
+
+#    subplot(336)
+#    meandx = mean(xS-xR)
+#    meandy = mean(yS-yR)
+#    offset = sqrt( (xS-xR-meandx)**2 + (yS-yR-meandy)**2 )
+#    plot(offset,imagerms,'o')
+
     spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=True, removeZeros=True, name='A', unit='\prime\prime', locationCode=337, plotTitle='Major axis difference')
     spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=True, removeZeros=True, name='B', unit='\prime\prime', locationCode=338, plotTitle='Minor axis difference')
     PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, minRelVal=1., removeZeros=True, locationCode=339)
