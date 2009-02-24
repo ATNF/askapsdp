@@ -438,8 +438,7 @@ namespace askap {
 	  }
 	} // if has data
       } // loop over convolution functions
-      
-      PaddingUtils::fftPad(cOut, out);
+      PaddingUtils::fftPad(cOut, out, paddingFactor());
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }

@@ -92,10 +92,22 @@ struct PaddingUtils {
   /// axes is larger than the size of the input array. If the output array size is smaller, just 
   /// the inner subimage is copied and no fft is done. Equal size result in no operation.
   /// @note Both input and output arrays should be at least 2-dimensional, otherwise an exception
-  /// is thrown. 
+  /// is thrown (in debug mode). 
   /// @param[in] in input array 
   /// @param[in] out output array (should already be resized to a desired size) 
   static void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
+  
+  /// @brief padding with fft
+  /// @details This variant of the method is intended for the case where internal padding is used.
+  /// The input array is padded with fft to a larger area (size is controlled by the given factor)
+  /// and then an inner sub-array is extracted. With factor==1, there is no difference from the
+  /// other fftPad methid
+  /// @note Both input and output arrays should be at least 2-dimensional, otherwise an exception
+  /// is thrown (in debug mode). 
+  /// @param[in] in input array 
+  /// @param[in] out output array (should already be resized to a desired size) 
+  /// @param[in] factor additional padding of the output array
+  static void fftPad(const casa::Array<double>& in, casa::Array<double>& out, int factor);
   
 };
 
