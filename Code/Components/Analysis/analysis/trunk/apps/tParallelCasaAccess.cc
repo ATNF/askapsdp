@@ -86,7 +86,7 @@ public:
 bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
 {
       LatticeBase* lattPtr = ImageOpener::openImage (name);
-      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
+      //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
       lattPtr->unlock();
       ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
       bool OK = (lattPtr != 0);
@@ -193,7 +193,7 @@ int main(int argc, const char *argv[])
 
       ASKAPLOG_INFO_STR(logger, "In Worker #" << parl.rank());
 
-      int rank;
+//      int rank;
       bool OK;
 
 //       do{
@@ -241,7 +241,7 @@ int main(int argc, const char *argv[])
 //       }	while(rank != parl.nnode());
 
 
-      float mean;
+//       float mean;
 // 	LOFAR::BlobString bs4;
 // 	bs4.resize(0);
 // 	parl.connectionSet()->read(0, bs4);

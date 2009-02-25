@@ -143,7 +143,7 @@ namespace askap
       const int lat  = wcs->lat;
       const int spec = wcs->spec;
       
-      ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : " << this->itsNAxis << " axes, " << lng << " " << lat << " " << spec);
+//       ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : " << this->itsNAxis << " axes, " << lng << " " << lat << " " << spec);
 
       if(this->itsNAxis>0){
 	this->itsNSub = new int[this->itsNAxis];
@@ -168,9 +168,9 @@ namespace askap
 	}
       }
 
-      for(int i=0;i<this->itsNAxis;i++){
-	ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : axis#" << i << ": " << this->itsNSub[i] << " " << this->itsOverlap[i]);
-      }
+//       for(int i=0;i<this->itsNAxis;i++){
+// 	ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : axis#" << i << ": " << this->itsNSub[i] << " " << this->itsOverlap[i]);
+//       }
     }
 
     void SubimageDef::defineFITS(std::string FITSfilename)
@@ -230,16 +230,16 @@ namespace askap
 	  int length = inputSec.getDim(i);
 	  float sublength = float(length)/float(this->itsNSub[i]);
 
-	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : axis#" << i << " full length = " << this->itsFullImageDim[i]
-			     << ", length = " << length << ", inputSection = " << inputSec.getSection(i) <<", sublength = " << sublength);
-	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : input min = " << inputSec.getStart(i) << ", input max = " << inputSec.getEnd(i));
-	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : sub min = " << inputSec.getStart(i) + sub[i]*(length/this->itsNSub[i]) - this->itsOverlap[i]/2
-			     << ", sub max = " << inputSec.getStart(i) + (sub[i]+1)*(length/this->itsNSub[i]) + this->itsOverlap[i]/2 );
+// 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : axis#" << i << " full length = " << this->itsFullImageDim[i]
+// 			     << ", length = " << length << ", inputSection = " << inputSec.getSection(i) <<", sublength = " << sublength);
+// 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : input min = " << inputSec.getStart(i) << ", input max = " << inputSec.getEnd(i));
+// 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : sub min = " << inputSec.getStart(i) + sub[i]*(length/this->itsNSub[i]) - this->itsOverlap[i]/2
+// 			     << ", sub max = " << inputSec.getStart(i) + (sub[i]+1)*(length/this->itsNSub[i]) + this->itsOverlap[i]/2 );
 
 	  int min = std::max( long(inputSec.getStart(i)), long(inputSec.getStart(i) + sub[i]*sublength - this->itsOverlap[i]/2) ) + 1;
 	  int max = std::min( long(inputSec.getEnd(i)+1), long(inputSec.getStart(i) + (sub[i]+1)*sublength + this->itsOverlap[i]/2) );
 
-	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : min = " << min << ", max = " << max);
+// 	  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : min = " << min << ", max = " << max);
 	  section << min << ":" << max;
 	}
 	else //section << "*";

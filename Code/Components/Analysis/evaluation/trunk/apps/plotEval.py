@@ -56,8 +56,8 @@ if __name__ == '__main__':
 #    offset = sqrt( (xS-xR-meandx)**2 + (yS-yR-meandy)**2 )
 #    plot(offset,imagerms,'o')
 
-    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=True, removeZeros=True, name='A', unit='\prime\prime', locationCode=337, plotTitle='Major axis difference')
-    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=True, removeZeros=True, name='B', unit='\prime\prime', locationCode=338, plotTitle='Minor axis difference')
+    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=5., removeZeros=True, name='A', unit='\prime\prime', locationCode=337, plotTitle='Major axis difference')
+    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, removeZeros=True, name='B', unit='\prime\prime', locationCode=338, plotTitle='Minor axis difference')
     PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, minRelVal=1., removeZeros=True, locationCode=339)
 
     savefig('imageQualTest')

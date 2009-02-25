@@ -42,14 +42,13 @@
 #include <patternmatching/Matcher.h>
 #include <patternmatching/GrothTriangles.h>
 
+#include <parallelanalysis/DuchampParallel.h>
+
 using namespace askap;
 using namespace askap::evaluation;
 using namespace askap::evaluation::matching;
+using namespace askap::analysis;
 using namespace LOFAR::ACC::APS;
-
-std::vector<Point> getPixList(std::ifstream &fin);
-std::vector<Point> getBasePixList(std::ifstream &fin);
-std::vector<Point> getResultsPixList(std::ifstream &fin);
 
 ASKAP_LOGGER(logger, "imageQualTest.log");
 
@@ -74,7 +73,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-  ASKAPLOG_INIT("cduchamp.log_cfg");
+//   ASKAPLOG_INIT("imageQualTest.log_cfg");
 
   try
   {
@@ -89,6 +88,12 @@ int main(int argc, const char** argv)
     ParameterSet subset(parset.makeSubset("imageQual."));
 
     Matcher matcher(subset);
+
+    DuchampParallel image(argc,argv,subset);
+    ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
+    image.getMetadata();
+    ASKAPLOG_INFO_STR(logger, "Read image metadata");
+    matcher.fixRefList(image.getBeamInfo());
 
     matcher.setTriangleLists();
 

@@ -101,7 +101,38 @@ namespace askap
 	  this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRadius);
 	  ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
 	}
-     }
+      }
+
+      //**************************************************************//
+
+      void Matcher::fixRefList(std::vector<float> beam)
+      {
+	/// @details This function takes a reference list and
+	/// convolves the sizes of the sources with a given beam. For
+	/// point sources this just means replacing the major and
+	/// minor axes with the beam axes
+	///
+	/// @param beam A vector containing the beam major axis, beam
+	/// minor axis and beam position angle, all in degrees.
+	///
+	/// @todo Need to add something for non-point sources.
+
+	ASKAPLOG_INFO_STR(logger, "Beam info being used: maj="<<beam[0]*3600.
+			  <<", min="<<beam[1]*3600.<<", pa="<<beam[2]);
+
+	std::vector<Point>::iterator pix=this->itsRefPixList.begin();
+	for(;pix<this->itsRefPixList.end();pix++){
+
+	  if(!(pix->majorAxis()>0)){
+	    pix->setMajorAxis(beam[0]*3600.);
+	    pix->setMinorAxis(beam[1]*3600.);
+	    pix->setPA(beam[2]);
+	  }
+ 
+	}
+
+      }
+
 
       //**************************************************************//
 

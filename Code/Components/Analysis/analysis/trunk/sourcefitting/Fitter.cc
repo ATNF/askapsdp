@@ -33,7 +33,6 @@
 #include <sourcefitting/Fitter.h>
 #include <sourcefitting/Component.h>
 #include <analysisutilities/AnalysisUtilities.h>
-#include <evaluationutilities/EvaluationUtilities.h>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>

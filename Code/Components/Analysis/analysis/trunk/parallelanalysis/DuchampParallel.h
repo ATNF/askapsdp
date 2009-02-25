@@ -79,6 +79,12 @@ namespace askap
 
       duchamp::Cube &cube(){duchamp::Cube &rcube = itsCube; return rcube;};
 
+      /// @brief Read the metadata only from the image file.
+      int getMetadata();
+
+      /// @brief Return the beam parameters (in degrees units)
+      std::vector<float> getBeamInfo();
+
       /// @brief Read in the data from the image file (on the workers)
       void readData();
       

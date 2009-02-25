@@ -53,25 +53,6 @@ namespace askap
     std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, 
 					  const unsigned int maxSize=matching::maxSizePointList);
 
-    /// @brief Remove blank spaces from the beginning of a string
-    std::string removeLeadingBlanks(std::string s);
-
-    /// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
-    double dmsToDec(std::string input);   
-    
-    /// @brief Converts a decimal into a dd:mm:ss.ss format.
-    std::string decToDMS(const double input, std::string type="DEC", 
-			 int secondPrecision=2, std::string separator=":");
-    
-    /// @brief Find the angular separation of two sky positions
-    double angularSeparation(const std::string ra1, const std::string dec1, 
-			     const std::string ra2, const std::string dec2);
-    
-    /// @brief Find the angular separation of two sky positions.
-    double angularSeparation(double ra1, double dec1, double ra2, double dec2);
-    
-    /// @brief Convert equatorial coordinates to Galactic.
-    void equatorialToGalactic(double ra, double dec, double &gl, double &gb);
     
  
   }

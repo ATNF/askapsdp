@@ -34,7 +34,6 @@
 #include <sourcefitting/Fitter.h>
 #include <sourcefitting/Component.h>
 #include <analysisutilities/AnalysisUtilities.h>
-#include <evaluationutilities/EvaluationUtilities.h>
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
@@ -737,12 +736,16 @@ namespace askap
 	//	char suffix[4]  = {'a','b','c','d'};
 	char firstSuffix = 'a';
 
+	/// @todo Make this a more obvious parameter to change
+	const int fluxPrec = 6;
+
+	/// @todo Improve the duchamp::Column method for changing the precision: eg. changePrec(int p)
 	int prec=columns[duchamp::Column::FINT].getPrecision();
-	if(prec < 6)
-	  for(int i=prec;i<6;i++) columns[duchamp::Column::FINT].upPrec();
+	if(prec < fluxPrec)
+	  for(int i=prec;i<fluxPrec;i++) columns[duchamp::Column::FINT].upPrec();
 	prec=columns[duchamp::Column::FPEAK].getPrecision();
-	if(prec < 6)
-	  for(int i=prec;i<6;i++) columns[duchamp::Column::FPEAK].upPrec();
+	if(prec < fluxPrec)
+	  for(int i=prec;i<fluxPrec;i++) columns[duchamp::Column::FPEAK].upPrec();
 
 	if(doHeader){
 
@@ -771,13 +774,14 @@ namespace askap
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
 	  float zero = 0.;
-	  stream << " " << std::setw(12) << std::setprecision(6) << zero << " "; //F_int
-	  stream << std::setw(12) << std::setprecision(6) << zero << " ";        //F_pk
+	  stream << " ";
+	  stream << std::setw(12) << std::setprecision(fluxPrec) << zero << " "; //F_int
+	  stream << std::setw(12) << std::setprecision(fluxPrec) << zero << " ";        //F_pk
 	  stream << std::setw(10) << std::setprecision(6) << zero << " ";        //Maj
 	  stream << std::setw(10) << std::setprecision(6) << zero << " ";        //Min
 	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //PA
 	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //Chisq
-	  stream << std::setw(10) << std::setprecision(4) << this->itsNoiseLevel << " ";
+	  stream << std::setw(10) << std::setprecision(fluxPrec) << this->itsNoiseLevel << " ";
 	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //RMS
 	  stream << std::setw(10) << std::setprecision(0) << zero << " ";        //NDoF
 	  stream << std::setw(10) << std::setprecision(0) << zero << " ";        //Npix
@@ -797,8 +801,8 @@ namespace askap
 	  pix[2] = this->getZcentre();
 	  double *wld = new double[3];
 	  this->itsHeader.pixToWCS(pix,wld);
-	  std::string thisRA = evaluation::decToDMS(wld[0],"RA");
-	  std::string thisDec = evaluation::decToDMS(wld[1],"DEC");
+	  std::string thisRA = decToDMS(wld[0],"RA");
+	  std::string thisDec = decToDMS(wld[1],"DEC");
 	  delete [] pix;
 	  delete [] wld;
 
@@ -822,13 +826,13 @@ namespace askap
  	  chisq = this->itsChisq;
 	  rms = this->itsRMS;
 	  ndof = this->itsNDoF;
-	  stream << std::setw(12) << std::setprecision(6) << intflux << " ";
-	  stream << std::setw(12) << std::setprecision(6) << peakflux << " ";
+	  stream << std::setw(12) << std::setprecision(fluxPrec) << intflux << " ";
+	  stream << std::setw(12) << std::setprecision(fluxPrec) << peakflux << " ";
 	  stream << std::setw(10) << std::setprecision(6) << maj << " ";
 	  stream << std::setw(10) << std::setprecision(6) << min << " ";
 	  stream << std::setw(10) << std::setprecision(2) << pa << " ";
 	  stream << std::setw(10) << std::setprecision(4) << chisq << " ";
-	  stream << std::setw(10) << std::setprecision(4) << this->itsNoiseLevel << " ";
+	  stream << std::setw(10) << std::setprecision(fluxPrec) << this->itsNoiseLevel << " ";
 	  stream << std::setw(10) << std::setprecision(4) << rms << " ";
 	  stream << std::setw(10) << std::setprecision(0) << ndof << " ";
 	  stream << std::setw(10) << std::setprecision(0) << this->boxSize() << " ";

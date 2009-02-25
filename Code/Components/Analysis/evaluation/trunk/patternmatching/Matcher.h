@@ -74,6 +74,9 @@ namespace askap
 	/// @brief Constructor, using an input parameter set
 	Matcher(const LOFAR::ACC::APS::ParameterSet& parset);
 
+	/// @brief Fix the sizes of reference objects to reflect the beam size used.
+	void fixRefList(std::vector<float> beam);
+
 	/// @brief Define the triangle lists from the (existing) point lists, and find matching triangles.
 	void setTriangleLists();
 
