@@ -17,7 +17,7 @@ parser.add_option("-s", "--shell",
                   dest="shell",
                   action="store", 
                   type="choice",
-		  choices=["bash", "tcsh"],
+                  choices=["bash", "tcsh"],
                   default="bash",
                   help="specify the type of shell to generate the script for")
 
@@ -85,20 +85,12 @@ else
     set prompt="\(askap\) > "
 endif
 
-
 setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
 """  % (os.getcwd())
 
-
-shmap = { "bash" : { "suffix": "sh",
-		     "init" : ".", "file" : bashinit
-                     },
-	  "tcsh" : { "suffix": "csh",
-		     "init" : "source", "file" : tcshinit
-                     }
-          }
-
+shmap = { "bash" : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
+          "tcsh" : { "suffix": "csh", "init" : "source", "file" : tcshinit }}
 
 shell =  shmap[opts.shell]
 
