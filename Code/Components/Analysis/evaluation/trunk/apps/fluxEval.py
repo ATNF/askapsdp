@@ -57,10 +57,10 @@ if __name__ == '__main__':
     print "Fraction with |dS/S|<30%% = %5.2f%%"%(100.*size(rdF[abs(rdF)<30])/cast[float](size(rdF)))
     print "Fraction with dS/S>30%%   = %5.2f%%"%(100.*size(rdF[rdF>30])/cast[float](size(rdF)))
 
-    print "Mean of dS   = %8.4f"%(mean(dF))
-    print "Median of dS = %8.4f"%(median(dF))
-    print "RMS of dS    = %8.4f"%(std(dF))
-    print "MADFM of dS  = %8.4f  = %8.4f as RMS"%(madfm(dF),madfmToRMS(madfm(dF)))
+    print "Mean of dS   = %10.6f"%(mean(dF))
+    print "Median of dS = %10.6f"%(median(dF))
+    print "RMS of dS    = %10.6f"%(std(dF))
+    print "MADFM of dS  = %10.6f  = %10.6f as RMS"%(madfm(dF),madfmToRMS(madfm(dF)))
 
     figure(1, figsize=(16.5,11.7), dpi=72)
 

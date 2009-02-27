@@ -47,7 +47,7 @@ namespace askap
   {
 
  
-    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius, std::string fluxMethod)
+    std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius, std::string fluxMethod, std::string fluxUseFit)
     {
       /// @details Read in a list of points from a duchamp-Summary.txt
       /// file (that is, a summary file produced by cduchamp). The
@@ -72,10 +72,21 @@ namespace askap
       while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> noise >> rms >> ndof >> npixfit >> npixobj,
 	     !fin.eof()){
 
-	if(iflux2>0) flux= iflux2;
-	else flux = iflux1;
-	if(pflux2>0) peakflux = pflux2;
-	else peakflux = pflux1;
+	if(fluxUseFit=="no"){
+	  flux = iflux1;
+	  peakflux = pflux1;
+	}
+	else if(fluxUseFit=="yes"){
+	  flux = iflux2;
+	  peakflux = pflux2;
+	} 
+	else if(fluxUseFit=="best"){
+	  if(iflux2>0) flux= iflux2;
+	  else flux = iflux1;
+	  if(pflux2>0) peakflux = pflux2;
+	  else peakflux = pflux1;
+	}
+	
 
 	id += "_" + raS + "_" + decS;
 	std::stringstream ss;

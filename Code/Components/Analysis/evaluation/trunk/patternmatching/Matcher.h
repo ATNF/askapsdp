@@ -112,6 +112,10 @@ namespace askap
 	double itsRadius;
 	/// @brief Which flux measure to use: peak or integrated
 	std::string itsFluxMethod;
+	/// @brief Whether to use the fitted flux values ("yes"), the
+	///  measured values ("no"), or the fitted values where available, else the
+	///  measured ("best");
+	std::string itsFluxUseFit;
 
 	/// @brief The list of source points (those to be matched)
 	std::vector<Point> itsSrcPixList;

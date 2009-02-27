@@ -66,6 +66,7 @@ namespace askap
 	this->itsSrcFile = parset.getString("srcFile","");
 	this->itsRefFile = parset.getString("refFile","");
 	this->itsFluxMethod = parset.getString("fluxMethod","peak");
+	this->itsFluxUseFit = parset.getString("fluxUseFit","best");
 	this->itsRA  = parset.getString("RA");
 	this->itsDec = parset.getString("Dec");
 	this->itsRadius = parset.getDouble("radius", -1.);
@@ -95,7 +96,7 @@ namespace askap
 	  if(!fref.is_open())
 	    ASKAPTHROW(AskapError,"refFile (" << this->itsRefFile << ") not valid. Error opening file.");
 	  
-	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsRadius, this->itsFluxMethod);
+	  this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
 	  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
 	  
 	  this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRadius);
