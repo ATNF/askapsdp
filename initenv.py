@@ -26,7 +26,6 @@ parser.add_option("-s", "--shell",
 invoked_path = sys.argv[0]
 absolute_path = os.path.abspath(invoked_path)
 os.chdir(os.path.dirname(absolute_path))
-asopts = "--style=java --indent=space=4"
 
 bashinit = """\
 export ASKAP_ROOT=%s
