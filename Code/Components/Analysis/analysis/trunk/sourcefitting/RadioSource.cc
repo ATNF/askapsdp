@@ -733,19 +733,27 @@ namespace askap
 	stream.setf(std::ios::fixed);
 	
 	int suffixCtr=0;
-	//	char suffix[4]  = {'a','b','c','d'};
 	char firstSuffix = 'a';
 
 	/// @todo Make this a more obvious parameter to change
-	const int fluxPrec = 6;
+	const int fluxPrec = 8;
+	const int fluxWidth = fluxPrec+6;
 
-	/// @todo Improve the duchamp::Column method for changing the precision: eg. changePrec(int p)
-	int prec=columns[duchamp::Column::FINT].getPrecision();
-	if(prec < fluxPrec)
-	  for(int i=prec;i<fluxPrec;i++) columns[duchamp::Column::FINT].upPrec();
-	prec=columns[duchamp::Column::FPEAK].getPrecision();
-	if(prec < fluxPrec)
-	  for(int i=prec;i<fluxPrec;i++) columns[duchamp::Column::FPEAK].upPrec();
+	columns[duchamp::Column::FINT].changePrec(fluxPrec);
+	columns[duchamp::Column::FPEAK].changePrec(fluxPrec);
+
+	// new columns
+	duchamp::Column::Col fIntfit("F_int(fit)","",fluxWidth,fluxPrec);
+	duchamp::Column::Col fPkfit("F_pk(fit)","",fluxWidth,fluxPrec);
+	duchamp::Column::Col majFit("Maj(fit)","",10,3);
+	duchamp::Column::Col minFit("Min(fit)","",10,3);
+	duchamp::Column::Col paFit("P.A.(fit)","",10,2);
+	duchamp::Column::Col chisqFit("Chisq(fit)","",11,2);
+	duchamp::Column::Col rmsIm("RMS(image)","",fluxWidth,fluxPrec);
+	duchamp::Column::Col rmsFit("RMS(fit)","",10,2);
+	duchamp::Column::Col ndofFit("NDoF(fit)","",10,0);
+	duchamp::Column::Col npixFit("NPix(fit)","",10,0);
+	duchamp::Column::Col npixObj("NPix(obj)","",10,0);
 
 	if(doHeader){
 
@@ -755,46 +763,66 @@ namespace askap
 // 	  columns[duchamp::Column::VEL].printTitle(stream);
 	  columns[duchamp::Column::FINT].printTitle(stream);
 	  columns[duchamp::Column::FPEAK].printTitle(stream);
-	  stream << "   F_int(fit)    F_pk(fit)   Maj(fit)   Min(fit)  P.A.(fit) Chisq(fit) RMS(image)   RMS(fit)  NDoF(fit)  Npix(fit)  Npix(obj)\n";
+	  fIntfit.printTitle(stream);
+	  fPkfit.printTitle(stream);
+	  majFit.printTitle(stream);
+	  minFit.printTitle(stream);
+	  paFit.printTitle(stream);
+	  chisqFit.printTitle(stream);
+	  rmsIm.printTitle(stream);
+	  rmsFit.printTitle(stream);
+	  ndofFit.printTitle(stream);
+	  npixFit.printTitle(stream);
+	  npixObj.printTitle(stream);
+	  stream << "\n";
+
 	  int width = columns[duchamp::Column::NUM].getWidth() + 
 	    columns[duchamp::Column::RA].getWidth() + 
 	    columns[duchamp::Column::DEC].getWidth() +
 // 	    columns[duchamp::Column::VEL].getWidth() +
 	    columns[duchamp::Column::FINT].getWidth() +
-	    columns[duchamp::Column::FPEAK].getWidth();
-	  stream << std::setfill('-') << std::setw(width) << '-'
-		 << "-----------------------------------------------------------------------------------------------------------------------------\n";
+	    columns[duchamp::Column::FPEAK].getWidth() +
+	    fIntfit.getWidth() +
+	    fPkfit.getWidth() +
+	    majFit.getWidth() +
+	    minFit.getWidth() +
+	    paFit.getWidth() +
+	    chisqFit.getWidth() +
+	    rmsIm.getWidth() +
+	    rmsFit.getWidth() +
+	    ndofFit.getWidth() +
+	    npixFit.getWidth() +
+	    npixObj.getWidth();
+	  stream << std::setfill('-') << std::setw(width) << '-' << "\n";
 	}
 
 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
+	  float zero = 0.;
 	  columns[duchamp::Column::NUM].printEntry(stream,this->getID());
 	  columns[duchamp::Column::RA].printEntry(stream,this->getRAs());
 	  columns[duchamp::Column::DEC].printEntry(stream,this->getDecs());
 // 	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
-	  float zero = 0.;
-	  stream << " ";
-	  stream << std::setw(12) << std::setprecision(fluxPrec) << zero << " "; //F_int
-	  stream << std::setw(12) << std::setprecision(fluxPrec) << zero << " ";        //F_pk
-	  stream << std::setw(10) << std::setprecision(6) << zero << " ";        //Maj
-	  stream << std::setw(10) << std::setprecision(6) << zero << " ";        //Min
-	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //PA
-	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //Chisq
-	  stream << std::setw(10) << std::setprecision(fluxPrec) << this->itsNoiseLevel << " ";
-	  stream << std::setw(10) << std::setprecision(2) << zero << " ";        //RMS
-	  stream << std::setw(10) << std::setprecision(0) << zero << " ";        //NDoF
-	  stream << std::setw(10) << std::setprecision(0) << zero << " ";        //Npix
-	  stream << std::setw(10) << std::setprecision(0) << this->getSize() << "\n";
+	  fIntfit.printEntry(stream,zero);
+	  fPkfit.printEntry(stream,zero);
+	  majFit.printEntry(stream,zero);
+	  minFit.printEntry(stream,zero);
+	  paFit.printEntry(stream,zero);
+	  chisqFit.printEntry(stream,zero);
+	  rmsIm.printEntry(stream,this->itsNoiseLevel);
+	  rmsFit.printEntry(stream,zero);
+	  ndofFit.printEntry(stream,zero);
+	  npixFit.printEntry(stream,zero);
+	  npixObj.printEntry(stream,this->getSize());
+	  stream << "\n";
 	}
 
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
 	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
 
 	  std::stringstream id;
-	  //	  id << this->getID() << suffix[suffixCtr++];
 	  id << this->getID() << char(firstSuffix + suffixCtr++);
-	  columns[duchamp::Column::NUM].printEntry(stream, id.str());
 	  double *pix = new double[3];
 	  pix[0] = fit->xCenter();
 	  pix[1] = fit->yCenter();
@@ -805,38 +833,28 @@ namespace askap
 	  std::string thisDec = decToDMS(wld[1],"DEC");
 	  delete [] pix;
 	  delete [] wld;
+	  float intfluxfit = fit->flux();
+	  if(this->itsHeader.needBeamSize()) 
+	    intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
-	  columns[duchamp::Column::RA].printEntry(stream,  thisRA);
-	  columns[duchamp::Column::DEC].printEntry(stream, thisDec);
+	  columns[duchamp::Column::NUM].printEntry(stream,id.str());
+	  columns[duchamp::Column::RA].printEntry(stream,thisRA);
+	  columns[duchamp::Column::DEC].printEntry(stream,thisDec);
 // 	  columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
 	  columns[duchamp::Column::FINT].printEntry(stream,this->getIntegFlux());
 	  columns[duchamp::Column::FPEAK].printEntry(stream,this->getPeakFlux());
-
-	  stream << " " ;
-
-	  float peakflux=0.,intflux=0.,maj=0.,min=0.,pa=0.,chisq=0.,rms=0.;
-	  int ndof=0;
-	  peakflux = fit->height();
-	  intflux  = fit->flux();
-	  if(this->itsHeader.needBeamSize()) 
-	    intflux /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
-	  maj = fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.; // convert from pixels to arcsec
-	  min = fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.;
-	  pa = fit->PA()*180./M_PI;
- 	  chisq = this->itsChisq;
-	  rms = this->itsRMS;
-	  ndof = this->itsNDoF;
-	  stream << std::setw(12) << std::setprecision(fluxPrec) << intflux << " ";
-	  stream << std::setw(12) << std::setprecision(fluxPrec) << peakflux << " ";
-	  stream << std::setw(10) << std::setprecision(6) << maj << " ";
-	  stream << std::setw(10) << std::setprecision(6) << min << " ";
-	  stream << std::setw(10) << std::setprecision(2) << pa << " ";
-	  stream << std::setw(10) << std::setprecision(4) << chisq << " ";
-	  stream << std::setw(10) << std::setprecision(fluxPrec) << this->itsNoiseLevel << " ";
-	  stream << std::setw(10) << std::setprecision(4) << rms << " ";
-	  stream << std::setw(10) << std::setprecision(0) << ndof << " ";
-	  stream << std::setw(10) << std::setprecision(0) << this->boxSize() << " ";
-	  stream << std::setw(10) << std::setprecision(0) << this->getSize() << "\n";
+	  fIntfit.printEntry(stream,intfluxfit);
+	  fPkfit.printEntry(stream,fit->height());
+	  majFit.printEntry(stream,fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
+	  minFit.printEntry(stream,fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
+	  paFit.printEntry(stream,fit->PA()*180./M_PI);
+	  chisqFit.printEntry(stream,this->itsChisq);
+	  rmsIm.printEntry(stream,this->itsNoiseLevel);
+	  rmsFit.printEntry(stream,this->itsRMS);
+	  ndofFit.printEntry(stream,this->itsNDoF);
+	  npixFit.printEntry(stream,this->boxSize());
+	  npixObj.printEntry(stream,this->getSize());
+	  stream << "\n";
 
 	}
 
