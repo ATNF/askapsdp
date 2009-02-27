@@ -247,8 +247,6 @@ namespace askap
 	cube.pars().setMinChannels(0);
       }
 
-      cube.convertFluxUnits();
-      
       delete [] dim;
 
       return duchamp::SUCCESS;

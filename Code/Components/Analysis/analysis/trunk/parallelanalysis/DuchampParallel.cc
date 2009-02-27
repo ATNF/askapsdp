@@ -254,7 +254,6 @@ namespace askap
 	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
 			      << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ() );
 	if(this->itsCube.getDimZ()==1) this->itsCube.pars().setMinChannels(0);  
-	this->itsCube.convertFluxUnits();
 
 // 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "itsNNode="<<this->itsNNode<<", itsRank="<<this->itsRank);
 	// Send out the OK to the workers, so that they know that the subimages have been created.

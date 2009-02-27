@@ -187,8 +187,6 @@ namespace askap
 
       par.setFlagKarma( parset.getBool("flagKarma", true) );
 
-      par.setNewFluxUnits( parset.getString("newFluxUnits", "") );
-
       par.setFlagGrowth( parset.getBool("flagGrowth", false) );
       par.setGrowthCut( parset.getFloat("growthCut", par.getGrowthCut()) );
       if(parset.isDefined("growthThreshold")){
