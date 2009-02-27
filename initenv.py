@@ -26,6 +26,7 @@ parser.add_option("-s", "--shell",
 invoked_path = sys.argv[0]
 absolute_path = os.path.abspath(invoked_path)
 os.chdir(os.path.dirname(absolute_path))
+asopts = "--style=java --indent=space=4"
 
 bashinit = """\
 export ASKAP_ROOT=%s
@@ -56,7 +57,9 @@ MANPATH=`echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
 MANPATH="${ASKAP_ROOT}/man:${MANPATH}"
 export MANPATH
 
-""" % (os.getcwd())
+ARTISTIC_STYLE_OPTIONS="${ASKAP_ROOT}/astylerc"
+export ARTISTIC_STYLE_OPTIONS
+""" % os.getcwd()
 
 tcshinit = """\
 setenv ASKAP_ROOT %s
@@ -87,7 +90,10 @@ endif
 
 setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
-"""  % (os.getcwd())
+
+setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
+
+"""  % os.getcwd()
 
 shmap = { "bash" : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
           "tcsh" : { "suffix": "csh", "init" : "source", "file" : tcshinit }}
