@@ -227,6 +227,21 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	} else {
             ASKAPLOG_INFO_STR(logger,"No padding at the gridder level");
         }
+	if (parset.isDefined("gridder.alldatapsf")) {
+	    const bool useAll = parset.getBool("gridder.alldatapsf");
+	    if (useAll) {
+	        ASKAPLOG_INFO_STR(logger, "Use all data for PSF calculations instead of the representative feed and field");
+	    } else {
+	        ASKAPLOG_INFO_STR(logger, "Use representative feed and field for PSF calculation");
+	    }
+	    boost::shared_ptr<TableVisGridder> tvg = 
+	        boost::dynamic_pointer_cast<TableVisGridder>(gridder);
+	    ASKAPCHECK(tvg, "Gridder type ("<<parset.getString("gridder")<<
+	               ") is incompatible with the alldatapsf option");
+	    tvg->useAllDataForPSF(useAll);
+	} else {
+	    ASKAPLOG_INFO_STR(logger, "gridder.alldatapsf option is not used, default to representative feed and field for PSF calculation");
+	}	
 	
 	// Initialize the Visibility Weights
 	if (parset.getString("visweights","")=="MFS")

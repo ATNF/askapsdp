@@ -152,9 +152,14 @@ namespace askap
       int inline paddingFactor() const { return itsPaddingFactor;}
 
       /// @brief set padding factor
-      /// @param[in[ padding new padding factor
+      /// @param[in] padding new padding factor
       void inline setPaddingFactor(const int padding) { itsPaddingFactor = padding;}
 
+      /// @brief set or reset flag forcing gridder to use all data for PSF
+      /// @details Change itsUseAllDataForPSF
+      /// @param[in] useAll new value of the flag
+      void inline useAllDataForPSF(const bool useAll) { itsUseAllDataForPSF = useAll;} 
+      
   protected:
       
       /// @brief gridder configured to calculate PSF?
@@ -337,7 +342,14 @@ namespace askap
       /// @brief pointing direction, which provides data for the PSF calculations
       /// @details This data member is initialized when the first visibility is gridded,
       /// only this field is used to calculate the PSF
-      casa::MVDirection itsPointingUsedForPSF;      
+      casa::MVDirection itsPointingUsedForPSF;
+      
+      /// @brief use all data for PSF calculation
+      /// @details By default we use just a representative feed and field to calculate PSF. 
+      /// For research purposes we need an option which allows to take all available data into
+      /// account. This is a flag showing that itsFeedUsedForPSF and itsPointingUsedForPSF are ignored.
+      /// Default value is false.
+      bool itsUseAllDataForPSF;     
     };
   }
 }

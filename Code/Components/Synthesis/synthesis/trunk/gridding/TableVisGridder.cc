@@ -104,7 +104,7 @@ TableVisGridder::TableVisGridder() :
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
 	itsPaddingFactor(1),
-	itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
+	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false)
 
 {
   itsSumWeights.resize(1,1,1);
@@ -118,7 +118,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 		itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
 		itsPaddingFactor(padding),
-		itsFirstGriddedVis(true), itsFeedUsedForPSF(0)
+		itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false)
 	{
 		
 		ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -145,7 +145,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
      itsDopsf(other.itsDopsf), itsPaddingFactor(other.itsPaddingFactor),
      itsFirstGriddedVis(other.itsFirstGriddedVis),
      itsFeedUsedForPSF(other.itsFeedUsedForPSF),
-     itsPointingUsedForPSF(other.itsPointingUsedForPSF)
+     itsPointingUsedForPSF(other.itsPointingUsedForPSF),
+     itsUseAllDataForPSF(other.itsUseAllDataForPSF)
 {
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
    deepCopyOfSTDVector(other.itsGrid, itsGrid);   
@@ -305,11 +306,15 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
        if (itsFirstGriddedVis && isPSFGridder()) {
            // data members related to representative feed and field are used for
            // reverse problem only (from visibilities to image). 
-           itsFeedUsedForPSF = acc.feed1()(i);
-           itsPointingUsedForPSF = acc.dishPointing1()(i);    
+           if (itsUseAllDataForPSF) {
+               ASKAPLOG_INFO_STR(logger, "All data are used to estimate PSF");       
+           } else {
+               itsFeedUsedForPSF = acc.feed1()(i);
+               itsPointingUsedForPSF = acc.dishPointing1()(i);    
+               ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
+                  " and field at "<<printDirection(itsPointingUsedForPSF)<<" to estimate the PSF");
+           }
            itsFirstGriddedVis = false;
-           ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
-             " and field at "<<printDirection(itsPointingUsedForPSF)<<" to estimate the PSF");
        }
 	   /// Temporarily fix to do MFS only
 	   int imageChan=0;
@@ -484,8 +489,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 				       itsSumWeights(cIndex(i,pol,chan), imagePol, imageChan)+=1.0;
 				   }
 				   /// Grid PSF?
-				   if (isPSFGridder() && (itsFeedUsedForPSF == acc.feed1()(i)) &&
-				             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)) {
+				   if (isPSFGridder() && (itsUseAllDataForPSF || ((itsFeedUsedForPSF == acc.feed1()(i)) &&
+				             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)))) {
 				      casa::Complex uVis(1.,0.);
 				      if(itsVisWeight) {
                          uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
