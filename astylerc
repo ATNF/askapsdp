@@ -1,4 +1,4 @@
-brackets=linux
+brackets=stroustrup
 indent=spaces=4
 convert-tabs
 indent-classes
