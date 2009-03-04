@@ -7,6 +7,7 @@ for flux in {100,200,400}; do
     fluxcut=`echo $flux | awk '{print $1/1000000.}'`
 
     out="data/${flux}uJy_pt.txt"
+    echo "Creating $out"
     cat > $tmpfile <<EOF 
 BEGIN{ct=0;}
 {if(ct>1){
@@ -24,15 +25,7 @@ EOF
     awk -f $tmpfile $data > $out
 
     out="data/${flux}uJy_pt.ann"
-#cat > $tmpfile <<EOF 
-#BEGIN{ct=0; ct2=1;printf "COORD w\nCOLOR SEA GREEN\nFONT lucidasans-10\n";}
-#{if(ct>1){
-#  if(\$3>${fluxcut} && \$4==0.){
-#    printf "CIRCLE %12.8f %12.8f %10.8f\n\nTEXT %12.8f %12.8f %d\n",\$1,\$2,10./(3600.*sqrt(2*log(2))),\$1,\$2,ct2++;
-#  }
-# } 
-# ct++;}
-#EOF
+    echo "Creating $out"
     cat > $tmpfile <<EOF 
 BEGIN{ct=0; ct2=1;printf "COORD w\nCOLOR SEA GREEN\nFONT lucidasans-10\n";}
 {if(ct>1){
@@ -47,6 +40,7 @@ EOF
     for radius in {1,2,3}; do
 
 	out="data/${flux}uJy_pt_${radius}deg.txt"
+	echo "Creating $out"
 	cat > $tmpfile <<EOF
 BEGIN{ct=0;rabase=187.5;decbase=-45.;DtoR=3.141592654/180.}
 {if(ct>1){
@@ -65,16 +59,7 @@ EOF
 	awk -f $tmpfile $data > $out
 
 	out="data/${flux}uJy_pt_${radius}deg.ann"
-#cat > $tmpfile <<EOF 
-#BEGIN{ct=0;ct2=1;rabase=187.5;decbase=-45.;DtoR=3.141592654/180.; printf "COORD w\nCOLOR SEA GREEN\nFONT lucidasans-10\n";}
-#{if(ct>1){
-#  if(\$3>${fluxcut} && \$4==0.){
-#    cos_sep=cos((\$1-rabase)*DtoR)*cos(\$2*DtoR)*cos(decbase*DtoR) + sin(\$2*DtoR)*sin(decbase*DtoR); cos_limit=cos(1.*DtoR);
-#    if(cos_sep>cos_limit) printf "CIRCLE %12.8f %12.8f %10.8f\nTEXT %12.8f %12.8f %d\n",\$1,\$2,10./(3600.*sqrt(2*log(2))),\$1,\$2,ct2++;
-#  }
-# } 
-# ct++;}
-#EOF
+	echo "Creating $out"
 	cat > $tmpfile <<EOF 
 BEGIN{ct=0;ct2=1;rabase=187.5;decbase=-45.;DtoR=3.141592654/180.; printf "COORD w\nCOLOR SEA GREEN\nFONT lucidasans-10\n";}
 {if(ct>1){

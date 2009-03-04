@@ -27,6 +27,7 @@ def clean(files):
 def install(pkg):
     print("running install script")
     run("sh createSourceLists.sh")
+    create_sig()
 
 #
 # main
@@ -39,8 +40,8 @@ pkg     = 'simData'
 print("warn: non-standard build.py script used for %s" % pkg)
 
 if "clean" in sys.argv[1:]:
-    cleandata()
     clean([sigfile])
+    cleandata()
     sys.exit(0)
 
 if "install" in sys.argv[1:]:
@@ -54,9 +55,6 @@ if "install" in sys.argv[1:]:
                     (bfile, sigfile))
     else:
         q_print("info: No %s file - install" % sigfile)
-        create_sig()
-        print("warn: simData subdirectory is not being built.")
-        sys.exit(0)
     install(pkg)
 else:
     print("warn: unknown build option in %s" % sys.argv[1:])
