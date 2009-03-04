@@ -53,21 +53,30 @@ namespace askap
 #ifdef ASKAP_USE_FFTW
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
+
             Bool deleteIt;
             DComplex *dataPtr = vec.getStorage(deleteIt);
-            DComplex *tempPtr = dataPtr;
+
+            // rotate input because the origin for FFTW is at 0, not n/2 (casa fft)
+            std::rotate(dataPtr, dataPtr + (nElements/2), dataPtr + nElements);
+
             fftw_plan p;
             p = fftw_plan_dft_1d(nElements, reinterpret_cast<fftw_complex*>(dataPtr), reinterpret_cast<fftw_complex*>(dataPtr),
                 (forward) ? FFTW_FORWARD : FFTW_BACKWARD, FFTW_ESTIMATE);
             fftw_execute(p);
             if (!forward)
               {
+                DComplex *tempPtr = dataPtr;
                 const DComplex scale = DComplex(1)/DComplex(nElements);
                 for(int i=0; i<nElements; i++)
                   {
                     *tempPtr++ *= scale;
                   }
               }
+
+            // rotate output
+            std::rotate(dataPtr, dataPtr + (nElements/2), dataPtr + nElements);
+
             vec.putStorage(dataPtr, deleteIt);
             fftw_destroy_plan(p);
 #else
@@ -82,21 +91,30 @@ namespace askap
 #ifdef ASKAP_USE_FFTW
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
+
             Bool deleteIt;
             Complex *dataPtr = vec.getStorage(deleteIt);
-            Complex *tempPtr = dataPtr;
+
+            // rotate input because the origin for FFTW is at 0, not n/2 (casa fft)
+            std::rotate(dataPtr, dataPtr + (nElements/2), dataPtr + nElements);
+
             fftwf_plan p;
             p = fftwf_plan_dft_1d(nElements, reinterpret_cast<fftwf_complex*>(dataPtr), reinterpret_cast<fftwf_complex*>(dataPtr),
                 (forward) ? FFTW_FORWARD : FFTW_BACKWARD, FFTW_ESTIMATE);
             fftwf_execute(p);
             if (!forward)
               {
+                Complex *tempPtr = dataPtr;
                 const Complex scale = Complex(1)/Complex(nElements);
                 for(int i=0; i<nElements; i++)
                   {
                     *tempPtr++ *= scale;
                   }
               }
+
+            // rotate output
+            std::rotate(dataPtr, dataPtr + (nElements/2), dataPtr + nElements);
+
             vec.putStorage(dataPtr, deleteIt);
             fftwf_destroy_plan(p);
 #else
