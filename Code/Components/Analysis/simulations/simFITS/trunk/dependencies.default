@@ -1,0 +1,7 @@
+askap=Code/Base/askap/trunk
+aps=3rdParty/LOFAR/APS/tags/APS-2.1
+analysis=Code/Components/Analysis/analysis/trunk
+cfitsio=3rdParty/cfitsio/tags/cfitsio-3.0.6
+wcslib=3rdParty/wcslib/tags/wcslib-4.2
+duchamp=3rdParty/Duchamp/tags/Duchamp-1.1.7
+

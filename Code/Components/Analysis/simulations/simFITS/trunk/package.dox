@@ -1,0 +1,31 @@
+/// @defgroup FITS Functions for manipulating FITS files
+/// @defgroup simutils Utility functions for the simulations package
+
+/// The package namespace
+namespace askap::simFITS {};
+
+/// @mainpage ASKAP Analysis FITS simulations package
+///
+/// @section Introduction
+
+/// The simulations package supports basic simulations of FITS data used for
+/// testing the Analysis system.
+///
+/// @section Assumptions and goals
+///
+/// The simulations package is designed to provide means of producing
+/// simulated datasets in FITS format for use with the analysis and evaluation code for
+/// testing purposes.
+///
+/// @section Dependencies
+/// The LOFAR APS package is used to handle Parameter Sets, which
+/// control the user inputs.
+///
+/// The cfitsio package is used to read and write FITS files.
+///
+/// @section Subpackages
+///
+/// @li @ref FITS
+/// @li @ref simutils
+///
+/// @copyright 2008 ASKAP, All Rights Reserved.

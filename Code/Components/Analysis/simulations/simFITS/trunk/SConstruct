@@ -1,0 +1,20 @@
+# @file
+# SConstruct build script for this module.
+#
+# @author Matthew Whiting matthew.whiting@csiro.au
+#
+
+# Always import this
+from askapenv import env
+
+env.Append(CCFLAGS=['-O2', '-g', '-DHAVE_LONG_LONG', '-DASKAP_DEBUG'])
+
+# create build object with library name
+pkg = env.AskapPackage("simFITS")
+# add sub packages 
+pkg.AddSubPackage("FITS")
+pkg.AddSubPackage("simulationutilities")
+
+# run the build process
+pkg()
+
