@@ -81,7 +81,8 @@ int main(int argc, const char** argv)
 
     //    timer.mark();
 
-    srandomdev();
+    //srandomdev();
+    srandom(time(0));
 
     std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
 
