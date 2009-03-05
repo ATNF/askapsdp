@@ -7,6 +7,9 @@
 #
 
 # make this module look like logging
+# since we know what we are doing allow wildcard
+# pylint: disable-msg=W0401
+
 from logging import *
 from xmllayout import RawSocketHandler as XMLSocketHandler
 
