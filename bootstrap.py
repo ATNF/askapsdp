@@ -64,6 +64,7 @@ parser.add_option('-p', '--preserve', dest='preserve',
                   help='Keep pre-existing bootstrap files (though they maybe overwritten). Default is to remove.')
 recursivebuild_path = "Tools/Dev/recursivebuild"
 virtualenv_path     = "Tools/Dev/virtualenv"
+templates_path      = "Tools/Dev/templates"
 
 invoked_path  = sys.argv[0]
 absolute_path = os.path.abspath(invoked_path)
@@ -104,6 +105,13 @@ if os.path.exists(recursivebuild_path):
                 % recursivebuild_path)
 else:
     print ">>> %s does not exist." % os.path.abspath(recursivebuild_path)
+    sys.exit()
+
+if os.path.exists(templates_path):
+    print ">>> Attempting to add templates."
+    os.system(". initaskap.sh && cd %s && python setup.py" % templates_path)
+else:
+    print ">>> %s does not exist." % os.path.abspath(templates_path)
     sys.exit()
 
 if not opts.preserve:
