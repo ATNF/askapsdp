@@ -58,6 +58,9 @@ export MANPATH
 
 ARTISTIC_STYLE_OPTIONS="${ASKAP_ROOT}/astylerc"
 export ARTISTIC_STYLE_OPTIONS
+
+PYLINTRC="${ASKAP_ROOT}/Tools/Dev/recursivebuild/pylintrc"
+export PYLINTRC
 """ % os.getcwd()
 
 tcshinit = """\
@@ -91,6 +94,7 @@ setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
 
 setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
+setenv PYLINTRC "${ASKAP_ROOT}/Tools/Dev/recursivebuild/pylintrc"
 
 """  % os.getcwd()
 
