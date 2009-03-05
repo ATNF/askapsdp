@@ -109,7 +109,8 @@ else:
 
 if os.path.exists(templates_path):
     print ">>> Attempting to add templates."
-    os.system(". initaskap.sh && cd %s && python setup.py" % templates_path)
+    os.system(". initaskap.sh && cd %s && python setup.py -q install"
+                % templates_path)
 else:
     print ">>> %s does not exist." % os.path.abspath(templates_path)
     sys.exit()
