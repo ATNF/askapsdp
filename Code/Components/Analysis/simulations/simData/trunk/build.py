@@ -14,7 +14,7 @@ def create_sig():
     outsig.close()
 
 def cleandata():
-    run("rm data/*uJy_*")
+    run("/bin/rm -f data/*uJy_*")
 
 def clean(files):
     for f in files:
