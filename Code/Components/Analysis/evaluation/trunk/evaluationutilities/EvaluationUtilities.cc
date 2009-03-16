@@ -80,7 +80,8 @@ namespace askap
 	  flux = iflux2;
 	  peakflux = pflux2;
 	} 
-	else if(fluxUseFit=="best"){
+	else{
+	  //NOTE: was if(fluxUseFit=="best") but taking "best" to be the default
 	  if(iflux2>0) flux= iflux2;
 	  else flux = iflux1;
 	  if(pflux2>0) peakflux = pflux2;
@@ -105,16 +106,6 @@ namespace askap
 
       stable_sort(pixlist.begin(),pixlist.end());
       reverse(pixlist.begin(),pixlist.end());
-
-//       // Have used the peak fluxes for ordering. Now, if the integrated flux was actually desired, swap the peak for the integrated.
-//       if(fluxMethod == "integrated"){
-// 	for(int i=0;i<pixlist.size();i++){
-// 	  peakflux = pixlist[i].flux();
-// 	  flux = pixlist[i].stuff().flux();
-// 	  pixlist[i].setFlux(flux);
-// 	  pixlist[i].stuff().setFlux(peakflux);
-// 	}
-//       }
 
       return pixlist;
       

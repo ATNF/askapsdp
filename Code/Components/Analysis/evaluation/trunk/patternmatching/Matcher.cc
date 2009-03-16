@@ -109,26 +109,64 @@ namespace askap
       void Matcher::fixRefList(std::vector<float> beam)
       {
 	/// @details This function takes a reference list and
-	/// convolves the sizes of the sources with a given beam. For
-	/// point sources this just means replacing the major and
-	/// minor axes with the beam axes
+	/// convolves the sizes of the sources with a given beam. The
+	/// relationships discussed in Wild (1970), AustJPhys 23, 113
+	/// are used to combine a gaussian source with a gaussian beam. 
 	///
 	/// @param beam A vector containing the beam major axis, beam
 	/// minor axis and beam position angle, all in degrees.
 	///
-	/// @todo Need to add something for non-point sources.
+	/// @todo This treatment only deals with Gaussian
+	/// sources. What if we have discs as well?
 
 	ASKAPLOG_INFO_STR(logger, "Beam info being used: maj="<<beam[0]*3600.
 			  <<", min="<<beam[1]*3600.<<", pa="<<beam[2]);
 
+	float a1sq = std::max(beam[0]*3600.,beam[1]*3600.); a1sq = a1sq*a1sq;
+	float b1sq = std::min(beam[0]*3600.,beam[1]*3600.); b1sq = b1sq*b1sq;
+	float pa1 = beam[2];
+	float d1sq = a1sq - b1sq;
+
 	std::vector<Point>::iterator pix=this->itsRefPixList.begin();
 	for(;pix<this->itsRefPixList.end();pix++){
 
-	  if(!(pix->majorAxis()>0)){
-	    pix->setMajorAxis(beam[0]*3600.);
-	    pix->setMinorAxis(beam[1]*3600.);
-	    pix->setPA(beam[2]);
+	  float a2sq = std::max(pix->majorAxis(),pix->minorAxis()); a2sq=a2sq*a2sq;
+	  float b2sq = std::min(pix->majorAxis(),pix->minorAxis()); b2sq=b2sq*b2sq;
+	  float pa2 = pix->PA();
+	  float d2sq = a2sq - b2sq;
+
+	  float d0sq = d1sq + d2sq + 2. * sqrt(d1sq*d2sq) * cos(2.*(pa1-pa2));
+	  float a0sq = 0.5 * (a1sq+b1sq + a2sq+b2sq + d0sq);
+	  float b0sq = 0.5 * (a1sq+b1sq + a2sq+b2sq - d0sq);
+
+	  pix->setMajorAxis(sqrt(a0sq));
+	  pix->setMinorAxis(sqrt(b0sq));
+	  if(d0sq>0) {
+	    // leave out normalisation by d0sq, since we will take ratios to get tan2pa0
+	    float sin2pa0 = (d1sq*sin(2.*pa1) + d2sq*sin(2.*pa2));
+	    float cos2pa0 = (d1sq*cos(2.*pa1) + d2sq*cos(2.*pa2));
+	    float pa0;
+	    // atan returns a value between -90 and 90 degrees.
+	    // Need to correct the value of l according to the correct quandrant it is in.
+	    // This is worked out using the signs of sinl and cosl
+	    if(sin2pa0>0){
+	      if(cos2pa0>0) pa0 = atan(sin2pa0/cos2pa0);
+	      else          pa0 = atan(sin2pa0/cos2pa0) + M_PI;
+	    }
+	    else{
+	      if(cos2pa0>0) pa0 = atan(sin2pa0/cos2pa0) + 2.*M_PI;
+	      else          pa0 = atan(sin2pa0/cos2pa0) + M_PI;
+	    }
+	    pix->setPA(pa0/2.);
 	  }
+	  else  pix->setPA(0.);
+	  
+
+// 	  if(!(pix->majorAxis()>0)){
+// 	    pix->setMajorAxis(beam[0]*3600.);
+// 	    pix->setMinorAxis(beam[1]*3600.);
+// 	    pix->setPA(beam[2]);
+// 	  }
  
 	}
 
