@@ -355,6 +355,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 		   
 		   // Calculate the delay phasor
 		   const double phase=2.0f*casa::C::pi*frequencyList[chan]*delay(i)/(casa::C::c);
+			          
 		   const casa::Complex phasor(cos(phase), sin(phase));
 		   
 		   bool allPolGood=true;
@@ -367,7 +368,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 		   // ignored
 		   // @todo Be more careful about matching polarizations
 		   if (allPolGood) {
-		   
+		     
 		     // Now loop over all visibility polarizations
 		     for (uint pol=0; pol<nPol; ++pol) {
 		          // temporary fix as we always do MFS-like operation for polarisations
@@ -472,12 +473,13 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			     } else {
 			       if (!isPSFGridder()) {
 			           /// Gridding visibility data onto grid
-			           casa::Complex rVis=phasor*conj(acc.visibility()(i, chan, pol));
+			           casa::Complex rVis = phasor*conj(acc.visibility()(i, chan, pol));
                        if(itsVisWeight) {
 				          rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
 				       }
 				   
 			           GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
+			           
 			           itsSamplesGridded+=1.0;
 			           itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 			       
@@ -547,13 +549,13 @@ void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
     const casa::MVDirection imgCentre(getImageCentre());
     
 	
-		
+	// offsets between image centre and the tangent point	
 	const double dl = sin(imgCentre.getLong()-tangentPoint.getLong())*cos(imgCentre.getLat());
 	const double dm = sin(imgCentre.getLat())*cos(tangentPoint.getLat()) - 
 	      cos(imgCentre.getLat())*sin(tangentPoint.getLat())
 	    *cos(imgCentre.getLong()-tangentPoint.getLong());
-
-    const casa::MVPosition imgOffset = casa::MVPosition(getImageCentre())-casa::MVPosition(getTangentPoint());
+    
+    //const casa::MVPosition imgOffset = casa::MVPosition(getImageCentre())-casa::MVPosition(getTangentPoint());
 
 	const casa::uInt nSamples = acc.uvw().size();
 	delay.resize(nSamples);

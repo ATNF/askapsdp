@@ -112,16 +112,21 @@ namespace askap
 	//        psf /= float(maxDiag);
 	//        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
-	ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
-	ASKAPLOG_INFO_STR(logger, "Maximum diagonal element " <<maxDiag<<
+	    ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
+	    ASKAPLOG_INFO_STR(logger, "Maximum diagonal element " <<maxDiag<<
 			  ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
-	ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
+	    ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
         psf /= float(casa::max(psf));
         ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
-	uint nAbove = 0;
+	    uint nAbove = 0;
         casa::IPosition vecShape(1,diag.nelements());
         casa::Vector<float> dirtyVector(dirty.reform(vecShape));
+
+#ifdef ASKAP_DEBUG
+        ASKAPLOG_INFO_STR(logger,"Peak of the dirty vector before normalisation "<<casa::max(dirtyVector));
+#endif // ASKAP_DEBUG        
+        
         casa::Vector<float> maskVector(mask ? mask->reform(vecShape) : casa::Vector<float>());
         for (casa::uInt elem=0; elem<diag.nelements(); ++elem) {
              if(diag(elem)>cutoff) {
