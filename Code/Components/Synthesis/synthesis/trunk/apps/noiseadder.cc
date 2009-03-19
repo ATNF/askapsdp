@@ -49,6 +49,9 @@ ASKAP_LOGGER(logger, "");
 #include <measurementequation/IMeasurementEquation.h>
 #include <dataaccess/MemBufferDataAccessor.h>
 
+#include <mwcommon/MPIConnection.h>
+
+
 // std
 #include <stdexcept>
 #include <iostream>
@@ -92,7 +95,11 @@ int main(int argc, char **argv) {
      parser.add(noiseVariance, cmdlineparser::Parser::throw_exception);
      parser.process(argc, argv);
      
-     GaussianNoiseME noiseME(noiseVariance);
+
+     casa::Int seed1 = casa::Int(time(0));
+     casa::Int seed2 = casa::Int(askap::cp::MPIConnection::getRank());
+     std::cerr<<"Using seeds: "<<seed1<<" "<<seed2<<std::endl;
+     GaussianNoiseME noiseME(noiseVariance,seed1,seed2);
      
      TableDataSource ds(msName.getValue(),TableDataSource::MEMORY_BUFFERS | TableDataSource::WRITE_PERMITTED);     
      
