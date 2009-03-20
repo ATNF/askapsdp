@@ -95,6 +95,8 @@ int main(int argc, char **argv) {
      parser.add(noiseVariance, cmdlineparser::Parser::throw_exception);
      parser.process(argc, argv);
      
+     // Initialize MPI (also succeeds if no MPI available).
+     askap::cp::MPIConnection::initMPI(argc, (const char **&)argv);
 
      casa::Int seed1 = casa::Int(time(0));
      casa::Int seed2 = casa::Int(askap::cp::MPIConnection::getRank());
