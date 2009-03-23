@@ -111,6 +111,8 @@ int main(int argc, char **argv) {
      addNoise(ds,noiseME);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
+     askap::cp::MPIConnection::endMPI();
+
   }
   catch(const cmdlineparser::XParser &) {
      cerr<<"Usage "<<argv[0]<<" measurement_set noise_variance_in_Jy"<<endl;
