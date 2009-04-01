@@ -2,7 +2,7 @@ import sys
 from askap.logging import Handler
 from askap import get_config
 
-import Ice
+import Ice, IceStorm
 Ice.loadSlice(get_config("askap.logging", "LoggingService.ice"))
 from askap.logging.interfaces import ILoggerPrx, LogEvent
 
@@ -21,15 +21,31 @@ class IceHandler(Handler):
         self.formatter = None
 
     def _setup_iceprxy(self):
+
+
         initData = Ice.InitializationData()
         initData.properties = Ice.createProperties(None, 
                                                    initData.properties)
         initData.properties.load(get_config("askap.logging",
-                                            "logging_client.ice_cfg"))
+                                            "logging_publisher.ice_cfg"))
         
         self.ic = Ice.initialize(sys.argv, initData)
-        self.prxy = ILoggerPrx.\
-            checkedCast(self.ic.propertyToProxy("ILogger.Proxy"))
+        self.manager = IceStorm.TopicManagerPrx.\
+            checkedCast(self.ic.propertyToProxy('TopicManager.Proxy'))
+
+        topicname = "logger"
+        try:
+            topic = self.manager.retrieve(topicname)
+        except IceStorm.NoSuchTopic, e:
+            try:
+                topic = self.manager.create(topicname)
+            except IceStorm.TopicExists, ex:
+                print "temporary error. try again"
+                raise
+        publisher = topic.getPublisher()
+        publisher = publisher.ice_oneway()
+
+        self.prxy = ILoggerPrx.uncheckedCast(publisher)
         
         if not self.prxy:
             raise RuntimeError("Invalid proxy")

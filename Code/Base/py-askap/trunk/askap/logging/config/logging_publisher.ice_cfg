@@ -1,10 +1,4 @@
 #
-# This property is used to configure the endpoints of the clock
-# subscriber adapter.
-#
-LoggingService.Subscriber.Endpoints=tcp:udp
-
-#
 # This property is used by the clients to connect to IceStorm.
 #
 TopicManager.Proxy=LoggerIceStorm/TopicManager:default -p 10009
