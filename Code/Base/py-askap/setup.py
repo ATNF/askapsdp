@@ -1,3 +1,3 @@
 from recursivebuild import build
 
-build(['trunk/setup.py']) 
+build(['trunk/build.py']) 
