@@ -13,10 +13,11 @@ from logging import *
 
 # insert xml socket handler
 from xmllayout import RawSocketHandler as XMLSocketHandler
+from askap.logging.icehandler import IceHandler
 
 # decorator
 def log_debug(func):
-    """Logging decrorator for quick debugging of function calls and their arguments.
+    """Logging decorator for quick debugging of function calls and their arguments.
 You need to set the logging level to ''DEBUG'' to see these message ans should have a logging instance called ''logger''.
 
 Example: ..
@@ -58,3 +59,4 @@ class Foo:
         # pylint: disable-msg=W0142
         return func(*args, **kwargs)
     return postlog
+

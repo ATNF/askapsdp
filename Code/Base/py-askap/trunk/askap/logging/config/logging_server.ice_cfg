@@ -1,0 +1,5 @@
+LoggingService.Endpoints=default -p 10009
+#
+# Warn about connection exceptions
+#
+Ice.Warn.Connections=1
