@@ -85,27 +85,30 @@ public:
 
 bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
 {
-      LatticeBase* lattPtr = ImageOpener::openImage (name);
-      //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
-      lattPtr->unlock();
-      ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
-      bool OK = (lattPtr != 0);
-      ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
-      IPosition shape = imagePtr->shape();
-      std::cerr << shape << "\n";
-      IPosition newLength = shape;
-      newLength(0) = newLength(0) / (parl.nnode()-1);
-      std::cerr << newLength << "\n";
-      int startpos = (parl.rank()-1)*newLength(0);
-      IPosition start(shape.size(),0);
-      start(0) = startpos;
-      std::cerr << start << " " << newLength << "\n";
-      Slicer slice(start, newLength);
-      SubImage<Float> sub(*imagePtr, slice, True);
 
-      subimage = sub;
-
-      return OK;
+  ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<": About to open image " << name);  
+  LatticeBase* lattPtr = ImageOpener::openImage (name);
+  ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<": Done!");
+  //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
+  lattPtr->unlock();
+  ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
+  bool OK = (lattPtr != 0);
+  ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+  IPosition shape = imagePtr->shape();
+  std::cerr << shape << "\n";
+  IPosition newLength = shape;
+  newLength(0) = newLength(0) / (parl.nnode()-1);
+  std::cerr << newLength << "\n";
+  int startpos = (parl.rank()-1)*newLength(0);
+  IPosition start(shape.size(),0);
+  start(0) = startpos;
+  std::cerr << start << " " << newLength << "\n";
+  Slicer slice(start, newLength);
+  SubImage<Float> sub(*imagePtr, slice, True);
+  
+  subimage = sub;
+  
+  return OK;
 }
 
 Float subimageMean(const Lattice<Float>& lat) {
@@ -114,8 +117,7 @@ Float subimageMean(const Lattice<Float>& lat) {
   const IPosition latticeShape = lat.shape();
   Float currentSum = 0.0f;
   uInt nPixels = 0u;
-  RO_LatticeIterator<Float> iter(lat, 
-                                   LatticeStepper(latticeShape, cursorShape));
+  RO_LatticeIterator<Float> iter(lat, LatticeStepper(latticeShape, cursorShape));
   for (iter.reset(); !iter.atEnd(); iter++){
     currentSum += sum(iter.cursor());
     nPixels += iter.cursor().nelements();
@@ -126,15 +128,15 @@ Float subimageMean(const Lattice<Float>& lat) {
 
 int main(int argc, const char *argv[])
 {
-
+  
   try {
     std::string imageName;
     if(argc==1) imageName = "$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
     else imageName = argv[1];
-
+    
     ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-   MyAskapParallel parl(argc,argv);
-
+    MyAskapParallel parl(argc,argv);
+    
     if(!parl.isParallel()){
       ASKAPLOG_ERROR_STR(logger, "This needs to be run in parallel!");
       exit(1);

@@ -457,16 +457,18 @@ namespace askap
       // The l in sinl and cosl here is really gl-ASC_NODE
       double sinl = (sin(d)*cos(NGP_DEC) - cos(d)*cos(deltaRA)*sin(NGP_DEC)) / cos(gb);
       double cosl = cos(d) * sin(deltaRA) / cos(gb);
-      // atan returns a value between -90 and 90 degrees.
+
+      gl = atan(fabs(sinl/cosl));
+      // atan of the abs.value of the ratio returns a value between 0 and 90 degrees.
       // Need to correct the value of l according to the correct quandrant it is in.
       // This is worked out using the signs of sinl and cosl
       if(sinl>0){
-	if(cosl>0) gl = atan(sinl/cosl);
-	else       gl = atan(sinl/cosl) + M_PI;
+	if(cosl>0) gl = gl;
+	else       gl = M_PI - gl;
       }
       else{
-	if(cosl>0) gl = atan(sinl/cosl) + 2.*M_PI;
-	else       gl = atan(sinl/cosl) + M_PI;
+	if(cosl>0) gl = 2.*M_PI - gl;
+	else       gl = M_PI + gl;
       }
 
       // Find the correct values of the lat & lon in degrees.

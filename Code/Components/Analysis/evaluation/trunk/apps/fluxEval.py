@@ -33,6 +33,11 @@ if __name__ == '__main__':
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f,chisq2,imagerms2,rms2,ndof2,npf2,npo2 = read_miss_data(missfile)
 
+    fluxScaling = 1.e6
+    fS = fS * fluxScaling
+    fR = fR * fluxScaling
+    imagerms = imagerms * fluxScaling
+
     if(size(x)>0):
         print "Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R']))
     else:
@@ -56,11 +61,15 @@ if __name__ == '__main__':
     print "Fraction with |dS/S|<20%% = %5.2f%%"%(100.*size(rdF[abs(rdF)<20])/cast[float](size(rdF)))
     print "Fraction with |dS/S|<30%% = %5.2f%%"%(100.*size(rdF[abs(rdF)<30])/cast[float](size(rdF)))
     print "Fraction with dS/S>30%%   = %5.2f%%"%(100.*size(rdF[rdF>30])/cast[float](size(rdF)))
+    print ""
 
-    print "Mean of dS   = %10.6f"%(mean(dF))
-    print "Median of dS = %10.6f"%(median(dF))
-    print "RMS of dS    = %10.6f"%(std(dF))
-    print "MADFM of dS  = %10.6f  = %10.6f as RMS"%(madfm(dF),madfmToRMS(madfm(dF)))
+    dFgood = dF[npf>0]
+    print "Mean of dS   = %10.6f"%(mean(dFgood))
+    print "Median of dS = %10.6f"%(median(dFgood))
+    print "RMS of dS    = %10.6f"%(std(dFgood))
+    print "MADFM of dS  = %10.6f  = %10.6f as RMS"%(madfm(dFgood),madfmToRMS(madfm(dFgood)))
+    print "Average of the ImageRMS values = %10.6f"%(mean(imagerms[npf>0]))
+    print "Weighted average of the ImageRMS values = %10.6f"%(sum(imagerms[npf>0]*npf[npf>0])/(sum(npf[npf>0])*1.))
 
     figure(1, figsize=(16.5,11.7), dpi=72)
 
@@ -179,10 +188,22 @@ if __name__ == '__main__':
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs distance from centre',font)
 
-    azimuth = arctan(yS/xS) * 180. / math.pi
+    azimuth = arctan(abs(yS)/abs(xS)) * 180. / math.pi
+    for i in range(len(azimuth)):
+        if(yS[i]>0.):
+            if(xS[i]<0.):
+                azimuth[i] = 180. - azimuth[i]
+        else:
+            if(xS[i]<0.):
+                azimuth[i] = 180. + azimuth[i]
+            else:
+                azimuth[i] = 360. - azimuth[i]
+    azimuth = azimuth % 360.
     subplot(4,5,13)
     for i in ind:
         plot([azimuth[i]],[rdF[i]],'o')
+    axisrange=axis()
+    axis([0.,360.,axisrange[2],axisrange[3]])
     xlabel(r'Azimuth around field centre [deg]',font)
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs field azimuth',font)
@@ -220,7 +241,28 @@ if __name__ == '__main__':
     temp=array(temp)
     n, bins, patches = hist(temp, 20)
     xlabel(r'$\Delta S$',font)
-    savefig('fluxEval')
+    axes([0.35,0.18,0.05,0.05])
+    mu=median(temp)
+    sigma=madfmToRMS(madfm(temp))
+    upper=mu+3.*sigma
+    lower=mu-3.*sigma
+    upper = cast[int](ceil(upper/10)*10.)
+    lower = cast[int](floor(lower/10)*10.)
+    n, bins, patches = hist(temp, 20, range=[lower,upper], normed=1)
+    axisrange = axis()
+    ytemp1 = normpdf(bins,mu,sigma)
+    ytemp2 = normpdf(bins,mu,mean(imagerms[npf>0]))
+    l1 = plot(bins, ytemp1, 'r-')
+#    l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-')
+    l2 = plot(bins, ytemp2, 'g-')
+    axisrange = axis()
+    axis([lower,upper,axisrange[2],axisrange[3]])
+    xticks(cast[int]([lower,mu,upper]))
+#    yticks([axisrange[3],axisrange[3]*3./4.,axisrange[3]/2.,axisrange[3]/4.])
+    yticks([])
+    setp(l1, 'linewidth', 2)
+    setp(l2, 'linewidth', 2)
+
 
     subplot(4,5,18)
     temp=[]
@@ -232,13 +274,16 @@ if __name__ == '__main__':
 
     subplot(4,5,19)
     for i in ind:
-        plot([fS[i]/imagerms[i]],[rdF[i]],'o')
+#        plot([fS[i]/imagerms[i]],[rdF[i]],'o')
+        plot([fS[i]/imagerms[i]],[dF[i]],'o')
     semilogx(basex=10.)
     axisrange = axis()
     axis([min(fS/imagerms)*0.9,max(fS/imagerms)*1.1,axisrange[2],axisrange[3]])
     xlabel(r'$\log_{10}(S/N (Fit))$',font)
-    ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
-    title('Rel. Flux diff vs log(S/N)',font)
+#    ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
+#    title('Rel. Flux diff vs log(S/N)',font)
+    ylabel(r'$\Delta S$',font)
+    title('Flux diff vs log(S/N)',font)
 
     numNeighbours = zeros(len(xS))
     for i in range(len(xS)):

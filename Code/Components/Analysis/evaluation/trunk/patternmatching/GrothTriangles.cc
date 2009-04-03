@@ -77,13 +77,13 @@ namespace askap
 
       std::ostream &operator<<(std::ostream& theStream, Stuff &s)
       {
-	theStream << std::setw(10) << s.itsChisq << " " 
-		  << std::setw(10) << s.itsImageNoise << " "
-		  << std::setw(10) << s.itsRMS << " " 
+	theStream << std::setw(10) << std::setprecision(4) << s.itsChisq << " " 
+		  << std::setw(10) << std::setprecision(8) << s.itsImageNoise << " "
+		  << std::setw(10) << std::setprecision(6) << s.itsRMS << " " 
 		  << std::setw(10) << s.itsNDoF << " "
 		  << std::setw(10) << s.itsNpixFit << " "
 		  << std::setw(10) << s.itsNpixObj << " "
-		  << std::setw(10) << s.itsDudFlux << " ";
+		  << std::setw(10) << std::setprecision(8) << s.itsDudFlux << " ";
 	return theStream;
       }
       
