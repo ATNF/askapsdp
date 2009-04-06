@@ -11,8 +11,6 @@
 # pylint: disable-msg=W0401
 from logging import *
 
-# insert xml socket handler
-from xmllayout import RawSocketHandler as XMLSocketHandler
 from askap.logging.icehandler import IceHandler
 
 # decorator
