@@ -6,7 +6,6 @@ dep = Dependency()
 dep.add_package()
 
 PKGNAME = ROOTPKG = "askap"
-print find_packages()
 
 setup(name = PKGNAME,
       version = 'trunk',

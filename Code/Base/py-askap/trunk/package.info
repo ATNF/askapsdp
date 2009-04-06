@@ -1,1 +1,2 @@
-pymodule=askap
+pymodule=askap==trunk
+
