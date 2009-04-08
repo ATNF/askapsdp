@@ -1,8 +1,8 @@
 # @file
-from askapdev.rbuild.thirdpartybuilder import ThirdPartyBuilder
+from askapdev.rbuild.builders import Builder
 from askapdev.rbuild import run
 
-class MyBuilder(ThirdPartyBuilder):
+class MyBuilder(Builder):
     def _build(self):
         for fn in ['measdata', 'testdataset']:
             run("tar -xjf %s.tar.bz2" % fn)

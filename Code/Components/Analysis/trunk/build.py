@@ -1,7 +1,7 @@
 # @file
 # build script for AutoBuild
 
-from askapdev.rbuild.thirdpartybuilder import SconsBuilder as Builder
+from askapdev.rbuild.builders import Scons as Builder
 
 b = Builder(".")
 b.build()

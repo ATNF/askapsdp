@@ -1,4 +1,4 @@
-from askapdev.rbuild.thirdpartybuilder import SetuptoolsBuilder as Builder
+from askapdev.rbuild.builders import Setuptools as Builder
 
 builder = Builder(".")
 builder.build()
