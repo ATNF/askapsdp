@@ -1,6 +1,6 @@
 # @file
-from recursivebuild.thirdpartybuilder import ThirdPartyBuilder
-from recursivebuild import run
+from askapdev.rbuild.thirdpartybuilder import ThirdPartyBuilder
+from askapdev.rbuild import run
 
 class MyBuilder(ThirdPartyBuilder):
     def _clean(self):

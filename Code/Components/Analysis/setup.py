@@ -1,4 +1,4 @@
-from recursivebuild import build
+from askapdev.rbuild import build
 
 build(['analysis/setup.py',
        'evaluation/setup.py',

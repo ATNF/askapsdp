@@ -1,4 +1,4 @@
-from recursivebuild import build
+from askapdev.rbuild import build
 
 nobuild = {'benchmarks'  : "Not integrated into build system yet.",
            'mwcontrol'   : "Obsolete - wiki/AS05_Infrastructure/PackageStatus."}

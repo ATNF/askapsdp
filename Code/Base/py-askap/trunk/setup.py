@@ -1,5 +1,5 @@
-from recursivebuild import setup
-from recursivebuild.dependencies import Dependency
+from askapdev.rbuild import setup
+from askapdev.rbuild.dependencies import Dependency
 from setuptools import find_packages
 
 dep = Dependency()

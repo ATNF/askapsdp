@@ -62,12 +62,12 @@ parser.add_option('-n', '--no-update', dest='no_update',
 parser.add_option('-p', '--preserve', dest='preserve',
                   action="store_true", default=False,
                   help='Keep pre-existing bootstrap files (though they maybe overwritten). Default is to remove.')
-recursivebuild_path = "Tools/Dev/recursivebuild"
-virtualenv_path     = "Tools/Dev/virtualenv"
-templates_path      = "Tools/Dev/templates"
 
-invoked_path  = sys.argv[0]
-absolute_path = os.path.abspath(invoked_path)
+rbuild_path     = "Tools/Dev/rbuild"
+virtualenv_path = "Tools/Dev/virtualenv"
+templates_path  = "Tools/Dev/templates"
+invoked_path    = sys.argv[0]
+absolute_path   = os.path.abspath(invoked_path)
 
 os.chdir(os.path.dirname(absolute_path))
 
@@ -99,12 +99,12 @@ os.system("python initenv.py >/dev/null")
 print ">>> Attempting to create initaskap.csh."
 os.system("python initenv.py -s tcsh >/dev/null")
 
-if os.path.exists(recursivebuild_path):
-    print ">>> Attempting to build recursivebuild."
+if os.path.exists(rbuild_path):
+    print ">>> Attempting to build rbuild."
     os.system(". initaskap.sh && cd %s && python setup.py -q install"
-                % recursivebuild_path)
+                % rbuild_path)
 else:
-    print ">>> %s does not exist." % os.path.abspath(recursivebuild_path)
+    print ">>> %s does not exist." % os.path.abspath(rbuild_path)
     sys.exit()
 
 if os.path.exists(templates_path):

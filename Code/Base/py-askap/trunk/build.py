@@ -1,4 +1,4 @@
-from recursivebuild.thirdpartybuilder import SetuptoolsBuilder as Builder
+from askapdev.rbuild.thirdpartybuilder import SetuptoolsBuilder as Builder
 
 builder = Builder(".")
 builder.build()
