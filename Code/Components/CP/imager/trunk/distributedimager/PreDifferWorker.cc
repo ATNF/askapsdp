@@ -47,7 +47,8 @@
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/SharedIter.h>
-#include "dataaccess/ParsetInterface.h"
+#include <dataaccess/ParsetInterface.h>
+#include <casa/OS/Timer.h>
 
 using namespace askap::cp;
 using namespace askap::scimath;
@@ -58,19 +59,21 @@ ASKAP_LOGGER(logger, ".PreDifferWorker");
 PreDifferWorker::PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
         askap::cp::IImagerComms& comms) : m_parset(parset), m_comms(comms)
 {
+        m_gridder_p = VisGridderFactory::make(m_parset);
 }
 
 PreDifferWorker::~PreDifferWorker()
 {
+    m_gridder_p.reset();
 }
 
 askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::Params::ShPtr notused)
 {
+    // Assert PreConditions
+    ASKAPCHECK(m_gridder_p, "m_gridder_p is not correctly initialized");
+
     // Receive the model
     askap::scimath::Params::ShPtr model_p = m_comms.receiveModel();
-
-    // Pointer to the gridder
-    askap::synthesis::IVisGridder::ShPtr gridder_p;
 
     // Pointer to normal equation
     askap::scimath::INormalEquations::ShPtr ne_p;
@@ -83,6 +86,9 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
         if (ms == "") {
             break;
         }
+
+        casa::Timer timer;
+        timer.mark();
 
         ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
 
@@ -110,12 +116,12 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
         ne_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
         ASKAPCHECK(ne_p, "ne_p is not correctly initialized");
 
-        gridder_p = VisGridderFactory::make(m_parset);
-        ASKAPCHECK(gridder_p, "gridder_p is not correctly initialized");
-
-        equation_p = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, gridder_p));
+        equation_p = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, m_gridder_p));
         ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
         equation_p->calcEquations(*ne_p);
+
+        ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "
+                << timer.real() << " seconds ");
 
         // Send NE to the master
         m_comms.sendNE(ne_p, cg_master);
@@ -123,7 +129,6 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
 
     // Cleanup
     equation_p.reset();
-    gridder_p.reset();
     ne_p.reset();
     model_p.reset();
 

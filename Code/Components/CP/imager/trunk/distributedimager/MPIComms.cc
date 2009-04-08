@@ -42,11 +42,12 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/Params.h>
-#include "Blob/BlobIStream.h"
-#include "Blob/BlobIBufVector.h"
-#include "Blob/BlobOStream.h"
-#include "Blob/BlobOBufVector.h"
-#include "Blob/BlobArray.h"
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobIBufVector.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobOBufVector.h>
+#include <Blob/BlobArray.h>
+#include <casa/OS/Timer.h>
 
 using namespace askap::cp;
 using namespace askap::scimath;
@@ -121,6 +122,9 @@ void MPIComms::abort(void)
 
 void MPIComms::broadcastModel(askap::scimath::Params::ShPtr model)
 {
+    casa::Timer timer;
+    timer.mark();
+
     // Encode the model to a byte stream
     std::vector<char> data;
     LOFAR::BlobOBufVector<char> bv(data);
@@ -135,6 +139,9 @@ void MPIComms::broadcastModel(askap::scimath::Params::ShPtr model)
 
     // Now broadcast the model itself
     broadcast(&data[0], data.size() * sizeof(char), c_root);
+
+    ASKAPLOG_INFO_STR(logger, "Broadcast model to all ranks via MPI in "
+            << timer.real() << " seconds ");
 }
 
 askap::scimath::Params::ShPtr MPIComms::receiveModel(void)
@@ -164,6 +171,9 @@ askap::scimath::Params::ShPtr MPIComms::receiveModel(void)
 
 void MPIComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
 {
+    casa::Timer timer;
+    timer.mark();
+
     // Encode the normal equations to a byte stream
     std::vector<char> data;
     LOFAR::BlobOBufVector<char> bv(data);
@@ -178,6 +188,9 @@ void MPIComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
 
     // Now send the actual byte stream
     send(&data[0], size * sizeof(char), id);
+
+    ASKAPLOG_INFO_STR(logger, "Sent NormalEquations to rank " << id
+            << " via MPI in " << timer.real() << " seconds ");
 }
 
 askap::scimath::INormalEquations::ShPtr MPIComms::receiveNE(int& id)
@@ -186,8 +199,6 @@ askap::scimath::INormalEquations::ShPtr MPIComms::receiveNE(int& id)
     long size;
     MPI_Status status;
     receive(&size, sizeof(long), MPI_ANY_SOURCE, status);
-
-    ASKAPLOG_INFO_STR(logger, "recevieNE(): Size of NE " << size);
 
     // Receive the byte stream
     std::vector<char> data;
@@ -256,19 +267,13 @@ void MPIComms::send(const void* buf, size_t size, int dest)
 
         void* addr = addOffset(buf, offset);
         if (remaining > c_maxint) {
-            ASKAPLOG_INFO_STR(logger, "Send: Remaining " << remaining);
-            ASKAPLOG_INFO_STR(logger, "Send: Sending " << c_maxint);
             result = MPI_Send(addr, c_maxint, MPI_BYTE,
                     dest, tag, m_communicator);
             remaining -= c_maxint;
-            ASKAPLOG_INFO_STR(logger, "Send: Remaining " << remaining);
         } else {
-            ASKAPLOG_INFO_STR(logger, "Send: Remaining " << remaining);
-            ASKAPLOG_INFO_STR(logger, "Send: Sending " << remaining);
             result = MPI_Send(addr, remaining, MPI_BYTE,
                     dest, tag, m_communicator);
             remaining = 0;
-            ASKAPLOG_INFO_STR(logger, "Send: Remaining " << remaining);
         }
         handleError(result, "MPI_Send");
     }
@@ -296,28 +301,22 @@ void MPIComms::receive(void* buf, size_t size, int source, MPI_Status& status)
     // source needs to be recorded for later use.
     int actualSource = status.MPI_SOURCE;
 
-        ASKAPLOG_INFO_STR(logger, "Recv: Payload size " << payloadSize);
-
     // Receive the smaller of size or payloadSize
     size_t remaining = (payloadSize > size) ? size : payloadSize;
 
     while (remaining > 0) {
-        ASKAPLOG_INFO_STR(logger, "Recv: Remaining " << remaining);
         size_t offset = size - remaining;
         void* addr = addOffset(buf, offset);
         if (remaining > c_maxint) {
-            ASKAPLOG_INFO_STR(logger, "Recv: Receiving " << c_maxint);
             result = MPI_Recv(addr, c_maxint, MPI_BYTE,
                     actualSource, tag, m_communicator, &status);
             remaining -= c_maxint;
         } else {
-            ASKAPLOG_INFO_STR(logger, "Recv: Receiving " << remaining);
             result = MPI_Recv(addr, remaining, MPI_BYTE,
                     actualSource, tag, m_communicator, &status);
             remaining = 0;
         }
         handleError(result, "MPI_Recv");
-        ASKAPLOG_INFO_STR(logger, "Recv: Remaining " << remaining);
     }
 
     ASKAPCHECK(remaining == 0, "MPIComms::receive() Didn't receive all data");

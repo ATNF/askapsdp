@@ -78,8 +78,8 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         // Initially send one workunit to each worker,
         // from ID 1 to (getNumNodes() - 1)
         for (int dest = 1; dest < m_comms.getNumNodes() && n < ms.size(); ++dest) {
-            ASKAPLOG_INFO_STR(logger, "Master is sending: " << ms[n]
-                    << " to destination: " << dest);
+            ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
+                    << " to worker " << dest);
             m_comms.sendString(ms[n], dest);
             ++n;
         }
@@ -93,20 +93,20 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
             // If there is still work to be distributed, send this worker a new
             // work unit
             if (n < ms.size()) {
-                ASKAPLOG_INFO_STR(logger, "Master is sending: " << ms[n]
-                        << " to destination: " << source);
+                ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
+                        << " to worker " << source);
                 m_comms.sendString(ms[n], source);
                 ++n;
             }
 
             // Merge the received normal equations
-            ASKAPLOG_INFO_STR(logger, "Merging normal equations");
+            ASKAPLOG_INFO_STR(logger, "Merging normal equations from worker " << source);
             ne_p->merge(*recv_ne_p);
         }
 
         // Finally, send each process an empty string to indicate
         // there are no more workunits on offer (TODO: Need to find
-        // a better way of doing this
+        // a better way of doing this)
         for (int dest = 1; dest < m_comms.getNumNodes(); ++dest) {
             m_comms.sendString("", dest);
         }

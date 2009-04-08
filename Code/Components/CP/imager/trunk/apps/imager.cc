@@ -37,11 +37,12 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <casa/Logging/LogIO.h>
-#include <casa/Logging/LogSinkInterface.h>
 #include <askap/Log4cxxLogSink.h>
 #include <APS/ParameterSet.h>
 #include <CommandLineParser.h>
+#include <casa/Logging/LogIO.h>
+#include <casa/Logging/LogSinkInterface.h>
+#include <casa/OS/Timer.h>
 
 // Local Package includes
 #include "distributedimager/DistributedImager.h"
@@ -59,6 +60,9 @@ int main(int argc, char *argv[])
     // avoids a master/worker deadlock in the case where an exception is
     // thrown by either the master or worker(s) but not both.
     boost::scoped_ptr<MPIComms> comms_p;
+
+    casa::Timer timer;
+    timer.mark();
 
     try {
         // Initialise the logger
@@ -109,6 +113,9 @@ int main(int argc, char *argv[])
     }
 
     comms_p.reset();
+
+    ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: "
+            << timer.system() <<" real:   " << timer.real());
 
     return 0;
 }

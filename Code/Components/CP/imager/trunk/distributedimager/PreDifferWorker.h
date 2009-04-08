@@ -33,6 +33,7 @@
 #include <APS/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
+#include <gridding/IVisGridder.h>
 
 // Local includes
 #include "distributedimager/IPreDiffer.h"
@@ -56,6 +57,9 @@ namespace askap {
 
                 // Communications class
                 askap::cp::IImagerComms& m_comms;
+
+                // Pointer to the gridder
+                askap::synthesis::IVisGridder::ShPtr m_gridder_p;
 
                 // ID of the master process
                 static const int cg_master = 0;

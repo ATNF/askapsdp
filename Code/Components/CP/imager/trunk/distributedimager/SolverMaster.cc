@@ -37,14 +37,15 @@
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/Params.h>
 #include <fitting/Solver.h>
-#include "fitting/Quality.h"
+#include <fitting/Quality.h>
 #include <measurementequation/ImageSolverFactory.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageRestoreSolver.h>
-#include "measurementequation/IImagePreconditioner.h"
-#include "measurementequation/WienerPreconditioner.h"
-#include "measurementequation/GaussianTaperPreconditioner.h"
-#include "measurementequation/ImageMultiScaleSolver.h"
+#include <measurementequation/IImagePreconditioner.h>
+#include <measurementequation/WienerPreconditioner.h>
+#include <measurementequation/GaussianTaperPreconditioner.h>
+#include <measurementequation/ImageMultiScaleSolver.h>
+#include <casa/OS/Timer.h>
 
 using namespace askap;
 using namespace askap::cp;
@@ -68,6 +69,9 @@ SolverMaster::~SolverMaster()
 
 void SolverMaster::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
 {
+    casa::Timer timer;
+    timer.mark();
+
     m_solver_p->init();
     m_solver_p->setParameters(*m_model_p);
     m_solver_p->addNormalEquations(*ne_p);
@@ -76,6 +80,9 @@ void SolverMaster::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
     askap::scimath::Quality q;
 
     m_solver_p->solveNormalEquations(q);
+    ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real()
+            << " seconds ");
+
     *m_model_p = m_solver_p->parameters();
 
     // Extract the largest residual
