@@ -1,4 +1,4 @@
-from recursivebuild import build
+from askapdev.rbuild import build
 
 print "==============================================================="
 print "=== Build Tools"
