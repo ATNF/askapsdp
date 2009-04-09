@@ -1,0 +1,38 @@
+
+/// The package namespace
+namespace askap::analysis {};
+
+
+/// @mainpage ASKAP analysis package
+///
+/// @section Introduction
+/// The analysis package supports analysis of processed radio synthesis 
+/// observations, including source detection and extraction, profile
+/// fitting, and writing to the database. The emphasis is on the
+/// processing of ASKAP-scale data sets i.e. TBs per hour.
+///
+/// @section Assumptions and goals
+///
+/// As for the synthesis package, the large data volumes to be
+/// processed require that I/O of data be minimized. The analysis
+/// processes are assumed to be run immediately after the imaging
+/// process (synthesis imaging & cleaning).
+///
+/// We assume that the problem can be (and is) partitioned such that the
+/// image data always fits in memory during the processing.
+///
+/// The analysis package itself is designed to run in one process. 
+/// We envisage that OpenMP-type multi-threading may be supported by
+/// some classes in this package, to take account of the distributed
+/// data. Message passing parallel execution is supported in the 
+/// @ref parallelanalysis classes.
+///
+/// @section Dependencies
+/// The analysis package makes extensive use of the Duchamp 3D source
+/// finding package to do the source detection and extraction. While 
+/// Duchamp can only read FITS images, there are additional routines 
+/// provided by this package to read AIPS++/casa images as well.
+///
+/// Source fitting is largely done by casa Gaussian Fitting routines. 
+///
+/// @copyright 2007 ASKAP, All Rights Reserved.
