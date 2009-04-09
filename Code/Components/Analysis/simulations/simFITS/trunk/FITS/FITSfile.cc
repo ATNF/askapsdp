@@ -205,7 +205,7 @@ namespace askap
 	    gaussians.push_back(gauss);
 	  }
 	  else{
-	    int loc = floor(pix[0]) + this->itsAxes[0]*floor(pix[1]);
+	    int loc = int(pix[0]) + this->itsAxes[0]*int(pix[1]);
 	    this->itsArray[loc] += flux;
 	    ASKAPLOG_INFO_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
 			      << "," << floor(pix[1]) << "]");
