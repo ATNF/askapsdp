@@ -68,14 +68,6 @@ struct UVWMachineCache {
    /// @return a const reference to uvw machine 
    const casa::UVWMachine& machine(const casa::MDirection &phaseCentre, 
                                    const casa::MDirection &tangent) const;
-protected:
-   /// @brief obtain the index corresponding to a particular tangent point
-   /// @details If the cache entry needs updating, the appropriate shared pointer will
-   /// be reset. This method updates itsTangentPoints, if necessary.
-   /// @param[in] phaseCentre direction to the input phase centre
-   /// @param[in] tangent direction to tangent point
-   /// @return cache index
-   size_t getIndex(const casa::MDirection &phaseCentre, const casa::MDirection &tangent) const;
    
    /// @brief a helper method to check whether two directions are matching
    /// @details It always return false if the reference frames are different (although
@@ -87,6 +79,15 @@ protected:
    /// @param[in] dir2 second direction
    /// @return true, if they are matching
    bool compare(const casa::MDirection &dir1, const casa::MDirection &dir2) const;
+
+protected:
+   /// @brief obtain the index corresponding to a particular tangent point
+   /// @details If the cache entry needs updating, the appropriate shared pointer will
+   /// be reset. This method updates itsTangentPoints, if necessary.
+   /// @param[in] phaseCentre direction to the input phase centre
+   /// @param[in] tangent direction to tangent point
+   /// @return cache index
+   size_t getIndex(const casa::MDirection &phaseCentre, const casa::MDirection &tangent) const;
    
 private:
 

@@ -33,6 +33,7 @@
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Cube.h>
 #include <casa/Quanta/MVDirection.h>
+#include <measures/Measures/MDirection.h>
 #include <scimath/Mathematics/RigidVector.h>
 
 
@@ -142,8 +143,29 @@ public:
 	/// packed into a 3-D rigid vector
 	virtual const casa::Vector<casa::RigidVector<casa::Double, 3> >&
 	        uvw() const = 0;
+	
+	/// @brief uvw after rotation
+	/// @details This method calls UVWMachine to rotate baseline coordinates 
+	/// for a new tangent point. Delays corresponding to this correction are
+	/// returned by a separate method.
+	/// @param[in] tangentPoint tangent point to rotate the coordinates to
+	/// @return uvw after rotation to the new coordinate system for each row
+	virtual const casa::Vector<casa::RigidVector<casa::Double, 3> >&
+	         rotatedUVW(const casa::MDirection &tangentPoint) const = 0;
+	         
+	/// @brief delay associated with uvw rotation
+	/// @details This is a companion method to rotatedUVW. It returns delays corresponding
+	/// to the baseline coordinate rotation. An additional delay corresponding to the 
+	/// translation in the tangent plane can also be applied using the image 
+	/// centre parameter. Set it to tangent point to apply no extra translation.
+	/// @param[in] tangentPoint tangent point to rotate the coordinates to
+	/// @param[in] imageCentre image centre (additional translation is done if imageCentre!=tangentPoint)
+	/// @return delays corresponding to the uvw rotation for each row
+	virtual const casa::Vector<casa::Double>& uvwRotationDelay(
+	         const casa::MDirection &tangentPoint, const casa::MDirection &imageCentre) const = 0;
+	
 
-        /// Noise level required for a proper weighting
+    /// Noise level required for a proper weighting
 	/// @return a reference to nRow x nChannel x nPol cube with
 	///         complex noise estimates. Elements correspond to the
 	///         visibilities in the data cube.

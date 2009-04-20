@@ -57,8 +57,7 @@ UVWMachineCache::UVWMachineCache(size_t cacheSize, double tolerance) : itsCache(
 /// @return a const reference to uvw machine 
 const casa::UVWMachine& UVWMachineCache::machine(const casa::MDirection &phaseCentre,
                                                  const casa::MDirection &tangent) const
-{
-   
+{   
    const size_t index = getIndex(phaseCentre,tangent);
    boost::shared_ptr<casa::UVWMachine> &machinePtr = itsCache[index];
    if (!machinePtr) {
