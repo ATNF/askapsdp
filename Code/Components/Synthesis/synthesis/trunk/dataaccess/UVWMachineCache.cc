@@ -29,7 +29,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#include <gridding/UVWMachineCache.h>
+#include <dataaccess/UVWMachineCache.h>
 #include <askap/AskapError.h>
 
 using namespace askap;

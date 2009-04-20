@@ -51,7 +51,7 @@ namespace synthesis {
 /// @details
 /// This class maintains the cache of UVW Machines (a pair of tangent point and phase centre directions 
 /// is  the key). The number of machines cached and the direction tolerance are specified as parameters.
-/// @ingroup gridding
+/// @ingroup dataaccess
 struct UVWMachineCache {
 
    /// @brief construct the cache
