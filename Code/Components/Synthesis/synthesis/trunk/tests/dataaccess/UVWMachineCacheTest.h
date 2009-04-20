@@ -1,6 +1,5 @@
-/// @file tdataaccess.cc
-///
-/// This file runs the test suite coded in DataAccessTest/DataAccsessTestImpl
+/// @file
+/// $brief Unit tests of the uvw machine cache
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -20,6 +19,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 /// GNU General Public License for more details.
 ///
+///
 /// You should have received a copy of the GNU General Public License
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
@@ -27,29 +27,38 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
 
-#include <cppunit/ui/text/TestRunner.h>
-#include <iostream>
+#ifndef UVW_MACHINE_CACHE_TEST_H
+#define UVW_MACHINE_CACHE_TEST_H
 
-#include "DataAccessTest.h"
-#include "DataConverterTest.h"
-#include "TableDataAccessTest.h"
-#include "UVWMachineCacheTest.h"
+#include <dataaccess/UVWMachineCache.h>
 
-#include "TableTestRunner.h"
+#include <cppunit/extensions/HelperMacros.h>
 
-int main(int, char **)
-{
- try {
-   //CppUnit::TextUi::TestRunner runner;
-   askap::synthesis::TableTestRunner runner;
-   runner.addTest(askap::synthesis::DataConverterTest::suite());
-   runner.addTest(askap::synthesis::DataAccessTest::suite());
-   runner.addTest(askap::synthesis::TableDataAccessTest::suite());
-   runner.addTest(askap::synthesis::UVWMachineCacheTest::suite());
-   runner.run();
-   return 0;
- }
- catch (const askap::AskapError &ce) {
-	 std::cerr<<ce.what()<<std::endl;
- }
-}
+#include <boost/shared_ptr.hpp>
+
+namespace askap {
+
+namespace synthesis {
+
+class UVWMachineCacheTest : public CppUnit::TestFixture {
+   CPPUNIT_TEST_SUITE(UVWMachineCacheTest);
+   CPPUNIT_TEST(cacheTest);
+   CPPUNIT_TEST_SUITE_END();
+public:
+   void setUp() {
+      itsMachineCache.reset();
+   }
+   
+   void cacheTest() {
+      
+   };
+   
+private:   
+   boost::shared_ptr<UVWMachineCache> itsMachineCache;
+};
+
+} // namespace synthesis
+
+} // namespace askap
+
+#endif // #ifndef UVW_MACHINE_CACHE_TEST_H
