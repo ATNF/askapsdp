@@ -38,13 +38,13 @@
 #include <casa/Arrays/Vector.h>
 
 // Local includes
-#include "distributedimager/ISolver.h"
+#include "distributedimager/ISolverTask.h"
 #include "distributedimager/IImagerComms.h"
 
 namespace askap {
     namespace cp {
 
-        class SolverMaster : public ISolver
+        class SolverMaster : public ISolverTask
         {
             public:
                 SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,

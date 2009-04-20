@@ -36,13 +36,13 @@
 #include <fitting/Params.h>
 
 // Local includes
-#include "distributedimager/ISolver.h"
+#include "distributedimager/ISolverTask.h"
 #include "distributedimager/IImagerComms.h"
 
 namespace askap {
     namespace cp {
 
-        class SolverWorker : public ISolver
+        class SolverWorker : public ISolverTask
         {
             public:
                 SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,

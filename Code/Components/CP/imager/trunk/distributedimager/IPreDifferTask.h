@@ -1,4 +1,4 @@
-/// @file ISolver.h
+/// @file IPreDifferTask.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ISOLVER_H
-#define ASKAP_CP_ISOLVER_H
+#ifndef ASKAP_CP_IPREDIFFER_H
+#define ASKAP_CP_IPREDIFFER_H
 
 // System includes
 
@@ -36,15 +36,13 @@
 namespace askap {
     namespace cp {
 
-        class ISolver
+        class IPreDifferTask
         {
             public:
-                virtual ~ISolver();
+                virtual ~IPreDifferTask();
 
-                virtual void solveNE(askap::scimath::INormalEquations::ShPtr) = 0;
-
-                virtual void writeModel(const std::string& postfix) = 0;
-        };
+                virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr model_p) = 0;
+       };
 
     };
 };

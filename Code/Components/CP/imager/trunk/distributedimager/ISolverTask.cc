@@ -1,4 +1,4 @@
-/// @file IPreDiffer.h
+/// @file IISolverTask.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,27 +24,9 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IPREDIFFER_H
-#define ASKAP_CP_IPREDIFFER_H
+// Include own header file first
+#include "ISolverTask.h"
 
-// System includes
-
-// ASKAPsoft includes
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
-
-namespace askap {
-    namespace cp {
-
-        class IPreDiffer
-        {
-            public:
-                virtual ~IPreDiffer();
-
-                virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr model_p) = 0;
-       };
-
-    };
-};
-
-#endif
+askap::cp::ISolverTask::~ISolverTask()
+{
+}

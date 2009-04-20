@@ -100,15 +100,18 @@ int main(int argc, char *argv[])
     } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
+        comms_p->abort();
         return 1;
     } catch (const askap::AskapError& e) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
         std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
+        comms_p->abort();
         return 1;
     } catch (const std::exception& e) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << e.what());
         std::cerr << "Unexpected exception in " << argv[0] << ": " << e.what()
             << std::endl;
+        comms_p->abort();
         return 1;
     }
 

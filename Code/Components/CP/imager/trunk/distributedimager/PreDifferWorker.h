@@ -36,13 +36,13 @@
 #include <gridding/IVisGridder.h>
 
 // Local includes
-#include "distributedimager/IPreDiffer.h"
+#include "distributedimager/IPreDifferTask.h"
 #include "distributedimager/IImagerComms.h"
 
 namespace askap {
     namespace cp {
 
-        class PreDifferWorker : public IPreDiffer
+        class PreDifferWorker : public IPreDifferTask
         {
             public:
                 PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,

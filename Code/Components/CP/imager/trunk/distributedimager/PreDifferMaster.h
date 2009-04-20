@@ -35,13 +35,13 @@
 #include <fitting/Params.h>
 
 // Local includes
-#include "distributedimager/IPreDiffer.h"
+#include "distributedimager/IPreDifferTask.h"
 #include "distributedimager/IImagerComms.h"
 
 namespace askap {
     namespace cp {
 
-        class PreDifferMaster : public IPreDiffer
+        class PreDifferMaster : public IPreDifferTask
         {
             public:
                 PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,

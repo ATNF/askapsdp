@@ -44,10 +44,10 @@
 
 // Local includes
 #include "distributedimager/IImagerComms.h"
-#include "distributedimager/IPreDiffer.h"
+#include "distributedimager/IPreDifferTask.h"
 #include "distributedimager/PreDifferMaster.h"
 #include "distributedimager/PreDifferWorker.h"
-#include "distributedimager/ISolver.h"
+#include "distributedimager/ISolverTask.h"
 #include "distributedimager/SolverMaster.h"
 #include "distributedimager/SolverWorker.h"
 
@@ -96,8 +96,8 @@ void DistributedImager::run(void)
     const bool writeAtMajorCycle = m_parset.getBool("Images.writeAtMajorCycle",false);
     int nCycles = m_parset.getInt32("ncycles", 0);
 
-    boost::scoped_ptr<IPreDiffer> prediffer_p;
-    boost::scoped_ptr<ISolver> solver_p;
+    boost::scoped_ptr<IPreDifferTask> prediffer_p;
+    boost::scoped_ptr<ISolverTask> solver_p;
     if (isMaster()) {
         prediffer_p.reset(new PreDifferMaster(m_parset, m_comms));
         solver_p.reset(new SolverMaster(m_parset, m_comms, m_model_p));

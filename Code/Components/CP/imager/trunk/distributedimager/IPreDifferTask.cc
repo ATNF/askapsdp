@@ -1,4 +1,4 @@
-/// @file IISolver.cc
+/// @file IPreDifferTask.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,8 +25,8 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "ISolver.h"
+#include "IPreDifferTask.h"
 
-askap::cp::ISolver::~ISolver()
+askap::cp::IPreDifferTask::~IPreDifferTask()
 {
 }
