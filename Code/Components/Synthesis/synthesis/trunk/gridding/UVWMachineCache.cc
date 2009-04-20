@@ -41,17 +41,83 @@ using namespace askap::synthesis;
 /// @param[in] tolerance pointing direction tolerance in radians, exceeding which leads 
 /// to initialisation of a new UVW Machine
 UVWMachineCache::UVWMachineCache(size_t cacheSize, double tolerance) : itsCache(cacheSize),
-      itsTangentPoints(cacheSize), itsOldestElement(0), itsTolerance(tolerance)
+      itsTangentPoints(cacheSize), itsPhaseCentres(cacheSize), 
+      itsOldestElement(0), itsTolerance(tolerance)
 {
   ASKAPASSERT(cacheSize>=1);
   ASKAPDEBUGASSERT(tolerance>0);
+  ASKAPDEBUGASSERT(itsCache.size() == itsTangentPoints.size());
+  ASKAPDEBUGASSERT(itsCache.size() == itsPhaseCentres.size());
 }
 
-/// @brief obtain machine for a particular tangent point
+/// @brief obtain machine for a particular tangent point and phase centre
 /// @details This is the main method of the class.
+/// @param[in] phaseCentre direction to the input phase centre
 /// @param[in] tangent direction to tangent point
 /// @return a const reference to uvw machine 
-const casa::UVWMachine& UVWMachineCache::machine(const casa::MDirection &tangent) const
+const casa::UVWMachine& UVWMachineCache::machine(const casa::MDirection &phaseCentre,
+                                                 const casa::MDirection &tangent) const
 {
-   return *(itsCache[0]); // temporary stub
+   
+   const size_t index = getIndex(phaseCentre,tangent);
+   boost::shared_ptr<casa::UVWMachine> &machinePtr = itsCache[index];
+   if (!machinePtr) {
+       // need to set up a new machine here
+       machinePtr.reset(new casa::UVWMachine(phaseCentre, tangent, false, true));
+   }
+   return *machinePtr;
 }
+
+/// @brief a helper method to check whether two directions are matching
+/// @details It always return false if the reference frames are different (although
+/// the physical direction may be the same). It is aligned with the typical use case as
+/// the reference frame is usually the same for all tangent points. If the frames are
+/// the same, actual directions are compared. False is returned if the distance between
+/// them is more than the tolerance
+/// @param[in] dir1 first direction
+/// @param[in] dir2 second direction
+/// @return true, if they are matching
+bool UVWMachineCache::compare(const casa::MDirection &dir1, const casa::MDirection &dir2) const
+{
+   if (dir1.getRef().getType() != dir2.getRef().getType()) {
+       return false;
+   }
+   return dir1.getValue().separation(dir2.getValue())<itsTolerance;
+}
+
+/// @brief obtain the index corresponding to a particular tangent point
+/// @details If the cache entry needs updating, the appropriate shared pointer will
+/// be reset. This method updates itsTangentPoints, if necessary.
+/// @param[in] phaseCentre direction to the input phase centre
+/// @param[in] tangent direction to tangent point
+/// @return cache index
+size_t UVWMachineCache::getIndex(const casa::MDirection &phaseCentre, 
+                                 const casa::MDirection &tangent) const
+{
+   // search from the newest element backwards (i.e. most likely the match is the most
+   // recently used tangent point)
+   for (int pos=0; pos<int(itsTangentPoints.size()); ++pos) {
+        int index = int(itsOldestElement)-pos-1;
+        if (index<0) {
+            // wrap around the end of the vector
+            index += int(itsCache.size());
+        }
+        ASKAPDEBUGASSERT((index>=0) && (index<int(itsTangentPoints.size())));
+        if (compare(tangent, itsTangentPoints[index]) && compare(phaseCentre, itsPhaseCentres[index])) {
+            return size_t(index);
+        }
+   }
+   // there has been no match, need to replace itsOldestElement
+   ASKAPDEBUGASSERT(itsOldestElement<itsCache.size());
+   const size_t result = itsOldestElement++;
+   // machine needs updating
+   itsCache[result].reset(); 
+   if (itsOldestElement >= itsCache.size()) {
+       // wrap around the end of the vector
+       itsOldestElement = 0;
+   }
+   itsTangentPoints[result] = tangent;
+   itsPhaseCentres[result] = phaseCentre;
+   return result;
+}
+

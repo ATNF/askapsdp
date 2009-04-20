@@ -1,8 +1,8 @@
 /// @file
 /// @brief cache of UVWMachines
 /// @details
-/// This class maintains the cache of UVW Machines (tangent point direction is the key). The number
-/// of machines cached and the direction tolerance are specified as parameters.
+/// This class maintains the cache of UVW Machines (a pair of tangent point and phase centre directions 
+/// is  the key). The number of machines cached and the direction tolerance are specified as parameters.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -49,8 +49,8 @@ namespace synthesis {
 
 /// @brief cache of UVW Machines
 /// @details
-/// This class maintains the cache of UVW Machines (tangent point direction is the key). The number
-/// of machines cached and the direction tolerance are specified as parameters.
+/// This class maintains the cache of UVW Machines (a pair of tangent point and phase centre directions 
+/// is  the key). The number of machines cached and the direction tolerance are specified as parameters.
 /// @ingroup gridding
 struct UVWMachineCache {
 
@@ -61,11 +61,33 @@ struct UVWMachineCache {
    /// to initialisation of a new UVW Machine
    explicit UVWMachineCache(size_t cacheSize = 1, double tolerance = 1e-6);
    
-   /// @brief obtain machine for a particular tangent point
+   /// @brief obtain machine for a particular tangent point and phase centre
    /// @details This is the main method of the class.
+   /// @param[in] phaseCentre direction to the input phase centre
    /// @param[in] tangent direction to tangent point
    /// @return a const reference to uvw machine 
-   const casa::UVWMachine& machine(const casa::MDirection &tangent) const;
+   const casa::UVWMachine& machine(const casa::MDirection &phaseCentre, 
+                                   const casa::MDirection &tangent) const;
+protected:
+   /// @brief obtain the index corresponding to a particular tangent point
+   /// @details If the cache entry needs updating, the appropriate shared pointer will
+   /// be reset. This method updates itsTangentPoints, if necessary.
+   /// @param[in] phaseCentre direction to the input phase centre
+   /// @param[in] tangent direction to tangent point
+   /// @return cache index
+   size_t getIndex(const casa::MDirection &phaseCentre, const casa::MDirection &tangent) const;
+   
+   /// @brief a helper method to check whether two directions are matching
+   /// @details It always return false if the reference frames are different (although
+   /// the physical direction may be the same). It is aligned with the typical use case as
+   /// the reference frame is usually the same for all tangent points. If the frames are
+   /// the same, actual directions are compared. False is returned if the distance between
+   /// them is more than the tolerance
+   /// @param[in] dir1 first direction
+   /// @param[in] dir2 second direction
+   /// @return true, if they are matching
+   bool compare(const casa::MDirection &dir1, const casa::MDirection &dir2) const;
+   
 private:
 
    /// @brief the actual cache of uvw machines
@@ -76,6 +98,9 @@ private:
 
    /// @brief cached tangent directions
    mutable std::vector<casa::MDirection> itsTangentPoints;
+
+   /// @brief cached phase centre directions
+   mutable std::vector<casa::MDirection> itsPhaseCentres;
    
    /// @brief index of the oldest element in the cache
    mutable size_t itsOldestElement;
