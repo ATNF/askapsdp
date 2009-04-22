@@ -68,6 +68,7 @@ virtualenv_path = "Tools/Dev/virtualenv"
 templates_path  = "Tools/Dev/templates"
 invoked_path    = sys.argv[0]
 absolute_path   = os.path.abspath(invoked_path)
+python_exe      = sys.executable
 
 os.chdir(os.path.dirname(absolute_path))
 
@@ -89,15 +90,15 @@ else:
 
 if os.path.exists(virtualenv_path):
     print ">>> Attempting to create python virtual environment."
-    os.system("cd %s && python bootstrap.py" % virtualenv_path)
+    os.system("cd %s && %s bootstrap.py" % (virtualenv_path, python_exe))
 else:
     print ">>> %s does not exist." % os.path.abspath(virtualenv_path)
     sys.exit()
 
 print ">>> Attempting to create initaskap.sh."
-os.system("python initenv.py >/dev/null")
+os.system("%s initenv.py >/dev/null" % python_exe)
 print ">>> Attempting to create initaskap.csh."
-os.system("python initenv.py -s tcsh >/dev/null")
+os.system("%s initenv.py -s tcsh >/dev/null" % python_exe)
 
 if os.path.exists(rbuild_path):
     print ">>> Attempting to build rbuild."
