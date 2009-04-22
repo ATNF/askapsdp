@@ -32,6 +32,7 @@
 ///
 
 #include <dataaccess/UVWRotationHandler.h>
+#include <askap/AskapError.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -65,6 +66,38 @@ void UVWRotationHandler::invalidate() const
 const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw(const IConstDataAccessor &acc, 
                const casa::MDirection &tangent) const
 {
+  if (!itsValid || !compare(tangent, itsTangentPoint)) {
+     // have to fill itsRotatedUVW
+     const casa::uInt nSamples = acc.nRow();
+     itsRotatedUVWs.resize(nSamples);
+     itsDelays.resize(nSamples);
+     itsTangentPoint = tangent;
+     itsImageCentre = tangent;
+     // just copy rotation code from TableVisGridder for a moment
+     const casa::Vector<casa::RigidVector<double, 3> >& uvwVector = acc.uvw();
+     const casa::Vector<casa::MVDirection>& pointingDir1Vector =
+                        acc.pointingDir1();
+     for (casa::uInt row=0; row<nSamples; ++row) {
+          const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
+          casa::Vector<double> uvwBuffer(3);
+          /// @todo Decide what to do about pointingDir1!=pointingDir2
+          for (int i=0; i<2; ++i) {
+               uvwBuffer(i)=-1.0*uvwRow(i);
+          }
+          uvwBuffer(2)=uvwRow(2);
+
+          /// @note we actually pass MVDirection as MDirection. The code had just been 
+          /// copied, so this bug had been here for a while. It means that J2000 is
+          /// hard coded in the next line (quite implicitly).
+          const casa::UVWMachine& uvwm = machine(pointingDir1Vector(row), itsTangentPoint);
+          uvwm.convertUVW(itsDelays(row), uvwBuffer);
+          itsDelays(row)*=-1.0;
+
+          for (int i=0; i<3; ++i) {
+               itsRotatedUVWs(row)(i)=-1.0*uvwBuffer(i);
+          }          
+     }
+  }
   return itsRotatedUVWs;
 }               
 
@@ -81,5 +114,27 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
 const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAccessor &acc, 
                const casa::MDirection &tangent, const casa::MDirection &imageCentre) const
 {
+  const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvwBuffer = uvw(acc, tangent);
+  ASKAPDEBUGASSERT(itsDelays.nelements() == acc.nRow());
+  
+  if (!compare(itsImageCentre, imageCentre)) {
+      // we have to apply extra shift
+      ASKAPCHECK(itsImageCentre.getRef().getType() != imageCentre.getRef().getType(),
+                 "image centres in UVWRotationHandler::delays are not supposed to be in different frames");
+                 
+      const casa::MVDirection oldCentre(itsImageCentre.getValue());
+      const casa::MVDirection newCentre(imageCentre.getValue());
+      // offsets to get the new image centre
+      const double dl = sin(newCentre.getLong()-oldCentre.getLong())*cos(newCentre.getLat());
+      const double dm = sin(newCentre.getLat())*cos(oldCentre.getLat()) - 
+              cos(newCentre.getLat())*sin(oldCentre.getLat())
+                   *cos(newCentre.getLong()-oldCentre.getLong());
+      
+      const casa::uInt nSamples = itsDelays.nelements();
+      ASKAPDEBUGASSERT(nSamples == uvwBuffer.nelements());
+      for (casa::uInt row=0; row<nSamples; ++row) {
+           itsDelays(row) += uvwBuffer(row)(0)*dl + uvwBuffer(row)(1)*dm;
+      }
+  } 
   return itsDelays;
 }
