@@ -79,6 +79,10 @@ try {
    return 0;
    */
    askap::synthutils::IlluminationUtils ilutils("test.in");
+   // start temp
+   ilutils.saveVP("test.img","amp");
+   return 0;
+   // end temp
    
    // old main.cc
    ImplCalWeightSolver solver;

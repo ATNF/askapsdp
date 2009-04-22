@@ -1,7 +1,10 @@
-size = 2048
-cellsize  = 3.2
-oversample = 8
-diameter         = 12m
+#size = 2048
+#cellsize  = 3.2
+size = 10240
+cellsize  = 12
+oversample = 4
+#diameter         = 12m
+diameter         = 22m
 blockage         = 2m
 illumination     = ATCA
 illumination.tapering         = true
