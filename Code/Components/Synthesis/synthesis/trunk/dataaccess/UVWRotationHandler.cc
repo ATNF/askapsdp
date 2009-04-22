@@ -119,7 +119,7 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
   
   if (!compare(itsImageCentre, imageCentre)) {
       // we have to apply extra shift
-      ASKAPCHECK(itsImageCentre.getRef().getType() != imageCentre.getRef().getType(),
+      ASKAPCHECK(itsImageCentre.getRef().getType() == imageCentre.getRef().getType(),
                  "image centres in UVWRotationHandler::delays are not supposed to be in different frames");
                  
       const casa::MVDirection oldCentre(itsImageCentre.getValue());
@@ -138,3 +138,4 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
   } 
   return itsDelays;
 }
+

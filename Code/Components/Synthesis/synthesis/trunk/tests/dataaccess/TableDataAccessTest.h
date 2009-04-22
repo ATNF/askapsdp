@@ -128,6 +128,9 @@ void TableDataAccessTest::readOnlyTest()
                  // It is however useful to check that iteration finishes
                  // properly at the end of the measurement set. Hence, we
                  // continue iterating through the dataset without reading.    
+  casa::MDirection testDir(casa::MVDirection(0.12345,-0.12345), casa::MDirection::J2000);
+  casa::MDirection testDir2(casa::MVDirection(-0.12345,0.12345), casa::MDirection::J2000);
+                 
   for (IConstDataSharedIter it=ds.createConstIterator(conv);it!=it.end();++it) {
        if (maxiter<0) {
            continue;
@@ -143,6 +146,8 @@ void TableDataAccessTest::readOnlyTest()
        it->time();
        it->feed1PA();
        it->noise();
+       it->rotatedUVW(testDir);
+       it->uvwRotationDelay(testDir,testDir2);
   }
 }
 
