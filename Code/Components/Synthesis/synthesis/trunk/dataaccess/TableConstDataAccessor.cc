@@ -104,7 +104,7 @@ TableConstDataAccessor::uvw() const
 const casa::Vector<casa::RigidVector<casa::Double, 3> >&
 	           TableConstDataAccessor::rotatedUVW(const casa::MDirection &tangentPoint) const
 {
-  return uvw();
+  return itsRotatedUVW.uvw(*this, tangentPoint);
 }	           
 	         
 /// @brief delay associated with uvw rotation
@@ -118,7 +118,7 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >&
 const casa::Vector<casa::Double>& TableConstDataAccessor::uvwRotationDelay(
 	       const casa::MDirection &tangentPoint, const casa::MDirection &imageCentre) const
 {
-  throw AskapError("Not yet implemented");
+  return itsRotatedUVW.delays(*this,tangentPoint,imageCentre);
 }
 
 /// Frequency for each channel
@@ -266,6 +266,7 @@ void TableConstDataAccessor::invalidateIterationCaches() const throw()
   itsVisibility.invalidate();
   itsFlag.invalidate();
   itsUVW.invalidate();
+  itsRotatedUVW.invalidate();
   itsTime.invalidate();
   itsAntenna1.invalidate();
   itsAntenna2.invalidate();
@@ -286,6 +287,15 @@ void TableConstDataAccessor::invalidateSpectralCaches() const throw()
 {
   itsFrequency.invalidate();
 }
+
+/// @brief invalidate cache of rotated uvw and delays
+/// @details Cache of rotated uvw and delays is kept per accessor, need this
+/// method to access private field
+void TableConstDataAccessor::invalidateRotatedUVW() const throw()
+{
+  itsRotatedUVW.invalidate();
+}
+
 
 /// @brief Obtain a const reference to associated iterator.
 /// @details This method is mainly intended to be used in the derived

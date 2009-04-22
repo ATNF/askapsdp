@@ -269,6 +269,8 @@ void TableConstDataIterator::setUpIteration()
            feedSubtable.newBeamDetails(epoch,spWindow)) &&
            !feedSubtable.allBeamOffsetsZero(epoch,spWindow))) {
               itsDirectionCache.invalidate();
+              // rotated uvw depend on the direction (phase centres)
+              itsAccessor.invalidateRotatedUVW();
               // itsDishPointingCache doesn't depend on feeds
               if (newField) {
                   itsDishPointingCache.invalidate();
@@ -293,6 +295,8 @@ void TableConstDataIterator::setUpIteration()
       itsCurrentDataDescID = -100;
       itsCurrentFieldID = -100;
       itsDirectionCache.invalidate();
+      // rotated uvw depends on the direction (phase centres)
+      itsAccessor.invalidateRotatedUVW();
       itsParallacticAngleCache.invalidate();
       itsDishPointingCache.invalidate();
   }  
@@ -330,6 +334,8 @@ void TableConstDataIterator::makeUniformDataDescID()
           if (!feedSubtable.allBeamOffsetsZero(epoch,spWindow)) {
               if (feedSubtable.newBeamDetails(epoch,spWindow)) {
                   itsDirectionCache.invalidate();
+                  // rotated uvw depend on the direction (phase centres)
+                  itsAccessor.invalidateRotatedUVW();
               }
           }
       }
@@ -369,6 +375,8 @@ void TableConstDataIterator::makeUniformFieldID()
       if (newFieldID != itsCurrentFieldID) {
           itsCurrentFieldID = newFieldID;
           itsDirectionCache.invalidate();
+          // rotated uvw depend on the direction (phase centres)
+          itsAccessor.invalidateRotatedUVW();
           itsParallacticAngleCache.invalidate();          
           itsDishPointingCache.invalidate();
       }

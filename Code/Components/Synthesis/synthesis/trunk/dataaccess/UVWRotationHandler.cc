@@ -48,7 +48,7 @@ UVWRotationHandler::UVWRotationHandler(size_t cacheSize, double tolerance) :
 /// @brief invalidate the cache
 /// @details A call to this method invalidates the cache (for each accessor row) of rotated
 /// uvws and delays. Nothing is done for uvw machines as UVWMachineCache takes care of this.
-void UVWRotationHandler::invalidate()
+void UVWRotationHandler::invalidate() const
 {
    itsValid = false;
 }

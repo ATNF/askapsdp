@@ -61,7 +61,8 @@ struct UVWRotationHandler : protected UVWMachineCache {
    /// @brief invalidate the cache
    /// @details A call to this method invalidates the cache (for each accessor row) of rotated
    /// uvws and delays. Nothing is done for uvw machines as UVWMachineCache takes care of this.
-   void invalidate();
+   /// This method is const as effectively non-const operations are only for caching purposes.
+   void invalidate() const;
    
    /// @brief obtain rotated uvws
    /// @details

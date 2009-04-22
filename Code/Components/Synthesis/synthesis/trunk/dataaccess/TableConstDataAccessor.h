@@ -211,6 +211,11 @@ public:
   /// @brief invalidate fields corresponding to the spectral axis
   /// @details See invalidateIterationCaches for more details
   void invalidateSpectralCaches() const throw();
+  
+  /// @brief invalidate cache of rotated uvw and delays
+  /// @details Cache of rotated uvw and delays is kept per accessor, need this
+  /// method to access private field
+  void invalidateRotatedUVW() const throw();
 
   /// @brief Obtain a const reference to associated iterator.
   /// @details This method is mainly intended to be used in the derived
