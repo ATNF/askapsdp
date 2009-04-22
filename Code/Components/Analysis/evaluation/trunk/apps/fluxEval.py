@@ -321,6 +321,6 @@ if __name__ == '__main__':
     else:
         savefig('fluxEval')
 
-    show()
+#    show()
     close()
     
