@@ -51,16 +51,37 @@ namespace askap {
                 virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr model_p);
 
             private:
-                // Normal equations
+
+                /// @brief Utility function to get dataset names from parset.
+                ///     
+                /// Given a ParameterSet, return a vector containing all the datasets
+                /// specified. This function will look for datasets in the Cimager manner:
+                /// @code
+                /// Cimager.dataset        = [10uJy_stdtest_0.ms,10uJy_stdtest_1.ms]
+                /// @endcode
+                ///     
+                /// It also supports another method which is necessary for the specification
+                /// of large numbers of datasets:
+                /// @code           
+                /// Cimager.dataset0                             = 10uJy_stdtest_0.ms
+                /// Cimager.dataset1                             = 10uJy_stdtest_1.ms
+                /// <and so on>
+                /// @endcode
+                ///     
+                /// @param[in] parset   the parameterset to use as input.
+                /// @return a vector containing in each element one dataset.
+                std::vector<std::string> getDatasets(LOFAR::ACC::APS::ParameterSet& m_parset);
+
+                /// Normal equations
                 askap::scimath::INormalEquations::ShPtr m_ne_p;
 
-                // Parameter set
+                /// Parameter set
                 LOFAR::ACC::APS::ParameterSet& m_parset;
 
-                // Communications class
+                /// Communications class
                 askap::cp::IImagerComms& m_comms;
 
-                // Model
+                /// Model
                 askap::scimath::Params::ShPtr m_model_p;
         };
 

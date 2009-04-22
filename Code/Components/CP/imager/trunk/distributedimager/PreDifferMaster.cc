@@ -45,6 +45,7 @@ using namespace askap::cp;
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
+using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, ".PreDifferMaster");
 
@@ -68,7 +69,7 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
     m_comms.broadcastModel(model_p);
 
     // Send work orders to the worker processes
-    std::vector<std::string> ms = m_parset.getStringVector("dataset");
+    std::vector<std::string> ms = getDatasets(m_parset);
     if (ms.size() == 0) {
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
@@ -114,4 +115,32 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
     }
 
     return ne_p;
+}
+
+/// Utility function to get dataset names from parset.
+std::vector<std::string> PreDifferMaster::getDatasets(ParameterSet& parset)
+{
+    if(parset.isDefined("dataset") && parset.isDefined("dataset0")) {
+        ASKAPTHROW (std::runtime_error, "Both dataset and dataset0 are specified in the parset");
+    }
+
+    // First look for "dataset" and if that does not exist try "dataset0"
+    std::vector<std::string> ms;
+    if (parset.isDefined("dataset")) {
+        ms = m_parset.getStringVector("dataset");
+    } else {
+        std::string key = "dataset0";   // First key to look for
+        long idx = 0;
+        while (parset.isDefined(key)) {
+            std::string value = parset.getString(key);
+            ms.push_back(value);
+
+            std::ostringstream ss;
+            ss << "dataset" << idx+1;
+            key = ss.str();
+            ++idx;
+        }
+    }
+
+    return ms;
 }
