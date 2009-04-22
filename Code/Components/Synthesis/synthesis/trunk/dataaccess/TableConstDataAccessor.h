@@ -39,6 +39,7 @@
 #include <dataaccess/IConstDataAccessor.h>
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/CachedAccessorField.tcc>
+#include <dataaccess/UVWRotationHandler.h>
 
 namespace askap {
 	
@@ -233,6 +234,9 @@ private:
  
   /// internal buffer for uvw
   CachedAccessorField<casa::Vector<casa::RigidVector<casa::Double, 3> > > itsUVW;
+  
+  /// internal buffer for rotated uvw and associated delay
+  UVWRotationHandler itsRotatedUVW; 
  
   /// internal buffer for frequency
   CachedAccessorField<casa::Vector<casa::Double> > itsFrequency;
