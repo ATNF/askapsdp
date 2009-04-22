@@ -80,16 +80,9 @@ if __name__ == '__main__':
     subplots_adjust(wspace=0.3,hspace=0.3)
 
     goodfit = npf>0
-    ind = []
     if(doRef):
-        for i in argsort(rdF):
-            if(hasRef[i] and goodfit[i]):
-                ind.append(i)
-    else:
-        for i in argsort(rdF):
-            if(goodfit[i]):
-                ind.append(i)
-    ind = array(ind)
+        goodfit = goodfit * hasRef
+    ind = argsort(rdF)[goodfit[argsort(rdF)]]
 
     if(doRef):
         print "Matches ordered by relative flux difference:"
@@ -253,8 +246,8 @@ if __name__ == '__main__':
     ytemp1 = normpdf(bins,mu,sigma)
     ytemp2 = normpdf(bins,mu,mean(imagerms[npf>0]))
     l1 = plot(bins, ytemp1, 'r-')
-#    l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-')
-    l2 = plot(bins, ytemp2, 'g-')
+    l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-')
+#    l2 = plot(bins, ytemp2, 'g-')
     axisrange = axis()
     axis([lower,upper,axisrange[2],axisrange[3]])
     xticks(cast[int]([lower,mu,upper]))
@@ -264,20 +257,40 @@ if __name__ == '__main__':
     setp(l2, 'linewidth', 2)
 
 
-    subplot(4,5,18)
-    temp=[]
-    for i in ind:
-        temp.append(rdF[i])
-    temp=array(temp)    
-    n, bins, patches = hist(temp, 20)
-    xlabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
+#    subplot(4,5,18)
+#    temp=[]
+#    for i in ind:
+#        temp.append(rdF[i])
+#    temp=array(temp)    
+#    n, bins, patches = hist(temp, 20)
+#    xlabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
 
-    subplot(4,5,19)
+#    subplot(4,5,19)
+    subplot(4,5,18)
     for i in ind:
 #        plot([fS[i]/imagerms[i]],[rdF[i]],'o')
         plot([fS[i]/imagerms[i]],[dF[i]],'o')
     semilogx(basex=10.)
     axisrange = axis()
+    axis([min(fS/imagerms)*0.9,max(fS/imagerms)*1.1,axisrange[2],axisrange[3]])
+    xlabel(r'$\log_{10}(S/N (Fit))$',font)
+#    ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
+#    title('Rel. Flux diff vs log(S/N)',font)
+    ylabel(r'$\Delta S$',font)
+    title('Flux diff vs log(S/N)',font)
+
+    subplot(4,5,19)
+    snrmin = log10(min(fS[ind]/imagerms[ind]))
+    snrmax = log10(max(fS[ind]/imagerms[ind]))
+    dSNR = (snrmax-snrmin)/10.
+    print snrmin,snrmax,dSNR
+    for i in range(10):
+        snr = (snrmin+dSNR/2.)+i*dSNR
+        t = dF[goodfit * (abs(log10(fS/imagerms) - snr)<dSNR/2.)]
+        print 10**snr,median(t)
+        if len(t)>0:
+            boxplot(t,positions=[10**snr],widths=0.9*(10**(snrmin+(i+1)*dSNR)-10**(snrmin+i*dSNR)))
+    semilogx(basex=10.)
     axis([min(fS/imagerms)*0.9,max(fS/imagerms)*1.1,axisrange[2],axisrange[3]])
     xlabel(r'$\log_{10}(S/N (Fit))$',font)
 #    ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
