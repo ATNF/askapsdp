@@ -262,15 +262,18 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
        ASKAPTHROW(AskapError, "Logic error: the gridder is not supposed to be used for degridding in the PSF mode")
    }
 
-   casa::Vector<casa::RigidVector<double, 3> > outUVW;
-   casa::Vector<double> delay;
+   //casa::Vector<casa::RigidVector<double, 3> > outUVW;
+   //casa::Vector<double> delay;
       
    casa::Timer timer;
    
    // Time the coordinate conversions, etc.
    timer.mark();
    
-   rotateUVW(acc, outUVW, delay);
+   const casa::Vector<casa::RigidVector<double, 3> > &outUVW = acc.rotatedUVW(getTangentPoint());
+   const casa::Vector<double> &delay = acc.uvwRotationDelay(getTangentPoint(), getImageCentre());
+   
+   //rotateUVW(acc, outUVW, delay);
    
    initIndices(acc);
    initConvolutionFunction(acc);
