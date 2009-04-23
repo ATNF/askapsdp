@@ -1,5 +1,5 @@
 ///
-/// @file : Match output list eg. from cduchamp with known input list
+/// @file : Create a FITS file with fake sources and random noise
 ///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///

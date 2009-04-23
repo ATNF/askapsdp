@@ -71,6 +71,7 @@ namespace askap
 
       FITSfile::FITSfile(const LOFAR::ACC::APS::ParameterSet& parset)
       {
+	ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
 
 	this->itsFileName = parset.getString("filename","");
 	this->itsBunit = parset.getString("bunit", "JY/BEAM");
@@ -88,6 +89,11 @@ namespace askap
 				<<"\") are not interconvertible.");
 	  ASKAPLOG_INFO_STR(logger,"Converting from " << src << " to " << base 
 			    << ": " << this->itsUnitScl<< "," <<this->itsUnitOff << "," <<this->itsUnitPwr);
+	}
+	else {
+	  this->itsUnitScl = 1.;
+	  this->itsUnitOff = 0.;
+	  this->itsUnitPwr = 1.;
 	}
 
 	this->itsNoiseRMS = parset.getFloat("noiserms",0.001);
@@ -139,6 +145,7 @@ namespace askap
 
       void FITSfile::setWCS()
       {
+	ASKAPLOG_DEBUG_STR(logger, "Setting the WCS");
 	
 	this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
 	this->itsWCS->flag = -1;
@@ -157,11 +164,14 @@ namespace askap
 
 	wcsset(this->itsWCS);
 
+	wcsprt(this->itsWCS);
+
       }
 
       
       void FITSfile::makeNoiseArray()
       {
+	ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
 
 	for(int i=0;i<this->itsNumPix;i++){
 	  this->itsArray[i] = normalRandomVariable(0., this->itsNoiseRMS);
@@ -171,6 +181,7 @@ namespace askap
 
       void FITSfile::addNoise()
       {
+	ASKAPLOG_DEBUG_STR(logger, "Adding noise");
 
 	for(int i=0;i<this->itsNumPix;i++){
 	  this->itsArray[i] += normalRandomVariable(0., this->itsNoiseRMS);
@@ -180,49 +191,63 @@ namespace askap
 
       void FITSfile::addSources()
       {
+	if(this->itsSourceList.size()>0) {
+
+	  ASKAPLOG_DEBUG_STR(logger, "Adding sources");
 	
-	// read in source list --> vector of Gaussian2Ds
+	  // read in source list --> vector of Gaussian2Ds
 
-	std::ifstream srclist(this->itsSourceList.c_str());
-	std::string ra,dec;
-	double flux,maj,min,pa;
-	double wld[2],pix[2];
-	std::vector<casa::Gaussian2D<casa::Double> > gaussians;
-	while(srclist >> ra >> dec >> flux >> maj >> min >> pa,
-	      !srclist.eof()) {
-	  // convert fluxes to correct units
-	  flux = pow(this->itsUnitScl*flux+this->itsUnitOff, this->itsUnitPwr);
+	  std::ifstream srclist(this->itsSourceList.c_str());
+	  std::string ra,dec;
+	  double flux,maj,min,pa;
+	  double *wld = new double[3];
+	  double *pix = new double[3];
+	  double *newwld = new double[3];
+	  std::vector<casa::Gaussian2D<casa::Double> > gaussians;
+	  while(srclist >> ra >> dec >> flux >> maj >> min >> pa,
+		!srclist.eof()) {
 
-	  // convert sky position to pixels
-	  wld[0] = analysis::dmsToDec(ra)*15.;
-	  wld[1] = analysis::dmsToDec(dec);
-	  wcsToPixSingle(this->itsWCS,wld,pix);
- 	  if(maj>0){
-	    // convert widths from arcsec to pixels
-	    maj = maj / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
-	    min = min / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
-	    casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
-	    gaussians.push_back(gauss);
+	    // convert fluxes to correct units
+	    flux = pow(this->itsUnitScl*flux+this->itsUnitOff, this->itsUnitPwr);
+
+	    // convert sky position to pixels
+	    wld[0] = analysis::dmsToDec(ra)*15.;
+	    wld[1] = analysis::dmsToDec(dec);
+	    wld[2] = 0.;
+	    wcsToPixSingle(this->itsWCS,wld,pix);
+	    pixToWCSSingle(this->itsWCS,pix,newwld);
+	    if(maj>0){
+	      // convert widths from arcsec to pixels
+	      maj = maj / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
+	      min = min / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
+	      casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
+	      gaussians.push_back(gauss);
+	    }
+	    else{
+	      int loc = int(pix[0]) + this->itsAxes[0]*int(pix[1]);
+	      this->itsArray[loc] += flux;
+	      ASKAPLOG_DEBUG_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
+				 << "," << floor(pix[1]) << "]");
+	    }
 	  }
-	  else{
-	    int loc = int(pix[0]) + this->itsAxes[0]*int(pix[1]);
-	    this->itsArray[loc] += flux;
-	    ASKAPLOG_INFO_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
-			      << "," << floor(pix[1]) << "]");
-	  }
+	  delete [] wld;
+	  delete [] newwld;
+	  delete [] pix;
+	  // for each source, add to array
+
+	  std::vector<casa::Gaussian2D<casa::Double> >::iterator src=gaussians.begin();
+	  for(; src<gaussians.end();src++)
+	    addGaussian(this->itsArray, this->itsAxes, *src);
+
 	}
-
-	// for each source, add to array
-
-	std::vector<casa::Gaussian2D<casa::Double> >::iterator src=gaussians.begin();
-	for(; src<gaussians.end();src++)
-	  addGaussian(this->itsArray, this->itsAxes, *src);
 
       }
 
 
       void FITSfile::convolveWithBeam()
       {
+	ASKAPLOG_DEBUG_STR(logger, "Convolving with the beam");
+
 	float maj = this->itsBeamInfo[0]/fabs(this->itsCDELT[0]);
 	float min = this->itsBeamInfo[1]/fabs(this->itsCDELT[1]);
 	float pa = this->itsBeamInfo[2];
@@ -243,6 +268,7 @@ namespace askap
 
       void FITSfile::saveFile()
       {
+	ASKAPLOG_DEBUG_STR(logger, "Saving the FITS file");
 
 	int status = 0;
 	long *fpixel = new long[this->itsDim];
@@ -279,9 +305,9 @@ namespace askap
 	  status=0;
 	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE",d+1), (char *)this->itsCTYPE[d].c_str(),  NULL, &status) ) 
 	    fits_report_error(stderr, status);
-// 	  status=0;
-// 	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT",d+1), (char *)this->itsCUNIT[d].c_str(),  NULL, &status) ) 
-// 	    fits_report_error(stderr, status);
+ 	  status=0;
+ 	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT",d+1), (char *)this->itsCUNIT[d].c_str(),  NULL, &status) ) 
+ 	    fits_report_error(stderr, status);
 	  status=0; 
 	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL",d+1), &this->itsCRVAL[d], NULL, &status) )
 	    fits_report_error(stderr, status);
