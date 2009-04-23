@@ -173,6 +173,8 @@ namespace askap
 	  const casa::Vector<double>& normdiag(normalEquations().normalMatrixDiagonal().find(imagename)->second);
 	  const casa::IPosition vecShape(1, itsParams->value(imagename).nelements());
 	  const casa::IPosition valShape(itsParams->value(imagename).shape());
+
+          ASKAPDEBUGASSERT(valShape.nelements()>=2);
 	  
 	  double maxDiag(casa::max(normdiag));
 	  ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
@@ -190,7 +192,7 @@ namespace askap
 	    (itsCleaners[stokes])->ignoreCenterBox(true);
 	    (itsCleaners[stokes])->setscales(itsScales);
 	    (itsCleaners[stokes])->setntaylorterms(itsNTaylor);
-	    (itsCleaners[stokes])->initialise(); // allocates memory once....
+	    (itsCleaners[stokes])->initialise(valShape[0],valShape[1]); // allocates memory once....
 	  }
           
 	  // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
