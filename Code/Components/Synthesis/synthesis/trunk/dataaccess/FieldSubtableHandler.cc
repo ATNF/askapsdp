@@ -62,7 +62,7 @@ using namespace askap::synthesis;
 /// (i.e. this method accepts a main ms table).
 FieldSubtableHandler::FieldSubtableHandler(const casa::Table &ms) :
        TableHolder(ms.keywordSet().asTable("FIELD")),
-       itsIterator(table(),"TIME",casa::TableIterator::DontCare,
+       itsIterator(table(),"TIME",casa::TableIterator::Ascending,
                    casa::TableIterator::NoSort), itsNeverAccessedFlag(true)
 {
   if (!table().nrow()) {
