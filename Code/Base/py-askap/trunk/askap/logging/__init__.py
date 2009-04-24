@@ -10,6 +10,9 @@
 # since we know what we are doing allow wildcard
 # pylint: disable-msg=W0401
 from logging import *
+from logging import config
+from logging import handlers
+from logging import getLogger, basicConfig
 
 from askap.logging.icehandler import IceHandler
 
