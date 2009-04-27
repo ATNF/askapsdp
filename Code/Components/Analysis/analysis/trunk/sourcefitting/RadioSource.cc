@@ -742,6 +742,8 @@ namespace askap
 	columns[duchamp::Column::FINT].changePrec(fluxPrec);
 	columns[duchamp::Column::FPEAK].changePrec(fluxPrec);
 
+	columns[duchamp::Column::NUM].setName("ID");
+
 	// new columns
 	duchamp::Column::Col fIntfit("F_int(fit)","",fluxWidth,fluxPrec);
 	duchamp::Column::Col fPkfit("F_pk(fit)","",fluxWidth,fluxPrec);
@@ -757,6 +759,7 @@ namespace askap
 
 	if(doHeader){
 
+	  stream << "#";
 	  columns[duchamp::Column::NUM].printTitle(stream);
 	  columns[duchamp::Column::RA].printTitle(stream);
 	  columns[duchamp::Column::DEC].printTitle(stream);
@@ -793,8 +796,10 @@ namespace askap
 	    ndofFit.getWidth() +
 	    npixFit.getWidth() +
 	    npixObj.getWidth();
-	  stream << std::setfill('-') << std::setw(width) << '-' << "\n";
+	  stream << "#"<<std::setfill('-') << std::setw(width) << '-' << "\n";
 	}
+
+	columns[duchamp::Column::NUM].widen(); // to account for the # characters at the start of the title lines
 
 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
 	  float zero = 0.;
