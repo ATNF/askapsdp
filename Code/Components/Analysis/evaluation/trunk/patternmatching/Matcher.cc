@@ -122,29 +122,30 @@ namespace askap
 	ASKAPLOG_INFO_STR(logger, "Beam info being used: maj="<<beam[0]*3600.
 			  <<", min="<<beam[1]*3600.<<", pa="<<beam[2]);
 
-	float a1sq = std::max(beam[0]*3600.,beam[1]*3600.); a1sq = a1sq*a1sq;
-	float b1sq = std::min(beam[0]*3600.,beam[1]*3600.); b1sq = b1sq*b1sq;
+	float a1 = std::max(beam[0]*3600.,beam[1]*3600.);
+	float b1 = std::min(beam[0]*3600.,beam[1]*3600.);
 	float pa1 = beam[2];
-	float d1sq = a1sq - b1sq;
+	float d1 = a1*a1 - b1*b1;
 
 	std::vector<Point>::iterator pix=this->itsRefPixList.begin();
 	for(;pix<this->itsRefPixList.end();pix++){
 
-	  float a2sq = std::max(pix->majorAxis(),pix->minorAxis()); a2sq=a2sq*a2sq;
-	  float b2sq = std::min(pix->majorAxis(),pix->minorAxis()); b2sq=b2sq*b2sq;
+	  float a2 = std::max(pix->majorAxis(),pix->minorAxis());
+	  float b2 = std::min(pix->majorAxis(),pix->minorAxis());
 	  float pa2 = pix->PA();
-	  float d2sq = a2sq - b2sq;
+	  float d2 = a2*a2 - b2*b2;
 
-	  float d0sq = d1sq + d2sq + 2. * sqrt(d1sq*d2sq) * cos(2.*(pa1-pa2));
-	  float a0sq = 0.5 * (a1sq+b1sq + a2sq+b2sq + d0sq);
-	  float b0sq = 0.5 * (a1sq+b1sq + a2sq+b2sq - d0sq);
+	  float d0sq = d1*d1 + d2*d2 + 2. * d1*d2 * cos(2.*(pa1-pa2));
+	  float d0 = sqrt(d0sq);
+	  float a0sq = 0.5 * (a1*a1 + b1*b1 + a2*a2 + b2*b2 + d0);
+	  float b0sq = 0.5 * (a1*a1 + b1*b1 + a2*a2 + b2*b2 - d0);
 
 	  pix->setMajorAxis(sqrt(a0sq));
 	  pix->setMinorAxis(sqrt(b0sq));
 	  if(d0sq>0) {
-	    // leave out normalisation by d0sq, since we will take ratios to get tan2pa0
-	    float sin2pa0 = (d1sq*sin(2.*pa1) + d2sq*sin(2.*pa2));
-	    float cos2pa0 = (d1sq*cos(2.*pa1) + d2sq*cos(2.*pa2));
+	    // leave out normalisation by d0, since we will take ratios to get tan2pa0
+	    float sin2pa0 = (d1*sin(2.*pa1) + d2*sin(2.*pa2));
+	    float cos2pa0 = (d1*cos(2.*pa1) + d2*cos(2.*pa2));
 	    float pa0 = atan(fabs(sin2pa0/cos2pa0));
 	    // atan of the absolute value of the ratio returns a value between 0 and 90 degrees.
 	    // Need to correct the value of l according to the correct quandrant it is in.
