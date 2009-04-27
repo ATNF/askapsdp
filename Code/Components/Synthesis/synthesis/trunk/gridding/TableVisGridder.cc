@@ -532,62 +532,6 @@ void TableVisGridder::grid(IDataSharedIter& idi) {
 	return generic(*idi, false);
 }
 
-/// @brief Find the change in delay required
-/// @details
-/// @param[in] acc data accessor to take the input data from
-/// @param[out] outUVW Rotated uvw
-/// @param[out] delay Delay change (m)
-/// @note output vectors are resized to match the accessor's number of rows
-void TableVisGridder::rotateUVW(const IConstDataAccessor& acc,
-		casa::Vector<casa::RigidVector<double, 3> >& outUVW,
-		casa::Vector<double>& delay) const {
-    const casa::MVDirection tangentPoint(getTangentPoint());
-	const casa::MDirection out(tangentPoint, casa::MDirection::J2000);
-
-    const casa::MVDirection imgCentre(getImageCentre());
-    
-	
-	// offsets between image centre and the tangent point	
-	const double dl = sin(imgCentre.getLong()-tangentPoint.getLong())*cos(imgCentre.getLat());
-	const double dm = sin(imgCentre.getLat())*cos(tangentPoint.getLat()) - 
-	      cos(imgCentre.getLat())*sin(tangentPoint.getLat())
-	    *cos(imgCentre.getLong()-tangentPoint.getLong());
-    
-    //const casa::MVPosition imgOffset = casa::MVPosition(getImageCentre())-casa::MVPosition(getTangentPoint());
-
-	const casa::uInt nSamples = acc.uvw().size();
-	delay.resize(nSamples);
-	outUVW.resize(nSamples);
-
-	const casa::Vector<casa::RigidVector<double, 3> >& uvwVector = acc.uvw();
-	const casa::Vector<casa::MVDirection>& pointingDir1Vector =
-			acc.pointingDir1();
-	for (casa::uInt row=0; row<nSamples; ++row) {
-	    //std::cout<<printDirection(pointingDir1Vector(row))<<" "<<printDirection(out.getValue())<<std::endl;
-	    
-		const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
-		casa::Vector<double> uvw(3);
-		/// @todo Decide what to do about pointingDir1!=pointingDir2
-		for (int i=0; i<2; ++i) {
-			uvw(i)=-1.0*uvwRow(i);
-		}
-		uvw(2)=uvwRow(2);
-
-		casa::UVWMachine machine(pointingDir1Vector(row), out, false, true);
-		machine.convertUVW(delay(row), uvw);
-		delay(row)*=-1.0;
-
-		for (int i=0; i<3; ++i) {
-		  outUVW(row)(i)=-1.0*uvw(i);
-		}
-		
-		// to account for situation where tangent point is not image centre
-		// the following doesn't work for some reason. Need to investigate
-		//delay(row)-=imgOffset*casa::MVPosition(uvw);
-		delay(row)+=outUVW(row)(0)*dl+outUVW(row)(1)*dm;
-	}
-}
-
 /// @brief obtain the centre of the image
 /// @details This method extracts RA and DEC axes from itsAxes and
 /// forms a direction measure corresponding to the middle of each axis.

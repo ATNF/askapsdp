@@ -313,16 +313,6 @@ namespace askap
       /// constness properly.
       void generic(IDataAccessor& acc, bool forward);
 
-      /// @brief Find the change in delay required
-      /// @details
-      /// @param[in] acc data accessor to take the input data from
-      /// @param[out] outUVW Rotated uvw
-      /// @param[out] delay Delay change (m)
-      /// @note output vectors are resized to match the accessor's number of rows
-      void rotateUVW(const IConstDataAccessor& acc,
-          casa::Vector<casa::RigidVector<double, 3> >& outUVW,
-          casa::Vector<double>& delay) const;
-
       /// Visibility Weights
       IVisWeights::ShPtr itsVisWeight;
 
