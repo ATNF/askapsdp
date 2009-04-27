@@ -88,7 +88,7 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
           /// @note we actually pass MVDirection as MDirection. The code had just been 
           /// copied, so this bug had been here for a while. It means that J2000 is
           /// hard coded in the next line (quite implicitly).
-          const casa::UVWMachine& uvwm = machine(itsTangentPoint,pointingDir1Vector(row));
+          const casa::UVWMachine& uvwm = machine(pointingDir1Vector(row),itsTangentPoint);
           uvwm.convertUVW(itsDelays(row), uvwBuffer);
           
           for (int i=0; i<3; ++i) {
