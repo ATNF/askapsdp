@@ -32,7 +32,6 @@
 #include <casa/Arrays/Cube.h>
 #include <casa/Arrays/ArrayMath.h>
 #include <measures/Measures/MDirection.h>
-#include <measures/Measures/UVWMachine.h>
 #include <casa/Quanta/MVDirection.h>
 #include <casa/Quanta/MVAngle.h>
 #include <casa/Quanta/MVTime.h>
@@ -161,14 +160,15 @@ namespace askap {
       itsCMap.set(0);
       
       const int cenw=(itsNWPlanes-1)/2;
+      const casa::Vector<casa::RigidVector<double, 3> > &rotatedUVW = acc.rotatedUVW(getTangentPoint());
+      
       
       for (int i=0; i<nSamples; ++i) {
-	const int feed=acc.feed1()(i);
-	ASKAPCHECK(feed<itsMaxFeeds,
-		   "Exceeded specified maximum number of feeds");
-	ASKAPCHECK(feed>-1, "Illegal negative feed number");
+           const int feed=acc.feed1()(i);
+           ASKAPCHECK(feed<itsMaxFeeds, "Exceeded specified maximum number of feeds");
+           ASKAPCHECK(feed>-1, "Illegal negative feed number");
 	
-	const double w=(acc.uvw()(i)(2))/(casa::C::c);
+           const double w=(rotatedUVW(i)(2))/(casa::C::c);
 	
 	for (int chan=0; chan<nChan; ++chan) {
 	  const double freq=acc.frequency()[chan];

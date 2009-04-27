@@ -109,9 +109,11 @@ namespace askap
 
       itsCMap.resize(nSamples, nPol, nChan);
       int cenw=(itsNWPlanes-1)/2;
+      const casa::Vector<casa::RigidVector<double, 3> > &rotatedUVW = acc.rotatedUVW(getTangentPoint());
+      
       for (int i=0; i<nSamples; ++i)
       {
-        double w=(acc.uvw()(i)(2))/(casa::C::c);
+        double w=(rotatedUVW(i)(2))/(casa::C::c);
         for (int chan=0; chan<nChan; ++chan)
         {
           for (int pol=0; pol<nPol; ++pol)
