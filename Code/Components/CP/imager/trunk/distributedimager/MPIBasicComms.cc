@@ -1,4 +1,4 @@
-/// @file MPIComms.cc
+/// @file MPIBasicComms.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "MPIComms.h"
+#include "MPIBasicComms.h"
 
 // System includes
 #include <string>
@@ -52,9 +52,9 @@
 using namespace askap::cp;
 using namespace askap::scimath;
 
-ASKAP_LOGGER(logger, ".MPIComms");
+ASKAP_LOGGER(logger, ".MPIBasicComms");
 
-MPIComms::MPIComms(int argc, char *argv[])
+MPIBasicComms::MPIBasicComms(int argc, char *argv[])
 {
     int rc = MPI_Init(&argc, &argv);
 
@@ -90,13 +90,13 @@ MPIComms::MPIComms(int argc, char *argv[])
     ASKAPLOG_PUTCONTEXT("hostname", pname.c_str());
 }
 
-MPIComms::~MPIComms()
+MPIBasicComms::~MPIBasicComms()
 {
     MPI_Comm_free(&m_communicator);
     MPI_Finalize();
 }
 
-int MPIComms::getId(void)
+int MPIBasicComms::getId(void)
 {
     int rank = -1;
     int result = MPI_Comm_rank(m_communicator, &rank);
@@ -105,7 +105,7 @@ int MPIComms::getId(void)
     return rank;
 }
 
-int MPIComms::getNumNodes(void)
+int MPIBasicComms::getNumNodes(void)
 {
     int numtasks = -1;
     int result = MPI_Comm_size(m_communicator, &numtasks);
@@ -114,13 +114,13 @@ int MPIComms::getNumNodes(void)
     return numtasks;
 }
 
-void MPIComms::abort(void)
+void MPIBasicComms::abort(void)
 {
     int result = MPI_Abort(m_communicator, 0);
     handleError(result, "MPI_Abort");
 }
 
-void MPIComms::broadcastModel(askap::scimath::Params::ShPtr model)
+void MPIBasicComms::broadcastModel(askap::scimath::Params::ShPtr model)
 {
     casa::Timer timer;
     timer.mark();
@@ -144,7 +144,7 @@ void MPIComms::broadcastModel(askap::scimath::Params::ShPtr model)
             << timer.real() << " seconds ");
 }
 
-askap::scimath::Params::ShPtr MPIComms::receiveModel(void)
+askap::scimath::Params::ShPtr MPIBasicComms::receiveModel(void)
 {
     // Participate in the broadcast to receive the size of the model
     unsigned long size;
@@ -169,7 +169,7 @@ askap::scimath::Params::ShPtr MPIComms::receiveModel(void)
     return model_p;
 }
 
-void MPIComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
+void MPIBasicComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
 {
     casa::Timer timer;
     timer.mark();
@@ -193,7 +193,7 @@ void MPIComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
             << " via MPI in " << timer.real() << " seconds ");
 }
 
-askap::scimath::INormalEquations::ShPtr MPIComms::receiveNE(int& id)
+askap::scimath::INormalEquations::ShPtr MPIBasicComms::receiveNE(int& id)
 {
     // First receive the size of the byte stream
     long size;
@@ -221,7 +221,7 @@ askap::scimath::INormalEquations::ShPtr MPIComms::receiveNE(int& id)
     return ne_p;
 }
 
-void MPIComms::sendString(const std::string& str, int dest)
+void MPIBasicComms::sendString(const std::string& str, int dest)
 {
     // First send the size of the string
     int size = str.size() + 1;
@@ -231,7 +231,7 @@ void MPIComms::sendString(const std::string& str, int dest)
     send(str.c_str(), size * sizeof(char), dest);
 }
 
-std::string MPIComms::receiveString(int source)
+std::string MPIBasicComms::receiveString(int source)
 {
     MPI_Status status;  // Not used but needed to call receive()
 
@@ -247,7 +247,7 @@ std::string MPIComms::receiveString(int source)
     return std::string(buf);
 }
 
-void MPIComms::send(const void* buf, size_t size, int dest)
+void MPIBasicComms::send(const void* buf, size_t size, int dest)
 {
     unsigned int c_maxint = std::numeric_limits<int>::max();
 
@@ -278,10 +278,10 @@ void MPIComms::send(const void* buf, size_t size, int dest)
         handleError(result, "MPI_Send");
     }
 
-    ASKAPCHECK(remaining == 0, "MPIComms::send() Didn't send all data");
+    ASKAPCHECK(remaining == 0, "MPIBasicComms::send() Didn't send all data");
 }
 
-void MPIComms::receive(void* buf, size_t size, int source, MPI_Status& status)
+void MPIBasicComms::receive(void* buf, size_t size, int source, MPI_Status& status)
 {
     unsigned int c_maxint = std::numeric_limits<int>::max();
 
@@ -319,16 +319,16 @@ void MPIComms::receive(void* buf, size_t size, int source, MPI_Status& status)
         handleError(result, "MPI_Recv");
     }
 
-    ASKAPCHECK(remaining == 0, "MPIComms::receive() Didn't receive all data");
+    ASKAPCHECK(remaining == 0, "MPIBasicComms::receive() Didn't receive all data");
 }
 
-void MPIComms::broadcast(void* buf, size_t size, int root)
+void MPIBasicComms::broadcast(void* buf, size_t size, int root)
 {
     int result = MPI_Bcast(buf, size, MPI_BYTE, root, m_communicator);
     handleError(result, "MPI_Bcast");
 }
 
-void MPIComms::handleError(const int error, const std::string location)
+void MPIBasicComms::handleError(const int error, const std::string location)
 {
     if (error == MPI_SUCCESS) {
         return;
@@ -344,7 +344,7 @@ void MPIComms::handleError(const int error, const std::string location)
             << eclass << ": " << estring);
 }
 
-void* MPIComms::addOffset(const void *ptr, size_t offset)
+void* MPIBasicComms::addOffset(const void *ptr, size_t offset)
 {
     char *cptr = static_cast<char*>(const_cast<void*>(ptr));
     cptr += offset;

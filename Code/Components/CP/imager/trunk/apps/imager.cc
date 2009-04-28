@@ -46,7 +46,7 @@
 
 // Local Package includes
 #include "distributedimager/DistributedImager.h"
-#include "distributedimager/MPIComms.h"
+#include "distributedimager/MPIBasicComms.h"
 
 using namespace askap;
 using namespace askap::cp;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     // The MPIcomms class can't have the scope fo the try/catch block. This
     // avoids a master/worker deadlock in the case where an exception is
     // thrown by either the master or worker(s) but not both.
-    boost::scoped_ptr<MPIComms> comms_p;
+    boost::scoped_ptr<MPIBasicComms> comms_p;
 
     casa::Timer timer;
     timer.mark();
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         ParameterSet subset(parset.makeSubset("Cimager."));
 
         // Instantiate the comms class
-        comms_p.reset(new MPIComms(argc, argv));
+        comms_p.reset(new MPIBasicComms(argc, argv));
 
         // Instantiate the Distributed Imager
         DistributedImager imager(subset, *comms_p);

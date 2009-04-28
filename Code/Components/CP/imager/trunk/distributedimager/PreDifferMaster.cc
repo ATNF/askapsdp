@@ -50,7 +50,7 @@ using namespace LOFAR::ACC::APS;
 ASKAP_LOGGER(logger, ".PreDifferMaster");
 
 PreDifferMaster::PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IImagerComms& comms) : m_parset(parset), m_comms(comms)
+        askap::cp::IBasicComms& comms) : m_parset(parset), m_comms(comms)
 {
 }
 

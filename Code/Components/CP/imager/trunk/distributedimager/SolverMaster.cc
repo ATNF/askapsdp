@@ -55,7 +55,7 @@ using namespace askap::synthesis;
 ASKAP_LOGGER(logger, ".SolverMaster");
 
 SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IImagerComms& comms,
+        askap::cp::IBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
     : m_parset(parset), m_comms(comms), m_model_p(model_p)
 {

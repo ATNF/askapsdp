@@ -1,4 +1,4 @@
-/// @file IImagerComms.h
+/// @file IBasicComms.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -39,11 +39,11 @@ namespace askap {
 
         /// @brief An interface defining communications functionality required
         /// for the distributed imager.
-        class IImagerComms
+        class IBasicComms
         {
             public:
                 /// @brief Destructor.
-                virtual ~IImagerComms();
+                virtual ~IBasicComms();
 
                 /// @brief Returns the Id of the process. This allows the process to be
                 ///  uniquely identified within the group of collaborating processes.

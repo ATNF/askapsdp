@@ -57,7 +57,7 @@ using namespace askap::synthesis;
 ASKAP_LOGGER(logger, ".PreDifferWorker");
 
 PreDifferWorker::PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IImagerComms& comms) : m_parset(parset), m_comms(comms)
+        askap::cp::IBasicComms& comms) : m_parset(parset), m_comms(comms)
 {
         m_gridder_p = VisGridderFactory::make(m_parset);
 }

@@ -43,7 +43,7 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 // Local includes
-#include "distributedimager/IImagerComms.h"
+#include "distributedimager/IBasicComms.h"
 #include "distributedimager/IPreDifferTask.h"
 #include "distributedimager/PreDifferMaster.h"
 #include "distributedimager/PreDifferWorker.h"
@@ -60,7 +60,7 @@ using namespace askap::scimath;
 using namespace LOFAR::ACC::APS;
 
 DistributedImager::DistributedImager(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IImagerComms& comms) : m_parset(parset), m_comms(comms)
+        askap::cp::IBasicComms& comms) : m_parset(parset), m_comms(comms)
 {
     if (isMaster()) {
         ASKAPLOG_INFO_STR(logger, "ASKAP Distributed Imager - " << ASKAP_PACKAGE_VERSION);

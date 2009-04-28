@@ -36,7 +36,7 @@
 
 // Local includes
 #include "distributedimager/IPreDifferTask.h"
-#include "distributedimager/IImagerComms.h"
+#include "distributedimager/IBasicComms.h"
 
 namespace askap {
     namespace cp {
@@ -45,7 +45,7 @@ namespace askap {
         {
             public:
                 PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IImagerComms& comms);
+                        askap::cp::IBasicComms& comms);
                 virtual ~PreDifferMaster();
 
                 virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr model_p);
@@ -79,7 +79,7 @@ namespace askap {
                 LOFAR::ACC::APS::ParameterSet& m_parset;
 
                 /// Communications class
-                askap::cp::IImagerComms& m_comms;
+                askap::cp::IBasicComms& m_comms;
 
                 /// Model
                 askap::scimath::Params::ShPtr m_model_p;

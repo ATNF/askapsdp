@@ -1,4 +1,4 @@
-/// @file MPIComms.h
+/// @file MPIBasicComms.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,16 +33,16 @@
 #include <mpi.h>
 
 // Local package includes
-#include "IImagerComms.h"
+#include "IBasicComms.h"
 
 namespace askap {
 namespace cp {
 
-class MPIComms : public IImagerComms
+class MPIBasicComms : public IBasicComms
 {
 public:
-    MPIComms(int argc, char *argv[]);
-    virtual ~MPIComms();
+    MPIBasicComms(int argc, char *argv[]);
+    virtual ~MPIBasicComms();
 
     virtual int getId(void);
     virtual int getNumNodes(void);

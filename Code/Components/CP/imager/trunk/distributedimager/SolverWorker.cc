@@ -43,7 +43,7 @@ using namespace askap::scimath;
 ASKAP_LOGGER(logger, ".SolverWorker");
 
 SolverWorker::SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IImagerComms& comms,
+        askap::cp::IBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
 {
     // Workers do not participate in this operation

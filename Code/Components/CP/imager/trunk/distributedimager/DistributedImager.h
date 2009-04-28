@@ -32,7 +32,7 @@
 #include <fitting/Params.h>
 
 // Local includes
-#include "distributedimager/IImagerComms.h"
+#include "distributedimager/IBasicComms.h"
 
 namespace askap {
     namespace cp {
@@ -45,9 +45,9 @@ namespace askap {
                 /// 
                 /// @param[in]  parset  the parameter set containing
                 ///                     the configuration.
-                /// @param[in]  comms   an instance of IImagerComms.
+                /// @param[in]  comms   an instance of IBasicComms.
                 DistributedImager(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IImagerComms& comms);
+                        askap::cp::IBasicComms& comms);
 
                 /// @brief Destructor.
                 ~DistributedImager();
@@ -68,7 +68,7 @@ namespace askap {
                 LOFAR::ACC::APS::ParameterSet& m_parset;
 
                 // Communications class
-                askap::cp::IImagerComms& m_comms;
+                askap::cp::IBasicComms& m_comms;
 
                 // Model
                 askap::scimath::Params::ShPtr m_model_p;

@@ -1,4 +1,4 @@
-/// @file IImagerComms.cc
+/// @file IBasicComms.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,8 +25,8 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "IImagerComms.h"
+#include "IBasicComms.h"
 
-askap::cp::IImagerComms::~IImagerComms()
+askap::cp::IBasicComms::~IBasicComms()
 {
 }
