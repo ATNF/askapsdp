@@ -57,6 +57,7 @@ namespace askap
 	itsChisq=s.itsChisq;
 	itsImageNoise=s.itsImageNoise;
 	itsRMS=s.itsRMS;
+	itsNfree=s.itsNfree;
 	itsNDoF=s.itsNDoF;
 	itsNpixFit = s.itsNpixFit;
 	itsNpixObj = s.itsNpixObj;
@@ -69,6 +70,7 @@ namespace askap
 	theStream << std::setw(10) << "chisq" << " "
 		  << std::setw(10) << "RMS(image)" << " "
 		  << std::setw(10) << "RMS(fit)" << " "
+		  << std::setw(10) << "Nfree" << " "
 		  << std::setw(10) << "NDoF" << " "
 		  << std::setw(10) << "NpixFit" << " "
 		  << std::setw(10) << "NpixObj" << " "
@@ -80,6 +82,7 @@ namespace askap
 	theStream << std::setw(10) << std::setprecision(4) << s.itsChisq << " " 
 		  << std::setw(10) << std::setprecision(8) << s.itsImageNoise << " "
 		  << std::setw(10) << std::setprecision(6) << s.itsRMS << " " 
+		  << std::setw(10) << s.itsNfree << " "
 		  << std::setw(10) << s.itsNDoF << " "
 		  << std::setw(10) << s.itsNpixFit << " "
 		  << std::setw(10) << s.itsNpixObj << " "

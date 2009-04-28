@@ -48,6 +48,7 @@ def read_match_data(filename=None):
     chisq=[]
     imagerms=[]
     rms=[]
+    nfree=[]
     ndof=[]
     npixfit=[]
     npixobj=[]
@@ -72,19 +73,20 @@ def read_match_data(filename=None):
         chisq.append(fields[8])
         imagerms.append(fields[9])
         rms.append(fields[10])
-        ndof.append(fields[11])
-        npixfit.append(fields[12])
-        npixobj.append(fields[13])
-        dudflux.append(fields[14])
-        idR.append(fields[15])
-        xR.append(fields[16])
-        yR.append(fields[17])
-        fR.append(fields[18])
-        aR.append(fields[19])
-        bR.append(fields[20])
-        pR.append(fields[21])
+        nfree.append(fields[11])
+        ndof.append(fields[12])
+        npixfit.append(fields[13])
+        npixobj.append(fields[14])
+        dudflux.append(fields[15])
+        idR.append(fields[16])
+        xR.append(fields[17])
+        yR.append(fields[18])
+        fR.append(fields[19])
+        aR.append(fields[20])
+        bR.append(fields[21])
+        pR.append(fields[22])
     
-    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(imagerms)),cast[float](array(rms)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
+    return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(imagerms)),cast[float](array(rms)),cast[int](array(nfree)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
 
 #############################################################################
 
@@ -115,6 +117,7 @@ def read_miss_data(filename=None):
     chisq=[]
     imagerms=[]
     rms=[]
+    nfree=[]
     ndof=[]
     npixfit=[]
     npixobj=[]
@@ -132,12 +135,13 @@ def read_miss_data(filename=None):
         chisq.append(fields[8])
         imagerms.append(fields[9])
         rms.append(fields[10])
-        ndof.append(fields[11])
-        npixfit.append(fields[12])
-        npixobj.append(fields[13])
-        dudflux.append(fields[14])
+        nfree.append(fields[11])
+        ndof.append(fields[12])
+        npixfit.append(fields[13])
+        npixobj.append(fields[14])
+        dudflux.append(fields[15])
     
-    return array(type),array(id),cast[float](array(x)),cast[float](array(y)),cast[float](array(f)),cast[float](array(chisq)),cast[float](array(imagerms)),cast[float](array(rms)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj))
+    return array(type),array(id),cast[float](array(x)),cast[float](array(y)),cast[float](array(f)),cast[float](array(chisq)),cast[float](array(imagerms)),cast[float](array(rms)),cast[int](array(nfree)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj))
 
 
 def read_ref_list(filename=None):

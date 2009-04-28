@@ -662,31 +662,43 @@ namespace askap
  	this->itsFitParams.setPeakFlux(this->peakFlux);
 	this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
-	Fitter fit[this->itsFitParams.maxNumGauss()];
+	Fitter fit[this->itsFitParams.maxNumGauss() * 2];
 
-	for(int ctr=0;ctr<this->itsFitParams.maxNumGauss();ctr++){
+	int ctr=0;
 
- 	  fit[ctr].setParams(this->itsFitParams);
-	  fit[ctr].setNumGauss(ctr+1);
-	  fit[ctr].setEstimates(cmpntList, this->itsHeader);
-	  fit[ctr].setRetries();
-	  fit[ctr].setMasks();
-	  fit[ctr].fit(pos, f, sigma);
+	for(int fittype=0; fittype<2; fittype++){
 
-	  if(fit[ctr].acceptable()){
-	    if((ctr==0) || (fit[ctr].redChisq() < bestRChisq)){
-	      fitIsGood = true;
-	      bestFit = ctr;
-	      bestRChisq = fit[ctr].redChisq();
+	  FittingParameters tempParams = this->itsFitParams;
+	  for(int i=0;i<6;i++) // set the beam parameters to false when fittype==1
+	    tempParams.setFlagFitThisParam(i, ((i<3)||(fittype==0)) );
+	    
+	  for(int g=1;g<=this->itsFitParams.maxNumGauss();g++){
+	    
+	    //  	  fit[ctr].setParams(this->itsFitParams);
+	    fit[ctr].setParams(tempParams);
+	    fit[ctr].setNumGauss(g);
+	    fit[ctr].setEstimates(cmpntList, this->itsHeader);
+	    fit[ctr].setRetries();
+	    fit[ctr].setMasks();
+	    fit[ctr].fit(pos, f, sigma);
+	    
+	    if(fit[ctr].acceptable()){
+	      if((ctr==0) || (fit[ctr].redChisq() < bestRChisq)){
+		fitIsGood = true;
+		bestFit = ctr;
+		bestRChisq = fit[ctr].redChisq();
+	      }
+	      
 	    }
-
-	  }
-
-	} // end of 'ctr' for-loop
-
+	    ctr++;
+	  } // end of 'g' for-loop
+	} // end of fittype for-loop
+	
 	if(fitIsGood){
 	  this->hasFit = true;
 	  this->itsFitParams = fit[bestFit].params();
+	  if(ctr/4==1) 
+	    for(int i=3;i<6;i++) this->itsFitParams.setFlagFitThisParam(i,false);
 	  this->itsChisq = fit[bestFit].chisq();
 	  this->itsRMS = fit[bestFit].RMS();
 	  this->itsNDoF = fit[bestFit].ndof();
@@ -697,7 +709,8 @@ namespace askap
 	  for(;rfit!=fitMap.rend();rfit++)
 	    this->itsGaussFitSet.push_back(fit[bestFit].gaussian(rfit->second));
 
-	  ASKAPLOG_INFO_STR(logger,"BEST FIT: " << bestFit+1 << " Gaussians"
+	  ASKAPLOG_INFO_STR(logger,"BEST FIT: #" << bestFit+1
+			    <<" = " << bestFit%this->itsFitParams.maxNumGauss()+1 << " Gaussians"
 			    << ", chisq = " << fit[bestFit].chisq()
 			    << ", chisq/nu =  "  << bestRChisq
 			    << ", RMS = " << fit[bestFit].RMS());
@@ -753,6 +766,7 @@ namespace askap
 	duchamp::Column::Col chisqFit("Chisq(fit)","",11,2);
 	duchamp::Column::Col rmsIm("RMS(image)","",fluxWidth,fluxPrec);
 	duchamp::Column::Col rmsFit("RMS(fit)","",10,2);
+	duchamp::Column::Col nfree("Nfree(fit)","",11,0);
 	duchamp::Column::Col ndofFit("NDoF(fit)","",10,0);
 	duchamp::Column::Col npixFit("NPix(fit)","",10,0);
 	duchamp::Column::Col npixObj("NPix(obj)","",10,0);
@@ -774,6 +788,7 @@ namespace askap
 	  chisqFit.printTitle(stream);
 	  rmsIm.printTitle(stream);
 	  rmsFit.printTitle(stream);
+	  nfree.printTitle(stream);
 	  ndofFit.printTitle(stream);
 	  npixFit.printTitle(stream);
 	  npixObj.printTitle(stream);
@@ -793,6 +808,7 @@ namespace askap
 	    chisqFit.getWidth() +
 	    rmsIm.getWidth() +
 	    rmsFit.getWidth() +
+	    nfree.getWidth() +
 	    ndofFit.getWidth() +
 	    npixFit.getWidth() +
 	    npixObj.getWidth();
@@ -817,6 +833,7 @@ namespace askap
 	  chisqFit.printEntry(stream,zero);
 	  rmsIm.printEntry(stream,this->itsNoiseLevel);
 	  rmsFit.printEntry(stream,zero);
+	  nfree.printEntry(stream,zero);
 	  ndofFit.printEntry(stream,zero);
 	  npixFit.printEntry(stream,zero);
 	  npixObj.printEntry(stream,this->getSize());
@@ -856,6 +873,7 @@ namespace askap
 	  chisqFit.printEntry(stream,this->itsChisq);
 	  rmsIm.printEntry(stream,this->itsNoiseLevel);
 	  rmsFit.printEntry(stream,this->itsRMS);
+	  nfree.printEntry(stream,this->itsFitParams.numFreeParam());
 	  ndofFit.printEntry(stream,this->itsNDoF);
 	  npixFit.printEntry(stream,this->boxSize());
 	  npixObj.printEntry(stream,this->getSize());

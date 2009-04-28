@@ -132,6 +132,7 @@ namespace askap
 	void setCriterium(Double d){itsCriterium = d;};
 	void setMaxIter(uInt i){itsMaxIter = i;};
 	void setUseNoise(bool b){itsUseNoise = b;};
+	void setFlagFitThisParam(int i, bool b){itsFlagFitThisParam[i] = b;};
 
 	int    maxNumGauss(){return itsMaxNumGauss;};	
 	int    boxPadSize(){return itsBoxPadSize;};
@@ -146,6 +147,8 @@ namespace askap
 	uInt   maxIter(){return itsMaxIter;};
 	bool   useNoise(){return itsUseNoise;};
 	bool   flagFitThisParam(int i){return itsFlagFitThisParam[i];};
+	/// @brief Return the number of free parameters
+	int    numFreeParam();
 
 	// @}
 

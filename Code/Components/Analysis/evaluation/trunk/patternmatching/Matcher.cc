@@ -513,7 +513,7 @@ namespace askap
 	fout.setf(std::ios::fixed);
 	std::vector<Point>::iterator pt;
 	std::vector<std::pair<Point,Point> >::iterator match;
-	Stuff nullstuff(0.,0.,0.,0,0,0,0.);
+	Stuff nullstuff(0.,0.,0.,0,0,0,0,0.);
 	for(pt=this->itsRefPixList.begin(); pt<this->itsRefPixList.end(); pt++){
 	  bool isMatch=false;
 	  match = this->itsMatchingPixList.begin();

@@ -30,8 +30,8 @@ if __name__ == '__main__':
     if(len(argv) == 2 and argv[1] == '-r'):
         doRef=True
 
-    matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
-    missType,id,x,y,f,chisq2,imagerms2,rms2,ndof2,npf2,npo2 = read_miss_data(missfile)
+    matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,nfree,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
+    missType,id,x,y,f,chisq2,imagerms2,rms2,nfree2,ndof2,npf2,npo2 = read_miss_data(missfile)
 
     fluxScaling = 1.e6
     fS = fS * fluxScaling
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     ylabel(r'$\Delta S/S_{\rm Cat} [\%]$',font)
     title('Rel. Flux diff vs fit RMS',font)
 
-    numComp = (npf-ndof+1)/6
+    numComp = (npf-ndof+1)/nfree
     subplot(455)
     for i in ind:
         plot([numComp[i]],[rdF[i]],'o')

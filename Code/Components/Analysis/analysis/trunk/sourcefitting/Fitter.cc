@@ -81,12 +81,14 @@ namespace askap
 	this->itsFlagFitThisParam = parset.getBoolVector("flagFitParam",std::vector<bool>(6,true));
       }
 
+      //**************************************************************//
 
       FittingParameters::FittingParameters(const FittingParameters& f)
       {
 	operator=(f);
       }
 
+      //**************************************************************//
 
       FittingParameters& FittingParameters::operator= (const FittingParameters& f)
       {
@@ -114,12 +116,30 @@ namespace askap
 	return *this;
       }
 
+      //**************************************************************//
+
+      int FittingParameters::numFreeParam()
+      {
+	/// @details Returns the number of parameters that are to be
+	/// fitted by the fitting function. This is determined by the
+	/// FittingParameters::flagFitThisParam() function, where only
+	/// those parameters where the corresponding value of
+	/// FittingParameters::itsFlagFitThisParam is true.
+	/// @return The number of free parameters in the fit.
+	int nparam = 0;
+	for(unsigned int p=0; p<6; p++)
+	  if(this->itsFlagFitThisParam[p]) nparam++;
+	return nparam;
+      }
+
+      //**************************************************************//
 
       Fitter::Fitter(const Fitter& f)
       {
 	operator=(f);
       }
 
+      //**************************************************************//
 
       Fitter& Fitter::operator= (const Fitter& f)
       {
@@ -133,6 +153,7 @@ namespace askap
 	return *this;
       }
 
+      //**************************************************************//
 
       void Fitter::setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head)
       {
@@ -169,18 +190,6 @@ namespace askap
 	      estimate(g,5)=head.getBpaKeyword() * M_PI / 180.;
 
 	  }
-
-// 	  if(head.getBmajKeyword()>0 && 
-// 	     (head.getBmajKeyword()/head.getAvPixScale() > cmpntList[cmpnt].maj())){
-// 	    estimate(g,3)=head.getBmajKeyword()/head.getAvPixScale();
-// 	    estimate(g,4)=head.getBminKeyword()/head.getBmajKeyword();
-// 	    estimate(g,5)=head.getBpaKeyword() * M_PI / 180.;
-// 	  }
-// 	  else{
-// 	    estimate(g,3) = cmpntList[cmpnt].maj();
-// 	    estimate(g,4) = cmpntList[cmpnt].min()/cmpntList[cmpnt].maj();
-// 	    estimate(g,5) = cmpntList[cmpnt].pa();
-// 	  }
 	
 	}
 
@@ -202,6 +211,7 @@ namespace askap
 
       }
 
+      //**************************************************************//
 
       void Fitter::setRetries()
       {
@@ -226,6 +236,7 @@ namespace askap
 	// Try not setting these for now and just use the defaults.
       }
 
+      //**************************************************************//
       
       void Fitter::setMasks()
       {
@@ -243,9 +254,17 @@ namespace askap
 // 	  //	    for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
 // 	  //	    for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
 // 	  //	    std::cout << "\n";
+	  ASKAPLOG_DEBUG_STR(logger,"Masks: " << this->itsParams.flagFitThisParam(0)
+			     << this->itsParams.flagFitThisParam(1)
+			     << this->itsParams.flagFitThisParam(2)
+			     << this->itsParams.flagFitThisParam(3)
+			     << this->itsParams.flagFitThisParam(4)
+			     << this->itsParams.flagFitThisParam(5));
 	}	      
 
       }
+
+      //**************************************************************//
 
       void logparameters(Matrix<Double> &m)
       {
@@ -261,6 +280,8 @@ namespace askap
 	  }
 
       }
+
+      //**************************************************************//
 
       void Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
 		       casa::Vector<casa::Double> sigma)
@@ -314,7 +335,7 @@ namespace askap
 	  this->itsSolution(i,5) = remainder(this->itsSolution(i,5), 2.*M_PI);
 	}
 
-	this->itsNDoF = f.size() - this->itsNumGauss*6 - 1;
+	this->itsNDoF = f.size() - this->itsNumGauss*this->itsParams.numFreeParam() - 1;
 	this->itsRedChisq = this->itsFitter.chisquared() / float(this->itsNDoF);
 	
 	cout.precision(6);
@@ -336,10 +357,14 @@ namespace askap
 
       }
 
+      //**************************************************************//
+
       bool Fitter::passConverged()
       {
 	return this->itsFitter.converged() && (this->itsFitter.chisquared()>0.);
       }
+
+      //**************************************************************//
 
       bool Fitter::passChisq()
       {
@@ -354,6 +379,8 @@ namespace askap
 	else return (this->itsRedChisq < this->itsParams.itsMaxReducedChisq);
       }
 
+      //**************************************************************//
+
       bool Fitter::passLocation()
       {
 	if(!this->passConverged()) return false;
@@ -367,6 +394,8 @@ namespace askap
 	return passXLoc && passYLoc;
       }
 
+      //**************************************************************//
+
       bool Fitter::passComponentSize()
       {
 	if(!this->passConverged()) return false;
@@ -377,6 +406,8 @@ namespace askap
 	}
 	return passSize;
       }
+
+      //**************************************************************//
 
       bool Fitter::passComponentFlux()
       {
@@ -389,6 +420,8 @@ namespace askap
 	return passFlux;
       }
 
+      //**************************************************************//
+
       bool Fitter::passPeakFlux()
       {
 	if(!this->passConverged()) return false;
@@ -397,6 +430,8 @@ namespace askap
 	  passPeak = passPeak && (this->itsSolution(i,0) < 2.*this->itsParams.itsSrcPeak);	    
 	return passPeak;
       }
+
+      //**************************************************************//
 
       bool Fitter::passIntFlux()
       {
@@ -409,6 +444,8 @@ namespace askap
 	}
 	return (intFlux < 2.*this->itsParams.itsBoxFlux);
       }
+
+      //**************************************************************//
 
       bool Fitter::passSeparation()
       {
@@ -423,6 +460,8 @@ namespace askap
 	}
 	return passSep;
       }
+
+      //**************************************************************//
 
       bool Fitter::acceptable()
       {
@@ -457,6 +496,7 @@ namespace askap
 
       }
 
+      //**************************************************************//
 
       std::multimap<double,int> Fitter::peakFluxList()
       {
@@ -467,6 +507,8 @@ namespace askap
 
       }
 
+      //**************************************************************//
+
       casa::Gaussian2D<casa::Double> Fitter::gaussian(int num)
       {
 	casa::Gaussian2D<casa::Double> 
@@ -475,6 +517,8 @@ namespace askap
 		this->itsSolution(num,3),this->itsSolution(num,4),this->itsSolution(num,5));
 	return gauss;
       }
+
+      //**************************************************************//
 
     }
 
