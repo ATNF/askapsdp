@@ -66,6 +66,11 @@ void UVWRotationHandler::invalidate() const
 const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw(const IConstDataAccessor &acc, 
                const casa::MDirection &tangent) const
 {
+  ASKAPCHECK(tangent.getRef().getType() == casa::MDirection::J2000,
+      "This is a cautionary assertion because a number of places in the code implicitly assume J2000 for "
+      "tangent point and image centre. UVWRotationHandler works for any frame in theory, but one needs to deliver "
+      "frame information to UVWMachines as well as to invalidate cache when say the time changes if it is required for conversion. "
+      "This work has not been done and is beyond the scope for ASKAP.");
   if (!itsValid || !compare(tangent, itsTangentPoint)) {
      // have to fill itsRotatedUVW
      const casa::uInt nSamples = acc.nRow();
@@ -116,6 +121,12 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
 {
   const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvwBuffer = uvw(acc, tangent);
   ASKAPDEBUGASSERT(itsDelays.nelements() == acc.nRow());
+
+  ASKAPCHECK(imageCentre.getRef().getType() == casa::MDirection::J2000,
+      "This is a cautionary assertion because a number of places in the code implicitly assume J2000 for "
+      "tangent point and image centre. UVWRotationHandler works for any frame in theory, but one needs to deliver "
+      "frame information to UVWMachines as well as to invalidate cache when say the time changes if it is required for conversion. "
+      "This work has not been done and is beyond the scope for ASKAP.");
   
   if (!compare(itsImageCentre, imageCentre)) {
       // we have to apply extra shift
