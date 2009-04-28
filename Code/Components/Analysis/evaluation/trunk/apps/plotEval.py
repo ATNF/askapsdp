@@ -64,5 +64,6 @@ if __name__ == '__main__':
 
     savefig('imageQualTest')
 
-    show()
+#    show()
+    close()
 
