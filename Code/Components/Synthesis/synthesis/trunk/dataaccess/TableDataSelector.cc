@@ -125,6 +125,7 @@ void TableDataSelector::chooseChannels(casa::uInt nChan, casa::uInt start,
    if (nAvg != 1) {
        throw DataAccessLogicError("not yet implemented");
    }
+   ASKAPDEBUGASSERT((nChan>0) && (start>=0)); 
    itsChannelSelection.first = int(nChan);
    itsChannelSelection.second = int(start);
 }

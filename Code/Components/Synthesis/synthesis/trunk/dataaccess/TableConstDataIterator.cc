@@ -410,7 +410,10 @@ template<typename T>
 void TableConstDataIterator::fillCube(casa::Cube<T> &cube, 
                const std::string &columnName) const
 {
-  cube.resize(itsNumberOfRows,itsNumberOfChannels,itsNumberOfPols);
+  const casa::uInt nChan = nChannel();
+  const casa::uInt startChan = startChannel();
+                           
+  cube.resize(itsNumberOfRows, nChan, itsNumberOfPols);
   ROArrayColumn<T> tableCol(itsCurrentIteration,columnName);
   
   // helper class, which does nothing for visibility cube, but checks
@@ -443,8 +446,8 @@ void TableConstDataIterator::fillCube(casa::Cube<T> &cube,
            // extract data record for this row, no resizing
            tableCol.get(row+itsCurrentTopRow,buf,False); 
        
-           for (uInt chan=0;chan<itsNumberOfChannels;++chan) {
-                curPos[1]=chan;
+           for (uInt chan=0; chan<nChan; ++chan) {
+                curPos[1] = chan + startChan;
                 for (uInt pol=0;pol<itsNumberOfPols;++pol) {
 	                 curPos[0]=pol;
 	                 cube(row,chan,pol)=buf(curPos);
@@ -480,8 +483,12 @@ void TableConstDataIterator::fillFlag(casa::Cube<casa::Bool> &flag) const
 ///            cube to be filled with the noise figures
 void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
 {
+  ASKAPDEBUGASSERT(itsSelector);
+  const casa::uInt nChan = nChannel();
+  const casa::uInt startChan = startChannel();
+  
   // default action first - just resize the cube and assign 1.
-  noise.resize(itsNumberOfRows, itsNumberOfChannels, itsNumberOfPols);
+  noise.resize(itsNumberOfRows, nChan, itsNumberOfPols);
   noise.set(casa::Complex(1.,0.));
   if (table().actualTableDesc().isColumn("SIGMA")) {
       ROArrayColumn<Float> sigmaCol(itsCurrentIteration,"SIGMA");
@@ -494,8 +501,8 @@ void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
                casa::Array<Float> buf(casa::IPosition(1,itsNumberOfPols));
                sigmaCol.get(row+itsCurrentTopRow,buf,False);
                casa::Matrix<casa::Complex> slice = noise.yzPlane(row);
-               for (uInt chan = 0; chan<noise.ncolumn(); ++chan) {
-                    ASKAPDEBUGASSERT(chan<slice.nrow());
+               for (uInt chan = 0; chan< nChan; ++chan) {
+                    ASKAPDEBUGASSERT(chan< slice.nrow());
                     casa::Vector<casa::Complex> polNoise = slice.row(chan);
                     convertArray(polNoise,buf);
                }
@@ -508,9 +515,11 @@ void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
                sigmaCol.get(row+itsCurrentTopRow,buf,False);
                            
                // not clear whether we need a transpose of the matrix. This
-               // case is not present in any available measurement set            
+               // case is not present in any available measurement set
+               const IPosition blc(2,startChan,0);
+               const IPosition trc(2,startChan+nChan-1,itsNumberOfPols-1);               
                casa::Matrix<casa::Complex> rowNoise = noise.yzPlane(row);
-               convertArray(rowNoise, buf);            
+               convertArray(rowNoise, buf(blc,trc));            
            }
       } // loop over rows
   } // if-statement checking that SIGMA column is present
@@ -576,6 +585,23 @@ const casa::MDirection& TableConstDataIterator::getCurrentReferenceDir() const
   return fieldSubtable.getReferenceDir(epoch);
 }
 
+/// @brief obtain selected range of channels
+/// @details A subset spectral channels can be selected for this iterator to work with.
+/// This method returns the number of channels and the first selected channel.
+/// @return a pair, first element is the number of channels, second is the first channel
+/// in the full cube
+std::pair<casa::uInt, casa::uInt> TableConstDataIterator::getChannelRange() const
+{
+  ASKAPDEBUGASSERT(itsSelector);
+  const std::pair<int, int> chanSelection = itsSelector->getChannelSelection();
+  const casa::uInt nChan = itsSelector->channelsSelected() ? 
+                           casa::uInt(chanSelection.first) : itsNumberOfChannels;
+  const casa::uInt startChan = itsSelector->channelsSelected() ?
+                           casa::uInt(chanSelection.second) : 0;
+  ASKAPDEBUGASSERT(startChan + nChan <= itsNumberOfChannels);
+  return std::pair<casa::uInt, casa::uInt>(nChan, startChan);
+}
+
 /// populate the buffer with frequencies
 /// @param[in] freq a reference to a vector to fill
 void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) const
@@ -584,17 +610,24 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
   const ITableSpWindowHolder& spWindowSubtable=subtableInfo().getSpWindow();
   ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
   const casa::uInt spWindowID = currentSpWindowID();
-  
+
+  const casa::uInt nChan = nChannel();
+  const casa::uInt startChan = startChannel();
+      
+  // for the time being we don't do the short-cut if a subset of channels
+  // is selected without any conversion. In principle it is possible, but
+  // we need to take care of constness as taking a slice is not a const
+  // operation.
   if (itsConverter->isVoid(spWindowSubtable.getReferenceFrame(spWindowID),
-	                   spWindowSubtable.getFrequencyUnit())) {
+	                   spWindowSubtable.getFrequencyUnit()) && !itsSelector->channelsSelected()) {
       // the conversion is void, i.e. table units/frame are exactly what
       // we need for output. This simplifies things a lot.
       freq.reference(spWindowSubtable.getFrequencies(spWindowID));
       if (itsNumberOfChannels!=freq.nelements()) {
           ASKAPTHROW(DataAccessError,"The measurement set has bad or corrupted "<<
-	       "SPECTRAL_WINDOW subtable. The number of spectral channels for data "<<
-	       itsNumberOfChannels<<" doesn't match the number of channels in the "<<
-	       "frequency axis ("<<freq.nelements()<<")");
+	      "SPECTRAL_WINDOW subtable. The number of spectral channels for data "<<
+	      itsNumberOfChannels<<" doesn't match the number of channels in the "<<
+	      "frequency axis ("<<freq.nelements()<<")");
       }
   } else { 
       // have to process element by element as a conversion is required
@@ -612,10 +645,10 @@ void TableConstDataIterator::fillFrequency(casa::Vector<casa::Double> &freq) con
       itsConverter->setMeasFrame(casa::MeasFrame(epoch, subtableInfo().
                      getAntenna().getPosition(0), antReferenceDir));
                                                         
-      freq.resize(itsNumberOfChannels);
-      for (uInt ch=0;ch<itsNumberOfChannels;++ch) {
+      freq.resize(nChan);
+      for (uInt ch=0;ch<nChan;++ch) {
            freq[ch]=itsConverter->frequency(spWindowSubtable.getFrequency(
-	                                    spWindowID,ch));
+	                                    spWindowID,ch+startChan));
 	                            
       }
   }

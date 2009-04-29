@@ -36,6 +36,7 @@
 
 // std includes
 #include <string>
+#include <utility>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -104,7 +105,7 @@ public:
   /// for now
 
   /// @return number of channels in the current accessor
-  casa::uInt inline nChannel() const throw() { return itsNumberOfChannels;}
+  casa::uInt inline nChannel() const throw() { return getChannelRange().first;}
 
   /// @return number of channels in the current accessor
   casa::uInt inline nPol() const throw() { return itsNumberOfPols;}
@@ -193,6 +194,16 @@ public:
   
   
 protected:
+  /// @brief obtain selected range of channels
+  /// @details A subset spectral channels can be selected for this iterator to work with.
+  /// This method returns the number of channels and the first selected channel.
+  /// @return a pair, first element is the number of channels, second is the first channel
+  /// in the full cube
+  std::pair<casa::uInt, casa::uInt> getChannelRange() const;
+  
+  /// @brief a short cut to get the first channel in the full cube
+  /// @return the number of the first channel in the full cube
+  inline casa::uInt startChannel() const { return getChannelRange().second;}
 
   /// @brief read an array column of the table into a cube
   /// @details populate the buffer provided with the information
