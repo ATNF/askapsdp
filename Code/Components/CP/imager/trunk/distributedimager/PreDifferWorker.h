@@ -52,6 +52,11 @@ namespace askap {
                 virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr notused);
 
             private:
+                // Reduce these normal equations down to the master (id 0). Ideally
+                // this reduction would be a graph style reduction and not just send
+                // all normal equations to the master.
+                void reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int count);
+
                 // Parameter Set
                 LOFAR::ACC::APS::ParameterSet& m_parset;
 
@@ -60,6 +65,9 @@ namespace askap {
 
                 // Pointer to the gridder
                 askap::synthesis::IVisGridder::ShPtr m_gridder_p;
+
+                // Normal equations
+                askap::scimath::INormalEquations::ShPtr m_ne_p;
 
                 // ID of the master process
                 static const int cg_master = 0;

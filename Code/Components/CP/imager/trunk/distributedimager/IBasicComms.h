@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IIMAGERCOMMS_H
-#define ASKAP_CP_IIMAGERCOMMS_H
+#ifndef ASKAP_CP_IBASICCOMMS_H
+#define ASKAP_CP_IBASICCOMMS_H
 
 // System includes
 #include <string>
@@ -73,7 +73,7 @@ namespace askap {
                 /// @brief Send normal equations to the root process.
                 /// @param[in]  ne  the normal equations to send.
                 /// @param[in]  id  the id of the process to send to.
-                virtual void sendNE(askap::scimath::INormalEquations::ShPtr ne, int id) = 0;
+                virtual void sendNE(askap::scimath::INormalEquations::ShPtr ne, int id, int count) = 0;
 
                 /// @brief Receive the normal equations which have been sent by
                 ///  a sendNE() call.
@@ -81,7 +81,7 @@ namespace askap {
                 /// the id of the participant which has sent the message.
                 ///
                 /// @return the received normal equations.
-                virtual askap::scimath::INormalEquations::ShPtr receiveNE(int& id) = 0;
+                virtual askap::scimath::INormalEquations::ShPtr receiveNE(int& id, int& count) = 0;
 
                 /// @brief Send a string to the indicated destination.
                 /// @param[in]  string  the string to send.
@@ -91,8 +91,19 @@ namespace askap {
                 /// @brief Receive a string which has been sent by the 
                 /// sendString() call.
                 ///
+                /// @param[in]  source  the id of the source to recieve
+                ///                     the string from.
                 /// @return the received string.
                 virtual std::string receiveString(int source) = 0;
+
+                /// @brief Receive a string which has been sent by the 
+                /// sendString() call. This call will receive a string
+                /// from any node.
+                ///
+                /// @param[out] source  the id of the source from which the
+                ///                     string as received.
+                /// @return the received string.
+                virtual std::string receiveStringAny(int& source) = 0;
         };
 
     };

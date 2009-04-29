@@ -169,7 +169,7 @@ askap::scimath::Params::ShPtr MPIBasicComms::receiveModel(void)
     return model_p;
 }
 
-void MPIBasicComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
+void MPIBasicComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id, int count)
 {
     casa::Timer timer;
     timer.mark();
@@ -179,6 +179,7 @@ void MPIBasicComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
     LOFAR::BlobOBufVector<char> bv(data);
     LOFAR::BlobOStream out(bv);
     out.putStart("ne", 1);
+    out << count;
     out << *ne_p;
     out.putEnd();
 
@@ -193,7 +194,7 @@ void MPIBasicComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id)
             << " via MPI in " << timer.real() << " seconds ");
 }
 
-askap::scimath::INormalEquations::ShPtr MPIBasicComms::receiveNE(int& id)
+askap::scimath::INormalEquations::ShPtr MPIBasicComms::receiveNE(int& id, int& count)
 {
     // First receive the size of the byte stream
     long size;
@@ -213,6 +214,7 @@ askap::scimath::INormalEquations::ShPtr MPIBasicComms::receiveNE(int& id)
     if (version != 1) {
         ASKAPTHROW (std::runtime_error, "Normal Equations byte stream is of incorrect version");
     }
+    in >> count;
     in >> *ne_p;
     in.getEnd();
 
@@ -243,6 +245,26 @@ std::string MPIBasicComms::receiveString(int source)
     char buf[size];
     memset(buf, 0, size);
     receive(buf, size * sizeof(char), source, status);
+
+    return std::string(buf);
+}
+
+std::string MPIBasicComms::receiveStringAny(int& source)
+{
+    MPI_Status status;  // Not used but needed to call receive()
+
+    // First receive the size of the string
+    int size;
+    receive(&size, sizeof(int), MPI_ANY_SOURCE, status);
+
+    int actualSource = status.MPI_SOURCE;
+
+    // Allocate a recv buffer then recv
+    char buf[size];
+    memset(buf, 0, size);
+    receive(buf, size * sizeof(char), actualSource, status);
+
+    source = actualSource;
 
     return std::string(buf);
 }

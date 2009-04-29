@@ -74,44 +74,47 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
 
-    // Send the work to the workers
+    // Wait for all work units to complete processing, handling out
+    // more work to the workers as needed
     for (unsigned int n = 0; n < ms.size(); ++n) {
-        // Initially send one workunit to each worker,
-        // from ID 1 to (getNumNodes() - 1)
-        for (int dest = 1; dest < m_comms.getNumNodes() && n < ms.size(); ++dest) {
-            ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
-                    << " to worker " << dest);
-            m_comms.sendString(ms[n], dest);
-            ++n;
-        }
+        // TODO: Waiting for a string is a dumb way for the worker to indicate
+        // it wants more work to do. Need a MUCH better way of doing this. Some
+        // sort of command message incorporating this plus the "no more workunits"
+        // message (below) could be developed.
+        int source;
+        m_comms.receiveStringAny(source);
 
-        // Wait for all work units to complete processing, handling out
-        // more work to the workers as needed
-        for (unsigned int completed = 0; completed < ms.size(); ++completed) {
-            int source;
-            askap::scimath::INormalEquations::ShPtr recv_ne_p = m_comms.receiveNE(source);
+        ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
+                << " to worker " << source);
+        m_comms.sendString(ms[n], source);
+    }
 
-            // If there is still work to be distributed, send this worker a new
-            // work unit
-            if (n < ms.size()) {
-                ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
-                        << " to worker " << source);
-                m_comms.sendString(ms[n], source);
-                ++n;
-            }
+    // Send each process an empty string to indicate
+    // there are no more workunits on offer (TODO: Need to find
+    // a better way of doing this)
+    for (int dest = 1; dest < m_comms.getNumNodes(); ++dest) {
+        m_comms.receiveString(dest);
+        m_comms.sendString("", dest);
+    }
 
-            // Merge the received normal equations
-            ASKAPLOG_INFO_STR(logger, "Merging normal equations from worker " << source);
-            ne_p->merge(*recv_ne_p);
-        }
+    // Finally, wait for the workers/accumulators to send all the normal
+    // equations to the master. The count argument tracks how many datasets
+    // were processed to arrive at the normal equation object. The master
+    // does not proceed until the results for all datasets have been
+    // accounted for.
+    unsigned int count = 0;
+    while (count < ms.size()) {
+        int source;
+        int recvcount = 0;
+        askap::scimath::INormalEquations::ShPtr recv_ne_p = m_comms.receiveNE(source, recvcount);
+        count += recvcount;
 
-        // Finally, send each process an empty string to indicate
-        // there are no more workunits on offer (TODO: Need to find
-        // a better way of doing this)
-        for (int dest = 1; dest < m_comms.getNumNodes(); ++dest) {
-            m_comms.sendString("", dest);
-        }
+        // Merge the received normal equations
+        ne_p->merge(*recv_ne_p);
+        recv_ne_p.reset();
 
+        ASKAPLOG_INFO_STR(logger, "Received " << recvcount << " normal equations from worker " 
+                << source << ". Still waiting for " << ms.size() - count);
     }
 
     return ne_p;
@@ -120,7 +123,7 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
 /// Utility function to get dataset names from parset.
 std::vector<std::string> PreDifferMaster::getDatasets(ParameterSet& parset)
 {
-    if(parset.isDefined("dataset") && parset.isDefined("dataset0")) {
+    if (parset.isDefined("dataset") && parset.isDefined("dataset0")) {
         ASKAPTHROW (std::runtime_error, "Both dataset and dataset0 are specified in the parset");
     }
 

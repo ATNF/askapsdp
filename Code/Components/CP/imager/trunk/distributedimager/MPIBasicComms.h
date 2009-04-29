@@ -51,11 +51,12 @@ public:
     virtual void broadcastModel(askap::scimath::Params::ShPtr model);
     virtual askap::scimath::Params::ShPtr receiveModel(void);
 
-    virtual void sendNE(askap::scimath::INormalEquations::ShPtr ne, int id);
-    virtual askap::scimath::INormalEquations::ShPtr receiveNE(int& id);
+    virtual void sendNE(askap::scimath::INormalEquations::ShPtr ne, int id, int count);
+    virtual askap::scimath::INormalEquations::ShPtr receiveNE(int& id, int& count);
 
     virtual void sendString(const std::string& str, int dest);
     virtual std::string receiveString(int source);
+    virtual std::string receiveStringAny(int& source);
 
 private:
     void send(const void* buf, size_t size, int dest);
