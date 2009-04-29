@@ -29,7 +29,7 @@ os.chdir(os.path.dirname(absolute_path))
 
 bashinit = """\
 export ASKAP_ROOT=%s
-pypath="${ASKAP_ROOT}/Tools/Dev/scons-tools"
+pypath="${ASKAP_ROOT}/share/scons_tools"
 
 if [ "${PYTHONPATH}" !=  "" ]
 then
@@ -65,7 +65,7 @@ export PYLINTRC
 
 tcshinit = """\
 setenv ASKAP_ROOT %s
-set pypath="${ASKAP_ROOT}/Tools/Dev/scons-tools"
+set pypath="${ASKAP_ROOT}/share/scons_tools"
 
 if ($?PYTHONPATH) then
     setenv PYTHONPATH `echo ${PYTHONPATH} | sed "s#:*${pypath}:*##"`
