@@ -3,7 +3,8 @@ from askap.logging import Handler
 from askap import get_config
 
 import Ice, IceStorm
-Ice.loadSlice(get_config("askap.logging", "LoggingService.ice"))
+# pylint: disable-msg=W0611
+import LoggingService_ice
 from askap.logging.interfaces import ILoggerPrx, LogEvent
 
 class IceHandler(Handler):

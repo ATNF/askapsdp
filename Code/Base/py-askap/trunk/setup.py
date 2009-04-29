@@ -23,6 +23,6 @@ setup(name = PKGNAME,
       scripts = ["scripts/logging_server.py"],
       package_data = {"": ["config/*.ice", 
                            "config/*.ice_cfg"] },
-      # Uncomment if using unit tests
-      #      test_suite = "test.suite",
+      ice_interfaces = {"askap.logging": ["LoggingService.ice"] },
+#      test_suite = "nose.collector",
 )
