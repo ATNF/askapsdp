@@ -48,10 +48,11 @@ using namespace casa;
 /// (a derivative of ISubtableInfoHolder)
 TableDataSelector::TableDataSelector(const
        boost::shared_ptr<ITableManager const> &msManager) :
-       TableInfoAccessor(msManager) 
+       TableInfoAccessor(msManager), 
 #ifndef ASKAP_DEBUG
-       ,itsDataColumnName(msManager->defaultDataColumnName()) 
+       itsDataColumnName(msManager->defaultDataColumnName()),
 #endif       
+       itsChannelSelection(-1,0)
 {
   ASKAPDEBUGASSERT(msManager);
 #ifdef ASKAP_DEBUG
@@ -121,7 +122,11 @@ const casa::TableExprNode& TableDataSelector::getTableSelector(const
 void TableDataSelector::chooseChannels(casa::uInt nChan, casa::uInt start,
                              casa::uInt nAvg)
 {
-   throw DataAccessLogicError("not yet implemented");
+   if (nAvg != 1) {
+       throw DataAccessLogicError("not yet implemented");
+   }
+   itsChannelSelection.first = int(nChan);
+   itsChannelSelection.second = int(start);
 }
 
 /// Choose a subset of frequencies. The reference frame is
@@ -195,5 +200,29 @@ boost::shared_ptr<ITableDataSelectorImpl const> TableDataSelector::clone() const
 const std::string& TableDataSelector::getDataColumnName() const throw() 
 {
   return itsDataColumnName;
+}
+
+/// @brief check whether channel selection has been done
+/// @details By default all channels are selected. However, if chooseChannels 
+/// has been called, less channels are returned. This method returns true if
+/// this is the case and false otherwise.
+/// @return true, if a subset of channels has been selected
+bool TableDataSelector::channelsSelected() const throw()
+{
+  return itsChannelSelection.first < 0;
+}
+  
+/// @brief obtain channel selection
+/// @details By default all channels are selected. However, if chooseChannels 
+/// has been called, less channels are returned by the accessor. This method
+/// returns the number of channels and the first channel (in the full sample) 
+/// selected. If the first element of the pair is negative, no channel-based
+/// selection has been done. This is also checked by channelsSelected method, 
+/// which is probably a prefered way to do this check to retain the code clarity.
+/// @return a pair, the first element gives the number of channels selected and
+/// the second element gives the start channel (0-based)
+std::pair<int,int> TableDataSelector::getChannelSelection() const throw()
+{
+  return itsChannelSelection;
 }
 

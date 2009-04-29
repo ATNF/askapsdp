@@ -48,6 +48,7 @@
 
 // std includes
 #include <string>
+#include <utility>
 
 namespace askap {
 
@@ -102,6 +103,24 @@ public:
   /// Exact handling is determined in derived classes
   /// @return the name of the data column
   virtual const std::string& getDataColumnName() const throw() = 0;
+  
+  /// @brief check whether channel selection has been done
+  /// @details By default all channels are selected. However, if chooseChannels 
+  /// has been called, less channels are returned. This method returns true if
+  /// this is the case and false otherwise.
+  /// @return true, if a subset of channels has been selected
+  virtual bool channelsSelected() const throw() = 0;
+  
+  /// @brief obtain channel selection
+  /// @details By default all channels are selected. However, if chooseChannels 
+  /// has been called, less channels are returned by the accessor. This method
+  /// returns the number of channels and the first channel (in the full sample) 
+  /// selected. If the first element of the pair is negative, no channel-based
+  /// selection has been done. This is also checked by channelsSelected method, 
+  /// which is probably a prefered way to do this check to retain the code clarity.
+  /// @return a pair, the first element gives the number of channels selected and
+  /// the second element gives the start channel (0-based)
+  virtual std::pair<int,int> getChannelSelection() const throw() = 0;
   
 };
   

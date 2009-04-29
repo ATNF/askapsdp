@@ -35,6 +35,7 @@
 
 // std includes
 #include <string>
+#include <utility>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -164,14 +165,39 @@ public:
   /// normally interacts with the IDataSelector class only. This is because
   /// cloning is done at the low level (e.g. inside the iterator)
   virtual boost::shared_ptr<ITableDataSelectorImpl const> clone() const;
+  
+  /// @brief check whether channel selection has been done
+  /// @details By default all channels are selected. However, if chooseChannels 
+  /// has been called, less channels are returned. This method returns true if
+  /// this is the case and false otherwise.
+  /// @return true, if a subset of channels has been selected
+  virtual bool channelsSelected() const throw();
+  
+  /// @brief obtain channel selection
+  /// @details By default all channels are selected. However, if chooseChannels 
+  /// has been called, less channels are returned by the accessor. This method
+  /// returns the number of channels and the first channel (in the full sample) 
+  /// selected. If the first element of the pair is negative, no channel-based
+  /// selection has been done. This is also checked by channelsSelected method, 
+  /// which is probably a prefered way to do this check to retain the code clarity.
+  /// @return a pair, the first element gives the number of channels selected and
+  /// the second element gives the start channel (0-based)
+  virtual std::pair<int,int> getChannelSelection() const throw();
+  
 
 private:
   /// a measurement set to work with. Reference semantics
   casa::Table itsMS;
   /// selector for epoch
   boost::shared_ptr<ITableMeasureFieldSelector> itsEpochSelector;
-    /// a name of the column containing visibility data
-  std::string itsDataColumnName; 
+  /// a name of the column containing visibility data
+  std::string itsDataColumnName;   
+  /// @brief channel selection
+  /// @details The first field has the number of channels required, the second field is the
+  /// start channel. If the first field is negative, no channel-based selection has been defined.
+  /// This class actually doesn't care about the meaning of these two numbers and just passes them across.
+  /// However, in the TableConstDataIterator we assume the meaning given above.
+  std::pair<int, int> itsChannelSelection;
 };
   
 } // namespace synthesis
