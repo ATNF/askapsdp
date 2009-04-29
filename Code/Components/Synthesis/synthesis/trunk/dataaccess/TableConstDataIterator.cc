@@ -235,7 +235,7 @@ casa::Bool TableConstDataIterator::next()
       // and reduce itsNumberOfRows if necessary
       makeUniformDataDescID();      
       
-      // determine whether FIELD_ID is uniform in the whole chink
+      // determine whether FIELD_ID is uniform in the whole chunk
       // and reduce itsNumberOfRows if necessary
       // invalidate direction cache if necessary.
       // do nothing if itsUseFieldID is false
@@ -345,7 +345,16 @@ void TableConstDataIterator::makeUniformDataDescID()
       const casa::IPosition &shape=visCol.shape(itsCurrentTopRow);
       ASKAPASSERT(shape.size() && (shape.size()<3));
       itsNumberOfPols=shape[0];
-      itsNumberOfChannels=shape.size()>1?shape[1]:1;      
+      itsNumberOfChannels=shape.size()>1?shape[1]:1;
+      ASKAPDEBUGASSERT(itsSelector);
+      if (itsSelector->channelsSelected()) {
+          // validity checks that selection doesn't extend beyond the channels available
+          const std::pair<int,int> chanSelection = itsSelector->getChannelSelection();          
+          ASKAPCHECK(itsNumberOfChannels >= casa::uInt(chanSelection.first + chanSelection.second),
+               "Channel selection from "<<chanSelection.second+1<<" to "<<chanSelection.first+
+               chanSelection.second<<" (1-based) extends beyond "<<itsNumberOfChannels<<
+               " channel(s) available in  the dataset");
+      }      
   }
   for (uInt row=1;row<itsNumberOfRows;++row) {
        if (dataDescCol(row+itsCurrentTopRow)!=itsCurrentDataDescID) {

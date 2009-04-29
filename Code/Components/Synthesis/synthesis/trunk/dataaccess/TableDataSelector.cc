@@ -209,7 +209,7 @@ const std::string& TableDataSelector::getDataColumnName() const throw()
 /// @return true, if a subset of channels has been selected
 bool TableDataSelector::channelsSelected() const throw()
 {
-  return itsChannelSelection.first < 0;
+  return itsChannelSelection.first >= 0;
 }
   
 /// @brief obtain channel selection

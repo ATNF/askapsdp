@@ -365,9 +365,11 @@ private:
   casa::uInt itsCurrentTopRow;
   /// number of rows in the current chunk
   casa::uInt itsNumberOfRows;
-  /// next two data members are temporary here
-  /// we need to use properties of selector when it's ready
+  /// next two data members show the number of channels and
+  /// polarisations in the actual table. Selector controls what
+  /// is sent out
   casa::uInt itsNumberOfChannels;
+  /// see above
   casa::uInt itsNumberOfPols;
 
   /// current DATA_DESC_ID, the iteration is broken if this
