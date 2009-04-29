@@ -64,6 +64,13 @@ namespace askap
     namespace sourcefitting
     {
 
+      bool isFitTypeValid(std::string type)
+      {
+	if(type == "full") return true;
+	if(type == "psf")  return true;
+	return false;
+      }
+
       FittingParameters::FittingParameters(const LOFAR::ACC::APS::ParameterSet& parset)
       {
 	
@@ -78,7 +85,29 @@ namespace askap
 	this->itsCriterium = parset.getDouble("criterium", 0.0001);
 	this->itsMaxIter = parset.getUint32("maxIter",1024);
 	this->itsUseNoise = parset.getBool("useNoise",true);
-	this->itsFlagFitThisParam = parset.getBoolVector("flagFitParam",std::vector<bool>(6,true));
+
+	//	this->itsFlagFitThisParam = parset.getBoolVector("flagFitParam",std::vector<bool>(6,true));
+	this->itsFlagFitThisParam = std::vector<bool>(6,true);
+	if(parset.isDefined("flagFitParam"))
+	  ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
+
+	std::vector<std::string> defaultFitTypes;
+	defaultFitTypes.push_back("full");
+	defaultFitTypes.push_back("psf");
+	this->itsFitTypes = parset.getStringVector("fitTypes",defaultFitTypes);
+	std::stringstream ss;
+	std::vector<std::string>::iterator type=this->itsFitTypes.begin();
+	while(type < this->itsFitTypes.end()){
+	  if( !isFitTypeValid(*type) ){
+	    ASKAPLOG_WARN_STR(logger, "Fit type " << *type << " is not valid. Removing from list.");
+	    this->itsFitTypes.erase(type);
+	  }
+	  else {
+	    ss << *type << " ";
+	    type++;
+	  }
+	}
+	ASKAPLOG_DEBUG_STR(logger, "Fit types being used: " << ss.str());
       }
 
       //**************************************************************//
@@ -113,7 +142,25 @@ namespace askap
 	this->itsMaxIter = f.itsMaxIter;
 	this->itsUseNoise = f.itsUseNoise;
 	this->itsFlagFitThisParam = f.itsFlagFitThisParam;
+	this->itsFitTypes = f.itsFitTypes;
 	return *this;
+      }
+
+      //**************************************************************//
+
+      void FittingParameters::setFlagFitThisParam(std::string type)
+      {
+	if(type=="full"){
+	  for(int i=0;i<6;i++) this->itsFlagFitThisParam[i] = true;
+	}
+	else if(type=="psf"){
+	  for(int i=0;i<3;i++) this->itsFlagFitThisParam[i] = true;
+	  for(int i=3;i<6;i++) this->itsFlagFitThisParam[i] = false;
+	}
+	else{
+	  ASKAPLOG_WARN_STR(logger, "Fit type " << type << " is not valid, so can't set parameter flags");
+	}
+
       }
 
       //**************************************************************//

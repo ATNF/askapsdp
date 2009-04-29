@@ -93,6 +93,10 @@ namespace askap
       void logparameters(Matrix<Double> &m);
 
       /// @ingroup sourcefitting
+      /// @brief Check whether a given fit type is valid
+      bool isFitTypeValid(std::string type);
+
+      /// @ingroup sourcefitting
       /// @brief A class to store parameters that are used by the fitting routines.
       /// @details It stores user-generated parameters, as well as
       ///  things such as detection threshold and peak flux that come from the
@@ -133,6 +137,7 @@ namespace askap
 	void setMaxIter(uInt i){itsMaxIter = i;};
 	void setUseNoise(bool b){itsUseNoise = b;};
 	void setFlagFitThisParam(int i, bool b){itsFlagFitThisParam[i] = b;};
+	void setFlagFitThisParam(std::string type);
 
 	int    maxNumGauss(){return itsMaxNumGauss;};	
 	int    boxPadSize(){return itsBoxPadSize;};
@@ -147,6 +152,9 @@ namespace askap
 	uInt   maxIter(){return itsMaxIter;};
 	bool   useNoise(){return itsUseNoise;};
 	bool   flagFitThisParam(int i){return itsFlagFitThisParam[i];};
+	std::string fitType(int i){return itsFitTypes[i];};
+	int    numFitTypes(){return itsFitTypes.size();};
+
 	/// @brief Return the number of free parameters
 	int    numFreeParam();
 
@@ -223,6 +231,8 @@ namespace askap
 	/// @brief Flags indicating whether to fit the corresponding parameter (if true), or whether to leave it untouched (false)
 	std::vector<bool> itsFlagFitThisParam;
 
+	/// @brief List of types of fits to be done: can be "full" (meaning all parameters are free to be fitted) or "psf" (meaning the major/minor axes and the position angle are kept fixed at the beam size).
+	std::vector<std::string> itsFitTypes;
       };
 
 

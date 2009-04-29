@@ -656,6 +656,7 @@ namespace askap
 	bool fitIsGood = false;
 	int bestFit = 0;
 	float bestRChisq = 9999.;
+	std::string bestType;
 
  	this->itsFitParams = baseFitter;
  	this->itsFitParams.saveBox(this->itsBoxMargins);
@@ -666,16 +667,13 @@ namespace askap
 
 	int ctr=0;
 
-	for(int fittype=0; fittype<2; fittype++){
+ 	for(int fittype=0; fittype<this->itsFitParams.numFitTypes(); fittype++){
 
-	  FittingParameters tempParams = this->itsFitParams;
-	  for(int i=0;i<6;i++) // set the beam parameters to false when fittype==1
-	    tempParams.setFlagFitThisParam(i, ((i<3)||(fittype==0)) );
+	  this->itsFitParams.setFlagFitThisParam(this->itsFitParams.fitType(fittype));
 	    
 	  for(int g=1;g<=this->itsFitParams.maxNumGauss();g++){
 	    
-	    //  	  fit[ctr].setParams(this->itsFitParams);
-	    fit[ctr].setParams(tempParams);
+	    fit[ctr].setParams(this->itsFitParams);
 	    fit[ctr].setNumGauss(g);
 	    fit[ctr].setEstimates(cmpntList, this->itsHeader);
 	    fit[ctr].setRetries();
@@ -687,6 +685,7 @@ namespace askap
 		fitIsGood = true;
 		bestFit = ctr;
 		bestRChisq = fit[ctr].redChisq();
+		bestType = this->itsFitParams.fitType(fittype);
 	      }
 	      
 	    }
@@ -697,8 +696,9 @@ namespace askap
 	if(fitIsGood){
 	  this->hasFit = true;
 	  this->itsFitParams = fit[bestFit].params();
-	  if(ctr/4==1) 
-	    for(int i=3;i<6;i++) this->itsFitParams.setFlagFitThisParam(i,false);
+// 	  if(ctr/4==1) 
+// 	    for(int i=3;i<6;i++) this->itsFitParams.setFlagFitThisParam(i,false);
+	  this->itsFitParams.setFlagFitThisParam(bestType);
 	  this->itsChisq = fit[bestFit].chisq();
 	  this->itsRMS = fit[bestFit].RMS();
 	  this->itsNDoF = fit[bestFit].ndof();

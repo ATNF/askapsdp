@@ -159,6 +159,8 @@ namespace askap
 
       LOFAR::ACC::APS::ParameterSet fitParset = parset.makeSubset("Fitter.");
       this->itsFitter = sourcefitting::FittingParameters(fitParset);
+      if(this->itsFitter.numFitTypes()==0 && this->itsFlagDoFit)
+	ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
 
       this->itsCube.pars().setFlagRobustStats( parset.getBool("flagRobust",true) );
 
