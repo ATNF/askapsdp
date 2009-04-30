@@ -1,32 +1,33 @@
 #!/usr/bin/env python
 import signal
-import sys,os
+import sys
+import os
 import subprocess
-import initenv
 import time
-from nose.tools import assert_equal
+# pylint: disable-msg=E0611
+from nose.tools import assert_equals
 import Ice
 import IceStorm
 from askap import get_config
 from askap import logging
 
+# pylint: disable-msg=W0611
 from askap.logging import LoggingService_ice
-
 # ice doesn't agree with pylint
 # pylint: disable-msg=E0611
 from askap.logging.interfaces import ILogger
 
 
-ICEBIN="${ASKAP_ROOT}/3rdParty/Ice/tags/Ice-3.3.0/install/bin/"
+ice_bin = "${ASKAP_ROOT}/3rdParty/Ice/tags/Ice-3.3.0/install/bin/"
 
-LASTEVENT = []
+last_event = []
 
-
+# pylint: disable-msg=W0232
 class LoggerImpl(ILogger):
-    # pylint: disable-msg=W0613
+    # pylint: disable-msg=W0613,W0603,R0201 
     def send(self, event, current=None):
-        global LASTEVENT
-        LASTEVENT = [event.origin, event.level, event.created, event.message]
+        global last_event
+        last_event = [event.origin, event.level, event.created, event.message]
 
 
 class LogSubscriber(object):
@@ -37,20 +38,20 @@ class LogSubscriber(object):
         initData.properties.load(get_config("askap.logging",
                                             "logging_server.ice_cfg"))
         
-        self.ic = Ice.initialize(sys.argv, initData)
+        self.ice = Ice.initialize(sys.argv, initData)
         self.manager = IceStorm.TopicManagerPrx.\
-            checkedCast(self.ic.propertyToProxy('TopicManager.Proxy'))
+            checkedCast(self.ice.propertyToProxy('TopicManager.Proxy'))
 
         topicname = "logger"
         try:
             topic = self.manager.retrieve(topicname)
-        except IceStorm.NoSuchTopic, e:
+        except IceStorm.NoSuchTopic:
             try:
                 topic = self.manager.create(topicname)
-            except IceStorm.TopicExists, ex:
+            except IceStorm.TopicExists:
                 print "temporary error. try again"
                 raise
-        logadapter = self.ic.\
+        logadapter = self.ice.\
             createObjectAdapter("LoggingService.Subscriber")
 
         subid = Ice.Identity()
@@ -60,11 +61,18 @@ class LogSubscriber(object):
         qos = {}
         try:
             topic.subscribeAndGetPublisher(qos, subscriber)
-        except IceStorm.AlreadySubscribed, ex:
+        except IceStorm.AlreadySubscribed:
             raise
         logadapter.activate()
 
 class TestIceLogger(object):
+    def __init__(self):
+        self.iceboxcfg = None
+        self.configservice = None
+        self.logger = None
+        self.subscriber = None
+        self.icebox = None
+
     def setup(self):
         # Initalise icebox, create db directory, write config files....
         if not os.path.exists("db"):
@@ -83,7 +91,7 @@ Freeze.DbEnv.IceStorm.DbHome=db
 """)
         self.configservice.close()
         self.icebox = \
-            subprocess.Popen("%s/icebox --Ice.Config=%s" % (ICEBIN,
+            subprocess.Popen("%s/icebox --Ice.Config=%s" % (ice_bin,
                                                             self.iceboxcfg.name),
                              shell=1,
                              stdout=subprocess.PIPE,
@@ -105,9 +113,9 @@ Freeze.DbEnv.IceStorm.DbHome=db
         #clean up config files db and terminate icebox
         import shutil
         os.kill(self.icebox.pid, signal.SIGKILL)
-        for f in [self.configservice.name, self.iceboxcfg.name]:
-            if os.path.exists(f):
-                os.remove(f)
+        for fname in [self.configservice.name, self.iceboxcfg.name]:
+            if os.path.exists(fname):
+                os.remove(fname)
         if os.path.exists("db"):
             shutil.rmtree("db", ignore_errors=True)
         
@@ -117,8 +125,8 @@ Freeze.DbEnv.IceStorm.DbHome=db
         msg = "Log Test"
         self.logger.info(msg)
         time.sleep(0.1)
-        assert_equal(LASTEVENT[0], __name__)
-        assert_equal(LASTEVENT[-1], msg)
+        assert_equals(last_event[0], __name__)
+        assert_equals(last_event[-1], msg)
             
     def teardown(self):
         self.cleanup()        
