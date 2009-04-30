@@ -68,6 +68,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(antennaTest);
   CPPUNIT_TEST(originalVisRewriteTest);
   CPPUNIT_TEST(readOnlyTest);
+  CPPUNIT_TEST(channelSelectionTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   
@@ -97,6 +98,8 @@ public:
   void antennaTest();
   /// test to rewrite original visibilities
   void originalVisRewriteTest();
+  /// test read/write with channel selection
+  void channelSelectionTest();
 protected:
   void doBufferTest() const;
 private:
@@ -376,6 +379,71 @@ void TableDataAccessTest::antennaTest()
                          getValue()<0.1);
       }
   }                     
+}
+
+/// test read/write with channel selection
+void TableDataAccessTest::channelSelectionTest()
+{
+  TableDataSource tds(TableTestRunner::msName(), TableDataSource::WRITE_PERMITTED);
+  IDataSource &ds=tds; // to have all interface methods available without
+                       // ambiguity (otherwise methods overridden in 
+                       // TableDataSource would get a priority)
+  for (IDataSharedIter it=ds.createIterator(); it!=it.end(); ++it) {
+       // store original visibilities in a buffer
+       it.buffer("BACKUP").rwVisibility() = it->visibility();
+       // set new values for all spectral channels, rows and pols
+       it->rwVisibility().set(casa::Complex(1.,0.5));
+  }
+  
+  
+  IDataSelectorPtr sel = ds.createSelector();
+  ASKAPASSERT(sel);
+  sel->chooseChannels(2, 3);
+  for (IDataSharedIter it=ds.createIterator(sel); it!=it.end(); ++it) {
+       // different value corresponding to selected channels
+       it->rwVisibility().set(casa::Complex(-0.5,1.0));
+  }
+  
+  // check that the visibilities are set to a required constant for the selected subset of channels
+  for (IConstDataSharedIter cit = ds.createConstIterator(sel); 
+                                        cit != cit.end(); ++cit) {
+       const casa::Cube<casa::Complex> &vis = cit->visibility();
+       // selected just two channels
+       ASKAPASSERT(vis.ncolumn() == 2);
+       for (casa::uInt row = 0; row < vis.nrow(); ++row) {
+            for (casa::uInt column = 0; column < vis.ncolumn(); ++column) {
+                 for (casa::uInt plane = 0; plane < vis.nplane(); ++plane) {
+                      CPPUNIT_ASSERT(abs(vis(row,column,plane)-
+                                         casa::Complex(-0.5,1.0))<1e-7);
+                 }
+            }
+       }
+  }
+  
+  // check that the visibilities are set to a required constant in the whole cube
+  for (IConstDataSharedIter cit = ds.createConstIterator(); 
+                                        cit != cit.end(); ++cit) {
+       const casa::Cube<casa::Complex> &vis = cit->visibility();
+       // selected just two channels
+       ASKAPASSERT(vis.ncolumn() == 13);
+       for (casa::uInt row = 0; row < vis.nrow(); ++row) {
+            for (casa::uInt column = 0; column < vis.ncolumn(); ++column) {
+                 for (casa::uInt plane = 0; plane < vis.nplane(); ++plane) {
+                      const casa::Complex result = (column==3) || (column==4) ?
+                                  casa::Complex(-0.5,1.0) : casa::Complex(1.0,0.5);
+                      CPPUNIT_ASSERT(abs(vis(row,column,plane) - result)<1e-7);
+                 }
+            }
+       }
+  }
+  
+  
+  
+  // set visibilities back to the original values
+  for (IDataSharedIter it=ds.createIterator(); it!=it.end(); ++it) {
+       // store original visibilities in a buffer
+       it->rwVisibility() = it.buffer("BACKUP").visibility();
+  }
 }
 
 /// test to rewrite original visibilities

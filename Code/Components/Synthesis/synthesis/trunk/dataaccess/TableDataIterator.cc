@@ -280,9 +280,13 @@ TableDataIterator::~TableDataIterator()
 void TableDataIterator::writeOriginalVis() const
 {
   const casa::Cube<casa::Complex> &originalVis=getAccessor().visibility();
+  
+  const casa::uInt nChan = nChannel();
+  const casa::uInt startChan = startChannel();
+  
   // no change of shape is permitted
   ASKAPASSERT(originalVis.nrow() == nRow() &&
-               originalVis.ncolumn() == nChannel() &&
+               originalVis.ncolumn() == nChan &&
                originalVis.nplane() == nPol());
   casa::ArrayColumn<casa::Complex> visCol(getCurrentIteration(), getDataColumnName());
   ASKAPDEBUGASSERT(getCurrentIteration().nrow() >= getCurrentTopRow()+
@@ -290,20 +294,25 @@ void TableDataIterator::writeOriginalVis() const
   casa::uInt tableRow = getCurrentTopRow();
   for (casa::uInt row=0;row<originalVis.nrow();++row,++tableRow) {
        const casa::IPosition &shape = visCol.shape(row);
-       ASKAPDEBUGASSERT(shape.size() && (shape.size())<3);
+       ASKAPDEBUGASSERT(shape.size() && (shape.size()<3));
        const casa::uInt thisRowNumberOfPols = shape[0];
        const casa::uInt thisRowNumberOfChannels = shape.size()>1 ? shape[1] : 1;
-       if (thisRowNumberOfPols != originalVis.nplane() ||
-           thisRowNumberOfChannels != originalVis.ncolumn()) {
+       if (thisRowNumberOfPols != originalVis.nplane()) {
            ASKAPTHROW(DataAccessError, "Current implementation of the writing to original "
                 "visibilities does not support partial selection of the data");                 
        }
+       if (thisRowNumberOfChannels < nChan + startChan) {
+           ASKAPTHROW(DataAccessError, "Channel selection doesn't fit into exisiting visibility array");
+       }
        // for now just copy
-       casa::IPosition curPos(2,thisRowNumberOfPols,
-                                 thisRowNumberOfChannels);
+       casa::IPosition curPos(2,thisRowNumberOfPols,thisRowNumberOfChannels);
        casa::Array<casa::Complex> buf(curPos);
-       for (casa::uInt chan=0; chan<thisRowNumberOfChannels; ++chan) {
-            curPos[1]=chan;
+       if ((startChan!=0) || (startChan+nChan!=thisRowNumberOfChannels)) {
+           // get data first to replace only what we need
+           visCol.get(tableRow,buf);
+       }
+       for (casa::uInt chan=0; chan<nChan; ++chan) {
+            curPos[1]=chan+startChan;
             for (casa::uInt pol=0; pol<thisRowNumberOfPols; ++pol) {
                  curPos[0] = pol;
                  buf(curPos) = originalVis(row,chan,pol);
