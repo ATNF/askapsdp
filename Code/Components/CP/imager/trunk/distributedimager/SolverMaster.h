@@ -77,6 +77,12 @@ namespace askap {
 
                 // Restoring beam parameters
                 casa::Vector<casa::Quantum<double> > m_Qbeam;
+
+                // No support for assignment
+                SolverMaster& operator=(const SolverMaster& rhs);
+
+                // No support for copy constructor
+                SolverMaster(const SolverMaster& src);
         };
 
     };

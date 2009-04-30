@@ -73,17 +73,25 @@ namespace askap {
                 /// @brief Send normal equations to the root process.
                 /// @param[in]  ne  the normal equations to send.
                 /// @param[in]  id  the id of the process to send to.
+                /// @param[in] count   the number of datasets which this normal equation
+                ///                     instance is the result of, or 0 if it is
+                ///                     empty.
                 virtual void sendNE(askap::scimath::INormalEquations::ShPtr ne, int id, int count) = 0;
 
                 /// @brief Receive the normal equations which have been sent by
                 ///  a sendNE() call.
+                ///
                 /// @param[out] id  a reference to an integer which will be set to
                 /// the id of the participant which has sent the message.
+                /// @param[out] count   will be populated with the number of
+                ///                     datasets which this normal equation instance
+                ///                     is the result of, or 0 if it is empty.
                 ///
                 /// @return the received normal equations.
                 virtual askap::scimath::INormalEquations::ShPtr receiveNE(int& id, int& count) = 0;
 
                 /// @brief Send a string to the indicated destination.
+                ///
                 /// @param[in]  string  the string to send.
                 /// @param[in]  dest    the id of the destination to send to.
                 virtual void sendString(const std::string& str, int dest) = 0;

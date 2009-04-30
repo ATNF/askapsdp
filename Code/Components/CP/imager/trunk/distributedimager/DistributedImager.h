@@ -72,6 +72,12 @@ namespace askap {
 
                 // Model
                 askap::scimath::Params::ShPtr m_model_p;
+
+                // No support for assignment
+                DistributedImager& operator=(const DistributedImager& rhs);
+
+                // No support for copy constructor
+                DistributedImager(const DistributedImager& src);
         };
 
     };

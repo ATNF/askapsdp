@@ -121,20 +121,15 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
 
         // Calc NE
         ASKAPCHECK(model_p, "model_p is not correctly initialized");
-        askap::scimath::INormalEquations::ShPtr ne_p
-            = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
-        ASKAPCHECK(ne_p, "ne_p is not correctly initialized");
+        ASKAPCHECK(m_ne_p, "ne_p is not correctly initialized");
 
         equation_p = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, m_gridder_p));
         ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
-        equation_p->calcEquations(*ne_p);
+        equation_p->calcEquations(*m_ne_p);
 
         ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "
                 << timer.real() << " seconds ");
 
-        // Merge normal equations
-        m_ne_p->merge(*ne_p);
-        ne_p.reset();
         equation_p.reset();
 
         count++;

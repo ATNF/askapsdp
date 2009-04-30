@@ -54,6 +54,12 @@ namespace askap {
                 virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
 
                 virtual void writeModel(const std::string& postfix);
+
+                // No support for assignment
+                SolverWorker& operator=(const SolverWorker& rhs);
+
+                // No support for copy constructor
+                SolverWorker(const SolverWorker& src);
         };
 
     };

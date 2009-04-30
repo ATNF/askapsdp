@@ -71,6 +71,12 @@ namespace askap {
 
                 // ID of the master process
                 static const int cg_master = 0;
+
+                // No support for assignment
+                PreDifferWorker& operator=(const PreDifferWorker& rhs);
+
+                // No support for copy constructor
+                PreDifferWorker(const PreDifferWorker& src);
         };
 
     };

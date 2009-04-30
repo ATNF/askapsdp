@@ -83,6 +83,12 @@ namespace askap {
 
                 /// Model
                 askap::scimath::Params::ShPtr m_model_p;
+
+                // No support for assignment
+                PreDifferMaster& operator=(const PreDifferMaster& rhs);
+
+                // No support for copy constructor
+                PreDifferMaster(const PreDifferMaster& src);
         };
 
     };

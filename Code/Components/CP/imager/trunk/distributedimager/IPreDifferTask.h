@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IPREDIFFER_H
-#define ASKAP_CP_IPREDIFFER_H
+#ifndef ASKAP_CP_IPREDIFFERTASK_H
+#define ASKAP_CP_IPREDIFFERTASK_H
 
 // System includes
 

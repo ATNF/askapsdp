@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MPICOMMS_H
-#define ASKAP_CP_MPICOMMS_H
+#ifndef ASKAP_CP_MPIBASICCOMMS_H
+#define ASKAP_CP_MPIBASICCOMMS_H
 
 // System includes
 #include <string>
@@ -72,6 +72,13 @@ private:
 
     // Specific MPI Communicator for this class
     MPI_Comm m_communicator;
+
+    // No support for assignment
+    MPIBasicComms& operator=(const MPIBasicComms& rhs);
+
+    // No support for copy constructor
+    MPIBasicComms(const MPIBasicComms& src);
+
 };
 
 };

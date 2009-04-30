@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ISOLVER_H
-#define ASKAP_CP_ISOLVER_H
+#ifndef ASKAP_CP_ISOLVERTASK_H
+#define ASKAP_CP_ISOLVERTASK_H
 
 // System includes
 

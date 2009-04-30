@@ -110,7 +110,9 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         count += recvcount;
 
         // Merge the received normal equations
-        ne_p->merge(*recv_ne_p);
+        if (recvcount > 0) {
+            ne_p->merge(*recv_ne_p);
+        }
         recv_ne_p.reset();
 
         ASKAPLOG_INFO_STR(logger, "Received " << recvcount << " normal equations from worker " 
