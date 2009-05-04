@@ -124,6 +124,23 @@ namespace askap {
       return IVisGridder::ShPtr(new AProjectWStackVisGridder(*this));
     }
     
+    /// @brief initialise sum of weights
+    /// @details We keep track the number of times each convolution function is used per
+    /// channel and polarisation (sum of weights). This method is made virtual to be able
+    /// to do gridder specific initialisation without overriding initialiseGrid.
+    /// This method accepts no parameters as itsShape, itsNWPlanes, etc should have already
+    /// been initialised by the time this method is called.
+    void AProjectWStackVisGridder::initialiseSumOfWeights()
+    {
+      // this method is hopefully just a temporary stub until we figure out a better way of
+      // managing a cache of convolution functions. It skips initialisation if itsSupport is
+      // not zero, which means that some initialisation has been done before. 
+      // Note, it is not a very good way of doing things!
+      if (itsSupport == 0) {
+          WStackVisGridder::initialiseSumOfWeights();
+      }
+    }
+    
     /// Initialize the indices into the cube.
     void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
       

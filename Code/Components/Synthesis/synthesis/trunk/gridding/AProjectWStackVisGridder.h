@@ -93,6 +93,14 @@ namespace askap
       virtual void finaliseWeights(casa::Array<double>& out);
 
   protected:
+      /// @brief initialise sum of weights
+      /// @details We keep track the number of times each convolution function is used per
+      /// channel and polarisation (sum of weights). This method is made virtual to be able
+      /// to do gridder specific initialisation without overriding initialiseGrid.
+      /// This method accepts no parameters as itsShape, itsNWPlanes, etc should have already
+      /// been initialised by the time this method is called.
+      virtual void initialiseSumOfWeights();
+  
       /// @brief Initialise the indices
       /// @param[in] acc const accessor to work with
       virtual void initIndices(const IConstDataAccessor& acc);

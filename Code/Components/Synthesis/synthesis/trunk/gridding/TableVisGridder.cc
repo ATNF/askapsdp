@@ -98,7 +98,7 @@ std::string printDirection(const casa::MVDirection &dir)
    return os.str();
 }
 
-TableVisGridder::TableVisGridder() :
+TableVisGridder::TableVisGridder() : itsSumWeights(),
         itsSupport(-1), itsOverSample(-1),
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
@@ -106,13 +106,10 @@ TableVisGridder::TableVisGridder() :
 	itsPaddingFactor(1),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false)
 
-{
-  itsSumWeights.resize(1,1,1);
-  itsSumWeights.set(0.0);
-}
+{}
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
-        const int padding, const std::string& name) :
+        const int padding, const std::string& name) : itsSumWeights(),
 		 itsSupport(support), itsOverSample(overSample), itsName(name),
 				itsModelIsEmpty(false), itsSamplesGridded(0),
 				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
@@ -272,7 +269,10 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
       
    initIndices(acc);
    initConvolutionFunction(acc);
-   
+   if (!forward) {
+      ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
+   }
+	  
    itsTimeCoordinates+=timer.real();
 
    // Now time the gridding
@@ -655,9 +655,6 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		initRepresentativeFieldAndFeed();
 	}
 
-	ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
-	itsSumWeights.set(0.0);
-
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 			"RA and DEC specification not present in axes");
 
@@ -670,8 +667,24 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	itsUVCellSize.resize(2);
 	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor);
 	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
-
+	
+	initialiseSumOfWeights();
+    ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
 }
+
+/// @brief initialise sum of weights
+/// @details We keep track the number of times each convolution function is used per
+/// channel and polarisation (sum of weights). This method is made virtual to be able
+/// to do gridder specific initialisation without overriding initialiseGrid.
+/// This method accepts no parameters as itsShape, itsNWPlanes, etc should have already
+/// been initialised by the time this method is called.
+void TableVisGridder::initialiseSumOfWeights()
+{
+  itsSumWeights.resize(1,itsShape.nelements()>=3 ? itsShape(2) : 1, 
+                         itsShape.nelements()>=4 ? itsShape(3) : 1);
+  itsSumWeights.set(0.0);
+}
+
 
 /// @brief a helper method to initialize gridding of the PSF
 /// @details The PSF is calculated using the data for a

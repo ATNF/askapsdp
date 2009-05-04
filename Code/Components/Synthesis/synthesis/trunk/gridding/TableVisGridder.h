@@ -161,6 +161,13 @@ namespace askap
       void inline useAllDataForPSF(const bool useAll) { itsUseAllDataForPSF = useAll;} 
       
   protected:
+      /// @brief initialise sum of weights
+      /// @details We keep track the number of times each convolution function is used per
+      /// channel and polarisation (sum of weights). This method is made virtual to be able
+      /// to do gridder specific initialisation without overriding initialiseGrid.
+      /// This method accepts no parameters as itsShape, itsNWPlanes, etc should have already
+      /// been initialised by the time this method is called.
+      virtual void initialiseSumOfWeights();
       
       /// @brief gridder configured to calculate PSF?
       /// @details

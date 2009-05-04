@@ -69,10 +69,7 @@ namespace askap
       itsLimitSupport=limitSupport;
       itsName=name;
 
-      itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
-      itsSumWeights.resize(itsNWPlanes, 1, 1);
-      itsSumWeights.set(0.0);
-
+      itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);     
     }
 
     WProjectVisGridder::~WProjectVisGridder()
@@ -94,6 +91,19 @@ namespace askap
     IVisGridder::ShPtr WProjectVisGridder::clone()
     {
       return IVisGridder::ShPtr(new WProjectVisGridder(*this));
+    }
+
+    /// @brief initialise sum of weights
+    /// @details We keep track the number of times each convolution function is used per
+    /// channel and polarisation (sum of weights). This method is made virtual to be able
+    /// to do gridder specific initialisation without overriding initialiseGrid.
+    /// This method accepts no parameters as itsShape, itsNWPlanes, etc should have already
+    /// been initialised by the time this method is called.
+    void WProjectVisGridder::initialiseSumOfWeights()
+    {
+       itsSumWeights.resize(itsNWPlanes, itsShape.nelements()>=3 ? itsShape(2) : 1, 
+                              itsShape.nelements()>=4 ? itsShape(3) : 1);
+       itsSumWeights.set(0.0);
     }
 
     /// Initialize the convolution function into the cube. If necessary this

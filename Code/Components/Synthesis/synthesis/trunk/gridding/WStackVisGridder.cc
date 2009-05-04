@@ -57,10 +57,6 @@ namespace askap
       if (nwplanes>1) {
           itsWScale/=double((nwplanes-1)/2);
       }
-
-      itsSumWeights.resize(1, 1, 1);
-      itsSumWeights.set(0.0);
-
     }
 
     WStackVisGridder::~WStackVisGridder()
@@ -145,9 +141,7 @@ namespace askap
 		initRepresentativeFieldAndFeed();
       }
       
-      ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
-      itsSumWeights.set(0.0);
-
+      
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 		 "RA and DEC specification not present in axes");
 
@@ -160,7 +154,9 @@ namespace askap
       itsUVCellSize.resize(2);
       itsUVCellSize(0)=1.0/(raEnd-raStart)/double(paddingFactor());
       itsUVCellSize(1)=1.0/(decEnd-decStart)/double(paddingFactor());
-
+       
+      initialiseSumOfWeights();
+      ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");      
     }
 
     void WStackVisGridder::multiply(casa::Array<casa::Complex>& scratch, int i)
