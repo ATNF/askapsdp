@@ -17,7 +17,7 @@ parser.add_option("-s", "--shell",
                   dest="shell",
                   action="store", 
                   type="choice",
-                  choices=["bash", "tcsh"],
+                  choices=["bash", "tcsh", "csh"],
                   default="bash",
                   help="specify the type of shell to generate the script for")
 
@@ -98,8 +98,10 @@ setenv PYLINTRC "${ASKAP_ROOT}/Tools/Dev/rbuild/pylintrc"
 
 """  % os.getcwd()
 
-shmap = { "bash" : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
-          "tcsh" : { "suffix": "csh", "init" : "source", "file" : tcshinit }}
+shmap = {"bash" : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
+         "tcsh" : { "suffix": "csh", "init" : "source", "file" : tcshinit },
+         "csh"  : { "suffix": "csh", "init" : "source", "file" : tcshinit },
+        }
 
 shell =  shmap[opts.shell]
 
