@@ -219,9 +219,9 @@ namespace askap {
 	      itsGMap(i, pol, chan)=0;
 	    }
 	    ASKAPCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
-		       "W scaling error: recommend allowing larger range of w");
+		       "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
 	    ASKAPCHECK(itsGMap(i, pol, chan)>-1,
-		       "W scaling error: recommend allowing larger range of w");
+		       "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
 	  }
 	}
       }

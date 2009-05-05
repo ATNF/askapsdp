@@ -109,9 +109,9 @@ namespace askap
               ASKAPLOG_INFO_STR(logger, w << " "<< freq << " "<< itsWScale << " "<< itsGMap(i, pol, chan) );
             }
             ASKAPCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
-                "W scaling error: recommend allowing larger range of w");
+                "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
             ASKAPCHECK(itsGMap(i, pol, chan)>-1,
-                "W scaling error: recommend allowing larger range of w");
+                "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
           }
         }
       }

@@ -177,9 +177,9 @@ namespace askap {
 	    iw=cenw+int(w*freq/itsWScale);
 	  }
 	  ASKAPCHECK(iw<itsNWPlanes,
-		     "W scaling error: recommend allowing larger range of w");
+		     "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
 	  ASKAPCHECK(iw>-1,
-		     "W scaling error: recommend allowing larger range of w");
+		     "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
 	  
 	  for (int pol=0; pol<nPol; ++pol) {
 	    /// Order is (iw, chan, feed)
