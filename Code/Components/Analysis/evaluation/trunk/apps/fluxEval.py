@@ -149,8 +149,6 @@ if __name__ == '__main__':
             l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-')
         axisrange = axis()
         axis([lower,upper,axisrange[2],axisrange[3]])
-#        xticks(cast[int]([lower,mu,upper]))
-#        yticks([])
         setp(l1, 'linewidth', 2)
         if(loop==0):
             setp(l2, 'linewidth', 2)
@@ -187,6 +185,7 @@ if __name__ == '__main__':
         for i in ind:
             plot([fS[i]],[arr[i]],'o')
         semilogx(basex=10.)
+        axisrange = axis()
         axis([min(fS)*0.9,max(fS)*1.1,axisrange[2],axisrange[3]])
         xlabel(r'$\log_{10}(S_{\rm Fit})$',font)
         ylabel(lab,font)
@@ -200,6 +199,7 @@ if __name__ == '__main__':
         for i in ind:
             plot([snr[i]],[arr[i]],'o')
         semilogx(basex=10.)
+        axisrange = axis()
         axis([min(snr)*0.9,max(snr)*1.1,axisrange[2],axisrange[3]])
         xlabel(r'$\log_{10}(S/N (Fit))$',font)
         ylabel(lab,font)
@@ -221,11 +221,13 @@ if __name__ == '__main__':
             loopname="Absolute"
             arr = dF
             lab = r'$\Delta S$'
+            figname = "fitEval_AbsErr"
         else:
             loopname="Relative"
             arr = rdF
             percent='%'
             lab = r'$\Delta S/S_{\rm cat} [\%s]$'%percent
+            figname = "fitEval_RelErr"
 
         print "Doing plot of fit parameters for %s Flux Errors"%loopname
 
@@ -342,6 +344,8 @@ if __name__ == '__main__':
         plotcount = nextplot(plotcount)
         for i in ind:
             plot([numComp[i]],[arr[i]],'o')
+        axisrange = axis()
+        axis([0,max(numComp)+1,axisrange[2],axisrange[3]])
         xlabel(r'Number of fitted components',font)
         ylabel(lab,font)
 
@@ -353,10 +357,10 @@ if __name__ == '__main__':
         xlabel(r'No. of unmatched nearby catalogue sources',font)
         ylabel(lab,font)
 
-        figname = "fitEval%d"%(loop+1)
         print "Saving to %s.png"%figname
         savefig(figname)
         close()
+    # end of: for loop in range(2)
 
 #################################################
 
