@@ -29,10 +29,12 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
+#include <casa/Arrays/Array.h>
 
 namespace askap {
     namespace cp {
@@ -112,6 +114,42 @@ namespace askap {
                 ///                     string as received.
                 /// @return the received string.
                 virtual std::string receiveStringAny(int& source) = 0;
+
+                virtual void sendCleanRequest(int patchid,
+                        const casa::Array<float>& dirty,
+                        const casa::Array<float>& psf,
+                        const casa::Array<float>& mask,
+                        const casa::Array<float>& model,
+                        double threshold,
+                        std::string thresholdUnits,
+                        double fractionalThreshold,
+                        std::vector<float>& scales,
+                        int niter,
+                        double gain,
+                        int dest) = 0;
+
+                virtual void recvCleanRequest(int& patchid,
+                        casa::Array<float>& dirty,
+                        casa::Array<float>& psf,
+                        casa::Array<float>& mask,
+                        casa::Array<float>& model,
+                        double& threshold,
+                        std::string& thresholdUnits,
+                        double& fractionalThreshold,
+                        std::vector<float>& scales,
+                        int& niter,
+                        double& gain) = 0;
+
+                virtual void sendCleanResponse(int patchid,
+                        casa::Array<float>& patch,
+                        double strengthOptimum,
+                        int dest) = 0;
+
+                virtual void recvCleanResponse(int& patchid,
+                        casa::Array<float>& patch,
+                        double& strengthOptimum) = 0;
+
+                virtual int responsible(void) = 0;
         };
 
     };

@@ -55,11 +55,24 @@ namespace askap {
 
                 virtual void writeModel(const std::string& postfix);
 
+            private:
+                // Distributed multiscale clean worker function
+                void distributedClean(void);
+
                 // No support for assignment
                 SolverWorker& operator=(const SolverWorker& rhs);
 
                 // No support for copy constructor
                 SolverWorker(const SolverWorker& src);
+
+                // ID of the master process
+                static const int cg_master = 0;
+
+                // Parameter set
+                LOFAR::ACC::APS::ParameterSet& m_parset;
+
+                // Communications class
+                askap::cp::IBasicComms& m_comms;
         };
 
     };

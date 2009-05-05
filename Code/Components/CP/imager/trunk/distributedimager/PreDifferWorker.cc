@@ -156,9 +156,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
     // code would do a multi level graph reduction, whereas now it just does a
     // single level reduction.
     const int accumulatorStep = 16;
-
     const int id = m_comms.getId();
-    const int numNodes = m_comms.getNumNodes();
 
     if (id % accumulatorStep == 0) {
         // Accumulator + worker
@@ -166,12 +164,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
 
         // Determine how many workers this accumulator is responsible for,
         // not counting itself, hence the subtraction of one.
-        int responsible;
-        if ((id + accumulatorStep) > numNodes) {
-            responsible = numNodes - id - 1;
-        } else {
-            responsible = accumulatorStep - 1;
-        }
+        const int responsible = m_comms.responsible();
 
         ASKAPLOG_INFO_STR(logger, "Accumulator @" << id << " waiting for " << responsible
                 << " workers to report normal equations");

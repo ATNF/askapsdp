@@ -56,7 +56,7 @@ ASKAP_LOGGER(logger, ".main");
 
 int main(int argc, char *argv[])
 {
-    // The MPIcomms class can't have the scope fo the try/catch block. This
+    // The MPIcomms class can't have the scope of the try/catch block. This
     // avoids a master/worker deadlock in the case where an exception is
     // thrown by either the master or worker(s) but not both.
     boost::scoped_ptr<MPIBasicComms> comms_p;

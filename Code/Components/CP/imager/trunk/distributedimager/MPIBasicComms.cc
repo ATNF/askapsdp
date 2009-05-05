@@ -32,6 +32,8 @@
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
+#include <stdint.h>
 
 // MPI includes
 #include <mpi.h>
@@ -48,6 +50,7 @@
 #include <Blob/BlobOBufVector.h>
 #include <Blob/BlobArray.h>
 #include <casa/OS/Timer.h>
+#include <casa/Arrays/Array.h>
 
 using namespace askap::cp;
 using namespace askap::scimath;
@@ -183,12 +186,15 @@ void MPIBasicComms::sendNE(askap::scimath::INormalEquations::ShPtr ne_p, int id,
     out << *ne_p;
     out.putEnd();
 
+
     // First send the size of the model
     long size = data.size();
-    send(&size, sizeof(long), id);
+    ASKAPLOG_INFO_STR(logger, "Sending normal equations of size " << size
+            << " to id " << id);
+    send(&size, sizeof(long), id, NORMAL_EQUATION);
 
     // Now send the actual byte stream
-    send(&data[0], size * sizeof(char), id);
+    send(&data[0], size * sizeof(char), id, NORMAL_EQUATION);
 
     ASKAPLOG_INFO_STR(logger, "Sent NormalEquations to rank " << id
             << " via MPI in " << timer.real() << " seconds ");
@@ -199,12 +205,13 @@ askap::scimath::INormalEquations::ShPtr MPIBasicComms::receiveNE(int& id, int& c
     // First receive the size of the byte stream
     long size;
     MPI_Status status;
-    receive(&size, sizeof(long), MPI_ANY_SOURCE, status);
+    receive(&size, sizeof(long), MPI_ANY_SOURCE, NORMAL_EQUATION, status);
+    ASKAPLOG_INFO_STR(logger, "About to recv normal equations of size " << size);
 
     // Receive the byte stream
     std::vector<char> data;
     data.resize(size);
-    receive(&data[0], size * sizeof(char), status.MPI_SOURCE, status);
+    receive(&data[0], size * sizeof(char), status.MPI_SOURCE, NORMAL_EQUATION, status);
 
     // Decode
     askap::scimath::INormalEquations::ShPtr ne_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations());
@@ -227,10 +234,10 @@ void MPIBasicComms::sendString(const std::string& str, int dest)
 {
     // First send the size of the string
     int size = str.size() + 1;
-    send(&size, sizeof(int), dest);
+    send(&size, sizeof(int), dest, STRING);
 
     // Now send the actual string
-    send(str.c_str(), size * sizeof(char), dest);
+    send(str.c_str(), size * sizeof(char), dest, STRING);
 }
 
 std::string MPIBasicComms::receiveString(int source)
@@ -239,12 +246,12 @@ std::string MPIBasicComms::receiveString(int source)
 
     // First receive the size of the string
     int size;
-    receive(&size, sizeof(int), source, status);
+    receive(&size, sizeof(int), source, STRING, status);
 
     // Allocate a recv buffer then recv
     char buf[size];
     memset(buf, 0, size);
-    receive(buf, size * sizeof(char), source, status);
+    receive(buf, size * sizeof(char), source, STRING, status);
 
     return std::string(buf);
 }
@@ -255,25 +262,24 @@ std::string MPIBasicComms::receiveStringAny(int& source)
 
     // First receive the size of the string
     int size;
-    receive(&size, sizeof(int), MPI_ANY_SOURCE, status);
+    receive(&size, sizeof(int), MPI_ANY_SOURCE, STRING, status);
 
     int actualSource = status.MPI_SOURCE;
 
     // Allocate a recv buffer then recv
     char buf[size];
     memset(buf, 0, size);
-    receive(buf, size * sizeof(char), actualSource, status);
+    receive(buf, size * sizeof(char), actualSource, STRING, status);
 
     source = actualSource;
 
     return std::string(buf);
 }
 
-void MPIBasicComms::send(const void* buf, size_t size, int dest)
+void MPIBasicComms::send(const void* buf, size_t size, int dest, int tag)
 {
     unsigned int c_maxint = std::numeric_limits<int>::max();
 
-    int tag = 0;
     int result;
 
     // First send the size of the buffer.
@@ -303,11 +309,10 @@ void MPIBasicComms::send(const void* buf, size_t size, int dest)
     ASKAPCHECK(remaining == 0, "MPIBasicComms::send() Didn't send all data");
 }
 
-void MPIBasicComms::receive(void* buf, size_t size, int source, MPI_Status& status)
+void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Status& status)
 {
     unsigned int c_maxint = std::numeric_limits<int>::max();
 
-    int tag = 0;
     int result;
 
     // First receive the size of the payload to be received,
@@ -373,4 +378,184 @@ void* MPIBasicComms::addOffset(const void *ptr, size_t offset)
 
     return cptr;
 
+}
+
+void MPIBasicComms::sendCleanRequest(int patchid,
+        const casa::Array<float>& dirty,
+        const casa::Array<float>& psf,
+        const casa::Array<float>& mask,
+        const casa::Array<float>& model,
+        double threshold,
+        std::string thresholdUnits,
+        double fractionalThreshold,
+        std::vector<float>& scales,
+        int niter,
+        double gain,
+        int dest)
+{
+    casa::Timer timer;
+    timer.mark();
+
+    // Encode
+    std::vector<int8_t> buf;
+    LOFAR::BlobOBufVector<int8_t> bv(buf);
+    LOFAR::BlobOStream out(bv);
+    out.putStart("cleanrequest", 1);
+    out << patchid;
+    out << dirty;
+    out << psf;
+    out << mask;
+    out << model;
+    out << threshold;
+    out << thresholdUnits;
+    out << fractionalThreshold;
+    out << scales;
+    out << niter;
+    out << gain;
+    out.putEnd();
+
+    // First send the size of the buffer
+    long size = buf.size();
+    ASKAPLOG_INFO_STR(logger, "Sending size of " << size);
+    send(&size, sizeof(long), dest, CLEAN_REQUEST);
+
+    // Now send the actual byte stream
+    ASKAPLOG_INFO_STR(logger, "Now sending the actual buffer");
+    send(&buf[0], size * sizeof(int8_t), dest, CLEAN_REQUEST);
+
+    ASKAPLOG_INFO_STR(logger, "Sent CleanRequest to rank " << dest
+            << " via MPI in " << timer.real() << " seconds ");
+}
+
+void MPIBasicComms::recvCleanRequest(int& patchid,
+        casa::Array<float>& dirty,
+        casa::Array<float>& psf,
+        casa::Array<float>& mask,
+        casa::Array<float>& model,
+        double& threshold,
+        std::string& thresholdUnits,
+        double& fractionalThreshold,
+        std::vector<float>& scales,
+        int& niter,
+        double& gain)
+{
+    ASKAPLOG_INFO_STR(logger, "Waiting for the size...");
+    // First receive the size of the byte stream
+    long size;
+    MPI_Status status;
+    receive(&size, sizeof(long), MPI_ANY_SOURCE, CLEAN_REQUEST, status);
+    ASKAPLOG_INFO_STR(logger, "Preparing to recv size of " << size);
+
+    // Receive the byte stream
+    std::vector<int8_t> buf;
+    buf.resize(size);
+    ASKAPLOG_INFO_STR(logger, "Resizd buffer");
+    receive(&buf[0], size * sizeof(int8_t), status.MPI_SOURCE, CLEAN_REQUEST, status);
+    ASKAPLOG_INFO_STR(logger, "Recv complete");
+
+    // Decode
+    LOFAR::BlobIBufVector<int8_t> bv(buf);
+    LOFAR::BlobIStream in(bv);
+    int version = in.getStart("cleanrequest");
+    ASKAPASSERT(version == 1);
+    in >> patchid;
+    in >> dirty;
+    in >> psf;
+    in >> mask;
+    in >> model;
+    in >> threshold;
+    in >> thresholdUnits;
+    in >> fractionalThreshold;
+    in >> scales;
+    in >> niter;
+    in >> gain;
+    in.getEnd();
+}
+
+void MPIBasicComms::sendCleanResponse(int patchid,
+        casa::Array<float>& patch,
+        double strengthOptimum,
+        int dest)
+{
+    casa::Timer timer;
+    timer.mark();
+
+    // Encode
+    std::vector<int8_t> buf;
+    LOFAR::BlobOBufVector<int8_t> bv(buf);
+    LOFAR::BlobOStream out(bv);
+    out.putStart("cleanresponse", 1);
+    out << patchid;
+    out << patch;
+    out << strengthOptimum;
+    out.putEnd();
+
+    // First send the size of the buffer
+    long size = buf.size();
+    send(&size, sizeof(long), dest, CLEAN_RESPONSE);
+
+    // Now send the actual byte stream
+    send(&buf[0], size * sizeof(int8_t), dest, CLEAN_RESPONSE);
+
+    ASKAPLOG_INFO_STR(logger, "Sent CleanResponse to rank " << dest
+            << " via MPI in " << timer.real() << " seconds ");
+}
+
+void MPIBasicComms::recvCleanResponse(int& patchid,
+        casa::Array<float>& patch,
+        double& strengthOptimum)
+{
+    // First receive the size of the byte stream
+    long size;
+    MPI_Status status;
+    receive(&size, sizeof(long), MPI_ANY_SOURCE, CLEAN_RESPONSE, status);
+
+    // Receive the byte stream
+    std::vector<int8_t> buf;
+    buf.resize(size);
+    receive(&buf[0], size * sizeof(char), status.MPI_SOURCE, CLEAN_RESPONSE, status);
+
+    // Decode
+    LOFAR::BlobIBufVector<int8_t> bv(buf);
+    LOFAR::BlobIStream in(bv);
+    int version = in.getStart("cleanresponse");
+    ASKAPASSERT(version == 1);
+    in >> patchid;
+    in >> patch;
+    in >> strengthOptimum;
+    in.getEnd();
+}
+
+int MPIBasicComms::responsible(void)
+{
+    const int accumulatorStep = 16; // FIXME: Hardcoded elsewhere too
+    const int numNodes = getNumNodes();
+    const int id = getId();
+    int responsible = 0;
+
+    if (id == 0) {
+        // Master
+        responsible += accumulatorStep - 1; // First n workers
+        float accumulators = ceil((float)numNodes / (float)accumulatorStep) - 1.0;
+        ASKAPLOG_INFO_STR(logger, "There are " << static_cast<int>(accumulators) 
+                << " accumulators.");
+
+        responsible += static_cast<int>(accumulators); // Accumulators 
+    } else if (id % accumulatorStep == 0) {
+        // Accumulator + worker
+        if ((id + accumulatorStep) > numNodes) {
+            responsible = numNodes - id - 1;
+        } else {
+            responsible = accumulatorStep - 1;
+        }
+
+    } else {
+        // If execution got here, the process is just a worker and is only
+        // responsible for itself
+        responsible = 0;
+    }
+
+    ASKAPLOG_INFO_STR(logger, "I am responsible for " << responsible
+            << " processes during accumulation");
+    return responsible;
 }

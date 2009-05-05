@@ -103,7 +103,8 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
     // does not proceed until the results for all datasets have been
     // accounted for.
     unsigned int count = 0;
-    while (count < ms.size()) {
+    int responsible = m_comms.responsible();
+    for (int i = 0; i < responsible; ++i) {
         int source;
         int recvcount = 0;
         askap::scimath::INormalEquations::ShPtr recv_ne_p = m_comms.receiveNE(source, recvcount);
@@ -116,8 +117,10 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         recv_ne_p.reset();
 
         ASKAPLOG_INFO_STR(logger, "Received " << recvcount << " normal equations from worker " 
-                << source << ". Still waiting for " << ms.size() - count);
+                << source << ". Still waiting for " << ms.size() - count << ".");
     }
+
+    ASKAPCHECK(count == ms.size(), "Results for one or more datasets missing");
 
     return ne_p;
 }
