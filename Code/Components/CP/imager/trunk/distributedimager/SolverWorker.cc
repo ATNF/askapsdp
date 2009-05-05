@@ -30,22 +30,18 @@
 // System includes
 #include <string>
 
-// Boost includes
-#include <boost/scoped_ptr.hpp>
-
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
-#include <casa/aipstype.h>
-#include <lattices/Lattices/ArrayLattice.h>
-#include <lattices/Lattices/LatticeCleaner.h>
-#include <casa/Arrays/Array.h>
 
-using namespace askap::cp;
+// Local includes
+#include <distributedimager/IBasicComms.h>
+#include <distributedimager/DistributedImageMultiScaleSolverWorker.h>
+
 using namespace askap;
-using namespace askap::scimath;
+using namespace askap::cp;
 
 ASKAP_LOGGER(logger, ".SolverWorker");
 
@@ -66,11 +62,12 @@ void SolverWorker::solveNE(askap::scimath::INormalEquations::ShPtr)
     const std::string algorithm_par = m_parset.getString("solver.Clean.algorithm", "MultiScale");
     const std::string distributed_par = m_parset.getString("solver.Clean.distributed", "False");
 
-    // Workers do not participate in this operation, unless a distributed
+    // Workers only participate in this operation, unless a distributed
     // clean is requested
     if (solver_par == "Clean" && algorithm_par == "MultiScale" &&
             distributed_par == "True") {
-        distributedClean();
+        DistributedImageMultiScaleSolverWorker dmssw(m_parset, m_comms);
+        dmssw.solveNormalEquations();
     }
 }
 
@@ -79,80 +76,3 @@ void SolverWorker::writeModel(const std::string &postfix)
     // Workers do not participate in this operation
 }
 
-void SolverWorker::distributedClean(void)
-{
-    while (1) {
-        // Ask the master for a workunit
-        m_comms.sendString("next", cg_master);
-        std::string ms = m_comms.receiveString(cg_master);
-        if (ms != "ok") {
-            // Indicates all workunits have been assigned already
-            break;
-        }
-
-        int patchid;
-        casa::Array<float> dirtyarray;
-        casa::Array<float> psfarray;
-        casa::Array<float> maskarray;
-        casa::Array<float> modelarray;
-        double _threshold;
-        std::string thresholdUnits;
-        double fractionalThreshold;
-        std::vector<float> scales;
-        int niter;
-        double gain;
-
-        m_comms.recvCleanRequest(patchid, dirtyarray, psfarray, maskarray, modelarray,
-                _threshold, thresholdUnits, fractionalThreshold, scales,
-                niter, gain);
-
-        casa::ArrayLattice<float> dirty(dirtyarray);
-        casa::ArrayLattice<float> psf(psfarray);
-        boost::scoped_ptr< casa::ArrayLattice<float> > mask_p;
-        boost::scoped_ptr< casa::ArrayLattice<float> > model_p;
-
-        if (maskarray.size() > 0) {
-            mask_p.reset(new casa::ArrayLattice<float>(maskarray));
-        } else {
-            ASKAPLOG_INFO_STR(logger, "Mask is empty");
-        }
-
-        if (modelarray.size() > 0) {
-            model_p.reset(new casa::ArrayLattice<float>(modelarray));
-        } else {
-            // Create an empty model based on the shape of dirty.
-            ASKAPLOG_INFO_STR(logger, "Model is empty");
-            model_p.reset(new casa::ArrayLattice<float>(dirty.shape()));
-        }
-
-        // Create the Lattice Cleaner
-        casa::LatticeCleaner<float> lc(psf, dirty);
-
-        // Set the mask
-        if (mask_p.get()) {
-            lc.setMask(*mask_p, -1.0);
-        }
-
-        // Create a threshold
-        casa::Quantity threshold(_threshold, thresholdUnits.c_str());
-
-        // Setup LatticeCleaner
-        lc.setscales(scales);
-        lc.setcontrol(casa::CleanEnums::MULTISCALE,
-                niter,
-                gain,
-                threshold,
-                fractionalThreshold,
-                false);
-        lc.ignoreCenterBox(true);
-
-        // Execute the clean
-        lc.clean(*model_p);
-
-        // Send the patch back to the master
-        ASKAPLOG_INFO_STR(logger, "Sending CleanResponse for patchid " << patchid);
-        m_comms.sendString("response", cg_master);
-        m_comms.sendCleanResponse(patchid, model_p->asArray(), lc.strengthOptimum(), cg_master);
-    }
-    ASKAPLOG_INFO_STR(logger, "CleanWorker ACK no more work to do");
-}

@@ -535,12 +535,17 @@ int MPIBasicComms::responsible(void)
 
     if (id == 0) {
         // Master
-        responsible += accumulatorStep - 1; // First n workers
-        float accumulators = ceil((float)numNodes / (float)accumulatorStep) - 1.0;
-        ASKAPLOG_INFO_STR(logger, "There are " << static_cast<int>(accumulators) 
-                << " accumulators.");
+        if (numNodes <= accumulatorStep) {
+            responsible = numNodes - 1;
+            ASKAPLOG_INFO_STR(logger, "There are 0 accumulators.");
+        } else {
+            responsible += accumulatorStep - 1; // First n workers
+            float accumulators = ceil((float)numNodes / (float)accumulatorStep) - 1.0;
+            ASKAPLOG_INFO_STR(logger, "There are " << static_cast<int>(accumulators) 
+                    << " accumulators.");
 
-        responsible += static_cast<int>(accumulators); // Accumulators 
+            responsible += static_cast<int>(accumulators); // Accumulators 
+        }
     } else if (id % accumulatorStep == 0) {
         // Accumulator + worker
         if ((id + accumulatorStep) > numNodes) {

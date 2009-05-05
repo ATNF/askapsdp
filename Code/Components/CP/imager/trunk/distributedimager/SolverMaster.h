@@ -64,10 +64,6 @@ namespace askap {
                 // Setup the restoring beam parameters (m_Qbeam)
                 void setupRestoreBeam(void);
 
-                // Distributed MultiScale Clean
-                void distributedMSClean(askap::scimath::Solver::ShPtr solver_p,
-                        askap::scimath::Quality &quality);
-
                 // Solver
                 askap::scimath::Solver::ShPtr m_solver_p;
 
@@ -88,21 +84,6 @@ namespace askap {
 
                 // No support for copy constructor
                 SolverMaster(const SolverMaster& src);
-
-                struct CleanerWork
-                {
-                    int patchid;
-                    boost::shared_ptr< casa::Array<float> > model;
-                    bool done;
-                    double strengthOptimum;
-                };
-
-                // Clean workqueue
-                std::vector<CleanerWork> m_cleanworkq;
-
-                void processCleanResponse(void);
-
-                bool outstanding(void);
         };
 
     };

@@ -1,4 +1,6 @@
-/// @file SolverWorker.h
+/// @file
+///
+/// DistributedImageMultiScaleSolverWorker
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -23,53 +25,41 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
-
-#ifndef ASKAP_CP_SOLVERWORKER_H
-#define ASKAP_CP_SOLVERWORKER_H
-
-// System includes
-#include <string>
+///
+#ifndef CP_DISTRIBUTEDIMAGEMULTISCALESOLVERWORKER_H_
+#define CP_DISTRIBUTEDIMAGEMULTISCALESOLVERWORKER_H_
 
 // ASKAPsoft includes
 #include <APS/ParameterSet.h>
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
 
 // Local includes
-#include "distributedimager/ISolverTask.h"
-#include "distributedimager/IBasicComms.h"
+#include <distributedimager/IBasicComms.h>
 
-namespace askap {
-    namespace cp {
-
-        class SolverWorker : public ISolverTask
+namespace askap
+{
+    namespace cp
+    {
+        class DistributedImageMultiScaleSolverWorker 
         {
             public:
-                SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms,
-                        askap::scimath::Params::ShPtr model_p);
+                DistributedImageMultiScaleSolverWorker(const LOFAR::ACC::APS::ParameterSet& parset,
+                        askap::cp::IBasicComms& comms);
 
-                virtual ~SolverWorker();
-
-                virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
-
-                virtual void writeModel(const std::string& postfix);
+                void solveNormalEquations(void);
 
             private:
-                // No support for assignment
-                SolverWorker& operator=(const SolverWorker& rhs);
 
-                // No support for copy constructor
-                SolverWorker(const SolverWorker& src);
+                // ID of the master process
+                static const int cg_master = 0;
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& m_parset;
+                LOFAR::ACC::APS::ParameterSet m_parset;
 
                 // Communications class
                 askap::cp::IBasicComms& m_comms;
+
         };
 
-    };
-};
-
+    }
+}
 #endif
