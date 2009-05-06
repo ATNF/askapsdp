@@ -39,8 +39,8 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 // Local includes
-#include <distributedimager/DistributedImageMultiScaleSolver.h>
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/ImageMultiScaleSolverMaster.h>
+#include <distributedimager/SolverTaskComms.h>
 
 // Using
 using namespace askap::scimath;
@@ -130,7 +130,7 @@ void DistributedImageSolverFactory::configureThresholds(const LOFAR::ACC::APS::P
 
 Solver::ShPtr DistributedImageSolverFactory::make(askap::scimath::Params &ip,
         const LOFAR::ACC::APS::ParameterSet &parset,
-        askap::cp::IBasicComms& comms) {
+        askap::cp::SolverTaskComms& comms) {
 
     // Temporary
     ASKAPCHECK(!parset.isDefined("solver.Clean.threshold"), 
@@ -139,7 +139,6 @@ Solver::ShPtr DistributedImageSolverFactory::make(askap::scimath::Params &ip,
 
     const std::string algorithm = parset.getString("solver.Clean.algorithm","MultiScale");
     const std::string distributed = parset.getString("solver.Clean.distributed", "False");
-
 
     // Currently only support a distributed multiscale clean, so these must be set:
     // solver = "Clean"
@@ -158,7 +157,7 @@ Solver::ShPtr DistributedImageSolverFactory::make(askap::scimath::Params &ip,
     std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 
     ImageSolver::ShPtr solver 
-        = ImageSolver::ShPtr(new DistributedImageMultiScaleSolver(ip, casa::Vector<float>(scales), parset, comms));
+        = ImageSolver::ShPtr(new ImageMultiScaleSolverMaster(ip, casa::Vector<float>(scales), parset, comms));
     ASKAPLOG_INFO_STR(logger, "Constructed distributed image multiscale solver" );
     solver->setAlgorithm("MultiScale");
     solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));

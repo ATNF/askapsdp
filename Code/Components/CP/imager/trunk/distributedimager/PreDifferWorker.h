@@ -37,7 +37,8 @@
 
 // Local includes
 #include "distributedimager/IPreDifferTask.h"
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/MPIBasicComms.h"
+#include "distributedimager/PreDifferTaskComms.h"
 
 namespace askap {
     namespace cp {
@@ -46,7 +47,7 @@ namespace askap {
         {
             public:
                 PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
+                        askap::cp::MPIBasicComms& comms);
                 virtual ~PreDifferWorker();
 
                 virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr notused);
@@ -58,19 +59,19 @@ namespace askap {
                 void reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int count);
 
                 // Parameter Set
-                LOFAR::ACC::APS::ParameterSet& m_parset;
+                LOFAR::ACC::APS::ParameterSet& itsParset;
 
                 // Communications class
-                askap::cp::IBasicComms& m_comms;
+                askap::cp::PreDifferTaskComms itsComms;
 
                 // Pointer to the gridder
-                askap::synthesis::IVisGridder::ShPtr m_gridder_p;
+                askap::synthesis::IVisGridder::ShPtr itsGridder_p;
 
                 // Normal equations
-                askap::scimath::INormalEquations::ShPtr m_ne_p;
+                askap::scimath::INormalEquations::ShPtr itsNormalEquation_p;
 
                 // ID of the master process
-                static const int cg_master = 0;
+                static const int itsMaster = 0;
 
                 // No support for assignment
                 PreDifferWorker& operator=(const PreDifferWorker& rhs);

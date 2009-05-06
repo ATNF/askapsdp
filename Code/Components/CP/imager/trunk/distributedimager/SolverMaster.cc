@@ -48,6 +48,7 @@
 #include <casa/OS/Timer.h>
 
 // Local includes
+#include <distributedimager/MPIBasicComms.h>
 #include <distributedimager/DistributedImageSolverFactory.h>
 
 // Using
@@ -59,22 +60,22 @@ using namespace askap::synthesis;
 ASKAP_LOGGER(logger, ".SolverMaster");
 
 SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IBasicComms& comms,
+        askap::cp::MPIBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
-: m_parset(parset), m_comms(comms), m_model_p(model_p)
+: itsParset(parset), itsComms(comms), itsModel(model_p)
 {
     setupRestoreBeam();
 
-    const std::string solver_par = m_parset.getString("solver");
-    const std::string algorithm_par = m_parset.getString("solver.Clean.algorithm", "MultiScale");
-    const std::string distributed_par = m_parset.getString("solver.Clean.distributed", "False");
+    const std::string solver_par = itsParset.getString("solver");
+    const std::string algorithm_par = itsParset.getString("solver.Clean.algorithm", "MultiScale");
+    const std::string distributed_par = itsParset.getString("solver.Clean.distributed", "False");
     // There is a distributed MultiScale Clean implementation in this processing
     // element, so use it if appropriate
     if (solver_par == "Clean" && algorithm_par == "MultiScale" &&
             distributed_par == "True") {
-        m_solver_p = DistributedImageSolverFactory::make(*m_model_p, m_parset, m_comms);
+        itsSolver = DistributedImageSolverFactory::make(*itsModel, itsParset, itsComms);
     } else {
-        m_solver_p = ImageSolverFactory::make(*m_model_p, m_parset);
+        itsSolver = ImageSolverFactory::make(*itsModel, itsParset);
     }
 }
 
@@ -87,36 +88,36 @@ void SolverMaster::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
     casa::Timer timer;
     timer.mark();
 
-    m_solver_p->init();
-    m_solver_p->setParameters(*m_model_p);
-    m_solver_p->addNormalEquations(*ne_p);
+    itsSolver->init();
+    itsSolver->setParameters(*itsModel);
+    itsSolver->addNormalEquations(*ne_p);
 
     ASKAPLOG_INFO_STR(logger, "Solving Normal Equations");
     askap::scimath::Quality q;
 
-    m_solver_p->solveNormalEquations(q);
-    *m_model_p = m_solver_p->parameters();
+    itsSolver->solveNormalEquations(q);
+    *itsModel = itsSolver->parameters();
     ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real()
             << " seconds ");
 
     // Extract the largest residual
-    const std::vector<std::string> peakParams = m_model_p->completions("peak_residual.");
+    const std::vector<std::string> peakParams = itsModel->completions("peak_residual.");
 
     double peak = peakParams.size() == 0 ? getPeakResidual(ne_p) : -1.;
     for (std::vector<std::string>::const_iterator peakParIt = peakParams.begin();
             peakParIt != peakParams.end(); ++peakParIt) {
-        const double tempval = std::abs(m_model_p->scalarValue("peak_residual." + *peakParIt));
+        const double tempval = std::abs(itsModel->scalarValue("peak_residual." + *peakParIt));
         if (tempval > peak) {
             peak = tempval;
         }
     }
 
-    if (m_model_p->has("peak_residual")) {
-        m_model_p->update("peak_residual",peak);
+    if (itsModel->has("peak_residual")) {
+        itsModel->update("peak_residual",peak);
     } else {
-        m_model_p->add("peak_residual",peak);
+        itsModel->add("peak_residual",peak);
     }
-    m_model_p->fix("peak_residual");
+    itsModel->fix("peak_residual");
 }
 
 double SolverMaster::getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p)
@@ -163,49 +164,49 @@ double SolverMaster::getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_
 
 void SolverMaster::setupRestoreBeam(void)
 {
-    bool restore = m_parset.getBool("restore", false);
+    bool restore = itsParset.getBool("restore", false);
 
     if (restore) {
-        m_Qbeam.resize(3);
-        std::vector<std::string> beam = m_parset.getStringVector("restore.beam");
+        itsQbeam.resize(3);
+        std::vector<std::string> beam = itsParset.getStringVector("restore.beam");
         ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
         for (int i = 0; i < 3; ++i) {
-            casa::Quantity::read(m_Qbeam(i), beam[i]);
+            casa::Quantity::read(itsQbeam(i), beam[i]);
         }
     }
 }
 
 void SolverMaster::writeModel(const std::string &postfix)
 {
-    ASKAPCHECK(m_model_p, "m_model_p is not correctly initialized");
-    ASKAPCHECK(m_solver_p, "m_solver_p is not correctly initialized");
+    ASKAPCHECK(itsModel, "itsModel is not correctly initialized");
+    ASKAPCHECK(itsSolver, "itsSolver is not correctly initialized");
 
     ASKAPLOG_INFO_STR(logger, "Writing out results as CASA images");
-    vector<string> resultimages = m_model_p->names();
+    vector<string> resultimages = itsModel->names();
     for (vector<string>::const_iterator it=resultimages.begin(); it
             !=resultimages.end(); it++) {
         if ((it->find("image") == 0) || (it->find("psf") == 0) ||
                 (it->find("weights") == 0) || (it->find("mask") == 0) ||
                 (it->find("residual")==0)) {
             ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
-            SynthesisParamsHelper::saveAsCasaImage(*m_model_p, *it, *it+postfix);
+            SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it+postfix);
         }
     }
 
-    bool restore = m_parset.getBool("restore", false);
+    bool restore = itsParset.getBool("restore", false);
     if (restore && postfix == "") {
         ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
-        ImageRestoreSolver ir(*m_model_p, m_Qbeam);
-        ir.setThreshold(m_solver_p->threshold());
-        ir.setVerbose(m_solver_p->verbose());
+        ImageRestoreSolver ir(*itsModel, itsQbeam);
+        ir.setThreshold(itsSolver->threshold());
+        ir.setVerbose(itsSolver->verbose());
         /// @todo Fix copying of preconditioners
         // Check for preconditioners. Same code as in ImageSolverFactory.
         // Will be neater if the RestoreSolver is also created in the ImageSolverFactory.
-        const std::vector<std::string> preconditioners= m_parset.getStringVector("preconditioner.Names",std::vector<std::string>());
+        const std::vector<std::string> preconditioners= itsParset.getStringVector("preconditioner.Names",std::vector<std::string>());
         if(preconditioners.size()) {
             for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) {
                 if( (*pc)=="Wiener" ) {
-                    float noisepower = m_parset.getFloat("preconditioner.Wiener.noisepower",0.0);
+                    float noisepower = itsParset.getFloat("preconditioner.Wiener.noisepower",0.0);
                     ir.addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
                 }
                 if ((*pc) == "GaussianTaper") {
@@ -214,19 +215,19 @@ void SolverMaster::writeModel(const std::string &postfix)
                     // Theoretically we could parse the parameters here and extract the cell size and
                     // shape, but it can be defined separately for each image. We need to find
                     // the way of dealing with this complication.
-                    ASKAPCHECK(m_parset.isDefined("preconditioner.GaussianTaper"),
+                    ASKAPCHECK(itsParset.isDefined("preconditioner.GaussianTaper"),
                             "preconditioner.GaussianTaper showwing the taper size should be defined to use GaussianTaper");
                     const vector<double> taper = SynthesisParamsHelper::convertQuantity(
-                            m_parset.getStringVector("preconditioner.GaussianTaper"),"rad");
+                            itsParset.getStringVector("preconditioner.GaussianTaper"),"rad");
                     ASKAPCHECK((taper.size() == 3) || (taper.size() == 1),
                             "preconditioner.GaussianTaper can have either single element or "
                             " a vector of 3 elements. You supplied a vector of "<<taper.size()<<" elements");
-                    ASKAPCHECK(m_parset.isDefined("Images.shape") && m_parset.isDefined("Images.cellsize"),
+                    ASKAPCHECK(itsParset.isDefined("Images.shape") && itsParset.isDefined("Images.cellsize"),
                             "Imager.shape and Imager.cellsize should be defined to convert the taper fwhm specified in "
                             "angular units in the image plane into uv cells");
                     const std::vector<double> cellsize = SynthesisParamsHelper::convertQuantity(
-                            m_parset.getStringVector("Images.cellsize"),"rad");
-                    const std::vector<int> shape = m_parset.getInt32Vector("Images.shape");
+                            itsParset.getStringVector("Images.cellsize"),"rad");
+                    const std::vector<int> shape = itsParset.getInt32Vector("Images.shape");
                     ASKAPCHECK((cellsize.size() == 2) && (shape.size() == 2),
                             "Images.cellsize and Images.shape parameters should have exactly two values");
                     // factors which appear in nominator are effectively half sizes in radians
@@ -256,19 +257,19 @@ void SolverMaster::writeModel(const std::string &postfix)
         } else {
             ir.addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner()));
         }
-        ir.copyNormalEquations(*m_solver_p);
+        ir.copyNormalEquations(*itsSolver);
         Quality q;
         ir.solveNormalEquations(q);
-        ASKAPDEBUGASSERT(m_model_p);
-        *m_model_p = ir.parameters();
-        resultimages=m_model_p->completions("image");
+        ASKAPDEBUGASSERT(itsModel);
+        *itsModel = ir.parameters();
+        resultimages=itsModel->completions("image");
         for (vector<string>::iterator it=resultimages.begin(); it
                 !=resultimages.end(); it++)
         {
             string imageName("image"+(*it)+postfix);
             ASKAPLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
                     << imageName+string(".restored") );
-            SynthesisParamsHelper::saveAsCasaImage(*m_model_p, "image"+(*it),
+            SynthesisParamsHelper::saveAsCasaImage(*itsModel, "image"+(*it),
                     imageName+string(".restored"));
         }
     }

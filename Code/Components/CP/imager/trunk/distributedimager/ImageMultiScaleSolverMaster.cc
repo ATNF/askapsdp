@@ -1,4 +1,4 @@
-/// @file DistributedImageMultiScaleSolver.h
+/// @file ImageMultiScaleSolverMaster.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,7 +24,7 @@
 ///
 
 // Include own header file first
-#include <distributedimager/DistributedImageMultiScaleSolver.h>
+#include <distributedimager/ImageMultiScaleSolverMaster.h>
 
 // System includes
 #include <iostream>
@@ -48,7 +48,7 @@
 #include <lattices/Lattices/ArrayLattice.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/SolverTaskComms.h>
 
 // Using
 using namespace casa;
@@ -56,12 +56,12 @@ using namespace askap;
 using namespace askap::scimath;
 using namespace askap::cp;
 
-ASKAP_LOGGER(logger, ".DistributedImageMultiScaleSolver");
+ASKAP_LOGGER(logger, ".ImageMultiScaleSolverMaster");
 
-DistributedImageMultiScaleSolver::DistributedImageMultiScaleSolver(const askap::scimath::Params& ip,
+ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
         const LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IBasicComms& comms)
-    : ImageCleaningSolver(ip), m_parset(parset), m_comms(comms) 
+        askap::cp::SolverTaskComms& comms)
+    : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms) 
 {
     itsScales.resize(3);
     itsScales(0) = 0;
@@ -69,24 +69,24 @@ DistributedImageMultiScaleSolver::DistributedImageMultiScaleSolver(const askap::
     itsScales(2) = 30;
 }
 
-DistributedImageMultiScaleSolver::DistributedImageMultiScaleSolver(const askap::scimath::Params& ip,
+ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
         const casa::Vector<float>& scales,
         const LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IBasicComms& comms)
-    : ImageCleaningSolver(ip), m_parset(parset), m_comms(comms)
+        askap::cp::SolverTaskComms& comms)
+    : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms)
 {
     itsScales.resize(scales.size());
     itsScales = scales;
 }
 
-void DistributedImageMultiScaleSolver::init()
+void ImageMultiScaleSolverMaster::init()
 {
     resetNormalEquations();
 }
 
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
-bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Quality& quality)
+bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& quality)
 {
     // Solving A^T Q^-1 V = (A^T Q^-1 A) P
     uint nParameters=0;
@@ -194,7 +194,7 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
         ASKAPCHECK(size_y == size_x, "Only square images are supported");
 
         // Get and check patch size
-        const int c_patchSize = m_parset.getInt32("solver.Clean.patchsize", 512);
+        const int c_patchSize = itsParset.getInt32("solver.Clean.patchsize", 512);
 
         ASKAPCHECK(size_x >= c_patchSize,
                 "Image size must be >= patch size");
@@ -238,12 +238,12 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
             // sort of command message incorporating this plus the "no more workunits"
             // message (below) could be developed.
             int source;
-            while (m_comms.receiveStringAny(source) != "next") {
+            while (itsComms.receiveStringAny(source) != "next") {
                 ASKAPLOG_INFO_STR(logger, "Got CleanResponse - Still work to do");
                 processCleanResponse();
             }
 
-            m_comms.sendString("ok", source);
+            itsComms.sendString("ok", source);
 
             ASKAPLOG_INFO_STR(logger, "Master is allocating CleanRequest " << patchid
                     << " to worker " << source);
@@ -256,13 +256,13 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
             work.done = false;
             work.strengthOptimum = 0.0;
 
-            m_cleanworkq.push_back(work);
+            itsCleanworkq.push_back(work);
 
             std::vector<float> stdscales;
             for (unsigned int i = 0; i < itsScales.size(); ++i) {
                 stdscales.push_back(itsScales[i]);
             }
-            m_comms.sendCleanRequest(patchid,
+            itsComms.sendCleanRequest(patchid,
                     dirtyPatch,
                     psfCenter.get(),
                     maskPatch,
@@ -270,7 +270,8 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
                     threshold().getValue(),
                     threshold().getUnit(),
                     fractionalThreshold(),
-                    stdscales,
+                    //stdscales,
+                    itsScales,
                     niter(),
                     gain(),
                     source);
@@ -286,9 +287,9 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
         // Send each process an empty string to indicate
         // there are no more workunits on offer (TODO: Need to find
         // a better way of doing this)
-        for (int dest = 1; dest < m_comms.getNumNodes(); ++dest) {
+        for (int dest = 1; dest < itsComms.getNumNodes(); ++dest) {
             ASKAPLOG_INFO_STR(logger, "Finishing up for  worker " << dest);
-            std::string msg = m_comms.receiveString(dest);
+            std::string msg = itsComms.receiveString(dest);
             if (msg == "response") {
                 // ignore
                 --dest;
@@ -296,13 +297,13 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
             }
             ASKAPLOG_INFO_STR(logger, "Read from " << dest << " the message: " << msg);
             ASKAPCHECK(msg == "next", "Expected message: next");
-            m_comms.sendString("", dest);
+            itsComms.sendString("", dest);
         }
 
         // Check if all patches have been cleaned and determine strengthOptimum.
         double strengthOptimum = 0.0;
         std::vector<CleanerWork>::iterator it;
-        for (it = m_cleanworkq.begin() ; it < m_cleanworkq.end(); ++it) {
+        for (it = itsCleanworkq.begin() ; it < itsCleanworkq.end(); ++it) {
             if (it->done == false) {
                 ASKAPTHROW (std::runtime_error,
                         "All CleanRequests should have been completed. Still waiting for patchid "
@@ -314,7 +315,7 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
                 strengthOptimum = it->strengthOptimum;
             }
         }
-        m_cleanworkq.clear();
+        itsCleanworkq.clear();
         ASKAPLOG_INFO_STR(logger, "All results have been received. Continuing...");
 
         /////////////////////////////////////////////////////////////
@@ -347,29 +348,29 @@ bool DistributedImageMultiScaleSolver::solveNormalEquations(askap::scimath::Qual
     return true;
 };
 
-Solver::ShPtr DistributedImageMultiScaleSolver::clone() const
+Solver::ShPtr ImageMultiScaleSolverMaster::clone() const
 {
-    return Solver::ShPtr(new DistributedImageMultiScaleSolver(*this));
+    return Solver::ShPtr(new ImageMultiScaleSolverMaster(*this));
 }
 
 
-void DistributedImageMultiScaleSolver::processCleanResponse(void)
+void ImageMultiScaleSolverMaster::processCleanResponse(void)
 {
     int patchid;
     casa::Array<float> patch;
     double strengthOptimum;
-    m_comms.recvCleanResponse(patchid, patch, strengthOptimum);
+    itsComms.recvCleanResponse(patchid, patch, strengthOptimum);
 
-    m_cleanworkq[patchid].model->assign(patch);
-    m_cleanworkq[patchid].done = true;
-    m_cleanworkq[patchid].strengthOptimum = strengthOptimum;
+    itsCleanworkq[patchid].model->assign(patch);
+    itsCleanworkq[patchid].done = true;
+    itsCleanworkq[patchid].strengthOptimum = strengthOptimum;
     ASKAPLOG_INFO_STR(logger, "Received CleanResponse for patchid " << patchid);
 }
 
-bool DistributedImageMultiScaleSolver::outstanding(void)
+bool ImageMultiScaleSolverMaster::outstanding(void)
 {
     std::vector<CleanerWork>::iterator it;
-    for (it = m_cleanworkq.begin() ; it < m_cleanworkq.end(); ++it) {
+    for (it = itsCleanworkq.begin() ; it < itsCleanworkq.end(); ++it) {
         ASKAPLOG_INFO_STR(logger, "Patchid " << it->patchid << " status: " << it->done);
         if (it->done != true) {
             return true;

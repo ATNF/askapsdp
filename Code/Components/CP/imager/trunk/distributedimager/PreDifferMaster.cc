@@ -40,6 +40,10 @@
 #include <fitting/Params.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
+// Local includes
+#include <distributedimager/MPIBasicComms.h>
+#include <distributedimager/PreDifferTaskComms.h>
+#include <distributedimager/ReductionLogic.h>
 
 using namespace askap::cp;
 using namespace askap;
@@ -50,7 +54,8 @@ using namespace LOFAR::ACC::APS;
 ASKAP_LOGGER(logger, ".PreDifferMaster");
 
 PreDifferMaster::PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IBasicComms& comms) : m_parset(parset), m_comms(comms)
+        askap::cp::MPIBasicComms& comms)
+: itsParset(parset), itsComms(comms)
 {
 }
 
@@ -66,10 +71,10 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
 
     // Broadcast the model to the workers
-    m_comms.broadcastModel(model_p);
+    itsComms.broadcastModel(model_p);
 
     // Send work orders to the worker processes
-    std::vector<std::string> ms = getDatasets(m_parset);
+    std::vector<std::string> ms = getDatasets(itsParset);
     if (ms.size() == 0) {
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
@@ -82,19 +87,19 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         // sort of command message incorporating this plus the "no more workunits"
         // message (below) could be developed.
         int source;
-        m_comms.receiveStringAny(source);
+        itsComms.receiveStringAny(source);
 
         ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
                 << " to worker " << source);
-        m_comms.sendString(ms[n], source);
+        itsComms.sendString(ms[n], source);
     }
 
     // Send each process an empty string to indicate
     // there are no more workunits on offer (TODO: Need to find
     // a better way of doing this)
-    for (int dest = 1; dest < m_comms.getNumNodes(); ++dest) {
-        m_comms.receiveString(dest);
-        m_comms.sendString("", dest);
+    for (int dest = 1; dest < itsComms.getNumNodes(); ++dest) {
+        itsComms.receiveString(dest);
+        itsComms.sendString("", dest);
     }
 
     // Finally, wait for the workers/accumulators to send all the normal
@@ -102,12 +107,13 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
     // were processed to arrive at the normal equation object. The master
     // does not proceed until the results for all datasets have been
     // accounted for.
+    ReductionLogic rlogic(itsComms.getId(), itsComms.getNumNodes());
     unsigned int count = 0;
-    int responsible = m_comms.responsible();
+    int responsible = rlogic.responsible();
     for (int i = 0; i < responsible; ++i) {
         int source;
         int recvcount = 0;
-        askap::scimath::INormalEquations::ShPtr recv_ne_p = m_comms.receiveNE(source, recvcount);
+        askap::scimath::INormalEquations::ShPtr recv_ne_p = itsComms.receiveNE(source, recvcount);
         count += recvcount;
 
         // Merge the received normal equations
@@ -135,7 +141,7 @@ std::vector<std::string> PreDifferMaster::getDatasets(ParameterSet& parset)
     // First look for "dataset" and if that does not exist try "dataset0"
     std::vector<std::string> ms;
     if (parset.isDefined("dataset")) {
-        ms = m_parset.getStringVector("dataset");
+        ms = itsParset.getStringVector("dataset");
     } else {
         std::string key = "dataset0";   // First key to look for
         long idx = 0;

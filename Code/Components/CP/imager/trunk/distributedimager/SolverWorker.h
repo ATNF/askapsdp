@@ -37,7 +37,8 @@
 
 // Local includes
 #include "distributedimager/ISolverTask.h"
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/MPIBasicComms.h"
+#include "distributedimager/SolverTaskComms.h"
 
 namespace askap {
     namespace cp {
@@ -46,7 +47,7 @@ namespace askap {
         {
             public:
                 SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms,
+                        askap::cp::MPIBasicComms& comms,
                         askap::scimath::Params::ShPtr model_p);
 
                 virtual ~SolverWorker();
@@ -63,10 +64,10 @@ namespace askap {
                 SolverWorker(const SolverWorker& src);
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& m_parset;
+                LOFAR::ACC::APS::ParameterSet& itsParset;
 
                 // Communications class
-                askap::cp::IBasicComms& m_comms;
+                askap::cp::SolverTaskComms itsComms;
         };
 
     };

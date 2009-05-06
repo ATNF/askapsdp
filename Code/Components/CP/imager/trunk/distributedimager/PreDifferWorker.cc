@@ -50,6 +50,11 @@
 #include <dataaccess/ParsetInterface.h>
 #include <casa/OS/Timer.h>
 
+// Local includes
+#include <distributedimager/MPIBasicComms.h>
+#include <distributedimager/PreDifferTaskComms.h>
+#include <distributedimager/ReductionLogic.h>
+
 using namespace askap::cp;
 using namespace askap::scimath;
 using namespace askap::synthesis;
@@ -57,39 +62,40 @@ using namespace askap::synthesis;
 ASKAP_LOGGER(logger, ".PreDifferWorker");
 
 PreDifferWorker::PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IBasicComms& comms) : m_parset(parset), m_comms(comms)
+        askap::cp::MPIBasicComms& comms)
+: itsParset(parset), itsComms(comms)
 {
-    m_gridder_p = VisGridderFactory::make(m_parset);
+    itsGridder_p = VisGridderFactory::make(itsParset);
 }
 
 PreDifferWorker::~PreDifferWorker()
 {
-    m_gridder_p.reset();
+    itsGridder_p.reset();
 }
 
 askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::Params::ShPtr notused)
 {
     // Assert PreConditions
-    ASKAPCHECK(m_gridder_p, "m_gridder_p is not correctly initialized");
+    ASKAPCHECK(itsGridder_p, "itsGridder_p is not correctly initialized");
 
     // Receive the model
-    askap::scimath::Params::ShPtr model_p = m_comms.receiveModel();
+    askap::scimath::Params::ShPtr model_p = itsComms.receiveModel();
 
     // Pointer to measurement equation
     askap::scimath::Equation::ShPtr equation_p;
 
     // Normal equations which will be accumulated into
     // until all workunits have been received by this worker.
-    m_ne_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
+    itsNormalEquation_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
 
     // This count tracks how many work units have had their results
-    // merged into the normal equations pointed to be m_ne_p
+    // merged into the normal equations pointed to be itsNormalEquation_p
     int count = 0;
 
     while (1) {
         // Ask the master for a workunit
-        m_comms.sendString("next", cg_master);
-        std::string ms = m_comms.receiveString(cg_master);
+        itsComms.sendString("next", itsMaster);
+        std::string ms = itsComms.receiveString(itsMaster);
         if (ms == "") {
             // Indicates all workunits have been assigned already
             break;
@@ -101,18 +107,18 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
         ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
 
         // Setup the DataSource
-        bool useMemoryBuffers = m_parset.getBool("memorybuffers", false);
+        bool useMemoryBuffers = itsParset.getBool("memorybuffers", false);
         if (useMemoryBuffers) {
             ASKAPLOG_INFO_STR(logger, "Scratch data will be held in memory" );
         } else {
             ASKAPLOG_INFO_STR(logger, "Scratch data will be written to the subtable of the original dataset" );
         }
 
-        std::string colName = m_parset.getString("datacolumn", "DATA");
+        std::string colName = itsParset.getString("datacolumn", "DATA");
         TableDataSource ds(ms, (useMemoryBuffers ? TableDataSource::MEMORY_BUFFERS : TableDataSource::DEFAULT),
                 colName);
         IDataSelectorPtr sel = ds.createSelector();
-        sel << m_parset;
+        sel << itsParset;
         IDataConverterPtr conv = ds.createConverter();
         conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
                 "Hz");
@@ -121,11 +127,11 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
 
         // Calc NE
         ASKAPCHECK(model_p, "model_p is not correctly initialized");
-        ASKAPCHECK(m_ne_p, "ne_p is not correctly initialized");
+        ASKAPCHECK(itsNormalEquation_p, "ne_p is not correctly initialized");
 
-        equation_p = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, m_gridder_p));
+        equation_p = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, itsGridder_p));
         ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
-        equation_p->calcEquations(*m_ne_p);
+        equation_p->calcEquations(*itsNormalEquation_p);
 
         ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "
                 << timer.real() << " seconds ");
@@ -136,10 +142,10 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
     }
 
     // Even if the count is zero, must report the empty object
-    reduceNE(m_ne_p, count);
+    reduceNE(itsNormalEquation_p, count);
 
     // Cleanup
-    m_ne_p.reset();
+    itsNormalEquation_p.reset();
     model_p.reset();
 
     // Return a null shared pointer, the worker does not
@@ -150,13 +156,9 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
 
 void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int count)
 {
-    // Specify how large the batch for the reduction is. If this is set to 16, and
-    // there are 256 processes (numNodes) then the reduction is 256->16>1.
-    // TODO: Make this something better than a magic number. Ideally this
-    // code would do a multi level graph reduction, whereas now it just does a
-    // single level reduction.
-    const int accumulatorStep = 16;
-    const int id = m_comms.getId();
+    ReductionLogic rlogic(itsComms.getId(), itsComms.getNumNodes());
+    const int accumulatorStep = rlogic.getAccumulatorStep();
+    const int id = itsComms.getId();
 
     if (id % accumulatorStep == 0) {
         // Accumulator + worker
@@ -164,7 +166,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
 
         // Determine how many workers this accumulator is responsible for,
         // not counting itself, hence the subtraction of one.
-        const int responsible = m_comms.responsible();
+        const int responsible = rlogic.responsible();
 
         ASKAPLOG_INFO_STR(logger, "Accumulator @" << id << " waiting for " << responsible
                 << " workers to report normal equations");
@@ -174,7 +176,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         for (int i = 0; i < responsible; ++i) {
             int source;
             int recvcount;
-            askap::scimath::INormalEquations::ShPtr recv_ne_p = m_comms.receiveNE(source, recvcount);
+            askap::scimath::INormalEquations::ShPtr recv_ne_p = itsComms.receiveNE(source, recvcount);
             ASKAPLOG_INFO_STR(logger, "Accumulator @" << id << " received NE from " << source);
 
             // If the recvcount is zero, this indicates a null normal equation.
@@ -187,13 +189,13 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         }
 
         // Finally send NE to the master
-        m_comms.sendNE(m_ne_p, cg_master, accumulatedCount);
+        itsComms.sendNE(itsNormalEquation_p, itsMaster, accumulatedCount);
 
     } else {
         // Worker only
         int accumulator = id - (id % accumulatorStep);
 
         // Send NE to the accumulator
-        m_comms.sendNE(m_ne_p, accumulator, count);
+        itsComms.sendNE(itsNormalEquation_p, accumulator, count);
     }
 }

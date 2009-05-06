@@ -32,7 +32,7 @@
 #include <fitting/Params.h>
 
 // Local includes
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/MPIBasicComms.h"
 
 namespace askap {
     namespace cp {
@@ -47,7 +47,7 @@ namespace askap {
                 ///                     the configuration.
                 /// @param[in]  comms   an instance of IBasicComms.
                 DistributedImager(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
+                        askap::cp::MPIBasicComms& comms);
 
                 /// @brief Destructor.
                 ~DistributedImager();
@@ -62,16 +62,16 @@ namespace askap {
                 bool isMaster(void);
 
                 // Id of the master process
-                static const int cg_master = 0;
+                static const int itsMaster = 0;
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& m_parset;
+                LOFAR::ACC::APS::ParameterSet& itsParset;
 
                 // Communications class
-                askap::cp::IBasicComms& m_comms;
+                askap::cp::MPIBasicComms& itsComms;
 
                 // Model
-                askap::scimath::Params::ShPtr m_model_p;
+                askap::scimath::Params::ShPtr itsModel;
 
                 // No support for assignment
                 DistributedImager& operator=(const DistributedImager& rhs);

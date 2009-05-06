@@ -36,7 +36,8 @@
 
 // Local includes
 #include "distributedimager/IPreDifferTask.h"
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/MPIBasicComms.h"
+#include "distributedimager/PreDifferTaskComms.h"
 
 namespace askap {
     namespace cp {
@@ -45,7 +46,7 @@ namespace askap {
         {
             public:
                 PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
+                        askap::cp::MPIBasicComms& comms);
                 virtual ~PreDifferMaster();
 
                 virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr model_p);
@@ -70,19 +71,19 @@ namespace askap {
                 ///     
                 /// @param[in] parset   the parameterset to use as input.
                 /// @return a vector containing in each element one dataset.
-                std::vector<std::string> getDatasets(LOFAR::ACC::APS::ParameterSet& m_parset);
+                std::vector<std::string> getDatasets(LOFAR::ACC::APS::ParameterSet& itsParset);
 
                 /// Normal equations
-                askap::scimath::INormalEquations::ShPtr m_ne_p;
+                askap::scimath::INormalEquations::ShPtr itsNormalEquation_p;
 
                 /// Parameter set
-                LOFAR::ACC::APS::ParameterSet& m_parset;
+                LOFAR::ACC::APS::ParameterSet& itsParset;
 
                 /// Communications class
-                askap::cp::IBasicComms& m_comms;
+                askap::cp::PreDifferTaskComms itsComms;
 
                 /// Model
-                askap::scimath::Params::ShPtr m_model_p;
+                askap::scimath::Params::ShPtr itsModel;
 
                 // No support for assignment
                 PreDifferMaster& operator=(const PreDifferMaster& rhs);

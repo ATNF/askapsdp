@@ -41,6 +41,7 @@
 // Local includes
 #include "distributedimager/ISolverTask.h"
 #include "distributedimager/IBasicComms.h"
+#include "distributedimager/SolverTaskComms.h"
 
 namespace askap {
     namespace cp {
@@ -49,7 +50,7 @@ namespace askap {
         {
             public:
                 SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms,
+                        askap::cp::MPIBasicComms& comms,
                         askap::scimath::Params::ShPtr model_p);
                 virtual ~SolverMaster();
 
@@ -61,23 +62,23 @@ namespace askap {
                 // A helper method to extract peak residual
                 double getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p);
 
-                // Setup the restoring beam parameters (m_Qbeam)
+                // Setup the restoring beam parameters (itsQbeam)
                 void setupRestoreBeam(void);
 
                 // Solver
-                askap::scimath::Solver::ShPtr m_solver_p;
+                askap::scimath::Solver::ShPtr itsSolver;
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& m_parset;
+                LOFAR::ACC::APS::ParameterSet& itsParset;
    
                 // Communications class
-                askap::cp::IBasicComms& m_comms;
+                askap::cp::SolverTaskComms itsComms;
 
                 // Model
-                askap::scimath::Params::ShPtr m_model_p;
+                askap::scimath::Params::ShPtr itsModel;
 
                 // Restoring beam parameters
-                casa::Vector<casa::Quantum<double> > m_Qbeam;
+                casa::Vector<casa::Quantum<double> > itsQbeam;
 
                 // No support for assignment
                 SolverMaster& operator=(const SolverMaster& rhs);

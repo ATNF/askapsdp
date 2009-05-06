@@ -22,7 +22,7 @@
 ///
 
 // Include own header file first
-#include <distributedimager/DistributedImageMultiScaleSolverWorker.h>
+#include <distributedimager/ImageMultiScaleSolverWorker.h>
 
 // Boost includes
 #include <boost/scoped_ptr.hpp>
@@ -38,27 +38,27 @@
 #include <casa/Arrays/Array.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/SolverTaskComms.h>
 
 using namespace askap::cp;
 using namespace askap;
 using namespace askap::scimath;
 
-ASKAP_LOGGER(logger, ".DistributedImageMultiScaleSolverWorker");
+ASKAP_LOGGER(logger, ".ImageMultiScaleSolverWorker");
 
-DistributedImageMultiScaleSolverWorker::DistributedImageMultiScaleSolverWorker(
+ImageMultiScaleSolverWorker::ImageMultiScaleSolverWorker(
         const LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IBasicComms& comms)
-    : m_parset(parset), m_comms(comms) 
+        askap::cp::SolverTaskComms& comms)
+    : itsParset(parset), itsComms(comms) 
 {
 }
 
-void DistributedImageMultiScaleSolverWorker::solveNormalEquations(void)
+void ImageMultiScaleSolverWorker::solveNormalEquations(void)
 {
     while (1) {
         // Ask the master for a workunit
-        m_comms.sendString("next", cg_master);
-        std::string ms = m_comms.receiveString(cg_master);
+        itsComms.sendString("next", itsMaster);
+        std::string ms = itsComms.receiveString(itsMaster);
         if (ms != "ok") {
             // Indicates all workunits have been assigned already
             break;
@@ -72,11 +72,12 @@ void DistributedImageMultiScaleSolverWorker::solveNormalEquations(void)
         double _threshold;
         std::string thresholdUnits;
         double fractionalThreshold;
-        std::vector<float> scales;
+        //std::vector<float> scales;
+        casa::Vector<float>scales;
         int niter;
         double gain;
 
-        m_comms.recvCleanRequest(patchid, dirtyarray, psfarray, maskarray, cleanarray,
+        itsComms.recvCleanRequest(patchid, dirtyarray, psfarray, maskarray, cleanarray,
                 _threshold, thresholdUnits, fractionalThreshold, scales,
                 niter, gain);
 
@@ -125,8 +126,8 @@ void DistributedImageMultiScaleSolverWorker::solveNormalEquations(void)
 
         // Send the patch back to the master
         ASKAPLOG_INFO_STR(logger, "Sending CleanResponse for patchid " << patchid);
-        m_comms.sendString("response", cg_master);
-        m_comms.sendCleanResponse(patchid, clean_p->asArray(), lc.strengthOptimum(), cg_master);
+        itsComms.sendString("response", itsMaster);
+        itsComms.sendCleanResponse(patchid, clean_p->asArray(), lc.strengthOptimum(), itsMaster);
     }
     ASKAPLOG_INFO_STR(logger, "CleanWorker ACK no more work to do");
 };

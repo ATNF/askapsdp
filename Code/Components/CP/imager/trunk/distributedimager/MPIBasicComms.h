@@ -29,15 +29,7 @@
 
 // System includes
 #include <string>
-#include <cstring>
-#include <vector>
 #include <mpi.h>
-
-// ASKAPsoft includes
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
-#include <casa/Arrays/Array.h>
-
 
 // Local package includes
 #include "IBasicComms.h"
@@ -55,81 +47,42 @@ public:
     virtual int getNumNodes(void);
     virtual void abort(void);
 
-    virtual void broadcastModel(askap::scimath::Params::ShPtr model);
-    virtual askap::scimath::Params::ShPtr receiveModel(void);
-
-    virtual void sendNE(askap::scimath::INormalEquations::ShPtr ne, int id, int count);
-    virtual askap::scimath::INormalEquations::ShPtr receiveNE(int& id, int& count);
-
     virtual void sendString(const std::string& str, int dest);
     virtual std::string receiveString(int source);
     virtual std::string receiveStringAny(int& source);
 
-    virtual void sendCleanRequest(int patchid,
-            const casa::Array<float>& dirty,
-            const casa::Array<float>& psf,
-            const casa::Array<float>& mask,
-            const casa::Array<float>& model,
-            double threshold,
-            std::string thresholdUnits,
-            double fractionalThreshold,
-            std::vector<float>& scales,
-            int niter,
-            double gain,
-            int dest);
+    virtual void send(const void* buf, size_t size, int dest, int tag);
+    virtual void receive(void* buf, size_t size, int source, int tag, MPI_Status& status);
 
-    virtual void recvCleanRequest(int& patchid,
-            casa::Array<float>& dirty,
-            casa::Array<float>& psf,
-            casa::Array<float>& mask,
-            casa::Array<float>& model,
-            double& threshold,
-            std::string& thresholdUnits,
-            double& fractionalThreshold,
-            std::vector<float>& scales,
-            int& niter,
-            double& gain);
+    virtual void broadcast(void* buf, size_t size, int root);
 
-    virtual void sendCleanResponse(int patchid,
-            casa::Array<float>& patch,
-            double strengthOptimum,
-            int dest);
-
-    virtual void recvCleanResponse(int& patchid,
-            casa::Array<float>& patch,
-            double& strengthOptimum);
-
-    int responsible(void);
+    /// @brief Enumeration of tags for MPI communication
+    enum CommsTags
+    {
+        STRING,
+        NORMAL_EQUATION,
+        CLEAN_REQUEST,
+        CLEAN_RESPONSE
+    };
 
 private:
-    void send(const void* buf, size_t size, int dest, int tag);
-    void receive(void* buf, size_t size, int source, int tag, MPI_Status& status);
-    void broadcast(void* buf, size_t size, int root);
+    // Check for error status and handle accordingly
+    void checkError(const int error, const std::string location);
 
-    void handleError(const int error, const std::string location);
-
+    // Add a byte offset to the  specified pointer, returning the result
     void* addOffset(const void *ptr, size_t offset);
 
     // Root for broadcasts
-    static const int c_root = 0;
+    static const int itsRoot = 0;
 
     // Specific MPI Communicator for this class
-    MPI_Comm m_communicator;
+    MPI_Comm itsCommunicator;
 
     // No support for assignment
     MPIBasicComms& operator=(const MPIBasicComms& rhs);
 
     // No support for copy constructor
     MPIBasicComms(const MPIBasicComms& src);
-
-    /// @brief Enumeration of tags for MPI communication
-    enum CommsTags
-    {
-        NORMAL_EQUATION,
-        CLEAN_REQUEST,
-        CLEAN_RESPONSE,
-        STRING
-    };
 };
 
 };

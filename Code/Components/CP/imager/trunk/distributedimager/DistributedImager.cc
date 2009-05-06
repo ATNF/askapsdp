@@ -60,7 +60,7 @@ using namespace askap::scimath;
 using namespace LOFAR::ACC::APS;
 
 DistributedImager::DistributedImager(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::IBasicComms& comms) : m_parset(parset), m_comms(comms)
+        askap::cp::MPIBasicComms& comms) : itsParset(parset), itsComms(comms)
 {
     if (isMaster()) {
         ASKAPLOG_INFO_STR(logger, "ASKAP Distributed Imager - " << ASKAP_PACKAGE_VERSION);
@@ -75,40 +75,40 @@ void DistributedImager::run(void)
 {
     // Setup the model (master only)
     if (isMaster()) {
-        m_model_p.reset(new Params());
+        itsModel.reset(new Params());
 
-        bool reuseModel = m_parset.getBool("Images.reuse", false);
+        bool reuseModel = itsParset.getBool("Images.reuse", false);
         if (reuseModel) {
             ASKAPLOG_INFO_STR(logger, "Reusing model images stored on disk");
-            SynthesisParamsHelper::loadImages(m_model_p, m_parset.makeSubset("Images."));
+            SynthesisParamsHelper::loadImages(itsModel, itsParset.makeSubset("Images."));
         } else {
             ASKAPLOG_INFO_STR(logger, "Initializing the model images");
 
             /// Create the specified images from the definition in the
             /// parameter set. We can solve for any number of images
             /// at once (but you may/will run out of memory!)
-            SynthesisParamsHelper::setUpImages(m_model_p, m_parset.makeSubset("Images."));
+            SynthesisParamsHelper::setUpImages(itsModel, itsParset.makeSubset("Images."));
         }
     }
 
     double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
-            m_parset.getString("threshold.majorcycle","-1Jy"),"Jy");
-    const bool writeAtMajorCycle = m_parset.getBool("Images.writeAtMajorCycle",false);
-    int nCycles = m_parset.getInt32("ncycles", 0);
+            itsParset.getString("threshold.majorcycle","-1Jy"),"Jy");
+    const bool writeAtMajorCycle = itsParset.getBool("Images.writeAtMajorCycle",false);
+    int nCycles = itsParset.getInt32("ncycles", 0);
 
     boost::scoped_ptr<IPreDifferTask> prediffer_p;
     boost::scoped_ptr<ISolverTask> solver_p;
     if (isMaster()) {
-        prediffer_p.reset(new PreDifferMaster(m_parset, m_comms));
-        solver_p.reset(new SolverMaster(m_parset, m_comms, m_model_p));
+        prediffer_p.reset(new PreDifferMaster(itsParset, itsComms));
+        solver_p.reset(new SolverMaster(itsParset, itsComms, itsModel));
     } else {
-        prediffer_p.reset(new PreDifferWorker(m_parset, m_comms));
-        solver_p.reset(new SolverWorker(m_parset, m_comms, m_model_p));
+        prediffer_p.reset(new PreDifferWorker(itsParset, itsComms));
+        solver_p.reset(new SolverWorker(itsParset, itsComms, itsModel));
     }
 
     if (nCycles == 0) {
         // No cycling - just make a dirty image
-        askap::scimath::INormalEquations::ShPtr ne_p = prediffer_p->calcNE(m_model_p);
+        askap::scimath::INormalEquations::ShPtr ne_p = prediffer_p->calcNE(itsModel);
         solver_p->solveNE(ne_p);
     } else {
         // Perform multiple major cycles
@@ -116,13 +116,13 @@ void DistributedImager::run(void)
             if (isMaster()) {
                 ASKAPLOG_INFO_STR(logger, "*** Starting major cycle " << cycle << " ***" );
             }
-            askap::scimath::INormalEquations::ShPtr ne_p = prediffer_p->calcNE(m_model_p);
+            askap::scimath::INormalEquations::ShPtr ne_p = prediffer_p->calcNE(itsModel);
             solver_p->solveNE(ne_p);
 
             if (isMaster()) {
 
-                if (m_model_p->has("peak_residual")) {
-                    const double peak_residual = m_model_p->scalarValue("peak_residual");
+                if (itsModel->has("peak_residual")) {
+                    const double peak_residual = itsModel->scalarValue("peak_residual");
                     ASKAPLOG_INFO_STR(logger, "Reached peak residual of " << peak_residual);
                     if (peak_residual < targetPeakResidual) {
                         ASKAPLOG_INFO_STR(logger, "It is below the major cycle threshold of "
@@ -149,7 +149,7 @@ void DistributedImager::run(void)
         if (isMaster()) {
             ASKAPLOG_INFO_STR(logger, "*** Finished major cycles ***" );
         }
-        askap::scimath::INormalEquations::ShPtr ne_p = prediffer_p->calcNE(m_model_p);
+        askap::scimath::INormalEquations::ShPtr ne_p = prediffer_p->calcNE(itsModel);
     }
 
     solver_p->writeModel("");
@@ -157,5 +157,5 @@ void DistributedImager::run(void)
 
 bool DistributedImager::isMaster(void)
 {
-    return (m_comms.getId() == cg_master) ? true : false;
+    return (itsComms.getId() == itsMaster) ? true : false;
 }

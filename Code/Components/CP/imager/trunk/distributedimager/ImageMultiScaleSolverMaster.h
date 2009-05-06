@@ -1,7 +1,4 @@
-/// @file
-///
-/// DistributedImageMultiScaleSolver: This solver calculates the dirty image (or equivalent)
-/// for all parameters called image*
+/// @file ImageMultiScaleSolverMaster
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -27,8 +24,8 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef CP_DISTRIBUTEDIMAGEMULTISCALESOLVER_H_
-#define CP_DISTRIBUTEDIMAGEMULTISCALESOLVER_H_
+#ifndef CP_IMAGEMULTISCALESOLVERMASTER_H_
+#define CP_IMAGEMULTISCALESOLVERMASTER_H_
 
 // System includes
 #include <map>
@@ -42,7 +39,7 @@
 #include <lattices/Lattices/LatticeCleaner.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/SolverTaskComms.h>
 
 namespace askap
 {
@@ -54,7 +51,7 @@ namespace askap
         /// casa::LatticeCleaner classes
         ///
         /// @ingroup measurementequation
-        class DistributedImageMultiScaleSolver : public askap::synthesis::ImageCleaningSolver
+        class ImageMultiScaleSolverMaster : public askap::synthesis::ImageCleaningSolver
         {
             public:
 
@@ -63,19 +60,19 @@ namespace askap
                 /// solutions formed by the method described.
                 /// The default scales are 0, 10, 30 pixels
                 /// @param ip Parameters i.e. the images
-                DistributedImageMultiScaleSolver(const askap::scimath::Params& ip,
+                ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
                         const LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
+                        askap::cp::SolverTaskComms& comms);
 
                 /// @brief Constructor from parameters and scales.
                 /// The parameters named image* will be interpreted as images and
                 /// solutions formed by the method described.
                 /// @param ip Parameters i.e. the images
                 /// @param scales Scales to be solved in pixels
-                DistributedImageMultiScaleSolver(const askap::scimath::Params& ip,
+                ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
                         const casa::Vector<float>& scales,
                         const LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
+                        askap::cp::SolverTaskComms& comms);
 
                 /// @brief Initialize this solver
                 virtual void init();
@@ -110,17 +107,17 @@ namespace askap
                 };
 
                 // Clean workqueue
-                std::vector<CleanerWork> m_cleanworkq;
+                std::vector<CleanerWork> itsCleanworkq;
 
                 void processCleanResponse(void);
 
                 bool outstanding(void);
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet m_parset;
+                LOFAR::ACC::APS::ParameterSet itsParset;
 
                 // Communications class
-                askap::cp::IBasicComms& m_comms;
+                askap::cp::SolverTaskComms& itsComms;
 
         };
 

@@ -1,4 +1,4 @@
-/// @file SolverWorker.cc
+/// @file ReductionLogic.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,54 +25,61 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "SolverWorker.h"
+#include "ReductionLogic.h"
 
 // System includes
-#include <string>
+#include <cmath>
 
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
 
-// Local includes
-#include <distributedimager/MPIBasicComms.h>
-#include <distributedimager/ImageMultiScaleSolverWorker.h>
-
+// Using
 using namespace askap;
 using namespace askap::cp;
 
-ASKAP_LOGGER(logger, ".SolverWorker");
+ASKAP_LOGGER(logger, ".ReductionLogic");
 
-SolverWorker::SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::MPIBasicComms& comms,
-        askap::scimath::Params::ShPtr model_p)
-: itsParset(parset), itsComms(comms)
+ReductionLogic::ReductionLogic(int id, int numNodes)
+    : itsId(id), itsNumNodes(numNodes)
 {
 }
 
-SolverWorker::~SolverWorker()
+ReductionLogic::~ReductionLogic()
 {
 }
 
-void SolverWorker::solveNE(askap::scimath::INormalEquations::ShPtr)
+int ReductionLogic::responsible(void)
 {
-    const std::string solver_par = itsParset.getString("solver");
-    const std::string algorithm_par = itsParset.getString("solver.Clean.algorithm", "MultiScale");
-    const std::string distributed_par = itsParset.getString("solver.Clean.distributed", "False");
+    int responsible = 0;
 
-    // Workers only participate in this operation, unless a distributed
-    // clean is requested
-    if (solver_par == "Clean" && algorithm_par == "MultiScale" &&
-            distributed_par == "True") {
-        ImageMultiScaleSolverWorker mssWorker(itsParset, itsComms);
-        mssWorker.solveNormalEquations();
+    if (itsId == 0) {
+        // Master
+        if (itsNumNodes <= itsAccumulatorStep) {
+            responsible = itsNumNodes - 1;
+        } else {
+            responsible += itsAccumulatorStep - 1; // First n workers
+            float accumulators = ceil((float)itsNumNodes / (float)itsAccumulatorStep) - 1.0;
+            responsible += static_cast<int>(accumulators); // Accumulators 
+        }
+    } else if (itsId % itsAccumulatorStep == 0) {
+        // Accumulator + worker
+        if ((itsId + itsAccumulatorStep) > itsNumNodes) {
+            responsible = itsNumNodes - itsId - 1;
+        } else {
+            responsible = itsAccumulatorStep - 1;
+        }
+
+    } else {
+        // If execution got here, the process is just a worker and is only
+        // responsible for itself
+        responsible = 0;
     }
+
+    return responsible;
 }
 
-void SolverWorker::writeModel(const std::string &postfix)
+int ReductionLogic::getAccumulatorStep(void)
 {
-    // Workers do not participate in this operation
+    return itsAccumulatorStep;
 }
-

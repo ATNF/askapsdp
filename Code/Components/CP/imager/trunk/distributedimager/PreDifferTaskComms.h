@@ -1,4 +1,4 @@
-/// @file IBasicComms.h
+/// @file PreDifferTaskComms.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,44 +24,54 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IBASICCOMMS_H
-#define ASKAP_CP_IBASICCOMMS_H
+#ifndef ASKAP_CP_PREDIFFERTASKCOMMS_H
+#define ASKAP_CP_PREDIFFERTASKCOMMS_H
 
 // System includes
 #include <string>
 #include <vector>
+
+// ASKAPsoft includes
+#include <fitting/INormalEquations.h>
+#include <fitting/Params.h>
+
+// Local includes
+#include <distributedimager/MPIBasicComms.h>
 
 namespace askap {
     namespace cp {
 
         /// @brief An interface defining communications functionality required
         /// for the distributed imager.
-        class IBasicComms
+        class PreDifferTaskComms
         {
             public:
+                /// @brief Constructor.
+                PreDifferTaskComms(askap::cp::MPIBasicComms& comms);
+
                 /// @brief Destructor.
-                virtual ~IBasicComms();
+                ~PreDifferTaskComms();
 
                 /// @brief Returns the Id of the process. This allows the process to be
                 ///  uniquely identified within the group of collaborating processes.
                 ///
                 /// @return the Id of the process.
-                virtual int getId(void) = 0;
+                int getId(void);
 
                 /// @brief Returns the number of nodes involved in the collaboration.
                 ///
                 /// @return the number of nodes involved in the collaboration.
-                virtual int getNumNodes(void) = 0;
+                int getNumNodes(void);
 
                 /// @brief Abort the collaboration and signal all processes
                 /// involved to terminate.
-                virtual void abort(void) = 0;
+                void abort(void);
 
                 /// @brief Send a string to the indicated destination.
                 ///
                 /// @param[in]  string  the string to send.
                 /// @param[in]  dest    the id of the destination to send to.
-                virtual void sendString(const std::string& str, int dest) = 0;
+                void sendString(const std::string& str, int dest);
 
                 /// @brief Receive a string which has been sent by the 
                 /// sendString() call.
@@ -69,7 +79,7 @@ namespace askap {
                 /// @param[in]  source  the id of the source to recieve
                 ///                     the string from.
                 /// @return the received string.
-                virtual std::string receiveString(int source) = 0;
+                std::string receiveString(int source);
 
                 /// @brief Receive a string which has been sent by the 
                 /// sendString() call. This call will receive a string
@@ -78,7 +88,18 @@ namespace askap {
                 /// @param[out] source  the id of the source from which the
                 ///                     string as received.
                 /// @return the received string.
-                virtual std::string receiveStringAny(int& source) = 0;
+                std::string receiveStringAny(int& source);
+
+                void broadcastModel(askap::scimath::Params::ShPtr model);
+                askap::scimath::Params::ShPtr receiveModel(void);
+
+                void sendNE(askap::scimath::INormalEquations::ShPtr ne, int id, int count);
+                askap::scimath::INormalEquations::ShPtr receiveNE(int& id, int& count);
+
+            private:
+                static const int c_root = 0;
+
+                askap::cp::MPIBasicComms& itsComms;
         };
 
     };

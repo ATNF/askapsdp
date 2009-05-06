@@ -1,6 +1,6 @@
 /// @file
 ///
-/// DistributedImageMultiScaleSolverWorker
+/// ImageMultiScaleSolverWorker
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,37 +26,37 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 ///
-#ifndef CP_DISTRIBUTEDIMAGEMULTISCALESOLVERWORKER_H_
-#define CP_DISTRIBUTEDIMAGEMULTISCALESOLVERWORKER_H_
+#ifndef CP_IMAGEMULTISCALESOLVERWORKER_H_
+#define CP_IMAGEMULTISCALESOLVERWORKER_H_
 
 // ASKAPsoft includes
 #include <APS/ParameterSet.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/SolverTaskComms.h>
 
 namespace askap
 {
     namespace cp
     {
-        class DistributedImageMultiScaleSolverWorker 
+        class ImageMultiScaleSolverWorker 
         {
             public:
-                DistributedImageMultiScaleSolverWorker(const LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
+                ImageMultiScaleSolverWorker(const LOFAR::ACC::APS::ParameterSet& parset,
+                        askap::cp::SolverTaskComms& comms);
 
                 void solveNormalEquations(void);
 
             private:
 
                 // ID of the master process
-                static const int cg_master = 0;
+                static const int itsMaster = 0;
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet m_parset;
+                LOFAR::ACC::APS::ParameterSet itsParset;
 
                 // Communications class
-                askap::cp::IBasicComms& m_comms;
+                askap::cp::SolverTaskComms& itsComms;
 
         };
 
