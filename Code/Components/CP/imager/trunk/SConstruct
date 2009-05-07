@@ -9,6 +9,7 @@ from askapenv import env
 pkg = env.AskapPackage("imager")
 
 pkg.AddSubPackage("distributedimager")
+pkg.AddSubPackage("messages")
 
 env["CC"] = "mpicc"
 env["CXX"] = "mpicxx"

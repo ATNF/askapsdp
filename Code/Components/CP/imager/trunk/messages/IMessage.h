@@ -1,4 +1,4 @@
-/// @file SolverWorker.h
+/// @file IMessage.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,51 +24,44 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SOLVERWORKER_H
-#define ASKAP_CP_SOLVERWORKER_H
+#ifndef ASKAP_CP_IMESSAGE_H
+#define ASKAP_CP_IMESSAGE_H
 
-// System includes
-#include <string>
+// Boost includes
+#include <boost/shared_ptr.hpp>
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
-
-// Local includes
-#include "distributedimager/ISolverTask.h"
-#include "distributedimager/IBasicComms.h"
+#include <fitting/ISerializable.h>
 
 namespace askap {
     namespace cp {
 
-        class SolverWorker : public ISolverTask
+        class IMessage : public ISerializable
         {
             public:
-                SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms,
-                        askap::scimath::Params::ShPtr model_p);
+                enum MessageType {
+                    PREDIFFER_REQUEST = 10,
+                    PREDIFFER_RESPONSE = 11,
+                    CLEAN_REQUEST = 12,
+                    CLEAN_RESPONSE = 13
+                };
 
-                virtual ~SolverWorker();
+                /// @brief Destructor.
+                virtual ~IMessage();
 
-                virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
+                /// @brief Messages must be self-identifying and must
+                /// their type via this interface.
+                ///
+                /// @note Messages must be self-identifying and must return
+                /// their type via this interface. While they can also be
+                /// identified by their class type, this method easily translates
+                /// to an int which can be used to tag messags (eg. MPI tags).
+                virtual MessageType getMessageType(void) const = 0;
 
-                virtual void writeModel(const std::string& postfix);
-
-            private:
-                // No support for assignment
-                SolverWorker& operator=(const SolverWorker& rhs);
-
-                // No support for copy constructor
-                SolverWorker(const SolverWorker& src);
-
-                // Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
-
-                // Communications class
-                askap::cp::IBasicComms& itsComms;
         };
 
+        /// Short cut for shared pointer to IDataSelector
+        typedef boost::shared_ptr<IMessage> IMessageSharedPtr;
     };
 };
 

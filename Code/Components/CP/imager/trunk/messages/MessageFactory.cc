@@ -1,6 +1,4 @@
-/// @file
-///
-/// ImageMultiScaleSolverWorker
+/// @file MessageFactory.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,41 +23,50 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
-///
-#ifndef CP_IMAGEMULTISCALESOLVERWORKER_H_
-#define CP_IMAGEMULTISCALESOLVERWORKER_H_
+
+// Include own header file first
+#include <messages/MessageFactory.h>
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+#include <messages/IMessage.h>
 
-// Local includes
-#include <distributedimager/IBasicComms.h>
+// Message header files
+#include <messages/CleanRequest.h>
+#include <messages/CleanResponse.h>
 
-namespace askap
+// Using
+using namespace askap;
+using namespace askap::cp;
+
+ASKAP_LOGGER(logger, ".MessageFactory");
+
+MessageFactory::MessageFactory()
 {
-    namespace cp
-    {
-        class ImageMultiScaleSolverWorker 
-        {
-            public:
-                ImageMultiScaleSolverWorker(const LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
-
-                void solveNormalEquations(void);
-
-            private:
-
-                // ID of the master process
-                static const int itsMaster = 0;
-
-                // Parameter set
-                LOFAR::ACC::APS::ParameterSet itsParset;
-
-                // Communications class
-                askap::cp::IBasicComms& itsComms;
-
-        };
-
-    }
 }
-#endif
+
+MessageFactory::~MessageFactory()
+{
+}
+
+IMessageSharedPtr MessageFactory::create(const IMessage::MessageType& type)
+{
+    IMessageSharedPtr msg;
+
+    switch (type) {
+        case IMessage::CLEAN_REQUEST:
+            msg.reset(new CleanRequest);
+            break;
+
+        case IMessage::CLEAN_RESPONSE:
+            msg.reset(new CleanResponse);
+            break;
+
+        default:
+            ASKAPTHROW (std::runtime_error, "Unknown message type: " << type);
+            break;
+    }
+
+    return msg;
+}

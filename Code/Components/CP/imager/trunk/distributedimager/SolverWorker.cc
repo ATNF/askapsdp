@@ -37,7 +37,7 @@
 #include <fitting/Params.h>
 
 // Local includes
-#include <distributedimager/MPIBasicComms.h>
+#include <distributedimager/IBasicComms.h>
 #include <distributedimager/ImageMultiScaleSolverWorker.h>
 
 using namespace askap;
@@ -46,7 +46,7 @@ using namespace askap::cp;
 ASKAP_LOGGER(logger, ".SolverWorker");
 
 SolverWorker::SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::MPIBasicComms& comms,
+        askap::cp::IBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
 : itsParset(parset), itsComms(comms)
 {

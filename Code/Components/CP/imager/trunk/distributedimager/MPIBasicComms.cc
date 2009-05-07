@@ -42,6 +42,15 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <casa/OS/Timer.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobIBufVector.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobOBufVector.h>
+
+// Local package includes
+#include <messages/IMessage.h>
+#include <messages/MessageFactory.h>
+
 
 using namespace askap::cp;
 
@@ -262,3 +271,86 @@ void* MPIBasicComms::addOffset(const void *ptr, size_t offset)
     return cptr;
 
 }
+
+void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
+{
+    // Encode
+    std::vector<int8_t> buf;
+    LOFAR::BlobOBufVector<int8_t> bv(buf);
+    LOFAR::BlobOStream out(bv);
+    out.putStart("Message", 1);
+    out << msg;
+    out.putEnd();
+
+    int messageType = msg.getMessageType();
+
+    casa::Timer timer;
+    timer.mark();
+
+    // First send the size of the buffer
+    long size = buf.size();
+    send(&size, sizeof(long), dest, messageType);
+
+    // Now send the actual byte stream
+    send(&buf[0], size * sizeof(int8_t), dest, messageType);
+
+    ASKAPLOG_INFO_STR(logger, "Sent Message of type " << messageType
+            << " to rank " << dest << " via MPI in " << timer.real()
+            << " seconds ");
+}
+
+const IMessageSharedPtr MPIBasicComms::receiveMessage(IMessage::MessageType type, int source)
+{
+    // First receive the size of the byte stream
+    long size;
+    MPI_Status status;  // Not really used
+    receive(&size, sizeof(long), source, type, status);
+
+    // Receive the byte stream
+    std::vector<int8_t> buf;
+    buf.resize(size);
+    receive(&buf[0], size * sizeof(char), source, type, status);
+
+    // Create a message to populate
+    MessageFactory factory;
+    IMessageSharedPtr msg(factory.create(type));
+
+    // Decode
+    LOFAR::BlobIBufVector<int8_t> bv(buf);
+    LOFAR::BlobIStream in(bv);
+    int version = in.getStart("Message");
+    ASKAPASSERT(version == 1);
+    in >> *msg;
+    in.getEnd();
+
+    return msg;
+}
+
+const IMessageSharedPtr MPIBasicComms::receiveMessageAnySrc(IMessage::MessageType type, int& actualSource)
+{
+    // First receive the size of the byte stream
+    long size;
+    MPI_Status status;
+    receive(&size, sizeof(long), MPI_ANY_SOURCE, type, status);
+    actualSource = status.MPI_SOURCE;
+
+    // Receive the byte stream
+    std::vector<int8_t> buf;
+    buf.resize(size);
+    receive(&buf[0], size * sizeof(char), actualSource, type, status);
+
+    // Create a message to populate
+    MessageFactory factory;
+    IMessageSharedPtr msg(factory.create(type));
+
+    // Decode
+    LOFAR::BlobIBufVector<int8_t> bv(buf);
+    LOFAR::BlobIStream in(bv);
+    int version = in.getStart("Message");
+    ASKAPASSERT(version == 1);
+    in >> *msg;
+    in.getEnd();
+
+    return msg;
+}
+

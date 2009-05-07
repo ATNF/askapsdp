@@ -40,7 +40,7 @@
 
 // Local includes
 #include <distributedimager/ImageMultiScaleSolverMaster.h>
-#include <distributedimager/SolverTaskComms.h>
+#include <distributedimager/IBasicComms.h>
 
 // Using
 using namespace askap::scimath;
@@ -130,7 +130,7 @@ void DistributedImageSolverFactory::configureThresholds(const LOFAR::ACC::APS::P
 
 Solver::ShPtr DistributedImageSolverFactory::make(askap::scimath::Params &ip,
         const LOFAR::ACC::APS::ParameterSet &parset,
-        askap::cp::SolverTaskComms& comms) {
+        askap::cp::IBasicComms& comms) {
 
     // Temporary
     ASKAPCHECK(!parset.isDefined("solver.Clean.threshold"), 

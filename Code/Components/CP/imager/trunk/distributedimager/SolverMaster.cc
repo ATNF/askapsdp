@@ -48,7 +48,7 @@
 #include <casa/OS/Timer.h>
 
 // Local includes
-#include <distributedimager/MPIBasicComms.h>
+#include <distributedimager/IBasicComms.h>
 #include <distributedimager/DistributedImageSolverFactory.h>
 
 // Using
@@ -60,7 +60,7 @@ using namespace askap::synthesis;
 ASKAP_LOGGER(logger, ".SolverMaster");
 
 SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::MPIBasicComms& comms,
+        askap::cp::IBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
 : itsParset(parset), itsComms(comms), itsModel(model_p)
 {

@@ -48,7 +48,10 @@
 #include <lattices/Lattices/ArrayLattice.h>
 
 // Local includes
-#include <distributedimager/SolverTaskComms.h>
+#include <distributedimager/IBasicComms.h>
+#include <messages/IMessage.h>
+#include <messages/CleanRequest.h>
+#include <messages/CleanResponse.h>
 
 // Using
 using namespace casa;
@@ -60,7 +63,7 @@ ASKAP_LOGGER(logger, ".ImageMultiScaleSolverMaster");
 
 ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
         const LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::SolverTaskComms& comms)
+        askap::cp::IBasicComms& comms)
     : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms) 
 {
     itsScales.resize(3);
@@ -72,7 +75,7 @@ ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::P
 ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
         const casa::Vector<float>& scales,
         const LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::SolverTaskComms& comms)
+        askap::cp::IBasicComms& comms)
     : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms)
 {
     itsScales.resize(scales.size());
@@ -226,6 +229,10 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
         casa::LatticeStepper mstepper(cleanLattice.shape(), patchShape);
         casa::LatticeIterator<float> miterator(cleanLattice, mstepper);
 
+        // Mark all nodes as outstanding
+        itsFinished.resize(itsComms.getNumNodes());
+        itsFinished.assign(itsFinished.size(), false);
+
         // Now iterate through and send the patches to cleaner PEs
         int patchid = 0;
         for (diterator.reset(), miterator.reset(); !diterator.atEnd(); diterator++, miterator++, maskiterator++, patchid++) {
@@ -238,12 +245,14 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
             // sort of command message incorporating this plus the "no more workunits"
             // message (below) could be developed.
             int source;
-            while (itsComms.receiveStringAny(source) != "next") {
+            IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::CLEAN_RESPONSE, source);
+            CleanResponse* response = dynamic_cast<CleanResponse*>(msg.get());
+            while (response->get_payloadType() != CleanResponse::READY) {
                 ASKAPLOG_INFO_STR(logger, "Got CleanResponse - Still work to do");
-                processCleanResponse();
+                processCleanResponse(response);
+                msg = itsComms.receiveMessageAnySrc(IMessage::CLEAN_RESPONSE, source);
+                response = dynamic_cast<CleanResponse*>(msg.get());
             }
-
-            itsComms.sendString("ok", source);
 
             ASKAPLOG_INFO_STR(logger, "Master is allocating CleanRequest " << patchid
                     << " to worker " << source);
@@ -258,42 +267,44 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
 
             itsCleanworkq.push_back(work);
 
-            itsComms.sendCleanRequest(patchid,
-                    dirtyPatch,
-                    psfCenter.get(),
-                    maskPatch,
-                    *(cleanPatch),
-                    threshold().getValue(),
-                    threshold().getUnit(),
-                    fractionalThreshold(),
-                    itsScales,
-                    niter(),
-                    gain(),
-                    source);
+            CleanRequest request;
+            request.set_payloadType(CleanRequest::WORK);
+            request.set_patchId(patchid);
+            request.set_dirty(dirtyPatch);
+            request.set_psf(psfCenter.get());
+            request.set_mask(maskPatch);
+            request.set_model(*cleanPatch);
+            request.set_threshold(threshold().getValue());
+            request.set_thresholdUnits(threshold().getUnit());
+            request.set_fractionalThreshold(fractionalThreshold());
+            request.set_scales(itsScales);
+            request.set_niter(niter());
+            request.set_gain(gain());
+
+            itsComms.sendMessage(request, source);
         }
 
         while (outstanding())
         {
-                ASKAPLOG_INFO_STR(logger, "Waiting for outstanding CleanRequests");
-                processCleanResponse();
-        }
-                ASKAPLOG_INFO_STR(logger, "No more outstanding CleanRequests");
-
-        // Send each process an empty string to indicate
-        // there are no more workunits on offer (TODO: Need to find
-        // a better way of doing this)
-        for (int dest = 1; dest < itsComms.getNumNodes(); ++dest) {
-            ASKAPLOG_INFO_STR(logger, "Finishing up for  worker " << dest);
-            std::string msg = itsComms.receiveString(dest);
-            if (msg == "response") {
-                // ignore
-                --dest;
-                continue;
+            int id;
+            ASKAPLOG_INFO_STR(logger, "Waiting for outstanding CleanRequests");
+            IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::CLEAN_RESPONSE, id);
+            CleanResponse* response = dynamic_cast<CleanResponse*>(msg.get());
+            if (response->get_payloadType() == CleanResponse::RESULT) 
+            {
+                processCleanResponse(response);
+            } else {
+                ASKAPLOG_INFO_STR(logger, "############## Finalizing Worker: " << id);
+                // Signal the worker that there are no more workunits
+                CleanRequest request;
+                request.set_payloadType(CleanRequest::FINALIZE);
+                itsComms.sendMessage(request, id);
+                itsFinished[id-1] = true;
             }
-            ASKAPLOG_INFO_STR(logger, "Read from " << dest << " the message: " << msg);
-            ASKAPCHECK(msg == "next", "Expected message: next");
-            itsComms.sendString("", dest);
         }
+        ASKAPLOG_INFO_STR(logger, "No more outstanding CleanRequests - Signalling Finished");
+
+        signalFinished();
 
         // Check if all patches have been cleaned and determine strengthOptimum.
         double strengthOptimum = 0.0;
@@ -349,12 +360,14 @@ Solver::ShPtr ImageMultiScaleSolverMaster::clone() const
 }
 
 
-void ImageMultiScaleSolverMaster::processCleanResponse(void)
+void ImageMultiScaleSolverMaster::processCleanResponse(CleanResponse* response)
 {
-    int patchid;
-    casa::Array<float> patch;
-    double strengthOptimum;
-    itsComms.recvCleanResponse(patchid, patch, strengthOptimum);
+    ASKAPCHECK(response->get_payloadType() == CleanResponse::RESULT,
+            "Only RESULT responses should be sent to processCleanResponse()");
+
+    int patchid = response->get_patchId();
+    casa::Array<float>& patch = response->get_patch();
+    double strengthOptimum = response->get_strengthOptimum();
 
     itsCleanworkq[patchid].model->assign(patch);
     itsCleanworkq[patchid].done = true;
@@ -375,3 +388,29 @@ bool ImageMultiScaleSolverMaster::outstanding(void)
     return false;
 }
 
+void ImageMultiScaleSolverMaster::signalFinished(void)
+{
+    // Send each process an empty string to indicate
+    // there are no more workunits on offer (TODO: Need to find
+    // a better way of doing this)
+    for (int id = 1; id < itsComms.getNumNodes(); ++id) {
+        if (itsFinished[id-1] == true) {
+            ASKAPLOG_INFO_STR(logger, "############## Finalizing Worker: " << id << " ALREADY FINISHED");
+            // Already finished
+            continue;
+        }
+        ASKAPLOG_INFO_STR(logger, "############## Finalizing Worker: " << id);
+        ASKAPLOG_INFO_STR(logger, "Finishing up for  worker " << id);
+
+        // Read the (hopefully) empty clean response the worker is sending
+        IMessageSharedPtr msg = itsComms.receiveMessage(IMessage::CLEAN_RESPONSE, id);
+        CleanResponse* response = dynamic_cast<CleanResponse*>(msg.get());
+        ASKAPCHECK(response->get_payloadType() == CleanResponse::READY, "Expected message: READY");
+
+        // Signal the worker that there are no more workunits
+        CleanRequest request;
+        request.set_payloadType(CleanRequest::FINALIZE);
+        itsComms.sendMessage(request, id);
+    }
+
+}

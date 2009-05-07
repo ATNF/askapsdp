@@ -38,7 +38,10 @@
 #include <casa/Arrays/Array.h>
 
 // Local includes
-#include <distributedimager/SolverTaskComms.h>
+#include <distributedimager/IBasicComms.h>
+#include <messages/IMessage.h>
+#include <messages/CleanRequest.h>
+#include <messages/CleanResponse.h>
 
 using namespace askap::cp;
 using namespace askap;
@@ -48,7 +51,7 @@ ASKAP_LOGGER(logger, ".ImageMultiScaleSolverWorker");
 
 ImageMultiScaleSolverWorker::ImageMultiScaleSolverWorker(
         const LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::SolverTaskComms& comms)
+        askap::cp::IBasicComms& comms)
     : itsParset(parset), itsComms(comms) 
 {
 }
@@ -57,28 +60,28 @@ void ImageMultiScaleSolverWorker::solveNormalEquations(void)
 {
     while (1) {
         // Ask the master for a workunit
-        itsComms.sendString("next", itsMaster);
-        std::string ms = itsComms.receiveString(itsMaster);
-        if (ms != "ok") {
+        CleanResponse response;
+        response.set_payloadType(CleanResponse::READY);
+        itsComms.sendMessage(response, itsMaster);
+
+        IMessageSharedPtr msg = itsComms.receiveMessage(IMessage::CLEAN_REQUEST, itsMaster);
+        CleanRequest* request = dynamic_cast<CleanRequest*>(msg.get());
+        if (request->get_payloadType() == CleanRequest::FINALIZE) {
             // Indicates all workunits have been assigned already
             break;
         }
 
-        int patchid;
-        casa::Array<float> dirtyarray;
-        casa::Array<float> psfarray;
-        casa::Array<float> maskarray;
-        casa::Array<float> cleanarray;
-        double _threshold;
-        std::string thresholdUnits;
-        double fractionalThreshold;
-        casa::Vector<float>scales;
-        int niter;
-        double gain;
-
-        itsComms.recvCleanRequest(patchid, dirtyarray, psfarray, maskarray, cleanarray,
-                _threshold, thresholdUnits, fractionalThreshold, scales,
-                niter, gain);
+        int patchid = request->get_patchId();
+        casa::Array<float>& dirtyarray  = request->get_dirty();
+        casa::Array<float>& psfarray = request->get_psf();
+        casa::Array<float>& maskarray = request->get_mask();
+        casa::Array<float>& cleanarray = request->get_model();
+        double _threshold = request->get_threshold();
+        std::string thresholdUnits = request->get_thresholdUnits();
+        double fractionalThreshold = request->get_fractionalThreshold();
+        casa::Vector<float> scales = request->get_scales();
+        int niter = request->get_niter();
+        double gain = request->get_gain();
 
         casa::ArrayLattice<float> dirty(dirtyarray);
         casa::ArrayLattice<float> psf(psfarray);
@@ -125,8 +128,11 @@ void ImageMultiScaleSolverWorker::solveNormalEquations(void)
 
         // Send the patch back to the master
         ASKAPLOG_INFO_STR(logger, "Sending CleanResponse for patchid " << patchid);
-        itsComms.sendString("response", itsMaster);
-        itsComms.sendCleanResponse(patchid, clean_p->asArray(), lc.strengthOptimum(), itsMaster);
+        response.set_payloadType(CleanResponse::RESULT);
+        response.set_patchId(patchid);
+        response.set_patch(clean_p->asArray());
+        response.set_strengthOptimum(lc.strengthOptimum());
+        itsComms.sendMessage(response, itsMaster);
     }
     ASKAPLOG_INFO_STR(logger, "CleanWorker ACK no more work to do");
 };

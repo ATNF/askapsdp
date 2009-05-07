@@ -1,6 +1,4 @@
-/// @file
-///
-/// ImageMultiScaleSolverWorker
+/// @file IMessage.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,41 +23,10 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
-///
-#ifndef CP_IMAGEMULTISCALESOLVERWORKER_H_
-#define CP_IMAGEMULTISCALESOLVERWORKER_H_
 
-// ASKAPsoft includes
-#include <APS/ParameterSet.h>
+// Include own header file first
+#include <messages/IMessage.h>
 
-// Local includes
-#include <distributedimager/IBasicComms.h>
-
-namespace askap
+askap::cp::IMessage::~IMessage()
 {
-    namespace cp
-    {
-        class ImageMultiScaleSolverWorker 
-        {
-            public:
-                ImageMultiScaleSolverWorker(const LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
-
-                void solveNormalEquations(void);
-
-            private:
-
-                // ID of the master process
-                static const int itsMaster = 0;
-
-                // Parameter set
-                LOFAR::ACC::APS::ParameterSet itsParset;
-
-                // Communications class
-                askap::cp::IBasicComms& itsComms;
-
-        };
-
-    }
 }
-#endif

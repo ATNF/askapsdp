@@ -27,12 +27,15 @@
 #ifndef ASKAP_CP_MPIBASICCOMMS_H
 #define ASKAP_CP_MPIBASICCOMMS_H
 
+// Include own header file first
+#include "IBasicComms.h"
+
 // System includes
 #include <string>
 #include <mpi.h>
 
-// Local package includes
-#include "IBasicComms.h"
+// ASKAPsoft includes
+#include <messages/IMessage.h>
 
 namespace askap {
 namespace cp {
@@ -64,6 +67,10 @@ public:
         CLEAN_REQUEST,
         CLEAN_RESPONSE
     };
+
+    void sendMessage(const IMessage& msg, int dest);
+    const IMessageSharedPtr receiveMessage(IMessage::MessageType type, int source);
+    const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type, int& actualSource);
 
 private:
     // Check for error status and handle accordingly

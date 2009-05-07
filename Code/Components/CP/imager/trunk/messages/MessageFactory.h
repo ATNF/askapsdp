@@ -1,4 +1,4 @@
-/// @file SolverWorker.h
+/// @file MessageFactory.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,49 +24,26 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SOLVERWORKER_H
-#define ASKAP_CP_SOLVERWORKER_H
-
-// System includes
-#include <string>
+#ifndef ASKAP_CP_MESSAGEFACTORY_H
+#define ASKAP_CP_MESSAGEFACTORY_H
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
-
-// Local includes
-#include "distributedimager/ISolverTask.h"
-#include "distributedimager/IBasicComms.h"
+#include <messages/IMessage.h>
 
 namespace askap {
     namespace cp {
 
-        class SolverWorker : public ISolverTask
+        class MessageFactory
         {
             public:
-                SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms,
-                        askap::scimath::Params::ShPtr model_p);
+                /// @brief Constructor.
+                MessageFactory();
 
-                virtual ~SolverWorker();
+                /// @brief Destructor.
+                virtual ~MessageFactory();
 
-                virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
-
-                virtual void writeModel(const std::string& postfix);
-
-            private:
-                // No support for assignment
-                SolverWorker& operator=(const SolverWorker& rhs);
-
-                // No support for copy constructor
-                SolverWorker(const SolverWorker& src);
-
-                // Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
-
-                // Communications class
-                askap::cp::IBasicComms& itsComms;
+                /// @brief Create a message of the specified type.
+                IMessageSharedPtr create(const IMessage::MessageType& type);
         };
 
     };

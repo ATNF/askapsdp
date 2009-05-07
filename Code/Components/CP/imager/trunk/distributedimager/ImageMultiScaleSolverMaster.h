@@ -39,7 +39,8 @@
 #include <lattices/Lattices/LatticeCleaner.h>
 
 // Local includes
-#include <distributedimager/SolverTaskComms.h>
+#include <distributedimager/IBasicComms.h>
+#include <messages/CleanResponse.h>
 
 namespace askap
 {
@@ -62,7 +63,7 @@ namespace askap
                 /// @param ip Parameters i.e. the images
                 ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
                         const LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::SolverTaskComms& comms);
+                        askap::cp::IBasicComms& comms);
 
                 /// @brief Constructor from parameters and scales.
                 /// The parameters named image* will be interpreted as images and
@@ -72,7 +73,7 @@ namespace askap
                 ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
                         const casa::Vector<float>& scales,
                         const LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::SolverTaskComms& comms);
+                        askap::cp::IBasicComms& comms);
 
                 /// @brief Initialize this solver
                 virtual void init();
@@ -109,15 +110,18 @@ namespace askap
                 // Clean workqueue
                 std::vector<CleanerWork> itsCleanworkq;
 
-                void processCleanResponse(void);
+                void processCleanResponse(CleanResponse* response);
 
                 bool outstanding(void);
+
+                std::vector<bool> itsFinished;
+                void signalFinished(void);
 
                 // Parameter set
                 LOFAR::ACC::APS::ParameterSet itsParset;
 
                 // Communications class
-                askap::cp::SolverTaskComms& itsComms;
+                askap::cp::IBasicComms& itsComms;
 
         };
 

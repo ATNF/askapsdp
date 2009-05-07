@@ -41,7 +41,6 @@
 // Local includes
 #include "distributedimager/ISolverTask.h"
 #include "distributedimager/IBasicComms.h"
-#include "distributedimager/SolverTaskComms.h"
 
 namespace askap {
     namespace cp {
@@ -50,7 +49,7 @@ namespace askap {
         {
             public:
                 SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::MPIBasicComms& comms,
+                        askap::cp::IBasicComms& comms,
                         askap::scimath::Params::ShPtr model_p);
                 virtual ~SolverMaster();
 
@@ -72,7 +71,7 @@ namespace askap {
                 LOFAR::ACC::APS::ParameterSet& itsParset;
    
                 // Communications class
-                askap::cp::SolverTaskComms itsComms;
+                askap::cp::IBasicComms& itsComms;
 
                 // Model
                 askap::scimath::Params::ShPtr itsModel;

@@ -31,6 +31,9 @@
 #include <string>
 #include <vector>
 
+// ASKAPsoft includes
+#include <messages/IMessage.h>
+
 namespace askap {
     namespace cp {
 
@@ -79,6 +82,11 @@ namespace askap {
                 ///                     string as received.
                 /// @return the received string.
                 virtual std::string receiveStringAny(int& source) = 0;
+
+                virtual void sendMessage(const IMessage& msg, int dest) = 0;
+                virtual const IMessageSharedPtr receiveMessage(IMessage::MessageType type, int source) = 0;
+                virtual const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type, int& actualSource) = 0;
+
         };
 
     };

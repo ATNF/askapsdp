@@ -37,7 +37,7 @@
 #include <measurementequation/ImageSolver.h>
 
 // Local includes
-#include <distributedimager/SolverTaskComms.h>
+#include <distributedimager/IBasicComms.h>
 
 namespace askap
 {
@@ -61,7 +61,7 @@ namespace askap
         /// @return shared pointer to the solver
         static askap::scimath::Solver::ShPtr make(askap::scimath::Params& ip, 
           const LOFAR::ACC::APS::ParameterSet& parset,
-          askap::cp::SolverTaskComms& comms); 
+          askap::cp::IBasicComms& comms); 
         
       protected:
         /// @brief Helper method to configure minor cycle threshold(s)
