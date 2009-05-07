@@ -106,13 +106,13 @@ namespace askap
 	this->itsNoiseLevel = src.itsNoiseLevel;
 	this->itsDetectionThreshold = src.itsDetectionThreshold;
 	this->itsHeader = src.itsHeader;
-	this->itsGaussFitSet = src.itsGaussFitSet;
+// 	this->itsGaussFitSet = src.itsGaussFitSet;
 	this->itsBoxMargins = src.itsBoxMargins;
-	this->itsFitParams = src.itsFitParams;
-// 	this->itsBestFit = src.itsBestFit;
-	this->itsChisq = src.itsChisq;
-	this->itsRMS = src.itsRMS;
-	this->itsNDoF = src.itsNDoF;
+ 	this->itsFitParams = src.itsFitParams;
+ 	this->itsBestFit = src.itsBestFit;
+// 	this->itsChisq = src.itsChisq;
+// 	this->itsRMS = src.itsRMS;
+// 	this->itsNDoF = src.itsNDoF;
 	return *this;
       }
 
@@ -695,25 +695,32 @@ namespace askap
 	
 	if(fitIsGood){
 	  this->hasFit = true;
-	  this->itsFitParams = fit[bestFit].params();
-// 	  if(ctr/4==1) 
-// 	    for(int i=3;i<6;i++) this->itsFitParams.setFlagFitThisParam(i,false);
-	  this->itsFitParams.setFlagFitThisParam(bestType);
-	  this->itsChisq = fit[bestFit].chisq();
-	  this->itsRMS = fit[bestFit].RMS();
-	  this->itsNDoF = fit[bestFit].ndof();
-	  // Make a map so that we can output the fitted components in order of peak flux
-	  std::multimap<double,int> fitMap = fit[bestFit].peakFluxList();
-	  // Need to use reverse_iterator so that brightest component's listed first
-	  std::multimap<double,int>::reverse_iterator rfit=fitMap.rbegin();
-	  for(;rfit!=fitMap.rend();rfit++)
-	    this->itsGaussFitSet.push_back(fit[bestFit].gaussian(rfit->second));
+	  this->itsBestFit.saveResults(fit[bestFit]);
+// 	  this->itsBestFit = fit[bestFit];
+// // 	  this->itsFitParams = fit[bestFit].params();
+// // // 	  if(ctr/4==1) 
+// // // 	    for(int i=3;i<6;i++) this->itsFitParams.setFlagFitThisParam(i,false);
+// // 	  this->itsFitParams.setFlagFitThisParam(bestType);
+// // 	  this->itsChisq = fit[bestFit].chisq();
+// // 	  this->itsRMS = fit[bestFit].RMS();
+// // 	  this->itsNDoF = fit[bestFit].ndof();
+// 	  // Make a map so that we can output the fitted components in order of peak flux
+// 	  std::multimap<double,int> fitMap = fit[bestFit].peakFluxList();
+// 	  // Need to use reverse_iterator so that brightest component's listed first
+// 	  std::multimap<double,int>::reverse_iterator rfit=fitMap.rbegin();
+// 	  for(;rfit!=fitMap.rend();rfit++)
+// 	    this->itsGaussFitSet.push_back(fit[bestFit].gaussian(rfit->second));
 
+// 	  ASKAPLOG_INFO_STR(logger,"BEST FIT: #" << bestFit+1
+// 			    <<" = " << bestFit%this->itsFitParams.maxNumGauss()+1 << " Gaussians"
+// 			    << ", chisq = " << fit[bestFit].chisq()
+// 			    << ", chisq/nu =  "  << bestRChisq
+// 			    << ", RMS = " << fit[bestFit].RMS());
 	  ASKAPLOG_INFO_STR(logger,"BEST FIT: #" << bestFit+1
 			    <<" = " << bestFit%this->itsFitParams.maxNumGauss()+1 << " Gaussians"
-			    << ", chisq = " << fit[bestFit].chisq()
-			    << ", chisq/nu =  "  << bestRChisq
-			    << ", RMS = " << fit[bestFit].RMS());
+			    << ", chisq = " << this->itsBestFit.chisq()
+			    << ", chisq/nu =  "  << this->itsBestFit.redchisq()
+			    << ", RMS = " << this->itsBestFit.RMS());
 	}
 	else{
 	  this->itsFitParams = baseFitter;
@@ -817,7 +824,8 @@ namespace askap
 
 	columns[duchamp::Column::NUM].widen(); // to account for the # characters at the start of the title lines
 
-	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
+// 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
+	if(this->itsBestFit.numFits()==0) {  //if no fits were made...
 	  float zero = 0.;
 	  columns[duchamp::Column::NUM].printEntry(stream,this->getID());
 	  columns[duchamp::Column::RA].printEntry(stream,this->getRAs());
@@ -840,8 +848,10 @@ namespace askap
 	  stream << "\n";
 	}
 
+	std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFit.fitSet();
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
-	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
+// 	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
+	for(fit=fitSet.begin(); fit<fitSet.end(); fit++){
 
 	  std::stringstream id;
 	  id << this->getID() << char(firstSuffix + suffixCtr++);
@@ -870,11 +880,17 @@ namespace askap
 	  majFit.printEntry(stream,fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
 	  minFit.printEntry(stream,fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
 	  paFit.printEntry(stream,fit->PA()*180./M_PI);
-	  chisqFit.printEntry(stream,this->itsChisq);
+// 	  chisqFit.printEntry(stream,this->itsChisq);
+// 	  rmsIm.printEntry(stream,this->itsNoiseLevel);
+// 	  rmsFit.printEntry(stream,this->itsRMS);
+// 	  nfree.printEntry(stream,this->itsFitParams.numFreeParam());
+// 	  ndofFit.printEntry(stream,this->itsNDoF);
+	  chisqFit.printEntry(stream,this->itsBestFit.chisq());
 	  rmsIm.printEntry(stream,this->itsNoiseLevel);
-	  rmsFit.printEntry(stream,this->itsRMS);
-	  nfree.printEntry(stream,this->itsFitParams.numFreeParam());
-	  ndofFit.printEntry(stream,this->itsNDoF);
+	  rmsFit.printEntry(stream,this->itsBestFit.RMS());
+// 	  nfree.printEntry(stream,this->itsBestFit.params().numFreeParam());
+	  nfree.printEntry(stream,this->itsBestFit.numFreeParam());
+	  ndofFit.printEntry(stream,this->itsBestFit.ndof());
 	  npixFit.printEntry(stream,this->boxSize());
 	  npixObj.printEntry(stream,this->getSize());
 	  stream << "\n";
@@ -903,13 +919,13 @@ namespace askap
 	/// area used in the fitting. It includes the border around the
 	/// detection fiven by sourcefitting::detectionBorder.
 
-	std::vector<casa::Gaussian2D<Double> >::iterator fit;
-      
 	double *pix = new double[3];
 	double *world = new double[3];
 	pix[2] = 0.;
 
-	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
+	std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFit.fitSet();
+	std::vector<casa::Gaussian2D<Double> >::iterator fit;
+	for(fit=fitSet.begin(); fit<fitSet.end(); fit++){
 	
 	  pix[0] = fit->xCenter();
 	  pix[1] = fit->yCenter();

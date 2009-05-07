@@ -31,7 +31,8 @@
 #ifndef ASKAP_ANALYSIS_RADIOSOURCE_H_
 #define ASKAP_ANALYSIS_RADIOSOURCE_H_
 
-#include <sourcefitting/Fitter.h>
+#include <sourcefitting/FittingParameters.h>
+#include <sourcefitting/FitResults.h>
 #include <sourcefitting/Component.h>
 
 #include <Blob/BlobIStream.h>
@@ -65,7 +66,8 @@ namespace askap
     {
 
 
-      class Fitter;  // foreshadow Fitter so that we can make use of it in the following
+/*       class FittingParameters;  // foreshadow so that we can make use of it in the following */
+/*       class FitResults;  // foreshadow so that we can make use of it in the following */
 
       /// @brief Class to store all information on a detected source.
       ///
@@ -142,7 +144,8 @@ namespace askap
 	float detectionThreshold(){return itsDetectionThreshold;};
 
 	/// @brief Return the set of fits
-	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
+	//	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
+	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsBestFit.fitSet();};
 
 	/// @brief Print summary of detection & fit
 	void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
@@ -212,13 +215,13 @@ namespace askap
 	}
 
 	/// @brief Return a reference to the set of Gaussian fits.
-	std::vector<casa::Gaussian2D<Double> >& fitset(){
-	  std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;};
+/* 	std::vector<casa::Gaussian2D<Double> >& fitset(){ */
+/* 	  std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;}; */
+	std::vector<casa::Gaussian2D<Double> >& fitset(){return itsBestFit.fits();};
 
 	/// @brief Return a reference to the fitting parameters
-	FittingParameters &fitparams(){
-	  /* return itsBestFit.rparams();}; */
-	  FittingParameters& rfitpars = itsFitParams; return rfitpars;};
+	FittingParameters &fitparams(){ /*return itsBestFit.rparams();}; */
+ 	  FittingParameters& rfitpars = itsFitParams; return rfitpars;}; 
 
       protected:
 
@@ -237,16 +240,22 @@ namespace askap
 	/// @brief The detection threshold used for the object
 	float itsDetectionThreshold;
 
-	/// @brief A two-dimensional Gaussian fit to the object.
-	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
-
-	/// @brief The best fit to the object.
+	/// @brief The best fit results
+	FitResults itsBestFit;
+	/// @brief The parameters for best fit
 	FittingParameters itsFitParams;
+
+
+/* 	/// @brief A two-dimensional Gaussian fit to the object. */
+/* 	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet; */
+
+/* 	/// @brief The best fit to the object. */
+/* /\* 	FittingParameters itsFitParams; *\/ */
 /* 	Fitter itsBestFit; */
 
-	float itsChisq;
-	float itsRMS;
-	int itsNDoF;
+/* /\* 	float itsChisq; *\/ */
+/* /\* 	float itsRMS; *\/ */
+/* /\* 	int itsNDoF; *\/ */
 
 	/// @brief The min & max points of the box, taking into account the borders of the data array
 	std::vector<std::pair<long,long> > itsBoxMargins;

@@ -32,6 +32,8 @@
 
 #include <askap_analysis.h>
 #include <sourcefitting/RadioSource.h>
+#include <sourcefitting/FittingParameters.h>
+#include <sourcefitting/FitResults.h>
 
 #include <string>
 #include <vector>
@@ -60,6 +62,133 @@ namespace askap
     namespace sourcefitting
     {
 
+      LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FittingParameters& par)
+      {
+	blob << par.itsBoxPadSize;
+	blob << par.itsMaxRMS;
+	blob << par.itsMaxNumGauss;
+	blob << par.itsChisqConfidence;
+	blob << par.itsMaxReducedChisq;
+	blob << par.itsNoiseBoxSize;
+	blob << par.itsMinFitSize;
+	blob << par.itsBoxFlux;
+	blob << par.itsSrcPeak;
+	blob << par.itsDetectThresh;
+	blob << par.itsBeamSize;
+	blob << par.itsMaxRetries;
+	blob << par.itsCriterium;
+	blob << par.itsMaxIter;
+	blob << par.itsUseNoise;
+	blob << par.itsXmin;
+	blob << par.itsXmax;
+	blob << par.itsYmin;
+	blob << par.itsYmax;
+	uint32 size = par.itsFlagFitThisParam.size();
+	blob << size;
+	for(uint32 i=0;i<size;i++)
+	  blob << par.itsFlagFitThisParam[i];
+	size = par.itsFitTypes.size();
+	blob << size;
+	for(uint32 i=0;i<size;i++)
+	  blob << par.itsFitTypes[i];
+	return blob;
+      }
+
+      LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FittingParameters& par)
+      {
+	blob >> par.itsBoxPadSize;
+	blob >> par.itsMaxRMS;
+	blob >> par.itsMaxNumGauss;
+	blob >> par.itsChisqConfidence;
+	blob >> par.itsMaxReducedChisq;
+	blob >> par.itsNoiseBoxSize;
+	blob >> par.itsMinFitSize;
+	blob >> par.itsBoxFlux;
+	blob >> par.itsSrcPeak;
+	blob >> par.itsDetectThresh;
+	blob >> par.itsBeamSize;
+	blob >> par.itsMaxRetries;
+	blob >> par.itsCriterium;
+	blob >> par.itsMaxIter;
+	blob >> par.itsUseNoise;
+	blob >> par.itsXmin;
+	blob >> par.itsXmax;
+	blob >> par.itsYmin;
+	blob >> par.itsYmax;
+	int32 size;
+	bool flag;
+	blob >> size;
+	par.itsFlagFitThisParam = std::vector<bool>(size);
+	for(int i=0;i<size;i++){
+	  blob >> flag;
+	  par.itsFlagFitThisParam[i] = flag;
+	}
+	blob >> size;
+	par.itsFitTypes = std::vector<std::string>(size);
+	std::string type;
+	for(int i=0;i<size;i++){
+	  blob >> type;
+	  par.itsFitTypes[i] = type;
+	}
+ 	return blob;
+     }
+
+
+      LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FitResults& result)
+      {
+
+	blob << result.itsChisq;
+	blob << result.itsRedChisq;
+	blob << result.itsRMS;
+	blob << result.itsNumDegOfFreedom;
+	blob << result.itsNumFreeParam;
+	blob << result.itsNumGauss;
+
+	uint32 i = result.itsGaussFitSet.size(); blob << i;
+	std::vector<casa::Gaussian2D<Double> >::iterator fit = result.itsGaussFitSet.begin();
+	for(; fit<result.itsGaussFitSet.end(); fit++){
+	  blob << fit->height();     
+	  blob << fit->xCenter();    
+	  blob << fit->yCenter();    
+	  blob << fit->majorAxis();  
+	  blob << fit->axialRatio(); 
+	  blob << fit->PA();         
+	}
+	
+	return blob;
+
+      }
+
+
+      LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FitResults& result)
+      {
+	blob >> result.itsChisq;
+	blob >> result.itsRedChisq;
+	blob >> result.itsRMS;
+	blob >> result.itsNumDegOfFreedom;
+	blob >> result.itsNumFreeParam;
+	blob >> result.itsNumGauss;
+	uint32 i,size;
+	blob >> size;
+	result.itsGaussFitSet.clear();
+	for(i=0;i<size;i++){
+	  Double d1,d2,d3,d4,d5,d6;
+	  blob >> d1;
+	  blob >> d2;
+	  blob >> d3;
+	  blob >> d4;
+	  blob >> d5;
+	  blob >> d6;
+	  casa::Gaussian2D<Double> fit(d1,d2,d3,d4,d5,d6);
+	  result.itsGaussFitSet.push_back(fit);
+	}
+
+	return blob;
+      }
+
+
+
+
       LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& blob, RadioSource& src)
       {
 	/// @brief Pass a RadioSource object into a Blob
@@ -72,7 +201,6 @@ namespace askap
 	float f;
 	std::string s;
 	bool b;
-	Double d;
 	int size = src.getSize();
 	blob << size;
 	std::vector<PixelInfo::Voxel> pixelSet = src.getPixelSet();
@@ -88,7 +216,7 @@ namespace askap
 	f = src.intFlux;    blob << f;
 	f = src.peakFlux;   blob << f;
 	f = src.peakSNR;    blob << f;
-	l = src.xpeak;	  blob << l;
+	l = src.xpeak;	    blob << l;
 	l = src.ypeak;      blob << l;
 	l = src.zpeak;      blob << l;
 	f = src.xCentroid;  blob << f;
@@ -123,27 +251,8 @@ namespace askap
 	f = src.itsDetectionThreshold; blob << f;
 	f = src.itsNoiseLevel; blob << f;
 
-	i = src.itsGaussFitSet.size(); blob << i;
-	std::vector<casa::Gaussian2D<Double> >::iterator fit = src.itsGaussFitSet.begin();
-	for(; fit<src.itsGaussFitSet.end(); fit++){
-	  d = fit->height();     blob << d;
-	  d = fit->xCenter();    blob << d;
-	  d = fit->yCenter();    blob << d;
-	  d = fit->majorAxis();  blob << d;
-	  d = fit->axialRatio(); blob << d;
-	  d = fit->PA();         blob << d;
-	}
-
-	f = src.itsChisq;   blob << f;
-	f = src.itsRMS;     blob << f;
-	i = src.itsNDoF;    blob << i;
-
-	//       l = src.itsBoxMargins[0].first;    blob << l;
-	//       l = src.itsBoxMargins[0].second;   blob << l;
-	//       l = src.itsBoxMargins[1].first;    blob << l;
-	//       l = src.itsBoxMargins[1].second;   blob << l;
-	//       l = src.itsBoxMargins[2].first;    blob << l;
-	//       l = src.itsBoxMargins[2].second;   blob << l;
+	blob << src.itsFitParams;
+	blob << src.itsBestFit;
 
 	return blob;
       }
@@ -159,7 +268,6 @@ namespace askap
 	int32 l;
 	bool b;
 	float f;
-// 	Double d;
 	std::string s;
 	int32 size;
 	blob >> size;
@@ -212,36 +320,8 @@ namespace askap
 	blob >> f; src.itsDetectionThreshold = f;
 	blob >> f; src.itsNoiseLevel = f;
 
-	blob >> size;
-	src.itsGaussFitSet.clear();
-	for(i=0;i<size;i++){
-	  Double d1,d2,d3,d4,d5,d6;
-	  blob >> d1;
-	  blob >> d2;
-	  blob >> d3;
-	  blob >> d4;
-	  blob >> d5;
-	  blob >> d6;
-	  casa::Gaussian2D<Double> fit(d1,d2,d3,d4,d5,d6);
-// 	  blob >> d; fit.setHeight(d);
-// 	  blob >> d; fit.setXcenter(d);
-// 	  blob >> d; fit.setYcenter(d);
-// 	  blob >> d; fit.setMajorAxis(d);
-// 	  blob >> d; fit.setAxialRatio(d);
-// 	  blob >> d; fit.setPA(d);
-	  src.itsGaussFitSet.push_back(fit);
-	}
-
-	blob >> f; src.itsChisq = f;
-	blob >> f; src.itsRMS = f;
-	blob >> i; src.itsNDoF = i;
-
-	//       std::vector<std::pair<long,long> > box;
-	//       int32 x,y;
-	//       blob >> x; blob >> y; box[0] = std::pair<long,long>(x,y);
-	//       blob >> x; blob >> y; box[1] = std::pair<long,long>(x,y);
-	//       blob >> x; blob >> y; box[2] = std::pair<long,long>(x,y);
-	//       src.itsBoxMargins = box;
+	blob >> src.itsFitParams;
+	blob >> src.itsBestFit;
 
 	return blob;
       }
