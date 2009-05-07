@@ -258,10 +258,6 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
 
             itsCleanworkq.push_back(work);
 
-            std::vector<float> stdscales;
-            for (unsigned int i = 0; i < itsScales.size(); ++i) {
-                stdscales.push_back(itsScales[i]);
-            }
             itsComms.sendCleanRequest(patchid,
                     dirtyPatch,
                     psfCenter.get(),
@@ -270,7 +266,6 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
                     threshold().getValue(),
                     threshold().getUnit(),
                     fractionalThreshold(),
-                    //stdscales,
                     itsScales,
                     niter(),
                     gain(),

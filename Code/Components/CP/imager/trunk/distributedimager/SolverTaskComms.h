@@ -29,7 +29,6 @@
 
 // System includes
 #include <string>
-#include <vector>
 
 // ASKAPsoft includes
 #include <casa/Arrays/Array.h>
@@ -97,7 +96,6 @@ namespace askap {
                         double threshold,
                         std::string thresholdUnits,
                         double fractionalThreshold,
-                        //std::vector<float>& scales,
                         casa::Vector<float>& scales,
                         int niter,
                         double gain,
@@ -111,7 +109,6 @@ namespace askap {
                         double& threshold,
                         std::string& thresholdUnits,
                         double& fractionalThreshold,
-                        //std::vector<float>& scales,
                         casa::Vector<float>& scales,
                         int& niter,
                         double& gain);

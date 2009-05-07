@@ -72,7 +72,6 @@ void ImageMultiScaleSolverWorker::solveNormalEquations(void)
         double _threshold;
         std::string thresholdUnits;
         double fractionalThreshold;
-        //std::vector<float> scales;
         casa::Vector<float>scales;
         int niter;
         double gain;
