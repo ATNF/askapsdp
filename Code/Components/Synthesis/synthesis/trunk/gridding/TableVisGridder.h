@@ -34,6 +34,7 @@
 // own includes
 #include <gridding/IVisGridder.h>
 #include <dataaccess/IDataAccessor.h>
+#include <gridding/FrequencyMapper.h>
 
 // std includes
 #include <string>
@@ -347,6 +348,11 @@ namespace askap
       /// account. This is a flag showing that itsFeedUsedForPSF and itsPointingUsedForPSF are ignored.
       /// Default value is false.
       bool itsUseAllDataForPSF;     
+      
+      /// @brief mapping class between image planes and accessor channels
+      /// @details Correspondence between planes of the image cube and accessor channels may be
+      /// non-trivial. This class takes care of the mapping.
+      FrequencyMapper itsFreqMapper;
     };
   }
 }

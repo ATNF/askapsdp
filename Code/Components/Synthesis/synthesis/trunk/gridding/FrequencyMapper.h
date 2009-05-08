@@ -34,6 +34,8 @@
 #include <fitting/Axes.h>
 #include <casa/Arrays/Vector.h>
 
+#include <vector>
+
 namespace askap {
 
 namespace synthesis {
@@ -71,6 +73,14 @@ struct FrequencyMapper {
    /// expected that no fractional channel offset can occur.
    void setupMapping(const casa::Vector<casa::Double> &freqs);
    
+   /// @brief test whether the given channel is mapped 
+   /// @details The measurement does not necessarily contribute to the cube which is being imaged.
+   /// This method allows to check whether some mapping exists. Operator() throws the exception if
+   /// it is called for a channel without a mapping.
+   /// @param[in] chan accessor channel
+   /// @return true, if the given channel has a mapping
+   bool isMapped(casa::uInt chan)  const;
+   
    /// @brief map accessor channel to image channel
    /// @details
    /// @param[in] chan accessor channel
@@ -87,8 +97,9 @@ private:
    int itsImageNChan;
    /// @brief number of accessor channels
    casa::uInt itsAccessorNChan;
-   /// @brief cached channel increment expressed in accessor channels.
-   /// @details (itsEndFreq-itsStartFreq)/itsNFreqChan
+   /// @brief map of accessor channels to image channels
+   /// @details the value is negative if no mapping exists for a particular channel
+   std::vector<int> itsMap;   
 };
 
 } // namespace synthesis

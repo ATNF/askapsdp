@@ -29,6 +29,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <gridding/FrequencyMapper.h>
+#include <askap/AskapError.h>
 
 using namespace askap;
 using namespace synthesis;
@@ -54,6 +55,11 @@ FrequencyMapper::FrequencyMapper(const scimath::Axes &axes, int nchan) : itsImag
 /// @note an exception is thrown if axes object doesn't contain the spectral axis
 void FrequencyMapper::setupImage(const scimath::Axes &axes, int nchan)
 {
+   ASKAPCHECK(axes.has("FREQUENCY"), "FREQUENCY axis is missing in axes object passed to FrequencyMapper:setupImage");
+   ASKAPASSERT(nchan>0);
+   itsStartFreq = axes.start("FREQUENCY");
+   itsEndFreq = axes.end("FREQUENCY");
+   itsImageNChan = nchan;
 }
    
 /// @brief setup mapping 
@@ -65,7 +71,31 @@ void FrequencyMapper::setupImage(const scimath::Axes &axes, int nchan)
 /// expected that no fractional channel offset can occur.
 void FrequencyMapper::setupMapping(const casa::Vector<casa::Double> &freqs)
 {
+   ASKAPCHECK(itsImageNChan>0, "An attempt to call setupMapping for uninitialised FrequencyMapper");
+   itsMap.resize(freqs.nelements());
+   const double increment = (itsEndFreq - itsStartFreq)/double(itsImageNChan);
+   for (casa::uInt chan=0; chan<freqs.nelements(); ++chan) {
+        const int imgChan = int((freqs[chan]-itsStartFreq)/increment*1000.)/1000;
+        if (imgChan<0 || imgChan>=itsImageNChan) {
+            itsMap[chan] = -1;
+        } else {
+            itsMap[chan] = imgChan;
+        }
+   }
 }
+
+/// @brief test whether the given channel is mapped 
+/// @details The measurement does not necessarily contribute to the cube which is being imaged.
+/// This method allows to check whether some mapping exists. Operator() throws the exception if
+/// it is called for a channel without a mapping.
+/// @param[in] chan accessor channel
+/// @return true, if the given channel has a mapping
+bool FrequencyMapper::isMapped(casa::uInt chan)  const
+{
+  ASKAPDEBUGASSERT(chan<itsMap.size());
+  return itsMap[chan]>=0;
+}
+
    
 /// @brief map accessor channel to image channel
 /// @details
@@ -73,7 +103,10 @@ void FrequencyMapper::setupMapping(const casa::Vector<casa::Double> &freqs)
 /// @note the output is guaranteed to be from [0,itsImageNChan-1] interval.
 casa::uInt FrequencyMapper::operator()(casa::uInt chan) const
 {
-  return 0;
+  ASKAPDEBUGASSERT(chan<itsMap.size());
+  ASKAPDEBUGASSERT(itsImageNChan>0);
+  ASKAPCHECK(itsMap[chan]>=0, "An attempt to call FrequencyMapper::operator() for unmapped channel "<<chan);
+  return itsMap[chan];
 }
 
 
