@@ -24,5 +24,5 @@ setup(name = PKGNAME,
       package_data = {"": ["config/*.ice", 
                            "config/*.ice_cfg"] },
       ice_interfaces = {"askap.logging": ["LoggingService.ice"] },
-#      test_suite = "nose.collector",
+      test_suite = "nose.collector",
 )
