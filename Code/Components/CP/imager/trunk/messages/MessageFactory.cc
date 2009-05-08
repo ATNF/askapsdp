@@ -33,8 +33,11 @@
 #include <messages/IMessage.h>
 
 // Message header files
+#include <messages/UpdateModel.h>
 #include <messages/CleanRequest.h>
 #include <messages/CleanResponse.h>
+#include <messages/PreDifferRequest.h>
+#include <messages/PreDifferResponse.h>
 
 // Using
 using namespace askap;
@@ -55,6 +58,18 @@ IMessageSharedPtr MessageFactory::create(const IMessage::MessageType& type)
     IMessageSharedPtr msg;
 
     switch (type) {
+        case IMessage::UPDATE_MODEL:
+            msg.reset(new UpdateModel);
+            break;
+
+        case IMessage::PREDIFFER_REQUEST:
+            msg.reset(new PreDifferRequest);
+            break;
+
+        case IMessage::PREDIFFER_RESPONSE:
+            msg.reset(new PreDifferResponse);
+            break;
+
         case IMessage::CLEAN_REQUEST:
             msg.reset(new CleanRequest);
             break;

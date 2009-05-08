@@ -1,4 +1,4 @@
-/// @file CleanResponse.cc
+/// @file PreDifferResponse.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include <messages/CleanResponse.h>
+#include <messages/PreDifferResponse.h>
 
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
@@ -34,93 +34,87 @@
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
-#include <casa/Arrays/Array.h>
+#include <fitting/INormalEquations.h>
+#include <fitting/ImagingNormalEquations.h>
 
 // Using
 using namespace askap;
 using namespace askap::cp;
+using namespace askap::scimath;
 
-ASKAP_LOGGER(logger, ".CleanResponse");
+ASKAP_LOGGER(logger, ".PreDifferResponse");
 
-CleanResponse::CleanResponse() : itsPayloadType(READY),
-    itsPatchId(-1), itsStrengthOptimum(-1)
+PreDifferResponse::PreDifferResponse() : itsCount(0)
 {
 }
 
-CleanResponse::~CleanResponse()
+PreDifferResponse::~PreDifferResponse()
 {
 }
 
-IMessage::MessageType CleanResponse::getMessageType(void) const
+IMessage::MessageType PreDifferResponse::getMessageType(void) const
 {
-    return IMessage::CLEAN_RESPONSE;
+    return IMessage::PREDIFFER_RESPONSE;
 }
 
-void CleanResponse::set_patchId(int patchId)
-{
-    itsPatchId = patchId;
-}
-
-void CleanResponse::set_patch(const casa::Array<float>& patch)
-{
-    itsPatch = patch;
-}
-
-void CleanResponse::set_strengthOptimum(double strengthOptimum)
-{
-    itsStrengthOptimum = strengthOptimum;
-}
-
-void CleanResponse::set_payloadType(PayloadType type)
+/////////////////////////////////////////////////////////////////////
+// Setters
+/////////////////////////////////////////////////////////////////////
+void PreDifferResponse::set_payloadType(PayloadType type)
 {
     itsPayloadType = type;
 }
 
-int CleanResponse::get_patchId(void) const
+void PreDifferResponse::set_count(int count)
 {
-    return itsPatchId;
+    itsCount = count;
 }
 
-const casa::Array<float>& CleanResponse::get_patch(void) const
+void PreDifferResponse::set_normalEquations(askap::scimath::INormalEquations::ShPtr ne)
 {
-    return itsPatch;
+    itsNe = ne;
 }
 
-casa::Array<float>& CleanResponse::get_patch(void)
-{
-    return itsPatch;
-}
-
-double CleanResponse::get_strengthOptimum(void) const
-{
-    return itsStrengthOptimum;
-}
-
-CleanResponse::PayloadType CleanResponse::get_payloadType(void) const
+/////////////////////////////////////////////////////////////////////
+// Getters
+/////////////////////////////////////////////////////////////////////
+PreDifferResponse::PayloadType PreDifferResponse::get_payloadType(void) const
 {
     return itsPayloadType;
 }
 
-void CleanResponse::writeToBlob(LOFAR::BlobOStream& os) const
+int PreDifferResponse::get_count(void) const
+{
+    return itsCount;
+}
+
+askap::scimath::INormalEquations::ShPtr PreDifferResponse::get_normalEquations(void)
+{
+    return itsNe;
+}
+
+/////////////////////////////////////////////////////////////////////
+// Serializers
+/////////////////////////////////////////////////////////////////////
+void PreDifferResponse::writeToBlob(LOFAR::BlobOStream& os) const
 {
     os << static_cast<int>(itsPayloadType);
-
     if (itsPayloadType == RESULT) {
-        os << itsPatchId;
-        os << itsPatch;
-        os << itsStrengthOptimum;
+        os << itsCount;
+        os << *itsNe;
     }
 }
 
-void CleanResponse::readFromBlob(LOFAR::BlobIStream& is)
+void PreDifferResponse::readFromBlob(LOFAR::BlobIStream& is)
 {
     int payloadType;
+
     is >> payloadType;
     itsPayloadType = static_cast<PayloadType>(payloadType);
 
     if (itsPayloadType == RESULT) {
-        is >> itsPatchId;
-        is >> itsPatch;
-        is >> itsStrengthOptimum;
+        itsNe = ImagingNormalEquations::ShPtr(new ImagingNormalEquations());
+        is >> itsCount;
+        is >> *itsNe;
     }
 }

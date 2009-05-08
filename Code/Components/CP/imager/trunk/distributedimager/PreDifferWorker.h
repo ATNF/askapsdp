@@ -37,8 +37,7 @@
 
 // Local includes
 #include "distributedimager/IPreDifferTask.h"
-#include "distributedimager/MPIBasicComms.h"
-#include "distributedimager/PreDifferTaskComms.h"
+#include "distributedimager/IBasicComms.h"
 
 namespace askap {
     namespace cp {
@@ -47,7 +46,7 @@ namespace askap {
         {
             public:
                 PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::MPIBasicComms& comms);
+                        askap::cp::IBasicComms& comms);
                 virtual ~PreDifferWorker();
 
                 virtual askap::scimath::INormalEquations::ShPtr calcNE(askap::scimath::Params::ShPtr notused);
@@ -62,7 +61,7 @@ namespace askap {
                 LOFAR::ACC::APS::ParameterSet& itsParset;
 
                 // Communications class
-                askap::cp::PreDifferTaskComms itsComms;
+                askap::cp::IBasicComms& itsComms;
 
                 // Pointer to the gridder
                 askap::synthesis::IVisGridder::ShPtr itsGridder_p;

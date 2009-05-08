@@ -41,9 +41,12 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 // Local includes
-#include <distributedimager/MPIBasicComms.h>
-#include <distributedimager/PreDifferTaskComms.h>
+#include <distributedimager/IBasicComms.h>
 #include <distributedimager/ReductionLogic.h>
+
+#include <messages/UpdateModel.h>
+#include <messages/PreDifferRequest.h>
+#include <messages/PreDifferResponse.h>
 
 using namespace askap::cp;
 using namespace askap;
@@ -54,7 +57,7 @@ using namespace LOFAR::ACC::APS;
 ASKAP_LOGGER(logger, ".PreDifferMaster");
 
 PreDifferMaster::PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::MPIBasicComms& comms)
+        askap::cp::IBasicComms& comms)
 : itsParset(parset), itsComms(comms)
 {
 }
@@ -71,7 +74,9 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
 
     // Broadcast the model to the workers
-    itsComms.broadcastModel(model_p);
+    UpdateModel message;
+    message.set_model(model_p);
+    itsComms.sendMessageBroadcast(message);
 
     // Send work orders to the worker processes
     std::vector<std::string> ms = getDatasets(itsParset);
@@ -87,19 +92,26 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         // sort of command message incorporating this plus the "no more workunits"
         // message (below) could be developed.
         int source;
-        itsComms.receiveStringAny(source);
+        IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::PREDIFFER_RESPONSE, source);
 
         ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
                 << " to worker " << source);
-        itsComms.sendString(ms[n], source);
+        PreDifferRequest request;
+        request.set_payloadType(PreDifferRequest::WORK);
+        request.set_dataset(ms[n]);
+        itsComms.sendMessage(request, source);
     }
 
     // Send each process an empty string to indicate
     // there are no more workunits on offer (TODO: Need to find
     // a better way of doing this)
     for (int dest = 1; dest < itsComms.getNumNodes(); ++dest) {
-        itsComms.receiveString(dest);
-        itsComms.sendString("", dest);
+        itsComms.receiveMessage(IMessage::PREDIFFER_RESPONSE, dest);
+        //
+        //
+        PreDifferRequest request;
+        request.set_payloadType(PreDifferRequest::FINALIZE);
+        itsComms.sendMessage(request, dest);
     }
 
     // Finally, wait for the workers/accumulators to send all the normal
@@ -112,15 +124,18 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
     int responsible = rlogic.responsible();
     for (int i = 0; i < responsible; ++i) {
         int source;
-        int recvcount = 0;
-        askap::scimath::INormalEquations::ShPtr recv_ne_p = itsComms.receiveNE(source, recvcount);
-        count += recvcount;
+        IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::PREDIFFER_RESPONSE, source);
+        PreDifferResponse* response = dynamic_cast<PreDifferResponse*>(msg.get());
+
+        ASKAPCHECK(response->get_payloadType() == PreDifferResponse::RESULT,
+                "Expected only RESULT payloads at this time");
 
         // Merge the received normal equations
+        int recvcount = response->get_count();
         if (recvcount > 0) {
-            ne_p->merge(*recv_ne_p);
+            ne_p->merge(*response->get_normalEquations());
+            count += recvcount;
         }
-        recv_ne_p.reset();
 
         ASKAPLOG_INFO_STR(logger, "Received " << recvcount << " normal equations from worker " 
                 << source << ". Still waiting for " << ms.size() - count << ".");

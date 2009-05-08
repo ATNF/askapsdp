@@ -50,29 +50,19 @@ public:
     virtual int getNumNodes(void);
     virtual void abort(void);
 
-    virtual void sendString(const std::string& str, int dest);
-    virtual std::string receiveString(int source);
-    virtual std::string receiveStringAny(int& source);
-
-    virtual void send(const void* buf, size_t size, int dest, int tag);
-    virtual void receive(void* buf, size_t size, int source, int tag, MPI_Status& status);
-
-    virtual void broadcast(void* buf, size_t size, int root);
-
-    /// @brief Enumeration of tags for MPI communication
-    enum CommsTags
-    {
-        STRING,
-        NORMAL_EQUATION,
-        CLEAN_REQUEST,
-        CLEAN_RESPONSE
-    };
-
     void sendMessage(const IMessage& msg, int dest);
     const IMessageSharedPtr receiveMessage(IMessage::MessageType type, int source);
+    const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type);
     const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type, int& actualSource);
 
+    void sendMessageBroadcast(const IMessage& msg);
+    const IMessageSharedPtr receiveMessageBroadcast(IMessage::MessageType type, int root);
+
 private:
+    void send(const void* buf, size_t size, int dest, int tag);
+    void receive(void* buf, size_t size, int source, int tag, MPI_Status& status);
+    void broadcast(void* buf, size_t size, int root);
+
     // Check for error status and handle accordingly
     void checkError(const int error, const std::string location);
 

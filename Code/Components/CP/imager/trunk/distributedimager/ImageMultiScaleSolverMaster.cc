@@ -240,10 +240,8 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
             const casa::Array<float> maskPatch = maskiterator.cursor();
             boost::shared_ptr< casa::Array<float> > cleanPatch(new casa::Array<float>(miterator.rwCursor()));
 
-            // TODO: Waiting for a string is a dumb way for the worker to indicate
-            // it wants more work to do. Need a MUCH better way of doing this. Some
-            // sort of command message incorporating this plus the "no more workunits"
-            // message (below) could be developed.
+            // Wait for a response, either with real results or just
+            // a request for more work
             int source;
             IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::CLEAN_RESPONSE, source);
             CleanResponse* response = dynamic_cast<CleanResponse*>(msg.get());
@@ -294,7 +292,6 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
             {
                 processCleanResponse(response);
             } else {
-                ASKAPLOG_INFO_STR(logger, "############## Finalizing Worker: " << id);
                 // Signal the worker that there are no more workunits
                 CleanRequest request;
                 request.set_payloadType(CleanRequest::FINALIZE);
@@ -302,7 +299,6 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
                 itsFinished[id-1] = true;
             }
         }
-        ASKAPLOG_INFO_STR(logger, "No more outstanding CleanRequests - Signalling Finished");
 
         signalFinished();
 
@@ -395,11 +391,9 @@ void ImageMultiScaleSolverMaster::signalFinished(void)
     // a better way of doing this)
     for (int id = 1; id < itsComms.getNumNodes(); ++id) {
         if (itsFinished[id-1] == true) {
-            ASKAPLOG_INFO_STR(logger, "############## Finalizing Worker: " << id << " ALREADY FINISHED");
             // Already finished
             continue;
         }
-        ASKAPLOG_INFO_STR(logger, "############## Finalizing Worker: " << id);
         ASKAPLOG_INFO_STR(logger, "Finishing up for  worker " << id);
 
         // Read the (hopefully) empty clean response the worker is sending

@@ -50,10 +50,12 @@
 #include <dataaccess/ParsetInterface.h>
 #include <casa/OS/Timer.h>
 
-// Local includes
-#include <distributedimager/MPIBasicComms.h>
-#include <distributedimager/PreDifferTaskComms.h>
+// Local package includes
+#include <distributedimager/IBasicComms.h>
 #include <distributedimager/ReductionLogic.h>
+#include <messages/UpdateModel.h>
+#include <messages/PreDifferResponse.h>
+#include <messages/PreDifferRequest.h>
 
 using namespace askap::cp;
 using namespace askap::scimath;
@@ -62,7 +64,7 @@ using namespace askap::synthesis;
 ASKAP_LOGGER(logger, ".PreDifferWorker");
 
 PreDifferWorker::PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
-        askap::cp::MPIBasicComms& comms)
+        askap::cp::IBasicComms& comms)
 : itsParset(parset), itsComms(comms)
 {
     itsGridder_p = VisGridderFactory::make(itsParset);
@@ -79,7 +81,11 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
     ASKAPCHECK(itsGridder_p, "itsGridder_p is not correctly initialized");
 
     // Receive the model
-    askap::scimath::Params::ShPtr model_p = itsComms.receiveModel();
+    IMessageSharedPtr msg =
+        itsComms.receiveMessageBroadcast(IMessage::UPDATE_MODEL, itsMaster);
+    UpdateModel* updatemsg = dynamic_cast<UpdateModel*>(msg.get());
+    askap::scimath::Params::ShPtr model_p = updatemsg->get_model();
+
 
     // Pointer to measurement equation
     askap::scimath::Equation::ShPtr equation_p;
@@ -94,17 +100,24 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
 
     while (1) {
         // Ask the master for a workunit
-        itsComms.sendString("next", itsMaster);
-        std::string ms = itsComms.receiveString(itsMaster);
-        if (ms == "") {
+        PreDifferResponse response;
+        response.set_payloadType(PreDifferResponse::READY);
+        itsComms.sendMessage(response, itsMaster);
+
+        // Receive the workunit from the master
+        IMessageSharedPtr msg = itsComms.receiveMessage(IMessage::PREDIFFER_REQUEST, itsMaster);
+        PreDifferRequest* request = dynamic_cast<PreDifferRequest*>(msg.get());
+
+        if (request->get_payloadType() == PreDifferRequest::FINALIZE) {
             // Indicates all workunits have been assigned already
             break;
         }
 
+        const std::string ms = request->get_dataset();
+        ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
+
         casa::Timer timer;
         timer.mark();
-
-        ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
 
         // Setup the DataSource
         bool useMemoryBuffers = itsParset.getBool("memorybuffers", false);
@@ -175,8 +188,14 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         // is responsible for.
         for (int i = 0; i < responsible; ++i) {
             int source;
-            int recvcount;
-            askap::scimath::INormalEquations::ShPtr recv_ne_p = itsComms.receiveNE(source, recvcount);
+            IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::PREDIFFER_RESPONSE, source);
+            PreDifferResponse* response = dynamic_cast<PreDifferResponse*>(msg.get());
+            ASKAPCHECK(response->get_payloadType() == PreDifferResponse::RESULT,
+                    "Expected only RESULT payloads at this time");
+
+            int recvcount = response->get_count();
+            askap::scimath::INormalEquations::ShPtr recv_ne_p = response->get_normalEquations();
+
             ASKAPLOG_INFO_STR(logger, "Accumulator @" << id << " received NE from " << source);
 
             // If the recvcount is zero, this indicates a null normal equation.
@@ -189,13 +208,20 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         }
 
         // Finally send NE to the master
-        itsComms.sendNE(itsNormalEquation_p, itsMaster, accumulatedCount);
-
+        PreDifferResponse response;
+        response.set_payloadType(PreDifferResponse::RESULT);
+        response.set_count(accumulatedCount);
+        response.set_normalEquations(itsNormalEquation_p);
+        itsComms.sendMessage(response, itsMaster);
     } else {
         // Worker only
         int accumulator = id - (id % accumulatorStep);
 
         // Send NE to the accumulator
-        itsComms.sendNE(itsNormalEquation_p, accumulator, count);
+        PreDifferResponse response;
+        response.set_payloadType(PreDifferResponse::RESULT);
+        response.set_count(count);
+        response.set_normalEquations(itsNormalEquation_p);
+        itsComms.sendMessage(response, accumulator);
     }
 }

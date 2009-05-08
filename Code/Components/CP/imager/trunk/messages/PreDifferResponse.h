@@ -1,4 +1,4 @@
-/// @file IMessage.h
+/// @file PreDifferResponse.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,31 +24,35 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IMESSAGE_H
-#define ASKAP_CP_IMESSAGE_H
+#ifndef ASKAP_CP_PREDIFFERRESPONSE_H
+#define ASKAP_CP_PREDIFFERRESPONSE_H
 
-// Boost includes
-#include <boost/shared_ptr.hpp>
+// System includes
+#include <string>
 
 // ASKAPsoft includes
-#include <fitting/ISerializable.h>
+#include <messages/IMessage.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+#include <fitting/INormalEquations.h>
+#include <fitting/ImagingNormalEquations.h>
 
 namespace askap {
     namespace cp {
 
-        class IMessage : public ISerializable
+        class PreDifferResponse : public IMessage
         {
             public:
-                enum MessageType {
-                    UPDATE_MODEL = 1,
-                    PREDIFFER_REQUEST = 2,
-                    PREDIFFER_RESPONSE = 3,
-                    CLEAN_REQUEST = 4,
-                    CLEAN_RESPONSE = 5
+                enum PayloadType {
+                    READY,
+                    RESULT
                 };
 
+                /// @brief Constructor.
+                PreDifferResponse();
+
                 /// @brief Destructor.
-                virtual ~IMessage();
+                virtual ~PreDifferResponse();
 
                 /// @brief Messages must be self-identifying and must
                 /// their type via this interface.
@@ -57,12 +61,34 @@ namespace askap {
                 /// their type via this interface. While they can also be
                 /// identified by their class type, this method easily translates
                 /// to an int which can be used to tag messags (eg. MPI tags).
-                virtual MessageType getMessageType(void) const = 0;
+                virtual MessageType getMessageType(void) const;
 
+                // Setters
+                void set_payloadType(PayloadType type);
+                void set_count(int count);
+                void set_normalEquations(askap::scimath::INormalEquations::ShPtr ne);
+
+                // Getters
+                PayloadType get_payloadType(void) const;
+                int get_count(void) const;
+                askap::scimath::INormalEquations::ShPtr get_normalEquations(void);
+
+                // Serializer functions
+
+                /// @brief write the object to a blob stream
+                /// @param[in] os the output stream
+                virtual void writeToBlob(LOFAR::BlobOStream& os) const;
+
+                /// @brief read the object from a blob stream
+                /// @param[in] is the input stream
+                virtual void readFromBlob(LOFAR::BlobIStream& is);
+
+            private:
+                PayloadType itsPayloadType;
+                int itsCount;
+                askap::scimath::INormalEquations::ShPtr itsNe;
         };
 
-        /// Short cut for shared pointer to IDataSelector
-        typedef boost::shared_ptr<IMessage> IMessageSharedPtr;
     };
 };
 

@@ -60,33 +60,13 @@ namespace askap {
                 /// involved to terminate.
                 virtual void abort(void) = 0;
 
-                /// @brief Send a string to the indicated destination.
-                ///
-                /// @param[in]  string  the string to send.
-                /// @param[in]  dest    the id of the destination to send to.
-                virtual void sendString(const std::string& str, int dest) = 0;
-
-                /// @brief Receive a string which has been sent by the 
-                /// sendString() call.
-                ///
-                /// @param[in]  source  the id of the source to recieve
-                ///                     the string from.
-                /// @return the received string.
-                virtual std::string receiveString(int source) = 0;
-
-                /// @brief Receive a string which has been sent by the 
-                /// sendString() call. This call will receive a string
-                /// from any node.
-                ///
-                /// @param[out] source  the id of the source from which the
-                ///                     string as received.
-                /// @return the received string.
-                virtual std::string receiveStringAny(int& source) = 0;
-
                 virtual void sendMessage(const IMessage& msg, int dest) = 0;
                 virtual const IMessageSharedPtr receiveMessage(IMessage::MessageType type, int source) = 0;
+                virtual const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type) = 0;
                 virtual const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type, int& actualSource) = 0;
 
+                virtual void sendMessageBroadcast(const IMessage& msg) = 0;
+                virtual const IMessageSharedPtr receiveMessageBroadcast(IMessage::MessageType type, int root) = 0;
         };
 
     };
