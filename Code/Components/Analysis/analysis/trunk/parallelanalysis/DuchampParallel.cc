@@ -62,7 +62,7 @@ using namespace LOFAR::TYPES;
 #include <analysisutilities/CasaImageUtil.h>
 #include <analysisutilities/SubimageDef.h>
 #include <sourcefitting/RadioSource.h>
-#include <sourcefitting/Fitter.h>
+#include <sourcefitting/FittingParameters.h>
 
 #include <iostream>
 #include <fstream>
@@ -885,12 +885,17 @@ namespace askap
 	}
 
 	//	if(this->itsFlagDoFit){
-	std::ofstream summaryFile(this->itsSummaryFile.c_str());
+
+	std::vector<std::string> outtypes = sourcefitting::defaultFitTypes;
+	outtypes.push_back("best");
 	std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
-	std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList.begin();
-	for(;src<this->itsSourceList.end();src++)
-	  src->printSummary(summaryFile, columns, src==this->itsSourceList.begin());
-	summaryFile.close();
+	for(unsigned int t=0;t<outtypes.size();t++){
+	  std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsSummaryFile.c_str(),outtypes[t]).c_str());
+	  std::vector<sourcefitting::RadioSource>::iterator src=this->itsSourceList.begin();
+	  for(;src<this->itsSourceList.end();src++)
+	    src->printSummary(summaryFile, columns, outtypes[t], src==this->itsSourceList.begin());
+	  summaryFile.close();
+	}
 	
 	if(this->itsFlagDoFit) this->writeFitAnnotation();
 	  //	}

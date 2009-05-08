@@ -92,9 +92,9 @@ namespace askap
 	if(parset.isDefined("flagFitParam"))
 	  ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
 
-	std::vector<std::string> defaultFitTypes;
-	defaultFitTypes.push_back("full");
-	defaultFitTypes.push_back("psf");
+// 	std::vector<std::string> defaultFitTypes;
+// 	defaultFitTypes.push_back("full");
+// 	defaultFitTypes.push_back("psf");
 	this->itsFitTypes = parset.getStringVector("fitTypes",defaultFitTypes);
 	std::stringstream ss;
 	std::vector<std::string>::iterator type=this->itsFitTypes.begin();
@@ -178,6 +178,32 @@ namespace askap
 	for(unsigned int p=0; p<6; p++)
 	  if(this->itsFlagFitThisParam[p]) nparam++;
 	return nparam;
+      }
+
+      //**************************************************************//
+
+      bool FittingParameters::hasType(std::string type)
+      {
+	bool haveIt=false;
+	for(unsigned int i=0;i<this->itsFitTypes.size() && !haveIt;i++){
+	  haveIt = (this->itsFitTypes[i] == type);
+	}
+	return haveIt;
+      }
+
+      //**************************************************************//
+
+      std::string convertSummaryFile(std::string baseName, std::string type)
+      {
+	std::string suffix;
+	size_t loc = baseName.rfind(".");
+	suffix = baseName.substr(loc,baseName.length());
+	std::string outName = baseName;
+	if(type == "full") outName.replace(loc,suffix.length(),"_full"+suffix);
+	else if(type == "psf") outName.replace(loc,suffix.length(),"_psf"+suffix);
+
+	return outName;
+
       }
 
 

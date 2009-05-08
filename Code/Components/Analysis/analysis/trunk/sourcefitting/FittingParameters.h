@@ -89,6 +89,9 @@ namespace askap
       /// @brief Default value for the maxRetries parameters used by casa::fitGaussian
       const int defaultMaxRetries = 0;
 
+      const std::string defaultFitTypesArray[2] = {"full","psf"};
+      const std::vector<std::string> defaultFitTypes(defaultFitTypesArray, defaultFitTypesArray+2);
+
       /// @}
 
       /// @ingroup sourcefitting
@@ -98,6 +101,10 @@ namespace askap
       /// @ingroup sourcefitting
       /// @brief Check whether a given fit type is valid
       bool isFitTypeValid(std::string type);
+
+      /// @ingroup sourcefitting
+      /// @brief Convert a summary file according to the fit type
+      std::string convertSummaryFile(std::string baseName, std::string type);
 
       /// @ingroup sourcefitting
       /// @brief A class to store parameters that are used by the fitting routines.
@@ -166,8 +173,11 @@ namespace askap
 	uInt   maxIter(){return itsMaxIter;};
 	bool   useNoise(){return itsUseNoise;};
 	bool   flagFitThisParam(int i){return itsFlagFitThisParam[i];};
+
+	std::vector<std::string> fitTypes(){return itsFitTypes;};
 	std::string fitType(int i){return itsFitTypes[i];};
 	int    numFitTypes(){return itsFitTypes.size();};
+	bool   hasType(std::string type);
 
 	/// @brief Return the number of free parameters
 	int    numFreeParam();

@@ -75,6 +75,7 @@ namespace askap
       FitResults& FitResults::operator= (const FitResults& f)
       {
 	if(this == &f) return *this;
+	this->itsFitIsGood = f.itsFitIsGood;
 	this->itsChisq = f.itsChisq;
 	this->itsRedChisq = f.itsRedChisq;
 	this->itsRMS = f.itsRMS;
@@ -90,11 +91,13 @@ namespace askap
       void FitResults::saveResults(Fitter &fit)
       {
 	
+	this->itsFitIsGood = true;
 	this->itsChisq = fit.chisq();
 	this->itsRedChisq = fit.redChisq();
 	this->itsRMS = fit.RMS();
 	this->itsNumDegOfFreedom = fit.ndof();
 	this->itsNumFreeParam = fit.params().numFreeParam();
+	this->itsNumGauss = fit.numGauss();
 
 	// Make a map so that we can output the fitted components in order of peak flux
 	std::multimap<double,int> fitMap = fit.peakFluxList();

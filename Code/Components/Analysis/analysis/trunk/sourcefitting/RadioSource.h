@@ -65,10 +65,6 @@ namespace askap
     namespace sourcefitting
     {
 
-
-/*       class FittingParameters;  // foreshadow so that we can make use of it in the following */
-/*       class FitResults;  // foreshadow so that we can make use of it in the following */
-
       /// @brief Class to store all information on a detected source.
       ///
       /// @details This class is designed to hold all appropriate
@@ -149,7 +145,7 @@ namespace askap
 
 	/// @brief Print summary of detection & fit
 	void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-			  bool doHeader=false);
+			  std::string fittype, bool doHeader=false);
 
 	/// @brief Write the description of the fits to an annotation file.
 	void writeFitToAnnotationFile(std::ostream &stream);
@@ -173,7 +169,6 @@ namespace askap
 	void setAtEdge(duchamp::Cube &cube);
 
 	/// @brief Define the boundaries of the box
-/* 	void defineBox(long *axes, FittingParameters &fitParams); */
 	void defineBox(duchamp::Section &sec, FittingParameters &fitParams);
 
 	/// @brief Commands to return the extent and size of the box
@@ -215,13 +210,10 @@ namespace askap
 	}
 
 	/// @brief Return a reference to the set of Gaussian fits.
-/* 	std::vector<casa::Gaussian2D<Double> >& fitset(){ */
-/* 	  std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;}; */
 	std::vector<casa::Gaussian2D<Double> >& fitset(){return itsBestFit.fits();};
 
 	/// @brief Return a reference to the fitting parameters
-	FittingParameters &fitparams(){ /*return itsBestFit.rparams();}; */
- 	  FittingParameters& rfitpars = itsFitParams; return rfitpars;}; 
+	FittingParameters &fitparams(){FittingParameters& rfitpars = itsFitParams; return rfitpars;}; 
 
       protected:
 
@@ -242,20 +234,11 @@ namespace askap
 
 	/// @brief The best fit results
 	FitResults itsBestFit;
-	/// @brief The parameters for best fit
+	FitResults itsBestFitPSF;
+	FitResults itsBestFitFULL;
+
+	/// @brief The parameters used to control the fitting
 	FittingParameters itsFitParams;
-
-
-/* 	/// @brief A two-dimensional Gaussian fit to the object. */
-/* 	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet; */
-
-/* 	/// @brief The best fit to the object. */
-/* /\* 	FittingParameters itsFitParams; *\/ */
-/* 	Fitter itsBestFit; */
-
-/* /\* 	float itsChisq; *\/ */
-/* /\* 	float itsRMS; *\/ */
-/* /\* 	int itsNDoF; *\/ */
 
 	/// @brief The min & max points of the box, taking into account the borders of the data array
 	std::vector<std::pair<long,long> > itsBoxMargins;

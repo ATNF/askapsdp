@@ -32,6 +32,8 @@
 
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
+#include <sourcefitting/FittingParameters.h>
+#include <sourcefitting/FitResults.h>
 #include <sourcefitting/Component.h>
 #include <analysisutilities/AnalysisUtilities.h>
 
@@ -106,19 +108,16 @@ namespace askap
 	this->itsNoiseLevel = src.itsNoiseLevel;
 	this->itsDetectionThreshold = src.itsDetectionThreshold;
 	this->itsHeader = src.itsHeader;
-// 	this->itsGaussFitSet = src.itsGaussFitSet;
 	this->itsBoxMargins = src.itsBoxMargins;
  	this->itsFitParams = src.itsFitParams;
  	this->itsBestFit = src.itsBestFit;
-// 	this->itsChisq = src.itsChisq;
-// 	this->itsRMS = src.itsRMS;
-// 	this->itsNDoF = src.itsNDoF;
+ 	this->itsBestFitFULL = src.itsBestFitFULL;
+ 	this->itsBestFitPSF = src.itsBestFitPSF;
 	return *this;
       }
 
       //**************************************************************//
 
-//       void RadioSource::defineBox(long *axes, FittingParameters &fitParams)
       void RadioSource::defineBox(duchamp::Section &sec, FittingParameters &fitParams)
       {
 	/// @details Defines the maximum and minimum points of the box
@@ -644,100 +643,99 @@ namespace askap
 
 	ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
 
-	ASKAPLOG_INFO_STR(logger, "detect thresh = " << this->itsDetectionThreshold
+	ASKAPLOG_DEBUG_STR(logger, "detect thresh = " << this->itsDetectionThreshold
 			  << "  peak = " << this->peakFlux 
 			  << "  noise level = " << this->itsNoiseLevel);
 	
 	std::vector<SubComponent> cmpntList = this->getSubComponentList(f);
-	ASKAPLOG_INFO_STR(logger, "Found " << cmpntList.size() << " subcomponents");
+	ASKAPLOG_DEBUG_STR(logger, "Found " << cmpntList.size() << " subcomponents");
 	for(uInt i=0;i<cmpntList.size();i++)
-	  ASKAPLOG_INFO_STR(logger, "SubComponent: " << cmpntList[i]);
+	  ASKAPLOG_DEBUG_STR(logger, "SubComponent: " << cmpntList[i]);
 
-	bool fitIsGood = false;
-	int bestFit = 0;
-	float bestRChisq = 9999.;
-	std::string bestType;
 
  	this->itsFitParams = baseFitter;
  	this->itsFitParams.saveBox(this->itsBoxMargins);
  	this->itsFitParams.setPeakFlux(this->peakFlux);
 	this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
-	Fitter fit[this->itsFitParams.maxNumGauss() * 2];
-
-	int ctr=0;
-
- 	for(int fittype=0; fittype<this->itsFitParams.numFitTypes(); fittype++){
-
-	  this->itsFitParams.setFlagFitThisParam(this->itsFitParams.fitType(fittype));
+	for(unsigned int type=0; type<defaultFitTypes.size(); type++){
+	  
+	  if( this->itsFitParams.hasType(defaultFitTypes[type])){
 	    
-	  for(int g=1;g<=this->itsFitParams.maxNumGauss();g++){
+	    this->itsFitParams.setFlagFitThisParam(defaultFitTypes[type]);
+
+	    int ctr=0;
+	    Fitter fit[this->itsFitParams.maxNumGauss()];
+	    bool fitIsGood = false;
+	    int bestFit = 0;
+	    float bestRChisq = 9999.;
 	    
-	    fit[ctr].setParams(this->itsFitParams);
-	    fit[ctr].setNumGauss(g);
-	    fit[ctr].setEstimates(cmpntList, this->itsHeader);
-	    fit[ctr].setRetries();
-	    fit[ctr].setMasks();
-	    fit[ctr].fit(pos, f, sigma);
+	    for(int g=1;g<=this->itsFitParams.maxNumGauss();g++){
 	    
-	    if(fit[ctr].acceptable()){
-	      if((ctr==0) || (fit[ctr].redChisq() < bestRChisq)){
-		fitIsGood = true;
-		bestFit = ctr;
-		bestRChisq = fit[ctr].redChisq();
-		bestType = this->itsFitParams.fitType(fittype);
-	      }
+	      fit[ctr].setParams(this->itsFitParams);
+	      fit[ctr].setNumGauss(g);
+	      fit[ctr].setEstimates(cmpntList, this->itsHeader);
+	      fit[ctr].setRetries();
+	      fit[ctr].setMasks();
+	      fit[ctr].fit(pos, f, sigma);
 	      
-	    }
-	    ctr++;
-	  } // end of 'g' for-loop
-	} // end of fittype for-loop
-	
-	if(fitIsGood){
-	  this->hasFit = true;
-	  this->itsBestFit.saveResults(fit[bestFit]);
-// 	  this->itsBestFit = fit[bestFit];
-// // 	  this->itsFitParams = fit[bestFit].params();
-// // // 	  if(ctr/4==1) 
-// // // 	    for(int i=3;i<6;i++) this->itsFitParams.setFlagFitThisParam(i,false);
-// // 	  this->itsFitParams.setFlagFitThisParam(bestType);
-// // 	  this->itsChisq = fit[bestFit].chisq();
-// // 	  this->itsRMS = fit[bestFit].RMS();
-// // 	  this->itsNDoF = fit[bestFit].ndof();
-// 	  // Make a map so that we can output the fitted components in order of peak flux
-// 	  std::multimap<double,int> fitMap = fit[bestFit].peakFluxList();
-// 	  // Need to use reverse_iterator so that brightest component's listed first
-// 	  std::multimap<double,int>::reverse_iterator rfit=fitMap.rbegin();
-// 	  for(;rfit!=fitMap.rend();rfit++)
-// 	    this->itsGaussFitSet.push_back(fit[bestFit].gaussian(rfit->second));
+	      if(fit[ctr].acceptable()){
+		if((ctr==0) || (fit[ctr].redChisq() < bestRChisq)){
+		  fitIsGood = true;
+		  bestFit = ctr;
+		  bestRChisq = fit[ctr].redChisq();
+		}
+		
+	      }
+	      ctr++;
+	    } // end of 'g' for-loop
+	    
+	    if(fitIsGood){
+	      this->hasFit = true;
+	      if(defaultFitTypes[type] == "full")     this->itsBestFitFULL.saveResults(fit[bestFit]);
+	      else if(defaultFitTypes[type] == "psf") this->itsBestFitPSF.saveResults(fit[bestFit]);
+	    }	    
+	    
+	  }
 
-// 	  ASKAPLOG_INFO_STR(logger,"BEST FIT: #" << bestFit+1
-// 			    <<" = " << bestFit%this->itsFitParams.maxNumGauss()+1 << " Gaussians"
-// 			    << ", chisq = " << fit[bestFit].chisq()
-// 			    << ", chisq/nu =  "  << bestRChisq
-// 			    << ", RMS = " << fit[bestFit].RMS());
-	  ASKAPLOG_INFO_STR(logger,"BEST FIT: #" << bestFit+1
-			    <<" = " << bestFit%this->itsFitParams.maxNumGauss()+1 << " Gaussians"
+	} // end of type for-loop
+	
+	if(this->hasFit){
+
+	  if(this->itsBestFitFULL.isGood()){
+	    if(this->itsBestFitPSF.isGood()){
+	      if(this->itsBestFitFULL.redchisq() < this->itsBestFitPSF.redchisq())
+		this->itsBestFit = this->itsBestFitFULL;
+	      else
+		this->itsBestFit = this->itsBestFitPSF;
+	    }
+	    else
+	      this->itsBestFit = this->itsBestFitFULL;
+	  }
+	  else if(this->itsBestFitPSF.isGood())
+	    this->itsBestFit = this->itsBestFitPSF;
+	    
+
+	  ASKAPLOG_INFO_STR(logger,"BEST FIT: " << this->itsBestFit.numGauss() << " Gaussians"
 			    << ", chisq = " << this->itsBestFit.chisq()
 			    << ", chisq/nu =  "  << this->itsBestFit.redchisq()
 			    << ", RMS = " << this->itsBestFit.RMS());
 	}
 	else{
-	  this->itsFitParams = baseFitter;
+	  this->hasFit = false;
 	  ASKAPLOG_INFO_STR(logger, "No good fit found.");
 	}
 
 	ASKAPLOG_INFO_STR(logger, "-----------------------");
 
-	return fitIsGood;
-
+	return this->hasFit;
 
       }
 
       //**************************************************************//
 
       void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-				     bool doHeader)
+				     std::string fittype, bool doHeader)
       {
 	/// @details
 	///
@@ -749,6 +747,10 @@ namespace askap
 	/// @li Detected integrated flux (from duchamp::Detection)
 	/// @li Number of fitted componente
 	/// @li Peak & Integrated flux of fitted components (using all components) 
+
+	FitResults results = this->itsBestFit;
+	if(fittype == "full") results = this->itsBestFitFULL;
+	else if(fittype == "psf") results = this->itsBestFitPSF;
 
 	stream.setf(std::ios::fixed);
 	
@@ -824,8 +826,7 @@ namespace askap
 
 	columns[duchamp::Column::NUM].widen(); // to account for the # characters at the start of the title lines
 
-// 	if(this->itsGaussFitSet.size()==0) {  //if no fits were made...
-	if(this->itsBestFit.numFits()==0) {  //if no fits were made...
+	if(!results.isGood()) {  //if no fits were made...
 	  float zero = 0.;
 	  columns[duchamp::Column::NUM].printEntry(stream,this->getID());
 	  columns[duchamp::Column::RA].printEntry(stream,this->getRAs());
@@ -848,9 +849,8 @@ namespace askap
 	  stream << "\n";
 	}
 
-	std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFit.fitSet();
+	std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
 	std::vector<casa::Gaussian2D<Double> >::iterator fit;
-// 	for(fit=this->itsGaussFitSet.begin(); fit<this->itsGaussFitSet.end(); fit++){
 	for(fit=fitSet.begin(); fit<fitSet.end(); fit++){
 
 	  std::stringstream id;
@@ -880,17 +880,11 @@ namespace askap
 	  majFit.printEntry(stream,fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
 	  minFit.printEntry(stream,fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
 	  paFit.printEntry(stream,fit->PA()*180./M_PI);
-// 	  chisqFit.printEntry(stream,this->itsChisq);
-// 	  rmsIm.printEntry(stream,this->itsNoiseLevel);
-// 	  rmsFit.printEntry(stream,this->itsRMS);
-// 	  nfree.printEntry(stream,this->itsFitParams.numFreeParam());
-// 	  ndofFit.printEntry(stream,this->itsNDoF);
-	  chisqFit.printEntry(stream,this->itsBestFit.chisq());
+	  chisqFit.printEntry(stream,results.chisq());
 	  rmsIm.printEntry(stream,this->itsNoiseLevel);
-	  rmsFit.printEntry(stream,this->itsBestFit.RMS());
-// 	  nfree.printEntry(stream,this->itsBestFit.params().numFreeParam());
-	  nfree.printEntry(stream,this->itsBestFit.numFreeParam());
-	  ndofFit.printEntry(stream,this->itsBestFit.ndof());
+	  rmsFit.printEntry(stream,results.RMS());
+	  nfree.printEntry(stream,results.numFreeParam());
+	  ndofFit.printEntry(stream,results.ndof());
 	  npixFit.printEntry(stream,this->boxSize());
 	  npixObj.printEntry(stream,this->getSize());
 	  stream << "\n";
@@ -944,15 +938,11 @@ namespace askap
 
 	pix[0] = this->getXmin()-this->itsFitParams.boxPadSize();
 	pix[1] = this->getYmin()-this->itsFitParams.boxPadSize();
-// 	pix[0] = this->getXmin()-this->itsBestFit.rparams().boxPadSize();
-// 	pix[1] = this->getYmin()-this->itsBestFit.rparams().boxPadSize();
 	this->itsHeader.pixToWCS(pix,world);
 	stream << "BOX " << world[0] << " " << world[1] << " ";
 	
 	pix[0] = this->getXmax()+this->itsFitParams.boxPadSize();
 	pix[1] = this->getYmax()+this->itsFitParams.boxPadSize();
-// 	pix[0] = this->getXmax()+this->itsBestFit.rparams().boxPadSize();
-// 	pix[1] = this->getYmax()+this->itsBestFit.rparams().boxPadSize();
 	this->itsHeader.pixToWCS(pix,world);
 	stream << world[0] << " " << world[1] << "\n";
 	

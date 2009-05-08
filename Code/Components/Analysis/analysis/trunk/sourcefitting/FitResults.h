@@ -64,7 +64,7 @@ namespace askap
       class FitResults
       {
       public:
-	FitResults(){}
+	FitResults(){itsFitIsGood=false;}
 	virtual ~FitResults(){};
         /// @brief Copy constructor
         FitResults(const FitResults& f);
@@ -73,6 +73,7 @@ namespace askap
 
 	void saveResults(Fitter &fit);
 
+	bool  isGood(){return itsFitIsGood;};
 	float chisq(){return itsChisq;};
 	float redchisq(){return itsRedChisq;};
 	float RMS(){return itsRMS;};
@@ -99,12 +100,13 @@ namespace askap
 
 
       protected:
+	bool  itsFitIsGood;
 	float itsChisq;
 	float itsRedChisq;
 	float itsRMS;
-	int itsNumDegOfFreedom;
-	int itsNumFreeParam;
-	int itsNumGauss;
+	int   itsNumDegOfFreedom;
+	int   itsNumFreeParam;
+	int   itsNumGauss;
 	/// @brief A two-dimensional Gaussian fit to the object.
 	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
 
