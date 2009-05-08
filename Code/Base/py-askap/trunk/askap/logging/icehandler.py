@@ -1,11 +1,14 @@
+__all__ = ['IceHandler']
+
 import sys
-from askap.logging import Handler
+from logging import Handler
 from askap import get_config
 
 import Ice, IceStorm
 # pylint: disable-msg=W0611
 import LoggingService_ice
-from askap.logging.interfaces import ILoggerPrx, LogEvent
+# pylint: disable-msg=E0611
+from askap.logging.interfaces import ILoggerPrx, ILogEvent
 
 class IceHandler(Handler):
     """
@@ -30,17 +33,18 @@ class IceHandler(Handler):
         initData.properties.load(get_config("askap.logging",
                                             "logging_publisher.ice_cfg"))
         
-        self.ic = Ice.initialize(sys.argv, initData)
+        # pylint: disable-msg=W0201
+        self.ice = Ice.initialize(sys.argv, initData)
         self.manager = IceStorm.TopicManagerPrx.\
-            checkedCast(self.ic.propertyToProxy('TopicManager.Proxy'))
+            checkedCast(self.ice.propertyToProxy('TopicManager.Proxy'))
 
         topicname = "logger"
         try:
             topic = self.manager.retrieve(topicname)
-        except IceStorm.NoSuchTopic, e:
+        except IceStorm.NoSuchTopic:
             try:
                 topic = self.manager.create(topicname)
-            except IceStorm.TopicExists, ex:
+            except IceStorm.TopicExists:
                 print "temporary error. try again"
                 raise
         publisher = topic.getPublisher()
@@ -52,16 +56,13 @@ class IceHandler(Handler):
             raise RuntimeError("Invalid proxy")
 
     def emit(self, record):
-        event = LogEvent()
-        event.origin = record.name
-        event.level = record.levelname
-        event.created = record.created
-        event.message = record.msg
+        event = ILogEvent(record.name, record.created,
+                          record.levelname, record.msg)
         self.prxy.send(event)
     
     def close(self):
-        if self.ic:
-            self.ic.destroy()
+        if self.ice:
+            self.ice.destroy()
         Handler.close(self)
 
 

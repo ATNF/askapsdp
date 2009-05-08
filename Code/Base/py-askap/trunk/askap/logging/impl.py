@@ -7,8 +7,9 @@ import LoggingService_ice
 # pylint: disable-msg=E0611
 from askap.logging.interfaces import ILogger
 
+# pylint: disable-msg=W0232
 class LoggerImpl(ILogger):
-    # pylint: disable-msg=W0613
+    # pylint: disable-msg=W0613,R0201
     def send(self, event, current=None):
         print """Event: %s
   Level:   %s

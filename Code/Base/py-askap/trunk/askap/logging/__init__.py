@@ -8,8 +8,10 @@
 
 # make this module look like logging
 # since we know what we are doing allow wildcard
+
 # pylint: disable-msg=W0401
 from logging import *
+# python 2.6 now has __all__, which means not everything gets in
 from logging import config
 from logging import handlers
 from logging import getLogger, basicConfig

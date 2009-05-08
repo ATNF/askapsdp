@@ -1,5 +1,7 @@
 import initenv
 
+__all__ = ['get_config']
+
 import os
 
 def get_config(module, filename):
