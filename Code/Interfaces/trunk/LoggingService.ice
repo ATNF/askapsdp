@@ -4,7 +4,7 @@ module askap
   {
     module interfaces
     {
-      struct LogEvent
+      struct ILogEvent
       {
         string origin;
         double created;
@@ -13,7 +13,23 @@ module askap
       };
       interface ILogger
       {
-        void send(LogEvent event);
+        void send(ILogEvent event);
+      };
+      sequence<ILogEvent> eventlist;
+      sequence<string> strlist;
+      struct IQueryObject
+      {
+        string origin;
+        string datemin;
+        string datemax;
+        strlist levels;
+        int limit;
+      };
+      interface ILogQuery
+      {
+        idempotent eventlist query(IQueryObject q);
+        idempotent strlist getloggers();
+        idempotent strlist getlevels();
       };
     };
   };
