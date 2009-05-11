@@ -170,6 +170,14 @@ namespace askap
       /// been initialised by the time this method is called.
       virtual void initialiseSumOfWeights();
       
+      /// @brief helper method to initialise frequency mapping
+      /// @details Derived gridders may override initialiseGrid and initialiseDegrid. Howerver, 
+      /// they still need to be able to initialise frequency axis mapping (between accessor channels
+      /// and image cube), which is handled by a private member class. This method initialises the 
+      /// mapper using the content of itsShape and itsAxes, which should be set prior to calling this
+      /// method.
+      void initialiseFreqMapping();
+      
       /// @brief gridder configured to calculate PSF?
       /// @details
       /// @return true if this gridder is configured to calculate PSF, false otherwise

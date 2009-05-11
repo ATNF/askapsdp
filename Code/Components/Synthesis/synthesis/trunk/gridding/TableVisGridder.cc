@@ -286,6 +286,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    const uint nChan = acc.nChannel();
    const uint nPol = acc.nPol();
    const casa::Vector<casa::Double>& frequencyList = acc.frequency();
+   itsFreqMapper.setupMapping(frequencyList);
 			      
    ASKAPDEBUGASSERT(itsShape.nelements()>=2);
    const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
@@ -315,8 +316,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
            }
            itsFirstGriddedVis = false;
        }
-	   /// Temporarily fix to do MFS only
-	   int imageChan=0;
+	   /// Temporarily fix to grid polarisations together
 	   int imagePol=0;
 	   
 	   for (uint chan=0; chan<nChan; ++chan) {
@@ -362,11 +362,20 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			   if (acc.flag()(i, chan, pol))
 				   allPolGood=false;
 		   }
-
+  
+           /*
+           // temporary for debugging
+           if (allPolGood && !itsFreqMapper.isMapped(chan)) {
+              ASKAPLOG_INFO_STR(logger, "Channel "<<chan<<" is not mapped to the image cube");       
+           }
+           */
+           
 		   // Ensure that we only use unflagged data, incomplete polarisation vectors are 
 		   // ignored
 		   // @todo Be more careful about matching polarizations
-		   if (allPolGood) {
+		   if (allPolGood && itsFreqMapper.isMapped(chan)) {
+		     // obtain which channel of the image this accessor channel is mapped to
+		     const int imageChan = itsFreqMapper(chan);
 		     
 		     // Now loop over all visibility polarizations
 		     for (uint pol=0; pol<nPol; ++pol) {
@@ -671,6 +680,7 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	
 	initialiseSumOfWeights();
     ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+    initialiseFreqMapping();
 }
 
 /// @brief initialise sum of weights
@@ -786,6 +796,8 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor);
 	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
 
+    initialiseFreqMapping();
+ 
 	/// We only need one grid
 	itsGrid.resize(1);
 	itsGrid[0].resize(itsShape);
@@ -802,6 +814,23 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		itsModelIsEmpty=true;
 		itsGrid[0].set(casa::Complex(0.0));
 	}
+}
+
+/// @brief helper method to initialise frequency mapping
+/// @details Derived gridders may override initialiseGrid and initialiseDegrid. Howerver, 
+/// they still need to be able to initialise frequency axis mapping (between accessor channels
+/// and image cube), which is handled by a private member class. This method initialises the 
+/// mapper using the content of itsShape and itsAxes, which should be set prior to calling this
+/// method.
+void TableVisGridder::initialiseFreqMapping()
+{
+  if (itsAxes.has("FREQUENCY") && itsShape.nelements()>=4) {
+      itsFreqMapper.setupImage(itsAxes, itsShape(3));
+  } else {
+      ASKAPLOG_INFO_STR(logger, "Forced to use single spectral plane gridding (either "
+                                "FREQUENCY axis or the number of channels are missing");
+      itsFreqMapper.setupSinglePlaneGridding();
+  }
 }
 
 /// This is the default implementation

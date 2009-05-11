@@ -157,6 +157,8 @@ namespace askap
        
       initialiseSumOfWeights();
       ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");      
+      
+      initialiseFreqMapping();           
     }
 
     void WStackVisGridder::multiply(casa::Array<casa::Complex>& scratch, int i)
@@ -267,6 +269,8 @@ namespace askap
       itsUVCellSize.resize(2);
       itsUVCellSize(0)=1.0/(raEnd-raStart)/double(paddingFactor());
       itsUVCellSize(1)=1.0/(decEnd-decStart)/double(paddingFactor());
+  
+      initialiseFreqMapping();      
 
       itsGrid.resize(itsNWPlanes);
       if (casa::max(casa::abs(in))>0.0)

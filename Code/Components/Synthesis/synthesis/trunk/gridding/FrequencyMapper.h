@@ -64,6 +64,13 @@ struct FrequencyMapper {
    /// @note an exception is thrown if axes object doesn't contain the spectral axis
    void setupImage(const scimath::Axes &axes, int nchan);
    
+   /// @brief setup an image where everything is gridded into single plane
+   /// @details Current unit tests are written without frequency axis. This method was
+   /// added instead of patching all unit tests (and it may be quite useful for debugging as well).
+   /// If this method is called, all subsequent calls to operator() would return 0.
+   /// Calling setupImage would revert operations back to normal.
+   void setupSinglePlaneGridding();
+   
    /// @brief setup mapping 
    /// @details 
    /// This method sets up actual mapping between image and accessor channels. Only 
@@ -93,7 +100,8 @@ private:
    /// @brief end frequency of the image cube
    double itsEndFreq;
    /// @brief number of channels in the image cube
-   /// @details A negative value means that the class has not been initialised.
+   /// @details A negative value means that the class has not been initialised (-1) or is in a 
+   /// single plane image mode (-2).
    int itsImageNChan;
    /// @brief number of accessor channels
    casa::uInt itsAccessorNChan;

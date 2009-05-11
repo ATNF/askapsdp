@@ -71,16 +71,29 @@ void FrequencyMapper::setupImage(const scimath::Axes &axes, int nchan)
 /// expected that no fractional channel offset can occur.
 void FrequencyMapper::setupMapping(const casa::Vector<casa::Double> &freqs)
 {
+   if (itsImageNChan == -2) {
+       // special case of the single plane mapper, do nothing
+       return;
+   }
    ASKAPCHECK(itsImageNChan>0, "An attempt to call setupMapping for uninitialised FrequencyMapper");
    itsMap.resize(freqs.nelements());
-   const double increment = (itsEndFreq - itsStartFreq)/double(itsImageNChan);
-   for (casa::uInt chan=0; chan<freqs.nelements(); ++chan) {
-        const int imgChan = int((freqs[chan]-itsStartFreq)/increment*1000.)/1000;
-        if (imgChan<0 || imgChan>=itsImageNChan) {
-            itsMap[chan] = -1;
-        } else {
-            itsMap[chan] = imgChan;
-        }
+   if (itsImageNChan == 1) {
+       // special case (tbd - check that assumed definition is what was intended)
+       // ignore frequency axis and map everything to a single plane (same behavior as we used to have)
+       for (vector<int>::iterator it = itsMap.begin(); it!=itsMap.end(); ++it) {
+            *it = 0;
+       }            
+   } else {
+      const double increment = (itsEndFreq - itsStartFreq)/double(itsImageNChan-1);
+      ASKAPCHECK(fabs(increment)>0, "Frequency axis in the image has the same start and end frequency "<<itsStartFreq);
+      for (casa::uInt chan=0; chan<freqs.nelements(); ++chan) {
+           const int imgChan = int((freqs[chan]-itsStartFreq)/increment*1000.)/1000;
+           if (imgChan<0 || imgChan>=itsImageNChan) {
+               itsMap[chan] = -1;
+           } else {
+               itsMap[chan] = imgChan;
+           }
+      }
    }
 }
 
@@ -92,8 +105,21 @@ void FrequencyMapper::setupMapping(const casa::Vector<casa::Double> &freqs)
 /// @return true, if the given channel has a mapping
 bool FrequencyMapper::isMapped(casa::uInt chan)  const
 {
+  if (itsImageNChan == -2) {
+      return true;
+  }
   ASKAPDEBUGASSERT(chan<itsMap.size());
   return itsMap[chan]>=0;
+}
+
+/// @brief setup an image where everything is gridded into single plane
+/// @details Current unit tests are written without frequency axis. This method was
+/// added instead of patching all unit tests (and it may be quite useful for debugging as well).
+/// If this method is called, all subsequent calls to operator() would return 0.
+/// Calling setupImage would revert operations back to normal.
+void FrequencyMapper::setupSinglePlaneGridding()
+{
+  itsImageNChan = -2;
 }
 
    
@@ -103,10 +129,11 @@ bool FrequencyMapper::isMapped(casa::uInt chan)  const
 /// @note the output is guaranteed to be from [0,itsImageNChan-1] interval.
 casa::uInt FrequencyMapper::operator()(casa::uInt chan) const
 {
+  if (itsImageNChan == -2) {
+      return 0;
+  }
   ASKAPDEBUGASSERT(chan<itsMap.size());
   ASKAPDEBUGASSERT(itsImageNChan>0);
   ASKAPCHECK(itsMap[chan]>=0, "An attempt to call FrequencyMapper::operator() for unmapped channel "<<chan);
   return itsMap[chan];
 }
-
-
