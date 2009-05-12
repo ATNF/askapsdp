@@ -58,6 +58,12 @@ namespace askap
                 // Communications class
                 askap::cp::IBasicComms& itsComms;
 
+
+                // No support for assignment
+                ImageMultiScaleSolverWorker& operator=(const ImageMultiScaleSolverWorker& rhs);
+
+                // No support for copy constructor
+                ImageMultiScaleSolverWorker(const ImageMultiScaleSolverWorker& src);
         };
 
     }

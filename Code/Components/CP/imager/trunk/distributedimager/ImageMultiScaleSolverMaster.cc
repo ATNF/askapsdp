@@ -243,13 +243,12 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
             // Wait for a response, either with real results or just
             // a request for more work
             int source;
-            IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::CLEAN_RESPONSE, source);
-            CleanResponse* response = dynamic_cast<CleanResponse*>(msg.get());
-            while (response->get_payloadType() != CleanResponse::READY) {
+            CleanResponse response;
+            itsComms.receiveMessageAnySrc(response, source);
+            while (response.get_payloadType() != CleanResponse::READY) {
                 ASKAPLOG_INFO_STR(logger, "Got CleanResponse - Still work to do");
                 processCleanResponse(response);
-                msg = itsComms.receiveMessageAnySrc(IMessage::CLEAN_RESPONSE, source);
-                response = dynamic_cast<CleanResponse*>(msg.get());
+                itsComms.receiveMessageAnySrc(response, source);
             }
 
             ASKAPLOG_INFO_STR(logger, "Master is allocating CleanRequest " << patchid
@@ -286,9 +285,9 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
         {
             int id;
             ASKAPLOG_INFO_STR(logger, "Waiting for outstanding CleanRequests");
-            IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::CLEAN_RESPONSE, id);
-            CleanResponse* response = dynamic_cast<CleanResponse*>(msg.get());
-            if (response->get_payloadType() == CleanResponse::RESULT) 
+            CleanResponse response;
+            itsComms.receiveMessageAnySrc(response, id);
+            if (response.get_payloadType() == CleanResponse::RESULT) 
             {
                 processCleanResponse(response);
             } else {
@@ -356,14 +355,14 @@ Solver::ShPtr ImageMultiScaleSolverMaster::clone() const
 }
 
 
-void ImageMultiScaleSolverMaster::processCleanResponse(CleanResponse* response)
+void ImageMultiScaleSolverMaster::processCleanResponse(CleanResponse& response)
 {
-    ASKAPCHECK(response->get_payloadType() == CleanResponse::RESULT,
+    ASKAPCHECK(response.get_payloadType() == CleanResponse::RESULT,
             "Only RESULT responses should be sent to processCleanResponse()");
 
-    int patchid = response->get_patchId();
-    casa::Array<float>& patch = response->get_patch();
-    double strengthOptimum = response->get_strengthOptimum();
+    int patchid = response.get_patchId();
+    casa::Array<float>& patch = response.get_patch();
+    double strengthOptimum = response.get_strengthOptimum();
 
     itsCleanworkq[patchid].model->assign(patch);
     itsCleanworkq[patchid].done = true;
@@ -397,9 +396,9 @@ void ImageMultiScaleSolverMaster::signalFinished(void)
         ASKAPLOG_INFO_STR(logger, "Finishing up for  worker " << id);
 
         // Read the (hopefully) empty clean response the worker is sending
-        IMessageSharedPtr msg = itsComms.receiveMessage(IMessage::CLEAN_RESPONSE, id);
-        CleanResponse* response = dynamic_cast<CleanResponse*>(msg.get());
-        ASKAPCHECK(response->get_payloadType() == CleanResponse::READY, "Expected message: READY");
+        CleanResponse response;
+        itsComms.receiveMessage(response, id);
+        ASKAPCHECK(response.get_payloadType() == CleanResponse::READY, "Expected message: READY");
 
         // Signal the worker that there are no more workunits
         CleanRequest request;

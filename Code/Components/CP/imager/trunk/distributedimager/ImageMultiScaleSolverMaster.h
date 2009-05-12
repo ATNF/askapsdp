@@ -94,11 +94,7 @@ namespace askap
                 void preconditionNE(casa::ArrayLattice<float>& psf, casa::ArrayLattice<float>& dirty);
 
             private:
-                /// Scales in pixels
-                casa::Vector<float> itsScales;
-                /// Map of Cleaners
-                std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > > itsCleaners;
-
+                // Unit or work
                 struct CleanerWork
                 {
                     int patchid;
@@ -107,14 +103,24 @@ namespace askap
                     double strengthOptimum;
                 };
 
+                // Scales in pixels
+                casa::Vector<float> itsScales;
+
                 // Clean workqueue
                 std::vector<CleanerWork> itsCleanworkq;
 
-                void processCleanResponse(CleanResponse* response);
+                // Handles clean resonse messages
+                void processCleanResponse(CleanResponse& response);
 
+                // Returns true if there are any clean request
+                // still outstanding.
                 bool outstanding(void);
 
+                // Used to track if workers have been finalised yet
                 std::vector<bool> itsFinished;
+
+                // For all workers not yet finished, signal that it is
+                // time to complete
                 void signalFinished(void);
 
                 // Parameter set
@@ -122,7 +128,6 @@ namespace askap
 
                 // Communications class
                 askap::cp::IBasicComms& itsComms;
-
         };
 
     }

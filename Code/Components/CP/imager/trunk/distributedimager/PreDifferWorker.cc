@@ -81,10 +81,9 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
     ASKAPCHECK(itsGridder_p, "itsGridder_p is not correctly initialized");
 
     // Receive the model
-    IMessageSharedPtr msg =
-        itsComms.receiveMessageBroadcast(IMessage::UPDATE_MODEL, itsMaster);
-    UpdateModel* updatemsg = dynamic_cast<UpdateModel*>(msg.get());
-    askap::scimath::Params::ShPtr model_p = updatemsg->get_model();
+    UpdateModel updatemsg;
+    itsComms.receiveMessageBroadcast(updatemsg, itsMaster);
+    askap::scimath::Params::ShPtr model_p = updatemsg.get_model();
 
 
     // Pointer to measurement equation
@@ -105,15 +104,15 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
         itsComms.sendMessage(response, itsMaster);
 
         // Receive the workunit from the master
-        IMessageSharedPtr msg = itsComms.receiveMessage(IMessage::PREDIFFER_REQUEST, itsMaster);
-        PreDifferRequest* request = dynamic_cast<PreDifferRequest*>(msg.get());
+        PreDifferRequest request;
+        itsComms.receiveMessage(request, itsMaster);
 
-        if (request->get_payloadType() == PreDifferRequest::FINALIZE) {
+        if (request.get_payloadType() == PreDifferRequest::FINALIZE) {
             // Indicates all workunits have been assigned already
             break;
         }
 
-        const std::string ms = request->get_dataset();
+        const std::string ms = request.get_dataset();
         ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
 
         casa::Timer timer;
@@ -188,13 +187,13 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         // is responsible for.
         for (int i = 0; i < responsible; ++i) {
             int source;
-            IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::PREDIFFER_RESPONSE, source);
-            PreDifferResponse* response = dynamic_cast<PreDifferResponse*>(msg.get());
-            ASKAPCHECK(response->get_payloadType() == PreDifferResponse::RESULT,
+            PreDifferResponse response;
+            itsComms.receiveMessageAnySrc(response, source);
+            ASKAPCHECK(response.get_payloadType() == PreDifferResponse::RESULT,
                     "Expected only RESULT payloads at this time");
 
-            int recvcount = response->get_count();
-            askap::scimath::INormalEquations::ShPtr recv_ne_p = response->get_normalEquations();
+            int recvcount = response.get_count();
+            askap::scimath::INormalEquations::ShPtr recv_ne_p = response.get_normalEquations();
 
             ASKAPLOG_INFO_STR(logger, "Accumulator @" << id << " received NE from " << source);
 

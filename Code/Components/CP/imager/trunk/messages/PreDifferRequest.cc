@@ -35,7 +35,6 @@
 #include <Blob/BlobSTL.h>
 
 // Using
-using namespace askap;
 using namespace askap::cp;
 
 PreDifferRequest::PreDifferRequest()

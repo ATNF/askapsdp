@@ -78,40 +78,45 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
     message.set_model(model_p);
     itsComms.sendMessageBroadcast(message);
 
-    // Send work orders to the worker processes
+    // Read from the configruation the list of datasets to process
     std::vector<std::string> ms = getDatasets(itsParset);
     if (ms.size() == 0) {
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
 
-    // Wait for all work units to complete processing, handling out
-    // more work to the workers as needed
+    // Send work orders to the worker processes, handling out
+    // more work to the workers as needed.
     for (unsigned int n = 0; n < ms.size(); ++n) {
-        // TODO: Waiting for a string is a dumb way for the worker to indicate
-        // it wants more work to do. Need a MUCH better way of doing this. Some
-        // sort of command message incorporating this plus the "no more workunits"
-        // message (below) could be developed.
-        int source;
-        IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::PREDIFFER_RESPONSE, source);
+        int id; // Id of the process the message is received from
+
+        // Rather than just sending work to all workers, the workers actually
+        // first send a request for work.
+        PreDifferResponse response;
+        itsComms.receiveMessageAnySrc(response, id);
+        ASKAPCHECK(response.get_payloadType() == PreDifferResponse::READY,
+                "Expected only READY payloads at this time");
 
         ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
-                << " to worker " << source);
+                << " to worker " << id);
         PreDifferRequest request;
         request.set_payloadType(PreDifferRequest::WORK);
         request.set_dataset(ms[n]);
-        itsComms.sendMessage(request, source);
+        itsComms.sendMessage(request, id);
     }
 
     // Send each process an empty string to indicate
-    // there are no more workunits on offer (TODO: Need to find
-    // a better way of doing this)
-    for (int dest = 1; dest < itsComms.getNumNodes(); ++dest) {
-        itsComms.receiveMessage(IMessage::PREDIFFER_RESPONSE, dest);
-        //
-        //
+    // there are no more workunits on offer.
+    for (int id = 1; id < itsComms.getNumNodes(); ++id) {
+        // First get the request for more work message from the worker
+        PreDifferResponse response;
+        itsComms.receiveMessage(response, id);
+        ASKAPCHECK(response.get_payloadType() == PreDifferResponse::READY,
+                "Expected only READY payloads at this time");
+
+        // Now send the finalize command
         PreDifferRequest request;
         request.set_payloadType(PreDifferRequest::FINALIZE);
-        itsComms.sendMessage(request, dest);
+        itsComms.sendMessage(request, id);
     }
 
     // Finally, wait for the workers/accumulators to send all the normal
@@ -123,22 +128,22 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
     unsigned int count = 0;
     int responsible = rlogic.responsible();
     for (int i = 0; i < responsible; ++i) {
-        int source;
-        IMessageSharedPtr msg = itsComms.receiveMessageAnySrc(IMessage::PREDIFFER_RESPONSE, source);
-        PreDifferResponse* response = dynamic_cast<PreDifferResponse*>(msg.get());
+        int id; // Id of the process the message is received from
+        PreDifferResponse response;
+        itsComms.receiveMessageAnySrc(response, id);
 
-        ASKAPCHECK(response->get_payloadType() == PreDifferResponse::RESULT,
+        ASKAPCHECK(response.get_payloadType() == PreDifferResponse::RESULT,
                 "Expected only RESULT payloads at this time");
 
         // Merge the received normal equations
-        int recvcount = response->get_count();
+        int recvcount = response.get_count();
         if (recvcount > 0) {
-            ne_p->merge(*response->get_normalEquations());
+            ne_p->merge(*response.get_normalEquations());
             count += recvcount;
         }
 
         ASKAPLOG_INFO_STR(logger, "Received " << recvcount << " normal equations from worker " 
-                << source << ". Still waiting for " << ms.size() - count << ".");
+                << id << ". Still waiting for " << ms.size() - count << ".");
     }
 
     ASKAPCHECK(count == ms.size(), "Results for one or more datasets missing");

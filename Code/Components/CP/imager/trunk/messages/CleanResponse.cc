@@ -28,8 +28,6 @@
 #include <messages/CleanResponse.h>
 
 // ASKAPsoft includes
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobArray.h>
@@ -37,10 +35,7 @@
 #include <casa/Arrays/Array.h>
 
 // Using
-using namespace askap;
 using namespace askap::cp;
-
-ASKAP_LOGGER(logger, ".CleanResponse");
 
 CleanResponse::CleanResponse() : itsPayloadType(READY),
     itsPatchId(-1), itsStrengthOptimum(-1)

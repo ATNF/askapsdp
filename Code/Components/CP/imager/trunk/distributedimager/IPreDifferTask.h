@@ -27,8 +27,6 @@
 #ifndef ASKAP_CP_IPREDIFFERTASK_H
 #define ASKAP_CP_IPREDIFFERTASK_H
 
-// System includes
-
 // ASKAPsoft includes
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>

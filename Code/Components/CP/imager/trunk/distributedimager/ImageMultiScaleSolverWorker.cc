@@ -64,24 +64,24 @@ void ImageMultiScaleSolverWorker::solveNormalEquations(void)
         response.set_payloadType(CleanResponse::READY);
         itsComms.sendMessage(response, itsMaster);
 
-        IMessageSharedPtr msg = itsComms.receiveMessage(IMessage::CLEAN_REQUEST, itsMaster);
-        CleanRequest* request = dynamic_cast<CleanRequest*>(msg.get());
-        if (request->get_payloadType() == CleanRequest::FINALIZE) {
+        CleanRequest request;
+        itsComms.receiveMessage(request, itsMaster);
+        if (request.get_payloadType() == CleanRequest::FINALIZE) {
             // Indicates all workunits have been assigned already
             break;
         }
 
-        int patchid = request->get_patchId();
-        casa::Array<float>& dirtyarray  = request->get_dirty();
-        casa::Array<float>& psfarray = request->get_psf();
-        casa::Array<float>& maskarray = request->get_mask();
-        casa::Array<float>& cleanarray = request->get_model();
-        double _threshold = request->get_threshold();
-        std::string thresholdUnits = request->get_thresholdUnits();
-        double fractionalThreshold = request->get_fractionalThreshold();
-        casa::Vector<float> scales = request->get_scales();
-        int niter = request->get_niter();
-        double gain = request->get_gain();
+        int patchid = request.get_patchId();
+        casa::Array<float>& dirtyarray  = request.get_dirty();
+        casa::Array<float>& psfarray = request.get_psf();
+        casa::Array<float>& maskarray = request.get_mask();
+        casa::Array<float>& cleanarray = request.get_model();
+        double _threshold = request.get_threshold();
+        std::string thresholdUnits = request.get_thresholdUnits();
+        double fractionalThreshold = request.get_fractionalThreshold();
+        casa::Vector<float> scales = request.get_scales();
+        int niter = request.get_niter();
+        double gain = request.get_gain();
 
         casa::ArrayLattice<float> dirty(dirtyarray);
         casa::ArrayLattice<float> psf(psfarray);

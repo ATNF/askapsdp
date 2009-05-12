@@ -35,7 +35,6 @@
 #include <fitting/Params.h>
 
 // Using
-using namespace askap;
 using namespace askap::cp;
 
 UpdateModel::UpdateModel()

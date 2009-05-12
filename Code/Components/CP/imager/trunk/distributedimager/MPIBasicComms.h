@@ -51,16 +51,38 @@ public:
     virtual void abort(void);
 
     void sendMessage(const IMessage& msg, int dest);
-    const IMessageSharedPtr receiveMessage(IMessage::MessageType type, int source);
-    const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type);
-    const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type, int& actualSource);
+    void receiveMessage(IMessage& msg, int source);
+    void receiveMessageAnySrc(IMessage& msg);
+    void receiveMessageAnySrc(IMessage& msg, int& actualSource);
 
     void sendMessageBroadcast(const IMessage& msg);
-    const IMessageSharedPtr receiveMessageBroadcast(IMessage::MessageType type, int root);
+    void receiveMessageBroadcast(IMessage& msg, int root);
 
 private:
+    /// @brief MPI_Send a raw buffer to the specified destination
+    /// process.
+    ///
+    /// @params[in] buf a pointer to the buffer to send.
+    /// @params[in] size    the number of bytes to send.
+    /// @params[in] dest    the id of the process to send to.
+    /// @params[in] tag the MPI tag to be used in the communication.
     void send(const void* buf, size_t size, int dest, int tag);
+
+    /// @brief MPI_Recv a raw buffer from the specified source process.
+    ///
+    /// @params[out] buf a pointer to the buffer to receive data into.
+    /// @params[in] size    the number of bytes to receive.
+    /// @params[in] source  the id of the process to receive from.
+    /// @params[in] tag the MPI tag to be used in the communication.
+    /// @params[out] status MPI_Status structure returned by the call to
+    ///                     MPI_Recv()
     void receive(void* buf, size_t size, int source, int tag, MPI_Status& status);
+
+    /// @brief MPI_Bcast a raw buffer.
+    ///
+    /// @params [in,out] buf    data buffer.
+    /// @params [in] size       number of bytes to broadcast.
+    /// @params [in] root       id of the root process.
     void broadcast(void* buf, size_t size, int root);
 
     // Check for error status and handle accordingly

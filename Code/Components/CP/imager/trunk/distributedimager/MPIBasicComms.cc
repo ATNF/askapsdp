@@ -49,7 +49,6 @@
 
 // Local package includes
 #include <messages/IMessage.h>
-#include <messages/MessageFactory.h>
 
 
 using namespace askap::cp;
@@ -124,19 +123,16 @@ void MPIBasicComms::abort(void)
 
 void MPIBasicComms::send(const void* buf, size_t size, int dest, int tag)
 {
-    unsigned int c_maxint = std::numeric_limits<int>::max();
-
-    int result;
+    const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // First send the size of the buffer.
     unsigned long lsize = size;  // Promote for simplicity
-    result = MPI_Send(&lsize, 1, MPI_UNSIGNED_LONG, dest, tag, itsCommunicator);
+    int result = MPI_Send(&lsize, 1, MPI_UNSIGNED_LONG, dest, tag, itsCommunicator);
     checkError(result, "MPI_Send");
 
     // Send in chunks of size MAXINT until complete
     size_t remaining = size;
     while (remaining > 0) {
-        int result;
         size_t offset = size - remaining;
 
         void* addr = addOffset(buf, offset);
@@ -157,22 +153,20 @@ void MPIBasicComms::send(const void* buf, size_t size, int dest, int tag)
 
 void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Status& status)
 {
-    unsigned int c_maxint = std::numeric_limits<int>::max();
-
-    int result;
+    const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // First receive the size of the payload to be received,
     // remembering the size parameter passed to this function is
     // just the maximum size of the buffer, and hence the maximum
     // number of bytes that can be received.
     unsigned long payloadSize;
-    result = MPI_Recv(&payloadSize, 1, MPI_UNSIGNED_LONG,
+    int result = MPI_Recv(&payloadSize, 1, MPI_UNSIGNED_LONG,
             source, tag, itsCommunicator, &status);
     checkError(result, "MPI_Recv");
 
     // The source parameter may be MPI_ANY_SOURCE, so the actual
     // source needs to be recorded for later use.
-    int actualSource = status.MPI_SOURCE;
+    const int actualSource = status.MPI_SOURCE;
 
     // Receive the smaller of size or payloadSize
     size_t remaining = (payloadSize > size) ? size : payloadSize;
@@ -223,7 +217,6 @@ void* MPIBasicComms::addOffset(const void *ptr, size_t offset)
     cptr += offset;
 
     return cptr;
-
 }
 
 void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
@@ -242,7 +235,7 @@ void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
     timer.mark();
 
     // First send the size of the buffer
-    long size = buf.size();
+    const long size = buf.size();
     send(&size, sizeof(long), dest, messageType);
 
     // Now send the actual byte stream
@@ -253,10 +246,11 @@ void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
             << " seconds ");
 }
 
-const IMessageSharedPtr MPIBasicComms::receiveMessage(IMessage::MessageType type, int source)
+void MPIBasicComms::receiveMessage(IMessage& msg, int source)
 {
     // First receive the size of the byte stream
     long size;
+    const int type = msg.getMessageType();
     MPI_Status status;  // Not really used
     receive(&size, sizeof(long), source, type, status);
 
@@ -265,25 +259,20 @@ const IMessageSharedPtr MPIBasicComms::receiveMessage(IMessage::MessageType type
     buf.resize(size);
     receive(&buf[0], size * sizeof(char), source, type, status);
 
-    // Create a message to populate
-    MessageFactory factory;
-    IMessageSharedPtr msg(factory.create(type));
-
     // Decode
     LOFAR::BlobIBufVector<int8_t> bv(buf);
     LOFAR::BlobIStream in(bv);
     int version = in.getStart("Message");
     ASKAPASSERT(version == 1);
-    in >> *msg;
+    in >> msg;
     in.getEnd();
-
-    return msg;
 }
 
-const IMessageSharedPtr MPIBasicComms::receiveMessageAnySrc(IMessage::MessageType type, int& actualSource)
+void MPIBasicComms::receiveMessageAnySrc(IMessage& msg, int& actualSource)
 {
     // First receive the size of the byte stream
     long size;
+    const int type = msg.getMessageType();
     MPI_Status status;
     receive(&size, sizeof(long), MPI_ANY_SOURCE, type, status);
     actualSource = status.MPI_SOURCE;
@@ -293,36 +282,31 @@ const IMessageSharedPtr MPIBasicComms::receiveMessageAnySrc(IMessage::MessageTyp
     buf.resize(size);
     receive(&buf[0], size * sizeof(char), actualSource, type, status);
 
-    // Create a message to populate
-    MessageFactory factory;
-    IMessageSharedPtr msg(factory.create(type));
-
     // Decode
     LOFAR::BlobIBufVector<int8_t> bv(buf);
     LOFAR::BlobIStream in(bv);
     int version = in.getStart("Message");
     ASKAPASSERT(version == 1);
-    in >> *msg;
+    in >> msg;
     in.getEnd();
-
-    return msg;
 }
 
-const IMessageSharedPtr MPIBasicComms::receiveMessageAnySrc(IMessage::MessageType type)
+void MPIBasicComms::receiveMessageAnySrc(IMessage& msg)
 {
     int id;
-    return receiveMessageAnySrc(type, id); 
+    receiveMessageAnySrc(msg, id); 
+    return;
 }
 
 void MPIBasicComms::sendMessageBroadcast(const IMessage& msg)
 {
-    std::vector<int8_t> data;
+    std::vector<int8_t> buf;
     int root = getId();
 
     // Encode the model to a byte stream
-    LOFAR::BlobOBufVector<int8_t> bv(data);
+    LOFAR::BlobOBufVector<int8_t> bv(buf);
     LOFAR::BlobOStream out(bv);
-    out.putStart("Message", 1);
+    out.putStart("BroadcastMessage", 1);
     out << msg;
     out.putEnd();
 
@@ -330,42 +314,36 @@ void MPIBasicComms::sendMessageBroadcast(const IMessage& msg)
     timer.mark();
 
     // First broadcast the size of the mesage broadcast
-    unsigned long size = data.size();
+    unsigned long size = buf.size();
     broadcast(&size, sizeof(unsigned long), root);
 
     // Now broadcast the message itself
-    broadcast(&data[0], size * sizeof(int8_t), root);
+    broadcast(&buf[0], size * sizeof(int8_t), root);
 
     ASKAPLOG_INFO_STR(logger, "Broadcast model to all ranks via MPI in "
             << timer.real() << " seconds ");
 
 }
 
-const IMessageSharedPtr MPIBasicComms::receiveMessageBroadcast(IMessage::MessageType type, int root)
+void MPIBasicComms::receiveMessageBroadcast(IMessage& msg, int root)
 {
     // Participate in the size broadcast
     unsigned long size;
     broadcast(&size, sizeof(unsigned long), root);
 
     // Setup a data buffer to receive into
-    std::vector<int8_t> data;
-    data.resize(size);
+    std::vector<int8_t> buf;
+    buf.resize(size);
 
     // Now participate in the broadcast of the message itself
-    broadcast(&data[0], size * sizeof(int8_t), root);
-
-    // Create a message of the correct type
-    MessageFactory factory;
-    IMessageSharedPtr msg(factory.create(type));
+    broadcast(&buf[0], size * sizeof(int8_t), root);
 
     // Decode
-    LOFAR::BlobIBufVector<int8_t> bv(data);
+    LOFAR::BlobIBufVector<int8_t> bv(buf);
     LOFAR::BlobIStream in(bv);
-    int version = in.getStart("Message");
+    int version = in.getStart("BroadcastMessage");
     ASKAPASSERT(version == 1);
-    in >> *msg;
+    in >> msg;
     in.getEnd();
-
-    return msg;
 }
 

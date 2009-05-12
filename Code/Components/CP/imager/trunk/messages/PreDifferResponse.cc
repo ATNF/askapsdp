@@ -28,8 +28,6 @@
 #include <messages/PreDifferResponse.h>
 
 // ASKAPsoft includes
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobArray.h>
@@ -38,11 +36,8 @@
 #include <fitting/ImagingNormalEquations.h>
 
 // Using
-using namespace askap;
 using namespace askap::cp;
 using namespace askap::scimath;
-
-ASKAP_LOGGER(logger, ".PreDifferResponse");
 
 PreDifferResponse::PreDifferResponse() : itsCount(0)
 {
@@ -116,5 +111,8 @@ void PreDifferResponse::readFromBlob(LOFAR::BlobIStream& is)
         itsNe = ImagingNormalEquations::ShPtr(new ImagingNormalEquations());
         is >> itsCount;
         is >> *itsNe;
+    } else {
+        itsCount = 0;
+        itsNe.reset();
     }
 }

@@ -40,11 +40,11 @@ namespace askap {
         {
             public:
                 enum MessageType {
-                    UPDATE_MODEL = 1,
-                    PREDIFFER_REQUEST = 2,
-                    PREDIFFER_RESPONSE = 3,
-                    CLEAN_REQUEST = 4,
-                    CLEAN_RESPONSE = 5
+                    UPDATE_MODEL,
+                    PREDIFFER_REQUEST,
+                    PREDIFFER_RESPONSE,
+                    CLEAN_REQUEST,
+                    CLEAN_RESPONSE
                 };
 
                 /// @brief Destructor.

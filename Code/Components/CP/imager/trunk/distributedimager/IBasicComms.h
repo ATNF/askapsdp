@@ -35,41 +35,80 @@
 #include <messages/IMessage.h>
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        /// @brief An interface defining communications functionality required
-        /// for the distributed imager.
-        class IBasicComms
-        {
-            public:
-                /// @brief Destructor.
-                virtual ~IBasicComms();
+    /// @brief An interface defining communications functionality required
+    /// for the distributed imager.
+    class IBasicComms
+    {
+        public:
+            /// @brief Destructor.
+            virtual ~IBasicComms();
 
-                /// @brief Returns the Id of the process. This allows the process to be
-                ///  uniquely identified within the group of collaborating processes.
-                ///
-                /// @return the Id of the process.
-                virtual int getId(void) = 0;
+            /// @brief Returns the Id of the process. This allows the process to be
+            ///  uniquely identified within the group of collaborating processes.
+            ///
+            /// @return the Id of the process.
+            virtual int getId(void) = 0;
 
-                /// @brief Returns the number of nodes involved in the collaboration.
-                ///
-                /// @return the number of nodes involved in the collaboration.
-                virtual int getNumNodes(void) = 0;
+            /// @brief Returns the number of nodes involved in the collaboration.
+            ///
+            /// @return the number of nodes involved in the collaboration.
+            virtual int getNumNodes(void) = 0;
 
-                /// @brief Abort the collaboration and signal all processes
-                /// involved to terminate.
-                virtual void abort(void) = 0;
+            /// @brief Abort the collaboration and signal all processes
+            /// involved to terminate.
+            virtual void abort(void) = 0;
 
-                virtual void sendMessage(const IMessage& msg, int dest) = 0;
-                virtual const IMessageSharedPtr receiveMessage(IMessage::MessageType type, int source) = 0;
-                virtual const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type) = 0;
-                virtual const IMessageSharedPtr receiveMessageAnySrc(IMessage::MessageType type, int& actualSource) = 0;
+            /// @brief Send a message to the specified destination.
+            ///
+            /// @param[in]  msg     the message to send.
+            /// @param[in]  dest    the destination to send the message to.
+            virtual void sendMessage(const IMessage& msg, int dest) = 0;
 
-                virtual void sendMessageBroadcast(const IMessage& msg) = 0;
-                virtual const IMessageSharedPtr receiveMessageBroadcast(IMessage::MessageType type, int root) = 0;
-        };
+            /// @brief Receive a message of the specified type from the
+            /// specified source process.
+            ///
+            /// @param[out] msg the message of the type you would like to 
+            ///                 receive. Note this message will be overwritten
+            ///                 with the contents of the received message.
+            /// @param[in]  source  the id of the process to receive the
+            ///                     message from.
+            virtual void receiveMessage(IMessage& msg, int source) = 0;
 
+            /// @brief Receive a message of the specified type from any source.
+            ///
+            /// @param[out] msg the message of the type you would like to 
+            ///                 receive. Note this message will be overwritten
+            ///                 with the contents of the received message.
+            virtual void receiveMessageAnySrc(IMessage& msg) = 0;
+
+            /// @brief Receive a message of the specified type from any source.
+            ///
+            /// @param[out] msg the message of the type you would like to 
+            ///                 receive. Note this message will be overwritten
+            ///                 with the contents of the received message.
+            /// @param[out]  actualSource   the id of the process which actually
+            ///                             sent the message.
+            virtual void receiveMessageAnySrc(IMessage& msg, int& actualSource) = 0;
+
+            /// @brief Broadcast a message to all processes.
+            ///
+            /// @param[in]  msg     the message to send.
+            virtual void sendMessageBroadcast(const IMessage& msg) = 0;
+
+            /// @brief Receive a message of the specified type from the
+            /// specified source process.
+            ///
+            /// @param[out] msg the message of the type you would like to 
+            ///                 receive. Note this message will be overwritten
+            ///                 with the contents of the received message.
+            /// @param[in]  root    the id of the process from which the
+            ///                     broadcast originated.
+            virtual void receiveMessageBroadcast(IMessage& msg, int root) = 0;
     };
+
+};
 };
 
 #endif
