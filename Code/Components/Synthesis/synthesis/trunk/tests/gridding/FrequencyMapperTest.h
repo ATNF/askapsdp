@@ -1,3 +1,8 @@
+/// @file
+///
+/// Unit test for the frequency axis mapping class
+///
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,19 +25,38 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <cppunit/ui/text/TestRunner.h>
+#include <gridding/FrequencyMapper.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-#include <TableVisGridderTest.h>
-#include <SupportSearcherTest.h>
-#include <FrequencyMapperTest.h>
+#include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/IPosition.h>
+#include <casa/BasicSL/Complex.h>
 
-int main( int argc, char **argv)
+#include <boost/shared_ptr.hpp>
+
+namespace askap {
+
+namespace synthesis {
+
+class FrequencyMapperTest : public CppUnit::TestFixture 
 {
-  CppUnit::TextUi::TestRunner runner;
-  runner.addTest( askap::synthesis::TableVisGridderTest::suite());
-  runner.addTest( askap::synthesis::SupportSearcherTest::suite());
-  runner.addTest( askap::synthesis::FrequencyMapperTest::suite());
-  runner.run();
-  return 0;
-}
+   CPPUNIT_TEST_SUITE(FrequencyMapperTest);
+   CPPUNIT_TEST(testFreqMapping);
+   CPPUNIT_TEST_SUITE_END();
+public:
+   
+   void testFreqMapping() {
+   }
+   
+   
+private:
+   /// @brief frequency mapping class
+   boost::shared_ptr<FrequencyMapper> itsFreqMapper;         
+};
+    
+} // namespace synthesis
+
+} // namespace askap
+
