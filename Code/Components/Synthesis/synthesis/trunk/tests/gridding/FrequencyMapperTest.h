@@ -48,6 +48,32 @@ class FrequencyMapperTest : public CppUnit::TestFixture
 public:
    
    void testFreqMapping() {
+       scimath::Axes axis;
+       axis.add("FREQUENCY",1.308e9,1.42e9);
+       itsFreqMapper.reset(new FrequencyMapper(axis, 8));
+       casa::Vector<casa::Double> freqs(10);
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            freqs[i] = 1.308e9+1.6e7*(double(i)-1.);
+       } 
+       itsFreqMapper->setupMapping(freqs);
+       // test the mapping
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            if (i==0 || i+1 == freqs.nelements()) {
+                CPPUNIT_ASSERT(!itsFreqMapper->isMapped(i));                
+            } else {
+                CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
+                CPPUNIT_ASSERT((*itsFreqMapper)(i) + 1 == i);                
+            }
+       }
+       
+       // test MFS mode
+       itsFreqMapper->setupSinglePlaneGridding();
+       itsFreqMapper->setupMapping(freqs);
+       
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+                CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
+                CPPUNIT_ASSERT((*itsFreqMapper)(i) == 0);       
+       }
    }
    
    
