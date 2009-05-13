@@ -56,8 +56,11 @@ class IceHandler(Handler):
             raise RuntimeError("Invalid proxy")
 
     def emit(self, record):
+        lvlname = record.levelname
+        if lvlname == "CRITICAL":
+            lvlname = "FATAL"
         event = ILogEvent(record.name, record.created,
-                          record.levelname, record.msg)
+                          lvlname, record.msg)
         self.prxy.send(event)
     
     def close(self):
