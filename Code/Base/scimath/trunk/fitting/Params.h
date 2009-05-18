@@ -81,6 +81,15 @@ namespace askap
 /// @param value Value
         void add(const std::string& name, const casa::Array<double>& value);
 
+/// @brief Add an empty array parameter        
+/// @details This version of the method creates a new array parameter with the
+/// given shape. It is largely intended to be used together with the partial slice
+/// access using the appropriate version of the update method. 
+/// @param[in] name name of the parameter to be added
+/// @param[in] shape required shape of the parameter
+/// @param[in] axes optional axes of the parameter
+void add(const std::string &name, const casa::IPosition &shape, const Axes &axes = Axes());
+
 /// Add an array parameter with specified axes
 /// @param name Name of param to be added
 /// @param value Param to be added
@@ -113,6 +122,17 @@ namespace askap
 /// @param name Name of param to be updated
 /// @param value New value
         void update(const std::string& name, const casa::Array<double>& value);
+
+/// @brief Update a slice of an array parameter        
+/// @details This version of the method updates a part of the array given by the IPosition object,
+/// representing the bottom left corner (blc). The top right corner (trc) is obtained by adding 
+/// the shape of the given value (i.e. give blc = IPosition(4,0,0,1,0) to update only channel 0, 
+/// polarisation 1 plane)
+/// @param[in] name name of the parameter to be added
+/// const casa::Array<double>& value
+/// @param[in] value an array with replacement values
+/// @param[in] blc where to insert the new values to
+void update(const std::string &name, const casa::Array<double> &value, const casa::IPosition &blc);
 
 /// Update a scalar parameter
 /// @param name Name of param to be updated

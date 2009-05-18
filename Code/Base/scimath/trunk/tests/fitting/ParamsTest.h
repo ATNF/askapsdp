@@ -29,6 +29,7 @@
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 
+#include <casa/Arrays/Matrix.h>
 
 #include <askap/AskapError.h>
 
@@ -50,6 +51,7 @@ namespace askap
       CPPUNIT_TEST(testCongruent);
       CPPUNIT_TEST(testCompletions);
       CPPUNIT_TEST(testCopy);
+      CPPUNIT_TEST(testArraySlice);
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_EXCEPTION(testDuplicate, askap::CheckError);
       CPPUNIT_TEST_EXCEPTION(testNotScalar, askap::CheckError);
@@ -147,6 +149,30 @@ namespace askap
           CPPUNIT_ASSERT(p1->value("Value1").nelements()==100);
           p1->value("Value1").set(4.0);
           CPPUNIT_ASSERT(p1->value("Value1")(casa::IPosition(2,5,5))==4.0);
+        }
+        
+        void testArraySlice()
+        {
+          casa::Matrix<double> im(10,15,-1.0);
+          for (casa::uInt row = 0; row<im.nrow(); ++row) {
+               im.row(row).set(double(row));
+          }
+          p1->add("BigArray",im.shape());
+          for (casa::uInt row = 0; row<im.nrow(); ++row) {
+               casa::Vector<double> vec(im.ncolumn(),double(row));
+               casa::Array<double> vecArr(vec.reform(casa::IPosition(2,1,vec.nelements())));
+               casa::IPosition blc(2,int(row),0);
+               p1->update("BigArray",vecArr, blc);
+          }
+          casa::Matrix<double> res(p1->value("BigArray"));
+          for (casa::uInt x = 0; x<res.nrow(); ++x) {
+               for (casa::uInt y = 0; y<res.ncolumn(); ++y) {
+                    CPPUNIT_ASSERT(x<im.nrow());
+                    CPPUNIT_ASSERT(y<im.ncolumn());
+                    CPPUNIT_ASSERT(fabs(im(x,y)-res(x,y))<1e-7);                    
+               }
+          }
+          
         }
 
         void testIndices()

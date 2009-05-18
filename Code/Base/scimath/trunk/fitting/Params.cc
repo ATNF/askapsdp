@@ -163,6 +163,52 @@ namespace askap
 			itsCounts[name]++;
 		}
 		
+        /// @brief Update a slice of an array parameter        
+        /// @details This version of the method updates a part of the array given by the IPosition object,
+        /// representing the bottom left corner (blc). The top right corner (trc) is obtained by adding 
+        /// the shape of the given value (i.e. give blc = IPosition(4,0,0,1,0) to update only channel 0, 
+        /// polarisation 1 plane)
+        /// @param[in] name name of the parameter to be added
+        /// const casa::Array<double>& value
+        /// @param[in] value an array with replacement values
+        /// @param[in] blc where to insert the new values to
+        void Params::update(const std::string &name, const casa::Array<double> &value, 
+                            const casa::IPosition &blc)
+        {
+           ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
+           ASKAPDEBUGASSERT(value.shape().nelements() == blc.nelements());
+           casa::Array<double> &arr = itsArrays[name];
+           casa::IPosition trc(value.shape());
+           trc += blc;
+           for (casa::uInt i=0; i<trc.nelements(); ++i) {
+                ASKAPDEBUGASSERT(trc[i]>0);
+                trc[i]--;
+                ASKAPDEBUGASSERT(trc[i]<arr.shape()[i]);
+                ASKAPDEBUGASSERT(blc[i]>=0);                
+                ASKAPDEBUGASSERT(blc[i]<=trc[i]);
+           }
+           arr(blc,trc) = value.copy();
+           itsFree[name]=true;
+           itsCounts[name]++;
+        }		
+		
+		/// @brief Add an empty array parameter        
+        /// @details This version of the method creates a new array parameter with the
+        /// given shape. It is largely intended to be used together with the partial slice
+        /// access using the appropriate version of the update method. 
+        /// @param[in] name name of the parameter to be added
+        /// @param[in] shape required shape of the parameter
+        /// @param[in] axes optional axes of the parameter
+        void Params::add(const std::string &name, const casa::IPosition &shape, const Axes &axes)
+        {
+         	ASKAPCHECK(!has(name), "Parameter " + name + " already exists");
+			itsArrays[name].resize(shape);
+			itsFree[name]=true;
+			itsAxes[name]=axes;
+			itsCounts[name]=0;
+		}
+		
+		
 		/// @brief update a complex-valued parameter
         /// @details This method is a convenient way to update parameters, which
         /// are complex numbers. It is equivalent to updating of an array of size
