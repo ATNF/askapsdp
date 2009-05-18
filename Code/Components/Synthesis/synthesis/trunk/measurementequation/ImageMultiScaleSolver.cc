@@ -38,7 +38,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/MatrixMath.h>
 #include <casa/Arrays/Vector.h>
-#include <casa/Arrays/ArrayPosIter.h>
 
 #include <lattices/Lattices/LatticeCleaner.h>
 #include <lattices/Lattices/ArrayLattice.h>
@@ -130,12 +129,6 @@ namespace askap
         casa::Array<float> cleanArray(valShape);
         casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
         casa::Array<float> maskArray(valShape);
-/*
-        casa::ArrayPositionIterator planeIter(valShape,casa::IPosition(valShape.nelements(),0),2u);
-        for (; !planeIter.pastEnd(); planeIter.next()) {
-             std::cout<<planeIter.pos()<<" "<<valShape<<std::endl;
-        }
-*/
 
 	    // Normalize
 	    doNormalization(diag,tol(),psfArray,dirtyArray, 
