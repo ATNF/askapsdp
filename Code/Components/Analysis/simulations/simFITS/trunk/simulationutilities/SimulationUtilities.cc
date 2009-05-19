@@ -72,8 +72,17 @@ namespace askap
     void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss)
     {
       
-      for(int x=0;x<axes[0];x++){
-	for(int y=0;y<axes[1];y++){
+      float majorSigma = gauss.majorAxis()/(4.*M_LN2);
+      float zeroPoint = majorSigma * sqrt(-2.*log(1./(MAXFLOAT*gauss.height())));
+      float xmin = std::max(gauss.xCenter()-zeroPoint,0.);
+      float xmax = std::min(gauss.xCenter()+zeroPoint,Double(axes[0]));
+      float ymin = std::max(gauss.yCenter()-zeroPoint,0.);
+      float ymax = std::min(gauss.yCenter()+zeroPoint,Double(axes[1]));
+
+//       for(int x=0;x<axes[0];x++){
+// 	for(int y=0;y<axes[1];y++){
+      for(int x=xmin;x<xmax;x++){
+	for(int y=ymin;y<ymax;y++){
 	  Vector<Double> loc(2);
 	  loc(0) = x; loc(1) = y;
 	  int pix = x + y * axes[0];

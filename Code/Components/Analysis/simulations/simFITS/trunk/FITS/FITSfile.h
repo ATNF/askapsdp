@@ -85,6 +85,7 @@ namespace askap
 
 	std::string itsFileName;
 	std::string itsSourceList;
+	std::string itsPosType;
 
 	float *itsArray;
 	bool itsArrayAllocated;

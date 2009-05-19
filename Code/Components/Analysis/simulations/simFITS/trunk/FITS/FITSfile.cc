@@ -77,6 +77,7 @@ namespace askap
 	this->itsBunit = parset.getString("bunit", "JY/BEAM");
 
 	this->itsSourceList = parset.getString("sourcelist","");
+	this->itsPosType = parset.getString("posType","dms");
 	std::string sourceFluxUnits = parset.getString("sourceFluxUnits","");
 	if(sourceFluxUnits!=""){
 	  char *base = (char *)this->itsBunit.c_str();
@@ -212,8 +213,15 @@ namespace askap
 	    flux = pow(this->itsUnitScl*flux+this->itsUnitOff, this->itsUnitPwr);
 
 	    // convert sky position to pixels
-	    wld[0] = analysis::dmsToDec(ra)*15.;
-	    wld[1] = analysis::dmsToDec(dec);
+	    if(this->itsPosType=="dms"){
+	      wld[0] = analysis::dmsToDec(ra)*15.;
+	      wld[1] = analysis::dmsToDec(dec);
+	    }
+	    else if(this->itsPosType == "deg"){
+	      wld[0] = atof(ra.c_str());
+	      wld[1] = atof(dec.c_str());
+	    }
+	    else ASKAPLOG_ERROR_STR(logger,"Incorrect position type: " << this->itsPosType);
 	    wld[2] = 0.;
 	    wcsToPixSingle(this->itsWCS,wld,pix);
 	    pixToWCSSingle(this->itsWCS,pix,newwld);
@@ -236,9 +244,11 @@ namespace askap
 	  delete [] pix;
 	  // for each source, add to array
 
+	  ASKAPLOG_DEBUG_STR(logger,"About to add " << gaussians.size() << " Gaussian sources to the array");
 	  std::vector<casa::Gaussian2D<casa::Double> >::iterator src=gaussians.begin();
 	  for(; src<gaussians.end();src++)
 	    addGaussian(this->itsArray, this->itsAxes, *src);
+	  ASKAPLOG_DEBUG_STR(logger,"Done adding Gaussians");
 
 	}
 
