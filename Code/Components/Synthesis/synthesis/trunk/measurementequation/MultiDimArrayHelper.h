@@ -102,6 +102,15 @@ struct MultiDimArrayHelper : protected casa::ArrayPositionIterator {
    /// @return blc of the current plane
    inline const casa::IPosition& position() const { return pos();}
    
+   /// @brief check whether there are more planes to iterate
+   /// @details
+   /// @return true, if the iteration is not complete
+   inline bool hasMore() const { return !pastEnd();}
+   
+   /// @brief proceed to the next iteration
+   /// @details A call to this method makes a step of the iterator
+   virtual void next();
+   
 private:
    /// @brief shape of the full hypercube
    casa::IPosition itsShape;    

@@ -46,7 +46,10 @@ MultiDimArrayHelper::MultiDimArrayHelper(const casa::IPosition &shape) :
      itsPlaneShape(shape), itsSequenceNumber(0)
 {
   ASKAPASSERT(itsPlaneShape.nelements()>=2);
+  ASKAPASSERT(itsShape.product()>0);
+  ASKAPDEBUGASSERT(itsShape[0]>0 && itsShape[1]>0);
   for (casa::uInt dim=2; dim<itsPlaneShape.nelements(); ++dim) {
+       ASKAPDEBUGASSERT(itsShape[dim]>0);
        itsPlaneShape[dim] = 1;
   }
 }
@@ -58,7 +61,14 @@ MultiDimArrayHelper::MultiDimArrayHelper(const casa::IPosition &shape) :
 /// @return output array (single plane)
 casa::Array<double> MultiDimArrayHelper::getPlane(casa::Array<double> &in) const
 {
-  return in;
+  const casa::IPosition blc(position());
+  casa::IPosition trc(blc);
+  trc += itsPlaneShape;
+  for (casa::uInt dim = 0; dim<trc.nelements(); ++dim) {
+       trc[dim] -= 1;
+       ASKAPDEBUGASSERT(trc[dim]<itsShape[dim]);
+  }
+  return in(blc,trc);
 }
 
 /// @brief extract a single plane form a 1D array
@@ -69,7 +79,7 @@ casa::Array<double> MultiDimArrayHelper::getPlane(casa::Array<double> &in) const
 /// @return output array (single plane)
 casa::Array<double> MultiDimArrayHelper::getPlane(casa::Vector<double> &in) const
 {
-  ASKAPDEBUGASSERT(itsShape.conform(in.shape())); 
+  ASKAPDEBUGASSERT(itsShape.product() == in.shape().product()); 
   casa::Array<double> reformedReference = in.reform(itsShape);
   return getPlane(reformedReference);
 }
@@ -82,6 +92,31 @@ casa::Array<double> MultiDimArrayHelper::getPlane(casa::Vector<double> &in) cons
 /// @return string tag
 std::string MultiDimArrayHelper::tag() const
 {
-  return utility::toString<casa::uInt>(sequenceNumber());
+  std::string res;
+  const casa::IPosition curPlane = position();
+  ASKAPDEBUGASSERT(curPlane.nelements() == itsShape.nelements());
+  for (casa::uInt dim = 2; dim<curPlane.nelements(); ++dim) {
+       // we skip all degenerate dimensions in the tag
+       if (itsShape[dim]>1) {
+           if (dim == 2) {
+               res += ".pol";
+           } else if (dim == 3) {
+               res += ".chan";
+           }  else {
+               res += ".";
+           }       
+           res += utility::toString<casa::uInt>(curPlane[dim]);
+       }
+  }
+  return res;
 }
+
+/// @brief proceed to the next iteration
+/// @details A call to this method makes a step of the iterator
+void MultiDimArrayHelper::next()
+{
+  ArrayPositionIterator::next();
+  itsSequenceNumber++;
+}
+
 
