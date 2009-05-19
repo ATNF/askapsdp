@@ -94,6 +94,7 @@ namespace askap
 	std::vector<int> itsAxes;
 	int itsNumPix;
 	
+	bool itsHaveBeam;
 	std::vector<float> itsBeamInfo;
 	
 	float itsEquinox;

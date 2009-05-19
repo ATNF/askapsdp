@@ -110,7 +110,8 @@ namespace askap
 	for(int i=0;i<this->itsNumPix;i++) this->itsArray[i] = 0.;
 	this->itsArrayAllocated = true;
 
-	this->itsBeamInfo = parset.getFloatVector("beam");
+	this->itsHaveBeam = parset.isDefined("beam");
+	if(this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
 
 	this->itsEquinox = parset.getFloat("equinox", 2000.);
 
@@ -246,16 +247,22 @@ namespace askap
 
       void FITSfile::convolveWithBeam()
       {
-	ASKAPLOG_DEBUG_STR(logger, "Convolving with the beam");
+	if(!this->itsHaveBeam){
+	  ASKAPLOG_WARN_STR(logger, "Cannot convolve with beam as the beam was not specified in the parset.");
+	}
+	else{
 
-	float maj = this->itsBeamInfo[0]/fabs(this->itsCDELT[0]);
-	float min = this->itsBeamInfo[1]/fabs(this->itsCDELT[1]);
-	float pa = this->itsBeamInfo[2];
-	GaussSmooth<float> smoother(maj,min,pa);
-	float *newArray = smoother.smooth(this->itsArray,this->itsAxes[0],this->itsAxes[1]);
-	for(int i=0;i<this->itsNumPix;i++) this->itsArray[i] = newArray[i];
-	delete [] newArray;
+	  ASKAPLOG_DEBUG_STR(logger, "Convolving with the beam");
+	  
+	  float maj = this->itsBeamInfo[0]/fabs(this->itsCDELT[0]);
+	  float min = this->itsBeamInfo[1]/fabs(this->itsCDELT[1]);
+	  float pa = this->itsBeamInfo[2];
+	  GaussSmooth<float> smoother(maj,min,pa);
+	  float *newArray = smoother.smooth(this->itsArray,this->itsAxes[0],this->itsAxes[1]);
+	  for(int i=0;i<this->itsNumPix;i++) this->itsArray[i] = newArray[i];
+	  delete [] newArray;
 
+	}
       }
 
 
@@ -287,15 +294,17 @@ namespace askap
 	status=0; 
 	if( fits_update_key(fptr, TFLOAT, "EQUINOX", &(this->itsEquinox), NULL, &status) ) 
 	  fits_report_error(stderr, status);
-	status=0; 
-	if( fits_update_key(fptr, TFLOAT, "BMAJ", &(this->itsBeamInfo[0]), NULL, &status) ) 
-	  fits_report_error(stderr, status);
-	status=0;
-	if( fits_update_key(fptr, TFLOAT, "BMIN", &(this->itsBeamInfo[1]), NULL, &status) ) 
-	  fits_report_error(stderr, status);
-	status=0; 
-	if( fits_update_key(fptr, TFLOAT, "BPA", &(this->itsBeamInfo[2]), NULL, &status) ) 
-	  fits_report_error(stderr, status);
+	if(this->itsHaveBeam){
+	  status=0; 
+	  if( fits_update_key(fptr, TFLOAT, "BMAJ", &(this->itsBeamInfo[0]), NULL, &status) ) 
+	    fits_report_error(stderr, status);
+	  status=0;
+	  if( fits_update_key(fptr, TFLOAT, "BMIN", &(this->itsBeamInfo[1]), NULL, &status) ) 
+	    fits_report_error(stderr, status);
+	  status=0; 
+	  if( fits_update_key(fptr, TFLOAT, "BPA", &(this->itsBeamInfo[2]), NULL, &status) ) 
+	    fits_report_error(stderr, status);
+	}
 	status=0; 
 	if( fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.c_str(),  NULL, &status) )
 	  fits_report_error(stderr, status);
