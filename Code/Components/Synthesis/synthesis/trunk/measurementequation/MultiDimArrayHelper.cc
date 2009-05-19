@@ -32,6 +32,8 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <measurementequation/MultiDimArrayHelper.h>
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 using namespace askap;
 using namespace synthesis;
@@ -40,9 +42,14 @@ using namespace synthesis;
 /// @details 
 /// @param[in] shape shape of the full hypercube (or array-valued parameter) 
 MultiDimArrayHelper::MultiDimArrayHelper(const casa::IPosition &shape) : 
-     ArrayPositionIterator(shape,casa::IPosition(shape.nelements(),0),2u)
+     ArrayPositionIterator(shape,casa::IPosition(shape.nelements(),0),2u), itsShape(shape),
+     itsPlaneShape(shape), itsSequenceNumber(0)
 {
-}     
+  ASKAPASSERT(itsPlaneShape.nelements()>=2);
+  for (casa::uInt dim=2; dim<itsPlaneShape.nelements(); ++dim) {
+       itsPlaneShape[dim] = 1;
+  }
+}
    
 /// @brief extract a single plane from an array
 /// @details This method forms a slice of the given array to extract a single plane corresponding
@@ -54,4 +61,27 @@ casa::Array<double> MultiDimArrayHelper::getPlane(casa::Array<double> &in) const
   return in;
 }
 
-   
+/// @brief extract a single plane form a 1D array
+/// @This method extracts a single slice from an array flattened to a 1D vector. The slice 
+/// corresponds to the current position of the iterator. This method preserves the degenerate
+/// dimensions.
+/// @param[in] in input vector
+/// @return output array (single plane)
+casa::Array<double> MultiDimArrayHelper::getPlane(casa::Vector<double> &in) const
+{
+  ASKAPDEBUGASSERT(itsShape.conform(in.shape())); 
+  casa::Array<double> reformedReference = in.reform(itsShape);
+  return getPlane(reformedReference);
+}
+
+/// @brief return the unique tag of the current plane
+/// @details To assist caching one may need a string key which is unique for every iteration.
+/// This method forms a string tag from the position vector, which can be appended to the
+/// parameter name to get a unique string for every single plane.
+/// @note This is an alternative way to converting sequenceNumber to string.
+/// @return string tag
+std::string MultiDimArrayHelper::tag() const
+{
+  return utility::toString<casa::uInt>(sequenceNumber());
+}
+

@@ -37,6 +37,8 @@
 #include <casa/Arrays/ArrayPosIter.h>
 #include <casa/Arrays/Array.h>
 
+#include <string>
+
 namespace askap {
 
 namespace synthesis {
@@ -63,6 +65,42 @@ struct MultiDimArrayHelper : protected casa::ArrayPositionIterator {
    /// @return output array (single plane)
    casa::Array<double> getPlane(casa::Array<double> &in) const;
    
+   /// @brief extract a single plane form a 1D array
+   /// @This method extracts a single slice from an array flattened to a 1D vector. The slice 
+   /// corresponds to the current position of the iterator. This method preserves the degenerate
+   /// dimensions.
+   /// @param[in] in input vector
+   /// @return output array (single plane)
+   casa::Array<double> getPlane(casa::Vector<double> &in) const;
+   
+   /// @brief return the sequence number of the plane
+   /// @details To assist with caching this method returns consequitive numbers for every
+   /// iteration. The first iteration corresponds to 0.
+   /// @return sequence number
+   inline casa::uInt sequenceNumber() const { return itsSequenceNumber;}
+   
+   /// @brief return the unique tag of the current plane
+   /// @details To assist caching one may need a string key which is unique for every iteration.
+   /// This method forms a string tag from the position vector, which can be appended to the
+   /// parameter name to get a unique string for every single plane.
+   /// @note This is an alternative way to converting sequenceNumber to string.
+   /// @return string tag
+   std::string tag() const;
+   
+   /// @brief obtain a shape of the single plane
+   /// @details This method returns the shape of a sinlge plane preserving degenerate
+   /// dimensions. 
+   /// @return a shape of the single plane
+   inline const casa::IPosition& planeShape() const { return itsPlaneShape;}
+   
+   /// @brief shape of the full array
+   /// @return shape of the full array
+   inline const casa::IPosition& shape() const { return itsShape;}
+   
+   /// @brief obtain current position within the whole array
+   /// @details This method returns the bottom left corner (blc) of the current plane
+   /// @return blc of the current plane
+   inline const casa::IPosition& position() const { return pos();}
    
 private:
    /// @brief shape of the full hypercube
@@ -72,6 +110,9 @@ private:
    /// @details To relieve the user of this class from repeated similar operations this variable
    /// stores the shape of all degenerate dimensions preserved (i.e. [x,y,1,1])
    casa::IPosition itsPlaneShape;
+   
+   /// @brief sequence number
+   casa::uInt itsSequenceNumber;
 };
 
 } // namespace synthesis
