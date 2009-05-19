@@ -1,6 +1,6 @@
 /// @file
 /// 
-/// @brief helper class to assist with spectral line and polarisation images
+/// @brief helper iterator class to assist with spectral line and polarisation images
 /// @details Images are represented as array-valued parameters. Constituents of
 /// the normal equations are just single-dimension vectors. The images may actually
 /// be hypercubes (polarisation and spectral dimensions). This class facilitates
@@ -31,7 +31,7 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <measurementequation/MultiDimArrayHelper.h>
+#include <measurementequation/MultiDimArrayPlaneIter.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
@@ -41,7 +41,7 @@ using namespace synthesis;
 /// @brief setup the iterator
 /// @details 
 /// @param[in] shape shape of the full hypercube (or array-valued parameter) 
-MultiDimArrayHelper::MultiDimArrayHelper(const casa::IPosition &shape) : 
+MultiDimArrayPlaneIter::MultiDimArrayPlaneIter(const casa::IPosition &shape) : 
      ArrayPositionIterator(shape,casa::IPosition(shape.nelements(),0),2u), itsShape(shape),
      itsPlaneShape(shape), itsSequenceNumber(0)
 {
@@ -59,7 +59,7 @@ MultiDimArrayHelper::MultiDimArrayHelper(const casa::IPosition &shape) :
 /// to the current position of the iterator
 /// @param[in] in input array
 /// @return output array (single plane)
-casa::Array<double> MultiDimArrayHelper::getPlane(casa::Array<double> &in) const
+casa::Array<double> MultiDimArrayPlaneIter::getPlane(casa::Array<double> &in) const
 {
   const casa::IPosition blc(position());
   casa::IPosition trc(blc);
@@ -77,7 +77,7 @@ casa::Array<double> MultiDimArrayHelper::getPlane(casa::Array<double> &in) const
 /// dimensions.
 /// @param[in] in input vector
 /// @return output array (single plane)
-casa::Array<double> MultiDimArrayHelper::getPlane(casa::Vector<double> &in) const
+casa::Array<double> MultiDimArrayPlaneIter::getPlane(casa::Vector<double> &in) const
 {
   ASKAPDEBUGASSERT(itsShape.product() == in.shape().product()); 
   casa::Array<double> reformedReference = in.reform(itsShape);
@@ -90,7 +90,7 @@ casa::Array<double> MultiDimArrayHelper::getPlane(casa::Vector<double> &in) cons
 /// parameter name to get a unique string for every single plane.
 /// @note This is an alternative way to converting sequenceNumber to string.
 /// @return string tag
-std::string MultiDimArrayHelper::tag() const
+std::string MultiDimArrayPlaneIter::tag() const
 {
   std::string res;
   const casa::IPosition curPlane = position();
@@ -113,7 +113,7 @@ std::string MultiDimArrayHelper::tag() const
 
 /// @brief proceed to the next iteration
 /// @details A call to this method makes a step of the iterator
-void MultiDimArrayHelper::next()
+void MultiDimArrayPlaneIter::next()
 {
   ArrayPositionIterator::next();
   itsSequenceNumber++;

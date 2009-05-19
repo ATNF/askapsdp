@@ -1,6 +1,6 @@
 /// @file
 /// 
-/// @brief helper class to assist with spectral line and polarisation images
+/// @brief helper iterator class to assist with spectral line and polarisation images
 /// @details Images are represented as array-valued parameters. Constituents of
 /// the normal equations are just single-dimension vectors. The images may actually
 /// be hypercubes (polarisation and spectral dimensions). This class facilitates
@@ -31,8 +31,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#ifndef MULTI_DIM_ARRAY_HELPER_H
-#define MULTI_DIM_ARRAY_HELPER_H
+#ifndef MULTI_DIM_ARRAY_PLANE_ITER_H
+#define MULTI_DIM_ARRAY_PLANE_ITER_H
 
 #include <casa/Arrays/ArrayPosIter.h>
 #include <casa/Arrays/Array.h>
@@ -43,7 +43,7 @@ namespace askap {
 
 namespace synthesis {
 
-/// @brief helper class to assist with spectral line and polarisation images
+/// @brief helper iterator class to assist with spectral line and polarisation images
 /// @details Images are represented as array-valued parameters. Constituents of
 /// the normal equations are just single-dimension vectors. The images may actually
 /// be hypercubes (polarisation and spectral dimensions). This class facilitates
@@ -51,12 +51,12 @@ namespace synthesis {
 /// @note This class is relatively generic and can be moved to a higher level (i.e. to Base), 
 /// if needed somewhere else.
 /// @ingroup measurementequation
-struct MultiDimArrayHelper : protected casa::ArrayPositionIterator {
+struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    
    /// @brief setup the iterator
    /// @details 
    /// @param[in] shape shape of the full hypercube (or array-valued parameter) 
-   MultiDimArrayHelper(const casa::IPosition &shape);
+   MultiDimArrayPlaneIter(const casa::IPosition &shape);
    
    /// @brief extract a single plane from an array
    /// @details This method forms a slice of the given array to extract a single plane corresponding
@@ -129,5 +129,5 @@ private:
 } // namespace askap
 
 
-#endif // #ifndef MULTI_DIM_ARRAY_HELPER_H
+#endif // #ifndef MULTI_DIM_ARRAY_PLANE_ITER_H
 
