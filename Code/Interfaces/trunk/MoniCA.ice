@@ -54,9 +54,9 @@ module atnf {
           //Operations relating to getting/setting data
           //
           //Return historical data for the given points
-          pointdatasetarray getArchiveData(stringarray names, long start, long end);
+          idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end);
           //Get latest data for the given points
-          pointdataset getData(stringarray names);
+          idempotent pointdataset getData(stringarray names);
           //Set new values for the given points.
           void setData(stringarray names, pointdataset rawvalues, string username, string passwd);
 
@@ -67,7 +67,7 @@ module atnf {
           //future).
           //
           //Get the list of all saved page setups from the server
-          stringarray getAllSetups();
+          idempotent stringarray getAllSetups();
           //Add/update a new setup to the server's list
           void addSetup(string setup, string username, string passwd);
           
@@ -75,9 +75,9 @@ module atnf {
           //Some miscellaneous operations
           //
           //Obtain public key and modulus to use for authenticated operations
-          stringarray getEncryptionInfo();
+          idempotent stringarray getEncryptionInfo();
           //Get current time from server
-          long getCurrentTime();
+          idempotent long getCurrentTime();
         };
       };
     };
