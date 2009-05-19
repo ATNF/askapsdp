@@ -1,0 +1,85 @@
+module atnf {
+  module atoms {
+    module mon {
+      module comms {
+        ////////////
+        //Data structure definitions
+        sequence<string> stringarray;
+
+        //PointDescriptionIce contains pickled fields which fully describe
+        //a specific point
+        struct PointDescriptionIce {
+          stringarray names;
+          string      description;
+          string      shortdescription;
+          string      units;
+          bool        enabled;
+          stringarray inputtransactions;
+          stringarray outputtransactions;
+          stringarray translations;
+          stringarray limits;
+          stringarray archivepolicies;
+          long        period;
+          int         archivelongevity;
+        };
+        sequence<PointDescriptionIce> pointarray;
+        
+        //PointDataIce encapsulates a single record/datum
+        struct PointDataIce {
+          string name;
+          long timestamp;
+          Object value;
+        };
+        sequence<PointDataIce> pointdataset;
+        sequence<pointdataset> pointdatasetarray;
+        
+        
+        
+        ////////////
+        //The main interface between clients and the server
+        interface MoniCAIce {
+          ////////////
+          //Operations for getting/setting point metadata
+          //
+          //Return the names of all points on the system
+          idempotent stringarray getAllPointNames();
+          //Return full details for the specified points
+          idempotent pointarray getPoints(stringarray names);
+          //Return full details for all points on the system
+          idempotent pointarray getAllPoints();
+          //Add/update the definitions for the specified points
+          void addPoints(pointarray newpoints, string username, string passwd);
+          
+          ////////////
+          //Operations relating to getting/setting data
+          //
+          //Return historical data for the given points
+          pointdatasetarray getArchiveData(stringarray names, long start, long end);
+          //Get latest data for the given points
+          pointdataset getData(stringarray names);
+          //Set new values for the given points.
+          void setData(stringarray names, pointdataset rawvalues, string username, string passwd);
+
+          ////////////
+          //Operations relating to 'SavedSetups'. These are basically pickled
+          //dictionaries which are currently used to contain predefined page
+          //layouts for the GUI client (but which may have other uses in the 
+          //future).
+          //
+          //Get the list of all saved page setups from the server
+          stringarray getAllSetups();
+          //Add/update a new setup to the server's list
+          void addSetup(string setup, string username, string passwd);
+          
+          ////////////
+          //Some miscellaneous operations
+          //
+          //Obtain public key and modulus to use for authenticated operations
+          stringarray getEncryptionInfo();
+          //Get current time from server
+          long getCurrentTime();
+        };
+      };
+    };
+  };
+};
