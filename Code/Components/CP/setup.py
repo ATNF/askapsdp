@@ -1,7 +1,7 @@
 from askapdev.rbuild import build
 
-nobuild = {'benchmarks'  : "Not integrated into build system yet.",
-           'mwcontrol'   : "Obsolete - wiki/AS05_Infrastructure/PackageStatus."}
+nobuild = {'benchmarks'  : "Not integrated into build system yet."}
+
 for pkg, msg in nobuild.iteritems():
     print("warn: %s no install. %s" % (pkg, msg))
 
