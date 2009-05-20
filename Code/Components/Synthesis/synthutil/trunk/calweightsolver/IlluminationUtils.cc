@@ -160,7 +160,7 @@ void IlluminationUtils::saveVP(const std::string &name, const std::string &what)
    UVPattern pattern(itsSize, itsSize, itsCellSize, itsCellSize, itsOverSample);
    itsIllumination->getPattern(freq, pattern);
    casa::Array<casa::Complex> scratch(pattern.pattern().copy());
-   fft2d(scratch,false);
+   scimath::fft2d(scratch,false);
    scratch/=casa::max(casa::abs(scratch));
    
    casa::Matrix<double> xform(2,2);
