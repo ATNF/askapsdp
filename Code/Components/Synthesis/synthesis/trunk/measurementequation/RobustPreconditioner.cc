@@ -29,7 +29,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <askap/AskapError.h>
 #include <measurementequation/SynthesisParamsHelper.h>
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -89,7 +89,7 @@ namespace askap
       scratch.set(0.);
       casa::SubLattice<casa::Complex> innerScratch(scratch, slicer, True);       
       //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
-      PaddingUtils::inject(scratch, lpsf);
+      scimath::PaddingUtils::inject(scratch, lpsf);
       
       LatticeFFT::cfft2d(innerScratch, True);
 
@@ -112,7 +112,7 @@ namespace askap
       
       // need to rebuild ft(lpsf) with padding, otherwise there is a scaling error
       scratch.set(0.);
-      PaddingUtils::inject(scratch, lpsf);
+      scimath::PaddingUtils::inject(scratch, lpsf);
       LatticeFFT::cfft2d(scratch, True);      
       //
       scratch.copyData(casa::LatticeExpr<casa::Complex> (robustfilter * scratch));
@@ -124,7 +124,7 @@ namespace askap
       */
       
       LatticeFFT::cfft2d(scratch, False);       
-      PaddingUtils::extract(lpsf, scratch);
+      scimath::PaddingUtils::extract(lpsf, scratch);
       float maxPSFAfter=casa::max(psf);
       ASKAPLOG_INFO_STR(logger, "Peak of PSF after Robust filtering  = " << maxPSFAfter);
       psf*=maxPSFBefore/maxPSFAfter;
@@ -133,14 +133,14 @@ namespace askap
      
       // Apply the filter to the dirty image
       scratch.set(0.);
-      PaddingUtils::inject(scratch, ldirty);
+      scimath::PaddingUtils::inject(scratch, ldirty);
       //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
       
       LatticeFFT::cfft2d(scratch, True);
       
       scratch.copyData(casa::LatticeExpr<casa::Complex> (robustfilter * scratch));
       LatticeFFT::cfft2d(scratch, False);
-      PaddingUtils::extract(ldirty, scratch);
+      scimath::PaddingUtils::extract(ldirty, scratch);
       //maxPSFBefore*=4.0;
       dirty*=maxPSFBefore/maxPSFAfter;
       

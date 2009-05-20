@@ -113,11 +113,11 @@ static bool forward_backward_test(const int N, casa::Matrix<T>& mat, MetricNames
     // Forward FFT
     for(int c=0; c<N; c++){
         casa::Vector<T> y = mat.column(c);
-        askap::synthesis::fft(y, FFT);                    
+        askap::scimath::fft(y, FFT);                    
     }
     for(int r=0; r<N; r++){
         casa::Vector<T> y = mat.row(r);
-        askap::synthesis::fft(y, FFT);                            
+        askap::scimath::fft(y, FFT);                            
     }
     
     returnVal = !(test_for_equality(mat, original, metric, diffP, diff));
@@ -126,11 +126,11 @@ static bool forward_backward_test(const int N, casa::Matrix<T>& mat, MetricNames
     // Inverse FFT
     for(int c=0; c<N; c++){
         casa::Vector<T> y = mat.column(c);
-        askap::synthesis::fft(y, IFFT);                    
+        askap::scimath::fft(y, IFFT);                    
     }
     for(int r=0; r<N; r++){
         casa::Vector<T> y = mat.row(r);
-        askap::synthesis::fft(y, IFFT);                            
+        askap::scimath::fft(y, IFFT);                            
     }
 
     returnVal = returnVal && test_for_equality(mat, original, metric, diffP, diff);
@@ -142,7 +142,7 @@ static bool forward_backward_test(const int N, casa::Matrix<T>& mat, MetricNames
 
 namespace askap
 {
-  namespace synthesis
+  namespace scimath
   {
 
     class FFTTest : public CppUnit::TestFixture

@@ -22,7 +22,7 @@
 ///
 
 #include <measurementequation/ImageSolver.h>
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -353,8 +353,8 @@ namespace askap
        casa::ArrayLattice<float> lpsfNew(psfNew);
        
        
-       PaddingUtils::inject(uvOld, lpsfOld);
-       PaddingUtils::inject(uvNew, lpsfNew);
+       scimath::PaddingUtils::inject(uvOld, lpsfOld);
+       scimath::PaddingUtils::inject(uvNew, lpsfNew);
        
        // ratio of FTs is an estimate of the gridded imaging weight. We have to use
        // gridded weight because we don't form ungridded one.

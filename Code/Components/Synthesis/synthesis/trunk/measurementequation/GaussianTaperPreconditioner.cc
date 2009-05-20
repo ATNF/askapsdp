@@ -44,7 +44,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <scimath/Mathematics/SquareMatrix.h>
 #include <scimath/Mathematics/RigidVector.h>
 
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 namespace askap {
 

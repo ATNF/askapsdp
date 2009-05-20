@@ -35,7 +35,7 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <casa/BasicSL/Constants.h>
 #include <fft/FFTWrapper.h>
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 using namespace askap;
 
@@ -227,7 +227,7 @@ namespace askap
         if (casa::max(casa::amplitude(itsGrid[i]))>0.0)
         {
           casa::Array<casa::Complex> scratch(itsGrid[i].copy());
-          fft2d(scratch, false);
+          scimath::fft2d(scratch, false);
           multiply(scratch, i);
 
           if (first)
@@ -246,7 +246,7 @@ namespace askap
       // Now we can do the convolution correction
       correctConvolution(dBuffer);
       dBuffer *= double(dBuffer.shape()(0))*double(dBuffer.shape()(1));
-      out = PaddingUtils::extract(dBuffer, paddingFactor());
+      out = scimath::PaddingUtils::extract(dBuffer, paddingFactor());
     }
 
     void WStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
@@ -254,7 +254,7 @@ namespace askap
     {
 
       itsAxes=axes;
-      itsShape = PaddingUtils::paddedShape(in.shape(),paddingFactor());
+      itsShape = scimath::PaddingUtils::paddedShape(in.shape(),paddingFactor());
       configureForPSF(false);
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
@@ -279,7 +279,7 @@ namespace askap
         ASKAPLOG_INFO_STR(logger, "Filling " << itsNWPlanes
                            << " planes of W stack with model");
         casa::Array<double> scratch(itsShape);
-        PaddingUtils::extract(scratch, paddingFactor()) = in;
+        scimath::PaddingUtils::extract(scratch, paddingFactor()) = in;
         correctConvolution(scratch);
         for (int i=0; i<itsNWPlanes; i++)
         {
@@ -288,7 +288,7 @@ namespace askap
           multiply(itsGrid[i], i);
           /// Need to conjugate to get sense of w correction correct
           itsGrid[i]=casa::conj(itsGrid[i]);
-          fft2d(itsGrid[i], true);
+          scimath::fft2d(itsGrid[i], true);
         }
       }
       else

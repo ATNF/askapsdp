@@ -28,10 +28,7 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <measurementequation/PaddingUtils.h>
-
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".measurementequation");
+#include <utils/PaddingUtils.h>
 
 #include <askap/AskapError.h>
 
@@ -47,7 +44,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 
 using namespace askap;
-using namespace synthesis;
+using namespace askap::scimath;
 
 /// @brief Inject source into the centre quarter of the target
 /// @details 
@@ -67,7 +64,6 @@ void PaddingUtils::inject(casa::Lattice<casa::Complex>& target, casa::Lattice<fl
   casa::Slicer slicer(corner, source.shape());
   casa::SubLattice<casa::Complex> inner(target, slicer, casa::True);
   inner.copyData(casa::LatticeExpr<casa::Complex>(toComplex(source)));
-  //      ASKAPLOG_INFO_STR(logger, "Injected " << source.shape() << " into " << target.shape() << " starting at " << corner);
 }
       
 /// @brief Extract target from the center quarter of the source 
@@ -87,7 +83,6 @@ void PaddingUtils::extract(casa::Lattice<float>& target, casa::Lattice<casa::Com
   casa::Slicer slicer(corner, target.shape());
   casa::SubLattice<casa::Complex> inner(source, slicer, casa::True);
   target.copyData(casa::LatticeExpr<float>(real(inner)));
-  //      ASKAPLOG_INFO_STR(logger, "Extracted " << target.shape() << " from " << source.shape() << " starting at " << corner); 
 }
 
 

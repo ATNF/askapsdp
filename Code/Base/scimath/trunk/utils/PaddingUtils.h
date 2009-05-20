@@ -36,12 +36,12 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace scimath {
 
 /// PaddingUtils a class containing utilities used for FFT padding in preconditioners. Code like this
 /// can probably be moved to a higer level. At this stage we just need to make these methods available not
 /// just to the WienerPreconditioner, but for other classes as well.
-/// @ingroup measurementequation
+/// @ingroup utils
 struct PaddingUtils {
   /// @brief Inject source into the centre quarter of the target
   /// @details 
@@ -112,10 +112,10 @@ struct PaddingUtils {
 };
 
 
-} // namespace synthesis
+} // namespace scimath
 
 } // namespace askap
 
-#include <measurementequation/PaddingUtils.tcc>
+#include <utils/PaddingUtils.tcc>
 
 #endif // #ifndef PADDING_UTILS_H

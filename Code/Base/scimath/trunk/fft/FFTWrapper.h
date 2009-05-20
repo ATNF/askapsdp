@@ -34,7 +34,7 @@
 
 namespace askap
 {
-    namespace synthesis
+    namespace scimath
     {
       /// @brief 1-D inplace transform
       /// @param vec Complex vector

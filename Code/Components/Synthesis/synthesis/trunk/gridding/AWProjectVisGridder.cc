@@ -46,7 +46,7 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/SupportSearcher.h>
 
 #include <fft/FFTWrapper.h>
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 using namespace askap;
 
@@ -297,7 +297,7 @@ namespace askap {
 					itsSlopes(0, feed, itsCurrentField),
 					itsSlopes(1, feed, itsCurrentField), parallacticAngle);
 	    
-	    fft2d(pattern.pattern(), false);
+	    scimath::fft2d(pattern.pattern(), false);
 	    	    
 	    
 	    /// Calculate the total convolution function including
@@ -349,7 +349,7 @@ namespace askap {
 	      	      
 	      // Now we have to calculate the Fourier transform to get the
 	      // convolution function in uv space
-	      fft2d(thisPlane, true);
+	      scimath::fft2d(thisPlane, true);
 	      
 	      // Now correct for normalization of FFT
 	      thisPlane*=casa::Complex(1.0/(double(nx)*double(ny)));
@@ -505,7 +505,7 @@ namespace askap {
 	  
 	  float peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
-	  fft2d(thisPlane, false);
+	  scimath::fft2d(thisPlane, false);
 	  thisPlane*=casa::Complex(cnx*cny);
 	  
 	  peak=real(casa::max(casa::abs(thisPlane)));
@@ -535,7 +535,7 @@ namespace askap {
 	}
       }
       
-      PaddingUtils::fftPad(cOut, out, paddingFactor());
+      scimath::PaddingUtils::fftPad(cOut, out, paddingFactor());
  
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
@@ -561,7 +561,7 @@ void AWProjectVisGridder::finaliseGrid(casa::Array<double>& out) {
 		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
         std::cout<<itsGrid[i].shape()<<std::endl;
         
-		fft2d(scratch, false);
+		scimath::fft2d(scratch, false);
 		
         if (i==0) {
             toDouble(cOut, scratch);
@@ -579,7 +579,7 @@ void AWProjectVisGridder::finaliseGrid(casa::Array<double>& out) {
     convertArray(test,cOut);
     SynthesisParamsHelper::saveAsCasaImage("dbg.img", test);
 	throw 1;
-    PaddingUtils::fftPad(cOut,out);
+    scimath::PaddingUtils::fftPad(cOut,out);
 }
 */    
 

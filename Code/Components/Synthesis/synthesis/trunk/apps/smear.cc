@@ -3,7 +3,7 @@
 #include <images/Images/PagedImage.h>
 #include <images/Images/ImageInterface.h>
 #include <casa/Arrays/Array.h>
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <lattices/Lattices/LatticeFFT.h>
 #include <lattices/Lattices/LatticeExpr.h>
@@ -11,7 +11,6 @@
 
 using namespace casa;
 using namespace askap;
-using namespace synthesis;
 
 int main() {
 try {
@@ -23,7 +22,7 @@ try {
   doubleShape(1)*=2;
   ArrayLattice<casa::Complex> scratch(doubleShape);
   scratch.set(0.);
-  PaddingUtils::inject(scratch,img);
+  scimath::PaddingUtils::inject(scratch,img);
   //scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(img)));
   LatticeFFT::cfft2d(scratch, True);
 
@@ -53,7 +52,7 @@ try {
  
   LatticeFFT::cfft2d(scratch2,False);
   //out.copyData(casa::LatticeExpr<casa::Float>(real(scratch2)));
-  PaddingUtils::extract(out,scratch2);
+  scimath::PaddingUtils::extract(out,scratch2);
 }
 catch(AskapError &ae) {
   std::cerr<<ae.what()<<std::endl;

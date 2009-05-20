@@ -35,7 +35,7 @@
 #include <casa/Arrays/Array.h>
 namespace askap {
 
-namespace synthesis {
+namespace scimath {
 
 /// @brief Extract a centered subarray of a given shape
 /// @details This helper method is used for faceted imaging with padding (and overlap) of facets.
@@ -83,7 +83,7 @@ casa::Array<T> PaddingUtils::extract(casa::Array<T> &source, const int padding)
    return centeredSubArray(source, shape);
 }
 
-} // namespace synthesis
+} // namespace scimath
 
 } // namespace askap
 

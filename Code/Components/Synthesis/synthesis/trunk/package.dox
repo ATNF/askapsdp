@@ -6,7 +6,6 @@
 /// @defgroup measurementequation Measurement equations
 /// @defgroup gridding Gridding algorithms
 /// @defgroup parallel Parallel application support
-/// @defgroup fft FFT interfaces
 /// @defgroup simulation Data simulation
 
 /// The package namespace
@@ -30,7 +29,7 @@ namespace askap::synthesis {};
 /// We envisage that OpenMP-type multi-threading may be supported by
 /// specialised versions of some of the classes in this package. 
 /// Message passing parallel execution is supported in the 
-/// @ref parallel classes and in the @ref calim package.
+/// @ref parallel classes and in the calim package.
 ///
 /// We assume that the problem can be (and is) partitioned such that the
 /// image data always fits in memory during the processing.
@@ -82,11 +81,6 @@ namespace askap::synthesis {};
 /// @li It uses a simpler version of Ger's Master/Worker framework. It is largely complete and
 /// has not been changed much recently. 
 ///
-/// @subsection synth_fft 5. FFT interfaces
-/// @li This is an interface to the FFTW classes. Currently these are bypassed and the 
-/// casacore classes are used instead. We should switch these on soon since FFTW will be
-/// substantially faster.
-///
 /// @subsection synth_simulate 6. Data simulation
 /// @li The Simulator class is a port of the CASA simulator code to askap. It has similar but not
 /// identical functionality. It is used by the csimulator app.
@@ -101,7 +95,6 @@ namespace askap::synthesis {};
 /// @li @ref measurementequation
 /// @li @ref gridding
 /// @li @ref parallel
-/// @li @ref fft
 /// @li @ref simulation
 ///
 /// @copyright 2007 ASKAP, All Rights Reserved.

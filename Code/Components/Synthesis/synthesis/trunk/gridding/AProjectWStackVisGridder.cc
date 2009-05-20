@@ -45,7 +45,7 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/UVPattern.h>
 #include <gridding/IBasicIllumination.h>
 
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 using namespace askap;
 
@@ -288,7 +288,7 @@ namespace askap {
 					parallacticAngle);
 	    
 	    /// Now convolve the disk with itself using an FFT
-	    fft2d(pattern.pattern(), false);
+	    scimath::fft2d(pattern.pattern(), false);
 	    
 	    double peak=0.0;
 	    for (casa::uInt ix=0; ix<nx; ++ix) {
@@ -302,7 +302,7 @@ namespace askap {
 	    }
 	    // The maximum will be 1.0
 	    //	    ASKAPLOG_INFO_STR(logger, "Max of FT of convolution function = " << casa::max(pattern.pattern()));
-	    fft2d(pattern.pattern(), true);	
+	    scimath::fft2d(pattern.pattern(), true);	
 	    // Now correct for normalization of FFT
 	    pattern.pattern()*=casa::Complex(1.0/(double(nx)*double(ny)));
 	    
@@ -429,7 +429,7 @@ namespace askap {
 	  }
 	  
 	  //	  	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
-	  fft2d(thisPlane, false);
+	  scimath::fft2d(thisPlane, false);
 	  thisPlane*=casa::Complex(nx*ny);
 	  float peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
@@ -455,7 +455,7 @@ namespace askap {
 	  }
 	} // if has data
       } // loop over convolution functions
-      PaddingUtils::fftPad(cOut, out, paddingFactor());
+      scimath::PaddingUtils::fftPad(cOut, out, paddingFactor());
       ASKAPLOG_INFO_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }

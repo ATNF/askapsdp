@@ -45,7 +45,7 @@ using namespace casa;
 
 namespace askap
   {
-    namespace synthesis
+    namespace scimath
       {
 
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)

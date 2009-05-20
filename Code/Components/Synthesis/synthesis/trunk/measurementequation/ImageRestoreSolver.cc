@@ -24,7 +24,7 @@
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -132,7 +132,7 @@ namespace askap
           // this is a single facet of a larger image, just fill in the bigger image with the model
           ASKAPLOG_INFO_STR(logger, "Inserting facet " << *ci<<" into merged image "<<iph.name());
           casa::Array<double> patch = SynthesisParamsHelper::getFacet(*itsParams,*ci);
-          const casa::Array<double> model = PaddingUtils::centeredSubArray(itsParams->value(*ci),
+          const casa::Array<double> model = scimath::PaddingUtils::centeredSubArray(itsParams->value(*ci),
                                           patch.shape());
           patch = model;
       }
@@ -227,7 +227,7 @@ namespace askap
 	   // the code below involves an extra copying. We can replace it later with a copyless version
 	   // doing element by element adding explicitly.
 	   casa::Array<double> convertedResidual(out.shape());
-	   convertArray(convertedResidual, PaddingUtils::centeredSubArray(dirtyArray,out.shape()));
+	   convertArray(convertedResidual, scimath::PaddingUtils::centeredSubArray(dirtyArray,out.shape()));
 	   out += convertedResidual;
     }
 	

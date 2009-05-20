@@ -244,7 +244,7 @@ namespace askap
 
         // Now we have to calculate the Fourier transform to get the
         // convolution function in uv space
-        fft2d(thisPlane, true);
+        scimath::fft2d(thisPlane, true);
 
         // Now thisPlane is filled with convolution function
         // sampled on a finer grid in u,v
@@ -376,7 +376,7 @@ namespace askap
         casa::Matrix<casa::DComplex> outPlane(onx, ony);
         casa::convertArray(inPlane, inIt.array());
         outPlane.set(0.0);
-        fft2d(inPlane, false);
+        scimath::fft2d(inPlane, false);
         for (int iy=0; iy<iny; iy++)
         {
           for (int ix=0; ix<inx; ix++)
@@ -388,7 +388,7 @@ namespace askap
             outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
           }
         }
-        fft2d(outPlane, true);
+        scimath::fft2d(outPlane, true);
         const casa::Array<casa::DComplex> constOutPlane(outPlane);
         casa::Array<double> outArray(outIt.array());
 

@@ -1,3 +1,20 @@
+/// @defgroup fft FFT interfaces
+/// @defgroup fitting Least-square fitting
+/// @defgroup utils miscelaneous utilities
+
 /// The namespace for the scimath package
 namespace askap::scimath {}; 
+
+/// @mainpage askap base scimath
+/// @section Modules
+/// @subsection synth_fft 1. FFT interfaces
+/// @li This is an interface to the FFTW classes. Currently these are bypassed and the 
+/// casacore classes are used instead. We should switch these on soon since FFTW will be
+/// substantially faster.
+
+/// @li @ref fft
+/// @li @ref fitting
+/// @li @ref utils
+///
+/// @copyright 2007 ASKAP, All Rights Reserved.
 

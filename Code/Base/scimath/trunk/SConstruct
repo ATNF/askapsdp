@@ -20,6 +20,7 @@ pkg = env.AskapPackage("scimath")
 # add sub packages 
 pkg.AddSubPackage("fitting")
 pkg.AddSubPackage("utils")
+pkg.AddSubPackage("fft")
 
 # run the build process
 pkg()

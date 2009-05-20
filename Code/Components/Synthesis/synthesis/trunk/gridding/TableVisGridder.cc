@@ -43,7 +43,7 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <gridding/GridKernel.h>
 
-#include <measurementequation/PaddingUtils.h>
+#include <utils/PaddingUtils.h>
 
 using namespace askap::scimath;
 using namespace askap;
@@ -746,7 +746,7 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 	// Now we can do the convolution correction
 	correctConvolution(dBuffer);
 	dBuffer*=double(dBuffer.shape()(0))*double(dBuffer.shape()(1));
-	out = PaddingUtils::extract(dBuffer,itsPaddingFactor);
+	out = scimath::PaddingUtils::extract(dBuffer,itsPaddingFactor);
 }
 
 
@@ -781,7 +781,7 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
     configureForPSF(false);
 	itsAxes=axes;
-	itsShape = PaddingUtils::paddedShape(in.shape(),itsPaddingFactor);
+	itsShape = scimath::PaddingUtils::paddedShape(in.shape(),itsPaddingFactor);
 
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 			"RA and DEC specification not present in axes");
@@ -805,7 +805,7 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	if (casa::max(casa::abs(in))>0.0) {
 		itsModelIsEmpty=false;
 		casa::Array<double> scratch(itsShape);
-		PaddingUtils::extract(scratch, itsPaddingFactor) = in;
+		scimath::PaddingUtils::extract(scratch, itsPaddingFactor) = in;
 		correctConvolution(scratch);
 		toComplex(itsGrid[0], scratch);
 		fft2d(itsGrid[0], true);

@@ -25,7 +25,6 @@ pkg.AddSubPackage("measurementequation")
 pkg.AddSubPackage("dataaccess")
 pkg.AddSubPackage("gridding")
 pkg.AddSubPackage("parallel")
-pkg.AddSubPackage("fft")
 pkg.AddSubPackage("simulation")
 
 # run the build process
