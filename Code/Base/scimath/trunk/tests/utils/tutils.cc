@@ -23,24 +23,12 @@
 
 #include <cppunit/ui/text/TestRunner.h>
 
-#include <ComponentEquationTest.h>
-#include <VectorOperationsTest.h>
-#include <ImageDFTEquationTest.h>
-#include <ImageFFTEquationTest.h>
-#include <CalibrationMETest.h>
-#include <PreconditionerTests.h>
-#include <SynthesisParamsHelperTest.h>
+#include <MultiDimArrayPlaneIterTest.h>
 
 int main( int argc, char **argv)
 {
   CppUnit::TextUi::TestRunner runner;
-  runner.addTest( askap::synthesis::VectorOperationsTest::suite() );
-  runner.addTest( askap::synthesis::ComponentEquationTest::suite() );
-  runner.addTest( askap::synthesis::CalibrationMETest::suite() );
-  //runner.addTest( askap::synthesis::ImageDFTEquationTest::suite() );
-  runner.addTest( askap::synthesis::ImageFFTEquationTest::suite() );
-  runner.addTest( askap::synthesis::PreconditionerTests::suite() );
-  runner.addTest( askap::synthesis::SynthesisParamsHelperTest::suite() );
+  runner.addTest( askap::scimath::MultiDimArrayPlaneIterTest::suite() );
   runner.run();
   return 0;
 }

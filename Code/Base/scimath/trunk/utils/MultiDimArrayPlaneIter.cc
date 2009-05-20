@@ -31,12 +31,12 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <measurementequation/MultiDimArrayPlaneIter.h>
+#include <utils/MultiDimArrayPlaneIter.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
 using namespace askap;
-using namespace synthesis;
+using namespace askap::scimath;
 
 /// @brief setup the iterator
 /// @details 

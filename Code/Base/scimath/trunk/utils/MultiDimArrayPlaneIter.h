@@ -41,7 +41,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace scimath {
 
 /// @brief helper iterator class to assist with spectral line and polarisation images
 /// @details Images are represented as array-valued parameters. Constituents of
@@ -124,7 +124,7 @@ private:
    casa::uInt itsSequenceNumber;
 };
 
-} // namespace synthesis
+} // namespace scimath
 
 } // namespace askap
 

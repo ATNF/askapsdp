@@ -37,12 +37,12 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <measurementequation/MultiDimArrayPlaneIter.h>
+#include <utils/MultiDimArrayPlaneIter.h>
 #include <askap/AskapUtil.h>
 
 namespace askap {
 
-namespace synthesis {
+namespace scimath {
 
    class MultiDimArrayPlaneIterTest : public CppUnit::TestFixture
     {
@@ -102,7 +102,7 @@ namespace synthesis {
            std::vector<string> itsTags;
      };
      
-} // namespace synthesis
+} // namespace scimath
 
 } // namespace askap
 
