@@ -30,6 +30,7 @@
 #include <CalibrationMETest.h>
 #include <PreconditionerTests.h>
 #include <SynthesisParamsHelperTest.h>
+#include <MultiDimArrayPlaneIterTest.h>
 
 int main( int argc, char **argv)
 {
@@ -41,6 +42,7 @@ int main( int argc, char **argv)
   runner.addTest( askap::synthesis::ImageFFTEquationTest::suite() );
   runner.addTest( askap::synthesis::PreconditionerTests::suite() );
   runner.addTest( askap::synthesis::SynthesisParamsHelperTest::suite() );
+  runner.addTest( askap::synthesis::MultiDimArrayPlaneIterTest::suite() );
   runner.run();
   return 0;
 }

@@ -61,6 +61,8 @@ MultiDimArrayPlaneIter::MultiDimArrayPlaneIter(const casa::IPosition &shape) :
 /// @return output array (single plane)
 casa::Array<double> MultiDimArrayPlaneIter::getPlane(casa::Array<double> &in) const
 {
+  // we may need to add more functionality to this method to take care of situations
+  // when the PSF is defined for a single polarisation/channel only
   const casa::IPosition blc(position());
   casa::IPosition trc(blc);
   trc += itsPlaneShape;
