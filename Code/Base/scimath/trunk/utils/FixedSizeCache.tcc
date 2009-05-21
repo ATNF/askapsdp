@@ -41,7 +41,7 @@ namespace scimath {
 /// @details
 /// @param[in] size size of the cache (maximum number of cached elements)
 template<typename Key, typename C>
-FixedSizeCache<Key,C>::FixedSizeCache<Key,C>(size_t size) : itsCache(size), itsKeys(size),
+FixedSizeCache<Key,C>::FixedSizeCache(size_t size) : itsCache(size), itsKeys(size),
            itsActiveElement(size), itsOldestElement(0), itsAllFilled(false)
 {
    ASKAPDEBUGASSERT(size>0);
