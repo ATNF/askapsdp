@@ -66,12 +66,20 @@ struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    casa::Array<double> getPlane(casa::Array<double> &in) const;
    
    /// @brief extract a single plane form a 1D array
-   /// @This method extracts a single slice from an array flattened to a 1D vector. The slice 
+   /// @details This method extracts a single slice from an array flattened to a 1D vector. The slice 
    /// corresponds to the current position of the iterator. This method preserves the degenerate
    /// dimensions.
    /// @param[in] in input vector
    /// @return output array (single plane)
    casa::Array<double> getPlane(casa::Vector<double> &in) const;
+   
+   /// @brief extract a single plane into a flattened vector
+   /// @details This method extracts a single plane slice from an array flattened to a 1D vector. 
+   /// The slice corresponds to the current position of the iterator. The result is returned as a
+   /// flattened vector.
+   /// @param[in] in input vector
+   /// @return output vector (single plane)
+   casa::Vector<double> getPlaneVector(casa::Vector<double> &in) const;
    
    /// @brief return the sequence number of the plane
    /// @details To assist with caching this method returns consequitive numbers for every
