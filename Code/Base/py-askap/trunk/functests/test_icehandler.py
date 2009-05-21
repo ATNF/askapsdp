@@ -15,7 +15,7 @@ from askap import logging
 from askap.logging import LoggingService_ice
 # ice doesn't agree with pylint
 # pylint: disable-msg=E0611
-from askap.logging.interfaces import ILogger
+from askap.interfaces.logging import ILogger
 
 
 ice_bin = "${ASKAP_ROOT}/3rdParty/Ice/tags/Ice-3.3.0/install/bin/"

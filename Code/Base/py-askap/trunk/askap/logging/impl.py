@@ -5,7 +5,7 @@ import LoggingService_ice
 
 # ice doesn't agree with pylint
 # pylint: disable-msg=E0611
-from askap.logging.interfaces import ILogger
+from askap.interfaces.logging import ILogger
 
 # pylint: disable-msg=W0232
 class LoggerImpl(ILogger):

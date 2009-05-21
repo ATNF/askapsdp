@@ -8,7 +8,7 @@ import Ice, IceStorm
 # pylint: disable-msg=W0611
 import LoggingService_ice
 # pylint: disable-msg=E0611
-from askap.logging.interfaces import ILoggerPrx, ILogEvent
+from askap.interfaces.logging import ILoggerPrx, ILogEvent
 
 class IceHandler(Handler):
     """

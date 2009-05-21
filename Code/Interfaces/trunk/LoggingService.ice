@@ -1,35 +1,52 @@
 module askap
 {      
-  module logging
+  module interfaces
   {
-    module interfaces
+    module logging
     {
+      // Standard string list
+      sequence<string> stringlist;
+      
+      // The LogEvent representation
       struct ILogEvent
       {
+        // the  logger name e.g. askap.scimath
         string origin;
+        // the creation time of the log event (POSIX timestamp)
         double created;
+        // The severity of the log event
         string level;
+        // the actual log message
         string message;
       };
+      
+      // a list of ILogEvents
+      sequence<ILogEvent> eventlist;
+
+      // The interface to implement when handling LogEvents
       interface ILogger
       {
         void send(ILogEvent event);
       };
-      sequence<ILogEvent> eventlist;
-      sequence<string> strlist;
+
+      // The query argument object
       struct IQueryObject
       {
         string origin;
         string datemin;
         string datemax;
-        strlist levels;
+        stringlist levels;
         int limit;
       };
+      // The inteface for querying the logarchive
       interface ILogQuery
       {
+        // query the logarchive database returning the list of matches
         idempotent eventlist query(IQueryObject q);
-        idempotent strlist getloggers(string name);
-        idempotent strlist getlevels();
+        // get the logger names (origin) with an optional name match
+        idempotent stringlist getLoggers(string name);
+        // get the availabel log levels
+        idempotent stringlist getLevels();
       };
     };
   };
