@@ -32,6 +32,8 @@ ASKAP_LOGGER(logger, ".measurementequation");
 // need it just for null deleter
 #include <askap/AskapUtil.h>
 
+#include <utils/MultiDimArrayPlaneIter.h>
+
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -112,26 +114,32 @@ namespace askap
       for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();++indit)
       {
 // Axes are dof, dof for each parameter
-        const casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-        const casa::IPosition valShape(itsParams->value(indit->first).shape());
+        //const casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
+        scimath::MultiDimArrayPlaneIter planeIter(itsParams->value(indit->first).shape());
         
         ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
-        const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
+        casa::Vector<double> diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
         ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
-        const casa::Vector<double>& dv = normalEquations().dataVector(indit->first);
+        casa::Vector<double> dv = normalEquations().dataVector(indit->first);
         ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
-        const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
+        casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
         
-        casa::Array<float> dirtyArray(valShape);
-        casa::convertArray<float, double>(dirtyArray, dv.reform(valShape));
-        casa::Array<float> psfArray(valShape);
-        casa::convertArray<float, double>(psfArray, slice.reform(valShape));
-        casa::Array<float> cleanArray(valShape);
-        casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
-        casa::Array<float> maskArray(valShape);
+        if (planeIter.tag()!="") {
+            // it is not a single plane case, there is something to report
+            ASKAPLOG_INFO_STR(logger, "Processing plane "<<planeIter.sequenceNumber()<<
+                                      " tagged as "<<planeIter.tag());
+		}
+		
+        casa::Array<float> dirtyArray(planeIter.planeShape());
+        casa::convertArray<float, double>(dirtyArray, planeIter.getPlane(dv));
+        casa::Array<float> psfArray(planeIter.planeShape());
+        casa::convertArray<float, double>(psfArray, planeIter.getPlane(slice));
+        casa::Array<float> cleanArray(planeIter.planeShape());
+        casa::convertArray<float, double>(cleanArray, planeIter.getPlane(itsParams->value(indit->first)));
+        casa::Array<float> maskArray(planeIter.planeShape());
 
 	    // Normalize
-	    doNormalization(diag,tol(),psfArray,dirtyArray, 
+	    doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray, 
 	        boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
     
 	    // Precondition the PSF and DIRTY images before solving.
@@ -139,14 +147,14 @@ namespace askap
 	       // Save the new PSFs to disk
 	       Axes axes(itsParams->axes(indit->first));
 	       string psfName="psf."+(indit->first);
-	       casa::Array<double> anothertemp(valShape);
+	       casa::Array<double> anothertemp(planeIter.planeShape());
 	       casa::convertArray<double,float>(anothertemp,psfArray);
 	       const casa::Array<double> & APSF(anothertemp);
 	       if (!itsParams->has(psfName)) {
-	           itsParams->add(psfName, APSF, axes);
-	       } else {
-	           itsParams->update(psfName, APSF);
-	       }
+	           // create an empty parameter with the full shape
+	           itsParams->add(psfName, planeIter.shape(), axes);
+	       } 
+	       itsParams->update(psfName, APSF, planeIter.position());	       
 	    } // if there was preconditioning
 	    ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
 		
@@ -167,14 +175,14 @@ namespace askap
            ASKAPCHECK(indit->first.size()>5, 
                    "Image parameter name should have something appended to word image")           
 	       const string residName="residual"+indit->first.substr(5);
-	       casa::Array<double> anothertemp(valShape);
+	       casa::Array<double> anothertemp(planeIter.planeShape());
 	       casa::convertArray<double,float>(anothertemp,dirtyArray);
 	       const casa::Array<double> & AResidual(anothertemp);
 	       if (!itsParams->has(residName)) {
-	           itsParams->add(residName, AResidual, axes);
-	       } else {
-	           itsParams->update(residName, AResidual);
-	       }        
+	           // create an empty parameter with the full shape
+	           itsParams->add(residName, planeIter.shape(), axes);
+	       }
+	       itsParams->update(residName, AResidual, planeIter.position());	               
         }
         
         
@@ -183,21 +191,24 @@ namespace askap
         {
            Axes axes(itsParams->axes(indit->first));
 	       string maskName="mask."+(indit->first);
-	       casa::Array<double> anothertemp(valShape);
+	       casa::Array<double> anothertemp(planeIter.planeShape());
 	       casa::convertArray<double,float>(anothertemp,maskArray);
 	       const casa::Array<double> & AMask(anothertemp);
 	       if (!itsParams->has(maskName)) {
-	           itsParams->add(maskName, AMask, axes);
-	       } else {
-	           itsParams->update(maskName, AMask);
-	       }        
+	           // create an empty parameter with the full shape
+	           itsParams->add(maskName, planeIter.shape(), axes);
+	       }
+	       itsParams->update(maskName, AMask, planeIter.position());	               
         }
         */
         // Create a lattice cleaner to do the dirty work :)
         /// @todo More checks on reuse of LatticeCleaner
         boost::shared_ptr<casa::LatticeCleaner<float> > lc;
+        // every plane should have its own LatticeCleaner, therefore we should ammend the 
+        // key somehow to make it individual for each plane. Adding tag seems to be a good idea
+        const std::string cleanerKey = indit->first + planeIter.tag();
         std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > >::const_iterator it =
-                         itsCleaners.find(indit->first);
+                         itsCleaners.find(cleanerKey);
         
         
         if(it!=itsCleaners.end()) {
@@ -206,7 +217,7 @@ namespace askap
           lc->update(dirty);
         } else {
           lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
-          itsCleaners[indit->first]=lc;          
+          itsCleaners[cleanerKey]=lc;          
           lc->setMask(mask,maskingThreshold());
 	  
 	      ASKAPDEBUGASSERT(lc);
@@ -228,7 +239,7 @@ namespace askap
 
 	    ASKAPDEBUGASSERT(itsParams);
 	
-	    const std::string peakResParam = std::string("peak_residual.") + indit->first;
+	    const std::string peakResParam = std::string("peak_residual.") + cleanerKey;
 	    if (itsParams->has(peakResParam)) {
 	        itsParams->update(peakResParam, lc->strengthOptimum());
         } else {
@@ -236,7 +247,8 @@ namespace askap
         }
         itsParams->fix(peakResParam);	    
 	
-        casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
+	    casa::Array<double> outputPlane = planeIter.getPlane(itsParams->value(indit->first));
+        casa::convertArray<double, float>(outputPlane,cleanArray);
       } // loop over map of indices
       
       quality.setDOF(nParameters);
