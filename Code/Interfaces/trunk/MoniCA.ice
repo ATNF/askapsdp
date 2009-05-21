@@ -24,11 +24,13 @@ module atnf {
         };
         sequence<PointDescriptionIce> pointarray;
         
+        enum DataType {DTNull, DTDouble, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime};
         //PointDataIce encapsulates a single record/datum
         struct PointDataIce {
-          string name;
-          long timestamp;
-          Object value;
+          string   name;
+          long     timestamp;
+          DataType type;
+          string   value;
         };
         sequence<PointDataIce> pointdataset;
         sequence<pointdataset> pointdatasetarray;
