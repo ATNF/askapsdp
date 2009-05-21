@@ -28,7 +28,7 @@ module askap
       interface ILogQuery
       {
         idempotent eventlist query(IQueryObject q);
-        idempotent strlist getloggers();
+        idempotent strlist getloggers(string name);
         idempotent strlist getlevels();
       };
     };
