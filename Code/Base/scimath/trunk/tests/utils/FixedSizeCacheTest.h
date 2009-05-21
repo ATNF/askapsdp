@@ -1,3 +1,11 @@
+/// @file
+/// 
+/// @brief test of the helper cache template representing a map of a fixed size 
+/// @details Cache of some object can be based on a maps of shared pointers. Sometimes,
+/// we need to limit the number of elements in the cache to stop map from growing infinitely.
+/// This tested template provides such a cache class.  
+///
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,17 +28,35 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <cppunit/ui/text/TestRunner.h>
+#ifndef FIXED_SIZE_CACHE_TEST_H
+#define FIXED_SIZE_CACHE_TEST_H
 
-#include <MultiDimArrayPlaneIterTest.h>
-#include <FixedSizeCacheTest.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-int main( int argc, char **argv)
+#include <boost/shared_ptr.hpp>
+#include <utils/FixedSizeCache.h>
+
+
+namespace askap {
+
+namespace scimath {
+
+class FixedSizeCacheTest : public CppUnit::TestFixture 
 {
-  CppUnit::TextUi::TestRunner runner;
-  runner.addTest( askap::scimath::MultiDimArrayPlaneIterTest::suite() );
-  runner.addTest( askap::scimath::FixedSizeCacheTest::suite() );
-  runner.run();
-  return 0;
-}
+   CPPUNIT_TEST_SUITE(FixedSizeCacheTest);
+   CPPUNIT_TEST(testSingleElement);
+   CPPUNIT_TEST_SUITE_END();
+public:
+   void testSingleElement() {
+   }
+}; 
+
+} // namespace scimath
+
+} // namespace askap
+
+#endif // #ifndef FIXED_SIZE_CACHE_TEST_H
+
+
