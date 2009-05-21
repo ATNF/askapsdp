@@ -69,8 +69,32 @@ namespace askap
     namespace FITS
     {
 
+      FITSfile::FITSfile()
+      {
+	/// @details Default constructor does not allocate anything, and the arrayAllocated flag is set to false.
+	this->itsArrayAllocated = false;
+      }
+
+//--------------------------------------------------------
+
+      FITSfile::~FITSfile()
+      {
+	/// @details Destructor deletes the flux array if it has been allocated.
+	if(this->itsArrayAllocated) delete [] this->itsArray;
+      }
+
+//--------------------------------------------------------
+
       FITSfile::FITSfile(const LOFAR::ACC::APS::ParameterSet& parset)
       {
+	/// @details Constructor that reads in the necessary
+	/// definitions from the parameterset. All FITSfile members
+	/// are read in. The conversion factors for the source fluxes
+	/// are also defined using the WCSLIB wcsunits function (using
+	/// the sourceFluxUnits parameter: if this is not specified,
+	/// the fluxes are assumed to be the same units as those of
+	/// BUNIT). The pixel array is allocated here.
+
 	ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
 
 	this->itsFileName = parset.getString("filename","");
@@ -145,8 +169,15 @@ namespace askap
 
       }
 
+//--------------------------------------------------------
+
       void FITSfile::setWCS()
       {
+
+	/// @details The world coordinate system is defined in a
+	/// WCSLIB wcsprm struct. This is done by using the CRPIX etc
+	/// keyword values.
+
 	ASKAPLOG_DEBUG_STR(logger, "Setting the WCS");
 	
 	this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
@@ -166,13 +197,19 @@ namespace askap
 
 	wcsset(this->itsWCS);
 
-	wcsprt(this->itsWCS);
+// 	wcsprt(this->itsWCS);
 
       }
 
       
+//--------------------------------------------------------
+
       void FITSfile::makeNoiseArray()
       {
+	/// @details Fills the pixel array with fluxes sampled from a
+	/// normal distribution ~ N(0,itsNoiseRMS) (i.e. the mean of
+	/// the distribution is zero). Note that this overwrites the array. 
+	
 	ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
 
 	for(int i=0;i<this->itsNumPix;i++){
@@ -181,8 +218,13 @@ namespace askap
 
       }
 
+//--------------------------------------------------------
+
       void FITSfile::addNoise()
       {
+	/// @details Adds noise to the array. Noise values are
+	/// distributed as N(0,itsNoiseRMS) (i.e. with mean zero).
+
 	ASKAPLOG_DEBUG_STR(logger, "Adding noise");
 
 	for(int i=0;i<this->itsNumPix;i++){
@@ -191,21 +233,30 @@ namespace askap
 
       }
 
+//--------------------------------------------------------
+
       void FITSfile::addSources()
       {
-	if(this->itsSourceList.size()>0) {
+
+	/// @details Adds sources to the array. If the source list
+	/// file has been defined, it is read one line at a time, and
+	/// each source is added to the array. If it is a point source
+	/// (i.e. major_axis = 0) then its flux is added to the
+	/// relevant pixel, assuming it lies within the boundaries of
+	/// the array. If it is a Gaussian source (major_axis>0), then
+	/// the function addGaussian is used. The WCSLIB functions are
+	/// used to convert the ra/dec positions to pixel positions.
+
+	if(this->itsSourceList.size()>0) { // if the source list is defined.
 
 	  ASKAPLOG_DEBUG_STR(logger, "Adding sources");
 	
-	  // read in source list --> vector of Gaussian2Ds
-
 	  std::ifstream srclist(this->itsSourceList.c_str());
 	  std::string ra,dec;
 	  double flux,maj,min,pa;
 	  double *wld = new double[3];
 	  double *pix = new double[3];
 	  double *newwld = new double[3];
-	  std::vector<casa::Gaussian2D<casa::Double> > gaussians;
 	  while(srclist >> ra >> dec >> flux >> maj >> min >> pa,
 		!srclist.eof()) {
 
@@ -230,13 +281,15 @@ namespace askap
 	      maj = maj / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
 	      min = min / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
 	      casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
-	      gaussians.push_back(gauss);
+	      addGaussian(this->itsArray, this->itsAxes, gauss);
 	    }
 	    else{
 	      int loc = int(pix[0]) + this->itsAxes[0]*int(pix[1]);
-	      this->itsArray[loc] += flux;
-	      ASKAPLOG_DEBUG_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
-				 << "," << floor(pix[1]) << "]");
+	      if(pix[0]>=0 && pix[0]<this->itsAxes[0] && pix[1]>=0 && pix[1]<this->itsAxes[1]){
+		this->itsArray[loc] += flux;
+		ASKAPLOG_DEBUG_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
+				   << "," << floor(pix[1]) << "]");
+	      }
 	    }
 	  }
 	  delete [] wld;
@@ -244,19 +297,21 @@ namespace askap
 	  delete [] pix;
 	  // for each source, add to array
 
-	  ASKAPLOG_DEBUG_STR(logger,"About to add " << gaussians.size() << " Gaussian sources to the array");
-	  std::vector<casa::Gaussian2D<casa::Double> >::iterator src=gaussians.begin();
-	  for(; src<gaussians.end();src++)
-	    addGaussian(this->itsArray, this->itsAxes, *src);
-	  ASKAPLOG_DEBUG_STR(logger,"Done adding Gaussians");
-
 	}
 
       }
 
 
+//--------------------------------------------------------
+
       void FITSfile::convolveWithBeam()
       {
+
+	/// @brief The array is convolved with the Gaussian beam
+	/// specified in itsBeamInfo. The GaussSmooth class from the
+	/// Duchamp library is used. Note that this is only done if
+	/// itsHaveBeam is set true.
+
 	if(!this->itsHaveBeam){
 	  ASKAPLOG_WARN_STR(logger, "Cannot convolve with beam as the beam was not specified in the parset.");
 	}
@@ -276,15 +331,28 @@ namespace askap
       }
 
 
+//--------------------------------------------------------
+
       char *numerateKeyword(std::string key, int num)
       {
+	/// @details A utility function to combine a keyword and a
+	/// value, to produce a relevant FITS keyword for a given
+	/// axis. For example numerateKeyword(CRPIX,1) returns CRPIX1.
+
 	std::stringstream ss;
 	ss << key << num;
 	return (char *)ss.str().c_str();
       }
 
+//--------------------------------------------------------
+
       void FITSfile::saveFile()
       {
+
+	/// @details Creates a FITS file with the appropriate headers
+	/// and saves the flux array into it. Uses the CFITSIO library
+	/// to do so.
+
 	ASKAPLOG_DEBUG_STR(logger, "Saving the FITS file");
 
 	int status = 0;

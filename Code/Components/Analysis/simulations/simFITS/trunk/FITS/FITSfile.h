@@ -50,70 +50,93 @@ namespace askap
     namespace FITS
     {
 
+      /// @brief A class to create new FITS files
+      /// @details This class handles the creation of FITS files, as
+      /// well as WCS handling, adding point or Gaussian components, adding
+      /// noise, and convolving with a beam. It is driven by
+      /// parameterset input.
       class FITSfile
       {
       public:
-	FITSfile(){
-	  itsArrayAllocated = false;
-	};
+	/// @brief Default constructor
+	FITSfile();
 
-	virtual ~FITSfile(){
-	  if(itsArrayAllocated) delete [] itsArray;
-	};
+	/// @brief Default destructor
+	virtual ~FITSfile();
 	
 	/// @brief Constructor, using an input parameter set
 	FITSfile(const LOFAR::ACC::APS::ParameterSet& parset);
 
+	/// @brief Define the world coordinate system
 	void setWCS();
 
+	/// @brief Make a flux array with just noise in it.
 	void makeNoiseArray();
 
+	/// @brief Add noise to the flux array
 	void addNoise();
 
+	/// @brief Add sources to the flux array
 	void addSources();
 
+	/// @brief Convolve the flux array with a beam
 	void convolveWithBeam();
 
+	/// @brief Save the array to a FITS file
 	void saveFile();
-
-//	void setDim(int d){itsDim=d;};
-//	void dim(){return itsDim;};
-//	void setAxes(std::vector<int> a){itsAxes = a;};
-//	//	void setAxes(int i,{itsAxes = a;};
 
       protected:
 
+	/// @brief The name of the file to be written to
 	std::string itsFileName;
+	/// @brief The file containing the list of sources
 	std::string itsSourceList;
+	/// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss
 	std::string itsPosType;
 
+	/// @brief The array of pixel fluxes
 	float *itsArray;
+	/// @brief Has the memory for itsArray been allocated?
 	bool itsArrayAllocated;
+	/// @brief The RMS of the noise distribution
 	float itsNoiseRMS;
 	
+	/// @brief The dimensionality of the image
 	unsigned int itsDim;
+	/// @brief The axis dimensions
 	std::vector<int> itsAxes;
+	/// @brief The number of pixels in the image
 	int itsNumPix;
 	
+	/// @brief Do we have information on the beam size?
 	bool itsHaveBeam;
+	/// @brief The beam specifications: major axis, minor axis, position angle
 	std::vector<float> itsBeamInfo;
 	
+	/// @brief The EQUINOX keyword
 	float itsEquinox;
+	/// @brief The BUNIT keyword: units of flux
 	std::string itsBunit;
        
+	/// @brief How to convert source fluxes to the correct units for the image
+	/// @{
 	double itsUnitScl;
 	double itsUnitOff;
 	double itsUnitPwr;
+	/// @}
 
+	/// @brief The world coordinate information
 	struct wcsprm *itsWCS;
 
+	/// @brief The FITS headers that encapsulate the WCS information
+	/// @{
 	std::vector<std::string> itsCTYPE;
 	std::vector<std::string> itsCUNIT;
 	std::vector<float> itsCRVAL;
 	std::vector<float> itsCRPIX;
 	std::vector<float> itsCROTA;
 	std::vector<float> itsCDELT;
-
+	/// @}
 
       };
 

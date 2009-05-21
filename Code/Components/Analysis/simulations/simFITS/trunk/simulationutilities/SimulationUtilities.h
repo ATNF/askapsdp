@@ -50,10 +50,12 @@ namespace askap
   namespace simFITS
   {
 
+    /// @brief Return a normal random variable
     float normalRandomVariable(float mean, float rms);
 
     //    float normalRandomVariable(){return normalRandomVariable(0.,1.);};
 
+    /// @brief Add a 2D Gaussian component to an array of fluxes.
     void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss);
 
   }

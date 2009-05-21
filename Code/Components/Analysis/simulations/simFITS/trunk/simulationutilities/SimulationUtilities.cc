@@ -58,6 +58,14 @@ namespace askap
 
     float normalRandomVariable(float mean, float sigma)
     {
+      /// @details Simulate a normal random variable from a
+      /// distribution with mean given by mean and standard deviation
+      /// given by sigma. The variable is simulated via the polar
+      /// method.
+      /// @param mean The mean of the normal distribution
+      /// @param sigma The standard deviation of the normal distribution
+      /// @return A random variable.
+
       float v1,v2,s;
       // simulate a standard normal RV via polar method
       do{
@@ -71,18 +79,26 @@ namespace askap
     
     void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss)
     {
-      
+      /// @details Adds the flux of a given 2D Gaussian to the pixel
+      /// array.  Only look at pixels within a box defined by the
+      /// distance along the major axis where the flux of the Gaussian
+      /// falls below the minimum float value. This uses the MAXFLOAT
+      /// constant from math.h.  Checks are made to make sure that
+      /// only pixels within the boundary of the array (defined by the
+      /// axes vector) are added.
+      /// @param array The array of pixel flux values to be added to.
+      /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
+      /// @param gauss The 2-dimensional Gaussian component.
+
       float majorSigma = gauss.majorAxis()/(4.*M_LN2);
       float zeroPoint = majorSigma * sqrt(-2.*log(1./(MAXFLOAT*gauss.height())));
-      float xmin = std::max(gauss.xCenter()-zeroPoint,0.);
-      float xmax = std::min(gauss.xCenter()+zeroPoint,Double(axes[0]));
-      float ymin = std::max(gauss.yCenter()-zeroPoint,0.);
-      float ymax = std::min(gauss.yCenter()+zeroPoint,Double(axes[1]));
+      int xmin = std::max(int(gauss.xCenter()-zeroPoint),0);
+      int xmax = std::min(int(gauss.xCenter()+zeroPoint),axes[0]-1);
+      int ymin = std::max(int(gauss.yCenter()-zeroPoint),0);
+      int ymax = std::min(int(gauss.yCenter()+zeroPoint),axes[1]-1);
 
-//       for(int x=0;x<axes[0];x++){
-// 	for(int y=0;y<axes[1];y++){
-      for(int x=xmin;x<xmax;x++){
-	for(int y=ymin;y<ymax;y++){
+      for(int x=xmin;x<=xmax;x++){
+	for(int y=ymin;y<=ymax;y++){
 	  Vector<Double> loc(2);
 	  loc(0) = x; loc(1) = y;
 	  int pix = x + y * axes[0];
