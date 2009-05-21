@@ -13,8 +13,7 @@ from askap.logging.interfaces import ILoggerPrx, ILogEvent
 class IceHandler(Handler):
     """
     A handler class which writes logging records, appropriately formatted,
-    to a stream. Note that this class does not close the stream, as
-    sys.stdout or sys.stderr may be used.
+    to an ZeroC Ice publisher.
     """
     def __init__(self):
         """
@@ -25,7 +24,6 @@ class IceHandler(Handler):
         self.formatter = None
 
     def _setup_iceprxy(self):
-
 
         initData = Ice.InitializationData()
         initData.properties = Ice.createProperties(None, 

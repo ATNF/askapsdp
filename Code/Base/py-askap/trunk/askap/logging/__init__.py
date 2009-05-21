@@ -12,6 +12,7 @@
 # pylint: disable-msg=W0401
 from logging import *
 # python 2.6 now has __all__, which means not everything gets in
+# this is a bug fixed in 2.6.3
 from logging import config
 from logging import handlers
 from logging import getLogger, basicConfig
@@ -21,7 +22,8 @@ from askap.logging.icehandler import IceHandler
 # decorator
 def log_debug(func):
     """Logging decorator for quick debugging of function calls and their arguments.
-You need to set the logging level to ''DEBUG'' to see these message ans should have a logging instance called ''logger''.
+You need to set the logging level to ''DEBUG'' to see these message and
+should have a logging instance called ''logger''.
 
 Example: ..
 
