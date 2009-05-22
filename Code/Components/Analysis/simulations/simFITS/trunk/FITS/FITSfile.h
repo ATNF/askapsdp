@@ -68,7 +68,7 @@ namespace askap
 	FITSfile(const LOFAR::ACC::APS::ParameterSet& parset);
 
 	/// @brief Define the world coordinate system
-	void setWCS();
+	void setWCS(bool isImage, const LOFAR::ACC::APS::ParameterSet& parset);
 
 	/// @brief Make a flux array with just noise in it.
 	void makeNoiseArray();
@@ -128,15 +128,14 @@ namespace askap
 	/// @brief The world coordinate information
 	struct wcsprm *itsWCS;
 
-	/// @brief The FITS headers that encapsulate the WCS information
-	/// @{
-	std::vector<std::string> itsCTYPE;
-	std::vector<std::string> itsCUNIT;
-	std::vector<float> itsCRVAL;
-	std::vector<float> itsCRPIX;
-	std::vector<float> itsCROTA;
-	std::vector<float> itsCDELT;
-	/// @}
+	/// @brief The world coordinate information that the sources use, if different from itsWCS
+	struct wcsprm *itsWCSsources;
+	/// @brief If the sources have a different WCS defined, and we need to transform to the image WCS.
+	bool itsFlagPrecess;
+	/// @brief Whether to save the source list with new positions
+	bool itsFlagOutputList;
+	/// @brief The file to save the new source list to.
+	std::string itsOutputSourceList;
 
       };
 

@@ -140,67 +140,80 @@ namespace askap
 
 	this->itsEquinox = parset.getFloat("equinox", 2000.);
 
-	this->itsCTYPE = parset.getStringVector("ctype");
-	if(this->itsCTYPE.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
-		     << ", but ctype has " << this->itsCTYPE.size() << " dimensions.");
-	this->itsCUNIT = parset.getStringVector("cunit");
-	if(this->itsCUNIT.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
-		     << ", but cunit has " << this->itsCUNIT.size() << " dimensions.");
-	this->itsCRVAL = parset.getFloatVector("crval");
-	if(this->itsCRVAL.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
-		     << ", but crval has " << this->itsCRVAL.size() << " dimensions.");
-	this->itsCRPIX = parset.getFloatVector("crpix");
-	if(this->itsCRPIX.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
-		     << ", but crpix has " << this->itsCRPIX.size() << " dimensions.");
-	this->itsCROTA = parset.getFloatVector("crota");
-	if(this->itsCROTA.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
-		     << ", but crota has " << this->itsCROTA.size() << " dimensions.");
-	this->itsCDELT = parset.getFloatVector("cdelt");
-	if(this->itsCDELT.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
-		     << ", but cdelt has " << this->itsCDELT.size() << " dimensions.");
+	LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("WCSimage."));
+	this->setWCS(true, subset);
 
-	this->setWCS();
+	this->itsFlagPrecess = parset.getBool("WCSsources", false);
+	if(this->itsFlagPrecess){
+	  LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("WCSsources."));
+	  this->setWCS(false, subset);
+	}
+	
+	this->itsFlagOutputList = parset.getBool("outputList", false);
+	if(this->itsSourceList.size()==0) this->itsFlagOutputList = false;
+	this->itsOutputSourceList = parset.getString("outputSourceList","");
 
       }
 
 //--------------------------------------------------------
 
-      void FITSfile::setWCS()
+      void FITSfile::setWCS(bool isImage, const LOFAR::ACC::APS::ParameterSet& parset)
       {
 
-	/// @details The world coordinate system is defined in a
-	/// WCSLIB wcsprm struct. This is done by using the CRPIX etc
-	/// keyword values.
+	struct wcsprm *wcs = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	wcs->flag = -1;
+	wcsini(true ,this->itsDim, wcs);
+	wcs->flag = 0;
 
-	ASKAPLOG_DEBUG_STR(logger, "Setting the WCS");
-	
-	this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
-	this->itsWCS->flag = -1;
-	wcsini(true ,this->itsDim,this->itsWCS);
-	this->itsWCS->flag = 0;
+	std::vector<std::string> ctype,cunit;
+	std::vector<float> crval,crpix,cdelt,crota;
+	ctype = parset.getStringVector("ctype");
+	  if(ctype.size() != this->itsDim)
+	    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but ctype has " << ctype.size() << " dimensions.");
+	cunit = parset.getStringVector("cunit");
+	  if(cunit.size() != this->itsDim)
+	    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but cunit has " << cunit.size() << " dimensions.");
+	crval = parset.getFloatVector("crval");
+	  if(crval.size() != this->itsDim)
+	    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but crval has " << crval.size() << " dimensions.");
+	crpix = parset.getFloatVector("crpix");
+	  if(crpix.size() != this->itsDim)
+	    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but crpix has " << crpix.size() << " dimensions.");
+	cdelt = parset.getFloatVector("cdelt");
+	  if(cdelt.size() != this->itsDim)
+	    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but cdelt has " << cdelt.size() << " dimensions.");
+	crota = parset.getFloatVector("crota");
+	  if(crota.size() != this->itsDim)
+	    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but crota has " << crota.size() << " dimensions.");
 
 	for(uint i=0;i<this->itsDim;i++){
-	  this->itsWCS->crpix[i] = this->itsCRPIX[i];
-	  this->itsWCS->cdelt[i] = this->itsCDELT[i];
-	  this->itsWCS->crval[i] = this->itsCRVAL[i];
-	  this->itsWCS->crota[i] = this->itsCROTA[i];
-	  strcpy(this->itsWCS->cunit[i], this->itsCUNIT[i].c_str());
-	  strcpy(this->itsWCS->ctype[i], this->itsCTYPE[i].c_str());
+	  wcs->crpix[i] = crpix[i];
+	  wcs->cdelt[i] = cdelt[i];
+	  wcs->crval[i] = crval[i];
+	  wcs->crota[i] = crota[i];
+	  strcpy(wcs->cunit[i], cunit[i].c_str());
+	  strcpy(wcs->ctype[i], ctype[i].c_str());
 	}
-	this->itsWCS->equinox = this->itsEquinox;
+	wcs->equinox = this->itsEquinox;
 
-	wcsset(this->itsWCS);
+	wcsset(wcs);
 
-// 	wcsprt(this->itsWCS);
+	if(isImage){
+	  this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	  this->itsWCS->flag = -1;
+	  wcsini(true, wcs->naxis, this->itsWCS);
+	  wcscopy(true, wcs, this->itsWCS);
+	  wcsset(this->itsWCS);
+	}
+	else{
+	  this->itsWCSsources = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	  this->itsWCSsources->flag = -1;
+	  wcsini(true, wcs->naxis, this->itsWCSsources);
+	  wcscopy(true, wcs, this->itsWCSsources);
+	  wcsset(this->itsWCSsources);
+	}
 
       }
-
       
 //--------------------------------------------------------
 
@@ -252,50 +265,73 @@ namespace askap
 	  ASKAPLOG_DEBUG_STR(logger, "Adding sources");
 	
 	  std::ifstream srclist(this->itsSourceList.c_str());
-	  std::string ra,dec;
+	  std::string temp,ra,dec;
 	  double flux,maj,min,pa;
 	  double *wld = new double[3];
 	  double *pix = new double[3];
 	  double *newwld = new double[3];
-	  while(srclist >> ra >> dec >> flux >> maj >> min >> pa,
+	  std::ofstream outfile;
+	  if(this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
+
+	  while(getline(srclist,temp),
 		!srclist.eof()) {
 
-	    // convert fluxes to correct units
-	    flux = pow(this->itsUnitScl*flux+this->itsUnitOff, this->itsUnitPwr);
+	    if(temp[0]!='#'){  // ignore commented lines
 
-	    // convert sky position to pixels
-	    if(this->itsPosType=="dms"){
-	      wld[0] = analysis::dmsToDec(ra)*15.;
-	      wld[1] = analysis::dmsToDec(dec);
-	    }
-	    else if(this->itsPosType == "deg"){
-	      wld[0] = atof(ra.c_str());
-	      wld[1] = atof(dec.c_str());
-	    }
-	    else ASKAPLOG_ERROR_STR(logger,"Incorrect position type: " << this->itsPosType);
-	    wld[2] = 0.;
-	    wcsToPixSingle(this->itsWCS,wld,pix);
-	    pixToWCSSingle(this->itsWCS,pix,newwld);
-	    if(maj>0){
-	      // convert widths from arcsec to pixels
-	      maj = maj / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
-	      min = min / (3600. * sqrt(fabs(this->itsCDELT[0]*this->itsCDELT[1])));
-	      casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
-	      addGaussian(this->itsArray, this->itsAxes, gauss);
-	    }
-	    else{
-	      int loc = int(pix[0]) + this->itsAxes[0]*int(pix[1]);
-	      if(pix[0]>=0 && pix[0]<this->itsAxes[0] && pix[1]>=0 && pix[1]<this->itsAxes[1]){
-		this->itsArray[loc] += flux;
-		ASKAPLOG_DEBUG_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
-				   << "," << floor(pix[1]) << "]");
+	      std::stringstream line(temp);
+	      line >> ra >> dec >> flux >> maj >> min >> pa;
+
+	      // convert fluxes to correct units
+	      flux = pow(this->itsUnitScl*flux+this->itsUnitOff, this->itsUnitPwr);
+
+	      // convert sky position to pixels
+	      if(this->itsPosType=="dms"){
+		wld[0] = analysis::dmsToDec(ra)*15.;
+		wld[1] = analysis::dmsToDec(dec);
+	      }
+	      else if(this->itsPosType == "deg"){
+		wld[0] = atof(ra.c_str());
+		wld[1] = atof(dec.c_str());
+	      }
+	      else ASKAPLOG_ERROR_STR(logger,"Incorrect position type: " << this->itsPosType);
+	      wld[2] = 0.;
+	      if(this->itsFlagPrecess) wcsToPixSingle(this->itsWCSsources,wld,pix);
+	      else                     wcsToPixSingle(this->itsWCS,wld,pix);
+
+	      if(this->itsFlagOutputList){
+		pixToWCSSingle(this->itsWCS,pix,newwld);
+		outfile.setf(std::ios::fixed);
+		outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
+			<< std::setw(10) << std::setprecision(6) << newwld[1] << " "
+			<< std::setw(20) << std::setprecision(16) << flux << " "
+			<< std::setw(10) << std::setprecision(6) << maj << " "
+			<< std::setw(10) << std::setprecision(6) << min << " "
+			<< std::setw(10) << std::setprecision(6) << pa << "\n";
+	      }
+
+	      if(maj>0){
+		// convert widths from arcsec to pixels
+		float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0]*this->itsWCS->cdelt[1]));
+		maj = maj / arcsecToPixel;
+		min = min / arcsecToPixel;
+		casa::Gaussian2D<casa::Double> gauss(flux,pix[0],pix[1],maj,min/maj,pa);
+		addGaussian(this->itsArray, this->itsAxes, gauss);
+	      }
+	      else{
+		int loc = int(pix[0]) + this->itsAxes[0]*int(pix[1]);
+		if(pix[0]>=0 && pix[0]<this->itsAxes[0] && pix[1]>=0 && pix[1]<this->itsAxes[1]){
+		  this->itsArray[loc] += flux;
+// 		  ASKAPLOG_DEBUG_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
+// 				     << "," << floor(pix[1]) << "]");
+		}
 	      }
 	    }
 	  }
+
+	  if(this->itsFlagOutputList) outfile.close();
 	  delete [] wld;
-	  delete [] newwld;
 	  delete [] pix;
-	  // for each source, add to array
+	  delete [] newwld;
 
 	}
 
@@ -319,8 +355,8 @@ namespace askap
 
 	  ASKAPLOG_DEBUG_STR(logger, "Convolving with the beam");
 	  
-	  float maj = this->itsBeamInfo[0]/fabs(this->itsCDELT[0]);
-	  float min = this->itsBeamInfo[1]/fabs(this->itsCDELT[1]);
+	  float maj = this->itsBeamInfo[0]/fabs(this->itsWCS->cdelt[0]);
+	  float min = this->itsBeamInfo[1]/fabs(this->itsWCS->cdelt[1]);
 	  float pa = this->itsBeamInfo[2];
 	  GaussSmooth<float> smoother(maj,min,pa);
 	  float *newArray = smoother.smooth(this->itsArray,this->itsAxes[0],this->itsAxes[1]);
@@ -353,7 +389,7 @@ namespace askap
 	/// and saves the flux array into it. Uses the CFITSIO library
 	/// to do so.
 
-	ASKAPLOG_DEBUG_STR(logger, "Saving the FITS file");
+	ASKAPLOG_DEBUG_STR(logger, "Saving the FITS file to " << this->itsFileName);
 
 	int status = 0;
 	long *fpixel = new long[this->itsDim];
@@ -387,25 +423,30 @@ namespace askap
 	if( fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.c_str(),  NULL, &status) )
 	  fits_report_error(stderr, status);
 
+	float val;
 	for(uint d=0;d<this->itsDim;d++){
 	  
 	  status=0;
-	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE",d+1), (char *)this->itsCTYPE[d].c_str(),  NULL, &status) ) 
+	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE",d+1), this->itsWCS->ctype[d],  NULL, &status) ) 
 	    fits_report_error(stderr, status);
  	  status=0;
- 	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT",d+1), (char *)this->itsCUNIT[d].c_str(),  NULL, &status) ) 
+ 	  if( fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT",d+1), this->itsWCS->cunit[d],  NULL, &status) ) 
  	    fits_report_error(stderr, status);
 	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL",d+1), &this->itsCRVAL[d], NULL, &status) )
+	  val = this->itsWCS->crval[d];
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL",d+1), &val, NULL, &status) )
 	    fits_report_error(stderr, status);
+	  val = this->itsWCS->cdelt[d];
 	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT",d+1), &this->itsCDELT[d], NULL, &status) ) 
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT",d+1), &val, NULL, &status) ) 
 	    fits_report_error(stderr, status);
+	  val = this->itsWCS->crpix[d];
 	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX",d+1), &this->itsCRPIX[d], NULL, &status) ) 
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX",d+1), &val, NULL, &status) ) 
 	    fits_report_error(stderr, status);
+	  val = this->itsWCS->crota[d];
 	  status=0; 
-	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA",d+1), &this->itsCROTA[d], NULL, &status) ) 
+	  if( fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA",d+1), &val, NULL, &status) ) 
 	    fits_report_error(stderr, status);
 	}
  
