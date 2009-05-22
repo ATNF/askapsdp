@@ -47,9 +47,41 @@ class FixedSizeCacheTest : public CppUnit::TestFixture
 {
    CPPUNIT_TEST_SUITE(FixedSizeCacheTest);
    CPPUNIT_TEST(testSingleElement);
+   CPPUNIT_TEST(testMultipleElements);
    CPPUNIT_TEST_SUITE_END();
 public:
    void testSingleElement() {
+      FixedSizeCache<string,int> cache(1);
+      CPPUNIT_ASSERT(cache.notFound());      
+      cache.find("1");
+      CPPUNIT_ASSERT(cache.notFound());
+      cache.cachedItem().reset(new int(5));
+      CPPUNIT_ASSERT(cache.cachedItem());
+      CPPUNIT_ASSERT(*cache.cachedItem() == 5);
+      cache.find("1");
+      CPPUNIT_ASSERT(!cache.notFound());      
+      CPPUNIT_ASSERT(cache.cachedItem());
+      CPPUNIT_ASSERT(*cache.cachedItem() == 5);
+      cache.find("2");
+      CPPUNIT_ASSERT(cache.notFound());
+      cache.cachedItem().reset(new int(3));
+      CPPUNIT_ASSERT(cache.cachedItem());
+      CPPUNIT_ASSERT(*cache.cachedItem() == 3);
+      cache.find("2");
+      CPPUNIT_ASSERT(!cache.notFound());      
+      CPPUNIT_ASSERT(cache.cachedItem());
+      CPPUNIT_ASSERT(*cache.cachedItem() == 3);
+      cache.find("1");
+      CPPUNIT_ASSERT(cache.notFound());
+      cache.cachedItem().reset(new int(5));      
+      CPPUNIT_ASSERT(cache.cachedItem());
+      CPPUNIT_ASSERT(*cache.cachedItem() == 5);
+      cache.reset();
+      cache.find("1");
+      CPPUNIT_ASSERT(cache.notFound());        
+      CPPUNIT_ASSERT(!cache.cachedItem());
+   }
+   void testMultipleElements() {
    }
 }; 
 

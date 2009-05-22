@@ -42,7 +42,7 @@ namespace scimath {
 /// @param[in] size size of the cache (maximum number of cached elements)
 template<typename Key, typename C>
 FixedSizeCache<Key,C>::FixedSizeCache(size_t size) : itsCache(size), itsKeys(size),
-           itsActiveElement(size), itsOldestElement(0), itsAllFilled(false)
+           itsActiveElement(size), itsOldestElement(0), itsNewElement(true), itsAllFilled(false)
 {
    ASKAPDEBUGASSERT(size>0);
 }           
@@ -56,7 +56,7 @@ void FixedSizeCache<Key,C>::find(const Key &key)
 {
    itsNewElement = true;
    for (size_t el = 0; el<itsKeys.size(); ++el) {
-        const int index = int(itsOldestElement) - el - 1;
+        int index = int(itsOldestElement) - el - 1;
         if (index<0) {
             // wrap around the end of the vector
             index += int(itsKeys.size());
