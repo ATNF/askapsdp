@@ -1,0 +1,19 @@
+# @file
+# SConstruct build script for this module.
+#
+
+# Always import this
+from askapenv import env
+
+# create build object with library name
+pkg = env.AskapPackage("logappenders")
+
+pkg.AddSubPackage("iceappender")
+
+# first argument is a slice file or list of slice files
+# second argument is the sub-package where the slice generated code should appear
+pkg.AddInterfaces("LoggingService.ice", "iceappender")
+
+# run the build process
+pkg()
+
