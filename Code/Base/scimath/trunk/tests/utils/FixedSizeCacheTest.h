@@ -37,7 +37,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <utils/FixedSizeCache.h>
-
+#include <askap/AskapUtil.h>
 
 namespace askap {
 
@@ -82,6 +82,55 @@ public:
       CPPUNIT_ASSERT(!cache.cachedItem());
    }
    void testMultipleElements() {
+      FixedSizeCache<string,string> cache(8);
+      CPPUNIT_ASSERT(cache.notFound());      
+      for (size_t i=0;i<8;++i) {
+           const std::string strKey = utility::toString<size_t>(i);
+           cache.find(strKey);
+           CPPUNIT_ASSERT(cache.notFound());
+           cache.cachedItem().reset(new std::string("value "+strKey));      
+           CPPUNIT_ASSERT(cache.cachedItem());
+           CPPUNIT_ASSERT(*cache.cachedItem() == std::string("value ")+strKey);
+      }       
+      for (size_t i=0;i<8;++i) {
+           const std::string strKey = utility::toString<size_t>(i);
+           cache.find(strKey);
+           CPPUNIT_ASSERT(!cache.notFound());
+           CPPUNIT_ASSERT(cache.cachedItem());
+           CPPUNIT_ASSERT(*cache.cachedItem() == std::string("value ")+strKey);
+      }
+      // this should replace the oldest key 0
+      cache.find("unusual key");
+      CPPUNIT_ASSERT(cache.notFound());
+      cache.cachedItem().reset(new std::string("unusual value"));      
+      CPPUNIT_ASSERT(cache.cachedItem());
+      CPPUNIT_ASSERT(*cache.cachedItem() == std::string("unusual value"));
+      for (size_t i=1;i<8;++i) {
+           const std::string strKey = utility::toString<size_t>(i);
+           cache.find(strKey);
+           CPPUNIT_ASSERT(!cache.notFound());
+           CPPUNIT_ASSERT(cache.cachedItem());
+           CPPUNIT_ASSERT(*cache.cachedItem() == std::string("value ")+strKey);
+      }
+      cache.find("0");
+      CPPUNIT_ASSERT(cache.notFound());
+      cache.cachedItem().reset(new std::string("new value 0"));      
+      for (size_t i=0;i<8;++i) {
+           if (i==1) {
+               // element 1 is now replaced by key="0"
+               continue;
+           }
+           const std::string strKey = utility::toString<size_t>(i);
+           cache.find(strKey);
+           CPPUNIT_ASSERT(!cache.notFound());
+           CPPUNIT_ASSERT(cache.cachedItem());
+           if (i) {
+               CPPUNIT_ASSERT(*cache.cachedItem() == std::string("value ")+strKey);
+           } else {
+               CPPUNIT_ASSERT(*cache.cachedItem() == std::string("new value 0"));
+           }
+      }
+      cache.reset();
    }
 }; 
 
