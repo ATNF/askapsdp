@@ -74,7 +74,7 @@ module atnf {
           //Return full details for all points on the system
           idempotent pointarray getAllPoints();
           //Add/update the definitions for the specified points
-          void addPoints(pointarray newpoints, string username, string passwd);
+          bool addPoints(pointarray newpoints, string username, string passwd);
           
           ////////////
           //Operations relating to getting/setting data
@@ -84,7 +84,7 @@ module atnf {
           //Get latest data for the given points
           idempotent pointdataset getData(stringarray names);
           //Set new values for the given points.
-          void setData(stringarray names, pointdataset rawvalues, string username, string passwd);
+          bool setData(stringarray names, pointdataset rawvalues, string username, string passwd);
 
           ////////////
           //Operations relating to 'SavedSetups'. These are basically pickled
@@ -95,7 +95,7 @@ module atnf {
           //Get the list of all saved page setups from the server
           idempotent stringarray getAllSetups();
           //Add/update a new setup to the server's list
-          void addSetup(string setup, string username, string passwd);
+          bool addSetup(string setup, string username, string passwd);
           
           ////////////
           //Some miscellaneous operations
