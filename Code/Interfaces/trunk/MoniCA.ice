@@ -23,14 +23,37 @@ module atnf {
           int         archivelongevity;
         };
         sequence<PointDescriptionIce> pointarray;
-        
+
+        #Enum to represent data type        
         enum DataType {DTNull, DTDouble, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime};
+        #Classes to hold different data types
+        class DataValue { 
+          DataType type;
+        };
+        class DataValueDouble extends DataValue {
+          double value;
+        };
+        class DataValueLong extends DataValue {
+          long value;
+        };
+        class DataValueString extends DataValue {
+          string value;
+        };
+        class DataValueBoolean extends DataValue {
+          bool value;
+        };
+        class DataValueRelTime extends DataValue {
+          long value;
+        };
+        class DataValueAbsTime extends DataValue {
+          long value;
+        };
+        
         //PointDataIce encapsulates a single record/datum
         struct PointDataIce {
-          string   name;
-          long     timestamp;
-          DataType type;
-          string   value;
+          string    name;
+          long      timestamp;
+          DataValue value;
         };
         sequence<PointDataIce> pointdataset;
         sequence<pointdataset> pointdatasetarray;
