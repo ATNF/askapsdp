@@ -38,6 +38,7 @@
 #include <boost/shared_ptr.hpp>
 #include <utils/FixedSizeCache.h>
 #include <askap/AskapUtil.h>
+#include <string>
 
 namespace askap {
 

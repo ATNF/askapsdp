@@ -25,6 +25,8 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
+#include <boost/shared_ptr.hpp>
+
 ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <askap/AskapError.h>
@@ -65,10 +67,12 @@ namespace askap
 {
   namespace synthesis
   {
-    
+    // note, constructor parameter for itsCleaners hard codes the cache size.
+    // ideally it should be the number of spectral channels times number of facets
+    // processed by every thread.
       
     ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip) : 
-          ImageCleaningSolver(ip) 
+          ImageCleaningSolver(ip), itsCleaners(8)
     {
       itsScales.resize(3);
       itsScales(0)=0;
@@ -78,7 +82,7 @@ namespace askap
 
     ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip,
       const casa::Vector<float>& scales) : 
-          ImageCleaningSolver(ip)
+          ImageCleaningSolver(ip), itsCleaners(8)
     {
       itsScales.resize(scales.size());
       itsScales=scales;
@@ -204,24 +208,21 @@ namespace askap
              */
              // Create a lattice cleaner to do the dirty work :)
              /// @todo More checks on reuse of LatticeCleaner
-             boost::shared_ptr<casa::LatticeCleaner<float> > lc;
              // every plane should have its own LatticeCleaner, therefore we should ammend the 
              // key somehow to make it individual for each plane. Adding tag seems to be a good idea
              const std::string cleanerKey = indit->first + planeIter.tag();
-             std::map<string, boost::shared_ptr<casa::LatticeCleaner<float> > >::const_iterator it =
-                              itsCleaners.find(cleanerKey);
-        
-        
-             if(it!=itsCleaners.end()) {
-               lc=it->second; 
+
+             itsCleaners.find(cleanerKey);                     
+             boost::shared_ptr<casa::LatticeCleaner<float> > lc = itsCleaners.cachedItem();
+             if(!itsCleaners.notFound()) {
                ASKAPDEBUGASSERT(lc);
                lc->update(dirty);
              } else {
-               lc.reset(new casa::LatticeCleaner<float>(psf, dirty));
-               itsCleaners[cleanerKey]=lc;          
-               lc->setMask(mask,maskingThreshold());
-	  
-	           ASKAPDEBUGASSERT(lc);
+               itsCleaners.cachedItem().reset(new casa::LatticeCleaner<float>(psf, dirty));
+               lc = itsCleaners.cachedItem();
+               ASKAPDEBUGASSERT(lc);               
+               lc->setMask(mask,maskingThreshold());	  
+               
 	           if(algorithm()=="Hogbom") {
 	              casa::Vector<float> scales(1);
 	              scales(0)=0.0;

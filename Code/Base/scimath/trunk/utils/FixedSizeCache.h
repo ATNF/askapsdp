@@ -60,7 +60,7 @@ struct FixedSizeCache {
    /// @brief construct the cache handler
    /// @details
    /// @param[in] size size of the cache (maximum number of cached elements)
-   FixedSizeCache(size_t size);
+   explicit FixedSizeCache(size_t size);
    
    /// @brief search by a key, create a new element if necessary
    /// @details This method does a search. If the appropriate key is found, it is made active.
