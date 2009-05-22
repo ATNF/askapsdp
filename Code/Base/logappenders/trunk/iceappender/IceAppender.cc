@@ -29,18 +29,20 @@
 
 // System includes
 #include <iostream>
-#include <stdexcept>
+#include <string>
+#include <sstream>
 
 // ASKAPsoft includes
 #include <askap/AskapError.h>
 #include <Ice/Ice.h>
-#include <IceStorm/IceStorm.h>
 #include <IceUtil/IceUtil.h>
+#include <IceStorm/IceStorm.h>
 #include <log4cxx/helpers/stringhelper.h>
 
 // Local package includes
 #include <iceappender/LoggingService.h>
 
+// Using
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 using namespace askap;
@@ -129,8 +131,8 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& pool)
     // Get the initialized property set.
     Ice::PropertiesPtr props = Ice::createProperties();
 
-    // Syntax example:
-    // IceGrid/Locator:tcp -h localhost -p 4061
+    // Syntax example for the Ice.Default.Locator property:
+    // "IceGrid/Locator:tcp -h localhost -p 4061"
     std::stringstream ss;
     ss << "IceGrid/Locator:tcp -h " << itsLocatorHost << " -p " << itsLocatorPort;
     props->setProperty("Ice.Default.Locator", ss.str());
