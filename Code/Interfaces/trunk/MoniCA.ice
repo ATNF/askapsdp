@@ -10,6 +10,7 @@ module atnf {
         //a specific point
         struct PointDescriptionIce {
           stringarray names;
+          string      source;
           string      description;
           string      shortdescription;
           string      units;
@@ -24,9 +25,9 @@ module atnf {
         };
         sequence<PointDescriptionIce> pointarray;
 
-        #Enum to represent data type        
+        //Enum to represent data type        
         enum DataType {DTNull, DTDouble, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime};
-        #Classes to hold different data types
+        //Classes to hold different data types
         class DataValue { 
           DataType type;
         };
