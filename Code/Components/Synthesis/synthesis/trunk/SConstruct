@@ -26,6 +26,7 @@ pkg.AddSubPackage("dataaccess")
 pkg.AddSubPackage("gridding")
 pkg.AddSubPackage("parallel")
 pkg.AddSubPackage("simulation")
+pkg.AddSubPackage("imageaccess")
 
 # run the build process
 pkg()

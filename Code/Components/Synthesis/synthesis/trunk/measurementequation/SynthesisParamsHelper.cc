@@ -69,7 +69,7 @@ namespace askap
     // use // deliberatly here to avoid doxygen complaining about duplicated documentation 
     // here and in the header file
     // @brief populate scimath parameters from a LOFAR Parset object
-    // @details One needs often needs a possibility to populate 
+    // @details One often needs a possibility to populate 
     // scimath::Params class from a Parset file (e.g. to load 
     // initial gains from an external file). A number of add methods
     // collected in this class happen to be image-specific. This is
@@ -138,7 +138,7 @@ namespace askap
     
     /// @brief load images according to the parset file
 	/// @details This method is somewhat analogous to setUpImages, but it loads the images
-	/// from the dist instead of setting them up from the scratch. Encapsulation of all loading
+	/// from the disk instead of setting them up from the scratch. Encapsulation of all loading
 	/// of multiple images in a single method is required to provide a seamless handling of
 	/// the faceted image.
 	/// @param[in] params Images to be created here

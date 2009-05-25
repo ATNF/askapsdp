@@ -7,6 +7,7 @@
 /// @defgroup gridding Gridding algorithms
 /// @defgroup parallel Parallel application support
 /// @defgroup simulation Data simulation
+/// @defgroup imageaccess Image access subpackage
 
 /// The package namespace
 namespace askap::synthesis {};
