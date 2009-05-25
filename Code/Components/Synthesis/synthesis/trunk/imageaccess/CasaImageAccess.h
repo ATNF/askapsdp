@@ -40,7 +40,7 @@ namespace synthesis {
 /// @brief Access casa image
 /// @details This class implements IImageAccess interface for CASA image
 /// @ingroup imageaccess
-struct CasaImageAccess {
+struct CasaImageAccess : public IImageAccess {
 
   // reading methods
   

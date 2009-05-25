@@ -98,10 +98,9 @@ struct IImageAccess {
   /// @brief write a slice of an image
   /// @param[in] name image name
   /// @param[in] arr array with pixels
-  /// @param[in] blc bottom left corner of the selection
-  /// @param[in] trc top right corner of the selection
+  /// @param[in] where bottom left corner where to put the slice to (trc is deduced from the array shape)
   virtual void write(const std::string &name, const casa::Array<float> &arr, 
-               const casa::IPosition &blc, const casa::IPosition &trc) = 0;                    
+               const casa::IPosition &where) = 0;                    
 };
 
 } // namespace synthesis
