@@ -11,7 +11,7 @@
 ///
 /// @code
 /// log4j.rootLogger=DEBUG,REMOTE
-/// 
+///
 /// log4j.appender.REMOTE=IceAppender
 /// log4j.appender.REMOTE.locator_host=localhost
 /// log4j.appender.REMOTE.locator_port=4061
@@ -76,16 +76,15 @@ static std::string outputLogname = "";
 // LogEvent consumer class for testing. This essentially fills the role
 // of the Log Archiver component.
 class TestConsumer : public ILogger {
-public:
-    TestConsumer() {};
+    public:
+        TestConsumer() {};
 
-    ~TestConsumer() {};
+        ~TestConsumer() {};
 
-    void send(const askap::interfaces::logging::ILogEvent& event, const Ice::Current& c)
-    {
-        outputMessage = event.message;
-        outputLogname = event.origin;
-    }
+        void send(const askap::interfaces::logging::ILogEvent& event, const Ice::Current& c) {
+            outputMessage = event.message;
+            outputLogname = event.origin;
+        }
 };
 
 int main(int argc, char *argv[])
@@ -94,6 +93,7 @@ int main(int argc, char *argv[])
 
     // Initialise Ice
     Ice::CommunicatorPtr ic;
+
     try {
         ic = Ice::initialize(argc, argv);
     } catch (const Ice::Exception& e) {
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 
     ILoggerPtr consumer = new TestConsumer;
     Ice::ObjectPrx proxy = adapter->
-        addWithUUID(consumer)->ice_oneway();
+                           addWithUUID(consumer)->ice_oneway();
     adapter->activate();
     IceStorm::TopicPrx topic;
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     IceStorm::QoS qos;
     topic->subscribeAndGetPublisher(qos, proxy);
 
-    // Configure the local logger 
+    // Configure the local logger
     log4cxx::PropertyConfigurator::configure(log4cxx::File(filename));
     log4cxx::LoggerPtr logger = log4cxx::Logger::getLogger(inputLogname);
 
@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
         if (outputLogname != "") {
             break;
         }
+
         sleep(1);
     }
 

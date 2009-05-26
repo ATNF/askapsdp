@@ -44,8 +44,7 @@
 // this shouldn't cause any real problem.
 using namespace log4cxx;
 
-namespace askap
-{
+namespace askap {
     /// @brief Implementation of a log4cxx::Appender for remote logging
     /// via Ice.
     ///
@@ -59,7 +58,7 @@ namespace askap
     /// configuration file appropriatly. Here is an example of a valid configuration
     /// @code
     /// log4j.rootLogger=DEBUG,REMOTE
-    /// 
+    ///
     /// log4j.appender.REMOTE=IceAppender
     /// log4j.appender.REMOTE.locator_host=localhost
     /// log4j.appender.REMOTE.locator_port=4061
@@ -69,15 +68,14 @@ namespace askap
     /// This configuration will result in the IceAppender looking for the locator
     /// service (aka registry) on the localhost at port 4061. Log events will
     /// be published to the topic "logger".
-    class IceAppender : public log4cxx::AppenderSkeleton
-    {
+    class IceAppender : public log4cxx::AppenderSkeleton {
         public:
             DECLARE_LOG4CXX_OBJECT(IceAppender)
             BEGIN_LOG4CXX_CAST_MAP()
-                LOG4CXX_CAST_ENTRY(IceAppender)
-                LOG4CXX_CAST_ENTRY_CHAIN(AppenderSkeleton)
+            LOG4CXX_CAST_ENTRY(IceAppender)
+            LOG4CXX_CAST_ENTRY_CHAIN(AppenderSkeleton)
             END_LOG4CXX_CAST_MAP()
-          
+
             /// @brief Constructor.
             IceAppender();
 

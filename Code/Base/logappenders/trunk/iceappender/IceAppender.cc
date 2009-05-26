@@ -78,7 +78,6 @@ void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*p*/)
         // (the parameter is a double precision float) where log4cxx returns
         // microseconds.
         iceevent.created = event->getTimeStamp() / 1000.0 / 1000.0;
-
         iceevent.level = event->getLevel()->toString();
         iceevent.message = event->getMessage();
 
@@ -89,8 +88,7 @@ void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*p*/)
 
 void IceAppender::close()
 {
-    if (this->closed)
-    {
+    if (this->closed) {
         return;
     }
 
@@ -143,11 +141,12 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& pool)
     itsIceComm = Ice::initialize(id);
 
     if (!itsIceComm) {
-        ASKAPTHROW (std::runtime_error, "Ice::CommunicatorPtr not initialised. Terminating.");
+        ASKAPTHROW(std::runtime_error, "Ice::CommunicatorPtr not initialised. Terminating.");
     }
 
     // Obtain the topic or create
     IceStorm::TopicManagerPrx topicManager;
+
     try {
         Ice::ObjectPrx obj = itsIceComm->stringToProxy("IceStorm/TopicManager");
         topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
@@ -160,10 +159,10 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& pool)
     }
 
     IceStorm::TopicPrx topic;
+
     try {
         topic = topicManager->retrieve(itsLoggingTopic);
-    }
-    catch (const IceStorm::NoSuchTopic&) {
+    } catch (const IceStorm::NoSuchTopic&) {
         topic = topicManager->create(itsLoggingTopic);
     }
 
