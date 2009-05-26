@@ -23,6 +23,7 @@
 
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
+#include <imageaccess/ImageAccessFactory.h>
 #include <fitting/Axes.h>
 
 #include <askap_synthesis.h>
@@ -66,6 +67,12 @@ namespace askap
 {
   namespace synthesis
   {
+    /// @brief image accessor
+    boost::shared_ptr<IImageAccess> SynthesisParamsHelper::theirImageAccessor;              
+    
+    
+  
+  
     // use // deliberatly here to avoid doxygen complaining about duplicated documentation 
     // here and in the header file
     // @brief populate scimath parameters from a LOFAR Parset object
@@ -628,6 +635,30 @@ namespace askap
           imgImagePixels.setUnits("Jy/pixel");
       }
     }
+    
+    /// @brief obtain image handler
+    /// @details For some operations it may be necessary to access the (global) instance of the
+    /// image handler. This method allows that. An exception is thrown if no image handler has
+    /// been previously set up.
+    /// @return a reference to image handler
+    IImageAccess& SynthesisParamsHelper::imageHandler()
+    {
+      ASKAPCHECK(theirImageAccessor, "setUpImageHandler has to be called before any read/write operation");
+      return *theirImageAccessor;
+    }
+    
+    /// @brief setup image handler
+    /// @details This method uses the factory to setup a helper class handling the
+    /// operations with images (default is casa). It is necessary to call this method
+    /// at least once before any read or write operation can happen.
+    /// @param[in] parset a parset file containing parameters describing which image handler to use
+    /// @note The key parameter describing the image handler is "imagetype". By default, the
+    /// casa image handler is created (however, a call to this method is still required)
+    void SynthesisParamsHelper::setUpImageHandler(const LOFAR::ACC::APS::ParameterSet &parset)
+    {
+      theirImageAccessor = imageAccessFactory(parset);
+    }
+ 
     
     void SynthesisParamsHelper::getFromCasaImage(askap::scimath::Params& ip, const string& name,
 						 const string& imagename)

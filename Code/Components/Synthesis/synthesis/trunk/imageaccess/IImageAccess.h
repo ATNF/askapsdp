@@ -100,7 +100,22 @@ struct IImageAccess {
   /// @param[in] arr array with pixels
   /// @param[in] where bottom left corner where to put the slice to (trc is deduced from the array shape)
   virtual void write(const std::string &name, const casa::Array<float> &arr, 
-               const casa::IPosition &where) = 0;                    
+               const casa::IPosition &where) = 0;    
+  
+  /// @brief set brightness units of the image
+  /// @details
+  /// @param[in] name image name
+  /// @param[in] units string describing brightness units of the image (e.g. "Jy/beam")
+  virtual void setUnits(const std::string &name, const std::string &units) = 0;
+  
+  /// @brief set restoring beam info
+  /// @details For the restored image we want to carry size and orientation of the restoring beam
+  /// with the image. This method allows to assign this info.
+  /// @param[in] name image name
+  /// @param[in] maj major axis in radians
+  /// @param[in] min minor axis in radians
+  /// @param[in] pa position angle in radians
+  virtual void setBeamInfo(const std::string &name, double maj, double min, double pa) = 0;
 };
 
 } // namespace synthesis

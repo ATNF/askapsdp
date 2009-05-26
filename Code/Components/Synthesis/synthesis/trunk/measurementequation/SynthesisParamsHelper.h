@@ -40,6 +40,9 @@
 #include <images/Images/TempImage.h>
 #include <images/Images/ImageInterface.h>
 
+#include <imageaccess/IImageAccess.h>
+#include <boost/shared_ptr.hpp>
+
 namespace askap
 {
   namespace synthesis
@@ -61,6 +64,21 @@ namespace askap
     class SynthesisParamsHelper 
     {
       public:
+        /// @brief setup image handler
+        /// @details This method uses the factory to setup a helper class handling the
+        /// operations with images (default is casa). It is necessary to call this method
+        /// at least once before any read or write operation can happen.
+        /// @param[in] parset a parset file containing parameters describing which image handler to use
+        /// @note The key parameter describing the image handler is "imagetype". By default, the
+        /// casa image handler is created (however, a call to this method is still required)
+        static void setUpImageHandler(const LOFAR::ACC::APS::ParameterSet &parset);
+        
+        /// @brief obtain image handler
+        /// @details For some operations it may be necessary to access the (global) instance of the
+        /// image handler. This method allows that. An exception is thrown if no image handler has
+        /// been previously set up.
+        /// @return a reference to image handler
+        static IImageAccess& imageHandler();
         
         /// @brief set up images according to the parset file
 		/// @param[in] params Images to be created here
@@ -331,6 +349,9 @@ namespace askap
         /// @return the full parameter name corresponding to the given facet 
         static std::string facetParamName(const std::string &prefixName, int xFacet,
                    int yFacet);
+    private:    
+        /// @brief image accessor
+        static boost::shared_ptr<IImageAccess> theirImageAccessor;              
     };
 
   }

@@ -120,3 +120,27 @@ void CasaImageAccess::write(const std::string &name, const casa::Array<float> &a
   img.putSlice(arr,where);
 }
 
+/// @brief set brightness units of the image
+/// @details
+/// @param[in] name image name
+/// @param[in] units string describing brightness units of the image (e.g. "Jy/beam")
+void CasaImageAccess::setUnits(const std::string &name, const std::string &units)
+{
+  casa::PagedImage<float> img(name);
+  img.setUnits(casa::Unit(units)); 
+}
+  
+/// @brief set restoring beam info
+/// @details For the restored image we want to carry size and orientation of the restoring beam
+/// with the image. This method allows to assign this info.
+/// @param[in] name image name
+/// @param[in] maj major axis in radians
+/// @param[in] min minor axis in radians
+/// @param[in] pa position angle in radians
+void CasaImageAccess::setBeamInfo(const std::string &name,double maj, double min, double pa)
+{
+  casa::PagedImage<float> img(name);
+  casa::ImageInfo ii = img.imageInfo();
+  ii.setRestoringBeam(casa::Quantity(maj,"rad"), casa::Quantity(min,"rad"), casa::Quantity(pa,"rad"));
+  img.setImageInfo(ii);
+}

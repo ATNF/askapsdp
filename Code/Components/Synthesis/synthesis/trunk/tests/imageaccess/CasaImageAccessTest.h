@@ -105,6 +105,10 @@ public:
       }
       CPPUNIT_ASSERT(itsImageAccessor->coordSys(name).nCoordinates() == 1);      
       CPPUNIT_ASSERT(itsImageAccessor->coordSys(name).type(0) == casa::CoordinateSystem::LINEAR);
+      
+      // auxilliary methods
+      itsImageAccessor->setUnits(name,"Jy/pixel");
+      itsImageAccessor->setBeamInfo(name,0.02,0.01,1.0);
    }
    
 protected:
