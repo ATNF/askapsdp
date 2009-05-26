@@ -8,7 +8,6 @@ indent-switches
 keep-one-line-statements
 keep-one-line-blocks
 break-blocks
-delete-empty-lines
 pad-oper
 unpad-paren
 preserve-date
