@@ -30,7 +30,10 @@
 
 #include <imageaccess/CasaImageAccess.h>
 #include <images/Images/PagedImage.h>
-#include <casa/Utilities/COWPtr.h>
+
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".casaImageAccessor");
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -51,6 +54,7 @@ casa::IPosition CasaImageAccess::shape(const std::string &name) const
 /// @return array with pixels
 casa::Array<float> CasaImageAccess::read(const std::string &name) const
 {
+  ASKAPLOG_INFO_STR(logger, "Reading CASA image "<< name);
   casa::PagedImage<float> img(name);
   return img.get();
 }
@@ -63,6 +67,7 @@ casa::Array<float> CasaImageAccess::read(const std::string &name) const
 casa::Array<float> CasaImageAccess::read(const std::string &name, const casa::IPosition &blc,
                                   const casa::IPosition &trc) const
 {
+  ASKAPLOG_INFO_STR(logger, "Reading a slice of the CASA image "<< name<<" from "<<blc<<" to "<<trc);
   casa::PagedImage<float> img(name);
   return img.getSlice(casa::Slicer(blc,trc, casa::Slicer::endIsLast));
 }                                  
@@ -88,6 +93,7 @@ casa::CoordinateSystem CasaImageAccess::coordSys(const std::string &name) const
 void CasaImageAccess::create(const std::string &name, const casa::IPosition &shape, 
                       const casa::CoordinateSystem &csys)
 {
+  ASKAPLOG_INFO_STR(logger, "Creating a new CASA image "<< name<<" with the shape "<<shape);
   casa::PagedImage<float> img(casa::TiledShape(shape.nonDegenerate()), csys, name);
 }
                       
@@ -96,6 +102,7 @@ void CasaImageAccess::create(const std::string &name, const casa::IPosition &sha
 /// @param[in] arr array with pixels
 void CasaImageAccess::write(const std::string &name, const casa::Array<float> &arr)
 {
+  ASKAPLOG_INFO_STR(logger, "Writing an array with the shape "<<arr.shape()<<" into a CASA image "<< name);
   casa::PagedImage<float> img(name);
   img.put(arr);
 }
@@ -107,6 +114,8 @@ void CasaImageAccess::write(const std::string &name, const casa::Array<float> &a
 void CasaImageAccess::write(const std::string &name, const casa::Array<float> &arr, 
                const casa::IPosition &where)                    
 {
+  ASKAPLOG_INFO_STR(logger, "Writing a slice with the shape "<<arr.shape()<<" into a CASA image "<< 
+                    name << " at "<<where);
   casa::PagedImage<float> img(name);
   img.putSlice(arr,where);
 }
