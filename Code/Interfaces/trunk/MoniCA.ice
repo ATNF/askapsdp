@@ -26,14 +26,20 @@ module atnf {
         sequence<PointDescriptionIce> pointarray;
 
         //Enum to represent data type        
-        enum DataType {DTNull, DTDouble, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime};
+        enum DataType {DTNull, DTFloat, DTDouble, DTInt, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime};
         //Classes to hold different data types
         class DataValue { 
           DataType type;
         };
+        class DataValueFloat extends DataValue {
+          float value;
+        };        
         class DataValueDouble extends DataValue {
           double value;
         };
+        class DataValueInt extends DataValue {
+          int value;
+        };        
         class DataValueLong extends DataValue {
           long value;
         };
