@@ -1,3 +1,8 @@
+# ASKAPsoft astylerc file.
+# 
+# MODIFICATION OF THIS FILE IS FORBIDDEN WITHOUT GROUP AGREEMENT.
+# Discuss with Tony Maher in first instance.
+#
 brackets=stroustrup
 indent=spaces=4
 convert-tabs
