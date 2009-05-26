@@ -80,7 +80,8 @@ module atnf {
           //Operations relating to getting/setting data
           //
           //Return historical data for the given points
-          idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end);
+          //Set maxsamples to zero to impose no limit
+          idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end, long maxsamples);
           //Get latest data for the given points
           idempotent pointdataset getData(stringarray names);
           //Set new values for the given points.
