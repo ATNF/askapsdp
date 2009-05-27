@@ -20,6 +20,7 @@ def whichlib(program):
    else:
        if os.environ.has_key(lib_envvar):
            search_paths = os.environ[lib_envvar].split(os.pathsep)
+           search_paths.extend(STD_LIB_PATHS)
        else:
            search_paths = STD_LIB_PATHS
 
@@ -38,7 +39,12 @@ for pkg, msg in nobuild.iteritems():
 tobuild = ['mwcommon/trunk/build.py', 'askapparallel/trunk/build.py']
 
 # Only build the MPI dependant components if libmpi.so is present
-if whichlib("libmpi.so"):
+if sys.platform == "darwin":
+    lib_name = "libmpi.dylib"
+else:
+    lib_name = "libmpi.so"
+
+if whichlib(lib_name):
     tobuild.append('imager/trunk/build.py')
 else:
     print "No MPI support found on this platform"
