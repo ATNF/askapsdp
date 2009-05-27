@@ -1,19 +1,32 @@
 from askapdev.rbuild import build
 import os
+import sys
+
+STD_LIB_PATHS = ['/usr/lib', '/usr/local/lib']
 
 def whichlib(program):
-   def is_exe(fpath):
-       return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+   if sys.platform == "darwin":
+       lib_envvar = "DYLD_LIBRARY_PATH"
+   else:
+       lib_envvar = "LD_LIBRARY_PATH"
+
+   def is_readable(fpath):
+       return os.path.exists(fpath) and os.access(fpath, os.R_OK)
 
    fpath, fname = os.path.split(program)
    if fpath:
-       if is_exe(program):
+       if is_readable(program):
            return program
    else:
-       for path in os.environ["LD_LIBRARY_PATH"].split(os.pathsep):
-           exe_file = os.path.join(path, program)
-           if is_exe(exe_file):
-               return exe_file
+       if os.environ.has_key(lib_envvar):
+           search_paths = os.environ[lib_envvar].split(os.pathsep)
+       else:
+           search_paths = STD_LIB_PATHS
+
+       for path in search_paths:
+           lib_file = os.path.join(path, program)
+           if is_readable(lib_file):
+               return lib_file
 
    return None
 
