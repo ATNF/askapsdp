@@ -18,6 +18,7 @@ def which(program):
 
     return None
 
+
 nobuild = {'benchmarks'  : "Not integrated into build system yet."}
 
 for pkg, msg in nobuild.iteritems():
@@ -29,7 +30,7 @@ tobuild = ['mwcommon/trunk/build.py', 'askapparallel/trunk/build.py']
 if which("mpicxx"):
     tobuild.append('imager/trunk/build.py')
 else:
-    print "No MPI support found on this platform"
+    print "warn: No MPI support found on this platform."
 
 # Build
 build(tobuild)
