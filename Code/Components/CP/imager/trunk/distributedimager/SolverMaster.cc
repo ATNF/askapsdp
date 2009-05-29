@@ -181,7 +181,9 @@ void SolverMaster::writeModel(const std::string &postfix)
     ASKAPCHECK(itsModel, "itsModel is not correctly initialized");
     ASKAPCHECK(itsSolver, "itsSolver is not correctly initialized");
 
-    ASKAPLOG_INFO_STR(logger, "Writing out results as CASA images");
+    SynthesisParamsHelper::setUpImageHandler(itsParset);
+
+    ASKAPLOG_INFO_STR(logger, "Writing out results as images");
     vector<string> resultimages = itsModel->names();
     for (vector<string>::const_iterator it=resultimages.begin(); it
             !=resultimages.end(); it++) {
@@ -189,13 +191,13 @@ void SolverMaster::writeModel(const std::string &postfix)
                 (it->find("weights") == 0) || (it->find("mask") == 0) ||
                 (it->find("residual")==0)) {
             ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
-            SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it+postfix);
+            SynthesisParamsHelper::saveImageParameter(*itsModel, *it, *it+postfix);
         }
     }
 
     bool restore = itsParset.getBool("restore", false);
     if (restore && postfix == "") {
-        ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
+        ASKAPLOG_INFO_STR(logger, "Writing out restored images as images");
         ImageRestoreSolver ir(*itsModel, itsQbeam);
         ir.setThreshold(itsSolver->threshold());
         ir.setVerbose(itsSolver->verbose());
@@ -269,7 +271,7 @@ void SolverMaster::writeModel(const std::string &postfix)
             string imageName("image"+(*it)+postfix);
             ASKAPLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
                     << imageName+string(".restored") );
-            SynthesisParamsHelper::saveAsCasaImage(*itsModel, "image"+(*it),
+            SynthesisParamsHelper::saveImageParameter(*itsModel, "image"+(*it),
                     imageName+string(".restored"));
         }
     }
