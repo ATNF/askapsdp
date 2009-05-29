@@ -82,8 +82,11 @@ namespace askap
 
     void SimParallel::init() {
       if(isMaster()) {
-	readModels();
-	broadcastModel();
+         // set up image handler
+         SynthesisParamsHelper::setUpImageHandler(itsParset);
+      
+         readModels();
+         broadcastModel();
       }
 
       if (isWorker())
@@ -95,21 +98,21 @@ namespace askap
         itsMs=boost::shared_ptr<casa::MeasurementSet> (new casa::MeasurementSet(msname, casa::Table::Update));
 
         // The antenna info is kept in a separate parset file
-	readAntennas();
+        readAntennas();
 	
-	/// Get the source definitions and get the model from the master
-	readSources();
-	receiveModel();
+        // Get the source definitions and get the model from the master
+        readSources();
+        receiveModel();
 
-	/// Get the feed definitions
-	readFeeds();
+        // Get the feed definitions
+        readFeeds();
 	
-	/// Get the spectral window definitions. Not all of these need to be
-	/// used.
-	readSpws();
+        // Get the spectral window definitions. Not all of these need to be
+        // used.
+        readSpws();
 	
-	/// Get miscellaneous information about the simulation
-	readSimulation();
+        // Get miscellaneous information about the simulation
+        readSimulation();
       }
     }
     
@@ -271,7 +274,7 @@ namespace askap
 		 string model=parset.getString(modelPar);
 		 ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< *it );
 		 const string paramName = "image.i." + *it;
-		 SynthesisParamsHelper::getFromCasaImage(*itsModel, paramName, model);
+		 SynthesisParamsHelper::loadImageParameter(*itsModel, paramName, model);
 	       }
 	       const std::string compListPar = "sources."+*it+".components";
 	       if (parset.isDefined(compListPar)) {

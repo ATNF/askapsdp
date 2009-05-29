@@ -230,11 +230,11 @@ namespace askap
         static void add(askap::scimath::Params& ip, const string& name, 
           const string& image);
           
-        /// @brief Get a parameter from a CASA image
+        /// @brief Get a parameter from an image
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param imagename Name of image file
-        static void getFromCasaImage(askap::scimath::Params& ip, const string& name,
+        static void loadImageParameter(askap::scimath::Params& ip, const string& name,
           const string& imagename);
           
         /// @brief Get parameters corresponding to all facets from a CASA image
@@ -249,12 +249,12 @@ namespace askap
         /// @param ip Parameters
         /// @param name Name of parameter
         /// @param imagename Name of image file
-        static void saveAsCasaImage(const askap::scimath::Params& ip, const string& name,
+        static void saveImageParameter(const askap::scimath::Params& ip, const string& name,
           const string& imagename);
           
         /// @brief save a 2D array as a CASA image
         /// @details This method is intended to be used largely for debugging. To save image from
-        /// parameter class use another saveAsCasaImage method
+        /// parameter class use loadImageParameter method
         /// @param[in] imagename name of the output image file
         /// @param[in] arr input array
         static void saveAsCasaImage(const std::string &imagename, const casa::Array<casa::Float> &arr);

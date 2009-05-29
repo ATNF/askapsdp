@@ -163,7 +163,7 @@ namespace askap
               ASKAPCHECK(nfacets>0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
               if (nfacets == 1) {
                   ASKAPLOG_INFO_STR(logger, "Reading image "<<*ci);
-                  SynthesisParamsHelper::getFromCasaImage(*params,*ci,*ci);
+                  SynthesisParamsHelper::loadImageParameter(*params,*ci,*ci);
               } else {
                   ASKAPLOG_INFO_STR(logger, "Loading multi-facet image image "<<*ci);
                   SynthesisParamsHelper::getMultiFacetImage(*params,*ci,*ci, nfacets);
@@ -375,7 +375,7 @@ namespace askap
     /// and PA with position angle. All angles are given in radians. The presence of
     /// this fake axes distinguishes a restored image from model image. Restored image
     /// will have units Jy/beam instead of Jy/pixel and beam info will be added to the
-    /// image (in saveAsCasaImage).
+    /// image (in saveImageParamter).
     /// @param[in] ip parameters
     /// @param[in] name full name of the parameter representing this image
     /// @param[in] beam major, minor axes and position anlge as quantities
@@ -573,7 +573,7 @@ namespace askap
     
     /// @brief save a 2D array as a CASA image
     /// @details This method is intended to be used largely for debugging. To save image from
-    /// parameter class use another saveAsCasaImage method
+    /// parameter class use saveImageParameter method
     /// @param[in] imagename name of the output image file
     /// @param[in] arr input array
     void SynthesisParamsHelper::saveAsCasaImage(const std::string &imagename, const casa::Array<casa::Float> &arr)
@@ -606,7 +606,7 @@ namespace askap
       result.copyData(lattice);
     }
     
-    void SynthesisParamsHelper::saveAsCasaImage(const askap::scimath::Params& ip, const string& name,
+    void SynthesisParamsHelper::saveImageParameter(const askap::scimath::Params& ip, const string& name,
 						const string& imagename)
     {     
       const casa::Array<double> imagePixels(ip.value(name));
@@ -616,23 +616,18 @@ namespace askap
       casa::Array<float> floatImagePixels(imagePixels.shape());
       casa::convertArray<float, double>(floatImagePixels, imagePixels);
       
-      casa::ArrayLattice<float> latImagePixels(floatImagePixels);       
-            
-      casa::PagedImage<float> imgImagePixels(TiledShape(imagePixels.shape()),
-					     imageCoords, casa::String(imagename));
-      imgImagePixels.copyData(latImagePixels);
-      
+      imageHandler().create(imagename, floatImagePixels.shape(), imageCoords);
+      imageHandler().write(imagename, floatImagePixels);
+        
       const Axes &axes = ip.axes(name);
       if (axes.has("MAJMIN")) {
           // this is a restored image with beam parameters set
           ASKAPCHECK(axes.has("PA"),"PA axis should always accompany MAJMIN");
-          imgImagePixels.setUnits("Jy/beam");          
-          ImageInfo ii = imgImagePixels.imageInfo();
-          ii.setRestoringBeam(Quantity(axes.start("MAJMIN"),"rad"), Quantity(axes.end("MAJMIN"),
-                              "rad"),Quantity(axes.start("PA"),"rad"));
-          imgImagePixels.setImageInfo(ii);
+          imageHandler().setUnits(imagename, "Jy/beam");          
+          imageHandler().setBeamInfo(imagename, axes.start("MAJMIN"), axes.end("MAJMIN"),
+                                     axes.start("PA"));
       } else {
-          imgImagePixels.setUnits("Jy/pixel");
+          imageHandler().setUnits(imagename, "Jy/pixel");
       }
     }
     
@@ -660,18 +655,14 @@ namespace askap
     }
  
     
-    void SynthesisParamsHelper::getFromCasaImage(askap::scimath::Params& ip, const string& name,
+    void SynthesisParamsHelper::loadImageParameter(askap::scimath::Params& ip, const string& name,
 						 const string& imagename)
     {
+      casa::Array<float> pixels = imageHandler().read(imagename);
+      casa::Array<double> imagePixels(pixels.shape());
+      casa::convertArray<double, float>(imagePixels, pixels);
       
-      casa::PagedImage<float> imgImagePixels(imagename);
-      casa::Array<float> floatImagePixels(imgImagePixels.shape());
-      casa::ArrayLattice<float> latImagePixels(floatImagePixels);
-      latImagePixels.copyData(imgImagePixels);
-      casa::Array<double> imagePixels(imgImagePixels.shape());
-      casa::convertArray<double, float>(imagePixels, floatImagePixels);
-      
-      casa::CoordinateSystem imageCoords(imgImagePixels.coordinates());
+      casa::CoordinateSystem imageCoords = imageHandler().coordSys(imagename);
       
       /// Fill in the axes information
       Axes axes;
@@ -726,7 +717,7 @@ namespace askap
       ASKAPCHECK(nfacets>0, "The number of facets is supposed to be positive, you have "<<nfacets);
       for (int ix=0; ix<nfacets; ++ix) {
            for (int iy=0; iy<nfacets; ++iy) {
-                getFromCasaImage(ip,facetParamName(name,ix,iy),facetParamName(fileName,ix,iy));                            
+                loadImageParameter(ip,facetParamName(name,ix,iy),facetParamName(fileName,ix,iy));                            
            }
       }
     }

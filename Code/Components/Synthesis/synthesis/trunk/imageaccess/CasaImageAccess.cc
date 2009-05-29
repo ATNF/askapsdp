@@ -31,6 +31,7 @@
 #include <imageaccess/CasaImageAccess.h>
 #include <images/Images/PagedImage.h>
 
+#include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".casaImageAccessor");
 
@@ -94,7 +95,7 @@ void CasaImageAccess::create(const std::string &name, const casa::IPosition &sha
                       const casa::CoordinateSystem &csys)
 {
   ASKAPLOG_INFO_STR(logger, "Creating a new CASA image "<< name<<" with the shape "<<shape);
-  casa::PagedImage<float> img(casa::TiledShape(shape.nonDegenerate()), csys, name);
+  casa::PagedImage<float> img(casa::TiledShape(shape), csys, name);
 }
                       
 /// @brief write full image

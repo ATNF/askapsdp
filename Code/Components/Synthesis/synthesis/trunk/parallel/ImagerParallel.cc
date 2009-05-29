@@ -92,6 +92,9 @@ namespace askap
 
       if (isMaster())
       {
+        // set up image handler
+        SynthesisParamsHelper::setUpImageHandler(itsParset);
+      
         itsRestore=itsParset.getBool("restore", false);
 
         if (itsRestore) {
@@ -368,7 +371,7 @@ namespace askap
     {
       if (isMaster())
       {
-        ASKAPLOG_INFO_STR(logger, "Writing out results as CASA images");
+        ASKAPLOG_INFO_STR(logger, "Writing out results as images");
         vector<string> resultimages=itsModel->names();
         for (vector<string>::const_iterator it=resultimages.begin(); it
             !=resultimages.end(); it++) {
@@ -376,7 +379,7 @@ namespace askap
                 (it->find("weights") == 0) || (it->find("mask") == 0) ||
                 (it->find("residual")==0)) {
                 ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
-                SynthesisParamsHelper::saveAsCasaImage(*itsModel, *it, *it+postfix);
+                SynthesisParamsHelper::saveImageParameter(*itsModel, *it, *it+postfix);
             }
         }
 
@@ -459,7 +462,7 @@ namespace askap
             string imageName("image"+(*it)+postfix);
             ASKAPLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
                                << imageName+string(".restored") );
-            SynthesisParamsHelper::saveAsCasaImage(*itsModel, "image"+(*it),
+            SynthesisParamsHelper::saveImageParameter(*itsModel, "image"+(*it),
                 imageName+string(".restored"));
           }
         }

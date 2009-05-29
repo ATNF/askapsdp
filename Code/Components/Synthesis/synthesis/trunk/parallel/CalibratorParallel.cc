@@ -97,6 +97,9 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
       itsPerfectModel(new scimath::Params())
 {
   if (isMaster()) {
+      // set up image handler
+      SynthesisParamsHelper::setUpImageHandler(itsParset);
+      
       // load sky model, propulate itsPerfectModel
       readModels();
       // itsModel has gain parameters for calibration, populate them with
@@ -161,7 +164,7 @@ void CalibratorParallel::readModels()
            const std::string model=parset.getString(modelPar);
            ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
            const std::string paramName = "image.i."+sources[i];
-           SynthesisParamsHelper::getFromCasaImage(*itsPerfectModel, paramName, model);
+           SynthesisParamsHelper::loadImageParameter(*itsPerfectModel, paramName, model);
        } else {
           // this is an individual component, rather then a model defined by image
           ASKAPLOG_INFO_STR(logger, "Adding component description as model for "<< sources[i] );
