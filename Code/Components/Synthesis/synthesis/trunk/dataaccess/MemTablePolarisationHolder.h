@@ -1,9 +1,8 @@
 /// @file
-/// @brief An interface to POLARIZATION subtable
-/// @details A class derived from this interface provides access to
-/// the content of POLARIZATION subtable (which describes which products were
-/// measured). The table is indexed with the polarisation ID, which can be obtained from
-/// the data descriptor ID and the appropriate table.
+/// @brief Implementation of the interface to POLARIZATION subtable
+/// @details This class provides access to the content of POLARIZATION subtable 
+/// (which describes which products were measured). The table is indexed with the 
+/// polarisation ID, which can be obtained from the data descriptor ID and the appropriate table.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,51 +29,64 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
-#ifndef I_TABLE_POLARISATION_HOLDER_H
-#define I_TABLE_POLARISATION_HOLDER_H
+#ifndef MEM_TABLE_POLARISATION_HOLDER_H
+#define MEM_TABLE_POLARISATION_HOLDER_H
 
 // casa includes
 #include <casa/Arrays/Vector.h>
-#include <measures/Measures/Stokes.h>
+#include <tables/Tables/Table.h>
+
 
 // own includes
-#include <dataaccess/IHolder.h>
+#include <dataaccess/ITablePolarisationHolder.h>
+
 
 namespace askap {
 
 namespace synthesis {
 
-/// @brief An interface to POLARIZATION subtable
-/// @details A class derived from this interface provides access to
-/// the content of POLARIZATION subtable (which describes which products were
-/// measured). The table is indexed with the polarisation ID, which can be obtained from
-/// the data descriptor ID and the appropriate table.
+/// @brief Implementation of the interface to POLARIZATION subtable
+/// @details This class provides access to the content of POLARIZATION subtable 
+/// (which describes which products were measured). The table is indexed with the 
+/// polarisation ID, which can be obtained from the data descriptor ID and the appropriate table.
 /// @ingroup dataaccess_tab
-struct ITablePolarisationHolder : virtual public IHolder {
+struct MemTablePolarisationHolder : virtual public ITablePolarisationHolder {
+   
+   /// @brief read all requested information from the table
+   /// @param[in] ms an input measurement set (in fact any table which has a
+   /// POLARIZATION subtable defined)
+   explicit MemTablePolarisationHolder(const casa::Table &ms);
+   
    
    /// @brief number of polarisation products for the given ID
    /// @param[in] polID polarisation ID of interest
    /// @return number of products for the given ID
-   virtual size_t nPol(casa::uInt polID) const = 0;
+   virtual size_t nPol(casa::uInt polID) const;
    
    /// @brief obtain polarisation types for the given ID
    /// @param[in] polID polarisation ID of interest
    /// @return a vector (size is nPol) with types of polarisation products, same order as in the
    /// visibility cube
-   virtual casa::Vector<casa::Stokes> getTypes(casa::uInt polID) const = 0;
+   virtual casa::Vector<casa::Stokes> getTypes(casa::uInt polID) const;
    
    /// @brief obtain polarisation type of a single polarisation product
    /// @details This version of the method extracts type for just one polarisation product.
    /// @param[in] polID polarisation ID of interest
    /// @param[in] pol polarisation product (should be less than nPol)
    /// @return a type of the polarisation product given as casa::Stokes
-   virtual casa::Stokes getType(casa::uInt polID, casa::uInt pol) const = 0;
+   virtual casa::Stokes getType(casa::uInt polID, casa::uInt pol) const;
+private:
+   /// @brief vectors with polarisation product types for each row
+   /// @details We use vector of vectors here instead of a matrix because the length of
+   /// the type vector may change with row.
+   casa::Vector<casa::Vector<casa::Stokes> > itsPolTypes;
 };
+
+
 
 } // namespace synthesis
 
 } // namespace askap
 
-#endif // #ifndef I_TABLE_POLARISATION_HOLDER_H
-
+#endif // #ifndef MEM_TABLE_POLARISATION_HOLDER_H
 
