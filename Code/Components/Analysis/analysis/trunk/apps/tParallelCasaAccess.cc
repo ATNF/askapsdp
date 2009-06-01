@@ -1,4 +1,10 @@
-/// @file : testing ways to access Measurement Sets and related information
+//==============================================================
+/// @file : testing ways to access Measurement Sets and related
+/// information. The specific test is whether we are able to access a
+/// given casa image using MPI without the scheduling used in the
+/// cduchamp code (i.e. in analysisutilities/CasaImageUtil.cc)
+/// The key routines are in the function getSubImage.
+//==============================================================
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,9 +30,6 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 #include <askap_analysis.h>
-
-#include <analysisutilities/CasaImageUtil.h>
-#include <parallelanalysis/DuchampParallel.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -68,11 +71,13 @@ using namespace LOFAR::TYPES;
 
 using namespace casa;
 using namespace askap;
-using namespace askap::analysis;
 using namespace askap::cp;
 
-ASKAP_LOGGER(logger, "tCasaImageAccess.log");
+ASKAP_LOGGER(logger, "tParallelCasaAccess.log");
 
+
+/// A simple front-end to AskapParallel that allows direct access of
+/// the node & rank numbers, plus the connectionSet.
 class MyAskapParallel: public askap::cp::AskapParallel
 {
 public:
@@ -85,33 +90,44 @@ public:
 
 bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
 {
+  /// Trying ways of accessing an image in a way that allows
+  /// simultaneous access from different workers.
 
   ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<": About to open image " << name);  
   LatticeBase* lattPtr = ImageOpener::openImage (name);
   ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<": Done!");
-  //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
-  lattPtr->unlock();
+//    LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Write); 
+//   LatticeLocker lock1 (*lattPtr, FileLocker::Write); 
+//   lattPtr->unlock();
   ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
   bool OK = (lattPtr != 0);
   ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+  ASKAPASSERT(imagePtr);
+//    lattPtr->unlock();
+//   delete lock1;
   IPosition shape = imagePtr->shape();
-  std::cerr << shape << "\n";
+  ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": Shape of original image = " << shape);
   IPosition newLength = shape;
   newLength(0) = newLength(0) / (parl.nnode()-1);
-  std::cerr << newLength << "\n";
+  ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": New shape = " << newLength);
   int startpos = (parl.rank()-1)*newLength(0);
   IPosition start(shape.size(),0);
   start(0) = startpos;
-  std::cerr << start << " " << newLength << "\n";
+  ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": Start position = " << start);
   Slicer slice(start, newLength);
   SubImage<Float> sub(*imagePtr, slice, True);
   
   subimage = sub;
+
+  delete imagePtr;
   
   return OK;
 }
 
-Float subimageMean(const Lattice<Float>& lat) {
+
+Float subimageMean(const Lattice<Float>& lat) 
+{
+  /// Get the mean pixel value from the subimage.
   const uInt cursorSize = lat.advisedMaxPixels();
   const IPosition cursorShape = lat.niceCursorShape(cursorSize);
   const IPosition latticeShape = lat.shape();
@@ -130,8 +146,8 @@ int main(int argc, const char *argv[])
 {
   
   try {
-    std::string imageName;
-    if(argc==1) imageName = "$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
+    std::string imageName = std::string(getenv("ASKAP_ROOT"));
+    if(argc==1) imageName += "/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
     else imageName = argv[1];
     
     ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
@@ -145,119 +161,22 @@ int main(int argc, const char *argv[])
     if(parl.isMaster()){
 
       ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nnode() << ")");
-//       std::stringstream ss;
-//       bool OK;
-//       for(int i=1;i<parl.nnode();i++){
-// 	LOFAR::BlobString bs1;
-// 	bs1.resize(0);
-// 	LOFAR::BlobOBufString bob(bs1);
-// 	LOFAR::BlobOStream out(bob);
-// 	out.putStart("mw",1);
-// 	out << i ;
-// 	out.putEnd();
-// 	parl.connectionSet()->writeAll(bs1);
-// 	ASKAPLOG_INFO_STR(logger,"Master: Sent to worker #"<<i);
-	
-//        	LOFAR::BlobString bs2;
-// 	parl.connectionSet()->read(i-1, bs2);
-// 	LOFAR::BlobIBufString bib(bs2);
-// 	LOFAR::BlobIStream in(bib);
-// 	int version=in.getStart("wm");
-// 	ASKAPASSERT(version==1);
-// 	in >> OK;
-// 	in.getEnd();
-// 	ASKAPLOG_INFO_STR(logger,"Master: Read from worker #"<<i<<": OK="<<OK);
-//       }
 
-//       LOFAR::BlobString bs3;
-//       bs3.resize(0);
-//       LOFAR::BlobOBufString bob3(bs3);
-//       LOFAR::BlobOStream out3(bob3);
-//       out3.putStart("mw",1);
-//       out3 << parl.nnode();
-//       out3.putEnd();
-//       parl.connectionSet()->writeAll(bs3);
-
-//       float mean = 77.;
-//       LOFAR::BlobString bs4;
-//       bs4.resize(0);
-//       LOFAR::BlobOBufString bob4(bs4);
-//       LOFAR::BlobOStream out4(bob4);
-//       out4.putStart("mean",1);
-//       out4 << mean ;
-//       out4.putEnd();
-//       parl.connectionSet()->writeAll(bs4);
-
-      std::cout << "Master done!\n";
+      ASKAPLOG_INFO_STR(logger, "Master done!");
 
     }
     else if(parl.isWorker()){
 
       ASKAPLOG_INFO_STR(logger, "In Worker #" << parl.rank());
 
-//      int rank;
-      bool OK;
-
-//       do{
-// 	LOFAR::BlobString bs1;
-// 	bs1.resize(0);
-// 	parl.connectionSet()->read(0, bs1);
-// 	LOFAR::BlobIBufString bib(bs1);
-// 	LOFAR::BlobIStream in(bib);
-// 	std::stringstream ss;
-// 	int version=in.getStart("mw");
-// 	ASKAPASSERT(version==1);
-// 	in >> rank;
-// 	in.getEnd();
-//       }	while(rank != parl.rank());
-      
-      ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" has the OK");
-      
       SubImage<Float> subimage;
-      OK = getSubImage(imageName,subimage,parl);
+      bool OK = getSubImage(imageName,subimage,parl);
 //       ASKAPASSERT(&subimage);
       ASKAPLOG_INFO_STR(logger,"Worker #"<<parl.rank()<<": Made a subimage with shape " << subimage.shape());
       ASKAPLOG_DEBUG_STR(logger,"Worker #"<<parl.rank()<<": sizeof(subimage) = " << sizeof(subimage));
       ASKAPLOG_INFO_STR(logger,"Worker #"<<parl.rank()<<": subimage mean = " << subimageMean(subimage));
-      
-//       LOFAR::BlobString bs2;
-//       bs2.resize(0);
-//       LOFAR::BlobOBufString bob(bs2);
-//       LOFAR::BlobOStream out(bob);
-//       out.putStart("wm",1);
-//       out << OK;
-//       out.putEnd();
-//       parl.connectionSet()->write(0,bs2);
 
-//       do{
-// 	LOFAR::BlobString bs3;
-// 	bs3.resize(0);
-// 	parl.connectionSet()->read(0, bs3);
-// 	LOFAR::BlobIBufString bib3(bs3);
-// 	LOFAR::BlobIStream in3(bib3);
-// 	std::stringstream ss;
-// 	int version=in3.getStart("mw");
-// 	ASKAPASSERT(version==1);
-// 	in3 >> rank;
-// 	in3.getEnd();
-//       }	while(rank != parl.nnode());
-
-
-//       float mean;
-// 	LOFAR::BlobString bs4;
-// 	bs4.resize(0);
-// 	parl.connectionSet()->read(0, bs4);
-// 	LOFAR::BlobIBufString bib4(bs4);
-// 	LOFAR::BlobIStream in4(bib4);
-// 	std::stringstream ss;
-// 	int version=in4.getStart("mean");
-// 	while(version!=1) {}
-// 	//	ASKAPASSERT(version==1);
-// 	in4 >> mean;
-// 	in4.getEnd();
-// 	ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" received mean of " << mean << " from Master.");
-      
-      std::cout << "Success! (" << parl.rank() <<")\n";
+      ASKAPLOG_INFO_STR(logger, "Success for Worker #" << parl.rank());
 
     }
   }
