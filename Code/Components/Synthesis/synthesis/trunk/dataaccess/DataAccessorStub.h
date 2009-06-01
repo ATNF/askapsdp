@@ -194,6 +194,12 @@ struct DataAccessorStub : virtual public IFlagDataAccessor
      ///         the DataSource object (via IDataConverter).
      virtual const casa::Vector<casa::Double>& velocity() const;
 
+     /// @brief polarisation type for each product
+     /// @return a reference to vector containing polarisation types for
+     /// each product in the visibility cube (nPol() elements).
+     /// @note All rows of the accessor have the same structure of the visibility
+     /// cube, i.e. polarisation types returned by this method are valid for all rows.
+     virtual const casa::Vector<casa::Stokes::StokesTypes>& stokes() const;
      
 //private: // to be able to change stubbed data directly, if necessary
      // cached results which are filled from an appropriate table
@@ -234,6 +240,8 @@ struct DataAccessorStub : virtual public IFlagDataAccessor
      mutable casa::Vector<casa::Double> itsVelocity;
      /// cached uvw-rotation delay 
      mutable casa::Vector<casa::Double> itsUVWRotationDelay;
+     /// cached polarisation types
+     mutable casa::Vector<casa::Stokes::StokesTypes> itsStokes;
 };
 
 

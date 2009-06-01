@@ -197,6 +197,13 @@ public:
   ///         are given as Doubles, the frame/units are specified by
   ///         the DataSource object (via IDataConverter).
   virtual const casa::Vector<casa::Double>& velocity() const;
+
+  /// @brief polarisation type for each product
+  /// @return a reference to vector containing polarisation types for
+  /// each product in the visibility cube (nPol() elements).
+  /// @note All rows of the accessor have the same structure of the visibility
+  /// cube, i.e. polarisation types returned by this method are valid for all rows.
+  virtual const casa::Vector<casa::Stokes::StokesTypes>& stokes() const;
   
 
   /// @brief invalidate fields updated on each iteration
@@ -281,6 +288,9 @@ private:
   
   /// internal buffer for the noise figures
   CachedAccessorField<casa::Cube<casa::Complex> > itsNoise;
+  
+  /// internal buffer for the polarisation types
+  CachedAccessorField<casa::Vector<casa::Stokes::StokesTypes> > itsStokes;
 };
 
 

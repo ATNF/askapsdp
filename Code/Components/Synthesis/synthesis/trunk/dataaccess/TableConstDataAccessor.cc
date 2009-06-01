@@ -258,7 +258,16 @@ const casa::Vector<casa::Double>& TableConstDataAccessor::velocity() const
 {
   throw AskapError("TableConstDataAccessor::velocity has not been implemented.");
 }
-                                     
+ 
+/// @brief polarisation type for each product
+/// @return a reference to vector containing polarisation types for
+/// each product in the visibility cube (nPol() elements).
+/// @note All rows of the accessor have the same structure of the visibility
+/// cube, i.e. polarisation types returned by this method are valid for all rows.
+const casa::Vector<casa::Stokes::StokesTypes>& TableConstDataAccessor::stokes() const
+{
+  return itsStokes.value(itsIterator, &TableConstDataIterator::fillStokes);
+}                                    
 
 /// invalidate fields  updated on each iteration
 void TableConstDataAccessor::invalidateIterationCaches() const throw()
@@ -286,6 +295,9 @@ void TableConstDataAccessor::invalidateIterationCaches() const throw()
 void TableConstDataAccessor::invalidateSpectralCaches() const throw()
 {
   itsFrequency.invalidate();
+  // polarisation info is attached to a spectral info (i.e. both are controlled by 
+  // data descriptor ID, which is a sort of correlator setup ID)
+  itsStokes.invalidate();
 }
 
 /// @brief invalidate cache of rotated uvw and delays

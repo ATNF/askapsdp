@@ -248,6 +248,16 @@ const casa::Vector<casa::Double>& MetaDataAccessor::velocity() const
   return itsROAccessor.velocity();
 }
 
+/// @brief polarisation type for each product
+/// @return a reference to vector containing polarisation types for
+/// each product in the visibility cube (nPol() elements).
+/// @note All rows of the accessor have the same structure of the visibility
+/// cube, i.e. polarisation types returned by this method are valid for all rows.
+const casa::Vector<casa::Stokes::StokesTypes>& MetaDataAccessor::stokes() const
+{
+  return itsROAccessor.stokes();
+}
+
 
 /// @brief obtain a reference to associated const accessor
 /// @details (for use in derived methods)

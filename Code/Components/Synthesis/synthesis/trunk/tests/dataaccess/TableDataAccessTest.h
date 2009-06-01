@@ -144,16 +144,22 @@ void TableDataAccessTest::readOnlyTest()
        --maxiter;
        // just call several accessor methods to ensure that no exception is 
        // thrown 
-       it->visibility().nrow();
-       it->frequency();
-       it->flag();
-       it->pointingDir2();
-       it->antenna1();
+       CPPUNIT_ASSERT(it->visibility().nrow() == it->nRow());
+       CPPUNIT_ASSERT(it->visibility().ncolumn() == it->nChannel());
+       CPPUNIT_ASSERT(it->visibility().nplane() == it->nPol());       
+       CPPUNIT_ASSERT(it->frequency().nelements() == it->nChannel());       
+       CPPUNIT_ASSERT(it->flag().shape() == it->visibility().shape());
+       CPPUNIT_ASSERT(it->pointingDir2().nelements() == it->nRow());
+       CPPUNIT_ASSERT(it->antenna1().nelements() == it->nRow());
        it->time();
-       it->feed1PA();
-       it->noise();
-       it->rotatedUVW(testDir);
-       it->uvwRotationDelay(testDir,testDir2);
+       CPPUNIT_ASSERT(it->feed1PA().nelements() == it->nRow());
+       CPPUNIT_ASSERT(it->noise().shape() == it->visibility().shape());
+       CPPUNIT_ASSERT(it->rotatedUVW(testDir).nelements() == it->nRow());
+       CPPUNIT_ASSERT(it->uvwRotationDelay(testDir,testDir2).nelements() == it->nRow());
+       CPPUNIT_ASSERT(it->stokes().nelements() == it->nPol());
+       CPPUNIT_ASSERT(it->nPol() == 2);
+       CPPUNIT_ASSERT(it->stokes()[0] == casa::Stokes::XX);       
+       CPPUNIT_ASSERT(it->stokes()[1] == casa::Stokes::YY);       
   }
 }
 

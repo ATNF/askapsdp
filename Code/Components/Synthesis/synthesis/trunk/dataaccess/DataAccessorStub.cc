@@ -143,6 +143,8 @@ namespace askap
             row++;
           }
         }
+        itsStokes.resize(nPol);
+        itsStokes[0] = casa::Stokes::I;
       }
     }
 
@@ -366,6 +368,16 @@ namespace askap
                 const casa::Vector<casa::Double>& DataAccessorStub::velocity() const
                 {
                   return itsVelocity;
+                }
+                
+                /// @brief polarisation type for each product
+                /// @return a reference to vector containing polarisation types for
+                /// each product in the visibility cube (nPol() elements).
+                /// @note All rows of the accessor have the same structure of the visibility
+                /// cube, i.e. polarisation types returned by this method are valid for all rows.
+                const casa::Vector<casa::Stokes::StokesTypes>& DataAccessorStub::stokes() const
+                {
+                  return itsStokes;
                 }
 
               } // namespace synthesis

@@ -566,6 +566,23 @@ casa::uInt TableConstDataIterator::currentSpWindowID() const
   return static_cast<const uInt>(spWindowIndex);
 }  
 
+/// @brief obtain a current polarisation ID
+/// @details This method obtains a polarisation ID corresponding to the current
+/// data description ID and tests its validity
+/// @return current polarisation ID
+casa::uInt TableConstDataIterator::currentPolID() const
+{
+  ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
+  const int polIndex = subtableInfo().getDataDescription().
+                            getPolarizationID(itsCurrentDataDescID);
+  if (polIndex<0) {
+      ASKAPTHROW(DataAccessError,"A negative polarisation index ("<<
+              polIndex<<") is encountered for Data Description ID="<<
+	      itsCurrentDataDescID);
+  }
+  return static_cast<const uInt>(polIndex);
+}
+
 /// @brief obtain a reference direction for the current iteration
 /// @details Currently we assume that the dish pointing centre stays
 /// fixed for the whole chunk. We break the iteration, if necessary
@@ -600,6 +617,18 @@ std::pair<casa::uInt, casa::uInt> TableConstDataIterator::getChannelRange() cons
                            casa::uInt(chanSelection.second) : 0;
   ASKAPDEBUGASSERT(startChan + nChan <= itsNumberOfChannels);
   return std::pair<casa::uInt, casa::uInt>(nChan, startChan);
+}
+
+/// @brief fill the buffer with the polarisation types 
+/// @param[in] stokes a reference to a vector to be filled
+void TableConstDataIterator::fillStokes(casa::Vector<casa::Stokes::StokesTypes> &stokes) const
+{
+  const ITablePolarisationHolder& polSubtable = subtableInfo().getPolarisation();
+  
+  ASKAPDEBUGASSERT(itsCurrentDataDescID>=0);
+  const casa::uInt polID = currentPolID();
+  ASKAPASSERT(polSubtable.nPol(polID) == nPol());
+  stokes = polSubtable.getTypes(polID).copy();
 }
 
 /// populate the buffer with frequencies

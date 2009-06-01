@@ -44,6 +44,8 @@
 // casa includes
 #include <tables/Tables/Table.h>
 #include <tables/Tables/TableIter.h>
+#include <measures/Measures/Stokes.h>
+
 
 // own includes
 #include <dataaccess/IConstDataIterator.h>
@@ -192,6 +194,9 @@ public:
   /// @param[in] dirs a reference to a vector to fill
   void fillDishPointing2(casa::Vector<casa::MVDirection> &dirs) const;
   
+  /// @brief fill the buffer with the polarisation types 
+  /// @param[in] stokes a reference to a vector to be filled
+  void fillStokes(casa::Vector<casa::Stokes::StokesTypes> &stokes) const;
   
 protected:
   /// @brief obtain selected range of channels
@@ -324,6 +329,12 @@ protected:
   /// current data description ID and tests its validity
   /// @return current spectral window ID
   casa::uInt currentSpWindowID() const;  
+  
+  /// @brief obtain a current polarisation ID
+  /// @details This method obtains a polarisation ID corresponding to the current
+  /// data description ID and tests its validity
+  /// @return current polarisation ID
+  casa::uInt currentPolID() const;
   
   /// @brief obtain the current iteration of the table iterator
   /// @details This class uses TableIterator behind the scene. This method

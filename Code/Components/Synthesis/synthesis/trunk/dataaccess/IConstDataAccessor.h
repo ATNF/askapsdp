@@ -35,6 +35,7 @@
 #include <casa/Quanta/MVDirection.h>
 #include <measures/Measures/MDirection.h>
 #include <scimath/Mathematics/RigidVector.h>
+#include <measures/Measures/Stokes.h>
 
 
 namespace askap {
@@ -191,6 +192,13 @@ public:
 	///         are given as Doubles, the frame/units are specified by
 	///         the DataSource object (via IDataConverter).
 	virtual const casa::Vector<casa::Double>& velocity() const = 0;
+	
+	/// @brief polarisation type for each product
+	/// @return a reference to vector containing polarisation types for
+	/// each product in the visibility cube (nPol() elements).
+	/// @note All rows of the accessor have the same structure of the visibility
+	/// cube, i.e. polarisation types returned by this method are valid for all rows.
+	virtual const casa::Vector<casa::Stokes::StokesTypes>& stokes() const = 0;
 };
 
 } // end of namespace synthesis
