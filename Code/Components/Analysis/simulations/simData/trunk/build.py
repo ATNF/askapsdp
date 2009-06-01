@@ -1,6 +1,6 @@
 # @file
 from askapdev.rbuild.builders import Builder
-from askapdev.rbuild import run
+from askapdev.rbuild.utils import run
 
 class MyBuilder(Builder):
     def _clean(self):
