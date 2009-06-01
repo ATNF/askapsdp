@@ -63,6 +63,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(bufferManagerTest);
   CPPUNIT_TEST(dataDescTest);
   CPPUNIT_TEST(spWindowTest);  
+  CPPUNIT_TEST(polarisationTest);
   CPPUNIT_TEST(feedTest);
   CPPUNIT_TEST(fieldTest);
   CPPUNIT_TEST(antennaTest);
@@ -90,6 +91,8 @@ public:
   void dataDescTest();
   /// test access to spectral window subtable
   void spWindowTest();
+  /// test access to polarisation subtable
+  void polarisationTest();
   /// test access to the feed subtable
   void feedTest();
   /// test access to the field subtable
@@ -263,6 +266,27 @@ void TableDataAccessTest::spWindowTest()
               spWindow.getFrequency(0,chan).getValue().getValue());
   }
   CPPUNIT_ASSERT(fabs(spWindow.getFrequencies(0)[0]-1.4e9)<1e-5);
+}
+
+/// test access to polarisation subtable
+void TableDataAccessTest::polarisationTest()
+{
+  // because we're not accessing the buffers here, it shouldn't really
+  // matter whether we open it with memory buffers or with disk buffers
+  // and read-only table should be enough.
+  itsTableInfoAccessor.reset(new TableInfoAccessor(
+              casa::Table(TableTestRunner::msName()),false));
+  ASKAPASSERT(itsTableInfoAccessor);
+  const ITablePolarisationHolder &polHandler = itsTableInfoAccessor->
+                      subtableInfo().getPolarisation();
+  CPPUNIT_ASSERT(polHandler.nPol(0) == 2);
+  casa::Vector<casa::Stokes::StokesTypes> polTypes = polHandler.getTypes(0);
+  CPPUNIT_ASSERT(polHandler.nPol(0) == polTypes.nelements());
+  for (casa::uInt pol=0; pol<polHandler.nPol(0); ++pol) {
+       CPPUNIT_ASSERT(polHandler.getType(0,pol) == polTypes[pol]);
+  }
+  CPPUNIT_ASSERT(polTypes[0] == casa::Stokes::XX);
+  CPPUNIT_ASSERT(polTypes[1] == casa::Stokes::YY);
 }
 
 /// test access to the feed subtable

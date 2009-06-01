@@ -8,6 +8,7 @@
 ///     1. feed information,
 ///     2. data description indices,
 ///     3. spectral window ids.
+///     4. Polarisation information
 /// Such design allows to avoid parsing of all possible subtables and
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
@@ -47,6 +48,7 @@
 #include <dataaccess/IFeedSubtableHandler.h>
 #include <dataaccess/IFieldSubtableHandler.h>
 #include <dataaccess/IAntennaSubtableHandler.h>
+#include <dataaccess/ITablePolarisationHolder.h>
 
 namespace askap {
 
@@ -61,6 +63,7 @@ namespace synthesis {
 ///     1. feed information,
 ///     2. data description indices,
 ///     3. spectral window ids.
+///     4. Polarisation information
 /// Such design allows to avoid parsing of all possible subtables and
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
@@ -72,6 +75,9 @@ struct ISubtableInfoHolder : virtual public IHolder {
 
    /// @return a reference to the handler of the SPECTRAL_WINDOW subtable
    virtual const ITableSpWindowHolder& getSpWindow() const = 0;
+   
+   /// @return a reference to the handler of the POLARIZATION subtable
+   virtual const ITablePolarisationHolder& getPolarisation() const = 0;
 
    /// @return a reference to the manager of buffers (BUFFERS subtable)
    virtual const IBufferManager& getBufferManager() const = 0;

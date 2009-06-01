@@ -7,6 +7,7 @@
 ///     1. feed information,
 ///     2. data description indices,
 ///     3. spectral window ids.
+///     4. Polarisation information
 /// Such design allows to avoid parsing of all possible subtables and
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
@@ -59,6 +60,7 @@ namespace synthesis {
 ///     1. feed information,
 ///     2. data description indices,
 ///     3. spectral window ids.
+///     4. Polarisation information
 /// Such design allows to avoid parsing of all possible subtables and
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
@@ -86,6 +88,13 @@ struct SubtableInfoHolder : virtual public ISubtableInfoHolder,
    /// to this method and a reference to it is always returned later
    /// @return a reference to the handler of the SPECTRAL_WINDOW subtable
    virtual const ITableSpWindowHolder& getSpWindow() const;
+   
+   /// @brief obtain polarisation information holder
+   /// @details A MemTablePolarisationHolder is constructed on the first call
+   /// to this method and a reference to it is always returned later   
+   /// @return a reference to the handler of the POLARIZATION subtable
+   virtual const ITablePolarisationHolder& getPolarisation() const;
+   
 
    /// @brief obtain a manager of buffers
    /// @details A TableBufferManager is constructed on the first call
@@ -124,6 +133,9 @@ private:
 
    /// smart pointer to the handler of the spectral window subtable
    mutable boost::shared_ptr<ITableSpWindowHolder const> itsSpWindowHandler;
+
+   /// smart pointer to the handler of polarisation subtable
+   mutable boost::shared_ptr<ITablePolarisationHolder const> itsPolarisationHandler;
 
    /// smart pointer to the buffer manager
    mutable boost::shared_ptr<IBufferManager const> itsBufferManager;

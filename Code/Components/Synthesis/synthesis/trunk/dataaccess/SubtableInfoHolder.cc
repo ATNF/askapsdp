@@ -7,6 +7,7 @@
 ///     1. feed information,
 ///     2. data description indices,
 ///     3. spectral window ids.
+///     4. Polarisation information
 /// Such design allows to avoid parsing of all possible subtables and
 /// building all possible derived information (which can be time consuming)
 /// when the measurement set is opened.
@@ -52,6 +53,7 @@
 #include <dataaccess/FeedSubtableHandler.h>
 #include <dataaccess/FieldSubtableHandler.h>
 #include <dataaccess/MemAntennaSubtableHandler.h>
+#include <dataaccess/MemTablePolarisationHolder.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -88,6 +90,18 @@ const ITableSpWindowHolder& SubtableInfoHolder::getSpWindow() const
       itsSpWindowHandler.reset(new MemTableSpWindowHolder(table()));
   }
   return *itsSpWindowHandler;
+}
+
+/// @brief obtain polarisation information holder
+/// @details A MemTablePolarisationHolder is constructed on the first call
+/// to this method and a reference to it is always returned later   
+/// @return a reference to the handler of the POLARIZATION subtable
+const ITablePolarisationHolder& SubtableInfoHolder::getPolarisation() const
+{
+  if (!itsPolarisationHandler) {
+      itsPolarisationHandler.reset(new MemTablePolarisationHolder(table()));
+  }
+  return *itsPolarisationHandler;
 }
 
 

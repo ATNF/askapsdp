@@ -29,8 +29,16 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+// casa includes
+#include <tables/Tables/ArrayColumn.h>
+#include <tables/Tables/ScalarColumn.h>
+#include <tables/Tables/TableRecord.h>
+
+// own includes
 #include <dataaccess/MemTablePolarisationHolder.h>
 #include <askap/AskapError.h>
+#include <dataaccess/DataAccessError.h>
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -40,6 +48,29 @@ using namespace askap::synthesis;
 /// POLARIZATION subtable defined)
 MemTablePolarisationHolder::MemTablePolarisationHolder(const casa::Table &ms)
 {
+  casa::Table polarisationSubtable = ms.keywordSet().asTable("POLARIZATION");
+  // load polarisation types
+  casa::ROArrayColumn<casa::Int> corrTypeCol(polarisationSubtable, "CORR_TYPE");
+  casa::ROScalarColumn<casa::Int> numCorrCol(polarisationSubtable, "NUM_CORR");
+  ASKAPDEBUGASSERT(corrTypeCol.nrow() == numCorrCol.nrow());
+  itsPolTypes.resize(polarisationSubtable.nrow());
+  for (casa::uInt row=0; row<itsPolTypes.nelements(); ++row) {
+       if (corrTypeCol.ndim(row) != 1) {
+           ASKAPTHROW(DataAccessError, 
+               "Expected a 1D vector in the CORR_TYPE column of the POLARIZATION subtable. dim = "<<
+               corrTypeCol.ndim(row));
+       }
+       casa::Vector<casa::Int> buf;
+       corrTypeCol.get(row,buf);
+       casa::Vector<casa::Stokes::StokesTypes> &corrType = itsPolTypes[row];
+       corrType.resize(buf.nelements());
+       if (buf.nelements() != casa::uInt(numCorrCol(row))) {
+           ASKAPTHROW(DataAccessError, "The number of elements in CORR_TYPE should match NUM_CORR");
+       }
+       for (casa::uInt pol=0; pol<buf.nelements(); ++pol) {
+            corrType[pol] = casa::Stokes::type(buf[pol]);
+       }       
+  }
 }   
    
 /// @brief number of polarisation products for the given ID
@@ -55,7 +86,7 @@ size_t MemTablePolarisationHolder::nPol(casa::uInt polID) const
 /// @param[in] polID polarisation ID of interest
 /// @return a vector (size is nPol) with types of polarisation products, same order as in the
 /// visibility cube
-casa::Vector<casa::Stokes> MemTablePolarisationHolder::getTypes(casa::uInt polID) const
+casa::Vector<casa::Stokes::StokesTypes> MemTablePolarisationHolder::getTypes(casa::uInt polID) const
 {
   ASKAPDEBUGASSERT(polID<itsPolTypes.nelements());
   return itsPolTypes[polID];
@@ -66,10 +97,10 @@ casa::Vector<casa::Stokes> MemTablePolarisationHolder::getTypes(casa::uInt polID
 /// @param[in] polID polarisation ID of interest
 /// @param[in] pol polarisation product (should be less than nPol)
 /// @return a type of the polarisation product given as casa::Stokes
-casa::Stokes MemTablePolarisationHolder::getType(casa::uInt polID, casa::uInt pol) const
+casa::Stokes::StokesTypes MemTablePolarisationHolder::getType(casa::uInt polID, casa::uInt pol) const
 {
   ASKAPDEBUGASSERT(polID<itsPolTypes.nelements());
-  const casa::Vector<casa::Stokes> &polTypes = itsPolTypes[polID];
+  const casa::Vector<casa::Stokes::StokesTypes> &polTypes = itsPolTypes[polID];
   ASKAPDEBUGASSERT(pol<polTypes.nelements());
   return polTypes[pol];
 }
