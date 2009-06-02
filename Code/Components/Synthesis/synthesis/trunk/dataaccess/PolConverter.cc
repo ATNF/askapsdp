@@ -41,8 +41,12 @@ using namespace askap::synthesis;
 /// @param[in] polFrameOut output polarisation frame defined as a vector of Stokes enums
 PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
                const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut) : itsVoid(false),
+               itsTransform(polFrameOut.nelements(),polFrameIn.nelements(),casa::Complex(0.,0.)),
                itsPolFrameIn(polFrameIn), itsPolFrameOut(polFrameOut)
 {
+  if (equal(polFrameIn, polFrameOut)) {
+      itsVoid = true;
+  }
 }
   
 /// @brief default constructor - no conversion
@@ -50,7 +54,24 @@ PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFra
 PolConverter::PolConverter() : itsVoid(true)
 {
 }
-  
+
+/// @brief compare two vectors of Stokes enums
+/// @param[in] first first polarisation frame
+/// @param[in] second second polarisation frame
+/// @return true if two given frames are the same, false if not.
+bool PolConverter::equal(const casa::Vector<casa::Stokes::StokesTypes> &first,
+                    const casa::Vector<casa::Stokes::StokesTypes> &second)
+{
+  if (first.nelements() != second.nelements()) {
+      return false;
+  }
+  for (casa::uInt pol = 0; pol<first.nelements(); ++pol) {
+       if (first[pol]!=second[pol]) {
+           return false;
+       }
+  }
+  return true;
+}
   
 /// @brief main method doing conversion
 /// @details Convert the given visibility vector between two polarisation frames supplied

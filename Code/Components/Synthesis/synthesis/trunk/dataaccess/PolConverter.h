@@ -34,6 +34,7 @@
 
 // casa includes
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
 #include <measures/Measures/Stokes.h>
 
 namespace askap {
@@ -69,12 +70,30 @@ struct PolConverter {
   /// @note vis should have the same size (<=4) as both polFrames passed in the constructor, 
   /// the output vector will have the same size.
   casa::Vector<casa::Complex> operator()(casa::Vector<casa::Complex> vis) const;
+
+  /// @brief check whether this conversion is void
+  /// @return true if conversion is void, false otherwise
+  inline bool isVoid() const throw() {return itsVoid;}
+protected:
   
+  /// @brief compare two vectors of Stokes enums
+  /// @param[in] first first polarisation frame
+  /// @param[in] second second polarisation frame
+  /// @return true if two given frames are the same, false if not.
+  static bool equal(const casa::Vector<casa::Stokes::StokesTypes> &first,
+                    const casa::Vector<casa::Stokes::StokesTypes> &second);
+    
 private:
   /// @brief no operation flag
   /// @details True if itsPolFrameOut == itsPolFrameIn or if class has been 
   /// created with the default constructor
   bool itsVoid;
+  
+  /// @brief transformation matrix 
+  /// @details to convert input polarisation frame to the target one
+  casa::Matrix<casa::Complex> itsTransform;
+  
+  // the following methods may be removed in the future
   
   /// @brief polarisation frame assumed for input (stokes enums)
   casa::Vector<casa::Stokes::StokesTypes> itsPolFrameIn;                     
