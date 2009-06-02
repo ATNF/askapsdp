@@ -50,32 +50,37 @@ namespace synthesis {
 /// @ingroup dataaccess_conv
 struct PolConverter {
 
-  /// @brief constructor of the converter to a given frame
+  /// @brief constructor of the converter between two frames
   /// @details
-  /// @param[in] polFrame output polarisation frame defined as a vector of Stokes enums
-  PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFrame);
+  /// @param[in] polFrameIn input polarisation frame defined as a vector of Stokes enums
+  /// @param[in] polFrameOut output polarisation frame defined as a vector of Stokes enums
+  PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
+               const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut);
   
   /// @brief default constructor - no conversion
   /// @details Constructed via this method the object passes all visibilities intact
   PolConverter();
   
   /// @brief main method doing conversion
-  /// @details Convert the given visibility vector from the frame described in polFrame to 
-  /// the target polarisation frame
-  /// @param[in] polFrame input polarisation frame given as a vector of Stokes enums
+  /// @details Convert the given visibility vector between two polarisation frames supplied
+  /// in the constructor.
   /// @param[in] vis visibility vector
   /// @return converted visibility vector 
-  /// @note polFrame and vis should have the same size (<=4), the output vector will have the
-  /// same size too.
-  casa::Vector<casa::Complex> convert(const casa::Vector<casa::Stokes::StokesTypes> &polFrame,
-                     casa::Vector<casa::Complex> vis) const;
+  /// @note vis should have the same size (<=4) as both polFrames passed in the constructor, 
+  /// the output vector will have the same size.
+  casa::Vector<casa::Complex> operator()(casa::Vector<casa::Complex> vis) const;
+  
 private:
   /// @brief no operation flag
-  /// @details True, if created with a default constructor, false otherwise
+  /// @details True if itsPolFrameOut == itsPolFrameIn or if class has been 
+  /// created with the default constructor
   bool itsVoid;
   
+  /// @brief polarisation frame assumed for input (stokes enums)
+  casa::Vector<casa::Stokes::StokesTypes> itsPolFrameIn;                     
+  
   /// @brief target polarisation frame (stokes enums)
-  casa::Vector<casa::Stokes::StokesTypes> itsPolFrame;                     
+  casa::Vector<casa::Stokes::StokesTypes> itsPolFrameOut;                     
 };
 
 } // namespace synthesis

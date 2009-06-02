@@ -35,11 +35,13 @@
 using namespace askap;
 using namespace askap::synthesis;
 
-/// @brief constructor of the converter to a given frame
+/// @brief constructor of the converter between two frames
 /// @details
-/// @param[in] polFrame output polarisation frame defined as a vector of Stokes enums
-PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFrame) : 
-          itsVoid(false), itsPolFrame(polFrame)
+/// @param[in] polFrameIn input polarisation frame defined as a vector of Stokes enums
+/// @param[in] polFrameOut output polarisation frame defined as a vector of Stokes enums
+PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
+               const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut) : itsVoid(false),
+               itsPolFrameIn(polFrameIn), itsPolFrameOut(polFrameOut)
 {
 }
   
@@ -49,21 +51,20 @@ PolConverter::PolConverter() : itsVoid(true)
 {
 }
   
+  
 /// @brief main method doing conversion
-/// @details Convert the given visibility vector from the frame described in polFrame to 
-/// the target polarisation frame
-/// @param[in] polFrame input polarisation frame given as a vector of Stokes enums
+/// @details Convert the given visibility vector between two polarisation frames supplied
+/// in the constructor.
 /// @param[in] vis visibility vector
 /// @return converted visibility vector 
-/// @note polFrame and vis should have the same size (<=4), the output vector will have the
-/// same size too.
-casa::Vector<casa::Complex> 
-PolConverter::convert(const casa::Vector<casa::Stokes::StokesTypes> &polFrame,
-                     casa::Vector<casa::Complex> vis) const
+/// @note vis should have the same size (<=4) as both polFrames passed in the constructor, 
+/// the output vector will have the same size.
+casa::Vector<casa::Complex> PolConverter::operator()(casa::Vector<casa::Complex> vis) const
 {
   if (itsVoid) {
       return vis;
   }
   ASKAPTHROW(AskapError, "Not yet implemented");
 }
+
 
