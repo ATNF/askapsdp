@@ -59,7 +59,7 @@ export MANPATH
 ARTISTIC_STYLE_OPTIONS="${ASKAP_ROOT}/astylerc"
 export ARTISTIC_STYLE_OPTIONS
 
-PYLINTRC="${ASKAP_ROOT}/Tools/Dev/rbuild/pylintrc"
+PYLINTRC="${ASKAP_ROOT}/pylintrc"
 export PYLINTRC
 """ % os.getcwd()
 
