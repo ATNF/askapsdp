@@ -60,7 +60,6 @@
 
 // Local package includes
 #include <askap_logappenders.h>
-#include <iceappender/IceAppender.h>
 #include <iceappender/LoggingService.h>
 
 // Using
@@ -129,11 +128,6 @@ int main(int argc, char *argv[])
     // Configure the local logger
     log4cxx::PropertyConfigurator::configure(log4cxx::File(filename));
     log4cxx::LoggerPtr logger = log4cxx::Logger::getLogger(inputLogname);
-
-    // This can be deleted once shared library support is added to ASKAPsoft.
-    // It is only here so the IceAppender will actually be linked in to
-    // the test executable.
-    askap::IceAppenderPtr appender = new askap::IceAppender;
 
     // Send the test log message
     LOG4CXX_INFO(logger, inputMessage);

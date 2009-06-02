@@ -14,6 +14,9 @@ pkg.AddSubPackage("iceappender")
 # second argument is the sub-package where the slice generated code should appear
 pkg.AddInterfaces("LoggingService.ice", "iceappender")
 
+# enable if this package should be built as a shared library 
+pkg.build_shared = True 
+
 # run the build process
 pkg()
 
