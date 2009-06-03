@@ -89,7 +89,16 @@ protected:
   /// @return true if two given frames are the same, false if not.
   static bool equal(const casa::Vector<casa::Stokes::StokesTypes> &first,
                     const casa::Vector<casa::Stokes::StokesTypes> &second);
-    
+
+  /// @brief check whether stokes parameter correspond to cross-correlation
+  /// @details casacore allows to code single-dish polarisation and there are some reserved codes
+  /// as well. As we're doing lots of indexing, it is good to check that given parameter is
+  /// valid before doing any further work.
+  /// @note Technically, this and a few other helper methods should be part of casa::Stokes
+  /// @param[in] pol polarisation type
+  /// @return true, if it is a normal cross-correlation or I,Q,U or V.
+  static bool isValid(casa::Stokes::StokesTypes pol);
+  
 private:
   /// @brief no operation flag
   /// @details True if itsPolFrameOut == itsPolFrameIn or if class has been 

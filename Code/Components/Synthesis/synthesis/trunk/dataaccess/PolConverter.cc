@@ -47,6 +47,14 @@ PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFra
   if (equal(polFrameIn, polFrameOut)) {
       itsVoid = true;
   } else {
+    for (casa::uInt pol=0; pol<polFrameIn.nelements(); ++pol) {
+         ASKAPCHECK(isValid(polFrameIn[pol]), "Conversion is unsupported for polarisation product "<<
+                    int(polFrameIn[pol])<<" ("<<casa::Stokes::type(polFrameIn[pol])<<")");
+    }
+    for (casa::uInt pol=0; pol<polFrameOut.nelements(); ++pol) {
+         ASKAPCHECK(isValid(polFrameOut[pol]), "Conversion is unsupported for polarisation product "<<
+                    int(polFrameOut[pol])<<" ("<<casa::Stokes::type(polFrameOut[pol])<<")");
+    }
     fillMatrix(polFrameIn, polFrameOut);
   }
 }
@@ -109,6 +117,33 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
 {
   ASKAPDEBUGASSERT(itsTransform.nrow() == polFrameOut.nelements());
   ASKAPDEBUGASSERT(itsTransform.ncolumn() == polFrameIn.nelements());
-   
+  // See Hamaker, Bregman and Sault, 1996, A&ASS, 117, 137 for matrix formalism of
+  // the polarisation conversion
 }
+
+/// @brief check whether stokes parameter correspond to cross-correlation
+/// @details casacore allows to code single-dish polarisation and there are some reserved codes
+/// as well. As we're doing lots of indexing, it is good to check that given parameter is
+/// valid before doing any further work.
+/// @note Technically, this and a few other helper methods should be part of casa::Stokes
+/// @param[in] pol polarisation type
+/// @return true, if it is a normal cross-correlation or I,Q,U or V.
+bool PolConverter::isValid(casa::Stokes::StokesTypes pol)
+{
+  // casacore's order is checked by unit test
+  if ((int(pol) >= int(casa::Stokes::I)) || (int(pol) <= int(casa::Stokes::V))) {
+      return true;
+  }
+  if ((int(pol) >= int(casa::Stokes::RR)) || (int(pol) <= int(casa::Stokes::LL))) {
+      return true;
+  }
+  if ((int(pol) >= int(casa::Stokes::XX)) || (int(pol) <= int(casa::Stokes::YY))) {
+      return true;
+  }
+  if ((int(pol) >= int(casa::Stokes::RX)) || (int(pol) <= int(casa::Stokes::YL))) {
+      return true;
+  }
+  return false;
+}
+
 
