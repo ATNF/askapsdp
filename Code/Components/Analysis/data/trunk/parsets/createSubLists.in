@@ -1,0 +1,6 @@
+createSubs.flagAnnotation = true
+createSubs.flagPointSources = false
+createSubs.catfilename = catalogues/10uJy.txt
+createSubs.destDir = catalogues
+createSubs.thresholds = [400,200]
+createSubs.radii = [1,2]
