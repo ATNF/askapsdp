@@ -1,6 +1,5 @@
-/// @file tdataaccess.cc
-///
-/// This file runs the test suite coded in DataAccessTest/DataAccsessTestImpl
+/// @file
+/// $brief Tests of the polarisation frame converter
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,32 +25,43 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
+#ifndef POL_CONVERTER_TEST_H
+#define POL_CONVERTER_TEST_H
 
-#include <cppunit/ui/text/TestRunner.h>
-#include <iostream>
+// cppunit includes
+#include <cppunit/extensions/HelperMacros.h>
+// own includes
+#include <dataaccess/PolConverter.h>
 
-#include "DataAccessTest.h"
-#include "DataConverterTest.h"
-#include "TableDataAccessTest.h"
-#include "UVWMachineCacheTest.h"
-#include "PolConverterTest.h"
+namespace askap {
 
-#include "TableTestRunner.h"
+namespace synthesis {
 
-int main(int, char **)
-{
- try {
-   //CppUnit::TextUi::TestRunner runner;
-   askap::synthesis::TableTestRunner runner;
-   runner.addTest(askap::synthesis::DataConverterTest::suite());
-   runner.addTest(askap::synthesis::DataAccessTest::suite());
-   runner.addTest(askap::synthesis::TableDataAccessTest::suite());
-   runner.addTest(askap::synthesis::UVWMachineCacheTest::suite());
-   runner.addTest(askap::synthesis::PolConverterTest::suite());
-   runner.run();
-   return 0;
- }
- catch (const askap::AskapError &ce) {
-	 std::cerr<<ce.what()<<std::endl;
- }
-}
+class PolConverterTest : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(PolConverterTest);
+  CPPUNIT_TEST(dimensionTest);
+  CPPUNIT_TEST_SUITE_END();
+public:
+  void dimensionTest() {
+     casa::Vector<casa::Stokes::StokesTypes> in(4);
+     in[0] = casa::Stokes::XX;
+     in[1] = casa::Stokes::XY;
+     in[2] = casa::Stokes::YX;
+     in[3] = casa::Stokes::YY;
+     casa::Vector<casa::Stokes::StokesTypes> out(2);
+     out[0] = casa::Stokes::I;
+     out[1] = casa::Stokes::Q;
+     
+     PolConverter pc(in,out);
+     casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
+     casa::Vector<casa::Complex> outVec = pc(inVec);
+     CPPUNIT_ASSERT(outVec.nelements() == out.nelements());
+  }
+};
+
+} // namespace synthesis
+
+} // namespace askap
+
+#endif // #ifndef POL_CONVERTER_TEST_H
+

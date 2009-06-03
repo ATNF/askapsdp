@@ -75,6 +75,13 @@ struct PolConverter {
   /// @return true if conversion is void, false otherwise
   inline bool isVoid() const throw() {return itsVoid;}
 protected:
+  /// @brief build transformation matrix
+  /// @details This is the core of the algorithm, this method builds the transformation matrix
+  /// given the two frames .
+  /// @param[in] polFrameIn input polarisation frame defined as a vector of Stokes enums
+  /// @param[in] polFrameOut output polarisation frame defined as a vector of Stokes enums
+  void fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
+                  const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut);
   
   /// @brief compare two vectors of Stokes enums
   /// @param[in] first first polarisation frame

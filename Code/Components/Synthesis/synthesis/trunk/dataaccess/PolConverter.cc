@@ -46,6 +46,8 @@ PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFra
 {
   if (equal(polFrameIn, polFrameOut)) {
       itsVoid = true;
+  } else {
+    fillMatrix(polFrameIn, polFrameOut);
   }
 }
   
@@ -85,7 +87,28 @@ casa::Vector<casa::Complex> PolConverter::operator()(casa::Vector<casa::Complex>
   if (itsVoid) {
       return vis;
   }
-  ASKAPTHROW(AskapError, "Not yet implemented");
+  ASKAPDEBUGASSERT(vis.nelements() == itsTransform.ncolumn());
+  casa::Vector<casa::Complex> res(itsTransform.nrow(),0.);
+  
+  for (casa::uInt row = 0; row<res.nelements(); ++row) {
+       for (casa::uInt col = 0; col<vis.nelements(); ++col) {
+            res[row] += itsTransform(row,col)*vis[col];
+       }
+  }
+  
+  return res;
 }
 
+/// @brief build transformation matrix
+/// @details This is the core of the algorithm, this method builds the transformation matrix
+/// given the two frames .
+/// @param[in] polFrameIn input polarisation frame defined as a vector of Stokes enums
+/// @param[in] polFrameOut output polarisation frame defined as a vector of Stokes enums
+void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
+                  const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut)
+{
+  ASKAPDEBUGASSERT(itsTransform.nrow() == polFrameOut.nelements());
+  ASKAPDEBUGASSERT(itsTransform.ncolumn() == polFrameIn.nelements());
+   
+}
 
