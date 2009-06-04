@@ -28,7 +28,9 @@ absolute_path = os.path.abspath(invoked_path)
 os.chdir(os.path.dirname(absolute_path))
 
 bashinit = """\
-export ASKAP_ROOT=%s
+ASKAP_ROOT=%s
+export ASKAP_ROOT
+
 pypath="${ASKAP_ROOT}/share/scons_tools"
 
 if [ "${PYTHONPATH}" !=  "" ]
@@ -45,8 +47,8 @@ PATH=`echo $PATH | sed "s#:*$ASKAP_ROOT/bin:*##"`
 PATH="${ASKAP_ROOT}/bin:${PATH}"
 export PATH
 
-psset=`echo $PS1 |grep askap`
-if [ "$psset" == "" ]
+psset=`echo $PS1 | grep askap`
+if [ "$psset" = "" ]
 then
    PS1="(askap)${PS1}"
    export PS1
