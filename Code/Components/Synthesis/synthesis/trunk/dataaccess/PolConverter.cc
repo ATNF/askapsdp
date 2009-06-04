@@ -118,7 +118,78 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
   ASKAPDEBUGASSERT(itsTransform.nrow() == polFrameOut.nelements());
   ASKAPDEBUGASSERT(itsTransform.ncolumn() == polFrameIn.nelements());
   // See Hamaker, Bregman and Sault, 1996, A&ASS, 117, 137 for matrix formalism of
-  // the polarisation conversion
+  // the polarisation conversion 
+
+  // todo, check whether we can do the same in a more elegant and general way.
+  // Do we need reverse conversion as well?
+  
+  casa::Matrix<casa::Complex> T(4,4,0.);
+  if (isLinear(polFrameIn)) {
+      // linear to stokes   
+      T(0,0)=1.; T(0,3)=1.; 
+      T(1,0)=1.; T(1,3)=-1.;
+      T(2,1)=1.; T(2,2)=1.;
+      T(3,1)=casa::Complex(0.,-1.); T(3,2)=casa::Complex(0.,1.);
+  } else if (isCircular(polFrameIn)) {
+      // circular to stokes
+      T(0,0)=1.; T(0,3)=1.; 
+      T(1,1)=casa::Complex(0.,-1.); T(3,2)=casa::Complex(0.,1.);
+      T(2,0)=1.; T(1,3)=-1.;
+      T(3,1)=1.; T(2,2)=1.;
+  } else if (isStokes(polFrameIn)) {
+      T.diagonal() = 1.;
+  } else {
+     ASKAPTHROW(AskapError, "Unsupported combination of input and output polarisation frames");
+  }
+  
+  ASKAPCHECK(isStokes(polFrameOut), "Only conversion to Stokes is supported at the moment");
+  
+  // have to copy, because the transformation may not preserve dimensionality
+  for (casa::uInt row = 0; row<itsTransform.nrow(); ++row) {
+       const casa::uInt rowIndex = getIndex(polFrameOut[row]);
+       ASKAPDEBUGASSERT(rowIndex<4);
+       for (casa::uInt col = 0; col<itsTransform.ncolumn(); ++col) {
+            const casa::uInt colIndex = getIndex(polFrameIn[col]);
+            ASKAPDEBUGASSERT(colIndex<4);
+            itsTransform(row,col) = T(rowIndex,colIndex);
+       }
+  }
+}
+  
+/// @brief test if frame matches a given stokes enum
+/// @param[in] polFrame polarisation frame defined as a vector of Stokes enums
+/// @param[in] stokes a single stokes enum defining the frame (should be the first in the set)
+/// @return true, if the given vector and one stokes enum belong to the same frame 
+bool PolConverter::sameFrame(const casa::Vector<casa::Stokes::StokesTypes> &polFrame,
+                        casa::Stokes::StokesTypes stokes)
+{
+  ASKAPASSERT(polFrame.nelements()!=0);
+  for (casa::uInt pol = 0; pol<polFrame.nelements(); ++pol) {
+       const int index = (int(polFrame[pol]) - int(stokes));
+       if ((index<0) || (index>=4)) {
+           return false;
+       }
+  }
+  return true;
+}
+  
+/// @brief return index of a particular polarisation
+/// @details To be able to fill matrices efficiently we want to convert, say IQUV into 0,1,2,3. 
+/// This method does it for all supported types of polarisation products
+/// @param[in] stokes a single stokes enum of the polarisation product to convert
+/// @return unsigned index
+casa::uInt PolConverter::getIndex(casa::Stokes::StokesTypes stokes)
+{
+  casa::Vector<casa::Stokes::StokesTypes> buf(1,stokes);
+  if (isCircular(buf)) {
+     return casa::uInt(stokes)-casa::uInt(casa::Stokes::RR);
+  } else if (isLinear(buf)) {
+     return casa::uInt(stokes)-casa::uInt(casa::Stokes::XX);
+  } else if (isStokes(buf)) {
+     return casa::uInt(stokes)-casa::uInt(casa::Stokes::I);
+  }
+  ASKAPTHROW(AskapError, "Unsupported type of polarisation product in PolConverter::getIndex "<<
+             int(stokes));  
 }
 
 /// @brief check whether stokes parameter correspond to cross-correlation

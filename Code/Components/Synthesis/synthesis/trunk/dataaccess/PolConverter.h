@@ -74,7 +74,42 @@ struct PolConverter {
   /// @brief check whether this conversion is void
   /// @return true if conversion is void, false otherwise
   inline bool isVoid() const throw() {return itsVoid;}
+
+  /// @brief test if frame is linear
+  /// @param[in] polFrame polarisation frame defined as a vector of Stokes enums
+  /// @return true, if the frame is linear
+  static inline bool isLinear(const casa::Vector<casa::Stokes::StokesTypes> &polFrame) 
+     { return sameFrame(polFrame, casa::Stokes::XX);}
+  
+  /// @brief test if frame is circular
+  /// @param[in] polFrame polarisation frame defined as a vector of Stokes enums
+  /// @return true, if the frame is circular
+  static inline bool isCircular(const casa::Vector<casa::Stokes::StokesTypes> &polFrame)
+     { return sameFrame(polFrame, casa::Stokes::RR);}
+  
+  /// @brief test if frame is stokes
+  /// @param[in] polFrame polarisation frame defined as a vector of Stokes enums
+  /// @return true, if the frame is circular
+  static inline bool isStokes(const casa::Vector<casa::Stokes::StokesTypes> &polFrame)
+       { return sameFrame(polFrame, casa::Stokes::I);}
+  
+  
 protected:
+
+  /// @brief test if frame matches a given stokes enum
+  /// @param[in] polFrame polarisation frame defined as a vector of Stokes enums
+  /// @param[in] stokes a single stokes enum defining the frame (should be the first in the set)
+  /// @return true, if the given vector and one stokes enum belong to the same frame 
+  static bool sameFrame(const casa::Vector<casa::Stokes::StokesTypes> &polFrame,
+                        casa::Stokes::StokesTypes stokes);  
+
+  /// @brief return index of a particular polarisation
+  /// @details To be able to fill matrices efficiently we want to convert, say IQUV into 0,1,2,3. 
+  /// This method does it for all supported types of polarisation products
+  /// @param[in] stokes a single stokes enum of the polarisation product to convert
+  /// @return unsigned index
+  static casa::uInt getIndex(casa::Stokes::StokesTypes stokes);
+  
   /// @brief build transformation matrix
   /// @details This is the core of the algorithm, this method builds the transformation matrix
   /// given the two frames .
