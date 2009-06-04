@@ -63,7 +63,7 @@ ASKAP_LOGGER(logger, ".FITS");
 namespace askap
 {
 
-  namespace simFITS
+  namespace simulations
   {
 
     namespace FITS

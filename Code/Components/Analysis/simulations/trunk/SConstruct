@@ -10,7 +10,7 @@ from askapenv import env
 env.Append(CCFLAGS=['-O2', '-g', '-DHAVE_LONG_LONG', '-DASKAP_DEBUG'])
 
 # create build object with library name
-pkg = env.AskapPackage("simFITS")
+pkg = env.AskapPackage("simulations")
 # add sub packages 
 pkg.AddSubPackage("FITS")
 pkg.AddSubPackage("simulationutilities")

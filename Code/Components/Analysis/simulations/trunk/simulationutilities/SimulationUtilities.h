@@ -26,8 +26,8 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMFITS_SIMUTIL_H_
-#define ASKAP_SIMFITS_SIMUTIL_H_
+#ifndef ASKAP_SIMS_SIMUTIL_H_
+#define ASKAP_SIMS_SIMUTIL_H_
 
 #include <APS/ParameterSet.h>
 
@@ -47,7 +47,7 @@
 namespace askap
 {
 
-  namespace simFITS
+  namespace simulations
   {
 
     /// @brief Return a normal random variable

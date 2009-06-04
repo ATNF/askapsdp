@@ -52,7 +52,7 @@ ASKAP_LOGGER(logger, ".simutils");
 namespace askap
 {
 
-  namespace simFITS
+  namespace simulations
   {
 
 

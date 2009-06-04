@@ -26,8 +26,8 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMFITS_FITS_H_
-#define ASKAP_SIMFITS_FITS_H_
+#ifndef ASKAP_SIMS_FITS_H_
+#define ASKAP_SIMS_FITS_H_
 
 #include <wcslib/wcs.h>
 
@@ -44,7 +44,7 @@
 namespace askap
 {
 
-  namespace simFITS
+  namespace simulations
   {
 
     namespace FITS

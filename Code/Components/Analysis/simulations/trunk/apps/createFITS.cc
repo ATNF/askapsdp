@@ -26,7 +26,7 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
-#include <askap_simFITS.h>
+#include <askap_simulations.h>
 
 #include <FITS/FITSfile.h>
 
@@ -44,8 +44,8 @@
 #include <time.h>
 
 using namespace askap;
-using namespace askap::simFITS;
-using namespace askap::simFITS::FITS;
+using namespace askap::simulations;
+using namespace askap::simulations::FITS;
 using namespace LOFAR::ACC::APS;
 
 
