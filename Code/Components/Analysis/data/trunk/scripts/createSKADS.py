@@ -42,7 +42,7 @@ if __name__ == '__main__':
         
     catalogueFilenameOrig = "catalogues/SKADS_S3SEX_10sqdeg_1uJy_orig.dat"  # This is the name of the file that has data from the database, with positions centred on (0,0)
     catalogueFilename = "catalogues/SKADS_S3SEX_10sqdeg_1uJy.dat"           # This is the name of the file createFITS will create with corrected positions
-    catfile = file(catalogueFilename,"w")
+    catfile = file(catalogueFilenameOrig,"w")
     catfile.write("#%9s %10s %20s %10s %10s %10s\n"%("RA","Dec","Flux","Maj_axis","Min_axis","Pos_ang"))
     for type in types:
         for x in centres:

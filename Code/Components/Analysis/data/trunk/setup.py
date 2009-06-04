@@ -23,7 +23,7 @@ setup(name = '%s.%s.%s' % (ROOTPKG, COMPONENT, PKGNAME),
       zip_safe = 1,
       dependency = dep,
 # Uncomment if using scripts (applications which go in bin) 
-      scripts = ["scripts/createSKADS.py", "scripts/createSubLists.py"],
+      scripts = ["scripts/createSKADS.py", "scripts/createSubLists.py", "scripts/setupAllModels.py"],
 # Uncomment if using unit tests
 #      test_suite = "nose.collector",
 )
