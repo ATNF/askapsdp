@@ -15,12 +15,14 @@ if __name__ == '__main__':
     create10uJysub = sublists + ' --inputs ' + parsetDir + '/createSubLists_10uJy_all.in'
     create10uJysubPts = sublists + ' --inputs ' + parsetDir + '/createSubLists_10uJy_pt.in'
 
-    print "%s\n%s\n%s\n%s\n"%(baseDir,scriptDir,parsetDir,sublists)
-    
+    print "Creating the SKADS model catalogue + image ..."
     os.system(createSKADS)
     
+    print "Creating the SKADS sublists ..."
     os.system(createSKADSsub)
+    print "Creating the 10uJy model sublists with all sources ..."
     os.system(create10uJysub)
+    print "Creating the 10uJy model sublists with just point sources ..."
     os.system(create10uJysubPts)
     
 

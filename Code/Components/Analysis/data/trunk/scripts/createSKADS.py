@@ -108,5 +108,5 @@ createFITS.doConvolution    = false
     f.close()
 
     print "About to run createFITS to make the FITS file."
-    createFITScall = "%s/Code/Components/Analysis/simulations/simFITS/trunk/apps/createFITS.sh -inputs parsets/createFITS_SKADS.in"%os.environ["ASKAP_ROOT"]
+    createFITScall = "%s/Code/Components/Analysis/simulations/trunk/apps/createFITS.sh -inputs parsets/createFITS_SKADS.in"%os.environ["ASKAP_ROOT"]
     os.system(createFITScall)
