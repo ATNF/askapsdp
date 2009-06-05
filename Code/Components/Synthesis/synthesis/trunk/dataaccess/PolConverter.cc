@@ -124,26 +124,31 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
   // Do we need reverse conversion as well?
   
   casa::Matrix<casa::Complex> T(4,4,0.);
-  if (isLinear(polFrameIn)) {
-      // linear to stokes   
-      T(0,0)=1.; T(0,3)=1.; 
-      T(1,0)=1.; T(1,3)=-1.;
-      T(2,1)=1.; T(2,2)=1.;
-      T(3,1)=casa::Complex(0.,-1.); T(3,2)=casa::Complex(0.,1.);
-  } else if (isCircular(polFrameIn)) {
-      // circular to stokes
-      T(0,0)=1.; T(0,3)=1.; 
-      T(1,1)=casa::Complex(0.,-1.); T(3,2)=casa::Complex(0.,1.);
-      T(2,0)=1.; T(1,3)=-1.;
-      T(3,1)=1.; T(2,2)=1.;
-  } else if (isStokes(polFrameIn)) {
-      T.diagonal() = 1.;
+  if (isStokes(polFrameOut)) {
+      if (isLinear(polFrameIn)) {
+          // linear to stokes   
+          T(0,0)=1.; T(0,3)=1.; 
+          T(1,0)=1.; T(1,3)=-1.;
+          T(2,1)=1.; T(2,2)=1.;
+          T(3,1)=casa::Complex(0.,-1.); T(3,2)=casa::Complex(0.,1.);
+      } else if (isCircular(polFrameIn)) {
+          // circular to stokes
+          T(0,0)=1.; T(0,3)=1.; 
+          T(1,1)=casa::Complex(0.,-1.); T(3,2)=casa::Complex(0.,1.);
+          T(2,0)=1.; T(1,3)=-1.;
+          T(3,1)=1.; T(2,2)=1.;
+      } else if (isStokes(polFrameIn)) {
+          T.diagonal() = 1.;
+      } else {
+          ASKAPTHROW(AskapError, "Conversion of input polarisation frames into stokes parameters is not supported");
+      }
+  } else if ((isLinear(polFrameIn) && isLinear(polFrameOut)) || 
+             (isCircular(polFrameIn) && isCircular(polFrameOut)))  {
+             T.diagonal() = 1.;
   } else {
-     ASKAPTHROW(AskapError, "Unsupported combination of input and output polarisation frames");
+      ASKAPTHROW(AskapError, "Unsupported combination of input and output polarisation frames");
   }
-  
-  ASKAPCHECK(isStokes(polFrameOut), "Only conversion to Stokes is supported at the moment");
-  
+    
   // have to copy, because the transformation may not preserve dimensionality
   for (casa::uInt row = 0; row<itsTransform.nrow(); ++row) {
        const casa::uInt rowIndex = getIndex(polFrameOut[row]);
