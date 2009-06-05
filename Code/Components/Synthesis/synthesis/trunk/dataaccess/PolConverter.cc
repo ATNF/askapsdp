@@ -29,6 +29,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+
 #include <dataaccess/PolConverter.h>
 #include <askap/AskapError.h>
 
@@ -220,6 +221,51 @@ bool PolConverter::isValid(casa::Stokes::StokesTypes pol)
       return true;
   }
   return false;
+}
+
+/// @brief convert string representation into a vector of Stokes enums
+/// @details It is convenient to define polarisation frames like "xx,xy,yx,yy" or "iquv". 
+/// This method does it and return a vector of Stokes enums. Comma symbol is ignored. i.e.
+/// "iquv" and "i,q,u,v" are equivalent.
+/// @param[in] frame a string representation of the frame
+/// @return vector with Stokes enums 
+casa::Vector<casa::Stokes::StokesTypes> PolConverter::fromString(const std::string &frame)
+{
+  if (frame.size() == 0) {
+      return casa::Vector<casa::Stokes::StokesTypes>();
+  }
+  // parse the string, it is certainly not empty at this stage
+  std::vector<std::string> products;
+  products.reserve(4);
+  for(size_t pos=0; pos<frame.size(); ++pos) {
+     if (frame[pos]!=',' && frame[pos]!=' ') {
+         if (frame.find_first_of("iquv",pos) == pos) {
+             products.push_back(frame.substr(pos,1));
+             continue;
+         }
+         ASKAPCHECK(pos+1<frame.size(), "Unable to interpret polarisation product "<<frame[pos]);
+         const std::string polProduct = frame.substr(pos,2);
+         ASKAPCHECK(polProduct.find_first_not_of("xyrlXYRL") == std::string::npos,
+                    "Unknown polarisation product "<<polProduct);
+         products.push_back(polProduct);
+         ++pos; // two-symbol descriptor has been extracted             
+     }
+  }
+  return fromString(products);
+}
+
+/// @brief convert string representation into a vector of Stokes enums
+/// @details This version of the method accept string representations in a vector and doesn't
+/// parse the concatenated string.
+/// @param[in] products vector of strings representation of the frame
+/// @return vector with Stokes enums
+casa::Vector<casa::Stokes::StokesTypes> PolConverter::fromString(const std::vector<std::string> &products)
+{
+  casa::Vector<casa::Stokes::StokesTypes> res(products.size());
+  for (size_t pol=0;pol<products.size();++pol) {
+       res[pol] = casa::Stokes::type(products[pol]);
+  }
+  return res;  
 }
 
 

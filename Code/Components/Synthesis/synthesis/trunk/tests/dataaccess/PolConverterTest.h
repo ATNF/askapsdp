@@ -41,6 +41,7 @@ class PolConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(PolConverterTest);
   CPPUNIT_TEST(dimensionTest);
   CPPUNIT_TEST(stokesEnumTest);
+  CPPUNIT_TEST(stringConversionTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   void dimensionTest() {
@@ -88,7 +89,20 @@ public:
      CPPUNIT_ASSERT(int(casa::Stokes::YR)-int(casa::Stokes::RX) == 6);
      CPPUNIT_ASSERT(int(casa::Stokes::YL)-int(casa::Stokes::RX) == 7);
      
+  }  
+  void stringConversionTest() {
+     CPPUNIT_ASSERT(PolConverter::equal(PolConverter::fromString("xx,yy,xy,yx"),
+                    PolConverter::fromString("xxyyxyyx")));
+     CPPUNIT_ASSERT(PolConverter::equal(PolConverter::fromString("xyi,qu"),
+                    PolConverter::fromString("xy i q u")));
+     casa::Vector<casa::Stokes::StokesTypes> frame = PolConverter::fromString("xy i q RR");
+     CPPUNIT_ASSERT(frame.nelements() == 4);
+     CPPUNIT_ASSERT(frame[0] == casa::Stokes::XY);
+     CPPUNIT_ASSERT(frame[1] == casa::Stokes::I);
+     CPPUNIT_ASSERT(frame[2] == casa::Stokes::Q);
+     CPPUNIT_ASSERT(frame[3] == casa::Stokes::RR);
   }
+  
 };
 
 } // namespace synthesis

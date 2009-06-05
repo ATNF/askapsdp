@@ -32,6 +32,10 @@
 #ifndef POL_CONVERTER_H
 #define POL_CONVERTER_H
 
+// std includes
+#include <string>
+#include <vector>
+
 // casa includes
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
@@ -93,6 +97,27 @@ struct PolConverter {
   static inline bool isStokes(const casa::Vector<casa::Stokes::StokesTypes> &polFrame)
        { return sameFrame(polFrame, casa::Stokes::I);}
   
+  /// @brief convert string representation into a vector of Stokes enums
+  /// @details It is convenient to define polarisation frames like "xx,xy,yx,yy" or "iquv". 
+  /// This method does it and return a vector of Stokes enums. Comma symbol is ignored. i.e.
+  /// "iquv" and "i,q,u,v" are equivalent.
+  /// @param[in] frame a string representation of the frame
+  /// @return vector with Stokes enums 
+  static casa::Vector<casa::Stokes::StokesTypes> fromString(const std::string &frame);
+  
+  /// @brief convert string representation into a vector of Stokes enums
+  /// @details This version of the method accept string representations in a vector and doesn't
+  /// parse the concatenated string.
+  /// @param[in] products vector of strings representation of the frame
+  /// @return vector with Stokes enums
+  static casa::Vector<casa::Stokes::StokesTypes> fromString(const std::vector<std::string> &products);
+  
+  /// @brief compare two vectors of Stokes enums
+  /// @param[in] first first polarisation frame
+  /// @param[in] second second polarisation frame
+  /// @return true if two given frames are the same, false if not.
+  static bool equal(const casa::Vector<casa::Stokes::StokesTypes> &first,
+                    const casa::Vector<casa::Stokes::StokesTypes> &second);
   
 protected:
 
@@ -118,13 +143,6 @@ protected:
   void fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
                   const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut);
   
-  /// @brief compare two vectors of Stokes enums
-  /// @param[in] first first polarisation frame
-  /// @param[in] second second polarisation frame
-  /// @return true if two given frames are the same, false if not.
-  static bool equal(const casa::Vector<casa::Stokes::StokesTypes> &first,
-                    const casa::Vector<casa::Stokes::StokesTypes> &second);
-
   /// @brief check whether stokes parameter correspond to cross-correlation
   /// @details casacore allows to code single-dish polarisation and there are some reserved codes
   /// as well. As we're doing lots of indexing, it is good to check that given parameter is
