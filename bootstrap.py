@@ -102,7 +102,9 @@ print ">>> Attempting to create initaskap.csh."
 os.system("%s initenv.py -s tcsh >/dev/null" % python_exe)
 
 if os.path.exists(rbuild_path):
-    print ">>> Attempting to build rbuild."
+    print ">>> Attempting to clean and build rbuild."
+    os.system(". initaskap.sh && cd %s && python setup.py -q clean"
+                % rbuild_path)
     os.system(". initaskap.sh && cd %s && python setup.py -q install"
                 % rbuild_path)
 else:
