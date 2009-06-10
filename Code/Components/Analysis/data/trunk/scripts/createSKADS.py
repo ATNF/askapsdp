@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-from pkg_resources import require
-require('MySQL_python')
-import MySQLdb
-require('numpy')
+import askap.analysis.data
 from numpy import *
 import os
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from pkg_resources import require
-require('numpy')
+import askap.analysis.data
 from numpy import *
 import math
 from optparse import OptionParser
@@ -49,7 +48,7 @@ def writeData(line, subfile, doAnn, annfile, threshold, radius=0., count=0):
     data=array(line.split()).astype(float)
     if(doAnn):
         if(data[3]>0.):
-            annfile.write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3],data[4],data[5],data[0],data[1],count))
+            annfile.write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*math.pi/180.,data[0],data[1],count))
         else:
             annfile.write("CIRCLE %12.8f %12.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],10./3600.,data[0],data[1],count))
 
