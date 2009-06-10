@@ -34,7 +34,6 @@
 #include <measures/Measures/MPosition.h>
 #include <measures/Measures/MEpoch.h>
 #include <measures/Measures/MDirection.h>
-#include <tables/Tables/TiledDataStManAccessor.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
 
 namespace askap
@@ -50,9 +49,19 @@ namespace askap
 		{
 			public:
 
-				/// Constructor from name only
+				/// Constructor from name and tile shape
+                                /// specification. This is used to define
+                                /// the tiles holdig the DATA column.
+                                /// Note that if the actual nr of corr or chan
+                                /// is less than given here, the actual tile
+                                /// size will be smaller.
 				/// @param msname Name of measurement set to be constructed
-				Simulator(const casa::String& msname);
+				/// @param tileSize  Tile size in bytes
+				/// @param ncorrTile Nr of correlations per tile
+				/// @param nchanTile Nr of channels per tile
+                                Simulator(const casa::String& msname,
+                                          int tileSize=32768,
+                                          int ncorrTile=4, int nchanTile=32);
 
 				/// Constructor from existing MS
 				/// @param ms Existing MeasurementSet object
@@ -68,14 +77,6 @@ namespace askap
 				/// Assignment
 				/// @param mss Simulator to be assigned from 
 				Simulator & operator=(const Simulator & mss);
-
-				/// Set maximum amount of data (bytes) to be written into any one
-				/// scratch column hypercube
-				/// @param maxdata Maximum number of bytes to write per hypercube
-				void setMaxData(const double maxdata=2e9)
-				{
-					maxData_p=maxdata;
-				}
 
 				/// @brief Set the antenna and array data. 
 				/// @details These are written immediately to the
@@ -194,31 +195,9 @@ namespace askap
 				casa::MEpoch mRefTime_p;
 				/// Offset time as a double
 				double t_offset_p;
-				/// Amount of data written
-				double dataWritten_p;
-				/// Hyper cube ID for data columns
-				int hyperCubeID_p;
-				/// Are we using hyper cubes?
-				bool hasHyperCubes_p;
-				/// Last spectral window written
-				int lastSpWID_p;
 
 				/// Measurement set points
 				casa::MeasurementSet* ms_p;
-
-				/// Data accessors for the various storage managers
-				casa::TiledDataStManAccessor dataAcc_p;
-				/// Data accessors for the various storage managers
-				casa::TiledDataStManAccessor scratchDataAcc_p;
-				/// Data accessors for the various storage managers
-				casa::TiledDataStManAccessor sigmaAcc_p;
-				/// Data accessors for the various storage managers
-				casa::TiledDataStManAccessor flagAcc_p;
-				/// Data accessors for the various storage managers
-				casa::TiledDataStManAccessor imweightAcc_p;
-
-				/// Maximum data to be written (only needed for 32 bit)
-				double maxData_p;
 
 				/// Convert local coordinates to global
 				/// @param xreturned Converted x coordinate
@@ -263,14 +242,6 @@ namespace askap
 				/// Provide nicely formatted time
 				/// @param time Time to be formatted
 				casa::String formatTime(const double time);
-
-				/// Add hypercubes
-				/// @param id Id to be used
-				/// @param nbase Number of baselines
-				/// @param nchan Number of channels
-				/// @param ncorr Number of correlations
-				void addHyperCubes(const int id, const int nbase, const int nchan,
-				    const int ncorr);
 
 				/// Restore default values
 				void defaults();

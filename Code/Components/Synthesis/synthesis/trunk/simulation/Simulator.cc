@@ -44,11 +44,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <tables/Tables/StManAipsIO.h>
 #include <tables/Tables/IncrementalStMan.h>
 #include <tables/Tables/StandardStMan.h>
-#include <tables/Tables/TiledColumnStMan.h>
 #include <tables/Tables/TiledShapeStMan.h>
-#include <tables/Tables/TiledDataStMan.h>
-#include <tables/Tables/TiledStManAccessor.h>
-#include <tables/Tables/TiledDataStManAccessor.h>
 #include <casa/BasicSL/Constants.h>
 #include <casa/BasicMath/Random.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -89,31 +85,6 @@ namespace askap
 {
 	namespace synthesis
 	{
-
-		/// Number of flag categories
-		const uInt nCat = 6; // Number of Flag categories
-
-		/// Name of SIGMA hyper column
-		const String sigmaCol = "sigmaHyperColumn";
-		/// Name of DATA hyper column
-		const String dataCol = "dataHyperColumn";
-		/// Name of scratch DATA hyper column
-		const String scratchDataCol = "scratchDataHyperColumn";
-		/// Name of imaging weight hyper column
-		const String imweightCol = "imWeightHyperColumn";
-		/// Name of flag hyper column
-		const String flagCol = "flagHyperColumn";
-
-		/// Name of SIGMA hypercube id column
-		const String sigmaTileId = "SIGMA_HYPERCUBE_ID";
-		/// Name of data hypercube id column
-		const String dataTileId = "DATA_HYPERCUBE_ID";
-		/// Name of scratch data hypercube id column
-		const String scratchDataTileId = "SCRATCH_DATA_HYPERCUBE_ID";
-		/// Name of flag hypercube id column
-		const String flagTileId = "FLAG_CATEGORY_HYPERCUBE_ID";
-		/// Name of imaging weight hypercube id column
-		const String imweightTileId = "IMAGING_WEIGHT_HYPERCUBE_ID";
 
 		/// a but ugly solution to use the feed table parser of MSIter
 		/// to extract antennaMounts and BeamOffsets.
@@ -160,9 +131,9 @@ namespace askap
 			mRefTime_p=MEpoch(today, MEpoch::UTC);
 		}
 
-		Simulator::Simulator(const casa::String& MSName) :
-			ms_p(0), dataAcc_p(), scratchDataAcc_p(), sigmaAcc_p(), flagAcc_p(),
-			    imweightAcc_p(), maxData_p(2e9)
+          Simulator::Simulator(const casa::String& MSName,
+                               int tileSize, int ncorrTile, int nchanTile) :
+			ms_p(0)
 		{
 		  try {
 			defaults();
@@ -175,59 +146,6 @@ namespace askap
 			MS::addColumnToDesc(msDesc, MS::MODEL_DATA, 2);
 			MS::addColumnToDesc(msDesc, MS::CORRECTED_DATA, 2);
 			MS::addColumnToDesc(msDesc, MS::IMAGING_WEIGHT, 1);
-
-			// Add index columns for tiling. We use three tiles: data, sigma, and flag.
-			// Some of these contain more than one column
-			msDesc.addColumn(ScalarColumnDesc<Int>(dataTileId,
-			    "Index for Data tiling"));
-			msDesc.addColumn(ScalarColumnDesc<Int>(scratchDataTileId,
-			    "Index for Scratch Data tiling"));
-			msDesc.addColumn(ScalarColumnDesc<Int>(sigmaTileId,
-			    "Index for Sigma tiling"));
-			msDesc.addColumn(ScalarColumnDesc<Int>(imweightTileId,
-			    "Index for Imaging Weight tiling"));
-			msDesc.addColumn(ScalarColumnDesc<Int>(flagTileId,
-			    "Index for Flag Category tiling"));
-
-			// setup hypercolumns for the data/flag/flag_catagory/sigma & weight columns.
-			{
-				Vector<String> dataCols(2);
-				dataCols(0) = MeasurementSet::columnName(MeasurementSet::DATA);
-				dataCols(1) = MeasurementSet::columnName(MeasurementSet::FLAG);
-				const Vector<String> coordCols(0);
-				const Vector<String> idCols(1, dataTileId);
-				msDesc.defineHypercolumn(dataCol, 3, dataCols, coordCols, idCols);
-			}
-			{
-				Vector<String> dataCols(2);
-				dataCols(0) = MeasurementSet::columnName(MeasurementSet::MODEL_DATA);
-				dataCols(1)= MeasurementSet::columnName(MeasurementSet::CORRECTED_DATA);
-				const Vector<String> coordCols(0);
-				const Vector<String> idCols(1, scratchDataTileId);
-				msDesc.defineHypercolumn(scratchDataCol, 3, dataCols, coordCols, idCols);
-			}
-			{
-				Vector<String> dataCols(2);
-				dataCols(0) = MeasurementSet::columnName(MeasurementSet::SIGMA);
-				dataCols(1) = MeasurementSet::columnName(MeasurementSet::WEIGHT);
-				const Vector<String> coordCols(0);
-				const Vector<String> idCols(1, sigmaTileId);
-				msDesc.defineHypercolumn(sigmaCol, 2, dataCols, coordCols, idCols);
-			}
-			{
-				Vector<String> dataCols(1);
-				dataCols(0)= MeasurementSet::columnName(MeasurementSet::IMAGING_WEIGHT);
-				const Vector<String> coordCols(0);
-				const Vector<String> idCols(1, imweightTileId);
-				msDesc.defineHypercolumn(imweightCol, 2, dataCols, coordCols, idCols);
-			}
-			{
-				Vector<String> dataCols(1);
-				dataCols(0) = MeasurementSet::columnName(MeasurementSet::FLAG_CATEGORY);
-				const Vector<String> coordCols(0);
-				const Vector<String> idCols(1, flagTileId);
-				msDesc.defineHypercolumn(flagCol, 4, dataCols, coordCols, idCols);
-			}
 
 			SetupNewTable newMS(MSName, msDesc, Table::New);
 
@@ -249,42 +167,25 @@ namespace askap
 
 			// These columns contain the bulk of the data so save them in a tiled way
 			{
-				TiledDataStMan dataMan(dataCol);
+                          // Get nr of rows in a tile.
+                          if (ncorrTile <= 0) ncorrTile = 1;
+                          if (nchanTile <= 0) nchanTile = 1;
+                          int nrowTile = std::max(1, tileSize / (8*ncorrTile*nchanTile));
+                          TiledShapeStMan dataMan("TiledData",
+                                                  IPosition(3,ncorrTile,
+                                                            nchanTile,nrowTile));
 				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::DATA),
 				    dataMan);
 				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::FLAG),
 				    dataMan);
-				newMS.bindColumn(dataTileId, dataMan);
 			}
 			{
-				TiledDataStMan dataMan(scratchDataCol);
-				newMS.bindColumn(
-				    MeasurementSet::columnName(MeasurementSet::MODEL_DATA), dataMan);
-				newMS.bindColumn(
-				    MeasurementSet::columnName(MeasurementSet::CORRECTED_DATA), dataMan);
-				newMS.bindColumn(scratchDataTileId, dataMan);
-			}
-			{
-				TiledDataStMan dataMan(sigmaCol);
+                          TiledShapeStMan dataMan("TiledWeight",
+                                                  IPosition(2,4,1024));
 				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::SIGMA),
 				    dataMan);
 				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::WEIGHT),
 				    dataMan);
-				newMS.bindColumn(sigmaTileId, dataMan);
-			}
-
-			{
-				TiledDataStMan dataMan(imweightCol);
-				newMS.bindColumn(
-				    MeasurementSet::columnName(MeasurementSet::IMAGING_WEIGHT), dataMan);
-				newMS.bindColumn(imweightTileId, dataMan);
-			}
-
-			{
-				TiledDataStMan dataMan(flagCol);
-				newMS.bindColumn(
-				    MeasurementSet::columnName(MeasurementSet::FLAG_CATEGORY), dataMan);
-				newMS.bindColumn(flagTileId, dataMan);
 			}
 
 			// Now we can create the MeasurementSet and add the (empty) subtables
@@ -300,19 +201,8 @@ namespace askap
 				info.readmeAddLine("This is a MeasurementSet Table holding simulated astronomical observations");
 			}
 
-			// Now we can make the accessors to be used when adding hypercolumns
-			dataAcc_p = TiledDataStManAccessor(*ms_p, dataCol);
-			scratchDataAcc_p = TiledDataStManAccessor(*ms_p, scratchDataCol);
-			sigmaAcc_p = TiledDataStManAccessor(*ms_p, sigmaCol);
-			flagAcc_p = TiledDataStManAccessor(*ms_p, flagCol);
-			imweightAcc_p = TiledDataStManAccessor(*ms_p, imweightCol);
-
 			// We're done - wasn't that easy?
 
-			dataWritten_p=0.0;
-			hyperCubeID_p=-1;
-			lastSpWID_p=-1;
-			hasHyperCubes_p=True;
 		  } catch (std::exception& x) {
 		    ASKAPLOG_ERROR (logger, x.what());
 		    throw;
@@ -320,8 +210,7 @@ namespace askap
 		}
 
 		Simulator::Simulator(casa::MeasurementSet& theMS) :
-			ms_p(0), dataAcc_p(), scratchDataAcc_p(), sigmaAcc_p(), flagAcc_p(),
-			    imweightAcc_p(), maxData_p(2e9)
+			ms_p(0)
 		{
 
 			defaults();
@@ -330,61 +219,13 @@ namespace askap
 
 			ASKAPLOG_INFO_STR(logger, "Opening MeasurementSet "<< ms_p->tableName() << " with "
                                            << ms_p->nrow() << " rows");
-			dataWritten_p=ms_p->nrow();
 
 			TableDesc td(ms_p->tableDesc());
-			if (td.isColumn(dataTileId))
-			{
-				hasHyperCubes_p=True;
-				// Now we can make the accessors to be used when adding hypercolumns
-				dataAcc_p = TiledDataStManAccessor(*ms_p, dataCol);
-				scratchDataAcc_p = TiledDataStManAccessor(*ms_p, scratchDataCol);
-				sigmaAcc_p = TiledDataStManAccessor(*ms_p, sigmaCol);
-				flagAcc_p = TiledDataStManAccessor(*ms_p, flagCol);
-				imweightAcc_p = TiledDataStManAccessor(*ms_p, imweightCol);
-
-				ScalarColumn<Int> hyperCubeIDColumn(*ms_p, dataTileId);
-				hyperCubeID_p=max(hyperCubeIDColumn.getColumn());
-				ASKAPLOG_INFO_STR(logger, "   last hyper cube ID = "<< hyperCubeID_p );
-			}
-			else
-			{
-				hasHyperCubes_p=False;
-			}
 			{
 				MSColumns msc(*ms_p);
 				MSSpWindowColumns& spwc=msc.spectralWindow();
-				lastSpWID_p=spwc.nrow();
-				ASKAPLOG_INFO_STR(logger, "   last spectral window ID = "<< lastSpWID_p );
+				ASKAPLOG_INFO_STR(logger, "   last spectral window ID = "<< spwc.nrow() );
 			}
-		}
-
-		// Add new hypercubes as the shape changes
-		void Simulator::addHyperCubes(const int id, const int nBase,
-		    const int nChan, const int nCorr)
-		{
-			Record tileId;
-			const uInt chanTiles=(nChan+7)/8;
-
-			tileId.define(sigmaTileId, static_cast<Int>(10*id));
-			sigmaAcc_p.addHypercube(IPosition(2, nCorr, 0),
-			    IPosition(2, nCorr, nBase), tileId);
-
-			tileId.define(dataTileId, static_cast<Int>(10*id+1));
-			dataAcc_p.addHypercube(IPosition(3, nCorr, nChan, 0), IPosition(3, nCorr,
-			    chanTiles, nBase), tileId);
-
-			tileId.define(scratchDataTileId, static_cast<Int>(10*id+2));
-			scratchDataAcc_p.addHypercube(IPosition(3, nCorr, nChan, 0), IPosition(3,
-			    nCorr, chanTiles, nBase), tileId);
-
-			tileId.define(flagTileId, static_cast<Int>(10*id + 3));
-			flagAcc_p.addHypercube(IPosition(4, nCorr, nChan, nCat, 0), IPosition(4,
-			    nCorr, chanTiles, nCat, nBase), tileId);
-
-			tileId.define(imweightTileId, static_cast<Int>(10*id + 4));
-			imweightAcc_p.addHypercube(IPosition(2, nChan, 0), IPosition(2,
-			    chanTiles, nBase), tileId);
 		}
 
 		Simulator::Simulator(const Simulator & mss)
@@ -985,7 +826,7 @@ namespace askap
 			// One call to observe corresponds to one scan
 			scan++;
 
-			// We can extend the ms and the hypercubes just once
+			// We can extend the ms just once
 			Int nBaselines;
 			if(autoCorrelationWt_p > 0.0)
 			{
@@ -1001,55 +842,9 @@ namespace askap
 
 			// We need to do addition in this order to get a new TSM file.
 
-			// Various conditions for new hypercube
-			Bool needNewHyperCube=False;
-			if(hasHyperCubes_p)
-			{
-				if(hyperCubeID_p<0) needNewHyperCube=True;
-				if(lastSpWID_p<0)
-				{
-					needNewHyperCube=True;
-				}
-				else if(baseSpWID!=lastSpWID_p)
-				{
-					needNewHyperCube=True;
-				}
-				if((maxData_p>0)&&(dataWritten_p>maxData_p))
-				{
-					needNewHyperCube=True;
-				}
-			}
-			if(needNewHyperCube)
-			{
-				hyperCubeID_p++;
-				ASKAPLOG_INFO_STR(logger, "Creating new hypercube " << hyperCubeID_p+1 );
-				addHyperCubes(hyperCubeID_p, nBaselines, nChan, nCorr);
-				dataWritten_p=0;
-				lastSpWID_p=baseSpWID;
-			}
 			// ... Next extend the table
 			ASKAPLOG_INFO_STR(logger, "Adding " << nNewRows << " rows" );
 			ms_p->addRow(nNewRows);
-
-			// ... Finally extend the hypercubes
-			if(hasHyperCubes_p)
-			{
-				Record tileId;
-				tileId.define(sigmaTileId, static_cast<Int>(10*hyperCubeID_p));
-				sigmaAcc_p.extendHypercube(nNewRows, tileId);
-				tileId.define(dataTileId, static_cast<Int>(10*hyperCubeID_p + 1));
-				dataAcc_p.extendHypercube(nNewRows, tileId);
-				tileId.define(scratchDataTileId, static_cast<Int>(10*hyperCubeID_p + 2));
-				scratchDataAcc_p.extendHypercube(nNewRows, tileId);
-				tileId.define(flagTileId, static_cast<Int>(10*hyperCubeID_p + 3));
-				flagAcc_p.extendHypercube(nNewRows, tileId);
-				tileId.define(imweightTileId, static_cast<Int>(10*hyperCubeID_p + 4));
-				imweightAcc_p.extendHypercube(nNewRows, tileId);
-				// Size of scratch columns
-				double thisChunk=16.0*double(nChan)*double(nCorr)*double(nNewRows);
-				dataWritten_p+=thisChunk;
-				ASKAPLOG_INFO_STR(logger, "Written " << thisChunk/(1024.0*1024.0*1024) << " Gbytes to scratch columns" );
-			}
 
 			Matrix<Complex> data(nCorr,nChan);
 			data.set(Complex(0.0));
