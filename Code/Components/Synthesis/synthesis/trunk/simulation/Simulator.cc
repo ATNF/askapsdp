@@ -132,7 +132,7 @@ namespace askap
 		}
 
           Simulator::Simulator(const casa::String& MSName,
-                               int tileSize, int ncorrTile, int nchanTile) :
+                               int bucketSize, int tileNcorr, int tileNchan) :
 			ms_p(0)
 		{
 		  try {
@@ -141,18 +141,18 @@ namespace askap
 			// make MS with standard columns
 			TableDesc msDesc(MS::requiredTableDesc());
 
-			// Add other columns, including the scratch columns
+			// Add the DATA column.
 			MS::addColumnToDesc(msDesc, MS::DATA, 2);
-			MS::addColumnToDesc(msDesc, MS::MODEL_DATA, 2);
-			MS::addColumnToDesc(msDesc, MS::CORRECTED_DATA, 2);
-			MS::addColumnToDesc(msDesc, MS::IMAGING_WEIGHT, 1);
 
+                        if (bucketSize < 2048) {
+                          bucketSize = 2048;
+                        }
 			SetupNewTable newMS(MSName, msDesc, Table::New);
 
 			// Set the default Storage Manager to be the Incr one
 			{
-				IncrementalStMan incrStMan("ismdata");
-				newMS.bindAll(incrStMan, True);
+                          IncrementalStMan incrStMan("ismdata", bucketSize);
+                          newMS.bindAll(incrStMan, True);
 			}
 
 			// Bind ANTENNA1, and ANTENNA2 to the standardStMan 
@@ -160,32 +160,34 @@ namespace askap
 			// incremental storage manager inefficient for these columns.
 
 			{
-				StandardStMan ssm(32768);
-				newMS.bindColumn(MS::columnName(MS::ANTENNA1), ssm);
-				newMS.bindColumn(MS::columnName(MS::ANTENNA2), ssm);
+                          StandardStMan ssm("ssmdata", bucketSize);
+                          newMS.bindColumn(MS::columnName(MS::ANTENNA1), ssm);
+                          newMS.bindColumn(MS::columnName(MS::ANTENNA2), ssm);
+                          newMS.bindColumn(MS::columnName(MS::UVW), ssm);
 			}
 
 			// These columns contain the bulk of the data so save them in a tiled way
 			{
                           // Get nr of rows in a tile.
-                          if (ncorrTile <= 0) ncorrTile = 1;
-                          if (nchanTile <= 0) nchanTile = 1;
-                          int nrowTile = std::max(1, tileSize / (8*ncorrTile*nchanTile));
+                          if (tileNcorr <= 0) tileNcorr = 1;
+                          if (tileNchan <= 0) tileNchan = 1;
+                          int nrowTile = std::max(1, bucketSize / (8*tileNcorr*tileNchan));
                           TiledShapeStMan dataMan("TiledData",
-                                                  IPosition(3,ncorrTile,
-                                                            nchanTile,nrowTile));
+                                                  IPosition(3,tileNcorr,
+                                                            tileNchan,nrowTile));
 				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::DATA),
 				    dataMan);
 				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::FLAG),
 				    dataMan);
 			}
 			{
+                          int nrowTile = std::max(1, bucketSize / (4*8));
                           TiledShapeStMan dataMan("TiledWeight",
-                                                  IPosition(2,4,1024));
-				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::SIGMA),
-				    dataMan);
-				newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::WEIGHT),
-				    dataMan);
+                                                  IPosition(2,4,nrowTile));
+                          newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::SIGMA),
+                                           dataMan);
+                          newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::WEIGHT),
+                                           dataMan);
 			}
 
 			// Now we can create the MeasurementSet and add the (empty) subtables
@@ -467,8 +469,6 @@ namespace askap
 				Matrix<Int> selection(2, nSpw);
 				selection.row(0)=0; //start
 				selection.row(1)=msSpW.numChan().getColumn();
-				ArrayColumn<Complex> mcd(*ms_p, "MODEL_DATA");
-				mcd.rwKeywordSet().define("CHANNEL_SELECTION", selection);
 			}
 
 		}
@@ -852,9 +852,6 @@ namespace askap
 			Matrix<Bool> flag(nCorr,nChan);
 			flag=False;
 
-			Vector<Float> imagingWeight(nChan);
-			imagingWeight.set(1.0);
-
 			ASKAPLOG_INFO_STR(logger, "Calculating uvw coordinates for " << nIntegrations << " integrations" );
 
 			
@@ -972,12 +969,6 @@ namespace askap
 							msc.flag().put(row,flag);
 							msc.flagRow().put(row,False);
 
-							msc.correctedData().setShape(row, data.shape());
-							msc.correctedData().put(row,data);
-							msc.modelData().setShape(row,data.shape());
-							msc.modelData().put(row, data);
-							msc.imagingWeight().setShape(row, data.shape().getLast(1));
-							msc.imagingWeight().put(row, imagingWeight);
 
 							if (ant1 != ant2)
 							{

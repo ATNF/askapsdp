@@ -93,11 +93,11 @@ namespace askap
       {
         string msname(substitute(itsParset.getString("dataset",
             "test%w.ms")));
-        int tileSize  = itsParset.getInt32("tilesize", 32768);
-        int ncorrTile = itsParset.getInt32("ncorrtile", 4);
-        int nchanTile = itsParset.getInt32("nchantile", 32);
-        itsSim=boost::shared_ptr<Simulator> (new Simulator(msname, tileSize,
-                                                           ncorrTile, nchanTile));
+        int bucketSize  = itsParset.getInt32("stman.bucketsize", 32768);
+        int tileNcorr = itsParset.getInt32("stman.tilencorr", 4);
+        int tileNchan = itsParset.getInt32("stman.tilenchan", 32);
+        itsSim=boost::shared_ptr<Simulator> (new Simulator(msname, bucketSize,
+                                                           tileNcorr, tileNchan));
 
         itsMs=boost::shared_ptr<casa::MeasurementSet> (new casa::MeasurementSet(msname, casa::Table::Update));
 
