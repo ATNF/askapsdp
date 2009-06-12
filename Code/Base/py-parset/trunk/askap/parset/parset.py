@@ -117,7 +117,7 @@ def decode(value):
     rxislist = re.compile(r"^\[(.+)\]$")
     rxbool = re.compile(r"([tT]rue|[fF]alse)")
     rxisrange = re.compile(r"(\d+)\.{2}(\d+)")
-    rxisnum = re.compile(r"^((\A|(?<=\W))(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)$")
+    rxisnum = re.compile(r"^([+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)$")
     # lists/arrays
     match = rxislist.match(value)
     if match:
