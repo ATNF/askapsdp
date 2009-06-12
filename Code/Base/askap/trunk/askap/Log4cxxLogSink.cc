@@ -55,29 +55,29 @@ namespace askap {
       std::string msg (message.origin().location() + ": " + message.message());
       posted = casa::True;
       switch (message.priority()) {
-	case casa::LogMessage::DEBUGGING:
-	  ///case casa::LogMessage::DEBUG2:
-	  ///case casa::LogMessage::DEBUG1:
+      case casa::LogMessage::DEBUGGING:
+      case casa::LogMessage::DEBUG2:
+      case casa::LogMessage::DEBUG1:
 	{
 	  ASKAPLOG_DEBUG (logger, msg);
 	  break;
 	}
-	///case casa::LogMessage::NORMAL5:
-	///case casa::LogMessage::NORMAL4:
-	///case casa::LogMessage::NORMAL3:
-	///case casa::LogMessage::NORMAL2:
-	///case casa::LogMessage::NORMAL1:
-	case casa::LogMessage::NORMAL:
+      case casa::LogMessage::NORMAL5:
+      case casa::LogMessage::NORMAL4:
+      case casa::LogMessage::NORMAL3:
+      case casa::LogMessage::NORMAL2:
+      case casa::LogMessage::NORMAL1:
+      case casa::LogMessage::NORMAL:
 	{
 	  ASKAPLOG_INFO (logger, msg);
 	  break;
 	}
-	case casa::LogMessage::WARN:
+      case casa::LogMessage::WARN:
 	{
 	  ASKAPLOG_WARN (logger, msg);
 	  break;
 	}
-	case casa::LogMessage::SEVERE:
+      case casa::LogMessage::SEVERE:
 	{
 	  ASKAPLOG_ERROR (logger, msg);
 	  break;
