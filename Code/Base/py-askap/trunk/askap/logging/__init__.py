@@ -17,8 +17,6 @@ from logging import config
 from logging import handlers
 from logging import getLogger, basicConfig
 
-from askap.logging.icehandler import IceHandler
-
 # decorator
 def log_debug(func):
     """Logging decorator for quick debugging of function calls and their arguments.
@@ -64,4 +62,3 @@ class Foo:
         # pylint: disable-msg=W0142
         return func(*args, **kwargs)
     return postlog
-
