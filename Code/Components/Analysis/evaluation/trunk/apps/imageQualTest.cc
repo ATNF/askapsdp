@@ -54,70 +54,52 @@ ASKAP_LOGGER(logger, "imageQualTest.log");
 
 // Move to Askap Util?
 std::string getInputs(const std::string& key, const std::string& def, int argc,
-    const char** argv)
+                      const char** argv)
 {
-  if (argc>2)
-  {
-    for (int arg=0; arg<(argc-1); arg++)
-    {
-      std::string argument=std::string(argv[arg]);
-      if (argument==key)
-      {
-        return std::string(argv[arg+1]);
-      }
+    if (argc > 2) {
+        for (int arg = 0; arg < (argc - 1); arg++) {
+            std::string argument = std::string(argv[arg]);
+
+            if (argument == key) {
+                return std::string(argv[arg+1]);
+            }
+        }
     }
-  }
-  return def;
+
+    return def;
 }
 
 // Main function
 int main(int argc, const char** argv)
 {
 //   ASKAPLOG_INIT("imageQualTest.log_cfg");
+    try {
+        //    casa::Timer timer;
+        //    timer.mark();
+        std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
+        ParameterSet parset(parsetFile);
+        ParameterSet subset(parset.makeSubset("imageQual."));
+        Matcher matcher(subset);
+        DuchampParallel image(argc, argv, subset);
+        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
+        image.getMetadata();
+        ASKAPLOG_INFO_STR(logger, "Read image metadata");
+        matcher.fixRefList(image.getBeamInfo());
+        matcher.setTriangleLists();
+        matcher.findMatches();
+        matcher.findOffsets();
+        matcher.addNewMatches();
+        matcher.outputLists();
+    } catch (askap::AskapError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    } catch (std::exception& x) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    }
 
-  try
-  {
-
-    //    casa::Timer timer;
-
-    //    timer.mark();
-
-    std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
-
-    ParameterSet parset(parsetFile);
-    ParameterSet subset(parset.makeSubset("imageQual."));
-
-    Matcher matcher(subset);
-
-    DuchampParallel image(argc,argv,subset);
-    ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
-    image.getMetadata();
-    ASKAPLOG_INFO_STR(logger, "Read image metadata");
-    matcher.fixRefList(image.getBeamInfo());
-
-    matcher.setTriangleLists();
-
-    matcher.findMatches();
-
-    matcher.findOffsets();
-
-    matcher.addNewMatches();
-
-    matcher.outputLists();
-   
-  }
-  catch (askap::AskapError& x)
-  {
-    ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-    std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  }
-  catch (std::exception& x)
-  {
-    ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-    std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  }
-  exit(0);
+    exit(0);
 }
 
