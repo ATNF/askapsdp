@@ -172,7 +172,15 @@ def decode(value):
     return value
 
 def extract(line):
-    """Extract a key/value pair form a string"""
+    """Extract a key/value pair form a string
+    Supported value encodings are:
+    
+    * ranges i..j or j..i with padding
+    * lists
+    * numerical arrays (lists of lists with numerical values)
+    * booleans true/false
+
+"""
     line = line.strip()
     if len(line) == 0 or line.startswith("#"):
         return None
