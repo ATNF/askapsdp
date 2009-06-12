@@ -121,6 +121,18 @@ def decode(value):
     # lists/arrays
     match = rxislist.match(value)
     if match:
+        # check for [ n * <value> ] and expand
+        # doesn't work for vectors elements 
+        if value.count(",")  == 0:
+            rxtimes = re.compile(r"\[.*?(\d+)\s*[*](.+)\]")
+            mtch = rxtimes.match(value)
+            if mtch:
+                fact = int(mtch.groups()[0])
+                val = mtch.groups()[1].strip()
+                if rxisnum.match(val):
+                    val = eval(val)
+                return fact*[val]
+
         # dodgey way to test for arrays of numerical values
         # don't support any other array type
         if value.count("[") > 1:
