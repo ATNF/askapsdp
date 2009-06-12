@@ -1,0 +1,3 @@
+If used outside askapsoft, replace setup.py with setup.py.standard and it 
+should install as a normal python package. Noteh that it requires the 'nose' 
+package for testing.
