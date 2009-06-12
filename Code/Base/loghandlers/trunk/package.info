@@ -1,3 +1,0 @@
-pymodule=askap.loghandlers==trunk
-# pure python module
-libs=
