@@ -50,72 +50,69 @@
 #include <utility>
 
 
-namespace askap
-{
+namespace askap {
 
-  namespace analysis
-  {
+    namespace analysis {
 
-    namespace sourcefitting
-    {
+        namespace sourcefitting {
 
 
 
-      class FitResults
-      {
-      public:
-	FitResults(){itsFitIsGood=false;}
-	virtual ~FitResults(){};
-        /// @brief Copy constructor
-        FitResults(const FitResults& f);
-        /// @brief Copy function
-        FitResults& operator= (const FitResults& f);
+            class FitResults {
+                public:
+                    FitResults() {itsFitIsGood = false;}
+                    virtual ~FitResults() {};
+                    /// @brief Copy constructor
+                    FitResults(const FitResults& f);
+                    /// @brief Copy function
+                    FitResults& operator= (const FitResults& f);
 
-	void saveResults(Fitter &fit);
+                    void saveResults(Fitter &fit);
 
-	bool  isGood(){return itsFitIsGood;};
-	float chisq(){return itsChisq;};
-	float redchisq(){return itsRedChisq;};
-	float RMS(){return itsRMS;};
-	int   ndof(){return itsNumDegOfFreedom;};
-	int   numFreeParam(){return itsNumFreeParam;};
-	int   numGauss(){return itsNumGauss;};
-	std::vector<casa::Gaussian2D<double> > fitSet(){return itsGaussFitSet;};
-	/// @brief Return a reference to the set of Gaussian fits.
-	std::vector<casa::Gaussian2D<Double> >& fits(){
-	  std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;};
-	
-	int numFits(){return itsGaussFitSet.size();};
+                    bool  isGood() {return itsFitIsGood;};
+                    float chisq() {return itsChisq;};
+                    float redchisq() {return itsRedChisq;};
+                    float RMS() {return itsRMS;};
+                    int   ndof() {return itsNumDegOfFreedom;};
+                    int   numFreeParam() {return itsNumFreeParam;};
+                    int   numGauss() {return itsNumGauss;};
+                    std::vector<casa::Gaussian2D<double> > fitSet() {return itsGaussFitSet;};
+                    /// @brief Return a reference to the set of Gaussian fits.
+                    std::vector<casa::Gaussian2D<Double> >& fits() {
+                        std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;
+                    };
 
-	/// @brief Functions allowing fitting parameters to be passed over LOFAR Blobs
-	/// @name
-	/// @{
+                    int numFits() {return itsGaussFitSet.size();};
 
-	/// @brief Pass Fitting parameters into a Blob
-	friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, FitResults& par);
-	/// @brief Receive Fitting parameters from a Blob
-	friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, FitResults& par);
-	
-	/// @}
+                    /// @brief Functions allowing fitting parameters to be passed over LOFAR Blobs
+                    /// @name
+                    /// @{
+
+                    /// @brief Pass Fitting parameters into a Blob
+                    friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, FitResults& par);
+                    /// @brief Receive Fitting parameters from a Blob
+                    friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, FitResults& par);
+
+                    /// @}
 
 
-      protected:
-	bool  itsFitIsGood;
-	float itsChisq;
-	float itsRedChisq;
-	float itsRMS;
-	int   itsNumDegOfFreedom;
-	int   itsNumFreeParam;
-	int   itsNumGauss;
-	/// @brief A two-dimensional Gaussian fit to the object.
-	std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
+                protected:
+                    bool  itsFitIsGood;
+                    float itsChisq;
+                    float itsRedChisq;
+                    float itsRMS;
+                    int   itsNumDegOfFreedom;
+                    int   itsNumFreeParam;
+                    int   itsNumGauss;
+                    /// @brief A two-dimensional Gaussian fit to the object.
+                    std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
 
-      };
+            };
 
+
+        }
 
     }
-
-  }
 
 }
 

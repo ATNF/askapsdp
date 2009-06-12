@@ -39,72 +39,70 @@
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
 
-namespace askap
-{
-  namespace analysis
-  {
+namespace askap {
+    namespace analysis {
 
-    /// @brief Return an array of axis dimensions for a FITS file.
-    /// @ingroup analysisutilities
-    std::vector<long> getFITSdimensions(std::string filename);
+        /// @brief Return an array of axis dimensions for a FITS file.
+        /// @ingroup analysisutilities
+        std::vector<long> getFITSdimensions(std::string filename);
 
-    /// @brief Return the probability of obtaining a chisq value by
-    ///        chance, for a certain number of degrees of freedom.
-    /// @ingroup analysisutilities
-    float chisqProb(float ndof, float chisq);
+        /// @brief Return the probability of obtaining a chisq value by
+        ///        chance, for a certain number of degrees of freedom.
+        /// @ingroup analysisutilities
+        float chisqProb(float ndof, float chisq);
 
-    /// @brief Parse a ParameterSet and define duchamp::param parameters.
-    /// @ingroup analysisutilities
-    duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset);
+        /// @brief Parse a ParameterSet and define duchamp::param parameters.
+        /// @ingroup analysisutilities
+        duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset);
 
-    /// @brief Find an rms for an array given a mean value
-    /// @ingroup analysisutilities
-    double findSpread(bool robust, double middle, int size, float *array);
+        /// @brief Find an rms for an array given a mean value
+        /// @ingroup analysisutilities
+        double findSpread(bool robust, double middle, int size, float *array);
 
-    /// @brief Find an rms for an array given a mean value, with masking of pixels.
-    /// @ingroup analysisutilities
-    double findSpread(bool robust, double middle, int size, float *array, bool *mask);
+        /// @brief Find an rms for an array given a mean value, with masking of pixels.
+        /// @ingroup analysisutilities
+        double findSpread(bool robust, double middle, int size, float *array, bool *mask);
 
-    /// @brief Read in image sections and return a vector of duchamp::Section objects;
-    /// @ingroup analysisutilities
-    std::vector<duchamp::Section> readSectionInfo(std::string filename);
+        /// @brief Read in image sections and return a vector of duchamp::Section objects;
+        /// @ingroup analysisutilities
+        std::vector<duchamp::Section> readSectionInfo(std::string filename);
 
-    /// @brief Return a filename for a subimage
-    /// @ingroup analysisutilities
-    std::string getSubImageName(std::string image, int rank, int numWorkers);
+        /// @brief Return a filename for a subimage
+        /// @ingroup analysisutilities
+        std::string getSubImageName(std::string image, int rank, int numWorkers);
 
-    /// @brief Return a vector list of subsections, one for each worker.
-    /// @ingroup analysisutilities
-    std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
+        /// @brief Return a vector list of subsections, one for each worker.
+        /// @ingroup analysisutilities
+        std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
 
-    /// @brief Return a subsection for a given worker.
-    /// @ingroup analysisutilities
-    duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset);
+        /// @brief Return a subsection for a given worker.
+        /// @ingroup analysisutilities
+        duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset);
 
-    /// @brief Make subimages and return a vector list of subsections.
-    /// @ingroup analysisutilities
-    std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
+        /// @brief Make subimages and return a vector list of subsections.
+        /// @ingroup analysisutilities
+        std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
 
-    /// @brief Remove blank spaces from the beginning of a string
-    std::string removeLeadingBlanks(std::string s);
+        /// @brief Remove blank spaces from the beginning of a string
+        std::string removeLeadingBlanks(std::string s);
 
-    /// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
-    double dmsToDec(std::string input);   
-    
-    /// @brief Converts a decimal into a dd:mm:ss.ss format.
-    std::string decToDMS(const double input, std::string type="DEC", 
-			 int secondPrecision=2, std::string separator=":");
-    
-    /// @brief Find the angular separation of two sky positions
-    double angularSeparation(const std::string ra1, const std::string dec1, 
-			     const std::string ra2, const std::string dec2);
-    
-    /// @brief Find the angular separation of two sky positions.
-    double angularSeparation(double ra1, double dec1, double ra2, double dec2);
-    
-    /// @brief Convert equatorial coordinates to Galactic.
-    void equatorialToGalactic(double ra, double dec, double &gl, double &gb);
-  }
+        /// @brief Converts a string in the format +12:23:34.45 to a decimal angle in degrees.
+        double dmsToDec(std::string input);
+
+        /// @brief Converts a decimal into a dd:mm:ss.ss format.
+        std::string decToDMS(const double input, std::string type = "DEC",
+                             int secondPrecision = 2, std::string separator = ":");
+
+        /// @brief Find the angular separation of two sky positions
+        double angularSeparation(const std::string ra1, const std::string dec1,
+                                 const std::string ra2, const std::string dec2);
+
+        /// @brief Find the angular separation of two sky positions.
+        double angularSeparation(double ra1, double dec1, double ra2, double dec2);
+
+        /// @brief Convert equatorial coordinates to Galactic.
+        void equatorialToGalactic(double ra, double dec, double &gl, double &gb);
+    }
 }
 
 #endif

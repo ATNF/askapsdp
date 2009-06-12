@@ -56,197 +56,192 @@
 
 //using namespace duchamp;
 
-namespace askap
-{
+namespace askap {
 
-  namespace analysis
-  {
+    namespace analysis {
 
-    namespace sourcefitting
-    {
+        namespace sourcefitting {
 
-      /// @brief Class to store all information on a detected source.
-      ///
-      /// @details This class is designed to hold all appropriate
-      /// information on a source detected in an image or cube. It derives from the
-      /// duchamp::Detection class, and so records the pixel and world
-      /// coordinate information, as well as the pixel-based flux information
-      /// (peak flux, total flux, etc). However the RadioSource class is
-      /// designed to be able to fit an object with known functions (primarily
-      /// gaussians) and store the fitted parameters.
-      ///
-      /// @ingroup sourcefitting
-      class RadioSource : public duchamp::Detection
-      {
-      public:
-	/// @brief Constructor
-	RadioSource();
+            /// @brief Class to store all information on a detected source.
+            ///
+            /// @details This class is designed to hold all appropriate
+            /// information on a source detected in an image or cube. It derives from the
+            /// duchamp::Detection class, and so records the pixel and world
+            /// coordinate information, as well as the pixel-based flux information
+            /// (peak flux, total flux, etc). However the RadioSource class is
+            /// designed to be able to fit an object with known functions (primarily
+            /// gaussians) and store the fitted parameters.
+            ///
+            /// @ingroup sourcefitting
+            class RadioSource : public duchamp::Detection {
+                public:
+                    /// @brief Constructor
+                    RadioSource();
 
-	/// @brief Constructor using information in a duchamp::Detection object.
-	RadioSource(duchamp::Detection obj);
+                    /// @brief Constructor using information in a duchamp::Detection object.
+                    RadioSource(duchamp::Detection obj);
 
-	/// @brief Copy constructor for RadioSource.
-	RadioSource(const RadioSource& r);
-      
-	/// @brief Assignment operator for RadioSource.
-	RadioSource& operator= (const RadioSource& r);
-      
-	/// @brief Destructor
-	virtual ~RadioSource(){};
+                    /// @brief Copy constructor for RadioSource.
+                    RadioSource(const RadioSource& r);
 
-	/// @brief Find the local maxima in the flux distribution of the Detection.
-	std::multimap<int,PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
+                    /// @brief Assignment operator for RadioSource.
+                    RadioSource& operator= (const RadioSource& r);
 
-	/// @brief Estimate the FWHM of the Detection.
-	void getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min);
+                    /// @brief Destructor
+                    virtual ~RadioSource() {};
 
-	/// @brief Return a list of subcomponents.
-	std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
-	/// @brief Return a list of subcomponents that lie above a flux threshold
-	std::vector<SubComponent> getThresholdedSubComponentList(casa::Vector<casa::Double> &f);
+                    /// @brief Find the local maxima in the flux distribution of the Detection.
+                    std::multimap<int, PixelInfo::Voxel> findDistinctPeaks(casa::Vector<casa::Double> f);
 
-	/// @brief Fit Gaussian components to the Detection.
-	/// @name
-	///@{
-	bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
-	bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter);
-	bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-		      casa::Vector<casa::Double> sigma, FittingParameters &baseFitter);
-	///@}
+                    /// @brief Estimate the FWHM of the Detection.
+                    void getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min);
 
-	/// @brief Store the FITS header information
-	void setHeader(duchamp::FitsHeader head){itsHeader = head;};
+                    /// @brief Return a list of subcomponents.
+                    std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
+                    /// @brief Return a list of subcomponents that lie above a flux threshold
+                    std::vector<SubComponent> getThresholdedSubComponentList(casa::Vector<casa::Double> &f);
 
-	/// @brief Get the FITS header information
-	duchamp::FitsHeader getHeader(){return itsHeader;};
+                    /// @brief Fit Gaussian components to the Detection.
+                    /// @name
+                    ///@{
+                    bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
+                    bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter);
+                    bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+                                  casa::Vector<casa::Double> sigma, FittingParameters &baseFitter);
+                    ///@}
 
-	/// @brief Functions to set the object's noise level
-	/// @name 
-	/// @{
+                    /// @brief Store the FITS header information
+                    void setHeader(duchamp::FitsHeader head) {itsHeader = head;};
 
-	/// @brief Set the noise level to the local value, using an array.
-	void setNoiseLevel(float *array, long *dim, int boxSize=defaultNoiseBoxSize);
+                    /// @brief Get the FITS header information
+                    duchamp::FitsHeader getHeader() {return itsHeader;};
 
-	/// @brief Set the noise level to the local value, using a Duchamp::Cube object
-	void setNoiseLevel(duchamp::Cube &cube, FittingParameters &fitparams);
+                    /// @brief Functions to set the object's noise level
+                    /// @name
+                    /// @{
 
-	/// @brief Set the noise level
-	void setNoiseLevel(float noise){itsNoiseLevel = noise;};
-	/// @}
+                    /// @brief Set the noise level to the local value, using an array.
+                    void setNoiseLevel(float *array, long *dim, int boxSize = defaultNoiseBoxSize);
 
-	/// @brief Set the detection threshold
-	void setDetectionThreshold(float threshold){itsDetectionThreshold = threshold;};
-	/// @brief Return the detection threshold
-	float detectionThreshold(){return itsDetectionThreshold;};
+                    /// @brief Set the noise level to the local value, using a Duchamp::Cube object
+                    void setNoiseLevel(duchamp::Cube &cube, FittingParameters &fitparams);
 
-	/// @brief Return the set of fits
-	//	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
-	std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsBestFit.fitSet();};
+                    /// @brief Set the noise level
+                    void setNoiseLevel(float noise) {itsNoiseLevel = noise;};
+                    /// @}
 
-	/// @brief Print summary of detection & fit
-	void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-			  std::string fittype, bool doHeader=false);
+                    /// @brief Set the detection threshold
+                    void setDetectionThreshold(float threshold) {itsDetectionThreshold = threshold;};
+                    /// @brief Return the detection threshold
+                    float detectionThreshold() {return itsDetectionThreshold;};
 
-	/// @brief Write the description of the fits to an annotation file.
-	void writeFitToAnnotationFile(std::ostream &stream);
+                    /// @brief Return the set of fits
+                    //  std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
+                    std::vector<casa::Gaussian2D<Double> > gaussFitSet() {return itsBestFit.fitSet();};
 
-	/// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
-	/// @name
-	/// @{
+                    /// @brief Print summary of detection & fit
+                    void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
+                                      std::string fittype, bool doHeader = false);
 
-	/// @brief Pass a RadioSource object into a Blob
-	friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, RadioSource& src);
-	/// @brief Receive a RadioSource object from a Blob
-	friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, RadioSource& src);
-	
-	/// @}
+                    /// @brief Write the description of the fits to an annotation file.
+                    void writeFitToAnnotationFile(std::ostream &stream);
 
-	/// @brief Is the object at the edge of a subimage
-	bool isAtEdge(){return atEdge;};
-	/// @brief Set the atEdge flag.
-	void setAtEdge(bool b){atEdge = b;};
-	/// @brief Set the atEdge flag using information from a Cube
-	void setAtEdge(duchamp::Cube &cube);
+                    /// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
+                    /// @name
+                    /// @{
 
-	/// @brief Define the boundaries of the box
-	void defineBox(duchamp::Section &sec, FittingParameters &fitParams);
+                    /// @brief Pass a RadioSource object into a Blob
+                    friend LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &stream, RadioSource& src);
+                    /// @brief Receive a RadioSource object from a Blob
+                    friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &stream, RadioSource& src);
 
-	/// @brief Commands to return the extent and size of the box
-	/// surrounding the object. Uses the detectionBorder parameter.
-	/// @name 
-	// @{
+                    /// @}
 
-	/// Minimum x-value
-	long boxXmin(){return itsBoxMargins[0].first;};
-	/// Maximum x-value
-	long boxXmax(){return itsBoxMargins[0].second;};
-	/// Minimum y-value
-	long boxYmin(){return itsBoxMargins[1].first;};
-	/// Maximum y-value
-	long boxYmax(){return itsBoxMargins[1].second;};
-	/// Minimum z-value
-	long boxZmin(){return itsBoxMargins[2].first;};
-	/// Maximum z-value
-	long boxZmax(){return itsBoxMargins[2].second;};
-	/// X-width
-	long boxXsize(){return boxXmax()-boxXmin()+1;};
-	/// Y-width
-	long boxYsize(){return boxYmax()-boxYmin()+1;};
-	/// Number of pixels in box
-	long boxSize(){return boxXsize()*boxYsize();};
+                    /// @brief Is the object at the edge of a subimage
+                    bool isAtEdge() {return atEdge;};
+                    /// @brief Set the atEdge flag.
+                    void setAtEdge(bool b) {atEdge = b;};
+                    /// @brief Set the atEdge flag using information from a Cube
+                    void setAtEdge(duchamp::Cube &cube);
 
-	/// Return the full box description
-	std::vector<std::pair<long,long> > box(){return itsBoxMargins;};
-	/// Define the box in one shot
-	void setBox(std::vector<std::pair<long,long> > box){itsBoxMargins = box;};
-	
-	// @}
+                    /// @brief Define the boundaries of the box
+                    void defineBox(duchamp::Section &sec, FittingParameters &fitParams);
 
-	/// @brief Comparison operator, using the name field
-	friend bool operator< (RadioSource lhs, RadioSource rhs)
-	{
-	  if(lhs.getZcentre()==rhs.getZcentre()) return (lhs.name<rhs.name);
-	  else return (lhs.getZcentre()<rhs.getZcentre());
-	}
+                    /// @brief Commands to return the extent and size of the box
+                    /// surrounding the object. Uses the detectionBorder parameter.
+                    /// @name
+                    // @{
 
-	/// @brief Return a reference to the set of Gaussian fits.
-	std::vector<casa::Gaussian2D<Double> >& fitset(){return itsBestFit.fits();};
+                    /// Minimum x-value
+                    long boxXmin() {return itsBoxMargins[0].first;};
+                    /// Maximum x-value
+                    long boxXmax() {return itsBoxMargins[0].second;};
+                    /// Minimum y-value
+                    long boxYmin() {return itsBoxMargins[1].first;};
+                    /// Maximum y-value
+                    long boxYmax() {return itsBoxMargins[1].second;};
+                    /// Minimum z-value
+                    long boxZmin() {return itsBoxMargins[2].first;};
+                    /// Maximum z-value
+                    long boxZmax() {return itsBoxMargins[2].second;};
+                    /// X-width
+                    long boxXsize() {return boxXmax() - boxXmin() + 1;};
+                    /// Y-width
+                    long boxYsize() {return boxYmax() - boxYmin() + 1;};
+                    /// Number of pixels in box
+                    long boxSize() {return boxXsize()*boxYsize();};
 
-	/// @brief Return a reference to the fitting parameters
-	FittingParameters &fitparams(){FittingParameters& rfitpars = itsFitParams; return rfitpars;}; 
+                    /// Return the full box description
+                    std::vector<std::pair<long, long> > box() {return itsBoxMargins;};
+                    /// Define the box in one shot
+                    void setBox(std::vector<std::pair<long, long> > box) {itsBoxMargins = box;};
 
-      protected:
+                    // @}
 
-	/// @brief A flag indicating whether the source is on the boundary of a subimage.
-	bool atEdge;
+                    /// @brief Comparison operator, using the name field
+                    friend bool operator< (RadioSource lhs, RadioSource rhs) {
+                        if (lhs.getZcentre() == rhs.getZcentre()) return (lhs.name < rhs.name);
+                        else return (lhs.getZcentre() < rhs.getZcentre());
+                    }
 
-	/// @brief A flag indicating whether a fit has been made to the source.
-	bool hasFit;
-	
-	/// @brief The FITS header information (including WCS and beam info).
-	duchamp::FitsHeader itsHeader;
+                    /// @brief Return a reference to the set of Gaussian fits.
+                    std::vector<casa::Gaussian2D<Double> >& fitset() {return itsBestFit.fits();};
 
-	/// @brief The noise level in the vicinity of the object, used for Gaussian fitting
-	float itsNoiseLevel;
+                    /// @brief Return a reference to the fitting parameters
+                    FittingParameters &fitparams() {FittingParameters& rfitpars = itsFitParams; return rfitpars;};
 
-	/// @brief The detection threshold used for the object
-	float itsDetectionThreshold;
+                protected:
 
-	/// @brief The best fit results
-	FitResults itsBestFit;
-	FitResults itsBestFitPSF;
-	FitResults itsBestFitFULL;
+                    /// @brief A flag indicating whether the source is on the boundary of a subimage.
+                    bool atEdge;
 
-	/// @brief The parameters used to control the fitting
-	FittingParameters itsFitParams;
+                    /// @brief A flag indicating whether a fit has been made to the source.
+                    bool hasFit;
 
-	/// @brief The min & max points of the box, taking into account the borders of the data array
-	std::vector<std::pair<long,long> > itsBoxMargins;
+                    /// @brief The FITS header information (including WCS and beam info).
+                    duchamp::FitsHeader itsHeader;
 
-      };
+                    /// @brief The noise level in the vicinity of the object, used for Gaussian fitting
+                    float itsNoiseLevel;
+
+                    /// @brief The detection threshold used for the object
+                    float itsDetectionThreshold;
+
+                    /// @brief The best fit results
+                    FitResults itsBestFit;
+                    FitResults itsBestFitPSF;
+                    FitResults itsBestFitFULL;
+
+                    /// @brief The parameters used to control the fitting
+                    FittingParameters itsFitParams;
+
+                    /// @brief The min & max points of the box, taking into account the borders of the data array
+                    std::vector<std::pair<long, long> > itsBoxMargins;
+
+            };
+        }
+
     }
-
-  }
 
 }
 

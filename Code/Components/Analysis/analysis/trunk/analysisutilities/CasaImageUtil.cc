@@ -66,511 +66,514 @@ using namespace duchamp;
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".analysisutilities");
 
-namespace askap
-{
+namespace askap {
 
-  namespace analysis
-  {
+    namespace analysis {
 
-    void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs)
-    {
-      /// @details Stores a wcsprm struct to a duchamp::FitsHeader,
-      /// setting the parameters such as spectralDescription
-      /// appropriately.
-      /// @param head The duchamp::FitsHeader object containing the header information
-      /// @param par The duchamp::Param object, use for information on the spectral units
-      /// @param wcs The WCS information
+        void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs)
+        {
+            /// @details Stores a wcsprm struct to a duchamp::FitsHeader,
+            /// setting the parameters such as spectralDescription
+            /// appropriately.
+            /// @param head The duchamp::FitsHeader object containing the header information
+            /// @param par The duchamp::Param object, use for information on the spectral units
+            /// @param wcs The WCS information
+            if (wcs->spec >= 0) { //if there is a spectral axis
+                int index = wcs->spec;
+                std::string desiredType, specType = wcs->ctype[index];
+                std::string shortType = specType.substr(0, 4);
 
-      if(wcs->spec>=0){ //if there is a spectral axis
+                if (shortType == "VELO" || shortType == "VOPT" || shortType == "ZOPT"
+                        || shortType == "VRAD" || shortType == "BETA") {
+                    if (wcs->restfrq != 0) {
+                        // Set the spectral axis to a standard specification: VELO-F2V
+                        desiredType = duchampVelocityType;
 
-	int index = wcs->spec;
-	std::string desiredType,specType = wcs->ctype[index];
-	std::string shortType = specType.substr(0,4);
-	if(shortType=="VELO" || shortType=="VOPT" || shortType=="ZOPT" 
-	   || shortType=="VRAD" || shortType=="BETA"){
-	  if(wcs->restfrq != 0){
-	    // Set the spectral axis to a standard specification: VELO-F2V
-	    desiredType = duchampVelocityType;
-	    if(wcs->restwav == 0) 
-	      wcs->restwav = 299792458.0 /  wcs->restfrq;
-	    head.setSpectralDescription(duchampSpectralDescription[VELOCITY]);
-	  }
-	  else{
-	    // No rest frequency defined, so put spectral dimension in frequency. 
-	    // Set the spectral axis to a standard specification: FREQ
-	    duchampWarning("Cube Reader",
-			   "No rest frequency defined. Using frequency units in spectral axis.\n");
-	    desiredType = duchampFrequencyType;
-	    par.setSpectralUnits("MHz");
-	    if(strcmp(wcs->cunit[index],"")==0){
-	      duchampWarning("Cube Reader",
-			     "No frequency unit given. Assuming frequency axis is in Hz.\n");
-	      strcpy(wcs->cunit[index],"Hz");
-	    }
-	    head.setSpectralDescription(duchampSpectralDescription[FREQUENCY]);
-	  }
-	}
-	else {
-	  desiredType = duchampFrequencyType;
-	  par.setSpectralUnits("MHz");
-	  if(strcmp(wcs->cunit[index],"")==0){
-	    duchampWarning("Cube Reader",
-			   "No frequency unit given. Assuming frequency axis is in Hz.\n");
-	    strcpy(wcs->cunit[index],"Hz");
-	  }
-	  head.setSpectralDescription(duchampSpectralDescription[FREQUENCY]);
-	}	
+                        if (wcs->restwav == 0)
+                            wcs->restwav = 299792458.0 /  wcs->restfrq;
 
-	// Now we need to make sure the spectral axis has the correct setup.
-	//  We use wcssptr to translate it if it is not of the desired type,
-	//  or if the spectral units are not defined.
+                        head.setSpectralDescription(duchampSpectralDescription[VELOCITY]);
+                    } else {
+                        // No rest frequency defined, so put spectral dimension in frequency.
+                        // Set the spectral axis to a standard specification: FREQ
+                        duchampWarning("Cube Reader",
+                                       "No rest frequency defined. Using frequency units in spectral axis.\n");
+                        desiredType = duchampFrequencyType;
+                        par.setSpectralUnits("MHz");
 
-	bool needToTranslate = false;
+                        if (strcmp(wcs->cunit[index], "") == 0) {
+                            duchampWarning("Cube Reader",
+                                           "No frequency unit given. Assuming frequency axis is in Hz.\n");
+                            strcpy(wcs->cunit[index], "Hz");
+                        }
 
-	//       if(strncmp(specType.c_str(),desiredType.c_str(),4)!=0) 
-	// 	needToTranslate = true;
+                        head.setSpectralDescription(duchampSpectralDescription[FREQUENCY]);
+                    }
+                } else {
+                    desiredType = duchampFrequencyType;
+                    par.setSpectralUnits("MHz");
 
-	std::string blankstring = "";
-	if(strcmp(wcs->cunit[wcs->spec],blankstring.c_str())==0)
-	  needToTranslate = true;
+                    if (strcmp(wcs->cunit[index], "") == 0) {
+                        duchampWarning("Cube Reader",
+                                       "No frequency unit given. Assuming frequency axis is in Hz.\n");
+                        strcpy(wcs->cunit[index], "Hz");
+                    }
 
-	if(needToTranslate){
+                    head.setSpectralDescription(duchampSpectralDescription[FREQUENCY]);
+                }
 
-	  if(strcmp(wcs->ctype[wcs->spec],"VELO")==0)
-	    strcpy(wcs->ctype[wcs->spec],"VELO-F2V");
+                // Now we need to make sure the spectral axis has the correct setup.
+                //  We use wcssptr to translate it if it is not of the desired type,
+                //  or if the spectral units are not defined.
+                bool needToTranslate = false;
+                //       if(strncmp(specType.c_str(),desiredType.c_str(),4)!=0)
+                //  needToTranslate = true;
+                std::string blankstring = "";
 
-	  index = wcs->spec;
-	
-	  int status = wcssptr(wcs, &index, (char *)desiredType.c_str());
-	  if(status){
-	    std::stringstream errmsg;
-	    errmsg<< "WCSSPTR failed! Code=" << status << ": "
-		  << wcs_errmsg[status] << std::endl
-		  << "(wanted to convert from type \"" << specType
-		  << "\" to type \"" << desiredType << "\")\n";
-	    duchampWarning("Cube Reader",errmsg.str());
+                if (strcmp(wcs->cunit[wcs->spec], blankstring.c_str()) == 0)
+                    needToTranslate = true;
 
-	  }
+                if (needToTranslate) {
+                    if (strcmp(wcs->ctype[wcs->spec], "VELO") == 0)
+                        strcpy(wcs->ctype[wcs->spec], "VELO-F2V");
 
-	}
-    
-      } // end of if(wcs->spec>=0)
+                    index = wcs->spec;
+                    int status = wcssptr(wcs, &index, (char *)desiredType.c_str());
 
+                    if (status) {
+                        std::stringstream errmsg;
+                        errmsg << "WCSSPTR failed! Code=" << status << ": "
+                            << wcs_errmsg[status] << std::endl
+                            << "(wanted to convert from type \"" << specType
+                            << "\" to type \"" << desiredType << "\")\n";
+                        duchampWarning("Cube Reader", errmsg.str());
+                    }
+                }
+            } // end of if(wcs->spec>=0)
 
-	// Save the wcs to the FitsHeader class that is running this function
-      head.setWCS(wcs);
-      head.setNWCS(1);
-      
-    }
+            // Save the wcs to the FitsHeader class that is running this function
+            head.setWCS(wcs);
+            head.setNWCS(1);
+        }
 
-    //**************************************************************//
+        //**************************************************************//
 
-    int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
-    {
-      /// @details Read all relevant metadata from a casa image, and
-      /// store in a duchamp::Cube. The metadata read includes: WCS
-      /// info, beam info, flux units, number of axes (in
-      /// cube.header()). The duchamp::FitsHeader::fixUnits() function
-      /// is also called to make sure the spectral units are OK.
-      /// @param imagePtr The (already opened) image
-      /// @param The Cube
+        int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
+        {
+            /// @details Read all relevant metadata from a casa image, and
+            /// store in a duchamp::Cube. The metadata read includes: WCS
+            /// info, beam info, flux units, number of axes (in
+            /// cube.header()). The duchamp::FitsHeader::fixUnits() function
+            /// is also called to make sure the spectral units are OK.
+            /// @param imagePtr The (already opened) image
+            /// @param The Cube
+            IPosition shape = imagePtr->shape();
+            long *dim = new long[shape.size()];
 
-      IPosition shape=imagePtr->shape();
-      long *dim = new long[shape.size()];
-      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-      // Set the number of good axes for the fitsHeader class.
-      uint naxis=0;
-      for(uint i=0;i<imagePtr->ndim();i++)
-	if(dim[i]>1) naxis++;
-      cube.header().setNumAxes(naxis);
+            // Set the number of good axes for the fitsHeader class.
+            uint naxis = 0;
 
-      if(cube.pars().isVerbose()){
-	std::cout << "Dimensions of casa image: ";
-	uint ndim = 0;
-	std::cout << dim[ndim++];
-	while(ndim<imagePtr->ndim()) std::cout << "x" << dim[ndim++];
-	std::cout << std::endl;
-      }
+            for (uint i = 0; i < imagePtr->ndim(); i++)
+                if (dim[i] > 1) naxis++;
 
-      wcsprm *wcs = casaImageToWCS(imagePtr);
+            cube.header().setNumAxes(naxis);
 
-      storeWCStoHeader(cube.header(), cube.pars(), wcs);
-      
-      cube.pars().setOffsets(wcs);
+            if (cube.pars().isVerbose()) {
+                std::cout << "Dimensions of casa image: ";
+                uint ndim = 0;
+                std::cout << dim[ndim++];
 
-      readBeamInfo(imagePtr, cube.header(), cube.pars());
+                while (ndim < imagePtr->ndim()) std::cout << "x" << dim[ndim++];
 
-      cube.header().setFluxUnits( imagePtr->units().getName() );
+                std::cout << std::endl;
+            }
 
-      if(wcs->spec >= 0) cube.header().fixUnits(cube.pars());
+            wcsprm *wcs = casaImageToWCS(imagePtr);
+            storeWCStoHeader(cube.header(), cube.pars(), wcs);
+            cube.pars().setOffsets(wcs);
+            readBeamInfo(imagePtr, cube.header(), cube.pars());
+            cube.header().setFluxUnits(imagePtr->units().getName());
 
-      cube.initialiseCube(dim,false);
+            if (wcs->spec >= 0) cube.header().fixUnits(cube.pars());
 
-      delete [] dim;
+            cube.initialiseCube(dim, false);
+            delete [] dim;
+            return duchamp::SUCCESS;
+        }
 
-      return duchamp::SUCCESS;
+        //**************************************************************//
 
-    }
+        int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
+        {
+            /// @details Read the pixel data from a casa image, and store in
+            /// the array of a duchamp:Cube. The flux units are converted if
+            /// required. The cube is initialised using the dimensions
+            /// (imagePtr->shape()) and the flux array is accessed via the
+            /// Array::tovector() function.
+            /// @param imagePtr The (already opened) image
+            /// @param The Cube
+            IPosition shape = imagePtr->shape();
+            long *dim = new long[shape.size()];
 
-    //**************************************************************//
+            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-    int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
-    {
-      /// @details Read the pixel data from a casa image, and store in
-      /// the array of a duchamp:Cube. The flux units are converted if
-      /// required. The cube is initialised using the dimensions
-      /// (imagePtr->shape()) and the flux array is accessed via the
-      /// Array::tovector() function.
-      /// @param imagePtr The (already opened) image
-      /// @param The Cube
+            cube.initialiseCube(dim);
 
-      IPosition shape=imagePtr->shape();
-      long *dim = new long[shape.size()];
-      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+            if (cube.pars().isVerbose()) std::cout << "Reading data ... " << std::flush;
 
-      cube.initialiseCube(dim);
+            std::vector<float> array;
+            imagePtr->get().tovector(array);
+            cube.saveArray(array);
 
-      if(cube.pars().isVerbose()) std::cout << "Reading data ... "<<std::flush;
-      std::vector<float> array;
-      imagePtr->get().tovector(array);
-      cube.saveArray(array);
-      if(cube.pars().isVerbose()){
-	std::cout << "Done. Data array has dimensions: ";
-	std::cout << cube.getDimX();
-	if(cube.getDimY()>1) std::cout  <<"x"<< cube.getDimY();
-	if(cube.getDimZ()>1) std::cout  <<"x"<< cube.getDimZ();
-	std::cout << "\n";
-      }   
+            if (cube.pars().isVerbose()) {
+                std::cout << "Done. Data array has dimensions: ";
+                std::cout << cube.getDimX();
 
-      if(cube.getDimZ() == 1){
-	cube.pars().setMinChannels(0);
-      }
+                if (cube.getDimY() > 1) std::cout  << "x" << cube.getDimY();
 
-      delete [] dim;
+                if (cube.getDimZ() > 1) std::cout  << "x" << cube.getDimZ();
 
-      return duchamp::SUCCESS;
-    }
+                std::cout << "\n";
+            }
 
-    //**************************************************************//
+            if (cube.getDimZ() == 1) {
+                cube.pars().setMinChannels(0);
+            }
 
-    int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber)
-    {
-      /// @details Equivalent of duchamp::Cube::getImage(), but for
-      /// accessing casa images. Reads the pixel data and metadata
-      /// (ie. header information). Should also be able to read FITS,
-      /// so could be a more general way of accessing image
-      /// data. Opens the image using the casa::ImageOpener class, and
-      /// calls casaImageToMetadata(ImageInterface<Float> *,
-      /// duchamp::Cube &) and
-      /// casaImageToCubeData(ImageInterface<Float> *, duchamp::Cube
-      /// &) functions.  
-      /// @param cube The duchamp::Cube object in which info is stored
-      /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
+            delete [] dim;
+            return duchamp::SUCCESS;
+        }
 
-      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-      const LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
-      //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
+        //**************************************************************//
+
+        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber)
+        {
+            /// @details Equivalent of duchamp::Cube::getImage(), but for
+            /// accessing casa images. Reads the pixel data and metadata
+            /// (ie. header information). Should also be able to read FITS,
+            /// so could be a more general way of accessing image
+            /// data. Opens the image using the casa::ImageOpener class, and
+            /// calls casaImageToMetadata(ImageInterface<Float> *,
+            /// duchamp::Cube &) and
+            /// casaImageToCubeData(ImageInterface<Float> *, duchamp::Cube
+            /// &) functions.
+            /// @param cube The duchamp::Cube object in which info is stored
+            /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
+            ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+            const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
+            //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read);
 //      lattPtr->unlock();
-      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-      //    imagePtr->unlock();
+            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+            //    imagePtr->unlock();
+            IPosition shape = imagePtr->shape();
+            std::vector<long> dim(shape.size());
 
-      IPosition shape=imagePtr->shape();
-      std::vector<long> dim(shape.size());
-      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-      subDef.define(casaImageToWCS(imagePtr));
-      subDef.setImage(cube.pars().getImageFile());
-      subDef.setImageDim( dim );
-      if( !cube.pars().getFlagSubsection() || cube.pars().getSubsection()=="" ) {
-	cube.pars().setFlagSubsection(true);
-	cube.pars().setSubsection( nullSection(subDef.getImageDim().size()) );
-      }
-      duchamp::Section subsection=subDef.section(subimageNumber, cube.pars().getSubsection());
-      if(subsection.parse(dim)==duchamp::FAILURE) 
-	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
-      cube.pars().setSubsection( subsection.getSection() );
-      if(cube.pars().section().parse(dim)==duchamp::FAILURE) 
-	ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection() );
-      ASKAPLOG_INFO_STR(logger, "Worker #"<<subimageNumber+1<<" is using subsection " << subsection.getSection());
+            subDef.define(casaImageToWCS(imagePtr));
+            subDef.setImage(cube.pars().getImageFile());
+            subDef.setImageDim(dim);
 
-      Slicer slice = subsectionToSlicer( subsection );
-      const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
-      //      sub->unlock();
+            if (!cube.pars().getFlagSubsection() || cube.pars().getSubsection() == "") {
+                cube.pars().setFlagSubsection(true);
+                cube.pars().setSubsection(nullSection(subDef.getImageDim().size()));
+            }
 
-      if( casaImageToMetadata(sub,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
+            duchamp::Section subsection = subDef.section(subimageNumber, cube.pars().getSubsection());
 
-      if( casaImageToCubeData(sub,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
-      
+            if (subsection.parse(dim) == duchamp::FAILURE)
+                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
+
+            cube.pars().setSubsection(subsection.getSection());
+
+            if (cube.pars().section().parse(dim) == duchamp::FAILURE)
+                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
+
+            ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << subsection.getSection());
+            Slicer slice = subsectionToSlicer(subsection);
+            const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+            //      sub->unlock();
+
+            if (casaImageToMetadata(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
+
+            if (casaImageToCubeData(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
+
 //       delete lock1;
+            delete imagePtr;
+//      delete lattPtr;
+            //      delete [] dim;
+            return duchamp::SUCCESS;
+        }
+
+        //**************************************************************//
+
+        int casaImageToMetadata(duchamp::Cube &cube)
+        {
+            /// @details Equivalent of duchamp::Cube::getMetadata(), but for
+            /// accessing casa images, to read the metadata (ie. header
+            /// information). Should also be able to read FITS, so could be
+            /// a more general way of accessing image data. Opens the image
+            /// using the casa::ImageOpener class, and calls the
+            /// casaImageToMetadata(ImageInterface<Float> *, duchamp::Cube
+            /// &) function.
+            /// @param cube The duchamp::Cube object in which info is stored
+            /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
+            ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+            const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
+            //       LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read);
+            //      lattPtr->unlock();
+            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+            //      imagePtr->unlock();
+            IPosition shape = imagePtr->shape();
+            std::vector<long> dim(shape.size());
+
+            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
+
+            if (!cube.pars().getFlagSubsection() || cube.pars().getSubsection() == "") {
+                cube.pars().setFlagSubsection(true);
+                cube.pars().setSubsection(nullSection(dim.size()));
+            }
+
+            if (cube.pars().section().parse(dim) == duchamp::FAILURE)
+                ASKAPTHROW(AskapError, "casaImageToMetadata: Cannot parse the subsection string " << cube.pars().getSubsection());
+
+            if (casaImageToMetadata(imagePtr, cube) == duchamp::FAILURE) return duchamp::FAILURE;
+
+            //       delete lock1;
 //      delete imagePtr;
-      delete lattPtr;
-      //      delete [] dim;
+            delete lattPtr;
+            return duchamp::SUCCESS;
+        }
 
-      return duchamp::SUCCESS;
-    }
+        //**************************************************************//
 
-    //**************************************************************//
+        void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par)
+        {
+            /// @details Reads the beam information (major axis, minor axis,
+            /// position angle) from an already opened casa image and stores
+            /// in the duchamp::FitsHeader provided.
+            /// @param imagePtr The casa image
+            /// @param head The duchamp::FitsHeader, where the beam information is stored
+            /// @param par Used for default beam size in case there is no
+            /// beam info in the image, or to store the beam size (in
+            /// pixels) if there is.
+            casa::Vector<casa::Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
 
-    int casaImageToMetadata(duchamp::Cube &cube)
-    {
-      /// @details Equivalent of duchamp::Cube::getMetadata(), but for
-      /// accessing casa images, to read the metadata (ie. header
-      /// information). Should also be able to read FITS, so could be
-      /// a more general way of accessing image data. Opens the image
-      /// using the casa::ImageOpener class, and calls the
-      /// casaImageToMetadata(ImageInterface<Float> *, duchamp::Cube
-      /// &) function.
-      /// @param cube The duchamp::Cube object in which info is stored
-      /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
+            if (beam.size() == 0) {
+                std::stringstream errmsg;
+                ASKAPLOG_WARN_STR(logger, "Beam information not present\nUsing parameter beamSize to determine size of beam.\n");
+                head.setBeamSize(par.getBeamSize());
+                par.setFlagUsingBeam(true);
+            } else {
+                double bmaj = beam[0].getValue("deg");
+                double bmin = beam[1].getValue("deg");
+                double bpa = beam[2].getValue("deg");
+                float pixScale = head.getAvPixScale();
+                head.setBeamSize(M_PI *(bmaj / 2.) *(bmin / 2.) / (M_LN2*pixScale*pixScale));
+                head.setBmajKeyword(bmaj);
+                head.setBminKeyword(bmin);
+                head.setBpaKeyword(bpa);
+                par.setBeamSize(head.getBeamSize());
+            }
+        }
 
-      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-      const LatticeBase* lattPtr = ImageOpener::openImage (cube.pars().getImageFile());
-      //       LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read); 
-       //      lattPtr->unlock();
-      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-      //      imagePtr->unlock();
+        //**************************************************************//
 
-      IPosition shape=imagePtr->shape();
-      std::vector<long> dim(shape.size());
-      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
+        wcsprm *casaImageToWCS(std::string imageName)
+        {
+            /// @details Read the WCS from an image using casacore methods
+            /// to access it. Calls casaImageToWCS(ImageInterface<Float> *).
+            /// @param imageName The name of the image to access
+            /// @return A wcsprm pointer containing the wcs information of the image.
+            ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+            const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
+            //      LatticeLocker lock1 (*lattPtr, FileLocker::Read);
+            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+            return casaImageToWCS(imagePtr);
+        }
 
-      if( !cube.pars().getFlagSubsection() || cube.pars().getSubsection()=="" ) {
-	cube.pars().setFlagSubsection(true);
-	cube.pars().setSubsection( nullSection(dim.size()) );
-      }
-      if(cube.pars().section().parse(dim)==duchamp::FAILURE) 
-	ASKAPTHROW(AskapError, "casaImageToMetadata: Cannot parse the subsection string " << cube.pars().getSubsection() );
+        //**************************************************************//
 
-      if( casaImageToMetadata(imagePtr,cube) == duchamp::FAILURE ) return duchamp::FAILURE;
+        wcsprm *casaImageToWCS(const ImageInterface<Float>* imagePtr)
+        {
+            /// @details Read the WCS from a casa image. Uses the
+            /// CoordinateSystem::toFITSHeader() function to access the
+            /// header records, then explicitly copies each WCS header to a
+            /// WCSLIB wcsprm struct. Both wcsset() and wcsfix() are called
+            /// on this, and then it is returned.
+            /// @param imageName The already opened image.
+            /// @return A wcsprm pointer containing the wcs information of
+            /// the image.
+            IPosition shape = imagePtr->shape();
+            long *dim = new long[shape.size()];
 
-      //       delete lock1;
-//      delete imagePtr;
-      delete lattPtr;
-      return duchamp::SUCCESS;
-    }
+            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-    //**************************************************************//
+            CoordinateSystem coords = imagePtr->coordinates();
+            Record hdr;
 
-    void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par)
-    {
-      /// @details Reads the beam information (major axis, minor axis,
-      /// position angle) from an already opened casa image and stores
-      /// in the duchamp::FitsHeader provided.
-      /// @param imagePtr The casa image
-      /// @param head The duchamp::FitsHeader, where the beam information is stored
-      /// @param par Used for default beam size in case there is no
-      /// beam info in the image, or to store the beam size (in
-      /// pixels) if there is.
+            if (!coords.toFITSHeader(hdr, shape, true, 'c', true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
 
-      casa::Vector<casa::Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
+            //      else std::cout << "casaImageToWCS:  read FITS header:\n" << hdr << "\n";
+            struct wcsprm *wcs;
+            wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+            wcs->flag = -1;
+            int ndim = shape.size();
+            int status = wcsini(1, ndim, wcs);
 
-      if(beam.size()==0){
-	std::stringstream errmsg;
-	ASKAPLOG_WARN_STR(logger, "Beam information not present\nUsing parameter beamSize to determine size of beam.\n");
-	head.setBeamSize(par.getBeamSize());
-	par.setFlagUsingBeam(true);
-      }
-      else{
-	double bmaj = beam[0].getValue("deg");
-	double bmin = beam[1].getValue("deg");
-	double bpa = beam[2].getValue("deg");
-	float pixScale = head.getAvPixScale();
-	head.setBeamSize( M_PI * (bmaj/2.) * (bmin/2.) / (M_LN2*pixScale*pixScale) );
-	head.setBmajKeyword(bmaj);
-	head.setBminKeyword(bmin);
-	head.setBpaKeyword(bpa);
-	par.setBeamSize(head.getBeamSize());
-      }
+            if (status)
+                ASKAPTHROW(AskapError, "casaImageToWCS: wcsini failed! Code=" << status << ": " << wcs_errmsg[status]);
 
-    }
+            Array<String>::iterator it;
+            int i;
 
-    //**************************************************************//
+            if (hdr.isDefined("ctype")) {
+                RecordFieldId ctypeID("ctype");
+                Array<String> ctype = hdr.asArrayString(ctypeID);
+                Array<String>::iterator it;
+                i = 0;
 
-    wcsprm *casaImageToWCS(std::string imageName)
-    {
-      /// @details Read the WCS from an image using casacore methods
-      /// to access it. Calls casaImageToWCS(ImageInterface<Float> *).
-      /// @param imageName The name of the image to access
-      /// @return A wcsprm pointer containing the wcs information of the image.
+                for (it = ctype.begin(); it != ctype.end(); it++) {
+                    String str = *it;
+                    strcpy(wcs->ctype[i++], str.c_str());
+                }
+            }
 
-      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-      const LatticeBase* lattPtr = ImageOpener::openImage (imageName);
-      //      LatticeLocker lock1 (*lattPtr, FileLocker::Read); 
-      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+            if (hdr.isDefined("cunit")) {
+                RecordFieldId cunitID("cunit");
+                Array<String> cunit = hdr.asArrayString(cunitID);
+                i = 0;
 
-      return casaImageToWCS(imagePtr);
-    }
+                for (it = cunit.begin(); it != cunit.end(); it++) {
+                    String str = *it;
+                    strcpy(wcs->cunit[i++], str.c_str());
+                }
+            }
 
-    //**************************************************************//
+            std::vector<Double> vals;
 
-    wcsprm *casaImageToWCS(const ImageInterface<Float>* imagePtr)
-    {
-      /// @details Read the WCS from a casa image. Uses the
-      /// CoordinateSystem::toFITSHeader() function to access the
-      /// header records, then explicitly copies each WCS header to a
-      /// WCSLIB wcsprm struct. Both wcsset() and wcsfix() are called
-      /// on this, and then it is returned.
-      /// @param imageName The already opened image.
-      /// @return A wcsprm pointer containing the wcs information of
-      /// the image.
+            if (hdr.isDefined("crpix")) {
+                RecordFieldId crpixID("crpix");
+                Array<Double>::iterator it2;
+                Array<Double> crpix = hdr.asArrayDouble(crpixID);
+                crpix.tovector(vals);
 
-      IPosition shape=imagePtr->shape();
-      long *dim = new long[shape.size()];
-      for(uint i=0;i<shape.size();i++) dim[i] = shape(i);
-      CoordinateSystem coords=imagePtr->coordinates();
-      Record hdr;
-      if(!coords.toFITSHeader(hdr,shape,true,'c',true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
-      //      else std::cout << "casaImageToWCS:  read FITS header:\n" << hdr << "\n";
+                for (uint i = 0; i < vals.size(); i++) wcs->crpix[i] = double(vals[i]);
+            }
 
-      struct wcsprm *wcs;
-      wcs = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
-      wcs->flag = -1;
-      int ndim = shape.size();
-      int status = wcsini(1,ndim,wcs);
-      if(status)
-	ASKAPTHROW(AskapError,"casaImageToWCS: wcsini failed! Code=" << status << ": " << wcs_errmsg[status]);
+            if (hdr.isDefined("crval")) {
+                RecordFieldId crvalID("crval");
+                Array<Double> crval = hdr.asArrayDouble(crvalID);
+                crval.tovector(vals);
 
-      Array<String>::iterator it;
-      int i;
+                for (uint i = 0; i < vals.size(); i++) wcs->crval[i] = double(vals[i]);
+            }
 
-      if(hdr.isDefined("ctype")){
-	RecordFieldId ctypeID("ctype");
-	Array<String> ctype = hdr.asArrayString(ctypeID);
-	Array<String>::iterator it;
-	i=0;
-	for(it=ctype.begin();it!=ctype.end();it++){
-	  String str= *it;
-	  strcpy(wcs->ctype[i++],str.c_str());
-	}
-      }
+            if (hdr.isDefined("cdelt")) {
+                RecordFieldId cdeltID("cdelt");
+                Array<Double> cdelt = hdr.asArrayDouble(cdeltID);
+                cdelt.tovector(vals);
 
-      if(hdr.isDefined("cunit")){
-	RecordFieldId cunitID("cunit");
-	Array<String> cunit = hdr.asArrayString(cunitID);
-	i=0;
-	for(it=cunit.begin();it!=cunit.end();it++) {
-	  String str = *it;
-	  strcpy(wcs->cunit[i++],str.c_str());
-	}
-      }
+                for (uint i = 0; i < vals.size(); i++) wcs->cdelt[i] = double(vals[i]);
+            }
 
-      std::vector<Double> vals;
+            if (hdr.isDefined("crota")) {
+                RecordFieldId crotaID("crota");
+                Array<Double> crota = hdr.asArrayDouble(crotaID);
+                crota.tovector(vals);
 
-      if(hdr.isDefined("crpix")){
-	RecordFieldId crpixID("crpix");
-	Array<Double>::iterator it2;
-	Array<Double> crpix = hdr.asArrayDouble(crpixID);
-	crpix.tovector(vals);
-	for(uint i=0;i<vals.size();i++) wcs->crpix[i] = double(vals[i]);
-      }
+                for (uint i = 0; i < vals.size(); i++) {
+                    wcs->crota[i] = double(vals[i]);
+                    wcs->altlin |= 4;
+                }
+            }
 
-      if(hdr.isDefined("crval")){
-	RecordFieldId crvalID("crval");
-	Array<Double> crval = hdr.asArrayDouble(crvalID);
-	crval.tovector(vals);
-	for(uint i=0;i<vals.size();i++) wcs->crval[i] = double(vals[i]);
-      }
+            if (hdr.isDefined("pc")) {
+                RecordFieldId pcID("pc");
+                Array<Double> pc = hdr.asArrayDouble(pcID);
+                pc.tovector(vals);
 
-      if(hdr.isDefined("cdelt")){
-	RecordFieldId cdeltID("cdelt");
-	Array<Double> cdelt = hdr.asArrayDouble(cdeltID);
-	cdelt.tovector(vals);
-	for(uint i=0;i<vals.size();i++) wcs->cdelt[i] = double(vals[i]);
-      }
+                for (uint i = 0; i < vals.size(); i++) wcs->pc[i] = double(vals[i]);
+            }
 
-      if(hdr.isDefined("crota")){
-	RecordFieldId crotaID("crota");
-	Array<Double> crota = hdr.asArrayDouble(crotaID);
-	crota.tovector(vals);
-	for(uint i=0;i<vals.size();i++) {
-	  wcs->crota[i] = double(vals[i]);
-	  wcs->altlin |= 4;
-	}
-      }
+            if (hdr.isDefined("lonpole")) {
+                RecordFieldId lonpoleID("lonpole");
+                Double lonpole = hdr.asDouble(lonpoleID);
+                wcs->lonpole = double(lonpole);
+            }
 
+            if (hdr.isDefined("equinox")) {
+                RecordFieldId equinoxID("equinox");
+                Double equinox = hdr.asDouble(equinoxID);
+                wcs->equinox = double(equinox);
+            }
 
-      if(hdr.isDefined("pc")){
-	RecordFieldId pcID("pc");
-	Array<Double> pc = hdr.asArrayDouble(pcID);
-	pc.tovector(vals);
-	for(uint i=0;i<vals.size();i++) wcs->pc[i] = double(vals[i]);
-      }
+            if (hdr.isDefined("restfreq")) {
+                RecordFieldId restfreqID("restfreq");
+                Double restfreq = hdr.asDouble(restfreqID);
+                wcs->restfrq = double(restfreq);
+            }
 
-      if(hdr.isDefined("lonpole")){
-	RecordFieldId lonpoleID("lonpole"); 
-	Double lonpole = hdr.asDouble(lonpoleID);
-	wcs->lonpole = double(lonpole);
-      }
+            if (hdr.isDefined("restwave")) {
+                RecordFieldId restwaveID("restwave");
+                Double restwave = hdr.asDouble(restwaveID);
+                wcs->restwav = double(restwave);
+            }
 
-      if(hdr.isDefined("equinox")){
-	RecordFieldId equinoxID("equinox"); 
-	Double equinox = hdr.asDouble(equinoxID);
-	wcs->equinox = double(equinox);
-      }
+            if (hdr.isDefined("date-obs")) {
+                RecordFieldId dateID("date-obs");
+                String date = hdr.asString(dateID);
+                strcpy(wcs->dateobs, date.c_str());
+            }
 
-      if(hdr.isDefined("restfreq")){
-	RecordFieldId restfreqID("restfreq"); 
-	Double restfreq = hdr.asDouble(restfreqID);
-	wcs->restfrq = double(restfreq);
-      }
+            int stat[NWCSFIX];
+            // Applies all necessary corrections to the wcsprm structure
+            //  (missing cards, non-standard units or spectral types, ...)
+            status = wcsfix(1, (const int*)dim, wcs, stat);
 
-      if(hdr.isDefined("restwave")){
-	RecordFieldId restwaveID("restwave"); 
-	Double restwave = hdr.asDouble(restwaveID);
-	wcs->restwav = double(restwave);
-      }
-      
-      if(hdr.isDefined("date-obs")){
-	RecordFieldId dateID("date-obs"); 
-	String date = hdr.asString(dateID);
-	strcpy(wcs->dateobs,date.c_str());
-      }
-      
-      int stat[NWCSFIX];
-      // Applies all necessary corrections to the wcsprm structure
-      //  (missing cards, non-standard units or spectral types, ...)
-      status = wcsfix(1, (const int*)dim, wcs, stat);
-      if(status) {
-	std::stringstream errmsg;
-	errmsg << "casaImageToWCS: wcsfix failed: Function status returns are:\n";
-	for(int i=0; i<NWCSFIX; i++)
-	  if (stat[i] > 0) 
-	    errmsg << i+1 << ": WCSFIX error code=" << stat[i] << ": "
-		   << wcsfix_errmsg[stat[i]] << std::endl;
-	ASKAPTHROW(AskapError, errmsg.str());
-      }
-  
-      status=wcsset(wcs);
-      if(status)
-	ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  <<": "<<wcs_errmsg[status]);
+            if (status) {
+                std::stringstream errmsg;
+                errmsg << "casaImageToWCS: wcsfix failed: Function status returns are:\n";
 
-      delete [] dim;
+                for (int i = 0; i < NWCSFIX; i++)
+                    if (stat[i] > 0)
+                        errmsg << i + 1 << ": WCSFIX error code=" << stat[i] << ": "
+                            << wcsfix_errmsg[stat[i]] << std::endl;
 
-      return wcs;
+                ASKAPTHROW(AskapError, errmsg.str());
+            }
+
+            status = wcsset(wcs);
+
+            if (status)
+                ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  << ": " << wcs_errmsg[status]);
+
+            delete [] dim;
+            return wcs;
+        }
+
+        //**************************************************************//
+
+        Slicer subsectionToSlicer(duchamp::Section &subsection)
+        {
+            std::vector<int> secStarts = subsection.getStartList();
+            std::vector<int> secLengths = subsection.getDimList();
+            int ndim = secStarts.size();
+            IPosition start(ndim), length(ndim);
+
+            for (int i = 0; i < ndim; i++) {
+                start(i) = secStarts[i];
+                length(i) = secLengths[i];
+            }
+
+            Slicer slicer(start, length);
+            return slicer;
+        }
+
+        //**************************************************************//
 
     }
-
-    //**************************************************************//
-
-    Slicer subsectionToSlicer(duchamp::Section &subsection)
-    {
-      std::vector<int> secStarts = subsection.getStartList();
-      std::vector<int> secLengths = subsection.getDimList();
-      int ndim = secStarts.size();
-
-      IPosition start(ndim),length(ndim);
-      for(int i=0;i<ndim;i++){
-	start(i) = secStarts[i];
-	length(i) = secLengths[i];
-      }
-
-      Slicer slicer(start,length);
-      return slicer;
-    }
-
-    //**************************************************************//
-
-  }
 
 }

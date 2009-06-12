@@ -43,151 +43,148 @@
 #include <vector>
 #include <string>
 
-namespace askap
-{
-  namespace analysis
-  {
+namespace askap {
+    namespace analysis {
 
-    /// @brief Support for parallel source finding 
-    ///
-    /// @details This class allows the source finding to be carried out in a
-    /// parallel setting.
-    /// The model used is that the application has many workers and
-    /// one master, running in separate MPI processes or in one single
-    /// thread. The master is the master so the number of processes is one
-    /// more than the number of workers.
-    ///
-    /// If the number of nodes is 1 then everything occurs in the same process.
-    ///
-    /// @ingroup parallelanalysis
-    class DuchampParallel : public askap::cp::AskapParallel
-    {
-    public:
+        /// @brief Support for parallel source finding
+        ///
+        /// @details This class allows the source finding to be carried out in a
+        /// parallel setting.
+        /// The model used is that the application has many workers and
+        /// one master, running in separate MPI processes or in one single
+        /// thread. The master is the master so the number of processes is one
+        /// more than the number of workers.
+        ///
+        /// If the number of nodes is 1 then everything occurs in the same process.
+        ///
+        /// @ingroup parallelanalysis
+        class DuchampParallel : public askap::cp::AskapParallel {
+            public:
 
-      /// @brief Constructor 
-      /// @details The command line inputs are needed solely for MPI - currently no
-      /// application specific information is passed on the command line.
-      /// @param argc Number of command line inputs
-      /// @param argv Command line inputs
-      /// @param parset The parameter set to read Duchamp and other parameters from.
-      DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
+                /// @brief Constructor
+                /// @details The command line inputs are needed solely for MPI - currently no
+                /// application specific information is passed on the command line.
+                /// @param argc Number of command line inputs
+                /// @param argv Command line inputs
+                /// @param parset The parameter set to read Duchamp and other parameters from.
+                DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
 
-      /// @brief Default constructor
-      DuchampParallel(int argc, const char** argv);
+                /// @brief Default constructor
+                DuchampParallel(int argc, const char** argv);
 
-      virtual ~DuchampParallel(){};
+                virtual ~DuchampParallel() {};
 
-      duchamp::Cube &cube(){duchamp::Cube &rcube = itsCube; return rcube;};
+                duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
 
-      /// @brief Read the metadata only from the image file.
-      int getMetadata();
+                /// @brief Read the metadata only from the image file.
+                int getMetadata();
 
-      /// @brief Return the beam parameters (in degrees units)
-      std::vector<float> getBeamInfo();
+                /// @brief Return the beam parameters (in degrees units)
+                std::vector<float> getBeamInfo();
 
-      /// @brief Read in the data from the image file (on the workers)
-      void readData();
-      
-      /// @brief Set up the log file
-      void setupLogfile(int argc, const char** argv);
+                /// @brief Read in the data from the image file (on the workers)
+                void readData();
 
-      /// @brief Condense the lists (on the master)
-      void condenseLists();
-      
-      /// @brief Sort out the fluxes for all detected objects (on the master)
-      void calcFluxes();
+                /// @brief Set up the log file
+                void setupLogfile(int argc, const char** argv);
 
-      /// @brief Print out the resulting source list (on the master)
-      void printResults();
+                /// @brief Condense the lists (on the master)
+                void condenseLists();
 
-      /// @brief Fit the detected sources (on the workers)
-      void fitSources();
+                /// @brief Sort out the fluxes for all detected objects (on the master)
+                void calcFluxes();
 
-      /// @brief Find the sources on each worker
-      void findSources();
+                /// @brief Print out the resulting source list (on the master)
+                void printResults();
 
-      /// @brief Send the detected sources from the workers to the master
-      void sendObjects();
+                /// @brief Fit the detected sources (on the workers)
+                void fitSources();
 
-      /// @brief Receive the detected sources from the workers (on the master)
-      void receiveObjects();
+                /// @brief Find the sources on each worker
+                void findSources();
 
-      /// @brief Fit the sources on the boundaries between workers' subimages (on the master)
-      void cleanup();
+                /// @brief Send the detected sources from the workers to the master
+                void sendObjects();
 
-      /// @brief Calculate the object parameters on the master.
-      void calcObjectParams();
+                /// @brief Receive the detected sources from the workers (on the master)
+                void receiveObjects();
 
-      /// @brief Write a Karma annotation file showing the fits (on the master).
-      void writeFitAnnotation();
-      
-      /// @brief Find the mean (on the workers)
-      void findMeans();
-      /// @brief Find the RMS (on the workers)
-      void findRMSs();
-      /// @brief Combine and print the mean (on the master)
-      void combineMeans();
-      /// @brief Send the overall mean to the workers (on the master)
-      void broadcastMean();
-      /// @brief Combine and print the RMS (on the master)
-      void combineRMSs();
-      /// @brief Front end for the statistics functions
-      void gatherStats();
+                /// @brief Fit the sources on the boundaries between workers' subimages (on the master)
+                void cleanup();
 
-      /// @brief Send the desired threshold to each of the workers (on the master)
-      void broadcastThreshold();
-      /// @brief Read the threshold to be used (on the workers)
-      void receiveThreshold();
+                /// @brief Calculate the object parameters on the master.
+                void calcObjectParams();
 
-      /// @brief Is the dataset a 2-dimensional image?
-      bool is2D();
+                /// @brief Write a Karma annotation file showing the fits (on the master).
+                void writeFitAnnotation();
 
-      /// @brief Print out the worker number in form useful for logging.
-      std::string workerPrefix();
+                /// @brief Find the mean (on the workers)
+                void findMeans();
+                /// @brief Find the RMS (on the workers)
+                void findRMSs();
+                /// @brief Combine and print the mean (on the master)
+                void combineMeans();
+                /// @brief Send the overall mean to the workers (on the master)
+                void broadcastMean();
+                /// @brief Combine and print the RMS (on the master)
+                void combineRMSs();
+                /// @brief Front end for the statistics functions
+                void gatherStats();
 
-      /// @brief Set the doFit flag
-      void setDoFitFlag(bool f){itsFlagDoFit = f;};
+                /// @brief Send the desired threshold to each of the workers (on the master)
+                void broadcastThreshold();
+                /// @brief Read the threshold to be used (on the workers)
+                void receiveThreshold();
 
-      /// @brief Get a particular RadioSource
-      sourcefitting::RadioSource getSource(int i){return itsSourceList[i];};
+                /// @brief Is the dataset a 2-dimensional image?
+                bool is2D();
 
-    protected:
+                /// @brief Print out the worker number in form useful for logging.
+                std::string workerPrefix();
 
-      /// The name of the file containing the image data.
-      std::string itsImage;
+                /// @brief Set the doFit flag
+                void setDoFitFlag(bool f) {itsFlagDoFit = f;};
 
-      /// Is the image a FITS file or not (if not, probably a casa image...)
-      bool itsIsFITSFile;
+                /// @brief Get a particular RadioSource
+                sourcefitting::RadioSource getSource(int i) {return itsSourceList[i];};
 
-      /// The Cube of data, which contains the list of Detections.
-      duchamp::Cube itsCube;
+            protected:
 
-      /// The list of voxels encompassing detected sources, with fluxes.
-      std::vector<PixelInfo::Voxel> itsVoxelList;
+                /// The name of the file containing the image data.
+                std::string itsImage;
 
-      /// The Gaussian Fitting parameter class
-      sourcefitting::FittingParameters itsFitter;
+                /// Is the image a FITS file or not (if not, probably a casa image...)
+                bool itsIsFITSFile;
 
-      /// Shall we fit to the sources?
-      bool itsFlagDoFit;
+                /// The Cube of data, which contains the list of Detections.
+                duchamp::Cube itsCube;
 
-      /// Name of the summary file
-      std::string itsSummaryFile;
-      
-      /// Name of the Karma annotation file with the fitted Gaussian components
-      std::string itsFitAnnotationFile;
-      
-      /// The list of fits to the detected sources.
-      std::vector<sourcefitting::RadioSource> itsSourceList;
+                /// The list of voxels encompassing detected sources, with fluxes.
+                std::vector<PixelInfo::Voxel> itsVoxelList;
 
-      /// The list of sections corresponding to all workers' images (only used by the master).
-      std::vector<duchamp::Section> itsSectionList;
+                /// The Gaussian Fitting parameter class
+                sourcefitting::FittingParameters itsFitter;
 
-      /// The definition of the subimage being used (only relevant for the workers)
-      SubimageDef itsSubimageDef;
+                /// Shall we fit to the sources?
+                bool itsFlagDoFit;
 
-    };
+                /// Name of the summary file
+                std::string itsSummaryFile;
 
-  }
+                /// Name of the Karma annotation file with the fitted Gaussian components
+                std::string itsFitAnnotationFile;
+
+                /// The list of fits to the detected sources.
+                std::vector<sourcefitting::RadioSource> itsSourceList;
+
+                /// The list of sections corresponding to all workers' images (only used by the master).
+                std::vector<duchamp::Section> itsSectionList;
+
+                /// The definition of the subimage being used (only relevant for the workers)
+                SubimageDef itsSubimageDef;
+
+        };
+
+    }
 }
 #endif

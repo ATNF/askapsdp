@@ -65,78 +65,72 @@ ASKAP_LOGGER(logger, "tCasaImageAccess.log");
 
 int main(int argc, const char *argv[])
 {
+    try {
+        std::string imageName;
 
-  try {
-    std::string imageName;
-    if(argc==1) imageName = "$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
-    else imageName = argv[1];
+        if (argc == 1) imageName = "$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
+        else imageName = argv[1];
 
-    std::cout << "Loading " << imageName << " using casa::LatticeBase\n";
-    ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-    LatticeBase* lattPtr = ImageOpener::openImage (imageName);
-    ASKAPASSERT (lattPtr);      // to be sure the image file could be opened
-    ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
-    //   ASSERT (imagePtr);     // to be sure its data type is Float
-    CoordinateSystem coords=imagePtr->coordinates();
-    Record hdr;
-    IPosition shape = imagePtr->shape();
-    Bool worked = coords.toFITSHeader(hdr,shape,true,'c',true);
-    if(worked) std::cout << "Success!\n";
+        std::cout << "Loading " << imageName << " using casa::LatticeBase\n";
+        ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+        LatticeBase* lattPtr = ImageOpener::openImage(imageName);
+        ASKAPASSERT(lattPtr);       // to be sure the image file could be opened
+        ImageInterface<Float>* imagePtr = dynamic_cast<ImageInterface<Float>*>(lattPtr);
+        //   ASSERT (imagePtr);     // to be sure its data type is Float
+        CoordinateSystem coords = imagePtr->coordinates();
+        Record hdr;
+        IPosition shape = imagePtr->shape();
+        Bool worked = coords.toFITSHeader(hdr, shape, true, 'c', true);
 
-    std::cout << hdr<< "\n"
-	      << "beam = " << imagePtr->imageInfo().restoringBeam() << "\n";
-    Vector<Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
-    if(beam.size()>0)
-      std::cout << beam[0].getValue("deg") << "\n" << beam[1].getValue("deg") << "\n" << beam[2].getValue("deg") << "\n";
+        if (worked) std::cout << "Success!\n";
 
-    std::cout << "Loading " << imageName << " using askap::analysis::casaImageToWCS()\n";
-    wcsprm *wcs = casaImageToWCS(imageName);
-    std::cout << "Success! wcsprt gives:\n";
-    wcsprt(wcs);
+        std::cout << hdr << "\n"
+                      << "beam = " << imagePtr->imageInfo().restoringBeam() << "\n";
+        Vector<Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
 
-    std::cout << "Success!\n";
+        if (beam.size() > 0)
+            std::cout << beam[0].getValue("deg") << "\n" << beam[1].getValue("deg") << "\n" << beam[2].getValue("deg") << "\n";
 
-    std::cout << "Loading a duchamp::Cube's metadata with " << imageName <<"\n";
-    duchamp::Cube cube;
-    casaImageToMetadata(imagePtr,cube);
-    std::cout << "Success!\n";
+        std::cout << "Loading " << imageName << " using askap::analysis::casaImageToWCS()\n";
+        wcsprm *wcs = casaImageToWCS(imageName);
+        std::cout << "Success! wcsprt gives:\n";
+        wcsprt(wcs);
+        std::cout << "Success!\n";
+        std::cout << "Loading a duchamp::Cube's metadata with " << imageName << "\n";
+        duchamp::Cube cube;
+        casaImageToMetadata(imagePtr, cube);
+        std::cout << "Success!\n";
+        std::cout << "Loading a duchamp::Cube's data with " << imageName << "\n";
+        casaImageToCubeData(imagePtr, cube);
+        std::cout << "Success!\n";
+        std::cout << "\n\nGetting a subsection of the casa image using casa::Slicer\n";
+        std::string sectionStr = "[11:50,25:56,*,*]";
+        duchamp::Section section(sectionStr);
+        std::vector<long> dim(shape.size());
 
-    std::cout << "Loading a duchamp::Cube's data with " << imageName <<"\n";
-    casaImageToCubeData(imagePtr,cube);
-    std::cout << "Success!\n";
+        for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-    std::cout << "\n\nGetting a subsection of the casa image using casa::Slicer\n";
-    std::string sectionStr = "[11:50,25:56,*,*]";
-    duchamp::Section section(sectionStr);
-    std::vector<long> dim(shape.size());
-    for(uint i=0;i<shape.size();i++) dim[i]=shape(i);
-    section.parse(dim);
-    Slicer slicer = subsectionToSlicer(section);
-    std::cout << "Slicer = " << slicer << "\n";
-
-    SubImage<Float> subimage(*imagePtr, slicer, True);
-    ASKAPASSERT(&subimage);
-    std::cout << "Shape of subimage = " << subimage.shape() << "\n";
-    std::cout << "Success!\n";
-      
-    std::cout << "\nConverting this subimage to a duchamp::Cube\n";
-    duchamp::Cube subcube;
-    casaImageToMetadata(&subimage,subcube);
-    casaImageToCubeData(&subimage,subcube);
-    std::cout << "Success!\n";
-
-  }
-  catch (askap::AskapError& x)
-    {
-      ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-      std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-      exit(1);
+        section.parse(dim);
+        Slicer slicer = subsectionToSlicer(section);
+        std::cout << "Slicer = " << slicer << "\n";
+        SubImage<Float> subimage(*imagePtr, slicer, True);
+        ASKAPASSERT(&subimage);
+        std::cout << "Shape of subimage = " << subimage.shape() << "\n";
+        std::cout << "Success!\n";
+        std::cout << "\nConverting this subimage to a duchamp::Cube\n";
+        duchamp::Cube subcube;
+        casaImageToMetadata(&subimage, subcube);
+        casaImageToCubeData(&subimage, subcube);
+        std::cout << "Success!\n";
+    } catch (askap::AskapError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    } catch (std::exception& x) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
     }
-  catch (std::exception& x)
-    {
-      ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-      std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-      exit(1);
-    }
-  exit(0);
+
+    exit(0);
 }

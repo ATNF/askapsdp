@@ -55,403 +55,407 @@ ASKAP_LOGGER(logger, ".sourcefitting");
 
 using namespace duchamp;
 
-namespace askap
-{
-
-  namespace analysis
-  {
-
-    namespace sourcefitting
-    {
-
-      Fitter::Fitter(const Fitter& f)
-      {
-	operator=(f);
-      }
-
-      //**************************************************************//
-
-      Fitter& Fitter::operator= (const Fitter& f)
-      {
-	if(this == &f) return *this;
-	this->itsNumGauss = f.itsNumGauss;
-	this->itsParams = f.itsParams;
-	this->itsFitter = f.itsFitter;
-	this->itsNDoF = f.itsNDoF;
-	this->itsRedChisq = f.itsRedChisq;
-	this->itsSolution = f.itsSolution;
-	return *this;
-      }
-
-      //**************************************************************//
-
-      void Fitter::setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head)
-      {
-	
-	this->itsFitter.setDimensions(2);
-	this->itsFitter.setNumGaussians(this->itsNumGauss);
-
-	casa::Matrix<casa::Double> estimate;
-	estimate.resize(this->itsNumGauss,6);
-
-	uInt nCmpnt = cmpntList.size();
-	for(uInt g=0;g<this->itsNumGauss;g++){
-	  uInt cmpnt = g % nCmpnt;
-
-	  estimate(g,0) = cmpntList[cmpnt].peak();
-	  estimate(g,1) = cmpntList[cmpnt].x();
-	  estimate(g,2) = cmpntList[cmpnt].y();
-	  estimate(g,3) = cmpntList[cmpnt].maj();
-	  estimate(g,4) = cmpntList[cmpnt].min()/cmpntList[cmpnt].maj();
-	  estimate(g,5) = cmpntList[cmpnt].pa();
-	  
- 	  if(head.getBmajKeyword()>0 ){ // if the beam is known,
-
-	    bool size=(head.getBmajKeyword()/head.getAvPixScale() > cmpntList[cmpnt].maj());
-
-	    // if the subcomponent is smaller than the beam, or if we
-	    // don't want to fit the size parameters, change the
-	    // estimates of the parameters to the beam size
-	    if(size || !this->itsParams.flagFitThisParam(3)) 
-	      estimate(g,3) = head.getBmajKeyword()/head.getAvPixScale();
-	    if(size || !this->itsParams.flagFitThisParam(4)) 
-	      estimate(g,4)=head.getBminKeyword()/head.getBmajKeyword();
-	    if(size || !this->itsParams.flagFitThisParam(5)) 
-	      estimate(g,5)=head.getBpaKeyword() * M_PI / 180.;
-
-	  }
-	
-	}
-
-	this->itsFitter.setFirstEstimate(estimate);
-
-	if(head.getBminKeyword()>0) this->itsParams.setBeamSize( head.getBminKeyword()/head.getAvPixScale() );
-	else this->itsParams.setBeamSize(1.);
-
-	ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
-	logparameters(estimate);
-
-	if(nCmpnt==1){
-	  casa::Gaussian2D<casa::Double> 
-	    gauss(estimate(0,0),
-		  estimate(0,1),estimate(0,2),
-		  estimate(0,3),estimate(0,4),estimate(0,5));
-	  ASKAPLOG_INFO_STR(logger,"Flux of single component estimate = " << gauss.flux()/head.getBeamSize(););
-	}
-
-      }
-
-      //**************************************************************//
-
-      void Fitter::setRetries()
-      {
-	casa::Matrix<casa::Double> retryfactors;
-	casa::Matrix<casa::Double> baseRetryfactors;
-
-	baseRetryfactors.resize(1,6);
-	retryfactors.resize(this->itsNumGauss,6);
-
-	baseRetryfactors(0,0) = 1.1; 
-	baseRetryfactors(0,1) = 0.1; 
-	baseRetryfactors(0,2) = 0.1;
-	baseRetryfactors(0,3) = 1.1; 
-	baseRetryfactors(0,4) = 1.01;
-	baseRetryfactors(0,5) = M_PI/180.;
-
-	for(unsigned int g=0;g<this->itsNumGauss;g++)
-	  for(unsigned int i=0;i<6;i++)
-	    retryfactors(g,i) = baseRetryfactors(0,i);
-
-	// 	this->itsFitter.setRetryFactors(retryfactors);
-	// Try not setting these for now and just use the defaults.
-      }
-
-      //**************************************************************//
-      
-      void Fitter::setMasks()
-      {
-
-	// mask the beam parameters
-	//	  std::cout << "Mask values:\n";
-	for(unsigned int g=0;g<this->itsNumGauss;g++){
-	  for(unsigned int p=0; p<6; p++)
-	    this->itsFitter.mask(g,p) = this->itsParams.flagFitThisParam(p);
-// 	  this->itsFitter.mask(g,3) = false;
-// 	  this->itsFitter.mask(g,4) = false;
-// 	  this->itsFitter.mask(g,5) = false;
-// 	  //	  	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=false;   // set them all false
-// 	  // 	  for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=true;   // set them all true
-// 	  //	    for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
-// 	  //	    for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
-// 	  //	    std::cout << "\n";
-	  ASKAPLOG_DEBUG_STR(logger,"Masks: " << this->itsParams.flagFitThisParam(0)
-			     << this->itsParams.flagFitThisParam(1)
-			     << this->itsParams.flagFitThisParam(2)
-			     << this->itsParams.flagFitThisParam(3)
-			     << this->itsParams.flagFitThisParam(4)
-			     << this->itsParams.flagFitThisParam(5));
-	}	      
-
-      }
-
-      //**************************************************************//
-
-      void logparameters(Matrix<Double> &m)
-      {
-	uInt g,p;
-	for (g = 0; g < m.nrow(); g++)
-	  {
-	    std::stringstream outmsg;
-	    outmsg.precision(3);
-	    outmsg.setf(ios::fixed);
-	    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g,p) << ", ";
-	    outmsg << m(g,p);
-	    ASKAPLOG_INFO_STR(logger, outmsg.str());
-	  }
-
-      }
-
-      //**************************************************************//
-
-      void Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
-		       casa::Vector<casa::Double> sigma)
-      {
-
-	this->itsParams.itsBoxFlux = 0.;
-	for(uint i=0;i<f.size();i++) this->itsParams.itsBoxFlux += f(i);
-
-	this->itsSolution.resize();
-	bool thisFitGood = true;
-
-	//	int numLoops = 1;
- 	int numLoops = 3;
-
-	this->itsFitter.setMaxRetries(this->itsParams.maxRetries());
-
-	for(int fitloop=0;fitloop<numLoops;fitloop++){
-	  try {
-	    if(this->itsParams.useNoise())
-	      this->itsSolution = this->itsFitter.fit(pos, f, sigma, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
-	    else
-	      this->itsSolution = this->itsFitter.fit(pos, f, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
-	  } catch (AipsError err) {
-	    std::string message = err.getMesg().chars();
-	    message = "FIT ERROR: " + message;
-	    ASKAPLOG_ERROR(logger, message);
-	    thisFitGood = false;
-	  }
-	  for(unsigned int i=0;i<this->itsNumGauss;i++){
-	    this->itsSolution(i,5) = remainder(this->itsSolution(i,5), 2.*M_PI);
-	  }
-	  ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop+1
-			    <<": chisq=" << this->itsFitter.chisquared()
-			    <<": Parameters are:"); 
-	  logparameters(this->itsSolution);
-
-	  if(!this->itsFitter.converged()) fitloop=9999;
-	  else{
-	    for(uint i=0;i<this->itsNumGauss;i++){
-	      if(this->itsSolution(i,0)<0){
-		this->itsSolution(i,0) = 0.;
-		ASKAPLOG_INFO_STR(logger, "Setting negative component #"<<i+1<<" to zero flux.");
-	      }
-	    }
-	    this->itsFitter.setFirstEstimate(this->itsSolution);
-	  }
-	}
-
-
-	for(unsigned int i=0;i<this->itsNumGauss;i++){
-	  this->itsSolution(i,5) = remainder(this->itsSolution(i,5), 2.*M_PI);
-	}
-
-	this->itsNDoF = f.size() - this->itsNumGauss*this->itsParams.numFreeParam() - 1;
-	this->itsRedChisq = this->itsFitter.chisquared() / float(this->itsNDoF);
-	
-	cout.precision(6);
-	if(this->itsFitter.converged()){
-	  ASKAPLOG_INFO_STR(logger, "Fit converged. Solution Parameters follow: "); 
-	  logparameters(this->itsSolution);
-	}
-	else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
-
-	std::stringstream outmsg;
-	outmsg << "Num Gaussians = " << this->itsNumGauss;
-	if( this->itsFitter.converged()) outmsg << ", Converged";
-	else outmsg << ", Failed";
-	outmsg << ", chisq = " << this->itsFitter.chisquared()
-	       << ", chisq/nu =  "  << this->itsRedChisq
-	       << ", dof = " << this->itsNDoF
-	       << ", RMS = " << this->itsFitter.RMS();
-	ASKAPLOG_INFO_STR(logger, outmsg.str());
-
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passConverged()
-      {
-	return this->itsFitter.converged() && (this->itsFitter.chisquared()>0.);
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passChisq()
-      {
-	if(!this->passConverged()) return false;
-
-	if(this->itsParams.itsChisqConfidence > 0 && this->itsParams.itsChisqConfidence < 1){
-	  if(this->itsNDoF<343)
-	    return chisqProb(this->itsNDoF,this->itsFitter.chisquared()) > this->itsParams.itsChisqConfidence;
-	  else 
-	    return (this->itsRedChisq < 1.2);
-	}
-	else return (this->itsRedChisq < this->itsParams.itsMaxReducedChisq);
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passLocation()
-      {
-	if(!this->passConverged()) return false;
-	bool passXLoc=true,passYLoc=true;
-	for(unsigned int i=0;i<this->itsNumGauss;i++){
-	  passXLoc = passXLoc && (this->itsSolution(i,1)>this->itsParams.itsXmin) && 
-	    (this->itsSolution(i,1)<this->itsParams.itsXmax);
-	  passYLoc = passYLoc && (this->itsSolution(i,2)>this->itsParams.itsYmin) && 
-	    (this->itsSolution(i,2)<this->itsParams.itsYmax);
-	}
-	return passXLoc && passYLoc;
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passComponentSize()
-      {
-	if(!this->passConverged()) return false;
-	bool passSize=true;
-	for(unsigned int i=0;i<this->itsNumGauss;i++){
-	  passSize = passSize && (this->itsSolution(i,3) > 0.6*this->itsParams.beamSize() );
-	  passSize = passSize && ((this->itsSolution(i,4)*this->itsSolution(i,3)) > 0.6*this->itsParams.beamSize());
-	}
-	return passSize;
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passComponentFlux()
-      {
-	if(!this->passConverged()) return false;
-	bool passFlux=true;
-	for(unsigned int i=0;i<this->itsNumGauss;i++){
-	  passFlux = passFlux && (this->itsSolution(i,0) > 0.);
-	  passFlux = passFlux && (this->itsSolution(i,0) > 0.5*this->itsParams.itsDetectThresh);
-	}
-	return passFlux;
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passPeakFlux()
-      {
-	if(!this->passConverged()) return false;
-	bool passPeak=true;
-	for(unsigned int i=0;i<this->itsNumGauss;i++)
-	  passPeak = passPeak && (this->itsSolution(i,0) < 2.*this->itsParams.itsSrcPeak);	    
-	return passPeak;
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passIntFlux()
-      {
-	if(!this->passConverged()) return false;
-	float intFlux = 0.;
-	for(unsigned int i=0;i<this->itsNumGauss;i++){
-	  Gaussian2D<Double> component(this->itsSolution(i,0),this->itsSolution(i,1),this->itsSolution(i,2),
-				       this->itsSolution(i,3),this->itsSolution(i,4),this->itsSolution(i,5));
-	  intFlux += component.flux();
-	}
-	return (intFlux < 2.*this->itsParams.itsBoxFlux);
-      }
-
-      //**************************************************************//
-
-      bool Fitter::passSeparation()
-      {
-	if(!this->passConverged()) return false;
-	bool passSep = true;
-	for(unsigned int i=0;i<this->itsNumGauss;i++){
-	  for(unsigned int j=i+1;j<this->itsNumGauss;j++){
-	    float sep = hypot( this->itsSolution(i,1)-this->itsSolution(j,1) , 
-			       this->itsSolution(i,2)-this->itsSolution(j,2) );
-	    passSep = passSep && (sep > 2.);
-	  }
-	}
-	return passSep;
-      }
-
-      //**************************************************************//
-
-      bool Fitter::acceptable()
-      {
-	
-	/// Acceptance criteria for a fit are as follows (after the
-	/// FIRST survey criteria, White et al 1997, ApJ 475, 479):
-	/// @li Fit must have converged
-	/// @li Fit must be acceptable according to its chisq value
-	/// @li The centre of each component must be inside the box
-	/// @li The separation between any pair of components must be more than 2 pixels.
-	/// @li [new one] The FWHM of each component must be >60% of the minimum FWHM of the beam
-	/// @li The flux of each component must be positive and more than half the detection threshold
-	/// @li No component's peak flux can exceed twice the highest pixel in the box
-	/// @li The sum of the integrated fluxes of all components
-	/// must not be more than twice the total flux in the box.
-	
-	bool passConv = this->passConverged();
-	bool passChisq = this->passChisq();
-	bool passFlux = this->passComponentFlux();
-	bool passLoc = this->passLocation();
-	bool passSep = this->passSeparation();
-	bool passSize = this->passComponentSize();
-	bool passPeak = this->passPeakFlux();
-	bool passIntFlux = this->passIntFlux();
-
-	ASKAPLOG_INFO_STR(logger,"Passes: "<<passConv<<passChisq<<passLoc<<passSep<<passSize
-			  <<passFlux<<passPeak<<passIntFlux);
-	
-	bool thisFitGood = passConv && passChisq && passLoc && passSep && passSize && passFlux && passPeak && passIntFlux;
-	
-	return thisFitGood;
-
-      }
-
-      //**************************************************************//
-
-      std::multimap<double,int> Fitter::peakFluxList()
-      {
-
-	std::multimap<double,int> fitMap;
-	for(uint i=0;i<this->itsNumGauss;i++) fitMap.insert(std::pair<double,int>(this->itsSolution(i,0),i));
-	return fitMap;
-
-      }
-
-      //**************************************************************//
-
-      casa::Gaussian2D<casa::Double> Fitter::gaussian(int num)
-      {
-	casa::Gaussian2D<casa::Double> 
-	  gauss(this->itsSolution(num,0),
-		this->itsSolution(num,1),this->itsSolution(num,2),
-		this->itsSolution(num,3),this->itsSolution(num,4),this->itsSolution(num,5));
-	return gauss;
-      }
-
-      //**************************************************************//
+namespace askap {
+
+    namespace analysis {
+
+        namespace sourcefitting {
+
+            Fitter::Fitter(const Fitter& f)
+            {
+                operator=(f);
+            }
+
+            //**************************************************************//
+
+            Fitter& Fitter::operator= (const Fitter& f)
+            {
+                if (this == &f) return *this;
+
+                this->itsNumGauss = f.itsNumGauss;
+                this->itsParams = f.itsParams;
+                this->itsFitter = f.itsFitter;
+                this->itsNDoF = f.itsNDoF;
+                this->itsRedChisq = f.itsRedChisq;
+                this->itsSolution = f.itsSolution;
+                return *this;
+            }
+
+            //**************************************************************//
+
+            void Fitter::setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head)
+            {
+                this->itsFitter.setDimensions(2);
+                this->itsFitter.setNumGaussians(this->itsNumGauss);
+                //
+                casa::Matrix<casa::Double> estimate;
+                estimate.resize(this->itsNumGauss, 6);
+                //
+                uInt nCmpnt = cmpntList.size();
+
+                for (uInt g = 0; g < this->itsNumGauss; g++) {
+                    uInt cmpnt = g % nCmpnt;
+                    estimate(g, 0) = cmpntList[cmpnt].peak();
+                    estimate(g, 1) = cmpntList[cmpnt].x();
+                    estimate(g, 2) = cmpntList[cmpnt].y();
+                    estimate(g, 3) = cmpntList[cmpnt].maj();
+                    estimate(g, 4) = cmpntList[cmpnt].min() / cmpntList[cmpnt].maj();
+                    estimate(g, 5) = cmpntList[cmpnt].pa();
+
+                    if (head.getBmajKeyword() > 0) { // if the beam is known,
+                        bool size = (head.getBmajKeyword() / head.getAvPixScale() > cmpntList[cmpnt].maj());
+
+                        // if the subcomponent is smaller than the beam, or if we
+                        // don't want to fit the size parameters, change the
+                        // estimates of the parameters to the beam size
+                        if (size || !this->itsParams.flagFitThisParam(3))
+                            estimate(g, 3) = head.getBmajKeyword() / head.getAvPixScale();
+
+                        if (size || !this->itsParams.flagFitThisParam(4))
+                            estimate(g, 4) = head.getBminKeyword() / head.getBmajKeyword();
+
+                        if (size || !this->itsParams.flagFitThisParam(5))
+                            estimate(g, 5) = head.getBpaKeyword() * M_PI / 180.;
+                    }
+                }
+
+                this->itsFitter.setFirstEstimate(estimate);
+
+                if (head.getBminKeyword() > 0) this->itsParams.setBeamSize(head.getBminKeyword() / head.getAvPixScale());
+                else this->itsParams.setBeamSize(1.);
+
+                ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
+                logparameters(estimate);
+
+                if (nCmpnt == 1) {
+                    casa::Gaussian2D<casa::Double>
+                    gauss(estimate(0, 0),
+                          estimate(0, 1), estimate(0, 2),
+                          estimate(0, 3), estimate(0, 4), estimate(0, 5));
+                    ASKAPLOG_INFO_STR(logger, "Flux of single component estimate = " << gauss.flux() / head.getBeamSize(););
+                }
+            }
+
+            //**************************************************************//
+
+            void Fitter::setRetries()
+            {
+                casa::Matrix<casa::Double> retryfactors;
+                casa::Matrix<casa::Double> baseRetryfactors;
+                baseRetryfactors.resize(1, 6);
+                retryfactors.resize(this->itsNumGauss, 6);
+                baseRetryfactors(0, 0) = 1.1;
+                baseRetryfactors(0, 1) = 0.1;
+                baseRetryfactors(0, 2) = 0.1;
+                baseRetryfactors(0, 3) = 1.1;
+                baseRetryfactors(0, 4) = 1.01;
+                baseRetryfactors(0, 5) = M_PI / 180.;
+
+                for (unsigned int g = 0; g < this->itsNumGauss; g++)
+                    for (unsigned int i = 0; i < 6; i++)
+                        retryfactors(g, i) = baseRetryfactors(0, i);
+
+                //  this->itsFitter.setRetryFactors(retryfactors);
+                // Try not setting these for now and just use the defaults.
+            }
+
+            //**************************************************************//
+
+            void Fitter::setMasks()
+            {
+                // mask the beam parameters
+                //    std::cout << "Mask values:\n";
+                for (unsigned int g = 0; g < this->itsNumGauss; g++) {
+                    for (unsigned int p = 0; p < 6; p++)
+                        this->itsFitter.mask(g, p) = this->itsParams.flagFitThisParam(p);
+
+//    this->itsFitter.mask(g,3) = false;
+//    this->itsFitter.mask(g,4) = false;
+//    this->itsFitter.mask(g,5) = false;
+//    //          for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=false;   // set them all false
+//    //      for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=true;   // set them all true
+//    //        for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
+//    //        for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
+//    //        std::cout << "\n";
+                    ASKAPLOG_DEBUG_STR(logger, "Masks: " << this->itsParams.flagFitThisParam(0)
+                                           << this->itsParams.flagFitThisParam(1)
+                                           << this->itsParams.flagFitThisParam(2)
+                                           << this->itsParams.flagFitThisParam(3)
+                                           << this->itsParams.flagFitThisParam(4)
+                                           << this->itsParams.flagFitThisParam(5));
+                }
+            }
+
+            //**************************************************************//
+
+            void logparameters(Matrix<Double> &m)
+            {
+                uInt g, p;
+
+                for (g = 0; g < m.nrow(); g++) {
+                    std::stringstream outmsg;
+                    outmsg.precision(3);
+                    outmsg.setf(ios::fixed);
+
+                    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g, p) << ", ";
+
+                    outmsg << m(g, p);
+                    ASKAPLOG_INFO_STR(logger, outmsg.str());
+                }
+            }
+
+            //**************************************************************//
+
+            void Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+                             casa::Vector<casa::Double> sigma)
+            {
+                this->itsParams.itsBoxFlux = 0.;
+
+                for (uint i = 0; i < f.size(); i++) this->itsParams.itsBoxFlux += f(i);
+
+                this->itsSolution.resize();
+                bool thisFitGood = true;
+                //  int numLoops = 1;
+                int numLoops = 3;
+                this->itsFitter.setMaxRetries(this->itsParams.maxRetries());
+
+                for (int fitloop = 0; fitloop < numLoops; fitloop++) {
+                    try {
+                        if (this->itsParams.useNoise())
+                            this->itsSolution = this->itsFitter.fit(pos, f, sigma, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
+                        else
+                            this->itsSolution = this->itsFitter.fit(pos, f, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
+                    } catch (AipsError err) {
+                        std::string message = err.getMesg().chars();
+                        message = "FIT ERROR: " + message;
+                        ASKAPLOG_ERROR(logger, message);
+                        thisFitGood = false;
+                    }
+
+                    for (unsigned int i = 0; i < this->itsNumGauss; i++) {
+                        this->itsSolution(i, 5) = remainder(this->itsSolution(i, 5), 2.*M_PI);
+                    }
+
+                    ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop + 1
+                                          << ": chisq=" << this->itsFitter.chisquared()
+                                          << ": Parameters are:");
+                    logparameters(this->itsSolution);
+
+                    if (!this->itsFitter.converged()) fitloop = 9999;
+                    else {
+                        for (uint i = 0; i < this->itsNumGauss; i++) {
+                            if (this->itsSolution(i, 0) < 0) {
+                                this->itsSolution(i, 0) = 0.;
+                                ASKAPLOG_INFO_STR(logger, "Setting negative component #" << i + 1 << " to zero flux.");
+                            }
+                        }
+
+                        this->itsFitter.setFirstEstimate(this->itsSolution);
+                    }
+                }
+
+                for (unsigned int i = 0; i < this->itsNumGauss; i++) {
+                    this->itsSolution(i, 5) = remainder(this->itsSolution(i, 5), 2.*M_PI);
+                }
+
+                this->itsNDoF = f.size() - this->itsNumGauss * this->itsParams.numFreeParam() - 1;
+                this->itsRedChisq = this->itsFitter.chisquared() / float(this->itsNDoF);
+                cout.precision(6);
+
+                if (this->itsFitter.converged()) {
+                    ASKAPLOG_INFO_STR(logger, "Fit converged. Solution Parameters follow: ");
+                    logparameters(this->itsSolution);
+                } else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
+
+                std::stringstream outmsg;
+                outmsg << "Num Gaussians = " << this->itsNumGauss;
+
+                if (this->itsFitter.converged()) outmsg << ", Converged";
+                else outmsg << ", Failed";
+
+                outmsg << ", chisq = " << this->itsFitter.chisquared()
+                    << ", chisq/nu =  "  << this->itsRedChisq
+                    << ", dof = " << this->itsNDoF
+                    << ", RMS = " << this->itsFitter.RMS();
+                ASKAPLOG_INFO_STR(logger, outmsg.str());
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passConverged()
+            {
+                return this->itsFitter.converged() && (this->itsFitter.chisquared() > 0.);
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passChisq()
+            {
+                if (!this->passConverged()) return false;
+
+                if (this->itsParams.itsChisqConfidence > 0 && this->itsParams.itsChisqConfidence < 1) {
+                    if (this->itsNDoF < 343)
+                        return chisqProb(this->itsNDoF, this->itsFitter.chisquared()) > this->itsParams.itsChisqConfidence;
+                    else
+                        return (this->itsRedChisq < 1.2);
+                } else return (this->itsRedChisq < this->itsParams.itsMaxReducedChisq);
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passLocation()
+            {
+                if (!this->passConverged()) return false;
+
+                bool passXLoc = true, passYLoc = true;
+
+                for (unsigned int i = 0; i < this->itsNumGauss; i++) {
+                    passXLoc = passXLoc && (this->itsSolution(i, 1) > this->itsParams.itsXmin) &&
+                               (this->itsSolution(i, 1) < this->itsParams.itsXmax);
+                    passYLoc = passYLoc && (this->itsSolution(i, 2) > this->itsParams.itsYmin) &&
+                               (this->itsSolution(i, 2) < this->itsParams.itsYmax);
+                }
+
+                return passXLoc && passYLoc;
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passComponentSize()
+            {
+                if (!this->passConverged()) return false;
+
+                bool passSize = true;
+
+                for (unsigned int i = 0; i < this->itsNumGauss; i++) {
+                    passSize = passSize && (this->itsSolution(i, 3) > 0.6 * this->itsParams.beamSize());
+                    passSize = passSize && ((this->itsSolution(i, 4) * this->itsSolution(i, 3)) > 0.6 * this->itsParams.beamSize());
+                }
+
+                return passSize;
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passComponentFlux()
+            {
+                if (!this->passConverged()) return false;
+
+                bool passFlux = true;
+
+                for (unsigned int i = 0; i < this->itsNumGauss; i++) {
+                    passFlux = passFlux && (this->itsSolution(i, 0) > 0.);
+                    passFlux = passFlux && (this->itsSolution(i, 0) > 0.5 * this->itsParams.itsDetectThresh);
+                }
+
+                return passFlux;
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passPeakFlux()
+            {
+                if (!this->passConverged()) return false;
+
+                bool passPeak = true;
+
+                for (unsigned int i = 0; i < this->itsNumGauss; i++)
+                    passPeak = passPeak && (this->itsSolution(i, 0) < 2.*this->itsParams.itsSrcPeak);
+
+                return passPeak;
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passIntFlux()
+            {
+                if (!this->passConverged()) return false;
+
+                float intFlux = 0.;
+
+                for (unsigned int i = 0; i < this->itsNumGauss; i++) {
+                    Gaussian2D<Double> component(this->itsSolution(i, 0), this->itsSolution(i, 1), this->itsSolution(i, 2),
+                                                 this->itsSolution(i, 3), this->itsSolution(i, 4), this->itsSolution(i, 5));
+                    intFlux += component.flux();
+                }
+
+                return (intFlux < 2.*this->itsParams.itsBoxFlux);
+            }
+
+            //**************************************************************//
+
+            bool Fitter::passSeparation()
+            {
+                if (!this->passConverged()) return false;
+
+                bool passSep = true;
+
+                for (unsigned int i = 0; i < this->itsNumGauss; i++) {
+                    for (unsigned int j = i + 1; j < this->itsNumGauss; j++) {
+                        float sep = hypot(this->itsSolution(i, 1) - this->itsSolution(j, 1) ,
+                                          this->itsSolution(i, 2) - this->itsSolution(j, 2));
+                        passSep = passSep && (sep > 2.);
+                    }
+                }
+
+                return passSep;
+            }
+
+            //**************************************************************//
+
+            bool Fitter::acceptable()
+            {
+                /// Acceptance criteria for a fit are as follows (after the
+                /// FIRST survey criteria, White et al 1997, ApJ 475, 479):
+                /// @li Fit must have converged
+                /// @li Fit must be acceptable according to its chisq value
+                /// @li The centre of each component must be inside the box
+                /// @li The separation between any pair of components must be more than 2 pixels.
+                /// @li [new one] The FWHM of each component must be >60% of the minimum FWHM of the beam
+                /// @li The flux of each component must be positive and more than half the detection threshold
+                /// @li No component's peak flux can exceed twice the highest pixel in the box
+                /// @li The sum of the integrated fluxes of all components
+                /// must not be more than twice the total flux in the box.
+                bool passConv = this->passConverged();
+                bool passChisq = this->passChisq();
+                bool passFlux = this->passComponentFlux();
+                bool passLoc = this->passLocation();
+                bool passSep = this->passSeparation();
+                bool passSize = this->passComponentSize();
+                bool passPeak = this->passPeakFlux();
+                bool passIntFlux = this->passIntFlux();
+                ASKAPLOG_INFO_STR(logger, "Passes: " << passConv << passChisq << passLoc << passSep << passSize
+                                      << passFlux << passPeak << passIntFlux);
+                bool thisFitGood = passConv && passChisq && passLoc && passSep && passSize && passFlux && passPeak && passIntFlux;
+                return thisFitGood;
+            }
+
+            //**************************************************************//
+
+            std::multimap<double, int> Fitter::peakFluxList()
+            {
+                std::multimap<double, int> fitMap;
+
+                for (uint i = 0; i < this->itsNumGauss; i++) fitMap.insert(std::pair<double, int>(this->itsSolution(i, 0), i));
+
+                return fitMap;
+            }
+
+            //**************************************************************//
+
+            casa::Gaussian2D<casa::Double> Fitter::gaussian(int num)
+            {
+                casa::Gaussian2D<casa::Double>
+                gauss(this->itsSolution(num, 0),
+                      this->itsSolution(num, 1), this->itsSolution(num, 2),
+                      this->itsSolution(num, 3), this->itsSolution(num, 4), this->itsSolution(num, 5));
+                return gauss;
+            }
+
+            //**************************************************************//
+
+        }
 
     }
-
-  }
 
 }

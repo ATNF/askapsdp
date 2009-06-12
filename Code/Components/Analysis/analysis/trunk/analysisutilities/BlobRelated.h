@@ -45,19 +45,17 @@ using namespace LOFAR::TYPES;
 #include <Blob/BlobOStream.h>
 #include <APS/Exceptions.h>
 
-namespace askap
-{
-  namespace analysis
-  {
+namespace askap {
+    namespace analysis {
 
-    /// @brief Send a RadioSource over a Blob Stream
-    /// @ingroup blobrelated
-/*     LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& blob, sourcefitting::RadioSource& src); */
+        /// @brief Send a RadioSource over a Blob Stream
+        /// @ingroup blobrelated
+        /*     LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& blob, sourcefitting::RadioSource& src); */
 
-    /// @brief Receive a duchamp::Detection from a Blob Stream
-    /// @ingroup blobrelated
-/*     duchamp::Detection receiveDetection(LOFAR::BlobIStream blob); */
-  }
+        /// @brief Receive a duchamp::Detection from a Blob Stream
+        /// @ingroup blobrelated
+        /*     duchamp::Detection receiveDetection(LOFAR::BlobIStream blob); */
+    }
 
 }
 

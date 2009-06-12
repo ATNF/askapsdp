@@ -46,48 +46,46 @@
 #include <images/Images/ImageInterface.h>
 using namespace casa;
 
-namespace askap
-{
+namespace askap {
 
-  namespace analysis
-  {
+    namespace analysis {
 
-    /// @ingroup analysisutilities
-    /// @brief Save a wcsprm struct to a duchamp::FitsHeader
-    void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs);
+        /// @ingroup analysisutilities
+        /// @brief Save a wcsprm struct to a duchamp::FitsHeader
+        void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs);
 
-    /// @ingroup analysisutilities
-    /// @brief Save a casa image to a duchamp::Cube object
-    /// @name
-    /// @{
-    int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber);
-    int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
-    /// @}
+        /// @ingroup analysisutilities
+        /// @brief Save a casa image to a duchamp::Cube object
+        /// @name
+        /// @{
+        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber);
+        int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
+        /// @}
 
-    /// @brief Save the metadata from a casa image to a duchamp::Cube object
-    /// @name 
-    /// @ingroup analysisutilities
-    /// @{
-    int casaImageToMetadata(duchamp::Cube &cube);
-    int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
-    /// @}
+        /// @brief Save the metadata from a casa image to a duchamp::Cube object
+        /// @name
+        /// @ingroup analysisutilities
+        /// @{
+        int casaImageToMetadata(duchamp::Cube &cube);
+        int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
+        /// @}
 
-    /// @ingroup analysisutilities
-    /// @brief Read the beam information from a casa image
-    void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par);
+        /// @ingroup analysisutilities
+        /// @brief Read the beam information from a casa image
+        void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par);
 
-    /// @ingroup analysisutilities
-    /// @brief Extract the WCS information from a casa image
-    /// @name
-    /// @{
-    wcsprm *casaImageToWCS(std::string imageName);
-    wcsprm *casaImageToWCS(const ImageInterface<Float>* imagePtr);
-    /// @}
+        /// @ingroup analysisutilities
+        /// @brief Extract the WCS information from a casa image
+        /// @name
+        /// @{
+        wcsprm *casaImageToWCS(std::string imageName);
+        wcsprm *casaImageToWCS(const ImageInterface<Float>* imagePtr);
+        /// @}
 
-    /// @ingroup analysisutilities
-    /// @brief Convert a duchamp subsection to a casa Slicer
-    Slicer subsectionToSlicer(duchamp::Section &subsection);
+        /// @ingroup analysisutilities
+        /// @brief Convert a duchamp subsection to a casa Slicer
+        Slicer subsectionToSlicer(duchamp::Section &subsection);
 
-  }
+    }
 
 }

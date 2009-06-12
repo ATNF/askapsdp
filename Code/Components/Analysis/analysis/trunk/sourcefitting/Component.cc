@@ -32,48 +32,46 @@
 #include <iostream>
 #include <iomanip>
 
-namespace askap
-{
+namespace askap {
 
-  namespace analysis
-  {
+    namespace analysis {
 
-    namespace sourcefitting
-    {
+        namespace sourcefitting {
 
-      SubComponent::SubComponent(const SubComponent& c)
-      {
-	operator=(c);
-      }
+            SubComponent::SubComponent(const SubComponent& c)
+            {
+                operator=(c);
+            }
 
-      SubComponent& SubComponent::operator= (const SubComponent& c)
-      {
-	if(this == &c) return *this;
-	itsXpos = c.itsXpos;
-	itsYpos = c.itsYpos;
-	itsPeakFlux = c.itsPeakFlux;
-	itsMajorAxis = c.itsMajorAxis;
-	itsMinorAxis = c.itsMinorAxis;
-	itsPositionAngle = c.itsPositionAngle;
-	return *this;
-      }
+            SubComponent& SubComponent::operator= (const SubComponent& c)
+            {
+                if (this == &c) return *this;
 
-      bool operator< (SubComponent lhs, SubComponent rhs)
-      {
-	return lhs.itsPeakFlux < rhs.itsPeakFlux;
-      }
-      
-      std::ostream& operator<< (std::ostream& theStream, SubComponent& c)
-      {
-	theStream.setf(std::ios::fixed);
-	theStream << std::setprecision(3);
-	theStream << c.itsPeakFlux << " " << c.itsXpos << " " << c.itsYpos << " " 
-		  << c.itsMajorAxis << " " << c.itsMinorAxis << " " << c.itsPositionAngle;
-	return theStream;
-      }
+                itsXpos = c.itsXpos;
+                itsYpos = c.itsYpos;
+                itsPeakFlux = c.itsPeakFlux;
+                itsMajorAxis = c.itsMajorAxis;
+                itsMinorAxis = c.itsMinorAxis;
+                itsPositionAngle = c.itsPositionAngle;
+                return *this;
+            }
+
+            bool operator< (SubComponent lhs, SubComponent rhs)
+            {
+                return lhs.itsPeakFlux < rhs.itsPeakFlux;
+            }
+
+            std::ostream& operator<< (std::ostream& theStream, SubComponent& c)
+            {
+                theStream.setf(std::ios::fixed);
+                theStream << std::setprecision(3);
+                theStream << c.itsPeakFlux << " " << c.itsXpos << " " << c.itsYpos << " "
+                    << c.itsMajorAxis << " " << c.itsMinorAxis << " " << c.itsPositionAngle;
+                return theStream;
+            }
+
+        }
 
     }
-
-  }
 
 }
