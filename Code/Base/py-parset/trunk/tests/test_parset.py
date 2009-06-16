@@ -34,6 +34,7 @@ def decoder(k, v):
 def test_decode():
     expr = {'1..9': range(1, 10),
             '9..1': range(9, 0, -1),
+            'abc1..2.txt': ['abc1.txt', 'abc2.txt'],
             '[1,2]': [1,2],
             '[x, y]': ['x', 'y'],
             '[1, x]': [1, 'x'],
