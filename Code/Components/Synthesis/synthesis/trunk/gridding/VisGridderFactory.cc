@@ -41,15 +41,57 @@ ASKAP_LOGGER(logger, ".gridding");
 // RVU
 #include <gridding/VisWeightsMultiFrequency.h>
 
+//#include <casa/OS/DynLib.h>        // for dynamic library loading
+#include <gridding/DynLib.h>        // for dynamic library loading
+#include <casa/BasicSL/String.h>   // for downcase
+
+
 using namespace LOFAR::ACC::APS;
 namespace askap {
 namespace synthesis {
 
-VisGridderFactory::VisGridderFactory() {
-}
+  // Define the static registry.
+  std::map<std::string, VisGridderFactory::GridderCreator*>
+  VisGridderFactory::theirRegistry;
 
-VisGridderFactory::~VisGridderFactory() {
-}
+
+  VisGridderFactory::VisGridderFactory() {
+  }
+
+  void VisGridderFactory::registerGridder (const std::string& name,
+                                           VisGridderFactory::GridderCreator* creatorFunc)
+  {
+    theirRegistry[name] = creatorFunc;
+  }
+
+  IVisGridder::ShPtr VisGridderFactory::createGridder (const std::string& name,
+                                    const LOFAR::ACC::APS::ParameterSet& parset)
+  {
+    std::map<std::string,GridderCreator*>::const_iterator it = theirRegistry.find (name);
+    if (it == theirRegistry.end()) {
+      // Unknown gridder. Try to load the data manager from a dynamic library
+      // with that lowercase name (without possible template extension).
+      casa::String tp(name);
+      tp.downcase();
+      std::string::size_type pos = tp.find ('<');
+      if (pos != std::string::npos) {
+        tp = tp.substr (0, pos);      // only take before <
+      }
+      // Try to load the dynamic library and execute its register function.
+      // Do not dlclose the library.
+      casa::DynLib dl(tp, string("libaskap_"), "register_"+tp, false);
+      if (dl.getHandle()) {
+        // Successfully loaded. Get the creator function.
+        ASKAPLOG_INFO_STR(logger, "Dynamically loaded gridder " << name);
+        it = theirRegistry.find (name);
+      }
+    }
+    if (it == theirRegistry.end()) {
+      ASKAPTHROW(AskapError, "Unknown gridder " << name);
+    }
+    // Execute the registered function.
+    return it->second(parset);
+  }
 
 /// @brief a helper factory of illumination patterns
 /// @details Illumination model is required for a number of gridders. This
@@ -130,11 +172,16 @@ VisGridderFactory::makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset)
    return boost::shared_ptr<IBasicIllumination>(); // to keep the compiler happy
 }
 
+  // Make the gridder object for the gridder given in the parset file.
+  // Currently the standard gridders are still handled by this function.
+  // In the (near) future it should be done by putting creator functions
+  // for these gridders in the registry and use that.
 IVisGridder::ShPtr VisGridderFactory::make(
 		const LOFAR::ACC::APS::ParameterSet &parset) {
 	IVisGridder::ShPtr gridder;
 	/// @todo Better handling of string case
-	if (parset.getString("gridder")=="WProject") {
+        string gridderName = parset.getString("gridder");
+	if (gridderName == "WProject") {
 		double wmax=parset.getDouble("gridder.WProject.wmax", 35000.0);
 		int nwplanes=parset.getInt32("gridder.WProject.nwplanes", 65);
 		double cutoff=parset.getDouble("gridder.WProject.cutoff", 1e-3);
@@ -145,12 +192,12 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		ASKAPLOG_INFO_STR(logger, "Gridding using W projection");
 		gridder=IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
 								  maxSupport, limitSupport, tablename));
-	} else if (parset.getString("gridder")=="WStack") {
+	} else if (gridderName == "WStack") {
 		double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
 		int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 65);
 		ASKAPLOG_INFO_STR(logger, "Gridding using W stacking ");
 		gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
-	} else if (parset.getString("gridder")=="AWProject") {
+	} else if (gridderName == "AWProject") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
 		double wmax=parset.getDouble("gridder.AWProject.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 65);
@@ -178,7 +225,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 				wmax, nwplanes, cutoff, oversample,
 				maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
 			        freqDep, tablename));
-	} else if (parset.getString("gridder")=="AProjectWStack") {
+	} else if (gridderName == "AProjectWStack") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
 		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 65);
@@ -208,13 +255,15 @@ IVisGridder::ShPtr VisGridderFactory::make(
 				wmax, nwplanes, oversample,
 			        maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
 			        freqDep, tablename));
-	} else if (parset.getString("gridder")=="Box") {
+	} else if (gridderName == "Box") {
 		ASKAPLOG_INFO_STR(logger, "Gridding with Box function");
 		gridder=IVisGridder::ShPtr(new BoxVisGridder());
-	} else {
+	} else if (gridderName == "SphFunc") {
 		ASKAPLOG_INFO_STR(logger, "Gridding with spheriodal function");
 		gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
-	}
+	} else {
+            gridder = createGridder (gridderName, parset);
+        }
 	ASKAPASSERT(gridder);
 	if (parset.isDefined("gridder.padding")) {
 	    const int padding =parset.getInt32("gridder.padding");
@@ -246,8 +295,8 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	// Initialize the Visibility Weights
 	if (parset.getString("visweights","")=="MFS")
 	{
-		double reffreq=parset.getDouble("visweights.MFS.reffreq", 1.405e+09);
-		gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency(reffreq)));
+            double reffreq=parset.getDouble("visweights.MFS.reffreq", 1.405e+09);
+            gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency(reffreq)));
 	}
 	else // Null....
 	{

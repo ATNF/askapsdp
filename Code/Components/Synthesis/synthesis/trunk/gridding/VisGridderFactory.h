@@ -36,37 +36,66 @@
 #include <APS/ParameterSet.h>
 
 #include <boost/shared_ptr.hpp>
+#include <map>
 
 namespace askap
 {
-	namespace synthesis
-	{
-		/// @brief Factory class for visibility gridders
-		/// @ingroup gridding
-		class VisGridderFactory
-		{
-			public:
-				/// @brief Factory Class for all gridders.
-				/// @todo Python version of factory 
-				VisGridderFactory();
-				virtual ~VisGridderFactory();
+  namespace synthesis
+  {
+    /// @brief Factory class for visibility gridders
+    /// @ingroup gridding
+    class VisGridderFactory
+    {
+    public:
+      /// @brief Signature of a function creating a Gridder object.
+      /// All functions creating a IVisGridder object must have
+      /// this signature. Preferably such a function is a static
+      /// function in that gridder class.
+      typedef IVisGridder::ShPtr GridderCreator
+      (const LOFAR::ACC::APS::ParameterSet&);
 
-				/// @brief Make a shared pointer for a visibility gridder
-				/// @param parset ParameterSet containing description of
-				/// gridder to be constructed
-				static IVisGridder::ShPtr make(
-				    const LOFAR::ACC::APS::ParameterSet& parset);
+      /// @brief Register a function creating a gridder object.
+      /// @param name The name of the gridder.
+      /// @param creatorFunc pointer to creator function.
+      static void registerGridder (const std::string& name,
+                                   GridderCreator* creatorFunc);
+
+      /// @brief Try to create a non-standard gridder.
+      /// Its name is looked up in the creator function registry.
+      /// If the gridder name is unknown, a shared library with that name
+      /// (in lowercase) is loaded and it executes its register<name>
+      /// function which must register its creator function in the registry
+      /// using function registerGridder.
+      /// @param name The name of the gridder.
+      /// @param parset ParameterSet containing description of
+      /// gridder to be constructed
+      static IVisGridder::ShPtr createGridder (const std::string& name,
+                                               const LOFAR::ACC::APS::ParameterSet& parset);
+
+
+      /// @brief Factory class for all gridders.
+      /// @todo Python version of factory 
+      VisGridderFactory();
+
+      /// @brief Make a shared pointer for a visibility gridder
+      /// @param parset ParameterSet containing description of
+      /// gridder to be constructed.
+      /// If needed, the gridder code is loaded dynamically.
+      static IVisGridder::ShPtr make(const LOFAR::ACC::APS::ParameterSet& parset);
 				    
-			    /// @brief a helper factory of illumination patterns
-			    /// @details Illumination model is required for a number of gridders. This
-			    /// method allows to avoid duplication of code and encapsulates all 
-			    /// functionality related to illumination patterns. 
-			    /// @param[in] parset ParameterSet containing description of illumination to use
-			    /// @return shared pointer to illumination interface
-			    static boost::shared_ptr<IBasicIllumination> 
-			         makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset);
-		};
+      /// @brief a helper factory of illumination patterns
+      /// @details Illumination model is required for a number of gridders. This
+      /// method allows to avoid duplication of code and encapsulates all 
+      /// functionality related to illumination patterns. 
+      /// @param[in] parset ParameterSet containing description of illumination to use
+      /// @return shared pointer to illumination interface
+      static boost::shared_ptr<IBasicIllumination> 
+      makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset);
 
-	}
+    private:
+      static std::map<std::string, GridderCreator*> theirRegistry;
+    };
+
+  }
 }
 #endif 
