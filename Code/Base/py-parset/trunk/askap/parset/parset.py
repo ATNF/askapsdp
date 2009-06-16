@@ -8,7 +8,7 @@ class ParameterSet(object):
     The default constructor creates an empty  ParameterSet instance.
 
     :param args: if only one argument, this is assumed to be the file name of
-                 a ParameterSet file. If two arguments are provided this is 
+                 a ParameterSet file. If two arguments are provided this is
                  assumed to be a key and value.
     :param kw:   key/value parameters
 
@@ -26,23 +26,29 @@ class ParameterSet(object):
                         try:
                             self._add(*pair)
                         except ValueError, ex:
-                            raise ValueError("In line %d of %s. %s" % (i, 
+                            raise ValueError("In line %d of %s. %s" % (i,
                                                                        args[0],
                                                                        ex.message))
                     i += 1
                 logger.info("Read ParameterSet file %s" % args[0])
+            else:
+                raise ValueError("Given (single) argument is not a file name")
         # from key, value
         elif len(args) == 2:
             self._add(*args)
         elif len(kw):
             for k,v in kw.iteritems():
                 self._add(k, v)
+        elif len(args) == 0 and len(kw) == 0:
+            pass
+        else:
+            raise ValueError("Incorrect arguments to constructor.")
 
     def _add(self, k, v):
         """Add a key/value pair to the object:
-        
+
         :param k: the key string, e.g. 'x' or 'x.y'
-        :param v: the value string, using ParameterSet syntax 
+        :param v: the value string, using ParameterSet syntax
         """
         keys = k.split(".")
         k = keys[0]
@@ -88,7 +94,7 @@ class ParameterSet(object):
             else:
                 out[k] = decode(self.__dict__[k])
         return out
-            
+
     def _get_strings(self):
         """
         Get a list of key=values strings as they appear in ParameterSet files.
@@ -122,7 +128,7 @@ def decode(value):
     match = rxislist.match(value)
     if match:
         # check for [ n * <value> ] and expand
-        # doesn't work for vectors elements 
+        # doesn't work for vectors elements
         if value.count(",")  == 0:
             rxtimes = re.compile(r"\[.*?(\d+)\s*[*](.+)\]")
             mtch = rxtimes.match(value)
@@ -138,7 +144,7 @@ def decode(value):
         if value.count("[") > 1:
             try:
                 out = eval(value)
-                return out 
+                return out
             except:
                 raise ValueError("Can't decode arrays of non-numbers")
         out = []
@@ -174,7 +180,7 @@ def decode(value):
 def extract(line):
     """Extract a key/value pair form a string
     Supported value encodings are:
-    
+
     * ranges i..j or j..i with padding
     * lists
     * numerical arrays (lists of lists with numerical values)
