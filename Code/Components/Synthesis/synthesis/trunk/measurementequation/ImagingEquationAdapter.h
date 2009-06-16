@@ -42,6 +42,7 @@
 #include <measurementequation/IMeasurementEquation.h>
 #include <gridding/IVisGridder.h>
 #include <dataaccess/SharedIter.h>
+#include <dataaccess/IDataIterator.h>
 #include <dataaccess/IDataAccessor.h>
 
 namespace askap {

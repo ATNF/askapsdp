@@ -28,6 +28,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <askap/AskapError.h>
 
 #include <dataaccess/SharedIter.h>
+#include <dataaccess/MemBufferDataAccessor.h>
 #include <fitting/Params.h>
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
@@ -65,7 +66,7 @@ namespace askap
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
       init();
     }
-    ;
+    
 
     ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi) :
       itsIdi(idi)
@@ -166,7 +167,7 @@ namespace askap
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           string imageName("image.i"+(*it));
-          itsModelGridders[imageName]->degrid(itsIdi);
+          itsModelGridders[imageName]->degrid(*itsIdi);
         }
       }
       ASKAPLOG_INFO_STR(logger, "Finished degridding model" );
@@ -237,14 +238,17 @@ namespace askap
       size_t counterGrid = 0, counterDegrid = 0;
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
-        /// Accumulate model visibility for all models
-        itsIdi.chooseBuffer("MODEL_DATA");
-        itsIdi->rwVisibility().set(0.0);
+        // buffer-accessor, used as a replacement for proper buffers held in the subtable
+        // effectively, an array with the same shape as the visibility cube is held by this class
+        MemBufferDataAccessor accBuffer(*itsIdi);
+         
+        // Accumulate model visibility for all models
+        accBuffer.rwVisibility().set(0.0);
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
         {
           string imageName("image.i"+(*it));
-          itsModelGridders[imageName]->degrid(itsIdi);
-          counterDegrid+=itsIdi->nRow();
+          itsModelGridders[imageName]->degrid(accBuffer);
+          counterDegrid+=accBuffer.nRow();
         }
         /// Now we can calculate the residual visibility and image
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
@@ -252,12 +256,13 @@ namespace askap
           const string imageName("image.i"+(*it));
           if(parameters().isFree(imageName))
           {
-            itsIdi.chooseOriginal();
-            itsIdi.buffer("RESIDUAL_DATA").rwVisibility()=itsIdi->visibility()-itsIdi.buffer("MODEL_DATA").visibility();
-            itsIdi.chooseBuffer("RESIDUAL_DATA");
-            itsResidualGridders[imageName]->grid(itsIdi);
-            itsPSFGridders[imageName]->grid(itsIdi);
-            counterGrid+=itsIdi->nRow();
+            casa::Array<casa::Complex> residual(itsIdi->visibility().copy());
+            residual -= accBuffer.visibility();
+            ASKAPDEBUGASSERT(accBuffer.rwVisibility().shape() == residual.shape()); 
+            accBuffer.rwVisibility() = residual;
+            itsResidualGridders[imageName]->grid(accBuffer);
+            itsPSFGridders[imageName]->grid(accBuffer);
+            counterGrid+=accBuffer.nRow();
           }
         }
       }
@@ -269,7 +274,7 @@ namespace askap
       // transforms and fill in the normal equations with the results from the
       // residual gridders
       ASKAPLOG_INFO_STR(logger, "Adding residual image, PSF, and weights image to the normal equations" );
-      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+      for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
       {
         const string imageName("image.i"+(*it));
         const casa::IPosition imageShape(parameters().value(imageName).shape());
@@ -302,7 +307,7 @@ namespace askap
               imageShape, reference);
         }
       }
-    };
+    }
 
   }
 

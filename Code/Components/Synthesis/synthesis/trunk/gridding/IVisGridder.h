@@ -37,7 +37,7 @@
 #include <fitting/Axes.h>
 
 #include <boost/shared_ptr.hpp>
-#include <dataaccess/IDataIterator.h>
+#include <dataaccess/IDataAccessor.h>
 #include <dataaccess/SharedIter.h>
 
 #include <boost/shared_ptr.hpp>
@@ -76,9 +76,12 @@ namespace askap
 			virtual void initialiseGrid(const scimath::Axes& axes,
 					const casa::IPosition& shape, const bool dopsf=true) = 0;
 
-			/// Grid the visibility data.
-			/// @param idi DataIterator
-			virtual void grid(IDataSharedIter& idi) = 0;
+            /// @brief Grid the visibility data.
+            /// @param acc non-const data accessor to work with
+            /// @note We have to pass a non-const accessor because we use a generic method inside, 
+            /// which can either write or read. A bit better re-structuring of the code can help to 
+            /// deal with constness properly.      
+            virtual void grid(IDataAccessor& acc) = 0;
 
 			/// Form the final output image
 			/// @param out Output double precision image or PSF
@@ -103,9 +106,9 @@ namespace askap
 			/// @param[in] viswt shared pointer to visibility weights
 			virtual void initVisWeights(IVisWeights::ShPtr viswt) = 0;
 
-			/// Degrid the visibility data.
-			/// @param idi DataIterator
-			virtual void degrid(IDataSharedIter& idi) = 0;
+            /// @brief Degrid the visibility data.
+            /// @param[in] acc non-const data accessor to work with  
+            virtual void degrid(IDataAccessor& acc) = 0;
 
 			/// @brief Finalise
 			virtual void finaliseDegrid() = 0;

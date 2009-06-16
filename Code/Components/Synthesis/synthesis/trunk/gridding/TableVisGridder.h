@@ -111,9 +111,12 @@ namespace askap
       virtual void initialiseGrid(const scimath::Axes& axes,
           const casa::IPosition& shape, const bool dopsf=true);
 
-      /// Grid the visibility data.
-      /// @param idi DataIterator
-      virtual void grid(IDataSharedIter& idi);
+      /// @brief Grid the visibility data.
+      /// @param acc non-const data accessor to work with
+      /// @note We have to pass a non-const accessor because we use a generic method inside, 
+      /// which can either write or read. A bit better re-structuring of the code can help to 
+      /// deal with constness properly.      
+      virtual void grid(IDataAccessor& acc);
 
       /// Form the final output image
       /// @param out Output double precision image or PSF
@@ -141,9 +144,9 @@ namespace askap
       /// @param viswt shared pointer to visibility weights
       virtual void initVisWeights(IVisWeights::ShPtr viswt);
       
-      /// Degrid the visibility data.
-      /// @param idi DataIterator
-      virtual void degrid(IDataSharedIter& idi);
+      /// @brief Degrid the visibility data.
+      /// @param[in] acc non-const data accessor to work with  
+      virtual void degrid(IDataAccessor& acc);
 
       /// @brief Finalise
       virtual void finaliseDegrid();

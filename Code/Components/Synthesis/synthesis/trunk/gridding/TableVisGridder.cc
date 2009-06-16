@@ -534,12 +534,20 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 	   itsTimeGridded+=timer.real();
    }
 }
-void TableVisGridder::degrid(IDataSharedIter& idi) {
-	return generic(*idi, true);
+
+/// @brief Degrid the visibility data.
+/// @param[in] acc non-const data accessor to work with  
+void TableVisGridder::degrid(IDataAccessor& acc) {
+	return generic(acc, true);
 }
 
-void TableVisGridder::grid(IDataSharedIter& idi) {
-	return generic(*idi, false);
+/// @brief Grid the visibility data.
+/// @param acc non-const data accessor to work with
+/// @note We have to pass a non-const accessor because we use a generic method inside, 
+/// which can either write or read. A bit better re-structuring of the code can help to 
+/// deal with constness properly.      
+void TableVisGridder::grid(IDataAccessor& acc) {
+	return generic(acc, false);
 }
 
 /// @brief obtain the centre of the image
