@@ -131,4 +131,4 @@ if not opts.preserve:
     print ">>> Attempting to clean all the Tools."
     os.system(". initaskap.sh && cd Tools && python setup.py -q clean > /dev/null 2>& 1")
 print ">>> Attempting to build all the Tools."
-os.system(". initaskap.sh && cd Tools && python setup.py -q install")
+os.system(". initaskap.sh && cd Tools && python autobuild.py -q install")
