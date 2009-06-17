@@ -4,13 +4,38 @@ import re
 from askap.parset import logger
 
 class ParameterSet(object):
-    """Create a ParameterSet:
-    The default constructor creates an empty  ParameterSet instance.
+    """
+    The default constructor creates an empty ParameterSet instance.
+    ParameterSet keys can be accessed as attributes::
+
+        p = ParameterSet('x.y.z', 1)
+        print p.x.y.z
+        >>> 1
+
+    or dictionary keys::
+
+        p = ParameterSet('x.y.z', 1)
+        print p["x"]["y"]["z"]
+        >>> 1
+
+    All methods are private (prefixed "_"), so that only ParameterSet values
+    show up as public attributes.
+
 
     :param args: if only one argument, this is assumed to be the file name of
                  a ParameterSet file. If two arguments are provided this is
-                 assumed to be a key and value.
+                 assumed to be a key and a value.
     :param kw:   key/value parameters
+
+    Example::
+
+        p0 = ParameterSet()
+        p1 = ParameterSet('x.y', 1)
+        p2 = ParameterSet(x=1, y=2, z=ParameterSet('a', 3))
+        print x.a
+        >>> 3
+        p3 = ParameterSet('xyz.parset')
+        p1._add('x.a', 2)
 
     """
     def __init__(self, *args, **kw):
@@ -45,10 +70,26 @@ class ParameterSet(object):
             raise ValueError("Incorrect arguments to constructor.")
 
     def _add(self, k, v):
-        """Add a key/value pair to the object:
+        """
+        Add a key/value pair. This will recursively create keys if necessart
+        when the key contains '.' notation. This is the only way to add keys of
+        this form. To set non-nested attributes one can use attribute or
+        item set notation, so that the following are equivalent::
 
-        :param k: the key string, e.g. 'x' or 'x.y'
-        :param v: the value string, using ParameterSet syntax
+            p = ParameterSet()
+            p.x = 1
+            p["x"] = 1
+            p._add("x", 1)
+            # to add nested keys use
+            p._add('x.y', 1)
+            # this fails
+            p.x.y = 1
+            # as does this
+            p["x"]["y"]
+
+        :param k: key
+        :param v: value
+
         """
         keys = k.split(".")
         k = keys[0]
@@ -57,7 +98,7 @@ class ParameterSet(object):
             tail = ".".join(keys[1:])
         if k in self._keys:
             child = self.__dict__[k]
-            if isinstance(child, ParameterSet):
+            if isinstance(child, self.__class__):
                 child._add(tail, v)
             else:
                 if tail:
@@ -86,10 +127,13 @@ class ParameterSet(object):
             raise KeyError
 
     def _to_dict(self):
-        """Return a python dict object representation"""
+        """
+        Returns a python :class:`dict` representation of the `ParameterSet`,
+        decoding all values using :func:`decode`
+        """
         out = {}
         for k in self._keys:
-            if isinstance(self.__dict__[k], ParameterSet):
+            if isinstance(self.__dict__[k], self.__class__):
                 out[k] = self.__dict__[k]._to_dict()
             else:
                 out[k] = decode(self.__dict__[k])
@@ -101,7 +145,7 @@ class ParameterSet(object):
         """
         out = []
         for k in self._keys:
-            if isinstance(self.__dict__[k], ParameterSet):
+            if isinstance(self.__dict__[k], self.__class__):
                 children = self.__dict__[k]._get_strings()
                 for child in children:
                     out.append(".".join([k, child]))
@@ -116,7 +160,21 @@ class ParameterSet(object):
         return self.__str__()
 
 def decode(value):
-    """Decode a ParameterSet value into python types
+    """
+    This function takes text a string which is using ParameterSet syntax
+    and is decoding it into a valid python value, e.g.::
+
+        p = ParameterSet('x.y', '[a,b]')
+        print decode(p.x.y)
+        >>> ['a', 'b']
+
+    Supported value encodings are:
+
+    * ranges i..j or j..i with padding, e.g. abc00..09.txt
+    * lists
+    * numerical arrays (lists of lists with numerical values)
+    * booleans true/false
+
     """
     if not isinstance(value, str):
         return value
@@ -178,15 +236,10 @@ def decode(value):
     return value
 
 def extract(line):
-    """Extract a key/value pair form a string
-    Supported value encodings are:
-
-    * ranges i..j or j..i with padding
-    * lists
-    * numerical arrays (lists of lists with numerical values)
-    * booleans true/false
-
-"""
+    """
+    Return a key/value pair from a string. This will most likely be a line in a
+    ParameterSet file
+    """
     line = line.strip()
     if len(line) == 0 or line.startswith("#"):
         return None
