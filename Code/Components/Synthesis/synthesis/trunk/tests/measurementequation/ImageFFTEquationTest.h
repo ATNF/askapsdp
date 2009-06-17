@@ -27,6 +27,7 @@
 #include <gridding/AWProjectVisGridder.h>
 #include <gridding/DiskIllumination.h>
 #include <measurementequation/ImageSolver.h>
+#include <measurementequation/ImageMultiScaleSolver.h>
 #include <dataaccess/DataIteratorStub.h>
 #include <fitting/ParamsCasaTable.h>
 
@@ -119,36 +120,34 @@ namespace askap
       {
         // Predict with the "perfect" parameters"
         p1->predict();
-        // Calculate gradients using "imperfect" parameters"
-        ImagingNormalEquations ne(*params1);
-        p2->calcEquations(ne);
-        Quality q;
-        ImageSolver solver1(*params1);
-        solver1.addNormalEquations(ne);
-        solver1.solveNormalEquations(q);
-        const casa::Array<double>& improved=solver1.parameters().value("image.i.cena");
+        // perform a given number of major cycles
+        const size_t nMajCycles = 1;
+        casa::Array<double> improved; // buffer for the result
+        for (size_t cycle = 0; cycle<nMajCycles; ++cycle) {
+             // Calculate gradients using "imperfect" parameters" 
+             ImagingNormalEquations ne(*params2);
+             p2->calcEquations(ne);
+             Quality q;
+             ImageMultiScaleSolver solver1(*params2);
+             solver1.setAlgorithm("Hogbom");
+             solver1.addNormalEquations(ne);
+             solver1.solveNormalEquations(q);
+             improved=solver1.parameters().value("image.i.cena");
+        }
         //        {
         //          ParamsCasaTable pt("ImageFFTEquationTest_SphFun.tab", false);
         //          pt.setParameters(solver1.parameters());
         //        }
         // This only works for the pixels with emission but it's a good test nevertheless
-        /*
-        // old
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
             -1.0)<0.003);
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
             0))-0.700)<0.003);
-        */
-        CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
-            -1.0)<0.15);
-        CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
-            0))-0.700)<0.1);        
       }
 
       void testSolveAntIllum()
       {
         // Predict with the "perfect" parameters"
-        ImagingNormalEquations ne(*params1);
         boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(12.0, 1.0));
         
         IVisGridder::ShPtr gridder=IVisGridder::ShPtr(new AWProjectVisGridder(illum,
@@ -157,9 +156,10 @@ namespace askap
         p2.reset(new ImageFFTEquation(*params2, idi, gridder));
         p1->predict();
         // Calculate gradients using "imperfect" parameters"
+        ImagingNormalEquations ne(*params2);
         p2->calcEquations(ne);
         Quality q;
-        ImageSolver solver1(*params1);
+        ImageSolver solver1(*params2);
         solver1.addNormalEquations(ne);
         solver1.solveNormalEquations(q);
         const casa::Array<double> improved=solver1.parameters().value("image.i.cena");
@@ -168,17 +168,10 @@ namespace askap
         //          pt.setParameters(solver1.parameters());
         //        }
         // This only works for the pixels with emission but it's a good test nevertheless
-        /*
-        // old
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
             -1.0)<0.005);
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
             0))-0.700)<0.005);
-        */
-        CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
-            -1.0)<0.15);
-        CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
-            0))-0.700)<0.1);
       }
 
       void testFixed()
