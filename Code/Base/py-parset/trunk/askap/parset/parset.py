@@ -8,15 +8,15 @@ class ParameterSet(object):
     The default constructor creates an empty ParameterSet instance.
     ParameterSet keys can be accessed as attributes::
 
-        p = ParameterSet('x.y.z', 1)
-        print p.x.y.z
-        >>> 1
+        >>> p = ParameterSet('x.y.z', 1)
+        >>> print p.x.y.z
+        1
 
     or dictionary keys::
 
-        p = ParameterSet('x.y.z', 1)
-        print p["x"]["y"]["z"]
-        >>> 1
+        >>> p = ParameterSet('x.y.z', 1)
+        >>> print p["x"]["y"]["z"]
+        1
 
     All methods are private (prefixed "_"), so that only ParameterSet values
     show up as public attributes.
@@ -29,13 +29,13 @@ class ParameterSet(object):
 
     Example::
 
-        p0 = ParameterSet()
-        p1 = ParameterSet('x.y', 1)
-        p2 = ParameterSet(x=1, y=2, z=ParameterSet('a', 3))
-        print x.a
-        >>> 3
-        p3 = ParameterSet('xyz.parset')
-        p1._add('x.a', 2)
+        >>> p0 = ParameterSet()
+        >>> p1 = ParameterSet('x.y', 1)
+        >>> p2 = ParameterSet(x=1, y=2, z=ParameterSet('a', 3))
+        >>> print x.a
+        3
+        >>> p3 = ParameterSet('xyz.parset')
+        >>> p1._add('x.a', 2)
 
     """
     def __init__(self, *args, **kw):
@@ -75,7 +75,7 @@ class ParameterSet(object):
         when the key contains '.' notation. This is the only way to add keys of
         this form. To set non-nested attributes one can use attribute or
         item set notation, so that the following are equivalent::
-
+            
             p = ParameterSet()
             p.x = 1
             p["x"] = 1
@@ -162,11 +162,11 @@ class ParameterSet(object):
 def decode(value):
     """
     This function takes text a string which is using ParameterSet syntax
-    and is decoding it into a valid python value, e.g.::
+    and is decoding it into a valid python value, e.g.:: python
 
-        p = ParameterSet('x.y', '[a,b]')
-        print decode(p.x.y)
-        >>> ['a', 'b']
+        >>> p = ParameterSet('x.y', '[a,b]')
+        >>> print decode(p.x.y)
+        ['a', 'b']
 
     Supported value encodings are:
 
