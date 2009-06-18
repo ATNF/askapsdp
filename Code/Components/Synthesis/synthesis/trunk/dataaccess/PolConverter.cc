@@ -135,9 +135,9 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
       } else if (isCircular(polFrameIn)) {
           // circular to stokes
           T(0,0)=1.; T(0,3)=1.; 
-          T(1,1)=casa::Complex(0.,-1.); T(3,2)=casa::Complex(0.,1.);
-          T(2,0)=1.; T(1,3)=-1.;
-          T(3,1)=1.; T(2,2)=1.;
+          T(1,1)=casa::Complex(0.,-1.); T(1,2)=casa::Complex(0.,1.);
+          T(2,0)=1.; T(2,3)=-1.;
+          T(3,1)=1.; T(3,2)=1.;
       } else if (isStokes(polFrameIn)) {
           T.diagonal() = 1.;
       } else {

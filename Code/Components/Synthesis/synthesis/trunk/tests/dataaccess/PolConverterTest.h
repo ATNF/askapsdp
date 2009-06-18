@@ -42,6 +42,8 @@ class PolConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(dimensionTest);
   CPPUNIT_TEST(stokesEnumTest);
   CPPUNIT_TEST(stringConversionTest);
+  CPPUNIT_TEST(linear2stokesTest);
+  CPPUNIT_TEST(circular2stokesTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   void dimensionTest() {
@@ -58,6 +60,58 @@ public:
      casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
      casa::Vector<casa::Complex> outVec = pc(inVec);
      CPPUNIT_ASSERT(outVec.nelements() == out.nelements());
+  }
+  
+  void linear2stokesTest() {
+     casa::Vector<casa::Stokes::StokesTypes> in(4);
+     in[0] = casa::Stokes::XX;
+     in[1] = casa::Stokes::XY;
+     in[2] = casa::Stokes::YX;
+     in[3] = casa::Stokes::YY;
+     casa::Vector<casa::Stokes::StokesTypes> out(4);
+     out[0] = casa::Stokes::I;
+     out[1] = casa::Stokes::Q;
+     out[2] = casa::Stokes::U;
+     out[3] = casa::Stokes::V;
+     
+     PolConverter pc(in,out);
+     casa::Vector<casa::Complex> inVec(in.nelements());
+     inVec[0]=casa::Complex(0.1,0.2);
+     inVec[1]=casa::Complex(0.3,0.4);
+     inVec[2]=casa::Complex(0.5,0.6);
+     inVec[3]=casa::Complex(0.7,0.8);     
+     casa::Vector<casa::Complex> outVec = pc(inVec);
+     CPPUNIT_ASSERT(outVec.nelements() == out.nelements());
+     CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(0.8,1))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(-0.6,-0.6))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[2]-casa::Complex(0.8,1.0))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[3]-casa::Complex(-0.2,0.2))<1e-5);
+  }
+
+  void circular2stokesTest() {
+     casa::Vector<casa::Stokes::StokesTypes> in(4);
+     in[0] = casa::Stokes::RR;
+     in[1] = casa::Stokes::RL;
+     in[2] = casa::Stokes::LR;
+     in[3] = casa::Stokes::LL;
+     casa::Vector<casa::Stokes::StokesTypes> out(4);
+     out[0] = casa::Stokes::I;
+     out[1] = casa::Stokes::Q;
+     out[2] = casa::Stokes::U;
+     out[3] = casa::Stokes::V;
+     
+     PolConverter pc(in,out);
+     casa::Vector<casa::Complex> inVec(in.nelements());
+     inVec[0]=casa::Complex(0.1,0.2);
+     inVec[1]=casa::Complex(0.3,0.4);
+     inVec[2]=casa::Complex(0.5,0.6);
+     inVec[3]=casa::Complex(0.7,0.8);     
+     casa::Vector<casa::Complex> outVec = pc(inVec);
+     CPPUNIT_ASSERT(outVec.nelements() == out.nelements());
+     CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(0.8,1))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(-0.2,0.2))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[2]-casa::Complex(-0.6,-0.6))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[3]-casa::Complex(0.8,1.0))<1e-5);
   }
   
   void stokesEnumTest() {
