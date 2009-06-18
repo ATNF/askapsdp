@@ -1,0 +1,41 @@
+#Cimager.dataset                                 = [10uJy_stdtest_0.ms,10uJy_stdtest_1.ms]
+Cimager.dataset                                 = 10uJy_stdtest_0.ms
+
+Cimager.Images.Names                            = [image.i.10uJy_clean_stdtest]
+Cimager.Images.shape                = [2048,2048]
+Cimager.Images.cellsize                 = [6.0arcsec, 6.0arcsec]
+Cimager.Images.image.i.10uJy_clean_stdtest.frequency    = [1.420e9,1.420e9]
+Cimager.Images.image.i.10uJy_clean_stdtest.nchan    = 1
+Cimager.Images.image.i.10uJy_clean_stdtest.direction    = [12h30m00.00, -45.00.00.00, J2000]
+#
+Cimager.gridder                             = WProject
+Cimager.gridder.WProject.wmax               = 15000
+Cimager.gridder.WProject.nwplanes           = 11
+Cimager.gridder.WProject.oversample         = 4
+Cimager.gridder.WProject.maxsupport       = 512
+#
+# Use a multiscale Clean solver
+#
+Cimager.solver                                  = Clean
+Cimager.solver.Clean.algorithm                  = MultiScale
+Cimager.solver.Clean.scales                     = [0, 3, 10]
+Cimager.solver.Clean.niter                      = 100
+Cimager.solver.Clean.gain                       = 0.1
+Cimager.solver.Clean.tolerance                  = 0.1
+Cimager.solver.Clean.verbose                    = True
+Cimager.threshold.minorcycle                    = [0.27mJy, 10%]
+Cimager.threshold.majorcycle                    = 0.3mJy
+#
+Cimager.ncycles                                 = 2
+#
+# Restore the image at the end
+#
+Cimager.restore                             = True
+Cimager.restore.beam                        = [30arcsec, 30arcsec, 0deg]
+#
+# Use preconditioning for deconvolution
+#
+Cimager.preconditioner.Names            = [Wiener, GaussianTaper]
+Cimager.preconditioner.Wiener.noisepower    = 100.0
+Cimager.preconditioner.GaussianTaper        = [20arcsec, 20arcsec, 0deg]
+

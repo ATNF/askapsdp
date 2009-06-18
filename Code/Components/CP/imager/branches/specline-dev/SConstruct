@@ -1,0 +1,20 @@
+# @file
+# SConstruct build script for this module.
+#
+
+# Always import this
+from askapenv import env
+
+# create build object with library name
+pkg = env.AskapPackage("imager")
+
+pkg.AddSubPackage("distributedimager")
+pkg.AddSubPackage("messages")
+
+env["CC"] = "mpicc"
+env["CXX"] = "mpicxx"
+env["LINK"] = "mpicxx"
+env["SHLINK"] = "mpiCC"
+
+# run the build process
+pkg()

@@ -1,0 +1,23 @@
+Cimager.dataset                                 = [10uJy_stdtest_0.ms,10uJy_stdtest_1.ms]
+#Cimager.dataset                                 = 10uJy_stdtest_0.ms
+
+Cimager.Images.Names                            = [image.i.10uJy_dirty_stdtest]
+Cimager.Images.shape                            = [2048,2048]
+Cimager.Images.cellsize                         = [6.0arcsec, 6.0arcsec]
+Cimager.Images.image.i.10uJy_dirty_stdtest.frequency    = [1.420e9,1.420e9]
+Cimager.Images.image.i.10uJy_dirty_stdtest.nchan        = 1
+Cimager.Images.image.i.10uJy_dirty_stdtest.direction    = [12h30m00.00, -45.00.00.00, J2000]
+#
+Cimager.gridder                             = WProject
+Cimager.gridder.WProject.wmax               = 15000
+Cimager.gridder.WProject.nwplanes           = 11
+Cimager.gridder.WProject.oversample         = 4
+Cimager.gridder.WProject.maxsupport         = 512
+#
+Cimager.solver                                  = Dirty
+Cimager.solver.Dirty.tolerance                  = 0.1
+Cimager.solver.Dirty.verbose                    = True
+Cimager.ncycles                                 = 0
+
+Cimager.preconditioner.Names                    = None
+
