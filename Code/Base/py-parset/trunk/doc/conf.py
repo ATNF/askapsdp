@@ -42,7 +42,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'askap.parset'
-copyright = u'2009, Malte Marquarding'
+copyright = u'2009, CSIRO'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
