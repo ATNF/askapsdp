@@ -26,46 +26,59 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMS_SIMUTIL_H_
-#define ASKAP_SIMS_SIMUTIL_H_
-
-#include <simulationutilities/FluxGenerator.h>
-
-#include <APS/ParameterSet.h>
+#ifndef ASKAP_SIMS_FLUXGEN_H_
+#define ASKAP_SIMS_FLUXGEN_H_
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <scimath/Functionals/Gaussian1D.h>
-#include <scimath/Functionals/Gaussian2D.h>
-#include <scimath/Functionals/Gaussian3D.h>
-#include <casa/namespace.h>
+#include <wcslib/wcs.h>
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 #include <vector>
 #include <utility>
 #include <string>
+#include <stdlib.h>
 #include <math.h>
 
 namespace askap {
 
     namespace simulations {
 
-        /// @brief Return a normal random variable
-        float normalRandomVariable(float mean, float rms);
+        class FluxGenerator {
+            public:
+                FluxGenerator();
+		FluxGenerator(int numChan){itsNChan = numChan;};
+                virtual ~FluxGenerator() {};
+		/// @brief Copy constructor for FluxGenerator.
+		FluxGenerator(const FluxGenerator& f);
+		
+		/// @brief Assignment operator for FluxGenerator.
+		FluxGenerator& operator= (const FluxGenerator& f);
 
-        //    float normalRandomVariable(){return normalRandomVariable(0.,1.);};
+		void defineSource(float alpha, float beta, float nuZero, float fluxZero);
 
-        /// @brief Add a 2D Gaussian component to an array of fluxes.
-	//        void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss);
-        void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxG);
+		void setNumChan(int num){itsNChan = num;};
+		int  nChan(){return itsNChan;};
 
-        /// @brief Add a single point source to an array of fluxes.
-	//        void addPointSource(float *array, std::vector<int> axes, double *pix, double flux);
-        void addPointSource(float *array, std::vector<int> axes, double *pix, FluxGenerator fluxGen);
+		void calcFluxes(double &x, double &y, wcsprm *wcs);
+		
+		float getFlux(int i){return itsFluxValues.at(i);};
+
+            protected:
+                float itsAlpha;
+                float itsBeta;
+                float itsNuZero;
+		float itsFluxZero;
+		int   itsNChan;
+		std::vector<float> itsFluxValues;
+
+        };
 
     }
 
 }
-
 
 #endif

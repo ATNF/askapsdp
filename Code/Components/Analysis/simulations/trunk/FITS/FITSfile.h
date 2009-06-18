@@ -41,107 +41,109 @@
 #include <string>
 #include <math.h>
 
-namespace askap
-{
+namespace askap {
 
-  namespace simulations
-  {
+    namespace simulations {
 
-    namespace FITS
-    {
+        namespace FITS {
 
-      /// @brief A class to create new FITS files
-      /// @details This class handles the creation of FITS files, as
-      /// well as WCS handling, adding point or Gaussian components, adding
-      /// noise, and convolving with a beam. It is driven by
-      /// parameterset input.
-      class FITSfile
-      {
-      public:
-	/// @brief Default constructor
-	FITSfile();
+            /// @brief A class to create new FITS files
+            /// @details This class handles the creation of FITS files, as
+            /// well as WCS handling, adding point or Gaussian components, adding
+            /// noise, and convolving with a beam. It is driven by
+            /// parameterset input.
+            class FITSfile {
+                public:
+                    /// @brief Default constructor
+                    FITSfile();
 
-	/// @brief Default destructor
-	virtual ~FITSfile();
-	
-	/// @brief Constructor, using an input parameter set
-	FITSfile(const LOFAR::ACC::APS::ParameterSet& parset);
+                    /// @brief Default destructor
+                    virtual ~FITSfile();
 
-	/// @brief Define the world coordinate system
-	void setWCS(bool isImage, const LOFAR::ACC::APS::ParameterSet& parset);
+                    /// @brief Constructor, using an input parameter set
+                    FITSfile(const LOFAR::ACC::APS::ParameterSet& parset);
 
-	/// @brief Make a flux array with just noise in it.
-	void makeNoiseArray();
+                    /// @brief Define the world coordinate system
+                    void setWCS(bool isImage, const LOFAR::ACC::APS::ParameterSet& parset);
 
-	/// @brief Add noise to the flux array
-	void addNoise();
+		    struct wcsprm *getWCS(){return itsWCS;};
 
-	/// @brief Add sources to the flux array
-	void addSources();
+                    /// @brief Make a flux array with just noise in it.
+                    void makeNoiseArray();
 
-	/// @brief Convolve the flux array with a beam
-	void convolveWithBeam();
+                    /// @brief Add noise to the flux array
+                    void addNoise();
 
-	/// @brief Save the array to a FITS file
-	void saveFile();
+                    /// @brief Add sources to the flux array
+                    void addSources();
 
-      protected:
+                    /// @brief Convolve the flux array with a beam
+                    void convolveWithBeam();
 
-	/// @brief The name of the file to be written to
-	std::string itsFileName;
-	/// @brief The file containing the list of sources
-	std::string itsSourceList;
-	/// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss
-	std::string itsPosType;
+                    /// @brief Save the array to a FITS file
+                    void saveFile();
 
-	/// @brief The array of pixel fluxes
-	float *itsArray;
-	/// @brief Has the memory for itsArray been allocated?
-	bool itsArrayAllocated;
-	/// @brief The RMS of the noise distribution
-	float itsNoiseRMS;
-	
-	/// @brief The dimensionality of the image
-	unsigned int itsDim;
-	/// @brief The axis dimensions
-	std::vector<int> itsAxes;
-	/// @brief The number of pixels in the image
-	int itsNumPix;
-	
-	/// @brief Do we have information on the beam size?
-	bool itsHaveBeam;
-	/// @brief The beam specifications: major axis, minor axis, position angle
-	std::vector<float> itsBeamInfo;
-	
-	/// @brief The EQUINOX keyword
-	float itsEquinox;
-	/// @brief The BUNIT keyword: units of flux
-	std::string itsBunit;
-       
-	/// @brief How to convert source fluxes to the correct units for the image
-	/// @{
-	double itsUnitScl;
-	double itsUnitOff;
-	double itsUnitPwr;
-	/// @}
+                protected:
 
-	/// @brief The world coordinate information
-	struct wcsprm *itsWCS;
+                    /// @brief The name of the file to be written to
+                    std::string itsFileName;
+                    /// @brief The file containing the list of sources
+                    std::string itsSourceList;
+                    /// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss
+                    std::string itsPosType;
 
-	/// @brief The world coordinate information that the sources use, if different from itsWCS
-	struct wcsprm *itsWCSsources;
-	/// @brief If the sources have a different WCS defined, and we need to transform to the image WCS.
-	bool itsFlagPrecess;
-	/// @brief Whether to save the source list with new positions
-	bool itsFlagOutputList;
-	/// @brief The file to save the new source list to.
-	std::string itsOutputSourceList;
+                    /// @brief The array of pixel fluxes
+                    float *itsArray;
+                    /// @brief Has the memory for itsArray been allocated?
+                    bool itsArrayAllocated;
+                    /// @brief The RMS of the noise distribution
+                    float itsNoiseRMS;
 
-      };
+                    /// @brief The dimensionality of the image
+                    unsigned int itsDim;
+                    /// @brief The axis dimensions
+                    std::vector<int> itsAxes;
+                    /// @brief The number of pixels in the image
+                    int itsNumPix;
+
+                    /// @brief Do we have information on the beam size?
+                    bool itsHaveBeam;
+                    /// @brief The beam specifications: major axis, minor axis, position angle
+                    std::vector<float> itsBeamInfo;
+
+		    /// @brief Do the sources have spectral information for a third axis?
+		    bool itsHaveSpectralInfo;
+		    float itsBaseFreq;
+
+                    /// @brief The EQUINOX keyword
+                    float itsEquinox;
+                    /// @brief The BUNIT keyword: units of flux
+                    std::string itsBunit;
+
+                    /// @brief How to convert source fluxes to the correct units for the image
+                    /// @{
+                    double itsUnitScl;
+                    double itsUnitOff;
+                    double itsUnitPwr;
+                    /// @}
+
+                    /// @brief The world coordinate information
+                    struct wcsprm *itsWCS;
+
+                    /// @brief The world coordinate information that the sources use, if different from itsWCS
+                    struct wcsprm *itsWCSsources;
+                    /// @brief If the sources have a different WCS defined, and we need to transform to the image WCS.
+                    bool itsFlagPrecess;
+                    /// @brief Whether to save the source list with new positions
+                    bool itsFlagOutputList;
+                    /// @brief The file to save the new source list to.
+                    std::string itsOutputSourceList;
+
+            };
+
+        }
 
     }
-
-  }
 }
 
 #endif

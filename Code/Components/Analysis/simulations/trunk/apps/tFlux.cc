@@ -29,6 +29,7 @@
 #include <askap_simulations.h>
 
 #include <FITS/FITSfile.h>
+#include <SimulationUtilities/FluxGenerator.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -48,7 +49,7 @@ using namespace askap::simulations;
 using namespace askap::simulations::FITS;
 using namespace LOFAR::ACC::APS;
 
-ASKAP_LOGGER(logger, "createFITS.log");
+ASKAP_LOGGER(logger, "tFlux.log");
 
 // Move to Askap Util?
 std::string getInputs(const std::string& key, const std::string& def, int argc,
@@ -70,42 +71,31 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-    ASKAPLOG_INIT("createFITS.log_cfg");
+    ASKAPLOG_INIT("tFlux.log_cfg");
 
-    try {
-        //    casa::Timer timer;
-        //    timer.mark();
-        //srandomdev();
-        srandom(time(0));
-        std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
-        ParameterSet parset(parsetFile);
-        ParameterSet subset(parset.makeSubset("createFITS."));
-        bool doNoise = subset.getBool("addNoise", true);
-        bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
-        bool doConvolution = subset.getBool("doConvolution", true);
-        FITSfile file(subset);
-        file.addSources();
+    ParameterSet parset("apps/tparset.in");
+    parset = parset.makeSubset("createFITS.");
+    FITSfile file(parset);
 
-        if (doNoise && (noiseBeforeConvolve || !doConvolution))
-            file.addNoise();
+    struct wcsprm *wcs = file.getWCS();
+//     wcsprt(wcs);
 
-        if (doConvolution)
-            file.convolveWithBeam();
+    std::vector<int> axes = parset.getInt32Vector("axes");
+    int nz = axes[wcs->spec];
+    FluxGenerator fluxes(nz);
+    ASKAPLOG_DEBUG_STR(logger, "number of channels = " << nz);
+    fluxes.defineSource(-1.,-1.,1.4e9,1.);
+    double x=512.,y=512.;
+    fluxes.calcFluxes(x,y,wcs);
 
-        if (doNoise && (!noiseBeforeConvolve && doConvolution))
-            file.addNoise();
+    for(int i=0;i<fluxes.nChan();i++)
+      std::cout << i << " " << fluxes.getFlux(i) << "\n";
 
-        file.saveFile();
-    } catch (askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
-
-    exit(0);
+    std::cout << "\n";
+    
+    FluxGenerator singleFlux(1);
+    singleFlux.defineSource(0.,0.,1.4e9,1.);
+    singleFlux.calcFluxes(x,y,wcs);
+    for(int i=0;i<singleFlux.nChan();i++)
+      std::cout << i << " " << singleFlux.getFlux(i) << "\n";
 }
-

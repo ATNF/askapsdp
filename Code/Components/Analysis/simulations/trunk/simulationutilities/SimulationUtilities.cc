@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Provides utility functions for simulations package 
+/// Provides utility functions for simulations package
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -27,6 +27,7 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
 #include <simulationutilities/SimulationUtilities.h>
+#include <simulationutilities/FluxGenerator.h>
 
 #include <APS/ParameterSet.h>
 
@@ -49,67 +50,94 @@
 
 ASKAP_LOGGER(logger, ".simutils");
 
-namespace askap
-{
+namespace askap {
 
-  namespace simulations
-  {
+    namespace simulations {
 
 
-    float normalRandomVariable(float mean, float sigma)
-    {
-      /// @details Simulate a normal random variable from a
-      /// distribution with mean given by mean and standard deviation
-      /// given by sigma. The variable is simulated via the polar
-      /// method.
-      /// @param mean The mean of the normal distribution
-      /// @param sigma The standard deviation of the normal distribution
-      /// @return A random variable.
+        float normalRandomVariable(float mean, float sigma)
+        {
+            /// @details Simulate a normal random variable from a
+            /// distribution with mean given by mean and standard deviation
+            /// given by sigma. The variable is simulated via the polar
+            /// method.
+            /// @param mean The mean of the normal distribution
+            /// @param sigma The standard deviation of the normal distribution
+            /// @return A random variable.
+            float v1, v2, s;
 
-      float v1,v2,s;
-      // simulate a standard normal RV via polar method
-      do{
-	v1 = 2.*(1.*random())/(RAND_MAX+1.0) - 1.;
-	v2 = 2.*(1.*random())/(RAND_MAX+1.0) - 1.;
-	s = v1*v1+v2*v2;
-      }while(s>1);
-      float z = sqrt(-2.*log(s)/s)*v1;
-      return z*sigma + mean;
+            // simulate a standard normal RV via polar method
+            do {
+                v1 = 2.*(1.*random()) / (RAND_MAX + 1.0) - 1.;
+                v2 = 2.*(1.*random()) / (RAND_MAX + 1.0) - 1.;
+                s = v1 * v1 + v2 * v2;
+            } while (s > 1);
+
+            float z = sqrt(-2.*log(s) / s) * v1;
+            return z*sigma + mean;
+        }
+
+      //        void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss)
+      void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxGen)
+        {
+            /// @details Adds the flux of a given 2D Gaussian to the pixel
+            /// array.  Only look at pixels within a box defined by the
+            /// distance along the major axis where the flux of the Gaussian
+            /// falls below the minimum float value. This uses the MAXFLOAT
+            /// constant from math.h.  Checks are made to make sure that
+            /// only pixels within the boundary of the array (defined by the
+            /// axes vector) are added.
+            /// @param array The array of pixel flux values to be added to.
+            /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
+            /// @param gauss The 2-dimensional Gaussian component.
+            float majorSigma = gauss.majorAxis() / (4.*M_LN2);
+            float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
+            int xmin = std::max(int(gauss.xCenter() - zeroPoint), 0);
+            int xmax = std::min(int(gauss.xCenter() + zeroPoint), axes[0] - 1);
+            int ymin = std::max(int(gauss.yCenter() - zeroPoint), 0);
+            int ymax = std::min(int(gauss.yCenter() + zeroPoint), axes[1] - 1);
+
+	    for(int z = 0; z < fluxGen.nChan(); z++) {
+
+	      gauss.setFlux(fluxGen.getFlux(z));
+
+	      for (int x = xmin; x <= xmax; x++) {
+                for (int y = ymin; y <= ymax; y++) {
+		  Vector<Double> loc(2);
+		  loc(0) = x; loc(1) = y;
+		  int pix = x + y * axes[0] + z*axes[0]*axes[1];
+		  array[pix] += gauss(loc);
+                }
+	      }
+	    }
+        }
+
+      //        void addPointSource(float *array, std::vector<int> axes, double *pix, double flux)
+        void addPointSource(float *array, std::vector<int> axes, double *pix, FluxGenerator fluxGen)
+        {
+            /// @details Adds the flux of a given point source to the
+            /// appropriate pixel in the given pixel array Checks are
+            /// made to make sure that only pixels within the boundary
+            /// of the array (defined by the axes vector) are added.
+            /// @param array The array of pixel flux values to be added to.
+            /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
+            /// @param pix The coordinates of the point source
+            /// @param flux The flux of the point source.
+	  for(int z = 0 ; z<fluxGen.nChan(); z++){
+
+            int loc = int(pix[0]) + axes[0] * int(pix[1]) + z*axes[0]*axes[1];
+
+            if (pix[0] >= 0 && pix[0] < axes[0] && pix[1] >= 0 && pix[1] < axes[1]) {
+	      array[loc] += fluxGen.getFlux(z);
+                //        ASKAPLOG_DEBUG_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
+                //                   << "," << floor(pix[1]) << "]");
+            }
+
+	  }
+
+        }
+
+
     }
-    
-    void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss)
-    {
-      /// @details Adds the flux of a given 2D Gaussian to the pixel
-      /// array.  Only look at pixels within a box defined by the
-      /// distance along the major axis where the flux of the Gaussian
-      /// falls below the minimum float value. This uses the MAXFLOAT
-      /// constant from math.h.  Checks are made to make sure that
-      /// only pixels within the boundary of the array (defined by the
-      /// axes vector) are added.
-      /// @param array The array of pixel flux values to be added to.
-      /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
-      /// @param gauss The 2-dimensional Gaussian component.
-
-      float majorSigma = gauss.majorAxis()/(4.*M_LN2);
-      float zeroPoint = majorSigma * sqrt(-2.*log(1./(MAXFLOAT*gauss.height())));
-      int xmin = std::max(int(gauss.xCenter()-zeroPoint),0);
-      int xmax = std::min(int(gauss.xCenter()+zeroPoint),axes[0]-1);
-      int ymin = std::max(int(gauss.yCenter()-zeroPoint),0);
-      int ymax = std::min(int(gauss.yCenter()+zeroPoint),axes[1]-1);
-
-      for(int x=xmin;x<=xmax;x++){
-	for(int y=ymin;y<=ymax;y++){
-	  Vector<Double> loc(2);
-	  loc(0) = x; loc(1) = y;
-	  int pix = x + y * axes[0];
-	  array[pix] += gauss(loc);
-	}
-      }
-
-    }
-
-
-
-  }
 
 }

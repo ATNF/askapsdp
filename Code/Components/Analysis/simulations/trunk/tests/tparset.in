@@ -1,0 +1,16 @@
+createFITS.filename         = !tests/test.fits
+createFITS.sourcelist       = tests/test.in
+createFITS.posType          = deg
+createFITS.bunit            = JY/PIXEL
+createFITS.dim              = 4
+createFITS.axes             = [1024,1024,1,32]
+createFITS.WCSimage.ctype   = [RA---SIN, DEC--SIN, STOKES, FREQ-OBS]
+createFITS.WCSimage.cunit   = [deg, deg, "", Hz]
+createFITS.WCSimage.crval   = [187.5, -45., 1., 1.272e9]
+createFITS.WCSimage.crpix   = [513.,513., 1., 16.]
+createFITS.WCSimage.crota   = [0., 0., 0., 0.]
+createFITS.WCSimage.cdelt   = [-0.00122, 0.00122, 1., 8.e6]
+createFITS.flagSpectralInfo = true
+createFITS.baseFreq         = 1.4e9
+createFITS.addNoise         = false
+createFITS.doConvolution    = false
