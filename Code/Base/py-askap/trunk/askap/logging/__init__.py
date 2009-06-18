@@ -1,5 +1,5 @@
 ## @file
-#  Wrapper around the standard logging package and the XMLLayout module for 
+#  Wrapper around the standard logging package and the XMLLayout module for
 #  adding a XMLSocketAppender sending log4j xml formatted eevents
 #
 # copyright (c) 2007 ASKAP. All Rights Reserved.
@@ -8,6 +8,27 @@
 
 # make this module look like logging
 # since we know what we are doing allow wildcard
+
+"""
+========================================================
+Module :mod:`askap.logging` -- Python logging extensions
+========================================================
+
+This module import all of python's built-in logging module and add the
+following functionality:
+
+    * :func:`log_debug` - a decorator for logging at the DEBUG level.
+
+.. todo::
+
+    python < 2.6.3 has a bug where::
+
+        from logging import *
+
+    doesn't import all symbols. We can remove the explicit imports once
+    everyone is using version above 2.6.2
+
+"""
 
 # pylint: disable-msg=W0401
 from logging import *
@@ -23,21 +44,21 @@ def log_debug(func):
 You need to set the logging level to ''DEBUG'' to see these message and
 should have a logging instance called ''logger''.
 
-Example: ..
+Example::
 
-from askap.logging import getLogger, log_debug
+    from askap.logging import getLogger, log_debug
 
-# use module name as logger name
-logger = getLogger(__name__)
+    # use module name as logger name
+    logger = getLogger(__name__)
 
-class Foo:
-    def __init__(self):
-        pass
+    class Foo:
+        def __init__(self):
+            pass
 
-    @log_debug
-    def multiply(self, x, y=2):
-        return x*y
-    
+        @log_debug
+        def multiply(self, x, y=2):
+            return x*y
+
 """
     import inspect
     # retrieve logger from calling scope
@@ -57,8 +78,8 @@ class Foo:
         else:
             outargs = args
         logname += fname
-        logger.log(DEBUG, 
-                   "%s:  %s %s" % (logname, str(outargs or ""), str(kwargs or ""))) 
+        logger.log(DEBUG,
+                   "%s:  %s %s" % (logname, str(outargs or ""), str(kwargs or "")))
         # pylint: disable-msg=W0142
         return func(*args, **kwargs)
     return postlog
