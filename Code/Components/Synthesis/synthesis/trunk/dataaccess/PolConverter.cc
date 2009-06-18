@@ -141,8 +141,24 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
       } else if (isStokes(polFrameIn)) {
           T.diagonal() = 1.;
       } else {
-          ASKAPTHROW(AskapError, "Conversion of input polarisation frames into stokes parameters is not supported");
+          ASKAPTHROW(AskapError, "Conversion of the selected input polarisation frame into stokes parameters is not supported");
       }
+  } else if (isStokes(polFrameIn)) {
+      if (isLinear(polFrameOut)) {
+          // stokes to linear   
+          T(0,0)=0.5; T(0,1)=0.5; 
+          T(1,2)=0.5; T(1,3)=casa::Complex(0.,0.5);
+          T(2,2)=0.5; T(2,3)=casa::Complex(0.,-0.5);
+          T(3,0)=0.5; T(3,1)=-0.5;
+      } else if (isCircular(polFrameOut)) {
+          // stokes to circular
+          T(0,0)=0.5; T(0,2)=0.5; 
+          T(1,1)=casa::Complex(0.,0.5); T(1,3)=0.5;
+          T(2,1)=casa::Complex(0.,-0.5); T(2,3)=0.5;
+          T(3,0)=0.5; T(3,2)=-0.5;
+      } else {
+          ASKAPTHROW(AskapError, "Conversion of stokes parameters into the selected output polarisation frame is not supported");
+      }      
   } else if ((isLinear(polFrameIn) && isLinear(polFrameOut)) || 
              (isCircular(polFrameIn) && isCircular(polFrameOut)))  {
              T.diagonal() = 1.;

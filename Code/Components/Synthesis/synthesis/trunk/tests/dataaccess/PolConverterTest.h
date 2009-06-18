@@ -86,6 +86,13 @@ public:
      CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(-0.6,-0.6))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[2]-casa::Complex(0.8,1.0))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[3]-casa::Complex(-0.2,0.2))<1e-5);
+     
+     PolConverter pcReverse(out,in);
+     casa::Vector<casa::Complex> newInVec = pcReverse(outVec);
+     CPPUNIT_ASSERT(newInVec.nelements() == inVec.nelements());
+     for (size_t pol = 0; pol<inVec.nelements(); ++pol) {
+          CPPUNIT_ASSERT(abs(inVec[pol] - newInVec[pol])<1e-5);
+     }     
   }
 
   void circular2stokesTest() {
@@ -112,6 +119,13 @@ public:
      CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(-0.2,0.2))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[2]-casa::Complex(-0.6,-0.6))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[3]-casa::Complex(0.8,1.0))<1e-5);
+
+     PolConverter pcReverse(out,in);
+     casa::Vector<casa::Complex> newInVec = pcReverse(outVec);
+     CPPUNIT_ASSERT(newInVec.nelements() == inVec.nelements());
+     for (size_t pol = 0; pol<inVec.nelements(); ++pol) {
+          CPPUNIT_ASSERT(abs(inVec[pol] - newInVec[pol])<1e-5);
+     }     
   }
   
   void stokesEnumTest() {
