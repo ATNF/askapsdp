@@ -29,7 +29,7 @@
 #include <askap_simulations.h>
 
 #include <FITS/FITSfile.h>
-#include <SimulationUtilities/FluxGenerator.h>
+#include <simulationutilities/FluxGenerator.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
