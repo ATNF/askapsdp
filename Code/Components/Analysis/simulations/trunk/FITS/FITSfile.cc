@@ -217,7 +217,7 @@ namespace askap {
 
 		int stat[NWCSFIX];
 		int axes[this->itsAxes.size()];
-		for(int i=0;i<this->itsAxes.size();i++) axes[i] = this->itsAxes[i];
+		for(uint i=0;i<this->itsAxes.size();i++) axes[i] = this->itsAxes[i];
 
                 if (isImage) {
                     this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
