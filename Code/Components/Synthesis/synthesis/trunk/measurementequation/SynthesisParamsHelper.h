@@ -33,8 +33,10 @@
 #define SYNSYNTHESISPARAMSHELPER_H_
 
 #include <casa/Arrays/Array.h>
+#include <measures/Measures/Stokes.h>
 
 #include <fitting/Params.h>
+#include <fitting/Axes.h>
 
 #include <APS/ParameterSet.h>
 #include <images/Images/TempImage.h>
@@ -273,6 +275,19 @@ namespace askap
         static casa::CoordinateSystem 
           coordinateSystem(const askap::scimath::Params& ip, 
           const string& name);
+       
+        /// @brief form vector of stokes enums from STOKES axis
+        /// @param[in] axes container of axes
+        /// @return vector of stokes enums
+        /// @note An axis names STOKES must be present
+        static casa::Vector<casa::Stokes::StokesTypes> extractStokes(const askap::scimath::Axes &axes);
+        
+        /// @brief add STOKES axis formed from the vector of stokes enums
+        /// @details This is a reverse operation to extractStokes.
+        /// @param[in] axes container of axes
+        /// @param[in] stokes a vector of stokes enums
+        static void addStokesAxis(askap::scimath::Axes &axes, 
+                                  const casa::Vector<casa::Stokes::StokesTypes> &stokes);
        
         /// @brief Create a direction coordinate for a parameter
         /// @param ip Parameters
