@@ -158,6 +158,57 @@ namespace askap
 		{
 			return itsEnd;
 		}
+		
+		/// @brief form vector of stokes enums from STOKES axis
+        /// @return vector of stokes enums
+        /// @note An axis names STOKES must be present, otherwise an exception will be thrown
+        casa::Vector<casa::Stokes::StokesTypes> Axes::stokesAxis() const
+        {
+           ASKAPCHECK(has("STOKES"), "Stokes axis must be present in the axes object to be able to use extractStokes");
+           const int index = order("STOKES");
+           const int stokesStart = int(start()[index]);
+           const int stokesEnd = int(end()[index]);
+           ASKAPCHECK((stokesStart>=0) && (stokesStart<int(casa::Stokes::NumberOfTypes)),
+                "Unable to interpret the start value="<< stokesStart <<" of the stokes axis");
+           ASKAPCHECK((stokesEnd>=0) && (stokesEnd<int(casa::Stokes::NumberOfTypes)),
+                "Unable to interpret the end value="<< stokesEnd <<" of the stokes axis");
+           ASKAPCHECK(stokesEnd>=stokesStart, "Only ordered stokes axis is supported, you have start="<<
+                            stokesStart<<" end="<<stokesEnd);
+           ASKAPCHECK(stokesEnd-stokesStart<4, "Mixed polarisation frames are not supported by the axis object, you have start="<<
+                               stokesStart<<" end="<<stokesEnd);
+           casa::Vector<casa::Stokes::StokesTypes> result(stokesEnd-stokesStart+1,casa::Stokes::Undefined);
+           // fill the vector of stokes enums
+           for (int pol=0; pol<int(result.nelements());++pol) {
+               result[pol] = casa::Stokes::StokesTypes(stokesStart + pol);
+           }
+           return result;    
+        }
+		
+		
+		/// @brief add STOKES axis formed from the vector of stokes enums
+        /// @details This is a reverse operation to extractStokesAxis. If the STOKES axis
+        /// already exists, the values are updated.
+        /// @param[in] stokes a vector of stokes enums
+        void Axes::addStokesAxis(const casa::Vector<casa::Stokes::StokesTypes> &stokes)
+        {
+            ASKAPCHECK(stokes.nelements()<=4, "Only up to 4 polarisation products are supported");
+            ASKAPCHECK(stokes.nelements()>0, "Unable to add stokes a axis using an empty stokes vector");
+            // check that stokes enums are ordered
+            for (size_t pol=1; pol<stokes.nelements(); ++pol) {
+                 ASKAPCHECK(int(stokes[pol]) > int(stokes[pol-1]), 
+                       "Stokes enums passed to addStokesAxis should be ordered. "<<int(stokes[pol])<<
+                       " follows "<<int(stokes[pol-1])); 
+            }
+            const int start = int(stokes[0]);
+            const int end = int(stokes[stokes.nelements()-1]);
+      
+            if (has("STOKES")) {                
+                update("STOKES", start, end);
+            } else {
+                add("STOKES", start, end);
+            }
+        }
+		
 
 		std::ostream& operator<<(std::ostream& os, const Axes& axes)
 		{
@@ -183,6 +234,8 @@ namespace askap
 			is >> axes.itsNames >> axes.itsStart >> axes.itsEnd;
                         return is;
 		}
+		
+		
 
 	}
 

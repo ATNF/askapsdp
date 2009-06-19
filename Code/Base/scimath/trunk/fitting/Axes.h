@@ -46,6 +46,10 @@
 #include <map>
 #include <string>
 
+#include <measures/Measures/Stokes.h>
+#include <casa/Arrays/Vector.h>
+
+
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 
@@ -113,6 +117,19 @@ namespace askap
       
       /// Return end values
       const std::vector<double>& end() const;
+
+      // methods enforcing interpretation for different types of axes
+
+      /// @brief form vector of stokes enums from STOKES axis
+      /// @return vector of stokes enums
+      /// @note An axis names STOKES must be present, otherwise an exception will be thrown
+      casa::Vector<casa::Stokes::StokesTypes> stokesAxis() const;
+      
+      /// @brief add STOKES axis formed from the vector of stokes enums
+      /// @details This is a reverse operation to stokesAxis. If the STOKES axis
+      /// already exists, the values are updated.
+      /// @param[in] stokes a vector of stokes enums
+      void addStokesAxis(const casa::Vector<casa::Stokes::StokesTypes> &stokes);      
       
       /// Output to an ostream
       /// @param os an ostream

@@ -42,6 +42,7 @@ namespace askap
       CPPUNIT_TEST_EXCEPTION(testDuplError, askap::CheckError);
       CPPUNIT_TEST(testUpdate);
       CPPUNIT_TEST(testCopy);
+      CPPUNIT_TEST(testStokes);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -133,6 +134,20 @@ namespace askap
           p1->add("Freq", 0.7e9, 1.7e9);
         }
 
+        void testStokes()
+        {
+          casa::Vector<casa::Stokes::StokesTypes> stokes(4);
+          stokes[0] = casa::Stokes::I;
+          stokes[1] = casa::Stokes::Q;
+          stokes[2] = casa::Stokes::U;
+          stokes[3] = casa::Stokes::V;
+          p1->addStokesAxis(stokes);
+          casa::Vector<casa::Stokes::StokesTypes> res = p1->stokesAxis();
+          CPPUNIT_ASSERT(res.nelements() == stokes.nelements());
+          for (size_t pol = 0; pol<stokes.nelements(); ++pol) {
+               CPPUNIT_ASSERT(stokes[pol] == res[pol]);
+          }
+        }
     };
 
   }
