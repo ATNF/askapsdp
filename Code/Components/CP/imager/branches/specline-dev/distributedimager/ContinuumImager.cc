@@ -1,4 +1,4 @@
-/// @file DistributedImager.cc
+/// @file ContinuumImager.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "DistributedImager.h"
+#include "ContinuumImager.h"
 
 // Include package level header file
 #include <askap_imager.h>
@@ -51,7 +51,7 @@
 #include "distributedimager/SolverMaster.h"
 #include "distributedimager/SolverWorker.h"
 
-ASKAP_LOGGER(logger, ".DistributedImager");
+ASKAP_LOGGER(logger, ".ContinuumImager");
 
 using namespace askap::cp;
 using namespace askap;
@@ -59,19 +59,19 @@ using namespace askap::synthesis;
 using namespace askap::scimath;
 using namespace LOFAR::ACC::APS;
 
-DistributedImager::DistributedImager(LOFAR::ACC::APS::ParameterSet& parset,
+ContinuumImager::ContinuumImager(LOFAR::ACC::APS::ParameterSet& parset,
         askap::cp::MPIBasicComms& comms) : itsParset(parset), itsComms(comms)
 {
     if (isMaster()) {
-        ASKAPLOG_INFO_STR(logger, "ASKAP Distributed Imager - " << ASKAP_PACKAGE_VERSION);
+        ASKAPLOG_INFO_STR(logger, "ASKAP Distributed Continuum Imager - " << ASKAP_PACKAGE_VERSION);
     }
 }
 
-DistributedImager::~DistributedImager()
+ContinuumImager::~ContinuumImager()
 {
 }
 
-void DistributedImager::run(void)
+void ContinuumImager::run(void)
 {
     // Setup the model (master only)
     if (isMaster()) {
@@ -155,7 +155,7 @@ void DistributedImager::run(void)
     solver_p->writeModel("");
 }
 
-bool DistributedImager::isMaster(void)
+bool ContinuumImager::isMaster(void)
 {
     return (itsComms.getId() == itsMaster) ? true : false;
 }

@@ -1,4 +1,4 @@
-/// @file IMessage.h
+/// @file SpectralLineWorkUnit.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,33 +24,33 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IMESSAGE_H
-#define ASKAP_CP_IMESSAGE_H
+#ifndef ASKAP_CP_SPECTRALLINEWORKUNIT_H
+#define ASKAP_CP_SPECTRALLINEWORKUNIT_H
 
-// Boost includes
-#include <boost/shared_ptr.hpp>
+// System includes
+#include <string>
 
 // ASKAPsoft includes
-#include <fitting/ISerializable.h>
+#include <messages/IMessage.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
 
 namespace askap {
     namespace cp {
 
-        class IMessage : public ISerializable
+        class SpectralLineWorkUnit : public IMessage
         {
             public:
-                enum MessageType {
-                    UPDATE_MODEL,
-                    PREDIFFER_REQUEST,
-                    PREDIFFER_RESPONSE,
-                    CLEAN_REQUEST,
-                    CLEAN_RESPONSE,
-                    SPECTRALLINE_WORKUNIT,
-                    SPECTRALLINE_WORKREQUEST
+                enum PayloadType {
+                    WORK,
+                    DONE
                 };
 
+                /// @brief Constructor.
+                SpectralLineWorkUnit();
+
                 /// @brief Destructor.
-                virtual ~IMessage();
+                virtual ~SpectralLineWorkUnit();
 
                 /// @brief Messages must be self-identifying and must
                 /// their type via this interface.
@@ -59,12 +59,38 @@ namespace askap {
                 /// their type via this interface. While they can also be
                 /// identified by their class type, this method easily translates
                 /// to an int which can be used to tag messags (eg. MPI tags).
-                virtual MessageType getMessageType(void) const = 0;
+                virtual MessageType getMessageType(void) const;
 
+                // Setters
+                void set_payloadType(PayloadType type);
+                void set_dataset(std::string dataset);
+                void set_imagename(std::string imagename);
+                void set_channelOffset(int offset);
+
+                // Getters
+                PayloadType get_payloadType(void) const;
+                std::string get_dataset(void) const;
+                std::string get_imagename(void) const;
+                int get_channelOffset(void) const;
+
+                // Serializer functions
+
+                /// @brief write the object to a blob stream
+                /// @param[in] os the output stream
+                virtual void writeToBlob(LOFAR::BlobOStream& os) const;
+
+                /// @brief read the object from a blob stream
+                /// @param[in] is the input stream
+                virtual void readFromBlob(LOFAR::BlobIStream& is);
+
+            private:
+                PayloadType itsPayloadType;
+
+                std::string itsDataset;
+                std::string itsImageName;
+                int itsChannelOffset;
         };
 
-        /// Short cut for shared pointer to IDataSelector
-        typedef boost::shared_ptr<IMessage> IMessageSharedPtr;
     };
 };
 

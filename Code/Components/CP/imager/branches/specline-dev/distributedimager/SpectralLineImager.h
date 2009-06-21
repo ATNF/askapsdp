@@ -1,4 +1,4 @@
-/// @file DistributedImager.h
+/// @file SpectralLineImager.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,12 +24,11 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_DISTRIBUTEDIMAGER_H
-#define ASKAP_CP_DISTRIBUTEDIMAGER_H
+#ifndef ASKAP_CP_SPECTRALLINEIMAGER_H
+#define ASKAP_CP_SPECTRALLINEIMAGER_H
 
 // ASKAPsoft includes
 #include <APS/ParameterSet.h>
-#include <fitting/Params.h>
 
 // Local package includes
 #include "distributedimager/MPIBasicComms.h"
@@ -38,7 +37,7 @@ namespace askap {
     namespace cp {
 
         /// @brief Main class for the Distributed imager.
-        class DistributedImager
+        class SpectralLineImager
         {
             public:
                 /// @brief Construct a Distributed Imager.
@@ -46,11 +45,11 @@ namespace askap {
                 /// @param[in]  parset  the parameter set containing
                 ///                     the configuration.
                 /// @param[in]  comms   an instance of IBasicComms.
-                DistributedImager(LOFAR::ACC::APS::ParameterSet& parset,
+                SpectralLineImager(LOFAR::ACC::APS::ParameterSet& parset,
                         askap::cp::MPIBasicComms& comms);
 
                 /// @brief Destructor.
-                ~DistributedImager();
+                ~SpectralLineImager();
 
                 /// @brief Run the distrbuted imager.
                 void run(void);
@@ -70,14 +69,11 @@ namespace askap {
                 // Communications class
                 askap::cp::MPIBasicComms& itsComms;
 
-                // Model
-                askap::scimath::Params::ShPtr itsModel;
-
                 // No support for assignment
-                DistributedImager& operator=(const DistributedImager& rhs);
+                SpectralLineImager& operator=(const SpectralLineImager& rhs);
 
                 // No support for copy constructor
-                DistributedImager(const DistributedImager& src);
+                SpectralLineImager(const SpectralLineImager& src);
         };
 
     };

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
+
 if [ ! -x ${ASKAP_ROOT}/Code/Components/CP/imager/trunk/apps/imager.sh ]; then
     echo imager.sh does not exit
 fi
