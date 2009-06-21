@@ -32,6 +32,7 @@
 
 // caacore includes
 #include <casa/Arrays/Array.h>
+#include <casa/Quanta/Unit.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <images/Images/PagedImage.h>
 
@@ -49,7 +50,7 @@ casa::CoordinateSystem getCoordinameSystem(const std::string& name)
     return img.coordinates();
 }
 
-casa::Units getUnits(const std::string& name)
+casa::Unit getUnits(const std::string& name)
 {
     casa::PagedImage<float> img(name);
     return img.units();
@@ -89,14 +90,14 @@ int main(int argc, char *argv[])
     }
     const int xyDims = refShape(0);
     const casa::CoordinateSystem csys = getCoordinameSystem(refImageName);
-    const casa::Units units = getUnits(refImageName);
+    const casa::Unit units = getUnits(refImageName);
 
     // Create new image cube
     const casa::IPosition cubeShape(4, xyDims, xyDims, 1, nChan);
 
     double size = static_cast<double>(xyDims) * xyDims * nChan * sizeof(float);
     size = size / 1024.0 / 1024.0 / 1024.0;
-    std::cout << "Creating image cube of size " << size
+    std::cout << "Creating image cube of size ~" << size
         << "GB. This may take a few minutes." << std::endl;
 
     casa::PagedImage<float> cube(casa::TiledShape(cubeShape), csys, name);
@@ -116,11 +117,13 @@ int main(int argc, char *argv[])
         }
 
         // Ensure coordinate system is the same
-        (if img.coordinates() != csys) {
+        /*
+        if (img.coordinates() != csys) {
             std::cout << "Error: Input images must all have the same coordinate system"
                 << std::endl;
             return 1;
         }
+        */
 
         // Ensure units are the same
         if (img.units() != units) {
