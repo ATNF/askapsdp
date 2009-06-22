@@ -37,64 +37,63 @@
 
 #include <map>
 
-namespace askap
-{
-  namespace synthesis
-  {
-    /// @brief Multiscale solver for images.
-    ///
-    /// @details This solver performs multi-scale clean using the 
-    /// casa::LatticeCleaner classes
-    ///
-    /// @ingroup measurementequation
-    class ImageMultiScaleSolver : public ImageCleaningSolver
-    {
-      public:
+namespace askap {
+    namespace synthesis {
+        /// @brief Multiscale solver for images.
+        ///
+        /// @details This solver performs multi-scale clean using the
+        /// casa::LatticeCleaner classes
+        ///
+        /// @ingroup measurementequation
+        class ImageMultiScaleSolver : public ImageCleaningSolver {
+            public:
 
-        /// @brief Constructor from parameters.
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
-        /// The default scales are 0, 10, 30 pixels
-        /// @param ip Parameters i.e. the images
-        ImageMultiScaleSolver(const askap::scimath::Params& ip);
+                /// @brief Constructor from parameters.
+                /// The parameters named image* will be interpreted as images and
+                /// solutions formed by the method described.
+                /// The default scales are 0, 10, 30 pixels
+                /// @param ip Parameters i.e. the images
+                ImageMultiScaleSolver(const askap::scimath::Params& ip);
 
-        /// @brief Constructor from parameters and scales.
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
-        /// @param ip Parameters i.e. the images
-        /// @param scales Scales to be solved in pixels
-        ImageMultiScaleSolver(const askap::scimath::Params& ip,
-          const casa::Vector<float>& scales);
-        
-        /// @brief Initialize this solver
-        virtual void init();
+                /// @brief Constructor from parameters and scales.
+                /// The parameters named image* will be interpreted as images and
+                /// solutions formed by the method described.
+                /// @param ip Parameters i.e. the images
+                /// @param scales Scales to be solved in pixels
+                ImageMultiScaleSolver(const askap::scimath::Params& ip,
+                                      const casa::Vector<float>& scales);
 
-        /// @brief Solve for parameters, updating the values kept internally
-        /// The solution is constructed from the normal equations
-        /// @param[in] q Solution quality information
-        virtual bool solveNormalEquations(askap::scimath::Quality& q);
-        
-/// @brief Clone this object
-        virtual askap::scimath::Solver::ShPtr clone() const;
-        
-        /// @brief Set the scales
-        /// @param[in] scales vector with scales
-        void setScales(const casa::Vector<float>& scales);
-               
-      protected:
-        /// @brief Precondition the PSF and the dirty image
-        /// @param[inout] psf point spread function to precondition (in/out)
-        /// @param[inout] dirty dirty image to precondition (in/out)
-        void preconditionNE(casa::ArrayLattice<float>& psf, casa::ArrayLattice<float>& dirty);
-	
-        /// Scales in pixels
-        casa::Vector<float> itsScales;
-        
-        /// @brief Cache of Cleaners
-        scimath::FixedSizeCache<string, casa::LatticeCleaner<float> > itsCleaners;
+                /// @brief Initialize this solver
+                virtual void init();
 
-    };
+                /// @brief Solve for parameters, updating the values kept internally
+                /// The solution is constructed from the normal equations
+                /// @param[in] q Solution quality information
+                /// @return true, if successful
+                virtual bool solveNormalEquations(askap::scimath::Quality& q);
 
-  }
+                /// @brief Clone this object
+                /// @return a shared pointer to the clone
+                virtual askap::scimath::Solver::ShPtr clone() const;
+
+                /// @brief Set the scales
+                /// @param[in] scales vector with scales
+                void setScales(const casa::Vector<float>& scales);
+
+            protected:
+                /// @brief Precondition the PSF and the dirty image
+                /// @param[in] psf point spread function to precondition (in/out)
+                /// @param[in] dirty dirty image to precondition (in/out)
+                void preconditionNE(casa::ArrayLattice<float>& psf, casa::ArrayLattice<float>& dirty);
+
+                /// Scales in pixels
+                casa::Vector<float> itsScales;
+
+                /// @brief Cache of Cleaners
+                scimath::FixedSizeCache<string, casa::LatticeCleaner<float> > itsCleaners;
+
+        };
+
+    }
 }
 #endif
