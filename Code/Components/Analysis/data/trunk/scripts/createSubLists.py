@@ -4,34 +4,9 @@ import askap.analysis.data
 from numpy import *
 import math
 from optparse import OptionParser
+import os
 
-def getInputParams(infilename, prefix):
-    paramlist = {}
-    infile = file(infilename,'rU')
-    lines = infile.readlines()
-    for line in lines:
-        if(line[:line.find('.')+1]==prefix):
-            key = line.split('=')[0][line.find('.')+1:]
-            val = line.split('=')[1]
-            paramlist[key.strip()] = val.strip()
-    return paramlist
-
-def getParamValue(dict, param, default):
-    if(not dict.has_key(param)):
-        return default
-    val = dict[param]
-    return val        
-
-def getParamArray(dict, param, default):
-    if(not dict.has_key(param)):
-        return default
-    val = dict[param]
-    if(val[0]!='['):
-        return default
-    if(val[-1]!=']'):
-        return default
-    return array(val.replace('[','').replace(']','').split(','))
-
+import askap.analysis.data.parsets as parsets
 
 def sphericalDistance(ra1, dec1, ra2, dec2):
       r1 = ra1  * math.pi / 180.;
@@ -42,7 +17,7 @@ def sphericalDistance(ra1, dec1, ra2, dec2):
       return math.acos(angsep)*180./math.pi;
 
 
-def writeData(line, subfile, doAnn, annfile, threshold, radius=0., count=0):
+def writeData(line, subfile, doAnn, annfile, threshold, count=0):
 
     subfile.write("%s\n"%line)
     data=array(line.split()).astype(float)
@@ -57,21 +32,28 @@ def writeData(line, subfile, doAnn, annfile, threshold, radius=0., count=0):
 if __name__ == '__main__':
 
     parser = OptionParser()
-    parser.add_option("-i","--inputs", dest="inputfile", default="createSubLists.in")
+    parser.add_option("-i","--inputs", dest="inputfile", default="createSubLists.in", help="Input parameter file [default: %default]")
 
     (options, args) = parser.parse_args()
 
-    inparams = getInputParams(options.inputfile, "createSubs.")
+    if(not os.path.exists(options.inputfile)):
+        print "Input file %s does not exist!"%options.inputfile
+        exit(1)
+
+#    inparams = ParameterSet(options.inputfile)
+#    doAnnFile = decode(inparams.createSubs.flagAnnotation)
+
+    inparams = parsets.getInputParams(options.inputfile, "createSubs.")
 
     nullarray = array([0.])
-    doAnnFile = (getParamValue(inparams, 'flagAnnotation', 'true').lower() == 'true')
-    doPtsOnly = (getParamValue(inparams, 'flagPointSources', 'false').lower() == 'true')
-    thresh = getParamArray(inparams, 'thresholds', nullarray).astype(float)
-    radii = getParamArray(inparams, 'radii', nullarray).astype(float)
-    catfilename = getParamValue(inparams, 'catfilename', '')
-    racentre = float(getParamValue(inparams, 'racentre', 187.5))
-    deccentre = float(getParamValue(inparams, 'deccentre', -45.))
-    destDir = getParamValue(inparams, 'destDir', '.')
+    doAnnFile = (parsets.getParamValue(inparams, 'flagAnnotation', 'true').lower() == 'true')
+    doPtsOnly = (parsets.getParamValue(inparams, 'flagPointSources', 'false').lower() == 'true')
+    thresh = parsets.getParamArray(inparams, 'thresholds', nullarray).astype(float)
+    radii = parsets.getParamArray(inparams, 'radii', nullarray).astype(float)
+    catfilename = parsets.getParamValue(inparams, 'catfilename', '')
+    racentre = float(parsets.getParamValue(inparams, 'racentre', 187.5))
+    deccentre = float(parsets.getParamValue(inparams, 'deccentre', -45.))
+    destDir = parsets.getParamValue(inparams, 'destDir', '.')
     
     catfile = file(catfilename, 'rU')
     
@@ -114,11 +96,11 @@ if __name__ == '__main__':
                 sourcecount += 1;
                 for thr in thresh:
                     if(float(data[2])*1.e6>=thr):
-                        writeData(line,subfiles[filecount],doAnnFile,annfiles[filecount],thr)
+                        writeData(line,subfiles[filecount],doAnnFile,annfiles[filecount],thr,sourcecount)
                     filecount += 1
                     for r in radii:
                         if( float(data[2])*1.e6>=thr and dist<r ):
-                            writeData(line,subfiles[filecount],doAnnFile,annfiles[filecount],thr,r,sourcecount)
+                            writeData(line,subfiles[filecount],doAnnFile,annfiles[filecount],thr,sourcecount)
                         filecount += 1
 
     for file in subfiles:

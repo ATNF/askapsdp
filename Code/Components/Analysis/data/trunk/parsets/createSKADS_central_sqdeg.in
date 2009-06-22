@@ -1,0 +1,7 @@
+createSKADS.fieldAngSize = 1
+createSKADS.fluxLimit = 1.e-6
+createSKADS.catFile = catalogues/SKADS_1sqdeg_1uJy_freq.dat
+createSKADS.imageFile = images/SKADS_1sqdeg_1uJy_freq.fits
+createSKADS.numChannels = 32
+createSKADS.fieldPixSize = 1024
+createSKADS.makeImage = false
