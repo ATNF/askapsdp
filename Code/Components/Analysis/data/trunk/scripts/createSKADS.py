@@ -190,5 +190,6 @@ createFITS.flagSpectralInfo = %s
 
     if(makeImage):
         print "About to run createFITS to make the FITS file."
-        createFITScall = "%s/Code/Components/Analysis/simulations/trunk/apps/createFITS.sh -inputs %s"%(os.environ["ASKAP_ROOT"],imageParsetFile)
+        pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
+        createFITScall = "%s/createFITS.sh -inputs %s"%(pathToSims,imageParsetFile)
         os.system(createFITScall)
