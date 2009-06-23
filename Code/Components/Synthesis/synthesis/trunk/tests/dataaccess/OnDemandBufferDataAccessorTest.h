@@ -1,6 +1,5 @@
-/// @file tdataaccess.cc
-///
-/// This file runs the test suite coded in DataAccessTest/DataAccsessTestImpl
+/// @file
+/// $brief Tests of the on-demand buffering adapter
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -26,34 +25,32 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
+#ifndef ON_DEMAND_BUFFER_DATA_ACCESSOR_TEST_H
+#define ON_DEMAND_BUFFER_DATA_ACCESSOR_TEST_H
 
-#include <cppunit/ui/text/TestRunner.h>
-#include <iostream>
+// cppunit includes
+#include <cppunit/extensions/HelperMacros.h>
+// own includes
+#include <dataaccess/OnDemandBufferDataAccessor.h>
+#include <dataaccess/DataAccessorStub.h>
 
-#include "DataAccessTest.h"
-#include "DataConverterTest.h"
-#include "TableDataAccessTest.h"
-#include "UVWMachineCacheTest.h"
-#include "PolConverterTest.h"
-#include "OnDemandBufferDataAccessorTest.h"
+namespace askap {
 
-#include "TableTestRunner.h"
+namespace synthesis {
 
-int main(int, char **)
-{
- try {
-   //CppUnit::TextUi::TestRunner runner;
-   askap::synthesis::TableTestRunner runner;
-   runner.addTest(askap::synthesis::DataConverterTest::suite());
-   runner.addTest(askap::synthesis::DataAccessTest::suite());
-   runner.addTest(askap::synthesis::TableDataAccessTest::suite());
-   runner.addTest(askap::synthesis::UVWMachineCacheTest::suite());
-   runner.addTest(askap::synthesis::PolConverterTest::suite());
-   runner.addTest(askap::synthesis::OnDemandBufferDataAccessorTest::suite());
-   runner.run();
-   return 0;
- }
- catch (const askap::AskapError &ce) {
-	 std::cerr<<ce.what()<<std::endl;
- }
-}
+class OnDemandBufferDataAccessorTest : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(OnDemandBufferDataAccessorTest);
+  CPPUNIT_TEST(adapterTest);
+  CPPUNIT_TEST_SUITE_END();
+public:
+  void adapterTest() {
+  }
+  
+};
+
+} // namespace synthesis
+
+} // namespace askap
+
+#endif // #ifndef ON_DEMAND_BUFFER_DATA_ACCESSOR_TEST_H
+

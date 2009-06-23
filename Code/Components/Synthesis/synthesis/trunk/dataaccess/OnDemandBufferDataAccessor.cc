@@ -72,6 +72,7 @@ casa::Cube<casa::Complex>& OnDemandBufferDataAccessor::rwVisibility()
   checkBufferSize();
   if (!itsUseBuffer) {
       itsBuffer = getROAccessor().visibility().copy();
+      itsUseBuffer = true;
   }
   return itsBuffer;  
 }
@@ -86,7 +87,20 @@ void OnDemandBufferDataAccessor::checkBufferSize() const
   if (itsBuffer.nrow() != acc.nRow() || itsBuffer.ncolumn() != acc.nChannel() ||
                                         itsBuffer.nplane() != acc.nPol()) {
       // couple the class to the original accessor
-      itsUseBuffer = false; 
+      // discardCache operates with just mutable data members. Although technically discardCache
+      // can be made a const method, it is probably conceptually wrong. Therefore, we take the
+      // constness out, instead.
+      const_cast<OnDemandBufferDataAccessor*>(this)->discardCache(); 
   }
+}
+
+/// @brief discard the content of the cache
+/// @details A call to this method would switch the accessor to the pristine state
+/// it had straight after construction. A new call to rwVisibility would be required 
+/// to decouple from the read-only accessor 
+void OnDemandBufferDataAccessor::discardCache()
+{
+  itsUseBuffer = false;
+  itsBuffer.resize(0,0,0);
 }
 
