@@ -44,6 +44,38 @@ class OnDemandBufferDataAccessorTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE_END();
 public:
   void adapterTest() {
+      DataAccessorStub acc(true);
+      checkAllCube(acc.visibility(),0.);
+      OnDemandBufferDataAccessor acc2(acc);
+      checkAllCube(acc2.visibility(),0.);
+      acc2.rwVisibility().set(1.);
+      // check that two cubes are now decoupled
+      checkAllCube(acc2.visibility(),1.);
+      checkAllCube(acc.visibility(),0.);
+      // check they're coupled again
+      acc2.discardCache();
+      checkAllCube(acc2.visibility(),0.);
+      //
+      acc2.rwVisibility().set(2.);
+      checkAllCube(acc2.visibility(),2.);
+      CPPUNIT_ASSERT(acc2.nChannel()!=1); // should be 8
+      // the next line should decouple cubes
+      acc.rwVisibility().resize(acc.nRow(),1,acc.nPol());
+      acc.rwVisibility().set(-1.);
+      checkAllCube(acc.visibility(),-1.);
+      checkAllCube(acc2.visibility(),-1.);      
+  }
+  
+  /// @param[in] cube a cube to test
+  /// @param[in] value all cube should have the same value
+  static void checkAllCube(const casa::Cube<casa::Complex> &cube, const casa::Complex &value) {
+      for (casa::uInt row = 0; row<cube.nrow(); ++row) {
+           for (casa::uInt col = 0; col<cube.ncolumn(); ++col) {
+                for (casa::uInt plane = 0; plane<cube.nplane(); ++plane) {
+                      CPPUNIT_ASSERT(abs(cube(row,col,plane) - value)<1e-7);
+                }
+           }
+      }
   }
   
 };
