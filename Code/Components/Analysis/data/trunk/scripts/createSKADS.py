@@ -66,7 +66,7 @@ if __name__ == '__main__':
     centralFreq = float(parsets.getParamValue(inputPars, "centralFreq", 1.272e9))
     channelWidth = float(parsets.getParamValue(inputPars, "channelWidth", 16.e6))
     
-    fluxLimit = float(parsets.getParamValue(inputPars, "fluxLimit", 1.e-5))
+    fluxLimit = float(parsets.getParamValue(inputPars, "fluxLimit", 1.e-6))
     
     makeImage = (parsets.getParamValue(inputPars, "makeImage", 'true').lower() == 'true')
     
@@ -83,12 +83,18 @@ if __name__ == '__main__':
     cursor = db.cursor()
     
     if(translateLoc):
-        origCatFile = catFile[:catFile.rfind('.')]+'_orig'+catFile[catFile.rfind('.'):] #This is is the name of the file that has data from the database, with positions centred on the "oldLocation" position
+        if(catFile.rfind('.')<0):
+            origCatFile = catFile + '_orig'
+        else:
+            origCatFile = catFile[:catFile.rfind('.')]+'_orig'+catFile[catFile.rfind('.'):] #This is is the name of the file that has data from the database, with positions centred on the "oldLocation" position
     else:
         origCatFile = catFile  #No tranlation of positions, so we use the given filename
 
     catfile = file(origCatFile,"w")
-    catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang"))
+    if(haveFreqInfo):
+        catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang"))
+    else:
+        catfile.write("#%9s %10s %20s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Maj_axis","Min_axis","Pos_ang"))
 
     for type in types:
         for x in centres:
@@ -127,7 +133,10 @@ if __name__ == '__main__':
                     alpha = log10(s1400/s0610)/log10(1400./610.)
                     beta  = 0.  #Only using two fluxes to interpolate, so can't get a curvature term.
 
-                    catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,alpha,beta,maj,min,pa))
+                    if(haveFreqInfo):
+                        catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,alpha,beta,maj,min,pa))
+                    else:
+                        catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,maj,min,pa))
 
     catfile.close()
 
