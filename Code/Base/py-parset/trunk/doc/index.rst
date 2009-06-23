@@ -8,11 +8,11 @@
 
 
 .. automodule:: askap.parset
-   :members:
-   :undoc-members:
+    :members:
+    :undoc-members:
 
 .. autoclass:: askap.parset.ParameterSet
-   :members: _to_dict, _add
+    :members:
 
 
 .. autofunction:: askap.parset.decode

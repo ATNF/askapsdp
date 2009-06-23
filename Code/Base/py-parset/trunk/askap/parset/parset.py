@@ -4,6 +4,7 @@ import re
 from askap.parset import logger
 
 class ParameterSet(object):
+    _reserved = ["get_value", "set_value", "to_dict"]
     """
     The default constructor creates an empty ParameterSet instance.
     ParameterSet keys can be accessed as attributes::
@@ -17,10 +18,26 @@ class ParameterSet(object):
         >>> p = ParameterSet('x.y.z', 1)
         >>> print p["x"]["y"]["z"]
         1
+        >>> print p["x.y.z"]
+        1
 
-    All methods are private (prefixed "_"), so that only ParameterSet values
-    show up as public attributes.
+    or using :method:`get_value` which can be used with a default value if the
+    key doesn't exists::
 
+        >>> p = ParameterSet('x.y.z', 1)
+        >>> print p.get_value('x.y.z')
+        1
+        >>> print p.get_value('x.y.a', 10)
+        10
+
+    To test if a key exists us the `in` keyword. Note that the key must start at
+    the root value::
+
+        >>> p = ParameterSet('x.y.z', 1)
+        >>> print 'x' in p
+        True
+        >>> print 'y' in p
+        False
 
     :param args: if only one argument, this is assumed to be the file name of
                  a ParameterSet file. If two arguments are provided this is
@@ -34,22 +51,26 @@ class ParameterSet(object):
         >>> p2 = ParameterSet(x=1, y=2, z=ParameterSet('a', 3))
         >>> print x.a
         3
+        >>> print x['a']
+        3
+        >>> print x.get_value('a')
+        3
         >>> p3 = ParameterSet('xyz.parset')
-        >>> p1._add('x.a', 2)
+        >>> p1.set_value('x.a', 2)
 
     """
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
         # from file
         if len(args) == 1:
-            if isinstance(args[0], str) and os.path.exists(args[0]):
+            if isinstance(args[0], basestring) and os.path.exists(args[0]):
                 pfile = file(args[0], "r")
                 i = 1
                 for line in pfile:
                     pair = extract(line)
                     if pair:
                         try:
-                            self._add(*pair)
+                            self.set_value(*pair)
                         except ValueError, ex:
                             raise ValueError("In line %d of %s. %s" % (i,
                                                                        args[0],
@@ -60,28 +81,57 @@ class ParameterSet(object):
                 raise ValueError("Given (single) argument is not a file name")
         # from key, value
         elif len(args) == 2:
-            self._add(*args)
+            self.set_value(*args)
         elif len(kw):
             for k,v in kw.iteritems():
-                self._add(k, v)
+                self.set_value(k, v)
         elif len(args) == 0 and len(kw) == 0:
             pass
         else:
             raise ValueError("Incorrect arguments to constructor.")
 
-    def _add(self, k, v):
+    def get_value(self, k, default=None):
+        """Return the value from the ParameterSet using an optional default
+        value if the key doesn't exist.
+
+        :param key: the key to get the value for
+        :param default: the default value to return if the key doesn't exist
+
+        """
+        inkey = k
+        keys = k.split(".")
+        k = keys[0]
+        tail = None
+        if len(keys) > 1:
+            tail = ".".join(keys[1:])
+        if k in self._keys:
+            child = self.__dict__[k]
+            if isinstance(child, self.__class__):
+                if tail is not None:
+                    return child.get_value(tail, default)
+                else:
+                    return decode(child)
+            else:
+                return decode(child)
+        else:
+            if default is None:
+                raise KeyError("Key '%s' not found." % inkey )
+            else:
+                return default
+
+    def set_value(self, k, v):
         """
         Add a key/value pair. This will recursively create keys if necessart
         when the key contains '.' notation. This is the only way to add keys of
         this form. To set non-nested attributes one can use attribute or
         item set notation, so that the following are equivalent::
-            
+
             p = ParameterSet()
             p.x = 1
             p["x"] = 1
-            p._add("x", 1)
+            p.set_value("x", 1)
             # to add nested keys use
-            p._add('x.y', 1)
+            p.set_value('x.y', 1)
             # this fails
             p.x.y = 1
             # as does this
@@ -96,10 +146,12 @@ class ParameterSet(object):
         tail = None
         if len(keys) > 1:
             tail = ".".join(keys[1:])
+        if k in self._reserved:
+            raise KeyError("Key '%s' is a reserved keyword" % k)
         if k in self._keys:
             child = self.__dict__[k]
             if isinstance(child, self.__class__):
-                child._add(tail, v)
+                child.set_value(tail, v)
             else:
                 if tail:
                     raise ValueError("Leaf node %s can't be extended" % k)
@@ -110,23 +162,40 @@ class ParameterSet(object):
                 self.__dict__[k] = v
             else:
                 child = ParameterSet()
-                child._add(tail, v)
+                child.set_value(tail, v)
                 self.__dict__[k] = child
             self._keys.append(k)
 
     def __setitem__(self, k, v):
-        self._add(k, v)
+        self.set_value(k, v)
 
     def __setattr__(self, k, v):
-        self._add(k, v)
+        self.set_value(k, v)
 
     def __getitem__(self, k):
-        if k in self._keys:
-            return decode(self.__dict__[k])
-        else:
-            raise KeyError
+        return self.get_value(k)
 
-    def _to_dict(self):
+    def __contains__(self, k):
+        inkey = k
+        keys = k.split(".")
+        k = keys[0]
+        tail = None
+        if len(keys) > 1:
+            tail = ".".join(keys[1:])
+        if k in self._keys:
+            child = self.__dict__[k]
+            if isinstance(child, self.__class__):
+                if tail is not None:
+                    return child.__contains__(tail)
+                else:
+                    return True
+            else:
+                return True
+
+        else:
+            return False
+
+    def to_dict(self):
         """
         Returns a python :class:`dict` representation of the `ParameterSet`,
         decoding all values using :func:`decode`
@@ -134,7 +203,7 @@ class ParameterSet(object):
         out = {}
         for k in self._keys:
             if isinstance(self.__dict__[k], self.__class__):
-                out[k] = self.__dict__[k]._to_dict()
+                out[k] = self.__dict__[k].to_dict()
             else:
                 out[k] = decode(self.__dict__[k])
         return out
@@ -176,7 +245,7 @@ def decode(value):
     * booleans true/false
 
     """
-    if not isinstance(value, str):
+    if not isinstance(value, basestring):
         return value
     rxislist = re.compile(r"^\[(.+)\]$")
     rxbool = re.compile(r"([tT]rue|[fF]alse)")

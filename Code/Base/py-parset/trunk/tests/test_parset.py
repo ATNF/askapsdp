@@ -22,16 +22,53 @@ def test_args():
     for t in [('x.y', 1), ('x', [1,2])]:
         yield constructor, t
 
+# test set_value
+def test_set_value():
+    p = ParameterSet()
+    p.set_value("x.y", 1)
+    p.set_value("x.z", 2)
+
 # test __str__ function
 def test_str():
     key = 'x.y'
     p = ParameterSet(key, 1)
     assert(p.x.y == 1)
 
+
+def test_to_dict():
+    p = ParameterSet(x=1, y=2)
+    d = p.to_dict()
+    assert d == {'x': 1, 'y': 2}
+
 # test getting sub-parset "node"
 def test_slice():
     p = ParameterSet('x.y.z', 1)
     assert isinstance(p.x.y, ParameterSet)
+
+def test_get_value():
+    p = ParameterSet('x.y.z', 1)
+    v = p.get_value('x.y.z')
+    v = p.get_value('x')
+    v = p['x']
+    v = p['x.y']
+    v = p.x
+    v = p.x.y.z
+    # test default value for non existing key
+    assert p.get_value('x.y.x', 10) == 10
+
+@raises(KeyError)
+def test_get_fail():
+    p = ParameterSet()
+    v = p.get_value('x.y.x')
+    v = p['x.y.x']
+
+
+def test_in():
+    p = ParameterSet('x.y.z', 1)
+    assert 'x' in p
+    assert 'x.y' in p
+    assert 'x.y.z' in p
+    assert 'a' not in p
 
 # check decoded value
 def decoder(k, v):
