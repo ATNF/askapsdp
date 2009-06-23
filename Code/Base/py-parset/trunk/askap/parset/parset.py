@@ -4,7 +4,6 @@ import re
 from askap.parset import logger
 
 class ParameterSet(object):
-    _reserved = ["get_value", "set_value", "to_dict"]
     """
     The default constructor creates an empty ParameterSet instance.
     ParameterSet keys can be accessed as attributes::
@@ -21,7 +20,7 @@ class ParameterSet(object):
         >>> print p["x.y.z"]
         1
 
-    or using :method:`get_value` which can be used with a default value if the
+    or using :meth:`get_value` which can be used with a default value if the
     key doesn't exists::
 
         >>> p = ParameterSet('x.y.z', 1)
@@ -59,6 +58,9 @@ class ParameterSet(object):
         >>> p1.set_value('x.a', 2)
 
     """
+
+    _reserved = ["get_value", "set_value", "to_dict"]
+
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
         # from file
@@ -121,10 +123,10 @@ class ParameterSet(object):
 
     def set_value(self, k, v):
         """
-        Add a key/value pair. This will recursively create keys if necessart
-        when the key contains '.' notation. This is the only way to add keys of
-        this form. To set non-nested attributes one can use attribute or
-        item set notation, so that the following are equivalent::
+        Add or replace key/value pair. This will recursively create keys if
+        necessary when the key contains '.' notation. This is the only way to
+        add keys of this form. To set non-nested attributes one can use
+        attribute or item set notation, so that the following are equivalent::
 
             p = ParameterSet()
             p.x = 1

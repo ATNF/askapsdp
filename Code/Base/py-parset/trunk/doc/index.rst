@@ -12,7 +12,7 @@
     :undoc-members:
 
 .. autoclass:: askap.parset.ParameterSet
-    :members: __init__
+    :members:
 
 
 .. autofunction:: askap.parset.decode
