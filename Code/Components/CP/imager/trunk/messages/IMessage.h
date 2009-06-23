@@ -44,7 +44,9 @@ namespace askap {
                     PREDIFFER_REQUEST,
                     PREDIFFER_RESPONSE,
                     CLEAN_REQUEST,
-                    CLEAN_RESPONSE
+                    CLEAN_RESPONSE,
+                    SPECTRALLINE_WORKUNIT,
+                    SPECTRALLINE_WORKREQUEST
                 };
 
                 /// @brief Destructor.

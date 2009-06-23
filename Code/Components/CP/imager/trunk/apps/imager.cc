@@ -45,8 +45,9 @@
 #include <casa/OS/Timer.h>
 
 // Local Package includes
-#include "distributedimager/DistributedImager.h"
-#include "distributedimager/MPIBasicComms.h"
+#include "distributedimager/continuum/ContinuumImager.h"
+#include "distributedimager/spectralline/SpectralLineImager.h"
+#include "distributedimager/common/MPIBasicComms.h"
 
 using namespace askap;
 using namespace askap::cp;
@@ -95,8 +96,16 @@ int main(int argc, char *argv[])
         comms_p.reset(new MPIBasicComms(argc, argv));
 
         // Instantiate the Distributed Imager
-        DistributedImager imager(subset, *comms_p);
-        imager.run();
+        const std::string mode = subset.getString("mode","Continuum");
+        if (mode == "Continuum") {
+            ContinuumImager imager(subset, *comms_p);
+            imager.run();
+        } else if (mode == "SpectralLine") {
+            SpectralLineImager imager(subset, *comms_p);
+            imager.run();
+        } else {
+            ASKAPTHROW(std::runtime_error, "Invalid imaging mode specified.");
+        }
     } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
