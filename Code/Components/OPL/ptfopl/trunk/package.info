@@ -1,0 +1,3 @@
+pymodule=askap.opl.@@@package@@@
+# pure python module
+libs=
