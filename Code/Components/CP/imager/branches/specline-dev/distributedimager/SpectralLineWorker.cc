@@ -40,12 +40,9 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/Params.h>
-#include <fitting/Solver.h>
-#include <fitting/Quality.h>
-#include <measurementequation/ImageSolverFactory.h>
-#include <measurementequation/SynthesisParamsHelper.h>
 #include <gridding/IVisGridder.h>
 #include <gridding/VisGridderFactory.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <dataaccess/IConstDataSource.h>
@@ -55,7 +52,6 @@
 #include <dataaccess/IDataSelector.h>
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/SharedIter.h>
-//#include <dataaccess/ParsetInterface.h>
 #include <APS/ParameterSet.h>
 #include <APS/Exceptions.h>
 #include <casa/OS/Timer.h>
@@ -64,6 +60,7 @@
 #include "distributedimager/IBasicComms.h"
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
+#include "distributedimager/SolverMaster.h"
 
 using namespace askap::cp;
 using namespace askap;
@@ -111,7 +108,7 @@ void SpectralLineWorker::run(void)
 
 void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
 {
-    std::string colName = itsParset.getString("datacolumn", "DATA");
+    const std::string colName = itsParset.getString("datacolumn", "DATA");
     const std::string ms = wu.get_dataset();
 
     TableDataSource ds(ms, TableDataSource::DEFAULT, colName);
@@ -123,7 +120,7 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     IDataSharedIter it = ds.createIterator(sel, conv);
 
     const int nChannels = it->nChannel();
-    std::string imagename = itsParset.getString("image.name");
+    const std::string imagename = itsParset.getString("Images.name");
 
     for (int i = 0; i < nChannels; ++i) {
         processChannel(ds, imagename, i, wu.get_channelOffset());
@@ -132,7 +129,7 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
 }
 
 void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
-        std::string imagename, int channel, int channelOffset)
+        const std::string& imagename, int channel, int channelOffset)
 {
     ASKAPLOG_INFO_STR(logger, "Processing channel " << (channel + channelOffset + 1));
 
@@ -144,7 +141,6 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
 
     // Setup data iterator
     IDataSelectorPtr sel = ds.createSelector();
-    //sel << itsParset;
     sel->chooseChannels(1, channel);
     IDataConverterPtr conv = ds.createConverter();
     conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
@@ -154,7 +150,6 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
     // Setup normal equations
     askap::scimath::INormalEquations::ShPtr ne_p
         = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
-
 
     // Setup measurement equations
     askap::scimath::Equation::ShPtr equation_p
@@ -172,49 +167,19 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
             << timer.real() << " seconds ");
 
     equation_p.reset();
-    //model_p.reset(new Params());
 
     // Solve NE
-    askap::scimath::Solver::ShPtr solver_p = ImageSolverFactory::make(*model_p, itsParset);
-    ASKAPCHECK(solver_p, "solver_p is not correctly initialized");
-
-    timer.mark();
-    solver_p->init();
-    solver_p->setParameters(*model_p);
-    solver_p->addNormalEquations(*ne_p);
-
-    ASKAPLOG_INFO_STR(logger, "Solving Normal Equations");
-
-    askap::scimath::Quality q;
-    solver_p->solveNormalEquations(q);
-    *model_p = solver_p->parameters();
-    ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real()
-            << " seconds ");
+    SolverMaster solverTask(itsParset, itsComms, model_p);
+    solverTask.solveNE(ne_p);
 
     // Write image
-    ASKAPCHECK(model_p, "model_p is not correctly initialized");
-    ASKAPCHECK(solver_p, "solver_p is not correctly initialized");
-
-    SynthesisParamsHelper::setUpImageHandler(itsParset);
-
-    std::string postfix;
-    ASKAPLOG_INFO_STR(logger, "Writing out results as images");
-    std::vector<std::string> resultimages = model_p->names();
-    for (vector<string>::const_iterator it = resultimages.begin(); it
-            !=resultimages.end(); it++) {
-        if ((it->find("image") == 0) || (it->find("psf") == 0) ||
-                (it->find("weights") == 0) || (it->find("mask") == 0) ||
-                (it->find("residual")==0)) {
-            ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
-            SynthesisParamsHelper::saveImageParameter(*model_p, *it, *it+postfix);
-        }
-    }
+    solverTask.writeModel("");
 }
 
 void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel)
 {
     try {
-        ParameterSet parset = itsParset.makeSubset("image.");
+        ParameterSet parset = itsParset.makeSubset("Images.");
 
         const int nfacets = parset.getInt32("nfacets", 1);
         const std::string nameParam = parset.getString("name");
@@ -249,6 +214,4 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params,
     } catch (const LOFAR::ACC::APS::APSException &ex) {
         throw AskapError(ex.what());
     }
-
 }
-

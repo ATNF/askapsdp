@@ -72,16 +72,16 @@ void SpectralLineMaster::run(void)
     }
 
     // Read from the configruation the list of datasets to process
-    std::vector<std::string> ms = getDatasets(itsParset);
+    const std::vector<std::string> ms = getDatasets(itsParset);
     if (ms.size() == 0) {
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
 
     // Get the base image name
-    if (!itsParset.isDefined("image.name")) {
+    if (!itsParset.isDefined("Images.name")) {
         ASKAPTHROW(std::runtime_error, "Image name is not defined in parameter set");
     }
-    std::string imageName = itsParset.getString("image.name");
+    const std::string imageName = itsParset.getString("Images.name");
 
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
@@ -89,11 +89,13 @@ void SpectralLineMaster::run(void)
     for (unsigned int n = 0; n < ms.size(); ++n) {
         int id; // Id of the process the WorkRequest message is received from
 
+        // Wait for a worker to request some work
         SpectralLineWorkRequest wrequest;
         itsComms.receiveMessageAnySrc(wrequest, id);
 
         const int msChannels = getNumChannels(ms[n]);
 
+        // Send the workunit to the worker
         ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
                 << ", containing channels " << (channelOffset + 1) << "-"
                 << (channelOffset + msChannels) << " to worker " << id);
@@ -107,8 +109,8 @@ void SpectralLineMaster::run(void)
         channelOffset += msChannels;
     }
 
-    // Send each worker a done response to indicate there
-    // are no more work units
+    // Send each worker a response to indicate there are
+    // no more work units
     for (int id = 1; id < itsComms.getNumNodes(); ++id) {
         SpectralLineWorkUnit wu;
         wu.set_payloadType(SpectralLineWorkUnit::DONE);
@@ -117,7 +119,7 @@ void SpectralLineMaster::run(void)
 }
 
 
-/// Utility function to get dataset names from parset.
+// Utility function to get dataset names from parset.
 std::vector<std::string> SpectralLineMaster::getDatasets(const ParameterSet& parset)
 {
     if (parset.isDefined("dataset") && parset.isDefined("dataset0")) {
@@ -132,7 +134,7 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const ParameterSet& par
         std::string key = "dataset0";   // First key to look for
         long idx = 0;
         while (parset.isDefined(key)) {
-            std::string value = parset.getString(key);
+            const std::string value = parset.getString(key);
             ms.push_back(value);
 
             std::ostringstream ss;
@@ -145,8 +147,9 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const ParameterSet& par
     return ms;
 }
 
-// NOTE: This function makes the assumption that each iteration
-// will have the same number of channels. This may not be true.
+// NOTE: This function makes the assumption that each iteration will have
+// the same number of channels. This may not be true, but reading through the
+// entire dataset to validate this assumption is going to be too slow.
 int SpectralLineMaster::getNumChannels(const std::string& ms)
 {
     askap::synthesis::TableConstDataSource ds(ms);

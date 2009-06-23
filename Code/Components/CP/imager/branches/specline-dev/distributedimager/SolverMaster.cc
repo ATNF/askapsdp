@@ -69,10 +69,11 @@ SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
     const std::string solver_par = itsParset.getString("solver");
     const std::string algorithm_par = itsParset.getString("solver.Clean.algorithm", "MultiScale");
     const std::string distributed_par = itsParset.getString("solver.Clean.distributed", "False");
+    const std::string mode = subset.getString("mode","Continuum");
     // There is a distributed MultiScale Clean implementation in this processing
     // element, so use it if appropriate
     if (solver_par == "Clean" && algorithm_par == "MultiScale" &&
-            distributed_par == "True") {
+            distributed_par == "True" && mode == "Continuum") {
         itsSolver = DistributedImageSolverFactory::make(*itsModel, itsParset, itsComms);
     } else {
         itsSolver = ImageSolverFactory::make(*itsModel, itsParset);

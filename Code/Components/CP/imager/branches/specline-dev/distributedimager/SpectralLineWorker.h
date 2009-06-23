@@ -54,15 +54,20 @@ namespace askap {
 
 
             private:
+                // Process a workunit
                 void processWorkUnit(const SpectralLineWorkUnit& wu);
+
+                // For a given workunit, just process a single channel
                 void processChannel(askap::synthesis::TableDataSource& ds,
-                        std::string imagename, int channel, int channelOffset);
+                        const std::string& imagename, int channel, int channelOffset);
+
+                // Setup the image specified in itsParset and add it to the Params instance.
                 void setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel);
 
-                /// Parameter set
+                // Parameter set
                 LOFAR::ACC::APS::ParameterSet& itsParset;
 
-                /// Communications class
+                // Communications class
                 askap::cp::IBasicComms& itsComms;
 
                 // Pointer to the gridder

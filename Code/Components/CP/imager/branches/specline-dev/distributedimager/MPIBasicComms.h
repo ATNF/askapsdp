@@ -40,22 +40,48 @@
 namespace askap {
 namespace cp {
 
+/// @brief An an instance of IBasicComms providing MPI based communications
+/// functionality.
 class MPIBasicComms : public IBasicComms
 {
 public:
+    /// @brief Constructor
+    ///
+    /// @params [in] argc argc as passed to main().
+    /// @params [in] argv argv as passed to main().
     MPIBasicComms(int argc, char *argv[]);
+
+    /// @brief Destructor
     virtual ~MPIBasicComms();
 
+    /// @copydoc IBasicComms::getId()
     virtual int getId(void);
+
+    /// @copydoc IBasicComms::getNumNodes()
     virtual int getNumNodes(void);
+
+    /// @copydoc IBasicComms::abort()
     virtual void abort(void);
 
+    /// @copydoc IBasicComms::sendMessage()
     void sendMessage(const IMessage& msg, int dest);
+
+    /// @copydoc IBasicComms::receiveMessage()
     void receiveMessage(IMessage& msg, int source);
+
+    /// @copydoc IBasicComms::receiveMessageAnySrc(IMessage&)
     void receiveMessageAnySrc(IMessage& msg);
+
+    /// @copydoc IBasicComms::receiveMessageAnySrc(IMessage&,int&)
     void receiveMessageAnySrc(IMessage& msg, int& actualSource);
 
+    /// @copydoc IBasicComms::sendMessageBroadcast()
     void sendMessageBroadcast(const IMessage& msg);
+
+    /// @copydoc IBasicComms::sendMessageBroadcast()
+    void sendMessageBroadcast(const IMessage& msg);
+
+    /// @copydoc IBasicComms::receiveMessageBroadcast()
     void receiveMessageBroadcast(IMessage& msg, int root);
 
 private:
