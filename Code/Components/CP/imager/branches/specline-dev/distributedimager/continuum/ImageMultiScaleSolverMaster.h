@@ -39,7 +39,7 @@
 #include <lattices/Lattices/LatticeCleaner.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/common/IBasicComms.h>
 #include <messages/CleanResponse.h>
 
 namespace askap

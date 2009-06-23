@@ -35,7 +35,7 @@
 #include <mpi.h>
 
 // ASKAPsoft includes
-#include <messages/IMessage.h>
+#include "messages/IMessage.h"
 
 namespace askap {
 namespace cp {
@@ -74,9 +74,6 @@ public:
 
     /// @copydoc IBasicComms::receiveMessageAnySrc(IMessage&,int&)
     void receiveMessageAnySrc(IMessage& msg, int& actualSource);
-
-    /// @copydoc IBasicComms::sendMessageBroadcast()
-    void sendMessageBroadcast(const IMessage& msg);
 
     /// @copydoc IBasicComms::sendMessageBroadcast()
     void sendMessageBroadcast(const IMessage& msg);

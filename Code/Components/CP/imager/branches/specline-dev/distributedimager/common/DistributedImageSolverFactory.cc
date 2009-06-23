@@ -24,7 +24,7 @@
 ///
 
 // Include own header file first
-#include <distributedimager/DistributedImageSolverFactory.h>
+#include "distributedimager/common/DistributedImageSolverFactory.h"
 
 // ASKAPsoft includes
 #include <askap_imager.h>
@@ -39,8 +39,8 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 // Local includes
-#include <distributedimager/ImageMultiScaleSolverMaster.h>
-#include <distributedimager/IBasicComms.h>
+#include "distributedimager/continuum/ImageMultiScaleSolverMaster.h"
+#include "distributedimager/common/IBasicComms.h"
 
 // Using
 using namespace askap::scimath;

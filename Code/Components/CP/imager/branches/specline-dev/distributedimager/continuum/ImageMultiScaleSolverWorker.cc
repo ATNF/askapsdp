@@ -22,7 +22,7 @@
 ///
 
 // Include own header file first
-#include <distributedimager/ImageMultiScaleSolverWorker.h>
+#include "ImageMultiScaleSolverWorker.h"
 
 // Boost includes
 #include <boost/scoped_ptr.hpp>
@@ -38,7 +38,7 @@
 #include <casa/Arrays/Array.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/common/IBasicComms.h>
 #include <messages/IMessage.h>
 #include <messages/CleanRequest.h>
 #include <messages/CleanResponse.h>

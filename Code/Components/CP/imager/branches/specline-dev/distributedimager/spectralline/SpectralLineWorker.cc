@@ -57,10 +57,10 @@
 #include <casa/OS/Timer.h>
 
 // Local includes
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/common/SolverCore.h"
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
-#include "distributedimager/SolverMaster.h"
 
 using namespace askap::cp;
 using namespace askap;
@@ -169,11 +169,11 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
     equation_p.reset();
 
     // Solve NE
-    SolverMaster solverTask(itsParset, itsComms, model_p);
-    solverTask.solveNE(ne_p);
+    SolverCore solverCore(itsParset, itsComms, model_p);
+    solverCore.solveNE(ne_p);
 
     // Write image
-    solverTask.writeModel("");
+    solverCore.writeModel("");
 }
 
 void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel)

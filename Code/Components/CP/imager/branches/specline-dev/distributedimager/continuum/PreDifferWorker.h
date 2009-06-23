@@ -36,8 +36,8 @@
 #include <gridding/IVisGridder.h>
 
 // Local includes
-#include "distributedimager/IPreDifferTask.h"
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/continuum/IPreDifferTask.h"
 
 namespace askap {
     namespace cp {

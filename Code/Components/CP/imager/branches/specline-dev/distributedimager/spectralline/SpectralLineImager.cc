@@ -39,9 +39,9 @@
 #include <APS/ParameterSet.h>
 
 // Local includes
-#include "distributedimager/IBasicComms.h"
-#include "distributedimager/SpectralLineMaster.h"
-#include "distributedimager/SpectralLineWorker.h"
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/spectralline/SpectralLineMaster.h"
+#include "distributedimager/spectralline/SpectralLineWorker.h"
 
 ASKAP_LOGGER(logger, ".SpectralLineImager");
 

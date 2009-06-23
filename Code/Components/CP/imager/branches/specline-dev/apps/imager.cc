@@ -45,9 +45,9 @@
 #include <casa/OS/Timer.h>
 
 // Local Package includes
-#include "distributedimager/ContinuumImager.h"
-#include "distributedimager/SpectralLineImager.h"
-#include "distributedimager/MPIBasicComms.h"
+#include "distributedimager/continuum/ContinuumImager.h"
+#include "distributedimager/spectralline/SpectralLineImager.h"
+#include "distributedimager/common/MPIBasicComms.h"
 
 using namespace askap;
 using namespace askap::cp;

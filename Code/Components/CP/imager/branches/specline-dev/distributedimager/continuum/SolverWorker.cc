@@ -37,8 +37,8 @@
 #include <fitting/Params.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
-#include <distributedimager/ImageMultiScaleSolverWorker.h>
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/continuum/ImageMultiScaleSolverWorker.h"
 
 using namespace askap;
 using namespace askap::cp;

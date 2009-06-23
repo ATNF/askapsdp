@@ -37,7 +37,7 @@
 #include <measurementequation/ImageSolver.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include "distributedimager/common/IBasicComms.h"
 
 namespace askap
 {

@@ -51,11 +51,11 @@
 #include <casa/OS/Timer.h>
 
 // Local package includes
-#include <distributedimager/IBasicComms.h>
-#include <distributedimager/ReductionLogic.h>
-#include <messages/UpdateModel.h>
-#include <messages/PreDifferResponse.h>
-#include <messages/PreDifferRequest.h>
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/continuum/ReductionLogic.h"
+#include "messages/UpdateModel.h"
+#include "messages/PreDifferResponse.h"
+#include "messages/PreDifferRequest.h"
 
 using namespace askap::cp;
 using namespace askap::scimath;

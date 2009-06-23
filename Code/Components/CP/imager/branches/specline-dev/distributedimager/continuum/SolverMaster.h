@@ -39,8 +39,9 @@
 #include <casa/Arrays/Vector.h>
 
 // Local includes
-#include "distributedimager/ISolverTask.h"
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/common/SolverCore.h"
+#include "distributedimager/continuum/ISolverTask.h"
 
 namespace askap {
     namespace cp {
@@ -58,26 +59,7 @@ namespace askap {
                 virtual void writeModel(const std::string& postfix);
 
             private:
-                // A helper method to extract peak residual
-                double getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p);
-
-                // Setup the restoring beam parameters (itsQbeam)
-                void setupRestoreBeam(void);
-
-                // Solver
-                askap::scimath::Solver::ShPtr itsSolver;
-
-                // Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
-   
-                // Communications class
-                askap::cp::IBasicComms& itsComms;
-
-                // Model
-                askap::scimath::Params::ShPtr itsModel;
-
-                // Restoring beam parameters
-                casa::Vector<casa::Quantum<double> > itsQbeam;
+                SolverCore itsSolverCore;
 
                 // No support for assignment
                 SolverMaster& operator=(const SolverMaster& rhs);

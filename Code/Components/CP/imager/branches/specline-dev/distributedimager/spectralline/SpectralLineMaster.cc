@@ -45,7 +45,7 @@
 #include <dataaccess/SharedIter.h>
 
 // Local includes
-#include "distributedimager/IBasicComms.h"
+#include "distributedimager/common/IBasicComms.h"
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
 

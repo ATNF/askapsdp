@@ -1,4 +1,4 @@
-/// @file SolverWorker.h
+/// @file ContinuumImager.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,49 +24,60 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SOLVERWORKER_H
-#define ASKAP_CP_SOLVERWORKER_H
-
-// System includes
-#include <string>
+#ifndef ASKAP_CP_CONTINUUMIMAGER_H
+#define ASKAP_CP_CONTINUUMIMAGER_H
 
 // ASKAPsoft includes
 #include <APS/ParameterSet.h>
-#include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
-// Local includes
-#include "distributedimager/ISolverTask.h"
-#include "distributedimager/IBasicComms.h"
+// Local package includes
+#include "distributedimager/common/MPIBasicComms.h"
 
 namespace askap {
     namespace cp {
 
-        class SolverWorker : public ISolverTask
+        /// @brief Main class for the Distributed imager.
+        class ContinuumImager
         {
             public:
-                SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms,
-                        askap::scimath::Params::ShPtr model_p);
+                /// @brief Construct a Distributed Imager.
+                /// 
+                /// @param[in]  parset  the parameter set containing
+                ///                     the configuration.
+                /// @param[in]  comms   an instance of IBasicComms.
+                ContinuumImager(LOFAR::ACC::APS::ParameterSet& parset,
+                        askap::cp::MPIBasicComms& comms);
 
-                virtual ~SolverWorker();
+                /// @brief Destructor.
+                ~ContinuumImager();
 
-                virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
-
-                virtual void writeModel(const std::string& postfix);
+                /// @brief Run the distrbuted imager.
+                void run(void);
 
             private:
-                // No support for assignment
-                SolverWorker& operator=(const SolverWorker& rhs);
 
-                // No support for copy constructor
-                SolverWorker(const SolverWorker& src);
+                // Returns true if the caller is the master process,
+                // else false.
+                bool isMaster(void);
+
+                // Id of the master process
+                static const int itsMaster = 0;
 
                 // Parameter set
                 LOFAR::ACC::APS::ParameterSet& itsParset;
 
                 // Communications class
-                askap::cp::IBasicComms& itsComms;
+                askap::cp::MPIBasicComms& itsComms;
+
+                // Model
+                askap::scimath::Params::ShPtr itsModel;
+
+                // No support for assignment
+                ContinuumImager& operator=(const ContinuumImager& rhs);
+
+                // No support for copy constructor
+                ContinuumImager(const ContinuumImager& src);
         };
 
     };

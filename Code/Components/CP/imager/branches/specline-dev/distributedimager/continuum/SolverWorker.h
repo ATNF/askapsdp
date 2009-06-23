@@ -1,4 +1,4 @@
-/// @file SpectralLineWorker.h
+/// @file SolverWorker.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,63 +24,49 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SPECTRALLINEWORKER_H
-#define ASKAP_CP_SPECTRALLINEWORKER_H
+#ifndef ASKAP_CP_SOLVERWORKER_H
+#define ASKAP_CP_SOLVERWORKER_H
 
 // System includes
+#include <string>
 
 // ASKAPsoft includes
 #include <APS/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
-#include <dataaccess/TableDataSource.h>
-#include <gridding/IVisGridder.h>
 
 // Local includes
-#include "distributedimager/IBasicComms.h"
-#include "messages/SpectralLineWorkUnit.h"
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/continuum/ISolverTask.h"
 
 namespace askap {
     namespace cp {
 
-        class SpectralLineWorker
+        class SolverWorker : public ISolverTask
         {
             public:
-                SpectralLineWorker(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::IBasicComms& comms);
-                ~SpectralLineWorker();
+                SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
+                        askap::cp::IBasicComms& comms,
+                        askap::scimath::Params::ShPtr model_p);
 
-                void run(void);
+                virtual ~SolverWorker();
 
+                virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
+
+                virtual void writeModel(const std::string& postfix);
 
             private:
-                // Process a workunit
-                void processWorkUnit(const SpectralLineWorkUnit& wu);
+                // No support for assignment
+                SolverWorker& operator=(const SolverWorker& rhs);
 
-                // For a given workunit, just process a single channel
-                void processChannel(askap::synthesis::TableDataSource& ds,
-                        const std::string& imagename, int channel, int channelOffset);
-
-                // Setup the image specified in itsParset and add it to the Params instance.
-                void setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel);
+                // No support for copy constructor
+                SolverWorker(const SolverWorker& src);
 
                 // Parameter set
                 LOFAR::ACC::APS::ParameterSet& itsParset;
 
                 // Communications class
                 askap::cp::IBasicComms& itsComms;
-
-                // Pointer to the gridder
-                askap::synthesis::IVisGridder::ShPtr itsGridder_p;
-
-                // No support for assignment
-                SpectralLineWorker& operator=(const SpectralLineWorker& rhs);
-
-                // No support for copy constructor
-                SpectralLineWorker(const SpectralLineWorker& src);
-
-                // ID of the master process
-                static const int itsMaster = 0;
         };
 
     };

@@ -1,4 +1,4 @@
-/// @file ContinuumImager.h
+/// @file SolverCore.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,62 +24,66 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CONTINUUMIMAGER_H
-#define ASKAP_CP_CONTINUUMIMAGER_H
+#ifndef ASKAP_CP_SOLVERCORE_H
+#define ASKAP_CP_SOLVERCORE_H
+
+// System includes
 
 // ASKAPsoft includes
 #include <APS/ParameterSet.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
+#include <fitting/Solver.h>
+#include <fitting/Quality.h>
+#include <casa/Quanta/Quantum.h>
+#include <casa/Arrays/Vector.h>
 
-// Local package includes
-#include "distributedimager/MPIBasicComms.h"
+// Local includes
+#include "distributedimager/common/IBasicComms.h"
 
 namespace askap {
     namespace cp {
 
-        /// @brief Main class for the Distributed imager.
-        class ContinuumImager
+        class SolverCore
         {
             public:
-                /// @brief Construct a Distributed Imager.
-                /// 
-                /// @param[in]  parset  the parameter set containing
-                ///                     the configuration.
-                /// @param[in]  comms   an instance of IBasicComms.
-                ContinuumImager(LOFAR::ACC::APS::ParameterSet& parset,
-                        askap::cp::MPIBasicComms& comms);
+                SolverCore(LOFAR::ACC::APS::ParameterSet& parset,
+                        askap::cp::IBasicComms& comms,
+                        askap::scimath::Params::ShPtr model_p);
+                virtual ~SolverCore();
 
-                /// @brief Destructor.
-                ~ContinuumImager();
+                virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
 
-                /// @brief Run the distrbuted imager.
-                void run(void);
+                virtual void writeModel(const std::string& postfix);
 
             private:
+                // A helper method to extract peak residual
+                double getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p);
 
-                // Returns true if the caller is the master process,
-                // else false.
-                bool isMaster(void);
+                // Setup the restoring beam parameters (itsQbeam)
+                void setupRestoreBeam(void);
 
-                // Id of the master process
-                static const int itsMaster = 0;
+                // Solver
+                askap::scimath::Solver::ShPtr itsSolver;
 
                 // Parameter set
                 LOFAR::ACC::APS::ParameterSet& itsParset;
-
+   
                 // Communications class
-                askap::cp::MPIBasicComms& itsComms;
+                askap::cp::IBasicComms& itsComms;
 
                 // Model
                 askap::scimath::Params::ShPtr itsModel;
 
+                // Restoring beam parameters
+                casa::Vector<casa::Quantum<double> > itsQbeam;
+
                 // No support for assignment
-                ContinuumImager& operator=(const ContinuumImager& rhs);
+                SolverCore& operator=(const SolverCore& rhs);
 
                 // No support for copy constructor
-                ContinuumImager(const ContinuumImager& src);
+                SolverCore(const SolverCore& src);
         };
-
     };
 };
 

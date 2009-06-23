@@ -24,7 +24,7 @@
 ///
 
 // Include own header file first
-#include <distributedimager/ImageMultiScaleSolverMaster.h>
+#include "ImageMultiScaleSolverMaster.h"
 
 // System includes
 #include <iostream>
@@ -48,7 +48,7 @@
 #include <lattices/Lattices/ArrayLattice.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include <distributedimager/common/IBasicComms.h>
 #include <messages/IMessage.h>
 #include <messages/CleanRequest.h>
 #include <messages/CleanResponse.h>

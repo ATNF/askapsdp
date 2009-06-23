@@ -41,12 +41,11 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
-#include <distributedimager/ReductionLogic.h>
-
-#include <messages/UpdateModel.h>
-#include <messages/PreDifferRequest.h>
-#include <messages/PreDifferResponse.h>
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/continuum/ReductionLogic.h"
+#include "messages/UpdateModel.h"
+#include "messages/PreDifferRequest.h"
+#include "messages/PreDifferResponse.h"
 
 using namespace askap::cp;
 using namespace askap;

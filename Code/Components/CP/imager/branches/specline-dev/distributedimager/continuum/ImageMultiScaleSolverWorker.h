@@ -33,7 +33,7 @@
 #include <APS/ParameterSet.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
+#include "distributedimager/common/IBasicComms.h"
 
 namespace askap
 {

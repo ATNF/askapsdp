@@ -31,7 +31,7 @@
 #include <APS/ParameterSet.h>
 
 // Local package includes
-#include "distributedimager/MPIBasicComms.h"
+#include "distributedimager/common/MPIBasicComms.h"
 
 namespace askap {
     namespace cp {

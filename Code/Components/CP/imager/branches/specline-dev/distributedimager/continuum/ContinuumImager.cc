@@ -43,13 +43,13 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 // Local includes
-#include "distributedimager/IBasicComms.h"
-#include "distributedimager/IPreDifferTask.h"
-#include "distributedimager/PreDifferMaster.h"
-#include "distributedimager/PreDifferWorker.h"
-#include "distributedimager/ISolverTask.h"
-#include "distributedimager/SolverMaster.h"
-#include "distributedimager/SolverWorker.h"
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/continuum/IPreDifferTask.h"
+#include "distributedimager/continuum/PreDifferMaster.h"
+#include "distributedimager/continuum/PreDifferWorker.h"
+#include "distributedimager/continuum/ISolverTask.h"
+#include "distributedimager/continuum/SolverMaster.h"
+#include "distributedimager/continuum/SolverWorker.h"
 
 ASKAP_LOGGER(logger, ".ContinuumImager");
 

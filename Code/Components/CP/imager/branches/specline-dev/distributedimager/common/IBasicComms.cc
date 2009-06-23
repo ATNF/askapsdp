@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "IBasicComms.h"
+#include "distributedimager/common/IBasicComms.h"
 
 askap::cp::IBasicComms::~IBasicComms()
 {

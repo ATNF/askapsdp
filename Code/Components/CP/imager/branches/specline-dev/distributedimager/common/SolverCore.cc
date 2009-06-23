@@ -1,4 +1,4 @@
-/// @file SolverMaster.cc
+/// @file SolverCore.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "SolverMaster.h"
+#include "SolverCore.h"
 
 // System includes
 #include <string>
@@ -48,8 +48,8 @@
 #include <casa/OS/Timer.h>
 
 // Local includes
-#include <distributedimager/IBasicComms.h>
-#include <distributedimager/DistributedImageSolverFactory.h>
+#include "distributedimager/common/IBasicComms.h"
+#include "distributedimager/common/DistributedImageSolverFactory.h"
 
 // Using
 using namespace askap;
@@ -57,9 +57,9 @@ using namespace askap::cp;
 using namespace askap::scimath;
 using namespace askap::synthesis;
 
-ASKAP_LOGGER(logger, ".SolverMaster");
+ASKAP_LOGGER(logger, ".SolverCore");
 
-SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
+SolverCore::SolverCore(LOFAR::ACC::APS::ParameterSet& parset,
         askap::cp::IBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
 : itsParset(parset), itsComms(comms), itsModel(model_p)
@@ -69,7 +69,7 @@ SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
     const std::string solver_par = itsParset.getString("solver");
     const std::string algorithm_par = itsParset.getString("solver.Clean.algorithm", "MultiScale");
     const std::string distributed_par = itsParset.getString("solver.Clean.distributed", "False");
-    const std::string mode = subset.getString("mode","Continuum");
+    const std::string mode = itsParset.getString("mode","Continuum");
     // There is a distributed MultiScale Clean implementation in this processing
     // element, so use it if appropriate
     if (solver_par == "Clean" && algorithm_par == "MultiScale" &&
@@ -80,11 +80,11 @@ SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
     }
 }
 
-SolverMaster::~SolverMaster()
+SolverCore::~SolverCore()
 {
 }
 
-void SolverMaster::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
+void SolverCore::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
 {
     casa::Timer timer;
     timer.mark();
@@ -121,7 +121,7 @@ void SolverMaster::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
     itsModel->fix("peak_residual");
 }
 
-double SolverMaster::getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p)
+double SolverCore::getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p)
 {
     // we need a specialized method of the imaging normal equations to get the peak
     // for all images. Multiple images can be represented by a single normal equations class.
@@ -163,7 +163,7 @@ double SolverMaster::getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_
     return peak;
 }
 
-void SolverMaster::setupRestoreBeam(void)
+void SolverCore::setupRestoreBeam(void)
 {
     bool restore = itsParset.getBool("restore", false);
 
@@ -177,7 +177,7 @@ void SolverMaster::setupRestoreBeam(void)
     }
 }
 
-void SolverMaster::writeModel(const std::string &postfix)
+void SolverCore::writeModel(const std::string &postfix)
 {
     ASKAPCHECK(itsModel, "itsModel is not correctly initialized");
     ASKAPCHECK(itsSolver, "itsSolver is not correctly initialized");
