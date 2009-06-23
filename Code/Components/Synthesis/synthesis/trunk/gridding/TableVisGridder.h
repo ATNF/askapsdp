@@ -112,12 +112,11 @@ namespace askap
           const casa::IPosition& shape, const bool dopsf=true);
 
       /// @brief Grid the visibility data.
-      /// @param acc non-const data accessor to work with
-      /// @note We have to pass a non-const accessor because we use a generic method inside, 
-      /// which can either write or read. A bit better re-structuring of the code can help to 
-      /// deal with constness properly.      
-      virtual void grid(IDataAccessor& acc);
-
+      /// @param acc const data accessor to work with
+      /// @note a non-const adapter is created behind the scene. If no on-the-fly visibility 
+      /// correction is performed, this adapter is equivalent to the original const data accessor
+      virtual void grid(IConstDataAccessor& acc);
+      
       /// Form the final output image
       /// @param out Output double precision image or PSF
       virtual void finaliseGrid(casa::Array<double>& out);
@@ -165,6 +164,19 @@ namespace askap
       void inline useAllDataForPSF(const bool useAll) { itsUseAllDataForPSF = useAll;} 
       
   protected:
+      /// @brief correct visibilities, if necessary
+      /// @details This method is intended for on-the-fly correction of visibilities (i.e. 
+      /// facet-based correction needed for LOFAR). This method does nothing in this class, but
+      /// can be overridden in the derived classes to plug some effect in. The same method is 
+      /// used for both gridding and degridding, with the forward parameter used to distinguish
+      /// between these two operations. A non-const accessor has to be modified in situ, if a
+      /// correction is required. A buffer for read-only visibilities is created on-demand when
+      /// rwVisibility method of the accessor is called for the first time.
+      /// @param[in] acc non-const accessor with the data to correct, leave it intact if no
+      /// correction is required
+      /// @param[in] forward true for degridding (image to vis) and false for gridding (vis to image)
+      virtual void correctVisibilities(IDataAccessor &acc, bool forward);
+  
       /// @brief initialise sum of weights
       /// @details We keep track the number of times each convolution function is used per
       /// channel and polarisation (sum of weights). This method is made virtual to be able

@@ -25,6 +25,7 @@
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <dataaccess/IDataAccessor.h>
+#include <dataaccess/OnDemandBufferDataAccessor.h>
 ASKAP_LOGGER(logger, ".gridding");
 
 #include <askap/AskapError.h>
@@ -535,19 +536,31 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    }
 }
 
+/// @brief correct visibilities, if necessary
+/// @details This method is intended for on-the-fly correction of visibilities (i.e. 
+/// facet-based correction needed for LOFAR). This method does nothing in this class, but
+/// can be overridden in the derived classes to plug some effect in. The same method is 
+/// used for both gridding and degridding, with the forward parameter used to distinguish
+/// between these two operations. A non-const accessor has to be modified in situ, if a
+/// correction is required. A buffer for read-only visibilities is created on-demand when
+/// rwVisibility method of the accessor is called for the first time.
+void TableVisGridder::correctVisibilities(IDataAccessor &, bool) {}
+
 /// @brief Degrid the visibility data.
 /// @param[in] acc non-const data accessor to work with  
 void TableVisGridder::degrid(IDataAccessor& acc) {
-	return generic(acc, true);
+	generic(acc, true);
+	correctVisibilities(acc, true);
 }
 
 /// @brief Grid the visibility data.
-/// @param acc non-const data accessor to work with
-/// @note We have to pass a non-const accessor because we use a generic method inside, 
-/// which can either write or read. A bit better re-structuring of the code can help to 
-/// deal with constness properly.      
-void TableVisGridder::grid(IDataAccessor& acc) {
-	return generic(acc, false);
+/// @param acc const data accessor to work with
+/// @note a non-const adapter is created behind the scene. If no on-the-fly visibility 
+/// correction is performed, this adapter is equivalent to the original const data accessor
+void TableVisGridder::grid(IConstDataAccessor& acc) {
+    OnDemandBufferDataAccessor bufAcc(acc);
+	correctVisibilities(bufAcc, false);
+	generic(bufAcc, false);
 }
 
 /// @brief obtain the centre of the image

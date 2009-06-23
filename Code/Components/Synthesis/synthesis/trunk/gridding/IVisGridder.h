@@ -77,11 +77,8 @@ namespace askap
 					const casa::IPosition& shape, const bool dopsf=true) = 0;
 
             /// @brief Grid the visibility data.
-            /// @param acc non-const data accessor to work with
-            /// @note We have to pass a non-const accessor because we use a generic method inside, 
-            /// which can either write or read. A bit better re-structuring of the code can help to 
-            /// deal with constness properly.      
-            virtual void grid(IDataAccessor& acc) = 0;
+            /// @param acc const data accessor to work with
+            virtual void grid(IConstDataAccessor& acc) = 0;
 
 			/// Form the final output image
 			/// @param out Output double precision image or PSF

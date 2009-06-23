@@ -87,6 +87,15 @@ public:
   /// to decouple from the read-only accessor 
   void discardCache();
   
+  /// @brief check whether this class is decoupled from the original accessor
+  /// @details The first write request triggers creation of a buffer, which is used 
+  /// for all future read and write operations, until discardCache is called or the
+  /// visibility cube changes shape. This method allows to check the state of this class.
+  /// It returns true if all reads and writes are coming from the buffer, rather than the
+  /// original accessor. 
+  /// @return true of this class uses buffer
+  bool isDecoupled() const throw() { return itsUseBuffer; }
+  
 private:
   /// @brief a helper method to check whether the buffer has a correct size
   /// @details The wrong size means that the iterator has advanced and this
