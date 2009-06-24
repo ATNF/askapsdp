@@ -132,19 +132,21 @@ namespace askap
         
       
         /// @brief Add a parameter as an image
-        /// @param ip Parameters
-        /// @param name Name of parameter
-        /// @param direction Strings containing [ra, dec, frame]
-        /// @param cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
-        /// @param shape Number of pixels in RA and DEC e.g. [256, 256]
-        /// @param freqmin Minimum frequency (Hz)
-        /// @param freqmax Maximum frequency (Hz)
-        /// @param nchan Number of spectral channels
+        /// @param[in] ip Parameters
+        /// @param[in] name Name of parameter
+        /// @param[in] direction Strings containing [ra, dec, frame]
+        /// @param[in] cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
+        /// @param[in] shape Number of pixels in RA and DEC e.g. [256, 256]
+        /// @param[in] freqmin Minimum frequency (Hz)
+        /// @param[in] freqmax Maximum frequency (Hz)
+        /// @param[in] nchan Number of spectral channels
+        /// @param[in] stokes Polarisation frame (vector of stokes enums)
         static void add(askap::scimath::Params& ip, const string& name, 
           const vector<string>& direction, 
           const vector<string>& cellsize, 
           const vector<int>& shape,
-          const double freqmin, const double freqmax, const int nchan);
+          const double freqmin, const double freqmax, const int nchan, 
+          const casa::Vector<casa::Stokes::StokesTypes> &stokes);
 
         /// @brief Add a parameter as a faceted image
         /// @param[in] ip Parameters
@@ -155,6 +157,7 @@ namespace askap
         /// @param[in] freqmin Minimum frequency (Hz)
         /// @param[in] freqmax Maximum frequency (Hz)
         /// @param[in] nchan Number of spectral channels
+        /// @param[in] stokes Polarisation frame (vector of stokes enums)
         /// @param[in] nfacets Number of facets in each axis (assumed the same for both axes)
         /// @param[in] facetstep Offset in pixels between facet centres (equal to shape to
         ///            have no overlap between adjacent facets), assumed the same for both axes
@@ -163,6 +166,7 @@ namespace askap
           const vector<string>& cellsize, 
           const vector<int>& shape,
           const double freqmin, const double freqmax, const int nchan,
+          const casa::Vector<casa::Stokes::StokesTypes> &stokes,
           const int nfacets, const int facetstep);
         
         /// @brief add a parameter as a merged faceted image
@@ -223,13 +227,6 @@ namespace askap
         static void add(askap::scimath::Params& ip,
           const LOFAR::ACC::APS::ParameterSet& parset,
           const std::string& baseKey);
-          
-        /// @brief Add a parameter as an image
-        /// @param ip Parameters
-        /// @param name Name of parameter
-        /// @param image Name of image file
-        static void add(askap::scimath::Params& ip, const string& name, 
-          const string& image);
           
         /// @brief Get a parameter from an image
         /// @param ip Parameters

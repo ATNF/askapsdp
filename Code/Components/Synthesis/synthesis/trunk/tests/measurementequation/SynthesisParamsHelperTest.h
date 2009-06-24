@@ -281,8 +281,9 @@ namespace askap
            direction[2]="J2000";
            std::vector<int> shape(2,256);
            std::vector<std::string> cellsize(2,"8arcsec");
+           casa::Vector<casa::Stokes::StokesTypes> stokes(1, casa::Stokes::I);
            SynthesisParamsHelper::add(params,name,direction,cellsize,shape,1.4e9,
-                                      1.4e9,1,nfacets,facetstep);           
+                                      1.4e9,1,stokes, nfacets,facetstep);
         }
         
    };

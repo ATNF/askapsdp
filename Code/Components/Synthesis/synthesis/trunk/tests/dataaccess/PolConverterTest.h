@@ -169,6 +169,12 @@ public:
      CPPUNIT_ASSERT(frame[1] == casa::Stokes::I);
      CPPUNIT_ASSERT(frame[2] == casa::Stokes::Q);
      CPPUNIT_ASSERT(frame[3] == casa::Stokes::RR);
+     std::vector<std::string> frameStr = PolConverter::toString(frame);
+     CPPUNIT_ASSERT(frameStr.size() == 4);
+     CPPUNIT_ASSERT(frameStr[0] == "XY");
+     CPPUNIT_ASSERT(frameStr[1] == "I");
+     CPPUNIT_ASSERT(frameStr[2] == "Q");
+     CPPUNIT_ASSERT(frameStr[3] == "RR");     
   }
   
 };

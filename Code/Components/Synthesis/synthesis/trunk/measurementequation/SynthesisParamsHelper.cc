@@ -24,6 +24,7 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
 #include <imageaccess/ImageAccessFactory.h>
+#include <dataaccess/PolConverter.h>
 #include <fitting/Axes.h>
 
 #include <askap_synthesis.h>
@@ -122,10 +123,26 @@ namespace askap
               ASKAPCHECK(nfacets>0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
               ASKAPCHECK(shape.size()>=2, "Image is supposed to be at least two dimensional. "<<
                           "check shape parameter, you gave "<<shape);
- 
+              
+              // required polarisation
+              if (!parset.isDefined(*it+".polarisation")) {
+                  ASKAPLOG_INFO_STR(logger, "Polarisation frame is not defined for "<<*it
+                                    <<", only stokes I will be generated"); 		      
+              }
+              const std::vector<std::string> stokesVec = parset.getStringVector(*it+".polarisation", 
+                             std::vector<std::string>(1,"I"));
+              // there could be many ways to define stokes, e.g. ["XX YY"] or ["XX","YY"] or "XX,YY"
+              // to allow some flexibility we have to concatenate all elements first and then 
+              // allow the parser from PolConverter to take care of extracting the products.                                            
+              std::string stokesStr;
+              for (size_t i=0; i<stokesVec.size(); ++i) {
+                   stokesStr += stokesVec[i];
+              }
+              casa::Vector<casa::Stokes::StokesTypes> stokes = PolConverter::fromString(stokesStr);
+               
               if (nfacets == 1) {
                   ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< *it );        
-		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan);
+		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan,stokes);
 		      } else {
 		          // this is a multi-facet case
 		          ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
@@ -134,8 +151,10 @@ namespace askap
 		          ASKAPCHECK(facetstep>0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
 		          ASKAPLOG_INFO_STR(logger, "Facet centers will be "<<facetstep<<
 		                      " pixels apart, each facet size will be "<<shape[0]<<" x "<<shape[1]); 
-		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, nfacets,facetstep);
+		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, stokes, nfacets,facetstep);
 		      }
+		      ASKAPLOG_INFO_STR(logger, "Number of channels = "<<nchan);
+		      ASKAPLOG_INFO_STR(logger, "Polarisation planes correspond to "<<PolConverter::toString(stokes));		      
 	     }
 	  }
 	  catch (const LOFAR::ACC::APS::APSException &ex) {
@@ -177,36 +196,17 @@ namespace askap
     }
     
     void SynthesisParamsHelper::add(askap::scimath::Params& ip,
-				    const LOFAR::ACC::APS::ParameterSet& parset, const std::string& baseKey)
-    {
-      vector<string> images=parset.getStringVector(baseKey+"Names");
-      for (vector<string>::iterator it=images.begin(); it!=images.end(); it++)
-	{
-	  ASKAPLOG_INFO_STR(logger, "Defining image "<< *it );
-	  std::vector<int> shape=parset.getInt32Vector(baseKey+*it+".shape");
-	  int nchan=parset.getInt32("Images."+*it+".nchan");
-	  std::vector<double> freq=parset.getDoubleVector(baseKey+*it
-							  +".frequency");
-	  std::vector<std::string> direction=parset.getStringVector(baseKey+*it
-								    +".direction");
-	  std::vector<std::string> cellsize=parset.getStringVector(baseKey+*it
-								   +".cellsize");
-	  
-	  SynthesisParamsHelper::add(ip, *it, direction, cellsize, shape,
-				     freq[0], freq[1], nchan);
-	}
-    }
-    
-    void SynthesisParamsHelper::add(askap::scimath::Params& ip,
 				    const string& name, const vector<string>& direction,
 				    const vector<string>& cellsize, const vector<int>& shape,
-				    const double freqmin, const double freqmax, const int nchan)
+				    const double freqmin, const double freqmax, const int nchan,
+				    const casa::Vector<casa::Stokes::StokesTypes> &stokes)
     {
       int nx=shape[0];
       int ny=shape[1];
       ASKAPCHECK(cellsize.size() == 2, "Cell size should have exactly 2 parameters, you have "<<cellsize.size());
       ASKAPCHECK(direction.size() == 3, "Direction should have exactly 3 parameters, you have "<<direction.size());
       ASKAPCHECK(direction[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<direction[2]);
+      ASKAPCHECK(stokes.nelements()>=1, "At least one polarisation plane should be defined, you have defined none");      
       
       const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
       const double ycellsize = convertQuantity(cellsize[1],"rad");
@@ -219,9 +219,9 @@ namespace askap
       axes.add("RA", ra-double(nx)*xcellsize/2.0, ra+double(nx)*xcellsize/2.0);
       axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
             
-      axes.add("STOKES", 0.0, 0.0);
+      axes.addStokesAxis(stokes);
       
-      casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
+      casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));
       pixels.set(0.0);
       axes.add("FREQUENCY", freqmin, freqmax);
       ip.add(name, pixels, axes);
@@ -236,6 +236,7 @@ namespace askap
     /// @param[in] freqmin Minimum frequency (Hz)
     /// @param[in] freqmax Maximum frequency (Hz)
     /// @param[in] nchan Number of spectral channels
+    /// @param[in] stokes Polarisation frame (vector of stokes enums)
     /// @param[in] nfacets Number of facets in each axis (assumed the same for both axes)
     /// @param[in] facetstep Offset in pixels between facet centres (equal to shape to
     ///            have no overlap between adjacent facets), assumed the same for both axes    
@@ -244,6 +245,7 @@ namespace askap
        const vector<string>& cellsize, 
        const vector<int>& shape,
        const double freqmin, const double freqmax, const int nchan,
+       const casa::Vector<casa::Stokes::StokesTypes> &stokes,
        const int nfacets, const int facetstep)
     {
       ASKAPDEBUGASSERT(nfacets>0);
@@ -253,6 +255,7 @@ namespace askap
       ASKAPCHECK(cellsize.size() == 2, "Cell size should have exactly 2 parameters, you have "<<cellsize.size());
       ASKAPCHECK(direction.size() == 3, "Direction should have exactly 3 parameters, you have "<<direction.size());
       ASKAPCHECK(direction[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<direction[2]);
+      ASKAPCHECK(stokes.nelements()>=1, "At least one polarisation plane should be defined, you have defined none");      
       
       const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
       const double ycellsize = convertQuantity(cellsize[1],"rad");
@@ -262,7 +265,7 @@ namespace askap
 
       // zero-filled array is the same for all facets as it is copied inside Params
       // class
-      casa::Array<double> pixels(casa::IPosition(4, nx, ny, 1, nchan));
+      casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));
       pixels.set(0.0);
       
       // a loop over facets
@@ -297,7 +300,7 @@ namespace askap
                 // major cycle)
                 axes.add("FACETSTEP",double(facetstep),double(facetstep));
       
-                axes.add("STOKES", 0.0, 0.0);
+                axes.addStokesAxis(stokes);
       
                 axes.add("FREQUENCY", freqmin, freqmax);
                 ip.add(facetParamName(name,ix,iy), pixels, axes);    
@@ -690,7 +693,19 @@ namespace askap
       axes.add("RA", start(0), end(0));
       axes.add("DEC", start(1), end(1));
       
-      axes.add("STOKES", 0.0, 0.0);
+      int whichStokes = imageCoords.findCoordinate(Coordinate::STOKES);
+      if (whichStokes<0) {
+          const casa::Vector<casa::Stokes::StokesTypes> dummyStokes(1,casa::Stokes::I);
+          axes.addStokesAxis(dummyStokes);
+      } else {
+          casa::StokesCoordinate sc(imageCoords.stokesCoordinate(whichStokes));
+          const casa::Vector<casa::Int> stokesAsInt = sc.stokes();
+          casa::Vector<casa::Stokes::StokesTypes> stokes(stokesAsInt.nelements());
+          for (casa::uInt pol=0; pol<stokes.nelements(); ++pol) {
+               stokes[pol] = casa::Stokes::StokesTypes(stokesAsInt[pol]);
+          }
+          axes.addStokesAxis(stokes);
+      }
       
       int whichSpectral=imageCoords.findCoordinate(Coordinate::SPECTRAL);
       ASKAPCHECK(whichSpectral>-1, "No spectral coordinate present in model");
@@ -769,8 +784,17 @@ namespace askap
       casa::CoordinateSystem imageCoords;
       imageCoords.addCoordinate(radec);
       
+      // default is a dummy stokes coordinate with only stokes I present
       casa::Vector<int> iquv(1);
       iquv(0) = Stokes::I;
+      if (axes.has("STOKES")) {
+          casa::Vector<casa::Stokes::StokesTypes> stokes = axes.stokesAxis();
+          ASKAPDEBUGASSERT(stokes.nelements()>=1);
+          iquv.resize(stokes.nelements());
+          for (size_t pol=0; pol<stokes.nelements(); ++pol) {
+               iquv[pol] = int(stokes[pol]);
+          }   
+      }
       
       casa::StokesCoordinate stokes(iquv);
       imageCoords.addCoordinate(stokes);

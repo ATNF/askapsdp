@@ -112,6 +112,13 @@ struct PolConverter {
   /// @return vector with Stokes enums
   static casa::Vector<casa::Stokes::StokesTypes> fromString(const std::vector<std::string> &products);
   
+  /// @brief convert a vector of Stokes enums into a vector of strings
+  /// @details This method does a reverse job to fromString. It converts a vector of stokes enums 
+  /// into a vector of strings (with one to one correspondence between elements)
+  /// @param[in] frame vector of stokes enums
+  /// @return vector with string represenation
+  static std::vector<std::string> toString(const casa::Vector<casa::Stokes::StokesTypes> &frame);
+  
   /// @brief compare two vectors of Stokes enums
   /// @param[in] first first polarisation frame
   /// @param[in] second second polarisation frame

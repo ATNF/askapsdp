@@ -255,7 +255,7 @@ casa::Vector<casa::Stokes::StokesTypes> PolConverter::fromString(const std::stri
   products.reserve(4);
   for(size_t pos=0; pos<frame.size(); ++pos) {
      if (frame[pos]!=',' && frame[pos]!=' ') {
-         if (frame.find_first_of("iquv",pos) == pos) {
+         if (frame.find_first_of("iquvIQUV",pos) == pos) {
              products.push_back(frame.substr(pos,1));
              continue;
          }
@@ -283,5 +283,20 @@ casa::Vector<casa::Stokes::StokesTypes> PolConverter::fromString(const std::vect
   }
   return res;  
 }
+
+/// @brief convert a vector of Stokes enums into a vector of strings
+/// @details This method does a reverse job to fromString. It converts a vector of stokes enums 
+/// into a vector of strings (with one to one correspondence between elements)
+/// @param[in] frame vector of stokes enums
+/// @return vector with string represenation
+std::vector<std::string> PolConverter::toString(const casa::Vector<casa::Stokes::StokesTypes> &frame)
+{
+  std::vector<std::string> res(frame.nelements());
+  for (size_t pol=0; pol<res.size(); ++pol) {
+       res[pol] = casa::Stokes::name(frame[pol]);
+  } 
+  return res;
+}
+
 
 
