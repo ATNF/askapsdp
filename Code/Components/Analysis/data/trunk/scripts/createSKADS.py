@@ -5,7 +5,7 @@ from numpy import *
 import MySQLdb
 from optparse import OptionParser
 import os
-import askap.analysis.data.parsets as parsets
+import askap.parset as parset
 import math
 
 S3SEX_host = "gijane.atnf.csiro.au"
@@ -42,40 +42,41 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     if(not os.path.exists(options.inputfile)):
-        print "Input file %s does not exist!"%options.inputfile
+        print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
+        inputPars = parset.ParameterSet()
 #        exit(1)
+    else:
+        inputPars = parset.ParameterSet(options.inputfile).createSKADS
 
-    inputPars = parsets.getInputParams(options.inputfile, "createSKADS.")
-
-    nullarray = array([0.])
-    if( parsets.getParamValue(inputPars, 'catSource', 'SKADS') != 'SKADS'):  # Leave open the possibility for alternative sources.
+    catSource = inputPars.get_value('catSource','SKADS')
+    if( catSource != 'SKADS'):  # Leave open the possibility for alternative sources.
         print "Can only accept 'SKADS' as a value for 'catSource'.\nExiting.\n"
         exit(1)
 
-    defaultTypes = array(['RQAGN','FRI','FRII','SBG','SFG'])
-    types = parsets.getParamArray(inputPars, "sourceTypes", defaultTypes)
+    defaultTypes = ['RQAGN','FRI','FRII','SBG','SFG']
+    types = inputPars.get_value("sourceTypes", defaultTypes)
     print "Source Types requested: ",types
 
-    fieldAngSize = float(parsets.getParamValue(inputPars, "fieldAngSize", 10.))
-    fieldPixSize = int(parsets.getParamValue(inputPars, "fieldPixSize", 8192))
-    fieldLocation = parsets.getParamArray(inputPars, "fieldLocation", array([187.5,-45.])).astype(float)
-    pixelSize = float(parsets.getParamValue(inputPars, "pixelSize", 4.))/3600.
+    fieldAngSize = inputPars.get_value("fieldAngSize", 10.)
+    fieldPixSize = inputPars.get_value("fieldPixSize", 8192)
+    fieldLocation = inputPars.get_value("fieldLocation", [187.5,-45.])
+    pixelSize = inputPars.get_value("pixelSize", 4.)/3600.
     
-    haveFreqInfo = (parsets.getParamValue(inputPars, "haveFreqInfo", 'true').lower() == 'true')
-    numChannels = int(parsets.getParamValue(inputPars, "numChannels", 16))
-    centralFreq = float(parsets.getParamValue(inputPars, "centralFreq", 1.272e9))
-    channelWidth = float(parsets.getParamValue(inputPars, "channelWidth", 16.e6))
+    haveFreqInfo = inputPars.get_value("haveFreqInfo", True)
+    numChannels = inputPars.get_value("numChannels", 16)
+    centralFreq = inputPars.get_value("centralFreq", 1.272e9)
+    channelWidth = inputPars.get_value("channelWidth", 16.e6)
     
-    fluxLimit = float(parsets.getParamValue(inputPars, "fluxLimit", 1.e-6))
+    fluxLimit = inputPars.get_value("fluxLimit", 1.e-6)
     
-    makeImage = (parsets.getParamValue(inputPars, "makeImage", 'true').lower() == 'true')
+    makeImage = inputPars.get_value("makeImage", True)
     
-    translateLoc = (parsets.getParamValue(inputPars, "translateLoc", 'true').lower() == 'true')
-    oldLocation = parsets.getParamArray(inputPars, "fieldLocation", array([0., 0.])).astype(float)
+    translateLoc = inputPars.get_value("translateLoc", True)
+    oldLocation = inputPars.get_value("fieldLocation", [0., 0.])
     
-    catFile = parsets.getParamValue(inputPars, "catFile", "catalogues/SKADS_S3SEX_10sqdeg_1uJy.dat")
-    imageFile = parsets.getParamValue(inputPars, "imageFile", "images/SKADS_S3SEX_10sqdeg_1uJy.fits")
-    imageParsetFile = parsets.getParamValue(inputPars, "imageParsetFile", "parsets/createFITS_SKADS.in")
+    catFile = inputPars.get_value("catFile", "catalogues/SKADS_S3SEX_10sqdeg_1uJy.dat")
+    imageFile = inputPars.get_value("imageFile", "images/SKADS_S3SEX_10sqdeg_1uJy.fits")
+    imageParsetFile = inputPars.get_value("imageParsetFile", "parsets/createFITS_SKADS.in")
     
     centres = range(-int(fieldAngSize/2),int(fieldAngSize/2)+1,1)
 

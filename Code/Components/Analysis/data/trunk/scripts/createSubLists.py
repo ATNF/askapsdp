@@ -5,8 +5,7 @@ from numpy import *
 import math
 from optparse import OptionParser
 import os
-
-import askap.analysis.data.parsets as parsets
+import askap.parset as parset
 
 def sphericalDistance(ra1, dec1, ra2, dec2):
       r1 = ra1  * math.pi / 180.;
@@ -17,15 +16,15 @@ def sphericalDistance(ra1, dec1, ra2, dec2):
       return math.acos(angsep)*180./math.pi;
 
 
-def writeData(line, subfile, doAnn, annfile, threshold, count=0):
+def writeData(line, fileno, subfile, doAnn, annfile, threshold, count=0):
 
-    subfile.write("%s\n"%line)
+    subfile[fileno].write("%s\n"%line)
     data=array(line.split()).astype(float)
     if(doAnn):
         if(data[3]>0.):
-            annfile.write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*math.pi/180.,data[0],data[1],count))
+            annfile[fileno].write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*math.pi/180.,data[0],data[1],count))
         else:
-            annfile.write("CIRCLE %12.8f %12.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],10./3600.,data[0],data[1],count))
+            annfile[fileno].write("CIRCLE %12.8f %12.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],10./3600.,data[0],data[1],count))
 
 ############
 
@@ -40,25 +39,28 @@ if __name__ == '__main__':
         print "Input file %s does not exist!"%options.inputfile
         exit(1)
 
-#    inparams = ParameterSet(options.inputfile)
-#    doAnnFile = decode(inparams.createSubs.flagAnnotation)
+    inparams = parset.ParameterSet(options.inputfile).createSubs
 
-    inparams = parsets.getInputParams(options.inputfile, "createSubs.")
+    if('catfilename' not in inparams):
+        print "%s has not specified the catalogue filename via the catfilename parameter.\nExiting\n"%options.inputfile
+        exit(1)
 
-    nullarray = array([0.])
-    doAnnFile = (parsets.getParamValue(inparams, 'flagAnnotation', 'true').lower() == 'true')
-    doPtsOnly = (parsets.getParamValue(inparams, 'flagPointSources', 'false').lower() == 'true')
-    thresh = parsets.getParamArray(inparams, 'thresholds', nullarray).astype(float)
-    radii = parsets.getParamArray(inparams, 'radii', nullarray).astype(float)
-    catfilename = parsets.getParamValue(inparams, 'catfilename', '')
-    racentre = float(parsets.getParamValue(inparams, 'racentre', 187.5))
-    deccentre = float(parsets.getParamValue(inparams, 'deccentre', -45.))
-    destDir = parsets.getParamValue(inparams, 'destDir', '.')
+    doAnnFile = inparams.get_value('flagAnnotation',True)
+    doPtsOnly = inparams.get_value('flagPointSources',False)
+    thresh = inparams.get_value('thresholds',[])
+    radii = inparams.get_value('radii',[])
+    catfilename = inparams.get_value('catfilename')
+    racentre = inparams.get_value('racentre',187.5)
+    deccentre = inparams.get_value('deccentre',-45.)
+    destDir = inparams.get_value('destDir','.')
     
     catfile = file(catfilename, 'rU')
     
     baseCatName = catfilename.split('/')[-1]
-    baseOutFile = destDir+'/'+baseCatName[:baseCatName.rfind('.')]
+    if(baseCatName.rfind('.')<0):
+        baseOutFile = destDir+'/'+baseCatName
+    else:
+        baseOutFile = destDir+'/'+baseCatName[:baseCatName.rfind('.')]
 
     if(catfilename == ''):
         print "No input catalogue given. Exiting."
@@ -72,10 +74,13 @@ if __name__ == '__main__':
             suffix='_pt'
         suffix += '_%duJy'%thr
         subfilenames.append(baseOutFile + '%s.txt'%suffix)
-        annfilenames.append(baseOutFile + '%s.ann'%suffix)
-        for r in radii:
-            subfilenames.append(baseOutFile + '%s_%ddeg.txt'%(suffix,r))
-            annfilenames.append(baseOutFile + '%s_%ddeg.ann'%(suffix,r))
+        if(doAnnFile):
+            annfilenames.append(baseOutFile + '%s.ann'%suffix)
+        if(len(radii)>0):
+            for r in radii:
+                subfilenames.append(baseOutFile + '%s_%ddeg.txt'%(suffix,r))
+                if(doAnnFile):
+                    annfilenames.append(baseOutFile + '%s_%ddeg.ann'%(suffix,r))
     
     subfiles = []
     for name in subfilenames:
@@ -96,12 +101,13 @@ if __name__ == '__main__':
                 sourcecount += 1;
                 for thr in thresh:
                     if(float(data[2])*1.e6>=thr):
-                        writeData(line,subfiles[filecount],doAnnFile,annfiles[filecount],thr,sourcecount)
+                        writeData(line,filecount,subfiles,doAnnFile,annfiles,thr,sourcecount)
                     filecount += 1
-                    for r in radii:
-                        if( float(data[2])*1.e6>=thr and dist<r ):
-                            writeData(line,subfiles[filecount],doAnnFile,annfiles[filecount],thr,sourcecount)
-                        filecount += 1
+                    if(len(radii)>0):
+                        for r in radii:
+                            if( float(data[2])*1.e6>=thr and dist<r ):
+                                writeData(line,filecount,subfiles,doAnnFile,annfiles,thr,sourcecount)
+                            filecount += 1
 
     for file in subfiles:
         file.close()
