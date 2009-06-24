@@ -58,80 +58,63 @@ ASKAP_LOGGER(logger, "contAnalysis.log");
 
 // Move to Askap Util
 std::string getInputs(const std::string& key, const std::string& def, int argc,
-    const char** argv)
+                      const char** argv)
 {
-  if (argc>2)
-  {
-    for (int arg=0; arg<(argc-1); arg++)
-    {
-      std::string argument=std::string(argv[arg]);
-      if (argument==key)
-      {
-        return std::string(argv[arg+1]);
-      }
+    if (argc > 2) {
+        for (int arg = 0; arg < (argc - 1); arg++) {
+            std::string argument = std::string(argv[arg]);
+
+            if (argument == key) {
+                return std::string(argv[arg+1]);
+            }
+        }
     }
-  }
-  return def;
+
+    return def;
 }
 
 // Main function
 int main(int argc, const char** argv)
 {
+    try {
+        casa::Timer timer;
+        timer.mark();
+        std::string parsetFile(getInputs("-inputs", "contAnalysis.in", argc, argv));
+        ParameterSet parset(parsetFile);
+        ParameterSet subsetD(parset.makeSubset("Cduchamp."));
+        DuchampParallel image(argc, argv, subsetD);
+        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
+        image.readData();
+        image.setupLogfile(argc, argv);
+        image.gatherStats();
+        image.broadcastThreshold();
+        image.receiveThreshold();
+        image.findSources();
+        image.fitSources();
+        image.sendObjects();
+        image.receiveObjects();
+        image.cleanup();
+        image.printResults();
+        ParameterSet subsetE(parset.makeSubset("imageQual."));
+        Matcher matcher(subsetE);
+        matcher.fixRefList(image.getBeamInfo());
+        matcher.setTriangleLists();
+        matcher.findMatches();
+        matcher.findOffsets();
+        matcher.addNewMatches();
+        matcher.outputLists();
+        ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " << timer.real() << " sec");
+        ///==============================================================================
+    } catch (askap::AskapError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    } catch (std::exception& x) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    }
 
-  try
-  {
-
-    casa::Timer timer;
-
-    timer.mark();
-
-    std::string parsetFile(getInputs("-inputs", "contAnalysis.in", argc, argv));
-
-    ParameterSet parset(parsetFile);
-
-    ParameterSet subsetD(parset.makeSubset("Cduchamp."));
-    DuchampParallel image(argc, argv, subsetD);
-
-    ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
-    
-    image.readData();
-    image.setupLogfile(argc,argv);
-    image.gatherStats();
-    image.broadcastThreshold();
-    image.receiveThreshold();
-
-    image.findSources();
-    image.fitSources();
-    image.sendObjects();
-    image.receiveObjects();
-    image.cleanup();
-    image.printResults();
-
-    ParameterSet subsetE(parset.makeSubset("imageQual."));
-    Matcher matcher(subsetE);
-    matcher.fixRefList(image.getBeamInfo());
-    matcher.setTriangleLists();
-    matcher.findMatches();
-    matcher.findOffsets();
-    matcher.addNewMatches();
-    matcher.outputLists();
-   
-    ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " << timer.real() << " sec");
-
-    ///==============================================================================
-  }
-  catch (askap::AskapError& x)
-  {
-    ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-    std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  }
-  catch (std::exception& x)
-  {
-    ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-    std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-    exit(1);
-  }
-  exit(0);
+    exit(0);
 }
 
