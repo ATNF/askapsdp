@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 """
 """
-from pkg_resources import require
-require('numpy')
-require('matplotlib')
-from pylab import *
+import askap.analysis.evaluation
+from matplotlib import *
 from numpy import *
-
 import os
-root = os.environ["ASKAP_ROOT"]
-sys.path.append(os.path.abspath(os.path.join(root,'Code/Components/Analysis/evaluation/trunk/plotting')))
-from readData import *
-from distributionPlots import *
+from askap.analysis.evaluation.readData import *
+from askap.analysis.evaluation.distributionPlots import *
 
 if __name__ == '__main__':
     from sys import argv
@@ -62,7 +57,7 @@ if __name__ == '__main__':
     spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=5., removeZeros=True, name='B', unit='\prime\prime', locationCode=338, plotTitle='Minor axis difference')
     PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, minRelVal=1., removeZeros=True, locationCode=339)
 
-    savefig('imageQualTest')
+    savefig('plotEval')
 
 #    show()
     close()

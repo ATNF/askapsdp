@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 """
 """
-from pkg_resources import require
-require('numpy')
-require('matplotlib')
+import askap.analysis.evaluation
+#from matplotlib import *
 from pylab import *
 from numpy import *
-import numpy
-
 import os
-root = os.environ["ASKAP_ROOT"]
-sys.path.append(os.path.abspath(os.path.join(root,'Code/Components/Analysis/evaluation/trunk/plotting')))
-from readData import *
-from distributionPlots import *
-
-#from parameterset import *
+from askap.analysis.evaluation.readData import *
+from askap.analysis.evaluation.distributionPlots import *
+from optparse import OptionParser
+import askap.parset as parset
 
 #############
 #global plotcount
@@ -43,10 +38,22 @@ def bigBoxPlot (xvals, yvals, isGood, isLog=True):
 #############
 
 if __name__ == '__main__':
-    from sys import argv
 
-    matchfile = 'matches.txt'
-    missfile  = 'misses.txt'
+    parser = OptionParser()
+    parser.add_option("-i","--inputs", dest="inputfile", default="", help="Input parameter file [default: %default]")
+
+    (options, args) = parser.parse_args()
+
+    if(options.inputfile==''):
+        inputPars = parset.ParameterSet()        
+    elif(not os.path.exists(options.inputfile)):
+        print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
+        inputPars = parset.ParameterSet()
+    else:
+        inputPars = parset.ParameterSet(options.inputfile).fluxEval
+
+    matchfile = inputPars.get_value('matchfile',"matches.txt")
+    missfile = inputPars.get_value('missfile',"misses.txt")
 
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,nfree,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f,chisq2,imagerms2,rms2,nfree2,ndof2,npf2,npo2 = read_miss_data(missfile)
