@@ -50,11 +50,10 @@ using std::endl;
 
 using namespace askap;
 using namespace askap::analysis;
-using namespace askap::evaluation;
-using namespace askap::evaluation::matching;
+using namespace askap::analysis::matching;
 using namespace LOFAR::ACC::APS;
 
-ASKAP_LOGGER(logger, "contAnalysis.log");
+ASKAP_LOGGER(logger, "continuumAnalysis.log");
 
 // Move to Askap Util
 std::string getInputs(const std::string& key, const std::string& def, int argc,
@@ -79,7 +78,7 @@ int main(int argc, const char** argv)
     try {
         casa::Timer timer;
         timer.mark();
-        std::string parsetFile(getInputs("-inputs", "contAnalysis.in", argc, argv));
+        std::string parsetFile(getInputs("-inputs", "continuumAnalysis.in", argc, argv));
         ParameterSet parset(parsetFile);
         ParameterSet subsetD(parset.makeSubset("Cduchamp."));
         DuchampParallel image(argc, argv, subsetD);
@@ -95,6 +94,7 @@ int main(int argc, const char** argv)
         image.receiveObjects();
         image.cleanup();
         image.printResults();
+
         ParameterSet subsetE(parset.makeSubset("imageQual."));
         Matcher matcher(subsetE);
         matcher.fixRefList(image.getBeamInfo());
