@@ -325,14 +325,14 @@ namespace askap {
                                 pixToWCSSingle(this->itsWCS, pix, newwld);
                                 outfile.setf(std::ios::fixed);
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
-                                    << std::setw(10) << std::setprecision(6) << newwld[1] << " "
+					<< std::setw(10) << std::setprecision(6) << newwld[1] << " "
 					<< std::setw(20) << std::setprecision(16) << flux << " ";
 				if(this->itsHaveSpectralInfo)
 				  outfile << std::setw(10) << std::setprecision(6) << alpha << " "
 					  << std::setw(10) << std::setprecision(6) << beta << " ";
 				outfile << std::setw(10) << std::setprecision(6) << maj << " "
-                                    << std::setw(10) << std::setprecision(6) << min << " "
-                                    << std::setw(10) << std::setprecision(6) << pa << "\n";
+					<< std::setw(10) << std::setprecision(6) << min << " "
+					<< std::setw(10) << std::setprecision(6) << pa << "\n";
                             }
 
 			    fluxGen.calcFluxes(pix[0],pix[1],this->itsWCS);
@@ -348,6 +348,10 @@ namespace askap {
 			      addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
                             }
                         }
+			else{
+			  // Write all commented lines directly into the output file
+			  if(this->itsFlagOutputList) outfile << temp << "\n";
+			}
                     }
 
                     if (this->itsFlagOutputList) outfile.close();
