@@ -1,5 +1,4 @@
 Cimager.dataset                                 = [10uJy_stdtest_0.ms,10uJy_stdtest_1.ms]
-#Cimager.dataset                                 = 10uJy_stdtest_0.ms
 
 Cimager.Images.Names                            = [image.i.10uJy_dirty_stdtest]
 Cimager.Images.shape                            = [2048,2048]
