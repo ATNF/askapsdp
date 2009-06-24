@@ -35,10 +35,10 @@ def bigBoxPlot (xvals, yvals, isGood, isLog=True):
         xpt = (minval+delta/2.)+i*delta
         t = yvals[isGood * (abs(log10(xvals) - xpt)<delta/2.)]
         if len(t)>0:
-            boxplot(t,positions=[10**xpt],widths=0.9*(10**(minval+(i+1)*delta)-10**(minval+i*delta)))
+            boxplot(t,positions=[10**xpt],widths=0.9*(10**(minval+(i+1)*delta)-10**(minval+i*delta)),sym='')
     semilogx(basex=10.)
-    axis([min(xvals)*0.9,max(xvals)*1.1,axisrange[2],axisrange[3]])
-
+#    axis([min(xvals)*0.9,max(xvals)*1.1,axisrange[2],axisrange[3]])
+    xlim(min(xvals)*0.9,max(xvals)*1.1)
 
 #############
 
@@ -113,6 +113,7 @@ if __name__ == '__main__':
     figure(1, figsize=(16.5,11.7), dpi=72)
 
     font = {'fontsize' : '8'}
+    legfont = {'fontsize' : '4'}
     rc('xtick', labelsize=8)
     rc('ytick', labelsize=8)
 
@@ -143,10 +144,10 @@ if __name__ == '__main__':
         n, bins, patches = hist(arr, 20, range=[lower,upper], normed=1)
         axisrange = axis()
         ytemp1 = normpdf(bins,mu,sigma)
-        l1 = plot(bins, ytemp1, 'r-')
+        l1 = plot(bins, ytemp1, 'r-',label=r"$\Delta S$ mean&rms")
         if(loop==0):
             ytemp2 = normpdf(bins,mu,mean(imagerms[npf>0]))
-            l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-')
+            l2 = plot(bins, ytemp2*max(ytemp1)/max(ytemp2), 'g-', label="image rms")
         axisrange = axis()
         axis([lower,upper,axisrange[2],axisrange[3]])
         setp(l1, 'linewidth', 2)
@@ -154,10 +155,13 @@ if __name__ == '__main__':
             setp(l2, 'linewidth', 2)
         xlabel(lab,font)
         ylabel('Number',font)
+        legend()
 
         plotcount = nextplot(plotcount)
-        n, bins, patches = hist(arr[goodfit * (nfree==3)], 20, range=(arr.min(),arr.max()), fill=False, ec='red')
-        n, bins, patches = hist(arr[goodfit * (nfree==6)], 20, range=(arr.min(),arr.max()), fill=False, ec='green')
+        temparr = arr[goodfit * (nfree==3)]
+        n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='red')
+        temparr = arr[goodfit * (nfree==6)]
+        n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='green')
         xlabel(lab,font)
         ylabel('Number',font)
 
