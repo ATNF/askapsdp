@@ -32,6 +32,9 @@ namespace askap::analysis::sourcefitting {};
 /// data. Message passing parallel execution is supported in the 
 /// @ref parallelanalysis classes.
 ///
+/// The package includes code to do pattern matching, so that it can
+/// match a source list to a previously-known list.
+///
 /// @section Dependencies
 /// The analysis package makes extensive use of the Duchamp 3D source
 /// finding package to do the source detection and extraction. While 
@@ -45,5 +48,6 @@ namespace askap::analysis::sourcefitting {};
 /// @li @ref parallelanalysis
 /// @li @ref analysisutilities
 /// @li @ref sourcefitting
+/// @li @ref patternmatching
 ///
 /// @copyright 2007 ASKAP, All Rights Reserved.
