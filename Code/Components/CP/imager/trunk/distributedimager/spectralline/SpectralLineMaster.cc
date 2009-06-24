@@ -67,10 +67,6 @@ SpectralLineMaster::~SpectralLineMaster()
 
 void SpectralLineMaster::run(void)
 {
-    if (itsParset.getInt32("ncycles", 0) > 0) {
-        ASKAPTHROW(std::runtime_error, "Major cycles not support in spectral line mode.");
-    }
-
     // Read from the configruation the list of datasets to process
     const std::vector<std::string> ms = getDatasets(itsParset);
     if (ms.size() == 0) {
