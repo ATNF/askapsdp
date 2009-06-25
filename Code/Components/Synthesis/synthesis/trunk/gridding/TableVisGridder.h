@@ -291,6 +291,14 @@ namespace askap
       /// a duplication of the code, this helper method resets the representative
       /// feed/field cache. It is called from initialiseGrid.
       void initRepresentativeFieldAndFeed();
+      
+      /// @brief set up itsStokes using the information from itsAxes and itsShape
+      void initStokes();
+      
+      /// @brief obtain stokes for each plane of the current grid
+      /// @details The output of this method has a meaning only after initialiseGrid or
+      /// initialiseDegrid has been called.
+      inline const casa::Vector<casa::Stokes::StokesTypes>& getStokes() const {return itsStokes;}
 
       /// Support of convolution function
       int itsSupport;
@@ -308,9 +316,14 @@ namespace askap
 
       /// The grid is stored as a cube as well so we can index into that as well.
       std::vector<casa::Array<casa::Complex> > itsGrid;
-      
-      
+            
   private:
+      /// @brief polarisation frame for the grid
+      /// @details Assumed to be the same for all elements of itsGrid vector.
+      /// This field is filled in initialiseGrid or initialiseDegrid using the Axes 
+      /// object.
+      casa::Vector<casa::Stokes::StokesTypes> itsStokes;
+  
       /// Number of samples gridded
       double itsSamplesGridded;
       /// Number of samples degridded

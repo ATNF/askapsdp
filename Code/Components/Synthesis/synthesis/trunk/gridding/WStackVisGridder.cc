@@ -126,6 +126,7 @@ namespace askap
       itsShape(0) *= paddingFactor();
       itsShape(1) *= paddingFactor();
       
+      initStokes();
       configureForPSF(dopsf);
 
       /// We need one grid for each plane
@@ -259,6 +260,7 @@ namespace askap
 
       ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
           "RA and DEC specification not present in axes");
+      initStokes();
 
       double raStart=itsAxes.start("RA");
       double raEnd=itsAxes.end("RA");

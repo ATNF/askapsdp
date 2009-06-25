@@ -667,6 +667,22 @@ void TableVisGridder::toDouble(casa::Array<double>& out,
 	}
 }
 
+/// @brief set up itsStokes using the information from itsAxes and itsShape
+void TableVisGridder::initStokes()
+{
+   const int nPol = itsShape.nelements()>=3 ? itsShape[2] : 1;
+   if (itsAxes.has("STOKES")) {
+       itsStokes = itsAxes.stokesAxis();
+   } else {
+       itsStokes.resize(1);
+       itsStokes[0] = casa::Stokes::I;
+   }
+   ASKAPCHECK(int(itsStokes.nelements()) == nPol, "Stokes axis is not consistent with the shape of the grid. There are "<<
+              nPol<<" planes in the grid and "<<itsStokes.nelements()<<
+              " polarisation descriptors defined by the STOKES axis");
+}
+
+
 void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		const casa::IPosition& shape, const bool dopsf) {
 	itsAxes=axes;
@@ -675,6 +691,8 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	itsShape(0) *= itsPaddingFactor;
 	itsShape(1) *= itsPaddingFactor;
 	
+	initStokes();
+		
 	configureForPSF(dopsf);
 
 	/// We only need one grid
@@ -806,6 +824,8 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 			"RA and DEC specification not present in axes");
+     
+    initStokes();
 
 	double raStart=itsAxes.start("RA");
 	double raEnd=itsAxes.end("RA");

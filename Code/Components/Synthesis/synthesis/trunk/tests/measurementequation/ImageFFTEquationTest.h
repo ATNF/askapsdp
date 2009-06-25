@@ -81,7 +81,7 @@ namespace askap
         double cell=8.0*arcsec;
         imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0);
         imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
-        imageAxes.add("STOKES",0.,0.);
+        imageAxes.addStokesAxis(casa::Vector<casa::Stokes::StokesTypes>(1,casa::Stokes::I));
         imageAxes.add("FREQUENCY",1.4e9,1.4e9);
 
         params1.reset(new Params);
