@@ -185,7 +185,7 @@ createFITS.baseFreq         = 1.4e9
 createFITS.flagSpectralInfo = %s
 """%(flagHaveFreqInfo)
 
-    f = file("parsets/createFITS_SKADS.in","w")
+    f = file(imageParsetFile,"w")
     f.write(createFITSinput)
     f.close()
 
