@@ -141,6 +141,24 @@ namespace askap
           stokes[1] = casa::Stokes::Q;
           stokes[2] = casa::Stokes::U;
           stokes[3] = casa::Stokes::V;
+          doStokesTest(stokes);
+          
+          stokes.resize(1);
+          stokes[0] = casa::Stokes::I;
+          doStokesTest(stokes);
+                    
+          stokes.resize(2);
+          stokes[0] = casa::Stokes::XX;
+          stokes[1] = casa::Stokes::YY;
+          doStokesTest(stokes);
+
+          stokes.resize(2);
+          stokes[0] = casa::Stokes::RR;
+          stokes[1] = casa::Stokes::RL;
+          doStokesTest(stokes);
+        }
+        
+        void doStokesTest(const casa::Vector<casa::Stokes::StokesTypes> &stokes) {
           p1->addStokesAxis(stokes);
           casa::Vector<casa::Stokes::StokesTypes> res = p1->stokesAxis();
           CPPUNIT_ASSERT(res.nelements() == stokes.nelements());

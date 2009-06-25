@@ -164,22 +164,33 @@ namespace askap
         /// @note An axis names STOKES must be present, otherwise an exception will be thrown
         casa::Vector<casa::Stokes::StokesTypes> Axes::stokesAxis() const
         {
-           ASKAPCHECK(has("STOKES"), "Stokes axis must be present in the axes object to be able to use extractStokes");
+           ASKAPCHECK(has("STOKES"), "Stokes axis must be present in the axes object to be able to use stokesAxis");
            const int index = order("STOKES");
            const int stokesStart = int(start()[index]);
            const int stokesEnd = int(end()[index]);
-           ASKAPCHECK((stokesStart>=0) && (stokesStart<int(casa::Stokes::NumberOfTypes)),
+           ASKAPCHECK((stokesStart>=0) && (stokesStart<1024),
                 "Unable to interpret the start value="<< stokesStart <<" of the stokes axis");
-           ASKAPCHECK((stokesEnd>=0) && (stokesEnd<int(casa::Stokes::NumberOfTypes)),
+           ASKAPCHECK((stokesEnd>=0) && (stokesEnd<1024),
                 "Unable to interpret the end value="<< stokesEnd <<" of the stokes axis");
-           ASKAPCHECK(stokesEnd>=stokesStart, "Only ordered stokes axis is supported, you have start="<<
-                            stokesStart<<" end="<<stokesEnd);
-           ASKAPCHECK(stokesEnd-stokesStart<4, "Mixed polarisation frames are not supported by the axis object, you have start="<<
-                               stokesStart<<" end="<<stokesEnd);
-           casa::Vector<casa::Stokes::StokesTypes> result(stokesEnd-stokesStart+1,casa::Stokes::Undefined);
-           // fill the vector of stokes enums
-           for (int pol=0; pol<int(result.nelements());++pol) {
-               result[pol] = casa::Stokes::StokesTypes(stokesStart + pol);
+           
+           // a bit C-like way of packing polarisation frame into two double numbers, but
+           // it is probably better than having a separate code handling the stokes axis.
+           // 31 == 0x1f means that this polarisation is undefined         
+           std::vector<int> packedPol(4,31);
+           packedPol[0] = stokesStart % 32;
+           packedPol[1] = stokesStart / 32;
+           packedPol[2] = stokesEnd % 32;
+           packedPol[3] = stokesEnd / 32;
+           size_t nPol = 0;
+           for (size_t pol = 0; pol<packedPol.size(); ++pol) {
+                if (packedPol[pol] == 31) {
+                    break;
+                }
+                ++nPol;
+           }           
+           casa::Vector<casa::Stokes::StokesTypes> result(nPol,casa::Stokes::Undefined);
+           for (size_t pol = 0; pol<result.nelements(); ++pol) {
+                result[pol] = casa::Stokes::StokesTypes(packedPol[pol]);
            }
            return result;    
         }
@@ -192,16 +203,20 @@ namespace askap
         void Axes::addStokesAxis(const casa::Vector<casa::Stokes::StokesTypes> &stokes)
         {
             ASKAPCHECK(stokes.nelements()<=4, "Only up to 4 polarisation products are supported");
-            ASKAPCHECK(stokes.nelements()>0, "Unable to add stokes a axis using an empty stokes vector");
-            // check that stokes enums are ordered
-            for (size_t pol=1; pol<stokes.nelements(); ++pol) {
-                 ASKAPCHECK(int(stokes[pol]) > int(stokes[pol-1]), 
-                       "Stokes enums passed to addStokesAxis should be ordered. "<<int(stokes[pol])<<
-                       " follows "<<int(stokes[pol-1])); 
+            ASKAPCHECK(stokes.nelements()>0, "Unable to add stokes axis using an empty stokes vector");
+            // a bit C-like way of packing polarisation frame into two double numbers, but
+            // it is probably better than having a separate code handling the stokes axis.
+            // 31 == 0x1f means that this polarisation is undefined
+            std::vector<int> packedPol(4,31);
+            for (size_t pol=0; pol<stokes.nelements(); ++pol) {
+                 const int curDescriptor = int(stokes[pol]);
+                 ASKAPCHECK((curDescriptor<0x1f) && (curDescriptor>0), "Stokes = "<<curDescriptor<<
+                            " is not supported");
+                 packedPol[pol] = curDescriptor;
             }
-            const int start = int(stokes[0]);
-            const int end = int(stokes[stokes.nelements()-1]);
-      
+            const int start = 32*packedPol[1]+packedPol[0];
+            const int end = 32*packedPol[3]+packedPol[2];
+            
             if (has("STOKES")) {                
                 update("STOKES", start, end);
             } else {
