@@ -133,7 +133,7 @@ namespace askap
 
     void ImageFFTEquation::predict() const
     {
-      const vector<string> completions(parameters().completions("image.i"));
+      const vector<string> completions(parameters().completions("image"));
 
       // To minimize the number of data passes, we keep copies of the gridders in memory, and
       // switch between these. This optimization may not be sufficient in the long run.
@@ -142,7 +142,7 @@ namespace askap
       ASKAPLOG_INFO_STR(logger, "Initialising for model degridding" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
-        string imageName("image.i"+(*it));
+        string imageName("image"+(*it));
         SynthesisParamsHelper::clipImage(parameters(),imageName);
         const Axes axes(parameters().axes(imageName));
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
@@ -166,7 +166,7 @@ namespace askap
         */
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
-          string imageName("image.i"+(*it));
+          string imageName("image"+(*it));
           itsModelGridders[imageName]->degrid(*itsIdi);
         }
       }
@@ -191,7 +191,7 @@ namespace askap
     {
 
       // We will need to loop over all completions i.e. all sources
-      const vector<string> completions(parameters().completions("image.i"));
+      const vector<string> completions(parameters().completions("image"));
 
       // To minimize the number of data passes, we keep copies of the gridders in memory, and
       // switch between these. This optimization may not be sufficient in the long run.      
@@ -200,7 +200,7 @@ namespace askap
 
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
-        const string imageName("image.i"+(*it));
+        const string imageName("image"+(*it));
         SynthesisParamsHelper::clipImage(parameters(),imageName);
         const casa::IPosition imageShape(parameters().value(imageName).shape());
         const Axes axes(parameters().axes(imageName));
@@ -219,7 +219,7 @@ namespace askap
       ASKAPLOG_INFO_STR(logger, "Initialising for model degridding and residual gridding" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
-        string imageName("image.i"+(*it));
+        string imageName("image"+(*it));
         const Axes axes(parameters().axes(imageName));
         casa::Array<double> imagePixels(parameters().value(imageName).copy());
         const casa::IPosition imageShape(imagePixels.shape());
@@ -246,14 +246,14 @@ namespace askap
         accBuffer.rwVisibility().set(0.0);
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
         {
-          string imageName("image.i"+(*it));
+          string imageName("image"+(*it));
           itsModelGridders[imageName]->degrid(accBuffer);
           counterDegrid+=accBuffer.nRow();
         }
         /// Now we can calculate the residual visibility and image
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
-          const string imageName("image.i"+(*it));
+          const string imageName("image"+(*it));
           if(parameters().isFree(imageName))
           {
             casa::Array<casa::Complex> residual(itsIdi->visibility().copy());
@@ -276,7 +276,7 @@ namespace askap
       ASKAPLOG_INFO_STR(logger, "Adding residual image, PSF, and weights image to the normal equations" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
       {
-        const string imageName("image.i"+(*it));
+        const string imageName("image"+(*it));
         const casa::IPosition imageShape(parameters().value(imageName).shape());
 
         casa::Array<double> imagePSF(imageShape);

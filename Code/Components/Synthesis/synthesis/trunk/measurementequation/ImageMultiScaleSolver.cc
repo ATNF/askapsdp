@@ -107,7 +107,7 @@ namespace askap
       
       for (vector<string>::const_iterator  it=names.begin();it!=names.end();it++)
       {
-        string name="image"+*it;
+        const std::string name="image"+*it;
         if(itsParams->isFree(name)) {
           indices[name]=nParameters;
           nParameters+=itsParams->value(name).nelements();
@@ -122,11 +122,14 @@ namespace askap
         for (scimath::MultiDimArrayPlaneIter planeIter(itsParams->value(indit->first).shape());
                          planeIter.hasMore(); planeIter.next()) {
         
-             ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
+             ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for "<<
+                        indit->first);
              casa::Vector<double> diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
-             ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present");
+             ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for "<<
+                        indit->first);
              casa::Vector<double> dv = normalEquations().dataVector(indit->first);
-             ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
+             ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present for "<<
+                        indit->first);
              casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
         
              if (planeIter.tag()!="") {

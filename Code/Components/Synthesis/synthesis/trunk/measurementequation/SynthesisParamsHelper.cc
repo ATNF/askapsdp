@@ -111,7 +111,9 @@ namespace askap
          std::vector<int> shape=parset.getInt32Vector("shape");
          std::vector<std::string> cellsize=parset.getStringVector("cellsize");
 	  
-         for (vector<string>::iterator it=images.begin();it!=images.end();it++) {
+         for (vector<string>::const_iterator it=images.begin();it!=images.end();++it) {
+              ASKAPCHECK(it->find("image") == 0, "All image names given in Names are supposed to start from 'image', you have "<<
+                         *it);               
               int nchan=parset.getInt32(*it+".nchan");
               std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
               std::vector<std::string> direction=parset.getStringVector(*it+".direction");
@@ -175,6 +177,8 @@ namespace askap
       try {
          const vector<string> images=parset.getStringVector("Names");
          for (vector<string>::const_iterator ci = images.begin(); ci != images.end(); ++ci) {
+              ASKAPCHECK(ci->find("image") == 0, "All image names given in Names are supposed to start from 'image', you have "<<
+                         *ci);
               // @todo add more checking that the image loaded from the disk conforms with the
               // parameters given in the parset file
               
