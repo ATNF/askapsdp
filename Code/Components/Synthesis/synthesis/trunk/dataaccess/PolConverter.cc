@@ -40,10 +40,15 @@ using namespace askap::synthesis;
 /// @details
 /// @param[in] polFrameIn input polarisation frame defined as a vector of Stokes enums
 /// @param[in] polFrameOut output polarisation frame defined as a vector of Stokes enums
+/// @param[in] checkUnspecifiedProducts if true (default), the code checks that all 
+///            polarisation products missing in the input frame are multiplied by 0 (and 
+///            therefore don't affect the result), see itsCheckUnspecifiedProducts for more info 
 PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
-               const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut) : itsVoid(false),
+               const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut,
+               bool checkUnspecifiedProducts) : itsVoid(false),
                itsTransform(polFrameOut.nelements(),polFrameIn.nelements(),casa::Complex(0.,0.)),
-               itsPolFrameIn(polFrameIn), itsPolFrameOut(polFrameOut)
+               itsPolFrameIn(polFrameIn), itsPolFrameOut(polFrameOut), 
+               itsCheckUnspecifiedProducts(checkUnspecifiedProducts)
 {
   if (equal(polFrameIn, polFrameOut)) {
       itsVoid = true;
@@ -62,7 +67,7 @@ PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFra
   
 /// @brief default constructor - no conversion
 /// @details Constructed via this method the object passes all visibilities intact
-PolConverter::PolConverter() : itsVoid(true)
+PolConverter::PolConverter() : itsVoid(true), itsCheckUnspecifiedProducts(false)
 {
 }
 
@@ -122,7 +127,6 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
   // the polarisation conversion 
 
   // todo, check whether we can do the same in a more elegant and general way.
-  // Do we need reverse conversion as well?
   
   casa::Matrix<casa::Complex> T(4,4,0.);
   if (isStokes(polFrameOut)) {
@@ -166,16 +170,58 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
       ASKAPTHROW(AskapError, "Unsupported combination of input and output polarisation frames");
   }
     
+  ASKAPDEBUGASSERT(polFrameIn.nelements()>0);
+  ASKAPDEBUGASSERT(polFrameOut.nelements()>0);
+    
   // have to copy, because the transformation may not preserve dimensionality
   for (casa::uInt row = 0; row<itsTransform.nrow(); ++row) {
        const casa::uInt rowIndex = getIndex(polFrameOut[row]);
        ASKAPDEBUGASSERT(rowIndex<4);
+       // vector of flags, true if a particular product is present in the input for the given row
+       // it is used to check that all required data are present
+       std::vector<bool> presentPols(4,false);
        for (casa::uInt col = 0; col<itsTransform.ncolumn(); ++col) {
             const casa::uInt colIndex = getIndex(polFrameIn[col]);
             ASKAPDEBUGASSERT(colIndex<4);
+            presentPols[colIndex] = true; 
             itsTransform(row,col) = T(rowIndex,colIndex);
        }
+       // now check that nothing depends on all products that are absent in the input
+       if (itsCheckUnspecifiedProducts) {
+           for (casa::uInt pol = 0; pol<presentPols.size(); ++pol) {
+                if (!presentPols[pol]) {
+                    ASKAPDEBUGASSERT(pol<T.ncolumn());
+                    ASKAPCHECK(abs(T(rowIndex,pol))<1e-5, "Polarisation product "<<
+                          casa::Stokes::name(stokesFromIndex(pol,polFrameIn[0]))<<
+                          " is required to get "<< casa::Stokes::name(polFrameOut[row])<<
+                          " polarisation");
+                }
+           }
+       }
   }
+}
+  
+/// @brief reverse method for getIndex
+/// @details convert index into stokes enum. Because the same index can correspond to a number
+/// of polarisation products (meaning of index is frame-dependent), a second parameter is
+/// required to unambiguate it. It can be any stokes enum of the frame, not necessarily the
+/// first one. 
+/// @param[in] index an index to convert
+/// @param[in] stokes any stokes enum from the working frame
+/// @note This method is actually used only to provide a sensible message in the exception. No
+/// other code depends on it.
+casa::Stokes::StokesTypes PolConverter::stokesFromIndex(casa::uInt index, casa::Stokes::StokesTypes stokes)
+{
+   const casa::Vector<casa::Stokes::StokesTypes> buf(1,stokes);
+   casa::uInt stokesAsuInt = index;
+   if (isCircular(buf)) {
+       stokesAsuInt += casa::uInt(casa::Stokes::RR);                       
+   } else if (isLinear(buf)) {
+       stokesAsuInt += casa::uInt(casa::Stokes::XX);
+   } else if (isStokes(buf)) {
+       stokesAsuInt += casa::uInt(casa::Stokes::I);
+   }
+   return casa::Stokes::StokesTypes(stokesAsuInt);
 }
   
 /// @brief test if frame matches a given stokes enum

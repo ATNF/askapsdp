@@ -32,6 +32,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 // own includes
 #include <dataaccess/PolConverter.h>
+#include <askap/AskapError.h>
 
 namespace askap {
 
@@ -40,6 +41,7 @@ namespace synthesis {
 class PolConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(PolConverterTest);
   CPPUNIT_TEST(dimensionTest);
+  CPPUNIT_TEST_EXCEPTION(dimensionExceptionTest, askap::CheckError);
   CPPUNIT_TEST(stokesEnumTest);
   CPPUNIT_TEST(stringConversionTest);
   CPPUNIT_TEST(linear2stokesTest);
@@ -60,6 +62,36 @@ public:
      casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
      casa::Vector<casa::Complex> outVec = pc(inVec);
      CPPUNIT_ASSERT(outVec.nelements() == out.nelements());
+     CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(0.,-2.))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(0.,0.))<1e-5);
+     
+     // ignore missing polarisations in pc2
+     PolConverter pc2(out,in,false);
+     casa::Vector<casa::Complex> inVec2(out.nelements(), casa::Complex(0,-1.));
+     casa::Vector<casa::Complex> outVec2 = pc2(inVec2);
+     CPPUNIT_ASSERT(outVec2.nelements() == in.nelements());
+     CPPUNIT_ASSERT(abs(outVec2[0]-casa::Complex(0.,-1.))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec2[1]-casa::Complex(0.,0.))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec2[2]-casa::Complex(0.,0.))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec2[3]-casa::Complex(0.,0.))<1e-5);     
+  }
+  
+  void dimensionExceptionTest() {
+     casa::Vector<casa::Stokes::StokesTypes> in(2);
+     in[0] = casa::Stokes::I;
+     in[1] = casa::Stokes::Q;
+
+     casa::Vector<casa::Stokes::StokesTypes> out(4);
+     out[0] = casa::Stokes::XX;
+     out[1] = casa::Stokes::XY;
+     out[2] = casa::Stokes::YX;
+     out[3] = casa::Stokes::YY;
+     
+     // don't ignore missing polarisations here (default third argument), this should cause an
+     // exception in the constructor     
+     PolConverter pc(in,out);
+     casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
+     pc(inVec);  
   }
   
   void linear2stokesTest() {

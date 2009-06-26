@@ -59,8 +59,12 @@ struct PolConverter {
   /// @details
   /// @param[in] polFrameIn input polarisation frame defined as a vector of Stokes enums
   /// @param[in] polFrameOut output polarisation frame defined as a vector of Stokes enums
+  /// @param[in] checkUnspecifiedProducts if true (default), the code checks that all 
+  ///            polarisation products missing in the input frame are multiplied by 0 (and 
+  ///            therefore don't affect the result), see itsCheckUnspecifiedProducts for more info 
   PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
-               const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut);
+               const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut,
+               bool checkUnspecifiedProducts = true);
   
   /// @brief default constructor - no conversion
   /// @details Constructed via this method the object passes all visibilities intact
@@ -142,6 +146,17 @@ protected:
   /// @return unsigned index
   static casa::uInt getIndex(casa::Stokes::StokesTypes stokes);
   
+  /// @brief reverse method for getIndex
+  /// @details convert index into stokes enum. Because the same index can correspond to a number
+  /// of polarisation products (meaning of index is frame-dependent), a second parameter is
+  /// required to unambiguate it. It can be any stokes enum of the frame, not necessarily the
+  /// first one. 
+  /// @param[in] index an index to convert
+  /// @param[in] stokes any stokes enum from the working frame
+  /// @note This method is actually used only to provide a sensible message in the exception. No
+  /// other code depends on it.
+  static casa::Stokes::StokesTypes stokesFromIndex(casa::uInt index, casa::Stokes::StokesTypes stokes);
+  
   /// @brief build transformation matrix
   /// @details This is the core of the algorithm, this method builds the transformation matrix
   /// given the two frames .
@@ -175,7 +190,16 @@ private:
   casa::Vector<casa::Stokes::StokesTypes> itsPolFrameIn;                     
   
   /// @brief target polarisation frame (stokes enums)
-  casa::Vector<casa::Stokes::StokesTypes> itsPolFrameOut;                     
+  casa::Vector<casa::Stokes::StokesTypes> itsPolFrameOut;
+  
+  /// @brief true to check that all required polarisation products are present in input
+  /// @details Polarisation transformation may not always preserve the dimension of the polarisation
+  /// vector (i.e. one may want just stokes I from full stokes vector). If this flag is true, 
+  /// the method would check that omitted polarisations are actually multiplied by 0, and throws an
+  /// exception if it is not the case. This is appropriate for gridding. A more relaxed behavior 
+  /// equivalent to setting all unknown polarisation products to 0 is appropriate for degridding.
+  /// This is achieved if this parameter is set to false.
+  const bool itsCheckUnspecifiedProducts;
 };
 
 } // namespace synthesis

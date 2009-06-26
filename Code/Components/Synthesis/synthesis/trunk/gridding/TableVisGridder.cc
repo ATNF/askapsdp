@@ -26,6 +26,7 @@
 #include <askap/AskapLogging.h>
 #include <dataaccess/IDataAccessor.h>
 #include <dataaccess/OnDemandBufferDataAccessor.h>
+#include <dataaccess/PolConverter.h>
 ASKAP_LOGGER(logger, ".gridding");
 
 #include <askap/AskapError.h>
@@ -288,6 +289,13 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    const uint nPol = acc.nPol();
    const casa::Vector<casa::Double>& frequencyList = acc.frequency();
    itsFreqMapper.setupMapping(frequencyList);
+   
+   // for now setup the converter inside this method, although it would cause a rebuild 
+   // of the matrices for every accessor. More intelligent caching is possible with a bit
+   // more effort (i.e. one has to detect whether polarisation frames change from the
+   // previous call). Need to think about parallactic angle dependence.
+   PolConverter polConv(forward ? PolConverter(getStokes(),acc.stokes(), false) : 
+                        PolConverter(acc.stokes(), getStokes()));
 			      
    ASKAPDEBUGASSERT(itsShape.nelements()>=2);
    const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);
