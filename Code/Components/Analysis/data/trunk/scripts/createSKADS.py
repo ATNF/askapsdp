@@ -152,7 +152,7 @@ if __name__ == '__main__':
 createFITS.filename         = !%s
 createFITS.sourcelist       = %s
 createFITS.posType          = deg
-createFITS.bunit            = JY/PIXEL
+createFITS.bunit            = Jy/pixel
 createFITS.dim              = 4
 createFITS.axes             = [%d,%d,1,%d]
 createFITS.WCSimage.ctype   = [RA---SIN, DEC--SIN, STOKES, FREQ-OBS]

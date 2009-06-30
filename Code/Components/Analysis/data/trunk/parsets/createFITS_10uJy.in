@@ -1,7 +1,7 @@
 createFITS.filename         = !images/10uJy_model.fits
 createFITS.sourcelist       = catalogues/10uJy.txt
 createFITS.posType          = deg
-createFITS.bunit            = JY/PIXEL
+createFITS.bunit            = Jy/pixel
 createFITS.dim              = 4
 createFITS.axes             = [8192,8192,1,1]
 createFITS.WCSimage.ctype   = [RA---SIN, DEC--SIN, STOKES, FREQ-OBS]
