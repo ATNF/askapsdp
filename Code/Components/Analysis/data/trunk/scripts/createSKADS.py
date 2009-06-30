@@ -37,14 +37,15 @@ def getTabName(x,y,type):
 if __name__ == '__main__':
 
     parser = OptionParser()
-    parser.add_option("-i","--inputs", dest="inputfile", default="createSKADS.in", help="Input parameter file [default: %default]")
+    parser.add_option("-i","--inputs", dest="inputfile", default="", help="Input parameter file [default: %default]")
 
     (options, args) = parser.parse_args()
 
-    if(not os.path.exists(options.inputfile)):
+    if(options.inputfile==''):
+        inputPars = parset.ParameterSet()
+    elif(not os.path.exists(options.inputfile)):
         print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
         inputPars = parset.ParameterSet()
-#        exit(1)
     else:
         inputPars = parset.ParameterSet(options.inputfile).createSKADS
 
@@ -68,6 +69,7 @@ if __name__ == '__main__':
     channelWidth = inputPars.get_value("channelWidth", 16.e6)
     
     fluxLimit = inputPars.get_value("fluxLimit", 1.e-6)
+    minMinorAxis = inputPars.get_value("minMinorAxis", 0.0001)
     
     makeImage = inputPars.get_value("makeImage", True)
     
@@ -122,17 +124,13 @@ if __name__ == '__main__':
                     pa = r[6]
                     compNum = r[7]
 
-                    if(maj>0 and min==0.):  
-                        # This fixes sources where major_axis>0 yet minor_axis=0: infinite axial ratio!
-                        min = 0.0001
-
                     if(compNum == SuperBrightSource): 
                         # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
                         s1400 = 1. / s1400
                         s0610 = 1. / s0610
 
                     alpha = log10(s1400/s0610)/log10(1400./610.)
-                    beta  = 0.  #Only using two fluxes to interpolate, so can't get a curvature term.
+                    beta  = 0.  # Only using two fluxes to interpolate, so can't get a curvature term.
 
                     if(haveFreqInfo):
                         catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,alpha,beta,maj,min,pa))
@@ -183,7 +181,9 @@ createFITS.addNoise         = false
 createFITS.doConvolution    = false
 createFITS.baseFreq         = 1.4e9
 createFITS.flagSpectralInfo = %s
-"""%(flagHaveFreqInfo)
+createFITS.PAunits          = rad
+createFITS.minMinorAxis     = %f
+"""%(flagHaveFreqInfo,minMinorAxis)
 
     f = file(imageParsetFile,"w")
     f.write(createFITSinput)
