@@ -92,10 +92,12 @@ namespace askap {
                     std::string itsSourceList;
                     /// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss
                     std::string itsPosType;
-		    /// @brief The minimum value for the minor axis. Only used when major axis > 0, to prevent infinite axial ratios
+		    /// @brief The minimum value for the minor axis for the sources in the catalogue. Only used when major axis > 0, to prevent infinite axial ratios
 		    float itsMinMinorAxis;
-		    /// @brief The units of the position angle: either "rad" or "deg"
+		    /// @brief The units of the position angle for the sources in the catalogue: either "rad" or "deg"
 		    casa::Unit itsPAunits;
+		    /// @brief The flux units for the sources in the catalogue
+		    casa::Unit itsSourceFluxUnits;
 
                     /// @brief The array of pixel fluxes
                     float *itsArray;
@@ -123,7 +125,7 @@ namespace askap {
                     /// @brief The EQUINOX keyword
                     float itsEquinox;
                     /// @brief The BUNIT keyword: units of flux
-                    std::string itsBunit;
+		    casa::Unit itsBunit;
 
                     /// @brief How to convert source fluxes to the correct units for the image
                     /// @{

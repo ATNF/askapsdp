@@ -97,7 +97,7 @@ namespace askap {
                 /// BUNIT). The pixel array is allocated here.
                 ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
                 this->itsFileName = parset.getString("filename", "");
-                this->itsBunit = parset.getString("bunit", "JY/BEAM");
+                this->itsBunit = casa::Unit(parset.getString("bunit", "JY/BEAM"));
                 this->itsSourceList = parset.getString("sourcelist", "");
                 this->itsPosType = parset.getString("posType", "dms");
 		this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
@@ -106,12 +106,12 @@ namespace askap {
 		  ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be *either* 'rad' *or* 'deg'. Setting to rad.");
 		  this->itsPAunits = "rad";
 		}
-                std::string sourceFluxUnits = parset.getString("sourceFluxUnits", "");
+		this->itsSourceFluxUnits = casa::Unit(parset.getString("sourceFluxUnits", ""));
 
-                if (sourceFluxUnits != "") {
-                    char *base = (char *)this->itsBunit.c_str();
+                if (this->itsSourceFluxUnits != "") {
+		  char *base = (char *)this->itsBunit.getName().c_str();
                     wcsutrn(0, base);
-                    char *src = (char *)sourceFluxUnits.c_str();
+                    char *src = (char *)this->itsSourceFluxUnits.getName().c_str();
                     wcsutrn(0, src);
                     int status = wcsunits(src, base, &this->itsUnitScl, &this->itsUnitOff, &this->itsUnitPwr);
 
@@ -122,6 +122,7 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, "Converting from " << src << " to " << base
                                           << ": " << this->itsUnitScl << "," << this->itsUnitOff << "," << this->itsUnitPwr);
                 } else {
+		  this->itsSourceFluxUnits = this->itsBunit;
                     this->itsUnitScl = 1.;
                     this->itsUnitOff = 0.;
                     this->itsUnitPwr = 1.;
@@ -310,8 +311,8 @@ namespace askap {
                             else
                                 line >> ra >> dec >> flux >> maj >> min >> pa;
 
-                            // convert fluxes to correct units
-                            flux = pow(this->itsUnitScl * flux + this->itsUnitOff, this->itsUnitPwr);
+                            // convert fluxes to correct units according to the image BUNIT keyword
+			    flux = casa::Quantity(flux,this->itsSourceFluxUnits).getValue(this->itsBunit);
 
 			    fluxGen.defineSource(alpha,beta,this->itsBaseFreq,flux);
 
@@ -463,7 +464,8 @@ namespace askap {
 
                 status = 0;
 
-                if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.c_str(),  NULL, &status))
+		//                if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.c_str(),  NULL, &status))
+                if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.getName().c_str(),  NULL, &status))
                     fits_report_error(stderr, status);
 
                 float val;

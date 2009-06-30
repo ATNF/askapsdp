@@ -1,7 +1,8 @@
 createFITS.filename         = !tests/test.fits
 createFITS.sourcelist       = tests/test.dat
 createFITS.posType          = deg
-createFITS.bunit            = JY/PIXEL
+createFITS.sourceFluxUnits  = mJy/pixel
+createFITS.bunit            = Jy/pixel
 createFITS.dim              = 4
 createFITS.axes             = [1024,1024,1,32]
 createFITS.WCSimage.ctype   = [RA---SIN, DEC--SIN, STOKES, FREQ-OBS]
