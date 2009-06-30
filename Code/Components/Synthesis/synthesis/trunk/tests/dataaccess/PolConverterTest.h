@@ -59,6 +59,8 @@ public:
      out[1] = casa::Stokes::Q;
      
      PolConverter pc(in,out);
+     CPPUNIT_ASSERT(pc.nInputDim() == 4);
+     CPPUNIT_ASSERT(pc.nOutputDim() == 2);     
      casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
      casa::Vector<casa::Complex> outVec = pc(inVec);
      CPPUNIT_ASSERT(outVec.nelements() == out.nelements());
@@ -67,6 +69,8 @@ public:
      
      // ignore missing polarisations in pc2
      PolConverter pc2(out,in,false);
+     CPPUNIT_ASSERT(pc2.nInputDim() == 2);
+     CPPUNIT_ASSERT(pc2.nOutputDim() == 4);     
      casa::Vector<casa::Complex> inVec2(out.nelements(), casa::Complex(0,-1.));
      casa::Vector<casa::Complex> outVec2 = pc2(inVec2);
      CPPUNIT_ASSERT(outVec2.nelements() == in.nelements());
@@ -90,6 +94,8 @@ public:
      // don't ignore missing polarisations here (default third argument), this should cause an
      // exception in the constructor     
      PolConverter pc(in,out);
+     CPPUNIT_ASSERT(pc.nInputDim() == 2);
+     CPPUNIT_ASSERT(pc.nOutputDim() == 4);          
      casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
      pc(inVec);  
   }
@@ -107,6 +113,8 @@ public:
      out[3] = casa::Stokes::V;
      
      PolConverter pc(in,out);
+     CPPUNIT_ASSERT(pc.nInputDim() == 4);
+     CPPUNIT_ASSERT(pc.nOutputDim() == 4);     
      casa::Vector<casa::Complex> inVec(in.nelements());
      inVec[0]=casa::Complex(0.1,0.2);
      inVec[1]=casa::Complex(0.3,0.4);
@@ -120,6 +128,8 @@ public:
      CPPUNIT_ASSERT(abs(outVec[3]-casa::Complex(-0.2,0.2))<1e-5);
      
      PolConverter pcReverse(out,in);
+     CPPUNIT_ASSERT(pcReverse.nInputDim() == 4);
+     CPPUNIT_ASSERT(pcReverse.nOutputDim() == 4);          
      casa::Vector<casa::Complex> newInVec = pcReverse(outVec);
      CPPUNIT_ASSERT(newInVec.nelements() == inVec.nelements());
      for (size_t pol = 0; pol<inVec.nelements(); ++pol) {
@@ -140,6 +150,8 @@ public:
      out[3] = casa::Stokes::V;
      
      PolConverter pc(in,out);
+     CPPUNIT_ASSERT(pc.nInputDim() == 4);
+     CPPUNIT_ASSERT(pc.nOutputDim() == 4);     
      casa::Vector<casa::Complex> inVec(in.nelements());
      inVec[0]=casa::Complex(0.1,0.2);
      inVec[1]=casa::Complex(0.3,0.4);
@@ -153,6 +165,8 @@ public:
      CPPUNIT_ASSERT(abs(outVec[3]-casa::Complex(0.8,1.0))<1e-5);
 
      PolConverter pcReverse(out,in);
+     CPPUNIT_ASSERT(pcReverse.nInputDim() == 4);
+     CPPUNIT_ASSERT(pcReverse.nOutputDim() == 4);          
      casa::Vector<casa::Complex> newInVec = pcReverse(outVec);
      CPPUNIT_ASSERT(newInVec.nelements() == inVec.nelements());
      for (size_t pol = 0; pol<inVec.nelements(); ++pol) {

@@ -130,6 +130,16 @@ struct PolConverter {
   static bool equal(const casa::Vector<casa::Stokes::StokesTypes> &first,
                     const casa::Vector<casa::Stokes::StokesTypes> &second);
   
+  /// @brief number of polarisation planes in the input
+  /// @details This is a helper method giving the expected dimensionality of the input vector
+  /// @return expected number of polarisation planes for the input visibility vector
+  inline casa::uInt nInputDim() const { return itsPolFrameIn.nelements();}
+  
+  /// @brief number of polarisation planes in the output
+  /// @details This is a helper method giving the dimensionality of the output vector
+  /// @return number of polarisation planes in the output visibility vector
+  inline casa::uInt nOutputDim() const { return itsPolFrameOut.nelements();}
+  
 protected:
 
   /// @brief test if frame matches a given stokes enum
