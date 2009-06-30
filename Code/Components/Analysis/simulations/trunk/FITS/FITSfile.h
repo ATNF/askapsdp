@@ -98,6 +98,8 @@ namespace askap {
 		    casa::Unit itsPAunits;
 		    /// @brief The flux units for the sources in the catalogue
 		    casa::Unit itsSourceFluxUnits;
+		    /// @brief The units of the major & minor axes for the sources in the catalogue
+		    casa::Unit itsAxisUnits;
 
                     /// @brief The array of pixel fluxes
                     float *itsArray;

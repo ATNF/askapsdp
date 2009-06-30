@@ -106,6 +106,7 @@ namespace askap {
 		  ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be *either* 'rad' *or* 'deg'. Setting to rad.");
 		  this->itsPAunits = "rad";
 		}
+		this->itsAxisUnits = casa::Unit(parset.getString("axisUnits","arcsec"));
 		this->itsSourceFluxUnits = casa::Unit(parset.getString("sourceFluxUnits", ""));
 
                 if (this->itsSourceFluxUnits != "") {
@@ -349,14 +350,16 @@ namespace askap {
                             if (maj > 0) {
                                 // convert widths from arcsec to pixels
                                 float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
-                                maj = maj / arcsecToPixel;
+                                maj = casa::Quantity(maj,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
 				if(maj>0 && !(min>this->itsMinMinorAxis)){
 				  ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << min << " --> " << this->itsMinMinorAxis);
-				  min = this->itsMinMinorAxis / arcsecToPixel;
+				  min = casa::Quantity(this->itsMinMinorAxis,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
 				}
-                                else min = min / arcsecToPixel;
+                                else min = casa::Quantity(min,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
+
                                 casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min / maj, 
 								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
+
                                 addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
                             } else {
 			      addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
