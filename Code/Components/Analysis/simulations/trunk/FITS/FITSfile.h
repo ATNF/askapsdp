@@ -32,6 +32,7 @@
 #include <wcslib/wcs.h>
 
 #include <APS/ParameterSet.h>
+#include <casa/Quanta/Unit.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -93,6 +94,8 @@ namespace askap {
                     std::string itsPosType;
 		    /// @brief The minimum value for the minor axis. Only used when major axis > 0, to prevent infinite axial ratios
 		    float itsMinMinorAxis;
+		    /// @brief The units of the position angle: either "rad" or "deg"
+		    casa::Unit itsPAunits;
 
                     /// @brief The array of pixel fluxes
                     float *itsArray;

@@ -40,6 +40,8 @@
 #include <scimath/Functionals/Gaussian2D.h>
 #include <scimath/Functionals/Gaussian3D.h>
 #include <casa/namespace.h>
+#include <casa/Quanta/Quantum.h>
+#include <casa/Quanta/Unit.h>
 
 #include <wcslib/wcs.h>
 #include <wcslib/wcsunits.h>
@@ -99,6 +101,11 @@ namespace askap {
                 this->itsSourceList = parset.getString("sourcelist", "");
                 this->itsPosType = parset.getString("posType", "dms");
 		this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
+                this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
+		if(this->itsPAunits != "rad" && this->itsPAunits != "deg"){
+		  ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be *either* 'rad' *or* 'deg'. Setting to rad.");
+		  this->itsPAunits = "rad";
+		}
                 std::string sourceFluxUnits = parset.getString("sourceFluxUnits", "");
 
                 if (sourceFluxUnits != "") {
@@ -280,7 +287,7 @@ namespace askap {
                     ASKAPLOG_DEBUG_STR(logger, "Adding sources");
                     std::ifstream srclist(this->itsSourceList.c_str());
                     std::string temp, ra, dec;
-                    double flux, maj, min, pa;
+		    casa::Double flux, maj, min, pa;
                     double *wld = new double[3];
                     double *pix = new double[3];
                     double *newwld = new double[3];
@@ -347,7 +354,8 @@ namespace askap {
 				  min = this->itsMinMinorAxis / arcsecToPixel;
 				}
                                 else min = min / arcsecToPixel;
-                                casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min / maj, pa);
+                                casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min / maj, 
+								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
                                 addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
                             } else {
 			      addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);

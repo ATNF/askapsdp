@@ -1,5 +1,5 @@
 createFITS.filename         = !tests/test.fits
-createFITS.sourcelist       = tests/test.in
+createFITS.sourcelist       = tests/test.dat
 createFITS.posType          = deg
 createFITS.bunit            = JY/PIXEL
 createFITS.dim              = 4
@@ -14,3 +14,4 @@ createFITS.flagSpectralInfo = true
 createFITS.baseFreq         = 1.4e9
 createFITS.addNoise         = false
 createFITS.doConvolution    = false
+createFITS.PAunits          = deg
