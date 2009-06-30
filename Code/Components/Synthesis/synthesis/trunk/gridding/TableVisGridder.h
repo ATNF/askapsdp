@@ -164,6 +164,13 @@ namespace askap
       void inline useAllDataForPSF(const bool useAll) { itsUseAllDataForPSF = useAll;} 
       
   protected:
+      /// @brief shape of the grid
+      /// @details The could be a number of grids indexed though gIndex (for each row, polarisation and channel). However, all should
+      /// have exactly the same shape. 
+      /// @return the shape of grid owned by this gridder
+      inline const casa::IPosition& shape() const { return itsShape;}
+
+
       /// @brief correct visibilities, if necessary
       /// @details This method is intended for on-the-fly correction of visibilities (i.e. 
       /// facet-based correction needed for LOFAR). This method does nothing in this class, but

@@ -41,6 +41,7 @@ namespace synthesis {
 class PolConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(PolConverterTest);
   CPPUNIT_TEST(dimensionTest);
+  CPPUNIT_TEST(stokesIonlyTest);
   CPPUNIT_TEST_EXCEPTION(dimensionExceptionTest, askap::CheckError);
   CPPUNIT_TEST(stokesEnumTest);
   CPPUNIT_TEST(stringConversionTest);
@@ -98,6 +99,23 @@ public:
      CPPUNIT_ASSERT(pc.nOutputDim() == 4);          
      casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
      pc(inVec);  
+  }
+  
+  void stokesIonlyTest() {
+     casa::Vector<casa::Stokes::StokesTypes> in(1);
+     in[0] = casa::Stokes::I;
+
+     casa::Vector<casa::Stokes::StokesTypes> out(2);
+     out[0] = casa::Stokes::XX;
+     out[1] = casa::Stokes::YY;
+
+     PolConverter pc(in,out,false);
+     CPPUNIT_ASSERT(pc.nInputDim() == 1);
+     CPPUNIT_ASSERT(pc.nOutputDim() == 2);          
+     casa::Vector<casa::Complex> inVec(in.nelements(), casa::Complex(0,-1.));
+     casa::Vector<casa::Complex> outVec = pc(inVec);  
+     CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(0,-0.5))<1e-5);
+     CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(0,-0.5))<1e-5);          
   }
   
   void linear2stokesTest() {

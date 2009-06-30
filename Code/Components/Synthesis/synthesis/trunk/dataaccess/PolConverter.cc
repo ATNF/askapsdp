@@ -61,7 +61,7 @@ PolConverter::PolConverter(const casa::Vector<casa::Stokes::StokesTypes> &polFra
          ASKAPCHECK(isValid(polFrameOut[pol]), "Conversion is unsupported for polarisation product "<<
                     int(polFrameOut[pol])<<" ("<<casa::Stokes::type(polFrameOut[pol])<<")");
     }
-    fillMatrix(polFrameIn, polFrameOut);
+    fillMatrix(polFrameIn, polFrameOut);    
   }
 }
   
