@@ -91,6 +91,8 @@ namespace askap {
                     std::string itsSourceList;
                     /// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss
                     std::string itsPosType;
+		    /// @brief The minimum value for the minor axis. Only used when major axis > 0, to prevent infinite axial ratios
+		    float itsMinMinorAxis;
 
                     /// @brief The array of pixel fluxes
                     float *itsArray;

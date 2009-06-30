@@ -98,6 +98,7 @@ namespace askap {
                 this->itsBunit = parset.getString("bunit", "JY/BEAM");
                 this->itsSourceList = parset.getString("sourcelist", "");
                 this->itsPosType = parset.getString("posType", "dms");
+		this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
                 std::string sourceFluxUnits = parset.getString("sourceFluxUnits", "");
 
                 if (sourceFluxUnits != "") {
@@ -341,7 +342,11 @@ namespace askap {
                                 // convert widths from arcsec to pixels
                                 float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
                                 maj = maj / arcsecToPixel;
-                                min = min / arcsecToPixel;
+				if(maj>0 && !(min>this->itsMinMinorAxis)){
+				  ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << min << " --> " << this->itsMinMinorAxis);
+				  min = this->itsMinMinorAxis / arcsecToPixel;
+				}
+                                else min = min / arcsecToPixel;
                                 casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min / maj, pa);
                                 addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
                             } else {
