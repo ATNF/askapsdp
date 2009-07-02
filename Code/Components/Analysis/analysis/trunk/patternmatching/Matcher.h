@@ -102,8 +102,12 @@ namespace askap {
                     std::string itsRefFile;
                     /// @brief The fiducial right ascension for the lists
                     std::string itsRA;
-                    /// @brief The fiducial declianation for the lists
+                    /// @brief The fiducial declination for the lists
                     std::string itsDec;
+		    /// @brief The type of position (dms or deg) for the source list
+		    std::string itsSrcPosType;
+		    /// @brief The type of position (dms or deg) for the reference list
+		    std::string itsRefPosType;
                     /// @brief The radius within which to compare points. Negative value means use all points.
                     double itsRadius;
                     /// @brief Which flux measure to use: peak or integrated

@@ -168,21 +168,14 @@ namespace askap {
                 for (unsigned int g = 0; g < this->itsNumGauss; g++) {
                     for (unsigned int p = 0; p < 6; p++)
                         this->itsFitter.mask(g, p) = this->itsParams.flagFitThisParam(p);
+                    
+// 		    ASKAPLOG_DEBUG_STR(logger, "Masks: " << this->itsParams.flagFitThisParam(0)
+//                                            << this->itsParams.flagFitThisParam(1)
+//                                            << this->itsParams.flagFitThisParam(2)
+//                                            << this->itsParams.flagFitThisParam(3)
+//                                            << this->itsParams.flagFitThisParam(4)
+//                                            << this->itsParams.flagFitThisParam(5));
 
-//    this->itsFitter.mask(g,3) = false;
-//    this->itsFitter.mask(g,4) = false;
-//    this->itsFitter.mask(g,5) = false;
-//    //          for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=false;   // set them all false
-//    //      for(int i=0;i<6;i++) this->itsFitter.mask(g,i)=true;   // set them all true
-//    //        for(int i=0;i<6;i++) this->itsFitter.mask(g,i) = !this->itsFitter.mask(g,i);
-//    //        for(int i=0;i<6;i++) std::cout << this->itsFitter.mask(g,i);
-//    //        std::cout << "\n";
-                    ASKAPLOG_DEBUG_STR(logger, "Masks: " << this->itsParams.flagFitThisParam(0)
-                                           << this->itsParams.flagFitThisParam(1)
-                                           << this->itsParams.flagFitThisParam(2)
-                                           << this->itsParams.flagFitThisParam(3)
-                                           << this->itsParams.flagFitThisParam(4)
-                                           << this->itsParams.flagFitThisParam(5));
                 }
             }
 

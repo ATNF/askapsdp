@@ -45,7 +45,7 @@ namespace askap {
     namespace analysis {
 
 
-        std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius, std::string fluxMethod, std::string fluxUseFit)
+      std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius, std::string fluxMethod, std::string fluxUseFit)
         {
             /// @details Read in a list of points from a duchamp-Summary.txt
             /// file (that is, a summary file produced by cduchamp). The
@@ -86,8 +86,17 @@ namespace askap {
 
                 id += "_" + raS + "_" + decS;
                 std::stringstream ss;
-                ra = analysis::dmsToDec(raS) * 15.;
-                dec = analysis::dmsToDec(decS);
+		if(posType == "dms"){
+		  ra = analysis::dmsToDec(raS) * 15.;
+		  dec = analysis::dmsToDec(decS);
+		}
+		else if(posType == "deg"){
+		  ra = atof(raS.c_str());
+		  dec = atof(decS.c_str());
+		}
+		else
+		  ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
+
                 xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                 if (ra > raBase) xpt *= -1.;
@@ -107,7 +116,7 @@ namespace askap {
             return pixlist;
         }
 
-        std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, double radius)
+      std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius)
         {
             /// @details Reads in a list of points from a file, to serve as
             /// a reference list. The file should have six columns: ra, dec,
@@ -132,8 +141,16 @@ namespace askap {
                 std::stringstream ss;
                 ss << ct++;
                 id = ss.str() + "_" + raS + "_" + decS;
-                ra = analysis::dmsToDec(raS) * 15.;
-                dec = analysis::dmsToDec(decS);
+		if(posType == "dms"){
+		  ra = analysis::dmsToDec(raS) * 15.;
+		  dec = analysis::dmsToDec(decS);
+		}
+		else if(posType == "deg"){
+		  ra = atof(raS.c_str());
+		  dec = atof(decS.c_str());
+		}
+		else
+		  ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
                 xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                 if (ra > raBase) xpt *= -1.;

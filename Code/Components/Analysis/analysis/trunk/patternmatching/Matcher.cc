@@ -65,6 +65,8 @@ namespace askap {
                 this->itsFluxUseFit = parset.getString("fluxUseFit", "best");
                 this->itsRA  = parset.getString("RA");
                 this->itsDec = parset.getString("Dec");
+		this->itsSrcPosType = parset.getString("srcPosType", "dms");
+		this->itsRefPosType = parset.getString("refPosType", "dms");
                 this->itsRadius = parset.getDouble("radius", -1.);
                 this->itsEpsilon = parset.getDouble("epsilon", defaultEpsilon);
                 this->itsMeanDx = 0.;
@@ -96,9 +98,9 @@ namespace askap {
                     if (!fref.is_open())
                         ASKAPTHROW(AskapError, "refFile (" << this->itsRefFile << ") not valid. Error opening file.");
 
-                    this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
+                    this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
                     ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
-                    this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRadius);
+                    this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
                     ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
                 }
             }
