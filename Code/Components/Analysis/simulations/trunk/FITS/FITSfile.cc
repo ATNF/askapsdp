@@ -163,8 +163,8 @@ namespace askap {
                 }
 
                 this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
-		this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crpix[this->itsWCS->spec]);
-		if(!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crpix[this->itsWCS->spec];
+		this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
+		if(!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
 
                 this->itsFlagOutputList = parset.getBool("outputList", false);
 
