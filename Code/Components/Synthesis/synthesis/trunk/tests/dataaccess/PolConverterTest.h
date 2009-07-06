@@ -116,6 +116,15 @@ public:
      casa::Vector<casa::Complex> outVec = pc(inVec);  
      CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(0,-0.5))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(0,-0.5))<1e-5);          
+     
+     PolConverter pc2(out,in);
+     CPPUNIT_ASSERT(pc2.nInputDim() == 2);
+     CPPUNIT_ASSERT(pc2.nOutputDim() == 1);          
+     inVec.resize(2);
+     inVec.set(casa::Complex(1.,0));
+     outVec.resize(1);
+     outVec = pc2(inVec);
+     CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(2.,0.))<1e-5);          
   }
   
   void linear2stokesTest() {
