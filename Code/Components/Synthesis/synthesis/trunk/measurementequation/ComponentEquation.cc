@@ -210,7 +210,11 @@ void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
        /// between complex and two doubles are handled automatically
        addVector(vis,rwVis.xyPlane(0).row(row));
        // temporary hardcoded polarisation workaround
-       if (rwVis.nplane()>=4) addVector(vis,rwVis.xyPlane(3).row(row));
+       if (rwVis.nplane() == 2) {
+           addVector(vis,rwVis.xyPlane(1).row(row));
+       } else if (rwVis.nplane()>=4) {
+           addVector(vis,rwVis.xyPlane(3).row(row));
+       }
   }           
 }
 
