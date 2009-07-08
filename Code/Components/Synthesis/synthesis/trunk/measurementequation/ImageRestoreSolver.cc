@@ -103,6 +103,8 @@ namespace askap
 	for (map<string,int>::const_iterator ci=facetmap.begin();ci!=facetmap.end();++ci) {
 	     if (ci->second != 1) {
 	         // this is a multi-facet image, add a fixed parameter representing the whole image
+	         ASKAPLOG_INFO_STR(logger, "Adding a fixed parameter " << ci->first<<
+                           " representing faceted image with "<<ci->second<<" facets");                 
 	         SynthesisParamsHelper::add(*itsParams,ci->first,ci->second);
 	         itsParams->fix(ci->first);
 	     }
@@ -125,6 +127,8 @@ namespace askap
 	      convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			     pixelAxes, itsBeam, true, 1.0, false);
 	      SynthesisParamsHelper::update(*itsParams, *ci, *image);
+	      // for some reason update makes the parameter free as well
+	      itsParams->fix(*ci);
 	  
 	      addResiduals(*ci,itsParams->value(*ci).shape(),itsParams->value(*ci));
 	      SynthesisParamsHelper::setBeam(*itsParams, *ci, itsBeam);
@@ -151,6 +155,8 @@ namespace askap
 	         convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			       pixelAxes, itsBeam, true, 1.0, false);
 	         SynthesisParamsHelper::update(*itsParams, ci->first, *image);
+	         // for some reason update makes the parameter free as well
+	         itsParams->fix(ci->first);
 	        
 	         // add residuals
 	         for (int xFacet = 0; xFacet<ci->second; ++xFacet) {
@@ -173,6 +179,7 @@ namespace askap
 	for (vector<string>::const_iterator ci=names.begin(); ci !=names.end(); ++ci) {
 	     ImageParamsHelper iph(*ci);
          if (iph.isFacet()) {
+             ASKAPLOG_INFO_STR(logger, "Remove facet patch "<<*ci<<" from the parameters");
              itsParams->remove(*ci);
          }
 	}
