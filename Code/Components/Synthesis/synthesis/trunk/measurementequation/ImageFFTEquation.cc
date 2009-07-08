@@ -250,16 +250,15 @@ namespace askap
           itsModelGridders[imageName]->degrid(accBuffer);
           counterDegrid+=accBuffer.nRow();
         }
+        accBuffer.rwVisibility() -= itsIdi->visibility();
+        accBuffer.rwVisibility() *= -1.;
+
         /// Now we can calculate the residual visibility and image
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
         {
           const string imageName("image"+(*it));
           if(parameters().isFree(imageName))
           {
-            casa::Array<casa::Complex> residual(itsIdi->visibility().copy());
-            residual -= accBuffer.visibility();
-            ASKAPDEBUGASSERT(accBuffer.rwVisibility().shape() == residual.shape()); 
-            accBuffer.rwVisibility() = residual;
             itsResidualGridders[imageName]->grid(accBuffer);
             itsPSFGridders[imageName]->grid(accBuffer);
             counterGrid+=accBuffer.nRow();
