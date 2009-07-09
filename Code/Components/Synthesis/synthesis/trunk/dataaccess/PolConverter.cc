@@ -200,6 +200,35 @@ void PolConverter::fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &pol
        }
   }
 }
+
+/// @brief fill matrix describing parallactic angle rotation
+/// @details 
+/// @param[in] pa1 parallactic angle on the first antenna
+/// @param[in] pa2 parallactic angle on the second antenna
+void PolConverter::fillPARotationMatrix(double pa1, double pa2)
+{
+  itsPARotation.resize(4,4,0.);
+  const double cpa1 = cos(pa1);
+  const double cpa2 = cos(pa2);
+  const double spa1 = sin(pa1);
+  const double spa2 = sin(pa2);
+  itsPARotation(0,0) = cpa1 * cpa2;
+  itsPARotation(0,1) = spa1 * cpa2;
+  itsPARotation(0,2) = cpa1 * spa2;
+  itsPARotation(0,3) = spa1 * spa2;
+  itsPARotation(1,0) = -spa1 * cpa2;
+  itsPARotation(1,1) = cpa1 * cpa2;
+  itsPARotation(1,2) = -spa1 * spa2;
+  itsPARotation(1,3) = cpa1 * spa2;
+  itsPARotation(2,0) = -cpa1 * spa2;
+  itsPARotation(2,1) = -spa1 * spa2;
+  itsPARotation(2,2) = cpa1 * cpa2;
+  itsPARotation(2,3) = spa1 * cpa2;
+  itsPARotation(3,0) = spa1 * spa2;
+  itsPARotation(3,1) = -cpa1 * spa2;
+  itsPARotation(3,2) = -spa1 * cpa2;
+  itsPARotation(3,3) = cpa1 * cpa2;  
+}
   
 /// @brief reverse method for getIndex
 /// @details convert index into stokes enum. Because the same index can correspond to a number

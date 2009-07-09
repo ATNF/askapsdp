@@ -175,6 +175,12 @@ protected:
   void fillMatrix(const casa::Vector<casa::Stokes::StokesTypes> &polFrameIn,
                   const casa::Vector<casa::Stokes::StokesTypes> &polFrameOut);
   
+  /// @brief fill matrix describing parallactic angle rotation
+  /// @details 
+  /// @param[in] pa1 parallactic angle on the first antenna
+  /// @param[in] pa2 parallactic angle on the second antenna
+  void fillPARotationMatrix(double pa1, double pa2);
+  
   /// @brief check whether stokes parameter correspond to cross-correlation
   /// @details casacore allows to code single-dish polarisation and there are some reserved codes
   /// as well. As we're doing lots of indexing, it is good to check that given parameter is
@@ -193,6 +199,9 @@ private:
   /// @brief transformation matrix 
   /// @details to convert input polarisation frame to the target one
   casa::Matrix<casa::Complex> itsTransform;
+  
+  /// @brief matrix describing parallactic angle rotation
+  casa::Matrix<casa::Double> itsPARotation;
   
   // the following methods may be removed in the future
   
