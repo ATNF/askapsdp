@@ -91,12 +91,14 @@ namespace askap
 
 		void Params::free(const std::string& name)
 		{
-			itsFree[name]=true;
+                     ASKAPCHECK(has(name), "Parameter " + name + " does not exist");
+                     itsFree[name]=true;
 		}
 
 		void Params::fix(const std::string& name)
 		{
-			itsFree[name]=false;
+                     ASKAPCHECK(has(name), "Parameter " + name + " does not exist");
+                     itsFree[name]=false;
 		}
 
 		void Params::add(const std::string& name, const double ip)
