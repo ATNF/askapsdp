@@ -359,6 +359,7 @@ namespace askap {
 
                                 casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min / maj, 
 								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
+				gauss.setFlux(flux);
 
                                 addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
                             } else {
