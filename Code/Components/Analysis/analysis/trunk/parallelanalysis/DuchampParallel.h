@@ -29,6 +29,8 @@
 #ifndef ASKAP_ANALYSIS_DUCHAMPPARALLEL_H_
 #define ASKAP_ANALYSIS_DUCHAMPPARALLEL_H_
 
+#include <askap_analysis.h>
+
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
 #include <analysisutilities/SubimageDef.h>

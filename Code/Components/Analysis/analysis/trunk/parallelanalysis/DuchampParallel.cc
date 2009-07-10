@@ -515,7 +515,8 @@ namespace askap {
                 int numObj = this->itsCube.getNumObj();
 
                 for (int i = 0; i < numObj; i++) {
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << numObj << ".");
+		  if(this->itsFlagDoFit)
+		    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << numObj << ".");
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
                     src.setNoiseLevel(this->itsCube, this->itsFitter);
                     src.setDetectionThreshold(threshold);

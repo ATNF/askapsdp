@@ -29,6 +29,8 @@
 #ifndef ASKAP_ANALYSIS_MATCHUTIL_H_
 #define ASKAP_ANALYSIS_MATCHUTIL_H_
 
+#include <askap_analysis.h>
+
 #include <patternmatching/GrothTriangles.h>
 #include <patternmatching/Matcher.h>
 

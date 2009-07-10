@@ -26,14 +26,16 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
+#include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <patternmatching/Matcher.h>
 #include <patternmatching/GrothTriangles.h>
 #include <analysisutilities/MatchingUtilities.h>
 
 #include <APS/ParameterSet.h>
-
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
 
 #include <iostream>
 #include <iomanip>
@@ -45,6 +47,8 @@
 
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".matching");
+
+using namespace askap;
 
 namespace askap {
 
@@ -103,6 +107,9 @@ namespace askap {
                     this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
                     ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
                 }
+		else{
+		  ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
+		}
             }
 
             //**************************************************************//

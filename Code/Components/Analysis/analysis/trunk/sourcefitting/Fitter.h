@@ -30,6 +30,8 @@
 #ifndef ASKAP_ANALYSIS_FITTER_H_
 #define ASKAP_ANALYSIS_FITTER_H_
 
+#include <askap_analysis.h>
+
 #include <sourcefitting/FittingParameters.h>
 #include <sourcefitting/Component.h>
 

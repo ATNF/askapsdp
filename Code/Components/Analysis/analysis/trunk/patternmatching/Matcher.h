@@ -29,12 +29,14 @@
 #ifndef ASKAP_ANALYSIS_MATCHER_H_
 #define ASKAP_ANALYSIS_MATCHER_H_
 
-#include <patternmatching/GrothTriangles.h>
-
-#include <APS/ParameterSet.h>
+#include <askap_analysis.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+
+#include <patternmatching/GrothTriangles.h>
+
+#include <APS/ParameterSet.h>
 
 #include <vector>
 #include <utility>

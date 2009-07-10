@@ -71,18 +71,18 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-//   ASKAPLOG_INIT("imageQualTest.log_cfg");
+  //   ASKAPLOG_INIT("imageQualTest.log_cfg");
     try {
         //    casa::Timer timer;
         //    timer.mark();
         std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
         ParameterSet parset(parsetFile);
         ParameterSet subset(parset.makeSubset("imageQual."));
-        Matcher matcher(subset);
         DuchampParallel image(argc, argv, subset);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.getMetadata();
         ASKAPLOG_INFO_STR(logger, "Read image metadata");
+        Matcher matcher(subset);
         matcher.fixRefList(image.getBeamInfo());
         matcher.setTriangleLists();
         matcher.findMatches();

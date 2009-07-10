@@ -107,7 +107,7 @@ namespace askap {
                     }
                 }
 
-                ASKAPLOG_DEBUG_STR(logger, "Fit types being used: " << ss.str());
+		//                ASKAPLOG_DEBUG_STR(logger, "Fit types being used: " << ss.str());
             }
 
             //**************************************************************//

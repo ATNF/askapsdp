@@ -26,6 +26,11 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
+#include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <analysisutilities/MatchingUtilities.h>
 #include <patternmatching/GrothTriangles.h>
 #include <patternmatching/Matcher.h>
@@ -39,6 +44,9 @@
 #include <algorithm>
 #include <string>
 #include <math.h>
+
+///@brief Where the log messages go.
+ASKAP_LOGGER(logger, ".matching");
 
 namespace askap {
 
@@ -66,6 +74,8 @@ namespace askap {
             fin.getline(line, 500);
             fin.getline(line, 500);
 
+	    ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
+
             // now at start of object list
             while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
                     !fin.eof()) {
@@ -85,6 +95,8 @@ namespace askap {
                 }
 
                 id += "_" + raS + "_" + decS;
+		ASKAPLOG_DEBUG_STR(logger, id);
+
                 std::stringstream ss;
 		if(posType == "dms"){
 		  ra = analysis::dmsToDec(raS) * 15.;

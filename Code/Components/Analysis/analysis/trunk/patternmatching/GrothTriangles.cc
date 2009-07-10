@@ -28,10 +28,10 @@
 ///
 #include <askap_analysis.h>
 
-#include <patternmatching/GrothTriangles.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+
+#include <patternmatching/GrothTriangles.h>
 
 #include <iostream>
 #include <math.h>
