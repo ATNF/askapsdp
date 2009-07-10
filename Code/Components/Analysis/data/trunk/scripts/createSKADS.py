@@ -54,6 +54,9 @@ if __name__ == '__main__':
         print "Can only accept 'SKADS' as a value for 'catSource'.\nExiting.\n"
         exit(1)
 
+    makeImage = inputPars.get_value("makeImage", True)
+    queryDatabase = inputPars.get_value("queryDatabase",True)
+
     defaultTypes = ['RQAGN','FRI','FRII','SBG','SFG']
     types = inputPars.get_value("sourceTypes", defaultTypes)
     print "Source Types requested: ",types
@@ -71,10 +74,8 @@ if __name__ == '__main__':
     fluxLimit = inputPars.get_value("fluxLimit", 1.e-6)
     minMinorAxis = inputPars.get_value("minMinorAxis", 0.0001)
     
-    makeImage = inputPars.get_value("makeImage", True)
-    
     translateLoc = inputPars.get_value("translateLoc", True)
-    oldLocation = inputPars.get_value("fieldLocation", [0., 0.])
+    oldLocation = inputPars.get_value("oldLocation", [0., 0.])
     
     catFile = inputPars.get_value("catFile", "catalogues/SKADS_S3SEX_10sqdeg_1uJy.dat")
     imageFile = inputPars.get_value("imageFile", "images/SKADS_S3SEX_10sqdeg_1uJy.fits")
@@ -82,9 +83,6 @@ if __name__ == '__main__':
     
     centres = range(-int(fieldAngSize/2),int(fieldAngSize/2)+1,1)
 
-    db = MySQLdb.connect(host=S3SEX_host, user=S3SEX_user, passwd=S3SEX_pass, db=S3SEX_db)
-    cursor = db.cursor()
-    
     if(translateLoc):
         if(catFile.rfind('.')<0):
             origCatFile = catFile + '_orig'
@@ -93,51 +91,56 @@ if __name__ == '__main__':
     else:
         origCatFile = catFile  #No tranlation of positions, so we use the given filename
 
-    catfile = file(origCatFile,"w")
-    if(haveFreqInfo):
-        catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang"))
-    else:
-        catfile.write("#%9s %10s %20s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Maj_axis","Min_axis","Pos_ang"))
 
-    for type in types:
-        for x in centres:
-            for y in centres:
-                
-                tabname = getTabName(x,y,type)
+    if(queryDatabase):
+        db = MySQLdb.connect(host=S3SEX_host, user=S3SEX_user, passwd=S3SEX_pass, db=S3SEX_db)
+        cursor = db.cursor()
+    
+        catfile = file(origCatFile,"w")
+        if(haveFreqInfo):
+            catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang"))
+        else:
+            catfile.write("#%9s %10s %20s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Maj_axis","Min_axis","Pos_ang"))
 
-                query = "SELECT right_ascension,declination,pow(10,i_1400) as flux14,pow(10,i_610) as flux6,major_axis,minor_axis,position_angle,component FROM %s WHERE i_1400>=%s"%(tabname,math.log10(fluxLimit))
-                print query
+        for type in types:
+            for x in centres:
+                for y in centres:
 
-                cursor.execute(query)
-                results=array(cursor.fetchall())
-                print shape(results)
+                    tabname = getTabName(x,y,type)
 
-                for r in results:
+                    query = "SELECT right_ascension,declination,pow(10,i_1400) as flux14,pow(10,i_610) as flux6,major_axis,minor_axis,position_angle,component FROM %s WHERE i_1400>=%s"%(tabname,math.log10(fluxLimit))
+                    print query
 
-                    # Label the results values clearly so we know what we are working with!
-                    ra = r[0]
-                    dec = r[1]
-                    s1400 = r[2]
-                    s0610 = r[3]
-                    maj = r[4]
-                    min = r[5]
-                    pa = r[6]
-                    compNum = r[7]
+                    cursor.execute(query)
+                    results=array(cursor.fetchall())
+                    print shape(results)
 
-                    if(compNum == SuperBrightSource): 
-                        # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
-                        s1400 = 1. / s1400
-                        s0610 = 1. / s0610
+                    for r in results:
 
-                    alpha = log10(s1400/s0610)/log10(1400./610.)
-                    beta  = 0.  # Only using two fluxes to interpolate, so can't get a curvature term.
+                        # Label the results values clearly so we know what we are working with!
+                        ra = r[0]
+                        dec = r[1]
+                        s1400 = r[2]
+                        s0610 = r[3]
+                        maj = r[4]
+                        min = r[5]
+                        pa = r[6]
+                        compNum = r[7]
 
-                    if(haveFreqInfo):
-                        catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,alpha,beta,maj,min,pa))
-                    else:
-                        catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,maj,min,pa))
+                        if(compNum == SuperBrightSource): 
+                            # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
+                            s1400 = 1. / s1400
+                            s0610 = 1. / s0610
 
-    catfile.close()
+                        alpha = log10(s1400/s0610)/log10(1400./610.)
+                        beta  = 0.  # Only using two fluxes to interpolate, so can't get a curvature term.
+
+                        if(haveFreqInfo):
+                            catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,alpha,beta,maj,min,pa))
+                        else:
+                            catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,maj,min,pa))
+
+        catfile.close()
 
 ############
 # Make FITS image

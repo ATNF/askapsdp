@@ -18,7 +18,7 @@ def sphericalDistance(ra1, dec1, ra2, dec2):
 
 def writeData(line, fileno, subfile, doAnn, annfile, threshold, count=0):
 
-    subfile[fileno].write("%s\n"%line)
+    subfile[fileno].write("%s"%line)
     data=array(line.split()).astype(float)
     if(doAnn):
         if(data[3]>0.):
@@ -78,17 +78,20 @@ if __name__ == '__main__':
             annfilenames.append(baseOutFile + '%s.ann'%suffix)
         if(len(radii)>0):
             for r in radii:
-                subfilenames.append(baseOutFile + '%s_%ddeg.txt'%(suffix,r))
+                subfilenames.append(baseOutFile + '%s_%3.1fdeg.txt'%(suffix,r))
                 if(doAnnFile):
-                    annfilenames.append(baseOutFile + '%s_%ddeg.ann'%(suffix,r))
+                    annfilenames.append(baseOutFile + '%s_%3.1fdeg.ann'%(suffix,r))
     
     subfiles = []
+    print "Creating the following files:"
     for name in subfilenames:
-        subfiles.append(file(name,'w'))
+          print name
+          subfiles.append(file(name,'w'))
     annfiles = []
     for name in annfilenames:
-        annfiles.append(file(name,'w'))
-        annfiles[-1].write("COORD w\nCOLOR SEA GREEN\nFONT lucidasans-10\n")
+          print name
+          annfiles.append(file(name,'w'))
+          annfiles[-1].write("COORD w\nCOLOR SEA GREEN\nFONT lucidasans-10\n")
         
     datalines = catfile.readlines()
     sourcecount = 0;
