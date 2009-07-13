@@ -63,7 +63,8 @@ struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    /// to the current position of the iterator
    /// @param[in] in input array
    /// @return output array (single plane)
-   casa::Array<double> getPlane(casa::Array<double> &in) const;
+   template<typename T>
+   casa::Array<T> getPlane(casa::Array<T> &in) const;
    
    /// @brief extract a single plane form a 1D array
    /// @details This method extracts a single slice from an array flattened to a 1D vector. The slice 
@@ -71,7 +72,8 @@ struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    /// dimensions.
    /// @param[in] in input vector
    /// @return output array (single plane)
-   casa::Array<double> getPlane(casa::Vector<double> &in) const;
+   template<typename T>
+   casa::Array<T> getPlane(casa::Vector<T> &in) const;
    
    /// @brief extract a single plane into a flattened vector
    /// @details This method extracts a single plane slice from an array flattened to a 1D vector. 
@@ -79,7 +81,8 @@ struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    /// flattened vector.
    /// @param[in] in input vector
    /// @return output vector (single plane)
-   casa::Vector<double> getPlaneVector(casa::Vector<double> &in) const;
+   template<typename T>
+   casa::Vector<T> getPlaneVector(casa::Vector<T> &in) const;
    
    /// @brief return the sequence number of the plane
    /// @details To assist with caching this method returns consequitive numbers for every
@@ -117,7 +120,8 @@ struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    /// the first iteration slice from an array.
    /// @param[in] in input array
    /// @return output array (single plane)
-   static casa::Array<double> getFirstPlane(casa::Array<double> &in);
+   template<typename T>
+   static casa::Array<T> getFirstPlane(casa::Array<T> &in);
    
    /// @brief shape of the full array
    /// @return shape of the full array
@@ -154,6 +158,7 @@ private:
 
 } // namespace askap
 
+#include <utils/MultiDimArrayPlaneIter.tcc>
 
 #endif // #ifndef MULTI_DIM_ARRAY_PLANE_ITER_H
 

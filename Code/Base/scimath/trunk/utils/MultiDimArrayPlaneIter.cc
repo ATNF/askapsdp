@@ -68,63 +68,6 @@ casa::IPosition MultiDimArrayPlaneIter::planeShape(const casa::IPosition &shape)
   return planeShape;
 }
    
-/// @brief extract a single plane from an array
-/// @details This method forms a slice of the given array to extract a single plane corresponding
-/// to the current position of the iterator
-/// @param[in] in input array
-/// @return output array (single plane)
-casa::Array<double> MultiDimArrayPlaneIter::getPlane(casa::Array<double> &in) const
-{
-  // we may need to add more functionality to this method to take care of situations
-  // when the PSF is defined for a single polarisation/channel only
-  const casa::IPosition blc(position());
-  casa::IPosition trc(blc);
-  trc += itsPlaneShape;
-  for (casa::uInt dim = 0; dim<trc.nelements(); ++dim) {
-       trc[dim] -= 1;
-       ASKAPDEBUGASSERT(trc[dim]<itsShape[dim]);
-  }
-  return in(blc,trc);
-}
-
-/// @brief extract a single plane form a 1D array
-/// @This method extracts a single slice from an array flattened to a 1D vector. The slice 
-/// corresponds to the current position of the iterator. This method preserves the degenerate
-/// dimensions.
-/// @param[in] in input vector
-/// @return output array (single plane)
-casa::Array<double> MultiDimArrayPlaneIter::getPlane(casa::Vector<double> &in) const
-{
-  ASKAPDEBUGASSERT(itsShape.product() == in.shape().product()); 
-  casa::Array<double> reformedReference = in.reform(itsShape);
-  return getPlane(reformedReference);
-}
-
-/// @brief extract the first 2D plane of a multi-dimensional cube
-/// @details This is a static helper method, which can probably go somewhere else as
-/// it doesn't conceptionally belong to this method. It does the same thing as taking 
-/// the first iteration slice from an array.
-/// @param[in] in input array
-/// @return output array (single plane)
-casa::Array<double> MultiDimArrayPlaneIter::getFirstPlane(casa::Array<double> &in)
-{
-   const MultiDimArrayPlaneIter iter(in.shape());
-   return iter.getPlane(in);
-}
-
-
-/// @brief extract a single plane into a flattened vector
-/// @details This method extracts a single plane slice from an array flattened to a 1D vector. 
-/// The slice corresponds to the current position of the iterator. The result is returned as a
-/// flattened vector.
-/// @param[in] in input vector
-/// @return output vector (single plane)
-casa::Vector<double> MultiDimArrayPlaneIter::getPlaneVector(casa::Vector<double> &in) const
-{
-  casa::Array<double> plane = getPlane(in);
-  return plane.reform(casa::IPosition(1,plane.nelements())); 
-}
-
 /// @brief return the unique tag of the current plane
 /// @details To assist caching one may need a string key which is unique for every iteration.
 /// This method forms a string tag from the position vector, which can be appended to the
