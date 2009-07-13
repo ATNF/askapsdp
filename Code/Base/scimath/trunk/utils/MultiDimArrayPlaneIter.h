@@ -111,6 +111,14 @@ struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    /// @return a shape of the single plane preserving degenerate dimensions
    static casa::IPosition planeShape(const casa::IPosition &shape);
    
+   /// @brief extract the first 2D plane of a multi-dimensional cube
+   /// @details This is a static helper method, which can probably go somewhere else as
+   /// it doesn't conceptionally belong to this method. It does the same thing as taking 
+   /// the first iteration slice from an array.
+   /// @param[in] in input array
+   /// @return output array (single plane)
+   static casa::Array<double> getFirstPlane(casa::Array<double> &in);
+   
    /// @brief shape of the full array
    /// @return shape of the full array
    inline const casa::IPosition& shape() const { return itsShape;}

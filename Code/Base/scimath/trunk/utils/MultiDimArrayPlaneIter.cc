@@ -100,6 +100,19 @@ casa::Array<double> MultiDimArrayPlaneIter::getPlane(casa::Vector<double> &in) c
   return getPlane(reformedReference);
 }
 
+/// @brief extract the first 2D plane of a multi-dimensional cube
+/// @details This is a static helper method, which can probably go somewhere else as
+/// it doesn't conceptionally belong to this method. It does the same thing as taking 
+/// the first iteration slice from an array.
+/// @param[in] in input array
+/// @return output array (single plane)
+casa::Array<double> MultiDimArrayPlaneIter::getFirstPlane(casa::Array<double> &in)
+{
+   const MultiDimArrayPlaneIter iter(in.shape());
+   return iter.getPlane(in);
+}
+
+
 /// @brief extract a single plane into a flattened vector
 /// @details This method extracts a single plane slice from an array flattened to a 1D vector. 
 /// The slice corresponds to the current position of the iterator. The result is returned as a
