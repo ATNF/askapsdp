@@ -28,6 +28,8 @@
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".measurementequation");
 
+#include <utils/MultiDimArrayPlaneIter.h>
+
 #include <askap/AskapError.h>
 
 #include <casa/aips.h>
@@ -343,7 +345,7 @@ namespace askap
        ASKAPCHECK(paddedShape == psfNew.shape(), 
             "sensitivityLoss: shapes of two PSFs are supposed to be the same, you have "<<paddedShape<<
             " and "<<psfNew.shape());
-       ASKAPDEBUGASSERT(paddedShape.nonDegenerate().nelements() == 2);     
+       ASKAPDEBUGASSERT(paddedShape.nonDegenerate().nelements() >= 2);     
        paddedShape(0) *= 2;     
        paddedShape(1) *= 2;     
        casa::ArrayLattice<casa::Complex> uvOld(paddedShape);
@@ -374,10 +376,10 @@ namespace askap
                  cursor(1)=ny;
                  const double wtOld = casa::abs(uvOld(cursor));
                  const double wtNew = casa::abs(uvNew(cursor));
-		 sumwtOld += wtOld;
-		 sumwtNew += wtNew;
-		 sumwt2Old += casa::square(wtOld);
-		 sumwt2New += casa::square(wtNew);
+                 sumwtOld += wtOld;
+                 sumwtNew += wtNew;
+                 sumwt2Old += casa::square(wtOld);
+                 sumwt2New += casa::square(wtNew);
             }
        }
        ASKAPCHECK(sumwtNew>0, "Sum of weights is zero in ImageSolver::sensitivityLoss");
