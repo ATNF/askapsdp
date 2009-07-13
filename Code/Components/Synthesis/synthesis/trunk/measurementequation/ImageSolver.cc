@@ -326,6 +326,18 @@ namespace askap
       }
     }
     
+    /// @brief a helper method to extract the first plane out of the multi-dimensional array
+    /// @details This method just uses MultiDimArrayPlaneIter to extract the first plane
+    /// out of the array. It accepts a const reference to the array (which is a conseptual const).
+    /// @param[in] in const reference to the input array
+    /// @return the array with the first plane
+    casa::Array<float> ImageSolver::getFirstPlane(const casa::Array<float> &in)
+    {
+      casa::Array<float> nonConstArray(in);
+      return MultiDimArrayPlaneIter::getFirstPlane(nonConstArray);
+    }
+    
+    
     /// @brief estimate sensitivity loss due to preconditioning
     /// @details Preconditioning (i.e. Wiener filter, tapering) makes the synthesized beam look nice, 
     /// but the price paid is a sensitivity loss. This method gives an estimate (accurate calculations require
@@ -341,8 +353,16 @@ namespace askap
        // we need to think about a better approach
        // we also assume that input PSFs are normalized to the same peak value (i.e. 1).
        
-       casa::IPosition paddedShape = psfOld.shape();
-       ASKAPCHECK(paddedShape == psfNew.shape(), 
+       // work with the first slice only if the array is multi-dimensional
+       if ((psfOld.shape().nonDegenerate().nelements() >= 2) ||
+           (psfNew.shape().nonDegenerate().nelements() >= 2)) {
+           ASKAPLOG_INFO_STR(logger, "Sensitivity loss estimate will use a single plane of a multi-dimensional PSF image");      
+       }
+       casa::Array<float> psfOldSlice = getFirstPlane(psfOld);
+       casa::Array<float> psfNewSlice = getFirstPlane(psfNew);
+       
+       casa::IPosition paddedShape = psfOldSlice.shape();
+       ASKAPCHECK(paddedShape == psfNewSlice.shape(), 
             "sensitivityLoss: shapes of two PSFs are supposed to be the same, you have "<<paddedShape<<
             " and "<<psfNew.shape());
        ASKAPDEBUGASSERT(paddedShape.nonDegenerate().nelements() >= 2);     
@@ -351,8 +371,8 @@ namespace askap
        casa::ArrayLattice<casa::Complex> uvOld(paddedShape);
        casa::ArrayLattice<casa::Complex> uvNew(paddedShape);
        
-       casa::ArrayLattice<float> lpsfOld(psfOld);
-       casa::ArrayLattice<float> lpsfNew(psfNew);
+       casa::ArrayLattice<float> lpsfOld(psfOldSlice);
+       casa::ArrayLattice<float> lpsfNew(psfNewSlice);
        
        
        scimath::PaddingUtils::inject(uvOld, lpsfOld);

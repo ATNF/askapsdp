@@ -129,6 +129,13 @@ namespace askap
     /// @param[in] psfNew an array with the psf after preconditioning has been applied
     /// @return sensitivity loss factor (should be grater than or equal to 1)
     static double sensitivityLoss(const casa::Array<float>& psfOld, const casa::Array<float>& psfNew);
+    
+    /// @brief a helper method to extract the first plane out of the multi-dimensional array
+    /// @details This method just uses MultiDimArrayPlaneIter to extract the first plane
+    /// out of the array. It accepts a const reference to the array (which is a conseptual const).
+    /// @param[in] in const reference to the input array
+    /// @return the array with the first plane
+    static casa::Array<float> getFirstPlane(const casa::Array<float> &in);
              
       private:
 	/// Instance of a preconditioner
