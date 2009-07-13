@@ -101,6 +101,16 @@ struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    /// @return a shape of the single plane
    inline const casa::IPosition& planeShape() const { return itsPlaneShape;}
    
+   /// @brief shape of a single plane for an arbitrary cube
+   /// @details This method returns the shape of a single plane preserving degenerate
+   /// dimensions. The difference from another overloaded version of this method is 
+   /// that this method is static and works with an arbitrary shape of the full cube passed
+   /// as a parameter. The version of the method without parameters works with the cube shape
+   /// the object has been initialised with.
+   /// @param[in] shape shape of the full cube
+   /// @return a shape of the single plane preserving degenerate dimensions
+   static casa::IPosition planeShape(const casa::IPosition &shape);
+   
    /// @brief shape of the full array
    /// @return shape of the full array
    inline const casa::IPosition& shape() const { return itsShape;}

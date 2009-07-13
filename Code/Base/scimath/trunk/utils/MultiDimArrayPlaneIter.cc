@@ -43,15 +43,29 @@ using namespace askap::scimath;
 /// @param[in] shape shape of the full hypercube (or array-valued parameter) 
 MultiDimArrayPlaneIter::MultiDimArrayPlaneIter(const casa::IPosition &shape) : 
      ArrayPositionIterator(shape,casa::IPosition(shape.nelements(),0),2u), itsShape(shape),
-     itsPlaneShape(shape), itsSequenceNumber(0)
+     itsPlaneShape(planeShape(shape)), itsSequenceNumber(0)
 {
-  ASKAPASSERT(itsPlaneShape.nelements()>=2);
   ASKAPASSERT(itsShape.product()>0);
   ASKAPDEBUGASSERT(itsShape[0]>0 && itsShape[1]>0);
-  for (casa::uInt dim=2; dim<itsPlaneShape.nelements(); ++dim) {
-       ASKAPDEBUGASSERT(itsShape[dim]>0);
-       itsPlaneShape[dim] = 1;
-  }
+}
+
+/// @brief shape of a single plane for an arbitrary cube
+/// @details This method returns the shape of a single plane preserving degenerate
+/// dimensions. The difference from another overloaded version of this method is 
+/// that this method is static and works with an arbitrary shape of the full cube passed
+/// as a parameter. The version of the method without parameters works with the cube shape
+/// the object has been initialised with.
+/// @param[in] shape shape of the full cube
+/// @return a shape of the single plane preserving degenerate dimensions
+casa::IPosition MultiDimArrayPlaneIter::planeShape(const casa::IPosition &shape)
+{
+  ASKAPASSERT(shape.nelements()>=2);
+  casa::IPosition planeShape(shape);
+  for (casa::uInt dim=2; dim<planeShape.nelements(); ++dim) {
+       ASKAPDEBUGASSERT(planeShape[dim]>0);
+       planeShape[dim] = 1;
+  }  
+  return planeShape;
 }
    
 /// @brief extract a single plane from an array
