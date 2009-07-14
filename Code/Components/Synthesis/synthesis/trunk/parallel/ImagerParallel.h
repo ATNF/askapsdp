@@ -155,6 +155,12 @@ namespace askap
 
       /// Name of data column to use.
       string itsColName;
+      
+      /// @brief uvw machine cache size
+      size_t itsUVWMachineCacheSize;
+      
+      /// @brief direction tolerance (in radians) for uvw machine cache
+      double itsUVWMachineCacheTolerance;
 
       /// Names of measurement sets, one per prediffer
       vector<string> itsMs;

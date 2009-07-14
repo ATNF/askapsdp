@@ -87,7 +87,8 @@ namespace askap
 
     ImagerParallel::ImagerParallel(int argc, const char** argv,
         const LOFAR::ACC::APS::ParameterSet& parset) :
-      MEParallel(argc, argv), itsParset(parset)
+      MEParallel(argc, argv), itsParset(parset),
+      itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)
     {
 
       if (isMaster())
@@ -137,6 +138,16 @@ namespace askap
         itsColName=itsParset.getString("datacolumn", "DATA");
         itsMs=itsParset.getStringVector("dataset");
         itsGainsFile = itsParset.getString("gainsfile","");
+        const int cacheSize = itsParset.getInt32("nUVWMachines",1);
+        ASKAPCHECK(cacheSize > 0 ,"Cache size is supposed to be a positive number, you have "<<cacheSize);
+        itsUVWMachineCacheSize = size_t(cacheSize);
+        itsUVWMachineCacheTolerance = 
+            SynthesisParamsHelper::convertQuantity(itsParset.getString("uvwMachineDirTolerance", 
+                                                   "1e-6rad"),"rad");
+         
+        ASKAPLOG_INFO_STR(logger, "UVWMachine cache will store "<<itsUVWMachineCacheSize<<" machines");
+        ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance<<" rad");
+        
         ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
         if (itsMs.size()==1)
         {
@@ -182,6 +193,7 @@ namespace askap
         
         TableDataSource ds(ms, (itsUseMemoryBuffers ? TableDataSource::MEMORY_BUFFERS : TableDataSource::DEFAULT), 
                            itsColName);
+        ds.configureUVWMachineCache(itsUVWMachineCacheSize,itsUVWMachineCacheTolerance);                   
         IDataSelectorPtr sel=ds.createSelector();
         sel << itsParset;
         IDataConverterPtr conv=ds.createConverter();
