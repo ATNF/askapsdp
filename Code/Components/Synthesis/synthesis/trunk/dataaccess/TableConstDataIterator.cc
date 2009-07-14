@@ -140,13 +140,19 @@ bool WholeRowFlagger<casa::Bool>::copyRequired(casa::uInt row,
 /// @param[in] conv shared pointer to converter
 /// @param[in] dataColumn column name, which contains visibility data 
 ///                       default is DATA, but can be, e.g., CORRECTED_DATA
+/// @param[in] cacheSize a number of uvw machines in the cache (default is 1)
+/// @param[in] tolerance pointing direction tolerance in radians, exceeding which leads 
+/// to initialisation of a new UVW Machine
 /// @param[in] maxChunkSize maximum number of rows per accessor
 TableConstDataIterator::TableConstDataIterator(
             const boost::shared_ptr<ITableManager const> &msManager,
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
+            size_t cacheSize, double tolerance,
             casa::uInt maxChunkSize) : 
         TableInfoAccessor(msManager),
+        // it is essential that accessor is initialised after cache parameters!
+	    itsUVWCacheSize(cacheSize), itsUVWCacheTolerance(tolerance),
 	    itsAccessor(*this),
 #ifndef ASKAP_DEBUG	    
         itsSelector(sel->clone()), 

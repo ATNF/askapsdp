@@ -74,11 +74,15 @@ public:
   /// @param[in] msManager a manager of the measurement set to use
   /// @param[in] sel shared pointer to selector
   /// @param[in] conv shared pointer to converter
+  /// @param[in] cacheSize a number of uvw machines in the cache (default is 1)
+  /// @param[in] tolerance pointing direction tolerance in radians, exceeding which leads 
+  /// to initialisation of a new UVW Machine
   /// @param[in] maxChunkSize maximum number of rows per accessor
   TableDataIterator(const boost::shared_ptr<ITableManager const>
               &msManager,
               const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
 	      const boost::shared_ptr<IDataConverterImpl const> &conv,
+	      size_t cacheSize = 1, double tolerance = 1e-6,
 	      casa::uInt maxChunkSize = INT_MAX);
 
   /// destructor required to sync buffers on the last iteration

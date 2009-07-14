@@ -102,5 +102,6 @@ boost::shared_ptr<IDataIterator> TableDataSource::createIterator(const
                  "converter are received by the createIterator method");
    }
    return boost::shared_ptr<IDataIterator>(new TableDataIterator(
-                getTableManager(),implSel,implConv)); 
+                getTableManager(),implSel,implConv,uvwMachineCacheSize(),
+                uvwMachineCacheTolerance())); 
 }

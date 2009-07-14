@@ -51,7 +51,25 @@ using namespace casa;
 ///                       (default is DATA)
 TableConstDataSource::TableConstDataSource(const std::string &fname,
                const std::string &dataColumn) :
-         TableInfoAccessor(casa::Table(fname), false, dataColumn) {}
+         TableInfoAccessor(casa::Table(fname), false, dataColumn),
+         itsUVWCacheSize(1), itsUVWCacheTolerance(1e-6) {}
+
+/// @breif configure caching of the uvw-machines
+/// @details A number of uvw machines can be cached at the same time. This can
+/// result in a significant performance improvement in the mosaicing case. By default
+/// only single machine is cached and this method should be called to change it. 
+/// All subsequent iterators will be created with the parameters set in this method until
+/// it is called again. Call this method without parameters to revert to default settings.
+/// @note This method is a feature of this implementation and is not available via the 
+/// general interface (intentionally)
+/// @param[in] cacheSize a number of uvw machines in the cache (default is 1)
+/// @param[in] tolerance pointing direction tolerance in radians, exceeding which leads 
+/// to initialisation of a new UVW Machine
+void TableConstDataSource::configureUVWMachineCache(size_t cacheSize, double tolerance)
+{
+  itsUVWCacheSize = cacheSize;
+  itsUVWCacheTolerance = tolerance;
+}
 
 /// construct a part of the read only object for use in the
 /// derived classes
@@ -59,7 +77,8 @@ TableConstDataSource::TableConstDataSource(const std::string &fname,
 /// in the concrete derived class. This empty constructor is added to make
 /// the compiler happy
 TableConstDataSource::TableConstDataSource() :
-         TableInfoAccessor(boost::shared_ptr<ITableManager const>()) {} 
+         TableInfoAccessor(boost::shared_ptr<ITableManager const>()),
+         itsUVWCacheSize(1), itsUVWCacheTolerance(1e-6) {} 
 
 /// create a converter object corresponding to this type of the
 /// DataSource. The user can change converting policies (units,
@@ -113,7 +132,7 @@ TableConstDataSource::createConstIterator(const IDataSelectorConstPtr &sel,
                  "converter are received by the createConstIterator method");
    }
    return boost::shared_ptr<IConstDataIterator>(new TableConstDataIterator(
-                getTableManager(),implSel,implConv));
+                getTableManager(),implSel,implConv,uvwMachineCacheSize(), uvwMachineCacheTolerance()));
 }
 
 /// create a selector object corresponding to this type of the

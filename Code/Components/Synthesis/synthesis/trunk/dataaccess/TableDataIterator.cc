@@ -101,9 +101,10 @@ TableDataIterator::TableDataIterator(
             const boost::shared_ptr<ITableManager const> &msManager,
             const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
             const boost::shared_ptr<IDataConverterImpl const> &conv,
+            size_t cacheSize, double tolerance,   
             casa::uInt maxChunkSize) : 
          TableInfoAccessor(msManager),
-           TableConstDataIterator(msManager,sel,conv,maxChunkSize),
+           TableConstDataIterator(msManager,sel,conv,cacheSize, tolerance, maxChunkSize),
 	      itsOriginalVisAccessor(new TableDataAccessor(*this)),
 	      itsIterationCounter(0)
 {

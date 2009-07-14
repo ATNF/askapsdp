@@ -124,11 +124,43 @@ public:
   /// unless the init method is called for the iterator (and the new
   /// iteration loop is started).
   virtual IDataSelectorPtr createSelector() const;
+  
+  /// @breif configure caching of the uvw-machines
+  /// @details A number of uvw machines can be cached at the same time. This can
+  /// result in a significant performance improvement in the mosaicing case. By default
+  /// only single machine is cached and this method should be called to change it. 
+  /// All subsequent iterators will be created with the parameters set in this method until
+  /// it is called again. Call this method without parameters to revert to default settings.
+  /// @note This method is a feature of this implementation and is not available via the 
+  /// general interface (intentionally)
+  /// @param[in] cacheSize a number of uvw machines in the cache (default is 1)
+  /// @param[in] tolerance pointing direction tolerance in radians, exceeding which leads 
+  /// to initialisation of a new UVW Machine
+  void configureUVWMachineCache(size_t cacheSize = 1, double tolerance = 1e-6);
+  
 protected:
   /// construct a part of the read only object for use in the
   /// derived classes
   TableConstDataSource();
   
+  /// @brief UVW machine cache size
+  /// @return size of the uvw machine cache
+  inline size_t uvwMachineCacheSize() const {return itsUVWCacheSize;}
+  
+  /// @brief direction tolerance used for UVW machine cache
+  /// @return direction tolerance used for UVW machine cache (in radians)
+  inline double uvwMachineCacheTolerance() const {return itsUVWCacheTolerance;}   
+  
+private:
+  /// @brief a number of uvw machines in the cache (default is 1)
+  /// @details To speed up mosaicing it is possible to cache any number of uvw machines
+  /// as it takes time to setup the transformation which depends on the phase centre. 
+  /// A change to this parameter applies to all iterators created afterwards. 
+  size_t itsUVWCacheSize;
+  
+  /// @brief pointing direction tolerance in radians (for uvw machine cache)
+  /// @details Exceeding this tolerance leads to initialisation of a new UVW Machine in the cache
+  double itsUVWCacheTolerance;
 };
  
 } // namespace synthesis

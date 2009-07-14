@@ -74,11 +74,15 @@ public:
   /// @param[in] msManager a manager of the measurement set to use
   /// @param[in] sel shared pointer to selector
   /// @param[in] conv shared pointer to converter
+  /// @param[in] cacheSize a number of uvw machines in the cache (default is 1)
+  /// @param[in] tolerance pointing direction tolerance in radians, exceeding which leads 
+  /// to initialisation of a new UVW Machine
   /// @param[in] maxChunkSize maximum number of rows per accessor
   TableConstDataIterator(const boost::shared_ptr<ITableManager const>
               &msManager,
               const boost::shared_ptr<ITableDataSelectorImpl const> &sel,
 	      const boost::shared_ptr<IDataConverterImpl const> &conv,
+	      size_t cacheSize = 1, double tolerance = 1e-6,
 	      casa::uInt maxChunkSize = INT_MAX);
 
   /// Restart the iteration from the beginning
@@ -197,6 +201,14 @@ public:
   /// @brief fill the buffer with the polarisation types 
   /// @param[in] stokes a reference to a vector to be filled
   void fillStokes(casa::Vector<casa::Stokes::StokesTypes> &stokes) const;
+  
+  /// @brief UVW machine cache size
+  /// @return size of the uvw machine cache
+  inline size_t uvwMachineCacheSize() const {return itsUVWCacheSize;}
+  
+  /// @brief direction tolerance used for UVW machine cache
+  /// @return direction tolerance used for UVW machine cache (in radians)
+  inline double uvwMachineCacheTolerance() const {return itsUVWCacheTolerance;}   
   
 protected:
   /// @brief obtain selected range of channels
@@ -371,6 +383,19 @@ protected:
   const casa::MDirection& getCurrentReferenceDir() const;
     
 private:
+  // note, it is essential that itsUVWCacheSize and itsUVWCacheTolerance are initialised
+  // prior to itsAccessor (accessor uses them in its setup) 
+  
+  /// @brief a number of uvw machines in the cache (default is 1)
+  /// @details To speed up mosaicing it is possible to cache any number of uvw machines
+  /// as it takes time to setup the transformation which depends on the phase centre. 
+  /// A change to this parameter applies to all iterators created afterwards. 
+  size_t itsUVWCacheSize;
+  
+  /// @brief pointing direction tolerance in radians (for uvw machine cache)
+  /// @details Exceeding this tolerance leads to initialisation of a new UVW Machine in the cache
+  double itsUVWCacheTolerance; 
+
   /// accessor (a chunk of data) 
   /// although the accessor type can be different
   TableConstDataAccessor itsAccessor;  
@@ -424,7 +449,7 @@ private:
   CachedAccessorField<casa::Vector<casa::Double> > itsParallacticAngleCache;
   
   /// internal buffer for dish pointings for all antennae
-  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointingCache;   
+  CachedAccessorField<casa::Vector<casa::MVDirection> > itsDishPointingCache;    
 };
 
 

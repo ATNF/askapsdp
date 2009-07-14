@@ -45,7 +45,8 @@ using namespace askap::synthesis;
 /// @param iter a reference to associated iterator
 TableConstDataAccessor::TableConstDataAccessor(
                            const TableConstDataIterator &iter) :
-			   itsIterator(iter) {}
+			   itsIterator(iter), itsRotatedUVW(iter.uvwMachineCacheSize(),
+			      iter.uvwMachineCacheTolerance()) {}
 
 /// The number of rows in this chunk
 /// @return the number of rows in this chunk
