@@ -72,7 +72,7 @@ namespace askap
     // processed by every thread.
       
     ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip) : 
-          ImageCleaningSolver(ip), itsCleaners(8)
+          ImageCleaningSolver(ip), itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
     {
       itsScales.resize(3);
       itsScales(0)=0;
@@ -82,7 +82,7 @@ namespace askap
 
     ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip,
       const casa::Vector<float>& scales) : 
-          ImageCleaningSolver(ip), itsCleaners(8)
+          ImageCleaningSolver(ip), itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
     {
       itsScales.resize(scales.size());
       itsScales=scales;
@@ -92,6 +92,15 @@ namespace askap
     {
       resetNormalEquations();
     }
+    
+    /// @brief switch the speed up on
+    /// @param[in] factor speed up factor
+    void ImageMultiScaleSolver::setSpeedUp(float factor)
+    {
+      itsDoSpeedUp = true;
+      itsSpeedUpFactor = factor;
+    }
+       
     
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
@@ -223,7 +232,10 @@ namespace askap
              } else {
                itsCleaners.cachedItem().reset(new casa::LatticeCleaner<float>(psf, dirty));
                lc = itsCleaners.cachedItem();
-               ASKAPDEBUGASSERT(lc);               
+               ASKAPDEBUGASSERT(lc);     
+               if (itsDoSpeedUp) {
+                   lc->speedup(itsSpeedUpFactor);
+               }          
                lc->setMask(mask,maskingThreshold());	  
                
 	           if(algorithm()=="Hogbom") {

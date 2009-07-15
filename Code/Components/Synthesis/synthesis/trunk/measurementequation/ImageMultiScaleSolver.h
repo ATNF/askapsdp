@@ -79,6 +79,10 @@ namespace askap {
                 /// @brief Set the scales
                 /// @param[in] scales vector with scales
                 void setScales(const casa::Vector<float>& scales);
+                
+                /// @brief switch the speed up on
+                /// @param[in] factor speed up factor
+                void setSpeedUp(float factor);
 
             protected:
                 /// @brief Precondition the PSF and the dirty image
@@ -91,7 +95,14 @@ namespace askap {
 
                 /// @brief Cache of Cleaners
                 scimath::FixedSizeCache<string, casa::LatticeCleaner<float> > itsCleaners;
-
+            
+            private:
+                /// @brief if true, use speed up factor (default is false)
+                bool itsDoSpeedUp;
+                
+                /// @brief speed up factor
+                /// @details This value is used only if itsDoSpeedUp is true
+                float itsSpeedUpFactor;
         };
 
     }
