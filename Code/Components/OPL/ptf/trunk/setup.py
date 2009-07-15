@@ -7,7 +7,7 @@ dep.add_package()
 
 ROOTPKG   = 'askap'
 COMPONENT = 'opl'
-PKGNAME   = 'ptfopl'
+PKGNAME   = 'ptf'
 
 setup(name = '%s.%s.%s' % (ROOTPKG, COMPONENT, PKGNAME),
       version = 'trunk',
@@ -25,5 +25,5 @@ setup(name = '%s.%s.%s' % (ROOTPKG, COMPONENT, PKGNAME),
 # Uncomment if using scripts (applications which go in bin) 
 #      scripts = ["scripts/myapp.py"],
 # Uncomment if using unit tests
-#      test_suite = "nose.collector",
+      test_suite = "nose.collector",
 )
