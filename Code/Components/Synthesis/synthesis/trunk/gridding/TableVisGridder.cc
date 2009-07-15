@@ -104,7 +104,8 @@ TableVisGridder::TableVisGridder() : itsSumWeights(),
         itsSupport(-1), itsOverSample(-1),
 	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
-	itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
+	itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
+	itsTimeDegridded(0.0), itsDopsf(false),
 	itsPaddingFactor(1),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false)
 
@@ -115,7 +116,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 		 itsSupport(support), itsOverSample(overSample), itsName(name),
 				itsModelIsEmpty(false), itsSamplesGridded(0),
 				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
-		itsTimeCoordinates(0.0), itsTimeGridded(0.0), itsTimeDegridded(0.0), itsDopsf(false),
+		itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
+		itsTimeDegridded(0.0), itsDopsf(false),
 		itsPaddingFactor(padding),
 		itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false)
 	{
@@ -139,6 +141,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
      itsSamplesDegridded(other.itsSamplesDegridded), itsVectorsFlagged(other.itsVectorsFlagged),
      itsNumberGridded(other.itsNumberGridded),
      itsNumberDegridded(other.itsNumberDegridded), itsTimeCoordinates(other.itsTimeCoordinates),
+     itsTimeConvFunctions(other.itsTimeConvFunctions),
      itsTimeGridded(other.itsTimeGridded),
      itsTimeDegridded(other.itsTimeDegridded),
      itsDopsf(other.itsDopsf), itsPaddingFactor(other.itsPaddingFactor),
@@ -172,8 +175,12 @@ TableVisGridder::~TableVisGridder() {
 			 	*itsTimeGridded/itsSamplesGridded << " (us) per sample");
 		    ASKAPLOG_INFO_STR(logger, "   Total time converting for PSF = "
 	            << itsTimeCoordinates << " (s)");
+	        ASKAPLOG_INFO_STR(logger, "   Total time building CFs and indices for PSF = "
+				<< itsTimeConvFunctions << " (s)");				
 		    ASKAPLOG_INFO_STR(logger, "   PSF coord conversion      = "
 				  << 1e6 * itsTimeCoordinates/itsSamplesGridded << " (us) per sample");
+		    ASKAPLOG_INFO_STR(logger, "   PSF CFs and indices      = "
+				  << 1e6 * itsTimeConvFunctions/itsSamplesGridded << " (us) per sample");
 		    ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
 		    ASKAPLOG_INFO_STR(logger, "   Points gridded (psf)        = "
 	              << itsNumberGridded);
@@ -192,8 +199,12 @@ TableVisGridder::~TableVisGridder() {
 			  	*itsTimeGridded/itsSamplesGridded << " (us) per sample");
 		    ASKAPLOG_INFO_STR(logger, "   Total time converting = "
 				<< itsTimeCoordinates << " (s)");
+            ASKAPLOG_INFO_STR(logger, "   Total time building CFs and indices = "
+				<< itsTimeConvFunctions << " (s)");				
 		    ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
 				  << 1e6 * itsTimeCoordinates/itsSamplesGridded << " (us) per sample");
+		    ASKAPLOG_INFO_STR(logger, "   CFs and indices      = "
+				  << 1e6 * itsTimeConvFunctions/itsSamplesGridded << " (us) per sample");
 		    ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
 		    ASKAPLOG_INFO_STR(logger, "   Points gridded        = "
 				<< itsNumberGridded);
@@ -213,8 +224,12 @@ TableVisGridder::~TableVisGridder() {
 				*itsTimeDegridded/itsSamplesDegridded << " (us) per sample");
 		ASKAPLOG_INFO_STR(logger, "   Total time converting = "
 				<< itsTimeCoordinates << " (s)");
+		ASKAPLOG_INFO_STR(logger, "   Total time building CFs and indices = "
+				<< itsTimeConvFunctions << " (s)");				
 		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
 				  << 1e6 * itsTimeCoordinates/itsSamplesDegridded << " (us) per sample");
+		ASKAPLOG_INFO_STR(logger, "   CFs and indices      = "
+				  << 1e6 * itsTimeConvFunctions/itsSamplesDegridded << " (us) per sample");
 		ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
 		ASKAPLOG_INFO_STR(logger, "   Points degridded      = "
 				<< itsNumberDegridded);
@@ -269,6 +284,11 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    
    const casa::Vector<casa::RigidVector<double, 3> > &outUVW = acc.rotatedUVW(getTangentPoint());
    const casa::Vector<double> &delay = acc.uvwRotationDelay(getTangentPoint(), getImageCentre());
+
+   itsTimeCoordinates += timer.real();
+
+   // Now time CFs and indices
+   timer.mark();
       
    initIndices(acc);
    initConvolutionFunction(acc);
@@ -276,7 +296,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
       ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");
    }
 	  
-   itsTimeCoordinates+=timer.real();
+   itsTimeConvFunctions += timer.real();
 
    // Now time the gridding
    timer.mark();

@@ -343,6 +343,8 @@ namespace askap
       double itsNumberDegridded;
       /// Time for Coordinates
       double itsTimeCoordinates;
+      /// Time for convolution functions
+      double itsTimeConvFunctions;
       /// Time for gridding
       double itsTimeGridded;
       /// Time for degridding
