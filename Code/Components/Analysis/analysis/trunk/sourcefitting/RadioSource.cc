@@ -318,18 +318,18 @@ namespace askap {
                     antipus.setPA(cmpntlist[0].pa());
                     antipus.setMajor(cmpntlist[0].maj());
                     antipus.setMinor(cmpntlist[0].min());
-                    antipus.setX(this->getXAverage() + dx);
-                    antipus.setY(this->getYAverage() + dy);
-                    int pos = int(this->getXAverage() + dx - this->boxXmin()) + this->boxXsize() * int(this->getYAverage() + dy - this->boxYmin());
+                    antipus.setX(this->getXPeak() + dx);
+                    antipus.setY(this->getYPeak() + dy);
+		    int pos = int(antipus.x()-this->boxXmin()) + this->boxXsize()*int(antipus.y()-this->boxYmin());
                     antipus.setPeak(f(pos));
                     cmpntlist.push_back(antipus);
                     SubComponent centre;
                     centre.setPA(antipus.pa());
                     centre.setMajor(antipus.maj());
                     centre.setMinor(antipus.min());
-                    centre.setX(this->getXAverage());
-                    centre.setY(this->getYAverage());
-                    pos = int(this->getXAverage() - this->boxXmin()) + this->boxXsize() * int(this->getYAverage() - this->boxYmin());
+                    centre.setX(this->getXPeak());
+                    centre.setY(this->getYPeak());
+		    pos = int(centre.x()-this->boxXmin()) + this->boxXsize()*int(centre.y()-this->boxYmin());
                     centre.setPeak(f(pos));
                     cmpntlist.push_back(centre);
                 }
