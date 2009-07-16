@@ -1,11 +1,13 @@
 import abc
 
+from askap.opl.ptf.config import init_from_pdict
 
-from askap.parset import ParameterSet, decode
-from askap.opl.ptf.config import ParsetConfig
-
-class Synthesizer(object, ParsetConfig):
+class Synthesizer():
     __metaclass__ = abc.ABCMeta
+
+##    def init_from_pdict(self, pdict):
+ #       if isinstance(pdict, dict):
+ #           ParsetConfig.initialize(self, pdict)
 
     @abc.abstractmethod
     def set_sky_freq(self, freq):
@@ -31,15 +33,22 @@ class Synthesizer(object, ParsetConfig):
     def get_lo_power(self):
         return
 
-
-class DummySynthesizer(Synthesizer):
-    def __init__(self, lofreq=None, skyfreq=None, lopower=None, parset=None):
-        if isinstance(parset, ParameterSet):
-            self.initialize(parset)
-
+@init_from_pdict
+class SimSynthesizer(Synthesizer):
+    def __init__(self, lofreq=None, skyfreq=None, lopower=None, pdict=None):
+        # default values
         self._lo_freq = 0.0
         self._sky_freq = 0.0
         self._lo_power = 1.0
+        # parameter set defaults
+        self.init_from_pdict(pdict)
+        # overwrites
+        if lofreq is not None:
+            self._lo_freq = lofreq
+        if skyfreq is not None:
+            self._sky_freq = skyfreq
+        if lopower is not None:
+            self._lo_power = lopower
 
     def set_sky_freq(self, freq):
         self._sky_freq = freq
