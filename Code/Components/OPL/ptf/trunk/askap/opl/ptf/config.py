@@ -1,23 +1,22 @@
 """
 ParameterSet file::
 
-    # General set up
-    ptf.project             =
-    ptf.observer            =
     ptf.logger.type         = <file/console>
     ptf.logger.level        = INFO
     ptf.logger.format.msg   = (asctime)s %(levelname)s %(name)s - %(message)s
     ptf.logger.format.date  =
+
     # datarec
     ptf.datarec.type        = <SimDataRecorder>
+    ptf.datarec.project     =
     ptf.datarec.basedir     =
     ptf.datarec.use_date    = true
 
     # CABB initial values
     ptf.cabb.type           = <SocketCABB/SimCABB>
-    ptf.cabb.weights_file   =
-    ptf.cabb.attenuator     = <[(port[i], value[i]), ...]>
-    ptf.cabb.test_signal    =
+    ptf.cabb.beamformer_weights   =
+    ptf.cabb.attenuator     = <[[port[i], value[i]], ...]>
+    ptf.cabb.test_signal    = <[port, value]>
 
     # Synthesiser initial values
     ptf.synthesizer.type     = <SimSynthesizer/EpicsSynthesizer>
@@ -29,6 +28,7 @@ ParameterSet file::
     ptf.digitizer.type        = <SimDigitizer>
     ptf.digitizer.test_signal =
     ptf.digitizer.delay       = <[(port[i], value[i]), ...]>
+
 """
 from askap.opl.ptf import logger
 from askap.parset import ParameterSet
@@ -56,7 +56,7 @@ def init_from_pset(cls):
     """
     Decorator
     """
-    def initialize(cls, pset):
+    def initialize(cls, pset, prefix=""):
         """
         Any subsystem implementation needs to inherit from this class to support
         initialization from ParameterSet dicts. This requires a direct match
@@ -73,6 +73,10 @@ def init_from_pset(cls):
         """
         if pset is None:
             return
+        if prefix:
+            if prefix not in pset:
+                return
+            pset = pset[prefix]
         pdict = pset.to_dict()
         for (k,v) in pdict.items():
             skey = "set_"+k
@@ -85,5 +89,5 @@ def init_from_pset(cls):
             else:
                 method(v)
 
-    setattr(cls, "init_from_pdict", initialize)
+    setattr(cls, "init_from_pset", initialize)
     return cls

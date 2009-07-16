@@ -18,15 +18,17 @@ class Logger(object):
     def set_level(self, lvl):
         return
 
+@init_from_pset
 class FileLogger(object):
-    @init_from_pset
-    def __init__(parset=None):
+    def __init__(self, parset=None):
         self._level = logging.INFO
         self._logger = logger
         self._fname = "/tmp/ptf-opl.log"
-        self._fmt = logging.Formatter()
-        self_.init_from_pset(parset)
+        self._fmt = \
+            logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
+        self.init_from_pset(parset, prefix="ptf.logger")
         self._handler = logging.FileHandler(self._fname)
+        self._handler.setFormatter(self._fmt)
         self._logger.addHandler(self._handler)
         self._logger.setLevel(self._level)
 
@@ -39,19 +41,21 @@ class FileLogger(object):
     def set_file_name(self, name):
         self._fname = name
 
+@init_from_pset
 class StdoutLogger(object):
-    @init_from_pset
-    def __init__(parset=None):
+    def __init__(self, parset=None):
         self._level = logging.INFO
         self._logger = logger
-        self._fmt = logging.Formatter()
-        self_.init_from_pset(parset)
+        self._fmt = \
+            logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
+        self.init_from_pset(parset)
         self._handler = logging.StreamHandler(sys.stdout)
+        self._handler.setFormatter(self._fmt)
         self._logger.addHandler(self._handler)
         self._logger.setLevel(self._level)
 
     def set_format(self, msg, date):
-        self._fmt = logging.Formatter(msg, fmt)
+        self._fmt = logging.Formatter(msg, date)
 
     def set_level(self, lvl):
         self._level = eval("logging.%s" % lvl.upper())

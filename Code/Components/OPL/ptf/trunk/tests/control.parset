@@ -1,0 +1,4 @@
+ptf.logger.type = FileLogger
+ptf.logger.file_name = /tmp/test123.log
+ptf.logger.level = WARN
+ptf.cabb.attenuator = [[0,16]]

@@ -1,52 +1,45 @@
 from askap import logging
-from askap.opl.ptf import logger
+from askap.parset import ParameterSet
+from askap.opl.ptf import logger as ptflogger
 from askap.opl.ptf.subsystems import *
-from askap.opl.ptf.config import Config
-
 
 class Control(object):
-    def __init__(self, project=None, user=None, parsetfile=None):
-        self._cfg = Config(parsetfile)
+    def __init__(self, parsetfile=None):
+        if parsetfile is not None:
+            self._cfg = ParameterSet(parsetfile)
+        else:
+            self._cfg = ParameterSet()
+
         self._logger = self._init_subsystem("logger", "StdoutLogger")
-        self._synthesizer = self._init_subsystem("synthesizer")
-        self._digitizer = self._init_subsystem("digitizer")
-        self._cabb = self._init_subsystem("cabb")
-        self._antenna = None
-        self._datarecorder = None
+        self.synthesizer = self._init_subsystem("synthesizer")
+        self.cabb = self._init_subsystem("cabb")
+        self.digitizer = None #self._init_subsystem("digitizer")
+        self.antenna = None
+        self.datarecorder = None
+        ptflogger.info("Initialized system")
 
     def _init_subsystem(self, name, default=None):
+        import inspect
         if default is None:
             default = "Sim"+name.capitalize()
-        stype = self._cfg.get_value(name+".type", default)
-        cls = eval(stype)
-        return cls(parset=self._cfg.get_value(name))
+        stype = self._cfg.get_value(".".join(["ptf", name, "type"]), default)
+        cls = inspect.currentframe().f_globals.get(stype)
+        return cls(parset=self._cfg)
 
     def set_synthesizer(self, obj):
-        self._synthesizer = obj
+        self.synthesizer = obj
 
     def set_digitizer(self, obj):
-        self._digitizer = obj
+        self.digitizer = obj
 
     def set_logger(self, obj):
-        self._logger = obj
+        self.logger = obj
 
     def set_cabb(self, obj):
-        self._cabb = obj
+        self.cabb = obj
 
     def set_datarecorder(self, obj):
-        self._datarecorder = obj
+        self.datarecorder = obj
 
     def set_antenna(self, obj):
-        self._antenna = obj
-
-    def set_project(self, name):
-        self._project = name
-
-    def get_project(self):
-        return self._project
-
-    def set_user(self, name=None):
-        if name is None:
-            self._user = os.environ.get("USER", "unknown")
-        else:
-            self._user = name
+        self.antenna = obj
