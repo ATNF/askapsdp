@@ -33,7 +33,7 @@ class FileLogger(object):
         self._logger.setLevel(self._level)
 
     def set_format(self, msg, date):
-        self._fmt = logging.Formatter(msg, fmt)
+        self._fmt = logging.Formatter(msg, date)
 
     def set_level(self, lvl):
         self._level = eval("logging.%s" % lvl.upper())

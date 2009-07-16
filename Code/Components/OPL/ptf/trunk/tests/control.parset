@@ -1,4 +1,6 @@
 ptf.logger.type = FileLogger
 ptf.logger.file_name = /tmp/test123.log
-ptf.logger.level = WARN
+ptf.logger.format.msg   = %(name)s - %(message)s
+ptf.logger.format.date  = %Y-%m-%d %H:%M:%S
+ptf.logger.level = INFO
 ptf.cabb.attenuator = [[0,16]]
