@@ -6,7 +6,8 @@ ParameterSet file::
     ptf.observer            =
     ptf.logger.type         = <file/console>
     ptf.logger.level        = INFO
-    ptf.logger.format       = (asctime)s %(levelname)s %(name)s - %(message)s
+    ptf.logger.format.msg   = (asctime)s %(levelname)s %(name)s - %(message)s
+    ptf.logger.format.date  =
     # datarec
     ptf.datarec.type        = <SimDataRecorder>
     ptf.datarec.basedir     =
@@ -41,23 +42,21 @@ class Config(object):
 
         """
         pset = ParameterSet(pfile).ptf
-        pdict = pset.to_dict()
         for subsystem in ["digitizer", "synthesizer", "datarec", "cabb",
-                          "logger"]:
-            self._add_dict(pdict, k)
-        self.common = pdict.copy()
+                          "logger", "common"]:
+            v = None
+            if subsystem in pdict:
+                v = pset[subsystem]
+            setattr(self, subsystem, v )
+
         logger.info("Read Parameter Set file '%s'" % pfile)
 
-    def _add_dict(self, pdict, k):
-        if k in pdict:
-            setattr(self, k, pdict[k] )
 
-
-def init_from_pdict(cls):
+def init_from_pset(cls):
     """
     Decorator
     """
-    def initialize(cls, pdict):
+    def initialize(cls, pset):
         """
         Any subsystem implementation needs to inherit from this class to support
         initialization from ParameterSet dicts. This requires a direct match
@@ -69,11 +68,12 @@ def init_from_pdict(cls):
 
             aaa.bbb.xxx = value1
             aaa.bbb.yyy = value2   -> Aaa.set_bbb(xxx=value1, yyy=value2)
-            
+
 
         """
-        if pdict is None:
+        if pset is None:
             return
+        pdict = pset.to_dict()
         for (k,v) in pdict.items():
             skey = "set_"+k
             # filter non-valid entries and _special_ key 'type'

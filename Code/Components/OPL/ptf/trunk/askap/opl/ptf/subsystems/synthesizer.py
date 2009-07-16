@@ -1,13 +1,14 @@
+__all__ = "SimSynthesizer"
+
 import abc
 
-from askap.opl.ptf.config import init_from_pdict
+from askap import logging
+from askap.opl.ptf.config import init_from_pset
 
-class Synthesizer():
+logger = logging.getLogger(__name__)
+
+class Synthesizer:
     __metaclass__ = abc.ABCMeta
-
-##    def init_from_pdict(self, pdict):
- #       if isinstance(pdict, dict):
- #           ParsetConfig.initialize(self, pdict)
 
     @abc.abstractmethod
     def set_sky_freq(self, freq):
@@ -33,7 +34,7 @@ class Synthesizer():
     def get_lo_power(self):
         return
 
-@init_from_pdict
+@init_from_pset
 class SimSynthesizer(Synthesizer):
     def __init__(self, lofreq=None, skyfreq=None, lopower=None, pdict=None):
         # default values
@@ -49,6 +50,7 @@ class SimSynthesizer(Synthesizer):
             self._sky_freq = skyfreq
         if lopower is not None:
             self._lo_power = lopower
+        logger.info("Initialized")
 
     def set_sky_freq(self, freq):
         self._sky_freq = freq
