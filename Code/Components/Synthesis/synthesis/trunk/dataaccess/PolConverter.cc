@@ -213,20 +213,20 @@ void PolConverter::fillPARotationMatrix(double pa1, double pa2)
   const double spa1 = sin(pa1);
   const double spa2 = sin(pa2);
   itsPARotation(0,0) = cpa1 * cpa2;
-  itsPARotation(0,1) = spa1 * cpa2;
-  itsPARotation(0,2) = cpa1 * spa2;
+  itsPARotation(0,1) = cpa1 * spa2;
+  itsPARotation(0,2) = spa1 * cpa2;
   itsPARotation(0,3) = spa1 * spa2;
-  itsPARotation(1,0) = -spa1 * cpa2;
+  itsPARotation(1,0) = -cpa1 * spa2;
   itsPARotation(1,1) = cpa1 * cpa2;
   itsPARotation(1,2) = -spa1 * spa2;
-  itsPARotation(1,3) = cpa1 * spa2;
-  itsPARotation(2,0) = -cpa1 * spa2;
+  itsPARotation(1,3) = spa1 * cpa2;
+  itsPARotation(2,0) = -spa1 * cpa2;
   itsPARotation(2,1) = -spa1 * spa2;
   itsPARotation(2,2) = cpa1 * cpa2;
-  itsPARotation(2,3) = spa1 * cpa2;
+  itsPARotation(2,3) = cpa1 * spa2;
   itsPARotation(3,0) = spa1 * spa2;
-  itsPARotation(3,1) = -cpa1 * spa2;
-  itsPARotation(3,2) = -spa1 * cpa2;
+  itsPARotation(3,1) = -spa1 * cpa2;
+  itsPARotation(3,2) = -cpa1 * spa2;
   itsPARotation(3,3) = cpa1 * cpa2;  
 }
   

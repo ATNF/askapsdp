@@ -198,7 +198,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		ASKAPLOG_INFO_STR(logger, "Gridding using W stacking ");
 		gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
 	} else if (gridderName == "AWProject") {
-		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
+		double pointingTol=parset.getDouble("gridder.AWProject.pointingtolerance", 0.0001);
 		double wmax=parset.getDouble("gridder.AWProject.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 65);
 		double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
