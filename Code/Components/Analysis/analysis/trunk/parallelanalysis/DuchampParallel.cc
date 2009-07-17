@@ -230,7 +230,9 @@ namespace askap {
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
 
                     result = this->itsCube.getMetadata();
-                } else result = casaImageToMetadata(this->itsCube);
+                } else{
+		  result = casaImageToMetadata(this->itsCube);
+		}
 
                 if (result == duchamp::FAILURE) {
                     ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsImage << ".");

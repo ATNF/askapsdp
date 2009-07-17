@@ -322,10 +322,7 @@ namespace askap {
             /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
-            //       LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read);
-            //      lattPtr->unlock();
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-            //      imagePtr->unlock();
             IPosition shape = imagePtr->shape();
             std::vector<long> dim(shape.size());
 
@@ -339,10 +336,13 @@ namespace askap {
             if (cube.pars().section().parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "casaImageToMetadata: Cannot parse the subsection string " << cube.pars().getSubsection());
 
-            if (casaImageToMetadata(imagePtr, cube) == duchamp::FAILURE) return duchamp::FAILURE;
+	    ASKAPLOG_DEBUG_STR(logger, "casaImageToMetadata: subsection string is " << cube.pars().getSubsection());
 
-            //       delete lock1;
-//      delete imagePtr;
+            Slicer slice = subsectionToSlicer(cube.pars().section());
+            const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+
+            if (casaImageToMetadata(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
+
             delete lattPtr;
             return duchamp::SUCCESS;
         }
