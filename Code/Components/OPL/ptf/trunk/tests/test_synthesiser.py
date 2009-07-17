@@ -16,6 +16,6 @@ def test_init():
 
 def test_parset_init_with_overwrite():
     s = SimSynthesiser(lopower=33.0, parset=create_parset())
-    assert s.get_lo_freq() == 11.0
-    assert s.get_sky_freq() == 22.0
-    assert s.get_lo_power() == 33.0
+    assert s.lo_freq == 11.0
+    assert s.sky_freq == 22.0
+    assert s.lo_power == 33.0

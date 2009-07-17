@@ -34,6 +34,10 @@ class Synthesiser(object):
     def get_lo_power(self):
         return
 
+    lo_power = abc.abstractproperty(get_lo_power, set_lo_power)
+    lo_freq = abc.abstractproperty(get_lo_freq, set_sky_freq)
+    sky_freq = abc.abstractproperty(get_sky_freq, set_sky_freq)
+
 @init_from_pset
 class SimSynthesiser(Synthesiser):
     def __init__(self, lofreq=None, skyfreq=None, lopower=None, parset=None):
@@ -69,3 +73,7 @@ class SimSynthesiser(Synthesiser):
 
     def get_lo_power(self):
         return self._lo_power
+
+    lo_power = property(get_lo_power, set_lo_power)
+    lo_freq = property(get_lo_freq, set_sky_freq)
+    sky_freq = property(get_sky_freq, set_sky_freq)
