@@ -19,19 +19,19 @@ class Digitiser(object):
         return
 
     @abc.abstractmethod
-    def get_delay(self, port):
+    def get_delay(self, ports):
         return
 
     @abc.abstractmethod
-    def set_delay(self, portdelaypair):
+    def set_delay(self, portvaluepairs):
         return
 
     @abc.abstractmethod
-    def get_test_signal(self, port):
+    def get_test_signal(self, ports):
         return
 
     @abc.abstractmethod
-    def set_test_signal(self, portvaluepair):
+    def set_test_signal(self, portvaluepairs):
         return
 
 
@@ -39,9 +39,45 @@ class Digitiser(object):
 class SimDigitiser(Digitiser):
     def __init__(self, parset=None):
         # default values
-
+        self._adc = [0.0]*48
+        self._delay = [0]*48
+        self._test = [False]*48
         # parameter set defaults
-        self.init_from_pset(parset, prefix="ptf.Digitiser")
+        self.init_from_pset(parset, prefix="ptf.digitiser")
         # overwrites
 
         logger.info("Initialized")
+
+    def get_adc_samples(self, port):
+        return [0]*8192
+
+    def get_pfb_samples(self, port):
+        return [0+0j]*8192
+
+    def get_delay(self, ports):
+        if ports is None:
+            return self._delay[:]
+        if isinstance(ports, int):
+            ports = [ports]
+        return [self._delay[i] for i in ports]
+
+    def set_delay(self, portvaluepairs):
+        if not isinstance(portvaluepairs[0], list):
+            portvaluepairs = [portvaluepairs]
+        for pair in portvaluepairs:
+            if 0 <= pair[0] < len(self._delay):
+                self._delay[pair[0]] = pair[1]
+
+    def get_test_signal(self, port):
+        if ports is None:
+            return self._test[:]
+        if isinstance(ports, int):
+            ports = [ports]
+        return [self._test[i] for i in ports]
+
+    def set_test_signal(self, portvaluepair):
+        if not isinstance(portvaluepairs[0], list):
+            portvaluepairs = [portvaluepairs]
+        for pair in portvaluepairs:
+            if 0 <= pair[0] < len(self._test):
+                self._test[pair[0]] = pair[1]
