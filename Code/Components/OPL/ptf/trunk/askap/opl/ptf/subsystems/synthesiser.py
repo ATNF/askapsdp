@@ -1,4 +1,4 @@
-__all__ = ["SimSynthesizer"]
+__all__ = ["SimSynthesiser"]
 
 import abc
 
@@ -7,7 +7,7 @@ from askap.opl.ptf.config import init_from_pset
 
 logger = logging.getLogger(__name__)
 
-class Synthesizer(object):
+class Synthesiser(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
@@ -35,14 +35,14 @@ class Synthesizer(object):
         return
 
 @init_from_pset
-class SimSynthesizer(Synthesizer):
+class SimSynthesiser(Synthesiser):
     def __init__(self, lofreq=None, skyfreq=None, lopower=None, parset=None):
         # default values
         self._lo_freq = 0.0
         self._sky_freq = 0.0
         self._lo_power = 1.0
         # parameter set defaults
-        self.init_from_pset(parset, prefix="ptf.synthesizer")
+        self.init_from_pset(parset, prefix="ptf.synthesiser")
         # overwrites
         if lofreq is not None:
             self._lo_freq = lofreq

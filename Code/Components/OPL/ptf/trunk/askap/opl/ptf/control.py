@@ -11,9 +11,9 @@ class Control(object):
             self._cfg = ParameterSet()
 
         self._logger = self._init_subsystem("logger", "StdoutLogger")
-        self.synthesizer = self._init_subsystem("synthesizer")
+        self.synthesiser = self._init_subsystem("synthesiser")
         self.cabb = self._init_subsystem("cabb")
-        self.digitizer = None #self._init_subsystem("digitizer")
+        self.digitiser = None #self._init_subsystem("digitiser")
         self.antenna = None
         self.datarecorder = None
         ptflogger.info("Initialized system")
@@ -26,11 +26,11 @@ class Control(object):
         cls = inspect.currentframe().f_globals.get(stype)
         return cls(parset=self._cfg)
 
-    def set_synthesizer(self, obj):
-        self.synthesizer = obj
+    def set_synthesiser(self, obj):
+        self.synthesiser = obj
 
-    def set_digitizer(self, obj):
-        self.digitizer = obj
+    def set_digitiser(self, obj):
+        self.digitiser = obj
 
     def set_logger(self, obj):
         self.logger = obj

@@ -1,34 +1,6 @@
 """
 ParameterSet file::
 
-    ptf.logger.type         = <file/console>
-    ptf.logger.level        = INFO
-    ptf.logger.format.msg   = (asctime)s %(levelname)s %(name)s - %(message)s
-    ptf.logger.format.date  =
-
-    # datarec
-    ptf.datarec.type        = <SimDataRecorder>
-    ptf.datarec.project     =
-    ptf.datarec.basedir     =
-    ptf.datarec.use_date    = true
-
-    # CABB initial values
-    ptf.cabb.type           = <SocketCABB/SimCABB>
-    ptf.cabb.beamformer_weights   =
-    ptf.cabb.attenuator     = <[[port[i], value[i]], ...]>
-    ptf.cabb.test_signal    = <[port, value]>
-
-    # Synthesiser initial values
-    ptf.synthesizer.type     = <SimSynthesizer/EpicsSynthesizer>
-    ptf.synthesizer.sky_freq = <integer>
-    ptf.synthesizer.lo_freq  = <integer>
-    ptf.synthesizer.lo_power = <float>
-
-    # Digitizer
-    ptf.digitizer.type        = <SimDigitizer>
-    ptf.digitizer.test_signal =
-    ptf.digitizer.delay       = <[(port[i], value[i]), ...]>
-
 """
 from askap.opl.ptf import logger
 from askap.parset import ParameterSet
@@ -42,7 +14,7 @@ class Config(object):
 
         """
         pset = ParameterSet(pfile).ptf
-        for subsystem in ["digitizer", "synthesizer", "datarec", "cabb",
+        for subsystem in ["digitiser", "synthesiser", "datarec", "cabb",
                           "logger", "common"]:
             v = None
             if subsystem in pdict:
@@ -62,7 +34,7 @@ def init_from_pset(cls):
         initialization from ParameterSet dicts. This requires a direct match
         for dictionary key to class method name e.g.::
 
-            synthesizer.lo_freq = value -> Synthesizer.set_lo_freq(value)
+            synthesiser.lo_freq = value -> Synthesiser.set_lo_freq(value)
 
         or for multiple arguments::
 

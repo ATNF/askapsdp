@@ -11,7 +11,7 @@ class Cabb(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def set_attenuator(self, portvalpairs):
+    def set_attenuator(self, portvaluepairs):
         return
 
     @abc.abstractmethod
@@ -19,7 +19,7 @@ class Cabb(object):
         return
 
     @abc.abstractmethod
-    def set_test_signal(self, port, value):
+    def set_test_signal(self, portvaluepair):
         return
 
     @abc.abstractmethod
@@ -57,8 +57,8 @@ class SimCabb(Cabb):
         self._test = [False]*48
         self.init_from_pset(parset, prefix="ptf.cabb")
 
-    def set_attenuator(self, portvalpairs):
-        for pair in portvalpairs:
+    def set_attenuator(self, portvaluepairs):
+        for pair in portvaluepairs:
             if 0 <= pair[0] < len(self._attn):
                 self._attn[pair[0]] = pair[1]
 
@@ -68,8 +68,8 @@ class SimCabb(Cabb):
             out.append([i, self._attn[i]])
         return out
 
-    def set_test_signal(self, portvalpair):
-        self._test[portvalpair[0]] = portvalpair[1]
+    def set_test_signal(self, portvaluepair):
+        self._test[portvaluepair[0]] = portvaluepair[1]
 
     def get_test_signal(self, port):
         return self._test[port]
