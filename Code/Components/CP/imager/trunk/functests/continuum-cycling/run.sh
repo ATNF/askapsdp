@@ -20,6 +20,11 @@ mv 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
 mpirun -np 2 ${ASKAP_ROOT}/Code/Components/CP/imager/trunk/apps/imager.sh -inputs clean.in | tee $OUTPUT
+if [ $? -ne 0 ]; then
+    echo Error: mpirun returned an error
+    exit 1
+fi
+
 
 echo -n Removing measurement set...
 rm -rf 10uJy_stdtest_0.ms

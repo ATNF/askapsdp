@@ -44,8 +44,6 @@ namespace askap {
                 int getAccumulatorStep(void);
 
             private:
-                static const int itsAccumulatorStep = 16;
-
                 const int itsId;
                 const int itsNumNodes;
         };

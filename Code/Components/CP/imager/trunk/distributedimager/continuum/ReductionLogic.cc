@@ -50,23 +50,24 @@ ReductionLogic::~ReductionLogic()
 
 int ReductionLogic::responsible(void)
 {
+    const int accumulatorStep = getAccumulatorStep();
     int responsible = 0;
 
     if (itsId == 0) {
         // Master
-        if (itsNumNodes <= itsAccumulatorStep) {
+        if (itsNumNodes <= accumulatorStep) {
             responsible = itsNumNodes - 1;
         } else {
-            responsible += itsAccumulatorStep - 1; // First n workers
-            float accumulators = ceil((float)itsNumNodes / (float)itsAccumulatorStep) - 1.0;
+            responsible += accumulatorStep - 1; // First n workers
+            float accumulators = ceil((float)itsNumNodes / (float)accumulatorStep) - 1.0;
             responsible += static_cast<int>(accumulators); // Accumulators 
         }
-    } else if (itsId % itsAccumulatorStep == 0) {
+    } else if (itsId % accumulatorStep == 0) {
         // Accumulator + worker
-        if ((itsId + itsAccumulatorStep) > itsNumNodes) {
+        if ((itsId + accumulatorStep) > itsNumNodes) {
             responsible = itsNumNodes - itsId - 1;
         } else {
-            responsible = itsAccumulatorStep - 1;
+            responsible = accumulatorStep - 1;
         }
 
     } else {
@@ -80,5 +81,9 @@ int ReductionLogic::responsible(void)
 
 int ReductionLogic::getAccumulatorStep(void)
 {
-    return itsAccumulatorStep;
+    if (itsNumNodes <= 16) {
+        return 4;
+    } else {
+        return static_cast<int>(ceil(sqrt(itsNumNodes)));
+    }
 }
