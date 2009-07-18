@@ -191,8 +191,24 @@ void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Sta
 
 void MPIBasicComms::broadcast(void* buf, size_t size, int root)
 {
-    int result = MPI_Bcast(buf, size, MPI_BYTE, root, itsCommunicator);
-    checkError(result, "MPI_Bcast");
+    const unsigned int c_maxint = std::numeric_limits<int>::max();
+
+    // Broadcast in chunks of size MAXINT until complete
+    size_t remaining = size;
+    int result;
+    while (remaining > 0) {
+        size_t offset = size - remaining;
+
+        void* addr = addOffset(buf, offset);
+        if (remaining > c_maxint) {
+            result = MPI_Bcast(addr, c_maxint, MPI_BYTE, root, itsCommunicator);
+            remaining -= c_maxint;
+        } else {
+            result = MPI_Bcast(addr, remaining, MPI_BYTE, root, itsCommunicator);
+            remaining = 0;
+        }
+        checkError(result, "MPI_Bcast");
+    }
 }
 
 void MPIBasicComms::checkError(const int error, const std::string location)
