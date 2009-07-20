@@ -42,7 +42,6 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <askap/AskapUtil.h>
 
 #include <fft/FFTWrapper.h>
-#include <gridding/UVPattern.h>
 #include <gridding/IBasicIllumination.h>
 
 #include <utils/PaddingUtils.h>
@@ -226,6 +225,40 @@ namespace askap {
 	}
       }
     }
+    /// @brief Initialise the gridding
+    /// @param axes axes specifications
+    /// @param shape Shape of output image: u,v,pol,chan
+    /// @param dopsf Make the psf?
+    void AProjectWStackVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa::IPosition& shape, const bool dopsf)
+    {
+      WStackVisGridder::initialiseGrid(axes,shape,dopsf);
+
+      /// Limit the size of the convolution function since
+      /// we don't need it finely sampled in image space. This
+      /// will reduce the time taken to calculate it.
+      const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
+      const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+      
+      // this is just a buffer in the uv-space
+      itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));
+    }
+   
+    /// @brief Initialise the degridding
+    /// @param axes axes specifications
+    /// @param image Input image: cube: u,v,pol,chan
+    void AProjectWStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
+              const casa::Array<double>& image)
+    {
+      WStackVisGridder::initialiseDegrid(axes,image);      
+            /// Limit the size of the convolution function since
+      /// we don't need it finely sampled in image space. This
+      /// will reduce the time taken to calculate it.
+      const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
+      const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+      
+      // this is just a buffer in the uv-space
+      itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));      
+    }
     
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
@@ -233,6 +266,7 @@ namespace askap {
     void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
       
       ASKAPDEBUGASSERT(itsIllumination);
+      ASKAPDEBUGASSERT(itsPattern);
       // just to avoid a repeated call to a virtual function from inside the loop
       const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
       
@@ -254,16 +288,12 @@ namespace askap {
 	itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
 	itsSumWeights.set(0.0);
       }
+                  
+      UVPattern &pattern = *itsPattern;
+      const casa::uInt nx = pattern.uSize();
+      const casa::uInt ny = pattern.vSize();
       
-      /// Limit the size of the convolution function since
-      /// we don't need it finely sampled in image space. This
-      /// will reduce the time taken to calculate it.
-      casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
-      casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
-      
-      // this is just a buffer in the uv-space
-      UVPattern pattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
-      
+                  
       int nDone=0;
       for (int row=0; row<nSamples; ++row) {
 	const int feed=acc.feed1()(row);

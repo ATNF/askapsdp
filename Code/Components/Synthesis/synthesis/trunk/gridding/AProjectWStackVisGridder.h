@@ -33,6 +33,7 @@
 #include <gridding/WStackVisGridder.h>
 #include <gridding/IBasicIllumination.h>
 #include <dataaccess/IConstDataAccessor.h>
+#include <gridding/UVPattern.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -92,6 +93,19 @@ namespace askap
       /// @param out Output double precision grid
       virtual void finaliseWeights(casa::Array<double>& out);
 
+      /// @brief Initialise the gridding
+      /// @param axes axes specifications
+      /// @param shape Shape of output image: u,v,pol,chan
+      /// @param dopsf Make the psf?
+      virtual void initialiseGrid(const scimath::Axes& axes,
+              const casa::IPosition& shape, const bool dopsf=true);
+   
+      /// @brief Initialise the degridding
+      /// @param axes axes specifications
+      /// @param image Input image: cube: u,v,pol,chan
+      virtual void initialiseDegrid(const scimath::Axes& axes,
+              const casa::Array<double>& image);
+
   protected:
       /// @brief initialise sum of weights
       /// @details We keep track the number of times each convolution function is used per
@@ -148,6 +162,9 @@ namespace askap
       casa::Matrix<bool> itsDone;
       /// Pointing for this feed and field
       casa::Matrix<casa::MVDirection> itsPointings;
+      /// @brief buffer in the uv-space
+      /// @details It is used to compute convolution functions (buffer for illumination pattern)
+      boost::shared_ptr<UVPattern> itsPattern;
     };
 
   }
