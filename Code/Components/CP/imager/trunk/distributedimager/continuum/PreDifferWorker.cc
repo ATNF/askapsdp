@@ -210,7 +210,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         PreDifferResponse response;
         response.set_payloadType(PreDifferResponse::RESULT);
         response.set_count(accumulatedCount);
-        response.set_normalEquations(itsNormalEquation_p);
+        response.set_normalEquations(ne_p);
         itsComms.sendMessage(response, itsMaster);
     } else {
         // Worker only
@@ -220,7 +220,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         PreDifferResponse response;
         response.set_payloadType(PreDifferResponse::RESULT);
         response.set_count(count);
-        response.set_normalEquations(itsNormalEquation_p);
+        response.set_normalEquations(ne_p);
         itsComms.sendMessage(response, accumulator);
     }
 }

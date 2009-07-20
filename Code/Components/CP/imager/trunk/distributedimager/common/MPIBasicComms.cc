@@ -136,7 +136,7 @@ void MPIBasicComms::send(const void* buf, size_t size, int dest, int tag)
         size_t offset = size - remaining;
 
         void* addr = addOffset(buf, offset);
-        if (remaining > c_maxint) {
+        if (remaining >= c_maxint) {
             result = MPI_Send(addr, c_maxint, MPI_BYTE,
                     dest, tag, itsCommunicator);
             remaining -= c_maxint;
@@ -174,7 +174,7 @@ void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Sta
     while (remaining > 0) {
         size_t offset = size - remaining;
         void* addr = addOffset(buf, offset);
-        if (remaining > c_maxint) {
+        if (remaining >= c_maxint) {
             result = MPI_Recv(addr, c_maxint, MPI_BYTE,
                     actualSource, tag, itsCommunicator, &status);
             remaining -= c_maxint;
@@ -200,7 +200,7 @@ void MPIBasicComms::broadcast(void* buf, size_t size, int root)
         size_t offset = size - remaining;
 
         void* addr = addOffset(buf, offset);
-        if (remaining > c_maxint) {
+        if (remaining >= c_maxint) {
             result = MPI_Bcast(addr, c_maxint, MPI_BYTE, root, itsCommunicator);
             remaining -= c_maxint;
         } else {
@@ -251,7 +251,7 @@ void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
     timer.mark();
 
     // First send the size of the buffer
-    const long size = buf.size();
+    const unsigned long size = buf.size();
     send(&size, sizeof(long), dest, messageType);
 
     // Now send the actual byte stream
@@ -265,7 +265,7 @@ void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
 void MPIBasicComms::receiveMessage(IMessage& msg, int source)
 {
     // First receive the size of the byte stream
-    long size;
+    unsigned long size;
     const int type = msg.getMessageType();
     MPI_Status status;  // Not really used
     receive(&size, sizeof(long), source, type, status);
@@ -273,6 +273,10 @@ void MPIBasicComms::receiveMessage(IMessage& msg, int source)
     // Receive the byte stream
     std::vector<int8_t> buf;
     buf.resize(size);
+
+    ASKAPCHECK(buf.size() == size,
+            "MPIBasicComms::receiveMessage() buf is too small");
+
     receive(&buf[0], size * sizeof(char), source, type, status);
 
     // Decode
@@ -287,7 +291,7 @@ void MPIBasicComms::receiveMessage(IMessage& msg, int source)
 void MPIBasicComms::receiveMessageAnySrc(IMessage& msg, int& actualSource)
 {
     // First receive the size of the byte stream
-    long size;
+    unsigned long size;
     const int type = msg.getMessageType();
     MPI_Status status;
     receive(&size, sizeof(long), MPI_ANY_SOURCE, type, status);
@@ -296,6 +300,10 @@ void MPIBasicComms::receiveMessageAnySrc(IMessage& msg, int& actualSource)
     // Receive the byte stream
     std::vector<int8_t> buf;
     buf.resize(size);
+
+    ASKAPCHECK(buf.size() == size,
+            "MPIBasicComms::MPIBasicComms::receiveMessageAnySrc() buf is too small");
+
     receive(&buf[0], size * sizeof(char), actualSource, type, status);
 
     // Decode
@@ -338,7 +346,6 @@ void MPIBasicComms::sendMessageBroadcast(const IMessage& msg)
 
     ASKAPLOG_INFO_STR(logger, "Broadcast model to all ranks via MPI in "
             << timer.real() << " seconds ");
-
 }
 
 void MPIBasicComms::receiveMessageBroadcast(IMessage& msg, int root)
@@ -350,6 +357,9 @@ void MPIBasicComms::receiveMessageBroadcast(IMessage& msg, int root)
     // Setup a data buffer to receive into
     std::vector<int8_t> buf;
     buf.resize(size);
+
+    ASKAPCHECK(buf.size() == size,
+            "MPIBasicComms::receiveMessageBroadcast() buf is too small");
 
     // Now participate in the broadcast of the message itself
     broadcast(&buf[0], size * sizeof(int8_t), root);
