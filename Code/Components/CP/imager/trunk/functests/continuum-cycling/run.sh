@@ -19,29 +19,54 @@ tar zxf ../10uJy_stdtest.ms.tgz
 mv 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
+# Run the imager with the test configuration
 mpirun -np 2 ${ASKAP_ROOT}/Code/Components/CP/imager/trunk/apps/imager.sh -inputs clean.in | tee $OUTPUT
 if [ $? -ne 0 ]; then
     echo Error: mpirun returned an error
     exit 1
 fi
 
-
 echo -n Removing measurement set...
 rm -rf 10uJy_stdtest_0.ms
 rm -rf 10uJy_stdtest_1.ms
 echo Done
 
+# Check for instances of "Askap error"
+grep -c "Askap error" $OUTPUT > /dev/null
+if [ $? -ne 1 ]; then
+    echo "Askap error reported in output.txt"
+    exit 1
+fi
+
+# Check for instances of "Unexpected exception"
+grep -c "Unexpected exception" $OUTPUT > /dev/null
+if [ $? -ne 1 ]; then
+    echo "Exception reported in output.txt"
+    exit 1
+fi
+
+# Check for the existance of the various image files
 if [ ! -d image.i.10uJy_clean_stdtest ]; then
-    echo Image file was not created
+    echo "Image file was not created"
     exit 1
 fi
 
 if [ ! -d psf.i.10uJy_clean_stdtest ]; then
-    echo PSF file was not created
+    echo "PSF file was not created"
     exit 1
 fi
 
 if [ ! -d weights.i.10uJy_clean_stdtest ]; then
-    echo Weights image was not created
+    echo "Weights image was not created"
+    exit 1
+fi
+
+if [ ! -d image.i.10uJy_clean_stdtest.restored ]; then
+    echo "Restored image file was not created"
+    exit 1
+fi
+
+if [ ! -d residual.i.10uJy_clean_stdtest ]; then
+    echo "Residual image file was not created"
     exit 1
 fi

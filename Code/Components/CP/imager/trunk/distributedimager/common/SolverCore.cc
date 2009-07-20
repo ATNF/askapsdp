@@ -265,15 +265,13 @@ void SolverCore::writeModel(const std::string &postfix)
         ir.solveNormalEquations(q);
         ASKAPDEBUGASSERT(itsModel);
         *itsModel = ir.parameters();
-        resultimages=itsModel->completions("image");
-        for (vector<string>::iterator it=resultimages.begin(); it
-                !=resultimages.end(); it++)
-        {
-            string imageName("image"+(*it)+postfix);
-            ASKAPLOG_INFO_STR(logger, "Saving restored image " << imageName << " with name "
-                    << imageName+string(".restored") );
-            SynthesisParamsHelper::saveImageParameter(*itsModel, "image"+(*it),
-                    imageName+string(".restored"));
+        resultimages=itsModel->fixedNames();
+        for (vector<string>::const_iterator ci=resultimages.begin(); ci!=resultimages.end(); ++ci) {
+            if (ci->find("image") == 0) {
+                ASKAPLOG_INFO_STR(logger, "Saving restored image " << *ci << " with name "
+                        << *ci+string(".restored") );
+                SynthesisParamsHelper::saveImageParameter(*itsModel, *ci,*ci+string(".restored"));
+            }
         }
     }
 }
