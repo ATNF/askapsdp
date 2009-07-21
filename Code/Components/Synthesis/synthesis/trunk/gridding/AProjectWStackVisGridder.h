@@ -165,6 +165,13 @@ namespace askap
       /// @brief buffer in the uv-space
       /// @details It is used to compute convolution functions (buffer for illumination pattern)
       boost::shared_ptr<UVPattern> itsPattern;
+      
+      /// @brief true if the CF cache is valid
+      /// @details The shape of the accessor and mapping may change from one iteration to another. 
+      /// We check (inside initIndices) whether the indices (and therefore the cache of CFs) stay 
+      /// the same and reset this flag if they are not. This flag is also reset when
+      /// gridding or degridding are initialised.
+      bool itsIndicesValid;
     };
 
   }

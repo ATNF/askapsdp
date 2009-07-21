@@ -60,7 +60,7 @@ namespace askap {
       WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
       itsIllumination(illum),
       itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
-      itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent)
+      itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent), itsIndicesValid(false)
       
     {	
       ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
@@ -99,8 +99,12 @@ namespace askap {
       itsFreqDep(other.itsFreqDep), itsMaxSupport(other.itsMaxSupport),
       itsLimitSupport(other.itsLimitSupport),
       itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
-      itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy())
+      itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()), 
+      itsIndicesValid(other.itsIndicesValid)
     {
+      if (other.itsPattern) {
+          itsPattern.reset(new UVPattern(*(other.itsPattern)));
+      }
     }
     
     AProjectWStackVisGridder::~AProjectWStackVisGridder() {
@@ -242,6 +246,9 @@ namespace askap {
       
       // this is just a buffer in the uv-space
       itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));
+       
+      // this invalidates the cache of CFs      
+      itsIndicesValid = false;
     }
    
     /// @brief Initialise the degridding
@@ -259,6 +266,9 @@ namespace askap {
       
       // this is just a buffer in the uv-space
       itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));      
+
+      // this invalidates the cache of CFs      
+      itsIndicesValid = false;
     }
     
     /// Initialize the convolution function into the cube. If necessary this
