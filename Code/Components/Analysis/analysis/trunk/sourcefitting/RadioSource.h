@@ -31,8 +31,6 @@
 #ifndef ASKAP_ANALYSIS_RADIOSOURCE_H_
 #define ASKAP_ANALYSIS_RADIOSOURCE_H_
 
-#include <askap_analysis.h>
-
 #include <sourcefitting/FittingParameters.h>
 #include <sourcefitting/FitResults.h>
 #include <sourcefitting/Component.h>

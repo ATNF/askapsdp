@@ -29,8 +29,6 @@
 #ifndef ASKAP_ANALYSIS_GROTHTRIANGLES_H_
 #define ASKAP_ANALYSIS_GROTHTRIANGLES_H_
 
-#include <askap_analysis.h>
-
 #include <iostream>
 #include <iomanip>
 #include <vector>

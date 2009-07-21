@@ -29,8 +29,6 @@
 #ifndef ASKAP_ANALYSIS_SUBIMAGE_H_
 #define ASKAP_ANALYSIS_SUBIMAGE_H_
 
-#include <askap_analysis.h>
-
 #include <string>
 #include <vector>
 

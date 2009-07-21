@@ -30,8 +30,6 @@
 #ifndef ASKAP_ANALYSIS_FITTINGPARAMS_H_
 #define ASKAP_ANALYSIS_FITTINGPARAMS_H_
 
-#include <askap_analysis.h>
-
 #include <sourcefitting/Component.h>
 
 #include <scimath/Fitting/FitGaussian.h>

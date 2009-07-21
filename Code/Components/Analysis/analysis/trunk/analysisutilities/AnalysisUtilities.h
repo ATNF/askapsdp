@@ -29,8 +29,6 @@
 #ifndef ASKAP_ANALYSIS_ANALYSISUTILS_H_
 #define ASKAP_ANALYSIS_ANALYSISUTILS_H_
 
-#include <askap_analysis.h>
-
 #include <analysisutilities/SubimageDef.h>
 
 #include <string>

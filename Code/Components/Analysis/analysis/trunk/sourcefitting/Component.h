@@ -30,6 +30,7 @@
 
 #ifndef ASKAP_ANALYSIS_COMPONENT_H_
 #define ASKAP_ANALYSIS_COMPONENT_H_
+
 #include <iostream>
 #include <iomanip>
 

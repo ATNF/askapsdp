@@ -26,7 +26,8 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#include <askap_analysis.h>
+#ifndef ASKAP_ANALYSIS_CASAIMAGE_H_
+#define ASKAP_ANALYSIS_CASAIMAGE_H_
 
 #include <analysisutilities/SubimageDef.h>
 
@@ -89,3 +90,6 @@ namespace askap {
     }
 
 }
+
+#endif
+
