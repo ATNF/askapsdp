@@ -26,15 +26,17 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
+#include <askap_simulations.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <FITS/FITSfile.h>
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
 #include <analysisutilities/AnalysisUtilities.h>
 
 #include <APS/ParameterSet.h>
-
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
 
 #include <scimath/Functionals/Gaussian1D.h>
 #include <scimath/Functionals/Gaussian2D.h>
@@ -99,6 +101,12 @@ namespace askap {
                 this->itsFileName = parset.getString("filename", "");
                 this->itsBunit = casa::Unit(parset.getString("bunit", "JY/BEAM"));
                 this->itsSourceList = parset.getString("sourcelist", "");
+		std::ifstream file;
+		file.open(this->itsSourceList.c_str(), std::ifstream::in);
+		file.close();
+		if(file.fail()){
+		  ASKAPTHROW(AskapError,"Source list " << this->itsSourceList << " could not be opened. Exiting.");
+		}
                 this->itsPosType = parset.getString("posType", "dms");
 		this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
                 this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
@@ -143,10 +151,8 @@ namespace askap {
                 for (uint i = 1; i < this->itsDim; i++) this->itsNumPix *= this->itsAxes[i];
 
                 this->itsArray = new float[this->itsNumPix];
-
-                for (int i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
-
                 this->itsArrayAllocated = true;
+                for (int i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
 
                 this->itsHaveBeam = parset.isDefined("beam");
 
@@ -186,32 +192,38 @@ namespace askap {
                 ctype = parset.getStringVector("ctype");
 
                 if (ctype.size() != this->itsDim)
-                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but ctype has " << ctype.size() << " dimensions.");
+                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << 
+			       ", but ctype has " << ctype.size() << " dimensions.");
 
                 cunit = parset.getStringVector("cunit");
 
                 if (cunit.size() != this->itsDim)
-                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but cunit has " << cunit.size() << " dimensions.");
+                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << 
+			       ", but cunit has " << cunit.size() << " dimensions.");
 
                 crval = parset.getFloatVector("crval");
 
                 if (crval.size() != this->itsDim)
-                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but crval has " << crval.size() << " dimensions.");
+                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << 
+			       ", but crval has " << crval.size() << " dimensions.");
 
                 crpix = parset.getFloatVector("crpix");
 
                 if (crpix.size() != this->itsDim)
-                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but crpix has " << crpix.size() << " dimensions.");
+                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << 
+			       ", but crpix has " << crpix.size() << " dimensions.");
 
                 cdelt = parset.getFloatVector("cdelt");
 
                 if (cdelt.size() != this->itsDim)
-                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but cdelt has " << cdelt.size() << " dimensions.");
+                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << 
+			       ", but cdelt has " << cdelt.size() << " dimensions.");
 
                 crota = parset.getFloatVector("crota");
 
                 if (crota.size() != this->itsDim)
-                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << ", but crota has " << crota.size() << " dimensions.");
+                    ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim << 
+			       ", but crota has " << crota.size() << " dimensions.");
 
                 for (uint i = 0; i < this->itsDim; i++) {
                     wcs->crpix[i] = crpix[i];
@@ -286,7 +298,7 @@ namespace askap {
                 /// the function addGaussian is used. The WCSLIB functions are
                 /// used to convert the ra/dec positions to pixel positions.
                 if (this->itsSourceList.size() > 0) { // if the source list is defined.
-                    ASKAPLOG_DEBUG_STR(logger, "Adding sources");
+		  ASKAPLOG_DEBUG_STR(logger, "Adding sources from file " << this->itsSourceList);
                     std::ifstream srclist(this->itsSourceList.c_str());
                     std::string temp, ra, dec;
 		    casa::Double flux, maj, min, pa;
@@ -301,6 +313,7 @@ namespace askap {
 		    
                     while (getline(srclist, temp),
                             !srclist.eof()) {
+
                         if (temp[0] != '#') {  // ignore commented lines
                             std::stringstream line(temp);
 
@@ -468,7 +481,6 @@ namespace askap {
 
                 status = 0;
 
-		//                if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.c_str(),  NULL, &status))
                 if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.getName().c_str(),  NULL, &status))
                     fits_report_error(stderr, status);
 

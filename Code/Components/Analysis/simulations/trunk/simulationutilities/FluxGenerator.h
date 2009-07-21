@@ -66,6 +66,7 @@ namespace askap {
 		void calcFluxes(double &x, double &y, wcsprm *wcs);
 		
 		float getFlux(int i){return itsFluxValues.at(i);};
+		float getFluxZero(){return itsFluxZero;};
 
             protected:
                 float itsAlpha;

@@ -26,6 +26,8 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
+#include <askap_simulations.h>
+
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
 
@@ -77,7 +79,6 @@ namespace askap {
             return z*sigma + mean;
         }
 
-      //        void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss)
       void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxGen)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
@@ -112,7 +113,6 @@ namespace askap {
 	    }
         }
 
-      //        void addPointSource(float *array, std::vector<int> axes, double *pix, double flux)
         void addPointSource(float *array, std::vector<int> axes, double *pix, FluxGenerator fluxGen)
         {
             /// @details Adds the flux of a given point source to the
@@ -123,14 +123,13 @@ namespace askap {
             /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
             /// @param pix The coordinates of the point source
             /// @param flux The flux of the point source.
+
 	  for(int z = 0 ; z<fluxGen.nChan(); z++){
 
             int loc = int(pix[0]) + axes[0] * int(pix[1]) + z*axes[0]*axes[1];
 
             if (pix[0] >= 0 && pix[0] < axes[0] && pix[1] >= 0 && pix[1] < axes[1]) {
 	      array[loc] += fluxGen.getFlux(z);
-                //        ASKAPLOG_DEBUG_STR(logger,"Adding point source of flux " << flux << " to pixel ["<<floor(pix[0])
-                //                   << "," << floor(pix[1]) << "]");
             }
 
 	  }

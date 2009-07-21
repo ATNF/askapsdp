@@ -53,14 +53,10 @@ namespace askap {
         /// @brief Return a normal random variable
         float normalRandomVariable(float mean, float rms);
 
-        //    float normalRandomVariable(){return normalRandomVariable(0.,1.);};
-
         /// @brief Add a 2D Gaussian component to an array of fluxes.
-	//        void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss);
         void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxG);
 
         /// @brief Add a single point source to an array of fluxes.
-	//        void addPointSource(float *array, std::vector<int> axes, double *pix, double flux);
         void addPointSource(float *array, std::vector<int> axes, double *pix, FluxGenerator fluxGen);
 
     }
