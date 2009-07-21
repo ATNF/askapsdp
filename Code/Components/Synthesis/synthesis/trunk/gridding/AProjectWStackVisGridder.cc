@@ -145,6 +145,7 @@ namespace askap {
       
       // Validate cache using first row only
       bool newField=true;
+      ASKAPDEBUGASSERT(acc.nRow()>0);
       
       int firstFeed=acc.feed1()(0);
       ASKAPCHECK(firstFeed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
@@ -206,7 +207,7 @@ namespace askap {
 	    }
 	    else {
 	      itsCMap(i, pol, chan)=(feed+itsMaxFeeds*itsCurrentField);
-	      ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds*nChan,
+	      ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds,
 			 "CMap index too large");
 	      ASKAPCHECK(itsCMap(i, pol, chan)>-1, "CMap index less than zero");
 	    }
