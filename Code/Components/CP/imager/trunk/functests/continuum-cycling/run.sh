@@ -9,7 +9,8 @@ if [ ! -x ${ASKAP_ROOT}/Code/Components/CP/imager/trunk/apps/imager.sh ]; then
 fi
 
 echo -n Removing images...
-rm -rf image.i.10uJy_clean_stdtest/ psf.i.10uJy_clean_stdtest/ weights.i.10uJy_clean_stdtest/
+rm -rf image.i.10uJy_clean_stdtest psf.i.10uJy_clean_stdtest weights.i.10uJy_clean_stdtest 
+rm -rf residual.i.10uJy_clean_stdtest image.i.10uJy_clean_stdtest.restored
 echo Done
 
 echo -n Extracting measurement set...
