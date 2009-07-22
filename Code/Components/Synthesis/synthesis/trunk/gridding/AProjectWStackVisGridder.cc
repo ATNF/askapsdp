@@ -60,8 +60,8 @@ namespace askap {
       WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
       itsIllumination(illum),
       itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
-      itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent), itsIndicesValid(false)
-      
+      itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent), itsIndicesValid(false),
+      itsNumberOfCFGenerations(0), itsNumberOfIterations(0)      
     {	
       ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
       ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
@@ -100,7 +100,8 @@ namespace askap {
       itsLimitSupport(other.itsLimitSupport),
       itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
       itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()), 
-      itsIndicesValid(other.itsIndicesValid)
+      itsIndicesValid(other.itsIndicesValid), itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
+      itsNumberOfIterations(other.itsNumberOfIterations)
     {
       if (other.itsPattern) {
           itsPattern.reset(new UVPattern(*(other.itsPattern)));
@@ -117,8 +118,14 @@ namespace askap {
               }
          }
          if (itsDone.nelements()) {
-             ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder cache usage: "<<
+             ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder CF cache memory utilisation: "<<
                          double(nUsed)/double(itsDone.nrow()*itsDone.ncolumn())*100<<"% of maxfeed*maxfield");
+         }
+         if (itsNumberOfIterations != 0) {
+             ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder cache was rebuild "<<
+                 itsNumberOfCFGenerations<<" times for "<<itsNumberOfIterations<<" iterations");
+             ASKAPLOG_INFO_STR(logger, "CF cache utilisation is "<<
+                 (1.-double(itsNumberOfCFGenerations)/double(itsNumberOfIterations))*100.<<" %");
          }    
     }
     
@@ -177,11 +184,16 @@ namespace askap {
       /// row and channel to plane of the w-dependent convolution
       /// function
       const int nSamples = acc.nRow();
-      const int nChan = acc.nChannel();
-      
+      const int nChan = acc.nChannel();      
       const int nPol = acc.nPol();
-      itsCMap.resize(nSamples, nPol, nChan);
-      itsCMap.set(0);
+      
+      if (itsCMap.shape() != casa::IPosition(3,nSamples,nPol,nChan)) {
+          itsIndicesValid = false;      
+          itsCMap.resize(nSamples, nPol, nChan);
+          itsCMap.set(0);
+      }
+      ASKAPDEBUGASSERT(itsCMap.shape() == casa::IPosition(3,nSamples,nPol,nChan));
+      
       /// @todo Select max feeds more carefully
       
       itsGMap.resize(nSamples, nPol, nChan);
@@ -201,19 +213,25 @@ namespace askap {
 	for (int chan=0; chan<nChan; ++chan) {
 	  const double freq=acc.frequency()[chan];
 	  for (int pol=0; pol<nPol; pol++) {
+	    int index = -1;
 	    /// Order is (chan, feed)
 	    if(itsFreqDep) {
-	      itsCMap(i, pol, chan)=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
-	      ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds
-			 *nChan, "CMap index too large");
-	      ASKAPCHECK(itsCMap(i, pol, chan)>-1,
-			 "CMap index less than zero");
+	      index = chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
+	      ASKAPCHECK(index<itsMaxFields*itsMaxFeeds*nChan, "CMap index too large");
+	    } else {
+	      index = (feed+itsMaxFeeds*itsCurrentField);
+	      ASKAPCHECK(index < itsMaxFields*itsMaxFeeds, "CMap index too large");
 	    }
-	    else {
-	      itsCMap(i, pol, chan)=(feed+itsMaxFeeds*itsCurrentField);
-	      ASKAPCHECK(itsCMap(i, pol, chan)<itsMaxFields*itsMaxFeeds,
-			 "CMap index too large");
-	      ASKAPCHECK(itsCMap(i, pol, chan)>-1, "CMap index less than zero");
+	    
+	    ASKAPCHECK(index>-1, "CMap index less than zero");
+	    
+	    if (itsIndicesValid) {
+	       if (itsCMap(i, pol, chan) != index) {
+	           itsIndicesValid = false;
+	           itsCMap(i, pol, chan) = index;
+	       }
+	    } else {
+	       itsCMap(i, pol, chan) = index;
 	    }
 	    
 	    /// Calculate the index into the grids
@@ -280,6 +298,12 @@ namespace askap {
       ASKAPDEBUGASSERT(itsPattern);
       // just to avoid a repeated call to a virtual function from inside the loop
       const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
+      
+      if (!itsIndicesValid) {
+         itsDone.set(false);
+         ++itsNumberOfCFGenerations;
+      }
+      ++itsNumberOfIterations;
       
       casa::MVDirection out = getImageCentre();
       const int nSamples = acc.nRow();
@@ -404,7 +428,7 @@ namespace askap {
       } // for row
       
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
-      
+      itsIndicesValid = true;
     }
     
     // To finalize the transform of the weights, we use the following steps:

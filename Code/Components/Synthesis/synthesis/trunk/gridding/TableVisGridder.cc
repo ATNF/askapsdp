@@ -163,8 +163,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {
-		ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
 		if (isPSFGridder()) {
+            ASKAPLOG_INFO_STR(logger, "TableVisGridder PSF gridding statistics");
 		    ASKAPLOG_INFO_STR(logger, "   PSF samples gridded       = "
                               << itsSamplesGridded);
             ASKAPLOG_INFO_STR(logger, "   Visibility vectors flagged (psf)     = "
@@ -189,6 +189,7 @@ TableVisGridder::~TableVisGridder() {
 		    ASKAPLOG_INFO_STR(logger, "   Performance for PSF         = "
 				<< 8.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " GFlops");
 		} else {
+            ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
 		    ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
                          << itsSamplesGridded);		
             ASKAPLOG_INFO_STR(logger, "   Visibility vectors flagged       = "

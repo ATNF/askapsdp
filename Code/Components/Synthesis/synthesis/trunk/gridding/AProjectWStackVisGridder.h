@@ -172,6 +172,20 @@ namespace askap
       /// the same and reset this flag if they are not. This flag is also reset when
       /// gridding or degridding are initialised.
       bool itsIndicesValid;
+      
+      // stats for CF cache rebuilds
+      /// @brief number of iterations when CFs were generated
+      /// @details This number is incremented for each accessor which leads to recomputation of the 
+      /// CF cache. In the best case (CFs computed once and
+      /// reused later) it should be equal to 1. In the worst case (CFs are
+      /// recomputed for every iteration) this should be equal to the number iterations 
+      /// (to be exact, the number of calls to initConvolutionFunctions).
+      casa::uInt itsNumberOfCFGenerations;
+      
+      /// @brief total number of iterations
+      /// @details This number is incremented each time a new accessor is passed to this gridder
+      /// (i.e. counts every iteration). 
+      casa::uInt itsNumberOfIterations;
     };
 
   }
