@@ -61,7 +61,9 @@ namespace askap {
       itsIllumination(illum),
       itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
       itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent), itsIndicesValid(false),
-      itsNumberOfCFGenerations(0), itsNumberOfIterations(0)      
+      itsNumberOfCFGenerations(0), itsNumberOfIterations(0), 
+      itsNumberOfCFGenerationsDueToPA(0),
+      itsParallacticAngleTolerance(-1.)
     {	
       ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
       ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
@@ -101,7 +103,10 @@ namespace askap {
       itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
       itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()), 
       itsIndicesValid(other.itsIndicesValid), itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
-      itsNumberOfIterations(other.itsNumberOfIterations)
+      itsNumberOfIterations(other.itsNumberOfIterations),
+      itsNumberOfCFGenerationsDueToPA(other.itsNumberOfCFGenerationsDueToPA), 
+      itsCFParallacticAngles(other.itsCFParallacticAngles), 
+      itsParallacticAngleTolerance(other.itsParallacticAngleTolerance)
     {
       if (other.itsPattern) {
           itsPattern.reset(new UVPattern(*(other.itsPattern)));
@@ -124,9 +129,15 @@ namespace askap {
          if (itsNumberOfIterations != 0) {
              ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder cache was rebuild "<<
                  itsNumberOfCFGenerations<<" times for "<<itsNumberOfIterations<<" iterations");
+             if (itsNumberOfCFGenerations != 0) {
+                 ASKAPLOG_INFO_STR(logger, "Parallactic angle change caused "<<
+                    itsNumberOfCFGenerationsDueToPA<<" of those rebuilds ("<<
+                       double(itsNumberOfCFGenerationsDueToPA)/double(itsNumberOfCFGenerations)*100<<
+                       " %)");
+             }   
              ASKAPLOG_INFO_STR(logger, "CF cache utilisation is "<<
                  (1.-double(itsNumberOfCFGenerations)/double(itsNumberOfIterations))*100.<<" %");
-         }    
+         }
     }
     
     /// Clone a copy of this Gridder
@@ -298,6 +309,21 @@ namespace askap {
       ASKAPDEBUGASSERT(itsPattern);
       // just to avoid a repeated call to a virtual function from inside the loop
       const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
+      const int nSamples = acc.nRow();
+      
+      if (itsIndicesValid && !hasSymmetricIllumination) {
+          // need to check parallactic angles here
+          ASKAPDEBUGASSERT(itsCFParallacticAngles.nelements() == casa::uInt(nSamples));
+          const casa::Vector<casa::Float> &feed1PAs = acc.feed1PA();
+          ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
+          for (int row = 0; row<nSamples; ++row) {
+               if (fabs(feed1PAs[row] - itsCFParallacticAngles[row])<itsParallacticAngleTolerance) {
+                   itsIndicesValid = false;
+                   ++itsNumberOfCFGenerationsDueToPA;
+                   break;
+               }
+          }
+      }
       
       if (!itsIndicesValid) {
          itsDone.set(false);
@@ -306,7 +332,6 @@ namespace askap {
       ++itsNumberOfIterations;
       
       casa::MVDirection out = getImageCentre();
-      const int nSamples = acc.nRow();
       
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
@@ -428,6 +453,9 @@ namespace askap {
       } // for row
       
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
+      if (!itsIndicesValid && !hasSymmetricIllumination) {
+          itsCFParallacticAngles = acc.feed1PA().copy();
+      }
       itsIndicesValid = true;
     }
     

@@ -186,6 +186,24 @@ namespace askap
       /// @details This number is incremented each time a new accessor is passed to this gridder
       /// (i.e. counts every iteration). 
       casa::uInt itsNumberOfIterations;
+      
+      /// @brief number of iterations when CFs were generated due to parallactic angle change
+      /// @details This number is incremented for each accessor which leads to recomputation of the
+      /// CF cache due to a change in parallactic angle. This value is always less than 
+      /// itsNumberOfCFGenerations.
+      casa::uInt itsNumberOfCFGenerationsDueToPA;
+      
+      /// @brief parallactic angles for which the cache is valid
+      /// @details This buffer is only used and filled if the illumination pattern is asymmetric.
+      /// We currently don't account for the VLBI case with notably different parallactic angles.
+      /// Therefore, only one angle is stored here. 
+      casa::Vector<casa::Float> itsCFParallacticAngles;
+      
+      /// @brief parallactic angle tolerance (in radians)
+      /// @details If new angle is different from the one used to compute the cache for more
+      /// than this value, the cache will be recomputed. Note, a negative value means to 
+      /// always recalculate for asymmetric illumination patterns
+      casa::Float itsParallacticAngleTolerance;
     };
 
   }
