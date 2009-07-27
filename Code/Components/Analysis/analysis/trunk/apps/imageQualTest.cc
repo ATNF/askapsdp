@@ -83,6 +83,8 @@ int main(int argc, const char** argv)
         image.getMetadata();
         ASKAPLOG_INFO_STR(logger, "Read image metadata");
         Matcher matcher(subset);
+	matcher.setHeader(image.cube().header());
+	matcher.readLists();
         matcher.fixRefList(image.getBeamInfo());
         matcher.setTriangleLists();
         matcher.findMatches();

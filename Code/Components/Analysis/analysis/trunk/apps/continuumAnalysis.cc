@@ -97,6 +97,8 @@ int main(int argc, const char** argv)
 
         ParameterSet subsetE(parset.makeSubset("imageQual."));
         Matcher matcher(subsetE);
+	matcher.setHeader(image.cube().header());
+	matcher.readLists();
         matcher.fixRefList(image.getBeamInfo());
         matcher.setTriangleLists();
         matcher.findMatches();
