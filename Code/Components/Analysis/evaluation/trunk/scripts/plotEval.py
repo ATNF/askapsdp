@@ -7,15 +7,26 @@ from numpy import *
 import os
 from askap.analysis.evaluation.readData import *
 from askap.analysis.evaluation.distributionPlots import *
+from optparse import OptionParser
+import askap.parset as parset
 
 if __name__ == '__main__':
-    from sys import argv
-    if len(argv) < 2:
-        matchfile = 'matches.txt'
-        missfile  = 'misses.txt'
+
+    parser = OptionParser()
+    parser.add_option("-i","--inputs", dest="inputfile", default="", help="Input parameter file [default: %default]")
+
+    (options, args) = parser.parse_args()
+
+    if(options.inputfile==''):
+        inputPars = parset.ParameterSet()        
+    elif(not os.path.exists(options.inputfile)):
+        print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
+        inputPars = parset.ParameterSet()
     else:
-        matchfile = argv[1]
-        missfile = argv[2]
+        inputPars = parset.ParameterSet(options.inputfile).plotEval
+
+    matchfile = inputPars.get_value('matchfile',"matches.txt")
+    missfile = inputPars.get_value('missfile',"misses.txt")
 
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,nfree,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f,chisq2,imagerms2,rms2,nfree2,ndof2,npf2,npo2 = read_miss_data(missfile)
