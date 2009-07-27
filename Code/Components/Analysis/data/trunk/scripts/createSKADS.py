@@ -42,11 +42,13 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     if(options.inputfile==''):
+        print "No parset given: using default values for all parameters."
         inputPars = parset.ParameterSet()
     elif(not os.path.exists(options.inputfile)):
         print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
         inputPars = parset.ParameterSet()
     else:
+        print "Using parset %s to obtain parameters."%options.inputfile
         inputPars = parset.ParameterSet(options.inputfile).createSKADS
 
     catSource = inputPars.get_value('catSource','SKADS')

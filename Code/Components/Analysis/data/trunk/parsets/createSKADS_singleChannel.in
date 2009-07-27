@@ -7,3 +7,9 @@ createSKADS.numChannels      = 1
 
 createSKADS.queryDatabase    = False
 createSKADS.translateLoc     = False
+
+createSKADS.pixelSize        = 2.
+createSKADS.fieldPixSize     = 15360
+   #15K image with 2 arcsec pixels
+
+

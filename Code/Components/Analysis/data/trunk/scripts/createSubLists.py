@@ -22,7 +22,8 @@ def writeData(line, fileno, subfile, doAnn, annfile, threshold, count=0):
     data=array(line.split()).astype(float)
     if(doAnn):
         if(data[3]>0.):
-            annfile[fileno].write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*math.pi/180.,data[0],data[1],count))
+#            annfile[fileno].write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*math.pi/180.,data[0],data[1],count))
+            annfile[fileno].write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*180./math.pi,data[0],data[1],count))
         else:
             annfile[fileno].write("CIRCLE %12.8f %12.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],10./3600.,data[0],data[1],count))
 
@@ -47,8 +48,10 @@ if __name__ == '__main__':
 
     doAnnFile = inparams.get_value('flagAnnotation',True)
     doPtsOnly = inparams.get_value('flagPointSources',False)
-    thresh = inparams.get_value('thresholds',[])
+    thresh = inparams.get_value('thresholds',[0.])
+    print "thresholds=",thresh
     radii = inparams.get_value('radii',[])
+    print "radii=",radii
     catfilename = inparams.get_value('catfilename')
     racentre = inparams.get_value('racentre',187.5)
     deccentre = inparams.get_value('deccentre',-45.)
@@ -68,14 +71,20 @@ if __name__ == '__main__':
 
     subfilenames =  []
     annfilenames =  []
+    if(len(thresh)==0):
+          print "No thresholds given. Exiting."
+          exit(0)
+
     for thr in thresh:
         suffix=''
         if(doPtsOnly):
             suffix='_pt'
-        suffix += '_%duJy'%thr
-        subfilenames.append(baseOutFile + '%s.txt'%suffix)
-        if(doAnnFile):
-            annfilenames.append(baseOutFile + '%s.ann'%suffix)
+        if(thr>0.):
+            suffix += '_%duJy'%thr
+        if(thr>0.):
+              subfilenames.append(baseOutFile + '%s.txt'%suffix)
+              if(doAnnFile):
+                    annfilenames.append(baseOutFile + '%s.ann'%suffix)
         if(len(radii)>0):
             for r in radii:
                 subfilenames.append(baseOutFile + '%s_%3.1fdeg.txt'%(suffix,r))
@@ -103,10 +112,11 @@ if __name__ == '__main__':
                 filecount=0;
                 sourcecount += 1;
                 for thr in thresh:
-                    if(float(data[2])*1.e6>=thr):
-                        writeData(line,filecount,subfiles,doAnnFile,annfiles,thr,sourcecount)
-                    filecount += 1
-                    if(len(radii)>0):
+                      if(thr>0):
+                            if(float(data[2])*1.e6>=thr):
+                                  writeData(line,filecount,subfiles,doAnnFile,annfiles,thr,sourcecount)
+                            filecount += 1
+                      if(len(radii)>0):
                         for r in radii:
                             if( float(data[2])*1.e6>=thr and dist<r ):
                                 writeData(line,filecount,subfiles,doAnnFile,annfiles,thr,sourcecount)
