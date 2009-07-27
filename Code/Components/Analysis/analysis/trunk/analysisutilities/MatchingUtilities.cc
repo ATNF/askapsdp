@@ -170,7 +170,8 @@ namespace askap {
 		}
 		else
 		  ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
-                id = ss.str() + "_" + analysis::degToDMS(wcs[0],"RA") + "_" + analysis::degToDMS(wcs[1],"DEC");
+ //                id = ss.str() + "_" + analysis::degToDMS(wcs[0],"RA") + "_" + analysis::degToDMS(wcs[1],"DEC");
+               id = ss.str() + "_" + analysis::decToDMS(wcs[0],"RA") + "_" + analysis::decToDMS(wcs[1],"DEC");
 
 		header.wcsToPix(wcs,pix);
 
@@ -300,7 +301,8 @@ namespace askap {
 		}
 		else
 		  ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
-                id = ss.str() + "_" + analysis::degToDMS(ra,"RA") + "_" + analysis::degToDMS(dec,"DEC");
+		//                id = ss.str() + "_" + analysis::degToDMS(ra,"RA") + "_" + analysis::degToDMS(dec,"DEC");
+                id = ss.str() + "_" + analysis::decToDMS(ra,"RA") + "_" + analysis::decToDMS(dec,"DEC");
                 xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                 if (ra > raBase) xpt *= -1.;
