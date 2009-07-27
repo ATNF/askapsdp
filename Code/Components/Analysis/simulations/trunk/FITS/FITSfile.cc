@@ -449,6 +449,12 @@ namespace askap {
                 if (fits_create_file(&fptr, this->itsFileName.c_str(), &status))
                     fits_report_error(stderr, status);
 
+		if(status){
+		  ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
+		  fits_report_error(stderr, status);
+		  ASKAPTHROW(AskapError,"Error opening FITS file.");
+		}
+
                 status = 0;
                 long *dim = new long[this->itsDim];
 
