@@ -454,7 +454,7 @@ namespace askap {
       
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
       if (!itsIndicesValid && !hasSymmetricIllumination) {
-          itsCFParallacticAngles = acc.feed1PA().copy();
+          itsCFParallacticAngles.assign(acc.feed1PA().copy());
       }
       itsIndicesValid = true;
     }
