@@ -24,17 +24,26 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+// System includes
+#include <fstream>
+
 // CPPUnit includes
 #include <cppunit/ui/text/TestRunner.h>
+#include <cppunit/XmlOutputter.h>
 
 // Test includes
 #include <AllMessagesTest.h>
 
 int main(int argc, char *argv[])
 {
+    std::ofstream file("cpTestResults.xml");
+
     CppUnit::TextUi::TestRunner runner;
     runner.addTest(askap::cp::AllMessagesTest::suite());
+
+    runner.setOutputter(new CppUnit::XmlOutputter(&runner.result(), file));
     bool wasSucessful = runner.run();
 
+    file.close();
     return wasSucessful ? 0 : 1;
 }
