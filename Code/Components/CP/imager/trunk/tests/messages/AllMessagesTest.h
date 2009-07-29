@@ -58,9 +58,6 @@ namespace askap
             {
                 CleanRequest msg;
                 CPPUNIT_ASSERT(msg.getMessageType() == IMessage::CLEAN_REQUEST);
-
-                // TODO: Remove the below line, it is just there to simulate a failure
-                CPPUNIT_ASSERT(msg.getMessageType() != IMessage::CLEAN_REQUEST);
             };
 
             void testCleanResponse()
