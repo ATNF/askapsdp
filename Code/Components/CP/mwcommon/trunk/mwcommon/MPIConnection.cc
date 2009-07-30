@@ -184,8 +184,9 @@ namespace askap { namespace cp {
 
   std::string MPIConnection::getNodeName()
   {
-    char name[HOST_NAME_MAX];
-    gethostname(name, HOST_NAME_MAX);
+    const int HOST_NAME_MAXLEN = 256;
+    char name[HOST_NAME_MAXLEN];
+    gethostname(name, HOST_NAME_MAXLEN);
     return std::string(name);
   }
 
