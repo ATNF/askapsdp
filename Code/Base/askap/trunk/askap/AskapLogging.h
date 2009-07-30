@@ -53,9 +53,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
@@ -91,23 +88,6 @@ namespace askap {
     return (name + std::string(ASKAP_PACKAGE_NAME));
   }
   
-#ifdef HAVE_MPI
-  /// Return the MPI rank as a string
-  /// @return std::string represenation of teh mpi rank number
-  inline std::string getMpiRankString()
-  {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    std::ostringstream oss;
-    oss << rank;
-    return oss.str();
-  }
-#else
-  /// Return a blank value for MPI rank
-  /// @return an empty string
-  inline std::string getMpiRankString() { return std::string(""); }
-#endif
-
 #define ASKAPLOG_PUTCONTEXT(key,val) log4cxx::MDC::put(key, val)
 
 #define ASKAPLOG_REMOVECONTEXT(key) log4cxx::MDC::remove(key)
@@ -127,8 +107,6 @@ namespace askap {
       logis.open(filename, std::ios::in);                               \
       if (logis.is_open()) {                                            \
         logis.close();                                                  \
-        log4cxx::MDC::put("hostname", askap::getHostName());           \
-        log4cxx::MDC::put("mpirank", askap::getMpiRankString());       \
         log4cxx::PropertyConfigurator::configure(log4cxx::File(filename)); \
         break;                                                          \
       }                                                                 \

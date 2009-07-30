@@ -30,6 +30,10 @@
 #ifndef ASKAP_MWCOMMON_MPICONNECTION_H
 #define ASKAP_MWCOMMON_MPICONNECTION_H
 
+// System includes
+#include <string>
+
+// ASKAPsoft includes
 #include <mwcommon/MWConnection.h>
 #include <boost/shared_ptr.hpp>
 
@@ -86,6 +90,8 @@ namespace askap { namespace cp {
     static void endMPI();
     static int getRank();
     static int getNrNodes();
+    static std::string getNodeName();
+
     /// @}
 
   private:

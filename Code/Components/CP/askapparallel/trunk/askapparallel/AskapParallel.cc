@@ -30,7 +30,16 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
+
+// Include own header file first
 #include <mwcommon/MPIConnection.h>
+
+// System includes
+#include <sstream>
+#include <fstream>
+#include <string>
+
+// ASKAPsoft includes
 #include <mwcommon/MPIConnectionSet.h>
 #include <mwcommon/MWIos.h>
 
@@ -46,14 +55,11 @@
 #include <casa/OS/Path.h>
 
 #include <askap_askapparallel.h>
-
 #include <askap/AskapLogging.h>
-
 #include <askap/AskapError.h>
 
 #include <askapparallel/AskapParallel.h>
 
-#include <sstream>
 
 using namespace std;
 using namespace askap;
@@ -61,130 +67,157 @@ using namespace askap::cp;
 
 namespace askap
 {
-  namespace cp
-  {
-
-    ASKAP_LOGGER(logger, ".askapparallel");
-
-    AskapParallel::AskapParallel(int argc, const char** argv)
+    namespace cp
     {
-      // Initialize MPI (also succeeds if no MPI available).
-      MPIConnection::initMPI(argc, argv);
 
-      // Now we have to initialize the logger before we use it
-      ASKAPLOG_INIT("askap.log_cfg");
+        ASKAP_LOGGER(logger, ".askapparallel");
 
-      itsNNode = MPIConnection::getNrNodes();
-      itsRank = MPIConnection::getRank();
-
-      itsIsParallel=(itsNNode>1);
-      itsIsMaster=(itsRank==0);
-      itsIsWorker=(!itsIsParallel)||(itsRank>0);
-
-      initConnections();
-
-      if (isParallel())
-      {
-        if (isMaster())
+        AskapParallel::AskapParallel(int argc, const char** argv)
         {
-          ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on "<< itsNNode
-                              << " nodes (master/master)");
+            // Initialize MPI (also succeeds if no MPI available).
+            MPIConnection::initMPI(argc, argv);
+
+            // Now we have to initialize the logger before we use it
+            // If a log configuration exists in the current directory then
+            // use it, otherwise try to use the programs default one
+            std::ifstream config("askap.log_cfg", std::ifstream::in); 
+            if (config) {
+                ASKAPLOG_INIT("askap.log_cfg");
+            } else {
+                std::ostringstream ss;
+                ss << argv[0] << ".log_cfg";
+                ASKAPLOG_INIT(ss.str().c_str());
+            }
+
+            itsNNode = MPIConnection::getNrNodes();
+            itsRank = MPIConnection::getRank();
+
+            // To aid in debugging, now we know the MPI rank
+            // set the ID in the logger
+            std::ostringstream ss;
+            ss << itsRank;
+            ASKAPLOG_REMOVECONTEXT("mpirank");
+            ASKAPLOG_PUTCONTEXT("mpirank", ss.str().c_str());
+
+            // Also set the nodename
+            std::string nodeName = MPIConnection::getNodeName();
+            std::string::size_type idx = nodeName.find_first_of('.');
+            if (idx != std::string::npos) {
+                // Extract just the hostname part
+                nodeName = nodeName.substr(0, idx);
+            }
+            ASKAPLOG_REMOVECONTEXT("hostname");
+            ASKAPLOG_PUTCONTEXT("hostname", nodeName.c_str());
+
+
+            itsIsParallel=(itsNNode>1);
+            itsIsMaster=(itsRank==0);
+            itsIsWorker=(!itsIsParallel)||(itsRank>0);
+
+            initConnections();
+
+            if (isParallel())
+            {
+                if (isMaster())
+                {
+                    ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on "<< itsNNode
+                            << " nodes (master/master)");
+                }
+                else
+                {
+                    ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on "<< itsNNode
+                            << " nodes (worker "<< itsRank << ")");
+                }
+            }
+            else
+            {
+                ASKAPLOG_INFO_STR(logger, "ASKAP program (serial)");
+            }
+
+            ASKAPLOG_INFO_STR(logger, ASKAP_PACKAGE_VERSION);
+
         }
-        else
+
+        AskapParallel::~AskapParallel()
         {
-          ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on "<< itsNNode
-                              << " nodes (worker "<< itsRank << ")");
+            if (isParallel())
+            {
+                ASKAPLOG_INFO_STR(logger, "Exiting MPI");
+                MPIConnection::endMPI();
+            }
         }
-      }
-      else
-      {
-        ASKAPLOG_INFO_STR(logger, "ASKAP program (serial)");
-      }
 
-      ASKAPLOG_INFO_STR(logger, ASKAP_PACKAGE_VERSION);
-
-    }
-
-    AskapParallel::~AskapParallel()
-    {
-      if (isParallel())
-      {
-        ASKAPLOG_INFO_STR(logger, "Exiting MPI");
-        MPIConnection::endMPI();
-      }
-    }
-
-    /// Is this running in parallel?
-    bool AskapParallel::isParallel()
-    {
-      return itsIsParallel;
-    }
-
-    /// Is this the master?
-    bool AskapParallel::isMaster()
-    {
-      return itsIsMaster;
-    }
-
-    /// Is this a worker?
-    bool AskapParallel::isWorker()
-    {
-      return itsIsWorker;
-    }
-
-    // Initialize connections
-    void AskapParallel::initConnections()
-    {
-      if (isParallel())
-      {
-        itsConnectionSet=MPIConnectionSet::ShPtr(new MPIConnectionSet());
-        if (isMaster())
+        /// Is this running in parallel?
+        bool AskapParallel::isParallel()
         {
-          // I am the master - I need a connection to every worker
-          for (int i=1; i<itsNNode; ++i)
-          {
-            itsConnectionSet->addConnection(i, 0);
-          }
+            return itsIsParallel;
         }
-        if (isWorker())
+
+        /// Is this the master?
+        bool AskapParallel::isMaster()
         {
-          // I am a worker - I only need to talk to the master
-          itsConnectionSet->addConnection(0, 0);
+            return itsIsMaster;
         }
-      }
-    }
 
-    string AskapParallel::substitute(const string& s)
-    {
-      casa::String cs(s);
-      {
-	casa::Regex regWork("\%w");
-	ostringstream oos;
-	if (itsNNode>1)
-	  {
-	    oos << itsRank-1;
-	  }
-	else
-	  {
-	    oos << 0;
-	  }
-	cs.gsub(regWork, oos.str());
-      }
-      casa::Regex regNode("\%n");
-      {
-	ostringstream oos;
-	if (itsNNode>1)
-	  {
-	    oos << itsNNode-1;
-	  }
-	else
-	  {
-	    oos << 1;
-	  }
-	cs.gsub(regNode, oos.str());
-      }
-      return string(cs);
-    }
+        /// Is this a worker?
+        bool AskapParallel::isWorker()
+        {
+            return itsIsWorker;
+        }
 
-  }
+        // Initialize connections
+        void AskapParallel::initConnections()
+        {
+            if (isParallel())
+            {
+                itsConnectionSet=MPIConnectionSet::ShPtr(new MPIConnectionSet());
+                if (isMaster())
+                {
+                    // I am the master - I need a connection to every worker
+                    for (int i=1; i<itsNNode; ++i)
+                    {
+                        itsConnectionSet->addConnection(i, 0);
+                    }
+                }
+                if (isWorker())
+                {
+                    // I am a worker - I only need to talk to the master
+                    itsConnectionSet->addConnection(0, 0);
+                }
+            }
+        }
+
+        string AskapParallel::substitute(const string& s)
+        {
+            casa::String cs(s);
+            {
+                casa::Regex regWork("\%w");
+                ostringstream oos;
+                if (itsNNode>1)
+                {
+                    oos << itsRank-1;
+                }
+                else
+                {
+                    oos << 0;
+                }
+                cs.gsub(regWork, oos.str());
+            }
+            casa::Regex regNode("\%n");
+            {
+                ostringstream oos;
+                if (itsNNode>1)
+                {
+                    oos << itsNNode-1;
+                }
+                else
+                {
+                    oos << 1;
+                }
+                cs.gsub(regNode, oos.str());
+            }
+            return string(cs);
+        }
+
+    }
 }

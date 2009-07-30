@@ -28,6 +28,9 @@
 
 //#include <lofar_config.h>
 
+// System includes
+#include <unistd.h>
+
 #include <mwcommon/MPIConnection.h>
 #include <mwcommon/MWError.h>
 
@@ -129,6 +132,13 @@ namespace askap { namespace cp {
     return size;
   }
 
+  std::string MPIConnection::getNodeName()
+  {
+    char name[MPI_MAX_PROCESSOR_NAME];
+    int resultlen;
+    MPI_Get_processor_name(name, &resultlen);
+    return std::string(name);
+  }
 
 #else
 
@@ -170,6 +180,13 @@ namespace askap { namespace cp {
   int MPIConnection::getNrNodes()
   {
     return 1;
+  }
+
+  std::string MPIConnection::getNodeName()
+  {
+    char name[HOST_NAME_MAX];
+    gethostname(name, HOST_NAME_MAX);
+    return std::string(name);
   }
 
 
