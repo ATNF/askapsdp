@@ -71,19 +71,19 @@ using namespace LOFAR::TYPES;
 
 using namespace casa;
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::mwbase;
 
 ASKAP_LOGGER(logger, "tParallelCasaAccess.log");
 
 
 /// A simple front-end to AskapParallel that allows direct access of
 /// the node & rank numbers, plus the connectionSet.
-class MyAskapParallel: public askap::cp::AskapParallel {
+class MyAskapParallel: public askap::mwbase::AskapParallel {
     public:
         MyAskapParallel(int argc, const char **argv): AskapParallel(argc, argv) {};
         int nnode() {return itsNNode;};
         int rank() {return itsRank;};
-        askap::cp::MPIConnectionSet::ShPtr connectionSet() {return itsConnectionSet;};
+        askap::mwbase::MPIConnectionSet::ShPtr connectionSet() {return itsConnectionSet;};
 
 };
 

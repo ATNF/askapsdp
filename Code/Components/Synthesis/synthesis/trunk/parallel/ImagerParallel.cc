@@ -78,7 +78,7 @@ using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
 using namespace LOFAR::ACC::APS;
-using namespace askap::cp;
+using namespace askap::mwbase;
 
 namespace askap
 {

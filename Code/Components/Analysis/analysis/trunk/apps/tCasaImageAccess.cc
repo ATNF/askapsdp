@@ -59,7 +59,6 @@
 using namespace casa;
 using namespace askap;
 using namespace askap::analysis;
-using namespace askap::cp;
 
 ASKAP_LOGGER(logger, "tCasaImageAccess.log");
 

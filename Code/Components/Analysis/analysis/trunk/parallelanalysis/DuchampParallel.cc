@@ -85,7 +85,7 @@ ASKAP_LOGGER(logger, ".parallelanalysis");
 
 using namespace std;
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::mwbase;
 
 using namespace duchamp;
 

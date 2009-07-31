@@ -81,7 +81,7 @@ using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
 using namespace LOFAR::ACC::APS;
-using namespace askap::cp;
+using namespace askap::mwbase;
 
 /// @brief Constructor from ParameterSet
 /// @details The parset is used to construct the internal state. We could

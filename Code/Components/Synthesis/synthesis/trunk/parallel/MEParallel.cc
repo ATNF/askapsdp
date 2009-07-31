@@ -53,7 +53,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <fitting/ImagingNormalEquations.h>
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::mwbase;
 using namespace askap::scimath;
 
 namespace askap

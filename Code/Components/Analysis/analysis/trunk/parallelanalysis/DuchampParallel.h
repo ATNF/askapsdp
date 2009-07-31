@@ -58,7 +58,7 @@ namespace askap {
         /// If the number of nodes is 1 then everything occurs in the same process.
         ///
         /// @ingroup parallelanalysis
-        class DuchampParallel : public askap::cp::AskapParallel {
+        class DuchampParallel : public askap::mwbase::AskapParallel {
             public:
 
                 /// @brief Constructor

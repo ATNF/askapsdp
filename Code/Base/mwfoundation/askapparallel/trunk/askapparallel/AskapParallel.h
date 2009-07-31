@@ -26,19 +26,15 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef ASKAP_SYNTHESIS_SYNPARALLEL_H_
-#define ASKAP_SYNTHESIS_SYNPARALLEL_H_
+#ifndef ASKAP_MWBASE_ASKAPPARALLEL_H_
+#define ASKAP_MWBASE_ASKAPPARALLEL_H_
 
-#include <fitting/Equation.h>
-#include <fitting/Solver.h>
-#include <fitting/INormalEquations.h>
-#include <fitting/Params.h>
+#include <mwcommon/MPIConnectionSet.h>
 
-#include <askapparallel/AskapParallel.h>
 
 namespace askap
 {
-  namespace synthesis
+  namespace mwbase
   {
     /// @brief Support for parallel algorithms 
     ///
@@ -52,7 +48,7 @@ namespace askap
     /// no overall for transmission of model.
     ///
     /// @ingroup parallel
-    class SynParallel : public askap::mwbase::AskapParallel
+    class AskapParallel
     {
   public:
 
@@ -61,23 +57,46 @@ namespace askap
       /// application specific information is passed on the command line.
       /// @param argc Number of command line inputs
       /// @param argv Command line inputs
-      SynParallel(int argc, const char** argv);
+      AskapParallel(int argc, const char** argv);
 
-      ~SynParallel();
+      ~AskapParallel();
 
-      /// Return the model
-      askap::scimath::Params::ShPtr& params();
+      /// Is this running in parallel?
+      bool isParallel();
 
-      /// @brief Broadcast the model to all workers
-      void broadcastModel();
+      /// Is this the master?
+      bool isMaster();
 
-      /// @brief Receive the model from the master
-      void receiveModel();
+      /// Is this a worker?
+      bool isWorker();
 
   protected:
+      /// Initialize the MPI connections
+      void initConnections();
 
-      /// The model
-      askap::scimath::Params::ShPtr itsModel;
+      /// The set of all connections between processes. For the master, there
+      /// are connections to every worker, but each worker has only one
+      /// connection, which is to the master.
+      askap::mwbase::MPIConnectionSet::ShPtr itsConnectionSet;
+
+      /// Rank of this process : 0 for the master, >0 for workers
+      int itsRank;
+
+      /// Number of nodes
+      int itsNNode;
+
+      /// Is this parallel? itsNNode > 1?
+      bool itsIsParallel;
+
+      /// Is this the Master?
+      bool itsIsMaster;
+
+      /// Is this a worker?
+      bool itsIsWorker;
+
+      /// Substitute %w by worker number, and %n by number of workers (one less than the number of nodes) This allows workers to do different work!
+      std::string substitute(const std::string& s);
+
     };
 
   }
