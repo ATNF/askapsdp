@@ -1,7 +1,7 @@
 scimath=Code/Base/scimath/trunk
 blob=3rdParty/LOFAR/Blob/tags/Blob-1.0
-mwcommon=Code/Base/mwfoundation/mwcommon/trunk
-askapparallel=Code/Base/mwfoundation/askapparallel/trunk
+mwcommon=Code/Base/mwbase/mwcommon/trunk
+askapparallel=Code/Base/mwbase/askapparallel/trunk
 aps=3rdParty/LOFAR/APS/tags/APS-2.1
 casacore=3rdParty/casacore/tags/casacore-0.4.1;casa_ms casa_images casa_components casa_mirlib casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
 boost=3rdParty/boost/tags/boost-1.37.0
