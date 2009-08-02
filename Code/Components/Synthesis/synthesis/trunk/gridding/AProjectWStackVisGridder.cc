@@ -63,8 +63,8 @@ namespace askap {
       itsMaxFeeds(maxFeeds), itsMaxFields(maxFields), itsMaxAnts(maxAnts),
       itsPointingTolerance(pointingTol),       itsParallacticAngleTolerance(paTol),
       itsFreqDep(frequencyDependent), itsIndicesValid(false),
-      itsNumberOfCFGenerationsDueToPA(0),
-      itsNumberOfCFGenerations(0), itsNumberOfIterations(0)
+      itsNumberOfCFGenerations(0),
+      itsNumberOfIterations(0), itsNumberOfCFGenerationsDueToPA(0)
     {	
       ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
       ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
@@ -96,20 +96,22 @@ namespace askap {
     /// @param[in] other input object
     /// @note illumination pattern is copied as a shared pointer, hence referencing
     /// the same model
+
     AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridder &other) :
       WStackVisGridder(other), itsReferenceFrequency(other.itsReferenceFrequency),
       itsIllumination(other.itsIllumination), itsMaxFeeds(other.itsMaxFeeds),
       itsMaxFields(other.itsMaxFields), itsPointingTolerance(other.itsPointingTolerance),
+      itsParallacticAngleTolerance(other.itsParallacticAngleTolerance),
       itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),
       itsFreqDep(other.itsFreqDep), itsMaxSupport(other.itsMaxSupport),
       itsLimitSupport(other.itsLimitSupport),
       itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
       itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()), 
-      itsIndicesValid(other.itsIndicesValid), itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
+      itsIndicesValid(other.itsIndicesValid),
+      itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
       itsNumberOfIterations(other.itsNumberOfIterations),
       itsNumberOfCFGenerationsDueToPA(other.itsNumberOfCFGenerationsDueToPA), 
-      itsCFParallacticAngles(other.itsCFParallacticAngles), 
-      itsParallacticAngleTolerance(other.itsParallacticAngleTolerance)
+      itsCFParallacticAngles(other.itsCFParallacticAngles)
     {
       if (other.itsPattern) {
           itsPattern.reset(new UVPattern(*(other.itsPattern)));
