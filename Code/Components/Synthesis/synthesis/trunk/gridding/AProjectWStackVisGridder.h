@@ -68,13 +68,18 @@ namespace askap
       /// @param limitSupport Upper limit of support
       /// @param maxFeeds Maximum number of feeds allowed
       /// @param maxFields Maximum number of fields allowed
+      /// @param maxAnts Maximum number of antennas allowed
       /// @param pointingTol Pointing tolerance in radians
+      /// @param paTol Parallactic angle tolerance in radians
       /// @param frequencyDependent Frequency dependent gridding?
       /// @param name Name of table to save convolution function into
       AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
           const double wmax, const int nwplanes, const int overSample,
-          const int maxSupport, const int limitSupport, const int maxFeeds=1, const int maxFields=1,
-          const double pointingTol=0.0001, const bool frequencyDependent=true, 
+          const int maxSupport, const int limitSupport,
+			       const int maxFeeds=1, const int maxFields=1, const int maxAnts=36,
+			       const double pointingTol=0.0001,
+			       const double paTol=0.01,
+			       const bool frequencyDependent=true, 
           const std::string& name=std::string(""));
 
       /// @brief copy constructor
@@ -142,8 +147,15 @@ namespace askap
       int itsMaxFeeds;
       /// Maximum number of fields
       int itsMaxFields;
+      /// Maximum number of antennas
+      int itsMaxAnts;
       /// Pointing tolerance in radians
       double itsPointingTolerance;
+      /// @brief parallactic angle tolerance (in radians)
+      /// @details If new angle is different from the one used to compute the cache for more
+      /// than this value, the cache will be recomputed. Note, a negative value means to 
+      /// always recalculate for asymmetric illumination patterns
+      double itsParallacticAngleTolerance;
       /// Last field processed
       int itsLastField;
       /// Current field processed
@@ -199,11 +211,6 @@ namespace askap
       /// Therefore, only one angle is stored here. 
       casa::Vector<casa::Float> itsCFParallacticAngles;
       
-      /// @brief parallactic angle tolerance (in radians)
-      /// @details If new angle is different from the one used to compute the cache for more
-      /// than this value, the cache will be recomputed. Note, a negative value means to 
-      /// always recalculate for asymmetric illumination patterns
-      casa::Float itsParallacticAngleTolerance;
     };
 
   }

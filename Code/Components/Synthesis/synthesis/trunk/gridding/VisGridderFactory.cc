@@ -227,6 +227,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			        freqDep, tablename));
 	} else if (gridderName == "AProjectWStack") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
+		double paTol=parset.getDouble("gridder.AProjectWStack.patolerance", 0.1);
 		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 65);
 		int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
@@ -236,6 +237,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 						  0);
 		int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
 		int maxFields=parset.getInt32("gridder.AProjectWStack.maxfields", 1);
+		int maxAnts=parset.getInt32("gridder.AProjectWStack.maxantennas", 36);
 		bool freqDep=parset.getBool(
 				"gridder.AProjectWStack.frequencydependent", true);
 		string tablename=parset.getString("gridder.AProjectWStack.tablename",
@@ -249,11 +251,14 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
+		ASKAPLOG_INFO_STR(logger,
+				  "Maximum number of antennas allowed = " << maxAnts);
 
 		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(
 		        makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
 				wmax, nwplanes, oversample,
-			        maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
+			        maxSupport, limitSupport, maxFeeds, maxFields, maxAnts,
+			pointingTol, paTol,
 			        freqDep, tablename));
 	} else if (gridderName == "Box") {
 		ASKAPLOG_INFO_STR(logger, "Gridding with Box function");
@@ -296,6 +301,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	if (parset.getString("visweights","")=="MFS")
 	{
             double reffreq=parset.getDouble("visweights.MFS.reffreq", 1.405e+09);
+	    ASKAPLOG_INFO_STR(logger, "Initialising for MFS with reference frequency " << reffreq << " Hz");
             gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency(reffreq)));
 	}
 	else // Null....

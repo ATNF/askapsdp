@@ -470,7 +470,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                               itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
 			       
                               ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
-                              ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
+                              ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)),
+					 "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
                               ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
                               ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				

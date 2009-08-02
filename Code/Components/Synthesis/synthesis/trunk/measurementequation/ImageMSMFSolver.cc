@@ -64,7 +64,7 @@ namespace askap
     
       
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip) : 
-          ImageCleaningSolver(ip),itsNTaylor(2)
+      ImageCleaningSolver(ip), itsNTaylor(2), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
     {
       itsScales.resize(3);
       itsScales(0)=0;
@@ -94,6 +94,15 @@ namespace askap
       resetNormalEquations();
     }
 
+    /// @brief switch the speed up on
+    /// @param[in] factor speed up factor
+    void ImageMSMFSolver::setSpeedUp(float factor)
+    {
+      itsDoSpeedUp = true;
+      itsSpeedUpFactor = factor;
+    }
+       
+    
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
     bool ImageMSMFSolver::solveNormalEquations(askap::scimath::Quality& quality)
@@ -112,6 +121,7 @@ namespace askap
       for (vector<string>::const_iterator  it=names.begin();it!=names.end();it++)
       {
         string name="image"+*it;
+	//	ASKAPLOG_INFO_STR(logger, "Testing image " << name);
         if(itsParams->isFree(name)) {
           indices[name]=nParameters;
           nParameters+=itsParams->value(name).nelements();
@@ -120,7 +130,7 @@ namespace askap
 	  if (stokes != it->substr(1,1)) 
 	  {
 	    stokes = it->substr(1,1);
-	    std::cout << "Read input for stokes " << stokes << endl;
+	    //	    ASKAPLOG_INFO_STR(logger, "Read input for stokes " << stokes );
 	    stokeslist[nstokes] = stokes;
 	    nstokes++;
 	  }
@@ -168,7 +178,7 @@ namespace askap
 
 	  // Setup the normalization vector
 	  std::string imagename(makeImageString(samplename,stokes,0));
-	  std::cout << "Reading the normalization vector from : " << imagename << std::endl;
+	  ASKAPLOG_INFO_STR(logger, "Reading the normalization vector from : " << imagename);
 	  ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(imagename)>0, "Diagonal not present");
 	  const casa::Vector<double>& normdiag(normalEquations().normalMatrixDiagonal().find(imagename)->second);
 	  const casa::IPosition vecShape(1, itsParams->value(imagename).nelements());

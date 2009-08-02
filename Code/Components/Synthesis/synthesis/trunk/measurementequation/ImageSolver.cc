@@ -103,6 +103,10 @@ namespace askap
 				      const boost::shared_ptr<casa::Array<float> > &mask)
     {
         const double maxDiag(casa::max(diag));
+        const double sumDiag(casa::sum(diag));
+
+	ASKAPLOG_INFO_STR(logger, "Solid angle = " << sumDiag/maxDiag << " pixels");
+
         const double cutoff=tolerance*maxDiag;
 
 	    /// The PSF is just an approximation calculated from a subset of the data. So we

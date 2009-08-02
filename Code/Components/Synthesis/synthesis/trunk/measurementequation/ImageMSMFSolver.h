@@ -88,6 +88,10 @@ namespace askap
         /// Set the scales
         void setScales(const casa::Vector<float>& scales);
                
+      /// @brief switch the speed up on
+      /// @param[in] factor speed up factor
+      void setSpeedUp(float factor);
+
       protected:
 
 	/// Parse the image parameter name to get out the Stokes information
@@ -111,7 +115,14 @@ namespace askap
         std::map<string, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
 
         /// @brief for debugging (MV - ?)
-	    bool dbg;
+      bool dbg;
+    private:
+      /// @brief if true, use speed up factor (default is false)
+      bool itsDoSpeedUp;
+      
+      /// @brief speed up factor
+      /// @details This value is used only if itsDoSpeedUp is true
+      float itsSpeedUpFactor;
     };
 
   }

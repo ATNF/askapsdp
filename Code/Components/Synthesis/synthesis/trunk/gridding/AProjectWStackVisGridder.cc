@@ -55,21 +55,24 @@ namespace askap {
 						       const double wmax, const int nwplanes,
 						       const int overSample, const int maxSupport, const int limitSupport, 
 						       const int maxFeeds,
-						       const int maxFields, const double pointingTol,
+						       const int maxFields, const int maxAnts,
+						       const double pointingTol, const double paTol,
 						       const bool frequencyDependent, const std::string& name) :
       WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
       itsIllumination(illum),
-      itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
-      itsPointingTolerance(pointingTol), itsFreqDep(frequencyDependent), itsIndicesValid(false),
-      itsNumberOfCFGenerations(0), itsNumberOfIterations(0), 
+      itsMaxFeeds(maxFeeds), itsMaxFields(maxFields), itsMaxAnts(maxAnts),
+      itsPointingTolerance(pointingTol),       itsParallacticAngleTolerance(paTol),
+      itsFreqDep(frequencyDependent), itsIndicesValid(false),
       itsNumberOfCFGenerationsDueToPA(0),
-      itsParallacticAngleTolerance(-1.)
+      itsNumberOfCFGenerations(0), itsNumberOfIterations(0)
     {	
       ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
       ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
+      ASKAPCHECK(maxAnts>0, "Maximum number of antennas must be one or more");
       ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
 	ASKAPCHECK(pointingTol>0.0, "Pointing tolerance must be greater than 0.0");
+      ASKAPLOG_INFO_STR(logger, "Maximum number of antennas allowed = " << maxAnts);
       ASKAPDEBUGASSERT(itsIllumination);
       itsSupport=0;
       itsOverSample=overSample;
@@ -194,16 +197,26 @@ namespace askap {
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
+      if (itsMaxAnts!=6) {
+	ASKAPLOG_INFO_STR(logger, "Maximum number of antennas = " << itsMaxAnts << " resetting to 6");
+	itsMaxAnts=6;
+      }
       const int nSamples = acc.nRow();
+      const int maxNSamples = itsMaxFeeds*itsMaxFields*itsMaxAnts*(itsMaxAnts+1)/2;
       const int nChan = acc.nChannel();      
       const int nPol = acc.nPol();
       
-      if (itsCMap.shape() != casa::IPosition(3,nSamples,nPol,nChan)) {
+      if(nSamples>maxNSamples) {
+	ASKAPLOG_INFO_STR(logger, "Number of samples " << nSamples << " exceeds expected maximum " << maxNSamples);
+      }
+
+      if (itsCMap.shape() != casa::IPosition(3,maxNSamples,nPol,nChan)) {
           itsIndicesValid = false;      
-          itsCMap.resize(nSamples, nPol, nChan);
+	  ASKAPLOG_INFO_STR(logger, "Resizing convolution function map: new " << maxNSamples << " old " << itsCMap.shape()(0) << " samples"); 
+          itsCMap.resize(maxNSamples, nPol, nChan);
           itsCMap.set(0);
       }
-      ASKAPDEBUGASSERT(itsCMap.shape() == casa::IPosition(3,nSamples,nPol,nChan));
+      ASKAPDEBUGASSERT(itsCMap.shape() == casa::IPosition(3,maxNSamples,nPol,nChan));
       
       /// @todo Select max feeds more carefully
       
@@ -244,7 +257,6 @@ namespace askap {
 	    } else {
 	       itsCMap(i, pol, chan) = index;
 	    }
-	    
 	    /// Calculate the index into the grids
 	    if (itsNWPlanes>1) {
 	      itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
@@ -257,6 +269,9 @@ namespace askap {
 		       "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
 	  }
 	}
+      }
+      if (!itsIndicesValid) {
+	ASKAPLOG_INFO_STR(logger, "Convolution function map was incorrect - invalidating CMap");
       }
     }
     /// @brief Initialise the gridding
@@ -273,11 +288,16 @@ namespace askap {
       const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
       const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
       
+      ASKAPLOG_INFO_STR(logger, "Shape for calculating gridding convolution function = " << nx << " by " << ny << " pixels");
+
       // this is just a buffer in the uv-space
       itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));
        
       // this invalidates the cache of CFs      
       itsIndicesValid = false;
+      if (!itsIndicesValid) {
+	ASKAPLOG_INFO_STR(logger, "Initializing grid - invalidating CMap");
+      }
     }
    
     /// @brief Initialise the degridding
@@ -293,11 +313,16 @@ namespace askap {
       const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
       const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
       
+      ASKAPLOG_INFO_STR(logger, "Shape for calculating degridding convolution function = " << nx << " by " << ny << " pixels");
+
       // this is just a buffer in the uv-space
       itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));      
 
       // this invalidates the cache of CFs      
       itsIndicesValid = false;
+      if (!itsIndicesValid) {
+	ASKAPLOG_INFO_STR(logger, "Initializing degrid - invalidating CMap");
+      }
     }
     
     /// Initialize the convolution function into the cube. If necessary this
@@ -313,9 +338,9 @@ namespace askap {
       
       if (itsIndicesValid && !hasSymmetricIllumination) {
           // need to check parallactic angles here
-          ASKAPDEBUGASSERT(itsCFParallacticAngles.nelements() == casa::uInt(nSamples));
+	//          ASKAPDEBUGASSERT(itsCFParallacticAngles.nelements() == casa::uInt(nSamples));
           const casa::Vector<casa::Float> &feed1PAs = acc.feed1PA();
-          ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
+	  //          ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
           for (int row = 0; row<nSamples; ++row) {
                if (fabs(feed1PAs[row] - itsCFParallacticAngles[row])<itsParallacticAngleTolerance) {
                    itsIndicesValid = false;
@@ -323,12 +348,13 @@ namespace askap {
                    break;
                }
           }
+	  if(!itsIndicesValid) {
+	    //	    ASKAPLOG_INFO_STR(logger, "Parallactic angle change on non-symmetric beam - invalidating CMap and CFs");
+	    itsDone.set(false);
+	    ++itsNumberOfCFGenerations;
+	  }
       }
       
-      if (!itsIndicesValid) {
-         itsDone.set(false);
-         ++itsNumberOfCFGenerations;
-      }
       ++itsNumberOfIterations;
       
       casa::MVDirection out = getImageCentre();
@@ -340,11 +366,10 @@ namespace askap {
       
       if(itsSupport==0) {
 	ASKAPLOG_INFO_STR(logger, "Resizing convolution function to "
-			  << itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan << " entries");
+			  << itsOverSample << "*" << itsOverSample << "*" << itsMaxFeeds << "*" << itsMaxFields << "*" << nChan << " entries");
 	itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan);
 
-	ASKAPLOG_INFO_STR(logger, "Resizing sum of weights to "
-			  << itsMaxFeeds*itsMaxFields*nChan << " entries");
+	ASKAPLOG_INFO_STR(logger, "Resizing sum of weights to " << itsMaxFeeds << "*" << itsMaxFields << "*" << nChan << " entries");
 	itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
 	itsSumWeights.set(0.0);
       }
@@ -410,6 +435,7 @@ namespace askap {
 				  << "set to limit = " << itsLimitSupport << " pixels");
 		itsSupport = itsLimitSupport;
 	      }
+
 	      itsCSize=2*itsSupport+1;
 	      // just for logging
 	      const double cell = std::abs(pattern.uCellSize())*(casa::C::c/acc.frequency()[chan]);

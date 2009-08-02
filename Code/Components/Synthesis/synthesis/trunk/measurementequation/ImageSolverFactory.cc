@@ -159,10 +159,12 @@ namespace askap
          solver->setNiter(parset.getInt32("solver.Clean.niter", 100));
          if (parset.isDefined("solver.Clean.speedup")) {
              boost::shared_ptr<ImageMultiScaleSolver> mss = boost::dynamic_pointer_cast<ImageMultiScaleSolver>(solver);
-             ASKAPCHECK(mss, "speed up can currently be used with multi scale solver only");
+             boost::shared_ptr<ImageMSMFSolver> mfmss = boost::dynamic_pointer_cast<ImageMSMFSolver>(solver);
+             ASKAPCHECK(mss || mfmss, "speed up can currently be used with multi scale solvers only");
              const float factor = parset.getFloat("solver.Clean.speedup");
              ASKAPLOG_INFO_STR(logger,"Using speed up factor of "<<factor<<" in lattice clean");
-             mss->setSpeedUp(factor);                   
+	     if(mss) mss->setSpeedUp(factor);                   
+	     if(mfmss) mfmss->setSpeedUp(factor);                   
          }
       } else {
          // temporary

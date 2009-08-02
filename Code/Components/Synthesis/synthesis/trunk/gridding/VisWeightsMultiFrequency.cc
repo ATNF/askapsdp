@@ -22,6 +22,8 @@
 ///
 
 #include "VisWeightsMultiFrequency.h"
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
 
 namespace askap
 {
@@ -55,9 +57,8 @@ namespace askap
     
     void VisWeightsMultiFrequency::setParameters(int order)
     {
-	    //std::cout << "setting order from " << itsOrder << " to ";
+      ASKAPLOG_INFO_STR(logger, "Setting MFS order to " << order);
 	    itsOrder = order;
-	    //std::cout << itsOrder << std::endl;
     }
 
     float VisWeightsMultiFrequency::getWeight(int i,double freq,int pol)
