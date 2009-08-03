@@ -868,17 +868,19 @@ void TableVisGridder::initVisWeights(IVisWeights::ShPtr viswt)
 }
 
 // Customize for the specific type of Visibility weight.
-// Input string is whatever is after " image.i " => " image.i.0.xxx " gives " .0.xxx "
-// TODO Needs to change when polarisations are properly supported.
+// Input string is whatever is after "image" => "image.i.0.xxx" gives ".i.0.xxx "
 void TableVisGridder::customiseForContext(casa::String context)
 {
 	// RVU : Set up model dependant gridder behaviour
 	//       For MFS, gridders for each Taylor term need different VisWeights.
 	//  parse the 'context' string, and generate the "order" parameter.
+  ASKAPLOG_INFO_STR(logger, "Customising gridder for context " << context);
 	char corder[2];
-	corder[0] = *(context.data()+1); // read the second character to get the order of the Taylor coefficient.
+	corder[0] = *(context.data()+3); // read the fourth character to get the order of the Taylor coefficient.
 	corder[1] = '\n';
 	int order = atoi(corder);
+	//	ASKAPLOG_INFO_STR(logger, "Customising gridder for context " << context
+	//			  << " corder " << corder << " order" << order);
 	if(order <0 || order >9) order = 0;
 	if(itsVisWeight)
 		itsVisWeight->setParameters(order);
