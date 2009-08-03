@@ -57,7 +57,6 @@ namespace askap
     
     void VisWeightsMultiFrequency::setParameters(int order)
     {
-      ASKAPLOG_INFO_STR(logger, "Setting MFS order to " << order);
 	    itsOrder = order;
     }
 
