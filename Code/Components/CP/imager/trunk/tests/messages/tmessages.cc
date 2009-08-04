@@ -28,22 +28,47 @@
 #include <fstream>
 
 // CPPUnit includes
-#include <cppunit/ui/text/TestRunner.h>
+#include <cppunit/CompilerOutputter.h>
 #include <cppunit/XmlOutputter.h>
+#include <cppunit/extensions/TestFactoryRegistry.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
+#include <cppunit/TextTestProgressListener.h>
+
 
 // Test includes
 #include <AllMessagesTest.h>
 
 int main(int argc, char *argv[])
 {
-    std::ofstream file("cpTestResults.xml");
+    // Informs test-listener about testresults.
+    CppUnit::TestResult testresult;
 
-    CppUnit::TextUi::TestRunner runner;
-    runner.addTest(askap::cp::AllMessagesTest::suite());
+    // Register listener for collecting the test-results.
+    CppUnit::TestResultCollector collectedresults;
+    testresult.addListener(&collectedresults);
 
-    runner.setOutputter(new CppUnit::XmlOutputter(&runner.result(), file));
-    bool wasSucessful = runner.run();
+    // Register listener for per-test progress output.
+    // The TextTestProgressListener will produce the '...F...' style output.
+    CppUnit::TextTestProgressListener progress;
+    testresult.addListener(&progress);
 
-    file.close();
-    return wasSucessful ? 0 : 1;
+    // Insert test-suite at test-runner by registry.
+    CppUnit::TestRunner testrunner;
+    //testrunner.addTest(CppUnit_NS::TestFactoryRegistry::getRegistry().makeTest());
+    testrunner.addTest(askap::cp::AllMessagesTest::suite());
+    testrunner.run(testresult);
+
+    // Output results in compiler-format to screen for users.
+    CppUnit::CompilerOutputter compileroutputter(&collectedresults, std::cerr);
+    compileroutputter.write();
+
+    // output XML to file
+    std::ofstream outputFile("TestResults.xml");
+    CppUnit::XmlOutputter xmloutputter(&collectedresults, outputFile);
+    xmloutputter.write();
+
+    // return 0 if tests were successful
+    return collectedresults.wasSuccessful() ? 0 : 1;
 }
