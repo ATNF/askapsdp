@@ -43,7 +43,7 @@ else
 fi
 export PYTHONPATH
 
-PATH=`echo $PATH | sed "s#:*$ASKAP_ROOT/bin:*##"`
+PATH=`echo $PATH | sed "s#$ASKAP_ROOT/bin:##"`
 PATH="${ASKAP_ROOT}/bin:${PATH}"
 export PATH
 
@@ -54,7 +54,7 @@ then
    export PS1
 fi
 
-MANPATH=`echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
+MANPATH=`echo $MANPATH | sed "s#$ASKAP_ROOT/man:##"`
 MANPATH="${ASKAP_ROOT}/man:${MANPATH}"
 export MANPATH
 
@@ -77,7 +77,7 @@ else
     setenv PYTHONPATH "${pypath}"
 endif
 
-setenv PATH `echo $PATH | sed "s#:*$ASKAP_ROOT/bin:*##"`
+setenv PATH `echo $PATH | sed "s#$ASKAP_ROOT/bin:##"`
 setenv PATH "${ASKAP_ROOT}/bin:${PATH}"
 
 
@@ -92,7 +92,7 @@ else
     set prompt="\(askap\) > "
 endif
 
-setenv MANPATH `echo $MANPATH | sed "s#:*$ASKAP_ROOT/man:*##"`
+setenv MANPATH `echo $MANPATH | sed "s#$ASKAP_ROOT/man:##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
 
 setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
