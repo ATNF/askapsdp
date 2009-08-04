@@ -100,7 +100,8 @@ namespace askap {
     AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridder &other) :
       WStackVisGridder(other), itsReferenceFrequency(other.itsReferenceFrequency),
       itsIllumination(other.itsIllumination), itsMaxFeeds(other.itsMaxFeeds),
-      itsMaxFields(other.itsMaxFields), itsPointingTolerance(other.itsPointingTolerance),
+      itsMaxFields(other.itsMaxFields), itsMaxAnts(other.itsMaxAnts),
+      itsPointingTolerance(other.itsPointingTolerance),
       itsParallacticAngleTolerance(other.itsParallacticAngleTolerance),
       itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),
       itsFreqDep(other.itsFreqDep), itsMaxSupport(other.itsMaxSupport),
@@ -196,21 +197,14 @@ namespace askap {
 			  printDirection(firstPointing));
       }
       
-      /// We have to calculate the lookup function converting from
-      /// row and channel to plane of the w-dependent convolution
-      /// function
-      if (itsMaxAnts!=6) {
-	ASKAPLOG_INFO_STR(logger, "Maximum number of antennas = " << itsMaxAnts << " resetting to 6");
-	itsMaxAnts=6;
-      }
       const int nSamples = acc.nRow();
       const int maxNSamples = itsMaxFeeds*itsMaxFields*itsMaxAnts*(itsMaxAnts+1)/2;
       const int nChan = acc.nChannel();      
       const int nPol = acc.nPol();
-      
-      if(nSamples>maxNSamples) {
-	ASKAPLOG_INFO_STR(logger, "Number of samples " << nSamples << " exceeds expected maximum " << maxNSamples);
-      }
+
+      // Given above are checks for maxFeeds and maxFields, this assert should
+      // really only fail if maxAnt is not high enough.
+      ASKAPCHECK(nSamples>maxNSamples, "Number of samples " << nSamples << " exceeds expected maximum " << maxNSamples);
 
       if (itsCMap.shape() != casa::IPosition(3,maxNSamples,nPol,nChan)) {
           itsIndicesValid = false;      

@@ -237,7 +237,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 						  0);
 		int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
 		int maxFields=parset.getInt32("gridder.AProjectWStack.maxfields", 1);
-		int maxAnts=parset.getInt32("gridder.AProjectWStack.maxantennas", 36);
+		int maxAnts=parset.getInt32("gridder.AProjectWStack.maxantennas", 45);
 		bool freqDep=parset.getBool(
 				"gridder.AProjectWStack.frequencydependent", true);
 		string tablename=parset.getString("gridder.AProjectWStack.tablename",
