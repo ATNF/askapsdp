@@ -204,7 +204,7 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
 
     // Given above are checks for maxFeeds and maxFields, this assert should
     // really only fail if maxAnt is not high enough.
-    ASKAPCHECK(nSamples>maxNSamples, "Number of samples " << nSamples
+    ASKAPCHECK(nSamples<maxNSamples, "Number of samples " << nSamples
             << " exceeds expected maximum " << maxNSamples);
 
     if (itsCMap.shape() != casa::IPosition(3,maxNSamples,nPol,nChan)) {
