@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
     compileroutputter.write();
 
     // Generate a consistent XML output filename based on the program name
-    // but without the leading 't'.
+    // but without the leading 't'.  The '+2' on the index is to account for
+    // leading '/' and 't'.
     std::string pname = argv[0];
     std::string::size_type idx = pname.find_last_of('/');
     if (idx != std::string::npos) {
