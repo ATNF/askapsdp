@@ -25,7 +25,9 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // System includes
+#include <string>
 #include <fstream>
+#include <sstream>
 
 // CPPUnit includes
 #include <cppunit/CompilerOutputter.h>
@@ -54,9 +56,8 @@ int main(int argc, char *argv[])
     CppUnit::TextTestProgressListener progress;
     testresult.addListener(&progress);
 
-    // Insert test-suite at test-runner by registry.
+    // Insert test-suite and run the tests.
     CppUnit::TestRunner testrunner;
-    //testrunner.addTest(CppUnit_NS::TestFactoryRegistry::getRegistry().makeTest());
     testrunner.addTest(askap::cp::AllMessagesTest::suite());
     testrunner.run(testresult);
 
@@ -64,13 +65,21 @@ int main(int argc, char *argv[])
     CppUnit::CompilerOutputter compileroutputter(&collectedresults, std::cerr);
     compileroutputter.write();
 
-    // output XML to file
-    std::ofstream outputFile("TestResults.xml");
+    // Output XML to file for Hudson processing.
+    std::string pname = argv[0];
+    std::string::size_type idx = pname.find_last_of('/');
+
+    if (idx != std::string::npos) {
+        pname = pname.substr(idx+2, pname.size()); // Want just the filename.
+    }
+
+    std::stringstream filename;
+    filename << "tests/" << pname << "-results.xml";
+    std::ofstream outputFile(filename.str().c_str());
     CppUnit::XmlOutputter xmloutputter(&collectedresults, outputFile);
     xmloutputter.write();
-
     outputFile.close();
 
-    // return 0 if tests were successful
+    // Return 0 if tests were successful.
     return collectedresults.wasSuccessful() ? 0 : 1;
 }
