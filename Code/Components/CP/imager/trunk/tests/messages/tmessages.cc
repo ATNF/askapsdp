@@ -65,16 +65,17 @@ int main(int argc, char *argv[])
     CppUnit::CompilerOutputter compileroutputter(&collectedresults, std::cerr);
     compileroutputter.write();
 
-    // Output XML to file for Hudson processing.
+    // Generate a consistent XML output filename based on the program name
+    // but without the leading 't'.
     std::string pname = argv[0];
     std::string::size_type idx = pname.find_last_of('/');
-
     if (idx != std::string::npos) {
-        pname = pname.substr(idx+2, pname.size()); // Want just the filename.
+        pname = pname.substr(idx+2, pname.size());
     }
-
     std::stringstream filename;
     filename << "tests/" << pname << "-results.xml";
+
+    // Output XML to file for Hudson processing.
     std::ofstream outputFile(filename.str().c_str());
     CppUnit::XmlOutputter xmloutputter(&collectedresults, outputFile);
     xmloutputter.write();
