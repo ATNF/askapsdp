@@ -1,6 +1,6 @@
 import os
-from askap.parset import ParameterSet, decode
-from nose.tools import raises
+from askap.parset import ParameterSet, decode, encode
+from nose.tools import raises, assert_equals
 
 # default constructor test
 def test_constructor():
@@ -92,3 +92,22 @@ def test_decode():
 
     for k,v in expr.items():
         yield decoder, k, v
+
+# check encoded value
+def encoder(k, v):
+    assert_equals(encode(k), v)
+
+# test generator for parset expressions
+def test_encode():
+    expr = {'1..9': range(1, 10),
+            '[1, 2]': [1,2],
+            '[x, y]': ['x', 'y'],
+            '[1, x]': [1, 'x'],
+            '[[1, 2], [3, 4]]': [[1,2], [3,4]],
+            'true': True,
+            'false': False,
+            '-1e-10': -1.0e-10
+            }
+
+    for k,v in expr.items():
+        yield encoder, v, k

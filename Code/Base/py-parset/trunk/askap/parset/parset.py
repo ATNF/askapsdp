@@ -221,7 +221,7 @@ class ParameterSet(object):
                 for child in children:
                     out.append(".".join([k, child]))
             else:
-                out.append("%s = " % k + str(self.__dict__[k]))
+                out.append("%s = " % k + encode(self.__dict__[k]))
         return out
 
     def __str__(self):
@@ -229,6 +229,35 @@ class ParameterSet(object):
 
     def __repr__(self):
         return self.__str__()
+
+    def to_file(filename):
+        f = open(filename, 'w')
+        f.write(str(self))
+        f.close()
+
+
+def encode(value):
+    """Encode a python value as ParameterSet string"""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bool):
+        return value and 'true' or 'false'
+    if isinstance(value, list) or isinstance(value, tuple):
+        if isinstance(value[0], int) and len(value) > 2:
+            # [ n * val ]
+            if value == [value[0]]*len(value):
+                return ['[' + str(len(value[0])) + ' * ' + str(value[0]) + ']']
+            # n..m
+            elif value == range(value[0], value[-1]+1):
+                return str(value[0]) + '..' + str(value[-1])
+        def to_str(value):
+            if isinstance(value, list) or isinstance(value, tuple):
+                for i in value:
+                    return "[" + ", ".join([to_str(i) for i in value])  + "]"
+            else:
+                return str(value)
+        return to_str(value)
+    return str(value)
 
 def decode(value):
     """
@@ -314,5 +343,5 @@ def extract(line):
     line = line.strip()
     if len(line) == 0 or line.startswith("#"):
         return None
-    kv = line.split("=")
+    kv = line.split("=",1)
     return kv[0].strip(),kv[1].strip()
