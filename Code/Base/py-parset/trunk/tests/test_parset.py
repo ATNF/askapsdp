@@ -108,6 +108,5 @@ def test_encode():
             'false': False,
             '-1e-10': -1.0e-10
             }
-
     for k,v in expr.items():
         yield encoder, v, k

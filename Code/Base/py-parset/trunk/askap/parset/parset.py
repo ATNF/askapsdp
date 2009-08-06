@@ -230,7 +230,7 @@ class ParameterSet(object):
     def __repr__(self):
         return self.__str__()
 
-    def to_file(filename):
+    def to_file(self, filename):
         f = open(filename, 'w')
         f.write(str(self))
         f.close()
@@ -238,24 +238,35 @@ class ParameterSet(object):
 
 def encode(value):
     """Encode a python value as ParameterSet string"""
-    if isinstance(value, str):
+
+    def single_str(value):
+        if isinstance(value, bool):
+            return value and 'true' or 'false'
+        if isinstance(value, str):
+            return value
         return value
-    if isinstance(value, bool):
-        return value and 'true' or 'false'
+    value = single_str(value)
+    # deal with numpy arrays, by converting to lists
+    if hasattr(value, 'tolist'):
+        value = value.tolist()
     if isinstance(value, list) or isinstance(value, tuple):
-        if isinstance(value[0], int) and len(value) > 2:
-            # [ n * val ]
-            if value == [value[0]]*len(value):
-                return ['[' + str(len(value[0])) + ' * ' + str(value[0]) + ']']
-            # n..m
-            elif value == range(value[0], value[-1]+1):
-                return str(value[0]) + '..' + str(value[-1])
         def to_str(value):
             if isinstance(value, list) or isinstance(value, tuple):
                 for i in value:
                     return "[" + ", ".join([to_str(i) for i in value])  + "]"
             else:
+                if isinstance(value, bool):
+                    return value and 'true' or 'false'
                 return str(value)
+
+        if len(value) > 2 and not isinstance(value[0], list):
+            # [ n * val ]
+            if value == [value[0]]*len(value):
+                val = str(single_str(value[0]))
+                return '[' + str(len(value)) + ' * ' + val + ']'
+            # n..m
+            elif value == range(value[0], value[-1]+1):
+                return str(value[0]) + '..' + str(value[-1])
         return to_str(value)
     return str(value)
 
