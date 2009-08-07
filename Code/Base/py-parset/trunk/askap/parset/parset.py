@@ -304,7 +304,9 @@ def decode(value):
             if mtch:
                 fact = int(mtch.groups()[0])
                 val = mtch.groups()[1].strip()
-                if rxisnum.match(val):
+                if rxbool.match(val):
+                    val = eval(val.title())
+                elif rxisnum.match(val):
                     val = eval(val)
                 return fact*[val]
 
