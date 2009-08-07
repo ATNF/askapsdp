@@ -232,7 +232,7 @@ class ParameterSet(object):
 
     def to_file(self, filename):
         f = open(filename, 'w')
-        f.write(str(self))
+        f.write(str(self)+'\n')
         f.close()
 
 
