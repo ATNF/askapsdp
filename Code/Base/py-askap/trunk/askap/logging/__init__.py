@@ -36,7 +36,7 @@ from logging import *
 # this is a bug fixed in 2.6.3
 from logging import config
 from logging import handlers
-from logging import getLogger, basicConfig
+from logging import getLogger, basicConfig, getLevelName
 
 # decorator
 def log_debug(func):
