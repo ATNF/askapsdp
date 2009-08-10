@@ -24,64 +24,18 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// System includes
-#include <string>
-#include <fstream>
-#include <sstream>
-
-// CPPUnit includes
-#include <cppunit/CompilerOutputter.h>
-#include <cppunit/XmlOutputter.h>
-#include <cppunit/extensions/TestFactoryRegistry.h>
-#include <cppunit/TestResult.h>
-#include <cppunit/TestResultCollector.h>
-#include <cppunit/TestRunner.h>
-#include <cppunit/TextTestProgressListener.h>
-
+// ASKAPsoft includes
+#include <AskapTestRunner.h>
 
 // Test includes
 #include <AllMessagesTest.h>
 
 int main(int argc, char *argv[])
 {
-    // Informs test-listener about testresults.
-    CppUnit::TestResult testresult;
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest(askap::cp::AllMessagesTest::suite());
+    bool wasSucessful = runner.run();
 
-    // Register listener for collecting the test-results.
-    CppUnit::TestResultCollector collectedresults;
-    testresult.addListener(&collectedresults);
-
-    // Register listener for per-test progress output.
-    // The TextTestProgressListener will produce the '...F...' style output.
-    CppUnit::TextTestProgressListener progress;
-    testresult.addListener(&progress);
-
-    // Insert test-suite and run the tests.
-    CppUnit::TestRunner testrunner;
-    testrunner.addTest(askap::cp::AllMessagesTest::suite());
-    testrunner.run(testresult);
-
-    // Output results in compiler-format to screen for users.
-    CppUnit::CompilerOutputter compileroutputter(&collectedresults, std::cerr);
-    compileroutputter.write();
-
-    // Generate a consistent XML output filename based on the program name
-    // but without the leading 't'.  The '+2' on the index is to account for
-    // leading '/' and 't'.
-    std::string pname = argv[0];
-    std::string::size_type idx = pname.find_last_of('/');
-    if (idx != std::string::npos) {
-        pname = pname.substr(idx+2, pname.size());
-    }
-    std::stringstream filename;
-    filename << "tests/" << pname << "-results.xml";
-
-    // Output XML to file for Hudson processing.
-    std::ofstream outputFile(filename.str().c_str());
-    CppUnit::XmlOutputter xmloutputter(&collectedresults, outputFile);
-    xmloutputter.write();
-    outputFile.close();
-
-    // Return 0 if tests were successful.
-    return collectedresults.wasSuccessful() ? 0 : 1;
+    return wasSucessful ? 0 : 1;
 }
+

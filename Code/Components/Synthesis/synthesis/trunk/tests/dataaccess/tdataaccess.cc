@@ -39,11 +39,11 @@
 
 #include "TableTestRunner.h"
 
-int main(int, char **)
+int main(int argc, char *argv[])
 {
  try {
    //CppUnit::TextUi::TestRunner runner;
-   askap::synthesis::TableTestRunner runner;
+   askap::synthesis::TableTestRunner runner(argv[0]);
    runner.addTest(askap::synthesis::DataConverterTest::suite());
    runner.addTest(askap::synthesis::DataAccessTest::suite());
    runner.addTest(askap::synthesis::TableDataAccessTest::suite());

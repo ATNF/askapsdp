@@ -73,6 +73,7 @@ parser.add_option('-p', '--preserve', dest='preserve',
 
 rbuild_path     = "Tools/Dev/rbuild"
 templates_path  = "Tools/Dev/templates"
+testutils_path  = "Tools/Dev/testutils"
 virtualenv_path = "Tools/virtualenv"
 
 invoked_path    = sys.argv[0]
@@ -132,3 +133,13 @@ if not opts.preserve:
     os.system(". ./initaskap.sh && cd Tools && python autobuild.py -q clean")
 print ">>> Attempting to build all the Tools."
 os.system(". ./initaskap.sh && cd Tools && python autobuild.py -q install")
+
+# Needs scons built in Tools.
+if os.path.exists(testutils_path):
+    print ">>> Attempting to add testutils."
+    os.system(". ./initaskap.sh && cd %s && python build.py -q install"
+                % testutils_path)
+else:
+    print ">>> %s does not exist." % os.path.abspath(testutils_path)
+    sys.exit()
+

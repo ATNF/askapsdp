@@ -21,18 +21,23 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-#include <cppunit/ui/text/TestRunner.h>
+// ASKAPsoft includes
+#include <AskapTestRunner.h>
 
+// Test includes
 #include <TableVisGridderTest.h>
 #include <SupportSearcherTest.h>
 #include <FrequencyMapperTest.h>
 
-int main( int argc, char **argv)
+int main(int argc, char *argv[])
 {
-  CppUnit::TextUi::TestRunner runner;
-  runner.addTest( askap::synthesis::TableVisGridderTest::suite());
-  runner.addTest( askap::synthesis::SupportSearcherTest::suite());
-  runner.addTest( askap::synthesis::FrequencyMapperTest::suite());
-  runner.run();
-  return 0;
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+
+    runner.addTest( askap::synthesis::TableVisGridderTest::suite());
+    runner.addTest( askap::synthesis::SupportSearcherTest::suite());
+    runner.addTest( askap::synthesis::FrequencyMapperTest::suite());
+
+    bool wasSucessful = runner.run();
+
+    return wasSucessful ? 0 : 1;
 }

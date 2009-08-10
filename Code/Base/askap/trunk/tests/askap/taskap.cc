@@ -21,19 +21,24 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-#include <cppunit/ui/text/TestRunner.h>
+// ASKAPsoft includes
+#include <AskapTestRunner.h>
 
+// Test includes
 #include <askap_askap.h>
 #include <IndexedCompareTest.h>
 #include <AskapErrorTest.h>
 #include <MapKeyIteratorTest.h>
 
-int main( int argc, char **argv)
+int main(int argc, char *argv[])
 {
-  CppUnit::TextUi::TestRunner runner;
-  runner.addTest( askap::utility::IndexedLessTest::suite() );
-  runner.addTest( askap::AskapErrorTest::suite() );
-  runner.addTest( askap::utility::MapKeyIteratorTest::suite() );
-  runner.run();
-  return 0;
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+
+    runner.addTest(askap::utility::IndexedLessTest::suite());
+    runner.addTest(askap::AskapErrorTest::suite());
+    runner.addTest(askap::utility::MapKeyIteratorTest::suite());
+
+    bool wasSucessful = runner.run();
+
+    return wasSucessful ? 0 : 1;
 }

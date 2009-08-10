@@ -21,16 +21,19 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-#include <cppunit/ui/text/TestRunner.h>
+// ASKAPsoft includes
+#include <AskapTestRunner.h>
 
+// Test includes
 #include <MultiDimArrayPlaneIterTest.h>
 #include <FixedSizeCacheTest.h>
 
-int main( int argc, char **argv)
+int main(int argc, char *argv[])
 {
-  CppUnit::TextUi::TestRunner runner;
-  runner.addTest( askap::scimath::MultiDimArrayPlaneIterTest::suite() );
-  runner.addTest( askap::scimath::FixedSizeCacheTest::suite() );
-  runner.run();
-  return 0;
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest(askap::scimath::MultiDimArrayPlaneIterTest::suite());
+    runner.addTest(askap::scimath::FixedSizeCacheTest::suite());
+    bool wasSucessful = runner.run();
+
+    return wasSucessful ? 0 : 1;
 }

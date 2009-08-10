@@ -36,7 +36,7 @@
 #define __TABLE_TEST_RUNNER_H
 
 // cppunit includes
-#include <cppunit/ui/text/TestRunner.h>
+#include <AskapTestRunner.h>
 
 // std includes
 #include <string>
@@ -60,10 +60,10 @@ namespace synthesis {
 /// @li in the constructor the test measurement set is copied to
 ///     the local directory and named "./.test.ms"
 /// @li in the destructor this scratch measurement set is removed
-struct TableTestRunner : public CppUnit::TextUi::TestRunner
+struct TableTestRunner : public askapdev::testutils::AskapTestRunner
 {
   /// @brief copy the table from the location within the ASKAP tree
-  TableTestRunner();
+  TableTestRunner(const std::string& name);
   
   /// @brief delete the scratch table
   ~TableTestRunner();
@@ -74,7 +74,8 @@ private:
   static std::string theirTestMSName;
 };
 
-TableTestRunner::TableTestRunner() {
+TableTestRunner::TableTestRunner(const std::string& name)
+    : AskapTestRunner(name) {
   if (theirTestMSName!="") {
       throw AskapError("There supposed to be only one instance of TableTestRunner");
   }
