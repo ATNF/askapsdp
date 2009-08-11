@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include <Ice/Ice.h>
 #include <IceStorm/IceStorm.h>
+#include <boost/shared_ptr.hpp>
 
 // Local package includes
 #include "activities/IPort.h"
@@ -55,7 +56,7 @@ namespace askap { namespace cp {
             {
             }
 
-            virtual askap::cp::IPort::Direction getDirection(void)
+            virtual askap::cp::IPort::Direction getDirection(void) const
             {
                 return IPort::OUT;
             };
@@ -75,15 +76,31 @@ namespace askap { namespace cp {
                 
                 // Get the proxy
                 Ice::ObjectPrx pub = topicPrx->getPublisher()->ice_oneway();
-                P interface = P::uncheckedCast(pub);
+                itsProxy = P::uncheckedCast(pub);
             };
 
-            virtual void detach(const std::string& topic)
+            virtual void detach(void)
             {
             };
 
+            virtual void send(const T& payload)
+            {
+               itsProxy->handle(payload); 
+            };
+
+            /// Shared pointer definition
+            typedef boost::shared_ptr<OutputPort> ShPtr;
+
         private:
+
+            // Ice Communicator
             const Ice::CommunicatorPtr itsComm;
+
+            // Proxy object via which publishing occurs
+            P itsProxy;
+
+            // Proxy to the topic manager
+            IceStorm::TopicPrx itsTopicPrx;
     };
 
 }; };

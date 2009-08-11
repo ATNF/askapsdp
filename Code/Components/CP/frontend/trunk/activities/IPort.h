@@ -30,6 +30,9 @@
 // System includes
 #include <string>
 
+// ASKAPsoft includes
+#include <boost/shared_ptr.hpp>
+
 namespace askap {
     namespace cp {
 
@@ -46,11 +49,20 @@ namespace askap {
                 OUT
             };
 
-            virtual Direction getDirection(void) = 0;
+            virtual Direction getDirection(void) const = 0;
 
             virtual void attach(const std::string& topic) = 0;
 
-            virtual void detach(const std::string& topic) = 0;
+            virtual void detach(void) = 0;
+
+            enum StreamType 
+            {
+                Metadata,
+                Visibilities
+            };
+
+            /// Shared pointer definition
+            typedef boost::shared_ptr<IPort> ShPtr;
         };
 
     };

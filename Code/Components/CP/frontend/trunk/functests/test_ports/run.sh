@@ -29,8 +29,7 @@ $ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "applica
 sleep 1
 
 # Run the test
-$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tInputPort.sh --Ice.Config=config.tInputPort
-$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tOutputPort.sh --Ice.Config=config.tInputPort
+$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tPorts.sh --Ice.Config=config.tPorts
 
 # Request IceGrid shutdown and wait
 $ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "node shutdown Node1"

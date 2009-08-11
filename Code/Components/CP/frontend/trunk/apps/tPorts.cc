@@ -38,6 +38,54 @@
 
 using askap::cp::frontend::Visibilities;
 using askap::cp::frontend::IVisStreamPrx;
+using askap::cp::frontend::IVisStream;
+
+const std::string STREAM_NAME = "VisStream0";
+
+static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
+{
+    // Create and configure output port
+    askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
+    outPort.attach(STREAM_NAME);
+
+    // Create and configure input port
+    askap::cp::InputPort<Visibilities, IVisStream> inPort(ic, adapter);
+    inPort.attach(STREAM_NAME);
+
+    // Send a message
+    Visibilities vis;
+    outPort.send(vis);
+
+    Visibilities receipt = inPort.receive();
+
+    // Detach ports from streams
+    outPort.detach();
+    inPort.detach();
+}
+
+static void testMulti(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
+{
+    // Create and configure output port
+    askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
+    outPort.attach(STREAM_NAME);
+
+    // Create and configure input port
+    askap::cp::InputPort<Visibilities, IVisStream> inPort(ic, adapter);
+    inPort.attach(STREAM_NAME);
+
+    for (int i = 0; i < 100; ++i) {
+        // Send a message
+        Visibilities vis;
+        outPort.send(vis);
+
+        Visibilities receipt = inPort.receive();
+    }
+
+    // Detach ports from streams
+    outPort.detach();
+    inPort.detach();
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -46,8 +94,13 @@ int main(int argc, char *argv[])
 
     try {
         ic = Ice::initialize(argc, argv);
-        askap::cp::InputPort<Visibilities, IVisStreamPrx> inPort(ic);
-        askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
+
+        Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter("tPortsAdapter");
+        adapter->activate();
+
+        testOne(ic, adapter);
+        testMulti(ic, adapter);
+
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;
         return 1;
