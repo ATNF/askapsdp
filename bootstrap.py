@@ -88,7 +88,7 @@ if opts.preserve:
     print ">>> No pre-clean up of existing bootstrap generated files."
 else:
     print ">>> Attempting removal prexisting bootstrap files (if they exist)."
-    remove_paths(["bin", "include", "lib", "share",
+    remove_paths(["bin", "include", "lib", "share", "doc",
                   "initaskap.sh", "initaskap.csh", ".Python"])
 
 if opts.no_update:
