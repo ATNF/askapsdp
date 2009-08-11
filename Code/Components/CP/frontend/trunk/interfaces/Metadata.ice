@@ -1,6 +1,6 @@
 module askap {
     module cp {
-        module cpfrontend {
+        module frontend {
 
             struct Metadata {
                 long bat;
