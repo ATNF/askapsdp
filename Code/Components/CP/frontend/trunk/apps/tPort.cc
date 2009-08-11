@@ -1,4 +1,4 @@
-/// @file tOutputPort.cc
+/// @file tInputPort.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -32,10 +32,12 @@
 #include <Ice/Ice.h>
 
 // Local package includes
+#include "activities/InputPort.h"
 #include "activities/OutputPort.h"
 #include "streams/Visibilities.h"
 
 using askap::cp::frontend::Visibilities;
+using askap::cp::frontend::IVisStreamPrx;
 
 int main(int argc, char *argv[])
 {
@@ -44,7 +46,8 @@ int main(int argc, char *argv[])
 
     try {
         ic = Ice::initialize(argc, argv);
-        askap::cp::OutputPort<Visibilities> outPort(ic);
+        askap::cp::InputPort<Visibilities, IVisStreamPrx> inPort(ic);
+        askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;
         return 1;

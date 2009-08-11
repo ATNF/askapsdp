@@ -39,7 +39,7 @@
 
 namespace askap { namespace cp {
 
-    template<class T>
+    template<class T, class P>
     class InputPort : public IPort
     {
         public:
@@ -75,6 +75,7 @@ namespace askap { namespace cp {
 
                 // Get the proxy
                 Ice::ObjectPrx pub = topicPrx->getPublisher()->ice_oneway();
+                P interface = P::uncheckedCast(pub);
             };
 
             virtual void detach(const std::string& topic) 
