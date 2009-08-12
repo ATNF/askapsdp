@@ -19,6 +19,7 @@ pkg.AddInterfaces("Visibilities.ice", "streams", "interfaces")
 pkg.AddInterfaces("Metadata.ice", "streams", "interfaces")
 
 env.Append(CCFLAGS=['-Wall'])
+env.Append(CCFLAGS=['-g'])
 
 # run the build process
 pkg()
