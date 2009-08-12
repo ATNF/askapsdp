@@ -32,11 +32,9 @@
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
-#include "boost/shared_ptr.hpp"
-#include "boost/thread.hpp"
 
 // Local package includes
-#include "activities/IActivity.h"
+#include "activities/Activity.h"
 #include "activities/InputPort.h"
 #include "activities/OutputPort.h"
 #include "streams/Visibilities.h"
@@ -45,51 +43,40 @@
 namespace askap {
     namespace cp {
 
-        class AddMetadata : public IActivity
+        class AddMetadata : public Activity
         {
             public:
 
-            /// @brief Constructor.
-            AddMetadata(const Ice::CommunicatorPtr ic,
-                    const Ice::ObjectAdapterPtr adapter);
+                /// @brief Constructor.
+                AddMetadata(const Ice::CommunicatorPtr ic,
+                        const Ice::ObjectAdapterPtr adapter);
 
-            /// @brief Destructor.
-            virtual ~AddMetadata();
+                /// @brief Destructor.
+                virtual ~AddMetadata();
 
-            virtual void start(void);
-            virtual void stop(void);
+                virtual void attachInputPort(int port, const std::string& topic);
+                virtual void attachOutputPort(int port, const std::string& topic);
 
-            virtual std::string getName(void);
-            virtual std::string getActivityType(void);
-            virtual std::string getOutputStream(int port);
-            virtual std::string getOutputInput(int port);
-            virtual std::string getNodeName(void);
+                virtual void detachInputPort(int port);
+                virtual void detachOutputPort(int port);
 
-            virtual void attachInputPort(int port, const std::string& topic);
-            virtual void attachOutputPort(int port, const std::string& topic);
-
-            virtual void detachInputPort(int port);
-            virtual void detachOutputPort(int port);
+            protected:
+                void run(void);
 
             private:
+                // Ice Communicator
+                const Ice::CommunicatorPtr itsComm;
 
-            void run(void);
+                // Input Ports
+                askap::cp::InputPort<askap::cp::frontend::Metadata,
+                    askap::cp::frontend::IMetadataStream> itsInPort0;
 
-            // Ice Communicator
-            const Ice::CommunicatorPtr itsComm;
+                askap::cp::InputPort<askap::cp::frontend::Visibilities,
+                    askap::cp::frontend::IVisStream> itsInPort1;
 
-            // Input Ports
-            askap::cp::InputPort<askap::cp::frontend::Metadata,
-                askap::cp::frontend::IMetadataStream> itsInPort0;
-
-            askap::cp::InputPort<askap::cp::frontend::Visibilities,
-                askap::cp::frontend::IVisStream> itsInPort1;
-
-            // Output Ports
-            askap::cp::OutputPort<askap::cp::frontend::Visibilities,
-                askap::cp::frontend::IVisStreamPrx> itsOutPort0;
-
-            boost::shared_ptr<boost::thread> itsThread;
+                // Output Ports
+                askap::cp::OutputPort<askap::cp::frontend::Visibilities,
+                    askap::cp::frontend::IVisStreamPrx> itsOutPort0;
         };
     };
 };

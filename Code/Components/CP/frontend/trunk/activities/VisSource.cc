@@ -51,28 +51,6 @@ VisSource::~VisSource()
 {
 }
 
-std::string VisSource::getName(void)
+void VisSource::run(void)
 {
-    return "";
 }
-
-std::string VisSource::getActivityType(void)
-{
-    return "";
-}
-
-std::string VisSource::getOutputStream(int port)
-{
-    return "";
-}
-
-std::string VisSource::getOutputInput(int port)
-{
-    return "";
-}
-
-std::string VisSource::getNodeName(void)
-{
-    return "";
-}
-

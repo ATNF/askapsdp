@@ -27,12 +27,24 @@ else
 fi
 cd $INITIALDIR
 
+# test_activities testcase
+cd test_activities
+./run.sh
+if [ $? -eq 0 ]; then
+    R3="test-activities  PASS"
+else
+    R3="test-acivities  FAIL"
+    FAIL=1
+fi
+cd $INITIALDIR
+
 # Print Results
 echo
 echo Result Summary:
 echo ===============
 echo $R1
 echo $R2
+echo $R3
 
 if [ $FAIL -eq 0 ]; then
     exit 0

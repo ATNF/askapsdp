@@ -27,12 +27,12 @@
 // Include own header file first
 #include "AddMetadata.h"
 
-// Ice includes
-#include <Ice/Ice.h>
-
-// Local package includes
+// ASKAPsoft includes
+#include "Ice/Ice.h"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+
+// Local package includes
 #include "activities/IPort.h"
 #include "activities/InputPort.h"
 #include "activities/OutputPort.h"
@@ -57,19 +57,6 @@ AddMetadata::~AddMetadata()
 {
 }
 
-void AddMetadata::start(void)
-{
-    if (itsThread) {
-        ASKAPTHROW(AskapError, "Thread has already been started");
-    }
-    itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&AddMetadata::run, this)));
-}
-
-void AddMetadata::stop(void)
-{
-    itsThread->join();
-}
-
 void AddMetadata::run(void)
 {
     ASKAPLOG_INFO_STR(logger, "AddMetadata thread is running...");
@@ -77,31 +64,6 @@ void AddMetadata::run(void)
     Visibilities vis = itsInPort1.receive();
 
     itsOutPort0.send(vis);
-}
-
-std::string AddMetadata::getName(void)
-{
-    return "AddMetadata-spwin0";
-}
-
-std::string AddMetadata::getActivityType(void)
-{
-    return "AddMetadata";
-}
-
-std::string AddMetadata::getOutputStream(int port)
-{
-    return "";
-}
-
-std::string AddMetadata::getOutputInput(int port)
-{
-    return "";
-}
-
-std::string AddMetadata::getNodeName(void)
-{
-    return "";
 }
 
 void AddMetadata::attachInputPort(int port, const std::string& topic)

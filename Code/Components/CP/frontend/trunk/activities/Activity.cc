@@ -1,4 +1,4 @@
-/// @file IActivity.h
+/// @file Activity.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,36 +24,58 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IACTIVITY_H
-#define ASKAP_CP_IACTIVITY_H
+// Include own header file first
+#include "Activity.h"
 
-// System includes
-#include <string>
+// ASKAPsoft includes
+#include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
 
-namespace askap {
-    namespace cp {
+// Using
+using namespace askap;
+using askap::cp::Activity;
 
-        class IActivity
-        {
-            public:
+ASKAP_LOGGER(logger, ".Activity");
 
-            /// @brief Destructor.
-            virtual ~IActivity();
+Activity::Activity() : itsStopRequested(false)
+{
+}
 
-            virtual std::string getName(void) = 0;
-            virtual std::string getActivityType(void) = 0;
-            virtual std::string getOutputStream(int port) = 0;
-            virtual std::string getOutputInput(int port) = 0;
-            virtual std::string getNodeName(void) = 0;
+Activity::~Activity()
+{
+}
 
-            virtual void attachInputPort(int port, const std::string& topic) = 0;
-            virtual void attachOutputPort(int port, const std::string& topic) = 0;
+void Activity::start(void)
+{
+    if (itsThread) {
+        ASKAPTHROW(AskapError, "Thread has already been started");
+    }
+    ASKAPLOG_INFO_STR(logger, "Starting thread for activity " << getName());
+    itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&Activity::run, this)));
+    itsStopRequested = false;
+}
 
-            virtual void detachInputPort(int port) = 0;
-            virtual void detachOutputPort(int port) = 0;
-        };
+void Activity::stop(void)
+{
+    if (!itsThread) {
+        ASKAPTHROW(AskapError, "Thread is not running");
+    }
+    itsStopRequested = true;
+    itsThread->join();
+    itsThread.reset();
+}
 
-    };
-};
+bool Activity::stopRequested(void)
+{
+    return itsStopRequested;
+}
 
-#endif
+std::string Activity::getName(void)
+{
+    return itsName;
+}
+
+void Activity::setName(const std::string& name)
+{
+    itsName = name;
+}
