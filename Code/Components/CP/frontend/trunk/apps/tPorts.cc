@@ -1,4 +1,4 @@
-/// @file tInputPort.cc
+/// @file tPorts.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -28,13 +28,17 @@
 #include <string>
 #include <iostream>
 
-// Ice includes
-#include <Ice/Ice.h>
+// ASKAPsoft includes
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "Ice/Ice.h"
 
 // Local package includes
 #include "activities/InputPort.h"
 #include "activities/OutputPort.h"
 #include "streams/Visibilities.h"
+
+ASKAP_LOGGER(logger, ".tPorts");
 
 using askap::cp::frontend::Visibilities;
 using askap::cp::frontend::IVisStreamPrx;
@@ -86,9 +90,36 @@ static void testMulti(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     inPort.detach();
 }
 
+static void testBuffer(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
+{
+    // Create and configure output port
+    askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
+    outPort.attach(STREAM_NAME);
+
+    // Create and configure input port
+    askap::cp::InputPort<Visibilities, IVisStream> inPort(ic, adapter);
+    inPort.attach(STREAM_NAME);
+
+    for (int i = 0; i < 10; ++i) {
+        // Send a message
+        Visibilities vis;
+        outPort.send(vis);
+    }
+
+    for (int i = 0; i < 10; ++i) {
+        Visibilities receipt = inPort.receive();
+    }
+
+    // Detach ports from streams
+    outPort.detach();
+    inPort.detach();
+}
 
 int main(int argc, char *argv[])
 {
+    // Initialize AskapLogging
+    ASKAPLOG_INIT("tPorts.log_cfg");
+
     // Initialise ICE
     Ice::CommunicatorPtr ic;
 
@@ -100,6 +131,7 @@ int main(int argc, char *argv[])
 
         testOne(ic, adapter);
         testMulti(ic, adapter);
+        testBuffer(ic, adapter);
 
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;

@@ -36,7 +36,6 @@
 #include <IceStorm/IceStorm.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
-#include <boost/thread/xtime.hpp>
 #include <boost/shared_ptr.hpp>
 
 // Local package includes

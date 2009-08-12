@@ -45,6 +45,12 @@ namespace askap {
             virtual std::string getOutputStream(int port) = 0;
             virtual std::string getOutputInput(int port) = 0;
             virtual std::string getNodeName(void) = 0;
+
+            virtual void attachInputPort(int port, const std::string& topic) = 0;
+            virtual void attachOutputPort(int port, const std::string& topic) = 0;
+
+            virtual void detachInputPort(int port) = 0;
+            virtual void detachOutputPort(int port) = 0;
         };
 
     };

@@ -181,6 +181,12 @@ int main(int argc, char *argv[])
         ASKAPCHECK(ic, "Initialization of Ice communicator failed");
 
         Ice::ObjectAdapterPtr adapter = createAdapter(parset, ic);
+
+        adapter->activate();
+
+        // Do something
+
+        adapter->deactivate();
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;
         return 1;
