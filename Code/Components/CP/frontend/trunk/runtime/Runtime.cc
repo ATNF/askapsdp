@@ -44,14 +44,17 @@ ASKAP_LOGGER(logger, ".Runtime");
 Runtime::Runtime(const ParameterSet& parset)
     : itsParset(parset)
 {
+    ASKAPLOG_INFO_STR(logger, "Creating Runtime");
 }
 
 Runtime::~Runtime()
 {
+    ASKAPLOG_INFO_STR(logger, "Destroying Runtime");
 }
 
 void Runtime::run(void)
 {
+    ASKAPLOG_INFO_STR(logger, "Running Runtime");
     // Initialise ICE
     Ice::CommunicatorPtr ic = initIce(itsParset);
     ASKAPCHECK(ic, "Initialization of Ice communicator failed");
@@ -61,7 +64,8 @@ void Runtime::run(void)
 
     const std::string name = itsParset.getString("runtime");
 
-    Workflow wf(ic, adapter, itsParset, name);
+    ParameterSet workflowSubset = itsParset.makeSubset("workflow.");
+    Workflow wf(ic, adapter, workflowSubset, name);
     wf.start();
     wf.stop();
 

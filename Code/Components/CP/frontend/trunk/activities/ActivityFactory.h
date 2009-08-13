@@ -1,4 +1,4 @@
-/// @file Activity.h
+/// @file ActivityFactory.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,50 +24,40 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IACTIVITY_H
-#define ASKAP_CP_IACTIVITY_H
+#ifndef ASKAP_CP_IACTIVITYFACTORY_H
+#define ASKAP_CP_IACTIVITYFACTORY_H
 
 // System includes
 #include <string>
 
 // ASKAPsoft includes
+#include "Ice/Ice.h"
 #include "boost/shared_ptr.hpp"
-#include "boost/thread.hpp"
+
+// Local package includes
+#include "activities/Activity.h"
 
 namespace askap {
     namespace cp {
 
-        class Activity
+        class ActivityFactory
         {
             public:
                 /// @brief Constructor.
-                Activity();
+                ActivityFactory(const Ice::CommunicatorPtr& ic,
+                        const Ice::ObjectAdapterPtr& adapter);
 
                 /// @brief Destructor.
-                virtual ~Activity();
+                virtual ~ActivityFactory();
 
-                virtual void start(void);
-                virtual void stop(void);
+                askap::cp::Activity::ShPtr makeActivity(const std::string& type);
 
-                virtual std::string getName(void);
-                virtual void setName(const std::string& name);
+            private:
+                // Ice Communicator
+                Ice::CommunicatorPtr itsComm;
 
-                virtual void attachInputPort(int port, const std::string& topic) = 0;
-                virtual void attachOutputPort(int port, const std::string& topic) = 0;
-
-                virtual void detachInputPort(int port) = 0;
-                virtual void detachOutputPort(int port) = 0;
-
-                typedef boost::shared_ptr<Activity> ShPtr;
-
-            protected:
-                virtual void run(void) = 0;
-                bool stopRequested(void);
-
-                boost::shared_ptr<boost::thread> itsThread;
-                bool itsStopRequested;
-
-                std::string itsName;
+                // Ice Adapter
+                Ice::ObjectAdapterPtr itsAdapter;
         };
 
     };

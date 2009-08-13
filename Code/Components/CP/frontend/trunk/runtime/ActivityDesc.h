@@ -1,4 +1,4 @@
-/// @file Activity.h
+/// @file ActivityDesc.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,52 +24,50 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IACTIVITY_H
-#define ASKAP_CP_IACTIVITY_H
+#ifndef ASKAP_CP_ACTIVITYDESC_H
+#define ASKAP_CP_ACTIVITYDESC_H
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
-#include "boost/thread.hpp"
+#include "APS/ParameterSet.h"
 
 namespace askap {
     namespace cp {
 
-        class Activity
+        class ActivityDesc
         {
             public:
                 /// @brief Constructor.
-                Activity();
+                ActivityDesc();
 
                 /// @brief Destructor.
-                virtual ~Activity();
+                virtual ~ActivityDesc();
 
-                virtual void start(void);
-                virtual void stop(void);
+                void setRuntime(const std::string& runtime);
+                void setType(const std::string& type);
+                void setName(const std::string& name);
+                unsigned int addInPortMapping(const std::string& stream);
+                unsigned int addOutPortMapping(const std::string& stream);
+                void setParset(const LOFAR::ACC::APS::ParameterSet& parset);
 
-                virtual std::string getName(void);
-                virtual void setName(const std::string& name);
+                std::string getRuntime(void) const;
+                std::string getType(void) const;
+                std::string getName(void) const;
+                std::string getPortInPortMapping(unsigned int port) const;
+                std::string getPortOutPortMapping(unsigned int port) const;
+                LOFAR::ACC::APS::ParameterSet getParset(void) const;
 
-                virtual void attachInputPort(int port, const std::string& topic) = 0;
-                virtual void attachOutputPort(int port, const std::string& topic) = 0;
-
-                virtual void detachInputPort(int port) = 0;
-                virtual void detachOutputPort(int port) = 0;
-
-                typedef boost::shared_ptr<Activity> ShPtr;
-
-            protected:
-                virtual void run(void) = 0;
-                bool stopRequested(void);
-
-                boost::shared_ptr<boost::thread> itsThread;
-                bool itsStopRequested;
-
+            private:
+                std::string itsRuntime;
+                std::string itsType;
                 std::string itsName;
+                std::vector<std::string> itsInPorts;
+                std::vector<std::string> itsOutPorts;
+                LOFAR::ACC::APS::ParameterSet itsParset;
         };
-
     };
 };
 

@@ -27,9 +27,17 @@
 #ifndef ASKAP_CP_WORKFLOW_H
 #define ASKAP_CP_WORKFLOW_H
 
+// System includes
+#include <vector>
+#include <string>
+
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "APS/ParameterSet.h"
+
+// Local package includes
+#include "activities/Activity.h"
+#include "runtime/ActivityDesc.h"
 
 namespace askap {
     namespace cp {
@@ -50,6 +58,24 @@ namespace askap {
                 virtual void stop(void);
 
             private:
+                // Parse workflow descriptor file
+                std::vector<askap::cp::ActivityDesc> parse(void);
+
+                // Create all activities
+                void createAll(const std::vector<askap::cp::ActivityDesc>& activities);
+
+                // Attach all activities to streams
+                void attachAll(void);
+
+                // Detach all activities from streams
+                void detachAll(void);
+
+                // Start run thread on all activities
+                void startAll(void);
+
+                // Stop run thread on all activities
+                void stopAll(void);
+
                 // Ice Communicator
                 Ice::CommunicatorPtr itsComm;
 
@@ -62,6 +88,13 @@ namespace askap {
                 // Node name, used to determine which parts of workflow
                 // within this runtime
                 const std::string itsRuntimeName;
+
+                // Descriptions of the workflow. This describes what the workflow
+                // should look like
+                std::vector<askap::cp::ActivityDesc> itsDesc;
+
+                // Container for the activities which make up this workflow
+                std::vector<askap::cp::Activity::ShPtr> itsActivities;
 
                 // No support for assignment
                 Workflow& operator=(const Workflow& rhs);
