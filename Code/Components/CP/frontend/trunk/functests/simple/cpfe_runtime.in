@@ -1,3 +1,5 @@
+askap.cp.frontend.runtime       = cpfe_runtime1
+
 #
 # Locator service config
 #
@@ -14,3 +16,15 @@ askap.cp.frontend.ice.adapter.endpoints =   tcp
 #
 askap.cp.frontend.ice.trace.network     =   0
 askap.cp.frontend.ice.trace.protocol    =   0
+
+#
+# Workflow configuration
+#
+askap.cp.frontend.workflow.activity0.runtime    =   cpfe_runtime1
+askap.cp.frontend.workflow.activity0.type       =   AddMetadata
+askap.cp.frontend.workflow.activity0.name       =   AddMetadata-cb0
+askap.cp.frontend.workflow.activity0.in.port0   =   MetadataStream0
+askap.cp.frontend.workflow.activity0.in.port1   =   VisStream0
+askap.cp.frontend.workflow.activity0.out.port0  =   AnnotatedVisStream0
+askap.cp.frontend.workflow.activity0.custom.blah  = Hello
+

@@ -36,71 +36,23 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "APS/ParameterSet.h"
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-#include <askap/Log4cxxLogSink.h>
-#include <APS/ParameterSet.h>
-#include <CommandLineParser.h>
-#include <casa/Logging/LogIO.h>
-#include <casa/Logging/LogSinkInterface.h>
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "askap/Log4cxxLogSink.h"
+#include "APS/ParameterSet.h"
+#include "CommandLineParser.h"
+#include "casa/Logging/LogIO.h"
+#include "casa/Logging/LogSinkInterface.h"
 
 // Local package includes
+#include "runtime/Runtime.h"
 
 // Using
 using namespace askap;
-using namespace LOFAR::ACC::APS;
+using LOFAR::ACC::APS::ParameterSet;
+using askap::cp::Runtime;
 
 ASKAP_LOGGER(logger, ".main");
-
-static Ice::CommunicatorPtr initIce(const ParameterSet& parset)
-{
-    // Get the initialized property set.
-    Ice::PropertiesPtr props = Ice::createProperties();
-    ASKAPCHECK(props, "Ice properties creation failed");
-
-    // Get (from parset) and set (into ice props) various configuration
-    // parameters    
-    std::string tracenet = parset.getString("ice.trace.network", "0");
-    props->setProperty("Ice.Trace.Network", tracenet);
-
-    std::string traceprot = parset.getString("ice.trace.protocol", "0");
-    props->setProperty("Ice.Trace.Protocol", traceprot);
-
-    std::string locator = parset.getString("ice.locator");
-    props->setProperty("Ice.Default.Locator", locator);
-
-    // Initialize a communicator with these properties.
-    Ice::InitializationData id;
-    id.properties = props;
-    return Ice::initialize(id);
-}
-
-static Ice::ObjectAdapterPtr createAdapter(const ParameterSet& parset,
-        Ice::CommunicatorPtr& ic)
-{
-    Ice::PropertiesPtr props = ic->getProperties();
-
-    std::string adapterName = parset.getString("ice.adapter.name");
-    std::string adapterEndpoint = parset.getString("ice.adapter.endpoints");
-
-    // Need to create props like this (given an adapter name of TestAdapter
-    // and an endpoint of tcp)
-    // TestAdapter.AdapterId=TestAdapter
-    // TestAdapter.Endpoints=tcp
-    std::stringstream id;
-    id << adapterName << "." << "AdapterId";
-    std::stringstream ep;
-    ep << adapterName << "." << "Endpoints";
-
-    props->setProperty(id.str(), adapterName);
-    props->setProperty(ep.str(), adapterEndpoint);
-
-    Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter(adapterName);
-
-    ASKAPCHECK(ic, "Creation of Ice Adapter failed");
-
-    return adapter;
-}
 
 static ParameterSet configure(int argc, char *argv[])
 {
@@ -174,19 +126,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    Ice::CommunicatorPtr ic;
     try {
-        // Initialise ICE
-        ic = initIce(parset);
-        ASKAPCHECK(ic, "Initialization of Ice communicator failed");
-
-        Ice::ObjectAdapterPtr adapter = createAdapter(parset, ic);
-
-        adapter->activate();
-
-        // Do something
-
-        adapter->deactivate();
+        // Initialise and start the runtime
+        Runtime rt(parset);
+        rt.run();
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;
         return 1;
@@ -194,10 +137,6 @@ int main(int argc, char *argv[])
         std::cerr << "Error: " << msg << std::endl;
         return 1;
     }
-
-    // Shutdown ICE
-    ic->shutdown();
-    ic->waitForShutdown();
 
     return 0;
 }
