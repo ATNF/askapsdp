@@ -21,6 +21,7 @@ def writeData(line, fileno, subfile, doAnn, annfile, threshold, count=0):
     subfile[fileno].write("%s"%line)
     data=array(line.split()).astype(float)
     if(doAnn):
+        annfile[fileno].write("#Object details: %s"%line)
         if(data[3]>0.):
 #            annfile[fileno].write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*math.pi/180.,data[0],data[1],count))
             annfile[fileno].write("ELLIPSE %12.8f %12.8f %10.8f %10.8f %10.8f\nTEXT %12.8f %12.8f %d\n"%(data[0],data[1],data[3]/3600.,data[4]/3600.,data[5]*180./math.pi,data[0],data[1],count))
