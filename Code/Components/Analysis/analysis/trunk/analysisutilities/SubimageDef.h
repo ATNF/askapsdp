@@ -36,6 +36,7 @@
 
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
+#include <duchamp/fitsHeader.hh>
 
 namespace askap {
     namespace analysis {
@@ -74,6 +75,8 @@ namespace askap {
                 /// @brief Return the number of subimages.
                 int numSubs() {return itsNSubX*itsNSubY*itsNSubZ;};
                 int naxis() {return itsNAxis;};
+
+		void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers);
 
             protected:
                 /// @brief Number of subdivisions in the x-direction

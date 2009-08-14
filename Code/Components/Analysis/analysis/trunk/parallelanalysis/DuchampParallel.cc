@@ -147,6 +147,7 @@ namespace askap {
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
             this->itsFlagDoFit = parset.getBool("doFit", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
+	    this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
             LOFAR::ACC::APS::ParameterSet fitParset = parset.makeSubset("Fitter.");
             this->itsFitter = sourcefitting::FittingParameters(fitParset);
@@ -160,8 +161,10 @@ namespace askap {
 
 //       this->itsSubimageDef = SubimageDef(parset);
             if (this->isParallel()) {
-                if (this->isMaster())
+	      if (this->isMaster()){
                     this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")));
+                    this->itsSubimageDef = SubimageDef(parset);
+	      }
                 else if (this->isWorker()) {
                     this->itsSubimageDef = SubimageDef(parset);
                     this->itsCube.pars().setFlagSubsection(true);
@@ -234,6 +237,12 @@ namespace askap {
 		  result = casaImageToMetadata(this->itsCube);
 		}
 
+		ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile<<"\".");
+		if(this->itsSubimageAnnotationFile!="") {
+		  ASKAPLOG_INFO_STR(logger,"Writing annotation file showing subimages to " << this->itsSubimageAnnotationFile);
+		  this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.pars().section(),  this->itsCube.header(), this->itsCube.pars().getImageFile(), this->itsNNode-1);
+		}
+
                 if (result == duchamp::FAILURE) {
                     ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsImage << ".");
                     ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage)
@@ -246,7 +255,6 @@ namespace askap {
 
                 if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
 
-//  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "itsNNode="<<this->itsNNode<<", itsRank="<<this->itsRank);
                 // Send out the OK to the workers, so that they know that the subimages have been created.
                 bool OK;
 
@@ -257,10 +265,8 @@ namespace askap {
                     LOFAR::BlobOStream out5(bob5);
                     out5.putStart("goInput", 1);
                     out5 << i ;
-//    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sent OK to #"<<i);
                     out5.putEnd();
                     this->itsConnectionSet->writeAll(bs5);
-//    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " Sent OK to worker #" << i);
                     LOFAR::BlobString bs6;
                     this->itsConnectionSet->read(i - 1, bs6);
                     LOFAR::BlobIBufString bib6(bs6);
@@ -269,7 +275,6 @@ namespace askap {
                     ASKAPASSERT(version == 1);
                     in6 >> OK;
                     in6.getEnd();
-//    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " Received OK from worker #" << i<<": OK="<<OK);
                 }
 
                 LOFAR::BlobString bs7;
@@ -280,12 +285,13 @@ namespace askap {
                 out7 << this->itsNNode;
                 out7.putEnd();
                 this->itsConnectionSet->writeAll(bs7);
+		//
+		//
             } else if (this->isWorker()) {
                 bool OK = true;
                 int rank;
 
                 if (this->isParallel()) {
-//    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "itsNNode="<<this->itsNNode<<", itsRank="<<this->itsRank);
                     do {
                         LOFAR::BlobString bs1;
                         bs1.resize(0);
@@ -297,7 +303,6 @@ namespace askap {
                         ASKAPASSERT(version == 1);
                         in1 >> rank;
                         in1.getEnd();
-//      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Read rank " << rank << " from Blob");
                         OK = (rank == this->itsRank);
                     } while (!OK);
                 }
@@ -314,18 +319,14 @@ namespace askap {
                         this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
                         this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
 
-//      ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getFlagSubsection() << " " << this->itsCube.pars().getSubsection()
-//                 << " " << this->itsCube.getNumDim() << " " << this->itsSubimageDef.naxis() << " " << this->itsSubimageDef.getImageDim().size());
                         if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
                             this->itsCube.pars().setFlagSubsection(true);
                             this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
                         }
 
                         if (this->isParallel()) {
-//        ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getFlagSubsection() << " " << this->itsCube.pars().getSubsection());
                             duchamp::Section subsection = this->itsSubimageDef.section(this->itsRank - 1, this->itsCube.pars().getSubsection());
                             this->itsCube.pars().setSubsection(subsection.getSection());
-//        ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getFlagSubsection() << " " << this->itsCube.pars().getSubsection());
                         }
 
                         if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
@@ -335,15 +336,7 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix()
                                               << "About to read data from image " << this->itsCube.pars().getFullImageFile());
                         result = this->itsCube.getCube();
-//      ASKAPLOG_DEBUG_STR(logger, "num dim of cube = " << this->itsCube.getNumDim());
-//      ASKAPLOG_DEBUG_STR(logger, this->itsCube.pars().getSubsection() <<":  "
-//                 << this->itsCube.pars().section().getStart(0) << " " << this->itsCube.pars().section().getStart(1) << " " << this->itsCube.pars().section().getStart(2) << " "
-//                 << this->itsCube.pars().section().getEnd(0) << " " << this->itsCube.pars().section().getEnd(1) << " " << this->itsCube.pars().section().getEnd(2) << "   "
-//                 << this->itsCube.pars().section().getDim(0) << " " << this->itsCube.pars().section().getDim(1) << " " << this->itsCube.pars().section().getDim(2) << "   " );
-//      ASKAPLOG_DEBUG_STR(logger,  this->itsCube.getDimX());
-//      ASKAPLOG_DEBUG_STR(logger,  this->itsCube.getDimY());
-//      ASKAPLOG_DEBUG_STR(logger, this->itsCube.getDimZ());
-                    } else {
+                    } else { // if it's a CASA image
                         result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
                     }
 
@@ -736,7 +729,7 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
 
                     for (int i = 0; i < this->itsCube.getNumObj(); i++) {
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << ".");
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
                         src.setNoiseLevel(noise);
                         src.setDetectionThreshold(threshold);

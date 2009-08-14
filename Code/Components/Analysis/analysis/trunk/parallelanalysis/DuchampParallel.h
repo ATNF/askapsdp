@@ -171,6 +171,9 @@ namespace askap {
                 /// Name of the summary file
                 std::string itsSummaryFile;
 
+		/// Name of the Karma annotation file showing the subimages used when in parallel
+		std::string itsSubimageAnnotationFile;
+
                 /// Name of the Karma annotation file with the fitted Gaussian components
                 std::string itsFitAnnotationFile;
 

@@ -61,7 +61,7 @@
 using namespace casa;
 
 ///@brief Where the log messages go.
-ASKAP_LOGGER(logger, ".analysisutilities");
+ASKAP_LOGGER(logger, ".subimagedef");
 
 namespace askap {
     namespace analysis {
@@ -140,7 +140,6 @@ namespace askap {
             const int lng  = wcs->lng;
             const int lat  = wcs->lat;
             const int spec = wcs->spec;
-//       ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : " << this->itsNAxis << " axes, " << lng << " " << lat << " " << spec);
 
             if (this->itsNAxis > 0) {
                 this->itsNSub = new int[this->itsNAxis];
@@ -163,9 +162,6 @@ namespace askap {
                 }
             }
 
-//       for(int i=0;i<this->itsNAxis;i++){
-//  ASKAPLOG_DEBUG_STR(logger, "SubimageDef::define : axis#" << i << ": " << this->itsNSub[i] << " " << this->itsOverlap[i]);
-//       }
         }
 
         void SubimageDef::defineFITS(std::string FITSfilename)
@@ -202,7 +198,6 @@ namespace askap {
             duchamp::Section inputSec(inputSubsection);
             inputSec.parse(this->itsFullImageDim);
             ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
-//       long start = 0;
             long sub[3];
             sub[0] = workerNum % this->itsNSub[0];
             sub[1] = (workerNum % (this->itsNSub[0] * this->itsNSub[1])) / this->itsNSub[0];
@@ -212,23 +207,14 @@ namespace askap {
 
             for (int i = 0; i < numAxes; i++) {
                 if (this->itsNSub[i] > 1) {
-//    int min = std::max( start, sub[i]*(this->itsFullImageDim[i]/this->itsNSub[i]) - this->itsOverlap[i]/2 ) + 1;
-//    int max = std::min( this->itsFullImageDim[i], (sub[i]+1)*(this->itsFullImageDim[i]/this->itsNSub[i]) + this->itsOverlap[i]/2 );
                     int length = inputSec.getDim(i);
                     float sublength = float(length) / float(this->itsNSub[i]);
-//    ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : axis#" << i << " full length = " << this->itsFullImageDim[i]
-//               << ", length = " << length << ", inputSection = " << inputSec.getSection(i) <<", sublength = " << sublength);
-//    ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : input min = " << inputSec.getStart(i) << ", input max = " << inputSec.getEnd(i));
-//    ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : sub min = " << inputSec.getStart(i) + sub[i]*(length/this->itsNSub[i]) - this->itsOverlap[i]/2
-//               << ", sub max = " << inputSec.getStart(i) + (sub[i]+1)*(length/this->itsNSub[i]) + this->itsOverlap[i]/2 );
                     int min = std::max(long(inputSec.getStart(i)), long(inputSec.getStart(i) + sub[i] * sublength - this->itsOverlap[i] / 2)) + 1;
                     int max = std::min(long(inputSec.getEnd(i) + 1), long(inputSec.getStart(i) + (sub[i] + 1) * sublength + this->itsOverlap[i] / 2));
-//    ASKAPLOG_DEBUG_STR(logger, "SubimageDef::section : min = " << min << ", max = " << max);
                     section << min << ":" << max;
-                } else //section << "*";
+                } else
                     section << inputSec.getSection(i);
 
-//  if(i != this->itsNAxis-1) section << ",";
                 if (i != numAxes - 1) section << ",";
             }
 
@@ -239,6 +225,40 @@ namespace askap {
             return sec;
         }
 
+      void SubimageDef::writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers)
+      {
+	/// @details This creates a Karma annotation file that simply has the borders of the subimages plotted on it.
+
+	std::ofstream fAnnot(filename.c_str());
+	fAnnot << "# Borders of subimaages for image " << imageName << "\n#\n";
+	fAnnot << "COLOR YELLOW\n";
+	fAnnot << "COORD W\n";
+	fAnnot << "FONT lucidasans-24\n";
+
+	double *pix = new double[12];
+	double *wld = new double[12];
+	float xcentre,ycentre;
+	for(int i=0;i<4;i++) pix[i*3+2] = 0;
+	for(int w=0;w<numWorkers;w++){
+
+	  duchamp::Section workerSection = this->section(w,fullImageSubsection.getSection());
+	  pix[0] = pix[9] = workerSection.getStart(0)-0.5; // x-start
+	  pix[1] = pix[4] = workerSection.getStart(1)-0.5; // y-start
+     	  pix[3] = pix[6] = workerSection.getEnd(0)+0.5;   // x-end
+	  pix[7] = pix[10] = workerSection.getEnd(1)+0.5;  // y-end 
+	  head.pixToWCS(pix,wld,4);
+	  xcentre = (wld[0]+wld[3]+wld[6]+wld[9])/4.;
+	  ycentre = (wld[1]+wld[4]+wld[7]+wld[10])/4.;
+	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": starts are ("<<pix[0]<<","<<pix[1]<<")");
+	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": ends are ("<<pix[1]<<","<<pix[7]<<")");
+	  fAnnot << "CLINES ";
+	  for(int i=0;i<4;i++) fAnnot << wld[i*3] << " " << wld[i*3+1] << " ";
+	  fAnnot << wld[0] << " " << wld[1] << "\n";
+	  fAnnot << "TEXT " << xcentre << " " << ycentre << " " << w+1 << "\n";
+	}
+	fAnnot.close();
+	
+      }
 
     }
 

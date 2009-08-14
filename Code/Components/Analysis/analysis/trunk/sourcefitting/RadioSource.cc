@@ -45,6 +45,7 @@
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Detection/columns.hh>
 #include <duchamp/Utils/Section.hh>
+#include <duchamp/Utils/utils.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian1D.h>
@@ -561,7 +562,9 @@ namespace askap {
                 }
 
                 if (failure) {
-                    ASKAPLOG_ERROR(logger, "RadioSource: Failed to allocate flux array");
+		  ASKAPLOG_ERROR_STR(logger, "RadioSource: Failed to allocate flux array for object at ("
+				     << this->getXcentre() <<","<<this->getYcentre() <<","<<this->getZcentre()<<"), or " 
+				     << this->ra << " " << this->dec << " " << this->vel);
                     return !failure;
                 }
 
