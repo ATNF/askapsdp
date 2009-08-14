@@ -92,6 +92,16 @@ std::string ActivityDesc::getName(void) const
     return itsName;
 }
 
+unsigned int ActivityDesc::getNumInPorts(void) const
+{
+    return itsInPorts.size();
+}
+
+unsigned int ActivityDesc::getNumOutPorts(void) const
+{
+    return itsOutPorts.size();
+}
+
 std::string ActivityDesc::getPortInPortMapping(unsigned int port) const
 {
     if (port > itsInPorts.size() - 1) {

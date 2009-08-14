@@ -36,31 +36,36 @@
 // Local package includes
 #include "activities/InputPort.h"
 #include "activities/OutputPort.h"
-#include "streams/Visibilities.h"
+#include "streams/SimpleNumber.h"
 
 ASKAP_LOGGER(logger, ".tPorts");
 
-using askap::cp::frontend::Visibilities;
-using askap::cp::frontend::IVisStreamPrx;
-using askap::cp::frontend::IVisStream;
+using askap::cp::frontend::SimpleNumber;
+using askap::cp::frontend::INumberStreamPrx;
+using askap::cp::frontend::INumberStream;
+using namespace askap;
 
-const std::string STREAM_NAME = "VisStream0";
+const std::string STREAM_NAME = "NumberStream0";
 
 static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
 {
     // Create and configure output port
-    askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPort(ic);
     outPort.attach(STREAM_NAME);
 
     // Create and configure input port
-    askap::cp::InputPort<Visibilities, IVisStream> inPort(ic, adapter);
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
     inPort.attach(STREAM_NAME);
 
     // Send a message
-    Visibilities vis;
-    outPort.send(vis);
+    SimpleNumber a;
+    a.i = 1234;
+    outPort.send(a);
 
-    Visibilities receipt = inPort.receive();
+    SimpleNumber receipt = inPort.receive();
+    if (receipt.i != a.i) {
+        ASKAPTHROW(AskapError, "receipt.i != a.i");
+    }
 
     // Detach ports from streams
     outPort.detach();
@@ -70,19 +75,24 @@ static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
 static void testMulti(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
 {
     // Create and configure output port
-    askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPort(ic);
     outPort.attach(STREAM_NAME);
 
     // Create and configure input port
-    askap::cp::InputPort<Visibilities, IVisStream> inPort(ic, adapter);
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
     inPort.attach(STREAM_NAME);
 
     for (int i = 0; i < 100; ++i) {
         // Send a message
-        Visibilities vis;
-        outPort.send(vis);
+        SimpleNumber a;
+        a.i = i;
+        outPort.send(a);
 
-        Visibilities receipt = inPort.receive();
+        SimpleNumber receipt = inPort.receive();
+
+        if (receipt.i != i) {
+            ASKAPTHROW(AskapError, "receipt.i != i");
+        }
     }
 
     // Detach ports from streams
@@ -93,21 +103,26 @@ static void testMulti(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
 static void testBuffer(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
 {
     // Create and configure output port
-    askap::cp::OutputPort<Visibilities, IVisStreamPrx> outPort(ic);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPort(ic);
     outPort.attach(STREAM_NAME);
 
     // Create and configure input port
-    askap::cp::InputPort<Visibilities, IVisStream> inPort(ic, adapter);
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
     inPort.attach(STREAM_NAME);
 
     for (int i = 0; i < 10; ++i) {
         // Send a message
-        Visibilities vis;
-        outPort.send(vis);
+        SimpleNumber a;
+        a.i = i;
+        outPort.send(a);
     }
 
     for (int i = 0; i < 10; ++i) {
-        Visibilities receipt = inPort.receive();
+        SimpleNumber receipt = inPort.receive();
+        if (receipt.i != i) {
+            ASKAPTHROW(AskapError, "receipt.i != i");
+        }
+
     }
 
     // Detach ports from streams

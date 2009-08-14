@@ -57,6 +57,7 @@ void Activity::start(void)
 
 void Activity::stop(void)
 {
+    ASKAPLOG_INFO_STR(logger, "Stopping thread for activity " << getName());
     if (!itsThread) {
         ASKAPTHROW(AskapError, "Thread is not running");
     }

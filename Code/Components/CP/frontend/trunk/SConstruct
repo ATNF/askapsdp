@@ -16,6 +16,7 @@ pkg.AddSubPackage("runtime")
 # second argument is the sub-package where the slice generated code should appear
 # third argument is the location of the source file relative to this SConstruct
 # file, or omit this argument for a system interface (i.e. Code/Interfaces)
+pkg.AddInterfaces("SimpleNumber.ice", "streams", "interfaces")
 pkg.AddInterfaces("Visibilities.ice", "streams", "interfaces")
 pkg.AddInterfaces("Metadata.ice", "streams", "interfaces")
 

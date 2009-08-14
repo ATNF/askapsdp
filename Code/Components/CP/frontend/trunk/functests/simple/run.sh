@@ -26,7 +26,7 @@ $ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "applica
 
 # TODO: Find a method of waiting for icestorm to startup so we
 # don't need to do this sleep
-sleep 1
+sleep 2
 
 # Run the test
 $ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/cpfe_runtime.sh -inputs cpfe_runtime.in

@@ -55,16 +55,17 @@ Workflow::Workflow(const Ice::CommunicatorPtr& ic,
 {
     ASKAPLOG_INFO_STR(logger, "Creating workflow");
     itsDesc = parse();
-    createAll(itsDesc);
+    createAll();
 }
 
 Workflow::~Workflow()
 {
     ASKAPLOG_INFO_STR(logger, "Destroying workflow");
-    while (itsActivities.size() != 0) {
-        itsActivities.back().reset();
-        itsActivities.pop_back();
+    std::map<std::string, Activity::ShPtr>::iterator it;
+    for (it = itsActivities.begin(); it != itsActivities.end(); ++it) {
+        it->second.reset();
     }
+
 }
 
 void Workflow::start(void)
@@ -101,13 +102,10 @@ std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
     for (unsigned int i = 0; i < ACTIVITY_MAX; ++i) {
         std::stringstream ss;
         ss << "activity" << i << ".";
-        ASKAPLOG_INFO_STR(logger, "Looking for " << ss.str());
         ParameterSet subset = itsParset.makeSubset(ss.str());
         if (subset.size() == 0) {
             break;
         }
-
-        ASKAPLOG_INFO_STR(logger, "Found " << ss.str());
 
         // Add the simple types
         const std::string runtime = subset.getString("runtime");
@@ -128,7 +126,7 @@ std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
         desc.setParset(custom);
 
         // Process input ports
-        for (unsigned int ip; ip < PORTS_MAX; ++ip) {
+        for (unsigned int ip = 0; ip < PORTS_MAX; ++ip) {
             std::stringstream iss;
             iss << "in.port" << ip;
             const std::string stream = subset.getString(iss.str(), "");
@@ -139,7 +137,7 @@ std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
         }
 
         // Process output ports
-        for (unsigned int op; op < PORTS_MAX; ++op) {
+        for (unsigned int op = 0; op < PORTS_MAX; ++op) {
             std::stringstream oss;
             oss << "out.port" << op;
             const std::string stream = subset.getString(oss.str(), "");
@@ -156,46 +154,77 @@ std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
 }
 
 // Create all activities
-void Workflow::createAll(const std::vector<ActivityDesc>& activities)
+void Workflow::createAll(void)
 {
-    ASKAPLOG_INFO_STR(logger, "CreateAll() in workflow. Num activities = " << activities.size());
+    ASKAPLOG_INFO_STR(logger, "CreateAll() in workflow. Num activities = " << itsDesc.size());
     ActivityFactory factory(itsComm, itsAdapter);
 
     std::vector<ActivityDesc>::const_iterator it;
-    for (it = activities.begin(); it != activities.end(); ++it) {
-        ASKAPLOG_INFO_STR(logger, "Creating activity " << it->getName()
+    for (it = itsDesc.begin(); it != itsDesc.end(); ++it) {
+        const std::string name = it->getName();
+        ASKAPLOG_INFO_STR(logger, "Creating activity " << name 
                 << " of type " << it->getType());
         Activity::ShPtr activity = factory.makeActivity(it->getType());
-        activity->setName(it->getName());
+        activity->setName(name);
 
-        itsActivities.push_back(activity);
+        itsActivities[name] = activity;
     }
 }
 
 // Attach all activities to streams
 void Workflow::attachAll(void)
 {
+    ASKAPLOG_INFO_STR(logger, "Attaching all activities to streams");
+    std::vector<ActivityDesc>::const_iterator it;
+    for (it = itsDesc.begin(); it != itsDesc.end(); ++it) {
+        Activity::ShPtr activity = itsActivities[it->getName()];
+
+        // Attach input ports
+        for (unsigned int i = 0; i < it->getNumInPorts(); ++i) {
+            activity->attachInputPort(i, it->getPortInPortMapping(i));
+        }
+
+        // Attach output ports
+        for (unsigned int i = 0; i < it->getNumOutPorts(); ++i) {
+            activity->attachOutputPort(i, it->getPortOutPortMapping(i));
+        }
+    }
 }
 
 // Detach all activities from streams
 void Workflow::detachAll(void)
 {
+    ASKAPLOG_INFO_STR(logger, "Detaching all activities from streams");
+    std::vector<ActivityDesc>::const_iterator it;
+    for (it = itsDesc.begin(); it != itsDesc.end(); ++it) {
+        Activity::ShPtr activity = itsActivities[it->getName()];
+
+        // Attach input ports
+        for (unsigned int i = 0; i < it->getNumInPorts(); ++i) {
+            activity->detachInputPort(i);
+        }
+
+        // Attach output ports
+        for (unsigned int i = 0; i < it->getNumOutPorts(); ++i) {
+            activity->detachOutputPort(i);
+        }
+    }
 }
 
 // Start run thread on all activities
 void Workflow::startAll(void)
 {
-    std::vector<Activity::ShPtr>::iterator it;
+    std::map<std::string, Activity::ShPtr>::iterator it;
     for (it = itsActivities.begin(); it != itsActivities.end(); ++it) {
-        (*it)->start();
+        it->second->start();
     }
 }
 
 // Stop run thread on all activities
 void Workflow::stopAll(void)
 {
-    std::vector<Activity::ShPtr>::iterator it;
+    std::map<std::string, Activity::ShPtr>::iterator it;
     for (it = itsActivities.begin(); it != itsActivities.end(); ++it) {
-        (*it)->stop();
+        it->second->stop();
     }
 }

@@ -29,6 +29,7 @@
 
 // System includes
 #include <vector>
+#include <map>
 #include <string>
 
 // ASKAPsoft includes
@@ -62,7 +63,7 @@ namespace askap {
                 std::vector<askap::cp::ActivityDesc> parse(void);
 
                 // Create all activities
-                void createAll(const std::vector<askap::cp::ActivityDesc>& activities);
+                void createAll(void);
 
                 // Attach all activities to streams
                 void attachAll(void);
@@ -94,7 +95,8 @@ namespace askap {
                 std::vector<askap::cp::ActivityDesc> itsDesc;
 
                 // Container for the activities which make up this workflow
-                std::vector<askap::cp::Activity::ShPtr> itsActivities;
+                // This maps the name of the activity to the pointer
+                std::map<std::string, askap::cp::Activity::ShPtr> itsActivities;
 
                 // No support for assignment
                 Workflow& operator=(const Workflow& rhs);

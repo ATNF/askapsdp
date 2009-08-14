@@ -6,15 +6,15 @@ echo Running test cases...
 FAIL=0
 
 # Simple testcase
-#cd simple
-#./run.sh
-#if [ $? -eq 0 ]; then
-#    R1="simple      PASS"
-#else
-#    R1="simple      FAIL"
-#    FAIL=1
-#fi
-#cd $INITIALDIR
+cd simple
+./run.sh
+if [ $? -eq 0 ]; then
+    R1="simple      PASS"
+else
+    R1="simple      FAIL"
+    FAIL=1
+fi
+cd $INITIALDIR
 
 # test_ports testcase
 cd test_ports
@@ -42,7 +42,7 @@ cd $INITIALDIR
 echo
 echo Result Summary:
 echo ===============
-#echo $R1
+echo $R1
 echo $R2
 echo $R3
 

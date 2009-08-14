@@ -56,6 +56,8 @@ namespace askap {
                 std::string getRuntime(void) const;
                 std::string getType(void) const;
                 std::string getName(void) const;
+                unsigned int getNumInPorts(void) const;
+                unsigned int getNumOutPorts(void) const;
                 std::string getPortInPortMapping(unsigned int port) const;
                 std::string getPortOutPortMapping(unsigned int port) const;
                 LOFAR::ACC::APS::ParameterSet getParset(void) const;

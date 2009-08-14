@@ -36,53 +36,59 @@
 #include <askap/AskapError.h>
 
 // Local package includes
-#include "activities/AddMetadata.h"
+#include "activities/SimpleMath.h"
 #include "activities/InputPort.h"
 #include "activities/OutputPort.h"
-#include "streams/Visibilities.h"
-#include "streams/Metadata.h"
+#include "streams/SimpleNumber.h"
 
 ASKAP_LOGGER(logger, ".tActivities");
 
+using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::frontend;
 
-const std::string VISSTREAM_NAME = "VisStream0";
-const std::string ANNOTATED_VISSTREAM_NAME = "AnnotatedVisStream0";
-const std::string METADATASTREAM_NAME = "MetadataStream0";
+const std::string INPUT_A = "InputStreamA";
+const std::string INPUT_B = "InputStreamB";
+const std::string OUTPUT = "OutputStream";
 
 static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
 {
     // Create the activity to test
-    AddMetadata activity(ic, adapter);
-    activity.attachInputPort(0, METADATASTREAM_NAME);
-    activity.attachInputPort(1, VISSTREAM_NAME);
-    activity.attachOutputPort(0, ANNOTATED_VISSTREAM_NAME);
+    SimpleMath activity(ic, adapter);
+    activity.attachInputPort(0, INPUT_A);
+    activity.attachInputPort(1, INPUT_B);
+    activity.attachOutputPort(0, OUTPUT);
 
     activity.start();
 
     // Create and configure output port
-    askap::cp::OutputPort<Visibilities, IVisStreamPrx> visOutPort(ic);
-    visOutPort.attach(VISSTREAM_NAME);
-    askap::cp::OutputPort<Metadata, IMetadataStreamPrx> metaOutPort(ic);
-    metaOutPort.attach(METADATASTREAM_NAME);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortA(ic);
+    outPortA.attach(INPUT_A);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortB(ic);
+    outPortB.attach(INPUT_B);
 
     // Create and configure input port
-    askap::cp::InputPort<Visibilities, IVisStream> visInPort(ic, adapter);
-    visInPort.attach(ANNOTATED_VISSTREAM_NAME);
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
+    inPort.attach(OUTPUT);
 
     // Send both messages
-    Visibilities vis;
-    visOutPort.send(vis);
-    Metadata md;
-    metaOutPort.send(md);
+    SimpleNumber a;
+    a.i = 1;
+    outPortA.send(a);
+    SimpleNumber b;
+    b.i = 2;
+    outPortB.send(b);
 
-    Visibilities receipt = visInPort.receive();
+    SimpleNumber receipt = inPort.receive();
+
+    if (receipt.i != (a.i + b.i)) {
+        ASKAPTHROW(AskapError, "receipt.i != (a.i + b.i)");
+    }
 
     // Detach ports from streams
-    visOutPort.detach();
-    metaOutPort.detach();
-    visInPort.detach();
+    outPortA.detach();
+    outPortB.detach();
+    inPort.detach();
 }
 
 int main(int argc, char *argv[])

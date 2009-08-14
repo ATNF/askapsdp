@@ -1,4 +1,4 @@
-/// @file AddMetadata.cc
+/// @file SimpleMath.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "AddMetadata.h"
+#include "SimpleMath.h"
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
@@ -36,15 +36,14 @@
 #include "activities/IPort.h"
 #include "activities/InputPort.h"
 #include "activities/OutputPort.h"
-#include "streams/Visibilities.h"
-#include "streams/Metadata.h"
+#include "streams/SimpleNumber.h"
 
-ASKAP_LOGGER(logger, ".AddMetadata");
+ASKAP_LOGGER(logger, ".SimpleMath");
 
 using namespace askap::cp;
 using namespace askap::cp::frontend;
 
-AddMetadata::AddMetadata(const Ice::CommunicatorPtr ic,
+SimpleMath::SimpleMath(const Ice::CommunicatorPtr ic,
         const Ice::ObjectAdapterPtr adapter)
     : itsComm(ic),
     itsInPort0(ic, adapter),
@@ -53,22 +52,22 @@ AddMetadata::AddMetadata(const Ice::CommunicatorPtr ic,
 {
 }
 
-AddMetadata::~AddMetadata()
+SimpleMath::~SimpleMath()
 {
 }
 
-void AddMetadata::run(void)
+void SimpleMath::run(void)
 {
-    ASKAPLOG_INFO_STR(logger, "AddMetadata thread is running...");
-    //Metadata md = itsInPort0.receive();
-    //Visibilities vis = itsInPort1.receive();
+    ASKAPLOG_INFO_STR(logger, "SimpleMath thread is running...");
+    SimpleNumber a = itsInPort0.receive();
+    SimpleNumber b = itsInPort1.receive();
 
-    //itsOutPort0.send(vis);
-    while (!stopRequested()) {
-    }
+    SimpleNumber c;
+    c.i = a.i + b.i;
+    itsOutPort0.send(c);
 }
 
-void AddMetadata::attachInputPort(int port, const std::string& topic)
+void SimpleMath::attachInputPort(int port, const std::string& topic)
 {
     switch (port) {
         case 0:
@@ -82,7 +81,7 @@ void AddMetadata::attachInputPort(int port, const std::string& topic)
     }
 }
 
-void AddMetadata::attachOutputPort(int port, const std::string& topic)
+void SimpleMath::attachOutputPort(int port, const std::string& topic)
 {
     switch (port) {
         case 0:
@@ -93,7 +92,7 @@ void AddMetadata::attachOutputPort(int port, const std::string& topic)
     }
 }
 
-void AddMetadata::detachInputPort(int port)
+void SimpleMath::detachInputPort(int port)
 {
     switch (port) {
         case 0:
@@ -107,7 +106,7 @@ void AddMetadata::detachInputPort(int port)
     }
 }
 
-void AddMetadata::detachOutputPort(int port)
+void SimpleMath::detachOutputPort(int port)
 {
     switch (port) {
         case 0:
