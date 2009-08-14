@@ -141,6 +141,7 @@ namespace askap {
 
             LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FitResults& result)
             {
+	        blob << result.itsFitIsGood;
                 blob << result.itsChisq;
                 blob << result.itsRedChisq;
                 blob << result.itsRMS;
@@ -165,6 +166,7 @@ namespace askap {
 
             LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FitResults& result)
             {
+	        blob >> result.itsFitIsGood;
                 blob >> result.itsChisq;
                 blob >> result.itsRedChisq;
                 blob >> result.itsRMS;
