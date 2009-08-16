@@ -105,8 +105,13 @@ namespace askap { namespace cp {
                         itsCondVar.wait(lock); 
                     }
                 } else {
-                    boost::system_time const _timeout = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
-                    itsCondVar.timed_wait(lock, _timeout);
+                    boost::system_time const wakeupTime = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
+
+                    // Need to protect from spurious wakeups, so check both the predicate
+                    // and the wakeup time, then wait again as required.
+                    while ((itsBuffer.size() < 1) && (boost::get_system_time() < wakeupTime)) {
+                        itsCondVar.timed_wait(lock, wakeupTime);
+                    }
                     if (itsBuffer.size() < 1) {
                         return boost::shared_ptr<T>();
                     }
