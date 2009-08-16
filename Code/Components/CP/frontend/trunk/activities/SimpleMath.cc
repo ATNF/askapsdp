@@ -58,12 +58,27 @@ SimpleMath::~SimpleMath()
 
 void SimpleMath::run(void)
 {
+    const unsigned int timeout = 500;
+
     ASKAPLOG_INFO_STR(logger, "SimpleMath thread is running...");
-    SimpleNumber a = itsInPort0.receive();
-    SimpleNumber b = itsInPort1.receive();
+    boost::shared_ptr<SimpleNumber> a;
+    while (!a) {
+        a = itsInPort0.receive(timeout);
+        if (stopRequested()) {
+            return;
+        }
+    }
+
+    boost::shared_ptr<SimpleNumber> b;
+    while (!b) {
+        b = itsInPort1.receive(timeout);
+        if (stopRequested()) {
+            return;
+        }
+    }
 
     SimpleNumber c;
-    c.i = a.i + b.i;
+    c.i = a->i + b->i;
     itsOutPort0.send(c);
 }
 

@@ -79,10 +79,10 @@ static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     b.i = 2;
     outPortB.send(b);
 
-    SimpleNumber receipt = inPort.receive();
+    boost::shared_ptr<SimpleNumber> receipt = inPort.receive();
 
-    if (receipt.i != (a.i + b.i)) {
-        ASKAPTHROW(AskapError, "receipt.i != (a.i + b.i)");
+    if (receipt->i != (a.i + b.i)) {
+        ASKAPTHROW(AskapError, "receipt->i != (a.i + b.i)");
     }
 
     // Detach ports from streams

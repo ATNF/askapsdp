@@ -62,9 +62,9 @@ static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     a.i = 1234;
     outPort.send(a);
 
-    SimpleNumber receipt = inPort.receive();
-    if (receipt.i != a.i) {
-        ASKAPTHROW(AskapError, "receipt.i != a.i");
+    boost::shared_ptr<SimpleNumber> receipt = inPort.receive();
+    if (receipt->i != a.i) {
+        ASKAPTHROW(AskapError, "receipt->i != a.i");
     }
 
     // Detach ports from streams
@@ -88,10 +88,10 @@ static void testMulti(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
         a.i = i;
         outPort.send(a);
 
-        SimpleNumber receipt = inPort.receive();
+        boost::shared_ptr<SimpleNumber> receipt = inPort.receive();
 
-        if (receipt.i != i) {
-            ASKAPTHROW(AskapError, "receipt.i != i");
+        if (receipt->i != i) {
+            ASKAPTHROW(AskapError, "receipt->i != i");
         }
     }
 
@@ -118,9 +118,9 @@ static void testBuffer(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     }
 
     for (int i = 0; i < 10; ++i) {
-        SimpleNumber receipt = inPort.receive();
-        if (receipt.i != i) {
-            ASKAPTHROW(AskapError, "receipt.i != i");
+        boost::shared_ptr<SimpleNumber> receipt = inPort.receive();
+        if (receipt->i != i) {
+            ASKAPTHROW(AskapError, "receipt->i != i");
         }
 
     }
@@ -128,6 +128,56 @@ static void testBuffer(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     // Detach ports from streams
     outPort.detach();
     inPort.detach();
+}
+
+static void testDetachedOutputPort(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
+{
+    // Create and configure output port. but don't attach it
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPort(ic);
+
+    // Create and configure input port
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
+    inPort.attach(STREAM_NAME);
+
+    // Send a message
+    SimpleNumber a;
+    a.i = 1234;
+    outPort.send(a);
+
+    // Confirm the receive (with a 1sec timeout) receives nothing
+    boost::shared_ptr<SimpleNumber> receipt = inPort.receive(1000);
+    if (receipt) {
+        ASKAPTHROW(AskapError, "expected receipt pointer is null");
+    }
+    return;
+
+    // Detach ports from streams
+    inPort.detach();
+}
+
+static void testDetachedInputPort(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
+{
+    // Create and configure output port. but don't attach it
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPort(ic);
+    outPort.attach(STREAM_NAME);
+
+    // Create and configure input port
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
+
+    // Send a message
+    SimpleNumber a;
+    a.i = 1234;
+    outPort.send(a);
+
+    // Confirm the receive (with a 1sec timeout) receives nothing
+    boost::shared_ptr<SimpleNumber> receipt = inPort.receive(1000);
+    if (receipt) {
+        ASKAPTHROW(AskapError, "expected receipt pointer is null");
+    }
+    return;
+
+    // Detach ports from streams
+    outPort.detach();
 }
 
 int main(int argc, char *argv[])
@@ -147,6 +197,8 @@ int main(int argc, char *argv[])
         testOne(ic, adapter);
         testMulti(ic, adapter);
         testBuffer(ic, adapter);
+        testDetachedOutputPort(ic, adapter);
+        testDetachedInputPort(ic, adapter);
 
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;

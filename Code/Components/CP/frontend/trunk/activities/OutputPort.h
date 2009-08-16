@@ -81,11 +81,14 @@ namespace askap { namespace cp {
 
             virtual void detach(void)
             {
+                itsProxy = 0;
             };
 
             virtual void send(const T& payload)
             {
-               itsProxy->handle(payload); 
+                if (itsProxy) {
+                    itsProxy->handle(payload); 
+                }
             };
 
             /// Shared pointer definition

@@ -70,6 +70,7 @@ void Runtime::run(void)
     wf.stop();
 
     adapter->deactivate();
+    adapter->waitForDeactivate();
 
     // Shutdown ICE
     ic->shutdown();

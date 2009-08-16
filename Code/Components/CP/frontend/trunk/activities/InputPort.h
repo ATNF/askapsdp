@@ -32,11 +32,12 @@
 #include <deque>
 
 // ASKAPsoft includes
-#include <Ice/Ice.h>
-#include <IceStorm/IceStorm.h>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
-#include <boost/shared_ptr.hpp>
+#include "Ice/Ice.h"
+#include "IceStorm/IceStorm.h"
+#include "boost/thread/mutex.hpp"
+#include "boost/thread/condition.hpp"
+#include "boost/shared_ptr.hpp"
+#include "boost/thread/thread_time.hpp"
 
 // Local package includes
 #include "activities/IPort.h"
@@ -94,15 +95,24 @@ namespace askap { namespace cp {
                 }
             };
 
-            virtual T receive(void)
+            // Timeout is in milliseconds
+            virtual boost::shared_ptr<T> receive(unsigned long timeout = 0)
             {
                 boost::mutex::scoped_lock lock(itsMutex);
-                while (itsBuffer.size() < 1) {
-                    // While this call sleeps/blocks the mutex is released
-                    itsCondVar.wait(lock); 
+                if (timeout == 0) {
+                    while (itsBuffer.size() < 1) {
+                        // While this call sleeps/blocks the mutex is released
+                        itsCondVar.wait(lock); 
+                    }
+                } else {
+                    boost::system_time const _timeout = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
+                    itsCondVar.timed_wait(lock, _timeout);
+                    if (itsBuffer.size() < 1) {
+                        return boost::shared_ptr<T>();
+                    }
                 }
 
-                T payload = itsBuffer.front();
+                boost::shared_ptr<T> payload = itsBuffer.front();
                 itsBuffer.pop_front();
                 lock.unlock();
 
@@ -123,7 +133,9 @@ namespace askap { namespace cp {
                     itsCondVar.wait(lock); 
                 }
 
-                itsBuffer.push_back(payload);
+                boost::shared_ptr<T> payloadCopy(new T(payload));
+
+                itsBuffer.push_back(payloadCopy);
                 lock.unlock();
                 itsCondVar.notify_all();
             };
@@ -147,7 +159,7 @@ namespace askap { namespace cp {
             IceStorm::TopicPrx itsTopicPrx;
 
             // Buffer of received objects
-            std::deque<T> itsBuffer;
+            std::deque< boost::shared_ptr<T> > itsBuffer;
 
             // Lock to protect itsBuffer
             boost::mutex itsMutex;
