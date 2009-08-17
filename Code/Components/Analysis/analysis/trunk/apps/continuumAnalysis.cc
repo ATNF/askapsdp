@@ -95,16 +95,18 @@ int main(int argc, const char** argv)
         image.cleanup();
         image.printResults();
 
-        ParameterSet subsetE(parset.makeSubset("imageQual."));
-        Matcher matcher(subsetE);
-	matcher.setHeader(image.cube().header());
-	matcher.readLists();
-        matcher.fixRefList(image.getBeamInfo());
-        matcher.setTriangleLists();
-        matcher.findMatches();
-        matcher.findOffsets();
-        matcher.addNewMatches();
-        matcher.outputLists();
+	if(image.isMaster()){ // only do the cross matching on the master node.
+	  ParameterSet subsetE(parset.makeSubset("imageQual."));
+	  Matcher matcher(subsetE);
+	  matcher.setHeader(image.cube().header());
+	  matcher.readLists();
+	  matcher.fixRefList(image.getBeamInfo());
+	  matcher.setTriangleLists();
+	  matcher.findMatches();
+	  matcher.findOffsets();
+	  matcher.addNewMatches();
+	  matcher.outputLists();
+	}
         ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " << timer.real() << " sec");
         ///==============================================================================
     } catch (askap::AskapError& x) {
