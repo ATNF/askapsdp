@@ -76,6 +76,23 @@ namespace askap {
                 int numSubs() {return itsNSubX*itsNSubY*itsNSubZ;};
                 int naxis() {return itsNAxis;};
 
+		/// @brief Return the number of subdivisions in given directions
+		/// @{
+		int nsubx(){return itsNSubX;};
+		int nsuby(){return itsNSubY;};
+		int nsubz(){return itsNSubZ;};
+		int *nsub(){return itsNSub;}
+		/// @}
+
+		/// @brief Return the size of the overlap in given directions
+		/// @{
+		int overlapx(){return itsOverlapX;};
+		int overlapy(){return itsOverlapY;};
+		int overlapz(){return itsOverlapZ;};
+		int *overlap(){return itsOverlap;};
+		/// @}
+
+
 		void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers);
 
             protected:

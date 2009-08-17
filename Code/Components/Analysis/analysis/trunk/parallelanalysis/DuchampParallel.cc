@@ -516,16 +516,14 @@ namespace askap {
                     src.setNoiseLevel(this->itsCube, this->itsFitter);
                     src.setDetectionThreshold(threshold);
                     src.setHeader(head);
-//    src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
                     src.defineBox(this->itsCube.pars().section(), this->itsFitter);
                     // Only do fit if object is not next to boundary
-                    src.setAtEdge(this->itsCube);
+                    src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank-1);
 
                     if (this->itsNNode == 1) src.setAtEdge(false);
 
                     if (!src.isAtEdge() && this->itsFlagDoFit) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
-//      src.fitGauss(this->itsCube.getArray(),this->itsCube.getDimArray());
                         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
                     }
 

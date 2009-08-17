@@ -36,6 +36,7 @@
 #include <sourcefitting/FitResults.h>
 #include <sourcefitting/Component.h>
 #include <analysisutilities/AnalysisUtilities.h>
+#include <analysisutilities/SubimageDef.h>
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
@@ -156,7 +157,7 @@ namespace askap {
 
             //**************************************************************//
 
-            void RadioSource::setAtEdge(duchamp::Cube &cube)
+	  void RadioSource::setAtEdge(duchamp::Cube &cube, SubimageDef &subimage, int workerNum)
             {
                 /// @details Sets the atEdge flag based on the dimensions of
                 /// the cube and the duchamp parameters flagAdjacent, threshS
@@ -167,30 +168,55 @@ namespace askap {
                 /// within the appropriate threshold (threshS for the spatial
                 /// directions and threshV for the spectral/velocity) of the
                 /// image boundary.
+	        ///
+	        /// The image boundary here takes into account the
+	        /// size of any overlap region between neighbouring
+	        /// subimages, but only for image sides that have a
+	        /// neighbour (for those on the edge of the full
+	        /// image, the boundary is assumed to be the image
+	        /// boundary).
+	        ///
+	        /// @param cube The duchamp::Cube object that holds the dimensions and parameters
+	        /// @param subimage The SubimageDef object that holds the information on the number of subimages & their overlap.
+	        /// @param workerNum The number of the worker in question, starting at 0 (which subimage are we in?)
+
                 bool flagBoundary = false;
                 bool flagAdj = cube.pars().getFlagAdjacent();
                 float threshS = cube.pars().getThreshS();
                 float threshV = cube.pars().getThreshV();
 
+		long xminEdge,xmaxEdge,yminEdge,ymaxEdge,zminEdge,zmaxEdge;
+		int *nsub = subimage.nsub();
+		int *overlap = subimage.overlap();
+		int colnum=workerNum % nsub[0];
+		int rownum=workerNum / nsub[0];
+		int znum = workerNum % nsub[0]*nsub[1];
+	        xminEdge = (colnum == 0 ) ? 0 : overlap[0];
+	        xmaxEdge = (colnum == nsub[0]-1 ) ? cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
+	        yminEdge = (rownum == 0 ) ? 0 : overlap[1];
+	        ymaxEdge = (rownum == nsub[1]-1 ) ? cube.getDimY() - 1 : cube.getDimY() - 1 - overlap[1];
+	        zminEdge = (znum == 0 ) ? 0 : overlap[2];
+	        zmaxEdge = (znum == nsub[2]-1 ) ? cube.getDimZ() - 1 : cube.getDimZ() - 1 - overlap[2];
+
                 if (flagAdj) {
-                    flagBoundary = flagBoundary || (this->getXmin() == 0);
-                    flagBoundary = flagBoundary || (this->getXmax() == cube.getDimX() - 1);
-                    flagBoundary = flagBoundary || (this->getYmin() == 0);
-                    flagBoundary = flagBoundary || (this->getYmax() == cube.getDimY() - 1);
+                    flagBoundary = flagBoundary || (this->getXmin() == xminEdge);
+                    flagBoundary = flagBoundary || (this->getXmax() == xmaxEdge);
+                    flagBoundary = flagBoundary || (this->getYmin() == yminEdge);
+                    flagBoundary = flagBoundary || (this->getYmax() == ymaxEdge);
 
                     if (cube.getDimZ() > 1) {
-                        flagBoundary = flagBoundary || (this->getZmin() == 0);
-                        flagBoundary = flagBoundary || (this->getZmax() == cube.getDimZ() - 1);
+                        flagBoundary = flagBoundary || (this->getZmin() == zminEdge);
+                        flagBoundary = flagBoundary || (this->getZmax() == zmaxEdge);
                     }
                 } else {
-                    flagBoundary = flagBoundary || (this->getXmin() < threshS);
-                    flagBoundary = flagBoundary || ((cube.getDimX() - this->getXmax()) < threshS);
-                    flagBoundary = flagBoundary || (this->getYmin() < threshS);
-                    flagBoundary = flagBoundary || ((cube.getDimY() - this->getYmax()) < threshS);
+                    flagBoundary = flagBoundary || (this->getXmin()-xminEdge < threshS);
+                    flagBoundary = flagBoundary || ((xmaxEdge - this->getXmax()) < threshS);
+                    flagBoundary = flagBoundary || (this->getYmin()-yminEdge < threshS);
+                    flagBoundary = flagBoundary || ((ymaxEdge - this->getYmax()) < threshS);
 
                     if (cube.getDimZ() > 1) {
-                        flagBoundary = flagBoundary || (this->getZmin() < threshV);
-                        flagBoundary = flagBoundary || ((cube.getDimZ() - this->getZmax()) < threshV);
+                        flagBoundary = flagBoundary || (this->getZmin()-zminEdge < threshV);
+                        flagBoundary = flagBoundary || ((zmaxEdge - this->getZmax()) < threshV);
                     }
                 }
 
