@@ -30,6 +30,7 @@ sleep 1
 
 # Run the test
 $ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tActivities.sh --Ice.Config=config.tActivities
+STATUS=$?
 
 # Request IceGrid shutdown and wait
 $ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "node shutdown Node1"
@@ -37,3 +38,5 @@ wait $ICEGRIDPID
 
 # Remove temporary directories
 rm -rf data
+
+exit $STATUS
