@@ -755,6 +755,8 @@ namespace askap {
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
                     src->setID(src - this->itsSourceList.begin() + 1);
+		    if(this->itsCube.objAtSpatialEdge(*src)) src->addToFlagText("E");
+		    else src->addToFlagText("-");
                     this->itsCube.addObject(duchamp::Detection(*src));
                 }
             }
