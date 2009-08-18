@@ -37,6 +37,7 @@
 // Using
 using namespace askap;
 using namespace askap::cp;
+using askap::cp::frontend::WorkflowDesc;
 using LOFAR::ACC::APS::ParameterSet;
 
 ASKAP_LOGGER(logger, ".Runtime");
@@ -55,26 +56,25 @@ Runtime::~Runtime()
 void Runtime::run(void)
 {
     ASKAPLOG_INFO_STR(logger, "Running Runtime");
+
     // Initialise ICE
-    Ice::CommunicatorPtr ic = initIce(itsParset);
-    ASKAPCHECK(ic, "Initialization of Ice communicator failed");
+    itsComm = initIce(itsParset);
+    ASKAPCHECK(itsComm, "Initialization of Ice communicator failed");
 
-    Ice::ObjectAdapterPtr adapter = createAdapter(itsParset, ic);
-    adapter->activate();
+    itsAdapter = createAdapter(itsParset, itsComm);
 
-    const std::string name = itsParset.getString("runtime");
+    Ice::ObjectPtr object = this;
+    itsAdapter->add(object, itsComm->stringToIdentity("cpfe_runtime1"));
 
-    ParameterSet workflowSubset = itsParset.makeSubset("workflow.");
-    Workflow wf(ic, adapter, workflowSubset, name);
-    wf.start();
-    wf.stop();
 
-    adapter->deactivate();
-    adapter->waitForDeactivate();
+    itsAdapter->activate();
+
+    //itsAdapter->deactivate();
+    //itsAdapter->waitForDeactivate();
 
     // Shutdown ICE
-    ic->shutdown();
-    ic->waitForShutdown();
+    //itsComm->shutdown();
+    itsComm->waitForShutdown();
 }
 
 Ice::CommunicatorPtr Runtime::initIce(const ParameterSet& parset)
@@ -126,3 +126,31 @@ Ice::ObjectAdapterPtr Runtime::createAdapter(const ParameterSet& parset,
 
     return adapter;
 }
+
+// Ice "Frontend" interfaces
+void Runtime::startWorkflow(const askap::cp::frontend::WorkflowDesc& wfDesc, const Ice::Current& cur)
+{
+    const std::string name = itsParset.getString("runtime");
+
+    // Convert the Ice Workflow description into a ParameterSet
+    ParameterSet wfParset;
+    WorkflowDesc::const_iterator it;
+    for (it = wfDesc.begin(); it != wfDesc.end(); ++it) {
+        wfParset.add(it->first, it->second);
+    }
+
+    itsWorkflow.reset(new Workflow(itsComm, itsAdapter, wfParset, name));
+    itsWorkflow->start();
+}
+
+void Runtime::stopWorkflow(const Ice::Current& cur)
+{
+    itsWorkflow->stop();
+    itsWorkflow.reset();
+}
+
+void Runtime::shutdown(const Ice::Current& cur)
+{
+    itsComm->shutdown();
+}
+

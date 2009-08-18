@@ -13,8 +13,12 @@ export DYLD_LIBRARY_PATH=$ICE_ROOT/lib:$DYLD_LIBRARY_PATH
 # Start the Ice Services
 ../start_services.sh config.icegrid
 
+# Start the runtime
+$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/cpfe_runtime.sh -inputs cpfe_runtime.in &
+sleep 1
+
 # Run the test
-$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/cpfe_runtime.sh -inputs cpfe_runtime.in
+$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tConfig.sh --Ice.Config=config.tConfig -inputs workflow.in
 STATUS=$?
 
 # Stop the Ice Services

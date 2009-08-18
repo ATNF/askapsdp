@@ -30,11 +30,14 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "APS/ParameterSet.h"
+#include "boost/shared_ptr.hpp"
+#include "runtime/Frontend.h"
+#include "runtime/Workflow.h"
 
 namespace askap {
     namespace cp {
 
-        class Runtime
+        class Runtime : public askap::cp::frontend::IFrontend
         {
             public:
                 /// @brief Constructor.
@@ -48,15 +51,24 @@ namespace askap {
                 Ice::ObjectAdapterPtr createAdapter(const LOFAR::ACC::APS::ParameterSet& parset,
                         Ice::CommunicatorPtr& ic);
 
+                // Ice "Frontend" interfaces
+                void startWorkflow(const askap::cp::frontend::WorkflowDesc& wfDesc, const Ice::Current& cur);
+                void stopWorkflow(const Ice::Current& cur);
+                void shutdown(const Ice::Current& cur);
+
             private:
                 LOFAR::ACC::APS::ParameterSet itsParset;
+
+                Ice::CommunicatorPtr itsComm;
+                Ice::ObjectAdapterPtr itsAdapter;
+
+                boost::shared_ptr<Workflow> itsWorkflow;
 
                 // No support for assignment
                 Runtime& operator=(const Runtime& rhs);
 
                 // No support for copy constructor
                 Runtime(const Runtime& src);
-
         };
     };
 };
