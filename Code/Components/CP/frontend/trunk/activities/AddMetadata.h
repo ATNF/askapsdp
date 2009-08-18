@@ -32,6 +32,7 @@
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -49,7 +50,8 @@ namespace askap {
 
                 /// @brief Constructor.
                 AddMetadata(const Ice::CommunicatorPtr ic,
-                        const Ice::ObjectAdapterPtr adapter);
+                        const Ice::ObjectAdapterPtr adapter,
+                        const LOFAR::ACC::APS::ParameterSet& parset);
 
                 /// @brief Destructor.
                 virtual ~AddMetadata();
@@ -66,6 +68,9 @@ namespace askap {
             private:
                 // Ice Communicator
                 const Ice::CommunicatorPtr itsComm;
+
+                // Parameters
+                LOFAR::ACC::APS::ParameterSet itsParset;
 
                 // Input Ports
                 askap::cp::InputPort<askap::cp::frontend::Metadata,

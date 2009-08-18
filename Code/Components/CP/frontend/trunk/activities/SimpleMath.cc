@@ -31,6 +31,8 @@
 #include "Ice/Ice.h"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "askap/AskapUtil.h"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/IPort.h"
@@ -44,12 +46,22 @@ using namespace askap::cp;
 using namespace askap::cp::frontend;
 
 SimpleMath::SimpleMath(const Ice::CommunicatorPtr ic,
-        const Ice::ObjectAdapterPtr adapter)
+        const Ice::ObjectAdapterPtr adapter,
+        const LOFAR::ACC::APS::ParameterSet& parset)
     : itsComm(ic),
+    itsParset(parset),
     itsInPort0(ic, adapter),
     itsInPort1(ic, adapter),
     itsOutPort0(ic)
 {
+    const std::string opString = toLower(itsParset.getString("op", "add"));
+    if (opString == "add") {
+        itsOperation = SimpleMath::ADD;
+    } else if (opString == "sub") {
+        itsOperation = SimpleMath::SUB;
+    } else {
+        ASKAPTHROW(AskapError, "Invalid operation type specified");
+    }
 }
 
 SimpleMath::~SimpleMath()
@@ -61,25 +73,27 @@ void SimpleMath::run(void)
     const unsigned int timeout = 500;
 
     ASKAPLOG_INFO_STR(logger, "SimpleMath thread is running...");
-    boost::shared_ptr<SimpleNumber> a;
-    while (!a) {
-        a = itsInPort0.receive(timeout);
-        if (stopRequested()) {
-            return;
+    while (!stopRequested()) {
+        boost::shared_ptr<SimpleNumber> a;
+        while (!a) {
+            a = itsInPort0.receive(timeout);
+            if (stopRequested()) {
+                return;
+            }
         }
-    }
 
-    boost::shared_ptr<SimpleNumber> b;
-    while (!b) {
-        b = itsInPort1.receive(timeout);
-        if (stopRequested()) {
-            return;
+        boost::shared_ptr<SimpleNumber> b;
+        while (!b) {
+            b = itsInPort1.receive(timeout);
+            if (stopRequested()) {
+                return;
+            }
         }
-    }
 
-    SimpleNumber c;
-    c.i = a->i + b->i;
-    itsOutPort0.send(c);
+        SimpleNumber c;
+        c.i = a->i + b->i;
+        itsOutPort0.send(c);
+    }
 }
 
 void SimpleMath::attachInputPort(int port, const std::string& topic)

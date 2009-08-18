@@ -1,0 +1,46 @@
+askap.cp.frontend.runtime       = cpfe_runtime1
+
+#
+# Locator service config
+#
+askap.cp.frontend.ice.locator   =   IceGrid/Locator:tcp -h localhost -p 4061
+
+#
+# Adapter name for runtime
+#
+askap.cp.frontend.ice.adapter.name      =   cpfe_runtime_test
+askap.cp.frontend.ice.adapter.endpoints =   tcp
+
+#
+# Network and protocol tracing
+#
+askap.cp.frontend.ice.trace.network     =   0
+askap.cp.frontend.ice.trace.protocol    =   0
+
+#
+# Workflow configuration
+#
+askap.cp.frontend.workflow.activity0.runtime    =   cpfe_runtime1
+askap.cp.frontend.workflow.activity0.type       =   SimpleMath
+askap.cp.frontend.workflow.activity0.name       =   SimpleMathInstance0
+askap.cp.frontend.workflow.activity0.in.port0   =   NumberStreamA1
+askap.cp.frontend.workflow.activity0.in.port1   =   NumberStreamA2
+askap.cp.frontend.workflow.activity0.out.port0  =   NumberStreamAOut
+askap.cp.frontend.workflow.activity0.custom.op  =   add
+
+askap.cp.frontend.workflow.activity1.runtime    =   cpfe_runtime1
+askap.cp.frontend.workflow.activity1.type       =   SimpleMath
+askap.cp.frontend.workflow.activity1.name       =   SimpleMathInstance1
+askap.cp.frontend.workflow.activity1.in.port0   =   NumberStreamB1
+askap.cp.frontend.workflow.activity1.in.port1   =   NumberStreamB2
+askap.cp.frontend.workflow.activity1.out.port0  =   NumberStreamBOut
+askap.cp.frontend.workflow.activity1.custom.op  =   add
+
+askap.cp.frontend.workflow.activity2.runtime    =   cpfe_runtime1
+askap.cp.frontend.workflow.activity2.type       =   SimpleMath
+askap.cp.frontend.workflow.activity2.name       =   SimpleMathInstance2
+askap.cp.frontend.workflow.activity2.in.port0   =   NumberStreamAOut
+askap.cp.frontend.workflow.activity2.in.port1   =   NumberStreamBOut
+askap.cp.frontend.workflow.activity2.out.port0  =   NumberStreamCOut
+askap.cp.frontend.workflow.activity2.custom.op  =   sub
+

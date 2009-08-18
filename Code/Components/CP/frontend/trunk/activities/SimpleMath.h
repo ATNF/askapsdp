@@ -24,14 +24,15 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ADDMETADATA_H
-#define ASKAP_CP_ADDMETADATA_H
+#ifndef ASKAP_CP_SIMPLEMATH_H
+#define ASKAP_CP_SIMPLEMATH_H
 
 // System includes
 #include <string>
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -48,7 +49,8 @@ namespace askap {
 
                 /// @brief Constructor.
                 SimpleMath(const Ice::CommunicatorPtr ic,
-                        const Ice::ObjectAdapterPtr adapter);
+                        const Ice::ObjectAdapterPtr adapter,
+                        const LOFAR::ACC::APS::ParameterSet& parset);
 
                 /// @brief Destructor.
                 virtual ~SimpleMath();
@@ -66,6 +68,9 @@ namespace askap {
                 // Ice Communicator
                 const Ice::CommunicatorPtr itsComm;
 
+                // Parameters
+                LOFAR::ACC::APS::ParameterSet itsParset;
+
                 // Input Ports
                 askap::cp::InputPort<askap::cp::frontend::SimpleNumber,
                     askap::cp::frontend::INumberStream> itsInPort0;
@@ -76,6 +81,13 @@ namespace askap {
                 // Output Ports
                 askap::cp::OutputPort<askap::cp::frontend::SimpleNumber,
                     askap::cp::frontend::INumberStreamPrx> itsOutPort0;
+
+                enum Op {
+                    ADD,
+                    SUB
+                };
+
+                Op itsOperation;
         };
     };
 };

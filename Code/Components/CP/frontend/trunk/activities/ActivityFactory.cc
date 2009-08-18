@@ -30,10 +30,12 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
 #include "activities/AddMetadata.h"
+#include "activities/SimpleMath.h"
 
 // Using
 using namespace askap;
@@ -51,12 +53,15 @@ ActivityFactory::~ActivityFactory()
 {
 }
 
-askap::cp::Activity::ShPtr ActivityFactory::makeActivity(const std::string& type)
+askap::cp::Activity::ShPtr ActivityFactory::makeActivity(const std::string& type,
+        const LOFAR::ACC::APS::ParameterSet& parset)
 {
     askap::cp::Activity::ShPtr activity;
 
     if (type == "AddMetadata") {
-        activity.reset(new AddMetadata(itsComm, itsAdapter));
+        activity.reset(new AddMetadata(itsComm, itsAdapter, parset));
+    } else if (type == "SimpleMath") {
+        activity.reset(new SimpleMath(itsComm, itsAdapter, parset));
     } else {
         ASKAPTHROW(AskapError, "Invalid activity type: " << type);
     }

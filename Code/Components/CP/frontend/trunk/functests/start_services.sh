@@ -67,8 +67,6 @@ mkdir -p data/node
 
 # Start the Ice Grid
 $ICE_ROOT/bin/icegridnode --Ice.Config=$1 > /dev/null 2>&1 &
-ICEGRIDPID=$!
-echo $ICEGRIDPID > icegrid.pid 
 
 waitIceGrid
 
@@ -76,5 +74,3 @@ waitIceGrid
 $ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add icestorm.xml" > /dev/null 2>&1
 
 waitIceStorm
-
-

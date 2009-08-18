@@ -34,6 +34,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -164,7 +165,7 @@ void Workflow::createAll(void)
         const std::string name = it->getName();
         ASKAPLOG_INFO_STR(logger, "Creating activity " << name 
                 << " of type " << it->getType());
-        Activity::ShPtr activity = factory.makeActivity(it->getType());
+        Activity::ShPtr activity = factory.makeActivity(it->getType(), it->getParset());
         activity->setName(name);
 
         itsActivities[name] = activity;

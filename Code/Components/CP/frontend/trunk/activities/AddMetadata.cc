@@ -31,6 +31,7 @@
 #include "Ice/Ice.h"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/IPort.h"
@@ -45,8 +46,10 @@ using namespace askap::cp;
 using namespace askap::cp::frontend;
 
 AddMetadata::AddMetadata(const Ice::CommunicatorPtr ic,
-        const Ice::ObjectAdapterPtr adapter)
+        const Ice::ObjectAdapterPtr adapter,
+        const LOFAR::ACC::APS::ParameterSet& parset)
     : itsComm(ic),
+    itsParset(parset),
     itsInPort0(ic, adapter),
     itsInPort1(ic, adapter),
     itsOutPort0(ic)

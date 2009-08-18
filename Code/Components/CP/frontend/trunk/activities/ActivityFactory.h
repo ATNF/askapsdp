@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "boost/shared_ptr.hpp"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -50,7 +51,8 @@ namespace askap {
                 /// @brief Destructor.
                 virtual ~ActivityFactory();
 
-                askap::cp::Activity::ShPtr makeActivity(const std::string& type);
+                askap::cp::Activity::ShPtr makeActivity(const std::string& type,
+                        const LOFAR::ACC::APS::ParameterSet& parset);
 
             private:
                 // Ice Communicator

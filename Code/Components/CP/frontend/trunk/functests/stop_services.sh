@@ -21,14 +21,11 @@ export LD_LIBRARY_PATH=$ICE_ROOT/lib:$LD_LIBRARY_PATH
 # For Mac OSX
 export DYLD_LIBRARY_PATH=$ICE_ROOT/lib:$DYLD_LIBRARY_PATH
 
-STATUS=0
-ICEGRID_PID=icegrid.pid
-
+echo -n "Stopping IceGrid and IceStorm..."
 # Request IceGrid shutdown and wait
 $ICE_ROOT/bin/icegridadmin --Ice.Config=$1 -u foo -p bar -e "node shutdown Node1"
 sleep 2
+echo "STOPPED"
 
 # Remove temporary directories
 rm -rf data
-
-exit $STATUS

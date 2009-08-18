@@ -32,8 +32,9 @@
 #include <Ice/Ice.h>
 
 // ASKAPsoft includes
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "APS/ParameterSet.h"
 
 // Local package includes
 #include "activities/SimpleMath.h"
@@ -53,8 +54,11 @@ const std::string OUTPUT = "OutputStream";
 
 static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
 {
+    std::cerr << "Running testOne()" << std::endl;
+
     // Create the activity to test
-    SimpleMath activity(ic, adapter);
+    LOFAR::ACC::APS::ParameterSet parset;
+    SimpleMath activity(ic, adapter, parset);
     activity.attachInputPort(0, INPUT_A);
     activity.attachInputPort(1, INPUT_B);
     activity.attachOutputPort(0, OUTPUT);
@@ -89,7 +93,57 @@ static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     outPortA.detach();
     outPortB.detach();
     inPort.detach();
+
+    activity.stop();
 }
+
+static void testMulti(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
+{
+    std::cerr << "Running testMulti()" << std::endl;
+
+    // Create the activity to test
+    LOFAR::ACC::APS::ParameterSet parset;
+    SimpleMath activity(ic, adapter, parset);
+    activity.attachInputPort(0, INPUT_A);
+    activity.attachInputPort(1, INPUT_B);
+    activity.attachOutputPort(0, OUTPUT);
+
+    activity.start();
+
+    // Create and configure output port
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortA(ic);
+    outPortA.attach(INPUT_A);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortB(ic);
+    outPortB.attach(INPUT_B);
+
+    // Create and configure input port
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
+    inPort.attach(OUTPUT);
+
+    for (int i = 0; i < 100; ++i) {
+        // Send both messages
+        SimpleNumber a;
+        a.i = 1;
+        outPortA.send(a);
+        SimpleNumber b;
+        b.i = 2;
+        outPortB.send(b);
+
+        boost::shared_ptr<SimpleNumber> receipt = inPort.receive();
+
+        if (receipt->i != (a.i + b.i)) {
+            ASKAPTHROW(AskapError, "receipt->i != (a.i + b.i)");
+        }
+    }
+
+    // Detach ports from streams
+    outPortA.detach();
+    outPortB.detach();
+    inPort.detach();
+
+    activity.stop();
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -106,6 +160,7 @@ int main(int argc, char *argv[])
         adapter->activate();
 
         testOne(ic, adapter);
+        testMulti(ic, adapter);
 
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;

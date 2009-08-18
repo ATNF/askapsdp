@@ -38,6 +38,16 @@ else
 fi
 cd $INITIALDIR
 
+# Simple testcase
+cd config
+./run.sh
+if [ $? -eq 0 ]; then
+    R4="config      PASS"
+else
+    R4="config      FAIL"
+    FAIL=1
+fi
+cd $INITIALDIR
 
 # Print Results
 echo
@@ -46,6 +56,7 @@ echo ===============
 echo $R1
 echo $R2
 echo $R3
+echo $R4
 
 if [ $FAIL -eq 0 ]; then
     exit 0
