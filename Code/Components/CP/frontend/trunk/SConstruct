@@ -19,7 +19,7 @@ pkg.AddSubPackage("runtime")
 pkg.AddInterfaces("SimpleNumber.ice", "streams", "interfaces")
 pkg.AddInterfaces("Visibilities.ice", "streams", "interfaces")
 pkg.AddInterfaces("Metadata.ice", "streams", "interfaces")
-pkg.AddInterfaces("Frontend.ice", "runtime", "../../Interfaces/trunk")
+pkg.AddInterfaces("Frontend.ice", "runtime", "../../interfaces/trunk")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
