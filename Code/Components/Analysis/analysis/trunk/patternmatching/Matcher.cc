@@ -120,8 +120,8 @@ namespace askap {
                 this->itsFluxUseFit = parset.getString("fluxUseFit", "best");
                 this->itsRA  = parset.getString("RA");
                 this->itsDec = parset.getString("Dec");
-		this->itsSrcPosType = parset.getString("srcPosType", "dms");
-		this->itsRefPosType = parset.getString("refPosType", "dms");
+		this->itsSrcPosType = parset.getString("srcPosType", "deg");
+		this->itsRefPosType = parset.getString("refPosType", "deg");
                 this->itsRadius = parset.getDouble("radius", -1.);
                 this->itsEpsilon = parset.getDouble("epsilon", defaultEpsilon);
                 this->itsMeanDx = 0.;
