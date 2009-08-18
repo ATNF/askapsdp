@@ -772,8 +772,10 @@ namespace askap {
                 if (doHeader) {
                     stream << "#";
                     columns[duchamp::Column::NUM].printTitle(stream);
-                    columns[duchamp::Column::RA].printTitle(stream);
-                    columns[duchamp::Column::DEC].printTitle(stream);
+//                     columns[duchamp::Column::RA].printTitle(stream);
+//                     columns[duchamp::Column::DEC].printTitle(stream);
+                    columns[duchamp::Column::RAJD].printTitle(stream);
+                    columns[duchamp::Column::DECJD].printTitle(stream);
 //    columns[duchamp::Column::VEL].printTitle(stream);
                     columns[duchamp::Column::FINT].printTitle(stream);
                     columns[duchamp::Column::FPEAK].printTitle(stream);
@@ -791,8 +793,10 @@ namespace askap {
                     npixObj.printTitle(stream);
                     stream << "\n";
                     int width = columns[duchamp::Column::NUM].getWidth() +
-                                columns[duchamp::Column::RA].getWidth() +
-                                columns[duchamp::Column::DEC].getWidth() +
+//                                 columns[duchamp::Column::RA].getWidth() +
+//                                 columns[duchamp::Column::DEC].getWidth() +
+                                columns[duchamp::Column::RAJD].getWidth() +
+                                columns[duchamp::Column::DECJD].getWidth() +
 //      columns[duchamp::Column::VEL].getWidth() +
                                 columns[duchamp::Column::FINT].getWidth() +
                                 columns[duchamp::Column::FPEAK].getWidth() +
@@ -816,8 +820,10 @@ namespace askap {
                 if (!results.isGood()) { //if no fits were made...
                     float zero = 0.;
                     columns[duchamp::Column::NUM].printEntry(stream, this->getID());
-                    columns[duchamp::Column::RA].printEntry(stream, this->getRAs());
-                    columns[duchamp::Column::DEC].printEntry(stream, this->getDecs());
+//                     columns[duchamp::Column::RA].printEntry(stream, this->getRAs());
+//                     columns[duchamp::Column::DEC].printEntry(stream, this->getDecs());
+                    columns[duchamp::Column::RAJD].printEntry(stream, this->getRA());
+                    columns[duchamp::Column::DECJD].printEntry(stream, this->getDec());
 //    columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
                     columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
                     columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
@@ -848,8 +854,10 @@ namespace askap {
                     pix[2] = this->getZcentre();
                     double *wld = new double[3];
                     this->itsHeader.pixToWCS(pix, wld);
-                    std::string thisRA = decToDMS(wld[0], "RA");
-                    std::string thisDec = decToDMS(wld[1], "DEC");
+//                     std::string thisRA = decToDMS(wld[0], "RA");
+//                     std::string thisDec = decToDMS(wld[1], "DEC");
+		    double thisRA = wld[0];
+		    double thisDec = wld[1];
                     delete [] pix;
                     delete [] wld;
                     float intfluxfit = fit->flux();
@@ -858,8 +866,10 @@ namespace askap {
                         intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
                     columns[duchamp::Column::NUM].printEntry(stream, id.str());
-                    columns[duchamp::Column::RA].printEntry(stream, thisRA);
-                    columns[duchamp::Column::DEC].printEntry(stream, thisDec);
+//                     columns[duchamp::Column::RA].printEntry(stream, thisRA);
+//                     columns[duchamp::Column::DEC].printEntry(stream, thisDec);
+                    columns[duchamp::Column::RAJD].printEntry(stream, thisRA);
+                    columns[duchamp::Column::DECJD].printEntry(stream, thisDec);
 //    columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
                     columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
                     columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
