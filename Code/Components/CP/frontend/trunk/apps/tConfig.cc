@@ -27,14 +27,11 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <map>
 
 // Ice includes
 #include <Ice/Ice.h>
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
-#include "askap/AskapError.h"
 #include "APS/ParameterSet.h"
 #include "APS/Exceptions.h"
 #include "CommandLineParser.h"
@@ -42,17 +39,14 @@
 // Local package includes
 #include "runtime/Frontend.h"
 
-ASKAP_LOGGER(logger, ".tConfig");
-
 using LOFAR::ACC::APS::ParameterSet;
 using LOFAR::ACC::APS::APSException;
+using askap::cp::frontend::WorkflowDesc;
+using askap::cp::frontend::IFrontendPrx;
 using namespace askap;
 using namespace askap::cp;
-using namespace askap::cp::frontend;
 
-typedef std::map<std::string, std::string> WorkflowMap;
-
-static ParameterSet getWorkflow(int argc, char *argv[])
+static ParameterSet getWorkflowSubset(int argc, char *argv[])
 {
     // Command line parser
     cmdlineparser::Parser parser;
@@ -72,9 +66,9 @@ static ParameterSet getWorkflow(int argc, char *argv[])
     return parset.makeSubset("askap.cp.frontend.workflow.");
 }
 
-static WorkflowMap convertWorkflow(const ParameterSet& parset)
+static WorkflowDesc buildWorkflowDesc(const ParameterSet& parset)
 {
-    WorkflowMap workflow;
+    WorkflowDesc workflow;
 
     ParameterSet::const_iterator it;
     for (it = parset.begin(); it != parset.end(); ++it) {
@@ -86,9 +80,6 @@ static WorkflowMap convertWorkflow(const ParameterSet& parset)
 
 int main(int argc, char *argv[])
 {
-    // Initialize AskapLogging
-    ASKAPLOG_INIT("tConfig.log_cfg");
-
     // Initialise ICE
     Ice::CommunicatorPtr ic;
 
@@ -96,8 +87,8 @@ int main(int argc, char *argv[])
     // Parse cmdline and get the parameter set
     ParameterSet parset;
     try {
-        parset = getWorkflow(argc, argv);
-        WorkflowMap workflow = convertWorkflow(parset);
+        parset = getWorkflowSubset(argc, argv);
+        WorkflowDesc workflow = buildWorkflowDesc(parset);
 
         // Obtain the proxy
         Ice::ObjectPrx base = ic->stringToProxy(
@@ -115,7 +106,6 @@ int main(int argc, char *argv[])
         frontend->shutdown();
 
     } catch (std::runtime_error& e) {
-        ASKAPLOG_FATAL_STR(logger, "Required command line parameters missing");
         std::cerr << "usage: " << argv[0] << " -inputs <pararameter set file>" << std::endl;
         return 1;
     } catch (const Ice::Exception& e) {
