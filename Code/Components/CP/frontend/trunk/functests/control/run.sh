@@ -18,7 +18,7 @@ $ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/cpfe_runtime.sh -inputs cpfe_
 sleep 1
 
 # Run the test
-$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tConfig.sh --Ice.Config=config.tConfig -inputs workflow.in
+$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tControl.sh --Ice.Config=config.tControl -inputs workflow.in
 STATUS=$?
 
 # Stop the Ice Services

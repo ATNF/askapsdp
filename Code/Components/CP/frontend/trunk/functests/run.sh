@@ -28,12 +28,12 @@ fi
 cd $INITIALDIR
 
 # Simple testcase
-cd simple
+cd control
 ./run.sh
 if [ $? -eq 0 ]; then
-    R3="simple      PASS"
+    R3="control      PASS"
 else
-    R3="simple      FAIL"
+    R3="control      FAIL"
     FAIL=1
 fi
 cd $INITIALDIR
