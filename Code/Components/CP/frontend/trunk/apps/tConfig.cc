@@ -11,11 +11,11 @@
 /// The workflow using in this test looks like so:
 ///
 /// NumberStreamA1 ---> +-----------------+
-///                     | SimpleMath(add) |-\
-/// NumberStreamA2 ---> +-----------------+  \   +-----------------+
-///                                           ---| SimpleMath(mul) +--> NumberStreamC
-/// NumberStreamB1 ---> +-----------------+  /   +-----------------+
-///                     | SimpleMath(add) |-/
+///                     | SimpleMath(add) |--
+/// NumberStreamA2 ---> +-----------------+  --   +-----------------+
+///                                           ----| SimpleMath(mul) +--> NumberStreamC
+/// NumberStreamB1 ---> +-----------------+  --   +-----------------+
+///                     | SimpleMath(add) |--
 /// NumberStreamB2 ---> +-----------------+
 ///
 /// The idea is to use four numbers as input, say a, b, c & d and expect an
