@@ -84,7 +84,7 @@ namespace askap {
 
                 enum Op {
                     ADD,
-                    SUB
+                    MUL
                 };
 
                 Op itsOperation;

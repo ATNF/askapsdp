@@ -57,8 +57,8 @@ SimpleMath::SimpleMath(const Ice::CommunicatorPtr ic,
     const std::string opString = toLower(itsParset.getString("op", "add"));
     if (opString == "add") {
         itsOperation = SimpleMath::ADD;
-    } else if (opString == "sub") {
-        itsOperation = SimpleMath::SUB;
+    } else if (opString == "mul") {
+        itsOperation = SimpleMath::MUL;
     } else {
         ASKAPTHROW(AskapError, "Invalid operation type specified");
     }
@@ -91,7 +91,16 @@ void SimpleMath::run(void)
         }
 
         SimpleNumber c;
-        c.i = a->i + b->i;
+        switch (itsOperation) {
+            case SimpleMath::ADD :
+                c.i = a->i + b->i;
+                break;
+            case SimpleMath::MUL :
+                c.i = a->i * b->i;
+                break;
+            default :
+                ASKAPTHROW(AskapError, "Invalid operation type");
+        }
         itsOutPort0.send(c);
     }
 }

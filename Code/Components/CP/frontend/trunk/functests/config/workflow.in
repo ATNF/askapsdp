@@ -22,6 +22,6 @@ askap.cp.frontend.workflow.activity2.type       =   SimpleMath
 askap.cp.frontend.workflow.activity2.name       =   SimpleMathInstance2
 askap.cp.frontend.workflow.activity2.in.port0   =   NumberStreamAOut
 askap.cp.frontend.workflow.activity2.in.port1   =   NumberStreamBOut
-askap.cp.frontend.workflow.activity2.out.port0  =   NumberStreamCOut
-askap.cp.frontend.workflow.activity2.custom.op  =   sub
+askap.cp.frontend.workflow.activity2.out.port0  =   NumberStreamC
+askap.cp.frontend.workflow.activity2.custom.op  =   mul
 

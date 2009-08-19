@@ -1,5 +1,27 @@
 /// @file tConfig.cc
 ///
+/// @brief Test a simple end-to-end workflow, ensuring that the
+/// activity specific configuration parameters are passed to the activity.
+///
+/// @details
+/// The activity used is the SimpleMath activity, where each activity instance
+/// takes two inputs and produces one output. The output is either the sum or
+/// product of the two inputs, depending on how to activity is configued.
+///
+/// The workflow using in this test looks like so:
+///
+/// NumberStreamA1 ---> +-----------------+
+///                     | SimpleMath(add) |-\
+/// NumberStreamA2 ---> +-----------------+  \   +-----------------+
+///                                           ---| SimpleMath(mul) +--> NumberStreamC
+/// NumberStreamB1 ---> +-----------------+  /   +-----------------+
+///                     | SimpleMath(add) |-/
+/// NumberStreamB2 ---> +-----------------+
+///
+/// The idea is to use four numbers as input, say a, b, c & d and expect an
+/// output of (a + b) * (c + d)
+///
+///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -38,13 +60,23 @@
 
 // Local package includes
 #include "runtime/Frontend.h"
+#include "activities/InputPort.h"
+#include "activities/OutputPort.h"
+#include "streams/SimpleNumber.h"
 
+// Using
 using LOFAR::ACC::APS::ParameterSet;
 using LOFAR::ACC::APS::APSException;
-using askap::cp::frontend::WorkflowDesc;
-using askap::cp::frontend::IFrontendPrx;
 using namespace askap;
 using namespace askap::cp;
+using namespace askap::cp::frontend;
+
+// Stream names
+static const std::string STREAM_A1 = "NumberStreamA1";
+static const std::string STREAM_A2 = "NumberStreamA2";
+static const std::string STREAM_B1 = "NumberStreamB1";
+static const std::string STREAM_B2 = "NumberStreamB2";
+static const std::string STREAM_C = "NumberStreamC";
 
 static ParameterSet getWorkflowSubset(int argc, char *argv[])
 {
@@ -78,8 +110,57 @@ static WorkflowDesc buildWorkflowDesc(const ParameterSet& parset)
     return workflow;
 }
 
+int runTest(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
+{
+    // Create and configure output ports
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortA1(ic);
+    outPortA1.attach(STREAM_A1);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortA2(ic);
+    outPortA2.attach(STREAM_A2);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortB1(ic);
+    outPortB1.attach(STREAM_B1);
+    askap::cp::OutputPort<SimpleNumber, INumberStreamPrx> outPortB2(ic);
+    outPortB2.attach(STREAM_B2);
+
+    // Create and configure input port
+    askap::cp::InputPort<SimpleNumber, INumberStream> inPort(ic, adapter);
+    inPort.attach(STREAM_C);
+
+    SimpleNumber a;
+    a.i = 1;
+    SimpleNumber b;
+    b.i = 2;
+    SimpleNumber c;
+    c.i = 3;
+    SimpleNumber d;
+    d.i = 4;
+    for (int i = 1; i <= 10000; ++i) {
+        outPortA1.send(a);
+        outPortA2.send(b);
+        outPortB1.send(c);
+        outPortB2.send(d);
+
+        boost::shared_ptr<SimpleNumber> receipt = inPort.receive();
+        const long expected = (a.i + b.i) * (c.i + d.i);
+        if (receipt->i != expected) {
+            std::cout << "Expected " << expected << " got " << receipt->i << std::endl;
+            return 1;
+        }
+
+        if ((i % 1000) == 0 && i > 999) {
+            std::cout << "Received " << i << " messages OK" << std::endl;
+        }
+        a.i++;
+        b.i++;
+        c.i++;
+        d.i++;
+    }
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
+    int status = 1;
     Ice::CommunicatorPtr ic;
     try {
         // Initialize ICE.
@@ -101,8 +182,13 @@ int main(int argc, char *argv[])
             return 1;
         }
 
+        // This adapter is simply used for the receive port.
+        Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter("tConfigAdapter");
+        adapter->activate();
+
         frontend->startWorkflow(workflow);
         sleep(1);
+        status = runTest(ic, adapter);
         frontend->stopWorkflow();
         sleep(1);
         frontend->shutdown();
@@ -124,5 +210,5 @@ int main(int argc, char *argv[])
     ic->shutdown();
     ic->waitForShutdown();
 
-    return 0;
+    return status;
 }
