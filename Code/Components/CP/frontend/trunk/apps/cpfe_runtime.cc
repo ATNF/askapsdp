@@ -34,7 +34,6 @@
 #include <stdexcept>
 
 // ASKAPsoft includes
-#include "Ice/Ice.h"
 #include "APS/ParameterSet.h"
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
@@ -120,20 +119,27 @@ int main(int argc, char *argv[])
     ParameterSet parset;
     try {
         parset = configure(argc, argv);
-    } catch (std::runtime_error& e) {
+    } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_FATAL_STR(logger, "Required command line parameters missing");
         std::cerr << "usage: " << argv[0] << " -inputs <pararameter set file>" << std::endl;
         return 1;
     }
 
+    // Initialise and start the runtime, run() blocks until
+    // the runtime is shutdown (via its ICE interface)
     try {
-        // Initialise and start the runtime
         Runtime rt(parset);
         rt.run();
-    } catch (const Ice::Exception& e) {
-        std::cerr << "Error: " << e << std::endl;
+    } catch (const askap::AskapError& e) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
+        return 1;
+    } catch (const std::runtime_error& e) {
+        ASKAPLOG_FATAL_STR(logger, "runtime_error: " << e.what());
+        std::cerr << "runtime_error: " << e.what() << std::endl;
         return 1;
     } catch (const char* msg) {
+        ASKAPLOG_FATAL_STR(logger, "Error: " << msg);
         std::cerr << "Error: " << msg << std::endl;
         return 1;
     }

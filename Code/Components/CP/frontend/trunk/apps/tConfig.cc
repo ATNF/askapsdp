@@ -80,14 +80,16 @@ static WorkflowDesc buildWorkflowDesc(const ParameterSet& parset)
 
 int main(int argc, char *argv[])
 {
-    // Initialise ICE
     Ice::CommunicatorPtr ic;
-
-    ic = Ice::initialize(argc, argv);
-    // Parse cmdline and get the parameter set
-    ParameterSet parset;
     try {
-        parset = getWorkflowSubset(argc, argv);
+        // Initialize ICE.
+        ic = Ice::initialize(argc, argv);
+
+        // Parse cmdline and get the parameter set
+        ParameterSet parset = getWorkflowSubset(argc, argv);
+
+        // Convert the parset description of the workflow to something
+        // which can be sent via ICE
         WorkflowDesc workflow = buildWorkflowDesc(parset);
 
         // Obtain the proxy
@@ -104,12 +106,14 @@ int main(int argc, char *argv[])
         frontend->stopWorkflow();
         sleep(1);
         frontend->shutdown();
-
-    } catch (std::runtime_error& e) {
-        std::cerr << "usage: " << argv[0] << " -inputs <pararameter set file>" << std::endl;
-        return 1;
     } catch (const Ice::Exception& e) {
         std::cerr << "Error: " << e << std::endl;
+        return 1;
+    } catch (const cmdlineparser::XParser& e) {
+        std::cerr << "usage: " << argv[0] << " -inputs <pararameter set file>" << std::endl;
+        return 1;
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     } catch (const char* msg) {
         std::cerr << "Error: " << msg << std::endl;
