@@ -235,6 +235,9 @@ namespace askap {
                     result = this->itsCube.getMetadata();
                 } else{
 		  result = casaImageToMetadata(this->itsCube);
+		  this->itsSubimageDef.define(this->itsCube.header().getWCS());
+// 		  this->itsSubimageDef.setImageDim(getCASAdimensions(this->itsCube.pars().getImageFile()));
+ 		  this->itsSubimageDef.setImageDim(this->itsCube.pars().section().getDimList());
 		}
 
 		ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile<<"\".");

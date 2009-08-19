@@ -64,6 +64,7 @@ namespace askap {
                 void defineFITS(std::string FITSfilename);
 
                 /// @brief Set the array of image dimensions
+                void setImageDim(std::vector<int> dim) {itsFullImageDim = std::vector<long>(dim.size()); for(size_t i=0;i<dim.size();i++) itsFullImageDim[i]=dim[i];};
                 void setImageDim(std::vector<long> dim) {itsFullImageDim = dim;};
                 std::vector<long> getImageDim() {return itsFullImageDim;};
                 /// @brief Set the image name.

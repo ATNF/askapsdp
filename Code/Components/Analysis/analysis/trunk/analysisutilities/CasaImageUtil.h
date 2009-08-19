@@ -63,6 +63,9 @@ namespace askap {
         int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
         /// @}
 
+	/// @brief Return the dimensions of the image
+	std::vector<long> getCASAdimensions(std::string filename);
+
         /// @brief Save the metadata from a casa image to a duchamp::Cube object
         /// @name
         /// @ingroup analysisutilities

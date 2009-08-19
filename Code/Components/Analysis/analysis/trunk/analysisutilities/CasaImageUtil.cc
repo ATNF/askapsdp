@@ -307,6 +307,25 @@ namespace askap {
             return duchamp::SUCCESS;
         }
 
+         //**************************************************************//
+
+      std::vector<long> getCASAdimensions(std::string filename)
+        {
+            /// @details Equivalent of getFITSdimensions, but for
+            /// casa images. Returns a vector with the axis dimensions of the given image
+            /// @param filename The filename of the image
+            /// @return An STL vector with all axis dimensions.
+            ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+            const LatticeBase* lattPtr = ImageOpener::openImage(filename);
+            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+            IPosition shape = imagePtr->shape();
+            std::vector<long> dim(shape.size());
+            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
+	    delete lattPtr;
+	    return dim;
+	}
+
+
         //**************************************************************//
 
         int casaImageToMetadata(duchamp::Cube &cube)
