@@ -114,7 +114,10 @@ namespace askap {
 		else
 		  ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
 
-		header.wcsToPix(wcs,pix);
+		if(header.wcsToPix(wcs,pix)){
+		  ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id 
+				     <<", wcs=("<< std::setprecision(6) << wcs[0]<<","<< std::setprecision(6) << wcs[1]<<")");
+		}
 		
 //                 if (radius < 0 || (radius > 0 && hypot(pix[0],pix[1]) < radius*60.)) {
                 if (radius < 0 || (radius > 0 && hypot(pix[0],pix[1]) < radius*60.)) {
@@ -173,7 +176,10 @@ namespace askap {
  //                id = ss.str() + "_" + analysis::degToDMS(wcs[0],"RA") + "_" + analysis::degToDMS(wcs[1],"DEC");
                id = ss.str() + "_" + analysis::decToDMS(wcs[0],"RA") + "_" + analysis::decToDMS(wcs[1],"DEC");
 
-		header.wcsToPix(wcs,pix);
+		if(header.wcsToPix(wcs,pix)){
+		  ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << id 
+				     <<", wcs=("<< std::setprecision(6) << wcs[0]<<","<< std::setprecision(6) << wcs[1]<<")");
+		}
 
 //                 if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
                 if (radius < 0 || (radius > 0 && hypot(pix[0], pix[1]) < radius*60.)) {
