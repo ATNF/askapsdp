@@ -744,6 +744,8 @@ namespace askap {
                     }
                 }
 
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up edge sources");
+
                 for (src = goodSources.begin(); src < goodSources.end(); src++) {
                     src->setHeader(head);
 
@@ -758,10 +760,14 @@ namespace askap {
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
                     src->setID(src - this->itsSourceList.begin() + 1);
-		    if(this->itsCube.objAtSpatialEdge(*src)) src->addToFlagText("E");
+// 		    if(this->itsCube.objAtSpatialEdge(*src)) src->addToFlagText("E");
+		    src->setAtEdge(this->itsCube,this->itsSubimageDef, this->itsRank - 1);
+		    if(src->isAtEdge()) src->addToFlagText("E");
 		    else src->addToFlagText("-");
                     this->itsCube.addObject(duchamp::Detection(*src));
                 }
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
+
             }
         }
 

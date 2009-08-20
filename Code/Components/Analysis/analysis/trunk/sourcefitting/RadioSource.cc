@@ -186,17 +186,25 @@ namespace askap {
                 float threshV = cube.pars().getThreshV();
 
 		long xminEdge,xmaxEdge,yminEdge,ymaxEdge,zminEdge,zmaxEdge;
-		int *nsub = subimage.nsub();
-		int *overlap = subimage.overlap();
-		int colnum=workerNum % nsub[0];
-		int rownum=workerNum / nsub[0];
-		int znum = workerNum % nsub[0]*nsub[1];
-	        xminEdge = (colnum == 0 ) ? 0 : overlap[0];
-	        xmaxEdge = (colnum == nsub[0]-1 ) ? cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
-	        yminEdge = (rownum == 0 ) ? 0 : overlap[1];
-	        ymaxEdge = (rownum == nsub[1]-1 ) ? cube.getDimY() - 1 : cube.getDimY() - 1 - overlap[1];
-	        zminEdge = (znum == 0 ) ? 0 : overlap[2];
-	        zmaxEdge = (znum == nsub[2]-1 ) ? cube.getDimZ() - 1 : cube.getDimZ() - 1 - overlap[2];
+		if(workerNum<0){  // if it is the Master node
+		  xminEdge = yminEdge = zminEdge = 0;
+		  xmaxEdge = cube.getDimX() - 1;
+		  ymaxEdge = cube.getDimY() - 1;
+		  zmaxEdge = cube.getDimZ() - 1;
+		}
+		else {
+		  int *nsub = subimage.nsub();
+		  int *overlap = subimage.overlap();
+		  int colnum=workerNum % nsub[0];
+		  int rownum=workerNum / nsub[0];
+		  int znum = workerNum % nsub[0]*nsub[1];
+		  xminEdge = (colnum == 0 ) ? 0 : overlap[0];
+		  xmaxEdge = (colnum == nsub[0]-1 ) ? cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
+		  yminEdge = (rownum == 0 ) ? 0 : overlap[1];
+		  ymaxEdge = (rownum == nsub[1]-1 ) ? cube.getDimY() - 1 : cube.getDimY() - 1 - overlap[1];
+		  zminEdge = (znum == 0 ) ? 0 : overlap[2];
+		  zmaxEdge = (znum == nsub[2]-1 ) ? cube.getDimZ() - 1 : cube.getDimZ() - 1 - overlap[2];
+		}
 
                 if (flagAdj) {
                     flagBoundary = flagBoundary || (this->getXmin() == xminEdge);
