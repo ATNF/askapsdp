@@ -159,6 +159,7 @@ namespace askap {
                         this->itsNSub[i] = 1;
                         this->itsOverlap[i] = 0;
                     }
+		    ASKAPLOG_DEBUG_STR(logger,i<<" " << this->itsNAxis << " " << this->itsNSub[i] << " " << this->itsOverlap[i]);
                 }
             }
 
@@ -194,7 +195,12 @@ namespace askap {
             /// getFITSdimensions(std::string) function.
             /// @return A duchamp::Section object containing all information
             /// on the subsection.
-            ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
+
+	  if(workerNum<0){
+	    ASKAPLOG_INFO_STR(logger, "Master node, so returning input subsection");
+	    return inputSubsection;
+	  } else {
+	    ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
             duchamp::Section inputSec(inputSubsection);
             inputSec.parse(this->itsFullImageDim);
             ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
@@ -223,6 +229,7 @@ namespace askap {
             duchamp::Section sec(secstring);
             sec.parse(this->itsFullImageDim);
             return sec;
+	  }
         }
 
       void SubimageDef::writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers)
@@ -242,15 +249,17 @@ namespace askap {
 	for(int w=0;w<numWorkers;w++){
 
 	  duchamp::Section workerSection = this->section(w,fullImageSubsection.getSection());
-	  pix[0] = pix[9] = workerSection.getStart(0)-0.5; // x-start
-	  pix[1] = pix[4] = workerSection.getStart(1)-0.5; // y-start
-     	  pix[3] = pix[6] = workerSection.getEnd(0)+0.5;   // x-end
-	  pix[7] = pix[10] = workerSection.getEnd(1)+0.5;  // y-end 
+	  pix[0] = pix[9] =  workerSection.getStart(0)-0.5 - fullImageSubsection.getStart(0);  // x-start, in pixels relative to the image that has been read
+	  pix[1] = pix[4] =  workerSection.getStart(1)-0.5 - fullImageSubsection.getStart(1);  // y-start
+     	  pix[3] = pix[6] =  workerSection.getEnd(0)  +0.5 - fullImageSubsection.getStart(0);  // x-end
+	  pix[7] = pix[10] = workerSection.getEnd(1)  +0.5 - fullImageSubsection.getStart(1);  // y-end 
 	  head.pixToWCS(pix,wld,4);
 	  xcentre = (wld[0]+wld[3]+wld[6]+wld[9])/4.;
 	  ycentre = (wld[1]+wld[4]+wld[7]+wld[10])/4.;
-	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": starts are ("<<pix[0]<<","<<pix[1]<<")");
-	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": ends are ("<<pix[1]<<","<<pix[7]<<")");
+	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": starts are ("<<pix[0]+fullImageSubsection.getStart(0)<<","<<pix[1]+fullImageSubsection.getStart(1)<<") or ("
+			    <<degToDMS(wld[0],"RA")<<","<<degToDMS(wld[1],"DEC")<<") in WCS");
+	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": ends are ("<<pix[3]+fullImageSubsection.getStart(0)<<","<<pix[7]+fullImageSubsection.getStart(1)<<") or ("
+			    <<degToDMS(wld[3],"RA")<<","<<degToDMS(wld[7],"DEC")<<") in WCS");
 	  fAnnot << "CLINES ";
 	  for(int i=0;i<4;i++) fAnnot << wld[i*3] << " " << wld[i*3+1] << " ";
 	  fAnnot << wld[0] << " " << wld[1] << "\n";

@@ -70,7 +70,7 @@ namespace askap {
         /// @name
         /// @ingroup analysisutilities
         /// @{
-        int casaImageToMetadata(duchamp::Cube &cube);
+        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, int subimagenumber);
         int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
         /// @}
 

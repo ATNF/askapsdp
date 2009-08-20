@@ -188,7 +188,7 @@ namespace askap {
             /// @return The return value of the function that was used:
             /// either duchamp::SUCCESS or duchamp::FAILURE
             if (this->itsIsFITSFile) return this->itsCube.getMetadata();
-            else return casaImageToMetadata(this->itsCube);
+            else return casaImageToMetadata(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
         }
 
         //**************************************************************//
@@ -234,10 +234,10 @@ namespace askap {
 
                     result = this->itsCube.getMetadata();
                 } else{
-		  result = casaImageToMetadata(this->itsCube);
-		  this->itsSubimageDef.define(this->itsCube.header().getWCS());
-// 		  this->itsSubimageDef.setImageDim(getCASAdimensions(this->itsCube.pars().getImageFile()));
- 		  this->itsSubimageDef.setImageDim(this->itsCube.pars().section().getDimList());
+		  result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+// 		  this->itsSubimageDef.define(this->itsCube.header().getWCS());
+// // 		  this->itsSubimageDef.setImageDim(getCASAdimensions(this->itsCube.pars().getImageFile()));
+//  		  this->itsSubimageDef.setImageDim(this->itsCube.pars().section().getDimList());
 		}
 
 		ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile<<"\".");
