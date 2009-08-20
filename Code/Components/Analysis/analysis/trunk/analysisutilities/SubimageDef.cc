@@ -257,9 +257,9 @@ namespace askap {
 	  xcentre = (wld[0]+wld[3]+wld[6]+wld[9])/4.;
 	  ycentre = (wld[1]+wld[4]+wld[7]+wld[10])/4.;
 	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": starts are ("<<pix[0]+fullImageSubsection.getStart(0)<<","<<pix[1]+fullImageSubsection.getStart(1)<<") or ("
-			    <<degToDMS(wld[0],"RA")<<","<<degToDMS(wld[1],"DEC")<<") in WCS");
+			    <<decToDMS(wld[0],"RA")<<","<<decToDMS(wld[1],"DEC")<<") in WCS");
 	  ASKAPLOG_INFO_STR(logger,"Setting section box for worker " << w+1 << ": ends are ("<<pix[3]+fullImageSubsection.getStart(0)<<","<<pix[7]+fullImageSubsection.getStart(1)<<") or ("
-			    <<degToDMS(wld[3],"RA")<<","<<degToDMS(wld[7],"DEC")<<") in WCS");
+			    <<decToDMS(wld[3],"RA")<<","<<decToDMS(wld[7],"DEC")<<") in WCS");
 	  fAnnot << "CLINES ";
 	  for(int i=0;i<4;i++) fAnnot << wld[i*3] << " " << wld[i*3+1] << " ";
 	  fAnnot << wld[0] << " " << wld[1] << "\n";
