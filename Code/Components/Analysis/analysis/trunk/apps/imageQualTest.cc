@@ -30,6 +30,8 @@
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
 
 #include <APS/ParameterSet.h>
 
@@ -71,10 +73,13 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-  //   ASKAPLOG_INIT("imageQualTest.log_cfg");
     try {
-        //    casa::Timer timer;
-        //    timer.mark();
+          // Ensure that CASA log messages are captured
+          casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+          casa::LogSink::globalSink (globalSink);
+
+	  casa::Timer timer;
+           timer.mark();
         std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
         ParameterSet parset(parsetFile);
         ParameterSet subset(parset.makeSubset("imageQual."));
@@ -91,6 +96,7 @@ int main(int argc, const char** argv)
         matcher.findOffsets();
         matcher.addNewMatches();
         matcher.outputLists();
+        ASKAPLOG_INFO_STR(logger, "Time for execution of imageQualTest = " << timer.real() << " sec");
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;

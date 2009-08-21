@@ -26,12 +26,14 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author Tim Cornwell <tim.cornwell@csiro.au>
-#include <askap/AskapError.h>
+/// @author Matthew Whiting <matthew.whiting@csiro.au>
 
 #include <askap_analysis.h>
 
 #include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
 
 #include <parallelanalysis/DuchampParallel.h>
 
@@ -74,6 +76,10 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 int main(int argc, const char** argv)
 {
     try {
+          // Ensure that CASA log messages are captured
+          casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+          casa::LogSink::globalSink (globalSink);
+
         casa::Timer timer;
         timer.mark();
         std::string parsetFile(getInputs("-inputs", "cduchamp.in", argc, argv));
