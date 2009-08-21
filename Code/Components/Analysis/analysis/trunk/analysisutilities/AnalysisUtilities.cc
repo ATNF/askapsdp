@@ -107,12 +107,7 @@ namespace askap {
                 for (int i = 0; i < numAxes; i++) dim[i] = dimAxes[i];
 
                 delete [] dimAxes;
-                std::stringstream ss;
 
-                for (int i = 0; i < numAxes - 1; i++) ss << dimAxes[i] << "x";
-
-                ss << dimAxes[numAxes-1];
-//       ASKAPLOG_DEBUG_STR(logger,"Fits dimensions = "<<ss.str());
             }
 
             return dim;
@@ -368,16 +363,36 @@ namespace askap {
 
                 normalisedInput /= 15.;
             }
+	    normalisedInput = fabs(normalisedInput);
 
             int secondWidth = 2;
 
             if (secondPrecision > 0) secondWidth += 1 + secondPrecision;
 
-            double hourOrDeg = trunc(normalisedInput);
-            double fraction = fabs(normalisedInput - hourOrDeg);
-            double min = trunc(fraction * 60.);
-            fraction = fraction * 60. - min;
-            double sec = fraction * 60.;
+	    double dec_abs = normalisedInput;
+	    int hourOrDeg = int(dec_abs);
+	    int min = int(fmod(dec_abs,1.)*60.);
+	    const double onemin=1./60.;
+	    double sec = fmod(dec_abs,onemin)*3600.;
+
+	    if(fabs(sec-60.)<1.e-10){ // to prevent rounding errors stuffing things up
+	      sec=0.;
+	      min++;
+	    }
+	    else if(sec>60.){
+	      sec -= 60.;
+	      min++;
+	    }    
+
+	    if(min==60){
+	      min=0;
+	      hourOrDeg++;
+	    }
+  
+	    if(type == "RA") hourOrDeg = hourOrDeg % 24;
+	    else if(type == "GLON") hourOrDeg = hourOrDeg % 360;
+	    else if(type == "GLAT" || type == "DEC") hourOrDeg = ( (hourOrDeg + 90) % 180 ) - 90;
+
             std::stringstream output;
             output.setf(std::ios::fixed);
             output << sign

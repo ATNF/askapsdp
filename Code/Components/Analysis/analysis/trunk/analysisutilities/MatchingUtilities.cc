@@ -37,6 +37,7 @@
 #include <analysisutilities/AnalysisUtilities.h>
 
 #include <duchamp/fitsHeader.hh>
+#include <duchamp/Utils/utils.hh>
 
 #include <iostream>
 #include <iomanip>
@@ -302,7 +303,7 @@ namespace askap {
 		}
 		else
 		  ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
-		//                id = ss.str() + "_" + analysis::degToDMS(ra,"RA") + "_" + analysis::degToDMS(dec,"DEC");
+
                 id = ss.str() + "_" + analysis::decToDMS(ra,"RA") + "_" + analysis::decToDMS(dec,"DEC");
                 xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
