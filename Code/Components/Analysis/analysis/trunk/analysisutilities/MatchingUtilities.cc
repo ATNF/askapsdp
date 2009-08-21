@@ -71,9 +71,9 @@ namespace askap {
             double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise;
             int nfree, ndof, npixfit, npixobj;
 
-	    double *wcs = new double[3];
+	    double *wld = new double[3];
 	    double *pix = new double[3];
-	    wcs[2] = header.specToVel(0.);
+	    wld[2] = header.specToVel(0.);
 
             char line[501];
             fin.getline(line, 500);
@@ -104,22 +104,20 @@ namespace askap {
 
                 std::stringstream ss;
 		if(posType == "dms"){
-		  wcs[0] = analysis::dmsToDec(raS) * 15.;
-		  wcs[1] = analysis::dmsToDec(decS);
+		  wld[0] = analysis::dmsToDec(raS) * 15.;
+		  wld[1] = analysis::dmsToDec(decS);
 		}
 		else if(posType == "deg"){
-		  wcs[0] = atof(raS.c_str());
-		  wcs[1] = atof(decS.c_str());
+		  wld[0] = atof(raS.c_str());
+		  wld[1] = atof(decS.c_str());
 		}
 		else
 		  ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
 
-		if(header.wcsToPix(wcs,pix)){
-		  ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id 
-				     <<", wcs=("<< std::setprecision(6) << wcs[0]<<","<< std::setprecision(6) << wcs[1]<<")");
+		if(header.wcsToPix(wld,pix)){
+		  ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " <<std::setprecision(6) <<  wld[1] << " --> " << pix[1]);
 		}
 		
-//                 if (radius < 0 || (radius > 0 && hypot(pix[0],pix[1]) < radius*60.)) {
                 if (radius < 0 || (radius > 0 && hypot(pix[0],pix[1]) < radius*60.)) {
 		  matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa);
                     pt.setStuff(chisq, noise, rms, nfree, ndof, npixfit, npixobj, flux);
@@ -127,7 +125,7 @@ namespace askap {
                 }
             }
 
-	    delete [] wcs;
+	    delete [] wld;
 	    delete [] pix;
 
             stable_sort(pixlist.begin(), pixlist.end());
@@ -150,45 +148,42 @@ namespace askap {
             /// right ascension, in string form, e.g. -12:23:34.57
             std::vector<matching::Point> pixlist;
             std::string raS, decS, id;
-//             double raBase = analysis::dmsToDec(raBaseStr) * 15.;
-//             double decBase = analysis::dmsToDec(decBaseStr);
             double flux, maj, min, pa;
             int ct = 1;
 
-	    double *wcs = new double[3];
+	    double *wld = new double[3];
 	    double *pix = new double[3];
-	    wcs[2] = header.specToVel(0.);
+	    wld[2] = header.specToVel(0.);
 
             while (fin >> raS >> decS >> flux >> maj >> min >> pa,
                     !fin.eof()) {
                 std::stringstream ss;
                 ss << ct++;
 		if(posType == "dms"){
-		  wcs[0] = analysis::dmsToDec(raS) * 15.;
-		  wcs[1] = analysis::dmsToDec(decS);
+		  wld[0] = analysis::dmsToDec(raS) * 15.;
+		  wld[1] = analysis::dmsToDec(decS);
 		}
 		else if(posType == "deg"){
-		  wcs[0] = atof(raS.c_str());
-		  wcs[1] = atof(decS.c_str());
+		  wld[0] = atof(raS.c_str());
+		  wld[1] = atof(decS.c_str());
 		}
 		else
 		  ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
- //                id = ss.str() + "_" + analysis::degToDMS(wcs[0],"RA") + "_" + analysis::degToDMS(wcs[1],"DEC");
-               id = ss.str() + "_" + analysis::decToDMS(wcs[0],"RA") + "_" + analysis::decToDMS(wcs[1],"DEC");
 
-		if(header.wcsToPix(wcs,pix)){
+               id = ss.str() + "_" + analysis::decToDMS(wld[0],"RA") + "_" + analysis::decToDMS(wld[1],"DEC");
+
+		if(header.wcsToPix(wld,pix)){
 		  ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << id 
-				     <<", wcs=("<< std::setprecision(6) << wcs[0]<<","<< std::setprecision(6) << wcs[1]<<")");
+				     <<", wld=("<< std::setprecision(6) << wld[0]<<","<< std::setprecision(6) << wld[1]<<")");
 		}
 
-//                 if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
                 if (radius < 0 || (radius > 0 && hypot(pix[0], pix[1]) < radius*60.)) {
 		  matching::Point pt(pix[0],pix[1], flux, id, maj, min, pa);
                     pixlist.push_back(pt);
                 }
             }
 
-	    delete [] wcs;
+	    delete [] wld;
 	    delete [] pix;
 
             stable_sort(pixlist.begin(), pixlist.end());
