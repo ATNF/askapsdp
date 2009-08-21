@@ -24,7 +24,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author XXX XXX <XXX.XXX@csiro.au>
+/// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
 #include <analysisutilities/AnalysisUtilities.h>
 #include <cppunit/extensions/HelperMacros.h>

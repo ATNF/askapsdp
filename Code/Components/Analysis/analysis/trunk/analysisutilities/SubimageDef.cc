@@ -196,6 +196,10 @@ namespace askap {
             /// @return A duchamp::Section object containing all information
             /// on the subsection.
 
+	  if(this->itsFullImageDim.size()==0){
+	    ASKAPTHROW(AskapError,"SubimageDef::section : tried to define a section but the image dimensions have not been set!");
+	  }
+	  
 	  if(workerNum<0){
 	    ASKAPLOG_INFO_STR(logger, "Master node, so returning input subsection");
 	    return inputSubsection;
