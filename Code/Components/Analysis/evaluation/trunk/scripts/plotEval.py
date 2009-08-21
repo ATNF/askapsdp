@@ -28,6 +28,8 @@ if __name__ == '__main__':
     matchfile = inputPars.get_value('matchfile',"matches.txt")
     missfile = inputPars.get_value('missfile',"misses.txt")
 
+    plotRefMisses = inputPars.get_value('plotRefMisses',False)
+
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,nfree,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f,chisq2,imagerms2,rms2,nfree2,ndof2,npf2,npo2 = read_miss_data(missfile)
 
@@ -42,7 +44,7 @@ if __name__ == '__main__':
     subplots_adjust(wspace=0.3,hspace=0.3)
 
     posOffsetPlot(xS,yS,xR,yR,matchType)
-    axisrange=spatPosPlot(xS,yS,xR,yR,matchType,x,y,missType,minRelVal=2.)
+    axisrange=spatPosPlot(xS,yS,xR,yR,matchType,x,y,missType,minRelVal=2.,plotRefMisses=plotRefMisses)
 
     xrms=append(xS,x[npo2>0])
     yrms=append(yS,y[npo2>0])

@@ -482,7 +482,7 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
 #    @param missFlag A letter indicating the object type: 'R'=reference object, 'S'=source object
 #    @param minRelVal: The minimum value, in multiples of the rms above the mean of relative offset, that is plotted on the spatial plot. Points with values less than this are not plotted.
 #    @param minPlottedOff The minimum offset to be plotted on the histogram
-def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, yMiss=None, missFlag=None, minRelVal=2., minPlottedOff=5):
+def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, yMiss=None, missFlag=None, minRelVal=2., minPlottedOff=5, plotRefMisses=False):
     """
     Plots the spatial location of all sources, indicating those that
     have been matched to the reference list, and those in either list
@@ -555,7 +555,8 @@ def spatPosPlot(xS=None, yS=None, xR=None, yR=None, matchFlag=None, xMiss=None, 
             if(missFlag[i]=='S'):
                 plot([xMiss[i]],[yMiss[i]],'b,')
             else:
-                plot([xMiss[i]],[yMiss[i]],'g,')
+                if(plotRefMisses):
+ 		    plot([xMiss[i]],[yMiss[i]],'g,')
         axis([min(min(xS),min(xMiss)),max(max(xS),max(xMiss)),min(min(yS),min(yMiss)),max(max(yS),max(yMiss))])
     else:
         axis([min(xS),max(xS),min(yS),max(yS)])
