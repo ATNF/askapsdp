@@ -29,6 +29,7 @@
 
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
 #include <log4cxx/appenderskeleton.h>
@@ -45,6 +46,7 @@
 using namespace log4cxx;
 
 namespace askap {
+
     /// @brief Implementation of a log4cxx::Appender for remote logging
     /// via Ice.
     ///
@@ -145,10 +147,15 @@ namespace askap {
 
             // Paramater - The topic to which log messages will be sent
             std::string itsLoggingTopic;
+
+            static std::map<log4cxx::LevelPtr,
+                            askap::interfaces::logging::LogLevel> levelMap;
+
     };
 
     // Typedef pointer to this class
     typedef helpers::ObjectPtrT<IceAppender> IceAppenderPtr;
+
 
 } // End namespace
 

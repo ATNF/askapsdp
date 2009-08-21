@@ -1,12 +1,14 @@
 module askap
-{      
+{
   module interfaces
   {
     module logging
     {
+
+      enum LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, FATAL};
       // Standard string list
       sequence<string> stringlist;
-      
+
       // The LogEvent representation
       struct ILogEvent
       {
@@ -15,13 +17,15 @@ module askap
         // the creation time of the log event (POSIX timestamp)
         double created;
         // The severity of the log event
-        string level;
+        LogLevel level;
         // the actual log message
         string message;
       };
-      
+
       // a list of ILogEvents
       sequence<ILogEvent> eventlist;
+      // a list of LogLevels
+      sequence<LogLevel> levellist;
 
       // The interface to implement when handling LogEvents
       interface ILogger
@@ -35,7 +39,7 @@ module askap
         string origin;
         string datemin;
         string datemax;
-        stringlist levels;
+        levellist levels;
         int limit;
       };
       // The inteface for querying the logarchive
@@ -45,7 +49,7 @@ module askap
         idempotent eventlist query(IQueryObject q);
         // get the logger names (origin) with an optional name match
         idempotent stringlist getLoggers(string name);
-        // get the availabel log levels
+        // get the available log levels
         idempotent stringlist getLevels();
       };
     };

@@ -71,6 +71,7 @@ static const std::string inputMessage = "Testing the IceAppender";
 static const std::string inputLogname = "MyLogger";
 static std::string outputMessage = "";
 static std::string outputLogname = "";
+static LogLevel outputLevel = WARN;
 
 // LogEvent consumer class for testing. This essentially fills the role
 // of the Log Archiver component.
@@ -83,6 +84,7 @@ class TestConsumer : public ILogger {
         void send(const askap::interfaces::logging::ILogEvent& event, const Ice::Current& c) {
             outputMessage = event.message;
             outputLogname = event.origin;
+            outputLevel = event.level;
         }
 };
 
@@ -100,22 +102,19 @@ int main(int argc, char *argv[])
     } catch (const char* msg) {
         std::cerr << msg << std::endl;
     }
-
     // Subscribe to the logging topic
     Ice::ObjectPrx obj = ic->stringToProxy("IceStorm/TopicManager");
     IceStorm::TopicManagerPrx topicManager =
         IceStorm::TopicManagerPrx::checkedCast(obj);
-
     Ice::ObjectAdapterPtr adapter =
         ic->createObjectAdapter("TestLogArchiverAdapter");
-
     ILoggerPtr consumer = new TestConsumer;
     Ice::ObjectPrx proxy = adapter->
                            addWithUUID(consumer)->ice_oneway();
     adapter->activate();
     IceStorm::TopicPrx topic;
 
-    // Either retrieve of create the topic
+    // Either retrieve or create the topic
     try {
         topic = topicManager->retrieve("logger");
     } catch (const IceStorm::NoSuchTopic&) {
@@ -149,7 +148,8 @@ int main(int argc, char *argv[])
     ic->waitForShutdown();
 
     // Check results
-    if (outputLogname == inputLogname && outputMessage == inputMessage) {
+    if (outputLogname == inputLogname && outputMessage == inputMessage
+        &&  outputLevel == INFO) {
         std::cout << "PASS" << std::endl;
         return 0;
     } else {

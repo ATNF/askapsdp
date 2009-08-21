@@ -46,12 +46,25 @@
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 using namespace askap;
-using namespace askap::interfaces::logging;
+//using namespace askap::interfaces::logging;
+
+std::map<LevelPtr, askap::interfaces::logging::LogLevel> IceAppender::levelMap;
 
 IMPLEMENT_LOG4CXX_OBJECT(IceAppender)
 
 IceAppender::IceAppender()
 {
+  // Not initialised, a bool might be cheaper
+
+  if (levelMap.size() == 0) {
+      levelMap[Level::getTrace()] = askap::interfaces::logging::TRACE;
+      levelMap[Level::getDebug()] = askap::interfaces::logging::DEBUG;
+      levelMap[Level::getInfo()] = askap::interfaces::logging::INFO;
+      levelMap[Level::getWarn()] = askap::interfaces::logging::WARN;
+      levelMap[Level::getError()] = askap::interfaces::logging::ERROR;
+      levelMap[Level::getFatal()] = askap::interfaces::logging::FATAL;
+  }
+
 }
 
 IceAppender::~IceAppender()
@@ -71,14 +84,14 @@ void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*p*/)
 
     if (itsLogService) {
         // Create the payload
-        ILogEvent iceevent;
+        askap::interfaces::logging::ILogEvent iceevent;
         iceevent.origin = event->getLoggerName();
 
         // The ASKAPsoft log archiver interface expects Unix time in seconds
         // (the parameter is a double precision float) where log4cxx returns
         // microseconds.
         iceevent.created = event->getTimeStamp() / 1000.0 / 1000.0;
-        iceevent.level = event->getLevel()->toString();
+        iceevent.level = levelMap[event->getLevel()];
         iceevent.message = event->getMessage();
 
         // Send
@@ -159,7 +172,6 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& pool)
     }
 
     IceStorm::TopicPrx topic;
-
     try {
         topic = topicManager->retrieve(itsLoggingTopic);
     } catch (const IceStorm::NoSuchTopic&) {
@@ -167,7 +179,7 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& pool)
     }
 
     Ice::ObjectPrx pub = topic->getPublisher()->ice_oneway();
-    itsLogService = ILoggerPrx::uncheckedCast(pub);
+    itsLogService = askap::interfaces::logging::ILoggerPrx::uncheckedCast(pub);
 }
 
 bool IceAppender::verifyOptions() const
