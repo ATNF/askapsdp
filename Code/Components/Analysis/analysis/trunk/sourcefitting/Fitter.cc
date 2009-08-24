@@ -187,11 +187,13 @@ namespace askap {
 
                 for (g = 0; g < m.nrow(); g++) {
                     std::stringstream outmsg;
+                    outmsg.precision(8);
+                    outmsg.setf(ios::fixed);
+		    outmsg << m(g, 0) << ", ";
+
                     outmsg.precision(3);
                     outmsg.setf(ios::fixed);
-
-                    for (p = 0; p < m.ncolumn() - 1; p++) outmsg << m(g, p) << ", ";
-
+                    for (p = 1; p < m.ncolumn() - 1; p++) outmsg << m(g, p) << ", ";
                     outmsg << m(g, p);
                     ASKAPLOG_INFO_STR(logger, outmsg.str());
                 }
