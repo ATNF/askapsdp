@@ -414,7 +414,8 @@ namespace askap {
 //  std::pair<double,double> axes = this->pixelArray.getSpatialMap().getPrincipleAxes();
 //  base.setMajor(std::max(axes.first,axes.second));
 //  base.setMinor(std::min(axes.first,axes.second));
-                const int numThresh = 20;
+//                const int numThresh = 20;
+                const int numThresh = this->itsFitParams.numSubThresholds();
                 float baseThresh = log10(this->itsDetectionThreshold);
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh + 1);
                 float thresh;
@@ -434,6 +435,7 @@ namespace askap {
                 if (!keepGoing) {
                     for (obj = objlist.begin(); obj < objlist.end(); obj++) {
                         RadioSource newsrc;
+			newsrc.setFitParams(this->itsFitParams);
                         newsrc.setDetectionThreshold(thresh);
                         newsrc.pixels().addChannel(0, *obj);
                         newsrc.calcFluxes(fluxarray, dim);
@@ -471,7 +473,8 @@ namespace askap {
                 /// location was found (the overall peak will be found 10
                 /// times), and the Value element being the location of the
                 /// peak, stored as a PixelInfo::Voxel.
-                const int numThresh = 10;
+	      //                const int numThresh = 10;
+                const int numThresh = this->itsFitParams.numSubThresholds();
                 std::multimap<int, PixelInfo::Voxel> peakMap;
                 std::multimap<int, PixelInfo::Voxel>::iterator pk;
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
@@ -657,6 +660,11 @@ namespace askap {
             {
                 if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
+                this->itsFitParams = baseFitter;
+                this->itsFitParams.saveBox(this->itsBoxMargins);
+                this->itsFitParams.setPeakFlux(this->peakFlux);
+                this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
+
                 ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
                 ASKAPLOG_DEBUG_STR(logger, "detect thresh = " << this->itsDetectionThreshold
                                        << "  peak = " << this->peakFlux
@@ -666,11 +674,6 @@ namespace askap {
 
                 for (uInt i = 0; i < cmpntList.size(); i++)
                     ASKAPLOG_DEBUG_STR(logger, "SubComponent: " << cmpntList[i]);
-
-                this->itsFitParams = baseFitter;
-                this->itsFitParams.saveBox(this->itsBoxMargins);
-                this->itsFitParams.setPeakFlux(this->peakFlux);
-                this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
                 for (unsigned int type = 0; type < defaultFitTypes.size(); type++) {
                     if (this->itsFitParams.hasType(defaultFitTypes[type])) {

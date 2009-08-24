@@ -71,6 +71,7 @@ namespace askap {
                 blob << par.itsBoxFlux;
                 blob << par.itsSrcPeak;
                 blob << par.itsDetectThresh;
+		blob << par.itsNumSubThresholds;
                 blob << par.itsBeamSize;
                 blob << par.itsMaxRetries;
                 blob << par.itsCriterium;
@@ -107,6 +108,7 @@ namespace askap {
                 blob >> par.itsBoxFlux;
                 blob >> par.itsSrcPeak;
                 blob >> par.itsDetectThresh;
+		blob >> par.itsNumSubThresholds;
                 blob >> par.itsBeamSize;
                 blob >> par.itsMaxRetries;
                 blob >> par.itsCriterium;

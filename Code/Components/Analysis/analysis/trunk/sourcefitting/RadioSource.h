@@ -211,6 +211,9 @@ namespace askap {
                     /// @brief Return a reference to the fitting parameters
                     FittingParameters &fitparams() {FittingParameters& rfitpars = itsFitParams; return rfitpars;};
 
+		    /// @brief Set the fitting parameters by passing a set
+		    void setFitParams(FittingParameters &fitpars){itsFitParams = fitpars;};
+
                 protected:
 
                     /// @brief A flag indicating whether the source is on the boundary of a subimage.

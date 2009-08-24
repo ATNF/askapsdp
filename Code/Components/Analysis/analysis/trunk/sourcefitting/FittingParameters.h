@@ -77,6 +77,9 @@ namespace askap {
             /// used instead.
             const float defaultChisqConfidence = -1.;
 
+	    /// @brief Default value for the number of thresholds looked at when finding subcomponents
+	    const int defaultNumSubThresholds = 20;
+
             /// @brief Default value of the maximum permitted reduced chi-squared value for an acceptable fit.
             const float defaultMaxReducedChisq = 5.;
 
@@ -147,6 +150,7 @@ namespace askap {
                     void setMaxReducedChisq(float f) {itsMaxReducedChisq = f;};
                     void setPeakFlux(float f) {itsSrcPeak = f;};
                     void setDetectThresh(float f) {itsDetectThresh = f;};
+		    void setNumSubThresholds(int i){itsNumSubThresholds = i;};
                     void setMinFitSize(unsigned int i) {itsMinFitSize = i;};
                     void setBeamSize(float f) {itsBeamSize = f;};
                     void setMaxRetries(int i) {itsMaxRetries = i;};
@@ -163,6 +167,7 @@ namespace askap {
                     float  chisqConfidence() {return itsChisqConfidence;};
                     float  maxReducedChisq() {return itsMaxReducedChisq;};
                     unsigned int   minFitSize() {return itsMinFitSize;};
+		    int    numSubThresholds(){return itsNumSubThresholds;};
                     float  beamSize() {return itsBeamSize;};
                     int    maxRetries() {return itsMaxRetries;};
                     Double criterium() {return itsCriterium;};
@@ -224,6 +229,9 @@ namespace askap {
 
                     /// @brief The detection threshold used to obtain the object.
                     float itsDetectThresh;
+
+		    /// @brief The number of subthresholds used for finding subcomponents
+		    int itsNumSubThresholds;
 
                     /// @brief The beam size in the image, using BMIN
                     float itsBeamSize;

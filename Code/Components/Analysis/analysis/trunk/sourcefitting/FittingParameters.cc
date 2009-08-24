@@ -80,19 +80,16 @@ namespace askap {
                 this->itsMaxReducedChisq = parset.getFloat("maxReducedChisq", defaultMaxReducedChisq);
                 this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize", defaultNoiseBoxSize);
                 this->itsMinFitSize = parset.getInt32("minFitSize", defaultMinFitSize);
+		this->itsNumSubThresholds = parset.getInt32("numSubThresholds", defaultNumSubThresholds);
                 this->itsMaxRetries = parset.getInt32("maxRetries", defaultMaxRetries);
                 this->itsCriterium = parset.getDouble("criterium", 0.0001);
                 this->itsMaxIter = parset.getUint32("maxIter", 1024);
                 this->itsUseNoise = parset.getBool("useNoise", true);
-                //  this->itsFlagFitThisParam = parset.getBoolVector("flagFitParam",std::vector<bool>(6,true));
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
 
                 if (parset.isDefined("flagFitParam"))
                     ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
 
-//  std::vector<std::string> defaultFitTypes;
-//  defaultFitTypes.push_back("full");
-//  defaultFitTypes.push_back("psf");
                 this->itsFitTypes = parset.getStringVector("fitTypes", defaultFitTypes);
                 std::stringstream ss;
                 std::vector<std::string>::iterator type = this->itsFitTypes.begin();
@@ -107,7 +104,6 @@ namespace askap {
                     }
                 }
 
-		//                ASKAPLOG_DEBUG_STR(logger, "Fit types being used: " << ss.str());
             }
 
             //**************************************************************//
@@ -137,6 +133,7 @@ namespace askap {
                 this->itsYmax = f.itsYmax;
                 this->itsSrcPeak = f.itsSrcPeak;
                 this->itsDetectThresh = f.itsDetectThresh;
+		this->itsNumSubThresholds = f.itsNumSubThresholds;
                 this->itsBeamSize = f.itsBeamSize;
                 this->itsMaxRetries = f.itsMaxRetries;
                 this->itsCriterium = f.itsCriterium;
