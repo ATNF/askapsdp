@@ -38,7 +38,6 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/Log4cxxLogSink.h"
-#include "APS/ParameterSet.h"
 #include "CommandLineParser.h"
 #include "casa/Logging/LogIO.h"
 #include "casa/Logging/LogSinkInterface.h"
