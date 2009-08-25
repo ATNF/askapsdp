@@ -919,9 +919,9 @@ namespace askap {
                 /// Finally, a box is drawn around the detection, indicating the
                 /// area used in the fitting. It includes the border around the
                 /// detection fiven by sourcefitting::detectionBorder.
-                double *pix = new double[3];
-                double *world = new double[3];
-                pix[2] = 0.;
+                double *pix = new double[12];
+                double *world = new double[12];
+                for(int i=0;i<4;i++) pix[i*3+2] = 0;
                 std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFit.fitSet();
                 std::vector<casa::Gaussian2D<Double> >::iterator fit;
 
@@ -939,14 +939,14 @@ namespace askap {
                         << fit->PA() * 180. / M_PI << "\n";
                 }
 
-                pix[0] = this->getXmin() - this->itsFitParams.boxPadSize();
-                pix[1] = this->getYmin() - this->itsFitParams.boxPadSize();
-                this->itsHeader.pixToWCS(pix, world);
-                stream << "BOX " << world[0] << " " << world[1] << " ";
-                pix[0] = this->getXmax() + this->itsFitParams.boxPadSize();
-                pix[1] = this->getYmax() + this->itsFitParams.boxPadSize();
-                this->itsHeader.pixToWCS(pix, world);
-                stream << world[0] << " " << world[1] << "\n";
+                pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
+                pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
+		pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
+                pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
+                this->itsHeader.pixToWCS(pix, world, 4);
+		stream << "CLINES ";
+		for(int i=0;i<4;i++) stream << world[i*3] << " " << world[i*3+1] << " ";
+		stream << world[0] << " " << world[1] << "\n";
                 delete [] pix;
                 delete [] world;
             }
