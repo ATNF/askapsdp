@@ -89,6 +89,13 @@ module component
     dictionary<string, ComponentTestStatus> ComponentTestResults;
 
     /**
+     * This is a common type which can be used as the Ice equivilant of the 
+     * LOFAR ParameterSet. This contains a map of variable names and maps
+     * them to their value.
+     **/
+    dictionary<string, string> ParameterMap;
+
+    /**
      * Common interface which each component in the ASKAP online system needs
      * to implement. This is an administrative interface via which the
      * component will be administered.
@@ -124,7 +131,7 @@ module component
          * @throws  StartupException    Raised if the startup fails. A reason
          *          shall be specified in the reason field.
          **/
-        ["ami"] void startup() throws StartupException;
+        ["ami"] void startup(ParameterMap params) throws StartupException;
 
         /**
          * Shutdown the component. That is, transition it from the ONLINE
