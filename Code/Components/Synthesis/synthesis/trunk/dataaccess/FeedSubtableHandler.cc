@@ -70,7 +70,9 @@ using namespace askap::synthesis;
 /// initial value of -2 serves as such flag.
 FeedSubtableHandler::FeedSubtableHandler(const casa::Table &ms) :
           TableHolder(ms.keywordSet().asTable("FEED")),
-          itsCachedSpWindow(-2), itsAllCachedOffsetsZero(false), itsIntervalFactor(1.)
+          itsCachedSpWindow(-2),
+          itsCachedStartTime(0.), itsCachedStopTime(0.),
+          itsAllCachedOffsetsZero(false), itsIntervalFactor(1.)
 { 
   const casa::Array<casa::String> &intervalUnits=table().tableDesc().
           columnDesc("INTERVAL").keywordSet().asArrayString("QuantumUnits");
