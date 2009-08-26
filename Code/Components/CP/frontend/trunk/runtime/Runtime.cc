@@ -64,16 +64,14 @@ void Runtime::run(void)
     itsAdapter = createAdapter(itsParset, itsComm);
 
     Ice::ObjectPtr object = this;
-    itsAdapter->add(object, itsComm->stringToIdentity("cpfe_runtime1"));
+    const std::string name = itsParset.getString("runtime");
+    itsAdapter->add(object, itsComm->stringToIdentity(name));
 
 
     itsAdapter->activate();
 
-    //itsAdapter->deactivate();
-    //itsAdapter->waitForDeactivate();
-
-    // Shutdown ICE
-    //itsComm->shutdown();
+    // Wait for shutdown of ICE. This occurs when a call to shutdown() on this
+    // object occurs.
     itsComm->waitForShutdown();
 }
 
