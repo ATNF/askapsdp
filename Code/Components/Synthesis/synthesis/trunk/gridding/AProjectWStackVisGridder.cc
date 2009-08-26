@@ -55,24 +55,23 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
         const double wmax, const int nwplanes,
         const int overSample, const int maxSupport, const int limitSupport, 
         const int maxFeeds,
-        const int maxFields, const int maxAnts,
+        const int maxFields, 
         const double pointingTol, const double paTol,
         const bool frequencyDependent, const std::string& name) :
     WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
     itsIllumination(illum),
-    itsMaxFeeds(maxFeeds), itsMaxFields(maxFields), itsMaxAnts(maxAnts),
+    itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
     itsPointingTolerance(pointingTol),       itsParallacticAngleTolerance(paTol),
-    itsFreqDep(frequencyDependent), itsIndicesValid(false),
+    itsFreqDep(frequencyDependent),
     itsNumberOfCFGenerations(0),
-    itsNumberOfIterations(0), itsNumberOfCFGenerationsDueToPA(0)
+    itsNumberOfIterations(0), itsNumberOfCFGenerationsDueToPA(0), 
+    itsCFParallacticAngle(0)
 {	
     ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
     ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
-    ASKAPCHECK(maxAnts>0, "Maximum number of antennas must be one or more");
     ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
     ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
     ASKAPCHECK(pointingTol>0.0, "Pointing tolerance must be greater than 0.0");
-    ASKAPLOG_INFO_STR(logger, "Maximum number of antennas allowed = " << maxAnts);
     ASKAPDEBUGASSERT(itsIllumination);
     itsSupport=0;
     itsOverSample=overSample;
@@ -100,7 +99,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
 AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridder &other) :
     WStackVisGridder(other), itsReferenceFrequency(other.itsReferenceFrequency),
     itsIllumination(other.itsIllumination), itsMaxFeeds(other.itsMaxFeeds),
-    itsMaxFields(other.itsMaxFields), itsMaxAnts(other.itsMaxAnts),
+    itsMaxFields(other.itsMaxFields),
     itsPointingTolerance(other.itsPointingTolerance),
     itsParallacticAngleTolerance(other.itsParallacticAngleTolerance),
     itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),
@@ -108,11 +107,10 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridde
     itsLimitSupport(other.itsLimitSupport),
     itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
     itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()), 
-    itsIndicesValid(other.itsIndicesValid),
     itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
     itsNumberOfIterations(other.itsNumberOfIterations),
     itsNumberOfCFGenerationsDueToPA(other.itsNumberOfCFGenerationsDueToPA), 
-    itsCFParallacticAngles(other.itsCFParallacticAngles)
+    itsCFParallacticAngle(other.itsCFParallacticAngle)
 {
     if (other.itsPattern) {
         itsPattern.reset(new UVPattern(*(other.itsPattern)));
@@ -198,26 +196,12 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
     }
 
     const int nSamples = acc.nRow();
-    const int maxNSamples = itsMaxFeeds*itsMaxFields*itsMaxAnts*(itsMaxAnts+1)/2;
     const int nChan = acc.nChannel();      
     const int nPol = acc.nPol();
 
-    // Given above are checks for maxFeeds and maxFields, this assert should
-    // really only fail if maxAnt is not high enough.
-    ASKAPCHECK(nSamples<maxNSamples, "Number of samples " << nSamples
-            << " exceeds expected maximum " << maxNSamples);
-
-    if (itsCMap.shape() != casa::IPosition(3,maxNSamples,nPol,nChan)) {
-        itsIndicesValid = false;      
-        ASKAPLOG_INFO_STR(logger, "Resizing convolution function map: new " << maxNSamples
-                << " old " << itsCMap.shape()(0) << " samples"); 
-        itsCMap.resize(maxNSamples, nPol, nChan);
-        itsCMap.set(0);
-    }
-    ASKAPDEBUGASSERT(itsCMap.shape() == casa::IPosition(3,maxNSamples,nPol,nChan));
-
-    /// @todo Select max feeds more carefully
-
+    itsCMap.resize(nSamples, nPol, nChan);
+    itsCMap.set(0);
+ 
     itsGMap.resize(nSamples, nPol, nChan);
     itsGMap.set(0);
 
@@ -247,14 +231,8 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
 
                 ASKAPCHECK(index>-1, "CMap index less than zero");
 
-                if (itsIndicesValid) {
-                    if (itsCMap(i, pol, chan) != index) {
-                        itsIndicesValid = false;
-                        itsCMap(i, pol, chan) = index;
-                    }
-                } else {
-                    itsCMap(i, pol, chan) = index;
-                }
+                itsCMap(i, pol, chan) = index;
+                
                 /// Calculate the index into the grids
                 if (itsNWPlanes>1) {
                     itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
@@ -267,9 +245,6 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
                         "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
             }
         }
-    }
-    if (!itsIndicesValid) {
-        ASKAPLOG_INFO_STR(logger, "Convolution function map was incorrect - invalidating CMap");
     }
 }
 /// @brief Initialise the gridding
@@ -291,12 +266,6 @@ void AProjectWStackVisGridder::initialiseGrid(const scimath::Axes& axes,  const 
 
     // this is just a buffer in the uv-space
     itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));
-
-    // this invalidates the cache of CFs      
-    itsIndicesValid = false;
-    if (!itsIndicesValid) {
-        ASKAPLOG_INFO_STR(logger, "Initializing grid - invalidating CMap");
-    }
 }
 
 /// @brief Initialise the degridding
@@ -317,12 +286,6 @@ void AProjectWStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
 
     // this is just a buffer in the uv-space
     itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));      
-
-    // this invalidates the cache of CFs      
-    itsIndicesValid = false;
-    if (!itsIndicesValid) {
-        ASKAPLOG_INFO_STR(logger, "Initializing degrid - invalidating CMap");
-    }
 }
 
 /// Initialize the convolution function into the cube. If necessary this
@@ -336,22 +299,17 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
     const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
     const int nSamples = acc.nRow();
 
-    if (itsIndicesValid && !hasSymmetricIllumination) {
+    if (!hasSymmetricIllumination) {
         // need to check parallactic angles here
-        //          ASKAPDEBUGASSERT(itsCFParallacticAngles.nelements() == casa::uInt(nSamples));
         const casa::Vector<casa::Float> &feed1PAs = acc.feed1PA();
-        //          ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
+        ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
         for (int row = 0; row<nSamples; ++row) {
-            if (fabs(feed1PAs[row] - itsCFParallacticAngles[row])<itsParallacticAngleTolerance) {
-                itsIndicesValid = false;
+            if (fabs(feed1PAs[row] - itsCFParallacticAngle)<itsParallacticAngleTolerance) {
                 ++itsNumberOfCFGenerationsDueToPA;
+                itsCFParallacticAngle = feed1PAs[row];
+                itsDone.set(false);
                 break;
             }
-        }
-        if(!itsIndicesValid) {
-            //	    ASKAPLOG_INFO_STR(logger, "Parallactic angle change on non-symmetric beam - invalidating CMap and CFs");
-            itsDone.set(false);
-            ++itsNumberOfCFGenerations;
         }
     }
 
@@ -479,10 +437,9 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
     } // for row
 
     ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
-    if (!itsIndicesValid && !hasSymmetricIllumination) {
-        itsCFParallacticAngles.assign(acc.feed1PA().copy());
+    if (nDone>0) { 
+        ++itsNumberOfCFGenerations;
     }
-    itsIndicesValid = true;
 }
 
 // To finalize the transform of the weights, we use the following steps:

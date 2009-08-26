@@ -68,7 +68,6 @@ namespace askap
       /// @param limitSupport Upper limit of support
       /// @param maxFeeds Maximum number of feeds allowed
       /// @param maxFields Maximum number of fields allowed
-      /// @param maxAnts Maximum number of antennas allowed
       /// @param pointingTol Pointing tolerance in radians
       /// @param paTol Parallactic angle tolerance in radians
       /// @param frequencyDependent Frequency dependent gridding?
@@ -76,7 +75,7 @@ namespace askap
       AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
           const double wmax, const int nwplanes, const int overSample,
           const int maxSupport, const int limitSupport,
-			       const int maxFeeds=1, const int maxFields=1, const int maxAnts=36,
+			       const int maxFeeds=1, const int maxFields=1, 
 			       const double pointingTol=0.0001,
 			       const double paTol=0.01,
 			       const bool frequencyDependent=true, 
@@ -147,8 +146,6 @@ namespace askap
       int itsMaxFeeds;
       /// Maximum number of fields
       int itsMaxFields;
-      /// Maximum number of antennas
-      int itsMaxAnts;
       /// Pointing tolerance in radians
       double itsPointingTolerance;
       /// @brief parallactic angle tolerance (in radians)
@@ -177,14 +174,7 @@ namespace askap
       /// @brief buffer in the uv-space
       /// @details It is used to compute convolution functions (buffer for illumination pattern)
       boost::shared_ptr<UVPattern> itsPattern;
-      
-      /// @brief true if the CF cache is valid
-      /// @details The shape of the accessor and mapping may change from one iteration to another. 
-      /// We check (inside initIndices) whether the indices (and therefore the cache of CFs) stay 
-      /// the same and reset this flag if they are not. This flag is also reset when
-      /// gridding or degridding are initialised.
-      bool itsIndicesValid;
-      
+            
       // stats for CF cache rebuilds
       /// @brief number of iterations when CFs were generated
       /// @details This number is incremented for each accessor which leads to recomputation of the 
@@ -205,11 +195,11 @@ namespace askap
       /// itsNumberOfCFGenerations.
       casa::uInt itsNumberOfCFGenerationsDueToPA;
       
-      /// @brief parallactic angles for which the cache is valid
+      /// @brief parallactic angle for which the cache is valid
       /// @details This buffer is only used and filled if the illumination pattern is asymmetric.
       /// We currently don't account for the VLBI case with notably different parallactic angles.
       /// Therefore, only one angle is stored here. 
-      casa::Vector<casa::Float> itsCFParallacticAngles;
+      casa::Float itsCFParallacticAngle;
       
     };
 

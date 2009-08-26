@@ -237,7 +237,10 @@ IVisGridder::ShPtr VisGridderFactory::make(
 						  0);
 		int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
 		int maxFields=parset.getInt32("gridder.AProjectWStack.maxfields", 1);
-		int maxAnts=parset.getInt32("gridder.AProjectWStack.maxantennas", 45);
+		if (parset.isDefined("gridder.AProjectWStack.maxantennas")) {
+		    ASKAPLOG_WARN_STR(logger,
+				"gridder.AProjectWStack.maxantennas is no longer used! Update your parset");
+		}
 		bool freqDep=parset.getBool(
 				"gridder.AProjectWStack.frequencydependent", true);
 		string tablename=parset.getString("gridder.AProjectWStack.tablename",
@@ -251,13 +254,11 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
-		ASKAPLOG_INFO_STR(logger,
-				  "Maximum number of antennas allowed = " << maxAnts);
 
 		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(
 		        makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
 				wmax, nwplanes, oversample,
-			        maxSupport, limitSupport, maxFeeds, maxFields, maxAnts,
+			        maxSupport, limitSupport, maxFeeds, maxFields,
 			pointingTol, paTol,
 			        freqDep, tablename));
 	} else if (gridderName == "Box") {
