@@ -1,0 +1,14 @@
+<icegrid>
+    <application name="cpmanager">
+        <node name="Node1">
+            <server id="CpManager"
+                exe="/work/hum092/ASKAPsoft/Code/Components/CP/manager/trunk/apps/cpmanager.sh"
+                activation="always">
+                <adapter name="CentralProcessorAdapter"
+                    id="CentralProcessor"
+                    endpoints="tcp"/>
+            </server>
+        </node>
+    </application>
+</icegrid>
+

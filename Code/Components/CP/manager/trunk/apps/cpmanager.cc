@@ -28,42 +28,21 @@
 #include "askap_cpmanager.h"
 
 // System includes
+#include <string>
 
 // ASKAPsoft includes
-#include "APS/ParameterSet.h"
+#include "Ice/Ice.h"
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/Log4cxxLogSink.h"
-#include "CommandLineParser.h"
 
 // Local package includes
 #include "manager/AdminInterface.h"
 
 // Using
 using namespace askap;
-using LOFAR::ACC::APS::ParameterSet;
 
 ASKAP_LOGGER(logger, ".main");
-
-static ParameterSet configure(int argc, char *argv[])
-{
-    // Command line parser
-    cmdlineparser::Parser parser;
-
-    // Command line parameter
-    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "cpmanager.in");
-
-    // Throw an exception if the parameter is not present
-    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
-
-    parser.process(argc, const_cast<char**> (argv));
-
-    const std::string parsetFile = inputsPar;
-
-    // Create a subset
-    ParameterSet parset(parsetFile);
-    return parset.makeSubset("askap.cp.manager.");
-}
 
 static std::string getNodeName(void)
 {
@@ -103,24 +82,17 @@ int main(int argc, char *argv[])
 
     ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Manager - " << ASKAP_PACKAGE_VERSION);
 
-    // Parse cmdline and get the parameter set
-    ParameterSet parset;
     try {
-        parset = configure(argc, argv);
-    } catch (const cmdlineparser::XParser& e) {
-        ASKAPLOG_FATAL_STR(logger, "Required command line parameters missing");
-        std::cerr << "usage: " << argv[0] << " -inputs <pararameter set file>" << std::endl;
-        return 1;
-    }
-
-    // Initialise and start the manager, run() blocks until
-    // the runtime is shutdown (via its ICE interface)
-    try {
-        askap::cp::AdminInterface manager(parset);
+        Ice::CommunicatorPtr ic = Ice::initialize(argc, argv);
+        askap::cp::AdminInterface manager(ic);
         manager.run();
     } catch (const askap::AskapError& e) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
         std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
+        return 1;
+    } catch (const Ice::Exception& e) {
+        ASKAPLOG_FATAL_STR(logger, "Ice exception in: " << argv[0] << ": " << e);
+        std::cerr << "Ice exception in " << argv[0] << ": " << e << std::endl;
         return 1;
     } catch (const std::runtime_error& e) {
         ASKAPLOG_FATAL_STR(logger, "runtime_error: " << e.what());

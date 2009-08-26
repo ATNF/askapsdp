@@ -29,8 +29,6 @@
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
-#include "APS/ParameterSet.h"
-#include "boost/shared_ptr.hpp"
 
 // Interface includes
 #include "manager/Component.h"
@@ -41,15 +39,13 @@ namespace askap {
         {
             public:
                 /// @brief Constructor.
-                AdminInterface(const LOFAR::ACC::APS::ParameterSet& parset);
+                AdminInterface(const Ice::CommunicatorPtr ic);
 
                 /// @brief Destructor.
                 virtual ~AdminInterface();
 
                 void run(void);
-                Ice::CommunicatorPtr initIce(const LOFAR::ACC::APS::ParameterSet& parset);
-                Ice::ObjectAdapterPtr createAdapter(const LOFAR::ACC::APS::ParameterSet& parset,
-                        Ice::CommunicatorPtr& ic);
+                Ice::ObjectAdapterPtr createAdapter(void);
 
                 // Ice "IComponent" interfaces
                 void startup(const askap::interfaces::component::ParameterMap& params, const Ice::Current& cur);
@@ -58,8 +54,6 @@ namespace askap {
                 askap::interfaces::component::ComponentState getState(const Ice::Current& cur);
 
             private:
-                LOFAR::ACC::APS::ParameterSet itsParset;
-
                 Ice::CommunicatorPtr itsComm;
 
                 Ice::ObjectAdapterPtr itsAdapter;
