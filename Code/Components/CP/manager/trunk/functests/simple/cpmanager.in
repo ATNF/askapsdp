@@ -1,0 +1,16 @@
+#
+# Locator service config
+#
+askap.cp.manager.ice.locator   =   IceGrid/Locator:tcp -h localhost -p 4061
+
+#
+# Adapter name for runtime
+#
+askap.cp.manager.ice.adapter.name      =   cpmanager
+askap.cp.manager.ice.adapter.endpoints =   tcp
+
+#
+# Network and protocol tracing
+#
+askap.cp.manager.ice.trace.network     =   0
+askap.cp.manager.ice.trace.protocol    =   0
