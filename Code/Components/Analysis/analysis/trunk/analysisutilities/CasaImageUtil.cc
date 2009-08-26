@@ -353,8 +353,6 @@ namespace askap {
 
             duchamp::Section subsection = subDef.section(subimageNumber, cube.pars().getSubsection());
 
-//             if (cube.pars().section().parse(dim) == duchamp::FAILURE)
-//                 ASKAPTHROW(AskapError, "casaImageToMetadata: Cannot parse the subsection string " << cube.pars().getSubsection());
             if (subsection.parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "casaImageToMetadata: Cannot parse the subsection string " << subsection.getSection());
 

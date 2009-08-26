@@ -139,7 +139,7 @@ namespace askap {
             /// set parset. This set can include Duchamp parameters, as well
             /// as particular cduchamp parameters such as masterImage and
             /// sectionInfo.
-//       ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting DuchampParallel constructor");
+
             // First do the setup needed for both workers and master
             this->itsCube.pars() = parseParset(parset);
             this->itsImage = substitute(parset.getString("image"));
@@ -159,7 +159,6 @@ namespace askap {
             // Now read the correct image name according to worker/master state.
             this->itsCube.pars().setImageFile(this->itsImage);
 
-//       this->itsSubimageDef = SubimageDef(parset);
             if (this->isParallel()) {
 	      if (this->isMaster()){
                     this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")));
@@ -174,7 +173,6 @@ namespace askap {
             if (this->isWorker())
                 this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")));
 
-//       ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished DuchampParallel constructor");
         }
 
 
@@ -235,9 +233,6 @@ namespace askap {
                     result = this->itsCube.getMetadata();
                 } else{
 		  result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
-// 		  this->itsSubimageDef.define(this->itsCube.header().getWCS());
-// // 		  this->itsSubimageDef.setImageDim(getCASAdimensions(this->itsCube.pars().getImageFile()));
-//  		  this->itsSubimageDef.setImageDim(this->itsCube.pars().section().getDimList());
 		}
 
 		ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile<<"\".");
@@ -497,10 +492,6 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source profiles.");
 
                 duchamp::FitsHeader head = this->itsCube.getHead();
-                //  float noise;
-//  if(this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
-//  else noise = this->itsCube.stats().getSpread();
-//  ASKAPLOG_INFO_STR(logger, "#"<<this->itsRank<<": Setting noise level to " << noise);
                 float threshold = this->itsCube.stats().getThreshold();
 
                 if (this->itsCube.pars().getFlagGrowth()) {
@@ -642,10 +633,8 @@ namespace askap {
                                 src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
                             }
 
-//      // And now set offsets to zero as we are in the master cube
+			    // And now set offsets to those of the full image as we are in the master cube
                             src.setOffsets(this->itsCube.pars());
-//      src.setXOffset(0); src.setYOffset(0); src.setZOffset(0);
-//      src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
                             src.defineBox(this->itsCube.pars().section(), this->itsFitter);
                             src.fitparams() = this->itsFitter;
                             this->itsSourceList.push_back(src);
@@ -735,7 +724,6 @@ namespace askap {
                         src.setNoiseLevel(noise);
                         src.setDetectionThreshold(threshold);
                         src.setHeader(head);
-//          src.defineBox(this->itsCube.getDimArray(), this->itsFitter);
                         src.defineBox(this->itsCube.pars().section(), this->itsFitter);
 
                         if (this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList, this->itsFitter);
@@ -810,56 +798,54 @@ namespace askap {
                 }
 
                 std::vector< std::vector<PixelInfo::Voxel> >
-                bigVoxSet(templist, templist + numObj);
+		    bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
             }
         }
 
         //**************************************************************//
 
-        void DuchampParallel::printResults()
-        {
-            /// @details The final list of detected objects is written to
-            /// the terminal and to the results file in the standard Duchamp
-            /// manner.
-            if (this->isMaster()) {
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
-                this->itsCube.prepareOutputFile();
-//  if(this->itsCube.getNumObj()>0){
-//    // no flag-setting, as it's hard to do when we don't have
-//    // all the pixels. Particularly the negative flux flags
-//    this->itsCube.sortDetections();
-//  }
-                this->itsCube.outputDetectionList();
+	void DuchampParallel::printResults()
+	{
+	    /// @details The final list of detected objects is written to
+	    /// the terminal and to the results file in the standard Duchamp
+	    /// manner.
+	    if (this->isMaster()) {
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
+		this->itsCube.prepareOutputFile();
+		//  if(this->itsCube.getNumObj()>0){
+		//    // no flag-setting, as it's hard to do when we don't have
+		//    // all the pixels. Particularly the negative flux flags
+		//    this->itsCube.sortDetections();
+		//  }
+		this->itsCube.outputDetectionList();
 
-                if (this->itsCube.pars().getFlagKarma()) {
-                    std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
-                    this->itsCube.outputDetectionsKarma(karmafile);
-                    karmafile.close();
-                }
+		if (this->itsCube.pars().getFlagKarma()) {
+		    std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
+		    this->itsCube.outputDetectionsKarma(karmafile);
+		    karmafile.close();
+		}
 
-                //  if(this->itsFlagDoFit){
-                std::vector<std::string> outtypes = sourcefitting::defaultFitTypes;
-                outtypes.push_back("best");
-                std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+		std::vector<std::string> outtypes = sourcefitting::defaultFitTypes;
+		outtypes.push_back("best");
+		std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 
-                for (unsigned int t = 0; t < outtypes.size(); t++) {
-                    std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsSummaryFile.c_str(), outtypes[t]).c_str());
-                    std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
+		for (unsigned int t = 0; t < outtypes.size(); t++) {
+		    std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsSummaryFile.c_str(), outtypes[t]).c_str());
+		    std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 
-                    for (; src < this->itsSourceList.end(); src++)
-                        src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
+		    for (; src < this->itsSourceList.end(); src++)
+			src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
 
-                    summaryFile.close();
-                }
+		    summaryFile.close();
+		}
 
-                if (this->itsFlagDoFit) this->writeFitAnnotation();
+		if (this->itsFlagDoFit) this->writeFitAnnotation();
 
-                //    }
-            } else {
-            }
-        }
-
+	    } else {
+	    }
+	}
+	
         //**************************************************************//
 
 
@@ -932,7 +918,6 @@ namespace askap {
                     float mean = 0., rms;
                     float *array;
                     // make a mask in case there are blank pixels.
-//    bool *mask = this->itsCube.pars().makeBlankMask(this->itsCube.getArray(), this->itsCube.getSize());
                     bool *mask = this->itsCube.pars().makeStatMask(this->itsCube.getArray(), this->itsCube.getDimArray());
 
                     if (size > 0) {
@@ -956,7 +941,6 @@ namespace askap {
                     out << rank << dmean << size;
                     out.putEnd();
                     this->itsConnectionSet->write(0, bs);
-                    //      itsConnectionSet->write(this->itsRank,bs);
                     ASKAPLOG_INFO_STR(logger, "Sent mean to the master from worker " << this->itsRank);
                 } else {
                     // serial case -- can just calculate all stats at once.
@@ -1014,12 +998,8 @@ namespace askap {
                     } else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
                     else array = this->itsCube.getArray();
 
-//    if(this->itsCube.pars().getFlagBlankPix()){
-//      bool *mask = this->itsCube.pars().makeBlankMask(array, this->itsCube.getSize());
                     bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
                     rms = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, size, array, mask);
-//    }
-//    else rms = findSpread(this->itsCube.pars().getFlagRobustStats(),mean,size,array);
                 }
 
                 if (size > 0 && this->itsCube.pars().getFlagATrous()) delete [] array;
