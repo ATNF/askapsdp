@@ -2,8 +2,9 @@
     <application name="cpmanager">
         <node name="Node1">
             <server id="CpManager"
-                exe="/work/hum092/ASKAPsoft/Code/Components/CP/manager/trunk/apps/cpmanager.sh"
+                exe="cpmanager.sh"
                 activation="always">
+                <env>PATH=$PATH:$ASKAP_ROOT/Code/Components/CP/manager/trunk/apps</env>
                 <adapter name="CentralProcessorAdapter"
                     id="CentralProcessor"
                     endpoints="tcp"/>
