@@ -162,7 +162,9 @@ int main(int argc, const char *argv[])
             ASKAPLOG_INFO_STR(logger, "In Worker #" << parl.rank());
             SubImage<Float> subimage;
             bool OK = getSubImage(imageName, subimage, parl);
-	    if(!OK) ASKAPLOG_ERROR_STR(logger, "Worker #" << parl.rank() << ": ERROR with getting subimage!");
+
+            if (!OK) ASKAPLOG_ERROR_STR(logger, "Worker #" << parl.rank() << ": ERROR with getting subimage!");
+
 //       ASKAPASSERT(&subimage);
             ASKAPLOG_INFO_STR(logger, "Worker #" << parl.rank() << ": Made a subimage with shape " << subimage.shape());
             ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": sizeof(subimage) = " << sizeof(subimage));

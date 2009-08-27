@@ -36,112 +36,112 @@
 
 namespace askap {
 
-  namespace analysis {
+    namespace analysis {
 
-    class SubimageTest : public CppUnit::TestFixture {
-      CPPUNIT_TEST_SUITE(SubimageTest);
-      CPPUNIT_TEST(fullFieldSingle);
-      CPPUNIT_TEST(fullFieldQuarterNoOverlap);
-      CPPUNIT_TEST(fullFieldQuarterOverlap);
-      CPPUNIT_TEST(subsectionQuarterOverlap);
-      CPPUNIT_TEST_SUITE_END();
+        class SubimageTest : public CppUnit::TestFixture {
+                CPPUNIT_TEST_SUITE(SubimageTest);
+                CPPUNIT_TEST(fullFieldSingle);
+                CPPUNIT_TEST(fullFieldQuarterNoOverlap);
+                CPPUNIT_TEST(fullFieldQuarterOverlap);
+                CPPUNIT_TEST(subsectionQuarterOverlap);
+                CPPUNIT_TEST_SUITE_END();
 
-    private:
+            private:
 
-	// Define a WCS struct. Just needed for definition of SubimageDefs, and only need number of axes and which is which.
-	struct wcsprm *dummyWCS; 
+                // Define a WCS struct. Just needed for definition of SubimageDefs, and only need number of axes and which is which.
+                struct wcsprm *dummyWCS;
 
-	SubimageDef subdef;
-	LOFAR::ACC::APS::ParameterSet parset; // used for defining the subdef
-	std::string baseSection;
-	std::vector<long> imageDim;
+                SubimageDef subdef;
+                LOFAR::ACC::APS::ParameterSet parset; // used for defining the subdef
+                std::string baseSection;
+                std::vector<long> imageDim;
 
-    public:
+            public:
 
-      void setUp() {
-	
-	imageDim = std::vector<long>(4);
-	imageDim[0] = imageDim[1] = 100;
-	imageDim[2] = imageDim[3] = 1;
-	
-	dummyWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
-	dummyWCS->flag = -1;
-	dummyWCS->naxis=4;
-	dummyWCS->lng=0;
-	dummyWCS->lat=1;
-	dummyWCS->spec=3;
+                void setUp() {
 
-	parset.add("image","testimage");
-	parset.add("nsubx","1");
-	parset.add("nsuby","1");
-	parset.add("nsubz","1");
-	parset.add("overlapx","0");
-	parset.add("overlapy","0");
-	parset.add("overlapz","0");
+                    imageDim = std::vector<long>(4);
+                    imageDim[0] = imageDim[1] = 100;
+                    imageDim[2] = imageDim[3] = 1;
 
-      }
+                    dummyWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+                    dummyWCS->flag = -1;
+                    dummyWCS->naxis = 4;
+                    dummyWCS->lng = 0;
+                    dummyWCS->lat = 1;
+                    dummyWCS->spec = 3;
 
-      void tearDown(){
-	int nwcs=1;
-	wcsvfree(&nwcs,&dummyWCS);
-      };
+                    parset.add("image", "testimage");
+                    parset.add("nsubx", "1");
+                    parset.add("nsuby", "1");
+                    parset.add("nsubz", "1");
+                    parset.add("overlapx", "0");
+                    parset.add("overlapy", "0");
+                    parset.add("overlapz", "0");
 
-      void fullFieldSingle(){
-	baseSection = "[*,*,*,*]";
-	subdef = SubimageDef(parset);
-	subdef.setImageDim(imageDim);
-	subdef.define(dummyWCS);
-	CPPUNIT_ASSERT( subdef.section(-1,baseSection).getSection()==baseSection );
-      }
+                }
 
-      void fullFieldQuarterNoOverlap(){
-	baseSection = "[*,*,*,*]";
-	parset.replace("nsubx","2");
-	parset.replace("nsuby","2");
-	subdef = SubimageDef(parset);
-	subdef.setImageDim(imageDim);
-	subdef.define(dummyWCS);
-	CPPUNIT_ASSERT( subdef.section(-1,baseSection).getSection()==baseSection );
-	CPPUNIT_ASSERT( subdef.section(0,baseSection).getSection()=="[1:50,1:50,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(1,baseSection).getSection()=="[51:100,1:50,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(2,baseSection).getSection()=="[1:50,51:100,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(3,baseSection).getSection()=="[51:100,51:100,*,*]" );
-      }
+                void tearDown() {
+                    int nwcs = 1;
+                    wcsvfree(&nwcs, &dummyWCS);
+                };
 
-      void fullFieldQuarterOverlap(){
-	baseSection = "[*,*,*,*]";
-	parset.replace("nsubx","2");
-	parset.replace("nsuby","2");
-	parset.replace("overlapx","10");
-	parset.replace("overlapy","10");
-	subdef = SubimageDef(parset);
-	subdef.setImageDim(imageDim);
-	subdef.define(dummyWCS);
-	CPPUNIT_ASSERT( subdef.section(-1,baseSection).getSection()==baseSection );
-	CPPUNIT_ASSERT( subdef.section(0,baseSection).getSection()=="[1:55,1:55,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(1,baseSection).getSection()=="[46:100,1:55,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(2,baseSection).getSection()=="[1:55,46:100,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(3,baseSection).getSection()=="[46:100,46:100,*,*]" );
-      }
+                void fullFieldSingle() {
+                    baseSection = "[*,*,*,*]";
+                    subdef = SubimageDef(parset);
+                    subdef.setImageDim(imageDim);
+                    subdef.define(dummyWCS);
+                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
+                }
 
-      void subsectionQuarterOverlap(){
-	baseSection = "[26:75,31:90,*,*]";
-	parset.replace("nsubx","2");
-	parset.replace("nsuby","2");
-	parset.replace("overlapx","10");
-	parset.replace("overlapy","10");
-	subdef = SubimageDef(parset);
-	subdef.setImageDim(imageDim);
-	subdef.define(dummyWCS);
-	CPPUNIT_ASSERT( subdef.section(-1,baseSection).getSection()==baseSection );
-	CPPUNIT_ASSERT( subdef.section(0,baseSection).getSection()=="[26:55,31:65,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(1,baseSection).getSection()=="[46:75,31:65,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(2,baseSection).getSection()=="[26:55,56:90,*,*]" );
-	CPPUNIT_ASSERT( subdef.section(3,baseSection).getSection()=="[46:75,56:90,*,*]" );
-      }
+                void fullFieldQuarterNoOverlap() {
+                    baseSection = "[*,*,*,*]";
+                    parset.replace("nsubx", "2");
+                    parset.replace("nsuby", "2");
+                    subdef = SubimageDef(parset);
+                    subdef.setImageDim(imageDim);
+                    subdef.define(dummyWCS);
+                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
+                    CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[1:50,1:50,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[51:100,1:50,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[1:50,51:100,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[51:100,51:100,*,*]");
+                }
 
-    };
+                void fullFieldQuarterOverlap() {
+                    baseSection = "[*,*,*,*]";
+                    parset.replace("nsubx", "2");
+                    parset.replace("nsuby", "2");
+                    parset.replace("overlapx", "10");
+                    parset.replace("overlapy", "10");
+                    subdef = SubimageDef(parset);
+                    subdef.setImageDim(imageDim);
+                    subdef.define(dummyWCS);
+                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
+                    CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[1:55,1:55,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[46:100,1:55,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[1:55,46:100,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[46:100,46:100,*,*]");
+                }
 
-  }
+                void subsectionQuarterOverlap() {
+                    baseSection = "[26:75,31:90,*,*]";
+                    parset.replace("nsubx", "2");
+                    parset.replace("nsuby", "2");
+                    parset.replace("overlapx", "10");
+                    parset.replace("overlapy", "10");
+                    subdef = SubimageDef(parset);
+                    subdef.setImageDim(imageDim);
+                    subdef.define(dummyWCS);
+                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
+                    CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[26:55,31:65,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[46:75,31:65,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[26:55,56:90,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[46:75,56:90,*,*]");
+                }
+
+        };
+
+    }
 
 }

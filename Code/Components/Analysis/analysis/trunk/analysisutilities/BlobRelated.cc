@@ -71,7 +71,7 @@ namespace askap {
                 blob << par.itsBoxFlux;
                 blob << par.itsSrcPeak;
                 blob << par.itsDetectThresh;
-		blob << par.itsNumSubThresholds;
+                blob << par.itsNumSubThresholds;
                 blob << par.itsBeamSize;
                 blob << par.itsMaxRetries;
                 blob << par.itsCriterium;
@@ -108,7 +108,7 @@ namespace askap {
                 blob >> par.itsBoxFlux;
                 blob >> par.itsSrcPeak;
                 blob >> par.itsDetectThresh;
-		blob >> par.itsNumSubThresholds;
+                blob >> par.itsNumSubThresholds;
                 blob >> par.itsBeamSize;
                 blob >> par.itsMaxRetries;
                 blob >> par.itsCriterium;
@@ -143,7 +143,7 @@ namespace askap {
 
             LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FitResults& result)
             {
-	        blob << result.itsFitIsGood;
+                blob << result.itsFitIsGood;
                 blob << result.itsChisq;
                 blob << result.itsRedChisq;
                 blob << result.itsRMS;
@@ -168,7 +168,7 @@ namespace askap {
 
             LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FitResults& result)
             {
-	        blob >> result.itsFitIsGood;
+                blob >> result.itsFitIsGood;
                 blob >> result.itsChisq;
                 blob >> result.itsRedChisq;
                 blob >> result.itsRMS;

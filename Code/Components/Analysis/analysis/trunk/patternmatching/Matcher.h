@@ -62,18 +62,18 @@ namespace askap {
             class Matcher {
                 public:
                     Matcher();
-		    Matcher(const Matcher &m);
-		    Matcher& operator= (const Matcher &m);
+                    Matcher(const Matcher &m);
+                    Matcher& operator= (const Matcher &m);
                     virtual ~Matcher();
                     /// @brief Constructor, using an input parameter set
                     Matcher(const LOFAR::ACC::APS::ParameterSet& parset);
 
-		    /// @brief Store the FITS header, including the WCS of the image
-		    void setHeader(duchamp::FitsHeader &head);
+                    /// @brief Store the FITS header, including the WCS of the image
+                    void setHeader(duchamp::FitsHeader &head);
 
-		    /// @brief Read in the lists of source and reference objects.
-		    void readLists();
-	    
+                    /// @brief Read in the lists of source and reference objects.
+                    void readLists();
+
                     /// @brief Fix the sizes of reference objects to reflect the beam size used.
                     void fixRefList(std::vector<float> beam);
 
@@ -108,14 +108,14 @@ namespace askap {
                     std::string itsRA;
                     /// @brief The fiducial declination for the lists
                     std::string itsDec;
-		    /// @brief The type of position (dms or deg) for the source list
-		    std::string itsSrcPosType;
-		    /// @brief The type of position (dms or deg) for the reference list
-		    std::string itsRefPosType;
+                    /// @brief The type of position (dms or deg) for the source list
+                    std::string itsSrcPosType;
+                    /// @brief The type of position (dms or deg) for the reference list
+                    std::string itsRefPosType;
                     /// @brief The radius within which to compare points. Negative value means use all points.
                     double itsRadius;
-		    /// @brief The FITS header, including the World Coordinate System of the image, for converting RA/DEC positions to pixel locations
-		    duchamp::FitsHeader itsFITShead;
+                    /// @brief The FITS header, including the World Coordinate System of the image, for converting RA/DEC positions to pixel locations
+                    duchamp::FitsHeader itsFITShead;
                     /// @brief Which flux measure to use: peak or integrated
                     std::string itsFluxMethod;
                     /// @brief Whether to use the fitted flux values ("yes"), the

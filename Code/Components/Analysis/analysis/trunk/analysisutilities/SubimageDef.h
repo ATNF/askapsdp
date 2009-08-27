@@ -64,7 +64,7 @@ namespace askap {
                 void defineFITS(std::string FITSfilename);
 
                 /// @brief Set the array of image dimensions
-                void setImageDim(std::vector<int> dim) {itsFullImageDim = std::vector<long>(dim.size()); for(size_t i=0;i<dim.size();i++) itsFullImageDim[i]=dim[i];};
+                void setImageDim(std::vector<int> dim) {itsFullImageDim = std::vector<long>(dim.size()); for (size_t i = 0; i < dim.size(); i++) itsFullImageDim[i] = dim[i];};
                 void setImageDim(std::vector<long> dim) {itsFullImageDim = dim;};
                 std::vector<long> getImageDim() {return itsFullImageDim;};
                 /// @brief Set the image name.
@@ -77,24 +77,24 @@ namespace askap {
                 int numSubs() {return itsNSubX*itsNSubY*itsNSubZ;};
                 int naxis() {return itsNAxis;};
 
-		/// @brief Return the number of subdivisions in given directions
-		/// @{
-		int nsubx(){return itsNSubX;};
-		int nsuby(){return itsNSubY;};
-		int nsubz(){return itsNSubZ;};
-		int *nsub(){return itsNSub;}
-		/// @}
+                /// @brief Return the number of subdivisions in given directions
+                /// @{
+                int nsubx() {return itsNSubX;};
+                int nsuby() {return itsNSubY;};
+                int nsubz() {return itsNSubZ;};
+                int *nsub() {return itsNSub;}
+                /// @}
 
-		/// @brief Return the size of the overlap in given directions
-		/// @{
-		int overlapx(){return itsOverlapX;};
-		int overlapy(){return itsOverlapY;};
-		int overlapz(){return itsOverlapZ;};
-		int *overlap(){return itsOverlap;};
-		/// @}
+                /// @brief Return the size of the overlap in given directions
+                /// @{
+                int overlapx() {return itsOverlapX;};
+                int overlapy() {return itsOverlapY;};
+                int overlapz() {return itsOverlapZ;};
+                int *overlap() {return itsOverlap;};
+                /// @}
 
 
-		void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers);
+                void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers);
 
             protected:
                 /// @brief Number of subdivisions in the x-direction

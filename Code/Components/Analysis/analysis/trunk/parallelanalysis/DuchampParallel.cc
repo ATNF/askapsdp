@@ -147,7 +147,7 @@ namespace askap {
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
             this->itsFlagDoFit = parset.getBool("doFit", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
-	    this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
+            this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
             LOFAR::ACC::APS::ParameterSet fitParset = parset.makeSubset("Fitter.");
             this->itsFitter = sourcefitting::FittingParameters(fitParset);
@@ -160,11 +160,10 @@ namespace askap {
             this->itsCube.pars().setImageFile(this->itsImage);
 
             if (this->isParallel()) {
-	      if (this->isMaster()){
+                if (this->isMaster()) {
                     this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")));
                     this->itsSubimageDef = SubimageDef(parset);
-	      }
-                else if (this->isWorker()) {
+                } else if (this->isWorker()) {
                     this->itsSubimageDef = SubimageDef(parset);
                     this->itsCube.pars().setFlagSubsection(true);
                 }
@@ -231,15 +230,16 @@ namespace askap {
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
 
                     result = this->itsCube.getMetadata();
-                } else{
-		  result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
-		}
+                } else {
+                    result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+                }
 
-		ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile<<"\".");
-		if(this->itsSubimageAnnotationFile!="") {
-		  ASKAPLOG_INFO_STR(logger,"Writing annotation file showing subimages to " << this->itsSubimageAnnotationFile);
-		  this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.pars().section(),  this->itsCube.header(), this->itsCube.pars().getImageFile(), this->itsNNode-1);
-		}
+                ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile << "\".");
+
+                if (this->itsSubimageAnnotationFile != "") {
+                    ASKAPLOG_INFO_STR(logger, "Writing annotation file showing subimages to " << this->itsSubimageAnnotationFile);
+                    this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.pars().section(),  this->itsCube.header(), this->itsCube.pars().getImageFile(), this->itsNNode - 1);
+                }
 
                 if (result == duchamp::FAILURE) {
                     ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsImage << ".");
@@ -283,8 +283,8 @@ namespace askap {
                 out7 << this->itsNNode;
                 out7.putEnd();
                 this->itsConnectionSet->writeAll(bs7);
-		//
-		//
+                //
+                //
             } else if (this->isWorker()) {
                 bool OK = true;
                 int rank;
@@ -504,15 +504,16 @@ namespace askap {
                 int numObj = this->itsCube.getNumObj();
 
                 for (int i = 0; i < numObj; i++) {
-		  if(this->itsFlagDoFit)
-		    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << numObj << ".");
+                    if (this->itsFlagDoFit)
+                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << numObj << ".");
+
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
                     src.setNoiseLevel(this->itsCube, this->itsFitter);
                     src.setDetectionThreshold(threshold);
                     src.setHeader(head);
                     src.defineBox(this->itsCube.pars().section(), this->itsFitter);
                     // Only do fit if object is not next to boundary
-                    src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank-1);
+                    src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
 
                     if (this->itsNNode == 1) src.setAtEdge(false);
 
@@ -633,7 +634,7 @@ namespace askap {
                                 src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
                             }
 
-			    // And now set offsets to those of the full image as we are in the master cube
+                            // And now set offsets to those of the full image as we are in the master cube
                             src.setOffsets(this->itsCube.pars());
                             src.defineBox(this->itsCube.pars().section(), this->itsFitter);
                             src.fitparams() = this->itsFitter;
@@ -719,7 +720,7 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
 
                     for (int i = 0; i < this->itsCube.getNumObj(); i++) {
-		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
+                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
                         src.setNoiseLevel(noise);
                         src.setDetectionThreshold(threshold);
@@ -732,7 +733,7 @@ namespace askap {
                     }
                 }
 
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up edge sources");
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up edge sources");
 
                 for (src = goodSources.begin(); src < goodSources.end(); src++) {
                     src->setHeader(head);
@@ -748,13 +749,16 @@ namespace askap {
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
                     src->setID(src - this->itsSourceList.begin() + 1);
-// 		    if(this->itsCube.objAtSpatialEdge(*src)) src->addToFlagText("E");
-		    src->setAtEdge(this->itsCube,this->itsSubimageDef, this->itsRank - 1);
-		    if(src->isAtEdge()) src->addToFlagText("E");
-		    else src->addToFlagText("-");
+//          if(this->itsCube.objAtSpatialEdge(*src)) src->addToFlagText("E");
+                    src->setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+
+                    if (src->isAtEdge()) src->addToFlagText("E");
+                    else src->addToFlagText("-");
+
                     this->itsCube.addObject(duchamp::Detection(*src));
                 }
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
+
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
 
             }
         }
@@ -798,54 +802,54 @@ namespace askap {
                 }
 
                 std::vector< std::vector<PixelInfo::Voxel> >
-		    bigVoxSet(templist, templist + numObj);
+                bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
             }
         }
 
         //**************************************************************//
 
-	void DuchampParallel::printResults()
-	{
-	    /// @details The final list of detected objects is written to
-	    /// the terminal and to the results file in the standard Duchamp
-	    /// manner.
-	    if (this->isMaster()) {
-		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
-		this->itsCube.prepareOutputFile();
-		//  if(this->itsCube.getNumObj()>0){
-		//    // no flag-setting, as it's hard to do when we don't have
-		//    // all the pixels. Particularly the negative flux flags
-		//    this->itsCube.sortDetections();
-		//  }
-		this->itsCube.outputDetectionList();
+        void DuchampParallel::printResults()
+        {
+            /// @details The final list of detected objects is written to
+            /// the terminal and to the results file in the standard Duchamp
+            /// manner.
+            if (this->isMaster()) {
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
+                this->itsCube.prepareOutputFile();
+                //  if(this->itsCube.getNumObj()>0){
+                //    // no flag-setting, as it's hard to do when we don't have
+                //    // all the pixels. Particularly the negative flux flags
+                //    this->itsCube.sortDetections();
+                //  }
+                this->itsCube.outputDetectionList();
 
-		if (this->itsCube.pars().getFlagKarma()) {
-		    std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
-		    this->itsCube.outputDetectionsKarma(karmafile);
-		    karmafile.close();
-		}
+                if (this->itsCube.pars().getFlagKarma()) {
+                    std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
+                    this->itsCube.outputDetectionsKarma(karmafile);
+                    karmafile.close();
+                }
 
-		std::vector<std::string> outtypes = sourcefitting::availableFitTypes;
-		outtypes.push_back("best");
-		std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+                std::vector<std::string> outtypes = sourcefitting::availableFitTypes;
+                outtypes.push_back("best");
+                std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 
-		for (unsigned int t = 0; t < outtypes.size(); t++) {
-		    std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsSummaryFile.c_str(), outtypes[t]).c_str());
-		    std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
+                for (unsigned int t = 0; t < outtypes.size(); t++) {
+                    std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsSummaryFile.c_str(), outtypes[t]).c_str());
+                    std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 
-		    for (; src < this->itsSourceList.end(); src++)
-			src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
+                    for (; src < this->itsSourceList.end(); src++)
+                        src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
 
-		    summaryFile.close();
-		}
+                    summaryFile.close();
+                }
 
-		if (this->itsFlagDoFit) this->writeFitAnnotation();
+                if (this->itsFlagDoFit) this->writeFitAnnotation();
 
-	    } else {
-	    }
-	}
-	
+            } else {
+            }
+        }
+
         //**************************************************************//
 
 

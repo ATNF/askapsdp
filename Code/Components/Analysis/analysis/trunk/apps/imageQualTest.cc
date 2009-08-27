@@ -74,12 +74,12 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 int main(int argc, const char** argv)
 {
     try {
-          // Ensure that CASA log messages are captured
-          casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-          casa::LogSink::globalSink (globalSink);
+        // Ensure that CASA log messages are captured
+        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+        casa::LogSink::globalSink(globalSink);
 
-	  casa::Timer timer;
-           timer.mark();
+        casa::Timer timer;
+        timer.mark();
         std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
         ParameterSet parset(parsetFile);
         ParameterSet subset(parset.makeSubset("imageQual."));
@@ -88,8 +88,8 @@ int main(int argc, const char** argv)
         image.getMetadata();
         ASKAPLOG_INFO_STR(logger, "Read image metadata");
         Matcher matcher(subset);
-	matcher.setHeader(image.cube().header());
-	matcher.readLists();
+        matcher.setHeader(image.cube().header());
+        matcher.readLists();
         matcher.fixRefList(image.getBeamInfo());
         matcher.setTriangleLists();
         matcher.findMatches();

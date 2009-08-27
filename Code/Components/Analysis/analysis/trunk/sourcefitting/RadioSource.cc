@@ -158,7 +158,7 @@ namespace askap {
 
             //**************************************************************//
 
-	  void RadioSource::setAtEdge(duchamp::Cube &cube, SubimageDef &subimage, int workerNum)
+            void RadioSource::setAtEdge(duchamp::Cube &cube, SubimageDef &subimage, int workerNum)
             {
                 /// @details Sets the atEdge flag based on the dimensions of
                 /// the cube and the duchamp parameters flagAdjacent, threshS
@@ -169,43 +169,43 @@ namespace askap {
                 /// within the appropriate threshold (threshS for the spatial
                 /// directions and threshV for the spectral/velocity) of the
                 /// image boundary.
-	        ///
-	        /// The image boundary here takes into account the
-	        /// size of any overlap region between neighbouring
-	        /// subimages, but only for image sides that have a
-	        /// neighbour (for those on the edge of the full
-	        /// image, the boundary is assumed to be the image
-	        /// boundary).
-	        ///
-	        /// @param cube The duchamp::Cube object that holds the dimensions and parameters
-	        /// @param subimage The SubimageDef object that holds the information on the number of subimages & their overlap.
-	        /// @param workerNum The number of the worker in question, starting at 0 (which subimage are we in?)
+                ///
+                /// The image boundary here takes into account the
+                /// size of any overlap region between neighbouring
+                /// subimages, but only for image sides that have a
+                /// neighbour (for those on the edge of the full
+                /// image, the boundary is assumed to be the image
+                /// boundary).
+                ///
+                /// @param cube The duchamp::Cube object that holds the dimensions and parameters
+                /// @param subimage The SubimageDef object that holds the information on the number of subimages & their overlap.
+                /// @param workerNum The number of the worker in question, starting at 0 (which subimage are we in?)
 
                 bool flagBoundary = false;
                 bool flagAdj = cube.pars().getFlagAdjacent();
                 float threshS = cube.pars().getThreshS();
                 float threshV = cube.pars().getThreshV();
 
-		long xminEdge,xmaxEdge,yminEdge,ymaxEdge,zminEdge,zmaxEdge;
-		if(workerNum<0){  // if it is the Master node
-		  xminEdge = yminEdge = zminEdge = 0;
-		  xmaxEdge = cube.getDimX() - 1;
-		  ymaxEdge = cube.getDimY() - 1;
-		  zmaxEdge = cube.getDimZ() - 1;
-		}
-		else {
-		  int *nsub = subimage.nsub();
-		  int *overlap = subimage.overlap();
-		  int colnum=workerNum % nsub[0];
-		  int rownum=workerNum / nsub[0];
-		  int znum = workerNum % nsub[0]*nsub[1];
-		  xminEdge = (colnum == 0 ) ? 0 : overlap[0];
-		  xmaxEdge = (colnum == nsub[0]-1 ) ? cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
-		  yminEdge = (rownum == 0 ) ? 0 : overlap[1];
-		  ymaxEdge = (rownum == nsub[1]-1 ) ? cube.getDimY() - 1 : cube.getDimY() - 1 - overlap[1];
-		  zminEdge = (znum == 0 ) ? 0 : overlap[2];
-		  zmaxEdge = (znum == nsub[2]-1 ) ? cube.getDimZ() - 1 : cube.getDimZ() - 1 - overlap[2];
-		}
+                long xminEdge, xmaxEdge, yminEdge, ymaxEdge, zminEdge, zmaxEdge;
+
+                if (workerNum < 0) {  // if it is the Master node
+                    xminEdge = yminEdge = zminEdge = 0;
+                    xmaxEdge = cube.getDimX() - 1;
+                    ymaxEdge = cube.getDimY() - 1;
+                    zmaxEdge = cube.getDimZ() - 1;
+                } else {
+                    int *nsub = subimage.nsub();
+                    int *overlap = subimage.overlap();
+                    int colnum = workerNum % nsub[0];
+                    int rownum = workerNum / nsub[0];
+                    int znum = workerNum % nsub[0] * nsub[1];
+                    xminEdge = (colnum == 0) ? 0 : overlap[0];
+                    xmaxEdge = (colnum == nsub[0] - 1) ? cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
+                    yminEdge = (rownum == 0) ? 0 : overlap[1];
+                    ymaxEdge = (rownum == nsub[1] - 1) ? cube.getDimY() - 1 : cube.getDimY() - 1 - overlap[1];
+                    zminEdge = (znum == 0) ? 0 : overlap[2];
+                    zmaxEdge = (znum == nsub[2] - 1) ? cube.getDimZ() - 1 : cube.getDimZ() - 1 - overlap[2];
+                }
 
                 if (flagAdj) {
                     flagBoundary = flagBoundary || (this->getXmin() == xminEdge);
@@ -218,13 +218,13 @@ namespace askap {
                         flagBoundary = flagBoundary || (this->getZmax() == zmaxEdge);
                     }
                 } else {
-                    flagBoundary = flagBoundary || (this->getXmin()-xminEdge < threshS);
+                    flagBoundary = flagBoundary || (this->getXmin() - xminEdge < threshS);
                     flagBoundary = flagBoundary || ((xmaxEdge - this->getXmax()) < threshS);
-                    flagBoundary = flagBoundary || (this->getYmin()-yminEdge < threshS);
+                    flagBoundary = flagBoundary || (this->getYmin() - yminEdge < threshS);
                     flagBoundary = flagBoundary || ((ymaxEdge - this->getYmax()) < threshS);
 
                     if (cube.getDimZ() > 1) {
-                        flagBoundary = flagBoundary || (this->getZmin()-zminEdge < threshV);
+                        flagBoundary = flagBoundary || (this->getZmin() - zminEdge < threshV);
                         flagBoundary = flagBoundary || ((zmaxEdge - this->getZmax()) < threshV);
                     }
                 }
@@ -356,7 +356,7 @@ namespace askap {
                     antipus.setMinor(cmpntlist[0].min());
                     antipus.setX(this->getXPeak() + dx);
                     antipus.setY(this->getYPeak() + dy);
-		    int pos = int(antipus.x()-this->boxXmin()) + this->boxXsize()*int(antipus.y()-this->boxYmin());
+                    int pos = int(antipus.x() - this->boxXmin()) + this->boxXsize() * int(antipus.y() - this->boxYmin());
                     antipus.setPeak(f(pos));
                     cmpntlist.push_back(antipus);
                     SubComponent centre;
@@ -365,7 +365,7 @@ namespace askap {
                     centre.setMinor(antipus.min());
                     centre.setX(this->getXPeak());
                     centre.setY(this->getYPeak());
-		    pos = int(centre.x()-this->boxXmin()) + this->boxXsize()*int(centre.y()-this->boxYmin());
+                    pos = int(centre.x() - this->boxXmin()) + this->boxXsize() * int(centre.y() - this->boxYmin());
                     centre.setPeak(f(pos));
                     cmpntlist.push_back(centre);
                 }
@@ -436,7 +436,7 @@ namespace askap {
                 if (!keepGoing) {
                     for (obj = objlist.begin(); obj < objlist.end(); obj++) {
                         RadioSource newsrc;
-			newsrc.setFitParams(this->itsFitParams);
+                        newsrc.setFitParams(this->itsFitParams);
                         newsrc.setDetectionThreshold(thresh);
                         newsrc.pixels().addChannel(0, *obj);
                         newsrc.calcFluxes(fluxarray, dim);
@@ -474,7 +474,7 @@ namespace askap {
                 /// location was found (the overall peak will be found 10
                 /// times), and the Value element being the location of the
                 /// peak, stored as a PixelInfo::Voxel.
-	      //                const int numThresh = 10;
+                //                const int numThresh = 10;
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 std::multimap<int, PixelInfo::Voxel> peakMap;
                 std::multimap<int, PixelInfo::Voxel>::iterator pk;
@@ -600,9 +600,9 @@ namespace askap {
                 }
 
                 if (failure) {
-		  ASKAPLOG_ERROR_STR(logger, "RadioSource: Failed to allocate flux array for object at ("
-				     << this->getXcentre() <<","<<this->getYcentre() <<","<<this->getZcentre()<<"), or " 
-				     << this->ra << " " << this->dec << " " << this->vel);
+                    ASKAPLOG_ERROR_STR(logger, "RadioSource: Failed to allocate flux array for object at ("
+                                           << this->getXcentre() << "," << this->getYcentre() << "," << this->getZcentre() << "), or "
+                                           << this->ra << " " << this->dec << " " << this->vel);
                     return !failure;
                 }
 
@@ -676,13 +676,14 @@ namespace askap {
                 for (uInt i = 0; i < cmpntList.size(); i++)
                     ASKAPLOG_DEBUG_STR(logger, "SubComponent: " << cmpntList[i]);
 
-		std::map<float, std::string> bestFitMap; // map reduced-chisq to fitType
+                std::map<float, std::string> bestFitMap; // map reduced-chisq to fitType
 
-		std::vector<std::string>::iterator type;
-		std::vector<std::string> typelist = availableFitTypes;
-		for(type = typelist.begin(); type<typelist.end(); type++){
+                std::vector<std::string>::iterator type;
+                std::vector<std::string> typelist = availableFitTypes;
+
+                for (type = typelist.begin(); type < typelist.end(); type++) {
                     if (this->itsFitParams.hasType(*type)) {
-		        ASKAPLOG_INFO_STR(logger, "Commencing fits of type \""<<*type<<"\"");
+                        ASKAPLOG_INFO_STR(logger, "Commencing fits of type \"" << *type << "\"");
                         this->itsFitParams.setFlagFitThisParam(*type);
                         int ctr = 0;
                         Fitter fit[this->itsFitParams.maxNumGauss()];
@@ -716,20 +717,21 @@ namespace askap {
                             else if (*type == "psf") this->itsBestFitPSF.saveResults(fit[bestFit]);
                             else if (*type == "shape") this->itsBestFitSHAPE.saveResults(fit[bestFit]);
 
-			    bestFitMap.insert( std::pair<float,std::string>(fit[bestFit].redChisq(), *type) );
+                            bestFitMap.insert(std::pair<float, std::string>(fit[bestFit].redChisq(), *type));
                         }
                     }
                 } // end of type for-loop
 
                 if (this->hasFit) {
 
-		    std::string bestFitType = bestFitMap.begin()->second;
-		    if(bestFitType == "full")        this->itsBestFit = this->itsBestFitFULL;
-		    else if (bestFitType == "psf")   this->itsBestFit = this->itsBestFitPSF;
-		    else if (bestFitType == "shape") this->itsBestFit = this->itsBestFitSHAPE;
+                    std::string bestFitType = bestFitMap.begin()->second;
+
+                    if (bestFitType == "full")        this->itsBestFit = this->itsBestFitFULL;
+                    else if (bestFitType == "psf")   this->itsBestFit = this->itsBestFitPSF;
+                    else if (bestFitType == "shape") this->itsBestFit = this->itsBestFitSHAPE;
 
                     ASKAPLOG_INFO_STR(logger, "BEST FIT: " << this->itsBestFit.numGauss() << " Gaussians"
-				          << " with fit type \"" << bestFitType << "\""
+                                          << " with fit type \"" << bestFitType << "\""
                                           << ", chisq = " << this->itsBestFit.chisq()
                                           << ", chisq/nu =  "  << this->itsBestFit.redchisq()
                                           << ", RMS = " << this->itsBestFit.RMS());
@@ -873,8 +875,8 @@ namespace askap {
                     this->itsHeader.pixToWCS(pix, wld);
 //                     std::string thisRA = decToDMS(wld[0], "RA");
 //                     std::string thisDec = decToDMS(wld[1], "DEC");
-		    double thisRA = wld[0];
-		    double thisDec = wld[1];
+                    double thisRA = wld[0];
+                    double thisDec = wld[1];
                     delete [] pix;
                     delete [] wld;
                     float intfluxfit = fit->flux();
@@ -927,7 +929,9 @@ namespace askap {
                 /// detection fiven by sourcefitting::detectionBorder.
                 double *pix = new double[12];
                 double *world = new double[12];
-                for(int i=0;i<4;i++) pix[i*3+2] = 0;
+
+                for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
+
                 std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFit.fitSet();
                 std::vector<casa::Gaussian2D<Double> >::iterator fit;
 
@@ -947,12 +951,14 @@ namespace askap {
 
                 pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
                 pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
-		pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
+                pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
                 pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
                 this->itsHeader.pixToWCS(pix, world, 4);
-		stream << "CLINES ";
-		for(int i=0;i<4;i++) stream << world[i*3] << " " << world[i*3+1] << " ";
-		stream << world[0] << " " << world[1] << "\n";
+                stream << "CLINES ";
+
+                for (int i = 0; i < 4; i++) stream << world[i*3] << " " << world[i*3+1] << " ";
+
+                stream << world[0] << " " << world[1] << "\n";
                 delete [] pix;
                 delete [] world;
             }

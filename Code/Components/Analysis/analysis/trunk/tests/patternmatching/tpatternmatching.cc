@@ -35,7 +35,7 @@
 
 int main(int argc, char *argv[])
 {
-  askapdev::testutils::AskapTestRunner runner(argv[0]);
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::analysis::matching::TriangleTest::suite());
     bool wasSuccessful = runner.run();
 

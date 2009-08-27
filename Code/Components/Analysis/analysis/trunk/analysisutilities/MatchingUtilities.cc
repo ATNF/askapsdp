@@ -56,7 +56,7 @@ namespace askap {
     namespace analysis {
 
 
-      std::vector<matching::Point> getSrcPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string posType, double radius, std::string fluxMethod, std::string fluxUseFit)
+        std::vector<matching::Point> getSrcPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string posType, double radius, std::string fluxMethod, std::string fluxUseFit)
         {
             /// @details Read in a list of points from a duchamp-Summary.txt
             /// file (that is, a summary file produced by cduchamp). The
@@ -72,15 +72,15 @@ namespace askap {
             double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise;
             int nfree, ndof, npixfit, npixobj;
 
-	    double *wld = new double[3];
-	    double *pix = new double[3];
-	    wld[2] = header.specToVel(0.);
+            double *wld = new double[3];
+            double *pix = new double[3];
+            wld[2] = header.specToVel(0.);
 
             char line[501];
             fin.getline(line, 500);
             fin.getline(line, 500);
 
-	    ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
+            ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
             while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
@@ -101,40 +101,39 @@ namespace askap {
                 }
 
                 id += "_" + raS + "_" + decS;
-		ASKAPLOG_DEBUG_STR(logger, id << " " << peakflux);
+                ASKAPLOG_DEBUG_STR(logger, id << " " << peakflux);
 
                 std::stringstream ss;
-		if(posType == "dms"){
-		  wld[0] = analysis::dmsToDec(raS) * 15.;
-		  wld[1] = analysis::dmsToDec(decS);
-		}
-		else if(posType == "deg"){
-		  wld[0] = atof(raS.c_str());
-		  wld[1] = atof(decS.c_str());
-		}
-		else
-		  ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
 
-		if(header.wcsToPix(wld,pix)){
-		  ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " <<std::setprecision(6) <<  wld[1] << " --> " << pix[1]);
-		}
-		
-                if (radius < 0 || (radius > 0 && hypot(pix[0],pix[1]) < radius*60.)) {
-		  matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa);
+                if (posType == "dms") {
+                    wld[0] = analysis::dmsToDec(raS) * 15.;
+                    wld[1] = analysis::dmsToDec(decS);
+                } else if (posType == "deg") {
+                    wld[0] = atof(raS.c_str());
+                    wld[1] = atof(decS.c_str());
+                } else
+                    ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
+
+                if (header.wcsToPix(wld, pix)) {
+                    ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " << std::setprecision(6) <<  wld[1] << " --> " << pix[1]);
+                }
+
+                if (radius < 0 || (radius > 0 && hypot(pix[0], pix[1]) < radius*60.)) {
+                    matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa);
                     pt.setStuff(chisq, noise, rms, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pt);
                 }
             }
 
-	    delete [] wld;
-	    delete [] pix;
+            delete [] wld;
+            delete [] pix;
 
             stable_sort(pixlist.begin(), pixlist.end());
             reverse(pixlist.begin(), pixlist.end());
             return pixlist;
         }
 
-      std::vector<matching::Point> getPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string posType, double radius)
+        std::vector<matching::Point> getPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string posType, double radius)
         {
             /// @details Reads in a list of points from a file, to serve as
             /// a reference list. The file should have six columns: ra, dec,
@@ -152,47 +151,46 @@ namespace askap {
             double flux, maj, min, pa;
             int ct = 1;
 
-	    double *wld = new double[3];
-	    double *pix = new double[3];
-	    wld[2] = header.specToVel(0.);
+            double *wld = new double[3];
+            double *pix = new double[3];
+            wld[2] = header.specToVel(0.);
 
             while (fin >> raS >> decS >> flux >> maj >> min >> pa,
                     !fin.eof()) {
                 std::stringstream ss;
                 ss << ct++;
-		if(posType == "dms"){
-		  wld[0] = analysis::dmsToDec(raS) * 15.;
-		  wld[1] = analysis::dmsToDec(decS);
-		}
-		else if(posType == "deg"){
-		  wld[0] = atof(raS.c_str());
-		  wld[1] = atof(decS.c_str());
-		}
-		else
-		  ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
-               id = ss.str() + "_" + analysis::decToDMS(wld[0],"RA") + "_" + analysis::decToDMS(wld[1],"DEC");
+                if (posType == "dms") {
+                    wld[0] = analysis::dmsToDec(raS) * 15.;
+                    wld[1] = analysis::dmsToDec(decS);
+                } else if (posType == "deg") {
+                    wld[0] = atof(raS.c_str());
+                    wld[1] = atof(decS.c_str());
+                } else
+                    ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
-		if(header.wcsToPix(wld,pix)){
-		  ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << id 
-				     <<", wld=("<< std::setprecision(6) << wld[0]<<","<< std::setprecision(6) << wld[1]<<")");
-		}
+                id = ss.str() + "_" + analysis::decToDMS(wld[0], "RA") + "_" + analysis::decToDMS(wld[1], "DEC");
+
+                if (header.wcsToPix(wld, pix)) {
+                    ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << id
+                                           << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << ")");
+                }
 
                 if (radius < 0 || (radius > 0 && hypot(pix[0], pix[1]) < radius*60.)) {
-		  matching::Point pt(pix[0],pix[1], flux, id, maj, min, pa);
+                    matching::Point pt(pix[0], pix[1], flux, id, maj, min, pa);
                     pixlist.push_back(pt);
                 }
             }
 
-	    delete [] wld;
-	    delete [] pix;
+            delete [] wld;
+            delete [] pix;
 
             stable_sort(pixlist.begin(), pixlist.end());
             reverse(pixlist.begin(), pixlist.end());
             return pixlist;
         }
 
-      std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius, std::string fluxMethod, std::string fluxUseFit)
+        std::vector<matching::Point> getSrcPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius, std::string fluxMethod, std::string fluxUseFit)
         {
             /// @details Read in a list of points from a duchamp-Summary.txt
             /// file (that is, a summary file produced by cduchamp). The
@@ -213,7 +211,7 @@ namespace askap {
             fin.getline(line, 500);
             fin.getline(line, 500);
 
-	    ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
+            ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
             while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
@@ -234,22 +232,21 @@ namespace askap {
                 }
 
                 id += "_" + raS + "_" + decS;
-		ASKAPLOG_DEBUG_STR(logger, id << " " << peakflux);
+                ASKAPLOG_DEBUG_STR(logger, id << " " << peakflux);
 
                 std::stringstream ss;
-		if(posType == "dms"){
-		  ra = analysis::dmsToDec(raS) * 15.;
-		  dec = analysis::dmsToDec(decS);
-		}
-		else if(posType == "deg"){
-		  ra = atof(raS.c_str());
-		  dec = atof(decS.c_str());
-		}
-		else
-		  ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
 
-		
-		
+                if (posType == "dms") {
+                    ra = analysis::dmsToDec(raS) * 15.;
+                    dec = analysis::dmsToDec(decS);
+                } else if (posType == "deg") {
+                    ra = atof(raS.c_str());
+                    dec = atof(decS.c_str());
+                } else
+                    ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
+
+
+
                 xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                 if (ra > raBase) xpt *= -1.;
@@ -269,7 +266,7 @@ namespace askap {
             return pixlist;
         }
 
-      std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius)
+        std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius)
         {
             /// @details Reads in a list of points from a file, to serve as
             /// a reference list. The file should have six columns: ra, dec,
@@ -293,18 +290,17 @@ namespace askap {
                     !fin.eof()) {
                 std::stringstream ss;
                 ss << ct++;
-		if(posType == "dms"){
-		  ra = analysis::dmsToDec(raS) * 15.;
-		  dec = analysis::dmsToDec(decS);
-		}
-		else if(posType == "deg"){
-		  ra = atof(raS.c_str());
-		  dec = atof(decS.c_str());
-		}
-		else
-		  ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
-                id = ss.str() + "_" + analysis::decToDMS(ra,"RA") + "_" + analysis::decToDMS(dec,"DEC");
+                if (posType == "dms") {
+                    ra = analysis::dmsToDec(raS) * 15.;
+                    dec = analysis::dmsToDec(decS);
+                } else if (posType == "deg") {
+                    ra = atof(raS.c_str());
+                    dec = atof(decS.c_str());
+                } else
+                    ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
+
+                id = ss.str() + "_" + analysis::decToDMS(ra, "RA") + "_" + analysis::decToDMS(dec, "DEC");
                 xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                 if (ra > raBase) xpt *= -1.;

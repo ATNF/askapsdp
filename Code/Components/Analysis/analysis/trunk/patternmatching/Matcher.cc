@@ -58,54 +58,55 @@ namespace askap {
 
         namespace matching {
 
-	  Matcher::Matcher()
-	  {
-	    this->itsMeanDx=0.;
-	    this->itsMeanDy = 0.;
-	    this->itsRmsDx = 0.;
-	    this->itsRmsDy = 0.;
-	  }
+            Matcher::Matcher()
+            {
+                this->itsMeanDx = 0.;
+                this->itsMeanDy = 0.;
+                this->itsRmsDx = 0.;
+                this->itsRmsDy = 0.;
+            }
 
-	  Matcher::~Matcher()
-	  {
-	  }
+            Matcher::~Matcher()
+            {
+            }
 
-	  Matcher::Matcher(const Matcher &m)
-	  {
-	    operator=(m);
-	  }
+            Matcher::Matcher(const Matcher &m)
+            {
+                operator=(m);
+            }
 
-	  Matcher& Matcher::operator=(const Matcher &m)
-	  {
-	    if(this == &m) return *this;
-	    this->itsFITShead=m.itsFITShead;
-	    this->itsSrcFile=m.itsSrcFile;
-	    this->itsRefFile=m.itsRefFile;
-	    this->itsRA=m.itsRA;
-	    this->itsDec=m.itsDec;
-	    this->itsSrcPosType=m.itsSrcPosType;
-	    this->itsRefPosType=m.itsRefPosType;
-	    this->itsRadius=m.itsRadius;
-	    this->itsFluxMethod=m.itsFluxMethod;
-	    this->itsFluxUseFit=m.itsFluxUseFit;
-	    this->itsSrcPixList=m.itsSrcPixList;
-	    this->itsRefPixList=m.itsRefPixList;
-	    this->itsSrcTriList=m.itsSrcTriList;
-	    this->itsRefTriList=m.itsRefTriList;
-	    this->itsMatchingTriList=m.itsMatchingTriList;
-	    this->itsMatchingPixList=m.itsMatchingPixList;
-	    this->itsEpsilon=m.itsEpsilon;
-	    this->itsMeanDx=m.itsMeanDx;
-	    this->itsMeanDy=m.itsMeanDy;
-	    this->itsRmsDx=m.itsRmsDx;
-	    this->itsRmsDy=m.itsRmsDy;
-	    this->itsNumMatch1=m.itsNumMatch1;
-	    this->itsNumMatch2=m.itsNumMatch2;
-	    this->itsSenseMatch=m.itsSenseMatch;
-	    this->itsOutputBestFile=m.itsOutputBestFile;
-	    this->itsOutputMissFile=m.itsOutputMissFile;
-	    return *this;
-	  }
+            Matcher& Matcher::operator=(const Matcher &m)
+            {
+                if (this == &m) return *this;
+
+                this->itsFITShead = m.itsFITShead;
+                this->itsSrcFile = m.itsSrcFile;
+                this->itsRefFile = m.itsRefFile;
+                this->itsRA = m.itsRA;
+                this->itsDec = m.itsDec;
+                this->itsSrcPosType = m.itsSrcPosType;
+                this->itsRefPosType = m.itsRefPosType;
+                this->itsRadius = m.itsRadius;
+                this->itsFluxMethod = m.itsFluxMethod;
+                this->itsFluxUseFit = m.itsFluxUseFit;
+                this->itsSrcPixList = m.itsSrcPixList;
+                this->itsRefPixList = m.itsRefPixList;
+                this->itsSrcTriList = m.itsSrcTriList;
+                this->itsRefTriList = m.itsRefTriList;
+                this->itsMatchingTriList = m.itsMatchingTriList;
+                this->itsMatchingPixList = m.itsMatchingPixList;
+                this->itsEpsilon = m.itsEpsilon;
+                this->itsMeanDx = m.itsMeanDx;
+                this->itsMeanDy = m.itsMeanDy;
+                this->itsRmsDx = m.itsRmsDx;
+                this->itsRmsDy = m.itsRmsDy;
+                this->itsNumMatch1 = m.itsNumMatch1;
+                this->itsNumMatch2 = m.itsNumMatch2;
+                this->itsSenseMatch = m.itsSenseMatch;
+                this->itsOutputBestFile = m.itsOutputBestFile;
+                this->itsOutputMissFile = m.itsOutputMissFile;
+                return *this;
+            }
 
             Matcher::Matcher(const LOFAR::ACC::APS::ParameterSet& parset)
             {
@@ -120,8 +121,8 @@ namespace askap {
                 this->itsFluxUseFit = parset.getString("fluxUseFit", "best");
                 this->itsRA  = parset.getString("RA");
                 this->itsDec = parset.getString("Dec");
-		this->itsSrcPosType = parset.getString("srcPosType", "deg");
-		this->itsRefPosType = parset.getString("refPosType", "deg");
+                this->itsSrcPosType = parset.getString("srcPosType", "deg");
+                this->itsRefPosType = parset.getString("refPosType", "deg");
                 this->itsRadius = parset.getDouble("radius", -1.);
                 this->itsEpsilon = parset.getDouble("epsilon", defaultEpsilon);
                 this->itsMeanDx = 0.;
@@ -134,21 +135,21 @@ namespace askap {
 
             //**************************************************************//
 
-	  void Matcher::setHeader(duchamp::FitsHeader &head)
-	  {
-	    /// @details This function takes a duchamp FitsHeader
-	    /// representation of the FITS header information and
-	    /// stores it for doing the coordinate conversions
-	    this->itsFITShead = head;
-	  }
+            void Matcher::setHeader(duchamp::FitsHeader &head)
+            {
+                /// @details This function takes a duchamp FitsHeader
+                /// representation of the FITS header information and
+                /// stores it for doing the coordinate conversions
+                this->itsFITShead = head;
+            }
 
             //**************************************************************//
 
-	  void Matcher::readLists()
-	  {
-	    /// @details This function reads the source and reference
-	    /// pixel lists from the files provided. Checks are made
-	    /// for the validity of the files.
+            void Matcher::readLists()
+            {
+                /// @details This function reads the source and reference
+                /// pixel lists from the files provided. Checks are made
+                /// for the validity of the files.
 
                 bool filesOK = true;
 
@@ -179,13 +180,12 @@ namespace askap {
 //                     this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
                     this->itsRefPixList = getPixList(fref, this->itsFITShead, this->itsRefPosType, this->itsRadius);
                     ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
+                } else {
+                    ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
                 }
-		else{
-		  ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
-		}
-	    
 
-	  }
+
+            }
 
             //**************************************************************//
 
@@ -276,15 +276,16 @@ namespace askap {
                 /// @details Matching points are found via the Groth voting
                 /// function vote(). The number of matches and their sense are
                 /// recorded.
-	      this->itsNumMatch1=0;
-	      if(this->itsMatchingTriList.size()>0){
-                this->itsMatchingPixList = vote(this->itsMatchingTriList);
-                this->itsNumMatch1 = this->itsMatchingPixList.size();
-                ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points\n");
-                this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() ==
-                                       this->itsMatchingTriList[0].second.isClockwise());
-	      }
-	    }
+                this->itsNumMatch1 = 0;
+
+                if (this->itsMatchingTriList.size() > 0) {
+                    this->itsMatchingPixList = vote(this->itsMatchingTriList);
+                    this->itsNumMatch1 = this->itsMatchingPixList.size();
+                    ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points\n");
+                    this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() ==
+                                           this->itsMatchingTriList[0].second.isClockwise());
+                }
+            }
 
 
             //**************************************************************//
@@ -347,50 +348,50 @@ namespace askap {
                 /// (currently set at 3). These points are added to the
                 /// itsMatchingPixList, and the new total number of matches is
                 /// recorded.
-	      
-	      if(itsNumMatch1>0){
 
-                this->rejectMultipleMatches();
-                const float matchRadius = 3.;
-                std::vector<Point>::iterator src, ref;
-                std::vector<std::pair<Point, Point> >::iterator match;
+                if (itsNumMatch1 > 0) {
 
-                for (src = this->itsSrcPixList.begin(); src < this->itsSrcPixList.end(); src++) {
-                    bool isMatch = false;
-                    match = this->itsMatchingPixList.begin();
+                    this->rejectMultipleMatches();
+                    const float matchRadius = 3.;
+                    std::vector<Point>::iterator src, ref;
+                    std::vector<std::pair<Point, Point> >::iterator match;
 
-                    for (; match < this->itsMatchingPixList.end() && !isMatch; match++) {
-                        isMatch = (src->ID() == match->first.ID());
-                    }
+                    for (src = this->itsSrcPixList.begin(); src < this->itsSrcPixList.end(); src++) {
+                        bool isMatch = false;
+                        match = this->itsMatchingPixList.begin();
 
-                    if (!isMatch) {
-                        float minOffset = 0.;
-                        int minRef = -1;
+                        for (; match < this->itsMatchingPixList.end() && !isMatch; match++) {
+                            isMatch = (src->ID() == match->first.ID());
+                        }
 
-                        for (ref = this->itsRefPixList.begin(); ref < this->itsRefPixList.end(); ref++) {
-                            float offset = hypot(src->x() - ref->x() - this->itsMeanDx,
-                                                 src->y() - ref->y() - this->itsMeanDy);
+                        if (!isMatch) {
+                            float minOffset = 0.;
+                            int minRef = -1;
 
-                            if (offset < matchRadius*this->itsEpsilon) {
-                                if ((minRef == -1) || (offset < minOffset)) {
-                                    minOffset = offset;
-                                    minRef = int(ref - this->itsRefPixList.begin());
+                            for (ref = this->itsRefPixList.begin(); ref < this->itsRefPixList.end(); ref++) {
+                                float offset = hypot(src->x() - ref->x() - this->itsMeanDx,
+                                                     src->y() - ref->y() - this->itsMeanDy);
+
+                                if (offset < matchRadius*this->itsEpsilon) {
+                                    if ((minRef == -1) || (offset < minOffset)) {
+                                        minOffset = offset;
+                                        minRef = int(ref - this->itsRefPixList.begin());
+                                    }
                                 }
                             }
-                        }
 
-                        if (minRef >= 0) { // there was a match within errors
-                            ref = this->itsRefPixList.begin() + minRef;
-                            std::pair<Point, Point> newMatch(*src, *ref);
-                            this->itsMatchingPixList.push_back(newMatch);
+                            if (minRef >= 0) { // there was a match within errors
+                                ref = this->itsRefPixList.begin() + minRef;
+                                std::pair<Point, Point> newMatch(*src, *ref);
+                                this->itsMatchingPixList.push_back(newMatch);
+                            }
                         }
                     }
-                }
 
-                this->rejectMultipleMatches();
-                this->itsNumMatch2 = this->itsMatchingPixList.size();
+                    this->rejectMultipleMatches();
+                    this->itsNumMatch2 = this->itsMatchingPixList.size();
+                }
             }
-	    }
 
             //**************************************************************//
 

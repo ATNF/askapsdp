@@ -168,8 +168,8 @@ namespace askap {
                 for (unsigned int g = 0; g < this->itsNumGauss; g++) {
                     for (unsigned int p = 0; p < 6; p++)
                         this->itsFitter.mask(g, p) = this->itsParams.flagFitThisParam(p);
-                    
-// 		    ASKAPLOG_DEBUG_STR(logger, "Masks: " << this->itsParams.flagFitThisParam(0)
+
+//          ASKAPLOG_DEBUG_STR(logger, "Masks: " << this->itsParams.flagFitThisParam(0)
 //                                            << this->itsParams.flagFitThisParam(1)
 //                                            << this->itsParams.flagFitThisParam(2)
 //                                            << this->itsParams.flagFitThisParam(3)
@@ -189,11 +189,13 @@ namespace askap {
                     std::stringstream outmsg;
                     outmsg.precision(8);
                     outmsg.setf(ios::fixed);
-		    outmsg << m(g, 0) << ", ";
+                    outmsg << m(g, 0) << ", ";
 
                     outmsg.precision(3);
                     outmsg.setf(ios::fixed);
+
                     for (p = 1; p < m.ncolumn() - 1; p++) outmsg << m(g, p) << ", ";
+
                     outmsg << m(g, p);
                     ASKAPLOG_INFO_STR(logger, outmsg.str());
                 }

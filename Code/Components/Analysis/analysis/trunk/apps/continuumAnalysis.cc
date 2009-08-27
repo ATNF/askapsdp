@@ -77,9 +77,9 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 int main(int argc, const char** argv)
 {
     try {
-          // Ensure that CASA log messages are captured
-          casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-          casa::LogSink::globalSink (globalSink);
+        // Ensure that CASA log messages are captured
+        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+        casa::LogSink::globalSink(globalSink);
 
         casa::Timer timer;
         timer.mark();
@@ -100,18 +100,19 @@ int main(int argc, const char** argv)
         image.cleanup();
         image.printResults();
 
-	if(image.isMaster()){ // only do the cross matching on the master node.
-	  ParameterSet subsetE(parset.makeSubset("imageQual."));
-	  Matcher matcher(subsetE);
-	  matcher.setHeader(image.cube().header());
-	  matcher.readLists();
-	  matcher.fixRefList(image.getBeamInfo());
-	  matcher.setTriangleLists();
-	  matcher.findMatches();
-	  matcher.findOffsets();
-	  matcher.addNewMatches();
-	  matcher.outputLists();
-	}
+        if (image.isMaster()) { // only do the cross matching on the master node.
+            ParameterSet subsetE(parset.makeSubset("imageQual."));
+            Matcher matcher(subsetE);
+            matcher.setHeader(image.cube().header());
+            matcher.readLists();
+            matcher.fixRefList(image.getBeamInfo());
+            matcher.setTriangleLists();
+            matcher.findMatches();
+            matcher.findOffsets();
+            matcher.addNewMatches();
+            matcher.outputLists();
+        }
+
         ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " << timer.real() << " sec");
         ///==============================================================================
     } catch (askap::AskapError& x) {

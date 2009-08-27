@@ -36,10 +36,10 @@
 
 int main(int argc, char *argv[])
 {
-  askapdev::testutils::AskapTestRunner runner(argv[0]);
-  runner.addTest(askap::analysis::UtilityTest::suite());
-  runner.addTest(askap::analysis::SubimageTest::suite());
-  bool wasSuccessful = runner.run();
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest(askap::analysis::UtilityTest::suite());
+    runner.addTest(askap::analysis::SubimageTest::suite());
+    bool wasSuccessful = runner.run();
 
-  return wasSuccessful ? 0 : 1;
+    return wasSuccessful ? 0 : 1;
 }

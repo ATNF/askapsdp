@@ -65,10 +65,10 @@ namespace askap {
             {
                 theStream.setf(std::ios::fixed);
                 theStream << std::setprecision(8);
-		theStream << c.itsPeakFlux << " ";
+                theStream << c.itsPeakFlux << " ";
                 theStream << std::setprecision(3);
                 theStream << c.itsXpos << " " << c.itsYpos << " "
-			  << c.itsMajorAxis << " " << c.itsMinorAxis << " " << c.itsPositionAngle;
+                    << c.itsMajorAxis << " " << c.itsMinorAxis << " " << c.itsPositionAngle;
                 return theStream;
             }
 

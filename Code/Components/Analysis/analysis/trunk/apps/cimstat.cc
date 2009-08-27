@@ -79,7 +79,7 @@ int main(int argc, const char** argv)
         ParameterSet subset(parset.makeSubset("Cimstat."));
         DuchampParallel duchamp(argc, argv, subset);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-	duchamp.readData();
+        duchamp.readData();
 //     duchamp.findMeans();
 //     duchamp.combineMeans();
 //     duchamp.broadcastMean();

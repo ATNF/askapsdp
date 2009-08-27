@@ -179,14 +179,16 @@ namespace askap {
                 if (dim[i] > 1) naxis++;
 
             cube.header().setNumAxes(naxis);
-	    
-	    std::stringstream logmsg;
-	    logmsg << "casaImageToMetadata: Dimensions of casa image: ";
-	    uint ndim = 0;
-	    logmsg << dim[ndim++];
-	    while (ndim < imagePtr->ndim()) logmsg << "x" << dim[ndim++];
-	    logmsg << std::endl;
-	    ASKAPLOG_INFO_STR(logger, logmsg.str());
+
+            std::stringstream logmsg;
+            logmsg << "casaImageToMetadata: Dimensions of casa image: ";
+            uint ndim = 0;
+            logmsg << dim[ndim++];
+
+            while (ndim < imagePtr->ndim()) logmsg << "x" << dim[ndim++];
+
+            logmsg << std::endl;
+            ASKAPLOG_INFO_STR(logger, logmsg.str());
 
             wcsprm *wcs = casaImageToWCS(imagePtr);
             storeWCStoHeader(cube.header(), cube.pars(), wcs);
@@ -219,19 +221,22 @@ namespace askap {
 
             cube.initialiseCube(dim);
 
-	    ASKAPLOG_INFO_STR(logger, "casaImageToCubeData: About to read data"); 
+            ASKAPLOG_INFO_STR(logger, "casaImageToCubeData: About to read data");
 
             std::vector<float> array;
             imagePtr->get().tovector(array);
             cube.saveArray(array);
 
-	    std::stringstream logmsg;
-	    logmsg << "casaImageToCubeData: Data array has dimensions: ";
-	    logmsg << cube.getDimX();
-	    if (cube.getDimY() > 1) logmsg  << "x" << cube.getDimY();
-	    if (cube.getDimZ() > 1) logmsg  << "x" << cube.getDimZ();
-	    logmsg << "\n";
-	    ASKAPLOG_INFO_STR(logger,logmsg.str());
+            std::stringstream logmsg;
+            logmsg << "casaImageToCubeData: Data array has dimensions: ";
+            logmsg << cube.getDimX();
+
+            if (cube.getDimY() > 1) logmsg  << "x" << cube.getDimY();
+
+            if (cube.getDimZ() > 1) logmsg  << "x" << cube.getDimZ();
+
+            logmsg << "\n";
+            ASKAPLOG_INFO_STR(logger, logmsg.str());
 
             if (cube.getDimZ() == 1) {
                 cube.pars().setMinChannels(0);
@@ -284,7 +289,7 @@ namespace askap {
             cube.pars().setSubsection(subsection.getSection());
 
             if (cube.pars().section().parse(dim) == duchamp::FAILURE)
-	      ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
+                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
 
             ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << subsection.getSection());
             Slicer slice = subsectionToSlicer(subsection);
@@ -302,9 +307,9 @@ namespace askap {
             return duchamp::SUCCESS;
         }
 
-         //**************************************************************//
+        //**************************************************************//
 
-      std::vector<long> getCASAdimensions(std::string filename)
+        std::vector<long> getCASAdimensions(std::string filename)
         {
             /// @details Equivalent of getFITSdimensions, but for
             /// casa images. Returns a vector with the axis dimensions of the given image
@@ -315,15 +320,17 @@ namespace askap {
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
             std::vector<long> dim(shape.size());
+
             for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
-	    delete lattPtr;
-	    return dim;
-	}
+
+            delete lattPtr;
+            return dim;
+        }
 
 
         //**************************************************************//
 
-      int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber)
+        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber)
         {
             /// @details Equivalent of duchamp::Cube::getMetadata(), but for
             /// accessing casa images, to read the metadata (ie. header
@@ -359,9 +366,9 @@ namespace askap {
             cube.pars().setSubsection(subsection.getSection());
 
             if (cube.pars().section().parse(dim) == duchamp::FAILURE)
-	      ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
+                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
 
-	    ASKAPLOG_DEBUG_STR(logger, "casaImageToMetadata: subsection string is " << cube.pars().getSubsection());
+            ASKAPLOG_DEBUG_STR(logger, "casaImageToMetadata: subsection string is " << cube.pars().getSubsection());
 
             Slicer slice = subsectionToSlicer(cube.pars().section());
             const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
