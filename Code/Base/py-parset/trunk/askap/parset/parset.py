@@ -1,3 +1,25 @@
+# Copyright (c) 2009 CSIRO
+# Australia Telescope National Facility (ATNF)
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# PO Box 76, Epping NSW 1710, Australia
+# atnf-enquiries@csiro.au
+#
+# This file is part of the ASKAP software distribution.
+#
+# The ASKAP software distribution is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the License
+# or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
+#
 import os
 import re
 
@@ -63,6 +85,7 @@ class ParameterSet(object):
 
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
+        object.__setattr__(self, "_fullkeys", [])
         # from file
         if len(args) == 1:
             if isinstance(args[0], basestring) and os.path.exists(args[0]):
@@ -101,11 +124,7 @@ class ParameterSet(object):
 
         """
         inkey = k
-        keys = k.split(".")
-        k = keys[0]
-        tail = None
-        if len(keys) > 1:
-            tail = ".".join(keys[1:])
+        k, tail = self._split(inkey)
         if k in self._keys:
             child = self.__dict__[k]
             if isinstance(child, self.__class__):
@@ -120,6 +139,9 @@ class ParameterSet(object):
                 raise KeyError("Key '%s' not found." % inkey )
             else:
                 return default
+
+    def keys(self):
+        return self._fullkeys[:]
 
     def set_value(self, k, v):
         """
@@ -143,11 +165,8 @@ class ParameterSet(object):
         :param v: value
 
         """
-        keys = k.split(".")
-        k = keys[0]
-        tail = None
-        if len(keys) > 1:
-            tail = ".".join(keys[1:])
+        inkey = k
+        k, tail = self._split(k)
         if k in self._reserved:
             raise KeyError("Key '%s' is a reserved keyword" % k)
         if k in self._keys:
@@ -167,6 +186,7 @@ class ParameterSet(object):
                 child.set_value(tail, v)
                 self.__dict__[k] = child
             self._keys.append(k)
+        self._fullkeys.append(inkey)
 
     def __setitem__(self, k, v):
         self.set_value(k, v)
@@ -177,13 +197,16 @@ class ParameterSet(object):
     def __getitem__(self, k):
         return self.get_value(k)
 
-    def __contains__(self, k):
-        inkey = k
+    def _split(self, k):
         keys = k.split(".")
         k = keys[0]
         tail = None
         if len(keys) > 1:
             tail = ".".join(keys[1:])
+        return k, tail
+
+    def __contains__(self, k):
+        k, tail = self._split(k)
         if k in self._keys:
             child = self.__dict__[k]
             if isinstance(child, self.__class__):
@@ -193,9 +216,9 @@ class ParameterSet(object):
                     return True
             else:
                 return True
-
         else:
             return False
+
 
     def to_dict(self):
         """
@@ -214,15 +237,7 @@ class ParameterSet(object):
         """
         Get a list of key=values strings as they appear in ParameterSet files.
         """
-        out = []
-        for k in self._keys:
-            if isinstance(self.__dict__[k], self.__class__):
-                children = self.__dict__[k]._get_strings()
-                for child in children:
-                    out.append(".".join([k, child]))
-            else:
-                out.append("%s = " % k + encode(self.__dict__[k]))
-        return out
+        return ["%s = %s" % (k, encode(v))  for k, v in self.items()]
 
     def __str__(self):
         return "\n".join(self._get_strings())
@@ -235,6 +250,11 @@ class ParameterSet(object):
         f.write(str(self)+'\n')
         f.close()
 
+    def __iter__(self):
+        yield iter(self.keys())
+
+    def items(self):
+        return [(k, self.get_value(k)) for k in self.keys()]
 
 def encode(value):
     """Encode a python value as ParameterSet string"""

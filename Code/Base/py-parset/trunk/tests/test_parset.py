@@ -1,3 +1,25 @@
+# Copyright (c) 2009 CSIRO
+# Australia Telescope National Facility (ATNF)
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# PO Box 76, Epping NSW 1710, Australia
+# atnf-enquiries@csiro.au
+#
+# This file is part of the ASKAP software distribution.
+#
+# The ASKAP software distribution is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the License
+# or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
+#
 import os
 from askap.parset import ParameterSet, decode, encode
 from nose.tools import raises, assert_equals
@@ -31,9 +53,9 @@ def test_set_value():
 # test __str__ function
 def test_str():
     key = 'x.y'
-    p = ParameterSet(key, 1)
-    assert(p.x.y == 1)
-
+    value = 1
+    p = ParameterSet(key, value)
+    assert_equals(str(p), "%s = %d" % (key, value))
 
 def test_to_dict():
     p = ParameterSet(x=1, y=2)
@@ -112,3 +134,13 @@ def test_encode():
             }
     for k,v in expr.items():
         yield encoder, v, k
+
+def test_keys():
+    p = ParameterSet('x.y.z', 1)
+    p.set_value('a', 1)
+    assert_equals(p.keys(), ['x.y.z', 'a'])
+
+def test_items():
+    p = ParameterSet('x.y.z', 1)
+    p.set_value('x.a', 2)
+    assert_equals(p.items(), [('x.y.z', 1), ('x.a', 2)])
