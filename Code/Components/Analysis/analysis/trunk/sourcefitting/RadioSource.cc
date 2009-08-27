@@ -778,9 +778,9 @@ namespace askap {
                 duchamp::Column::Col majFit("Maj(fit)", "", 10, 3);
                 duchamp::Column::Col minFit("Min(fit)", "", 10, 3);
                 duchamp::Column::Col paFit("P.A.(fit)", "", 10, 2);
-                duchamp::Column::Col chisqFit("Chisq(fit)", "", 11, 2);
+                duchamp::Column::Col chisqFit("Chisq(fit)", "", 12, 3);
                 duchamp::Column::Col rmsIm("RMS(image)", "", fluxWidth, fluxPrec);
-                duchamp::Column::Col rmsFit("RMS(fit)", "", 10, 2);
+                duchamp::Column::Col rmsFit("RMS(fit)", "", 11, 3);
                 duchamp::Column::Col nfree("Nfree(fit)", "", 11, 0);
                 duchamp::Column::Col ndofFit("NDoF(fit)", "", 10, 0);
                 duchamp::Column::Col npixFit("NPix(fit)", "", 10, 0);
