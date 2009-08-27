@@ -826,7 +826,7 @@ namespace askap {
 		    karmafile.close();
 		}
 
-		std::vector<std::string> outtypes = sourcefitting::defaultFitTypes;
+		std::vector<std::string> outtypes = sourcefitting::availableFitTypes;
 		outtypes.push_back("best");
 		std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 

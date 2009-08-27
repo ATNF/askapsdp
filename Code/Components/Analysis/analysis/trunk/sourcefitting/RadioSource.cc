@@ -112,6 +112,7 @@ namespace askap {
                 this->itsBestFit = src.itsBestFit;
                 this->itsBestFitFULL = src.itsBestFitFULL;
                 this->itsBestFitPSF = src.itsBestFitPSF;
+                this->itsBestFitSHAPE = src.itsBestFitSHAPE;
                 return *this;
             }
 
@@ -675,9 +676,14 @@ namespace askap {
                 for (uInt i = 0; i < cmpntList.size(); i++)
                     ASKAPLOG_DEBUG_STR(logger, "SubComponent: " << cmpntList[i]);
 
-                for (unsigned int type = 0; type < defaultFitTypes.size(); type++) {
-                    if (this->itsFitParams.hasType(defaultFitTypes[type])) {
-                        this->itsFitParams.setFlagFitThisParam(defaultFitTypes[type]);
+		std::map<float, std::string> bestFitMap; // map reduced-chisq to fitType
+
+		std::vector<std::string>::iterator type;
+		std::vector<std::string> typelist = availableFitTypes;
+		for(type = typelist.begin(); type<typelist.end(); type++){
+                    if (this->itsFitParams.hasType(*type)) {
+		        ASKAPLOG_INFO_STR(logger, "Commencing fits of type \""<<*type<<"\"");
+                        this->itsFitParams.setFlagFitThisParam(*type);
                         int ctr = 0;
                         Fitter fit[this->itsFitParams.maxNumGauss()];
                         bool fitIsGood = false;
@@ -706,25 +712,24 @@ namespace askap {
                         if (fitIsGood) {
                             this->hasFit = true;
 
-                            if (defaultFitTypes[type] == "full")     this->itsBestFitFULL.saveResults(fit[bestFit]);
-                            else if (defaultFitTypes[type] == "psf") this->itsBestFitPSF.saveResults(fit[bestFit]);
+                            if (*type == "full")     this->itsBestFitFULL.saveResults(fit[bestFit]);
+                            else if (*type == "psf") this->itsBestFitPSF.saveResults(fit[bestFit]);
+                            else if (*type == "shape") this->itsBestFitSHAPE.saveResults(fit[bestFit]);
+
+			    bestFitMap.insert( std::pair<float,std::string>(fit[bestFit].redChisq(), *type) );
                         }
                     }
                 } // end of type for-loop
 
                 if (this->hasFit) {
-                    if (this->itsBestFitFULL.isGood()) {
-                        if (this->itsBestFitPSF.isGood()) {
-                            if (this->itsBestFitFULL.redchisq() < this->itsBestFitPSF.redchisq())
-                                this->itsBestFit = this->itsBestFitFULL;
-                            else
-                                this->itsBestFit = this->itsBestFitPSF;
-                        } else
-                            this->itsBestFit = this->itsBestFitFULL;
-                    } else if (this->itsBestFitPSF.isGood())
-                        this->itsBestFit = this->itsBestFitPSF;
+
+		    std::string bestFitType = bestFitMap.begin()->second;
+		    if(bestFitType == "full")        this->itsBestFit = this->itsBestFitFULL;
+		    else if (bestFitType == "psf")   this->itsBestFit = this->itsBestFitPSF;
+		    else if (bestFitType == "shape") this->itsBestFit = this->itsBestFitSHAPE;
 
                     ASKAPLOG_INFO_STR(logger, "BEST FIT: " << this->itsBestFit.numGauss() << " Gaussians"
+				          << " with fit type \"" << bestFitType << "\""
                                           << ", chisq = " << this->itsBestFit.chisq()
                                           << ", chisq/nu =  "  << this->itsBestFit.redchisq()
                                           << ", RMS = " << this->itsBestFit.RMS());
@@ -756,6 +761,7 @@ namespace askap {
 
                 if (fittype == "full") results = this->itsBestFitFULL;
                 else if (fittype == "psf") results = this->itsBestFitPSF;
+                else if (fittype == "shape") results = this->itsBestFitSHAPE;
 
                 stream.setf(std::ios::fixed);
                 int suffixCtr = 0;

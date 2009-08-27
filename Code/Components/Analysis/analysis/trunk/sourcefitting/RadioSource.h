@@ -235,6 +235,7 @@ namespace askap {
                     FitResults itsBestFit;
                     FitResults itsBestFitPSF;
                     FitResults itsBestFitFULL;
+                    FitResults itsBestFitSHAPE;
 
                     /// @brief The parameters used to control the fitting
                     FittingParameters itsFitParams;

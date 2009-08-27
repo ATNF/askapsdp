@@ -68,6 +68,8 @@ namespace askap {
 
                 if (type == "psf")  return true;
 
+                if (type == "shape")  return true;
+
                 return false;
             }
 
@@ -92,8 +94,10 @@ namespace askap {
 
                 this->itsFitTypes = parset.getStringVector("fitTypes", defaultFitTypes);
                 std::stringstream ss;
+		for(size_t i=0;i<this->itsFitTypes.size();i++) ss << this->itsFitTypes[i] << " ";
+		ASKAPLOG_DEBUG_STR(logger, "Fit types requested: " << ss.str());
                 std::vector<std::string>::iterator type = this->itsFitTypes.begin();
-
+		ss.str("");
                 while (type < this->itsFitTypes.end()) {
                     if (!isFitTypeValid(*type)) {
                         ASKAPLOG_WARN_STR(logger, "Fit type " << *type << " is not valid. Removing from list.");
@@ -104,6 +108,7 @@ namespace askap {
                     }
                 }
 
+		ASKAPLOG_DEBUG_STR(logger, "Fit types being used: " << ss.str());
             }
 
             //**************************************************************//
@@ -154,7 +159,11 @@ namespace askap {
                     for (int i = 0; i < 3; i++) this->itsFlagFitThisParam[i] = true;
 
                     for (int i = 3; i < 6; i++) this->itsFlagFitThisParam[i] = false;
-                } else {
+                } else if (type == "shape") {
+		    this->itsFlagFitThisParam[0] = false;
+		    for (int i = 1; i < 6; i++) this->itsFlagFitThisParam[i] = true;
+
+               } else {
                     ASKAPLOG_WARN_STR(logger, "Fit type " << type << " is not valid, so can't set parameter flags");
                 }
             }
@@ -201,6 +210,7 @@ namespace askap {
 
                 if (type == "full") outName.replace(loc, suffix.length(), "_full" + suffix);
                 else if (type == "psf") outName.replace(loc, suffix.length(), "_psf" + suffix);
+                else if (type == "shape") outName.replace(loc, suffix.length(), "_shape" + suffix);
 
                 return outName;
             }

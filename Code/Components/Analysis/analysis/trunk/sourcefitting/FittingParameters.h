@@ -89,6 +89,8 @@ namespace askap {
             /// @brief Default value for the maxRetries parameters used by casa::fitGaussian
             const int defaultMaxRetries = 0;
 
+	    const std::string availableFitTypesArray[3] = {"full", "psf", "shape"};
+            const std::vector<std::string> availableFitTypes(availableFitTypesArray, availableFitTypesArray + 3);
             const std::string defaultFitTypesArray[2] = {"full", "psf"};
             const std::vector<std::string> defaultFitTypes(defaultFitTypesArray, defaultFitTypesArray + 2);
 
