@@ -762,7 +762,7 @@ namespace askap {
                 char firstSuffix = 'a';
                 /// @todo Make this a more obvious parameter to change
                 const int fluxPrec = 8;
-                const int fluxWidth = fluxPrec + 6;
+                const int fluxWidth = fluxPrec + 12;
                 columns[duchamp::Column::FINT].changePrec(fluxPrec);
                 columns[duchamp::Column::FPEAK].changePrec(fluxPrec);
                 columns[duchamp::Column::NUM].setName("ID");
