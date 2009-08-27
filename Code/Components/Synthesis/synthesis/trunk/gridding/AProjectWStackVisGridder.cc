@@ -127,20 +127,30 @@ AProjectWStackVisGridder::~AProjectWStackVisGridder() {
         }
     }
     if (itsDone.nelements()) {
-        ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder CF cache memory utilisation: "<<
+        ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder CF cache memory utilisation (last iteration): "<<
                 double(nUsed)/double(itsDone.nrow()*itsDone.ncolumn())*100<<"% of maxfeed*maxfield");
     }
     if (itsNumberOfIterations != 0) {
-        ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder cache was rebuild "<<
+        ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder CFs were rebuilt "<<
                 itsNumberOfCFGenerations<<" times for "<<itsNumberOfIterations<<" iterations");
+        ASKAPLOG_INFO_STR(logger, "Last iteration worked with "<<nUsed<<" CFs");        
         if (itsNumberOfCFGenerations != 0) {
             ASKAPLOG_INFO_STR(logger, "Parallactic angle change caused "<<
                     itsNumberOfCFGenerationsDueToPA<<" of those rebuilds ("<<
                     double(itsNumberOfCFGenerationsDueToPA)/double(itsNumberOfCFGenerations)*100<<
                     " %)");
         }   
-        ASKAPLOG_INFO_STR(logger, "CF cache utilisation is "<<
-                (1.-double(itsNumberOfCFGenerations)/double(itsNumberOfIterations))*100.<<" %");
+        if (nUsed != 0) { 
+            // because nUsed is strictly speaking applicable to the last iteration only we need
+            // to filter out rediculous values (and warn the user that the result is approximate
+            // anyway)
+            double utilisation = (1.-double(itsNumberOfCFGenerations)/
+                                  double(itsNumberOfIterations*nUsed));
+            if ((utilisation<1.) && (utilisation>0.)) {
+                ASKAPLOG_INFO_STR(logger, "Approximate CF cache utilisation is "<<
+                                          utilisation*100.<<" %");
+            }
+        }
     }
 }
 
@@ -299,13 +309,16 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
     const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
     const int nSamples = acc.nRow();
 
+    // the following flag is used to accumulate CF rebuild statistics
+    bool rebuildDueToPA = false;
+    
     if (!hasSymmetricIllumination) {
         // need to check parallactic angles here
         const casa::Vector<casa::Float> &feed1PAs = acc.feed1PA();
         ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
         for (int row = 0; row<nSamples; ++row) {
             if (fabs(feed1PAs[row] - itsCFParallacticAngle)<itsParallacticAngleTolerance) {
-                ++itsNumberOfCFGenerationsDueToPA;
+                rebuildDueToPA = true;
                 itsCFParallacticAngle = feed1PAs[row];
                 itsDone.set(false);
                 break;
@@ -437,9 +450,10 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
     } // for row
 
     ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
-    if (nDone>0) { 
-        ++itsNumberOfCFGenerations;
-    }
+    itsNumberOfCFGenerations += nDone;
+    if (rebuildDueToPA) {
+        itsNumberOfCFGenerationsDueToPA += nDone;
+    }    
 }
 
 // To finalize the transform of the weights, we use the following steps:
