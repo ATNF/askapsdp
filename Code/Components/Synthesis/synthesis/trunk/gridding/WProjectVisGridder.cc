@@ -36,6 +36,8 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <casa/BasicSL/Constants.h>
 #include <fft/FFTWrapper.h>
 
+#include <gridding/SupportSearcher.h>
+
 using namespace askap;
 
 #include <cmath>
@@ -254,38 +256,10 @@ namespace askap
         // convolution function appropriately
         if (itsSupport==0)
         {
-          // Find the support by starting from the edge and
-          // working in
-          
-          // cutoff in absolute units
-          const double cutoff = casa::abs(thisPlane(nx/2,ny/2))*itsCutoff; 
-          ASKAPLOG_INFO_STR(logger, "Convolution function relative cutoff of "<<
-              itsCutoff<<" is equivalent to absolute cutoff of "<<cutoff); 
-          
-          for (int ix=0; ix<nx/2; ix++)
-          {
-            /// Check on horizontal axis
-            if ((casa::abs(thisPlane(ix, ny/2))>cutoff))
-            {
-              itsSupport=abs(ix-nx/2)/itsOverSample;
-              break;
-            }
-            ///  Check on diagonal
-            if ((casa::abs(thisPlane(ix, ix))>cutoff))
-            {
-              itsSupport=abs(int(1.414*float(ix))-nx/2)/itsOverSample;
-              break;
-            }
-            if (nx==ny)
-            {
-              /// Check on vertical axis
-              if ((casa::abs(thisPlane(nx/2, ix))>cutoff))
-              {
-                itsSupport=abs(ix-ny/2)/itsOverSample;
-                break;
-              }
-            }
-          }
+          SupportSearcher ss(itsCutoff);
+          ss.search(thisPlane);
+          itsSupport = ss.symmetricalSupport(thisPlane.shape())/2/itsOverSample;
+
           ASKAPCHECK(itsSupport>0,
               "Unable to determine support of convolution function");
           ASKAPCHECK(itsSupport*itsOverSample<nx/2,
