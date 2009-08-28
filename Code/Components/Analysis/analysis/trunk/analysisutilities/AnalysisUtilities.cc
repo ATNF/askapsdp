@@ -157,6 +157,7 @@ namespace askap {
             par.setStatSec(parset.getString("statsec", par.getStatSec()));
             par.setVerbosity(parset.getBool("verbose", false));
             par.setFlagLog(true);
+            par.setBeamSize(parset.getFloat("beamSize", 4.));
             par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
             par.setCut(parset.getFloat("snrCut", 4.));
 

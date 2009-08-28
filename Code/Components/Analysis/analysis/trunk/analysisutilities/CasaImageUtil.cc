@@ -187,7 +187,6 @@ namespace askap {
 
             while (ndim < imagePtr->ndim()) logmsg << "x" << dim[ndim++];
 
-            logmsg << std::endl;
             ASKAPLOG_INFO_STR(logger, logmsg.str());
 
             wcsprm *wcs = casaImageToWCS(imagePtr);
@@ -235,7 +234,6 @@ namespace askap {
 
             if (cube.getDimZ() > 1) logmsg  << "x" << cube.getDimZ();
 
-            logmsg << "\n";
             ASKAPLOG_INFO_STR(logger, logmsg.str());
 
             if (cube.getDimZ() == 1) {
@@ -395,7 +393,7 @@ namespace askap {
 
             if (beam.size() == 0) {
                 std::stringstream errmsg;
-                ASKAPLOG_WARN_STR(logger, "Beam information not present\nUsing parameter beamSize to determine size of beam.\n");
+                ASKAPLOG_WARN_STR(logger, "Beam information not present. Using parameter beamSize (" << par.getBeamSize() << ") to determine size of beam.");
                 head.setBeamSize(par.getBeamSize());
                 par.setFlagUsingBeam(true);
             } else {
@@ -448,7 +446,6 @@ namespace askap {
 
             if (!coords.toFITSHeader(hdr, shape, true, 'c', true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
 
-            //      else std::cout << "casaImageToWCS:  read FITS header:\n" << hdr << "\n";
             struct wcsprm *wcs;
             wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
             wcs->flag = -1;

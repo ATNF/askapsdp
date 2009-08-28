@@ -685,6 +685,15 @@ namespace askap {
                     if (this->itsFitParams.hasType(*type)) {
                         ASKAPLOG_INFO_STR(logger, "Commencing fits of type \"" << *type << "\"");
                         this->itsFitParams.setFlagFitThisParam(*type);
+
+                        if (*type == "psf") {
+                            for (size_t i = 0; i < cmpntList.size(); i++) {
+                                cmpntList[i].setMajor(this->itsHeader.getBeamSize());
+                                cmpntList[i].setMinor(this->itsHeader.getBeamSize());
+                                cmpntList[i].setPA(0.);
+                            }
+                        }
+
                         int ctr = 0;
                         Fitter fit[this->itsFitParams.maxNumGauss()];
                         bool fitIsGood = false;
