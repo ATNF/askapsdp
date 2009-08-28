@@ -95,11 +95,7 @@ namespace askap {
                 this->itsFitTypes = parset.getStringVector("fitTypes", defaultFitTypes);
                 std::stringstream ss;
 
-                for (size_t i = 0; i < this->itsFitTypes.size(); i++) ss << this->itsFitTypes[i] << " ";
-
-                ASKAPLOG_DEBUG_STR(logger, "Fit types requested: " << ss.str());
                 std::vector<std::string>::iterator type = this->itsFitTypes.begin();
-                ss.str("");
 
                 while (type < this->itsFitTypes.end()) {
                     if (!isFitTypeValid(*type)) {
