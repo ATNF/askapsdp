@@ -52,10 +52,13 @@ def test_set_value():
 
 # test __str__ function
 def test_str():
-    key = 'x.y'
-    value = 1
-    p = ParameterSet(key, value)
-    assert_equals(str(p), "%s = %d" % (key, value))
+    key0 = 'x.y'
+    value0 = 1
+    key1 = 'x.z'
+    value1 = 2
+    p = ParameterSet(key1, value1)
+    p.set_value(key0, value0)
+    assert_equals(str(p), "%s = %d\n%s = %d" % (key0, value0, key1, value1))
 
 def test_to_dict():
     p = ParameterSet(x=1, y=2)
@@ -136,11 +139,13 @@ def test_encode():
         yield encoder, v, k
 
 def test_keys():
-    p = ParameterSet('x.y.z', 1)
-    p.set_value('a', 1)
-    assert_equals(p.keys(), ['x.y.z', 'a'])
+    keys = ['a', 'x.y.z']
+    p = ParameterSet(keys[1], 1)
+    p.set_value(keys[0], 1)
+    assert_equals(p.keys(), keys)
 
 def test_items():
+    keys = ['x.a', 'x.y.z']
     p = ParameterSet('x.y.z', 1)
     p.set_value('x.a', 2)
-    assert_equals(p.items(), [('x.y.z', 1), ('x.a', 2)])
+    assert_equals(p.items(), [('x.a', 2), ('x.y.z', 1)])

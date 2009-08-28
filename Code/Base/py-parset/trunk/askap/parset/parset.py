@@ -85,7 +85,6 @@ class ParameterSet(object):
 
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
-        object.__setattr__(self, "_fullkeys", [])
         # from file
         if len(args) == 1:
             if isinstance(args[0], basestring) and os.path.exists(args[0]):
@@ -141,7 +140,17 @@ class ParameterSet(object):
                 return default
 
     def keys(self):
-        return self._fullkeys[:]
+        out = []
+        for k in self._keys:
+            child = self.__dict__[k]
+            if isinstance(child, self.__class__):
+                for key in child.keys():
+                    out.append(".".join([k, key]))
+            else:
+                out.append(k)
+        out.sort()
+        return out
+
 
     def set_value(self, k, v):
         """
@@ -186,7 +195,6 @@ class ParameterSet(object):
                 child.set_value(tail, v)
                 self.__dict__[k] = child
             self._keys.append(k)
-        self._fullkeys.append(inkey)
 
     def __setitem__(self, k, v):
         self.set_value(k, v)
@@ -285,7 +293,8 @@ def encode(value):
                 val = str(single_str(value[0]))
                 return '[' + str(len(value)) + ' * ' + val + ']'
             # n..m
-            elif value == range(value[0], value[-1]+1):
+            elif not isinstance(value[0], str) \
+                and value == range(value[0], value[-1]+1):
                 return str(value[0]) + '..' + str(value[-1])
         return to_str(value)
     return str(value)
