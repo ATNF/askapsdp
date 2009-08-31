@@ -228,6 +228,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	} else if (gridderName == "AProjectWStack") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
 		double paTol=parset.getDouble("gridder.AProjectWStack.patolerance", 0.1);
+		double freqTol=parset.getDouble("gridder.AProjectWStack.freqtolerance", 1e-6);
 		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 65);
 		int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
@@ -254,12 +255,20 @@ IVisGridder::ShPtr VisGridderFactory::make(
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
+		ASKAPLOG_INFO_STR(logger,
+		            "Parallactic angle tolerance = "<<paTol/casa::C::pi*180.<<" deg");
+		if (freqTol<0) {
+		    ASKAPLOG_INFO_STR(logger,"Frequency axis is assumed constant"); 
+		} else {
+		    ASKAPLOG_INFO_STR(logger,"Frequency axis tolerance (relative) is "<<freqTol<<
+		                      " (equivalent to "<<freqTol*3e5<<" km/s)"); 
+		}
 
 		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(
 		        makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
 				wmax, nwplanes, oversample,
 			        maxSupport, limitSupport, maxFeeds, maxFields,
-			pointingTol, paTol,
+			pointingTol, paTol, freqTol,
 			        freqDep, tablename));
 	} else if (gridderName == "Box") {
 		ASKAPLOG_INFO_STR(logger, "Gridding with Box function");

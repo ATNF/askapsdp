@@ -70,6 +70,8 @@ namespace askap
       /// @param maxFields Maximum number of fields allowed
       /// @param pointingTol Pointing tolerance in radians
       /// @param paTol Parallactic angle tolerance in radians
+      /// @param freqTol Frequency tolerance (relative, threshold for df/f), negative value 
+      ///        means the frequency axis is ignored 
       /// @param frequencyDependent Frequency dependent gridding?
       /// @param name Name of table to save convolution function into
       AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
@@ -78,6 +80,7 @@ namespace askap
 			       const int maxFeeds=1, const int maxFields=1, 
 			       const double pointingTol=0.0001,
 			       const double paTol=0.01,
+			       const double freqTol = 1e-6,
 			       const bool frequencyDependent=true, 
           const std::string& name=std::string(""));
 
@@ -189,10 +192,9 @@ namespace askap
       /// (i.e. counts every iteration). 
       casa::uInt itsNumberOfIterations;
       
-      /// @brief number of iterations when CFs were generated due to parallactic angle change
-      /// @details This number is incremented for each accessor which leads to recomputation of the
-      /// CF cache due to a change in parallactic angle. This value is always less than 
-      /// itsNumberOfCFGenerations.
+      /// @brief number of CFs generated due to parallactic angle change
+      /// @details This number is incremented each time a CF is recomputed 
+      /// due to a change in parallactic angle. 
       casa::uInt itsNumberOfCFGenerationsDueToPA;
       
       /// @brief parallactic angle for which the cache is valid
@@ -201,6 +203,23 @@ namespace askap
       /// Therefore, only one angle is stored here. 
       casa::Float itsCFParallacticAngle;
       
+      /// @brief number of CFs generated due to a change of frequency 
+      /// @details This number is incremented each time a CF is recomputed following a change
+      /// in frequency setup.
+      casa::uInt itsNumberOfCFGenerationsDueToFreq;
+
+      /// @brief relative frequency tolerance
+      /// @details If abs(df/f) exceeds this value for any spectral channel, the cache of 
+      /// the CFs has to be recomputed. A negative value means that checks of frequency axis are
+      /// to be bypassed (i.e. frequency is assumed to be always valid). The latter option may be
+      /// useful for smaller ATCA datasets to avoid unnecessary overheads 
+      double itsFrequencyTolerance;
+      
+      /// @brief frequency axis corresponding to the cache
+      /// @details To be able to determine whether the cache of CFs needs to be recomputed one has
+      /// to know which frequencies were used to compute it. This is a copy of the frequency axis
+      /// returned by the accessor on the first iteration
+      casa::Vector<casa::Double> itsCachedFrequencies;
     };
 
   }

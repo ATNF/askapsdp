@@ -57,6 +57,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
         const int maxFeeds,
         const int maxFields, 
         const double pointingTol, const double paTol,
+        const double freqTol,       
         const bool frequencyDependent, const std::string& name) :
     WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
     itsIllumination(illum),
@@ -65,7 +66,8 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
     itsFreqDep(frequencyDependent),
     itsNumberOfCFGenerations(0),
     itsNumberOfIterations(0), itsNumberOfCFGenerationsDueToPA(0), 
-    itsCFParallacticAngle(0)
+    itsCFParallacticAngle(0),
+    itsNumberOfCFGenerationsDueToFreq(0), itsFrequencyTolerance(freqTol)    
 {	
     ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
     ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
@@ -110,7 +112,10 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridde
     itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
     itsNumberOfIterations(other.itsNumberOfIterations),
     itsNumberOfCFGenerationsDueToPA(other.itsNumberOfCFGenerationsDueToPA), 
-    itsCFParallacticAngle(other.itsCFParallacticAngle)
+    itsCFParallacticAngle(other.itsCFParallacticAngle),
+    itsNumberOfCFGenerationsDueToFreq(other.itsNumberOfCFGenerationsDueToFreq),
+    itsFrequencyTolerance(other.itsFrequencyTolerance),
+    itsCachedFrequencies(other.itsCachedFrequencies)
 {
     if (other.itsPattern) {
         itsPattern.reset(new UVPattern(*(other.itsPattern)));
@@ -138,6 +143,10 @@ AProjectWStackVisGridder::~AProjectWStackVisGridder() {
             ASKAPLOG_INFO_STR(logger, "Parallactic angle change caused "<<
                     itsNumberOfCFGenerationsDueToPA<<" of those rebuilds ("<<
                     double(itsNumberOfCFGenerationsDueToPA)/double(itsNumberOfCFGenerations)*100<<
+                    " %)");
+            ASKAPLOG_INFO_STR(logger, "Frequency axis change caused "<<
+                    itsNumberOfCFGenerationsDueToFreq<<" of those rebuilds ("<<
+                    double(itsNumberOfCFGenerationsDueToFreq)/double(itsNumberOfCFGenerations)*100<<
                     " %)");
         }   
         if (nUsed != 0) { 
@@ -325,6 +334,36 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
             }
         }
     }
+    
+    // the following flag is used to accululate CF rebuild statistics and internal logic
+    bool rebuildDueToFreq = false;
+    
+    // don't bother checking if the cache is rebuilt anyway
+    if (!rebuildDueToPA && (itsFrequencyTolerance >= 0.)) {
+        const casa::Vector<casa::Double> &freq = acc.frequency();
+        if (freq.nelements() != itsCachedFrequencies.nelements()) {
+            rebuildDueToFreq = true;
+        } else {
+            // we can also write the following using iterators, if necessary
+            for (casa::uInt chan = 0; chan<freq.nelements(); ++chan) {
+                 const casa::Double newFreq = freq[chan];
+                 ASKAPDEBUGASSERT(newFreq > 0.);
+                 if ( fabs(itsCachedFrequencies[chan] - newFreq)/newFreq > itsFrequencyTolerance) {
+                     rebuildDueToFreq = true;
+                     break;
+                 }
+            }
+        } 
+        if (rebuildDueToFreq) {
+            itsDone.set(false);
+        }
+    }
+    
+    // cache the current frequency axis if the cache is going to be built
+    // do nothing if the tolerance is negative 
+    if ((rebuildDueToPA || rebuildDueToFreq) && (itsFrequencyTolerance >= 0.)) {
+        itsCachedFrequencies.assign(acc.frequency().copy());
+    } 
 
     ++itsNumberOfIterations;
 
@@ -453,6 +492,9 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
     itsNumberOfCFGenerations += nDone;
     if (rebuildDueToPA) {
         itsNumberOfCFGenerationsDueToPA += nDone;
+    }    
+    if (rebuildDueToFreq) {
+        itsNumberOfCFGenerationsDueToFreq += nDone;
     }    
 }
 
