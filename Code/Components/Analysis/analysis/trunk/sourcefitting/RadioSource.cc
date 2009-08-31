@@ -207,15 +207,16 @@ namespace askap {
                     zmaxEdge = (znum == nsub[2] - 1) ? cube.getDimZ() - 1 : cube.getDimZ() - 1 - overlap[2];
                 }
 
+
                 if (flagAdj) {
-                    flagBoundary = flagBoundary || (this->getXmin() == xminEdge);
-                    flagBoundary = flagBoundary || (this->getXmax() == xmaxEdge);
-                    flagBoundary = flagBoundary || (this->getYmin() == yminEdge);
-                    flagBoundary = flagBoundary || (this->getYmax() == ymaxEdge);
+                    flagBoundary = flagBoundary || (this->getXmin() <= xminEdge);
+                    flagBoundary = flagBoundary || (this->getXmax() >= xmaxEdge);
+                    flagBoundary = flagBoundary || (this->getYmin() <= yminEdge);
+                    flagBoundary = flagBoundary || (this->getYmax() >= ymaxEdge);
 
                     if (cube.getDimZ() > 1) {
-                        flagBoundary = flagBoundary || (this->getZmin() == zminEdge);
-                        flagBoundary = flagBoundary || (this->getZmax() == zmaxEdge);
+                        flagBoundary = flagBoundary || (this->getZmin() <= zminEdge);
+                        flagBoundary = flagBoundary || (this->getZmax() >= zmaxEdge);
                     }
                 } else {
                     flagBoundary = flagBoundary || (this->getXmin() - xminEdge < threshS);
@@ -228,6 +229,8 @@ namespace askap {
                         flagBoundary = flagBoundary || ((zmaxEdge - this->getZmax()) < threshV);
                     }
                 }
+
+		ASKAPLOG_DEBUG_STR(logger, "Setting edge parameters: flagAdj="<<flagAdj<<" src=("<<this->getXmin()<<":"<<this->getXmax()<<","<<this->getYmin()<<":"<<this->getYmax()<<"), image space=("<<xminEdge<<":"<<xmaxEdge<<","<<yminEdge<<":"<<ymaxEdge<<")  ===> edgeFlag = " << flagBoundary);
 
                 this->atEdge = flagBoundary;
             }

@@ -565,8 +565,12 @@ namespace askap {
                             xmax = std::min(this->itsCube.getDimX() - 1, src->boxXmax());
                             ymin = std::max(0 , int(src->boxYmin()));
                             ymax = std::min(this->itsCube.getDimY() - 1, src->boxYmax());
-                            zmin = std::max(0 , int(src->boxZmin()));
-                            zmax = std::min(this->itsCube.getDimZ() - 1, src->boxZmax());
+			    if(this->is2D()){
+			      zmin = zmax = 0;
+			    }else{
+			      zmin = std::max(0 , int(src->boxZmin()));
+			      zmax = std::min(this->itsCube.getDimZ() - 1, src->boxZmax());
+			    }
                             int numVox = (xmax - xmin + 1) * (ymax - ymin + 1) * (zmax - zmin + 1);
                             out << numVox;
 
@@ -649,9 +653,9 @@ namespace askap {
                                     float flux;
                                     bool inObj;
                                     in >> inObj >> x >> y >> z >> flux;
-                                    x += xstart - this->itsCube.pars().getXOffset();
-                                    y += ystart - this->itsCube.pars().getYOffset();
-                                    z += zstart - this->itsCube.pars().getZOffset();
+                                    x += (xstart - this->itsCube.pars().getXOffset());
+                                    y += (ystart - this->itsCube.pars().getYOffset());
+                                    z += (zstart - this->itsCube.pars().getZOffset());
                                     PixelInfo::Voxel vox(x, y, z, flux);
                                     this->itsVoxelList.push_back(vox);
                                 }
@@ -697,10 +701,6 @@ namespace askap {
 
                 this->itsSourceList.clear();
                 duchamp::FitsHeader head = this->itsCube.getHead();
-                float noise;
-
-                if (this->itsCube.pars().getFlagUserThreshold()) noise = 1.;
-                else noise = this->itsCube.stats().getStddev();
 
                 float threshold;
 
@@ -722,6 +722,7 @@ namespace askap {
                     for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
+ 			float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
                         src.setNoiseLevel(noise);
                         src.setDetectionThreshold(threshold);
                         src.setHeader(head);
@@ -794,7 +795,7 @@ namespace askap {
                         }
 
                         if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
-                            ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel in the object lists that doesn't appear in the base list.");
+			  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel (" << vox->getX() <<","<<vox->getY()<<") in the object lists that doesn't appear in the base list.");
                         } else vox->setF(this->itsVoxelList[ct].getF());
                     }
 
