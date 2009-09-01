@@ -32,7 +32,7 @@
 
 //# Includes
 #include <mwcommon/NodeDesc.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <string>
 #include <vector>
 #include <iosfwd>
@@ -60,7 +60,7 @@ namespace askap { namespace mwbase {
       {}
 
     /// Construct from the given parameterset.
-    explicit ClusterDesc (const LOFAR::ACC::APS::ParameterSet&);
+    explicit ClusterDesc (const LOFAR::ParameterSet&);
 
     /// Set cluster name.
     void setName (const std::string& name)

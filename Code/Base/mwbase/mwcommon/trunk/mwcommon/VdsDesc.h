@@ -60,7 +60,7 @@ namespace askap { namespace mwbase {
     /// Construct from the given parameterset.
     /// @{
     explicit VdsDesc (const std::string& parsetName);
-    explicit VdsDesc (const LOFAR::ACC::APS::ParameterSet& parset)
+    explicit VdsDesc (const LOFAR::ParameterSet& parset)
       { init (parset); }
     /// @}
 
@@ -92,7 +92,7 @@ namespace askap { namespace mwbase {
 
   private:
     /// Fill the object from the given parset file.
-    void init (const LOFAR::ACC::APS::ParameterSet& parset);
+    void init (const LOFAR::ParameterSet& parset);
 
     VdsPartDesc              itsDesc;
     std::vector<VdsPartDesc> itsParts;

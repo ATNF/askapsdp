@@ -30,7 +30,7 @@
 #ifndef ASKAP_MWCOMMON_PARAMETERHANDLER_H
 #define ASKAP_MWCOMMON_PARAMETERHANDLER_H
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
 
@@ -48,7 +48,7 @@ namespace askap { namespace mwbase {
   class ParameterHandler
   {
   public:
-    explicit ParameterHandler (const LOFAR::ACC::APS::ParameterSet&);
+    explicit ParameterHandler (const LOFAR::ParameterSet&);
 
     //// Get a parameter value.
     //// An exception is thrown if it does not exist.
@@ -91,16 +91,16 @@ namespace askap { namespace mwbase {
     //// @}
 
   protected:
-    LOFAR::ACC::APS::ParameterSet itsParms;
+    LOFAR::ParameterSet itsParms;
   };
 
 
   // Write/read a ParameterSet into/from a blob.
   // @{
   LOFAR::BlobOStream operator<< (LOFAR::BlobOStream&,
-                                 const LOFAR::ACC::APS::ParameterSet&);
+                                 const LOFAR::ParameterSet&);
   LOFAR::BlobIStream operator>> (LOFAR::BlobIStream&,
-                                 LOFAR::ACC::APS::ParameterSet&);
+                                 LOFAR::ParameterSet&);
   // @}
 
   inline std::string ParameterHandler::getString (const std::string& parm) const

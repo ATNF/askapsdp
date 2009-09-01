@@ -34,7 +34,7 @@ using namespace std;
 
 namespace askap { namespace mwbase {
 
-  NodeDesc::NodeDesc (const LOFAR::ACC::APS::ParameterSet& parset)
+  NodeDesc::NodeDesc (const LOFAR::ParameterSet& parset)
   {
     itsName = parset.getString ("NodeName");
     itsFileSys = parset.getStringVector ("NodeFileSys");

@@ -31,7 +31,7 @@
 #define ASKAP_MWCOMMON_NODEDESC_H
 
 //# Includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <string>
 #include <vector>
 #include <iosfwd>
@@ -55,7 +55,7 @@ namespace askap { namespace mwbase {
       {}
 
     /// Construct from the given parameterset.
-    explicit NodeDesc (const LOFAR::ACC::APS::ParameterSet&);
+    explicit NodeDesc (const LOFAR::ParameterSet&);
 
     /// Set node name.
     void setName (const std::string& name)

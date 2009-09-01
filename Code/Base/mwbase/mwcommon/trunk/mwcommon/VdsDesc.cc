@@ -42,10 +42,10 @@ namespace askap { namespace mwbase {
 
   VdsDesc::VdsDesc (const string& parsetName)
   {
-    init (LOFAR::ACC::APS::ParameterSet (parsetName));
+    init (LOFAR::ParameterSet (parsetName));
   }
 
-  void VdsDesc::init (const LOFAR::ACC::APS::ParameterSet& parset)
+  void VdsDesc::init (const LOFAR::ParameterSet& parset)
   {
     itsDesc = VdsPartDesc (parset);
     itsAntNames = parset.getStringVector ("AntNames");
@@ -53,7 +53,7 @@ namespace askap { namespace mwbase {
     for (int i=0; i<npart; ++i) {
       ostringstream prefix;
       prefix << "Part" << i << '.';
-      LOFAR::ACC::APS::ParameterSet subset = parset.makeSubset (prefix.str());
+      LOFAR::ParameterSet subset = parset.makeSubset (prefix.str());
       itsParts.push_back (VdsPartDesc(subset));
     }
   }

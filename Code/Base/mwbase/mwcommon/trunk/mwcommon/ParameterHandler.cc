@@ -27,7 +27,7 @@
 
 #include <mwcommon/ParameterHandler.h>
 
-using namespace LOFAR::ACC::APS;
+using namespace LOFAR;
 using namespace std;
 
 namespace askap { namespace mwbase {
@@ -123,21 +123,21 @@ namespace askap { namespace mwbase {
 
 
   LOFAR::BlobOStream operator<< (LOFAR::BlobOStream& bs,
-                                 const LOFAR::ACC::APS::ParameterSet& m)
+                                 const LOFAR::ParameterSet& m)
   {
     bs.putStart ("ParameterSet", 1);
     bs << static_cast<LOFAR::uint32>(m.size());
-    for (LOFAR::ACC::APS::ParameterSet::const_iterator it=m.begin();
+    for (LOFAR::ParameterSet::const_iterator it=m.begin();
          it!=m.end();
          ++it) {
-      bs << it->first << it->second;
+      bs << it->first << it->second.get();
     }
     bs.putEnd();
     return bs;
   }
 
   LOFAR::BlobIStream operator>> (LOFAR::BlobIStream& bs,
-                                 LOFAR::ACC::APS::ParameterSet& m)
+                                 LOFAR::ParameterSet& m)
   {
     bs.getStart ("ParameterSet");
     m.clear();

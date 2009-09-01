@@ -31,7 +31,7 @@
 #define ASKAP_MWCOMMON_VDSPARTDESC_H
 
 //# Includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <string>
 #include <vector>
 #include <iosfwd>
@@ -62,7 +62,7 @@ namespace askap { namespace mwbase {
       {}
 
     /// Construct from the given parameterset.
-    explicit VdsPartDesc (const LOFAR::ACC::APS::ParameterSet&);
+    explicit VdsPartDesc (const LOFAR::ParameterSet&);
 
     /// Set VDS name and file system.
     void setName (const std::string& name, const std::string& fileSys);

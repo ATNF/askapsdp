@@ -32,14 +32,14 @@ using namespace std;
 
 namespace askap { namespace mwbase {
 
-  ClusterDesc::ClusterDesc (const LOFAR::ACC::APS::ParameterSet& parset)
+  ClusterDesc::ClusterDesc (const LOFAR::ParameterSet& parset)
   {
     itsName = parset.getString ("ClusterName");
     int nnode = parset.getInt32 ("NNodes");
     for (int i=0; i<nnode; ++i) {
       ostringstream prefix;
       prefix << "Node" << i << '.';
-      LOFAR::ACC::APS::ParameterSet subset = parset.makeSubset (prefix.str());
+      LOFAR::ParameterSet subset = parset.makeSubset (prefix.str());
       NodeDesc node(subset);
       itsNodes.push_back (node);
       add2Map (node);

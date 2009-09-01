@@ -77,7 +77,7 @@ void doIt()
   ofstream fos("tClusterDesc_tmp.fil");
   cl.write (fos);
   // Read back.
-  LOFAR::ACC::APS::ParameterSet parset("tClusterDesc_tmp.fil");
+  LOFAR::ParameterSet parset("tClusterDesc_tmp.fil");
   ClusterDesc cl2(parset);
   check(cl2);
   cl = cl2;

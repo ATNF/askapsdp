@@ -77,7 +77,7 @@ void doIt()
   ofstream fos("tVdsPartDesc_tmp.fil");
   vds.write (fos, "");
   // Read back.
-  LOFAR::ACC::APS::ParameterSet parset("tVdsPartDesc_tmp.fil");
+  LOFAR::ParameterSet parset("tVdsPartDesc_tmp.fil");
   VdsPartDesc vds2(parset);
   check(vds2);
   vds = vds2;
