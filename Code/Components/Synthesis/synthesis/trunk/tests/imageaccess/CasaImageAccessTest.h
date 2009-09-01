@@ -37,7 +37,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 
 namespace askap {
@@ -51,7 +51,7 @@ class CasaImageAccessTest : public CppUnit::TestFixture
    CPPUNIT_TEST_SUITE_END();
 public:
    void setUp() {
-      LOFAR::ACC::APS::ParameterSet parset;
+      LOFAR::ParameterSet parset;
       parset.add("imagetype","casa");
       itsImageAccessor = imageAccessFactory(parset);
    }

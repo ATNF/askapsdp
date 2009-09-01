@@ -57,7 +57,7 @@ namespace askap
 	{
 
 		void operator<<(askap::scimath::Solver::ShPtr& solver, 
-				const LOFAR::ACC::APS::ParameterSet &parset)
+				const LOFAR::ParameterSet &parset)
 		{
 			askap::scimath::Params params;
 			if(parset.getString("solver")=="Clean")

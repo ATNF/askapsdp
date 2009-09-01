@@ -63,7 +63,7 @@ void timeDependentSubtableTest(const string &ms, const IConstDataSource &ds)
   //                    casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
-  //sel<<LOFAR::ACC::APS::ParameterSet("test.in").makeSubset("TestSelection.");
+  //sel<<LOFAR::ParameterSet("test.in").makeSubset("TestSelection.");
   const IDataConverterImpl &dci=dynamic_cast<const IDataConverterImpl&>(*conv);
   const TableManager tm(casa::Table(ms),true);
   const IFeedSubtableHandler &fsh = tm.getFeed();  
@@ -77,7 +77,7 @@ void timeDependentSubtableTest(const string &ms, const IConstDataSource &ds)
 void doReadOnlyTest(const IConstDataSource &ds) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
-  //sel<<LOFAR::ACC::APS::ParameterSet("test.in").makeSubset("TestSelection.");
+  //sel<<LOFAR::ParameterSet("test.in").makeSubset("TestSelection.");
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::BARY),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(53635.5,"d"),

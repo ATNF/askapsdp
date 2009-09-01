@@ -37,7 +37,7 @@
 #include <fitting/Params.h>
 #include <fitting/Axes.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <images/Images/TempImage.h>
 #include <images/Images/ImageInterface.h>
 
@@ -58,7 +58,7 @@ namespace askap
     /// parameters from parset file will be added
     /// @param[in] parset a const reference to a parset object
     /// @return a reference to params passed as an input (for chaining)
-    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ACC::APS::ParameterSet &parset);
+    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ParameterSet &parset);
   
     /// @brief Helper functions for synthesis processing using Params
     /// @ingroup measurementequation
@@ -72,7 +72,7 @@ namespace askap
         /// @param[in] parset a parset file containing parameters describing which image handler to use
         /// @note The key parameter describing the image handler is "imagetype". By default, the
         /// casa image handler is created (however, a call to this method is still required)
-        static void setUpImageHandler(const LOFAR::ACC::APS::ParameterSet &parset);
+        static void setUpImageHandler(const LOFAR::ParameterSet &parset);
         
         /// @brief obtain image handler
         /// @details For some operations it may be necessary to access the (global) instance of the
@@ -87,7 +87,7 @@ namespace askap
 		/// @note (MV)This method is probably a duplication of the one of 
 		/// add methods - needs to be cleared
 		/// (MV, dec 2008) not any more. With faceting it is handy to have a separate method
-		static void setUpImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+		static void setUpImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ParameterSet &parset);
 		
 		/// @brief load images according to the parset file
 		/// @details This method is somewhat analogous to setUpImages, but it loads the images
@@ -96,7 +96,7 @@ namespace askap
 		/// the faceted image.
 		/// @param[in] params Images to be created here
 		/// @param[in] parset a parset object to read the parameters from		
-		static void loadImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset);
+		static void loadImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ParameterSet &parset);
         
         /// @brief load component-related parameters from a parset file
         /// @details Parameter layout is different in scimath::Params and
@@ -111,7 +111,7 @@ namespace askap
         /// @param[in] baseKey a prefix added to parset parameter names (default
         /// is "sources.", wich matches the current layout of the parset file)
         static void copyComponent(const askap::scimath::Params::ShPtr &params,
-                 const LOFAR::ACC::APS::ParameterSet &parset, 
+                 const LOFAR::ParameterSet &parset, 
                  const std::string &srcName, const std::string &baseKey = "sources.");
         
         /// @brief check whether parameter list defines at least one component
@@ -225,7 +225,7 @@ namespace askap
         /// @param parset ParameterSet
         /// @param baseKey basekey for parameters e.g. "Images."
         static void add(askap::scimath::Params& ip,
-          const LOFAR::ACC::APS::ParameterSet& parset,
+          const LOFAR::ParameterSet& parset,
           const std::string& baseKey);
           
         /// @brief Get a parameter from an image

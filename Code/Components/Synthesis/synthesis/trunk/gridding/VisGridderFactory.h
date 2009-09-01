@@ -33,7 +33,7 @@
 #include <gridding/IVisGridder.h>
 #include <gridding/IBasicIllumination.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <boost/shared_ptr.hpp>
 #include <map>
@@ -52,7 +52,7 @@ namespace askap
       /// this signature. Preferably such a function is a static
       /// function in that gridder class.
       typedef IVisGridder::ShPtr GridderCreator
-      (const LOFAR::ACC::APS::ParameterSet&);
+      (const LOFAR::ParameterSet&);
 
       /// @brief Register a function creating a gridder object.
       /// @param name The name of the gridder.
@@ -70,7 +70,7 @@ namespace askap
       /// @param parset ParameterSet containing description of
       /// gridder to be constructed
       static IVisGridder::ShPtr createGridder (const std::string& name,
-                                               const LOFAR::ACC::APS::ParameterSet& parset);
+                                               const LOFAR::ParameterSet& parset);
 
 
       /// @brief Factory class for all gridders.
@@ -81,7 +81,7 @@ namespace askap
       /// @param parset ParameterSet containing description of
       /// gridder to be constructed.
       /// If needed, the gridder code is loaded dynamically.
-      static IVisGridder::ShPtr make(const LOFAR::ACC::APS::ParameterSet& parset);
+      static IVisGridder::ShPtr make(const LOFAR::ParameterSet& parset);
 				    
       /// @brief a helper factory of illumination patterns
       /// @details Illumination model is required for a number of gridders. This
@@ -90,7 +90,7 @@ namespace askap
       /// @param[in] parset ParameterSet containing description of illumination to use
       /// @return shared pointer to illumination interface
       static boost::shared_ptr<IBasicIllumination> 
-      makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset);
+      makeIllumination(const LOFAR::ParameterSet &parset);
 
     private:
       static std::map<std::string, GridderCreator*> theirRegistry;

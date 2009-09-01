@@ -34,7 +34,7 @@
 
 #include <parallel/SimParallel.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <casa/OS/Timer.h>
 
@@ -76,8 +76,8 @@ int main(int argc, const char** argv)
         // we could have used inputsPar directly in the code below
 	    const std::string parsetFile = inputsPar;
 	    
-	LOFAR::ACC::APS::ParameterSet parset(parsetFile);
-	LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Csimulator."));
+	LOFAR::ParameterSet parset(parsetFile);
+	LOFAR::ParameterSet subset(parset.makeSubset("Csimulator."));
 	
 	// We cannot issue log messages until MPI is initialized!
 	SimParallel sim(argc, argv, subset);

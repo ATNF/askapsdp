@@ -47,7 +47,7 @@ ASKAP_LOGGER(logger, "");
 // @param[in] sel a shared pointer to the converter to be updated
 // @param[in] parset a parset object to read the parameters from
 void askap::synthesis::operator<<(const boost::shared_ptr<IDataSelector> &sel,
-                 const LOFAR::ACC::APS::ParameterSet &parset)
+                 const LOFAR::ParameterSet &parset)
 {
   ASKAPDEBUGASSERT(sel);
   if (parset.isDefined("Feed")) {

@@ -67,7 +67,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <casa/aips.h>
 #include <casa/OS/Timer.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <stdexcept>
 #include <iostream>
@@ -77,7 +77,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
-using namespace LOFAR::ACC::APS;
 using namespace askap::mwbase;
 
 namespace askap
@@ -86,7 +85,7 @@ namespace askap
   {
 
     ImagerParallel::ImagerParallel(int argc, const char** argv,
-        const LOFAR::ACC::APS::ParameterSet& parset) :
+        const LOFAR::ParameterSet& parset) :
       MEParallel(argc, argv), itsParset(parset),
       itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)
     {
@@ -210,7 +209,7 @@ namespace askap
             ASKAPLOG_INFO_STR(logger, "Calibration will be performed using gains from '"<<itsGainsFile<<"'");
             
             scimath::Params gainModel; 
-	        gainModel << ParameterSet(itsGainsFile);
+            gainModel << LOFAR::ParameterSet(itsGainsFile);
 	        /*
 	        // temporary "matrix inversion". we need to do it properly in the
 	        // CalibrationME class. The code below won't work for cross-pols

@@ -38,7 +38,7 @@
 // own includes
 #include <dataaccess/IDataConverter.h>
 #include <dataaccess/IDataSelector.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -53,7 +53,7 @@ namespace synthesis {
 /// @param[in] parset a parset object to read the parameters from
 /// @ingroup dataaccess_hlp
 void operator<<(const boost::shared_ptr<IDataSelector> &sel,
-                          const LOFAR::ACC::APS::ParameterSet &parset);
+                          const LOFAR::ParameterSet &parset);
 
 } // namespace synthesis
 

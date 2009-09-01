@@ -39,7 +39,7 @@
 #include <casa/OS/Timer.h>
 
 #include <CommandLineParser.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <parallel/CalibratorParallel.h>
 
 
@@ -74,8 +74,8 @@ int main(int argc, const char** argv)
       parser.process(argc,const_cast<char**>(argv));
         
         
-      LOFAR::ACC::APS::ParameterSet parset(inputsPar);
-      LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("Ccalibrator."));
+      LOFAR::ParameterSet parset(inputsPar);
+      LOFAR::ParameterSet subset(parset.makeSubset("Ccalibrator."));
 	
       CalibratorParallel calib(argc, argv, subset);
       ASKAPLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << ASKAP_PACKAGE_VERSION);

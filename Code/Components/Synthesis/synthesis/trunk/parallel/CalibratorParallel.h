@@ -35,7 +35,7 @@
 
 // own includes
 #include <parallel/MEParallel.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <gridding/IVisGridder.h>
 #include <measurementequation/IMeasurementEquation.h>
 
@@ -89,7 +89,7 @@ namespace askap
       /// @param[in] argv Command line inputs
       /// @param[in] parset ParameterSet for inputs
       CalibratorParallel(int argc, const char** argv,
-          const LOFAR::ACC::APS::ParameterSet& parset);
+          const LOFAR::ParameterSet& parset);
 
       /// @brief Calculate the normal equations (runs in the prediffers)
       /// @details ImageFFTEquation and the specified gridder (set in the parset
@@ -132,7 +132,7 @@ namespace askap
       void calcOne(const std::string& dataset, bool discard=true);
 
       /// ParameterSet
-      LOFAR::ACC::APS::ParameterSet itsParset;
+      LOFAR::ParameterSet itsParset;
 
       /// Name of data column to use.
       std::string itsColName;

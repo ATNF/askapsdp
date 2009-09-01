@@ -47,7 +47,7 @@
 // own includes
 #include <fitting/Params.h>
 #include <fitting/Solver.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 namespace askap
 {
@@ -60,7 +60,7 @@ namespace askap
 		/// @param[in] solver Pointer to solver to be created
 		/// @param[in] parset a parset object to read the parameters from
 		/// @ingroup measurementequation
-		void operator<<(askap::scimath::Solver::ShPtr& solver, const LOFAR::ACC::APS::ParameterSet &parset);
+		void operator<<(askap::scimath::Solver::ShPtr& solver, const LOFAR::ParameterSet &parset);
 
 		/// @brief Conversion functions for parset entries
 		class MEParsetInterface

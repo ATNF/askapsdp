@@ -40,8 +40,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 using namespace askap::scimath;
 
-using namespace LOFAR::ACC::APS;
-
 namespace askap
 {
   namespace synthesis
@@ -66,7 +64,7 @@ namespace askap
     /// time.
     /// @param[in] parset parameter set to extract the input from
     /// @param[in] solver shared pointer to the solver to be configured
-    void ImageSolverFactory::configureThresholds(const LOFAR::ACC::APS::ParameterSet &parset,
+    void ImageSolverFactory::configureThresholds(const LOFAR::ParameterSet &parset,
                      const boost::shared_ptr<ImageSolver> &solver)
     {
        ASKAPDEBUGASSERT(solver);
@@ -125,7 +123,7 @@ namespace askap
        } // if - parameter defined
     } // method
     
-    Solver::ShPtr ImageSolverFactory::make(askap::scimath::Params &ip, const LOFAR::ACC::APS::ParameterSet &parset) {
+    Solver::ShPtr ImageSolverFactory::make(askap::scimath::Params &ip, const LOFAR::ParameterSet &parset) {
       ImageSolver::ShPtr solver;
       if(parset.getString("solver")=="Clean") {
          std::vector<float> defaultScales(3);

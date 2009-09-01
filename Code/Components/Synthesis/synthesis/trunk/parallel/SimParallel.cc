@@ -61,13 +61,13 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 using namespace std;
 
 using namespace askap;
 using namespace askap::mwbase;
-using namespace LOFAR::ACC::APS;
+using namespace LOFAR;
 
 namespace askap
 {
@@ -75,7 +75,7 @@ namespace askap
   {
 
     SimParallel::SimParallel(int argc, const char** argv,
-        const LOFAR::ACC::APS::ParameterSet& parset) :
+        const ParameterSet& parset) :
       SynParallel(argc, argv), itsParset(parset)
     {
     }

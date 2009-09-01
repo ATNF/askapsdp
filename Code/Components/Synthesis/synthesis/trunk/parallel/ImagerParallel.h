@@ -36,7 +36,7 @@
 
 #include <fitting/Solver.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <measurementequation/IMeasurementEquation.h>
 
 namespace askap
@@ -104,7 +104,7 @@ namespace askap
       /// @param argv Command line inputs
       /// @param parset ParameterSet for inputs
       ImagerParallel(int argc, const char** argv,
-          const LOFAR::ACC::APS::ParameterSet& parset);
+          const LOFAR::ParameterSet& parset);
 
       /// @brief Calculate the normalequations (runs in the prediffers)
       /// @details ImageFFTEquation and the specified gridder (set in the parset
@@ -143,7 +143,7 @@ namespace askap
       void calcOne(const string& dataset, bool discard=false);
 
       /// ParameterSet
-      LOFAR::ACC::APS::ParameterSet itsParset;
+      LOFAR::ParameterSet itsParset;
 
       /// Do we want a restored image?
       bool itsRestore;

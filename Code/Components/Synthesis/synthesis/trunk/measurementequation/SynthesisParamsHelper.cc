@@ -49,9 +49,8 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <coordinates/Coordinates/Projection.h>
 
-#include <APS/ParameterSet.h>
-#include <APS/Exceptions.h>
-#include <Common/Exception.h>
+#include <Common/ParameterSet.h>
+#include <Common/Exceptions.h>
 
 #include <measures/Measures/Stokes.h>
 
@@ -86,9 +85,9 @@ namespace askap
     // parameters from parset file will be added
     // @param[in] parset a const reference to a parset object
     // @return a reference to params passed as an input (for chaining)
-    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ACC::APS::ParameterSet &parset)
+    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ParameterSet &parset)
     {
-       for (LOFAR::ACC::APS::ParameterSet::const_iterator ci = parset.begin();
+       for (LOFAR::ParameterSet::const_iterator ci = parset.begin();
             ci != parset.end();++ci) {
             try {
                vector<double> vec = parset.getDoubleVector(ci->first);
@@ -104,7 +103,7 @@ namespace askap
     }
     
     void SynthesisParamsHelper::setUpImages(const askap::scimath::Params::ShPtr& params,
-				const LOFAR::ACC::APS::ParameterSet &parset)
+				const LOFAR::ParameterSet &parset)
     {
       try {
 	     vector<string> images=parset.getStringVector("Names");
@@ -159,7 +158,7 @@ namespace askap
 		      ASKAPLOG_INFO_STR(logger, "Polarisation planes correspond to "<<PolConverter::toString(stokes));		      
 	     }
 	  }
-	  catch (const LOFAR::ACC::APS::APSException &ex) {
+	  catch (const LOFAR::APSException &ex) {
 	      throw AskapError(ex.what());
 	  }
 	}
@@ -171,7 +170,7 @@ namespace askap
 	/// the faceted image.
 	/// @param[in] params Images to be created here
 	/// @param[in] parset a parset object to read the parameters from		
-	void SynthesisParamsHelper::loadImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ACC::APS::ParameterSet &parset)
+	void SynthesisParamsHelper::loadImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ParameterSet &parset)
     {
       ASKAPDEBUGASSERT(params);
       try {
@@ -194,7 +193,7 @@ namespace askap
          }            
          
 	  }
-	  catch (const LOFAR::ACC::APS::APSException &ex) {
+	  catch (const LOFAR::APSException &ex) {
 	      throw AskapError(ex.what());
 	  }
     }
@@ -656,7 +655,7 @@ namespace askap
     /// @param[in] parset a parset file containing parameters describing which image handler to use
     /// @note The key parameter describing the image handler is "imagetype". By default, the
     /// casa image handler is created (however, a call to this method is still required)
-    void SynthesisParamsHelper::setUpImageHandler(const LOFAR::ACC::APS::ParameterSet &parset)
+    void SynthesisParamsHelper::setUpImageHandler(const LOFAR::ParameterSet &parset)
     {
       theirImageAccessor = imageAccessFactory(parset);
     }
@@ -979,7 +978,7 @@ namespace askap
     /// @param[in] baseKey a prefix added to parset parameter names (default
     /// is "sources.", wich matches the current layout of the parset file)
     void SynthesisParamsHelper::copyComponent(const askap::scimath::Params::ShPtr &params,
-           const LOFAR::ACC::APS::ParameterSet &parset, 
+           const LOFAR::ParameterSet &parset, 
            const std::string &srcName, const std::string &baseKey)
     {
        ASKAPDEBUGASSERT(params);

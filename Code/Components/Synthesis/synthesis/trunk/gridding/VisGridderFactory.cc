@@ -46,7 +46,6 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <casa/BasicSL/String.h>   // for downcase
 
 
-using namespace LOFAR::ACC::APS;
 namespace askap {
 namespace synthesis {
 
@@ -65,7 +64,7 @@ namespace synthesis {
   }
 
   IVisGridder::ShPtr VisGridderFactory::createGridder (const std::string& name,
-                                    const LOFAR::ACC::APS::ParameterSet& parset)
+                                    const LOFAR::ParameterSet& parset)
   {
     std::map<std::string,GridderCreator*>::const_iterator it = theirRegistry.find (name);
     if (it == theirRegistry.end()) {
@@ -102,7 +101,7 @@ namespace synthesis {
 /// @param[in] parset ParameterSet containing description of illumination to use
 /// @return shared pointer to illumination interface
 boost::shared_ptr<IBasicIllumination> 
-VisGridderFactory::makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset)
+VisGridderFactory::makeIllumination(const LOFAR::ParameterSet &parset)
 {
    const std::string illumType = parset.getString("illumination", "disk");
    const double diameter=parset.getDouble("diameter");
@@ -179,7 +178,7 @@ VisGridderFactory::makeIllumination(const LOFAR::ACC::APS::ParameterSet &parset)
   // In the (near) future it should be done by putting creator functions
   // for these gridders in the registry and use that.
 IVisGridder::ShPtr VisGridderFactory::make(
-		const LOFAR::ACC::APS::ParameterSet &parset) {
+		const LOFAR::ParameterSet &parset) {
 	IVisGridder::ShPtr gridder;
 	/// @todo Better handling of string case
         string gridderName = parset.getString("gridder");

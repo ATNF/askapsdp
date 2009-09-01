@@ -58,7 +58,6 @@ ASKAP_LOGGER(logger, ".cimager");
 using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::scimath;
-using namespace LOFAR::ACC::APS;
 
 // Main function
 int main(int argc, const char** argv) {
@@ -88,8 +87,8 @@ int main(int argc, const char** argv) {
 
 			const std::string parsetFile = inputsPar;
 
-			ParameterSet parset(parsetFile);
-			ParameterSet subset(parset.makeSubset("Cimager."));
+                        LOFAR::ParameterSet parset(parsetFile);
+                        LOFAR::ParameterSet subset(parset.makeSubset("Cimager."));
 			double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
 			       subset.getString("threshold.majorcycle","-1Jy"),"Jy");			
 			const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle",false);

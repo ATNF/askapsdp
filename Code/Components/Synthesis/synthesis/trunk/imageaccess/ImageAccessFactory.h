@@ -32,7 +32,7 @@
 #ifndef IMAGE_ACCESS_FACTORY_H
 #define IMAGE_ACCESS_FACTORY_H
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <boost/shared_ptr.hpp>
 
 #include <imageaccess/IImageAccess.h>
@@ -47,7 +47,7 @@ namespace synthesis {
 /// @param[in] parset parameters containing description of image accessor to be constructed
 /// @return shared pointer to the image access object
 /// @note CASA images are used by default 
-boost::shared_ptr<IImageAccess> imageAccessFactory(const LOFAR::ACC::APS::ParameterSet &parset);
+boost::shared_ptr<IImageAccess> imageAccessFactory(const LOFAR::ParameterSet &parset);
 
 } // namespace synthesis
 

@@ -65,7 +65,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <gridding/VisGridderFactory.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 // casa includes
 #include <casa/aips.h>
@@ -80,7 +80,6 @@ ASKAP_LOGGER(logger, ".parallel");
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
-using namespace LOFAR::ACC::APS;
 using namespace askap::mwbase;
 
 /// @brief Constructor from ParameterSet
@@ -92,7 +91,7 @@ using namespace askap::mwbase;
 /// @param[in] argv Command line inputs
 /// @param[in] parset ParameterSet for inputs
 CalibratorParallel::CalibratorParallel(int argc, const char** argv,
-        const LOFAR::ACC::APS::ParameterSet& parset) :
+        const LOFAR::ParameterSet& parset) :
       MEParallel(argc, argv), itsParset(parset), 
       itsPerfectModel(new scimath::Params())
 {
@@ -151,9 +150,9 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
 /// should be pushed up in the class hierarchy
 void CalibratorParallel::readModels()
 {
-  ParameterSet parset(itsParset);
+  LOFAR::ParameterSet parset(itsParset);
   if(itsParset.isDefined("sources.definition")) {
-	  parset=ParameterSet(substitute(itsParset.getString("sources.definition")));
+    parset=LOFAR::ParameterSet(substitute(itsParset.getString("sources.definition")));
   }
       
   const std::vector<std::string> sources = parset.getStringVector("sources.names");
@@ -317,7 +316,7 @@ void CalibratorParallel::writeModel(const std::string &postfix)
       /*
       // temporary for debugging/research
       std::ofstream os2("deviation.dat"); // for now just hard code it
-      LOFAR::ACC::APS::ParameterSet trueGains("rndgains.in");
+      LOFAR::ParameterSet trueGains("rndgains.in");
       scimath::Params par;
       par<<trueGains;
       for (std::vector<std::string>::const_iterator it = parlist.begin(); 

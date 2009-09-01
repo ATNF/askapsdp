@@ -36,7 +36,7 @@
 #include <ms/MeasurementSets/MeasurementSet.h>
 #include <simulation/Simulator.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -125,7 +125,7 @@ namespace askap
 				/// @param argv Command line inputs
 				/// @param parset ParameterSet for inputs
 				SimParallel(int argc, const char** argv,
-				    const LOFAR::ACC::APS::ParameterSet& parset);
+				    const LOFAR::ParameterSet& parset);
 
 				~SimParallel();
 
@@ -181,7 +181,7 @@ namespace askap
 				boost::shared_ptr<casa::MeasurementSet> itsMs;
 
 				/// ParameterSet
-				LOFAR::ACC::APS::ParameterSet itsParset;
+				LOFAR::ParameterSet itsParset;
 
 				/// Read the telescope info from the parset specified in the main parset
 				void readAntennas();
