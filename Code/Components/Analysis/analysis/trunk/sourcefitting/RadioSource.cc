@@ -230,7 +230,7 @@ namespace askap {
                     }
                 }
 
-		ASKAPLOG_DEBUG_STR(logger, "Setting edge parameters: flagAdj="<<flagAdj<<" src=("<<this->getXmin()<<":"<<this->getXmax()<<","<<this->getYmin()<<":"<<this->getYmax()<<"), image space=("<<xminEdge<<":"<<xmaxEdge<<","<<yminEdge<<":"<<ymaxEdge<<")  ===> edgeFlag = " << flagBoundary);
+// 		ASKAPLOG_DEBUG_STR(logger, "Setting edge parameters: flagAdj="<<flagAdj<<" src=("<<this->getXmin()<<":"<<this->getXmax()<<","<<this->getYmin()<<":"<<this->getYmax()<<"), image space=("<<xminEdge<<":"<<xmaxEdge<<","<<yminEdge<<":"<<ymaxEdge<<")  ===> edgeFlag = " << flagBoundary);
 
                 this->atEdge = flagBoundary;
             }
