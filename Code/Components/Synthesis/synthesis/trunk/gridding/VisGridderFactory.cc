@@ -83,6 +83,8 @@ namespace synthesis {
       if (dl.getHandle()) {
         // Successfully loaded. Get the creator function.
         ASKAPLOG_INFO_STR(logger, "Dynamically loaded gridder " << name);
+        // the first thing the gridder in the shared library is supposed to do is to
+        // register itself. Therefore, its name will appear in the registry.
         it = theirRegistry.find (name);
       }
     }
@@ -278,7 +280,7 @@ IVisGridder::ShPtr VisGridderFactory::make(
 		gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
 	} else {
             gridder = createGridder (gridderName, parset);
-        }
+    }
 	ASKAPASSERT(gridder);
 	if (parset.isDefined("gridder.padding")) {
 	    const int padding =parset.getInt32("gridder.padding");
