@@ -125,7 +125,7 @@ public:
   /// iteration loop is started).
   virtual IDataSelectorPtr createSelector() const;
   
-  /// @breif configure caching of the uvw-machines
+  /// @brief configure caching of the uvw-machines
   /// @details A number of uvw machines can be cached at the same time. This can
   /// result in a significant performance improvement in the mosaicing case. By default
   /// only single machine is cached and this method should be called to change it. 
