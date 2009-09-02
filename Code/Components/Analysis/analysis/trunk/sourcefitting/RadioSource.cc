@@ -420,7 +420,7 @@ namespace askap {
 //  base.setMinor(std::min(axes.first,axes.second));
 //                const int numThresh = 20;
                 const int numThresh = this->itsFitParams.numSubThresholds();
-                float baseThresh = log10(this->itsDetectionThreshold);
+                float baseThresh = this->itsDetectionThreshold>0 ? log10(this->itsDetectionThreshold) : -6.;
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh + 1);
                 float thresh;
                 int threshCtr = 0;
