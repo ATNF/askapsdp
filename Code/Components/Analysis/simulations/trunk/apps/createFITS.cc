@@ -33,7 +33,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <iostream>
 #include <fstream>
@@ -46,7 +46,6 @@
 using namespace askap;
 using namespace askap::simulations;
 using namespace askap::simulations::FITS;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, "createFITS.log");
 
@@ -78,8 +77,8 @@ int main(int argc, const char** argv)
         //srandomdev();
         srandom(time(0));
         std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
-        ParameterSet parset(parsetFile);
-        ParameterSet subset(parset.makeSubset("createFITS."));
+        LOFAR::ParameterSet parset(parsetFile);
+        LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
         bool doNoise = subset.getBool("addNoise", true);
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);

@@ -34,7 +34,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <iostream>
 #include <fstream>
@@ -47,7 +47,6 @@
 using namespace askap;
 using namespace askap::simulations;
 using namespace askap::simulations::FITS;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, "tFlux.log");
 
@@ -73,7 +72,7 @@ int main(int argc, const char** argv)
 {
     ASKAPLOG_INIT("tFlux.log_cfg");
 
-    ParameterSet parset("apps/tparset.in");
+    LOFAR::ParameterSet parset("apps/tparset.in");
     parset = parset.makeSubset("createFITS.");
     FITSfile file(parset);
 

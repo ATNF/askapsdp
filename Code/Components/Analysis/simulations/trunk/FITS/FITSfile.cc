@@ -36,7 +36,7 @@
 #include <simulationutilities/FluxGenerator.h>
 #include <analysisutilities/AnalysisUtilities.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <scimath/Functionals/Gaussian1D.h>
 #include <scimath/Functionals/Gaussian2D.h>
@@ -88,7 +88,7 @@ namespace askap {
 
 //--------------------------------------------------------
 
-            FITSfile::FITSfile(const LOFAR::ACC::APS::ParameterSet& parset)
+            FITSfile::FITSfile(const LOFAR::ParameterSet& parset)
             {
                 /// @details Constructor that reads in the necessary
                 /// definitions from the parameterset. All FITSfile members
@@ -159,12 +159,12 @@ namespace askap {
                 if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
 
                 this->itsEquinox = parset.getFloat("equinox", 2000.);
-                LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("WCSimage."));
+                LOFAR::ParameterSet subset(parset.makeSubset("WCSimage."));
                 this->setWCS(true, subset);
                 this->itsFlagPrecess = parset.getBool("WCSsources", false);
 
                 if (this->itsFlagPrecess) {
-                    LOFAR::ACC::APS::ParameterSet subset(parset.makeSubset("WCSsources."));
+                    LOFAR::ParameterSet subset(parset.makeSubset("WCSsources."));
                     this->setWCS(false, subset);
                 }
 
@@ -181,7 +181,7 @@ namespace askap {
 
 //--------------------------------------------------------
 
-            void FITSfile::setWCS(bool isImage, const LOFAR::ACC::APS::ParameterSet& parset)
+            void FITSfile::setWCS(bool isImage, const LOFAR::ParameterSet& parset)
             {
                 struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
                 wcs->flag = -1;

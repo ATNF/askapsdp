@@ -31,7 +31,7 @@
 
 #include <wcslib/wcs.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <casa/Quanta/Unit.h>
 
 #include <askap/AskapLogging.h>
@@ -62,10 +62,10 @@ namespace askap {
                     virtual ~FITSfile();
 
                     /// @brief Constructor, using an input parameter set
-                    FITSfile(const LOFAR::ACC::APS::ParameterSet& parset);
+                    FITSfile(const LOFAR::ParameterSet& parset);
 
                     /// @brief Define the world coordinate system
-                    void setWCS(bool isImage, const LOFAR::ACC::APS::ParameterSet& parset);
+                    void setWCS(bool isImage, const LOFAR::ParameterSet& parset);
 
 		    struct wcsprm *getWCS(){return itsWCS;};
 
