@@ -73,7 +73,8 @@ static WorkflowDesc buildWorkflowDesc(const LOFAR::ParameterSet& parset)
 
     LOFAR::ParameterSet::const_iterator it;
     for (it = parset.begin(); it != parset.end(); ++it) {
-        //workflow[it->first] = it->second;
+        const std::string s = it->second;
+        workflow[it->first] = s;
     }
 
     return workflow;
