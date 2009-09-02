@@ -145,7 +145,7 @@ namespace askap
                                                    "1e-6rad"),"rad");
          
         ASKAPLOG_INFO_STR(logger, "UVWMachine cache will store "<<itsUVWMachineCacheSize<<" machines");
-        ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance<<" rad");
+        ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance/casa::C::pi*180.*3600.<<" arcsec");
         
         ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
         if (itsMs.size()==1)
