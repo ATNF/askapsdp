@@ -101,7 +101,7 @@ if __name__ == '__main__':
     for name in annfilenames:
           print name
           annfiles.append(file(name,'w'))
-          annfiles[-1].write("COORD w\nCOLOR SEA GREEN\nFONT lucidasans-10\n")
+          annfiles[-1].write("COORD w\nPA SKY\nCOLOR SEA GREEN\nFONT lucidasans-10\n")
         
     datalines = catfile.readlines()
     sourcecount = 0;
