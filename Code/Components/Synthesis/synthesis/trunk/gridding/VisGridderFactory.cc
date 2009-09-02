@@ -103,8 +103,8 @@ boost::shared_ptr<IBasicIllumination>
 VisGridderFactory::makeIllumination(const LOFAR::ParameterSet &parset)
 {
    const std::string illumType = parset.getString("illumination", "disk");
-   const double diameter=parset.getDouble("diameter");
-   const double blockage=parset.getDouble("blockage");
+   const double diameter=SynthesisParamsHelper::convertQuantity(parset.getString("diameter"),"m");
+   const double blockage=SynthesisParamsHelper::convertQuantity(parset.getString("blockage"),"m");
 
    if (illumType == "disk") {
    	    ASKAPLOG_INFO_STR(logger,
