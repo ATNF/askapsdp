@@ -31,8 +31,6 @@
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
 
-#include <APS/ParameterSet.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -98,18 +96,52 @@ namespace askap {
             int ymin = std::max(int(gauss.yCenter() - zeroPoint), 0);
             int ymax = std::min(int(gauss.yCenter() + zeroPoint), axes[1] - 1);
 
+	    ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds ["<<xmin<<":"<<xmax<<","<<ymin<<":"<<ymax<<"] (zeropoint = "<<zeroPoint<<")");
+
 	    for(int z = 0; z < fluxGen.nChan(); z++) {
 
 	      gauss.setFlux(fluxGen.getFlux(z));
 
+// 		  const float fwhmToSigma = 2. * sqrt(2.*M_LN2);
+// 		  const int numSamples = 10000;
+// 		  float majSig = gauss.majorAxis()/fwhmToSigma;
+// 		  float minSig = gauss.minorAxis()/fwhmToSigma;
+// 		  float cosPA = cos(gauss.PA());
+// 		  float sinPA = sin(gauss.PA());
+// 		  float fluxContrib = gauss.flux()/float(numSamples);
+// 		  for(int sample=0; sample<numSamples; sample++){
+// 		    float maj = normalRandomVariable(0,majSig);
+// 		    float min = normalRandomVariable(0,minSig);
+// 		    float xpos = gauss.xCenter()+maj*sinPA - min*cosPA;
+// 		    float ypos = gauss.yCenter()+maj*cosPA + min*sinPA;
+// 		    int pos = int(xpos) + axes[0]*int(ypos) + z*axes[0]*axes[1];
+// 		    array[pos] += fluxContrib;
+// 		  }
+
+
+	      float minSigma= (std::min(gauss.majorAxis(), gauss.minorAxis())/(2.*sqrt(2.*M_LN2)));
+	      float delta = std::min(0.1,pow(10., floor(log10(minSigma/5.))));
+ 	      ASKAPLOG_DEBUG_STR(logger, "Integrating with delta="<<delta<<"  (minSigma="<<minSigma<<")");
 	      for (int x = xmin; x <= xmax; x++) {
                 for (int y = ymin; y <= ymax; y++) {
-		  Vector<Double> loc(2);
-		  loc(0) = x; loc(1) = y;
+// 		  Vector<Double> loc(2);
+// 		  loc(0) = x; loc(1) = y;
+// 		  int pix = x + y * axes[0] + z*axes[0]*axes[1];
+// 		  array[pix] += gauss(loc);
+
 		  int pix = x + y * axes[0] + z*axes[0]*axes[1];
-		  array[pix] += gauss(loc);
+		  for(float xp=x; xp<=x+1; xp+=delta){
+		    for(float yp=y; yp<=y+1; yp+=delta){
+		      Vector<Double> loc(2);
+		      loc(0) = xp;
+		      loc(1) = yp;
+		      array[pix] += gauss(loc) * delta * delta;
+		    }
+		  }
+
                 }
 	      }
+
 	    }
         }
 

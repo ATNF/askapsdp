@@ -31,8 +31,6 @@
 
 #include <simulationutilities/FluxGenerator.h>
 
-#include <APS/ParameterSet.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
