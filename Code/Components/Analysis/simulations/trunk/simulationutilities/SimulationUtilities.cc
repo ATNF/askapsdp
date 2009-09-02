@@ -130,12 +130,20 @@ namespace askap {
 // 		  array[pix] += gauss(loc);
 
 		  int pix = x + y * axes[0] + z*axes[0]*axes[1];
-		  for(float xp=x; xp<=x+1; xp+=delta){
-		    for(float yp=y; yp<=y+1; yp+=delta){
+		  int nstep = int(1./delta);
+		  for(int dx=0; dx<=nstep; dx++){
+		    for(int dy=0; dy<=nstep; dy++){
 		      Vector<Double> loc(2);
-		      loc(0) = xp;
-		      loc(1) = yp;
-		      array[pix] += gauss(loc) * delta * delta;
+		      loc(0) = x-0.5+dx*delta;
+		      loc(1) = y-0.5+dy*delta;
+		      // We are integrating using a 2-D trapezoidal
+		      // rule. This means the corner points get
+		      // suppressed by a factor of 4, and the side
+		      // points by a factor of 2. Hence the scale
+		      // factor terms.
+		      float xScaleFactor = (dx>0 && dx<nstep) ? 1 : 0.5;
+		      float yScaleFactor = (dy>0 && dy<nstep) ? 1 : 0.5;
+		      array[pix] += gauss(loc) * delta * delta * (xScaleFactor*yScaleFactor);
 		    }
 		  }
 
