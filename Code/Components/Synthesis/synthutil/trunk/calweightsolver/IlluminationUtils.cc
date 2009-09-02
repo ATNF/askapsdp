@@ -42,7 +42,7 @@
 #include <scimath/Mathematics/RigidVector.h>
 #include <fft/FFTWrapper.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 
 #include <gridding/UVPattern.h>
@@ -75,7 +75,7 @@ IlluminationUtils::IlluminationUtils(const boost::shared_ptr<IBasicIllumination>
 /// @param[in] parset parset file name 
 IlluminationUtils::IlluminationUtils(const std::string &parset)
 {
-  LOFAR::ACC::APS::ParameterSet params(parset);
+  LOFAR::ParameterSet params(parset);
   itsElementIllumination = itsIllumination = VisGridderFactory::makeIllumination(params);
   itsCellSize = params.getDouble("cellsize");
 
