@@ -33,24 +33,73 @@ ASKAP_LOGGER(logger, "");
 #include <askap/AskapError.h>
 #include <casa/OS/Timer.h>
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/IPosition.h>
 #include <boost/shared_ptr.hpp>
 
 #include <measurementequation/IImagePreconditioner.h>
 #include <measurementequation/WienerPreconditioner.h>
+#include <measurementequation/GaussianNoiseME.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+
+#include <mwcommon/MPIConnection.h>
 
 using namespace askap;
 using namespace askap::synthesis;
 
-int main() {
+/// @brief class for random number generation
+/// @details We could have used casa stuff directly
+struct RandomGenerator : public GaussianNoiseME 
+{
+  explicit RandomGenerator(double variance) :
+      GaussianNoiseME(variance, casa::Int(time(0)), 
+           casa::Int(askap::mwbase::MPIConnection::getRank())) {}
+  using GaussianNoiseME::getRandomComplexNumber;
+  float operator()() const { return casa::real(getRandomComplexNumber());}
+};
+
+/// @brief fill given array with some rather arbitrary values
+void fillArray(casa::Array<float> &in, const RandomGenerator &rg)
+{
+  // first fill array with the noise
+  casa::Vector<float> flattened(in.reform(casa::IPosition(1,in.nelements())));
+  for (size_t i=0; i<flattened.nelements(); ++i) {
+       flattened[i] = rg();
+  }
+}
+
+int main(int argc, char **argv) {
   try {
      casa::Timer timer;
 
      timer.mark();
-     std::cerr<<"Initialization: "<<timer.real()<<std::endl;
+     // Initialize MPI (also succeeds if no MPI available).
+     askap::mwbase::MPIConnection::initMPI(argc, (const char **&)argv);
+     RandomGenerator rg(0.01);
+     // hard coded parameters of the test
+     const casa::Int size = 512;
+     const size_t numberOfRuns = 10;
+     //
+     const casa::IPosition shape(2,size,size);
+     
+     casa::Array<float> psf(shape);
+     fillArray(psf,rg);
+     casa::Array<float> img(shape);
+     fillArray(img,rg);
           
+     std::cerr<<"Image initialization: "<<timer.real()<<std::endl;
+
+     timer.mark();
+     
+     std::cerr<<"Initialization of preconditioner: "<<timer.real()<<std::endl;       
      
      timer.mark();     
-     std::cerr<<"Job: "<<timer.real()<<std::endl;     
+     std::cerr<<"Preconditioning: "<<timer.real()<<std::endl;
+     
+     timer.mark();     
+     SynthesisParamsHelper::saveAsCasaImage("outpsf.casa",psf);
+     SynthesisParamsHelper::saveAsCasaImage("outimg.casa",img);     
+     std::cerr<<"Storing results: "<<timer.real()<<std::endl;     
   }
   catch(const AskapError &ce) {
      std::cerr<<"AskapError has been caught. "<<ce.what()<<std::endl;
