@@ -70,9 +70,8 @@ namespace synthesis {
     if (it == theirRegistry.end()) {
       // Unknown gridder. Try to load the data manager from a dynamic library
       // with that lowercase name (without possible template extension).
-      casa::String tp(name);
-      tp.downcase();
-      std::string::size_type pos = tp.find ('<');
+      std::string tp(toLower(name));
+      const std::string::size_type pos = tp.find ('<');
       if (pos != std::string::npos) {
         tp = tp.substr (0, pos);      // only take before <
       }
@@ -229,7 +228,19 @@ IVisGridder::ShPtr VisGridderFactory::make(
 	} else if (gridderName == "AProjectWStack") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
 		double paTol=parset.getDouble("gridder.AProjectWStack.patolerance", 0.1);
-		double freqTol=parset.getDouble("gridder.AProjectWStack.freqtolerance", 1e-6);
+		
+		// load frequency tolerance. It can be a string "infinite", which means to bypass frequency
+		// axis checks or a non-negative number. We pass "undefined" by default here as it is not a
+		// recognised value, which will cause a numeric default to be adopted 
+		double freqTol = -1.;
+		const std::string freqTolString = toLower(parset.getString("gridder.AProjectWStack.freqtolerance", 
+		                                                   "undefined"));
+		if (freqTolString != "infinite") {
+            freqTol = parset.getDouble("gridder.AProjectWStack.freqtolerance", 1e-6);
+		    ASKAPCHECK(freqTol>=0., 
+		        "Frequency tolerance parameter is supposed to be either a non-negative number or a word infinite to by pass checks");
+		}
+		//
 		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 65);
 		int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
