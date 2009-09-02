@@ -30,7 +30,7 @@
 #define TESTLOADGRIDDER_H_
 
 #include <gridding/TableVisGridder.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 namespace askap
 {
@@ -53,7 +53,7 @@ namespace askap
 
       /// @brief Function to create the gridder from a parset.
       /// This function will be registered in the gridder registry.
-      static IVisGridder::ShPtr makeGridder (const LOFAR::ACC::APS::ParameterSet&);
+      static IVisGridder::ShPtr makeGridder (const LOFAR::ParameterSet&);
       /// @brief Return the (unique) name of the gridder.
       static const std::string& gridderName();
 

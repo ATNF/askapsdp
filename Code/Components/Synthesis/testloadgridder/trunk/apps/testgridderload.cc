@@ -38,7 +38,7 @@ ASKAP_LOGGER(logger, ".testgridderload");
 
 using namespace askap;
 using namespace askap::synthesis;
-using namespace LOFAR::ACC::APS;
+using namespace LOFAR;
 
 // Main function
 int main (int, char* argv[])

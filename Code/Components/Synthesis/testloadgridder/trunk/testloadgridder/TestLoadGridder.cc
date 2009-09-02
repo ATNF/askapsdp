@@ -47,7 +47,7 @@ namespace askap
     }
 
     IVisGridder::ShPtr TestLoadGridder::makeGridder
-    (const LOFAR::ACC::APS::ParameterSet&)
+    (const LOFAR::ParameterSet&)
     {
       std::cout << "TestLoadGridder::makeGridder" << std::endl;
       ASKAPLOG_INFO_STR (logger, "TestLoadGridder::makeGridder");
