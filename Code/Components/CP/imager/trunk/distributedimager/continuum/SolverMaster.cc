@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/Params.h>
@@ -59,7 +60,7 @@ using namespace askap::synthesis;
 
 ASKAP_LOGGER(logger, ".SolverMaster");
 
-SolverMaster::SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
+SolverMaster::SolverMaster(LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
 : itsSolverCore(parset, comms, model_p)

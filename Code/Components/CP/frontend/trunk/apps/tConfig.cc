@@ -54,8 +54,7 @@
 #include <Ice/Ice.h>
 
 // ASKAPsoft includes
-#include "APS/ParameterSet.h"
-#include "APS/Exceptions.h"
+#include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
 
 // Local package includes
@@ -65,8 +64,6 @@
 #include "streams/SimpleNumber.h"
 
 // Using
-using LOFAR::ACC::APS::ParameterSet;
-using LOFAR::ACC::APS::APSException;
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::frontend;
@@ -78,7 +75,7 @@ static const std::string STREAM_B1 = "NumberStreamB1";
 static const std::string STREAM_B2 = "NumberStreamB2";
 static const std::string STREAM_C = "NumberStreamC";
 
-static ParameterSet getWorkflowSubset(int argc, char *argv[])
+static LOFAR::ParameterSet getWorkflowSubset(int argc, char *argv[])
 {
     // Command line parser
     cmdlineparser::Parser parser;
@@ -94,17 +91,17 @@ static ParameterSet getWorkflowSubset(int argc, char *argv[])
     const std::string parsetFile = inputsPar;
 
     // Create a subset
-    ParameterSet parset(parsetFile);
+    LOFAR::ParameterSet parset(parsetFile);
     return parset.makeSubset("askap.cp.frontend.workflow.");
 }
 
-static WorkflowDesc buildWorkflowDesc(const ParameterSet& parset)
+static WorkflowDesc buildWorkflowDesc(const LOFAR::ParameterSet& parset)
 {
     WorkflowDesc workflow;
 
-    ParameterSet::const_iterator it;
+    LOFAR::ParameterSet::const_iterator it;
     for (it = parset.begin(); it != parset.end(); ++it) {
-        workflow[it->first] = it->second;
+        //workflow[it->first] = it->second;
     }
 
     return workflow;
@@ -167,7 +164,7 @@ int main(int argc, char *argv[])
         ic = Ice::initialize(argc, argv);
 
         // Parse cmdline and get the parameter set
-        ParameterSet parset = getWorkflowSubset(argc, argv);
+        LOFAR::ParameterSet parset = getWorkflowSubset(argc, argv);
 
         // Convert the parset description of the workflow to something
         // which can be sent via ICE

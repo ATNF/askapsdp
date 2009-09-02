@@ -30,7 +30,7 @@
 #define CP_IMAGEMULTISCALESOLVERWORKER_H_
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 // Local includes
 #include "distributedimager/common/IBasicComms.h"
@@ -42,7 +42,7 @@ namespace askap
         class ImageMultiScaleSolverWorker 
         {
             public:
-                ImageMultiScaleSolverWorker(const LOFAR::ACC::APS::ParameterSet& parset,
+                ImageMultiScaleSolverWorker(const LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
 
                 void solveNormalEquations(void);
@@ -53,7 +53,7 @@ namespace askap
                 static const int itsMaster = 0;
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet itsParset;
+                LOFAR::ParameterSet itsParset;
 
                 // Communications class
                 askap::cp::IBasicComms& itsComms;

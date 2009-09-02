@@ -32,7 +32,7 @@
 #include <vector>
 
 // ASKAPsoft includes
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 
 namespace askap {
     namespace cp {
@@ -51,7 +51,7 @@ namespace askap {
                 void setName(const std::string& name);
                 unsigned int addInPortMapping(const std::string& stream);
                 unsigned int addOutPortMapping(const std::string& stream);
-                void setParset(const LOFAR::ACC::APS::ParameterSet& parset);
+                void setParset(const LOFAR::ParameterSet& parset);
 
                 std::string getRuntime(void) const;
                 std::string getType(void) const;
@@ -60,7 +60,7 @@ namespace askap {
                 unsigned int getNumOutPorts(void) const;
                 std::string getPortInPortMapping(unsigned int port) const;
                 std::string getPortOutPortMapping(unsigned int port) const;
-                LOFAR::ACC::APS::ParameterSet getParset(void) const;
+                LOFAR::ParameterSet getParset(void) const;
 
             private:
                 std::string itsRuntime;
@@ -68,7 +68,7 @@ namespace askap {
                 std::string itsName;
                 std::vector<std::string> itsInPorts;
                 std::vector<std::string> itsOutPorts;
-                LOFAR::ACC::APS::ParameterSet itsParset;
+                LOFAR::ParameterSet itsParset;
         };
     };
 };

@@ -30,7 +30,7 @@
 // System includes
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 #include <gridding/IVisGridder.h>
@@ -45,7 +45,7 @@ namespace askap {
         class PreDifferWorker : public IPreDifferTask
         {
             public:
-                PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
+                PreDifferWorker(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
                 virtual ~PreDifferWorker();
 
@@ -58,7 +58,7 @@ namespace askap {
                 void reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int count);
 
                 // Parameter Set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
+                LOFAR::ParameterSet& itsParset;
 
                 // Communications class
                 askap::cp::IBasicComms& itsComms;

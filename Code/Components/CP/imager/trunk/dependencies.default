@@ -1,7 +1,8 @@
 boost=3rdParty/boost/tags/boost-1.37.0
+common=3rdParty/LOFAR/Common/tags/Common-3.3
+blob=3rdParty/LOFAR/Blob/tags/Blob-1.2
 askap=Code/Base/askap/trunk
 cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.0
-aps=3rdParty/LOFAR/APS/tags/APS-2.1
 casacore=3rdParty/casacore/tags/casacore-0.4.1;casa_ms casa_images casa_components casa_mirlib casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
 synthesis=Code/Components/Synthesis/synthesis/trunk
 openmpi=3rdParty/openmpi/trunk

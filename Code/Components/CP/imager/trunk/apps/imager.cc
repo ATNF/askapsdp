@@ -38,7 +38,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/Log4cxxLogSink.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <CommandLineParser.h>
 #include <casa/Logging/LogIO.h>
 #include <casa/Logging/LogSinkInterface.h>
@@ -51,7 +51,6 @@
 
 using namespace askap;
 using namespace askap::cp;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, ".main");
 
@@ -89,8 +88,8 @@ int main(int argc, char *argv[])
         const std::string parsetFile = inputsPar;
 
         // Create a subset
-        ParameterSet parset(parsetFile);
-        ParameterSet subset(parset.makeSubset("Cimager."));
+        LOFAR::ParameterSet parset(parsetFile);
+        LOFAR::ParameterSet subset(parset.makeSubset("Cimager."));
 
         // Instantiate the comms class
         comms_p.reset(new MPIBasicComms(argc, argv));

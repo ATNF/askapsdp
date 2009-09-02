@@ -34,7 +34,7 @@
 #include <stdexcept>
 
 // ASKAPsoft includes
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/Log4cxxLogSink.h"
@@ -47,12 +47,11 @@
 
 // Using
 using namespace askap;
-using LOFAR::ACC::APS::ParameterSet;
 using askap::cp::Runtime;
 
 ASKAP_LOGGER(logger, ".main");
 
-static ParameterSet configure(int argc, char *argv[])
+static LOFAR::ParameterSet configure(int argc, char *argv[])
 {
     // Command line parser
     cmdlineparser::Parser parser;
@@ -68,7 +67,7 @@ static ParameterSet configure(int argc, char *argv[])
     const std::string parsetFile = inputsPar;
 
     // Create a subset
-    ParameterSet parset(parsetFile);
+    LOFAR::ParameterSet parset(parsetFile);
     return parset.makeSubset("askap.cp.frontend.");
 }
 
@@ -115,7 +114,7 @@ int main(int argc, char *argv[])
     ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Frontend Runtime - " << ASKAP_PACKAGE_VERSION);
 
     // Parse cmdline and get the parameter set
-    ParameterSet parset;
+    LOFAR::ParameterSet parset;
     try {
         parset = configure(argc, argv);
     } catch (const cmdlineparser::XParser& e) {

@@ -30,7 +30,7 @@
 // System includes
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
@@ -44,7 +44,7 @@ namespace askap {
         class PreDifferMaster : public IPreDifferTask
         {
             public:
-                PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,
+                PreDifferMaster(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
                 virtual ~PreDifferMaster();
 
@@ -70,13 +70,13 @@ namespace askap {
                 ///     
                 /// @param[in] parset   the parameterset to use as input.
                 /// @return a vector containing in each element one dataset.
-                std::vector<std::string> getDatasets(LOFAR::ACC::APS::ParameterSet& itsParset);
+                std::vector<std::string> getDatasets(LOFAR::ParameterSet& itsParset);
 
                 /// Normal equations
                 askap::scimath::INormalEquations::ShPtr itsNormalEquation_p;
 
                 /// Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
+                LOFAR::ParameterSet& itsParset;
 
                 /// Communications class
                 askap::cp::IBasicComms& itsComms;

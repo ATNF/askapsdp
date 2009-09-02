@@ -34,7 +34,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "activities/SimpleMath.h"
@@ -57,7 +57,7 @@ static void testOne(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     std::cerr << "Running testOne()" << std::endl;
 
     // Create the activity to test
-    LOFAR::ACC::APS::ParameterSet parset;
+    LOFAR::ParameterSet parset;
     SimpleMath activity(ic, adapter, parset);
     activity.attachInputPort(0, INPUT_A);
     activity.attachInputPort(1, INPUT_B);
@@ -102,7 +102,7 @@ static void testMulti(Ice::CommunicatorPtr ic, Ice::ObjectAdapterPtr adapter)
     std::cerr << "Running testMulti()" << std::endl;
 
     // Create the activity to test
-    LOFAR::ACC::APS::ParameterSet parset;
+    LOFAR::ParameterSet parset;
     SimpleMath activity(ic, adapter, parset);
     activity.attachInputPort(0, INPUT_A);
     activity.attachInputPort(1, INPUT_B);

@@ -34,7 +34,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -43,13 +43,12 @@
 // Using
 using namespace askap;
 using namespace askap::cp;
-using LOFAR::ACC::APS::ParameterSet;
 
 ASKAP_LOGGER(logger, ".Workflow");
 
 Workflow::Workflow(const Ice::CommunicatorPtr& ic,
         const Ice::ObjectAdapterPtr& adapter,
-        const ParameterSet& parset,
+        const LOFAR::ParameterSet& parset,
         const std::string& runtimeName)
     : itsComm(ic), itsAdapter(adapter), itsParset(parset),
     itsRuntimeName(runtimeName)
@@ -103,7 +102,7 @@ std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
     for (unsigned int i = 0; i < ACTIVITY_MAX; ++i) {
         std::stringstream ss;
         ss << "activity" << i << ".";
-        ParameterSet subset = itsParset.makeSubset(ss.str());
+        LOFAR::ParameterSet subset = itsParset.makeSubset(ss.str());
         if (subset.size() == 0) {
             break;
         }
@@ -123,7 +122,7 @@ std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
         desc.setName(name);
 
         // Make another subset for the custom parameters
-        ParameterSet custom = subset.makeSubset("custom.");
+        LOFAR::ParameterSet custom = subset.makeSubset("custom.");
         desc.setParset(custom);
 
         // Process input ports

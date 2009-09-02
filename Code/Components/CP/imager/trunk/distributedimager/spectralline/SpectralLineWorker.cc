@@ -53,8 +53,8 @@
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/PolConverter.h>
-#include <APS/ParameterSet.h>
-#include <APS/Exceptions.h>
+#include <Common/ParameterSet.h>
+#include <Common/Exceptions.h>
 #include <casa/OS/Timer.h>
 
 // Local includes
@@ -67,11 +67,10 @@ using namespace askap::cp;
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, ".SpectralLineWorker");
 
-SpectralLineWorker::SpectralLineWorker(LOFAR::ACC::APS::ParameterSet& parset,
+SpectralLineWorker::SpectralLineWorker(LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
 : itsParset(parset), itsComms(comms)
 {
@@ -223,7 +222,7 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
 void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel)
 {
     try {
-        const ParameterSet parset = itsParset.makeSubset("Images.");
+        const LOFAR::ParameterSet parset = itsParset.makeSubset("Images.");
 
         const int nfacets = parset.getInt32("nfacets", 1);
         const std::string nameParam = parset.getString("name");
@@ -271,7 +270,7 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params,
             SynthesisParamsHelper::add(*params, name.str(), direction, cellsize, shape, freq[0], freq[1], nchan, stokes, nfacets, facetstep);
         }
 
-    } catch (const LOFAR::ACC::APS::APSException &ex) {
+    } catch (const LOFAR::APSException &ex) {
         throw AskapError(ex.what());
     }
 }

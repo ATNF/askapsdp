@@ -33,7 +33,7 @@
 
 // Askapsoft includes
 #include <Ice/Ice.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 using namespace askap::cp;
 
@@ -41,7 +41,7 @@ VisSource::VisSource(const Ice::CommunicatorPtr ic,
         const std::string& name,
         const std::vector<std::string>& inPorts,
         const std::vector<std::string>& outPorts,
-        const LOFAR::ACC::APS::ParameterSet& parset)
+        const LOFAR::ParameterSet& parset)
 : itsIceComm(ic), itsName(name), itsInPorts(inPorts),
     itsOutPorts(outPorts), itsParset(parset)
 {

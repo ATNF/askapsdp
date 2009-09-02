@@ -32,7 +32,7 @@
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -50,7 +50,7 @@ namespace askap {
                 /// @brief Constructor.
                 SimpleMath(const Ice::CommunicatorPtr ic,
                         const Ice::ObjectAdapterPtr adapter,
-                        const LOFAR::ACC::APS::ParameterSet& parset);
+                        const LOFAR::ParameterSet& parset);
 
                 /// @brief Destructor.
                 virtual ~SimpleMath();
@@ -69,7 +69,7 @@ namespace askap {
                 const Ice::CommunicatorPtr itsComm;
 
                 // Parameters
-                LOFAR::ACC::APS::ParameterSet itsParset;
+                LOFAR::ParameterSet itsParset;
 
                 // Input Ports
                 askap::cp::InputPort<askap::cp::frontend::SimpleNumber,

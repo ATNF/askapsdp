@@ -35,7 +35,7 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <dataaccess/IConstDataSource.h>
 #include <dataaccess/TableConstDataSource.h>
 #include <dataaccess/IConstDataIterator.h>
@@ -51,11 +51,10 @@
 
 using namespace askap::cp;
 using namespace askap;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, ".SpectralLineMaster");
 
-SpectralLineMaster::SpectralLineMaster(LOFAR::ACC::APS::ParameterSet& parset,
+SpectralLineMaster::SpectralLineMaster(LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
 : itsParset(parset), itsComms(comms)
 {
@@ -116,7 +115,7 @@ void SpectralLineMaster::run(void)
 
 
 // Utility function to get dataset names from parset.
-std::vector<std::string> SpectralLineMaster::getDatasets(const ParameterSet& parset)
+std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterSet& parset)
 {
     if (parset.isDefined("dataset") && parset.isDefined("dataset0")) {
         ASKAPTHROW(std::runtime_error, "Both dataset and dataset0 are specified in the parset");

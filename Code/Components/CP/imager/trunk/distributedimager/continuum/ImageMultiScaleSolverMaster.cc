@@ -38,6 +38,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
+#include <Common/ParameterSet.h>
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
@@ -62,7 +63,7 @@ using namespace askap::cp;
 ASKAP_LOGGER(logger, ".ImageMultiScaleSolverMaster");
 
 ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
-        const LOFAR::ACC::APS::ParameterSet& parset,
+        const LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
     : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms) 
 {
@@ -74,7 +75,7 @@ ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::P
 
 ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
         const casa::Vector<float>& scales,
-        const LOFAR::ACC::APS::ParameterSet& parset,
+        const LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
     : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms)
 {

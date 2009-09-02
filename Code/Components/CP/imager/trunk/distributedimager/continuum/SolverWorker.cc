@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
@@ -45,7 +46,7 @@ using namespace askap::cp;
 
 ASKAP_LOGGER(logger, ".SolverWorker");
 
-SolverWorker::SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
+SolverWorker::SolverWorker(LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms,
         askap::scimath::Params::ShPtr model_p)
 : itsParset(parset), itsComms(comms)

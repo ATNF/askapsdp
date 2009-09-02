@@ -36,7 +36,7 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 // Local includes
 #include "distributedimager/common/IBasicComms.h"
@@ -47,9 +47,8 @@ ASKAP_LOGGER(logger, ".SpectralLineImager");
 
 using namespace askap::cp;
 using namespace askap;
-using namespace LOFAR::ACC::APS;
 
-SpectralLineImager::SpectralLineImager(LOFAR::ACC::APS::ParameterSet& parset,
+SpectralLineImager::SpectralLineImager(LOFAR::ParameterSet& parset,
         askap::cp::MPIBasicComms& comms) : itsParset(parset), itsComms(comms)
 {
     if (isMaster()) {

@@ -30,6 +30,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "Common/ParameterSet.h"
 
 // Using
 using namespace askap;
@@ -72,7 +73,7 @@ unsigned int ActivityDesc::addOutPortMapping(const std::string& stream)
     return itsOutPorts.size() - 1;
 }
 
-void ActivityDesc::setParset(const LOFAR::ACC::APS::ParameterSet& parset)
+void ActivityDesc::setParset(const LOFAR::ParameterSet& parset)
 {
     itsParset = parset;
 }
@@ -118,7 +119,7 @@ std::string ActivityDesc::getPortOutPortMapping(unsigned int port) const
     return itsOutPorts.at(port);
 }
 
-LOFAR::ACC::APS::ParameterSet ActivityDesc::getParset(void) const
+LOFAR::ParameterSet ActivityDesc::getParset(void) const
 {
     return itsParset;
 }

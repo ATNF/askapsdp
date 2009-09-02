@@ -30,6 +30,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "runtime/Workflow.h"
@@ -38,11 +39,10 @@
 using namespace askap;
 using namespace askap::cp;
 using askap::cp::frontend::WorkflowDesc;
-using LOFAR::ACC::APS::ParameterSet;
 
 ASKAP_LOGGER(logger, ".Runtime");
 
-Runtime::Runtime(const ParameterSet& parset)
+Runtime::Runtime(const LOFAR::ParameterSet& parset)
     : itsParset(parset)
 {
     ASKAPLOG_INFO_STR(logger, "Creating Runtime");
@@ -75,7 +75,7 @@ void Runtime::run(void)
     itsComm->waitForShutdown();
 }
 
-Ice::CommunicatorPtr Runtime::initIce(const ParameterSet& parset)
+Ice::CommunicatorPtr Runtime::initIce(const LOFAR::ParameterSet& parset)
 {
     // Get the initialized property set.
     Ice::PropertiesPtr props = Ice::createProperties();
@@ -98,7 +98,7 @@ Ice::CommunicatorPtr Runtime::initIce(const ParameterSet& parset)
     return Ice::initialize(id);
 }
 
-Ice::ObjectAdapterPtr Runtime::createAdapter(const ParameterSet& parset,
+Ice::ObjectAdapterPtr Runtime::createAdapter(const LOFAR::ParameterSet& parset,
         Ice::CommunicatorPtr& ic)
 {
     Ice::PropertiesPtr props = ic->getProperties();
@@ -131,7 +131,7 @@ void Runtime::startWorkflow(const askap::cp::frontend::WorkflowDesc& wfDesc, con
     const std::string name = itsParset.getString("runtime");
 
     // Convert the Ice Workflow description into a ParameterSet
-    ParameterSet wfParset;
+    LOFAR::ParameterSet wfParset;
     WorkflowDesc::const_iterator it;
     for (it = wfDesc.begin(); it != wfDesc.end(); ++it) {
         wfParset.add(it->first, it->second);

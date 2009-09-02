@@ -32,7 +32,7 @@
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "askap/AskapUtil.h"
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "activities/IPort.h"
@@ -47,7 +47,7 @@ using namespace askap::cp::frontend;
 
 SimpleMath::SimpleMath(const Ice::CommunicatorPtr ic,
         const Ice::ObjectAdapterPtr adapter,
-        const LOFAR::ACC::APS::ParameterSet& parset)
+        const LOFAR::ParameterSet& parset)
     : itsComm(ic),
     itsParset(parset),
     itsInPort0(ic, adapter),

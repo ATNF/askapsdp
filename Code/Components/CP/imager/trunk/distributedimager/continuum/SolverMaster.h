@@ -30,7 +30,7 @@
 // System includes
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 #include <fitting/Solver.h>
@@ -49,7 +49,7 @@ namespace askap {
         class SolverMaster : public ISolverTask
         {
             public:
-                SolverMaster(LOFAR::ACC::APS::ParameterSet& parset,
+                SolverMaster(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms,
                         askap::scimath::Params::ShPtr model_p);
                 virtual ~SolverMaster();

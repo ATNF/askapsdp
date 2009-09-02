@@ -35,6 +35,7 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <Common/ParameterSet.h>
 #include <fitting/Equation.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
@@ -63,7 +64,7 @@ using namespace askap::synthesis;
 
 ASKAP_LOGGER(logger, ".PreDifferWorker");
 
-PreDifferWorker::PreDifferWorker(LOFAR::ACC::APS::ParameterSet& parset,
+PreDifferWorker::PreDifferWorker(LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
 : itsParset(parset), itsComms(comms)
 {

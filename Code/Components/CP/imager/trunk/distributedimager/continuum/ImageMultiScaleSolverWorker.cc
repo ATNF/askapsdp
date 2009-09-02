@@ -50,7 +50,7 @@ using namespace askap::scimath;
 ASKAP_LOGGER(logger, ".ImageMultiScaleSolverWorker");
 
 ImageMultiScaleSolverWorker::ImageMultiScaleSolverWorker(
-        const LOFAR::ACC::APS::ParameterSet& parset,
+        const LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
     : itsParset(parset), itsComms(comms) 
 {

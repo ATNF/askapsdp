@@ -33,7 +33,7 @@
 // ASKAPsoft includes
 #include <fitting/Solver.h>
 #include <fitting/Params.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <measurementequation/ImageSolver.h>
 
 // Local includes
@@ -60,7 +60,7 @@ namespace askap
         /// solver to be constructed
         /// @return shared pointer to the solver
         static askap::scimath::Solver::ShPtr make(askap::scimath::Params& ip, 
-          const LOFAR::ACC::APS::ParameterSet& parset,
+          const LOFAR::ParameterSet& parset,
           askap::cp::IBasicComms& comms); 
         
       protected:
@@ -75,7 +75,7 @@ namespace askap
         /// time.
         /// @param[in] parset parameter set to extract the input from
         /// @param[in] solver shared pointer to the solver to be configured
-        static void configureThresholds(const LOFAR::ACC::APS::ParameterSet &parset,
+        static void configureThresholds(const LOFAR::ParameterSet &parset,
                      const boost::shared_ptr<askap::synthesis::ImageSolver> &solver);
     };
 

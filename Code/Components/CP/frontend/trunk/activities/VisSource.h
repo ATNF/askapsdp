@@ -33,7 +33,7 @@
 
 // ASKAPsoft includes
 #include <Ice/Ice.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 // Local package includes
 #include "Activity.h"
@@ -50,7 +50,7 @@ namespace askap {
                         const std::string& name, 
                         const std::vector<std::string>& inPorts, 
                         const std::vector<std::string>& outPorts,
-                        const LOFAR::ACC::APS::ParameterSet& parset);
+                        const LOFAR::ParameterSet& parset);
 
                 /// @brief Destructor.
                 virtual ~VisSource();
@@ -63,7 +63,7 @@ namespace askap {
                 const std::string itsName;
                 const std::vector<std::string> itsInPorts;
                 const std::vector<std::string> itsOutPorts;
-                LOFAR::ACC::APS::ParameterSet itsParset;
+                LOFAR::ParameterSet itsParset;
         };
 
     };

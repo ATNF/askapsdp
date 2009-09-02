@@ -30,7 +30,7 @@
 // System includes
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 // Local includes
 #include "distributedimager/common/IBasicComms.h"
@@ -41,7 +41,7 @@ namespace askap {
         class SpectralLineMaster
         {
             public:
-                SpectralLineMaster(LOFAR::ACC::APS::ParameterSet& parset,
+                SpectralLineMaster(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
                 ~SpectralLineMaster();
 
@@ -68,12 +68,12 @@ namespace askap {
                 ///     
                 /// @param[in] parset   the parameterset to use as input.
                 /// @return a vector containing in each element one dataset.
-                std::vector<std::string> getDatasets(const LOFAR::ACC::APS::ParameterSet& itsParset);
+                std::vector<std::string> getDatasets(const LOFAR::ParameterSet& itsParset);
 
                 int getNumChannels(const std::string& ms);
 
                 /// Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
+                LOFAR::ParameterSet& itsParset;
 
                 /// Communications class
                 askap::cp::IBasicComms& itsComms;

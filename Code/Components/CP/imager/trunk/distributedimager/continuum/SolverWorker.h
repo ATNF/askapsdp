@@ -31,7 +31,7 @@
 #include <string>
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 
@@ -45,7 +45,7 @@ namespace askap {
         class SolverWorker : public ISolverTask
         {
             public:
-                SolverWorker(LOFAR::ACC::APS::ParameterSet& parset,
+                SolverWorker(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms,
                         askap::scimath::Params::ShPtr model_p);
 
@@ -63,7 +63,7 @@ namespace askap {
                 SolverWorker(const SolverWorker& src);
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
+                LOFAR::ParameterSet& itsParset;
 
                 // Communications class
                 askap::cp::IBasicComms& itsComms;

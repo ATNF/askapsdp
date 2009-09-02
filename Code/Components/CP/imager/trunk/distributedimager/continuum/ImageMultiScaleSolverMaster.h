@@ -34,7 +34,7 @@
 #include <boost/shared_ptr.hpp>
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <measurementequation/ImageCleaningSolver.h>
 #include <lattices/Lattices/LatticeCleaner.h>
 
@@ -62,7 +62,7 @@ namespace askap
                 /// The default scales are 0, 10, 30 pixels
                 /// @param ip Parameters i.e. the images
                 ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
-                        const LOFAR::ACC::APS::ParameterSet& parset,
+                        const LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
 
                 /// @brief Constructor from parameters and scales.
@@ -72,7 +72,7 @@ namespace askap
                 /// @param scales Scales to be solved in pixels
                 ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
                         const casa::Vector<float>& scales,
-                        const LOFAR::ACC::APS::ParameterSet& parset,
+                        const LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
 
                 /// @brief Initialize this solver
@@ -124,7 +124,7 @@ namespace askap
                 void signalFinished(void);
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet itsParset;
+                LOFAR::ParameterSet itsParset;
 
                 // Communications class
                 askap::cp::IBasicComms& itsComms;

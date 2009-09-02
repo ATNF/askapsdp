@@ -30,7 +30,7 @@
 // System includes
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 #include <dataaccess/TableDataSource.h>
@@ -46,7 +46,7 @@ namespace askap {
         class SpectralLineWorker
         {
             public:
-                SpectralLineWorker(LOFAR::ACC::APS::ParameterSet& parset,
+                SpectralLineWorker(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
                 ~SpectralLineWorker();
 
@@ -65,7 +65,7 @@ namespace askap {
                 void setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel);
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
+                LOFAR::ParameterSet& itsParset;
 
                 // Communications class
                 askap::cp::IBasicComms& itsComms;

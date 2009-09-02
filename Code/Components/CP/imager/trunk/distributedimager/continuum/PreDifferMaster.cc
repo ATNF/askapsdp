@@ -35,6 +35,7 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/Params.h>
@@ -51,11 +52,10 @@ using namespace askap::cp;
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, ".PreDifferMaster");
 
-PreDifferMaster::PreDifferMaster(LOFAR::ACC::APS::ParameterSet& parset,
+PreDifferMaster::PreDifferMaster(LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
 : itsParset(parset), itsComms(comms)
 {
@@ -151,7 +151,7 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
 }
 
 /// Utility function to get dataset names from parset.
-std::vector<std::string> PreDifferMaster::getDatasets(ParameterSet& parset)
+std::vector<std::string> PreDifferMaster::getDatasets(LOFAR::ParameterSet& parset)
 {
     if (parset.isDefined("dataset") && parset.isDefined("dataset0")) {
         ASKAPTHROW (std::runtime_error, "Both dataset and dataset0 are specified in the parset");

@@ -34,7 +34,7 @@
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -49,7 +49,7 @@ namespace askap {
                 /// @brief Constructor.
                 Workflow(const Ice::CommunicatorPtr& ic,
                         const Ice::ObjectAdapterPtr& adapter,
-                        const LOFAR::ACC::APS::ParameterSet& parset,
+                        const LOFAR::ParameterSet& parset,
                         const std::string& runtimeName);
 
                 /// @brief Destructor.
@@ -84,7 +84,7 @@ namespace askap {
                 Ice::ObjectAdapterPtr itsAdapter;
 
                 // Parameter set describing the workflow
-                LOFAR::ACC::APS::ParameterSet itsParset;
+                LOFAR::ParameterSet itsParset;
 
                 // Node name, used to determine which parts of workflow
                 // within this runtime

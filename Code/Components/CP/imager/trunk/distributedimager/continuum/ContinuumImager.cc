@@ -39,7 +39,7 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
 // Local includes
@@ -57,9 +57,8 @@ using namespace askap::cp;
 using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::scimath;
-using namespace LOFAR::ACC::APS;
 
-ContinuumImager::ContinuumImager(LOFAR::ACC::APS::ParameterSet& parset,
+ContinuumImager::ContinuumImager(LOFAR::ParameterSet& parset,
         askap::cp::MPIBasicComms& comms) : itsParset(parset), itsComms(comms)
 {
     if (isMaster()) {

@@ -28,7 +28,7 @@
 #define ASKAP_CP_CONTINUUMIMAGER_H
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <fitting/Params.h>
 
 // Local package includes
@@ -46,7 +46,7 @@ namespace askap {
                 /// @param[in]  parset  the parameter set containing
                 ///                     the configuration.
                 /// @param[in]  comms   an instance of IBasicComms.
-                ContinuumImager(LOFAR::ACC::APS::ParameterSet& parset,
+                ContinuumImager(LOFAR::ParameterSet& parset,
                         askap::cp::MPIBasicComms& comms);
 
                 /// @brief Destructor.
@@ -65,7 +65,7 @@ namespace askap {
                 static const int itsMaster = 0;
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
+                LOFAR::ParameterSet& itsParset;
 
                 // Communications class
                 askap::cp::MPIBasicComms& itsComms;

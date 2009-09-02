@@ -30,6 +30,7 @@
 #include <askap_imager.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <Common/ParameterSet.h>
 #include <measurementequation/ImageSolver.h>
 #include <measurementequation/ImageMSMFSolver.h>
 #include <measurementequation/IImagePreconditioner.h>
@@ -46,7 +47,6 @@
 using namespace askap::scimath;
 using namespace askap::cp;
 using namespace askap::synthesis;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, ".DistributedImageSolverFactory");
 
@@ -69,7 +69,7 @@ DistributedImageSolverFactory::~DistributedImageSolverFactory()
 /// time.
 /// @param[in] parset parameter set to extract the input from
 /// @param[in] solver shared pointer to the solver to be configured
-void DistributedImageSolverFactory::configureThresholds(const LOFAR::ACC::APS::ParameterSet &parset,
+void DistributedImageSolverFactory::configureThresholds(const LOFAR::ParameterSet &parset,
         const boost::shared_ptr<ImageSolver> &solver)
 {
     ASKAPDEBUGASSERT(solver);
@@ -129,7 +129,7 @@ void DistributedImageSolverFactory::configureThresholds(const LOFAR::ACC::APS::P
 } // method
 
 Solver::ShPtr DistributedImageSolverFactory::make(askap::scimath::Params &ip,
-        const LOFAR::ACC::APS::ParameterSet &parset,
+        const LOFAR::ParameterSet &parset,
         askap::cp::IBasicComms& comms) {
 
     // Temporary

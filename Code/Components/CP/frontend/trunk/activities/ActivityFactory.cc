@@ -30,7 +30,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
-#include "APS/ParameterSet.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "activities/Activity.h"
@@ -54,7 +54,7 @@ ActivityFactory::~ActivityFactory()
 }
 
 askap::cp::Activity::ShPtr ActivityFactory::makeActivity(const std::string& type,
-        const LOFAR::ACC::APS::ParameterSet& parset)
+        const LOFAR::ParameterSet& parset)
 {
     askap::cp::Activity::ShPtr activity;
 

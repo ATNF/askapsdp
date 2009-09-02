@@ -88,6 +88,10 @@ Ice::ObjectAdapterPtr AdminInterface::createAdapter(void)
 // Ice "IComponent" interfaces
 void AdminInterface::startup(const askap::interfaces::component::ParameterMap& params, const Ice::Current& cur)
 {
+    if (itsState == ONLINE)
+    {
+        throw StartupException("Already started");
+    }
     itsState = ONLINE;
 }
 
@@ -104,6 +108,10 @@ askap::interfaces::component::ComponentTestResults AdminInterface::selfTest(cons
 
 askap::interfaces::component::ComponentState AdminInterface::getState(const Ice::Current& cur)
 {
+    if (itsState == ONLINE)
+    {
+        throw CannotTestException();
+    }
     return itsState;
 }
 

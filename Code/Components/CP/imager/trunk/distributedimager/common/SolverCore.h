@@ -30,7 +30,7 @@
 // System includes
 
 // ASKAPsoft includes
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 #include <fitting/Solver.h>
@@ -47,7 +47,7 @@ namespace askap {
         class SolverCore
         {
             public:
-                SolverCore(LOFAR::ACC::APS::ParameterSet& parset,
+                SolverCore(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms,
                         askap::scimath::Params::ShPtr model_p);
                 virtual ~SolverCore();
@@ -67,7 +67,7 @@ namespace askap {
                 askap::scimath::Solver::ShPtr itsSolver;
 
                 // Parameter set
-                LOFAR::ACC::APS::ParameterSet& itsParset;
+                LOFAR::ParameterSet& itsParset;
    
                 // Communications class
                 askap::cp::IBasicComms& itsComms;
