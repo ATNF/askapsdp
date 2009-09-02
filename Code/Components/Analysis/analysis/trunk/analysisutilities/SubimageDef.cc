@@ -84,7 +84,7 @@ namespace askap {
             }
         }
 
-        SubimageDef::SubimageDef(const LOFAR::ACC::APS::ParameterSet& parset)
+        SubimageDef::SubimageDef(const LOFAR::ParameterSet& parset)
         {
             this->itsNAxis = 0;
             this->itsImageName = parset.getString("image");

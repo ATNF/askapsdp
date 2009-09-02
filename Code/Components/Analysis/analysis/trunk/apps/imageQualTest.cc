@@ -33,7 +33,7 @@
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <iostream>
 #include <fstream>
@@ -49,7 +49,6 @@
 using namespace askap;
 using namespace askap::analysis;
 using namespace askap::analysis::matching;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, "imageQualTest.log");
 
@@ -81,8 +80,8 @@ int main(int argc, const char** argv)
         casa::Timer timer;
         timer.mark();
         std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
-        ParameterSet parset(parsetFile);
-        ParameterSet subset(parset.makeSubset("imageQual."));
+        LOFAR::ParameterSet parset(parsetFile);
+        LOFAR::ParameterSet subset(parset.makeSubset("imageQual."));
         DuchampParallel image(argc, argv, subset);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.getMetadata();

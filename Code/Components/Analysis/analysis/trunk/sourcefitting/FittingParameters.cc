@@ -73,7 +73,7 @@ namespace askap {
                 return false;
             }
 
-            FittingParameters::FittingParameters(const LOFAR::ACC::APS::ParameterSet& parset)
+            FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
             {
                 this->itsMaxRMS = parset.getDouble("maxRMS", defaultMaxRMS);
                 this->itsMaxNumGauss = parset.getInt32("maxNumGauss", defaultMaxNumFittedGauss);

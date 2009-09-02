@@ -130,7 +130,7 @@ namespace askap {
             return gsl_sf_gamma_inc(ndof / 2., chisq / 2.) / gsl_sf_gamma(ndof / 2.);
         }
 
-        duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset)
+        duchamp::Param parseParset(const LOFAR::ParameterSet& parset)
         {
             /// @details
             /// Takes a ParameterSet and reads in the necessary Duchamp

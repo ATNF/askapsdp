@@ -31,7 +31,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <casa/aipstype.h>
 #include <ms/MeasurementSets/MeasurementSet.h>

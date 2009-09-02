@@ -29,7 +29,7 @@
 #include <analysisutilities/SubimageDef.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <wcslib/wcs.h>
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <string>
 #include <math.h>
@@ -52,7 +52,7 @@ namespace askap {
                 struct wcsprm *dummyWCS;
 
                 SubimageDef subdef;
-                LOFAR::ACC::APS::ParameterSet parset; // used for defining the subdef
+                LOFAR::ParameterSet parset; // used for defining the subdef
                 std::string baseSection;
                 std::vector<long> imageDim;
 

@@ -35,7 +35,7 @@
 
 #include <askapparallel/AskapParallel.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/PixelMap/Voxel.hh>
@@ -67,7 +67,7 @@ namespace askap {
                 /// @param argc Number of command line inputs
                 /// @param argv Command line inputs
                 /// @param parset The parameter set to read Duchamp and other parameters from.
-                DuchampParallel(int argc, const char** argv, const LOFAR::ACC::APS::ParameterSet& parset);
+                DuchampParallel(int argc, const char** argv, const LOFAR::ParameterSet& parset);
 
                 /// @brief Default constructor
                 DuchampParallel(int argc, const char** argv);

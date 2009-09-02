@@ -36,7 +36,7 @@
 
 #include <askapparallel/AskapParallel.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 #include <Common/LofarTypedefs.h>
 using namespace LOFAR::TYPES;
 #include <Blob/BlobString.h>

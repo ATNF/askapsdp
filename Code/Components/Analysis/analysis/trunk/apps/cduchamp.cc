@@ -39,7 +39,7 @@
 
 #include <duchamp/duchamp.hh>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <stdexcept>
 #include <iostream>
@@ -51,7 +51,6 @@ using std::endl;
 
 using namespace askap;
 using namespace askap::analysis;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, "cduchamp.log");
 
@@ -83,8 +82,8 @@ int main(int argc, const char** argv)
         casa::Timer timer;
         timer.mark();
         std::string parsetFile(getInputs("-inputs", "cduchamp.in", argc, argv));
-        ParameterSet parset(parsetFile);
-        ParameterSet subset(parset.makeSubset("Cduchamp."));
+        LOFAR::ParameterSet parset(parsetFile);
+        LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
         DuchampParallel duchamp(argc, argv, subset);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         duchamp.readData();

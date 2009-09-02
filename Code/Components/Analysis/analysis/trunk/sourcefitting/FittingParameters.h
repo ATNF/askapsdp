@@ -42,7 +42,7 @@
 
 #include <casa/namespace.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <map>
 #include <vector>
@@ -119,7 +119,7 @@ namespace askap {
                     FittingParameters() {};
                     /// @brief Constructor
                     /// @param parset The parameter set to read parameters from.
-                    FittingParameters(const LOFAR::ACC::APS::ParameterSet& parset);
+                    FittingParameters(const LOFAR::ParameterSet& parset);
 
                     /// @brief Default destructor
                     virtual ~FittingParameters() {};

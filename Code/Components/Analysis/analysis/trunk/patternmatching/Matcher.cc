@@ -35,7 +35,7 @@
 #include <patternmatching/GrothTriangles.h>
 #include <analysisutilities/MatchingUtilities.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <duchamp/fitsHeader.hh>
 
@@ -108,7 +108,7 @@ namespace askap {
                 return *this;
             }
 
-            Matcher::Matcher(const LOFAR::ACC::APS::ParameterSet& parset)
+            Matcher::Matcher(const LOFAR::ParameterSet& parset)
             {
                 /// @details The parameter file is examined for the relevant
                 /// parameters to define the input and output files, the base

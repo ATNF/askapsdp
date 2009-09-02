@@ -38,7 +38,7 @@ using namespace LOFAR::TYPES;
 #include <Blob/BlobOBufString.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
-#include <APS/Exceptions.h>
+#include <Common/Exceptions.h>
 
 #include <casa/OS/Timer.h>
 #include <casa/Utilities/Regex.h>
@@ -127,12 +127,12 @@ namespace askap {
         DuchampParallel::DuchampParallel(int argc, const char** argv)
                 : AskapParallel(argc, argv)
         {
-            this->itsFitter = sourcefitting::FittingParameters(LOFAR::ACC::APS::ParameterSet());
+            this->itsFitter = sourcefitting::FittingParameters(LOFAR::ParameterSet());
         }
         //**************************************************************//
 
         DuchampParallel::DuchampParallel(int argc, const char** argv,
-                                         const LOFAR::ACC::APS::ParameterSet& parset)
+                                         const LOFAR::ParameterSet& parset)
                 : AskapParallel(argc, argv)
         {
             /// @details The constructor reads parameters from the parameter
@@ -149,7 +149,7 @@ namespace askap {
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
-            LOFAR::ACC::APS::ParameterSet fitParset = parset.makeSubset("Fitter.");
+            LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
             this->itsFitter = sourcefitting::FittingParameters(fitParset);
 
             if (this->itsFitter.numFitTypes() == 0 && this->itsFlagDoFit)

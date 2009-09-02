@@ -43,7 +43,7 @@ using namespace LOFAR::TYPES;
 #include <Blob/BlobOBufString.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
-#include <APS/Exceptions.h>
+#include <Common/Exceptions.h>
 
 namespace askap {
     namespace analysis {

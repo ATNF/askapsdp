@@ -39,7 +39,7 @@
 
 #include <duchamp/duchamp.hh>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <stdexcept>
 #include <iostream>
@@ -52,7 +52,6 @@ using std::endl;
 using namespace askap;
 using namespace askap::analysis;
 using namespace askap::analysis::matching;
-using namespace LOFAR::ACC::APS;
 
 ASKAP_LOGGER(logger, "continuumAnalysis.log");
 
@@ -84,8 +83,8 @@ int main(int argc, const char** argv)
         casa::Timer timer;
         timer.mark();
         std::string parsetFile(getInputs("-inputs", "continuumAnalysis.in", argc, argv));
-        ParameterSet parset(parsetFile);
-        ParameterSet subsetD(parset.makeSubset("Cduchamp."));
+        LOFAR::ParameterSet parset(parsetFile);
+        LOFAR::ParameterSet subsetD(parset.makeSubset("Cduchamp."));
         DuchampParallel image(argc, argv, subsetD);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.readData();
@@ -101,7 +100,7 @@ int main(int argc, const char** argv)
         image.printResults();
 
         if (image.isMaster()) { // only do the cross matching on the master node.
-            ParameterSet subsetE(parset.makeSubset("imageQual."));
+            LOFAR::ParameterSet subsetE(parset.makeSubset("imageQual."));
             Matcher matcher(subsetE);
             matcher.setHeader(image.cube().header());
             matcher.readLists();

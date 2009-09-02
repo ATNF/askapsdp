@@ -34,7 +34,7 @@
 
 #include <patternmatching/GrothTriangles.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <duchamp/fitsHeader.hh>
 
@@ -66,7 +66,7 @@ namespace askap {
                     Matcher& operator= (const Matcher &m);
                     virtual ~Matcher();
                     /// @brief Constructor, using an input parameter set
-                    Matcher(const LOFAR::ACC::APS::ParameterSet& parset);
+                    Matcher(const LOFAR::ParameterSet& parset);
 
                     /// @brief Store the FITS header, including the WCS of the image
                     void setHeader(duchamp::FitsHeader &head);

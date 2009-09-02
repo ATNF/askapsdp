@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
@@ -53,7 +53,7 @@ namespace askap {
 
         /// @brief Parse a ParameterSet and define duchamp::param parameters.
         /// @ingroup analysisutilities
-        duchamp::Param parseParset(const LOFAR::ACC::APS::ParameterSet& parset);
+        duchamp::Param parseParset(const LOFAR::ParameterSet& parset);
 
         /// @brief Find an rms for an array given a mean value
         /// @ingroup analysisutilities
@@ -73,15 +73,15 @@ namespace askap {
 
         /// @brief Return a vector list of subsections, one for each worker.
         /// @ingroup analysisutilities
-        std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
+        std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ParameterSet& parset);
 
         /// @brief Return a subsection for a given worker.
         /// @ingroup analysisutilities
-        duchamp::Section getSection(int workerNum, const LOFAR::ACC::APS::ParameterSet& parset);
+        duchamp::Section getSection(int workerNum, const LOFAR::ParameterSet& parset);
 
         /// @brief Make subimages and return a vector list of subsections.
         /// @ingroup analysisutilities
-        std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ACC::APS::ParameterSet& parset);
+        std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ParameterSet& parset);
 
         /// @brief Remove blank spaces from the beginning of a string
         std::string removeLeadingBlanks(std::string s);

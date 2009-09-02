@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
@@ -52,7 +52,7 @@ namespace askap {
                 /// @brief Default constructor
                 SubimageDef();
                 /// @brief Constructor using parset.
-                SubimageDef(const LOFAR::ACC::APS::ParameterSet& parset);
+                SubimageDef(const LOFAR::ParameterSet& parset);
                 /// @brief Copy function
                 SubimageDef& operator= (const SubimageDef& s);
                 /// @brief Default destructor

@@ -43,7 +43,7 @@
 
 #include <casa/namespace.h>
 
-#include <APS/ParameterSet.h>
+#include <Common/ParameterSet.h>
 
 #include <map>
 #include <vector>
