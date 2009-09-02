@@ -66,6 +66,28 @@ void fillArray(casa::Array<float> &in, const RandomGenerator &rg)
   for (size_t i=0; i<flattened.nelements(); ++i) {
        flattened[i] = rg();
   }
+  // add some pattern
+  casa::IPosition index(in.shape().nelements(),0);
+  ASKAPASSERT(index.nelements()>=2);
+  ASKAPASSERT(in.shape()[0]>1);
+  ASKAPASSERT(in.shape()[1]>1);
+
+  // central peak
+  index[0]=in.shape()[0]/2;
+  index[1]=in.shape()[0]/2;
+  in(index) = 1.;
+  // a ring
+  const float radius = 30.;
+  for (size_t i=0; i<1000; ++i) {
+     const float angle = float(i)/500.*casa::C::pi;
+     const float dx = radius*cos(angle);
+     const float dy = -radius*sin(angle);
+     index[0] = in.shape()[0]/2 + int(dx);
+     index[1] = in.shape()[1]/2 + int(dy);
+     if ((index[0]>=0) && (index[0]<in.shape()[0]) && (index[1]>=0) && (index[1]<in.shape()[1])) {
+         in(index) += 0.1;
+     }
+  }  
 }
 
 int main(int argc, char **argv) {
@@ -77,8 +99,8 @@ int main(int argc, char **argv) {
      askap::mwbase::MPIConnection::initMPI(argc, (const char **&)argv);
      RandomGenerator rg(0.01);
      // hard coded parameters of the test
-     const casa::Int size = 512;
-     const size_t numberOfRuns = 10;
+     const casa::Int size = 1024;
+     const size_t numberOfRuns = 5;
      //
      const casa::IPosition shape(2,size,size);
      
@@ -88,13 +110,19 @@ int main(int argc, char **argv) {
      fillArray(img,rg);
           
      std::cerr<<"Image initialization: "<<timer.real()<<std::endl;
-
      timer.mark();
      
-     std::cerr<<"Initialization of preconditioner: "<<timer.real()<<std::endl;       
+     const float noisepower = 100.;
+     WienerPreconditioner wp(noisepower);
      
+     std::cerr<<"Initialization of preconditioner: "<<timer.real()<<std::endl;            
      timer.mark();     
-     std::cerr<<"Preconditioning: "<<timer.real()<<std::endl;
+     
+     for (size_t run=0; run<numberOfRuns; ++run) {
+          wp.doPreconditioning(psf,img);
+     }
+     
+     std::cerr<<"Preconditioning <"<<numberOfRuns<<" run(s)>: "<<timer.real()<<std::endl;
      
      timer.mark();     
      SynthesisParamsHelper::saveAsCasaImage("outpsf.casa",psf);
