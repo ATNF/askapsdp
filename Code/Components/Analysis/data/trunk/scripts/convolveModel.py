@@ -1,5 +1,6 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 
+import askap.analysis.data
 import os
 from optparse import OptionParser
 from math import *
@@ -58,15 +59,15 @@ if(options.numNodes>1):
 if(options.useE2E):
 #pathToSims = "%s/Code/Components/Analysis/simulations/tags/simulations-end2end1/bin"%os.environ['ASKAP_ROOT']
 #pathToAnalysis =  "%s/Code/Components/Analysis/analysis/tags/analysis-end2end1/bin"%os.environ['ASKAP_ROOT']
-    pathToSims = "%s/Code/Components/Analysis/simulations/tags/simulations-end2end1/apps"%os.environ['ASKAP_ROOT']
-    pathToAnalysis =  "%s/Code/Components/Analysis/analysis/tags/analysis-end2end1/apps"%os.environ['ASKAP_ROOT']
+    pathToSims = "%s/Code/Components/Analysis/simulations/tags/simulations-end2end1/install/bin"%os.environ['ASKAP_ROOT']
+    pathToAnalysis =  "%s/Code/Components/Analysis/analysis/tags/analysis-end2end1/install/bin"%os.environ['ASKAP_ROOT']
     pathToData =  "%s/Code/Components/Analysis/data/tags/data-end2end1/install/bin"%os.environ['ASKAP_ROOT']
     pathToCat = "%s/Code/Components/Analysis/data/tags/data-end2end1/catalogues/"%os.environ['ASKAP_ROOT']
 else:
 #pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
 #pathToAnalysis =  "%s/Code/Components/Analysis/analysis/trunk/install/bin"%os.environ['ASKAP_ROOT']
-    pathToSims = "%s/Code/Components/Analysis/simulations/trunk/apps"%os.environ['ASKAP_ROOT']
-    pathToAnalysis =  "%s/Code/Components/Analysis/analysis/trunk/apps"%os.environ['ASKAP_ROOT']
+    pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
+    pathToAnalysis =  "%s/Code/Components/Analysis/analysis/trunk/install/bin"%os.environ['ASKAP_ROOT']
     pathToData =  "%s/Code/Components/Analysis/data/trunk/install/bin"%os.environ['ASKAP_ROOT']
     pathToCat = "%s/Code/Components/Analysis/data/trunk/catalogues"%os.environ['ASKAP_ROOT']
 
