@@ -14,8 +14,9 @@ export DYLD_LIBRARY_PATH=$ICE_ROOT/lib:$DYLD_LIBRARY_PATH
 ../start_services.sh config.icegrid
 
 # Start the runtime
-$ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/cpfe_runtime.sh -inputs cpfe_runtime.in &
-sleep 1
+echo "Starting the Central Processor Frontend Runtime..."
+icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add cpfe_runtime.xml"
+sleep 2
 
 # Run the test
 $ASKAP_ROOT/Code/Components/CP/frontend/trunk/apps/tControl.sh --Ice.Config=config.tControl -inputs workflow.in

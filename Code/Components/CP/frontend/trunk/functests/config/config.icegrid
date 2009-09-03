@@ -42,3 +42,6 @@ Ice.Trace.Network=0
 #
 Ice.Trace.Protocol=0
 
+Ice.StdOut=icegrid.stdout
+Ice.StdErr=icegrid.stderr
+

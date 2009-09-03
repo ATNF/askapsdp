@@ -29,7 +29,6 @@
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
-#include "Common/ParameterSet.h"
 #include "boost/shared_ptr.hpp"
 #include "runtime/Frontend.h"
 #include "runtime/Workflow.h"
@@ -41,15 +40,13 @@ namespace askap {
         {
             public:
                 /// @brief Constructor.
-                Runtime(const LOFAR::ParameterSet& parset);
+                Runtime(const Ice::CommunicatorPtr ic);
 
                 /// @brief Destructor.
                 virtual ~Runtime();
 
+                /// @brief Run, blocking...
                 void run(void);
-                Ice::CommunicatorPtr initIce(const LOFAR::ParameterSet& parset);
-                Ice::ObjectAdapterPtr createAdapter(const LOFAR::ParameterSet& parset,
-                        Ice::CommunicatorPtr& ic);
 
                 // Ice "Frontend" interfaces
                 void startWorkflow(const askap::cp::frontend::WorkflowDesc& wfDesc, const Ice::Current& cur);
@@ -57,8 +54,6 @@ namespace askap {
                 void shutdown(const Ice::Current& cur);
 
             private:
-                LOFAR::ParameterSet itsParset;
-
                 Ice::CommunicatorPtr itsComm;
                 Ice::ObjectAdapterPtr itsAdapter;
 

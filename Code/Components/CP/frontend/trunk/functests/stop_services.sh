@@ -12,18 +12,11 @@ if [ ! -f $1 ]; then
 fi
 
 # Setup the environment
-ICE_ROOT=$ASKAP_ROOT/3rdParty/Ice/tags/Ice-3.3.0/install
-export PATH=$PATH:$ICE_ROOT/bin
-
-# For Unix/Linux
-export LD_LIBRARY_PATH=$ICE_ROOT/lib:$LD_LIBRARY_PATH
-
-# For Mac OSX
-export DYLD_LIBRARY_PATH=$ICE_ROOT/lib:$DYLD_LIBRARY_PATH
+source $ASKAP_ROOT/Code/Components/CP/frontend/trunk/init_package_env.sh
 
 echo -n "Stopping IceGrid and IceStorm..."
 # Request IceGrid shutdown and wait
-$ICE_ROOT/bin/icegridadmin --Ice.Config=$1 -u foo -p bar -e "node shutdown Node1"
+icegridadmin --Ice.Config=$1 -u foo -p bar -e "node shutdown Node1"
 sleep 2
 echo "STOPPED"
 

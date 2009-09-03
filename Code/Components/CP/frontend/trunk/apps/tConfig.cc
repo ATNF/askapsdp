@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
         WorkflowDesc workflow = buildWorkflowDesc(parset);
 
         // Obtain the proxy
-        Ice::ObjectPrx base = ic->stringToProxy("cpfe_runtime1@cpfe_runtime_test");
+        Ice::ObjectPrx base = ic->stringToProxy("cpfe_runtime1");
         IFrontendPrx frontend = IFrontendPrx::checkedCast(base);
         if (!frontend) {
             std::cerr << "Invalid proxy" << std::endl;

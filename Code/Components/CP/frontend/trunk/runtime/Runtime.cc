@@ -42,8 +42,8 @@ using askap::cp::frontend::WorkflowDesc;
 
 ASKAP_LOGGER(logger, ".Runtime");
 
-Runtime::Runtime(const LOFAR::ParameterSet& parset)
-    : itsParset(parset)
+Runtime::Runtime(const Ice::CommunicatorPtr ic)
+    : itsComm(ic)
 {
     ASKAPLOG_INFO_STR(logger, "Creating Runtime");
 }
@@ -56,17 +56,13 @@ Runtime::~Runtime()
 void Runtime::run(void)
 {
     ASKAPLOG_INFO_STR(logger, "Running Runtime");
-
-    // Initialise ICE
-    itsComm = initIce(itsParset);
     ASKAPCHECK(itsComm, "Initialization of Ice communicator failed");
 
-    itsAdapter = createAdapter(itsParset, itsComm);
+    itsAdapter = itsComm->createObjectAdapter("CpfeRuntimeAdapter");
+    ASKAPCHECK(itsAdapter, "Creation of Ice Adapter failed");
 
     Ice::ObjectPtr object = this;
-    const std::string name = itsParset.getString("runtime");
-    itsAdapter->add(object, itsComm->stringToIdentity(name));
-
+    itsAdapter->add(object, itsComm->stringToIdentity("cpfe_runtime1"));
 
     itsAdapter->activate();
 
@@ -75,60 +71,10 @@ void Runtime::run(void)
     itsComm->waitForShutdown();
 }
 
-Ice::CommunicatorPtr Runtime::initIce(const LOFAR::ParameterSet& parset)
-{
-    // Get the initialized property set.
-    Ice::PropertiesPtr props = Ice::createProperties();
-    ASKAPCHECK(props, "Ice properties creation failed");
-
-    // Get (from parset) and set (into ice props) various configuration
-    // parameters    
-    std::string tracenet = parset.getString("ice.trace.network", "0");
-    props->setProperty("Ice.Trace.Network", tracenet);
-
-    std::string traceprot = parset.getString("ice.trace.protocol", "0");
-    props->setProperty("Ice.Trace.Protocol", traceprot);
-
-    std::string locator = parset.getString("ice.locator");
-    props->setProperty("Ice.Default.Locator", locator);
-
-    // Initialize a communicator with these properties.
-    Ice::InitializationData id;
-    id.properties = props;
-    return Ice::initialize(id);
-}
-
-Ice::ObjectAdapterPtr Runtime::createAdapter(const LOFAR::ParameterSet& parset,
-        Ice::CommunicatorPtr& ic)
-{
-    Ice::PropertiesPtr props = ic->getProperties();
-
-    std::string adapterName = parset.getString("ice.adapter.name");
-    std::string adapterEndpoint = parset.getString("ice.adapter.endpoints");
-
-    // Need to create props like this (given an adapter name of TestAdapter
-    // and an endpoint of tcp)
-    // TestAdapter.AdapterId=TestAdapter
-    // TestAdapter.Endpoints=tcp
-    std::stringstream id;
-    id << adapterName << "." << "AdapterId";
-    std::stringstream ep;
-    ep << adapterName << "." << "Endpoints";
-
-    props->setProperty(id.str(), adapterName);
-    props->setProperty(ep.str(), adapterEndpoint);
-
-    Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter(adapterName);
-
-    ASKAPCHECK(ic, "Creation of Ice Adapter failed");
-
-    return adapter;
-}
-
 // Ice "Frontend" interfaces
 void Runtime::startWorkflow(const askap::cp::frontend::WorkflowDesc& wfDesc, const Ice::Current& cur)
 {
-    const std::string name = itsParset.getString("runtime");
+    const std::string name = "cpfe_runtime1";
 
     // Convert the Ice Workflow description into a ParameterSet
     LOFAR::ParameterSet wfParset;
