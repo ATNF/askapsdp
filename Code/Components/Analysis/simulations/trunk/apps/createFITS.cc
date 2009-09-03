@@ -28,10 +28,10 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 #include <askap_simulations.h>
 
-#include <FITS/FITSfile.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+
+#include <FITS/FITSfile.h>
 
 #include <Common/ParameterSet.h>
 
@@ -69,7 +69,14 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-    ASKAPLOG_INIT("createFITS.log_cfg");
+  std::ifstream config("askap.log_cfg", std::ifstream::in);
+  if (config) {
+    ASKAPLOG_INIT("askap.log_cfg");
+  } else {
+    std::ostringstream ss;
+    ss << argv[0] << ".log_cfg";
+    ASKAPLOG_INIT(ss.str().c_str());
+  }
 
     try {
         //    casa::Timer timer;
@@ -77,6 +84,7 @@ int main(int argc, const char** argv)
         //srandomdev();
         srandom(time(0));
         std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
+        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
         bool doNoise = subset.getBool("addNoise", true);

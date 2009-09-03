@@ -96,39 +96,43 @@ namespace askap {
             /// @param gauss The 2-dimensional Gaussian component.
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            int xmin = std::max(int(gauss.xCenter() - zeroPoint), 0);
-            int xmax = std::min(int(gauss.xCenter() + zeroPoint), axes[0] - 1);
-            int ymin = std::max(int(gauss.yCenter() - zeroPoint), 0);
-            int ymax = std::min(int(gauss.yCenter() + zeroPoint), axes[1] - 1);
+            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
+            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), axes[0] - 1);
+            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
+            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), axes[1] - 1);
 
-// 	    ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds ["<<xmin<<":"<<xmax<<","<<ymin<<":"<<ymax<<"] (zeropoint = "<<zeroPoint<<")");
+	    // 	    ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds ["<<xmin<<":"<<xmax<<","<<ymin<<":"<<ymax<<"] (zeropoint = "<<zeroPoint<<")");
 
 	    for(int z = 0; z < fluxGen.nChan(); z++) {
 
 	      gauss.setFlux(fluxGen.getFlux(z));
 
 	      float minSigma= (std::min(gauss.majorAxis(), gauss.minorAxis())/(2.*sqrt(2.*M_LN2)));
-	      float delta = std::min(0.1,pow(10., floor(log10(minSigma/5.))));
-//  	      ASKAPLOG_DEBUG_STR(logger, "Integrating with delta="<<delta<<"  (minSigma="<<minSigma<<")");
+ 	      float delta = std::min(0.01,pow(10., floor(log10(minSigma/5.))));
+	      //  	      ASKAPLOG_DEBUG_STR(logger, "Integrating over " << (xmax-xmin+1)*(ymax-ymin+1) << " pixels with delta="<<delta<<"  (minSigma="<<minSigma<<")");
+	      int nstep = int(1./delta);
 	      for (int x = xmin; x <= xmax; x++) {
                 for (int y = ymin; y <= ymax; y++) {
 		  int pix = x + y * axes[0] + z*axes[0]*axes[1];
-		  int nstep = int(1./delta);
+		  float pixelVal = 0.;
+		  float xpos = x-0.5-delta;
 		  for(int dx=0; dx<=nstep; dx++){
+		    xpos += delta;
+		    float ypos = y-0.5-delta;
 		    for(int dy=0; dy<=nstep; dy++){
-		      Vector<Double> loc(2);
-		      loc(0) = x-0.5+dx*delta;
-		      loc(1) = y-0.5+dy*delta;
+		      ypos += delta;
 		      // We are integrating using a 2-D trapezoidal
 		      // rule. This means the corner points get
 		      // suppressed by a factor of 4, and the side
 		      // points by a factor of 2. Hence the scale
 		      // factor terms.
-		      float xScaleFactor = (dx>0 && dx<nstep) ? 1 : 0.5;
-		      float yScaleFactor = (dy>0 && dy<nstep) ? 1 : 0.5;
-		      array[pix] += gauss(loc) * delta * delta * (xScaleFactor*yScaleFactor);
+		      float xScaleFactor = (dx>0 && dx<nstep) ? 1. : 0.5;
+		      float yScaleFactor = (dy>0 && dy<nstep) ? 1. : 0.5;
+		      pixelVal += gauss(xpos,ypos) * (xScaleFactor*yScaleFactor);
 		    }
 		  }
+
+		  array[pix] += pixelVal*delta*delta;
 
                 }
 	      }

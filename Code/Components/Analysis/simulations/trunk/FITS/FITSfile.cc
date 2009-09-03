@@ -64,7 +64,7 @@
 #include <string>
 #include <math.h>
 
-ASKAP_LOGGER(logger, ".FITS");
+ASKAP_LOGGER(logger, ".fitsfile");
 
 namespace askap {
 
