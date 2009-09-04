@@ -3,7 +3,11 @@
 import askap.analysis.data
 import os
 from optparse import OptionParser
+import askap.parset as parset
 from math import *
+
+
+############
 
 def getMPIxdim(numNodes):
     '''
@@ -14,72 +18,109 @@ def getMPIxdim(numNodes):
             return float(numNodes)/i
 
 
-parser = OptionParser()
-parser.add_option("-s","--nosublists", action="store_false", dest="doSublists", default=True, help="Do not create sublists [default: %default]")
-parser.add_option("-i","--noimage", action="store_false", dest="doImage", default=True, help="Do not create image [default: %default]")
-parser.add_option("-a","--noanalysis", action="store_false", dest="doAnalysis", default=True, help="Do not do the analysis [default: %default]")
-parser.add_option("-t","--test", action="store_true", dest="doTest", default=False, help="Just do a small test case [default: %default]")
-parser.add_option("-c","--noconvolve", action="store_false", dest="doConvolve", default=True, help="Do not do the image convolution [default: %default]")
-parser.add_option("-n","--nonoise", action="store_false", dest="useNoise", default=True, help="Do not add noise to the image [default: %default]")
-parser.add_option("-N","--Nodes", action="store", dest="numNodes", type="int", default=1, help="Number of nodes to run analysis on, via MPI [default: %default]")
-parser.add_option("-E","--EndToEnd", action="store_true", dest="useE2E", default=False, help="Use the end2end branch instead of trunk [default: %default]")
-parser.add_option("-x","--nocrossmatch", action="store_false", dest="doCrossMatch", default=True, help="Do not do the cross-matching [default: %default]")
-parser.add_option("-u","--noupdate", action="store_false", dest="doCatUpdate", default=True, help="Do not update the comparison catalogue and associated sublists/annotations [default: %default]")
+############
 
-(options, args) = parser.parse_args()
+if __name__ == '__main__':
 
-if(options.doConvolve):
-    imagename = "SKADS_model_smoothed_20arcsec.fits"
-    doConv = "true"
-else:
-    imagename = "SKADS_model_smoothed_20arcsec_noconv.fits"
-    doConv = "false"
-    options.doAnalysis = False
+    parser = OptionParser()
+    parser.add_option("-i","--inputs", dest="inputfile", default="", help="Input parameter file [default: %default]")
 
-if(options.useNoise):
-    useNoise = "true"
-else:
-    useNoise = "false"
+    (options, args) = parser.parse_args()
 
-if(options.doCrossMatch):
-    analysisApp = "continuumAnalysis.sh"
-else:
-    analysisApp = "cduchamp.sh"
+    if(options.inputfile==''):
+        print "No parset given: using default values for all parameters."
+        inputPars = parset.ParameterSet()
+    elif(not os.path.exists(options.inputfile)):
+        print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
+        inputPars = parset.ParameterSet()
+    else:
+        print "Using parset %s to obtain parameters."%options.inputfile
+        inputPars = parset.ParameterSet(options.inputfile).convolveModel
 
-useMPI=False
-nsubx=1
-nsuby=1
-if(options.numNodes>1):
-    numWorkers=options.numNodes-1
-    nsubx = getMPIxdim(numWorkers)
-    nsuby = numWorkers/nsubx
-    useMPI=True
+    doSublists = inputPars.get_value("doSublists", True)
+    makeImage = inputPars.get_value("makeImage", True)
+    doAnalysis = inputPars.get_value("doAnalysis", True)
+    addNoise = inputPars.get_value("addNoise", True)
+    testMode = inputPars.get_value("testMode", False)
+    doConvolution = inputPars.get_value("doConvolution",True)
+    numNodes = inputPars.get_value("numNodes",1)
+    useE2E = inputPars.get_value("useE2E",False);
+    doCrossMatch = inputPars.get_value("doCrossMatch", False)
+    updateModel = inputPars.get_value("updateModel", False)
+
+    catalogueFile = inputPars.get_value("catalogueFile","")
+    convolutionBeam = inputPars.get_value("beam", "")      # Need to enter beam parameters here to define convolution.
 
 
-if(options.useE2E):
-#pathToSims = "%s/Code/Components/Analysis/simulations/tags/simulations-end2end1/bin"%os.environ['ASKAP_ROOT']
-#pathToAnalysis =  "%s/Code/Components/Analysis/analysis/tags/analysis-end2end1/bin"%os.environ['ASKAP_ROOT']
-    pathToSims = "%s/Code/Components/Analysis/simulations/tags/simulations-end2end1/install/bin"%os.environ['ASKAP_ROOT']
-    pathToAnalysis =  "%s/Code/Components/Analysis/analysis/tags/analysis-end2end1/install/bin"%os.environ['ASKAP_ROOT']
-    pathToData =  "%s/Code/Components/Analysis/data/tags/data-end2end1/install/bin"%os.environ['ASKAP_ROOT']
-    pathToCat = "%s/Code/Components/Analysis/data/tags/data-end2end1/catalogues/"%os.environ['ASKAP_ROOT']
-else:
-#pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
-#pathToAnalysis =  "%s/Code/Components/Analysis/analysis/trunk/install/bin"%os.environ['ASKAP_ROOT']
-    pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
-    pathToAnalysis =  "%s/Code/Components/Analysis/analysis/trunk/install/bin"%os.environ['ASKAP_ROOT']
-    pathToData =  "%s/Code/Components/Analysis/data/trunk/install/bin"%os.environ['ASKAP_ROOT']
-    pathToCat = "%s/Code/Components/Analysis/data/trunk/catalogues"%os.environ['ASKAP_ROOT']
+#    parser = OptionParser()
+#    parser.add_option("-s","--nosublists", action="store_false", dest="doSublists", default=True, help="Do not create sublists [default: %default]")
+#    parser.add_option("-i","--noimage", action="store_false", dest="doImage", default=True, help="Do not create image [default: %default]")
+#    parser.add_option("-a","--noanalysis", action="store_false", dest="doAnalysis", default=True, help="Do not do the analysis [default: %default]")
+#    parser.add_option("-t","--test", action="store_true", dest="doTest", default=False, help="Just do a small test case [default: %default]")
+#    parser.add_option("-c","--noconvolve", action="store_false", dest="doConvolve", default=True, help="Do not do the image convolution [default: %default]")
+#    parser.add_option("-n","--nonoise", action="store_false", dest="useNoise", default=True, help="Do not add noise to the image [default: %default]")
+#    parser.add_option("-N","--Nodes", action="store", dest="numNodes", type="int", default=1, help="Number of nodes to run analysis on, via MPI [default: %default]")
+#    parser.add_option("-E","--EndToEnd", action="store_true", dest="useE2E", default=False, help="Use the end2end branch instead of trunk [default: %default]")
+#    parser.add_option("-x","--nocrossmatch", action="store_false", dest="doCrossMatch", default=True, help="Do not do the cross-matching [default: %default]")
+#    parser.add_option("-u","--noupdate", action="store_false", dest="doCatUpdate", default=True, help="Do not update the comparison catalogue and associated sublists/annotations [default: %default]")
+#    
+#    (options, args) = parser.parse_args()
+    
+#    if(options.doConvolve):
+    if(doConvolution):
+        imagename = "SKADS_model_smoothed_20arcsec.fits"
+        doConv = "true"
+    else:
+        imagename = "SKADS_model_smoothed_20arcsec_noconv.fits"
+        doConv = "false"
+#        options.doAnalysis = False
+        doAnalysis = False
+        
+#    if(options.useNoise):
+    if(addNoise):
+        useNoise = "true"
+    else:
+        useNoise = "false"
+        
+#    if(options.doCrossMatch):
+    if(doCrossMatch):
+        analysisApp = "continuumAnalysis.sh"
+    else:
+        analysisApp = "cduchamp.sh"
 
-cwd = os.getcwd()
+    useMPI=False
+    nsubx=1
+    nsuby=1
+#    if(options.numNodes>1):
+    if(numNodes>1):
+#        numWorkers=options.numNodes-1
+        numWorkers=numNodes-1
+        nsubx = getMPIxdim(numWorkers)
+        nsuby = numWorkers/nsubx
+        useMPI=True
 
-bmaj=sqrt(2.*20**2)
-bmin=bmaj
-bpa=0.
-parsetFullTest="""\
+
+#    if(options.useE2E):
+    if(useE2E):
+        pathToSims = "%s/Code/Components/Analysis/simulations/tags/simulations-end2end1/install/bin"%os.environ['ASKAP_ROOT']
+        pathToAnalysis =  "%s/Code/Components/Analysis/analysis/tags/analysis-end2end1/install/bin"%os.environ['ASKAP_ROOT']
+        pathToData =  "%s/Code/Components/Analysis/data/tags/data-end2end1/install/bin"%os.environ['ASKAP_ROOT']
+        pathToCat = "%s/Code/Components/Analysis/data/tags/data-end2end1/catalogues/"%os.environ['ASKAP_ROOT']
+    else:
+        pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
+        pathToAnalysis =  "%s/Code/Components/Analysis/analysis/trunk/install/bin"%os.environ['ASKAP_ROOT']
+        pathToData =  "%s/Code/Components/Analysis/data/trunk/install/bin"%os.environ['ASKAP_ROOT']
+        pathToCat = "%s/Code/Components/Analysis/data/trunk/catalogues"%os.environ['ASKAP_ROOT']
+        
+    cwd = os.getcwd()
+
+    bmaj=sqrt(2.*20**2)
+    bmin=bmaj
+    bpa=0.
+    parsetFullTest="""\
 ## The next block creates sublists of the main catalogue for use with the testing.
 #
-createSubs.catfilename      = %s/SKADS_S3SEX_10sqdeg_1uJy.dat
+createSubs.catfilename      = %s
 createSubs.flagAnnotation   = true
 createSubs.thresholds       = [0,10,200]
 createSubs.radii            = [0.5,5]
@@ -137,12 +178,12 @@ imageQual.Dec               = -45:00:00
 imageQual.fluxUseFit        = yes
 #imageQual.epsilon          = 10.
 #imageQual.fluxMethod       = integrated
-"""%(pathToCat,imagename,pathToCat,useNoise,doConv,bmaj/3600.,bmin/3600.,bpa,imagename,nsubx,nsuby,useNoise,imagename,cwd,cwd)
+"""%(catalogueFile,imagename,pathToCat,useNoise,doConv,bmaj/3600.,bmin/3600.,bpa,imagename,nsubx,nsuby,useNoise,imagename,cwd,cwd)
 
 ## The next three assume a 20arcsec beam
-bmaj=20
-bmin=bmaj
-bpa=0.
+    bmaj=20
+    bmin=bmaj
+    bpa=0.
 ## The next three are assuming we add 20 arcsec from weiner & restoring in parallel
 #bmaj=sqrt(2.*20**2)
 #bmin=bmaj
@@ -151,7 +192,7 @@ bpa=0.
 #bmaj=38.532
 #bmin=37.653
 #bpa=93.98
-parsetSmallTest="""\
+    parsetSmallTest="""\
 ## The next block creates sublists of the main catalogue for use with the testing.
 #
 createSubs.catfilename      = %s/SKADS_S3SEX_10sqdeg_1uJy.dat
@@ -219,31 +260,35 @@ imageQual.fluxMethod       = integrated
 """%(pathToCat,bmaj/3600.,bmin/3600.,bpa,useNoise,cwd,nsubx,nsuby,useNoise,cwd,cwd,cwd,cwd)
 
 
-parsetfileFull = "model_testing.in"
-f = file(parsetfileFull,"w")
-f.write(parsetFullTest)
-f.close()
-parsetfileTest = "model_testing_sml.in"
-f = file(parsetfileTest,"w")
-f.write(parsetSmallTest)
-f.close()
+    parsetfileFull = "model_testing.in"
+    f = file(parsetfileFull,"w")
+    f.write(parsetFullTest)
+    f.close()
+    parsetfileTest = "model_testing_sml.in"
+    f = file(parsetfileTest,"w")
+    f.write(parsetSmallTest)
+    f.close()
 
-if(options.doTest):
-    parsetfile = parsetfileTest
-else:
-    parsetfile = parsetfileFull
+#    if(options.doTest):
+    if(testMode):
+        parsetfile = parsetfileTest
+    else:
+        parsetfile = parsetfileFull
 
-if(options.doSublists):
-    print "##\nCreating the sublists\n##\n"
-    os.system(pathToData+"/createSubLists.py -i %s"%parsetfile)
-if(options.doImage):
-    print "##\nCreating the image\n##\n"
-    os.system(pathToSims+"/createFITS.sh -inputs %s"%parsetfile)
-if(options.doAnalysis):
-    print "##\nDoing the analysis\n##\n"
-    if(useMPI):
-        if(os.uname()[1].split('.')[0]=='minicp'):
-            qsubfile = """\
+#    if(options.doSublists):
+    if(doSublists):
+        print "##\nCreating the sublists\n##\n"
+        os.system(pathToData+"/createSubLists.py -i %s"%parsetfile)
+#    if(options.doImage):
+    if(makeImage):
+        print "##\nCreating the image\n##\n"
+        os.system(pathToSims+"/createFITS.sh -inputs %s"%parsetfile)
+#    if(options.doAnalysis):
+    if(doAnalysis):
+        print "##\nDoing the analysis\n##\n"
+        if(useMPI):
+            if(os.uname()[1].split('.')[0]=='minicp'):
+                qsubfile = """\
 #!/bin/bash -l
 #PBS -l nodes=%d:ppn=4
 #PBS -l walltime=72:00:00
@@ -254,37 +299,38 @@ cd $PBS_O_WORKDIR
 ulimit -c unlimited
 
 mpirun -np %d %s/%s -inputs %s/%s 1>& %s/analysis.log
-"""%(1+options.numNodes/4,options.numNodes,pathToAnalysis,analysisApp,cwd,parsetfile,cwd)
-            f = file("model_testing.qsub","w")
-            f.write(qsubfile)
-            f.close()
-            os.system("qsub model_testing.qsub")
-            print "Have submitted the job -- check the queue in the usual manner for completion."
+"""%(1+numNodes/4,numNodes,pathToAnalysis,analysisApp,cwd,parsetfile,cwd)
+                f = file("model_testing.qsub","w")
+                f.write(qsubfile)
+                f.close()
+                os.system("qsub model_testing.qsub")
+                print "Have submitted the job -- check the queue in the usual manner for completion."
+            else:
+                os.system("mpirun -np %d %s/%s -inputs %s 1>& analysis.log"%(numNodes,pathToAnalysis,analysisApp,parsetfile))
         else:
-            os.system("mpirun -np %d %s/%s -inputs %s 1>& analysis.log"%(options.numNodes,pathToAnalysis,analysisApp,parsetfile))
-    else:
-        os.system(pathToAnalysis+"/%s -inputs %s 1>& analysis.log"%(analysisApp,parsetfile))
+            os.system(pathToAnalysis+"/%s -inputs %s 1>& analysis.log"%(analysisApp,parsetfile))
 
 
-if(options.doCatUpdate):
+#    if(options.doCatUpdate):
+    if(updateModel):
 
-    print "##\nCreating the new catalogue\n##\n"
-    newCatName = "newCatalogue_200uJy_20arcsec.txt"
-    awkStatement="tail -`wc -l duchamp-Summary.txt | awk '{print $1-2}'` duchamp-Summary.txt | awk '{if($16>0) printf \"%%s  %%s  %%11.8f  %%8.3f  %%8.3f  %%6.4f\\n\",$2,$3,$6,$8,$9,$10*3.14159265359/180.}' > %s"%newCatName
-    print "##\nExecuting statement: %s\n##\n"%awkStatement
-    os.system(awkStatement)
-    sublistParset="""\
+        print "##\nCreating the new catalogue\n##\n"
+        newCatName = "newCatalogue_200uJy_20arcsec.txt"
+        awkStatement="tail -`wc -l duchamp-Summary.txt | awk '{print $1-2}'` duchamp-Summary.txt | awk '{if($16>0) printf \"%%s  %%s  %%11.8f  %%8.3f  %%8.3f  %%6.4f\\n\",$2,$3,$6,$8,$9,$10*3.14159265359/180.}' > %s"%newCatName
+        print "##\nExecuting statement: %s\n##\n"%awkStatement
+        os.system(awkStatement)
+        sublistParset="""\
 createSubs.catfilename      = %s
 createSubs.flagAnnotation   = true
 createSubs.thresholds       = [0]
 createSubs.radii            = [3.5]
 createSubs.destDir          = .
 """%newCatName
-    parsetfile = "model_testing_subs.in"
-    f = file(parsetfile,"w")
-    f.write(sublistParset)
-    f.close()
-    print "##\nCreating the sublists of the new catalogue\n##\n"
-    os.system(pathToData+"/createSubLists.py -i %s"%parsetfile)
+        parsetfile = "model_testing_subs.in"
+        f = file(parsetfile,"w")
+        f.write(sublistParset)
+        f.close()
+        print "##\nCreating the sublists of the new catalogue\n##\n"
+        os.system(pathToData+"/createSubLists.py -i %s"%parsetfile)
 
 ####
