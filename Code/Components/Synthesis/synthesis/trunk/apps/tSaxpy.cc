@@ -85,6 +85,7 @@
 #include <iostream>
 #include <ctime>
 #include <complex>
+#include <cstdlib>
 
 using std::cout;
 using std::endl;

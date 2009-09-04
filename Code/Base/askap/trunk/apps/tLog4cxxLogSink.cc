@@ -21,11 +21,15 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
+// System includes
+#include <iostream>
+#include <cstring>
+
+// ASKAPsoft includes
 #include <askap_askap.h>
 #include <askap/AskapLogging.h>
 #include <askap/Log4cxxLogSink.h>
-#include<casa/Logging/LogIO.h>
-#include <iostream>
+#include <casa/Logging/LogIO.h>
 
 using namespace askap;
 

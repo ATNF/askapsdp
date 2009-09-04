@@ -34,6 +34,7 @@
 #include <stdexcept>
 #include <vector>
 #include <stdint.h>
+#include <limits>
 
 // MPI includes
 #include <mpi.h>
