@@ -75,7 +75,7 @@ namespace askap
     /// This is calculated by direct evaluation.
     ///
     /// @ingroup gridding
-    class TableVisGridder : public IVisGridder
+    class TableVisGridder : virtual public IVisGridder
     {
   public:
 
