@@ -60,6 +60,7 @@ namespace synthesis {
   void VisGridderFactory::registerGridder (const std::string& name,
                                            VisGridderFactory::GridderCreator* creatorFunc)
   {
+    ASKAPLOG_INFO_STR(logger, "     - Adding gridder "<<name<<" to the registry");
     theirRegistry[name] = creatorFunc;
   }
 
@@ -77,6 +78,8 @@ namespace synthesis {
       }
       // Try to load the dynamic library and execute its register function.
       // Do not dlclose the library.
+      ASKAPLOG_INFO_STR(logger, "Gridder "<<name<<
+                 " is not in the registry, attempting to load it dynamically");
       casa::DynLib dl(tp, string("libaskap_"), "register_"+tp, false);
       if (dl.getHandle()) {
         // Successfully loaded. Get the creator function.
@@ -176,8 +179,14 @@ VisGridderFactory::makeIllumination(const LOFAR::ParameterSet &parset)
   // Currently the standard gridders are still handled by this function.
   // In the (near) future it should be done by putting creator functions
   // for these gridders in the registry and use that.
-IVisGridder::ShPtr VisGridderFactory::make(
-		const LOFAR::ParameterSet &parset) {
+IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
+    if (theirRegistry.size() == 0) {
+        // this is the first call of the method, we need to fill the registry with
+        // all pre-defined gridders
+        ASKAPLOG_INFO_STR(logger, "Filling the gridder registry with pre-defined gridders");
+    }
+    
+	// buffer for the result
 	IVisGridder::ShPtr gridder;
 	/// @todo Better handling of string case
         string gridderName = parset.getString("gridder");

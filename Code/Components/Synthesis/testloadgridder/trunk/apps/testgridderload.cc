@@ -27,6 +27,7 @@
 
 #include <gridding/VisGridderFactory.h>
 
+#include <askapparallel/AskapParallel.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/Log4cxxLogSink.h>
@@ -41,13 +42,16 @@ using namespace askap::synthesis;
 using namespace LOFAR;
 
 // Main function
-int main (int, char* argv[])
+int main (int argc, const char** argv)
 {
   try {
 
     // Ensure that CASA log messages are captured
     casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
     casa::LogSink::globalSink (globalSink);
+    // the following line is necessary just to initialise the logger
+    askap::mwbase::AskapParallel ap(argc, argv);
+    ASKAPLOG_INFO_STR(logger, "Testing dynamic loading of the gridder");
 
     // Create a TestLoadGridder instance.
     ParameterSet parset;
