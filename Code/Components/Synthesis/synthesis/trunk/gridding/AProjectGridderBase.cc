@@ -31,6 +31,9 @@
 
 #include <gridding/AProjectGridderBase.h>
 #include <askap/AskapError.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -55,6 +58,74 @@ AProjectGridderBase::AProjectGridderBase(const int maxFeeds, const int maxFields
   ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
 }
 
+/// @brief copy constructor
+/// @details It is needed because we have a shared pointer as a data member and want to
+/// clone the object instead of copying the reference as if it would be by default.
+/// @param[in] other input object
+AProjectGridderBase::AProjectGridderBase(const AProjectGridderBase &other) : 
+    itsPointingTolerance(other.itsPointingTolerance),
+    itsParallacticAngleTolerance(other.itsParallacticAngleTolerance),
+    itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),
+    itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()), 
+    itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
+    itsNumberOfIterations(other.itsNumberOfIterations),
+    itsNumberOfCFGenerationsDueToPA(other.itsNumberOfCFGenerationsDueToPA), 
+    itsCFParallacticAngle(other.itsCFParallacticAngle),
+    itsNumberOfCFGenerationsDueToFreq(other.itsNumberOfCFGenerationsDueToFreq),
+    itsFrequencyTolerance(other.itsFrequencyTolerance),
+    itsCachedFrequencies(other.itsCachedFrequencies)
+{
+  if (other.itsPattern) {
+      itsPattern.reset(new UVPattern(*(other.itsPattern)));
+  }
+}
+  
+/// @brief destructor
+/// @details We print cache usage stats here. No specific destruction is required for any data member
+AProjectGridderBase::~AProjectGridderBase()
+{
+  size_t nUsed = 0;
+  for (casa::uInt feed = 0; feed<itsDone.nrow(); ++feed) {
+      for (casa::uInt field = 0; field<itsDone.ncolumn(); ++field) {
+           if (isCFValid(feed,field)) {
+               ++nUsed;
+            }
+      }
+  }  
+  if (itsDone.nelements()) {
+      ASKAPLOG_INFO_STR(logger, "AProjectGridderBase: CF cache memory utilisation (last iteration): "<<
+              double(nUsed)/double(itsDone.nrow()*itsDone.ncolumn())*100<<"% of maxfeed*maxfield");
+  }
+  
+  if (itsNumberOfIterations != 0) {
+      ASKAPLOG_INFO_STR(logger, "AProjectGridderBase: CFs were rebuilt "<<
+             itsNumberOfCFGenerations<<" times for "<<itsNumberOfIterations<<" iterations");
+      ASKAPLOG_INFO_STR(logger, "Last iteration worked with "<<nUsed<<" CFs");        
+      if (itsNumberOfCFGenerations != 0) {
+          ASKAPLOG_INFO_STR(logger, "Parallactic angle change caused "<<
+                  itsNumberOfCFGenerationsDueToPA<<" of those rebuilds ("<<
+                  double(itsNumberOfCFGenerationsDueToPA)/double(itsNumberOfCFGenerations)*100<<
+                  " %)");
+          ASKAPLOG_INFO_STR(logger, "Frequency axis change caused "<<
+                  itsNumberOfCFGenerationsDueToFreq<<" of those rebuilds ("<<
+                  double(itsNumberOfCFGenerationsDueToFreq)/double(itsNumberOfCFGenerations)*100<<
+                  " %)");
+      }   
+      if (nUsed != 0) { 
+          // because nUsed is strictly speaking applicable to the last iteration only we need
+          // to filter out rediculous values (and warn the user that the result is approximate
+          // anyway)
+          const double utilisation = (1.-double(itsNumberOfCFGenerations)/
+                                  double(itsNumberOfIterations*nUsed));
+          if ((utilisation<1.) && (utilisation>0.)) {
+              ASKAPLOG_INFO_STR(logger, "Approximate CF cache utilisation is "<<
+                                        utilisation*100.<<" %");
+          }
+      }
+  }
+}
+
+
 /// @brief set up buffer in the uv-space
 /// @details To work with illumination patterns we need a buffer. Moving initialisation
 /// out of the loop allows to improve the performance. This method is supposed to be called
@@ -77,7 +148,32 @@ void AProjectGridderBase::initUVPattern(casa::uInt uSize, casa::uInt vSize, doub
 /// @param[in] acc input const accessor to analyse
 void AProjectGridderBase::indexField(const IConstDataAccessor &acc)
 {
-  acc.nRow();
+  // Validate cache using first row only
+  bool newField = true;
+  ASKAPDEBUGASSERT(acc.nRow()>0);
+
+  casa::uInt firstFeed = acc.feed1()(0);
+  ASKAPCHECK(firstFeed<itsDone.nrow(), "Too many feeds: increase maxfeeds");
+  casa::MVDirection firstPointing = acc.pointingDir1()(0);
+
+  for (int field=itsLastField; field>-1; --field) {
+       if (firstPointing.separation(pointing(firstFeed, field))<itsPointingTolerance) {
+           itsCurrentField = field;
+           newField = false;
+           break;
+       }
+  }
+  if (newField) {
+      ++itsLastField;
+      ASKAPDEBUGASSERT(itsLastField>=0);
+      itsCurrentField = itsLastField;
+      ASKAPCHECK(itsCurrentField < itsDone.ncolumn(),
+              "Too many fields: increase maxfields " << itsDone.ncolumn());
+      itsPointings(firstFeed, itsCurrentField) = firstPointing;
+      // we need to do something about printDirection to make it available (i.e. sort out dependencies in base)
+      //ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField<<" at "<<
+      //          printDirection(firstPointing));
+  } 
 }
 
 /// @brief check whether CF cache is valid

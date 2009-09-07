@@ -61,6 +61,16 @@ struct AProjectGridderBase : virtual public IVisGridder
                                const double pointingTol=0.0001,                              
                                const double paTol=0.01, const double freqTol = 1e-6);
   
+  /// @brief copy constructor
+  /// @details It is needed because we have a shared pointer as a data member and want to
+  /// clone the object instead of copying the reference as if it would be by default.
+  /// @param[in] other input object
+  AProjectGridderBase(const AProjectGridderBase &other);
+  
+  /// @brief destructor
+  /// @details We print cache usage stats here. No specific destruction is required for any data member
+  virtual ~AProjectGridderBase(); 
+  
   /// @brief check if given CF is valid
   /// @details
   /// @param[in] feed feed number to query
@@ -99,7 +109,7 @@ struct AProjectGridderBase : virtual public IVisGridder
   /// related functionality to detect the field change. This method returns the field 
   /// corresponding to the accessor passed during the last call to indexField.
   /// @return current field index
-  inline int currentField() const { return itsCurrentField; }
+  inline casa::uInt currentField() const { return itsCurrentField; }
   
   /// @brief checks whether the current field has been updated
   /// @details See currentField for more detailed description.
@@ -140,7 +150,7 @@ private:
   /// Last field processed
   int itsLastField;
   /// Current field processed
-  int itsCurrentField;
+  casa::uInt itsCurrentField;
    
   /// @brief flags that CF is valid for given feed and fields
   casa::Matrix<bool> itsDone;
