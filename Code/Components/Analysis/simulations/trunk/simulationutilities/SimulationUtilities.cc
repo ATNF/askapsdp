@@ -117,6 +117,7 @@ namespace askap {
 		  pix[1] = gauss.yCenter();
 		  ASKAPLOG_DEBUG_STR(logger, "Making this Gaussian a point source");
 		  addPointSource(array,axes,pix,fluxGen);
+		  delete [] pix;
 		}
 		else{
 		  ASKAPLOG_DEBUG_STR(logger, "Integrating over " << (xmax-xmin+1)*(ymax-ymin+1) << " pixels with delta="<<delta<<"  (minSigma="<<minSigma<<")");
