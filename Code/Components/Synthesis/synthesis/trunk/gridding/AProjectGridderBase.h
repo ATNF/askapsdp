@@ -121,7 +121,8 @@ struct AProjectGridderBase : virtual public IVisGridder
   /// all values in itsDone are set to false. This method also sets some internal flags to
   /// update the stats correctly when updateStats is called. 
   /// @param[in] acc input const accessor to analyse
-  void validateCFCache(const IConstDataAccessor &acc);
+  /// @param[in] symmetric true, if illumination pattern is symmetric, false otherwise
+  void validateCFCache(const IConstDataAccessor &acc, bool symmetric);
 
   /// @brief toggle the validity flag for a given CF
   /// @details
@@ -204,7 +205,12 @@ private:
   /// to know which frequencies were used to compute it. This is a copy of the frequency axis
   /// returned by the accessor on the first iteration
   casa::Vector<casa::Double> itsCachedFrequencies;
-                                
+                   
+  /// @brief flag showing that CFs are rebuilt due to parallactic angle
+  bool itsCFInvalidDueToPA;
+  
+  /// @brief flag showing that CFs are rebuilt due to frequency axis change
+  bool itsCFInvalidDueToFreq;         
 };
 
 } // namespace synthesis

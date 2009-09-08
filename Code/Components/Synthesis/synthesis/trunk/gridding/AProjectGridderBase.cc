@@ -53,7 +53,8 @@ AProjectGridderBase::AProjectGridderBase(const int maxFeeds, const int maxFields
           itsDone(maxFeeds, maxFields, false), itsPointings(maxFeeds, maxFields, casa::MVDirection()),
           itsNumberOfCFGenerations(0), itsNumberOfIterations(0), 
           itsNumberOfCFGenerationsDueToPA(0), itsCFParallacticAngle(0),
-          itsNumberOfCFGenerationsDueToFreq(0), itsFrequencyTolerance(freqTol)                    
+          itsNumberOfCFGenerationsDueToFreq(0), itsFrequencyTolerance(freqTol),
+          itsCFInvalidDueToPA(false), itsCFInvalidDueToFreq(false)
 {
   ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
   ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
@@ -74,7 +75,9 @@ AProjectGridderBase::AProjectGridderBase(const AProjectGridderBase &other) :
     itsCFParallacticAngle(other.itsCFParallacticAngle),
     itsNumberOfCFGenerationsDueToFreq(other.itsNumberOfCFGenerationsDueToFreq),
     itsFrequencyTolerance(other.itsFrequencyTolerance),
-    itsCachedFrequencies(other.itsCachedFrequencies)
+    itsCachedFrequencies(other.itsCachedFrequencies),
+    itsCFInvalidDueToPA(other.itsCFInvalidDueToPA),
+    itsCFInvalidDueToFreq(other.itsCFInvalidDueToFreq)
 {
   if (other.itsPattern) {
       itsPattern.reset(new UVPattern(*(other.itsPattern)));
@@ -181,9 +184,57 @@ void AProjectGridderBase::indexField(const IConstDataAccessor &acc)
 /// all values in itsDone are set to false. This method also sets some internal flags to
 /// update the stats correctly when updateStats is called. 
 /// @param[in] acc input const accessor to analyse
-void AProjectGridderBase::validateCFCache(const IConstDataAccessor &acc)
+/// @param[in] symmetric true, if illumination pattern is symmetric, false otherwise
+void AProjectGridderBase::validateCFCache(const IConstDataAccessor &acc, bool symmetric)
 {
-  acc.nRow();
+  const int nSamples = acc.nRow();
+ 
+  // flags are used to accumulate CF rebuild statistics
+  itsCFInvalidDueToPA = false;
+    
+  if (!symmetric) {
+      // need to check parallactic angles here
+      const casa::Vector<casa::Float> &feed1PAs = acc.feed1PA();
+      ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
+      for (int row = 0; row<nSamples; ++row) {
+           if (fabs(feed1PAs[row] - itsCFParallacticAngle)<itsParallacticAngleTolerance) {
+               itsCFInvalidDueToPA = true;
+               itsCFParallacticAngle = feed1PAs[row];
+               itsDone.set(false);
+               break;
+           }
+      }
+  }
+    
+  // the following flag is used to accululate CF rebuild statistics and internal logic
+  itsCFInvalidDueToFreq = false;
+    
+  // don't bother checking if the cache is rebuilt anyway
+  if (!itsCFInvalidDueToPA && (itsFrequencyTolerance >= 0.)) {
+      const casa::Vector<casa::Double> &freq = acc.frequency();
+      if (freq.nelements() != itsCachedFrequencies.nelements()) {
+          itsCFInvalidDueToFreq = true;
+      } else {
+          // we can also write the following using iterators, if necessary
+          for (casa::uInt chan = 0; chan<freq.nelements(); ++chan) {
+               const casa::Double newFreq = freq[chan];
+               ASKAPDEBUGASSERT(newFreq > 0.);
+               if ( fabs(itsCachedFrequencies[chan] - newFreq)/newFreq > itsFrequencyTolerance) {
+                    itsCFInvalidDueToFreq = true;
+                    break;
+               }
+          }
+      } 
+      if (itsCFInvalidDueToFreq) {
+          itsDone.set(false);
+      }
+  }
+    
+  // cache the current frequency axis if the cache is going to be built
+  // do nothing if the tolerance is negative 
+  if ((itsCFInvalidDueToPA || itsCFInvalidDueToFreq) && (itsFrequencyTolerance >= 0.)) {
+      itsCachedFrequencies.assign(acc.frequency().copy());
+  } 
 }
 
 /// @brief update statistics
@@ -194,6 +245,13 @@ void AProjectGridderBase::validateCFCache(const IConstDataAccessor &acc)
 /// @param[in] nDone number of convolution functions rebuilt at this iteration
 void AProjectGridderBase::updateStats(casa::uInt nDone)
 {
+  ++itsNumberOfIterations;
   itsNumberOfCFGenerations += nDone;
+  if (itsCFInvalidDueToPA) {
+      itsNumberOfCFGenerationsDueToPA += nDone;
+  }    
+  if (itsCFInvalidDueToFreq) {
+      itsNumberOfCFGenerationsDueToFreq += nDone;
+  }
 }
 
