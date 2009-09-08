@@ -48,11 +48,11 @@ namespace askap {
                 Ice::ObjectAdapterPtr createAdapter(void);
 
                 // Ice "IComponent" interfaces
-                void startup(const askap::interfaces::component::ParameterMap& params, const Ice::Current& cur);
+                void startup(const askap::interfaces::ParameterMap& params, const Ice::Current& cur);
                 void shutdown(const Ice::Current& cur);
                 void activate(const Ice::Current& cur);
                 void deactivate(const Ice::Current& cur);
-                askap::interfaces::component::ComponentTestResults selfTest(const Ice::Current& cur);
+                askap::interfaces::component::ComponentTestResultSeq selfTest(const Ice::Current& cur);
                 askap::interfaces::component::ComponentState getState(const Ice::Current& cur);
 
             private:

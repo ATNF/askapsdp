@@ -41,7 +41,7 @@ using namespace askap::interfaces::component;
 ASKAP_LOGGER(logger, ".AdminInterface");
 
 AdminInterface::AdminInterface(const Ice::CommunicatorPtr ic)
-    : itsComm(ic), itsState(OFFLINE)
+    : itsComm(ic), itsState(LOADED)
     
 {
     ASKAPLOG_INFO_STR(logger, "Creating AdminInterface");
@@ -86,11 +86,11 @@ Ice::ObjectAdapterPtr AdminInterface::createAdapter(void)
 }
 
 // Ice "IComponent" interfaces
-void AdminInterface::startup(const askap::interfaces::component::ParameterMap& params, const Ice::Current& cur)
+void AdminInterface::startup(const askap::interfaces::ParameterMap& params, const Ice::Current& cur)
 {
-    if (itsState != UNLOADED)
+    if (itsState != LOADED)
     {
-        throw StartupException("Not in UNLOADED state");
+        throw TransitionException("Not in UNLOADED state");
     }
     itsState = STANDBY;
 }
@@ -99,16 +99,16 @@ void AdminInterface::shutdown(const Ice::Current& cur)
 {
     if (itsState != STANDBY)
     {
-        throw StartupException("Not in STANDBY state");
+        throw TransitionException("Not in STANDBY state");
     }
-    itsState = UNLOADED;
+    itsState = LOADED;
 }
 
 void AdminInterface::activate(const Ice::Current& cur)
 {
     if (itsState != STANDBY)
     {
-        throw StartupException("Not in STANDBY state");
+        throw TransitionException("Not in STANDBY state");
     }
     itsState = ONLINE;
 }
@@ -117,14 +117,14 @@ void AdminInterface::deactivate(const Ice::Current& cur)
 {
     if (itsState != ONLINE)
     {
-        throw StartupException("Not in ONLINE state");
+        throw TransitionException("Not in ONLINE state");
     }
     itsState = STANDBY;
 }
 
-askap::interfaces::component::ComponentTestResults AdminInterface::selfTest(const Ice::Current& cur)
+askap::interfaces::component::ComponentTestResultSeq AdminInterface::selfTest(const Ice::Current& cur)
 {
-    askap::interfaces::component::ComponentTestResults results;
+    askap::interfaces::component::ComponentTestResultSeq results;
     return results;
 }
 
