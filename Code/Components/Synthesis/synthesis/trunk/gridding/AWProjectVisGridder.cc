@@ -58,34 +58,24 @@ namespace askap {
 					     const double cutoff, const int overSample,
 					     const int maxSupport, const int limitSupport,
 					     const int maxFeeds, const int maxFields, const double pointingTol,
+					     const double paTol, const double freqTol,
 					     const bool frequencyDependent, const std::string& name) :
+      AProjectGridderBase(maxFeeds,maxFields, pointingTol, paTol, freqTol),	  			     
       WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, limitSupport, name),
       itsReferenceFrequency(0.0), itsIllumination(illum),
       itsFreqDep(frequencyDependent),
-      itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
-      itsPointingTolerance(pointingTol)
-      
+      itsMaxFeeds(maxFeeds), itsMaxFields(maxFields), itsSlopes(2, maxFeeds, maxFields,0.)
     {
       ASKAPDEBUGASSERT(itsIllumination);
       ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
       ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
       ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
-	ASKAPCHECK(pointingTol>0.0, "Pointing tolerance must be greater than 0.0");
       itsSupport=0;
       itsOverSample=overSample;
       itsMaxSupport=maxSupport;
       itsLimitSupport=limitSupport;
       itsName=name;
-      
-      itsSlopes.resize(2, itsMaxFeeds, itsMaxFields);
-      itsSlopes.set(0.0);
-      itsDone.resize(itsMaxFeeds, itsMaxFields);
-      itsDone.set(false);
-      itsPointings.resize(itsMaxFeeds, itsMaxFields);
-      itsPointings.set(casa::MVDirection());
-      itsLastField=-1;
-      itsCurrentField=0;
     }
     
     /// @brief copy constructor
@@ -94,29 +84,12 @@ namespace askap {
     /// @note illumination model is copied as a pointer, so the same model is referenced
     /// @param[in] other input object
     AWProjectVisGridder::AWProjectVisGridder(const AWProjectVisGridder &other) :
-      WProjectVisGridder(other), itsReferenceFrequency(other.itsReferenceFrequency),
+      AProjectGridderBase(other), WProjectVisGridder(other), 
+      itsReferenceFrequency(other.itsReferenceFrequency),
       itsIllumination(other.itsIllumination), itsFreqDep(other.itsFreqDep),
       itsMaxFeeds(other.itsMaxFeeds), itsMaxFields(other.itsMaxFields),
-      itsPointingTolerance(other.itsPointingTolerance), 
-      itsCurrentField(other.itsCurrentField), itsLastField(other.itsLastField),
-      itsPointings(other.itsPointings.copy()), itsSlopes(other.itsSlopes.copy()),
-      itsDone(other.itsDone.copy()) {}
-    
-    AWProjectVisGridder::~AWProjectVisGridder() {
-         size_t nUsed = 0;
-         for (casa::uInt feed = 0; feed<itsDone.nrow(); ++feed) {
-              for (casa::uInt field = 0; field<itsDone.ncolumn(); ++field) {
-                   if (itsDone(feed,field)) {
-                       ++nUsed;
-                   }
-              }
-         }
-         if (itsDone.nelements()) {
-             ASKAPLOG_INFO_STR(logger, "AWProjectVisGridder cache usage: "<<
-                         double(nUsed)/double(itsDone.nrow()*itsDone.ncolumn())*100<<"% of maxfeed*maxfield");
-         }
-    }
-    
+      itsSlopes(other.itsSlopes.copy()) {}
+        
     /// Clone a copy of this Gridder
     IVisGridder::ShPtr AWProjectVisGridder::clone() {
       return IVisGridder::ShPtr(new AWProjectVisGridder(*this));
@@ -124,30 +97,8 @@ namespace askap {
     
     /// Initialize the indices into the cube.
     void AWProjectVisGridder::initIndices(const IConstDataAccessor& acc) {
-      
-      // Validate cache using first row only
-      bool newField=true;
-      
-      int firstFeed=acc.feed1()(0);
-      ASKAPCHECK(firstFeed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
-      casa::MVDirection firstPointing=acc.pointingDir1()(0);
-      
-      for (int field=itsLastField; field>-1; --field) {
-	if (firstPointing.separation(itsPointings(firstFeed, field))
-	    <itsPointingTolerance) {
-	  itsCurrentField=field;
-	  newField=false;
-	  break;
-	}
-      }
-      if (newField) {
-	itsLastField++;
-	itsCurrentField=itsLastField;
-	ASKAPCHECK(itsCurrentField<itsMaxFields,
-		   "Too many fields: increase maxfields " << itsMaxFields);
-	itsPointings(firstFeed, itsCurrentField)=firstPointing;
-	ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField);
-      }
+      // calculate currentField
+      indexField(acc);
       
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
@@ -170,34 +121,34 @@ namespace askap {
 	
            const double w=(rotatedUVW(i)(2))/(casa::C::c);
 	
-	for (int chan=0; chan<nChan; ++chan) {
-	  const double freq=acc.frequency()[chan];
-	  int iw=0;
-	  if (itsNWPlanes>1) {
-	    iw=cenw+int(w*freq/itsWScale);
-	  }
-	  ASKAPCHECK(iw<itsNWPlanes,
-		     "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
-	  ASKAPCHECK(iw>-1,
-		     "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
+           for (int chan=0; chan<nChan; ++chan) {
+                const double freq=acc.frequency()[chan];
+                int iw=0;
+                if (itsNWPlanes>1) {
+                    iw=cenw+int(w*freq/itsWScale);
+                }
+                ASKAPCHECK(iw<itsNWPlanes,
+                          "W scaling error: recommend allowing larger range of w, you have w="<<
+                           w*freq<<" wavelengths");
+                ASKAPCHECK(iw>-1,
+                          "W scaling error: recommend allowing larger range of w, you have w="<<
+                           w*freq<<" wavelengths");
 	  
-	  for (int pol=0; pol<nPol; ++pol) {
-	    /// Order is (iw, chan, feed)
-	    if (itsFreqDep) {
-	      itsCMap(i, pol, chan)=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsCurrentField));
-	      ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds
-			 *itsMaxFields*nChan, "CMap index too large");
-	      ASKAPCHECK(itsCMap(i, pol, chan)>-1,
-			 "CMap index less than zero");
-	    } else {
-	      itsCMap(i, pol, chan)=iw+itsNWPlanes*(feed+itsMaxFeeds*itsCurrentField);
-	      ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds
-			 *itsMaxFields, "CMap index too large");
-	      ASKAPCHECK(itsCMap(i, pol, chan)>-1,
-			 "CMap index less than zero");
-	    }
-	  }
-	}
+                for (int pol=0; pol<nPol; ++pol) {
+                     /// Order is (iw, chan, feed)
+                     if (itsFreqDep) {
+                         itsCMap(i, pol, chan)=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
+                         ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, 
+                                    "CMap index too large");
+                         ASKAPCHECK(itsCMap(i, pol, chan)>-1,"CMap index less than zero");
+                     } else {
+                         itsCMap(i, pol, chan)=iw+itsNWPlanes*(feed+itsMaxFeeds*currentField());
+                         ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds*itsMaxFields, 
+                                "CMap index too large");
+                         ASKAPCHECK(itsCMap(i, pol, chan)>-1,"CMap index less than zero");
+                     }
+                }
+	       }
       }
     }
     /// @brief initialise sum of weights
@@ -228,6 +179,8 @@ namespace askap {
       ASKAPDEBUGASSERT(itsIllumination);
       // just to avoid a repeated call to a virtual function from inside the loop
       const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
+
+      validateCFCache(acc, hasSymmetricIllumination);
       
       
       /// We have to calculate the lookup function converting from
@@ -277,43 +230,43 @@ namespace askap {
       
       int nDone=0;
       for (int row=0; row<nSamples; ++row) {
-	const int feed=acc.feed1()(row);
-	if (!itsDone(feed, itsCurrentField)) {
-	  itsDone(feed, itsCurrentField)=true;
-	  nDone++;
-	  casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
-	  itsSlopes(0, feed, itsCurrentField) = isPSFGridder() ? 0. : sin(offset.getLong()
+           const int feed=acc.feed1()(row);
+           if (!isCFValid(feed, currentField())) {
+               makeCFValid(feed, currentField());
+               nDone++;
+               casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
+               itsSlopes(0, feed, currentField()) = isPSFGridder() ? 0. : sin(offset.getLong()
 						   -out.getLong()) *cos(offset.getLat());
-	  itsSlopes(1, feed, itsCurrentField)= isPSFGridder() ? 0. : sin(offset.getLat())
-	    *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
-	    *cos(offset.getLong()-out.getLong());
+               itsSlopes(1, feed, currentField())= isPSFGridder() ? 0. : sin(offset.getLat())
+                           *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
+                           *cos(offset.getLong()-out.getLong());
 	  
-	  const double parallacticAngle = hasSymmetricIllumination ? 0. : acc.feed1PA()(row);
+               const double parallacticAngle = hasSymmetricIllumination ? 0. : acc.feed1PA()(row);
 	  
-	  for (int chan=0; chan<nChan; ++chan) {
+               for (int chan=0; chan<nChan; ++chan) {
 	    
-	    /// Extract illumination pattern for this channel
-	    itsIllumination->getPattern(acc.frequency()[chan], pattern,
-					itsSlopes(0, feed, itsCurrentField),
-					itsSlopes(1, feed, itsCurrentField), parallacticAngle);
+                    /// Extract illumination pattern for this channel
+                    itsIllumination->getPattern(acc.frequency()[chan], pattern,
+                          itsSlopes(0, feed, currentField()),
+                          itsSlopes(1, feed, currentField()), parallacticAngle);
 	    
-	    scimath::fft2d(pattern.pattern(), false);
+                    scimath::fft2d(pattern.pattern(), false);
 	    	    
 	    
-	    /// Calculate the total convolution function including
-	    /// the w term and the antenna convolution function
-	    casa::Matrix<casa::Complex> thisPlane(nx, ny);
+                    /// Calculate the total convolution function including
+                    /// the w term and the antenna convolution function
+                    casa::Matrix<casa::Complex> thisPlane(nx, ny);
 	    	    
-	    for (int iw=0; iw<itsNWPlanes; ++iw) {
-	      thisPlane.set(0.0);
+                    for (int iw=0; iw<itsNWPlanes; ++iw) {
+                         thisPlane.set(0.0);
 	      
 	      
-	      // Loop over the central nx, ny region, setting it to the product
-	      // of the phase screen and the spheroidal function
-	      double maxCF=0.0;
-	      double peak=0.0;
-	      double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
-	      //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
+                         // Loop over the central nx, ny region, setting it to the product
+                         // of the phase screen and the spheroidal function
+                         double maxCF=0.0;
+                         double peak=0.0;
+                         double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
+                         //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
 	      
 	      for (int iy=0; iy<int(ny); ++iy) {
                double y2=(double(iy)-double(ny)/2)*ccelly;
@@ -398,7 +351,7 @@ namespace askap {
 		ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
 				  << itsConvFunc.size());
 	      }
-	      int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*itsCurrentField));
+	      int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
 	      
 	      // Since we are decimating, we need to rescale by the
 	      // decimation factor
@@ -435,6 +388,7 @@ namespace askap {
       }
       
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
+      updateStats(nDone);
     }
     
     

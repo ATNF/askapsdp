@@ -33,6 +33,8 @@
 #include <gridding/WProjectVisGridder.h>
 #include <gridding/IBasicIllumination.h>
 #include <dataaccess/IConstDataAccessor.h>
+#include <gridding/AProjectGridderBase.h>
+
 
 #include <boost/shared_ptr.hpp>
 
@@ -54,7 +56,7 @@ namespace askap
     /// usually dominates).
     ///
     /// @ingroup gridding
-    class AWProjectVisGridder : public WProjectVisGridder
+    class AWProjectVisGridder : public WProjectVisGridder, virtual protected AProjectGridderBase
     {
   public:
 
@@ -69,12 +71,17 @@ namespace askap
       /// @param maxFeeds Maximum number of feeds allowed
       /// @param maxFields Maximum number of fields allowed
       /// @param pointingTol Pointing tolerance in radians
+      /// @param paTol Parallactic angle tolerance in radians
+      /// @param freqTol Frequency tolerance (relative, threshold for df/f), negative value 
+      ///        means the frequency axis is ignored       
       /// @param frequencyDependent Frequency dependent gridding?
       /// @param name Name of table to save convolution function into
       AWProjectVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
           const double wmax, const int nwplanes, const double cutoff,
 	  const int overSample, const int maxSupport, const int limitSupport,
           const int maxFeeds=1, const int maxFields=1, const double pointingTol=0.0001,
+          const double paTol=0.01,
+		  const double freqTol = 1e-6,          
           const bool frequencyDependent=true, 
           const std::string& name=std::string(""));
 
@@ -84,8 +91,6 @@ namespace askap
       /// @param[in] other input object
       /// @note illumination model is copied as a pointer, so the same model is referenced
       AWProjectVisGridder(const AWProjectVisGridder &other);
-
-      virtual ~AWProjectVisGridder();
 
       /// Clone a copy of this Gridder
       virtual IVisGridder::ShPtr clone();
@@ -138,20 +143,8 @@ namespace askap
       int itsMaxFeeds;
       /// Maximum number of fields
       int itsMaxFields;
-      /// Pointing tolerance in radians
-      double itsPointingTolerance;
-      /// Current field processed
-      int itsCurrentField;
-      /// Last field processed
-      int itsLastField;
-      /// Pointing for this feed and field
-      casa::Matrix<casa::MVDirection> itsPointings;
-
       /// Cube of slopes
       casa::Cube<double> itsSlopes;
-      /// Has this feed and field been filled in?
-      casa::Matrix<bool> itsDone;
-
     };
 
   }

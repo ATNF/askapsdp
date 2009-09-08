@@ -208,6 +208,21 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 		gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
 	} else if (gridderName == "AWProject") {
 		double pointingTol=parset.getDouble("gridder.AWProject.pointingtolerance", 0.0001);
+		double paTol=parset.getDouble("gridder.AProjectWStack.patolerance", 0.1);
+		
+		// load frequency tolerance. It can be a string "infinite", which means to bypass frequency
+		// axis checks or a non-negative number. We pass "undefined" by default here as it is not a
+		// recognised value, which will cause a numeric default to be adopted 
+		double freqTol = -1.;
+		const std::string freqTolString = toLower(parset.getString("gridder.AProjectWStack.freqtolerance", 
+		                                                   "undefined"));
+		if (freqTolString != "infinite") {
+            freqTol = parset.getDouble("gridder.AProjectWStack.freqtolerance", 1e-6);
+		    ASKAPCHECK(freqTol>=0., 
+		        "Frequency tolerance parameter is supposed to be either a non-negative number or a word infinite to by pass checks");
+		}
+		//
+
 		double wmax=parset.getDouble("gridder.AWProject.wmax", 10000.0);
 		int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 65);
 		double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
@@ -228,12 +243,20 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 			ASKAPLOG_INFO_STR(logger,
 					"Antenna illumination independent of frequency");
 		}
+		ASKAPLOG_INFO_STR(logger,
+		            "Parallactic angle tolerance = "<<paTol/casa::C::pi*180.<<" deg");
+		if (freqTol<0) {
+		    ASKAPLOG_INFO_STR(logger,"Frequency axis is assumed constant"); 
+		} else {
+		    ASKAPLOG_INFO_STR(logger,"Frequency axis tolerance (relative) is "<<freqTol<<
+		                      " (equivalent to "<<freqTol*3e5<<" km/s)"); 
+		}
 				
 		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(
 		        makeIllumination(parset.makeSubset("gridder.AWProject.")),
 				wmax, nwplanes, cutoff, oversample,
 				maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
-			        freqDep, tablename));
+				paTol, freqTol,freqDep, tablename));
 	} else if (gridderName == "AProjectWStack") {
 		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
 		double paTol=parset.getDouble("gridder.AProjectWStack.patolerance", 0.1);
