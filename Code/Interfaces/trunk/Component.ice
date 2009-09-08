@@ -25,6 +25,8 @@
 #ifndef ASKAP_COMPONENT_ICE
 #define ASKAP_COMPONENT_ICE
 
+#include <CommonTypes.ice>
+
 module askap
 {
 
@@ -34,42 +36,31 @@ module interfaces
 module component
 {
     /**
-     * Base exception from which the StartupException and the
-     * ShutdownException derive from. The reason string shall be
-     * used to indicate why the state transition failed.
+     * This exception is thrown when a state transition fails. The base
+     * class includes a "reason" data member (of type string) which shall
+     * be used to indicate why the state transition failed.
      **/
-    exception TransitionException
+    exception TransitionException extends askap::interfaces::AskapIceException
     {
-        string reason;
     };
 
     /**
-     * An exception to be thrown by the startup() function.
-     * The reason string shall be used to indicate why the startup
-     * failed.
+     * This exception is thrown by selfTest() because the component
+     * is not in the STANDBY state, and hence is not in a state
+     * suitable for testing.
      **/
-    exception StartupException extends TransitionException {};
-
-    /**
-     * An exception to be thrown by the shutdown() function.
-     * The reason string shall be used to indicate why the startup
-     * failed.
-     **/
-    exception ShutdownException extends TransitionException {};
-
-    /**
-     * An exception to be thrown by selfTest() because the component
-     * is not in the offline state.
-     **/
-    exception CannotTestException {};
+    exception CannotTestException extends askap::interfaces::AskapIceException
+    {
+    };
 
     /**
      * Valid states for the component.
      **/
     enum ComponentState
-    {  
-        ONLINE,
-        OFFLINE
+    {
+        LOADED,
+        STANDBY,
+        ONLINE
     };
 
     /**
@@ -82,33 +73,94 @@ module component
     };
 
     /**
-     * This is the type via which the summary of test results from the selfTest()
-     * call is returned. The key is a string which uniquely identifies the
-     * component, while the value is the test result.
+     * This type represents a single test which is run as part of the
+     * selfTest() call.
      **/
-    dictionary<string, ComponentTestStatus> ComponentTestResults;
+    struct ComponentTestResult
+    {
+        string name;
+        ComponentTestStatus result;
+        string details;
+    };
 
     /**
-     * This is a common type which can be used as the Ice equivilant of the 
-     * LOFAR ParameterSet. This contains a map of variable names and maps
-     * them to their value.
+     * This is the type via which the summary of test results from the
+     * selfTest() call is returned.
      **/
-    dictionary<string, string> ParameterMap;
+    sequence<ComponentTestResult> ComponentTestResultSeq;
 
     /**
      * Common interface which each component in the ASKAP online system needs
      * to implement. This is an administrative interface via which the
-     * component will be administered.
+     * component will be administered. In addition to this administrative
+     * interface a component shall provide one ore more services. The interface
+     * to these services is component specific and hence is not defined here,
+     * however the lifecycle and availability of these services does relate to
+     * the component state model and is discussed in the comments below.
      *
-     * When a component is loaded it shall provide this administrative
-     * interface. At startup the actual service interfaces will typically be
-     * unavailable and can be started and stopped by this administrative
-     * interface.
+     * The behaviour of a component is expected to be as follows:
+     * 
+     * UNLOADED - When in the unloaded state the component shall provide this
+     * administrative interface. i.e. its implementation of IComponent. However
+     * its service interfaces shall not be available for calling and the
+     * component shall be in a mostly uninitialized state.
+     *
+     * STANDBY - When in the standby state the component shall provide this
+     * administrative interface but would usually also have created its
+     * internal objects such that a self test could be performed. Howevever
+     * its service interfaces shall not be available for calling.
+     *
+     * ONLINE - When in the online state the component shall provide this
+     * administrative interface and shall also provide all services interfaces
+     * for calling.
+     *
+     * The state transitions can be thought of in the following manner:
+     *
+     * Startup/Shutdown - These two transitions are essentially responsible
+     * for creation and destruction of the services the component provides.
+     * 
+     * Activate/Deactivate - These two transitions make available/unavailable 
+     * the services in the Ice locator service (registry).
+     *
      **/
     interface IComponent
     {
         /**
-         * Startup the component. That is, transition it from the OFFLINE state
+         * Startup the component. That is, transition it from the  LOADED
+         * state to STANDBY.
+         *
+         * While the component is in the transition from UNLOADED to STANDBY,
+         * calls to getState() will return UNLOADED.
+         *
+         * If this call returns without throwning an exception then the state
+         * transition completed cleanly.
+         *
+         * @param  params  configuration parameters which the component
+         *          should use.
+         *
+         * @throws TransitionException Raised if the state transition fails.
+         *          A reason shall be specified in the reason field.
+         **/
+        ["ami"] void startup(askap::interfaces::ParameterMap config)
+            throws TransitionException;
+
+        /**
+         * Shutdown the component. That is, transition it from the STANDBY
+         * state to LOADED.
+         *
+         * While the component is in the transition from STANDBY to UNLOADED,
+         * calls to getState() will return UNLOADED.
+         *
+         * If this call returns without throwning an exception then the state
+         * transition completed cleanly.
+         *
+         * @throws TransitionException Raised if the state transition fails.
+         *          A reason shall be specified in the reason field.
+         **/
+        ["ami"] void shutdown() throws TransitionException;
+
+        /**
+         * Activate the component. That is, transition it from the STANDBY state
          * to ONLINE.
          *
          * When this function returns (without throwing an exception), the 
@@ -118,41 +170,33 @@ module component
          * self-testing to ensure at least minimum functionality can be
          * provided.
          *
-         * While the component is in the transition between offline and online,
-         * calls to getState() will return OFFLINE. Only when ALL
+         * While the component is in the transition from STANDBY to ONLINE,
+         * calls to getState() will return STANDBY. Only when all
          * services/interface are available will calls to getState() return
          * ONLINE.
-         *
-         * If ALL services/interfaces cannot be started the component shall:
-         * - shutdown those services that did manage to start,
-         * - remain in the offline state,
-         * - and thrown an exception back to the caller of startup
-         * 
-         * @throws  StartupException    Raised if the startup fails. A reason
-         *          shall be specified in the reason field.
-         **/
-        ["ami"] void startup(ParameterMap params) throws StartupException;
-
-        /**
-         * Shutdown the component. That is, transition it from the ONLINE
-         * state to OFFLINE.
-         *
-         * While the component is in the transition between online and offline
-         * calls to getState() will return OFFLINE.
-         * 
-         * If the shutdown does fail to shutdown ANY of the services/interfaces
-         * cleanly then the entire component is considered to be in an
-         * inconsistent state and it will exit entirely. The service may then
-         * be restarted either manually or automatically, but either way will
-         * be unavailable for some period of time.
          *
          * If this call returns without throwning an exception then the state
          * transition completed cleanly.
          *
-         * @throws  ShutdownException    Raised if the shutdown fails. A reason
-         *          shall be specified in the reason field.
+         * @throws TransitionException Raised if the state transition fails.
+         *         A reason shall be specified in the reason field.
          **/
-        ["ami"] void shutdown() throws ShutdownException;
+        ["ami"] void activate() throws TransitionException;
+
+        /**
+         * Deactivate the component. That is, transition it from the ONLINE
+         * state to STANDBY.
+         *
+         * While the component is in the transition from ONLINE to STANDBY,
+         * calls to getState() will return STANDBY.
+         *
+         * If this call returns without throwning an exception then the state
+         * transition completed cleanly.
+         *
+         * @throws TransitionException Raised if the state transition fails.
+         *         A reason shall be specified in the reason field.
+         **/
+        ["ami"] void deactivate() throws TransitionException;
 
         /**
          * Returns the state of the component.
@@ -164,19 +208,21 @@ module component
         /**
          * Requests the component perform a self test. There is no concept
          * of pass/fail for the overall component, this function however
-         * returns a map containing a list of tests carried out and the
-         * results.
+         * returns a sequence containing a list of tests carried out, the
+         * results (PASS/FAIL) and a string which may contain some detail,
+         * typically reason for failure however it may also contain detail
+         * in the case of a passing test also.
          *
-         * The selftest can only be run when the component is in offline
-         * mode.
+         * The selftest can only be run when the component is in the STANDBY
+         * state.
          *
-         * @throws  CannotTestException if this function is called when the
-         *          component is in a state other than offline.
+         * @throws CannotTestException if this function is called when the
+         *         component is in a state other than STANDBY.
          *
-         * @return  a map containing a name to identify the test and the
-         *          test result.
+         * @return a map containing a name to identify the test and the
+         *         test result.
          **/
-        ["ami"] ComponentTestResults selfTest() throws CannotTestException;
+        ["ami"] ComponentTestResultSeq selfTest() throws CannotTestException;
     };
 };
 };
