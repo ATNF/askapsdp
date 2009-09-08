@@ -59,36 +59,21 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
         const double pointingTol, const double paTol,
         const double freqTol,       
         const bool frequencyDependent, const std::string& name) :
-    WStackVisGridder(wmax, nwplanes), itsReferenceFrequency(0.0),
+    AProjectGridderBase(maxFeeds,maxFields,pointingTol, paTol, freqTol),
+    WStackVisGridder(wmax, nwplanes), 
+    itsReferenceFrequency(0.0),
     itsIllumination(illum),
     itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
-    itsPointingTolerance(pointingTol),       itsParallacticAngleTolerance(paTol),
-    itsFreqDep(frequencyDependent),
-    itsNumberOfCFGenerations(0),
-    itsNumberOfIterations(0), itsNumberOfCFGenerationsDueToPA(0), 
-    itsCFParallacticAngle(0),
-    itsNumberOfCFGenerationsDueToFreq(0), itsFrequencyTolerance(freqTol)    
+    itsFreqDep(frequencyDependent), itsSlopes(2, maxFeeds, maxFields,0.)
 {	
-    ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
-    ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
     ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
     ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
-    ASKAPCHECK(pointingTol>0.0, "Pointing tolerance must be greater than 0.0");
     ASKAPDEBUGASSERT(itsIllumination);
     itsSupport=0;
     itsOverSample=overSample;
     itsMaxSupport=maxSupport;
     itsLimitSupport=limitSupport;
     itsName=name;
-
-    itsSlopes.resize(2, itsMaxFeeds, itsMaxFields);
-    itsSlopes.set(0.0);
-    itsDone.resize(itsMaxFeeds, itsMaxFields);
-    itsDone.set(false);
-    itsPointings.resize(itsMaxFeeds, itsMaxFields);
-    itsPointings.set(casa::MVDirection());
-    itsLastField=-1;
-    itsCurrentField=0;
 }
 
 /// @brief copy constructor
@@ -99,69 +84,16 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
 /// the same model
 
 AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridder &other) :
-    WStackVisGridder(other), itsReferenceFrequency(other.itsReferenceFrequency),
+    AProjectGridderBase(other), WStackVisGridder(other),
+    itsReferenceFrequency(other.itsReferenceFrequency),
     itsIllumination(other.itsIllumination), itsMaxFeeds(other.itsMaxFeeds),
     itsMaxFields(other.itsMaxFields),
-    itsPointingTolerance(other.itsPointingTolerance),
-    itsParallacticAngleTolerance(other.itsParallacticAngleTolerance),
-    itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),
     itsFreqDep(other.itsFreqDep), itsMaxSupport(other.itsMaxSupport),
     itsLimitSupport(other.itsLimitSupport),
-    itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy()),
-    itsDone(other.itsDone.copy()), itsPointings(other.itsPointings.copy()), 
-    itsNumberOfCFGenerations(other.itsNumberOfCFGenerations),
-    itsNumberOfIterations(other.itsNumberOfIterations),
-    itsNumberOfCFGenerationsDueToPA(other.itsNumberOfCFGenerationsDueToPA), 
-    itsCFParallacticAngle(other.itsCFParallacticAngle),
-    itsNumberOfCFGenerationsDueToFreq(other.itsNumberOfCFGenerationsDueToFreq),
-    itsFrequencyTolerance(other.itsFrequencyTolerance),
-    itsCachedFrequencies(other.itsCachedFrequencies)
+    itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy())
 {
-    if (other.itsPattern) {
-        itsPattern.reset(new UVPattern(*(other.itsPattern)));
-    }
 }
 
-AProjectWStackVisGridder::~AProjectWStackVisGridder() {
-    size_t nUsed = 0;
-    for (casa::uInt feed = 0; feed<itsDone.nrow(); ++feed) {
-        for (casa::uInt field = 0; field<itsDone.ncolumn(); ++field) {
-            if (itsDone(feed,field)) {
-                ++nUsed;
-            }
-        }
-    }
-    if (itsDone.nelements()) {
-        ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder CF cache memory utilisation (last iteration): "<<
-                double(nUsed)/double(itsDone.nrow()*itsDone.ncolumn())*100<<"% of maxfeed*maxfield");
-    }
-    if (itsNumberOfIterations != 0) {
-        ASKAPLOG_INFO_STR(logger, "AProjectWStackVisGridder CFs were rebuilt "<<
-                itsNumberOfCFGenerations<<" times for "<<itsNumberOfIterations<<" iterations");
-        ASKAPLOG_INFO_STR(logger, "Last iteration worked with "<<nUsed<<" CFs");        
-        if (itsNumberOfCFGenerations != 0) {
-            ASKAPLOG_INFO_STR(logger, "Parallactic angle change caused "<<
-                    itsNumberOfCFGenerationsDueToPA<<" of those rebuilds ("<<
-                    double(itsNumberOfCFGenerationsDueToPA)/double(itsNumberOfCFGenerations)*100<<
-                    " %)");
-            ASKAPLOG_INFO_STR(logger, "Frequency axis change caused "<<
-                    itsNumberOfCFGenerationsDueToFreq<<" of those rebuilds ("<<
-                    double(itsNumberOfCFGenerationsDueToFreq)/double(itsNumberOfCFGenerations)*100<<
-                    " %)");
-        }   
-        if (nUsed != 0) { 
-            // because nUsed is strictly speaking applicable to the last iteration only we need
-            // to filter out rediculous values (and warn the user that the result is approximate
-            // anyway)
-            double utilisation = (1.-double(itsNumberOfCFGenerations)/
-                                  double(itsNumberOfIterations*nUsed));
-            if ((utilisation<1.) && (utilisation>0.)) {
-                ASKAPLOG_INFO_STR(logger, "Approximate CF cache utilisation is "<<
-                                          utilisation*100.<<" %");
-            }
-        }
-    }
-}
 
 /// Clone a copy of this Gridder
 IVisGridder::ShPtr AProjectWStackVisGridder::clone() {
@@ -187,32 +119,9 @@ void AProjectWStackVisGridder::initialiseSumOfWeights()
 
 /// Initialize the indices into the cube.
 void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
-
-    // Validate cache using first row only
-    bool newField=true;
-    ASKAPDEBUGASSERT(acc.nRow()>0);
-
-    int firstFeed=acc.feed1()(0);
-    ASKAPCHECK(firstFeed<itsMaxFeeds, "Too many feeds: increase maxfeeds");
-    casa::MVDirection firstPointing=acc.pointingDir1()(0);
-
-    for (int field=itsLastField; field>-1; --field) {
-        if (firstPointing.separation(itsPointings(firstFeed, field))
-                <itsPointingTolerance) {
-            itsCurrentField=field;
-            newField=false;
-            break;
-        }
-    }
-    if (newField) {
-        itsLastField++;
-        itsCurrentField=itsLastField;
-        ASKAPCHECK(itsCurrentField<itsMaxFields,
-                "Too many fields: increase maxfields " << itsMaxFields);
-        itsPointings(firstFeed, itsCurrentField)=firstPointing;
-        ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField<<" at "<<
-                printDirection(firstPointing));
-    }
+    
+    // this calculates current field id
+    indexField(acc);
 
     const int nSamples = acc.nRow();
     const int nChan = acc.nChannel();      
@@ -241,10 +150,10 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
                 int index = -1;
                 /// Order is (chan, feed)
                 if(itsFreqDep) {
-                    index = chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
+                    index = chan+nChan*(feed+itsMaxFeeds*currentField());
                     ASKAPCHECK(index<itsMaxFields*itsMaxFeeds*nChan, "CMap index too large");
                 } else {
-                    index = (feed+itsMaxFeeds*itsCurrentField);
+                    index = (feed+itsMaxFeeds*currentField());
                     ASKAPCHECK(index < itsMaxFields*itsMaxFeeds, "CMap index too large");
                 }
 
@@ -284,7 +193,7 @@ void AProjectWStackVisGridder::initialiseGrid(const scimath::Axes& axes,  const 
             << nx << " by " << ny << " pixels");
 
     // this is just a buffer in the uv-space
-    itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));
+    initUVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
 }
 
 /// @brief Initialise the degridding
@@ -304,7 +213,7 @@ void AProjectWStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
             << nx << " by " << ny << " pixels");
 
     // this is just a buffer in the uv-space
-    itsPattern.reset(new UVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample));      
+    initUVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
 }
 
 /// Initialize the convolution function into the cube. If necessary this
@@ -313,60 +222,12 @@ void AProjectWStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
 void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
 
     ASKAPDEBUGASSERT(itsIllumination);
-    ASKAPDEBUGASSERT(itsPattern);
     // just to avoid a repeated call to a virtual function from inside the loop
     const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
     const int nSamples = acc.nRow();
 
-    // the following flag is used to accumulate CF rebuild statistics
-    bool rebuildDueToPA = false;
-    
-    if (!hasSymmetricIllumination) {
-        // need to check parallactic angles here
-        const casa::Vector<casa::Float> &feed1PAs = acc.feed1PA();
-        ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
-        for (int row = 0; row<nSamples; ++row) {
-            if (fabs(feed1PAs[row] - itsCFParallacticAngle)<itsParallacticAngleTolerance) {
-                rebuildDueToPA = true;
-                itsCFParallacticAngle = feed1PAs[row];
-                itsDone.set(false);
-                break;
-            }
-        }
-    }
-    
-    // the following flag is used to accululate CF rebuild statistics and internal logic
-    bool rebuildDueToFreq = false;
-    
-    // don't bother checking if the cache is rebuilt anyway
-    if (!rebuildDueToPA && (itsFrequencyTolerance >= 0.)) {
-        const casa::Vector<casa::Double> &freq = acc.frequency();
-        if (freq.nelements() != itsCachedFrequencies.nelements()) {
-            rebuildDueToFreq = true;
-        } else {
-            // we can also write the following using iterators, if necessary
-            for (casa::uInt chan = 0; chan<freq.nelements(); ++chan) {
-                 const casa::Double newFreq = freq[chan];
-                 ASKAPDEBUGASSERT(newFreq > 0.);
-                 if ( fabs(itsCachedFrequencies[chan] - newFreq)/newFreq > itsFrequencyTolerance) {
-                     rebuildDueToFreq = true;
-                     break;
-                 }
-            }
-        } 
-        if (rebuildDueToFreq) {
-            itsDone.set(false);
-        }
-    }
-    
-    // cache the current frequency axis if the cache is going to be built
-    // do nothing if the tolerance is negative 
-    if ((rebuildDueToPA || rebuildDueToFreq) && (itsFrequencyTolerance >= 0.)) {
-        itsCachedFrequencies.assign(acc.frequency().copy());
-    } 
-
-    ++itsNumberOfIterations;
-
+    validateCFCache(acc, hasSymmetricIllumination);
+        
     casa::MVDirection out = getImageCentre();
 
     /// We have to calculate the lookup function converting from
@@ -384,7 +245,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
         itsSumWeights.set(0.0);
     }
 
-    UVPattern &pattern = *itsPattern;
+    UVPattern &pattern = uvPattern();
     const casa::uInt nx = pattern.uSize();
     const casa::uInt ny = pattern.vSize();
 
@@ -393,13 +254,13 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
     for (int row=0; row<nSamples; ++row) {
         const int feed=acc.feed1()(row);
 
-        if (!itsDone(feed, itsCurrentField)) {
-            itsDone(feed, itsCurrentField)=true;
+        if (!isCFValid(feed, currentField())) {
+            makeCFValid(feed, currentField());
             nDone++;
             casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
-            itsSlopes(0, feed, itsCurrentField) = isPSFGridder() ? 0. : sin(offset.getLong()
+            itsSlopes(0, feed, currentField()) = isPSFGridder() ? 0. : sin(offset.getLong()
                     -out.getLong()) *cos(offset.getLat());
-            itsSlopes(1, feed, itsCurrentField)= isPSFGridder() ? 0. : sin(offset.getLat())
+            itsSlopes(1, feed, currentField())= isPSFGridder() ? 0. : sin(offset.getLat())
                 *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
                 *cos(offset.getLong()-out.getLong());
 
@@ -408,8 +269,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
             for (int chan=0; chan<nChan; chan++) {
                 /// Extract illumination pattern for this channel
                 itsIllumination->getPattern(acc.frequency()[chan], pattern,
-                        itsSlopes(0, feed, itsCurrentField),
-                        itsSlopes(1, feed, itsCurrentField), 
+                        itsSlopes(0, feed, currentField()),
+                        itsSlopes(1, feed, currentField()), 
                         parallacticAngle);
 
                 /// Now convolve the disk with itself using an FFT
@@ -458,7 +319,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
                     ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
                             << itsConvFunc.size());
                 } // if itsSupport uninitialized
-                int zIndex=chan+nChan*(feed+itsMaxFeeds*itsCurrentField);
+                int zIndex=chan+nChan*(feed+itsMaxFeeds*currentField());
 
                 // Since we are decimating, we need to rescale by the
                 // decimation factor
@@ -489,13 +350,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
     } // for row
 
     ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
-    itsNumberOfCFGenerations += nDone;
-    if (rebuildDueToPA) {
-        itsNumberOfCFGenerationsDueToPA += nDone;
-    }    
-    if (rebuildDueToFreq) {
-        itsNumberOfCFGenerationsDueToFreq += nDone;
-    }    
+    updateStats(nDone);
 }
 
 // To finalize the transform of the weights, we use the following steps:

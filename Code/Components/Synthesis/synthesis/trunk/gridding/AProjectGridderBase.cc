@@ -32,6 +32,8 @@
 #include <gridding/AProjectGridderBase.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
+
+#include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".gridding");
 
@@ -58,6 +60,7 @@ AProjectGridderBase::AProjectGridderBase(const int maxFeeds, const int maxFields
 {
   ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
   ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
+  ASKAPCHECK(pointingTol>0.0, "Pointing tolerance must be greater than 0.0");
 }
 
 /// @brief copy constructor
@@ -97,20 +100,20 @@ AProjectGridderBase::~AProjectGridderBase()
       }
   }  
   if (itsDone.nelements()) {
-      ASKAPLOG_INFO_STR(logger, "AProjectGridderBase: CF cache memory utilisation (last iteration): "<<
+      ASKAPLOG_INFO_STR(logger, "   AProjectGridderBase: CF cache memory utilisation (last iteration): "<<
               double(nUsed)/double(itsDone.nrow()*itsDone.ncolumn())*100<<"% of maxfeed*maxfield");
   }
   
   if (itsNumberOfIterations != 0) {
-      ASKAPLOG_INFO_STR(logger, "AProjectGridderBase: CFs were rebuilt "<<
+      ASKAPLOG_INFO_STR(logger, "   AProjectGridderBase: CFs were rebuilt "<<
              itsNumberOfCFGenerations<<" times for "<<itsNumberOfIterations<<" iterations");
-      ASKAPLOG_INFO_STR(logger, "Last iteration worked with "<<nUsed<<" CFs");        
+      ASKAPLOG_INFO_STR(logger, "   Last iteration worked with "<<nUsed<<" CFs");        
       if (itsNumberOfCFGenerations != 0) {
-          ASKAPLOG_INFO_STR(logger, "Parallactic angle change caused "<<
+          ASKAPLOG_INFO_STR(logger, "   Parallactic angle change caused "<<
                   itsNumberOfCFGenerationsDueToPA<<" of those rebuilds ("<<
                   double(itsNumberOfCFGenerationsDueToPA)/double(itsNumberOfCFGenerations)*100<<
                   " %)");
-          ASKAPLOG_INFO_STR(logger, "Frequency axis change caused "<<
+          ASKAPLOG_INFO_STR(logger, "   Frequency axis change caused "<<
                   itsNumberOfCFGenerationsDueToFreq<<" of those rebuilds ("<<
                   double(itsNumberOfCFGenerationsDueToFreq)/double(itsNumberOfCFGenerations)*100<<
                   " %)");
@@ -122,7 +125,7 @@ AProjectGridderBase::~AProjectGridderBase()
           const double utilisation = (1.-double(itsNumberOfCFGenerations)/
                                   double(itsNumberOfIterations*nUsed));
           if ((utilisation<1.) && (utilisation>0.)) {
-              ASKAPLOG_INFO_STR(logger, "Approximate CF cache utilisation is "<<
+              ASKAPLOG_INFO_STR(logger, "   Approximate CF cache utilisation is "<<
                                         utilisation*100.<<" %");
           }
       }

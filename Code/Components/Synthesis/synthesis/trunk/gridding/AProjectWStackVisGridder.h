@@ -34,6 +34,7 @@
 #include <gridding/IBasicIllumination.h>
 #include <dataaccess/IConstDataAccessor.h>
 #include <gridding/UVPattern.h>
+#include <gridding/AProjectGridderBase.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -55,7 +56,7 @@ namespace askap
     /// The scaling is fast in data points, slow in w planes.
     ///
     /// @ingroup gridding
-    class AProjectWStackVisGridder : public WStackVisGridder
+    class AProjectWStackVisGridder : public WStackVisGridder,virtual protected AProjectGridderBase
     {
   public:
 
@@ -90,8 +91,6 @@ namespace askap
       /// @param[in] other input object
       AProjectWStackVisGridder(const AProjectWStackVisGridder &other);
     
-      virtual ~AProjectWStackVisGridder();
-
       /// Clone a copy of this Gridder
       virtual IVisGridder::ShPtr clone();
 
@@ -149,17 +148,6 @@ namespace askap
       int itsMaxFeeds;
       /// Maximum number of fields
       int itsMaxFields;
-      /// Pointing tolerance in radians
-      double itsPointingTolerance;
-      /// @brief parallactic angle tolerance (in radians)
-      /// @details If new angle is different from the one used to compute the cache for more
-      /// than this value, the cache will be recomputed. Note, a negative value means to 
-      /// always recalculate for asymmetric illumination patterns
-      double itsParallacticAngleTolerance;
-      /// Last field processed
-      int itsLastField;
-      /// Current field processed
-      int itsCurrentField;
       /// Is the convolution function frequency dependent?
       bool itsFreqDep;
       /// Maximum support to test
@@ -169,57 +157,7 @@ namespace askap
       /// Mapping from row, pol, and channel to planes of convolution function
       casa::Cube<int> itsCMap;
       /// Cube of slopes
-      casa::Cube<double> itsSlopes;
-      /// Has this feed and field been filled in?
-      casa::Matrix<bool> itsDone;
-      /// Pointing for this feed and field
-      casa::Matrix<casa::MVDirection> itsPointings;
-      /// @brief buffer in the uv-space
-      /// @details It is used to compute convolution functions (buffer for illumination pattern)
-      boost::shared_ptr<UVPattern> itsPattern;
-            
-      // stats for CF cache rebuilds
-      /// @brief number of iterations when CFs were generated
-      /// @details This number is incremented for each accessor which leads to recomputation of the 
-      /// CF cache. In the best case (CFs computed once and
-      /// reused later) it should be equal to 1. In the worst case (CFs are
-      /// recomputed for every iteration) this should be equal to the number iterations 
-      /// (to be exact, the number of calls to initConvolutionFunctions).
-      casa::uInt itsNumberOfCFGenerations;
-      
-      /// @brief total number of iterations
-      /// @details This number is incremented each time a new accessor is passed to this gridder
-      /// (i.e. counts every iteration). 
-      casa::uInt itsNumberOfIterations;
-      
-      /// @brief number of CFs generated due to parallactic angle change
-      /// @details This number is incremented each time a CF is recomputed 
-      /// due to a change in parallactic angle. 
-      casa::uInt itsNumberOfCFGenerationsDueToPA;
-      
-      /// @brief parallactic angle for which the cache is valid
-      /// @details This buffer is only used and filled if the illumination pattern is asymmetric.
-      /// We currently don't account for the VLBI case with notably different parallactic angles.
-      /// Therefore, only one angle is stored here. 
-      casa::Float itsCFParallacticAngle;
-      
-      /// @brief number of CFs generated due to a change of frequency 
-      /// @details This number is incremented each time a CF is recomputed following a change
-      /// in frequency setup.
-      casa::uInt itsNumberOfCFGenerationsDueToFreq;
-
-      /// @brief relative frequency tolerance
-      /// @details If abs(df/f) exceeds this value for any spectral channel, the cache of 
-      /// the CFs has to be recomputed. A negative value means that checks of frequency axis are
-      /// to be bypassed (i.e. frequency is assumed to be always valid). The latter option may be
-      /// useful for smaller ATCA datasets to avoid unnecessary overheads 
-      double itsFrequencyTolerance;
-      
-      /// @brief frequency axis corresponding to the cache
-      /// @details To be able to determine whether the cache of CFs needs to be recomputed one has
-      /// to know which frequencies were used to compute it. This is a copy of the frequency axis
-      /// returned by the accessor on the first iteration
-      casa::Vector<casa::Double> itsCachedFrequencies;
+      casa::Cube<double> itsSlopes;            
     };
 
   }
