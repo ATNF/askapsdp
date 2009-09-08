@@ -38,6 +38,7 @@
 #include <list>
 #include <sstream>
 
+#include <casa/Quanta/MVDirection.h>
 
 namespace askap {
 
@@ -78,6 +79,18 @@ namespace askap {
     }
     os << postfix;
   }
+  
+  /// @brief a helper method to print directions nicely
+  /// @details By default an instance of casa::MVDirection is printed
+  /// as 3 direction cosines. It is not very convenient. This method
+  /// allows to print it in a more log-reader-friendly way. 
+  /// This is the only method in this file (so far) which introduces
+  /// dependency on casacore. It can be moved to a separate sub-package
+  /// if necessary
+  /// @param[in] dir MVDirection object to print
+  /// @return a string containing a nice representation of the direction
+  std::string printDirection(const casa::MVDirection &dir);
+  
 
 /// a number of helper functions are gathered in this namespace
 namespace utility {

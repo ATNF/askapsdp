@@ -55,7 +55,6 @@ using namespace askap;
 #include <iomanip>
 
 #include <casa/OS/Timer.h>
-#include <casa/Quanta/MVAngle.h>
 
 namespace askap {
 namespace synthesis {
@@ -77,27 +76,6 @@ void deepCopyOfSTDVector(const std::vector<T> &in,
         inIt != inEnd; ++inIt,++outIt) {
         *outIt = inIt->copy();
    }
-}
-
-// Use // deliberatly as doxygen complains about duplicated documentation here and in h-file
-// @brief a helper method to print directions nicely
-// @details By default an instance of casa::MVDirection is printed
-// as 3 direction cosines. It is not very convenient. This method
-// allows to print it in a more log-reader-friendly way. We can move this
-// method to a higher level if (when) it becomes necessary in other places.
-// I (MV) didn't move it to askap just because it would introduce a
-// dependency on casacore, although scimath may be a right place for this
-// method.
-// @param[in] dir MVDirection object to print
-// @return a string containing a nice representation of the direction
-std::string printDirection(const casa::MVDirection &dir)
-{
-   std::ostringstream os;
-   os<<std::setprecision(8)<<casa::MVAngle::Format(casa::MVAngle::TIME)
-     <<casa::MVAngle(dir.getLong("deg"))
-     <<" "<<std::setprecision(8)<<casa::MVAngle::Format(casa::MVAngle::ANGLE)<<
-     casa::MVAngle(dir.getLat("deg"));
-   return os.str();
 }
 
 TableVisGridder::TableVisGridder() : itsSumWeights(),

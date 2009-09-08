@@ -31,6 +31,7 @@
 
 #include <gridding/AProjectGridderBase.h>
 #include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".gridding");
 
@@ -170,9 +171,8 @@ void AProjectGridderBase::indexField(const IConstDataAccessor &acc)
       ASKAPCHECK(itsCurrentField < itsDone.ncolumn(),
               "Too many fields: increase maxfields " << itsDone.ncolumn());
       itsPointings(firstFeed, itsCurrentField) = firstPointing;
-      // we need to do something about printDirection to make it available (i.e. sort out dependencies in base)
-      //ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField<<" at "<<
-      //          printDirection(firstPointing));
+      ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField<<" at "<<
+                printDirection(firstPointing));
   } 
 }
 
