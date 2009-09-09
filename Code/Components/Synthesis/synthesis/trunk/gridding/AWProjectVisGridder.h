@@ -106,6 +106,19 @@ namespace askap
       virtual void finaliseGrid(casa::Array<double>& out);
       */
 
+      /// @brief Initialise the gridding
+      /// @param axes axes specifications
+      /// @param shape Shape of output image: u,v,pol,chan
+      /// @param dopsf Make the psf?
+      virtual void initialiseGrid(const scimath::Axes& axes,
+              const casa::IPosition& shape, const bool dopsf=true);
+   
+      /// @brief Initialise the degridding
+      /// @param axes axes specifications
+      /// @param image Input image: cube: u,v,pol,chan
+      virtual void initialiseDegrid(const scimath::Axes& axes,
+              const casa::Array<double>& image);
+
   protected:
       /// @brief initialise sum of weights
       /// @details We keep track the number of times each convolution function is used per

@@ -168,6 +168,57 @@ namespace askap {
       }
     }
     
+/// @brief Initialise the gridding
+/// @param axes axes specifications
+/// @param shape Shape of output image: u,v,pol,chan
+/// @param dopsf Make the psf?
+void AWProjectVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa::IPosition& shape, 
+                                          const bool dopsf)
+{
+    WProjectVisGridder::initialiseGrid(axes,shape,dopsf);
+
+    /// Limit the size of the convolution function since
+    /// we don't need it finely sampled in image space. This
+    /// will reduce the time taken to calculate it.
+    const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
+    const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+
+    ASKAPLOG_INFO_STR(logger, "Shape for calculating gridding convolution function = "
+            << nx << " by " << ny << " pixels");
+
+    // this is just a buffer in the uv-space, oversampling is
+    // taken into account inside the UVPattern object (in the past we handled
+    // oversampling explicitly by using qnx and qny instead of nx and ny and
+    // passing 1 instead of itsOverSample, but it caused scaling problems for
+    // offset feeds).
+    initUVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
+}
+
+/// @brief Initialise the degridding
+/// @param axes axes specifications
+/// @param image Input image: cube: u,v,pol,chan
+void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
+        const casa::Array<double>& image)
+{
+    WProjectVisGridder::initialiseDegrid(axes,image);      
+    /// Limit the size of the convolution function since
+    /// we don't need it finely sampled in image space. This
+    /// will reduce the time taken to calculate it.
+    const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
+    const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+
+    ASKAPLOG_INFO_STR(logger, "Shape for calculating degridding convolution function = "
+            << nx << " by " << ny << " pixels");
+
+    // this is just a buffer in the uv-space, oversampling is
+    // taken into account inside the UVPattern object (in the past we handled
+    // oversampling explicitly by using qnx and qny instead of nx and ny and
+    // passing 1 instead of itsOverSample, but it caused scaling problems for
+    // offset feeds).
+    initUVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
+}
+    
+    
     
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
@@ -221,12 +272,7 @@ namespace askap {
            ccfy(iy)=grdsf(nuy); // /float(qny);
       }
       
-      // this is just a buffer in the uv-space, oversampling is
-      // taken into account inside the UVPattern object (in the past we handled
-      // oversampling explicitly by using qnx and qny instead of nx and ny and
-      // passing 1 instead of itsOverSample, but it caused scaling problems for
-      // offset feeds).
-      UVPattern pattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
+      UVPattern &pattern = uvPattern();
       
       int nDone=0;
       for (int row=0; row<nSamples; ++row) {
