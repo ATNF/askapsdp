@@ -86,6 +86,68 @@ namespace askap {
                 if (this->itsArrayAllocated) delete [] this->itsArray;
             }
 
+
+	  FITSfile::FITSfile(const FITSfile &f)
+	  {
+	    operator=(f);
+	  }
+
+	  FITSfile& FITSfile::operator=(const FITSfile &f)
+	  {
+	    if (this == &f) return *this;
+
+	    this->itsFileName = f.itsFileName;
+	    this->itsSourceList = f.itsSourceList;
+	    this->itsPosType = f.itsPosType;
+	    this->itsMinMinorAxis = f.itsMinMinorAxis;
+	    this->itsPAunits = f.itsPAunits;
+	    this->itsSourceFluxUnits = f.itsSourceFluxUnits;
+	    this->itsAxisUnits = f.itsAxisUnits;
+	    this->itsNumPix = f.itsNumPix;
+	    if(this->itsArrayAllocated){
+	      this->itsArrayAllocated=false;
+	      delete [] itsArray;
+	    }
+	    this->itsArrayAllocated = f.itsArrayAllocated;
+	    if(this->itsArrayAllocated){
+	      this->itsArray = new float[this->itsNumPix];
+	      for(int i=0;i<this->itsNumPix;i++) this->itsArray[i] = f.itsArray[i];
+	    }
+	    this->itsNoiseRMS = f.itsNoiseRMS;
+	    this->itsDim = f.itsDim;
+	    this->itsAxes = f.itsAxes;
+	    this->itsHaveBeam = f.itsHaveBeam;
+	    this->itsBeamInfo = f.itsBeamInfo;
+	    this->itsHaveSpectralInfo = f.itsHaveSpectralInfo;
+	    this->itsBaseFreq = f.itsBaseFreq;
+	    this->itsEquinox = f.itsEquinox;
+	    this->itsBunit = f.itsBunit;
+            this->itsUnitScl = f.itsUnitScl;
+            this->itsUnitOff = f.itsUnitOff;
+            this->itsUnitPwr = f.itsUnitPwr;
+
+	    this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	    this->itsWCS->flag     = -1;
+	    wcsini(true, f.itsWCS->naxis, this->itsWCS); 
+	    wcscopy(true, f.itsWCS, this->itsWCS); 
+	    wcsset(this->itsWCS);
+	    
+	    this->itsFlagPrecess = f.itsFlagPrecess;
+	    if(this->itsFlagPrecess){
+	      this->itsWCSsources = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	      this->itsWCSsources->flag     = -1;
+	      wcsini(true, f.itsWCSsources->naxis, this->itsWCSsources); 
+	      wcscopy(true, f.itsWCSsources, this->itsWCSsources); 
+	      wcsset(this->itsWCSsources);
+	    }
+
+	    this->itsFlagOutputList = f.itsFlagOutputList;
+	    this->itsOutputSourceList = f.itsOutputSourceList;
+
+	    return *this;
+
+	  }
+
 //--------------------------------------------------------
 
             FITSfile::FITSfile(const LOFAR::ParameterSet& parset)
@@ -177,6 +239,8 @@ namespace askap {
                 if (this->itsSourceList.size() == 0) this->itsFlagOutputList = false;
 
                 this->itsOutputSourceList = parset.getString("outputSourceList", "");
+
+		ASKAPLOG_DEBUG_STR(logger, "FITSfile defined.");
             }
 
 //--------------------------------------------------------

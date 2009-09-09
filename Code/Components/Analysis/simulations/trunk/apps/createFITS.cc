@@ -30,7 +30,10 @@
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
 
+#include <FITS/FITSparallel.h>
 #include <FITS/FITSfile.h>
 
 #include <Common/ParameterSet.h>
@@ -79,6 +82,9 @@ int main(int argc, const char** argv)
   }
 
     try {
+        // Ensure that CASA log messages are captured
+        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+        casa::LogSink::globalSink(globalSink);
         //    casa::Timer timer;
         //    timer.mark();
         //srandomdev();
@@ -90,7 +96,8 @@ int main(int argc, const char** argv)
         bool doNoise = subset.getBool("addNoise", true);
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);
-        FITSfile file(subset);
+//          FITSfile file(subset);
+ 	FITSparallel file(argc,argv,subset);
         file.addSources();
 
         if (doNoise && (noiseBeforeConvolve || !doConvolution))
@@ -102,7 +109,9 @@ int main(int argc, const char** argv)
         if (doNoise && (!noiseBeforeConvolve && doConvolution))
             file.addNoise();
 
-        file.saveFile();
+ 	file.toMaster();
+
+	file.saveFile();
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;

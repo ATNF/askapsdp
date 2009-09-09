@@ -87,7 +87,7 @@ namespace askap {
         SubimageDef::SubimageDef(const LOFAR::ParameterSet& parset)
         {
             this->itsNAxis = 0;
-            this->itsImageName = parset.getString("image");
+            this->itsImageName = parset.getString("image","");
             this->itsNSubX = parset.getInt16("nsubx", 1);
             this->itsNSubY = parset.getInt16("nsuby", 1);
             this->itsNSubZ = parset.getInt16("nsubz", 1);
@@ -122,6 +122,21 @@ namespace askap {
 
             return *this;
         }
+
+      void SubimageDef::define(int numDim)
+      {
+	
+	struct wcsprm *wcs;
+	wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+	wcs->naxis = numDim;
+	wcs->lng = 0;
+	wcs->lat = 1;
+	wcs->spec = 2;
+	this->define(wcs);
+	int nwcs=1;
+	wcsvfree(&nwcs,&wcs);
+
+      }
 
         void SubimageDef::define(wcsprm *wcs)
         {

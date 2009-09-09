@@ -64,10 +64,21 @@ namespace askap {
                     /// @brief Constructor, using an input parameter set
                     FITSfile(const LOFAR::ParameterSet& parset);
 
+		    /// @brief Copy constructor
+		    FITSfile(const FITSfile& f);
+
+		    /// @brief Copy operator
+		    FITSfile& operator=(const FITSfile& f);
+
                     /// @brief Define the world coordinate system
                     void setWCS(bool isImage, const LOFAR::ParameterSet& parset);
 
 		    struct wcsprm *getWCS(){return itsWCS;};
+
+		    float array(int pos){return itsArray[pos];};
+		    float array(int x, int y){return itsArray[x+itsAxes[0]*y];};
+		    void setArray(int pos, float val){itsArray[pos]=val;};
+		    void setArray(int x, int y, float val){itsArray[x+itsAxes[0]*y]=val;};
 
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();

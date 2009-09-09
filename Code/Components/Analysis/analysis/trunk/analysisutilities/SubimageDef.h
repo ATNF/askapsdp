@@ -58,6 +58,8 @@ namespace askap {
                 /// @brief Default destructor
                 virtual ~SubimageDef();
 
+		/// @brief Set up the definition for a given number of dimensions
+		void define(int numDim);
                 /// @brief Set up the definition using a WCSLIB definition
                 void define(wcsprm *wcs);
                 /// @brief Set up the definition for a FITS file.
