@@ -38,6 +38,8 @@
 
 #include <Common/ParameterSet.h>
 
+#include <duchamp/Utils/Section.hh>
+
 #include <scimath/Functionals/Gaussian1D.h>
 #include <scimath/Functionals/Gaussian2D.h>
 #include <scimath/Functionals/Gaussian3D.h>
@@ -116,6 +118,7 @@ namespace askap {
 	    this->itsNoiseRMS = f.itsNoiseRMS;
 	    this->itsDim = f.itsDim;
 	    this->itsAxes = f.itsAxes;
+	    this->itsSourceSection = f.itsSourceSection;
 	    this->itsHaveBeam = f.itsHaveBeam;
 	    this->itsBeamInfo = f.itsBeamInfo;
 	    this->itsHaveSpectralInfo = f.itsHaveSpectralInfo;
@@ -203,6 +206,7 @@ namespace askap {
 
                 this->itsDim = parset.getInt32("dim", 2);
                 this->itsAxes = parset.getInt32Vector("axes");
+		this->itsSourceSection.setSection(duchamp::nullSection(this->itsDim));
 
                 if (this->itsAxes.size() != this->itsDim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
@@ -438,9 +442,11 @@ namespace askap {
 								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
 				gauss.setFlux(flux);
 
-                                addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
+//                                 addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
+                                addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
                             } else {
-			      addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+// 			      addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+			      addPointSource(this->itsArray, this->itsSourceSection, pix, fluxGen);
                             }
                         }
 			else{

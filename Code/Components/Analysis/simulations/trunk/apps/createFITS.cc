@@ -101,15 +101,19 @@ int main(int argc, const char** argv)
         file.addSources();
 
         if (doNoise && (noiseBeforeConvolve || !doConvolution))
-            file.addNoise();
+	  if(file.isWorker())
+	    file.addNoise();
+
+ 	file.toMaster();
 
         if (doConvolution)
+	  if(file.isMaster())
             file.convolveWithBeam();
 
         if (doNoise && (!noiseBeforeConvolve && doConvolution))
-            file.addNoise();
+	  if(file.isMaster())
+	    file.addNoise();
 
- 	file.toMaster();
 
 	file.saveFile();
     } catch (askap::AskapError& x) {

@@ -90,7 +90,7 @@ namespace askap {
 	duchamp::Section itsSubsection;
 /* 	int itsNsubx; */
 /* 	int itsNsuby; */
-	std::vector<int> itsAxes;
+/* 	std::vector<int> itsAxes; */
 /* 	int itsXmin; */
 /* 	int itsYmin; */
 

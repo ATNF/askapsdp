@@ -37,6 +37,8 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
+#include <duchamp/Utils/Section.hh>
+
 #include <vector>
 #include <utility>
 #include <string>
@@ -72,6 +74,11 @@ namespace askap {
 
                     /// @brief Define the world coordinate system
                     void setWCS(bool isImage, const LOFAR::ParameterSet& parset);
+
+		    /// @brief Set the source subsection via a duchamp::Section object
+		    void setSection(duchamp::Section &sec){itsSourceSection = sec; itsSourceSection.parse(itsAxes);};
+		    /// @brief Set the source subsection via a string
+		    void setSection(std::string &secstring){itsSourceSection.setSection(secstring); itsSourceSection.parse(itsAxes);};
 
 		    struct wcsprm *getWCS(){return itsWCS;};
 
@@ -125,6 +132,8 @@ namespace askap {
                     std::vector<int> itsAxes;
                     /// @brief The number of pixels in the image
                     int itsNumPix;
+		    /// @brief The section of the image in which to place sources - defaults to the null section of the appropriate dimensionality, and needs to be set explicitly via setSection()
+		    duchamp::Section itsSourceSection;
 
                     /// @brief Do we have information on the beam size?
                     bool itsHaveBeam;

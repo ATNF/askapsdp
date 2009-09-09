@@ -77,7 +77,8 @@ namespace askap {
             return z*sigma + mean;
         }
 
-      void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxGen)
+      void addGaussian(float *array, duchamp::Section subsection, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxGen)
+//       void addGaussian(float *array, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxGen)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
             /// array.  Only look at pixels within a box defined by the
@@ -96,12 +97,16 @@ namespace askap {
             /// @param gauss The 2-dimensional Gaussian component.
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
-            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), axes[0] - 1);
-            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
-            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), axes[1] - 1);
+//             int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
+//             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), axes[0] - 1);
+//             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
+//             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), axes[1] - 1);
+            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), subsection.getStart(0));
+            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), subsection.getEnd(0));
+            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), subsection.getStart(1));
+            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), subsection.getEnd(1));
 
-	    if((xmax>=xmin) && (ymax>=ymin)){  // if the object falls within the image boundaries
+	    if((xmax>=xmin) && (ymax>=ymin)){  // if there are object pixels falling within the image boundaries
 
 	      ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds ["<<xmin<<":"<<xmax<<","<<ymin<<":"<<ymax<<"] (zeropoint = "<<zeroPoint<<")");
 	      
@@ -116,7 +121,8 @@ namespace askap {
 		  pix[0] = gauss.xCenter();
 		  pix[1] = gauss.yCenter();
 		  ASKAPLOG_DEBUG_STR(logger, "Making this Gaussian a point source");
-		  addPointSource(array,axes,pix,fluxGen);
+// 		  addPointSource(array,axes,pix,fluxGen);
+		  addPointSource(array,subsection,pix,fluxGen);
 		  delete [] pix;
 		}
 		else{
@@ -124,6 +130,7 @@ namespace askap {
 		  int nstep = int(1./delta);
 		  for (int x = xmin; x <= xmax; x++) {
 		    for (int y = ymin; y <= ymax; y++) {
+// 		      int pix = x + y * axes[0] + z*axes[0]*axes[1];
 		      int pix = x + y * axes[0] + z*axes[0]*axes[1];
 		      float pixelVal = 0.;
 		      float xpos = x-0.5-delta;
@@ -153,7 +160,8 @@ namespace askap {
 	    }
         }
 
-        void addPointSource(float *array, std::vector<int> axes, double *pix, FluxGenerator fluxGen)
+//         void addPointSource(float *array, std::vector<int> axes, double *pix, FluxGenerator fluxGen)
+      void addPointSource(float *array, duchamp::Section subsection, double *pix, FluxGenerator fluxGen)
         {
             /// @details Adds the flux of a given point source to the
             /// appropriate pixel in the given pixel array Checks are
@@ -164,11 +172,20 @@ namespace askap {
             /// @param pix The coordinates of the point source
             /// @param flux The flux of the point source.
 
+	  int xmin = subsection.getStart(0);
+	  int ymin = subsection.getStart(1);
+	  int xmax = subsection.getEnd(0);
+	  int ymax = subsection.getEnd(1);
+	  int xdim = subsection.getDim(0);
+	  int ydim = subsection.getDim(1);
+
 	  for(int z = 0 ; z<fluxGen.nChan(); z++){
 
-            int loc = int(pix[0]) + axes[0] * int(pix[1]) + z*axes[0]*axes[1];
+//             int loc = int(pix[0]) + axes[0] * int(pix[1]) + z*axes[0]*axes[1];
+            int loc = int(pix[0]) + xdim * int(pix[1]) + z*xdim*ydim;
 
-            if (pix[0] >= 0 && pix[0] < axes[0] && pix[1] >= 0 && pix[1] < axes[1]) {
+//             if (pix[0] >= 0 && pix[0] < axes[0] && pix[1] >= 0 && pix[1] < axes[1]) {
+            if (pix[0] >= xmin && pix[0] <= xmax && pix[1] >= ymin && pix[1] <= ymax) {
 	      array[loc] += fluxGen.getFlux(z);
             }
 
