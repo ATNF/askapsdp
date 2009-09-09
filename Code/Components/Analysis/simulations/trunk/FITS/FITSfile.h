@@ -86,6 +86,9 @@ namespace askap {
 		    float array(int x, int y){return itsArray[x+itsAxes[0]*y];};
 		    void setArray(int pos, float val){itsArray[pos]=val;};
 		    void setArray(int x, int y, float val){itsArray[x+itsAxes[0]*y]=val;};
+		    std::vector<int> getAxes(){return itsAxes;};
+		    int getXdim(){return itsAxes[itsWCS->lng];};
+		    int getYdim(){return itsAxes[itsWCS->lat];};
 
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();

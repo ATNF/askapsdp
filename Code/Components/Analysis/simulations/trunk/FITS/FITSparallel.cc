@@ -89,34 +89,14 @@ namespace askap {
 	if(this->isParallel() && this->isWorker()) {
 
 	  this->itsSubsection = this->itsSubimageDef.section(this->itsRank-1,duchamp::nullSection(dim));
-	  axes[0] = this->itsSubsection.getDim(0);
-	  axes[1] = this->itsSubsection.getDim(1);
-
-// 	  newparset.replace(LOFAR::KVpair("axes",axes));
 
 	  ASKAPLOG_DEBUG_STR(logger, "Worker #"<<this->itsRank<<" has offsets (" << this->itsSubsection.getStart(0) <<","<< this->itsSubsection.getStart(1)
 			     <<") and dimensions "<< this->itsSubsection.getDim(0) << "x"<<this->itsSubsection.getDim(1));
 
-// 	  if(newparset.isDefined("WCSimage.crpix")) {
-// 	    std::vector<int> crpix = newparset.getInt32Vector("WCSimage.crpix");
-// 	    crpix[0] -= this->itsSubsection.getStart(0);
-// 	    crpix[1] -= this->itsSubsection.getStart(1);
-// 	    newparset.replace(LOFAR::KVpair("WCSimage.crpix",crpix));
-// 	  }
-
-// 	  if(newparset.isDefined("WCSsources.crpix")) {
-// 	    std::vector<int> crpix = newparset.getInt32Vector("WCSsources.crpix");
-// 	    crpix[0] -= this->itsSubsection.getStart(0);
-// 	    crpix[1] -= this->itsSubsection.getStart(1);
-// 	    newparset.replace(LOFAR::KVpair("WCSsources.crpix",crpix));
-// 	  }
-
 	}
 	else{
 	  this->itsSubsection.setSection(duchamp::nullSection(dim));
-	  std::vector<long> laxes(axes.size());
-	  for(size_t i=0;i<laxes.size();i++) laxes[i]=axes[i];
-	  this->itsSubsection.parse(laxes);
+	  this->itsSubsection.parse(axes);
 	}
 
   	std::cerr << newparset;
@@ -142,10 +122,12 @@ namespace askap {
 	    LOFAR::BlobOBufString bob(bs);
 	    LOFAR::BlobOStream out(bob);
 	    out.putStart("pixW2M", 1);
-	    out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getDim(0) << this->itsSubsection.getDim(1);
+	    out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1);
 	    ASKAPLOG_DEBUG_STR(logger, "Worker #"<<this->itsRank<<": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1));
-	    for(int y=this->itsSubsection.getStart(1);y<=this->itsSubsection.getEnd(1);y++){
-	      for(int x=this->itsSubsection.getStart(0);x<=this->itsSubsection.getEnd(0);x++){
+// 	    for(int y=this->itsSubsection.getStart(1);y<=this->itsSubsection.getEnd(1);y++){
+// 	      for(int x=this->itsSubsection.getStart(0);x<=this->itsSubsection.getEnd(0);x++){
+	    for(int y=0;y<this->itsFITSfile.getYdim();y++){
+	      for(int x=0;x<this->itsFITSfile.getXdim();x++){
 		out << x << y << this->itsFITSfile.array(x,y);
 	      }
 	    }
@@ -164,17 +146,20 @@ namespace askap {
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("pixW2M");
 	      ASKAPASSERT(version == 1);
-	      int xmin,ymin,xdim,ydim;
-	      in >> xmin >> ymin >> xdim >> ydim;
+	      int xmin,ymin,xmax,ymax;
+	      in >> xmin >> ymin >> xmax >> ymax;
 	      ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin);
-	      for(int y=0;y<ydim;y++){
-		for(int x=0;x<xdim;x++){
+// 	      for(int y=ymin;y<=ymax;y++){
+// 		for(int x=xmin;x<=xmax;x++){
+	      for(int y=0;y<this->itsFITSfile.getYdim();y++){
+		for(int x=0;x<this->itsFITSfile.getXdim();x++){
 		  int xpt,ypt;
 		  float flux;
 		  in >> xpt >> ypt >> flux;
 		  ASKAPASSERT(x==xpt);
 		  ASKAPASSERT(y==ypt);
-		  this->itsFITSfile.setArray(x+xmin,y+ymin,flux);
+		  flux += this->itsFITSfile.array(xpt,ypt);
+		  this->itsFITSfile.setArray(xpt,ypt,flux);
 		}
 	      }
 	      in.getEnd();

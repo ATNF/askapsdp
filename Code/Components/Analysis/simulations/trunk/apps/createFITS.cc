@@ -37,6 +37,7 @@
 #include <FITS/FITSfile.h>
 
 #include <Common/ParameterSet.h>
+#include <casa/OS/Timer.h>
 
 #include <iostream>
 #include <fstream>
@@ -85,9 +86,8 @@ int main(int argc, const char** argv)
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
-        //    casa::Timer timer;
-        //    timer.mark();
-        //srandomdev();
+	casa::Timer timer;
+	timer.mark();
         srandom(time(0));
         std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
@@ -96,7 +96,6 @@ int main(int argc, const char** argv)
         bool doNoise = subset.getBool("addNoise", true);
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);
-//          FITSfile file(subset);
  	FITSparallel file(argc,argv,subset);
         file.addSources();
 
@@ -114,8 +113,10 @@ int main(int argc, const char** argv)
 	  if(file.isMaster())
 	    file.addNoise();
 
-
 	file.saveFile();
+
+	ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
+
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;

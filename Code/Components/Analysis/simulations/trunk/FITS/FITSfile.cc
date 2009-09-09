@@ -442,11 +442,9 @@ namespace askap {
 								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
 				gauss.setFlux(flux);
 
-//                                 addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
                                 addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
                             } else {
-// 			      addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
-			      addPointSource(this->itsArray, this->itsSourceSection, pix, fluxGen);
+			      addPointSource(this->itsArray, this->itsSourceSection, this->itsAxes, pix, fluxGen);
                             }
                         }
 			else{

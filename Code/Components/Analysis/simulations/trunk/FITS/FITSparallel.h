@@ -88,11 +88,6 @@ namespace askap {
 
 	analysis::SubimageDef itsSubimageDef;
 	duchamp::Section itsSubsection;
-/* 	int itsNsubx; */
-/* 	int itsNsuby; */
-/* 	std::vector<int> itsAxes; */
-/* 	int itsXmin; */
-/* 	int itsYmin; */
 
       };
 
