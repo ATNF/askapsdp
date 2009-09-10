@@ -27,18 +27,47 @@
 
 module askap
 {
-  module interfaces
-  {
-    module logging
+
+module interfaces
+{
+
+module logging
+{
+    /**
+     * Exception to be thrown when a query is invalid.
+     **/
+    exception LogQueryException
     {
+      string reason;
+    };
 
-      enum LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, FATAL};
-      // Standard string list
-      sequence<string> stringlist;
+    /**
+     * Exception to be thrown when a log message couldn't be dispatched.
+     **/
+    exception LogSendException
+    {
+      string reason;
+    };
 
-      // The LogEvent representation
-      struct ILogEvent
-      {
+    /**
+     * Log level representation in order ov severity
+     * This should be translated to the equivalent levels
+     * in the logging system specific implementations.
+     * These are the only valid levels.
+     **/
+    enum LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, FATAL};
+
+    /**
+     * Simple vector/list of strings
+     * */
+    sequence<string> StringSeq;
+
+    /**
+     * The LogEvent representation/container. This is the message which gets
+     * sent and returned from the archive.
+     **/
+    struct ILogEvent
+    {
         // the  logger name e.g. askap.scimath
         string origin;
         // the creation time of the log event (POSIX timestamp)
@@ -47,40 +76,60 @@ module askap
         LogLevel level;
         // the actual log message
         string message;
-      };
-
-      // a list of ILogEvents
-      sequence<ILogEvent> eventlist;
-      // a list of LogLevels
-      sequence<LogLevel> levellist;
-
-      // The interface to implement when handling LogEvents
-      interface ILogger
-      {
-        void send(ILogEvent event);
-      };
-
-      // The query argument object
-      struct IQueryObject
-      {
-        string origin;
-        string datemin;
-        string datemax;
-        levellist levels;
-        int limit;
-      };
-      // The inteface for querying the logarchive
-      interface ILogQuery
-      {
-        // query the logarchive database returning the list of matches
-        idempotent eventlist query(IQueryObject q);
-        // get the logger names (origin) with an optional name match
-        idempotent stringlist getLoggers(string name);
-        // get the available log levels
-        idempotent stringlist getLevels();
-      };
     };
-  };
+
+    // a list of ILogEvents
+    sequence<ILogEvent> EventSeq;
+
+    // a list of LogLevel
+    sequence<LogLevel> LogLevelSeq;
+
+    // The interface to implement when handling LogEvents
+    interface ILogger
+    {
+        void send(ILogEvent event) throws LogSendException;
+    };
+
+    /**
+     * The container for query parameters
+     **/
+    struct IQueryObject
+    {
+        // The log origin/logger name , e.g. 'askap.test'
+        string origin;
+
+        // The minimum date for the query
+        string datemin;
+
+        // The maximum date for the query
+        string datemax;
+
+        // The log levels to query on
+        LogLevelSeq levels;
+
+        // The number maximum number of ILogEvent to return
+        int limit;
+    };
+
+    /**
+     * The interface which defines a query of to the log archive.
+     **/
+    interface ILogQuery
+    {
+        // query the logarchive database returning the list of matches
+        idempotent EventSeq query(IQueryObject q) throws LogQueryException;
+
+        // get the logger names (origin) with an optional name match
+
+        idempotent StringSeq getLoggers(string name);
+
+        // get the available log levels
+        idempotent StringSeq getLevels();
+    };
+};
+
+};
+
 };
 
 #endif
