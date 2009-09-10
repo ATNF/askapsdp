@@ -2,6 +2,27 @@ import os
 from pkg_resources import require
 from askapdev.rbuild.dependencies import Dependency
 
+def transitions():
+    config = dict()
+    print "Calling Startup...",
+    cpadmin.startup(config)
+    print "DONE"
+    print "Calling Activate...",
+    cpadmin.activate()
+    print "DONE"
+    print "Calling Deactivate...",
+    cpadmin.deactivate()
+    print "DONE"
+    print "Calling Activate...",
+    cpadmin.activate()
+    print "DONE"
+    print "Calling Deactivate...",
+    cpadmin.deactivate()
+    print "DONE"
+    print "Calling Shutdown...",
+    cpadmin.shutdown()
+    print "DONE"
+
 origdir = os.path.abspath(os.curdir)
 os.chdir("../..")
 dep = Dependency()
@@ -22,32 +43,21 @@ try:
     ic = Ice.initialize(sys.argv)
     base = ic.stringToProxy("CentralProcessorAdmin")
     cpadmin = askap.interfaces.component.IComponentPrx.checkedCast(base)
-    config = dict()
-    print "Calling Startup..."
-    cpadmin.startup(config)
-    time.sleep(1)
-    print "Calling Activate..."
-    cpadmin.activate()
-    time.sleep(1)
-    print "Calling Deactivate..."
-    cpadmin.deactivate()
-    time.sleep(1)
-    print "Calling Shutdown..."
-    cpadmin.shutdown()
-    time.sleep(1)
-    print "DONE"
     if not cpadmin:
         raise RuntimeError("Invalid proxy")
+
+    # Run through the state transitions
+    for n in range(0, 4):
+        transitions()
+        time.sleep(1)
 except:
     traceback.print_exc()
     status = 1
-
-
-# Clean up
-if ic:
+finally:
     try:
-        ic.destroy()
+        if ic is not None:
+            ic.destroy()
     except:
         traceback.print_exc()
         status = 1
-        sys.exit(status)
+sys.exit(status)
