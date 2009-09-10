@@ -380,5 +380,28 @@ namespace askap
       }
     }
 
+    /// @brief static method to create gridder
+    /// @details Each gridder should have a static factory method, which is
+    /// able to create a particular type of the gridder and initialise it with
+    /// the parameters taken form the given parset. It is assumed that the 
+    /// method receives a subset of parameters where the gridder name is already
+    /// taken out. 
+    /// @param[in] parset input parset file
+    /// @return a shared pointer to the gridder instance					 
+    IVisGridder::ShPtr WProjectVisGridder::createGridder(const LOFAR::ParameterSet& parset)
+    {
+       const double wmax=parset.getDouble("wmax", 35000.0);
+       const int nwplanes=parset.getInt32("nwplanes", 65);
+       const double cutoff=parset.getDouble("cutoff", 1e-3);
+       const int oversample=parset.getInt32("oversample", 8);
+       const int maxSupport=parset.getInt32("maxsupport", 256);
+       const int limitSupport=parset.getInt32("limitsupport", 0);
+       const string tablename=parset.getString("tablename", "");
+       ASKAPLOG_INFO_STR(logger, "Gridding using W projection");
+       return IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
+								  maxSupport, limitSupport, tablename));      
+    }
+
+
   }
 }

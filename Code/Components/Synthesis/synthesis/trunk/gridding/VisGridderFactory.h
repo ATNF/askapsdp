@@ -82,7 +82,14 @@ namespace askap
       /// gridder to be constructed.
       /// If needed, the gridder code is loaded dynamically.
       static IVisGridder::ShPtr make(const LOFAR::ParameterSet& parset);
-				    
+
+    protected:
+      /// @brief helper template method to add pre-defined gridders
+      template<typename GridderType> static inline void addPreDefinedGridder()  {
+          registerGridder(GridderType::gridderName(), GridderType::createGridder);
+      }
+      
+      
     private:
       static std::map<std::string, GridderCreator*> theirRegistry;
     };

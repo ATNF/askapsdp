@@ -59,6 +59,12 @@ namespace askap
 				/// Clone a copy of this Gridder
 				virtual IVisGridder::ShPtr clone();
 				
+				/// @brief static method to get the name of the gridder
+				/// @details We specify parameters per gridder type in the parset file.
+				/// This method returns the gridder name which should be used to extract
+				/// a subset of parameters for createGridder method.
+				static inline std::string gridderName() { return "SphFunc";}				
+				
 				/// @brief static method to create gridder
 			    /// @details Each gridder should have a static factory method, which is
 			    /// able to create a particular type of the gridder and initialise it with

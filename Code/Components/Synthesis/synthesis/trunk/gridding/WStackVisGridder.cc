@@ -310,5 +310,21 @@ namespace askap
       return itsGMap(row, pol, chan);
     }
 
+    /// @brief static method to create gridder
+    /// @details Each gridder should have a static factory method, which is
+    /// able to create a particular type of the gridder and initialise it with
+    /// the parameters taken form the given parset. It is assumed that the 
+    /// method receives a subset of parameters where the gridder name is already
+    /// taken out. 
+    /// @param[in] parset input parset file
+    /// @return a shared pointer to the gridder instance					 
+    IVisGridder::ShPtr WStackVisGridder::createGridder(const LOFAR::ParameterSet& parset)
+    {
+      double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
+      int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 65);
+      ASKAPLOG_INFO_STR(logger, "Gridding using W stacking ");
+      return IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes)); 
+    }
+
   }
 }
