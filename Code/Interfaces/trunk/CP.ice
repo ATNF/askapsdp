@@ -36,7 +36,7 @@ module interfaces
 
 module cp
 {
-    interface ICPService
+    interface ICPObsService
     {
         ["ami"] void startObs(askap::interfaces::schedblock::SchedulingBlock schedblock);
         ["ami"] void abortObs();
