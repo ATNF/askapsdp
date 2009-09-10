@@ -46,7 +46,7 @@
 
 
 #include <gridding/UVPattern.h>
-#include <gridding/VisGridderFactory.h>
+#include <gridding/AProjectGridderBase.h>
 
 #include <askap/AskapError.h>
 
@@ -76,7 +76,7 @@ IlluminationUtils::IlluminationUtils(const boost::shared_ptr<IBasicIllumination>
 IlluminationUtils::IlluminationUtils(const std::string &parset)
 {
   LOFAR::ParameterSet params(parset);
-  itsElementIllumination = itsIllumination = VisGridderFactory::makeIllumination(params);
+  itsElementIllumination = itsIllumination = AProjectGridderBase::makeIllumination(params);
   itsCellSize = params.getDouble("cellsize");
 
 
