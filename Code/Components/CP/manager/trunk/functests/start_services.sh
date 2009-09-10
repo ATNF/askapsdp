@@ -6,7 +6,7 @@ waitIceGrid()
     TIMEOUT=10
     STATUS=1
     while [ $STATUS -ne 0 ] && [ $TIMEOUT -ne 0 ]; do
-        $ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "node list" > /dev/null 2>&1
+        icegridadmin --Ice.Config=config.icegridadmin -u foo -p bar -e "node list" > /dev/null 2>&1
         STATUS=$?
         TIMEOUT=`expr $TIMEOUT - 1`
         sleep 1
@@ -31,20 +31,13 @@ if [ ! -f $1 ]; then
 fi
 
 # Setup the environment
-ICE_ROOT=$ASKAP_ROOT/3rdParty/Ice/tags/Ice-3.3.0/install
-export PATH=$PATH:$ICE_ROOT/bin
-
-# For Unix/Linux
-export LD_LIBRARY_PATH=$ICE_ROOT/lib:$LD_LIBRARY_PATH
-
-# For Mac OSX
-export DYLD_LIBRARY_PATH=$ICE_ROOT/lib:$DYLD_LIBRARY_PATH
+source $ASKAP_ROOT/Code/Components/CP/manager/trunk/init_package_env.sh
 
 # Create directories for IceGrid and IceStorm
 mkdir -p data/registry
 mkdir -p data/node
 
 # Start the Ice Grid
-$ICE_ROOT/bin/icegridnode --Ice.Config=$1 > /dev/null 2>&1 &
+icegridnode --Ice.Config=$1 > /dev/null 2>&1 &
 
 waitIceGrid

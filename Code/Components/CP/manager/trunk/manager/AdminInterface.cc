@@ -28,15 +28,18 @@
 #include "AdminInterface.h"
 
 // ASKAPsoft includes
-#include "askap/AskapError.h"
-#include "askap/AskapLogging.h"
+#include <askap/AskapError.h>
+#include <askap/AskapLogging.h>
+#include <Ice/Ice.h>
 
 // Local package includes
+#include <manager/ObsService.h>
 
 // Using
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::interfaces::component;
+using namespace askap::interfaces::cp;
 
 ASKAP_LOGGER(logger, ".AdminInterface");
 
@@ -66,7 +69,7 @@ void AdminInterface::run(void)
     ASKAPLOG_INFO_STR(logger, "Running AdminInterface");
 
     ASKAPCHECK(itsComm, "Ice communicator is not initialized");
-    itsAdapter = itsComm->createObjectAdapter("CentralProcessorAdapter");
+    itsAdapter = itsComm->createObjectAdapter("AdminAdapter");
     ASKAPCHECK(itsAdapter, "Creation of Ice Adapter failed");
 
     Ice::ObjectPtr object = this;
@@ -77,14 +80,6 @@ void AdminInterface::run(void)
     itsComm->waitForShutdown();
 }
 
-Ice::ObjectAdapterPtr AdminInterface::createAdapter(void)
-{
-    Ice::ObjectAdapterPtr adapter = itsComm->createObjectAdapter("CentralProcessorAdapter");
-    ASKAPCHECK(adapter, "Creation of Ice Adapter failed");
-
-    return adapter;
-}
-
 // Ice "IComponent" interfaces
 void AdminInterface::startup(const askap::interfaces::ParameterMap& params, const Ice::Current& cur)
 {
@@ -92,6 +87,10 @@ void AdminInterface::startup(const askap::interfaces::ParameterMap& params, cons
     {
         throw TransitionException("Not in UNLOADED state");
     }
+
+    itsObsService = new ObsService(itsComm);
+
+    // Must transition to standby only once all objects are created
     itsState = STANDBY;
 }
 
@@ -101,7 +100,12 @@ void AdminInterface::shutdown(const Ice::Current& cur)
     {
         throw TransitionException("Not in STANDBY state");
     }
+
+    // Must transition to LOADED before destroying any objects
     itsState = LOADED;
+
+    // Reset the smart pointer
+    itsObsService = 0;
 }
 
 void AdminInterface::activate(const Ice::Current& cur)
@@ -110,6 +114,11 @@ void AdminInterface::activate(const Ice::Current& cur)
     {
         throw TransitionException("Not in STANDBY state");
     }
+
+    Ice::ObjectPtr object = itsObsService;
+    itsAdapter->add(object, itsComm->stringToIdentity("CentralProcessorService"));
+
+    // Must transition to ONLINE only once all services are activated
     itsState = ONLINE;
 }
 
@@ -119,21 +128,29 @@ void AdminInterface::deactivate(const Ice::Current& cur)
     {
         throw TransitionException("Not in ONLINE state");
     }
+
+    // Must transition to STANDBY before deactivating any services
     itsState = STANDBY;
+
+    itsAdapter->remove(itsComm->stringToIdentity("CentralProcessorService"));
+    // TODO: Find a way to block until the servant has actually been removed.
+    // The above call is non-blocking. The servant is only removed when all
+    // current invocations are completed. 
 }
 
 askap::interfaces::component::ComponentTestResultSeq AdminInterface::selfTest(const Ice::Current& cur)
 {
+    if (itsState != STANDBY)
+    {
+        throw CannotTestException("Not in STANDBY state");
+    }
+
     askap::interfaces::component::ComponentTestResultSeq results;
     return results;
 }
 
 askap::interfaces::component::ComponentState AdminInterface::getState(const Ice::Current& cur)
 {
-    if (itsState != STANDBY)
-    {
-        throw CannotTestException("Not in STANDBY state");
-    }
     return itsState;
 }
 

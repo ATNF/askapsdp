@@ -1,4 +1,4 @@
-/// @file AdminInterface.h
+/// @file ObsInterface.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,57 +24,40 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ADMININTERFACE_H
-#define ASKAP_CP_ADMININTERFACE_H
+#ifndef ASKAP_CP_OBSSERVICE_H
+#define ASKAP_CP_OBSSERVICE_H
 
 // ASKAPsoft includes
-#include <Ice/Ice.h>
+#include "Ice/Ice.h"
 
 // Interface includes
-#include <manager/Component.h>
-#include <manager/ObsService.h>
+#include "manager/SchedulingBlock.h"
+#include "manager/CP.h"
 
 namespace askap {
     namespace cp {
-        class AdminInterface : public askap::interfaces::component::IComponent
+        class ObsService : public askap::interfaces::cp::ICPObsService
         {
             public:
                 /// @brief Constructor.
-                AdminInterface(const Ice::CommunicatorPtr ic);
+                ObsService(const Ice::CommunicatorPtr ic);
 
                 /// @brief Destructor.
-                virtual ~AdminInterface();
-
-                /// @brief Runs the administration interface and will block
-                ///  until ICE is shutdown.
-                void run(void);
+                virtual ~ObsService();
 
                 // Ice "IComponent" interfaces
-                void startup(const askap::interfaces::ParameterMap& params, const Ice::Current& cur);
-                void shutdown(const Ice::Current& cur);
-                void activate(const Ice::Current& cur);
-                void deactivate(const Ice::Current& cur);
-                askap::interfaces::component::ComponentTestResultSeq selfTest(const Ice::Current& cur);
-                askap::interfaces::component::ComponentState getState(const Ice::Current& cur);
+                void startObs(const askap::interfaces::schedblock::SchedulingBlock& schedblock, const Ice::Current& cur);
+                void abortObs(const Ice::Current& cur);
 
             private:
-                // ICE Communicator
+                // ICE communicator
                 Ice::CommunicatorPtr itsComm;
 
-                // ICE Object adapter
-                Ice::ObjectAdapterPtr itsAdapter;
-
-                // State
-                askap::interfaces::component::ComponentState itsState;
-
-                // A smart pointer to an ObsService instance
-                askap::interfaces::cp::ICPObsServicePtr itsObsService;
-
                 // No support for assignment
-                AdminInterface& operator=(const AdminInterface& rhs);
+                ObsService& operator=(const ObsService& rhs);
 
                 // No support for copy constructor
-                AdminInterface(const AdminInterface& src);
+                ObsService(const ObsService& src);
         };
     };
 };

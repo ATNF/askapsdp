@@ -5,12 +5,14 @@
                 exe="cpmanager.sh"
                 activation="always">
                 <env>PATH=$PATH:$ASKAP_ROOT/Code/Components/CP/manager/trunk/apps</env>
-                <adapter name="CentralProcessorAdapter"
-                    id="CentralProcessor"
+                <adapter name="AdminAdapter"
+                    id="CentralProcessorAdminAdapter"
                     endpoints="tcp">
-                <object identity="CentralProcessorAdmin"
-                    type="askap::interfaces::component::IComponent"/>
-            </adapter>
+                    <object identity="CentralProcessorAdmin"
+                        type="askap::interfaces::component::IComponent"/>
+                    <object identity="CentralProcessorService"
+                        type="askap::interfaces::cp::ICPObsService"/>
+                </adapter>
             </server>
         </node>
     </application>
