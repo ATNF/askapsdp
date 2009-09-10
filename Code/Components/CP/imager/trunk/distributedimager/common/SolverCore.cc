@@ -99,7 +99,7 @@ void SolverCore::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
 
     itsSolver->solveNormalEquations(q);
     *itsModel = itsSolver->parameters();
-    ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real()
+    ASKAPLOG_DEBUG_STR(logger, "Solved normal equations in "<< timer.real()
             << " seconds ");
 
     // Extract the largest residual

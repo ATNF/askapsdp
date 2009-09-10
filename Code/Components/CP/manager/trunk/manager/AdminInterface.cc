@@ -47,12 +47,12 @@ AdminInterface::AdminInterface(const Ice::CommunicatorPtr ic)
     : itsComm(ic), itsState(LOADED)
     
 {
-    ASKAPLOG_INFO_STR(logger, "Creating AdminInterface");
+    ASKAPLOG_DEBUG_STR(logger, "Creating AdminInterface");
 }
 
 AdminInterface::~AdminInterface()
 {
-    ASKAPLOG_INFO_STR(logger, "Destroying AdminInterface");
+    ASKAPLOG_DEBUG_STR(logger, "Destroying AdminInterface");
 
     if (itsAdapter) {
         itsAdapter->deactivate();
@@ -66,7 +66,7 @@ AdminInterface::~AdminInterface()
 
 void AdminInterface::run(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Running AdminInterface");
+    ASKAPLOG_DEBUG_STR(logger, "Running AdminInterface");
 
     ASKAPCHECK(itsComm, "Ice communicator is not initialized");
     itsAdapter = itsComm->createObjectAdapter("AdminAdapter");

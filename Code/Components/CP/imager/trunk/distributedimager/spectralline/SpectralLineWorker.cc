@@ -95,12 +95,12 @@ void SpectralLineWorker::run(void)
 
         if (wu.get_payloadType() == SpectralLineWorkUnit::DONE) {
             // Indicates all workunits have been assigned already
-            ASKAPLOG_INFO_STR(logger, "Received DONE signal");
+            ASKAPLOG_DEBUG_STR(logger, "Received DONE signal");
             break;
         }
 
         const std::string ms = wu.get_dataset();
-        ASKAPLOG_INFO_STR(logger, "Received Work Unit for dataset " << ms );
+        ASKAPLOG_DEBUG_STR(logger, "Received Work Unit for dataset " << ms );
         processWorkUnit(wu);
     }
 
@@ -131,7 +131,7 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
 void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
         const std::string& imagename, int channel, int channelOffset)
 {
-    ASKAPLOG_INFO_STR(logger, "Processing channel " << (channel + channelOffset + 1));
+    ASKAPLOG_DEBUG_STR(logger, "Processing channel " << (channel + channelOffset + 1));
 
     askap::scimath::Params::ShPtr model_p(new Params());
     setupImage(model_p, (channelOffset + channel + 1));
@@ -154,7 +154,7 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
     askap::scimath::Equation::ShPtr equation_p
         = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, itsGridder_p));
 
-    ASKAPLOG_INFO_STR(logger, "Calculating normal equations for channel " << (channel + channelOffset + 1));
+    ASKAPLOG_DEBUG_STR(logger, "Calculating normal equations for channel " << (channel + channelOffset + 1));
     ASKAPCHECK(model_p, "model_p is not correctly initialized");
     ASKAPCHECK(ne_p, "ne_p is not correctly initialized");
     ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
@@ -168,7 +168,7 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
         timer.mark();
         equation_p->calcEquations(*ne_p);
 
-        ASKAPLOG_INFO_STR(logger, "Calculated normal equations for channel "
+        ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
                 << (channel + channelOffset + 1) << " in "
                 << timer.real() << " seconds ");
 
@@ -182,7 +182,7 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
             timer.mark();
             equation_p->calcEquations(*ne_p);
 
-            ASKAPLOG_INFO_STR(logger, "Calculated normal equations for channel "
+            ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
                     << (channel + channelOffset + 1) << " in "
                     << timer.real() << " seconds ");
 

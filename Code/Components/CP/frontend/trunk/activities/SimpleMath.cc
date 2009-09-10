@@ -72,7 +72,7 @@ void SimpleMath::run(void)
 {
     const unsigned int timeout = 500;
 
-    ASKAPLOG_INFO_STR(logger, "SimpleMath thread is running...");
+    ASKAPLOG_DEBUG_STR(logger, "SimpleMath thread is running...");
     while (!stopRequested()) {
         boost::shared_ptr<SimpleNumber> a;
         while (!a) {

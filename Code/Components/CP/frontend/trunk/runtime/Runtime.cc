@@ -45,17 +45,17 @@ ASKAP_LOGGER(logger, ".Runtime");
 Runtime::Runtime(const Ice::CommunicatorPtr ic)
     : itsComm(ic)
 {
-    ASKAPLOG_INFO_STR(logger, "Creating Runtime");
+    ASKAPLOG_DEBUG_STR(logger, "Creating Runtime");
 }
 
 Runtime::~Runtime()
 {
-    ASKAPLOG_INFO_STR(logger, "Destroying Runtime");
+    ASKAPLOG_DEBUG_STR(logger, "Destroying Runtime");
 }
 
 void Runtime::run(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Running Runtime");
+    ASKAPLOG_DEBUG_STR(logger, "Running Runtime");
     ASKAPCHECK(itsComm, "Initialization of Ice communicator failed");
 
     itsAdapter = itsComm->createObjectAdapter("CpfeRuntimeAdapter");

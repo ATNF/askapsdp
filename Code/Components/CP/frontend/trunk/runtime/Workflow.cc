@@ -53,14 +53,14 @@ Workflow::Workflow(const Ice::CommunicatorPtr& ic,
     : itsComm(ic), itsAdapter(adapter), itsParset(parset),
     itsRuntimeName(runtimeName)
 {
-    ASKAPLOG_INFO_STR(logger, "Creating workflow");
+    ASKAPLOG_DEBUG_STR(logger, "Creating workflow");
     itsDesc = parse();
     createAll();
 }
 
 Workflow::~Workflow()
 {
-    ASKAPLOG_INFO_STR(logger, "Destroying workflow");
+    ASKAPLOG_DEBUG_STR(logger, "Destroying workflow");
     std::map<std::string, Activity::ShPtr>::iterator it;
     for (it = itsActivities.begin(); it != itsActivities.end(); ++it) {
         it->second.reset();
@@ -70,14 +70,14 @@ Workflow::~Workflow()
 
 void Workflow::start(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Starting workflow");
+    ASKAPLOG_DEBUG_STR(logger, "Starting workflow");
     attachAll();
     startAll();
 }
 
 void Workflow::stop(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Stopping workflow");
+    ASKAPLOG_DEBUG_STR(logger, "Stopping workflow");
     stopAll();
     detachAll();
 }
@@ -94,7 +94,7 @@ void Workflow::stop(void)
 // askap.cp.frontend.workflow.activity0.custom.blah  = Hello
 std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Parsing workflow");
+    ASKAPLOG_DEBUG_STR(logger, "Parsing workflow");
     const unsigned int ACTIVITY_MAX = 65535;
     const unsigned int PORTS_MAX = 65535;
     std::vector<askap::cp::ActivityDesc> list;
@@ -156,13 +156,12 @@ std::vector<askap::cp::ActivityDesc> Workflow::parse(void)
 // Create all activities
 void Workflow::createAll(void)
 {
-    ASKAPLOG_INFO_STR(logger, "CreateAll() in workflow. Num activities = " << itsDesc.size());
     ActivityFactory factory(itsComm, itsAdapter);
 
     std::vector<ActivityDesc>::const_iterator it;
     for (it = itsDesc.begin(); it != itsDesc.end(); ++it) {
         const std::string name = it->getName();
-        ASKAPLOG_INFO_STR(logger, "Creating activity " << name 
+        ASKAPLOG_DEBUG_STR(logger, "Creating activity " << name 
                 << " of type " << it->getType());
         Activity::ShPtr activity = factory.makeActivity(it->getType(), it->getParset());
         activity->setName(name);
@@ -174,7 +173,7 @@ void Workflow::createAll(void)
 // Attach all activities to streams
 void Workflow::attachAll(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Attaching all activities to streams");
+    ASKAPLOG_DEBUG_STR(logger, "Attaching all activities to streams");
     std::vector<ActivityDesc>::const_iterator it;
     for (it = itsDesc.begin(); it != itsDesc.end(); ++it) {
         Activity::ShPtr activity = itsActivities[it->getName()];
@@ -194,7 +193,7 @@ void Workflow::attachAll(void)
 // Detach all activities from streams
 void Workflow::detachAll(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Detaching all activities from streams");
+    ASKAPLOG_DEBUG_STR(logger, "Detaching all activities from streams");
     std::vector<ActivityDesc>::const_iterator it;
     for (it = itsDesc.begin(); it != itsDesc.end(); ++it) {
         Activity::ShPtr activity = itsActivities[it->getName()];

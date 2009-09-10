@@ -146,7 +146,7 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
         ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
         equation_p->calcEquations(*itsNormalEquation_p);
 
-        ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "
+        ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for "<< ms << " in "
                 << timer.real() << " seconds ");
 
         equation_p.reset();
@@ -181,7 +181,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
         // not counting itself, hence the subtraction of one.
         const int responsible = rlogic.responsible();
 
-        ASKAPLOG_INFO_STR(logger, "Accumulator @" << id << " waiting for " << responsible
+        ASKAPLOG_DEBUG_STR(logger, "Accumulator @" << id << " waiting for " << responsible
                 << " workers to report normal equations");
 
         // Receive and merge normal equations for all workers this accumulator
@@ -196,7 +196,7 @@ void PreDifferWorker::reduceNE(askap::scimath::INormalEquations::ShPtr ne_p, int
             int recvcount = response.get_count();
             askap::scimath::INormalEquations::ShPtr recv_ne_p = response.get_normalEquations();
 
-            ASKAPLOG_INFO_STR(logger, "Accumulator @" << id << " received NE from " << source);
+            ASKAPLOG_DEBUG_STR(logger, "Accumulator @" << id << " received NE from " << source);
 
             // If the recvcount is zero, this indicates a null normal equation.
             // This occurs when a worker doesn't get any work assigned to it, but

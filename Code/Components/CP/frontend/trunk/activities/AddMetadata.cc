@@ -62,7 +62,7 @@ AddMetadata::~AddMetadata()
 
 void AddMetadata::run(void)
 {
-    ASKAPLOG_INFO_STR(logger, "AddMetadata thread is running...");
+    ASKAPLOG_DEBUG_STR(logger, "AddMetadata thread is running...");
     //Metadata md = itsInPort0.receive();
     //Visibilities vis = itsInPort1.receive();
 

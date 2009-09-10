@@ -91,14 +91,14 @@ void ImageMultiScaleSolverWorker::solveNormalEquations(void)
         if (maskarray.size() > 0) {
             mask_p.reset(new casa::ArrayLattice<float>(maskarray));
         } else {
-            ASKAPLOG_INFO_STR(logger, "Mask is empty");
+            ASKAPLOG_DEBUG_STR(logger, "Mask is empty");
         }
 
         if (cleanarray.size() > 0) {
             clean_p.reset(new casa::ArrayLattice<float>(cleanarray));
         } else {
             // Create an empty model based on the shape of dirty.
-            ASKAPLOG_INFO_STR(logger, "Model is empty");
+            ASKAPLOG_DEBUG_STR(logger, "Model is empty");
             clean_p.reset(new casa::ArrayLattice<float>(dirty.shape()));
         }
 
@@ -127,13 +127,13 @@ void ImageMultiScaleSolverWorker::solveNormalEquations(void)
         lc.clean(*clean_p);
 
         // Send the patch back to the master
-        ASKAPLOG_INFO_STR(logger, "Sending CleanResponse for patchid " << patchid);
+        ASKAPLOG_DEBUG_STR(logger, "Sending CleanResponse for patchid " << patchid);
         response.set_payloadType(CleanResponse::RESULT);
         response.set_patchId(patchid);
         response.set_patch(clean_p->asArray());
         response.set_strengthOptimum(lc.strengthOptimum());
         itsComms.sendMessage(response, itsMaster);
     }
-    ASKAPLOG_INFO_STR(logger, "CleanWorker ACK no more work to do");
+    ASKAPLOG_DEBUG_STR(logger, "CleanWorker ACK no more work to do");
 };
 

@@ -44,12 +44,12 @@ ASKAP_LOGGER(logger, ".ObsService");
 ObsService::ObsService(const Ice::CommunicatorPtr ic)
     : itsComm(ic)
 {
-    ASKAPLOG_INFO_STR(logger, "Creating ObsService");
+    ASKAPLOG_DEBUG_STR(logger, "Creating ObsService");
 }
 
 ObsService::~ObsService()
 {
-    ASKAPLOG_INFO_STR(logger, "Destroying ObsService");
+    ASKAPLOG_DEBUG_STR(logger, "Destroying ObsService");
 }
 
 // Ice "IComponent" interfaces

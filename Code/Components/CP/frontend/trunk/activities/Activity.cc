@@ -50,14 +50,14 @@ void Activity::start(void)
     if (itsThread) {
         ASKAPTHROW(AskapError, "Thread has already been started");
     }
-    ASKAPLOG_INFO_STR(logger, "Starting thread for activity " << getName());
+    ASKAPLOG_DEBUG_STR(logger, "Starting thread for activity " << getName());
     itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&Activity::run, this)));
     itsStopRequested = false;
 }
 
 void Activity::stop(void)
 {
-    ASKAPLOG_INFO_STR(logger, "Stopping thread for activity " << getName());
+    ASKAPLOG_DEBUG_STR(logger, "Stopping thread for activity " << getName());
     if (!itsThread) {
         ASKAPTHROW(AskapError, "Thread is not running");
     }

@@ -258,7 +258,7 @@ void MPIBasicComms::sendMessage(const IMessage& msg, int dest)
     // Now send the actual byte stream
     send(&buf[0], size * sizeof(int8_t), dest, messageType);
 
-    ASKAPLOG_INFO_STR(logger, "Sent Message of type " << messageType
+    ASKAPLOG_DEBUG_STR(logger, "Sent Message of type " << messageType
             << " to rank " << dest << " via MPI in " << timer.real()
             << " seconds ");
 }
@@ -345,7 +345,7 @@ void MPIBasicComms::sendMessageBroadcast(const IMessage& msg)
     // Now broadcast the message itself
     broadcast(&buf[0], size * sizeof(int8_t), root);
 
-    ASKAPLOG_INFO_STR(logger, "Broadcast model to all ranks via MPI in "
+    ASKAPLOG_DEBUG_STR(logger, "Broadcast model to all ranks via MPI in "
             << timer.real() << " seconds ");
 }
 

@@ -247,12 +247,12 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
             CleanResponse response;
             itsComms.receiveMessageAnySrc(response, source);
             while (response.get_payloadType() != CleanResponse::READY) {
-                ASKAPLOG_INFO_STR(logger, "Got CleanResponse - Still work to do");
+                ASKAPLOG_DEBUG_STR(logger, "Got CleanResponse - Still work to do");
                 processCleanResponse(response);
                 itsComms.receiveMessageAnySrc(response, source);
             }
 
-            ASKAPLOG_INFO_STR(logger, "Master is allocating CleanRequest " << patchid
+            ASKAPLOG_DEBUG_STR(logger, "Master is allocating CleanRequest " << patchid
                     << " to worker " << source);
 
             // Put workunit on the workq, need to put it on the workq
@@ -285,7 +285,7 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
         while (outstanding())
         {
             int id;
-            ASKAPLOG_INFO_STR(logger, "Waiting for outstanding CleanRequests");
+            ASKAPLOG_DEBUG_STR(logger, "Waiting for outstanding CleanRequests");
             CleanResponse response;
             itsComms.receiveMessageAnySrc(response, id);
             if (response.get_payloadType() == CleanResponse::RESULT) 
@@ -318,7 +318,7 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
             }
         }
         itsCleanworkq.clear();
-        ASKAPLOG_INFO_STR(logger, "All results have been received. Continuing...");
+        ASKAPLOG_DEBUG_STR(logger, "All results have been received. Continuing...");
 
         /////////////////////////////////////////////////////////////
         // At this point the remote aspects of the Clean are finished
@@ -368,14 +368,14 @@ void ImageMultiScaleSolverMaster::processCleanResponse(CleanResponse& response)
     itsCleanworkq[patchid].model->assign(patch);
     itsCleanworkq[patchid].done = true;
     itsCleanworkq[patchid].strengthOptimum = strengthOptimum;
-    ASKAPLOG_INFO_STR(logger, "Received CleanResponse for patchid " << patchid);
+    ASKAPLOG_DEBUG_STR(logger, "Received CleanResponse for patchid " << patchid);
 }
 
 bool ImageMultiScaleSolverMaster::outstanding(void)
 {
     std::vector<CleanerWork>::iterator it;
     for (it = itsCleanworkq.begin() ; it < itsCleanworkq.end(); ++it) {
-        ASKAPLOG_INFO_STR(logger, "Patchid " << it->patchid << " status: " << it->done);
+        ASKAPLOG_DEBUG_STR(logger, "Patchid " << it->patchid << " status: " << it->done);
         if (it->done != true) {
             return true;
         }
@@ -394,7 +394,7 @@ void ImageMultiScaleSolverMaster::signalFinished(void)
             // Already finished
             continue;
         }
-        ASKAPLOG_INFO_STR(logger, "Finishing up for  worker " << id);
+        ASKAPLOG_DEBUG_STR(logger, "Finishing up for  worker " << id);
 
         // Read the (hopefully) empty clean response the worker is sending
         CleanResponse response;

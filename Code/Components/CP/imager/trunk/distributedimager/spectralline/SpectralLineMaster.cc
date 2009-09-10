@@ -91,7 +91,7 @@ void SpectralLineMaster::run(void)
         const int msChannels = getNumChannels(ms[n]);
 
         // Send the workunit to the worker
-        ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
+        ASKAPLOG_DEBUG_STR(logger, "Master is allocating workunit " << ms[n]
                 << ", containing channels " << (channelOffset + 1) << "-"
                 << (channelOffset + msChannels) << " to worker " << id);
         SpectralLineWorkUnit wu;

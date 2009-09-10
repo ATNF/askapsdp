@@ -95,7 +95,7 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
         ASKAPCHECK(response.get_payloadType() == PreDifferResponse::READY,
                 "Expected only READY payloads at this time");
 
-        ASKAPLOG_INFO_STR(logger, "Master is allocating workunit " << ms[n]
+        ASKAPLOG_DEBUG_STR(logger, "Master is allocating workunit " << ms[n]
                 << " to worker " << id);
         PreDifferRequest request;
         request.set_payloadType(PreDifferRequest::WORK);
@@ -141,7 +141,7 @@ askap::scimath::INormalEquations::ShPtr PreDifferMaster::calcNE(askap::scimath::
             count += recvcount;
         }
 
-        ASKAPLOG_INFO_STR(logger, "Received " << recvcount << " normal equations from worker " 
+        ASKAPLOG_DEBUG_STR(logger, "Received " << recvcount << " normal equations from worker " 
                 << id << ". Still waiting for " << ms.size() - count << ".");
     }
 
