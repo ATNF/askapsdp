@@ -83,15 +83,6 @@ namespace askap
       /// If needed, the gridder code is loaded dynamically.
       static IVisGridder::ShPtr make(const LOFAR::ParameterSet& parset);
 				    
-      /// @brief a helper factory of illumination patterns
-      /// @details Illumination model is required for a number of gridders. This
-      /// method allows to avoid duplication of code and encapsulates all 
-      /// functionality related to illumination patterns. 
-      /// @param[in] parset ParameterSet containing description of illumination to use
-      /// @return shared pointer to illumination interface
-      static boost::shared_ptr<IBasicIllumination> 
-      makeIllumination(const LOFAR::ParameterSet &parset);
-
     private:
       static std::map<std::string, GridderCreator*> theirRegistry;
     };

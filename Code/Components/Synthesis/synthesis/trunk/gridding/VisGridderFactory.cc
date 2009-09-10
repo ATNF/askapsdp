@@ -33,8 +33,6 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/AWProjectVisGridder.h>
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AProjectWStackVisGridder.h>
-#include <gridding/DiskIllumination.h>
-#include <gridding/ATCAIllumination.h>
 
 #include <measurementequation/SynthesisParamsHelper.h>
 
@@ -95,85 +93,6 @@ namespace synthesis {
     // Execute the registered function.
     return it->second(parset);
   }
-
-/// @brief a helper factory of illumination patterns
-/// @details Illumination model is required for a number of gridders. This
-/// method allows to avoid duplication of code and encapsulates all 
-/// functionality related to illumination patterns. 
-/// @param[in] parset ParameterSet containing description of illumination to use
-/// @return shared pointer to illumination interface
-boost::shared_ptr<IBasicIllumination> 
-VisGridderFactory::makeIllumination(const LOFAR::ParameterSet &parset)
-{
-   const std::string illumType = parset.getString("illumination", "disk");
-   const double diameter=SynthesisParamsHelper::convertQuantity(parset.getString("diameter"),"m");
-   const double blockage=SynthesisParamsHelper::convertQuantity(parset.getString("blockage"),"m");
-
-   if (illumType == "disk") {
-   	    ASKAPLOG_INFO_STR(logger,
-					"Using disk illumination model, diameter="<<
-					diameter<<" metres, blockage="<<blockage<<" metres");
-   
-       	return boost::shared_ptr<IBasicIllumination>(new DiskIllumination(diameter,blockage));
-   } else if (illumType == "ATCA") {
-   	    ASKAPLOG_INFO_STR(logger,
-					"Using ATCA illumination model, diameter="<<
-					diameter<<" metres, blockage="<<blockage<<" metres");
-
-   	    boost::shared_ptr<ATCAIllumination> illum(new ATCAIllumination(diameter,blockage)); 
-   	    ASKAPDEBUGASSERT(illum);
-   	    if (parset.getBool("illumination.tapering", true)) {
-   	        const double maxDefocusingPhase =
-   	             SynthesisParamsHelper::convertQuantity(parset.getString("illumination.tapering.defocusing",
-   	                           "0rad"),"rad");
-	        illum->simulateTapering(maxDefocusingPhase);
-	        ASKAPLOG_INFO_STR(logger,"Tapering of the illumination is simulated, maximum defocusing phase = "<<
-	                  maxDefocusingPhase/M_PI*180.<<" deg."); 
-	    } else {
-	        ASKAPLOG_INFO_STR(logger,"Tapering of the illumination is not simulated");
-	    }
-	    if (parset.getBool("illumination.feedlegs", true)) {
-	        const double width = SynthesisParamsHelper::convertQuantity(
-	           parset.getString("illumination.feedlegs.width","1.8m"),"m");
-	        const double rotation = SynthesisParamsHelper::convertQuantity(
-	           parset.getString("illumination.feedlegs.rotation","45deg"),"rad");   
-	        const double shadowingFactor = 
-	           parset.getDouble("illumination.feedlegs.shadowing",0.75);   
-	        illum->simulateFeedLegShadows(width,rotation,shadowingFactor);
-	        ASKAPLOG_INFO_STR(logger,"Feed legs are simulated. Width = "<<width<<" metres, rotated at "<<
-	           rotation/M_PI*180.<<" deg, shadowing factor (how much attenuation caused) = "<<shadowingFactor);
-	        if (parset.getBool("illumination.feedlegs.wedges", true)) {
-	            const double defaultWedgeShadowing[2] = {0.6,0.5};
-	            std::vector<double> wedgeShadowing = 
-	                parset.getDoubleVector("illumination.feedlegs.wedges.shadowing", 
-	                std::vector<double>(defaultWedgeShadowing,defaultWedgeShadowing+2));
-	            const double angle = SynthesisParamsHelper::convertQuantity(
-	                parset.getString("illumination.feedlegs.wedges.angle","15deg"),"rad");    
-	            const double startRadius = SynthesisParamsHelper::convertQuantity(
-	                parset.getString("illumination.feedlegs.wedges.startradius","3.5m"),"m");
-	            ASKAPCHECK(wedgeShadowing.size() && wedgeShadowing.size()<3, 
-	                 "illumination.feedlegs.wedges.shadowing can have either 1 or 2 elements only, "
-	                 "you have "<<wedgeShadowing.size());
-	            if (wedgeShadowing.size() == 1) {
-	                wedgeShadowing.push_back(wedgeShadowing[0]);
-	            }     
-	            ASKAPDEBUGASSERT(wedgeShadowing.size() == 2);    
-          	    illum->simulateFeedLegWedges(wedgeShadowing[0],wedgeShadowing[1],angle,startRadius);	            
-          	    ASKAPLOG_INFO_STR(logger,"Feed leg wedges are simulated. Shadowing factors are "<<
-          	           wedgeShadowing<<", opening angle is "<<angle/M_PI*180.<<" deg, start radius is "<<
-          	           startRadius<<" metres");
-	        } else {
-	            ASKAPLOG_INFO_STR(logger,"Feed leg wedges are not simulated.");
-	        }
-	    } else {
-	       ASKAPLOG_INFO_STR(logger,"Feed legs are not simulated.");
-	    }
-	    return illum;
-   }
-   
-   ASKAPTHROW(AskapError, "Unknown illumination type "<<illumType);
-   return boost::shared_ptr<IBasicIllumination>(); // to keep the compiler happy
-}
 
   // Make the gridder object for the gridder given in the parset file.
   // Currently the standard gridders are still handled by this function.
@@ -253,7 +172,7 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 		}
 				
 		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(
-		        makeIllumination(parset.makeSubset("gridder.AWProject.")),
+		        AProjectGridderBase::makeIllumination(parset.makeSubset("gridder.AWProject.")),
 				wmax, nwplanes, cutoff, oversample,
 				maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
 				paTol, freqTol,freqDep, tablename));
@@ -309,7 +228,7 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 		}
 
 		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(
-		        makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
+		        AProjectGridderBase::makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
 				wmax, nwplanes, oversample,
 			        maxSupport, limitSupport, maxFeeds, maxFields,
 			pointingTol, paTol, freqTol,

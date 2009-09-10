@@ -37,6 +37,7 @@
 #include <dataaccess/IConstDataAccessor.h>
 #include <gridding/UVPattern.h>
 #include <gridding/IVisGridder.h>
+#include <Common/ParameterSet.h>
 
 namespace askap {
 namespace synthesis {
@@ -137,6 +138,15 @@ struct AProjectGridderBase : virtual public IVisGridder
   /// of the cache rebuild stats call this method with the exact number of CFs calculated.
   /// @param[in] nDone number of convolution functions rebuilt at this iteration
   void updateStats(casa::uInt nDone);
+   
+  /// @brief a helper factory of illumination patterns
+  /// @details Illumination model is required for a number of gridders. This
+  /// method allows to avoid duplication of code and encapsulates all 
+  /// functionality related to illumination patterns. 
+  /// @param[in] parset ParameterSet containing description of illumination to use
+  /// @return shared pointer to illumination interface
+  static boost::shared_ptr<IBasicIllumination> 
+      makeIllumination(const LOFAR::ParameterSet &parset);
    
 private:
   /// Pointing tolerance in radians
