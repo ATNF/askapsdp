@@ -41,6 +41,8 @@
 #include <dataaccess/SharedIter.h>
 
 #include <boost/shared_ptr.hpp>
+#include <Common/ParameterSet.h>
+
 
 #include <gridding/IVisWeights.h>
 
@@ -109,7 +111,21 @@ namespace askap
 
 			/// @brief Finalise
 			virtual void finaliseDegrid() = 0;
-
+			
+			/// @brief static method to create gridder
+			/// @details Each gridder should have a static factory method, which is
+			/// able to create a particular type of the gridder and initialise it with
+			/// the parameters taken form the given parset. It is assumed that the 
+			/// method receives a subset of parameters where the gridder name is already
+			/// taken out. 
+			/// @param[in] parset input parset file
+			/// @return a shared pointer to the gridder instance					 
+			/// @note This method just throws an exception in this basic interface. It is 
+			/// added to ensure that all derived classes have this method defined. We have 
+			/// to use a static method as opposed to pure virtual function because we want
+			/// to create a brand new instance of the gridder (and hence no object would
+			/// exist at that stage)	
+			static ShPtr createGridder(const LOFAR::ParameterSet& parset);
 		};
 	}
 }

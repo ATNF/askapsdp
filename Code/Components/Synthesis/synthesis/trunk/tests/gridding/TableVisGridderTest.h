@@ -38,6 +38,7 @@
 #include <casa/Quanta/Quantum.h>
 #include <casa/Quanta/MVPosition.h>
 #include <casa/BasicSL/Constants.h>
+#include <askap/AskapError.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -57,6 +58,7 @@ namespace askap
       CPPUNIT_TEST_SUITE(TableVisGridderTest);
       //      CPPUNIT_TEST(testForwardBox);
       //      CPPUNIT_TEST(testReverseBox);
+      CPPUNIT_TEST_EXCEPTION(testCreateAbstract,AskapError);      
       CPPUNIT_TEST(testForwardSph);
       CPPUNIT_TEST(testReverseSph);
       CPPUNIT_TEST(testForwardAWProject);
@@ -142,6 +144,16 @@ namespace askap
       //        itsBox->initialiseDegrid(*itsAxes, *itsModel);
       //        itsBox->degrid(idi);
       //      }
+      
+      void testCreateAbstract()
+      {
+         // TableVisGridder is still an abstract class
+         // calling createGridder static method should raise an
+         // exception
+         LOFAR::ParameterSet parset;
+         TableVisGridder::createGridder(parset);
+      }
+      
       void testReverseSph()
       {
         itsSphFunc->initialiseGrid(*itsAxes, itsModel->shape(), true);
