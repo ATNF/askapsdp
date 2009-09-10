@@ -46,13 +46,15 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <utils/PaddingUtils.h>
 
-using namespace askap;
+// we may need to move this include into AProjectGridderBase.h file. However, this would induce the dependency on logging
+// for everything which includes it. 
+#include <gridding/AProjectGridderBase.tcc>
 
 namespace askap {
 namespace synthesis {
 
 AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
-        const double wmax, const int nwplanes,
+        const double wmax, const int nwplanes, const double,
         const int overSample, const int maxSupport, const int limitSupport, 
         const int maxFeeds,
         const int maxFields, 
@@ -453,6 +455,20 @@ int AProjectWStackVisGridder::cIndex(int row, int pol, int chan) {
 
 void AProjectWStackVisGridder::correctConvolution(casa::Array<double>& grid) {
 }
+
+/// @brief static method to create gridder
+/// @details Each gridder should have a static factory method, which is
+/// able to create a particular type of the gridder and initialise it with
+/// the parameters taken form the given parset. It is assumed that the 
+/// method receives a subset of parameters where the gridder name is already
+/// taken out. 
+/// @param[in] parset input parset file
+/// @return a shared pointer to the gridder instance					 
+IVisGridder::ShPtr AProjectWStackVisGridder::createGridder(const LOFAR::ParameterSet& parset)
+{
+  return createAProjectGridder<AProjectWStackVisGridder>(parset);
+}
+
 
 }
 }

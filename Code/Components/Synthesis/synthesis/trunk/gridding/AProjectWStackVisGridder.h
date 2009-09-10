@@ -75,8 +75,10 @@ namespace askap
       ///        means the frequency axis is ignored 
       /// @param frequencyDependent Frequency dependent gridding?
       /// @param name Name of table to save convolution function into
+      /// @note cutoff parameter (after nwplanes) is missing, because it is not required 
+      /// for this gridder. We however want to have the same signatures for both mosaicing gridders.
       AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
-          const double wmax, const int nwplanes, const int overSample,
+          const double wmax, const int nwplanes, const double, const int overSample,
           const int maxSupport, const int limitSupport,
 			       const int maxFeeds=1, const int maxFields=1, 
 			       const double pointingTol=0.0001,
@@ -111,6 +113,16 @@ namespace askap
       /// @param image Input image: cube: u,v,pol,chan
       virtual void initialiseDegrid(const scimath::Axes& axes,
               const casa::Array<double>& image);
+
+      /// @brief static method to create gridder
+      /// @details Each gridder should have a static factory method, which is
+      /// able to create a particular type of the gridder and initialise it with
+      /// the parameters taken form the given parset. It is assumed that the 
+      /// method receives a subset of parameters where the gridder name is already
+      /// taken out. 
+      /// @param[in] parset input parset file
+      /// @return a shared pointer to the gridder instance					 
+      static IVisGridder::ShPtr createGridder(const LOFAR::ParameterSet& parset);
 
   protected:
       /// @brief initialise sum of weights

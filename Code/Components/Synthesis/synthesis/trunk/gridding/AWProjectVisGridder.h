@@ -119,6 +119,16 @@ namespace askap
       virtual void initialiseDegrid(const scimath::Axes& axes,
               const casa::Array<double>& image);
 
+      /// @brief static method to create gridder
+      /// @details Each gridder should have a static factory method, which is
+      /// able to create a particular type of the gridder and initialise it with
+      /// the parameters taken form the given parset. It is assumed that the 
+      /// method receives a subset of parameters where the gridder name is already
+      /// taken out. 
+      /// @param[in] parset input parset file
+      /// @return a shared pointer to the gridder instance					 
+      static IVisGridder::ShPtr createGridder(const LOFAR::ParameterSet& parset);
+
   protected:
       /// @brief initialise sum of weights
       /// @details We keep track the number of times each convolution function is used per

@@ -126,119 +126,15 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 		ASKAPLOG_INFO_STR(logger, "Gridding using W stacking ");
 		gridder=IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes));
 	} else if (gridderName == "AWProject") {
-		double pointingTol=parset.getDouble("gridder.AWProject.pointingtolerance", 0.0001);
-		double paTol=parset.getDouble("gridder.AProjectWStack.patolerance", 0.1);
-		
-		// load frequency tolerance. It can be a string "infinite", which means to bypass frequency
-		// axis checks or a non-negative number. We pass "undefined" by default here as it is not a
-		// recognised value, which will cause a numeric default to be adopted 
-		double freqTol = -1.;
-		const std::string freqTolString = toLower(parset.getString("gridder.AProjectWStack.freqtolerance", 
-		                                                   "undefined"));
-		if (freqTolString != "infinite") {
-            freqTol = parset.getDouble("gridder.AProjectWStack.freqtolerance", 1e-6);
-		    ASKAPCHECK(freqTol>=0., 
-		        "Frequency tolerance parameter is supposed to be either a non-negative number or a word infinite to by pass checks");
-		}
-		//
-
-		double wmax=parset.getDouble("gridder.AWProject.wmax", 10000.0);
-		int nwplanes=parset.getInt32("gridder.AWProject.nwplanes", 65);
-		double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
-		int oversample=parset.getInt32("gridder.AWProject.oversample", 8);
-		int maxSupport=parset.getInt32("gridder.AWProject.maxsupport", 128);
-		int limitSupport=parset.getInt32("gridder.AWProject.limitsupport", 0);
-		bool freqDep=parset.getBool("gridder.AWProject.frequencydependent",
-				true);
-		int maxFeeds=parset.getInt32("gridder.AWProject.maxfeeds", 1);
-		int maxFields=parset.getInt32("gridder.AWProject.maxfields", 1);
-		string tablename=parset.getString("gridder.AWProject.tablename", "");
-		ASKAPLOG_INFO_STR(logger,
-				"Gridding with Using Antenna Illumination and W projection");
-		if (freqDep) {
-			ASKAPLOG_INFO_STR(logger,
-					"Antenna illumination scales with frequency");
-		} else {
-			ASKAPLOG_INFO_STR(logger,
-					"Antenna illumination independent of frequency");
-		}
-		ASKAPLOG_INFO_STR(logger,
-		            "Parallactic angle tolerance = "<<paTol/casa::C::pi*180.<<" deg");
-		if (freqTol<0) {
-		    ASKAPLOG_INFO_STR(logger,"Frequency axis is assumed constant"); 
-		} else {
-		    ASKAPLOG_INFO_STR(logger,"Frequency axis tolerance (relative) is "<<freqTol<<
-		                      " (equivalent to "<<freqTol*3e5<<" km/s)"); 
-		}
-				
-		gridder=IVisGridder::ShPtr(new AWProjectVisGridder(
-		        AProjectGridderBase::makeIllumination(parset.makeSubset("gridder.AWProject.")),
-				wmax, nwplanes, cutoff, oversample,
-				maxSupport, limitSupport, maxFeeds, maxFields, pointingTol,
-				paTol, freqTol,freqDep, tablename));
+	    gridder = AWProjectVisGridder::createGridder(parset.makeSubset("gridder.AWProject."));	    
 	} else if (gridderName == "AProjectWStack") {
-		double pointingTol=parset.getDouble("gridder.AProjectWStack.pointingtolerance", 0.0001);
-		double paTol=parset.getDouble("gridder.AProjectWStack.patolerance", 0.1);
-		
-		// load frequency tolerance. It can be a string "infinite", which means to bypass frequency
-		// axis checks or a non-negative number. We pass "undefined" by default here as it is not a
-		// recognised value, which will cause a numeric default to be adopted 
-		double freqTol = -1.;
-		const std::string freqTolString = toLower(parset.getString("gridder.AProjectWStack.freqtolerance", 
-		                                                   "undefined"));
-		if (freqTolString != "infinite") {
-            freqTol = parset.getDouble("gridder.AProjectWStack.freqtolerance", 1e-6);
-		    ASKAPCHECK(freqTol>=0., 
-		        "Frequency tolerance parameter is supposed to be either a non-negative number or a word infinite to by pass checks");
-		}
-		//
-		double wmax=parset.getDouble("gridder.AProjectWStack.wmax", 10000.0);
-		int nwplanes=parset.getInt32("gridder.AProjectWStack.nwplanes", 65);
-		int oversample=parset.getInt32("gridder.AProjectWStack.oversample", 8);
-		int maxSupport= parset.getInt32("gridder.AProjectWStack.maxsupport",
-				128);
-		int limitSupport= parset.getInt32("gridder.AProjectWStack.limitsupport",
-						  0);
-		int maxFeeds=parset.getInt32("gridder.AProjectWStack.maxfeeds", 1);
-		int maxFields=parset.getInt32("gridder.AProjectWStack.maxfields", 1);
-		if (parset.isDefined("gridder.AProjectWStack.maxantennas")) {
-		    ASKAPLOG_WARN_STR(logger,
-				"gridder.AProjectWStack.maxantennas is no longer used! Update your parset");
-		}
-		bool freqDep=parset.getBool(
-				"gridder.AProjectWStack.frequencydependent", true);
-		string tablename=parset.getString("gridder.AProjectWStack.tablename",
-				"");
-		ASKAPLOG_INFO_STR(logger,
-				"Gridding with Antenna Illumination projection and W stacking");
-		if (freqDep) {
-			ASKAPLOG_INFO_STR(logger,
-					"Antenna illumination scales with frequency");
-		} else {
-			ASKAPLOG_INFO_STR(logger,
-					"Antenna illumination independent of frequency");
-		}
-		ASKAPLOG_INFO_STR(logger,
-		            "Parallactic angle tolerance = "<<paTol/casa::C::pi*180.<<" deg");
-		if (freqTol<0) {
-		    ASKAPLOG_INFO_STR(logger,"Frequency axis is assumed constant"); 
-		} else {
-		    ASKAPLOG_INFO_STR(logger,"Frequency axis tolerance (relative) is "<<freqTol<<
-		                      " (equivalent to "<<freqTol*3e5<<" km/s)"); 
-		}
-
-		gridder=IVisGridder::ShPtr(new AProjectWStackVisGridder(
-		        AProjectGridderBase::makeIllumination(parset.makeSubset("gridder.AProjectWStack.")),
-				wmax, nwplanes, oversample,
-			        maxSupport, limitSupport, maxFeeds, maxFields,
-			pointingTol, paTol, freqTol,
-			        freqDep, tablename));
+	    gridder = AProjectWStackVisGridder::createGridder(parset.makeSubset("gridder.AProjectWStack."));	    
 	} else if (gridderName == "Box") {
 		ASKAPLOG_INFO_STR(logger, "Gridding with Box function");
-		gridder=IVisGridder::ShPtr(new BoxVisGridder());
+		gridder = BoxVisGridder::createGridder(parset.makeSubset("gridder.Box."));
 	} else if (gridderName == "SphFunc") {
 		ASKAPLOG_INFO_STR(logger, "Gridding with spheriodal function");
-		gridder=IVisGridder::ShPtr(new SphFuncVisGridder());
+		gridder = SphFuncVisGridder::createGridder(parset.makeSubset("gridder.SphFunc."));
 	} else {
             gridder = createGridder (gridderName, parset);
     }

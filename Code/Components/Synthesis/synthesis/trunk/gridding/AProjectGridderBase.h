@@ -147,7 +147,18 @@ struct AProjectGridderBase : virtual public IVisGridder
   /// @return shared pointer to illumination interface
   static boost::shared_ptr<IBasicIllumination> 
       makeIllumination(const LOFAR::ParameterSet &parset);
-   
+protected:
+  /// @brief actual factory of derived gridders
+  /// @details Gridders derived from this class use exactly the same parameters, but doing
+  /// the job using slightly different algorithms. This templated method allows to create both
+  /// of them without duplication of the code extracting parameters from the parset file.
+  /// @note Parset should have the gridder name already removed from all parameter names (i.e.
+  /// a proper subset should be formed first, see IVisGridder::createGridder as well)
+  /// @param[in] parset parameter set containing description of the gridder to create
+  /// @return shared pointer to the gridder
+  template<typename GridderType>
+  static boost::shared_ptr<IVisGridder> createAProjectGridder(const LOFAR::ParameterSet &parset);
+     
 private:
   /// Pointing tolerance in radians
   double itsPointingTolerance;

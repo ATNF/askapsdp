@@ -340,3 +340,6 @@ AProjectGridderBase::makeIllumination(const LOFAR::ParameterSet &parset)
    ASKAPTHROW(AskapError, "Unknown illumination type "<<illumType);
    return boost::shared_ptr<IBasicIllumination>(); // to keep the compiler happy
 }
+
+
+
