@@ -99,8 +99,6 @@ namespace askap {
 	  this->itsSubsection.parse(axes);
 	}
 
-  	std::cerr << newparset;
-
 	this->itsFITSfile = FITSfile(newparset);
 	this->itsFITSfile.setSection(this->itsSubsection);
 
@@ -124,10 +122,10 @@ namespace askap {
 	    out.putStart("pixW2M", 1);
 	    out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1);
 	    ASKAPLOG_DEBUG_STR(logger, "Worker #"<<this->itsRank<<": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1));
-// 	    for(int y=this->itsSubsection.getStart(1);y<=this->itsSubsection.getEnd(1);y++){
-// 	      for(int x=this->itsSubsection.getStart(0);x<=this->itsSubsection.getEnd(0);x++){
-	    for(int y=0;y<this->itsFITSfile.getYdim();y++){
-	      for(int x=0;x<this->itsFITSfile.getXdim();x++){
+ 	    for(int y=this->itsSubsection.getStart(1);y<=this->itsSubsection.getEnd(1);y++){
+ 	      for(int x=this->itsSubsection.getStart(0);x<=this->itsSubsection.getEnd(0);x++){
+// 	    for(int y=0;y<this->itsFITSfile.getYdim();y++){
+// 	      for(int x=0;x<this->itsFITSfile.getXdim();x++){
 		out << x << y << this->itsFITSfile.array(x,y);
 	      }
 	    }
@@ -151,16 +149,17 @@ namespace askap {
 	      ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin);
 // 	      for(int y=ymin;y<=ymax;y++){
 // 		for(int x=xmin;x<=xmax;x++){
-	      for(int y=0;y<this->itsFITSfile.getYdim();y++){
-		for(int x=0;x<this->itsFITSfile.getXdim();x++){
+// 	      for(int y=0;y<this->itsFITSfile.getYdim();y++){
+// 		for(int x=0;x<this->itsFITSfile.getXdim();x++){
+	      for(int pix=0;pix<(xmax-xmin+1)*(ymax-ymin+1);pix++){
 		  int xpt,ypt;
 		  float flux;
 		  in >> xpt >> ypt >> flux;
-		  ASKAPASSERT(x==xpt);
-		  ASKAPASSERT(y==ypt);
+		  ASKAPASSERT(xpt==(xmin+pix%(xmax-xmin+1)));
+		  ASKAPASSERT(ypt==(ymin+pix/(xmax-xmin+1)));
 		  flux += this->itsFITSfile.array(xpt,ypt);
 		  this->itsFITSfile.setArray(xpt,ypt,flux);
-		}
+// 		}
 	      }
 	      in.getEnd();
 
