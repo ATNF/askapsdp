@@ -306,17 +306,22 @@ namespace askap
 	}
       
       vector<string> names(parset.getStringVector("spws.names"));
-      int nSpw=names.size();
+      const int nSpw=names.size();
       ASKAPCHECK(nSpw>0, "No spectral windows defined");
       for (int spw=0; spw<nSpw; spw++)
 	{
 	  ostringstream os;
 	  os << "spws."<< names[spw];
 	  vector<string> line=parset.getStringVector(os.str());
+          ASKAPASSERT(line.size()>=4);
+          const casa::Quantity startFreq = MEParsetInterface::asQuantity(line[1]);
+          const casa::Quantity freqInc = MEParsetInterface::asQuantity(line[2]);
+          ASKAPCHECK(startFreq.isConform("Hz"), "start frequency for spectral window "<<names[spw]<<" is supposed to be in units convertible to Hz, you gave "<<
+                     line[1]);
+          ASKAPCHECK(freqInc.isConform("Hz"), "frequency increment for spectral window "<<names[spw]<<" is supposed to be in units convertible to Hz, you gave "<<
+                     line[1]);
 	  itsSim->initSpWindows(names[spw], MEParsetInterface::asInteger(line[0]),
-				MEParsetInterface::asQuantity(line[1]),
-				MEParsetInterface::asQuantity(line[2]),
-				MEParsetInterface::asQuantity(line[2]), line[3]);
+				startFreq, freqInc, freqInc, line[3]);
 	}
       ASKAPLOG_INFO_STR(logger, "Successfully defined "<< nSpw << " spectral windows");
     }
