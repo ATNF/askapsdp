@@ -25,6 +25,8 @@
 #ifndef ASKAP_LOGGINGSERVICE_ICE
 #define ASKAP_LOGGINGSERVICE_ICE
 
+#include <CommonTypes.ice>
+
 module askap
 {
 
@@ -36,17 +38,15 @@ module logging
     /**
      * Exception to be thrown when a query is invalid.
      **/
-    exception LogQueryException
+    exception LogQueryException extends askap::interfaces::AskapIceException
     {
-      string reason;
     };
 
     /**
      * Exception to be thrown when a log message couldn't be dispatched.
      **/
-    exception LogSendException
+    exception LogSendException extends askap::interfaces::AskapIceException
     {
-      string reason;
     };
 
     /**
@@ -57,10 +57,6 @@ module logging
      **/
     enum LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, FATAL};
 
-    /**
-     * Simple vector/list of strings
-     * */
-    sequence<string> StringSeq;
 
     /**
      * The LogEvent representation/container. This is the message which gets
@@ -116,15 +112,15 @@ module logging
      **/
     interface ILogQuery
     {
-        // query the logarchive database returning the list of matches
+        // Query the logarchive database returning the list of matches
         idempotent EventSeq query(IQueryObject q) throws LogQueryException;
 
-        // get the logger names (origin) with an optional name match
+        // Get the logger names (origin) with an optional name to match
 
-        idempotent StringSeq getLoggers(string name);
+        idempotent askap::interfaces::StringSeq getLoggers(string name);
 
-        // get the available log levels
-        idempotent StringSeq getLevels();
+        // Get the available log levels from the LogLevel enum as strings
+        idempotent askap::interfaces::StringSeq getLevels();
     };
 };
 

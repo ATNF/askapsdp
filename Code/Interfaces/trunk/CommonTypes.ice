@@ -41,11 +41,16 @@ module interfaces
     };
 
     /**
-     * This is a common type which can be used as the Ice equivilant of the 
+     * This is a common type which can be used as the Ice equivalent of the
      * LOFAR ParameterSet. This contains a map of variable names and maps
      * them to their value.
      **/
     dictionary<string, string> ParameterMap;
+
+    /**
+     * A sequencence of strings which is commonly used.
+    **/
+    sequence<string> StringSeq;
 };
 };
 
