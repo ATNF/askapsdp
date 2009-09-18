@@ -39,6 +39,7 @@
 #include <casa/Quanta/MVPosition.h>
 #include <casa/BasicSL/Constants.h>
 #include <askap/AskapError.h>
+#include <gridding/VisGridderFactory.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -59,6 +60,7 @@ namespace askap
       //      CPPUNIT_TEST(testForwardBox);
       //      CPPUNIT_TEST(testReverseBox);
       CPPUNIT_TEST_EXCEPTION(testCreateAbstract,AskapError);      
+      CPPUNIT_TEST_EXCEPTION(testUnknownGridder,AskapError);      
       CPPUNIT_TEST(testForwardSph);
       CPPUNIT_TEST(testReverseSph);
       CPPUNIT_TEST(testForwardAWProject);
@@ -152,6 +154,16 @@ namespace askap
          // exception
          LOFAR::ParameterSet parset;
          TableVisGridder::createGridder(parset);
+      }
+      
+      void testUnknownGridder()
+      {
+         // here we attempt to create a gridder, which is not recognized by a factory
+         // The code should try to load a properly named dynamic library and because
+         // it is not there an exception will be thrown 
+         LOFAR::ParameterSet parset;
+         parset.add("gridder","AGridderWithSuchNameShouldDefinitelyBeUnknownToTheSystsem");
+         VisGridderFactory::make(parset);
       }
       
       void testReverseSph()
