@@ -680,6 +680,9 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	initialiseSumOfWeights();
     ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
     initialiseFreqMapping();
+    ASKAPLOG_INFO_STR(logger, "Gridding is set up with tangent centre "<<
+             printDirection(getTangentPoint())<<" and image centre "<<
+             printDirection(getImageCentre())); 
 }
 
 /// @brief initialise sum of weights
