@@ -71,7 +71,7 @@ namespace askap
       itsLimitSupport=limitSupport;
       itsName=name;
 
-      itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);     
+      itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
     }
 
     WProjectVisGridder::~WProjectVisGridder()
@@ -111,7 +111,7 @@ namespace askap
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
     void WProjectVisGridder::initIndices(const IConstDataAccessor& acc)
-    {
+    { 
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
@@ -120,6 +120,14 @@ namespace askap
       const int nPol = acc.nPol();
 
       itsCMap.resize(nSamples, nPol, nChan);
+      
+      #ifdef ASKAP_DEBUG
+      // in the debug mode we check that all used indices are initialised. 
+      // negative value means an uninitialised index. In the production version we don't care
+      // about uninitialised indices as long as they are not used.
+      itsCMap.set(-1);
+      #endif
+      
       int cenw=(itsNWPlanes-1)/2;
       const casa::Vector<casa::RigidVector<double, 3> > &rotatedUVW = acc.rotatedUVW(getTangentPoint());
       
@@ -157,7 +165,7 @@ namespace askap
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
     void WProjectVisGridder::initConvolutionFunction(const IConstDataAccessor&)
-    {
+    { 
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
@@ -325,6 +333,7 @@ namespace askap
 
     int WProjectVisGridder::cIndex(int row, int pol, int chan)
     {
+      ASKAPDEBUGASSERT(itsCMap(row, pol, chan)>=0);
       return itsCMap(row, pol, chan);
     }
 

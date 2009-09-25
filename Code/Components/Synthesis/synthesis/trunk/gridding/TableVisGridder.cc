@@ -257,16 +257,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    }
       
    casa::Timer timer;
-   
-   // Time the coordinate conversions, etc.
-   timer.mark();
-   
-   const casa::Vector<casa::RigidVector<double, 3> > &outUVW = acc.rotatedUVW(getTangentPoint());
-   const casa::Vector<double> &delay = acc.uvwRotationDelay(getTangentPoint(), getImageCentre());
 
-   itsTimeCoordinates += timer.real();
-
-   // Now time CFs and indices
+   // Time CFs and indices
    timer.mark();
       
    initIndices(acc);
@@ -276,6 +268,15 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    }
 	  
    itsTimeConvFunctions += timer.real();
+   
+   // Now time the coordinate conversions, etc.
+   // some conversion may have already happened during CF calculation
+   timer.mark();
+   
+   const casa::Vector<casa::RigidVector<double, 3> > &outUVW = acc.rotatedUVW(getTangentPoint());
+   const casa::Vector<double> &delay = acc.uvwRotationDelay(getTangentPoint(), getImageCentre());
+
+   itsTimeCoordinates += timer.real();
 
    // Now time the gridding
    timer.mark();
