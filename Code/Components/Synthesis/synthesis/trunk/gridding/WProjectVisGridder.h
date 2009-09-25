@@ -130,10 +130,6 @@ namespace askap
       int itsMaxSupport;
       /// Upper limit of support
       int itsLimitSupport;
-      /// Pad up in size using FFT
-      /// @param in Input Array
-      /// @param out Output Array
-      static void fftPad(const casa::Array<double>& in, casa::Array<double>& out);
     };
   }
 }

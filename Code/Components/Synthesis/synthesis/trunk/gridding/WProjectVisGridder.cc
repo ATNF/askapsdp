@@ -230,15 +230,15 @@ namespace askap
             float x2=float(ix-qnx/2)*ccellx;
             x2*=x2;
             float r2=x2+y2;
-	    if(r2<1.0) {
-	      float phase=w*(1.0-sqrt(1.0-r2));
-	      float wt=ccfx(ix)*ccfy(iy);
-	      ASKAPDEBUGASSERT(ix-qnx/2+nx/2 < nx);
-	      ASKAPDEBUGASSERT(iy-qny/2+ny/2 < ny);
-	      ASKAPDEBUGASSERT(ix+nx/2 >= qnx/2);
-	      ASKAPDEBUGASSERT(iy+ny/2 >= qny/2);
-	      thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(wt*cos(phase), -wt*sin(phase));
-	    }
+            if(r2<1.0) {
+               const float phase=w*(1.0-sqrt(1.0-r2));
+               const float wt=ccfx(ix)*ccfy(iy);
+               ASKAPDEBUGASSERT(ix-qnx/2+nx/2 < nx);
+               ASKAPDEBUGASSERT(iy-qny/2+ny/2 < ny);
+               ASKAPDEBUGASSERT(ix+nx/2 >= qnx/2);
+               ASKAPDEBUGASSERT(iy+ny/2 >= qny/2);
+               thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(wt*cos(phase), -wt*sin(phase));
+            }
           }
         }
         // At this point, we have the phase screen multiplied by the spheroidal
@@ -328,57 +328,6 @@ namespace askap
       return itsCMap(row, pol, chan);
     }
 
-    void WProjectVisGridder::fftPad(const casa::Array<double>& in,
-        casa::Array<double>& out)
-    {
-
-      int inx=in.shape()(0);
-      int iny=in.shape()(1);
-
-      int onx=out.shape()(0);
-      int ony=out.shape()(1);
-
-      // Shortcut no-op
-      if ((inx==onx)&&(iny==ony))
-      {
-        out=in.copy();
-        return;
-      }
-
-      ASKAPCHECK(onx>=inx, "Attempting to pad to smaller array");
-      ASKAPCHECK(ony>=iny, "Attempting to pad to smaller array");
-
-      /// Make an iterator that returns plane by plane
-      casa::ReadOnlyArrayIterator<double> inIt(in, 2);
-      casa::ArrayIterator<double> outIt(out, 2);
-      while (!inIt.pastEnd()&&!outIt.pastEnd())
-      {
-        casa::Matrix<casa::DComplex> inPlane(inx, iny);
-        casa::Matrix<casa::DComplex> outPlane(onx, ony);
-        casa::convertArray(inPlane, inIt.array());
-        outPlane.set(0.0);
-        scimath::fft2d(inPlane, false);
-        for (int iy=0; iy<iny; iy++)
-        {
-          for (int ix=0; ix<inx; ix++)
-          {
-            ASKAPDEBUGASSERT(ix+(onx-inx)/2 < int(outPlane.nrow()));
-            ASKAPDEBUGASSERT(iy+(ony-iny)/2 < int(outPlane.ncolumn()));
-            ASKAPDEBUGASSERT(ix+(onx-inx)/2 >= 0);
-            ASKAPDEBUGASSERT(iy+(ony-iny)/2 >= 0);            
-            outPlane(ix+(onx-inx)/2, iy+(ony-iny)/2) = inPlane(ix, iy);
-          }
-        }
-        scimath::fft2d(outPlane, true);
-        const casa::Array<casa::DComplex> constOutPlane(outPlane);
-        casa::Array<double> outArray(outIt.array());
-
-        casa::real(outArray, constOutPlane);
-
-        inIt.next();
-        outIt.next();
-      }
-    }
 
     /// @brief static method to create gridder
     /// @details Each gridder should have a static factory method, which is

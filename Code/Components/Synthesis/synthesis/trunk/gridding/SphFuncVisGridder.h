@@ -93,9 +93,6 @@ namespace askap
 				/// @param nu Argument for spheroidal function
 				double grdsf(double nu);
 
-				/// Initialize lookup table for spheriodal function
-				void initSphFunc();
-
 		};
 
 	}
