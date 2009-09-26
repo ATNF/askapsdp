@@ -78,6 +78,7 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
      itsDelays.resize(nSamples);
      itsTangentPoint = tangent;
      itsImageCentre = tangent;
+     itsValid = true;
      // just copy rotation code from TableVisGridder for a moment
      const casa::Vector<casa::RigidVector<double, 3> >& uvwVector = acc.uvw();
      const casa::Vector<casa::MVDirection>& pointingDir1Vector =
@@ -146,6 +147,8 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
       for (casa::uInt row=0; row<nSamples; ++row) {
            itsDelays(row) += uvwBuffer(row)(0)*dl + uvwBuffer(row)(1)*dm;
       }
+      // now delays are recalculated to correspond to a new image centre
+      itsImageCentre = imageCentre;
   } 
   return itsDelays;
 }
