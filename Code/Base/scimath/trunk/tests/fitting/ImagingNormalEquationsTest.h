@@ -33,7 +33,7 @@
 
 
 #include <askap/AskapError.h>
-
+#include <boost/shared_ptr.hpp>
 
 namespace askap
 {
@@ -50,23 +50,15 @@ namespace askap
       CPPUNIT_TEST_SUITE_END();
 
       private:
-        ImagingNormalEquations *p1, *p2, *p3, *pempty;
+        boost::shared_ptr<ImagingNormalEquations> p1, p2, p3, pempty;
 
       public:
         void setUp()
         { 
-          p1 = new ImagingNormalEquations();
-          p2 = new ImagingNormalEquations();
-          p3 = new ImagingNormalEquations();
-          pempty = new ImagingNormalEquations();
-        }
-
-        void tearDown()
-        {
-          delete p1;
-          delete p2;
-          delete p3;
-          delete pempty;
+          p1.reset(new ImagingNormalEquations());
+          p2.reset(new ImagingNormalEquations());
+          p3.reset(new ImagingNormalEquations());
+          pempty.reset(new ImagingNormalEquations());
         }
 
         void testConstructors()
@@ -75,8 +67,7 @@ namespace askap
           ip.add("Value0");
           ip.add("Value1");
           ip.add("Value2");
-          delete p1;
-          p1 = new ImagingNormalEquations(ip);
+          p1.reset(new ImagingNormalEquations(ip));
           CPPUNIT_ASSERT(p1->parameters().names().size()==3);
           CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
           CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
@@ -89,10 +80,9 @@ namespace askap
           ip.add("Value0");
           ip.add("Value1");
           ip.add("Value2");
-          delete p1;
-          p1 = new ImagingNormalEquations(ip);
-          delete p2;
-          p2 = new ImagingNormalEquations(*p1);
+          p1.reset(new ImagingNormalEquations(ip));
+          CPPUNIT_ASSERT(p1);
+          p2.reset(new ImagingNormalEquations(*p1));
           CPPUNIT_ASSERT(p2->parameters().names().size()==3);
           CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
           CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
@@ -108,9 +98,8 @@ namespace askap
           casa::Vector<double> im(imsize);
           im.set(3.0);
           ip.add("Image2", im);
-
-	  delete p1;
-          p1 = new ImagingNormalEquations(ip);
+          p1.reset(new ImagingNormalEquations(ip));
+          CPPUNIT_ASSERT(p1);
           LOFAR::BlobString b1(false);
           LOFAR::BlobOBufString bob(b1);
           LOFAR::BlobOStream bos(bob);
@@ -118,12 +107,13 @@ namespace askap
           Params pnew;
           LOFAR::BlobIBufString bib(b1);
           LOFAR::BlobIStream bis(bib);
-          p2 = new ImagingNormalEquations();
+          p2.reset(new ImagingNormalEquations());
+          CPPUNIT_ASSERT(p2);
           bis >> *p2;
-          //CPPUNIT_ASSERT(p2->parameters().names()[0]=="Image2");
-          //CPPUNIT_ASSERT(p2->parameters().names().size()==3);
-          //CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value0");
-          //CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value1");
+          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Image2");
+          CPPUNIT_ASSERT(p2->parameters().names().size()==3);
+          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value0");
+          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value1");
         }
     };
 
