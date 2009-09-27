@@ -102,6 +102,16 @@ namespace askap
     try {
       const ImagingNormalEquations &other = 
                          dynamic_cast<const ImagingNormalEquations&>(src);    
+      if (!other.itsParams) {
+          // do nothing, src is empty
+          return;
+      }
+      if (!itsParams) {
+          // this object is empty, just do an assignment
+          operator=(other);
+          return;
+      }
+      ASKAPDEBUGASSERT(itsParams && other.itsParams);
       itsParams->merge(*other.itsParams);
       const vector<string> names=itsParams->freeNames();
       vector<string>::const_iterator iterRow;

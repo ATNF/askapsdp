@@ -46,6 +46,7 @@ namespace askap
       CPPUNIT_TEST_SUITE(ImagingNormalEquationsTest);
       CPPUNIT_TEST(testConstructors);
       CPPUNIT_TEST(testCopy);
+      CPPUNIT_TEST(testMerge);
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_SUITE_END();
 
@@ -87,6 +88,34 @@ namespace askap
           CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
           CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
           CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
+        }
+        
+        void testMerge() 
+        {
+          testCopy();
+          CPPUNIT_ASSERT(p3);
+          CPPUNIT_ASSERT(p2);
+          p3->merge(*p2);
+          CPPUNIT_ASSERT(p3->parameters().names().size()==3);
+          CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p3->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
+          CPPUNIT_ASSERT(pempty);
+          p3->merge(*pempty);
+          CPPUNIT_ASSERT(p3->parameters().names().size()==3);
+
+          Params ip;
+          ip.add("Value1");
+          ip.add("Value4");
+          p1.reset(new ImagingNormalEquations(ip));
+          CPPUNIT_ASSERT(p1);
+          p3->merge(*p1);
+          CPPUNIT_ASSERT(p3->parameters().names().size()==4);
+          CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p3->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
+          CPPUNIT_ASSERT(p3->parameters().names()[3]=="Value4");
+          
         }
 
         
