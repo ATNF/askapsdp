@@ -102,41 +102,50 @@ namespace askap
     try {
       const ImagingNormalEquations &other = 
                          dynamic_cast<const ImagingNormalEquations&>(src);    
-  
       itsParams->merge(*other.itsParams);
-      vector<string> names=itsParams->freeNames();
-      vector<string>::iterator iterRow;
-      vector<string>::iterator iterCol;
+      const vector<string> names=itsParams->freeNames();
+      vector<string>::const_iterator iterRow;
+      vector<string>::const_iterator iterCol;
 
-      for (iterCol=names.begin();iterCol!=names.end();iterCol++)
+      for (iterCol=names.begin();iterCol!=names.end();++iterCol)
       {
+        if (other.itsDataVector.find(*iterCol) == other.itsDataVector.end()) {
+            continue;
+        }
+        ASKAPDEBUGASSERT(other.itsDataVector.find(*iterCol) != other.itsDataVector.end()); 
         if(itsDataVector[*iterCol].size()!=other.itsDataVector.find(*iterCol)->second.size())
         {
-          itsDataVector[*iterCol]=other.itsDataVector.find(*iterCol)->second;
+          itsDataVector[*iterCol].assign(other.itsDataVector.find(*iterCol)->second);
         }
         else
         {
           itsDataVector[*iterCol]+=other.itsDataVector.find(*iterCol)->second;
         }
+            
         itsShape[*iterCol].resize(0);
+        ASKAPDEBUGASSERT(other.itsShape.find(*iterCol) != other.itsShape.end());
         itsShape[*iterCol]=other.itsShape.find(*iterCol)->second;
+        
+        ASKAPDEBUGASSERT(other.itsNormalMatrixSlice.find(*iterCol) != other.itsNormalMatrixSlice.end());
         if(itsNormalMatrixSlice[*iterCol].shape()!=other.itsNormalMatrixSlice.find(*iterCol)->second.shape())
         {
-          itsNormalMatrixSlice[*iterCol]=other.itsNormalMatrixSlice.find(*iterCol)->second;
+          itsNormalMatrixSlice[*iterCol].assign(other.itsNormalMatrixSlice.find(*iterCol)->second);
         }
         else
         {
           itsNormalMatrixSlice[*iterCol]+=other.itsNormalMatrixSlice.find(*iterCol)->second;
         }
+ 
+        ASKAPDEBUGASSERT(other.itsNormalMatrixDiagonal.find(*iterCol) != other.itsNormalMatrixDiagonal.end());
         if(itsNormalMatrixDiagonal[*iterCol].shape()!=other.itsNormalMatrixDiagonal.find(*iterCol)->second.shape())
         {
-          itsNormalMatrixDiagonal[*iterCol]=other.itsNormalMatrixDiagonal.find(*iterCol)->second;
+          itsNormalMatrixDiagonal[*iterCol].assign(other.itsNormalMatrixDiagonal.find(*iterCol)->second);
         }
         else
         {
           itsNormalMatrixDiagonal[*iterCol]+=other.itsNormalMatrixDiagonal.find(*iterCol)->second;
-        }
-      }
+        }       
+      }     
     }
     catch (const std::bad_cast &bc) {
         ASKAPTHROW(AskapError, "An attempt to merge NormalEquations with an "
