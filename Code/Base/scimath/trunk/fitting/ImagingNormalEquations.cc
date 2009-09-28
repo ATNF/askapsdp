@@ -334,11 +334,11 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
       itsShape[name]=shape;
     }
 
-    void ImagingNormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrix,
+    void ImagingNormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrixdiagonal,
       const casa::Vector<double>& datavector)
     {
       casa::IPosition shape(1, datavector.nelements());
-      addDiagonal(name, normalmatrix, datavector, shape);
+      addDiagonal(name, normalmatrixdiagonal, datavector, shape);
     }
 
     const Params& ImagingNormalEquations::parameters() const

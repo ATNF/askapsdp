@@ -119,11 +119,11 @@ namespace askap
       /// that the cross terms between parameters are excluded and only
       /// the diagonal inside a parameter is kept.
       /// @param name Name of parameter
-      /// @param normalmatrix Normal Matrix for this parameter
+      /// @param normalmatrixdiagonal Normal Matrix for this parameter
       /// @param datavector Data vector for this parameter
       /// @param shape Shape of this parameter
       void addDiagonal(const string& name, 
-                       const casa::Vector<double>& normalmatrix,
+                       const casa::Vector<double>& normalmatrixdiagonal,
                        const casa::Vector<double>& datavector,
                        const casa::IPosition& shape);
       
@@ -133,10 +133,10 @@ namespace askap
       /// that the cross terms between parameters are excluded and only
       /// the diagonal inside a parameter is kept.
       /// @param name Name of parameter
-      /// @param normalmatrix Normal Matrix for this parameter
+      /// @param normalmatrixdiagonal Normal Matrix for this parameter
       /// @param datavector Data vector for this parameter
       void addDiagonal(const string& name, 
-                       const casa::Vector<double>& normalmatrix,
+                       const casa::Vector<double>& normalmatrixdiagonal,
                        const casa::Vector<double>& datavector);
       
       /// @brief Merge these normal equations with another

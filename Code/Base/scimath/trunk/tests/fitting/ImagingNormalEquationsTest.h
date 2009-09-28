@@ -48,6 +48,11 @@ namespace askap
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testFillMatrix);
       CPPUNIT_TEST(testMerge);
+      CPPUNIT_TEST(testAdd);
+#ifdef ASKAP_DEBUG
+// the check is done and exception is thrown in the debug mode only
+      CPPUNIT_TEST_EXCEPTION(testAddWrongDimension, askap::AskapError);
+#endif // #ifdef ASKAP_DEBUG
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_SUITE_END();
 
@@ -103,11 +108,16 @@ namespace askap
           testAllElements(extractVector(p2->dataVector(), "Value1"),5,-40.);
           testAllElements(p2->dataVector("Value1"),5,-40.);
           
+          p2->addDiagonal("Value2", casa::Vector<double>(3, 1.), casa::Vector<double>(3, 10.));
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value2"),3,1.);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(extractVector(p2->dataVector(), "Value2"),3,10.);
+          testAllElements(p2->dataVector("Value2"),3,10.);          
         }
         
         void testMerge() 
         {
-          testCopy();
+          testFillMatrix();
           CPPUNIT_ASSERT(p3);
           CPPUNIT_ASSERT(p2);
           p3->merge(*p2);
@@ -115,15 +125,31 @@ namespace askap
           CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
           CPPUNIT_ASSERT(p3->parameters().names()[1]=="Value1");
           CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(p3->dataVector("Value1"),5,-40.);          
+
           CPPUNIT_ASSERT(pempty);
           p3->merge(*pempty);
           CPPUNIT_ASSERT(p3->parameters().names().size()==3);
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(p3->dataVector("Value1"),5,-40.);
+          
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value2"),3,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(p3->dataVector("Value2"),3,10.);
+                    
 
           Params ip;
           ip.add("Value1");
           ip.add("Value4");
           p1.reset(new ImagingNormalEquations(ip));
           CPPUNIT_ASSERT(p1);
+          p1->addSlice("Value1", casa::Vector<double>(5,0.), 
+                  casa::Vector<double>(5, 1.), casa::Vector<double>(5,10.),
+                  casa::IPosition(1,0));
+          
           p3->merge(*p1);
           CPPUNIT_ASSERT(p3->parameters().names().size()==4);
           CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
@@ -131,8 +157,74 @@ namespace askap
           CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
           CPPUNIT_ASSERT(p3->parameters().names()[3]=="Value4");
           
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,2.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(p3->dataVector("Value1"),5,-30.);                    
+          
+          // Value2 should not change
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value2"),3,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(p3->dataVector("Value2"),3,10.);
+
+          Params ip2;
+          ip2.add("Value2");
+          p2.reset(new ImagingNormalEquations(ip2));
+          CPPUNIT_ASSERT(p2);
+          p2->addSlice("Value2", casa::Vector<double>(7,-0.1), 
+                  casa::Vector<double>(7, 1.), casa::Vector<double>(7,-10.),
+                  casa::IPosition(1,0));
+          
+          //now Value2 is expected to be overwritten, because the shape has been changed
+          p3->merge(*p2);
+          CPPUNIT_ASSERT(p3->parameters().names().size()==4);
+          CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
+          CPPUNIT_ASSERT(p3->parameters().names()[1]=="Value1");
+          CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
+          CPPUNIT_ASSERT(p3->parameters().names()[3]=="Value4");
+
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,2.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(p3->dataVector("Value1"),5,-30.);                    
+
+          // test for new Value2    
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value2"),7,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value2"),7,-0.1);
+          testAllElements(p3->dataVector("Value2"),7,-10.);
         }
 
+        void testAdd() 
+        {
+          testFillMatrix();
+          CPPUNIT_ASSERT(p2);
+          
+          // add a slice with the same dimension
+          p2->addSlice("Value1", casa::Vector<double>(5,0.2), 
+                  casa::Vector<double>(5, 1.1), casa::Vector<double>(5,30.),
+                  casa::IPosition(1,0));
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value1"),5,2.1);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value1"),5,0.3);
+          testAllElements(p2->dataVector("Value1"),5,-10.);
+          
+          // add diagonal with the same dimension
+          p2->addDiagonal("Value2", casa::Vector<double>(3, 0.9), casa::Vector<double>(3, 1.));
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value2"),3,1.9);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(p2->dataVector("Value2"),3,11.);          
+                    
+        }
+
+        void testAddWrongDimension() 
+        {
+          // in the debug mode we check whether the dimesnions of added slices and diagonals
+          // are consistent. This test is executed in debug mode only!
+          testAdd();
+          CPPUNIT_ASSERT(p2);
+          
+          // now add slice with the different dimension to check that it generates an exception
+          p2->addSlice("Value1", casa::Vector<double>(7,0.2), 
+                  casa::Vector<double>(5, 1.1), casa::Vector<double>(7,30.),
+                  casa::IPosition(1,0));
+        }
         
         void testBlobStream() {
           Params ip;
