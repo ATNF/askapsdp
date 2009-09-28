@@ -46,6 +46,7 @@ namespace askap
       CPPUNIT_TEST_SUITE(ImagingNormalEquationsTest);
       CPPUNIT_TEST(testConstructors);
       CPPUNIT_TEST(testCopy);
+      CPPUNIT_TEST(testFillMatrix);
       CPPUNIT_TEST(testMerge);
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_SUITE_END();
@@ -88,6 +89,20 @@ namespace askap
           CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
           CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
           CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
+        }
+        
+        void testFillMatrix()
+        {
+          testCopy();
+          CPPUNIT_ASSERT(p2);
+          p2->addSlice("Value1", casa::Vector<double>(5,0.1), 
+                  casa::Vector<double>(5, 1.), casa::Vector<double>(5,-40.),
+                  casa::IPosition(1,0));
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value1"),5,1.);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(extractVector(p2->dataVector(), "Value1"),5,-40.);
+          testAllElements(p2->dataVector("Value1"),5,-40.);
+          
         }
         
         void testMerge() 
@@ -144,6 +159,33 @@ namespace askap
           CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value0");
           CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value1");
         }
+    protected:
+        /// @brief a helper method to access map elements
+        /// @details This method extracts a casa::Vector out of the map
+        /// doing all necessary checks.
+        /// @param[in] inMap input map passed by const reference
+        /// @param[in] key string key
+        /// @return casa::Vector corresponding to the given key
+        static const casa::Vector<double> extractVector(const std::map<std::string, 
+               casa::Vector<double> > &inMap, const std::string &key) {
+          std::map<std::string, casa::Vector<double> >::const_iterator ci = inMap.find(key);
+          CPPUNIT_ASSERT(ci != inMap.end());
+          return ci->second;
+        } 
+        
+        /// @brief test values stored in a vector
+        /// @details This method encapsulates a loop over vector and tests
+        /// all its elements against given value. The length is also tested.
+        /// @param[in] vec input vector (passed by const reference)
+        /// @param[in] expectedSize expected size of the vector
+        /// @param[in] expectedValue expected value of all elements
+        static void testAllElements(const casa::Vector<double> &vec,
+                casa::uInt expectedSize, double expectedValue) {
+          CPPUNIT_ASSERT(vec.nelements() == expectedSize);
+          for (casa::uInt i=0; i<expectedSize; ++i) {
+               CPPUNIT_ASSERT(fabs(vec[i]-expectedValue)<1e-6);
+          } 
+        } 
     };
 
   }

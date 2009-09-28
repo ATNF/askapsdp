@@ -286,6 +286,27 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
       itsReference[name].resize(0);
       itsReference[name]=reference;
     }
+    
+    /// @brief Store slice of the normal matrix for a given parameter. 
+    ///
+    /// This means
+    /// that the cross terms between parameters are excluded and only
+    /// a slice of the normal matrix is retained.
+    /// @param name Name of parameter
+    /// @param normalmatrixslice Slice of normal matrix for this parameter
+    /// @param normalmatrixdiagonal Diagonal of normal matrix for
+    ///        this parameter
+    /// @param datavector Data vector for this parameter
+    /// @param reference Reference point for the slice
+    void ImagingNormalEquations::addSlice(const string& name,
+                    const casa::Vector<double>& normalmatrixslice,
+                    const casa::Vector<double>& normalmatrixdiagonal,
+                    const casa::Vector<double>& datavector,
+                    const casa::IPosition& reference)
+    {
+      addSlice(name,normalmatrixslice,normalmatrixdiagonal,datavector,
+               casa::IPosition(1, datavector.nelements()), reference);
+    }
 
     void ImagingNormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrixdiagonal,
       const casa::Vector<double>& datavector, const casa::IPosition& shape)
