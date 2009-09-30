@@ -81,7 +81,7 @@ class ParameterSet(object):
 
     """
 
-    _reserved = ["get_value", "set_value", "to_dict"]
+    _reserved = ["get_value", "set_value", "to_dict" , "keys", "items"]
 
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
@@ -293,7 +293,7 @@ def encode(value):
                 val = str(single_str(value[0]))
                 return '[' + str(len(value)) + ' * ' + val + ']'
             # n..m
-            elif not isinstance(value[0], str) \
+            elif isinstance(value[0], int) \
                 and value == range(value[0], value[-1]+1):
                 return str(value[0]) + '..' + str(value[-1])
         return to_str(value)
