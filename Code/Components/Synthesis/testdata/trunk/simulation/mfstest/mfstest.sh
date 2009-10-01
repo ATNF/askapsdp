@@ -42,7 +42,7 @@ Cimager.gridder                          	= SphFunc
 #
 Cimager.solver                           	= Clean
 Cimager.solver.Clean.algorithm                 	= MSMFS
-Cimager.solver.nterms				= 2
+Cimager.solver.Clean.nterms			= 2
 
 Cimager.solver.Clean.scales			= [0]
 Cimager.solver.Clean.niter                     	= 100

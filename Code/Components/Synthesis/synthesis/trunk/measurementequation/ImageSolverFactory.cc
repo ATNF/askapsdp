@@ -139,16 +139,17 @@ namespace askap
 	     string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
 	     std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 	
-	     if(algorithm=="MSMFS"){
-            int nterms=parset.getInt32("solver.Clean.nterms",2);
-            solver = ImageSolver::ShPtr(new ImageMSMFSolver(ip, casa::Vector<float>(scales),int(nterms)));
-            ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
-            solver->setAlgorithm(algorithm);
+            if(algorithm=="MSMFS"){
+               ASKAPCHECK(!parset.isDefined("solver.nterms"), "Use solver.Clean.nterms instead of solver.nterms");
+               const int nterms=parset.getInt32("solver.Clean.nterms",2);
+               solver.reset(new ImageMSMFSolver(ip, casa::Vector<float>(scales),nterms));
+               ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver with "<<nterms<<" Taylor terms" );
+               solver->setAlgorithm(algorithm);
 	     } else {
-            solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
-            ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
-            //solver->setAlgorithm(algorithm);
-            solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
+               solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
+               ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
+               //solver->setAlgorithm(algorithm);
+               solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
 	     }
         
 	     solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));
