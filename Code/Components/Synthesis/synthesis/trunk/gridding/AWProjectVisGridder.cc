@@ -182,8 +182,8 @@ void AWProjectVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa:
     /// Limit the size of the convolution function since
     /// we don't need it finely sampled in image space. This
     /// will reduce the time taken to calculate it.
-    const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
-    const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+    const casa::uInt nx=std::min(itsMaxSupport, int(itsShape(0)));
+    const casa::uInt ny=std::min(itsMaxSupport, int(itsShape(1)));
 
     ASKAPLOG_INFO_STR(logger, "Shape for calculating gridding convolution function = "
             << nx << " by " << ny << " pixels");
@@ -206,8 +206,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
     /// Limit the size of the convolution function since
     /// we don't need it finely sampled in image space. This
     /// will reduce the time taken to calculate it.
-    const casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
-    const casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+    const casa::uInt nx=std::min(itsMaxSupport, int(itsShape(0)));
+    const casa::uInt ny=std::min(itsMaxSupport, int(itsShape(1)));
 
     ASKAPLOG_INFO_STR(logger, "Shape for calculating degridding convolution function = "
             << nx << " by " << ny << " pixels");
@@ -252,8 +252,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
       /// will reduce the time taken to calculate it.
-      casa::uInt nx=std::min(itsMaxSupport, itsShape(0));
-      casa::uInt ny=std::min(itsMaxSupport, itsShape(1));
+      casa::uInt nx=std::min(itsMaxSupport, int(itsShape(0)));
+      casa::uInt ny=std::min(itsMaxSupport, int(itsShape(1)));
       
       casa::uInt qnx=nx/itsOverSample;
       casa::uInt qny=ny/itsOverSample;

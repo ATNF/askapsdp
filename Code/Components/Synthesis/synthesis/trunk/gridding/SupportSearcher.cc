@@ -95,7 +95,7 @@ casa::uInt SupportSearcher::support() const
 { 
   const casa::IPosition length = (trc()-blc());
   ASKAPDEBUGASSERT(length.nelements()==2);
-  return casa::max(length(0),length(1));
+  return std::max(length(0),length(1));
 }
 
 /// @brief obtain a size of the smallest symmetrical square support
@@ -107,9 +107,9 @@ casa::uInt SupportSearcher::symmetricalSupport(const casa::IPosition &shape) con
   const casa::IPosition centre = shape/2;
   const casa::IPosition length1 = trc()-centre;
   const casa::IPosition length2 = centre-blc();
-  const int xMax = casa::max(abs(length1(0)),abs(length2(0)));
-  const int yMax = casa::max(abs(length1(1)),abs(length2(1)));
-  return casa::uInt(casa::max(xMax,yMax)*2);
+  const int xMax = std::max(abs(length1(0)),abs(length2(0)));
+  const int yMax = std::max(abs(length1(1)),abs(length2(1)));
+  return casa::uInt(std::max(xMax,yMax)*2);
 }
 
 /// @brief search assuming the peak is in the centre

@@ -355,7 +355,7 @@ namespace askap
        const int maxSupport=parset.getInt32("maxsupport", 256);
        const int limitSupport=parset.getInt32("limitsupport", 0);
        const string tablename=parset.getString("tablename", "");
-       ASKAPLOG_INFO_STR(logger, "Gridding using W projection");
+       ASKAPLOG_INFO_STR(logger, "Gridding using W projection " << nwplanes);
        return IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
 								  maxSupport, limitSupport, tablename));      
     }
