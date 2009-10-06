@@ -46,6 +46,8 @@ using namespace LOFAR::TYPES;
 #include <casa/OS/Path.h>
 #include <images/Images/ImageOpener.h>
 #include <casa/aipstype.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayPartMath.h>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -63,6 +65,8 @@ using namespace LOFAR::TYPES;
 #include <analysisutilities/SubimageDef.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
+#include <analysisutilities/NewArrayMath.h>
+#include <analysisutilities/NewArrayPartMath.h>
 
 #include <iostream>
 #include <fstream>
@@ -145,6 +149,10 @@ namespace askap {
             this->itsImage = substitute(parset.getString("image"));
             ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsImage);
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
+
+	    this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch",false);
+	    this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
+
             this->itsFlagDoFit = parset.getBool("doFit", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
@@ -444,7 +452,11 @@ namespace askap {
                 }
 
                 if (this->itsCube.getSize() > 0) {
-                    if (this->itsCube.pars().getFlagATrous()) {
+		  if(this->itsFlagDoMedianSearch){
+		    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
+		    this->medianSearch2D();
+		  }
+		  else if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Searching with reconstruction first");
                         this->itsCube.ReconSearch();
                     } else if (this->itsCube.pars().getFlagSmooth()) {
@@ -469,6 +481,32 @@ namespace askap {
             }
         }
 
+        //**************************************************************//
+
+      void DuchampParallel::medianSearch2D()
+      {
+
+	ASKAPLOG_INFO_STR(logger, this->workerPrefix()<< "About to find median & MADFM arrays, and use these to search");
+	casa::IPosition box(2,this->itsMedianBoxWidth,this->itsMedianBoxWidth);
+	casa::IPosition shape(2,this->itsCube.getDimX(),this->itsCube.getDimY());
+	casa::Array<Float> base(shape,this->itsCube.getArray());
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
+	casa::Array<Float> median=slidingArrayMath (base, box, MedianFunc<Float>());
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
+ 	casa::Array<Float> madfm=slidingArrayMath (base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Constructing SNR map");
+	casa::Array<Float> snr = (base - median) / madfm;
+	this->itsCube.saveRecon(snr.data(),long(snr.nelements()));
+	this->itsCube.setReconFlag(true);
+	if(!this->itsCube.pars().getFlagUserThreshold()){
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut() );
+	  this->itsCube.pars().setThreshold( this->itsCube.pars().getCut() );
+	  this->itsCube.pars().setFlagUserThreshold(true);
+	}
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Searching SNR map");
+	this->itsCube.ReconSearch();
+      }
+      
         //**************************************************************//
 
         void DuchampParallel::fitSources()
@@ -888,16 +926,19 @@ namespace askap {
             /// functions. Net effect is to find the mean/median and
             /// rms/MADFM for the entire dataset and store these values in
             /// the master's itsCube statsContainer.
-            if (!this->itsCube.pars().getFlagUserThreshold() ||
-                    (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold())) {
+	  if (!this->itsFlagDoMedianSearch &&  
+	      (!this->itsCube.pars().getFlagUserThreshold() ||
+	       (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold())) ) {
                 findMeans();
                 combineMeans();
                 broadcastMean();
                 findRMSs();
                 combineRMSs();
-            } else
-                this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
-        }
+	  } else{
+	    if(this->itsFlagDoMedianSearch) this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
+	    else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
+	  }
+	}
 
 
         //**************************************************************//
@@ -1190,7 +1231,7 @@ namespace askap {
                     this->itsCube.stats().setMean(mean);
                     this->itsCube.stats().setStddev(rms);
 
-                    if (!this->itsCube.pars().getFlagUserThreshold())
+                    if (!this->itsCube.pars().getFlagUserThreshold() && !this->itsFlagDoMedianSearch)
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting mean to be " << mean << " and rms " << rms);
 
                     this->itsCube.pars().setFlagUserThreshold(true);
