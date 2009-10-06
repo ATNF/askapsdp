@@ -39,7 +39,7 @@ template<class T> T madfm(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool ta
  
   T med = median(a,tmp,sorted,takeEvenMean,inPlace);
 
-  Array<T> absdiff = fabs(a-med);
+  Array<T> absdiff = abs(a-med);
   return median(absdiff,tmp,sorted,takeEvenMean,inPlace);
 
 }

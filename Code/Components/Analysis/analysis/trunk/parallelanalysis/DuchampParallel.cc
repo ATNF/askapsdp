@@ -495,7 +495,26 @@ namespace askap {
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
  	casa::Array<Float> madfm=slidingArrayMath (base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Constructing SNR map");
-	casa::Array<Float> snr = (base - median) / madfm;
+	casa::Array<Float> snr = (base - median);
+	
+	// Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+	uInt ntotal = snr.nelements(); 
+	Bool snrDelete, madfmDelete;
+	Float *snrStorage = snr.getStorage(snrDelete);
+	Float *ss = snrStorage;
+	const Float *madfmStorage = madfm.getStorage(madfmDelete);
+	const Float *ms = madfmStorage;
+	while (ntotal--) {
+	  if(*ms>0) *ss++ /= *ms++;
+	  else{
+	    *ss++ = 0.;
+	    *ms++;
+	  }
+	}
+	snr.putStorage(snrStorage, snrDelete);
+	madfm.freeStorage(madfmStorage, madfmDelete);
+
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Saving SNR map");
 	this->itsCube.saveRecon(snr.data(),long(snr.nelements()));
 	this->itsCube.setReconFlag(true);
 	if(!this->itsCube.pars().getFlagUserThreshold()){
