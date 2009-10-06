@@ -215,9 +215,11 @@ namespace askap
 	  for( int order=0; order < nOrders; order++)
 	  {
 	   imagename = makeImageString(samplename,stokes,order);
-	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(imagename)>0, "PSF Slice not present");
+	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(imagename)>0, "PSF Slice for stokes="<<stokes<<
+	           " and order="<<order<<" is not present");
 	   const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(imagename)->second);
-	   ASKAPCHECK(normalEquations().dataVector(imagename).size()>0, "Data vector not present");
+	   ASKAPCHECK(normalEquations().dataVector(imagename).size()>0, "Data vector not present for stokes="<<
+	           stokes<<" and order="<<order);
 	   const casa::Vector<double>& dv = normalEquations().dataVector(imagename);
 	   
 	   casa::Array<float> psfArray(valShape);
@@ -227,12 +229,12 @@ namespace askap
 	   casa::Array<float> cleanArray(valShape);
 	   casa::convertArray<float, double>(cleanArray, itsParams->value(imagename));
 
-	   doNormalization(normdiag,tol(),psfArray,dirtyArray);
-	   
+       doNormalization(normdiag,tol(),psfArray,dirtyArray);
+	   	   
 	   ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
 
 	   string psfzeroname = makeImageString(samplename,stokes,0);
-	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(psfzeroname)>0, "PSF Slice not present");
+	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(psfzeroname)>0, "PSF Slice for order 0 is not present");
 	   const casa::Vector<double>& zeroslice(normalEquations().normalMatrixSlice().find(psfzeroname)->second);
 	   casa::convertArray<float, double>(psfZeroArray, zeroslice.reform(valShape));
 	   psfZeroArray/= (float)maxDiag;
