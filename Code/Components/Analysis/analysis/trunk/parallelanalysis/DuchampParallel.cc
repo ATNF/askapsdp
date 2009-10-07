@@ -565,8 +565,25 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << numObj << ".");
 
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
+
+		    // Fix S/Nmax for the case where we've used the medianSearch algorithm and define the effective detection threshold
+		    float thresholdForFitting;
+		    if(this->itsFlagDoMedianSearch){
+		      std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
+		      std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+		      float maxSNR=this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ());
+		      thresholdForFitting=this->itsCube.getPixValue(vox->getX(),vox->getY(),vox->getZ());
+		      for(;vox<voxSet.end();vox++){
+			maxSNR = std::max(maxSNR, this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ()) );
+			thresholdForFitting = std::min(thresholdForFitting, this->itsCube.getPixValue(vox->getX(),vox->getY(),vox->getZ()) );
+		      }
+		      src.setPeakSNR(maxSNR);
+		    }
+		    else thresholdForFitting = threshold;
+
+		    // Set up parameters for fitting.
                     src.setNoiseLevel(this->itsCube, this->itsFitter);
-                    src.setDetectionThreshold(threshold);
+                    src.setDetectionThreshold(thresholdForFitting);
                     src.setHeader(head);
                     src.defineBox(this->itsCube.pars().section(), this->itsFitter);
                     // Only do fit if object is not next to boundary
@@ -578,18 +595,6 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
                         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
                     }
-
-		    // Fix S/Nmax for the case where we've used the medianSearch algorithm
-		    if(this->itsFlagDoMedianSearch){
-		      std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
-		      std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-		      float maxSNR=this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ());
-		      for(;vox<voxSet.end();vox++){
-			maxSNR = std::max(maxSNR, this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ()) );
-		      }
-//		      ASKAPLOG_DEBUG_STR(logger, "Setting the peak S/N value for source " <<src.getID() << " at (" << src.getXcentre() << "," << src.getYcentre()<<") to " << maxSNR);
-		      src.setPeakSNR(maxSNR);
-		    }
 
                     this->itsSourceList.push_back(src);
                 }
@@ -798,20 +803,22 @@ namespace askap {
                     for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
- 			float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
-                        src.setNoiseLevel(noise);
-                        src.setDetectionThreshold(threshold);
-                        src.setHeader(head);
-                        src.defineBox(this->itsCube.pars().section(), this->itsFitter);
-
-                        if (this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList, this->itsFitter);
 
 			// Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
+			// Also find the effective detection threshold
+			float thresholdForFitting;
 			if(this->itsFlagDoMedianSearch){
 			  std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
 			  std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
 			  float maxSNR;
 			  for(;vox<voxSet.end();vox++){
+			    std::vector<PixelInfo::Voxel>::iterator pixvox = this->itsVoxelList.begin();
+			    while(pixvox<this->itsVoxelList.end() && !vox->match(*pixvox)) pixvox++;
+			    if(pixvox==this->itsVoxelList.end())
+			      ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the pixel list comparison: ("<<vox->getX() << ","<<vox->getY()<<")");
+			    if(vox==voxSet.begin()) thresholdForFitting = pixvox->getF();
+			    else thresholdForFitting = std::min(thresholdForFitting, pixvox->getF());
+			    //
 			    std::vector<PixelInfo::Voxel>::iterator snrvox = this->itsSNRVoxelList.begin();
 			    while(snrvox<this->itsSNRVoxelList.end() && !vox->match(*snrvox)) snrvox++;
 			    if(snrvox==this->itsSNRVoxelList.end())
@@ -819,10 +826,17 @@ namespace askap {
 			    if(vox==voxSet.begin()) maxSNR = snrvox->getF();
 			    else maxSNR = std::max(maxSNR, snrvox->getF() );
 			  }
-			  ASKAPLOG_DEBUG_STR(logger, "Setting the peak S/N value for edge source " <<src.getID() 
-					     << " at (" << src.getXcentre() << "," << src.getYcentre()<<") to " << maxSNR);
 			  src.setPeakSNR(maxSNR);
 			}
+			else thresholdForFitting = threshold;
+
+ 			float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+                        src.setNoiseLevel(noise);
+                        src.setDetectionThreshold(thresholdForFitting);
+                        src.setHeader(head);
+                        src.defineBox(this->itsCube.pars().section(), this->itsFitter);
+
+                        if (this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList, this->itsFitter);
 
                         this->itsSourceList.push_back(src);
                     }
