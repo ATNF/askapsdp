@@ -35,28 +35,35 @@
 #include <casa/Arrays/Array.h>
 #include <casa/namespace.h>
 
-template<class T> inline T madfm(const Array<T> &a){ 
-  return madfm (a, False, (a.nelements() <= 100), False); 
+template<class T> inline T madfm(const Array<T> &a)
+{
+    return madfm(a, False, (a.nelements() <= 100), False);
 }
-template<class T> inline T madfm(const Array<T> &a, Bool sorted){ 
-  return madfm (a, sorted, (a.nelements() <= 100), False); 
+template<class T> inline T madfm(const Array<T> &a, Bool sorted)
+{
+    return madfm(a, sorted, (a.nelements() <= 100), False);
 }
-template<class T> inline T madfmInPlace(const Array<T> &a, Bool sorted = False){ 
-  return madfm (a, sorted, (a.nelements() <= 100), True); 
+template<class T> inline T madfmInPlace(const Array<T> &a, Bool sorted = False)
+{
+    return madfm(a, sorted, (a.nelements() <= 100), True);
 }
-template<class T> T madfm(const Array<T> &a, Bool sorted, Bool takeEvenMean, Bool inPlace = False){ 
-  Block<T> tmp; return madfm (a, tmp, sorted, takeEvenMean, inPlace); 
+template<class T> T madfm(const Array<T> &a, Bool sorted, Bool takeEvenMean, Bool inPlace = False)
+{
+    Block<T> tmp; return madfm(a, tmp, sorted, takeEvenMean, inPlace);
 }
 template<class T> T madfm(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool takeEvenMean, Bool inPlace = False);
 
-template<class T> inline T sihr(const Array<T> &a){ 
-  return sihr (a, False, False); 
+template<class T> inline T sihr(const Array<T> &a)
+{
+    return sihr(a, False, False);
 }
-template<class T> inline T sihr(const Array<T> &a, Bool sorted){ 
-  return sihr (a, sorted, False); 
+template<class T> inline T sihr(const Array<T> &a, Bool sorted)
+{
+    return sihr(a, sorted, False);
 }
-template<class T> T sihr(const Array<T> &a, Bool sorted, Bool inPlace = False){ 
-  Block<T> tmp; return sihr (a, tmp, sorted, inPlace); 
+template<class T> T sihr(const Array<T> &a, Bool sorted, Bool inPlace = False)
+{
+    Block<T> tmp; return sihr(a, tmp, sorted, inPlace);
 }
 template<class T> T sihr(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool inPlace = False);
 

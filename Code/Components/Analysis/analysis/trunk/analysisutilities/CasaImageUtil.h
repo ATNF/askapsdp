@@ -90,7 +90,7 @@ namespace askap {
         /// @brief Convert a duchamp subsection to a casa Slicer
         Slicer subsectionToSlicer(duchamp::Section &subsection);
 
-	float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
+        float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
     }
 
 }

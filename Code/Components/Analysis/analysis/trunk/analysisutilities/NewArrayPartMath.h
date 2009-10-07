@@ -38,29 +38,29 @@
 
 
 template<typename T> class MadfmFunc {
-public:
-  explicit MadfmFunc (Bool sorted=False, Bool takeEvenMean=True,
-                       Bool inPlace = False)
-    : itsSorted(sorted), itsTakeEvenMean(takeEvenMean), itsInPlace(inPlace) {}
-  Float operator() (const Array<Float>& arr) const
-    { return madfm(arr, itsTmp, itsSorted, itsTakeEvenMean, itsInPlace); }
-private:
-  Bool     itsSorted;
-  Bool     itsTakeEvenMean;
-  Bool     itsInPlace;
-  mutable Block<Float> itsTmp;
+    public:
+        explicit MadfmFunc(Bool sorted = False, Bool takeEvenMean = True,
+                           Bool inPlace = False)
+                : itsSorted(sorted), itsTakeEvenMean(takeEvenMean), itsInPlace(inPlace) {}
+        Float operator()(const Array<Float>& arr) const
+        { return madfm(arr, itsTmp, itsSorted, itsTakeEvenMean, itsInPlace); }
+    private:
+        Bool     itsSorted;
+        Bool     itsTakeEvenMean;
+        Bool     itsInPlace;
+        mutable Block<Float> itsTmp;
 };
 
 template<typename T> class SihrFunc {
-public:
-  explicit SihrFunc (Bool sorted=False, Bool inPlace = False)
-    : itsSorted(sorted), itsInPlace(inPlace) {}
-  Float operator() (const Array<Float>& arr) const
-    { return sihr(arr, itsTmp, itsSorted, itsInPlace); }
-private:
-  Bool     itsSorted;
-  Bool     itsInPlace;
-  mutable Block<Float> itsTmp;
+    public:
+        explicit SihrFunc(Bool sorted = False, Bool inPlace = False)
+                : itsSorted(sorted), itsInPlace(inPlace) {}
+        Float operator()(const Array<Float>& arr) const
+        { return sihr(arr, itsTmp, itsSorted, itsInPlace); }
+    private:
+        Bool     itsSorted;
+        Bool     itsInPlace;
+        mutable Block<Float> itsTmp;
 };
 
 #include <analysisutilities/NewArrayPartMath.tcc>

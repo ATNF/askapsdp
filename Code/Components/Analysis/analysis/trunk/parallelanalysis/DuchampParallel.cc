@@ -150,8 +150,8 @@ namespace askap {
             ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsImage);
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
 
-	    this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch",false);
-	    this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
+            this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
+            this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
@@ -452,11 +452,10 @@ namespace askap {
                 }
 
                 if (this->itsCube.getSize() > 0) {
-		  if(this->itsFlagDoMedianSearch){
-		    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
-		    this->medianSearch2D();
-		  }
-		  else if (this->itsCube.pars().getFlagATrous()) {
+                    if (this->itsFlagDoMedianSearch) {
+                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
+                        this->medianSearch2D();
+                    } else if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Searching with reconstruction first");
                         this->itsCube.ReconSearch();
                     } else if (this->itsCube.pars().getFlagSmooth()) {
@@ -483,49 +482,53 @@ namespace askap {
 
         //**************************************************************//
 
-      void DuchampParallel::medianSearch2D()
-      {
+        void DuchampParallel::medianSearch2D()
+        {
 
-	ASKAPLOG_INFO_STR(logger, this->workerPrefix()<< "About to find median & MADFM arrays, and use these to search");
-	casa::IPosition box(2,this->itsMedianBoxWidth,this->itsMedianBoxWidth);
-	casa::IPosition shape(2,this->itsCube.getDimX(),this->itsCube.getDimY());
-	casa::Array<Float> base(shape,this->itsCube.getArray());
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
-	casa::Array<Float> median=slidingArrayMath (base, box, MedianFunc<Float>());
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
- 	casa::Array<Float> madfm=slidingArrayMath (base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Constructing SNR map");
-	casa::Array<Float> snr = (base - median);
-	
-	// Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
-	uInt ntotal = snr.nelements(); 
-	Bool snrDelete, madfmDelete;
-	Float *snrStorage = snr.getStorage(snrDelete);
-	Float *ss = snrStorage;
-	const Float *madfmStorage = madfm.getStorage(madfmDelete);
-	const Float *ms = madfmStorage;
-	while (ntotal--) {
-	  if(*ms>0) *ss++ /= *ms++;
-	  else{
-	    *ss++ = 0.;
-	    *ms++;
-	  }
-	}
-	snr.putStorage(snrStorage, snrDelete);
-	madfm.freeStorage(madfmStorage, madfmDelete);
+            ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to find median & MADFM arrays, and use these to search");
+            casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
+            casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
+            casa::Array<Float> base(shape, this->itsCube.getArray());
+            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
+            casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
+            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
+            casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
+            casa::Array<Float> snr = (base - median);
 
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Saving SNR map");
-	this->itsCube.saveRecon(snr.data(),long(snr.nelements()));
-	this->itsCube.setReconFlag(true);
-	if(!this->itsCube.pars().getFlagUserThreshold()){
-	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut() );
-	  this->itsCube.pars().setThreshold( this->itsCube.pars().getCut() );
-	  this->itsCube.pars().setFlagUserThreshold(true);
-	}
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<< "Searching SNR map");
-	this->itsCube.ReconSearch();
-      }
-      
+            // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+            uInt ntotal = snr.nelements();
+            Bool snrDelete, madfmDelete;
+            Float *snrStorage = snr.getStorage(snrDelete);
+            Float *ss = snrStorage;
+            const Float *madfmStorage = madfm.getStorage(madfmDelete);
+            const Float *ms = madfmStorage;
+
+            while (ntotal--) {
+                if (*ms > 0) *ss++ /= *ms++;
+                else {
+                    *ss++ = 0.;
+                    *ms++;
+                }
+            }
+
+            snr.putStorage(snrStorage, snrDelete);
+            madfm.freeStorage(madfmStorage, madfmDelete);
+
+            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
+            this->itsCube.saveRecon(snr.data(), long(snr.nelements()));
+            this->itsCube.setReconFlag(true);
+
+            if (!this->itsCube.pars().getFlagUserThreshold()) {
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
+                this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
+                this->itsCube.pars().setFlagUserThreshold(true);
+            }
+
+            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
+            this->itsCube.ReconSearch();
+        }
+
         //**************************************************************//
 
         void DuchampParallel::fitSources()
@@ -566,22 +569,24 @@ namespace askap {
 
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
-		    // Fix S/Nmax for the case where we've used the medianSearch algorithm and define the effective detection threshold
-		    float thresholdForFitting;
-		    if(this->itsFlagDoMedianSearch){
-		      std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
-		      std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-		      float maxSNR=this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ());
-		      thresholdForFitting=this->itsCube.getPixValue(vox->getX(),vox->getY(),vox->getZ());
-		      for(;vox<voxSet.end();vox++){
-			maxSNR = std::max(maxSNR, this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ()) );
-			thresholdForFitting = std::min(thresholdForFitting, this->itsCube.getPixValue(vox->getX(),vox->getY(),vox->getZ()) );
-		      }
-		      src.setPeakSNR(maxSNR);
-		    }
-		    else thresholdForFitting = threshold;
+                    // Fix S/Nmax for the case where we've used the medianSearch algorithm and define the effective detection threshold
+                    float thresholdForFitting;
 
-		    // Set up parameters for fitting.
+                    if (this->itsFlagDoMedianSearch) {
+                        std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
+                        std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+                        float maxSNR = this->itsCube.getReconValue(vox->getX(), vox->getY(), vox->getZ());
+                        thresholdForFitting = this->itsCube.getPixValue(vox->getX(), vox->getY(), vox->getZ());
+
+                        for (; vox < voxSet.end(); vox++) {
+                            maxSNR = std::max(maxSNR, this->itsCube.getReconValue(vox->getX(), vox->getY(), vox->getZ()));
+                            thresholdForFitting = std::min(thresholdForFitting, this->itsCube.getPixValue(vox->getX(), vox->getY(), vox->getZ()));
+                        }
+
+                        src.setPeakSNR(maxSNR);
+                    } else thresholdForFitting = threshold;
+
+                    // Set up parameters for fitting.
                     src.setNoiseLevel(this->itsCube, this->itsFitter);
                     src.setDetectionThreshold(thresholdForFitting);
                     src.setHeader(head);
@@ -639,12 +644,14 @@ namespace askap {
                             xmax = std::min(this->itsCube.getDimX() - 1, src->boxXmax());
                             ymin = std::max(0 , int(src->boxYmin()));
                             ymax = std::min(this->itsCube.getDimY() - 1, src->boxYmax());
-			    if(this->is2D()){
-			      zmin = zmax = 0;
-			    }else{
-			      zmin = std::max(0 , int(src->boxZmin()));
-			      zmax = std::min(this->itsCube.getDimZ() - 1, src->boxZmax());
-			    }
+
+                            if (this->is2D()) {
+                                zmin = zmax = 0;
+                            } else {
+                                zmin = std::max(0 , int(src->boxZmin()));
+                                zmax = std::min(this->itsCube.getDimZ() - 1, src->boxZmax());
+                            }
+
                             int numVox = (xmax - xmin + 1) * (ymax - ymin + 1) * (zmax - zmin + 1);
                             out << numVox << this->itsFlagDoMedianSearch;
 
@@ -654,7 +661,8 @@ namespace askap {
                                         bool inObject = src->pixels().isInObject(x, y, z);
                                         float flux = this->itsCube.getPixValue(x, y, z);
                                         out << inObject << x << y << z << flux;
-					if(this->itsFlagDoMedianSearch) out << this->itsCube.getReconValue(x,y,z);
+
+                                        if (this->itsFlagDoMedianSearch) out << this->itsCube.getReconValue(x, y, z);
                                     }
                                 }
                             }
@@ -721,25 +729,28 @@ namespace askap {
 
                             if (src.isAtEdge()) {
                                 int numVox;
-				bool haveSNRvalues;
+                                bool haveSNRvalues;
                                 in >> numVox >> haveSNRvalues;
-				
+
                                 for (int p = 0; p < numVox; p++) {
                                     int32 x, y, z;
-                                    float flux,snr;
+                                    float flux, snr;
                                     bool inObj;
                                     in >> inObj >> x >> y >> z >> flux;
-				    if(haveSNRvalues) in >> snr;
+
+                                    if (haveSNRvalues) in >> snr;
+
                                     x += (xstart - this->itsCube.pars().getXOffset());
                                     y += (ystart - this->itsCube.pars().getYOffset());
                                     z += (zstart - this->itsCube.pars().getZOffset());
                                     PixelInfo::Voxel vox(x, y, z, flux);
                                     this->itsVoxelList.push_back(vox);
-				    if(haveSNRvalues){
-				      PixelInfo::Voxel snrvox(x,y,z,snr);
-				      this->itsSNRVoxelList.push_back(snrvox);
-				    }
-				}
+
+                                    if (haveSNRvalues) {
+                                        PixelInfo::Voxel snrvox(x, y, z, snr);
+                                        this->itsSNRVoxelList.push_back(snrvox);
+                                    }
+                                }
                             }
                         }
 
@@ -804,33 +815,42 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
-			// Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
-			// Also find the effective detection threshold
-			float thresholdForFitting;
-			if(this->itsFlagDoMedianSearch){
-			  std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
-			  std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-			  float maxSNR;
-			  for(;vox<voxSet.end();vox++){
-			    std::vector<PixelInfo::Voxel>::iterator pixvox = this->itsVoxelList.begin();
-			    while(pixvox<this->itsVoxelList.end() && !vox->match(*pixvox)) pixvox++;
-			    if(pixvox==this->itsVoxelList.end())
-			      ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the pixel list comparison: ("<<vox->getX() << ","<<vox->getY()<<")");
-			    if(vox==voxSet.begin()) thresholdForFitting = pixvox->getF();
-			    else thresholdForFitting = std::min(thresholdForFitting, pixvox->getF());
-			    //
-			    std::vector<PixelInfo::Voxel>::iterator snrvox = this->itsSNRVoxelList.begin();
-			    while(snrvox<this->itsSNRVoxelList.end() && !vox->match(*snrvox)) snrvox++;
-			    if(snrvox==this->itsSNRVoxelList.end())
-			      ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the SNR list comparison: ("<<vox->getX() << ","<<vox->getY()<<")");
-			    if(vox==voxSet.begin()) maxSNR = snrvox->getF();
-			    else maxSNR = std::max(maxSNR, snrvox->getF() );
-			  }
-			  src.setPeakSNR(maxSNR);
-			}
-			else thresholdForFitting = threshold;
+                        // Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
+                        // Also find the effective detection threshold
+                        float thresholdForFitting;
 
- 			float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+                        if (this->itsFlagDoMedianSearch) {
+                            std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
+                            std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+                            float maxSNR;
+
+                            for (; vox < voxSet.end(); vox++) {
+                                std::vector<PixelInfo::Voxel>::iterator pixvox = this->itsVoxelList.begin();
+
+                                while (pixvox < this->itsVoxelList.end() && !vox->match(*pixvox)) pixvox++;
+
+                                if (pixvox == this->itsVoxelList.end())
+                                    ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the pixel list comparison: (" << vox->getX() << "," << vox->getY() << ")");
+
+                                if (vox == voxSet.begin()) thresholdForFitting = pixvox->getF();
+                                else thresholdForFitting = std::min(thresholdForFitting, pixvox->getF());
+
+                                //
+                                std::vector<PixelInfo::Voxel>::iterator snrvox = this->itsSNRVoxelList.begin();
+
+                                while (snrvox < this->itsSNRVoxelList.end() && !vox->match(*snrvox)) snrvox++;
+
+                                if (snrvox == this->itsSNRVoxelList.end())
+                                    ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the SNR list comparison: (" << vox->getX() << "," << vox->getY() << ")");
+
+                                if (vox == voxSet.begin()) maxSNR = snrvox->getF();
+                                else maxSNR = std::max(maxSNR, snrvox->getF());
+                            }
+
+                            src.setPeakSNR(maxSNR);
+                        } else thresholdForFitting = threshold;
+
+                        float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
                         src.setNoiseLevel(noise);
                         src.setDetectionThreshold(thresholdForFitting);
                         src.setHeader(head);
@@ -863,7 +883,7 @@ namespace askap {
 
                     if (src->isAtEdge()) src->addToFlagText("E");
                     else src->addToFlagText("-");
-		    
+
                     this->itsCube.addObject(duchamp::Detection(*src));
                 }
 
@@ -891,7 +911,7 @@ namespace askap {
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                     // for each object, make a vector list of voxels that appear in it.
                     std::vector<PixelInfo::Voxel>
-		      objVoxList = this->itsCube.getObject(i).getPixelSet();
+                    objVoxList = this->itsCube.getObject(i).getPixelSet();
                     std::vector<PixelInfo::Voxel>::iterator vox;
 
                     // get the fluxes of each voxel
@@ -903,8 +923,8 @@ namespace askap {
                         }
 
                         if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
-			  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel (" 
-					     << vox->getX() <<","<<vox->getY()<<") in the object lists that doesn't appear in the base list.");
+                            ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("
+                                                   << vox->getX() << "," << vox->getY() << ") in the object lists that doesn't appear in the base list.");
                         } else vox->setF(this->itsVoxelList[ct].getF());
                     }
 
@@ -997,19 +1017,19 @@ namespace askap {
             /// functions. Net effect is to find the mean/median and
             /// rms/MADFM for the entire dataset and store these values in
             /// the master's itsCube statsContainer.
-	  if (!this->itsFlagDoMedianSearch &&  
-	      (!this->itsCube.pars().getFlagUserThreshold() ||
-	       (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold())) ) {
+            if (!this->itsFlagDoMedianSearch &&
+                    (!this->itsCube.pars().getFlagUserThreshold() ||
+                     (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold()))) {
                 findMeans();
                 combineMeans();
                 broadcastMean();
                 findRMSs();
                 combineRMSs();
-	  } else{
-	    if(this->itsFlagDoMedianSearch) this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
-	    else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
-	  }
-	}
+            } else {
+                if (this->itsFlagDoMedianSearch) this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
+                else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
+            }
+        }
 
 
         //**************************************************************//

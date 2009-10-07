@@ -76,12 +76,12 @@ namespace askap {
 
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
 
-		/// @brief Get/set the flag saying whether to do median filtering prior to searching
-		/// @{
-		bool getFlagDoMedianSearch(){return itsFlagDoMedianSearch;};
-		void setFlagDoMedianSearch(bool f){itsFlagDoMedianSearch = f;};
-		/// @}
-		void medianSearch2D();
+                /// @brief Get/set the flag saying whether to do median filtering prior to searching
+                /// @{
+                bool getFlagDoMedianSearch() {return itsFlagDoMedianSearch;};
+                void setFlagDoMedianSearch(bool f) {itsFlagDoMedianSearch = f;};
+                /// @}
+                void medianSearch2D();
 
                 /// @brief Read the metadata only from the image file.
                 int getMetadata();
@@ -166,17 +166,17 @@ namespace askap {
                 /// The Cube of data, which contains the list of Detections.
                 duchamp::Cube itsCube;
 
-		/// Shall we search after median-smoothing?
-		bool itsFlagDoMedianSearch;
+                /// Shall we search after median-smoothing?
+                bool itsFlagDoMedianSearch;
 
-		/// The half-width of the box used for median filtering
-		int itsMedianBoxWidth;
+                /// The half-width of the box used for median filtering
+                int itsMedianBoxWidth;
 
                 /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
                 std::vector<PixelInfo::Voxel> itsVoxelList;
 
-		/// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagDoMedianSearch is true)
-		std::vector<PixelInfo::Voxel> itsSNRVoxelList;
+                /// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagDoMedianSearch is true)
+                std::vector<PixelInfo::Voxel> itsSNRVoxelList;
 
                 /// The Gaussian Fitting parameter class
                 sourcefitting::FittingParameters itsFitter;

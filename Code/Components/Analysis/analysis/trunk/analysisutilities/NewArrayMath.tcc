@@ -36,20 +36,20 @@
 
 template<class T> T madfm(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool takeEvenMean, Bool inPlace)
 {
- 
-  T med = median(a,tmp,sorted,takeEvenMean,inPlace);
 
-  Array<T> absdiff = abs(a-med);
-  return median(absdiff,tmp,sorted,takeEvenMean,inPlace);
+    T med = median(a, tmp, sorted, takeEvenMean, inPlace);
+
+    Array<T> absdiff = abs(a - med);
+    return median(absdiff, tmp, sorted, takeEvenMean, inPlace);
 
 }
 //template<Float> madfm(const Array<Float> &a, Block<Float> &tmp, Bool sorted, Bool takeEvenMean, Bool inPlace);
 
 template<class T> T sihr(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool inPlace)
 {
- 
-  T hex1 = fractile(a,tmp,1./6.,sorted,inPlace);
-  T hex5 = fractile(a,tmp,5./6.,sorted,inPlace);
 
-  return T(0.5*(hex5-hex1));  
+    T hex1 = fractile(a, tmp, 1. / 6., sorted, inPlace);
+    T hex5 = fractile(a, tmp, 5. / 6., sorted, inPlace);
+
+    return T(0.5*(hex5 - hex1));
 }

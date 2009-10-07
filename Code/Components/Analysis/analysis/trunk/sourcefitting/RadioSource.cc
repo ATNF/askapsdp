@@ -230,7 +230,7 @@ namespace askap {
                     }
                 }
 
-// 		ASKAPLOG_DEBUG_STR(logger, "Setting edge parameters: flagAdj="<<flagAdj<<" src=("<<this->getXmin()<<":"<<this->getXmax()<<","<<this->getYmin()<<":"<<this->getYmax()<<"), image space=("<<xminEdge<<":"<<xmaxEdge<<","<<yminEdge<<":"<<ymaxEdge<<")  ===> edgeFlag = " << flagBoundary);
+//      ASKAPLOG_DEBUG_STR(logger, "Setting edge parameters: flagAdj="<<flagAdj<<" src=("<<this->getXmin()<<":"<<this->getXmax()<<","<<this->getYmin()<<":"<<this->getYmax()<<"), image space=("<<xminEdge<<":"<<xmaxEdge<<","<<yminEdge<<":"<<ymaxEdge<<")  ===> edgeFlag = " << flagBoundary);
 
                 this->atEdge = flagBoundary;
             }
@@ -420,7 +420,7 @@ namespace askap {
 //  base.setMinor(std::min(axes.first,axes.second));
 //                const int numThresh = 20;
                 const int numThresh = this->itsFitParams.numSubThresholds();
-                float baseThresh = this->itsDetectionThreshold>0 ? log10(this->itsDetectionThreshold) : -6.;
+                float baseThresh = this->itsDetectionThreshold > 0 ? log10(this->itsDetectionThreshold) : -6.;
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh + 1);
                 float thresh;
                 int threshCtr = 0;
