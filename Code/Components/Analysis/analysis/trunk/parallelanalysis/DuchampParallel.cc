@@ -579,6 +579,18 @@ namespace askap {
                         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
                     }
 
+		    // Fix S/Nmax for the case where we've used the medianSearch algorithm
+		    if(this->itsFlagDoMedianSearch){
+		      std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
+		      std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+		      float maxSNR=this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ());
+		      for(;vox<voxSet.end();vox++){
+			maxSNR = std::max(maxSNR, this->itsCube.getReconValue(vox->getX(),vox->getY(),vox->getZ()) );
+		      }
+//		      ASKAPLOG_DEBUG_STR(logger, "Setting the peak S/N value for source " <<src.getID() << " at (" << src.getXcentre() << "," << src.getYcentre()<<") to " << maxSNR);
+		      src.setPeakSNR(maxSNR);
+		    }
+
                     this->itsSourceList.push_back(src);
                 }
             }
@@ -629,7 +641,7 @@ namespace askap {
 			      zmax = std::min(this->itsCube.getDimZ() - 1, src->boxZmax());
 			    }
                             int numVox = (xmax - xmin + 1) * (ymax - ymin + 1) * (zmax - zmin + 1);
-                            out << numVox;
+                            out << numVox << this->itsFlagDoMedianSearch;
 
                             for (int32 x = xmin; x <= xmax; x++) {
                                 for (int32 y = ymin; y <= ymax; y++) {
@@ -637,6 +649,7 @@ namespace askap {
                                         bool inObject = src->pixels().isInObject(x, y, z);
                                         float flux = this->itsCube.getPixValue(x, y, z);
                                         out << inObject << x << y << z << flux;
+					if(this->itsFlagDoMedianSearch) out << this->itsCube.getReconValue(x,y,z);
                                     }
                                 }
                             }
@@ -703,19 +716,25 @@ namespace askap {
 
                             if (src.isAtEdge()) {
                                 int numVox;
-                                in >> numVox;
-
+				bool haveSNRvalues;
+                                in >> numVox >> haveSNRvalues;
+				
                                 for (int p = 0; p < numVox; p++) {
                                     int32 x, y, z;
-                                    float flux;
+                                    float flux,snr;
                                     bool inObj;
                                     in >> inObj >> x >> y >> z >> flux;
+				    if(haveSNRvalues) in >> snr;
                                     x += (xstart - this->itsCube.pars().getXOffset());
                                     y += (ystart - this->itsCube.pars().getYOffset());
                                     z += (zstart - this->itsCube.pars().getZOffset());
                                     PixelInfo::Voxel vox(x, y, z, flux);
                                     this->itsVoxelList.push_back(vox);
-                                }
+				    if(haveSNRvalues){
+				      PixelInfo::Voxel snrvox(x,y,z,snr);
+				      this->itsSNRVoxelList.push_back(snrvox);
+				    }
+				}
                             }
                         }
 
@@ -787,6 +806,24 @@ namespace askap {
 
                         if (this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList, this->itsFitter);
 
+			// Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
+			if(this->itsFlagDoMedianSearch){
+			  std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
+			  std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+			  float maxSNR;
+			  for(;vox<voxSet.end();vox++){
+			    std::vector<PixelInfo::Voxel>::iterator snrvox = this->itsSNRVoxelList.begin();
+			    while(snrvox<this->itsSNRVoxelList.end() && !vox->match(*snrvox)) snrvox++;
+			    if(snrvox==this->itsSNRVoxelList.end())
+			      ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the SNR list comparison: ("<<vox->getX() << ","<<vox->getY()<<")");
+			    if(vox==voxSet.begin()) maxSNR = snrvox->getF();
+			    else maxSNR = std::max(maxSNR, snrvox->getF() );
+			  }
+			  ASKAPLOG_DEBUG_STR(logger, "Setting the peak S/N value for edge source " <<src.getID() 
+					     << " at (" << src.getXcentre() << "," << src.getYcentre()<<") to " << maxSNR);
+			  src.setPeakSNR(maxSNR);
+			}
+
                         this->itsSourceList.push_back(src);
                     }
                 }
@@ -812,7 +849,7 @@ namespace askap {
 
                     if (src->isAtEdge()) src->addToFlagText("E");
                     else src->addToFlagText("-");
-
+		    
                     this->itsCube.addObject(duchamp::Detection(*src));
                 }
 
@@ -840,7 +877,7 @@ namespace askap {
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                     // for each object, make a vector list of voxels that appear in it.
                     std::vector<PixelInfo::Voxel>
-                    objVoxList = this->itsCube.getObject(i).getPixelSet();
+		      objVoxList = this->itsCube.getObject(i).getPixelSet();
                     std::vector<PixelInfo::Voxel>::iterator vox;
 
                     // get the fluxes of each voxel
@@ -852,15 +889,15 @@ namespace askap {
                         }
 
                         if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
-			  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel (" << vox->getX() <<","<<vox->getY()<<") in the object lists that doesn't appear in the base list.");
+			  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel (" 
+					     << vox->getX() <<","<<vox->getY()<<") in the object lists that doesn't appear in the base list.");
                         } else vox->setF(this->itsVoxelList[ct].getF());
                     }
 
                     templist[i] = objVoxList;
                 }
 
-                std::vector< std::vector<PixelInfo::Voxel> >
-                bigVoxSet(templist, templist + numObj);
+                std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
             }
         }
@@ -874,6 +911,7 @@ namespace askap {
             /// manner.
             if (this->isMaster()) {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
+
                 this->itsCube.prepareOutputFile();
                 //  if(this->itsCube.getNumObj()>0){
                 //    // no flag-setting, as it's hard to do when we don't have

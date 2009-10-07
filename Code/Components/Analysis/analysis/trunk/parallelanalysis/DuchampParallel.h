@@ -172,8 +172,11 @@ namespace askap {
 		/// The half-width of the box used for median filtering
 		int itsMedianBoxWidth;
 
-                /// The list of voxels encompassing detected sources, with fluxes.
+                /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
                 std::vector<PixelInfo::Voxel> itsVoxelList;
+
+		/// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagDoMedianSearch is true)
+		std::vector<PixelInfo::Voxel> itsSNRVoxelList;
 
                 /// The Gaussian Fitting parameter class
                 sourcefitting::FittingParameters itsFitter;
