@@ -233,12 +233,17 @@ namespace askap
 	   	   
 	   ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
 
+	/*
 	   string psfzeroname = makeImageString(samplename,stokes,0);
 	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(psfzeroname)>0, "PSF Slice for order 0 is not present");
 	   const casa::Vector<double>& zeroslice(normalEquations().normalMatrixSlice().find(psfzeroname)->second);
 	   casa::convertArray<float, double>(psfZeroArray, zeroslice.reform(valShape));
 	   psfZeroArray/= (float)maxDiag;
-	   
+	  */
+	   if (order == 0) {
+	       psfZeroArray = psfArray.copy();
+	   }
+	    	   
 	   if( doPreconditioning(psfZeroArray,psfArray) )
    	   {
 	      // Write PSFs to disk.
@@ -263,8 +268,10 @@ namespace askap
 	   if(order < itsNTaylor)
 	   {
 	    // Now precondition the residual images
+	    /*
 	    casa::convertArray<float, double>(psfZeroArray, zeroslice.reform(valShape));
 	    psfZeroArray/=(float)maxDiag;
+	    */
 	    doPreconditioning(psfZeroArray,dirtyArray);
 		   
 	    // We need lattice equivalents. We can use ArrayLattice which involves
