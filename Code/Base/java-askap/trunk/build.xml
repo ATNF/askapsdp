@@ -15,8 +15,8 @@
     <delete dir="${javadoc}"/>
     <delete file="${jarname}"/>
   </target>
-  
-  
+
+
   <!-- Compile the java classes -->
   <target name="compile">
     <mkdir dir="${output}"/>

@@ -1,6 +1,8 @@
 package askap.util;
 
 import java.util.Properties;
+import java.util.Map;
+import java.io.*;
 
 /**
  * Java representation of a ParameterSet.
@@ -8,10 +10,35 @@ import java.util.Properties;
  * @author David Brodrick, some code derived from ATOMS.java by David Loone.
  */
 public class ParameterSet extends Properties {
+  
   /** Create an empty ParameterSet. */
   public ParameterSet()
   {
     super();
+  }
+
+  /** Create a ParameterSet containing all of the entries from the existing Map. */
+  public ParameterSet(Map<String,String> map)
+  {
+    super();
+    putAll(map);
+  }
+
+  /** Create a ParameterSet containing populated by reading entries from the InputStream. */
+  public ParameterSet(InputStream is)
+  throws IOException
+  {
+    super();
+    load(is);
+  }
+
+  /** Create a ParameterSet containing populated by reading entries from named file. */
+  public ParameterSet(String filename)
+  throws IOException
+  {
+    super();
+    InputStream is = new FileInputStream(filename);
+    load(is);
   }
   
   /*
