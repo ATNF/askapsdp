@@ -41,7 +41,7 @@ public class ParameterSet extends Properties {
     load(is);
   }
   
-  /*
+  /**
    * Get a parameter as a boolean.
    * 
    * @param key The name of the parameter to get.
@@ -63,7 +63,7 @@ public class ParameterSet extends Properties {
     }
   }
 
-  /*
+  /**
    * Get a parameter as a boolean.
    * 
    * @param key The name of the parameter to get.
@@ -115,7 +115,7 @@ public class ParameterSet extends Properties {
     }
   }
 
-  /*
+  /**
    * Get a parameter as an integer.
    * 
    * @param key The name of the parameter to get.
@@ -167,7 +167,7 @@ public class ParameterSet extends Properties {
     }
   }
 
-  /*
+  /**
    * Get a parameter as a long.
    * 
    * @param key The name of the parameter to get.
@@ -219,7 +219,7 @@ public class ParameterSet extends Properties {
     }
   }
 
-  /*
+  /**
    * Get a parameter as a float.
    * 
    * @param key The name of the parameter to get.
@@ -271,7 +271,7 @@ public class ParameterSet extends Properties {
     }
   }
 
-  /*
+  /**
    * Get a parameter as a double.
    * 
    * @param key The name of the parameter to get.
@@ -314,7 +314,7 @@ public class ParameterSet extends Properties {
     return getProperty(key);
   }
 
-  /*
+  /**
    * Get a parameter as a string.
    * 
    * @param key The name of the parameter to get.
