@@ -225,7 +225,7 @@ namespace askap
        casa::convertArray<float, double>(psfArray, slice.reform(shape));
 
 	   // Normalize by the diagonal
-	   doNormalization(diag,tol(),psfArray,dirtyArray);
+	   doNormalization(diag,tol(),psfArray,-1.,dirtyArray);
 	  
 	   // Do the preconditioning
 	   doPreconditioning(psfArray,dirtyArray);

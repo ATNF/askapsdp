@@ -91,15 +91,18 @@ namespace askap
 	///            value
 	/// @param[in] tolerance cutoff value given as a fraction of the largest diagonal element
 	/// @param[in] psf  point spread function, which is normalized to unity
+    /// @param[in] psfRefPeak peak value of the reference PSF before normalisation
+    ///            negative value means to take max(psf). PSF is normalised to max(psf)/psfRefPeak
 	/// @param[in] dirty dirty image which is normalized by truncated weights (diagonal)
 	/// @param[out] mask shared pointer to the output mask showing where the truncation has 
 	///             been performed.
+	/// @return peak of PSF before normalisation (to be used as psfRefPeak, if necessary)
 	/// @note although mask is filled in inside this method it should already have a correct 
 	/// size before this method is called. Pass a void shared pointer (default) to skip 
 	/// mask-related functionality. Hint: use utility::NullDeleter to wrap a shared pointer
 	/// over an existing array reference.
-    void ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, 
-                      casa::Array<float>& psf, casa::Array<float>& dirty, 
+    float ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, 
+                      casa::Array<float>& psf, float psfRefPeak, casa::Array<float>& dirty, 
 				      const boost::shared_ptr<casa::Array<float> > &mask)
     {
         const double maxDiag(casa::max(diag));
@@ -118,12 +121,19 @@ namespace askap
 	//        psf /= float(maxDiag);
 	//        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
-	    ASKAPLOG_INFO_STR(logger, "Normalizing PSF to unit peak");
 	    ASKAPLOG_INFO_STR(logger, "Maximum diagonal element " <<maxDiag<<
 			  ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
-	    ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalization = " << casa::max(psf));                      
-        psf /= float(casa::max(psf));
-        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
+        const float unnormalisedMaxPSF = casa::max(psf);	  
+        if (psfRefPeak<=0.) {
+            ASKAPLOG_INFO_STR(logger, "Normalising PSF to unit peak");
+        } else {
+            ASKAPLOG_INFO_STR(logger, "Normalising PSF to be "<<unnormalisedMaxPSF/psfRefPeak<<
+                        " (psfRefPeak = "<<psfRefPeak<<")");
+        }
+         
+	    ASKAPLOG_INFO_STR(logger, "Peak of PSF before normalisation = " << unnormalisedMaxPSF);
+        psf /= float(psfRefPeak<=0. ? unnormalisedMaxPSF : psfRefPeak);
+        ASKAPLOG_INFO_STR(logger, "Peak of PSF after normalisation = " << casa::max(psf));
 	
 	    uint nAbove = 0;
         casa::IPosition vecShape(1,diag.nelements());
@@ -153,6 +163,7 @@ namespace askap
             ASKAPLOG_INFO_STR(logger, "Converted truncated weights image to clean mask");
         } // if mask required
         ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
+        return unnormalisedMaxPSF;
     }
 
     // Apply all the preconditioners in the order in which they were created.
@@ -217,8 +228,8 @@ namespace askap
         casa::Array<float> psfArray(arrShape);
         casa::convertArray<float, double>(psfArray, slice.reform(arrShape));
 	
-	// Normalize by the diagonal
-	doNormalization(diag,tol(),psfArray,dirtyArray);
+	// Normalize by the diagonal; -1 means normalise PSF to 1.
+	doNormalization(diag,tol(),psfArray,-1.,dirtyArray);
 
 	// Do the preconditioning
 	if(doPreconditioning(psfArray,dirtyArray))

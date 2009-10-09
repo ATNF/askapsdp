@@ -104,17 +104,21 @@ namespace askap
 	///            divided by an appropriate element of the diagonal or by a cutoff
 	///            value
 	/// @param[in] tolerance cutoff value given as a fraction of the largest diagonal element
-	/// @param[in] psf  point spread function, which is normalized to unity
+	/// @param[in] psf  point spread function, which is normalized 
+        /// @param[in] psfRefPeak peak value of the reference PSF before normalisation
+        ///            negative value means to take max(psf). PSF is normalised to max(psf)/psfRefPeak
 	/// @param[in] dirty dirty image which is normalized by truncated weights (diagonal)
 	/// @param[out] mask shared pointer to the output mask showing where the truncation has 
 	///             been performed.
+        /// @return peak of PSF before normalisation (to be used as psfRefPeak, if necessary)
 	/// @note although mask is filled in inside this method it should already have a correct 
 	/// size before this method is called. Pass a void shared pointer (default) to skip 
 	/// mask-related functionality. Hint: use utility::NullDeleter to wrap a shared pointer
 	/// over an existing array reference.
-	void doNormalization(const casa::Vector<double>& diag, 
+	float doNormalization(const casa::Vector<double>& diag, 
 			     const float& tolerance,
 			     casa::Array<float>& psf, 
+                             float psfRefPeak,
 			     casa::Array<float>& dirty,
 			     const boost::shared_ptr<casa::Array<float> >& mask = 
 			               boost::shared_ptr<casa::Array<float> >());

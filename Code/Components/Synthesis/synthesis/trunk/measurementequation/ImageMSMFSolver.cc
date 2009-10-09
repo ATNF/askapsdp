@@ -184,7 +184,7 @@ namespace askap
 	  const casa::IPosition vecShape(1, itsParams->value(imagename).nelements());
 	  const casa::IPosition valShape(itsParams->value(imagename).shape());
 
-          ASKAPDEBUGASSERT(valShape.nelements()>=2);
+      ASKAPDEBUGASSERT(valShape.nelements()>=2);
 	  
 	  double maxDiag(casa::max(normdiag));
 	  ASKAPLOG_INFO_STR(logger, "Maximum of weights = " << maxDiag );
@@ -212,8 +212,12 @@ namespace askap
 	  {
 		  nOrders = 2*itsNTaylor-1;
 	  }
+	  // buffer for the peak of zero-order PSF
+	  float zeroPSFPeak = -1;
 	  for( int order=0; order < nOrders; order++)
 	  {
+	   ASKAPLOG_INFO_STR(logger, "MSMFS solver: processing order "<<order<<" ("<<itsNTaylor<<
+	                             " Taylor terms + "<<itsNTaylor-1<<" cross-terms)");
 	   imagename = makeImageString(samplename,stokes,order);
 	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(imagename)>0, "PSF Slice for stokes="<<stokes<<
 	           " and order="<<order<<" is not present");
@@ -228,8 +232,12 @@ namespace askap
 	   casa::convertArray<float, double>(dirtyArray, dv.reform(valShape));
 	   casa::Array<float> cleanArray(valShape);
 	   casa::convertArray<float, double>(cleanArray, itsParams->value(imagename));
-
-       doNormalization(normdiag,tol(),psfArray,dirtyArray);
+       if (order == 0) {
+           zeroPSFPeak = doNormalization(normdiag,tol(),psfArray,-1.,dirtyArray);
+       } else {
+           ASKAPDEBUGASSERT(zeroPSFPeak > 0.);
+           doNormalization(normdiag,tol(),psfArray,zeroPSFPeak,dirtyArray);
+       }
 	   	   
 	   ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
 

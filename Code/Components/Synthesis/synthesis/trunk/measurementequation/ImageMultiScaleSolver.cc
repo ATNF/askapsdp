@@ -156,7 +156,7 @@ namespace askap
              casa::Array<float> maskArray(planeIter.planeShape());
 
 	         // Normalize
-	         doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray, 
+	         doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,-1.,dirtyArray, 
 	             boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
     
 	         // Precondition the PSF and DIRTY images before solving.
