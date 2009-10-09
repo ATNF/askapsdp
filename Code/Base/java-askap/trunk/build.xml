@@ -13,6 +13,7 @@
   <target name="clean">
     <delete dir="${output}"/>
     <delete dir="${javadoc}"/>
+    <delete file="${jarname}"/>
   </target>
   
   
