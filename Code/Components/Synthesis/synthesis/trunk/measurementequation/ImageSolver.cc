@@ -228,8 +228,8 @@ namespace askap
         casa::Array<float> psfArray(arrShape);
         casa::convertArray<float, double>(psfArray, slice.reform(arrShape));
 	
-	// Normalize by the diagonal; -1 means normalise PSF to 1.
-	doNormalization(diag,tol(),psfArray,-1.,dirtyArray);
+	// Normalize by the diagonal
+	doNormalization(diag,tol(),psfArray,dirtyArray);
 
 	// Do the preconditioning
 	if(doPreconditioning(psfArray,dirtyArray))

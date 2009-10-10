@@ -233,7 +233,7 @@ namespace askap
 	   casa::Array<float> cleanArray(valShape);
 	   casa::convertArray<float, double>(cleanArray, itsParams->value(imagename));
        if (order == 0) {
-           zeroPSFPeak = doNormalization(normdiag,tol(),psfArray,-1.,dirtyArray);
+           zeroPSFPeak = doNormalization(normdiag,tol(),psfArray,dirtyArray);
        } else {
            ASKAPDEBUGASSERT(zeroPSFPeak > 0.);
            doNormalization(normdiag,tol(),psfArray,zeroPSFPeak,dirtyArray);

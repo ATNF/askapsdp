@@ -122,6 +122,33 @@ namespace askap
 			     casa::Array<float>& dirty,
 			     const boost::shared_ptr<casa::Array<float> >& mask = 
 			               boost::shared_ptr<casa::Array<float> >());
+
+	/// @brief perform normalization of the dirty image and psf
+	/// @details This is an overloaded version of the method. It also
+	/// divides the PSF and dirty image by the diagonal of the Hessian.
+	/// However, it assumes that the psf should always be noramlised to 1.
+	/// If a non-void shared pointer is specified for the mask parameter, this method assigns
+	/// 0. for those elements where truncation of the weights has been performed and 1. 
+	/// otherwise. 
+	/// @param[in] diag diagonal of the Hessian (i.e. weights), dirty image will be
+	///            divided by an appropriate element of the diagonal or by a cutoff
+	///            value
+	/// @param[in] tolerance cutoff value given as a fraction of the largest diagonal element
+	/// @param[in] psf  point spread function, which is normalized 
+	/// @param[in] dirty dirty image which is normalized by truncated weights (diagonal)
+	/// @param[out] mask shared pointer to the output mask showing where the truncation has 
+	///             been performed.
+    /// @return peak of PSF before normalisation (to be used as psfRefPeak, if necessary)
+	/// @note although mask is filled in inside this method it should already have a correct 
+	/// size before this method is called. Pass a void shared pointer (default) to skip 
+	/// mask-related functionality. Hint: use utility::NullDeleter to wrap a shared pointer
+	/// over an existing array reference.
+	inline float doNormalization(const casa::Vector<double>& diag, 
+           const float& tolerance, casa::Array<float>& psf, casa::Array<float>& dirty,
+           const boost::shared_ptr<casa::Array<float> >& mask = 
+			               boost::shared_ptr<casa::Array<float> >()) 
+      { return doNormalization(diag,tolerance, psf, -1., dirty, mask); }
+
   protected:
      
     /// @brief estimate sensitivity loss due to preconditioning
