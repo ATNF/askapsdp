@@ -1,55 +1,12 @@
 <?xml version="1.0"?>
 <project name="java-askap" basedir="." default="jar">
 
-  <!-- Define some names/properties -->
-  <property name="src" value="src"/>
-  <property name="output" value="build"/>
-  <property name="javadoc" value="javadoc"/>
-  <property name="jarname" value="ASKAP-Base.jar"/>
-  <property name="prefix" value="install"/>
+    <!-- Read in the environment so $ASKAP_ROOT can be used -->
+    <property environment="env"/>
 
+    <!-- import common ASKAP definitions -->
+    <import file="${env.ASKAP_ROOT}/share/ant_tools/askapbuild.xml"/>
 
-  <!-- Purge build and doc directories (but not jar file) -->
-  <target name="clean">
-    <delete dir="${output}"/>
-    <delete dir="${javadoc}"/>
-    <delete file="${jarname}"/>
-  </target>
+    <!-- set properties for this build -->
 
-
-  <!-- Compile the java classes -->
-  <target name="compile">
-    <mkdir dir="${output}"/>
-    <javac destdir="${output}" debug="true">
-      <src path="${src}"/>            
-    </javac>
-  </target>
-
-
-  <!-- Build and sign the jar file -->
-  <target name="jar" depends="compile">
-    <jar destfile="${jarname}">
-      <fileset dir="${output}"/>
-    </jar>
-  </target>
-
-
-  <!-- Install the jar files to a run-time directory -->
-  <target name="install" depends="jar">
-    <!-- Copy jar files to lib area -->
-    <property name="libdir" value="${prefix}/lib"/>
-    <mkdir dir="${libdir}"/>
-    <copy file="${jarname}" todir="${libdir}"/>
-  </target>
-
-
-  <!-- Build javadoc documentation tree -->	
-  <target name="javadoc">
-    <mkdir dir="${javadoc}/"/>
-    <javadoc destdir="${javadoc}/"> 
-      <link href="http://java.sun.com/javase/6/docs/api/"/>
-      <fileset dir="${src}/" includes="**/*.java" />
-    </javadoc>
-  </target>
-  
 </project>
