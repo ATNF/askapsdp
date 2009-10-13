@@ -63,6 +63,10 @@ export ARTISTIC_STYLE_OPTIONS
 
 PYLINTRC="${ASKAP_ROOT}/pylintrc"
 export PYLINTRC
+
+ANT_HOME="${ASKAP_ROOT}/share/ant"
+export ANT_HOME
+
 """ % os.getcwd()
 
 tcshinit = """\
@@ -97,6 +101,7 @@ setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
 
 setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
 setenv PYLINTRC "${ASKAP_ROOT}/Tools/Dev/rbuild/pylintrc"
+setenv ANT_HOME "${ASKAP_ROOT}/share/ant"
 
 """  % os.getcwd()
 
