@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="java-askap" basedir="." default="jar">
+<project name="java-askap" basedir="." default="install">
 
     <!-- Read in the environment so $ASKAP_ROOT can be used -->
     <property environment="env"/>
