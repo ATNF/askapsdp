@@ -43,13 +43,6 @@ module logging
     };
 
     /**
-     * Exception to be thrown when a log message couldn't be dispatched.
-     **/
-    exception LogSendException extends askap::interfaces::AskapIceException
-    {
-    };
-
-    /**
      * Log level representation in order ov severity
      * This should be translated to the equivalent levels
      * in the logging system specific implementations.
@@ -83,7 +76,9 @@ module logging
     // The interface to implement when handling LogEvents
     interface ILogger
     {
-        void send(ILogEvent event) throws LogSendException;
+	// Can't throw here if we wan't to use iceOneWay
+	// as Exceptions need two-way communication
+        void send(ILogEvent event);
     };
 
     /**
@@ -116,7 +111,6 @@ module logging
         idempotent EventSeq query(IQueryObject q) throws LogQueryException;
 
         // Get the logger names (origin) with an optional name to match
-
         idempotent askap::interfaces::StringSeq getLoggers(string name);
 
         // Get the available log levels from the LogLevel enum as strings
