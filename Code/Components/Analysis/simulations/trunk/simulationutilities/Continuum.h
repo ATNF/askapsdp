@@ -26,40 +26,37 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMS_FLUXGEN_H_
-#define ASKAP_SIMS_FLUXGEN_H_
+#ifndef ASKAP_SIMS_CONT_H_
+#define ASKAP_SIMS_CONT_H_
 
 #include <simulationutilities/Spectrum.h>
-
-#include <wcslib/wcs.h>
-
-#include <vector>
 
 namespace askap {
 
     namespace simulations {
 
-        class FluxGenerator {
+      class Continuum : public Spectrum {
             public:
-                FluxGenerator();
-		FluxGenerator(int numChan);
-                virtual ~FluxGenerator() {};
-		/// @brief Copy constructor for FluxGenerator.
-		FluxGenerator(const FluxGenerator& f);
+                Continuum();
+		Continuum(float alpha, float beta, float nuZero, float fluxZero){defineSource(alpha,beta,nuZero,fluxZero);};
+                virtual ~Continuum() {};
+		/// @brief Copy constructor for Continuum.
+		Continuum(const Continuum& f);
 		
-		/// @brief Assignment operator for FluxGenerator.
-		FluxGenerator& operator= (const FluxGenerator& f);
+		/// @brief Assignment operator for Continuum.
+		Continuum& operator= (const Continuum& f);
 
-		void setNumChan(int num);
-		int  nChan(){return itsNChan;};
+		void defineSource(float alpha, float beta, float nuZero, float fluxZero);
 
-		void addSpectrum(Spectrum &spec, double &x, double &y, wcsprm *wcs);
-		
-		float getFlux(int i){return itsFluxValues.at(i);};
+		float getFluxZero(){return itsFluxZero;};
+
+		float flux(float nu);
 
             protected:
-		int   itsNChan;
-		std::vector<float> itsFluxValues;
+                float itsAlpha;
+                float itsBeta;
+                float itsNuZero;
+		float itsFluxZero;
 
         };
 

@@ -26,41 +26,24 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMS_FLUXGEN_H_
-#define ASKAP_SIMS_FLUXGEN_H_
+#ifndef ASKAP_SIMS_SPEC_H_
+#define ASKAP_SIMS_SPEC_H_
 
-#include <simulationutilities/Spectrum.h>
-
-#include <wcslib/wcs.h>
-
-#include <vector>
 
 namespace askap {
 
-    namespace simulations {
+  namespace simulations {
 
-        class FluxGenerator {
-            public:
-                FluxGenerator();
-		FluxGenerator(int numChan);
-                virtual ~FluxGenerator() {};
-		/// @brief Copy constructor for FluxGenerator.
-		FluxGenerator(const FluxGenerator& f);
-		
-		/// @brief Assignment operator for FluxGenerator.
-		FluxGenerator& operator= (const FluxGenerator& f);
-
-		void setNumChan(int num);
-		int  nChan(){return itsNChan;};
-
-		void addSpectrum(Spectrum &spec, double &x, double &y, wcsprm *wcs);
-		
-		float getFlux(int i){return itsFluxValues.at(i);};
-
-            protected:
-		int   itsNChan;
-		std::vector<float> itsFluxValues;
-
+      class Spectrum {
+	public:
+	  Spectrum(){};
+	  virtual ~Spectrum() {};
+	  Spectrum(const Spectrum& s){};
+	  
+	  float flux(float freq) const {return 0.;};
+	  
+	protected:
+	  
         };
 
     }

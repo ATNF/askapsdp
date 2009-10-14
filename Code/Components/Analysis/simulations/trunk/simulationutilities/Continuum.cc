@@ -26,76 +26,66 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#include <simulationutilities/FluxGenerator.h>
 #include <simulationutilities/Spectrum.h>
+#include <simulationutilities/Continuum.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <wcslib/wcs.h>
-#include <duchamp/Utils/utils.hh>
-
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 #include <vector>
+#include <utility>
+#include <string>
+#include <stdlib.h>
+#include <math.h>
 
-ASKAP_LOGGER(logger, ".fluxgen");
+ASKAP_LOGGER(logger, ".continuum");
 
 namespace askap {
 
     namespace simulations {
 
-      FluxGenerator::FluxGenerator()
+      Continuum::Continuum()
       {
-	this->itsNChan = 0;
+	this->itsAlpha = 0.;
+	this->itsBeta = 0.;
+	this->itsNuZero = 1400.;
+	this->itsFluxZero = 1;
       }
 
-      FluxGenerator::FluxGenerator(int numChan)
+      Continuum::Continuum(const Continuum& c)
       {
-	this->itsNChan = numChan;
-	this->itsFluxValues = std::vector<float>(numChan,0.);
+	operator=(c);
       }
 
-      FluxGenerator::FluxGenerator(const FluxGenerator& f)
+      Continuum& Continuum::operator= (const Continuum& c)
       {
-	operator=(f);
-      }
-
-      FluxGenerator& FluxGenerator::operator= (const FluxGenerator& f)
-      {
-	if(this == &f) return *this;
-	this->itsNChan      = f.itsNChan;
-	this->itsFluxValues = f.itsFluxValues;
+	if(this == &c) return *this;
+	this->itsAlpha      = c.itsAlpha;
+	this->itsBeta       = c.itsBeta;
+	this->itsNuZero     = c.itsNuZero;
+	this->itsFluxZero   = c.itsFluxZero;
 	return *this;	  
       }
-
-      void FluxGenerator::setNumChan(int numChan)
-      {	
-	this->itsNChan = numChan;
-	this->itsFluxValues = std::vector<float>(numChan,0.);
-      }
       
-      void FluxGenerator::addSpectrum(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
+      void Continuum::defineSource(float alpha, float beta, float nuZero, float fluxZero)
       {
-	
-	if(this->itsNChan<=0)
-	  ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
-	
-	double *pix = new double[3];
-	double *wld = new double[3];
-	pix[0] = x; pix[1] = y;
-
-	for(double z=0; z<this->itsNChan; z++)
-	  {
-	    pix[2] = z;
-	    pixToWCSSingle(wcs,pix,wld);
-	    float freq = wld[2];
-	    this->itsFluxValues[int(z)] = spec.flux(freq);
-	  }
-
-	delete [] pix;
-	delete [] wld;
-
+	this->itsAlpha = alpha;
+	this->itsBeta = beta;
+	this->itsNuZero = nuZero;
+	this->itsFluxZero = fluxZero;
       }
       
+
+      float Continuum::flux(float freq)
+      {
+	float powerTerm = this->itsAlpha+this->itsBeta*log(freq/this->itsNuZero);
+	return this->itsFluxZero * pow(freq/this->itsNuZero, powerTerm);
+      }
+
+
     }
 
 

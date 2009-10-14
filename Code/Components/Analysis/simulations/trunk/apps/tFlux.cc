@@ -30,6 +30,7 @@
 
 #include <FITS/FITSfile.h>
 #include <simulationutilities/FluxGenerator.h>
+#include <simulationutilities/Continuum.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -81,11 +82,11 @@ int main(int argc, const char** argv)
 
     std::vector<int> axes = parset.getInt32Vector("axes");
     int nz = axes[wcs->spec];
-    FluxGenerator fluxes(nz);
+     FluxGenerator fluxes(nz);
     ASKAPLOG_DEBUG_STR(logger, "number of channels = " << nz);
-    fluxes.defineSource(-1.,-1.,1.4e9,1.);
+    Continuum cont(-1.,-1.,1.4e9,1.);
     double x=512.,y=512.;
-    fluxes.calcFluxes(x,y,wcs);
+    fluxes.addSpectrum(cont,x,y,wcs);
 
     for(int i=0;i<fluxes.nChan();i++)
       std::cout << i << " " << fluxes.getFlux(i) << "\n";
@@ -93,8 +94,8 @@ int main(int argc, const char** argv)
     std::cout << "\n";
     
     FluxGenerator singleFlux(1);
-    singleFlux.defineSource(0.,0.,1.4e9,1.);
-    singleFlux.calcFluxes(x,y,wcs);
+    cont = Continuum(0.,0.,1.4e9,1.);
+    singleFlux.addSpectrum(cont,x,y,wcs);
     for(int i=0;i<singleFlux.nChan();i++)
       std::cout << i << " " << singleFlux.getFlux(i) << "\n";
 }

@@ -28,13 +28,14 @@
 ///
 #include <askap_simulations.h>
 
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-
 #include <FITS/FITSfile.h>
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
+#include <simulationutilities/Continuum.h>
 #include <analysisutilities/AnalysisUtilities.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
 #include <Common/ParameterSet.h>
 
@@ -164,7 +165,7 @@ namespace askap {
                 /// BUNIT). The pixel array is allocated here.
                 ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
                 this->itsFileName = parset.getString("filename", "");
-                this->itsBunit = casa::Unit(parset.getString("bunit", "JY/BEAM"));
+                this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/Beam"));
                 this->itsSourceList = parset.getString("sourcelist", "");
 		std::ifstream file;
 		file.open(this->itsSourceList.c_str(), std::ifstream::in);
@@ -398,7 +399,8 @@ namespace askap {
                             // convert fluxes to correct units according to the image BUNIT keyword
 			    flux = casa::Quantity(flux,this->itsSourceFluxUnits).getValue(this->itsBunit);
 
-			    fluxGen.defineSource(alpha,beta,this->itsBaseFreq,flux);
+// 			    fluxGen.defineSource(alpha,beta,this->itsBaseFreq,flux);
+			    Continuum cont(alpha,beta,this->itsBaseFreq,flux);
 
                             // convert sky position to pixels
                             if (this->itsPosType == "dms") {
@@ -428,7 +430,8 @@ namespace askap {
 					<< std::setw(10) << std::setprecision(6) << pa << "\n";
                             }
 
-			    fluxGen.calcFluxes(pix[0],pix[1],this->itsWCS);
+// 			    fluxGen.calcFluxes(pix[0],pix[1],this->itsWCS);
+			    fluxGen.addSpectrum(cont,pix[0],pix[1],this->itsWCS);
 
                             if (maj > 0) {
                                 // convert widths from arcsec to pixels

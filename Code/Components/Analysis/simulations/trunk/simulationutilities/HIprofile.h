@@ -26,9 +26,10 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
-#ifndef ASKAP_SIM_HI_PROFILE_H
-#define ASKAP_SIM_HI_PROFILE_H
+#ifndef ASKAP_SIMS_HI_PROFILE_H_
+#define ASKAP_SIMS_HI_PROFILE_H_
 
+#include <simulationutilities/Spectrum.h>
 #include <iostream>
 
 namespace askap {
@@ -53,7 +54,7 @@ namespace askap {
       float redshiftToHIFreq(float z);
       float freqToHIVel(float nu);
 
-      class HIprofile {
+      class HIprofile : public Spectrum {
       public:
 	HIprofile(){};
 	virtual ~HIprofile(){};
