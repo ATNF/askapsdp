@@ -1,5 +1,5 @@
 #!/bin/bash -l
-export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
+#export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
 
 HOSTNAME=`hostname -s`
 
@@ -14,27 +14,40 @@ Cimager.dataset                                 = ptest.ms
 Cimager.dataset0                                 = ptest.ms
 
 Cimager.visweights		= MFS
-Cimager.visweights.MFS.reffreq	= 1.35e9
+#Cimager.visweights.MFS.reffreq	= 1.35e9
+Cimager.visweights.MFS.reffreq	= 1.2e9
 
 Cimager.Images.reuse			= false
-Cimager.Images.writeAtMajorCycle	= true
+Cimager.Images.writeAtMajorCycle	= false
 
 Cimager.Images.Names                            = [image.i.0.clean_mfstest, image.i.1.clean_mfstest, image.i.2.clean_mfstest]
+#Cimager.Images.Names                            = [image.i.0.clean_mfstest, image.i.1.clean_mfstest, image.i.2.clean_mfstest, image.i.3.clean_mfstest, image.i.4.clean_mfstest]
 Cimager.Images.shape				= [1024,1024]
 Cimager.Images.cellsize	        		= [8.0arcsec, 8.0arcsec]
 
 
 Cimager.Images.image.i.0.clean_mfstest.frequency	= [1.40e9,1.40e9]
 Cimager.Images.image.i.0.clean_mfstest.nchan	= 1
+Cimager.Images.image.i.0.clean_mfstest.polarisation     = ["RR"]
 Cimager.Images.image.i.0.clean_mfstest.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 
 Cimager.Images.image.i.1.clean_mfstest.frequency	= [1.40e9,1.40e9]
 Cimager.Images.image.i.1.clean_mfstest.nchan	= 1
+Cimager.Images.image.i.1.clean_mfstest.polarisation     = ["RR"]
 Cimager.Images.image.i.1.clean_mfstest.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 
 Cimager.Images.image.i.2.clean_mfstest.frequency	= [1.40e9,1.40e9]
 Cimager.Images.image.i.2.clean_mfstest.nchan	= 1
+Cimager.Images.image.i.2.clean_mfstest.polarisation     = ["RR"]
 Cimager.Images.image.i.2.clean_mfstest.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
+
+Cimager.Images.image.i.3.clean_mfstest.frequency	= [1.40e9,1.40e9]
+Cimager.Images.image.i.3.clean_mfstest.nchan	= 1
+Cimager.Images.image.i.3.clean_mfstest.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
+
+Cimager.Images.image.i.4.clean_mfstest.frequency	= [1.40e9,1.40e9]
+Cimager.Images.image.i.4.clean_mfstest.nchan	= 1
+Cimager.Images.image.i.4.clean_mfstest.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 #
 Cimager.gridder                          	= SphFunc
 #
@@ -52,7 +65,7 @@ Cimager.solver.Clean.verbose                   	= True
 Cimager.threshold.minorcycle                    = [0.05mJy, 10%]
 Cimager.threshold.majorcycle                    = 0.045mJy
 # 
-Cimager.ncycles                                 = 10
+Cimager.ncycles                                 = 2
 #
 # Restore the image at the end
 #
