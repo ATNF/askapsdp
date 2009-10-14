@@ -40,7 +40,7 @@ namespace askap {
 	  virtual ~Spectrum() {};
 	  Spectrum(const Spectrum& s){};
 	  
-	  float flux(float freq) const {return 0.;};
+	  virtual float flux(float freq)  {return -77.;};
 	  
 	protected:
 	  

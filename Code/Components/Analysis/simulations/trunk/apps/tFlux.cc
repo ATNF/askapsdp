@@ -73,7 +73,7 @@ int main(int argc, const char** argv)
 {
     ASKAPLOG_INIT("tFlux.log_cfg");
 
-    LOFAR::ParameterSet parset("apps/tparset.in");
+    LOFAR::ParameterSet parset("tests/tparset.in");
     parset = parset.makeSubset("createFITS.");
     FITSfile file(parset);
 
