@@ -20,6 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
+from nose.tools import assert_equals
 from askap.logging import Handler, log_debug, getLogger, DEBUG
 
 
@@ -31,7 +32,8 @@ class ListHandler(Handler):
     def emit(self, record):
         self.event = [record.name, record.getMessage()]
 
-# This is passes in as reference as it is a list. Use this to access it globally
+# This passes in as reference as it is a list. Use this to access it 
+# globally
 #event = None
 hand = ListHandler()
 logger = getLogger(__name__)
@@ -45,10 +47,9 @@ def debug_me(arg, kwarg=2):
     
 def test_log_debug():
     debugmestr = 'debug_me:  (1, 2) '
-    debugmename = "tests.test_logging"
+    debugmename = "test_logging"
     # call function to generate log message
     debug_me(1, 2)
     # check the last generated log event
-    assert debugmename == hand.event[0]
-    assert debugmestr == hand.event[1]
-
+    assert_equals(debugmename, hand.event[0])
+    assert_equals(debugmestr, hand.event[1])
