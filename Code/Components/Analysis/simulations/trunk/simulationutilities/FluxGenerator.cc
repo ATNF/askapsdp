@@ -86,7 +86,7 @@ namespace askap {
       void FluxGenerator::calcFluxes(double &x, double &y, struct wcsprm *wcs)
       {
 	
-	if(this->itsNChan==0)
+	if(this->itsNChan<=0)
 	  ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
 	
 	this->itsFluxValues = std::vector<float>(this->itsNChan);

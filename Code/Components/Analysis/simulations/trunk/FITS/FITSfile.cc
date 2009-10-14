@@ -377,7 +377,9 @@ namespace askap {
 
                     if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
 
-		    FluxGenerator fluxGen(this->itsAxes[this->itsWCS->spec]);
+		    FluxGenerator fluxGen;
+		    if(this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
+		    else fluxGen.setNumChan(1);
 		    
                     while (getline(srclist, temp),
                             !srclist.eof()) {
