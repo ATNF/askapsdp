@@ -92,19 +92,27 @@ int main(int argc, const char** argv)
       float z = 0.005453;
       float maj = 47.064;
       float min =  6.275;
-      float pa = 0.314;
+      //      float pa = 0.314;
 
       HIprofile prof;
       prof.define(SFG,z,mHI,maj,min);
       std::cout << prof << "\n";
 
-      std::ofstream dumpfile("testHIprofile_dump.txt");
-      int nchan=2048;
-      int nuMax=1421.e6;
-      int deltaNu=18.3e3;
+      std::ofstream dumpfile("testHIprofile_dump1.txt");
+      int nchan=200;
+      double nuMax=1414.e6;
+      double deltaNu=18.3e3;
       for(int i=0;i<nchan;i++){
-	float nu = nuMax - i*deltaNu;
-	float f = prof.flux(nu);
+	double nu = nuMax - i*deltaNu;
+	double f = prof.flux(nu);
+	dumpfile << i << "\t" << nu << "\t" << f << "\n";
+      }
+      dumpfile.close();
+
+      dumpfile.open("testHIprofile_dump2.txt");
+      for(int i=0;i<nchan;i++){
+	double nu = nuMax - i*deltaNu;
+	double f = prof.flux(nu-deltaNu/2.,nu+deltaNu/2.);
 	dumpfile << i << "\t" << nu << "\t" << f << "\n";
       }
       dumpfile.close();

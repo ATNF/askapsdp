@@ -37,22 +37,22 @@ namespace askap {
     namespace simulations {
 
       enum SHAPEPARS {EDGE_SIG_MEAN,EDGE_SIG_SD,EDGE_SIG_MIN,EDGE_SIG_MAX,DIP_MIN,DIP_MAX,DIP_SIG_SCALE};
-      const float doubleHornShape[7]={12.0,6.0,5.,20.,0.0,0.3,0.3};
+      const double doubleHornShape[7]={12.0,6.0,5.,20.,0.0,0.3,0.3};
       enum GALTYPE {RQAGN,FRI,FRII,SBG,SFG};
-      const float vrotMin[5]={0., 0., 0., 20., 40.};
-      const float vrotMax[5]={0., 0., 0., 70., 140.};
+      const double vrotMin[5]={0., 0., 0., 20., 40.};
+      const double vrotMax[5]={0., 0., 0., 70., 140.};
 
-      const float nu0_HI = 1420405751.786;
-      const float C_kms = 299792.458;
-      const float HUBBLE_WMAP = 71.;
-      const float OMEGAM_WMAP = 0.27;
-      const float OMEGAL_WMAP = 0.73;
+      const double nu0_HI = 1420405751.786;
+      const double C_kms = 299792.458;
+      const double HUBBLE_WMAP = 71.;
+      const double OMEGAM_WMAP = 0.27;
+      const double OMEGAL_WMAP = 0.73;
 
-      float luminosityDistance(float z, float H0=HUBBLE_WMAP, float omegaM=OMEGAM_WMAP, float omegaL=OMEGAL_WMAP);
-      float redshiftToDist(float z, float H0=HUBBLE_WMAP, float omegaM=OMEGAM_WMAP, float omegaL=OMEGAL_WMAP);
-      float redshiftToVel(float z);
-      float redshiftToHIFreq(float z);
-      float freqToHIVel(float nu);
+      double luminosityDistance(double z, double H0=HUBBLE_WMAP, double omegaM=OMEGAM_WMAP, double omegaL=OMEGAL_WMAP);
+      double redshiftToDist(double z, double H0=HUBBLE_WMAP, double omegaM=OMEGAM_WMAP, double omegaL=OMEGAL_WMAP);
+      double redshiftToVel(double z);
+      double redshiftToHIFreq(double z);
+      double freqToHIVel(double nu);
 
       class HIprofile : public Spectrum {
       public:
@@ -61,26 +61,30 @@ namespace askap {
 	HIprofile(const HIprofile& h);
 	HIprofile& operator= (const HIprofile& h);
 
-	float integratedFlux(float z, float mhi);
+	double integratedFlux(double z, double mhi);
 
-	void define(GALTYPE type, float z, float mhi, float maj, float min);
+	void define(GALTYPE type, double z, double mhi, double maj, double min);
 
-	float flux(float nu);
+	double flux(double nu);
+	double flux(double nu1, double nu2);
 
 	friend std::ostream& operator<< ( std::ostream& theStream, HIprofile &prof);
 
       private:
-	float itsRedshift;
-	float itsMHI;
-	float itsVelZero;
-	float itsVRot;
-	float itsDeltaVel;
-	float itsDipAmp;
-	float itsSigmaEdge;
-	float itsSigmaDip;
-	float itsMaxVal;
-	float itsIntFlux;
-	float itsProfileFlux;
+	double itsRedshift;
+	double itsMHI;
+	double itsVelZero;
+	double itsVRot;
+	double itsDeltaVel;
+	double itsDipAmp;
+	double itsSigmaEdge;
+	double itsSigmaDip;
+	double itsMaxVal;
+	double itsIntFlux;
+
+	double itsEdgeFlux;
+	double itsMiddleFlux;
+	double itsProfileFlux;
       };
 
     }

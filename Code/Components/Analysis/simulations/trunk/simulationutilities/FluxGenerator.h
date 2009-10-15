@@ -54,6 +54,7 @@ namespace askap {
 		int  nChan(){return itsNChan;};
 
 		void addSpectrum(Spectrum &spec, double &x, double &y, wcsprm *wcs);
+		void addSpectrumInt(Spectrum &spec, double &x, double &y, struct wcsprm *wcs);
 		
 		float getFlux(int i){return itsFluxValues.at(i);};
 

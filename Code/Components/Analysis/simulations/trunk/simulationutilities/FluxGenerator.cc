@@ -96,6 +96,33 @@ namespace askap {
 
       }
       
+      void FluxGenerator::addSpectrumInt(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
+      {
+	
+	if(this->itsNChan<=0)
+	  ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
+	
+	double *pix = new double[3*this->itsNChan];
+	double *wld = new double[3*this->itsNChan];
+	for(int i=0;i<this->itsNChan;i++) {
+	  pix[3*i+0] = x; 
+	  pix[3*i+1] = y;
+	  pix[3*i+2] = double(i);
+	}
+	pixToWCSMulti(wcs,pix,wld,this->itsNChan);
+	for(int z=0; z<this->itsNChan; z++)
+	  {
+	    double df;
+	    if(z<this->itsNChan-1) df = fabs(wld[z]-wld[z+1]);
+	    else df = fabs(wld[z]-wld[z-1]);
+	    this->itsFluxValues[int(z)] = spec.flux(wld[z]-df/2.,wld[z]+df/2.);
+	  }
+
+	delete [] pix;
+	delete [] wld;
+
+      }
+      
     }
 
 

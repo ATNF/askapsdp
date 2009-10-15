@@ -166,6 +166,9 @@ namespace askap {
 
 		  }
 		}
+		
+		gauss.setFlux(inputGaussFlux);
+
 	      }
 
 	    }
