@@ -49,9 +49,25 @@ namespace askap
       CPPUNIT_TEST_SUITE_END();
     public:
        void testVoidParse() {
+          ImageParamsHelper iph("image.cmp.test");
+          CPPUNIT_ASSERT(iph.isValid());
+          CPPUNIT_ASSERT(!iph.isFacet());
+          CPPUNIT_ASSERT(iph.paramName() == iph.name());
+          CPPUNIT_ASSERT(iph.paramName() == "image.cmp.test");          
        }
        
        void testParseFacet() {
+          ImageParamsHelper iph("image.test.facet.1.2");
+          CPPUNIT_ASSERT(iph.isValid());
+          CPPUNIT_ASSERT(iph.isFacet());
+          CPPUNIT_ASSERT(iph.name() == "image.test");
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.facet.1.2");
+          
+          ImageParamsHelper iph2("image.test",1,2);
+          CPPUNIT_ASSERT(iph.isValid());
+          CPPUNIT_ASSERT(iph.isFacet());
+          CPPUNIT_ASSERT(iph.name() == "image.test");
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.facet.1.2");          
        }
     }; // class ImageParamsHelperTest
     
