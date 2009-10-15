@@ -45,13 +45,14 @@ namespace synthesis {
 /// @brief empty constructor
 /// @details Full name to be specified later. This method of construction doesn't produce
 /// a valid object until parse method is called.
-ImageParamsHelper::ImageParamsHelper() : itsFacetX(-2), itsFacetY(-2) {}
+ImageParamsHelper::ImageParamsHelper() : itsFacetX(-2), itsFacetY(-2), itsOrder(-2) {}
    
 /// @brief constructor with immediate parsing of a full name
 /// @details This version construct an object and populates all fields with the parse
 /// results.
 /// @param[in] name full name to parse
-ImageParamsHelper::ImageParamsHelper(const std::string &name) : itsFacetX(-2), itsFacetY(-2)
+ImageParamsHelper::ImageParamsHelper(const std::string &name) : itsFacetX(-2), itsFacetY(-2), 
+                                                                itsOrder(-2)
 {
   parse(name);
 }
@@ -63,14 +64,38 @@ ImageParamsHelper::ImageParamsHelper(const std::string &name) : itsFacetX(-2), i
 /// @param[in] xFacet facet index along the first axis
 /// @param[in] yFacet facet index along the second axis
 ImageParamsHelper::ImageParamsHelper(const std::string &name, int xFacet, int yFacet) :
-              itsName(name), itsFacetX(xFacet), itsFacetY(yFacet)
+              itsName(name), itsFacetX(xFacet), itsFacetY(yFacet), itsOrder(-2)
 {  
 }
+
+/// @brief direct constructor of a taylor term from constituents
+/// @details This method constructs the object directly from the actual name
+/// of the image and given order.
+/// @param[in] name actual name of the image (without suffixes)
+/// @param[in] order order in the Taylor series
+ImageParamsHelper::ImageParamsHelper(const std::string &name, int order) : itsName(name),
+              itsFacetX(-1), itsFacetY(-1), itsOrder(order)
+{
+}
+
+   /// @brief direct constructor of a faceted taylor term from constituents
+   /// @details This method constructs the object directly from the actual name
+   /// of the image, given order and facet indices.
+   /// @param[in] name actual name of the image (without suffixes)
+   /// @param[in] order order in the Taylor series
+   /// @param[in] xFacet facet index along the first axis
+   /// @param[in] yFacet facet index along the second axis
+ImageParamsHelper::ImageParamsHelper(const std::string &name, int order, int xFacet, int yFacet) :
+              itsName(name), itsFacetX(xFacet), itsFacetY(yFacet), itsOrder(order)
+{
+}
+
    
 /// @brief parse the given string
 /// @param[in] name full name to parse
 void ImageParamsHelper::parse(const std::string &name) 
 {
+  // suffixes should go in the order: taylor, facet
   size_t pos = name.rfind(".facet.");
   if (pos == std::string::npos) {
       // this is not a faceted image, just set flags and copy full name
@@ -89,7 +114,21 @@ void ImageParamsHelper::parse(const std::string &name)
       itsFacetX = utility::fromString<int>(name.substr(pos,pos2-pos));
       itsFacetY = utility::fromString<int>(name.substr(pos2+1));
   }
-  // todo: further parsing of the parameter name should go here. 
+  // facet-related part shoud now be stripped off, if presented
+  pos = itsName.rfind(".taylor.");
+  if (pos == std::string::npos) {
+      // this is not a term of the Taylor series, just leave the name as is and set the flags
+      itsOrder = -1;
+  } else {
+      // this is a term of a Taylor series
+      const std::string newName = itsName.substr(0,pos);
+      pos += 8; // to move it to the start of the number
+      ASKAPCHECK(pos < itsName.size(),
+          "Name of the parameter representing a taylor term should contain order at the end, you have "<<name); 
+      itsOrder = utility::fromString<int>(itsName.substr(pos));
+      itsName = newName;
+  }
+  // further parsing of the parameter name, if necessary, should go here.  
 }
 
 /// @brief obtain the facet number along the first axis
@@ -108,6 +147,14 @@ int ImageParamsHelper::facetY() const
   return itsFacetY;
 }
 
+/// @brief obtain the order of the Taylor term
+/// @return the order of the Taylor term represented by this parameter
+int ImageParamsHelper::order() const
+{
+  ASKAPDEBUGASSERT(isTaylorTerm());
+  return itsOrder;
+}
+
 
 /// @brief obtain the full name of the image parameter
 /// @details This method composes the full name of the parameter from 
@@ -118,11 +165,17 @@ int ImageParamsHelper::facetY() const
 std::string ImageParamsHelper::paramName() const
 {
   ASKAPDEBUGASSERT(isValid());
+  std::string suffix;
+  if (isTaylorTerm()) {
+      suffix += ".taylor."+utility::toString<int>(itsOrder);
+  }
+  
   if (isFacet()) {
-      return itsName+".facet."+utility::toString<int>(itsFacetX)+"."+
+      suffix += ".facet."+utility::toString<int>(itsFacetX)+"."+
                                utility::toString<int>(itsFacetY);
   }
-  return itsName;                            
+
+  return itsName+suffix;                            
 }
 
 } // namespace synthesis

@@ -71,6 +71,22 @@ public:
    /// @param[in] yFacet facet index along the second axis
    ImageParamsHelper(const std::string &name, int xFacet, int yFacet);
    
+   /// @brief direct constructor of a taylor term from constituents
+   /// @details This method constructs the object directly from the actual name
+   /// of the image and given order.
+   /// @param[in] name actual name of the image (without suffixes)
+   /// @param[in] order order in the Taylor series
+   ImageParamsHelper(const std::string &name, int order);
+
+   /// @brief direct constructor of a faceted taylor term from constituents
+   /// @details This method constructs the object directly from the actual name
+   /// of the image, given order and facet indices.
+   /// @param[in] name actual name of the image (without suffixes)
+   /// @param[in] order order in the Taylor series
+   /// @param[in] xFacet facet index along the first axis
+   /// @param[in] yFacet facet index along the second axis
+   ImageParamsHelper(const std::string &name, int order, int xFacet, int yFacet);
+      
    /// @brief parse the given string
    /// @param[in] name full name to parse
    void parse(const std::string &name);
@@ -106,6 +122,15 @@ public:
    /// @return true, if object was set up with some parameter name
    inline bool isValid() const { return itsFacetX != -2; } 
    
+   /// @brief check whether this parameter corresponds to a Taylor term
+   /// @details
+   /// @return true if this is a term of a Taylor series
+   inline bool isTaylorTerm() const { return itsOrder >= 0; }
+   
+   /// @brief obtain the order of the Taylor term
+   /// @return the order of the Taylor term represented by this parameter
+   int order() const;   
+   
 private:
    /// @brief name of the current parameter (cut before all suffixes)
    std::string itsName;
@@ -116,7 +141,12 @@ private:
 
    /// @brief facet number along the second axis
    /// @note The value is negative for non-faceted image
-   int itsFacetY;   
+   int itsFacetY;
+   
+   /// @brief order in the Taylor series
+   /// @note This value is negative for images which are
+   /// not part of Taylor series
+   int itsOrder;   
 };
 
 } // namespace synthesis

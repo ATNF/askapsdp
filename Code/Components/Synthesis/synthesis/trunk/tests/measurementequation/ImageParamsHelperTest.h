@@ -46,7 +46,33 @@ namespace askap
       CPPUNIT_TEST_SUITE(ImageParamsHelperTest);
       CPPUNIT_TEST(testVoidParse);
       CPPUNIT_TEST(testParseFacet);
+      CPPUNIT_TEST(testExplicitFacet);
+      CPPUNIT_TEST(testExplicitTaylorTerm);
+      CPPUNIT_TEST(testParseTaylorTerm);
+      CPPUNIT_TEST(testParseFacetTaylorTerm);
+      CPPUNIT_TEST(testExplicitFacetTaylorTerm);
       CPPUNIT_TEST_SUITE_END();
+    protected:
+    
+       /// @brief check correct settings for faceted parameter 
+       /// @param[in] iph class to test
+       void checkFacet(const ImageParamsHelper &iph) {
+          CPPUNIT_ASSERT(iph.isValid());
+          CPPUNIT_ASSERT(iph.isFacet());
+          CPPUNIT_ASSERT(iph.name() == "image.test");
+          CPPUNIT_ASSERT(iph.facetX() == 1);
+          CPPUNIT_ASSERT(iph.facetY() == 2);
+       }  
+
+       /// @brief check correct settings for faceted parameter 
+       /// @param[in] iph class to test
+       void checkTaylor(const ImageParamsHelper &iph) {
+          CPPUNIT_ASSERT(iph.isValid());
+          CPPUNIT_ASSERT(iph.isTaylorTerm());
+          CPPUNIT_ASSERT(iph.name() == "image.test");
+          CPPUNIT_ASSERT(iph.order() == 3);
+       }       
+       
     public:
        void testVoidParse() {
           ImageParamsHelper iph("image.cmp.test");
@@ -58,17 +84,46 @@ namespace askap
        
        void testParseFacet() {
           ImageParamsHelper iph("image.test.facet.1.2");
-          CPPUNIT_ASSERT(iph.isValid());
-          CPPUNIT_ASSERT(iph.isFacet());
-          CPPUNIT_ASSERT(iph.name() == "image.test");
+          CPPUNIT_ASSERT(!iph.isTaylorTerm());
+          checkFacet(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.facet.1.2");
-          
-          ImageParamsHelper iph2("image.test",1,2);
-          CPPUNIT_ASSERT(iph.isValid());
-          CPPUNIT_ASSERT(iph.isFacet());
-          CPPUNIT_ASSERT(iph.name() == "image.test");
-          CPPUNIT_ASSERT(iph.paramName() == "image.test.facet.1.2");          
        }
+
+       void testExplicitFacet() {                    
+          ImageParamsHelper iph("image.test",1,2);
+          CPPUNIT_ASSERT(!iph.isTaylorTerm());
+          checkFacet(iph);
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.facet.1.2");
+       }
+       
+       void testParseTaylorTerm() {
+          ImageParamsHelper iph("image.test.taylor.3");
+          CPPUNIT_ASSERT(!iph.isFacet());
+          checkTaylor(iph);
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3");
+       }
+       
+       void testExplicitTaylorTerm() {
+          ImageParamsHelper iph("image.test",3);
+          CPPUNIT_ASSERT(!iph.isFacet());
+          checkTaylor(iph);
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3");
+       }
+       
+       void testParseFacetTaylorTerm() {
+          ImageParamsHelper iph("image.test.taylor.3.facet.1.2");
+          checkFacet(iph);
+          checkTaylor(iph);
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");          
+       }
+
+       void testExplicitFacetTaylorTerm() {
+          ImageParamsHelper iph("image.test",3,1,2);
+          checkFacet(iph);
+          checkTaylor(iph);
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");          
+       }
+
     }; // class ImageParamsHelperTest
     
   } // namespace synthesis
