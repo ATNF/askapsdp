@@ -91,7 +91,7 @@ namespace askap
 		
 		/// @brief load images according to the parset file
 		/// @details This method is somewhat analogous to setUpImages, but it loads the images
-		/// from the dist instead of setting them up from the scratch. Encapsulation of all loading
+		/// from the disk instead of setting them up from the scratch. Encapsulation of all loading
 		/// of multiple images in a single method is required to provide a seamless handling of
 		/// the faceted image.
 		/// @param[in] params Images to be created here
@@ -335,18 +335,6 @@ namespace askap
         /// existing information.
         static void listFacets(const std::vector<std::string> &names,
                                std::map<std::string, int> &facetmap);
-
-        /// @brief A helper method to form a parameter name representing a facet
-        /// @details All multi-facet images are split between a number of parameters
-        /// named like "image.i.fieldname.facet.0.0". This method forms a full string
-        /// name from the prefix name and two integer numbers (this operation is required
-        /// in a few places throughout the code).
-        /// @param[in] prefixName the name before ".facet.x.y"
-        /// @param[in] xFacet the first facet index
-        /// @param[in] yFacet the second facet index
-        /// @return the full parameter name corresponding to the given facet 
-        static std::string facetParamName(const std::string &prefixName, int xFacet,
-                   int yFacet);
     private:    
         /// @brief image accessor
         static boost::shared_ptr<IImageAccess> theirImageAccessor;              

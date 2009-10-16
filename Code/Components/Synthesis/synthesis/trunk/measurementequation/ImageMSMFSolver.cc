@@ -126,15 +126,14 @@ namespace askap
           indices[name]=nParameters;
           nParameters+=itsParams->value(name).nelements();
 	  
-	  // Pick out the Stokes parameter
-	  if (stokes != it->substr(1,1)) 
-	  {
-	    stokes = it->substr(1,1);
-	    //	    ASKAPLOG_INFO_STR(logger, "Read input for stokes " << stokes );
-	    stokeslist[nstokes] = stokes;
-	    nstokes++;
-	  }
-	}
+          // Pick out the Stokes parameter
+          if (stokes != it->substr(1,1)) {
+              stokes = it->substr(1,1);
+              //  ASKAPLOG_INFO_STR(logger, "Read input for stokes " << stokes );
+              stokeslist[nstokes] = stokes;
+              nstokes++;
+          }
+        }
       }
       ASKAPCHECK(nParameters>0, "No free parameters in ImageMSMFSolver");
 
@@ -241,13 +240,6 @@ namespace askap
 	   	   
 	   ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for stokes " << stokes << " and order " << order );
 
-	/*
-	   string psfzeroname = makeImageString(samplename,stokes,0);
-	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(psfzeroname)>0, "PSF Slice for order 0 is not present");
-	   const casa::Vector<double>& zeroslice(normalEquations().normalMatrixSlice().find(psfzeroname)->second);
-	   casa::convertArray<float, double>(psfZeroArray, zeroslice.reform(valShape));
-	   psfZeroArray/= (float)maxDiag;
-	  */
 	   if (order == 0) {
 	       psfZeroArray = psfArray.copy();
 	   }
@@ -276,10 +268,6 @@ namespace askap
 	   if(order < itsNTaylor)
 	   {
 	    // Now precondition the residual images
-	    /*
-	    casa::convertArray<float, double>(psfZeroArray, zeroslice.reform(valShape));
-	    psfZeroArray/=(float)maxDiag;
-	    */
 	    doPreconditioning(psfZeroArray,dirtyArray);
 		   
 	    // We need lattice equivalents. We can use ArrayLattice which involves
