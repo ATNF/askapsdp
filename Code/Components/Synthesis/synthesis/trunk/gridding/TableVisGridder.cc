@@ -46,6 +46,7 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/GridKernel.h>
 
 #include <utils/PaddingUtils.h>
+#include <measurementequation/ImageParamsHelper.h>
 
 using namespace askap::scimath;
 using namespace askap;
@@ -853,10 +854,12 @@ void TableVisGridder::initVisWeights(IVisWeights::ShPtr viswt)
 // Input string is whatever is after "image" => "image.i.0.xxx" gives ".i.0.xxx "
 void TableVisGridder::customiseForContext(casa::String context)
 {
+
 	// RVU : Set up model dependant gridder behaviour
 	//       For MFS, gridders for each Taylor term need different VisWeights.
 	//  parse the 'context' string, and generate the "order" parameter.
   ASKAPLOG_INFO_STR(logger, "Customising gridder for context " << context);
+	/*
 	char corder[2];
 	corder[0] = *(context.data()+3); // read the fourth character to get the order of the Taylor coefficient.
 	corder[1] = '\n';
@@ -864,8 +867,14 @@ void TableVisGridder::customiseForContext(casa::String context)
 	//	ASKAPLOG_INFO_STR(logger, "Customising gridder for context " << context
 	//			  << " corder " << corder << " order" << order);
 	if(order <0 || order >9) order = 0;
-	if(itsVisWeight)
+	*/
+	// MV: more general version
+	const ImageParamsHelper iph(context);
+	const int order = iph.isTaylorTerm() ? iph.order() : 1;
+	
+	if(itsVisWeight) {
 		itsVisWeight->setParameters(order);
+    }
 }
 
 

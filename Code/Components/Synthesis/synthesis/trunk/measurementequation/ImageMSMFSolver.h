@@ -93,6 +93,14 @@ namespace askap
       void setSpeedUp(float factor);
 
       protected:
+      /// @brief obtain single polarisation slice for a given image
+      /// @details This is a helper method extracting a single polarisation
+      /// slice from a given image parameter
+      /// @param[in] paramName image parameter
+      /// @param[in] pol required polarisation plane
+      /// @return slice array
+      casa::Array<double> polSlice(const std::string &paramName, int pol) const;
+      
 
 	/// Parse the image parameter name to get out the Stokes information
         inline std::string getStokes(const std::string& paramstring){return paramstring.substr(6,1);};
@@ -111,8 +119,8 @@ namespace askap
         /// @brief number of terms in the Taylor expansion for PSF
         int itsNPsfTaylor;
         
-	/// Map of Cleaners - one for each "image type : i,q,u,v.."
-        std::map<string, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
+	/// Map of Cleaners - one for each polarisation index
+        std::map<int, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
 
         /// @brief for debugging (MV - ?)
       bool dbg;

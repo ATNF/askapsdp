@@ -114,8 +114,14 @@ namespace askap
 	// iterate over all free parameters (i.e. parts of the image for faceted case)
 	for (vector<string>::const_iterator ci=names.begin(); ci !=names.end(); ++ci) {
       ImageParamsHelper iph(*ci);
+      // temporary work around until we figure out the best way to deal with MFS'ed facets
+      std::string name = *ci;
+      if (iph.isFacet()) {
+          name = iph.name();
+      }
+      //
 
-	  if (facetmap[iph.name()] == 1) {
+	  if (facetmap[name] == 1) {
 	      // this is not a faceting case, restore the image in situ and add residuals 
 	      ASKAPLOG_INFO_STR(logger, "Restoring " << *ci );
 
