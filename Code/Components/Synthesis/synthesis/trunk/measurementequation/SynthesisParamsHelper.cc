@@ -951,6 +951,62 @@ namespace askap
        }
     }
     
+    /// @brief A helper method to build a list of images representing Taylor terms
+    /// @details Different Taylor terms in the multi-frequency algorithm are 
+    /// represented by parameters named like "image.fieldname.taylor.0". This method
+    /// reads a supplied vector of names (may be just free parameters or all names
+    /// available) and builds a map of the actual image name (without suffixes) and
+    /// the number of Taylor orders encountered. It also does check that all orders
+    /// starting from 0 are present and throws an exception if it is not the case.
+    /// To some extent this method is similar to listFacets, but is intended for
+    /// Taylor terms.
+    /// @param[in] names parameter names to work with
+    /// @param[out] taylormap a map of (possibly truncated names) and the number of
+    ///             Taylor terms (1 means no decomposition into Taylor series, i.e. no MFS)
+    /// @note 1. taylormap.size()<=names.size() after a call to this method, if it was originally
+    ///          empty
+    ///       2. This method just adds new elements to the taylormap without erasing the
+    ///          existing information.
+    void SynthesisParamsHelper::listTaylor(const std::vector<std::string> &names,
+                           std::map<std::string, int> &taylormap)
+    {
+       // temporary map, just to check that no Taylor terms are missed
+       // (parameters may not come in any particular order)
+       std::map<std::string, std::set<int> >  tempMap;
+       
+       for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
+            ImageParamsHelper iph(*ci);
+            if (iph.isTaylorTerm()) {
+                // this is a Taylor term, we need to remember all orders sited for this base name
+                tempMap[iph.name()].insert(iph.order());
+                taylormap[iph.name()] = 0; // just a flag, we need to figure out the exact number later
+            } else {
+                // this is not an MFS'ed image, add it to the final list
+                taylormap[*ci] = 1; // single order
+            }
+       }
+
+       for (std::map<std::string, int>::iterator it = taylormap.begin(); it!=taylormap.end(); ++it) {
+            if (it->second == 0) {  
+                // This is the MFS case, need to figure out the exact number of Taylor terms
+                ASKAPDEBUGASSERT(hasValue(tempMap, it->first));                                
+                ASKAPDEBUGASSERT(tempMap[it->first].size());                
+                
+                const int nTaylorTerms = *(std::max_element(tempMap[it->first].begin(),
+                                      tempMap[it->first].end())) + 1;
+                
+                // doing checks
+                for (int order = 0; order<nTaylorTerms; ++order) {
+                     ASKAPCHECK(hasValue(tempMap[it->first],order), "Taylor term "<<order<<
+                          " is missing for the image "<<it->first);
+                }
+                
+                it->second = nTaylorTerms;
+            }
+       }     
+    }                       
+    
+    
     /// @brief load component-related parameters from a parset file
     /// @details Parameter layout is different in scimath::Params and
     /// parset files for some reason. Typically a source is defined with

@@ -335,6 +335,25 @@ namespace askap
         /// existing information.
         static void listFacets(const std::vector<std::string> &names,
                                std::map<std::string, int> &facetmap);
+
+        /// @brief A helper method to build a list of images representing Taylor terms
+        /// @details Different Taylor terms in the multi-frequency algorithm are 
+        /// represented by parameters named like "image.fieldname.taylor.0". This method
+        /// reads a supplied vector of names (may be just free parameters or all names
+        /// available) and builds a map of the actual image name (without suffixes) and
+        /// the number of Taylor orders encountered. It also does check that all orders
+        /// starting from 0 are present and throws an exception if it is not the case.
+        /// To some extent this method is similar to listFacets, but is intended for
+        /// Taylor terms.
+        /// @param[in] names parameter names to work with
+        /// @param[out] taylormap a map of (possibly truncated names) and the number of
+        ///             Taylor terms (1 means no decomposition into Taylor series, i.e. no MFS)
+        /// @note 1. taylormap.size()<=names.size() after a call to this method, if it was originally
+        ///          empty
+        ///       2. This method just adds new elements to the taylormap without erasing the
+        ///          existing information.
+        static void listTaylor(const std::vector<std::string> &names,
+                               std::map<std::string, int> &taylormap);
     private:    
         /// @brief image accessor
         static boost::shared_ptr<IImageAccess> theirImageAccessor;              

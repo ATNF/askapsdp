@@ -55,6 +55,7 @@ namespace askap
     {
       CPPUNIT_TEST_SUITE(SynthesisParamsHelperTest);
       CPPUNIT_TEST(testListFacet);
+      CPPUNIT_TEST(testListTaylor);
       CPPUNIT_TEST(testFacetCreationAndMerging);
       CPPUNIT_TEST(testCoordinates);
       CPPUNIT_TEST(testClipImage);
@@ -97,6 +98,22 @@ namespace askap
            CPPUNIT_ASSERT(facetmap["image.i.src"] == 2);
            CPPUNIT_ASSERT(facetmap.find("image.i.src2")!=facetmap.end());
            CPPUNIT_ASSERT(facetmap["image.i.src2"] == 1);           
+        }
+        
+        void testListTaylor()
+        {
+           std::vector<std::string> names;
+           std::map<std::string,int> taylormap;
+           names.push_back("image.src.taylor.0");
+           names.push_back("image.src.taylor.1");
+           names.push_back("image.src.taylor.2");
+           names.push_back("image.src2");
+           SynthesisParamsHelper::listTaylor(names,taylormap);
+           CPPUNIT_ASSERT(taylormap.size()==2);
+           CPPUNIT_ASSERT(taylormap.find("image.src")!=taylormap.end());
+           CPPUNIT_ASSERT(taylormap["image.src"] == 3);
+           CPPUNIT_ASSERT(taylormap.find("image.src2")!=taylormap.end());
+           CPPUNIT_ASSERT(taylormap["image.src2"] == 1);                     
         }
         
         void testFacetCreationAndMerging()
