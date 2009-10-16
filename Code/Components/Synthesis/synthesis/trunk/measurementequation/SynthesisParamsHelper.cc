@@ -899,26 +899,15 @@ namespace askap
        std::map<std::string, std::set<int> >  tempMapY;
        
        for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
-            size_t pos = ci->rfind(".facet.");
-            if (pos == std::string::npos) {
+            ImageParamsHelper iph(*ci);
+            if (iph.isFacet()) {
+                tempMapX[iph.name()].insert(iph.facetX());
+                tempMapY[iph.name()].insert(iph.facetY());
+                facetmap[iph.name()] = 0; // a flag that we need to figure out the exact number later   
+            } else {
                 // this is not a faceted image, just add it to the final list
                 facetmap[*ci] = 1; // one facet                
-            } else {
-                const std::string parName = ci->substr(0,pos);
-                ASKAPCHECK(parName.size(), "Parameter name is missing for the faceted image "<<*ci);
-                pos+=7; // to move it to the start of numbers
-                ASKAPCHECK(pos < ci->size(), 
-                    "Name of the faceted parameter should contain facet indices at the end, you have "<<*ci);
-                size_t pos2 = ci->find(".",pos);
-                ASKAPCHECK((pos2 != std::string::npos) && (pos2+1<ci->size()) && (pos2!=pos), 
-                    "Two numbers are expected in the parameter name for the faceted image, you have "<<*ci);
-                const int xFacet = utility::fromString<int>(ci->substr(pos,pos2-pos));
-                const int yFacet = utility::fromString<int>(ci->substr(pos2+1));
-     
-                tempMapX[parName].insert(xFacet);
-                tempMapY[parName].insert(yFacet);
-                facetmap[parName] = 0; // a flag that we need to figure out the exact number later
-            }
+            } 
        }
        for (std::map<std::string, int>::iterator it = facetmap.begin(); it!=facetmap.end(); ++it) {
             if (it->second == 0) {  
