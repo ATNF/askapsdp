@@ -80,6 +80,8 @@ namespace askap {
             {
                 /// @details Default constructor does not allocate anything, and the arrayAllocated flag is set to false.
                 this->itsArrayAllocated = false;
+                this->itsWCSAllocated = false;
+                this->itsWCSsourcesAllocated = false;
             }
 
 //--------------------------------------------------------
@@ -90,8 +92,9 @@ namespace askap {
                 if (this->itsArrayAllocated) delete [] this->itsArray;
 
 		int nwcs = 1;
-		wcsvfree(&nwcs,&this->itsWCS);
-		wcsvfree(&nwcs,&this->itsWCSsources);
+		
+		if(this->itsWCSAllocated) wcsvfree(&nwcs,&this->itsWCS);
+		if(this->itsWCSsourcesAllocated) wcsvfree(&nwcs,&this->itsWCSsources);
 
             }
 
@@ -138,19 +141,26 @@ namespace askap {
             this->itsUnitOff = f.itsUnitOff;
             this->itsUnitPwr = f.itsUnitPwr;
 
-	    this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
-	    this->itsWCS->flag     = -1;
-	    wcsini(true, f.itsWCS->naxis, this->itsWCS); 
-	    wcscopy(true, f.itsWCS, this->itsWCS); 
-	    wcsset(this->itsWCS);
+	    this->itsWCSAllocated = f.itsWCSAllocated;
+	    if(this->itsWCSAllocated){
+	      this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	      this->itsWCS->flag     = -1;
+	      wcsini(true, f.itsWCS->naxis, this->itsWCS); 
+	      wcscopy(true, f.itsWCS, this->itsWCS); 
+	      wcsset(this->itsWCS);
+	    }
 	    
 	    this->itsFlagPrecess = f.itsFlagPrecess;
 	    if(this->itsFlagPrecess){
-	      this->itsWCSsources = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
-	      this->itsWCSsources->flag     = -1;
-	      wcsini(true, f.itsWCSsources->naxis, this->itsWCSsources); 
-	      wcscopy(true, f.itsWCSsources, this->itsWCSsources); 
-	      wcsset(this->itsWCSsources);
+	      this->itsWCSsourcesAllocated = f.itsWCSsourcesAllocated;
+	      if(this->itsWCSsourcesAllocated){
+		this->itsWCSsources = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+		this->itsWCSAllocated = true;
+		this->itsWCSsources->flag     = -1;
+		wcsini(true, f.itsWCSsources->naxis, this->itsWCSsources); 
+		wcscopy(true, f.itsWCSsources, this->itsWCSsources); 
+		wcsset(this->itsWCSsources);
+	      }
 	    }
 
 	    this->itsFlagOutputList = f.itsFlagOutputList;
@@ -323,6 +333,7 @@ namespace askap {
 
                 if (isImage) {
                     this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+		    this->itsWCSAllocated = true;
                     this->itsWCS->flag = -1;
                     wcsini(true, wcs->naxis, this->itsWCS);
 		    wcsfix(1, (const int*)axes, wcs, stat);
@@ -330,6 +341,7 @@ namespace askap {
                     wcsset(this->itsWCS);
                 } else {
                     this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+		    this->itsWCSsourcesAllocated = true;
                     this->itsWCSsources->flag = -1;
                     wcsini(true, wcs->naxis, this->itsWCSsources);
 		    wcsfix(1, (const int*)axes, wcs, stat);
@@ -466,6 +478,7 @@ namespace askap {
 				}
                                 else min = casa::Quantity(min,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
 
+				ASKAPLOG_DEBUG_STR(logger, "Defining a Gaussian of flux " << flux << " at [" << pix[0] << ","<<pix[1]<<"]");
                                 casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min / maj, 
 								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
 				gauss.setFlux(flux);

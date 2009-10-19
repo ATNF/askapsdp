@@ -164,9 +164,11 @@ namespace askap {
 
                     /// @brief The world coordinate information
                     struct wcsprm *itsWCS;
+		    bool itsWCSAllocated;
 
                     /// @brief The world coordinate information that the sources use, if different from itsWCS
                     struct wcsprm *itsWCSsources;
+		    bool itsWCSsourcesAllocated;
                     /// @brief If the sources have a different WCS defined, and we need to transform to the image WCS.
                     bool itsFlagPrecess;
                     /// @brief Whether to save the source list with new positions
