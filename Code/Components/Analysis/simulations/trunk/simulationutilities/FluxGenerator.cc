@@ -88,7 +88,7 @@ namespace askap {
 	    pix[2] = z;
 	    pixToWCSSingle(wcs,pix,wld);
 	    float freq = wld[2];
-	    this->itsFluxValues[int(z)] = spec.flux(freq);
+	    this->itsFluxValues[int(z)] += spec.flux(freq);
 	  }
 
 	delete [] pix;
@@ -112,10 +112,12 @@ namespace askap {
 	pixToWCSMulti(wcs,pix,wld,this->itsNChan);
 	for(int z=0; z<this->itsNChan; z++)
 	  {
+	    int i=3*z+2;
 	    double df;
-	    if(z<this->itsNChan-1) df = fabs(wld[z]-wld[z+1]);
-	    else df = fabs(wld[z]-wld[z-1]);
-	    this->itsFluxValues[int(z)] = spec.flux(wld[z]-df/2.,wld[z]+df/2.);
+	    if(z<this->itsNChan-1) df = fabs(wld[i]-wld[i+3]);
+	    else df = fabs(wld[i]-wld[i-3]);
+	    ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
+	    this->itsFluxValues[i] += spec.flux(wld[i]-df/2.,wld[i]+df/2.);
 	  }
 
 	delete [] pix;

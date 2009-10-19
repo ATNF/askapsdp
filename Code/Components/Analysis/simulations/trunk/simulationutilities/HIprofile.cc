@@ -26,6 +26,7 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
+#include <askap_simulations.h>
 
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/SimulationUtilities.h>
@@ -202,7 +203,7 @@ namespace askap {
 
 	double minPeak = this->itsVelZero - this->itsDeltaVel;
 	double maxPeak = this->itsVelZero + this->itsDeltaVel;
-	ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << v[0] << " and " << v[1] << "  (with minpeak="<<minPeak<<" and maxpeak="<<maxPeak<<")");
+// 	ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << v[0] << " and " << v[1] << "  (with minpeak="<<minPeak<<" and maxpeak="<<maxPeak<<")");
 	for(int i=0;i<2;i++){
 	  if(v[i] < minPeak ){
 	    f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erfc( (minPeak-v[i])/(M_SQRT2*this->itsSigmaEdge) );
@@ -215,7 +216,7 @@ namespace askap {
 	      double dip = rootPiOnTwo*this->itsDipAmp*this->itsSigmaDip * (erfc(-1.*this->itsDeltaVel/(M_SQRT2*this->itsSigmaDip))-
 									    erfc((v[i]-this->itsVelZero)/(M_SQRT2*this->itsSigmaDip)));
 	      f[i] += (norm-dip);
-	      ASKAPLOG_DEBUG_STR(logger, "In loc 2, norm="<<norm<<", dip="<<dip);
+// 	      ASKAPLOG_DEBUG_STR(logger, "In loc 2, norm="<<norm<<", dip="<<dip);
 	      loc[i]=2;
 	    }
 	    else {
@@ -227,7 +228,7 @@ namespace askap {
 	}
 
 	double flux = (f[1] - f[0])/(v[1]-v[0]);
-	ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
+// 	ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
 	return flux * this->itsIntFlux / this->itsProfileFlux;
 
       }

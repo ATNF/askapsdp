@@ -146,6 +146,9 @@ namespace askap {
 		    /// @brief Do the sources have spectral information for a third axis?
 		    bool itsHaveSpectralInfo;
 		    float itsBaseFreq;
+		    
+		    bool itsDoContinuum;
+		    bool itsDoHI;
 
                     /// @brief The EQUINOX keyword
                     float itsEquinox;

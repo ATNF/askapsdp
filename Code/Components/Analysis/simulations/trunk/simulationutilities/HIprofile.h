@@ -57,6 +57,7 @@ namespace askap {
       class HIprofile : public Spectrum {
       public:
 	HIprofile(){};
+	HIprofile(GALTYPE type, double z, double mhi, double maj, double min){define(type,z,mhi,maj,min);};
 	virtual ~HIprofile(){};
 	HIprofile(const HIprofile& h);
 	HIprofile& operator= (const HIprofile& h);

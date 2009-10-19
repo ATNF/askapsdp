@@ -28,14 +28,15 @@
 ///
 #include <askap_simulations.h>
 
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <FITS/FITSfile.h>
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
 #include <simulationutilities/Continuum.h>
+#include <simulationutilities/HIprofile.h>
 #include <analysisutilities/AnalysisUtilities.h>
-
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
 
 #include <Common/ParameterSet.h>
 
@@ -87,6 +88,11 @@ namespace askap {
             {
                 /// @details Destructor deletes the flux array if it has been allocated.
                 if (this->itsArrayAllocated) delete [] this->itsArray;
+
+		int nwcs = 1;
+		wcsvfree(&nwcs,&this->itsWCS);
+		wcsvfree(&nwcs,&this->itsWCSsources);
+
             }
 
 
@@ -124,6 +130,8 @@ namespace askap {
 	    this->itsBeamInfo = f.itsBeamInfo;
 	    this->itsHaveSpectralInfo = f.itsHaveSpectralInfo;
 	    this->itsBaseFreq = f.itsBaseFreq;
+	    this->itsDoContinuum = f.itsDoContinuum;
+	    this->itsDoHI = f.itsDoHI;
 	    this->itsEquinox = f.itsEquinox;
 	    this->itsBunit = f.itsBunit;
             this->itsUnitScl = f.itsUnitScl;
@@ -239,6 +247,9 @@ namespace askap {
 		this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
 		if(!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
 
+		this->itsDoContinuum = parset.getBool("doContinuum", true);
+		this->itsDoHI = parset.getBool("doHI",false);
+
                 this->itsFlagOutputList = parset.getBool("outputList", false);
 
                 if (this->itsSourceList.size() == 0) this->itsFlagOutputList = false;
@@ -325,6 +336,10 @@ namespace askap {
                     wcscopy(true, wcs, this->itsWCSsources);
                     wcsset(this->itsWCSsources);
                 }
+
+		int nwcs = 1;
+		wcsvfree(&nwcs, &wcs);
+
             }
 
 //--------------------------------------------------------
@@ -370,7 +385,8 @@ namespace askap {
 		  ASKAPLOG_DEBUG_STR(logger, "Adding sources from file " << this->itsSourceList);
                     std::ifstream srclist(this->itsSourceList.c_str());
                     std::string temp, ra, dec;
-		    casa::Double flux, maj, min, pa;
+		    casa::Double flux, maj, min, pa,redshift,m_HI,alpha,beta;
+		    int sourceType;
                     double *wld = new double[3];
                     double *pix = new double[3];
                     double *newwld = new double[3];
@@ -388,19 +404,23 @@ namespace askap {
                         if (temp[0] != '#') {  // ignore commented lines
                             std::stringstream line(temp);
 
-			    float alpha = 0.;
-			    float beta = 0.;
+// 			    float alpha = 0.;
+// 			    float beta = 0.;
 
-                            if (this->itsHaveSpectralInfo)
-                                line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa;
-                            else
-                                line >> ra >> dec >> flux >> maj >> min >> pa;
+//                             if (this->itsHaveSpectralInfo)
+//                                 line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa;
+//                             else
+//                                 line >> ra >> dec >> flux >> maj >> min >> pa;
+
+			    line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa >> redshift >> m_HI >> sourceType;
+
 
                             // convert fluxes to correct units according to the image BUNIT keyword
 			    flux = casa::Quantity(flux,this->itsSourceFluxUnits).getValue(this->itsBunit);
 
-// 			    fluxGen.defineSource(alpha,beta,this->itsBaseFreq,flux);
 			    Continuum cont(alpha,beta,this->itsBaseFreq,flux);
+			    HIprofile prof(GALTYPE(sourceType),redshift,m_HI,maj,min);
+			    std::cerr << prof << "\n";
 
                             // convert sky position to pixels
                             if (this->itsPosType == "dms") {
@@ -422,16 +442,19 @@ namespace askap {
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
 					<< std::setw(10) << std::setprecision(6) << newwld[1] << " "
 					<< std::setw(20) << std::setprecision(16) << flux << " ";
-				if(this->itsHaveSpectralInfo)
+// 				if(this->itsHaveSpectralInfo)
 				  outfile << std::setw(10) << std::setprecision(6) << alpha << " "
 					  << std::setw(10) << std::setprecision(6) << beta << " ";
 				outfile << std::setw(10) << std::setprecision(6) << maj << " "
 					<< std::setw(10) << std::setprecision(6) << min << " "
-					<< std::setw(10) << std::setprecision(6) << pa << "\n";
+					<< std::setw(10) << std::setprecision(6) << pa << " ";
+				outfile << std::setw(10) << std::setprecision(6) << redshift << " "
+					<< std::setw(10) << std::setprecision(6) << m_HI << " "
+					<< std::setw(5) << sourceType << "\n";
                             }
 
-// 			    fluxGen.calcFluxes(pix[0],pix[1],this->itsWCS);
-			    fluxGen.addSpectrum(cont,pix[0],pix[1],this->itsWCS);
+			    if(this->itsDoContinuum) fluxGen.addSpectrum(cont,pix[0],pix[1],this->itsWCS);
+			    if(this->itsDoHI)        fluxGen.addSpectrumInt(prof,pix[0],pix[1],this->itsWCS);
 
                             if (maj > 0) {
                                 // convert widths from arcsec to pixels
@@ -459,6 +482,7 @@ namespace askap {
                     }
 
                     if (this->itsFlagOutputList) outfile.close();
+		    srclist.close();
 
                     delete [] wld;
                     delete [] pix;
@@ -511,22 +535,27 @@ namespace askap {
                 /// @details Creates a FITS file with the appropriate headers
                 /// and saves the flux array into it. Uses the CFITSIO library
                 /// to do so.
-                ASKAPLOG_DEBUG_STR(logger, "Saving the FITS file to " << this->itsFileName);
+		std::cerr << "!";
+//                 ASKAPLOG_DEBUG_STR(logger, "Saving the FITS file to " << this->itsFileName);
+// 		std::cerr << "!";
                 int status = 0;
                 long *fpixel = new long[this->itsDim];
 
                 for (uint i = 0; i < this->itsDim; i++) fpixel[i] = 1;
+		std::cerr << "!";
 
                 fitsfile *fptr;
 
                 if (fits_create_file(&fptr, this->itsFileName.c_str(), &status))
                     fits_report_error(stderr, status);
+		std::cerr << "!";
 
 		if(status){
 		  ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
 		  fits_report_error(stderr, status);
 		  ASKAPTHROW(AskapError,"Error opening FITS file.");
 		}
+		std::cerr << "!";
 
                 status = 0;
                 long *dim = new long[this->itsDim];
@@ -535,11 +564,15 @@ namespace askap {
 
                 if (fits_create_img(fptr, FLOAT_IMG, this->itsDim, dim, &status))
                     fits_report_error(stderr, status);
+		std::cerr << "!";
+
+		delete [] dim;
 
                 status = 0;
 
                 if (fits_update_key(fptr, TFLOAT, "EQUINOX", &(this->itsEquinox), NULL, &status))
                     fits_report_error(stderr, status);
+		std::cerr << "!";
 
                 if (this->itsHaveBeam) {
                     status = 0;
@@ -559,9 +592,13 @@ namespace askap {
                 }
 
                 status = 0;
+		std::cerr << "!";
 
-                if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.getName().c_str(),  NULL, &status))
+		char *unit = (char *)this->itsBunit.getName().c_str();
+//                 if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.getName().c_str(),  NULL, &status))
+                if (fits_update_key(fptr, TSTRING, "BUNIT", unit,  NULL, &status))
                     fits_report_error(stderr, status);
+		std::cerr << "!";
 
                 float val;
 
@@ -570,49 +607,60 @@ namespace askap {
 
                     if (fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE", d + 1), this->itsWCS->ctype[d],  NULL, &status))
                         fits_report_error(stderr, status);
+		    std::cerr << "?";
 
                     status = 0;
 
                     if (fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT", d + 1), this->itsWCS->cunit[d],  NULL, &status))
                         fits_report_error(stderr, status);
+		    std::cerr << "?";
 
                     status = 0;
                     val = this->itsWCS->crval[d];
 
                     if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL", d + 1), &val, NULL, &status))
                         fits_report_error(stderr, status);
+		    std::cerr << "?";
 
                     val = this->itsWCS->cdelt[d];
                     status = 0;
 
                     if (fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT", d + 1), &val, NULL, &status))
                         fits_report_error(stderr, status);
+		    std::cerr << "?";
 
                     val = this->itsWCS->crpix[d];
                     status = 0;
 
                     if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX", d + 1), &val, NULL, &status))
                         fits_report_error(stderr, status);
+		    std::cerr << "?";
 
                     val = this->itsWCS->crota[d];
                     status = 0;
 
                     if (fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA", d + 1), &val, NULL, &status))
                         fits_report_error(stderr, status);
+		    std::cerr << "?";
                 }
 
                 status = 0;
 
                 if (fits_write_pix(fptr, TFLOAT, fpixel, this->itsNumPix, this->itsArray, &status))
                     fits_report_error(stderr, status);
+		std::cerr << "!";
 
                 status = 0;
                 fits_close_file(fptr, &status);
+		std::cerr << "!";
 
                 if (status) {
                     std::cerr << "Error closing file: ";
                     fits_report_error(stderr, status);
                 }
+
+		delete [] fpixel;
+
             }
 
 

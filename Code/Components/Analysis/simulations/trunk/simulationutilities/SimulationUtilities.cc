@@ -77,7 +77,7 @@ namespace askap {
             return z*sigma + mean;
         }
 
-      void addGaussian(float *array, duchamp::Section subsection, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator fluxGen)
+      void addGaussian(float *array, duchamp::Section subsection, std::vector<int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
             /// array.  Only look at pixels within a box defined by the
@@ -162,6 +162,8 @@ namespace askap {
 		    for(int z = 0; z < fluxGen.nChan(); z++) {
 		      int pix = x + y * axes[0] + z*axes[0]*axes[1];
 		      array[pix] += pixelVal*fluxGen.getFlux(z);
+// 		      if(fluxGen.getFlux(z)>0.)
+// 			ASKAPLOG_DEBUG_STR(logger, "Adding a flux of " << fluxGen.getFlux(z) << " to channel " << z);
 		    }
 
 		  }
@@ -174,7 +176,7 @@ namespace askap {
 	    }
         }
 
-      void addPointSource(float *array, duchamp::Section subsection, std::vector<int> axes, double *pix, FluxGenerator fluxGen)
+      void addPointSource(float *array, duchamp::Section subsection, std::vector<int> axes, double *pix, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given point source to the
             /// appropriate pixel in the given pixel array Checks are
