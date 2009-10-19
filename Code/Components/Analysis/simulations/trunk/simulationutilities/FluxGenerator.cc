@@ -50,6 +50,7 @@ namespace askap {
 
       FluxGenerator::FluxGenerator(int numChan)
       {
+	ASKAPASSERT(numChan>=0);
 	this->itsNChan = numChan;
 	this->itsFluxValues = std::vector<float>(numChan,0.);
       }
@@ -68,7 +69,8 @@ namespace askap {
       }
 
       void FluxGenerator::setNumChan(int numChan)
-      {	
+      {		
+	ASKAPASSERT(numChan>=0);
 	this->itsNChan = numChan;
 	this->itsFluxValues = std::vector<float>(numChan,0.);
       }
@@ -116,8 +118,8 @@ namespace askap {
 	    double df;
 	    if(z<this->itsNChan-1) df = fabs(wld[i]-wld[i+3]);
 	    else df = fabs(wld[i]-wld[i-3]);
-	    ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
-	    this->itsFluxValues[i] += spec.flux(wld[i]-df/2.,wld[i]+df/2.);
+// 	    ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
+	    this->itsFluxValues[z] += spec.flux(wld[i]-df/2.,wld[i]+df/2.);
 	  }
 
 	delete [] pix;

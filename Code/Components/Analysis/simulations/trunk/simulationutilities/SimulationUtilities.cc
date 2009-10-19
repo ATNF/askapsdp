@@ -161,9 +161,9 @@ namespace askap {
 		    // For this pixel, loop over all channels and assign the correctly-scaled pixel value.
 		    for(int z = 0; z < fluxGen.nChan(); z++) {
 		      int pix = x + y * axes[0] + z*axes[0]*axes[1];
-		      array[pix] += pixelVal*fluxGen.getFlux(z);
-// 		      if(fluxGen.getFlux(z)>0.)
-// 			ASKAPLOG_DEBUG_STR(logger, "Adding a flux of " << fluxGen.getFlux(z) << " to channel " << z);
+		      float f = fluxGen.getFlux(z);
+		      array[pix] += pixelVal * f;
+		      //		      if(f>0.) ASKAPLOG_DEBUG_STR(logger, "Adding a flux of " << f << " to channel " << z);
 		    }
 
 		  }

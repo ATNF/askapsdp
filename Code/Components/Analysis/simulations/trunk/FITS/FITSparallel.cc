@@ -99,7 +99,9 @@ namespace askap {
 	  this->itsSubsection.parse(axes);
 	}
 
+	ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
 	this->itsFITSfile = FITSfile(newparset);
+	ASKAPLOG_DEBUG_STR(logger, "Defined");
 	this->itsFITSfile.setSection(this->itsSubsection);
 
 	ASKAPLOG_DEBUG_STR(logger, "Finished defining FITSparallel");

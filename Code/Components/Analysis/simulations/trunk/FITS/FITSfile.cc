@@ -141,9 +141,12 @@ namespace askap {
             this->itsUnitOff = f.itsUnitOff;
             this->itsUnitPwr = f.itsUnitPwr;
 
+	    int nwcs = 1;
+	    if(this->itsWCSAllocated) wcsvfree(&nwcs,&this->itsWCS);
 	    this->itsWCSAllocated = f.itsWCSAllocated;
 	    if(this->itsWCSAllocated){
 	      this->itsWCS = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
+	      this->itsWCSAllocated = true;
 	      this->itsWCS->flag     = -1;
 	      wcsini(true, f.itsWCS->naxis, this->itsWCS); 
 	      wcscopy(true, f.itsWCS, this->itsWCS); 
@@ -151,11 +154,12 @@ namespace askap {
 	    }
 	    
 	    this->itsFlagPrecess = f.itsFlagPrecess;
+	    if(this->itsWCSsourcesAllocated) wcsvfree(&nwcs,&this->itsWCSsources);
+	    this->itsWCSsourcesAllocated = f.itsWCSsourcesAllocated;
 	    if(this->itsFlagPrecess){
-	      this->itsWCSsourcesAllocated = f.itsWCSsourcesAllocated;
 	      if(this->itsWCSsourcesAllocated){
 		this->itsWCSsources = (struct wcsprm *)calloc(1,sizeof(struct wcsprm));
-		this->itsWCSAllocated = true;
+		this->itsWCSsourcesAllocated = true;
 		this->itsWCSsources->flag     = -1;
 		wcsini(true, f.itsWCSsources->naxis, this->itsWCSsources); 
 		wcscopy(true, f.itsWCSsources, this->itsWCSsources); 
@@ -245,11 +249,13 @@ namespace askap {
 
                 this->itsEquinox = parset.getFloat("equinox", 2000.);
                 LOFAR::ParameterSet subset(parset.makeSubset("WCSimage."));
+		this->itsWCSAllocated = false;
                 this->setWCS(true, subset);
                 this->itsFlagPrecess = parset.getBool("WCSsources", false);
 
                 if (this->itsFlagPrecess) {
                     LOFAR::ParameterSet subset(parset.makeSubset("WCSsources."));
+		    this->itsWCSsourcesAllocated = false;
                     this->setWCS(false, subset);
                 }
 
@@ -331,7 +337,9 @@ namespace askap {
 		int axes[this->itsAxes.size()];
 		for(uint i=0;i<this->itsAxes.size();i++) axes[i] = this->itsAxes[i];
 
+		int nwcs = 1;
                 if (isImage) {
+		  if(this->itsWCSAllocated) wcsvfree(&nwcs, &this->itsWCS);
                     this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
 		    this->itsWCSAllocated = true;
                     this->itsWCS->flag = -1;
@@ -340,6 +348,7 @@ namespace askap {
                     wcscopy(true, wcs, this->itsWCS);
                     wcsset(this->itsWCS);
                 } else {
+		  if(this->itsWCSsourcesAllocated)  wcsvfree(&nwcs, &this->itsWCSsources);
                     this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
 		    this->itsWCSsourcesAllocated = true;
                     this->itsWCSsources->flag = -1;
@@ -349,7 +358,6 @@ namespace askap {
                     wcsset(this->itsWCSsources);
                 }
 
-		int nwcs = 1;
 		wcsvfree(&nwcs, &wcs);
 
             }
@@ -409,6 +417,7 @@ namespace askap {
 		    FluxGenerator fluxGen;
 		    if(this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
 		    else fluxGen.setNumChan(1);
+		    ASKAPLOG_DEBUG_STR(logger, "Have defined a flux generator with " << fluxGen.nChan() << " channels.");
 		    
                     while (getline(srclist, temp),
                             !srclist.eof()) {
@@ -416,16 +425,7 @@ namespace askap {
                         if (temp[0] != '#') {  // ignore commented lines
                             std::stringstream line(temp);
 
-// 			    float alpha = 0.;
-// 			    float beta = 0.;
-
-//                             if (this->itsHaveSpectralInfo)
-//                                 line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa;
-//                             else
-//                                 line >> ra >> dec >> flux >> maj >> min >> pa;
-
 			    line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa >> redshift >> m_HI >> sourceType;
-
 
                             // convert fluxes to correct units according to the image BUNIT keyword
 			    flux = casa::Quantity(flux,this->itsSourceFluxUnits).getValue(this->itsBunit);
@@ -453,14 +453,13 @@ namespace askap {
                                 outfile.setf(std::ios::fixed);
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
 					<< std::setw(10) << std::setprecision(6) << newwld[1] << " "
-					<< std::setw(20) << std::setprecision(16) << flux << " ";
-// 				if(this->itsHaveSpectralInfo)
-				  outfile << std::setw(10) << std::setprecision(6) << alpha << " "
-					  << std::setw(10) << std::setprecision(6) << beta << " ";
-				outfile << std::setw(10) << std::setprecision(6) << maj << " "
+					<< std::setw(20) << std::setprecision(16) << flux << " "
+					<< std::setw(10) << std::setprecision(6) << alpha << " "
+					<< std::setw(10) << std::setprecision(6) << beta << " "
+					<< std::setw(10) << std::setprecision(6) << maj << " "
 					<< std::setw(10) << std::setprecision(6) << min << " "
-					<< std::setw(10) << std::setprecision(6) << pa << " ";
-				outfile << std::setw(10) << std::setprecision(6) << redshift << " "
+					<< std::setw(10) << std::setprecision(6) << pa << " "
+					<< std::setw(10) << std::setprecision(6) << redshift << " "
 					<< std::setw(10) << std::setprecision(6) << m_HI << " "
 					<< std::setw(5) << sourceType << "\n";
                             }
