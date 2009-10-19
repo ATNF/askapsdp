@@ -120,7 +120,7 @@ namespace askap
         int itsNPsfTaylor;
         
 	/// Map of Cleaners - one for each polarisation index
-        std::map<int, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
+        std::map<uint, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
 
         /// @brief for debugging (MV - ?)
       bool dbg;
