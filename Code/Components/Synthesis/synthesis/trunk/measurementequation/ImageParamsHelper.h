@@ -101,7 +101,41 @@ public:
    /// as one passed in the parse method or in the constructor. This method can
    /// be useful if this object is constructed directly without parsing a 
    /// string and effectively represents a reverse operation.
+   /// @return full name of the image parameter
    std::string paramName() const;
+   
+   /// @brief obtain the name of the image with just a facet suffix
+   /// @details To have MSMFS algorithm working with facets one needs
+   /// to be able to extract the name without suffix corresonding to
+   /// the Taylor decomposition, but with the faceting suffixes preserved,
+   /// if present. This method forms such a name.
+   /// @return the name of the parameter without Taylor suffixes
+   /// @note Facet suffix will not be added if the image is not a facet
+   std::string facetName() const;
+
+   /// @brief obtain the name of the image with just a taylor suffix
+   /// @details To have MSMFS algorithm working with facets one needs
+   /// to be able to extract the name without suffixes corresonding to
+   /// facet, but with the taylor term suffixes preserved,
+   /// if present. This method forms such a name.
+   /// @return the name of the parameter without facet suffixes
+   /// @note Taylor suffix will not be added if the image is not a Taylor term
+   std::string taylorName() const;
+
+   /// @brief make this object a facet
+   /// @details It is sometimes necessary to merge faceting suffixes and
+   /// Taylor term suffix. This method makes the current image a facet with
+   /// given indices. 
+   /// @param[in] xFacet facet index along the first axis
+   /// @param[in] yFacet facet index along the second axis
+   void makeFacet(int xFacet, int yFacet);
+
+   /// @brief make this object a facet
+   /// @details It is sometimes necessary to merge faceting suffixes and
+   /// Taylor term suffix. This method makes the current image a facet with
+   /// given indices. 
+   /// @param[in] order order in the Taylor series
+   void makeTaylorTerm(int order);
    
    /// @brief obtain the facet number along the first axis
    /// @return the facet number along the first axis

@@ -78,13 +78,13 @@ ImageParamsHelper::ImageParamsHelper(const std::string &name, int order) : itsNa
 {
 }
 
-   /// @brief direct constructor of a faceted taylor term from constituents
-   /// @details This method constructs the object directly from the actual name
-   /// of the image, given order and facet indices.
-   /// @param[in] name actual name of the image (without suffixes)
-   /// @param[in] order order in the Taylor series
-   /// @param[in] xFacet facet index along the first axis
-   /// @param[in] yFacet facet index along the second axis
+/// @brief direct constructor of a faceted taylor term from constituents
+/// @details This method constructs the object directly from the actual name
+/// of the image, given order and facet indices.
+/// @param[in] name actual name of the image (without suffixes)
+/// @param[in] order order in the Taylor series
+/// @param[in] xFacet facet index along the first axis
+/// @param[in] yFacet facet index along the second axis
 ImageParamsHelper::ImageParamsHelper(const std::string &name, int order, int xFacet, int yFacet) :
               itsName(name), itsFacetX(xFacet), itsFacetY(yFacet), itsOrder(order)
 {
@@ -177,6 +177,66 @@ std::string ImageParamsHelper::paramName() const
 
   return itsName+suffix;                            
 }
+
+/// @brief obtain the name of the image with just a facet suffix
+/// @details To have MSMFS algorithm working with facets one needs
+/// to be able to extract the name without suffix corresonding to
+/// the Taylor decomposition, but with the faceting suffixes preserved,
+/// if present. This method forms such a name.
+/// @return the name of the parameter without Taylor suffixes
+/// @note Facet suffix will not be added if the image is not a facet
+std::string ImageParamsHelper::facetName() const
+{
+  ASKAPDEBUGASSERT(isValid());
+  ImageParamsHelper temp(*this);
+  temp.itsOrder = -1;
+  return temp.paramName();
+}
+
+/// @brief obtain the name of the image with just a taylor suffix
+/// @details To have MSMFS algorithm working with facets one needs
+/// to be able to extract the name without suffixes corresonding to
+/// facet, but with the taylor term suffixes preserved,
+/// if present. This method forms such a name.
+/// @return the name of the parameter without facet suffixes
+/// @note Taylor suffix will not be added if the image is not a Taylor term
+std::string ImageParamsHelper::taylorName() const
+{
+  ASKAPDEBUGASSERT(isValid());
+  ImageParamsHelper temp(*this);
+  temp.itsFacetX = -1;
+  temp.itsFacetY = -1;
+  return temp.paramName();  
+}
+
+/// @brief make this object a facet
+/// @details It is sometimes necessary to merge faceting suffixes and
+/// Taylor term suffix. This method makes the current image a facet with
+/// given indices. 
+/// @param[in] xFacet facet index along the first axis
+/// @param[in] yFacet facet index along the second axis
+void ImageParamsHelper::makeFacet(int xFacet, int yFacet)
+{
+  ASKAPDEBUGASSERT(isValid());
+  ASKAPDEBUGASSERT(xFacet>=0);
+  ASKAPDEBUGASSERT(yFacet>=0);
+  itsFacetX = xFacet;
+  itsFacetY = yFacet;
+}
+
+/// @brief make this object a facet
+/// @details It is sometimes necessary to merge faceting suffixes and
+/// Taylor term suffix. This method makes the current image a facet with
+/// given indices. 
+/// @param[in] order order in the Taylor series
+void ImageParamsHelper::makeTaylorTerm(int order)
+{
+  ASKAPDEBUGASSERT(isValid());
+  ASKAPDEBUGASSERT(order>=0);
+  itsOrder = order;
+}
+
+
 
 } // namespace synthesis
 

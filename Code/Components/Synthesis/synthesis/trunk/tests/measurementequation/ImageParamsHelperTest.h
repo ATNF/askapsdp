@@ -51,6 +51,9 @@ namespace askap
       CPPUNIT_TEST(testParseTaylorTerm);
       CPPUNIT_TEST(testParseFacetTaylorTerm);
       CPPUNIT_TEST(testExplicitFacetTaylorTerm);
+      CPPUNIT_TEST(testPartialNames);
+      CPPUNIT_TEST(testMakeFacet);
+      CPPUNIT_TEST(testMakeTaylor);
       CPPUNIT_TEST_SUITE_END();
     protected:
     
@@ -123,6 +126,47 @@ namespace askap
           checkTaylor(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");          
        }
+       
+       void testPartialNames() {
+          ImageParamsHelper iph("image.test",3,1,2);
+          CPPUNIT_ASSERT(iph.facetName() == "image.test.facet.1.2");
+          CPPUNIT_ASSERT(iph.taylorName() == "image.test.taylor.3");
+       }
+       
+       void testMakeFacet() {
+          ImageParamsHelper iph("image.test",3);
+          CPPUNIT_ASSERT(!iph.isFacet());
+          iph.makeFacet(1,2);
+          checkFacet(iph);
+          checkTaylor(iph);
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");
+          
+          ImageParamsHelper iph2("planeimage");
+          CPPUNIT_ASSERT(!iph2.isFacet());
+          CPPUNIT_ASSERT(!iph2.isTaylorTerm());
+          iph2.makeFacet(3,0);
+          CPPUNIT_ASSERT(iph2.paramName() == "planeimage.facet.3.0");
+          CPPUNIT_ASSERT(iph2.isFacet());
+          CPPUNIT_ASSERT(!iph2.isTaylorTerm());          
+       }
+       
+       void testMakeTaylor() {
+          ImageParamsHelper iph("image.test",1,2);
+          CPPUNIT_ASSERT(!iph.isTaylorTerm());
+          iph.makeTaylorTerm(3);
+          checkFacet(iph);
+          checkTaylor(iph);
+          CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");          
+
+          ImageParamsHelper iph2("planeimage");
+          CPPUNIT_ASSERT(!iph2.isFacet());
+          CPPUNIT_ASSERT(!iph2.isTaylorTerm());
+          iph2.makeTaylorTerm(0);
+          CPPUNIT_ASSERT(iph2.paramName() == "planeimage.taylor.0");
+          CPPUNIT_ASSERT(!iph2.isFacet());
+          CPPUNIT_ASSERT(iph2.isTaylorTerm());
+       }
+       
 
     }; // class ImageParamsHelperTest
     
