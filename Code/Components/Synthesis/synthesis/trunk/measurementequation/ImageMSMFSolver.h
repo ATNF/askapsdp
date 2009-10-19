@@ -93,15 +93,7 @@ namespace askap
       void setSpeedUp(float factor);
 
       protected:
-      /// @brief obtain single polarisation slice for a given image
-      /// @details This is a helper method extracting a single polarisation
-      /// slice from a given image parameter
-      /// @param[in] paramName image parameter
-      /// @param[in] pol required polarisation plane
-      /// @return slice array
-      casa::Array<double> polSlice(const std::string &paramName, int pol) const;
       
-
 	/// Parse the image parameter name to get out the Stokes information
         inline std::string getStokes(const std::string& paramstring){return paramstring.substr(6,1);};
 	/// Parse the image parameter name to get out the Order information

@@ -28,17 +28,17 @@ Cimager.Images.cellsize	        		= [8.0arcsec, 8.0arcsec]
 
 Cimager.Images.image.taylor.0.frequency	= [1.40e9,1.40e9]
 Cimager.Images.image.taylor.0.nchan	= 1
-Cimager.Images.image.taylor.0.polarisation     = ["RR"]
+Cimager.Images.image.taylor.0.polarisation     = ["RRLL"]
 Cimager.Images.image.taylor.0.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 
 Cimager.Images.image.taylor.1.frequency	= [1.40e9,1.40e9]
 Cimager.Images.image.taylor.1.nchan	= 1
-Cimager.Images.image.taylor.1.polarisation     = ["RR"]
+Cimager.Images.image.taylor.1.polarisation     = ["RRLL"]
 Cimager.Images.image.taylor.1.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 
 Cimager.Images.image.taylor.2.frequency	= [1.40e9,1.40e9]
 Cimager.Images.image.taylor.2.nchan	= 1
-Cimager.Images.image.taylor.2.polarisation     = ["RR"]
+Cimager.Images.image.taylor.2.polarisation     = ["RRLL"]
 Cimager.Images.image.taylor.2.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 
 #

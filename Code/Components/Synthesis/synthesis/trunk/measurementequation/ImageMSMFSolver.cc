@@ -104,34 +104,7 @@ namespace askap
       itsDoSpeedUp = true;
       itsSpeedUpFactor = factor;
     }
-       
-    /// @brief obtain single polarisation slice for a given image
-    /// @details This is a helper method extracting a single polarisation
-    /// slice from a given image parameter
-    /// @param[in] paramName image parameter
-    /// @param[in] pol required polarisation plane
-    /// @return slice array
-    casa::Array<double> ImageMSMFSolver::polSlice(const std::string &paramName, int pol) const
-    {
-       ASKAPDEBUGASSERT(itsParams);
-       casa::Array<double> img = itsParams->value(paramName);
-       const casa::IPosition shape = img.shape();
-       const int nPol = shape.nelements()>=3 ? shape(2) : 1;
-       ASKAPDEBUGASSERT(pol<nPol);
-       if (nPol == 1) {
-           return img;
-       }
-       casa::IPosition blc(shape.nelements(),0);
-       blc(2) = pol;
-       casa::IPosition trc(shape);
-       for (size_t pos = 0; pos<shape.nelements(); ++pos) {
-            trc(pos) -= 1;
-            ASKAPDEBUGASSERT(trc(pos)>=0);
-       }
-       trc(2)=pol;
-       return img(blc,trc);
-    }
-       
+              
     
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
@@ -206,18 +179,16 @@ namespace askap
 	
 	           // Iterate through Polarisations (former sindex)
 	           for (scimath::MultiDimArrayPlaneIter planeIter(imageShape); planeIter.hasMore(); planeIter.next()) {
-	           //for (int pol=0;pol<nPol;++pol) {
-	                ASKAPDEBUGASSERT(planeIter.sequenceNumber()<nPol);
+	                const uint plane = planeIter.sequenceNumber();
+	                ASKAPDEBUGASSERT(plane<nPol);
 	                ASKAPLOG_INFO_STR(logger, "In Image MSMFSSolver::solveN..E.. : About to iterate for polarisation " 
-	                                  << planeIter.sequenceNumber()<<" tagged as "<<planeIter.tag()<<" in image "<<tmIt->first);
+	                                  << plane<<" tagged as "<<planeIter.tag()<<" in image "<<tmIt->first);
 	                const std::string zeroOrderParam = ImageParamsHelper(tmIt->first,0).paramName();
 	                
                     // Setup the normalization vector	  
                     ASKAPLOG_INFO_STR(logger, "Reading the normalization vector from : " << zeroOrderParam);
                     ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(zeroOrderParam)>0, "Diagonal not present");
                     casa::Vector<double> normdiag(normalEquations().normalMatrixDiagonal().find(zeroOrderParam)->second);
-                    //const casa::IPosition vecShape(1, polSlice(zeroOrderParam,pol).nelements());
-                    //const casa::IPosition valShape(polSlice(zeroOrderParam, pol).shape());
 
                     ASKAPDEBUGASSERT(planeIter.planeShape().nelements()>=2);
 	  
@@ -226,18 +197,17 @@ namespace askap
           
                     if(firstcycle)  {// Initialize everything only once.
 	                   // Initialize the latticecleaners
-	                   const uint pol = planeIter.sequenceNumber();
-                       ASKAPLOG_INFO_STR(logger, "Initialising the solver for polarisation " << pol);
+                       ASKAPLOG_INFO_STR(logger, "Initialising the solver for plane " << plane);
 	    
-                       itsCleaners[pol].reset(new casa::MultiTermLatticeCleaner<float>());
-                       ASKAPDEBUGASSERT(itsCleaners[pol]);
+                       itsCleaners[plane].reset(new casa::MultiTermLatticeCleaner<float>());
+                       ASKAPDEBUGASSERT(itsCleaners[plane]);
 	    
-                       itsCleaners[pol]->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
+                       itsCleaners[plane]->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
 	                                      fractionalThreshold(), false);
-                       itsCleaners[pol]->ignoreCenterBox(true);
-                       itsCleaners[pol]->setscales(itsScales);
-                       itsCleaners[pol]->setntaylorterms(itsNTaylor);
-                       itsCleaners[pol]->initialise(planeIter.planeShape()[0],planeIter.planeShape()[1]); // allocates memory once....
+                       itsCleaners[plane]->ignoreCenterBox(true);
+                       itsCleaners[plane]->setscales(itsScales);
+                       itsCleaners[plane]->setntaylorterms(itsNTaylor);
+                       itsCleaners[plane]->initialise(planeIter.planeShape()[0],planeIter.planeShape()[1]); // allocates memory once....
 	                }
           
                     // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
@@ -254,11 +224,11 @@ namespace askap
 	                    std::string thisOrderParam = ImageParamsHelper(tmIt->first, order).paramName();
                         ASKAPLOG_INFO_STR(logger, "MSMFS solver: processing order "<<order<<" ("<<itsNTaylor<<
                                           " Taylor terms + "<<itsNTaylor-1<<" cross-terms), parameter name: "<<thisOrderParam);
-                        ASKAPCHECK(normalEquations().normalMatrixSlice().count(thisOrderParam)>0, "PSF Slice for plane="<<planeIter.sequenceNumber()<<
-                                   " and order="<<order<<" is not present");
+                        ASKAPCHECK(normalEquations().normalMatrixSlice().count(thisOrderParam)>0, "PSF Slice for plane="<<
+                                   plane<<" and order="<<order<<" is not present");
                         casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(thisOrderParam)->second);
                         ASKAPCHECK(normalEquations().dataVector(thisOrderParam).size()>0, "Data vector not present for cube plane="<<
-                                   planeIter.sequenceNumber()<<" and order="<<order);
+                                   plane<<" and order="<<order);
                         casa::Vector<double> dv = normalEquations().dataVector(thisOrderParam);
 	   
                         casa::Array<float> psfArray(planeIter.planeShape());
@@ -275,7 +245,7 @@ namespace askap
                             doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfArray,zeroPSFPeak,dirtyArray);
                         }
 	   	   
-                        ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << planeIter.sequenceNumber()<<
+                        ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << plane<<
                                           " (tagged as "<<planeIter.tag() << ") and order=" << order );
 
                         if (order == 0) {
@@ -312,25 +282,23 @@ namespace askap
                             casa::ArrayLattice<float> clean(cleanArray);
 
                             // Send in Dirty images only for ntaylor terms
-                            itsCleaners[planeIter.sequenceNumber()]->setresidual(order,dirty);
-                            itsCleaners[planeIter.sequenceNumber()]->setmodel(order,clean);
+                            itsCleaners[plane]->setresidual(order,dirty);
+                            itsCleaners[plane]->setmodel(order,clean);
                         }
 	   
                     } // end of 'order' loop
 	  
                     ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles" );
-                    itsCleaners[planeIter.sequenceNumber()]->mtclean();
+                    itsCleaners[plane]->mtclean();
                     ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles." );
 	  
                     // Write the final vector of clean model images into parameters
                     for( int order=0; order < itsNTaylor; ++order) {
 	                    const std::string thisOrderParam = ImageParamsHelper(tmIt->first, order).paramName();
-                        //const casa::IPosition valShape(polSlice(thisOrderParam,pol).shape());
                         casa::Array<float> cleanArray(planeIter.planeShape());
                         casa::ArrayLattice<float> clean(cleanArray);
-                        const uint pol = planeIter.sequenceNumber();
-                        ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<pol );
-                        itsCleaners[pol]->getmodel(order,clean);
+                        ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order);
+                        itsCleaners[plane]->getmodel(order,clean);
                         casa::Array<double> slice = planeIter.getPlane(itsParams->value(thisOrderParam));
                         casa::convertArray<double, float>(slice, cleanArray);
                     }
