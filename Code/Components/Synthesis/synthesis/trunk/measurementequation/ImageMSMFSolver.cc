@@ -184,8 +184,15 @@ namespace askap
 	           for (scimath::MultiDimArrayPlaneIter planeIter(imageShape); planeIter.hasMore(); planeIter.next()) {
 	                const uint plane = planeIter.sequenceNumber();
 	                ASKAPDEBUGASSERT(plane<nPol);
+                    std::string tagLogString(planeIter.tag());
+                    if (tagLogString.size()) {
+                        tagLogString = "tagged as " + tagLogString;
+	                } else {
+	                    tagLogString = "not tagged";
+	                }
+	                
 	                ASKAPLOG_INFO_STR(logger, "In Image MSMFSSolver::solveN..E.. : About to iterate for polarisation " 
-	                                  << plane<<" tagged as "<<planeIter.tag()<<" in image "<<tmIt->first);
+	                                  << plane<<" ("<<tagLogString<<") in image "<<tmIt->first);
                     // make the helper a 0-order Taylor term
                     iph.makeTaylorTerm(0);	                
 	                const std::string zeroOrderParam = iph.paramName();
@@ -209,7 +216,7 @@ namespace askap
                     const bool firstcycle = !SynthesisParamsHelper::hasValue(itsCleaners,imageTag);          
                     if(firstcycle)  {// Initialize everything only once.
 	                   // Initialize the latticecleaners
-                       ASKAPLOG_INFO_STR(logger, "Initialising the solver for plane " << plane);
+                       ASKAPLOG_INFO_STR(logger, "Initialising the solver for plane " << plane<<" tag "<<imageTag);
 	    
                        itsCleaners[imageTag].reset(new casa::MultiTermLatticeCleaner<float>());
                        ASKAPDEBUGASSERT(itsCleaners[imageTag]);
@@ -228,7 +235,7 @@ namespace askap
                     casa::Array<float> psfZeroArray(planeIter.planeShape());
                     
                     // temporary support only homogeneous number of Taylor terms
-                    ASKAPLOG_INFO_STR(logger, "nOrders="<<nOrders<<" itsNTaylor="<<itsNTaylor<<" tmIt:"<<tmIt->second);
+                    //ASKAPLOG_INFO_STR(logger, "nOrders="<<nOrders<<" itsNTaylor="<<itsNTaylor<<" tmIt:"<<tmIt->second);
                     ASKAPCHECK(nOrders == tmIt->second, "Only homogeneous number of Taylor terms are supported");
                     
                     // buffer for the peak of zero-order PSF
@@ -259,10 +266,10 @@ namespace askap
                             ASKAPDEBUGASSERT(zeroPSFPeak > 0.);
                             doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfArray,zeroPSFPeak,dirtyArray);
                         }
-	   	   
+	   	   	   	                
                         ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << plane<<
-                                          " (tagged as "<<planeIter.tag() << ") and order=" << order <<
-                                          " of the image "<<tmIt->first);
+                                          " ("<<tagLogString<< ") and order=" << order <<
+                                          " parameter name "<<thisOrderParam);
 
                         if (order == 0) {
                             psfZeroArray = psfArray.copy();
@@ -272,7 +279,7 @@ namespace askap
                            // Write PSFs to disk.
                            ASKAPLOG_INFO_STR(logger, "Exporting preconditioned psfs (to be stored to disk later)");
                            Axes axes(itsParams->axes(thisOrderParam));
-                           string psfName="psf."+thisOrderParam;
+                           const std::string psfName="psf."+thisOrderParam;
                            casa::Array<double> aargh(planeIter.planeShape());
                            casa::convertArray<double,float>(aargh,psfArray);
                            const casa::Array<double> & APSF(aargh);
