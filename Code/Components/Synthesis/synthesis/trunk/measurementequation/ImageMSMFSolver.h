@@ -114,8 +114,6 @@ namespace askap
 	/// Map of Cleaners - one for each polarisation index
         std::map<std::string, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
 
-        /// @brief for debugging (MV - ?)
-      bool dbg;
     private:
       /// @brief if true, use speed up factor (default is false)
       bool itsDoSpeedUp;

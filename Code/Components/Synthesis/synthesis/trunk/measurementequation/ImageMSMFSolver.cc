@@ -74,7 +74,6 @@ namespace askap
       itsScales(1)=10;
       itsScales(2)=30;
       itsNPsfTaylor = 2*itsNTaylor-1;
-      dbg=True;
     }
 
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip,
@@ -84,7 +83,6 @@ namespace askap
       itsScales.resize(scales.size());
       itsScales=scales;
       itsNPsfTaylor = 2*itsNTaylor-1;
-      dbg=True;
     }
     
     Solver::ShPtr ImageMSMFSolver::clone() const
@@ -182,8 +180,6 @@ namespace askap
 	           }
 	           //
 	 
-	           static bool firstcycle=True;
-	
 	           // Iterate through Polarisations (former sindex)
 	           for (scimath::MultiDimArrayPlaneIter planeIter(imageShape); planeIter.hasMore(); planeIter.next()) {
 	                const uint plane = planeIter.sequenceNumber();
@@ -206,7 +202,11 @@ namespace askap
                     
                     // a unique string for every Taylor decomposition (unique for every facet for faceting)
                     const std::string imageTag = tmIt->first + planeIter.tag();
-          
+                    
+                    // cover cross-terms as well during the first cycle
+                    int nOrders = itsNTaylor;                    
+                    // check whether a particular tag has been encountered for the first time
+                    const bool firstcycle = !SynthesisParamsHelper::hasValue(itsCleaners,imageTag);          
                     if(firstcycle)  {// Initialize everything only once.
 	                   // Initialize the latticecleaners
                        ASKAPLOG_INFO_STR(logger, "Initialising the solver for plane " << plane);
@@ -220,16 +220,17 @@ namespace askap
                        itsCleaners[imageTag]->setscales(itsScales);
                        itsCleaners[imageTag]->setntaylorterms(itsNTaylor);
                        itsCleaners[imageTag]->initialise(planeIter.planeShape()[0],planeIter.planeShape()[1]); // allocates memory once....
+                       // iterate over cross-terms during the first iteration 
+                       nOrders = 2*itsNTaylor-1;
 	                }
           
                     // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
-                    int nOrders = itsNTaylor;
                     casa::Array<float> psfZeroArray(planeIter.planeShape());
-                    if (firstcycle) {
-                        nOrders = 2*itsNTaylor-1;
-                    }
+                    
                     // temporary support only homogeneous number of Taylor terms
+                    ASKAPLOG_INFO_STR(logger, "nOrders="<<nOrders<<" itsNTaylor="<<itsNTaylor<<" tmIt:"<<tmIt->second);
                     ASKAPCHECK(nOrders == tmIt->second, "Only homogeneous number of Taylor terms are supported");
+                    
                     // buffer for the peak of zero-order PSF
                     float zeroPSFPeak = -1;
                     for( int order=0; order < nOrders; ++order) {
@@ -326,19 +327,16 @@ namespace askap
                // Also "fix" parameters for order >= itsNTaylor. so that the gridding doesn't get done
                // for these extra terms.
 
-               if (firstcycle) {
-                   // Fix the params corresponding to extra Taylor terms.
-	               // (MV) probably this part needs another careful look
-	               for (int order=0; order<tmIt->second; ++order) {
-                        // make the helper to correspond to the given order
-                        iph.makeTaylorTerm(order);
-	                    const std::string thisOrderParam = iph.paramName();
-	                    if (order >= itsNTaylor && itsParams->isFree(thisOrderParam)) {
-	                        itsParams->fix(thisOrderParam);
-	                    }
-	               }
-                   firstcycle = False;
-               }
+               // Fix the params corresponding to extra Taylor terms.
+	           // (MV) probably this part needs another careful look
+	           for (int order=itsNTaylor; order<tmIt->second; ++order) {
+                    // make the helper to correspond to the given order
+                    iph.makeTaylorTerm(order);
+	                const std::string thisOrderParam = iph.paramName();
+	                if (itsParams->isFree(thisOrderParam)) {
+	                    itsParams->fix(thisOrderParam);
+	                }
+	           }
            } // try
            catch( const AipsError &x ) {
                   throw AskapError("Failed in the MSMFS Minor Cycle : " + x.getMesg() );
