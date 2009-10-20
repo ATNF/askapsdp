@@ -114,12 +114,8 @@ namespace askap
 	// iterate over all free parameters (i.e. parts of the image for faceted case)
 	for (vector<string>::const_iterator ci=names.begin(); ci !=names.end(); ++ci) {
       ImageParamsHelper iph(*ci);
-      // temporary work around until we figure out the best way to deal with MFS'ed facets
-      std::string name = *ci;
-      if (iph.isFacet()) {
-          name = iph.name();
-      }
-      //
+      // obtain name with just the taylor suffix, if present
+      const std::string name = iph.taylorName();
 
 	  if (facetmap[name] == 1) {
 	      // this is not a faceting case, restore the image in situ and add residuals 
@@ -140,9 +136,9 @@ namespace askap
 	      SynthesisParamsHelper::setBeam(*itsParams, *ci, itsBeam);
       } else {
           // this is a single facet of a larger image, just fill in the bigger image with the model
-          ASKAPLOG_INFO_STR(logger, "Inserting facet " << *ci<<" into merged image "<<iph.name());
-          casa::Array<double> patch = SynthesisParamsHelper::getFacet(*itsParams,*ci);
-          const casa::Array<double> model = scimath::PaddingUtils::centeredSubArray(itsParams->value(*ci),
+          ASKAPLOG_INFO_STR(logger, "Inserting facet " << iph.paramName()<<" into merged image "<<name);
+          casa::Array<double> patch = SynthesisParamsHelper::getFacet(*itsParams,iph.paramName());
+          const casa::Array<double> model = scimath::PaddingUtils::centeredSubArray(itsParams->value(iph.paramName()),
                                           patch.shape());
           patch = model;
       }
@@ -169,7 +165,9 @@ namespace askap
 	              for (int yFacet = 0; yFacet<ci->second; ++yFacet) {
 	                   ASKAPLOG_INFO_STR(logger, "Adding residuals for facet ("<<xFacet<<","
 	                        <<yFacet<<")");
-	                   ImageParamsHelper iph(ci->first,xFacet,yFacet);
+	                   // ci->first may have taylor suffix defined, load it first and then add facet indices
+	                   ImageParamsHelper iph(ci->first);	                   
+	                   iph.makeFacet(xFacet,yFacet);
 	                   addResiduals(iph.paramName(),itsParams->value(iph.paramName()).shape(),
 	                                SynthesisParamsHelper::getFacet(*itsParams,iph.paramName()));
 	                   

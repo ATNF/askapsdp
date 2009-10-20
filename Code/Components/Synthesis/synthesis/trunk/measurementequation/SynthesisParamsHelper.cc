@@ -472,18 +472,20 @@ namespace askap
       ASKAPDEBUGASSERT(ip.has(name));
       // parse the name
       ImageParamsHelper iph(name);
-      ASKAPCHECK(ip.has(iph.name()), "Merged image ("<<iph.name()<<") doesn't exist");
+      // name with the suffixes related to facets removed (and taylor suffix preserved if present)
+      const std::string mergedName = iph.taylorName();
+      ASKAPCHECK(ip.has(mergedName), "Merged image ("<<mergedName<<") doesn't exist");
       // there is no consistency check that the given facet corresponds to this particular
       // merged image and coordinate systems match. 
       
       // now find blc and trc of the patch inside the big image
-      const askap::scimath::Axes axes(ip.axes(iph.name()));
+      const askap::scimath::Axes axes(ip.axes(mergedName));
       ASKAPDEBUGASSERT(axes.has("FACETSTEP"));
       ASKAPCHECK(casa::abs(axes.start("FACETSTEP")-axes.end("FACETSTEP"))<0.5, "facet steps extracted from "<<
                  iph.name()<<" are notably different for ra and dec axes. Should be the same integer number");
       const int facetStep = int(axes.start("FACETSTEP"));
 
-      casa::Array<double> mergedImage = ip.value(iph.name());
+      casa::Array<double> mergedImage = ip.value(mergedName);
       casa::IPosition blc(mergedImage.shape());
       casa::IPosition trc(mergedImage.shape());
       ASKAPDEBUGASSERT(blc.nelements()>=2);
@@ -900,13 +902,15 @@ namespace askap
        
        for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
             ImageParamsHelper iph(*ci);
+            // name with the facet-related suffixes removed (and taylor suffix preserved, if present)
+            const std::string baseName = iph.taylorName();
             if (iph.isFacet()) {
-                tempMapX[iph.name()].insert(iph.facetX());
-                tempMapY[iph.name()].insert(iph.facetY());
-                facetmap[iph.name()] = 0; // a flag that we need to figure out the exact number later   
+                tempMapX[baseName].insert(iph.facetX());
+                tempMapY[baseName].insert(iph.facetY());
+                facetmap[baseName] = 0; // a flag that we need to figure out the exact number later   
             } else {
                 // this is not a faceted image, just add it to the final list
-                facetmap[*ci] = 1; // one facet                
+                facetmap[baseName] = 1; // one facet                
             } 
        }
        for (std::map<std::string, int>::iterator it = facetmap.begin(); it!=facetmap.end(); ++it) {
@@ -965,13 +969,15 @@ namespace askap
        
        for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
             ImageParamsHelper iph(*ci);
+            // name with the taylor-related suffixes removed (and facet suffixes preserved, if present)
+            const std::string baseName = iph.facetName();
             if (iph.isTaylorTerm()) {
                 // this is a Taylor term, we need to remember all orders sited for this base name
-                tempMap[iph.name()].insert(iph.order());
-                taylormap[iph.name()] = 0; // just a flag, we need to figure out the exact number later
+                tempMap[baseName].insert(iph.order());
+                taylormap[baseName] = 0; // just a flag, we need to figure out the exact number later
             } else {
                 // this is not an MFS'ed image, add it to the final list
-                taylormap[*ci] = 1; // single order
+                taylormap[baseName] = 1; // single order
             }
        }
 
