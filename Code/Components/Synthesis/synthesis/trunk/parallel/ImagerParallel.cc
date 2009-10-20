@@ -54,6 +54,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/VoidMeasurementEquation.h>
 #include <measurementequation/CalibrationME.h>
 #include <measurementequation/NoXPolGain.h>
+#include <measurementequation/ImageParamsHelper.h>
 #include <fitting/Params.h>
 
 // These three includes can be removed when ImageRestoreSolver goes out of here
@@ -466,10 +467,11 @@ namespace askap
           ir.solveNormalEquations(q);
           ASKAPDEBUGASSERT(itsModel);
           *itsModel = ir.parameters();
-          // merged image should be a fixed parameter
+          // merged image should be a fixed parameter without facet suffixes
           resultimages=itsModel->fixedNames();
           for (vector<string>::const_iterator ci=resultimages.begin(); ci!=resultimages.end(); ++ci) {
-               if (ci->find("image") == 0) {
+               const ImageParamsHelper iph(*ci);
+               if (!iph.isFacet() && (ci->find("image") == 0)) {
                    ASKAPLOG_INFO_STR(logger, "Saving restored image " << *ci << " with name "
                                << *ci+string(".restored") );
                    SynthesisParamsHelper::saveImageParameter(*itsModel, *ci,*ci+string(".restored"));
