@@ -1,0 +1,5 @@
+#
+# The IceGrid instance
+#
+Ice.Default.Locator=IceGrid/Locator:tcp -p 4061
+

@@ -1,5 +1,5 @@
 # Configure the rootLogger
-log4j.rootLogger=DEBUG,STDOUT
+log4j.rootLogger=DEBUG,REMOTE
 
 log4j.appender.REMOTE=askap.IceAppender
 log4j.appender.REMOTE.locator_host=localhost

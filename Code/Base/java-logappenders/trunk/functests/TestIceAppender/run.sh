@@ -6,7 +6,7 @@ waitIceGrid()
     TIMEOUT=10
     STATUS=1
     while [ $STATUS -ne 0 ] && [ $TIMEOUT -ne 0 ]; do
-        $ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "node list" > /dev/null 2>&1
+        icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "node list" > /dev/null 2>&1
         STATUS=$?
         TIMEOUT=`expr $TIMEOUT - 1`
         sleep 1
@@ -27,7 +27,7 @@ waitIceStorm()
     INACTIVE="<inactive>"
     RESULT=$INACTIVE
     while [ $STATUS -ne 0 ] && [ "${RESULT}" = "${INACTIVE}" ] && [ $TIMEOUT -ne 0 ]; do
-        RESULT=`$ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "adapter endpoints IceStorm.TopicManager" > /dev/null 2>&1`
+        RESULT=`icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "adapter endpoints IceStorm.TopicManager" > /dev/null 2>&1`
         STATUS=$?
         TIMEOUT=`expr $TIMEOUT - 1`
         sleep 1
@@ -48,13 +48,13 @@ mkdir -p data/registry
 mkdir -p data/node
 
 # Start the Ice Grid
-$ICE_ROOT/bin/icegridnode --Ice.Config=config.icegrid > /dev/null 2>&1 &
+icegridnode --Ice.Config=config.icegrid > /dev/null 2>&1 &
 ICEGRIDPID=$!
 
 waitIceGrid
 
 # Add the IceStorm service
-$ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add icestorm.xml" > /dev/null 2>&1
+icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add icestorm.xml" > /dev/null 2>&1
 
 waitIceStorm
 
@@ -64,7 +64,7 @@ STATUS=$?
 
 # Request IceGrid shutdown and wait
 echo -n "Stopping IceGrid and IceStorm..."
-$ICE_ROOT/bin/icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "node shutdown Node1"
+icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "node shutdown Node1"
 wait $ICEGRIDPID
 echo "STOPPED"
 
