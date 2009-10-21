@@ -72,7 +72,17 @@ module tos
     {
     };
     
+    /**
+     * Exception thrown when there was an attempt to register settings for
+     * global/shared resources which is incompatible with settings which 
+     * were already registered.
+     **/
+    exception IncompatibleSettingsException
+      extends askap::interfaces::AskapIceException
+    {
+    };  
     
+      
     
     // Forward declaration
     class IArrayComponent;
@@ -95,6 +105,18 @@ module tos
 
     interface ITOSService
     {        
+        /** Lock in settings for any global/shared resources. If the provided
+         * settings are incompatible with a set that is already locked in
+         * then an exception will be thrown and your settings will not be
+         * applied.
+         **/
+        void registerGlobalSettings(string clientid, 
+                                    askap::interfaces::ParameterMap params)
+          throws IncompatibleSettingsException;
+        
+        /** Release the lock on settings for global/shared resources. */
+        void deregisterGlobalSettings(string clientid);
+        
         /** 
          * Request excusive control of one or more antennas as specified (using
          * TBD semantics) by the supplied parameters. If more than one antenna
