@@ -148,7 +148,7 @@ namespace askap
               // 
               ImageParamsHelper iph(*it);
               for (int order = 0; order<2*nTaylorTerms-1; ++order) { 
-                   if (nTaylorTerms>=1) {
+                   if (nTaylorTerms>1) {
                        // this is an MFS case, setup Taylor terms                       
                        iph.makeTaylorTerm(order);
                        ASKAPLOG_INFO_STR(logger,"Setting up Taylor term "<<order);
@@ -203,7 +203,7 @@ namespace askap
               // 
               ImageParamsHelper iph(*ci);
               for (int order = 0; order<2*nTaylorTerms-1; ++order) { 
-                   if (nTaylorTerms>=1) {
+                   if (nTaylorTerms>1) {
                        // this is an MFS case, setup Taylor terms                       
                        iph.makeTaylorTerm(order);
                        ASKAPLOG_INFO_STR(logger,"Processing Taylor term "<<order);
