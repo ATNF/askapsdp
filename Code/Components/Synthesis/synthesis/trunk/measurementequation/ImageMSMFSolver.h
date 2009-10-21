@@ -66,9 +66,8 @@ namespace askap
         /// solutions formed by the method described.
         /// @param[in] ip Parameters i.e. the images
         /// @param[in] scales Scales to be solved in pixels
-        /// @param[in] nterms number of terms
         ImageMSMFSolver(const askap::scimath::Params& ip,
-          const casa::Vector<float>& scales, const int& nterms);
+          const casa::Vector<float>& scales);
           
         /// @brief Initialize this solver
         virtual void init();
@@ -106,11 +105,6 @@ namespace askap
         /// Scales in pixels
         casa::Vector<float> itsScales;
 
-	    /// @brief Number of terms in the Taylor expansion
-        int itsNTaylor;
-        /// @brief number of terms in the Taylor expansion for PSF
-        int itsNPsfTaylor;
-        
 	/// Map of Cleaners - one for each polarisation index
         std::map<std::string, boost::shared_ptr<casa::MultiTermLatticeCleaner<float> > > itsCleaners;
 

@@ -55,6 +55,7 @@ using std::abs;
 #include <map>
 #include <vector>
 #include <string>
+#include <set>
 
 using std::map;
 using std::vector;
@@ -67,22 +68,17 @@ namespace askap
     
       
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip) : 
-      ImageCleaningSolver(ip), itsNTaylor(2), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
+      ImageCleaningSolver(ip), itsScales(3,0.), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
     {
-      itsScales.resize(3);
-      itsScales(0)=0;
+      ASKAPDEBUGASSERT(itsScales.size() == 3);
       itsScales(1)=10;
       itsScales(2)=30;
-      itsNPsfTaylor = 2*itsNTaylor-1;
     }
 
     ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip,
-      const casa::Vector<float>& scales, const int& nterms) : 
-          ImageCleaningSolver(ip),itsNTaylor(nterms)
+      const casa::Vector<float>& scales) : 
+          ImageCleaningSolver(ip),itsScales(scales)
     {
-      itsScales.resize(scales.size());
-      itsScales=scales;
-      itsNPsfTaylor = 2*itsNTaylor-1;
     }
     
     Solver::ShPtr ImageMSMFSolver::clone() const
@@ -179,6 +175,11 @@ namespace askap
 	                       imageShape<<" nPol="<<nPol);
 	           }
 	           //
+	           
+	           // as polarisations are not necessarily represented by a different parameter
+	           // we have to build a set of parameters which are going to be fixed inside the loop
+	           // (or alternatively fix them multiple times, which is also a reasonable solution)
+	           std::set<std::string> parametersToBeFixed;
 	 
 	           // Iterate through Polarisations (former sindex)
 	           for (scimath::MultiDimArrayPlaneIter planeIter(imageShape); planeIter.hasMore(); planeIter.next()) {
@@ -210,11 +211,19 @@ namespace askap
                     // a unique string for every Taylor decomposition (unique for every facet for faceting)
                     const std::string imageTag = tmIt->first + planeIter.tag();
                     
-                    // cover cross-terms as well during the first cycle
-                    int nOrders = itsNTaylor;                    
+                    // number of terms is the number of free parameters
+                    const int nOrders = tmIt->second;
+                    // number of Taylor terms without cross-terms, except on the first iteration
+                    // cross-terms are fixed and should not have ended up here. The first cycle is
+                    // dealt with later.
+                    int nTaylor = nOrders;
                     // check whether a particular tag has been encountered for the first time
                     const bool firstcycle = !SynthesisParamsHelper::hasValue(itsCleaners,imageTag);          
                     if(firstcycle)  {// Initialize everything only once.
+                       // have to remove cross-terms from nTaylor
+                       ASKAPCHECK(nTaylor % 2 == 1, "Number of free Taylor terms is supposed to be odd at first cycle, you have "<<
+                                  nTaylor);
+                       nTaylor = (nTaylor + 1) / 2; // cross-terms are now excluded           
 	                   // Initialize the latticecleaners
                        ASKAPLOG_INFO_STR(logger, "Initialising the solver for plane " << plane<<" tag "<<imageTag);
 	    
@@ -225,27 +234,21 @@ namespace askap
 	                                      fractionalThreshold(), false);
                        itsCleaners[imageTag]->ignoreCenterBox(true);
                        itsCleaners[imageTag]->setscales(itsScales);
-                       itsCleaners[imageTag]->setntaylorterms(itsNTaylor);
+                       itsCleaners[imageTag]->setntaylorterms(nTaylor);
                        itsCleaners[imageTag]->initialise(planeIter.planeShape()[0],planeIter.planeShape()[1]); // allocates memory once....
-                       // iterate over cross-terms during the first iteration 
-                       nOrders = 2*itsNTaylor-1;
 	                }
           
                     // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
                     casa::Array<float> psfZeroArray(planeIter.planeShape());
-                    
-                    // temporary support only homogeneous number of Taylor terms
-                    //ASKAPLOG_INFO_STR(logger, "nOrders="<<nOrders<<" itsNTaylor="<<itsNTaylor<<" tmIt:"<<tmIt->second);
-                    ASKAPCHECK(nOrders == tmIt->second, "Only homogeneous number of Taylor terms are supported");
-                    
+                                        
                     // buffer for the peak of zero-order PSF
                     float zeroPSFPeak = -1;
                     for( int order=0; order < nOrders; ++order) {
                         // make helper to represent the given order
                         iph.makeTaylorTerm(order);
 	                    const std::string thisOrderParam = iph.paramName();
-                        ASKAPLOG_INFO_STR(logger, "MSMFS solver: processing order "<<order<<" ("<<itsNTaylor<<
-                                          " Taylor terms + "<<itsNTaylor-1<<" cross-terms), parameter name: "<<thisOrderParam);
+                        ASKAPLOG_INFO_STR(logger, "MSMFS solver: processing order "<<order<<" ("<<nTaylor<<
+                                          " Taylor terms + "<<nTaylor-1<<" cross-terms), parameter name: "<<thisOrderParam);
                         ASKAPCHECK(normalEquations().normalMatrixSlice().count(thisOrderParam)>0, "PSF Slice for plane="<<
                                    plane<<" and order="<<order<<" is not present");
                         casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(thisOrderParam)->second);
@@ -295,7 +298,7 @@ namespace askap
                         itsCleaners[imageTag]->setpsf(order,psf);
 	   
                         // Setup the Residual Images and Model Images  - ( ntaylor ) of them
-                        if (order < itsNTaylor) {
+                        if (order < nTaylor) {
                             // Now precondition the residual images
                             doPreconditioning(psfZeroArray,dirtyArray);
 		   
@@ -316,7 +319,7 @@ namespace askap
                     ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles." );
 	  
                     // Write the final vector of clean model images into parameters
-                    for( int order=0; order < itsNTaylor; ++order) {
+                    for( int order=0; order < nTaylor; ++order) {
                         // make the helper to correspond to the given order
                         iph.makeTaylorTerm(order);
 	                    const std::string thisOrderParam = iph.paramName();
@@ -328,20 +331,25 @@ namespace askap
                         casa::Array<double> slice = planeIter.getPlane(itsParams->value(thisOrderParam));
                         casa::convertArray<double, float>(slice, cleanArray);
                     }
+                    // add extra parameters (cross-terms) to the to-be-fixed list
+                    for (int order = nTaylor; order<tmIt->second; ++order) {
+                         // make the helper to correspond to the given order
+                         iph.makeTaylorTerm(order);
+	                     const std::string thisOrderParam = iph.paramName();
+                         parametersToBeFixed.insert(thisOrderParam);
+                    }
                } // end of polarisation (i.e. plane) loop 
 	
                // Make sure that the next set of minor cycles does not redo unnecessary things.
-               // Also "fix" parameters for order >= itsNTaylor. so that the gridding doesn't get done
+               // Also "fix" parameters for order >= nTaylor. so that the gridding doesn't get done
                // for these extra terms.
 
                // Fix the params corresponding to extra Taylor terms.
 	           // (MV) probably this part needs another careful look
-	           for (int order=itsNTaylor; order<tmIt->second; ++order) {
-                    // make the helper to correspond to the given order
-                    iph.makeTaylorTerm(order);
-	                const std::string thisOrderParam = iph.paramName();
-	                if (itsParams->isFree(thisOrderParam)) {
-	                    itsParams->fix(thisOrderParam);
+	           for (std::set<std::string>::const_iterator ci = parametersToBeFixed.begin(); 
+	                ci != parametersToBeFixed.end(); ++ci) {
+	                if (itsParams->isFree(*ci)) {
+	                    itsParams->fix(*ci);
 	                }
 	           }
            } // try
