@@ -107,8 +107,8 @@ namespace askap
     {
       try {
 	     vector<string> images=parset.getStringVector("Names");
-         std::vector<int> shape=parset.getInt32Vector("shape");
-         std::vector<std::string> cellsize=parset.getStringVector("cellsize");
+         std::vector<int> shape=parset.getInt32Vector("shape",std::vector<int>());
+         std::vector<std::string> cellsize=parset.getStringVector("cellsize",std::vector<std::string>());
 	  
          for (vector<string>::const_iterator it=images.begin();it!=images.end();++it) {
               ASKAPCHECK(it->find("image") == 0, "All image names given in Names are supposed to start from 'image', you have "<<
@@ -116,10 +116,27 @@ namespace askap
               int nchan=parset.getInt32(*it+".nchan");
               std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
               std::vector<std::string> direction=parset.getStringVector(*it+".direction");
-              ASKAPCHECK(!parset.isDefined(*it+".shape"), "Parameters like Cimager.Images."<<*it<<
-                         ".shape are deprecated. Use Cimager.Images.shape (same for all images)");
-              ASKAPCHECK(!parset.isDefined(*it+".cellsize"), "Parameters like Cimager.Images."<<*it<<
-                         ".cellsize are deprecated. Use Cimager.Images.cellsize (same for all images)");
+              if (parset.isDefined(*it+".shape")) {
+                  if (shape.size()!=0) {
+                      ASKAPLOG_INFO_STR(logger, "Global image shape "<<shape<<
+                           " is overridden by specialisation for the parameter "<<*it<<", new shape is "<<
+                           parset.getInt32Vector(*it+".shape")); 
+                  }
+                  shape=parset.getInt32Vector(*it+".shape");                  
+              } else {
+                  ASKAPCHECK(shape.size()!=0, "If a global image shape is not defined, you should give shape separately for every image");
+              }
+              if (parset.isDefined(*it+".cellsize")) {
+                  if (cellsize.size()!=0) {
+                      ASKAPLOG_INFO_STR(logger, "Global cell size "<<cellsize<<
+                           " is overridden by specialisation for the parameter "<<*it<<", new cell size is "<<
+                            parset.getStringVector(*it+".cellsize")); 
+                  }
+                  cellsize=parset.getStringVector(*it+".cellsize");                  
+              } else {
+                  ASKAPCHECK(cellsize.size()!=0, "If a global cell size is not defined, you should give it separately for every image");
+              }
+              
               const int nfacets = parset.getInt32(*it+".nfacets",1);
               ASKAPCHECK(nfacets>0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
               ASKAPCHECK(shape.size()>=2, "Image is supposed to be at least two dimensional. "<<
