@@ -1,0 +1,11 @@
+# Configure the rootLogger
+log4j.rootLogger=DEBUG,STDOUT
+
+log4j.appender.REMOTE=askap.IceAppender
+log4j.appender.REMOTE.locator_host=localhost
+log4j.appender.REMOTE.locator_port=4061
+log4j.appender.REMOTE.topic=logger
+
+#log4j.appender.STDOUT=org.apache.log4j.ConsoleAppender
+#log4j.appender.STDOUT.layout=org.apache.log4j.PatternLayout
+#log4j.appender.STDOUT.layout.ConversionPattern=%-5p %c{2} [%d] - %m%n

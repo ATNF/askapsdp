@@ -1,0 +1,3 @@
+ice=3rdParty/Ice/tags/Ice-3.3.0;IceStorm Ice IceUtil
+interfaces=Code/Interfaces/trunk
+log4j=3rdParty/apache-log4j/tags/apache-log4j-1.2.15

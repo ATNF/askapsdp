@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<project name="java-logappenders" basedir="." default="install">
+
+    <!-- Read in the environment so $ASKAP_ROOT can be used -->
+    <property environment="env"/>
+
+    <!-- import common ASKAP definitions -->
+    <import file="${env.ASKAP_ROOT}/share/ant_tools/askapbuild.xml"/>
+
+    <!-- set properties for this build -->
+
+    <property name="slice.dir" value="${dep_interfaces}"/>
+    <fileset id="slice.files" dir="${dep_interfaces}">
+        <include name="CommonTypes.ice" />
+        <include name="LoggingService.ice" />
+    </fileset>
+
+</project>
