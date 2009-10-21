@@ -140,8 +140,25 @@ namespace askap
 	     std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 	
             if(algorithm=="MSMFS"){
-               ASKAPCHECK(!parset.isDefined("solver.nterms"), "Use solver.Clean.nterms instead of solver.nterms");
-               const int nterms=parset.getInt32("solver.Clean.nterms",2);
+               ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
+               ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
+               // temporary code before we teach the solver to extract this info directly from the parameters
+               const vector<string> images = parset.getStringVector("Images.Names");
+               ASKAPCHECK(images.size()!=0, "No images seem to be defined");
+               int nterms = -1; // flag meaning the value is uninitialised
+               for (vector<string>::const_iterator ci = images.begin(); ci != images.end(); ++ci) {
+                    ASKAPCHECK(ci->find("image") == 0, "All image names given in Names are supposed to start from 'image', you have "<<
+                         *ci);              
+                    const int nTaylorTerms = parset.getInt32("Images."+*ci+".nterms",1);
+                    ASKAPCHECK(nTaylorTerms>0, "Number of Taylor terms is supposed to be positive, you have "<<
+                               nTaylorTerms<<" (Images."<<*ci<<".nterms)");
+                    if (nterms<0) {
+                        nterms = nTaylorTerms;
+                    } else {
+                        ASKAPCHECK(nterms == nTaylorTerms, "Number of Taylor terms should currently be the same for all images");
+                    }
+               }
+               //
                solver.reset(new ImageMSMFSolver(ip, casa::Vector<float>(scales),nterms));
                ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver with "<<nterms<<" Taylor terms" );
                solver->setAlgorithm(algorithm);

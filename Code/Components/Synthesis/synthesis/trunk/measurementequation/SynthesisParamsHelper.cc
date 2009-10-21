@@ -140,19 +140,32 @@ namespace askap
                    stokesStr += stokesVec[i];
               }
               casa::Vector<casa::Stokes::StokesTypes> stokes = PolConverter::fromString(stokesStr);
-               
-              if (nfacets == 1) {
-                  ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< *it );        
-		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan,stokes);
-		      } else {
-		          // this is a multi-facet case
-		          ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
-		                                    " new empty facets for image "<< *it );	
-		          const int facetstep = parset.getInt32(*it+".facetstep",casa::min(shape[0],shape[1]));
-		          ASKAPCHECK(facetstep>0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
-		          ASKAPLOG_INFO_STR(logger, "Facet centers will be "<<facetstep<<
-		                      " pixels apart, each facet size will be "<<shape[0]<<" x "<<shape[1]); 
-		          add(*params, *it, direction, cellsize, shape, freq[0], freq[1], nchan, stokes, nfacets,facetstep);
+
+ 
+              const int nTaylorTerms = parset.getInt32(*it+".nterms",1);                           
+              ASKAPCHECK(nTaylorTerms>0, "Number of Taylor terms is supposed to be a positive number, you gave "<<
+                         nTaylorTerms);
+              // 
+              ImageParamsHelper iph(*it);
+              for (int order = 0; order<2*nTaylorTerms-1; ++order) { 
+                   if (nTaylorTerms>=1) {
+                       // this is an MFS case, setup Taylor terms                       
+                       iph.makeTaylorTerm(order);
+                       ASKAPLOG_INFO_STR(logger,"Setting up Taylor term "<<order);
+                   }
+                   if (nfacets == 1) {
+                       ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< iph.paramName());        
+		               add(*params, iph.paramName(), direction, cellsize, shape, freq[0], freq[1], nchan,stokes);
+		           } else {
+		               // this is a multi-facet case
+		               ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
+		                                         " new empty facets for image "<< iph.paramName());	
+		               const int facetstep = parset.getInt32(*it+".facetstep",casa::min(shape[0],shape[1]));
+		               ASKAPCHECK(facetstep>0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
+		               ASKAPLOG_INFO_STR(logger, "Facet centers will be "<<facetstep<<
+		                           " pixels apart, each facet size will be "<<shape[0]<<" x "<<shape[1]); 
+		               add(*params, iph.paramName(), direction, cellsize, shape, freq[0], freq[1], nchan, stokes, nfacets,facetstep);
+		           }
 		      }
 		      ASKAPLOG_INFO_STR(logger, "Number of channels = "<<nchan);
 		      ASKAPLOG_INFO_STR(logger, "Polarisation planes correspond to "<<PolConverter::toString(stokes));		      
@@ -183,12 +196,25 @@ namespace askap
               
               const int nfacets = parset.getInt32(*ci+".nfacets",1);
               ASKAPCHECK(nfacets>0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
-              if (nfacets == 1) {
-                  ASKAPLOG_INFO_STR(logger, "Reading image "<<*ci);
-                  SynthesisParamsHelper::loadImageParameter(*params,*ci,*ci);
-              } else {
-                  ASKAPLOG_INFO_STR(logger, "Loading multi-facet image image "<<*ci);
-                  SynthesisParamsHelper::getMultiFacetImage(*params,*ci,*ci, nfacets);
+              
+              const int nTaylorTerms = parset.getInt32(*ci+".nterms",1);                                                      
+              ASKAPCHECK(nTaylorTerms>0, "Number of Taylor terms is supposed to be a positive number, you gave "<<
+                         nTaylorTerms);
+              // 
+              ImageParamsHelper iph(*ci);
+              for (int order = 0; order<2*nTaylorTerms-1; ++order) { 
+                   if (nTaylorTerms>=1) {
+                       // this is an MFS case, setup Taylor terms                       
+                       iph.makeTaylorTerm(order);
+                       ASKAPLOG_INFO_STR(logger,"Processing Taylor term "<<order);
+                   }              
+                   if (nfacets == 1) {
+                       ASKAPLOG_INFO_STR(logger, "Reading image "<<iph.paramName());
+                       SynthesisParamsHelper::loadImageParameter(*params,iph.paramName(),iph.paramName());
+                   } else {
+                       ASKAPLOG_INFO_STR(logger, "Loading multi-facet image image "<<iph.paramName());
+                       SynthesisParamsHelper::getMultiFacetImage(*params,iph.paramName(),iph.paramName(), nfacets);
+                   }
               }
          }            
          
@@ -271,6 +297,9 @@ namespace askap
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));
       pixels.set(0.0);
       
+      // have to create facet parameter in two steps as it could be 
+      // a Taylor decomposition 
+      ImageParamsHelper iph(name);
       // a loop over facets
       for (int ix=0;ix<nfacets;++ix) {
            for (int iy=0;iy<nfacets;++iy) {
@@ -306,10 +335,13 @@ namespace askap
                 axes.addStokesAxis(stokes);
       
                 axes.add("FREQUENCY", freqmin, freqmax);
-                ip.add(ImageParamsHelper(name,ix,iy).paramName(), pixels, axes);    
+                
+                // add/change facet indices
+                iph.makeFacet(ix,iy);
+                ip.add(iph.paramName(), pixels, axes);    
                 
                 // for debigging
-                //if (ix!=0 || iy!=0) ip.fix(ImageParamsHelper(name,ix,iy).paramName());
+                //if (ix!=0 || iy!=0) ip.fix(iph.paramName());
            }
       }
       
@@ -416,7 +448,10 @@ namespace askap
     {
        ASKAPDEBUGASSERT(nfacets>1);
        // no consistency check of the coordinate systems of individual patches at this stage
-       ImageParamsHelper iph(name,0,0);
+       
+       // create image handler in two steps because name may contain a taylor-order suffix
+       ImageParamsHelper iph(name);
+       iph.makeFacet(0,0);
        const askap::scimath::Axes axes(ip.axes(iph.paramName()));
        ASKAPDEBUGASSERT(axes.has("RA") && axes.has("DEC") && axes.has("RA-TANGENT") &&
                         axes.has("DEC-TANGENT") && axes.has("STOKES") && axes.has("FREQUENCY"));
@@ -453,7 +488,7 @@ namespace askap
  
        casa::Array<double> pixels(newShape);
        pixels.set(0.0);
-       ip.add(iph.name(), pixels, newAxes);
+       ip.add(iph.taylorName(), pixels, newAxes);
     }
 
     /// @brief obtain an array corresponding to a single facet of a merged faceted image
@@ -735,9 +770,13 @@ namespace askap
            const string &fileName, const int nfacets)
     {
       ASKAPCHECK(nfacets>0, "The number of facets is supposed to be positive, you have "<<nfacets);
+      // create helper in two steps because the name may represent a Taylor term
+      ImageParamsHelper iph(name);
       for (int ix=0; ix<nfacets; ++ix) {
            for (int iy=0; iy<nfacets; ++iy) {
-                const std::string paramName = ImageParamsHelper(name,ix,iy).paramName();
+                // assign facet indices to the helper
+                iph.makeFacet(ix,iy);
+                const std::string paramName = iph.paramName();
                 loadImageParameter(ip,paramName,paramName);                            
            }
       }
@@ -876,7 +915,7 @@ namespace askap
     bool SynthesisParamsHelper::hasImage(const askap::scimath::Params::ShPtr &params)
     {
        ASKAPDEBUGASSERT(params);
-       return params->completions("image.i").size()!=0;
+       return params->completions("image").size()!=0;
     }
     
     /// @brief A helper method to build a list of faceted images

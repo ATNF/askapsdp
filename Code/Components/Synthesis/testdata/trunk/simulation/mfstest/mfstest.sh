@@ -20,26 +20,17 @@ Cimager.visweights.MFS.reffreq	= 1.2e9
 Cimager.Images.reuse			= false
 Cimager.Images.writeAtMajorCycle	= false
 
-#Cimager.Images.Names                            = [image.i.0.clean_mfstest, image.i.1.clean_mfstest, image.i.2.clean_mfstest]
-Cimager.Images.Names                            = [image.taylor.0, image.taylor.1, image.taylor.2]
+#Cimager.Images.Names                            = [image.taylor.0, image.taylor.1, image.taylor.2]
+Cimager.Images.Names                            = [image]
 Cimager.Images.shape				= [1024,1024]
 Cimager.Images.cellsize	        		= [8.0arcsec, 8.0arcsec]
 
 
-Cimager.Images.image.taylor.0.frequency	= [1.40e9,1.40e9]
-Cimager.Images.image.taylor.0.nchan	= 1
-Cimager.Images.image.taylor.0.polarisation     = ["RRLL"]
-Cimager.Images.image.taylor.0.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
-
-Cimager.Images.image.taylor.1.frequency	= [1.40e9,1.40e9]
-Cimager.Images.image.taylor.1.nchan	= 1
-Cimager.Images.image.taylor.1.polarisation     = ["RRLL"]
-Cimager.Images.image.taylor.1.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
-
-Cimager.Images.image.taylor.2.frequency	= [1.40e9,1.40e9]
-Cimager.Images.image.taylor.2.nchan	= 1
-Cimager.Images.image.taylor.2.polarisation     = ["RRLL"]
-Cimager.Images.image.taylor.2.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
+Cimager.Images.image.frequency	= [1.40e9,1.40e9]
+Cimager.Images.image.nchan	= 1
+Cimager.Images.image.nterms     = 2
+Cimager.Images.image.polarisation     = ["RRLL"]
+Cimager.Images.image.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 
 #
 Cimager.gridder                          	= SphFunc
@@ -48,7 +39,6 @@ Cimager.gridder                          	= SphFunc
 #
 Cimager.solver                           	= Clean
 Cimager.solver.Clean.algorithm                 	= MSMFS
-Cimager.solver.Clean.nterms			= 2
 
 Cimager.solver.Clean.scales			= [0]
 Cimager.solver.Clean.niter                     	= 100
