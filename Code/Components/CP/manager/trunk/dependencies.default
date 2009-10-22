@@ -4,3 +4,4 @@ common=3rdParty/LOFAR/Common/tags/Common-3.3
 boost=3rdParty/boost/tags/boost-1.37.0
 ice=3rdParty/Ice/tags/Ice-3.3.0;IceStorm Ice IceUtil
 interfaces=Code/Interfaces/trunk
+logappenders=Code/Base/logappenders/trunk
