@@ -48,7 +48,7 @@ public class IceAppender extends AppenderSkeleton
     private Ice.Communicator itsIceComm = null;
 
     // Proxy to the logger
-    private askap.interfaces.logging.ILoggerPrx itsLogService;
+    private askap.interfaces.logging.ILoggerPrx itsLogService = null;
 
     // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can be
     // turned into an ASKAP LogEvent
@@ -59,11 +59,13 @@ public class IceAppender extends AppenderSkeleton
      * Called automatically by Log4j to set the "locator_port"
      * option.
      */
-    public void setlocator_port(String port) {
+    public void setlocator_port(String port)
+    {
         this.itsLocatorPort = port;
     }
 
-    public String getlocator_port() {
+    public String getlocator_port()
+    {
         return this.itsLocatorPort;
     }
 
@@ -71,11 +73,13 @@ public class IceAppender extends AppenderSkeleton
      * Called automatically by Log4j to set the "locator_host"
      * option.
      */
-    public void setlocator_host(String host) {
+    public void setlocator_host(String host)
+    {
         this.itsLocatorHost = host;
     }
 
-    public String getlocator_host() {
+    public String getlocator_host()
+    {
         return this.itsLocatorHost;
     }
 
@@ -83,11 +87,13 @@ public class IceAppender extends AppenderSkeleton
      * Called automatically by Log4j to set the "topic"
      * option.
      */
-    public void settopic(String topic) {
+    public void settopic(String topic)
+    {
         this.itsTopic = topic;
     }
 
-    public String gettopic() {
+    public String gettopic()
+    {
         return this.itsTopic;
     }
 
@@ -142,7 +148,6 @@ public class IceAppender extends AppenderSkeleton
             itsLevelMap.put(Level.FATAL, askap.interfaces.logging.LogLevel.FATAL);
         }
 
-
         // Initialize Ice
         Ice.Properties props = Ice.Util.createProperties();
 
@@ -154,7 +159,7 @@ public class IceAppender extends AppenderSkeleton
         // Initialize a communicator with these properties.
         Ice.InitializationData id = new Ice.InitializationData();
         id.properties = props;
-        itsIceComm = Ice.Util.initialize(id);
+        Ice.Communicator itsIceComm = Ice.Util.initialize(id);
 
         if (itsIceComm == null) {
             throw new RuntimeException("Ice.Communicatornot initialised. Terminating.");
@@ -167,10 +172,12 @@ public class IceAppender extends AppenderSkeleton
             Ice.ObjectPrx obj = itsIceComm.stringToProxy("IceStorm/TopicManager");
             topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
         } catch (Ice.LocalException e) {
-            System.err.println("Ice connection refused, messages will not be send to the log server");
+            System.err.println("Ice connection refused, messages will not be sent to the log server");
 
             // Just return, treat this as non-fatal for the app, even though it
             // is fatal for logging via Ice.
+            itsIceComm.destroy();
+            itsIceComm = null;
             return;
         }
 
@@ -223,5 +230,9 @@ public class IceAppender extends AppenderSkeleton
 
     public synchronized void close()
     {
+            if (itsIceComm != null) {
+                itsIceComm.shutdown();
+                itsIceComm.waitForShutdown();
+            }
     }
 }
