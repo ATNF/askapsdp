@@ -1,8 +1,8 @@
 #
 # Configure adapters
 #
-TestLogArchiverAdapter.AdapterId=TestLogArchiverAdapter
-TestLogArchiverAdapter.Endpoints=tcp
+TestIceAppenderAdapter.AdapterId=TestIceAppenderAdapter
+TestIceAppenderAdapter.Endpoints=tcp
 
 #
 # Locator service config

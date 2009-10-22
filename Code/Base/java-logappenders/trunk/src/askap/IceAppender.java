@@ -1,5 +1,31 @@
+/**
+ * Copyright (c) 2009 CSIRO
+ * Australia Telescope National Facility (ATNF)
+ * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+ * PO Box 76, Epping NSW 1710, Australia
+ * atnf-enquiries@csiro.au
+ *
+ * This file is part of the ASKAP software distribution.
+ *
+ * The ASKAP software distribution is free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ *
+ */
+
 package askap;
 
+// Log4J imports
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ErrorCode;
@@ -7,19 +33,32 @@ import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
 
+// Standard Java imports
 import java.util.HashMap;
-
 
 public class IceAppender extends AppenderSkeleton
 {
+    // Configuration options which should be set automatically by log4j
+    // based on the contents of the log config file
     private String itsLocatorPort;
     private String itsLocatorHost;
     private String itsTopic;
+
+    // ICE communicator
     private Ice.Communicator itsIceComm = null;
+
+    // Proxy to the logger
     private askap.interfaces.logging.ILoggerPrx itsLogService;
+
+    // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can be
+    // turned into an ASKAP LogEvent
     private HashMap<org.apache.log4j.Level,askap.interfaces.logging.LogLevel> itsLevelMap =
         new HashMap<org.apache.log4j.Level,askap.interfaces.logging.LogLevel>();
 
+    /**
+     * Called automatically by Log4j to set the "locator_port"
+     * option.
+     */
     public void setlocator_port(String port) {
         this.itsLocatorPort = port;
     }
@@ -28,6 +67,10 @@ public class IceAppender extends AppenderSkeleton
         return this.itsLocatorPort;
     }
 
+    /**
+     * Called automatically by Log4j to set the "locator_host"
+     * option.
+     */
     public void setlocator_host(String host) {
         this.itsLocatorHost = host;
     }
@@ -36,6 +79,10 @@ public class IceAppender extends AppenderSkeleton
         return this.itsLocatorHost;
     }
 
+    /**
+     * Called automatically by Log4j to set the "topic"
+     * option.
+     */
     public void settopic(String topic) {
         this.itsTopic = topic;
     }
@@ -44,12 +91,15 @@ public class IceAppender extends AppenderSkeleton
         return this.itsTopic;
     }
 
-
     public boolean requiresLayout()
     {
         return false;
     }
 
+    /**
+     * Simple utility function to ensure the appropriate options
+     * have been set in the configuration file.
+     */
     private boolean verifyOptions()
     {
         final String error = "IceAppender: Cannot initialise - ";
@@ -69,8 +119,10 @@ public class IceAppender extends AppenderSkeleton
     }
 
     /**
-     * Called once all the options have been set. Starts
-     *  listening for clients on the specified socket.
+     * Called once all the options have been set.
+     * This is where ICE can be initialized and the topic created, since
+     * the configuration options have now been set hence we know the 
+     * locator host, locator port and logger topic name.
      */
     public void activateOptions()
     {
@@ -79,6 +131,8 @@ public class IceAppender extends AppenderSkeleton
             return;
         }
 
+        // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can be
+        // turned into an ASKAP LogEvent
         if (itsLevelMap.size() == 0) {
             itsLevelMap.put(Level.TRACE, askap.interfaces.logging.LogLevel.TRACE);
             itsLevelMap.put(Level.DEBUG, askap.interfaces.logging.LogLevel.DEBUG);
@@ -90,7 +144,6 @@ public class IceAppender extends AppenderSkeleton
 
 
         // Initialize Ice
-        // Get the initialized property set.
         Ice.Properties props = Ice.Util.createProperties();
 
         // Syntax example for the Ice.Default.Locator property:
@@ -132,6 +185,8 @@ public class IceAppender extends AppenderSkeleton
             }
         }
 
+        // Get a handle to the logger proxy for this topic, this handle is then
+        // used to publish log events
         Ice.ObjectPrx pub = topic.getPublisher().ice_oneway();
         itsLogService = askap.interfaces.logging.ILoggerPrxHelper.uncheckedCast(pub);
     }
@@ -155,16 +210,15 @@ public class IceAppender extends AppenderSkeleton
             iceevent.origin = event.getLoggerName();
 
             // The ASKAPsoft log archiver interface expects Unix time in seconds
-            // (the parameter is a double precision float) where log4cxx returns
+            // (the parameter is a double precision float) where log4j returns
             // microseconds.
             iceevent.created = event.getTimeStamp() / 1000.0 / 1000.0;
             iceevent.level = itsLevelMap.get(event.getLevel());
-            iceevent.message =  this.layout.format(event);
+            iceevent.message = event.getRenderedMessage();
 
             // Send
             itsLogService.send(iceevent);
         }
-
     }
 
     public synchronized void close()
