@@ -28,7 +28,12 @@ annotation file for use with the karma package.
       zip_safe = 0,
       dependency = dep,
 # Uncomment if using scripts (applications which go in bin) 
-      scripts = ["scripts/createSKADS.py", "scripts/createSubLists.py", "scripts/setupAllModels.py", "scripts/convolveModel.py"],
+      scripts = ["scripts/createSKADS.py", 
+                 "scripts/createSKADSspectralline.py", 
+                 "scripts/createSubLists.py", 
+                 "scripts/setupAllModels.py", 
+                 "scripts/convolveModel.py",
+                 "scripts/build_S3SAX_mySQLdb.py"],
 # Uncomment if using unit tests
 #      test_suite = "nose.collector",
 )
