@@ -61,7 +61,14 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
 
         // Setup ICE so this test program can subscribe to the logger topic
         Ice.Communicator ic = null;
+        Ice.ObjectAdapter adapter = null;
         askap.interfaces.logging._ILoggerDisp logger = null;
+        Ice.ObjectPrx proxy = null;
+        IceStorm.TopicPrx topic = null;
+
+        // Overall test status is -1 (fail) until the messages arrive
+        int status = 1;
+
         try {
             System.out.println("Test: Initializing ICE");
             ic = Ice.Util.initialize(args);
@@ -73,19 +80,10 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
             IceStorm.TopicManagerPrx topicManager;
 
             System.out.println("Test: Obtaining TopicManager");
-            try {
-                Ice.ObjectPrx obj = ic.stringToProxy("IceStorm/TopicManager");
-                topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
-            } catch (Ice.ConnectionRefusedException e) {
-                System.err.println("Ice connection refused, messages will not be send to the log server");
-
-                // Just return, treat this as non-fatal for the app, even though it
-                // is fatal for logging via Ice.
-                return;
-            }
+            Ice.ObjectPrx obj = ic.stringToProxy("IceStorm/TopicManager");
+            topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
 
             System.out.println("Test: Obtaining Logger Topic");
-            IceStorm.TopicPrx topic = null;
             String topicName = "logger";
             try {
                 topic = topicManager.retrieve(topicName);
@@ -98,54 +96,60 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
             }
 
             // Create an adapter and subscribe
-            Ice.ObjectAdapter adapter = ic.createObjectAdapter("TestIceAppenderAdapter");
+            adapter = ic.createObjectAdapter("TestIceAppenderAdapter");
             if (adapter == null) {
                 throw new RuntimeException("ICE adapter initialisation failed");
             }
 
             logger = new TestIceAppender();
-            Ice.ObjectPrx proxy = adapter.addWithUUID(logger).ice_oneway();
+            proxy = adapter.addWithUUID(logger).ice_oneway();
 
             java.util.Map qos = null;
             topic.subscribeAndGetPublisher(qos, proxy);
             adapter.activate();
+
+            // Setup logging
+            PropertyConfigurator.configure(args[0]);
+
+            System.err.println("Test: Sending log messages");
+            for (int i = 0; i < 100; i++) {
+                log.debug("Debug   Message");
+                log.warn ("Warning Message");
+                log.error("Error   Message");
+            }
+
+            // Wait for the three messages, up to a maximum of 5 seconds
+            for (int i = 0; i < 5; ++i) {
+                if (count == 300) {
+                    // Success, got all messages expected
+                    status = 0;
+                    break;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {}
+            }
+
         } catch (Ice.LocalException e) {
             e.printStackTrace();
             System.exit(1);
         } catch (Exception e) {
             System.err.println(e.getMessage());
             System.exit(1);
-        }
-
-        // Setup logging
-        PropertyConfigurator.configure(args[0]);
-
-        System.err.println("Test: Sending log messages");
-        log.debug("Debug   Message");
-        log.warn ("Warning Message");
-        log.error("Error   Message");
-
-        // Wait for the three messages, up to a maximum of 5 seconds
-        int status = 1;
-        for (int i = 0; i < 5; ++i) {
-            if (count == 3) {
-                // Success, got all messages expected
-                status = 0;
-                break;
-            }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {}
-        }
-
-        // Cleanup ICE
-        if (ic != null) {
-            // Cleanup
-            try {
-                ic.destroy();
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-                System.exit(1);
+        } finally {
+            // Cleanup ICE
+            if (ic != null) {
+                // Cleanup
+                try {
+                    adapter.deactivate();
+                    topic.unsubscribe(proxy);
+                    ic.shutdown();
+                    ic.waitForShutdown();
+                    ic.destroy();
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                    System.exit(1);
+                }
             }
         }
         System.exit(status);

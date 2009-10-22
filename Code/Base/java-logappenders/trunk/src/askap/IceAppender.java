@@ -166,7 +166,7 @@ public class IceAppender extends AppenderSkeleton
         try {
             Ice.ObjectPrx obj = itsIceComm.stringToProxy("IceStorm/TopicManager");
             topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
-        } catch (Ice.ConnectionRefusedException e) {
+        } catch (Ice.LocalException e) {
             System.err.println("Ice connection refused, messages will not be send to the log server");
 
             // Just return, treat this as non-fatal for the app, even though it
