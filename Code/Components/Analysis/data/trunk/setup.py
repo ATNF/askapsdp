@@ -33,6 +33,7 @@ annotation file for use with the karma package.
                  "scripts/createSubLists.py", 
                  "scripts/setupAllModels.py", 
                  "scripts/convolveModel.py",
+                 "scripts/createComparisonCatalogue.py",
                  "scripts/build_S3SAX_mySQLdb.py"],
 # Uncomment if using unit tests
 #      test_suite = "nose.collector",

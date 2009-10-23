@@ -114,10 +114,11 @@ if __name__ == '__main__':
                     tabnames = getTabNames(x,y,type)
 
                     max_redshift = HIfreq / (centralFreq - numChannels*channelWidth/2.) - 1.
+                    min_redshift = HIfreq / (centralFreq + numChannels*channelWidth/2.) - 1.
 
                     hiQuery = ''
                     if(justHIsources):
-                        hiQuery = 'g.m_hi>0 and g.redshift < %f and '%max_redshift
+                        hiQuery = 'g.m_hi>0 and g.redshift < %f and g.redshift > %f and '%(max_redshift,min_redshift)
 
                     query = "SELECT g.right_ascension,g.declination,g.redshift,g.m_hi,pow(10,g.itot_1400) as flux14,pow(10,g.itot_610) as flux6,c.right_ascension,c.declination,c.major_axis,c.minor_axis,c.position_angle,g.galaxy,c.component from %s as g left outer join %s as c on g.galaxy=c.galaxy where %sc.i_1400>%f"%(tabnames[1],tabnames[0],hiQuery,log10(fluxLimit))
                     print query
