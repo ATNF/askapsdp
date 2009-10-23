@@ -39,6 +39,17 @@ if __name__ == '__main__':
     pa = inputPars.get_value("pa",0.)
 
     doCduchamp = inputPars.get_value("doCduchamp",True);
+    if('Cduchamp.Fitter.useNoise' not in inputPars):
+        inputPars.set_value('Cduchamp.Fitter.useNoise',False)
+    if('Cduchamp.Fitter.fitTypes' not in inputPars):
+        inputPars.set_value('Cduchamp.Fitter.fitTypes','[full]')
+    if('Cduchamp.Fitter.maxRMS' not in inputPars):
+        inputPars.set_value('Cduchamp.Fitter.maxRMS','500.')
+    if('Cduchamp.Fitter.boxPadSize' not in inputPars):
+        inputPars.set_value('Cduchamp.Fitter.boxPadSize','7')
+    if('Cduchamp.threshSpatial' not in inputPars):
+        inputPars.set_value('Cduchamp.threshSpatial','10')
+
 
     cduchampSummary = inputPars.get_value("Cduchamp.summaryFile","duchamp-Summary.txt")
     outputCat = inputPars.get_value("outputCat","");
