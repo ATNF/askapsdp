@@ -54,17 +54,14 @@ IMPLEMENT_LOG4CXX_OBJECT(IceAppender)
 
 IceAppender::IceAppender()
 {
-  // Not initialised, a bool might be cheaper
-
-  if (levelMap.size() == 0) {
-      levelMap[Level::getTrace()] = askap::interfaces::logging::TRACE;
-      levelMap[Level::getDebug()] = askap::interfaces::logging::DEBUG;
-      levelMap[Level::getInfo()] = askap::interfaces::logging::INFO;
-      levelMap[Level::getWarn()] = askap::interfaces::logging::WARN;
-      levelMap[Level::getError()] = askap::interfaces::logging::ERROR;
-      levelMap[Level::getFatal()] = askap::interfaces::logging::FATAL;
-  }
-
+    if (levelMap.size() == 0) {
+        levelMap[Level::getTrace()] = askap::interfaces::logging::TRACE;
+        levelMap[Level::getDebug()] = askap::interfaces::logging::DEBUG;
+        levelMap[Level::getInfo()] = askap::interfaces::logging::INFO;
+        levelMap[Level::getWarn()] = askap::interfaces::logging::WARN;
+        levelMap[Level::getError()] = askap::interfaces::logging::ERROR;
+        levelMap[Level::getFatal()] = askap::interfaces::logging::FATAL;
+    }
 }
 
 IceAppender::~IceAppender()
@@ -75,7 +72,7 @@ IceAppender::~IceAppender()
     }
 }
 
-void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*p*/)
+void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*pool*/)
 {
     if (itsIceComm && itsIceComm->isShutdown()) {
         std::cerr << "Ice is shutdown, cannot send log message" << std::endl;
@@ -131,7 +128,7 @@ void IceAppender::setOption(const LogString& option, const LogString& value)
     }
 }
 
-void IceAppender::activateOptions(log4cxx::helpers::Pool& pool)
+void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
 {
     // First ensure host, port and topic are set
     if (!verifyOptions()) {
@@ -153,24 +150,21 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& pool)
     id.properties = props;
     itsIceComm = Ice::initialize(id);
 
-    if (!itsIceComm) {
-        ASKAPTHROW(std::runtime_error, "Ice::CommunicatorPtr not initialised. Terminating.");
-    }
-
-    // Obtain the topic or create
+    // Obtain a proxy to the topic manager
     IceStorm::TopicManagerPrx topicManager;
-
     try {
         Ice::ObjectPrx obj = itsIceComm->stringToProxy("IceStorm/TopicManager");
         topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
-    } catch (Ice::ConnectionRefusedException) {
-        std::cerr << "Ice connection refused, messages will not be send to the log server" << std::endl;
-
+    } catch (Ice::Exception) {
+        std::cerr << "Could not connect to logger topic, messages will not be sent to the log server" << std::endl;
         // Just return, treat this as non-fatal for the app, even though it
         // is fatal for logging via Ice.
+        itsIceComm->destroy();
+        itsIceComm = 0;
         return;
     }
 
+    // Obtain the topic or create
     IceStorm::TopicPrx topic;
     try {
         topic = topicManager->retrieve(itsLoggingTopic);

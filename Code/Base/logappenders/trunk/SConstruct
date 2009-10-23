@@ -20,6 +20,10 @@ pkg.build_shared = True
 # This package should not build an archive/static library
 pkg.build_static = False
 
+# Compiler flags
+env.Append(CCFLAGS=['-Wall'])
+#env.Append(CCFLAGS=['-g'])
+
 # run the build process
 pkg()
 
