@@ -96,4 +96,22 @@ public abstract class Logger {
 
   /** Log a fatal level message. */
   public abstract void fatal(String msg);
+  
+  /** Simple test program. */
+  public static void main(String[] args) {
+    Logger l1 = getRootLogger();
+    l1.trace("a trace message");
+    l1.debug("a debug message");
+    l1.info("an info message");
+    l1.warn("a warn message");
+    l1.error("an error message");
+    l1.fatal("a fatal message");
+    Logger l2 = getLogger("foobar");
+    l2.trace("a trace message");
+    l2.debug("a debug message");
+    l2.info("an info message");
+    l2.warn("a warn message");
+    l2.error("an error message");
+    l2.fatal("a fatal message");
+  }
 }
