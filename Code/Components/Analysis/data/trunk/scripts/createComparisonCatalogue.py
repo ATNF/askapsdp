@@ -39,6 +39,7 @@ if __name__ == '__main__':
     pa = inputPars.get_value("pa",0.)
 
     doCduchamp = inputPars.get_value("doCduchamp",True);
+    inputPars.set_value('Cduchamp.image',convolvedImage)
     if('Cduchamp.Fitter.useNoise' not in inputPars):
         inputPars.set_value('Cduchamp.Fitter.useNoise',False)
     if('Cduchamp.Fitter.fitTypes' not in inputPars):
@@ -59,6 +60,7 @@ if __name__ == '__main__':
         script="""
 ia.open('%s')
 ia.convolve2d(outfile='%s',major='%f arcsec',minor='%f arcsec',pa='%f deg')
+ia.close()
 """%(modelImage,convolvedImage,major,minor,pa)
         scriptFileName='createCompCat-casapy-script.py'
         scriptFile = file(scriptFileName,"w");

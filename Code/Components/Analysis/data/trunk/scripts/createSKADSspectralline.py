@@ -8,10 +8,10 @@ import os
 import askap.parset as parset
 import math
 
-S3SEX_host = "gijane.atnf.csiro.au"
-S3SEX_user = "skads"
-S3SEX_pass = "skads"
-S3SEX_db = "S3SEX"
+SKADS_host = "gijane.atnf.csiro.au"
+SKADS_user = "skads"
+SKADS_pass = "skads"
+#SKADS_db = "S3SEX"
 
 SuperBrightSource = 67005861  # component number of the source with 1400MHz flux = 584Jy
 HIfreq = 1420405751.786       # emission frequency of HI line
@@ -37,6 +37,45 @@ def getTabNames(x,y,type):
 
 ############
 
+def sphericalDistance(ra1, dec1, ra2, dec2):
+      r1 = ra1  * math.pi / 180.;
+      d1 = dec1 * math.pi / 180.;
+      r2 = ra2  * math.pi / 180.;
+      d2 = dec2 * math.pi / 180.;
+      angsep = math.cos(r1-r2)*math.cos(d1)*math.cos(d2) + math.sin(d1)*math.sin(d2);
+      return math.acos(angsep)*180./math.pi;
+
+############
+
+def getQueryStringS3SEX(tabnames,max_redshift,min_redshift,fluxLimit,hiLimit=0):
+    '''
+    Return a query string appropriate for the database requested. The names of the relevant tables for the S3SEX case are provided by the parameter "tabnames". Basic parameters to return from the query are: RA, Dec, z, M_HI, fluxes (if available), major axis, minor axis, position angle.
+    '''
+
+    if(fluxLimit<=0.):
+        fluxLimit=1.e-18;
+
+    hiQuery = 'g.m_hi>%f and g.redshift < %f and g.redshift > %f '%(hiLimit,max_redshift,min_redshift)
+    
+    return "SELECT g.right_ascension,g.declination,g.redshift,g.m_hi,pow(10,g.itot_1400) as flux14,pow(10,g.itot_610) as flux6,c.right_ascension,c.declination,c.major_axis,c.minor_axis,c.position_angle,g.galaxy,c.component from %s as g left outer join %s as c on g.galaxy=c.galaxy where c.i_1400>%f and %s"%(tabnames[1],tabnames[0],log10(fluxLimit),hiQuery)
+
+############
+
+def getQueryStringS3SAX(radius,max_redshift,min_redshift,hiMassLimit=0.,hiFluxLimit=0.):
+    '''
+    Return a query string appropriate for the database requested. The names of the relevant tables for the S3SEX case are provided by the parameter "tabnames". Basic parameters to return from the query are: RA, Dec, z, M_HI, fluxes (if available), major axis, minor axis, position angle.
+    '''
+
+    sepQuery = 'acos(  cos( right_ascension * pi() / 180. ) * cos( declination * pi() / 180. ) * cos( 0. )\
+ + sin( declination * pi() / 180. ) * sin( 0. )  ) * 180. / pi() <  %f and '%radius
+
+
+    hiQuery = 'himass>%f and hiintflux>%f and zapparent < %f and zapparent > %f'%(hiMassLimit,hiFluxLimit,max_redshift,min_redshift)
+
+    return 'SELECT right_ascension,declination,zapparent,himass,hiintflux,(himajoraxis_msunpc*(1+zapparent)/distance) as "major axis", (hiaxisratio*himajoraxis_msunpc*(1+zapparent)/distance) as "minor axis", diskpositionangle from Galaxies where %s%s'%(sepQuery,hiQuery)
+
+############
+
 if __name__ == '__main__':
 
     parser = OptionParser()
@@ -59,12 +98,16 @@ if __name__ == '__main__':
         print "Can only accept 'SKADS' as a value for 'catSource'.\nExiting.\n"
         exit(1)
 
+    database = inputPars.get_value('database', 'S3SEX')
+    print 'Using database %s'%database
+
     makeImage = inputPars.get_value("makeImage", True)
     queryDatabase = inputPars.get_value("queryDatabase",True)
 
     defaultTypes = {'RQAGN':0,'FRI':1,'FRII':2,'SBG':3,'SFG':4}
     types = inputPars.get_value("sourceTypes", defaultTypes.keys())
-    print "Source Types requested: ",types
+    if(database=='S3SEX'):
+        print "Source Types requested: ",types
 
     fieldAngSize = inputPars.get_value("fieldAngSize", 5.)
     fieldPixSize = inputPars.get_value("fieldPixSize", 2048)
@@ -79,7 +122,9 @@ if __name__ == '__main__':
     imageDoContinuum = inputPars.get_value("imageDoContinuum", False)
     imageDoHI = inputPars.get_value("imageDoHI", True)
 
-    fluxLimit = inputPars.get_value("fluxLimit", 1.e-6)
+    fluxLimit = inputPars.get_value("fluxLimit", 1.e-6) # in Jy
+    hiMassLimit = inputPars.get_value("hiMassLimit",1.e6) # in M_sun
+    hiFluxLimit = inputPars.get_value("hiFluxLimit",1.e-3) # in Jy.km/s
     minMinorAxis = inputPars.get_value("minMinorAxis", 0.0001)
     
     translateLoc = inputPars.get_value("translateLoc", True)
@@ -89,8 +134,6 @@ if __name__ == '__main__':
     imageFile = inputPars.get_value("imageFile", "images/SKADS_S3SEX_10sqdeg_spectralline.fits")
     imageParsetFile = inputPars.get_value("imageParsetFile", "parsets/createFITS_SKADSspectralline.in")
     
-    centres = range(-int(fieldAngSize/2),int(fieldAngSize/2)+1,1)
-
     if(translateLoc):
         if(catFile.rfind('.')<0):
             origCatFile = catFile + '_orig'
@@ -101,11 +144,17 @@ if __name__ == '__main__':
 
 
     if(queryDatabase):
-        db = MySQLdb.connect(host=S3SEX_host, user=S3SEX_user, passwd=S3SEX_pass, db=S3SEX_db)
+        db = MySQLdb.connect(host=SKADS_host, user=SKADS_user, passwd=SKADS_pass, db=database)
         cursor = db.cursor()
     
         catfile = file(origCatFile,"w")
         catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s %10s %10s %5s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","Type"))
+
+        centres = range(-int(fieldAngSize/2),int(fieldAngSize/2)+1,1)
+        if(database=='S3SAX'):
+            types=['SFG']
+            haveFreqInfo = False;
+            centres = [0]
 
         for type in types:
             for x in centres:
@@ -116,11 +165,11 @@ if __name__ == '__main__':
                     max_redshift = HIfreq / (centralFreq - numChannels*channelWidth/2.) - 1.
                     min_redshift = HIfreq / (centralFreq + numChannels*channelWidth/2.) - 1.
 
-                    hiQuery = ''
-                    if(justHIsources):
-                        hiQuery = 'g.m_hi>0 and g.redshift < %f and g.redshift > %f and '%(max_redshift,min_redshift)
-
-                    query = "SELECT g.right_ascension,g.declination,g.redshift,g.m_hi,pow(10,g.itot_1400) as flux14,pow(10,g.itot_610) as flux6,c.right_ascension,c.declination,c.major_axis,c.minor_axis,c.position_angle,g.galaxy,c.component from %s as g left outer join %s as c on g.galaxy=c.galaxy where %sc.i_1400>%f"%(tabnames[1],tabnames[0],hiQuery,log10(fluxLimit))
+                    if(database=='S3SEX'):
+                        query = getQueryStringS3SEX(tabnames,max_redshift,min_redshift,fluxLimit)
+                    elif(database=='S3SAX'):
+                        query = getQueryStringS3SAX(fieldAngSize,max_redshift,min_redshift,hiMassLimit,hiFluxLimit)
+#                    query = "SELECT g.right_ascension,g.declination,g.redshift,g.m_hi,pow(10,g.itot_1400) as flux14,pow(10,g.itot_610) as flux6,c.right_ascension,c.declination,c.major_axis,c.minor_axis,c.position_angle,g.galaxy,c.component from %s as g left outer join %s as c on g.galaxy=c.galaxy where %sc.i_1400>%f"%(tabnames[1],tabnames[0],hiQuery,log10(fluxLimit))
                     print query
 
                     cursor.execute(query)
@@ -133,18 +182,27 @@ if __name__ == '__main__':
                         ra = r[0]
                         dec = r[1]
                         z = r[2]
-                        mHI = r[3]
-                        s1400 = r[4]
-                        s0610 = r[5]
-                        maj = r[8]
-                        min = r[9]
-                        pa = r[10]
-                        compNum = r[12]
 
-                        if(compNum == SuperBrightSource): 
-                            # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
-                            s1400 = 1. / s1400
-                            s0610 = 1. / s0610
+                        if(database=='S3SEX'):
+                            mHI = pow(10,r[3])
+                            s1400 = r[4]
+                            s0610 = r[5]
+                            maj = r[8]
+                            min = r[9]
+                            pa = r[10]
+                            compNum = r[12]
+                            if(compNum == SuperBrightSource): 
+                                # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
+                                s1400 = 1. / s1400
+                                s0610 = 1. / s0610
+                        elif(database=='S3SAX'):
+                            mHI = r[3]
+                            s1400 = 0.
+                            s0610 = 0. 
+                            maj = r[5]
+                            min = r[6]
+                            pa = r[7]
+
 
                         if(haveFreqInfo):
                             alpha = log10(s1400/s0610)/log10(1400./610.)
@@ -170,6 +228,7 @@ if __name__ == '__main__':
     createFITSinput = """\
 createFITS.filename         = !%s
 createFITS.sourcelist       = %s
+createFITS.sourcelisttype   = spectralline
 createFITS.posType          = deg
 createFITS.bunit            = Jy/pixel
 createFITS.dim              = 4
