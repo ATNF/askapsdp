@@ -58,6 +58,18 @@ namespace askap
         static askap::scimath::Solver::ShPtr make(askap::scimath::Params& ip, 
           const LOFAR::ParameterSet& parset); 
         
+        /// @brief Helper method to configure preconditioners
+        /// @details This method parses reconditioner.Names and sets up
+        /// given preconditioners. Parameters necessary for this setup are also
+        /// extracted from parset
+        /// @param[in] parset parameter set to extract the input from
+        /// @param[in] solver shared pointer to the solver to be configured
+        /// @note This method is made public (temporary) because the same
+        /// functionality is required to setup the restore solver. In future, we
+        /// expect to set up the restore solver through the same factory
+        static void configurePreconditioners(const LOFAR::ParameterSet &parset,
+                     const boost::shared_ptr<ImageSolver> &solver);
+        
       protected:
         /// @brief Helper method to configure minor cycle threshold(s)
         /// @details This method parses threshold.minorcycle parameter
@@ -72,6 +84,7 @@ namespace askap
         /// @param[in] solver shared pointer to the solver to be configured
         static void configureThresholds(const LOFAR::ParameterSet &parset,
                      const boost::shared_ptr<ImageSolver> &solver);
+                             
     };
 
   }

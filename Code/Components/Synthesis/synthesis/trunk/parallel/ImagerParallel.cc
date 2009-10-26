@@ -40,6 +40,9 @@
 ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <askap/AskapError.h>
+// need it just for null deleter
+#include <askap/AskapUtil.h>
+
 #include <askap_synthesis.h>
 
 #include <dataaccess/DataAccessError.h>
@@ -398,70 +401,12 @@ namespace askap
         if (itsRestore && postfix == "")
         {
           ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
+          ASKAPDEBUGASSERT(itsQbeam.size() == 3);
           ImageRestoreSolver ir(*itsModel, itsQbeam);
           ir.setThreshold(itsSolver->threshold());
           ir.setVerbose(itsSolver->verbose());
-	  /// @todo Fix copying of preconditioners
-	  // Check for preconditioners. Same code as in ImageSolverFactory.
-	  // Will be neater if the RestoreSolver is also created in the ImageSolverFactory.
-	  const vector<string> preconditioners=itsParset.getStringVector("preconditioner.Names",std::vector<std::string>());
-	  if(preconditioners.size()) {
-	    for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) {
-	      if( (*pc)=="Wiener" ) {
-	        float noisepower = itsParset.getFloat("preconditioner.Wiener.noisepower",0.0);
-		ir.addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
-	      }
-	      if ( (*pc) == "GaussianTaper") {
-	          // at this stage we have to define tapers in uv-cells, rather than in klambda
-	          // because the physical cell size is unknown to solver factory. 
-	          // Theoretically we could parse the parameters here and extract the cell size and
-	          // shape, but it can be defined separately for each image. We need to find
-	          // the way of dealing with this complication.
-	          ASKAPCHECK(itsParset.isDefined("preconditioner.GaussianTaper"), 
-	                "preconditioner.GaussianTaper showwing the taper size should be defined to use GaussianTaper");
-	          const vector<double> taper = SynthesisParamsHelper::convertQuantity(
-	                 itsParset.getStringVector("preconditioner.GaussianTaper"),"rad");
-	          ASKAPCHECK((taper.size() == 3) || (taper.size() == 1), 
-	                     "preconditioner.GaussianTaper can have either single element or "
-	                     " a vector of 3 elements. You supplied a vector of "<<taper.size()<<" elements");     
-	          ASKAPCHECK(itsParset.isDefined("Images.shape") && itsParset.isDefined("Images.cellsize"),
-	                 "Imager.shape and Imager.cellsize should be defined to convert the taper fwhm specified in "
-	                 "angular units in the image plane into uv cells");
-	          const std::vector<double> cellsize = SynthesisParamsHelper::convertQuantity(
-	                    itsParset.getStringVector("Images.cellsize"),"rad");
-	          const std::vector<int> shape = itsParset.getInt32Vector("Images.shape");
-	          ASKAPCHECK((cellsize.size() == 2) && (shape.size() == 2), 
-	              "Images.cellsize and Images.shape parameters should have exactly two values");
-	          // factors which appear in nominator are effectively half sizes in radians
-	          const double xFactor = cellsize[0]*double(shape[0])/2.;
-	          const double yFactor = cellsize[1]*double(shape[1])/2.;
-	          
-	          if (taper.size() == 3) {
-
-	              ASKAPDEBUGASSERT((taper[0]!=0) && (taper[1]!=0));              
-	              ir.addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(
-	                     xFactor/taper[0],yFactor/taper[1],taper[2])));	                         
-	          } else {
-	              ASKAPDEBUGASSERT(taper[0]!=0);              	              
-                  if (std::abs(xFactor-yFactor)<4e-15) {
-                      // the image is square, can use the short cut
-	                  ir.addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/taper[0])));	                                
-                  } else {
-                      // the image is rectangular. Although the gaussian taper is symmetric in
-                      // angular coordinates, it will be elongated along the vertical axis in 
-                      // the uv-coordinates.
-	                  ir.addPreconditioner(IImagePreconditioner::ShPtr(new GaussianTaperPreconditioner(xFactor/taper[0],
-	                         yFactor/taper[0],0.)));	                                                      
-                  } 
-	          }          
-	      }
-	    }
-	  }
-	  else {
-		  ir.addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner()));
-	  }
-
-	  
+          boost::shared_ptr<ImageSolver> solverPtr(&ir,utility::NullDeleter());
+          ImageSolverFactory::configurePreconditioners(itsParset,solverPtr);
           ir.copyNormalEquations(*itsSolver);
           Quality q;
           ir.solveNormalEquations(q);
