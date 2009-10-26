@@ -11,7 +11,6 @@
     
     <!-- Set resources to include in the jar file -->
     <resources id="resources.list">
-      <fileset file="resources/askaplogger.properties"/>
+        <fileset file="resources/askaplogger.properties"/>
     </resources>
-
 </project>
