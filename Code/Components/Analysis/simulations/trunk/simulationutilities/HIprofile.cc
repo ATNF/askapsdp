@@ -134,7 +134,8 @@ namespace askap {
 	this->itsRedshift = z;
 	this->itsMHI = mhi;
 	double dist = redshiftToDist(z); // in Mpc
-	double intFlux = 4.24e-6 * pow(10.,mhi) / (dist*dist);
+	double intFlux = 4.24e-6 * mhi / (dist*dist);
+// 	double intFlux = 4.24e-6 * pow(10.,mhi) / (dist*dist);
 	return intFlux;
       }
 

@@ -79,9 +79,9 @@ namespace askap {
       }
       
 
-      float Continuum::flux(float freq)
+      double Continuum::flux(double freq)
       {
-	float powerTerm = this->itsAlpha+this->itsBeta*log(freq/this->itsNuZero);
+	double powerTerm = this->itsAlpha+this->itsBeta*log(freq/this->itsNuZero);
 	return this->itsFluxZero * pow(freq/this->itsNuZero, powerTerm);
       }
 

@@ -50,13 +50,13 @@ namespace askap {
 
 		float getFluxZero(){return itsFluxZero;};
 
-		float flux(float nu);
+		double flux(double freq);
 
             protected:
-                float itsAlpha;
-                float itsBeta;
-                float itsNuZero;
-		float itsFluxZero;
+                double itsAlpha;
+                double itsBeta;
+                double itsNuZero;
+		double itsFluxZero;
 
         };
 

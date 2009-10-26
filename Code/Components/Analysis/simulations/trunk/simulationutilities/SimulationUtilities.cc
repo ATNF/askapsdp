@@ -101,7 +101,7 @@ namespace askap {
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), subsection.getStart(1));
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), subsection.getEnd(1));
 
-	    ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin="<<xmin<<", xmax="<<xmax<<", ymin="<<ymin <<", ymax="<<ymax);
+	    ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin="<<xmin<<", xmax="<<xmax<<", ymin="<<ymin <<", ymax="<<ymax<<" ... using subsection " << subsection.getSection() <<" with [start:end]=["<<subsection.getStart(0)<<":"<<subsection.getEnd(0)<<","<<subsection.getStart(1)<<":"<<subsection.getEnd(1)<<"], and gaussian at ["<<gauss.xCenter()<<","<<gauss.yCenter()<<"]");
 
 	    if((xmax>=xmin) && (ymax>=ymin)){  // if there are object pixels falling within the image boundaries
 
