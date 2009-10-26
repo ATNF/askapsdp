@@ -200,7 +200,7 @@ namespace askap
 	    // shape, but it can be defined separately for each image. We need to find
 	    // the way of dealing with this complication.
 	    ASKAPCHECK(parset.isDefined("preconditioner.GaussianTaper"), 
-		       "preconditioner.GaussianTaper showwing the taper size should be defined to use GaussianTaper");
+		       "preconditioner.GaussianTaper showing the taper size should be defined to use GaussianTaper");
 	    const vector<double> taper = SynthesisParamsHelper::convertQuantity(
 										parset.getStringVector("preconditioner.GaussianTaper"),"rad");
 	    ASKAPCHECK((taper.size() == 3) || (taper.size() == 1), 

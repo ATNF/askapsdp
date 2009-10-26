@@ -89,18 +89,20 @@ IImagePreconditioner::ShPtr GaussianTaperPreconditioner::clone()
 bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
 {
 
-  float maxPSFBefore=casa::max(psf);
+  const float maxPSFBefore=casa::max(psf);
   ASKAPLOG_INFO_STR(logger, "Peak of PSF before Gaussian taper = " << maxPSFBefore);
-
+  
   ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<itsMajorAxis*sqrt(8.*log(2.))<<" x "<<
                     itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at the position angle of "<<itsPA/M_PI*180.<<" degrees");
   ASKAPDEBUGASSERT(psf.shape().isEqual(dirty.shape()));
   
   applyTaper(psf);
 
-  float maxPSFAfter=casa::max(psf);
+  const float maxPSFAfter=casa::max(psf);
 
   ASKAPLOG_INFO_STR(logger, "Peak of PSF after Gaussian taper  = " << maxPSFAfter);
+  ASKAPCHECK(maxPSFAfter>0., "Peak of the PSF is supposed to be a positive number");
+ 
   psf*=maxPSFBefore/maxPSFAfter;
   ASKAPLOG_INFO_STR(logger, "Normalized to unit peak");
 
