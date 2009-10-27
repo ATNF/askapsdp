@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2009 CSIRO Australia Telescope National Facility (ATNF) Commonwealth
+ * Scientific and Industrial Research Organisation (CSIRO) PO Box 76, Epping NSW 1710,
+ * Australia atnf-enquiries@csiro.au
+ * 
+ * This file is part of the ASKAP software distribution.
+ * 
+ * The ASKAP software distribution is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this
+ * program; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite
+ * 330, Boston, MA 02111-1307 USA
+ */
+
 package askap.logger;
 
 import java.util.Properties;
@@ -16,8 +36,8 @@ import askap.interfaces.logging.*;
  */
 public class LoggerIce extends Logger {
   /** The property used to get the service location string. */
-  protected static final String theirServiceProp = "askap.logger.ice.service"; 
-  
+  protected static final String theirServiceProp = "askap.logger.ice.service";
+
   /** Default location for the service. */
   protected static final String theirDefaultService = "IceGrid/Locator:tcp -h localhost -p 4061";
 
@@ -42,7 +62,7 @@ public class LoggerIce extends Logger {
     theirLoggerThread.start();
     theirRootLogger = new LoggerIce("root");
   }
-  
+
   /** Shutdown logging. */
   public static void shutdown() {
     theirLoggerThread.shutdown();
@@ -107,7 +127,7 @@ public class LoggerIce extends Logger {
         itsBuffer.notify();
       }
     }
-    
+
     /** Main loop of checking the connection and sending messages. */
     public void run() {
       while (itsKeepRunning) {
@@ -149,7 +169,7 @@ public class LoggerIce extends Logger {
           itsLoggingService = null;
         }
       }
-      
+
       // Final cleanup
       if (isConnected()) {
         itsCommunicator.shutdown();

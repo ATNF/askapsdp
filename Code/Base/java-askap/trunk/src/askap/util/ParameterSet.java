@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2009 CSIRO Australia Telescope National Facility (ATNF) Commonwealth
+ * Scientific and Industrial Research Organisation (CSIRO) PO Box 76, Epping NSW 1710,
+ * Australia atnf-enquiries@csiro.au
+ * 
+ * This file is part of the ASKAP software distribution.
+ * 
+ * The ASKAP software distribution is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this
+ * program; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite
+ * 330, Boston, MA 02111-1307 USA
+ */
+
 package askap.util;
 
 import java.util.Properties;
@@ -10,37 +30,31 @@ import java.io.*;
  * @author David Brodrick, some code derived from ATOMS.java by David Loone.
  */
 public class ParameterSet extends Properties {
-  
+
   /** Create an empty ParameterSet. */
-  public ParameterSet()
-  {
+  public ParameterSet() {
     super();
   }
 
   /** Create a ParameterSet containing all of the entries from the existing Map. */
-  public ParameterSet(Map<String,String> map)
-  {
+  public ParameterSet(Map<String, String> map) {
     super();
     putAll(map);
   }
 
   /** Create a ParameterSet containing populated by reading entries from the InputStream. */
-  public ParameterSet(InputStream is)
-  throws IOException
-  {
+  public ParameterSet(InputStream is) throws IOException {
     super();
     load(is);
   }
 
   /** Create a ParameterSet containing populated by reading entries from named file. */
-  public ParameterSet(String filename)
-  throws IOException
-  {
+  public ParameterSet(String filename) throws IOException {
     super();
     InputStream is = new FileInputStream(filename);
     load(is);
   }
-  
+
   /**
    * Get a parameter as a boolean.
    * 
@@ -54,7 +68,7 @@ public class ParameterSet extends Properties {
   public boolean getBoolean(String key) throws NumberFormatException {
     try {
       String strval = getProperty(key);
-      if (strval==null) {
+      if (strval == null) {
         throw new NumberFormatException("Error parsing key \"" + key + "\" as boolean: key does not exist");
       }
       return (new Boolean(strval)).booleanValue();
@@ -301,8 +315,8 @@ public class ParameterSet extends Properties {
     }
 
     return result;
-  }  
-  
+  }
+
   /**
    * Get a parameter as a string.
    * 
@@ -330,7 +344,7 @@ public class ParameterSet extends Properties {
     if (value == null) {
       value = defaultValue;
     }
-    
+
     return value;
   }
 };
