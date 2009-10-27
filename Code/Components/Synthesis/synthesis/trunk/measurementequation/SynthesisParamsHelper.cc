@@ -773,6 +773,7 @@ namespace askap
       freq.toWorld(endFreq, double(nChan));
       axes.add("FREQUENCY", startFreq, endFreq);
       
+      ASKAPLOG_INFO_STR(logger, "About to add image parameter, shape:"<<imagePixels.shape()<<" "<<nChan);
       ip.add(name, imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)),
 	     axes);
       
