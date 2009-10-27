@@ -730,6 +730,12 @@ namespace askap
       int whichDir=imageCoords.findCoordinate(Coordinate::DIRECTION);
       ASKAPCHECK(whichDir>-1, "No direction coordinate present in model");
       casa::DirectionCoordinate radec(imageCoords.directionCoordinate(whichDir));
+      casa::Vector<casa::Int> axesDir = imageCoords.pixelAxes(whichDir);
+      ASKAPCHECK(axesDir.nelements() == 2, "Direction axis "<<whichDir<<
+                 " is expected to correspond to just two pixel axes, you have "<<axesDir);
+      ASKAPCHECK((axesDir[0] == 0) && (axesDir[1] == 1), 
+               "Presently we support only images with first axes being the direction pixel axes, image "<<name<<
+               " has "<< axesDir);  
       
       casa::Vector<casa::String> units(2);
       units.set("rad");
@@ -751,6 +757,7 @@ namespace askap
       axes.add("DEC", start(1), end(1));
       
       int whichStokes = imageCoords.findCoordinate(Coordinate::STOKES);
+      int nPol = 1;
       if (whichStokes<0) {
           const casa::Vector<casa::Stokes::StokesTypes> dummyStokes(1,casa::Stokes::I);
           axes.addStokesAxis(dummyStokes);
@@ -762,23 +769,32 @@ namespace askap
                stokes[pol] = casa::Stokes::StokesTypes(stokesAsInt[pol]);
           }
           axes.addStokesAxis(stokes);
+          
+          casa::Vector<casa::Int> axesStokes = imageCoords.pixelAxes(whichStokes);
+          ASKAPCHECK(axesStokes.nelements() == 1, "Stokes axis "<<whichStokes<<
+                 " is expected to correspond to just one pixel axes, you have "<<axesStokes);
+          ASKAPASSERT(casa::uInt(axesStokes[0])<imagePixels.shape().nelements());
+          nPol = imagePixels.shape()(axesStokes[0]);
+          ASKAPASSERT(uInt(nPol) == stokesAsInt.nelements());
       }
       
       int whichSpectral=imageCoords.findCoordinate(Coordinate::SPECTRAL);
       ASKAPCHECK(whichSpectral>-1, "No spectral coordinate present in model");
+      casa::Vector<casa::Int> axesSpectral = imageCoords.pixelAxes(whichSpectral);
+      ASKAPCHECK(axesSpectral.nelements() == 1, "Spectral axis "<<whichSpectral<<
+                 " is expected to correspond to just one pixel axes, you have "<<axesSpectral);
+      ASKAPASSERT(casa::uInt(axesSpectral[0])<imagePixels.shape().nelements());
+      const int nChan = imagePixels.shape()(axesSpectral[0]);
       casa::SpectralCoordinate freq(imageCoords.spectralCoordinate(whichSpectral));
-      int nChan=imagePixels.shape()(whichSpectral);
       double startFreq, endFreq;
       freq.toWorld(startFreq, 1.0);
       freq.toWorld(endFreq, double(nChan));
       axes.add("FREQUENCY", startFreq, endFreq);
-      
-      ASKAPLOG_INFO_STR(logger, "About to add image parameter, shape:"<<imagePixels.shape()<<" "<<nChan);
-      ASKAPLOG_INFO_STR(logger, "dbg: "<<whichDir<<" "<<imageCoords.pixelAxes(whichDir)<<
-          " "<<whichStokes<<" "<<imageCoords.pixelAxes(whichStokes)<<" "<<whichSpectral<<" "<<
-               imageCoords.pixelAxes(whichSpectral));
-      ip.add(name, imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)),
-	     axes);
+      const casa::IPosition targetShape(4, imagePixels.shape()(0), imagePixels.shape()(1), nPol, nChan);
+      ASKAPLOG_INFO_STR(logger, "About to add new image parameter with name "<<name<<
+                  " reshaped to "<<targetShape<<" from original image shape "<<imagePixels.shape());
+      ASKAPDEBUGASSERT(targetShape.product() == imagePixels.shape().product());
+      ip.add(name, imagePixels.reform(targetShape),axes);
       
     }
     
