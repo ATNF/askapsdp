@@ -29,8 +29,10 @@
 #include <askap_simulations.h>
 
 #include <simulationutilities/HIprofileS3SAX.h>
+#include <simulationutilities/HIprofileS3SAX.h>
 #include <simulationutilities/SimulationUtilities.h>
 #include <iostream>
+#include <sstream>
 #include <math.h>
 #include <stdlib.h>
 
@@ -74,14 +76,12 @@ namespace askap {
 	return theStream;
       }
 
-      HIprofileS3SAX::HIprofileS3SAX(std::stringstream &ine)
+      HIprofileS3SAX::HIprofileS3SAX(std::string &line)
       {
 	float flux,maj,min,pa,alpha,beta;
-	int type;
 	std::stringstream ss(line);
 	ss >> this->itsRA >> this->itsDec >> flux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI 
 	   >> this->itsFluxPeak >> this->itsFlux0 >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
-	this->itsSourceType = GALTYPE(type);
 	this->itsComponent.setPeak(flux);
 	this->itsComponent.setMajor(maj);
 	this->itsComponent.setMinor(min);
@@ -89,7 +89,7 @@ namespace askap {
 
       }
 
-      HIprofileS3SAX::define()
+      void HIprofileS3SAX::define()
       {
 	const double lnhalf=log(0.5);
 	const double lnfifth=log(0.2);
@@ -123,6 +123,7 @@ namespace askap {
       double HIprofileS3SAX::flux(double nu1, double nu2)
       {
 	double f[2],dv[2];
+	double c=this->itsWidthPeak;
 	dv[0] = freqToHIVel(std::max(nu1,nu2)) - redshiftToVel(this->itsRedshift); // lowest relative velocty
 	dv[1] = freqToHIVel(std::min(nu1,nu2)) - redshiftToVel(this->itsRedshift); // highest relative velocity
 	f[0] = f[1] = 0.;
@@ -141,10 +142,12 @@ namespace askap {
 	    }
 	  }
 
-	  double flux = (f[0]-f[1])/(v[0]-v[1]);
-	  return flux * this->itsIntFlux;
+	}
+	  
+	double flux = (f[0]-f[1])/(dv[0]-dv[1]);
+	return flux * this->itsIntFlux;
+      
       }
-
 
     }
 

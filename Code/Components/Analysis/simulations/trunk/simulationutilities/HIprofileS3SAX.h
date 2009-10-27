@@ -33,6 +33,7 @@
 #include <simulationutilities/HIprofile.h>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 namespace askap {
 
@@ -41,10 +42,12 @@ namespace askap {
       class HIprofileS3SAX : public HIprofile {
       public:
 	HIprofileS3SAX(){};
-	HIprofileS3SAX(std::stringstream &line);
+	HIprofileS3SAX(std::string &line);
 	virtual ~HIprofileS3SAX(){};
 	HIprofileS3SAX(const HIprofileS3SAX& h);
 	HIprofileS3SAX& operator= (const HIprofileS3SAX& h);
+
+	void define();
 
 	double flux(double nu);
 	double flux(double nu1, double nu2);
