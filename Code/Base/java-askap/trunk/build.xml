@@ -16,7 +16,8 @@
     <!-- Set resources to include in the jar file -->
     <resources id="resources.list">
         <fileset file="resources/askaplogger.properties"/>
-        <fileset file="resources/askaplogger-file.properties"/>
-        <fileset file="resources/askaplogger-ice.properties"/>
+        <fileset file="resources/askaplogger-log4j-file.properties"/>
+        <fileset file="resources/askaplogger-log4j-ice.properties"/>
+        <fileset file="resources/askaplogger-ice-locator-localhost-4061.properties"/>
     </resources>
 </project>

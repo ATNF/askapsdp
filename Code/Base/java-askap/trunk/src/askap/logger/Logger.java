@@ -19,9 +19,10 @@ import java.lang.reflect.*;
  * by a property called <tt>askap.logger.loggerclass</tt> within the configuration file.
  * 
  * <P>
- * Sub-classes must implement a constructor which takes a <tt>Properties</tt> as an
- * argument, which configures the logging service appropriately and creates the root
- * logger.
+ * Sub-classes must implement a static method called <i>configure</i> which takes a
+ * <tt>Properties</tt> as an argument, which initialises the logging service and creates
+ * the root logger. Sub-classes must also implement a static <i>shutdown</i> method which
+ * deimplements logging.
  * 
  * @author David Brodrick
  */
@@ -33,7 +34,19 @@ public abstract class Logger {
   private static final String theirConfigName = "askaplogger.properties";
 
   /** Reference to the root logger. */
-  private static Logger theirLogger = null;
+  protected static Logger theirRootLogger;
+
+  /** The constructor to use for constructing new loggers. */
+  protected static Constructor theirConstructor;
+
+  /** Name of the static method that performs shutdown sub-classes. */
+  private static String theirShutdownMethodName = "shutdown";
+
+  /** The method to use for shutting down logging. */
+  protected static Method theirShutdownMethod;
+
+  /** Name of the static method that performs first time initialisation of sub-classes. */
+  private static String theirConfigMethodName = "configure";
 
   // Static block which reads the configuration and configures logging
   static {
@@ -54,8 +67,13 @@ public abstract class Logger {
         } else {
           // Try to instanciate the concrete implementation
           try {
-            Constructor con = Class.forName(loggerclass).getConstructor(new Class[] { Properties.class });
-            theirLogger = (Logger) (con.newInstance(new Object[] { config }));
+            // Get the constructor to be used for creating new Loggers
+            theirConstructor = Class.forName(loggerclass).getConstructor(new Class[] { String.class });
+            // Get the method for performing shutdown
+            theirShutdownMethod = Class.forName(loggerclass).getMethod(theirShutdownMethodName);
+            // Perform first time initialisation of the Logger class
+            Method configure = Class.forName(loggerclass).getMethod(theirConfigMethodName, Properties.class);
+            configure.invoke(null, config);
           } catch (Exception f) {
             System.err.println("askap.logger.Logger: Error: Instanciating \"" + loggerclass + "\": " + f);
           }
@@ -66,18 +84,31 @@ public abstract class Logger {
     }
   }
 
+  /** Shutdown logging. */
+  public static void shutdown() {
+    try {
+      theirShutdownMethod.invoke(null);
+    } catch (Exception e) {
+      System.err.println("askap.logger.Logger: Error: Attempting to shutdown logging: " + e);
+    }
+  }
+
   /** Get the default/root Logger. */
   public static Logger getRootLogger() {
-    return theirLogger;
+    return theirRootLogger;
   }
 
   /** Get a Logger with the specified name. */
   public static Logger getLogger(String name) {
-    return theirLogger.getLogger_real(name);
+    Logger res = null;
+    try {
+      res = (Logger) (theirConstructor.newInstance(new Object[] { name }));
+    } catch (Exception f) {
+      System.err.println("askap.logger.Logger: Error: Instanciating new Logger: " + f);
+      res = null;
+    }
+    return res;
   }
-
-  /** Get a Logger with the specified name. */
-  protected abstract Logger getLogger_real(String name);
 
   /** Log a trace level message. */
   public abstract void trace(String msg);
@@ -96,7 +127,7 @@ public abstract class Logger {
 
   /** Log a fatal level message. */
   public abstract void fatal(String msg);
-  
+
   /** Simple test program. */
   public static void main(String[] args) {
     Logger l1 = getRootLogger();
@@ -113,5 +144,6 @@ public abstract class Logger {
     l2.warn("a warn message");
     l2.error("an error message");
     l2.fatal("a fatal message");
+    shutdown();
   }
 }
