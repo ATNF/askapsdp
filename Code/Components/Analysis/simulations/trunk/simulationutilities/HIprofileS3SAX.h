@@ -26,49 +26,49 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
-#ifndef ASKAP_SIMS_HI_PROFILE_H_
-#define ASKAP_SIMS_HI_PROFILE_H_
+#ifndef ASKAP_SIMS_HI_PROFILE_S3SAX_H_
+#define ASKAP_SIMS_HI_PROFILE_S3SAX_H_
 
 #include <simulationutilities/Spectrum.h>
+#include <simulationutilities/HIprofile.h>
 #include <iostream>
+#include <sstream>
 
 namespace askap {
 
-  namespace simulations {
+    namespace simulations {
 
-    const double nu0_HI = 1420405751.786;
-    const double C_kms = 299792.458;
-    const double HUBBLE_WMAP = 71.;
-    const double OMEGAM_WMAP = 0.27;
-    const double OMEGAL_WMAP = 0.73;
+      class HIprofileS3SAX : public HIprofile {
+      public:
+	HIprofileS3SAX(){};
+	HIprofileS3SAX(std::stringstream &line);
+	virtual ~HIprofileS3SAX(){};
+	HIprofileS3SAX(const HIprofileS3SAX& h);
+	HIprofileS3SAX& operator= (const HIprofileS3SAX& h);
 
-    double luminosityDistance(double z, double H0=HUBBLE_WMAP, double omegaM=OMEGAM_WMAP, double omegaL=OMEGAL_WMAP);
-    double redshiftToDist(double z, double H0=HUBBLE_WMAP, double omegaM=OMEGAM_WMAP, double omegaL=OMEGAL_WMAP);
-    double redshiftToVel(double z);
-    double redshiftToHIFreq(double z);
-    double freqToHIVel(double nu);
+	double flux(double nu);
+	double flux(double nu1, double nu2);
 
-    class HIprofile : public Spectrum {
-    public:
-      HIprofile(){};
-      virtual ~HIprofile(){};
-      HIprofile(const HIprofile& h);
-      HIprofile& operator= (const HIprofile& h);
+	friend std::ostream& operator<< ( std::ostream& theStream, HIprofileS3SAX &prof);
 
-      double integratedFlux(double z, double mhi);
+      private:
+	double itsFluxPeak;
+	double itsFlux0;
+	double itsWidthPeak;
+	double itsWidth50;
+	double itsWidth20;
 
-      virtual double flux(double nu)  {return -177.;};
-      virtual double flux(double nu1, double nu2)  {return -179.;};
+	double itsIntFlux;
+	
+	double itsSideFlux;
+	double itsMiddleFlux;
 
-    protected:
-      double itsRedshift;
-      double itsMHI;
+	std::vector<double> itsKpar;
+	
+      };
 
-    };
-
-  }
+    }
 
 }
 
 #endif
-

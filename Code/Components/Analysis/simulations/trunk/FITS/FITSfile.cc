@@ -36,6 +36,7 @@
 #include <simulationutilities/FluxGenerator.h>
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/HIprofile.h>
+#include <simulationutilities/HIprofileS3SEX.h>
 #include <analysisutilities/AnalysisUtilities.h>
 
 #include <Common/ParameterSet.h>
@@ -201,6 +202,8 @@ namespace askap {
 		  this->itsSourceListType = "continuum";
 		  ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be *either* 'continuum' or 'spectralline'. Setting to continuum.");
 		}
+// 		this->itsDatabaseOrigin = parset.getString("database","S3SAX"); // only used for spectralline case
+		
                 this->itsPosType = parset.getString("posType", "dms");
 		this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
                 this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
@@ -411,7 +414,7 @@ namespace askap {
                 if (this->itsSourceList.size() > 0) { // if the source list is defined.
 		  ASKAPLOG_DEBUG_STR(logger, "Adding sources from file " << this->itsSourceList);
                     std::ifstream srclist(this->itsSourceList.c_str());
-                    std::string temp, ra, dec;
+                    std::string line, ra, dec;
 		    casa::Double flux, maj, min, pa,redshift,m_HI,alpha,beta;
 		    int sourceType;
                     double *wld = new double[3];
@@ -421,52 +424,81 @@ namespace askap {
 
                     if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
 		    
-                    while (getline(srclist, temp),
+                    while (getline(srclist, line),
                             !srclist.eof()) {
 
-                        if (temp[0] != '#') {  // ignore commented lines
-                            std::stringstream line(temp);
+                        if (line[0] != '#') {  // ignore commented lines
 
 			    alpha = 0.;
 			    beta = 0.;
 			    redshift = 0.;
 			    m_HI = 0.;
-			    if(this->itsSourceListType=="continuum"){
+// 			    if(this->itsSourceListType=="continuum"){
+// 			      if (this->itsHaveSpectralInfo) {
+// 				line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa; 
+// 			      }
+// 			      else {
+// 				line >> ra >> dec >> flux >> maj >> min >> pa; 
+// 			      }
+// 			    }
+// 			    else if(this->itsSourceListType=="spectralline"){
+// 			      line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa >> redshift >> m_HI >> sourceType;
+// 			    }
+// 			    else
+// 			      ASKAPTHROW(AskapError, "sourcelisttype has incompatible value '"
+// 					 <<this->itsSourceListType<<"' - needs to be continuum or spectralline");
+			    Continuum cont;
+			    HIprofileS3SEX prof;
+			    Spectrum &src=cont;
+// 			    if(this->itsSourceListType=="continuum"){
 			      if (this->itsHaveSpectralInfo) {
-				line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa; 
+				cont = Continuum(line);
+				cont.setNuZero(this->itsBaseFreq);
+				src = cont;
 			      }
 			      else {
-				line >> ra >> dec >> flux >> maj >> min >> pa; 
+				cont = Spectrum(line);
+				cont.setNuZero(this->itsBaseFreq);
+				src = cont;
 			      }
-			    }
-			    else if(this->itsSourceListType=="spectralline"){
-			      line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa >> redshift >> m_HI >> sourceType;
+// 			    }
+// 			    else if(this->itsSourceListType=="spectralline"){
+			    if(this->itsSourceListType=="spectralline"){
+			      prof = HIprofileS3SEX(line);
+			      src = prof;
+ 			      std::cerr << prof << "\n";
 			    }
 			    else
-			      ASKAPTHROW(AskapError, "sourcelisttype has incompatible value '"<<this->itsSourceListType<<"' - needs to be continuum or spectralline");
+			      ASKAPTHROW(AskapError, "sourcelisttype has incompatible value '"
+					 <<this->itsSourceListType<<"' - needs to be continuum or spectralline");
 
                             // convert fluxes to correct units according to the image BUNIT keyword
-			    flux = casa::Quantity(flux,this->itsSourceFluxUnits).getValue(this->itsBunit);
+// 			    flux = casa::Quantity(flux,this->itsSourceFluxUnits).getValue(this->itsBunit);
+			    src.setFluxZero(casa::Quantity(src.fluxZero(),this->itsSourceFluxUnits).getValue(this->itsBunit));
 
 			    FluxGenerator fluxGen;
 			    if(this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
 			    else fluxGen.setNumChan(1);
 			    ASKAPLOG_DEBUG_STR(logger, "Have defined a flux generator with " << fluxGen.nChan() << " channels.");
 
-			    Continuum cont(alpha,beta,this->itsBaseFreq,flux);
-			    HIprofile prof;
-			    if(this->itsDoHI){
-			      prof = HIprofile(GALTYPE(sourceType),redshift,m_HI,maj,min);
-			      std::cerr << prof << "\n";
-			    }
+// 			    Continuum cont(alpha,beta,this->itsBaseFreq,flux);
+// 			    HIprofileS3SEX prof;
+// 			    if(this->itsDoHI){
+// 			      prof = HIprofileS3SEX(GALTYPE(sourceType),redshift,m_HI,maj,min);
+// 			      std::cerr << prof << "\n";
+// 			    }
 
                             // convert sky position to pixels
                             if (this->itsPosType == "dms") {
-                                wld[0] = analysis::dmsToDec(ra) * 15.;
-                                wld[1] = analysis::dmsToDec(dec);
+//                                 wld[0] = analysis::dmsToDec(ra) * 15.;
+//                                 wld[1] = analysis::dmsToDec(dec);
+			      wld[0] = analysis::dmsToDec(src.ra()) * 15.;
+			      wld[1] = analysis::dmsToDec(src.dec());
                             } else if (this->itsPosType == "deg") {
-                                wld[0] = atof(ra.c_str());
-                                wld[1] = atof(dec.c_str());
+//                                 wld[0] = atof(ra.c_str());
+//                                 wld[1] = atof(dec.c_str());
+			      wld[0] = atof(src.ra().c_str());
+			      wld[1] = atof(src.dec().c_str());
                             } else ASKAPLOG_ERROR_STR(logger, "Incorrect position type: " << this->itsPosType);
 
                             wld[2] = this->itsBaseFreq;
@@ -493,22 +525,34 @@ namespace askap {
 			    if(this->itsDoContinuum) fluxGen.addSpectrum(cont,pix[0],pix[1],this->itsWCS);
 			    if(this->itsDoHI)        fluxGen.addSpectrumInt(prof,pix[0],pix[1],this->itsWCS);
 
-                            if (maj > 0) {
+//                             if (maj > 0) {
+                            if (src.maj() > 0) {
                                 // convert widths from arcsec to pixels
                                 float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
-                                maj = casa::Quantity(maj,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
-				if(maj>0 && !(min>this->itsMinMinorAxis)){
-				  ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << min << " --> " << this->itsMinMinorAxis);
-				  min = casa::Quantity(this->itsMinMinorAxis,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
+//                                 maj = casa::Quantity(maj,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
+// 				if(maj>0 && !(min>this->itsMinMinorAxis)){
+// 				  ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << min << " --> " << this->itsMinMinorAxis);
+// 				  min = casa::Quantity(this->itsMinMinorAxis,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
+// 				}
+//                                 else min = casa::Quantity(min,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
+                                src.setMaj(casa::Quantity(src.maj(),this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+				if(src.maj()>0 && !(src.min()>this->itsMinMinorAxis)){
+				  ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src.min() << " --> " << this->itsMinMinorAxis);
+				  src.setMin(casa::Quantity(this->itsMinMinorAxis,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 				}
-                                else min = casa::Quantity(min,this->itsAxisUnits).getValue("arcsec") / arcsecToPixel;
+                                else src.setMin(casa::Quantity(src.min(),this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
-				if (flux == 0.) flux = 1.e-3;
+// 				if (src.flux == 0.) flux = 1.e-3;
+				if (src.fluxZero() == 0.) src.setFluxZero(1.e-3);
 
-				ASKAPLOG_DEBUG_STR(logger, "Defining a Gaussian of flux " << flux << " at [" << pix[0] << ","<<pix[1]<<"]");
-                                casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min / maj, 
-								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
-				gauss.setFlux(flux);
+// 				ASKAPLOG_DEBUG_STR(logger, "Defining a Gaussian of flux " << flux << " at [" << pix[0] << ","<<pix[1]<<"]");
+//                                 casa::Gaussian2D<casa::Double> gauss(flux, pix[0], pix[1], maj, min/maj,
+// 								     casa::Quantity(pa,this->itsPAunits).getValue("rad"));
+// 				gauss.setFlux(flux);
+				ASKAPLOG_DEBUG_STR(logger, "Defining a Gaussian of flux " << src.fluxZero() << " at [" << pix[0] << ","<<pix[1]<<"]");
+                                casa::Gaussian2D<casa::Double> gauss(src.fluxZero(), pix[0], pix[1], src.maj(), src.min() / src.maj(), 
+								     casa::Quantity(src.pa(),this->itsPAunits).getValue("rad"));
+				gauss.setFlux(src.fluxZero());
 
                                 addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
                             } else {
@@ -517,7 +561,7 @@ namespace askap {
                         }
 			else{
 			  // Write all commented lines directly into the output file
-			  if(this->itsFlagOutputList) outfile << temp << "\n";
+			  if(this->itsFlagOutputList) outfile << line << "\n";
 			}
                     }
 

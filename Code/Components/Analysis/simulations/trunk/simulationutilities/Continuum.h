@@ -38,17 +38,20 @@ namespace askap {
       class Continuum : public Spectrum {
             public:
                 Continuum();
-		Continuum(float alpha, float beta, float nuZero, float fluxZero){defineSource(alpha,beta,nuZero,fluxZero);};
+		Continuum(Spectrum &s);
+		Continuum(std::string &line);
+		Continuum(float alpha, float beta, float nuZero){defineSource(alpha,beta,nuZero);};
                 virtual ~Continuum() {};
 		/// @brief Copy constructor for Continuum.
 		Continuum(const Continuum& f);
 		
 		/// @brief Assignment operator for Continuum.
-		Continuum& operator= (const Continuum& f);
+		Continuum& operator= (const Continuum& c);
+		Continuum& operator= (const Spectrum& c);
 
-		void defineSource(float alpha, float beta, float nuZero, float fluxZero);
+		void defineSource(float alpha, float beta, float nuZero);
 
-		float getFluxZero(){return itsFluxZero;};
+		void setNuZero(float n){itsNuZero = n;};
 
 		double flux(double freq);
 
@@ -56,7 +59,6 @@ namespace askap {
                 double itsAlpha;
                 double itsBeta;
                 double itsNuZero;
-		double itsFluxZero;
 
         };
 

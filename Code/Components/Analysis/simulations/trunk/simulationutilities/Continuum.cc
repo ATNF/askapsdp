@@ -33,6 +33,7 @@
 #include <askap/AskapError.h>
 
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <fstream>
 #include <vector>
@@ -47,15 +48,31 @@ namespace askap {
 
     namespace simulations {
 
-      Continuum::Continuum()
+      Continuum::Continuum():
+	Spectrum()
       {
-	this->itsAlpha = 0.;
-	this->itsBeta = 0.;
-	this->itsNuZero = 1400.;
-	this->itsFluxZero = 1;
+	this->defineSource(0., 0., 1400.);
       }
 
-      Continuum::Continuum(const Continuum& c)
+      Continuum::Continuum(Spectrum &s):
+	Spectrum(s)
+      {
+	this->defineSource(0., 0., 1400.);
+      }
+
+      Continuum::Continuum(std::string &line)
+      {
+	float flux,maj,min,pa;
+	std::stringstream ss(line);
+	ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
+	this->itsComponent.setPeak(flux);
+	this->itsComponent.setMajor(maj);
+	this->itsComponent.setMinor(min);
+	this->itsComponent.setPA(pa);
+      }
+
+      Continuum::Continuum(const Continuum& c):
+	Spectrum(c)
       {
 	operator=(c);
       }
@@ -63,26 +80,33 @@ namespace askap {
       Continuum& Continuum::operator= (const Continuum& c)
       {
 	if(this == &c) return *this;
+	((Spectrum &) *this) = c;
 	this->itsAlpha      = c.itsAlpha;
 	this->itsBeta       = c.itsBeta;
 	this->itsNuZero     = c.itsNuZero;
-	this->itsFluxZero   = c.itsFluxZero;
 	return *this;	  
       }
       
-      void Continuum::defineSource(float alpha, float beta, float nuZero, float fluxZero)
+      Continuum& Continuum::operator= (const Spectrum& c)
+      {
+	if(this == &c) return *this;
+	((Spectrum &) *this) = c;
+	this->defineSource(0., 0., 1400.);
+	return *this;	  
+      }
+      
+      void Continuum::defineSource(float alpha, float beta, float nuZero)
       {
 	this->itsAlpha = alpha;
 	this->itsBeta = beta;
 	this->itsNuZero = nuZero;
-	this->itsFluxZero = fluxZero;
       }
       
 
       double Continuum::flux(double freq)
       {
 	double powerTerm = this->itsAlpha+this->itsBeta*log(freq/this->itsNuZero);
-	return this->itsFluxZero * pow(freq/this->itsNuZero, powerTerm);
+	return this->fluxZero() * pow(freq/this->itsNuZero, powerTerm);
       }
 
 

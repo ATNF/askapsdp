@@ -28,7 +28,7 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 #include <askap_simulations.h>
 
-#include <simulationutilities/HIprofile.h>
+#include <simulationutilities/HIprofileS3SEX.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>

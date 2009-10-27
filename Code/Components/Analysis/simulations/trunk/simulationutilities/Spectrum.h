@@ -29,6 +29,10 @@
 #ifndef ASKAP_SIMS_SPEC_H_
 #define ASKAP_SIMS_SPEC_H_
 
+#include <iostream>
+#include <sstream>
+
+#include <sourcefitting/Component.h>
 
 namespace askap {
 
@@ -37,14 +41,30 @@ namespace askap {
       class Spectrum {
 	public:
 	  Spectrum(){};
+	  Spectrum(std::string &line);
 	  virtual ~Spectrum() {};
-	  Spectrum(const Spectrum& s){};
+	  Spectrum(const Spectrum& s);
+
+	  std::string ra(){return itsRA;};
+	  std::string dec(){return itsDec;};
+	  double fluxZero(){return itsComponent.peak();};
+	  double maj(){return itsComponent.maj();};
+	  double min(){return itsComponent.min();};
+	  double pa(){return itsComponent.pa();};
+
+	  void setFluxZero(float f){itsComponent.setPeak(f);};
+	  void setMaj(float f){itsComponent.setMajor(f);};
+	  void setMin(float f){itsComponent.setMinor(f);};
+	  void setPA(float f){itsComponent.setPA(f);};
 	  
 	  virtual double flux(double freq)  {return -77.;};
 	  virtual double flux(double freq1, double freq2)  {return -79.;};
 
 	protected:
-	  
+	  std::string itsRA;
+	  std::string itsDec;
+	  analysis::sourcefitting::SubComponent itsComponent;
+
         };
 
     }
