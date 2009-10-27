@@ -50,12 +50,15 @@ namespace askap {
 
     class HIprofile : public Spectrum {
     public:
-      HIprofile(){};
+      HIprofile();
       virtual ~HIprofile(){};
       HIprofile(const HIprofile& h);
       HIprofile& operator= (const HIprofile& h);
 
       double integratedFlux(double z, double mhi);
+
+      double redshift(){return itsRedshift;};
+      double mHI(){return itsMHI;};
 
       virtual double flux(double nu)  {return -177.;};
       virtual double flux(double nu1, double nu2)  {return -179.;};

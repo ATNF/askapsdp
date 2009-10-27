@@ -415,8 +415,7 @@ namespace askap {
 		  ASKAPLOG_DEBUG_STR(logger, "Adding sources from file " << this->itsSourceList);
                     std::ifstream srclist(this->itsSourceList.c_str());
                     std::string line, ra, dec;
-		    casa::Double flux, maj, min, pa,redshift,m_HI,alpha,beta;
-		    int sourceType;
+		    int sourceType=4;
                     double *wld = new double[3];
                     double *pix = new double[3];
                     double *newwld = new double[3];
@@ -429,10 +428,10 @@ namespace askap {
 
                         if (line[0] != '#') {  // ignore commented lines
 
-			    alpha = 0.;
-			    beta = 0.;
-			    redshift = 0.;
-			    m_HI = 0.;
+// 			    alpha = 0.;
+// 			    beta = 0.;
+// 			    redshift = 0.;
+// 			    m_HI = 0.;
 // 			    if(this->itsSourceListType=="continuum"){
 // 			      if (this->itsHaveSpectralInfo) {
 // 				line >> ra >> dec >> flux >> alpha >> beta >> maj >> min >> pa; 
@@ -465,6 +464,7 @@ namespace askap {
 // 			    else if(this->itsSourceListType=="spectralline"){
 			    if(this->itsSourceListType=="spectralline"){
 			      prof = HIprofileS3SEX(line);
+			      sourceType = prof.type();
 			      src = prof;
  			      std::cerr << prof << "\n";
 			    }
@@ -511,15 +511,24 @@ namespace askap {
                                 outfile.setf(std::ios::fixed);
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
 					<< std::setw(10) << std::setprecision(6) << newwld[1] << " "
-					<< std::setw(20) << std::setprecision(16) << flux << " "
-					<< std::setw(10) << std::setprecision(6) << alpha << " "
-					<< std::setw(10) << std::setprecision(6) << beta << " "
-					<< std::setw(10) << std::setprecision(6) << maj << " "
-					<< std::setw(10) << std::setprecision(6) << min << " "
-					<< std::setw(10) << std::setprecision(6) << pa << " "
-					<< std::setw(10) << std::setprecision(6) << redshift << " "
-					<< std::setw(10) << std::setprecision(6) << m_HI << " "
+					<< std::setw(20) << std::setprecision(16) << src.fluxZero() << " "
+					<< std::setw(10) << std::setprecision(6) << cont.alpha() << " "
+					<< std::setw(10) << std::setprecision(6) << cont.beta() << " "
+					<< std::setw(10) << std::setprecision(6) << src.maj() << " "
+					<< std::setw(10) << std::setprecision(6) << src.min() << " "
+					<< std::setw(10) << std::setprecision(6) << src.pa() << " "
+					<< std::setw(10) << std::setprecision(6) << prof.redshift() << " "
+					<< std::setw(10) << std::setprecision(6) << prof.mHI() << " "
 					<< std::setw(5) << sourceType << "\n";
+// 					<< std::setw(20) << std::setprecision(16) << flux << " "
+// 					<< std::setw(10) << std::setprecision(6) << alpha << " "
+// 					<< std::setw(10) << std::setprecision(6) << beta << " "
+// 					<< std::setw(10) << std::setprecision(6) << maj << " "
+// 					<< std::setw(10) << std::setprecision(6) << min << " "
+// 					<< std::setw(10) << std::setprecision(6) << pa << " "
+// 					<< std::setw(10) << std::setprecision(6) << redshift << " "
+// 					<< std::setw(10) << std::setprecision(6) << m_HI << " "
+// 					<< std::setw(5) << sourceType << "\n";
                             }
 
 			    if(this->itsDoContinuum) fluxGen.addSpectrum(cont,pix[0],pix[1],this->itsWCS);

@@ -54,6 +54,8 @@ namespace askap {
 
 	void define(GALTYPE type, double z, double mhi, double maj, double min);
 
+	GALTYPE type(){return itsSourceType;};
+
 	double flux(double nu);
 	double flux(double nu1, double nu2);
 

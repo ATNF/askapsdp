@@ -94,7 +94,7 @@ int main(int argc, const char** argv)
       float min =  6.275;
       //      float pa = 0.314;
 
-      HIprofile prof;
+      HIprofileS3SEX prof;
       prof.define(SFG,z,mHI,maj,min);
       std::cout << prof << "\n";
 

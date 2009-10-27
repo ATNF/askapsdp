@@ -87,6 +87,13 @@ namespace askap {
 
       //==================================
 
+      HIprofile::HIprofile():
+	Spectrum()
+      {
+	this->itsRedshift = 0.;
+	this->itsMHI = 0.;
+      }
+
       HIprofile::HIprofile(const HIprofile& h):
 	Spectrum(h)
       {
