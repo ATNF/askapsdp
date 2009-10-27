@@ -774,6 +774,9 @@ namespace askap
       axes.add("FREQUENCY", startFreq, endFreq);
       
       ASKAPLOG_INFO_STR(logger, "About to add image parameter, shape:"<<imagePixels.shape()<<" "<<nChan);
+      ASKAPLOG_INFO_STR(logger, "dbg: "<<whichDir<<" "<<imageCoords.pixelAxes(whichDir)<<
+          " "<<whichStokes<<" "<<imageCoords.pixelAxes(whichStokes)<<" "<<whichSpectral<<" "<<
+               imageCoords.pixelAxes(whichSpectral));
       ip.add(name, imagePixels.reform(IPosition(4, imagePixels.shape()(0), imagePixels.shape()(1), 1, nChan)),
 	     axes);
       
