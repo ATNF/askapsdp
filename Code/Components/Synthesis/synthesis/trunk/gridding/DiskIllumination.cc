@@ -93,6 +93,10 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	const casa::uInt nU = pattern.uSize();
 	const casa::uInt nV = pattern.vSize();
 	
+	ASKAPCHECK(rMaxSquared>rMinSquared, "Disk hole is supposed to be less than the disk size, you have diameter="<<
+	           itsDiameter<<" (rMaxSquared="<<rMaxSquared<<") blockage="<<itsBlockage<<" (rMinSquared="<<
+	           rMinSquared<<")");
+	
 	ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) || 
 	           (casa::square(double(nV)) > rMaxSquared),
 	           "The pattern buffer passed to DiskIllumination::getPattern is too small for the given model. "
