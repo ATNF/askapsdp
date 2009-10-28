@@ -1,7 +1,4 @@
-# The tests to be run should return 0 for success and
-# > 0 for fail, accompanied by stderr detail about the failure.
-# Anything else is not supported
-
+# Build test binary fr us in nosetests
 Import("fenv")
 myenv = fenv.Clone()
 ftest = myenv.Program(source="tIceAppender.cc")
