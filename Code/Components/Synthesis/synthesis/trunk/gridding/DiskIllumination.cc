@@ -91,7 +91,7 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
     
     // squares of the disk and blockage area radii
 	const double rMaxSquared = casa::square(dishRadiusInCells);
-	const double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
+	double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
 	
 	// sizes of the grid to fill with pattern values
 	const casa::uInt nU = pattern.uSize();
