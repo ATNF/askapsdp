@@ -11,6 +11,16 @@ from askap import logging
 
 logger = logging.getLogger(__name__)
 
+############
+
+def getMPIxdim(numNodes):
+    '''
+    Return the x-dimension that fits with the number of worker nodes. Chosen to make the subdivision as square as possible.
+    '''
+    for i in range(sqrt(float(numNodes)),0,-1):
+        if(float(numNodes)/i == trunc(float(numNodes)/i)):
+            return float(numNodes)/i
+
 
 ############
 
@@ -83,6 +93,13 @@ ia.close()
 ###
 
     if(doCduchamp):
+
+        if(numNodes>1):
+            numWorkers=numNodes-1
+            nsubx = getMPIxdim(numWorkers)
+            nsuby = numWorkers/nsubx
+            inputPars.set_value('Cduchamp.nsubx',nsubx)
+            inputPars.set_value('Cduchamp.nsuby',nsuby)
 
         cduchampParFileName = 'createCompCat-cduchamp.in'
         cduchampParFile = file(cduchampParFileName,"w")
