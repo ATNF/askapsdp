@@ -34,7 +34,11 @@
 
 #include <gridding/DiskIllumination.h>
 #include <askap/AskapError.h>
-
+// temporary
+#include <measurementequation/SynthesisParamsHelper.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
+//
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -123,6 +127,16 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 				  sum += 1.;
 			   }
 		 }
+	}
+	if (sum<=0) {
+	   ASKAPLOG_INFO_STR(logger, "Sum="<<sum<<" "<<pattern.uSize()<<" "<<pattern.vSize());
+	   casa::Matrix<casa::Float> temparr(pattern.uSize(),pattern.vSize());
+	   for (size_t x=0;x<pattern.uSize();++x) {
+	        for (size_t y=0;y<pattern.vSize();++y) {
+	             temparr(x,y)=casa::abs(pattern(x,y));
+	        }
+	   }
+	   SynthesisParamsHelper::saveAsCasaImage("dbg.img",temparr);
 	}
 
     ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
