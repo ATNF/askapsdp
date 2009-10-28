@@ -87,7 +87,8 @@ namespace askap {
             /// @brief This method is called by the AppenderSkeleton#doAppend method.
             /// @detail This is the callback method which will be called when log
             /// events are to be handled by this appender.
-            virtual void append(const log4cxx::spi::LoggingEventPtr& event, log4cxx::helpers::Pool& p);
+            virtual void append(const log4cxx::spi::LoggingEventPtr& event,
+				log4cxx::helpers::Pool& p);
 
             /// @brief This is a callback method called when the appender is closed.
             /// @detail This method is responsible for cleaning up any allocated
@@ -113,7 +114,8 @@ namespace askap {
             ///
             /// @param[in]  option  the key (or option).
             /// @param[in]  value the value.
-            virtual void setOption(const log4cxx::LogString& option, const log4cxx::LogString& value);
+            virtual void setOption(const log4cxx::LogString& option, 
+				   const log4cxx::LogString& value);
 
             /// @brief A callback method which is called by the log4cxx framework
             /// when all options have been passed to this class.
@@ -137,7 +139,7 @@ namespace askap {
             Ice::CommunicatorPtr itsIceComm;
 
             // Proxy to the log service
-            askap::interfaces::logging::ILoggerPrx itsLogService;
+            ::askap::interfaces::logging::ILoggerPrx itsLogService;
 
             // Paramater - The hostname of the locator service
             std::string itsLocatorHost;
@@ -149,7 +151,7 @@ namespace askap {
             std::string itsLoggingTopic;
 
             static std::map<log4cxx::LevelPtr,
-                            askap::interfaces::logging::LogLevel> levelMap;
+	      ::askap::interfaces::logging::LogLevel> levelMap;
 
     };
 

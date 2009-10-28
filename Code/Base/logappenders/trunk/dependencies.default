@@ -2,3 +2,4 @@ askap=Code/Base/askap/trunk
 log4cxx=3rdParty/log4cxx/tags/log4cxx-0.10.0
 ice=3rdParty/Ice/tags/Ice-3.3.0;IceStorm Ice IceUtil
 interfaces=Code/Interfaces/trunk
+iceutils=Code/Base/py-iceutils/trunk

@@ -54,75 +54,20 @@
 #include <log4cxx/simplelayout.h>
 #include <log4cxx/fileappender.h>
 
-// Ice includes
-#include <Ice/Ice.h>
-#include <IceStorm/IceStorm.h>
-
 // Local package includes
 #include <askap_logappenders.h>
-#include <iceappender/LoggingService.h>
 
 // Using
 using namespace log4cxx;
-using namespace askap::interfaces::logging;
 
 // Test input and output
 static const std::string inputMessage = "Testing the IceAppender";
 static const std::string inputLogname = "MyLogger";
-static std::string outputMessage = "";
-static std::string outputLogname = "";
-static LogLevel outputLevel = WARN;
 
-// LogEvent consumer class for testing. This essentially fills the role
-// of the Log Archiver component.
-class TestConsumer : public ILogger {
-    public:
-        TestConsumer() {};
-
-        ~TestConsumer() {};
-
-        void send(const askap::interfaces::logging::ILogEvent& event, const Ice::Current& c) {
-            outputMessage = event.message;
-            outputLogname = event.origin;
-            outputLevel = event.level;
-        }
-};
 
 int main(int argc, char *argv[])
 {
     const std::string filename = "tIceAppender.log_cfg";
-
-    // Initialise Ice
-    Ice::CommunicatorPtr ic;
-
-    try {
-        ic = Ice::initialize(argc, argv);
-    } catch (const Ice::Exception& e) {
-        std::cerr << e << std::endl;
-    } catch (const char* msg) {
-        std::cerr << msg << std::endl;
-    }
-    // Subscribe to the logging topic
-    Ice::ObjectPrx obj = ic->stringToProxy("IceStorm/TopicManager");
-    IceStorm::TopicManagerPrx topicManager =
-        IceStorm::TopicManagerPrx::checkedCast(obj);
-    Ice::ObjectAdapterPtr adapter =
-        ic->createObjectAdapter("TestLogArchiverAdapter");
-    ILoggerPtr consumer = new TestConsumer;
-    Ice::ObjectPrx proxy = adapter->
-                           addWithUUID(consumer)->ice_oneway();
-    adapter->activate();
-    IceStorm::TopicPrx topic;
-
-    // Either retrieve or create the topic
-    try {
-        topic = topicManager->retrieve("logger");
-    } catch (const IceStorm::NoSuchTopic&) {
-        topic = topicManager->create("logger");
-    }
-
-    IceStorm::QoS qos;
-    topic->subscribeAndGetPublisher(qos, proxy);
 
     // Configure the local logger
     log4cxx::PropertyConfigurator::configure(log4cxx::File(filename));
@@ -130,30 +75,6 @@ int main(int argc, char *argv[])
 
     // Send the test log message
     LOG4CXX_INFO(logger, inputMessage);
+    return 0;
 
-    // Wait for a moment to let the service thread handle the log event
-    // before shutting down.
-    for (int i = 0; i < 5; ++i) {
-        if (outputLogname != "") {
-            break;
-        }
-
-        sleep(1);
-    }
-
-    // Cleanup and shutdown Ice
-    adapter->deactivate();
-    topic->unsubscribe(proxy);
-    ic->shutdown();
-    ic->waitForShutdown();
-
-    // Check results
-    if (outputLogname == inputLogname && outputMessage == inputMessage
-        &&  outputLevel == INFO) {
-        std::cout << "PASS" << std::endl;
-        return 0;
-    } else {
-        std::cout << "FAIL" << std::endl;
-        return 1;
-    }
 }
