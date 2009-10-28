@@ -2,8 +2,8 @@
 # > 0 for fail, accompanied by stderr detail about the failure.
 # Anything else is not supported
 
-Import("env")
-myenv = env.Clone()
+Import("functestenv")
+myenv = functestenv.Clone()
 
 ### EDIT this to add tests
 tests = []
