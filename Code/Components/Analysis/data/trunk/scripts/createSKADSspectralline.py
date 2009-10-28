@@ -72,7 +72,62 @@ def getQueryStringS3SAX(radius,max_redshift,min_redshift,hiMassLimit=0.,hiFluxLi
 
     hiQuery = 'himass>%f and hiintflux>%f and zapparent < %f and zapparent > %f'%(hiMassLimit,hiFluxLimit,max_redshift,min_redshift)
 
-    return 'SELECT right_ascension,declination,zapparent,himass,hiintflux,(himajoraxis_msunpc*(1+zapparent)/distance) as "major axis", (hiaxisratio*himajoraxis_msunpc*(1+zapparent)/distance) as "minor axis", diskpositionangle from Galaxies where %s%s'%(sepQuery,hiQuery)
+    return 'SELECT right_ascension,declination,zapparent,himass,hiintflux,(himajoraxis_msunpc*(1+zapparent)/distance) as "major axis", (hiaxisratio*himajoraxis_msunpc*(1+zapparent)/distance) as "minor axis", diskpositionangle,hilumcenter,hilumpeak,hiwidthpeak,hiwidth50,hiwidth20 from Galaxies where %s%s'%(sepQuery,hiQuery)
+
+############
+
+def writeHeaderLine(catfile, database):
+
+    if(database=='S3SEX'):
+        catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s %10s %10s %5s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","Type"))
+    elif(database=='S3SAX'):
+        catfile.write("#%9s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n"%("RA","Dec","HI_Flux","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","F_0", "Fpeak", "Wpeak", "W50", "W20"))
+
+############
+
+def writeResults(catfile, results, database, haveFreqInfo):
+
+    for r in results:
+        
+        # Label the results values clearly so we know what we are working with!
+        ra = r[0]
+        dec = r[1]
+        z = r[2]
+        
+        alpha = 0.
+        beta = 0.
+
+        if(database=='S3SEX'):
+            mHI = pow(10,r[3])
+            s1400 = r[4]
+            s0610 = r[5]
+            maj = r[8]
+            min = r[9]
+            pa = r[10]
+            compNum = r[12]
+            if(compNum == SuperBrightSource): 
+                # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
+                s1400 = 1. / s1400
+                s0610 = 1. / s0610
+            if(haveFreqInfo):
+                alpha = log10(s1400/s0610)/log10(1400./610.)
+        elif(database=='S3SAX'):
+            mHI = r[3]
+            intflux=r[4]
+            maj = r[5]
+            min = r[6]
+            pa = r[7]
+            f0 = r[8]
+            fpeak = r[9]
+            wpeak = r[10]
+            w50 = r[11]
+            w20 = r[12]
+            
+        if(database=='S3SEX'):
+            catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %5d\n"%(ra,dec,s1400,alpha,beta,maj,min,pa,z,mHI,defaultTypes[type]))
+        elif(database=='S3SAX'):
+            catfile.write("%10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,intflux,alpha,beta,maj,min,pa,z,mHI,f0,fpeak,wpeak,w50,w20))
+
 
 ############
 
@@ -148,7 +203,7 @@ if __name__ == '__main__':
         cursor = db.cursor()
     
         catfile = file(origCatFile,"w")
-        catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s %10s %10s %5s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","Type"))
+        writeHeaderLine(catfile,database)
 
         centres = range(-int(fieldAngSize/2),int(fieldAngSize/2)+1,1)
         if(database=='S3SAX'):
@@ -169,48 +224,13 @@ if __name__ == '__main__':
                         query = getQueryStringS3SEX(tabnames,max_redshift,min_redshift,fluxLimit)
                     elif(database=='S3SAX'):
                         query = getQueryStringS3SAX(fieldAngSize,max_redshift,min_redshift,hiMassLimit,hiFluxLimit)
-#                    query = "SELECT g.right_ascension,g.declination,g.redshift,g.m_hi,pow(10,g.itot_1400) as flux14,pow(10,g.itot_610) as flux6,c.right_ascension,c.declination,c.major_axis,c.minor_axis,c.position_angle,g.galaxy,c.component from %s as g left outer join %s as c on g.galaxy=c.galaxy where %sc.i_1400>%f"%(tabnames[1],tabnames[0],hiQuery,log10(fluxLimit))
                     print query
 
                     cursor.execute(query)
                     results=array(cursor.fetchall())
                     print shape(results)
-
-                    for r in results:
-
-                        # Label the results values clearly so we know what we are working with!
-                        ra = r[0]
-                        dec = r[1]
-                        z = r[2]
-
-                        if(database=='S3SEX'):
-                            mHI = pow(10,r[3])
-                            s1400 = r[4]
-                            s0610 = r[5]
-                            maj = r[8]
-                            min = r[9]
-                            pa = r[10]
-                            compNum = r[12]
-                            if(compNum == SuperBrightSource): 
-                                # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
-                                s1400 = 1. / s1400
-                                s0610 = 1. / s0610
-                        elif(database=='S3SAX'):
-                            mHI = r[3]
-                            s1400 = 0.
-                            s0610 = 0. 
-                            maj = r[5]
-                            min = r[6]
-                            pa = r[7]
-
-
-                        if(haveFreqInfo):
-                            alpha = log10(s1400/s0610)/log10(1400./610.)
-                        else:
-                            alpha = 0.
-                        beta  = 0.  # Only using two fluxes to interpolate, so can't get a curvature term.
-
-                        catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %5d\n"%(ra,dec,s1400,alpha,beta,maj,min,pa,z,mHI,defaultTypes[type]))
+                    
+                    writeResults(catfile, results, database, haveFreqInfo)
 
         catfile.close()
 
@@ -229,6 +249,7 @@ if __name__ == '__main__':
 createFITS.filename         = !%s
 createFITS.sourcelist       = %s
 createFITS.sourcelisttype   = spectralline
+createFITS.database         = %s
 createFITS.posType          = deg
 createFITS.bunit            = Jy/pixel
 createFITS.dim              = 4
@@ -240,7 +261,7 @@ createFITS.WCSimage.crpix   = [%d, %d, 1., %d]
 createFITS.WCSimage.crota   = [0., 0., 0., 0.]
 createFITS.WCSimage.cdelt   = [%f, %f, 1., %f]
 createFITS.outputList       = %s
-"""%(imageFile, origCatFile, fieldPixSize, fieldPixSize, numChannels, fieldLocation[0], fieldLocation[1], centralFreq, int(fieldPixSize/2)+1, int(fieldPixSize/2)+1, int(numChannels/2)+1, -pixelSize, pixelSize, channelWidth, flagTranslateLoc)
+"""%(imageFile, origCatFile, database, fieldPixSize, fieldPixSize, numChannels, fieldLocation[0], fieldLocation[1], centralFreq, int(fieldPixSize/2)+1, int(fieldPixSize/2)+1, int(numChannels/2)+1, -pixelSize, pixelSize, channelWidth, flagTranslateLoc)
     
     if(translateLoc):
         createFITSinput += """\
