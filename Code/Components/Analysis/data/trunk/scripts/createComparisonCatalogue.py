@@ -42,7 +42,8 @@ if __name__ == '__main__':
     useMPI = inputPars.get_value("useMPI",False);
     numNodes = inputPars.get_value("numNodes", 1);
 
-    inputPars.set_value('Cduchamp.image',convolvedImage)
+    if('Cduchamp.image' not in inputPars):
+        inputPars.set_value('Cduchamp.image',convolvedImage)
     if('Cduchamp.Fitter.useNoise' not in inputPars):
         inputPars.set_value('Cduchamp.Fitter.useNoise',False)
     if('Cduchamp.Fitter.fitTypes' not in inputPars):
@@ -84,7 +85,7 @@ ia.close()
         cduchampParFileName = 'createCompCat-cduchamp.in'
         cduchampParFile = file(cduchampParFileName,"w")
         if('Cduchamp' in inputPars):
-            cduchampParFile.write("%s"%inputPars.Cduchamp)
+            cduchampParFile.write("%s"%inputPars)
         cduchampParFile.close()
 
         pathToAnalysis = "%s/Code/Components/Analysis/analysis/trunk/install/bin/"%os.environ['ASKAP_ROOT']
@@ -105,10 +106,10 @@ mpirun -np %d %s/cduchamp.sh -inputs %s/%s 1>& %s/analysis.log
 
 %s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s
 """%(1+numNodes/4,numNodes,pathToAnalysis,os.getcwd(),cduchampParFileName,os.getcwd(),os.environ['ASKAP_ROOT'],sublistParsetFile)
-                f = file("model_testing.qsub","w")
+                f = file("analysis.qsub","w")
                 f.write(qsubfile)
                 f.close()
-                os.system("qsub model_testing.qsub")
+                os.system("qsub analysis.qsub")
                 print "Have submitted the job -- check the queue in the usual manner for completion."
             else:
                 os.system("mpirun -np %d %s/%s -inputs %s 1>& analysis.log"%(numNodes,pathToAnalysis,analysisApp,cduchampParFileName))
@@ -152,7 +153,7 @@ createSubs.destDir          = .
     f = file(sublistParsetFile,"w")
     f.write(sublistParset)
     f.close()
-    if(!useMPI or os.uname()[1].split('.')[0]=='minicp'):
+    if(not useMPI or os.uname()[1].split('.')[0]!='minicp'):
         os.system("%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s"%(os.environ['ASKAP_ROOT'],sublistParsetFile))
 
 
