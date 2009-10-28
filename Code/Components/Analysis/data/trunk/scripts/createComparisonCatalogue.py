@@ -44,6 +44,8 @@ if __name__ == '__main__':
 
     if('Cduchamp.image' not in inputPars):
         inputPars.set_value('Cduchamp.image',convolvedImage)
+    if('Cduchamp.threshold' not in inputPars):
+        inputPars.set_value('Cduchamp.threshold',1.e-6)
     if('Cduchamp.Fitter.useNoise' not in inputPars):
         inputPars.set_value('Cduchamp.Fitter.useNoise',False)
     if('Cduchamp.Fitter.fitTypes' not in inputPars):

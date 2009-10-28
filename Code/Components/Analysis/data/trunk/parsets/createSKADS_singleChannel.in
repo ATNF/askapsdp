@@ -5,8 +5,8 @@ createSKADS.fluxLimit        = 1.e-6
 createSKADS.haveFreqInfo     = False
 createSKADS.numChannels      = 1
 
-createSKADS.queryDatabase    = False
-createSKADS.translateLoc     = False
+createSKADS.queryDatabase    = True
+createSKADS.translateLoc     = True
 
 createSKADS.pixelSize        = 2.
 createSKADS.fieldPixSize     = 15360
