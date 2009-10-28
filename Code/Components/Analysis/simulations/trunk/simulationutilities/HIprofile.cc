@@ -119,6 +119,14 @@ namespace askap {
 	return intFlux;
       }
 
+      std::ostream& operator<< ( std::ostream& theStream, HIprofile &prof)
+      {
+	theStream << "HI profile summary:\n";
+	theStream << "z=" << prof.itsRedshift << "\n";
+	theStream << "M_HI=" << prof.itsMHI << "\n";
+	return theStream;
+      }
+
     }
 
 }

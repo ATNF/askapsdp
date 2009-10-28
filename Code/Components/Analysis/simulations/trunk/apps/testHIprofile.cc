@@ -28,7 +28,9 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 #include <askap_simulations.h>
 
+#include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SEX.h>
+#include <simulationutilities/HIprofileS3SAX.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -98,22 +100,43 @@ int main(int argc, const char** argv)
       prof.define(SFG,z,mHI,maj,min);
       std::cout << prof << "\n";
 
-      std::ofstream dumpfile("testHIprofile_dump1.txt");
+      std::ofstream dumpfile("testHIprofileS3SEX_dump1.txt");
       int nchan=200;
       double nuMax=1414.e6;
       double deltaNu=18.3e3;
       for(int i=0;i<nchan;i++){
 	double nu = nuMax - i*deltaNu;
 	double f = prof.flux(nu);
-	dumpfile << i << "\t" << nu << "\t" << f << "\n";
+	dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
       }
       dumpfile.close();
 
-      dumpfile.open("testHIprofile_dump2.txt");
+      dumpfile.open("testHIprofileS3SEX_dump2.txt");
       for(int i=0;i<nchan;i++){
 	double nu = nuMax - i*deltaNu;
 	double f = prof.flux(nu-deltaNu/2.,nu+deltaNu/2.);
-	dumpfile << i << "\t" << nu << "\t" << f << "\n";
+	dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
+      }
+      dumpfile.close();
+
+//-----------------
+
+      std::string inputLine = "  0.596232  -0.696053   0.037053   0.000000   0.000000   0.020654   0.017600   1.637890   0.005453 1366040000.000000   0.003101   0.009776 206.168000 229.957000 241.208000"; // A source from the S3SAX database, with the redshift changed to match the value above.
+      HIprofileS3SAX prof2(inputLine);
+      std::cout << prof2 << "\n";
+      dumpfile.open("testHIprofileS3SAX_dump1.txt");
+      for(int i=0;i<nchan;i++){
+	double nu = nuMax - i*deltaNu;
+	double f = prof2.flux(nu);
+	dumpfile << i << "\t" << nu << "\t"<< freqToHIVel(nu) - redshiftToVel(z) << "\t"  << f << "\n";
+      }
+      dumpfile.close();
+
+      dumpfile.open("testHIprofileS3SAX_dump2.txt");
+      for(int i=0;i<nchan;i++){
+	double nu = nuMax - i*deltaNu;
+	double f = prof2.flux(nu-deltaNu/2.,nu+deltaNu/2.);
+	dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
       }
       dumpfile.close();
 

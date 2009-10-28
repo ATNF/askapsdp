@@ -63,6 +63,8 @@ namespace askap {
       virtual double flux(double nu)  {return -177.;};
       virtual double flux(double nu1, double nu2)  {return -179.;};
 
+      friend std::ostream& operator<< ( std::ostream& theStream, HIprofile &prof);
+
     protected:
       double itsRedshift;
       double itsMHI;

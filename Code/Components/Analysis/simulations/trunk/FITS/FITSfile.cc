@@ -37,6 +37,7 @@
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SEX.h>
+#include <simulationutilities/HIprofileS3SAX.h>
 #include <analysisutilities/AnalysisUtilities.h>
 
 #include <Common/ParameterSet.h>
@@ -112,6 +113,7 @@ namespace askap {
 	    this->itsFileName = f.itsFileName;
 	    this->itsSourceList = f.itsSourceList;
 	    this->itsSourceListType = f.itsSourceListType;
+	    this->itsDatabaseOrigin = f.itsDatabaseOrigin;
 	    this->itsPosType = f.itsPosType;
 	    this->itsMinMinorAxis = f.itsMinMinorAxis;
 	    this->itsPAunits = f.itsPAunits;
@@ -202,7 +204,11 @@ namespace askap {
 		  this->itsSourceListType = "continuum";
 		  ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be *either* 'continuum' or 'spectralline'. Setting to continuum.");
 		}
-// 		this->itsDatabaseOrigin = parset.getString("database","S3SAX"); // only used for spectralline case
+ 		this->itsDatabaseOrigin = parset.getString("database","S3SAX"); // only used for spectralline case
+		if(this->itsDatabaseOrigin!="S3SAX" && this->itsDatabaseOrigin!="S3SEX"){
+		  this->itsDatabaseOrigin = "S3SAX";
+		  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be *either* 'S3SEX' or 'S3SAX'. Setting to S3SAX.");
+		}
 		
                 this->itsPosType = parset.getString("posType", "dms");
 		this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
@@ -447,7 +453,9 @@ namespace askap {
 // 			      ASKAPTHROW(AskapError, "sourcelisttype has incompatible value '"
 // 					 <<this->itsSourceListType<<"' - needs to be continuum or spectralline");
 			    Continuum cont;
-			    HIprofileS3SEX prof;
+			    HIprofileS3SEX profSEX;
+			    HIprofileS3SAX profSAX;
+			    HIprofile &prof=profSAX;
 			    Spectrum &src=cont;
 // 			    if(this->itsSourceListType=="continuum"){
 			      if (this->itsHaveSpectralInfo) {
@@ -463,10 +471,22 @@ namespace askap {
 // 			    }
 // 			    else if(this->itsSourceListType=="spectralline"){
 			    if(this->itsSourceListType=="spectralline"){
-			      prof = HIprofileS3SEX(line);
-			      sourceType = prof.type();
-			      src = prof;
- 			      std::cerr << prof << "\n";
+			      if(this->itsDatabaseOrigin=="S3SEX"){
+				profSEX = HIprofileS3SEX(line);
+				sourceType = profSEX.type();
+				src = profSEX;
+				prof = profSEX;
+				std::cerr << profSEX << "\n";
+			      }
+			      else if(this->itsDatabaseOrigin=="S3SAX"){
+				profSAX = HIprofileS3SAX(line);
+				src = profSAX;
+				prof = profSAX;
+				std::cerr << profSAX << "\n";
+			      }
+			      else
+				ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
+					 <<this->itsDatabaseOrigin<<"' - needs to be 'S3SEX' or 'S3SAX'");
 			    }
 			    else
 			      ASKAPTHROW(AskapError, "sourcelisttype has incompatible value '"
@@ -531,8 +551,14 @@ namespace askap {
 // 					<< std::setw(5) << sourceType << "\n";
                             }
 
-			    if(this->itsDoContinuum) fluxGen.addSpectrum(cont,pix[0],pix[1],this->itsWCS);
-			    if(this->itsDoHI)        fluxGen.addSpectrumInt(prof,pix[0],pix[1],this->itsWCS);
+			    if(this->itsDoContinuum)
+			      fluxGen.addSpectrum(cont,pix[0],pix[1],this->itsWCS);
+			    if(this->itsDoHI){
+			      if(this->itsDatabaseOrigin=="S3SEX")
+				fluxGen.addSpectrumInt(profSEX,pix[0],pix[1],this->itsWCS);
+			      else if(this->itsDatabaseOrigin=="S3SAX")
+				fluxGen.addSpectrumInt(profSAX,pix[0],pix[1],this->itsWCS);
+			    }
 
 //                             if (maj > 0) {
                             if (src.maj() > 0) {
