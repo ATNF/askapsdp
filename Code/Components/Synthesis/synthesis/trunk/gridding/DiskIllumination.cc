@@ -130,7 +130,7 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	}
 	if (sum<=0) {
 	   ASKAPLOG_INFO_STR(logger, "Sum="<<sum<<" "<<nU<<" "<<nV<<" "<<rMinSquared<<" "<<rMaxSquared<<" "<<itsDiameter<<
-	       " "<<itsBlockage<<" "<<cell);
+	       " "<<itsBlockage<<" "<<cell<<" "<<freq);
 	   casa::Matrix<casa::Float> temparr(pattern.uSize(),pattern.vSize());
 	   for (size_t x=0;x<pattern.uSize();++x) {
 	        for (size_t y=0;y<pattern.vSize();++y) {
