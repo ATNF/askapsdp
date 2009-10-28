@@ -111,6 +111,11 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	pattern.setMaxSupport(1+2*casa::uInt(dishRadiusInCells)/oversample);
 	           
 	double sum=0.; // normalisation factor
+	if (rMinSquared<=1) {
+	    // we don't have enough resolution in the uv-plane to represent the blockage
+	    // (image selected is probably too small to get the sidelobes affected by the blockage)
+	    rMinSquared = -1.;
+	}
 	for (casa::uInt iU=0; iU<nU; ++iU) {
 	     const double offsetU = double(iU)-double(nU)/2.;
 		 const double offsetUSquared = casa::square(offsetU);
