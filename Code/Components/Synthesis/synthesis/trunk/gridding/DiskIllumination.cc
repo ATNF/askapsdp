@@ -111,10 +111,11 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	pattern.setMaxSupport(1+2*casa::uInt(dishRadiusInCells)/oversample);
 	           
 	double sum=0.; // normalisation factor
-	if (rMinSquared<=1) {
+	if (rMinSquared + 1 >= rMaxSquared) {
 	    // we don't have enough resolution in the uv-plane to represent the blockage
 	    // (image selected is probably too small to get the sidelobes affected by the blockage)
-	    rMinSquared = -1.;
+	    // we need at least 1 pixel wide annulus. 
+	    --rMinSquared;
 	}
 	for (casa::uInt iU=0; iU<nU; ++iU) {
 	     const double offsetU = double(iU)-double(nU)/2.;
@@ -132,17 +133,6 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 				  sum += 1.;
 			   }
 		 }
-	}
-	if (sum<=0) {
-	   ASKAPLOG_INFO_STR(logger, "Sum="<<sum<<" "<<nU<<" "<<nV<<" "<<rMinSquared<<" "<<rMaxSquared<<" "<<itsDiameter<<
-	       " "<<itsBlockage<<" "<<cell<<" "<<freq);
-	   casa::Matrix<casa::Float> temparr(pattern.uSize(),pattern.vSize());
-	   for (size_t x=0;x<pattern.uSize();++x) {
-	        for (size_t y=0;y<pattern.vSize();++y) {
-	             temparr(x,y)=casa::abs(pattern(x,y));
-	        }
-	   }
-	   SynthesisParamsHelper::saveAsCasaImage("dbg.img",temparr);
 	}
 
     ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
