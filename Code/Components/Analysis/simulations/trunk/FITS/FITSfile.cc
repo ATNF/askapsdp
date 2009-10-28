@@ -137,6 +137,7 @@ namespace askap {
 	    this->itsBeamInfo = f.itsBeamInfo;
 	    this->itsHaveSpectralInfo = f.itsHaveSpectralInfo;
 	    this->itsBaseFreq = f.itsBaseFreq;
+	    this->itsRestFreq = f.itsRestFreq;
 	    this->itsDoContinuum = f.itsDoContinuum;
 	    this->itsDoHI = f.itsDoHI;
 	    this->itsEquinox = f.itsEquinox;
@@ -277,6 +278,7 @@ namespace askap {
 
                 this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
 		this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
+		this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
 		if(!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
 
 		this->itsDoContinuum = parset.getBool("doContinuum", true);
@@ -710,6 +712,11 @@ namespace askap {
 //                 if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.getName().c_str(),  NULL, &status))
                 if (fits_update_key(fptr, TSTRING, "BUNIT", unit,  NULL, &status))
                     fits_report_error(stderr, status);
+
+		status = 0;
+		
+		if (fits_update_key(fptr, TFLOAT, "RESTFREQ", &(this->itsRestFreq), NULL, &status))
+		  fits_report_error(stderr, status);
 
                 float val;
 

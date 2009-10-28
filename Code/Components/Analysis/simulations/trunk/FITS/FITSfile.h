@@ -150,6 +150,7 @@ namespace askap {
 		    /// @brief Do the sources have spectral information for a third axis?
 		    bool itsHaveSpectralInfo;
 		    float itsBaseFreq;
+		    float itsRestFreq;
 		    
 		    bool itsDoContinuum;
 		    bool itsDoHI;

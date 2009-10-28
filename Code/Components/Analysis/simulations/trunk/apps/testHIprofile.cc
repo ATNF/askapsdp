@@ -121,7 +121,7 @@ int main(int argc, const char** argv)
 
 //-----------------
 
-      std::string inputLine = "  0.596232  -0.696053   0.037053   0.000000   0.000000   0.020654   0.017600   1.637890   0.005453 1366040000.000000   0.003101   0.009776 206.168000 229.957000 241.208000"; // A source from the S3SAX database, with the redshift changed to match the value above.
+      std::string inputLine = " -0.145550   0.004051   0.016469   0.000000   0.000000   0.012999   0.012950   0.641905   0.005453 566092000.000000   0.049868   0.049868   7.338150  26.933600  37.023300"; // A source from the S3SAX database, with the redshift changed to match the value above.
       HIprofileS3SAX prof2(inputLine);
       std::cout << prof2 << "\n";
       dumpfile.open("testHIprofileS3SAX_dump1.txt");
