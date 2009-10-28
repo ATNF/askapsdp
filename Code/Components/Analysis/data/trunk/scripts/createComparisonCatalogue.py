@@ -39,6 +39,9 @@ if __name__ == '__main__':
     pa = inputPars.get_value("pa",0.)
 
     doCduchamp = inputPars.get_value("doCduchamp",True);
+    useMPI = inputPars.get_value("useMPI",False);
+    numNodes = inputPars.get_value("numNodes", 1);
+
     inputPars.set_value('Cduchamp.image',convolvedImage)
     if('Cduchamp.Fitter.useNoise' not in inputPars):
         inputPars.set_value('Cduchamp.Fitter.useNoise',False)
@@ -54,6 +57,8 @@ if __name__ == '__main__':
 
     cduchampSummary = inputPars.get_value("Cduchamp.summaryFile","duchamp-Summary.txt")
     outputCat = inputPars.get_value("outputCat","");
+
+    sublistParsetFile = "createCompCat-sublists.in"
 
     if(doConvolution):
         
@@ -82,7 +87,35 @@ ia.close()
             cduchampParFile.write("%s"%inputPars.Cduchamp)
         cduchampParFile.close()
 
-        os.system("%s/Code/Components/Analysis/analysis/trunk/install/bin/cduchamp.sh -inputs %s"%(os.environ['ASKAP_ROOT'],cduchampParFileName))
+        pathToAnalysis = "%s/Code/Components/Analysis/analysis/trunk/install/bin/"%os.environ['ASKAP_ROOT']
+
+        if(useMPI):
+            if(os.uname()[1].split('.')[0]=='minicp'):
+                qsubfile = """\
+#!/bin/bash -l
+#PBS -l nodes=%d:ppn=4
+#PBS -l walltime=72:00:00
+#PBS -M Matthew.Whiting@csiro.au
+module load openmpi
+cd $PBS_O_WORKDIR
+
+ulimit -c unlimited
+
+mpirun -np %d %s/cduchamp.sh -inputs %s/%s 1>& %s/analysis.log
+
+%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s
+"""%(1+numNodes/4,numNodes,pathToAnalysis,os.getcwd(),cduchampParFileName,os.getcwd(),os.environ['ASKAP_ROOT'],sublistParsetFile)
+                f = file("model_testing.qsub","w")
+                f.write(qsubfile)
+                f.close()
+                os.system("qsub model_testing.qsub")
+                print "Have submitted the job -- check the queue in the usual manner for completion."
+            else:
+                os.system("mpirun -np %d %s/%s -inputs %s 1>& analysis.log"%(numNodes,pathToAnalysis,analysisApp,cduchampParFileName))
+        else:
+            os.system(pathToAnalysis+"/%s -inputs %s 1>& analysis.log"%(analysisApp,cduchampParFileName))
+
+#        os.system("%s/Code/Components/Analysis/analysis/trunk/install/bin/cduchamp.sh -inputs %s"%(os.environ['ASKAP_ROOT'],cduchampParFileName))
 
 ###
 
@@ -116,8 +149,12 @@ createSubs.thresholds       = [0]
 createSubs.radii            = [3.5]
 createSubs.destDir          = .
 """%outputCat
-    sublistParsetFile = "createCompCat-sublists.in"
     f = file(sublistParsetFile,"w")
     f.write(sublistParset)
     f.close()
-    os.system("%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s"%(os.environ['ASKAP_ROOT'],sublistParsetFile))
+    if(!useMPI or os.uname()[1].split('.')[0]=='minicp'):
+        os.system("%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s"%(os.environ['ASKAP_ROOT'],sublistParsetFile))
+
+
+
+
