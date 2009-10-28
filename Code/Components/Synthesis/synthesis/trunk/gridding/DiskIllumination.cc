@@ -101,7 +101,7 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	           itsDiameter<<" (rMaxSquared="<<rMaxSquared<<") blockage="<<itsBlockage<<" (rMinSquared="<<
 	           rMinSquared<<")");
 	
-	ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) || 
+	ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) &&
 	           (casa::square(double(nV)) > rMaxSquared),
 	           "The pattern buffer passed to DiskIllumination::getPattern is too small for the given model. "
 	           "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis, you have "
@@ -129,7 +129,7 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 		 }
 	}
 	if (sum<=0) {
-	   ASKAPLOG_INFO_STR(logger, "Sum="<<sum<<" "<<pattern.uSize()<<" "<<pattern.vSize());
+	   ASKAPLOG_INFO_STR(logger, "Sum="<<sum<<" "<<nU<<" "<<nV<<" "<<rMinSquared<<" "<<rMaxSquared);
 	   casa::Matrix<casa::Float> temparr(pattern.uSize(),pattern.vSize());
 	   for (size_t x=0;x<pattern.uSize();++x) {
 	        for (size_t y=0;y<pattern.vSize();++y) {
