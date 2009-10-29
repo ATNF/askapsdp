@@ -56,6 +56,8 @@ if __name__ == '__main__':
         inputPars.set_value('Cduchamp.image',convolvedImage)
     if('Cduchamp.threshold' not in inputPars):
         inputPars.set_value('Cduchamp.threshold',1.e-6)
+    if('Cduchamp.doFit' not in inputPars):
+	inputPars.set_value('Cduchamp.doFit',True)
     if('Cduchamp.Fitter.useNoise' not in inputPars):
         inputPars.set_value('Cduchamp.Fitter.useNoise',False)
     if('Cduchamp.Fitter.fitTypes' not in inputPars):
@@ -67,7 +69,7 @@ if __name__ == '__main__':
     if('Cduchamp.threshSpatial' not in inputPars):
         inputPars.set_value('Cduchamp.threshSpatial','10')
 
-
+    doOutputCat = inputPars.get_value("doOutputCat",True)
     cduchampSummary = inputPars.get_value("Cduchamp.summaryFile","duchamp-Summary.txt")
     outputCat = inputPars.get_value("outputCat","");
 
@@ -92,14 +94,20 @@ ia.close()
 
 ###
 
+    sublistCommand = ''
+    if(doOutputCat):
+        sublistCommand = '%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s'%(os.environ['ASKAP_ROOT'],sublistParsetFile)
+
     if(doCduchamp):
 
         if(numNodes>1):
             numWorkers=numNodes-1
             nsubx = getMPIxdim(numWorkers)
             nsuby = numWorkers/nsubx
-            inputPars.set_value('Cduchamp.nsubx',nsubx)
-            inputPars.set_value('Cduchamp.nsuby',nsuby)
+            inputPars.set_value('Cduchamp.nsubx',int(nsubx))
+            inputPars.set_value('Cduchamp.nsuby',int(nsuby))
+            inputPars.set_value('Cduchamp.overlapx',int(50))
+            inputPars.set_value('Cduchamp.overlapy',int(50))
 
         cduchampParFileName = 'createCompCat-cduchamp.in'
         cduchampParFile = file(cduchampParFileName,"w")
@@ -123,8 +131,8 @@ ulimit -c unlimited
 
 mpirun -np %d %s/cduchamp.sh -inputs %s/%s 1>& %s/analysis.log
 
-%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s
-"""%(1+numNodes/4,numNodes,pathToAnalysis,os.getcwd(),cduchampParFileName,os.getcwd(),os.environ['ASKAP_ROOT'],sublistParsetFile)
+%s
+"""%(1+numNodes/4,numNodes,pathToAnalysis,os.getcwd(),cduchampParFileName,os.getcwd(),sublistCommand)
                 f = file("analysis.qsub","w")
                 f.write(qsubfile)
                 f.close()
@@ -139,42 +147,42 @@ mpirun -np %d %s/cduchamp.sh -inputs %s/%s 1>& %s/analysis.log
 
 ###
 
-    inputFile = file(cduchampSummary,"r")
-    outputFile = file(outputCat,"w");
+    if(doOutputCat):
+        inputFile = file(cduchampSummary,"r")
+        outputFile = file(outputCat,"w");
     
-    for line in inputFile:
+        for line in inputFile:
 
-        if(line[0]!='#'):
+            if(line[0]!='#'):
 
-            values = line[:-1].split()
-            print values
-            print values[9]
-            npixFit = values[15]
-            if(npixFit>0):  # This means the source has a valid fit
-                ra = values[1]
-                dec = values[2]
-                flux = float(values[5])
-                maj = float(values[7])
-                min = float(values[8])
-                pa = float(values[9])*math.pi/180.
-                outputFile.write("%s  %s  %11.8f  %8.3f  %8.3f  %6.4f\n"%(ra,dec,flux,maj,min,pa))
+                values = line[:-1].split()
+                print values
+                print values[9]
+                npixFit = values[15]
+                if(npixFit>0):  # This means the source has a valid fit
+                    ra = values[1]
+                    dec = values[2]
+                    flux = float(values[5])
+                    maj = float(values[7])
+                    min = float(values[8])
+                    pa = float(values[9])*math.pi/180.
+                    outputFile.write("%s  %s  %11.8f  %8.3f  %8.3f  %6.4f\n"%(ra,dec,flux,maj,min,pa))
 
-    outputFile.close()
-    inputFile.close()
+        outputFile.close()
+        inputFile.close()
 
-    sublistParset="""\
+        sublistParset="""\
 createSubs.catfilename      = %s
 createSubs.flagAnnotation   = true
 createSubs.thresholds       = [0]
 createSubs.radii            = [3.5]
 createSubs.destDir          = .
 """%outputCat
-    f = file(sublistParsetFile,"w")
-    f.write(sublistParset)
-    f.close()
-    if(not useMPI or os.uname()[1].split('.')[0]!='minicp'):
-        os.system("%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s"%(os.environ['ASKAP_ROOT'],sublistParsetFile))
-
+        f = file(sublistParsetFile,"w")
+        f.write(sublistParset)
+        f.close()
+        if(not useMPI or os.uname()[1].split('.')[0]!='minicp'):
+            os.system("%s"%sublistCommand)
 
 
 
