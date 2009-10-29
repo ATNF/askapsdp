@@ -713,10 +713,12 @@ namespace askap {
                 if (fits_update_key(fptr, TSTRING, "BUNIT", unit,  NULL, &status))
                     fits_report_error(stderr, status);
 
-		status = 0;
-		
-		if (fits_update_key(fptr, TFLOAT, "RESTFREQ", &(this->itsRestFreq), NULL, &status))
-		  fits_report_error(stderr, status);
+		if(this->itsSourceListType == "spectralline"){
+		  status = 0;
+		  
+		  if (fits_update_key(fptr, TFLOAT, "RESTFREQ", &(this->itsRestFreq), NULL, &status))
+		    fits_report_error(stderr, status);
+		}
 
                 float val;
 
