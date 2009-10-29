@@ -153,7 +153,7 @@ if __name__ == '__main__':
         print "Can only accept 'SKADS' as a value for 'catSource'.\nExiting.\n"
         exit(1)
 
-    database = inputPars.get_value('database', 'S3SEX')
+    database = inputPars.get_value('database', 'S3SAX')
     print 'Using database %s'%database
 
     makeImage = inputPars.get_value("makeImage", True)
@@ -173,7 +173,6 @@ if __name__ == '__main__':
     numChannels = inputPars.get_value("numChannels", 2048)
     centralFreq = inputPars.get_value("centralFreq", 1.40226e9)
     channelWidth = inputPars.get_value("channelWidth", 18.3e3)
-    justHIsources = inputPars.get_value("justHIsources", True)
     imageDoContinuum = inputPars.get_value("imageDoContinuum", False)
     imageDoHI = inputPars.get_value("imageDoHI", True)
 
