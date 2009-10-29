@@ -93,6 +93,11 @@ int main(int argc, char *argv[])
 
         // Instantiate the comms class
         comms_p.reset(new MPIBasicComms(argc, argv));
+        if (comms_p->getNumNodes() < 2) {
+            ASKAPLOG_FATAL_STR(logger, "Imager is master/work and requires at least two processes");
+            comms_p->abort();
+            return 1;
+        }
 
         // Instantiate the Distributed Imager
         const std::string mode = subset.getString("mode","Continuum");
