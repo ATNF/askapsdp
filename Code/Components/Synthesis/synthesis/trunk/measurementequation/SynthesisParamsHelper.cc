@@ -253,12 +253,15 @@ namespace askap
       ASKAPCHECK(direction.size() == 3, "Direction should have exactly 3 parameters, you have "<<direction.size());
       ASKAPCHECK(direction[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<direction[2]);
       ASKAPCHECK(stokes.nelements()>=1, "At least one polarisation plane should be defined, you have defined none");      
-      
-      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
-      const double ycellsize = convertQuantity(cellsize[1],"rad");
-      
+            
       const double ra = convertQuantity(direction[0],"rad");
       const double dec = convertQuantity(direction[1],"rad");
+      
+      const double cosdec = cos(dec);
+      ASKAPCHECK(cosdec>0, "Cosine of declination is supposed to be positive");
+      
+      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad")/cosdec;
+      const double ycellsize = convertQuantity(cellsize[1],"rad");
       
       /// @todo Do something with the frame info in direction[2]
       Axes axes;
@@ -303,12 +306,14 @@ namespace askap
       ASKAPCHECK(direction[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<direction[2]);
       ASKAPCHECK(stokes.nelements()>=1, "At least one polarisation plane should be defined, you have defined none");      
       
-      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
-      const double ycellsize = convertQuantity(cellsize[1],"rad");
-      
       const double ra = convertQuantity(direction[0],"rad");
       const double dec = convertQuantity(direction[1],"rad");
-
+      const double cosdec = cos(dec);
+      ASKAPCHECK(cosdec>0, "Cosine of declination is supposed to be positive");
+      
+      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad")/cosdec;
+      const double ycellsize = convertQuantity(cellsize[1],"rad");
+      
       // zero-filled array is the same for all facets as it is copied inside Params
       // class
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));
@@ -889,13 +894,15 @@ namespace askap
       xform = 0.0; xform.diagonal() = 1.0;
       int nx=ip.value(name).shape()(0);
       int ny=ip.value(name).shape()(1);
+
       const casa::Quantum<double> centreLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
       const casa::Quantum<double> centreLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
       
-      const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
       const casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
-      
+      const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
+ 
       if (!axes.has("RA-TANGENT")) {
+           
           // this is not faceting, centre of the image is a tangent point
           const casa::DirectionCoordinate radec(MDirection::J2000,Projection(Projection::SIN), 
                                      centreLon, centreLat, incLon, incLat, xform, nx/2, ny/2);      
@@ -905,6 +912,7 @@ namespace askap
       // different from the image centre
       const casa::Quantum<double> tangentLon(axes.start("RA-TANGENT"), "rad");
       const casa::Quantum<double> tangentLat(axes.start("DEC-TANGENT"), "rad");
+      
       // need to find reference pixel, do it with a temporary coordinate class by
       // getting the world coordinates for the image centre
       const casa::DirectionCoordinate temp(MDirection::J2000,Projection(Projection::SIN), 

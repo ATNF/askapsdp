@@ -674,9 +674,12 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 
 	double decStart=itsAxes.start("DEC");
 	double decEnd=itsAxes.end("DEC");
+	
+	// ra axis is stratched with cos dec factor
+	const double cosdec = cos(getTangentPoint().getLat());
 
 	itsUVCellSize.resize(2);
-	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor);
+	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)*cosdec;
 	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
 	
 	initialiseSumOfWeights();
@@ -798,8 +801,11 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	double decStart=itsAxes.start("DEC");
 	double decEnd=itsAxes.end("DEC");
 
+	// ra axis is stratched with cos dec factor
+	const double cosdec = cos(getTangentPoint().getLat());
+
 	itsUVCellSize.resize(2);
-	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor);
+	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)*cosdec;
 	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
 
     initialiseFreqMapping();
