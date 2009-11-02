@@ -72,7 +72,7 @@ def getQueryStringS3SAX(radius,max_redshift,min_redshift,hiMassLimit=0.,hiFluxLi
 
     hiQuery = 'himass>%f and hiintflux>%f and zapparent < %f and zapparent > %f'%(hiMassLimit,hiFluxLimit,max_redshift,min_redshift)
 
-    return 'SELECT right_ascension,declination,zapparent,himass,hiintflux,(himajoraxis_msunpc*(1+zapparent)/distance) as "major axis", (hiaxisratio*himajoraxis_msunpc*(1+zapparent)/distance) as "minor axis", diskpositionangle,hilumcenter,hilumpeak,hiwidthpeak,hiwidth50,hiwidth20 from Galaxies where %s%s'%(sepQuery,hiQuery)
+    return 'SELECT right_ascension,declination,zapparent,himass,hiintflux,himajoraxis_msunpc as "major axis", hiaxisratio*himajoraxis_msunpc as "minor axis", diskpositionangle,hilumcenter,hilumpeak,hiwidthpeak,hiwidth50,hiwidth20 from Galaxies where %s%s'%(sepQuery,hiQuery)
 
 ############
 
