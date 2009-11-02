@@ -38,10 +38,10 @@ module executive
 {
   /**
    * Service interface to the askap Executive. This can be used
-   * to run the Executive through e.g. a Operator Displaya or a 
+   * to run the Executive through e.g. a Operator Display or a 
    * script.
    **/
-  interface ExecutiveService
+  interface IExecutiveService
   {
     /** 
      * Start the executive - enable access to a queue of SchedulingBlocks
