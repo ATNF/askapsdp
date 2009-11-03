@@ -82,7 +82,8 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
     pattern.pattern().set(0.);
     
     // currently don't work with rectangular cells.
-    ASKAPCHECK(std::abs(std::abs(cellU/cellV)-1.)<1e-7, 
+    // it used to be <1e-7, changed to <1e-3 until figure out minor projection issues
+    ASKAPCHECK(std::abs(std::abs(cellU/cellV)-1.)<1e-3, 
                "Rectangular cells are not supported at the moment, you have ("<<cellU<<" , "<<cellV<<")");
     
     const double cell = std::abs(cellU*(casa::C::c/freq));

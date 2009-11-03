@@ -746,6 +746,7 @@ namespace askap
       units.set("rad");
       radec.setWorldAxisUnits(units);
       
+      /*
       casa::Vector<double> refPix(radec.referencePixel());
       casa::Vector<double> refInc(radec.increment());
       casa::Vector<double> refValue(radec.referenceValue());
@@ -757,10 +758,26 @@ namespace askap
 	     start(i)=refValue(i)-refInc(i)*(refPix(i));
 	     end(i)=refValue(i)+refInc(i)*(double(imagePixels.shape()(i))-refPix(i));
 	  }
+	  */
+	  casa::Vector<double> start(2);
+      casa::Vector<double> end(2);
+      casa::Vector<double> pixelbuf(2);
+      const casa::Vector<double> refPix(radec.referencePixel());
       
+      pixelbuf(0)=0;
+      pixelbuf(1)=refPix(1);
+      ASKAPCHECK(radec.toWorld(start,pixelbuf), "Pixel to world conversion error: "<<radec.errorMessage());
+      pixelbuf(0)=imagePixels.shape()[0]-1;
+      ASKAPCHECK(radec.toWorld(end,pixelbuf), "Pixel to world conversion error: "<<radec.errorMessage());            
       axes.add("RA", start(0), end(0));
-      axes.add("DEC", start(1), end(1));
       
+      pixelbuf(0)=refPix(0);
+      pixelbuf(1)=0;
+      ASKAPCHECK(radec.toWorld(start,pixelbuf), "Pixel to world conversion error: "<<radec.errorMessage());
+      pixelbuf(1)=imagePixels.shape()[1]-1;
+      ASKAPCHECK(radec.toWorld(end,pixelbuf), "Pixel to world conversion error: "<<radec.errorMessage());      
+      axes.add("DEC", start(1), end(1));
+                  
       int whichStokes = imageCoords.findCoordinate(Coordinate::STOKES);
       int nPol = 1;
       if (whichStokes<0) {

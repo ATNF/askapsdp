@@ -120,7 +120,7 @@ namespace askap
     void WStackVisGridder::initialiseGrid(const scimath::Axes& axes,
         const casa::IPosition& shape, const bool dopsf)
     {
-      itsAxes=axes;
+      initialiseCellSize(axes);
       itsShape=shape;
       ASKAPDEBUGASSERT(shape.nelements()>=2);
       itsShape(0) *= paddingFactor();
@@ -141,25 +141,7 @@ namespace askap
         // for a proper PSF calculation
 		initRepresentativeFieldAndFeed();
       }
-      
-      
-      ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
-		 "RA and DEC specification not present in axes");
-
-      const double raStart=itsAxes.start("RA");
-      const double raEnd=itsAxes.end("RA");
-
-      const double decStart=itsAxes.start("DEC");
-      const double decEnd=itsAxes.end("DEC");
-      
-      // ra axis is stratched with cos dec factor
-	  const double cosdec = cos(getTangentPoint().getLat());
-      
-
-      itsUVCellSize.resize(2);
-      itsUVCellSize(0)=1.0/(raEnd-raStart)/double(paddingFactor())*cosdec;
-      itsUVCellSize(1)=1.0/(decEnd-decStart)/double(paddingFactor());
-       
+            
       initialiseSumOfWeights();
       ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");      
       
@@ -262,28 +244,11 @@ namespace askap
     void WStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
         const casa::Array<double>& in)
     {
-
-      itsAxes=axes;
+      initialiseCellSize(axes);
       itsShape = scimath::PaddingUtils::paddedShape(in.shape(),paddingFactor());
       configureForPSF(false);
 
-      ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
-          "RA and DEC specification not present in axes");
       initStokes();
-
-      double raStart=itsAxes.start("RA");
-      double raEnd=itsAxes.end("RA");
-
-      double decStart=itsAxes.start("DEC");
-      double decEnd=itsAxes.end("DEC");
-      
-      // ra axis is stratched with cos dec factor
-	  const double cosdec = cos(getTangentPoint().getLat());
-      
-
-      itsUVCellSize.resize(2);
-      itsUVCellSize(0)=1.0/(raEnd-raStart)/double(paddingFactor())*cosdec;
-      itsUVCellSize(1)=1.0/(decEnd-decStart)/double(paddingFactor());
   
       initialiseFreqMapping();      
 

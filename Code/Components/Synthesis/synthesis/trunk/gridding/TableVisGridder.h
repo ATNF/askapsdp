@@ -188,6 +188,14 @@ namespace askap
       /// method.
       void initialiseFreqMapping();
       
+      /// @brief helper method to set up cell size
+      /// @details Similar action is required to calculate uv-cell size for gridding and degridding.
+      /// Moreover, derived gridders may override initialiseGrid and initialiseDegrid and we don't want
+      /// to duplicate the code up there. This method calculates uv-cell size for both ra and dec axes
+      /// using coordinate information provided. This method also assigns passed axes parameter to itsAxes.
+      /// @param[in] axes coordinate system (ra and dec axes are used).
+      void initialiseCellSize(const scimath::Axes& axes);
+      
       /// @brief gridder configured to calculate PSF?
       /// @details
       /// @return true if this gridder is configured to calculate PSF, false otherwise

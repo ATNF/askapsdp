@@ -647,7 +647,7 @@ void TableVisGridder::initStokes()
 
 void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		const casa::IPosition& shape, const bool dopsf) {
-	itsAxes=axes;
+	initialiseCellSize(axes);
 	itsShape=shape;
 	ASKAPDEBUGASSERT(shape.nelements()>=2);
 	itsShape(0) *= itsPaddingFactor;
@@ -665,22 +665,6 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		// for a proper PSF calculation
 		initRepresentativeFieldAndFeed();
 	}
-
-	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
-			"RA and DEC specification not present in axes");
-
-	double raStart=itsAxes.start("RA");
-	double raEnd=itsAxes.end("RA");
-
-	double decStart=itsAxes.start("DEC");
-	double decEnd=itsAxes.end("DEC");
-	
-	// ra axis is stratched with cos dec factor
-	const double cosdec = cos(getTangentPoint().getLat());
-
-	itsUVCellSize.resize(2);
-	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)*cosdec;
-	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
 	
 	initialiseSumOfWeights();
     ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
@@ -689,6 +673,33 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
              printDirection(getTangentPoint())<<" and image centre "<<
              printDirection(getImageCentre())); 
 }
+
+/// @brief helper method to set up cell size
+/// @details Similar action is required to calculate uv-cell size for gridding and degridding.
+/// Moreover, derived gridders may override initialiseGrid and initialiseDegrid and we don't want
+/// to duplicate the code up there. This method calculates uv-cell size for both ra and dec axes
+/// using coordinate information provided. This method also assigns passed axes parameter to itsAxes.
+/// @param[in] axes coordinate system (ra and dec axes are used).
+void TableVisGridder::initialiseCellSize(const scimath::Axes& axes)
+{
+    itsAxes=axes;
+	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
+			"RA and DEC specification not present in axes");
+
+	const double raStart=itsAxes.start("RA");
+	const double raEnd=itsAxes.end("RA");
+
+	const double decStart=itsAxes.start("DEC");
+	const double decEnd=itsAxes.end("DEC");
+	
+	// ra axis is stratched with cos dec factor
+	const double cosdec = cos(getTangentPoint().getLat());
+
+	itsUVCellSize.resize(2);
+	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)/cosdec;
+	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);	
+}
+
 
 /// @brief initialise sum of weights
 /// @details We keep track the number of times each convolution function is used per
@@ -787,26 +798,10 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
     configureForPSF(false);
-	itsAxes=axes;
+	initialiseCellSize(axes);
 	itsShape = scimath::PaddingUtils::paddedShape(in.shape(),itsPaddingFactor);
 
-	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
-			"RA and DEC specification not present in axes");
-     
     initStokes();
-
-	double raStart=itsAxes.start("RA");
-	double raEnd=itsAxes.end("RA");
-
-	double decStart=itsAxes.start("DEC");
-	double decEnd=itsAxes.end("DEC");
-
-	// ra axis is stratched with cos dec factor
-	const double cosdec = cos(getTangentPoint().getLat());
-
-	itsUVCellSize.resize(2);
-	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)*cosdec;
-	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);
 
     initialiseFreqMapping();
  
