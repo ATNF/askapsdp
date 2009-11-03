@@ -291,6 +291,17 @@ void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
 
 }
 
+
+// Return a pseudo-random integer in the range 0..2147483647
+// This is based on an algorithm in
+// Kernighan, B., Ritchie, D., "The C Programming Language"
+static unsigned long next = 1;
+int localRand()
+{
+    next = next * 1103515245 + 12345;
+    return((unsigned int)(next/65536) % 2147483647);
+}
+
 // Main testing routine
 int main()
 {
@@ -315,9 +326,9 @@ int main()
 
 	for (int i=0; i<nSamples; i++)
 	{
-		u[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-		v[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-		w[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
+		u[i]=baseline*Coord(localRand())/Coord(RAND_MAX)-baseline/2;
+		v[i]=baseline*Coord(localRand())/Coord(RAND_MAX)-baseline/2;
+		w[i]=baseline*Coord(localRand())/Coord(RAND_MAX)-baseline/2;
 		for (int chan=0; chan<nChan; chan++)
 		{
 			data[i*nChan+chan]=1.0;
