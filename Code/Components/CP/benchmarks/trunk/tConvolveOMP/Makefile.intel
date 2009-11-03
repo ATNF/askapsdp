@@ -1,0 +1,18 @@
+# Need the run the following to setup the environment on xe or vu:
+# module load intel-mkl
+# module load intel-cc
+CXX=/apps/intel-cc/11.1.046/bin/intel64/icpc
+CFLAGS=-O3 -DUSEMKLLIB -DUSEBLAS -openmp
+LIBS=-lmkl -liomp5 -lpthread
+
+all:		tConvolveOMP
+
+Stopwatch.o:	Stopwatch.cc Stopwatch.h
+		$(CXX) $(CFLAGS) -c Stopwatch.cc
+
+tConvolveOMP:	tConvolveOMP.cc Stopwatch.o
+		$(CXX) $(CFLAGS) -c tConvolveOMP.cc
+		$(CXX) $(CFLAGS) -o tConvolveOMP tConvolveOMP.o Stopwatch.o $(LIBS)
+
+clean:
+		rm -f *.o tConvolveOMP
