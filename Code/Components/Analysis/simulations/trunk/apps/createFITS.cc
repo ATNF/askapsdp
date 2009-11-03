@@ -73,21 +73,22 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-  std::ifstream config("askap.log_cfg", std::ifstream::in);
-  if (config) {
-    ASKAPLOG_INIT("askap.log_cfg");
-  } else {
-    std::ostringstream ss;
-    ss << argv[0] << ".log_cfg";
-    ASKAPLOG_INIT(ss.str().c_str());
-  }
+    std::ifstream config("askap.log_cfg", std::ifstream::in);
+
+    if (config) {
+        ASKAPLOG_INIT("askap.log_cfg");
+    } else {
+        std::ostringstream ss;
+        ss << argv[0] << ".log_cfg";
+        ASKAPLOG_INIT(ss.str().c_str());
+    }
 
     try {
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
-	casa::Timer timer;
-	timer.mark();
+        casa::Timer timer;
+        timer.mark();
         srandom(time(0));
         std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
@@ -96,26 +97,26 @@ int main(int argc, const char** argv)
         bool doNoise = subset.getBool("addNoise", true);
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);
- 	FITSparallel file(argc,argv,subset);
+        FITSparallel file(argc, argv, subset);
         file.addSources();
 
         if (doNoise && (noiseBeforeConvolve || !doConvolution))
-	  if(file.isWorker())
-	    file.addNoise();
+            if (file.isWorker())
+                file.addNoise();
 
- 	file.toMaster();
+        file.toMaster();
 
         if (doConvolution)
-	  if(file.isMaster())
-            file.convolveWithBeam();
+            if (file.isMaster())
+                file.convolveWithBeam();
 
         if (doNoise && (!noiseBeforeConvolve && doConvolution))
-	  if(file.isMaster())
-	    file.addNoise();
+            if (file.isMaster())
+                file.addNoise();
 
-	file.saveFile();
+        file.saveFile();
 
-	ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
+        ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
 
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

@@ -1,6 +1,6 @@
 /// @file
 ///
-/// XXX Notes on program XXX
+/// Base class functions for spectral profiles.
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,7 +24,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author XXX XXX <XXX.XXX@csiro.au>
+/// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #include <askap_simulations.h>
 
@@ -41,21 +41,31 @@ namespace askap {
 
     namespace simulations {
 
-      Spectrum::Spectrum(std::string &line)
-      {
-	float flux,maj,min,pa;
-	std::stringstream ss(line);
-	ss >> this->itsRA >> this->itsDec >> flux >> maj >> min >> pa;
-	this->itsComponent.setPeak(flux);
-	this->itsComponent.setMajor(maj);
-	this->itsComponent.setMinor(min);
-	this->itsComponent.setPA(pa);
-      }
+        Spectrum::Spectrum(std::string &line)
+        {
+            /// @details Constructs a Spectrum object from a line of
+            /// text from an ascii file. This line should be formatted in
+            /// the correct way to match the output from the appropriate
+            /// python script. The columns should accepted by this function are:
+            /// RA - DEC - Flux - Alpha - Beta - Major axis - Minor axis - Pos.Angle
+            /// (Alpha & Beta are the spectral index & spectral curvature).
+            /// @param line A line from the ascii input file
 
-      Spectrum::Spectrum(const Spectrum& s)
-      {
-	this->itsComponent = s.itsComponent;
-      }
+            float flux, maj, min, pa;
+            std::stringstream ss(line);
+            ss >> this->itsRA >> this->itsDec >> flux >> maj >> min >> pa;
+            this->itsComponent.setPeak(flux);
+            this->itsComponent.setMajor(maj);
+            this->itsComponent.setMinor(min);
+            this->itsComponent.setPA(pa);
+        }
+
+        Spectrum::Spectrum(const Spectrum& s)
+        {
+            this->itsRA = s.itsRA;
+            this->itsDec = s.itsDec;
+            this->itsComponent = s.itsComponent;
+        }
 
     }
 

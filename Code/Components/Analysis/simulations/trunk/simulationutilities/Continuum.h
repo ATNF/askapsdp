@@ -35,34 +35,59 @@ namespace askap {
 
     namespace simulations {
 
-      class Continuum : public Spectrum {
+        /// @brief A class to hold spectral information for a continuum spectrum.
+        /// @details This class holds information on the continuum
+        /// properties of a spectral profile. The information kept is the spectral
+        /// index alpha, the spectral curvature parameter beta, and the
+        /// normalisation frequency. It inherits the position, shape and flux
+        /// normalisation from Spectrum.
+        ///
+        /// The flux at a given frequency is given by the relation:
+        /// \f$F(\nu) = F(\nu_0) \left(\frac{\nu}{\nu_0}\right)^{\alpha + \beta\log(\nu/\nu_0)} \f$
+        class Continuum : public Spectrum {
             public:
+                /// @brief Default constructor
                 Continuum();
-		Continuum(Spectrum &s);
-		Continuum(std::string &line);
-		Continuum(float alpha, float beta, float nuZero){defineSource(alpha,beta,nuZero);};
-		Continuum(float alpha, float beta, float nuZero,float fluxZero){defineSource(alpha,beta,nuZero); setFluxZero(fluxZero);};
+                /// @brief Constructor from Spectrum object
+                Continuum(Spectrum &s);
+                /// @brief Set up parameters using a line of input from an ascii file
+                Continuum(std::string &line);
+                /// @brief Define parameters directly
+                Continuum(float alpha, float beta, float nuZero) {defineSource(alpha, beta, nuZero);};
+                /// @brief Define parameters directly
+                Continuum(float alpha, float beta, float nuZero, float fluxZero) {defineSource(alpha, beta, nuZero); setFluxZero(fluxZero);};
+                /// @brief Destructor
                 virtual ~Continuum() {};
-		/// @brief Copy constructor for Continuum.
-		Continuum(const Continuum& f);
-		
-		/// @brief Assignment operator for Continuum.
-		Continuum& operator= (const Continuum& c);
-		Continuum& operator= (const Spectrum& c);
+                /// @brief Copy constructor for Continuum.
+                Continuum(const Continuum& f);
 
-		void defineSource(float alpha, float beta, float nuZero);
+                /// @brief Assignment operator for Continuum.
+                Continuum& operator= (const Continuum& c);
+                /// @brief Assignment operator for Continuum, using a Spectrum object
+                Continuum& operator= (const Spectrum& c);
 
-		void setNuZero(float n){itsNuZero = n;};
+                /// @brief Set up the profile's parameters
+                void defineSource(float alpha, float beta, float nuZero);
 
-		double alpha(){return itsAlpha;};
-		double beta(){return itsBeta;};
-		double nuZero(){return itsNuZero;};
+                /// @brief Set the normalisation frequency
+                void setNuZero(float n) {itsNuZero = n;};
 
-		double flux(double freq);
+                /// @brief Return the spectral index
+                double alpha() {return itsAlpha;};
+                /// @brief Return the spectral curvature
+                double beta() {return itsBeta;};
+                /// @brief Return the normalisation frequency
+                double nuZero() {return itsNuZero;};
+
+                /// @brief Return the flux at a given frequency
+                double flux(double freq);
 
             protected:
+                /// @brief The spectral index
                 double itsAlpha;
+                /// @brief The spectral curvature
                 double itsBeta;
+                /// @brief The normalisation frequency
                 double itsNuZero;
 
         };

@@ -1,6 +1,6 @@
 /// @file
 ///
-/// XXX Notes on program XXX
+/// Base class for spectral-line profile defintions
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,7 +24,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author XXX XXX <XXX.XXX@csiro.au>
+/// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #ifndef ASKAP_SIMS_HI_PROFILE_H_
 #define ASKAP_SIMS_HI_PROFILE_H_
@@ -34,44 +34,73 @@
 
 namespace askap {
 
-  namespace simulations {
+    namespace simulations {
 
-    const double nu0_HI = 1420405751.786;
-    const double C_kms = 299792.458;
-    const double HUBBLE_WMAP = 71.;
-    const double OMEGAM_WMAP = 0.27;
-    const double OMEGAL_WMAP = 0.73;
+        /// @brief The rest frequency of the fine-structure HI line in Hz
+        const double nu0_HI = 1420405751.786;
+        /// @brief The speed of light in km/s
+        const double C_kms = 299792.458;
+        /// @brief The hubble constant, in km/s/Mpc, from the WMAP results
+        const double HUBBLE_WMAP = 71.;
+        /// @brief The matter density from the WMAP results
+        const double OMEGAM_WMAP = 0.27;
+        /// @brief The dark energy density from the WMAP results
+        const double OMEGAL_WMAP = 0.73;
 
-    double luminosityDistance(double z, double H0=HUBBLE_WMAP, double omegaM=OMEGAM_WMAP, double omegaL=OMEGAL_WMAP);
-    double redshiftToDist(double z, double H0=HUBBLE_WMAP, double omegaM=OMEGAM_WMAP, double omegaL=OMEGAL_WMAP);
-    double redshiftToVel(double z);
-    double redshiftToHIFreq(double z);
-    double freqToHIVel(double nu);
+        /// @brief Return the luminosity distance to redshift z for a given cosmology
+        double luminosityDistance(double z, double H0 = HUBBLE_WMAP, double omegaM = OMEGAM_WMAP, double omegaL = OMEGAL_WMAP);
+        /// @brief Convert a redshift to a distance for a given cosmology
+        double redshiftToDist(double z, double H0 = HUBBLE_WMAP, double omegaM = OMEGAM_WMAP, double omegaL = OMEGAL_WMAP);
+        /// @brief Convert a redshift to a line-of-sight velocity
+        double redshiftToVel(double z);
+        /// @brief Convert a redshift to an observed HI frequency
+        double redshiftToHIFreq(double z);
+        /// @brief Convert an observed HI frequency to a recessional velocity
+        double freqToHIVel(double nu);
 
-    class HIprofile : public Spectrum {
-    public:
-      HIprofile();
-      virtual ~HIprofile(){};
-      HIprofile(const HIprofile& h);
-      HIprofile& operator= (const HIprofile& h);
 
-      double integratedFlux(double z, double mhi);
+        /// @brief A base class for spectral-line profiles
+        /// @details This holds information about a spectral-line profile
+        /// (usually HI). It stores the redshift and HI mass (a measure of the
+        /// integrated flux), and provides methods for calculating the integrated
+        /// flux, flux at a particular frequency and flux integrated between two
+        /// frequencies.
+        class HIprofile : public Spectrum {
+            public:
+                /// @brief Default constructor
+                HIprofile();
+                /// @brief Destructor
+                virtual ~HIprofile() {};
+                /// @brief Copy constructor
+                HIprofile(const HIprofile& h);
+                /// @brief Assignment operator
+                HIprofile& operator= (const HIprofile& h);
 
-      double redshift(){return itsRedshift;};
-      double mHI(){return itsMHI;};
+                /// @brief Convert the HI mass to an integrated flux.
+                double integratedFlux(double z, double mhi);
 
-      virtual double flux(double nu)  {return -177.;};
-      virtual double flux(double nu1, double nu2)  {return -179.;};
+                /// @brief Return the redshift
+                double redshift() {return itsRedshift;};
+                /// @brief Return the HI mass
+                double mHI() {return itsMHI;};
 
-      friend std::ostream& operator<< ( std::ostream& theStream, HIprofile &prof);
+                /// @brief Return the flux at a given frequency - not used for the base class
+                virtual double flux(double nu)  {return -177.;};
+                /// @brief Return the flux integrated between two frequencies - not used for the base class
+                virtual double flux(double nu1, double nu2)  {return -179.;};
 
-    protected:
-      double itsRedshift;
-      double itsMHI;
+                /// @brief Output the parameters for the source
+                friend std::ostream& operator<< (std::ostream& theStream, HIprofile &prof);
 
-    };
+            protected:
+                /// @brief The redshift of the source
+                double itsRedshift;
+                /// @brief The HI mass of the source
+                double itsMHI;
 
-  }
+        };
+
+    }
 
 }
 

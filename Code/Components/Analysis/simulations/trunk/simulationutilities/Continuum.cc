@@ -48,66 +48,83 @@ namespace askap {
 
     namespace simulations {
 
-      Continuum::Continuum():
-	Spectrum()
-      {
-	this->defineSource(0., 0., 1400.);
-      }
+        Continuum::Continuum():
+                Spectrum()
+        {
+            this->defineSource(0., 0., 1400.);
+        }
 
-      Continuum::Continuum(Spectrum &s):
-	Spectrum(s)
-      {
-	this->defineSource(0., 0., 1400.);
-      }
+        Continuum::Continuum(Spectrum &s):
+                Spectrum(s)
+        {
+            this->defineSource(0., 0., 1400.);
+        }
 
-      Continuum::Continuum(std::string &line)
-      {
-	float flux,maj,min,pa;
-	std::stringstream ss(line);
-	ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
-	this->itsComponent.setPeak(flux);
-	this->itsComponent.setMajor(maj);
-	this->itsComponent.setMinor(min);
-	this->itsComponent.setPA(pa);
-      }
+        Continuum::Continuum(std::string &line)
+        {
+            /// @details Constructs a Continuum object from a line of
+            /// text from an ascii file. This line should be formatted in
+            /// the correct way to match the output from the appropriate
+            /// python script. The columns should accepted by this function are:
+            /// RA - DEC - Flux - Alpha - Beta - Major axis - Minor axis - Pos.Angle
+            /// (Alpha & Beta are the spectral index & spectral curvature).
+            /// @param line A line from the ascii input file
 
-      Continuum::Continuum(const Continuum& c):
-	Spectrum(c)
-      {
-	operator=(c);
-      }
+            float flux, maj, min, pa;
+            std::stringstream ss(line);
+            ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
+            this->itsComponent.setPeak(flux);
+            this->itsComponent.setMajor(maj);
+            this->itsComponent.setMinor(min);
+            this->itsComponent.setPA(pa);
+        }
 
-      Continuum& Continuum::operator= (const Continuum& c)
-      {
-	if(this == &c) return *this;
-	((Spectrum &) *this) = c;
-	this->itsAlpha      = c.itsAlpha;
-	this->itsBeta       = c.itsBeta;
-	this->itsNuZero     = c.itsNuZero;
-	return *this;	  
-      }
-      
-      Continuum& Continuum::operator= (const Spectrum& c)
-      {
-	if(this == &c) return *this;
-	((Spectrum &) *this) = c;
-	this->defineSource(0., 0., 1400.);
-	return *this;	  
-      }
-      
-      void Continuum::defineSource(float alpha, float beta, float nuZero)
-      {
-	this->itsAlpha = alpha;
-	this->itsBeta = beta;
-	this->itsNuZero = nuZero;
-      }
-      
+        Continuum::Continuum(const Continuum& c):
+                Spectrum(c)
+        {
+            operator=(c);
+        }
 
-      double Continuum::flux(double freq)
-      {
-	double powerTerm = this->itsAlpha+this->itsBeta*log(freq/this->itsNuZero);
-	return this->fluxZero() * pow(freq/this->itsNuZero, powerTerm);
-      }
+        Continuum& Continuum::operator= (const Continuum& c)
+        {
+            if (this == &c) return *this;
+
+            ((Spectrum &) *this) = c;
+            this->itsAlpha      = c.itsAlpha;
+            this->itsBeta       = c.itsBeta;
+            this->itsNuZero     = c.itsNuZero;
+            return *this;
+        }
+
+        Continuum& Continuum::operator= (const Spectrum& c)
+        {
+            if (this == &c) return *this;
+
+            ((Spectrum &) *this) = c;
+            this->defineSource(0., 0., 1400.);
+            return *this;
+        }
+
+        void Continuum::defineSource(float alpha, float beta, float nuZero)
+        {
+            /// @details Assign the parameters
+            /// @param alpha The spectral index
+            /// @param beta The spectral curvature
+            /// @param nuZero The normalisation frequency
+            this->itsAlpha = alpha;
+            this->itsBeta = beta;
+            this->itsNuZero = nuZero;
+        }
+
+
+        double Continuum::flux(double freq)
+        {
+            /// @details Returns the flux at a given frequency.
+            /// @param freq The frequency, in Hz
+            /// @return The flux, in Jy
+            double powerTerm = this->itsAlpha + this->itsBeta * log(freq / this->itsNuZero);
+            return this->fluxZero() * pow(freq / this->itsNuZero, powerTerm);
+        }
 
 
     }

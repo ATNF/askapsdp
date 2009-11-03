@@ -46,139 +46,183 @@ namespace askap {
 
     namespace simulations {
 
-      HIprofileS3SAX::HIprofileS3SAX(const HIprofileS3SAX& h):
-	HIprofile(h)
-      {
-	operator=(h);
-      }
+        HIprofileS3SAX::HIprofileS3SAX(const HIprofileS3SAX& h):
+                HIprofile(h)
+        {
+            operator=(h);
+        }
 
-      HIprofileS3SAX& HIprofileS3SAX::operator= (const HIprofileS3SAX& h)
-      {
-	if(this == &h) return *this;
-	((HIprofile &) *this) = h;
-	this->itsFluxPeak = h.itsFluxPeak;
-	this->itsFlux0 = h.itsFlux0;
-	this->itsWidthPeak = h.itsWidthPeak;
-	this->itsWidth50 = h.itsWidth50;
-	this->itsWidth20 = h.itsWidth20;
-	this->itsIntFlux = h.itsIntFlux;
-	this->itsSideFlux = h.itsSideFlux;
-	this->itsMiddleFlux = h.itsMiddleFlux;
-	this->itsKpar = h.itsKpar;
-	return *this;
-      }
-      
-      std::ostream& operator<< ( std::ostream& theStream, HIprofileS3SAX &prof)
-      {
-	theStream << "HI profile summary:\n";
-	theStream << "z=" << prof.itsRedshift << "\n";
-	theStream << "M_HI=" << prof.itsMHI << "\n";
-	theStream << "Fpeak=" << prof.itsFluxPeak << "\n";
-	theStream << "F0=" << prof.itsFlux0 << "\n";
-	theStream << "Wpeak=" << prof.itsWidthPeak << "\n";
-	theStream << "W50=" << prof.itsWidth50 << "\n";
-	theStream << "W20=" << prof.itsWidth20 << "\n";
-	theStream << "IntFlux=" << prof.itsIntFlux << "\n";
-	theStream << "Side Flux=" << prof.itsSideFlux << "\n";
-	theStream << "Middle Flux=" << prof.itsMiddleFlux << "\n";
-	theStream << "K[] = [" << prof.itsKpar[0];
-	for(int i=1;i<5;i++)
-	  theStream << "," << prof.itsKpar[i];
-	theStream << "]\n";
-	return theStream;
-      }
+        HIprofileS3SAX& HIprofileS3SAX::operator= (const HIprofileS3SAX& h)
+        {
+            if (this == &h) return *this;
 
-      HIprofileS3SAX::HIprofileS3SAX(std::string &line)
-      {
-	float maj,min,pa,alpha,beta;
-	std::stringstream ss(line);
-	ss >> this->itsRA >> this->itsDec >> this->itsIntFlux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI 
-	   >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
-	this->itsComponent.setPeak(this->itsFluxPeak * this->itsIntFlux);
-	this->itsComponent.setMajor(maj);
-	this->itsComponent.setMinor(min);
-	this->itsComponent.setPA(pa);
-	this->define();
-      }
+            ((HIprofile &) *this) = h;
+            this->itsFluxPeak = h.itsFluxPeak;
+            this->itsFlux0 = h.itsFlux0;
+            this->itsWidthPeak = h.itsWidthPeak;
+            this->itsWidth50 = h.itsWidth50;
+            this->itsWidth20 = h.itsWidth20;
+            this->itsIntFlux = h.itsIntFlux;
+            this->itsSideFlux = h.itsSideFlux;
+            this->itsMiddleFlux = h.itsMiddleFlux;
+            this->itsKpar = h.itsKpar;
+            return *this;
+        }
 
-      void HIprofileS3SAX::define()
-      {
-	const double lnhalf=log(0.5);
-	const double lnfifth=log(0.2);
-	this->itsKpar=std::vector<double>(5);
-	double a=this->itsFlux0, b=this->itsFluxPeak, c=this->itsWidthPeak, d=this->itsWidth50, e=this->itsWidth20;
-	this->itsKpar[0] = 0.25 * (lnhalf*(c*c-e*e) + lnfifth*(d*d-c*c)) / (lnhalf*(c-e) + lnfifth*(d-c));
-	this->itsKpar[1] = (0.25*(c*c-d*d) + this->itsKpar[0]*(d-c)) / lnhalf;
-	this->itsKpar[2] = b * exp( (2.*this->itsKpar[0]-c)*(2.*this->itsKpar[0]-c)/(4.*this->itsKpar[1]));
-	if(fabs(a-b)/a < 1.e-8)
-	  this->itsKpar[3] = this->itsKpar[4] = 0.;
-	else if(c>0){
-	  this->itsKpar[3] = c*c*b*b/(4.*(b*b-a*a));
-	  this->itsKpar[4] = a * sqrt(this->itsKpar[3]);
-	}
-	else
-	  this->itsKpar[3] = this->itsKpar[4] = 0.;
+        std::ostream& operator<< (std::ostream& theStream, HIprofileS3SAX &prof)
+        {
+            /// @details Prints a summary of the parameters to the stream
+            /// @param theStream The destination stream
+            /// @param prof The profile object
+            /// @return A reference to the stream
 
-	this->itsSideFlux = (this->itsKpar[2]*sqrt(this->itsKpar[1])/M_2_SQRTPI) * erfc( (0.5*c-this->itsKpar[0])/sqrt(this->itsKpar[1]) );
-	if(fabs(a-b)/a < 1.e-8) 
-	  this->itsMiddleFlux = a * c;
-	else if(c>0)           
-	  this->itsMiddleFlux = 2. * this->itsKpar[4] * atan( c / sqrt(4.*this->itsKpar[3]-c*c) );
-	else 
-	  this->itsMiddleFlux = 0.;
+            theStream << "HI profile summary:\n";
+            theStream << "z=" << prof.itsRedshift << "\n";
+            theStream << "M_HI=" << prof.itsMHI << "\n";
+            theStream << "Fpeak=" << prof.itsFluxPeak << "\n";
+            theStream << "F0=" << prof.itsFlux0 << "\n";
+            theStream << "Wpeak=" << prof.itsWidthPeak << "\n";
+            theStream << "W50=" << prof.itsWidth50 << "\n";
+            theStream << "W20=" << prof.itsWidth20 << "\n";
+            theStream << "IntFlux=" << prof.itsIntFlux << "\n";
+            theStream << "Side Flux=" << prof.itsSideFlux << "\n";
+            theStream << "Middle Flux=" << prof.itsMiddleFlux << "\n";
+            theStream << "K[] = [" << prof.itsKpar[0];
 
-      }
+            for (int i = 1; i < 5; i++)
+                theStream << "," << prof.itsKpar[i];
 
-      double HIprofileS3SAX::flux(double nu)
-      {
-	double flux;
-	double dvel = freqToHIVel(nu) - redshiftToVel(this->itsRedshift);
-	if( fabs(dvel) < 0.5*this->itsWidthPeak)
-	  flux = this->itsKpar[4] / sqrt(this->itsKpar[3]-dvel*dvel);
-	else{
-	  double temp = fabs(dvel)-this->itsKpar[0];
-	  flux = this->itsKpar[2] * exp( -temp*temp/this->itsKpar[1] );
-	}
-	return flux * this->itsIntFlux;
-      }
+            theStream << "]\n";
+            return theStream;
+        }
+
+        HIprofileS3SAX::HIprofileS3SAX(std::string &line)
+        {
+            /// @details Constructs a HIprofileS3SAX object from a line of
+            /// text from an ascii file. This line should be formatted in
+            /// the correct way to match the output from the appropriate
+            /// python script. The columns should be: RA - DEC - Flux -
+            /// Alpha - Beta - Major axis - Minor axis - Pos.Angle -
+            /// redshift - HI Mass - f_0 - f_p - W_p - W_50 - W_20 (Alpha & Beta are the
+            /// spectral index and spectral curvature - these are produced
+            /// by the python scripts, but not used for the HI profiles,
+            /// only Continuum profiles.)  The define() function is called
+            /// to set up the profile description.
+            /// @param line A line from the ascii input file
+
+            float maj, min, pa, alpha, beta;
+            std::stringstream ss(line);
+            ss >> this->itsRA >> this->itsDec >> this->itsIntFlux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI
+            >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
+            this->itsComponent.setPeak(this->itsFluxPeak * this->itsIntFlux);
+            this->itsComponent.setMajor(maj);
+            this->itsComponent.setMinor(min);
+            this->itsComponent.setPA(pa);
+            this->define();
+        }
+
+        void HIprofileS3SAX::define()
+        {
+            /// @details Sets up the \f$k_i\f$ parameters and the
+            /// integrated fluxes, according to the equations described in
+            /// the class definition. Need to have assigned the values of
+            /// the other parameters (define() is usually called by the
+            /// HIprofileS3SAX(std::string &line) constructor).
+
+            const double lnhalf = log(0.5);
+            const double lnfifth = log(0.2);
+            this->itsKpar = std::vector<double>(5);
+            double a = this->itsFlux0, b = this->itsFluxPeak, c = this->itsWidthPeak, d = this->itsWidth50, e = this->itsWidth20;
+            this->itsKpar[0] = 0.25 * (lnhalf * (c * c - e * e) + lnfifth * (d * d - c * c)) / (lnhalf * (c - e) + lnfifth * (d - c));
+            this->itsKpar[1] = (0.25 * (c * c - d * d) + this->itsKpar[0] * (d - c)) / lnhalf;
+            this->itsKpar[2] = b * exp((2.*this->itsKpar[0] - c) * (2.*this->itsKpar[0] - c) / (4.*this->itsKpar[1]));
+
+            if (fabs(a - b) / a < 1.e-8)
+                this->itsKpar[3] = this->itsKpar[4] = 0.;
+            else if (c > 0) {
+                this->itsKpar[3] = c * c * b * b / (4.*(b * b - a * a));
+                this->itsKpar[4] = a * sqrt(this->itsKpar[3]);
+            } else
+                this->itsKpar[3] = this->itsKpar[4] = 0.;
+
+            this->itsSideFlux = (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((0.5 * c - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
+
+            if (fabs(a - b) / a < 1.e-8)
+                this->itsMiddleFlux = a * c;
+            else if (c > 0)
+                this->itsMiddleFlux = 2. * this->itsKpar[4] * atan(c / sqrt(4.*this->itsKpar[3] - c * c));
+            else
+                this->itsMiddleFlux = 0.;
+
+        }
+
+        double HIprofileS3SAX::flux(double nu)
+        {
+            /// @details This function returns the flux value at a
+            /// particular frequency, using the expressions shown in the
+            /// comments for define(). This is a monochromatic flux, not
+            /// integrated.
+            /// @param nu The frequency, in Hz.
+            /// @return The flux, in Jy.
+
+            double flux;
+            double dvel = freqToHIVel(nu) - redshiftToVel(this->itsRedshift);
+
+            if (fabs(dvel) < 0.5*this->itsWidthPeak)
+                flux = this->itsKpar[4] / sqrt(this->itsKpar[3] - dvel * dvel);
+            else {
+                double temp = fabs(dvel) - this->itsKpar[0];
+                flux = this->itsKpar[2] * exp(-temp * temp / this->itsKpar[1]);
+            }
+
+            return flux * this->itsIntFlux;
+        }
 
 
-      double HIprofileS3SAX::flux(double nu1, double nu2)
-      {
-	double f[2],dv[2];
-	double a=this->itsFlux0, b=this->itsFluxPeak, c=this->itsWidthPeak;
-	int loc[2];
-	dv[0] = freqToHIVel(std::max(nu1,nu2)) - redshiftToVel(this->itsRedshift); // lowest relative velocty
-	dv[1] = freqToHIVel(std::min(nu1,nu2)) - redshiftToVel(this->itsRedshift); // highest relative velocity
-	f[0] = f[1] = 0.;
-// 	ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << dv[0] << " and " << dv[1] << "  (with peaks at +-"<<0.5*this->itsWidthPeak<<")");
+        double HIprofileS3SAX::flux(double nu1, double nu2)
+        {
+            /// @details This function returns the flux integrated between
+            /// two frequencies. This can be used to calculate the flux in
+            /// a given channel, for instance. The flux is divided by the
+            /// frequency range, so that units of Jy are returned.
+            /// @param nu1 One frequency, in Hz.
+            /// @param nu2 The second frequency, in Hz.
+            /// @return The flux, in Jy.
 
-	for(int i=0;i<2;i++){
-	  if(dv[i] < -0.5*c ){
-	    f[i] += (this->itsKpar[2]*sqrt(this->itsKpar[1])/M_2_SQRTPI) * erfc( (0.-dv[i]-this->itsKpar[0])/sqrt(this->itsKpar[1]) );
-	    loc[i]=1;
-	  }
-	  else{
-	    f[i] += this->itsSideFlux;
-	    if(dv[i] < 0.5*c){
-	      if(fabs(a-b)/a < 1.e-8) f[i] += a * (dv[i]+0.5*c);
-	      else     f[i] += this->itsKpar[4] * ( atan(dv[i]/sqrt(this->itsKpar[3]-dv[i]*dv[i])) + atan(c/sqrt(4.*this->itsKpar[3]-c*c)) );
-	      loc[i]=2;
-	    }
-	    else {
-	      f[i] += this->itsMiddleFlux;
-	      f[i] += this->itsSideFlux - (this->itsKpar[2]*sqrt(this->itsKpar[1])/M_2_SQRTPI) * erfc( (dv[i]-this->itsKpar[0])/sqrt(this->itsKpar[1]) );
-	      loc[i]=3;
-	    }
-	  }
+            double f[2], dv[2];
+            double a = this->itsFlux0, b = this->itsFluxPeak, c = this->itsWidthPeak;
+            int loc[2];
+            dv[0] = freqToHIVel(std::max(nu1, nu2)) - redshiftToVel(this->itsRedshift); // lowest relative velocty
+            dv[1] = freqToHIVel(std::min(nu1, nu2)) - redshiftToVel(this->itsRedshift); // highest relative velocity
+            f[0] = f[1] = 0.;
+//  ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << dv[0] << " and " << dv[1] << "  (with peaks at +-"<<0.5*this->itsWidthPeak<<")");
 
-	}
-	  
-	double flux = (f[1]-f[0])/(dv[1]-dv[0]);
-//  	ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
-	return flux * this->itsIntFlux;
-      
-      }
+            for (int i = 0; i < 2; i++) {
+                if (dv[i] < -0.5*c) {
+                    f[i] += (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((0. - dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
+                    loc[i] = 1;
+                } else {
+                    f[i] += this->itsSideFlux;
+
+                    if (dv[i] < 0.5*c) {
+                        if (fabs(a - b) / a < 1.e-8) f[i] += a * (dv[i] + 0.5 * c);
+                        else     f[i] += this->itsKpar[4] * (atan(dv[i] / sqrt(this->itsKpar[3] - dv[i] * dv[i])) + atan(c / sqrt(4.*this->itsKpar[3] - c * c)));
+
+                        loc[i] = 2;
+                    } else {
+                        f[i] += this->itsMiddleFlux;
+                        f[i] += this->itsSideFlux - (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
+                        loc[i] = 3;
+                    }
+                }
+
+            }
+
+            double flux = (f[1] - f[0]) / (dv[1] - dv[0]);
+//      ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
+            return flux * this->itsIntFlux;
+
+        }
 
     }
 

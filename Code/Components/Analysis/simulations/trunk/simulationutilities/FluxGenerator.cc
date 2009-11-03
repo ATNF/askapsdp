@@ -1,6 +1,6 @@
 /// @file
 ///
-/// Provides utility functions for simulations package
+/// Provides mechanism for calculating flux values of a set of spectral channels.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -43,90 +43,112 @@ namespace askap {
 
     namespace simulations {
 
-      FluxGenerator::FluxGenerator()
-      {
-	this->itsNChan = 0;
-      }
+        FluxGenerator::FluxGenerator()
+        {
+            this->itsNChan = 0;
+        }
 
-      FluxGenerator::FluxGenerator(int numChan)
-      {
-	ASKAPASSERT(numChan>=0);
-	this->itsNChan = numChan;
-	this->itsFluxValues = std::vector<float>(numChan,0.);
-      }
+        FluxGenerator::FluxGenerator(int numChan)
+        {
+            ASKAPASSERT(numChan >= 0);
+            this->itsNChan = numChan;
+            this->itsFluxValues = std::vector<float>(numChan, 0.);
+        }
 
-      FluxGenerator::FluxGenerator(const FluxGenerator& f)
-      {
-	operator=(f);
-      }
+        FluxGenerator::FluxGenerator(const FluxGenerator& f)
+        {
+            operator=(f);
+        }
 
-      FluxGenerator& FluxGenerator::operator= (const FluxGenerator& f)
-      {
-	if(this == &f) return *this;
-	this->itsNChan      = f.itsNChan;
-	this->itsFluxValues = f.itsFluxValues;
-	return *this;	  
-      }
+        FluxGenerator& FluxGenerator::operator= (const FluxGenerator& f)
+        {
+            if (this == &f) return *this;
 
-      void FluxGenerator::setNumChan(int numChan)
-      {		
-	ASKAPASSERT(numChan>=0);
-	this->itsNChan = numChan;
-	this->itsFluxValues = std::vector<float>(numChan,0.);
-      }
-      
-      void FluxGenerator::addSpectrum(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
-      {
-	
-	if(this->itsNChan<=0)
-	  ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
-	
-	double *pix = new double[3];
-	double *wld = new double[3];
-	pix[0] = x; pix[1] = y;
+            this->itsNChan      = f.itsNChan;
+            this->itsFluxValues = f.itsFluxValues;
+            return *this;
+        }
 
-	for(double z=0; z<this->itsNChan; z++)
-	  {
-	    pix[2] = z;
-	    pixToWCSSingle(wcs,pix,wld);
-	    float freq = wld[2];
-	    this->itsFluxValues[int(z)] += spec.flux(freq);
-	  }
+        void FluxGenerator::setNumChan(int numChan)
+        {
+            ASKAPASSERT(numChan >= 0);
+            this->itsNChan = numChan;
+            this->itsFluxValues = std::vector<float>(numChan, 0.);
+        }
 
-	delete [] pix;
-	delete [] wld;
+        void FluxGenerator::addSpectrum(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
+        {
+            /// @details This version of the add spectrum function simply
+            /// uses the Spectrum object to find the flux at the centre of
+            /// each channel. The x & y position are used along with the
+            /// WCS specification to find the frequency value of each
+            /// channel.
+            /// @param spec The spectral profile being used.
+            /// @param x The x-pixel location in the flux array
+            /// @param y The y-pixel location in the flux array
+            /// @param wcs The world coordinate system specfication
 
-      }
-      
-      void FluxGenerator::addSpectrumInt(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
-      {
-	
-	if(this->itsNChan<=0)
-	  ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
-	
-	double *pix = new double[3*this->itsNChan];
-	double *wld = new double[3*this->itsNChan];
-	for(int i=0;i<this->itsNChan;i++) {
-	  pix[3*i+0] = x; 
-	  pix[3*i+1] = y;
-	  pix[3*i+2] = double(i);
-	}
-	pixToWCSMulti(wcs,pix,wld,this->itsNChan);
-	for(int z=0; z<this->itsNChan; z++)
-	  {
-	    int i=3*z+2;
-	    double df;
-	    if(z<this->itsNChan-1) df = fabs(wld[i]-wld[i+3]);
-	    else df = fabs(wld[i]-wld[i-3]);
-// 	    ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
-	    this->itsFluxValues[z] += spec.flux(wld[i]-df/2.,wld[i]+df/2.);
-	  }
+            if (this->itsNChan <= 0)
+                ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
 
-	delete [] pix;
-	delete [] wld;
+            double *pix = new double[3];
+            double *wld = new double[3];
+            pix[0] = x; pix[1] = y;
 
-      }
-      
+            for (double z = 0; z < this->itsNChan; z++) {
+                pix[2] = z;
+                pixToWCSSingle(wcs, pix, wld);
+                float freq = wld[2];
+                this->itsFluxValues[int(z)] += spec.flux(freq);
+            }
+
+            delete [] pix;
+            delete [] wld;
+
+        }
+
+        void FluxGenerator::addSpectrumInt(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
+        {
+            /// @details This version of the add spectrum function simply
+            /// uses the Spectrum object to find the total flux within
+            /// each channel. The x & y position are used along with the
+            /// WCS specification to find the frequency value of each
+            /// channel.
+            /// @param spec The spectral profile being used.
+            /// @param x The x-pixel location in the flux array
+            /// @param y The y-pixel location in the flux array
+            /// @param wcs The world coordinate system specfication
+
+            if (this->itsNChan <= 0)
+                ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
+
+            double *pix = new double[3*this->itsNChan];
+            double *wld = new double[3*this->itsNChan];
+
+            for (int i = 0; i < this->itsNChan; i++) {
+                pix[3*i+0] = x;
+                pix[3*i+1] = y;
+                pix[3*i+2] = double(i);
+            }
+
+            pixToWCSMulti(wcs, pix, wld, this->itsNChan);
+
+            for (int z = 0; z < this->itsNChan; z++) {
+                int i = 3 * z + 2;
+                double df;
+
+                if (z < this->itsNChan - 1) df = fabs(wld[i] - wld[i+3]);
+                else df = fabs(wld[i] - wld[i-3]);
+
+//      ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
+                this->itsFluxValues[z] += spec.flux(wld[i] - df / 2., wld[i] + df / 2.);
+            }
+
+            delete [] pix;
+            delete [] wld;
+
+        }
+
     }
 
 

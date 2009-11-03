@@ -1,6 +1,6 @@
 /// @file
 ///
-/// XXX Notes on program XXX
+/// Contains class for describing HI profiles that come from the SKADS S3SAX database.
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,7 +24,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author XXX XXX <XXX.XXX@csiro.au>
+/// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #ifndef ASKAP_SIMS_HI_PROFILE_S3SAX_H_
 #define ASKAP_SIMS_HI_PROFILE_S3SAX_H_
@@ -39,36 +39,65 @@ namespace askap {
 
     namespace simulations {
 
-      class HIprofileS3SAX : public HIprofile {
-      public:
-	HIprofileS3SAX(){};
-	HIprofileS3SAX(std::string &line);
-	virtual ~HIprofileS3SAX(){};
-	HIprofileS3SAX(const HIprofileS3SAX& h);
-	HIprofileS3SAX& operator= (const HIprofileS3SAX& h);
+        /// @brief The spectral profile of an HI emission line from the S3SAX database
+        /// @details This class holds all information required to
+        /// describe the spectral profile of an HI emission line for a source
+        /// extracted from the SKADS S3SAX database. The shape of the line is a
+        /// symmetric double-horn profile, completely specified by
+        /// information in the database. The functional specification is (from Obreschkow et al. 2009)
+        /// \f$ f(V) = k_3 \exp( -(|V|-k_1)^2/k_2 ), |V|\ge W_p/2\f$, giving the Gaussian tails, and
+        /// \f$ f(V) = k_5 / \sqrt{k_4-V^2}, |V| \le W_p/2\f$, given the dip between the peaks.
+        /// The constants are defined in terms of the five key parameters: \f$f_0, f_p, W_p, W_{50}, W_{20}\f$ by:
+        /// @li \f$ k_1 = \frac{1}{4}\frac{\ln(0.5)(W_p^2-W_{20}^2) + \ln(0.2)(W_{50}^2-W_p^2)}{ln(0.5)(W_p-W_{20}) + \ln(0.2)(W_{50}-W_p)}\f$
+        /// @li \f$ k_2 = \frac{1}{\ln(0.5)} (0.25(W_p^2-W_{50}^2) + k_1(W_{50}-W_p))\f$
+        /// @li \f$ k_3 = f_p \exp( (2k_1 - W_p)^2 / 4k_2 ) \f$
+        /// @li \f$ k_4 = \frac{W_p^2 f_p^2}{4(f_p^2 - f_0^2)} \f$
+        /// @li \f$ k_5 = f_0 \sqrt{k_4} \f$
+        class HIprofileS3SAX : public HIprofile {
+            public:
+                /// @brief Default constructor
+                HIprofileS3SAX() {};
+                /// @brief Set up parameters using a line of input from an ascii file
+                HIprofileS3SAX(std::string &line);
+                /// @brief Destructor
+                virtual ~HIprofileS3SAX() {};
+                /// @brief Copy constructor
+                HIprofileS3SAX(const HIprofileS3SAX& h);
+                /// @brief Assignment operator
+                HIprofileS3SAX& operator= (const HIprofileS3SAX& h);
 
-	void define();
+                /// @brief Set up the profile's parameters
+                void define();
 
-	double flux(double nu);
-	double flux(double nu1, double nu2);
+                /// @brief Return the flux at a given frequency
+                double flux(double nu);
+                /// @brief Return the flux integrated between two frequencies - not used for the base class
+                double flux(double nu1, double nu2);
 
-	friend std::ostream& operator<< ( std::ostream& theStream, HIprofileS3SAX &prof);
+                /// @brief Output the parameters for the source
+                friend std::ostream& operator<< (std::ostream& theStream, HIprofileS3SAX &prof);
 
-      private:
-	double itsFluxPeak;
-	double itsFlux0;
-	double itsWidthPeak;
-	double itsWidth50;
-	double itsWidth20;
+            private:
+                /// @brief The flux of the two peaks, \f$f_p\f$
+                double itsFluxPeak;
+                /// @brief The flux at the central velocity, \f$f_0\f$
+                double itsFlux0;
+                /// @brief The velocity width of the two peaks, \f$W_p\f$
+                double itsWidthPeak;
+                /// @brief The velocity width at 50% of the peak flux, \f$W_{50}\f$
+                double itsWidth50;
+                /// @brief The velocity width at 20% of the peak flux, \f$W_{20}\f$
+                double itsWidth20;
+                /// @brief The integrated flux of the source in Jy km/s
+                double itsIntFlux;
+                /// @brief The integrated flux (in pseudo-units) of one of the profile tails
+                double itsSideFlux;
+                /// @brief The integrated flux (in pseudo-units) between the two peaks
+                double itsMiddleFlux;
+                /// @brief The \f$k_i\f$ parameters
+                std::vector<double> itsKpar;
 
-	double itsIntFlux;
-	
-	double itsSideFlux;
-	double itsMiddleFlux;
-
-	std::vector<double> itsKpar;
-	
-      };
+        };
 
     }
 

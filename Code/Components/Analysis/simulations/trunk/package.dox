@@ -2,7 +2,7 @@
 /// @defgroup simutils Utility functions for the simulations package
 
 /// The package namespace
-namespace askap::simFITS {};
+namespace askap::simulations {};
 
 /// @mainpage ASKAP Analysis FITS simulations package
 ///
@@ -26,6 +26,6 @@ namespace askap::simFITS {};
 /// @section Subpackages
 ///
 /// @li @ref FITS
-/// @li @ref simutils
+/// @li @ref simulationutilities
 ///
 /// @copyright 2008 ASKAP, All Rights Reserved.

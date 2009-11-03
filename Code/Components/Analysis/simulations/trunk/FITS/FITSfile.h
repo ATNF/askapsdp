@@ -66,29 +66,36 @@ namespace askap {
                     /// @brief Constructor, using an input parameter set
                     FITSfile(const LOFAR::ParameterSet& parset);
 
-		    /// @brief Copy constructor
-		    FITSfile(const FITSfile& f);
+                    /// @brief Copy constructor
+                    FITSfile(const FITSfile& f);
 
-		    /// @brief Copy operator
-		    FITSfile& operator=(const FITSfile& f);
+                    /// @brief Copy operator
+                    FITSfile& operator=(const FITSfile& f);
 
                     /// @brief Define the world coordinate system
                     void setWCS(bool isImage, const LOFAR::ParameterSet& parset);
 
-		    /// @brief Set the source subsection via a duchamp::Section object
-		    void setSection(duchamp::Section &sec){itsSourceSection = sec; itsSourceSection.parse(itsAxes);};
-		    /// @brief Set the source subsection via a string
-		    void setSection(std::string &secstring){itsSourceSection.setSection(secstring); itsSourceSection.parse(itsAxes);};
+                    /// @brief Set the source subsection via a duchamp::Section object
+                    void setSection(duchamp::Section &sec) {itsSourceSection = sec; itsSourceSection.parse(itsAxes);};
+                    /// @brief Set the source subsection via a string
+                    void setSection(std::string &secstring) {itsSourceSection.setSection(secstring); itsSourceSection.parse(itsAxes);};
 
-		    struct wcsprm *getWCS(){return itsWCS;};
+                    /// @brief Return the WCS structure
+                    struct wcsprm *getWCS() {return itsWCS;};
 
-		    float array(int pos){return itsArray[pos];};
-		    float array(int x, int y){return itsArray[x+itsAxes[0]*y];};
-		    void setArray(int pos, float val){itsArray[pos]=val;};
-		    void setArray(int x, int y, float val){itsArray[x+itsAxes[0]*y]=val;};
-		    std::vector<int> getAxes(){return itsAxes;};
-		    int getXdim(){return itsAxes[itsWCS->lng];};
-		    int getYdim(){return itsAxes[itsWCS->lat];};
+                    /// @brief Get and set individual values in the flux array
+                    /// @{
+                    float array(int pos) {return itsArray[pos];};
+                    float array(int x, int y) {return itsArray[x+itsAxes[0]*y];};
+                    void setArray(int pos, float val) {itsArray[pos] = val;};
+                    void setArray(int x, int y, float val) {itsArray[x+itsAxes[0]*y] = val;};
+                    /// @}
+                    /// @brief Get the vector of axis dimensions
+                    std::vector<int> getAxes() {return itsAxes;};
+                    /// @brief Get the size of the X-axis
+                    int getXdim() {return itsAxes[itsWCS->lng];};
+                    /// @brief Get the size of the Y-axis
+                    int getYdim() {return itsAxes[itsWCS->lat];};
 
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();
@@ -111,20 +118,20 @@ namespace askap {
                     std::string itsFileName;
                     /// @brief The file containing the list of sources
                     std::string itsSourceList;
-		    /// @brief The type of input list: either "continuum" or "spectralline"
-		    std::string itsSourceListType;
-		    /// @brief The origin of the database: either "S3SEX" or "S3SAX" - used for spectralline case
-		    std::string itsDatabaseOrigin;
+                    /// @brief The type of input list: either "continuum" or "spectralline"
+                    std::string itsSourceListType;
+                    /// @brief The origin of the database: either "S3SEX" or "S3SAX" - used for spectralline case
+                    std::string itsDatabaseOrigin;
                     /// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss
                     std::string itsPosType;
-		    /// @brief The minimum value for the minor axis for the sources in the catalogue. Only used when major axis > 0, to prevent infinite axial ratios
-		    float itsMinMinorAxis;
-		    /// @brief The units of the position angle for the sources in the catalogue: either "rad" or "deg"
-		    casa::Unit itsPAunits;
-		    /// @brief The flux units for the sources in the catalogue
-		    casa::Unit itsSourceFluxUnits;
-		    /// @brief The units of the major & minor axes for the sources in the catalogue
-		    casa::Unit itsAxisUnits;
+                    /// @brief The minimum value for the minor axis for the sources in the catalogue. Only used when major axis > 0, to prevent infinite axial ratios
+                    float itsMinMinorAxis;
+                    /// @brief The units of the position angle for the sources in the catalogue: either "rad" or "deg"
+                    casa::Unit itsPAunits;
+                    /// @brief The flux units for the sources in the catalogue
+                    casa::Unit itsSourceFluxUnits;
+                    /// @brief The units of the major & minor axes for the sources in the catalogue
+                    casa::Unit itsAxisUnits;
 
                     /// @brief The array of pixel fluxes
                     float *itsArray;
@@ -139,26 +146,30 @@ namespace askap {
                     std::vector<int> itsAxes;
                     /// @brief The number of pixels in the image
                     int itsNumPix;
-		    /// @brief The section of the image in which to place sources - defaults to the null section of the appropriate dimensionality, and needs to be set explicitly via setSection()
-		    duchamp::Section itsSourceSection;
+                    /// @brief The section of the image in which to place sources - defaults to the null section of the appropriate dimensionality, and needs to be set explicitly via setSection()
+                    duchamp::Section itsSourceSection;
 
                     /// @brief Do we have information on the beam size?
                     bool itsHaveBeam;
                     /// @brief The beam specifications: major axis, minor axis, position angle
                     std::vector<float> itsBeamInfo;
 
-		    /// @brief Do the sources have spectral information for a third axis?
-		    bool itsHaveSpectralInfo;
-		    float itsBaseFreq;
-		    float itsRestFreq;
-		    
-		    bool itsDoContinuum;
-		    bool itsDoHI;
+                    /// @brief Do the sources have spectral information for a third axis?
+                    bool itsHaveSpectralInfo;
+                    /// @brief The base frequency (used only for Continuum sources)
+                    float itsBaseFreq;
+                    /// @brief The rest frequency for emission-line sources: stored as RESTFREQ in the FITS header
+                    float itsRestFreq;
+
+                    /// @brief Whether to add continuum sources
+                    bool itsDoContinuum;
+                    /// @brief Whether to add spectral-line sources
+                    bool itsDoHI;
 
                     /// @brief The EQUINOX keyword
                     float itsEquinox;
                     /// @brief The BUNIT keyword: units of flux
-		    casa::Unit itsBunit;
+                    casa::Unit itsBunit;
 
                     /// @brief How to convert source fluxes to the correct units for the image
                     /// @{
@@ -169,11 +180,13 @@ namespace askap {
 
                     /// @brief The world coordinate information
                     struct wcsprm *itsWCS;
-		    bool itsWCSAllocated;
+                    /// @brief Has the memory for the image's WCS been allocated?
+                    bool itsWCSAllocated;
 
                     /// @brief The world coordinate information that the sources use, if different from itsWCS
                     struct wcsprm *itsWCSsources;
-		    bool itsWCSsourcesAllocated;
+                    /// @brief Has the memory for the sources' WCS been allocated?
+                    bool itsWCSsourcesAllocated;
                     /// @brief If the sources have a different WCS defined, and we need to transform to the image WCS.
                     bool itsFlagPrecess;
                     /// @brief Whether to save the source list with new positions

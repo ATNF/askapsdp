@@ -77,70 +77,79 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-  std::ifstream config("askap.log_cfg", std::ifstream::in);
-  if (config) {
-    ASKAPLOG_INIT("askap.log_cfg");
-  } else {
-    std::ostringstream ss;
-    ss << argv[0] << ".log_cfg";
-    ASKAPLOG_INIT(ss.str().c_str());
-  }
+    std::ifstream config("askap.log_cfg", std::ifstream::in);
+
+    if (config) {
+        ASKAPLOG_INIT("askap.log_cfg");
+    } else {
+        std::ostringstream ss;
+        ss << argv[0] << ".log_cfg";
+        ASKAPLOG_INIT(ss.str().c_str());
+    }
 
     try {
 
-      srandom(time(0));
+        srandom(time(0));
 
-      float mHI = 8.516200;
-      float z = 0.005453;
-      float maj = 47.064;
-      float min =  6.275;
-      //      float pa = 0.314;
+        float mHI = 8.516200;
+        float z = 0.005453;
+        float maj = 47.064;
+        float min =  6.275;
+        //      float pa = 0.314;
 
-      HIprofileS3SEX prof;
-      prof.define(SFG,z,mHI,maj,min);
-      std::cout << prof << "\n";
+        HIprofileS3SEX prof;
+        prof.define(SFG, z, mHI, maj, min);
+        std::cout << prof << "\n";
 
-      std::ofstream dumpfile("testHIprofileS3SEX_dump1.txt");
-      int nchan=200;
-      double nuMax=1414.e6;
-      double deltaNu=18.3e3;
-      for(int i=0;i<nchan;i++){
-	double nu = nuMax - i*deltaNu;
-	double f = prof.flux(nu);
-	dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
-      }
-      dumpfile.close();
+        std::ofstream dumpfile("testHIprofileS3SEX_dump1.txt");
+        int nchan = 200;
+        double nuMax = 1414.e6;
+        double deltaNu = 18.3e3;
 
-      dumpfile.open("testHIprofileS3SEX_dump2.txt");
-      for(int i=0;i<nchan;i++){
-	double nu = nuMax - i*deltaNu;
-	double f = prof.flux(nu-deltaNu/2.,nu+deltaNu/2.);
-	dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
-      }
-      dumpfile.close();
+        for (int i = 0; i < nchan; i++) {
+            double nu = nuMax - i * deltaNu;
+            double f = prof.flux(nu);
+            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
+        }
+
+        dumpfile.close();
+
+        dumpfile.open("testHIprofileS3SEX_dump2.txt");
+
+        for (int i = 0; i < nchan; i++) {
+            double nu = nuMax - i * deltaNu;
+            double f = prof.flux(nu - deltaNu / 2., nu + deltaNu / 2.);
+            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
+        }
+
+        dumpfile.close();
 
 //-----------------
 
-      std::string inputLine = " -0.145550   0.004051   0.016469   0.000000   0.000000   0.012999   0.012950   0.641905   0.005453 566092000.000000   0.049868   0.049868   7.338150  26.933600  37.023300"; // A source from the S3SAX database, with the redshift changed to match the value above.
-      HIprofileS3SAX prof2(inputLine);
-      std::cout << prof2 << "\n";
-      dumpfile.open("testHIprofileS3SAX_dump1.txt");
-      for(int i=0;i<nchan;i++){
-	double nu = nuMax - i*deltaNu;
-	double f = prof2.flux(nu);
-	dumpfile << i << "\t" << nu << "\t"<< freqToHIVel(nu) - redshiftToVel(z) << "\t"  << f << "\n";
-      }
-      dumpfile.close();
+        std::string inputLine = " -0.145550   0.004051   0.016469   0.000000   0.000000   0.012999   0.012950   0.641905   0.005453 566092000.000000   0.049868   0.049868   7.338150  26.933600  37.023300"; // A source from the S3SAX database, with the redshift changed to match the value above.
+        HIprofileS3SAX prof2(inputLine);
+        std::cout << prof2 << "\n";
+        dumpfile.open("testHIprofileS3SAX_dump1.txt");
 
-      dumpfile.open("testHIprofileS3SAX_dump2.txt");
-      for(int i=0;i<nchan;i++){
-	double nu = nuMax - i*deltaNu;
-	double f = prof2.flux(nu-deltaNu/2.,nu+deltaNu/2.);
-	dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
-      }
-      dumpfile.close();
+        for (int i = 0; i < nchan; i++) {
+            double nu = nuMax - i * deltaNu;
+            double f = prof2.flux(nu);
+            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t"  << f << "\n";
+        }
 
-// 	ASKAPLOG_INFO_STR(logger, "Time for execution of testHIprofile = " << timer.real() << " sec");
+        dumpfile.close();
+
+        dumpfile.open("testHIprofileS3SAX_dump2.txt");
+
+        for (int i = 0; i < nchan; i++) {
+            double nu = nuMax - i * deltaNu;
+            double f = prof2.flux(nu - deltaNu / 2., nu + deltaNu / 2.);
+            dumpfile << i << "\t" << nu << "\t" << freqToHIVel(nu) - redshiftToVel(z) << "\t" << f << "\n";
+        }
+
+        dumpfile.close();
+
+//  ASKAPLOG_INFO_STR(logger, "Time for execution of testHIprofile = " << timer.real() << " sec");
 
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
