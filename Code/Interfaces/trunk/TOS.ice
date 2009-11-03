@@ -54,11 +54,12 @@ module tos
     };
 
     /**
-     * Exception for when a construction of a composite control tree was 
-     * requested which contains no actual antenna leaf nodes in the tree
-     * below it.
+     * Exception for when a construction of a composite control tree would
+     * create an illegal structure. Only trees are allowed, ie where there is
+     * exactly one path between any two nodes. Any node may only appear in the
+     * tree once (although nodes may exist in multiple trees concurrently).
      **/
-    exception NoLeafAntsException
+    exception IllegalTopologyException
       extends askap::interfaces::AskapIceException
     {
     };
@@ -80,105 +81,91 @@ module tos
     exception IncompatibleSettingsException
       extends askap::interfaces::AskapIceException
     {
-    };  
-    
-      
-    
-    // Forward declaration
-    class IArrayComponent;
-    
-    // An ArrayComponentArray is a collection of one or more ArrayComponents
-    sequence<IArrayComponent> IArrayComponentArray;
+    };
     
     /**
-     * An ArrayComponent is a node in the antenna control tree. An 
-     * ArrayComponent may be an individual antenna (a leaf node) or a 
-     * composite which contains one or more children.
+     * Exception for when a specified timeout is exceeded.
      **/
-    class IArrayComponent {
-        string uniqueid;
-        bool leaf;
-        IArrayComponentArray children;
+    exception TimeoutException
+      extends askap::interfaces::AskapIceException
+    {
     };
-
+    
 
 
     interface ITOSService
     {        
-        /** Lock in settings for any global/shared resources. If the provided
-         * settings are incompatible with a set that is already locked in
-         * then an exception will be thrown and your settings will not be
-         * applied.
-         **/
-        void registerGlobalSettings(string clientid, 
-                                    askap::interfaces::ParameterMap params)
-          throws IncompatibleSettingsException;
-        
-        /** Release the lock on settings for global/shared resources. */
-        void deregisterGlobalSettings(string clientid);
-        
         /** 
          * Request excusive control of one or more antennas as specified (using
          * TBD semantics) by the supplied parameters. If more than one antenna
          * has been requested then a composite ArrayComponent will be returned
          * which has all of the antennas as direct children.
          **/
-        IArrayComponent allocate(string clientid, 
-                                 askap::interfaces::ParameterMap params)
-          throws AntAlreadyAllocException;
+        string allocate(string clientid, 
+                        askap::interfaces::ParameterMap params)
+          throws AntAlreadyAllocException,
+                 IncompatibleSettingsException;
         
         /**
-         * Release exclusive control of the specified antennas. No further scans
-         * or other operations may be undertaken once antennas have been
-         * deallocated (apart from reallocating the antennas). The 
-         * AntennaComposite tree will be pruned to remove any branches which no
-         * longer have any antenna leaf nodes after deallocation of the
-         * antennas.
+         * Release control of all resources which have been allocated to the 
+         * specified client.
          **/
-        void deallocate(string clientid,
-                        IArrayComponent ants)
+        void deallocate(string clientid);
+        
+        /**
+         * Create a new control composite which has the specified components
+         * as children. Returns the unique identifier of the new composite.
+         **/
+        string makeComposite(string clientid,
+                             StringSeq arrayids)
           throws AntNotAllocException,
+                 IllegalTopologyException,
                  NoSuchComponentException;
         
         /**
-         * Create a new control composite which has the specified 
-         * ArrayComponents as children. Each child must have at least one
-         * actual antenna leaf node somewhere in the tree below them, ie a
-         * composite which contains no antennas in the tree is illegal.
+         * Return the identifier strings for all immediate children of the
+         * specified component. This will return a zero-length array if the
+         * specified component is an antenna/leaf node.
          **/
-        IArrayComponent makeComposite(string clientid,
-                                      IArrayComponentArray ants)
-          throws AntNotAllocException,
-                 NoLeafAntsException,
-                 NoSuchComponentException;
+        StringSeq getChildren(string arrayid)
+          throws NoSuchComponentException;
 
         /**
-         * Command the specified antennas to begin execution of a new scan. If
-         * another scan is already in progress then it will be aborted prior to
-         * commencing the new new scan.
+         * Command the specified component to begin execution of a new scan. If
+         * another scan is already in progress then it will be stopped prior to
+         * commencing the new scan.
          **/
         void startScan(string clientid,
-                       IArrayComponent ants,
+                       string arrayid,
                        askap::interfaces::ParameterMap params)
           throws AntNotAllocException,
                  NoSuchComponentException;
 
         /**
-         * Stop any scans which are currently in progress.
+         * Stop any scans which the specified component, and children thereof,
+         * are currently performing.
          **/          
-        void abortScan(string clientid,
-                       IArrayComponent ants)
+        void stopScan(string clientid,
+                      string arrayid)
           throws AntNotAllocException,
                  NoSuchComponentException;
-        
+                 
         /**
-         * Stow the specified antennas. If the antennas are currently scanning
-         * the scan will be aborted throughout the tree below the specified
-         * level. Stowing antennas does not imply deallocation or pruning from
-         * the tree.
+         * Block until all antennas (below the specified component) are no 
+         * longer executing a scan. A TimeoutException will be thrown if the
+         * scan has not completed within the specified duration.
+         */
+        void waitForScan(string arrayid,
+                         int timeoutms)
+          throws TimeoutException,
+                 NoSuchComponentException;
+         
+        /**
+         * Stow the specified component. If the antennas are currently scanning
+         * the scan will be stopped.
          **/
         void stow(string clientid,
-                  IArrayComponent ants)
+                  string arrayid)
           throws AntNotAllocException,
                  NoSuchComponentException;
     };
