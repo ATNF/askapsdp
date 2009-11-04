@@ -43,6 +43,7 @@
 #include <complex>
 #include <vector>
 #include <algorithm>
+#include <limits>
 #include <pthread.h>
 
 /// BLAS includes
@@ -56,7 +57,7 @@
 #endif
 
 /// Local includes
-#include "GridPerf.h"
+#include "tConvolveMT.h"
 #include "Stopwatch.h"
 
 // Change these if necessary to adjust run time
@@ -74,16 +75,20 @@ using std::endl;
 using std::complex;
 using std::abs;
 
-unsigned long next = 1;
-
-// Return a pseudo-random integer in the rand 0..2147483647
-int localRand()
+tConvolveMT::tConvolveMT()
+    : next(1)
 {
-    next = next * 1103515245 + 12345;
-    return((unsigned int)(next/65536) % 2147483647);
 }
 
-void GridPerf::init()
+// Return a pseudo-random integer in the rand 0..2147483647
+int tConvolveMT::randomInt()
+{
+    const unsigned int maxint = std::numeric_limits<int>::max();
+    next = next * 1103515245 + 12345;
+    return((unsigned int)(next/65536) % maxint);
+}
+
+void tConvolveMT::init()
 {
   // Initialize the data to be gridded
   u.resize(nSamples);
@@ -92,11 +97,12 @@ void GridPerf::init()
   samples.resize(nSamples*nChan);
   outdata.resize(nSamples*nChan);
 
+  const unsigned int maxint = std::numeric_limits<int>::max();
   for (int i=0; i<nSamples; i++)
   {
-    u[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-    v[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-    w[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
+    u[i]=baseline*Coord(randomInt())/Coord(maxint)-baseline/2;
+    v[i]=baseline*Coord(randomInt())/Coord(maxint)-baseline/2;
+    w[i]=baseline*Coord(randomInt())/Coord(maxint)-baseline/2;
     for (int chan=0; chan<nChan; chan++)
     {
       samples[i*nChan+chan].data=1.0;
@@ -121,12 +127,12 @@ void GridPerf::init()
       support, overSample);
 }
 
-void GridPerf::runGrid()
+void tConvolveMT::runGrid()
 {
   gridKernel(support, C, grid, gSize);
 }
 
-void GridPerf::runDegrid()
+void tConvolveMT::runDegrid()
 {
   degridKernel(grid, gSize, support, C, outdata);
 }
@@ -149,7 +155,7 @@ void GridPerf::runDegrid()
 // grid - Output grid: shape (gSize, *)
 // gSize - size of one axis of grid
 
-void GridPerf::gridKernel(const int support,
+void tConvolveMT::gridKernel(const int support,
     const std::vector<Value>& C,
     std::vector<Value>& grid, const int gSize)
 {
@@ -182,7 +188,7 @@ void GridPerf::gridKernel(const int support,
 }
 
 // Perform degridding
-void GridPerf::degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
+void tConvolveMT::degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
     const std::vector<Value>& C,
     std::vector<Value>& data)
 {
@@ -232,7 +238,7 @@ void GridPerf::degridKernel(const std::vector<Value>& grid, const int gSize, con
 // support - Total width of convolution function=2*support+1
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
-void GridPerf::initC(const int nSamples, const std::vector<Coord>& w,
+void tConvolveMT::initC(const int nSamples, const std::vector<Coord>& w,
     const std::vector<Coord>& freq, const Coord cellSize, 
     const Coord baseline,
     const int wSize, const int gSize, int& support, int& overSample,
@@ -314,7 +320,7 @@ void GridPerf::initC(const int nSamples, const std::vector<Coord>& w,
 // support - Total width of convolution function=2*support+1
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
-void GridPerf::initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
+void tConvolveMT::initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
     const std::vector<Coord>& w, const std::vector<Coord>& freq,
     const Coord cellSize, const Coord wCellSize, const Coord baseline,
     const int wSize, const int gSize, const int support, const int overSample)
@@ -362,14 +368,14 @@ void GridPerf::initCOffset(const std::vector<Coord>& u, const std::vector<Coord>
 
 void *gridThread(void *arg)
 {
-  GridPerf *gp = static_cast<GridPerf*>(arg);
+  tConvolveMT *gp = static_cast<tConvolveMT*>(arg);
   gp->runGrid();
   return NULL;
 }
 
 void *degridThread(void *arg)
 {
-  GridPerf *gp = static_cast<GridPerf*>(arg);
+  tConvolveMT *gp = static_cast<tConvolveMT*>(arg);
   gp->runDegrid();
   return NULL;
 }
@@ -383,7 +389,7 @@ int main(int argc, char *argv[])
   }
   const int nthreads = atoi(argv[1]);
 
-  std::vector<GridPerf> gp(nthreads);
+  std::vector<tConvolveMT> gp(nthreads);
   for (int i = 0; i < nthreads; ++i) {
     gp[i].init();
   }
