@@ -26,9 +26,6 @@ def getMPIxdim(numNodes):
 
 if __name__ == '__main__':
 
-#    logger.warn("This is not ready for use yet! The parset is written, but nothing is done.")
-    print "This is not ready for use yet! The parset is written, but nothing is done."
-
     parser = OptionParser()
     parser.add_option("-i","--inputs", dest="inputfile", default="", help="Input parameter file [default: %default]")
 

@@ -143,7 +143,6 @@ mpirun -np %d %s/cduchamp.sh -inputs %s/%s 1>& %s/analysis.log
         else:
             os.system(pathToAnalysis+"/%s -inputs %s 1>& analysis.log"%(analysisApp,cduchampParFileName))
 
-#        os.system("%s/Code/Components/Analysis/analysis/trunk/install/bin/cduchamp.sh -inputs %s"%(os.environ['ASKAP_ROOT'],cduchampParFileName))
 
 ###
 
