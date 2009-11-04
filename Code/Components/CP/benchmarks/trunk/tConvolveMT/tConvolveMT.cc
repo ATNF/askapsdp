@@ -38,6 +38,7 @@
 #include <iostream>
 #include <vector>
 #include <pthread.h>
+#include <stdlib.h>
 
 /// BLAS includes
 #ifdef USEBLAS
