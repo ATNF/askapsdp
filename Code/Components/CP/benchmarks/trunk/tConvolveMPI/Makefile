@@ -31,7 +31,7 @@ all:		$(EXENAME)
 		$(CXX) $(CFLAGS) -c $<
 
 $(EXENAME):	$(OBJS)
-		$(CXX) $(CFLAGS) -o $(EXENAME) $(OBJS) $(LIBS)
+		$(CXX) -o $(EXENAME) $(OBJS) $(LIBS)
 
 clean:
 		rm -f $(EXENAME) *.o
