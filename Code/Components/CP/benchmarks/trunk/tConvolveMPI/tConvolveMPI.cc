@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     const double griddings = (double(nSamples*nChan)* double((sSize)*(sSize))) * double(numtasks);
 
     if (rank == 0) {
-        std::cout << "+++++ Forward processing +++++" << std::endl;
+        std::cout << "+++++ Forward processing (MPI) +++++" << std::endl;
     }
     Stopwatch sw;
     MPI_Barrier(MPI_COMM_WORLD);
@@ -84,12 +84,13 @@ int main(int argc, char *argv[])
 
     // Report on timings (master reports only)
     if (rank == 0) {
+        std::cout << "    Number of processes: " << numtasks << std::endl;
         std::cout << "    Time " << time << " (s) " << std::endl;
         std::cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << std::endl;
         std::cout << "    Time per gridding   " << 1e9*time/(double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
         std::cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
 
-        std::cout << "+++++ Reverse processing +++++" << std::endl;
+        std::cout << "+++++ Reverse processing (MPI) +++++" << std::endl;
     }
     MPI_Barrier(MPI_COMM_WORLD);
     sw.start();
@@ -99,6 +100,7 @@ int main(int argc, char *argv[])
 
     // Report on timings (master reports only)
     if (rank == 0) {
+        std::cout << "    Number of processes: " << numtasks << std::endl;
         std::cout << "    Time " << time << " (s) " << std::endl;
         std::cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << std::endl;
         std::cout << "    Time per degridding " << 1e9*time/(double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
