@@ -1,9 +1,9 @@
 CXX=g++
-CFLAGS=-O3 -Wall
+CFLAGS=-O3 -fstrict-aliasing -Wall
 LIBS=-lpthread
 
 EXENAME = tConvolveMT
-OBJS = tConvolveMT.o Stopwatch.o
+OBJS = tConvolveMT.o Stopwatch.o Benchmark.o
 
 all:		$(EXENAME)
 
