@@ -31,7 +31,7 @@ CFLAGS=-O3 -xS -ip -ipo -DUSEMKLLIB -DUSEBLAS
 LIBS=-lmkl -liomp5
 
 EXENAME = tConvolveMPI
-OBJS = tConvolveMPI.o Stopwatch.o
+OBJS = tConvolveMPI.o Stopwatch.o Benchmark.o
 
 all:		$(EXENAME)
 
