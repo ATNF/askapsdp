@@ -1,18 +1,3 @@
-//   This C++ program has been written to demonstrate the convolutional resampling algorithm used in radio
-// interferometry. It should compile with:
-//      g++ -O2 -fstrict-aliasing tConvolveBLAS.cc -o tConvolveBLAS
-// Enabling BLAS support on OS X:
-//      g++ -DUSEBLAS -O2 -fstrict-aliasing -framework vecLib tConvolveBLAS.cc -o tConvolveBLAS
-//
-// Strict-aliasing tells the compiler that there are no memory locations accessed through aliases.
-//
-// The challenge is to minimize the run time - specifically the time per grid addition. On a MacBookPro 
-// 2GHz Intel Core Duo this is about 6.0ns. 
-//
-// For further details contact Tim.Cornwell@csiro.au
-// November 22, 2007
-// - Rewritten from tConvolve to use BLAS, and to be much smarter about not using strides in C
-
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
