@@ -31,7 +31,6 @@
 #include "Ice/Ice.h"
 
 // Interface includes
-#include "manager/SchedulingBlock.h"
 #include "manager/CP.h"
 
 namespace askap {
@@ -46,7 +45,8 @@ namespace askap {
                 virtual ~ObsService();
 
                 // Ice "IComponent" interfaces
-                void startObs(const askap::interfaces::schedblock::SchedulingBlock& schedblock, const Ice::Current& cur);
+                void startObs(const askap::interfaces::ParameterMap& parmap,
+			      const Ice::Current& cur);
                 void abortObs(const Ice::Current& cur);
 
             private:

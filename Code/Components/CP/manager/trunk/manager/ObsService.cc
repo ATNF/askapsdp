@@ -53,7 +53,8 @@ ObsService::~ObsService()
 }
 
 // Ice "IComponent" interfaces
-void ObsService::startObs(const askap::interfaces::schedblock::SchedulingBlock& schedblock, const Ice::Current& cur)
+void ObsService::startObs(const askap::interfaces::ParameterMap& parmap,
+			  const Ice::Current& cur)
 {
 }
 

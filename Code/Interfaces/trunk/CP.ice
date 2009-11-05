@@ -26,7 +26,6 @@
 #define ASKAP_CP_ICE
 
 #include <CommonTypes.ice>
-#include <SchedulingBlock.ice>
 
 module askap
 {
@@ -38,7 +37,7 @@ module cp
 {
     interface ICPObsService
     {
-        ["ami"] void startObs(askap::interfaces::schedblock::SchedulingBlock schedblock);
+        ["ami"] void startObs(askap::interfaces::ParameterMap parmap);
         ["ami"] void abortObs();
     };
 };
