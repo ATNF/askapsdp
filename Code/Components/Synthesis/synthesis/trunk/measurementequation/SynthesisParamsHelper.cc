@@ -916,9 +916,9 @@ namespace askap
       const casa::Quantum<double> centreLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
       
       const casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
-      const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))/double(nx), "rad");
  
       if (!axes.has("RA-TANGENT")) {
+          const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))*cos(centreLat.getValue())/double(nx), "rad");
            
           // this is not faceting, centre of the image is a tangent point
           const casa::DirectionCoordinate radec(MDirection::J2000,Projection(Projection::SIN), 
@@ -929,6 +929,8 @@ namespace askap
       // different from the image centre
       const casa::Quantum<double> tangentLon(axes.start("RA-TANGENT"), "rad");
       const casa::Quantum<double> tangentLat(axes.start("DEC-TANGENT"), "rad");
+
+      const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))*cos(tangentLat.getValue())/double(nx), "rad");
       
       // need to find reference pixel, do it with a temporary coordinate class by
       // getting the world coordinates for the image centre
