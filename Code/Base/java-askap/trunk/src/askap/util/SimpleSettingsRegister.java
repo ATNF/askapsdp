@@ -29,6 +29,11 @@ import java.util.Vector;
  * which clients have registered which values and defines settings as compatible if the
  * values are exactly the same.
  * 
+ * <P>
+ * TODO: Want to extend this class so that sub-classes/container classes can specify a
+ * subset of keys that they are interested in, rather than necessarily checking every key
+ * in the ParameterSet.
+ * 
  * @author David Brodrick
  */
 public class SimpleSettingsRegister implements HasRegistrableSettings {

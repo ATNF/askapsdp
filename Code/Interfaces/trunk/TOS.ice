@@ -74,11 +74,12 @@ module tos
     };
     
     /**
-     * Exception thrown when there was an attempt to register settings for
-     * global/shared resources which is incompatible with settings which 
-     * were already registered.
+     * Exception thrown when there was an attempt to register illegal settings,
+     * which may include the case that the settings are intrinsically valid but
+     * are incompatible with already registered settings for global/shared
+     * resources.
      **/
-    exception IncompatibleSettingsException
+    exception IllegalSettingsException
       extends askap::interfaces::AskapIceException
     {
     };
@@ -104,7 +105,7 @@ module tos
         string allocate(string clientid, 
                         askap::interfaces::ParameterMap params)
           throws AntAlreadyAllocException,
-                 IncompatibleSettingsException;
+                 IllegalSettingsException;
         
         /**
          * Release control of all resources which have been allocated to the 
