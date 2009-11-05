@@ -691,9 +691,11 @@ void TableVisGridder::initialiseCellSize(const scimath::Axes& axes)
 
 	const double decStart=itsAxes.start("DEC");
 	const double decEnd=itsAxes.end("DEC");
-	
+		
 	// ra axis is stratched with cos dec factor
 	const double cosdec = cos(getTangentPoint().getLat());
+
+	ASKAPCHECK(cosdec>0, "Unable to image polar area in the SIN projection. cosdec="<<cosdec);
 
 	itsUVCellSize.resize(2);
 	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)/cosdec;
