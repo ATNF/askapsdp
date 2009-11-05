@@ -81,7 +81,8 @@ class ParameterSet(object):
 
     """
 
-    _reserved = ["get_value", "set_value", "to_dict" , "keys", "items"]
+    _reserved = ["get_value", "set_value", "to_dict", "to_flat_dict",
+                 "keys", "items"]
 
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
@@ -240,6 +241,13 @@ class ParameterSet(object):
             else:
                 out[k] = decode(self.__dict__[k])
         return out
+
+    def to_flat_dict(self):
+        """
+        Returns a python :class:`dict` representation of the `ParameterSet`,
+        with flat keys and encoded (string) values.
+        """
+        return dict([(k, encode(v))  for k, v in self.items()])
 
     def _get_strings(self):
         """

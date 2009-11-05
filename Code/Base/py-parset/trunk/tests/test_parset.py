@@ -65,6 +65,13 @@ def test_to_dict():
     d = p.to_dict()
     assert d == {'x': 1, 'y': 2}
 
+def test_to_flat_dict():
+    din = {'x.y':1, 'x.z':2}
+    p = ParameterSet(**din)
+    d = p.to_flat_dict()
+    assert_equals(d.keys(), din.keys())
+
+
 # test getting sub-parset "node"
 def test_slice():
     p = ParameterSet('x.y.z', 1)
