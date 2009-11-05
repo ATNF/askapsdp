@@ -23,9 +23,6 @@
 # To build normally:
 # $ make
 #
-# or for NUMA support (assuming libnuma is available on the system):
-# $ make NUMA=1
-#
 
 CXX=g++
 CFLAGS=-O3 -fstrict-aliasing -Wall
@@ -33,11 +30,6 @@ LIBS=-lpthread
 
 EXENAME = tConvolveMT
 OBJS = tConvolveMT.o Stopwatch.o Benchmark.o
-
-ifeq ($(NUMA),1)
-	LIBS += -lnuma
-	CFLAGS += -DNUMA_ENABLE
-endif
 
 all:		$(EXENAME)
 
