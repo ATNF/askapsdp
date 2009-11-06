@@ -1,6 +1,9 @@
 /// @file
 ///
-/// Unit test for the CASA image access code
+/// Tests gathered in this file are testing casacore,
+/// rather than our code itself. It is largely to ensure that our interpretation of e.g.
+/// image projection and coordinate conversion interfaces is correct and does not change if casacore, etc evolves
+/// (i.e. because existing documentation has gaps)
 ///
 ///
 /// @copyright (c) 2007 CSIRO
@@ -41,7 +44,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace scimath {
 
 class CasaProjectionTest : public CppUnit::TestFixture 
 {
@@ -57,7 +60,7 @@ public:
    
 };
     
-} // namespace synthesis
+} // namespace scimath
 
 } // namespace askap
 

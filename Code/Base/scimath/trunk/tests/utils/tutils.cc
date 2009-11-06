@@ -27,12 +27,14 @@
 // Test includes
 #include <MultiDimArrayPlaneIterTest.h>
 #include <FixedSizeCacheTest.h>
+#include <CasaProjectionTest.h>
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::scimath::MultiDimArrayPlaneIterTest::suite());
     runner.addTest(askap::scimath::FixedSizeCacheTest::suite());
+    runner.addTest(askap::scimath::CasaProjectionTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;
