@@ -130,11 +130,11 @@ void IceAppender::setOption(const LogString& option, const LogString& value)
 
 void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
 {
+
     // First ensure host, port and topic are set
     if (!verifyOptions()) {
         return;
     }
-
     // Initialize Ice
     // Get the initialized property set.
     Ice::PropertiesPtr props = Ice::createProperties();
@@ -163,13 +163,21 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
         itsIceComm = 0;
         return;
     }
-
     // Obtain the topic or create
     IceStorm::TopicPrx topic;
     try {
         topic = topicManager->retrieve(itsLoggingTopic);
     } catch (const IceStorm::NoSuchTopic&) {
+      try {
         topic = topicManager->create(itsLoggingTopic);
+      } catch  (const IceStorm::TopicExists&) {
+	try {
+	  topic = topicManager->retrieve(itsLoggingTopic);
+	} catch  (const IceStorm::NoSuchTopic&) {
+	  std::cerr << "Topic creation/retrieval failed after two attempts" 
+		    << std::endl;
+	}
+      }
     }
 
     Ice::ObjectPrx pub = topic->getPublisher()->ice_oneway();
