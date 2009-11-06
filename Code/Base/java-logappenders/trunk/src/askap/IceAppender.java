@@ -188,7 +188,11 @@ public class IceAppender extends AppenderSkeleton
             try {
                 topic = topicManager.create(itsTopic);
             } catch (IceStorm.TopicExists e1) {
-                // Do nothing
+		try {
+		    topic = topicManager.retrieve(itsTopic);
+		}  catch (IceStorm.NoSuchTopic e2) {
+		    // Do nothing
+		}
             }
         }
 
