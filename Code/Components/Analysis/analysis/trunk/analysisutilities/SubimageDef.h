@@ -66,9 +66,12 @@ namespace askap {
                 void defineFITS(std::string FITSfilename);
 
                 /// @brief Set the array of image dimensions
+		/// @{
                 void setImageDim(std::vector<int> dim) {itsFullImageDim = std::vector<long>(dim.size()); for (size_t i = 0; i < dim.size(); i++) itsFullImageDim[i] = dim[i];};
                 void setImageDim(std::vector<long> dim) {itsFullImageDim = dim;};
                 std::vector<long> getImageDim() {return itsFullImageDim;};
+		///@}
+
                 /// @brief Set the image name.
                 void setImage(std::string imageName) {itsImageName = imageName;};
 
@@ -77,6 +80,7 @@ namespace askap {
 
                 /// @brief Return the number of subimages.
                 int numSubs() {return itsNSubX*itsNSubY*itsNSubZ;};
+		/// @brief The number of axes
                 int naxis() {return itsNAxis;};
 
                 /// @brief Return the number of subdivisions in given directions
@@ -95,7 +99,7 @@ namespace askap {
                 int *overlap() {return itsOverlap;};
                 /// @}
 
-
+		/// @brief Create a Karma annotation file showing the borders of the subimages.
                 void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers);
 
             protected:

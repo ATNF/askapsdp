@@ -61,6 +61,9 @@ namespace askap {
 
             LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FittingParameters& par)
             {
+	      /// @brief This function provides a mechanism for passing the
+                /// entire contents of a FittingParameters object into a
+                /// LOFAR::BlobOStream stream
                 blob << par.itsBoxPadSize;
                 blob << par.itsMaxRMS;
                 blob << par.itsMaxNumGauss;
@@ -98,6 +101,9 @@ namespace askap {
 
             LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FittingParameters& par)
             {
+                /// @brief This function provides a mechanism for receiving the
+                /// entire contents of a FittingParameters object from a
+                /// LOFAR::BlobIStream stream
                 blob >> par.itsBoxPadSize;
                 blob >> par.itsMaxRMS;
                 blob >> par.itsMaxNumGauss;
@@ -143,6 +149,9 @@ namespace askap {
 
             LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FitResults& result)
             {
+                /// @brief This function provides a mechanism for passing the
+                /// entire contents of a FitResults object into a
+                /// LOFAR::BlobOStream stream
                 blob << result.itsFitIsGood;
                 blob << result.itsChisq;
                 blob << result.itsRedChisq;
@@ -168,6 +177,9 @@ namespace askap {
 
             LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &blob, FitResults& result)
             {
+                /// @brief This function provides a mechanism for receiving the
+                /// entire contents of a FitResults object from a
+                /// LOFAR::BlobIStream stream
                 blob >> result.itsFitIsGood;
                 blob >> result.itsChisq;
                 blob >> result.itsRedChisq;
@@ -199,8 +211,7 @@ namespace askap {
 
             LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& blob, RadioSource& src)
             {
-                /// @brief Pass a RadioSource object into a Blob
-                /// @details This function provides a mechanism for passing the
+                /// @brief This function provides a mechanism for passing the
                 /// entire contents of a RadioSource object into a
                 /// LOFAR::BlobOStream stream
                 int32 l;
@@ -268,7 +279,7 @@ namespace askap {
                 /// @brief Receive a RadioSource object from a Blob
                 /// @details This function provides a mechanism for receiving the
                 /// entire contents of a RadioSource object from a
-                /// LOFAR::BlobOStream stream
+                /// LOFAR::BlobIStream stream
                 int i;
                 int32 l;
                 bool b;

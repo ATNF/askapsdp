@@ -231,10 +231,13 @@ namespace askap {
                     /// @brief The detection threshold used for the object
                     float itsDetectionThreshold;
 
-                    /// @brief The best fit results
+                    /// @brief The best fit results overall
                     FitResults itsBestFit;
+                    /// @brief The best fit results for the PSF-type fit
                     FitResults itsBestFitPSF;
+                    /// @brief The best fit results for the FULL-type fit
                     FitResults itsBestFitFULL;
+                    /// @brief The best fit results for the SHAPE-type fit
                     FitResults itsBestFitSHAPE;
 
                     /// @brief The parameters used to control the fitting

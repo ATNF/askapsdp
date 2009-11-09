@@ -329,6 +329,20 @@ namespace askap {
 
         float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize)
         {
+	  /// @details This function finds the noise level (that is,
+	  /// the RMS deviation) for a box of a given size around a
+	  /// given position in a given image. The noise level is
+	  /// actually calculated with the MADFM, which is converted
+	  /// to an equivalent RMS assuming Gaussian statistics.
+	  ///
+	  /// The box is assumed to be square, centred at the provided
+	  /// coordinates, although it is truncated at the edge of the
+	  /// image.
+	  ///
+	  /// @param filename The name of the file
+	  /// @param xpt The x-coordinate of the centre of the box
+	  /// @param ypt The y-coordinate of the centre of the box
+	  /// @param noiseBoxSize The side length of the box
 
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);

@@ -36,12 +36,20 @@
 #include <casa/namespace.h>
 #include <analysisutilities/NewArrayMath.h>
 
-
+/// @brief A class to find the median absolute deviation from the median of some data
+/// @details This object takes an array of data and finds the median
+/// absolute deviation from the median of it. This class is suitable to be
+/// called by functions like slidingArrayMath. It can take flags to
+/// indicate that the data is sorted, that the mean of the central two
+/// points should be taken, or whether to do the calculations in the given
+/// array.
 template<typename T> class MadfmFunc {
     public:
+        /// @brief Constructor
         explicit MadfmFunc(Bool sorted = False, Bool takeEvenMean = True,
                            Bool inPlace = False)
                 : itsSorted(sorted), itsTakeEvenMean(takeEvenMean), itsInPlace(inPlace) {}
+  /// @brief Return the MADFM value
         Float operator()(const Array<Float>& arr) const
         { return madfm(arr, itsTmp, itsSorted, itsTakeEvenMean, itsInPlace); }
     private:
@@ -51,10 +59,19 @@ template<typename T> class MadfmFunc {
         mutable Block<Float> itsTmp;
 };
 
+/// @brief A class to find the semi-interhexile range of some data
+/// @details This object takes an array of data and finds the
+/// semi-interhexile range of it. This class is suitable to be
+/// called by functions like slidingArrayMath. It can take flags to
+/// indicate that the data is sorted, that the mean of the central two
+/// points should be taken, or whether to do the calculations in the given
+/// array.
 template<typename T> class SihrFunc {
     public:
+  /// @brief Constructor
         explicit SihrFunc(Bool sorted = False, Bool inPlace = False)
                 : itsSorted(sorted), itsInPlace(inPlace) {}
+  /// @brief Return the SIHR value
         Float operator()(const Array<Float>& arr) const
         { return sihr(arr, itsTmp, itsSorted, itsInPlace); }
     private:
