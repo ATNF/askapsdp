@@ -125,22 +125,6 @@ namespace askap {
                 /// taken into account, using the axes array, so that the box
                 /// does not go outside the allowed pixel area.
                 this->itsBoxMargins.clear();
-//  long zero = 0;
-//  ASKAPLOG_DEBUG_STR(logger, "RadioSource::defineBox : "
-//             << this->getXmin() << " " << this->getXmax() <<" "
-//             << this->getYmin() << " " << this->getYmax() << "   "
-//             << fitParams.boxPadSize() << "   "
-//             << sec.getSection() << ": "
-//             << sec.getStart(0) << " " << sec.getStart(1) << " " << sec.getStart(2) << " "
-//             << sec.getEnd(0) << " " << sec.getEnd(1) << " " << sec.getEnd(2) << "   "
-//             << this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
-//             );
-//  long xmin = std::max(zero, this->getXmin() - fitParams.boxPadSize());
-//  long xmax = std::min(axes[0], this->getXmax() + fitParams.boxPadSize());
-//      long ymin = std::max(zero, this->getYmin() - fitParams.boxPadSize());
-//      long ymax = std::min(axes[1], this->getYmax() + fitParams.boxPadSize());
-//      long zmin = std::max(zero, this->getZmin() - fitParams.boxPadSize());
-//      long zmax = std::min(axes[2], this->getZmax() + fitParams.boxPadSize());
                 long xmin = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
                 long xmax = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
                 long ymin = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
@@ -152,7 +136,6 @@ namespace askap {
                 vec[1] = std::pair<long, long>(ymin, ymax);
                 vec[2] = std::pair<long, long>(zmin, zmax);
                 this->itsBoxMargins = vec;
-//  ASKAPLOG_DEBUG_STR(logger,"RadioSource::defineBox : boxSize = " << this->boxSize() );
             }
 
 
@@ -230,8 +213,6 @@ namespace askap {
                     }
                 }
 
-//      ASKAPLOG_DEBUG_STR(logger, "Setting edge parameters: flagAdj="<<flagAdj<<" src=("<<this->getXmin()<<":"<<this->getXmax()<<","<<this->getYmin()<<":"<<this->getYmax()<<"), image space=("<<xminEdge<<":"<<xmaxEdge<<","<<yminEdge<<":"<<ymaxEdge<<")  ===> edgeFlag = " << flagBoundary);
-
                 this->atEdge = flagBoundary;
             }
             //**************************************************************//
@@ -305,11 +286,7 @@ namespace askap {
                 /// It may be that the thresholding returns more than one
                 /// object. In this case, we only look at the one with the
                 /// same peak location as the base object.
-//  angle = this->pixelArray.getSpatialMap().getPositionAngle();
-//  std::pair<double,double> axes = this->pixelArray.getSpatialMap().getPrincipleAxes();
-//  maj = std::max(axes.first,axes.second);
-//  min = std::min(axes.first,axes.second);
-//  return;
+
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image smlIm(dim);
                 smlIm.saveArray(fluxarray, this->boxSize());
@@ -384,13 +361,19 @@ namespace askap {
                 /// logarithmically between the Detection's peak flux and the
                 /// original detection threshold. If more than one object is
                 /// detected at any of these searches, getSubComponentList()
-                /// is called on each of these objects. This recursive
-                /// exectution will continue until only one object is left, at
-                /// which point we return a SubComponent object that holds all
-                /// parameters necessary to specify a 2D Gaussian (the shape
-                /// parameters are determined using getFWHMestimate()).  The
-                /// ultimate returned object is a vector list of
-                /// SubComponents, ordered from highest to lowest peak flux.
+                /// is called on each of these objects.
+                ///
+                /// This recursive exectution will continue until only
+                /// one object is left, at which point we return a
+                /// SubComponent object that holds all parameters
+                /// necessary to specify a 2D Gaussian (the shape
+                /// parameters are determined using
+                /// getFWHMestimate()).
+                ///
+                /// @return The ultimate returned object is a vector
+                /// list of SubComponents, ordered from highest to
+                /// lowest peak flux.
+
                 std::vector<SubComponent> fullList;
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image smlIm(dim);
@@ -414,11 +397,6 @@ namespace askap {
                 base.setPA(a);
                 base.setMajor(b);
                 base.setMinor(c);
-//  base.setPA(this->pixelArray.getSpatialMap().getPositionAngle());
-//  std::pair<double,double> axes = this->pixelArray.getSpatialMap().getPrincipleAxes();
-//  base.setMajor(std::max(axes.first,axes.second));
-//  base.setMinor(std::min(axes.first,axes.second));
-//                const int numThresh = 20;
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 float baseThresh = this->itsDetectionThreshold > 0 ? log10(this->itsDetectionThreshold) : -6.;
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh + 1);
@@ -477,7 +455,7 @@ namespace askap {
                 /// location was found (the overall peak will be found 10
                 /// times), and the Value element being the location of the
                 /// peak, stored as a PixelInfo::Voxel.
-                //                const int numThresh = 10;
+
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 std::multimap<int, PixelInfo::Voxel> peakMap;
                 std::multimap<int, PixelInfo::Voxel>::iterator pk;
@@ -662,6 +640,23 @@ namespace askap {
             bool RadioSource::fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
                                        casa::Vector<casa::Double> sigma, FittingParameters &baseFitter)
             {
+                /// @details This function drives the fitting of the
+                /// Gaussian functions. It first sets up the fitting
+                /// parameters, then finds the sub-components present in
+                /// the box. The main loop is over the requested fit
+                /// types. For each valid type, the Fitter is
+                /// initialised and run for a number of gaussians from 1
+                /// up to the maximum number requested.
+                ///
+                /// Each fit is compared to the best thus far, whose
+                /// properties are tracked for later use. The best fit
+                /// for each type is saved for later writing to the
+                /// appropriate summary file, and the best overall is
+                /// saved in itsBestFit
+                ///
+                /// @return The return value is the value of hasFit,
+                /// which indicates whether a valid fit was made.
+
                 if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
                 this->itsFitParams = baseFitter;
@@ -673,6 +668,8 @@ namespace askap {
                 ASKAPLOG_DEBUG_STR(logger, "detect thresh = " << this->itsDetectionThreshold
                                        << "  peak = " << this->peakFlux
                                        << "  noise level = " << this->itsNoiseLevel);
+                //
+                // Get the list of subcomponents
                 std::vector<SubComponent> cmpntList = this->getSubComponentList(f);
                 ASKAPLOG_DEBUG_STR(logger, "Found " << cmpntList.size() << " subcomponents");
 
@@ -764,13 +761,18 @@ namespace askap {
                 /// @details
                 ///
                 /// This function writes out the position and flux information
-                /// for the detected object and its fitted componenets. The
+                /// for the detected object and its fitted components. The
                 /// information includes:
-                /// @li RA & Dec & Vel
+                /// @li RA & Dec
                 /// @li Detected peak flux (from duchamp::Detection object)
                 /// @li Detected integrated flux (from duchamp::Detection)
-                /// @li Number of fitted componente
-                /// @li Peak & Integrated flux of fitted components (using all components)
+                /// @li Number of fitted components
+                /// @li Peak & Integrated flux, and shape, of fitted components (using all components)
+                /// @li RMS of the image in the local vicinity of the object
+                /// @li Chi-squared and RMS values from the fit
+                /// @li Number of free parameters and degrees of freedom in the fit
+                /// @li Number of pixels used in the fit, and the number in the object itself
+
                 FitResults results = this->itsBestFit;
 
                 if (fittype == "full") results = this->itsBestFitFULL;
@@ -803,11 +805,8 @@ namespace askap {
                 if (doHeader) {
                     stream << "#";
                     columns[duchamp::Column::NUM].printTitle(stream);
-//                     columns[duchamp::Column::RA].printTitle(stream);
-//                     columns[duchamp::Column::DEC].printTitle(stream);
                     columns[duchamp::Column::RAJD].printTitle(stream);
                     columns[duchamp::Column::DECJD].printTitle(stream);
-//    columns[duchamp::Column::VEL].printTitle(stream);
                     columns[duchamp::Column::FINT].printTitle(stream);
                     columns[duchamp::Column::FPEAK].printTitle(stream);
                     fIntfit.printTitle(stream);
@@ -824,11 +823,8 @@ namespace askap {
                     npixObj.printTitle(stream);
                     stream << "\n";
                     int width = columns[duchamp::Column::NUM].getWidth() +
-//                                 columns[duchamp::Column::RA].getWidth() +
-//                                 columns[duchamp::Column::DEC].getWidth() +
                                 columns[duchamp::Column::RAJD].getWidth() +
                                 columns[duchamp::Column::DECJD].getWidth() +
-//      columns[duchamp::Column::VEL].getWidth() +
                                 columns[duchamp::Column::FINT].getWidth() +
                                 columns[duchamp::Column::FPEAK].getWidth() +
                                 fIntfit.getWidth() +
@@ -851,11 +847,8 @@ namespace askap {
                 if (!results.isGood()) { //if no fits were made...
                     float zero = 0.;
                     columns[duchamp::Column::NUM].printEntry(stream, this->getID());
-//                     columns[duchamp::Column::RA].printEntry(stream, this->getRAs());
-//                     columns[duchamp::Column::DEC].printEntry(stream, this->getDecs());
                     columns[duchamp::Column::RAJD].printEntry(stream, this->getRA());
                     columns[duchamp::Column::DECJD].printEntry(stream, this->getDec());
-//    columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
                     columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
                     columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
                     fIntfit.printEntry(stream, zero);
@@ -885,8 +878,6 @@ namespace askap {
                     pix[2] = this->getZcentre();
                     double *wld = new double[3];
                     this->itsHeader.pixToWCS(pix, wld);
-//                     std::string thisRA = decToDMS(wld[0], "RA");
-//                     std::string thisDec = decToDMS(wld[1], "DEC");
                     double thisRA = wld[0];
                     double thisDec = wld[1];
                     delete [] pix;
@@ -897,11 +888,8 @@ namespace askap {
                         intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
                     columns[duchamp::Column::NUM].printEntry(stream, id.str());
-//                     columns[duchamp::Column::RA].printEntry(stream, thisRA);
-//                     columns[duchamp::Column::DEC].printEntry(stream, thisDec);
                     columns[duchamp::Column::RAJD].printEntry(stream, thisRA);
                     columns[duchamp::Column::DECJD].printEntry(stream, thisDec);
-//    columns[duchamp::Column::VEL].printEntry(stream,this->getVel());
                     columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
                     columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
                     fIntfit.printEntry(stream, intfluxfit);
@@ -939,6 +927,7 @@ namespace askap {
                 /// Finally, a box is drawn around the detection, indicating the
                 /// area used in the fitting. It includes the border around the
                 /// detection fiven by sourcefitting::detectionBorder.
+
                 double *pix = new double[12];
                 double *world = new double[12];
 
