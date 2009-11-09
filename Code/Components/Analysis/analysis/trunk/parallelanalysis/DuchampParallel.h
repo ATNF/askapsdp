@@ -74,7 +74,7 @@ namespace askap {
 
                 virtual ~DuchampParallel() {};
 
-		/// @brief Return a reference to the duchamp::Cube object
+                /// @brief Return a reference to the duchamp::Cube object
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
 
                 /// @brief Get/set the flag saying whether to do median filtering prior to searching
@@ -83,7 +83,7 @@ namespace askap {
                 void setFlagDoMedianSearch(bool f) {itsFlagDoMedianSearch = f;};
                 /// @}
 
-		/// @brief Perform a search based on a median box sliding function
+                /// @brief Perform a search based on a median box sliding function
                 void medianSearch2D();
 
                 /// @brief Read the metadata only from the image file.

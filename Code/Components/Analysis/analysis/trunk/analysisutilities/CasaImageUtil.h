@@ -90,7 +90,7 @@ namespace askap {
         /// @brief Convert a duchamp subsection to a casa Slicer
         Slicer subsectionToSlicer(duchamp::Section &subsection);
 
-	/// @brief Find the noise within a box surrounding a location in an image.
+        /// @brief Find the noise within a box surrounding a location in an image.
         float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
     }
 

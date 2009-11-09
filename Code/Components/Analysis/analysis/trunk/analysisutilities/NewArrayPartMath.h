@@ -49,7 +49,7 @@ template<typename T> class MadfmFunc {
         explicit MadfmFunc(Bool sorted = False, Bool takeEvenMean = True,
                            Bool inPlace = False)
                 : itsSorted(sorted), itsTakeEvenMean(takeEvenMean), itsInPlace(inPlace) {}
-  /// @brief Return the MADFM value
+        /// @brief Return the MADFM value
         Float operator()(const Array<Float>& arr) const
         { return madfm(arr, itsTmp, itsSorted, itsTakeEvenMean, itsInPlace); }
     private:
@@ -68,10 +68,10 @@ template<typename T> class MadfmFunc {
 /// array.
 template<typename T> class SihrFunc {
     public:
-  /// @brief Constructor
+        /// @brief Constructor
         explicit SihrFunc(Bool sorted = False, Bool inPlace = False)
                 : itsSorted(sorted), itsInPlace(inPlace) {}
-  /// @brief Return the SIHR value
+        /// @brief Return the SIHR value
         Float operator()(const Array<Float>& arr) const
         { return sihr(arr, itsTmp, itsSorted, itsInPlace); }
     private:

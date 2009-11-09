@@ -152,16 +152,18 @@ namespace askap {
 
             void FittingParameters::setFlagFitThisParam(std::string type)
             {
-	      /// @details For a given type of fit, set the flags for
-	      /// each parameter. The types that are possible are:
-	      /// @li full: All parameters are fitted
-	      /// @li psf: The shape of the Gaussian is kept fixed,
-	      /// but the height & location are fitted
-	      /// @li shape: The height is kept fixed, and the shape
-	      /// and location are fitted
-	      /// @param type The string indicating the type of fit. A
-	      /// warning is given if a different value is provided
-	      /// and no flags are set.
+                /// @details For a given type of fit, set the flags for
+                /// each parameter. The types that are possible are:
+                /// @li full: All parameters are fitted
+                /// @li psf: The shape of the Gaussian is kept fixed,
+                /// but the height & location are fitted
+                /// @li shape: The height is kept fixed, and the shape
+                /// and location are fitted
+                /// @li height: The height alone is fitted. All other
+                /// parameters, **including position**, are kept fixed.
+                /// @param type The string indicating the type of fit. A
+                /// warning is given if a different value is provided
+                /// and no flags are set.
 
                 if (type == "full") {
                     for (int i = 0; i < 6; i++) this->itsFlagFitThisParam[i] = true;
@@ -173,6 +175,11 @@ namespace askap {
                     this->itsFlagFitThisParam[0] = false;
 
                     for (int i = 1; i < 6; i++) this->itsFlagFitThisParam[i] = true;
+
+                } else if (type == "height") {
+                    this->itsFlagFitThisParam[0] = true;
+
+                    for (int i = 1; i < 6; i++) this->itsFlagFitThisParam[i] = false;
 
                 } else {
                     ASKAPLOG_WARN_STR(logger, "Fit type " << type << " is not valid, so can't set parameter flags");
@@ -201,10 +208,10 @@ namespace askap {
 
             bool FittingParameters::hasType(std::string type)
             {
-	      /// @details Whether the given type is one of the fit
-	      /// types stored in this FittingParameters object.
-	      /// @param type Fit type under question
-	      /// @return True if the given type is recorded. False otherwise.
+                /// @details Whether the given type is one of the fit
+                /// types stored in this FittingParameters object.
+                /// @param type Fit type under question
+                /// @return True if the given type is recorded. False otherwise.
 
                 bool haveIt = false;
 
@@ -219,15 +226,15 @@ namespace askap {
 
             std::string convertSummaryFile(std::string baseName, std::string type)
             {
-	      /// @details Creates an output file name that indicates
-	      /// the fit type being used. A string "_<type>" is added
-	      /// before any suffix in the base name provided
-	      /// (ie. "_full" or "_psf" or "_shape").
-	      /// @param baseName The name of the overall summary file
-	      /// @param type The type of fit being done. If it is not
-	      /// one of "full", "psf", "shape", the baseName is
-	      /// returned.
-	      /// @return The edited filename.
+                /// @details Creates an output file name that indicates
+                /// the fit type being used. A string "_<type>" is added
+                /// before any suffix in the base name provided
+                /// (ie. "_full" or "_psf" or "_shape").
+                /// @param baseName The name of the overall summary file
+                /// @param type The type of fit being done. If it is not
+                /// one of "full", "psf", "shape", the baseName is
+                /// returned.
+                /// @return The edited filename.
 
                 std::string suffix;
                 size_t loc = baseName.rfind(".");

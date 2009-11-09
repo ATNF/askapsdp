@@ -56,48 +56,48 @@ namespace askap {
 
         namespace sourcefitting {
 
-	  /// @brief A class to store the results of source fitting.
-	  /// @details This class contains all information needed to
-	  /// describe the results of an attempt at gaussian fitting. It records
-	  /// whether the fit worked, the basic fit parameters and the descriptions
-	  /// of the fitted components. This is able to be passed over a Blob
-	  /// stream.
+            /// @brief A class to store the results of source fitting.
+            /// @details This class contains all information needed to
+            /// describe the results of an attempt at gaussian fitting. It records
+            /// whether the fit worked, the basic fit parameters and the descriptions
+            /// of the fitted components. This is able to be passed over a Blob
+            /// stream.
             class FitResults {
                 public:
-	      /// @brief Default constructor
+                    /// @brief Default constructor
                     FitResults() {itsFitIsGood = false;}
-		    /// @brief Destructor 
+                    /// @brief Destructor
                     virtual ~FitResults() {};
                     /// @brief Copy constructor
                     FitResults(const FitResults& f);
                     /// @brief Copy function
                     FitResults& operator= (const FitResults& f);
 
-		    /// @brief Store the results from a fit attempt
+                    /// @brief Store the results from a fit attempt
                     void saveResults(Fitter &fit);
 
-		    /// @brief Whether the fit is good or not
+                    /// @brief Whether the fit is good or not
                     bool  isGood() {return itsFitIsGood;};
-		    /// @brief The chi-squared value of the fit;
+                    /// @brief The chi-squared value of the fit;
                     float chisq() {return itsChisq;};
-		    /// @brief The reduced chi-squared value of the fit: chi-squared divided by the number of degrees of freedom
+                    /// @brief The reduced chi-squared value of the fit: chi-squared divided by the number of degrees of freedom
                     float redchisq() {return itsRedChisq;};
-		    /// @brief The RMS deviation for the fit
+                    /// @brief The RMS deviation for the fit
                     float RMS() {return itsRMS;};
-		    /// @brief The number of degrees of freedom for the fit
+                    /// @brief The number of degrees of freedom for the fit
                     int   ndof() {return itsNumDegOfFreedom;};
-		    /// @brief The number of free parameters for the fit
+                    /// @brief The number of free parameters for the fit
                     int   numFreeParam() {return itsNumFreeParam;};
-		    /// @brief The number of Gaussian components used in the fit
+                    /// @brief The number of Gaussian components used in the fit
                     int   numGauss() {return itsNumGauss;};
-		    /// @brief Return the set of Gaussian fits
+                    /// @brief Return the set of Gaussian fits
                     std::vector<casa::Gaussian2D<double> > fitSet() {return itsGaussFitSet;};
                     /// @brief Return a reference to the set of Gaussian fits.
                     std::vector<casa::Gaussian2D<Double> >& fits() {
                         std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;
                     };
 
-		    /// @brief The number of fitted components
+                    /// @brief The number of fitted components
                     int numFits() {return itsGaussFitSet.size();};
 
                     /// @brief Functions allowing fitting parameters to be passed over LOFAR Blobs
@@ -113,19 +113,19 @@ namespace askap {
 
 
                 protected:
-		    /// @brief Is the fit good?
+                    /// @brief Is the fit good?
                     bool  itsFitIsGood;
-		    /// @brief The chi-squared value
+                    /// @brief The chi-squared value
                     float itsChisq;
-		    /// @brief The reduced chi-squared value
+                    /// @brief The reduced chi-squared value
                     float itsRedChisq;
-		    /// @brief The RMS of the fit
+                    /// @brief The RMS of the fit
                     float itsRMS;
-		    /// @brief The number of degrees of freedom in the fit
+                    /// @brief The number of degrees of freedom in the fit
                     int   itsNumDegOfFreedom;
-		    /// @brief The number of free parameters in the fit
+                    /// @brief The number of free parameters in the fit
                     int   itsNumFreeParam;
-		    /// @brief the number of Gaussians used in the fit
+                    /// @brief the number of Gaussians used in the fit
                     int   itsNumGauss;
                     /// @brief A two-dimensional Gaussian fit to the object.
                     std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;

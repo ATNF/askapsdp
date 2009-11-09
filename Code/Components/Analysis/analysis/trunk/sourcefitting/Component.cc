@@ -58,13 +58,13 @@ namespace askap {
 
             bool operator< (SubComponent lhs, SubComponent rhs)
             {
-	      /// @details Comparison of SubComponents is done on the basis of the peak flux only, with a strict less-than comparison. 
+                /// @details Comparison of SubComponents is done on the basis of the peak flux only, with a strict less-than comparison.
                 return lhs.itsPeakFlux < rhs.itsPeakFlux;
             }
 
             std::ostream& operator<< (std::ostream& theStream, SubComponent& c)
             {
-	      /// @details Output the key parameter values to the stream. The flux has a precision of 8 and the rest a precision of 3.
+                /// @details Output the key parameter values to the stream. The flux has a precision of 8 and the rest a precision of 3.
                 theStream.setf(std::ios::fixed);
                 theStream << std::setprecision(8);
                 theStream << c.itsPeakFlux << " ";

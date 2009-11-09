@@ -61,7 +61,7 @@ namespace askap {
 
             LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &blob, FittingParameters& par)
             {
-	      /// @brief This function provides a mechanism for passing the
+                /// @brief This function provides a mechanism for passing the
                 /// entire contents of a FittingParameters object into a
                 /// LOFAR::BlobOStream stream
                 blob << par.itsBoxPadSize;

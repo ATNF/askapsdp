@@ -65,14 +65,14 @@ namespace askap {
             /// from the object number in the list, plus the ra and dec,
             /// e.g. 2_12:34:56.78_-45:34:23.12
             /// @param fin The file stream to read from
-	  /// @param header The FitsHeader object defining the WCS transformations
+            /// @param header The FitsHeader object defining the WCS transformations
             /// @param raBaseStr The base right ascension, in string form, e.g. 12:23:34.5
             /// @param decBaseStr The base right ascension, in string form, e.g. -12:23:34.57
-	  /// @param posType The type of position given in the stream: "dms" (12:23:45) or "deg" (12.3958333)
-	  /// @param radius The maximum radius from the base position within which to keep objects. If negative, everything is kept.
-	  /// @param fluxMethod Which flux value to use: either "peak" or "integrated". Not used at the moment. 
-	  /// @param fluxUseFit Whether to use the fitted value of the flux. Can be either "yes", "no", or "best". If "best", we use the fitted flux whenever that value is >0 (taken to mean a fit was made successfully).
-	  /// @return A list of sources from the file
+            /// @param posType The type of position given in the stream: "dms" (12:23:45) or "deg" (12.3958333)
+            /// @param radius The maximum radius from the base position within which to keep objects. If negative, everything is kept.
+            /// @param fluxMethod Which flux value to use: either "peak" or "integrated". Not used at the moment.
+            /// @param fluxUseFit Whether to use the fitted value of the flux. Can be either "yes", "no", or "best". If "best", we use the fitted flux whenever that value is >0 (taken to mean a fit was made successfully).
+            /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
             std::string raS, decS, sdud, id;
             double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise;
@@ -82,12 +82,12 @@ namespace askap {
             double *pix = new double[3];
             wld[2] = header.specToVel(0.);
 
-	    // Convert the base position
-	    wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
-	    wld[1] = analysis::dmsToDec(decBaseStr);
-	    header.wcsToPix(wld,pix);
-	    double xBase = pix[0];
-	    double yBase = pix[1];
+            // Convert the base position
+            wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
+            wld[1] = analysis::dmsToDec(decBaseStr);
+            header.wcsToPix(wld, pix);
+            double xBase = pix[0];
+            double yBase = pix[1];
 
             char line[501];
             fin.getline(line, 500);
@@ -131,7 +131,7 @@ namespace askap {
                     ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " << std::setprecision(6) <<  wld[1] << " --> " << pix[1]);
                 }
 
-                if (radius < 0 || (radius > 0 && hypot(pix[0]-xBase, pix[1]-yBase) < radius*60.)) {
+                if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
                     matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa);
                     pt.setStuff(chisq, noise, rms, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pt);
@@ -155,15 +155,15 @@ namespace askap {
             /// are used to convert each point's position into an offset in
             /// arcsec. The ID of each point is generated from the object
             /// number in the list, plus the ra and dec,
-            /// e.g. 2_12:34:56.78_-45:34:23.12 
-	  /// 
-	  /// @param fin The file stream to read from 
-	  /// @param header The FitsHeader object containing information on the WCS system (for conversion from WCS to pixel positions)
+            /// e.g. 2_12:34:56.78_-45:34:23.12
+            ///
+            /// @param fin The file stream to read from
+            /// @param header The FitsHeader object containing information on the WCS system (for conversion from WCS to pixel positions)
             /// @param raBaseStr The base right ascension, in string form, e.g. 12:23:34.5
             /// @param decBaseStr The base right ascension, in string form, e.g. -12:23:34.57
-	  /// @param posType The type of position, either "dms" (12:34:56 format) or "deg" (decimal degrees)
-	  /// @param radius The search radius within which points are kept. Objects 
-	  /// @return A list of sources from the file
+            /// @param posType The type of position, either "dms" (12:34:56 format) or "deg" (decimal degrees)
+            /// @param radius The search radius within which points are kept. Objects
+            /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
             std::string raS, decS, id;
             double flux, maj, min, pa;
@@ -173,12 +173,12 @@ namespace askap {
             double *pix = new double[3];
             wld[2] = header.specToVel(0.);
 
-	    // Convert the base position
-	    wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
-	    wld[1] = analysis::dmsToDec(decBaseStr);
-	    header.wcsToPix(wld,pix);
-	    double xBase = pix[0];
-	    double yBase = pix[1];
+            // Convert the base position
+            wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
+            wld[1] = analysis::dmsToDec(decBaseStr);
+            header.wcsToPix(wld, pix);
+            double xBase = pix[0];
+            double yBase = pix[1];
 
             while (fin >> raS >> decS >> flux >> maj >> min >> pa,
                     !fin.eof()) {
@@ -201,7 +201,7 @@ namespace askap {
                                            << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << ")");
                 }
 
-                if (radius < 0 || (radius > 0 && hypot(pix[0]-xBase, pix[1]-yBase) < radius*60.)) {
+                if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
                     matching::Point pt(pix[0], pix[1], flux, id, maj, min, pa);
                     pixlist.push_back(pt);
                 }
@@ -226,11 +226,11 @@ namespace askap {
             /// @param fin The file stream to read from
             /// @param raBaseStr The base right ascension, in string form, e.g. 12:23:34.5
             /// @param decBaseStr The base right ascension, in string form, e.g. -12:23:34.57
-	  /// @param posType The type of position given in the stream: "dms" (12:23:45) or "deg" (12.3958333)
-	  /// @param radius The maximum radius from the base position within which to keep objects. If negative, everything is kept.
-	  /// @param fluxMethod Which flux value to use: either "peak" or "integrated". Not used at the moment. 
-	  /// @param fluxUseFit Whether to use the fitted value of the flux. Can be either "yes", "no", or "best". If "best", we use the fitted flux whenever that value is >0 (taken to mean a fit was made successfully).
-	  /// @return A list of sources from the file
+            /// @param posType The type of position given in the stream: "dms" (12:23:45) or "deg" (12.3958333)
+            /// @param radius The maximum radius from the base position within which to keep objects. If negative, everything is kept.
+            /// @param fluxMethod Which flux value to use: either "peak" or "integrated". Not used at the moment.
+            /// @param fluxUseFit Whether to use the fitted value of the flux. Can be either "yes", "no", or "best". If "best", we use the fitted flux whenever that value is >0 (taken to mean a fit was made successfully).
+            /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
             std::string raS, decS, sdud, id;
             double raBase = analysis::dmsToDec(raBaseStr) * 15.;
@@ -305,14 +305,14 @@ namespace askap {
             /// are used to convert each point's position into an offset in
             /// arcsec. The ID of each point is generated from the object
             /// number in the list, plus the ra and dec,
-            /// e.g. 2_12:34:56.78_-45:34:23.12 
-	  ///
-	  /// @param fin The file stream to read from 
-	  /// @param raBaseStr The base right ascension, in string form, e.g. 12:23:34.5 
-	  /// @param decBaseStr The base right ascension, in string form, e.g. -12:23:34.57
-	  /// @param posType The type of position, either "dms" (12:34:56 format) or "deg" (decimal degrees)
-	  /// @param radius The search radius within which points are kept. Objects 
-	  /// @return A list of sources from the file
+            /// e.g. 2_12:34:56.78_-45:34:23.12
+            ///
+            /// @param fin The file stream to read from
+            /// @param raBaseStr The base right ascension, in string form, e.g. 12:23:34.5
+            /// @param decBaseStr The base right ascension, in string form, e.g. -12:23:34.57
+            /// @param posType The type of position, either "dms" (12:34:56 format) or "deg" (decimal degrees)
+            /// @param radius The search radius within which points are kept. Objects
+            /// @return A list of sources from the file
 
             std::vector<matching::Point> pixlist;
             std::string raS, decS, id;
