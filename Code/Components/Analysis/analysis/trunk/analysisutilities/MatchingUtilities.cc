@@ -56,7 +56,7 @@ namespace askap {
     namespace analysis {
 
 
-        std::vector<matching::Point> getSrcPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string posType, double radius, std::string fluxMethod, std::string fluxUseFit)
+        std::vector<matching::Point> getSrcPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius, std::string fluxMethod, std::string fluxUseFit)
         {
             /// @details Read in a list of points from a duchamp-Summary.txt
             /// file (that is, a summary file produced by cduchamp). The
@@ -75,6 +75,13 @@ namespace askap {
             double *wld = new double[3];
             double *pix = new double[3];
             wld[2] = header.specToVel(0.);
+
+	    // Convert the base position
+	    wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
+	    wld[1] = analysis::dmsToDec(decBaseStr);
+	    header.wcsToPix(wld,pix);
+	    double xBase = pix[0];
+	    double yBase = pix[1];
 
             char line[501];
             fin.getline(line, 500);
@@ -118,7 +125,7 @@ namespace askap {
                     ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " << std::setprecision(6) <<  wld[1] << " --> " << pix[1]);
                 }
 
-                if (radius < 0 || (radius > 0 && hypot(pix[0], pix[1]) < radius*60.)) {
+                if (radius < 0 || (radius > 0 && hypot(pix[0]-xBase, pix[1]-yBase) < radius*60.)) {
                     matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa);
                     pt.setStuff(chisq, noise, rms, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pt);
@@ -133,7 +140,7 @@ namespace askap {
             return pixlist;
         }
 
-        std::vector<matching::Point> getPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string posType, double radius)
+        std::vector<matching::Point> getPixList(std::ifstream &fin, duchamp::FitsHeader &header, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius)
         {
             /// @details Reads in a list of points from a file, to serve as
             /// a reference list. The file should have six columns: ra, dec,
@@ -154,6 +161,13 @@ namespace askap {
             double *wld = new double[3];
             double *pix = new double[3];
             wld[2] = header.specToVel(0.);
+
+	    // Convert the base position
+	    wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
+	    wld[1] = analysis::dmsToDec(decBaseStr);
+	    header.wcsToPix(wld,pix);
+	    double xBase = pix[0];
+	    double yBase = pix[1];
 
             while (fin >> raS >> decS >> flux >> maj >> min >> pa,
                     !fin.eof()) {
@@ -176,7 +190,7 @@ namespace askap {
                                            << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << ")");
                 }
 
-                if (radius < 0 || (radius > 0 && hypot(pix[0], pix[1]) < radius*60.)) {
+                if (radius < 0 || (radius > 0 && hypot(pix[0]-xBase, pix[1]-yBase) < radius*60.)) {
                     matching::Point pt(pix[0], pix[1], flux, id, maj, min, pa);
                     pixlist.push_back(pt);
                 }

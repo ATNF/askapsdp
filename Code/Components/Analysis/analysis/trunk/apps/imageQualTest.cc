@@ -89,7 +89,8 @@ int main(int argc, const char** argv)
         Matcher matcher(subset);
         matcher.setHeader(image.cube().header());
         matcher.readLists();
-        matcher.fixRefList(image.getBeamInfo());
+	bool doFixRef = subset.getBool("convolveReference",true);
+        if(doFixRef) matcher.fixRefList(image.getBeamInfo());
         matcher.setTriangleLists();
         matcher.findMatches();
         matcher.findOffsets();

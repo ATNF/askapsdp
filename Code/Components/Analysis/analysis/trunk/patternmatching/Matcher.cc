@@ -174,11 +174,10 @@ namespace askap {
                     if (!fref.is_open())
                         ASKAPTHROW(AskapError, "refFile (" << this->itsRefFile << ") not valid. Error opening file.");
 
-//                     this->itsSrcPixList = getSrcPixList(fsrc, this->itsRA, this->itsDec, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
-                    this->itsSrcPixList = getSrcPixList(fsrc, this->itsFITShead, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
+                    this->itsSrcPixList = getSrcPixList(fsrc, this->itsFITShead, this->itsRA, this->itsDec, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
                     ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
-//                     this->itsRefPixList = getPixList(fref, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
-                    this->itsRefPixList = getPixList(fref, this->itsFITShead, this->itsRefPosType, this->itsRadius);
+
+                    this->itsRefPixList = getPixList(fref, this->itsFITShead, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
                     ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
                 } else {
                     ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
