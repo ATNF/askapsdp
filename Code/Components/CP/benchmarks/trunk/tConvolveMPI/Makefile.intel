@@ -20,14 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
-# Instructions:
-#
-# Need the run the following to setup the environment:
-# . /opt/intel/Compiler/11.0/074/bin/iccvars.sh intel64
-# . /opt/intel/mkl/10.1.1.019/tools/environment/mklvarsem64t.sh
-#
 
-#CXX=icpc
 CXX=mpicxx
 CFLAGS=-O3 -xS -ip -ipo -DUSEMKLLIB -DUSEBLAS
 LIBS=-lmkl -liomp5
