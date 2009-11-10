@@ -104,6 +104,26 @@ namespace askap {
                     this->itsGaussFitSet.push_back(fit.gaussian(rfit->second));
             }
 
+            //**************************************************************//
+
+	  std::vector<SubComponent> FitResults::getCmpntList()
+	   {
+	     std::vector<SubComponent> output(this->itsGaussFitSet.size());
+	     std::vector<casa::Gaussian2D<Double> >::iterator gauss = this->itsGaussFitSet.begin();
+	     int comp=0;
+	     for(;gauss<this->itsGaussFitSet.end();gauss++){
+	       output[comp].setX(gauss->xCenter());
+	       output[comp].setY(gauss->yCenter());
+	       output[comp].setPeak(gauss->height());
+	       output[comp].setMajor(gauss->majorAxis());
+	       output[comp].setMinor(gauss->minorAxis());
+	       output[comp].setPA(gauss->PA());
+	       comp++;
+	     }
+	     return output;
+	   }
+
+
         }
 
     }

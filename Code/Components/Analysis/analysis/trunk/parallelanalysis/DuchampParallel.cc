@@ -599,6 +599,7 @@ namespace askap {
                     if (!src.isAtEdge() && this->itsFlagDoFit) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
                         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+			src.findAlpha(this->itsImage);
                     }
 
                     this->itsSourceList.push_back(src);
@@ -716,9 +717,9 @@ namespace askap {
                             src.addOffsets();
                             src.calcParams();
 
-                            for (unsigned int f = 0; f < src.fitset().size(); f++) {
-                                src.fitset()[f].setXcenter(src.fitset()[f].xCenter() + src.getXOffset());
-                                src.fitset()[f].setYcenter(src.fitset()[f].yCenter() + src.getYOffset());
+                            for (unsigned int f = 0; f < src.fitset("best").size(); f++) {
+                                src.fitset("best")[f].setXcenter(src.fitset("best")[f].xCenter() + src.getXOffset());
+                                src.fitset("best")[f].setYcenter(src.fitset("best")[f].yCenter() + src.getYOffset());
                             }
 
                             // And now set offsets to those of the full image as we are in the master cube

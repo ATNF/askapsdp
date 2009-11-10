@@ -138,9 +138,17 @@ namespace askap {
                     /// @brief Return the detection threshold
                     float detectionThreshold() {return itsDetectionThreshold;};
 
+/*                     /// @brief Return the set of fits */
+/*                     std::vector<casa::Gaussian2D<Double> > gaussFitSet() {return itsBestFit.fitSet();}; */
+
+/*                     /// @brief Return a reference to the set of Gaussian fits. */
+/*                     std::vector<casa::Gaussian2D<Double> >& fitset() {return itsBestFit.fits();}; */
+
                     /// @brief Return the set of fits
-                    //  std::vector<casa::Gaussian2D<Double> > gaussFitSet(){return itsGaussFitSet;};
-                    std::vector<casa::Gaussian2D<Double> > gaussFitSet() {return itsBestFit.fitSet();};
+                    std::vector<casa::Gaussian2D<Double> > gaussFitSet(std::string type) {return itsBestFitMap[type].fitSet();};
+
+                    /// @brief Return a reference to the set of Gaussian fits.
+                    std::vector<casa::Gaussian2D<Double> >& fitset(std::string type) {return itsBestFitMap[type].fits();};
 
                     /// @brief Print summary of detection & fit
                     void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
@@ -199,30 +207,6 @@ namespace askap {
                     /// Define the box in one shot
                     void setBox(casa::Slicer box) {itsBox = box;};
 
-/*                     /// Minimum x-value */
-/*                     long boxXmin() {return itsBoxMargins[0].first;}; */
-/*                     /// Maximum x-value */
-/*                     long boxXmax() {return itsBoxMargins[0].second;}; */
-/*                     /// Minimum y-value */
-/*                     long boxYmin() {return itsBoxMargins[1].first;}; */
-/*                     /// Maximum y-value */
-/*                     long boxYmax() {return itsBoxMargins[1].second;}; */
-/*                     /// Minimum z-value */
-/*                     long boxZmin() {return itsBoxMargins[2].first;}; */
-/*                     /// Maximum z-value */
-/*                     long boxZmax() {return itsBoxMargins[2].second;}; */
-/*                     /// X-width */
-/*                     long boxXsize() {return boxXmax() - boxXmin() + 1;}; */
-/*                     /// Y-width */
-/*                     long boxYsize() {return boxYmax() - boxYmin() + 1;}; */
-/*                     /// Number of pixels in box */
-/*                     long boxSize() {return boxXsize()*boxYsize();}; */
-
-/*                     /// Return the full box description */
-/*                     std::vector<std::pair<long, long> > box() {return itsBoxMargins;}; */
-/*                     /// Define the box in one shot */
-/*                     void setBox(std::vector<std::pair<long, long> > box) {itsBoxMargins = box;}; */
-
                     // @}
 
                     /// @brief Comparison operator, using the name field
@@ -231,14 +215,14 @@ namespace askap {
                         else return (lhs.getZcentre() < rhs.getZcentre());
                     }
 
-                    /// @brief Return a reference to the set of Gaussian fits.
-                    std::vector<casa::Gaussian2D<Double> >& fitset() {return itsBestFit.fits();};
-
                     /// @brief Return a reference to the fitting parameters
                     FittingParameters &fitparams() {FittingParameters& rfitpars = itsFitParams; return rfitpars;};
 
                     /// @brief Set the fitting parameters by passing a set
                     void setFitParams(FittingParameters &fitpars) {itsFitParams = fitpars;};
+
+		    /// @brief Find the spectral index for each fitted component
+		    void findAlpha(std::string imageName);
 
                 protected:
 
@@ -257,28 +241,38 @@ namespace askap {
                     /// @brief The detection threshold used for the object
                     float itsDetectionThreshold;
 
-                    /// @brief The best fit results overall
-                    FitResults itsBestFit;
-                    /// @brief The best fit results for the PSF-type fit
-                    FitResults itsBestFitPSF;
-                    /// @brief The best fit results for the FULL-type fit
-                    FitResults itsBestFitFULL;
-                    /// @brief The best fit results for the SHAPE-type fit
-                    FitResults itsBestFitSHAPE;
-                    /// @brief The best fit results for the HEIGHT-type fit
-                    FitResults itsBestFitHEIGHT;
+/*                     /// @brief The best fit results overall */
+/*                     FitResults itsBestFit; */
+/*                     /// @brief The best fit results for the PSF-type fit */
+/*                     FitResults itsBestFitPSF; */
+/*                     /// @brief The best fit results for the FULL-type fit */
+/*                     FitResults itsBestFitFULL; */
+/*                     /// @brief The best fit results for the SHAPE-type fit */
+/*                     FitResults itsBestFitSHAPE; */
+/*                     /// @brief The best fit results for the HEIGHT-type fit */
+/*                     FitResults itsBestFitHEIGHT; */
+
+		    /// @brief The set of best fit results for different types of fits, plus the overall best 
+		    std::map<std::string, FitResults> itsBestFitMap;
+
+		    /// @brief The type of the best fit
+		    std::string itsBestFitType;
 
                     /// @brief The parameters used to control the fitting
                     FittingParameters itsFitParams;
 
-                    /// @brief The min & max points of the box, taking into account the borders of the data array
-/*                     std::vector<std::pair<long, long> > itsBoxMargins; */
+                    /// @brief The extent of the box, taking into account the borders of the data array
 		    casa::Slicer itsBox;
 
-		    /// @brief The spectral index of the source
-		    float itsAlpha;
-		    /// @brief The spectral curvature of the source
-		    float itsBeta;
+/* 		    /// @brief The spectral indices of the source components */
+/* 		    std::vector<float> itsAlphaValues; */
+/* 		    /// @brief The spectral curvature of the source components */
+/* 		    std::vector<float> itsBetaValues; */
+
+		    /// @brief The spectral indices of the source components
+		    std::map<std::string, std::vector<float> > itsAlphaMap;
+		    /// @brief The spectral curvature of the source components
+		    std::map<std::string, std::vector<float> > itsBetaMap;
 
             };
         }

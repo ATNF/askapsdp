@@ -371,7 +371,37 @@ namespace askap {
             return madfm;
         }
 
+        //**************************************************************//
 
+	casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box)
+	{
+	  ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName);
+            ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+            const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
+            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	    ASKAPLOG_DEBUG_STR(logger, "Opened image of shape " << imagePtr->shape());
+
+            IPosition shape = imagePtr->shape();
+            IPosition start(shape.size(), 0);
+            IPosition end(shape.size(), 0);
+            IPosition stride(shape.size(), 1);
+            start(0) = box.start()[0];
+            start(1) = box.start()[1];
+            end(0) = box.end()[0];
+            end(1) = box.end()[1];
+	    casa::Slicer newSlicer(start,end,stride,Slicer::endIsLast);
+	    
+	    ASKAPLOG_DEBUG_STR(logger, "Now about to read array using slicer " << newSlicer);
+	    casa::Array<Float> array = imagePtr->getSlice(newSlicer);
+	    ASKAPLOG_DEBUG_STR(logger, "Read array");
+	    float *data = array.data();
+	    ASKAPLOG_DEBUG_STR(logger, "Resized array");
+	    casa::Vector<Double> vec(array.size());
+	    for(size_t i=0;i<vec.size();i++) vec(i) = casa::Double(data[i]);
+	    delete lattPtr;
+	    ASKAPLOG_DEBUG_STR(logger, "Preparing to return");
+	    return vec;
+	}
 
         //**************************************************************//
 

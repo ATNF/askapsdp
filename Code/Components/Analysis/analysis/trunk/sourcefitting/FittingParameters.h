@@ -161,6 +161,7 @@ namespace askap {
                     void setUseNoise(bool b) {itsUseNoise = b;};
                     void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
                     void setFlagFitThisParam(std::string type);
+		    void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
 
                     int    maxNumGauss() {return itsMaxNumGauss;};
                     int    boxPadSize() {return itsBoxPadSize;};
@@ -176,6 +177,7 @@ namespace askap {
                     uInt   maxIter() {return itsMaxIter;};
                     bool   useNoise() {return itsUseNoise;};
                     bool   flagFitThisParam(int i) {return itsFlagFitThisParam[i];};
+		    bool   negativeFluxPossible(){return itsNegativeFluxPossible;};
 
                     std::vector<std::string> fitTypes() {return itsFitTypes;};
                     std::string fitType(int i) {return itsFitTypes[i];};
@@ -255,6 +257,9 @@ namespace askap {
 
                     /// @brief Whether to calculate the noise surrounding the object and use it as the sigma in casa::FitGaussian::fit()
                     bool itsUseNoise;
+
+		    /// @brief Whether the flux of a fitted component can be negative
+		    bool itsNegativeFluxPossible;
 
                     /// @brief The extent of the box surrounding the object used for the fitting
                     /// @{

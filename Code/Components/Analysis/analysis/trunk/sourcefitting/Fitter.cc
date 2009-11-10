@@ -83,8 +83,10 @@ namespace askap {
 
             //**************************************************************//
 
-            void Fitter::setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head)
+            void Fitter::setEstimates(std::vector<SubComponent> cmpntList, duchamp::FitsHeader &head)
             {
+	      ASKAPLOG_DEBUG_STR(logger, "About to set the initial estimates");
+
                 this->itsFitter.setDimensions(2);
                 this->itsFitter.setNumGaussians(this->itsNumGauss);
                 //
@@ -95,6 +97,7 @@ namespace askap {
 
                 for (uInt g = 0; g < this->itsNumGauss; g++) {
                     uInt cmpnt = g % nCmpnt;
+		  ASKAPLOG_DEBUG_STR(logger, "Setting estimate for #"<<g << " with " << cmpntList[cmpnt]);
                     estimate(g, 0) = cmpntList[cmpnt].peak();
                     estimate(g, 1) = cmpntList[cmpnt].x();
                     estimate(g, 2) = cmpntList[cmpnt].y();
@@ -231,12 +234,15 @@ namespace askap {
 
                     if (!this->itsFitter.converged()) fitloop = 9999;
                     else {
+		      if(!this->itsParams.negativeFluxPossible()){
+			// If we don't allow negative fluxes, set all negative components to zero flux
                         for (uint i = 0; i < this->itsNumGauss; i++) {
-                            if (this->itsSolution(i, 0) < 0) {
-                                this->itsSolution(i, 0) = 0.;
-                                ASKAPLOG_INFO_STR(logger, "Setting negative component #" << i + 1 << " to zero flux.");
-                            }
+			  if (this->itsSolution(i, 0) < 0) {
+			    this->itsSolution(i, 0) = 0.;
+			    ASKAPLOG_INFO_STR(logger, "Setting negative component #" << i + 1 << " to zero flux.");
+			  }
                         }
+		      }
 
                         this->itsFitter.setFirstEstimate(this->itsSolution);
                     }

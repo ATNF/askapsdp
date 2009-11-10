@@ -92,6 +92,10 @@ namespace askap {
 
         /// @brief Find the noise within a box surrounding a location in an image.
         float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
+
+	/// @brief Return a vector of pixel values in a box subsection of an image.
+	casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box);
+
     }
 
 }

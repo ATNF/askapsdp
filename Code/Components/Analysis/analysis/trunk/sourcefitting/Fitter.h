@@ -97,7 +97,7 @@ namespace askap {
                     int ndof() {return itsNDoF;};
 
                     /// @brief Set the intial estimates for the Gaussian components.
-                    void setEstimates(std::vector<SubComponent> &cmpntList, duchamp::FitsHeader &head);
+                    void setEstimates(std::vector<SubComponent> cmpntList, duchamp::FitsHeader &head);
                     /// @brief Set the retry factors
                     void setRetries();
                     /// @brief Set the mask values
