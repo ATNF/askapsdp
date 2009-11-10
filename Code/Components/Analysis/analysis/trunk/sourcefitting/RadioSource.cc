@@ -871,6 +871,90 @@ namespace askap {
 
             //**************************************************************//
 
+	  void RadioSource::findBeta(std::string imageName)
+	  {
+
+	    ASKAPLOG_DEBUG_STR(logger, "About to find the spectral curvature, for image " << imageName);
+
+	    size_t pos = imageName.rfind(".taylor.0");
+	    if(pos == std::string::npos) {
+	      // image provided is not a Taylor series term - notify and do nothing
+	      ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
+				<<imageName<<") is not a Taylor term. Cannot find spectral index.");
+	    }
+	    else {
+	      
+	      // Get Taylor 2 name
+	      std::string taylor2Name = imageName.replace(pos,9,".taylor.2");
+
+	      ASKAPLOG_DEBUG_STR(logger, "Using Taylor 2 image " << taylor2Name);
+
+	      // Get taylor1 values for box, and define positions
+	      casa::Matrix<casa::Double> pos;
+	      casa::Vector<casa::Double> sigma;
+	      pos.resize(this->boxSize(), 2);
+	      sigma.resize(this->boxSize());
+	      casa::Vector<casa::Double> curpos(2);
+	      curpos = 0;
+	      
+	      for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+		for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+		  int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+		  sigma(i) = 1.;
+		  curpos(0) = x;
+		  curpos(1) = y;
+		  pos.row(i) = curpos;
+		}
+	      }
+	      casa::Vector<casa::Double> f = getPixelsInBox(taylor2Name,this->itsBox);
+	      
+	      ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 2 term");
+
+	      // Set up fit with same parameters and do the fit
+	      std::vector<std::string>::iterator type;
+	      std::vector<std::string> typelist = availableFitTypes;
+	      for (type = typelist.begin(); type < typelist.end(); type++) {
+		std::vector<float> betaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+		ASKAPLOG_DEBUG_STR(logger, "Finding beta values for fit type \""<<*type<<"\", with " <<this->itsBestFitMap[*type].numGauss()<< " components ");
+		if(!this->itsBestFitMap[*type].isGood())
+		  ASKAPLOG_DEBUG_STR(logger, "Actually, not doing this one...");
+		else{
+		  Fitter fit;
+		  fit.setParams(this->itsFitParams);
+		  fit.rparams().setFlagFitThisParam("height");
+		  fit.rparams().setNegativeFluxPossible(true);
+		  fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
+		  fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
+		  fit.setRetries();
+		  fit.setMasks();
+		  fit.fit(pos, f, sigma);
+	      
+		  // Calculate beta.
+
+		  if(fit.passConverged() && fit.passChisq()) { // the fit is OK
+		    ASKAPLOG_DEBUG_STR(logger, "Beta fitting worked! Values (" << this->itsBestFitMap[*type].numGauss()<<" of them) follow:");
+		    for(int i=0;i<this->itsBestFitMap[*type].numGauss();i++){
+		      float alpha = this->itsAlphaMap[*type][i];
+		      betaValues[i] = fit.gaussian(i).flux() / this->itsBestFitMap[*type].gaussian(i).flux() - 0.5*alpha*(alpha-1.);
+		      ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << betaValues[i]);
+		    }
+		  }
+
+		}
+		this->itsBetaMap[*type] = betaValues;
+	      }
+	      
+	      ASKAPLOG_DEBUG_STR(logger, "Finished finding the beta values");
+
+	    }
+
+	    this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
+
+	  }
+
+
+            //**************************************************************//
+
             void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
                                            std::string fittype, bool doHeader)
             {
@@ -913,6 +997,7 @@ namespace askap {
                 duchamp::Column::Col minFit("Min(fit)", "", 10, 3);
                 duchamp::Column::Col paFit("P.A.(fit)", "", 10, 2);
                 duchamp::Column::Col alpha("Alpha", "", 10, 2);
+                duchamp::Column::Col beta("Beta", "", 10, 2);
                 duchamp::Column::Col chisqFit("Chisq(fit)", "", 12, 3);
                 duchamp::Column::Col rmsIm("RMS(image)", "", fluxWidth, fluxPrec);
                 duchamp::Column::Col rmsFit("RMS(fit)", "", 11, 3);
@@ -934,6 +1019,7 @@ namespace askap {
                     minFit.printTitle(stream);
                     paFit.printTitle(stream);
                     alpha.printTitle(stream);
+                    beta.printTitle(stream);
                     chisqFit.printTitle(stream);
                     rmsIm.printTitle(stream);
                     rmsFit.printTitle(stream);
@@ -953,6 +1039,7 @@ namespace askap {
                                 minFit.getWidth() +
                                 paFit.getWidth() +
 		                alpha.getWidth() +
+		                beta.getWidth() +
                                 chisqFit.getWidth() +
                                 rmsIm.getWidth() +
                                 rmsFit.getWidth() +
@@ -978,6 +1065,7 @@ namespace askap {
                     minFit.printEntry(stream, zero);
                     paFit.printEntry(stream, zero);
                     alpha.printEntry(stream, zero);
+                    beta.printEntry(stream, zero);
                     chisqFit.printEntry(stream, zero);
                     rmsIm.printEntry(stream, this->itsNoiseLevel);
                     rmsFit.printEntry(stream, zero);
@@ -991,10 +1079,13 @@ namespace askap {
                 std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
                 std::vector<casa::Gaussian2D<Double> >::iterator fit = fitSet.begin();
 		std::vector<float>::iterator alphaIter = this->itsAlphaMap[fittype].begin();
+		std::vector<float>::iterator betaIter = this->itsBetaMap[fittype].begin();
 		ASKAPCHECK(fitSet.size() == this->itsAlphaMap[fittype].size(), 
 			   "Sizes of fitSet ("<<fitSet.size()<<") and alpha Set ("<<this->itsAlphaMap[fittype].size()<<") don't match!");
+		ASKAPCHECK(fitSet.size() == this->itsBetaMap[fittype].size(), 
+			   "Sizes of fitSet ("<<fitSet.size()<<") and beta Set ("<<this->itsBetaMap[fittype].size()<<") don't match!");
 
-                for (; fit < fitSet.end(); fit++, alphaIter++) {
+                for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
                     std::stringstream id;
                     id << this->getID() << char(firstSuffix + suffixCtr++);
                     double *pix = new double[3];
@@ -1023,6 +1114,7 @@ namespace askap {
                     minFit.printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
                     paFit.printEntry(stream, fit->PA()*180. / M_PI);
                     alpha.printEntry(stream, *alphaIter);
+                    beta.printEntry(stream, *betaIter);
                     chisqFit.printEntry(stream, results.chisq());
                     rmsIm.printEntry(stream, this->itsNoiseLevel);
                     rmsFit.printEntry(stream, results.RMS());

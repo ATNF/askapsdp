@@ -224,6 +224,9 @@ namespace askap {
 		    /// @brief Find the spectral index for each fitted component
 		    void findAlpha(std::string imageName);
 
+		    /// @brief Find the spectral curvature for each fitted component
+		    void findBeta(std::string imageName);
+
                 protected:
 
                     /// @brief A flag indicating whether the source is on the boundary of a subimage.

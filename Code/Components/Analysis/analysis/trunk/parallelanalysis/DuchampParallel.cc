@@ -600,6 +600,7 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
                         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
 			src.findAlpha(this->itsImage);
+			src.findBeta(this->itsImage);
                     }
 
                     this->itsSourceList.push_back(src);
@@ -857,7 +858,11 @@ namespace askap {
                         src.setHeader(head);
                         src.defineBox(this->itsCube.pars().section(), this->itsFitter);
 
-                        if (this->itsFlagDoFit) src.fitGauss(&this->itsVoxelList, this->itsFitter);
+                        if (this->itsFlagDoFit){
+			  src.fitGauss(&this->itsVoxelList, this->itsFitter);
+			  src.findAlpha(this->itsImage);
+			  src.findBeta(this->itsImage);
+			}
 
                         this->itsSourceList.push_back(src);
                     }
