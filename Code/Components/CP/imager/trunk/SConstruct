@@ -14,7 +14,7 @@ pkg.AddSubPackage("messages")
 env["CC"] = "mpicc"
 env["CXX"] = "mpicxx"
 env["LINK"] = "mpicxx"
-env["SHLINK"] = "mpiCC"
+env["SHLINK"] = "mpicxx"
 #env.Append(CCFLAGS=['-g'])
 
 # run the build process

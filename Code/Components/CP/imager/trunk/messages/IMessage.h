@@ -63,7 +63,7 @@ namespace askap {
 
         };
 
-        /// Short cut for shared pointer to IDataSelector
+        /// Short cut for shared pointer to an IMessage
         typedef boost::shared_ptr<IMessage> IMessageSharedPtr;
     };
 };

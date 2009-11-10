@@ -44,16 +44,20 @@
 namespace askap {
     namespace cp {
 
+        /// @brief Core solver functionality required by the imager.
         class SolverCore
         {
             public:
+                /// @brief Constructor
                 SolverCore(LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms,
                         askap::scimath::Params::ShPtr model_p);
                 virtual ~SolverCore();
 
+                /// @brief Solve the normal equations (runs in the solver)
                 virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
 
+                /// @brief Write the results
                 virtual void writeModel(const std::string& postfix);
 
             private:
