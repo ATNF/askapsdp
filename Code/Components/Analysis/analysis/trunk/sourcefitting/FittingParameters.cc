@@ -229,10 +229,10 @@ namespace askap {
                 /// @details Creates an output file name that indicates
                 /// the fit type being used. A string "_<type>" is added
                 /// before any suffix in the base name provided
-                /// (ie. "_full" or "_psf" or "_shape").
+                /// (ie. "_full" or "_psf" or "_shape" or "_height").
                 /// @param baseName The name of the overall summary file
                 /// @param type The type of fit being done. If it is not
-                /// one of "full", "psf", "shape", the baseName is
+                /// one of "full", "psf", "shape" or "height", the baseName is
                 /// returned.
                 /// @return The edited filename.
 
@@ -244,6 +244,7 @@ namespace askap {
                 if (type == "full") outName.replace(loc, suffix.length(), "_full" + suffix);
                 else if (type == "psf") outName.replace(loc, suffix.length(), "_psf" + suffix);
                 else if (type == "shape") outName.replace(loc, suffix.length(), "_shape" + suffix);
+                else if (type == "height") outName.replace(loc, suffix.length(), "_height" + suffix);
 
                 return outName;
             }

@@ -164,17 +164,9 @@ namespace askap {
             void Fitter::setMasks()
             {
                 // mask the beam parameters
-                //    std::cout << "Mask values:\n";
                 for (unsigned int g = 0; g < this->itsNumGauss; g++) {
                     for (unsigned int p = 0; p < 6; p++)
                         this->itsFitter.mask(g, p) = this->itsParams.flagFitThisParam(p);
-
-//          ASKAPLOG_DEBUG_STR(logger, "Masks: " << this->itsParams.flagFitThisParam(0)
-//                                            << this->itsParams.flagFitThisParam(1)
-//                                            << this->itsParams.flagFitThisParam(2)
-//                                            << this->itsParams.flagFitThisParam(3)
-//                                            << this->itsParams.flagFitThisParam(4)
-//                                            << this->itsParams.flagFitThisParam(5));
 
                 }
             }
@@ -212,7 +204,6 @@ namespace askap {
 
                 this->itsSolution.resize();
                 bool thisFitGood = true;
-                //  int numLoops = 1;
                 int numLoops = 3;
                 this->itsFitter.setMaxRetries(this->itsParams.maxRetries());
 
@@ -264,17 +255,17 @@ namespace askap {
                     logparameters(this->itsSolution);
                 } else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
 
-                std::stringstream outmsg;
-                outmsg << "Num Gaussians = " << this->itsNumGauss;
+		std::string result;
+		if(this->itsFitter.converged()) result = "Converged";
+		else result = "Failed";
 
-                if (this->itsFitter.converged()) outmsg << ", Converged";
-                else outmsg << ", Failed";
-
-                outmsg << ", chisq = " << this->itsFitter.chisquared()
-                    << ", chisq/nu =  "  << this->itsRedChisq
-                    << ", dof = " << this->itsNDoF
-                    << ", RMS = " << this->itsFitter.RMS();
-                ASKAPLOG_INFO_STR(logger, outmsg.str());
+		ASKAPLOG_INFO_STR(logger, 
+				  "Num Gaussians = " << this->itsNumGauss 
+				  << ", " << result 
+				  << ", chisq = " << this->itsFitter.chisquared()
+				  << ", chisq/nu =  "  << this->itsRedChisq 
+				  << ", dof = " << this->itsNDoF 
+				  << ", RMS = " << this->itsFitter.RMS() );
             }
 
             //**************************************************************//

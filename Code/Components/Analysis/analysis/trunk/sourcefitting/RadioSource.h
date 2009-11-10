@@ -50,6 +50,8 @@
 #include <scimath/Functionals/Gaussian2D.h>
 
 #include <casa/namespace.h>
+#include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 
 #include <map>
 #include <vector>
@@ -169,33 +171,57 @@ namespace askap {
                     void defineBox(duchamp::Section &sec, FittingParameters &fitParams);
 
                     /// @brief Commands to return the extent and size of the box
-                    /// surrounding the object. Uses the detectionBorder parameter.
+                    /// surrounding the object.
                     /// @name
                     // @{
 
                     /// Minimum x-value
-                    long boxXmin() {return itsBoxMargins[0].first;};
+                    long boxXmin() {return itsBox.start()[0];};
                     /// Maximum x-value
-                    long boxXmax() {return itsBoxMargins[0].second;};
+                    long boxXmax() {return itsBox.end()[0];};
                     /// Minimum y-value
-                    long boxYmin() {return itsBoxMargins[1].first;};
+                    long boxYmin() {return itsBox.start()[1];};
                     /// Maximum y-value
-                    long boxYmax() {return itsBoxMargins[1].second;};
+                    long boxYmax() {return itsBox.end()[1];};
                     /// Minimum z-value
-                    long boxZmin() {return itsBoxMargins[2].first;};
+                    long boxZmin() {return itsBox.start()[2];};
                     /// Maximum z-value
-                    long boxZmax() {return itsBoxMargins[2].second;};
+                    long boxZmax() {return itsBox.end()[2];};
                     /// X-width
-                    long boxXsize() {return boxXmax() - boxXmin() + 1;};
+                    long boxXsize() {return itsBox.length()[0];};
                     /// Y-width
-                    long boxYsize() {return boxYmax() - boxYmin() + 1;};
+                    long boxYsize() {return itsBox.length()[1];};
                     /// Number of pixels in box
                     long boxSize() {return boxXsize()*boxYsize();};
 
                     /// Return the full box description
-                    std::vector<std::pair<long, long> > box() {return itsBoxMargins;};
+		    casa::Slicer box() {return itsBox;};
                     /// Define the box in one shot
-                    void setBox(std::vector<std::pair<long, long> > box) {itsBoxMargins = box;};
+                    void setBox(casa::Slicer box) {itsBox = box;};
+
+/*                     /// Minimum x-value */
+/*                     long boxXmin() {return itsBoxMargins[0].first;}; */
+/*                     /// Maximum x-value */
+/*                     long boxXmax() {return itsBoxMargins[0].second;}; */
+/*                     /// Minimum y-value */
+/*                     long boxYmin() {return itsBoxMargins[1].first;}; */
+/*                     /// Maximum y-value */
+/*                     long boxYmax() {return itsBoxMargins[1].second;}; */
+/*                     /// Minimum z-value */
+/*                     long boxZmin() {return itsBoxMargins[2].first;}; */
+/*                     /// Maximum z-value */
+/*                     long boxZmax() {return itsBoxMargins[2].second;}; */
+/*                     /// X-width */
+/*                     long boxXsize() {return boxXmax() - boxXmin() + 1;}; */
+/*                     /// Y-width */
+/*                     long boxYsize() {return boxYmax() - boxYmin() + 1;}; */
+/*                     /// Number of pixels in box */
+/*                     long boxSize() {return boxXsize()*boxYsize();}; */
+
+/*                     /// Return the full box description */
+/*                     std::vector<std::pair<long, long> > box() {return itsBoxMargins;}; */
+/*                     /// Define the box in one shot */
+/*                     void setBox(std::vector<std::pair<long, long> > box) {itsBoxMargins = box;}; */
 
                     // @}
 
@@ -239,12 +265,20 @@ namespace askap {
                     FitResults itsBestFitFULL;
                     /// @brief The best fit results for the SHAPE-type fit
                     FitResults itsBestFitSHAPE;
+                    /// @brief The best fit results for the HEIGHT-type fit
+                    FitResults itsBestFitHEIGHT;
 
                     /// @brief The parameters used to control the fitting
                     FittingParameters itsFitParams;
 
                     /// @brief The min & max points of the box, taking into account the borders of the data array
-                    std::vector<std::pair<long, long> > itsBoxMargins;
+/*                     std::vector<std::pair<long, long> > itsBoxMargins; */
+		    casa::Slicer itsBox;
+
+		    /// @brief The spectral index of the source
+		    float itsAlpha;
+		    /// @brief The spectral curvature of the source
+		    float itsBeta;
 
             };
         }

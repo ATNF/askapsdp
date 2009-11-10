@@ -89,8 +89,8 @@ namespace askap {
             /// @brief Default value for the maxRetries parameters used by casa::fitGaussian
             const int defaultMaxRetries = 0;
 
-            const std::string availableFitTypesArray[3] = {"full", "psf", "shape"};
-            const std::vector<std::string> availableFitTypes(availableFitTypesArray, availableFitTypesArray + 3);
+            const std::string availableFitTypesArray[4] = {"full", "psf", "shape", "height"};
+            const std::vector<std::string> availableFitTypes(availableFitTypesArray, availableFitTypesArray + 4);
             const std::string defaultFitTypesArray[2] = {"full", "psf"};
             const std::vector<std::string> defaultFitTypes(defaultFitTypesArray, defaultFitTypesArray + 2);
 
@@ -191,12 +191,18 @@ namespace askap {
                     /// @param box A list of pairs of minimum & maximum values,
                     /// one pair for each axis (only x- and y-axes required, as elements 0 and
                     /// 1 respectively).
-                    void saveBox(std::vector<std::pair<long, long> > box) {
-                        this->itsXmin = box[0].first;
-                        this->itsXmax = box[0].second;
-                        this->itsYmin = box[1].first;
-                        this->itsYmax = box[1].second;
+                    void saveBox(casa::Slicer box) {
+		      this->itsXmin = box.start()[0];
+		      this->itsXmax = box.end()[0];
+		      this->itsYmin = box.start()[1];
+		      this->itsYmax = box.end()[1];
                     };
+/*                     void saveBox(std::vector<std::pair<long, long> > box) { */
+/*                         this->itsXmin = box[0].first; */
+/*                         this->itsXmax = box[0].second; */
+/*                         this->itsYmin = box[1].first; */
+/*                         this->itsYmax = box[1].second; */
+/*                     }; */
 
                     friend class Fitter;
 
@@ -261,7 +267,11 @@ namespace askap {
                     /// @brief Flags indicating whether to fit the corresponding parameter (if true), or whether to leave it untouched (false)
                     std::vector<bool> itsFlagFitThisParam;
 
-                    /// @brief List of types of fits to be done: can be "full" (meaning all parameters are free to be fitted) or "psf" (meaning the major/minor axes and the position angle are kept fixed at the beam size).
+                    /// @brief List of types of fits to be done: can be:
+		    /// @li "full" (meaning all parameters are free to be fitted)
+		    /// @li "psf" (meaning the major/minor axes and the position angle are kept fixed at the beam size)
+		    /// @li "shape" (meaning the height is kept fixed, but the shape is fitted)
+		    /// @li "height" (meaning the shape AND location are fixed, and only the height is fitted)
                     std::vector<std::string> itsFitTypes;
             };
 

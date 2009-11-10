@@ -348,17 +348,13 @@ namespace askap {
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
-            std::vector<long> dim(shape.size());
-
-            for (size_t i = 0; i < shape.size(); i++) dim[i] = shape(i);
-
             IPosition start(shape.size(), 0);
             IPosition end(shape.size(), 0);
             IPosition stride(shape.size(), 1);
             start(0) = std::max(int(xpt) - noiseBoxSize / 2, 0);
             start(1) = std::max(int(ypt) - noiseBoxSize / 2, 0);
-            end(0) = std::min(long(xpt) + noiseBoxSize / 2, dim[0] - 1);
-            end(1) = std::min(long(ypt) + noiseBoxSize / 2, dim[1] - 1);
+            end(0) = std::min(int(xpt) + noiseBoxSize / 2, shape(0) - 1);
+            end(1) = std::min(int(ypt) + noiseBoxSize / 2, shape(1) - 1);
             std::vector<float> array;
             imagePtr->getSlice(Slicer(start, end, stride, Slicer::endIsLast)).tovector(array);
             std::sort(array.begin(), array.end());

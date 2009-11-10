@@ -53,6 +53,8 @@
 #include <scimath/Functionals/Gaussian2D.h>
 #include <scimath/Functionals/Gaussian3D.h>
 #include <casa/namespace.h>
+#include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 
 #include <iostream>
 #include <fstream>
@@ -81,6 +83,8 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
+		this->itsAlpha = 0.;
+		this->itsBeta = 0.;
             }
 
             RadioSource::RadioSource(duchamp::Detection obj):
@@ -89,6 +93,8 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
+		this->itsAlpha = 0.;
+		this->itsBeta = 0.;
             }
 
             RadioSource::RadioSource(const RadioSource& src):
@@ -107,12 +113,15 @@ namespace askap {
                 this->itsNoiseLevel = src.itsNoiseLevel;
                 this->itsDetectionThreshold = src.itsDetectionThreshold;
                 this->itsHeader = src.itsHeader;
-                this->itsBoxMargins = src.itsBoxMargins;
+//                 this->itsBoxMargins = src.itsBoxMargins;
+                this->itsBox = src.itsBox;
                 this->itsFitParams = src.itsFitParams;
                 this->itsBestFit = src.itsBestFit;
                 this->itsBestFitFULL = src.itsBestFitFULL;
                 this->itsBestFitPSF = src.itsBestFitPSF;
                 this->itsBestFitSHAPE = src.itsBestFitSHAPE;
+		this->itsAlpha = src.itsAlpha;
+		this->itsBeta = src.itsBeta;
                 return *this;
             }
 
@@ -124,18 +133,26 @@ namespace askap {
                 /// in each axis direction. The size of the image array is
                 /// taken into account, using the axes array, so that the box
                 /// does not go outside the allowed pixel area.
-                this->itsBoxMargins.clear();
-                long xmin = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
-                long xmax = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
-                long ymin = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
-                long ymax = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
-                long zmin = std::max(long(sec.getStart(2) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
-                long zmax = std::min(long(sec.getEnd(2) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
-                std::vector<std::pair<long, long> > vec(3);
-                vec[0] = std::pair<long, long>(xmin, xmax);
-                vec[1] = std::pair<long, long>(ymin, ymax);
-                vec[2] = std::pair<long, long>(zmin, zmax);
-                this->itsBoxMargins = vec;
+//                 this->itsBoxMargins.clear();
+//                 long xmin = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
+//                 long xmax = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
+//                 long ymin = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
+//                 long ymax = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
+//                 long zmin = std::max(long(sec.getStart(2) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
+//                 long zmax = std::min(long(sec.getEnd(2) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
+//                 std::vector<std::pair<long, long> > vec(3);
+//                 vec[0] = std::pair<long, long>(xmin, xmax);
+//                 vec[1] = std::pair<long, long>(ymin, ymax);
+//                 vec[2] = std::pair<long, long>(zmin, zmax);
+//                 this->itsBoxMargins = vec;
+	      casa::IPosition start(3,0),end(3,0),stride(3,1);
+	      start(0) = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
+	      end(0)   = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
+              start(1) = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
+              end(1)   = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
+	      start(2) = std::max(long(sec.getStart(2) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
+	      end(2)   = std::min(long(sec.getEnd(2) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
+	      this->itsBox = casa::Slicer(start,end,stride,Slicer::endIsLast);
             }
 
 
@@ -660,7 +677,7 @@ namespace askap {
                 if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
                 this->itsFitParams = baseFitter;
-                this->itsFitParams.saveBox(this->itsBoxMargins);
+                this->itsFitParams.saveBox(this->itsBox);
                 this->itsFitParams.setPeakFlux(this->peakFlux);
                 this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
@@ -725,6 +742,7 @@ namespace askap {
                             if (*type == "full")     this->itsBestFitFULL.saveResults(fit[bestFit]);
                             else if (*type == "psf") this->itsBestFitPSF.saveResults(fit[bestFit]);
                             else if (*type == "shape") this->itsBestFitSHAPE.saveResults(fit[bestFit]);
+                            else if (*type == "height") this->itsBestFitHEIGHT.saveResults(fit[bestFit]);
 
                             bestFitMap.insert(std::pair<float, std::string>(fit[bestFit].redChisq(), *type));
                         }
@@ -738,6 +756,7 @@ namespace askap {
                     if (bestFitType == "full")        this->itsBestFit = this->itsBestFitFULL;
                     else if (bestFitType == "psf")   this->itsBestFit = this->itsBestFitPSF;
                     else if (bestFitType == "shape") this->itsBestFit = this->itsBestFitSHAPE;
+                    else if (bestFitType == "height") this->itsBestFit = this->itsBestFitHEIGHT;
 
                     ASKAPLOG_INFO_STR(logger, "BEST FIT: " << this->itsBestFit.numGauss() << " Gaussians"
                                           << " with fit type \"" << bestFitType << "\""
@@ -752,6 +771,54 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, "-----------------------");
                 return this->hasFit;
             }
+
+            //**************************************************************//
+
+// 	  void RadioSource::findAlpha(std::string imageName)
+// 	  {
+
+// 	    size_t pos = imageName.rfind(".taylor.0");
+// 	    if(pos == std::string::npos) {
+// 	      // image provided is not a Taylor series term - notify and do nothing
+// 	      ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
+// 				<<imageName<<") is not a Taylor term. Cannot find spectral index.");
+// 	    }
+// 	    else {
+	      
+// 	      // Get Taylor 1 name
+// 	      std::string taylor1Name = imageName.replace(pos,9,".taylor.1");
+
+// 	      // Get taylor1 values for box, and define positions
+// 	      casa::Matrix<casa::Double> pos;
+// 	      casa::Vector<casa::Double> sigma;
+// 	      pos.resize(this->boxSize(), 2);
+// 	      sigma.resize(this->boxSize());
+// 	      casa::Vector<casa::Double> curpos(2);
+// 	      curpos = 0;
+	      
+// 	      for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+// 		for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+// 		  int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+// 		  sigma(i) = this->itsNoiseLevel;
+// 		  curpos(0) = x;
+// 		  curpos(1) = y;
+// 		  pos.row(i) = curpos;
+// 		}
+// 	      }
+// 	      casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name,this->itsBox);
+	      
+// 	      // Set up fit with same parameters
+	      
+
+
+// 	      // Fit
+
+// 	      // Calculate alpha.
+
+// 	    }
+
+// 	  }
+
 
             //**************************************************************//
 
@@ -778,6 +845,7 @@ namespace askap {
                 if (fittype == "full") results = this->itsBestFitFULL;
                 else if (fittype == "psf") results = this->itsBestFitPSF;
                 else if (fittype == "shape") results = this->itsBestFitSHAPE;
+                else if (fittype == "height") results = this->itsBestFitHEIGHT;
 
                 stream.setf(std::ios::fixed);
                 int suffixCtr = 0;
@@ -926,7 +994,7 @@ namespace askap {
                 ///
                 /// Finally, a box is drawn around the detection, indicating the
                 /// area used in the fitting. It includes the border around the
-                /// detection fiven by sourcefitting::detectionBorder.
+                /// detection given by FittingParameters::boxPadSize()
 
                 double *pix = new double[12];
                 double *world = new double[12];
