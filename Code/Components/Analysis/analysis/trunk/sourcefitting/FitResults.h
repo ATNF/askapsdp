@@ -96,6 +96,7 @@ namespace askap {
                     std::vector<casa::Gaussian2D<Double> >& fits() {
                         std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;
                     };
+		    /// @brief Return the set of Gaussian fits in SubComponent format
 		    std::vector<SubComponent> getCmpntList();
 
 		    /// @brief Return a given Gaussian from the FitSet

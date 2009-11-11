@@ -375,6 +375,15 @@ namespace askap {
 
 	casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box)
 	{
+	  /// @details Extract a set of pixel values from a region of
+	  /// an image. The region is defined by a casa::Slicer
+	  /// object, and the pixel values are returned in a
+	  /// casa::Vector object - this is suitable for
+	  /// RadioSource::findAlpha() etc.
+	  /// @param imageName The image to get the data from
+	  /// @param box The region within in the image
+	  /// @return A casa::Vector of casa::Double pixel values
+
 	    ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName);
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);

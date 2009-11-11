@@ -751,6 +751,22 @@ namespace askap {
 
 	  void RadioSource::findAlpha(std::string imageName)
 	  {
+	    /// @details This function finds the value of the spectral
+	    /// index for each Gaussian component fitted to the zeroth
+	    /// Taylor term image. The procedure is:
+	    /// @li Find the Taylor 1 image from the provided image
+	    /// name (must be of format *.taylor.0*)
+	    /// @li Extract pixel values within the source's box
+	    /// @li For each Gaussian component of the source, and for
+	    /// each fit type, fit the same shape & location Gaussian
+	    /// (that is, only fit the height of the Gaussian).
+	    /// @li Calculate the spectral index using the ratio of
+	    /// the fluxes of the Taylor1 & Taylor0 Gaussian
+	    /// components
+	    /// @li Store the spectral index value in a map indexed by
+	    /// fit type.
+	    /// Note that if the imageName provided is not of the correct format, nothing is done.
+	    /// @param imageName The name of the image in which sources have been found
 
 	    ASKAPLOG_DEBUG_STR(logger, "About to find the spectral index, for image " << imageName);
 
@@ -834,6 +850,22 @@ namespace askap {
 
 	  void RadioSource::findBeta(std::string imageName)
 	  {
+	    /// @details This function finds the value of the spectral
+	    /// curvature for each Gaussian component fitted to the zeroth
+	    /// Taylor term image. The procedure is:
+	    /// @li Find the Taylor 2 image from the provided image
+	    /// name (must be of format *.taylor.0*)
+	    /// @li Extract pixel values within the source's box
+	    /// @li For each Gaussian component of the source, and for
+	    /// each fit type, fit the same shape & location Gaussian
+	    /// (that is, only fit the height of the Gaussian).
+	    /// @li Calculate the spectral curvature using the ratio of
+	    /// the fluxes of the Taylor2 & Taylor0 Gaussian
+	    /// components, and subtracting off \f$\alpha(\alpha-1)/2\f$.
+	    /// @li Store the spectral curvature value in a map indexed by
+	    /// fit type.
+	    /// Note that if the imageName provided is not of the correct format, nothing is done.
+	    /// @param imageName The name of the image in which sources have been found
 
 	    ASKAPLOG_DEBUG_STR(logger, "About to find the spectral curvature, for image " << imageName);
 
