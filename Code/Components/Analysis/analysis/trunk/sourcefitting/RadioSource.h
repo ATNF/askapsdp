@@ -138,12 +138,6 @@ namespace askap {
                     /// @brief Return the detection threshold
                     float detectionThreshold() {return itsDetectionThreshold;};
 
-/*                     /// @brief Return the set of fits */
-/*                     std::vector<casa::Gaussian2D<Double> > gaussFitSet() {return itsBestFit.fitSet();}; */
-
-/*                     /// @brief Return a reference to the set of Gaussian fits. */
-/*                     std::vector<casa::Gaussian2D<Double> >& fitset() {return itsBestFit.fits();}; */
-
                     /// @brief Return the set of fits
                     std::vector<casa::Gaussian2D<Double> > gaussFitSet(std::string type) {return itsBestFitMap[type].fitSet();};
 
@@ -244,17 +238,6 @@ namespace askap {
                     /// @brief The detection threshold used for the object
                     float itsDetectionThreshold;
 
-/*                     /// @brief The best fit results overall */
-/*                     FitResults itsBestFit; */
-/*                     /// @brief The best fit results for the PSF-type fit */
-/*                     FitResults itsBestFitPSF; */
-/*                     /// @brief The best fit results for the FULL-type fit */
-/*                     FitResults itsBestFitFULL; */
-/*                     /// @brief The best fit results for the SHAPE-type fit */
-/*                     FitResults itsBestFitSHAPE; */
-/*                     /// @brief The best fit results for the HEIGHT-type fit */
-/*                     FitResults itsBestFitHEIGHT; */
-
 		    /// @brief The set of best fit results for different types of fits, plus the overall best 
 		    std::map<std::string, FitResults> itsBestFitMap;
 
@@ -266,11 +249,6 @@ namespace askap {
 
                     /// @brief The extent of the box, taking into account the borders of the data array
 		    casa::Slicer itsBox;
-
-/* 		    /// @brief The spectral indices of the source components */
-/* 		    std::vector<float> itsAlphaValues; */
-/* 		    /// @brief The spectral curvature of the source components */
-/* 		    std::vector<float> itsBetaValues; */
 
 		    /// @brief The spectral indices of the source components
 		    std::map<std::string, std::vector<float> > itsAlphaMap;

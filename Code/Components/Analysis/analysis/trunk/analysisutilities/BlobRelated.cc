@@ -270,7 +270,6 @@ namespace askap {
                 f = src.itsDetectionThreshold; blob << f;
                 f = src.itsNoiseLevel; blob << f;
                 blob << src.itsFitParams;
-//                 blob << src.itsBestFit;
 	        size = src.itsBestFitMap.size();
 		blob << size;
 		std::map<std::string, FitResults>::iterator fit;
@@ -278,12 +277,6 @@ namespace askap {
 		  blob << fit->first;
 		  blob << fit->second;
 		}
-// 		size = src.itsAlphaValues.size();
-// 		blob << size;
-// 		for(int i=0;i<size;i++) blob << src.itsAlphaValues[i];
-// 		size = src.itsBetaValues.size();
-// 		blob << size;
-// 		for(int i=0;i<size;i++) blob << src.itsBetaValues[i];
 		size = src.itsAlphaMap.size();
 		blob << size;
 		std::map<std::string, std::vector<float> >::iterator val;
@@ -365,25 +358,12 @@ namespace askap {
                 blob >> f; src.itsDetectionThreshold = f;
                 blob >> f; src.itsNoiseLevel = f;
                 blob >> src.itsFitParams;
-//                 blob >> src.itsBestFit;
 		blob >> size;
 		for(int i=0;i<size;i++){
 		  FitResults res;
 		  blob >> s >> res;
 		  src.itsBestFitMap[s]=res;
 		}
-// 		blob >> size;
-// 		src.itsAlphaValues = std::vector<float>(size);
-// 		for(int i=0;i<size;i++) {
-// 		  blob>>f;
-// 		  src.itsAlphaValues[i]=f;
-// 		}
-// 		blob >> size;
-// 		src.itsBetaValues = std::vector<float>(size);
-// 		for(int i=0;i<size;i++){
-// 		  blob>>f;
-// 		  src.itsBetaValues[i] = f;
-// 		}
 		blob >> size;
 		for(int i=0;i<size;i++){
 		  blob >> s >> size;

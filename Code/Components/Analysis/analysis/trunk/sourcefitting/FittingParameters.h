@@ -199,12 +199,6 @@ namespace askap {
 		      this->itsYmin = box.start()[1];
 		      this->itsYmax = box.end()[1];
                     };
-/*                     void saveBox(std::vector<std::pair<long, long> > box) { */
-/*                         this->itsXmin = box[0].first; */
-/*                         this->itsXmax = box[0].second; */
-/*                         this->itsYmin = box[1].first; */
-/*                         this->itsYmax = box[1].second; */
-/*                     }; */
 
                     friend class Fitter;
 

@@ -84,8 +84,6 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
-// 		this->itsAlphaValues = std::vector<float>(1,0.);
-// 		this->itsBetaValues = std::vector<float>(1,0.);
             }
 
             RadioSource::RadioSource(duchamp::Detection obj):
@@ -94,8 +92,6 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
-// 		this->itsAlphaValues = std::vector<float>(1,0.);
-// 		this->itsBetaValues = std::vector<float>(1,0.);
             }
 
             RadioSource::RadioSource(const RadioSource& src):
@@ -114,16 +110,9 @@ namespace askap {
                 this->itsNoiseLevel = src.itsNoiseLevel;
                 this->itsDetectionThreshold = src.itsDetectionThreshold;
                 this->itsHeader = src.itsHeader;
-//                 this->itsBoxMargins = src.itsBoxMargins;
                 this->itsBox = src.itsBox;
                 this->itsFitParams = src.itsFitParams;
-//                 this->itsBestFit = src.itsBestFit;
-//                 this->itsBestFitFULL = src.itsBestFitFULL;
-//                 this->itsBestFitPSF = src.itsBestFitPSF;
-//                 this->itsBestFitSHAPE = src.itsBestFitSHAPE;
 		this->itsBestFitMap = src.itsBestFitMap;
-// 		this->itsAlphaValues = src.itsAlphaValues;
-// 		this->itsBetaValues = src.itsBetaValues;
 		this->itsAlphaMap = src.itsAlphaMap;
 		this->itsBetaMap = src.itsBetaMap;
                 return *this;
@@ -137,18 +126,7 @@ namespace askap {
                 /// in each axis direction. The size of the image array is
                 /// taken into account, using the axes array, so that the box
                 /// does not go outside the allowed pixel area.
-//                 this->itsBoxMargins.clear();
-//                 long xmin = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
-//                 long xmax = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
-//                 long ymin = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
-//                 long ymax = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
-//                 long zmin = std::max(long(sec.getStart(2) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
-//                 long zmax = std::min(long(sec.getEnd(2) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
-//                 std::vector<std::pair<long, long> > vec(3);
-//                 vec[0] = std::pair<long, long>(xmin, xmax);
-//                 vec[1] = std::pair<long, long>(ymin, ymax);
-//                 vec[2] = std::pair<long, long>(zmin, zmax);
-//                 this->itsBoxMargins = vec;
+
 	      casa::IPosition start(3,0),end(3,0),stride(3,1);
 	      start(0) = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
 	      end(0)   = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
@@ -743,10 +721,6 @@ namespace askap {
                         if (fitIsGood) {
                             this->hasFit = true;
 
-//                             if (*type == "full")     this->itsBestFitFULL.saveResults(fit[bestFit]);
-//                             else if (*type == "psf") this->itsBestFitPSF.saveResults(fit[bestFit]);
-//                             else if (*type == "shape") this->itsBestFitSHAPE.saveResults(fit[bestFit]);
-//                             else if (*type == "height") this->itsBestFitHEIGHT.saveResults(fit[bestFit]);
 			    this->itsBestFitMap[*type].saveResults(fit[bestFit]);
 
                             bestChisqMap.insert(std::pair<float, std::string>(fit[bestFit].redChisq(), *type));
@@ -755,19 +729,6 @@ namespace askap {
                 } // end of type for-loop
 
                 if (this->hasFit) {
-
- //                    std::string bestFitType = bestChisqMap.begin()->second;
-
-//                     if (bestFitType == "full")        this->itsBestFit = this->itsBestFitFULL;
-//                     else if (bestFitType == "psf")   this->itsBestFit = this->itsBestFitPSF;
-//                     else if (bestFitType == "shape") this->itsBestFit = this->itsBestFitSHAPE;
-//                     else if (bestFitType == "height") this->itsBestFit = this->itsBestFitHEIGHT;
-
-//                     ASKAPLOG_INFO_STR(logger, "BEST FIT: " << this->itsBestFit.numGauss() << " Gaussians"
-//                                           << " with fit type \"" << bestFitType << "\""
-//                                           << ", chisq = " << this->itsBestFit.chisq()
-//                                           << ", chisq/nu =  "  << this->itsBestFit.redchisq()
-//                                           << ", RMS = " << this->itsBestFit.RMS());
 
 		  this->itsBestFitType = bestChisqMap.begin()->second;
 		  this->itsBestFitMap["best"] = this->itsBestFitMap[this->itsBestFitType];
@@ -973,13 +934,7 @@ namespace askap {
                 /// @li Number of free parameters and degrees of freedom in the fit
                 /// @li Number of pixels used in the fit, and the number in the object itself
 
-//                 FitResults results = this->itsBestFit;
-
-//                 if (fittype == "full") results = this->itsBestFitFULL;
-//                 else if (fittype == "psf") results = this->itsBestFitPSF;
-//                 else if (fittype == "shape") results = this->itsBestFitSHAPE;
-//                 else if (fittype == "height") results = this->itsBestFitHEIGHT;
-	      FitResults results = this->itsBestFitMap[fittype];
+	        FitResults results = this->itsBestFitMap[fittype];
 
                 stream.setf(std::ios::fixed);
                 int suffixCtr = 0;
@@ -1151,7 +1106,6 @@ namespace askap {
 
                 for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
 
-//                 std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFit.fitSet();
                 std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFitMap["best"].fitSet();
                 std::vector<casa::Gaussian2D<Double> >::iterator fit;
 
