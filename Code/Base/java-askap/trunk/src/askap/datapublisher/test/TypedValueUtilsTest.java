@@ -18,11 +18,11 @@
  * 330, Boston, MA 02111-1307 USA
  */
 
-package askap.util.test;
+package askap.datapublisher.test;
 
 import org.junit.*;
 import static org.junit.Assert.*;
-import askap.util.TypedValueUtils;
+import askap.datapublisher.TypedValueUtils;
 import askap.interfaces.*;
 
 /**
