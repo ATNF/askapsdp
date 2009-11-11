@@ -18,10 +18,11 @@
  * 330, Boston, MA 02111-1307 USA
  */
 
-package askap.util;
+package askap.util.test;
 
 import org.junit.*;
 import static org.junit.Assert.*;
+import askap.util.ParameterSet;
 
 /**
  * Performs JUnit Tests for ParameterSet class.
