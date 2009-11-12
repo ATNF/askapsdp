@@ -67,17 +67,17 @@ module logging
         string message;
     };
 
-    // a list of ILogEvents
+    /** a list of ILogEvents **/
     sequence<ILogEvent> EventSeq;
 
-    // a list of LogLevel
+    /** a list of LogLevel **/
     sequence<LogLevel> LogLevelSeq;
 
-    // The interface to implement when handling LogEvents
+    /** The interface to implement when handling LogEvents **/
     interface ILogger
     {
-	// Can't throw here if we wan't to use iceOneWay
-	// as Exceptions need two-way communication
+	    // Can't throw here if we wan't to use iceOneWay
+	    // as Exceptions need two-way communication
         void send(ILogEvent event);
     };
 

@@ -33,8 +33,10 @@ module atnf {
         //Data structure definitions
         sequence<string> stringarray;
 
-        //PointDescriptionIce contains pickled fields which fully describe
-        //a specific point
+        /**
+         * PointDescriptionIce contains pickled fields which fully describe
+         * a specific point
+         **/
         struct PointDescriptionIce {
           stringarray names;
           string      source;
@@ -52,9 +54,10 @@ module atnf {
         };
         sequence<PointDescriptionIce> pointarray;
 
-        //Enum to represent data type        
+        /** Enum to represent data type **/
         enum DataType {DTNull, DTFloat, DTDouble, DTInt, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime, DTAngle};
-        //Classes to hold different data types
+
+        /** Classes to hold different data types **/
         class DataValue { 
           DataType type;
         };
@@ -86,7 +89,7 @@ module atnf {
           double value;
         };
         
-        //PointDataIce encapsulates a single record/datum
+        /** PointDataIce encapsulates a single record/datum **/
         struct PointDataIce {
           string    name;
           long      timestamp;
@@ -97,31 +100,41 @@ module atnf {
         sequence<pointdataset> pointdatasetarray;
         
         
-        
-        ////////////
-        //The main interface between clients and the server
+       
+        /** 
+         * The main interface between clients and the server
+         **/
         interface MoniCAIce {
           ////////////
           //Operations for getting/setting point metadata
-          //
-          //Return the names of all points on the system
+          ////////////
+
+          /** Return the names of all points on the system **/
           idempotent stringarray getAllPointNames();
-          //Return full details for the specified points
+
+          /** Return full details for the specified points **/
           idempotent pointarray getPoints(stringarray names);
-          //Return full details for all points on the system
+
+          /** Return full details for all points on the system **/
           idempotent pointarray getAllPoints();
-          //Add/update the definitions for the specified points
+
+          /** Add/update the definitions for the specified points **/
           bool addPoints(pointarray newpoints, string username, string passwd);
           
           ////////////
           //Operations relating to getting/setting data
-          //
-          //Return historical data for the given points
-          //Set maxsamples to zero to impose no limit
+          ///////////
+
+          /**
+           * Return historical data for the given points
+           * Set maxsamples to zero to impose no limit
+           **/
           idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end, long maxsamples);
-          //Get latest data for the given points
+
+          /** Get latest data for the given points **/
           idempotent pointdataset getData(stringarray names);
-          //Set new values for the given points.
+
+          /** Set new values for the given points. **/
           bool setData(stringarray names, pointdataset rawvalues, string username, string passwd);
 
           ////////////
@@ -129,18 +142,22 @@ module atnf {
           //dictionaries which are currently used to contain predefined page
           //layouts for the GUI client (but which may have other uses in the 
           //future).
-          //
-          //Get the list of all saved page setups from the server
+          ////////////
+
+          /** Get the list of all saved page setups from the server **/
           idempotent stringarray getAllSetups();
-          //Add/update a new setup to the server's list
+
+          /** Add/update a new setup to the server's list **/
           bool addSetup(string setup, string username, string passwd);
           
           ////////////
           //Some miscellaneous operations
-          //
-          //Obtain public key and modulus to use for authenticated operations
+          ////////////
+
+          /** Obtain public key and modulus to use for authenticated operations **/
           idempotent stringarray getEncryptionInfo();
-          //Get current time from server
+
+          /** Get current time from server **/
           idempotent long getCurrentTime();
         };
       };

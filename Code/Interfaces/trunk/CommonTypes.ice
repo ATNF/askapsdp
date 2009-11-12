@@ -47,11 +47,29 @@ module interfaces
      **/
     dictionary<string, string> ParameterMap;
 
-    /**
-     * A sequencence of strings which is commonly used.
-     **/
-    sequence<string> StringSeq;        
+    /** A sequence of bools. **/
+    sequence<bool> BoolSeq;
 
+    /** A sequence of bytes. **/
+    sequence<byte> ByteSeq;
+
+    /** A sequence of shorts. **/
+    sequence<short> ShortSeq;
+
+    /** A sequence of ints. **/
+    sequence<int> IntSeq;
+
+    /** A sequence of longs. **/
+    sequence<long> LongSeq;
+
+    /** A sequence of floats. **/
+    sequence<float> FloatSeq;
+
+    /** A sequence of doubles. **/
+    sequence<double> DoubleSeq;
+
+    /** A sequence of strings. **/
+    sequence<string> StringSeq;
 
     /**
      * Enum to represent data types.
@@ -111,6 +129,32 @@ module interfaces
      * Dictionary of typed data.
      **/
     dictionary <string,TypedValue> TypedValueMap;
+
+    /**
+     * A single-precision complex number.
+     **/
+    struct FloatComplex{
+        float real;
+        float imag;
+    };
+
+    /**
+     * A sequence of single-precision complex numbers.
+     **/
+    sequence<FloatComplex>FloatComplexSeq;
+
+    /**
+     * A double-precision complex number.
+     **/
+    struct DoubleComplex {
+        double real;
+        double imag;
+    };
+
+    /**
+     * A sequence of double-precision complex numbers.
+     **/
+    sequence<DoubleComplex>DoubleComplexSeq;
 };
 };
 

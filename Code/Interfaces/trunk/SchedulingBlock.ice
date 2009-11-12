@@ -37,7 +37,7 @@ module schedblock
 {
     /**
      * Enumeration of states for SchedulingBlock
-     */
+     **/
     enum ObsState
     {
         DRAFT,
@@ -52,27 +52,27 @@ module schedblock
 
     /**
      * Structure to represent the observing program
-     */
+     **/
     struct ObsProgram
     {
         /**
          * Uniquely identifies the program
-         */
+         **/
         long id;
 
         /**
          * Relationship back to the OPAL project code
-         */
+         **/
         string project;
 
         /**
          * Name of the principle investigator for the project
-         */
+         **/
         string investigator;
 
         /**
          * Common name of the project.
-         */
+         **/
         string name;
     };
 
@@ -86,43 +86,43 @@ module schedblock
      * internal representation of a scheduling block. Instead an object should
      * encapsulate the scheduling block, where the object can be constructed
      * using this simple struct type.
-     */
+     **/
     struct SchedulingBlock
     {
         /**
          * Uniquely identifies the scheduling block
-         */
+         **/
         long id;
 
         /**
          * State of the scheduling block
-         */
+         **/
         ObsState state;
 
         /**
          * Obsering program
-         */
+         **/
         string program;
 
         /**
          * Observation parameters
-         */
+         **/
         askap::interfaces::ParameterMap params;
 
         /**
          * Observation variables
-         */
+         **/
         askap::interfaces::ParameterMap variables;
 
         /**
          * Observation procedure
-         */
+         **/
         string procedure;
 
         /**
          * List of scheduling block IDs for scheduling block which must be
          * executed before this one
-         */
+         **/
         LongSeq executeAfter;
     };
 
