@@ -153,7 +153,6 @@ public class DataPublisher {
       if (itsTopicName == null || itsCommunicator == null) {
         return;
       }
-
       // Obtain the topic or create
       TopicManagerPrx topicManager;
       Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
@@ -198,6 +197,8 @@ public class DataPublisher {
       if (isConnected()) {
         // Publish the data via IceStorm
         itsPublisher.publish(typeddata);
+      } else {
+        throw new NotConnectedException();
       }
     } catch (Exception e) {
       throw new NotConnectedException(e);
