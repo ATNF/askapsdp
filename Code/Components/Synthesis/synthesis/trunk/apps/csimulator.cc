@@ -1,5 +1,4 @@
-///
-/// @file 
+/// @file csimulator.cc
 ///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///
@@ -26,19 +25,20 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
+///
+
+// ASKAPsoft includes
+#include <casa/Logging/LogIO.h>
+#include <casa/OS/Timer.h>
+#include <Common/ParameterSet.h>
+#include <CommandLineParser.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 
+// Local package includes
 #include <parallel/SimParallel.h>
-
-#include <Common/ParameterSet.h>
-
-#include <casa/OS/Timer.h>
-
-#include <CommandLineParser.h>
 
 ASKAP_LOGGER(logger, ".csimulator");
 
@@ -47,73 +47,62 @@ using namespace askap;
 using namespace askap::synthesis;
 
 // Main function
-
 int main(int argc, const char** argv)
 {
-  try
-    {
-      
-      casa::Timer timer;
-      
-      
-      timer.mark();
+    try {
+        casa::Timer timer;
+        timer.mark();
 
-      // Ensure that CASA log messages are captured
-      casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-      casa::LogSink::globalSink (globalSink);
+        // Ensure that CASA log messages are captured
+        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+        casa::LogSink::globalSink(globalSink);
 
-      {
-        cmdlineparser::Parser parser; // a command line parser
-        // command line parameter
-        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", 
-                                                           "csimulator.in");
-        // this parameter is optional                                                   
-        parser.add(inputsPar, cmdlineparser::Parser::return_default);                                                           
-        
-        // I hope const_cast is temporary here
-        parser.process(argc,const_cast<char**>(argv));
-        
-        // we could have used inputsPar directly in the code below
-	    const std::string parsetFile = inputsPar;
-	    
-	LOFAR::ParameterSet parset(parsetFile);
-	LOFAR::ParameterSet subset(parset.makeSubset("Csimulator."));
-	
-	// We cannot issue log messages until MPI is initialized!
-	SimParallel sim(argc, argv, subset);
+        {
+            cmdlineparser::Parser parser; // a command line parser
+            // command line parameter
+            cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
+                    "csimulator.in");
+            // this parameter is optional
+            parser.add(inputsPar, cmdlineparser::Parser::return_default);
 
-	ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
-	
-	if(sim.isMaster()) {
-	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile );
-	  ASKAPLOG_INFO_STR(logger,  parset);
-	}
-	
-	sim.init();
-	
-	sim.simulate();
-      }
-      ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user () << " system: " << timer.system ()
-			 <<" real:   " << timer.real () );
-      
-      ///==============================================================================
+            // I hope const_cast is temporary here
+            parser.process(argc, const_cast<char**>(argv));
+
+            // we could have used inputsPar directly in the code below
+            const std::string parsetFile = inputsPar;
+
+            LOFAR::ParameterSet parset(parsetFile);
+            LOFAR::ParameterSet subset(parset.makeSubset("Csimulator."));
+
+            // We cannot issue log messages until MPI is initialized!
+            SimParallel sim(argc, argv, subset);
+
+            ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
+
+            if (sim.isMaster()) {
+                ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
+                ASKAPLOG_INFO_STR(logger,  parset);
+            }
+
+            sim.init();
+            sim.simulate();
+        }
+        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user()
+                << " system: " << timer.system() << " real:   " << timer.real());
+        ///==============================================================================
+    } catch (const cmdlineparser::XParser &ex) {
+        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
+        std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
+        exit(1);
+    } catch (const askap::AskapError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    } catch (const std::exception& x) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
     }
-  catch (const cmdlineparser::XParser &ex) {
-      ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-      std::cerr<<"Usage: "<<argv[0]<<" [-inputs parsetFile]"<<std::endl;     
-  }  
-  catch (const askap::AskapError& x)
-    {
-      ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-      std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-      exit(1);
-    }
-  catch (const std::exception& x)
-    {
-      ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-      std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-      exit(1);
-    }
-  exit(0);
+
+    exit(0);
 }
-
