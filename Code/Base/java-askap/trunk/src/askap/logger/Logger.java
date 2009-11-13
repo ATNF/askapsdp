@@ -164,6 +164,11 @@ public abstract class Logger {
     l2.warn("a warn message");
     l2.error("an error message");
     l2.fatal("a fatal message");
+    try {
+      Thread.sleep(3000);
+    } catch (Exception e) {
+    }
     shutdown();
+    System.exit(0);
   }
 }

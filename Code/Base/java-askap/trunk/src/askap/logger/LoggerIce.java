@@ -23,14 +23,19 @@ package askap.logger;
 import java.util.Properties;
 import java.util.Vector;
 import askap.interfaces.logging.*;
+import IceStorm.*;
 
 /**
  * Logger implementation which talks native Ice to the ASKAP Logging Service.
  * 
  * <P>
- * This expects the configuration to define a property named <i>askap.logger.ice.service</i>
- * which specifies the string used to find the Logging Service, eg,
+ * This expects the following properties to be defined:
+ * 
+ * <bl>
+ * <li><b>askap.logger.ice.service:</b> The string used to find the Logging Service, eg,
  * <tt>IceGrid/Locator:tcp -h localhost -p 4061</tt>.
+ * <li><b>askap.logger.ice.topic:</b> The name of the IceStorm topic to publish data to.
+ * </bl>
  * 
  * @author David Brodrick
  */
@@ -43,6 +48,15 @@ public class LoggerIce extends Logger {
 
   /** String for finding the locator service. */
   protected static String theirServiceString;
+
+  /** The property used to get the topic name to publish to. */
+  protected static final String theirTopicNameProp = "askap.logger.ice.topic";
+
+  /** The default name of the topic to publish to. */
+  protected static final String theirDefaultTopicName = "logger";
+
+  /** The name of the IceStorm topic to publish to. */
+  protected static String theirTopicName;
 
   /** The thread that does the actual logging in the background. */
   protected static LoggerIceThread theirLoggerThread;
@@ -58,6 +72,7 @@ public class LoggerIce extends Logger {
    */
   public static void configure(Properties props) {
     theirServiceString = props.getProperty(theirServiceProp, theirDefaultService);
+    theirTopicName = props.getProperty(theirTopicNameProp, theirDefaultTopicName);
     theirLoggerThread = new LoggerIceThread();
     theirLoggerThread.start();
     theirRootLogger = new LoggerIce("root");
@@ -137,6 +152,7 @@ public class LoggerIce extends Logger {
               // Wait for a new log message
               itsBuffer.wait();
             } else {
+              // Wait for a bit before attempting reconnection
               itsBuffer.wait(1000);
             }
           }
@@ -160,6 +176,7 @@ public class LoggerIce extends Logger {
             itsBuffer.remove(0);
           }
         } catch (Exception e) {
+          e.printStackTrace();
           // An unexpected error, assume communications links is down
           try {
             itsCommunicator.shutdown();
@@ -197,7 +214,7 @@ public class LoggerIce extends Logger {
      * @return True if connection is good, False if connection is down.
      */
     protected boolean isConnected() {
-      if (itsCommunicator == null || itsCommunicator.isShutdown()) {
+      if (itsCommunicator == null || itsCommunicator.isShutdown() || itsLoggingService == null) {
         return false;
       } else {
         return true;
@@ -212,9 +229,33 @@ public class LoggerIce extends Logger {
     protected boolean connect() {
       boolean res = false;
       try {
-        itsCommunicator = Ice.Util.initialize();
-        Ice.ObjectPrx base = itsCommunicator.stringToProxy(theirServiceString);
-        itsLoggingService = ILoggerPrxHelper.checkedCast(base);
+        Ice.Properties props = Ice.Util.createProperties();
+        props.setProperty("Ice.Default.Locator", theirServiceString);
+
+        // Initialize a communicator with these properties.
+        Ice.InitializationData id = new Ice.InitializationData();
+        id.properties = props;
+        itsCommunicator = Ice.Util.initialize(id);
+
+        // Obtain the topic or create
+        TopicManagerPrx topicManager;
+        Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+        topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
+        TopicPrx topic;
+
+        try {
+          topic = topicManager.retrieve(theirTopicName);
+        } catch (NoSuchTopic e) {
+          try {
+            topic = topicManager.create(theirTopicName);
+          } catch (TopicExists e1) {
+            topic = topicManager.retrieve(theirTopicName);
+          }
+        }
+
+        Ice.ObjectPrx pub = topic.getPublisher().ice_oneway();
+        itsLoggingService = ILoggerPrxHelper.uncheckedCast(pub);
+
         if (itsLoggingService == null) {
           itsCommunicator.shutdown();
           itsCommunicator = null;
