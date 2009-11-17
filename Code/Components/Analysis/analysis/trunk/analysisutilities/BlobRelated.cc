@@ -282,6 +282,7 @@ namespace askap {
 		std::map<std::string, std::vector<float> >::iterator val;
 		for(val=src.itsAlphaMap.begin();val!=src.itsAlphaMap.end();val++){
 		  blob << val->first;
+		  size = val->second.size();
 		  blob << size;
 		  for(int i=0;i<size;i++) blob << val->second[i];
 		}
@@ -289,6 +290,7 @@ namespace askap {
 		blob << size;
 		for(val=src.itsBetaMap.begin();val!=src.itsBetaMap.end();val++){
 		  blob << val->first;
+		  size = val->second.size();
 		  blob << size;
 		  for(int i=0;i<size;i++) blob << val->second[i];
 		}
