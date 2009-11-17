@@ -90,6 +90,8 @@ namespace askap {
 		  this->itsAlphaMap[*type] = std::vector<float>(1,-99.);
 		  this->itsBetaMap[*type] = std::vector<float>(1,-99.);
 		}
+		this->itsAlphaMap["best"] = std::vector<float>(1,-99.);
+		this->itsBetaMap["best"] = std::vector<float>(1,-99.);
 	    }
 
             RadioSource::RadioSource(duchamp::Detection obj):
@@ -104,6 +106,8 @@ namespace askap {
 		  this->itsAlphaMap[*type] = std::vector<float>(1,-99.);
 		  this->itsBetaMap[*type] = std::vector<float>(1,-99.);
 		}
+		this->itsAlphaMap["best"] = std::vector<float>(1,-99.);
+		this->itsBetaMap["best"] = std::vector<float>(1,-99.);
 	    }
 
             RadioSource::RadioSource(const RadioSource& src):
