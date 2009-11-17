@@ -84,7 +84,13 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
-            }
+		std::vector<std::string>::iterator type;
+		std::vector<std::string> typelist = availableFitTypes;
+		for (type = typelist.begin(); type < typelist.end(); type++) {
+		  this->itsAlphaMap[*type] = std::vector<float>(1,-99.);
+		  this->itsBetaMap[*type] = std::vector<float>(1,-99.);
+		}
+	    }
 
             RadioSource::RadioSource(duchamp::Detection obj):
                     duchamp::Detection(obj)
@@ -92,7 +98,13 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
-            }
+		std::vector<std::string>::iterator type;
+		std::vector<std::string> typelist = availableFitTypes;
+		for (type = typelist.begin(); type < typelist.end(); type++) {
+		  this->itsAlphaMap[*type] = std::vector<float>(1,-99.);
+		  this->itsBetaMap[*type] = std::vector<float>(1,-99.);
+		}
+	    }
 
             RadioSource::RadioSource(const RadioSource& src):
                     duchamp::Detection(src)
@@ -1084,17 +1096,17 @@ namespace askap {
                     npixObj.printEntry(stream, this->getSize());
                     stream << "\n";
                 }
+		else{
+		  std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
+		  std::vector<casa::Gaussian2D<Double> >::iterator fit = fitSet.begin();
+		  std::vector<float>::iterator alphaIter = this->itsAlphaMap[fittype].begin();
+		  std::vector<float>::iterator betaIter = this->itsBetaMap[fittype].begin();
+		  ASKAPCHECK(fitSet.size() == this->itsAlphaMap[fittype].size(), 
+			     "Sizes of fitSet ("<<fitSet.size()<<") and alpha Set ("<<this->itsAlphaMap[fittype].size()<<") don't match!");
+		  ASKAPCHECK(fitSet.size() == this->itsBetaMap[fittype].size(), 
+			     "Sizes of fitSet ("<<fitSet.size()<<") and beta Set ("<<this->itsBetaMap[fittype].size()<<") don't match!");
 
-                std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
-                std::vector<casa::Gaussian2D<Double> >::iterator fit = fitSet.begin();
-		std::vector<float>::iterator alphaIter = this->itsAlphaMap[fittype].begin();
-		std::vector<float>::iterator betaIter = this->itsBetaMap[fittype].begin();
-		ASKAPCHECK(fitSet.size() == this->itsAlphaMap[fittype].size(), 
-			   "Sizes of fitSet ("<<fitSet.size()<<") and alpha Set ("<<this->itsAlphaMap[fittype].size()<<") don't match!");
-		ASKAPCHECK(fitSet.size() == this->itsBetaMap[fittype].size(), 
-			   "Sizes of fitSet ("<<fitSet.size()<<") and beta Set ("<<this->itsBetaMap[fittype].size()<<") don't match!");
-
-                for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
+		  for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
                     std::stringstream id;
                     id << this->getID() << char(firstSuffix + suffixCtr++);
                     double *pix = new double[3];
@@ -1110,7 +1122,7 @@ namespace askap {
                     float intfluxfit = fit->flux();
 
                     if (this->itsHeader.needBeamSize())
-                        intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
+		      intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
                     columns[duchamp::Column::NUM].printEntry(stream, id.str());
                     columns[duchamp::Column::RAJD].printEntry(stream, thisRA);
@@ -1132,7 +1144,8 @@ namespace askap {
                     npixFit.printEntry(stream, this->boxSize());
                     npixObj.printEntry(stream, this->getSize());
                     stream << "\n";
-                }
+		  }
+		}
             }
 
             //**************************************************************//
