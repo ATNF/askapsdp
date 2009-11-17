@@ -779,7 +779,10 @@ namespace askap {
 	      std::vector<std::string>::iterator type;
 	      std::vector<std::string> typelist = availableFitTypes;
 	      for (type = typelist.begin(); type < typelist.end(); type++) {
-		std::vector<float> alphaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+		if(!this->itsBestFitMap[*type].isGood())
+		  this->itsAlphaMap[*type] = std::vector<float>(1,-99.);
+		else
+		  std::vector<float> alphaValues(this->itsBestFitMap[*type].numGauss(), -99.);
 		this->itsAlphaMap[*type] = alphaValues;
 	      }
 
@@ -886,7 +889,10 @@ namespace askap {
 	      std::vector<std::string>::iterator type;
 	      std::vector<std::string> typelist = availableFitTypes;
 	      for (type = typelist.begin(); type < typelist.end(); type++) {
-		std::vector<float> betaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+		if(!this->itsBestFitMap[*type].isGood())
+		  this->itsBetaMap[*type] = std::vector<float>(1,-99.);
+		else
+		  std::vector<float> betaValues(this->itsBestFitMap[*type].numGauss(), -99.);
 		this->itsBetaMap[*type] = betaValues;
 	      }
 
