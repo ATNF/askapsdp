@@ -784,6 +784,7 @@ namespace askap {
 		else
 		  this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numGauss(), -99.);
 	      }
+	      this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
 
 	    }
 	    else {
@@ -893,6 +894,7 @@ namespace askap {
 		else
 		  this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numGauss(), -99.);
 	      }
+	      this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
 
 	    }
 	    else {
