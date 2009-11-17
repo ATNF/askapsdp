@@ -886,7 +886,7 @@ namespace askap {
 	      std::vector<std::string>::iterator type;
 	      std::vector<std::string> typelist = availableFitTypes;
 	      for (type = typelist.begin(); type < typelist.end(); type++) {
-		std::vector<float> betaaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+		std::vector<float> betaValues(this->itsBestFitMap[*type].numGauss(), -99.);
 		this->itsBetaMap[*type] = betaValues;
 	      }
 
