@@ -775,6 +775,14 @@ namespace askap {
 	      // image provided is not a Taylor series term - notify and do nothing
 	      ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
 				<<imageName<<") is not a Taylor term. Cannot find spectral index.");
+
+	      std::vector<std::string>::iterator type;
+	      std::vector<std::string> typelist = availableFitTypes;
+	      for (type = typelist.begin(); type < typelist.end(); type++) {
+		std::vector<float> alphaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+		this->itsAlphaMap[*type] = alphaValues;
+	      }
+
 	    }
 	    else {
 	      
@@ -874,6 +882,14 @@ namespace askap {
 	      // image provided is not a Taylor series term - notify and do nothing
 	      ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
 				<<imageName<<") is not a Taylor term. Cannot find spectral index.");
+
+	      std::vector<std::string>::iterator type;
+	      std::vector<std::string> typelist = availableFitTypes;
+	      for (type = typelist.begin(); type < typelist.end(); type++) {
+		std::vector<float> betaaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+		this->itsBetaMap[*type] = betaValues;
+	      }
+
 	    }
 	    else {
 	      
