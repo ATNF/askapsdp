@@ -289,10 +289,10 @@ namespace askap {
                 this->itsWCSAllocated = false;
                 this->setWCS(true, subset);
                 this->itsFlagPrecess = parset.getBool("WCSsources", false);
+		this->itsWCSsourcesAllocated = false;
 
                 if (this->itsFlagPrecess) {
                     LOFAR::ParameterSet subset(parset.makeSubset("WCSsources."));
-                    this->itsWCSsourcesAllocated = false;
                     this->setWCS(false, subset);
                 }
 
