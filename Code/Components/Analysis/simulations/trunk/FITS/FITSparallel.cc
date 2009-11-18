@@ -101,6 +101,15 @@ namespace askap {
                     this->itsSubsection.parse(axes);
                 }
 
+
+                // For the parallel version only, one the first worker
+                // should write an outputlist. This is done here because
+                // FITSfile has no knowledge of its place in the distributed
+                // program
+                if (isParallel() && (this->itsRank != 1)) {
+                    newparset.replace("outputList", "false");
+                }
+
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
                 this->itsFITSfile = FITSfile(newparset);
                 ASKAPLOG_DEBUG_STR(logger, "Defined");
