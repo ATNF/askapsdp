@@ -31,6 +31,10 @@
 ///
 
 #include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
 #include <sourcefitting/FitResults.h>
@@ -53,6 +57,9 @@ using namespace LOFAR::TYPES;
 
 #include <scimath/Functionals/Gaussian2D.h>
 #include <casa/namespace.h>
+
+///@brief Where the log messages go.
+ASKAP_LOGGER(logger, ".parallelanalysis");
 
 namespace askap {
     namespace analysis {
@@ -368,16 +375,18 @@ namespace askap {
 		}
 		blob >> size;
 		for(int i=0;i<size;i++){
-		  blob >> s >> size;
-		  std::vector<float> vec(size);
-		  for(int i=0;i<size;i++) blob>>vec[i];
+		  int32 vecsize;
+		  blob >> s >> vecsize;
+		  std::vector<float> vec(vecsize);
+		  for(int i=0;i<vecsize;i++) blob>>vec[i];
 		  src.itsAlphaMap[s]=vec;
 		}
 		blob >> size;
 		for(int i=0;i<size;i++){
-		  blob >> s >> size;
-		  std::vector<float> vec(size);
-		  for(int i=0;i<size;i++) blob>>vec[i];
+		  int32 vecsize;
+		  blob >> s >> vecsize;
+		  std::vector<float> vec(vecsize);
+		  for(int i=0;i<vecsize;i++) blob>>vec[i];
 		  src.itsBetaMap[s]=vec;
 		}
                 return blob;
