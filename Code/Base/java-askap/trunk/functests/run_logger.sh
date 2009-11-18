@@ -6,5 +6,5 @@
 #Really want to avoid populating the CLASSPATH in this way but I am not sure
 #how else to go about it at the moment.
 #
-
-java -cp ../install/lib/java-askap.jar:../../../../../lib/Ice-3.3.0.jar -Daskap.logger.configuration=askaplogger-ice-locator-localhost-4061.properties askap.logger.Logger
+export CLASSPATH=$ASKAP_ROOT/lib/java-askap.jar:$CLASSPATH
+java -Daskap.logger.configuration=askaplogger-ice-locator-localhost-4061.properties askap.logger.Logger
