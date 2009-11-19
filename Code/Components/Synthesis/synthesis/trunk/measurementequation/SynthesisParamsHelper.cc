@@ -101,7 +101,8 @@ namespace askap
        }
        return params;
     }
-    
+
+
     void SynthesisParamsHelper::setUpImages(const askap::scimath::Params::ShPtr& params,
 				const LOFAR::ParameterSet &parset)
     {
@@ -265,8 +266,8 @@ namespace askap
       
       /// @todo Do something with the frame info in direction[2]
       Axes axes;
-      axes.add("RA", ra-double(nx)*xcellsize/2.0, ra+double(nx)*xcellsize/2.0);
-      axes.add("DEC", dec-double(ny)*ycellsize/2.0, dec+double(ny)*ycellsize/2.0);
+      axes.add("RA", ra-nx*xcellsize/2.0, ra+nx*xcellsize/2.0);
+      axes.add("DEC", dec-ny*ycellsize/2.0, dec+ny*ycellsize/2.0);
             
       axes.addStokesAxis(stokes);
       
@@ -308,10 +309,8 @@ namespace askap
       
       const double ra = convertQuantity(direction[0],"rad");
       const double dec = convertQuantity(direction[1],"rad");
-      const double cosdec = cos(dec);
-      ASKAPCHECK(cosdec>0, "Cosine of declination is supposed to be positive");
       
-      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad")/cosdec;
+      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
       const double ycellsize = convertQuantity(cellsize[1],"rad");
       
       // zero-filled array is the same for all facets as it is copied inside Params
@@ -323,19 +322,23 @@ namespace askap
       // a Taylor decomposition 
       ImageParamsHelper iph(name);
       // a loop over facets
+      const double facetFactor = (nfacets-1)/2.;
       for (int ix=0;ix<nfacets;++ix) {
            for (int iy=0;iy<nfacets;++iy) {
 
                 // for debugging to avoid running out of memory
                 //if (ix!=1 || iy!=1) continue;
                       
-                const double raCentre = ra+facetstep*xcellsize*double(ix-nfacets/2);
-                const double decCentre = dec+facetstep*ycellsize*double(iy-nfacets/2);
+                const double decCentre = dec+facetstep*ycellsize*(iy-facetFactor);
+                const double cosdec = cos(decCentre);
+                ASKAPCHECK(cosdec>0, "Cosine of decCentre is supposed to be positive");
+                const double xsizeDec = xcellsize/cosdec;
+                const double raCentre = ra+facetstep*xsizeDec*(ix-facetFactor);
                 
                 /// @todo Do something with the frame info in direction[2]
                 Axes axes;
-                axes.add("RA", raCentre-double(nx)*xcellsize/2.0, raCentre+double(nx)*xcellsize/2.0);
-                axes.add("DEC", decCentre-double(ny)*ycellsize/2.0, decCentre+double(ny)*ycellsize/2.0);
+                axes.add("RA", raCentre-nx*xsizeDec/2.0, raCentre+nx*xsizeDec/2.0);
+                axes.add("DEC", decCentre-ny*ycellsize/2.0, decCentre+ny*ycellsize/2.0);
       
                 // we need to ship around the tangent point somehow as it affects the way this
                 // faceted images are used. One way is to specify an extra fixed parameter and another
@@ -462,6 +465,8 @@ namespace askap
     /// the appropriate names. This method looks at the coordinate systems of all
     /// subimages and forms a parameter representing merged image. It can then be
     /// populated with the data from the appropriate slices.
+    /// Note that this function is called for the first facet only, thus
+    /// the facet center is that of facet 0.0.
     /// @param[in] ip parameters
     /// @param[in] name Base name of the parameter (i.e. without .facet.0.0)
     /// @param[in] nfacets number of facets defined
@@ -479,35 +484,51 @@ namespace askap
                         axes.has("DEC-TANGENT") && axes.has("STOKES") && axes.has("FREQUENCY"));
        const casa::IPosition shape = ip.value(iph.paramName()).shape();
        ASKAPDEBUGASSERT(shape.nelements()>=2);
-       const double raCellSize = (axes.end("RA")-axes.start("RA"))/double(shape[0]);
-       const double decCellSize = (axes.end("DEC")-axes.start("DEC"))/double(shape[1]);
-       const double facetFactor = double(-nfacets/2);
+       // Derive the cell size in ra and dec.
+       const double raCentreFacet = (axes.start("RA")+axes.end("RA"))/2.;
+       const double decCentreFacet = (axes.start("DEC")+axes.end("DEC"))/2.;
+       double raCellSize = (axes.end("RA")-axes.start("RA"))/double(shape[0]);
+       double decCellSize = (axes.end("DEC")-axes.start("DEC"))/double(shape[1]);
+       // Get factors because facetstep in RA might be slightly different for
+       // the center of the facet and the image.
+       const double raCentreImage = axes.start("RA-TANGENT");
+       const double decCentreImage = axes.start("DEC-TANGENT");
+       const double cosdecFacet = cos(decCentreFacet);
+       const double cosdecImage = cos(decCentreImage);
+       ASKAPDEBUGASSERT(cosdecFacet>0 && cosdecImage>0);
+       const double facetFactor = double(-(nfacets-1)/2.);
        ASKAPDEBUGASSERT(facetFactor!=0.);
-       const double raFacetStep = ((axes.start("RA")+axes.end("RA"))/2.-axes.start("RA-TANGENT"))/
+       // Derive the facet step in ra and dec.
+       const double raFacetStep = (raCentreFacet-raCentreImage)/
                             raCellSize/facetFactor;
-       const double decFacetStep = ((axes.start("DEC")+axes.end("DEC"))/2.-axes.start("DEC-TANGENT"))/
+       const double decFacetStep = (decCentreFacet-decCentreImage)/
                             decCellSize/facetFactor;
        ASKAPCHECK(casa::abs(raFacetStep-decFacetStep)<0.5, "facet steps deduced from "<<
                   iph.paramName()<<" are notably different for ra and dec axes. Should be the same integer number");
-       const int facetSize = int(raFacetStep);
-       
-       Axes newAxes(axes);       
-       newAxes.update("RA",newAxes.start("RA-TANGENT")+facetSize*raCellSize*(double(-nfacets/2)-0.5),
-                newAxes.start("RA-TANGENT")+facetSize*raCellSize*(double(nfacets-1-nfacets/2)+0.5));
-       newAxes.update("DEC",newAxes.start("DEC-TANGENT")+facetSize*decCellSize*(double(-nfacets/2)-0.5),
-                newAxes.start("DEC-TANGENT")+facetSize*decCellSize*(double(nfacets-1-nfacets/2)+0.5));
-       // add a fake axis to peserve facetSize for futher operations with the merged image
+       const int facetStep = int(raFacetStep+0.5);
+       // Determine the shape of the total image from the facetStep.
+       // Note it is not done from the facetSize because facets can overlap.
+       // Normally facetStep and facetSize will be equal.
+       // First get the raCellSize at the dec of the image center.
+       // Note that the calculation is done this way to avoid precision
+       // errors due to the fact that the cosdec-s are almost equal.
+       raCellSize = (raCellSize * cosdecFacet) / cosdecImage;
+       double raHWidth = facetStep*raCellSize*nfacets / 2.;
+       double decHWidth = facetStep*decCellSize*nfacets / 2.;
+       Axes newAxes(axes);
+       newAxes.update("RA",raCentreImage-raHWidth, raCentreImage+raHWidth);
+       newAxes.update("DEC",decCentreImage-decHWidth, decCentreImage+decHWidth);
+       // add a fake axis to peserve facetStep for futher operations with the merged image
        // without it we would have to redetermine this value
        if (newAxes.has("FACETSTEP")) {
-           newAxes.update("FACETSTEP", raFacetStep, decFacetStep);
+           newAxes.update("FACETSTEP", double(facetStep), double(facetStep));
        } else {
-           newAxes.add("FACETSTEP", raFacetStep, decFacetStep);
+           newAxes.add("FACETSTEP", double(facetStep), double(facetStep));
        }
        
        casa::IPosition newShape(shape);
-       newShape[0]=facetSize*nfacets;
-       newShape[1]=facetSize*nfacets;
- 
+       newShape[0]=facetStep*nfacets;
+       newShape[1]=facetStep*nfacets;
        casa::Array<double> pixels(newShape);
        pixels.set(0.0);
        ip.add(iph.taylorName(), pixels, newAxes);
@@ -540,7 +561,7 @@ namespace askap
       ASKAPDEBUGASSERT(axes.has("FACETSTEP"));
       ASKAPCHECK(casa::abs(axes.start("FACETSTEP")-axes.end("FACETSTEP"))<0.5, "facet steps extracted from "<<
                  iph.name()<<" are notably different for ra and dec axes. Should be the same integer number");
-      const int facetStep = int(axes.start("FACETSTEP"));
+      const int facetStep = int(axes.start("FACETSTEP")+0.5);
 
       casa::Array<double> mergedImage = ip.value(mergedName);
       casa::IPosition blc(mergedImage.shape());
