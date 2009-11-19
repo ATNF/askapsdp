@@ -90,7 +90,7 @@ int main(int argc, const char** argv)
         casa::Timer timer;
         timer.mark();
         srandom(time(0));
-        std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
+        std::string parsetFile(getInputs("-inputs", "convertPositions.in", argc, argv));
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
