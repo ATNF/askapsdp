@@ -294,3 +294,9 @@ createFITS.minMinorAxis     = %f
         pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
         createFITScall = "%s/createFITS.sh -inputs %s"%(pathToSims,imageParsetFile)
         os.system(createFITScall)
+    else:
+        if(translateLoc):
+            print "Not making an image, but using convertPositions to make a new source list."
+            pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
+            convertPosCall = "%s/convertPositions.sh -inputs %s"%(pathToSims,imageParsetFile)
+            os.system(convertPosCall)
