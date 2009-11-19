@@ -144,6 +144,7 @@ namespace askap {
                 this->itsHaveSpectralInfo = f.itsHaveSpectralInfo;
                 this->itsBaseFreq = f.itsBaseFreq;
                 this->itsRestFreq = f.itsRestFreq;
+		this->itsAddSources = f.itsAddSources;
                 this->itsDoContinuum = f.itsDoContinuum;
                 this->itsDoHI = f.itsDoHI;
                 this->itsEquinox = f.itsEquinox;
@@ -302,6 +303,7 @@ namespace askap {
 
                 if (!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
 
+		this->itsAddSources = parset.getBool("addSources", true);
                 this->itsDoContinuum = parset.getBool("doContinuum", true);
                 this->itsDoHI = parset.getBool("doHI", false);
 
@@ -434,7 +436,7 @@ namespace askap {
 
 //--------------------------------------------------------
 
-            void FITSfile::addSources()
+            void FITSfile::processSources()
             {
                 /// @details Adds sources to the array. If the source list
                 /// file has been defined, it is read one line at a time, and
@@ -497,13 +499,6 @@ namespace askap {
                             // convert fluxes to correct units according to the image BUNIT keyword
                             src.setFluxZero(casa::Quantity(src.fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
 
-                            FluxGenerator fluxGen;
-
-                            if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
-                            else fluxGen.setNumChan(1);
-
-                            ASKAPLOG_DEBUG_STR(logger, "Have defined a flux generator with " << fluxGen.nChan() << " channels.");
-
                             // convert sky position to pixels
                             if (this->itsPosType == "dms") {
                                 wld[0] = analysis::dmsToDec(src.ra()) * 15.;
@@ -522,36 +517,46 @@ namespace askap {
                                 pixToWCSSingle(this->itsWCS, pix, newwld);
                                 outfile.setf(std::ios::fixed);
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
-                                    << std::setw(10) << std::setprecision(6) << newwld[1] << " "
-                                    << std::setw(20) << std::setprecision(16) << src.fluxZero() << " "
-                                    << std::setw(10) << std::setprecision(6) << cont.alpha() << " "
-                                    << std::setw(10) << std::setprecision(6) << cont.beta() << " "
-                                    << std::setw(10) << std::setprecision(6) << src.maj() << " "
-                                    << std::setw(10) << std::setprecision(6) << src.min() << " "
-                                    << std::setw(10) << std::setprecision(6) << src.pa() << " "
-                                    << std::setw(10) << std::setprecision(6) << prof.redshift() << " "
-                                    << std::setw(10) << std::setprecision(6) << prof.mHI() << " "
-                                    << std::setw(5) << sourceType << "\n";
+					<< std::setw(10) << std::setprecision(6) << newwld[1] << " "
+					<< std::setw(20) << std::setprecision(16) << src.fluxZero() << " ";
+				if(this->itsSourceListType=="spectralline" || this->itsHaveSpectralInfo)
+				  outfile << std::setw(10) << std::setprecision(6) << cont.alpha() << " "
+					  << std::setw(10) << std::setprecision(6) << cont.beta() << " ";
+				outfile << std::setw(10) << std::setprecision(6) << src.maj() << " "
+					<< std::setw(10) << std::setprecision(6) << src.min() << " "
+					<< std::setw(10) << std::setprecision(6) << src.pa() << " ";
+				if(this->itsSourceListType == "spectralline")
+				  outfile << std::setw(10) << std::setprecision(6) << prof.redshift() << " "
+					  << std::setw(10) << std::setprecision(6) << prof.mHI() << " "
+					  << std::setw(5) << sourceType << " ";
+				outfile << "\n";
                             }
 
-                            if (this->itsDoContinuum)
+			    if(this->itsAddSources){
+
+			      FluxGenerator fluxGen;
+
+			      if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
+			      else fluxGen.setNumChan(1);
+
+			      if (this->itsDoContinuum)
                                 fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
 
-                            if (this->itsDoHI) {
+			      if (this->itsDoHI) {
                                 if (this->itsDatabaseOrigin == "S3SEX")
-                                    fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
+				  fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
                                 else if (this->itsDatabaseOrigin == "S3SAX")
-                                    fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
-                            }
+				  fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
+			      }
 
-                            if (src.maj() > 0) {
+			      if (src.maj() > 0) {
                                 // convert widths from arcsec to pixels
                                 float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
                                 src.setMaj(casa::Quantity(src.maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
                                 if (src.maj() > 0 && !(src.min() > this->itsMinMinorAxis)) {
-                                    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src.min() << " --> " << this->itsMinMinorAxis);
-                                    src.setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+				  ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src.min() << " --> " << this->itsMinMinorAxis);
+				  src.setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
                                 } else src.setMin(casa::Quantity(src.min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
                                 if (src.fluxZero() == 0.) src.setFluxZero(1.e-3);
@@ -562,9 +567,11 @@ namespace askap {
                                 gauss.setFlux(src.fluxZero());
 
                                 addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
-                            } else {
+			      } else {
                                 addPointSource(this->itsArray, this->itsSourceSection, this->itsAxes, pix, fluxGen);
-                            }
+			      }
+			    }
+
                         } else {
                             // Write all commented lines directly into the output file
                             if (this->itsFlagOutputList) outfile << line << "\n";
@@ -627,7 +634,7 @@ namespace askap {
                 /// and saves the flux array into it. Uses the CFITSIO library
                 /// to do so.
 
-//                 ASKAPLOG_DEBUG_STR(logger, "Saving the FITS file to " << this->itsFileName);
+	        ASKAPLOG_INFO_STR(logger, "Saving the FITS file to " << this->itsFileName);
                 int status = 0;
                 long *fpixel = new long[this->itsDim];
 
@@ -738,7 +745,7 @@ namespace askap {
                 fits_close_file(fptr, &status);
 
                 if (status) {
-                    std::cerr << "Error closing file: ";
+		    ASKAPLOG_ERROR_STR(logger, "Error closing file:");
                     fits_report_error(stderr, status);
                 }
 

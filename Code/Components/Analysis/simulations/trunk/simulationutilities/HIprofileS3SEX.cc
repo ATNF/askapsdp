@@ -58,7 +58,7 @@ namespace askap {
             /// to set up the profile description.
             /// @param line A line from the ascii input file
 
-            float flux, maj, min, pa, alpha, beta;
+            double flux, maj, min, pa, alpha, beta;
             int type;
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> flux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI >> type;

@@ -51,7 +51,7 @@ using namespace askap;
 using namespace askap::simulations;
 using namespace askap::simulations::FITS;
 
-ASKAP_LOGGER(logger, "createFITS.log");
+ASKAP_LOGGER(logger, "convertPositions.log");
 
 // Move to Askap Util?
 std::string getInputs(const std::string& key, const std::string& def, int argc,
@@ -94,29 +94,11 @@ int main(int argc, const char** argv)
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
-        bool doNoise = subset.getBool("addNoise", true);
-        bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
-        bool doConvolution = subset.getBool("doConvolution", true);
+	subset.replace("addSources","false");
         FITSparallel file(argc, argv, subset);
         file.processSources();
 
-        if (doNoise && (noiseBeforeConvolve || !doConvolution))
-            if (file.isWorker())
-                file.addNoise();
-
-        file.toMaster();
-
-        if (doConvolution)
-            if (file.isMaster())
-                file.convolveWithBeam();
-
-        if (doNoise && (!noiseBeforeConvolve && doConvolution))
-            if (file.isMaster())
-                file.addNoise();
-
-        file.saveFile();
-
-        ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
+        ASKAPLOG_INFO_STR(logger, "Time for execution of convertPositions = " << timer.real() << " sec");
 
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
@@ -129,5 +111,9 @@ int main(int argc, const char** argv)
     }
 
     exit(0);
-}
 
+
+
+
+
+}

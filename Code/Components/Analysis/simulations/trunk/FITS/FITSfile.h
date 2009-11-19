@@ -104,7 +104,7 @@ namespace askap {
                     void addNoise();
 
                     /// @brief Add sources to the flux array
-                    void addSources();
+                    void processSources();
 
                     /// @brief Convolve the flux array with a beam
                     void convolveWithBeam();
@@ -161,6 +161,8 @@ namespace askap {
                     /// @brief The rest frequency for emission-line sources: stored as RESTFREQ in the FITS header
                     float itsRestFreq;
 
+		    /// @brief Whether sources should be added
+		    bool itsAddSources;
                     /// @brief Whether to add continuum sources
                     bool itsDoContinuum;
                     /// @brief Whether to add spectral-line sources

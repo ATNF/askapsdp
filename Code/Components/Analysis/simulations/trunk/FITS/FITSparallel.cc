@@ -203,11 +203,11 @@ namespace askap {
                     itsFITSfile.addNoise();
             }
 
-            void FITSparallel::addSources()
+            void FITSparallel::processSources()
             {
                 if (this->isWorker()) {
                     ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": About to add sources");
-                    itsFITSfile.addSources();
+                    itsFITSfile.processSources();
                 }
             }
 

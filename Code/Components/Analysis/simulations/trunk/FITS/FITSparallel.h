@@ -75,7 +75,7 @@ namespace askap {
                     void addNoise();
 
                     /// @brief Add sources to the flux array
-                    void addSources();
+                    void processSources();
 
                     /// @brief Convolve the flux array with a beam
                     void convolveWithBeam();

@@ -110,7 +110,7 @@ namespace askap {
             /// to set up the profile description.
             /// @param line A line from the ascii input file
 
-            float maj, min, pa, alpha, beta;
+            double maj, min, pa, alpha, beta;
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> this->itsIntFlux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI
             >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;

@@ -47,11 +47,10 @@ namespace askap {
             /// text from an ascii file. This line should be formatted in
             /// the correct way to match the output from the appropriate
             /// python script. The columns should accepted by this function are:
-            /// RA - DEC - Flux - Alpha - Beta - Major axis - Minor axis - Pos.Angle
-            /// (Alpha & Beta are the spectral index & spectral curvature).
+            /// RA - DEC - Flux - Major axis - Minor axis - Pos.Angle
             /// @param line A line from the ascii input file
 
-            float flux, maj, min, pa;
+            double flux, maj, min, pa;
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> flux >> maj >> min >> pa;
             this->itsComponent.setPeak(flux);
