@@ -33,8 +33,10 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/IPosition.h>
-#include <coordinates/Coordinates/LinearCoordinate.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <coordinates/Coordinates/Projection.h>
 
 
 #include <boost/shared_ptr.hpp>
@@ -53,11 +55,35 @@ class CasaProjectionTest : public CppUnit::TestFixture
    CPPUNIT_TEST_SUITE_END();
 public:
    void setUp() {
+      casa::Matrix<casa::Double> xform(2,2,0.);
+      xform.diagonal() = 1.;
+      const double deg2rad = casa::C::pi/180.;
+      itsCoord.reset(new casa::DirectionCoordinate(casa::MDirection::J2000, casa::Projection(casa::Projection::SIN),
+                     135*deg2rad, -60*deg2rad,
+                     -1.*deg2rad, 1.*deg2rad,
+                     xform, 128,128));
+      itsWorld.resize(2);
+      itsPixel.resize(2);               
    }
    
    void testSINProjection() {
+      const double deg2rad = casa::C::pi/180.;
+      itsPixel = 128.;
+      toWorld();
+      CPPUNIT_ASSERT(casa::abs(itsWorld[0]-135.*deg2rad)<1e-7);
+      CPPUNIT_ASSERT(casa::abs(itsWorld[1]+60.*deg2rad)<1e-7); 
    }
-   
+protected:
+   void toWorld() {
+      CPPUNIT_ASSERT(itsCoord);
+      CPPUNIT_ASSERT(itsWorld.nelements() == 2);
+      CPPUNIT_ASSERT(itsPixel.nelements() == 2);
+      CPPUNIT_ASSERT(itsCoord->toWorld(itsWorld,itsPixel));
+   }   
+private:
+   boost::shared_ptr<casa::DirectionCoordinate>  itsCoord; 
+   casa::Vector<casa::Double> itsWorld;
+   casa::Vector<casa::Double> itsPixel;
 };
     
 } // namespace scimath
