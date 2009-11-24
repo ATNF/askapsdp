@@ -266,6 +266,9 @@ namespace askap {
             /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
+	    if(lattPtr==0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() <<"\" does not exist or could not be opened.");
+
             //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read);
 //      lattPtr->unlock();
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
@@ -320,6 +323,9 @@ namespace askap {
             /// @return An STL vector with all axis dimensions.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);
+	    if(lattPtr==0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << filename <<"\" does not exist or could not be opened.");
+
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
             std::vector<long> dim(shape.size());
@@ -351,6 +357,9 @@ namespace askap {
 
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);
+	    if(lattPtr==0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << filename <<"\" does not exist or could not be opened.");
+
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
             IPosition start(shape.size(), 0);
@@ -392,6 +401,9 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName);
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
+	    if(lattPtr==0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << imageName <<"\" does not exist or could not be opened.");
+
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
 
             IPosition shape = imagePtr->shape();
@@ -427,6 +439,9 @@ namespace askap {
             /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
+	    if(lattPtr==0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() <<"\" does not exist or could not be opened.");
+
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
             std::vector<long> dim(shape.size());
@@ -505,6 +520,9 @@ namespace askap {
             /// @return A wcsprm pointer containing the wcs information of the image.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
+	    if(lattPtr==0)
+	      ASKAPTHROW(AskapError, "Requested image \"" << imageName <<"\" does not exist or could not be opened.");
+
             //      LatticeLocker lock1 (*lattPtr, FileLocker::Read);
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             return casaImageToWCS(imagePtr);
