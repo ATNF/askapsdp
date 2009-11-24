@@ -72,6 +72,19 @@ public:
       toWorld();
       CPPUNIT_ASSERT(casa::abs(itsWorld[0]-135.*deg2rad)<1e-7);
       CPPUNIT_ASSERT(casa::abs(itsWorld[1]+60.*deg2rad)<1e-7); 
+      const casa::Vector<casa::Double> referenceCentre = itsWorld.copy();
+      itsPixel[0] = 100.;
+      itsPixel[1] = 118.;
+      toWorld();
+      // doing conversion using straight formulas
+      const double L = -(itsPixel[0] - 128.)*deg2rad;
+      const double M = (itsPixel[1] - 128.)*deg2rad;
+      CPPUNIT_ASSERT(L*L+M*M<1.);
+      const double dec = asin(M*cos(referenceCentre[1])+sin(referenceCentre[1])*sqrt(1-L*L-M*M));
+      const double ra = referenceCentre[0]+atan2(L, cos(referenceCentre[1])*sqrt(1-L*L-M*M)-M*sin(referenceCentre[1]));
+      // check that the result is identical
+      CPPUNIT_ASSERT(casa::abs(itsWorld[0]-ra)<1e-7);
+      CPPUNIT_ASSERT(casa::abs(itsWorld[1]-dec)<1e-7);             
    }
 protected:
    void toWorld() {
@@ -79,6 +92,7 @@ protected:
       CPPUNIT_ASSERT(itsWorld.nelements() == 2);
       CPPUNIT_ASSERT(itsPixel.nelements() == 2);
       CPPUNIT_ASSERT(itsCoord->toWorld(itsWorld,itsPixel));
+      CPPUNIT_ASSERT(itsWorld.nelements() == 2);
    }   
 private:
    boost::shared_ptr<casa::DirectionCoordinate>  itsCoord; 
