@@ -39,7 +39,12 @@
 #include <images/Images/ImageOpener.h>
 #include <images/Images/SubImage.h>
 #include <lattices/Lattices/LatticeLocker.h>
+#include <coordinates/Coordinates/Coordinate.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <coordinates/Coordinates/SpectralCoordinate.h>
+#include <measures/Measures/MDirection.h>
+#include <measures/Measures/MFrequency.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Slicer.h>
@@ -664,6 +669,42 @@ namespace askap {
             return wcs;
         }
 
+        //**************************************************************//
+
+      casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs)
+        {
+            /// @details Convert a wcslib WCS specification to a casa-compatible specification. 
+
+	  casa::CoordinateSystem csys;
+
+	  ASKAPLOG_INFO_STR(logger, "Defining direction coords");
+
+	  Matrix<Double> xform(2,2);
+	  xform = 0.0; xform.diagonal()=1.0;
+	  casa::DirectionCoordinate dirCoo(MDirection::J2000,
+					   Projection(Projection::SIN),
+					   wcs->crval[wcs->lng]*casa::C::pi/180., wcs->crval[wcs->lat]*casa::C::pi/180.,
+					   wcs->cdelt[wcs->lng]*casa::C::pi/180., wcs->cdelt[wcs->lat]*casa::C::pi/180.,
+					   xform,
+					   wcs->crpix[wcs->lng]-1, wcs->crpix[wcs->lat]-1);
+
+	  casa::SpectralCoordinate specCoo(MFrequency::TOPO,
+					   wcs->crval[wcs->spec],
+					   wcs->cdelt[wcs->spec],
+					   wcs->crpix[wcs->spec]-1,
+					   wcs->restfrq);
+
+	  Vector<Int> stokes(1); stokes(0) = casa::Stokes::I;
+	  casa::StokesCoordinate stokesCoo(stokes);
+
+	  csys.addCoordinate(dirCoo);
+	  csys.addCoordinate(specCoo);
+	  if(wcs->naxis==4) 
+	    csys.addCoordinate(stokesCoo);
+
+	  return csys;
+
+	}
         //**************************************************************//
 
         Slicer subsectionToSlicer(duchamp::Section &subsection)

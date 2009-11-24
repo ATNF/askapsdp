@@ -39,6 +39,7 @@
 #include <simulationutilities/HIprofileS3SEX.h>
 #include <simulationutilities/HIprofileS3SAX.h>
 #include <analysisutilities/AnalysisUtilities.h>
+#include <analysisutilities/CasaImageUtil.h>
 
 #include <Common/ParameterSet.h>
 
@@ -50,6 +51,9 @@
 #include <casa/namespace.h>
 #include <casa/Quanta/Quantum.h>
 #include <casa/Quanta/Unit.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <images/Images/PagedImage.h>
+#include <images/Images/ImageInfo.h>
 
 #include <wcslib/wcs.h>
 #include <wcslib/wcsunits.h>
@@ -112,6 +116,8 @@ namespace askap {
                 if (this == &f) return *this;
 
                 this->itsFileName = f.itsFileName;
+		this->itsFITSOutput = f.itsFITSOutput;
+		this->itsCasaOutput = f.itsCasaOutput;
                 this->itsSourceList = f.itsSourceList;
                 this->itsSourceListType = f.itsSourceListType;
                 this->itsDatabaseOrigin = f.itsDatabaseOrigin;
@@ -205,6 +211,8 @@ namespace askap {
                 /// BUNIT). The pixel array is allocated here.
                 ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
                 this->itsFileName = parset.getString("filename", "");
+		this->itsFITSOutput = parset.getBool("fitsOutput",true);
+		this->itsCasaOutput = parset.getBool("casaOutput",false);
                 this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/Beam"));
                 this->itsSourceList = parset.getString("sourcelist", "");
                 std::ifstream file;
@@ -634,6 +642,8 @@ namespace askap {
                 /// and saves the flux array into it. Uses the CFITSIO library
                 /// to do so.
 
+	      if(this->itsFITSOutput){
+
 	        ASKAPLOG_INFO_STR(logger, "Saving the FITS file to " << this->itsFileName);
                 int status = 0;
                 long *fpixel = new long[this->itsDim];
@@ -751,8 +761,59 @@ namespace askap {
 
                 delete [] fpixel;
 
-            }
+	      }
+	    }
 
+//--------------------------------------------------------
+
+	  std::string casafy(std::string fitsName)
+	  {
+	    std::string casaname;
+	    size_t pos = fitsName.rfind(".fits");
+	    if(pos == std::string::npos) { // imageName doesn't have a .fits extension
+	      casaname = fitsName + ".casa";
+	    }
+	    else{ // just remove the .fits extension
+	      casaname = fitsName.substr(0,pos);
+	    }
+	    if(casaname[0]=='!') casaname = casaname.substr(1);
+	    return casaname;
+	  }
+
+            void FITSfile::writeCASAimage()
+            {
+
+	      if(this->itsCasaOutput){
+
+		casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS);
+
+		std::string newName = casafy(this->itsFileName);
+
+		casa::IPosition shape(this->itsDim);
+		for(uint i=0;i<this->itsDim;i++) shape(i) = this->itsAxes[i];
+
+	        ASKAPLOG_INFO_STR(logger, "Creating a new CASA image "<< newName <<" with the shape "<<shape);
+		casa::PagedImage<float> img(casa::TiledShape(shape), csys, newName);
+
+		Array<Float> arr(shape);
+		arr.takeStorage(shape,this->itsArray);
+
+		ASKAPLOG_INFO_STR(logger, "Writing an array with the shape "<<arr.shape()<<" into a CASA image "<< newName);
+		img.put(arr);
+		
+		img.setUnits(this->itsBunit); 
+
+		if(this->itsHaveBeam){
+		  casa::ImageInfo ii = img.imageInfo();
+		  ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0],"deg"), 
+				      casa::Quantity(this->itsBeamInfo[1],"deg"), 
+				      casa::Quantity(this->itsBeamInfo[2],"deg"));
+		  img.setImageInfo(ii);
+		}
+
+	      }
+
+	    }
 
         }
 

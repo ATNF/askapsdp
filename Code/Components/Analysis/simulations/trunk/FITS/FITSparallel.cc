@@ -222,6 +222,12 @@ namespace askap {
                     itsFITSfile.saveFile();
             }
 
+            void FITSparallel::writeCASAimage()
+            {
+                if (this->isMaster())
+                    itsFITSfile.writeCASAimage();
+            }
+
 
 
         }

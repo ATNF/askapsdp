@@ -87,6 +87,10 @@ namespace askap {
         /// @}
 
         /// @ingroup analysisutilities
+	/// @brief Convert a WCS struct to a casa coordinate specification
+	casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs);
+
+        /// @ingroup analysisutilities
         /// @brief Convert a duchamp subsection to a casa Slicer
         Slicer subsectionToSlicer(duchamp::Section &subsection);
 

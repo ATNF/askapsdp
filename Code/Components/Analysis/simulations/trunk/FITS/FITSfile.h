@@ -50,6 +50,10 @@ namespace askap {
 
         namespace FITS {
 
+	  /// @brief Convert the name of a FITS file to the name for the equivalent casa image
+	  std::string casafy(std::string fitsName);
+
+
             /// @brief A class to create new FITS files
             /// @details This class handles the creation of FITS files, as
             /// well as WCS handling, adding point or Gaussian components, adding
@@ -112,10 +116,17 @@ namespace askap {
                     /// @brief Save the array to a FITS file
                     void saveFile();
 
+		    /// @brief Save the array to a CASA image
+		    void FITSfile::writeCASAimage();
+
                 protected:
 
                     /// @brief The name of the file to be written to
                     std::string itsFileName;
+		    /// @brief Whether to write to a FITS-format image
+		    bool itsFITSOutput;
+		    /// @brief Whether to write to a CASA-format image
+		    bool itsCasaOutput;
                     /// @brief The file containing the list of sources
                     std::string itsSourceList;
                     /// @brief The type of input list: either "continuum" or "spectralline"

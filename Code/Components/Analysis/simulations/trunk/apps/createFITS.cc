@@ -115,6 +115,7 @@ int main(int argc, const char** argv)
                 file.addNoise();
 
         file.saveFile();
+        file.writeCASAimage();
 
         ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
 

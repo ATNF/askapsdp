@@ -83,6 +83,8 @@ namespace askap {
                     /// @brief Save the array to a FITS file
                     void saveFile();
 
+		    /// @brief Save the array to a CASA image
+		    void writeCASAimage();
 
                 protected:
 
