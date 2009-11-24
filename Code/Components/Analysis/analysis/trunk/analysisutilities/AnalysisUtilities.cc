@@ -152,7 +152,8 @@ namespace askap {
             if (outputfile != "") par.setOutFile(outputfile);
 
             par.setFlagSubsection(parset.getBool("flagSubsection", false));
-            par.setSubsection(parset.getString("subsection", ""));
+            if(par.getFlagSubsection())
+	      par.setSubsection(parset.getString("subsection", ""));
             par.setFlagStatSec(parset.getBool("flagStatSec", false));
             par.setStatSec(parset.getString("statsec", par.getStatSec()));
             par.setVerbosity(parset.getBool("verbose", false));
