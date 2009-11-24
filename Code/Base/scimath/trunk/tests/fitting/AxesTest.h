@@ -22,10 +22,20 @@
 ///
 
 #include <fitting/Axes.h>
+#include <Blob/BlobString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
+#include <casa/Arrays/Matrix.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <askap/AskapError.h>
+#include <coordinates/Coordinates/Projection.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+
 #include <vector>
 
 namespace askap
@@ -43,26 +53,19 @@ namespace askap
       CPPUNIT_TEST(testUpdate);
       CPPUNIT_TEST(testCopy);
       CPPUNIT_TEST(testStokes);
+      CPPUNIT_TEST(testDirection);
       CPPUNIT_TEST_SUITE_END();
 
       private:
-        Domain *p1, *p2, *p3, *pempty;
+        boost::shared_ptr<Domain> p1, p2, p3, pempty;
 
       public:
         void setUp()
         {
-          p1 = new Domain();
-          p2 = new Domain();
-          p3 = new Domain();
-          pempty = new Domain();
-        }
-
-        void tearDown()
-        {
-          delete p1;
-          delete p2;
-          delete p3;
-          delete pempty;
+          p1.reset(new Domain());
+          p2.reset(new Domain());
+          p3.reset(new Domain());
+          pempty.reset(new Domain());
         }
 
         void testDuplError()
@@ -166,6 +169,45 @@ namespace askap
                CPPUNIT_ASSERT(stokes[pol] == res[pol]);
           }
         }
+        
+        void testDirection()
+        {
+          CPPUNIT_ASSERT(!p1->hasDirection());
+          
+          casa::Matrix<casa::Double> xform(2,2,0.);
+          xform.diagonal() = 1.;
+          const double deg2rad = casa::C::pi/180.;
+          casa::DirectionCoordinate  dc(casa::MDirection::J2000, casa::Projection(casa::Projection::SIN),
+                     135*deg2rad, -60*deg2rad,-1.*deg2rad, 1.*deg2rad, xform, 128,128);
+          
+          p1->addDirectionAxis(dc);
+          CPPUNIT_ASSERT(p1->hasDirection());
+          CPPUNIT_ASSERT(dc.near(p1->directionAxis()));
+          casa::DirectionCoordinate  dc2(casa::MDirection::J2000, casa::Projection(casa::Projection::SIN),
+                     134.9*deg2rad, -60.1*deg2rad,-0.9*deg2rad, 1.*deg2rad, xform, 127,129);
+          CPPUNIT_ASSERT(!dc2.near(p1->directionAxis()));
+          p1->addDirectionAxis(dc2);
+          CPPUNIT_ASSERT(p1->hasDirection());
+          CPPUNIT_ASSERT(dc2.near(p1->directionAxis()));
+          CPPUNIT_ASSERT(!dc.near(p1->directionAxis()));
+          // check I/O
+          LOFAR::BlobString b1(false);
+          LOFAR::BlobOBufString bob(b1);
+          LOFAR::BlobOStream bos(bob);
+          bos << *p1;
+          
+          CPPUNIT_ASSERT(!p2->hasDirection());
+          LOFAR::BlobIBufString bib(b1);
+          LOFAR::BlobIStream bis(bib);
+          bis >> *p2;
+          
+          CPPUNIT_ASSERT(p2->hasDirection());
+          CPPUNIT_ASSERT(dc2.near(p2->directionAxis()));
+          
+          p2->addDirectionAxis(dc);
+          CPPUNIT_ASSERT(!dc2.near(p2->directionAxis()));
+        }
+        
     };
 
   }

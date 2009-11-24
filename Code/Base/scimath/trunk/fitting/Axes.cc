@@ -30,7 +30,11 @@
 #include <casa/aips.h>
 #include <casa/Exceptions/Error.h>
 
+#include <coordinates/Coordinates/Projection.h>
+
+
 #include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <vector>
 #include <string>
@@ -224,6 +228,22 @@ namespace askap
             }
         }
 		
+		/// @brief extract parameters of the direction axis
+        /// @return a const reference to casacore's DirectionCoordinate object
+        const casa::DirectionCoordinate& Axes::directionAxis() const
+        {
+            ASKAPCHECK(hasDirection(), "Direction axis does not exist in this particular Axes object");
+            return *itsDirectionAxis; 
+        }
+		
+		/// @brief add direction axis
+        /// @details This method is reverse to directionAxis. It adds or updates direction 
+        /// coordinate. 
+        /// @param[in] dc direction coordinate
+        void Axes::addDirectionAxis(const casa::DirectionCoordinate &dc)
+		{
+		    itsDirectionAxis.reset(new casa::DirectionCoordinate(dc));
+		}
 
 		std::ostream& operator<<(std::ostream& os, const Axes& axes)
 		{
@@ -235,19 +255,58 @@ namespace askap
 				os << *it << " from " << axes.start(*it) << " to " << axes.end(*it)
 				<< std::endl;
 			}
+			if (axes.hasDirection()) {
+			    const casa::DirectionCoordinate& dir = axes.directionAxis();
+			    casa::MVDirection refval;
+			    ASKAPCHECK(dir.toWorld(refval,dir.referencePixel()), "Malformed direction coordinate - conversion failed");
+			    os <<"Direction axis with increments "<<dir.increment()<<" and reference pixel "<<
+			         dir.referencePixel()<<" at "<<printDirection(refval)<<std::endl;
+			}
 			return os;
 		}
 
+// increment this if there is any change to the stuff written into blob
+#define BLOBVERSION 2
+
 		LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Axes& axes)
-		{
-			os << axes.itsNames << axes.itsStart << axes.itsEnd;
-                        return os;
+		{   
+		    os.putStart("Axes",BLOBVERSION);       
+			os << axes.itsNames << axes.itsStart << axes.itsEnd << axes.hasDirection();
+			if (axes.hasDirection()) {
+			    const casa::DirectionCoordinate& dir = axes.directionAxis();
+			    os<<dir.referenceValue()<<dir.increment()<<dir.linearTransform()<<dir.referencePixel()<<
+			        dir.worldAxisUnits();
+			}
+			os.putEnd();
+            return os;
 		}
 
 		LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, Axes& axes)
 		{
+		    const int version = is.getStart("Axes");
+		    ASKAPCHECK(version == BLOBVERSION, 
+		        "Attempting to read from a blob stream an Axes object of the wrong version, expect "<<
+		        BLOBVERSION<<" got "<<version);
 			is >> axes.itsNames >> axes.itsStart >> axes.itsEnd;
-                        return is;
+			bool hasDirection = false;
+			is >> hasDirection;
+			if (hasDirection) {
+			    casa::Vector<casa::Double> increment, refPix, refVal;
+			    casa::Matrix<casa::Double> xform;
+			    is>>refVal>>increment>>xform>>refPix;
+			    ASKAPCHECK(increment.nelements() == 2, "Direction axis increment should be a vector of size 2");
+			    ASKAPCHECK(refPix.nelements() == 2, "Direction axis reference pixel should be a vector of size 2");
+			    ASKAPCHECK(refVal.nelements() == 2, "Direction axis reference value should be a vector of size 2");
+			    ASKAPCHECK(xform.shape() == casa::IPosition(2,2,2), "Direction axis transform matrix should be 2x2");
+			    casa::DirectionCoordinate dc(casa::MDirection::J2000,casa::Projection(casa::Projection::SIN),
+			             refVal[0],refVal[1], increment[0],increment[1],xform, refPix[0],refPix[1]);
+			    casa::Vector<casa::String> worldAxisUnits;
+			    is>>worldAxisUnits;
+			    dc.setWorldAxisUnits(worldAxisUnits);
+			    axes.addDirectionAxis(dc);
+			}
+			is.getEnd();
+            return is;
 		}
 		
 		

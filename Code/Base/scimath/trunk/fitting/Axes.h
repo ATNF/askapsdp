@@ -7,10 +7,12 @@
 /// Axes imageAxes;
 /// double arcsec=casa::C::pi/(3600.0*180.0);
 /// double cell=5.0*arcsec;
-/// imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0);
-/// imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
+/// imageAxes.add("RA_LIN", -double(npix)*cell/2.0, double(npix)*cell/2.0);
+/// imageAxes.add("DEC_LIN", -double(npix)*cell/2.0, double(npix)*cell/2.0);
 /// imageAxes.add("FREQ", 1e9, 1.2e9);
 /// @endcode
+/// @note Direction axes are handled by casacore's DirectionCoordinate. The example above implies 
+/// the linear axes, rather than sine projection.
 ///
 /// @todo Add tabulated axes
 ///
@@ -52,6 +54,9 @@
 
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
+
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <boost/shared_ptr.hpp>
 
 namespace askap
 {
@@ -95,6 +100,10 @@ namespace askap
       /// @param name Name of axis
       /// @return True if name exists
       bool has(const std::string& name) const;
+      
+      /// @brief check whether direction axis is present
+      /// @return true if direction axis is defined
+      inline bool hasDirection() const { return itsDirectionAxis;}
 
       /// Order of this axis
       /// @param name Name of axis
@@ -131,6 +140,18 @@ namespace askap
       /// @param[in] stokes a vector of stokes enums
       void addStokesAxis(const casa::Vector<casa::Stokes::StokesTypes> &stokes);      
       
+      // operations with direction axis
+      
+      /// @brief extract parameters of the direction axis
+      /// @return a const reference to casacore's DirectionCoordinate object
+      const casa::DirectionCoordinate& directionAxis() const;
+      
+      /// @brief add direction axis
+      /// @details This method is reverse to directionAxis. It adds or updates direction 
+      /// coordinate. 
+      /// @param[in] dc direction coordinate
+      void addDirectionAxis(const casa::DirectionCoordinate &dc);
+      
       /// Output to an ostream
       /// @param os an ostream
       /// @param axes the Axes instance
@@ -152,6 +173,13 @@ namespace askap
       std::vector<std::string> itsNames;
       std::vector<double> itsStart;
       std::vector<double> itsEnd;
+      
+      /// @details Due to projections, we can't represent direction coordinates 
+      /// in the linear way using just start and stop value (the easiest way to
+      /// understand this is to consider what goes on near the poles). This 
+      /// object defines the direction coordinate in the most general way. 
+      /// @note Sine projection is currently always assumed
+      boost::shared_ptr<casa::DirectionCoordinate> itsDirectionAxis;
     };
 
     /// Use Domain as a synonym (for the moment).

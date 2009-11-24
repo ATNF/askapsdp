@@ -448,6 +448,9 @@ namespace askap
 			return itsCounts[name];
 		}
 
+// increment this if there is any change to the stuff written into blob
+#define BLOBVERSION 1
+
 		// These are the items that we need to write to and read from a blob stream
 		// std::map<std::string, casa::Array<double> > itsArrays;
 		// std::map<std::string, Axes> itsAxes;
@@ -456,14 +459,21 @@ namespace askap
 
 		LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par)
 		{
+		    os.putStart("Params",BLOBVERSION);		
 			os << par.itsArrays << par.itsAxes << par.itsFree << par.itsCounts;
-                        return os;
+			os.putEnd();			
+            return os;
 		}
 
 		LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, Params& par)
 		{
+		    const int version = is.getStart("Params");
+		    ASKAPCHECK(version == BLOBVERSION, 
+		        "Attempting to read from a blob stream a Params object of the wrong version, expect "<<
+		        BLOBVERSION<<" got "<<version);		
 			is >> par.itsArrays >> par.itsAxes >> par.itsFree >> par.itsCounts;
-                        return is;
+            is.getEnd();			
+            return is;
 		}
 
 	}
