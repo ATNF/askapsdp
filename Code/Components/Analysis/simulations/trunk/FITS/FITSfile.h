@@ -117,7 +117,7 @@ namespace askap {
                     void saveFile();
 
 		    /// @brief Save the array to a CASA image
-		    void FITSfile::writeCASAimage();
+		    void writeCASAimage();
 
                 protected:
 
