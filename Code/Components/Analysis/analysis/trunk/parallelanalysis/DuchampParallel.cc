@@ -173,7 +173,8 @@ namespace askap {
                     this->itsSubimageDef = SubimageDef(parset);
                 } else if (this->isWorker()) {
                     this->itsSubimageDef = SubimageDef(parset);
-                    this->itsCube.pars().setFlagSubsection(true);
+// 		    this->itsCube.pars().setFlagSubsection(true);
+		      
                 }
             }
 
@@ -333,6 +334,7 @@ namespace askap {
                         if (this->isParallel()) {
                             duchamp::Section subsection = this->itsSubimageDef.section(this->itsRank - 1, this->itsCube.pars().getSubsection());
                             this->itsCube.pars().setSubsection(subsection.getSection());
+			    this->itsCube.pars().setFlagSubsection(true);
                         }
 
                         if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
@@ -343,6 +345,7 @@ namespace askap {
                                               << "About to read data from image " << this->itsCube.pars().getFullImageFile());
                         result = this->itsCube.getCube();
                     } else { // if it's a CASA image
+		      this->itsCube.pars().setFlagSubsection(false); // temporary - casaImageToCube will change this.
                         result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
                     }
 
