@@ -56,41 +56,89 @@ namespace askap { namespace mwbase {
 
   int MPIConnection::getMessageLength()
   {
-    int result = MPI_SUCCESS;
-    MPI_Status status;
-    result = MPI_Probe (itsDestRank, itsTag, MPI_COMM_WORLD, &status);
-    int size;
-    MPI_Get_count (&status, MPI_BYTE, &size);
-    return size;
+    return -1;
   }
 
-  void MPIConnection::receive (void* buf, unsigned size)
+  void MPIConnection::receive(void* buf, size_t size)
   {
-    //cout << "MPI receive " << size << " bytes on rank " << getRank()
-    //     << " from rank " << itsDestRank << ", tag " << itsTag << endl;
-    int result = MPI_SUCCESS;
-    MPI_Status status;
-    result = MPI_Recv (buf, size, MPI_BYTE,
-		       itsDestRank, itsTag, MPI_COMM_WORLD, &status);
+    const unsigned int c_maxint = std::numeric_limits<int>::max();
+    ASKAPCHECK(buf != 0, "MPIConnection::receive() Null buf pointer passed");
+
+    // First receive the size of the payload to be received,
+    // remembering the size parameter passed to this function is
+    // just the maximum size of the buffer, and hence the maximum
+    // number of bytes that can be received.
+    unsigned long payloadSize;
+    int result = MPI_Recv(&payloadSize, 1, MPI_UNSIGNED_LONG,
+            itsDestRank, itsTag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     if (result != MPI_SUCCESS) {
-      ASKAPTHROW (MWError, "MPIConnection::receive on rank " << getRank()
-		   << " failed: " << size << " bytes from rank " << itsDestRank
-		   << " using tag " << itsTag);
+        ASKAPTHROW (MWError, "MPIConnection::receive on rank " << getRank()
+                << " failed: " << size << " bytes from rank " << itsDestRank
+                << " using tag " << itsTag);
     }
+
+    // Receive the smaller of size or payloadSize
+    size_t remaining = (payloadSize > size) ? size : payloadSize;
+
+    while (remaining > 0) {
+        size_t offset = size - remaining;
+        void* addr = addOffset(buf, offset);
+        if (remaining >= c_maxint) {
+            result = MPI_Recv(addr, c_maxint, MPI_BYTE,
+                    itsDestRank, itsTag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            remaining -= c_maxint;
+        } else {
+            result = MPI_Recv(addr, remaining, MPI_BYTE,
+                    itsDestRank, itsTag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            remaining = 0;
+        }
+        if (result != MPI_SUCCESS) {
+            ASKAPTHROW (MWError, "MPIConnection::receive on rank " << getRank()
+                    << " failed: " << size << " bytes from rank " << itsDestRank
+                    << " using tag " << itsTag);
+        }
+    }
+
+    ASKAPCHECK(remaining == 0, "MPIConnection::receive() Didn't receive all data");
   }
 
-  void MPIConnection::send (const void* buf, unsigned size)
+  void MPIConnection::send (const void* buf, size_t size)
   {
-    //cout << "MPI send " << size << " bytes on rank " << getRank()
-    //     << " to rank " << itsDestRank << ", tag " << itsTag << endl;
-    int result = MPI_SUCCESS;
-    result = MPI_Send (const_cast<void*>(buf), size, MPI_BYTE,
-		       itsDestRank, itsTag, MPI_COMM_WORLD);
+    const unsigned int c_maxint = std::numeric_limits<int>::max();
+    ASKAPCHECK(buf != 0, "MPIConnection::send() Null buf pointer passed");
+
+    // First send the size of the buffer.
+    unsigned long lsize = size;  // Promote for simplicity
+    int result = MPI_Send(&lsize, 1, MPI_UNSIGNED_LONG, itsDestRank, itsTag, MPI_COMM_WORLD);
     if (result != MPI_SUCCESS) {
-      ASKAPTHROW (MWError, "MPIConnection::send on rank " << getRank()
-		   << " failed: " << size << " bytes to rank " << itsDestRank
-		   << " using tag " << itsTag);
+        ASKAPTHROW (MWError, "MPIConnection::send on rank " << getRank()
+                << " failed: " << size << " bytes to rank " << itsDestRank
+                << " using tag " << itsTag);
     }
+
+    // Send in chunks of size MAXINT until complete
+    size_t remaining = size;
+    while (remaining > 0) {
+        size_t offset = size - remaining;
+
+        void* addr = addOffset(buf, offset);
+        if (remaining >= c_maxint) {
+            result = MPI_Send(addr, c_maxint, MPI_BYTE,
+                    itsDestRank, itsTag, MPI_COMM_WORLD);
+            remaining -= c_maxint;
+        } else {
+            result = MPI_Send(addr, remaining, MPI_BYTE,
+                    itsDestRank, itsTag, MPI_COMM_WORLD);
+            remaining = 0;
+        }
+        if (result != MPI_SUCCESS) {
+            ASKAPTHROW (MWError, "MPIConnection::send on rank " << getRank()
+                    << " failed: " << size << " bytes to rank " << itsDestRank
+                    << " using tag " << itsTag);
+        }
+    }
+
+    ASKAPCHECK(remaining == 0, "MPIConnection::send() Didn't send all data");
   }
 
   bool MPIConnection::isConnected() const
@@ -149,13 +197,13 @@ namespace askap { namespace mwbase {
 		 "configured without MPI");
   }
 
-  void MPIConnection::receive (void*, unsigned)
+  void MPIConnection::receive (void*, size_t)
   {
     ASKAPTHROW (MWError, "MPIConnection::receive cannot be used: "
 		 "configured without MPI");
   }
 
-  void MPIConnection::send (const void*, unsigned)
+  void MPIConnection::send (const void*, size_t)
   {
     ASKAPTHROW (MWError, "MPIConnection::send cannot be used: "
 		 "configured without MPI");
@@ -192,6 +240,14 @@ namespace askap { namespace mwbase {
 
 
 #endif
+
+  void* MPIConnection::addOffset(const void *ptr, size_t offset)
+  {
+      char *cptr = static_cast<char*>(const_cast<void*>(ptr));
+      cptr += offset;
+
+      return cptr;
+  }
 
 
 }} // end namespaces

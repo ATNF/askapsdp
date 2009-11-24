@@ -30,6 +30,7 @@
 #ifndef ASKAP_MWCOMMON_MWCONNECTION_H
 #define ASKAP_MWCOMMON_MWCONNECTION_H
 
+#include <unistd.h>
 #include <boost/shared_ptr.hpp>
 
 //# Forward Declarations
@@ -107,11 +108,11 @@ namespace askap { namespace mwbase {
 
     /// Receive the given amount of data in the buffer.
     /// and wait until data has been received into buf.
-    virtual void receive (void* buf, unsigned size) = 0;
+    virtual void receive (void* buf, size_t size) = 0;
 
     /// Send the fixed sized data to the connected MWConnection
     /// and wait until the data has been sent.
-    virtual void send (const void* buf, unsigned size) = 0;
+    virtual void send (const void* buf, size_t size) = 0;
   };
 
 }} /// end namespaces

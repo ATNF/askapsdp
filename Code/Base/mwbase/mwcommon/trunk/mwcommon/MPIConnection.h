@@ -32,11 +32,11 @@
 
 // System includes
 #include <string>
+#include <unistd.h>
 
 // ASKAPsoft includes
 #include <mwcommon/MWConnection.h>
 #include <boost/shared_ptr.hpp>
-
 
 namespace askap { namespace mwbase {
 
@@ -77,11 +77,11 @@ namespace askap { namespace mwbase {
 
     /// Receive the data sent by the destination
     /// and wait until data has been received into buf.
-    virtual void receive (void* buf, unsigned size);
+    virtual void receive (void* buf, size_t size);
 
     /// Send the data to the destination
     /// and wait until the data has been sent.
-    virtual void send (const void* buf, unsigned size);
+    virtual void send (const void* buf, size_t size);
 
     /// Functions to access MPI.
     /// If no MPI available, getRank returns 0 and getNrNodes returns 1.
@@ -95,6 +95,9 @@ namespace askap { namespace mwbase {
     /// @}
 
   private:
+    // Add a byte offset to the  specified pointer, returning the result
+    void* addOffset(const void *ptr, size_t offset);
+
     int itsDestRank;
     int itsTag;
   };

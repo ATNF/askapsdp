@@ -60,7 +60,7 @@ namespace askap { namespace mwbase {
     return -1;
   }
 
-  void SocketConnection::receive (void* buf, unsigned size)
+  void SocketConnection::receive (void* buf, size_t size)
   {
     if (!itsDataSocket) {
       init();
@@ -75,7 +75,7 @@ namespace askap { namespace mwbase {
     }
   }
 
-  void SocketConnection::send (const void* buf, unsigned size)
+  void SocketConnection::send (const void* buf, size_t size)
   {
     if (!itsDataSocket) {
       init();

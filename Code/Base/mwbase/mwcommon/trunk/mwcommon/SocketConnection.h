@@ -79,11 +79,11 @@ namespace askap { namespace mwbase {
 
     /// Receive the data sent by the destination
     /// and wait until data has been received into buf.
-    virtual void receive (void* buf, unsigned size);
+    virtual void receive (void* buf, size_t size);
 
     /// Send the data to the destination
     /// and wait until the data has been sent.
-    virtual void send (const void* buf, unsigned size);
+    virtual void send (const void* buf, size_t size);
 
     /// Get the name of the host this process is running on.
     /// If sockets are not supported (e.g. Cray), it returns an empty string.

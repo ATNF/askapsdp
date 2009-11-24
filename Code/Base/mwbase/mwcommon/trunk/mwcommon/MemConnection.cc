@@ -45,7 +45,7 @@ namespace askap { namespace mwbase {
     return itsResult.size();
   }
 
-  void MemConnection::receive (void* buf, unsigned size)
+  void MemConnection::receive (void* buf, size_t size)
   {
     ASKAPASSERT (itsResult.size() == size);
     memcpy (buf, itsResult.data(), size);
@@ -62,7 +62,7 @@ namespace askap { namespace mwbase {
     itsWorker->handleMessage (data, itsResult);
   }
 
-  void MemConnection::send (const void*, unsigned)
+  void MemConnection::send (const void*, size_t)
   {
     ASKAPTHROW (MWError, "MemConnection::send should not be called");
   }

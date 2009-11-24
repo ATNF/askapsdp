@@ -30,6 +30,10 @@
 #ifndef ASKAP_MWCOMMON_MEMCONNECTION_H
 #define ASKAP_MWCOMMON_MEMCONNECTION_H
 
+// System includes
+#include <unistd.h>
+
+// ASKAPsoft includes
 #include <mwcommon/MWConnection.h>
 #include <mwcommon/WorkerProxy.h>
 #include <Blob/BlobString.h>
@@ -71,7 +75,7 @@ namespace askap { namespace mwbase {
 
     /// Receive the data (i.e. the result of a worker from \a itsResult).
     /// The \a itsResult buffer is cleared hereafter.
-    virtual void receive (void* buf, unsigned size);
+    virtual void receive (void* buf, size_t size);
 
     /// Write the data and process it by the worker.
     /// The result is stored in \a itsResult.
@@ -79,7 +83,7 @@ namespace askap { namespace mwbase {
 
   private:
     /// This function cannot be called as \a write is implemented.
-    virtual void send (const void* buf, unsigned size);
+    virtual void send (const void* buf, size_t size);
 
     WorkerProxy::ShPtr itsWorker;
     LOFAR::BlobString  itsResult;

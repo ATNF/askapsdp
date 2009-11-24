@@ -33,39 +33,32 @@
 
 namespace askap { namespace mwbase {
 
-  MWConnection::~MWConnection()
-  {}
+    MWConnection::~MWConnection()
+    {}
 
-  void MWConnection::init()
-  {}
+    void MWConnection::init()
+    {}
 
-  bool MWConnection::isConnected() const
-  {
-    return true;
-  }
-
-  void MWConnection::read (LOFAR::BlobString& buf)
-  {
-    // Try to get the length of the message.
-    // If it succeeds, read the data.
-    int msgLen = getMessageLength();
-    if (msgLen > 0) {
-      buf.resize (msgLen);
-      receive (buf.data(), msgLen);
-    } else {
-      // Otherwise read blob header first to get the length.
-      LOFAR::BlobHeader hdr;
-      receive (&hdr, sizeof(hdr));
-      msgLen = hdr.getLength();
-      buf.resize (msgLen);
-      memcpy (buf.data(), &hdr, sizeof(hdr));
-      receive (buf.data() + sizeof(hdr), msgLen-sizeof(hdr));
+    bool MWConnection::isConnected() const
+    {
+        return true;
     }
-  }
 
-  void MWConnection::write (const LOFAR::BlobString& buf)
-  {
-    send (buf.data(), buf.size());
-  }
+    void MWConnection::read (LOFAR::BlobString& buf)
+    {
+        unsigned long size = 0;
+        receive(&size, sizeof(unsigned long));
+
+        buf.resize(size);
+        receive(buf.data(), size);
+    }
+
+    void MWConnection::write (const LOFAR::BlobString& buf)
+    {
+        // First send the length of the message
+        const unsigned long size = buf.size();
+        send(&size, sizeof(unsigned long));
+        send(buf.data(), size);
+    }
 
 }} // end namespaces
