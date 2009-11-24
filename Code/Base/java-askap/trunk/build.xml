@@ -5,7 +5,7 @@
     <fileset id="slice.files" dir="${dep_interfaces}">
         <include name="CommonTypes.ice" />
         <include name="LoggingService.ice" />
-        <include name="TypedValueMapPublisher.ice" />
+        <include name="TypedValues.ice" />
     </fileset>
 
     <!-- Read in the environment so $ASKAP_ROOT can be used -->

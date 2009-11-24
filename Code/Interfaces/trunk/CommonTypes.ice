@@ -72,65 +72,6 @@ module interfaces
     sequence<string> StringSeq;
 
     /**
-     * Enum to represent data types.
-     **/
-    enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBoolean};
-    
-    /**
-     * Base class for typed data types.
-     **/
-    class TypedValue { 
-        TypedValueType type;
-    };
-    
-    /**
-     * Class for a float type.
-     **/
-    class TypedValueFloat extends TypedValue {
-        float value;
-    };
-    
-    /**
-     * Class for a double precision float type.
-     **/
-    class TypedValueDouble extends TypedValue {
-        double value;
-    };
-    
-    /**
-     * Class for an integer type.
-     **/ 
-    class TypedValueInt extends TypedValue {
-        int value;
-    };
-    
-    /**
-     * Class for a long integer type.
-     **/
-    class TypedValueLong extends TypedValue {
-        long value;
-    };
-    
-    /**
-     * Class for a string type.
-     **/
-    class TypedValueString extends TypedValue {
-        string value;
-    };
-    
-    /**
-     * Class for a boolean type.
-     **/
-    class TypedValueBoolean extends TypedValue {
-        bool value;
-    };
-    
-    /**
-     * Dictionary of typed data.
-     **/
-    dictionary <string,TypedValue> TypedValueMap;
-
-    /**
      * A single-precision complex number.
      **/
     struct FloatComplex{
