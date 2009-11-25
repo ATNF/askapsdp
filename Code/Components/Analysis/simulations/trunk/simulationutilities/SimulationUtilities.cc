@@ -99,10 +99,10 @@ namespace askap {
 
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), subsection.getStart(0));
-            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), subsection.getEnd(0));
-            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), subsection.getStart(1));
-            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), subsection.getEnd(1));
+            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
+            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), axes[0]);
+            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
+            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), axes[1]);
 
             ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin=" << xmin << ", xmax=" << xmax << ", ymin=" << ymin << ", ymax=" << ymax << " ... using subsection " << subsection.getSection() << " with [start:end]=[" << subsection.getStart(0) << ":" << subsection.getEnd(0) << "," << subsection.getStart(1) << ":" << subsection.getEnd(1) << "], and gaussian at [" << gauss.xCenter() << "," << gauss.yCenter() << "]");
 
@@ -196,20 +196,21 @@ namespace askap {
             /// @param pix The coordinates of the point source
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
-            int xmin = subsection.getStart(0);
-            int ymin = subsection.getStart(1);
-            int xmax = subsection.getEnd(0);
-            int ymax = subsection.getEnd(1);
 
-            ASKAPLOG_DEBUG_STR(logger, "Adding Point Source... xmin=" << xmin << ", xmax=" << xmax << ", ymin=" << ymin << ", ymax=" << ymax);
+	    if (pix[0] >= 0 && pix[0] <= axes[0] && pix[1] >= 0 && pix[1] <= axes[1]) {
 
-            for (int z = 0 ; z < fluxGen.nChan(); z++) {
+	      ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x="<<pix[0]<<" & y="<<pix[1]
+				 <<"  ...  xmin=" << subsection.getStart(0); << ", xmax=" << subsection.getEnd(0)
+				 << ", ymin=" << subsection.getStart(1) << ", ymax=" << subsection.getEnd(1) 
+				 <<  ",   Subsection="<<subsection.getSection() << "   axes = ["<<axes[0] << ","<<axes[1]<<"]");
 
-                int loc = int(pix[0]) + axes[0] * int(pix[1]) + z * axes[0] * axes[1];
+	      for (int z = 0 ; z < fluxGen.nChan(); z++) {
 
-                if (pix[0] >= xmin && pix[0] <= xmax && pix[1] >= ymin && pix[1] <= ymax) {
-                    array[loc] += fluxGen.getFlux(z);
-                }
+		int loc = int(pix[0]-subsection.getStart(0)) + axes[0] * int(pix[1]-subsection.getStart(1)) + z * axes[0] * axes[1];
+		
+		array[loc] += fluxGen.getFlux(z);
+
+	      }
 
             }
 

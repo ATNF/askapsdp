@@ -273,16 +273,25 @@ namespace askap {
 
                 this->itsDim = parset.getInt32("dim", 2);
                 this->itsAxes = parset.getInt32Vector("axes");
-                this->itsSourceSection.setSection(duchamp::nullSection(this->itsDim));
+		std::string sectionString = parset.getString("subsection",duchamp::nullSection(this->itsDim));
+		this->itsSourceSection.setSection(sectionString);
                 this->itsSourceSection.parse(this->itsAxes);
 
                 if (this->itsAxes.size() != this->itsDim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
                                    << ", but axes has " << this->itsAxes.size() << " dimensions.");
+		for(int i=0;i<this->itsDim;i++)
+		  this->itsAxes[i] = this->itsSourceSection.getDim(i);
 
+		std::stringstream ss;
                 this->itsNumPix = this->itsAxes[0];
+		ss << this->itsAxes[0];
 
-                for (uint i = 1; i < this->itsDim; i++) this->itsNumPix *= this->itsAxes[i];
+                for (uint i = 1; i < this->itsDim; i++){
+		  this->itsNumPix *= this->itsAxes[i];
+		  ss << "x" << this->itsAxes[i];
+		}
+		ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str());
 
                 this->itsArray = new float[this->itsNumPix];
                 this->itsArrayAllocated = true;
@@ -371,7 +380,7 @@ namespace askap {
                                ", but crota has " << crota.size() << " dimensions.");
 
                 for (uint i = 0; i < this->itsDim; i++) {
-                    wcs->crpix[i] = crpix[i];
+		    wcs->crpix[i] = crpix[i] - this->itsSourceSection.getStart(i);
                     wcs->cdelt[i] = cdelt[i];
                     wcs->crval[i] = crval[i];
                     wcs->crota[i] = crota[i];
@@ -470,7 +479,7 @@ namespace askap {
                             !srclist.eof()) {
 
                         if (line[0] != '#') {  // ignore commented lines
-
+			  ASKAPLOG_DEBUG_STR(logger, line);
                             Continuum cont;
                             HIprofileS3SEX profSEX;
                             HIprofileS3SAX profSAX;

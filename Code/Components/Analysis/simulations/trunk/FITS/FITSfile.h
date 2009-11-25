@@ -91,8 +91,10 @@ namespace askap {
                     /// @{
                     float array(int pos) {return itsArray[pos];};
                     float array(int x, int y) {return itsArray[x+itsAxes[0]*y];};
+                    float array(int x, int y, int z) {return itsArray[x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]];};
                     void setArray(int pos, float val) {itsArray[pos] = val;};
                     void setArray(int x, int y, float val) {itsArray[x+itsAxes[0]*y] = val;};
+		    void setArray(int x, int y, int z, float val) {itsArray[x+itsAxes[0]*y+itsAxes[0]*itsAxes[1]*z] = val;};
                     /// @}
                     /// @brief Get the vector of axis dimensions
                     std::vector<int> getAxes() {return itsAxes;};
@@ -100,6 +102,8 @@ namespace askap {
                     int getXdim() {return itsAxes[itsWCS->lng];};
                     /// @brief Get the size of the Y-axis
                     int getYdim() {return itsAxes[itsWCS->lat];};
+                    /// @brief Get the size of the Z-axis
+                    int getZdim() {return itsAxes[itsWCS->spec];};
 
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();

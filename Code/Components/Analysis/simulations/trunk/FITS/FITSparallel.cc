@@ -96,11 +96,13 @@ namespace askap {
                     ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << " has offsets (" << this->itsSubsection.getStart(0) << "," << this->itsSubsection.getStart(1)
                                            << ") and dimensions " << this->itsSubsection.getDim(0) << "x" << this->itsSubsection.getDim(1));
 
+		    // Update the subsection parameter to the appropriate string for this worker
+		    newparset.replace("subsection",this->itsSubsection.getSection());
+
                 } else {
                     this->itsSubsection.setSection(duchamp::nullSection(dim));
                     this->itsSubsection.parse(axes);
                 }
-
 
                 // For the parallel version only, one the first worker
                 // should write an outputlist. This is done here because
@@ -113,7 +115,6 @@ namespace askap {
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
                 this->itsFITSfile = FITSfile(newparset);
                 ASKAPLOG_DEBUG_STR(logger, "Defined");
-                this->itsFITSfile.setSection(this->itsSubsection);
 
                 ASKAPLOG_DEBUG_STR(logger, "Finished defining FITSparallel");
 
@@ -140,16 +141,19 @@ namespace askap {
                         LOFAR::BlobOBufString bob(bs);
                         LOFAR::BlobOStream out(bob);
                         out.putStart("pixW2M", 1);
-                        out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1);
+                        out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(2) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1) << this->itsSubsection.getEnd(2);
                         ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1));
 
-                        for (int y = this->itsSubsection.getStart(1); y <= this->itsSubsection.getEnd(1); y++) {
-                            for (int x = this->itsSubsection.getStart(0); x <= this->itsSubsection.getEnd(0); x++) {
-//      for(int y=0;y<this->itsFITSfile.getYdim();y++){
-//        for(int x=0;x<this->itsFITSfile.getXdim();x++){
-                                out << x << y << this->itsFITSfile.array(x, y);
+//                         for (int y = this->itsSubsection.getStart(1); y <= this->itsSubsection.getEnd(1); y++) {
+//                             for (int x = this->itsSubsection.getStart(0); x <= this->itsSubsection.getEnd(0); x++) {
+			for(int z=0;z<this->itsFITSfile.getZdim();z++){
+			  for(int y=0;y<this->itsFITSfile.getYdim();y++){
+			    for(int x=0;x<this->itsFITSfile.getXdim();x++){
+			      //                                out << x << y << this->itsFITSfile.array(x, y);
+			      out << x+this->itsSubsection.getStart(0) << y+this->itsSubsection.getStart(1) << z+this->itsSubsection.getStart(2) << this->itsFITSfile.array(x, y, z);
                             }
-                        }
+			  }
+			}
 
                         out.putEnd();
                         this->itsConnectionSet->write(0, bs);
@@ -165,22 +169,23 @@ namespace askap {
                             LOFAR::BlobIStream in(bib);
                             int version = in.getStart("pixW2M");
                             ASKAPASSERT(version == 1);
-                            int xmin, ymin, xmax, ymax;
-                            in >> xmin >> ymin >> xmax >> ymax;
-                            ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin);
-
+                            int xmin, ymin, zmin, xmax, ymax, zmax;
+                            in >> xmin >> ymin >> zmin >> xmax >> ymax >> zmax;
+                            ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin << " and " << zmin);
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << (xmax - xmin + 1)*(ymax - ymin + 1)*(zmax - zmin + 1) << " pixels");
 //        for(int y=ymin;y<=ymax;y++){
 //      for(int x=xmin;x<=xmax;x++){
 //        for(int y=0;y<this->itsFITSfile.getYdim();y++){
 //      for(int x=0;x<this->itsFITSfile.getXdim();x++){
-                            for (int pix = 0; pix < (xmax - xmin + 1)*(ymax - ymin + 1); pix++) {
-                                int xpt, ypt;
+                            for (int pix = 0; pix < (xmax - xmin + 1)*(ymax - ymin + 1)*(zmax - zmin + 1); pix++) {
+			      int xpt, ypt, zpt;
                                 float flux;
-                                in >> xpt >> ypt >> flux;
+                                in >> xpt >> ypt >> zpt >> flux;
                                 ASKAPASSERT(xpt == (xmin + pix % (xmax - xmin + 1)));
                                 ASKAPASSERT(ypt == (ymin + pix / (xmax - xmin + 1)));
-                                flux += this->itsFITSfile.array(xpt, ypt);
-                                this->itsFITSfile.setArray(xpt, ypt, flux);
+                                ASKAPASSERT(zpt == (zmin + pix / ((xmax - xmin + 1)*(ymax - ymin + 1))));
+				flux += this->itsFITSfile.array(xpt, ypt, zpt);
+                                this->itsFITSfile.setArray(xpt, ypt, zpt, flux);
 //      }
                             }
 
