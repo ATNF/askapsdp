@@ -67,14 +67,21 @@ namespace askap
 				itsNames=other.itsNames;
 				itsStart=other.itsStart;
 				itsEnd=other.itsEnd;
+				itsDirectionAxis.reset();
+				if (other.hasDirection()) {
+				   itsDirectionAxis.reset(new casa::DirectionCoordinate(other.directionAxis()));
+				} 
 			}
 			return *this;
 		}
 
 		/// Copy constructor
-		Axes::Axes(const Axes& other)
+		Axes::Axes(const Axes& other) : itsNames(other.itsNames), itsStart(other.itsStart),
+		       itsEnd(other.itsEnd)
 		{
-			operator=(other);
+            if (other.hasDirection()) {
+                itsDirectionAxis.reset(new casa::DirectionCoordinate(other.directionAxis()));
+            }
 		}
 
 		Axes::~Axes()

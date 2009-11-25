@@ -206,6 +206,22 @@ namespace askap
           
           p2->addDirectionAxis(dc);
           CPPUNIT_ASSERT(!dc2.near(p2->directionAxis()));
+          
+          // test copy of the direction axis
+          Axes newAxes(*p2);
+          CPPUNIT_ASSERT(newAxes.hasDirection());
+          CPPUNIT_ASSERT(dc.near(newAxes.directionAxis()));
+          // check that there is no referencing
+          p2->addDirectionAxis(dc2);
+          CPPUNIT_ASSERT(dc.near(newAxes.directionAxis()));
+          // test assignment
+          CPPUNIT_ASSERT(!p3->hasDirection());
+          *p3 = newAxes;
+          CPPUNIT_ASSERT(p3->hasDirection());
+          CPPUNIT_ASSERT(dc.near(p3->directionAxis()));
+          // check that there is no referencing
+          newAxes.addDirectionAxis(dc2);
+          CPPUNIT_ASSERT(dc.near(p3->directionAxis()));          
         }
         
     };
