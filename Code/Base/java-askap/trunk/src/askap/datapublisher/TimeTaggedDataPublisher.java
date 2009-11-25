@@ -24,22 +24,23 @@ import java.util.Map;
 import java.util.HashMap;
 import IceStorm.*;
 import Ice.Communicator;
+import atnf.atoms.time.AbsTime;
 import askap.interfaces.*;
 import askap.interfaces.datapublisher.*;
 
 /**
- * Class for publishing data on a TypedValueMapPublisher IceStorm Topic.
+ * Class for publishing data on a TimeTaggedTypedValueMapPublisher IceStorm Topic.
  * 
  * @author David Brodrick
  */
-public class DataPublisher extends DataPublisherBase {
+public class TimeTaggedDataPublisher extends DataPublisherBase {
   /** The actual interface for publishing data. */
-  protected ITypedValueMapPublisherPrx itsPublisher = null;
+  protected ITimeTaggedTypedValueMapPublisherPrx itsPublisher = null;
 
   /**
    * Constructor.
    */
-  public DataPublisher() {
+  public TimeTaggedDataPublisher() {
   }
 
   /**
@@ -47,7 +48,7 @@ public class DataPublisher extends DataPublisherBase {
    * 
    * @param topic The name of the IceStorm topic to publish data to.
    */
-  public DataPublisher(String topic) {
+  public TimeTaggedDataPublisher(String topic) {
     setTopicName(topic);
   }
 
@@ -57,7 +58,7 @@ public class DataPublisher extends DataPublisherBase {
    * @param topic The name of the IceStorm topic to publish data to.
    * @param comm The Ice Communicator used for communications.
    */
-  public DataPublisher(String topic, Communicator comm) {
+  public TimeTaggedDataPublisher(String topic, Communicator comm) {
     setTopicName(topic);
     setCommunicator(comm);
   }
@@ -69,7 +70,7 @@ public class DataPublisher extends DataPublisherBase {
    * @param host The name of the host where the locator service is running.
    * @param port The port where the locator service is running.
    */
-  public DataPublisher(String topic, String host, int port) {
+  public TimeTaggedDataPublisher(String topic, String host, int port) {
     setTopicName(topic);
     setLocator(host, port);
   }
@@ -119,7 +120,7 @@ public class DataPublisher extends DataPublisherBase {
       }
 
       Ice.ObjectPrx pub = itsTopic.getPublisher().ice_oneway();
-      itsPublisher = ITypedValueMapPublisherPrxHelper.uncheckedCast(pub);
+      itsPublisher = ITimeTaggedTypedValueMapPublisherPrxHelper.uncheckedCast(pub);
     } catch (Exception e) {
       disconnect();
       throw e;
@@ -129,12 +130,13 @@ public class DataPublisher extends DataPublisherBase {
   /**
    * Publish the given data.
    * 
+   * @param timestamp The timestamp to be applied to the data.
    * @param data The data to be published.
    * @throws IllegalArgumentException Thrown if the argument contains data which cannot be
    * published.
    * @throws NotConnectedException Thrown if we couldn't connect to the IceStorm Topic.
    */
-  public void publish(Map<String, Object> data) throws IllegalArgumentException, NotConnectedException {
+  public void publish(AbsTime timestamp, Map<String, Object> data) throws IllegalArgumentException, NotConnectedException {
     // Convert the data to typed values
     Map<String, TypedValue> typeddata = TypedValueUtils.objectMap2TypedValueMap(data);
 
@@ -146,7 +148,10 @@ public class DataPublisher extends DataPublisherBase {
 
       if (isConnected()) {
         // Publish the data via IceStorm
-        itsPublisher.publish(typeddata);
+        TimeTaggedTypedValueMap pubdata = new TimeTaggedTypedValueMap();
+        pubdata.timestamp = timestamp.getValue();
+        pubdata.data = typeddata;
+        itsPublisher.publish(pubdata);
       } else {
         throw new NotConnectedException();
       }
@@ -163,11 +168,12 @@ public class DataPublisher extends DataPublisherBase {
       System.err.println("Needs three arguments: topicname hostname portnum");
       System.exit(1);
     }
-    DataPublisher dp = new DataPublisher(args[0], args[1], Integer.parseInt(args[2]));
+    TimeTaggedDataPublisher dp = new TimeTaggedDataPublisher(args[0], args[1], Integer.parseInt(args[2]));
+
     try {
-      dp.publish(new HashMap<String, Object>());
+      dp.publish(new AbsTime(), new HashMap<String, Object>());
     } catch (Exception e) {
-      System.err.println("DataPublisher.main: " + e);
+      System.err.println("TimeTaggedDataPublisher.main: " + e);
     }
     System.exit(0);
   }

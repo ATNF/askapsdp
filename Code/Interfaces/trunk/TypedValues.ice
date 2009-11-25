@@ -89,6 +89,16 @@ module interfaces
      **/
     dictionary <string,TypedValue> TypedValueMap;
     
+    /**
+     * Time-tagged dictionary of typed data.
+     *
+     * Timestamp is a Binary Atomic Time representing microseconds since
+     * Modified Julian Date zero.
+     */
+    struct TimeTaggedTypedValueMap {
+        long timestamp;
+        TypedValueMap data;
+    };
     
     module datapublisher
     {
@@ -100,6 +110,17 @@ module interfaces
              * Publish a new map of named typed values.
              **/
              void publish(TypedValueMap values);
+        };
+
+
+        /**
+         * Interface for a publisher of time-tagged named typed values.
+         **/
+        interface ITimeTaggedTypedValueMapPublisher {
+            /**
+             * Publish a new map of named typed values.
+             **/
+             void publish(TimeTaggedTypedValueMap values);
         };
     };
 };
