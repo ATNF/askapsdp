@@ -120,11 +120,12 @@ namespace askap
     void WStackVisGridder::initialiseGrid(const scimath::Axes& axes,
         const casa::IPosition& shape, const bool dopsf)
     {
-      initialiseCellSize(axes);
       itsShape=shape;
       ASKAPDEBUGASSERT(shape.nelements()>=2);
       itsShape(0) *= paddingFactor();
       itsShape(1) *= paddingFactor();
+
+      initialiseCellSize(axes);
       
       initStokes();
       configureForPSF(dopsf);
@@ -244,10 +245,10 @@ namespace askap
     void WStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
         const casa::Array<double>& in)
     {
-      initialiseCellSize(axes);
       itsShape = scimath::PaddingUtils::paddedShape(in.shape(),paddingFactor());
       configureForPSF(false);
 
+      initialiseCellSize(axes);
       initStokes();
   
       initialiseFreqMapping();      

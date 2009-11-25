@@ -531,6 +531,18 @@ void TableVisGridder::grid(IConstDataAccessor& acc) {
 /// @return direction measure corresponding to the image centre
 casa::MVDirection TableVisGridder::getImageCentre() const
 {
+   if (itsAxes.hasDirection()) {
+       casa::MDirection out;
+       casa::Vector<casa::Double> centrePixel(2);
+       ASKAPDEBUGASSERT(itsShape.nelements()>=2);
+       for (size_t dim=0; dim<2; ++dim) {
+            centrePixel[dim] = double(itsShape[dim])/2.;
+       }
+       ASKAPCHECK(itsAxes.directionAxis().toWorld(out, centrePixel), 
+            "Unable to obtain world coordinates for the centre of the image. Something is wrong with the coordinate system");
+       return out.getValue();
+   }
+   // old code still works for the time being (to keep faceting "working" until the appropriate code is converted)
    casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
    casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
    casa::MVDirection out(refLon, refLat);
@@ -545,6 +557,14 @@ casa::MVDirection TableVisGridder::getImageCentre() const
 /// @return direction measure corresponding to the tangent point
 casa::MVDirection TableVisGridder::getTangentPoint() const
 {
+   if (itsAxes.hasDirection()) {
+       const casa::Vector<casa::Double> refVal(itsAxes.directionAxis().referenceValue());
+       ASKAPDEBUGASSERT(refVal.nelements() == 2);
+       const casa::Quantum<double> refLon(refVal[0], "rad");
+       const casa::Quantum<double> refLat(refVal[1], "rad");
+       const casa::MVDirection out(refLon, refLat);
+       return out;
+   }
    ASKAPCHECK(itsAxes.has("RA-TANGENT") == itsAxes.has("DEC-TANGENT"), 
        "Either both RA and DEC have to be defined for a tangent point or none of them");
    if (itsAxes.has("RA-TANGENT")) {
@@ -647,11 +667,12 @@ void TableVisGridder::initStokes()
 
 void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		const casa::IPosition& shape, const bool dopsf) {
-	initialiseCellSize(axes);
 	itsShape=shape;
 	ASKAPDEBUGASSERT(shape.nelements()>=2);
 	itsShape(0) *= itsPaddingFactor;
 	itsShape(1) *= itsPaddingFactor;
+
+	initialiseCellSize(axes);
 	
 	initStokes();
 		
@@ -683,6 +704,17 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 void TableVisGridder::initialiseCellSize(const scimath::Axes& axes)
 {
     itsAxes=axes;
+    if (itsAxes.hasDirection()) {
+        casa::Vector<casa::Double> increments = itsAxes.directionAxis().increment();
+        ASKAPCHECK(increments.nelements() == 2, "Expect 2 elements in the increment vector, you have "<<increments);
+        itsUVCellSize.resize(2);
+        ASKAPDEBUGASSERT(itsShape.nelements()>=2);
+        for (size_t dim = 0; dim<2; ++dim) {
+             itsUVCellSize[dim] = 1./(increments[dim]*double(itsShape[dim]*itsPaddingFactor));
+        }
+    } else {
+    // old code still works for the time being (for facets)
+    
 	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
 			"RA and DEC specification not present in axes");
 
@@ -700,6 +732,7 @@ void TableVisGridder::initialiseCellSize(const scimath::Axes& axes)
 	itsUVCellSize.resize(2);
 	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)/cosdec;
 	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);	
+	}
 }
 
 
@@ -800,9 +833,9 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
     configureForPSF(false);
-	initialiseCellSize(axes);
 	itsShape = scimath::PaddingUtils::paddedShape(in.shape(),itsPaddingFactor);
 
+	initialiseCellSize(axes);
     initStokes();
 
     initialiseFreqMapping();

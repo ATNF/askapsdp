@@ -257,18 +257,21 @@ namespace askap
             
       const double ra = convertQuantity(direction[0],"rad");
       const double dec = convertQuantity(direction[1],"rad");
-      
-      const double cosdec = cos(dec);
-      ASKAPCHECK(cosdec>0, "Cosine of declination is supposed to be positive");
-      
-      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad")/cosdec;
+            
+      const double xcellsize =-1.0*convertQuantity(cellsize[0],"rad");
       const double ycellsize = convertQuantity(cellsize[1],"rad");
       
       /// @todo Do something with the frame info in direction[2]
       Axes axes;
+      /*
       axes.add("RA", ra-nx*xcellsize/2.0, ra+nx*xcellsize/2.0);
       axes.add("DEC", dec-ny*ycellsize/2.0, dec+ny*ycellsize/2.0);
-            
+      */
+      casa::Matrix<double> xform(2,2,0.);
+      xform.diagonal() = 1.;
+      axes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
+                  casa::Projection(casa::Projection::SIN), ra,dec,xcellsize,ycellsize,xform,nx/2,ny/2));
+          
       axes.addStokesAxis(stokes);
       
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));
@@ -754,13 +757,13 @@ namespace askap
       Axes axes;
       /// First do the direction
       int whichDir=imageCoords.findCoordinate(Coordinate::DIRECTION);
-      ASKAPCHECK(whichDir>-1, "No direction coordinate present in model");
+      ASKAPCHECK(whichDir>-1, "No direction coordinate present in the image "<<imagename);
       casa::DirectionCoordinate radec(imageCoords.directionCoordinate(whichDir));
       casa::Vector<casa::Int> axesDir = imageCoords.pixelAxes(whichDir);
       ASKAPCHECK(axesDir.nelements() == 2, "Direction axis "<<whichDir<<
                  " is expected to correspond to just two pixel axes, you have "<<axesDir);
       ASKAPCHECK((axesDir[0] == 0) && (axesDir[1] == 1), 
-               "Presently we support only images with first axes being the direction pixel axes, image "<<name<<
+               "At present we support only images with first axes being the direction pixel axes, image "<<name<<
                " has "<< axesDir);  
       
       casa::Vector<casa::String> units(2);
@@ -768,18 +771,6 @@ namespace askap
       radec.setWorldAxisUnits(units);
       
       /*
-      casa::Vector<double> refPix(radec.referencePixel());
-      casa::Vector<double> refInc(radec.increment());
-      casa::Vector<double> refValue(radec.referenceValue());
-      
-      casa::Vector<double> start(2);
-      casa::Vector<double> end(2);
-      
-      for (int i=0;i<2;++i) {
-	     start(i)=refValue(i)-refInc(i)*(refPix(i));
-	     end(i)=refValue(i)+refInc(i)*(double(imagePixels.shape()(i))-refPix(i));
-	  }
-	  */
 	  casa::Vector<double> start(2);
       casa::Vector<double> end(2);
       casa::Vector<double> pixelbuf(2);
@@ -798,7 +789,9 @@ namespace askap
       pixelbuf(1)=imagePixels.shape()[1]-1;
       ASKAPCHECK(radec.toWorld(end,pixelbuf), "Pixel to world conversion error: "<<radec.errorMessage());      
       axes.add("DEC", start(1), end(1));
-                  
+      */
+      axes.addDirectionAxis(radec);
+                
       int whichStokes = imageCoords.findCoordinate(Coordinate::STOKES);
       int nPol = 1;
       if (whichStokes<0) {
@@ -925,6 +918,10 @@ namespace askap
 					       const string& name)
     {
       const Axes axes(ip.axes(name));
+      if (axes.hasDirection()) {
+          return axes.directionAxis();
+      }
+      // old code would still work if no direction coordinate is defined
       ASKAPCHECK(axes.has("RA-TANGENT") == axes.has("DEC-TANGENT"), 
           "Either both RA and DEC have to be defined for a tangent point or none of them");
       
