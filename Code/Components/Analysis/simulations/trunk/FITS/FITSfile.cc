@@ -280,7 +280,7 @@ namespace askap {
                 if (this->itsAxes.size() != this->itsDim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
                                    << ", but axes has " << this->itsAxes.size() << " dimensions.");
-		for(int i=0;i<this->itsDim;i++)
+		for(uint i=0;i<this->itsDim;i++)
 		  this->itsAxes[i] = this->itsSourceSection.getDim(i);
 
 		std::stringstream ss;

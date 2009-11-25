@@ -200,7 +200,7 @@ namespace askap {
 	    if (pix[0] >= 0 && pix[0] <= axes[0] && pix[1] >= 0 && pix[1] <= axes[1]) {
 
 	      ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x="<<pix[0]<<" & y="<<pix[1]
-				 <<"  ...  xmin=" << subsection.getStart(0); << ", xmax=" << subsection.getEnd(0)
+				 <<"  ...  xmin=" << subsection.getStart(0) << ", xmax=" << subsection.getEnd(0)
 				 << ", ymin=" << subsection.getStart(1) << ", ymax=" << subsection.getEnd(1) 
 				 <<  ",   Subsection="<<subsection.getSection() << "   axes = ["<<axes[0] << ","<<axes[1]<<"]");
 
