@@ -165,7 +165,9 @@ public class DataPublisher extends DataPublisherBase {
     }
     DataPublisher dp = new DataPublisher(args[0], args[1], Integer.parseInt(args[2]));
     try {
-      dp.publish(new HashMap<String, Object>());
+      HashMap<String, Object> data = new HashMap<String, Object>();
+      data.put("a_value", new Integer(12345));
+      dp.publish(data);
     } catch (Exception e) {
       System.err.println("DataPublisher.main: " + e);
     }

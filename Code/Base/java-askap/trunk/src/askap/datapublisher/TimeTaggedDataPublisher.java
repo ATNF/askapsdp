@@ -171,7 +171,9 @@ public class TimeTaggedDataPublisher extends DataPublisherBase {
     TimeTaggedDataPublisher dp = new TimeTaggedDataPublisher(args[0], args[1], Integer.parseInt(args[2]));
 
     try {
-      dp.publish(new AbsTime(), new HashMap<String, Object>());
+      HashMap<String, Object> data = new HashMap<String, Object>();
+      data.put("a_value", new Integer(12345));
+      dp.publish(new AbsTime(), data);
     } catch (Exception e) {
       System.err.println("TimeTaggedDataPublisher.main: " + e);
     }

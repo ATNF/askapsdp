@@ -41,7 +41,7 @@ class LogSubscriber(object):
                 raise
         # defined in config.icegrid
         self.adapter = \
-            self.ice.createObjectAdapter("TestIceLoggerAdapter")
+            self.ice.createObjectAdapter("TestAdapter")
 
         subscriber = self.adapter.addWithUUID(LoggerImpl()).ice_oneway()
         qos = {}

@@ -8,6 +8,7 @@ dep.add_package()
 setup(name = "javalogger_test",
       dependency = dep,
       ice_interfaces = {".": ["CommonTypes.ice",
-                              "LoggingService.ice"] },
+                              "LoggingService.ice",
+                              "TypedValues.ice"] },
       test_suite = "nose.collector",
 )

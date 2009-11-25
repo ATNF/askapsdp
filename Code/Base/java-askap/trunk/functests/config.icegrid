@@ -1,6 +1,6 @@
 # Service Adpater
-TestIceLoggerAdapter.AdapterId=TestIceLoggerAdapter
-TestIceLoggerAdapter.Endpoints=tcp
+TestAdapter.AdapterId=TestAdapter
+TestAdapter.Endpoints=tcp
 
 #
 # The IceGrid instance name.
