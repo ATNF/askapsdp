@@ -33,7 +33,7 @@ module interfaces
     /**
      * Enum to represent data types.
      **/
-    enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBoolean};
+    enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBoolean, TypeComplex};
     
     /**
      * Base class for typed data types.
@@ -82,6 +82,22 @@ module interfaces
      **/
     class TypedValueBoolean extends TypedValue {
         bool value;
+    };
+
+    /**
+     * Class for a single precision floating point complex number.
+     **/
+    class TypedValueFloatComplex extends TypedValue {
+        float real;
+        float imag;
+    };
+
+    /**
+     * Class for a double precision floating point complex number.
+     **/
+    class TypedValueComplex extends TypedValue {
+        double real;
+        double imag;
     };
     
     /**

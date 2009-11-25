@@ -24,6 +24,7 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import askap.datapublisher.TypedValueUtils;
 import askap.interfaces.*;
+import askap.util.Complex;
 
 /**
  * Test class for TypedValueUtils.
@@ -104,4 +105,18 @@ public class TypedValueUtilsTest {
     assertTrue(o instanceof Boolean);
     assertTrue(((Boolean) o).booleanValue() == val);
   }
+  
+  @Test
+  public void test_complex() {
+    double real = 3.141d;
+    double imag = 2.718d;
+    TypedValue tv = TypedValueUtils.object2TypedValue(Complex.factory(real, imag));
+    assertTrue(tv.type == TypedValueType.TypeComplex);
+    assertTrue(((TypedValueComplex) tv).real == real);
+    assertTrue(((TypedValueComplex) tv).imag == imag);
+    Object o = TypedValueUtils.typedValue2Object(tv);
+    assertTrue(o instanceof Complex);
+    assertTrue(((Complex) o).getReal() == real);
+    assertTrue(((Complex) o).getImag() == imag);
+  }  
 }

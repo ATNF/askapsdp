@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 import askap.interfaces.*;
+import askap.util.Complex;
 
 /**
  * Some utility methods for converting between Ice TypedValue types and native Java types.
@@ -53,6 +54,9 @@ public class TypedValueUtils {
       return new String(((TypedValueString) tv).value);
     } else if (tv.type == TypedValueType.TypeBoolean) {
       return new Boolean(((TypedValueBoolean) tv).value);
+    } else if (tv.type == TypedValueType.TypeComplex) {
+      TypedValueComplex c = (TypedValueComplex)tv;
+      return Complex.factory(c.real, c.imag);      
     } else {
       throw new IllegalArgumentException("TypedValueUtils.typedValue2Object: Unhandled data type " + tv.type);
     }
@@ -83,6 +87,8 @@ public class TypedValueUtils {
       return new TypedValueString(TypedValueType.TypeString, (String) o);
     } else if (o instanceof Boolean) {
       return new TypedValueBoolean(TypedValueType.TypeBoolean, ((Boolean) o).booleanValue());
+    } else if (o instanceof Complex) {
+      return new TypedValueComplex(TypedValueType.TypeComplex, ((Complex) o).getReal(), ((Complex) o).getImag());      
     } else {
       throw new IllegalArgumentException("TypedValueUtils.object2TypedValue: Unhandled data type " + o.getClass());
     }
