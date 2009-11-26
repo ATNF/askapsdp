@@ -92,6 +92,7 @@ namespace askap {
                 if (this->isParallel() && this->isWorker()) {
 
                     this->itsSubsection = this->itsSubimageDef.section(this->itsRank - 1, duchamp::nullSection(dim));
+                    this->itsSubsection.parse(axes);
 
                     ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << " has offsets (" << this->itsSubsection.getStart(0) << "," << this->itsSubsection.getStart(1)
                                            << ") and dimensions " << this->itsSubsection.getDim(0) << "x" << this->itsSubsection.getDim(1));
