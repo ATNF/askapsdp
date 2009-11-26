@@ -155,8 +155,7 @@ namespace askap {
                               int ypt = y+this->itsSubsection.getStart(1);
                               int zpt = z+this->itsSubsection.getStart(spInd);
                               float fpt = this->itsFITSfile.array(x, y, z);
-//                               out << x+this->itsSubsection.getStart(0) << y+this->itsSubsection.getStart(1) << z+this->itsSubsection.getStart \
-// (2) << this->itsFITSfile.array(x, y, z);
+//                               out << x+this->itsSubsection.getStart(0) << y+this->itsSubsection.getStart(1) << z+this->itsSubsection.getStart(2) << this->itsFITSfile.array(x, y, z);
                               out << xpt << ypt << zpt << fpt;
                             }
 			  }
