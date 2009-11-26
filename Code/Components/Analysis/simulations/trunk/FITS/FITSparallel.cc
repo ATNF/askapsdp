@@ -143,7 +143,8 @@ namespace askap {
                         out.putStart("pixW2M", 1);
 			int spInd = this->itsFITSfile.getSpectralAxisIndex();
                         out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1) << this->itsSubsection.getEnd(spInd);
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1));
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1) << "and " << this->itsSubsection.getStart(spInd));
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent maxima of " << this->itsSubsection.getEnd(0) << " and " << this->itsSubsection.getEnd(1) << "and " << this->itsSubsection.getEnd(spInd));
 
 //                         for (int y = this->itsSubsection.getStart(1); y <= this->itsSubsection.getEnd(1); y++) {
 //                             for (int x = this->itsSubsection.getStart(0); x <= this->itsSubsection.getEnd(0); x++) {
@@ -178,6 +179,7 @@ namespace askap {
                             int xmin, ymin, zmin, xmax, ymax, zmax;
                             in >> xmin >> ymin >> zmin >> xmax >> ymax >> zmax;
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin << " and " << zmin);
+                            ASKAPLOG_DEBUG_STR(logger, "MASTER: Read maxima of " << xmax << " and " << ymax << " and " << zmax);
 			    ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << (xmax - xmin + 1)*(ymax - ymin + 1)*(zmax - zmin + 1) << " pixels");
 //        for(int y=ymin;y<=ymax;y++){
 //      for(int x=xmin;x<=xmax;x++){
