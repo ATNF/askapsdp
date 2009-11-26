@@ -104,6 +104,8 @@ namespace askap {
                     int getYdim() {return itsAxes[itsWCS->lat];};
                     /// @brief Get the size of the Z-axis
                     int getZdim() {return itsAxes[itsWCS->spec];};
+		    /// @brief Get the index of the spectral axis
+		    int getSpectralAxisIndex(){return itsWCS->spec;};
 
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();

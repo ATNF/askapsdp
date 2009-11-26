@@ -141,7 +141,8 @@ namespace askap {
                         LOFAR::BlobOBufString bob(bs);
                         LOFAR::BlobOStream out(bob);
                         out.putStart("pixW2M", 1);
-                        out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(2) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1) << this->itsSubsection.getEnd(2);
+			int spInd = this->itsFITSfile.getSpectralAxisIndex();
+                        out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1) << this->itsSubsection.getEnd(spInd);
                         ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1));
 
 //                         for (int y = this->itsSubsection.getStart(1); y <= this->itsSubsection.getEnd(1); y++) {
@@ -150,7 +151,13 @@ namespace askap {
 			  for(int y=0;y<this->itsFITSfile.getYdim();y++){
 			    for(int x=0;x<this->itsFITSfile.getXdim();x++){
 			      //                                out << x << y << this->itsFITSfile.array(x, y);
-			      out << x+this->itsSubsection.getStart(0) << y+this->itsSubsection.getStart(1) << z+this->itsSubsection.getStart(2) << this->itsFITSfile.array(x, y, z);
+                              int xpt = x+this->itsSubsection.getStart(0);
+                              int ypt = y+this->itsSubsection.getStart(1);
+                              int zpt = z+this->itsSubsection.getStart(spInd);
+                              float fpt = this->itsFITSfile.array(x, y, z);
+//                               out << x+this->itsSubsection.getStart(0) << y+this->itsSubsection.getStart(1) << z+this->itsSubsection.getStart \
+// (2) << this->itsFITSfile.array(x, y, z);
+                              out << xpt << ypt << zpt << fpt;
                             }
 			  }
 			}
