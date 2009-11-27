@@ -314,6 +314,8 @@ namespace askap {
                     this->setWCS(false, subset);
                 }
 
+		ASKAPLOG_DEBUG_STR(logger, "wcs->lat="<<this->itsWCS->lat << " wcs->lng="<<this->itsWCS->lng << " wcs->spec="<<this->itsWCS->spec);
+
                 this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
                 this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
                 this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);

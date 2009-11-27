@@ -143,9 +143,10 @@ namespace askap {
                         LOFAR::BlobOStream out(bob);
                         out.putStart("pixW2M", 1);
 			int spInd = this->itsFITSfile.getSpectralAxisIndex();
+			ASKAPLOG_DEBUG_STR(logger, "Using index " << spInd << " as spectral axis");
                         out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1) << this->itsSubsection.getEnd(spInd);
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1) << "and " << this->itsSubsection.getStart(spInd));
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent maxima of " << this->itsSubsection.getEnd(0) << " and " << this->itsSubsection.getEnd(1) << "and " << this->itsSubsection.getEnd(spInd));
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1) << " and " << this->itsSubsection.getStart(spInd));
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent maxima of " << this->itsSubsection.getEnd(0) << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
 
 //                         for (int y = this->itsSubsection.getStart(1); y <= this->itsSubsection.getEnd(1); y++) {
 //                             for (int x = this->itsSubsection.getStart(0); x <= this->itsSubsection.getEnd(0); x++) {
