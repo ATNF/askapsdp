@@ -118,7 +118,7 @@ public class DataPublisher extends DataPublisherBase {
         }
       }
 
-      Ice.ObjectPrx pub = itsTopic.getPublisher().ice_oneway();
+      Ice.ObjectPrx pub = itsTopic.getPublisher().ice_twoway();
       itsPublisher = ITypedValueMapPublisherPrxHelper.uncheckedCast(pub);
     } catch (Exception e) {
       disconnect();

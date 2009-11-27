@@ -119,7 +119,7 @@ public class TimeTaggedDataPublisher extends DataPublisherBase {
         }
       }
 
-      Ice.ObjectPrx pub = itsTopic.getPublisher().ice_oneway();
+      Ice.ObjectPrx pub = itsTopic.getPublisher().ice_twoway();
       itsPublisher = ITimeTaggedTypedValueMapPublisherPrxHelper.uncheckedCast(pub);
     } catch (Exception e) {
       disconnect();
