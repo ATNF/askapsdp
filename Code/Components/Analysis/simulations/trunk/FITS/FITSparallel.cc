@@ -144,22 +144,22 @@ namespace askap {
                         out.putStart("pixW2M", 1);
 			int spInd = this->itsFITSfile.getSpectralAxisIndex();
 			ASKAPLOG_DEBUG_STR(logger, "Using index " << spInd << " as spectral axis");
-                        out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd) << this->itsSubsection.getEnd(0) << this->itsSubsection.getEnd(1) << this->itsSubsection.getEnd(spInd);
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0) << " and " << this->itsSubsection.getStart(1) << " and " << this->itsSubsection.getStart(spInd));
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent maxima of " << this->itsSubsection.getEnd(0) << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
+                        out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd);
+			out << this->itsSubsection.getEnd(0)   << this->itsSubsection.getEnd(1)   << this->itsSubsection.getEnd(spInd);
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0)
+					   << " and " << this->itsSubsection.getStart(1) << " and " << this->itsSubsection.getStart(spInd));
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent maxima of " << this->itsSubsection.getEnd(0)
+					   << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
 
-//                         for (int y = this->itsSubsection.getStart(1); y <= this->itsSubsection.getEnd(1); y++) {
-//                             for (int x = this->itsSubsection.getStart(0); x <= this->itsSubsection.getEnd(0); x++) {
 			for(int z=0;z<this->itsFITSfile.getZdim();z++){
 			  for(int y=0;y<this->itsFITSfile.getYdim();y++){
 			    for(int x=0;x<this->itsFITSfile.getXdim();x++){
-			      //                                out << x << y << this->itsFITSfile.array(x, y);
-                              int xpt = x+this->itsSubsection.getStart(0);
-                              int ypt = y+this->itsSubsection.getStart(1);
-                              int zpt = z+this->itsSubsection.getStart(spInd);
+//                               int xpt = x+this->itsSubsection.getStart(0);
+//                               int ypt = y+this->itsSubsection.getStart(1);
+//                               int zpt = z+this->itsSubsection.getStart(spInd);
                               float fpt = this->itsFITSfile.array(x, y, z);
-//                               out << x+this->itsSubsection.getStart(0) << y+this->itsSubsection.getStart(1) << z+this->itsSubsection.getStart(2) << this->itsFITSfile.array(x, y, z);
-                              out << xpt << ypt << zpt << fpt;
+                              out << fpt;
+//                               out << xpt << ypt << zpt << fpt;
                             }
 			  }
 			}
@@ -180,23 +180,28 @@ namespace askap {
                             ASKAPASSERT(version == 1);
                             int xmin, ymin, zmin, xmax, ymax, zmax;
                             in >> xmin >> ymin >> zmin >> xmax >> ymax >> zmax;
+			    int xdim=(xmax - xmin + 1);
+			    int ydim=(ymax - ymin + 1);
+			    int zdim=(zmax - zmin + 1);
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin << " and " << zmin);
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: Read maxima of " << xmax << " and " << ymax << " and " << zmax);
-			    ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << (xmax - xmin + 1)*(ymax - ymin + 1)*(zmax - zmin + 1) << " pixels");
-//        for(int y=ymin;y<=ymax;y++){
-//      for(int x=xmin;x<=xmax;x++){
-//        for(int y=0;y<this->itsFITSfile.getYdim();y++){
-//      for(int x=0;x<this->itsFITSfile.getXdim();x++){
-                            for (int pix = 0; pix < (xmax - xmin + 1)*(ymax - ymin + 1)*(zmax - zmin + 1); pix++) {
-			      int xpt, ypt, zpt;
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << xdim*ydim*zdim << " pixels");
+
+                            for (int pix = 0; pix < xdim*ydim*zdim; pix++) {
+// 			        int xpt, ypt, zpt;
                                 float flux;
-                                in >> xpt >> ypt >> zpt >> flux;
-                                ASKAPASSERT(xpt == (xmin + pix % (xmax - xmin + 1)));
-                                ASKAPASSERT(ypt == (ymin + pix / (xmax - xmin + 1)));
-                                ASKAPASSERT(zpt == (zmin + pix / ((xmax - xmin + 1)*(ymax - ymin + 1))));
-				flux += this->itsFITSfile.array(xpt, ypt, zpt);
-                                this->itsFITSfile.setArray(xpt, ypt, zpt, flux);
-//      }
+				int x=pix%xdim;
+				int y=(pix/xdim)%ydim;
+				int z=pix/(xdim*ydim);
+//                                 in >> xpt >> ypt >> zpt >> flux;
+//                                 ASKAPASSERT(xpt == (xmin + x));
+//                                 ASKAPASSERT(ypt == (ymin + y));
+// 				ASKAPASSERT(zpt == (zmin + z));
+// 				flux += this->itsFITSfile.array(xpt, ypt, zpt);
+//                                 this->itsFITSfile.setArray(xpt, ypt, zpt, flux);
+                                in >> flux;
+				flux += this->itsFITSfile.array(x+xmin, y+ymin, z+zmin);
+                                this->itsFITSfile.setArray(x+xmin, y+ymin, z+zmin, flux);
                             }
 
                             in.getEnd();
