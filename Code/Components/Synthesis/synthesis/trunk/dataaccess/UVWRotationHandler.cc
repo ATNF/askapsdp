@@ -96,7 +96,8 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
           /// hard coded in the next line (quite implicitly).
           const casa::UVWMachine& uvwm = machine(pointingDir1Vector(row),itsTangentPoint);
           uvwm.convertUVW(itsDelays(row), uvwBuffer);
-          itsDelays(row) *= -1;
+          // the following line has been commented out to account for swapped arguments in the uvw machine call
+          //itsDelays(row) *= -1;
           
           for (int i=0; i<3; ++i) {
                itsRotatedUVWs(row)(i) = uvwBuffer(i);

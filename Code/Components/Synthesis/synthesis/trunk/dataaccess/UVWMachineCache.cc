@@ -62,7 +62,10 @@ const casa::UVWMachine& UVWMachineCache::machine(const casa::MDirection &phaseCe
    boost::shared_ptr<casa::UVWMachine> &machinePtr = itsCache[index];
    if (!machinePtr) {
        // need to set up a new machine here
-       machinePtr.reset(new casa::UVWMachine(tangent, phaseCentre, false, true));
+       // swap the arguments in the uvw machine call. It gives the correct result on real data
+       // although the casacore manual clearly says that the first argument is "out" and the second is "in".
+//       machinePtr.reset(new casa::UVWMachine(tangent, phaseCentre, false, true));
+       machinePtr.reset(new casa::UVWMachine(phaseCentre, tangent, false, true));
    }
    return *machinePtr;
 }
