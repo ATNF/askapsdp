@@ -175,7 +175,6 @@ namespace askap {
                         this->itsOverlap[i] = 0;
                     }
 
-                    ASKAPLOG_DEBUG_STR(logger, i << " " << this->itsNAxis << " " << this->itsNSub[i] << " " << this->itsOverlap[i]);
                 }
             }
 

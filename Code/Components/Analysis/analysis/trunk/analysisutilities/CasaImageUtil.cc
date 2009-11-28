@@ -715,10 +715,20 @@ namespace askap {
 	  Vector<Int> stokes(1); stokes(0) = casa::Stokes::I;
 	  casa::StokesCoordinate stokesCoo(stokes);
 
-	  csys.addCoordinate(dirCoo);
-	  csys.addCoordinate(specCoo);
-	  if(wcs->naxis==4) 
-	    csys.addCoordinate(stokesCoo);
+// 	  csys.addCoordinate(dirCoo);
+// 	  if(wcs->naxis==4) 
+// 	    csys.addCoordinate(stokesCoo);
+// 	  csys.addCoordinate(specCoo);
+
+	  for(int i=0;i<wcs->naxis;i++){
+	    if(i == wcs->lng || i == wcs->lat){
+	      i++;
+	      csys.addCoordinate(dirCoo);
+	    }
+	    else if(i == wcs->spec) csys.addCoordinate(specCoo);
+	    else if(wcs->naxis == 4) csys.addCoordinate(stokesCoo);
+	  }
+
 
 	  return csys;
 
