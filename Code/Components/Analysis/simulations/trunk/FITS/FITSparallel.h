@@ -89,7 +89,7 @@ namespace askap {
                 protected:
 
                     /// @brief The FITS file class
-                    FITSfile itsFITSfile;
+                    FITSfile *itsFITSfile;
 
                     /// @brief The subimage definition
                     analysis::SubimageDef itsSubimageDef;

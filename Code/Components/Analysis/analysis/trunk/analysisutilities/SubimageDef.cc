@@ -74,6 +74,8 @@ namespace askap {
             this->itsNSubZ = 1;
             this->itsOverlapX = this->itsOverlapY = this->itsOverlapZ = 0;
             this->itsImageName = "";
+	    this->itsNSub = 0;
+	    this->itsOverlap = 0;
         }
 
         SubimageDef::~SubimageDef()
@@ -114,6 +116,8 @@ namespace askap {
             this->itsImageName = s.itsImageName;
 
             if (this->itsNAxis > 0) {
+	        this->itsNSub = new int[this->itsNAxis];
+	        this->itsOverlap = new int[this->itsNAxis];
                 for (int i = 0; i < this->itsNAxis; i++) {
                     this->itsNSub[i] = s.itsNSub[i];
                     this->itsOverlap[i] = s.itsOverlap[i];
@@ -288,6 +292,9 @@ namespace askap {
                 fAnnot << wld[0] << " " << wld[1] << "\n";
                 fAnnot << "TEXT " << xcentre << " " << ycentre << " " << w + 1 << "\n";
             }
+
+	    delete [] pix;
+	    delete [] wld;
 
             fAnnot.close();
 

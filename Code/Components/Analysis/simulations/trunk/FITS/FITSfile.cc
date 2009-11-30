@@ -291,7 +291,7 @@ namespace askap {
 		  this->itsNumPix *= this->itsAxes[i];
 		  ss << "x" << this->itsAxes[i];
 		}
-		ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str());
+		ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes");
 
                 this->itsArray = new float[this->itsNumPix];
                 this->itsArrayAllocated = true;

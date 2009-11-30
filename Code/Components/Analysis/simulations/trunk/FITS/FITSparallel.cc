@@ -114,7 +114,7 @@ namespace askap {
                 }
 
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
-                this->itsFITSfile = FITSfile(newparset);
+                this->itsFITSfile = new FITSfile(newparset);
                 ASKAPLOG_DEBUG_STR(logger, "Defined");
 
                 ASKAPLOG_DEBUG_STR(logger, "Finished defining FITSparallel");
@@ -142,7 +142,7 @@ namespace askap {
                         LOFAR::BlobOBufString bob(bs);
                         LOFAR::BlobOStream out(bob);
                         out.putStart("pixW2M", 1);
-			int spInd = this->itsFITSfile.getSpectralAxisIndex();
+			int spInd = this->itsFITSfile->getSpectralAxisIndex();
 			ASKAPLOG_DEBUG_STR(logger, "Using index " << spInd << " as spectral axis");
                         out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd);
 			out << this->itsSubsection.getEnd(0)   << this->itsSubsection.getEnd(1)   << this->itsSubsection.getEnd(spInd);
@@ -151,13 +151,13 @@ namespace askap {
                         ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent maxima of " << this->itsSubsection.getEnd(0)
 					   << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
 
-			for(int z=0;z<this->itsFITSfile.getZdim();z++){
-			  for(int y=0;y<this->itsFITSfile.getYdim();y++){
-			    for(int x=0;x<this->itsFITSfile.getXdim();x++){
+			for(int z=0;z<this->itsFITSfile->getZdim();z++){
+			  for(int y=0;y<this->itsFITSfile->getYdim();y++){
+			    for(int x=0;x<this->itsFITSfile->getXdim();x++){
 //                               int xpt = x+this->itsSubsection.getStart(0);
 //                               int ypt = y+this->itsSubsection.getStart(1);
 //                               int zpt = z+this->itsSubsection.getStart(spInd);
-                              float fpt = this->itsFITSfile.array(x, y, z);
+                              float fpt = this->itsFITSfile->array(x, y, z);
                               out << fpt;
 //                               out << xpt << ypt << zpt << fpt;
                             }
@@ -197,11 +197,11 @@ namespace askap {
 //                                 ASKAPASSERT(xpt == (xmin + x));
 //                                 ASKAPASSERT(ypt == (ymin + y));
 // 				ASKAPASSERT(zpt == (zmin + z));
-// 				flux += this->itsFITSfile.array(xpt, ypt, zpt);
-//                                 this->itsFITSfile.setArray(xpt, ypt, zpt, flux);
+// 				flux += this->itsFITSfile->array(xpt, ypt, zpt);
+//                                 this->itsFITSfile->setArray(xpt, ypt, zpt, flux);
                                 in >> flux;
-				flux += this->itsFITSfile.array(x+xmin, y+ymin, z+zmin);
-                                this->itsFITSfile.setArray(x+xmin, y+ymin, z+zmin, flux);
+				flux += this->itsFITSfile->array(x+xmin, y+ymin, z+zmin);
+                                this->itsFITSfile->setArray(x+xmin, y+ymin, z+zmin, flux);
                             }
 
                             in.getEnd();
@@ -220,32 +220,32 @@ namespace askap {
             void FITSparallel::addNoise()
             {
                 if (this->isWorker())
-                    itsFITSfile.addNoise();
+                    itsFITSfile->addNoise();
             }
 
             void FITSparallel::processSources()
             {
                 if (this->isWorker()) {
                     ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": About to add sources");
-                    itsFITSfile.processSources();
+                    itsFITSfile->processSources();
                 }
             }
 
             void FITSparallel::convolveWithBeam()
             {
-                itsFITSfile.convolveWithBeam();
+                itsFITSfile->convolveWithBeam();
             }
 
             void FITSparallel::saveFile()
             {
                 if (this->isMaster())
-                    itsFITSfile.saveFile();
+                    itsFITSfile->saveFile();
             }
 
             void FITSparallel::writeCASAimage()
             {
                 if (this->isMaster())
-                    itsFITSfile.writeCASAimage();
+                    itsFITSfile->writeCASAimage();
             }
 
 
