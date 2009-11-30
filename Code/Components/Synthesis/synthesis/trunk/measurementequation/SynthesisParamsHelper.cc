@@ -321,40 +321,34 @@ namespace askap
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));
       pixels.set(0.0);
       
+      // void linear transform used to set up coordinate system
+      casa::Matrix<double> xform(2,2,0.);
+      xform.diagonal() = 1.;
+      
       // have to create facet parameter in two steps as it could be 
       // a Taylor decomposition 
       ImageParamsHelper iph(name);
       // a loop over facets
       const double facetFactor = (nfacets-1)/2.;
       for (int ix=0;ix<nfacets;++ix) {
+           // reference position (tangent point) on the first axis assuming the pixels of this 
+           // facet go from 0 to nx-1.      
+           const double xrefpix = double(nx)/2.-facetstep*(ix-facetFactor);
            for (int iy=0;iy<nfacets;++iy) {
 
                 // for debugging to avoid running out of memory
                 //if (ix!=1 || iy!=1) continue;
-                      
-                const double decCentre = dec+facetstep*ycellsize*(iy-facetFactor);
-                const double cosdec = cos(decCentre);
-                ASKAPCHECK(cosdec>0, "Cosine of decCentre is supposed to be positive");
-                const double xsizeDec = xcellsize/cosdec;
-                const double raCentre = ra+facetstep*xsizeDec*(ix-facetFactor);
+                
+                // reference position (tangent point) on the second axis assuming the pixels of this 
+                // facet go from 0 to ny-1.      
+                const double yrefpix = double(ny)/2.-facetstep*(iy-facetFactor);
                 
                 /// @todo Do something with the frame info in direction[2]
                 Axes axes;
-                axes.add("RA", raCentre-nx*xsizeDec/2.0, raCentre+nx*xsizeDec/2.0);
-                axes.add("DEC", decCentre-ny*ycellsize/2.0, decCentre+ny*ycellsize/2.0);
-      
-                // we need to ship around the tangent point somehow as it affects the way this
-                // faceted images are used. One way is to specify an extra fixed parameter and another
-                // is to attach it to each facet itself. The latter has an advantage for parallel
-                // processing as all necessary info is readily available with any facet, although
-                // there is some minor duplication of the data.
-                // 
-                // In the future, we may allow having a keyword-type axis in the Axes object which 
-                // is essentially an axis with single pixel only. At this stage, we will just set up
-                // a normal axis with the same start and stop values
-                axes.add("RA-TANGENT",ra,ra);
-                axes.add("DEC-TANGENT",dec,dec);
-                // another fake axis to know which part of the image actually contains useful
+                axes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
+                  casa::Projection(casa::Projection::SIN), ra,dec,xcellsize,ycellsize,xform,xrefpix,yrefpix));
+                
+                // a fake axis to know which part of the image actually contains useful
                 // information. Otherwise, this parameter is impossible to derive from a
                 // single facet only (and we may need, e.g., to clip the outer edges in each
                 // major cycle)
@@ -483,55 +477,30 @@ namespace askap
        ImageParamsHelper iph(name);
        iph.makeFacet(0,0);
        const askap::scimath::Axes axes(ip.axes(iph.paramName()));
-       ASKAPDEBUGASSERT(axes.has("RA") && axes.has("DEC") && axes.has("RA-TANGENT") &&
-                        axes.has("DEC-TANGENT") && axes.has("STOKES") && axes.has("FREQUENCY"));
+       ASKAPDEBUGASSERT(axes.has("FACETSTEP") && axes.has("STOKES") && axes.has("FREQUENCY") 
+                        && axes.hasDirection());
        const casa::IPosition shape = ip.value(iph.paramName()).shape();
        ASKAPDEBUGASSERT(shape.nelements()>=2);
-       // Derive the cell size in ra and dec.
-       const double raCentreFacet = (axes.start("RA")+axes.end("RA"))/2.;
-       const double decCentreFacet = (axes.start("DEC")+axes.end("DEC"))/2.;
-       double raCellSize = (axes.end("RA")-axes.start("RA"))/double(shape[0]);
-       double decCellSize = (axes.end("DEC")-axes.start("DEC"))/double(shape[1]);
-       // Get factors because facetstep in RA might be slightly different for
-       // the center of the facet and the image.
-       const double raCentreImage = axes.start("RA-TANGENT");
-       const double decCentreImage = axes.start("DEC-TANGENT");
-       const double cosdecFacet = cos(decCentreFacet);
-       const double cosdecImage = cos(decCentreImage);
-       ASKAPDEBUGASSERT(cosdecFacet>0 && cosdecImage>0);
+              
        const double facetFactor = double(-(nfacets-1)/2.);
        ASKAPDEBUGASSERT(facetFactor!=0.);
-       // Derive the facet step in ra and dec.
-       const double raFacetStep = (raCentreFacet-raCentreImage)/
-                            raCellSize/facetFactor;
-       const double decFacetStep = (decCentreFacet-decCentreImage)/
-                            decCellSize/facetFactor;
-       ASKAPCHECK(casa::abs(raFacetStep-decFacetStep)<0.5, "facet steps deduced from "<<
-                  iph.paramName()<<" are notably different for ra and dec axes. Should be the same integer number");
-       const int facetStep = int(raFacetStep+0.5);
-       // Determine the shape of the total image from the facetStep.
-       // Note it is not done from the facetSize because facets can overlap.
-       // Normally facetStep and facetSize will be equal.
-       // First get the raCellSize at the dec of the image center.
-       // Note that the calculation is done this way to avoid precision
-       // errors due to the fact that the cosdec-s are almost equal.
-       raCellSize = (raCellSize * cosdecFacet) / cosdecImage;
-       double raHWidth = facetStep*raCellSize*nfacets / 2.;
-       double decHWidth = facetStep*decCellSize*nfacets / 2.;
-       Axes newAxes(axes);
-       newAxes.update("RA",raCentreImage-raHWidth, raCentreImage+raHWidth);
-       newAxes.update("DEC",decCentreImage-decHWidth, decCentreImage+decHWidth);
-       // add a fake axis to peserve facetStep for futher operations with the merged image
-       // without it we would have to redetermine this value
-       if (newAxes.has("FACETSTEP")) {
-           newAxes.update("FACETSTEP", double(facetStep), double(facetStep));
-       } else {
-           newAxes.add("FACETSTEP", double(facetStep), double(facetStep));
-       }
        
+       const int facetStep = int(axes.start("FACETSTEP"));
+       ASKAPDEBUGASSERT(facetStep>0);
+       
+       // Determine the shape of the total image from the facetStep.
+       // Note it is not done from the facet size because facets can overlap.
+       // Normally facetStep and facet size will be equal.
        casa::IPosition newShape(shape);
        newShape[0]=facetStep*nfacets;
        newShape[1]=facetStep*nfacets;
+
+       Axes newAxes(axes);
+       casa::DirectionCoordinate dc(axes.directionAxis());
+       const casa::Vector<casa::Double> refPix(2,double(newShape[0])/2.);
+       dc.setReferencePixel(refPix);
+       newAxes.addDirectionAxis(dc);
+       
        casa::Array<double> pixels(newShape);
        pixels.set(0.0);
        ip.add(iph.taylorName(), pixels, newAxes);
@@ -918,49 +887,12 @@ namespace askap
 					       const string& name)
     {
       const Axes axes(ip.axes(name));
-      if (axes.hasDirection()) {
-          return axes.directionAxis();
-      }
-      // old code would still work if no direction coordinate is defined
-      ASKAPCHECK(axes.has("RA-TANGENT") == axes.has("DEC-TANGENT"), 
-          "Either both RA and DEC have to be defined for a tangent point or none of them");
+      ASKAPCHECK(!axes.has("RA-TANGENT") && !axes.has("DEC-TANGENT"), 
+          "Detected an obsolete way to specify tangent point!");
       
-      casa::Matrix<double> xform(2,2);
-      xform = 0.0; xform.diagonal() = 1.0;
-      int nx=ip.value(name).shape()(0);
-      int ny=ip.value(name).shape()(1);
-
-      const casa::Quantum<double> centreLon((axes.start("RA")+axes.end("RA"))/2.0, "rad");
-      const casa::Quantum<double> centreLat((axes.start("DEC")+axes.end("DEC"))/2.0, "rad");
+      ASKAPCHECK(axes.hasDirection(), "Direction coordinate is missing. axes["<<name<<"]:"<<axes);
+      return axes.directionAxis();
       
-      const casa::Quantum<double> incLat((axes.end("DEC")-axes.start("DEC"))/double(ny), "rad");
- 
-      if (!axes.has("RA-TANGENT")) {
-          const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))*cos(centreLat.getValue())/double(nx), "rad");
-           
-          // this is not faceting, centre of the image is a tangent point
-          const casa::DirectionCoordinate radec(MDirection::J2000,Projection(Projection::SIN), 
-                                     centreLon, centreLat, incLon, incLat, xform, nx/2, ny/2);      
-          return radec;
-      }
-      // we have to deal with the user specified tangent point here as it may be 
-      // different from the image centre
-      const casa::Quantum<double> tangentLon(axes.start("RA-TANGENT"), "rad");
-      const casa::Quantum<double> tangentLat(axes.start("DEC-TANGENT"), "rad");
-
-      const casa::Quantum<double> incLon((axes.end("RA")-axes.start("RA"))*cos(tangentLat.getValue())/double(nx), "rad");
-      
-      // need to find reference pixel, do it with a temporary coordinate class by
-      // getting the world coordinates for the image centre
-      const casa::DirectionCoordinate temp(MDirection::J2000,Projection(Projection::SIN), 
-                                      tangentLon, tangentLat, incLon, incLat, xform, 0, 0);      
-      casa::Vector<casa::Double> pixel;
-      temp.toPixel(pixel,casa::MVDirection(centreLon, centreLat));
-      ASKAPDEBUGASSERT(pixel.nelements()==2);
-      const casa::DirectionCoordinate radec(MDirection::J2000,Projection(Projection::SIN), 
-                                   tangentLon, tangentLat, incLon, incLat, xform, 
-                                   double(nx)/2.-pixel[0], double(ny)/2.-pixel[1]);      
-      return radec;
     }
     
     void SynthesisParamsHelper::update(askap::scimath::Params& ip, const string& name,
