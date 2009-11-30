@@ -73,15 +73,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-    std::ifstream config("askap.log_cfg", std::ifstream::in);
-
-    if (config) {
-        ASKAPLOG_INIT("askap.log_cfg");
-    } else {
-        std::ostringstream ss;
-        ss << argv[0] << ".log_cfg";
-        ASKAPLOG_INIT(ss.str().c_str());
-    }
+    askap::mwbase::AskapParallel comms(argc, argv);
 
     try {
         // Ensure that CASA log messages are captured
@@ -97,21 +89,21 @@ int main(int argc, const char** argv)
         bool doNoise = subset.getBool("addNoise", true);
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);
-        FITSparallel file(argc, argv, subset);
+        FITSparallel file(comms, subset);
         file.processSources();
 
         if (doNoise && (noiseBeforeConvolve || !doConvolution))
-            if (file.isWorker())
+            if (comms.isWorker())
                 file.addNoise();
 
         file.toMaster();
 
         if (doConvolution)
-            if (file.isMaster())
+            if (comms.isMaster())
                 file.convolveWithBeam();
 
         if (doNoise && (!noiseBeforeConvolve && doConvolution))
-            if (file.isMaster())
+            if (comms.isMaster())
                 file.addNoise();
 
         file.saveFile();
@@ -119,16 +111,16 @@ int main(int argc, const char** argv)
 
         ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
 
-    } catch (askap::AskapError& x) {
+    } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
-    } catch (std::exception& x) {
+    } catch (const std::exception& x) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
         std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
     }
 
-    exit(0);
+    return 0;
 }
 

@@ -70,6 +70,15 @@ namespace askap
       /// Is this a worker?
       bool isWorker();
 
+      /// Rank
+      int rank();
+
+      /// Number of nodes
+      int nNodes();
+
+      // Connection set
+      askap::mwbase::MPIConnectionSet::ShPtr connectionSet();
+
   protected:
       /// Initialize the MPI connections
       void initConnections();

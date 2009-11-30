@@ -54,7 +54,7 @@ namespace askap {
             ///
             /// If the number of nodes is 1 then everything occurs in the same process.
             ///
-            class FITSparallel : public askap::mwbase::AskapParallel {
+            class FITSparallel {
                 public:
 
                     /// @brief Constructor
@@ -63,7 +63,7 @@ namespace askap {
                     /// @param argc Number of command line inputs
                     /// @param argv Command line inputs
                     /// @param parset The parameter set to read Duchamp and other parameters from.
-                    FITSparallel(int argc, const char** argv, const LOFAR::ParameterSet& parset);
+                    FITSparallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
                     /// @brief Destructor
                     virtual ~FITSparallel() {};
@@ -83,8 +83,8 @@ namespace askap {
                     /// @brief Save the array to a FITS file
                     void saveFile();
 
-		    /// @brief Save the array to a CASA image
-		    void writeCASAimage();
+                    /// @brief Save the array to a CASA image
+                    void writeCASAimage();
 
                 protected:
 
@@ -93,9 +93,12 @@ namespace askap {
 
                     /// @brief The subimage definition
                     analysis::SubimageDef itsSubimageDef;
+
                     /// @brief The subsection being used
                     duchamp::Section itsSubsection;
 
+                    /// @brief Class for communications
+                    askap::mwbase::AskapParallel& itsComms;
             };
 
         }

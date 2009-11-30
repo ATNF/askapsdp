@@ -63,8 +63,8 @@ namespace askap {
         namespace FITS {
 
 
-            FITSparallel::FITSparallel(int argc, const char** argv, const LOFAR::ParameterSet& parset)
-                    : AskapParallel(argc, argv)
+            FITSparallel::FITSparallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset)
+                    : itsComms(comms)
             {
                 /// @details Assignment of the necessary parameters, reading from the ParameterSet.
 
@@ -75,10 +75,10 @@ namespace askap {
                 this->itsSubimageDef = analysis::SubimageDef(parset);
                 int numSub = this->itsSubimageDef.nsubx() * this->itsSubimageDef.nsuby();
 
-                if (this->isParallel() && (numSub != this->itsNNode - 1))
+                if (itsComms.isParallel() && (numSub != itsComms.nNodes() - 1))
                     ASKAPTHROW(AskapError, "Number of requested subimages (" << numSub << ", = "
                                    << this->itsSubimageDef.nsubx() << "x" << this->itsSubimageDef.nsuby()
-                                   << ") does not match the number of worker nodes (" << this->itsNNode - 1 << ")");
+                                   << ") does not match the number of worker nodes (" << itsComms.nNodes() - 1 << ")");
 
                 size_t dim = parset.getInt32("dim", 2);
                 std::vector<int> axes = parset.getInt32Vector("axes");
@@ -89,12 +89,12 @@ namespace askap {
                 if (axes.size() != dim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << dim << ", but axes has " << axes.size() << " dimensions.");
 
-                if (this->isParallel() && this->isWorker()) {
+                if (itsComms.isParallel() && itsComms.isWorker()) {
 
-                    this->itsSubsection = this->itsSubimageDef.section(this->itsRank - 1, duchamp::nullSection(dim));
+                    this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1, duchamp::nullSection(dim));
                     this->itsSubsection.parse(axes);
 
-                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << " has offsets (" << this->itsSubsection.getStart(0) << "," << this->itsSubsection.getStart(1)
+                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << " has offsets (" << this->itsSubsection.getStart(0) << "," << this->itsSubsection.getStart(1)
                                            << ") and dimensions " << this->itsSubsection.getDim(0) << "x" << this->itsSubsection.getDim(1));
 
 		    // Update the subsection parameter to the appropriate string for this worker
@@ -109,7 +109,7 @@ namespace askap {
                 // should write an outputlist. This is done here because
                 // FITSfile has no knowledge of its place in the distributed
                 // program
-                if (isParallel() && (this->itsRank != 1)) {
+                if (itsComms.isParallel() && (itsComms.rank() != 1)) {
                     newparset.replace("outputList", "false");
                 }
 
@@ -133,10 +133,10 @@ namespace askap {
                 /// flux array. When run in serial mode, this function does
                 /// nothing.
 
-                if (this->isParallel()) {
+                if (itsComms.isParallel()) {
 
-                    if (this->isWorker()) {
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": about to send data to Master");
+                    if (itsComms.isWorker()) {
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": about to send data to Master");
                         LOFAR::BlobString bs;
                         bs.resize(0);
                         LOFAR::BlobOBufString bob(bs);
@@ -146,9 +146,9 @@ namespace askap {
 			ASKAPLOG_DEBUG_STR(logger, "Using index " << spInd << " as spectral axis");
                         out << this->itsSubsection.getStart(0) << this->itsSubsection.getStart(1) << this->itsSubsection.getStart(spInd);
 			out << this->itsSubsection.getEnd(0)   << this->itsSubsection.getEnd(1)   << this->itsSubsection.getEnd(spInd);
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent minima of " << this->itsSubsection.getStart(0)
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": sent minima of " << this->itsSubsection.getStart(0)
 					   << " and " << this->itsSubsection.getStart(1) << " and " << this->itsSubsection.getStart(spInd));
-                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": sent maxima of " << this->itsSubsection.getEnd(0)
+                        ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": sent maxima of " << this->itsSubsection.getEnd(0)
 					   << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
 
 			for(int z=0;z<this->itsFITSfile->getZdim();z++){
@@ -165,15 +165,15 @@ namespace askap {
 			}
 
                         out.putEnd();
-                        this->itsConnectionSet->write(0, bs);
+                        itsComms.connectionSet()->write(0, bs);
 
-                    } else if (this->isMaster()) {
+                    } else if (itsComms.isMaster()) {
 
                         LOFAR::BlobString bs;
 
-                        for (int n = 1; n < this->itsNNode; n++) {
+                        for (int n = 1; n < itsComms.nNodes(); n++) {
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: about to read data from Worker #" << n);
-                            this->itsConnectionSet->read(n - 1, bs);
+                            itsComms.connectionSet()->read(n - 1, bs);
                             LOFAR::BlobIBufString bib(bs);
                             LOFAR::BlobIStream in(bib);
                             int version = in.getStart("pixW2M");
@@ -219,14 +219,14 @@ namespace askap {
 
             void FITSparallel::addNoise()
             {
-                if (this->isWorker())
+                if (itsComms.isWorker())
                     itsFITSfile->addNoise();
             }
 
             void FITSparallel::processSources()
             {
-                if (this->isWorker()) {
-                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsRank << ": About to add sources");
+                if (itsComms.isWorker()) {
+                    ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": About to add sources");
                     itsFITSfile->processSources();
                 }
             }
@@ -238,13 +238,13 @@ namespace askap {
 
             void FITSparallel::saveFile()
             {
-                if (this->isMaster())
+                if (itsComms.isMaster())
                     itsFITSfile->saveFile();
             }
 
             void FITSparallel::writeCASAimage()
             {
-                if (this->isMaster())
+                if (itsComms.isMaster())
                     itsFITSfile->writeCASAimage();
             }
 

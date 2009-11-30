@@ -164,6 +164,24 @@ namespace askap
             return itsIsWorker;
         }
 
+        /// Rank
+        int AskapParallel::rank()
+        {
+            return itsRank;
+        }
+
+        /// Number of nodes
+        int AskapParallel::nNodes()
+        {
+            return itsNNode;
+        }
+
+        /// Connection set
+        askap::mwbase::MPIConnectionSet::ShPtr AskapParallel::connectionSet()
+        {
+            return itsConnectionSet;
+        }
+
         // Initialize connections
         void AskapParallel::initConnections()
         {
