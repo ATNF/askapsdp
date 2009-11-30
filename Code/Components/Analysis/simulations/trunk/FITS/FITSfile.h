@@ -92,7 +92,7 @@ namespace askap {
                     float array(int pos) {return itsArray[pos];};
                     float array(int x, int y) {return itsArray[x+itsAxes[0]*y];};
                     float array(int x, int y, int z) {return itsArray[x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]];};
-                    void setArray(int pos, float val) {itsArray[pos] = val;};
+                    void setArray(size_t pos, float val) {itsArray[pos] = val;};
                     void setArray(int x, int y, float val) {itsArray[x+itsAxes[0]*y] = val;};
 		    void setArray(int x, int y, int z, float val) {itsArray[x+itsAxes[0]*y+itsAxes[0]*itsAxes[1]*z] = val;};
                     /// @}
@@ -106,6 +106,8 @@ namespace askap {
                     int getZdim() {return itsAxes[itsWCS->spec];};
 		    /// @brief Get the index of the spectral axis
 		    int getSpectralAxisIndex(){return itsWCS->spec;};
+		    /// @brief Return the number of pixels
+		    size_t getSize() {return itsNumPix;};
 
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();

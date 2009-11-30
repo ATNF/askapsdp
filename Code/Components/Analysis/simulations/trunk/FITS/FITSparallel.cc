@@ -200,8 +200,11 @@ namespace askap {
 // 				flux += this->itsFITSfile->array(xpt, ypt, zpt);
 //                                 this->itsFITSfile->setArray(xpt, ypt, zpt, flux);
                                 in >> flux;
+				size_t pos = (x+xmin)+xdim*(y+ymin)+ydim*xdim*(z+zmin);
+				ASKAPASSERT(pos < this->itsFITSfile->getSize());
 				flux += this->itsFITSfile->array(x+xmin, y+ymin, z+zmin);
-                                this->itsFITSfile->setArray(x+xmin, y+ymin, z+zmin, flux);
+//                                 this->itsFITSfile->setArray(x+xmin, y+ymin, z+zmin, flux);
+                                this->itsFITSfile->setArray(pos, flux);
                             }
 
                             in.getEnd();
