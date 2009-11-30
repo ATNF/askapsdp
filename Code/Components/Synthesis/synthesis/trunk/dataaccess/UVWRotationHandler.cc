@@ -137,12 +137,23 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
                  
       const casa::MVDirection oldCentre(itsImageCentre.getValue());
       const casa::MVDirection newCentre(imageCentre.getValue());
+      const casa::MVDirection tangentCentre(tangent.getValue());
       // offsets to get the new image centre
+      const double dl = sin(newCentre.getLong()-tangentCentre.getLong())*cos(newCentre.getLat())-
+                        sin(oldCentre.getLong()-tangentCentre.getLong())*cos(oldCentre.getLat());
+      const double dm = sin(newCentre.getLat())*cos(tangentCentre.getLat()) - 
+              cos(newCentre.getLat())*sin(tangentCentre.getLat())
+                   *cos(newCentre.getLong()-tangentCentre.getLong()) -
+              sin(oldCentre.getLat())*cos(tangentCentre.getLat()) +
+              cos(oldCentre.getLat())*sin(tangentCentre.getLat())
+                   *cos(oldCentre.getLong()-tangentCentre.getLong());
+      
+      /*
       const double dl = sin(newCentre.getLong()-oldCentre.getLong())*cos(newCentre.getLat());
       const double dm = sin(newCentre.getLat())*cos(oldCentre.getLat()) - 
               cos(newCentre.getLat())*sin(oldCentre.getLat())
                    *cos(newCentre.getLong()-oldCentre.getLong());
-      
+      */
       const casa::uInt nSamples = itsDelays.nelements();
       ASKAPDEBUGASSERT(nSamples == uvwBuffer.nelements());
       for (casa::uInt row=0; row<nSamples; ++row) {
