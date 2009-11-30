@@ -162,7 +162,7 @@ namespace askap {
                     /// @brief The axis dimensions
                     std::vector<int> itsAxes;
                     /// @brief The number of pixels in the image
-                    int itsNumPix;
+                    size_t itsNumPix;
                     /// @brief The section of the image in which to place sources - defaults to the null section of the appropriate dimensionality, and needs to be set explicitly via setSection()
                     duchamp::Section itsSourceSection;
 

@@ -138,7 +138,7 @@ namespace askap {
                 if (this->itsArrayAllocated) {
                     this->itsArray = new float[this->itsNumPix];
 
-                    for (int i = 0; i < this->itsNumPix; i++) this->itsArray[i] = f.itsArray[i];
+                    for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = f.itsArray[i];
                 }
 
                 this->itsNoiseRMS = f.itsNoiseRMS;
@@ -295,8 +295,9 @@ namespace askap {
 
                 this->itsArray = new float[this->itsNumPix];
                 this->itsArrayAllocated = true;
+		ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
 
-                for (int i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
+                for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
 
                 this->itsHaveBeam = parset.isDefined("beam");
 
@@ -435,7 +436,7 @@ namespace askap {
                 /// the distribution is zero). Note that this overwrites the array.
                 ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
 
-                for (int i = 0; i < this->itsNumPix; i++) {
+                for (size_t i = 0; i < this->itsNumPix; i++) {
                     this->itsArray[i] = normalRandomVariable(0., this->itsNoiseRMS);
                 }
             }
@@ -448,7 +449,7 @@ namespace askap {
                 /// distributed as N(0,itsNoiseRMS) (i.e. with mean zero).
                 ASKAPLOG_DEBUG_STR(logger, "Adding noise");
 
-                for (int i = 0; i < this->itsNumPix; i++) {
+                for (size_t i = 0; i < this->itsNumPix; i++) {
                     this->itsArray[i] += normalRandomVariable(0., this->itsNoiseRMS);
                 }
             }
@@ -626,7 +627,7 @@ namespace askap {
                     GaussSmooth<float> smoother(maj, min, pa);
                     float *newArray = smoother.smooth(this->itsArray, this->itsAxes[0], this->itsAxes[1]);
 
-                    for (int i = 0; i < this->itsNumPix; i++) this->itsArray[i] = newArray[i];
+                    for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = newArray[i];
 
                     delete [] newArray;
                 }
