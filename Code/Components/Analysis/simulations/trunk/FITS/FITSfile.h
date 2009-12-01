@@ -79,10 +79,10 @@ namespace askap {
                     /// @brief Define the world coordinate system
                     void setWCS(bool isImage, const LOFAR::ParameterSet& parset);
 
-                    /// @brief Set the source subsection via a duchamp::Section object
-                    void setSection(duchamp::Section &sec) {itsSourceSection = sec; itsSourceSection.parse(itsAxes);};
-                    /// @brief Set the source subsection via a string
-                    void setSection(std::string &secstring) {itsSourceSection.setSection(secstring); itsSourceSection.parse(itsAxes);};
+/*                     /// @brief Set the source subsection via a duchamp::Section object */
+/*                     void setSection(duchamp::Section &sec) {itsSourceSection = sec; itsSourceSection.parse(itsAxes);}; */
+/*                     /// @brief Set the source subsection via a string */
+/*                     void setSection(std::string &secstring) {itsSourceSection.setSection(secstring); itsSourceSection.parse(itsAxes);}; */
 
                     /// @brief Return the WCS structure
                     struct wcsprm *getWCS() {return itsWCS;};
@@ -90,22 +90,22 @@ namespace askap {
                     /// @brief Get and set individual values in the flux array
                     /// @{
                     float array(int pos) {return itsArray[pos];};
-                    float array(int x, int y) {return itsArray[x+itsAxes[0]*y];};
-                    float array(int x, int y, int z) {return itsArray[x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]];};
-                    void setArray(size_t pos, float val) {itsArray[pos] = val;};
-                    void setArray(int x, int y, float val) {itsArray[x+itsAxes[0]*y] = val;};
-		    void setArray(int x, int y, int z, float val) {itsArray[x+itsAxes[0]*y+itsAxes[0]*itsAxes[1]*z] = val;};
+		    float array(unsigned int x, unsigned int y) {size_t pos=x+itsAxes[0]*y; return itsArray[pos];};
+		    float array(unsigned int x, unsigned int y, int z) {size_t pos=x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]; return itsArray[pos];};
+                    void setArray(unsigned int pos, float val) {itsArray[pos] = val;};
+                    void setArray(unsigned int x, unsigned int y, float val) {size_t pos=x+itsAxes[0]*y; itsArray[pos] = val;};
+		    void setArray(unsigned int x, unsigned int y, unsigned int z, float val) {size_t pos=x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]; itsArray[pos] = val;};
                     /// @}
                     /// @brief Get the vector of axis dimensions
-                    std::vector<int> getAxes() {return itsAxes;};
+                    std::vector<unsigned int> getAxes() {return itsAxes;};
                     /// @brief Get the size of the X-axis
-                    int getXdim() {return itsAxes[itsWCS->lng];};
+                    unsigned int getXdim() {return itsAxes[itsWCS->lng];};
                     /// @brief Get the size of the Y-axis
-                    int getYdim() {return itsAxes[itsWCS->lat];};
+                    unsigned int getYdim() {return itsAxes[itsWCS->lat];};
                     /// @brief Get the size of the Z-axis
-                    int getZdim() {return itsAxes[itsWCS->spec];};
+                    unsigned int getZdim() {return itsAxes[itsWCS->spec];};
 		    /// @brief Get the index of the spectral axis
-		    int getSpectralAxisIndex(){return itsWCS->spec;};
+		    unsigned int getSpectralAxisIndex(){return itsWCS->spec;};
 		    /// @brief Return the number of pixels
 		    size_t getSize() {return itsNumPix;};
 
@@ -162,7 +162,7 @@ namespace askap {
                     /// @brief The dimensionality of the image
                     unsigned int itsDim;
                     /// @brief The axis dimensions
-                    std::vector<int> itsAxes;
+                    std::vector<unsigned int> itsAxes;
                     /// @brief The number of pixels in the image
                     size_t itsNumPix;
                     /// @brief The section of the image in which to place sources - defaults to the null section of the appropriate dimensionality, and needs to be set explicitly via setSection()

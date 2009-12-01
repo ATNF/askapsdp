@@ -193,6 +193,7 @@ namespace askap {
 				int x=pix%xdim;
 				int y=(pix/xdim)%ydim;
 				int z=pix/(xdim*ydim);
+				if(x==0 && y==0) ASKAPLOG_DEBUG_STR(logger, "y=0, z="<<z);
 //                                 in >> xpt >> ypt >> zpt >> flux;
 //                                 ASKAPASSERT(xpt == (xmin + x));
 //                                 ASKAPASSERT(ypt == (ymin + y));
@@ -206,6 +207,7 @@ namespace askap {
 //                                 this->itsFITSfile->setArray(x+xmin, y+ymin, z+zmin, flux);
                                 this->itsFITSfile->setArray(pos, flux);
                             }
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Successfully read " << xdim*ydim*zdim << " pixels");
 
                             in.getEnd();
 

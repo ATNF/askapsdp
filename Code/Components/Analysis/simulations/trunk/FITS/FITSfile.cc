@@ -271,11 +271,16 @@ namespace askap {
 
                 this->itsNoiseRMS = parset.getFloat("noiserms", 0.001);
 
-                this->itsDim = parset.getInt32("dim", 2);
-                this->itsAxes = parset.getInt32Vector("axes");
+//                 this->itsDim = parset.getInt32("dim", 2);
+//                 this->itsAxes = parset.getInt32Vector("axes");
+                this->itsDim = parset.getUint16("dim", 2);
+                this->itsAxes = parset.getUint32Vector("axes");
 		std::string sectionString = parset.getString("subsection",duchamp::nullSection(this->itsDim));
 		this->itsSourceSection.setSection(sectionString);
-                this->itsSourceSection.parse(this->itsAxes);
+		std::vector<int> axes(this->itsDim);
+		for(uint i=0;i<this->itsDim;i++) axes[i] = this->itsAxes[i];
+                this->itsSourceSection.parse(axes);
+		//                this->itsSourceSection.parse(this->itsAxes);
 
                 if (this->itsAxes.size() != this->itsDim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
