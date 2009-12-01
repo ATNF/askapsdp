@@ -154,12 +154,8 @@ namespace askap {
 			for(unsigned int z=0;z<this->itsFITSfile->getZdim();z++){
 			  for(unsigned int y=0;y<this->itsFITSfile->getYdim();y++){
 			    for(unsigned int x=0;x<this->itsFITSfile->getXdim();x++){
-//                               int xpt = x+this->itsSubsection.getStart(0);
-//                               int ypt = y+this->itsSubsection.getStart(1);
-//                               int zpt = z+this->itsSubsection.getStart(spInd);
                               float fpt = this->itsFITSfile->array(x, y, z);
                               out << fpt;
-//                               out << xpt << ypt << zpt << fpt;
                             }
 			  }
 			}
@@ -188,23 +184,14 @@ namespace askap {
 			    ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << xdim*ydim*zdim << " pixels");
 
                             for (int pix = 0; pix < xdim*ydim*zdim; pix++) {
-// 			        int xpt, ypt, zpt;
                                 float flux;
-				int x=pix%xdim;
-				int y=(pix/xdim)%ydim;
-				int z=pix/(xdim*ydim);
-				if(x==0 && y==0) ASKAPLOG_DEBUG_STR(logger, "y=0, z="<<z);
-//                                 in >> xpt >> ypt >> zpt >> flux;
-//                                 ASKAPASSERT(xpt == (xmin + x));
-//                                 ASKAPASSERT(ypt == (ymin + y));
-// 				ASKAPASSERT(zpt == (zmin + z));
-// 				flux += this->itsFITSfile->array(xpt, ypt, zpt);
-//                                 this->itsFITSfile->setArray(xpt, ypt, zpt, flux);
+				unsigned int x=pix%xdim;
+				unsigned int y=(pix/xdim)%ydim;
+				unsigned int z=pix/(xdim*ydim);
                                 in >> flux;
 				size_t pos = (x+xmin)+xdim*(y+ymin)+ydim*xdim*(z+zmin);
 				ASKAPASSERT(pos < this->itsFITSfile->getSize());
-				flux += this->itsFITSfile->array(x+xmin, y+ymin, z+zmin);
-//                                 this->itsFITSfile->setArray(x+xmin, y+ymin, z+zmin, flux);
+				flux += this->itsFITSfile->array(pos);
                                 this->itsFITSfile->setArray(pos, flux);
                             }
 			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Successfully read " << xdim*ydim*zdim << " pixels");
@@ -254,6 +241,15 @@ namespace askap {
             }
 
 
+            //--------------------------------------------------
+
+
+	  void FITSparallel::stagedWriting()
+	  {
+
+
+
+	  }
 
         }
 

@@ -210,6 +210,7 @@ namespace askap {
                 /// the sourceFluxUnits parameter: if this is not specified,
                 /// the fluxes are assumed to be the same units as those of
                 /// BUNIT). The pixel array is allocated here.
+
                 ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
                 this->itsFileName = parset.getString("filename", "");
 		this->itsFITSOutput = parset.getBool("fitsOutput",true);
@@ -272,8 +273,6 @@ namespace askap {
 
                 this->itsNoiseRMS = parset.getFloat("noiserms", 0.001);
 
-//                 this->itsDim = parset.getInt32("dim", 2);
-//                 this->itsAxes = parset.getInt32Vector("axes");
                 this->itsDim = parset.getUint16("dim", 2);
                 this->itsAxes = parset.getUint32Vector("axes");
 		std::string sectionString = parset.getString("subsection",duchamp::nullSection(this->itsDim));
@@ -281,7 +280,6 @@ namespace askap {
 		std::vector<int> axes(this->itsDim);
 		for(uint i=0;i<this->itsDim;i++) axes[i] = this->itsAxes[i];
                 this->itsSourceSection.parse(axes);
-		//                this->itsSourceSection.parse(this->itsAxes);
 
                 if (this->itsAxes.size() != this->itsDim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
@@ -346,6 +344,19 @@ namespace askap {
 
             void FITSfile::setWCS(bool isImage, const LOFAR::ParameterSet& parset)
             {
+	      /// @details Defines a world coordinate system from an
+	      /// input parameter set. This looks for parameters that
+	      /// define the various FITS header keywords for each
+	      /// axis (ctype, cunit, crval, cdelt, crpix, crota), as
+	      /// well as the equinox, then defines a WCSLIB wcsprm
+	      /// structure and assigns it to either FITSfile::itsWCS
+	      /// or FITSfile::itsWCSsources depending on the isImage
+	      /// parameter.  
+	      /// @param isImage If true, the FITSfile::itsWCS
+	      /// structure is defined, else it is the
+	      /// FITSfile::itsWCSsources.
+	      /// @param parset The input parset to be examined.
+
                 struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
                 wcs->flag = -1;
                 wcsini(true , this->itsDim, wcs);
@@ -715,7 +726,6 @@ namespace askap {
 
                 char *unit = (char *)this->itsBunit.getName().c_str();
 
-//                 if (fits_update_key(fptr, TSTRING, "BUNIT", (char *)this->itsBunit.getName().c_str(),  NULL, &status))
                 if (fits_update_key(fptr, TSTRING, "BUNIT", unit,  NULL, &status))
                     fits_report_error(stderr, status);
 
@@ -786,6 +796,13 @@ namespace askap {
 
 	  std::string casafy(std::string fitsName)
 	  {
+	    /// @details Takes the name of a fits file and produces
+	    /// the equivalent CASA image name. This simply involves
+	    /// removing the ".fits" extension if it exists, or, if it
+	    /// doesn't, adding a ".casa" extension.
+	    /// @param fitsName The name of the fits file
+	    /// @return The name of the casa image.
+
 	    std::string casaname;
 	    size_t pos = fitsName.rfind(".fits");
 	    if(pos == std::string::npos) { // imageName doesn't have a .fits extension
@@ -798,8 +815,20 @@ namespace askap {
 	    return casaname;
 	  }
 
+
+//--------------------------------------------------------
+
             void FITSfile::writeCASAimage()
             {
+	      /// @details Writes the data to a casa image. The WCS is
+	      /// converted to a casa-format coordinate system using
+	      /// the analysis package function, the brightness units
+	      /// and restoring beam are saved to the image, and the
+	      /// data array is written using a casa::Array class. No
+	      /// additional memory allocation is done in saving the
+	      /// data array (the casa::SHARE flag is used in the
+	      /// array constructor). The name of the casa image is
+	      /// determined by the casafy() function.
 
 	      if(this->itsCasaOutput){
 

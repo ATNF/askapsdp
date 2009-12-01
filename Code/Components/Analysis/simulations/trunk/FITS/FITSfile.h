@@ -79,11 +79,6 @@ namespace askap {
                     /// @brief Define the world coordinate system
                     void setWCS(bool isImage, const LOFAR::ParameterSet& parset);
 
-/*                     /// @brief Set the source subsection via a duchamp::Section object */
-/*                     void setSection(duchamp::Section &sec) {itsSourceSection = sec; itsSourceSection.parse(itsAxes);}; */
-/*                     /// @brief Set the source subsection via a string */
-/*                     void setSection(std::string &secstring) {itsSourceSection.setSection(secstring); itsSourceSection.parse(itsAxes);}; */
-
                     /// @brief Return the WCS structure
                     struct wcsprm *getWCS() {return itsWCS;};
 
