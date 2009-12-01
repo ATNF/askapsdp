@@ -1,4 +1,4 @@
-/// @file
+/// @file FFTWrapper.cc
 ///
 /// FFTWrapper: This class provides limited wrapper (adapter) functionality for the FFTW library
 ///
@@ -31,10 +31,10 @@
 #include <askap/AskapTypes.h>
 #include <askap/AskapError.h>
 #include <complex>
-#ifdef ASKAP_USE_FFTW
-#include <fftw3.h>
-#else 
+#ifdef ASKAP_USE_CASAFFT
 #include <scimath/Mathematics/FFTServer.h>
+#else 
+#include <fftw3.h>
 #endif
 
 #include <casa/Arrays/Vector.h>
@@ -50,9 +50,13 @@ namespace askap
 
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)
           {
-#ifdef ASKAP_USE_FFTW
+#ifdef ASKAP_USE_CASAFFT
+            casa::FFTServer<double, casa::DComplex> ffts;
+            bool ncForward(forward);
+            ffts.fft(vec, ncForward);
+#else
             const IPosition shape = vec.shape();
-            const uInt nElements = shape[0];
+            const casa::uInt nElements = shape[0];
 
             Bool deleteIt;
             DComplex *dataPtr = vec.getStorage(deleteIt);
@@ -68,7 +72,7 @@ namespace askap
               {
                 DComplex *tempPtr = dataPtr;
                 const DComplex scale = DComplex(1)/DComplex(nElements);
-                for(int i=0; i<nElements; i++)
+                for(casa::uInt i=0; i<nElements; i++)
                   {
                     *tempPtr++ *= scale;
                   }
@@ -79,18 +83,18 @@ namespace askap
 
             vec.putStorage(dataPtr, deleteIt);
             fftw_destroy_plan(p);
-#else
-            casa::FFTServer<double, casa::DComplex> ffts;
-            bool ncForward(forward);
-            ffts.fft(vec, ncForward);
 #endif
           }
 
         void fft(casa::Vector<casa::Complex>& vec, const bool forward)
           {
-#ifdef ASKAP_USE_FFTW
+#ifdef ASKAP_USE_CASAFFT
+            casa::FFTServer<float, casa::Complex> ffts;
+            bool ncForward(forward);
+            ffts.fft(vec, ncForward);
+#else
             const IPosition shape = vec.shape();
-            const uInt nElements = shape[0];
+            const casa::uInt nElements = shape[0];
 
             Bool deleteIt;
             Complex *dataPtr = vec.getStorage(deleteIt);
@@ -106,7 +110,7 @@ namespace askap
               {
                 Complex *tempPtr = dataPtr;
                 const Complex scale = Complex(1)/Complex(nElements);
-                for(int i=0; i<nElements; i++)
+                for(casa::uInt i=0; i<nElements; i++)
                   {
                     *tempPtr++ *= scale;
                   }
@@ -117,10 +121,6 @@ namespace askap
 
             vec.putStorage(dataPtr, deleteIt);
             fftwf_destroy_plan(p);
-#else
-            casa::FFTServer<float, casa::Complex> ffts;
-            bool ncForward(forward);
-            ffts.fft(vec, ncForward);
 #endif
           }
 
