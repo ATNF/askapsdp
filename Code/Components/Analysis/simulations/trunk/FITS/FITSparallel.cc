@@ -151,9 +151,9 @@ namespace askap {
                         ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": sent maxima of " << this->itsSubsection.getEnd(0)
 					   << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
 
-			for(int z=0;z<this->itsFITSfile->getZdim();z++){
-			  for(int y=0;y<this->itsFITSfile->getYdim();y++){
-			    for(int x=0;x<this->itsFITSfile->getXdim();x++){
+			for(unsigned int z=0;z<this->itsFITSfile->getZdim();z++){
+			  for(unsigned int y=0;y<this->itsFITSfile->getYdim();y++){
+			    for(unsigned int x=0;x<this->itsFITSfile->getXdim();x++){
 //                               int xpt = x+this->itsSubsection.getStart(0);
 //                               int ypt = y+this->itsSubsection.getStart(1);
 //                               int zpt = z+this->itsSubsection.getStart(spInd);

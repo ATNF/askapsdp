@@ -54,6 +54,7 @@
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <images/Images/PagedImage.h>
 #include <images/Images/ImageInfo.h>
+#include <casa/Arrays/ArrayBase.h>
 
 #include <wcslib/wcs.h>
 #include <wcslib/wcsunits.h>
@@ -812,8 +813,8 @@ namespace askap {
 	        ASKAPLOG_INFO_STR(logger, "Creating a new CASA image "<< newName <<" with the shape "<<shape);
 		casa::PagedImage<float> img(casa::TiledShape(shape), csys, newName);
 
-		Array<Float> arr(shape);
-		arr.takeStorage(shape,this->itsArray);
+		// make the casa::Array, sharing the memory storage so there is minimal additional impact
+		Array<Float> arr(shape, this->itsArray, casa::SHARE);
 
 		ASKAPLOG_INFO_STR(logger, "Writing an array with the shape "<<arr.shape()<<" into a CASA image "<< newName);
 		img.put(arr);
