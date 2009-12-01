@@ -36,6 +36,7 @@
 #include <parallel/ImagerParallel.h>
 
 #include <askap_synthesis.h>
+#include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".measurementequation");
 
@@ -43,8 +44,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 // need it just for null deleter
 #include <askap/AskapUtil.h>
 
-#include <askap_synthesis.h>
-
+#include <askapparallel/AskapParallel.h>
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
@@ -88,13 +88,12 @@ namespace askap
   namespace synthesis
   {
 
-    ImagerParallel::ImagerParallel(int argc, const char** argv,
+    ImagerParallel::ImagerParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
-      MEParallel(argc, argv), itsParset(parset),
+      MEParallel(comms), itsParset(parset),
       itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)
     {
-
-      if (isMaster())
+      if (itsComms.isMaster())
       {
         // set up image handler
         SynthesisParamsHelper::setUpImageHandler(itsParset);
@@ -135,7 +134,7 @@ namespace askap
         itsSolver=ImageSolverFactory::make(*itsModel, itsParset);
         ASKAPCHECK(itsSolver, "Solver not defined correctly");
       }
-      if (isWorker())
+      if (itsComms.isWorker())
       {
         /// Get the list of measurement sets and the column to use.
         itsColName=itsParset.getString("datacolumn", "DATA");
@@ -152,21 +151,22 @@ namespace askap
         ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance/casa::C::pi*180.*3600.<<" arcsec");
         
         ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
+        const int nNodes = itsComms.nNodes();
         if (itsMs.size()==1)
         {
           string tmpl=itsMs[0];
-          if (itsNNode>2)
+          if (nNodes>2)
           {
-            itsMs.resize(itsNNode-1);
+            itsMs.resize(nNodes-1);
           }
-          for (int i=0; i<itsNNode-1; i++)
+          for (int i=0; i<nNodes-1; i++)
           {
             itsMs[i]=substitute(tmpl);
           }
         }
-        if (itsNNode>1)
+        if (nNodes>1)
         {
-          ASKAPCHECK(int(itsMs.size()) == (itsNNode-1),
+          ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
               "When running in parallel, need one data set per node");
         }
 
@@ -261,7 +261,7 @@ namespace askap
       /// Now we need to recreate the normal equations
       itsNe=ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
 
-      if (isWorker())
+      if (itsComms.isWorker())
       {
         ASKAPCHECK(itsGridder, "Gridder not defined");
         ASKAPCHECK(itsModel, "Model not defined");
@@ -269,9 +269,9 @@ namespace askap
 
         ASKAPCHECK(itsNe, "NormalEquations not defined");
 
-        if (isParallel())
+        if (itsComms.isParallel())
         {
-          calcOne(itsMs[itsRank-1]);
+          calcOne(itsMs[itsComms.rank()-1]);
           sendNE();
         }
         else
@@ -290,10 +290,10 @@ namespace askap
 
     void ImagerParallel::solveNE()
     {
-      if (isMaster())
+      if (itsComms.isMaster())
       {
         // Receive the normal equations
-        if (isParallel())
+        if (itsComms.isParallel())
         {
           receiveNE();
         }
@@ -384,7 +384,7 @@ namespace askap
     /// (used to separate images at different iterations)
     void ImagerParallel::writeModel(const std::string &postfix)
     {
-      if (isMaster())
+      if (itsComms.isMaster())
       {
         ASKAPLOG_INFO_STR(logger, "Writing out results as images");
         vector<string> resultimages=itsModel->names();

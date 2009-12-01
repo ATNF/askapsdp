@@ -39,13 +39,21 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+// Include own header file first
+#include <parallel/CalibratorParallel.h>
+
+// System includes
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
 // logging stuff
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".parallel");
 
 // own includes
-#include <parallel/CalibratorParallel.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
@@ -64,18 +72,12 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <gridding/VisGridderFactory.h>
-
+#include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
 
 // casa includes
 #include <casa/aips.h>
 #include <casa/OS/Timer.h>
-
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
 
 using namespace askap;
 using namespace askap::scimath;
@@ -90,12 +92,12 @@ using namespace askap::mwbase;
 /// @param[in] argc Number of command line inputs
 /// @param[in] argv Command line inputs
 /// @param[in] parset ParameterSet for inputs
-CalibratorParallel::CalibratorParallel(int argc, const char** argv,
+CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
-      MEParallel(argc, argv), itsParset(parset), 
+      MEParallel(comms), itsParset(parset), 
       itsPerfectModel(new scimath::Params())
 {
-  if (isMaster()) {
+  if (itsComms.isMaster()) {
       // set up image handler
       SynthesisParamsHelper::setUpImageHandler(itsParset);
       
@@ -119,22 +121,23 @@ CalibratorParallel::CalibratorParallel(int argc, const char** argv,
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
       itsRefGain = itsParset.getString("refgain","");
   }
-  if (isWorker()) {
+  if (itsComms.isWorker()) {
       /// Get the list of measurement sets and the column to use.
       itsColName=itsParset.getString("datacolumn", "DATA");
       itsMs=itsParset.getStringVector("dataset");
       ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
+      const int nNodes = itsComms.nNodes();
       if (itsMs.size()==1) {
           string tmpl=itsMs[0];
-          if (itsNNode>2) {
-            itsMs.resize(itsNNode-1);
+          if (nNodes>2) {
+            itsMs.resize(nNodes-1);
           }
-          for (int i=0; i<itsNNode-1; i++) {
+          for (int i=0; i<nNodes-1; i++) {
             itsMs[i]=substitute(tmpl);
           }
       }
-      if (itsNNode>1) {
-          ASKAPCHECK(int(itsMs.size()) == (itsNNode-1),
+      if (nNodes>1) {
+          ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
               "When running in parallel, need one data set per node");
       }
 
@@ -223,12 +226,12 @@ void CalibratorParallel::calcNE()
   /// Now we need to recreate the normal equations
   itsNe.reset(new GenericNormalEquations);
 
-  if (isWorker()) {
+  if (itsComms.isWorker()) {
         
       ASKAPDEBUGASSERT(itsNe);
 
-      if (isParallel()) {
-          calcOne(itsMs[itsRank-1]);
+      if (itsComms.isParallel()) {
+          calcOne(itsMs[itsComms.rank()-1]);
           sendNE();
       } else {
           ASKAPCHECK(itsSolver, "Solver not defined correctly");
@@ -244,9 +247,9 @@ void CalibratorParallel::calcNE()
 
 void CalibratorParallel::solveNE()
 { 
-  if (isMaster()) {
+  if (itsComms.isMaster()) {
       // Receive the normal equations
-      if (isParallel()) {
+      if (itsComms.isParallel()) {
           receiveNE();
       }
         
@@ -276,7 +279,7 @@ void CalibratorParallel::solveNE()
 /// the parameters of itsModel
 void CalibratorParallel::rotatePhases()
 {
-  ASKAPDEBUGASSERT(isMaster());
+  ASKAPDEBUGASSERT(itsComms.isMaster());
   ASKAPDEBUGASSERT(itsModel);
   ASKAPCHECK(itsModel->has(itsRefGain), "phase rotation to `"<<itsRefGain<<
               "` is impossible because this parameter is not present in the model");
@@ -301,7 +304,7 @@ void CalibratorParallel::rotatePhases()
 /// @param[in] postfix a string to be added to the file name
 void CalibratorParallel::writeModel(const std::string &postfix)
 {
-  if (isMaster()) {
+  if (itsComms.isMaster()) {
       ASKAPLOG_INFO_STR(logger, "Writing out results into a parset file");
       ASKAPCHECK(postfix == "", "postfix parameter is not supposed to be used in the calibration code");
       

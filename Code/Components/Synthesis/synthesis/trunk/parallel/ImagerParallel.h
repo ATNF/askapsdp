@@ -30,13 +30,14 @@
 #ifndef ASKAP_SYNTHESIS_IMAGERPARALLEL_H_
 #define ASKAP_SYNTHESIS_IMAGERPARALLEL_H_
 
-#include <parallel/MEParallel.h>
-
+// ASKAPsoft includes
+#include <askapparallel/AskapParallel.h>
 #include <gridding/IVisGridder.h>
-
 #include <fitting/Solver.h>
-
 #include <Common/ParameterSet.h>
+
+// Local package includes
+#include <parallel/MEParallel.h>
 #include <measurementequation/IMeasurementEquation.h>
 
 namespace askap
@@ -103,7 +104,7 @@ namespace askap
       /// @param argc Number of command line inputs
       /// @param argv Command line inputs
       /// @param parset ParameterSet for inputs
-      ImagerParallel(int argc, const char** argv,
+      ImagerParallel(askap::mwbase::AskapParallel& comms,
           const LOFAR::ParameterSet& parset);
 
       /// @brief Calculate the normalequations (runs in the prediffers)
@@ -123,6 +124,7 @@ namespace askap
       /// @param[in] postfix this string is added to the end of each name
       /// (used to separate images at different iterations)
       virtual void writeModel(const std::string &postfix = std::string());
+
   protected:
       
       /// @brief a helper method to extract peak residual
@@ -151,7 +153,6 @@ namespace askap
       /// @brief Do we want to keep scratch buffers in memory instead of writing them in a subtable?
       /// @details Turining this flag to true allows to work with a read-only dataset
       bool itsUseMemoryBuffers;
-      
 
       /// Name of data column to use.
       string itsColName;

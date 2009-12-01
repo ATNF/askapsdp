@@ -29,19 +29,14 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-
 #include <askap/AskapError.h>
-
-
+#include <askapparallel/AskapParallel.h>
 #include <casa/OS/Timer.h>
-
 #include <CommandLineParser.h>
 #include <Common/ParameterSet.h>
 #include <parallel/CalibratorParallel.h>
-
 
 ASKAP_LOGGER(logger, ".ccalibrator");
 
@@ -54,14 +49,13 @@ using namespace cmdlineparser;
 
 int main(int argc, const char** argv)
 {
+  // This class must have scope outside the main try/catch block
+  askap::mwbase::AskapParallel comms(argc, argv);
+
   try {
-      
     casa::Timer timer;
-      
-      
     timer.mark();
 
-      
     {
       cmdlineparser::Parser parser; // a command line parser
       // command line parameter
@@ -73,14 +67,13 @@ int main(int argc, const char** argv)
       // I hope const_cast is temporary here
       parser.process(argc,const_cast<char**>(argv));
         
-        
       LOFAR::ParameterSet parset(inputsPar);
       LOFAR::ParameterSet subset(parset.makeSubset("Ccalibrator."));
 	
-      CalibratorParallel calib(argc, argv, subset);
+      CalibratorParallel calib(comms, subset);
       ASKAPLOG_INFO_STR(logger, "ASKAP synthesis calibrator " << ASKAP_PACKAGE_VERSION);
       
-      if (calib.isMaster()) {
+      if (comms.isMaster()) {
           ASKAPLOG_INFO_STR(logger, "parset file "<<inputsPar.getValue());
           ASKAPLOG_INFO_STR(logger, parset);
       }
@@ -127,6 +120,6 @@ int main(int argc, const char** argv)
       std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
       exit(1);
     }
-  exit(0);
+
+  return 0;
 }
-	    

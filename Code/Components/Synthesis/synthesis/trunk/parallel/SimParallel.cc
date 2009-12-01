@@ -39,6 +39,7 @@
 #include <askap_synthesis.h>
 #include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
+#include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
 ASKAP_LOGGER(logger, ".parallel");
 
@@ -69,15 +70,15 @@ namespace askap
 namespace synthesis
 {
 
-SimParallel::SimParallel(int argc, const char** argv,
+SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
                          const ParameterSet& parset) :
-        SynParallel(argc, argv), itsParset(parset)
+        SynParallel(comms), itsParset(parset)
 {
 }
 
 void SimParallel::init()
 {
-    if (isMaster()) {
+    if (itsComms.isMaster()) {
         // set up image handler
         SynthesisParamsHelper::setUpImageHandler(itsParset);
 
@@ -85,7 +86,7 @@ void SimParallel::init()
         broadcastModel();
     }
 
-    if (isWorker()) {
+    if (itsComms.isWorker()) {
         string msname(substitute(itsParset.getString("dataset",
                                  "test%w.ms")));
         int bucketSize  = itsParset.getInt32("stman.bucketsize", 32768);
@@ -117,7 +118,7 @@ void SimParallel::init()
 
 SimParallel::~SimParallel()
 {
-    if (isWorker()) {
+    if (itsComms.isWorker()) {
         itsMs->flush();
     }
 }
@@ -365,7 +366,7 @@ void SimParallel::readSimulation()
 void SimParallel::simulate()
 {
 
-    if (isWorker()) {
+    if (itsComms.isWorker()) {
         /// Now that the simulator is defined, we can observe each scan
         ParameterSet parset(itsParset);
 
@@ -401,7 +402,7 @@ void SimParallel::simulate()
 
 void SimParallel::predict(const string& ms)
 {
-    if (isWorker()) {
+    if (itsComms.isWorker()) {
         casa::Timer timer;
         timer.mark();
         ASKAPLOG_INFO_STR(logger, "Simulating data for " << ms);

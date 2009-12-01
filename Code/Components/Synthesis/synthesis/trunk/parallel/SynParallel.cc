@@ -30,6 +30,12 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
+
+// Include own header file first
+#include <parallel/SynParallel.h>
+
+#include <sstream>
+
 #include <mwcommon/MPIConnection.h>
 #include <mwcommon/MPIConnectionSet.h>
 #include <mwcommon/MWIos.h>
@@ -52,10 +58,6 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <askap/AskapError.h>
 #include <askap_synthesis.h>
 
-#include <parallel/SynParallel.h>
-
-#include <sstream>
-
 using namespace std;
 using namespace askap;
 using namespace askap::mwbase;
@@ -66,11 +68,10 @@ namespace askap
   namespace synthesis
   {
 
-    SynParallel::SynParallel(int argc, const char** argv) : AskapParallel(argc, argv)
+    SynParallel::SynParallel(askap::mwbase::AskapParallel& comms) : itsComms(comms)
     {
       itsModel = Params::ShPtr(new Params());
       ASKAPCHECK(itsModel, "Model not defined correctly");
-
     }
 
     SynParallel::~SynParallel()
@@ -85,7 +86,7 @@ namespace askap
     // Send the model to all workers
     void SynParallel::broadcastModel()
     {
-      if (isParallel()&&isMaster())
+      if (itsComms.isParallel() && itsComms.isMaster())
       {
         ASKAPCHECK(itsModel, "Model not defined prior to broadcast")
         casa::Timer timer;
@@ -98,7 +99,7 @@ namespace askap
         out.putStart("model", 1);
         out << *itsModel;
         out.putEnd();
-        itsConnectionSet->writeAll(bs);
+        itsComms.connectionSet()->writeAll(bs);
         ASKAPLOG_INFO_STR(logger, "Sent model to the workers via MPI in "<< timer.real()
                            << " seconds ");
       }
@@ -107,7 +108,7 @@ namespace askap
     // Receive the model from the master
     void SynParallel::receiveModel()
     {
-      if (isParallel()&&isWorker())
+      if (itsComms.isParallel() && itsComms.isWorker())
       {
         ASKAPCHECK(itsModel, "Model not defined prior to receiving")
         casa::Timer timer;
@@ -115,7 +116,7 @@ namespace askap
         ASKAPLOG_INFO_STR(logger, "Wait to receive the model from the master via MPI");
         LOFAR::BlobString bs;
         bs.resize(0);
-        itsConnectionSet->read(0, bs);
+        itsComms.connectionSet()->read(0, bs);
         LOFAR::BlobIBufString bib(bs);
         LOFAR::BlobIStream in(bib);
         int version=in.getStart("model");
@@ -127,5 +128,9 @@ namespace askap
       }
     }
 
+    std::string SynParallel::substitute(const std::string& s)
+    {
+       return itsComms.substitute(s);
+    }
   }
 }

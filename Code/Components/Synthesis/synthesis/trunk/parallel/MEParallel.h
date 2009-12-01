@@ -30,6 +30,7 @@
 #define ASKAP_SYNTHESIS_MEPARALLEL_H_
 
 #include <parallel/SynParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 namespace askap
 {
@@ -81,7 +82,7 @@ namespace askap
 				/// application specific information is passed on the command line.
 				/// @param argc Number of command line inputs
 				/// @param argv Command line inputs
-				MEParallel(int argc, const char** argv);
+				MEParallel(askap::mwbase::AskapParallel& comms);
 
 				virtual ~MEParallel();
 
@@ -103,7 +104,6 @@ namespace askap
 
 			protected:
 			
-			 
 				/// Holder for the normal equations
 				askap::scimath::INormalEquations::ShPtr itsNe;
 
@@ -112,7 +112,6 @@ namespace askap
 				
 				/// Holder for the equation
 				askap::scimath::Equation::ShPtr itsEquation;
-
 		};
 
 	}

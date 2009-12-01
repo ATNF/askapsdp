@@ -32,9 +32,9 @@
 #include <boost/shared_ptr.hpp>
 #include <Common/ParameterSet.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
-
 #include <dataaccess/SharedIter.h>
 #include <measurementequation/IMeasurementEquation.h>
+#include <askapparallel/AskapParallel.h>
 #include <parallel/SynParallel.h>
 #include <simulation/Simulator.h>
 
@@ -122,7 +122,7 @@ namespace askap
                 /// @param argc Number of command line inputs
                 /// @param argv Command line inputs
                 /// @param parset ParameterSet for inputs
-                SimParallel(int argc, const char** argv,
+                SimParallel(askap::mwbase::AskapParallel& comms,
                         const LOFAR::ParameterSet& parset);
 
                 ~SimParallel();
@@ -136,6 +136,7 @@ namespace askap
                 /// @details The measurement set is constructed but not filled with data.
                 /// At the end, the measurement set is written to disk.
                 void simulate();
+
             protected:
                 /// @brief a helper method to add up an equation
                 /// @details Some times it is necessary to replace a measurement equation

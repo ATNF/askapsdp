@@ -34,11 +34,11 @@
 #define CALIBRATOR_PARALLEL_H
 
 // own includes
+#include <askapparallel/AskapParallel.h>
 #include <parallel/MEParallel.h>
 #include <Common/ParameterSet.h>
 #include <gridding/IVisGridder.h>
 #include <measurementequation/IMeasurementEquation.h>
-
 
 // std includes
 #include <string>
@@ -46,9 +46,7 @@
 
 // boost includes
 #include <boost/shared_ptr.hpp>
-
 #include <fitting/Solver.h>
-
 
 namespace askap
 {
@@ -88,7 +86,7 @@ namespace askap
       /// @param[in] argc Number of command line inputs
       /// @param[in] argv Command line inputs
       /// @param[in] parset ParameterSet for inputs
-      CalibratorParallel(int argc, const char** argv,
+      CalibratorParallel(askap::mwbase::AskapParallel& comms,
           const LOFAR::ParameterSet& parset);
 
       /// @brief Calculate the normal equations (runs in the prediffers)

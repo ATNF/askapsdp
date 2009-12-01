@@ -52,7 +52,7 @@ namespace askap
     /// no overall for transmission of model.
     ///
     /// @ingroup parallel
-    class SynParallel : public askap::mwbase::AskapParallel
+    class SynParallel
     {
   public:
 
@@ -61,7 +61,7 @@ namespace askap
       /// application specific information is passed on the command line.
       /// @param argc Number of command line inputs
       /// @param argv Command line inputs
-      SynParallel(int argc, const char** argv);
+      SynParallel(askap::mwbase::AskapParallel& comms);
 
       ~SynParallel();
 
@@ -74,10 +74,18 @@ namespace askap
       /// @brief Receive the model from the master
       void receiveModel();
 
+      /// Substitute %w by worker number, and %n by number of workers (one less than the number
+      // of nodes). This allows workers to do different work! This just calls
+      // through to the AskapParallel version of substitute()
+      std::string substitute(const std::string& s);
+
   protected:
 
       /// The model
       askap::scimath::Params::ShPtr itsModel;
+
+      /// Class for communications
+      askap::mwbase::AskapParallel& itsComms;
     };
 
   }

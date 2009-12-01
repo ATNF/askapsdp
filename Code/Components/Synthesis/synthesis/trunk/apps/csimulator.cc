@@ -28,14 +28,15 @@
 ///
 
 // ASKAPsoft includes
-#include <casa/Logging/LogIO.h>
-#include <casa/OS/Timer.h>
-#include <Common/ParameterSet.h>
-#include <CommandLineParser.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/Log4cxxLogSink.h>
+#include <askapparallel/AskapParallel.h>
+#include <casa/Logging/LogIO.h>
+#include <casa/OS/Timer.h>
+#include <Common/ParameterSet.h>
+#include <CommandLineParser.h>
 
 // Local package includes
 #include <parallel/SimParallel.h>
@@ -49,6 +50,9 @@ using namespace askap::synthesis;
 // Main function
 int main(int argc, const char** argv)
 {
+    // This class must have scope outside the main try/catch block
+    askap::mwbase::AskapParallel comms(argc, argv);
+
     try {
         casa::Timer timer;
         timer.mark();
@@ -75,11 +79,11 @@ int main(int argc, const char** argv)
             LOFAR::ParameterSet subset(parset.makeSubset("Csimulator."));
 
             // We cannot issue log messages until MPI is initialized!
-            SimParallel sim(argc, argv, subset);
+            SimParallel sim(comms, subset);
 
             ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
 
-            if (sim.isMaster()) {
+            if (comms.isMaster()) {
                 ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
                 ASKAPLOG_INFO_STR(logger,  parset);
             }
@@ -104,5 +108,5 @@ int main(int argc, const char** argv)
         exit(1);
     }
 
-    exit(0);
+    return 0;
 }

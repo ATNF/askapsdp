@@ -79,6 +79,9 @@ namespace askap
       // Connection set
       askap::mwbase::MPIConnectionSet::ShPtr connectionSet();
 
+      /// Substitute %w by worker number, and %n by number of workers (one less than the number of nodes) This allows workers to do different work!
+      std::string substitute(const std::string& s);
+
   protected:
       /// Initialize the MPI connections
       void initConnections();
@@ -102,10 +105,6 @@ namespace askap
 
       /// Is this a worker?
       bool itsIsWorker;
-
-      /// Substitute %w by worker number, and %n by number of workers (one less than the number of nodes) This allows workers to do different work!
-      std::string substitute(const std::string& s);
-
     };
 
   }

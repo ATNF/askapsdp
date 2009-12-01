@@ -32,6 +32,7 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
+
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -54,15 +55,16 @@
 
 ASKAP_LOGGER(logger, ".cimager");
 
-
 using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::scimath;
 
 // Main function
 int main(int argc, const char** argv) {
-	try {
+    // This class must have scope outside the main try/catch block
+    askap::mwbase::AskapParallel comms(argc, argv);
 
+	try {
 	  // Ensure that CASA log messages are captured
 	  casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
 	  casa::LogSink::globalSink (globalSink);
@@ -94,11 +96,11 @@ int main(int argc, const char** argv) {
 			const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle",false);
              
 			// We cannot issue log messages until MPI is initialized!
-			ImagerParallel imager(argc, argv, subset);
+			ImagerParallel imager(comms, subset);
 
 			ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
 
-			if (imager.isMaster()) {
+			if (comms.isMaster()) {
 				ASKAPLOG_INFO_STR(logger, "parset file " << parsetFile );
 				ASKAPLOG_INFO_STR(logger, parset);
 			}
@@ -121,7 +123,7 @@ int main(int argc, const char** argv) {
 
 					ASKAPLOG_INFO_STR(logger, "user:   " << timer.user () << " system: " << timer.system ()
 							<<" real:   " << timer.real () );
-					if (imager.isMaster()) {
+					if (comms.isMaster()) {
 					    if (imager.params()->has("peak_residual")) {
 					        const double peak_residual = imager.params()->scalarValue("peak_residual");					        
 					        ASKAPLOG_INFO_STR(logger, "Reached peak residual of "<<peak_residual);
@@ -175,6 +177,6 @@ int main(int argc, const char** argv) {
 				<< std::endl;
 		exit(1);
 	}
-	exit(0);
-}
 
+	return 0;
+}

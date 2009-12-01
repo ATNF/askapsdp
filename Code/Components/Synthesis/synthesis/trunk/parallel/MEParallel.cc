@@ -31,25 +31,24 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 /// 
 
+// Include own header file first
+#include <parallel/MEParallel.h>
+
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
 #include <Blob/BlobOBufString.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
-
 #include <casa/OS/Timer.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".parallel");
 
-
-
-#include <parallel/MEParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <fitting/ImagingNormalEquations.h>
 
 using namespace askap;
@@ -61,12 +60,11 @@ namespace askap
   namespace synthesis
   {
 
-    MEParallel::MEParallel(int argc, const char** argv) :
-      SynParallel(argc, argv)
+    MEParallel::MEParallel(askap::mwbase::AskapParallel& comms) :
+      SynParallel(comms)
     {
       itsSolver = Solver::ShPtr(new Solver(*itsModel));
       itsNe = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
-
     }
 
     MEParallel::~MEParallel()
@@ -76,7 +74,7 @@ namespace askap
     // Send the normal equations from this worker to the master as a blob
     void MEParallel::sendNE()
     {
-      if (isParallel()&&isWorker())
+      if (itsComms.isParallel() && itsComms.isWorker())
       {
         casa::Timer timer;
         timer.mark();
@@ -87,9 +85,9 @@ namespace askap
         LOFAR::BlobOBufString bob(bs);
         LOFAR::BlobOStream out(bob);
         out.putStart("ne", 1);
-        out << itsRank << *itsNe;
+        out << itsComms.rank() << *itsNe;
         out.putEnd();
-        itsConnectionSet->write(0, bs);
+        itsComms.connectionSet()->write(0, bs);
         ASKAPLOG_INFO_STR(logger, "Sent normal equations to the solver via MPI in "
                            << timer.real()<< " seconds ");
       }
@@ -99,7 +97,7 @@ namespace askap
     void MEParallel::receiveNE()
     {
       ASKAPCHECK(itsSolver, "Solver not yet defined");
-      if (isParallel()&&isMaster())
+      if (itsComms.isParallel() && itsComms.isMaster())
       {
         ASKAPLOG_INFO_STR(logger, "Initialising solver");
         itsSolver->init();
@@ -112,9 +110,9 @@ namespace askap
         LOFAR::BlobString bs;
         int rank;
 
-        for (int i=1; i<itsNNode; i++)
+        for (int i=1; i<itsComms.nNodes(); i++)
         {
-          itsConnectionSet->read(i-1, bs);
+          itsComms.connectionSet()->read(i-1, bs);
           LOFAR::BlobIBufString bib(bs);
           LOFAR::BlobIStream in(bib);
           int version=in.getStart("ne");
