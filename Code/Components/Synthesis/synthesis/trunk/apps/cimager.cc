@@ -1,5 +1,6 @@
+/// @file cimager.cc
 ///
-/// @file : Synthesis imaging program
+/// @breif Synthesis imaging program
 ///
 /// Performs synthesis imaging from a data source, using any of a number of
 /// image solvers. Can run in serial or parallel (MPI) mode.
@@ -33,24 +34,21 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 
+// System includes
+#include <stdexcept>
+#include <iostream>
+
+// ASKAPsoft includes
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
-
 #include <CommandLineParser.h>
-
 #include <parallel/ImagerParallel.h>
-
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/SynthesisParamsHelper.h>
-
 #include <fitting/Params.h>
-
-#include <stdexcept>
-#include <iostream>
-
 #include <casa/OS/Timer.h>
 
 ASKAP_LOGGER(logger, ".cimager");
@@ -60,123 +58,129 @@ using namespace askap::synthesis;
 using namespace askap::scimath;
 
 // Main function
-int main(int argc, const char** argv) {
+int main(int argc, const char** argv)
+{
     // This class must have scope outside the main try/catch block
     askap::mwbase::AskapParallel comms(argc, argv);
 
-	try {
-	  // Ensure that CASA log messages are captured
-	  casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-	  casa::LogSink::globalSink (globalSink);
+    try {
+        // Ensure that CASA log messages are captured
+        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+        casa::LogSink::globalSink(globalSink);
 
-		casa::Timer timer;
+        casa::Timer timer;
 
-		timer.mark();
+        timer.mark();
 
-		// Put everything in scope to ensure that all destructors are called 
-		// before the final message
-		{
+        // Put everything in scope to ensure that all destructors are called
+        // before the final message
+        {
+            cmdlineparser::Parser parser; // a command line parser
+            // command line parameter
+            cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
+                    "cimager.in");
+            // this parameter is optional
+            parser.add(inputsPar, cmdlineparser::Parser::return_default);
 
-			cmdlineparser::Parser parser; // a command line parser
-			// command line parameter
-			cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
-					"cimager.in");
-			// this parameter is optional                                                   
-			parser.add(inputsPar, cmdlineparser::Parser::return_default);
+            // I hope const_cast is temporary here
+            parser.process(argc, const_cast<char**>(argv));
 
-			// I hope const_cast is temporary here
-			parser.process(argc, const_cast<char**> (argv));
+            const std::string parsetFile = inputsPar;
 
-			const std::string parsetFile = inputsPar;
+            LOFAR::ParameterSet parset(parsetFile);
+            LOFAR::ParameterSet subset(parset.makeSubset("Cimager."));
+            const double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
+                                            subset.getString("threshold.majorcycle", "-1Jy"), "Jy");
+            const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle", false);
 
-                        LOFAR::ParameterSet parset(parsetFile);
-                        LOFAR::ParameterSet subset(parset.makeSubset("Cimager."));
-			double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
-			       subset.getString("threshold.majorcycle","-1Jy"),"Jy");			
-			const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle",false);
-             
-			// We cannot issue log messages until MPI is initialized!
-			ImagerParallel imager(comms, subset);
+            // We cannot issue log messages until MPI is initialized!
+            ImagerParallel imager(comms, subset);
 
-			ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
+            ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
 
-			if (comms.isMaster()) {
-				ASKAPLOG_INFO_STR(logger, "parset file " << parsetFile );
-				ASKAPLOG_INFO_STR(logger, parset);
-			}
+            if (comms.isMaster()) {
+                ASKAPLOG_INFO_STR(logger, "parset file " << parsetFile);
+                ASKAPLOG_INFO_STR(logger, parset);
+            }
 
-			int nCycles = subset.getInt32("ncycles", 0);
-			if (nCycles == 0) {
-				/// No cycling - just make a dirty image
-				imager.broadcastModel();
-				imager.receiveModel();
-				imager.calcNE();
-				imager.solveNE();
-			} else {
-				/// Perform multiple major cycles
-				for (int cycle = 0; cycle < nCycles; ++cycle) {
-					imager.broadcastModel();
-					imager.receiveModel();
-					ASKAPLOG_INFO_STR(logger, "*** Starting major cycle " << cycle << " ***" );
-					imager.calcNE();
-					imager.solveNE();
+            const int nCycles = subset.getInt32("ncycles", 0);
 
-					ASKAPLOG_INFO_STR(logger, "user:   " << timer.user () << " system: " << timer.system ()
-							<<" real:   " << timer.real () );
-					if (comms.isMaster()) {
-					    if (imager.params()->has("peak_residual")) {
-					        const double peak_residual = imager.params()->scalarValue("peak_residual");					        
-					        ASKAPLOG_INFO_STR(logger, "Reached peak residual of "<<peak_residual);
-					        if (peak_residual < targetPeakResidual) {
-					            ASKAPLOG_INFO_STR(logger, "It is below the major cycle threshold of "<<targetPeakResidual<<" Jy. Stopping.");
-					            break;
-					        } else {
-					            if (targetPeakResidual < 0) {
-					                ASKAPLOG_INFO_STR(logger, "Major cycle flux threshold is not used.");
-					            } else {
-					                ASKAPLOG_INFO_STR(logger, "It is above the major cycle threshold of "<<targetPeakResidual<<" Jy. Continuing.");
-					            }
-					        }
-					    }					    
-					}		
-					if (cycle+1 >= nCycles) {
-					    ASKAPLOG_INFO_STR(logger, "Reached "<<nCycles<<" cycle(s), the maximum number of major cycles. Stopping.");					    
-					} 
-					if (writeAtMajorCycle) {
-					    imager.writeModel(std::string(".majorcycle.")+utility::toString(cycle+1));
-					}
-				}
-				imager.broadcastModel();
-				imager.receiveModel();
-				ASKAPLOG_INFO_STR(logger, "*** Finished major cycles ***" );
-				imager.calcNE();
-				imager.receiveNE();
-			}
+            if (nCycles == 0) {
+                /// No cycling - just make a dirty image
+                imager.broadcastModel();
+                imager.receiveModel();
+                imager.calcNE();
+                imager.solveNE();
+            } else {
+                /// Perform multiple major cycles
+                for (int cycle = 0; cycle < nCycles; ++cycle) {
+                    imager.broadcastModel();
+                    imager.receiveModel();
+                    ASKAPLOG_INFO_STR(logger, "*** Starting major cycle " << cycle << " ***");
+                    imager.calcNE();
+                    imager.solveNE();
 
-			/// This is the final step - restore the image and write it out
-			imager.writeModel();
-		}
-		ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user () << " system: " << timer.system ()
-				<<" real:   " << timer.real () );
+                    ASKAPLOG_INFO_STR(logger, "user:   " << timer.user() << " system: " << timer.system()
+                                          << " real:   " << timer.real());
 
-		///==============================================================================
-	} catch (const cmdlineparser::XParser &ex) {
-		ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-		std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]"
-				<< std::endl;
-	}
+                    if (comms.isMaster()) {
+                        if (imager.params()->has("peak_residual")) {
+                            const double peak_residual = imager.params()->scalarValue("peak_residual");
+                            ASKAPLOG_INFO_STR(logger, "Reached peak residual of " << peak_residual);
 
-	catch (const askap::AskapError& x) {
-		ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-		std::cerr << "Askap error in " << argv[0] << ": " << x.what()
-				<< std::endl;
-		exit(1);
-	} catch (const std::exception& x) {
-		ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-		std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what()
-				<< std::endl;
-		exit(1);
-	}
+                            if (peak_residual < targetPeakResidual) {
+                                ASKAPLOG_INFO_STR(logger, "It is below the major cycle threshold of "
+                                        << targetPeakResidual << " Jy. Stopping.");
+                                break;
+                            } else {
+                                if (targetPeakResidual < 0) {
+                                    ASKAPLOG_INFO_STR(logger, "Major cycle flux threshold is not used.");
+                                } else {
+                                    ASKAPLOG_INFO_STR(logger, "It is above the major cycle threshold of "
+                                            << targetPeakResidual << " Jy. Continuing.");
+                                }
+                            }
+                        }
+                    }
 
-	return 0;
+                    if (cycle + 1 >= nCycles) {
+                        ASKAPLOG_INFO_STR(logger, "Reached " << nCycles << " cycle(s), the maximum number of major cycles. Stopping.");
+                    }
+
+                    if (writeAtMajorCycle) {
+                        imager.writeModel(std::string(".majorcycle.") + utility::toString(cycle + 1));
+                    }
+                }
+
+                imager.broadcastModel();
+                imager.receiveModel();
+                ASKAPLOG_INFO_STR(logger, "*** Finished major cycles ***");
+                imager.calcNE();
+                imager.receiveNE();
+            }
+
+            /// This is the final step - restore the image and write it out
+            imager.writeModel();
+        }
+        ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: " << timer.system()
+                              << " real:   " << timer.real());
+
+        ///==============================================================================
+    } catch (const cmdlineparser::XParser &ex) {
+        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
+        std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]"
+                      << std::endl;
+    } catch (const askap::AskapError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+        std::cerr << "Askap error in " << argv[0] << ": " << x.what()
+                      << std::endl;
+        exit(1);
+    } catch (const std::exception& x) {
+        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what()
+                      << std::endl;
+        exit(1);
+    }
+
+    return 0;
 }
