@@ -531,51 +531,33 @@ void TableVisGridder::grid(IConstDataAccessor& acc) {
 /// @return direction measure corresponding to the image centre
 casa::MVDirection TableVisGridder::getImageCentre() const
 {
-   if (itsAxes.hasDirection()) {
-       casa::MDirection out;
-       casa::Vector<casa::Double> centrePixel(2);
-       ASKAPDEBUGASSERT(itsShape.nelements()>=2);
-       for (size_t dim=0; dim<2; ++dim) {
-            centrePixel[dim] = double(itsShape[dim])/2.;
-       }
-       ASKAPCHECK(itsAxes.directionAxis().toWorld(out, centrePixel), 
-            "Unable to obtain world coordinates for the centre of the image. Something is wrong with the coordinate system");
-       return out.getValue();
+   ASKAPCHECK(itsAxes.hasDirection(),"Direction axis is missing. axes="<<itsAxes);
+   casa::MDirection out;
+   casa::Vector<casa::Double> centrePixel(2);
+   ASKAPDEBUGASSERT(itsShape.nelements()>=2);
+   ASKAPDEBUGASSERT(itsPaddingFactor>0);
+   for (size_t dim=0; dim<2; ++dim) {
+        centrePixel[dim] = double(itsShape[dim])/2./double(itsPaddingFactor);
    }
-   // old code still works for the time being (to keep faceting "working" until the appropriate code is converted)
-   casa::Quantum<double> refLon((itsAxes.start("RA")+itsAxes.end("RA"))/2.0, "rad");
-   casa::Quantum<double> refLat((itsAxes.start("DEC")+itsAxes.end("DEC")) /2.0, "rad");
-   casa::MVDirection out(refLon, refLat);
-   return out;	
+   ASKAPCHECK(itsAxes.directionAxis().toWorld(out, centrePixel), 
+        "Unable to obtain world coordinates for the centre of the image. Something is wrong with the coordinate system");
+   return out.getValue();
 }
 
 /// @brief obtain the tangent point
 /// @details For faceting all images should be constructed for the same tangent
-/// point. We currently pass its coordinates in two specialised axes RA-TANGENT and
-/// DEC-TANGENT. If these axes are present a proper MVDirection quantity is 
-/// extracted and returned, otherwise this method does the same as getImageCentre()
+/// point. This method extracts the tangent point (reference position) from the
+/// coordinate system.
 /// @return direction measure corresponding to the tangent point
 casa::MVDirection TableVisGridder::getTangentPoint() const
 {
-   if (itsAxes.hasDirection()) {
-       const casa::Vector<casa::Double> refVal(itsAxes.directionAxis().referenceValue());
-       ASKAPDEBUGASSERT(refVal.nelements() == 2);
-       const casa::Quantum<double> refLon(refVal[0], "rad");
-       const casa::Quantum<double> refLat(refVal[1], "rad");
-       const casa::MVDirection out(refLon, refLat);
-       return out;
-   }
-   ASKAPCHECK(itsAxes.has("RA-TANGENT") == itsAxes.has("DEC-TANGENT"), 
-       "Either both RA and DEC have to be defined for a tangent point or none of them");
-   if (itsAxes.has("RA-TANGENT")) {
-       // this is the faceting case
-       const casa::Quantum<double> refLon(itsAxes.start("RA-TANGENT"), "rad");
-       const casa::Quantum<double> refLat(itsAxes.start("DEC-TANGENT"), "rad");
-       const casa::MVDirection out(refLon, refLat);
-       return out;	     
-   }
-   // tangent point is not defined. This is not the faceting case - return the image centre
-   return getImageCentre();
+   ASKAPCHECK(itsAxes.hasDirection(),"Direction axis is missing. axes="<<itsAxes);
+   const casa::Vector<casa::Double> refVal(itsAxes.directionAxis().referenceValue());
+   ASKAPDEBUGASSERT(refVal.nelements() == 2);
+   const casa::Quantum<double> refLon(refVal[0], "rad");
+   const casa::Quantum<double> refLat(refVal[1], "rad");
+   const casa::MVDirection out(refLon, refLat);
+   return out;
 }
 
 /// @brief Conversion helper function
@@ -704,35 +686,14 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 void TableVisGridder::initialiseCellSize(const scimath::Axes& axes)
 {
     itsAxes=axes;
-    if (itsAxes.hasDirection()) {
-        casa::Vector<casa::Double> increments = itsAxes.directionAxis().increment();
-        ASKAPCHECK(increments.nelements() == 2, "Expect 2 elements in the increment vector, you have "<<increments);
-        itsUVCellSize.resize(2);
-        ASKAPDEBUGASSERT(itsShape.nelements()>=2);
-        for (size_t dim = 0; dim<2; ++dim) {
-             itsUVCellSize[dim] = 1./(increments[dim]*double(itsShape[dim]*itsPaddingFactor));
-        }
-    } else {
-    // old code still works for the time being (for facets)
-    
-	ASKAPCHECK(itsAxes.has("RA")&&itsAxes.has("DEC"),
-			"RA and DEC specification not present in axes");
-
-	const double raStart=itsAxes.start("RA");
-	const double raEnd=itsAxes.end("RA");
-
-	const double decStart=itsAxes.start("DEC");
-	const double decEnd=itsAxes.end("DEC");
-		
-	// ra axis is stratched with cos dec factor
-	const double cosdec = cos(getTangentPoint().getLat());
-
-	ASKAPCHECK(cosdec>0, "Unable to image polar area in the SIN projection. cosdec="<<cosdec);
-
-	itsUVCellSize.resize(2);
-	itsUVCellSize(0)=1.0/(raEnd-raStart)/double(itsPaddingFactor)/cosdec;
-	itsUVCellSize(1)=1.0/(decEnd-decStart)/double(itsPaddingFactor);	
-	}
+    ASKAPCHECK(itsAxes.hasDirection(), "Direction axis is missing. itsAxes:"<<itsAxes);
+    casa::Vector<casa::Double> increments = itsAxes.directionAxis().increment();
+    ASKAPCHECK(increments.nelements() == 2, "Expect 2 elements in the increment vector, you have "<<increments);
+    itsUVCellSize.resize(2);
+    ASKAPDEBUGASSERT(itsShape.nelements()>=2);
+    for (size_t dim = 0; dim<2; ++dim) {
+         itsUVCellSize[dim] = 1./(increments[dim]*double(itsShape[dim]))*double(itsPaddingFactor);
+    }
 }
 
 

@@ -215,9 +215,8 @@ namespace askap
       
       /// @brief obtain the tangent point
       /// @details For faceting all images should be constructed for the same tangent
-      /// point. We currently pass its coordinates in two specialised axes RA-TANGENT and
-      /// DEC-TANGENT. If these axes are present a proper MVDirection quantity is 
-      /// extracted and returned, otherwise this method does the same as getImageCentre()
+      /// point. This method extracts the tangent point (reference position) from the
+      /// coordinate system.
       /// @return direction measure corresponding to the tangent point
       casa::MVDirection getTangentPoint() const;
       
