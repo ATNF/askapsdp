@@ -244,12 +244,12 @@ namespace askap {
             //--------------------------------------------------
 
 
-	  void FITSparallel::stagedWriting()
-	  {
+//	  void FITSparallel::stagedWriting()
+//	  {
+//        }
 
 
 
-	  }
 
         }
 
