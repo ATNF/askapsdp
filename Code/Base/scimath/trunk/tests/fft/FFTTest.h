@@ -21,7 +21,6 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-#include <ctime> 
 #include <cstdlib>
 #include <fftw3.h>
 #include <casa/Arrays/Vector.h>
@@ -167,7 +166,7 @@ namespace askap
             M = 11;
             sp_precision = 5e-6;
             dp_precision = 5e-12;            
-            srand((unsigned)time(0));
+            srand(0);
             dataLength = std::vector<int>(M); 
             // The maximum data length N*N is set here. We use powers of two from 2 to 2048 for N.
             for(size_t i=0; i < dataLength.size(); i++){
