@@ -692,7 +692,7 @@ void TableVisGridder::initialiseCellSize(const scimath::Axes& axes)
     itsUVCellSize.resize(2);
     ASKAPDEBUGASSERT(itsShape.nelements()>=2);
     for (size_t dim = 0; dim<2; ++dim) {
-         itsUVCellSize[dim] = 1./(increments[dim]*double(itsShape[dim]))*double(itsPaddingFactor);
+         itsUVCellSize[dim] = 1./(increments[dim]*double(itsShape[dim]));
     }
 }
 
