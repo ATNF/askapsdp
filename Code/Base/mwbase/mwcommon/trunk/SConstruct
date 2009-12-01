@@ -7,14 +7,13 @@
 # Always import this
 from askapenv import env
 
-env.Append(CCFLAGS=['-O2','-DCONRAD_DEBUG', '-g', '-DUSE_NOSOCKETS'])
+env.Append(CCFLAGS=['-O2','-DASKAP_DEBUG', '-g', '-DUSE_NOSOCKETS'])
 
 # create build object with library name
 pkg = env.AskapPackage("mwcommon")
+
 # add sub packages 
 pkg.AddSubPackage("mwcommon")
-
-env.Append(CPPFLAGS=['-O2','-DCONRAD_DEBUG', '-g'])
 
 # run the build process
 pkg()
