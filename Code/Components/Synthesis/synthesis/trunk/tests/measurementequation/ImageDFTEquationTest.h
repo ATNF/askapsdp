@@ -71,9 +71,12 @@ namespace askap
           uint npix=16;
           Axes imageAxes;
           double arcsec=casa::C::pi/(3600.0*180.0);
-          imageAxes.add("RA", -120.0*arcsec, +120.0*arcsec);
-          imageAxes.add("DEC", -120.0*arcsec, +120.0*arcsec);
-
+          casa::Matrix<double> xform(2,2,0.);
+          xform.diagonal().set(1.);
+               
+          imageAxes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
+                     casa::Projection(casa::Projection::SIN), 0.,0.,15.*arcsec,15.*arcsec,xform,npix/2.,npix/2.));
+          
           params1 = new Params;
           casa::Array<double> imagePixels1(casa::IPosition(2, npix, npix));
           imagePixels1.set(0.0);

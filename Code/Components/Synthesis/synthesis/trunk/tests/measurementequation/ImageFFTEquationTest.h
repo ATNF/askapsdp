@@ -79,8 +79,12 @@ namespace askap
         Axes imageAxes;
         double arcsec=casa::C::pi/(3600.0*180.0);
         double cell=8.0*arcsec;
-        imageAxes.add("RA", -double(npix)*cell/2.0, double(npix)*cell/2.0);
-        imageAxes.add("DEC", -double(npix)*cell/2.0, double(npix)*cell/2.0);
+        casa::Matrix<double> xform(2,2,0.);
+        xform.diagonal().set(1.);
+               
+        imageAxes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
+                     casa::Projection(casa::Projection::SIN), 0.,0.,cell,cell,xform,npix/2.,npix/2.));
+        
         imageAxes.addStokesAxis(casa::Vector<casa::Stokes::StokesTypes>(1,casa::Stokes::I));
         imageAxes.add("FREQUENCY",1.4e9,1.4e9);
 

@@ -117,10 +117,13 @@ namespace askap
 
         double cellSize=10*casa::C::arcsec;
 
+        casa::Matrix<double> xform(2,2,0.);
+        xform.diagonal().set(1.);
+               
         itsAxes.reset(new Axes());
-        itsAxes->add("RA", 256*cellSize, -256*cellSize);
-        itsAxes->add("DEC", -256*cellSize, 256*cellSize);
-
+        itsAxes->addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
+                     casa::Projection(casa::Projection::SIN), 0.,0.,cellSize,cellSize,xform,256.,256.));
+        
         itsModel.reset(new casa::Array<double>(casa::IPosition(4,512,512,1,1)));
         itsModel->set(0.0);
         itsModelPSF.reset(new casa::Array<double>(casa::IPosition(4,512,512,1,1)));
