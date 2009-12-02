@@ -90,6 +90,7 @@ int main(int argc, const char** argv)
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);
         FITSparallel file(comms, subset);
+
         file.processSources();
 
         if (doNoise && (noiseBeforeConvolve || !doConvolution))
@@ -106,8 +107,7 @@ int main(int argc, const char** argv)
             if (comms.isMaster())
                 file.addNoise();
 
-        file.saveFile();
-        file.writeCASAimage();
+	file.output();
 
         ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
 

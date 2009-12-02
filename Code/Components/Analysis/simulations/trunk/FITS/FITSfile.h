@@ -68,7 +68,7 @@ namespace askap {
                     virtual ~FITSfile();
 
                     /// @brief Constructor, using an input parameter set
-                    FITSfile(const LOFAR::ParameterSet& parset);
+                    FITSfile(const LOFAR::ParameterSet& parset, bool allocateMemory=true);
 
                     /// @brief Copy constructor
                     FITSfile(const FITSfile& f);
@@ -86,7 +86,7 @@ namespace askap {
                     /// @{
                     float array(int pos) {return itsArray[pos];};
 		    float array(unsigned int x, unsigned int y) {size_t pos=x+itsAxes[0]*y; return itsArray[pos];};
-		    float array(unsigned int x, unsigned int y, int z) {size_t pos=x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]; return itsArray[pos];};
+		    float array(unsigned int x, unsigned int y, unsigned int z) {size_t pos=x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]; return itsArray[pos];};
                     void setArray(unsigned int pos, float val) {itsArray[pos] = val;};
                     void setArray(unsigned int x, unsigned int y, float val) {size_t pos=x+itsAxes[0]*y; itsArray[pos] = val;};
 		    void setArray(unsigned int x, unsigned int y, unsigned int z, float val) {size_t pos=x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]; itsArray[pos] = val;};
@@ -117,10 +117,10 @@ namespace askap {
                     void convolveWithBeam();
 
                     /// @brief Save the array to a FITS file
-                    void saveFile();
+                    void writeFITSimage(bool creatFile=true, bool saveData=true);
 
 		    /// @brief Save the array to a CASA image
-		    void writeCASAimage();
+		    void writeCASAimage(bool creatFile=true, bool saveData=true);
 
                 protected:
 
