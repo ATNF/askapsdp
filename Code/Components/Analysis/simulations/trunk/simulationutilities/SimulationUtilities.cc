@@ -100,9 +100,9 @@ namespace askap {
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
-            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0]));
+            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0]-1));
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
-            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), int(axes[1]));
+            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), int(axes[1]-1));
 
             ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin=" << xmin << ", xmax=" << xmax << ", ymin=" << ymin << ", ymax=" << ymax << " ... using subsection " << subsection.getSection() << " with [start:end]=[" << subsection.getStart(0) << ":" << subsection.getEnd(0) << "," << subsection.getStart(1) << ":" << subsection.getEnd(1) << "], axes=["<<axes[0]<<","<<axes[1]<<"] zeropoint=" << zeroPoint << " and gaussian at [" << gauss.xCenter() << "," << gauss.yCenter() << "]");
 
