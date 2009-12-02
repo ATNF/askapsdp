@@ -150,6 +150,7 @@ namespace askap {
 					   << " and " << this->itsSubsection.getStart(1) << " and " << this->itsSubsection.getStart(spInd));
                         ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": sent maxima of " << this->itsSubsection.getEnd(0)
 					   << " and " << this->itsSubsection.getEnd(1) << " and " << this->itsSubsection.getEnd(spInd));
+			ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": dimensions are " << this->itsFITSfile->getXdim() << ", " << this->itsFITSfile->getYdim() << ", " << this->itsFITSfile->getZdim());
 
 			for(unsigned int z=0;z<this->itsFITSfile->getZdim();z++){
 			  for(unsigned int y=0;y<this->itsFITSfile->getYdim();y++){
@@ -181,18 +182,16 @@ namespace askap {
 			    int zdim=(zmax - zmin + 1);
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: Read minima of " << xmin << " and " << ymin << " and " << zmin);
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: Read maxima of " << xmax << " and " << ymax << " and " << zmax);
-			    ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " << xdim*ydim*zdim << " pixels");
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: About to read " <<xdim<<'x'<<ydim<<'x'<<zdim<<" or " << xdim*ydim*zdim << " pixels");
 
                             for (int pix = 0; pix < xdim*ydim*zdim; pix++) {
                                 float flux;
-				unsigned int x=pix%xdim;
-				unsigned int y=(pix/xdim)%ydim;
-				unsigned int z=pix/(xdim*ydim);
-                                in >> flux;
-				size_t pos = (x+xmin)+xdim*(y+ymin)+ydim*xdim*(z+zmin);
-				ASKAPASSERT(pos < this->itsFITSfile->getSize());
-				flux += this->itsFITSfile->array(pos);
-                                this->itsFITSfile->setArray(pos, flux);
+				unsigned int x=xmin + pix%xdim;
+				unsigned int y=ymin + (pix/xdim)%ydim;
+				unsigned int z=zmin + pix/(xdim*ydim);
+				in >> flux;
+				flux += this->itsFITSfile->array(x,y,z);
+                                this->itsFITSfile->setArray(x,y,z, flux);
                             }
 			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Successfully read " << xdim*ydim*zdim << " pixels");
 
