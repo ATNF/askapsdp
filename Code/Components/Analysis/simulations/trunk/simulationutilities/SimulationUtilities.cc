@@ -99,12 +99,12 @@ namespace askap {
 
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            uint xmin = std::max(uint(gauss.xCenter() - 0.5 - zeroPoint), 0U);
-            uint xmax = std::min(uint(gauss.xCenter() + 0.5 + zeroPoint), axes[0]);
-            uint ymin = std::max(uint(gauss.yCenter() - 0.5 - zeroPoint), 0U);
-            uint ymax = std::min(uint(gauss.yCenter() + 0.5 + zeroPoint), axes[1]);
+            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
+            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0]));
+            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
+            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), int(axes[1]));
 
-            ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin=" << xmin << ", xmax=" << xmax << ", ymin=" << ymin << ", ymax=" << ymax << " ... using subsection " << subsection.getSection() << " with [start:end]=[" << subsection.getStart(0) << ":" << subsection.getEnd(0) << "," << subsection.getStart(1) << ":" << subsection.getEnd(1) << "], and gaussian at [" << gauss.xCenter() << "," << gauss.yCenter() << "]");
+            ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin=" << xmin << ", xmax=" << xmax << ", ymin=" << ymin << ", ymax=" << ymax << " ... using subsection " << subsection.getSection() << " with [start:end]=[" << subsection.getStart(0) << ":" << subsection.getEnd(0) << "," << subsection.getStart(1) << ":" << subsection.getEnd(1) << "], axes=["<<axes[0]<<","<<axes[1]<<"] zeropoint=" << zeroPoint << " and gaussian at [" << gauss.xCenter() << "," << gauss.yCenter() << "]");
 
             if ((xmax >= xmin) && (ymax >= ymin)) {  // if there are object pixels falling within the image boundaries
 
@@ -133,8 +133,8 @@ namespace askap {
                     float inputGaussFlux = gauss.flux();
                     gauss.setFlux(1); // make it a unit Gaussian. We then scale by the correct flux for each frequency channel.
 
-                    for (uint x = xmin; x <= xmax; x++) {
-                        for (uint y = ymin; y <= ymax; y++) {
+                    for (int x = xmin; x <= xmax; x++) {
+                        for (int y = ymin; y <= ymax; y++) {
 
                             float pixelVal = 0.;
                             float xpos = x - 0.5 - delta;
