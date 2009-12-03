@@ -93,19 +93,16 @@ int main(int argc, const char** argv)
 
         file.processSources();
 
-        if (doNoise && (noiseBeforeConvolve || !doConvolution))
-            if (comms.isWorker())
-                file.addNoise();
+        if (doNoise)
+	    file.addNoise(noiseBeforeConvolve || !doConvolution);
 
         file.toMaster();
 
         if (doConvolution)
-            if (comms.isMaster())
-                file.convolveWithBeam();
+	    file.convolveWithBeam();
 
-        if (doNoise && (!noiseBeforeConvolve && doConvolution))
-            if (comms.isMaster())
-                file.addNoise();
+        if (doNoise)
+	    file.addNoise(!noiseBeforeConvolve && doConvolution);
 
 	file.output();
 

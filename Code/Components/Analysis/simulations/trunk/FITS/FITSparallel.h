@@ -72,7 +72,7 @@ namespace askap {
                     void toMaster();
 
                     /// @brief Add noise to the flux array
-                    void addNoise();
+                    void addNoise(bool beforeConvolution);
 
                     /// @brief Add sources to the flux array
                     void processSources();

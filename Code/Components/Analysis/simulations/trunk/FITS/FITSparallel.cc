@@ -211,10 +211,19 @@ namespace askap {
 
             //--------------------------------------------------
 
-            void FITSparallel::addNoise()
+            void FITSparallel::addNoise(bool beforeConvolve)
             {
+	      if(beforeConvolve){ // either adding noise before the convolution, or there is no convolution
                 if (itsComms.isWorker())
                     itsFITSfile->addNoise();
+	      }
+	      else{
+		// There is convolution and we're adding the noise after it.
+		// In this case, we need to work out where the data is and only do it for the correct node
+		if ( (this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
+		     (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
+		  itsFITSfile->addNoise();
+	      }
             }
 
             void FITSparallel::processSources()
@@ -227,6 +236,8 @@ namespace askap {
 
             void FITSparallel::convolveWithBeam()
             {
+	      if ( (this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
+		   (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
                 itsFITSfile->convolveWithBeam();
             }
 
