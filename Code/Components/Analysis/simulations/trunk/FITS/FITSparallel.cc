@@ -116,7 +116,7 @@ namespace askap {
                 }
 
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
-                this->itsFITSfile = new FITSfile(newparset, this->itsComms.isWorker());
+                this->itsFITSfile = new FITSfile(newparset, this->itsComms.isWorker()||!this->itsFlagStagedWriting);
                 ASKAPLOG_DEBUG_STR(logger, "Defined");
 
                 ASKAPLOG_DEBUG_STR(logger, "Finished defining FITSparallel");

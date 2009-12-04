@@ -196,8 +196,10 @@ namespace askap {
             /// @param pix The coordinates of the point source
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
+	    unsigned int xpix = int(pix[0] - subsection.getStart(0));
+	    unsigned int ypix = int(pix[1] - subsection.getStart(1));
 
-	    if (pix[0] >= 0 && pix[0] <= axes[0] && pix[1] >= 0 && pix[1] <= axes[1]) {
+	    if (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]) {
 
 	      ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x="<<pix[0]<<" & y="<<pix[1]
 				 <<"  ...  xmin=" << subsection.getStart(0) << ", xmax=" << subsection.getEnd(0)
@@ -206,7 +208,7 @@ namespace askap {
 
 	      for (int z = 0 ; z < fluxGen.nChan(); z++) {
 
-		int loc = int(pix[0]-subsection.getStart(0)) + axes[0] * int(pix[1]-subsection.getStart(1)) + z * axes[0] * axes[1];
+		int loc = xpix + axes[0] * ypix + z * axes[0] * axes[1];
 		
 		array[loc] += fluxGen.getFlux(z);
 
