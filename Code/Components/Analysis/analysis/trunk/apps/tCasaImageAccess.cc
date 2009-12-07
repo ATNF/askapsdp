@@ -112,15 +112,16 @@ int main(int argc, const char *argv[])
         section.parse(dim);
         Slicer slicer = subsectionToSlicer(section);
         std::cout << "Slicer = " << slicer << "\n";
-        SubImage<Float> subimage(*imagePtr, slicer, True);
-        ASKAPASSERT(&subimage);
-        std::cout << "Shape of subimage = " << subimage.shape() << "\n";
+        SubImage<Float> *subimage = new SubImage<Float>(*imagePtr, slicer, True);
+        ASKAPASSERT(subimage);
+        std::cout << "Shape of subimage = " << subimage->shape() << "\n";
         std::cout << "Success!\n";
         std::cout << "\nConverting this subimage to a duchamp::Cube\n";
         duchamp::Cube subcube;
-        casaImageToMetadata(&subimage, subcube);
-        casaImageToCubeData(&subimage, subcube);
+        casaImageToMetadata(subimage, subcube);
+        casaImageToCubeData(subimage, subcube);
         std::cout << "Success!\n";
+	delete subimage;
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;

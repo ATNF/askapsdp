@@ -822,12 +822,12 @@ namespace askap {
 
                         // Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
                         // Also find the effective detection threshold
-                        float thresholdForFitting;
+                        float thresholdForFitting=0.;
 
                         if (this->itsFlagDoMedianSearch) {
                             std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
                             std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-                            float maxSNR;
+                            float maxSNR=0.;
 
                             for (; vox < voxSet.end(); vox++) {
                                 std::vector<PixelInfo::Voxel>::iterator pixvox = this->itsVoxelList.begin();

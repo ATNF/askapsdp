@@ -706,23 +706,27 @@ namespace askap {
 
 		  status = 0;
 
-		  if (fits_update_key(fptr, TFLOAT, "EQUINOX", &(this->itsEquinox), NULL, &status))
+		  std::string header="EQUINOX";
+		  if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsEquinox), NULL, &status))
                     fits_report_error(stderr, status);
 
 		  if (this->itsHaveBeam) {
                     status = 0;
-
-                    if (fits_update_key(fptr, TFLOAT, "BMAJ", &(this->itsBeamInfo[0]), NULL, &status))
+		    
+		    header="BMAJ";
+                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[0]), NULL, &status))
 		      fits_report_error(stderr, status);
 
                     status = 0;
 
-                    if (fits_update_key(fptr, TFLOAT, "BMIN", &(this->itsBeamInfo[1]), NULL, &status))
+		    header="BMIN";
+                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[1]), NULL, &status))
 		      fits_report_error(stderr, status);
 
                     status = 0;
 
-                    if (fits_update_key(fptr, TFLOAT, "BPA", &(this->itsBeamInfo[2]), NULL, &status))
+		    header="BPA";
+                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[2]), NULL, &status))
 		      fits_report_error(stderr, status);
 		  }
 
@@ -730,13 +734,15 @@ namespace askap {
 
 		  char *unit = (char *)this->itsBunit.getName().c_str();
 
-		  if (fits_update_key(fptr, TSTRING, "BUNIT", unit,  NULL, &status))
+		  header="BUNIT";
+		  if (fits_update_key(fptr, TSTRING, (char *)header.c_str(), unit,  NULL, &status))
                     fits_report_error(stderr, status);
 
 		  if (this->itsSourceListType == "spectralline") {
                     status = 0;
 
-                    if (fits_update_key(fptr, TFLOAT, "RESTFREQ", &(this->itsRestFreq), NULL, &status))
+		    header="RESTFREQ";
+                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsRestFreq), NULL, &status))
 		      fits_report_error(stderr, status);
 		  }
 
