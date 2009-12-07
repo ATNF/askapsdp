@@ -14,6 +14,11 @@ env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 #env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-DASKAP_GRID_WITH_BLAS', '-g'])
 env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-DASKAP_GRID_WITH_POINTERS', '-g'])
+
+# Optimization for complex arithmetic. The functionality this flag enables
+# was default behaviour prior to GCC 4.3.
+env.Append(CCFLAGS=['-fcx-limited-range'])
+
 env.Append(universal=0)
 
 # create build object with library name

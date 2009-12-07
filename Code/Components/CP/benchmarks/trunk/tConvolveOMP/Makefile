@@ -22,7 +22,7 @@
 #
 
 CXX=g++
-CFLAGS=-O2 -fstrict-aliasing -fopenmp
+CFLAGS=-O2 -fstrict-aliasing -fcx-limited-range -Wall -fopenmp
 
 all:		tConvolveOMP
 
