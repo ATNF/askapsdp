@@ -297,14 +297,6 @@ namespace askap {
 		  ss << "x" << this->itsAxes[i];
 		}
 
-		if(allocateMemory){
-		  ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes");
-		  this->itsArray = new float[this->itsNumPix];
-		  this->itsArrayAllocated = true;
-		  ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
-		  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
-		}
-
                 this->itsHaveBeam = parset.isDefined("beam");
 
                 if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
@@ -344,6 +336,14 @@ namespace askap {
                 if (this->itsSourceList.size() == 0) this->itsFlagOutputList = false;
 
                 this->itsOutputSourceList = parset.getString("outputSourceList", "");
+
+		if(allocateMemory && !this->itsDryRun){
+		  ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes");
+		  this->itsArray = new float[this->itsNumPix];
+		  this->itsArrayAllocated = true;
+		  ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
+		  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
+		}
 
                 ASKAPLOG_DEBUG_STR(logger, "FITSfile defined.");
             }
