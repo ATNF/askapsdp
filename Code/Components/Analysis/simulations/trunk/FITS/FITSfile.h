@@ -181,6 +181,8 @@ namespace askap {
                     bool itsDoContinuum;
                     /// @brief Whether to add spectral-line sources
                     bool itsDoHI;
+		    /// @brief Whether to just count the sources that would be added rather than add them
+		    bool itsDryRun;
 
                     /// @brief The EQUINOX keyword
                     float itsEquinox;

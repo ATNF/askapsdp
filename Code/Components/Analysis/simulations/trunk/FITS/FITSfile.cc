@@ -154,6 +154,7 @@ namespace askap {
 		this->itsAddSources = f.itsAddSources;
                 this->itsDoContinuum = f.itsDoContinuum;
                 this->itsDoHI = f.itsDoHI;
+		this->itsDryRun = f.itsDryRun;
                 this->itsEquinox = f.itsEquinox;
                 this->itsBunit = f.itsBunit;
                 this->itsUnitScl = f.itsUnitScl;
@@ -331,6 +332,12 @@ namespace askap {
 		this->itsAddSources = parset.getBool("addSources", true);
                 this->itsDoContinuum = parset.getBool("doContinuum", true);
                 this->itsDoHI = parset.getBool("doHI", false);
+		this->itsDryRun = parset.getBool("dryRun", false);
+
+		if(this->itsDryRun){
+		  this->itsFITSOutput = false;
+		  this->itsCasaOutput = false;
+		}
 
                 this->itsFlagOutputList = parset.getBool("outputList", false);
 
@@ -496,6 +503,8 @@ namespace askap {
                     double *newwld = new double[3];
                     std::ofstream outfile;
 
+		    int countGauss=0, countPoint=0;
+
                     if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
 
                     while (getline(srclist, line),
@@ -572,7 +581,7 @@ namespace askap {
 				outfile << "\n";
                             }
 
-			    if(this->itsAddSources){
+			    if(this->itsAddSources || this->itsDryRun){
 
 			      FluxGenerator fluxGen;
 
@@ -606,9 +615,13 @@ namespace askap {
                                                                      casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
                                 gauss.setFlux(src.fluxZero());
 
-                                addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
+				if(this->itsDryRun && doAddGaussian(this->itsSourceSection, this->itsAxes, gauss)) 
+				  countGauss++;
+				else addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
 			      } else {
-                                addPointSource(this->itsArray, this->itsSourceSection, this->itsAxes, pix, fluxGen);
+                                if(this->itsDryRun && doAddPointSource(this->itsSourceSection, this->itsAxes, pix)) 
+				  countPoint++;
+				else addPointSource(this->itsArray, this->itsSourceSection, this->itsAxes, pix, fluxGen);
 			      }
 			    }
 
@@ -621,6 +634,10 @@ namespace askap {
                     if (this->itsFlagOutputList) outfile.close();
 
                     srclist.close();
+
+		    if(this->itsDryRun) 
+		      ASKAPLOG_INFO_STR(logger, "Would add " << countPoint << " point sources and " << countGauss << " Gaussians");
+
 
                     delete [] wld;
                     delete [] pix;
@@ -645,9 +662,12 @@ namespace askap {
                     float min = this->itsBeamInfo[1] / fabs(this->itsWCS->cdelt[1]);
                     float pa = this->itsBeamInfo[2];
                     GaussSmooth<float> smoother(maj, min, pa);
+		    ASKAPLOG_DEBUG_STR(logger, "Defined the smoother, now to do the smoothing");
                     float *newArray = smoother.smooth(this->itsArray, this->itsAxes[0], this->itsAxes[1]);
+		    ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");
 
                     for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = newArray[i];
+		    ASKAPLOG_DEBUG_STR(logger, "Copying done.");
 
                     delete [] newArray;
                 }
@@ -794,6 +814,8 @@ namespace askap {
 		    status=0;
 		    std::string filename = this->itsFileName;
 		    if(filename[0]=='!') filename = filename.substr(1);
+//  		    filename += this->itsSourceSection.getSection();
+		    ASKAPLOG_DEBUG_STR(logger, "Opening " << filename);
 		    if (fits_open_file(&fptr, filename.c_str(), READWRITE, &status)) {
 		      ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
 		      fits_report_error(stderr, status);
@@ -801,19 +823,26 @@ namespace askap {
 		    }
 		  }
 
+		  int ndim=4;
+		  long axes[ndim];
+		  fits_get_img_size(fptr, ndim, axes, &status);
+		  ASKAPLOG_DEBUG_STR(logger, "Image dimensions are "<<axes[0]<<"x"<<axes[1]<<"x"<<axes[2]<<"x"<<axes[3]);
+
+		  ASKAPLOG_INFO_STR(logger, "Opened the FITS file, preparing to write data");
 
 		  long *fpixel = new long[this->itsDim];
 		  long *lpixel = new long[this->itsDim];
 		  
 		  for (uint i = 0; i < this->itsDim; i++){
-		    fpixel[i] = this->itsSourceSection.getStart(i)+1;
+ 		    fpixel[i] = this->itsSourceSection.getStart(i)+1;
+// 		    fpixel[i] = 1;
 		    lpixel[i] = this->itsSourceSection.getEnd(i)+1;
 		  }
 		  
 		  status = 0;
 		  
 // 		  if (fits_write_pix(fptr, TFLOAT, fpixel, this->itsNumPix, this->itsArray, &status))
- 		  if (fits_write_subset(fptr, TFLOAT, fpixel, lpixel, this->itsArray, &status))
+  		  if (fits_write_subset(fptr, TFLOAT, fpixel, lpixel, this->itsArray, &status))
                     fits_report_error(stderr, status);
 		  
 		  delete [] fpixel;

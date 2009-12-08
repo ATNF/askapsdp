@@ -59,6 +59,9 @@ namespace askap {
         /// @brief Add a single point source to an array of fluxes.
         void addPointSource(float *array, duchamp::Section subsection, std::vector<unsigned int> axes, double *pix, FluxGenerator &fluxGen);
 
+	bool doAddGaussian( duchamp::Section subsection, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss);
+	bool doAddPointSource(duchamp::Section subsection, std::vector<unsigned int> axes, double *pix);
+
     }
 
 }

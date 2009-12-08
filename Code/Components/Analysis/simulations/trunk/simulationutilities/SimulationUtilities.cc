@@ -77,6 +77,28 @@ namespace askap {
             return z*sigma + mean;
         }
 
+      bool doAddGaussian( duchamp::Section subsection, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss)
+      {
+
+            float majorSigma = gauss.majorAxis() / (4.*M_LN2);
+            float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
+            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
+            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0]-1));
+            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
+            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), int(axes[1]-1));
+            return ((xmax >= xmin) && (ymax >= ymin));
+
+      }
+
+      bool doAddPointSource(duchamp::Section subsection, std::vector<unsigned int> axes, double *pix)
+        {
+
+	    unsigned int xpix = int(pix[0] - subsection.getStart(0));
+	    unsigned int ypix = int(pix[1] - subsection.getStart(1));
+
+	    return (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]);
+	}
+
         void addGaussian(float *array, duchamp::Section subsection, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
