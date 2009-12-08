@@ -329,6 +329,7 @@ namespace askap {
 		if(this->itsDryRun){
 		  this->itsFITSOutput = false;
 		  this->itsCasaOutput = false;
+		  ASKAPLOG_INFO_STR(logger, "Just a DRY RUN - no sources being added or images created.");
 		}
 
                 this->itsFlagOutputList = parset.getBool("outputList", false);
@@ -615,13 +616,13 @@ namespace askap {
                                                                      casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
                                 gauss.setFlux(src.fluxZero());
 
-				if(this->itsDryRun && doAddGaussian(this->itsSourceSection, this->itsAxes, gauss)) 
+				if(!this->itsDryRun) addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
+				else if(doAddGaussian(this->itsSourceSection, this->itsAxes, gauss))
 				  countGauss++;
-				else addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
 			      } else {
-                                if(this->itsDryRun && doAddPointSource(this->itsSourceSection, this->itsAxes, pix)) 
+				if(!this->itsDryRun) addPointSource(this->itsArray, this->itsSourceSection, this->itsAxes, pix, fluxGen);
+				else if(doAddPointSource(this->itsSourceSection, this->itsAxes, pix)) 
 				  countPoint++;
-				else addPointSource(this->itsArray, this->itsSourceSection, this->itsAxes, pix, fluxGen);
 			      }
 			    }
 
