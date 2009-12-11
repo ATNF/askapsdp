@@ -99,8 +99,8 @@ public class TypedValueUtilsTest {
   public void test_boolean() {
     boolean val = true;
     TypedValue tv = TypedValueUtils.object2TypedValue(new Boolean(val));
-    assertTrue(tv.type == TypedValueType.TypeBoolean);
-    assertTrue(((TypedValueBoolean) tv).value == val);
+    assertTrue(tv.type == TypedValueType.TypeBool);
+    assertTrue(((TypedValueBool) tv).value == val);
     Object o = TypedValueUtils.typedValue2Object(tv);
     assertTrue(o instanceof Boolean);
     assertTrue(((Boolean) o).booleanValue() == val);
@@ -111,9 +111,9 @@ public class TypedValueUtilsTest {
     double real = 3.141d;
     double imag = 2.718d;
     TypedValue tv = TypedValueUtils.object2TypedValue(Complex.factory(real, imag));
-    assertTrue(tv.type == TypedValueType.TypeComplex);
-    assertTrue(((TypedValueComplex) tv).real == real);
-    assertTrue(((TypedValueComplex) tv).imag == imag);
+    assertTrue(tv.type == TypedValueType.TypeDoubleComplex);
+    assertTrue(((TypedValueDoubleComplex) tv).real == real);
+    assertTrue(((TypedValueDoubleComplex) tv).imag == imag);
     Object o = TypedValueUtils.typedValue2Object(tv);
     assertTrue(o instanceof Complex);
     assertTrue(((Complex) o).getReal() == real);

@@ -25,6 +25,8 @@
 #ifndef ASKAP_TYPEDVALUES_ICE
 #define ASKAP_TYPEDVALUES_ICE
 
+#include <CommonTypes.ice>
+
 module askap
 {
 
@@ -33,7 +35,9 @@ module interfaces
     /**
      * Enum to represent data types.
      **/
-    enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBoolean, TypeComplex};
+    enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBool,
+                        TypeFloatComplex, TypeDoubleComplex, TypedFloatSeq, TypeDoubleSeq, TypeIntSeq,
+                        TypeLongSeq, TypeStringSeq, TypeBoolSeq};
     
     /**
      * Base class for typed data types.
@@ -80,7 +84,7 @@ module interfaces
     /**
      * Class for a boolean type.
      **/
-    class TypedValueBoolean extends TypedValue {
+    class TypedValueBool extends TypedValue {
         bool value;
     };
 
@@ -95,11 +99,53 @@ module interfaces
     /**
      * Class for a double precision floating point complex number.
      **/
-    class TypedValueComplex extends TypedValue {
+    class TypedValueDoubleComplex extends TypedValue {
         double real;
         double imag;
     };
-    
+
+    /**
+     * Class for a sequence of floats type.
+     **/
+    class TypedValueFloatSeq extends TypedValue {
+        FloatSeq value;
+    };
+
+    /**
+     * Class for a sequence of doubles type.
+     **/
+    class TypedValueDoubleSeq extends TypedValue {
+        DoubleSeq value;
+    };
+
+    /**
+     * Class for a sequence of integers type.
+     **/
+    class TypedValueIntSeq extends TypedValue {
+        IntSeq value;
+    };
+
+    /**
+     * Class for a sequence of long integers type.
+     **/
+    class TypedValueLongSeq extends TypedValue {
+        LongSeq value;
+    };
+
+    /**
+     * Class for a sequence of strings type.
+     **/
+    class TypedValueStringSeq extends TypedValue {
+        StringSeq value;
+    };
+
+    /**
+     * Class for a sequence of booleans type.
+     **/
+    class TypedValueBoolSeq extends TypedValue {
+        BoolSeq value;
+    };
+
     /**
      * Dictionary of typed data.
      **/
