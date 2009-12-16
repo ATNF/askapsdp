@@ -430,10 +430,10 @@ const casa::Matrix<double>& GenericNormalEquations::normalMatrix(const std::stri
 {
   std::map<string,std::map<string, casa::Matrix<double> > >::const_iterator cIt1 = 
                                    itsNormalMatrix.find(par1);
-  ASKAPASSERT(cIt1 != itsNormalMatrix.end());
+  ASKAPCHECK(cIt1 != itsNormalMatrix.end(), "Missing first parameter "<<par1<<" is requested from the normal matrix");
   std::map<string, casa::Matrix<double> >::const_iterator cIt2 = 
                                    cIt1->second.find(par2);
-  ASKAPASSERT(cIt2 != cIt1->second.end());
+  ASKAPCHECK(cIt2 != cIt1->second.end(), "Missing second parameter "<<par2<<" is requested from the normal matrix");
   return cIt2->second;                             
 }
 
