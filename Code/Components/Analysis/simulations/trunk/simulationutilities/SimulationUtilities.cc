@@ -120,17 +120,19 @@ namespace askap {
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
-            float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
-            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0]-1));
-            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
-            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), int(axes[1]-1));
+            float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
+            float minorSigma = gauss.minorAxis() / (4.*M_LN2);
+            float zeroPointMin = minorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
+            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPointMax), 0);
+            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPointMax), int(axes[0]-1));
+            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
+            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1]-1));
 
  //            ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin=" << xmin << ", xmax=" << xmax << ", ymin=" << ymin << ", ymax=" << ymax << " ... using subsection " << subsection.getSection() << " with [start:end]=[" << subsection.getStart(0) << ":" << subsection.getEnd(0) << "," << subsection.getStart(1) << ":" << subsection.getEnd(1) << "], axes=["<<axes[0]<<","<<axes[1]<<"] zeropoint=" << zeroPoint << " and gaussian at [" << gauss.xCenter() << "," << gauss.yCenter() << "]");
 
             if ((xmax >= xmin) && (ymax >= ymin)) {  // if there are object pixels falling within the image boundaries
 
-                ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax << "] (zeropoint = " << zeroPoint << ") (subsection=" << subsection.getSection() << " --> " << subsection.getStart(0) << "--" << subsection.getEnd(0) << "|" << subsection.getStart(1) << "--" << subsection.getEnd(1) << ")");
+                ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax << "] (zeropoint = " << zeroPointMax << ") (subsection=" << subsection.getSection() << " --> " << subsection.getStart(0) << "--" << subsection.getEnd(0) << "|" << subsection.getStart(1) << "--" << subsection.getEnd(1) << ")");
 
                 // Test to see whether this should be treated as a point source
                 float minSigma = (std::min(gauss.majorAxis(), gauss.minorAxis()) / (2.*sqrt(2.*M_LN2)));
@@ -159,34 +161,58 @@ namespace askap {
                         for (int y = ymin; y <= ymax; y++) {
 
                             float pixelVal = 0.;
-                            float xpos = x - 0.5 - delta;
 
-                            for (int dx = 0; dx <= nstep; dx++) {
+			    float dx[2],dy[2];
+			    dx[0]=x-0.5-gauss.xCenter();
+			    dx[1]=x+0.5-gauss.xCenter();
+			    dy[0]=y-0.5-gauss.yCenter();
+			    dy[1]=y+0.5-gauss.yCenter();
+			    float du[4],dv[4];
+			    for(int i=0;i<4;i++){
+			      du[i] = dx[i%2]*cos(gauss.PA())+dy[i/2]*sin(gauss.PA());
+			      dv[i] = dy[i/2]*cos(gauss.PA())-dx[i%2]*sin(gauss.PA());
+			    }
+			    float mindu = fabs(du[0]); for(int i=1;i<4;i++) if(fabs(du[i])<mindu) mindu=fabs(du[i]);
+			    float mindv = fabs(dv[0]); for(int i=1;i<4;i++) if(fabs(dv[i])<mindv) mindv=fabs(dv[i]);
+			    float separation = mindv*mindv/(zeroPointMax*zeroPointMax) + mindu*mindu/(zeroPointMin*zeroPointMin);
+			    if(separation <= 1. || 
+			       ((du[0]*du[1]<0 || du[0]*du[2]<0 || du[0]*du[3]<0) && mindv<zeroPointMax) ||
+			       ((dv[0]*dv[1]<0 || dv[0]*dv[2]<0 || dv[0]*dv[3]<0) && mindu<zeroPointMin) ) { //only do the integrations if it lies within the maximal ellipse
+// 			      ASKAPLOG_DEBUG_STR(logger, "Adding to pixel x="<<x<<", y="<<y << " since separation = " << separation
+// 						 << " and du=("<<du[0]<<","<<du[1]<<","<<du[2]<<","<<du[3]<<") "
+// 						 << " and dv=("<<dv[0]<<","<<dv[1]<<","<<dv[2]<<","<<dv[3]<<") "
+// 						 << " and zpmin = " << zeroPointMin << " cf mindu = " << mindu
+// 						 << " and zpmax = " << zeroPointMax << " cf mindv = " << mindv);
+			      float xpos = x - 0.5 - delta;
+
+			      for (int dx = 0; dx <= nstep; dx++) {
                                 xpos += delta;
                                 float ypos = y - 0.5 - delta;
 
                                 for (int dy = 0; dy <= nstep; dy++) {
-                                    ypos += delta;
+				  ypos += delta;
 
-                                    // This is integration using Simpson's
-                                    // rule. In each direction, the end points get
-                                    // a factor of 1, then odd steps get a factor
-                                    // of 4, and even steps 2. The whole sum then
-                                    // gets scaled by delta/3. for each dimension.
-                                    float xScaleFactor, yScaleFactor;
+				  // This is integration using Simpson's
+				  // rule. In each direction, the end points get
+				  // a factor of 1, then odd steps get a factor
+				  // of 4, and even steps 2. The whole sum then
+				  // gets scaled by delta/3. for each dimension.
+				  float xScaleFactor, yScaleFactor;
 
-                                    if (dx == 0 || dx == nstep) xScaleFactor = 1;
-                                    else xScaleFactor = (dx % 2 == 1) ? 4. : 2.;
+				  if (dx == 0 || dx == nstep) xScaleFactor = 1;
+				  else xScaleFactor = (dx % 2 == 1) ? 4. : 2.;
 
-                                    if (dy == 0 || dy == nstep) yScaleFactor = 1;
-                                    else yScaleFactor = (dy % 2 == 1) ? 4. : 2.;
+				  if (dy == 0 || dy == nstep) yScaleFactor = 1;
+				  else yScaleFactor = (dy % 2 == 1) ? 4. : 2.;
 
-                                    pixelVal += gauss(xpos, ypos) * (xScaleFactor * yScaleFactor);
+				  pixelVal += gauss(xpos, ypos) * (xScaleFactor * yScaleFactor);
 
                                 }
-                            }
+			      }
 
-                            pixelVal *= (delta * delta / 9.);
+			      pixelVal *= (delta * delta / 9.);
+			    }
+// 			    else ASKAPLOG_DEBUG_STR(logger, "Separation = " << separation);
 
                             // For this pixel, loop over all channels and assign the correctly-scaled pixel value.
                             for (int z = 0; z < fluxGen.nChan(); z++) {
