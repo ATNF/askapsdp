@@ -82,7 +82,7 @@ module interfaces
     /**
      * A sequence of single-precision complex numbers.
      **/
-    sequence<FloatComplex>FloatComplexSeq;
+    sequence<FloatComplex> FloatComplexSeq;
 
     /**
      * A double-precision complex number.
@@ -95,8 +95,24 @@ module interfaces
     /**
      * A sequence of double-precision complex numbers.
      **/
-    sequence<DoubleComplex>DoubleComplexSeq;
-};
-};
+    sequence<DoubleComplex> DoubleComplexSeq;
+
+    /**
+     * Astronomical direction (a measure)
+     */
+    enum CoordSys { J2000, AZEL };
+    struct Direction {
+        double coord1;
+        double coord2;
+        CoordSys sys;
+    };
+
+    /**
+     * A sequence of astronomical directions
+     */
+    sequence<Direction> DirectionSeq;
+
+}; // End module interfaces
+}; // End module askap
 
 #endif

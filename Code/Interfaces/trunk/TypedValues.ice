@@ -37,7 +37,8 @@ module interfaces
      **/
     enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBool,
                         TypeFloatComplex, TypeDoubleComplex, TypedFloatSeq, TypeDoubleSeq, TypeIntSeq,
-                        TypeLongSeq, TypeStringSeq, TypeBoolSeq};
+                        TypeLongSeq, TypeStringSeq, TypeBoolSeq,
+                        TypeDirection, TypeDirectionSeq};
     
     /**
      * Base class for typed data types.
@@ -45,7 +46,11 @@ module interfaces
     class TypedValue { 
         TypedValueType type;
     };
-    
+   
+    ///////////////////////////////////////////////
+    // Primative data types
+    ///////////////////////////////////////////////
+ 
     /**
      * Class for a float type.
      **/
@@ -88,6 +93,11 @@ module interfaces
         bool value;
     };
 
+
+    ///////////////////////////////////////////////
+    // More advanced data types
+    ///////////////////////////////////////////////
+ 
     /**
      * Class for a single precision floating point complex number.
      **/
@@ -104,6 +114,18 @@ module interfaces
         double imag;
     };
 
+    /**
+     * Class for astronomical direction
+     **/
+    class TypedValueDirection extends TypedValue {
+        Direction value;
+    };
+
+
+    ///////////////////////////////////////////////
+    // Sequences
+    ///////////////////////////////////////////////
+ 
     /**
      * Class for a sequence of floats type.
      **/
@@ -144,6 +166,13 @@ module interfaces
      **/
     class TypedValueBoolSeq extends TypedValue {
         BoolSeq value;
+    };
+
+    /**
+     * Class for a sequence of direction typed
+     **/
+    class TypedValueDirectionSeq extends TypedValue {
+        DirectionSeq value;
     };
 
     /**
