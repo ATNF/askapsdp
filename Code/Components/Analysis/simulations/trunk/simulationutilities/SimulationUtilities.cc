@@ -257,9 +257,9 @@ namespace askap {
 	    float increment=0.;
 	    float x = xstart;
 	    float y = ystart;
-	    int xref = int(x+0.5);
-	    int yref = int(y+0.5);
-	    int spatialPixel = xref + axes[0]*yref;
+	    unsigned int xref = int(x+0.5);
+	    unsigned int yref = int(y+0.5);
+	    unsigned int spatialPixel = xref + axes[0]*yref;
 
 	    while(length < 2.*zeroPointMax && (xref>=0 && xref<axes[0]) && (yref>=0 && yref<axes[0])){
 // 	      ASKAPLOG_DEBUG_STR(logger, "At (x,y)=("<<x<<','<<y<<") and (xref,yref)=("<<xref<<','<<yref<<")");
