@@ -141,12 +141,14 @@ namespace askap {
                 float delta = std::min(1. / 32., pow(10., floor(log10(minSigma / 5.) / log10(2.)) * log10(2.)));
 
                 if (delta < 1.e-4) { // if it is really small, just make it a point source
-                    double *pix = new double[2];
-                    pix[0] = gauss.xCenter();
-                    pix[1] = gauss.yCenter();
-                    ASKAPLOG_DEBUG_STR(logger, "Making this Gaussian a point source since delta = " << delta << " (1./" << 1. / delta << ")  (minSigma=" << minSigma << ")");
-                    addPointSource(array, subsection, axes, pix, fluxGen);
-                    delete [] pix;
+//                     double *pix = new double[2];
+//                     pix[0] = gauss.xCenter();
+//                     pix[1] = gauss.yCenter();
+//                     ASKAPLOG_DEBUG_STR(logger, "Making this Gaussian a point source since delta = " << delta << " (1./" << 1. / delta << ")  (minSigma=" << minSigma << ")");
+//                     addPointSource(array, subsection, axes, pix, fluxGen);
+//                     delete [] pix;
+		  ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1./delta << ")  (minSigma=" << minSigma << ")  we use the 1D Gaussian function");
+		  add1DGaussian(array,subsection,axes,gauss,fluxGen);
                 } else {
                     // In this case, we need to add it as a Gaussian.
 
@@ -232,6 +234,68 @@ namespace askap {
             }
         }
 
+      void add1DGaussian(float *array, duchamp::Section subsection, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
+      {
+
+	    enum DIR {VERTICAL,HORIZONTAL};
+	    DIR direction=VERTICAL;
+	    bool specialCase=true;
+	    float pa = gauss.PA();
+	    float sinpa = sin(pa);
+	    float cospa = cos(pa);
+	    int sign = pa < M_PI/2. ? -1 : 1;
+	    if(cospa==0.) direction=HORIZONTAL;
+	    else if(sinpa==0.) direction=VERTICAL;
+	    else specialCase=false;
+
+            float majorSigma = gauss.majorAxis() / (4.*M_LN2);
+            float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
+	    float xstart = gauss.xCenter() - zeroPointMax*sinpa;
+	    float ystart = gauss.yCenter() + zeroPointMax*cospa;
+	    ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax << ", (xstart,ystart)=("<< xstart << ","<<ystart<<") and axes=["<<axes[0]<<","<<axes[1]<<"]");
+	    float length=0.;
+	    float increment=0.;
+	    float x = xstart;
+	    float y = ystart;
+	    int xref = int(x+0.5);
+	    int yref = int(y+0.5);
+	    int spatialPixel = xref + axes[0]*yref;
+
+	    while(length < 2.*zeroPointMax){
+// 	      ASKAPLOG_DEBUG_STR(logger, "At (x,y)=("<<x<<','<<y<<") and (xref,yref)=("<<xref<<','<<yref<<")");
+
+	      if(!specialCase) {
+// 		ASKAPLOG_DEBUG_STR(logger, "direction indicators = "<<fabs((yref+0.5*sign-y)/cospa) << " and " << fabs((xref+0.5-x)/sinpa));
+		direction = ( fabs((yref+0.5*sign-y)/cospa) < fabs((xref+0.5-x)/sinpa) ) ? VERTICAL : HORIZONTAL;
+	      }
+
+	      if(direction == VERTICAL) { // Moving vertically
+		increment = std::min( 2.*zeroPointMax - length, fabs((yref+sign*0.5-y))/cospa );
+// 		if(sign>0) ASKAPLOG_DEBUG_STR(logger, "UP: increment = " << increment);
+// 		else ASKAPLOG_DEBUG_STR(logger, "DOWN: increment = " << increment);
+		yref += sign;
+	      }
+	      else if(direction == HORIZONTAL ) { // Moving horizontally
+		increment = std::min( 2.*zeroPointMax - length, (xref+0.5-x)/sinpa );
+// 		ASKAPLOG_DEBUG_STR(logger, "ACROSS: increment = " << increment);
+		xref++;
+	      }
+
+	      float pixelVal = 0.5 * (erf((length+increment-zeroPointMax)/(M_SQRT2*majorSigma))-erf((length-zeroPointMax)/(M_SQRT2*majorSigma)));
+	      for (int z = 0; z < fluxGen.nChan(); z++) {
+		int pix = spatialPixel + z * axes[0] * axes[1];
+		float f = fluxGen.getFlux(z);
+		array[pix] += pixelVal * f;
+	      }
+
+	      x += increment * sinpa;
+	      y += sign * increment * cospa;
+	      spatialPixel = xref + axes[0]*yref;
+	      length += increment;
+	      
+	    }
+      }
+
         void addPointSource(float *array, duchamp::Section subsection, std::vector<unsigned int> axes, double *pix, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given point source to the
@@ -244,8 +308,10 @@ namespace askap {
             /// @param pix The coordinates of the point source
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
-	    unsigned int xpix = int(pix[0] - subsection.getStart(0));
-	    unsigned int ypix = int(pix[1] - subsection.getStart(1));
+// 	    unsigned int xpix = int(pix[0] - subsection.getStart(0));
+// 	    unsigned int ypix = int(pix[1] - subsection.getStart(1));
+	    unsigned int xpix = int(pix[0] + 0.5);
+	    unsigned int ypix = int(pix[1] + 0.5);
 
 	    if (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]) {
 
