@@ -261,7 +261,7 @@ namespace askap {
 	    unsigned int yref = int(y+0.5);
 	    unsigned int spatialPixel = xref + axes[0]*yref;
 
-	    while(length < 2.*zeroPointMax && (xref>=0 && xref<axes[0]) && (yref>=0 && yref<axes[1])){
+	    while(length < 2.*zeroPointMax){
 // 	      ASKAPLOG_DEBUG_STR(logger, "At (x,y)=("<<x<<','<<y<<") and (xref,yref)=("<<xref<<','<<yref<<")");
 
 	      if(!specialCase) {
@@ -281,11 +281,13 @@ namespace askap {
 		xref++;
 	      }
 
-	      float pixelVal = 0.5 * (erf((length+increment-zeroPointMax)/(M_SQRT2*majorSigma))-erf((length-zeroPointMax)/(M_SQRT2*majorSigma)));
-	      for (int z = 0; z < fluxGen.nChan(); z++) {
-		int pix = spatialPixel + z * axes[0] * axes[1];
-		float f = fluxGen.getFlux(z);
-		array[pix] += pixelVal * f;
+	      if( (xref>=0 && xref<axes[0]) && (yref>=0 && yref<axes[1])){ // only add points if we're in the array dimensions
+		float pixelVal = 0.5 * (erf((length+increment-zeroPointMax)/(M_SQRT2*majorSigma))-erf((length-zeroPointMax)/(M_SQRT2*majorSigma)));
+		for (int z = 0; z < fluxGen.nChan(); z++) {
+		  int pix = spatialPixel + z * axes[0] * axes[1];
+		  float f = fluxGen.getFlux(z);
+		  array[pix] += pixelVal * f;
+		}
 	      }
 
 	      x += increment * sinpa;
