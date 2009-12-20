@@ -159,24 +159,27 @@ namespace askap {
                     float inputGaussFlux = gauss.flux();
                     gauss.setFlux(1); // make it a unit Gaussian. We then scale by the correct flux for each frequency channel.
 
+		    float dx[2],dy[2],du[4],dv[4];
+		    float mindu,mindv,separation,xpos,ypos;
+		    float pixelVal;
+		    float xScaleFactor, yScaleFactor;
+
                     for (int x = xmin; x <= xmax; x++) {
                         for (int y = ymin; y <= ymax; y++) {
 
-                            float pixelVal = 0.;
+                            pixelVal = 0.;
 
-			    float dx[2],dy[2];
 			    dx[0]=x-0.5-gauss.xCenter();
 			    dx[1]=x+0.5-gauss.xCenter();
 			    dy[0]=y-0.5-gauss.yCenter();
 			    dy[1]=y+0.5-gauss.yCenter();
-			    float du[4],dv[4];
 			    for(int i=0;i<4;i++){
 			      du[i] = dx[i%2]*cos(gauss.PA())+dy[i/2]*sin(gauss.PA());
 			      dv[i] = dy[i/2]*cos(gauss.PA())-dx[i%2]*sin(gauss.PA());
 			    }
-			    float mindu = fabs(du[0]); for(int i=1;i<4;i++) if(fabs(du[i])<mindu) mindu=fabs(du[i]);
-			    float mindv = fabs(dv[0]); for(int i=1;i<4;i++) if(fabs(dv[i])<mindv) mindv=fabs(dv[i]);
-			    float separation = mindv*mindv/(zeroPointMax*zeroPointMax) + mindu*mindu/(zeroPointMin*zeroPointMin);
+			    mindu = fabs(du[0]); for(int i=1;i<4;i++) if(fabs(du[i])<mindu) mindu=fabs(du[i]);
+			    mindv = fabs(dv[0]); for(int i=1;i<4;i++) if(fabs(dv[i])<mindv) mindv=fabs(dv[i]);
+			    separation = mindv*mindv/(zeroPointMax*zeroPointMax) + mindu*mindu/(zeroPointMin*zeroPointMin);
 			    if(separation <= 1. || 
 			       ((du[0]*du[1]<0 || du[0]*du[2]<0 || du[0]*du[3]<0) && mindv<zeroPointMax) ||
 			       ((dv[0]*dv[1]<0 || dv[0]*dv[2]<0 || dv[0]*dv[3]<0) && mindu<zeroPointMin) ) { //only do the integrations if it lies within the maximal ellipse
@@ -185,11 +188,11 @@ namespace askap {
 // 						 << " and dv=("<<dv[0]<<","<<dv[1]<<","<<dv[2]<<","<<dv[3]<<") "
 // 						 << " and zpmin = " << zeroPointMin << " cf mindu = " << mindu
 // 						 << " and zpmax = " << zeroPointMax << " cf mindv = " << mindv);
-			      float xpos = x - 0.5 - delta;
+			      xpos = x - 0.5 - delta;
 
 			      for (int dx = 0; dx <= nstep; dx++) {
                                 xpos += delta;
-                                float ypos = y - 0.5 - delta;
+                                ypos = y - 0.5 - delta;
 
                                 for (int dy = 0; dy <= nstep; dy++) {
 				  ypos += delta;
@@ -199,7 +202,6 @@ namespace askap {
 				  // a factor of 1, then odd steps get a factor
 				  // of 4, and even steps 2. The whole sum then
 				  // gets scaled by delta/3. for each dimension.
-				  float xScaleFactor, yScaleFactor;
 
 				  if (dx == 0 || dx == nstep) xScaleFactor = 1;
 				  else xScaleFactor = (dx % 2 == 1) ? 4. : 2.;
@@ -250,17 +252,17 @@ namespace askap {
 
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
             float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-	    float xstart = gauss.xCenter() - zeroPointMax*sinpa;
-	    float ystart = gauss.yCenter() + zeroPointMax*cospa;
-	    ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax << ", (xstart,ystart)=("<< xstart << ","<<ystart<<") and axes=["<<axes[0]<<","<<axes[1]<<"]");
 	    float length=0.;
 	    float increment=0.;
-	    float x = xstart;
-	    float y = ystart;
+	    float x = gauss.xCenter() - zeroPointMax*sinpa;;
+	    float y = gauss.yCenter() + zeroPointMax*cospa;;
+	    ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax << ", (xstart,ystart)=("<< x << ","<<y<<") and axes=["<<axes[0]<<","<<axes[1]<<"]");
 	    unsigned int xref = int(x+0.5);
 	    unsigned int yref = int(y+0.5);
 	    unsigned int spatialPixel = xref + axes[0]*yref;
 
+	    int pix=0;
+	    float pixelVal=0.;
 	    while(length < 2.*zeroPointMax){
 // 	      ASKAPLOG_DEBUG_STR(logger, "At (x,y)=("<<x<<','<<y<<") and (xref,yref)=("<<xref<<','<<yref<<")");
 
@@ -282,11 +284,10 @@ namespace askap {
 	      }
 
 	      if( (xref>=0 && xref<axes[0]) && (yref>=0 && yref<axes[1])){ // only add points if we're in the array dimensions
-		float pixelVal = 0.5 * (erf((length+increment-zeroPointMax)/(M_SQRT2*majorSigma))-erf((length-zeroPointMax)/(M_SQRT2*majorSigma)));
+		pixelVal = 0.5 * (erf((length+increment-zeroPointMax)/(M_SQRT2*majorSigma))-erf((length-zeroPointMax)/(M_SQRT2*majorSigma)));
 		for (int z = 0; z < fluxGen.nChan(); z++) {
-		  int pix = spatialPixel + z * axes[0] * axes[1];
-		  float f = fluxGen.getFlux(z);
-		  array[pix] += pixelVal * f;
+		  pix = spatialPixel + z * axes[0] * axes[1];
+		  array[pix] += pixelVal * fluxGen.getFlux(z);
 		}
 	      }
 
