@@ -27,6 +27,11 @@
 // Include package level header file
 #include <askap_correlatorsim.h>
 
+// System includes
+#include <unistd.h>
+#include <string>
+#include <stdexcept>
+
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -40,6 +45,22 @@ using namespace askap;
 
 ASKAP_LOGGER(logger, ".main");
 
+static std::string getNodeName(void)
+{
+    const int HOST_NAME_MAXLEN = 256;
+    char name[HOST_NAME_MAXLEN];
+    gethostname(name, HOST_NAME_MAXLEN);
+    std::string nodename(name);
+
+    std::string::size_type idx = nodename.find_first_of('.');
+    if (idx != std::string::npos) {
+        // Extract just the hostname part
+        nodename = nodename.substr(0, idx);
+    }
+
+    return nodename;
+}
+
 int main(int argc, char* argv[])
 {
     try {
@@ -48,15 +69,22 @@ int main(int argc, char* argv[])
         ss << argv[0] << ".log_cfg";
         ASKAPLOG_INIT(ss.str().c_str());
 
+        // Tell the logger the hostname
+        std::string hostname = getNodeName();
+        ASKAPLOG_REMOVECONTEXT("hostname");
+        ASKAPLOG_PUTCONTEXT("hostname", hostname.c_str());
+
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
+
+        ASKAPLOG_INFO_STR(logger, "ASKAP Correlator Simulator (Playback) - " << ASKAP_PACKAGE_VERSION);
 
         // Command line parser
         cmdlineparser::Parser parser;
 
         // Command line parameter
-        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "cimager.in");
+        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "playback.in");
 
         // Throw an exception if the parameter is not present
         parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
@@ -65,7 +93,7 @@ int main(int argc, char* argv[])
 
         const std::string parsetFile = inputsPar;
 
-        // Create a subset
+        // Create a parset
         LOFAR::ParameterSet parset(parsetFile);
 
     } catch (const cmdlineparser::XParser& e) {

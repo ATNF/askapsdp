@@ -1,0 +1,11 @@
+playback.dataset                    = ../../dataset/askap_cchan0.ms
+
+playback.ice.locator_host           = localhost
+playback.ice.locator_port           = 4061
+
+playback.metadata.icestorm.topicmanager     = IceStorm/TopicManager
+playback.metadata.icestorm.topic            = tosmetadata
+
+playback.visibilities.icestorm.topicmanager = IceStorm/TopicManager
+playback.visibilities.icestorm.topic        = visibilities
+

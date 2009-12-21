@@ -10,6 +10,14 @@ pkg = env.AskapPackage("correlatorsim")
 
 pkg.AddSubPackage("simplayback")
 
+# first argument is a slice file or list of slice files
+# # second argument is the sub-package where the slice generated code should appear
+# # third argument is the location of the source file relative to this SConstruct
+# # file, or omit this argument for a system interface (i.e. Code/Interfaces)
+# #pkg.AddInterfaces("CommonTypes.ice", "cpinterfaces")
+# #pkg.AddInterfaces("TypedValues.ice", "cpinterfaces")
+# #pkg.AddInterfaces("CP.ice", "cpinterfaces")
+
 env.Append(CCFLAGS=['-g'])
 
 # run the build process
