@@ -545,7 +545,7 @@ namespace askap {
                                     profSAX = HIprofileS3SAX(line);
                                     src = profSAX;
                                     prof = profSAX;
- //                                    std::cerr << profSAX << "\n";
+//                                     std::cerr << profSAX << "\n";
                                 } else
                                     ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
                                                    << this->itsDatabaseOrigin << "' - needs to be 'S3SEX' or 'S3SAX'");
