@@ -50,8 +50,8 @@ namespace askap {
 
         namespace FITS {
 
-	  /// @brief Convert the name of a FITS file to the name for the equivalent casa image
-	  std::string casafy(std::string fitsName);
+            /// @brief Convert the name of a FITS file to the name for the equivalent casa image
+            std::string casafy(std::string fitsName);
 
 
             /// @brief A class to create new FITS files
@@ -68,7 +68,7 @@ namespace askap {
                     virtual ~FITSfile();
 
                     /// @brief Constructor, using an input parameter set
-                    FITSfile(const LOFAR::ParameterSet& parset, bool allocateMemory=true);
+                    FITSfile(const LOFAR::ParameterSet& parset, bool allocateMemory = true);
 
                     /// @brief Copy constructor
                     FITSfile(const FITSfile& f);
@@ -85,11 +85,11 @@ namespace askap {
                     /// @brief Get and set individual values in the flux array
                     /// @{
                     float array(int pos) {return itsArray[pos];};
-		    float array(unsigned int x, unsigned int y) {size_t pos=x+itsAxes[0]*y; return itsArray[pos];};
-		    float array(unsigned int x, unsigned int y, unsigned int z) {size_t pos=x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]; return itsArray[pos];};
+                    float array(unsigned int x, unsigned int y) {size_t pos = x + itsAxes[0] * y; return itsArray[pos];};
+                    float array(unsigned int x, unsigned int y, unsigned int z) {size_t pos = x + itsAxes[0] * y + z * itsAxes[0] * itsAxes[1]; return itsArray[pos];};
                     void setArray(unsigned int pos, float val) {itsArray[pos] = val;};
-                    void setArray(unsigned int x, unsigned int y, float val) {size_t pos=x+itsAxes[0]*y; itsArray[pos] = val;};
-		    void setArray(unsigned int x, unsigned int y, unsigned int z, float val) {size_t pos=x+itsAxes[0]*y+z*itsAxes[0]*itsAxes[1]; itsArray[pos] = val;};
+                    void setArray(unsigned int x, unsigned int y, float val) {size_t pos = x + itsAxes[0] * y; itsArray[pos] = val;};
+                    void setArray(unsigned int x, unsigned int y, unsigned int z, float val) {size_t pos = x + itsAxes[0] * y + z * itsAxes[0] * itsAxes[1]; itsArray[pos] = val;};
                     /// @}
                     /// @brief Get the vector of axis dimensions
                     std::vector<unsigned int> getAxes() {return itsAxes;};
@@ -99,10 +99,10 @@ namespace askap {
                     unsigned int getYdim() {return itsAxes[itsWCS->lat];};
                     /// @brief Get the size of the Z-axis
                     unsigned int getZdim() {return itsAxes[itsWCS->spec];};
-		    /// @brief Get the index of the spectral axis
-		    unsigned int getSpectralAxisIndex(){return itsWCS->spec;};
-		    /// @brief Return the number of pixels
-		    size_t getSize() {return itsNumPix;};
+                    /// @brief Get the index of the spectral axis
+                    unsigned int getSpectralAxisIndex() {return itsWCS->spec;};
+                    /// @brief Return the number of pixels
+                    size_t getSize() {return itsNumPix;};
 
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();
@@ -117,19 +117,19 @@ namespace askap {
                     void convolveWithBeam();
 
                     /// @brief Save the array to a FITS file
-                    void writeFITSimage(bool creatFile=true, bool saveData=true);
+                    void writeFITSimage(bool creatFile = true, bool saveData = true);
 
-		    /// @brief Save the array to a CASA image
-		    void writeCASAimage(bool creatFile=true, bool saveData=true);
+                    /// @brief Save the array to a CASA image
+                    void writeCASAimage(bool creatFile = true, bool saveData = true);
 
                 protected:
 
                     /// @brief The name of the file to be written to
                     std::string itsFileName;
-		    /// @brief Whether to write to a FITS-format image
-		    bool itsFITSOutput;
-		    /// @brief Whether to write to a CASA-format image
-		    bool itsCasaOutput;
+                    /// @brief Whether to write to a FITS-format image
+                    bool itsFITSOutput;
+                    /// @brief Whether to write to a CASA-format image
+                    bool itsCasaOutput;
                     /// @brief The file containing the list of sources
                     std::string itsSourceList;
                     /// @brief The type of input list: either "continuum" or "spectralline"
@@ -175,14 +175,14 @@ namespace askap {
                     /// @brief The rest frequency for emission-line sources: stored as RESTFREQ in the FITS header
                     float itsRestFreq;
 
-		    /// @brief Whether sources should be added
-		    bool itsAddSources;
+                    /// @brief Whether sources should be added
+                    bool itsAddSources;
                     /// @brief Whether to add continuum sources
                     bool itsDoContinuum;
                     /// @brief Whether to add spectral-line sources
                     bool itsDoHI;
-		    /// @brief Whether to just count the sources that would be added rather than add them
-		    bool itsDryRun;
+                    /// @brief Whether to just count the sources that would be added rather than add them
+                    bool itsDryRun;
 
                     /// @brief The EQUINOX keyword
                     float itsEquinox;

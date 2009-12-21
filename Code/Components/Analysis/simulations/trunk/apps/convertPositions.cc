@@ -86,7 +86,7 @@ int main(int argc, const char** argv)
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
-	subset.replace("addSources","false");
+        subset.replace("addSources", "false");
         FITSparallel file(comms, subset);
         file.processSources();
 

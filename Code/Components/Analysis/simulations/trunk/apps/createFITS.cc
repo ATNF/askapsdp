@@ -91,23 +91,24 @@ int main(int argc, const char** argv)
         bool doConvolution = subset.getBool("doConvolution", true);
         FITSparallel file(comms, subset);
 
-	if(comms.isMaster()) ASKAPLOG_INFO_STR(logger, "In MASTER node!");
-	if(comms.isWorker()) ASKAPLOG_INFO_STR(logger, "In WORKER node #"<<comms.rank());
+        if (comms.isMaster()) ASKAPLOG_INFO_STR(logger, "In MASTER node!");
+
+        if (comms.isWorker()) ASKAPLOG_INFO_STR(logger, "In WORKER node #" << comms.rank());
 
         file.processSources();
 
         if (doNoise && (noiseBeforeConvolve || !doConvolution))
-	    file.addNoise(true);
+            file.addNoise(true);
 
         file.toMaster();
 
         if (doConvolution)
-	    file.convolveWithBeam();
+            file.convolveWithBeam();
 
         if (doNoise && (!noiseBeforeConvolve && doConvolution))
-	    file.addNoise(false);
+            file.addNoise(false);
 
-	file.output();
+        file.output();
 
         ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
 

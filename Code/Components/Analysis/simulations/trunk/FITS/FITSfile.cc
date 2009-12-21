@@ -117,8 +117,8 @@ namespace askap {
                 if (this == &f) return *this;
 
                 this->itsFileName = f.itsFileName;
-		this->itsFITSOutput = f.itsFITSOutput;
-		this->itsCasaOutput = f.itsCasaOutput;
+                this->itsFITSOutput = f.itsFITSOutput;
+                this->itsCasaOutput = f.itsCasaOutput;
                 this->itsSourceList = f.itsSourceList;
                 this->itsSourceListType = f.itsSourceListType;
                 this->itsDatabaseOrigin = f.itsDatabaseOrigin;
@@ -151,10 +151,10 @@ namespace askap {
                 this->itsHaveSpectralInfo = f.itsHaveSpectralInfo;
                 this->itsBaseFreq = f.itsBaseFreq;
                 this->itsRestFreq = f.itsRestFreq;
-		this->itsAddSources = f.itsAddSources;
+                this->itsAddSources = f.itsAddSources;
                 this->itsDoContinuum = f.itsDoContinuum;
                 this->itsDoHI = f.itsDoHI;
-		this->itsDryRun = f.itsDryRun;
+                this->itsDryRun = f.itsDryRun;
                 this->itsEquinox = f.itsEquinox;
                 this->itsBunit = f.itsBunit;
                 this->itsUnitScl = f.itsUnitScl;
@@ -202,7 +202,7 @@ namespace askap {
 
 //--------------------------------------------------------
 
-	  FITSfile::FITSfile(const LOFAR::ParameterSet& parset, bool allocateMemory)
+            FITSfile::FITSfile(const LOFAR::ParameterSet& parset, bool allocateMemory)
             {
                 /// @details Constructor that reads in the necessary
                 /// definitions from the parameterset. All FITSfile members
@@ -214,8 +214,8 @@ namespace askap {
 
                 ASKAPLOG_DEBUG_STR(logger, "Defining the FITSfile");
                 this->itsFileName = parset.getString("filename", "");
-		this->itsFITSOutput = parset.getBool("fitsOutput",true);
-		this->itsCasaOutput = parset.getBool("casaOutput",false);
+                this->itsFITSOutput = parset.getBool("fitsOutput", true);
+                this->itsCasaOutput = parset.getBool("casaOutput", false);
                 this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/Beam"));
                 this->itsSourceList = parset.getString("sourcelist", "");
                 std::ifstream file;
@@ -276,26 +276,29 @@ namespace askap {
 
                 this->itsDim = parset.getUint16("dim", 2);
                 this->itsAxes = parset.getUint32Vector("axes");
-		std::string sectionString = parset.getString("subsection",duchamp::nullSection(this->itsDim));
-		this->itsSourceSection.setSection(sectionString);
-		std::vector<int> axes(this->itsDim);
-		for(uint i=0;i<this->itsDim;i++) axes[i] = this->itsAxes[i];
+                std::string sectionString = parset.getString("subsection", duchamp::nullSection(this->itsDim));
+                this->itsSourceSection.setSection(sectionString);
+                std::vector<int> axes(this->itsDim);
+
+                for (uint i = 0; i < this->itsDim; i++) axes[i] = this->itsAxes[i];
+
                 this->itsSourceSection.parse(axes);
 
                 if (this->itsAxes.size() != this->itsDim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim
                                    << ", but axes has " << this->itsAxes.size() << " dimensions.");
-		for(uint i=0;i<this->itsDim;i++)
-		  this->itsAxes[i] = this->itsSourceSection.getDim(i);
 
-		std::stringstream ss;
+                for (uint i = 0; i < this->itsDim; i++)
+                    this->itsAxes[i] = this->itsSourceSection.getDim(i);
+
+                std::stringstream ss;
                 this->itsNumPix = this->itsAxes[0];
-		ss << this->itsAxes[0];
+                ss << this->itsAxes[0];
 
-                for (uint i = 1; i < this->itsDim; i++){
-		  this->itsNumPix *= this->itsAxes[i];
-		  ss << "x" << this->itsAxes[i];
-		}
+                for (uint i = 1; i < this->itsDim; i++) {
+                    this->itsNumPix *= this->itsAxes[i];
+                    ss << "x" << this->itsAxes[i];
+                }
 
                 this->itsHaveBeam = parset.isDefined("beam");
 
@@ -306,14 +309,14 @@ namespace askap {
                 this->itsWCSAllocated = false;
                 this->setWCS(true, subset);
                 this->itsFlagPrecess = parset.getBool("WCSsources", false);
-		this->itsWCSsourcesAllocated = false;
+                this->itsWCSsourcesAllocated = false;
 
                 if (this->itsFlagPrecess) {
                     LOFAR::ParameterSet subset(parset.makeSubset("WCSsources."));
                     this->setWCS(false, subset);
                 }
 
-		ASKAPLOG_DEBUG_STR(logger, "wcs->lat="<<this->itsWCS->lat << " wcs->lng="<<this->itsWCS->lng << " wcs->spec="<<this->itsWCS->spec);
+                ASKAPLOG_DEBUG_STR(logger, "wcs->lat=" << this->itsWCS->lat << " wcs->lng=" << this->itsWCS->lng << " wcs->spec=" << this->itsWCS->spec);
 
                 this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
                 this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
@@ -321,16 +324,16 @@ namespace askap {
 
                 if (!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
 
-		this->itsAddSources = parset.getBool("addSources", true);
+                this->itsAddSources = parset.getBool("addSources", true);
                 this->itsDoContinuum = parset.getBool("doContinuum", true);
                 this->itsDoHI = parset.getBool("doHI", false);
-		this->itsDryRun = parset.getBool("dryRun", false);
+                this->itsDryRun = parset.getBool("dryRun", false);
 
-		if(this->itsDryRun){
-		  this->itsFITSOutput = false;
-		  this->itsCasaOutput = false;
-		  ASKAPLOG_INFO_STR(logger, "Just a DRY RUN - no sources being added or images created.");
-		}
+                if (this->itsDryRun) {
+                    this->itsFITSOutput = false;
+                    this->itsCasaOutput = false;
+                    ASKAPLOG_INFO_STR(logger, "Just a DRY RUN - no sources being added or images created.");
+                }
 
                 this->itsFlagOutputList = parset.getBool("outputList", false);
 
@@ -338,13 +341,14 @@ namespace askap {
 
                 this->itsOutputSourceList = parset.getString("outputSourceList", "");
 
-		if(allocateMemory && !this->itsDryRun){
-		  ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes");
-		  this->itsArray = new float[this->itsNumPix];
-		  this->itsArrayAllocated = true;
-		  ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
-		  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
-		}
+                if (allocateMemory && !this->itsDryRun) {
+                    ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes");
+                    this->itsArray = new float[this->itsNumPix];
+                    this->itsArrayAllocated = true;
+                    ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
+
+                    for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = 0.;
+                }
 
                 ASKAPLOG_DEBUG_STR(logger, "FITSfile defined.");
             }
@@ -353,18 +357,18 @@ namespace askap {
 
             void FITSfile::setWCS(bool isImage, const LOFAR::ParameterSet& parset)
             {
-	      /// @details Defines a world coordinate system from an
-	      /// input parameter set. This looks for parameters that
-	      /// define the various FITS header keywords for each
-	      /// axis (ctype, cunit, crval, cdelt, crpix, crota), as
-	      /// well as the equinox, then defines a WCSLIB wcsprm
-	      /// structure and assigns it to either FITSfile::itsWCS
-	      /// or FITSfile::itsWCSsources depending on the isImage
-	      /// parameter.  
-	      /// @param isImage If true, the FITSfile::itsWCS
-	      /// structure is defined, else it is the
-	      /// FITSfile::itsWCSsources.
-	      /// @param parset The input parset to be examined.
+                /// @details Defines a world coordinate system from an
+                /// input parameter set. This looks for parameters that
+                /// define the various FITS header keywords for each
+                /// axis (ctype, cunit, crval, cdelt, crpix, crota), as
+                /// well as the equinox, then defines a WCSLIB wcsprm
+                /// structure and assigns it to either FITSfile::itsWCS
+                /// or FITSfile::itsWCSsources depending on the isImage
+                /// parameter.
+                /// @param isImage If true, the FITSfile::itsWCS
+                /// structure is defined, else it is the
+                /// FITSfile::itsWCSsources.
+                /// @param parset The input parset to be examined.
 
                 struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
                 wcs->flag = -1;
@@ -409,7 +413,7 @@ namespace askap {
                                ", but crota has " << crota.size() << " dimensions.");
 
                 for (uint i = 0; i < this->itsDim; i++) {
-		    wcs->crpix[i] = crpix[i] - this->itsSourceSection.getStart(i);
+                    wcs->crpix[i] = crpix[i] - this->itsSourceSection.getStart(i);
                     wcs->cdelt[i] = cdelt[i];
                     wcs->crval[i] = crval[i];
                     wcs->crota[i] = crota[i];
@@ -460,12 +464,13 @@ namespace askap {
                 /// @details Fills the pixel array with fluxes sampled from a
                 /// normal distribution ~ N(0,itsNoiseRMS) (i.e. the mean of
                 /// the distribution is zero). Note that this overwrites the array.
-		if(this->itsArrayAllocated){
-		  ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
-		  for (size_t i = 0; i < this->itsNumPix; i++) {
-                    this->itsArray[i] = normalRandomVariable(0., this->itsNoiseRMS);
-		  }
-		}
+                if (this->itsArrayAllocated) {
+                    ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
+
+                    for (size_t i = 0; i < this->itsNumPix; i++) {
+                        this->itsArray[i] = normalRandomVariable(0., this->itsNoiseRMS);
+                    }
+                }
             }
 
 //--------------------------------------------------------
@@ -474,12 +479,13 @@ namespace askap {
             {
                 /// @details Adds noise to the array. Noise values are
                 /// distributed as N(0,itsNoiseRMS) (i.e. with mean zero).
-		if(this->itsArrayAllocated){
-		  ASKAPLOG_DEBUG_STR(logger, "Adding noise");
-		  for (size_t i = 0; i < this->itsNumPix; i++) {
-                    this->itsArray[i] += normalRandomVariable(0., this->itsNoiseRMS);
-		  }
-		}
+                if (this->itsArrayAllocated) {
+                    ASKAPLOG_DEBUG_STR(logger, "Adding noise");
+
+                    for (size_t i = 0; i < this->itsNumPix; i++) {
+                        this->itsArray[i] += normalRandomVariable(0., this->itsNoiseRMS);
+                    }
+                }
             }
 
 //--------------------------------------------------------
@@ -504,7 +510,7 @@ namespace askap {
                     double *newwld = new double[3];
                     std::ofstream outfile;
 
-		    int countGauss=0, countPoint=0;
+                    int countGauss = 0, countPoint = 0;
 
                     if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
 
@@ -566,63 +572,67 @@ namespace askap {
                                 pixToWCSSingle(this->itsWCS, pix, newwld);
                                 outfile.setf(std::ios::fixed);
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
-					<< std::setw(10) << std::setprecision(6) << newwld[1] << " "
-					<< std::setw(20) << std::setprecision(16) << src.fluxZero() << " ";
-				if(this->itsSourceListType=="spectralline" || this->itsHaveSpectralInfo)
-				  outfile << std::setw(10) << std::setprecision(6) << cont.alpha() << " "
-					  << std::setw(10) << std::setprecision(6) << cont.beta() << " ";
-				outfile << std::setw(10) << std::setprecision(6) << src.maj() << " "
-					<< std::setw(10) << std::setprecision(6) << src.min() << " "
-					<< std::setw(10) << std::setprecision(6) << src.pa() << " ";
-				if(this->itsSourceListType == "spectralline")
-				  outfile << std::setw(10) << std::setprecision(6) << prof.redshift() << " "
-					  << std::setw(10) << std::setprecision(6) << prof.mHI() << " "
-					  << std::setw(5) << sourceType << " ";
-				outfile << "\n";
+                                    << std::setw(10) << std::setprecision(6) << newwld[1] << " "
+                                    << std::setw(20) << std::setprecision(16) << src.fluxZero() << " ";
+
+                                if (this->itsSourceListType == "spectralline" || this->itsHaveSpectralInfo)
+                                    outfile << std::setw(10) << std::setprecision(6) << cont.alpha() << " "
+                                        << std::setw(10) << std::setprecision(6) << cont.beta() << " ";
+
+                                outfile << std::setw(10) << std::setprecision(6) << src.maj() << " "
+                                    << std::setw(10) << std::setprecision(6) << src.min() << " "
+                                    << std::setw(10) << std::setprecision(6) << src.pa() << " ";
+
+                                if (this->itsSourceListType == "spectralline")
+                                    outfile << std::setw(10) << std::setprecision(6) << prof.redshift() << " "
+                                        << std::setw(10) << std::setprecision(6) << prof.mHI() << " "
+                                        << std::setw(5) << sourceType << " ";
+
+                                outfile << "\n";
                             }
 
-			    if(this->itsAddSources || this->itsDryRun){
+                            if (this->itsAddSources || this->itsDryRun) {
 
-			      FluxGenerator fluxGen;
+                                FluxGenerator fluxGen;
 
-			      if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
-			      else fluxGen.setNumChan(1);
+                                if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
+                                else fluxGen.setNumChan(1);
 
-			      if (this->itsDoContinuum)
-                                fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
+                                if (this->itsDoContinuum)
+                                    fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
 
-			      if (this->itsDoHI) {
-                                if (this->itsDatabaseOrigin == "S3SEX")
-				  fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
-                                else if (this->itsDatabaseOrigin == "S3SAX")
-				  fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
-			      }
+                                if (this->itsDoHI) {
+                                    if (this->itsDatabaseOrigin == "S3SEX")
+                                        fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
+                                    else if (this->itsDatabaseOrigin == "S3SAX")
+                                        fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
+                                }
 
-			      if (src.maj() > 0) {
-                                // convert widths from arcsec to pixels
-                                float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
-                                src.setMaj(casa::Quantity(src.maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+                                if (src.maj() > 0) {
+                                    // convert widths from arcsec to pixels
+                                    float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
+                                    src.setMaj(casa::Quantity(src.maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
-                                if (src.maj() > 0 && !(src.min() > this->itsMinMinorAxis)) {
-				  ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src.min() << " --> " << this->itsMinMinorAxis);
-				  src.setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-                                } else src.setMin(casa::Quantity(src.min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+                                    if (src.maj() > 0 && !(src.min() > this->itsMinMinorAxis)) {
+                                        ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src.min() << " --> " << this->itsMinMinorAxis);
+                                        src.setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+                                    } else src.setMin(casa::Quantity(src.min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
-                                if (src.fluxZero() == 0.) src.setFluxZero(1.e-3);
+                                    if (src.fluxZero() == 0.) src.setFluxZero(1.e-3);
 
-                                casa::Gaussian2D<casa::Double> gauss(src.fluxZero(), pix[0], pix[1], src.maj(), src.min() / src.maj(),
-                                                                     casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
-                                gauss.setFlux(src.fluxZero());
+                                    casa::Gaussian2D<casa::Double> gauss(src.fluxZero(), pix[0], pix[1], src.maj(), src.min() / src.maj(),
+                                                                         casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
+                                    gauss.setFlux(src.fluxZero());
 
-				if(!this->itsDryRun) addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
-				else if(doAddGaussian(this->itsAxes, gauss))
-				  countGauss++;
-			      } else {
-				if(!this->itsDryRun) addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
-				else if(doAddPointSource(this->itsAxes, pix)) 
-				  countPoint++;
-			      }
-			    }
+                                    if (!this->itsDryRun) addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
+                                    else if (doAddGaussian(this->itsAxes, gauss))
+                                        countGauss++;
+                                } else {
+                                    if (!this->itsDryRun) addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+                                    else if (doAddPointSource(this->itsAxes, pix))
+                                        countPoint++;
+                                }
+                            }
 
                         } else {
                             // Write all commented lines directly into the output file
@@ -634,8 +644,8 @@ namespace askap {
 
                     srclist.close();
 
-		    if(this->itsDryRun) 
-		      ASKAPLOG_INFO_STR(logger, "Would add " << countPoint << " point sources and " << countGauss << " Gaussians");
+                    if (this->itsDryRun)
+                        ASKAPLOG_INFO_STR(logger, "Would add " << countPoint << " point sources and " << countGauss << " Gaussians");
 
 
                     delete [] wld;
@@ -661,12 +671,13 @@ namespace askap {
                     float min = this->itsBeamInfo[1] / fabs(this->itsWCS->cdelt[1]);
                     float pa = this->itsBeamInfo[2];
                     GaussSmooth<float> smoother(maj, min, pa);
-		    ASKAPLOG_DEBUG_STR(logger, "Defined the smoother, now to do the smoothing");
+                    ASKAPLOG_DEBUG_STR(logger, "Defined the smoother, now to do the smoothing");
                     float *newArray = smoother.smooth(this->itsArray, this->itsAxes[0], this->itsAxes[1]);
-		    ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");
+                    ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");
 
                     for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = newArray[i];
-		    ASKAPLOG_DEBUG_STR(logger, "Copying done.");
+
+                    ASKAPLOG_DEBUG_STR(logger, "Copying done.");
 
                     delete [] newArray;
                 }
@@ -687,256 +698,271 @@ namespace askap {
 
 //--------------------------------------------------------
 
-	  void FITSfile::writeFITSimage(bool createFile, bool saveData)
+            void FITSfile::writeFITSimage(bool createFile, bool saveData)
             {
                 /// @details Creates a FITS file with the appropriate headers
                 /// and saves the flux array into it. Uses the CFITSIO library
                 /// to do so.
 
-	      if(this->itsFITSOutput){
+                if (this->itsFITSOutput) {
 
-	        ASKAPLOG_INFO_STR(logger, "Saving the FITS file to " << this->itsFileName);
-
-
-                int status = 0;
-
-                fitsfile *fptr;
-
-		if(createFile){
-		  ASKAPLOG_INFO_STR(logger, "Creating the FITS file");
-
-		  if (fits_create_file(&fptr, this->itsFileName.c_str(), &status)) {
-                    ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
-                    fits_report_error(stderr, status);
-                    ASKAPTHROW(AskapError, "Error opening FITS file.");
-		  }
-
-		  status = 0;
-		  long *dim = new long[this->itsDim];
-
-		  for (uint i = 0; i < this->itsDim; i++) dim[i] = this->itsAxes[i];
-
-		  if (fits_create_img(fptr, FLOAT_IMG, this->itsDim, dim, &status)){
-		    ASKAPLOG_ERROR_STR(logger, "Error creating the FITS image:");
-                    fits_report_error(stderr, status);
-		  }
-
-		  delete [] dim;
-
-		  status = 0;
-
-		  std::string header="EQUINOX";
-		  if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsEquinox), NULL, &status))
-                    fits_report_error(stderr, status);
-
-		  if (this->itsHaveBeam) {
-                    status = 0;
-		    
-		    header="BMAJ";
-                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[0]), NULL, &status))
-		      fits_report_error(stderr, status);
-
-                    status = 0;
-
-		    header="BMIN";
-                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[1]), NULL, &status))
-		      fits_report_error(stderr, status);
-
-                    status = 0;
-
-		    header="BPA";
-                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[2]), NULL, &status))
-		      fits_report_error(stderr, status);
-		  }
-
-		  status = 0;
-
-		  char *unit = (char *)this->itsBunit.getName().c_str();
-
-		  header="BUNIT";
-		  if (fits_update_key(fptr, TSTRING, (char *)header.c_str(), unit,  NULL, &status))
-                    fits_report_error(stderr, status);
-
-		  if (this->itsSourceListType == "spectralline") {
-                    status = 0;
-
-		    header="RESTFREQ";
-                    if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsRestFreq), NULL, &status))
-		      fits_report_error(stderr, status);
-		  }
-
-		  float val;
-
-		  for (uint d = 0; d < this->itsDim; d++) {
-                    status = 0;
-
-                    if (fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE", d + 1), this->itsWCS->ctype[d],  NULL, &status))
-		      fits_report_error(stderr, status);
-
-                    status = 0;
-
-                    if (fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT", d + 1), this->itsWCS->cunit[d],  NULL, &status))
-		      fits_report_error(stderr, status);
-
-                    status = 0;
-                    val = this->itsWCS->crval[d];
-
-                    if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL", d + 1), &val, NULL, &status))
-		      fits_report_error(stderr, status);
-
-                    val = this->itsWCS->cdelt[d];
-                    status = 0;
-
-                    if (fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT", d + 1), &val, NULL, &status))
-		      fits_report_error(stderr, status);
-
-                    val = this->itsWCS->crpix[d];
-                    status = 0;
-
-                    if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX", d + 1), &val, NULL, &status))
-		      fits_report_error(stderr, status);
-
-                    val = this->itsWCS->crota[d];
-                    status = 0;
-
-                    if (fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA", d + 1), &val, NULL, &status))
-		      fits_report_error(stderr, status);
-		  }
-
-		}
-		
-		if(saveData){
-
-		  ASKAPLOG_INFO_STR(logger, "Saving the data to the FITS file");
-
-		  if(!createFile) {
-		    status=0;
-		    std::string filename = this->itsFileName;
-		    if(filename[0]=='!') filename = filename.substr(1);
-		    ASKAPLOG_DEBUG_STR(logger, "Opening " << filename);
-		    if (fits_open_file(&fptr, filename.c_str(), READWRITE, &status)) {
-		      ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
-		      fits_report_error(stderr, status);
-		      ASKAPTHROW(AskapError, "Error opening FITS file.");
-		    }
-		  }
-
-		  int ndim=4;
-		  long axes[ndim];
-		  fits_get_img_size(fptr, ndim, axes, &status);
-		  ASKAPLOG_DEBUG_STR(logger, "Image dimensions are "<<axes[0]<<"x"<<axes[1]<<"x"<<axes[2]<<"x"<<axes[3]);
-
-		  ASKAPLOG_INFO_STR(logger, "Opened the FITS file, preparing to write data");
-
-		  long *fpixel = new long[this->itsDim];
-		  long *lpixel = new long[this->itsDim];
-		  
-		  for (uint i = 0; i < this->itsDim; i++){
- 		    fpixel[i] = this->itsSourceSection.getStart(i)+1;
-		    lpixel[i] = this->itsSourceSection.getEnd(i)+1;
-		  }
-		  
-		  status = 0;
-		  
-  		  if (fits_write_subset(fptr, TFLOAT, fpixel, lpixel, this->itsArray, &status))
-                    fits_report_error(stderr, status);
-		  
-		  delete [] fpixel;
-		  delete [] lpixel;
-
-		} //end of if(saveData)
-		
-		if(saveData || createFile){
-		  ASKAPLOG_DEBUG_STR(logger, "Closing fits file");
-		  status = 0;
-		  if(fits_close_file(fptr, &status)) {
-		    ASKAPLOG_ERROR_STR(logger, "Error closing file:");
-                    fits_report_error(stderr, status);
-		  }
-		}
+                    ASKAPLOG_INFO_STR(logger, "Saving the FITS file to " << this->itsFileName);
 
 
-	      }
-	    }
+                    int status = 0;
+
+                    fitsfile *fptr;
+
+                    if (createFile) {
+                        ASKAPLOG_INFO_STR(logger, "Creating the FITS file");
+
+                        if (fits_create_file(&fptr, this->itsFileName.c_str(), &status)) {
+                            ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
+                            fits_report_error(stderr, status);
+                            ASKAPTHROW(AskapError, "Error opening FITS file.");
+                        }
+
+                        status = 0;
+                        long *dim = new long[this->itsDim];
+
+                        for (uint i = 0; i < this->itsDim; i++) dim[i] = this->itsAxes[i];
+
+                        if (fits_create_img(fptr, FLOAT_IMG, this->itsDim, dim, &status)) {
+                            ASKAPLOG_ERROR_STR(logger, "Error creating the FITS image:");
+                            fits_report_error(stderr, status);
+                        }
+
+                        delete [] dim;
+
+                        status = 0;
+
+                        std::string header = "EQUINOX";
+
+                        if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsEquinox), NULL, &status))
+                            fits_report_error(stderr, status);
+
+                        if (this->itsHaveBeam) {
+                            status = 0;
+
+                            header = "BMAJ";
+
+                            if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[0]), NULL, &status))
+                                fits_report_error(stderr, status);
+
+                            status = 0;
+
+                            header = "BMIN";
+
+                            if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[1]), NULL, &status))
+                                fits_report_error(stderr, status);
+
+                            status = 0;
+
+                            header = "BPA";
+
+                            if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsBeamInfo[2]), NULL, &status))
+                                fits_report_error(stderr, status);
+                        }
+
+                        status = 0;
+
+                        char *unit = (char *)this->itsBunit.getName().c_str();
+
+                        header = "BUNIT";
+
+                        if (fits_update_key(fptr, TSTRING, (char *)header.c_str(), unit,  NULL, &status))
+                            fits_report_error(stderr, status);
+
+                        if (this->itsSourceListType == "spectralline") {
+                            status = 0;
+
+                            header = "RESTFREQ";
+
+                            if (fits_update_key(fptr, TFLOAT, (char *)header.c_str(), &(this->itsRestFreq), NULL, &status))
+                                fits_report_error(stderr, status);
+                        }
+
+                        float val;
+
+                        for (uint d = 0; d < this->itsDim; d++) {
+                            status = 0;
+
+                            if (fits_update_key(fptr, TSTRING, numerateKeyword("CTYPE", d + 1), this->itsWCS->ctype[d],  NULL, &status))
+                                fits_report_error(stderr, status);
+
+                            status = 0;
+
+                            if (fits_update_key(fptr, TSTRING, numerateKeyword("CUNIT", d + 1), this->itsWCS->cunit[d],  NULL, &status))
+                                fits_report_error(stderr, status);
+
+                            status = 0;
+                            val = this->itsWCS->crval[d];
+
+                            if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRVAL", d + 1), &val, NULL, &status))
+                                fits_report_error(stderr, status);
+
+                            val = this->itsWCS->cdelt[d];
+                            status = 0;
+
+                            if (fits_update_key(fptr, TFLOAT, numerateKeyword("CDELT", d + 1), &val, NULL, &status))
+                                fits_report_error(stderr, status);
+
+                            val = this->itsWCS->crpix[d];
+                            status = 0;
+
+                            if (fits_update_key(fptr, TFLOAT, numerateKeyword("CRPIX", d + 1), &val, NULL, &status))
+                                fits_report_error(stderr, status);
+
+                            val = this->itsWCS->crota[d];
+                            status = 0;
+
+                            if (fits_update_key(fptr, TFLOAT, numerateKeyword("CROTA", d + 1), &val, NULL, &status))
+                                fits_report_error(stderr, status);
+                        }
+
+                    }
+
+                    if (saveData) {
+
+                        ASKAPLOG_INFO_STR(logger, "Saving the data to the FITS file");
+
+                        if (!createFile) {
+                            status = 0;
+                            std::string filename = this->itsFileName;
+
+                            if (filename[0] == '!') filename = filename.substr(1);
+
+                            ASKAPLOG_DEBUG_STR(logger, "Opening " << filename);
+
+                            if (fits_open_file(&fptr, filename.c_str(), READWRITE, &status)) {
+                                ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
+                                fits_report_error(stderr, status);
+                                ASKAPTHROW(AskapError, "Error opening FITS file.");
+                            }
+                        }
+
+                        int ndim = 4;
+                        long axes[ndim];
+                        fits_get_img_size(fptr, ndim, axes, &status);
+                        ASKAPLOG_DEBUG_STR(logger, "Image dimensions are " << axes[0] << "x" << axes[1] << "x" << axes[2] << "x" << axes[3]);
+
+                        ASKAPLOG_INFO_STR(logger, "Opened the FITS file, preparing to write data");
+
+                        long *fpixel = new long[this->itsDim];
+                        long *lpixel = new long[this->itsDim];
+
+                        for (uint i = 0; i < this->itsDim; i++) {
+                            fpixel[i] = this->itsSourceSection.getStart(i) + 1;
+                            lpixel[i] = this->itsSourceSection.getEnd(i) + 1;
+                        }
+
+                        status = 0;
+
+                        if (fits_write_subset(fptr, TFLOAT, fpixel, lpixel, this->itsArray, &status))
+                            fits_report_error(stderr, status);
+
+                        delete [] fpixel;
+                        delete [] lpixel;
+
+                    } //end of if(saveData)
+
+                    if (saveData || createFile) {
+                        ASKAPLOG_DEBUG_STR(logger, "Closing fits file");
+                        status = 0;
+
+                        if (fits_close_file(fptr, &status)) {
+                            ASKAPLOG_ERROR_STR(logger, "Error closing file:");
+                            fits_report_error(stderr, status);
+                        }
+                    }
+
+
+                }
+            }
 
 //--------------------------------------------------------
 
-	  std::string casafy(std::string fitsName)
-	  {
-	    /// @details Takes the name of a fits file and produces
-	    /// the equivalent CASA image name. This simply involves
-	    /// removing the ".fits" extension if it exists, or, if it
-	    /// doesn't, adding a ".casa" extension.
-	    /// @param fitsName The name of the fits file
-	    /// @return The name of the casa image.
+            std::string casafy(std::string fitsName)
+            {
+                /// @details Takes the name of a fits file and produces
+                /// the equivalent CASA image name. This simply involves
+                /// removing the ".fits" extension if it exists, or, if it
+                /// doesn't, adding a ".casa" extension.
+                /// @param fitsName The name of the fits file
+                /// @return The name of the casa image.
 
-	    std::string casaname;
-	    size_t pos = fitsName.rfind(".fits");
-	    if(pos == std::string::npos) { // imageName doesn't have a .fits extension
-	      casaname = fitsName + ".casa";
-	    }
-	    else{ // just remove the .fits extension
-	      casaname = fitsName.substr(0,pos);
-	    }
-	    if(casaname[0]=='!') casaname = casaname.substr(1);
-	    return casaname;
-	  }
+                std::string casaname;
+                size_t pos = fitsName.rfind(".fits");
+
+                if (pos == std::string::npos) { // imageName doesn't have a .fits extension
+                    casaname = fitsName + ".casa";
+                } else { // just remove the .fits extension
+                    casaname = fitsName.substr(0, pos);
+                }
+
+                if (casaname[0] == '!') casaname = casaname.substr(1);
+
+                return casaname;
+            }
 
 
 //--------------------------------------------------------
 
             void FITSfile::writeCASAimage(bool createFile, bool saveData)
             {
-	      /// @details Writes the data to a casa image. The WCS is
-	      /// converted to a casa-format coordinate system using
-	      /// the analysis package function, the brightness units
-	      /// and restoring beam are saved to the image, and the
-	      /// data array is written using a casa::Array class. No
-	      /// additional memory allocation is done in saving the
-	      /// data array (the casa::SHARE flag is used in the
-	      /// array constructor). The name of the casa image is
-	      /// determined by the casafy() function.
+                /// @details Writes the data to a casa image. The WCS is
+                /// converted to a casa-format coordinate system using
+                /// the analysis package function, the brightness units
+                /// and restoring beam are saved to the image, and the
+                /// data array is written using a casa::Array class. No
+                /// additional memory allocation is done in saving the
+                /// data array (the casa::SHARE flag is used in the
+                /// array constructor). The name of the casa image is
+                /// determined by the casafy() function.
 
-	      if(this->itsCasaOutput){
+                if (this->itsCasaOutput) {
 
-		std::string newName = casafy(this->itsFileName);
-		casa::IPosition shape(this->itsDim);
-		for(uint i=0;i<this->itsDim;i++) shape(i) = this->itsAxes[i];
+                    std::string newName = casafy(this->itsFileName);
+                    casa::IPosition shape(this->itsDim);
 
-		if(createFile){
-		  casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS);
-		  
-		  ASKAPLOG_INFO_STR(logger, "Creating a new CASA image "<< newName <<" with the shape "<<shape);
-		  casa::PagedImage<float> img(casa::TiledShape(shape), csys, newName);
-		  
-		  img.setUnits(this->itsBunit); 
-		  
-		  if(this->itsHaveBeam){
-		    casa::ImageInfo ii = img.imageInfo();
-		    ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0],"deg"), 
-					casa::Quantity(this->itsBeamInfo[1],"deg"), 
-					casa::Quantity(this->itsBeamInfo[2],"deg"));
-		    img.setImageInfo(ii);
-		  }
-		}
-		
-		if(saveData){
-		  
-		  casa::PagedImage<float> img(newName);
+                    for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
 
-		  // make the casa::Array, sharing the memory storage so there is minimal additional impact
-		  Array<Float> arr(shape, this->itsArray, casa::SHARE);
-		  
-		  casa::IPosition location(this->itsDim);
-		  for(uint i=0;i<this->itsDim;i++) location(i) = this->itsSourceSection.getStart(i);
-		  ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location );
-		  ASKAPLOG_INFO_STR(logger, "Writing an array with the shape "<<arr.shape()<<" into a CASA image "<< newName << " at location " << location);
-		  img.putSlice(arr, location);
-		}
+                    if (createFile) {
+                        casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS);
 
-	      }
+                        ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape);
+                        casa::PagedImage<float> img(casa::TiledShape(shape), csys, newName);
 
-	    }
+                        img.setUnits(this->itsBunit);
+
+                        if (this->itsHaveBeam) {
+                            casa::ImageInfo ii = img.imageInfo();
+                            ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
+                                                casa::Quantity(this->itsBeamInfo[1], "deg"),
+                                                casa::Quantity(this->itsBeamInfo[2], "deg"));
+                            img.setImageInfo(ii);
+                        }
+                    }
+
+                    if (saveData) {
+
+                        casa::PagedImage<float> img(newName);
+
+                        // make the casa::Array, sharing the memory storage so there is minimal additional impact
+                        Array<Float> arr(shape, this->itsArray, casa::SHARE);
+
+                        casa::IPosition location(this->itsDim);
+
+                        for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
+
+                        ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
+                        ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
+                        img.putSlice(arr, location);
+                    }
+
+                }
+
+            }
 
         }
 

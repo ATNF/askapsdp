@@ -116,7 +116,7 @@ namespace askap {
                 }
 
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
-                this->itsFITSfile = new FITSfile(newparset, this->itsComms.isWorker()||!this->itsFlagStagedWriting);
+                this->itsFITSfile = new FITSfile(newparset, this->itsComms.isWorker() || !this->itsFlagStagedWriting);
                 ASKAPLOG_DEBUG_STR(logger, "Defined");
 
                 ASKAPLOG_DEBUG_STR(logger, "Finished defining FITSparallel");
@@ -213,17 +213,16 @@ namespace askap {
 
             void FITSparallel::addNoise(bool beforeConvolve)
             {
-	      if(beforeConvolve){ // either adding noise before the convolution, or there is no convolution
-                if (itsComms.isWorker())
-                    itsFITSfile->addNoise();
-	      }
-	      else{
-		// There is convolution and we're adding the noise after it.
-		// In this case, we need to work out where the data is and only do it for the correct node
-		if ( (this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
-		     (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
-		  itsFITSfile->addNoise();
-	      }
+                if (beforeConvolve) { // either adding noise before the convolution, or there is no convolution
+                    if (itsComms.isWorker())
+                        itsFITSfile->addNoise();
+                } else {
+                    // There is convolution and we're adding the noise after it.
+                    // In this case, we need to work out where the data is and only do it for the correct node
+                    if ((this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
+                            (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
+                        itsFITSfile->addNoise();
+                }
             }
 
             void FITSparallel::processSources()
@@ -236,9 +235,9 @@ namespace askap {
 
             void FITSparallel::convolveWithBeam()
             {
-	      if ( (this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
-		   (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
-                itsFITSfile->convolveWithBeam();
+                if ((this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
+                        (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
+                    itsFITSfile->convolveWithBeam();
             }
 
             void FITSparallel::output()

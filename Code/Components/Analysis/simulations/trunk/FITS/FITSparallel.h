@@ -86,11 +86,11 @@ namespace askap {
                     /// @brief Save the array to a CASA image
                     void writeCASAimage();
 
-		    /// @brief Stage the writing to disk so that each worker writes in order
-		    void stagedWriting();
+                    /// @brief Stage the writing to disk so that each worker writes in order
+                    void stagedWriting();
 
-		    /// @brief Output the data to an image or two
-		    void output();
+                    /// @brief Output the data to an image or two
+                    void output();
 
                 protected:
 
@@ -106,8 +106,8 @@ namespace askap {
                     /// @brief Class for communications
                     askap::mwbase::AskapParallel& itsComms;
 
-		    /// @brief Whether to write the images in a staged manner
-		    bool itsFlagStagedWriting;
+                    /// @brief Whether to write the images in a staged manner
+                    bool itsFlagStagedWriting;
             };
 
         }
