@@ -77,6 +77,9 @@ namespace askap {
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
                 double flux(double nu1, double nu2);
 
+		/// @brief Return the minimum & maximum frequencies affected by this source
+		std::pair<double,double> freqLimits();
+
                 /// @brief Output the parameters for the source
                 friend std::ostream& operator<< (std::ostream& theStream, HIprofileS3SAX &prof);
 

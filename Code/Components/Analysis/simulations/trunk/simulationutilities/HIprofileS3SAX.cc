@@ -1,6 +1,6 @@
 /// @file
 ///
-/// XXX Notes on program XXX
+/// Class to manage HI profiles for the SKADS S3-SAX simulation.
 ///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,10 +24,11 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author XXX XXX <XXX.XXX@csiro.au>
+/// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
 #include <askap_simulations.h>
 
+#include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SAX.h>
 #include <simulationutilities/HIprofileS3SAX.h>
 #include <simulationutilities/SimulationUtilities.h>
@@ -223,6 +224,28 @@ namespace askap {
             return flux * this->itsIntFlux;
 
         }
+
+      
+      std::pair<double,double> HIprofileS3SAX::freqLimits()
+      {
+	/// @details This function returns the minimum & maximum 
+	/// frequencies (in that order) that will be affected by a
+	/// given source. This takes the limit of the exponential
+	/// tails as the location where the flux drops below the
+	/// minimum float value.
+	/// @return A std::pair<double,double>, where the first value
+	/// is the maximum velocity, and the second is the minimum
+	/// velocity.
+
+	double maxAbsVel = this->itsKpar[0] + sqrt( this->itsKpar[1] * log(this->itsKpar[2]*MAXFLOAT) );
+	std::pair<double,double> freqLimits;
+	freqLimits.first = HIVelToFreq( redshiftToVel(this->itsRedshift) + maxAbsVel );
+	freqLimits.second = HIVelToFreq( redshiftToVel(this->itsRedshift) - maxAbsVel );
+	return freqLimits;
+
+      }
+
+
 
     }
 

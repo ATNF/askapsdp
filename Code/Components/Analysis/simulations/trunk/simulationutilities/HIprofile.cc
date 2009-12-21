@@ -97,6 +97,18 @@ namespace askap {
             return C_kms * v;
         }
 
+        double velToRedshift(double vel)
+        {
+            /// @details Converts a recessional velocity to a redshift
+            /// using the relativistic equation.
+            /// @param z The redshift
+            /// @return The corresponding velocity in km/s
+
+	    double v = vel / C_kms;
+	    double z = sqrt( (v+1.)/(v-1.) ) - 1.;
+            return z;
+        }
+
         double redshiftToHIFreq(double z)
         {
             /// @details Converts a redshift to the observed frequency of an HI line.
@@ -115,6 +127,17 @@ namespace askap {
             double z = nu0_HI / nu - 1.;
             return redshiftToVel(z);
         }
+
+        double HIVelToFreq(double vel)
+	{
+            /// @details Converts a velocity of HI to a frequency.
+            /// @param vel The velocity in km/s
+            /// @return The corresponding frequency in Hz
+	  
+	    double z = velToRedshift(vel);
+            return redshiftToHIFreq(z);
+        }
+
 
         //==================================
 

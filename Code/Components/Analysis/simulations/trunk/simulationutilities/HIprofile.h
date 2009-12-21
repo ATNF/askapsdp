@@ -53,10 +53,14 @@ namespace askap {
         double redshiftToDist(double z, double H0 = HUBBLE_WMAP, double omegaM = OMEGAM_WMAP, double omegaL = OMEGAL_WMAP);
         /// @brief Convert a redshift to a line-of-sight velocity
         double redshiftToVel(double z);
+	/// @brief Convert a line-of-sight velocity to a redshift
+        double velToRedshift(double vel);
         /// @brief Convert a redshift to an observed HI frequency
         double redshiftToHIFreq(double z);
         /// @brief Convert an observed HI frequency to a recessional velocity
         double freqToHIVel(double nu);
+        /// @brief Convert a recessional velocity to an observed HI frequency
+        double HIVelToFreq(double vel);
 
 
         /// @brief A base class for spectral-line profiles
