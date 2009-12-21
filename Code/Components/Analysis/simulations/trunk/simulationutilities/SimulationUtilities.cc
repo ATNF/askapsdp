@@ -42,6 +42,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <utility>
 #include <string>
@@ -77,9 +78,12 @@ namespace askap {
             return z*sigma + mean;
         }
 
-      bool doAddGaussian( duchamp::Section subsection, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss)
+      bool doAddGaussian(std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss)
       {
-
+	/// @details Tests whether a given Gaussian component would be added to an array of dimensions given by the axes parameter.
+	/// @param axes The shape of the flux array
+	/// @param gauss The 2D Gaussian component to be added
+	/// @return True if the component would be added to any pixels in the array. False if not.
             float majorSigma = gauss.majorAxis() / (4.*M_LN2);
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
@@ -90,16 +94,20 @@ namespace askap {
 
       }
 
-      bool doAddPointSource(duchamp::Section subsection, std::vector<unsigned int> axes, double *pix)
+      bool doAddPointSource(std::vector<unsigned int> axes, double *pix)
         {
+	/// @details Tests whether a given point-source would be added to an array of dimensions given by the axes parameter.
+	/// @param axes The shape of the flux array
+	/// @param pix The location of the point source: an array of at least two values, with pix[0] being the x-coordinate and pix[1] the y-coordinate.
+	/// @return True if the component would be added to a pixel in the array. False if not.
 
-	    unsigned int xpix = int(pix[0] - subsection.getStart(0));
-	    unsigned int ypix = int(pix[1] - subsection.getStart(1));
+	    unsigned int xpix = int(pix[0] + 0.5);
+	    unsigned int ypix = int(pix[1] + 0.5);
 
 	    return (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]);
 	}
 
-        void addGaussian(float *array, duchamp::Section subsection, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
+        void addGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
             /// array.  Only look at pixels within a box defined by the
@@ -114,7 +122,6 @@ namespace askap {
             /// that pixel.
             ///
             /// @param array The array of pixel flux values to be added to.
-            /// @param subsection The subsection of the image being used
             /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
             /// @param gauss The 2-dimensional Gaussian component.
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
@@ -128,11 +135,13 @@ namespace askap {
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1]-1));
 
- //            ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian... xmin=" << xmin << ", xmax=" << xmax << ", ymin=" << ymin << ", ymax=" << ymax << " ... using subsection " << subsection.getSection() << " with [start:end]=[" << subsection.getStart(0) << ":" << subsection.getEnd(0) << "," << subsection.getStart(1) << ":" << subsection.getEnd(1) << "], axes=["<<axes[0]<<","<<axes[1]<<"] zeropoint=" << zeroPoint << " and gaussian at [" << gauss.xCenter() << "," << gauss.yCenter() << "]");
-
             if ((xmax >= xmin) && (ymax >= ymin)) {  // if there are object pixels falling within the image boundaries
 
-                ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax << "] (zeropoint = " << zeroPointMax << ") (subsection=" << subsection.getSection() << " --> " << subsection.getStart(0) << "--" << subsection.getEnd(0) << "|" << subsection.getStart(1) << "--" << subsection.getEnd(1) << ")");
+	      std::stringstream ss;
+	      if(axes.size()>0) ss << axes[0];
+	      for(size_t i=1;i<axes.size();i++) ss<< "x"<<axes[i];
+	      ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax 
+				 << "] (zeropoints = " << zeroPointMax << ","<<zeroPointMin<<") (dimensions of array=" << ss.str() << ")");
 
                 // Test to see whether this should be treated as a point source
                 float minSigma = (std::min(gauss.majorAxis(), gauss.minorAxis()) / (2.*sqrt(2.*M_LN2)));
@@ -140,21 +149,17 @@ namespace askap {
 //        float delta = pow(10.,floor(log10(minSigma))-1.);
                 float delta = std::min(1. / 32., pow(10., floor(log10(minSigma / 5.) / log10(2.)) * log10(2.)));
 
-                if (delta < 1.e-4) { // if it is really small, just make it a point source
-//                     double *pix = new double[2];
-//                     pix[0] = gauss.xCenter();
-//                     pix[1] = gauss.yCenter();
-//                     ASKAPLOG_DEBUG_STR(logger, "Making this Gaussian a point source since delta = " << delta << " (1./" << 1. / delta << ")  (minSigma=" << minSigma << ")");
-//                     addPointSource(array, subsection, axes, pix, fluxGen);
-//                     delete [] pix;
-		  ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1./delta << ")  (minSigma=" << minSigma << ")  we use the 1D Gaussian function");
-		  add1DGaussian(array,subsection,axes,gauss,fluxGen);
+                if (delta < 1.e-4) { // if it is really thin, use the 1D approximation
+		  ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1./delta 
+				     << ")  (minSigma=" << minSigma << ")  we use the 1D Gaussian function");
+		  add1DGaussian(array,axes,gauss,fluxGen);
                 } else {
                     // In this case, we need to add it as a Gaussian.
 
                     // Loop over all affected pixels and find the overall normalisation for each pixel
 
-                    ASKAPLOG_DEBUG_STR(logger, "Integrating over " << (xmax - xmin + 1)*(ymax - ymin + 1) << " pixels with delta=" << delta << " (1./" << 1. / delta << ")  (minSigma=" << minSigma << ")");
+                    ASKAPLOG_DEBUG_STR(logger, "Integrating over " << (xmax - xmin + 1)*(ymax - ymin + 1) << " pixels with delta=" 
+				       << delta << " (1./" << 1. / delta << ")  (minSigma=" << minSigma << ")");
                     int nstep = int(1. / delta);
                     float inputGaussFlux = gauss.flux();
                     gauss.setFlux(1); // make it a unit Gaussian. We then scale by the correct flux for each frequency channel.
@@ -169,6 +174,12 @@ namespace askap {
 
                             pixelVal = 0.;
 
+			    // Need to check whether a given pixel is affected by the Gaussian. To
+			    // do this, we look at the "maximal" ellipse - given by where the
+			    // Gaussian function drops to below the smallest float. If the closest
+			    // corner of the pixel to the centre of the Gaussian lies within this
+			    // ellipse, or if the Gaussian passes through the pixel, we do the
+			    // integration.
 			    dx[0]=x-0.5-gauss.xCenter();
 			    dx[1]=x+0.5-gauss.xCenter();
 			    dy[0]=y-0.5-gauss.yCenter();
@@ -183,11 +194,7 @@ namespace askap {
 			    if(separation <= 1. || 
 			       ((du[0]*du[1]<0 || du[0]*du[2]<0 || du[0]*du[3]<0) && mindv<zeroPointMax) ||
 			       ((dv[0]*dv[1]<0 || dv[0]*dv[2]<0 || dv[0]*dv[3]<0) && mindu<zeroPointMin) ) { //only do the integrations if it lies within the maximal ellipse
-// 			      ASKAPLOG_DEBUG_STR(logger, "Adding to pixel x="<<x<<", y="<<y << " since separation = " << separation
-// 						 << " and du=("<<du[0]<<","<<du[1]<<","<<du[2]<<","<<du[3]<<") "
-// 						 << " and dv=("<<dv[0]<<","<<dv[1]<<","<<dv[2]<<","<<dv[3]<<") "
-// 						 << " and zpmin = " << zeroPointMin << " cf mindu = " << mindu
-// 						 << " and zpmax = " << zeroPointMax << " cf mindv = " << mindv);
+
 			      xpos = x - 0.5 - delta;
 
 			      for (int dx = 0; dx <= nstep; dx++) {
@@ -197,11 +204,10 @@ namespace askap {
                                 for (int dy = 0; dy <= nstep; dy++) {
 				  ypos += delta;
 
-				  // This is integration using Simpson's
-				  // rule. In each direction, the end points get
-				  // a factor of 1, then odd steps get a factor
-				  // of 4, and even steps 2. The whole sum then
-				  // gets scaled by delta/3. for each dimension.
+				  // This is integration using Simpson's rule. In each direction, the
+				  // end points get a factor of 1, then odd steps get a factor of 4, and
+				  // even steps 2. The whole sum then gets scaled by delta/3. for each
+				  // dimension.
 
 				  if (dx == 0 || dx == nstep) xScaleFactor = 1;
 				  else xScaleFactor = (dx % 2 == 1) ? 4. : 2.;
@@ -216,14 +222,12 @@ namespace askap {
 
 			      pixelVal *= (delta * delta / 9.);
 			    }
-// 			    else ASKAPLOG_DEBUG_STR(logger, "Separation = " << separation);
 
                             // For this pixel, loop over all channels and assign the correctly-scaled pixel value.
                             for (int z = 0; z < fluxGen.nChan(); z++) {
                                 int pix = x + y * axes[0] + z * axes[0] * axes[1];
                                 float f = fluxGen.getFlux(z);
                                 array[pix] += pixelVal * f;
-                                //              if(f>0.) ASKAPLOG_DEBUG_STR(logger, "Adding a flux of " << f << " to channel " << z);
                             }
 
                         }
@@ -236,8 +240,24 @@ namespace askap {
             }
         }
 
-      void add1DGaussian(float *array, duchamp::Section subsection, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
+      void add1DGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
       {
+
+	/// @details This adds a Gaussian to the array by
+	/// approximating it as a 1-dimensional Gaussian. This starts
+	/// at the end of the Gaussian with lowest X pixel value, and
+	/// moves along the length of the line. When a pixel boundary
+	/// is crossed, the flux of the 1D Gaussian between that point
+	/// and the previous boundary (or the start) is added to the
+	/// pixel. The addition is only done if the pixel lies within
+	/// the boundaries of the array (given by the axes parameter).
+	/// @param array The array of fluxes
+	/// @param axes The dimensions of each axis of the flux array
+	/// @param gauss The specification of the Gaussian to be
+	/// added. This is defined as a 2D Gaussian, as the position
+	/// angle is required, but the minor axis is not used.
+	/// @param fluxGen The FluxGenerator object that defines the
+	/// fluxes at each channel.
 
 	    enum DIR {VERTICAL,HORIZONTAL};
 	    DIR direction=VERTICAL;
@@ -256,34 +276,33 @@ namespace askap {
 	    float increment=0.;
 	    float x = gauss.xCenter() - zeroPointMax*sinpa;;
 	    float y = gauss.yCenter() + zeroPointMax*cospa;;
-	    ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax << ", (xstart,ystart)=("<< x << ","<<y<<") and axes=["<<axes[0]<<","<<axes[1]<<"]");
+	    ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax 
+			       << ", (xstart,ystart)=("<< x << ","<<y<<") and axes=["<<axes[0]<<","<<axes[1]<<"]");
 	    unsigned int xref = int(x+0.5);
 	    unsigned int yref = int(y+0.5);
 	    unsigned int spatialPixel = xref + axes[0]*yref;
 
 	    int pix=0;
 	    float pixelVal=0.;
+	    bool addPixel=true;
 	    while(length < 2.*zeroPointMax){
-// 	      ASKAPLOG_DEBUG_STR(logger, "At (x,y)=("<<x<<','<<y<<") and (xref,yref)=("<<xref<<','<<yref<<")");
+
+	      addPixel = (xref>=0 && xref<axes[0]) && (yref>=0 && yref<axes[1]); // is the current pixel in the bounds of the flux array?
 
 	      if(!specialCase) {
-// 		ASKAPLOG_DEBUG_STR(logger, "direction indicators = "<<fabs((yref+0.5*sign-y)/cospa) << " and " << fabs((xref+0.5-x)/sinpa));
 		direction = ( fabs((yref+0.5*sign-y)/cospa) < fabs((xref+0.5-x)/sinpa) ) ? VERTICAL : HORIZONTAL;
 	      }
 
 	      if(direction == VERTICAL) { // Moving vertically
 		increment = std::min( 2.*zeroPointMax - length, fabs((yref+sign*0.5-y))/cospa );
-// 		if(sign>0) ASKAPLOG_DEBUG_STR(logger, "UP: increment = " << increment);
-// 		else ASKAPLOG_DEBUG_STR(logger, "DOWN: increment = " << increment);
 		yref += sign;
 	      }
 	      else if(direction == HORIZONTAL ) { // Moving horizontally
 		increment = std::min( 2.*zeroPointMax - length, (xref+0.5-x)/sinpa );
-// 		ASKAPLOG_DEBUG_STR(logger, "ACROSS: increment = " << increment);
 		xref++;
 	      }
 
-	      if( (xref>=0 && xref<axes[0]) && (yref>=0 && yref<axes[1])){ // only add points if we're in the array dimensions
+	      if( addPixel ){ // only add points if we're in the array boundaries
 		pixelVal = 0.5 * (erf((length+increment-zeroPointMax)/(M_SQRT2*majorSigma))-erf((length-zeroPointMax)/(M_SQRT2*majorSigma)));
 		for (int z = 0; z < fluxGen.nChan(); z++) {
 		  pix = spatialPixel + z * axes[0] * axes[1];
@@ -299,29 +318,24 @@ namespace askap {
 	    }
       }
 
-        void addPointSource(float *array, duchamp::Section subsection, std::vector<unsigned int> axes, double *pix, FluxGenerator &fluxGen)
+        void addPointSource(float *array, std::vector<unsigned int> axes, double *pix, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given point source to the
             /// appropriate pixel in the given pixel array Checks are
             /// made to make sure that only pixels within the boundary
             /// of the array (defined by the axes vector) are added.
             /// @param array The array of pixel flux values to be added to.
-            /// @param subsection The subsection of the image being used
             /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
             /// @param pix The coordinates of the point source
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
-// 	    unsigned int xpix = int(pix[0] - subsection.getStart(0));
-// 	    unsigned int ypix = int(pix[1] - subsection.getStart(1));
 	    unsigned int xpix = int(pix[0] + 0.5);
 	    unsigned int ypix = int(pix[1] + 0.5);
 
 	    if (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]) {
 
 	      ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x="<<pix[0]<<" & y="<<pix[1]
-				 <<"  ...  xmin=" << subsection.getStart(0) << ", xmax=" << subsection.getEnd(0)
-				 << ", ymin=" << subsection.getStart(1) << ", ymax=" << subsection.getEnd(1) 
-				 <<  ",   Subsection="<<subsection.getSection() << "   axes = ["<<axes[0] << ","<<axes[1]<<"]");
+				 << "  to  axes = ["<<axes[0] << ","<<axes[1]<<"]");
 
 	      for (int z = 0 ; z < fluxGen.nChan(); z++) {
 

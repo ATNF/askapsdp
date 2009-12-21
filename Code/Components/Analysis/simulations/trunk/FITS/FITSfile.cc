@@ -512,7 +512,6 @@ namespace askap {
                             !srclist.eof()) {
 
                         if (line[0] != '#') {  // ignore commented lines
-// 			  ASKAPLOG_DEBUG_STR(logger, line);
                             Continuum cont;
                             HIprofileS3SEX profSEX;
                             HIprofileS3SAX profSAX;
@@ -611,17 +610,16 @@ namespace askap {
 
                                 if (src.fluxZero() == 0.) src.setFluxZero(1.e-3);
 
-//                                 ASKAPLOG_DEBUG_STR(logger, "Defining a Gaussian of flux " << src.fluxZero() << " at [" << pix[0] << "," << pix[1] << "]");
                                 casa::Gaussian2D<casa::Double> gauss(src.fluxZero(), pix[0], pix[1], src.maj(), src.min() / src.maj(),
                                                                      casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
                                 gauss.setFlux(src.fluxZero());
 
-				if(!this->itsDryRun) addGaussian(this->itsArray, this->itsSourceSection, this->itsAxes, gauss, fluxGen);
-				else if(doAddGaussian(this->itsSourceSection, this->itsAxes, gauss))
+				if(!this->itsDryRun) addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
+				else if(doAddGaussian(this->itsAxes, gauss))
 				  countGauss++;
 			      } else {
-				if(!this->itsDryRun) addPointSource(this->itsArray, this->itsSourceSection, this->itsAxes, pix, fluxGen);
-				else if(doAddPointSource(this->itsSourceSection, this->itsAxes, pix)) 
+				if(!this->itsDryRun) addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+				else if(doAddPointSource(this->itsAxes, pix)) 
 				  countPoint++;
 			      }
 			    }
@@ -815,7 +813,6 @@ namespace askap {
 		    status=0;
 		    std::string filename = this->itsFileName;
 		    if(filename[0]=='!') filename = filename.substr(1);
-//  		    filename += this->itsSourceSection.getSection();
 		    ASKAPLOG_DEBUG_STR(logger, "Opening " << filename);
 		    if (fits_open_file(&fptr, filename.c_str(), READWRITE, &status)) {
 		      ASKAPLOG_ERROR_STR(logger, "Error opening FITS file:");
@@ -836,13 +833,11 @@ namespace askap {
 		  
 		  for (uint i = 0; i < this->itsDim; i++){
  		    fpixel[i] = this->itsSourceSection.getStart(i)+1;
-// 		    fpixel[i] = 1;
 		    lpixel[i] = this->itsSourceSection.getEnd(i)+1;
 		  }
 		  
 		  status = 0;
 		  
-// 		  if (fits_write_pix(fptr, TFLOAT, fpixel, this->itsNumPix, this->itsArray, &status))
   		  if (fits_write_subset(fptr, TFLOAT, fpixel, lpixel, this->itsArray, &status))
                     fits_report_error(stderr, status);
 		  
@@ -927,10 +922,7 @@ namespace askap {
 		
 		if(saveData){
 		  
-// 		  if(!createFile){
-		    // if we haven't just created the file, open it
-		    casa::PagedImage<float> img(newName);
-// 		  }
+		  casa::PagedImage<float> img(newName);
 
 		  // make the casa::Array, sharing the memory storage so there is minimal additional impact
 		  Array<Float> arr(shape, this->itsArray, casa::SHARE);
