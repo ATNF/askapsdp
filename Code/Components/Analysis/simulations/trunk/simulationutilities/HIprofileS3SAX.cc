@@ -126,8 +126,13 @@ namespace askap {
             ss >> this->itsRA >> this->itsDec >> this->itsIntFlux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI
             >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
             this->itsComponent.setPeak(this->itsFluxPeak * this->itsIntFlux);
-            this->itsComponent.setMajor(std::max(maj,min));
-            this->itsComponent.setMinor(std::max(maj,min));
+	    if(maj>=min){
+	      this->itsComponent.setMajor(maj);
+	      this->itsComponent.setMinor(min);
+	    } else{
+	      this->itsComponent.setMajor(min);
+	      this->itsComponent.setMinor(maj);
+	    }
             this->itsComponent.setPA(pa);
             this->setup();
         }

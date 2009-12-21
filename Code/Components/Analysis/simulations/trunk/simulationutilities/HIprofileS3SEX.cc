@@ -72,8 +72,13 @@ namespace askap {
             ss >> this->itsRA >> this->itsDec >> flux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI >> type;
             this->itsSourceType = GALTYPE(type);
             this->itsComponent.setPeak(flux);
-            this->itsComponent.setMajor(std::max(maj,min));
-            this->itsComponent.setMinor(std::max(maj,min));
+	    if(maj>=min){
+	      this->itsComponent.setMajor(maj);
+	      this->itsComponent.setMinor(min);
+	    } else{
+	      this->itsComponent.setMajor(min);
+	      this->itsComponent.setMinor(maj);
+	    }
             this->itsComponent.setPA(pa);
 
             this->setup(this->itsSourceType, this->itsRedshift, this->itsMHI, this->maj(), this->min());

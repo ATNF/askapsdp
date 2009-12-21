@@ -82,8 +82,13 @@ namespace askap {
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
             this->itsComponent.setPeak(flux);
-            this->itsComponent.setMajor(std::max(maj,min));
-            this->itsComponent.setMinor(std::max(maj,min));
+	    if(maj>=min){
+	      this->itsComponent.setMajor(maj);
+	      this->itsComponent.setMinor(min);
+	    } else{
+	      this->itsComponent.setMajor(min);
+	      this->itsComponent.setMinor(maj);
+	    }
             this->itsComponent.setPA(pa);
         }
 
