@@ -85,7 +85,14 @@ namespace askap
         {
            
         }
-
+        
+        template<int N> void checkUnknowns(const char* correct[N]) {
+           const std::vector<std::string> params = itsNE->unknowns();
+           CPPUNIT_ASSERT(params.size() == N);
+           for (int i=0;i<N;++i) {
+                CPPUNIT_ASSERT(std::find(params.begin(),params.end(),correct[i]) != params.end());                
+           }
+        }
         
         void testAddDesignMatrixScalar()
         {
@@ -97,6 +104,8 @@ namespace askap
           CPPUNIT_ASSERT(dm.nData() == nData);
           itsNE->add(dm);
           checkScalarResults(nData);
+          const char* expected[2] = {"Value0","Value1"};
+          checkUnknowns<2>(expected);
         }
         
         void checkScalarResults(casa::uInt nData) 
@@ -162,6 +171,9 @@ namespace askap
           
           // check that A^tA and A^tB were calculated correctly
           checkNonScalarResults(nData);
+          // 
+          const char* expected[3] = {"ScalarValue","Value0","Value1"};
+          checkUnknowns<3>(expected);          
         }
         
         void checkNonScalarResults(casa::uInt nData) 
@@ -219,6 +231,7 @@ namespace askap
           CPPUNIT_ASSERT(norm(itsNE->dataVector("Value1")+populateVector(3,m6)*
                               double(nData))<1e-7);               
         }
+        
         void checkIndependentResults()
         {
           // check independence                     
@@ -231,6 +244,7 @@ namespace askap
           CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Value0", "Independent"))<1e-7);
           CPPUNIT_ASSERT(norm1(itsNE->normalMatrix("Value1", "Independent"))<1e-7);
         }
+        
         void testAddIndependentParameter()
         {
           testAddDesignMatrixNonScalar();
@@ -246,6 +260,9 @@ namespace askap
           checkIndependentResults();
           // check that other matrix elements are intact (nData = 10)
           checkNonScalarResults(10);  
+          //
+          const char* expected[4] = {"Independent","ScalarValue","Value0","Value1"};
+          checkUnknowns<4>(expected);          
         }
         
         void testMerge()
@@ -268,6 +285,9 @@ namespace askap
           // point has been added twice due to merging and all matrix elements
           // are expected to be scaled appropriately.
           checkNonScalarResults(20);  
+          //
+          const char* expected[4] = {"Independent","ScalarValue","Value0","Value1"};
+          checkUnknowns<4>(expected);          
         }
         
         void testConstructorFromDesignMatrix()
@@ -289,6 +309,9 @@ namespace askap
           CPPUNIT_ASSERT(itsNE);
           checkScalarResults(20); // the same, but here we're checking constructor
                                   // only
+          //
+          const char* expected[2] = {"Value0","Value1"};
+          checkUnknowns<2>(expected);          
         }
         
         void testNonConformanceError()
@@ -313,6 +336,9 @@ namespace askap
           bis>>*itsNE;
           
           checkNonScalarResults(10);
+          //
+          const char* expected[3] = {"ScalarValue","Value0","Value1"};
+          checkUnknowns<3>(expected);          
         }
     };
 

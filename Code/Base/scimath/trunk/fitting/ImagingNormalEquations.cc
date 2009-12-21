@@ -114,7 +114,7 @@ namespace askap
       ASKAPDEBUGASSERT(itsParams && other.itsParams);
       itsParams->merge(*other.itsParams);
       const vector<string> names=itsParams->freeNames();
-      vector<string>::const_iterator iterRow;
+      //vector<string>::const_iterator iterRow;
       vector<string>::const_iterator iterCol;
 
       for (iterCol=names.begin();iterCol!=names.end();++iterCol)
@@ -135,6 +135,10 @@ namespace askap
         itsShape[*iterCol].resize(0);
         ASKAPDEBUGASSERT(other.itsShape.find(*iterCol) != other.itsShape.end());
         itsShape[*iterCol]=other.itsShape.find(*iterCol)->second;
+        
+        itsReference[*iterCol].resize(0);
+        ASKAPDEBUGASSERT(other.itsReference.find(*iterCol) != other.itsReference.end());
+        itsReference[*iterCol] = other.itsReference.find(*iterCol)->second;
         
         ASKAPDEBUGASSERT(other.itsNormalMatrixSlice.find(*iterCol) != other.itsNormalMatrixSlice.end());
         if(itsNormalMatrixSlice[*iterCol].shape()!=other.itsNormalMatrixSlice.find(*iterCol)->second.shape())
