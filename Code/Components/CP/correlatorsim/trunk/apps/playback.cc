@@ -33,13 +33,17 @@
 #include <stdexcept>
 
 // ASKAPsoft includes
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-#include <askap/Log4cxxLogSink.h>
-#include <Common/ParameterSet.h>
-#include <CommandLineParser.h>
-#include <casa/Logging/LogIO.h>
-#include <casa/Logging/LogSinkInterface.h>
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "askap/Log4cxxLogSink.h"
+#include "Common/ParameterSet.h"
+#include "CommandLineParser.h"
+#include "casa/Logging/LogIO.h"
+#include "casa/Logging/LogSinkInterface.h"
+#include "Ice/Ice.h"
+
+// Local package includes
+#include "simplayback/SimPlayback.h"
 
 using namespace askap;
 
@@ -96,6 +100,12 @@ int main(int argc, char* argv[])
         // Create a parset
         LOFAR::ParameterSet parset(parsetFile);
 
+        askap::cp::SimPlayback pb(parset);
+        pb.run();
+    } catch (const Ice::Exception& e) {
+        ASKAPLOG_FATAL_STR(logger, "Ice exception in: " << argv[0] << ": " << e);
+        std::cerr << "Ice exception in " << argv[0] << ": " << e << std::endl;
+        return 1;
     } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;

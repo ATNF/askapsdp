@@ -23,3 +23,47 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
+
+#ifndef ASKAP_CP_SIMPLAYBACK_H
+#define ASKAP_CP_SIMPLAYBACK_H
+
+// ASKAPsoft includes
+#include "Common/ParameterSet.h"
+#include "Ice/Ice.h"
+
+// Local package includes
+#include "cpinterfaces/CP.h"
+#include "cpinterfaces/TypedValues.h"
+
+namespace askap
+{
+    namespace cp
+    {
+        class SimPlayback
+        {
+            public:
+                SimPlayback(const LOFAR::ParameterSet& parset);
+                ~SimPlayback();
+
+                void run(void);
+
+            private:
+                // Get an IceStorm topic publisher proxy
+                Ice::ObjectPrx getProxy(const std::string& topicManager,
+                        const std::string& topic);
+
+                // ParameterSet (configuration)
+                LOFAR::ParameterSet itsParset;
+
+                // Ice Communicator
+                Ice::CommunicatorPtr itsComm;
+
+                // Ice proxy for the visibility stream topic
+                askap::interfaces::cp::IVisStreamPrx itsVisStream;
+
+                // Ice proxy for the metadata stream topic
+                askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsMetadataStream;
+        };
+    };
+};
+#endif
