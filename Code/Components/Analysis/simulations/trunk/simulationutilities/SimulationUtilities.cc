@@ -172,6 +172,8 @@ namespace askap {
                     float pixelVal;
                     float xScaleFactor, yScaleFactor;
 
+		    int pix = 0;
+
                     for (int x = xmin; x <= xmax; x++) {
                         for (int y = ymin; y <= ymax; y++) {
 
@@ -233,9 +235,8 @@ namespace askap {
 
                             // For this pixel, loop over all channels and assign the correctly-scaled pixel value.
                             for (int z = 0; z < fluxGen.nChan(); z++) {
-                                int pix = x + y * axes[0] + z * axes[0] * axes[1];
-                                float f = fluxGen.getFlux(z);
-                                array[pix] += pixelVal * f;
+                                pix = x + y * axes[0] + z * axes[0] * axes[1];
+                                array[pix] += pixelVal * fluxGen.getFlux(z);
                             }
 
                         }
@@ -347,9 +348,10 @@ namespace askap {
                 ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x=" << pix[0] << " & y=" << pix[1]
                                        << "  to  axes = [" << axes[0] << "," << axes[1] << "]");
 
+		int loc = 0;
                 for (int z = 0 ; z < fluxGen.nChan(); z++) {
 
-                    int loc = xpix + axes[0] * ypix + z * axes[0] * axes[1];
+                    loc = xpix + axes[0] * ypix + z * axes[0] * axes[1];
 
                     array[loc] += fluxGen.getFlux(z);
 
