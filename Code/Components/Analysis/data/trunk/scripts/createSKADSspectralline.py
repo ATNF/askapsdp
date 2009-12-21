@@ -285,6 +285,12 @@ createFITS.PAunits          = rad
 createFITS.minMinorAxis     = %f
 """%(centralFreq,flagHaveFreqInfo,flagDoContinuum,flagDoHI,minMinorAxis)
 
+    if(not makeImage):
+        createFITSinput += """\
+createFITS.casaOutput       = false
+createFITS.fitsOutput       = false
+"""
+
     f = file(imageParsetFile,"w")
     f.write(createFITSinput)
     f.close()

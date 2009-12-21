@@ -104,9 +104,12 @@ if __name__ == '__main__':
         else:
             catfile.write("#%9s %10s %20s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Maj_axis","Min_axis","Pos_ang"))
 
-        for type in types:
-            for x in centres:
-                for y in centres:
+#        for type in types:
+#            for x in centres:
+#                for y in centres:
+         for x in centres:
+             for y in centres:
+                 for type in types:
 
                     tabname = getTabName(x,y,type)
 
@@ -189,6 +192,12 @@ createFITS.flagSpectralInfo = %s
 createFITS.PAunits          = rad
 createFITS.minMinorAxis     = %f
 """%(flagHaveFreqInfo,minMinorAxis)
+
+    if(not makeImage):
+        createFITSinput += """\
+createFITS.casaOutput       = false
+createFITS.fitsOutput       = false
+"""
 
     f = file(imageParsetFile,"w")
     f.write(createFITSinput)

@@ -540,12 +540,12 @@ namespace askap {
                                     sourceType = profSEX.type();
                                     src = profSEX;
                                     prof = profSEX;
-                                    std::cerr << profSEX << "\n";
+//                                     std::cerr << profSEX << "\n";
                                 } else if (this->itsDatabaseOrigin == "S3SAX") {
                                     profSAX = HIprofileS3SAX(line);
                                     src = profSAX;
                                     prof = profSAX;
-                                    std::cerr << profSAX << "\n";
+ //                                    std::cerr << profSAX << "\n";
                                 } else
                                     ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
                                                    << this->itsDatabaseOrigin << "' - needs to be 'S3SEX' or 'S3SAX'");
@@ -572,8 +572,12 @@ namespace askap {
                                 pixToWCSSingle(this->itsWCS, pix, newwld);
                                 outfile.setf(std::ios::fixed);
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
-                                    << std::setw(10) << std::setprecision(6) << newwld[1] << " "
-                                    << std::setw(20) << std::setprecision(16) << src.fluxZero() << " ";
+					<< std::setw(10) << std::setprecision(6) << newwld[1] << " ";
+
+				if(this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX")
+				  outfile << std::setw(20) << std::setprecision(16) << profSAX.intFlux() << " ";
+				else
+				  outfile << std::setw(20) << std::setprecision(16) << src.fluxZero() << " ";
 
                                 if (this->itsSourceListType == "spectralline" || this->itsHaveSpectralInfo)
                                     outfile << std::setw(10) << std::setprecision(6) << cont.alpha() << " "

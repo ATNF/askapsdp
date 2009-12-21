@@ -69,6 +69,9 @@ namespace askap {
                 /// @brief Set up the profile's parameters
                 void define();
 
+		/// @brief Return the integrated flux of the profile
+		double intFlux(){return itsIntFlux;};
+
                 /// @brief Return the flux at a given frequency
                 double flux(double nu);
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
