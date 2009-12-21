@@ -63,6 +63,14 @@ namespace askap {
         Continuum::Continuum(std::string &line)
         {
             /// @details Constructs a Continuum object from a line of
+            /// text from an ascii file. Uses the Continuum::define()
+            /// function.
+	  this->define(line);
+	}
+
+        void Continuum::define(std::string &line)
+        {
+            /// @details Defines a Continuum object from a line of
             /// text from an ascii file. This line should be formatted in
             /// the correct way to match the output from the appropriate
             /// python script. The columns should accepted by this function are:
@@ -74,8 +82,8 @@ namespace askap {
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
             this->itsComponent.setPeak(flux);
-            this->itsComponent.setMajor(maj);
-            this->itsComponent.setMinor(min);
+            this->itsComponent.setMajor(std::max(maj,min));
+            this->itsComponent.setMinor(std::max(maj,min));
             this->itsComponent.setPA(pa);
         }
 

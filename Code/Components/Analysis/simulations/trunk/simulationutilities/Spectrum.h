@@ -54,6 +54,9 @@ namespace askap {
                 /// @brief Copy constructor
                 Spectrum(const Spectrum& s);
 
+		/// @brief Define using a line of input from an ascii file
+		void define(std::string &line);
+
                 /// @brief Return the right ascension
                 std::string ra() {return itsRA;};
                 /// @brief Return the decliination

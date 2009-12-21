@@ -512,37 +512,47 @@ namespace askap {
 
                     int countGauss = 0, countPoint = 0;
 
+		    Continuum cont;
+		    HIprofileS3SEX profSEX;
+		    HIprofileS3SAX profSAX;
+		    HIprofile &prof = profSAX;
+		    Spectrum &src = cont;
+
+		    FluxGenerator fluxGen;
+		    casa::Gaussian2D<casa::Double> gauss;
+		    const float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
+
                     if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
 
                     while (getline(srclist, line),
                             !srclist.eof()) {
+		      ASKAPLOG_DEBUG_STR(logger, "input = " << line);
 
                         if (line[0] != '#') {  // ignore commented lines
-                            Continuum cont;
-                            HIprofileS3SEX profSEX;
-                            HIprofileS3SAX profSAX;
-                            HIprofile &prof = profSAX;
-                            Spectrum &src = cont;
 
                             if (this->itsHaveSpectralInfo) {
-                                cont = Continuum(line);
+//                                 cont = Continuum(line);
+                                cont.define(line);
                                 cont.setNuZero(this->itsBaseFreq);
                                 src = cont;
                             } else {
-                                cont = Spectrum(line);
+//                                 cont = Spectrum(line);
+                                cont.define(line);
                                 cont.setNuZero(this->itsBaseFreq);
                                 src = cont;
                             }
 
                             if (this->itsSourceListType == "spectralline") {
                                 if (this->itsDatabaseOrigin == "S3SEX") {
-                                    profSEX = HIprofileS3SEX(line);
+//                                     profSEX = HIprofileS3SEX(line);
+                                    profSEX.define(line);
                                     sourceType = profSEX.type();
                                     src = profSEX;
                                     prof = profSEX;
 //                                     std::cerr << profSEX << "\n";
                                 } else if (this->itsDatabaseOrigin == "S3SAX") {
-                                    profSAX = HIprofileS3SAX(line);
+//                                     profSAX = HIprofileS3SAX(line);
+                                    profSAX.define(line);
                                     src = profSAX;
                                     prof = profSAX;
 //                                     std::cerr << profSAX << "\n";
@@ -595,9 +605,7 @@ namespace askap {
                                 outfile << "\n";
                             }
 
-                            if (this->itsAddSources || this->itsDryRun) {
-
-                                FluxGenerator fluxGen;
+                            if (this->itsArrayAllocated && (this->itsAddSources || this->itsDryRun)) {
 
                                 if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
                                 else fluxGen.setNumChan(1);
@@ -614,7 +622,6 @@ namespace askap {
 
                                 if (src.maj() > 0) {
                                     // convert widths from arcsec to pixels
-                                    float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
                                     src.setMaj(casa::Quantity(src.maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
                                     if (src.maj() > 0 && !(src.min() > this->itsMinMinorAxis)) {
@@ -624,8 +631,13 @@ namespace askap {
 
                                     if (src.fluxZero() == 0.) src.setFluxZero(1.e-3);
 
-                                    casa::Gaussian2D<casa::Double> gauss(src.fluxZero(), pix[0], pix[1], src.maj(), src.min() / src.maj(),
-                                                                         casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
+//                                     casa::Gaussian2D<casa::Double> gauss(src.fluxZero(), pix[0], pix[1], src.maj(), src.min() / src.maj(),
+//                                                                          casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
+                                    gauss.setXcenter(pix[0]);
+                                    gauss.setYcenter(pix[1]);
+                                    gauss.setMajorAxis(src.maj());
+                                    gauss.setMinorAxis(src.min());
+                                    gauss.setPA(casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
                                     gauss.setFlux(src.fluxZero());
 
                                     if (!this->itsDryRun) addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);

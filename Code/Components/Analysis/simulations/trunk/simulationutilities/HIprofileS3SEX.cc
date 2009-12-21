@@ -46,7 +46,15 @@ namespace askap {
 
         HIprofileS3SEX::HIprofileS3SEX(std::string &line)
         {
-            /// @details Constructs a HIprofileS3SEX object from a line of
+            /// @details Constructs a HIprofileS3SEX object from a
+            /// line of text from an ascii file. Uses the
+            /// HIprofileS3SEX::define() function.
+	  this->define(line);
+	}
+
+        void HIprofileS3SEX::define(std::string &line)
+        {
+            /// @details Defines a HIprofileS3SEX object from a line of
             /// text from an ascii file. This line should be formatted in
             /// the correct way to match the output from the appropriate
             /// python script. The columns should be: RA - DEC - Flux -
@@ -64,11 +72,11 @@ namespace askap {
             ss >> this->itsRA >> this->itsDec >> flux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI >> type;
             this->itsSourceType = GALTYPE(type);
             this->itsComponent.setPeak(flux);
-            this->itsComponent.setMajor(maj);
-            this->itsComponent.setMinor(min);
+            this->itsComponent.setMajor(std::max(maj,min));
+            this->itsComponent.setMinor(std::max(maj,min));
             this->itsComponent.setPA(pa);
 
-            this->define(this->itsSourceType, this->itsRedshift, this->itsMHI, this->maj(), this->min());
+            this->setup(this->itsSourceType, this->itsRedshift, this->itsMHI, this->maj(), this->min());
         }
 
         HIprofileS3SEX::HIprofileS3SEX(const HIprofileS3SEX& h):
@@ -121,7 +129,7 @@ namespace askap {
             return theStream;
         }
 
-        void HIprofileS3SEX::define(GALTYPE type, double z, double mhi, double maj, double min)
+        void HIprofileS3SEX::setup(GALTYPE type, double z, double mhi, double maj, double min)
         {
             /// @details This function assigns values to all the
             /// parameters of the profile. The profile is described by

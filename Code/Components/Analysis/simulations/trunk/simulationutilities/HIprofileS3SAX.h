@@ -66,8 +66,11 @@ namespace askap {
                 /// @brief Assignment operator
                 HIprofileS3SAX& operator= (const HIprofileS3SAX& h);
 
+		/// @brief Define using a line of input from an ascii file
+		void define(std::string &line);
+
                 /// @brief Set up the profile's parameters
-                void define();
+                void setup();
 
 		/// @brief Return the integrated flux of the profile
 		double intFlux(){return itsIntFlux;};

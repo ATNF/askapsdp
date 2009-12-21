@@ -105,7 +105,7 @@ namespace askap {
             /// @return The corresponding velocity in km/s
 
 	    double v = vel / C_kms;
-	    double z = sqrt( (v+1.)/(v-1.) ) - 1.;
+	    double z = sqrt( (1.+v)/(1.-v) ) - 1.;
             return z;
         }
 

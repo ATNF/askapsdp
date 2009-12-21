@@ -44,6 +44,14 @@ namespace askap {
         Spectrum::Spectrum(std::string &line)
         {
             /// @details Constructs a Spectrum object from a line of
+            /// text from an ascii file. Uses the Spectrum::define()
+            /// function.
+	  this->define(line);
+	}
+
+        void Spectrum::define(std::string &line)
+        {
+            /// @details Defines the Spectrum object from a line of
             /// text from an ascii file. This line should be formatted in
             /// the correct way to match the output from the appropriate
             /// python script. The columns should accepted by this function are:
@@ -54,8 +62,8 @@ namespace askap {
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> flux >> maj >> min >> pa;
             this->itsComponent.setPeak(flux);
-            this->itsComponent.setMajor(maj);
-            this->itsComponent.setMinor(min);
+            this->itsComponent.setMajor(std::max(maj,min));
+            this->itsComponent.setMinor(std::max(maj,min));
             this->itsComponent.setPA(pa);
         }
 

@@ -61,8 +61,8 @@ namespace askap {
                 HIprofileS3SEX() {};
                 /// @brief Set up parameters using a line of input from an ascii file
                 HIprofileS3SEX(std::string &line);
-                /// @brief Set up parameters using the define() function
-                HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min) {define(type, z, mhi, maj, min);};
+                /// @brief Set up parameters using the setup() function
+                HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min) {setup(type, z, mhi, maj, min);};
                 /// @brief Destructor
                 virtual ~HIprofileS3SEX() {};
                 /// @brief Copy constructor
@@ -70,8 +70,11 @@ namespace askap {
                 /// @brief Assignment operator
                 HIprofileS3SEX& operator= (const HIprofileS3SEX& h);
 
+		/// @brief Define using a line of input from an ascii file
+		void define(std::string &line);
+
                 /// @brief Set up the profile's parameters
-                void define(GALTYPE type, double z, double mhi, double maj, double min);
+                void setup(GALTYPE type, double z, double mhi, double maj, double min);
 
                 /// @brief What source type is this?
                 GALTYPE type() {return itsSourceType;};

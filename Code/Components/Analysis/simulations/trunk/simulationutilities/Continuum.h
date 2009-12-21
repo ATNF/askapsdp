@@ -66,6 +66,9 @@ namespace askap {
                 /// @brief Assignment operator for Continuum, using a Spectrum object
                 Continuum& operator= (const Spectrum& c);
 
+		/// @brief Define using a line of input from an ascii file
+		void define(std::string &line);
+
                 /// @brief Set up the profile's parameters
                 void defineSource(float alpha, float beta, float nuZero);
 

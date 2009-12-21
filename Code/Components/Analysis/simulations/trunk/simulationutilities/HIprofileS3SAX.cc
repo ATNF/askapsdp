@@ -31,11 +31,10 @@
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SAX.h>
 #include <simulationutilities/HIprofileS3SAX.h>
-#include <simulationutilities/SimulationUtilities.h>
 #include <iostream>
 #include <sstream>
-#include <math.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -94,12 +93,23 @@ namespace askap {
                 theStream << "," << prof.itsKpar[i];
 
             theStream << "]\n";
+	    
+	    std::pair<double,double> freqRange = prof.freqLimits();
+	    theStream << "Freq Range = " << freqRange.first << " - " << freqRange.second << "\n";
             return theStream;
         }
 
         HIprofileS3SAX::HIprofileS3SAX(std::string &line)
         {
-            /// @details Constructs a HIprofileS3SAX object from a line of
+            /// @details Constructs a HIprofileS3SAX object from a
+            /// line of text from an ascii file. Uses the
+            /// HIprofileS3SAX::define() function.
+	  this->define(line);
+	}
+
+        void HIprofileS3SAX::define(std::string &line)
+        {
+            /// @details Defines a HIprofileS3SAX object from a line of
             /// text from an ascii file. This line should be formatted in
             /// the correct way to match the output from the appropriate
             /// python script. The columns should be: RA - DEC - Flux -
@@ -116,13 +126,13 @@ namespace askap {
             ss >> this->itsRA >> this->itsDec >> this->itsIntFlux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI
             >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
             this->itsComponent.setPeak(this->itsFluxPeak * this->itsIntFlux);
-            this->itsComponent.setMajor(maj);
-            this->itsComponent.setMinor(min);
+            this->itsComponent.setMajor(std::max(maj,min));
+            this->itsComponent.setMinor(std::max(maj,min));
             this->itsComponent.setPA(pa);
-            this->define();
+            this->setup();
         }
 
-        void HIprofileS3SAX::define()
+        void HIprofileS3SAX::setup()
         {
             /// @details Sets up the \f$k_i\f$ parameters and the
             /// integrated fluxes, according to the equations described in
@@ -220,7 +230,6 @@ namespace askap {
             }
 
             double flux = (f[1] - f[0]) / (dv[1] - dv[0]);
-//      ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
             return flux * this->itsIntFlux;
 
         }
@@ -239,8 +248,9 @@ namespace askap {
 
 	double maxAbsVel = this->itsKpar[0] + sqrt( this->itsKpar[1] * log(this->itsKpar[2]*MAXFLOAT) );
 	std::pair<double,double> freqLimits;
-	freqLimits.first = HIVelToFreq( redshiftToVel(this->itsRedshift) + maxAbsVel );
-	freqLimits.second = HIVelToFreq( redshiftToVel(this->itsRedshift) - maxAbsVel );
+        float vel0 = redshiftToVel(this->itsRedshift);
+	freqLimits.first = HIVelToFreq( vel0 + maxAbsVel );
+	freqLimits.second = HIVelToFreq( vel0 - maxAbsVel );
 	return freqLimits;
 
       }
