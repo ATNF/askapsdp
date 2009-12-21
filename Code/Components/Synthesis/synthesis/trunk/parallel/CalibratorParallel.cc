@@ -101,7 +101,7 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       // set up image handler
       SynthesisParamsHelper::setUpImageHandler(itsParset);
       
-      // load sky model, propulate itsPerfectModel
+      // load sky model, populate itsPerfectModel
       readModels();
       // itsModel has gain parameters for calibration, populate them with
       // an initial guess

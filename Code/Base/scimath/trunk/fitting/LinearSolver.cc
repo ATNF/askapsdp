@@ -92,7 +92,7 @@ namespace askap
 
 // Find all the free parameters
       vector<string> names(itsParams->freeNames());
-      if (names.size() == 0) {
+      if (itsParams->names().size() == 0) {
           // internal list of parameters is empty, will solve for all 
           // unknowns in the equation 
           names = normalEquations().unknowns();
