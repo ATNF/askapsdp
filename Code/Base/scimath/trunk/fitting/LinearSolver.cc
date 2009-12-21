@@ -91,14 +91,21 @@ namespace askap
       int nParameters=0;
 
 // Find all the free parameters
-      const vector<string> names(itsParams->freeNames());
+      vector<string> names(itsParams->freeNames());
+      if (names.size() == 0) {
+          // internal list of parameters is empty, will solve for all 
+          // unknowns in the equation 
+          names = normalEquations().unknowns();
+      }
       ASKAPCHECK(names.size()>0, "No free parameters in Linear Solver");
 
       map<string, int> indices;
       for (vector<string>::const_iterator it=names.begin();it!=names.end();it++)
       {
-        indices[*it]=nParameters;
-        nParameters+=itsParams->value(*it).nelements();
+        indices[*it] = nParameters;
+        const casa::uInt newParameters = normalEquations().dataVector(*it).nelements();
+        nParameters += newParameters;
+        ASKAPDEBUGASSERT((itsParams->isFree(*it) ? itsParams->value(*it).nelements() : newParameters) == newParameters);        
       }
       ASKAPCHECK(nParameters>0, "No free parameters in Linear Solver");
 

@@ -66,12 +66,15 @@ namespace askap
 /// Initialize this solver
         virtual void init();
 
-/// Solve for parameters, updating the values kept internally
-/// The solution is constructed from the normal equations
-/// @param q Quality information
+        /// @brief solve normal equations
+        /// @details This method solves for parameters, updating the 
+        /// values kept internally. If there are no free parameters in the
+        /// Params class held inside this solver, all unknowns in the normal
+        /// equatons will be solved for. 
+        /// @param[in] q Quality information
         virtual bool solveNormalEquations(Quality& q);
         
-/// @brief Clone this object
+        /// @brief Clone this object
         virtual Solver::ShPtr clone() const;
 
        private:
