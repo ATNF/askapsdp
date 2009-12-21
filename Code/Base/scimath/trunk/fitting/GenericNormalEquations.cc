@@ -477,4 +477,28 @@ void GenericNormalEquations::readFromBlob(LOFAR::BlobIStream& is)
   is.getEnd();
 }
 
+/// @brief obtain all parameters dealt with by these normal equations
+/// @details Normal equations provide constraints for a number of 
+/// parameters (i.e. unknowns of these equations). This method returns
+/// a vector with the string names of all parameters mentioned in the
+/// normal equations represented by the given object.
+/// @return a vector listing the names of all parameters (unknowns of these equations)
+/// @note if ASKAP_DEBUG is set some extra checks on consistency of these 
+/// equations are done
+std::vector<std::string> GenericNormalEquations::unknowns() const
+{
+  std::vector<std::string> result;
+  result.reserve(itsNormalMatrix.size());
+  for (std::map<std::string, MapOfMatrices>::const_iterator ci=itsNormalMatrix.begin();
+       ci!=itsNormalMatrix.end(); ++ci) {
+       result.push_back(ci->first);
+// extra consistency checks in the debug mode
+#ifdef ASKAP_DEBUG
+       ASKAPCHECK(itsDataVector.find(ci->first) != itsDataVector.end(), 
+                  "The parameter "<<ci->first<<" is present in the mornal matrix but missing in the data vector");
+#endif // #ifdef ASKAP_DEBUG
+  }
+  return result;
+} // unknowns method
+
  

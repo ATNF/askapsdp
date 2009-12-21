@@ -145,6 +145,16 @@ struct GenericNormalEquations : public INormalEquations {
   /// @note Not sure whether the parameter should be made const or not 
   virtual void readFromBlob(LOFAR::BlobIStream& is); 
 
+  /// @brief obtain all parameters dealt with by these normal equations
+  /// @details Normal equations provide constraints for a number of 
+  /// parameters (i.e. unknowns of these equations). This method returns
+  /// a vector with the string names of all parameters mentioned in the
+  /// normal equations represented by the given object.
+  /// @return a vector listing the names of all parameters (unknowns of these equations)
+  /// @note if ASKAP_DEBUG is set some extra checks on consistency of these 
+  /// equations are done
+  virtual std::vector<std::string> unknowns() const; 
+
 protected:
   /// @brief map of matrices (data element of each row map)
   typedef std::map<std::string, casa::Matrix<double> > MapOfMatrices;

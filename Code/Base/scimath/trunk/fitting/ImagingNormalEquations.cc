@@ -369,5 +369,36 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
          >> itsNormalMatrixDiagonal >> itsShape >> itsReference 
          >> itsDataVector;
     }
-  }
-}
+    
+    /// @brief obtain all parameters dealt with by these normal equations
+    /// @details Normal equations provide constraints for a number of 
+    /// parameters (i.e. unknowns of these equations). This method returns
+    /// a vector with the string names of all parameters mentioned in the
+    /// normal equations represented by the given object.
+    /// @return a vector listing the names of all parameters (unknowns of these equations)
+    /// @note if ASKAP_DEBUG is set some extra checks on consistency of these 
+    /// equations are done
+    std::vector<std::string> ImagingNormalEquations::unknowns() const {
+      std::vector<std::string> result; 
+      result.reserve(itsNormalMatrixSlice.size());
+      for (std::map<std::string, casa::Vector<double> >::const_iterator ci = itsNormalMatrixSlice.begin();
+           ci!=itsNormalMatrixSlice.end(); ++ci) {
+           result.push_back(ci->first);
+
+// extra checks in debug mode
+#ifdef ASKAP_DEBUG
+           ASKAPCHECK(itsNormalMatrixDiagonal.find(ci->first) != itsNormalMatrixDiagonal.end(),
+                      "Parameter "<<ci->first<<" is present in the matrix slice but is missing in the diagonal");
+           ASKAPCHECK(itsShape.find(ci->first) != itsShape.end(),
+                      "Parameter "<<ci->first<<" is present in the matrix slice but is missing in the shape map");
+           ASKAPCHECK(itsReference.find(ci->first) != itsReference.end(),
+                      "Parameter "<<ci->first<<" is present in the matrix slice but is missing in the reference map");
+           ASKAPCHECK(itsDataVector.find(ci->first) != itsDataVector.end(),
+                      "Parameter "<<ci->first<<" is present in the matrix slice but is missing in the data vector");                      
+#endif // #ifdef ASKAP_DEBUG  
+      }
+      return result;
+    } // unknowns method
+    
+  } // namespace scimath
+} // namespace askap

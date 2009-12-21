@@ -173,6 +173,16 @@ namespace askap
        /// @return one element of the sparse data vector (a dense vector)
        virtual const casa::Vector<double>& dataVector(const std::string &par) const;
       
+       /// @brief obtain all parameters dealt with by these normal equations
+       /// @details Normal equations provide constraints for a number of 
+       /// parameters (i.e. unknowns of these equations). This method returns
+       /// a vector with the string names of all parameters mentioned in the
+       /// normal equations represented by the given object.
+       /// @return a vector listing the names of all parameters (unknowns of these equations)
+       /// @note if ASKAP_DEBUG is set some extra checks on consistency of these 
+       /// equations are done
+       virtual std::vector<std::string> unknowns() const; 
+      
       
       /// Return normal equations slice
       const std::map<string, casa::Vector<double> >& normalMatrixSlice() const;

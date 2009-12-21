@@ -108,6 +108,14 @@ struct INormalEquations : public ISerializable {
   /// @return one element of the sparse data vector (a dense vector)     
   virtual const casa::Vector<double>& dataVector(const std::string &par) const = 0;
   
+  
+  /// @brief obtain all parameters dealt with by these normal equations
+  /// @details Normal equations provide constraints for a number of 
+  /// parameters (i.e. unknowns of these equations). This method returns
+  /// a vector with the string names of all parameters mentioned in the
+  /// normal equations represented by the given object.
+  /// @return a vector listing the names of all parameters (unknowns of these equations)
+  virtual std::vector<std::string> unknowns() const = 0; 
 };
 
 } // namespace scimath
