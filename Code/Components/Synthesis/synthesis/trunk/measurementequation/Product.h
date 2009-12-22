@@ -48,8 +48,8 @@ template<typename Effect1,typename  Effect2,typename  Effect3 = MEComponent>
 struct Product  : public MEComponent {
 
    /// @brief constructor, store reference to paramters
-   /// @param[in] par const reference to parameters
-   inline explicit Product(const scimath::Params &par) :  
+   /// @param[in] par shared pointer to parameters
+   inline explicit Product(const scimath::Params::ShPtr &par) :  
             itsEffect1(par), itsEffect2(par), itsEffect3(par) {}
 
    /// @brief main method returning Mueller matrix and derivatives
@@ -81,8 +81,8 @@ template<typename Effect1, typename Effect2>
 struct Product<Effect1, Effect2, MEComponent> : public MEComponent {
 
    /// @brief constructor, store reference to paramters
-   /// @param[in] par const reference to parameters
-   inline explicit Product(const scimath::Params &par) :  
+   /// @param[in] par shared pointer to parameters
+   inline explicit Product(const scimath::Params::ShPtr &par) :  
             itsEffect1(par), itsEffect2(par){}
 
    /// @brief main method returning Mueller matrix and derivatives

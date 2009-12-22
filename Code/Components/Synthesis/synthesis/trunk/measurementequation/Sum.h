@@ -66,8 +66,8 @@ template<typename Effect1,typename  Effect2,typename  Effect3 = MEComponent>
 struct Sum : public MEComponent {
 
    /// @brief constructor, store reference to paramters
-   /// @param[in] par const reference to parameters
-   inline explicit Sum(const scimath::Params &par) :  
+   /// @param[in] par shared pointer to parameters
+   inline explicit Sum(const scimath::Params::ShPtr &par) :  
             itsEffect1(par), itsEffect2(par), itsEffect3(par) {}
 
    /// @brief main method returning Mueller matrix and derivatives
@@ -99,8 +99,8 @@ template<typename Effect1, typename Effect2>
 struct Sum<Effect1, Effect2, MEComponent> : public MEComponent {
 
    /// @brief constructor, store reference to paramters
-   /// @param[in] par const reference to parameters
-   inline explicit Sum(const scimath::Params &par) :  
+   /// @param[in] par shared pointer to parameters
+   inline explicit Sum(const scimath::Params::ShPtr &par) :  
             itsEffect1(par), itsEffect2(par) {}
 
    /// @brief main method returning Mueller matrix and derivatives

@@ -50,15 +50,15 @@ namespace synthesis {
 struct ParameterizedMEComponent : public MEComponent {
    
    /// @brief constructor, store reference to paramters
-   /// @param[in] par const reference to parameters
-   inline explicit ParameterizedMEComponent(const scimath::Params &par) : itsParameters(par) {}
+   /// @param[in] par shared pointer to parameters
+   inline explicit ParameterizedMEComponent(const scimath::Params::ShPtr &par) : itsParameters(par) {}
    
 protected:
    /// @return reference to parameters
-   inline const scimath::Params & parameters() const { return itsParameters; }
+   inline scimath::Params::ShPtr parameters() const { return itsParameters; }
 private:
-   /// @brief reference to paramters
-   const scimath::Params &itsParameters;
+   /// @brief shared pointer to paramters
+   scimath::Params::ShPtr itsParameters;
 };
 
 } // namespace synthesis

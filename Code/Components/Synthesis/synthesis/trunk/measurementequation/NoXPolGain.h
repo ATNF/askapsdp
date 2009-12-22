@@ -55,8 +55,8 @@ namespace synthesis {
 struct NoXPolGain : public ParameterizedMEComponent {
    
    /// @brief constructor, store reference to paramters
-   /// @param[in] par const reference to parameters
-   inline explicit NoXPolGain(const scimath::Params &par) : 
+   /// @param[in] par shared pointer to parameters
+   inline explicit NoXPolGain(const scimath::Params::ShPtr &par) : 
                               ParameterizedMEComponent(par) {}
    
    /// @brief main method returning Mueller matrix and derivatives
@@ -110,9 +110,10 @@ protected:
 /// @return value of the parameter wrapped in a complex diff object
 inline scimath::ComplexDiff NoXPolGain::getParameter(const std::string &name) const
 {
-   if (parameters().has(name)) {
+   ASKAPDEBUGASSERT(parameters());
+   if (parameters()->has(name)) {
        // there is a parameter defined with the given name
-       const casa::Complex gain = parameters().complexValue(name);
+       const casa::Complex gain = parameters()->complexValue(name);
        return scimath::ComplexDiff(name, gain);
    }
    // return the default

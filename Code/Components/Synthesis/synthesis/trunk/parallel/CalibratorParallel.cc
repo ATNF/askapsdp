@@ -107,6 +107,7 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       // an initial guess
       ASKAPDEBUGASSERT(itsModel); // should be initialized in SynParallel
       
+      
       // initial assumption of the parameters
       const casa::uInt nAnt = 28; // hard coded at this stage 
       for (casa::uInt ant = 0; ant<nAnt; ++ant) {

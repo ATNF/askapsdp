@@ -55,7 +55,7 @@ struct ZeroComponent : public MEComponent {
    
    /// @brief constructor, parameters are actually ignored
    /// @param[in] par const reference to parameters
-   inline explicit ZeroComponent(const scimath::Params & par)  {}
+   inline explicit ZeroComponent(const scimath::Params::ShPtr & par)  {}
    
    /// @brief main method returning Mueller matrix and derivatives
    /// @details This method has to be overloaded (in the template sense) for
