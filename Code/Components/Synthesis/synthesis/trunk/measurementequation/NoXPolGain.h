@@ -70,6 +70,17 @@ struct NoXPolGain : public ParameterizedMEComponent {
    inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
                                 casa::uInt row) const;
 protected:
+   /// @brief obtain a value of the parameter
+   /// @details This helper method checks whether a particular parameter
+   /// is defined in the internal Params object. If yes, the appropriate
+   /// value is returned wrapped around in a ComplexDiff class. If not,
+   /// a default value of (1.,0.) is returned. This method encapsulates
+   /// the assignment of default values.
+   /// @param[in] name parameter name
+   /// @return value of the parameter wrapped in a complex diff object
+   inline scimath::ComplexDiff getParameter(const std::string &name) const;
+
+
    /// @brief obtain a name of the parameter
    /// @details This method returns the parameter name for a gain of the
    /// given antenna and polarisation. In the future, we may add time and/or
@@ -87,6 +98,27 @@ protected:
    /// @return a pair with polarisation indices
    static std::pair<casa::uInt, casa::uInt> polIndices(casa::uInt pol, casa::uInt nPol);
 };
+
+
+/// @brief obtain a value of the parameter
+/// @details This helper method checks whether a particular parameter
+/// is defined in the internal Params object. If yes, the appropriate
+/// value is returned wrapped around in a ComplexDiff class. If not,
+/// a default value of (1.,0.) is returned. This method encapsulates
+/// the assignment of default values.
+/// @param[in] name parameter name
+/// @return value of the parameter wrapped in a complex diff object
+inline scimath::ComplexDiff NoXPolGain::getParameter(const std::string &name) const
+{
+   if (parameters().has(name)) {
+       // there is a parameter defined with the given name
+       const casa::Complex gain = parameters().complexValue(name);
+       return scimath::ComplexDiff(name, gain);
+   }
+   // return the default
+   return scimath::ComplexDiff(name,casa::Complex(1.,0.));
+}
+
 
 /// @brief main method returning Mueller matrix and derivatives
 /// @details This method has to be overloaded (in the template sense) for
@@ -114,14 +146,11 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
         const std::pair<casa::uInt, casa::uInt> pInd = polIndices(pol, nPol);
         // gains for antenna 1, polarisation pInd.first
         const std::string g1name = paramName(ant1,pInd.first);
-        const casa::Complex g1 = parameters().complexValue(g1name);
             
         // gains for antenna 2, polarisation polInd.second
         const std::string g2name = paramName(ant2,pInd.second);
-        const casa::Complex g2 = parameters().complexValue(g2name);
             
-        calFactor(pol,pol) = scimath::ComplexDiff(g1name,g1)*
-                 conj(scimath::ComplexDiff(g2name,g2));            
+        calFactor(pol,pol) = getParameter(g1name)*conj(getParameter(g2name));            
    }
    return calFactor;
 }
