@@ -635,6 +635,7 @@ namespace askap {
 //                                                                          casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
                                     gauss.setXcenter(pix[0]);
                                     gauss.setYcenter(pix[1]);
+                                    gauss.setMinorAxis(std::min(gauss.majorAxis(),src.maj()));  // need this so that we never have the minor axis > major axis
                                     gauss.setMajorAxis(src.maj());
                                     gauss.setMinorAxis(src.min());
                                     gauss.setPA(casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
