@@ -8,6 +8,6 @@ for pkg, msg in nobuild.iteritems():
 build(['common/trunk/build.py',
        'imager/trunk/build.py',
        'frontend/trunk/build.py',
-       'manager/trunk/build.py'
-       'correlatorsim/trunk/build.py'
+       'manager/trunk/build.py',
+       'correlatorsim/trunk/build.py',
       ])
