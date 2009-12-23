@@ -29,7 +29,7 @@
 #include <sys/times.h>
 #include <stdexcept>
 
-Stopwatch::Stopwatch() : m_start(-1)
+Stopwatch::Stopwatch() : m_start(static_cast<clock_t>(-1))
 {
 }
 
@@ -41,7 +41,7 @@ void Stopwatch::start()
 {
 	struct tms t;
 	m_start = times(&t);
-	if (m_start == -1)
+	if (m_start == static_cast<clock_t>(-1))
 	{
 		throw std::runtime_error("Error calling times()");
 	}
@@ -52,12 +52,12 @@ double Stopwatch::stop()
 	struct tms t;
 	clock_t stop = times(&t);
 
-	if (m_start == -1)
+	if (m_start == static_cast<clock_t>(-1))
 	{
 		throw std::runtime_error("Start time not set");
 	}
 
-	if (stop == -1)
+	if (stop == static_cast<clock_t>(-1))
 	{
 		throw std::runtime_error("Error calling times()");
 	}

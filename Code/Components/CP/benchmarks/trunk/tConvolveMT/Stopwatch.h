@@ -29,6 +29,8 @@
 class Stopwatch
 {
 public:
+    Stopwatch();
+    ~Stopwatch();
 	void start();
 	double stop();
 
