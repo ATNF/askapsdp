@@ -298,9 +298,12 @@ namespace askap {
                             out.putStart("goInput", 1);
                             out << i ;
                             out.putEnd();
-                            this->itsComms.connectionSet()->writeAll(bs);
+			    //                            this->itsComms.connectionSet()->writeAll(bs);
+                            this->itsComms.connectionSet()->write(i-1,bs);
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Sent. Now waiting for reply from worker#"<<i);
                             // Then wait for the OK from that node
                             bs.resize(0);
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Reading from connection "<< i-1);
                             this->itsComms.connectionSet()->read(i - 1, bs);
                             LOFAR::BlobIBufString bib(bs);
                             LOFAR::BlobIStream in(bib);
@@ -309,6 +312,7 @@ namespace askap {
                             in >> OK;
                             in.getEnd();
 
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
                             if (!OK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
                         }
 
@@ -342,10 +346,12 @@ namespace askap {
                                 bs.resize(0);
                                 LOFAR::BlobOBufString bob(bs);
                                 LOFAR::BlobOStream out(bob);
+				ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms.rank() << ": Sending done message to Master.");
                                 out.putStart("inputDone", 1);
                                 out << OK;
                                 out.putEnd();
                                 this->itsComms.connectionSet()->write(0, bs);
+				ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms.rank() << ": All done.");
 
                             }
                         }

@@ -526,7 +526,7 @@ namespace askap {
 
                     while (getline(srclist, line),
                             !srclist.eof()) {
-		      ASKAPLOG_DEBUG_STR(logger, "input = " << line);
+// 		      ASKAPLOG_DEBUG_STR(logger, "input = " << line);
 
                         if (line[0] != '#') {  // ignore commented lines
 
