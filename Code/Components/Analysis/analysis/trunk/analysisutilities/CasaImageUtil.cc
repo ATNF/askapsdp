@@ -368,8 +368,8 @@ namespace askap {
             IPosition stride(shape.size(), 1);
             start(0) = std::max(int(xpt) - noiseBoxSize / 2, 0);
             start(1) = std::max(int(ypt) - noiseBoxSize / 2, 0);
-            end(0) = std::min(int(xpt) + noiseBoxSize / 2, shape(0) - 1);
-            end(1) = std::min(int(ypt) + noiseBoxSize / 2, shape(1) - 1);
+            end(0) = std::min(size_t(xpt) + noiseBoxSize / 2, size_t(shape(0) - 1));
+            end(1) = std::min(size_t(ypt) + noiseBoxSize / 2, size_t(shape(1) - 1));
             std::vector<float> array;
             imagePtr->getSlice(Slicer(start, end, stride, Slicer::endIsLast)).tovector(array);
             std::sort(array.begin(), array.end());
