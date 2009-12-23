@@ -101,8 +101,6 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       // set up image handler
       SynthesisParamsHelper::setUpImageHandler(itsParset);
       
-      // load sky model, populate itsPerfectModel
-      readModels();
       // itsModel has gain parameters for calibration, populate them with
       // an initial guess
       ASKAPDEBUGASSERT(itsModel); // should be initialized in SynParallel
@@ -123,6 +121,9 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       itsRefGain = itsParset.getString("refgain","");
   }
   if (itsComms.isWorker()) {
+      // load sky model, populate itsPerfectModel
+      readModels();
+ 
       /// Get the list of measurement sets and the column to use.
       itsColName=itsParset.getString("datacolumn", "DATA");
       itsMs=itsParset.getStringVector("dataset");
