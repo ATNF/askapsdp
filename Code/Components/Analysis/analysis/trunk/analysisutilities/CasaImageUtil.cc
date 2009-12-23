@@ -55,6 +55,7 @@
 #include <casa/Quanta/Unit.h>
 
 #include <string>
+#include <algorithm>
 #include <stdlib.h>
 
 #include <wcslib/wcs.h>
