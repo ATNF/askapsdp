@@ -180,7 +180,7 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
       }
     }
 
-    Ice::ObjectPrx pub = topic->getPublisher()->ice_oneway();
+    Ice::ObjectPrx pub = topic->getPublisher()->ice_twoway();
     itsLogService = askap::interfaces::logging::ILoggerPrx::uncheckedCast(pub);
 }
 
