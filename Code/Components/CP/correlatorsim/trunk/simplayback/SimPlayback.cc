@@ -41,6 +41,9 @@
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 
+// Local package includes
+#include "simplayback/MSReader.h"
+
 // Using
 using namespace askap;
 using namespace askap::cp;
@@ -85,8 +88,13 @@ SimPlayback::~SimPlayback()
 
 void SimPlayback::run(void)
 {
-    ASKAPLOG_DEBUG_STR(logger, "Running...");
     ASKAPCHECK(itsComm, "Communicator is not initialised");
+
+    // Get the filename for the measurement set and create a reader
+    const std::string dataset = itsParset.getString("playback.dataset");
+    MSReader reader(dataset);
+
+    ASKAPLOG_DEBUG_STR(logger, "Streaming dataset " << dataset);
 
     // Get the topic for the metadata stream
     const std::string mdTopicManager =
@@ -102,6 +110,21 @@ void SimPlayback::run(void)
     const std::string visTopic =
         itsParset.getString("playback.visibilities.icestorm.topic");
     itsVisStream = IVisStreamPrx::uncheckedCast(getProxy(visTopicManager, visTopic));
+
+    unsigned long count = 1; // Just for debugging, can be removed
+    bool moreData = true;
+    while (moreData) {
+        askap::interfaces::TimeTaggedTypedValueMap metadata;
+        askap::interfaces::cp::Visibilities visibilities;
+
+        moreData = reader.fillNext(metadata, visibilities);
+
+        ASKAPLOG_INFO_STR(logger, "Sending payload " << count);
+        itsMetadataStream->publish(metadata);
+        itsVisStream->publish(visibilities);
+        count++; // Just for debugging, can be removed
+    }
+    ASKAPLOG_INFO_STR(logger, "Completed streaming " << dataset);
 }
 
 Ice::ObjectPrx SimPlayback::getProxy(const std::string& topicManager,
