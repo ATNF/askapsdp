@@ -122,6 +122,9 @@ namespace askap {
                     /// @brief Save the array to a CASA image
                     void writeCASAimage(bool creatFile = true, bool saveData = true);
 
+		    double maxFreq();
+		    double minFreq();
+
                 protected:
 
                     /// @brief The name of the file to be written to

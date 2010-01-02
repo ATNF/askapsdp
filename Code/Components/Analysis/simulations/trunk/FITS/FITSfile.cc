@@ -522,6 +522,10 @@ namespace askap {
 		    casa::Gaussian2D<casa::Double> gauss;
 		    const float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
 
+		    double maxFreq = this->maxFreq();
+		    double minFreq = this->minFreq();
+		    ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << maxFreq << " and " << minFreq);
+
                     if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
 
                     while (getline(srclist, line),
@@ -605,7 +609,18 @@ namespace askap {
                                 outfile << "\n";
                             }
 
-                            if (this->itsArrayAllocated && (this->itsAddSources || this->itsDryRun)) {
+			    bool lookAtSource = this->itsArrayAllocated && (this->itsAddSources || this->itsDryRun);
+
+			    if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
+			      // check the frequency limits for this source to see whether we need to look at it.
+			      std::pair<double,double> freqLims = profSAX.freqLimits();
+			      bool isGood = (freqLims.first < maxFreq) && (freqLims.second > minFreq);
+// 			      if(isGood) ASKAPLOG_DEBUG_STR(logger, "Source (" << freqLims.second<<"-"<<freqLims.first<<") lies within freq limits");
+// 			      else ASKAPLOG_DEBUG_STR(logger, "Outside freq limits! (" << freqLims.second<<"-"<<freqLims.first<<")");
+			      lookAtSource = lookAtSource && isGood;
+			    }
+
+                            if (lookAtSource) {
 
                                 if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
                                 else fluxGen.setNumChan(1);
@@ -980,6 +995,19 @@ namespace askap {
                 }
 
             }
+
+
+	  double FITSfile::maxFreq()
+	  {
+	    int spec=this->itsWCS->spec;
+	    return this->itsWCS->crval[spec] + (this->itsAxes[spec]/2+0.5)*this->itsWCS->cdelt[spec];
+	  }
+	  double FITSfile::minFreq()
+	  {
+	    int spec=this->itsWCS->spec;
+	    return this->itsWCS->crval[spec] - (this->itsAxes[spec]/2+0.5)*this->itsWCS->cdelt[spec];
+	  }
+	 
 
         }
 
