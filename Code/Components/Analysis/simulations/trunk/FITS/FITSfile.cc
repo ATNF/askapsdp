@@ -680,6 +680,8 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger, "Would add " << countPoint << " point sources and " << countGauss << " Gaussians");
 
 
+                    ASKAPLOG_DEBUG_STR(logger, "Finished adding sources");
+
                     delete [] wld;
                     delete [] pix;
                     delete [] newwld;
