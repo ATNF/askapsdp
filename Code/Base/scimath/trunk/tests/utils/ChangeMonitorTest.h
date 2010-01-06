@@ -1,3 +1,9 @@
+/// @file
+///
+/// Test of ChangeMonitor (helper class to assist keeping track of changes in e.g. parameters or
+/// some other variable which can be cached)
+///
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,23 +26,38 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-// Test includes
-#include <MultiDimArrayPlaneIterTest.h>
-#include <FixedSizeCacheTest.h>
-#include <CasaProjectionTest.h>
-#include <ChangeMonitorTest.h>
+#include <utils/ChangeMonitor.h>
 
-int main(int argc, char *argv[])
+
+namespace askap {
+
+namespace scimath {
+
+class ChangeMonitorTest : public CppUnit::TestFixture 
 {
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::scimath::MultiDimArrayPlaneIterTest::suite());
-    runner.addTest(askap::scimath::FixedSizeCacheTest::suite());
-    runner.addTest(askap::scimath::ChangeMonitorTest::suite());
-    bool wasSucessful = runner.run();
+   CPPUNIT_TEST_SUITE(ChangeMonitorTest);
+   CPPUNIT_TEST(testChangeMonitor);
+   CPPUNIT_TEST_SUITE_END();
+public:
+   
+   void testChangeMonitor() {
+      ChangeMonitor cm;
+      const ChangeMonitor cm2 = cm;
+      CPPUNIT_ASSERT(cm2 == cm);
+      cm.notifyOfChanges();
+      CPPUNIT_ASSERT(cm2 != cm);
+      for (size_t i=0; i<20; ++i) {
+           cm.notifyOfChanges();
+      }
+      CPPUNIT_ASSERT(cm2 != cm);      
+   }
+};
+    
+} // namespace scimath
 
-    return wasSucessful ? 0 : 1;
-}
+} // namespace askap
+
