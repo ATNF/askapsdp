@@ -45,6 +45,8 @@
 #include <Blob/BlobOStream.h>
 #include <Blob/BlobIStream.h>
 
+#include <utils/ChangeMonitor.h>
+
 #include <map>
 #include <vector>
 #include <string>
@@ -231,6 +233,25 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
 /// Reset to empty
         void reset();
 
+    /// @brief obtain change monitor for a parameter
+    /// @details A call to this method logically remembers 
+    /// the current value of a given parameter in order to keep
+    /// track whether it changes. This method is a companion
+    /// to isChanged method. The parameter with the given name should
+    /// already exist, otherwise an exception is thrown
+    /// @param[in] name name of the parameter
+    /// @return a change monitor object
+    ChangeMonitor monitorChanges(const std::string& name) const;
+    
+    /// @brief verify that the parameter has been changed
+    /// @details This method checks the status of a tracked
+    /// parameter. An exception is thrown if monitorChanges has
+    /// not been called for this particular Params object.
+    /// @param[in] name name of the parameter
+    /// @param[in] cm change monitor object (obtained with monitorChanges)
+    /// @return true, if the given parameter has been changed
+    bool isChanged(const std::string &name, const ChangeMonitor &cm) const;
+
 /// Count -  gives the number of accesses - use
 /// this as a aid in caching. Is incremented on every non-const
 /// access. A cache is no longer valid if the count has increased.
@@ -259,7 +280,7 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, 
                                               Params& par); 
 
-      protected:
+      private:
         /// @todo Use single map map<string, struct>
         /// The value arrays, ordered as a map
         std::map<std::string, casa::Array<double> > itsArrays;
@@ -271,6 +292,13 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         /// and must be mutable
         mutable std::map<std::string, int> itsCounts;
 
+        /// @brief change monitors for all tracked parameters
+        /// @details This map contains change monitors for
+        /// parameters which are tracked (i.e. for which the value
+        /// change is monitored by some other code). It may not have
+        /// all parameters. It is intentional, that this map is not
+        /// copied when the object is cloned or restored from a Blob.
+        mutable std::map<std::string, ChangeMonitor> itsChangeMonitors;
     };
 
   }

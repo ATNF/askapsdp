@@ -442,6 +442,40 @@ namespace askap
 			return os;
 		}
 
+/// @brief obtain change monitor for a parameter
+/// @details A call to this method logically remembers 
+/// the current value of a given parameter in order to keep
+/// track whether it changes. This method is a companion
+/// to isChanged method. The parameter with the given name should
+/// already exist, otherwise an exception is thrown
+/// @param[in] name name of the parameter
+/// @return a change monitor object
+ChangeMonitor Params::monitorChanges(const std::string& name) const
+{
+  ASKAPDEBUGASSERT(has(name));
+  std::map<std::string, ChangeMonitor>::const_iterator cit = itsChangeMonitors.find(name);
+  if (cit != itsChangeMonitors.end()) {
+      return cit->second;
+  } 
+  // the following line will call the default constructor behind the scene.
+  return itsChangeMonitors[name];
+}
+    
+/// @brief verify that the parameter has been changed
+/// @details This method checks the status of a tracked
+/// parameter. An exception is thrown if monitorChanges has
+/// not been called for this particular Params object.
+/// @param[in] name name of the parameter
+/// @param[in] cm change monitor object (obtained with monitorChanges)
+/// @return true, if the given parameter has been changed
+bool Params::isChanged(const std::string &name, const ChangeMonitor &cm) const
+{
+  std::map<std::string, ChangeMonitor>::const_iterator cit = itsChangeMonitors.find(name);
+  ASKAPCHECK(cit != itsChangeMonitors.end(), "Value change for parameter "<<name<<
+             " is not tracked, run monitorChanges first");
+  return cm != cit->second;
+}
+
 		int Params::count(const std::string& name) const
 		{
 			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
