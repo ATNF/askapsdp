@@ -36,7 +36,7 @@ module interfaces
      * Enum to represent data types.
      **/
     enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBool,
-                        TypeFloatComplex, TypeDoubleComplex, TypedFloatSeq, TypeDoubleSeq, TypeIntSeq,
+                        TypeFloatComplex, TypeDoubleComplex, TypeFloatSeq, TypeDoubleSeq, TypeIntSeq,
                         TypeLongSeq, TypeStringSeq, TypeBoolSeq,
                         TypeDirection, TypeDirectionSeq};
     
