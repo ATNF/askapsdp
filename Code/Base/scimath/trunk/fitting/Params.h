@@ -279,8 +279,21 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         /// @param[in] par Parameters to be processed
         friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, 
                                               Params& par); 
-
-      private:
+      protected:
+        /// @brief notify change monitors about parameter update
+        /// @details Change monitors are used to track updates of some
+        /// parameters. This method first searches whether a particular
+        /// parameter is monitored. If yes, it notifies the appropriate
+        /// change monitor object (stored in itsChangeMonitors map).  
+        /// Nothing happens if the given parameter is not monitored.
+        /// @note Althoguh this method could have been made const because
+        /// it works with a mutable data member only, it is conceptually
+        /// non-const and is supposed to be used only inside methods changing
+        /// the parameter.
+        /// @param[in] name  name of the parameter
+        void notifyAboutChange(const std::string &name); 
+        
+     private:
         /// @todo Use single map map<string, struct>
         /// The value arrays, ordered as a map
         std::map<std::string, casa::Array<double> > itsArrays;

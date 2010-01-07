@@ -22,6 +22,7 @@
 ///
 
 #include <fitting/Params.h>
+#include <utils/ChangeMonitor.h>
 
 #include <Blob/BlobString.h>
 #include <Blob/BlobOBufString.h>
@@ -55,6 +56,7 @@ namespace askap
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_EXCEPTION(testDuplicate, askap::CheckError);
       CPPUNIT_TEST_EXCEPTION(testNotScalar, askap::CheckError);
+      CPPUNIT_TEST(testChangeMonitor);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -193,8 +195,11 @@ namespace askap
           p1->add("Add1", 1.4);
           CPPUNIT_ASSERT( p1->scalarValue("Add1")==1.4);
           CPPUNIT_ASSERT( p1->size()==2);
+          const ChangeMonitor cm = p1->monitorChanges("Add1");
+          CPPUNIT_ASSERT(!p1->isChanged("Add1",cm));
           p1->update("Add1", 2.6);
           CPPUNIT_ASSERT( p1->scalarValue("Add1")==2.6);
+          CPPUNIT_ASSERT(p1->isChanged("Add1",cm));
         }
 
         void testCongruent()
@@ -224,6 +229,34 @@ namespace askap
           CPPUNIT_ASSERT(pnew.has("Copy1"));
           CPPUNIT_ASSERT(pnew.scalarValue("Copy1")==1.5);
           
+        }
+        
+        void testChangeMonitor() {
+          p1->add("Par1", 0.1);
+          p1->add("Par2", casa::Vector<double>(5,1.));
+          const ChangeMonitor cm1Par1 = p1->monitorChanges("Par1");
+          const ChangeMonitor cm1Par2 = p1->monitorChanges("Par2");
+          CPPUNIT_ASSERT(!p1->isChanged("Par1",cm1Par1));
+          CPPUNIT_ASSERT(!p1->isChanged("Par2",cm1Par2));
+          p1->update("Par1",-0.1);
+          CPPUNIT_ASSERT(p1->isChanged("Par1",cm1Par1));
+          CPPUNIT_ASSERT(!p1->isChanged("Par2",cm1Par2));
+          p1->update("Par2", casa::Vector<double>(5,1.1));
+          CPPUNIT_ASSERT(p1->isChanged("Par1",cm1Par1));
+          CPPUNIT_ASSERT(p1->isChanged("Par2",cm1Par2));
+          // second level of change monitoring
+          const ChangeMonitor cm2Par1 = p1->monitorChanges("Par1");
+          const ChangeMonitor cm2Par2 = p1->monitorChanges("Par2");
+          CPPUNIT_ASSERT(!p1->isChanged("Par1",cm2Par1));
+          CPPUNIT_ASSERT(!p1->isChanged("Par2",cm2Par2));
+          for (int i=0;i<20; ++i) {
+               p1->update("Par1",-0.1+double(i));
+               p1->update("Par2", casa::Vector<double>(5,1.1+double(i)));               
+          }
+          CPPUNIT_ASSERT(p1->isChanged("Par1",cm2Par1));
+          CPPUNIT_ASSERT(p1->isChanged("Par2",cm2Par2));
+          CPPUNIT_ASSERT(p1->isChanged("Par1",cm1Par1));
+          CPPUNIT_ASSERT(p1->isChanged("Par2",cm1Par2));
         }
     };
 

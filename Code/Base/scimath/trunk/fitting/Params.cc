@@ -58,9 +58,11 @@ namespace askap
 		{
 		}
 
-		Params::Params(const Params& other)
+		Params::Params(const Params& other) : itsArrays(other.itsArrays), itsAxes(other.itsAxes),
+		      itsFree(other.itsFree), itsCounts(other.itsCounts)
 		{
-			operator=(other);
+			// itsChangeMonitors is not copied deliberately
+			ASKAPDEBUGASSERT(itsChangeMonitors.size() == 0);
 		}
 
 		Params& Params::operator=(const Params& other)
@@ -71,6 +73,8 @@ namespace askap
 				itsAxes=other.itsAxes;
 				itsFree=other.itsFree;
 				itsCounts=other.itsCounts;
+				// change monitor map is reset deliberately
+				itsChangeMonitors.clear();
 			}
 			return *this;
 		}
@@ -110,6 +114,7 @@ namespace askap
 			itsFree[name]=true;
 			itsAxes[name]=Axes();
 			itsCounts[name]=0;
+            notifyAboutChange(name);
 		}
 
 		void Params::add(const std::string& name, const casa::Array<double>& ip)
@@ -119,6 +124,7 @@ namespace askap
 			itsFree[name]=true;
 			itsAxes[name]=Axes();
 			itsCounts[name]=0;
+            notifyAboutChange(name);
 		}
 
 		void Params::add(const std::string& name, const casa::Array<double>& ip,
@@ -129,6 +135,7 @@ namespace askap
 			itsFree[name]=true;
 			itsAxes[name]=axes;
 			itsCounts[name]=0;
+            notifyAboutChange(name);
 		}
 		
 		/// @brief add a complex-valued parameter
@@ -155,6 +162,7 @@ namespace askap
 			itsFree[name]=true;
 			itsAxes[name]=axes;
 			itsCounts[name]=0;
+			notifyAboutChange(name);
 		}
 
 		void Params::update(const std::string& name, const casa::Array<double>& ip)
@@ -163,6 +171,7 @@ namespace askap
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsCounts[name]++;
+            notifyAboutChange(name);	
 		}
 		
         /// @brief Update a slice of an array parameter        
@@ -192,6 +201,7 @@ namespace askap
            arr(blc,trc) = value.copy();
            itsFree[name]=true;
            itsCounts[name]++;
+           notifyAboutChange(name);
         }		
 		
 		/// @brief Add an empty array parameter        
@@ -208,6 +218,7 @@ namespace askap
 			itsFree[name]=true;
 			itsAxes[name]=axes;
 			itsCounts[name]=0;
+			notifyAboutChange(name);
 		}
 		
 		
@@ -234,6 +245,7 @@ namespace askap
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsCounts[name]++;
+			notifyAboutChange(name);
 		}
 
 		const uint Params::size() const
@@ -262,6 +274,7 @@ namespace askap
 		{
 			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			itsCounts[name]++;
+			notifyAboutChange(name);
 			return itsArrays.find(name)->second;
 		}
 
@@ -305,6 +318,7 @@ namespace askap
 		Axes& Params::axes(const std::string& name) 
 		{
 			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
+			notifyAboutChange(name);
 			return itsAxes.find(name)->second;
 		}
 
@@ -332,6 +346,10 @@ namespace askap
 					itsFree[*iter]=other.itsFree.find(*iter)->second;
 					itsAxes[*iter]=other.itsAxes.find(*iter)->second;
 					itsCounts[*iter]++;
+					// we deliberately don't copy itsChangeMonitors map here as 
+					// otherwise we would need some kind of global counter and a more
+					// complicated logic. The working model is that change monitor should always
+					// be first obtained from the same instance of the class.
 				}
 			}
 		}
@@ -399,6 +417,11 @@ namespace askap
           itsAxes.erase(name);
           itsFree.erase(name);
           itsCounts.erase(name);
+          // change monitor map doesn't need to contain all parameters
+          std::map<std::string, ChangeMonitor>::iterator it = itsChangeMonitors.find(name);
+          if (it != itsChangeMonitors.end()) {          
+              itsChangeMonitors.erase(it);
+          }
         }
 		
 
@@ -408,6 +431,7 @@ namespace askap
 			itsAxes.clear();
 			itsFree.clear();
 			itsCounts.clear();
+			itsChangeMonitors.clear();
 		}
 
 		std::ostream& operator<<(std::ostream& os, const Params& params)
@@ -460,6 +484,27 @@ ChangeMonitor Params::monitorChanges(const std::string& name) const
   // the following line will call the default constructor behind the scene.
   return itsChangeMonitors[name];
 }
+
+/// @brief notify change monitors about parameter update
+/// @details Change monitors are used to track updates of some
+/// parameters. This method first searches whether a particular
+/// parameter is monitored. If yes, it notifies the appropriate
+/// change monitor object (stored in itsChangeMonitors map).  
+/// Nothing happens if the given parameter is not monitored.
+/// @note Althoguh this method could have been made const because
+/// it works with a mutable data member only, it is conceptually
+/// non-const and is supposed to be used only inside methods changing
+/// the parameter.
+/// @param[in] name  name of the parameter
+void Params::notifyAboutChange(const std::string &name)
+{
+  std::map<std::string, ChangeMonitor>::iterator it = itsChangeMonitors.find(name);
+  if (it != itsChangeMonitors.end()) {
+      // parameter is monitored
+      it->second.notifyOfChanges();
+  }   
+}
+
     
 /// @brief verify that the parameter has been changed
 /// @details This method checks the status of a tracked
@@ -486,6 +531,7 @@ bool Params::isChanged(const std::string &name, const ChangeMonitor &cm) const
 #define BLOBVERSION 1
 
 		// These are the items that we need to write to and read from a blob stream
+		// note itsChangeMonitors is not written to blob deliberately
 		// std::map<std::string, casa::Array<double> > itsArrays;
 		// std::map<std::string, Axes> itsAxes;
 		// std::map<std::string, bool> itsFree;
@@ -506,7 +552,9 @@ bool Params::isChanged(const std::string &name, const ChangeMonitor &cm) const
 		        "Attempting to read from a blob stream a Params object of the wrong version, expect "<<
 		        BLOBVERSION<<" got "<<version);		
 			is >> par.itsArrays >> par.itsAxes >> par.itsFree >> par.itsCounts;
-            is.getEnd();			
+            is.getEnd();
+            // as the object has been updated one needs to obtain new change monitor
+            par.itsChangeMonitors.clear();			
             return is;
 		}
 
