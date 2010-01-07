@@ -28,18 +28,20 @@
 #include "VisPort.h"
 
 // Include package level header file
-#include <askap_correlatorsim.h>
+#include "askap_correlatorsim.h"
 
 // System includes
+#include <unistd.h>
+#include <vector>
 
 // ASKAPsoft includes
-#include <boost/asio.hpp>
-#include <unistd.h>
-
-// Local package includes
+#include "boost/asio.hpp"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "Common/ParameterSet.h"
+#include "cpcommon/VisPayload.h"
+
+// Local package includes
 
 // Using
 using namespace askap;
@@ -49,12 +51,25 @@ using boost::asio::ip::udp;
 ASKAP_LOGGER(logger, ".VisPort");
 
 VisPort::VisPort(const LOFAR::ParameterSet& parset)
-    : itsParset(parset)
+    : itsParset(parset), itsSocket(itsIOService)
 {
+    // Create a socket
+    itsSocket.open(udp::v4());
+
+    // Set an 16MB send buffer to help deal with the bursty nature of the
+    // communication
+    boost::asio::socket_base::send_buffer_size option(1024 * 1024 * 8);
+    boost::system::error_code soerror;
+    itsSocket.set_option(option, soerror);
+    if (soerror) {
+        ASKAPLOG_WARN_STR(logger, "Failed to set socket option (send buffer size): "
+                << soerror);
+    }
 }
 
 VisPort::~VisPort()
 {
+    itsSocket.close();
 }
 
 void VisPort::send(const std::vector<askap::cp::VisPayload>& payload)
@@ -63,20 +78,6 @@ void VisPort::send(const std::vector<askap::cp::VisPayload>& payload)
         //itsParset.getString("playback.visibilities.hostname");
     const unsigned int port = itsParset.getUint32("playback.visibilities.port");
 
-    // Create a socket
-    boost::asio::io_service io_service;
-    udp::socket socket(io_service);
-    socket.open(udp::v4());
-
-    // Set an 4MB send buffer to help deal with the bursty nature of the
-    // communication
-    boost::asio::socket_base::send_buffer_size option(1024 * 1024 * 4);
-    boost::system::error_code soerror;
-    socket.set_option(option, soerror);
-    if (soerror) {
-        throw boost::system::system_error(soerror);
-    }
-
     // Get the remote endpoint
     boost::asio::ip::udp::endpoint destination(
             boost::asio::ip::address::from_string(hostname), port);
@@ -84,9 +85,9 @@ void VisPort::send(const std::vector<askap::cp::VisPayload>& payload)
     // Send each payload in the vector
     for (unsigned int i = 0; i < payload.size(); ++i) {
         boost::system::error_code error;
-        socket.send_to(boost::asio::buffer(&payload[i], sizeof(VisPayload)), destination, 0, error);
+        itsSocket.send_to(boost::asio::buffer(&payload[i], sizeof(VisPayload)), destination, 0, error);
         if (error) {
-            throw boost::system::system_error(error);
+            ASKAPLOG_ERROR_STR(logger, "UDP send failed: " << error);
         }
     }
 

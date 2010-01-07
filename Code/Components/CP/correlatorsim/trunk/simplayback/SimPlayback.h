@@ -29,10 +29,9 @@
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
-#include "Ice/Ice.h"
 
 // Local package includes
-#include "cpinterfaces/TypedValues.h"
+#include "simplayback/MetadataPort.h"
 #include "simplayback/VisPort.h"
 
 namespace askap
@@ -48,18 +47,11 @@ namespace askap
                 void run(void);
 
             private:
-                // Get an IceStorm topic publisher proxy
-                Ice::ObjectPrx getProxy(const std::string& topicManager,
-                        const std::string& topic);
-
                 // ParameterSet (configuration)
-                LOFAR::ParameterSet itsParset;
+                const LOFAR::ParameterSet itsParset;
 
-                // Ice Communicator
-                Ice::CommunicatorPtr itsComm;
-
-                // Ice proxy for the metadata stream topic
-                askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsMetadataStream;
+                // Port for output of metadata
+                askap::cp::MetadataPort itsMetadataPort;
 
                 // Port for output of visibilities
                 askap::cp::VisPort itsVisPort;

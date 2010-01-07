@@ -32,56 +32,27 @@
 
 // System includes
 #include <string>
-#include <sstream>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "Common/ParameterSet.h"
-#include "Ice/Ice.h"
-#include "IceStorm/IceStorm.h"
 #include "cpcommon/VisPayload.h"
 
 // Local package includes
 #include "cpinterfaces/TypedValues.h"
 #include "simplayback/MSReader.h"
+#include "simplayback/MetadataPort.h"
 #include "simplayback/VisPort.h"
 
 // Using
-using namespace askap;
 using namespace askap::cp;
-using namespace askap::interfaces;
-using namespace askap::interfaces::datapublisher;
 
 ASKAP_LOGGER(logger, ".SimPlayback");
 
 SimPlayback::SimPlayback(const LOFAR::ParameterSet& parset)
-    : itsParset(parset), itsVisPort(parset)
+    : itsParset(parset), itsMetadataPort(parset), itsVisPort(parset)
 {
-    // Initialise an IceCommunicator from the parset
-    Ice::PropertiesPtr props = Ice::createProperties();
-
-    // Make sure that network and protocol tracing are off.
-    props->setProperty("Ice.Trace.Network", "0");
-    props->setProperty("Ice.Trace.Protocol", "0");
-
-    // Syntax example:
-    // IceGrid/Locator:tcp -h localhost -p 4061
-    std::ostringstream ss;
-    ss << "IceGrid/Locator:tcp -h ";
-    ss << itsParset.getString("playback.ice.locator_host");
-    ss << " -p ";
-    ss << itsParset.getString("playback.ice.locator_port");
-    std::string locatorParam = ss.str();
-
-    props->setProperty("Ice.Default.Locator", locatorParam);
-
-    // Initialize a communicator with these properties.
-    Ice::InitializationData id;
-    id.properties = props;
-    ASKAPLOG_DEBUG_STR(logger, "Initialising the Ice Communicator");
-    itsComm = Ice::initialize(id);
-    ASKAPCHECK(itsComm, "Communicator failed to initialise");
 }
 
 SimPlayback::~SimPlayback()
@@ -90,56 +61,26 @@ SimPlayback::~SimPlayback()
 
 void SimPlayback::run(void)
 {
-    ASKAPCHECK(itsComm, "Communicator is not initialised");
-
     // Get the filename for the measurement set and create a reader
     const std::string dataset = itsParset.getString("playback.dataset");
+    ASKAPLOG_INFO_STR(logger, "Streaming dataset " << dataset);
     MSReader reader(dataset);
-
-    ASKAPLOG_DEBUG_STR(logger, "Streaming dataset " << dataset);
-
-    // Get the topic for the metadata stream
-    const std::string mdTopicManager =
-        itsParset.getString("playback.metadata.icestorm.topicmanager");
-    const std::string mdTopic =
-        itsParset.getString("playback.metadata.icestorm.topic");
-    itsMetadataStream = ITimeTaggedTypedValueMapPublisherPrx::uncheckedCast(
-            getProxy(mdTopicManager, mdTopic));
 
     unsigned long count = 1; // Just for debugging, can be removed
     bool moreData = true;
     while (moreData) {
+        // Structures to be populated and sent
         askap::interfaces::TimeTaggedTypedValueMap metadata;
         std::vector<askap::cp::VisPayload> visibilities;
 
+        // Populate the structures
         moreData = reader.fillNext(metadata, visibilities);
 
-        ASKAPLOG_INFO_STR(logger, "Sending payload " << count);
-        itsMetadataStream->publish(metadata);
+        // Send
+        ASKAPLOG_DEBUG_STR(logger, "Sending payload " << count);
+        itsMetadataPort.send(metadata);
         itsVisPort.send(visibilities);
         count++; // Just for debugging, can be removed
     }
     ASKAPLOG_INFO_STR(logger, "Completed streaming " << dataset);
 }
-
-// For a given topic manager and topic, return the proxy to the
-// publisher object
-Ice::ObjectPrx SimPlayback::getProxy(const std::string& topicManager,
-        const std::string& topic)
-{
-    ASKAPCHECK(itsComm, "Communicator is not initialised");
-
-    Ice::ObjectPrx obj = itsComm->stringToProxy(topicManager);
-    IceStorm::TopicManagerPrx manager =
-        IceStorm::TopicManagerPrx::checkedCast(obj);
-    IceStorm::TopicPrx topicPrx;
-    try {
-        topicPrx = manager->retrieve(topic);
-    } catch (const IceStorm::NoSuchTopic&) {
-        topicPrx = manager->create(topic);
-    }
-
-    // Return the proxy
-    return topicPrx->getPublisher()->ice_oneway();
-}
-

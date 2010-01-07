@@ -1,4 +1,4 @@
-/// @file VisPort.h
+/// @file MetadataPort.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,40 +24,44 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_VISPORT_H
-#define ASKAP_CP_VISPORT_H
+#ifndef ASKAP_CP_METADATAPORT_H
+#define ASKAP_CP_METADATAPORT_H
 
 // System includes
-#include <vector>
+#include <string>
 
 // ASKAPsoft includes
-#include "boost/asio.hpp"
 #include "Common/ParameterSet.h"
-#include "cpcommon/VisPayload.h"
+#include "Ice/Ice.h"
 
 // Local package includes
+#include "cpinterfaces/TypedValues.h"
 
 namespace askap
 {
     namespace cp
     {
-        class VisPort
+        class MetadataPort
         {
             public:
-                VisPort(const LOFAR::ParameterSet& parset);
-                ~VisPort();
+                MetadataPort(const LOFAR::ParameterSet& parset);
+                ~MetadataPort();
 
-                void send(const std::vector<askap::cp::VisPayload>& payload);
+                void send(const askap::interfaces::TimeTaggedTypedValueMap& payload);
 
             private:
+                // Get an IceStorm topic publisher proxy
+                Ice::ObjectPrx getProxy(const std::string& topicManager,
+                        const std::string& topic);
+
                 // ParameterSet (configuration)
                 const LOFAR::ParameterSet itsParset;
 
-                // io_service
-                boost::asio::io_service itsIOService;
+                // Ice Communicator
+                Ice::CommunicatorPtr itsComm;
 
-                // Network socket
-                boost::asio::ip::udp::socket itsSocket;
+                // Ice proxy for the metadata stream topic
+                askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsMetadataStream;
         };
     };
 };
