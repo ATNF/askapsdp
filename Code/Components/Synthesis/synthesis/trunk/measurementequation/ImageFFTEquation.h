@@ -32,6 +32,7 @@
 
 #include <fitting/Params.h>
 #include <fitting/ImagingEquation.h>
+#include <utils/ChangeMonitor.h>
 
 #include <gridding/IVisGridder.h>
 #include <dataaccess/SharedIter.h>
@@ -129,6 +130,21 @@ namespace askap
         /// Iterator giving access to the data
         mutable IDataSharedIter itsIdi;
 
+        /// @brief change monitors per image parameter
+        /// @details This objects are used to determine whether a new 
+        /// initialise degrid is necessary (i.e. image or coordinate system
+        /// has been updated since the last call).
+        mutable std::map<std::string, scimath::ChangeMonitor> itsImageChangeMonitors; 
+        
+        /// @brief helper method to verify whether a parameter had been changed 
+        /// @details This method checks whether a particular parameter is tracked. If 
+        /// yes, its change monitor is used to verify the status since the last call of
+        /// the method, otherwise new tracking begins and true is returned (i.e. to 
+        /// update all dependent cache).
+        /// @param[in] name name of the parameter
+        /// @return true if parameter has been updated since the previous call
+        bool notYetDegridded(const std::string &name) const;
+        
         void init();
 
 

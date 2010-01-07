@@ -130,6 +130,26 @@ namespace askap
       return ImageFFTEquation::ShPtr(new ImageFFTEquation(*this));
     }
     
+    /// @brief helper method to verify whether a parameter had been changed 
+    /// @details This method checks whether a particular parameter is tracked. If 
+    /// yes, its change monitor is used to verify the status since the last call of
+    /// the method, otherwise new tracking begins and true is returned (i.e. to 
+    /// update all dependent cache).
+    /// @param[in] name name of the parameter
+    /// @return true if parameter has been updated since the previous call
+    bool ImageFFTEquation::notYetDegridded(const std::string &name) const
+    {
+      std::map<std::string,scimath::ChangeMonitor>::iterator it = itsImageChangeMonitors.find(name);
+      bool result = true;
+      if (it != itsImageChangeMonitors.end()) {
+          result = parameters().isChanged(name,it->second);
+          it->second = parameters().monitorChanges(name);
+      } else {
+          itsImageChangeMonitors[name] = parameters().monitorChanges(name);
+      }
+      return result;
+    }
+    
 
     void ImageFFTEquation::predict() const
     {
@@ -139,19 +159,24 @@ namespace askap
       // switch between these. This optimization may not be sufficient in the long run.
 
       itsIdi.chooseOriginal();
-      ASKAPLOG_INFO_STR(logger, "Initialising for model degridding" );
+      ASKAPLOG_INFO_STR(logger, "Initialising for model degridding");
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image"+(*it));
         SynthesisParamsHelper::clipImage(parameters(),imageName);
-        const Axes axes(parameters().axes(imageName));
-        casa::Array<double> imagePixels(parameters().value(imageName).copy());
-        const casa::IPosition imageShape(imagePixels.shape());
+
         if(itsModelGridders.count(imageName)==0) {
           itsModelGridders[imageName]=itsGridder->clone();
         }
 	    itsModelGridders[imageName]->customiseForContext(*it);
-        itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
+
+        if (notYetDegridded(imageName)) {
+            ASKAPLOG_INFO_STR(logger, "Degridding image "<<imageName);
+            const Axes axes(parameters().axes(imageName));
+            casa::Array<double> imagePixels(parameters().value(imageName).copy());
+            const casa::IPosition imageShape(imagePixels.shape());
+            itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
+        }              
       }
       // Loop through degridding the data
       ASKAPLOG_INFO_STR(logger, "Starting to degrid model" );

@@ -2,7 +2,7 @@
 /// 
 /// @brief An adapter to make imaging equation a derivative from IMeasurementEquation
 /// @details The current imaging code works with iterators, rather than accessors.
-/// Although ImagingMultiChunkEquation allows to take this iterator dependency
+/// Although ImagingMultiChunkEquation allows to take this iterator dependency out
 /// in stages, it is still a lot of work to convert calcEquations and predict
 /// methods of a typical imaging measurement equation to be able to derive it 
 /// from this class. This adapter allows to translate calls to the virtual
@@ -51,7 +51,7 @@ namespace synthesis {
 
 /// @brief An adapter to make imaging equation a derivative from IMeasurementEquation
 /// @details The current imaging code works with iterators, rather than accessors.
-/// Although ImagingMultiChunkEquation allows to take this iterator dependency
+/// Although ImagingMultiChunkEquation allows to take this iterator dependency out
 /// in stages, it is still a lot of work to convert calcEquations and predict
 /// methods of a typical imaging measurement equation to be able to derive it 
 /// from this class. This adapter allows to translate calls to the virtual
