@@ -40,21 +40,23 @@
 #include "Common/ParameterSet.h"
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
+#include "cpcommon/VisPayload.h"
 
 // Local package includes
+#include "cpinterfaces/TypedValues.h"
 #include "simplayback/MSReader.h"
+#include "simplayback/VisPort.h"
 
 // Using
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::interfaces;
-using namespace askap::interfaces::cp;
 using namespace askap::interfaces::datapublisher;
 
 ASKAP_LOGGER(logger, ".SimPlayback");
 
 SimPlayback::SimPlayback(const LOFAR::ParameterSet& parset)
-: itsParset(parset)
+    : itsParset(parset), itsVisPort(parset)
 {
     // Initialise an IceCommunicator from the parset
     Ice::PropertiesPtr props = Ice::createProperties();
@@ -104,29 +106,24 @@ void SimPlayback::run(void)
     itsMetadataStream = ITimeTaggedTypedValueMapPublisherPrx::uncheckedCast(
             getProxy(mdTopicManager, mdTopic));
 
-    // Get the topic for the visibility stream
-    const std::string visTopicManager =
-        itsParset.getString("playback.visibilities.icestorm.topicmanager");
-    const std::string visTopic =
-        itsParset.getString("playback.visibilities.icestorm.topic");
-    itsVisStream = IVisStreamPrx::uncheckedCast(getProxy(visTopicManager, visTopic));
-
     unsigned long count = 1; // Just for debugging, can be removed
     bool moreData = true;
     while (moreData) {
         askap::interfaces::TimeTaggedTypedValueMap metadata;
-        askap::interfaces::cp::Visibilities visibilities;
+        std::vector<askap::cp::VisPayload> visibilities;
 
         moreData = reader.fillNext(metadata, visibilities);
 
         ASKAPLOG_INFO_STR(logger, "Sending payload " << count);
         itsMetadataStream->publish(metadata);
-        itsVisStream->publish(visibilities);
+        itsVisPort.send(visibilities);
         count++; // Just for debugging, can be removed
     }
     ASKAPLOG_INFO_STR(logger, "Completed streaming " << dataset);
 }
 
+// For a given topic manager and topic, return the proxy to the
+// publisher object
 Ice::ObjectPrx SimPlayback::getProxy(const std::string& topicManager,
         const std::string& topic)
 {

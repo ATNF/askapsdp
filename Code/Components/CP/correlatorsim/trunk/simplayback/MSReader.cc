@@ -32,19 +32,18 @@
 
 // System includes
 #include <string>
+#include <sstream>
 #include <iomanip>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
-#include "Blob/BlobOStream.h"
-#include "Blob/BlobOBufVector.h"
-#include "cpcommon/CorrelatorPayload.h"
+#include "cpcommon/VisPayload.h"
 
 // Local package includes
-#include "cpinterfaces/CP.h"
 #include "cpinterfaces/CommonTypes.h"
 #include "cpinterfaces/TypedValues.h"
 
@@ -52,7 +51,6 @@
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::interfaces;
-using namespace askap::interfaces::cp;
 using namespace askap::interfaces::datapublisher;
 using namespace casa;
 
@@ -68,7 +66,7 @@ MSReader::~MSReader()
 }
 
 bool MSReader::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
-        askap::interfaces::cp::Visibilities& vis)
+        std::vector<askap::cp::VisPayload>& visVec)
 {
     ROMSColumns msc(itsMS);
 
@@ -144,11 +142,87 @@ bool MSReader::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
         casa::Vector<casa::String> v  = antc.name().getColumn();
         StringSeq sseq;
         for (unsigned int i = 0; i < v.size(); ++i) {
-            sseq.push_back(v[i]);
+            sseq.push_back(v(i));
         }
         TypedValueStringSeqPtr tv = new TypedValueStringSeq(TypeStringSeq, sseq);
         metadata.data["antenna_names"] = tv;
     }
+
+    ////////////////////////////////////////
+    // Metadata - per antenna
+    ////////////////////////////////////////
+    for (unsigned int i = 0; i < nAntenna; ++i) {
+        const std::string name = antc.name().getColumn()(i);
+
+        {
+            // <antenna name>.dish_pointing
+            Direction dishPointing;
+            dishPointing.coord1 = 0.0; // TODO
+            dishPointing.coord2 = 0.0; // TODO
+            dishPointing.sys = J2000;
+            metadata.data[makeMapKey(name, "dish_pointing")] = new TypedValueDirection(TypeDirection, dishPointing);
+        }
+
+        {
+            // <antenna name>.frequency
+            metadata.data[makeMapKey(name, "frequency")] = new TypedValueDouble(TypeDouble, 0.0); // TODO
+        }
+
+        {
+            // <antenna name>.client_id
+            const std::string clientId = "N/A";
+            metadata.data[makeMapKey(name, "client_id")] = new TypedValueString(TypeString, clientId);
+        }
+
+        {
+            // <antenna name>.scan_id
+            const std::string scanId = "0";
+            metadata.data[makeMapKey(name, "scan_id")] = new TypedValueString(TypeString, scanId);
+        }
+
+        {
+            // <antenna name>.phase_tracking_centre
+            DirectionSeq ptc;
+            ptc.resize(nBeam * nCoarseChan);
+            // TODO
+            metadata.data[makeMapKey(name, "phase_tracking_centre")] = new TypedValueDirectionSeq(TypeDirectionSeq, ptc);
+        }
+
+        {
+            // <antenna name>.parallactic_angle
+            metadata.data[makeMapKey(name, "parallactic_angle")] = new TypedValueDouble(TypeDouble, 0.0); // TODO
+        }
+
+        {
+            // <antenna name>.flag.on_source
+            metadata.data[makeMapKey(name, "flag.on_source")] = new TypedValueBool(TypeBool, true); // TODO
+        }
+
+        {
+            // <antenna name>.flag.hw_error
+            metadata.data[makeMapKey(name, "flag.hw_error")] = new TypedValueBool(TypeBool, true); // TODO
+        }
+
+        {
+            // <antenna name>.flag.detailed
+            BoolSeq flag;
+            flag.resize(nBeam * nCoarseChan * nCorr);
+            // TODO
+            metadata.data[makeMapKey(name, "flag.detailed")] = new TypedValueBoolSeq(TypeBoolSeq, flag);
+        }
+
+        {
+            // <antenna name>.system_temp
+            FloatSeq systemTemp;
+            systemTemp.resize(nBeam * nCoarseChan * nCorr);
+            // TODO
+            metadata.data[makeMapKey(name, "system_temp")] = new TypedValueFloatSeq(TypeFloatSeq, systemTemp);
+        }
+    }
+
+    ////////////////////////////////////////
+    // Visibilities
+    ////////////////////////////////////////
 
     // Process rows until none are left or the timestamp
     // changes, indicating the end of this integration
@@ -157,7 +231,8 @@ bool MSReader::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
         // in the integration being processed
         ASKAPCHECK(msc.dataDescId()(itsCurrentRow) == dataDescId,
                 "Data description ID must remain constant for a given integration");
-
+        VisPayload payload;
+        visVec.push_back(payload);
         itsCurrentRow++;
     }
 
@@ -166,4 +241,11 @@ bool MSReader::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
     } else {
         return true;
     }
+}
+
+std::string MSReader::makeMapKey(const std::string &prefix, const std::string &suffix)
+{
+    std::ostringstream ss;
+    ss << prefix << "." << suffix;
+    return ss.str();
 }

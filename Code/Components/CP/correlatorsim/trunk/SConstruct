@@ -17,7 +17,6 @@ pkg.AddSubPackage("cpinterfaces")
 # # file, or omit this argument for a system interface (i.e. Code/Interfaces)
 pkg.AddInterfaces("CommonTypes.ice", "cpinterfaces")
 pkg.AddInterfaces("TypedValues.ice", "cpinterfaces")
-pkg.AddInterfaces("CP.ice", "cpinterfaces")
 
 env.Append(CCFLAGS=['-O2', '-g'])
 

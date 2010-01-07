@@ -1,6 +1,6 @@
-/// @file SimPlayback.h
+/// @file VisPort.h
 ///
-/// @copyright (c) 2009 CSIRO
+/// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,45 +24,34 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SIMPLAYBACK_H
-#define ASKAP_CP_SIMPLAYBACK_H
+#ifndef ASKAP_CP_VISPORT_H
+#define ASKAP_CP_VISPORT_H
+
+// System includes
+#include <vector>
 
 // ASKAPsoft includes
+#include "boost/asio.hpp"
 #include "Common/ParameterSet.h"
-#include "Ice/Ice.h"
+#include "cpcommon/VisPayload.h"
 
 // Local package includes
-#include "cpinterfaces/TypedValues.h"
-#include "simplayback/VisPort.h"
 
 namespace askap
 {
     namespace cp
     {
-        class SimPlayback
+        class VisPort
         {
             public:
-                SimPlayback(const LOFAR::ParameterSet& parset);
-                ~SimPlayback();
+                VisPort(const LOFAR::ParameterSet& parset);
+                ~VisPort();
 
-                void run(void);
+                void send(const std::vector<askap::cp::VisPayload>& payload);
 
             private:
-                // Get an IceStorm topic publisher proxy
-                Ice::ObjectPrx getProxy(const std::string& topicManager,
-                        const std::string& topic);
-
                 // ParameterSet (configuration)
                 LOFAR::ParameterSet itsParset;
-
-                // Ice Communicator
-                Ice::CommunicatorPtr itsComm;
-
-                // Ice proxy for the metadata stream topic
-                askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsMetadataStream;
-
-                // Port for output of visibilities
-                askap::cp::VisPort itsVisPort;
         };
     };
 };

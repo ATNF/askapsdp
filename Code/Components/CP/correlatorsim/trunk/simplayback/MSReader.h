@@ -29,12 +29,13 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"
+#include "cpcommon/VisPayload.h"
 
 // Local package includes
-#include "cpinterfaces/CP.h"
 #include "cpinterfaces/TypedValues.h"
 
 namespace askap
@@ -48,9 +49,11 @@ namespace askap
                 ~MSReader();
 
                 bool fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
-                        askap::interfaces::cp::Visibilities& visibilities);
+                        std::vector<askap::cp::VisPayload>& visVec);
 
             private:
+                std::string makeMapKey(const std::string &prefix, const std::string &suffix);
+
                 casa::MeasurementSet itsMS;
                 unsigned int itsCurrentRow;
         };
