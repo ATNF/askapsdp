@@ -31,7 +31,6 @@
 #include "askap_correlatorsim.h"
 
 // System includes
-#include <unistd.h>
 #include <vector>
 
 // ASKAPsoft includes
@@ -53,17 +52,50 @@ ASKAP_LOGGER(logger, ".VisPort");
 VisPort::VisPort(const LOFAR::ParameterSet& parset)
     : itsParset(parset), itsSocket(itsIOService)
 {
-    // Create a socket
-    itsSocket.open(udp::v4());
+    // Ensure the hostname and port numbers are present in the parset
+    const std::string hostnameKey = "playback.visibilities.hostname";
+    const std::string portKey = "playback.visibilities.port";
+    if (!itsParset.isDefined(hostnameKey)) {
+        ASKAPTHROW(AskapError, "visibilities.hostname not present in parset");
+    }
+    if (!itsParset.isDefined(portKey)) {
+        ASKAPTHROW(AskapError, "visibilities.port not present in parset");
+    }
+    const std::string hostname = itsParset.getString(hostnameKey);
+    const std::string port = itsParset.getString(portKey);
 
-    // Set an 16MB send buffer to help deal with the bursty nature of the
-    // communication
+    // Open the socket using UDP protocol
+    boost::system::error_code operror;
+    itsSocket.open(udp::v4(), operror);
+    if (operror) {
+        ASKAPTHROW(AskapError, "Socket open() call failed");
+    }
+
+    // Set an 8MB send buffer to help deal with the bursty nature of the
+    // communication. The operating system may have some upper limit on
+    // this number.
     boost::asio::socket_base::send_buffer_size option(1024 * 1024 * 8);
     boost::system::error_code soerror;
     itsSocket.set_option(option, soerror);
     if (soerror) {
         ASKAPLOG_WARN_STR(logger, "Failed to set socket option (send buffer size): "
                 << soerror);
+    }
+
+    // Query the nameservice
+    udp::resolver resolver(itsIOService);
+    udp::resolver::query query(udp::v4(), hostname, port);
+
+    // Get the remote endpoint
+    udp::endpoint destination = *resolver.resolve(query);
+
+    // Connect - remembing this is a UDP socket, so connect does not really
+    // connect. It just means the call to send doesn't need to specify the
+    // destination each time.
+    boost::system::error_code coerror;
+    itsSocket.connect(destination, coerror);
+    if (coerror) {
+        ASKAPTHROW(AskapError, "Socket connect() call failed");
     }
 }
 
@@ -74,21 +106,12 @@ VisPort::~VisPort()
 
 void VisPort::send(const std::vector<askap::cp::VisPayload>& payload)
 {
-    const std::string hostname = "127.0.0.1";
-        //itsParset.getString("playback.visibilities.hostname");
-    const unsigned int port = itsParset.getUint32("playback.visibilities.port");
-
-    // Get the remote endpoint
-    boost::asio::ip::udp::endpoint destination(
-            boost::asio::ip::address::from_string(hostname), port);
-
     // Send each payload in the vector
     for (unsigned int i = 0; i < payload.size(); ++i) {
         boost::system::error_code error;
-        itsSocket.send_to(boost::asio::buffer(&payload[i], sizeof(VisPayload)), destination, 0, error);
+        itsSocket.send(boost::asio::buffer(&payload[i], sizeof(VisPayload)), 0, error);
         if (error) {
             ASKAPLOG_ERROR_STR(logger, "UDP send failed: " << error);
         }
     }
-
 }
