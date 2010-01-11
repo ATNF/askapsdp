@@ -272,7 +272,7 @@ namespace askap {
             DIR direction = VERTICAL;
             bool specialCase = true;
             double pa = gauss.PA();
-	    pa = fmod( pa, M_PI ); // in case we get a value of PA outside [0,pi)
+            pa = fmod( pa, M_PI ); // in case we get a value of PA outside [0,pi)
             double sinpa = sin(pa);
             double cospa = cos(pa);
             int sign = pa < M_PI / 2. ? -1 : 1;
@@ -306,10 +306,12 @@ namespace askap {
                 }
 
                 if (direction == VERTICAL) { // Moving vertically
-                    increment = std::min(2.*zeroPointMax - length, fabs((yref + sign * 0.5 - y)) / cospa);
+		    increment = std::min(2.*zeroPointMax - length, fabs((yref + sign * 0.5 - y) / cospa ));
+		    ASKAPCHECK(increment>0., "Vertical increment negative: increment="<<increment<<", sign="<<sign<<", yref="<<yref<<", y="<<y<<", cospa="<<cospa<<", length="<<length<<", zpmax="<<zeroPointMax<<", pa="<<pa<<"="<<pa*180./M_PI);
                     yref += sign;
                 } else if (direction == HORIZONTAL) { // Moving horizontally
-                    increment = std::min(2.*zeroPointMax - length, (xref + 0.5 - x) / sinpa);
+		    increment = std::min(2.*zeroPointMax - length, fabs((xref + 0.5 - x) / sinpa));
+		    ASKAPCHECK(increment>0., "Horizontal increment negative: increment="<<increment<<", xref="<<xref<<", x="<<x<<", sinpa="<<sinpa<<", length="<<length<<", zpmax="<<zeroPointMax<<", pa="<<pa<<"="<<pa*180./M_PI);
                     xref++;
                 }
 
