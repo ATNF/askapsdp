@@ -136,6 +136,7 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
           }
           for (int i=0; i<nNodes-1; i++) {
             itsMs[i]=substitute(tmpl);
+            ASKAPLOG_INFO_STR(logger, "Measurement set "<<tmpl<<" for node "<<i<<" is substituted by "<<itsMs[i]);
           }
       }
       if (nNodes>1) {
