@@ -56,7 +56,7 @@ public class TypedValueUtils {
       return new Boolean(((TypedValueBool) tv).value);
     } else if (tv.type == TypedValueType.TypeDoubleComplex) {
       TypedValueDoubleComplex c = (TypedValueDoubleComplex)tv;
-      return Complex.factory(c.real, c.imag);      
+      return Complex.factory(c.value.real, c.value.imag);      
     } else {
       throw new IllegalArgumentException("TypedValueUtils.typedValue2Object: Unhandled data type " + tv.type);
     }
@@ -88,7 +88,10 @@ public class TypedValueUtils {
     } else if (o instanceof Boolean) {
       return new TypedValueBool(TypedValueType.TypeBool, ((Boolean) o).booleanValue());
     } else if (o instanceof Complex) {
-      return new TypedValueDoubleComplex(TypedValueType.TypeDoubleComplex, ((Complex) o).getReal(), ((Complex) o).getImag());      
+        DoubleComplex val = new DoubleComplex();
+        val.real = ((Complex) o).getReal();
+        val.imag = ((Complex) o).getImag();
+      return new TypedValueDoubleComplex(TypedValueType.TypeDoubleComplex, val);
     } else {
       throw new IllegalArgumentException("TypedValueUtils.object2TypedValue: Unhandled data type " + o.getClass());
     }

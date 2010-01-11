@@ -112,8 +112,8 @@ public class TypedValueUtilsTest {
     double imag = 2.718d;
     TypedValue tv = TypedValueUtils.object2TypedValue(Complex.factory(real, imag));
     assertTrue(tv.type == TypedValueType.TypeDoubleComplex);
-    assertTrue(((TypedValueDoubleComplex) tv).real == real);
-    assertTrue(((TypedValueDoubleComplex) tv).imag == imag);
+    assertTrue(((TypedValueDoubleComplex) tv).value.real == real);
+    assertTrue(((TypedValueDoubleComplex) tv).value.imag == imag);
     Object o = TypedValueUtils.typedValue2Object(tv);
     assertTrue(o instanceof Complex);
     assertTrue(((Complex) o).getReal() == real);
