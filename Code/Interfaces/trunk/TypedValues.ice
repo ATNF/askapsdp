@@ -35,10 +35,11 @@ module interfaces
     /**
      * Enum to represent data types.
      **/
-    enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong, TypeString, TypeBool,
-                        TypeFloatComplex, TypeDoubleComplex, TypeFloatSeq, TypeDoubleSeq, TypeIntSeq,
-                        TypeLongSeq, TypeStringSeq, TypeBoolSeq,
-                        TypeDirection, TypeDirectionSeq};
+    enum TypedValueType {TypeNull, TypeFloat, TypeDouble, TypeInt, TypeLong,
+                        TypeString, TypeBool, TypeFloatComplex, TypeDoubleComplex,
+                        TypeFloatSeq, TypeDoubleSeq, TypeIntSeq, TypeLongSeq,
+                        TypeStringSeq, TypeBoolSeq, TypeFloatComplexSeq,
+                        TypeDoubleComplexSeq, TypeDirection, TypeDirectionSeq};
     
     /**
      * Base class for typed data types.
@@ -102,16 +103,14 @@ module interfaces
      * Class for a single precision floating point complex number.
      **/
     class TypedValueFloatComplex extends TypedValue {
-        float real;
-        float imag;
+        FloatComplex value;
     };
 
     /**
      * Class for a double precision floating point complex number.
      **/
     class TypedValueDoubleComplex extends TypedValue {
-        double real;
-        double imag;
+        DoubleComplex value;
     };
 
     /**
@@ -166,6 +165,20 @@ module interfaces
      **/
     class TypedValueBoolSeq extends TypedValue {
         BoolSeq value;
+    };
+
+    /**
+     * Class for a sequence of single precision floating point complex number.
+     **/
+    class TypedValueFloatComplexSeq extends TypedValue {
+        FloatComplexSeq value;
+    };
+
+    /**
+     * Class for a sequence of double precision floating point complex number.
+     **/
+    class TypedValueDoubleComplexSeq extends TypedValue {
+        DoubleComplexSeq value;
     };
 
     /**
