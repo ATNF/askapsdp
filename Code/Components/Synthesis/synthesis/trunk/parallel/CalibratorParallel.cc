@@ -138,6 +138,8 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
             itsMs[i]=substitute(tmpl);
             ASKAPLOG_INFO_STR(logger, "Measurement set "<<tmpl<<" for node "<<i<<" is substituted by "<<itsMs[i]);
           }
+      } else {
+          ASKAPLOG_INFO_STR(logger, "Skip measurment set substitution, names are given explicitly: "<<itsMs);
       }
       if (nNodes>1) {
           ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
