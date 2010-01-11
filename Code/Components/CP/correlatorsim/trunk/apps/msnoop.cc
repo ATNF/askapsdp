@@ -29,11 +29,13 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <iomanip>
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 
+// Local package includes
 #include "cpinterfaces/CommonTypes.h"
 #include "cpinterfaces/TypedValues.h"
 
@@ -44,15 +46,175 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
     public:
         virtual void publish(const TimeTaggedTypedValueMap& msg,
                 const Ice::Current& c) {
-            std::cout << "Got metadata payload for timestamp: "
-                << msg.timestamp << std::endl;
-            const TypedValueMap &data = msg.data;
 
+            // Print out the header
+            std::cout << "Header:" << std::endl;
+            std::cout << "\ttimestamp: " << msg.timestamp << std::endl;
+
+            // Print out the data section
+            const TypedValueMap& data = msg.data;
+            std::cout << "Data Payload:" << std::endl;
             TypedValueMap::const_iterator it = data.begin();
             while (it != data.end()) {
-                std::cout << "\t" << it->first << std::endl;
+                decodeValue(it->first, it->second);
                 ++it;
             }
+        }
+
+        void decodeValue(const std::string& key, const TypedValuePtr tv) {
+            std::cout << "\t" << key << " : ";
+
+            switch (tv->type) {
+                // Scalar
+                case TypeNull :
+                    print();
+                    newline();
+                    break;
+
+                case TypeInt :
+                    print(TypedValueIntPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeLong :
+                    print(TypedValueLongPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeString :
+                    print(TypedValueStringPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeBool :
+                    print(TypedValueBoolPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeFloat :
+                    print(TypedValueFloatPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeDouble :
+                    print(TypedValueDoublePtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeFloatComplex :
+                    print(TypedValueFloatComplexPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeDoubleComplex :
+                    print(TypedValueDoubleComplexPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeDirection :
+                    print(TypedValueDirectionPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                // Sequences
+                case TypeIntSeq :
+                    print(TypedValueIntSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeLongSeq :
+                    print(TypedValueLongSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeStringSeq :
+                    print(TypedValueStringSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeBoolSeq :
+                    print(TypedValueBoolSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeFloatSeq :
+                    print(TypedValueFloatSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeDoubleSeq :
+                    print(TypedValueDoubleSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                default:
+                    std::cout << "< Unknown type >" << std::endl;
+            }
+        }
+
+        void newline(void) {
+            std::cout << std::endl;
+        }
+
+        void print(void) {
+            std::cout << "<null>";
+        }
+
+        void print(const int v) {
+            std::cout << v;
+        }
+
+        void print(const long v) {
+            std::cout << v;
+        }
+
+        void print(const std::string& v) {
+            std::cout << v;
+        }
+
+        void print(const bool v) {
+            if (v) {
+                std::cout << "True";
+            } else {
+                std::cout << "False";
+            }
+        }
+
+        void print(const float v) {
+            std::cout << std::setprecision(8) << v;
+        }
+
+        void print(const double v) {
+            std::cout << std::setprecision(16) << v;
+        }
+
+        void print(const FloatComplex v) {
+            std::cout << "(" << std::setprecision(8) << v.real << " "
+                << v.imag << ")";
+        }
+
+        void print(const DoubleComplex v) {
+            std::cout << "(" << std::setprecision(16) << v.real << " "
+                << v.imag << ")";
+        }
+
+        void print(const Direction v) {
+            std::cout << "(" << std::setprecision(16) << v.coord1 << " "
+                << v.coord2 << " " << v.sys << ")";
+        }
+
+        template <class T>
+        void print(std::vector<T>& v) {
+            typename std::vector<T>::iterator it = v.begin();
+            std::cout << "[ ";
+            while (it != v.end()) {
+                if (it != v.begin()) {
+                    std::cout << ", ";
+                }
+                print(*it);
+                ++it;
+            }
+            std::cout << " ]";
         }
 };
 
@@ -85,7 +247,7 @@ int main(int argc, char *argv[])
     topic->subscribeAndGetPublisher(qos, proxy);
 
     adapter->activate();
-    std::cout << "Waiting for messages..." << std::endl;
+    std::cout << "Waiting for messages (press CTRL-C to exit)..." << std::endl;
     ic->waitForShutdown();
 
     return 0;
