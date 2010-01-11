@@ -27,9 +27,6 @@
 #ifndef ASKAP_CP_VISPAYLOAD_H
 #define ASKAP_CP_VISPAYLOAD_H
 
-const unsigned int n_fine_per_coarse = 54;
-const unsigned int n_pol = 4;
-
 namespace askap {
     namespace cp {
         struct FloatComplex
@@ -37,6 +34,9 @@ namespace askap {
             float real;
             float imag;
         };
+
+        static const unsigned int n_fine_per_coarse = 54;
+        static const unsigned int n_pol = 4;
 
         struct VisPayload
         {
