@@ -271,21 +271,22 @@ namespace askap {
             enum DIR {VERTICAL, HORIZONTAL};
             DIR direction = VERTICAL;
             bool specialCase = true;
-            float pa = gauss.PA();
-            float sinpa = sin(pa);
-            float cospa = cos(pa);
+            double pa = gauss.PA();
+	    pa = fmod( pa, M_PI ); // in case we get a value of PA outside [0,pi)
+            double sinpa = sin(pa);
+            double cospa = cos(pa);
             int sign = pa < M_PI / 2. ? -1 : 1;
 
             if (cospa == 0.) direction = HORIZONTAL;
             else if (sinpa == 0.) direction = VERTICAL;
             else specialCase = false;
 
-            float majorSigma = gauss.majorAxis() / (4.*M_LN2);
-            float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            float length = 0.;
-            float increment = 0.;
-            float x = gauss.xCenter() - zeroPointMax * sinpa;;
-            float y = gauss.yCenter() + zeroPointMax * cospa;;
+            double majorSigma = gauss.majorAxis() / (4.*M_LN2);
+            double zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
+            double length = 0.;
+            double increment = 0.;
+            double x = gauss.xCenter() - zeroPointMax * sinpa;;
+            double y = gauss.yCenter() + zeroPointMax * cospa;;
             ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax
                                    << ", (xstart,ystart)=(" << x << "," << y << ") and axes=[" << axes[0] << "," << axes[1] << "]");
             unsigned int xref = int(x + 0.5);
@@ -293,7 +294,7 @@ namespace askap {
             unsigned int spatialPixel = xref + axes[0] * yref;
 
             int pix = 0;
-            float pixelVal = 0.;
+            double pixelVal = 0.;
             bool addPixel = true;
 
             while (length < 2.*zeroPointMax) {
